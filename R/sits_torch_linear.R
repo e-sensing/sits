@@ -25,12 +25,15 @@
         self$block <- torch::nn_sequential(
             torch::nn_linear(
                 in_features = input_dim,
-                out_features = output_dim),
+                out_features = output_dim
+            ),
             torch::nn_batch_norm1d(
-                num_features = output_dim),
+                num_features = output_dim
+            ),
             torch::nn_relu(),
             torch::nn_dropout(
-                p = dropout_rate)
+                p = dropout_rate
+            )
         )
     },
     forward = function(x) {
@@ -96,9 +99,11 @@
         self$block <- torch::nn_sequential(
             torch::nn_linear(
                 in_features = input_dim,
-                out_features = output_dim),
+                out_features = output_dim
+            ),
             torch::nn_batch_norm1d(
-                num_features = output_dim),
+                num_features = output_dim
+            ),
             torch::nn_relu()
         )
     },
@@ -124,8 +129,7 @@
 #'
 .torch_multi_linear_batch_norm_relu <- torch::nn_module(
     classname = "torch_multi_linear_batch_norm_relu",
-
-    initialize = function(input_dim, hidden_dims){
+    initialize = function(input_dim, hidden_dims) {
         tensors <- list()
 
         # input layer
@@ -152,4 +156,3 @@
         self$model(x)
     }
 )
-

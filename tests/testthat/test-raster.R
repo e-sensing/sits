@@ -1,6 +1,6 @@
 test_that("One-year, single core classification", {
     samples_ndvi <- sits_select(samples_modis_4bands,
-                                  bands = c("NDVI")
+        bands = c("NDVI")
     )
     rfor_model <- sits_train(
         samples_ndvi,
@@ -23,10 +23,12 @@ test_that("One-year, single core classification", {
         memsize = 4,
         multicores = 1
     )
-    sits_labels(sinop_probs) <- c("Cerrado", "Floresta",
-                                  "Pastagem", "Soja_Milho")
+    sits_labels(sinop_probs) <- c(
+        "Cerrado", "Floresta",
+        "Pastagem", "Soja_Milho"
+    )
     expect_true(all(sits_labels(sinop_probs) %in%
-                        c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")))
+        c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")))
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
 
@@ -42,11 +44,10 @@ test_that("One-year, single core classification", {
 })
 
 test_that("One-year, multicore classification", {
-
     testthat::skip_on_cran()
 
     samples_ndvi <- sits_select(samples_modis_4bands,
-                                bands = c("NDVI")
+        bands = c("NDVI")
     )
 
     timeline_samples <- sits_timeline(samples_ndvi)
@@ -123,7 +124,6 @@ test_that("One-year, multicore classification", {
 })
 
 test_that("One-year, single core classification with filter", {
-
     testthat::skip_on_cran()
 
     samples_filt <-
@@ -158,7 +158,6 @@ test_that("One-year, single core classification with filter", {
 })
 
 test_that("One-year, multicore classification with Savitzky-Golay filter", {
-
     testthat::skip_on_cran()
 
     samples_filt <-
@@ -204,7 +203,7 @@ test_that("One-year, multicore classification with Savitzky-Golay filter", {
     r_obj <- sits:::.raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
     expect_true(sits:::.raster_nrows(r_obj) ==
-                    sits:::.cube_size(sinop_2014_probs)[["nrows"]])
+        sits:::.cube_size(sinop_2014_probs)[["nrows"]])
 
     max_lyr2 <- max(sits:::.raster_get_values(r_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
@@ -216,7 +215,6 @@ test_that("One-year, multicore classification with Savitzky-Golay filter", {
 })
 
 test_that("One-year, multicore classification with Whittaker filter", {
-
     testthat::skip_on_cran()
 
     samples_filt <-
@@ -273,7 +271,6 @@ test_that("One-year, multicore classification with Whittaker filter", {
 })
 
 test_that("One-year, multicore classification with torch", {
-
     testthat::skip_on_cran()
 
     samples_ndvi <-
@@ -326,7 +323,6 @@ test_that("One-year, multicore classification with torch", {
 })
 
 test_that("One-year, multicore classification with ResNet", {
-
     testthat::skip_on_cran()
 
     samples_ndvi <-
@@ -379,7 +375,6 @@ test_that("One-year, multicore classification with ResNet", {
 })
 
 test_that("One-year, multicore classification with TAE", {
-
     testthat::skip_on_cran()
 
     samples_ndvi <-
@@ -432,7 +427,6 @@ test_that("One-year, multicore classification with TAE", {
 })
 
 test_that("One-year, multicore classification with LightTAE", {
-
     testthat::skip_on_cran()
 
     samples_ndvi <-
@@ -485,7 +479,6 @@ test_that("One-year, multicore classification with LightTAE", {
 })
 
 test_that("One-year, multicore classification with post-processing", {
-
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
 
@@ -526,8 +519,10 @@ test_that("One-year, multicore classification with post-processing", {
         bands = "probs",
         data_dir = tempdir(),
         labels = sits_labels(sinop_probs),
-        parse_info = c("X1", "X2", "tile", "start_date",
-                       "end_date", "band", "version")
+        parse_info = c(
+            "X1", "X2", "tile", "start_date",
+            "end_date", "band", "version"
+        )
     )
 
     expect_true(.cube_is_equal(sinop_probs, sinop_probs_2))
@@ -539,7 +534,7 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
 
     expect_true(length(sits_timeline(sinop_class)) ==
-                    length(sits_timeline(sinop_probs)))
+        length(sits_timeline(sinop_probs)))
 
     r_obj <- .raster_open_rast(sinop_class$file_info[[1]]$path[[1]])
     max_lab <- max(.raster_get_values(r_obj))
@@ -553,8 +548,10 @@ test_that("One-year, multicore classification with post-processing", {
         bands = "class",
         labels = sits_labels(sinop_class),
         data_dir = tempdir(),
-        parse_info = c("X1", "X2", "tile", "start_date",
-                       "end_date", "band", "version")
+        parse_info = c(
+            "X1", "X2", "tile", "start_date",
+            "end_date", "band", "version"
+        )
     )
 
     expect_true(.cube_is_equal(sinop_class, sinop_class_2))
@@ -567,7 +564,7 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
 
     expect_true(length(sits_timeline(sinop_bayes)) ==
-                    length(sits_timeline(sinop_probs)))
+        length(sits_timeline(sinop_probs)))
 
     r_bay <- .raster_open_rast(sinop_bayes$file_info[[1]]$path[[1]])
     expect_true(.raster_nrows(r_bay) == .cube_size(sinop_probs)[["nrows"]])
@@ -584,8 +581,10 @@ test_that("One-year, multicore classification with post-processing", {
         bands = "bayes",
         labels = sits_labels(sinop_class),
         data_dir = tempdir(),
-        parse_info = c("X1", "X2", "tile", "start_date",
-                       "end_date", "band", "version")
+        parse_info = c(
+            "X1", "X2", "tile", "start_date",
+            "end_date", "band", "version"
+        )
     )
 
     expect_true(.cube_is_equal(sinop_bayes, sinop_bayes))

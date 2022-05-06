@@ -39,8 +39,8 @@ sits_bands.sits_cube <- function(x) {
     })
     bands <- unique(bands_lst)
     .check_that(length(bands) == 1,
-                local_msg = "tiles have different bands",
-                msg = "cube is inconsistent"
+        local_msg = "tiles have different bands",
+        msg = "cube is inconsistent"
     )
     return(unlist(bands))
 }

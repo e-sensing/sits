@@ -10,8 +10,8 @@
 
     if (!is.null(tiles)) {
         stop(paste("DEAFRICA cubes do not support searching for tiles, use",
-                   "'roi' parameter instead.",
-                   call. = FALSE
+            "'roi' parameter instead.",
+            call. = FALSE
         ))
     }
 

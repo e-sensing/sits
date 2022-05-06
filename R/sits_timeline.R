@@ -60,8 +60,8 @@ sits_timeline.raster_cube <- function(data) {
 #'
 sits_timeline.probs_cube <- function(data) {
     # return the timeline of the cube
-    start_date <- .file_info_start_date(data[1,])
-    end_date <- .file_info_end_date(data[1,])
+    start_date <- .file_info_start_date(data[1, ])
+    end_date <- .file_info_end_date(data[1, ])
     timeline_probs <- c(start_date, end_date)
     return(timeline_probs)
 }
@@ -70,8 +70,8 @@ sits_timeline.probs_cube <- function(data) {
 #'
 sits_timeline.uncertainty_cube <- function(data) {
     # return the timeline of the cube
-    start_date <- .file_info_start_date(data[1,])
-    end_date <- .file_info_end_date(data[1,])
+    start_date <- .file_info_start_date(data[1, ])
+    end_date <- .file_info_end_date(data[1, ])
     timeline_uncert <- c(start_date, end_date)
     return(timeline_uncert)
 }
@@ -80,8 +80,8 @@ sits_timeline.uncertainty_cube <- function(data) {
 sits_timeline.classified_image <- function(data) {
 
     # return the timeline of the cube
-    start_date <- .file_info_start_date(data[1,])
-    end_date <- .file_info_end_date(data[1,])
+    start_date <- .file_info_start_date(data[1, ])
+    end_date <- .file_info_end_date(data[1, ])
     timeline_class <- c(start_date, end_date)
     return(timeline_class)
 }
@@ -244,7 +244,7 @@ sits_timeline.classified_image <- function(data) {
     }
     # what is the difference in days between the last two days of the timeline?
     timeline_diff <- as.integer(timeline[length(timeline)] -
-                                    timeline[length(timeline) - 1])
+        timeline[length(timeline) - 1])
 
     # if the difference in days in the timeline is smaller than the difference
     # between the reference date and the last date of the timeline, then

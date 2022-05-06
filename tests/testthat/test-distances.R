@@ -1,5 +1,4 @@
 test_that("compute distances in time series for indices", {
-
     bands_samples <- sits_bands(samples_modis_4bands)
     n_timeline <- length(sits_timeline(samples_modis_4bands))
 
@@ -32,13 +31,12 @@ test_that("compute distances in time series for indices", {
 })
 
 test_that("compute distances in time series for bands and indices", {
-
     rename_cols <- function(ts) {
-
         dplyr::rename(ts,
-                      "B01" = .data[["MIR"]],
-                      "B02" = .data[["NDVI"]],
-                      "B03" = .data[["NIR"]])
+            "B01" = .data[["MIR"]],
+            "B02" = .data[["NDVI"]],
+            "B03" = .data[["NIR"]]
+        )
     }
 
     ts <- .sits_fast_apply(samples_modis_4bands, "time_series", rename_cols)

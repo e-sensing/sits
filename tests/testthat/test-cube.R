@@ -18,7 +18,7 @@ test_that("Reading a raster cube", {
     )
 
     testthat::skip_if(purrr::is_null(raster_cube),
-                      message = "LOCAL cube not found"
+        message = "LOCAL cube not found"
     )
 
     # get bands names
@@ -38,36 +38,36 @@ test_that("Creating cubes from BDC", {
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
 
     testthat::skip_if(nchar(bdc_access_key) == 0,
-                      message = "No BDC_ACCESS_KEY defined in environment."
+        message = "No BDC_ACCESS_KEY defined in environment."
     )
 
     # create a raster cube file based on the information about the files
     expect_message(
         object = (cbers_cube <-
-                      tryCatch(
-                          {
-                              sits_cube(
-                                  source = "BDC",
-                                  collection = "CB4_64_16D_STK-1",
-                                  tile = c("022024", "022023"),
-                                  start_date = "2018-09-01",
-                                  end_date = "2019-08-29"
-                              )
-                          },
-                          error = function(e) {
-                              return(NULL)
-                          }
-                      )
+            tryCatch(
+                {
+                    sits_cube(
+                        source = "BDC",
+                        collection = "CB4_64_16D_STK-1",
+                        tile = c("022024", "022023"),
+                        start_date = "2018-09-01",
+                        end_date = "2019-08-29"
+                    )
+                },
+                error = function(e) {
+                    return(NULL)
+                }
+            )
         ),
         regexp = "please use tiles instead of tile as parameter"
     )
 
     testthat::skip_if(purrr::is_null(cbers_cube),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
 
     expect_true(all(sits_bands(cbers_cube) %in%
-                        c("NDVI", "EVI", "B13", "B14", "B15", "B16", "CLOUD")))
+        c("NDVI", "EVI", "B13", "B14", "B15", "B16", "CLOUD")))
     bbox <- sits_bbox(cbers_cube)
     int_bbox <- sits:::.sits_bbox_intersect(bbox, cbers_cube[1, ])
     expect_true(all(int_bbox == sits_bbox(cbers_cube[1, ])))
@@ -90,7 +90,7 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
 
     testthat::skip_if(nchar(bdc_access_key) == 0,
-                      message = "No BDC_ACCESS_KEY defined in environment."
+        message = "No BDC_ACCESS_KEY defined in environment."
     )
 
     shp_file <- system.file(
@@ -102,27 +102,27 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
     # create a raster cube file based on the information about the files
     expect_message(
         object = (modis_cube <-
-                      tryCatch(
-                          {
-                              sits_cube(
-                                  source = "BDC",
-                                  collection = "MOD13Q1-6",
-                                  bands = c("NDVI", "EVI"),
-                                  roi = sf_bla,
-                                  start_date = "2018-09-01",
-                                  end_date = "2019-08-29"
-                              )
-                          },
-                          error = function(e) {
-                              return(NULL)
-                          }
-                      )
+            tryCatch(
+                {
+                    sits_cube(
+                        source = "BDC",
+                        collection = "MOD13Q1-6",
+                        bands = c("NDVI", "EVI"),
+                        roi = sf_bla,
+                        start_date = "2018-09-01",
+                        end_date = "2019-08-29"
+                    )
+                },
+                error = function(e) {
+                    return(NULL)
+                }
+            )
         ),
         regexp = "The supplied roi will be transformed to the WGS 84."
     )
 
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
 
     expect_true(all(sits_bands(modis_cube) %in% c("NDVI", "EVI")))
@@ -146,7 +146,7 @@ test_that("Creating cubes from BDC - invalid roi", {
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
 
     testthat::skip_if(nchar(bdc_access_key) == 0,
-                      message = "No BDC_ACCESS_KEY defined in environment."
+        message = "No BDC_ACCESS_KEY defined in environment."
     )
 
     expect_error(
@@ -202,7 +202,7 @@ test_that("Creating cubes from DEA", {
         }
     )
     testthat::skip_if(purrr::is_null(dea_cube),
-                      message = "DEAFRICA is not accessible"
+        message = "DEAFRICA is not accessible"
     )
 
     expect_true(all(sits_bands(dea_cube) %in% c("B01", "B04", "B05")))
@@ -230,6 +230,7 @@ test_that("Creating cubes from DEA - error using tiles", {
         "DEAFRICA cubes do not support searching for tiles"
     )
 })
+
 test_that("Creating cubes from AWS", {
     testthat::skip_on_cran()
 
@@ -276,22 +277,27 @@ test_that("Creating cubes from AWS", {
 })
 
 test_that("Regularizing cubes from AWS, and extracting samples from them", {
-
     testthat::skip_on_cran()
 
-    s2_cube_open <- tryCatch({
-        sits_cube(source = "AWS",
-                  collection = "SENTINEL-S2-L2A-COGS",
-                  tiles = c("20LKP", "20LLP"),
-                  bands = c("B8A", "SCL"),
-                  start_date = "2018-10-01",
-                  end_date = "2018-11-01"
-        )},
-        error = function(e){
+    s2_cube_open <- tryCatch(
+        {
+            sits_cube(
+                source = "AWS",
+                collection = "SENTINEL-S2-L2A-COGS",
+                tiles = c("20LKP", "20LLP"),
+                bands = c("B8A", "SCL"),
+                start_date = "2018-10-01",
+                end_date = "2018-11-01"
+            )
+        },
+        error = function(e) {
             return(NULL)
-        })
-    testthat::skip_if(purrr::is_null(s2_cube_open),
-                      "AWS is not accessible")
+        }
+    )
+    testthat::skip_if(
+        purrr::is_null(s2_cube_open),
+        "AWS is not accessible"
+    )
     expect_false(.cube_is_regular(s2_cube_open))
     expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
 
@@ -299,17 +305,19 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     expect_error(.cube_resolution(s2_cube_open))
     expect_error(.file_info_nrows(s2_cube_open))
 
-    dir_images <-  paste0(tempdir(), "/images2/")
-    if (!dir.exists(dir_images))
+    dir_images <- paste0(tempdir(), "/images2/")
+    if (!dir.exists(dir_images)) {
         suppressWarnings(dir.create(dir_images))
+    }
 
     rg_cube <- sits_regularize(
-        cube        = s2_cube_open[1,],
-        output_dir  = dir_images,
-        res         = 240,
-        period      = "P16D",
-        multicores  = 1,
-        use_gdalcubes = TRUE)
+        cube = s2_cube_open[1, ],
+        output_dir = dir_images,
+        res = 240,
+        period = "P16D",
+        multicores = 1,
+        use_gdalcubes = TRUE
+    )
 
     tile_size <- .cube_size(rg_cube[1, ])
     tile_bbox <- .cube_tile_bbox(rg_cube[1, ])
@@ -324,16 +332,19 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     expect_equal(nrow(tile_fileinfo), 2)
 
     csv_file <- system.file("extdata/samples/samples_amazonia_sentinel2.csv",
-                            package = "sits")
+        package = "sits"
+    )
 
     # read sample information from CSV file and put it in a tibble
     samples <- tibble::as_tibble(utils::read.csv(csv_file))
     expect_equal(nrow(samples), 1202)
     samples <- dplyr::sample_n(samples, size = 10, replace = FALSE)
 
-    ts <- sits_get_data(cube = rg_cube,
-                        samples = samples,
-                        output_dir = dir_images)
+    ts <- sits_get_data(
+        cube = rg_cube,
+        samples = samples,
+        output_dir = dir_images
+    )
 
     vls <- unlist(sits_values(ts))
     expect_true(all(vls > 0 & vls < 1.))
@@ -342,7 +353,6 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
 })
 
 test_that("Creating cubes from AWS Open Data and regularizing with gdalcubes", {
-
     testthat::skip_on_cran()
 
     s2_cube_open <- tryCatch(
@@ -376,8 +386,8 @@ test_that("Creating cubes from AWS Open Data and regularizing with gdalcubes", {
         suppressWarnings(dir.create(dir_images))
     }
     unlink(list.files(dir_images,
-                      pattern = "\\.tif$",
-                      full.names = TRUE
+        pattern = "\\.tif$",
+        full.names = TRUE
     ))
 
     rg_cube <- sits_regularize(
@@ -530,7 +540,7 @@ test_that("Creating Sentinel cubes from MSPC with ROI", {
     testthat::skip_on_cran()
 
     shp_file <- system.file("extdata/shapefiles/df_bsb/df_bsb.shp",
-                            package = "sits"
+        package = "sits"
     )
     sf_bsb <- sf::read_sf(shp_file)
 
@@ -683,9 +693,9 @@ test_that("Creating a raster stack cube with BDC band names", {
     )
 
     testthat::skip_if(purrr::is_null(cbers_cube_bdc),
-                      message = "LOCAL cube not found"
+        message = "LOCAL cube not found"
     )
 
     expect_true(all(sits_bands(cbers_cube_bdc) %in%
-                        c("B16")))
+        c("B16")))
 })

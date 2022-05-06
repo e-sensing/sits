@@ -47,29 +47,30 @@
 #' @return A \code{sits_cube} object with aggregated images.
 #'
 #' @examples
-#' if (sits_run_examples()){
-#' # define a non-regular Sentinel-2 cube in AWS
-#' s2_cube_open <- sits_cube(
-#'     source = "AWS",
-#'     collection = "SENTINEL-S2-L2A-COGS",
-#'     tiles = c("20LKP", "20LLP"),
-#'     bands = c("B8A", "SCL"),
-#'     start_date = "2018-10-01",
-#'     end_date = "2018-11-01"
-#' )
-#' # create a directory to store the regularized images
-#' dir_images <-  paste0(".", "/images_regcube/")
-#' if (!dir.exists(dir_images))
-#'     dir.create(dir_images)
-#' # regularize the cube
-#' rg_cube <- sits_regularize(
-#'     cube = s2_cube_open,
-#'     output_dir  = dir_images,
-#'     res         = 60,
-#'     period      = "P16D",
-#'     multicores = 4,
-#'     memsize  = 16
-#'  )
+#' if (sits_run_examples()) {
+#'     # define a non-regular Sentinel-2 cube in AWS
+#'     s2_cube_open <- sits_cube(
+#'         source = "AWS",
+#'         collection = "SENTINEL-S2-L2A-COGS",
+#'         tiles = c("20LKP", "20LLP"),
+#'         bands = c("B8A", "SCL"),
+#'         start_date = "2018-10-01",
+#'         end_date = "2018-11-01"
+#'     )
+#'     # create a directory to store the regularized images
+#'     dir_images <- paste0(".", "/images_regcube/")
+#'     if (!dir.exists(dir_images)) {
+#'         dir.create(dir_images)
+#'     }
+#'     # regularize the cube
+#'     rg_cube <- sits_regularize(
+#'         cube = s2_cube_open,
+#'         output_dir = dir_images,
+#'         res = 60,
+#'         period = "P16D",
+#'         multicores = 4,
+#'         memsize = 16
+#'     )
 #' }
 #'
 #' @export
@@ -148,7 +149,7 @@ sits_regularize <- function(cube,
 
     # precondition - is the period valid?
     .check_na(lubridate::duration(period),
-              msg = "invalid period specified"
+        msg = "invalid period specified"
     )
 
     # TODO: check resolution as a multiple of input cube
@@ -167,7 +168,7 @@ sits_regularize <- function(cube,
         all(slider::slide_lgl(cube, function(tile) {
             res_tile <- .cube_resolution(cube = tile, bands = band)
             .is_int(max(res_tile[["yres"]], res) / min(res_tile[["yres"]], res),
-                    tolerance = 0.01
+                tolerance = 0.01
             )
         }))
     })
@@ -611,7 +612,7 @@ sits_regularize <- function(cube,
                 length(purrr::transpose(blocks))) {
                 unlink(unlist(blocks_reg_path_lst))
                 return(structure(list("skip me"),
-                                 class = "error"
+                    class = "error"
                 ))
             }
 
@@ -726,8 +727,8 @@ sits_regularize <- function(cube,
 
     # check if cloud_path has length one
     .check_chr(band_path,
-               allow_empty = FALSE, len_min = 1, len_max = 1,
-               msg = "invalid band path value"
+        allow_empty = FALSE, len_min = 1, len_max = 1,
+        msg = "invalid band path value"
     )
 
     # get input cloud path
@@ -738,8 +739,8 @@ sits_regularize <- function(cube,
 
     # check if cloud_path has length one
     .check_chr(cloud_path,
-               allow_empty = FALSE, len_min = 1, len_max = 1,
-               msg = "invalid cloud path value"
+        allow_empty = FALSE, len_min = 1, len_max = 1,
+        msg = "invalid cloud path value"
     )
 
     #### C++ from here...

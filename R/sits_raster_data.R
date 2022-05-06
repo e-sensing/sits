@@ -89,7 +89,7 @@
             clouds <- as.matrix(clouds)
             cld_rows <- nrow(clouds)
             clouds <- matrix(bitwAnd(clouds, sum(2^cld_index)),
-                             nrow = cld_rows
+                nrow = cld_rows
             ) > 0
         } else {
             clouds <- clouds %in% cld_index
@@ -217,7 +217,7 @@
             cld_values <- as.matrix(cld_values)
             cld_rows <- nrow(cld_values)
             cld_values <- matrix(bitwAnd(cld_values, sum(2^cld_index)),
-                                 nrow = cld_rows
+                nrow = cld_rows
             )
         }
     }
@@ -254,13 +254,13 @@
 
             # get only valid values for the timeline
             values_ts <- unlist(values_band[i, start_idx:end_idx],
-                                use.names = FALSE
+                use.names = FALSE
             )
 
             # include information from cloud band
             if (!purrr::is_null(cld_band)) {
                 cld_values <- unlist(cld_values[i, start_idx:end_idx],
-                                     use.names = FALSE
+                    use.names = FALSE
                 )
                 if (.source_cloud_bit_mask(
                     source = .cube_source(cube = tile),
@@ -300,9 +300,11 @@
         purrr::map(tibble::as_tibble)
 
 
-    points$time_series <- purrr::map2(points$time_series,
-                                      ts_samples,
-                                      dplyr::bind_cols)
+    points$time_series <- purrr::map2(
+        points$time_series,
+        ts_samples,
+        dplyr::bind_cols
+    )
 
     class(points) <- c("sits", class(points))
     return(points)

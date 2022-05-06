@@ -40,8 +40,8 @@
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
-#' clusters <- sits_cluster_dendro(cerrado_2classes)
+#' if (sits_run_examples()) {
+#'     clusters <- sits_cluster_dendro(cerrado_2classes)
 #' }
 #'
 #' @export
@@ -116,7 +116,7 @@ sits_cluster_dendro <- function(samples = NULL,
 #' \code{sits_cluster_frequency()} returns a matrix containing
 #' all frequencies of labels in clusters.
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     clusters <- sits_cluster_dendro(cerrado_2classes)
 #'     freq <- sits_cluster_frequency(clusters)
 #'     freq
@@ -139,8 +139,8 @@ sits_cluster_frequency <- function(samples) {
 
     # compute total row and col
     result <- stats::addmargins(result,
-                                FUN = list(Total = sum),
-                                quiet = TRUE
+        FUN = list(Total = sum),
+        quiet = TRUE
     )
     return(result)
 }
@@ -151,7 +151,7 @@ sits_cluster_frequency <- function(samples) {
 #' that has an additional `cluster` produced by \code{sits_cluster_dendro()}
 #' and removes labels that are minority in each cluster.
 #' @examples
-#' #' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     clusters <- sits_cluster_dendro(cerrado_2classes)
 #'     freq1 <- sits_cluster_frequency(clusters)
 #'     freq1
@@ -185,9 +185,11 @@ sits_cluster_clean <- function(samples) {
     clean_clusters <- purrr::map2_dfr(
         lbs_max, num_cls,
         function(lb, cl) {
-            partial <- dplyr::filter(samples,
-                                     .data[["label"]] == lb &
-                                         .data[["cluster"]] == cl)
+            partial <- dplyr::filter(
+                samples,
+                .data[["label"]] == lb &
+                    .data[["cluster"]] == cl
+            )
             return(partial)
         }
     )
@@ -353,7 +355,7 @@ sits_cluster_clean <- function(samples) {
         nis2 <- sum(choose(ni[ni > 1], 2))
         njs2 <- sum(choose(nj[nj > 1], 2))
         rand <- c(ARI = c(sum(choose(x[x > 1], 2)) -
-                (nis2 * njs2) / n2) / ((nis2 + njs2) / 2 - (nis2 * njs2) / n2))
+            (nis2 * njs2) / n2) / ((nis2 + njs2) / 2 - (nis2 * njs2) / n2))
     } else {
         rand <- c(rand, RI = 1 + (sum(x^2) - (sum(ni^2) + sum(nj^2)) / 2) / n2)
     }

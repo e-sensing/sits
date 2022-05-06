@@ -36,7 +36,7 @@ and thus increase the likelihood that the resulting pixels with high
 uncertainty have meaningful information.
 }
 \examples{
-if (sits_run_examples()){
+if (sits_run_examples()) {
     # create a data cube
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(

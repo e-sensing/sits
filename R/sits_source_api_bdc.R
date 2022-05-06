@@ -40,7 +40,8 @@
     # fetching all the metadata
     items_info <- rstac::items_fetch(
         items = items_info,
-        progress = progress, ...)
+        progress = progress, ...
+    )
 
     return(items_info)
 }

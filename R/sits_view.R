@@ -25,46 +25,46 @@
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
+#'     sits_view(cerrado_2classes)
 #'
-#'  sits_view(cerrado_2classes)
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'
-#'  data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     modis_cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # view the data cube
+#'     sits_view(modis_cube,
+#'         band = "NDVI",
+#'         dates = timeline[[1]]
+#'     )
 #'
-#'  modis_cube <- sits_cube(
-#'      source = "BDC",
-#'      collection = "MOD13Q1-6",
-#'      data_dir = data_dir,
-#'      parse_info = c("X1", "X2", "tile", "band", "date")
-#'  )
-#'  # view the data cube
-#'  sits_view(modis_cube,
-#'                  band = "NDVI",
-#'                  dates = timeline[[1]]
-#'  )
+#'     samples_ndvi <- sits_select(samples_modis_4bands,
+#'         bands = c("NDVI")
+#'     )
+#'     rf_model <- sits_train(samples_ndvi, sits_rfor())
 #'
-#'  samples_ndvi <- sits_select(samples_modis_4bands,
-#'                              bands = c("NDVI")
-#'  )
-#'  rf_model <- sits_train(samples_ndvi, sits_rfor())
+#'     modis_probs <- sits_classify(
+#'         data = modis_cube,
+#'         ml_model = rf_model,
+#'         output_dir = tempdir(),
+#'         memsize = 4,
+#'         multicores = 1
+#'     )
+#'     modis_label <- sits_label_classification(modis_probs,
+#'         output_dir = tempdir()
+#'     )
 #'
-#'  modis_probs <- sits_classify(
-#'      data = modis_cube,
-#'      ml_model = rf_model,
-#'      output_dir = tempdir(),
-#'      memsize = 4,
-#'      multicores = 1
-#'  )
-#'  modis_label <- sits_label_classification(modis_probs,
-#'                                           output_dir = tempdir())
+#'     sits_view(modis_label)
 #'
-#'  sits_view(modis_label)
-#'
-#'  sits_view(modis_cube,
-#'            band = "NDVI",
-#'            class_cube = modis_label,
-#'            dates = sits_timeline(modis_cube)[[1]]
-#'  )
-#'}
+#'     sits_view(modis_cube,
+#'         band = "NDVI",
+#'         class_cube = modis_label,
+#'         dates = sits_timeline(modis_cube)[[1]]
+#'     )
+#' }
 #' @export
 sits_view <- function(x, ...) {
 
@@ -87,10 +87,12 @@ sits_view.sits <- function(x, ...,
     .check_require_packages("leaflet")
 
     # first select unique locations
-    x <- dplyr::distinct(x,
-                         .data[["longitude"]],
-                         .data[["latitude"]],
-                         .data[["label"]])
+    x <- dplyr::distinct(
+        x,
+        .data[["longitude"]],
+        .data[["latitude"]],
+        .data[["label"]]
+    )
     # convert tibble to sf
     samples <- sf::st_as_sf(
         x[c("longitude", "latitude", "label")],
@@ -99,10 +101,6 @@ sits_view.sits <- function(x, ...,
     )
     # get the bounding box
     samples_bbox <- sf::st_bbox(samples)
-    dist_x <- (samples_bbox[["xmax"]] - samples_bbox[["xmin"]])
-    dist_y <- (samples_bbox[["ymax"]] - samples_bbox[["ymin"]])
-    lng_center <- samples_bbox[["xmin"]] + dist_x / 2.0
-    lat_center <- samples_bbox[["ymin"]] + dist_y / 2.0
     # get the labels
     labels <- sits_labels(x)
 
@@ -168,10 +166,10 @@ sits_view.sits <- function(x, ...,
             options = leaflet::layersControlOptions(collapsed = FALSE)
         ) %>%
         leaflet::addLegend("topright",
-                           pal     = factpal,
-                           values  = samples$label,
-                           title   = "Training Samples",
-                           opacity = 1
+            pal     = factpal,
+            values  = samples$label,
+            title   = "Training Samples",
+            opacity = 1
         )
     return(leaf_map)
 }
@@ -196,7 +194,7 @@ sits_view.raster_cube <- function(x, ...,
     # Remote files not working in Windows (bug in stars)
     .check_that(
         !(.Platform$OS.type == "windows" &&
-            grepl("^/vsi", .file_info_path(x[1,]))),
+            grepl("^/vsi", .file_info_path(x[1, ]))),
         msg = "sits_view not working in Windows OS for remote files"
     )
 
@@ -224,12 +222,14 @@ sits_view.raster_cube <- function(x, ...,
     # pre-condition 2
     .check_that(
         !(purrr::is_null(band)) ||
-        (!(purrr::is_null(red))
-         && !(purrr::is_null(green))
-         && !(purrr::is_null(blue))
-        ),
-        local_msg = paste0("either 'band' parameter or 'red', 'green', and",
-                           "'blue' parameters should be informed")
+            (!(purrr::is_null(red)) &&
+                !(purrr::is_null(green)) &&
+                !(purrr::is_null(blue))
+            ),
+        local_msg = paste0(
+            "either 'band' parameter or 'red', 'green', and",
+            "'blue' parameters should be informed"
+        )
     )
 
     # check if rgb bands were informed
@@ -265,8 +265,8 @@ sits_view.raster_cube <- function(x, ...,
     # verifies if cube has a single timeline
     timeline <- sits_timeline(cube_tiles)
     .check_that(!is.list(timeline),
-                local_msg = "more than one timeline per cube",
-                msg = "cannot visualize cube"
+        local_msg = "more than one timeline per cube",
+        msg = "cannot visualize cube"
     )
 
 
@@ -315,12 +315,18 @@ sits_view.raster_cube <- function(x, ...,
             # filter by date
             images_date <- dplyr::filter(fi, as.Date(.data[["date"]]) == !!date)
             # if there is only one band, RGB files will be the same
-            red_file <- dplyr::filter(images_date,
-                                      .data[["band"]] == red)$path[[1]]
-            green_file <- dplyr::filter(images_date,
-                                        .data[["band"]] == green)$path[[1]]
-            blue_file <- dplyr::filter(images_date,
-                                       .data[["band"]]  == blue)$path[[1]]
+            red_file <- dplyr::filter(
+                images_date,
+                .data[["band"]] == red
+            )$path[[1]]
+            green_file <- dplyr::filter(
+                images_date,
+                .data[["band"]] == green
+            )$path[[1]]
+            blue_file <- dplyr::filter(
+                images_date,
+                .data[["band"]] == blue
+            )$path[[1]]
             rgb_files <- c(r = red_file, g = green_file, b = blue_file)
             st_obj <- stars::read_stars(
                 rgb_files,
@@ -542,7 +548,7 @@ sits_view.classified_image <- function(x, ...,
         ) %>%
         leaflet::addProviderTiles(
             map = .,
-            provider =  leaflet::providers$GeoportailFrance.orthos,
+            provider = leaflet::providers$GeoportailFrance.orthos,
             group = "GeoPortalFrance"
         ) %>%
         leaflet::addProviderTiles(

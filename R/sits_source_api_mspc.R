@@ -112,7 +112,7 @@
     # assign href
     items_info <- suppressWarnings(
         rstac::items_sign(items_info,
-                          sign_fn = rstac::sign_planetary_computer()
+            sign_fn = rstac::sign_planetary_computer()
         )
     )
     return(items_info)

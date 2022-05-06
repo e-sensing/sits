@@ -47,13 +47,13 @@
     band_in_size <- output_size * ratio_in_out
     cloud_in_size <- output_size * ratio_cloud_out
 
-    # proc_bloat <- .config_processing_bloat()
+    #
     proc_bloat <- 1
 
     # total memory required
     required_mem_per_core <-
         (n_images_interval * (band_in_size + cloud_in_size) +
-             output_size) * proc_bloat * 1e-09
+            output_size) * proc_bloat * 1e-09
 
     # memory available per core
     avail_mem_per_core <- memsize / multicores
@@ -154,9 +154,9 @@
 
     # pre-condition
     .check_chr(period,
-               allow_empty = FALSE,
-               len_min = 1, len_max = 1,
-               msg = "invalid 'period' parameter"
+        allow_empty = FALSE,
+        len_min = 1, len_max = 1,
+        msg = "invalid 'period' parameter"
     )
 
     # start date - maximum of all minimums
@@ -242,7 +242,7 @@
         next_rows <- (block[["nrows"]] + block[["first_row"]]) - 1
 
         b_filename <- paste(b_filename, "block", currently_row, next_rows,
-                            sep = "_"
+            sep = "_"
         )
     }
 

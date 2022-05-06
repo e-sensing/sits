@@ -34,7 +34,7 @@
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # select a set of samples
 #'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a random forest model
@@ -42,11 +42,11 @@
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
-#'          source = "BDC",
-#'          collection = "MOD13Q1-6",
-#'          data_dir = data_dir,
-#'          delim = "_",
-#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
@@ -109,8 +109,10 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
         msg = "Invalid 'window_fn' parameter"
     )
     # resolve window_fn parameter
-    window_fn <- .config_get(key = c("uncertainty_window_functions",
-                                     window_fn))
+    window_fn <- .config_get(key = c(
+        "uncertainty_window_functions",
+        window_fn
+    ))
     config_fun <- strsplit(window_fn, "::")[[1]]
     window_fn <- get(config_fun[[2]], envir = asNamespace(config_fun[[1]]))
 
@@ -150,8 +152,9 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
 
     # create a window
     window <- NULL
-    if (!purrr::is_null(window_size) && window_size > 1)
+    if (!purrr::is_null(window_size) && window_size > 1) {
         window <- matrix(1, nrow = window_size, ncol = window_size)
+    }
 
     # entropy uncertainty index to be executed by workers cluster
     .do_entropy <- function(chunk) {
@@ -169,13 +172,14 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
             values = unc
         )
         # process window
-        if (!is.null(window))
+        if (!is.null(window)) {
             res <- terra::focal(
                 res,
                 w = window,
                 fun = window_fn,
                 na.rm = TRUE
             )
+        }
         return(res)
     }
 
@@ -210,8 +214,9 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(NULL)
+        }
 
         # overlapping pixels
         overlapping_y_size <- ceiling(window_size / 2) - 1
@@ -224,7 +229,8 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
             xsize = size[["ncols"]],
             ysize = size[["nrows"]],
             block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = overlapping_y_size)
+            overlapping_y_size = overlapping_y_size
+        )
 
         # open probability file
         in_file <- .file_info_path(tile)
@@ -242,18 +248,22 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
             raster_out <- .do_entropy(chunk = chunk)
 
             # create extent
-            blk_no_overlap <- list(first_row = block$crop_first_row,
-                                   nrows = block$crop_nrows,
-                                   first_col = block$crop_first_col,
-                                   ncols = block$crop_ncols)
+            blk_no_overlap <- list(
+                first_row = block$crop_first_row,
+                nrows = block$crop_nrows,
+                first_col = block$crop_first_col,
+                ncols = block$crop_ncols
+            )
 
             # crop removing overlaps
             raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
             # export to temp file
-            block_file <- .smth_filename(tile = tile_new,
-                                         output_dir = output_dir,
-                                         block = block)
+            block_file <- .smth_filename(
+                tile = tile_new,
+                output_dir = output_dir,
+                block = block
+            )
 
             # save chunk
             .raster_write_rast(
@@ -280,7 +290,7 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
     result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
         # get tile from cube
-        tile <- cube[i,]
+        tile <- cube[i, ]
 
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
@@ -299,8 +309,9 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(tile_new)
+        }
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
@@ -312,7 +323,7 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
             .raster_merge(
                 in_files = tmp_blocks,
                 out_file = out_file,
-                format   = "GTiff",
+                format = "GTiff",
                 gdal_datatype =
                     .raster_gdal_datatype(.config_get("probs_cube_data_type")),
                 gdal_options =
@@ -427,8 +438,9 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(NULL)
+        }
 
         # get cube size
         size <- .cube_size(tile)
@@ -438,7 +450,8 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
             xsize = size[["ncols"]],
             ysize = size[["nrows"]],
             block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = 0)
+            overlapping_y_size = 0
+        )
 
         # open probability file
         in_file <- .file_info_path(tile)
@@ -456,18 +469,22 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
             raster_out <- .do_least(chunk = chunk)
 
             # create extent
-            blk_no_overlap <- list(first_row = block$crop_first_row,
-                                   nrows = block$crop_nrows,
-                                   first_col = block$crop_first_col,
-                                   ncols = block$crop_ncols)
+            blk_no_overlap <- list(
+                first_row = block$crop_first_row,
+                nrows = block$crop_nrows,
+                first_col = block$crop_first_col,
+                ncols = block$crop_ncols
+            )
 
             # crop removing overlaps
             raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
             # export to temp file
-            block_file <- .smth_filename(tile = tile_new,
-                                         output_dir = output_dir,
-                                         block = block)
+            block_file <- .smth_filename(
+                tile = tile_new,
+                output_dir = output_dir,
+                block = block
+            )
 
             # save chunk
             .raster_write_rast(
@@ -493,7 +510,7 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
     result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
         # get tile from cube
-        tile <- cube[i,]
+        tile <- cube[i, ]
 
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
@@ -512,8 +529,9 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(tile_new)
+        }
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
@@ -525,7 +543,7 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
             .raster_merge(
                 in_files = tmp_blocks,
                 out_file = out_file,
-                format   = "GTiff",
+                format = "GTiff",
                 gdal_datatype =
                     .raster_gdal_datatype(.config_get("probs_cube_data_type")),
                 gdal_options =
@@ -640,8 +658,9 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(NULL)
+        }
 
         # get cube size
         size <- .cube_size(tile)
@@ -651,7 +670,8 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
             xsize = size[["ncols"]],
             ysize = size[["nrows"]],
             block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = 0)
+            overlapping_y_size = 0
+        )
 
         # open probability file
         in_file <- .file_info_path(tile)
@@ -669,18 +689,22 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
             raster_out <- .do_margin(chunk = chunk)
 
             # create extent
-            blk_no_overlap <- list(first_row = block$crop_first_row,
-                                   nrows = block$crop_nrows,
-                                   first_col = block$crop_first_col,
-                                   ncols = block$crop_ncols)
+            blk_no_overlap <- list(
+                first_row = block$crop_first_row,
+                nrows = block$crop_nrows,
+                first_col = block$crop_first_col,
+                ncols = block$crop_ncols
+            )
 
             # crop removing overlaps
             raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
             # export to temp file
-            block_file <- .smth_filename(tile = tile_new,
-                                         output_dir = output_dir,
-                                         block = block)
+            block_file <- .smth_filename(
+                tile = tile_new,
+                output_dir = output_dir,
+                block = block
+            )
 
             # save chunk
             .raster_write_rast(
@@ -706,7 +730,7 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
     result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
         # get tile from cube
-        tile <- cube[i,]
+        tile <- cube[i, ]
 
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
@@ -725,8 +749,9 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(tile_new)
+        }
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
@@ -738,7 +763,7 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
             .raster_merge(
                 in_files = tmp_blocks,
                 out_file = out_file,
-                format   = "GTiff",
+                format = "GTiff",
                 gdal_datatype =
                     .raster_gdal_datatype(.config_get("probs_cube_data_type")),
                 gdal_options =

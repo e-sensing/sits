@@ -49,7 +49,7 @@ it will default to "together".
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 
-if (sits_run_examples()){
+if (sits_run_examples()) {
 # plot sets of time series
 plot(cerrado_2classes)
 }

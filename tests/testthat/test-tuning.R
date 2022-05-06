@@ -1,9 +1,8 @@
 test_that("Tuning - random search", {
-
     tuned <- sits_tuning(
         samples_modis_4bands,
         ml_method = sits_tempcnn(),
-        params = sits_tuning_params(
+        params = list(
             optimizer = torchopt::optim_yogi,
             opt_hparams = list(
                 lr = beta(0.3, 5)
@@ -11,7 +10,8 @@ test_that("Tuning - random search", {
         ),
         trials = 4,
         multicores = 4,
-        progress = FALSE)
+        progress = FALSE
+    )
 
     accuracy <- tuned$tuning$accuracy
     kappa <- tuned$tuning$accuracy

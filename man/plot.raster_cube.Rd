@@ -39,18 +39,18 @@ Plot object.
 Plot RGB raster cube
 }
 \examples{
-if (sits_run_examples()){
-# create a data cube from local files
-data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-cube <- sits_cube(
-         source = "BDC",
-         collection = "MOD13Q1-6",
-         data_dir = data_dir,
-         delim = "_",
-         parse_info = c("X1", "X2", "tile", "band", "date")
-)
-# plot NDVI band of the second date date of the data cube
-plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
+if (sits_run_examples()) {
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+    # plot NDVI band of the second date date of the data cube
+    plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
 }
 }
 \author{

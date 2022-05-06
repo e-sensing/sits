@@ -182,7 +182,7 @@
     # do resample
     if (!is.null(out_size) &&
         (in_size[["nrows"]] != out_size[["nrows"]] ||
-         in_size[["ncols"]] != out_size[["ncols"]])) {
+            in_size[["ncols"]] != out_size[["ncols"]])) {
         bbox <- .raster_bbox(r_obj, block = block)
 
         out_r_obj <- .raster_new_rast(

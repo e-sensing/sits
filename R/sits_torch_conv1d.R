@@ -27,10 +27,11 @@
                           padding = 0,
                           dropout_rate) {
         self$block <- torch::nn_sequential(
-            torch::nn_conv1d(in_channels  = input_dim,
-                             out_channels = output_dim,
-                             kernel_size  = kernel_size,
-                             padding      = padding
+            torch::nn_conv1d(
+                in_channels = input_dim,
+                out_channels = output_dim,
+                kernel_size = kernel_size,
+                padding = padding
             ),
             torch::nn_batch_norm1d(num_features = output_dim),
             torch::nn_relu(),
@@ -69,10 +70,11 @@
                           kernel_size,
                           padding = 0) {
         self$block <- torch::nn_sequential(
-            torch::nn_conv1d(in_channels  = input_dim,
-                             out_channels = output_dim,
-                             kernel_size  = kernel_size,
-                             padding      = padding,
+            torch::nn_conv1d(
+                in_channels = input_dim,
+                out_channels = output_dim,
+                kernel_size = kernel_size,
+                padding = padding,
             ),
             torch::nn_batch_norm1d(num_features = output_dim),
             torch::nn_relu()
@@ -111,10 +113,11 @@
                           padding = 0) {
         self$block <- torch::nn_sequential(
             torch::nn_batch_norm1d(num_features = input_dim),
-            torch::nn_conv1d(in_channels  = input_dim,
-                             out_channels = output_dim,
-                             kernel_size  = kernel_size,
-                             padding      = padding
+            torch::nn_conv1d(
+                in_channels = input_dim,
+                out_channels = output_dim,
+                kernel_size = kernel_size,
+                padding = padding
             ),
             torch::nn_batch_norm1d(num_features = output_dim),
             torch::nn_relu()
@@ -150,10 +153,11 @@
                           kernel_size,
                           padding = 0) {
         self$block <- torch::nn_sequential(
-            torch::nn_conv1d(in_channels  = input_dim,
-                             out_channels = output_dim,
-                             kernel_size  = kernel_size,
-                             padding      = padding,
+            torch::nn_conv1d(
+                in_channels = input_dim,
+                out_channels = output_dim,
+                kernel_size = kernel_size,
+                padding = padding,
             ),
             torch::nn_batch_norm1d(num_features = output_dim),
         )

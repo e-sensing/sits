@@ -33,32 +33,32 @@
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @examples
-#' if (sits_run_examples()){
-#' # A dataset containing a tibble with time series samples
-#' # for the Mato Grosso state in Brasil
-#' # create a list to store the results
-#' results <- list()
+#' if (sits_run_examples()) {
+#'     # A dataset containing a tibble with time series samples
+#'     # for the Mato Grosso state in Brasil
+#'     # create a list to store the results
+#'     results <- list()
 #'
-#' # accuracy assessment lightTAE
-#' acc_ltae <- sits_kfold_validate(samples_modis_4bands,
-#'             folds = 5,
-#'             ml_method = sits_lightae()
-#'             )
-#' # use a name
-#' acc_ltae$name <- "LightTAE"
-#' # put the result in a list
-#' results[[length(results) + 1]] <- acc_ltae
+#'     # accuracy assessment lightTAE
+#'     acc_ltae <- sits_kfold_validate(samples_modis_4bands,
+#'         folds = 5,
+#'         ml_method = sits_lightae()
+#'     )
+#'     # use a name
+#'     acc_ltae$name <- "LightTAE"
+#'     # put the result in a list
+#'     results[[length(results) + 1]] <- acc_ltae
 #'
-#' # Deep Learning - ResNet
-#' acc_rn <- sits_kfold_validate(samples_modis_4bands,
-#'           folds = 5,
-#'           ml_method = sits_resnet()
-#'           )
-#' acc_rn$name <- "ResNet"
-#' # put the result in a list
-#' results[[length(results) + 1]] <- acc_rn
-#' # save to xlsx file
-#' sits_to_xlsx(results, file = "./accuracy_mato_grosso_dl.xlsx")
+#'     # Deep Learning - ResNet
+#'     acc_rn <- sits_kfold_validate(samples_modis_4bands,
+#'         folds = 5,
+#'         ml_method = sits_resnet()
+#'     )
+#'     acc_rn$name <- "ResNet"
+#'     # put the result in a list
+#'     results[[length(results) + 1]] <- acc_rn
+#'     # save to xlsx file
+#'     sits_to_xlsx(results, file = "./accuracy_mato_grosso_dl.xlsx")
 #' }
 #'
 #' @export
@@ -81,8 +81,10 @@ sits_kfold_validate <- function(samples,
     )
 
     # pre-condition
-    .check_num(multicores, min = 1, is_integer = TRUE,
-               msg = "Invalid multicores parameter")
+    .check_num(multicores,
+        min = 1, is_integer = TRUE,
+        msg = "Invalid multicores parameter"
+    )
 
     # get the labels of the data
     labels <- sits_labels(samples)
@@ -101,13 +103,11 @@ sits_kfold_validate <- function(samples,
     # create partitions different splits of the input data
     samples <- .sits_create_folds(samples, folds = folds)
 
-    # create prediction and reference vector
-    pred_vec <- character()
-    ref_vec <- character()
 
     # start parallel process
-    if (multicores > folds)
+    if (multicores > folds) {
         multicores <- folds
+    }
 
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop())
@@ -138,12 +138,9 @@ sits_kfold_validate <- function(samples,
 
         # extract the values
         values <- names(int_labels[max.col(prediction)])
-
-        ref_vec <- c(ref_vec, data_test$label)
-        pred_vec <- c(pred_vec, values)
         remove(ml_model)
 
-        return(list(pred = pred_vec, ref = ref_vec))
+        return(list(pred = values, ref = data_test$label))
     }, n_retries = 0, progress = FALSE)
 
     pred <- unlist(lapply(conf_lst, function(x) x$pred))
@@ -282,8 +279,8 @@ sits_validate <- function(samples,
     .sits_tibble_test(data)
     # splits the data into k groups
     data$folds <- caret::createFolds(data$label,
-                                     k = folds,
-                                     returnTrain = FALSE, list = FALSE
+        k = folds,
+        returnTrain = FALSE, list = FALSE
     )
     return(data)
 }

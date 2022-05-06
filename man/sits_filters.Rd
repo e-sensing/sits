@@ -53,7 +53,7 @@ point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 
 # Filter the point using the Savitzky-Golay smoother
 point_sg <- sits_filter(point_ndvi,
-  filter = sits_sgolay(order = 3, length = 5)
+    filter = sits_sgolay(order = 3, length = 5)
 )
 # Merge time series
 point_ndvi <- sits_merge(point_ndvi, point_sg, suffix = c("", ".SG"))

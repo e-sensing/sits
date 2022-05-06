@@ -25,8 +25,8 @@ NULL
 
     # pre-condition - one tile at a time
     .check_num(nrow(cube),
-               min = 1, max = 1, is_integer = TRUE,
-               msg = "process one tile at a time for file_info"
+        min = 1, max = 1, is_integer = TRUE,
+        msg = "process one tile at a time for file_info"
     )
 
     # get the file info associated with the tile
@@ -42,15 +42,14 @@ NULL
     if (!is.null(fid)) {
         fids <- .file_info_fids(cube)
         .check_chr_within(paste0(fid),
-                          within = paste0(fids),
-                          msg = "invalid fid value"
+            within = paste0(fids),
+            msg = "invalid fid value"
         )
         file_info <- file_info[file_info[["fid"]] == fid, ]
     }
 
     if (!is.null(start_date)) {
         cube_start_date <- sort(.file_info_timeline(cube))[[1]]
-
 
         .check_that(start_date >= cube_start_date, msg = "invalid start date")
 
@@ -67,6 +66,7 @@ NULL
 
     return(file_info)
 }
+
 #' @rdname file_info_functions
 #'
 #' @details
@@ -78,8 +78,8 @@ NULL
     nrows <- unique(file_info[["nrows"]])
 
     .check_num(length(nrows),
-               min = 1, max = 1, is_integer = TRUE,
-               msg = "wrong nrows parameter in file_info"
+        min = 1, max = 1, is_integer = TRUE,
+        msg = "wrong nrows parameter in file_info"
     )
     return(nrows)
 }
@@ -93,8 +93,8 @@ NULL
     ncols <- unique(file_info[["ncols"]])
 
     .check_num(length(ncols),
-               min = 1, max = 1, is_integer = TRUE,
-               msg = "wrong ncols parameter in file_info"
+        min = 1, max = 1, is_integer = TRUE,
+        msg = "wrong ncols parameter in file_info"
     )
     return(ncols)
 }
@@ -136,8 +136,8 @@ NULL
     xres <- unique(file_info[["xres"]])
 
     .check_num(length(xres),
-               min = 1, is_integer = TRUE,
-               msg = "wrong xres in file_info"
+        min = 1, is_integer = TRUE,
+        msg = "wrong xres in file_info"
     )
     return(xres)
 }
@@ -151,8 +151,8 @@ NULL
     yres <- unique(file_info[["yres"]])
 
     .check_num(length(yres),
-               min = 1, is_integer = TRUE,
-               msg = "wrong yres in file_info"
+        min = 1, is_integer = TRUE,
+        msg = "wrong yres in file_info"
     )
     return(yres)
 }
@@ -165,8 +165,8 @@ NULL
     fids <- unique(file_info[["fid"]])
 
     .check_num(length(fids),
-               min = 1, is_integer = TRUE,
-               msg = "wrong fid in file_info"
+        min = 1, is_integer = TRUE,
+        msg = "wrong fid in file_info"
     )
     return(fids)
 }
@@ -179,8 +179,8 @@ NULL
     timeline <- unique(lubridate::as_date(file_info[["date"]]))
 
     .check_num(length(timeline),
-               min = 1, is_integer = TRUE,
-               msg = "wrong timeline in file_info"
+        min = 1, is_integer = TRUE,
+        msg = "wrong timeline in file_info"
     )
     return(timeline)
 }
@@ -207,8 +207,8 @@ NULL
 
     start_date <- unique(lubridate::as_date(file_info[["start_date"]]))
     .check_num(length(start_date),
-               min = 1, max = 1,
-               msg = "wrong start_date parameter in file_info"
+        min = 1, max = 1,
+        msg = "wrong start_date parameter in file_info"
     )
     return(start_date)
 }
@@ -235,8 +235,8 @@ NULL
     end_date <- unique(lubridate::as_date(file_info[["end_date"]]))
 
     .check_num(length(end_date),
-               min = 1, max = 1,
-               msg = "wrong end_date parameter in file_info"
+        min = 1, max = 1,
+        msg = "wrong end_date parameter in file_info"
     )
     return(end_date)
 }
@@ -250,8 +250,8 @@ NULL
     bands <- unique(unlist(file_info[["band"]]))
 
     .check_num(length(bands),
-               min = 1, is_integer = TRUE,
-               msg = "wrong bands parameter in file_info"
+        min = 1, is_integer = TRUE,
+        msg = "wrong bands parameter in file_info"
     )
 
     return(bands)

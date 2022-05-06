@@ -47,7 +47,7 @@
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # select a set of samples
 #'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a ResNet model
@@ -57,11 +57,11 @@
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
-#'          source = "BDC",
-#'          collection = "MOD13Q1-6",
-#'          data_dir = data_dir,
-#'          delim = "_",
-#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = torch_model)
@@ -254,8 +254,9 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(NULL)
+        }
 
         # overlapping pixels
         overlapping_y_size <- ceiling(window_size / 2) - 1
@@ -268,7 +269,8 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             xsize = size[["ncols"]],
             ysize = size[["nrows"]],
             block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = overlapping_y_size)
+            overlapping_y_size = overlapping_y_size
+        )
 
         # open probability file
         in_file <- .file_info_path(tile)
@@ -286,16 +288,20 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             raster_out <- .do_bayes(chunk = chunk)
 
             # create extent
-            blk_no_overlap <- list(first_row = block$crop_first_row,
-                                   nrows = block$crop_nrows,
-                                   first_col = block$crop_first_col,
-                                   ncols = block$crop_ncols)
+            blk_no_overlap <- list(
+                first_row = block$crop_first_row,
+                nrows = block$crop_nrows,
+                first_col = block$crop_first_col,
+                ncols = block$crop_ncols
+            )
 
             # crop removing overlaps
             raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
-            block_file <- .smth_filename(tile = tile_new,
-                                         output_dir = output_dir,
-                                         block = block)
+            block_file <- .smth_filename(
+                tile = tile_new,
+                output_dir = output_dir,
+                block = block
+            )
             # save chunk
             .raster_write_rast(
                 r_obj = raster_out,
@@ -321,7 +327,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
         # get tile from cube
-        tile <- cube[i,]
+        tile <- cube[i, ]
 
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
@@ -340,8 +346,9 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(tile_new)
+        }
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
@@ -353,7 +360,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             .raster_merge(
                 in_files = tmp_blocks,
                 out_file = out_file,
-                format   = "GTiff",
+                format = "GTiff",
                 gdal_datatype =
                     .raster_gdal_datatype(.config_get("probs_cube_data_type")),
                 gdal_options =
@@ -442,15 +449,15 @@ sits_smooth.bilateral <- function(cube,
 
     # calculate gauss kernel
     gauss_kernel <- function(window_size, sigma) {
-
         stopifnot(window_size %% 2 != 0)
 
         w_center <- ceiling(window_size / 2)
         w_seq <- seq_len(window_size)
         x <- stats::dnorm(
-            (abs(rep(w_seq, each = window_size) - w_center) ^ 2 +
-                 abs(rep(w_seq, window_size) - w_center) ^ 2) ^ (1 / 2),
-            sd = sigma) / stats::dnorm(0)
+            (abs(rep(w_seq, each = window_size) - w_center)^2 +
+                abs(rep(w_seq, window_size) - w_center)^2) ^ (1 / 2),
+            sd = sigma
+        ) / stats::dnorm(0)
         matrix(x / sum(x), nrow = window_size, byrow = TRUE)
     }
 
@@ -522,8 +529,9 @@ sits_smooth.bilateral <- function(cube,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(NULL)
+        }
 
         # overlapping pixels
         overlapping_y_size <- ceiling(window_size / 2) - 1
@@ -536,7 +544,8 @@ sits_smooth.bilateral <- function(cube,
             xsize = size[["ncols"]],
             ysize = size[["nrows"]],
             block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = overlapping_y_size)
+            overlapping_y_size = overlapping_y_size
+        )
 
         # open probability file
         in_file <- .file_info_path(tile)
@@ -554,16 +563,20 @@ sits_smooth.bilateral <- function(cube,
             raster_out <- .do_bilateral(chunk = chunk)
 
             # create extent
-            blk_no_overlap <- list(first_row = block$crop_first_row,
-                                   nrows = block$crop_nrows,
-                                   first_col = block$crop_first_col,
-                                   ncols = block$crop_ncols)
+            blk_no_overlap <- list(
+                first_row = block$crop_first_row,
+                nrows = block$crop_nrows,
+                first_col = block$crop_first_col,
+                ncols = block$crop_ncols
+            )
 
             # crop removing overlaps
             raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
-            block_file <- .smth_filename(tile = tile_new,
-                                         output_dir = output_dir,
-                                         block = block)
+            block_file <- .smth_filename(
+                tile = tile_new,
+                output_dir = output_dir,
+                block = block
+            )
 
             # save chunk
             .raster_write_rast(
@@ -590,7 +603,7 @@ sits_smooth.bilateral <- function(cube,
     result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
         # get tile from cube
-        tile <- cube[i,]
+        tile <- cube[i, ]
 
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
@@ -609,8 +622,9 @@ sits_smooth.bilateral <- function(cube,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(tile_new)
+        }
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
@@ -622,7 +636,7 @@ sits_smooth.bilateral <- function(cube,
             .raster_merge(
                 in_files = tmp_blocks,
                 out_file = out_file,
-                format   = "GTiff",
+                format = "GTiff",
                 gdal_datatype =
                     .raster_gdal_datatype(.config_get("probs_cube_data_type")),
                 gdal_options =

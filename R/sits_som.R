@@ -76,17 +76,17 @@
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @examples
-#' if (sits_run_examples()){
-#' # create a som map
-#' som_map <- sits_som_map(samples_modis_4bands)
-#' # plot the som map
-#' plot(som_map)
-#' # evaluate the som map and create clusters
-#' clusters_som <- sits_som_evaluate_cluster(som_map)
-#' # plot the cluster evaluation
-#' plot(clusters_som)
-#' # clean the samples
-#' new_samples <- sits_som_clean_samples(som_map)
+#' if (sits_run_examples()) {
+#'     # create a som map
+#'     som_map <- sits_som_map(samples_modis_4bands)
+#'     # plot the som map
+#'     plot(som_map)
+#'     # evaluate the som map and create clusters
+#'     clusters_som <- sits_som_evaluate_cluster(som_map)
+#'     # plot the cluster evaluation
+#'     plot(clusters_som)
+#'     # clean the samples
+#'     new_samples <- sits_som_clean_samples(som_map)
 #' }
 #'
 #' @export
@@ -123,8 +123,8 @@ sits_som_map <- function(data,
         kohonen::supersom(
             time_series,
             grid = kohonen::somgrid(grid_xdim, grid_ydim,
-                                    "rectangular", "gaussian",
-                                    toroidal = FALSE
+                "rectangular", "gaussian",
+                toroidal = FALSE
             ),
             rlen = rlen,
             alpha = alpha,
@@ -241,25 +241,29 @@ sits_som_clean_samples <- function(som_map,
     }
 
     data <- som_map$data %>%
-        dplyr::select(.data[["longitude"]],
-                      .data[["latitude"]],
-                      .data[["start_date"]],
-                      .data[["end_date"]],
-                      .data[["label"]],
-                      .data[["cube"]],
-                      .data[["time_series"]],
-                      .data[["id_sample"]],
-                      .data[["id_neuron"]]
+        dplyr::select(
+            .data[["longitude"]],
+            .data[["latitude"]],
+            .data[["start_date"]],
+            .data[["end_date"]],
+            .data[["label"]],
+            .data[["cube"]],
+            .data[["time_series"]],
+            .data[["id_sample"]],
+            .data[["id_neuron"]]
         ) %>%
         dplyr::inner_join(som_map$labelled_neurons,
-                          by = c("id_neuron", "label" = "label_samples")
+            by = c("id_neuron", "label" = "label_samples")
         ) %>%
         dplyr::mutate(
-            eval = .detect_class_noise(.data[["prior_prob"]],
-                                       .data[["post_prob"]])
+            eval = .detect_class_noise(
+                .data[["prior_prob"]],
+                .data[["post_prob"]]
+            )
         ) %>%
-        dplyr::select(-.data[["count"]],
-                      -.data[["prior_prob"]]
+        dplyr::select(
+            -.data[["count"]],
+            -.data[["prior_prob"]]
         ) %>%
         dplyr::filter(.data[["eval"]] %in% keep)
 
@@ -291,10 +295,12 @@ sits_som_evaluate_cluster <- function(som_map) {
     data <- som_map$data %>% dplyr::inner_join(id_neuron_label_tb)
 
     # Get only id, label and neuron_label
-    temp_data <- unique(dplyr::select(data,
-                                      .data[["id_sample"]],
-                                      .data[["label"]],
-                                      .data[["neuron_label"]]))
+    temp_data <- unique(dplyr::select(
+        data,
+        .data[["id_sample"]],
+        .data[["label"]],
+        .data[["neuron_label"]]
+    ))
 
     # Get sample labels that was not assigned to a cluster
     no_cluster <- dplyr::setdiff(
@@ -444,7 +450,7 @@ sits_som_evaluate_cluster <- function(som_map) {
                 neigh_label <- dplyr::filter(
                     labelled_neurons,
                     .data[["id_neuron"]] %in% neighbours &
-                    .data[["label_samples"]] == row$label_samples
+                        .data[["label_samples"]] == row$label_samples
                 )
                 # how many neighbours with zero probabilities?
                 n_zeros <- length(neighbours) - nrow(neigh_label)

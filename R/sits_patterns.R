@@ -84,12 +84,18 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                         # melt the time series for each band into a long table
                         # with all values together
                         ts2 <- ts %>%
-                            tidyr::pivot_longer(cols = -.data[["Index"]],
-                                                names_to = "variable") %>%
-                            dplyr::select(.data[["Index"]],
-                                          .data[["value"]]) %>%
-                            dplyr::transmute(x = as.numeric(.data[["Index"]]),
-                                             y = .data[["value"]])
+                            tidyr::pivot_longer(
+                                cols = -.data[["Index"]],
+                                names_to = "variable"
+                            ) %>%
+                            dplyr::select(
+                                .data[["Index"]],
+                                .data[["value"]]
+                            ) %>%
+                            dplyr::transmute(
+                                x = as.numeric(.data[["Index"]]),
+                                y = .data[["value"]]
+                            )
 
                         # calculate the best fit for the data set
                         fit <- mgcv::gam(data = ts2, formula = formula)

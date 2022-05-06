@@ -64,45 +64,45 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
+    sits_view(cerrado_2classes)
 
- sits_view(cerrado_2classes)
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
- data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    modis_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+    # view the data cube
+    sits_view(modis_cube,
+        band = "NDVI",
+        dates = timeline[[1]]
+    )
 
- modis_cube <- sits_cube(
-     source = "BDC",
-     collection = "MOD13Q1-6",
-     data_dir = data_dir,
-     parse_info = c("X1", "X2", "tile", "band", "date")
- )
- # view the data cube
- sits_view(modis_cube,
-                 band = "NDVI",
-                 dates = timeline[[1]]
- )
+    samples_ndvi <- sits_select(samples_modis_4bands,
+        bands = c("NDVI")
+    )
+    rf_model <- sits_train(samples_ndvi, sits_rfor())
 
- samples_ndvi <- sits_select(samples_modis_4bands,
-                             bands = c("NDVI")
- )
- rf_model <- sits_train(samples_ndvi, sits_rfor())
+    modis_probs <- sits_classify(
+        data = modis_cube,
+        ml_model = rf_model,
+        output_dir = tempdir(),
+        memsize = 4,
+        multicores = 1
+    )
+    modis_label <- sits_label_classification(modis_probs,
+        output_dir = tempdir()
+    )
 
- modis_probs <- sits_classify(
-     data = modis_cube,
-     ml_model = rf_model,
-     output_dir = tempdir(),
-     memsize = 4,
-     multicores = 1
- )
- modis_label <- sits_label_classification(modis_probs,
-                                          output_dir = tempdir())
+    sits_view(modis_label)
 
- sits_view(modis_label)
-
- sits_view(modis_cube,
-           band = "NDVI",
-           class_cube = modis_label,
-           dates = sits_timeline(modis_cube)[[1]]
- )
+    sits_view(modis_cube,
+        band = "NDVI",
+        class_cube = modis_label,
+        dates = sits_timeline(modis_cube)[[1]]
+    )
 }
 }
 \author{
