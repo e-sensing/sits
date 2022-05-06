@@ -26,13 +26,17 @@
 #' @param allow_null    A \code{logical} indicating if the check permits empty
 #' NULL values. Default is FALSE.
 #' @param min           A atomic \code{vector} of numeric indicating the
-#' minimum value that the user can provide in function parameter. Only works for
-#' numeric check. By default is \code{-Inf}.
+#' inclusive minimum value that the user can provide in function parameter.
+#' Only works for numeric check. By default it is \code{-Inf}.
 #' @param max           A atomic \code{vector} of numeric indicating the
-#' maximum value that the user can provide in function parameter. Only works for
-#' numeric check. By default is \code{Inf}.
-#' @param allow_zero    A \code{logical} indicating if the check permits zero
-#' values. Default is TRUE.
+#' inclusive maximum value that the user can provide in function parameter.
+#' Only works for numeric check. By default it is \code{Inf}.
+#' @param exclusive_min A atomic \code{vector} of numeric indicating the
+#' exclusive minimum value that the user can provide in function parameter.
+#' Only works for numeric check. By default it is \code{-Inf}.
+#' @param exclusive_max A atomic \code{vector} of numeric indicating the
+#' exclusive maximum value that the user can provide in function parameter.
+#' Only works for numeric check. By default it is \code{Inf}.
 #' @param allow_empty   A \code{logical} indicating if the check permits empty
 #' list. Default is TRUE.
 #' @param regex         A \code{character} value with regular expression to be
@@ -209,13 +213,15 @@ NULL
 
 #' @rdname check_functions
 #' @keywords internal
-.check_na <- function(x, ...,
-                      msg = NULL) {
-    .check_that(
-        !any(is.na(x)),
-        local_msg = "NA value is not allowed",
-        msg = msg
-    )
+.check_na <- function(x, ..., allow_na = FALSE, msg = NULL) {
+
+    if (!allow_na) {
+        .check_that(
+            !any(is.na(x)),
+            local_msg = "NA value is not allowed",
+            msg = msg
+        )
+    }
 
     return(invisible(x))
 }
@@ -275,21 +281,39 @@ NULL
 #' @keywords internal
 .check_length <- function(x, ...,
                           len_min = 0,
-                          len_max = 2^31,
+                          len_max = 2^31 - 1,
                           msg = NULL) {
 
     # pre-condition
-    if (!is.numeric(len_min)) {
-        stop(".check_length: len_min parameter should be numeric.")
+    .check_num_type(
+        len_min,
+        is_integer = TRUE,
+        msg = "invalid 'len_min' parameter"
+    )
+    .check_num_type(
+        len_max,
+        is_integer = TRUE,
+        msg = "invalid 'len_max' parameter"
+    )
+
+    if (len_min == len_max) {
+        .check_that(
+            length(x) == len_min,
+            local_msg = paste0("length should be ", len_min),
+            msg = msg
+        )
     }
 
-    if (!is.numeric(len_max)) {
-        stop(".check_length: len_max parameter should be numeric.")
-    }
+    # these checks are separate because the messages are different
+    .check_that(
+        length(x) >= len_min,
+        local_msg = paste0("length should be >= ", len_min),
+        msg = msg
+    )
 
     .check_that(
-        len_min <= length(x) && length(x) <= len_max,
-        local_msg = local_msg,
+        length(x) <= len_max,
+        local_msg = paste0("length should be <= ", len_max),
         msg = msg
     )
 
@@ -369,7 +393,7 @@ NULL
         }
 
         .check_that(
-            is.numeric(x) && all(x == as.integer(x)),
+            is.numeric(x) && all(x == suppressWarnings(as.integer(x))),
             local_msg = "value is not integer",
             msg = msg
         )
@@ -422,9 +446,9 @@ NULL
 #' }
 #' \item{
 #' \code{.check_num()} checks for \code{numeric} values and its range (if
-#' either \code{min} or \code{max} parameters are defined). It also checks
-#' for non-zero and \code{integer} values (if \code{allow_zero=FALSE} and
-#' \code{is_integer=TRUE}, respectively).
+#' either \code{min}, \code{max}, \code{exclusive_min}, or \code{exclusive_max}
+#' parameters are defined). It also checks \code{integer} values
+#' (if \code{is_integer=TRUE}).
 #' }
 #' \item{
 #' \code{.check_chr()} checks for \code{character} type and empty strings (if
@@ -442,8 +466,8 @@ NULL
 #' @keywords internal
 .check_lgl <- function(x, ...,
                        allow_na = FALSE,
-                       len_min = NULL,
-                       len_max = NULL,
+                       len_min = 0,
+                       len_max = 2^31 - 1,
                        allow_null = FALSE,
                        is_named = FALSE,
                        msg = NULL) {
@@ -479,13 +503,14 @@ NULL
                        allow_na = FALSE,
                        min = -Inf,
                        max = Inf,
-                       allow_zero = TRUE,
+                       exclusive_min = -Inf,
+                       exclusive_max = Inf,
                        len_min = 0,
-                       len_max = 2^31,
+                       len_max = 2^31 - 1,
                        allow_null = FALSE,
                        is_integer = FALSE,
                        is_named = FALSE,
-                       tolerance = NULL,
+                       tolerance = 0,
                        msg = NULL) {
 
     # check for NULL and exit if it is allowed
@@ -496,38 +521,48 @@ NULL
     # check NULL
     .check_null(x, msg = msg)
 
-    # check NA
-    if (!allow_na) {
-        .check_na(x, msg = msg)
-    }
-
     # check type
     .check_num_type(x, is_integer = is_integer, msg = msg)
 
     # check length
     .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
 
+    # check NA
+    .check_na(x, allow_na = allow_na, msg = msg)
+
     # check names
     .check_names(x, is_named = is_named, msg = msg)
 
     # check range
+    .check_num_min_max(
+        x = x,
+        min = min,
+        max = max,
+        exclusive_min = exclusive_min,
+        exclusive_max = exclusive_max,
+        tolerance = tolerance,
+        msg = msg
+    )
+
+    return(invisible(x))
+}
+
+.check_num_min_max <- function(x, ...,
+                               min = -Inf,
+                               max = Inf,
+                               exclusive_min = -Inf,
+                               exclusive_max = Inf,
+                               tolerance = 0,
+                               msg = NULL) {
+
     # pre-condition
-    if (!is.numeric(min)) {
-        stop(".check_num: min parameter should be numeric.")
-    }
+    .check_num_type(min, msg = "invalid 'min' parameter")
+    .check_num_type(max, msg = "invalid 'max' parameter")
+    .check_num_type(exclusive_min, msg = "invalid 'exclusive_min' parameter")
+    .check_num_type(exclusive_max, msg = "invalid 'exclusive_max' parameter")
+    .check_num_type(x = tolerance, msg = "invalid 'tolerance' parameter")
 
-    if (!is.numeric(max)) {
-        stop(".check_num: max parameter should be numeric.")
-    }
-
-    if (!is.null(tolerance)) {
-        .check_num(
-            x = tolerance,
-            msg = "tolerance must be numeric."
-        )
-    }
-
-    # remove NAs before check
+    # remove NAs before check to test tolerance
     result <- x
     x <- x[!is.na(x)]
 
@@ -535,22 +570,40 @@ NULL
     if (!is.null(tolerance)) {
         min <- min - tolerance
         max <- max + tolerance
+        exclusive_min <- exclusive_min - tolerance
+        exclusive_max <- exclusive_max + tolerance
     }
 
-    .check_that(
-        all(min <= x) && all(x <= max),
-        local_msg = "value is out of range",
-        msg = msg
-    )
-
-    # allow zero
-    if (!allow_zero) {
+    # min and max checks
+    if (min == max) {
         .check_that(
-            all(x != 0),
-            local_msg = "value cannot be zero",
+            all(x == min),
+            local_msg = paste0("value should be ", min),
             msg = msg
         )
     }
+    .check_that(
+        all(x >= min),
+        local_msg = paste0("value should be >= ", min),
+        msg = msg
+    )
+    .check_that(
+        all(x <= max),
+        local_msg = paste0("value should be <= ", max),
+        msg = msg
+    )
+
+    # exclusive_min and exclusive_max checks
+    .check_that(
+        all(x > exclusive_min),
+        local_msg = paste0("value should be > ", exclusive_min),
+        msg = msg
+    )
+    .check_that(
+        all(x < exclusive_max),
+        local_msg = paste0("value should be < ", exclusive_max),
+        msg = msg
+    )
 
     return(invisible(result))
 }
@@ -560,8 +613,8 @@ NULL
 .check_chr <- function(x, ...,
                        allow_na = FALSE,
                        allow_empty = TRUE,
-                       len_min = NULL,
-                       len_max = NULL,
+                       len_min = 0,
+                       len_max = 2^31 - 1,
                        allow_null = FALSE,
                        is_named = FALSE,
                        regex = NULL,
@@ -614,8 +667,8 @@ NULL
 #' @rdname check_functions
 #' @keywords internal
 .check_lst <- function(x, ...,
-                       min_len = NULL,
-                       max_len = NULL,
+                       min_len = 0,
+                       max_len = 2^31 - 1,
                        allow_null = FALSE,
                        is_named = TRUE,
                        fn_check = NULL,
@@ -695,8 +748,8 @@ NULL
 
     # pre-condition
     .check_chr(within,
-        len_min = 1,
-        msg = "invalid 'within' parameter"
+               len_min = 1,
+               msg = "invalid 'within' parameter"
     )
 
     # allowed discriminators and its print values
@@ -748,7 +801,7 @@ NULL
         "values should %s: %s",
         discriminators[[discriminator]],
         paste0("'", original_within, "'",
-            collapse = ", "
+               collapse = ", "
         )
     )
 
@@ -799,8 +852,8 @@ NULL
 
     # pre-condition
     .check_chr(contains,
-        len_min = 1,
-        msg = "invalid 'contains' parameter"
+               len_min = 1,
+               msg = "invalid 'contains' parameter"
     )
 
     # allowed discriminators and its print values
@@ -917,16 +970,16 @@ NULL
 
     # check parameter
     .check_chr(x,
-        allow_empty = FALSE, len_min = 1,
-        allow_null = FALSE, msg = msg
+               allow_empty = FALSE, len_min = 1,
+               allow_null = FALSE, msg = msg
     )
 
     # check extension
     if (!is.null(extensions)) {
         .check_chr_within(ext_file(x),
-            within = extensions,
-            case_sensitive = FALSE,
-            msg = "invalid file extension"
+                          within = extensions,
+                          case_sensitive = FALSE,
+                          msg = "invalid file extension"
         )
     }
 
@@ -937,7 +990,7 @@ NULL
         local_msg = paste(
             "file does not exist:",
             paste0("'", x[!existing_files], "'",
-                collapse = ", "
+                   collapse = ", "
             )
         ),
         msg = msg
