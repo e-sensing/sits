@@ -274,42 +274,17 @@ NULL
 #' @rdname check_functions
 #' @keywords internal
 .check_length <- function(x, ...,
-                          len_min = NULL,
-                          len_max = NULL,
+                          len_min = 0,
+                          len_max = 2^31,
                           msg = NULL) {
 
     # pre-condition
-    if (!is.null(len_min) && !is.numeric(len_min)) {
+    if (!is.numeric(len_min)) {
         stop(".check_length: len_min parameter should be numeric.")
     }
 
-    if (!is.null(len_max) && !is.numeric(len_max)) {
+    if (!is.numeric(len_max)) {
         stop(".check_length: len_max parameter should be numeric.")
-    }
-
-    # set error message
-    if (!is.null(len_min) && !is.null(len_max) && len_min == len_max) {
-        local_msg <- sprintf("length should be == %s", len_min)
-    } else if (is.null(len_min) && is.null(len_max)) {
-        local_msg <- "invalid length"
-    } # never throws an error in this case!
-    else if (is.null(len_max)) {
-        local_msg <- sprintf("length should be >= %s", len_min)
-    } else if (is.null(len_min)) {
-        local_msg <- sprintf("length should be <= %s", len_max)
-    } else {
-        local_msg <- sprintf(
-            "length should be between %s and %s",
-            len_min, len_max
-        )
-    }
-
-    if (is.null(len_min)) {
-        len_min <- 0
-    }
-
-    if (is.null(len_max)) {
-        len_max <- 2^31
     }
 
     .check_that(
@@ -505,8 +480,8 @@ NULL
                        min = -Inf,
                        max = Inf,
                        allow_zero = TRUE,
-                       len_min = NULL,
-                       len_max = NULL,
+                       len_min = 0,
+                       len_max = 2^31,
                        allow_null = FALSE,
                        is_integer = FALSE,
                        is_named = FALSE,
@@ -521,27 +496,27 @@ NULL
     # check NULL
     .check_null(x, msg = msg)
 
+    # check NA
+    if (!allow_na) {
+        .check_na(x, msg = msg)
+    }
+
     # check type
     .check_num_type(x, is_integer = is_integer, msg = msg)
 
     # check length
     .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
 
-    # check NA
-    if (!allow_na) {
-        .check_na(x, msg = msg)
-    }
-
     # check names
     .check_names(x, is_named = is_named, msg = msg)
 
     # check range
     # pre-condition
-    if (!is.null(min) && !is.numeric(min)) {
+    if (!is.numeric(min)) {
         stop(".check_num: min parameter should be numeric.")
     }
 
-    if (!is.null(max) && !is.numeric(max)) {
+    if (!is.numeric(max)) {
         stop(".check_num: max parameter should be numeric.")
     }
 

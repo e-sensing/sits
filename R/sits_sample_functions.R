@@ -357,7 +357,6 @@ sits_reduce_imbalance <- function(samples,
 .sits_smote <- function(data, target, K = 5, dup_size = 0) {
     ncD <- ncol(data) # The number of attributes
     n_target <- table(target)
-    classP <- names(which.min(n_target))
     # Extract a set of positive instances
     P_set <- subset(
         data,

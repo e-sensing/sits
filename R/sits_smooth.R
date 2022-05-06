@@ -455,7 +455,7 @@ sits_smooth.bilateral <- function(cube,
         w_seq <- seq_len(window_size)
         x <- stats::dnorm(
             (abs(rep(w_seq, each = window_size) - w_center)^2 +
-                abs(rep(w_seq, window_size) - w_center)^2)^(1 / 2),
+                abs(rep(w_seq, window_size) - w_center)^2) ^ (1 / 2),
             sd = sigma
         ) / stats::dnorm(0)
         matrix(x / sum(x), nrow = window_size, byrow = TRUE)
