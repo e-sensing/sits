@@ -12,7 +12,7 @@
 #' @return      Timeline of sample set or of data cube.
 #'
 #' @examples
-#' sits_timeline(sample_modis_4bands)
+#' sits_timeline(samples_modis_4bands)
 #'
 #' @export
 #'

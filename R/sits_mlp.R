@@ -143,6 +143,18 @@ sits_mlp <- function(samples = NULL,
             msg = "input data does not contain distances"
         )
 
+        # check validation_split parameter if samples_validation is not passed
+        if (purrr::is_null(samples_validation)) {
+            .check_num(
+                x = validation_split,
+                exclusive_min = 0,
+                max = 0.5,
+                len_min = 1,
+                len_max = 1,
+                msg = "invalid 'validation_split' parameter"
+            )
+        }
+
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
         if (!is.null(opt_hparams)) {

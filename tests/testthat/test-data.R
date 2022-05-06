@@ -81,6 +81,68 @@ test_that("Reading a CSV file from RASTER", {
     expect_true(length(sits_timeline(points_df)) == 23)
 })
 
+test_that("Reading a SHP file from RASTER", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    raster_cube <- tryCatch(
+        {
+            sits_cube(
+                source = "BDC",
+                collection = "MOD13Q1-6",
+                data_dir = data_dir,
+                delim = "_",
+                parse_info = c("X1", "X2", "tile", "band", "date")
+            )
+        },
+        error = function(e) {
+            return(NULL)
+        }
+    )
+
+    testthat::skip_if(purrr::is_null(raster_cube),
+                      message = "LOCAL cube was not found"
+    )
+
+    poly_lst <- list(
+        list(xmin = -55.62471702, xmax = -55.57293653,
+             ymin = -11.63300767, ymax = -11.60607152),
+        list(xmin = -55.29847023, xmax = -55.26194177,
+             ymin = -11.56743498, ymax = -11.55169416),
+        list(xmin = -55.55720906, xmax = -55.54030539,
+             ymin = -11.75144257, ymax = -11.74521358)
+    )
+    polygons_sf <- do.call(.sits_bbox_to_sf, c(lapply(poly_lst, function(x) x),
+                                               list(crs = 4326)))
+
+
+    points <- sits_get_data(raster_cube,
+                            samples = csv_raster_file,
+                            output_dir = tempdir()
+    )
+
+    df_csv <- utils::read.csv(
+        system.file("extdata/samples/samples_sinop_crop.csv", package = "sits"),
+        stringsAsFactors = FALSE
+    )
+    expect_true(nrow(points) <= nrow(df_csv))
+
+    expect_true("Forest" %in% sits_labels(points))
+    expect_equal(names(points)[1], "longitude")
+    expect_equal(length(names(points)), 7)
+    expect_true(ncol(sits_time_series(points)) == 2)
+    expect_true(length(sits_timeline(points)) == 23)
+
+    points_df <- sits_get_data(raster_cube,
+                               samples = df_csv,
+                               output_dir = tempdir()
+    )
+
+    expect_true("Forest" %in% sits_labels(points_df))
+    expect_equal(names(points_df)[1], "longitude")
+    expect_equal(length(names(points_df)), 7)
+    expect_true(ncol(sits_time_series(points_df)) == 2)
+    expect_true(length(sits_timeline(points_df)) == 23)
+})
+
 test_that("Test reading shapefile from BDC", {
     testthat::skip_on_cran()
 

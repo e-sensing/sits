@@ -165,7 +165,7 @@ sits_as_sf <- function(samples) {
                 label_attr %in% colnames(sf_df)) {
                 label <- unname(as.character(sf_df[i, label_attr]))
             }
-            if (!purrr::is_null(pol_id) && .pol_id %in% colnames(sf_df)) {
+            if (!purrr::is_null(pol_id) && pol_id %in% colnames(sf_df)) {
                 polygon_id <- unname(as.character(sf_df[i, pol_id]))
             }
 

@@ -17,13 +17,13 @@
 #' Nature Communications 13, 2208 (2022).
 #' https://doi.org/10.1038/s41467-022-29838-9
 #'
-#' @param samples_tb A `sits` tibble with time series samples.
-#' @param roi        A `sf` object (polygon) with a region of interest
-#'                   for prediction.
-#' @param n          Maximum number of samples to consider.
+#' @param samples A `sits` tibble with time series samples.
+#' @param roi     A `sf` object (polygon) with a region of interest
+#'                for prediction.
+#' @param n       Maximum number of samples to consider.
 #'
-#' @return           A tibble with sample-to-sample
-#'                   and sample-to-prediction distances.
+#' @return
+#' A tibble with sample-to-sample and sample-to-prediction distances.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -68,24 +68,23 @@ sits_geo_dist <- function(samples, roi = NULL, n = 1000) {
     return(dist_tb)
 }
 
-
-
-# @title Find the closest points.
-#
-# @author Alber Sanchez, \email{alber.sanchez@@inpe.br}
-#
-# @description
-# For each point in x, find the closest point in y (and their distance).
-#
-# @param x An `sf` object (points).
-# @param y An `sf` object (points).
-#
-# @return  A data.frame with the columns from (row number in a), b
-# (row number in b), and distance (in meters).
-#
+#' @title Find the closest points.
+#'
+#' @author Alber Sanchez, \email{alber.sanchez@@inpe.br}
+#'
+#' @description
+#' For each point in x, find the closest point in y (and their distance).
+#'
+#' @param x An `sf` object (points).
+#' @param y An `sf` object (points).
+#'
+#' @return  A data.frame with the columns from (row number in a), b
+#' (row number in b), and distance (in meters).
 .find_closest <- function(x, y = x) {
-    dist_xy <- sf::st_distance(x, y) %>%
-        units::drop_units(.)
+    dist_xy <- sf::st_distance(x, y)
+    class(dist_xy) <- setdiff(class(x), "units")
+    attr(dist_xy, "units") <- NULL
+
     dist_xy[dist_xy == 0] <- Inf
     min_dist <- apply(dist_xy, MARGIN = 1, FUN = min)
     dist_df <- tibble::tibble(distance = min_dist)
