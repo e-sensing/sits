@@ -35,10 +35,10 @@
 #' @param impute_fn       Imputation function for NA values.
 #' @param label_attr      Attribute in the shapefile or sf object to be used
 #'                        as a polygon label.
-#' @param n_sam_pol      Number of samples per polygon to be read
+#' @param n_sam_pol       Number of samples per polygon to be read
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
-#' @param pol_avg        Summarize samples for each polygon?
-#' @param pol_id         ID attribute for polygons.
+#' @param pol_avg         Summarize samples for each polygon?
+#' @param pol_id          ID attribute for polygons.
 #' @param output_dir      Directory where the time series will be saved as rds.
 #'                        Default is the current path.
 #' @param multicores      Number of threads to process the time series.
