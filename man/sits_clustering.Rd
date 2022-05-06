@@ -77,7 +77,7 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-clusters <- sits_cluster_dendro(cerrado_2classes)
+    clusters <- sits_cluster_dendro(cerrado_2classes)
 }
 
 if (sits_run_examples()) {

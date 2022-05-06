@@ -42,25 +42,24 @@ These functions accepts \code{n} parameter to indicate how many values
 should be returned.
 }
 \examples{
-if (sits_run_examples()){
-# find best learning rate parameters for TempCNN
-tuned <- sits_tuning(
-    samples_modis_4bands,
-    ml_method = sits_tempcnn(),
-    params = sits_tuning_hparams(
-        optimizer = choice(
-            torchopt::optim_adamw,
-            torchopt::optim_yogi
+if (sits_run_examples()) {
+    # find best learning rate parameters for TempCNN
+    tuned <- sits_tuning(
+        samples_modis_4bands,
+        ml_method = sits_tempcnn(),
+        params = sits_tuning_hparams(
+            optimizer = choice(
+                torchopt::optim_adamw,
+                torchopt::optim_yogi
+            ),
+            opt_hparams = list(
+                lr = beta(0.3, 5)
+            )
         ),
-        opt_hparams = list(
-            lr = beta(0.3, 5)
-        )
-    ),
-    trials = 4,
-    multicores = 4,
-    progress = FALSE
-)
-
+        trials = 4,
+        multicores = 4,
+        progress = FALSE
+    )
 }
 
 }

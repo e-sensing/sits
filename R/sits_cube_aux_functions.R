@@ -86,9 +86,6 @@
         msg = "requires a labelled cube"
     )
 
-    # retrieve the r object associated to the labelled cube
-    file_info <- .file_info(cube)
-
     # open first raster
     r_obj <- .raster_open_rast(.file_info_path(cube))
 

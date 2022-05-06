@@ -173,7 +173,8 @@ sits_get_data.shp <- function(cube,
                               ...,
                               label = "NoClass",
                               start_date = as.Date(sits_timeline(cube)[1]),
-                              end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
+                              end_date = as.Date(sits_timeline(cube)
+                                                 [length(sits_timeline(cube))]),
                               bands = sits_bands(cube),
                               impute_fn = sits_impute_linear(),
                               label_attr = NULL,
@@ -215,7 +216,8 @@ sits_get_data.sf <- function(cube,
                              ...,
                              bands = sits_bands(cube),
                              start_date = as.Date(sits_timeline(cube)[1]),
-                             end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
+                             end_date = as.Date(sits_timeline(cube)
+                                                [length(sits_timeline(cube))]),
                              impute_fn = sits_impute_linear(),
                              label = "NoClass",
                              label_attr = NULL,
@@ -293,7 +295,9 @@ sits_get_data.data.frame <- function(cube,
                                          sits_timeline(cube)[1]
                                      ),
                                      end_date = as.Date(
-                                         sits_timeline(cube)[length(sits_timeline(cube))]
+                                         sits_timeline(cube)[
+                                             length(sits_timeline(cube))
+                                         ]
                                      ),
                                      label = "NoClass",
                                      bands = sits_bands(cube),
