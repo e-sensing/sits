@@ -879,41 +879,57 @@ sits_list_collections <- function(source = NULL) {
                              resolution, ...) {
 
     # pre-condition
-    .check_num(missing_value,
-        len_min = 1, len_max = 1,
+    .check_num(
+        x = missing_value,
+        len_min = 1,
+        len_max = 1,
         msg = "invalid 'missing_value' parameter"
     )
 
-    .check_num(minimum_value,
-        len_min = 1, len_max = 1,
+    .check_num(
+        x = minimum_value,
+        len_min = 1,
+        len_max = 1,
         msg = "invalid 'minimum_value' parameter"
     )
 
-    .check_num(maximum_value,
-        len_min = 1, len_max = 1,
+    .check_num(
+        x = maximum_value,
+        len_min = 1,
+        len_max = 1,
         msg = "invalid 'maximum_value' parameter"
     )
 
-    .check_num(scale_factor,
-        len_min = 1, len_max = 1,
-        allow_zero = FALSE,
+    .check_num(
+        x = scale_factor,
+        len_min = 1,
+        len_max = 1,
+        exclusive_min = 0,
         msg = "invalid 'scale_factor' parameter"
     )
 
-    .check_num(offset_value,
-        len_min = 1, len_max = 1,
+    .check_num(
+        x = offset_value,
+        len_min = 1,
+        len_max = 1,
         msg = "invalid 'offset_value' parameter"
     )
 
-    if (!is.null(resolution)) {
-        .check_num(resolution,
-            len_min = 1, allow_zero = FALSE,
-            msg = "invalid 'resolution' parameter"
-        )
-    }
 
-    .check_chr(band_name,
-        allow_empty = FALSE, len_min = 1, len_max = 1,
+    .check_num(
+        x = resolution,
+        exclusive_min = 0,
+        len_min = 1,
+        len_max = 1,
+        allow_null = TRUE,
+        msg = "invalid 'resolution' parameter"
+    )
+
+    .check_chr(
+        x = band_name,
+        allow_empty = FALSE,
+        len_min = 1,
+        len_max = 1,
         msg = "invalid 'band_name' value"
     )
 

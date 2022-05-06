@@ -347,9 +347,11 @@ NULL
         add_cloud = add_cloud
     )
     # post-condition
-    .check_lst(resolution,
-        fn_check = .check_num, min = 0,
-        allow_zero = FALSE, len_min = 1,
+    .check_lst(
+        x = resolution,
+        fn_check = .check_num,
+        exclusive_min = 0,
+        len_min = 1,
         msg = "invalid 'resolution' in config file"
     )
     return(resolution)

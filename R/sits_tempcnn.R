@@ -145,16 +145,26 @@ sits_tempcnn <- function(samples = NULL,
             is_integer = TRUE,
             len_max = 1,
             min = 1,
-            msg = "invalid learning rate decay epochs"
+            msg = "invalid 'lr_decay_epochs' parameter"
         )
         .check_num(
             x = lr_decay_rate,
-            len_max = 1,
+            exclusive_min = 0,
             max = 1,
-            min = 0,
-            allow_zero = FALSE,
-            msg = "invalid learning rate decay"
+            len_max = 1,
+            msg = "invalid 'lr_decay_rate' parameter"
         )
+        # check validation_split parameter if samples_validation is not passed
+        if (purrr::is_null(samples_validation)) {
+            .check_num(
+                x = validation_split,
+                exclusive_min = 0,
+                max = 0.5,
+                len_min = 1,
+                len_max = 1,
+                msg = "invalid 'validation_split' parameter"
+            )
+        }
 
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
