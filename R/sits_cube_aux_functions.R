@@ -298,8 +298,11 @@
     )
 
     # post-condition
-    .check_num(sf,
-        allow_zero = FALSE, len_min = 1, len_max = 1,
+    .check_num(
+        x = sf,
+        exclusive_min = 0,
+        len_min = 1,
+        len_max = 1,
         msg = "invalid 'scale_factor' value"
     )
 
@@ -785,10 +788,12 @@
 
 
     # post-condition
-    .check_num(xres,
-        min = 0, allow_zero = FALSE,
-        len_min = 1, len_max = 1,
-        msg = "invalid xres value"
+    .check_num(
+        x = xres,
+        exclusive_min = 0,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid 'xres' value"
     )
 
     return(xres)
@@ -807,10 +812,12 @@
     yres <- .file_info_yres(cube, bands = bands)
 
     # post-condition
-    .check_num(yres,
-        min = 0, allow_zero = FALSE,
-        len_min = 1, len_max = 1,
-        msg = "invalid xres value"
+    .check_num(
+        x = yres,
+        exclusive_min = 0,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid 'yres' value"
     )
 
     return(yres)
@@ -1024,7 +1031,7 @@
         }
 
         url_parsed <- httr::parse_url(path)
-        url_parsed[["query"]] <- modifyList(
+        url_parsed[["query"]] <- utils::modifyList(
             url_parsed[["query"]],
             token_parsed[["query"]]
         )

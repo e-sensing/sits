@@ -514,11 +514,10 @@
     # precondition - is the resolution valid?
     .check_num(
         x = res,
-        allow_zero = FALSE,
-        min = 1,
+        exclusive_min = 0,
         len_min = 1,
         len_max = 1,
-        msg = "a valid resolution needs to be provided"
+        msg = "invalid 'res' parameter"
     )
 
     # pre-condition - cube contains cloud band?
@@ -534,7 +533,8 @@
         min = 1,
         len_min = 1,
         len_max = 1,
-        msg = "invalid 'multicores' parameter."
+        is_integer = TRUE,
+        msg = "invalid 'multicores' parameter"
     )
 
     # timeline of intersection

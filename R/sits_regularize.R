@@ -156,11 +156,10 @@ sits_regularize <- function(cube,
     # precondition - is the resolution valid?
     .check_num(
         x = res,
-        allow_zero = FALSE,
-        min = 0,
+        exclusive_min = 0,
         len_min = 1,
         len_max = 1,
-        msg = "a valid resolution needs to be provided"
+        msg = "invalid 'resolution' parameter"
     )
 
     # check if output resolution is multiple of all input bands

@@ -138,10 +138,9 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     } else {
         .check_num(
             x = smoothness,
-            min = 1,
+            exclusive_min = 1,
             len_max = 1,
-            allow_zero = FALSE,
-            msg = "smoothness must be greater than 1"
+            msg = "invalid 'smoothness' parameter"
         )
         smoothness <- diag(smoothness, nrow = n_labels, ncol = n_labels)
     }
@@ -149,19 +148,20 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     # precondition 4 - multicores
     .check_num(
         x = multicores,
-        len_max = 1,
         min = 1,
-        allow_zero = FALSE,
-        msg = "multicores must be at least 1"
+        len_min = 1,
+        len_max = 1,
+        is_integer = TRUE,
+        msg = "invalid 'multicores' parameter"
     )
 
     # precondition 5 - memory
     .check_num(
         x = memsize,
+        exclusive_min = 0,
+        len_min = 1,
         len_max = 1,
-        min = 1,
-        allow_zero = FALSE,
-        msg = "memsize must be positive"
+        msg = "invalid 'memsize' parameter"
     )
 
     # precondition 6 - output dir
@@ -411,29 +411,28 @@ sits_smooth.bilateral <- function(cube,
     .check_num(
         x = sigma,
         len_max = 1,
-        min = 1,
-        allow_zero = FALSE,
-        msg = "sigma must be positive"
+        exclusive_min = 0,
+        msg = "invalid 'sigma' parameter"
     )
 
     # precondition 4 - multicores
     .check_num(
         x = multicores,
-        len_max = 1,
         min = 1,
-        allow_zero = FALSE,
-        msg = "multicores must be at least 1"
+        len_min = 1,
+        len_max = 1,
+        is_integer = TRUE,
+        msg = "invalid 'multicores' parameter"
     )
 
-    # precondition 5 - memsize
+    # precondition 5 - memory
     .check_num(
         x = memsize,
+        exclusive_min = 0,
+        len_min = 1,
         len_max = 1,
-        min = 1,
-        allow_zero = FALSE,
-        msg = "memsize must be positive"
+        msg = "invalid 'memsize' parameter"
     )
-
     # precondition 6 - output dir
     .check_file(
         x = output_dir,

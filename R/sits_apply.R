@@ -108,7 +108,7 @@ sits_apply.raster_cube <- function(data, ...,
 
             # Get parameters from each job
             tile_name <- job[[1]]
-            band <- job[[2]]
+            out_band <- job[[2]]
             fid <- job[[3]]
 
             # Filter tile

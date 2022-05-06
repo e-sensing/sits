@@ -122,19 +122,20 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
     # precondition 4 - multicores
     .check_num(
         x = multicores,
-        len_max = 1,
         min = 1,
-        allow_zero = FALSE,
-        msg = "multicores must be at least 1"
+        len_min = 1,
+        len_max = 1,
+        is_integer = TRUE,
+        msg = "invalid 'multicores' parameter"
     )
 
     # precondition 5 - memory
     .check_num(
         x = memsize,
+        exclusive_min = 0,
+        len_min = 1,
         len_max = 1,
-        min = 1,
-        allow_zero = FALSE,
-        msg = "memsize must be positive"
+        msg = "invalid 'memsize' parameter"
     )
 
     # precondition 6 - output dir
@@ -362,18 +363,20 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
     # precondition 2 - multicores
     .check_num(
         x = multicores,
-        len_max = 1,
         min = 1,
-        allow_zero = FALSE,
-        msg = "multicores must be at least 1"
+        len_min = 1,
+        len_max = 1,
+        is_integer = TRUE,
+        msg = "invalid 'multicores' parameter"
     )
+
     # precondition 3 - memory
     .check_num(
         x = memsize,
+        exclusive_min = 0,
+        len_min = 1,
         len_max = 1,
-        min = 1,
-        allow_zero = FALSE,
-        msg = "memsize must be positive"
+        msg = "invalid 'memsize' parameter"
     )
     # precondition 4 - output dir
     .check_file(
@@ -582,18 +585,20 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
     # precondition 2 - multicores
     .check_num(
         x = multicores,
-        len_max = 1,
         min = 1,
-        allow_zero = FALSE,
-        msg = "multicores must be at least 1"
+        len_min = 1,
+        len_max = 1,
+        is_integer = TRUE,
+        msg = "invalid 'multicores' parameter"
     )
+
     # precondition 3 - memory
     .check_num(
         x = memsize,
+        exclusive_min = 0,
+        len_min = 1,
         len_max = 1,
-        min = 1,
-        allow_zero = FALSE,
-        msg = "memsize must be positive"
+        msg = "invalid 'memsize' parameter"
     )
     # precondition 4 - output dir
     .check_file(
