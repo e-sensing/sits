@@ -7,16 +7,15 @@
 sits_geo_dist(samples, roi = NULL, n = 1000)
 }
 \arguments{
+\item{samples}{A `sits` tibble with time series samples.}
+
 \item{roi}{A `sf` object (polygon) with a region of interest
 for prediction.}
 
 \item{n}{Maximum number of samples to consider.}
-
-\item{samples_tb}{A `sits` tibble with time series samples.}
 }
 \value{
-A tibble with sample-to-sample
-                  and sample-to-prediction distances.
+A tibble with sample-to-sample and sample-to-prediction distances.
 }
 \description{
 Compute the minimum distances among samples and samples to prediction

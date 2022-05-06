@@ -36,9 +36,6 @@ and \code{beta} distribution functions to randomize parameters.}
 \item{multicores}{Number of cores to process in parallel}
 
 \item{progress}{Show progress bar?}
-
-\item{...}{Used by \code{sits_tuning_hparams()} to
-prepare tuning hyper-parameters}
 }
 \value{
 A tibble containing all parameters used to train on each trial

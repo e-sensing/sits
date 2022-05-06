@@ -220,19 +220,20 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     # precondition - multicores
     .check_num(
         x = multicores,
-        len_max = 1,
         min = 1,
-        allow_zero = FALSE,
-        msg = "multicores must be at least 1"
+        len_min = 1,
+        len_max = 1,
+        is_integer = TRUE,
+        msg = "invalid 'multicores' parameter"
     )
 
     # precondition - memory
     .check_num(
         x = memsize,
+        exclusive_min = 0,
+        len_min = 1,
         len_max = 1,
-        min = 1,
-        allow_zero = FALSE,
-        msg = "memsize must be positive"
+        msg = "invalid 'memsize' parameter"
     )
 
     # precondition - output dir

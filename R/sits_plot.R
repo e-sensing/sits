@@ -1666,7 +1666,6 @@ plot.geo_distances <- function(x, y, ...) {
     .sits_plot_distances(x)
 }
 
-
 .sits_plot_distances <- function(distances) {
     .check_that(
         inherits(distances, "geo_distances"),
@@ -1675,11 +1674,11 @@ plot.geo_distances <- function(x, y, ...) {
 
     density_plot <-
         distances %>%
-        dplyr::mutate(distance = distance / 1000) %>%
-        ggplot2::ggplot(ggplot2::aes(x = distance)) +
+        dplyr::mutate(distance = distances / 1000) %>%
+        ggplot2::ggplot(ggplot2::aes(x = .data[["distance"]])) +
         ggplot2::geom_density(ggplot2::aes(
-            color = type,
-            fill = type
+            color = .data[["type"]],
+            fill = .data[["type"]]
         ),
         lwd = 1, alpha = 0.25
         ) +

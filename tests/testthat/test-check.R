@@ -146,11 +146,11 @@ test_that("Checks", {
     )
     expect_error(
         .check_length("abc", len_max = 0),
-        "test: length should be <= 0"
+        "test: length should be 0"
     )
     expect_error(
         .check_length(c("a", "b", "c", "d"), len_min = 1, len_max = 3),
-        "test: length should be between 1 and 3"
+        "test: length should be <= 3"
     )
 
     # .check_apply
@@ -372,7 +372,7 @@ test_that("Checks", {
     )
     expect_error(
         .check_lgl(logical(1), len_max = 0),
-        "test: length should be <= 0"
+        "test: length should be 0"
     )
     expect_error(
         .check_lgl(NULL, msg = "NULL value is not allowed"),
@@ -406,11 +406,11 @@ test_that("Checks", {
     )
     expect_error(
         .check_num(c(1, 2, 3), min = "a"),
-        ".check_num: min parameter should be numeric"
+        "test: invalid 'min' parameter \\(value is not a number\\)"
     )
     expect_error(
         .check_num(c(1, 2, 3), max = "a"),
-        ".check_num: max parameter should be numeric"
+        "test: invalid 'max' parameter \\(value is not a number\\)"
     )
     expect_equal(
         .check_num(c(1, NA, 3), allow_na = TRUE),
@@ -421,28 +421,32 @@ test_that("Checks", {
         c(0, 1, 2, 3, 4)
     )
     expect_error(
-        .check_num(c(0, 1, 2, 3, 4), min = -9, max = 9, allow_zero = FALSE),
-        "test: value cannot be zero"
+        .check_num(c(0, 1, 2, 3, 4), exclusive_min = 0),
+        "test: value should be > 0"
+    )
+    expect_error(
+        .check_num(c(0, 1, 2, 3, 4, 9), exclusive_max = 9),
+        "test: value should be < 9"
     )
     expect_error(
         .check_num(c(0, 1, 2, 3, 4), min = 5, max = 9),
-        "test: value is out of range"
+        "test: value should be >= 5"
     )
     expect_error(
         .check_num(c(0, 1, 2, 3, 4), min = -9, max = -5),
-        "test: value is out of range"
+        "test: value should be <= -5"
     )
     expect_error(
         .check_num(c(0, 1, 2, 3, 4), min = 3, max = 9),
-        "test: value is out of range"
+        "test: value should be >= 3"
     )
     expect_error(
         .check_num(c(0, 1, 2, 3, 4), min = -9, max = 1),
-        "test: value is out of range"
+        "test: value should be <= 1"
     )
     expect_error(
         .check_num(c(0, 1, 2, 3, 4), min = 1, max = 3),
-        "test: value is out of range"
+        "test: value should be >= 1"
     )
     expect_equal(
         .check_num(c(0, 1, 2, 3, 4), min = 0, max = 4),
@@ -458,7 +462,7 @@ test_that("Checks", {
     )
     expect_error(
         .check_num(numeric(1), len_max = 0),
-        "test: length should be <= 0"
+        "test: length should be 0"
     )
     expect_error(
         .check_num(NULL, msg = "NULL value is not allowed"),
@@ -542,7 +546,7 @@ test_that("Checks", {
     )
     expect_error(
         .check_chr(character(1), len_max = 0),
-        "test: length should be <= 0"
+        "test: length should be 0"
     )
     expect_error(
         .check_chr(NULL, msg = "NULL value is not allowed"),
@@ -588,7 +592,7 @@ test_that("Checks", {
     )
     expect_error(
         .check_lst(list(a = 1), max_len = 0),
-        "test: length should be <= 0"
+        "test: length should be 0"
     )
     expect_error(
         .check_lst(NULL, msg = "NULL value is not allowed"),

@@ -33,8 +33,6 @@
 #' @param trials Number of random trials to perform the random search.
 #' @param progress           Show progress bar?
 #' @param multicores         Number of cores to process in parallel
-#' @param ...                Used by \code{sits_tuning_hparams()} to
-#'   prepare tuning hyper-parameters
 #'
 #' @return
 #' A tibble containing all parameters used to train on each trial
@@ -99,8 +97,10 @@ sits_tuning <- function(samples,
     if (purrr::is_null(samples_validation)) {
         .check_num(
             x = validation_split,
-            min = 0, max = 0.5, allow_zero = FALSE,
-            len_min = 1, len_max = 1,
+            exclusive_min = 0,
+            max = 0.5,
+            len_min = 1,
+            len_max = 1,
             msg = "invalid 'validation_split' parameter"
         )
     }
