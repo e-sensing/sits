@@ -366,7 +366,7 @@ sits_view.raster_cube <- function(x, ...,
             quantiles = c(0.1, 0.9),
             project = FALSE,
             group = paste0(date),
-            maxBytes = size["leaflet_maxBytes"]
+            maxBytes = size["leaflet_maxbytes"]
         )
     }
 
@@ -429,7 +429,7 @@ sits_view.raster_cube <- function(x, ...,
             method = "ngb",
             group = "classification",
             project = FALSE,
-            maxBytes = size["leaflet_maxBytes"]
+            maxBytes = size["leaflet_maxbytes"]
         ) %>%
             leaflet::addLegend(
                 "topright",
@@ -563,7 +563,7 @@ sits_view.classified_image <- function(x, ...,
             method = "ngb",
             group = "classification",
             project = FALSE,
-            maxBytes = size["leaflet_maxBytes"]
+            maxBytes = size["leaflet_maxbytes"]
         ) %>%
         # add the the layers control
         leaflet::addLayersControl(
@@ -631,9 +631,9 @@ sits_view.classified_image <- function(x, ...,
 
     # calculate the size of the input image in bytes
     # note that leaflet considers 4 bytes per pixel
-    in_size_Mbytes <- 4 * nrows * ncols * comp * ntiles
+    in_size_mbytes <- 4 * nrows * ncols * comp * ntiles
     # do we need to compress?
-    ratio <- max((in_size_Mbytes / (max_Mbytes * ntiles * 1024 * 1024)), 1)
+    ratio <- max((in_size_mbytes / (max_megabytes * ntiles * 1024 * 1024)), 1)
     # only create local files if required
     if (ratio > 1) {
         new_nrows <- round(nrows / sqrt(ratio))
@@ -642,9 +642,9 @@ sits_view.classified_image <- function(x, ...,
         new_nrows <- round(nrows)
         new_ncols <- round(ncols)
     }
-    leaflet_maxBytes <- 4 * new_nrows * new_ncols * ntiles
+    leaflet_maxbytes <- 4 * new_nrows * new_ncols * ntiles
     return(c(
         "xsize" = new_ncols, "ysize" = new_nrows,
-        "leaflet_maxBytes" = leaflet_maxBytes
+        "leaflet_maxbytes" = leaflet_maxbytes
     ))
 }
