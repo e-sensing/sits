@@ -1,5 +1,4 @@
 test_that("Align dates", {
-
     data("samples_modis_4bands")
     timeline <- sits_timeline(point_mt_6bands)
     start_date <- lubridate::as_date("2001-08-01")

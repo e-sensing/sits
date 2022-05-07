@@ -415,7 +415,7 @@ sits_apply.raster_cube <- function(data, ...,
     return(blocks)
 }
 #' @title Estimate the number of blocks
-#' @name .sits_raster_blocks_estimate_apply
+#' @name .apply_raster_blocks_estimate
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'

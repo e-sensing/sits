@@ -487,6 +487,8 @@ sits_accuracy_summary <- function(x,
 #' @export
 print.sits_assessment <- function(x, ...,
                                   digits = max(3, getOption("digits") - 3)) {
+    # rename confusion matrix names
+    names(x) <- c("positive", "table", "overall", "by_class", "mode", "dots")
     cat("Confusion Matrix and Statistics\n\n")
     print(x$table)
 
@@ -532,8 +534,8 @@ print.sits_assessment <- function(x, ...,
             ),
             collapse = "|"
         )
-        x$byClass <- x$byClass[, grepl(pattern_format, colnames(x$byClass))]
-        measures <- t(x$byClass)
+        x$by_class <- x$by_class[, grepl(pattern_format, colnames(x$by_class))]
+        measures <- t(x$by_class)
         rownames(measures) <- c(
             "Prod Acc (Sensitivity)", "Specificity",
             "User Acc (Pos Pred Value)", "Neg Pred Value", "F1"
@@ -551,7 +553,7 @@ print.sits_assessment <- function(x, ...,
             ),
             collapse = "|"
         )
-        x$byClass <- x$byClass[grepl(pattern_format, names(x$byClass))]
+        x$by_class <- x$by_class[grepl(pattern_format, names(x$by_class))]
         # Names of the two classes
         names_classes <- row.names(x$table)
         # First class is called the "positive" class by caret
@@ -563,14 +565,14 @@ print.sits_assessment <- function(x, ...,
         pa2 <- paste("Prod Acc ", c2)
         ua1 <- paste("User Acc ", c1)
         ua2 <- paste("User Acc ", c2)
-        names(x$byClass) <- c(pa1, pa2, ua1, ua2)
+        names(x$by_class) <- c(pa1, pa2, ua1, ua2)
 
         overall_text <- c(
             overall_text,
             "",
-            format(x$byClass, digits = digits)
+            format(x$by_class, digits = digits)
         )
-        overall_names <- c(overall_names, "", names(x$byClass))
+        overall_names <- c(overall_names, "", names(x$by_class))
         overall_names <- ifelse(overall_names == "", "",
             paste(overall_names, ":")
         )

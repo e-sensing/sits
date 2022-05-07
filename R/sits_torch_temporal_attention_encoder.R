@@ -384,7 +384,7 @@
         # apply a dropout value to the attention tensor
         attn <- self$dropout(attn)
         # calculate the product attention * values
-        # split_value <- dim_encoder %/% n_heads
+        # split_value: dim_encoder %/% n_heads
         # attention tensor has 3D shape [(n_heads * batch_size) x 1 x seq_len]
         # values has 3D shape [(num_heads * batch_size) x seq_len x split_value]
         # output has a 3D shape [(num_heads * batch_size) x 1 x split_value]

@@ -30,7 +30,7 @@
 #' @param raster_api_package     Supported raster handling package.
 #' @param gdal_creation_options  GDAL creation options for GeoTiff.
 #' @param gdalcubes_chunk_size   Chunk size to be used by gdalcubes
-#' @param leaflet_max_Mbytes     Maximage size of an image for leaflet (in MB)
+#' @param leaflet_max_megabytes  Max image size of an image for leaflet (in MB)
 #' @param leaflet_comp_factor    Compression factor for leaflet RGB display.
 #' @param reset                  Should current configuration options be cleaned
 #'                               before loading config files? Default is
@@ -60,7 +60,7 @@ sits_config <- function(processing_bloat = NULL,
                         raster_api_package = NULL,
                         gdal_creation_options = NULL,
                         gdalcubes_chunk_size = NULL,
-                        leaflet_max_Mbytes = NULL,
+                        leaflet_max_megabytes = NULL,
                         leaflet_comp_factor = NULL,
                         reset = FALSE) {
 
@@ -125,7 +125,7 @@ sits_config <- function(processing_bloat = NULL,
             raster_api_package = config[["raster_api_package"]],
             gdal_creation_options = config[["gdal_creation_options"]],
             gdalcubes_chunk_size = config[["gdalcubes_chunk_size"]],
-            leaflet_max_Mbytes = config[["leaflet_max_Mbytes"]],
+            leaflet_max_megabytes = config[["leaflet_max_megabytes"]],
             leaflet_comp_factor = config[["leaflet_comp_factor"]],
             sources = config[["sources"]],
             colors = config[["colors"]]
@@ -146,7 +146,7 @@ sits_config <- function(processing_bloat = NULL,
         raster_api_package = raster_api_package,
         gdal_creation_options = gdal_creation_options,
         gdalcubes_chunk_size = gdalcubes_chunk_size,
-        leaflet_max_Mbytes = leaflet_max_Mbytes,
+        leaflet_max_megabytes = leaflet_max_megabytes,
         leaflet_comp_factor = leaflet_comp_factor
     )
 
@@ -296,7 +296,7 @@ sits_list_collections <- function(source = NULL) {
                                 raster_api_package = NULL,
                                 gdal_creation_options = NULL,
                                 gdalcubes_chunk_size = NULL,
-                                leaflet_max_Mbytes = NULL,
+                                leaflet_max_megabytes = NULL,
                                 leaflet_comp_factor = NULL,
                                 sources = NULL,
                                 colors = NULL, ...) {
@@ -359,14 +359,14 @@ sits_list_collections <- function(source = NULL) {
         )
         sits_env$config[["gdalcubes_chunk_size"]] <- gdalcubes_chunk_size
     }
-    if (!is.null(leaflet_max_Mbytes)) {
-        .check_num(leaflet_max_Mbytes,
+    if (!is.null(leaflet_max_megabytes)) {
+        .check_num(leaflet_max_megabytes,
             min = 16,
             max = 128,
             is_named = FALSE,
-            msg = "invalid leaflet max Mbytes"
+            msg = "invalid leaflet max megabytes"
         )
-        sits_env$config[["leaflet_max_Mbytes"]] <- leaflet_max_Mbytes
+        sits_env$config[["leaflet_max_megabytes"]] <- leaflet_max_megabytes
     }
     if (!is.null(leaflet_comp_factor)) {
         .check_num(leaflet_comp_factor,

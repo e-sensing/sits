@@ -13,7 +13,7 @@ sits_config(
   raster_api_package = NULL,
   gdal_creation_options = NULL,
   gdalcubes_chunk_size = NULL,
-  leaflet_max_Mbytes = NULL,
+  leaflet_max_megabytes = NULL,
   leaflet_comp_factor = NULL,
   reset = FALSE
 )
@@ -34,7 +34,7 @@ to block size.}
 
 \item{gdalcubes_chunk_size}{Chunk size to be used by gdalcubes}
 
-\item{leaflet_max_Mbytes}{Maximage size of an image for leaflet (in MB)}
+\item{leaflet_max_megabytes}{Max image size of an image for leaflet (in MB)}
 
 \item{leaflet_comp_factor}{Compression factor for leaflet RGB display.}
 

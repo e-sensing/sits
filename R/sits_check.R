@@ -214,7 +214,6 @@ NULL
 #' @rdname check_functions
 #' @keywords internal
 .check_na <- function(x, ..., allow_na = FALSE, msg = NULL) {
-
     if (!allow_na) {
         .check_that(
             !any(is.na(x)),
@@ -748,8 +747,8 @@ NULL
 
     # pre-condition
     .check_chr(within,
-               len_min = 1,
-               msg = "invalid 'within' parameter"
+        len_min = 1,
+        msg = "invalid 'within' parameter"
     )
 
     # allowed discriminators and its print values
@@ -801,7 +800,7 @@ NULL
         "values should %s: %s",
         discriminators[[discriminator]],
         paste0("'", original_within, "'",
-               collapse = ", "
+            collapse = ", "
         )
     )
 
@@ -852,8 +851,8 @@ NULL
 
     # pre-condition
     .check_chr(contains,
-               len_min = 1,
-               msg = "invalid 'contains' parameter"
+        len_min = 1,
+        msg = "invalid 'contains' parameter"
     )
 
     # allowed discriminators and its print values
@@ -970,16 +969,16 @@ NULL
 
     # check parameter
     .check_chr(x,
-               allow_empty = FALSE, len_min = 1,
-               allow_null = FALSE, msg = msg
+        allow_empty = FALSE, len_min = 1,
+        allow_null = FALSE, msg = msg
     )
 
     # check extension
     if (!is.null(extensions)) {
         .check_chr_within(ext_file(x),
-                          within = extensions,
-                          case_sensitive = FALSE,
-                          msg = "invalid file extension"
+            within = extensions,
+            case_sensitive = FALSE,
+            msg = "invalid file extension"
         )
     }
 
@@ -990,7 +989,7 @@ NULL
         local_msg = paste(
             "file does not exist:",
             paste0("'", x[!existing_files], "'",
-                   collapse = ", "
+                collapse = ", "
             )
         ),
         msg = msg

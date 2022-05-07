@@ -249,24 +249,23 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     ## noncausal, one filter per row.  For the bulk of your data you
     ## will use the central filter, but towards the ends you will need
     ## a filter that doesn't go beyond the end points.
-    filter_matrix <- matrix(0., n, n)
+    Fm <- matrix(0., n, n)
     k <- floor(n / 2)
     for (row in 1:(k + 1)) {
         ## Construct a matrix of weights Cij = xi ^ j.  The points xi are
         ## equally spaced on the unit grid, with past points using negative
         ## values and future points using positive values.
-        weigths <- (((1:n) - row) %*% matrix(1, 1, p + 1)) ^ (matrix(1, n) %*% (0:p))
-        ## pseudo-inverse (weights), so weigths*inv = I
-        ## this is constructed from the SVD
-        inv <- .sits_mass_ginv(weigths, tol = .Machine$double.eps)
+        Ce <- (((1:n) - row) %*% matrix(1, 1, p + 1))^(matrix(1, n) %*% (0:p))
+        ## A = pseudo-inverse (C), so C*A = I; this is constructed from the SVD
+        A <- .sits_mass_ginv(Ce, tol = .Machine$double.eps)
         ## Take the row of the matrix corresponding to the derivative
         ## you want to compute.
-        filter_matrix[row, ] <- inv[1 + m, ]
+        Fm[row, ] <- A[1 + m, ]
     }
     ## The filters shifted to the right are symmetric with those to the left.
-    filter_matrix[(k + 2):n, ] <- (-1)^m * filter_matrix[k:1, n:1]
-    class(filter_matrix) <- "sgolayFilter"
-    return(filter_matrix)
+    Fm[(k + 2):n, ] <- (-1)^m * Fm[k:1, n:1]
+    class(Fm) <- "sgolayFilter"
+    return(Fm)
 }
 
 # Octave/Matlab-compatible filter function

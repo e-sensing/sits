@@ -625,7 +625,7 @@ sits_view.classified_image <- function(x, ...,
 .view_resample_size <- function(nrows, ncols, ntiles) {
 
     # get the maximum number of bytes to be displayed per tile
-    max_Mbytes <- .config_get(key = "leaflet_max_Mbytes")
+    max_megabytes <- .config_get(key = "leaflet_max_megabytes")
     # get the compression factor
     comp <- .config_get(key = "leaflet_comp_factor")
 

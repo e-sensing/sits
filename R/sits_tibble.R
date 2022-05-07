@@ -98,7 +98,7 @@ sits_time_series <- function(data) {
                     / lubridate::ddays(1))
                 )
                 # shift the time series to match dates
-                if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
+                if (idx != 1) ts <- shift_ts(ts, - (idx - 1))
                 # change the dates to the reference dates
                 ts1 <- dplyr::mutate(ts, Index = ref_dates)
                 # save the resulting row in the output tibble

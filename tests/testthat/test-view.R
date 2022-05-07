@@ -3,7 +3,7 @@ test_that("View", {
     v <- sits_view(cerrado_2classes)
     expect_true("leaflet" %in% class(v))
     expect_true(all(v$x$calls[[6]]$args[[1]]$labels %in%
-                        c("Cerrado", "Pasture")))
+        c("Cerrado", "Pasture")))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
@@ -39,7 +39,8 @@ test_that("View", {
         verbose = FALSE
     )
     modis_label <- sits_label_classification(modis_probs,
-                                             output_dir = tempdir())
+        output_dir = tempdir()
+    )
 
     v3 <- sits_view(modis_label)
     expect_true(grepl("EPSG3857", v3$x$options$crs$crsClass))
