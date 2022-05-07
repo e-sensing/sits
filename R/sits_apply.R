@@ -108,7 +108,6 @@ sits_apply.raster_cube <- function(data, ...,
 
             # Get parameters from each job
             tile_name <- job[[1]]
-            out_band <- job[[2]]
             fid <- job[[3]]
 
             # Filter tile
@@ -313,7 +312,7 @@ sits_apply.raster_cube <- function(data, ...,
 
         # Find the tiles that have not been processed yet
         jobs <- .apply_missing_band(
-            cube = data,
+            cube = local_cube,
             band = out_band
         )
 
