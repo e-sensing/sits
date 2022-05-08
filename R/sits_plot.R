@@ -1448,7 +1448,14 @@ plot.torch_model <- function(x, y, ...) {
     if (as.numeric(size[["ratio"]] > 1)) {
         new_nrows <- as.integer(size[["nrows"]])
         new_ncols <- as.integer(size[["ncols"]])
-        new_rast <- terra::rast(nrows = new_nrows, ncols = new_ncols)
+        new_rast <- terra::rast(nrows = new_nrows,
+                                ncols = new_ncols,
+                                xmin = terra::xmin(r_merge),
+                                xmax = terra::xmax(r_merge),
+                                ymin = terra::ymin(r_merge),
+                                ymax = terra::ymax(r_merge),
+                                crs  = terra::crs(r_merge)
+        )
         r_merge <- terra::resample(r_merge, new_rast, method = "near")
     }
     # convert from raster to points
