@@ -128,6 +128,7 @@ sits_get_data <- function(cube,
         local_msg = "tiles have different bands and dates",
         msg = "cube is inconsistent"
     )
+
     if (is.character(samples)) {
         class(samples) <- c(tools::file_ext(samples), class(samples))
     }
@@ -184,6 +185,13 @@ sits_get_data.shp <- function(cube,
                               multicores = 4,
                               output_dir = ".",
                               progress = FALSE) {
+
+    # pre-condition - shapefile should have an id parameter
+    .check_that(
+        !(pol_avg && purrr::is_null(pol_id)),
+        msg = "invalid 'pol_id' parameter."
+    )
+
     samples <- .sits_get_samples_from_shp(
         shp_file    = samples,
         label       = label,
@@ -227,6 +235,11 @@ sits_get_data.sf <- function(cube,
                              multicores = 4,
                              output_dir = ".",
                              progress = FALSE) {
+
+    .check_that(
+        !(pol_avg && purrr::is_null(pol_id)),
+        msg = "invalid 'pol_id' parameter."
+    )
 
     # check if sf object contains all the required columns
     samples <- .sits_get_samples_from_sf(

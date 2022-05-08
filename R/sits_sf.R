@@ -158,6 +158,22 @@ sits_as_sf <- function(samples) {
     # get the db file
     sf_df <- sf::st_drop_geometry(sf_object)
 
+    if (!purrr::is_null(label_attr)) {
+        .check_chr_within(
+            x = label_attr,
+            within = colnames(sf_df),
+            msg = "invalid 'label_attr' parameter."
+        )
+    }
+
+    if (!purrr::is_null(pol_id)) {
+        .check_chr_within(
+            x = pol_id,
+            within = colnames(sf_df),
+            msg = "invalid 'pol_id' parameter."
+        )
+    }
+
     points.tb <- seq_len(nrow(sf_object)) %>%
         purrr::map_dfr(function(i) {
             # retrieve the class from the shape attribute
