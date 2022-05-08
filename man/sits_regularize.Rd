@@ -11,8 +11,7 @@ sits_regularize(
   output_dir,
   multicores = 1,
   memsize = 4,
-  progress = TRUE,
-  use_gdalcubes = TRUE
+  progress = TRUE
 )
 }
 \arguments{
@@ -34,8 +33,6 @@ used for parallel processing of input.}
 \item{memsize}{Memory available for regularization (in GB).}
 
 \item{progress}{show progress bar?}
-
-\item{use_gdalcubes}{Use gdalcubes package? (see details).}
 }
 \value{
 A \code{sits_cube} object with aggregated images.
