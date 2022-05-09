@@ -6,6 +6,12 @@
 \usage{
 .cube_unique_bbox(cube)
 }
+\arguments{
+\item{cube}{input data cube}
+}
+\value{
+TRUE/FALSE
+}
 \description{
 Check if bboxes of all tiles of the cube are the same
 }
