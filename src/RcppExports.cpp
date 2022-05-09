@@ -128,34 +128,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// reg_resample
-IntegerMatrix reg_resample(const IntegerMatrix& band, const IntegerMatrix& cloud, const double& ratio_band_out, const double& ratio_cloud_out, const int& nrows_out, const int& ncols_out, IntegerVector& cloud_interp);
-RcppExport SEXP _sits_reg_resample(SEXP bandSEXP, SEXP cloudSEXP, SEXP ratio_band_outSEXP, SEXP ratio_cloud_outSEXP, SEXP nrows_outSEXP, SEXP ncols_outSEXP, SEXP cloud_interpSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type band(bandSEXP);
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type cloud(cloudSEXP);
-    Rcpp::traits::input_parameter< const double& >::type ratio_band_out(ratio_band_outSEXP);
-    Rcpp::traits::input_parameter< const double& >::type ratio_cloud_out(ratio_cloud_outSEXP);
-    Rcpp::traits::input_parameter< const int& >::type nrows_out(nrows_outSEXP);
-    Rcpp::traits::input_parameter< const int& >::type ncols_out(ncols_outSEXP);
-    Rcpp::traits::input_parameter< IntegerVector& >::type cloud_interp(cloud_interpSEXP);
-    rcpp_result_gen = Rcpp::wrap(reg_resample(band, cloud, ratio_band_out, ratio_cloud_out, nrows_out, ncols_out, cloud_interp));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reg_agg_first
-IntegerMatrix reg_agg_first(const IntegerMatrix& band_dates);
-RcppExport SEXP _sits_reg_agg_first(SEXP band_datesSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type band_dates(band_datesSEXP);
-    rcpp_result_gen = Rcpp::wrap(reg_agg_first(band_dates));
-    return rcpp_result_gen;
-END_RCPP
-}
 // smooth_whit
 NumericVector smooth_whit(const NumericVector& data, const double& lambda, const int& length);
 RcppExport SEXP _sits_smooth_whit(SEXP dataSEXP, SEXP lambdaSEXP, SEXP lengthSEXP) {
@@ -180,8 +152,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
     {"_sits_margin_probs", (DL_FUNC) &_sits_margin_probs, 2},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
-    {"_sits_reg_resample", (DL_FUNC) &_sits_reg_resample, 7},
-    {"_sits_reg_agg_first", (DL_FUNC) &_sits_reg_agg_first, 1},
     {"_sits_smooth_whit", (DL_FUNC) &_sits_smooth_whit, 3},
     {NULL, NULL, 0}
 };
