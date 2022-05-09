@@ -159,7 +159,8 @@ sits_lighttae <- function(samples = NULL,
         if (!is.null(names(opt_hparams))) {
             .check_chr_within(
                 x = names(opt_hparams),
-                within = names(optim_params_function)
+                within = names(optim_params_function),
+                msg = "invalid hyperparameters provided in optimizer"
             )
             optim_params_function <- utils::modifyList(
                 optim_params_function,
