@@ -292,7 +292,7 @@ sits_xgboost <- function(samples = NULL,
         .check_length(
             x = labels,
             len_min = 1,
-            msg = "invalid data - bad labels"
+            msg = "invalid number of labels"
         )
         n_labels <- length(labels)
 
@@ -631,15 +631,17 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 .sits_ml_model_samples <- function(ml_model) {
 
     # pre-condition
-    if (!inherits(ml_model, "function")) {
-        stop("invalid 'ml_model' parameter")
-    }
+    .check_that(
+        x = inherits(ml_model, "function"),
+        local_msg = "value should be a function",
+        msg = "invalid 'ml_model' parameter"
+    )
 
     # pre-condition
     .check_chr_contains(
         x = ls(environment(ml_model)),
         contains = "samples",
-        msg = "no samples found in the sits model"
+        msg = "invalid 'ml_model' parameterno samples found in the sits model"
     )
 
     return(environment(ml_model)$samples)
