@@ -129,11 +129,10 @@ After defining an irregular ARD image collection from a cloud service using `sit
 gc_cube <- sits_regularize(cube          = s2_cube,
                            output_dir    = tempdir(),
                            period        = "P15D",
-                           agg_method    = "median",
-                           res           = 10, 
-                           multicores    = 2)
+                           res           = 60, 
+                           multicores    = 4)
 ```
-The above command builds a regular data cube with all bands interpolated to 10 meter spatial resolution and 15 days temporal resolution. Regular data cubes are the input to the `sits` functions for time series retrieval, building machine learning models, and classification of raster images and time series.
+The above command builds a regular data cube with all bands interpolated to 60 meter spatial resolution and 15 days temporal resolution. Regular data cubes are the input to the `sits` functions for time series retrieval, building machine learning models, and classification of raster images and time series.
 
 ## Working with Time Series in SITS
 
