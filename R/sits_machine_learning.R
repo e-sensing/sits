@@ -54,6 +54,16 @@ sits_rfor <- function(samples = NULL,
         # get predictors features
         train_samples <- .sits_distances(samples)
 
+        # check num_trees
+        .check_num(
+            x = num_trees,
+            min = 1,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE,
+            msg = "invalid 'num_trees' parameter"
+        )
+
         # check mtry
         # apply the same mtry default value of randomForest package
         n_features <- ncol(train_samples) - 2
