@@ -124,21 +124,24 @@ sits_lighttae <- function(samples = NULL,
         .check_require_packages(c("torch", "luz"))
 
         # preconditions
+        # check epochs
         .check_num(
-            x = lr_decay_epochs,
-            is_integer = TRUE,
-            len_max = 1,
+            x = epochs,
             min = 1,
-            msg = "invalid learning rate decay epochs"
-        )
-        .check_num(
-            x = lr_decay_rate,
-            exclusive_min = 0,
-            max = 1,
+            len_min = 1,
             len_max = 1,
-            msg = "invalid 'lr_decay_rate' parameter"
+            is_integer = TRUE,
+            msg = "invalid 'epochs' parameter"
         )
-
+        # check batch_size
+        .check_num(
+            x = batch_size,
+            min = 1,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE,
+            msg = "invalid 'batch_size' parameter"
+        )
         # check validation_split parameter if samples_validation is not passed
         if (purrr::is_null(samples_validation)) {
             .check_num(
@@ -150,7 +153,7 @@ sits_lighttae <- function(samples = NULL,
                 msg = "invalid 'validation_split' parameter"
             )
         }
-
+        # check opt_params
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
         if (!is.null(names(opt_hparams))) {
@@ -163,6 +166,41 @@ sits_lighttae <- function(samples = NULL,
                 opt_hparams
             )
         }
+        # check lr_decay_epochs
+        .check_num(
+            x = lr_decay_epochs,
+            min = 1,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE,
+            msg = "invalid 'lr_decay_epochs' parameter"
+        )
+        # check lr_decay_rate
+        .check_num(
+            x = lr_decay_rate,
+            exclusive_min = 0,
+            max = 1,
+            len_min = 1,
+            len_max = 1,
+            msg = "invalid 'lr_decay_rate' parameter"
+        )
+        # check patience
+        .check_num(
+            x = patience,
+            min = 1,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE,
+            msg = "invalid 'patience' parameter"
+        )
+        # check min_delta
+        .check_num(
+            x = min_delta,
+            min = 0,
+            len_min = 1,
+            len_max = 1,
+            msg = "invalid 'min_delta' parameter"
+        )
 
         # get the labels
         labels <- sits_labels(samples)
