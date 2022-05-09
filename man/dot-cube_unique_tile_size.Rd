@@ -6,6 +6,12 @@
 \usage{
 .cube_unique_tile_size(cube)
 }
+\arguments{
+\item{cube}{input data cube}
+}
+\value{
+TRUE/FALSE
+}
 \description{
 Check if sizes of all tiles of the cube are the same
 }

@@ -269,8 +269,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
         output_dir = dir_images,
         res = 240,
         period = "P16D",
-        multicores = 1,
-        use_gdalcubes = TRUE
+        multicores = 1
     )
 
     tile_size <- .cube_size(rg_cube[1, ])

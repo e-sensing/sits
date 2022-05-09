@@ -6,6 +6,12 @@
 \usage{
 .cube_unique_timeline(cube)
 }
+\arguments{
+\item{cube}{input data cube}
+}
+\value{
+TRUE/FALSE
+}
 \description{
 Check if timelines all tiles of the cube are the same
 }

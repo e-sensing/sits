@@ -13,11 +13,11 @@ test_that("Tuning - random search", {
         progress = FALSE
     )
 
-    accuracy <- tuned$tuning$accuracy
-    kappa <- tuned$tuning$accuracy
-    best_lr <- tuned$tuning$params[[1]]$opt_hparams
+    accuracy <- tuned$accuracy
+    kappa <- tuned$kappa
+    lr <- unlist(tuned$opt_hparams)
 
-    expect_true(max(accuracy) > 0.8)
-    expect_true(max(kappa) > 0.8)
-    expect_true(best_lr < 0.1)
+    expect_true(max(accuracy) > 0.6)
+    expect_true(max(kappa) > 0.4)
+    expect_true(max(lr) <= 1.89)
 })

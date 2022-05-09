@@ -82,7 +82,7 @@ sits_geo_dist <- function(samples, roi = NULL, n = 1000) {
 #' (row number in b), and distance (in meters).
 .find_closest <- function(x, y = x) {
     dist_xy <- sf::st_distance(x, y)
-    class(dist_xy) <- setdiff(class(x), "units")
+    class(dist_xy) <- setdiff(class(dist_xy), "units")
     attr(dist_xy, "units") <- NULL
 
     dist_xy[dist_xy == 0] <- Inf
