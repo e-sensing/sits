@@ -16,12 +16,14 @@ test_that("Sample", {
 
 test_that("Sample reduce imbalance", {
     # print the labels summary for a sample set
-    sits_labels_summary(samples_modis_4bands)
+    sum_ori_samples <- sits_labels_summary(samples_modis_4bands)
     # reduce the sample imbalance
     new_samples <- sits_reduce_imbalance(samples_modis_4bands,
         n_samples_over = 200, n_samples_under = 200,
         multicores = 4
     )
     # print the labels summary for the rebalanced set
-    sits_labels_summary(new_samples)
+    sum_new_samples <- sits_labels_summary(new_samples)
+    expect_true(nrow(new_samples) < nrow(samples_modis_4bands))
+    expect_true(sd(sum_new_samples[["count"]]) < sd(sum_ori_samples[["count"]]))
 })
