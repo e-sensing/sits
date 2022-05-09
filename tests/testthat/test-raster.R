@@ -478,6 +478,99 @@ test_that("One-year, multicore classification with LightTAE", {
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
 
+test_that("One-year, multicore and multiblocks classification", {
+
+    sits::sits_config(processing_bloat = 9000)
+
+    samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
+    rf_model <- sits_train(samples_ndvi, ml_method = sits_rfor)
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
+    )
+
+    probs_cube <- tryCatch(
+        {
+            suppressMessages(
+                sits_classify(
+                    cube,
+                    rf_model,
+                    output_dir = tempdir(),
+                    memsize = 4,
+                    multicores = 2
+                )
+            )
+        },
+        error = function(e) {
+            return(NULL)
+        }
+    )
+
+    sits::sits_config(processing_bloat = 5)
+
+    if (purrr::is_null(probs_cube)) {
+        skip("Unable to allocate multicores")
+    }
+
+    expect_true(all(file.exists(unlist(probs_cube$file_info[[1]]$path))))
+})
+
+test_that("One-year, multicores classification with cloud band", {
+
+    csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
+                            package = "sits")
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+
+    cloud_cube <- sits_apply(
+        data = cube,
+        output_dir = "/home/sits/exemplo_cloud/",
+        CLOUD = ifelse(NDVI <= 0.2, 0.0002, 0.0001),
+        memsize = 4,
+        multicores = 2
+    )
+    cube_merged <- sits_merge(data1 = cube, data2 = cloud_cube)
+
+    samples_ndvi <- sits_get_data(
+        cube = cube_merged,
+        samples = csv_file,
+        multicores = 2
+    )
+    rf_model <- sits_train(samples_ndvi, ml_method = sits_rfor)
+
+    probs_cube <- tryCatch(
+        {
+            suppressMessages(
+                sits_classify(
+                    cube_merged,
+                    rf_model,
+                    output_dir = tempdir(),
+                    memsize = 4,
+                    multicores = 2
+                )
+            )
+        },
+        error = function(e) {
+            return(NULL)
+        }
+    )
+
+    if (purrr::is_null(probs_cube)) {
+        skip("Unable to allocate multicores")
+    }
+
+    expect_true(all(file.exists(unlist(probs_cube$file_info[[1]]$path))))
+})
+
 test_that("One-year, multicore classification with post-processing", {
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
@@ -559,7 +652,7 @@ test_that("One-year, multicore classification with post-processing", {
     sinop_bayes <- sits_smooth(
         sinop_probs,
         output_dir = tempdir(),
-        multicores = 1
+        multicores = 2
     )
     expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
 
