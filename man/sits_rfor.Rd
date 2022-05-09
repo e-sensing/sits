@@ -4,25 +4,26 @@
 \alias{sits_rfor}
 \title{Train random forest models}
 \usage{
-sits_rfor(samples = NULL, num_trees = 200, nodesize = 1, ...)
+sits_rfor(samples = NULL, num_trees = 200, mtry = NULL, ...)
 }
 \arguments{
 \item{samples}{Time series with the training samples.}
 
-\item{num_trees}{Number of trees to grow.
-This should not be set to too small a number,
-to ensure that every input row gets predicted
+\item{num_trees}{Number of trees to grow. This should not be set to too
+small a number, to ensure that every input row gets predicted
 at least a few times (default: 200).}
 
-\item{nodesize}{Minimum size of terminal nodes
-(default 1 for classification).}
+\item{mtry}{Number of variables randomly sampled as candidates at
+each split (default: NULL - use default value of
+\code{randomForest::randomForest()} function, i.e.
+\code{floor(sqrt(features))}).}
 
 \item{...}{Other parameters to be passed
 to `randomForest::randomForest` function.}
 }
 \value{
 Model fitted to input data
-                        (to be passed to \code{\link[sits]{sits_classify}}).
+                  (to be passed to \code{\link[sits]{sits_classify}}).
 }
 \description{
 Use Random Forest algorithm to classify samples.
@@ -38,7 +39,8 @@ if (sits_run_examples()) {
     # Example of training a model for time series classification
     # Retrieve the samples for Mato Grosso
     # train a random forest model
-    rf_model <- sits_train(samples_modis_4bands, ml_method = sits_rfor)
+    rf_model <- sits_train(samples_modis_4bands,
+                           ml_method = sits_rfor(mtry = 20))
     # select the bands to classify the point
     sample_bands <- sits_bands(samples_modis_4bands)
     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
