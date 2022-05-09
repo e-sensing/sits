@@ -1674,7 +1674,7 @@ plot.geo_distances <- function(x, y, ...) {
 
     density_plot <-
         distances %>%
-        dplyr::mutate(distance = distances / 1000) %>%
+        dplyr::mutate(distance = .data[["distance"]] / 1000) %>%
         ggplot2::ggplot(ggplot2::aes(x = .data[["distance"]])) +
         ggplot2::geom_density(ggplot2::aes(
             color = .data[["type"]],
