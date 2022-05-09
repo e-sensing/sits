@@ -48,6 +48,10 @@ sits_rfor <- function(samples = NULL,
     # function that returns `randomForest::randomForest` model
     result_fun <- function(samples) {
 
+        # verifies if randomForest package is installed
+        .check_require_packages("randomForest")
+
+        # get predictors features
         train_samples <- .sits_distances(samples)
 
         # check mtry
@@ -64,9 +68,6 @@ sits_rfor <- function(samples = NULL,
             is_integer = TRUE,
             msg = "invalid 'mtry' parameter"
         )
-
-        # verifies if randomForest package is installed
-        .check_require_packages("randomForest")
 
         # call `randomForest::randomForest` method and return the trained model
         reference <- train_samples[, reference]
