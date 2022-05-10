@@ -180,18 +180,6 @@
 #'         end_date = "2019-08-28"
 #'     )
 #'
-#'     # --- Create a WTSS cube from BDC cubes
-#'     # Provide your BDC credentials as environment variables
-#'     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-#'     if (nchar(bdc_access_key) == 0) {
-#'         stop("No BDC_ACCESS_KEY defined in environment.")
-#'     }
-#'
-#'     cube_wtss <- sits_cube(
-#'         source = "WTSS",
-#'         collection = "MOD13Q1-6"
-#'     )
-#'
 #'     # --- Access to Digital Earth Africa
 #'     # create a raster cube file based on the information about the files
 #'     # DEAFRICA does not support definition of tiles

@@ -187,7 +187,7 @@ if (sits_run_examples()) {
     csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
         package = "sits"
     )
-    points <- sits_get_data(cube = raster_cube, file = csv_file)
+    points <- sits_get_data(cube = raster_cube, samples = csv_file)
 
     # reading a shapefile from BDC (Brazil Data Cube)
     # needs a BDC access key that can be obtained
@@ -207,7 +207,9 @@ if (sits_run_examples()) {
             package = "sits"
         )
         # get samples from the BDC based on the shapefile
-        time_series_bdc <- sits_get_data(cube = bdc_cube, samples = shp_file)
+        time_series_bdc <- sits_get_data(
+            cube = bdc_cube,
+            samples = shp_file)
     }
 }
 

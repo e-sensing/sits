@@ -8,7 +8,7 @@ library(sits)
 # use a sample with the bands "ndvi", "evi", "nir", and "mir"
 # select a random forest model
 rfor_model <- sits_train(
-    data      = samples_modis_4bands,
+    samples   = samples_modis_4bands,
     ml_method = sits_rfor()
 )
 
