@@ -596,7 +596,7 @@ plot.classified_image <- function(x, y, ...,
 #'     # evaluate the SOM cluster
 #'     som_clusters <- sits_som_evaluate_cluster(som_map)
 #'     # plot the SOM cluster evaluation
-#'     plot(som_cluster)
+#'     plot(som_clusters)
 #' }
 #' @export
 #'

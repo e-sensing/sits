@@ -74,6 +74,8 @@ if (sits_run_examples()) {
         data_dir = data_dir,
         parse_info = c("X1", "X2", "tile", "band", "date")
     )
+    # get the timeline
+    timeline <- sits_timeline(modis_cube)
     # view the data cube
     sits_view(modis_cube,
         band = "NDVI",

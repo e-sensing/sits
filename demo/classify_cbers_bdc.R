@@ -47,7 +47,7 @@ cbers_cube <- sits_cube(
 
 # train an RFOR model
 rfor_model <- sits_train(
-    data      = cbers_samples_2bands,
+    samples   = cbers_samples_2bands,
     ml_method = sits_rfor()
 )
 
@@ -55,7 +55,6 @@ rfor_model <- sits_train(
 cbers_probs <- sits_classify(
     data = cbers_cube,
     ml_model = rfor_model,
-    output_dir = tempdir(),
     memsize = 16,
     multicores = 4,
     verbose = TRUE,
@@ -69,7 +68,6 @@ plot(cbers_probs)
 cbers_bayes <- sits_smooth(
     cube = cbers_probs,
     type = "bayes",
-    output_dir = tempdir(),
     memsize = 16,
     multicores = 4,
     verbose = TRUE,
@@ -81,7 +79,6 @@ plot(cbers_bayes)
 # label the smoothed image
 cbers_lbayes <- sits_label_classification(
     cube       = cbers_bayes,
-    output_dir = tempdir(),
     memsize    = 16,
     multicores = 4
 )
@@ -89,12 +86,14 @@ cbers_lbayes <- sits_label_classification(
 # plot the labelled image
 plot(cbers_lbayes)
 
+timeline <- sits_timeline(cbers_cube)
+
 # view the classification results together with the original maps
 sits_view(
     x = cbers_cube,
     red = "EVI",
     green = "NDVI",
     blue = "EVI",
-    times = c(1, 23),
+    dates = c(timeline[1], timeline[length(timeline)]),
     class_cube = cbers_lbayes
 )

@@ -42,7 +42,7 @@
 #'     # accuracy assessment lightTAE
 #'     acc_ltae <- sits_kfold_validate(samples_modis_4bands,
 #'         folds = 5,
-#'         ml_method = sits_lightae()
+#'         ml_method = sits_lighttae()
 #'     )
 #'     # use a name
 #'     acc_ltae$name <- "LightTAE"
