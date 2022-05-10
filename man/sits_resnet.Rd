@@ -56,7 +56,8 @@ weight_decay:       L2 regularization}
 \item{patience}{Number of epochs without improvements until
 training stops.}
 
-\item{min_delta}{Minimum improvement to reset the patience counter.}
+\item{min_delta}{Minimum improvement in loss function
+to reset the patience counter.}
 
 \item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }

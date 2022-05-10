@@ -65,9 +65,6 @@
 #'                           training stops.
 #' @param min_delta	         Minimum improvement in loss function
 #'                           to reset the patience counter.
-#' @param patience           Number of epochs without improvements until
-#'                           training stops.
-#' @param min_delta	         Minimum improvement to reset the patience counter.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
 #'
 #' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}.
@@ -128,15 +125,50 @@ sits_resnet <- function(samples = NULL,
     # set caller to show in errors
     .check_set_caller("sits_ResNet")
 
+
     # function that returns torch model based on a sits sample data.table
     result_fun <- function(samples) {
-        # verifies if torch and luz packages is installed
+
+        # verifies if torch and luz packages are installed
         .check_require_packages(c("torch", "luz"))
+
+        if (!purrr::is_null(samples))
+            .sits_tibble_test(samples)
+
+        .check_num(
+            x = blocks,
+            exclusive_min = 0,
+            len_min = 1,
+            is_integer = TRUE,
+            msg = "invalid 'blocks' parameter"
+        )
 
         .check_that(
             x = length(kernels) == 3,
             msg = "should inform size of three kernels"
         )
+
+        .check_num(
+            x = epochs,
+            exclusive_min = 0,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE,
+            msg = "invalid 'epochs' parameter"
+        )
+
+        .check_num(
+            x = batch_size,
+            exclusive_min = 0,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE,
+            msg = "invalid 'batch_size' parameter"
+        )
+
+        .check_that(!purrr::is_null(optimizer),
+                    msg = "invalid 'optimizer' parameter")
+
         .check_num(
             x = lr_decay_epochs,
             is_integer = TRUE,
@@ -151,6 +183,25 @@ sits_resnet <- function(samples = NULL,
             max = 1,
             len_max = 1,
             msg = "invalid 'lr_decay_rate' parameter"
+        )
+
+        .check_num(
+            x = patience,
+            min = 0,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE,
+            msg = "invalid 'patience' parameter"
+        )
+
+        .check_num(
+            x = min_delta,
+            min = 0,
+            max = 1,
+            len_min = 1,
+            len_max = 1,
+            is_integer = FALSE,
+            msg = "invalid 'min_delta' parameter"
         )
 
         # check validation_split parameter if samples_validation is not passed
