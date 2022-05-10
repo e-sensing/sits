@@ -993,7 +993,7 @@ NULL
     if (!can_repeat) {
         .check_that(
             length(contains) == length(unique(contains)),
-            local_msg = "values can not repeat",
+            local_msg = "values cannot repeat",
             msg = msg
         )
     }
@@ -1013,7 +1013,7 @@ NULL
 
     # prepare local message
     local_msg <- sprintf(
-        "values should %s: %s",
+        "value should %s: %s",
         discriminators[[discriminator]],
         paste0("'", original_contains, "'", collapse = ", ")
     )

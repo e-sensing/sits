@@ -135,8 +135,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # sits only accepts "csv" files
     .check_file(
         x = validation_csv,
-        extensions = "csv",
-        msg = "csv file not available",
+        extensions = "csv"
     )
 
     # Read sample information from CSV file and put it in a tibble
