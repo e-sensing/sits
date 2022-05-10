@@ -533,7 +533,7 @@ test_that("One-year, multicores classification with cloud band", {
 
     cloud_cube <- sits_apply(
         data = cube,
-        output_dir = "/home/sits/exemplo_cloud/",
+        output_dir = tempdir(),
         CLOUD = ifelse(NDVI <= 0.2, 0.0002, 0.0001),
         memsize = 4,
         multicores = 2
@@ -584,13 +584,15 @@ test_that("One-year, multicore classification with post-processing", {
         data_dir = data_dir
     )
 
+    temp_dir <- tempdir()
+
     sinop_probs <- tryCatch(
         {
             suppressMessages(
                 sits_classify(
                     sinop,
                     torch_model,
-                    output_dir = tempdir(),
+                    output_dir = temp_dir,
                     memsize = 4,
                     multicores = 2
                 )
@@ -610,7 +612,7 @@ test_that("One-year, multicore classification with post-processing", {
         source = "BDC",
         collection = "MOD13Q1-6",
         bands = "probs",
-        data_dir = tempdir(),
+        data_dir = temp_dir,
         labels = sits_labels(sinop_probs),
         parse_info = c(
             "X1", "X2", "tile", "start_date",
@@ -622,7 +624,7 @@ test_that("One-year, multicore classification with post-processing", {
 
     sinop_class <- sits_label_classification(
         sinop_probs,
-        output_dir = tempdir()
+        output_dir = temp_dir
     )
     expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
 
@@ -640,7 +642,7 @@ test_that("One-year, multicore classification with post-processing", {
         collection = "MOD13Q1-6",
         bands = "class",
         labels = sits_labels(sinop_class),
-        data_dir = tempdir(),
+        data_dir = temp_dir,
         parse_info = c(
             "X1", "X2", "tile", "start_date",
             "end_date", "band", "version"
@@ -651,7 +653,7 @@ test_that("One-year, multicore classification with post-processing", {
 
     sinop_bayes <- sits_smooth(
         sinop_probs,
-        output_dir = tempdir(),
+        output_dir = temp_dir,
         multicores = 2
     )
     expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
@@ -673,7 +675,7 @@ test_that("One-year, multicore classification with post-processing", {
         collection = "MOD13Q1-6",
         bands = "bayes",
         labels = sits_labels(sinop_class),
-        data_dir = tempdir(),
+        data_dir = temp_dir,
         parse_info = c(
             "X1", "X2", "tile", "start_date",
             "end_date", "band", "version"
@@ -685,7 +687,7 @@ test_that("One-year, multicore classification with post-processing", {
     sinop_bil <- sits_smooth(
         cube = sinop_probs,
         type = "bilateral",
-        output_dir = tempdir(),
+        output_dir = temp_dir,
         multicores = 1
     )
 
@@ -703,7 +705,7 @@ test_that("One-year, multicore classification with post-processing", {
     sinop_uncert <- sits_uncertainty(
         cube = sinop_bayes,
         type = "entropy",
-        output_dir = tempdir()
+        output_dir = temp_dir
     )
 
     expect_true(all(file.exists(unlist(sinop_uncert$file_info[[1]]$path))))
@@ -718,7 +720,7 @@ test_that("One-year, multicore classification with post-processing", {
         collection = "MOD13Q1-6",
         bands = "entropy",
         labels = sits_labels(sinop_class),
-        data_dir = tempdir()
+        data_dir = temp_dir
     )
 
     timeline_orig <- sits_timeline(sinop)
