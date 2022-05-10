@@ -84,7 +84,7 @@ sits_tuning <- function(samples,
                         progress = FALSE) {
 
     # set caller to show in errors
-    .check_set_caller("sits_tuning_random")
+    .check_set_caller("sits_tuning")
 
     # pre-conditions
     # check samples parameter
@@ -127,6 +127,15 @@ sits_tuning <- function(samples,
     )
     # update formals with provided parameters in params
     params <- utils::modifyList(params_default, params)
+    # check trials
+    .check_num(
+        x = trials,
+        min = 1,
+        len_min = 1,
+        len_max = 1,
+        is_integer = TRUE,
+        msg = "invalid 'trials' parameter"
+    )
     # check 'multicores' parameter
     .check_num(
         x = multicores, min = 1, len_min = 1, len_max = 1, is_integer = TRUE,

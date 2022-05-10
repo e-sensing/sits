@@ -120,37 +120,66 @@ sits_tempcnn <- function(samples = NULL,
         .check_require_packages(c("torch", "luz"))
 
         # preconditions
-        .check_length(
+        # check cnn_layers
+        .check_num(
             x = cnn_layers,
+            min = 1,
             len_min = 3,
             len_max = 3,
-            msg = "tempcnn uses three CNN layers"
+            is_integer = TRUE,
+            msg = "invalid 'cnn_layers' parameter"
         )
+        # check cnn_kernels
+        .check_num(
+            x = cnn_kernels,
+            min = 1,
+            len_min = 3,
+            len_max = 3,
+            is_integer = TRUE,
+            msg = "invalid 'cnn_kernels' parameter"
+        )
+        # check cnn_dropout_rates
         .check_length(
             x = cnn_dropout_rates,
+            min = 0,
+            max = 1,
             len_min = 3,
             len_max = 3,
-            msg = "tempcnn uses three dropout rates"
+            msg = "invalid 'cnn_dropout_rates' parameter"
         )
-        .check_that(
-            x = length(dense_layer_nodes) == 1,
-            msg = "There is only one dense layer"
+        # check dense_layer_nodes
+        .check_num(
+            x = dense_layer_nodes,
+            min = 1,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE,
+            msg = "invalid 'dense_layer_nodes' parameter"
         )
-        .check_that(
-            x = length(dense_layer_dropout_rate) == 1,
-            msg = "dropout rates must be provided for the dense layer"
+        # check dense_layer_dropout_rate
+        .check_num(
+            x = dense_layer_dropout_rate,
+            min = 0,
+            max = 1,
+            len_min = 1,
+            len_max = 1,
+            msg = "invalid 'dense_layer_dropout_rate' parameter"
         )
+        # check lr_decay_epochs
         .check_num(
             x = lr_decay_epochs,
-            is_integer = TRUE,
-            len_max = 1,
             min = 1,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE,
             msg = "invalid 'lr_decay_epochs' parameter"
         )
+        # check lr_decay_rate
         .check_num(
             x = lr_decay_rate,
             exclusive_min = 0,
             max = 1,
+            len_min = 1,
             len_max = 1,
             msg = "invalid 'lr_decay_rate' parameter"
         )
@@ -165,6 +194,23 @@ sits_tempcnn <- function(samples = NULL,
                 msg = "invalid 'validation_split' parameter"
             )
         }
+        # check patience
+        .check_num(
+            x = patience,
+            min = 1,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE,
+            msg = "invalid 'patience' parameter"
+        )
+        # check min_delta
+        .check_num(
+            x = min_delta,
+            min = 0,
+            len_min = 1,
+            len_max = 1,
+            msg = "invalid 'min_delta' parameter"
+        )
 
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
@@ -172,7 +218,7 @@ sits_tempcnn <- function(samples = NULL,
             .check_chr_within(
                 x = names(opt_hparams),
                 within = names(optim_params_function),
-                msg = "Invalid hyperparameters provided in optimizer."
+                msg = "invalid hyperparameters provided in optimizer"
             )
             optim_params_function <- utils::modifyList(
                 optim_params_function,

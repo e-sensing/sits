@@ -9,17 +9,18 @@
 #' This function is a front-end to the "randomForest" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param samples          Time series with the training samples.
-#' @param num_trees        Number of trees to grow.
-#'                         This should not be set to too small a number,
-#'                         to ensure that every input row gets predicted
-#'                         at least a few times (default: 200).
-#' @param nodesize         Minimum size of terminal nodes
-#'                         (default 1 for classification).
-#' @param ...              Other parameters to be passed
-#'                         to `randomForest::randomForest` function.
-#' @return                 Model fitted to input data
-#'                         (to be passed to \code{\link[sits]{sits_classify}}).
+#' @param samples    Time series with the training samples.
+#' @param num_trees  Number of trees to grow. This should not be set to too
+#'   small a number, to ensure that every input row gets predicted
+#'   at least a few times (default: 200).
+#' @param mtry       Number of variables randomly sampled as candidates at
+#'   each split (default: NULL - use default value of
+#'   \code{randomForest::randomForest()} function, i.e.
+#'   \code{floor(sqrt(features))}).
+#' @param ...        Other parameters to be passed
+#'                   to `randomForest::randomForest` function.
+#' @return           Model fitted to input data
+#'                   (to be passed to \code{\link[sits]{sits_classify}}).
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
@@ -29,7 +30,8 @@
 #'     # Example of training a model for time series classification
 #'     # Retrieve the samples for Mato Grosso
 #'     # train a random forest model
-#'     rf_model <- sits_train(samples_modis_4bands, ml_method = sits_rfor)
+#'     rf_model <- sits_train(samples_modis_4bands,
+#'                            ml_method = sits_rfor(mtry = 20))
 #'     # select the bands to classify the point
 #'     sample_bands <- sits_bands(samples_modis_4bands)
 #'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
@@ -39,14 +41,43 @@
 #' }
 #' @export
 #'
-sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
+sits_rfor <- function(samples = NULL,
+                      num_trees = 200,
+                      mtry = NULL, ...) {
 
     # function that returns `randomForest::randomForest` model
     result_fun <- function(samples) {
-        train_samples <- .sits_distances(samples)
 
         # verifies if randomForest package is installed
         .check_require_packages("randomForest")
+
+        # get predictors features
+        train_samples <- .sits_distances(samples)
+
+        # check num_trees
+        .check_num(
+            x = num_trees,
+            min = 1,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE,
+            msg = "invalid 'num_trees' parameter"
+        )
+
+        # check mtry
+        # apply the same mtry default value of randomForest package
+        n_features <- ncol(train_samples) - 2
+        if (purrr::is_null(mtry))
+            mtry <- floor(sqrt(n_features))
+        .check_num(
+            x = mtry,
+            min = 1,
+            max = n_features,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE,
+            msg = "invalid 'mtry' parameter"
+        )
 
         # call `randomForest::randomForest` method and return the trained model
         reference <- train_samples[, reference]
@@ -55,6 +86,7 @@ sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
             y = as.factor(reference),
             samples = NULL,
             ntree = num_trees,
+            mtry = mtry,
             nodesize = 1,
             norm.votes = FALSE, ...,
             na.action = stats::na.fail
@@ -292,7 +324,7 @@ sits_xgboost <- function(samples = NULL,
         .check_length(
             x = labels,
             len_min = 1,
-            msg = "invalid data - bad labels"
+            msg = "invalid number of labels"
         )
         n_labels <- length(labels)
 
@@ -631,15 +663,17 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 .sits_ml_model_samples <- function(ml_model) {
 
     # pre-condition
-    if (!inherits(ml_model, "function")) {
-        stop("invalid 'ml_model' parameter")
-    }
+    .check_that(
+        x = inherits(ml_model, "function"),
+        local_msg = "value should be a function",
+        msg = "invalid 'ml_model' parameter"
+    )
 
     # pre-condition
     .check_chr_contains(
         x = ls(environment(ml_model)),
         contains = "samples",
-        msg = "no samples found in the sits model"
+        msg = "invalid 'ml_model' function environment"
     )
 
     return(environment(ml_model)$samples)
