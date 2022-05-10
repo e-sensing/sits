@@ -98,11 +98,11 @@ test_that("Checks", {
     # .check_na
     expect_error(
         .check_na(c(1, NA, 3)),
-        "test: NA value is not allowed"
+        "NA value is not allowed"
     )
     expect_error(
         .check_na(list(1, NA, 3)),
-        "test: NA value is not allowed"
+        "NA value is not allowed"
     )
     expect_equal(
         .check_na("abc"),
@@ -120,7 +120,7 @@ test_that("Checks", {
     )
     expect_error(
         .check_names("abc"),
-        "test: value should have names"
+        "value should have names"
     )
     expect_equal(
         .check_names("abc", is_named = FALSE),
@@ -128,7 +128,7 @@ test_that("Checks", {
     )
     expect_error(
         .check_names(c(abc = "abc"), is_named = FALSE),
-        "test: value should be unnamed"
+        "value should be unnamed"
     )
     expect_equal(
         .check_names(c(abc = "abc")),
@@ -142,15 +142,15 @@ test_that("Checks", {
     )
     expect_error(
         .check_length(character(0), len_min = 1),
-        "test: length should be >= 1"
+        "length should be >= 1"
     )
     expect_error(
         .check_length("abc", len_max = 0),
-        "test: length should be 0"
+        "length should be 0"
     )
     expect_error(
         .check_length(c("a", "b", "c", "d"), len_min = 1, len_max = 3),
-        "test: length should be <= 3"
+        "length should be <= 3"
     )
 
     # .check_apply
@@ -163,7 +163,7 @@ test_that("Checks", {
             fn_check = .check_null,
             msg = "NULL value is not allowed"
         ),
-        "test: NULL value is not allowed"
+        "NULL value is not allowed"
     )
 
     # .check_lgl_type, .check_num_type, .check_int_type,
@@ -174,11 +174,11 @@ test_that("Checks", {
     )
     expect_error(
         .check_lgl_type(""),
-        "test: value is not logical"
+        "value is not logical"
     )
     expect_error(
         .check_lgl_type(NULL),
-        "test: value is not logical"
+        "value is not logical"
     )
     expect_equal(
         .check_num_type(numeric(0)),
@@ -186,11 +186,11 @@ test_that("Checks", {
     )
     expect_error(
         .check_num_type("0"),
-        "test: value is not a number"
+        "value is not a number"
     )
     expect_error(
         .check_num_type(NULL),
-        "test: value is not a number"
+        "value is not a number"
     )
     expect_equal(
         .check_num_type(numeric(0)),
@@ -202,11 +202,11 @@ test_that("Checks", {
     )
     expect_error(
         .check_num_type(c(1, 1.23, 2), is_integer = TRUE),
-        "test: value is not integer"
+        "value is not integer"
     )
     expect_error(
         .check_num_type("0"),
-        "test: value is not a number"
+        "value is not a number"
     )
     expect_equal(
         .check_chr_type(character(0)),
@@ -214,11 +214,11 @@ test_that("Checks", {
     )
     expect_error(
         .check_chr_type(0),
-        "test: value is not character type"
+        "value is not character type"
     )
     expect_error(
         .check_chr_type(NULL),
-        "test: value is not character type"
+        "value is not character type"
     )
     expect_equal(
         .check_lst_type(list()),
@@ -226,11 +226,11 @@ test_that("Checks", {
     )
     expect_error(
         .check_lst_type(0),
-        "test: value is not a list"
+        "value is not a list"
     )
     expect_error(
         .check_lst_type(NULL),
-        "test: value is not a list"
+        "value is not a list"
     )
 
     # .check_chr_within
@@ -239,7 +239,7 @@ test_that("Checks", {
             within = character(0),
             discriminator = "one_of"
         ),
-        "test: invalid 'within' parameter"
+        "invalid 'within' parameter"
     )
     expect_equal(
         .check_chr_within(c("a", "a"),
@@ -253,7 +253,7 @@ test_that("Checks", {
             within = c("a", "b", "c"),
             discriminator = "one_of"
         ),
-        "test: values should be only one of: 'a', 'b', 'c'"
+        "values should be only one of: 'a', 'b', 'c'"
     )
     expect_equal(
         .check_chr_within(c("a", "b"),
@@ -288,7 +288,7 @@ test_that("Checks", {
             within = c("a", "b"),
             discriminator = "exactly"
         ),
-        "test: values should be exactly"
+        "values should be exactly"
     )
     expect_error(
         .check_chr_within(c("a", "b", "b", "c"),
@@ -303,14 +303,13 @@ test_that("Checks", {
             contains = character(0),
             discriminator = "one_of"
         ),
-        "test: invalid 'contains' parameter"
+        "invalid 'contains' parameter"
     )
     expect_error(
         .check_chr_contains(c("a", "b", "c"),
             contains = c("a", "b"),
             discriminator = "one_of"
-        ),
-        "test: values should contain only one of: 'a', 'b'"
+        )
     )
 
     expect_equal(
@@ -324,8 +323,7 @@ test_that("Checks", {
         .check_chr_contains(c("a", "b", "c"),
             contains = c("a", "b"),
             discriminator = "one_of"
-        ),
-        "test: values should contain only one of: 'a', 'b'"
+        )
     )
     expect_equal(
         .check_chr_contains(c("a", "b", "c"),
@@ -345,8 +343,7 @@ test_that("Checks", {
         .check_chr_contains(c("a", "b", "b", "b"),
             contains = c("a", "b", "c"),
             discriminator = "all_of"
-        ),
-        "test: values should contain: 'a', 'b', 'c'"
+        )
     )
 
     # .check_lgl
@@ -355,8 +352,7 @@ test_that("Checks", {
         c(TRUE, FALSE, FALSE)
     )
     expect_error(
-        .check_lgl(c(TRUE, NA, FALSE), allow_na = FALSE),
-        "test: NA value is not allowed"
+        .check_lgl(c(TRUE, NA, FALSE), allow_na = FALSE)
     )
     expect_equal(
         .check_lgl(c(TRUE, NA, FALSE), allow_na = TRUE),
@@ -367,32 +363,27 @@ test_that("Checks", {
         logical(0)
     )
     expect_error(
-        .check_lgl(logical(0), len_min = 1),
-        "test: length should be >= 1"
+        .check_lgl(logical(0), len_min = 1)
     )
     expect_error(
-        .check_lgl(logical(1), len_max = 0),
-        "test: length should be 0"
+        .check_lgl(logical(1), len_max = 0)
     )
     expect_error(
-        .check_lgl(NULL, msg = "NULL value is not allowed"),
-        "test: NULL value is not allowed"
+        .check_lgl(NULL, msg = "NULL value is not allowed")
     )
     expect_equal(
         .check_lgl(NULL, allow_null = TRUE),
         NULL
     )
     expect_error(
-        .check_lgl(c(a = TRUE, b = FALSE)),
-        "test: value should be unnamed"
+        .check_lgl(c(a = TRUE, b = FALSE))
     )
     expect_equal(
         .check_lgl(c(a = TRUE, b = FALSE), is_named = TRUE),
         c(a = TRUE, b = FALSE)
     )
     expect_error(
-        .check_lgl(c(TRUE, FALSE), is_named = TRUE),
-        "test: value should have names"
+        .check_lgl(c(TRUE, FALSE), is_named = TRUE)
     )
 
     # .check_num
@@ -401,16 +392,13 @@ test_that("Checks", {
         c(1, 2, 3)
     )
     expect_error(
-        .check_num(c(1, NA, 3), allow_na = FALSE),
-        "test: NA value is not allowed"
+        .check_num(c(1, NA, 3), allow_na = FALSE)
     )
     expect_error(
-        .check_num(c(1, 2, 3), min = "a"),
-        "test: invalid 'min' parameter \\(value is not a number\\)"
+        .check_num(c(1, 2, 3), min = "a")
     )
     expect_error(
-        .check_num(c(1, 2, 3), max = "a"),
-        "test: invalid 'max' parameter \\(value is not a number\\)"
+        .check_num(c(1, 2, 3), max = "a")
     )
     expect_equal(
         .check_num(c(1, NA, 3), allow_na = TRUE),
@@ -421,32 +409,25 @@ test_that("Checks", {
         c(0, 1, 2, 3, 4)
     )
     expect_error(
-        .check_num(c(0, 1, 2, 3, 4), exclusive_min = 0),
-        "test: value should be > 0"
+        .check_num(c(0, 1, 2, 3, 4), exclusive_min = 0)
     )
     expect_error(
-        .check_num(c(0, 1, 2, 3, 4, 9), exclusive_max = 9),
-        "test: value should be < 9"
+        .check_num(c(0, 1, 2, 3, 4, 9), exclusive_max = 9)
     )
     expect_error(
-        .check_num(c(0, 1, 2, 3, 4), min = 5, max = 9),
-        "test: value should be >= 5"
+        .check_num(c(0, 1, 2, 3, 4), min = 5, max = 9)
     )
     expect_error(
-        .check_num(c(0, 1, 2, 3, 4), min = -9, max = -5),
-        "test: value should be <= -5"
+        .check_num(c(0, 1, 2, 3, 4), min = -9, max = -5)
     )
     expect_error(
-        .check_num(c(0, 1, 2, 3, 4), min = 3, max = 9),
-        "test: value should be >= 3"
+        .check_num(c(0, 1, 2, 3, 4), min = 3, max = 9)
     )
     expect_error(
-        .check_num(c(0, 1, 2, 3, 4), min = -9, max = 1),
-        "test: value should be <= 1"
+        .check_num(c(0, 1, 2, 3, 4), min = -9, max = 1)
     )
     expect_error(
-        .check_num(c(0, 1, 2, 3, 4), min = 1, max = 3),
-        "test: value should be >= 1"
+        .check_num(c(0, 1, 2, 3, 4), min = 1, max = 3)
     )
     expect_equal(
         .check_num(c(0, 1, 2, 3, 4), min = 0, max = 4),
@@ -457,16 +438,13 @@ test_that("Checks", {
         numeric(0)
     )
     expect_error(
-        .check_num(numeric(0), len_min = 1),
-        "test: "
+        .check_num(numeric(0), len_min = 1)
     )
     expect_error(
-        .check_num(numeric(1), len_max = 0),
-        "test: length should be 0"
+        .check_num(numeric(1), len_max = 0)
     )
     expect_error(
-        .check_num(NULL, msg = "NULL value is not allowed"),
-        "test: NULL value is not allowed"
+        .check_num(NULL, msg = "NULL value is not allowed")
     )
     expect_equal(
         .check_num(NULL, allow_null = TRUE),
@@ -491,20 +469,17 @@ test_that("Checks", {
         .check_num(x = -1, min = -0.99, max = -1),
     )
     expect_error(
-        .check_num(c(1, 1.23, 2), is_integer = TRUE),
-        "test: value is not integer"
+        .check_num(c(1, 1.23, 2), is_integer = TRUE)
     )
     expect_error(
-        .check_num(c(a = 1, b = 2)),
-        "test: value should be unnamed"
+        .check_num(c(a = 1, b = 2))
     )
     expect_equal(
         .check_num(c(a = 1, b = 2), is_named = TRUE),
         c(a = 1, b = 2)
     )
     expect_error(
-        .check_num(c(1, 2), is_named = TRUE),
-        "test: value should have names"
+        .check_num(c(1, 2), is_named = TRUE)
     )
 
     # .check_chr
@@ -513,8 +488,7 @@ test_that("Checks", {
         c("a", "b", "c")
     )
     expect_error(
-        .check_chr(c("a", NA, "c")),
-        "test: NA value is not allowed"
+        .check_chr(c("a", NA, "c"))
     )
     expect_equal(
         .check_chr(c("a", NA, "c"), allow_na = TRUE),
@@ -525,12 +499,10 @@ test_that("Checks", {
         c("a", "", "c")
     )
     expect_error(
-        .check_chr(c("a", "", "c"), allow_empty = FALSE),
-        "test: empty value is not allowed"
+        .check_chr(c("a", "", "c"), allow_empty = FALSE)
     )
     expect_error(
-        .check_chr(c(NA, "", "c")),
-        "test: NA value is not allowed"
+        .check_chr(c(NA, "", "c"))
     )
     expect_equal(
         .check_chr(c(NA, "", "c"), allow_na = TRUE, allow_empty = TRUE),
@@ -541,44 +513,37 @@ test_that("Checks", {
         character(0)
     )
     expect_error(
-        .check_chr(character(0), len_min = 1),
-        "test: length should be >= 1"
+        .check_chr(character(0), len_min = 1)
     )
     expect_error(
-        .check_chr(character(1), len_max = 0),
-        "test: length should be 0"
+        .check_chr(character(1), len_max = 0)
     )
     expect_error(
-        .check_chr(NULL, msg = "NULL value is not allowed"),
-        "test: NULL value is not allowed"
+        .check_chr(NULL, msg = "NULL value is not allowed")
     )
     expect_equal(
         .check_chr(NULL, allow_null = TRUE),
         NULL
     )
     expect_error(
-        .check_chr(c(a = "a", b = "b")),
-        "test: value should be unnamed"
+        .check_chr(c(a = "a", b = "b"))
     )
     expect_equal(
         .check_chr(c(a = "a", b = "b"), is_named = TRUE),
         c(a = "a", b = "b")
     )
     expect_error(
-        .check_chr(c("a", "b"), is_named = TRUE),
-        "test: value should have names"
+        .check_chr(c("a", "b"), is_named = TRUE)
     )
     expect_equal(
         .check_chr(c("http://example.com"), regex = "^[^ \"]+://[^ \"]+$"),
         c("http://example.com")
     )
     expect_error(
-        .check_chr(c("http://example com"), regex = "^[^ \"]+://[^ \"]+$"),
-        "test: value did not match pattern"
+        .check_chr(c("http://example com"), regex = "^[^ \"]+://[^ \"]+$")
     )
     expect_error(
-        .check_chr(c("example.com"), regex = "^[^ \"]+://[^ \"]+$"),
-        "test: value did not match pattern"
+        .check_chr(c("example.com"), regex = "^[^ \"]+://[^ \"]+$")
     )
 
     # .check_lst
@@ -587,16 +552,13 @@ test_that("Checks", {
         list()
     )
     expect_error(
-        .check_lst(list(), min_len = 1),
-        "test: length should be >= 1"
+        .check_lst(list(), min_len = 1)
     )
     expect_error(
-        .check_lst(list(a = 1), max_len = 0),
-        "test: length should be 0"
+        .check_lst(list(a = 1), max_len = 0)
     )
     expect_error(
-        .check_lst(NULL, msg = "NULL value is not allowed"),
-        "test: NULL value is not allowed"
+        .check_lst(NULL, msg = "NULL value is not allowed")
     )
     expect_equal(
         .check_lst(NULL, allow_null = TRUE),
@@ -607,8 +569,7 @@ test_that("Checks", {
         list(a = 1, b = 2)
     )
     expect_error(
-        .check_lst(list(a = 1, b = 2), is_named = FALSE),
-        "test: value should be unnamed"
+        .check_lst(list(a = 1, b = 2), is_named = FALSE)
     )
     expect_equal(
         .check_lst(list(1, 2), is_named = FALSE),
@@ -619,32 +580,27 @@ test_that("Checks", {
         list(a = 1, b = 2)
     )
     expect_error(
-        .check_lst(list(a = "a", b = "b"), fn_check = .check_num_type),
-        "test: value is not a number"
+        .check_lst(list(a = "a", b = "b"), fn_check = .check_num_type)
     )
 
     # .check_file
     expect_error(
-        .check_file(character(0)),
-        "test: length should be >= 1"
+        .check_file(character(0))
     )
     expect_equal(
         .check_file(.config_file()),
         .config_file()
     )
     expect_error(
-        .check_file("file_does_not_exist"),
-        "test: file does not exist: 'file_does_not_exist'"
+        .check_file("file_does_not_exist")
     )
     expect_error(
-        .check_file("file_does_not_exist", extensions = "xyz"),
-        "test: invalid file extension"
+        .check_file("file_does_not_exist", extensions = "xyz")
     )
 
     # .check_warn
     expect_warning(
-        .check_warn(.check_that(FALSE)),
-        "test: FALSE is not TRUE"
+        .check_warn(.check_that(FALSE))
     )
     expect_equal(
         .check_warn(.check_num(123)),
