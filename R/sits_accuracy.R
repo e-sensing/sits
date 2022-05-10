@@ -167,8 +167,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         .check_length(
             x = labelled_band,
             len_min = 1,
-            len_max = 1,
-            msg = "invalid labelled cube"
+            len_max = 1
         )
 
         # get xy in cube projection
@@ -329,8 +328,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 
     .check_chr_contains(
         x = class(cube),
-        contains = "classified_image",
-        msg = "not a classified cube"
+        contains = "classified_image"
     )
 
     if (any(dim(error_matrix) == 0)) {
@@ -434,12 +432,11 @@ sits_accuracy_summary <- function(x,
         print.sits_area_assessment(x)
         return(invisible(TRUE))
     }
-    .check_chr_contains(
-        x = class(x),
-        contains = "sits_assessment",
-        msg = "please run sits_accuracy first"
+    .check_that(
+        x = inherits(x, what = "sits_assessment"),
+        local_msg = "please run sits_accuracy() first",
+        msg = "input does not contain assessment information"
     )
-
     # round the data to the significant digits
     overall <- round(x$overall, digits = digits)
 
