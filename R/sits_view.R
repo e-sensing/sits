@@ -212,13 +212,6 @@ sits_view.raster_cube <- function(x, ...,
         x$tile,
         msg = "requested tiles are not part of cube"
     )
-    # check that classified map is a proper cube
-    if (!purrr::is_null(class_cube)) {
-        .check_that(
-            x = inherits(class_cube, c("classified_image")),
-            msg = "classified cube to be overlayed is invalid"
-        )
-    }
     # pre-condition 2
     .check_that(
         !(purrr::is_null(band)) ||
@@ -374,6 +367,11 @@ sits_view.raster_cube <- function(x, ...,
 
     # should we overlay a classified image?
     if (!purrr::is_null(class_cube)) {
+        # check that class_cube is valid
+        .check_that(
+            x = inherits(class_cube, c("classified_image")),
+            msg = "classified cube to be overlayed is invalid"
+        )
         # define overlay groups
         overlay_grps <- c(paste0(dates), "classification")
         # get the labels

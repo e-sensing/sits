@@ -66,7 +66,7 @@ test_that("uncertainty works", {
     expect_true(range(entropy_r[])[2] > range(entropy_r[])[1])
 
     least_r <- terra::rast(least_fi[["path"]])
-    expect_true(all(range(least_r[]) > 0))
+    expect_true(all(range(least_r[]) >= 0))
     expect_true(range(least_r[])[2] > range(least_r[])[1])
 
     margin_r <- terra::rast(margin_fi[["path"]])

@@ -130,7 +130,6 @@ Collate:
     'sits_raster_data.R'
     'sits_raster_sub_image.R'
     'sits_regularize.R'
-    'sits_regularize_aux_functions.R'
     'sits_resnet.R'
     'sits_roi.R'
     'sits_sample_functions.R'

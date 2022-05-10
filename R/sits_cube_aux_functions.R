@@ -623,6 +623,8 @@
 #' @title Check if the bands of all tiles of the cube are the same
 #' @name .cube_unique_bands
 #'
+#' @param  cube         input data cube
+#' @return TRUE/FALSE
 .cube_unique_bands <- function(cube) {
     # check if all tiles have the same bands
     bands <- slider::slide(cube, function(tile) {
@@ -637,6 +639,8 @@
 #' @title Check if bboxes of all tiles of the cube are the same
 #' @name .cube_unique_bbox
 #'
+#' @param  cube         input data cube
+#' @return TRUE/FALSE
 .cube_unique_bbox <- function(cube) {
     tolerance <- .config_get(
         key = c(
@@ -680,6 +684,8 @@
 #' @title Check if sizes of all tiles of the cube are the same
 #' @name .cube_unique_tile_size
 #'
+#' @param  cube         input data cube
+#' @return TRUE/FALSE
 .cube_unique_tile_size <- function(cube) {
     # check if the sizes of all tiles are the same
     test_cube_size <- slider::slide_lgl(cube, function(tile) {
@@ -700,6 +706,8 @@
 #' @title Check if timelines all tiles of the cube are the same
 #' @name .cube_unique_timeline
 #'
+#' @param  cube         input data cube
+#' @return TRUE/FALSE
 .cube_unique_timeline <- function(cube) {
     # get the bands
     bands <- slider::slide(cube, function(tile) {
