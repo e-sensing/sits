@@ -66,16 +66,22 @@
 sits_uncertainty_sampling <- function(cube,
                                       n = 100,
                                       min_dist_pixels = 10) {
-    .check_that(inherits(cube, what = "uncertainty_cube"),
-        msg = "Cube is not an sits_uncertainty cube"
+    .check_chr_contains(
+        x = class(cube),
+        contains = "uncertainty_cube"
     )
-    .check_that(n > 0,
-        msg = "Invalid number of new samples"
+    .check_num(
+        x = n,
+        exclusive_min = 0,
+        len_min = 1,
+        len_max = 1
     )
-    .check_that(min_dist_pixels >= 0,
-        msg = "Invalid minimum distance."
+    .check_num(
+        x = min_dist_pixels,
+        min = 0,
+        len_min = 1,
+        len_max = 1
     )
-
     paths <- slider::slide(cube, function(row) {
         fi <- .file_info(row)
         return(fi[["path"]])
@@ -179,14 +185,22 @@ sits_confidence_samples <- function(probs_cube,
                                     n = 20,
                                     min_margin = .90,
                                     min_dist_pixels = 10) {
-    .check_that(inherits(probs_cube, what = "probs_cube"),
-        msg = "Cube is not a probability cube"
+    .check_that(
+        x = inherits(probs_cube, what = "probs_cube"),
+        local_msg = "please run sits_classify() first",
+        msg = "input cube is not a probability cube"
     )
-    .check_that(n > 0,
-        msg = "Invalid number of new samples"
+    .check_num(
+        x = n,
+        exclusive_min = 0,
+        len_min = 1,
+        len_max = 1
     )
-    .check_that(min_dist_pixels >= 0,
-        msg = "Invalid minimum distance."
+    .check_num(
+        x = min_dist_pixels,
+        min = 0,
+        len_min = 1,
+        len_max = 1
     )
 
     paths_prob <- slider::slide(probs_cube, function(row) {
