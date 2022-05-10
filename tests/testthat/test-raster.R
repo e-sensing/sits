@@ -586,6 +586,13 @@ test_that("One-year, multicore classification with post-processing", {
 
     temp_dir <- tempdir()
 
+    unlink(
+        list.files(temp_dir,
+                   pattern = ".*probs.*.tif$",
+                   full.names = TRUE
+        )
+    )
+
     sinop_probs <- tryCatch(
         {
             suppressMessages(
