@@ -22,12 +22,16 @@
 #' @description Calculate the uncertainty cube based on the probabilities
 #' produced by the classifier. Takes a probability cube as input.
 #' The uncertainity measure is relevant in the context of active leaning,
-#' and helps the increase the quantity and quality of training samples by
+#' and helps to increase the quantity and quality of training samples by
 #' providing information about the confidence of the model.
 #' The supported types of uncertainty are 'entropy', 'least', and 'margin'.
 #' "entropy" is the difference between all predictions expressed as entropy,
 #' "least" is the difference between 100% and most confident prediction, and
 #' "margin" is the difference between the two most confident predictions.
+#'
+#' @references Monarch, Robert Munro. Human-in-the-Loop Machine Learning:
+#' Active learning and annotation for human-centered AI. Simon and Schuster,
+#' 2021.
 #'
 #' @note
 #' Please refer to the sits documentation available in
