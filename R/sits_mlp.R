@@ -119,16 +119,75 @@ sits_mlp <- function(samples = NULL,
     result_fun <- function(samples) {
 
         # verifies if torch and luz packages is installed
-        .check_require_packages(
-            c("torch", "luz"),
-            msg = "Please install package(s)"
-        )
+        .check_require_packages(c("torch", "luz"))
 
         # pre-conditions
+        # check layers
+        .check_num(
+            x = layers,
+            exclusive_min = 0,
+            len_min = 1,
+            is_integer = TRUE
+        )
+        # check dropout_rates
+        .check_num(
+            x = dropout_rates,
+            min = 0,
+            max = 1,
+            len_min = 1
+        )
+        # check layers and dropout_rates
         .check_that(
             x = length(layers) == length(dropout_rates),
             msg = "number of layers does not match number of dropout rates"
         )
+        # check optimizer
+        .check_null(x = optimizer)
+        # check epochs
+        .check_num(
+            x = epochs,
+            exclusive_min = 0,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE
+        )
+        # check batch_size
+        .check_num(
+            x = batch_size,
+            exclusive_min = 0,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE
+        )
+        # check validation_split parameter if samples_validation is not passed
+        if (purrr::is_null(samples_validation)) {
+            .check_num(
+                x = validation_split,
+                exclusive_min = 0,
+                max = 0.5,
+                len_min = 1,
+                len_max = 1,
+                msg = "invalid 'validation_split' parameter"
+            )
+        }
+        # check patience
+        .check_num(
+            x = patience,
+            min = 1,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE
+        )
+        # check min_delta
+        .check_num(
+            x = min_delta,
+            min = 0,
+            len_min = 1,
+            len_max = 1
+        )
+        # check verbose
+        .check_lgl(verbose)
+
         # data normalization
         stats <- .sits_ml_normalization_param(samples)
         train_samples <- .sits_distances(
@@ -143,21 +202,12 @@ sits_mlp <- function(samples = NULL,
             msg = "input data does not contain distances"
         )
 
-        # check validation_split parameter if samples_validation is not passed
-        if (purrr::is_null(samples_validation)) {
-            .check_num(
-                x = validation_split,
-                exclusive_min = 0,
-                max = 0.5,
-                len_min = 1,
-                len_max = 1,
-                msg = "invalid 'validation_split' parameter"
-            )
-        }
-
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
         if (!is.null(opt_hparams)) {
+
+            .check_lst(x = opt_hparams)
+
             .check_chr_within(
                 x = names(opt_hparams),
                 within = names(optim_params_function)
