@@ -16,6 +16,7 @@ rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"))
 
 # Check spelling
 # usethis::use_spell_check()
+spelling::update_wordlist()
 spelling::spell_check_package()
 
 # Check URL are correct

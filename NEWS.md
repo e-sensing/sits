@@ -2,6 +2,33 @@
 
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
+# What's new in SITS version 0.17.0
+
+### New features in SITS version 0.17.0
+* Introduced new classifier model `sits_lighttae()`
+(Lightweight Temporal Self-Attention)
+* Introduced `sits_uncertainty_sampling()` for active learning
+* Introduced `sits_confidence_samples()` for semi-supervised learning
+* Introduced `sits_geo_dist()` to generate samples-samples and 
+samples-predicted plot
+* Introduced `sits_tuning()` for random search of machine learning parameters
+* Introduced `sits_reduce_imbalance()` function to balance class samples
+* Introduced `sits_as_sf()` to convert a sits tibble to a sf object
+* Support to `torchopt` deep learning optimizer package
+* New types of `sits_uncertainty()`: `least` confidence and `margin` of 
+confidence
+
+### Improvements in SITS version 0.17.0
+* Implement parallel processing for `sits_kfold_validate()`
+* Change `data` to `samples` in sits machine learning classifiers
+(NOTE: models trained in previous versions is no longer supported)
+* Change deep learning functions to snake case
+* Remove `file` parameter in `sits_get_data()` function
+* Update documentation
+* Improve several internal functions performances
+* Fix several bugs
+
+
 # What's new in SITS version 0.16.3
 
 ### New features in SITS version 0.16.3
