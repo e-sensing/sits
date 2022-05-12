@@ -2,9 +2,10 @@
 % Please edit documentation in R/sits_plot.R
 \name{.sits_plot_som_evaluate_cluster}
 \alias{.sits_plot_som_evaluate_cluster}
+\alias{.sits_plot_som_eval_cluster}
 \title{Plot information about confusion between clusters}
 \usage{
-.sits_plot_som_evaluate_cluster(
+.sits_plot_som_eval_cluster(
   data,
   cluster_name = NULL,
   title = "Confusion by cluster"

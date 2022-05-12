@@ -29,7 +29,7 @@ A confusion matrix assessment produced by the caret package.
 \description{
 This function calculates the accuracy of the classification
 result. For a set of time series, it creates a confusion matrix and then
-calculates the resulting statistics using the R packge "caret". The time
+calculates the resulting statistics using the R package "caret". The time
 series needs to be classified using \code{\link[sits]{sits_classify}}.
 
 Classified images are generated using \code{\link[sits]{sits_classify}}
@@ -42,60 +42,43 @@ In both cases, it provides an accuracy assessment of the classified,
 including Overall Accuracy, Kappa, User's Accuracy, Producer's Accuracy
 and error matrix (confusion matrix)
 }
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
+}
 \examples{
-\donttest{
-# Case (1) - Accuracy for classification of time series
-# Read a tibble with 400 time series of Cerrado and 346 of Pasture
-data(cerrado_2classes)
-# Create a model for classification of time series
-svm_model <- sits_train(cerrado_2classes, sits_svm())
-# Classify the time series
-predicted <- sits_classify(cerrado_2classes, svm_model)
-# Calculate the classification accuracy
-acc <- sits_accuracy(predicted)
+if (sits_run_examples()) {
+    # show accuracy for a set of samples
+    train_data <- sits_sample(samples_modis_4bands, n = 200)
+    test_data <- sits_sample(samples_modis_4bands, n = 200)
+    rfor_model <- sits_train(train_data, sits_rfor())
+    points_class <- sits_classify(test_data, rfor_model)
+    acc <- sits_accuracy(points_class)
 
-# Case (2) - Accuracy for classification of raster data
-# Select a training set with two bands
-samples_modis_2bands <- sits_select(samples_modis_4bands,
-  bands = c("EVI", "NDVI")
-)
-
-# Build an extreme gradient boosting model
-xgb_model <- sits_train(
-  samples_modis_2bands,
-  sits_xgboost(nrounds = 50, verbose = FALSE)
-)
-
-# Create a data cube based on files
-data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-cube <- sits_cube(
-   source = "BDC",
-  collection = "MOD13Q1-6",
-  data_dir = data_dir,
-  delim = "_",
-  parse_info = c("X1", "X2", "tile", "band", "date"),
-  multicores = 2
-)
-
-# Classify the data cube with xgb model
-probs_cube <- sits_classify(cube,
-  xgb_model,
-  output_dir = tempdir(),
-  memsize = 4,
-  multicores = 2
-)
-# Label the classification
-label_cube <- sits_label_classification(probs_cube,
-  output_dir = tempdir()
-)
-# Get ground truth points
-ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
-  package = "sits"
-)
-# Calculate accuracy according to Olofsson's method
-accuracy <- suppressWarnings(sits_accuracy(label_cube,
-  validation_csv = ground_truth
-))
+    # show accuracy for a data cube classification
+    # select a set of samples
+    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+    # create a random forest model
+    rfor_model <- sits_train(samples_ndvi, sits_rfor())
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+    # classify a data cube
+    probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+    # label the probability cube
+    label_cube <- sits_label_classification(probs_cube)
+    # obtain the ground truth for accuracy assessment
+    ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
+        package = "sits"
+    )
+    # make accuracy assessment
+    as <- sits_accuracy(label_cube, validation_csv = ground_truth)
 }
 }
 \references{

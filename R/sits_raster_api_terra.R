@@ -6,13 +6,8 @@
     # package namespace
     pkg_name <- "terra"
 
-    # check if raster package is available
-    if (!requireNamespace(pkg_name, quietly = TRUE)) {
-        stop(paste(
-            ".sits_config_raster_package: package", pkg_name,
-            "not available. Please install the package for CRAN."
-        ), call. = FALSE)
-    }
+    # check if terra package is available
+    .check_require_packages(pkg_name)
 
     class(pkg_name) <- pkg_name
 
@@ -187,7 +182,7 @@
     # do resample
     if (!is.null(out_size) &&
         (in_size[["nrows"]] != out_size[["nrows"]] ||
-         in_size[["ncols"]] != out_size[["ncols"]])) {
+            in_size[["ncols"]] != out_size[["ncols"]])) {
         bbox <- .raster_bbox(r_obj, block = block)
 
         out_r_obj <- .raster_new_rast(

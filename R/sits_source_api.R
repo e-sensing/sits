@@ -23,8 +23,8 @@ NULL
     src <- toupper(src)
     # post-condition
     .check_chr(src,
-               allow_empty = FALSE, len_min = 1,
-               msg = "invalid 'sources' in config file"
+        allow_empty = FALSE, len_min = 1,
+        msg = "invalid 'sources' in config file"
     )
     return(src)
 }
@@ -38,15 +38,15 @@ NULL
     source <- toupper(source)
     # check source
     .check_chr(source,
-               len_min = 1, len_max = 1,
-               msg = "invalid 'source' parameter"
+        len_min = 1, len_max = 1,
+        msg = "invalid 'source' parameter"
     )
     .check_chr_within(source,
-                      within = .sources(),
-                      msg = paste0(
-                          "invalid 'source' parameter.", "\n",
-                          "please check valid sources with sits_list_sources()"
-                      )
+        within = .sources(),
+        msg = paste0(
+            "invalid 'source' parameter.", "\n",
+            "please check valid sources with sits_list_sources()"
+        )
     )
     return(invisible(NULL))
 }
@@ -96,12 +96,12 @@ NULL
     )
     # post-condition
     .check_chr(service,
-               allow_na = TRUE, allow_empty = FALSE,
-               len_min = 1, len_max = 1,
-               msg = sprintf(
-                   "invalid 'service' for source %s in config file",
-                   source
-               )
+        allow_na = TRUE, allow_empty = FALSE,
+        len_min = 1, len_max = 1,
+        msg = sprintf(
+            "invalid 'service' for source %s in config file",
+            source
+        )
     )
     return(service)
 }
@@ -123,11 +123,11 @@ NULL
     s3_class <- .config_get(key = c("sources", source, "s3_class"))
     # post-condition
     .check_chr(s3_class,
-               allow_empty = FALSE, len_min = 1,
-               msg = sprintf(
-                   "invalid 's3_class' for source %s in config file",
-                   source
-               )
+        allow_empty = FALSE, len_min = 1,
+        msg = sprintf(
+            "invalid 's3_class' for source %s in config file",
+            source
+        )
     )
     return(s3_class)
 }
@@ -152,12 +152,12 @@ NULL
     )
     # post-condition
     .check_chr(url,
-               allow_na = TRUE, allow_empty = FALSE,
-               len_min = 1, len_max = 1,
-               msg = sprintf(
-                   "invalid 'url' for source %s in config file",
-                   source
-               )
+        allow_na = TRUE, allow_empty = FALSE,
+        len_min = 1, len_max = 1,
+        msg = sprintf(
+            "invalid 'url' for source %s in config file",
+            source
+        )
     )
     return(url)
 }
@@ -228,8 +228,8 @@ NULL
     # post-condition
     # check bands are non-NA character
     .check_chr(bands,
-               allow_empty = FALSE,
-               msg = "invalid selected bands"
+        allow_empty = FALSE,
+        msg = "invalid selected bands"
     )
     return(bands)
 }
@@ -267,8 +267,8 @@ NULL
     }
     # pre-condition
     .check_chr(bands,
-               allow_na = FALSE, allow_empty = FALSE, len_min = 1,
-               msg = "invalid bands"
+        allow_na = FALSE, allow_empty = FALSE, len_min = 1,
+        msg = "invalid bands"
     )
     # bands names are upper case
     bands <- toupper(bands)
@@ -312,9 +312,9 @@ NULL
     bands <- unlist(bands, recursive = FALSE, use.names = FALSE)
     # post-conditions
     .check_chr(bands,
-               allow_na = FALSE, allow_empty = FALSE,
-               len_min = length(bands), len_max = length(bands),
-               msg = "inconsistent 'band_name' values"
+        allow_na = FALSE, allow_empty = FALSE,
+        len_min = length(bands), len_max = length(bands),
+        msg = "inconsistent 'band_name' values"
     )
     return(bands)
 }
@@ -347,10 +347,12 @@ NULL
         add_cloud = add_cloud
     )
     # post-condition
-    .check_lst(resolution,
-               fn_check = .check_num, min = 0,
-               allow_zero = FALSE, len_min = 1,
-               msg = "invalid 'resolution' in config file"
+    .check_lst(
+        x = resolution,
+        fn_check = .check_num,
+        exclusive_min = 0,
+        len_min = 1,
+        msg = "invalid 'resolution' in config file"
     )
     return(resolution)
 }
@@ -386,8 +388,8 @@ NULL
     bands_converter <- c(bands_to_sits, bands_sits, unknown_bands)
     # post-condition
     .check_chr_within(bands,
-                      within = names(bands_converter),
-                      msg = "invalid 'bands' parameter"
+        within = names(bands_converter),
+        msg = "invalid 'bands' parameter"
     )
     return(unname(bands_converter[bands]))
 }
@@ -416,8 +418,8 @@ NULL
     bands_converter <- c(bands_to_source, bands_source)
     # post-condition
     .check_chr_within(bands,
-                      within = names(bands_converter),
-                      msg = "invalid 'bands' parameter"
+        within = names(bands_converter),
+        msg = "invalid 'bands' parameter"
     )
     return(unname(bands_converter[bands]))
 }
@@ -454,8 +456,8 @@ NULL
     ))
     # post-condition
     .check_lgl(bit_mask,
-               len_min = 1, len_max = 1,
-               msg = "invalid 'bit_mask' value in config file"
+        len_min = 1, len_max = 1,
+        msg = "invalid 'bit_mask' value in config file"
     )
     return(bit_mask)
 }
@@ -601,12 +603,12 @@ NULL
 
     # check collection
     .check_chr(collection,
-               len_min = 1, len_max = 1,
-               msg = "invalid 'collection' parameter"
+        len_min = 1, len_max = 1,
+        msg = "invalid 'collection' parameter"
     )
     .check_chr_within(collection,
-                      within = .source_collections(source = source),
-                      msg = "invalid 'collection' parameter"
+        within = .source_collections(source = source),
+        msg = "invalid 'collection' parameter"
     )
     return(invisible(NULL))
 }
@@ -614,7 +616,7 @@ NULL
 #' @rdname source_collection
 #'
 #' @description \code{.source_collection_metadata_search()} retrieves the
-#' metadadata search strategy for a given source and collection.
+#' metadata search strategy for a given source and collection.
 #'
 #' @return \code{.source_collection_metadata_search()} returns a character
 #' value with the metadata search strategy.
@@ -630,10 +632,10 @@ NULL
     )
     # if the collection cant be supported the user is reported
     .check_na(metadata_search,
-              msg = paste(
-                  "no type was found for collection", collection,
-                  "and source", source
-              )
+        msg = paste(
+            "no type was found for collection", collection,
+            "and source", source
+        )
     )
     return(invisible(metadata_search))
 }
@@ -663,8 +665,8 @@ NULL
     ))
     # post-condition
     .check_chr(res,
-               allow_empty = FALSE, len_min = 1, len_max = 1,
-               msg = "invalid 'collection_name' value"
+        allow_empty = FALSE, len_min = 1, len_max = 1,
+        msg = "invalid 'collection_name' value"
     )
     return(res)
 }
@@ -695,8 +697,8 @@ NULL
 
     # post-condition
     .check_lgl(res,
-               len_min = 1, len_max = 1,
-               msg = "invalid 'open_data' value"
+        len_min = 1, len_max = 1,
+        msg = "invalid 'open_data' value"
     )
     return(res)
 }
@@ -725,8 +727,8 @@ NULL
     ), default = FALSE)
     # post-condition
     .check_lgl(res,
-               len_min = 1, len_max = 1,
-               msg = "invalid 'open_data_token' value"
+        len_min = 1, len_max = 1,
+        msg = "invalid 'open_data_token' value"
     )
     return(res)
 }
@@ -749,16 +751,16 @@ NULL
     )
     # post-condition
     .check_chr(res,
-               allow_empty = FALSE,
-               msg = paste0(
-                   "Missing access token for collection ", collection,
-                   " in source ", source
-               )
+        allow_empty = FALSE,
+        msg = paste0(
+            "Missing access token for collection ", collection,
+            " in source ", source
+        )
     )
     if (length(res) > 0) {
         # Pre-condition - try to find the access key as an environment variable
         .check_env_var(res,
-                       msg = paste0("Missing access token for source ", source)
+            msg = paste0("Missing access token for source ", source)
         )
     }
 }
@@ -861,8 +863,8 @@ NULL
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_item_get_cloud_cover()} retrieves the percentage of cloud
-#' cover of an image.
+#' @description \code{.source_item_get_cloud_cover()} retrieves the percentage
+#' of cloud cover of an image.
 #' @return \code{.source_item_get_cloud_cover()} returns a \code{numeric} vector
 #' containing the percentage of cloud cover to each image band of an item.
 #'
@@ -965,8 +967,8 @@ NULL
         collection, "sensor"
     ))
     .check_chr(res,
-               allow_null = TRUE,
-               msg = "invalid 'sensor' value"
+        allow_null = TRUE,
+        msg = "invalid 'sensor' value"
     )
     return(res)
 }
@@ -985,8 +987,8 @@ NULL
         collection, "satellite"
     ))
     .check_chr(res,
-               allow_null = TRUE,
-               msg = "invalid 'satellite' value"
+        allow_null = TRUE,
+        msg = "invalid 'satellite' value"
     )
     return(res)
 }
@@ -1008,8 +1010,8 @@ NULL
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_items_cube()} is called to create a data cubes tile,
-#' that is, a row in sits data cube.
+#' @description \code{.source_items_cube()} is called to create a data cubes
+#' tile, that is, a row in sits data cube.
 #'
 #' @return \code{.source_items_cube()} returns a \code{tibble} containing a sits
 #' cube tile (one row).

@@ -5,27 +5,23 @@
 \title{Cross-validate time series samples}
 \usage{
 sits_kfold_validate(
-  data,
+  samples,
   folds = 5,
   ml_method = sits_rfor(),
-  multicores = 2,
-  progress = FALSE
+  multicores = 2
 )
 }
 \arguments{
-\item{data}{Time series.}
+\item{samples}{Time series.}
 
 \item{folds}{Number of partitions to create.}
 
 \item{ml_method}{Machine learning method.}
 
-\item{multicores}{Number of cores for processing.}
-
-\item{progress}{Show progress bar?}
+\item{multicores}{Number of cores to process in parallel.}
 }
 \value{
-A tibble containing pairs of
-                       reference and predicted values.
+A tibble containing pairs of reference and predicted values.
 }
 \description{
 Splits the set of time series into training and validation and
@@ -47,16 +43,39 @@ accuracy estimate is provided.
 
 This function returns the confusion matrix, and Kappa values.
 }
-\examples{
-\donttest{
-# read a set of samples
-data(cerrado_2classes)
-# two fold validation with random forest
-acc <- sits_kfold_validate(cerrado_2classes,
-  folds = 2,
-  ml_method = sits_rfor(num_trees = 300)
-)
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
+\examples{
+if (sits_run_examples()) {
+    # A dataset containing a tibble with time series samples
+    # for the Mato Grosso state in Brasil
+    # create a list to store the results
+    results <- list()
+
+    # accuracy assessment lightTAE
+    acc_ltae <- sits_kfold_validate(samples_modis_4bands,
+        folds = 5,
+        ml_method = sits_lighttae()
+    )
+    # use a name
+    acc_ltae$name <- "LightTAE"
+    # put the result in a list
+    results[[length(results) + 1]] <- acc_ltae
+
+    # Deep Learning - ResNet
+    acc_rn <- sits_kfold_validate(samples_modis_4bands,
+        folds = 5,
+        ml_method = sits_resnet()
+    )
+    acc_rn$name <- "ResNet"
+    # put the result in a list
+    results[[length(results) + 1]] <- acc_rn
+    # save to xlsx file
+    sits_to_xlsx(results, file = "./accuracy_mato_grosso_dl.xlsx")
+}
+
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

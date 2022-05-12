@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_filters.R
 \name{.sits_signal_sgolay}
 \alias{.sits_signal_sgolay}
-\title{Savitsky-Golay smoothing filter coefficients}
+\title{Savitzky-Golay smoothing filter coefficients}
 \usage{
 .sits_signal_sgolay(p, n, m = 0, ts = 1)
 }
@@ -19,8 +19,8 @@
 filter coefficients
 }
 \description{
-Computes the filter coefficients for all Savitzky-Golay smoothing
-filters of order p for length n (odd). m can be used in order to
+Computes the filter coefficients for all Savitzky-Golay
+smoothing filters of order p for length n (odd). m can be used in order to
 get directly the mth derivative. In this case, ts is a scaling factor.
 
 The early rows of F smooth based on future values and later rows

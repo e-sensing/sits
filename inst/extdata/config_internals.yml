@@ -3,7 +3,6 @@
 sits_s3_classes :   ["sits", "patterns", "predicted", "sits_model",
                     "sits_cube", "raster_cube", "probs_cube",
                     "uncertainty_cube", "classified_image",
-                    "wtss_cube", "satveg_cube",
                     "stac_cube", "bdc_cube", "aws_cube",
                     "usgs_cube", "deafrica_cube"]
 
@@ -26,24 +25,27 @@ sits_results_s3_class:
 
 # parsing info contents for results cube
 results_parse_info_def : ["X1", "X2", "tile", "start_date", "end_date",
-                                "band", "version"]
+"band", "version"]
 results_parse_info_col : ["tile", "start_date", "end_date", "band"]
 
 # mandatory columns in data cube description
 sits_cube_cols :    ["source", "collection", "satellite", "sensor",
-                    "tile", "bands", "xmin", "xmax", "ymin", "ymax",
-                    "crs", "labels"]
+"tile", "bands", "xmin", "xmax", "ymin", "ymax",
+"crs", "labels"]
 
 # mandatory columns in tibble description
 sits_tibble_cols :  ["longitude", "latitude", "start_date",
-                    "end_date", "label", "cube",
-                    "time_series"]
+"end_date", "label", "cube",
+"time_series"]
 
 # mandatory columns in predicted time series classification
 ts_predicted_cols:  ["from", "to", "class"]
 
 # supported user sample file formats
 sample_file_formats : ["csv", "shp"]
+
+# supported user sample object formats for "sits_get_data"
+sample_get_data_formats : ["data.frame", "tbl_df", "sf", "sits"]
 
 # mandatory columns in CSV input files
 df_sample_columns : ["longitude", "latitude", "start_date", "end_date", "label"]
@@ -67,6 +69,9 @@ raster_cube_offset_value : 0
 raster_cube_missing_value : -9999
 raster_cube_minimum_value : -10000
 raster_cube_maximum_value : 10000
+
+# configuration for generate tokens for mspc cubes
+cube_token_generator_n_tries: 3
 
 # configuration for probability cubes
 probs_cube_scale_factor : 0.0001
@@ -93,9 +98,7 @@ dl_activation_methods : ["relu", "elu", "selu", "sigmoid"]
 metadata_search_strategies : ["tile", "feature"]
 
 # class interval methods for plotting
-class_intervals: ["fixed", "sd", "equal", "pretty", "quantile",
-                  "kmeans", "hclust", "bclust", "fisher",
-                  "jenks", "dpih", "headtails"]
+class_intervals: ["sd", "equal", "quantile", "log", "pretty"]
 
 # parse info of generated regular cubes
 reg_file_parse_info: ["cube", "tile", "band", "date"]
@@ -103,3 +106,7 @@ reg_file_parse_info: ["cube", "tile", "band", "date"]
 # gdalcubes parameters
 gdalcubes_chunk_size: [1, 2048, 2048]
 gdalcubes_type_format: "int16"
+
+# uncertainty window function
+uncertainty_window_functions:
+    median: "stats::median"

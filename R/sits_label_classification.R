@@ -15,36 +15,38 @@
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple runs).
 #' @return A data cube
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
 #' @examples
-#' \dontrun{
-#' # Retrieve the samples for Mato Grosso
-#' # select band "ndvi"
-#' samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-#'
-#' # select a random forest model
-#' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
-#'
-#' # create a data cube based on the information about the files
-#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#' cube <- sits_cube(
-#'   source = "BDC",
-#'   collection = "MOD13Q1-6",
-#'   data_dir = data_dir,
-#'   delim = "_",
-#'   parse_info = c("X1", "X2", "tile", "band", "date")
-#' )
-#'
-#' # classify the raster image
-#' probs_cube <- sits_classify(cube,
-#'   ml_model = rfor_model,
-#'   output_dir = tempdir(),
-#'   memsize = 4, multicores = 2
-#' )
-#'
-#' # label the classification
-#' label_cube <- sits_label_classification(probs_cube, output_dir = tempdir())
+#' if (sits_run_examples()) {
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # plot the probability cube
+#'     plot(probs_cube)
+#'     # smooth the probability cube using Bayesian statistics
+#'     bayes_cube <- sits_smooth(probs_cube)
+#'     # plot the smoothed cube
+#'     plot(bayes_cube)
+#'     # label the probability cube
+#'     label_cube <- sits_label_classification(bayes_cube)
+#'     # plot the labelled cube
+#'     plot(label_cube)
 #' }
-#'
 #' @export
 sits_label_classification <- function(cube,
                                       multicores = 2,
@@ -63,19 +65,20 @@ sits_label_classification <- function(cube,
     # precondition 2 - multicores
     .check_num(
         x = multicores,
-        len_max = 1,
         min = 1,
-        allow_zero = FALSE,
-        msg = "multicores must be at least 1"
+        len_min = 1,
+        len_max = 1,
+        is_integer = TRUE,
+        msg = "invalid 'multicores' parameter"
     )
 
-    # precondition 3 - memory
+    # precondition - memory
     .check_num(
         x = memsize,
+        exclusive_min = 0,
+        len_min = 1,
         len_max = 1,
-        min = 1,
-        allow_zero = FALSE,
-        msg = "memsize must be positive"
+        msg = "invalid 'memsize' parameter"
     )
 
     # precondition 4 - output dir
@@ -136,8 +139,9 @@ sits_label_classification <- function(cube,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(NULL)
+        }
 
         # get cube size
         size <- .cube_size(tile)
@@ -147,7 +151,8 @@ sits_label_classification <- function(cube,
             xsize = size[["ncols"]],
             ysize = size[["nrows"]],
             block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = 0)
+            overlapping_y_size = 0
+        )
 
         # open probability file
         in_file <- .file_info_path(tile)
@@ -163,11 +168,11 @@ sits_label_classification <- function(cube,
 
             # process it
             raster_out <- .do_map(chunk = chunk)
-
-            # export to temp file
-            block_file <- .smth_filename(tile = tile_new,
-                                         output_dir = output_dir,
-                                         block = block)
+            block_file <- .smth_filename(
+                tile = tile_new,
+                output_dir = output_dir,
+                block = block
+            )
 
             # save chunk
             .raster_write_rast(
@@ -189,12 +194,11 @@ sits_label_classification <- function(cube,
         return(invisible(block_files))
     })
 
-
     # process each brick layer (each time step) individually
-    result_cube_lst <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
+    res_cube_lst <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
         # get tile from cube
-        tile <- cube[i,]
+        tile <- cube[i, ]
 
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
@@ -213,8 +217,9 @@ sits_label_classification <- function(cube,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(tile_new)
+        }
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
@@ -226,7 +231,7 @@ sits_label_classification <- function(cube,
             .raster_merge(
                 in_files = tmp_blocks,
                 out_file = out_file,
-                format   = "GTiff",
+                format = "GTiff",
                 gdal_datatype =
                     .raster_gdal_datatype(.config_get("class_cube_data_type")),
                 gdal_options =
@@ -239,7 +244,7 @@ sits_label_classification <- function(cube,
     })
 
     # bind rows
-    result_cube <- dplyr::bind_rows(result_cube_lst)
+    result_cube <- dplyr::bind_rows(res_cube_lst)
 
     class(result_cube) <- unique(c("classified_image", class(result_cube)))
 

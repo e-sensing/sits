@@ -11,12 +11,8 @@
 #' @param x         Valid sits tibble (time series or a cube)
 #'
 #' @return          A vector with the names of the bands.
-#'
-#' @examples {
-#'   # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
-#'   # show the bands
-#'   sits_bands(samples_modis_4bands)
-#' }
+#' @examples
+#' bands <- sits_bands(samples_modis_4bands)
 #' @export
 #'
 sits_bands <- function(x) {
@@ -37,14 +33,14 @@ sits_bands.sits <- function(x) {
 #' @export
 #'
 sits_bands.sits_cube <- function(x) {
-    bands.lst <- slider::slide(x, function(tile) {
+    bands_lst <- slider::slide(x, function(tile) {
         bands_tile <- .file_info_bands(tile)
         return(sort(bands_tile))
     })
-    bands <- unique(bands.lst)
+    bands <- unique(bands_lst)
     .check_that(length(bands) == 1,
-                local_msg = "tiles have different bands",
-                msg = "cube is inconsistent"
+        local_msg = "tiles have different bands",
+        msg = "cube is inconsistent"
     )
     return(unlist(bands))
 }

@@ -14,13 +14,17 @@ sits_bbox(data, wgs84 = FALSE, ...)
 \item{...}{Additional parameters (not implemented).}
 }
 \value{
-Bounding box in WGS84 for time series aor
+Bounding box in WGS84 for time series or
                  on the cube projection for a data cube
-                 unless wgs84 parameteris TRUE.
+                 unless wgs84 parameter is TRUE.
 }
 \description{
 Obtain a vector of limits (either on lat/long for time series
               or in projection coordinates in the case of cubes)
+}
+\examples{
+bbox <- sits_bbox(samples_modis_4bands)
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

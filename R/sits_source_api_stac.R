@@ -6,9 +6,7 @@
                                                      end_date = NULL,
                                                      dry_run = FALSE) {
     # require package
-    if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop("Please install package rstac", call. = FALSE)
-    }
+    .check_require_packages("rstac")
 
     items_query <- .stac_create_items_query(
         source = source,
@@ -24,10 +22,13 @@
             items <- rstac::post_request(items_query, ...)
         },
         error = function(e) {
-            stop(paste(
-                ".source_collection_access_test.stac_cube: service is unreachable\n",
-                e$message
-            ), call. = FALSE)
+            stop(
+                paste(
+                    ".source_collection_access_test.stac_cube: service is",
+                    "unreachable\n", e$message
+                ),
+                call. = FALSE
+            )
         }
     )
     items <- .source_items_bands_select(
@@ -102,9 +103,9 @@
     if (is.character(tiles)) {
         # post-condition
         .check_chr_within(.cube_tiles(cube),
-                          within = tiles,
-                          can_repeat = FALSE,
-                          msg = "invalid tile returned in cube"
+            within = tiles,
+            can_repeat = FALSE,
+            msg = "invalid tile returned in cube"
         )
         # arrange cube tiles according with 'tiles' parameter
         tiles <- tiles[tiles %in% .cube_tiles(cube)]
@@ -268,14 +269,14 @@
             # post-conditions
             .check_na(date, msg = "invalid date value")
             .check_length(date,
-                          len_min = 1, len_max = 1,
-                          msg = "invalid date value"
+                len_min = 1, len_max = 1,
+                msg = "invalid date value"
             )
             .check_chr(bands, len_min = 1, msg = "invalid band value")
             .check_chr(paths,
-                       allow_empty = FALSE, len_min = length(bands),
-                       len_max = length(bands),
-                       msg = "invalid path value"
+                allow_empty = FALSE, len_min = length(bands),
+                len_max = length(bands),
+                msg = "invalid path value"
             )
             # do in case of 'feature' strategy
             if (.source_collection_metadata_search(
@@ -366,7 +367,7 @@
         # exclude features by date but passed tiles
         cube <- dplyr::filter(
             cube, .data[["date"]] != !!review_date |
-                  .data[["tile"]] %in% !!passed_tiles
+                .data[["tile"]] %in% !!passed_tiles
         )
     }
 
@@ -472,12 +473,12 @@
 
     # post-condition
     .check_that(xmin < xmax,
-                local_msg = "xmin is greater than xmax",
-                msg = "invalid bbox value"
+        local_msg = "xmin is greater than xmax",
+        msg = "invalid bbox value"
     )
     .check_that(ymin < ymax,
-                local_msg = "ymin is greater than ymax",
-                msg = "invalid bbox value"
+        local_msg = "ymin is greater than ymax",
+        msg = "invalid bbox value"
     )
     # create a bbox
     bbox <- c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
@@ -492,8 +493,8 @@
     fid <- rstac::items_reap(items, field = "id")
     # post-conditions
     .check_length(unique(fid),
-                  len_min = length(fid), len_max = length(fid),
-                  msg = "invalid feature id value"
+        len_min = length(fid), len_max = length(fid),
+        msg = "invalid feature id value"
     )
 
     return(fid)

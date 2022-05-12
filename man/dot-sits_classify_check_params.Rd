@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_classify_cube.R
 \name{.sits_classify_check_params}
 \alias{.sits_classify_check_params}
-\title{Check clasification parameters}
+\title{Check classification parameters}
 \usage{
 .sits_classify_check_params(cube, ml_model)
 }

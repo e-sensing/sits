@@ -7,6 +7,7 @@
 \alias{.check_that}
 \alias{.check_null}
 \alias{.check_na}
+\alias{.check_require_packages}
 \alias{.check_names}
 \alias{.check_length}
 \alias{.check_apply}
@@ -35,11 +36,13 @@
 
 .check_null(x, ..., msg = NULL)
 
-.check_na(x, ..., msg = NULL)
+.check_na(x, ..., allow_na = FALSE, msg = NULL)
+
+.check_require_packages(x, ..., msg = "Please install package(s)")
 
 .check_names(x, ..., is_named = TRUE, msg = NULL)
 
-.check_length(x, ..., len_min = NULL, len_max = NULL, msg = NULL)
+.check_length(x, ..., len_min = 0, len_max = 2^31 - 1, msg = NULL)
 
 .check_apply(x, fn_check, ...)
 
@@ -55,8 +58,8 @@
   x,
   ...,
   allow_na = FALSE,
-  len_min = NULL,
-  len_max = NULL,
+  len_min = 0,
+  len_max = 2^31 - 1,
   allow_null = FALSE,
   is_named = FALSE,
   msg = NULL
@@ -68,13 +71,14 @@
   allow_na = FALSE,
   min = -Inf,
   max = Inf,
-  allow_zero = TRUE,
-  len_min = NULL,
-  len_max = NULL,
+  exclusive_min = -Inf,
+  exclusive_max = Inf,
+  len_min = 0,
+  len_max = 2^31 - 1,
   allow_null = FALSE,
   is_integer = FALSE,
   is_named = FALSE,
-  tolerance = NULL,
+  tolerance = 0,
   msg = NULL
 )
 
@@ -83,8 +87,8 @@
   ...,
   allow_na = FALSE,
   allow_empty = TRUE,
-  len_min = NULL,
-  len_max = NULL,
+  len_min = 0,
+  len_max = 2^31 - 1,
   allow_null = FALSE,
   is_named = FALSE,
   regex = NULL,
@@ -94,8 +98,8 @@
 .check_lst(
   x,
   ...,
-  min_len = NULL,
-  max_len = NULL,
+  min_len = 0,
+  max_len = 2^31 - 1,
   allow_null = FALSE,
   is_named = TRUE,
   fn_check = NULL,
@@ -145,6 +149,9 @@ will be shown inside parenthesis.}
 \item{msg}{A \code{character} with the error message that will be
 shown as the main message to the user.}
 
+\item{allow_na}{A \code{logical} indicating if the check permits empty
+NA values. Default is FALSE.}
+
 \item{is_named}{A \code{logical} indicating if the check permits unnamed
 list.}
 
@@ -160,22 +167,24 @@ object.}
 \item{is_integer}{A \code{logical} indicating if the value should be
 integer.}
 
-\item{allow_na}{A \code{logical} indicating if the check permits empty
-NA values. Default is FALSE.}
-
 \item{allow_null}{A \code{logical} indicating if the check permits empty
 NULL values. Default is FALSE.}
 
 \item{min}{A atomic \code{vector} of numeric indicating the
-minimum value that the user can provide in function parameter. Only works for
-numeric check. By default is \code{-Inf}.}
+inclusive minimum value that the user can provide in function parameter.
+Only works for numeric check. By default it is \code{-Inf}.}
 
 \item{max}{A atomic \code{vector} of numeric indicating the
-maximum value that the user can provide in function parameter. Only works for
-numeric check. By default is \code{Inf}.}
+inclusive maximum value that the user can provide in function parameter.
+Only works for numeric check. By default it is \code{Inf}.}
 
-\item{allow_zero}{A \code{logical} indicating if the check permits zero
-values. Default is TRUE.}
+\item{exclusive_min}{A atomic \code{vector} of numeric indicating the
+exclusive minimum value that the user can provide in function parameter.
+Only works for numeric check. By default it is \code{-Inf}.}
+
+\item{exclusive_max}{A atomic \code{vector} of numeric indicating the
+exclusive maximum value that the user can provide in function parameter.
+Only works for numeric check. By default it is \code{Inf}.}
 
 \item{tolerance}{A \code{numeric} with the tolerance to be
 accepted in range test. The default value is NULL.}
@@ -213,6 +222,9 @@ to which \code{x} is a kind of superset. The actual behavior is pointed by
 extensions.}
 
 \item{expr}{A R \code{expression} to be evaluated.}
+
+\item{show_pks_name}{A \code{logical} value indicating if
+uninstalled packages can be shown.}
 }
 \value{
 Unless otherwise specified, all checking functions return the same
@@ -318,9 +330,9 @@ also check for:
 }
 \item{
 \code{.check_num()} checks for \code{numeric} values and its range (if
-either \code{min} or \code{max} parameters are defined). It also checks
-for non-zero and \code{integer} values (if \code{allow_zero=FALSE} and
-\code{is_integer=TRUE}, respectively).
+either \code{min}, \code{max}, \code{exclusive_min}, or \code{exclusive_max}
+parameters are defined). It also checks \code{integer} values
+(if \code{is_integer=TRUE}).
 }
 \item{
 \code{.check_chr()} checks for \code{character} type and empty strings (if

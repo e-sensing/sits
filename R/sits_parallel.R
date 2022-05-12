@@ -21,11 +21,12 @@
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 .sits_parallel_is_open <- function() {
-    tryCatch({
-        !is.null(sits_env[["cluster"]]) &&
-            socketSelect(list(sits_env[["cluster"]][[1]]$con), write = TRUE)
-    },
-    error = function(e) FALSE
+    tryCatch(
+        {
+            !is.null(sits_env[["cluster"]]) &&
+                socketSelect(list(sits_env[["cluster"]][[1]]$con), write = TRUE)
+        },
+        error = function(e) FALSE
     )
 }
 
@@ -46,15 +47,26 @@
 
             # make sure library paths is the same as actual environment
             lib_paths <- .libPaths()
+            # it is necessary to export the keys from aws to access the
+            # request payer cubes
+            env_vars <- as.list(Sys.getenv())
+            env_vars <- env_vars[grepl(pattern = "^AWS_*", names(env_vars))]
+
             parallel::clusterExport(
                 cl = sits_env[["cluster"]],
-                varlist = c("lib_paths", "log"),
+                varlist = c("lib_paths", "log", "env_vars"),
                 envir = environment()
             )
             parallel::clusterEvalQ(
                 cl = sits_env[["cluster"]],
                 expr = .libPaths(lib_paths)
             )
+            if (length(env_vars) > 0) {
+                parallel::clusterEvalQ(
+                    cl = sits_env[["cluster"]],
+                    expr = do.call(Sys.setenv, env_vars)
+                )
+            }
             # export debug flag
             parallel::clusterEvalQ(
                 cl = sits_env[["cluster"]],
@@ -86,8 +98,17 @@
 #' @title Fault tolerant version of some parallel functions
 #' @name sits_parallel_fault_tolerant
 #' @keywords internal
+#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Derived from the snow package
+#'
+#' @description
+#' These internal functions are a reimplementation of a fault tolerant
+#' version of snow package functions \code{recv_one_data()},
+#' \code{recv_one_result()}, and \code{cluster_apply()}
+#' from Luke Tierney, A. J. Rossini, Na Li, H. Sevcikova.
+#' snow package is licensed as GPL-2 | GPL-3.
+#' This re-implementation allows `sits` cope with massive volume of data
+#' processing over networks without compromise overall results.
 #'
 #' @param x     a given list to be passed to a function
 #' @param fn    a function to be applied to each list element
@@ -143,8 +164,6 @@
 #' @rdname sits_parallel_fault_tolerant
 .sits_parallel_recv_one_result <- function() {
 
-    # fault tolerant version of parallel:::recvOneResult
-    cl <- sits_env[["cluster"]]
     # fault tolerant version of parallel:::recvOneData
     v <- .sits_parallel_recv_one_data()
 
@@ -165,8 +184,8 @@
         submit <- function(node, job) {
             # get hidden object from parallel
             .send_call <- get("sendCall",
-                              envir = asNamespace("parallel"),
-                              inherits = FALSE
+                envir = asNamespace("parallel"),
+                inherits = FALSE
             )
             .send_call(
                 con = cl[[node]],
@@ -203,8 +222,8 @@
         }
         # get hidden object from parallel
         .check_remote_errors <- get("checkForRemoteErrors",
-                                    envir = asNamespace("parallel"),
-                                    inherits = FALSE
+            envir = asNamespace("parallel"),
+            inherits = FALSE
         )
         .check_remote_errors(val)
     }
@@ -277,7 +296,7 @@
         }
         if (any(retry)) {
             stop("Some or all failed nodes could not be recovered",
-                 call. = FALSE
+                call. = FALSE
             )
         }
     }

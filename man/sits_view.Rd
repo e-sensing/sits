@@ -18,7 +18,7 @@ sits_view(x, ...)
   red = NULL,
   green = NULL,
   blue = NULL,
-  tiles = NULL,
+  tiles = x$tile[[1]],
   dates = sits_timeline(x)[1],
   class_cube = NULL,
   legend = NULL,
@@ -58,27 +58,54 @@ Leaflet object.
 Uses leaflet to visualize time series, raster cube and
 classified images
 }
-\examples{
-\donttest{
-# view a collection of time series
-sits_view(samples_modis_4bands)
-
-# view a temporal instance of a cube
-
-data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-
-modis_cube <- sits_cube(
-  source = "BDC",
-  collection = "MOD13Q1-6",
-  bands = c("NDVI", "EVI"),
-  data_dir = data_dir,
-  parse_info = c("X1", "X2", "tile", "band", "date")
-)
-
-# plot the data cube
-sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", times = 1)
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
+\examples{
+if (sits_run_examples()) {
+    sits_view(cerrado_2classes)
 
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+
+    modis_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+    # get the timeline
+    timeline <- sits_timeline(modis_cube)
+    # view the data cube
+    sits_view(modis_cube,
+        band = "NDVI",
+        dates = timeline[[1]]
+    )
+
+    samples_ndvi <- sits_select(samples_modis_4bands,
+        bands = c("NDVI")
+    )
+    rf_model <- sits_train(samples_ndvi, sits_rfor())
+
+    modis_probs <- sits_classify(
+        data = modis_cube,
+        ml_model = rf_model,
+        output_dir = tempdir(),
+        memsize = 4,
+        multicores = 1
+    )
+    modis_label <- sits_label_classification(modis_probs,
+        output_dir = tempdir()
+    )
+
+    sits_view(modis_label)
+
+    sits_view(modis_cube,
+        band = "NDVI",
+        class_cube = modis_label,
+        dates = sits_timeline(modis_cube)[[1]]
+    )
+}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

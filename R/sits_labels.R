@@ -53,12 +53,12 @@ sits_labels.sits_model <- function(data) {
         msg = "invalid sits model"
     )
     .check_chr_within(
-        x = "data",
+        x = "samples",
         within = ls(environment(data)),
         discriminator = "any_of",
         msg = "no samples found in the sits model"
     )
-    return(sits_labels.sits(environment(data)$data))
+    return(sits_labels.sits(environment(data)$samples))
 }
 #' @title Change the labels of a set of time series
 #'
@@ -76,19 +76,6 @@ sits_labels.sits_model <- function(data) {
 #'
 #' @return           A sits tibble with modified labels.
 #'
-#' @examples
-#' # Read a set of time series with information on deforestation
-#' data("samples_modis_4bands")
-#' # Print the labels
-#' sits_labels(samples_modis_4bands)
-#' # Create a conversion list.
-#' # relabel the data
-#' sits_labels(samples_modis_4bands) <- c(
-#'   "Natural", "Natural",
-#'   "Anthropic", "Anthropic"
-#' )
-#' # show the new labels
-#' sits_labels(samples_modis_4bands)
 #' @export
 #'
 `sits_labels<-` <- function(data, value) {
@@ -145,8 +132,8 @@ sits_labels.sits_model <- function(data) {
     # precondition
     n_labels <- length(sits_labels(data))
     .check_chr(value,
-               len_min = n_labels,
-               msg = "not enough new labels to replace current ones"
+        len_min = n_labels,
+        msg = "not enough new labels to replace current ones"
     )
     rows <- slider::slide_dfr(data, function(row) {
         row$labels <- list(value)

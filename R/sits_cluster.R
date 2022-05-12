@@ -2,17 +2,18 @@
 #' @name sits_clustering
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description These functions support hierarchical agglomerative clustering in sits.
-#' They provide support from creating a dendrogram and using it for cleaning samples.
+#' @description These functions support hierarchical agglomerative clustering in
+#' sits. They provide support from creating a dendrogram and using it for
+#' cleaning samples.
 #'
-#' \code{sits_cluster_dendro()} takes a tibble containing time series and produces
-#' a sits tibble with an added "cluster" column. The function first calculates a dendrogram and
-#' obtains a validity index for best clustering using the adjusted Rand Index.
-#' After cutting the dendrogram using the chosen validity index, it assigns a
-#' cluster to each sample.
+#' \code{sits_cluster_dendro()} takes a tibble containing time series and
+#' produces a sits tibble with an added "cluster" column. The function first
+#' calculates a dendrogram and obtains a validity index for best clustering
+#' using the adjusted Rand Index. After cutting the dendrogram using the chosen
+#' validity index, it assigns a cluster to each sample.
 #'
-#' \code{sits_cluster_frequency()} computes the contingency table between labels and clusters
-#' and produces a matrix
+#' \code{sits_cluster_frequency()} computes the contingency table between labels
+#' and clusters and produces a matrix.
 #' It needs as input a tibble produced by \code{sits_cluster_dendro()}.
 #'
 #' \code{sits_cluster_clean()} takes a tibble with time series
@@ -35,23 +36,14 @@
 #' @return                Tibble with added "cluster" column.
 #'
 #' @rdname sits_clustering
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' \dontrun{
-#' # load a simple data set with two classes
-#' data(cerrado_2classes)
-#' # calculate the dendrogram and the best clusters
-#' clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("NDVI", "EVI"))
-#' # show clusters samples frequency
-#' sits_cluster_frequency(clusters)
-#' # remove cluster 3 from the samples
-#' clusters_new <- dplyr::filter(clusters, cluster != 3)
-#' # show clusters samples frequency of the new data set
-#' sits_cluster_frequency(clusters_new)
-#' # clean all remaining clusters
-#' cleaned <- sits_cluster_clean(clusters_new)
-#' # show clusters samples frequency
-#' sits_cluster_frequency(cleaned)
+#' if (sits_run_examples()) {
+#'     clusters <- sits_cluster_dendro(cerrado_2classes)
 #' }
+#'
 #' @export
 sits_cluster_dendro <- function(samples = NULL,
                                 bands = NULL,
@@ -64,10 +56,7 @@ sits_cluster_dendro <- function(samples = NULL,
     # verify if data is OK
     .sits_tibble_test(samples)
 
-    .check_that(
-        requireNamespace("dtwclust", quietly = TRUE),
-        msg = "Please install package dtwclust"
-    )
+    .check_require_packages("dtwclust")
 
     # bands in sits are uppercase
     bands <- .sits_tibble_bands_check(samples, bands)
@@ -126,7 +115,12 @@ sits_cluster_dendro <- function(samples = NULL,
 #' @return
 #' \code{sits_cluster_frequency()} returns a matrix containing
 #' all frequencies of labels in clusters.
-#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     clusters <- sits_cluster_dendro(cerrado_2classes)
+#'     freq <- sits_cluster_frequency(clusters)
+#'     freq
+#' }
 #' @export
 sits_cluster_frequency <- function(samples) {
 
@@ -145,8 +139,8 @@ sits_cluster_frequency <- function(samples) {
 
     # compute total row and col
     result <- stats::addmargins(result,
-                                FUN = list(Total = sum),
-                                quiet = TRUE
+        FUN = list(Total = sum),
+        quiet = TRUE
     )
     return(result)
 }
@@ -156,6 +150,15 @@ sits_cluster_frequency <- function(samples) {
 #' \code{sits_cluster_clean()} takes a tibble with time series
 #' that has an additional `cluster` produced by \code{sits_cluster_dendro()}
 #' and removes labels that are minority in each cluster.
+#' @examples
+#' if (sits_run_examples()) {
+#'     clusters <- sits_cluster_dendro(cerrado_2classes)
+#'     freq1 <- sits_cluster_frequency(clusters)
+#'     freq1
+#'     clean_clusters <- sits_cluster_clean(clusters)
+#'     freq2 <- sits_cluster_frequency(clean_clusters)
+#'     freq2
+#' }
 #' @export
 sits_cluster_clean <- function(samples) {
 
@@ -182,9 +185,11 @@ sits_cluster_clean <- function(samples) {
     clean_clusters <- purrr::map2_dfr(
         lbs_max, num_cls,
         function(lb, cl) {
-            partial <- dplyr::filter(samples,
-                                     .data[["label"]] == lb &
-                                         .data[["cluster"]] == cl)
+            partial <- dplyr::filter(
+                samples,
+                .data[["label"]] == lb &
+                    .data[["cluster"]] == cl
+            )
             return(partial)
         }
     )
@@ -216,9 +221,7 @@ sits_cluster_clean <- function(samples) {
     .check_set_caller(".sits_cluster_validity")
 
     # verifies if dtwclust package is installed
-    if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("Please insall package dtwclust", call. = FALSE)
-    }
+    .check_require_packages("dtwclust")
 
     # is the input data the result of a cluster function?
     .check_chr_contains(
@@ -273,20 +276,19 @@ sits_cluster_clean <- function(samples) {
                                      dist_method = "dtw_basic",
                                      linkage = "ward.D2", ...) {
     # verifies if dtwclust package is installed
-    if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("Please install package dtwclust", call. = FALSE)
-    }
+    .check_require_packages("dtwclust")
 
     # get the values of the time series
     values <- sits_values(samples, bands, format = "cases_dates_bands")
 
     # call dtwclust and get the resulting dendrogram
-    dendro <- dtwclust::tsclust(values,
-                                type = "hierarchical",
-                                k = max(nrow(samples) - 1, 2),
-                                distance = dist_method,
-                                control = dtwclust::hierarchical_control(method = linkage),
-                                ...
+    dendro <- dtwclust::tsclust(
+        values,
+        type = "hierarchical",
+        k = max(nrow(samples) - 1, 2),
+        distance = dist_method,
+        control = dtwclust::hierarchical_control(method = linkage),
+        ...
     )
 
     # return the dendrogram
@@ -353,7 +355,7 @@ sits_cluster_clean <- function(samples) {
         nis2 <- sum(choose(ni[ni > 1], 2))
         njs2 <- sum(choose(nj[nj > 1], 2))
         rand <- c(ARI = c(sum(choose(x[x > 1], 2)) -
-                              (nis2 * njs2) / n2) / ((nis2 + njs2) / 2 - (nis2 * njs2) / n2))
+            (nis2 * njs2) / n2) / ((nis2 + njs2) / 2 - (nis2 * njs2) / n2))
     } else {
         rand <- c(rand, RI = 1 + (sum(x^2) - (sum(ni^2) + sum(nj^2)) / 2) / n2)
     }

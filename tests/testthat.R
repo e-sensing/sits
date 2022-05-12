@@ -1,3 +1,5 @@
 library(testthat)
 library(sits)
-test_check("sits")
+if (sits_active_tests()) {
+    test_check("sits")
+}

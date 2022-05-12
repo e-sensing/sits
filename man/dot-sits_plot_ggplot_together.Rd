@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{.sits_plot_ggplot_together}
 \alias{.sits_plot_ggplot_together}
-\title{Plot many timeSeries together using ggplot}
+\title{Plot many time series together using ggplot}
 \usage{
 .sits_plot_ggplot_together(melted, means, plot_title)
 }

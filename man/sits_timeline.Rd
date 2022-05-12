@@ -9,9 +9,16 @@ sits_timeline(data)
 \arguments{
 \item{data}{either a sits tibble, a data cube, or a trained model.}
 }
+\value{
+Timeline of sample set or of data cube.
+}
 \description{
 This function returns the timeline for a given data set, either
              a set of time series, a data cube, or a trained model.
+}
+\examples{
+sits_timeline(samples_modis_4bands)
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

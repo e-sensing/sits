@@ -1,72 +1,3 @@
-#' @title Sample a percentage of a time series
-#' @name sits_sample
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Takes a sits tibble with different labels and
-#'              returns a new tibble. For a given field as a group criterion,
-#'              this new tibble contains a given number or percentage
-#'              of the total number of samples per group.
-#'              Parameter n: number of random samples with replacement.
-#'              Parameter frac: a fraction of random samples without
-#'              replacement. If frac > 1, no sampling is done.
-#'
-#' @param  data       Input sits tibble.
-#' @param  n          Number of samples to pick from each group of data.
-#' @param  frac       Percentage of samples to pick from each group of data.
-#' @return            A sits tibble with a fixed quantity of samples.
-#' @examples
-#' # Retrieve a set of time series with 2 classes
-#' data(cerrado_2classes)
-#' # Print the labels of the resulting tibble
-#' sits_labels(cerrado_2classes)
-#' # Samples the data set
-#' data <- sits_sample(cerrado_2classes, n = 10)
-#' # Print the labels of the resulting tibble
-#' sits_labels(data)
-#' @export
-sits_sample <- function(data, n = NULL, frac = NULL) {
-
-    # set caller to show in errors
-    .check_set_caller("sits_sample")
-
-    # verify if data is valid
-    .sits_tibble_test(data)
-
-    # verify if either n or frac is informed
-    .check_that(
-        x = !(purrr::is_null(n) & purrr::is_null(frac)),
-        msg = "neither n or frac parameters informed"
-    )
-    # prepare sampling function
-    sampling_fun <- if (!purrr::is_null(n)) {
-        function(tb) {
-            if (nrow(tb) >= n) {
-                return(dplyr::sample_n(tb,
-                                       size = n,
-                                       replace = FALSE
-                ))
-            } else {
-                return(tb)
-            }
-        }
-    } else if (frac <= 1) {
-        function(tb) tb %>% dplyr::sample_frac(size = frac, replace = FALSE)
-    } else {
-        function(tb) tb %>% dplyr::sample_frac(size = frac, replace = TRUE)
-    }
-    # compute sampling
-    result <- .sits_tibble()
-    labels <- sits_labels(data)
-    result <- purrr::map_dfr(
-        labels,
-        function(l) {
-            tb_l <- dplyr::filter(data, .data[["label"]] == l)
-            tb_s <- sampling_fun(tb_l)
-        }
-    )
-    return(result)
-}
-
 #' @title Get the time series for a row of a sits tibble
 #' @name sits_time_series
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -75,17 +6,17 @@ sits_sample <- function(data, n = NULL, frac = NULL) {
 #'
 #' @param data     A sits tibble with one or more time series.
 #' @return A tibble in sits format with the time series.
-#' @examples
-#' # Retrieve a set of time series with 2 classes
-#' data(cerrado_2classes)
-#' # Retrieve the first time series
-#' sits_time_series(cerrado_2classes)
 #' @export
 sits_time_series <- function(data) {
     .sits_tibble_test(data)
 
     return(data$time_series[[1]])
 }
+
+
+
+
+
 #' @title Create a sits tibble to store the time series information
 #' @name .sits_tibble
 #' @keywords internal
@@ -161,10 +92,13 @@ sits_time_series <- function(data) {
             # only rows that match  reference dates are kept
             if (length(ref_dates) == nrow(ts)) {
                 # find the date of minimum distance to the reference date
-                idx <- which.min(abs((lubridate::as_date(ts$Index)
-                                      - lubridate::as_date(start_date)) / lubridate::ddays(1)))
+                idx <- which.min(
+                    abs((lubridate::as_date(ts$Index)
+                    - lubridate::as_date(start_date))
+                    / lubridate::ddays(1))
+                )
                 # shift the time series to match dates
-                if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
+                if (idx != 1) ts <- shift_ts(ts, - (idx - 1))
                 # change the dates to the reference dates
                 ts1 <- dplyr::mutate(ts, Index = ref_dates)
                 # save the resulting row in the output tibble
@@ -286,8 +220,8 @@ sits_time_series <- function(data) {
 
     # pre-condition
     .check_chr_within(col,
-                      within = names(data),
-                      msg = "invalid column name"
+        within = names(data),
+        msg = "invalid column name"
     )
     # select data do unpack
     x <- data[col]
@@ -320,9 +254,9 @@ sits_time_series <- function(data) {
 
     # pre-condition
     .check_chr(bands,
-               allow_empty = FALSE, len_min = length(data_bands),
-               len_max = length(data_bands),
-               msg = "invalid 'bands' value"
+        allow_empty = FALSE, len_min = length(data_bands),
+        len_max = length(data_bands),
+        msg = "invalid 'bands' value"
     )
 
     .sits_fast_apply(x, col = "time_series", fn = function(x) {
@@ -344,15 +278,15 @@ sits_time_series <- function(data) {
     data_bands <- sits_bands(x)
     # pre-condition
     .check_chr(bands,
-               allow_empty = FALSE,
-               len_min = length(data_bands),
-               len_max = length(data_bands),
-               msg = "invalid 'bands' value"
+        allow_empty = FALSE,
+        len_min = length(data_bands),
+        len_max = length(data_bands),
+        msg = "invalid 'bands' value"
     )
     .sits_fast_apply(x, col = "file_info", fn = function(x) {
         x <- tidyr::pivot_wider(x,
-                                names_from = "band",
-                                values_from = "path"
+            names_from = "band",
+            values_from = "path"
         )
 
         # create a conversor
@@ -364,11 +298,36 @@ sits_time_series <- function(data) {
         colnames(x) <- unname(new_bands)
 
         x <- tidyr::pivot_longer(x,
-                                 cols = toupper(bands),
-                                 names_to = "band",
-                                 values_to = "path"
+            cols = toupper(bands),
+            names_to = "band",
+            values_to = "path"
         )
 
         return(x)
     })
+}
+#' @title Split a sits tibble
+#' @name .sits_samples_split
+#' @keywords internal
+#'
+#' @description Add a column to sits tibble indicating if a sample is
+#' training sample or not.
+#'
+#' @param data  A sits tibble.
+#' @return Returns TRUE if data has data.
+.sits_samples_split <- function(samples, validation_split = 0.2) {
+    result <-
+        samples %>%
+        dplyr::group_by(.data[["label"]]) %>%
+        dplyr::mutate(
+            train = sample(
+                c(
+                    rep(TRUE, round(dplyr::n() * (1 - validation_split))),
+                    rep(FALSE, round(dplyr::n() * validation_split))
+                )
+            )
+        ) %>%
+        dplyr::ungroup()
+
+    return(result)
 }

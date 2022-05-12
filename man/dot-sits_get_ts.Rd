@@ -2,7 +2,8 @@
 % Please edit documentation in R/sits_get_data.R
 \name{.sits_get_ts}
 \alias{.sits_get_ts}
-\title{Dispatch function to get time series from data cubes and cloud services}
+\title{Dispatch function to get time series from data cubes and cloud
+services}
 \usage{
 .sits_get_ts(
   cube,
@@ -30,7 +31,8 @@
 should be shown. Default is \code{FALSE}.}
 }
 \description{
-Dispatch function to get time series from data cubes and cloud services
+Dispatch function to get time series from data cubes and cloud
+services
 }
 \author{
 Gilberto Camara

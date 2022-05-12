@@ -4,12 +4,14 @@
 \alias{sits_to_xlsx}
 \title{Save accuracy assessments as Excel files}
 \usage{
-sits_to_xlsx(acc_lst, file)
+sits_to_xlsx(acc_lst, file, data = NULL)
 }
 \arguments{
 \item{acc_lst}{A list of accuracy statistics}
 
 \item{file}{The file where the XLSX data is to be saved.}
+
+\item{data}{(optional) Print information about the samples}
 }
 \description{
 Saves confusion matrices as Excel spreadsheets. This function
@@ -17,26 +19,31 @@ takes the a list of accuracy assessments generated
 by \code{\link[sits]{sits_accuracy}}
 and saves them in an Excel spreadsheet.
 }
-\examples{
-\dontrun{
-# read a tibble with 400 samples of Cerrado and 346 samples of Pasture
-data(cerrado_2classes)
-# perform a 2 fold validation of this sample file
-accuracy <- sits_kfold_validate(cerrado_2classes,
-  folds = 2,
-  ml_method = sits_rfor(num_trees = 300)
-)
-# create a list to store the results
-results <- list()
-# give a name to the accuracy assessment
-accuracy$name <- "cerrado_2classes"
-# add the confusion matrix to the results
-results[[length(results) + 1]] <- accuracy
-# save the results to an XLSX file
-xlsx_file <- paste0(tempdir(), "accuracy.xlsx")
-sits_to_xlsx(results, file = xlsx_file)
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
+\examples{
+if (sits_run_examples()) {
+    # A dataset containing a tibble with time series samples
+    # for the Mato Grosso state in Brasil
+    # create a list to store the results
+    results <- list()
 
+    # accuracy assessment lightTAE
+    acc_ltae <- sits_kfold_validate(samples_modis_4bands,
+        folds = 5, multicores = 5,
+        ml_method = sits_lighttae()
+    )
+    # use a name
+    acc_ltae$name <- "LightTAE"
+
+    # put the result in a list
+    results[[length(results) + 1]] <- acc_ltae
+
+    # save to xlsx file
+    sits_to_xlsx(results, file = "./accuracy_mato_grosso_dl.xlsx")
+}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

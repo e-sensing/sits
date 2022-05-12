@@ -26,13 +26,17 @@
 #' @param allow_null    A \code{logical} indicating if the check permits empty
 #' NULL values. Default is FALSE.
 #' @param min           A atomic \code{vector} of numeric indicating the
-#' minimum value that the user can provide in function parameter. Only works for
-#' numeric check. By default is \code{-Inf}.
+#' inclusive minimum value that the user can provide in function parameter.
+#' Only works for numeric check. By default it is \code{-Inf}.
 #' @param max           A atomic \code{vector} of numeric indicating the
-#' maximum value that the user can provide in function parameter. Only works for
-#' numeric check. By default is \code{Inf}.
-#' @param allow_zero    A \code{logical} indicating if the check permits zero
-#' values. Default is TRUE.
+#' inclusive maximum value that the user can provide in function parameter.
+#' Only works for numeric check. By default it is \code{Inf}.
+#' @param exclusive_min A atomic \code{vector} of numeric indicating the
+#' exclusive minimum value that the user can provide in function parameter.
+#' Only works for numeric check. By default it is \code{-Inf}.
+#' @param exclusive_max A atomic \code{vector} of numeric indicating the
+#' exclusive maximum value that the user can provide in function parameter.
+#' Only works for numeric check. By default it is \code{Inf}.
 #' @param allow_empty   A \code{logical} indicating if the check permits empty
 #' list. Default is TRUE.
 #' @param regex         A \code{character} value with regular expression to be
@@ -56,6 +60,8 @@
 #' @param extensions    A \code{character} vector with all allowed file
 #' extensions.
 #' @param expr          A R \code{expression} to be evaluated.
+#' @param show_pks_name A \code{logical} value indicating if
+#'                      uninstalled packages can be shown.
 #' @param tolerance     A \code{numeric} with the tolerance to be
 #' accepted in range test. The default value is NULL.
 #' @param ...           Additional parameters for \code{fn_check} function.
@@ -197,33 +203,74 @@ NULL
 #' @keywords internal
 .check_null <- function(x, ...,
                         msg = NULL) {
+
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
+
     .check_that(
         !is.null(x),
-        local_msg = msg
-    )
-
-    return(invisible(x))
-}
-
-#' @rdname check_functions
-#' @keywords internal
-.check_na <- function(x, ...,
-                      msg = NULL) {
-    .check_that(
-        !any(is.na(x)),
-        local_msg = "NA value is not allowed",
+        local_msg = "value cannot be NULL",
         msg = msg
     )
 
     return(invisible(x))
 }
 
+#' @rdname check_functions
+#' @keywords internal
+.check_na <- function(x, ..., allow_na = FALSE, msg = NULL) {
+
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
+
+    if (!allow_na) {
+        .check_that(
+            !any(is.na(x)),
+            local_msg = "NA value is not allowed",
+            msg = msg
+        )
+    }
+
+    return(invisible(x))
+}
+
+#' @rdname check_functions
+#' @keywords internal
+.check_require_packages <- function(x, ...,
+                                    msg = "Please install package(s)") {
+    are_packages_installed <- purrr::map_lgl(
+        x, requireNamespace,
+        quietly = TRUE
+    )
+
+    .check_that(
+        all(are_packages_installed),
+        msg = paste(msg, x[!are_packages_installed])
+    )
+
+    return(invisible(x))
+}
 
 #' @rdname check_functions
 #' @keywords internal
 .check_names <- function(x, ...,
                          is_named = TRUE,
                          msg = NULL) {
+
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
 
     # cannot test zero length arguments
     if (length(x) == 0) {
@@ -256,47 +303,47 @@ NULL
 #' @rdname check_functions
 #' @keywords internal
 .check_length <- function(x, ...,
-                          len_min = NULL,
-                          len_max = NULL,
+                          len_min = 0,
+                          len_max = 2^31 - 1,
                           msg = NULL) {
 
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
+
     # pre-condition
-    if (!is.null(len_min) && !is.numeric(len_min)) {
-        stop(".check_length: len_min parameter should be numeric.")
-    }
+    .check_num_type(
+        len_min,
+        is_integer = TRUE,
+        msg = "invalid 'len_min' parameter"
+    )
+    .check_num_type(
+        len_max,
+        is_integer = TRUE,
+        msg = "invalid 'len_max' parameter"
+    )
 
-    if (!is.null(len_max) && !is.numeric(len_max)) {
-        stop(".check_length: len_max parameter should be numeric.")
-    }
-
-    # set error message
-    if (!is.null(len_min) && !is.null(len_max) && len_min == len_max) {
-        local_msg <- sprintf("length should be == %s", len_min)
-    } else if (is.null(len_min) && is.null(len_max)) {
-        local_msg <- "invalid length"
-    } # never throws an error in this case!
-    else if (is.null(len_max)) {
-        local_msg <- sprintf("length should be >= %s", len_min)
-    } else if (is.null(len_min)) {
-        local_msg <- sprintf("length should be <= %s", len_max)
-    } else {
-        local_msg <- sprintf(
-            "length should be between %s and %s",
-            len_min, len_max
+    if (len_min == len_max) {
+        .check_that(
+            length(x) == len_min,
+            local_msg = paste0("length should be ", len_min),
+            msg = msg
         )
     }
 
-    if (is.null(len_min)) {
-        len_min <- 0
-    }
-
-    if (is.null(len_max)) {
-        len_max <- 2^31
-    }
+    # these checks are separate because the messages are different
+    .check_that(
+        length(x) >= len_min,
+        local_msg = paste0("length should be >= ", len_min),
+        msg = msg
+    )
 
     .check_that(
-        len_min <= length(x) && length(x) <= len_max,
-        local_msg = local_msg,
+        length(x) <= len_max,
+        local_msg = paste0("length should be <= ", len_max),
         msg = msg
     )
 
@@ -347,6 +394,14 @@ NULL
 #' @keywords internal
 .check_lgl_type <- function(x, ...,
                             msg = NULL) {
+
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
+
     .check_that(
         is.logical(x),
         local_msg = "value is not logical",
@@ -361,6 +416,14 @@ NULL
 .check_num_type <- function(x, ...,
                             is_integer = FALSE,
                             msg = NULL) {
+
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
+
     .check_that(
         is.numeric(x),
         local_msg = "value is not a number",
@@ -376,7 +439,7 @@ NULL
         }
 
         .check_that(
-            is.numeric(x) && all(x == as.integer(x)),
+            is.numeric(x) && all(x == suppressWarnings(as.integer(x))),
             local_msg = "value is not integer",
             msg = msg
         )
@@ -389,6 +452,14 @@ NULL
 #' @keywords internal
 .check_chr_type <- function(x, ...,
                             msg = NULL) {
+
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
+
     .check_that(
         is.character(x),
         local_msg = "value is not character type",
@@ -402,6 +473,14 @@ NULL
 #' @keywords internal
 .check_lst_type <- function(x, ...,
                             msg = NULL) {
+
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
+
     .check_that(
         is.list(x),
         local_msg = "value is not a list",
@@ -429,9 +508,9 @@ NULL
 #' }
 #' \item{
 #' \code{.check_num()} checks for \code{numeric} values and its range (if
-#' either \code{min} or \code{max} parameters are defined). It also checks
-#' for non-zero and \code{integer} values (if \code{allow_zero=FALSE} and
-#' \code{is_integer=TRUE}, respectively).
+#' either \code{min}, \code{max}, \code{exclusive_min}, or \code{exclusive_max}
+#' parameters are defined). It also checks \code{integer} values
+#' (if \code{is_integer=TRUE}).
 #' }
 #' \item{
 #' \code{.check_chr()} checks for \code{character} type and empty strings (if
@@ -449,11 +528,18 @@ NULL
 #' @keywords internal
 .check_lgl <- function(x, ...,
                        allow_na = FALSE,
-                       len_min = NULL,
-                       len_max = NULL,
+                       len_min = 0,
+                       len_max = 2^31 - 1,
                        allow_null = FALSE,
                        is_named = FALSE,
                        msg = NULL) {
+
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
 
     # check for NULL and exit if it is allowed
     if (allow_null && is.null(x)) {
@@ -486,14 +572,22 @@ NULL
                        allow_na = FALSE,
                        min = -Inf,
                        max = Inf,
-                       allow_zero = TRUE,
-                       len_min = NULL,
-                       len_max = NULL,
+                       exclusive_min = -Inf,
+                       exclusive_max = Inf,
+                       len_min = 0,
+                       len_max = 2^31 - 1,
                        allow_null = FALSE,
                        is_integer = FALSE,
                        is_named = FALSE,
-                       tolerance = NULL,
+                       tolerance = 0,
                        msg = NULL) {
+
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
 
     # check for NULL and exit if it is allowed
     if (allow_null && is.null(x)) {
@@ -510,31 +604,48 @@ NULL
     .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
 
     # check NA
-    if (!allow_na) {
-        .check_na(x, msg = msg)
-    }
+    .check_na(x, allow_na = allow_na, msg = msg)
 
     # check names
     .check_names(x, is_named = is_named, msg = msg)
 
     # check range
+    .check_num_min_max(
+        x = x,
+        min = min,
+        max = max,
+        exclusive_min = exclusive_min,
+        exclusive_max = exclusive_max,
+        tolerance = tolerance,
+        msg = msg
+    )
+
+    return(invisible(x))
+}
+
+.check_num_min_max <- function(x, ...,
+                               min = -Inf,
+                               max = Inf,
+                               exclusive_min = -Inf,
+                               exclusive_max = Inf,
+                               tolerance = 0,
+                               msg = NULL) {
+
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
+
     # pre-condition
-    if (!is.null(min) && !is.numeric(min)) {
-        stop(".check_num: min parameter should be numeric.")
-    }
+    .check_num_type(min, msg = "invalid 'min' parameter")
+    .check_num_type(max, msg = "invalid 'max' parameter")
+    .check_num_type(exclusive_min, msg = "invalid 'exclusive_min' parameter")
+    .check_num_type(exclusive_max, msg = "invalid 'exclusive_max' parameter")
+    .check_num_type(x = tolerance, msg = "invalid 'tolerance' parameter")
 
-    if (!is.null(max) && !is.numeric(max)) {
-        stop(".check_num: max parameter should be numeric.")
-    }
-
-    if (!is.null(tolerance)) {
-        .check_num(
-            x = tolerance,
-            msg = "tolerance must be numeric."
-        )
-    }
-
-    # remove NAs before check
+    # remove NAs before check to test tolerance
     result <- x
     x <- x[!is.na(x)]
 
@@ -542,22 +653,40 @@ NULL
     if (!is.null(tolerance)) {
         min <- min - tolerance
         max <- max + tolerance
+        exclusive_min <- exclusive_min - tolerance
+        exclusive_max <- exclusive_max + tolerance
     }
 
-    .check_that(
-        all(min <= x) && all(x <= max),
-        local_msg = "value is out of range",
-        msg = msg
-    )
-
-    # allow zero
-    if (!allow_zero) {
+    # min and max checks
+    if (min == max) {
         .check_that(
-            all(x != 0),
-            local_msg = "value cannot be zero",
+            all(x == min),
+            local_msg = paste0("value should be ", min),
             msg = msg
         )
     }
+    .check_that(
+        all(x >= min),
+        local_msg = paste0("value should be >= ", min),
+        msg = msg
+    )
+    .check_that(
+        all(x <= max),
+        local_msg = paste0("value should be <= ", max),
+        msg = msg
+    )
+
+    # exclusive_min and exclusive_max checks
+    .check_that(
+        all(x > exclusive_min),
+        local_msg = paste0("value should be > ", exclusive_min),
+        msg = msg
+    )
+    .check_that(
+        all(x < exclusive_max),
+        local_msg = paste0("value should be < ", exclusive_max),
+        msg = msg
+    )
 
     return(invisible(result))
 }
@@ -567,12 +696,19 @@ NULL
 .check_chr <- function(x, ...,
                        allow_na = FALSE,
                        allow_empty = TRUE,
-                       len_min = NULL,
-                       len_max = NULL,
+                       len_min = 0,
+                       len_max = 2^31 - 1,
                        allow_null = FALSE,
                        is_named = FALSE,
                        regex = NULL,
                        msg = NULL) {
+
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
 
     # check for null and exit if it is allowed
     if (allow_null && is.null(x)) {
@@ -621,12 +757,19 @@ NULL
 #' @rdname check_functions
 #' @keywords internal
 .check_lst <- function(x, ...,
-                       min_len = NULL,
-                       max_len = NULL,
+                       min_len = 0,
+                       max_len = 2^31 - 1,
                        allow_null = FALSE,
                        is_named = TRUE,
                        fn_check = NULL,
                        msg = NULL) {
+
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
 
     # check for null and exit if it is allowed
     if (allow_null && is.null(x)) {
@@ -700,10 +843,17 @@ NULL
                               can_repeat = TRUE,
                               msg = NULL) {
 
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
+
     # pre-condition
     .check_chr(within,
-               len_min = 1,
-               msg = "invalid 'within' parameter"
+        len_min = 1,
+        msg = "invalid 'within' parameter"
     )
 
     # allowed discriminators and its print values
@@ -755,7 +905,7 @@ NULL
         "values should %s: %s",
         discriminators[[discriminator]],
         paste0("'", original_within, "'",
-               collapse = ", "
+            collapse = ", "
         )
     )
 
@@ -804,10 +954,17 @@ NULL
                                 can_repeat = TRUE,
                                 msg = NULL) {
 
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
+
     # pre-condition
     .check_chr(contains,
-               len_min = 1,
-               msg = "invalid 'contains' parameter"
+        len_min = 1,
+        msg = "invalid 'contains' parameter"
     )
 
     # allowed discriminators and its print values
@@ -836,7 +993,7 @@ NULL
     if (!can_repeat) {
         .check_that(
             length(contains) == length(unique(contains)),
-            local_msg = "values can not repeat",
+            local_msg = "values cannot repeat",
             msg = msg
         )
     }
@@ -856,7 +1013,7 @@ NULL
 
     # prepare local message
     local_msg <- sprintf(
-        "values should %s: %s",
+        "value should %s: %s",
         discriminators[[discriminator]],
         paste0("'", original_contains, "'", collapse = ", ")
     )
@@ -913,6 +1070,13 @@ NULL
                         extensions = NULL,
                         msg = NULL) {
 
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
+
     # file extension
     ext_file <- function(x) {
         gsub(
@@ -924,16 +1088,16 @@ NULL
 
     # check parameter
     .check_chr(x,
-               allow_empty = FALSE, len_min = 1,
-               allow_null = FALSE, msg = msg
+        allow_empty = FALSE, len_min = 1,
+        allow_null = FALSE, msg = msg
     )
 
     # check extension
     if (!is.null(extensions)) {
         .check_chr_within(ext_file(x),
-                          within = extensions,
-                          case_sensitive = FALSE,
-                          msg = "invalid file extension"
+            within = extensions,
+            case_sensitive = FALSE,
+            msg = "invalid file extension"
         )
     }
 
@@ -944,7 +1108,7 @@ NULL
         local_msg = paste(
             "file does not exist:",
             paste0("'", x[!existing_files], "'",
-                   collapse = ", "
+                collapse = ", "
             )
         ),
         msg = msg
@@ -967,6 +1131,14 @@ NULL
 #' @keywords internal
 .check_env_var <- function(x, ...,
                            msg = NULL) {
+
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' environment variable")
+    }
+
     .check_null(x, msg = msg)
 
     .check_chr_type(x, msg = msg)

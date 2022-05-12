@@ -6,24 +6,38 @@
 \usage{
 sits_mlp(
   samples = NULL,
+  samples_validation = NULL,
   layers = c(512, 512, 512),
   dropout_rates = c(0.2, 0.3, 0.4),
-  learning_rate = 0.001,
+  optimizer = torchopt::optim_adamw,
+  opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
   epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
-  verbose = 0
+  patience = 20,
+  min_delta = 0.01,
+  verbose = FALSE
 )
 }
 \arguments{
 \item{samples}{Time series with the training samples.}
+
+\item{samples_validation}{Time series with the validation samples. if the
+\code{samples_validation} parameter is provided,
+the \code{validation_split} parameter is ignored.}
 
 \item{layers}{Vector with number of hidden nodes in each layer.}
 
 \item{dropout_rates}{Vector with the dropout rates (0,1)
 for each layer.}
 
-\item{learning_rate}{Learning rate of the optimizer}
+\item{optimizer}{Optimizer function to be used.}
+
+\item{opt_hparams}{Hyperparameters for optimizer:
+lr : Learning rate of the optimizer
+eps: Term added to the denominator
+     to improve numerical stability..
+weight_decay:       L2 regularization}
 
 \item{epochs}{Number of iterations to train the model.}
 
@@ -35,12 +49,17 @@ The model will set apart this fraction
 and will evaluate the loss and any model metrics
 on this data at the end of each epoch.}
 
-\item{verbose}{Verbosity mode (0 = silent,
-1 = progress bar, 2 = one line per epoch).}
+\item{patience}{Number of epochs without improvements until
+training stops.}
+
+\item{min_delta}{Minimum improvement in loss function
+to reset the patience counter.}
+
+\item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }
 \value{
 Either a model to be passed in sits_predict
-                         or a function prepared to be called further.
+                          or a function prepared to be called further.
 }
 \description{
 Use a multi-layer perceptron algorithm to classify data.
@@ -48,8 +67,10 @@ This function uses the R "torch" and "luz" packages.
 Please refer to the documentation of those package for more details.
 }
 \note{
-The parameters for the MLP have been chosen based on the work by Wang et al. 2017
-that takes multilayer perceptrons as the baseline for time series classifications:
+The parameters for the MLP have been chosen based on the work by
+Wang et al. 2017
+that takes multilayer perceptrons as the baseline for time series
+classifications:
 (a) Three layers with 512 neurons each, specified by the parameter `layers`;
 (b) dropout rates of 10%, 20%, and 30% for the layers;
 (c) the "optimizer_adam" as optimizer (default value);
@@ -66,19 +87,39 @@ Zhiguang Wang, Weizhong Yan, and Tim Oates,
 "Time series classification from scratch with deep neural networks:
  A strong baseline",
  2017 international joint conference on neural networks (IJCNN).
+
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
-\dontrun{
-# Retrieve the set of samples for the Mato Grosso region
-# Build a machine learning model based on deep learning
-dl_model <- sits_train(samples_modis_4bands, sits_mlp())
-# get a point with a 16 year time series
-point_4classes <- sits_select(point_mt_6bands,
-                              bands = c("NDVI", "EVI", "NIR", "MIR"))
-# classify the point
-point_class <- sits_classify(point_4classes, dl_model)
-# plot the classified point
-plot(point_class)
+if (sits_run_examples()) {
+    # select a set of samples
+    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+    # create an MLP model
+    torch_model <- sits_train(samples_ndvi, sits_mlp())
+    # plot the model
+    plot(torch_model)
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+    # classify a data cube
+    probs_cube <- sits_classify(data = cube, ml_model = torch_model)
+    # plot the probability cube
+    plot(probs_cube)
+    # smooth the probability cube using Bayesian statistics
+    bayes_cube <- sits_smooth(probs_cube)
+    # plot the smoothed cube
+    plot(bayes_cube)
+    # label the probability cube
+    label_cube <- sits_label_classification(bayes_cube)
+    # plot the labelled cube
+    plot(label_cube)
 }
 }
 \author{

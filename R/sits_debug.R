@@ -10,7 +10,7 @@
 #' .sits_debug_log: (internal) logs to a CSV file the following values:
 #' \itemize{
 #' \item date_time: event date and time
-#' \item pid: process PID
+#' \item pid: process identifier
 #' \item event: event name
 #' \item elapsed_time: duration (in seconds) from the last log call
 #' \item mem_used: session used memory (in MB)
@@ -90,8 +90,8 @@ NULL
         # columns
         cat(paste0(
             paste("date_time", "pid", "event", "elapsed_time",
-                  "mem_used", "max_mem_used", "key", "value",
-                  sep = ", "
+                "mem_used", "max_mem_used", "key", "value",
+                sep = ", "
             ),
             "\n"
         ), file = log_file, append = TRUE)
@@ -103,8 +103,8 @@ NULL
     # log entry
     cat(paste0(
         paste(esc(time), Sys.getpid(), esc(event[[1]]), elapsed_time,
-              sum(mem[, 2]), sum(mem[, 6]), esc(key[[1]]),  esc(list(value)),
-              sep = ", "
+            sum(mem[, 2]), sum(mem[, 6]), esc(key[[1]]), esc(list(value)),
+            sep = ", "
         ),
         "\n"
     ), file = log_file, append = TRUE)

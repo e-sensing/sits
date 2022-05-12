@@ -23,11 +23,13 @@
 #' using `prior_threshold` for the prior probability
 #' and `posterior_threshold` for the posterior probability.
 #' Each sample receives an evaluation tag, according to the following rule:
-#' (a) If the prior probability is < `prior_threshold`, the sample is tagged as "remove";
-#' (b) If the prior probability is >= `prior_threshold` and the posterior probability
-#' is >=`posterior_threshold`, the sample is tagged as "clean";
+#' (a) If the prior probability is < `prior_threshold`, the sample is tagged
+#' as "remove";
+#' (b) If the prior probability is >= `prior_threshold` and the posterior
+#' probability is >=`posterior_threshold`, the sample is tagged as "clean";
 #' (c) If the prior probability is >= `posterior_threshold` and
-#' the posterior probability is < `posterior_threshold`, the sample is tagged as "analyze" for further inspection.
+#' the posterior probability is < `posterior_threshold`, the sample is tagged as
+#' "analyze" for further inspection.
 #' The user can define which tagged samples will be returned using the "keep"
 #' parameter, with the following options: "clean", "analyze", "remove".
 #'
@@ -55,23 +57,10 @@
 #'                              (influenced by the SOM neighborhood).
 #' @param keep      Which types of evaluation to be maintained in the data.
 #'
-#' @examples
-#' \dontrun{
-#' # Produce a cluster map
-#' som_map <- sits_som_map(samples_modis_4bands)
-#' # plot the som map
-#' plot(som_map)
-#' # calculate the mixture inside clusters
-#' eval <- sits_som_evaluate_cluster(som_map)
-#' # plot the cluster evaluation
-#' plot(eval)
-#' # Clean the samples to get better quality ones
-#' clean_samples <- sits_som_clean_samples(som_map)
-#' }
 #'
 #' @rdname sits_som
 #' @return
-#' \code{sits_som_map()} prodices a list with three members:
+#' \code{sits_som_map()} produces a list with three members:
 #' (1) the samples tibble, with one additional column indicating
 #' to which neuron each sample has been mapped;
 #' (2) the Kohonen map, used for plotting and cluster quality measures;
@@ -81,6 +70,24 @@
 #' based on the frequency of samples of this class allocated to the neuron;
 #' (b) the posterior probability that this class belongs to a cluster,
 #' using data for the neighbours on the SOM map.
+#'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a som map
+#'     som_map <- sits_som_map(samples_modis_4bands)
+#'     # plot the som map
+#'     plot(som_map)
+#'     # evaluate the som map and create clusters
+#'     clusters_som <- sits_som_evaluate_cluster(som_map)
+#'     # plot the cluster evaluation
+#'     plot(clusters_som)
+#'     # clean the samples
+#'     new_samples <- sits_som_clean_samples(som_map)
+#' }
 #'
 #' @export
 sits_som_map <- function(data,
@@ -96,9 +103,8 @@ sits_som_map <- function(data,
     .check_set_caller("sits_som_map")
 
     # verifies if kohonen package is installed
-    if (!requireNamespace("kohonen", quietly = TRUE)) {
-        stop("Please install package kohonen", call. = FALSE)
-    }
+    .check_require_packages("kohonen")
+
     # does the input data exist?
     .sits_tibble_test(data)
     # is are there more neurons than samples?
@@ -117,8 +123,8 @@ sits_som_map <- function(data,
         kohonen::supersom(
             time_series,
             grid = kohonen::somgrid(grid_xdim, grid_ydim,
-                                    "rectangular", "gaussian",
-                                    toroidal = FALSE
+                "rectangular", "gaussian",
+                toroidal = FALSE
             ),
             rlen = rlen,
             alpha = alpha,
@@ -157,11 +163,11 @@ sits_som_map <- function(data,
 
             # How many elements there are with the maximumn value?
             number_of_label_max <- which(labels_neuron$prior_prob == prob_max)
-            label_max_final <- nnet::which.is.max(labels_neuron$prior_prob)
+            label_max_final <- which.max(labels_neuron$prior_prob)
 
 
-            # if more than one sample has been mapped AND their max are the same,
-            # then a posteriori probability is considered
+            # if more than one sample has been mapped AND their max are the
+            # same, then a posteriori probability is considered
             if (length(number_of_label_max) > 1) {
                 # Get the maximum posterior among the tied classes
                 max_post <- max(labels_neuron[number_of_label_max, ]$post_prob)
@@ -169,11 +175,13 @@ sits_som_map <- function(data,
                 # Where are the duplicated values?
                 label_max_post <- which(labels_neuron$post_prob == max_post)
 
-                # Is this value are in the maximum vector of the prior probability?
-                index_prior_max <- which(label_max_post %in% number_of_label_max == TRUE)
+                # Is this value are in the maximum vector of the prior
+                # probability?
+                index_prior_max <-
+                    which(label_max_post %in% number_of_label_max == TRUE)
                 label_max_final <- label_max_post[index_prior_max]
             } else {
-                label_max_final <- nnet::which.is.max(labels_neuron$prior_prob)
+                label_max_final <- which.max(labels_neuron$prior_prob)
             }
 
             return(labels_neuron[label_max_final, ]$label_samples)
@@ -233,25 +241,29 @@ sits_som_clean_samples <- function(som_map,
     }
 
     data <- som_map$data %>%
-        dplyr::select(.data[["longitude"]],
-                      .data[["latitude"]],
-                      .data[["start_date"]],
-                      .data[["end_date"]],
-                      .data[["label"]],
-                      .data[["cube"]],
-                      .data[["time_series"]],
-                      .data[["id_sample"]],
-                      .data[["id_neuron"]]
+        dplyr::select(
+            .data[["longitude"]],
+            .data[["latitude"]],
+            .data[["start_date"]],
+            .data[["end_date"]],
+            .data[["label"]],
+            .data[["cube"]],
+            .data[["time_series"]],
+            .data[["id_sample"]],
+            .data[["id_neuron"]]
         ) %>%
         dplyr::inner_join(som_map$labelled_neurons,
-                          by = c("id_neuron", "label" = "label_samples")
+            by = c("id_neuron", "label" = "label_samples")
         ) %>%
         dplyr::mutate(
-            eval = .detect_class_noise(.data[["prior_prob"]],
-                                       .data[["post_prob"]])
+            eval = .detect_class_noise(
+                .data[["prior_prob"]],
+                .data[["post_prob"]]
+            )
         ) %>%
-        dplyr::select(-.data[["count"]],
-                      -.data[["prior_prob"]]
+        dplyr::select(
+            -.data[["count"]],
+            -.data[["prior_prob"]]
         ) %>%
         dplyr::filter(.data[["eval"]] %in% keep)
 
@@ -283,10 +295,12 @@ sits_som_evaluate_cluster <- function(som_map) {
     data <- som_map$data %>% dplyr::inner_join(id_neuron_label_tb)
 
     # Get only id, label and neuron_label
-    temp_data <- unique(dplyr::select(data,
-                                      .data[["id_sample"]],
-                                      .data[["label"]],
-                                      .data[["neuron_label"]]))
+    temp_data <- unique(dplyr::select(
+        data,
+        .data[["id_sample"]],
+        .data[["label"]],
+        .data[["neuron_label"]]
+    ))
 
     # Get sample labels that was not assigned to a cluster
     no_cluster <- dplyr::setdiff(
@@ -436,7 +450,7 @@ sits_som_evaluate_cluster <- function(som_map) {
                 neigh_label <- dplyr::filter(
                     labelled_neurons,
                     .data[["id_neuron"]] %in% neighbours &
-                    .data[["label_samples"]] == row$label_samples
+                        .data[["label_samples"]] == row$label_samples
                 )
                 # how many neighbours with zero probabilities?
                 n_zeros <- length(neighbours) - nrow(neigh_label)

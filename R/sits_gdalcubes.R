@@ -76,16 +76,16 @@
 
     # pre-conditions
     .check_that(nrow(tile) == 1,
-                msg = "tile must have only one row."
+        msg = "tile must have only one row."
     )
 
     .check_null(period,
-                msg = "the parameter 'period' must be provided."
+        msg = "the parameter 'period' must be provided."
     )
 
     .check_num(res,
-               allow_null = TRUE, len_max = 1,
-               msg = "the parameter 'res' is invalid."
+        allow_null = TRUE, len_max = 1,
+        msg = "the parameter 'res' is invalid."
     )
 
     # get bbox roi
@@ -215,10 +215,10 @@
         )
 
         feat$features[[1]] <- dplyr::mutate(feat$features[[1]],
-                                            xmin = bbox[["xmin"]],
-                                            xmax = bbox[["xmax"]],
-                                            ymin = bbox[["ymin"]],
-                                            ymax = bbox[["ymax"]]
+            xmin = bbox[["xmin"]],
+            xmax = bbox[["xmax"]],
+            ymin = bbox[["ymin"]],
+            ymax = bbox[["ymax"]]
         )
 
         feat
@@ -337,9 +337,9 @@
 
     # pre-condition
     .check_chr(period,
-               allow_empty = FALSE,
-               len_min = 1, len_max = 1,
-               msg = "invalid 'period' parameter"
+        allow_empty = FALSE,
+        len_min = 1, len_max = 1,
+        msg = "invalid 'period' parameter"
     )
 
     # start date - maximum of all minimums
@@ -422,8 +422,8 @@
 
     # convert sits gtiff options to gdalcubes format
     gtiff_options <- strsplit(.config_gtiff_default_options(), split = "=")
-    gdalcubes_co <- lapply(gtiff_options, `[[`, 2)
-    names(gdalcubes_co) <- sapply(gtiff_options, `[[`, 1)
+    gdalcubes_co <- purrr::map(gtiff_options, `[[`, 2)
+    names(gdalcubes_co) <- purrr::map_chr(gtiff_options, `[[`, 1)
 
     # write the aggregated cubes
     img_paths <- gdalcubes::write_tif(
@@ -436,8 +436,8 @@
 
     # post-condition
     .check_length(img_paths,
-                  len_min = 1,
-                  msg = "no image was created"
+        len_min = 1,
+        msg = "no image was created"
     )
 
     return(img_paths)
@@ -450,7 +450,7 @@
 #' @description Creates cubes with regular time intervals
 #'  using the gdalcubes package.
 #'
-#' @references APPEL, Marius; PEBESMA, Edzer. On-demand processing of data cubes
+#' @references Appel, Marius; Pebesma, Edzer. On-demand processing of data cubes
 #'  from satellite image collections with the gdalcubes library. Data, v. 4,
 #'  n. 3, p. 92, 2019. DOI: 10.3390/data4030092.
 #'
@@ -482,9 +482,7 @@
     progress <- .check_documentation(progress)
 
     # require gdalcubes package
-    if (!requireNamespace("gdalcubes", quietly = TRUE)) {
-        stop("Please install package gdalcubes", call. = FALSE)
-    }
+    .check_require_packages("gdalcubes")
 
     # precondition - test if provided object is a raster cube
     .check_that(
@@ -510,17 +508,16 @@
 
     # precondition - is the period valid?
     .check_na(lubridate::duration(period),
-              msg = "invalid period specified"
+        msg = "invalid period specified"
     )
 
     # precondition - is the resolution valid?
     .check_num(
         x = res,
-        allow_zero = FALSE,
-        min = 1,
+        exclusive_min = 0,
         len_min = 1,
         len_max = 1,
-        msg = "a valid resolution needs to be provided"
+        msg = "invalid 'res' parameter"
     )
 
     # pre-condition - cube contains cloud band?
@@ -536,7 +533,8 @@
         min = 1,
         len_min = 1,
         len_max = 1,
-        msg = "invalid 'multicores' parameter."
+        is_integer = TRUE,
+        msg = "invalid 'multicores' parameter"
     )
 
     # timeline of intersection
@@ -548,9 +546,6 @@
         timeline = timeline,
         period = period
     )
-
-    # create an image collection
-    .gc_create_database_stac(cube = cube, path_db = path_db)
 
     # each process will start two threads
     multicores <- max(1, round(multicores / 2))
@@ -588,8 +583,13 @@
 
     while (!finished) {
 
+        # for cubes that have a time limit to expire - mspc cubes only
+        cube <- .cube_token_generator(cube)
+        # create an image collection
+        .gc_create_database_stac(cube = cube, path_db = path_db)
+
         # process bands and tiles in parallel
-        gc_images_lst <- .sits_parallel_map(jobs, function(job) {
+        .sits_parallel_map(jobs, function(job) {
 
             # get parameters from each job
             tile_name <- job[[1]]
@@ -598,6 +598,8 @@
 
             # filter tile
             tile <- dplyr::filter(cube, .data[["tile"]] == !!tile_name)
+            # for cubes that have a time limit to expire - mspc cubes only
+            tile <- .cube_token_generator(tile)
 
             # post-condition
             .check_that(
@@ -632,18 +634,20 @@
             gdalcubes::gdalcubes_options(parallel = 2)
 
             # create of the aggregate cubes
-            gc_images <- .gc_save_raster_cube(
-                raster_cube = raster_cube,
-                pack = .gc_create_pack(cube = tile, band = band),
-                output_dir = output_dir,
-                files_prefix = prefix
+            tryCatch(
+                {
+                    .gc_save_raster_cube(
+                        raster_cube = raster_cube,
+                        pack = .gc_create_pack(cube = tile, band = band),
+                        output_dir = output_dir,
+                        files_prefix = prefix
+                    )
+                },
+                error = function(e) {
+                    return(NULL)
+                }
             )
-
-            return(gc_images)
         }, progress = progress)
-
-        # get a list of produced images paths
-        gc_images <- unlist(gc_images_lst)
 
         # create local cube from files in output directory
         local_cube <- tryCatch(
@@ -727,12 +731,6 @@
 #' @return         Tiles that are missing from the regularized cube.
 #'
 .gc_missing_tiles <- function(cube, local_cube, timeline) {
-
-    # get all tiles from cube
-    tiles <- .cube_tiles(cube)
-
-    # get all bands from cube
-    bands <- .cube_bands(cube, add_cloud = FALSE)
 
     # do a cross product on tiles and bands
     tiles_bands_times <- unlist(slider::slide(cube, function(tile) {

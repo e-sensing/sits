@@ -9,11 +9,13 @@
 #'  \item{sits tibble: }          {see \code{\link{plot.sits}}}
 #'  \item{patterns: }             {see \code{\link{plot.patterns}}}
 #'  \item{SOM map: }              {see \code{\link{plot.som_map}}}
-#'  \item{classified time series: } {see \code{\link{plot.predicted}}}
-#'  \item{raster  cube: }         {see \code{\link{plot.raster_cube}}}
-#'  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
-#'  \item{classified image: }     {see \code{\link{plot.classified_image}}}
 #'  \item{SOM evaluate cluster: } {see \code{\link{plot.som_evaluate_cluster}}}
+#'  \item{classified time series: } {see \code{\link{plot.predicted}}}
+#'  \item{raster cube: }         {see \code{\link{plot.raster_cube}}}
+#'  \item{torch ML model: } {see \code{\link{plot.torch_model}}}
+#'  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
+#'  \item{model uncertainty: } {see \code{\link{plot.uncertainty_cube}}}
+#'  \item{classified image: }     {see \code{\link{plot.classified_image}}}
 #' }
 #'
 #' In the case of time series, the plot function produces different plots
@@ -32,13 +34,13 @@
 #' @param ...           Further specifications for \link{plot}.
 #' @return              The plot itself.
 #'
-#' @examples
-#' \dontrun{
-#' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
-#' # Plot all the samples together
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' if (sits_run_examples()) {
+#' # plot sets of time series
 #' plot(cerrado_2classes)
-#' # Plot the first 20 samples (defaults to "allyears")
-#' plot(cerrado_2classes[1:20, ])
 #' }
 #'
 #' @export
@@ -67,13 +69,14 @@ plot.sits <- function(x, y, ...) {
 #' @param  ...           Further specifications for \link{plot}.
 #' @return               The plot itself.
 #'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' \dontrun{
-#' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
-#' # Plot the patterns
-#' plot(sits_patterns(cerrado_2classes))
+#' if (sits_run_examples()) {
+#'     # plot patterns
+#'     plot(sits_patterns(cerrado_2classes))
 #' }
-#'
 #' @export
 #'
 plot.patterns <- function(x, y, ...) {
@@ -90,23 +93,25 @@ plot.patterns <- function(x, y, ...) {
 #' @param  x             Object of class "predicted".
 #' @param  y             Ignored.
 #' @param  ...           Further specifications for \link{plot}.
-#' @param  bands         Bands for visualisation.
-#' @param  palette       HCL palette used for visualisation
+#' @param  bands         Bands for visualization.
+#' @param  palette       HCL palette used for visualization
 #'                       in case classes are not in the default sits palette.
 #' @return               The plot itself.
 #'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' \dontrun{
-#' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
-#' samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-#' # classify the point
-#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' class_ndvi.tb <- sits_classify(point_ndvi, model_svm)
-#' # plot the classification
-#' plot(class_ndvi.tb)
+#' if (sits_run_examples()) {
+#'     # Retrieve the samples for Mato Grosso
+#'     # train a tempCNN model
+#'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_tempcnn)
+#'     # classify the point
+#'     bands_model <- sits_bands(ml_model)
+#'     point_4bands <- sits_select(point_mt_6bands, bands = bands_model)
+#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     plot(point_class)
 #' }
-#'
 #' @export
 #'
 plot.predicted <- function(x, y, ...,
@@ -120,7 +125,7 @@ plot.predicted <- function(x, y, ...,
 #' @name plot.raster_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Uses mapview to visualize raster cube and classified images
+#' @description Plot RGB raster cube
 #'
 #' @param  x             Object of class "raster_cube".
 #' @param  ...           Further specifications for \link{plot}.
@@ -128,185 +133,117 @@ plot.predicted <- function(x, y, ...,
 #' @param  red           Band for red color.
 #' @param  green         Band for green color.
 #' @param  blue          Band for blue color.
-#' @param  tiles         Tiles to be plotted.
+#' @param  tile          Tile to be plotted.
 #' @param  date          Date to be plotted.
-#' @param  roi           sf object giving a region of interest.
 #'
 #' @return               Plot object.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # plot NDVI band of the second date date of the data cube
+#'     plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
+#' }
 #' @export
 plot.raster_cube <- function(x, ...,
                              band = NULL,
                              red = NULL,
                              green = NULL,
                              blue = NULL,
-                             tiles = NULL,
-                             date = NULL,
-                             roi = NULL) {
-
-    # precondition
-    if (purrr::is_null(tiles)) {
-        tiles <- x$tile[[1]]
-    } else {
-        .check_chr_contains(
-            x = x$tile,
-            contains = tiles,
-            case_sensitive = FALSE,
-            discriminator = "all_of",
-            can_repeat = FALSE,
-            msg = "tiles are not included in the cube"
-        )
-    }
+                             tile = x$tile[[1]],
+                             date = sits_timeline(x)[1]) {
+    .check_chr_contains(
+        x = x$tile,
+        contains = tile,
+        case_sensitive = FALSE,
+        discriminator = "one_of",
+        can_repeat = FALSE,
+        msg = "tile is not included in the cube"
+    )
 
     # pre-condition 2
     .check_that(
         purrr::is_null(band) ||
             (purrr::is_null(red) &&
-                 purrr::is_null(green) &&
-                 purrr::is_null(blue)),
-        local_msg = paste0("either 'band' parameter or 'red', 'green', and",
-                           "'blue' parameters should be informed")
+                purrr::is_null(green) &&
+                purrr::is_null(blue)),
+        local_msg = paste0(
+            "either 'band' parameter or 'red', 'green', and",
+            "'blue' parameters should be informed"
+        )
     )
 
-    # check if rgb bands were informed
-    if (!purrr::is_null(red) ||
-        !purrr::is_null(green) ||
-        !purrr::is_null(blue)) {
-
-        # check if all RGB bands is not null
-        .check_that(
-            !purrr::is_null(red) &&
-                !purrr::is_null(green) &&
-                !purrr::is_null(blue),
-            local_msg = "missing red, green, or blue bands",
-            msg = "invalid RGB bands"
+    # check if bands are valid
+    if (!purrr::is_null(band)) {
+        .check_chr_within(
+            band,
+            within = sits_bands(x),
+            discriminator = "any_of",
+            msg = "invalid band"
         )
-    } else {
-
-        # get default band (try first non-cloud band...)
-        if (purrr::is_null(band)) {
-            band <- .cube_bands(x, add_cloud = FALSE)
-            if (length(band) > 0) {
-                band <- band[[1]]
-            } else {
-                # ...else get cloud band
-                band <- .cube_bands(x)[[1]]
-            }
-        }
-
         # plot as grayscale
         red <- band
         green <- band
         blue <- band
+        r_index <- 1
+        g_index <- 1
+        b_index <- 1
+    } else {
+        .check_chr_within(
+            c(red, green, blue),
+            within = sits_bands(x),
+            discriminator = "all_of",
+            msg = "invalid RGB bands selection"
+        )
+        r_index <- 1
+        g_index <- 2
+        b_index <- 3
     }
-
-    # preconditions
-    .check_that(
-        x = all(c(red, green, blue) %in% sits_bands(x)),
-        msg = "requested RGB bands are not available in data cube"
-    )
 
     # select only one tile
-    x <- dplyr::filter(x, .data[["tile"]] %in% tiles)
-
-    timeline <- sits_timeline(x)
-    if (purrr::is_null(date)) {
-        date <- timeline[[1]]
-    } else {
-        date <- as.Date(date)
-    }
+    row <- dplyr::filter(x, .data[["tile"]] == !!tile)
+    # use only one date
+    date <- as.Date(date)
     .check_that(
         length(date) == 1,
         msg = "plot handles one date at a time"
     )
     .check_that(
-        date %in% timeline,
+        date %in% sits_timeline(row),
         msg = "requested date is not part of the cube"
     )
 
-    # verify sf package if roi is informed
-    if (!purrr::is_null(roi)) {
-        if (!requireNamespace("sf", quietly = TRUE)) {
-            stop("Please install package sf.", call. = FALSE)
-        }
+    # plot the selected tile
+    # select the bands for the timeline
+    bds_date <- dplyr::filter(.file_info(row), .data[["date"]] == !!date)
+    # get RGB files for the requested timeline
+    red_file <- dplyr::filter(bds_date, .data[["band"]] == red)$path
+    green_file <- dplyr::filter(bds_date, .data[["band"]] == green)$path
+    blue_file <- dplyr::filter(bds_date, .data[["band"]] == blue)$path
+    # put the band on a raster/terra stack
+    rgb_stack <- c(red_file, green_file, blue_file)
 
-        # filter only intersecting tiles
-        intersects <- slider::slide(x, function(tile) {
-            .sits_raster_sub_image_intersects(
-                cube = tile,
-                roi = roi
-            )
-        }) %>% unlist()
-
-        # check if intersection is not empty
-        .check_that(
-            x = any(intersects),
-            msg = "informed roi does not intersect cube"
+    # use the raster package to obtain a raster object from a stack
+    r_obj <- .raster_open_stack.terra(rgb_stack)
+    # plor the data using terra
+    suppressWarnings(
+        terra::plotRGB(r_obj,
+            r = r_index,
+            g = g_index,
+            b = b_index,
+            stretch = "hist"
         )
-        # select only those tiles that intersect ROI
-        x <- x[intersects, ]
-    }
+    )
 
-    r_objs <- slider::slide(x, function(row) {
-        # plot only the selected tile
-        # select only the bands for the timeline
-        bands_date <- .file_info(row) %>%
-            dplyr::filter(.data[["date"]] == !!date)
-
-        # Are we plotting a grey image
-        if (!purrr::is_null(band)) {
-            rgb_stack <- dplyr::filter(bands_date, .data[["band"]] == red)$path
-        } else {
-            # get RGB files for the requested timeline
-            red_file <- dplyr::filter(bands_date, .data[["band"]] == red)$path
-            green_file <- dplyr::filter(bands_date, .data[["band"]] == green)$path
-            blue_file <- dplyr::filter(bands_date, .data[["band"]] == blue)$path
-            # put the band on a raster/terra stack
-            rgb_stack <- c(red_file, green_file, blue_file)
-        }
-        # use the raster package to obtain a raster object from a stack
-        r_obj <- .raster_open_stack.terra(rgb_stack)
-
-        # extract region of interest
-        if (!purrr::is_null(roi)) {
-            sub_image <- .sits_raster_sub_image(tile = row, roi = roi)
-            r_obj <- .raster_crop.terra(r_obj = r_obj, block = sub_image)
-        }
-        .check_that(
-            x = .raster_ncols(r_obj) > 0 && .raster_nrows(r_obj) > 0,
-            msg = "unable to retrieve raster data"
-        )
-        return(r_obj)
-    })
-
-    # merge two or more raster objects
-    if (length(r_objs) == 1) {
-        r_merge <- r_objs[[1]]
-    } else {
-        raster_collection <- terra::sprc(r_objs)
-        r_merge <- terra::merge(raster_collection)
-    }
-
-    # view the RGB file
-    if (!purrr::is_null(band)) {
-        suppressWarnings(
-            terra::plotRGB(r_merge,
-                           r = 1,
-                           g = 1,
-                           b = 1,
-                           stretch = "hist"
-            )
-        )
-    } else {
-        suppressWarnings(
-            terra::plotRGB(r_merge,
-                           r = 1,
-                           g = 2,
-                           b = 3,
-                           stretch = "hist"
-            )
-        )
-    }
-    return(invisible(r_merge))
+    return(invisible(r_obj))
 }
 #' @title  Plot probability cubes
 #' @name   plot.probs_cube
@@ -314,13 +251,12 @@ plot.raster_cube <- function(x, ...,
 #' @description plots a probability cube using stars
 #'
 #' @param  x             Object of class "probs_image".
-#' @param  y             ignored
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tiles          Tiles to be plotted.
 #' @param labels         Labels to plot (optional).
 #' @param breaks         Type of class intervals.
 #' @param n_colors       Number of colors to plot.
-#' @param palette        HCL palette used for visualisation.
+#' @param palette        HCL palette used for visualization.
 #'
 #' @note
 #' \itemize{Possible class intervals
@@ -328,13 +264,7 @@ plot.raster_cube <- function(x, ...,
 #'  \item{"equal": } {divides the range of the variable into n parts.}
 #'  \item{"pretty": } {number of breaks likely to be legible.}
 #'  \item{"quantile": } {quantile breaks}
-#'  \item{"kmeans" :} {uses kmeans to generate the breaks.}
-#'  \item{"hclust" :} {breaks defined by hierarchical clustering.}
-#'  \item{"bclust" :} {breaks defined by bagged clustering.}
-#'  \item{"fisher" :} {method proposed by Fischer (1958).}
-#'  \item{"jenks" :} {method proposed by Jenks.}
-#'  \item{"dpih" :} {based on the bin width of a histogram.}
-#'  \item{"headtails" :} {algorithm proposed by Bin Jiang (2013)}
+#'  \item{"log": }{logarithm plot}
 #'  }
 #'
 #' @note
@@ -342,19 +272,38 @@ plot.raster_cube <- function(x, ...,
 #'
 #' @return               The plot itself.
 #'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # plot the resulting probability cube
+#'     plot(probs_cube)
+#' }
+#'
 #' @export
 #'
-plot.probs_cube <- function(x, y, ...,
+plot.probs_cube <- function(x, ...,
                             tiles = NULL,
                             labels = NULL,
                             breaks = "pretty",
                             n_colors = 20,
                             palette = "Terrain") {
-    stopifnot(missing(y))
     # verifies if stars package is installed
-    if (!requireNamespace("stars", quietly = TRUE)) {
-        stop("Please install package stars.", call. = FALSE)
-    }
+    .check_require_packages("stars")
+
     # precondition - check breaks parameter
     .check_chr_within(
         x = breaks,
@@ -402,12 +351,12 @@ plot.probs_cube <- function(x, y, ...,
     if (length(paths) == 1) {
         stars_mosaic <- stars::read_stars(paths[[1]])
     } else {
-        stars.lst <- purrr::map(paths, function(path) {
+        stars_lst <- purrr::map(paths, function(path) {
             stars::read_stars(path)
         })
         stars_mosaic <- stars::st_mosaic(
-            stars.lst[[1]],
-            stars.lst[[2:length(stars.lst)]]
+            stars_lst[[1]],
+            stars_lst[[2:length(stars_lst)]]
         )
     }
     # get the labels
@@ -431,10 +380,10 @@ plot.probs_cube <- function(x, y, ...,
     } else {
         out <- utils::capture.output({
             p <- plot(stars_mosaic,
-                      breaks = breaks,
-                      nbreaks = n_breaks,
-                      col = col,
-                      main = labels_cube
+                breaks = breaks,
+                nbreaks = n_breaks,
+                col = col,
+                main = labels_cube
             )
         })
     }
@@ -449,46 +398,57 @@ plot.probs_cube <- function(x, y, ...,
 #' @description plots a probability cube using stars
 #'
 #' @param  x             Object of class "probs_image".
-#' @param  y             Ignored.
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tiles          Tiles to be plotted.
 #' @param n_colors       Number of colors to plot.
-#' @param breaks         Yype of class intervals.
-#' @param palette        HCL palette used for visualisation.
+#' @param intervals      Type of class intervals.
+#' @param palette        HCL palette used for visualization.
 #'
 #' @return               The plot itself.
 #'
 #' @note
-#'
 #' \itemize{Possible class intervals
 #'  \item{"sd":} {intervals based on the average and standard deviation.}
 #'  \item{"equal": } {divides the range of the variable into n parts.}
-#'  \item{"pretty": } {number of breaks likely to be legible.}
 #'  \item{"quantile": } {quantile breaks}
-#'  \item{"kmeans" :} {uses kmeans to generate the breaks.}
-#'  \item{"hclust" :} {breaks defined by hierarchical clustering.}
-#'  \item{"bclust" :} {breaks defined by bagged clustering.}
-#'  \item{"fisher" :} {method proposed by Fischer (1958).}
-#'  \item{"jenks" :} {method proposed by Jenks.}
-#'  \item{"dpih" :} {based on the bin width of a histogram.}
-#'  \item{"headtails" :} {algorithm proposed by Bin Jiang (2013)}
+#'  \item{"pretty": } {number of breaks likely to be legible.}
+#'  \item{"log" :} {logarithm plot.}
 #'  }
-#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # calculate uncertainty
+#'     uncert_cube <- sits_uncertainty(probs_cube)
+#'     # plot the resulting uncertainty cube
+#'     plot(uncert_cube)
+#' }
 #' @export
 #'
-plot.uncertainty_cube <- function(x, y, ...,
+plot.uncertainty_cube <- function(x, ...,
                                   tiles = NULL,
-                                  n_colors = 10,
-                                  breaks = "pretty",
-                                  palette = "Blues") {
-    stopifnot(missing(y))
+                                  n_colors = 14,
+                                  intervals = "log",
+                                  palette = "YlOrRd") {
+
     # verifies if stars package is installed
-    if (!requireNamespace("stars", quietly = TRUE)) {
-        stop("Please install package stars.", call. = FALSE)
-    }
+    .check_require_packages("stars")
     # precondition - check breaks parameter
     .check_chr_within(
-        x = breaks,
+        x = intervals,
         within = .config_get("class_intervals"),
         discriminator = "any_of",
         msg = "invalid class interval"
@@ -524,7 +484,13 @@ plot.uncertainty_cube <- function(x, y, ...,
         alpha = 1,
         rev = TRUE
     )
-
+    if (intervals == "log") {
+        breaks <- as.integer(
+            1e+04 * (log(c(1:n_breaks))^1.6) / (log(n_breaks)^1.6)
+        )
+    } else {
+        breaks <- intervals
+    }
 
     # read the paths to plot
     paths <- slider::slide_chr(x, function(row) {
@@ -533,19 +499,20 @@ plot.uncertainty_cube <- function(x, y, ...,
     if (length(paths) == 1) {
         stars_mosaic <- stars::read_stars(paths[[1]])
     } else {
-        stars.lst <- purrr::map(paths, function(path) {
+        stars_lst <- purrr::map(paths, function(path) {
             stars::read_stars(path)
         })
         stars_mosaic <- stars::st_mosaic(
-            stars.lst[[1]],
-            stars.lst[[2:length(stars.lst)]])
+            stars_lst[[1]],
+            stars_lst[[2:length(stars_lst)]]
+        )
     }
 
     p <- suppressMessages(plot(stars_mosaic,
-                               breaks = breaks,
-                               nbreaks = n_breaks,
-                               col = col,
-                               main = "Uncertainty"
+        breaks = breaks,
+        nbreaks = n_breaks,
+        col = col,
+        main = "Uncertainty"
     ))
     return(invisible(p))
 }
@@ -564,6 +531,28 @@ plot.uncertainty_cube <- function(x, y, ...,
 #' @param  palette         Alternative palette that uses grDevices::hcl.pals().
 #' @param  rev             Invert the order of hcl palette?
 #'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # label cube with the most likely class
+#'     label_cube <- sits_label_classification(probs_cube)
+#'     # plot the resulting classified image
+#'     plot(label_cube)
+#' }
 #' @export
 #'
 plot.classified_image <- function(x, y, ...,
@@ -597,25 +586,25 @@ plot.classified_image <- function(x, y, ...,
 #' @param  name_cluster Choose the cluster to plot.
 #' @param  title        Title of plot.
 #' @return              The plot itself.
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' \dontrun{
-#' # Produce a cluster map
-#'
-#' samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
-#' som_map <- sits_som_map(samples_mt_2bands)
-#' # Evaluate the clusters
-#' cluster_overall <- sits_som_evaluate_cluster(som_map)
-#' # Plot confusion between the clusters
-#' plot(cluster_overall)
+#' if (sits_run_examples()) {
+#'     # create a SOM map
+#'     som_map <- sits_som_map(samples_modis_4bands)
+#'     # evaluate the SOM cluster
+#'     som_clusters <- sits_som_evaluate_cluster(som_map)
+#'     # plot the SOM cluster evaluation
+#'     plot(som_clusters)
 #' }
-#'
 #' @export
 #'
 plot.som_evaluate_cluster <- function(x, y, ...,
                                       name_cluster = NULL,
                                       title = "Confusion by cluster") {
     stopifnot(missing(y))
-    p <- .sits_plot_som_evaluate_cluster(x, name_cluster, title)
+    p <- .sits_plot_som_eval_cluster(x, name_cluster, title)
     return(invisible(p))
 }
 #' @title  Plot a SOM map
@@ -637,17 +626,16 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #'
 #' @return            The plot itself.
 #'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' \dontrun{
-#' # Produce a cluster map
-#' samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
-#' som_map <- sits_som_map(samples_mt_2bands)
-#' # Plot the clusters
-#' plot(som_map, type = "codes")
-#' # Plot kohonen map showing where the samples were allocated
-#' plot(som_map, type = "mapping")
+#' if (sits_run_examples()) {
+#'     # create a SOM map
+#'     som_map <- sits_som_map(samples_modis_4bands)
+#'     # plot the SOM map
+#'     plot(som_map)
 #' }
-#'
 #' @export
 #'
 plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
@@ -670,18 +658,17 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #' @param  ...           Further specifications for \link{plot}.
 #' @return               The plot itself.
 #'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' \dontrun{
-#' # Get a set of samples
-#' samples_ndvi_evi <- sits_select(samples_modis_4bands,
-#'   bands = c("NDVI", "EVI")
-#' )
-#'
-#' # train a deep learning model
-#' dl_model <- sits_train(samples_ndvi_evi, ml_method = sits_mlp())
-#' plot(dl_model)
+#' if (sits_run_examples()) {
+#'     # Retrieve the samples for Mato Grosso
+#'     # train a tempCNN model
+#'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_tempcnn)
+#'     # plot the model
+#'     plot(ml_model)
 #' }
-#'
 #' @export
 #'
 plot.torch_model <- function(x, y, ...) {
@@ -702,9 +689,11 @@ plot.torch_model <- function(x, y, ...) {
     plots <- purrr::pmap(
         list(locs$longitude, locs$latitude),
         function(long, lat) {
-            dplyr::filter(data,
-                          .data[["longitude"]] == long,
-                          .data[["latitude"]] == lat) %>%
+            dplyr::filter(
+                data,
+                .data[["longitude"]] == long,
+                .data[["latitude"]] == lat
+            ) %>%
                 .sits_plot_ggplot_series() %>%
                 graphics::plot()
         }
@@ -725,9 +714,7 @@ plot.torch_model <- function(x, y, ...) {
 #'
 .sits_plot_patterns <- function(data) {
     # verifies if scales package is installed
-    if (!requireNamespace("scales", quietly = TRUE)) {
-        stop("Please install package scales.", call. = FALSE)
-    }
+    .check_require_packages("scales")
 
     # put the time series in the data frame
     plot.df <- purrr::pmap_dfr(
@@ -736,6 +723,7 @@ plot.torch_model <- function(x, y, ...) {
             lb <- as.character(label)
             # extract the time series and convert
             df <- data.frame(Time = ts$Index, ts[-1], Pattern = lb)
+            return(df)
         }
     )
 
@@ -759,7 +747,7 @@ plot.torch_model <- function(x, y, ...) {
     return(invisible(p))
 }
 
-#' @title Plot a set of time series for the same spatio-temporal reference
+#' @title Plot a set of time series for the same spatiotemporal reference
 #'
 #' @name .sits_plot_together
 #' @keywords internal
@@ -794,8 +782,8 @@ plot.torch_model <- function(x, y, ...) {
         dt_melted <- data.table::melt(dt, id.vars = "Index")
         # make the plot title
         title <- paste("Samples (", number, ") for class ",
-                       label, " in band = ", band,
-                       sep = ""
+            label, " in band = ", band,
+            sep = ""
         )
         # plot all data together
         g <- .sits_plot_ggplot_together(dt_melted, dt_qts, title)
@@ -850,7 +838,7 @@ plot.torch_model <- function(x, y, ...) {
                         }
                     )
                     # merge the list of data.tables into a single table
-                    dt <- Reduce(function(...) merge(..., all = T), dt_lst)
+                    dt <- Reduce(function(...) merge(..., all = TRUE), dt_lst)
 
                     # create another data.table with all the rows together
                     # (required to compute the median and quartile values)
@@ -868,7 +856,7 @@ plot.torch_model <- function(x, y, ...) {
     return(invisible(label_plots[[1]][[1]]))
 }
 
-#' @title Plot one timeSeries using ggplot
+#' @title Plot one time series using ggplot
 #'
 #' @name .sits_plot_ggplot_series
 #' @keywords internal
@@ -887,7 +875,7 @@ plot.torch_model <- function(x, y, ...) {
     }
     return(g)
 }
-#' @title Plot one timeSeries using ggplot (no NAs present)
+#' @title Plot one time series using ggplot (no NAs present)
 #'
 #' @name .sits_plot_ggplot_series_no_na
 #' @keywords internal
@@ -901,7 +889,12 @@ plot.torch_model <- function(x, y, ...) {
     # create the plot title
     plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
     #
-    colors <- grDevices::hcl.colors(n = 20, palette = "Harmonic", alpha = 1, rev = TRUE)
+    colors <- grDevices::hcl.colors(
+        n = 20,
+        palette = "Harmonic",
+        alpha = 1,
+        rev = TRUE
+    )
     # extract the time series
     data_ts <- dplyr::bind_rows(row$time_series)
     # melt the data into long format
@@ -919,7 +912,7 @@ plot.torch_model <- function(x, y, ...) {
         ggplot2::scale_fill_manual(palette = colors)
     return(g)
 }
-#' @title Plot one timeSeries wih NAs using ggplot
+#' @title Plot one time series with NAs using ggplot
 #'
 #' @name .sits_plot_ggplot_series_na
 #' @keywords internal
@@ -931,9 +924,7 @@ plot.torch_model <- function(x, y, ...) {
 .sits_plot_ggplot_series_na <- function(row) {
 
     # verifies if tidyr package is installed
-    if (!requireNamespace("tidyr", quietly = TRUE)) {
-        stop("Please install package tidyr", call. = FALSE)
-    }
+    .check_require_packages("tidyr")
 
     # define a function to replace the NAs for unique values
     replace_na <- function(x) {
@@ -957,27 +948,35 @@ plot.torch_model <- function(x, y, ...) {
     # prepare tibble to ggplot (fortify)
     ts1 <- tidyr::pivot_longer(data, -.data[["Index"]])
     g <- ggplot2::ggplot(data = ts1 %>%
-                             dplyr::filter(.data[["name"]] != "cld")) +
-        ggplot2::geom_col(ggplot2::aes(x = .data[["Index"]],
-                                       y = .data[["value"]]),
-                          fill = "sienna",
-                          alpha = 0.3,
-                          data = ts1 %>%
-                              dplyr::filter(.data[["name"]] == "cld",
-                                            !is.na(.data[["value"]]))
+        dplyr::filter(.data[["name"]] != "cld")) +
+        ggplot2::geom_col(ggplot2::aes(
+            x = .data[["Index"]],
+            y = .data[["value"]]
+        ),
+        fill = "sienna",
+        alpha = 0.3,
+        data = ts1 %>%
+            dplyr::filter(
+                .data[["name"]] == "cld",
+                !is.na(.data[["value"]])
+            )
         ) +
-        ggplot2::geom_line(ggplot2::aes(x = .data[["Index"]],
-                                        y = .data[["value"]],
-                                        color = .data[["name"]])) +
-        ggplot2::geom_point(ggplot2::aes(x = .data[["Index"]],
-                                         y = .data[["value"]],
-                                         color = .data[["name"]])) +
+        ggplot2::geom_line(ggplot2::aes(
+            x = .data[["Index"]],
+            y = .data[["value"]],
+            color = .data[["name"]]
+        )) +
+        ggplot2::geom_point(ggplot2::aes(
+            x = .data[["Index"]],
+            y = .data[["value"]],
+            color = .data[["name"]]
+        )) +
         ggplot2::labs(title = plot_title)
 
     return(g)
 }
 
-#' @title Plot many timeSeries together using ggplot
+#' @title Plot many time series together using ggplot
 #'
 #' @name .sits_plot_ggplot_together
 #' @keywords internal
@@ -1026,10 +1025,10 @@ plot.torch_model <- function(x, y, ...) {
 #' @return           title to be used in the plot.
 .sits_plot_title <- function(latitude, longitude, label) {
     title <- paste("location (",
-                   signif(latitude, digits = 4), ", ",
-                   signif(longitude, digits = 4), ") - ",
-                   label,
-                   sep = ""
+        signif(latitude, digits = 4), ", ",
+        signif(longitude, digits = 4), ") - ",
+        label,
+        sep = ""
     )
     return(title)
 }
@@ -1042,15 +1041,14 @@ plot.torch_model <- function(x, y, ...) {
 #'                     (code reused from the dtwSat package by Victor Maus).
 #' @param data         sits tibble with classified time series.
 #' @param bands        band for plotting the classification.
-#' @param palette      hcl palette used for visualisation
+#' @param palette      hcl palette used for visualization
 #'
 #' @return             The plot itself.
 .sits_plot_predicted_ts <- function(data, bands, palette) {
 
     # verifies if scales package is installed
-    if (!requireNamespace("scales", quietly = TRUE)) {
-        stop("Please install package scales.", call. = FALSE)
-    }
+    .check_require_packages("scales")
+
     if (purrr::is_null(bands)) {
         bands <- sits_bands(data)
     }
@@ -1084,12 +1082,12 @@ plot.torch_model <- function(x, y, ...) {
             )
             # melt the time series data for plotting
             df_x <- tidyr::pivot_longer(df_x,
-                                        cols = -c("Time", "Series"),
-                                        names_to = "variable"
+                cols = -c("Time", "Series"),
+                names_to = "variable"
             )
             # define a nice set of breaks for value plotting
             y_labels <- scales::pretty_breaks()(range(df_x$value,
-                                                      na.rm = TRUE
+                na.rm = TRUE
             ))
             y_breaks <- y_labels
 
@@ -1113,7 +1111,7 @@ plot.torch_model <- function(x, y, ...) {
                         Group = rep(i, 4),
                         Class = rep(best_class, 4),
                         value = rep(range(y_breaks,
-                                          na.rm = TRUE
+                            na.rm = TRUE
                         ), each = 2)
                     )
                 }
@@ -1130,7 +1128,7 @@ plot.torch_model <- function(x, y, ...) {
 
             gp <- ggplot2::ggplot() +
                 ggplot2::facet_wrap(~Series,
-                                    scales = "free_x", ncol = 1
+                    scales = "free_x", ncol = 1
                 ) +
                 ggplot2::geom_polygon(
                     data = df_pol,
@@ -1198,14 +1196,12 @@ plot.torch_model <- function(x, y, ...) {
     # set caller to show in errors
     .check_set_caller(".sits_plot_dendrogram")
 
-    # verifies if dendextend package is installed
-    if (!requireNamespace("dendextend", quietly = TRUE)) {
-        stop("Please install package dendextend.", call. = FALSE)
-    }
-    # verifies if methods package is installed
-    if (!requireNamespace("methods", quietly = TRUE)) {
-        stop("Please install package methods.", call. = FALSE)
-    }
+    # verifies if dendextend and methods packages is installed
+    .check_require_packages(
+        c("dendextend", "methods"),
+        msg = "please install package(s)"
+    )
+
     # ensures that a cluster object  exists
     .check_null(
         x = cluster,
@@ -1226,7 +1222,7 @@ plot.torch_model <- function(x, y, ...) {
     )
     colors_clust <- colors[data_labels]
 
-    # set the visualisation params for dendrogram
+    # set the visualization params for dendrogram
     dend <- dend %>%
         dendextend::set(
             what = "labels",
@@ -1239,10 +1235,10 @@ plot.torch_model <- function(x, y, ...) {
         )
 
     p <- graphics::plot(dend,
-                        ylab = paste(
-                            tools::file_path_sans_ext(cluster@method),
-                            "linkage distance"
-                        )
+        ylab = paste(
+            tools::file_path_sans_ext(cluster@method),
+            "linkage distance"
+        )
     )
     # plot cutree line
     if (!purrr::is_null(cutree_height)) {
@@ -1251,8 +1247,8 @@ plot.torch_model <- function(x, y, ...) {
 
     # plot legend
     graphics::legend("topright",
-                     fill = colors,
-                     legend = sits_labels(data)
+        fill = colors,
+        legend = sits_labels(data)
     )
     return(invisible(dend))
 }
@@ -1282,15 +1278,15 @@ plot.torch_model <- function(x, y, ...) {
     }
     if (type == "mapping") {
         graphics::plot(koh$som_properties,
-                       bgcol = koh$som_properties$paint_map,
-                       "mapping", whatmap = band,
-                       codeRendering = "lines"
+            bgcol = koh$som_properties$paint_map,
+            "mapping", whatmap = band,
+            codeRendering = "lines"
         )
     } else if (type == "codes") {
         graphics::plot(koh$som_properties,
-                       bgcol = koh$som_properties$paint_map,
-                       "codes", whatmap = band,
-                       codeRendering = "lines"
+            bgcol = koh$som_properties$paint_map,
+            "codes", whatmap = band,
+            codeRendering = "lines"
         )
     }
 
@@ -1325,9 +1321,9 @@ plot.torch_model <- function(x, y, ...) {
 #' @param title         Title of plot.
 #'
 #' @return              ggplot2 object
-.sits_plot_som_evaluate_cluster <- function(data,
-                                            cluster_name = NULL,
-                                            title = "Confusion by cluster") {
+.sits_plot_som_eval_cluster <- function(data,
+                                        cluster_name = NULL,
+                                        title = "Confusion by cluster") {
     if (!inherits(data, "som_evaluate_cluster")) {
         message("unable to plot - please run sits_som_evaluate_cluster")
         return(invisible(NULL))
@@ -1429,6 +1425,7 @@ plot.torch_model <- function(x, y, ...) {
     r_objs <- slider::slide(cube, function(row) {
         # get the raster object
         r <- suppressWarnings(terra::rast(.file_info_path(row)))
+        return(r)
     })
 
     # merge two or more raster objects
@@ -1451,7 +1448,14 @@ plot.torch_model <- function(x, y, ...) {
     if (as.numeric(size[["ratio"]] > 1)) {
         new_nrows <- as.integer(size[["nrows"]])
         new_ncols <- as.integer(size[["ncols"]])
-        new_rast <- terra::rast(nrows = new_nrows, ncols = new_ncols)
+        new_rast <- terra::rast(nrows = new_nrows,
+                                ncols = new_ncols,
+                                xmin = terra::xmin(r_merge),
+                                xmax = terra::xmax(r_merge),
+                                ymin = terra::ymin(r_merge),
+                                ymax = terra::ymax(r_merge),
+                                crs  = terra::crs(r_merge)
+        )
         r_merge <- terra::resample(r_merge, new_rast, method = "near")
     }
     # convert from raster to points
@@ -1522,7 +1526,7 @@ plot.torch_model <- function(x, y, ...) {
         new_nrows <- nrows
         new_ncols <- ncols
     }
-    return(c("ratio" = ratio, "nrows" = nrows, "ncols" = ncols))
+    return(c("ratio" = ratio, "nrows" = new_nrows, "ncols" = new_ncols))
 }
 
 #' @title Plot classification alignments using the dtwSat package
@@ -1556,7 +1560,7 @@ plot.torch_model <- function(x, y, ...) {
 #'
 #' @description         Plots the results of TWDTW classification (uses dtwSat).
 #'
-#' @param  matches      dtwSatS4 matches objects produced by sits_TWDTW_matches.
+#' @param  matches      dtwSat S4 objects produced by sits_TWDTW_matches.
 #' @param  start_date   Start date of the plot (used for classifications).
 #' @param  end_date     End date of the plot (used for classifications).
 #' @param  interval     Interval between classifications.
@@ -1569,24 +1573,22 @@ plot.torch_model <- function(x, y, ...) {
                                    interval = "12 month",
                                    overlap = 0.5) {
     # verifies if dtwSat package is installed
-    if (!requireNamespace("dtwSat", quietly = TRUE)) {
-        stop("Please install package dtwSat", call. = FALSE)
-    }
+    .check_require_packages("dtwSat")
 
     matches %>%
         purrr::map(function(m) {
             if (purrr::is_null(start_date) | purrr::is_null(end_date)) {
                 dplot <- dtwSat::plot(m,
-                                      type = "classification",
-                                      overlap = 0.5
+                    type = "classification",
+                    overlap = 0.5
                 )
             } else {
                 dplot <- dtwSat::plot(m,
-                                      type = "classification",
-                                      from = start_date,
-                                      to = end_date,
-                                      by = interval,
-                                      overlap = overlap
+                    type = "classification",
+                    from = start_date,
+                    to = end_date,
+                    by = interval,
+                    overlap = overlap
                 )
             }
             graphics::plot(dplot)
@@ -1596,7 +1598,8 @@ plot.torch_model <- function(x, y, ...) {
 
 
 .sits_plot_torch_model <- function(model) {
-    metrics_lst <- environment(model)[["torch_model"]][[c("records", "metrics")]]
+    model_vars <- c("records", "metrics")
+    metrics_lst <- environment(model)[["torch_model"]][[model_vars]]
 
     metrics_dfr <- purrr::map_dfr(names(metrics_lst), function(name) {
         x <- metrics_lst[[name]]
@@ -1605,7 +1608,6 @@ plot.torch_model <- function(x, y, ...) {
             dplyr::mutate(epoch = seq_len(dplyr::n()), data = name) %>%
             tidyr::pivot_longer(cols = 1:2, names_to = "metric")
     })
-
 
     p <- ggplot2::ggplot(metrics_dfr, ggplot2::aes(
         x = .data[["epoch"]],
@@ -1617,9 +1619,9 @@ plot.torch_model <- function(x, y, ...) {
     p <- p + ggplot2::geom_point(shape = 21, col = 1, na.rm = TRUE, size = 2) +
         ggplot2::geom_smooth(
             formula = y ~ x,
-            se = FALSE,
-            method = "loess",
-            na.rm = TRUE
+            se      = FALSE,
+            method  = "loess",
+            na.rm   = TRUE
         )
 
     p <- p + ggplot2::facet_grid(metric ~ ., switch = "y", scales = "free_y") +
@@ -1628,10 +1630,10 @@ plot.torch_model <- function(x, y, ...) {
             strip.placement = "outside",
             strip.text = ggplot2::element_text(
                 colour = "black",
-                size = 11
+                size   = 11
             ),
             strip.background = ggplot2::element_rect(
-                fill = NA,
+                fill  = NA,
                 color = NA
             )
         )
@@ -1639,4 +1641,58 @@ plot.torch_model <- function(x, y, ...) {
     p <- p + ggplot2::labs()
 
     return(p)
+}
+
+
+#' @title Make a kernel density plot of samples distances.
+#'
+#' @name   plot.geo_distances
+#' @author Felipe Souza, \email{lipecaso@@gmail.com}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description Make a kernel density plot of samples distances.
+#'
+#' @param  x             Object of class "geo_distances".
+#' @param  y             Ignored.
+#' @param  ...           Further specifications for \link{plot}.
+#' @return               The plot itself.
+#'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' @references Hanna Meyer and Edzer Pebesma,
+#' "Machine learning-based global maps of ecological variables and the
+#' challenge of assessing them" Nature Communications, 13,2022.
+#' DOI: 10.1038/s41467-022-29838-9.
+#'
+#' @export
+#'
+plot.geo_distances <- function(x, y, ...) {
+    .sits_plot_distances(x)
+}
+
+.sits_plot_distances <- function(distances) {
+    .check_that(
+        inherits(distances, "geo_distances"),
+        "Invalid distances object. Use sits_geo_dist to create it."
+    )
+
+    density_plot <-
+        distances %>%
+        dplyr::mutate(distance = .data[["distance"]] / 1000) %>%
+        ggplot2::ggplot(ggplot2::aes(x = .data[["distance"]])) +
+        ggplot2::geom_density(ggplot2::aes(
+            color = .data[["type"]],
+            fill = .data[["type"]]
+        ),
+        lwd = 1, alpha = 0.25
+        ) +
+        ggplot2::scale_x_log10(labels = scales::label_number()) +
+        ggplot2::xlab("Distance (km)") +
+        ggplot2::ylab("") +
+        ggplot2::theme(legend.title = ggplot2::element_blank()) +
+        ggplot2::ggtitle("Distribution of Nearest Neighbor Distances")
+    return(density_plot)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{.sits_plot_ggplot_series_na}
 \alias{.sits_plot_ggplot_series_na}
-\title{Plot one timeSeries wih NAs using ggplot}
+\title{Plot one time series with NAs using ggplot}
 \usage{
 .sits_plot_ggplot_series_na(row)
 }

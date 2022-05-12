@@ -85,7 +85,7 @@ collections.
 is from a source.
 
 \code{.source_collection_metadata_search()} retrieves the
-metadadata search strategy for a given source and collection.
+metadata search strategy for a given source and collection.
 
 \code{.source_collection_name()} returns the name of a
 collection in its original source.

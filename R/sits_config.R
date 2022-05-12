@@ -24,19 +24,20 @@
 #' in each cloud service supported by sits. Users can select to get information
 #' only for a single service by using the \code{source} parameter.
 #'
-#' @param processing_bloat        Estimated growth size of R memory relative
-#'                                to block size.
-#' @param rstac_pagination_limit  Limit of number of items returned by STAC.
-#' @param raster_api_package      Supported raster handling package.
-#' @param gdal_creation_options   GDAL creation options for GeoTiff.
-#' @param gdalcubes_chunk_size    Chunk size to be used by gdalcubes
-#' @param leaflet_max_Mbytes      Maximage size of an image for leaflet (in MB)
-#' @param leaflet_comp_factor     Compression factor for leaflet RGB display.
-#' @param reset                   Should current configuration options be cleaned
-#'                                before loading config files? Default \code{FALSE}.
-#' @param source                  Data source to be shown in detail.
-#' @param collection              Collection key entry to be shown in detail.
-#' @param colors                  Show colors?
+#' @param processing_bloat       Estimated growth size of R memory relative
+#'                               to block size.
+#' @param rstac_pagination_limit Limit of number of items returned by STAC.
+#' @param raster_api_package     Supported raster handling package.
+#' @param gdal_creation_options  GDAL creation options for GeoTiff.
+#' @param gdalcubes_chunk_size   Chunk size to be used by gdalcubes
+#' @param leaflet_max_megabytes  Max image size of an image for leaflet (in MB)
+#' @param leaflet_comp_factor    Compression factor for leaflet RGB display.
+#' @param reset                  Should current configuration options be cleaned
+#'                               before loading config files? Default is
+#'                               \code{FALSE}.
+#' @param source                 Data source to be shown in detail.
+#' @param collection             Collection key entry to be shown in detail.
+#' @param colors                 Show colors?
 #'
 #' @details
 #' Users can provide additional configuration files, by specifying the
@@ -59,7 +60,7 @@ sits_config <- function(processing_bloat = NULL,
                         raster_api_package = NULL,
                         gdal_creation_options = NULL,
                         gdalcubes_chunk_size = NULL,
-                        leaflet_max_Mbytes = NULL,
+                        leaflet_max_megabytes = NULL,
                         leaflet_comp_factor = NULL,
                         reset = FALSE) {
 
@@ -112,8 +113,8 @@ sits_config <- function(processing_bloat = NULL,
             merge.precedence = "override"
         )
         config <- utils::modifyList(sits_env[["config"]],
-                                    config,
-                                    keep.null = FALSE
+            config,
+            keep.null = FALSE
         )
 
         # set options defined by user (via YAML file)
@@ -124,7 +125,7 @@ sits_config <- function(processing_bloat = NULL,
             raster_api_package = config[["raster_api_package"]],
             gdal_creation_options = config[["gdal_creation_options"]],
             gdalcubes_chunk_size = config[["gdalcubes_chunk_size"]],
-            leaflet_max_Mbytes = config[["leaflet_max_Mbytes"]],
+            leaflet_max_megabytes = config[["leaflet_max_megabytes"]],
             leaflet_comp_factor = config[["leaflet_comp_factor"]],
             sources = config[["sources"]],
             colors = config[["colors"]]
@@ -145,7 +146,7 @@ sits_config <- function(processing_bloat = NULL,
         raster_api_package = raster_api_package,
         gdal_creation_options = gdal_creation_options,
         gdalcubes_chunk_size = gdalcubes_chunk_size,
-        leaflet_max_Mbytes = leaflet_max_Mbytes,
+        leaflet_max_megabytes = leaflet_max_megabytes,
         leaflet_comp_factor = leaflet_comp_factor
     )
 
@@ -168,28 +169,28 @@ sits_config_show <- function(source = NULL,
 
     if (!is.null(source)) {
         .check_chr(source,
-                   allow_empty = FALSE,
-                   len_min = 1,
-                   len_max = 1
+            allow_empty = FALSE,
+            len_min = 1,
+            len_max = 1
         )
 
         .check_chr_within(source,
-                          within = .sources(),
-                          discriminator = "one_of"
+            within = .sources(),
+            discriminator = "one_of"
         )
 
         config <- config[[c("sources", source)]]
 
         if (!is.null(collection)) {
             .check_chr(collection,
-                       allow_empty = FALSE,
-                       len_min = 1,
-                       len_max = 1
+                allow_empty = FALSE,
+                len_min = 1,
+                len_max = 1
             )
 
             .check_chr_within(collection,
-                              within = .source_collections(source = source),
-                              discriminator = "one_of"
+                within = .source_collections(source = source),
+                discriminator = "one_of"
             )
 
             config <- config[[c("collections", collection)]]
@@ -213,24 +214,24 @@ sits_config_show <- function(source = NULL,
     }
 
     config_txt <- yaml::as.yaml(config,
-                                indent = 4,
-                                handlers = list(
-                                    character = function(x) {
-                                        res <- paste0(x, collapse = ", ")
-                                        class(res) <- "verbatim"
-                                        res
-                                    },
-                                    integer = function(x) {
-                                        res <- paste0(x, collapse = ", ")
-                                        class(res) <- "verbatim"
-                                        res
-                                    },
-                                    numeric = function(x) {
-                                        res <- paste0(x, collapse = ", ")
-                                        class(res) <- "verbatim"
-                                        res
-                                    }
-                                )
+        indent = 4,
+        handlers = list(
+            character = function(x) {
+                res <- paste0(x, collapse = ", ")
+                class(res) <- "verbatim"
+                res
+            },
+            integer = function(x) {
+                res <- paste0(x, collapse = ", ")
+                class(res) <- "verbatim"
+                res
+            },
+            numeric = function(x) {
+                res <- paste0(x, collapse = ", ")
+                class(res) <- "verbatim"
+                res
+            }
+        )
     )
     cat(config_txt, sep = "\n")
     return(invisible(config))
@@ -295,7 +296,7 @@ sits_list_collections <- function(source = NULL) {
                                 raster_api_package = NULL,
                                 gdal_creation_options = NULL,
                                 gdalcubes_chunk_size = NULL,
-                                leaflet_max_Mbytes = NULL,
+                                leaflet_max_megabytes = NULL,
                                 leaflet_comp_factor = NULL,
                                 sources = NULL,
                                 colors = NULL, ...) {
@@ -310,8 +311,8 @@ sits_list_collections <- function(source = NULL) {
     # process processing_bloat
     if (!is.null(processing_bloat)) {
         .check_num(processing_bloat,
-                   min = 1, len_min = 1, len_max = 1,
-                   msg = "invalid 'processing_bloat' parameter"
+            min = 1, len_min = 1, len_max = 1,
+            msg = "invalid 'processing_bloat' parameter"
         )
         sits_env$config[["processing_bloat"]] <- processing_bloat
     }
@@ -319,8 +320,8 @@ sits_list_collections <- function(source = NULL) {
     # process rstac_pagination_limit
     if (!is.null(rstac_pagination_limit)) {
         .check_num(rstac_pagination_limit,
-                   min = 1, len_min = 1, len_max = 1,
-                   msg = "invalid 'rstac_pagination_limit' parameter"
+            min = 1, len_min = 1, len_max = 1,
+            msg = "invalid 'rstac_pagination_limit' parameter"
         )
         sits_env$config[["rstac_pagination_limit"]] <- rstac_pagination_limit
     }
@@ -328,13 +329,13 @@ sits_list_collections <- function(source = NULL) {
     # process raster_api_package
     if (!is.null(raster_api_package)) {
         .check_chr(raster_api_package,
-                   len_min = 1, len_max = 1,
-                   msg = "invalid 'raster_api_package' parameter"
+            len_min = 1, len_max = 1,
+            msg = "invalid 'raster_api_package' parameter"
         )
         .check_chr_within(raster_api_package,
-                          within = .raster_supported_packages(),
-                          discriminator = "one_of",
-                          msg = "invalid 'raster_api_package' parameter"
+            within = .raster_supported_packages(),
+            discriminator = "one_of",
+            msg = "invalid 'raster_api_package' parameter"
         )
         sits_env$config[["raster_api_package"]] <- raster_api_package
     }
@@ -342,37 +343,37 @@ sits_list_collections <- function(source = NULL) {
     # process gdal_creation_options
     if (!is.null(gdal_creation_options)) {
         .check_chr(gdal_creation_options,
-                   allow_empty = FALSE,
-                   regex = "^.+=.+$",
-                   msg = "invalid 'gdal_creation_options' parameter"
+            allow_empty = FALSE,
+            regex = "^.+=.+$",
+            msg = "invalid 'gdal_creation_options' parameter"
         )
         sits_env$config[["gdal_creation_options"]] <- gdal_creation_options
     }
     # process gdalcubes_chunk_size
     if (!is.null(gdalcubes_chunk_size)) {
         .check_num(gdalcubes_chunk_size,
-                   min_len = 3,
-                   max_len = 3,
-                   is_named = FALSE,
-                   msg = "invalid gdalcubes chunk size"
+            min_len = 3,
+            max_len = 3,
+            is_named = FALSE,
+            msg = "invalid gdalcubes chunk size"
         )
         sits_env$config[["gdalcubes_chunk_size"]] <- gdalcubes_chunk_size
     }
-    if (!is.null(leaflet_max_Mbytes)) {
-        .check_num(leaflet_max_Mbytes,
-                   min = 16,
-                   max = 128,
-                   is_named = FALSE,
-                   msg = "invalid leaflet max Mbytes"
+    if (!is.null(leaflet_max_megabytes)) {
+        .check_num(leaflet_max_megabytes,
+            min = 16,
+            max = 128,
+            is_named = FALSE,
+            msg = "invalid leaflet max megabytes"
         )
-        sits_env$config[["leaflet_max_Mbytes"]] <- leaflet_max_Mbytes
+        sits_env$config[["leaflet_max_megabytes"]] <- leaflet_max_megabytes
     }
     if (!is.null(leaflet_comp_factor)) {
         .check_num(leaflet_comp_factor,
-                   min = 0.20,
-                   max = 1.00,
-                   is_named = FALSE,
-                   msg = "invalid leaflet_comp_factor"
+            min = 0.20,
+            max = 1.00,
+            is_named = FALSE,
+            msg = "invalid leaflet_comp_factor"
         )
         sits_env$config[["leaflet_comp_factor"]] <- leaflet_comp_factor
     }
@@ -387,14 +388,14 @@ sits_list_collections <- function(source = NULL) {
 
             # pre-condition
             .check_lst(source,
-                       min_len = 2,
-                       msg = "invalid 'source' parameter"
+                min_len = 2,
+                msg = "invalid 'source' parameter"
             )
 
             # check that source contains essential parameters
             .check_chr_contains(names(source),
-                                contains = c("s3_class", "collections"),
-                                msg = "invalid 'source' parameter"
+                contains = c("s3_class", "collections"),
+                msg = "invalid 'source' parameter"
             )
             names(source) <- tolower(names(source))
 
@@ -504,10 +505,10 @@ sits_list_collections <- function(source = NULL) {
     if (nchar(yml_file) > 0) {
         .check_warn(
             .check_file(yml_file,
-                        msg = paste(
-                            "invalid configuration file informed in",
-                            "SITS_CONFIG_USER_FILE"
-                        )
+                msg = paste(
+                    "invalid configuration file informed in",
+                    "SITS_CONFIG_USER_FILE"
+                )
             )
         )
     }
@@ -536,11 +537,11 @@ sits_list_collections <- function(source = NULL) {
 
     # post-condition
     .check_null(res,
-                msg = paste(
-                    "key",
-                    paste0("'", paste0(key, collapse = "$"), "'"),
-                    "not found"
-                )
+        msg = paste(
+            "key",
+            paste0("'", paste0(key, collapse = "$"), "'"),
+            "not found"
+        )
     )
 
     return(res)
@@ -592,8 +593,8 @@ sits_list_collections <- function(source = NULL) {
 
     # post-condition
     .check_chr(res,
-               allow_empty = FALSE,
-               msg = "invalid 'gdal_creation_options' in config file"
+        allow_empty = FALSE,
+        msg = "invalid 'gdal_creation_options' in config file"
     )
 
     return(res)
@@ -617,7 +618,7 @@ sits_list_collections <- function(source = NULL) {
     } else if (inherits(data, "tbl_df")) {
         # is this a data cube or a sits tibble?
         if (all(.config_get("sits_cube_cols")
-                %in% colnames(data))) {
+        %in% colnames(data))) {
             class(data) <- c("raster_cube", class(data))
 
             return(data)
@@ -628,8 +629,8 @@ sits_list_collections <- function(source = NULL) {
     }
 
     .check_that(FALSE,
-                local_msg = "Data not recognized as a sits object",
-                msg = "invalid 'data' parameter"
+        local_msg = "Data not recognized as a sits object",
+        msg = "invalid 'data' parameter"
     )
 }
 #' @title Get local file extensions
@@ -641,8 +642,8 @@ sits_list_collections <- function(source = NULL) {
 
     # post-condition
     .check_chr(res,
-               len_min = 1,
-               msg = "invalid 'file_extensions' in config file"
+        len_min = 1,
+        msg = "invalid 'file_extensions' in config file"
     )
 
     return(res)
@@ -664,12 +665,12 @@ sits_list_collections <- function(source = NULL) {
 
     # post-condition
     .check_chr(res,
-               allow_empty = FALSE,
-               msg = paste(
-                   "invalid names for",
-                   paste0("'", paste0(key, collapse = "$"), "'"),
-                   "key"
-               )
+        allow_empty = FALSE,
+        msg = paste(
+            "invalid names for",
+            paste0("'", paste0(key, collapse = "$"), "'"),
+            "key"
+        )
     )
 
     return(res)
@@ -693,22 +694,22 @@ sits_list_collections <- function(source = NULL) {
 
     # pre-condition
     .check_chr(s3_class,
-               allow_empty = FALSE, len_min = 1,
-               msg = "invalid 's3_class' parameter"
+        allow_empty = FALSE, len_min = 1,
+        msg = "invalid 's3_class' parameter"
     )
 
     if (!is.null(service)) {
         .check_chr(service,
-                   allow_empty = FALSE, len_min = 1, len_max = 1,
-                   msg = "invalid 'service' parameter"
+            allow_empty = FALSE, len_min = 1, len_max = 1,
+            msg = "invalid 'service' parameter"
         )
     }
 
     if (!is.null(url)) {
         .check_chr(url,
-                   allow_empty = FALSE, len_min = 1, len_max = 1,
-                   regex = '^(http|https)://[^ "]+$',
-                   msg = "invalid 'url' parameter"
+            allow_empty = FALSE, len_min = 1, len_max = 1,
+            regex = '^(http|https)://[^ "]+$',
+            msg = "invalid 'url' parameter"
         )
     }
 
@@ -720,8 +721,8 @@ sits_list_collections <- function(source = NULL) {
 
         # pre-condition
         .check_lst(collection,
-                   min_len = 1,
-                   msg = "invalid 'collections' parameter"
+            min_len = 1,
+            msg = "invalid 'collections' parameter"
         )
 
         # collection members must be lower case
@@ -765,21 +766,21 @@ sits_list_collections <- function(source = NULL) {
 
     # check satellite
     .check_chr(satellite,
-               allow_null = TRUE,
-               msg = "invalid 'satellite' value"
+        allow_null = TRUE,
+        msg = "invalid 'satellite' value"
     )
 
     #  check sensor
     .check_chr(sensor,
-               allow_null = TRUE,
-               msg = "invalid 'sensor' value"
+        allow_null = TRUE,
+        msg = "invalid 'sensor' value"
     )
 
     # check metadata_search
     if (!missing(metadata_search)) {
         .check_chr_within(metadata_search,
-                          within = .config_metadata_search_strategies(),
-                          msg = "invalid 'metadata_search' value"
+            within = .config_metadata_search_strategies(),
+            msg = "invalid 'metadata_search' value"
         )
     }
 
@@ -794,8 +795,8 @@ sits_list_collections <- function(source = NULL) {
 
         # pre-condition
         .check_lst(bands,
-                   min_len = 1,
-                   msg = "invalid 'bands' parameter"
+            min_len = 1,
+            msg = "invalid 'bands' parameter"
         )
 
         # bands' members are lower case
@@ -815,8 +816,8 @@ sits_list_collections <- function(source = NULL) {
 
         # pre-condition
         .check_lst(bands,
-                   min_len = 1,
-                   msg = "invalid 'bands' parameter"
+            min_len = 1,
+            msg = "invalid 'bands' parameter"
         )
 
         # bands' members are lower case
@@ -837,20 +838,20 @@ sits_list_collections <- function(source = NULL) {
     .check_lst(dots, msg = "invalid extra arguments in collection")
 
     res <- c(list(bands = c(non_cloud_bands, cloud_band)),
-             "satellite" = satellite,
-             "sensor" = sensor,
-             "metadata_search" = metadata_search, dots
+        "satellite" = satellite,
+        "sensor" = sensor,
+        "metadata_search" = metadata_search, dots
     )
 
     # post-condition
     .check_lst(res,
-               min_len = 1,
-               msg = "invalid 'collection' value"
+        min_len = 1,
+        msg = "invalid 'collection' value"
     )
 
     .check_lst(res$bands,
-               min_len = 1,
-               msg = "invalid collection 'bands' value"
+        min_len = 1,
+        msg = "invalid collection 'bands' value"
     )
 
     # return a new collection data
@@ -878,42 +879,58 @@ sits_list_collections <- function(source = NULL) {
                              resolution, ...) {
 
     # pre-condition
-    .check_num(missing_value,
-               len_min = 1, len_max = 1,
-               msg = "invalid 'missing_value' parameter"
+    .check_num(
+        x = missing_value,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid 'missing_value' parameter"
     )
 
-    .check_num(minimum_value,
-               len_min = 1, len_max = 1,
-               msg = "invalid 'minimum_value' parameter"
+    .check_num(
+        x = minimum_value,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid 'minimum_value' parameter"
     )
 
-    .check_num(maximum_value,
-               len_min = 1, len_max = 1,
-               msg = "invalid 'maximum_value' parameter"
+    .check_num(
+        x = maximum_value,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid 'maximum_value' parameter"
     )
 
-    .check_num(scale_factor,
-               len_min = 1, len_max = 1,
-               allow_zero = FALSE,
-               msg = "invalid 'scale_factor' parameter"
+    .check_num(
+        x = scale_factor,
+        len_min = 1,
+        len_max = 1,
+        exclusive_min = 0,
+        msg = "invalid 'scale_factor' parameter"
     )
 
-    .check_num(offset_value,
-               len_min = 1, len_max = 1,
-               msg = "invalid 'offset_value' parameter"
+    .check_num(
+        x = offset_value,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid 'offset_value' parameter"
     )
 
-    if (!is.null(resolution)) {
-        .check_num(resolution,
-                   len_min = 1, allow_zero = FALSE,
-                   msg = "invalid 'resolution' parameter"
-        )
-    }
 
-    .check_chr(band_name,
-               allow_empty = FALSE, len_min = 1, len_max = 1,
-               msg = "invalid 'band_name' value"
+    .check_num(
+        x = resolution,
+        exclusive_min = 0,
+        len_min = 1,
+        len_max = 1,
+        allow_null = TRUE,
+        msg = "invalid 'resolution' parameter"
+    )
+
+    .check_chr(
+        x = band_name,
+        allow_empty = FALSE,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid 'band_name' value"
     )
 
     # extra parameters
@@ -932,8 +949,8 @@ sits_list_collections <- function(source = NULL) {
 
     # post-condition
     .check_lst(res,
-               min_len = 7,
-               msg = "invalid 'band' value"
+        min_len = 7,
+        msg = "invalid 'band' value"
     )
 
     # return a band object
@@ -960,24 +977,24 @@ sits_list_collections <- function(source = NULL) {
 
     # pre-condition
     .check_lgl(bit_mask,
-               len_min = 1, len_max = 1,
-               msg = "invalid 'bit_mask' parameter"
+        len_min = 1, len_max = 1,
+        msg = "invalid 'bit_mask' parameter"
     )
 
     .check_lst(values,
-               fn_check = .check_chr,
-               len_min = 1, len_max = 1,
-               msg = "invalid cloud 'values' parameter"
+        fn_check = .check_chr,
+        len_min = 1, len_max = 1,
+        msg = "invalid cloud 'values' parameter"
     )
 
     .check_num(interp_values,
-               len_min = 1, is_integer = TRUE,
-               msg = "invalid 'interp_values' parameter"
+        len_min = 1, is_integer = TRUE,
+        msg = "invalid 'interp_values' parameter"
     )
 
     .check_chr(band_name,
-               allow_empty = FALSE, len_min = 1, len_max = 1,
-               msg = "invalid 'band_name' value"
+        allow_empty = FALSE, len_min = 1, len_max = 1,
+        msg = "invalid 'band_name' value"
     )
 
     # extra parameters
@@ -994,8 +1011,8 @@ sits_list_collections <- function(source = NULL) {
 
     # post-condition
     .check_lst(res,
-               min_len = 5,
-               msg = "invalid 'band' value"
+        min_len = 5,
+        msg = "invalid 'band' value"
     )
 
     # return a cloud band object
@@ -1025,20 +1042,20 @@ sits_list_collections <- function(source = NULL) {
         labels_found <- labels[labels %in% names(colors_palette)]
         if (length(labels_found) > round(length(labels) / 2)) {
             warning("Some labels are not available in the chosen palette",
-                    call. = FALSE
+                call. = FALSE
             )
             missing_labels <- unique(labels[!(labels %in% labels_found)])
             warning(paste0("Consider adjusting labels: ", missing_labels),
-                    call. = FALSE
+                call. = FALSE
             )
         } else {
             warning("Most labels are not available in the chosen palette",
-                    call. = FALSE
+                call. = FALSE
             )
         }
 
         warning(paste0("Using hcl_color palette ", palette),
-                call. = FALSE
+            call. = FALSE
         )
 
         # get the number of labels
@@ -1054,10 +1071,10 @@ sits_list_collections <- function(source = NULL) {
     }
     # post-condition
     .check_chr(colors,
-               len_min = length(labels),
-               len_max = length(labels),
-               is_named = TRUE,
-               msg = "invalid color values"
+        len_min = length(labels),
+        len_max = length(labels),
+        is_named = TRUE,
+        msg = "invalid color values"
     )
 
     return(colors)
@@ -1071,8 +1088,8 @@ sits_list_collections <- function(source = NULL) {
 
     # post-condition
     .check_num(res,
-               min = 1, len_min = 1, len_max = 1,
-               msg = "invalid 'processing_bloat' in config file"
+        min = 1, len_min = 1, len_max = 1,
+        msg = "invalid 'processing_bloat' in config file"
     )
 
     return(res)
@@ -1086,8 +1103,8 @@ sits_list_collections <- function(source = NULL) {
 
     # post-condition
     .check_chr(res,
-               len_min = 1,
-               msg = "invalid 'metadata_search_strategies' in config file"
+        len_min = 1,
+        msg = "invalid 'metadata_search_strategies' in config file"
     )
 
     return(res)
@@ -1101,8 +1118,8 @@ sits_list_collections <- function(source = NULL) {
 
     # post-condition
     .check_num(res,
-               min = 1, len_min = 1, len_max = 1,
-               msg = "invalid 'processing_bloat' in config file"
+        min = 1, len_min = 1, len_max = 1,
+        msg = "invalid 'processing_bloat' in config file"
     )
 
     return(res)
@@ -1116,8 +1133,8 @@ sits_list_collections <- function(source = NULL) {
 
     # post-condition
     .check_num(res,
-               min = 1, len_min = 1, len_max = 1,
-               msg = "invalid 'rstac_pagination_limit' in config file"
+        min = 1, len_min = 1, len_max = 1,
+        msg = "invalid 'rstac_pagination_limit' in config file"
     )
 
     return(res)
@@ -1133,14 +1150,14 @@ sits_list_collections <- function(source = NULL) {
 
     # post-condition
     .check_chr(res,
-               len_min = 1, len_max = 1,
-               msg = "invalid 'raster_api_package' in config file"
+        len_min = 1, len_max = 1,
+        msg = "invalid 'raster_api_package' in config file"
     )
 
     .check_chr_within(res,
-                      within = .raster_supported_packages(),
-                      discriminator = "one_of",
-                      msg = "invalid 'raster_api_package' in config file"
+        within = .raster_supported_packages(),
+        discriminator = "one_of",
+        msg = "invalid 'raster_api_package' in config file"
     )
 
     return(res)

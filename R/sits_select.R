@@ -11,6 +11,10 @@
 #'
 #' @description Filter only the selected bands from a tibble or a data cube.
 #'
+#' @return
+#' For sits tibble, returns a sits tibble with the selected bands.
+#' For data cube, a data cube with the selected bands.
+#'
 #' @examples
 #' # Retrieve a set of time series with 2 classes
 #' data(cerrado_2classes)
@@ -20,9 +24,6 @@
 #' data <- sits_select(cerrado_2classes, bands = c("NDVI"))
 #' # Print the labels of the resulting tibble
 #' sits_bands(data)
-#' @return
-#' For sits tibble, returns a sits tibble with the selected bands.
-#' For data cube, a data cube with the selected bands.
 #'
 #' @export
 #'
@@ -44,8 +45,8 @@ sits_select.sits <- function(data, bands, ...) {
     bands <- toupper(bands)
     # pre-condition
     .check_chr_within(bands,
-                      within = sits_bands(data),
-                      msg = "Invalid bands values"
+        within = sits_bands(data),
+        msg = "Invalid bands values"
     )
     data <- .sits_fast_apply(data, col = "time_series", function(x) {
         dplyr::select(x, dplyr::all_of(c("#..", "Index", bands)))
@@ -62,7 +63,6 @@ sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
     .cube_check(data)
 
     if (!is.null(tiles)) {
-
         .check_chr_type(tiles)
         data <- dplyr::filter(data, .data[["tile"]] %in% !!tiles)
     }
@@ -79,7 +79,10 @@ sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
         .cube_bands_check(tile, bands = bands)
 
         db_info <- .file_info(tile)
-        db_info <- dplyr::filter(db_info, .data[["band"]] %in% !!bands)
+        db_info <- dplyr::filter(
+            db_info,
+            .data[["band"]] %in% dplyr::all_of(bands)
+        )
 
         tile$file_info[[1]] <- db_info
         return(tile)
@@ -92,6 +95,5 @@ sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
 #'
 #' @export
 sits_select.patterns <- function(data, bands, ...) {
-
     return(sits_select.sits(data, bands))
 }
