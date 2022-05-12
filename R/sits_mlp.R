@@ -121,6 +121,8 @@ sits_mlp <- function(samples = NULL,
         # verifies if torch and luz packages is installed
         .check_require_packages(c("torch", "luz"))
 
+        .sits_tibble_test(samples)
+
         # pre-conditions
         # check layers
         .check_num(
