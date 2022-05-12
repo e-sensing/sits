@@ -123,7 +123,7 @@ sits_resnet <- function(samples = NULL,
                         verbose = FALSE) {
 
     # set caller to show in errors
-    .check_set_caller("sits_ResNet")
+    .check_set_caller("sits_resnet")
 
 
     # function that returns torch model based on a sits sample data.table
@@ -132,20 +132,21 @@ sits_resnet <- function(samples = NULL,
         # verifies if torch and luz packages are installed
         .check_require_packages(c("torch", "luz"))
 
-        if (!purrr::is_null(samples))
-            .sits_tibble_test(samples)
+        .sits_tibble_test(samples)
 
         .check_num(
             x = blocks,
             exclusive_min = 0,
             len_min = 1,
-            is_integer = TRUE,
-            msg = "invalid 'blocks' parameter"
+            is_integer = TRUE
         )
 
-        .check_that(
-            x = length(kernels) == 3,
-            msg = "should inform size of three kernels"
+        .check_num(
+            x = kernels,
+            exclusive_min = 0,
+            len_min = 3,
+            len_max = 3,
+            is_integer = TRUE
         )
 
         .check_num(
@@ -153,8 +154,7 @@ sits_resnet <- function(samples = NULL,
             exclusive_min = 0,
             len_min = 1,
             len_max = 1,
-            is_integer = TRUE,
-            msg = "invalid 'epochs' parameter"
+            is_integer = TRUE
         )
 
         .check_num(
@@ -162,8 +162,7 @@ sits_resnet <- function(samples = NULL,
             exclusive_min = 0,
             len_min = 1,
             len_max = 1,
-            is_integer = TRUE,
-            msg = "invalid 'batch_size' parameter"
+            is_integer = TRUE
         )
 
         .check_that(!purrr::is_null(optimizer),
@@ -173,16 +172,14 @@ sits_resnet <- function(samples = NULL,
             x = lr_decay_epochs,
             is_integer = TRUE,
             len_max = 1,
-            min = 1,
-            msg = "invalid 'lr_decay_epochs' parameter"
+            min = 1
         )
 
         .check_num(
             x = lr_decay_rate,
             exclusive_min = 0,
             max = 1,
-            len_max = 1,
-            msg = "invalid 'lr_decay_rate' parameter"
+            len_max = 1
         )
 
         .check_num(
@@ -190,8 +187,7 @@ sits_resnet <- function(samples = NULL,
             min = 0,
             len_min = 1,
             len_max = 1,
-            is_integer = TRUE,
-            msg = "invalid 'patience' parameter"
+            is_integer = TRUE
         )
 
         .check_num(
@@ -200,9 +196,10 @@ sits_resnet <- function(samples = NULL,
             max = 1,
             len_min = 1,
             len_max = 1,
-            is_integer = FALSE,
-            msg = "invalid 'min_delta' parameter"
+            is_integer = FALSE
         )
+        # check verbose
+        .check_lgl(verbose)
 
         # check validation_split parameter if samples_validation is not passed
         if (purrr::is_null(samples_validation)) {
@@ -211,8 +208,7 @@ sits_resnet <- function(samples = NULL,
                 exclusive_min = 0,
                 max = 0.5,
                 len_min = 1,
-                len_max = 1,
-                msg = "invalid 'validation_split' parameter"
+                len_max = 1
             )
         }
 

@@ -144,8 +144,7 @@ test_that("DL-MLP", {
         sits_mlp(
             layers = c(128, 128),
             dropout_rates = c(0.5, 0.4),
-            epochs = 5,
-            verbose = 0
+            epochs = 5
         )
     )
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")

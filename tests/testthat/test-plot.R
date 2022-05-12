@@ -129,8 +129,7 @@ test_that("Plot torch model", {
         sits_mlp(
             layers = c(128, 128),
             dropout_rates = c(0.5, 0.4),
-            epochs = 50,
-            verbose = 0
+            epochs = 50
         )
     )
     pk <- plot(model)

@@ -76,7 +76,7 @@ An uncertainty data cube
 \description{
 Calculate the uncertainty cube based on the probabilities
 produced by the classifier. Takes a probability cube as input.
-The uncertainity measure is relevant in the context of active leaning,
+The uncertainty measure is relevant in the context of active leaning,
 and helps to increase the quantity and quality of training samples by
 providing information about the confidence of the model.
 The supported types of uncertainty are 'entropy', 'least', and 'margin'.

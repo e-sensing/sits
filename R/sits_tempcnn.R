@@ -119,6 +119,8 @@ sits_tempcnn <- function(samples = NULL,
         # verifies if torch and luz packages are installed
         .check_require_packages(c("torch", "luz"))
 
+        .sits_tibble_test(samples)
+
         # preconditions
         # check cnn_layers
         .check_num(
@@ -126,8 +128,7 @@ sits_tempcnn <- function(samples = NULL,
             min = 1,
             len_min = 3,
             len_max = 3,
-            is_integer = TRUE,
-            msg = "invalid 'cnn_layers' parameter"
+            is_integer = TRUE
         )
         # check cnn_kernels
         .check_num(
@@ -135,8 +136,7 @@ sits_tempcnn <- function(samples = NULL,
             min = 1,
             len_min = 3,
             len_max = 3,
-            is_integer = TRUE,
-            msg = "invalid 'cnn_kernels' parameter"
+            is_integer = TRUE
         )
         # check cnn_dropout_rates
         .check_length(
@@ -144,8 +144,7 @@ sits_tempcnn <- function(samples = NULL,
             min = 0,
             max = 1,
             len_min = 3,
-            len_max = 3,
-            msg = "invalid 'cnn_dropout_rates' parameter"
+            len_max = 3
         )
         # check dense_layer_nodes
         .check_num(
@@ -153,8 +152,7 @@ sits_tempcnn <- function(samples = NULL,
             min = 1,
             len_min = 1,
             len_max = 1,
-            is_integer = TRUE,
-            msg = "invalid 'dense_layer_nodes' parameter"
+            is_integer = TRUE
         )
         # check dense_layer_dropout_rate
         .check_num(
@@ -162,8 +160,7 @@ sits_tempcnn <- function(samples = NULL,
             min = 0,
             max = 1,
             len_min = 1,
-            len_max = 1,
-            msg = "invalid 'dense_layer_dropout_rate' parameter"
+            len_max = 1
         )
         # check lr_decay_epochs
         .check_num(
@@ -171,8 +168,7 @@ sits_tempcnn <- function(samples = NULL,
             min = 1,
             len_min = 1,
             len_max = 1,
-            is_integer = TRUE,
-            msg = "invalid 'lr_decay_epochs' parameter"
+            is_integer = TRUE
         )
         # check lr_decay_rate
         .check_num(
@@ -180,8 +176,7 @@ sits_tempcnn <- function(samples = NULL,
             exclusive_min = 0,
             max = 1,
             len_min = 1,
-            len_max = 1,
-            msg = "invalid 'lr_decay_rate' parameter"
+            len_max = 1
         )
         # check validation_split parameter if samples_validation is not passed
         if (purrr::is_null(samples_validation)) {
@@ -190,8 +185,7 @@ sits_tempcnn <- function(samples = NULL,
                 exclusive_min = 0,
                 max = 0.5,
                 len_min = 1,
-                len_max = 1,
-                msg = "invalid 'validation_split' parameter"
+                len_max = 1
             )
         }
         # check patience
@@ -200,17 +194,17 @@ sits_tempcnn <- function(samples = NULL,
             min = 1,
             len_min = 1,
             len_max = 1,
-            is_integer = TRUE,
-            msg = "invalid 'patience' parameter"
+            is_integer = TRUE
         )
         # check min_delta
         .check_num(
             x = min_delta,
             min = 0,
             len_min = 1,
-            len_max = 1,
-            msg = "invalid 'min_delta' parameter"
+            len_max = 1
         )
+        # check verbose
+        .check_lgl(verbose)
 
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]

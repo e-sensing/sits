@@ -349,7 +349,7 @@ The authors are thankful for the contributions of Marius Appel, Tim Appelhans, H
 
 ## Acknowledgements for Financial and Material Support
 
-We acknoledge and thank the project funders that provided financial and material support:
+We acknowledge and thank the project funders that provided financial and material support:
 
 1.  Amazon Fund, established by the Brazilian government with financial contribution from Norway, through the project contract between the Brazilian Development Bank (BNDES) and the Foundation for Science, Technology and Space Applications (FUNCATE), for the establishment of the Brazil Data Cube,  process 17.2.0536.1. 
 
