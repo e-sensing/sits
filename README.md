@@ -82,8 +82,8 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 ``` r
 # load the sits library
 library(sits)
-#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.2/Resources/library/sits/extdata/config.yml
-#> Color configurations found in /Library/Frameworks/R.framework/Versions/4.2/Resources/library/sits/extdata/config_colors.yml
+#> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.1/sits/extdata/config.yml
+#> Color configurations found in /home/sits/R/x86_64-pc-linux-gnu-library/4.1/sits/extdata/config_colors.yml
 #> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
@@ -140,6 +140,7 @@ s2_cube <- sits_cube(source = "MSPC",
                      start_date = as.Date("2018-07-01"),
                      end_date = as.Date("2019-06-30")
 )
+#>   |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
 ```
 
 The cube can be shown in a leaflet using `sits_view()`.
@@ -166,13 +167,12 @@ Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92).
 gc_cube <- sits_regularize(cube          = s2_cube,
                            output_dir    = tempdir(),
                            period        = "P15D",
-                           agg_method    = "median",
-                           res           = 10, 
-                           multicores    = 2)
+                           res           = 60, 
+                           multicores    = 4)
 ```
 
 The above command builds a regular data cube with all bands interpolated
-to 10 meter spatial resolution and 15 days temporal resolution. Regular
+to 60 meter spatial resolution and 15 days temporal resolution. Regular
 data cubes are the input to the `sits` functions for time series
 retrieval, building machine learning models, and classification of
 raster images and time series.
@@ -201,6 +201,7 @@ raster_cube <- sits_cube(
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
 )
+#>   |                                                                              |                                                                      |   0%  |                                                                              |===                                                                   |   4%  |                                                                              |======                                                                |   9%  |                                                                              |=========                                                             |  13%  |                                                                              |============                                                          |  17%  |                                                                              |===============                                                       |  22%  |                                                                              |==================                                                    |  26%  |                                                                              |=====================                                                 |  30%  |                                                                              |========================                                              |  35%  |                                                                              |===========================                                           |  39%  |                                                                              |==============================                                        |  43%  |                                                                              |=================================                                     |  48%  |                                                                              |=====================================                                 |  52%  |                                                                              |========================================                              |  57%  |                                                                              |===========================================                           |  61%  |                                                                              |==============================================                        |  65%  |                                                                              |=================================================                     |  70%  |                                                                              |====================================================                  |  74%  |                                                                              |=======================================================               |  78%  |                                                                              |==========================================================            |  83%  |                                                                              |=============================================================         |  87%  |                                                                              |================================================================      |  91%  |                                                                              |===================================================================   |  96%  |                                                                              |======================================================================| 100%
 # obtain a set of samples defined by a CSV file
 csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
                         package = "sits")
@@ -268,7 +269,6 @@ som_map <- sits_som_map(samples_modis_4bands,
                         grid_ydim = 6)
 # plot the map
 plot(som_map)
-#> Warning in par(opar): argument 1 does not name a graphical parameter
 ```
 
 <img src="man/figures/README-unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
@@ -376,10 +376,10 @@ sinop <- sits_cube(
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
 )
+#>   |                                                                              |                                                                      |   0%  |                                                                              |===                                                                   |   4%  |                                                                              |======                                                                |   9%  |                                                                              |=========                                                             |  13%  |                                                                              |============                                                          |  17%  |                                                                              |===============                                                       |  22%  |                                                                              |==================                                                    |  26%  |                                                                              |=====================                                                 |  30%  |                                                                              |========================                                              |  35%  |                                                                              |===========================                                           |  39%  |                                                                              |==============================                                        |  43%  |                                                                              |=================================                                     |  48%  |                                                                              |=====================================                                 |  52%  |                                                                              |========================================                              |  57%  |                                                                              |===========================================                           |  61%  |                                                                              |==============================================                        |  65%  |                                                                              |=================================================                     |  70%  |                                                                              |====================================================                  |  74%  |                                                                              |=======================================================               |  78%  |                                                                              |==========================================================            |  83%  |                                                                              |=============================================================         |  87%  |                                                                              |================================================================      |  91%  |                                                                              |===================================================================   |  96%  |                                                                              |======================================================================| 100%
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(sinop, ml_model = tempcnn_model)
-#> Recovery mode. Classified probability image detected in the provided directory.
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(probs_cube)
 # generate a thematic map
@@ -444,7 +444,7 @@ be used in connection with sits.
 -   \[7\] Hassan Fawaz, Germain Forestier, Jonathan Weber, Lhassane
     Idoumghar, and Pierre-Alain Muller, “Deep learning for time series
     classification: a review”. Data Mining and Knowledge Discovery,
-    33(4): 917–963, 2019. \<arxiv:1809.04356\>.
+    33(4): 917–963, 2019. \<arxiv:1809.04356>.
 
 -   \[8\] Charlotte Pelletier, Geoffrey I. Webb, and Francois Petitjean.
     “Temporal Convolutional Neural Network for the Classification of
@@ -458,12 +458,11 @@ be used in connection with sits.
 -   \[10\] Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine
     Chehata, “Satellite Image Time Series Classification with Pixel-Set
     Encoders and Temporal Self-Attention”, Conference on Computer Vision
-    and Pattern Recognition, 2020. \<doi:
-    10.1109/CVPR42600.2020.01234\>.
+    and Pattern Recognition, 2020. \<doi: 10.1109/CVPR42600.2020.01234>.
 
 -   \[11\] Vivien Garnot, Loic Landrieu, “Lightweight Temporal
     Self-Attention for Classifying Satellite Images Time Series”, 2020.
-    \<arXiv:2007.00586\>.
+    \<arXiv:2007.00586>.
 
 -   \[12\] Maja Schneider, Marco Körner, “\[Re\] Satellite Image Time
     Series Classification with Pixel-Set Encoders and Temporal
@@ -487,7 +486,7 @@ the STAC specification and API.
 
 ## Acknowledgements for Financial and Material Support
 
-We acknoledge and thank the project funders that provided financial and
+We acknowledge and thank the project funders that provided financial and
 material support:
 
 1.  Amazon Fund, established by the Brazilian government with financial

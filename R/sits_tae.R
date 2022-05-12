@@ -114,6 +114,8 @@ sits_tae <- function(samples = NULL,
         # verifies if torch and luz packages is installed
         .check_require_packages(c("torch", "luz"))
 
+        .sits_tibble_test(samples)
+
         # preconditions
         # check epochs
         .check_num(
@@ -121,8 +123,7 @@ sits_tae <- function(samples = NULL,
             min = 1,
             len_min = 1,
             len_max = 1,
-            is_integer = TRUE,
-            msg = "invalid 'epochs' parameter"
+            is_integer = TRUE
         )
         # check batch_size
         .check_num(
@@ -130,8 +131,7 @@ sits_tae <- function(samples = NULL,
             min = 1,
             len_min = 1,
             len_max = 1,
-            is_integer = TRUE,
-            msg = "invalid 'batch_size' parameter"
+            is_integer = TRUE
         )
         # check validation_split parameter if samples_validation is not passed
         if (purrr::is_null(samples_validation)) {
@@ -140,8 +140,7 @@ sits_tae <- function(samples = NULL,
                 exclusive_min = 0,
                 max = 0.5,
                 len_min = 1,
-                len_max = 1,
-                msg = "invalid 'validation_split' parameter"
+                len_max = 1
             )
         }
 
@@ -150,16 +149,14 @@ sits_tae <- function(samples = NULL,
             x = lr_decay_epochs,
             is_integer = TRUE,
             len_max = 1,
-            min = 1,
-            msg = "invalid 'lr_decay_epochs' parameter"
+            min = 1
         )
         # check lr_decay_rate
         .check_num(
             x = lr_decay_rate,
             exclusive_min = 0,
             max = 1,
-            len_max = 1,
-            msg = "invalid 'lr_decay_rate' parameter"
+            len_max = 1
         )
         # check opt_params
         # get parameters list and remove the 'param' parameter
@@ -181,17 +178,17 @@ sits_tae <- function(samples = NULL,
             min = 1,
             len_min = 1,
             len_max = 1,
-            is_integer = TRUE,
-            msg = "invalid 'patience' parameter"
+            is_integer = TRUE
         )
         # check min_delta
         .check_num(
             x = min_delta,
             min = 0,
             len_min = 1,
-            len_max = 1,
-            msg = "invalid 'min_delta' parameter"
+            len_max = 1
         )
+        # check verbose
+        .check_lgl(verbose)
 
         # get the timeline of the data
         timeline <- sits_timeline(samples)
