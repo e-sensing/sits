@@ -141,6 +141,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// smooth_whit_mtx
+NumericMatrix smooth_whit_mtx(const NumericMatrix& data, const double& lambda, const int& length);
+RcppExport SEXP _sits_smooth_whit_mtx(SEXP dataSEXP, SEXP lambdaSEXP, SEXP lengthSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< const int& >::type length(lengthSEXP);
+    rcpp_result_gen = Rcpp::wrap(smooth_whit_mtx(data, lambda, length));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_sits_bayes_smoother", (DL_FUNC) &_sits_bayes_smoother, 6},
@@ -153,6 +166,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_margin_probs", (DL_FUNC) &_sits_margin_probs, 2},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
     {"_sits_smooth_whit", (DL_FUNC) &_sits_smooth_whit, 3},
+    {"_sits_smooth_whit_mtx", (DL_FUNC) &_sits_smooth_whit_mtx, 3},
     {NULL, NULL, 0}
 };
 
