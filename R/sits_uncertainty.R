@@ -357,16 +357,45 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
 #' @export
 #'
 sits_uncertainty.least <- function(cube, type = "least", ...,
+                                   window_size = 5,
+                                   window_fn = "median",
                                    multicores = 2,
-                                   memsize = 8,
+                                   memsize = 4,
                                    output_dir = ".",
                                    version = "v1") {
+
     # precondition 1 - check if cube has probability data
     .check_that(
         x = inherits(cube, "probs_cube"),
         msg = "input is not probability cube"
     )
-    # precondition 2 - multicores
+
+    # precondition 2 - test window size
+    if (!purrr::is_null(window_size)) {
+        .check_that(
+            x = window_size %% 2 != 0,
+            msg = "window_size must be an odd number"
+        )
+    }
+
+    # precondition 3 - test window function
+    .check_chr_within(
+        x = window_fn,
+        within = .config_names("uncertainty_window_functions"),
+        msg = "Invalid 'window_fn' parameter"
+    )
+    # resolve window_fn parameter
+    window_fn <- .config_get(key = c(
+        "uncertainty_window_functions",
+        window_fn
+    ))
+    config_fun <- strsplit(window_fn, "::")[[1]]
+    window_fn <- get(config_fun[[2]], envir = asNamespace(config_fun[[1]]))
+
+    # find out how many labels exist
+    n_labels <- length(sits_labels(cube[1, ]))
+
+    # precondition 4 - multicores
     .check_num(
         x = multicores,
         min = 1,
@@ -376,7 +405,7 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
         msg = "invalid 'multicores' parameter"
     )
 
-    # precondition 3 - memory
+    # precondition 5 - memory
     .check_num(
         x = memsize,
         exclusive_min = 0,
@@ -384,21 +413,27 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
         len_max = 1,
         msg = "invalid 'memsize' parameter"
     )
-    # precondition 4 - output dir
+
+    # precondition 6 - output dir
     .check_file(
         x = output_dir,
         msg = "invalid output dir"
     )
-    # precondition 5 - version
+
+    # precondition 7 - version
     .check_chr(
         x = version,
         len_min = 1,
         msg = "invalid version"
     )
-    # find out how many labels exist
-    n_labels <- length(sits_labels(cube[1, ]))
 
-    # least confidence index to be executed by workers cluster
+    # create a window
+    window <- NULL
+    if (!purrr::is_null(window_size) && window_size > 1) {
+        window <- matrix(1, nrow = window_size, ncol = window_size)
+    }
+
+    # least confidence  uncertainty index to be executed by workers cluster
     .do_least <- function(chunk) {
         data <- .raster_get_values(r_obj = chunk)
         # process least confidence
@@ -413,6 +448,15 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
             r_obj = res,
             values = unc
         )
+        # process window
+        if (!is.null(window)) {
+            res <- terra::focal(
+                res,
+                w = window,
+                fun = window_fn,
+                na.rm = TRUE
+            )
+        }
         return(res)
     }
 
@@ -451,6 +495,9 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
             return(NULL)
         }
 
+        # overlapping pixels
+        overlapping_y_size <- ceiling(window_size / 2) - 1
+
         # get cube size
         size <- .cube_size(tile)
 
@@ -459,7 +506,7 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
             xsize = size[["ncols"]],
             ysize = size[["nrows"]],
             block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = 0
+            overlapping_y_size = overlapping_y_size
         )
 
         # open probability file
@@ -514,6 +561,7 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
 
         return(invisible(block_files))
     })
+
 
     # process each brick layer (each time step) individually
     result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
@@ -579,16 +627,45 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
 #' @export
 #'
 sits_uncertainty.margin <- function(cube, type = "margin", ...,
+                                    window_size = 5,
+                                    window_fn = "median",
                                     multicores = 2,
-                                    memsize = 8,
+                                    memsize = 4,
                                     output_dir = ".",
                                     version = "v1") {
+
     # precondition 1 - check if cube has probability data
     .check_that(
         x = inherits(cube, "probs_cube"),
         msg = "input is not probability cube"
     )
-    # precondition 2 - multicores
+
+    # precondition 2 - test window size
+    if (!purrr::is_null(window_size)) {
+        .check_that(
+            x = window_size %% 2 != 0,
+            msg = "window_size must be an odd number"
+        )
+    }
+
+    # precondition 3 - test window function
+    .check_chr_within(
+        x = window_fn,
+        within = .config_names("uncertainty_window_functions"),
+        msg = "Invalid 'window_fn' parameter"
+    )
+    # resolve window_fn parameter
+    window_fn <- .config_get(key = c(
+        "uncertainty_window_functions",
+        window_fn
+    ))
+    config_fun <- strsplit(window_fn, "::")[[1]]
+    window_fn <- get(config_fun[[2]], envir = asNamespace(config_fun[[1]]))
+
+    # find out how many labels exist
+    n_labels <- length(sits_labels(cube[1, ]))
+
+    # precondition 4 - multicores
     .check_num(
         x = multicores,
         min = 1,
@@ -598,7 +675,7 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
         msg = "invalid 'multicores' parameter"
     )
 
-    # precondition 3 - memory
+    # precondition 5 - memory
     .check_num(
         x = memsize,
         exclusive_min = 0,
@@ -606,24 +683,30 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
         len_max = 1,
         msg = "invalid 'memsize' parameter"
     )
-    # precondition 4 - output dir
+
+    # precondition 6 - output dir
     .check_file(
         x = output_dir,
         msg = "invalid output dir"
     )
-    # precondition 5 - version
+
+    # precondition 7 - version
     .check_chr(
         x = version,
         len_min = 1,
         msg = "invalid version"
     )
-    # find out how many labels exist
-    n_labels <- length(sits_labels(cube[1, ]))
 
-    # margin of confidence index to be executed by workers cluster
+    # create a window
+    window <- NULL
+    if (!purrr::is_null(window_size) && window_size > 1) {
+        window <- matrix(1, nrow = window_size, ncol = window_size)
+    }
+
+    # margin of confidence uncertainty index to be executed by workers cluster
     .do_margin <- function(chunk) {
         data <- .raster_get_values(r_obj = chunk)
-        # process margin
+        # process margin of confidence
         unc <- margin_probs(data, n_labels)
         # create cube
         res <- .raster_rast(
@@ -635,6 +718,15 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
             r_obj = res,
             values = unc
         )
+        # process window
+        if (!is.null(window)) {
+            res <- terra::focal(
+                res,
+                w = window,
+                fun = window_fn,
+                na.rm = TRUE
+            )
+        }
         return(res)
     }
 
@@ -673,6 +765,9 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
             return(NULL)
         }
 
+        # overlapping pixels
+        overlapping_y_size <- ceiling(window_size / 2) - 1
+
         # get cube size
         size <- .cube_size(tile)
 
@@ -681,7 +776,7 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
             xsize = size[["ncols"]],
             ysize = size[["nrows"]],
             block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = 0
+            overlapping_y_size = overlapping_y_size
         )
 
         # open probability file
@@ -736,6 +831,7 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
 
         return(invisible(block_files))
     })
+
 
     # process each brick layer (each time step) individually
     result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
@@ -801,16 +897,45 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
 #' @export
 #'
 sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
+                                    window_size = 5,
+                                    window_fn = "median",
                                     multicores = 2,
-                                    memsize = 8,
+                                    memsize = 4,
                                     output_dir = ".",
                                     version = "v1") {
+
     # precondition 1 - check if cube has probability data
     .check_that(
         x = inherits(cube, "probs_cube"),
         msg = "input is not probability cube"
     )
-    # precondition 2 - multicores
+
+    # precondition 2 - test window size
+    if (!purrr::is_null(window_size)) {
+        .check_that(
+            x = window_size %% 2 != 0,
+            msg = "window_size must be an odd number"
+        )
+    }
+
+    # precondition 3 - test window function
+    .check_chr_within(
+        x = window_fn,
+        within = .config_names("uncertainty_window_functions"),
+        msg = "Invalid 'window_fn' parameter"
+    )
+    # resolve window_fn parameter
+    window_fn <- .config_get(key = c(
+        "uncertainty_window_functions",
+        window_fn
+    ))
+    config_fun <- strsplit(window_fn, "::")[[1]]
+    window_fn <- get(config_fun[[2]], envir = asNamespace(config_fun[[1]]))
+
+    # find out how many labels exist
+    n_labels <- length(sits_labels(cube[1, ]))
+
+    # precondition 4 - multicores
     .check_num(
         x = multicores,
         min = 1,
@@ -820,7 +945,7 @@ sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
         msg = "invalid 'multicores' parameter"
     )
 
-    # precondition 3 - memory
+    # precondition 5 - memory
     .check_num(
         x = memsize,
         exclusive_min = 0,
@@ -828,24 +953,30 @@ sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
         len_max = 1,
         msg = "invalid 'memsize' parameter"
     )
-    # precondition 4 - output dir
+
+    # precondition 6 - output dir
     .check_file(
         x = output_dir,
         msg = "invalid output dir"
     )
-    # precondition 5 - version
+
+    # precondition 7 - version
     .check_chr(
         x = version,
         len_min = 1,
         msg = "invalid version"
     )
-    # find out how many labels exist
-    n_labels <- length(sits_labels(cube[1, ]))
 
-    # ratio of confidence index to be executed by workers cluster
+    # create a window
+    window <- NULL
+    if (!purrr::is_null(window_size) && window_size > 1) {
+        window <- matrix(1, nrow = window_size, ncol = window_size)
+    }
+
+    # ratio of confidence uncertainty index to be executed by workers cluster
     .do_ratio <- function(chunk) {
         data <- .raster_get_values(r_obj = chunk)
-        # process ratio
+        # process ratio of confidence
         unc <- ratio_probs(data, n_labels)
         # create cube
         res <- .raster_rast(
@@ -857,6 +988,15 @@ sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
             r_obj = res,
             values = unc
         )
+        # process window
+        if (!is.null(window)) {
+            res <- terra::focal(
+                res,
+                w = window,
+                fun = window_fn,
+                na.rm = TRUE
+            )
+        }
         return(res)
     }
 
@@ -895,6 +1035,9 @@ sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
             return(NULL)
         }
 
+        # overlapping pixels
+        overlapping_y_size <- ceiling(window_size / 2) - 1
+
         # get cube size
         size <- .cube_size(tile)
 
@@ -903,7 +1046,7 @@ sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
             xsize = size[["ncols"]],
             ysize = size[["nrows"]],
             block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = 0
+            overlapping_y_size = overlapping_y_size
         )
 
         # open probability file
@@ -958,6 +1101,7 @@ sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
 
         return(invisible(block_files))
     })
+
 
     # process each brick layer (each time step) individually
     result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {

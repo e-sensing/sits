@@ -34,8 +34,10 @@ sits_uncertainty(
   cube,
   type = "least",
   ...,
+  window_size = 5,
+  window_fn = "median",
   multicores = 2,
-  memsize = 8,
+  memsize = 4,
   output_dir = ".",
   version = "v1"
 )
@@ -44,8 +46,10 @@ sits_uncertainty(
   cube,
   type = "margin",
   ...,
+  window_size = 5,
+  window_fn = "median",
   multicores = 2,
-  memsize = 8,
+  memsize = 4,
   output_dir = ".",
   version = "v1"
 )
@@ -54,8 +58,10 @@ sits_uncertainty(
   cube,
   type = "ratio",
   ...,
+  window_size = 5,
+  window_fn = "median",
   multicores = 2,
-  memsize = 8,
+  memsize = 4,
   output_dir = ".",
   version = "v1"
 )
