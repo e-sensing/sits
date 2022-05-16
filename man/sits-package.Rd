@@ -23,12 +23,13 @@ and post-processing.
 Useful links:
 \itemize{
   \item \url{https://github.com/e-sensing/sits/}
+  \item \url{https://e-sensing.github.io/sitsbook/}
   \item Report bugs at \url{https://github.com/e-sensing/sits/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Gilberto Camara \email{gilberto.camara@inpe.br}
+\strong{Maintainer}: Gilberto Camara \email{gilberto.camara.inpe@gmail.com}
 
 Authors:
 \itemize{
