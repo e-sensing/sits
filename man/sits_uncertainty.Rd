@@ -5,6 +5,7 @@
 \alias{sits_uncertainty.entropy}
 \alias{sits_uncertainty.least}
 \alias{sits_uncertainty.margin}
+\alias{sits_uncertainty.ratio}
 \title{Estimate classification uncertainty based on probs cube}
 \usage{
 sits_uncertainty(
@@ -48,6 +49,16 @@ sits_uncertainty(
   output_dir = ".",
   version = "v1"
 )
+
+\method{sits_uncertainty}{ratio}(
+  cube,
+  type = "ratio",
+  ...,
+  multicores = 2,
+  memsize = 8,
+  output_dir = ".",
+  version = "v1"
+)
 }
 \arguments{
 \item{cube}{Probability data cube.}
@@ -79,10 +90,12 @@ produced by the classifier. Takes a probability cube as input.
 The uncertainty measure is relevant in the context of active leaning,
 and helps to increase the quantity and quality of training samples by
 providing information about the confidence of the model.
-The supported types of uncertainty are 'entropy', 'least', and 'margin'.
-"entropy" is the difference between all predictions expressed as entropy,
-"least" is the difference between 100% and most confident prediction, and
-"margin" is the difference between the two most confident predictions.
+The supported types of uncertainty are 'entropy', 'least', 'margin' and
+'ratio'. 'entropy' is the difference between all predictions expressed as
+entropy, 'least' is the difference between 100% and most confident
+prediction, 'margin' is the difference between the two most confident
+predictions, and 'ratio' is the ratio between the two most confident
+predictions.
 }
 \note{
 Please refer to the sits documentation available in
