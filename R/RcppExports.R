@@ -45,3 +45,7 @@ smooth_whit <- function(data, lambda, length) {
     .Call(`_sits_smooth_whit`, data, lambda, length)
 }
 
+smooth_whit_mtx <- function(data, lambda, length) {
+    .Call(`_sits_smooth_whit_mtx`, data, lambda, length)
+}
+

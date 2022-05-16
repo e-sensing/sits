@@ -64,3 +64,19 @@ NumericVector smooth_whit(const NumericVector& data,
 }
 
 
+
+// Whittaker smoother: lifted from package ptw
+// [[Rcpp::export]]
+NumericMatrix smooth_whit_mtx(const NumericMatrix& data,
+                              const double& lambda,
+                              const int& length) {
+
+    NumericMatrix res(data);
+
+    for (int r = 0; r < data.nrow(); r++) {
+        res(r, _) = smooth_whit(data(r, _), lambda, length);
+    }
+
+    return(res);
+}
+

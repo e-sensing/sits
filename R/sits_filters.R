@@ -108,10 +108,7 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5, scaling = 1) {
 sits_whittaker <- function(data = NULL, lambda = 0.5) {
     filter_fun <- function(data) {
         if (inherits(data, "matrix")) {
-            return(t(apply(data, 1, smooth_whit,
-                lambda = lambda,
-                length = ncol(data)
-            )))
+            return(smooth_whit_mtx(data, lambda = lambda, length = ncol(data)))
         } else {
             return(smooth_whit(data, lambda = lambda, length = length(data)))
         }
