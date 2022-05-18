@@ -6,6 +6,9 @@
 \arguments{
 \item{lhs, rhs}{A visualization and a function to apply to it.}
 }
+\value{
+DT is modified by reference and returned invisibly.
+}
 \description{
 Data.table assignment by reference.
 }

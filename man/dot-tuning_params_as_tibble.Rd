@@ -6,6 +6,9 @@
 \usage{
 .tuning_params_as_tibble(params)
 }
+\value{
+A named list with provided parameters
+}
 \description{
 Generate a tibble (one row per trial) with all model parameters
 }

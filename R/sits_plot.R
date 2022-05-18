@@ -29,13 +29,13 @@
 #' will default to "all years". If there are more than 30 samples,
 #' it will default to "together".
 #'
-#' @param  x            Object of class "sits"
-#' @param  y            Ignored.
-#' @param ...           Further specifications for \link{plot}.
-#' @return              A series of plot objects produced by ggplot2
-#'                      showing all time series associated to each combination
-#'                      of band and label, and including the median, and
-#'                      first and third quartile ranges.
+#' @param  x    Object of class "sits"
+#' @param  y    Ignored.
+#' @param ...   Further specifications for \link{plot}.
+#'
+#' @return A series of plot objects produced by ggplot2 showing all
+#'   time series associated to each combination of band and label,
+#'   and including the median, and first and third quartile ranges.
 #'
 #' @note
 #' Please refer to the sits documentation available in
@@ -1514,9 +1514,13 @@ plot.torch_model <- function(x, y, ...) {
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description        Plots the alignments from TWDTW classification
-#' @param matches      A list of dtwSat S4 match objects
-#'                     produced by sits_TWDTW_matches.
+#' @description     Plots the alignments from TWDTW classification
+#'
+#' @param matches   A list of dtwSat S4 match objects produced by
+#'   sits_TWDTW_matches.
+#'
+#' @return Return the same input value.
+#'
 .sits_plot_twdtw_alignments <- function(matches) {
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
@@ -1543,9 +1547,10 @@ plot.torch_model <- function(x, y, ...) {
 #' @param  start_date   Start date of the plot (used for classifications).
 #' @param  end_date     End date of the plot (used for classifications).
 #' @param  interval     Interval between classifications.
-#' @param  overlap      Minimum overlapping between one match
-#'                      and the interval of classification.
-#'                      For details see dtwSat::twdtwApply help.
+#' @param  overlap      Minimum overlapping between one match and the
+#'   interval of classification. For details see dtwSat::twdtwApply help.
+#' @return Return the same input value.
+#'
 .sits_plot_twdtw_class <- function(matches,
                                    start_date = NULL,
                                    end_date = NULL,

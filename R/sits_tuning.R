@@ -263,6 +263,9 @@ sits_tuning_hparams <- function(...) {
 #' to params definition returned by \code{sits_tuning_hparams}
 #'
 #' @keywords internal
+#'
+#' @return A list with evaluated random values
+#'
 .tuning_pick_random <- function(trial, params) {
     uniform <- function(min = 0, max = 1, n = 1) {
         val <- stats::runif(n = n, min = min, max = max)
@@ -314,6 +317,9 @@ sits_tuning_hparams <- function(...) {
 #' Generate a tibble (one row per trial) with all model parameters
 #'
 #' @keywords internal
+#'
+#' @return A named list with provided parameters
+#'
 .tuning_params_as_tibble <- function(params) {
     params <- lapply(params, function(x) {
         if (purrr::is_atomic(x)) {

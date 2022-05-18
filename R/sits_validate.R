@@ -274,7 +274,9 @@ sits_validate <- function(samples,
 #'
 #' @keywords internal
 #' @param data   A sits tibble to be partitioned.
-#' @param folds     Number of folds
+#' @param folds  Number of folds
+#'
+#' @return A list of row position integers corresponding to the training data.
 #'
 .sits_create_folds <- function(data, folds = 5) {
     # verify if data exists

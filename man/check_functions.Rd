@@ -233,6 +233,8 @@ argument as \code{x} if a \code{TRUE} evaluation occurs.
 \code{.check_set_caller()} returns \code{NULL}.
 
 \code{.check_identify_caller()} returns a \code{character} value.
+
+The same input value if no error occurs
 }
 \description{
 Functions used to check parameters in a systematic way.
