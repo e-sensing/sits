@@ -2,7 +2,10 @@
 
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
-# What's new in SITS version 0.17.0
+# What's new in SITS version 1.0.0
+
+### New features in SITS version 1.0.0
+* hotfix improve `sits_whittaker()` function to process cube;
 
 ### New features in SITS version 0.17.0
 * Introduced new classifier model `sits_lighttae()`
