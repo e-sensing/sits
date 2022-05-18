@@ -58,7 +58,7 @@
 #'             )
 #'         ),
 #'         trials = 4,
-#'         multicores = 4,
+#'         multicores = 2,
 #'         progress = FALSE
 #'     )
 #'     # obtain accuracy, kappa and best_lr
@@ -243,7 +243,7 @@ sits_tuning <- function(samples,
 #'             )
 #'         ),
 #'         trials = 4,
-#'         multicores = 4,
+#'         multicores = 2,
 #'         progress = FALSE
 #'     )
 #' }

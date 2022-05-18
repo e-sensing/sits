@@ -94,7 +94,7 @@ plot.patterns <- function(x, y, ...) {
 
     # put the time series in the data frame
     plot.df <- purrr::pmap_dfr(
-        list(data$label, data$time_series),
+        list(x$label, x$time_series),
         function(label, ts) {
             lb <- as.character(label)
             # extract the time series and convert
@@ -103,7 +103,7 @@ plot.patterns <- function(x, y, ...) {
         }
     )
 
-    plot.df <- tidyr::pivot_longer(plot.df, cols = sits_bands(data))
+    plot.df <- tidyr::pivot_longer(plot.df, cols = sits_bands(x))
 
     # Plot temporal patterns
     gp <- ggplot2::ggplot(plot.df, ggplot2::aes_string(
@@ -162,14 +162,14 @@ plot.predicted <- function(x, y, ...,
     .check_require_packages("scales")
 
     if (purrr::is_null(bands)) {
-        bands <- sits_bands(data)
+        bands <- sits_bands(x)
     }
-    if (!all(bands %in% sits_bands(data))) {
-        bands <- sits_bands(data)
+    if (!all(bands %in% sits_bands(x))) {
+        bands <- sits_bands(x)
     }
     # configure plot colors
     # get labels from predicted tibble
-    labels <- unique(data$predicted[[1]]$class)
+    labels <- unique(x$predicted[[1]]$class)
     colors <- .config_colors(
         labels = labels,
         palette = palette,
@@ -179,8 +179,8 @@ plot.predicted <- function(x, y, ...,
     # put the time series in the data frame
     p  <- purrr::pmap(
         list(
-            data$latitude, data$longitude, data$label,
-            data$time_series, data$predicted
+            x$latitude, x$longitude, x$label,
+            x$time_series, x$predicted
         ),
         function(row_lat, row_long, row_label,
                  row_time_series, row_predicted) {
@@ -740,6 +740,7 @@ plot.classified_image <- function(x, y, ...,
     .check_set_caller(".sits_plot_classified_image")
 
     # precondition - cube must be a labelled cube
+    cube <- x
     .check_chr_within(
         x = "classified_image",
         within = class(cube),
@@ -894,8 +895,8 @@ plot.som_evaluate_cluster <- function(x, y, ...,
     }
 
     # Filter the cluster to plot
-    if (!(is.null(cluster_name))) {
-        data <- dplyr::filter(data, .data[["cluster"]] %in% cluster_name)
+    if (!(is.null(name_cluster))) {
+        data <- dplyr::filter(data, .data[["cluster"]] %in% name_cluster)
     }
     # configure plot colors
     # get labels from cluster table
@@ -927,7 +928,6 @@ plot.som_evaluate_cluster <- function(x, y, ...,
         ggplot2::ggtitle(title)
 
     p <- graphics::plot(p)
-    return(invisible(p))
     return(invisible(p))
 }
 #' @title  Plot a SOM map

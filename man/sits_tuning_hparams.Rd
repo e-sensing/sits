@@ -57,7 +57,7 @@ if (sits_run_examples()) {
             )
         ),
         trials = 4,
-        multicores = 4,
+        multicores = 2,
         progress = FALSE
     )
 }
