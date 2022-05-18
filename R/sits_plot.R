@@ -1415,9 +1415,9 @@ plot.torch_model <- function(x, y, ...) {
 #' @param cluster       cluster object produced by `sits_cluster` function.
 #' @param cutree_height dashed horizontal line to be drawn
 #'                      indicating the height of dendrogram cutting.
-#' @param palette       hcl color palette
+#' @param palette       hcl color palette.
 #'
-#' @return              The dendogram object.
+#' @return              The dendrogram object.
 .sits_plot_dendrogram <- function(data,
                                   cluster,
                                   cutree_height,

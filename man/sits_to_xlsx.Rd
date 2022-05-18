@@ -13,6 +13,9 @@ sits_to_xlsx(acc_lst, file, data = NULL)
 
 \item{data}{(optional) Print information about the samples}
 }
+\value{
+No return value, called for side effects.
+}
 \description{
 Saves confusion matrices as Excel spreadsheets. This function
 takes the a list of accuracy assessments generated
