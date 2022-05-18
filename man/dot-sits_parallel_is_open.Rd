@@ -6,6 +6,9 @@
 \usage{
 .sits_parallel_is_open()
 }
+\value{
+No value, called for side effect.
+}
 \description{
 Check if sits clusters are open or not
 }

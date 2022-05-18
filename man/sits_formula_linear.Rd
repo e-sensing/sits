@@ -11,7 +11,7 @@ sits_formula_linear(predictors_index = -2:0)
 whose names are used to compose formula (default: -2:0).}
 }
 \value{
-A function that computes a valid formula.
+A function that computes a valid formula using a linear function.
 }
 \description{
 Provides a symbolic description of a fitting model.

@@ -14,7 +14,7 @@
 \item{...}{additional parameters to be passed to raster package}
 }
 \value{
-numeric matrix with raster values for each coordinate
+Numeric matrix with raster values for each coordinate
 }
 \description{
 Raster package internal extract values function

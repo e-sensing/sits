@@ -34,7 +34,8 @@ sits_apply(data, ...)
 \item{output_dir}{Directory where files will be saved.}
 }
 \value{
-A sits tibble or a sits cube with new bands.
+A sits tibble or a sits cube with new bands, produced
+        according to the requested expression.
 }
 \description{
 Apply a named expression to a sits cube or a sits tibble

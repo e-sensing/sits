@@ -15,7 +15,7 @@
 \item{block}{Block designation.}
 }
 \value{
-returns a filename
+A filename to store an output block from smoothing operation.
 }
 \description{
 Create a filename to store an output block from smoothing operation

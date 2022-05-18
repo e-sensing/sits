@@ -7,7 +7,7 @@
 .raster_check_package()
 }
 \value{
-package representation class
+name of the package.
 }
 \description{
 Check for raster package availability

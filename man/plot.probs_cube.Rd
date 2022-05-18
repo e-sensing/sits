@@ -30,7 +30,9 @@
 \item{palette}{HCL palette used for visualization.}
 }
 \value{
-The plot itself.
+A plot object produced by the stars package
+                      containing maps of probabilities associated
+                      to each class for each pixel.
 }
 \description{
 plots a probability cube using stars

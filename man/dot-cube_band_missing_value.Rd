@@ -12,7 +12,7 @@
 \item{band}{Band}
 }
 \value{
-the missing value for the band.
+The missing value for the band.
 }
 \description{
 Missing value of a cube band

@@ -14,7 +14,7 @@
 #' @param  data       Time series.
 #' @param  file       Name of the exported CSV file.
 #'
-#' @return The status of the operation.
+#' @return            No return value, called for side effects.
 #'
 #' @export
 #'
@@ -46,15 +46,13 @@ sits_to_csv <- function(data, file) {
 
     # write the CSV file
     utils::write.csv(csv, file, row.names = FALSE, quote = FALSE)
-
-    return(invisible(file))
 }
 #' @title Check if a CSV tibble is valid
 #' @name  .sits_csv_check
 #' @keywords internal
 #'
 #' @param  csv       Tibble read from a CSV file
-#' @return A logical value
+#' @return           Does the CSV file contain the columns needed by sits?
 #'
 .sits_csv_check <- function(csv) {
 

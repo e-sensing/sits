@@ -14,7 +14,9 @@
 \item{...}{Further specifications for \link{plot}.}
 }
 \value{
-The plot itself.
+A plot object produced by the ggplot2 package
+                      showing the evolution of the loss and
+                      accuracy of the model.
 }
 \description{
 Plots a deep learning model developed using torch.

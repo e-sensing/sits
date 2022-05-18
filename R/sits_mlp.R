@@ -35,8 +35,8 @@
 #' @param min_delta	         Minimum improvement in loss function
 #'                           to reset the patience counter.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
-#' @return                   Either a model to be passed in sits_predict
-#'                           or a function prepared to be called further.
+#' @return                   A torch mlp model to be used for classification.
+#'
 #'
 #' @note
 #' The parameters for the MLP have been chosen based on the work by

@@ -17,7 +17,7 @@ indicating the height of dendrogram cutting.}
 \item{palette}{hcl color palette}
 }
 \value{
-The plot itself.
+The dendogram object.
 }
 \description{
 Plot a dendrogram

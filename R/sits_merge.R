@@ -44,6 +44,7 @@ sits_merge <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     UseMethod("sits_merge", data1)
 }
 
+#' @rdname sits_merge
 #' @export
 sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 
@@ -99,7 +100,7 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     )
     return(result)
 }
-
+#' @rdname sits_merge
 #' @export
 #'
 sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {

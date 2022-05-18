@@ -14,7 +14,8 @@
 \item{...}{Further specifications for \link{plot}.}
 }
 \value{
-The plot itself.
+A plot showing the sample-to-sample distances
+                      and sample-to-prediction distances.
 }
 \description{
 Make a kernel density plot of samples distances.

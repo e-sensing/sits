@@ -10,7 +10,7 @@
 \item{csv}{Tibble read from a CSV file}
 }
 \value{
-A logical value
+Does the CSV file contain the columns needed by sits?
 }
 \description{
 Check if a CSV tibble is valid

@@ -27,7 +27,8 @@
 #' @param ml_method          Machine learning method.
 #' @param multicores         Number of cores to process in parallel.
 #'
-#' @return A tibble containing pairs of reference and predicted values.
+#' @return A \code{caret::confusionMatrix} object to be used for
+#'         validation assessment.
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
@@ -184,7 +185,8 @@ sits_kfold_validate <- function(samples,
 #'                           for validation (if samples_validation is NULL)
 #' @param ml_method          Machine learning method.
 #'
-#' @return A tibble containing pairs of reference and predicted values.
+#' @return A \code{caret::confusionMatrix} object to be used for
+#'         validation assessment.
 #' @export
 sits_validate <- function(samples,
                           samples_validation = NULL,

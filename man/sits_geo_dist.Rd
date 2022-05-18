@@ -15,7 +15,8 @@ for prediction.}
 \item{n}{Maximum number of samples to consider.}
 }
 \value{
-A tibble with sample-to-sample and sample-to-prediction distances.
+A tibble with sample-to-sample
+               and sample-to-prediction distances.
 }
 \description{
 Compute the minimum distances among samples and samples to prediction

@@ -17,7 +17,8 @@
 \item{bbox}{numeric vector with names "xmin", "xmax", "ymin", "ymax".}
 }
 \value{
-numeric matrix
+Subset of a raster object as defined by either block
+               or bbox parameters
 }
 \description{
 Raster package internal crop raster function

@@ -4,13 +4,13 @@
 \alias{.raster_resampling}
 \title{Raster package internal resampling method}
 \usage{
-.raster_resampling(method, ...)
+.raster_resampling(method)
 }
 \arguments{
 \item{method}{sits internal raster resampling method.}
 }
 \value{
-character string
+resampling method (if valid)
 }
 \description{
 Raster package internal resampling method

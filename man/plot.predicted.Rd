@@ -19,7 +19,8 @@
 in case classes are not in the default sits palette.}
 }
 \value{
-The plot itself.
+A plot object produced by ggplot2
+                      showing the time series and its label.
 }
 \description{
 Given a sits tibble with a set of predictions, plot them
@@ -41,5 +42,7 @@ if (sits_run_examples()) {
 }
 }
 \author{
+Victor Maus, \email{vwmaus1@gmail.com}
+
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

@@ -1,4 +1,3 @@
-
 #' @keywords internal
 #' @export
 .raster_check_package.terra <- function() {
@@ -14,7 +13,6 @@
     return(invisible(pkg_name))
 }
 
-
 #' @keywords internal
 #' @export
 .raster_data_type.terra <- function(data_type, ...) {
@@ -23,7 +21,7 @@
 
 #' @keywords internal
 #' @export
-.raster_resampling <- function(method, ...) {
+.raster_resampling.terra <- function(method, ...) {
     return(method)
 }
 
@@ -44,7 +42,7 @@
 .raster_set_values.terra <- function(r_obj, values, ...) {
     terra::values(x = r_obj) <- as.matrix(values)
 
-    return(invisible(r_obj))
+    return(r_obj)
 }
 
 #' @keywords internal
@@ -353,6 +351,7 @@
 
 #' @keywords internal
 #' @export
+#'
 .raster_freq.terra <- function(r_obj, ...) {
     terra::freq(x = r_obj, bylayer = TRUE)
 }

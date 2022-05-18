@@ -10,7 +10,7 @@
 \item{data}{A sits tibble.}
 }
 \value{
-A tibble with statistics.
+A tibble with statistics for normalization of time series.
 }
 \description{
 this function normalizes the time series using the mean and

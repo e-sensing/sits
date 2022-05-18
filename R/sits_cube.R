@@ -42,6 +42,7 @@
 #' @param labels       Labels associated to the classes (only for result cubes).
 #' @param multicores   Number of workers for parallel processing
 #' @param progress     Show a progress bar?
+#' @return A \code{tibble} describing the contents of a data cube.
 #'
 #' @details
 #'
@@ -111,7 +112,6 @@
 #' }
 #'
 #'
-#' @return A \code{tibble} describing the contents of a data cube.
 #'
 #' @note In AWS, there are two types of collections: open data and
 #' requester-pays. Currently, \code{sits} supports collection

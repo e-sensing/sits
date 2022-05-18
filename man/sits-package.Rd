@@ -36,7 +36,6 @@ Authors:
   \item Rolf Simoes \email{rolf.simoes@inpe.br}
   \item Felipe Souza \email{felipe.carvalho@inpe.br}
   \item Lorena Santos \email{lorena.santos@inpe.br}
-  \item Alexandre Carvalho \email{alexandre.ywata@ipea.gov.br}
   \item Pedro Andrade \email{pedro.andrade@inpe.br}
   \item Karine Ferreira \email{karine.ferreira@inpe.br}
   \item Alber Sanchez \email{alber.ipia@inpe.br}

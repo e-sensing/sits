@@ -10,7 +10,7 @@ sits_as_sf(samples)
 \item{samples}{A sits tibble with one or more time series.}
 }
 \value{
-Return a sits_tibble as a sf object of point geometry.
+An sf object of point geometry.
 }
 \description{
 Return a sits_tibble as a sf object of point geometry.

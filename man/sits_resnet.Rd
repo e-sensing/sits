@@ -62,7 +62,7 @@ to reset the patience counter.}
 \item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }
 \value{
-A fitted model to be passed to \code{\link[sits]{sits_classify}}.
+A fitted model to be used for classification.
 }
 \description{
 Use a ResNet architecture for classifying image time series.

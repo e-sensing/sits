@@ -12,7 +12,7 @@ sits_to_csv(data, file)
 \item{file}{Name of the exported CSV file.}
 }
 \value{
-The status of the operation.
+No return value, called for side effects.
 }
 \description{
 Converts metadata from a sits tibble to a CSV file.

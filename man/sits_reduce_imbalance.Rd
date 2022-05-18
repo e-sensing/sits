@@ -27,7 +27,7 @@ oversampling).}
 \item{multicores}{Number of cores to process the data (default 2).}
 }
 \value{
-A sits tibble with a fixed quantity of samples.
+A sits tibble with reduced sample imbalance.
 }
 \description{
 Takes a sits tibble with different labels and

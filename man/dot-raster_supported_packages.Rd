@@ -6,6 +6,9 @@
 \usage{
 .raster_supported_packages()
 }
+\value{
+Names of raster packages supported by sits
+}
 \description{
 Supported raster packages
 }

@@ -27,7 +27,9 @@
 \item{palette}{HCL palette used for visualization.}
 }
 \value{
-The plot itself.
+A plot object produced by the stars package
+                      with a map showing the uncertainty associated
+                      to each classified pixel.
 }
 \description{
 plots a probability cube using stars

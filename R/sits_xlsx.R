@@ -10,6 +10,7 @@
 #' @param acc_lst        A list of accuracy statistics
 #' @param file           The file where the XLSX data is to be saved.
 #' @param data          (optional) Print information about the samples
+#' @return               No return value, called for side effects.
 #'
 #' @note
 #' Please refer to the sits documentation available in

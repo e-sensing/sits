@@ -409,7 +409,7 @@ sits_xgboost <- function(samples = NULL,
 #'
 #' @param predictors_index  Index of the valid columns
 #'                          to compose formula (default: -2:0).
-#' @return A function that computes a valid formula.
+#' @return A function that computes a valid formula using a log function.
 #'
 #' @export
 #'
@@ -465,7 +465,7 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #'
 #' @param predictors_index  Index of the valid columns
 #'                    whose names are used to compose formula (default: -2:0).
-#' @return A function that computes a valid formula.
+#' @return A function that computes a valid formula using a linear function.
 #'
 #' @export
 #'
@@ -622,7 +622,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #' standard deviation of all the time series.
 #'
 #' @param data     A sits tibble.
-#' @return A tibble with statistics.
+#' @return A tibble with statistics for normalization of time series.
 .sits_ml_normalization_param <- function(data) {
     .sits_tibble_test(data)
     Index <- NULL # to avoid setting global variable
@@ -658,7 +658,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #'
 #' @param ml_model     A trained model.
 #'
-#' @return A tibble with samples used to train model
+#' @return A tibble with samples used to train a machine learning model.
 #'
 .sits_ml_model_samples <- function(ml_model) {
 

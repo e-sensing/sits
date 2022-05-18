@@ -14,7 +14,9 @@ sits_uncertainty_sampling(cube, n = 100, min_dist_pixels = 10)
 \item{min_dist_pixels}{Minimum distance among suggested points (in pixels).}
 }
 \value{
-A data.frame with longitude & latitude in WGS84.
+A data.frame with longitude & latitude in WGS84 with locations
+            which have high uncertainty and meet the minumum distance
+            criteria.
 }
 \description{
 Suggest samples for regions of high uncertainty as predicted by the model.

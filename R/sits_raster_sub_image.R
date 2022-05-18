@@ -4,7 +4,7 @@
 
 #' @param  cube            data cube (one tile only).
 #' @param  roi             spatial region of interest
-#' @return                 logical
+#' @return                 does a spatial ROI intersect a data cube?
 #'
 .sits_raster_sub_image_intersects <- function(cube, roi) {
 

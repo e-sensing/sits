@@ -20,6 +20,13 @@
 
 \item{...}{additional arguments to fn function}
 }
+\value{
+List with IDs of workers and their values
+
+List with values and nodes
+
+No value, called for side effect.
+}
 \description{
 These internal functions are a reimplementation of a fault tolerant
 version of snow package functions \code{recv_one_data()},

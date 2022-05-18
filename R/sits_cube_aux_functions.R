@@ -100,7 +100,7 @@
 #' @name .cube_bands
 #' @param cube       Data cube
 #' @param add_cloud  Include the cloud band?
-#' @return a \code{vector} with the bands.
+#' @return           A \code{vector} with the cube bands.
 .cube_bands <- function(cube, add_cloud = TRUE) {
     bands <- sits_bands(cube)
 
@@ -122,7 +122,7 @@
 #' @param cube          Data cube
 #' @param bands         Bands to be check
 #' @param add_cloud     Include the cloud band?
-#' @return              NULL if function fails
+#' @return              No return value, called for side effects.
 #' @rdname cube_functions
 .cube_bands_check <- function(cube, bands, add_cloud = TRUE) {
 
@@ -132,8 +132,6 @@
         case_sensitive = FALSE,
         msg = "invalid 'bands' parameter"
     )
-
-    return(invisible(NULL))
 }
 
 
@@ -142,7 +140,7 @@
 #' @name .cube_band_missing_value
 #' @param cube  Data cube
 #' @param band  Band
-#' @return the missing value for the band.
+#' @return      The missing value for the band.
 .cube_band_missing_value <- function(cube, band) {
 
     # pre-condition
@@ -184,7 +182,7 @@
 #' @name .cube_band_minimum_value
 #' @param cube  Data cube
 #' @param band  Band
-#' @return minimum value for the band in the data cube
+#' @return      Minimum value for the band in the data cube
 #'
 .cube_band_minimum_value <- function(cube, band) {
 
@@ -227,7 +225,7 @@
 #' @name .cube_band_maximum_value
 #' @param cube  Data cube
 #' @param band  Band
-#' @return maximum value for the band in the data cube
+#' @return      Maximum value for the band in the data cube.
 #'
 .cube_band_maximum_value <- function(cube, band) {
 
@@ -269,7 +267,7 @@
 #' @name .cube_band_scale_factor
 #' @param cube  Data cube
 #' @param band  Band
-#' @return scale factor for the band in the data cube
+#' @return      Scale factor for the band in the data cube.
 #'
 .cube_band_scale_factor <- function(cube, band) {
 

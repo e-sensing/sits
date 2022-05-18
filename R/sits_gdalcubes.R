@@ -134,7 +134,7 @@
 #'
 #' @param cube  Data cube.
 #'
-#' @return      \code{Gdalcubes::image_mask} with information about mask band.
+#' @return      \code{gdalcubes::image_mask} with information about mask band.
 .gc_create_cloud_mask <- function(cube) {
 
     # set caller to show in errors

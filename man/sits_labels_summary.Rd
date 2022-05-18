@@ -2,15 +2,18 @@
 % Please edit documentation in R/sits_labels.R
 \name{sits_labels_summary}
 \alias{sits_labels_summary}
+\alias{sits_labels_summary.sits}
 \title{Inform label distribution of a set of time series}
 \usage{
 sits_labels_summary(data)
+
+\method{sits_labels_summary}{sits}(data)
 }
 \arguments{
 \item{data}{Valid sits tibble}
 }
 \value{
-A tibble with labels frequency.
+A tibble with the frequency of each label.
 }
 \description{
 Describes labels in a sits tibble

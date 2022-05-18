@@ -32,6 +32,12 @@
 
 \item{rev}{Invert the order of hcl palette?}
 }
+\value{
+A plot object produced by the ggplot2 package
+                        with a color maps, where each pixel has the color
+                        associated to a label, as defined by the legend
+                        parameter.
+}
 \description{
 plots a classified raster using ggplot.
 }

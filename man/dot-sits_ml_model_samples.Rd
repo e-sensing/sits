@@ -10,7 +10,7 @@
 \item{ml_model}{A trained model.}
 }
 \value{
-A tibble with samples used to train model
+A tibble with samples used to train a machine learning model.
 }
 \description{
 this function get the samples from a ml_model object.

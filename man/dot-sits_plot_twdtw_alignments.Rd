@@ -8,7 +8,7 @@
 }
 \arguments{
 \item{matches}{A list of dtwSat S4 match objects
-(produced by sits_TWDTW_matches).}
+produced by sits_TWDTW_matches.}
 }
 \description{
 Plots the alignments from TWDTW classification

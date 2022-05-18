@@ -33,7 +33,8 @@
 \item{date}{Date to be plotted.}
 }
 \value{
-Plot object.
+A plot object produced by the terra package
+                      with an RGB or B/W image.
 }
 \description{
 Plot RGB raster cube

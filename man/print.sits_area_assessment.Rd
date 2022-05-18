@@ -14,7 +14,7 @@
 \item{digits}{Significant digits}
 }
 \value{
-\code{x}   is invisibly returned.
+No return value, called for side effects.
 }
 \description{
 Adaptation of the caret::print.confusionMatrix method
