@@ -504,7 +504,8 @@
 #' @param band_cube      Name of the band to the retrieved
 #' @param xy             Matrix with XY location
 #'
-#' @return Numeric matrix with raster values for each coordinate
+#' @return Numeric matrix with raster values for each coordinate.
+#'
 .cube_extract <- function(cube, band_cube, xy) {
 
 
