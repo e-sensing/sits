@@ -695,6 +695,9 @@
 #' @param gdal_options   Compression method to be used
 #' @param overwrite      Overwrite the file?
 #' @param progress       Show progress bar?
+#'
+#' @return No return value, called for side effects.
+#'
 .raster_merge <- function(in_files,
                           out_file,
                           format,

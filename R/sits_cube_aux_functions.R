@@ -65,9 +65,9 @@
 #' @name .cube_area_freq
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param cube   Data cube
 #'
-#' @param cube           Data cube
-#' @return               Frequency of each label in the data cube
+#' @return Frequency of each label in the data cube
 #'
 .cube_area_freq <- function(cube) {
 
@@ -100,7 +100,8 @@
 #' @name .cube_bands
 #' @param cube       Data cube
 #' @param add_cloud  Include the cloud band?
-#' @return           A \code{vector} with the cube bands.
+#'
+#' @return A \code{vector} with the cube bands.
 .cube_bands <- function(cube, add_cloud = TRUE) {
     bands <- sits_bands(cube)
 
@@ -122,8 +123,10 @@
 #' @param cube          Data cube
 #' @param bands         Bands to be check
 #' @param add_cloud     Include the cloud band?
-#' @return              No return value, called for side effects.
+#'
+#' @return No return value, called for side effects.
 #' @rdname cube_functions
+#'
 .cube_bands_check <- function(cube, bands, add_cloud = TRUE) {
 
     # all bands are upper case
@@ -140,7 +143,9 @@
 #' @name .cube_band_missing_value
 #' @param cube  Data cube
 #' @param band  Band
-#' @return      The missing value for the band.
+#'
+#' @return The missing value for the band.
+#'
 .cube_band_missing_value <- function(cube, band) {
 
     # pre-condition
@@ -182,7 +187,8 @@
 #' @name .cube_band_minimum_value
 #' @param cube  Data cube
 #' @param band  Band
-#' @return      Minimum value for the band in the data cube
+#'
+#' @return Minimum value for the band in the data cube
 #'
 .cube_band_minimum_value <- function(cube, band) {
 
@@ -225,7 +231,8 @@
 #' @name .cube_band_maximum_value
 #' @param cube  Data cube
 #' @param band  Band
-#' @return      Maximum value for the band in the data cube.
+#'
+#' @return Maximum value for the band in the data cube.
 #'
 .cube_band_maximum_value <- function(cube, band) {
 
@@ -265,9 +272,11 @@
 #' @title Scale factor of a cube band
 #' @keywords internal
 #' @name .cube_band_scale_factor
+#'
 #' @param cube  Data cube
 #' @param band  Band
-#' @return      Scale factor for the band in the data cube.
+#'
+#' @return Scale factor for the band in the data cube.
 #'
 .cube_band_scale_factor <- function(cube, band) {
 
@@ -411,7 +420,9 @@
 #' @param bbox         bounding box of the ROI
 #' @param output_dir   prefix of the output files.
 #' @param version      version of the output files
-#' @return             output data cube
+#'
+#' @return output data cube
+#'
 .cube_derived_create <- function(cube,
                                  cube_class,
                                  band_name,
@@ -497,12 +508,14 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description          Given a data cube, retrieve the time series
-#'                       of XY locations
+#' @description Given a data cube, retrieve the time series of XY locations
 #'
-#' @param cube           Metadata about a data cube
-#' @param band_cube      Name of the band to the retrieved
-#' @param xy             Matrix with XY location
+#' @param cube        Metadata about a data cube
+#' @param band_cube   Name of the band to the retrieved
+#' @param xy          Matrix with XY location
+#'
+#' @return Numeric matrix with raster values for each coordinate.
+#'
 .cube_extract <- function(cube, band_cube, xy) {
 
 

@@ -13,9 +13,11 @@
 
 \item{xy}{Matrix with XY location}
 }
+\value{
+Numeric matrix with raster values for each coordinate.
+}
 \description{
-Given a data cube, retrieve the time series
-                      of XY locations
+Given a data cube, retrieve the time series of XY locations
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

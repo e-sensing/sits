@@ -12,7 +12,7 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe
              person('Gilberto', 'Queiroz', role = c('aut'), email = 'gilberto.queiroz@inpe.br')
              )
 Maintainer: Gilberto Camara <gilberto.camara.inpe@gmail.com>
-Description:  An end-to-end toolkit for land use and land cover classification
+Description: An end-to-end toolkit for land use and land cover classification
     using big Earth observation data, based on machine learning methods 
     applied to satellite image data cubes, as described in Simoes et al (2021) <doi:10.3390/rs13132428>.
     Builds regular data cubes from collections in AWS, Microsoft Planetary Computer, 
@@ -96,7 +96,7 @@ Config/testthat/start-first: cube, raster, ml
 LinkingTo:
     Rcpp,
     RcppArmadillo
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 Collate: 
     'RcppExports.R'
     'data.R'

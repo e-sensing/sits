@@ -22,7 +22,8 @@ for validation (if samples_validation is NULL)}
 \item{ml_method}{Machine learning method.}
 }
 \value{
-A tibble containing pairs of reference and predicted values.
+A \code{caret::confusionMatrix} object to be used for
+        validation assessment.
 }
 \description{
 One round of cross-validation involves partitioning a sample of data

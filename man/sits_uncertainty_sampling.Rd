@@ -15,7 +15,7 @@ sits_uncertainty_sampling(cube, n = 100, min_dist_pixels = 10)
 }
 \value{
 A data.frame with longitude & latitude in WGS84 with locations
-            which have high uncertainty and meet the minumum distance
+            which have high uncertainty and meet the minimum distance
             criteria.
 }
 \description{

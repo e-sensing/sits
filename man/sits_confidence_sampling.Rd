@@ -23,7 +23,7 @@ sits_confidence_samples(
 }
 \value{
 A data.frame with longitude & latitude in WGS84 of locations
-            for each class that meet the criteria of minumum margin of
+            for each class that meet the criteria of minimum margin of
             confidence and minimum geographical distance between them.
 
 if (sits_run_examples()) {

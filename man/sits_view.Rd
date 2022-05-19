@@ -59,7 +59,7 @@ sits_view(x, ...)
 \item{prob_max}{Maximum a posteriori probability for SOM neuron
 samples to be shown}
 
-\item{prob_min}{Minimu a posteriori probability for SOM neuron
+\item{prob_min}{Minimum a posteriori probability for SOM neuron
 samples to be shown}
 
 \item{band}{For plotting grey images.}
@@ -77,7 +77,9 @@ samples to be shown}
 \item{class_cube}{Classified cube to be overlayed on top on image.}
 }
 \value{
-Leaflet object.
+A leaflet object containing either samples or
+                      data cubes embedded in a global map that can
+                      be visualized directly in an RStudio viewer.
 }
 \description{
 Uses leaflet to visualize time series, raster cube and
