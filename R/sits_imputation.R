@@ -4,7 +4,8 @@
 #' @description Remove NA by linear interpolation
 #'
 #' @param  data          A time series vector or matrix
-#' @return               A set of filtered time series.
+#' @return               A set of filtered time series using
+#'                       the imputation function.
 #'
 #' @export
 #'

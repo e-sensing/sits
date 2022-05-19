@@ -6,6 +6,9 @@
 \usage{
 .tuning_pick_random(trial, params)
 }
+\value{
+A list with evaluated random values
+}
 \description{
 Evaluate params by returning random numbers according
 to params definition returned by \code{sits_tuning_hparams}

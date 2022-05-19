@@ -3,6 +3,8 @@
 #' @name .sits_parallel_stop
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @return No value, called for side effect.
+#'
 .sits_parallel_stop <- function() {
     if (.sits_parallel_is_open()) {
         tryCatch(
@@ -20,6 +22,8 @@
 #' @name .sits_parallel_is_open
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @return No value, called for side effect.
+#'
 .sits_parallel_is_open <- function() {
     tryCatch(
         {
@@ -37,6 +41,8 @@
 #'
 #' @param workers   number of cluster to instantiate
 #' @param log       a logical indicating if log files must be written
+#' @return No value, called for side effect.
+#'
 .sits_parallel_start <- function(workers, log) {
     if (!.sits_parallel_is_open() ||
         length(sits_env[["cluster"]]) != workers) {
@@ -82,6 +88,8 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param worker_id   id of the cluster work to be recreated
+#' @return No value, called for side effect.
+#'
 .sits_parallel_reset_node <- function(worker_id) {
 
     # stop node
@@ -113,6 +121,7 @@
 #' @param x     a given list to be passed to a function
 #' @param fn    a function to be applied to each list element
 #' @param ...   additional arguments to fn function
+#' @return      List with IDs of workers and their values
 .sits_parallel_recv_one_data <- function() {
 
     # fault tolerant version of parallel:::recvOneData
@@ -162,6 +171,8 @@
 }
 
 #' @rdname sits_parallel_fault_tolerant
+#' @keywords internal
+#' @return      List with values and nodes
 .sits_parallel_recv_one_result <- function() {
 
     # fault tolerant version of parallel:::recvOneData
@@ -171,6 +182,8 @@
 }
 
 #' @rdname sits_parallel_fault_tolerant
+#' @keywords internal
+#' @return      No value, called for side effect.
 .sits_parallel_cluster_apply <- function(x, fn, ..., pb = NULL) {
 
     # fault tolerant version of parallel::clusterApplyLB

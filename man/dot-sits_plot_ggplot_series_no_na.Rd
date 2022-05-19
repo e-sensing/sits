@@ -10,7 +10,8 @@
 \item{row}{row of a sits tibble with the time series to be plotted.}
 }
 \value{
-The plot itself.
+A plot object produced by the ggplot2 package where the
+                   the time series has no NA values.
 }
 \description{
 Plots a set of time series using ggplot in the case the series

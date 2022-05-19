@@ -6,6 +6,9 @@
 \usage{
 .raster_check_bbox(bbox)
 }
+\value{
+No value, called for side effects.
+}
 \description{
 Check for bbox object consistency
 }

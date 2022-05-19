@@ -2,6 +2,7 @@
 % Please edit documentation in R/sits_get_data.R
 \name{.sits_get_ts}
 \alias{.sits_get_ts}
+\alias{.sits_get_ts.raster_cube}
 \title{Dispatch function to get time series from data cubes and cloud
 services}
 \usage{
@@ -10,6 +11,17 @@ services}
   samples,
   ...,
   bands = NULL,
+  impute_fn,
+  multicores,
+  output_dir,
+  progress
+)
+
+\method{.sits_get_ts}{raster_cube}(
+  cube,
+  samples,
+  ...,
+  bands,
   impute_fn,
   multicores,
   output_dir,
@@ -29,6 +41,10 @@ services}
 
 \item{progress}{A logical value indicating if a progress bar
 should be shown. Default is \code{FALSE}.}
+}
+\value{
+A tibble with a set of time series retrieved
+                       from a data cube.
 }
 \description{
 Dispatch function to get time series from data cubes and cloud

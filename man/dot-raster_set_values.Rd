@@ -14,7 +14,7 @@
 \item{...}{additional parameters to be passed to raster package}
 }
 \value{
-raster package object
+Raster object
 }
 \description{
 Raster package internal set values function

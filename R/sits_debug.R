@@ -32,8 +32,7 @@
 #' @param value        Any value to be logged. The value will be converted
 #'                     to string and escaped.
 #'
-#' @return
-#' For .sits_debug, a logical value with current debug flag
+#' @return             A logical value with current debug flag
 NULL
 
 #' @rdname sits_debug_log

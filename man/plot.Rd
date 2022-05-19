@@ -15,7 +15,9 @@
 \item{...}{Further specifications for \link{plot}.}
 }
 \value{
-The plot itself.
+A series of plot objects produced by ggplot2 showing all
+  time series associated to each combination of band and label,
+  and including the median, and first and third quartile ranges.
 }
 \description{
 This is a generic function. Parameters depend on the specific

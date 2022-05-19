@@ -21,7 +21,8 @@ sits_kfold_validate(
 \item{multicores}{Number of cores to process in parallel.}
 }
 \value{
-A tibble containing pairs of reference and predicted values.
+A \code{caret::confusionMatrix} object to be used for
+        validation assessment.
 }
 \description{
 Splits the set of time series into training and validation and

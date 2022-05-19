@@ -10,7 +10,7 @@
 \item{data_type}{sits internal raster data type.}
 }
 \value{
-character string
+internal data type used by raster package
 }
 \description{
 Raster package internal data type representation

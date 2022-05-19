@@ -17,8 +17,16 @@
 #' @param  class_cube    Classified cube to be overlayed on top on image.
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file.
+#' @param  label         Label from the SOM map to be shown.
+#' @param  prob_max      Maximum a posteriori probability for SOM neuron
+#'                       samples to be shown
+#' @param  prob_min      Minimum a posteriori probability for SOM neuron
+#'                       samples to be shown
 #'
-#' @return               Leaflet object.
+#'
+#' @return               A leaflet object containing either samples or
+#'                       data cubes embedded in a global map that can
+#'                       be visualized directly in an RStudio viewer.
 #'
 #' @note
 #' Please refer to the sits documentation available in
@@ -72,10 +80,6 @@ sits_view <- function(x, ...) {
 
     # set caller to show in errors
     .check_set_caller("sits_view")
-    .check_that(
-        x = inherits(x, c("sits", "raster_cube", "classified_image")),
-        msg = "only works with time series, raster cubes and classified images"
-    )
     UseMethod("sits_view", x)
 }
 #' @rdname   sits_view
@@ -154,7 +158,6 @@ sits_view.sits <- function(x, ...,
         leaflet::addCircleMarkers(
             map = .,
             data = samples,
-            popup = ~label,
             color = ~ factpal(label),
             radius = 4,
             stroke = FALSE,
@@ -172,6 +175,121 @@ sits_view.sits <- function(x, ...,
             values  = samples$label,
             title   = "Training Samples",
             opacity = 1
+        )
+    return(leaf_map)
+}
+#' @rdname   sits_view
+#'
+#' @export
+#'
+sits_view.som_map <- function(x, ...,
+                              label,
+                              prob_max = 1.0,
+                              prob_min = 0.7,
+                              legend = NULL,
+                              palette = "Harmonic") {
+
+    # view the samples
+    # first select unique locations
+    samples <- dplyr::distinct(
+        x$data,
+        .data[["longitude"]],
+        .data[["latitude"]],
+        .data[["label"]]
+    )
+    # convert tibble to sf
+    samples <- sf::st_as_sf(
+        samples[c("longitude", "latitude", "label")],
+        coords = c("longitude", "latitude"),
+        crs = 4326
+    )
+    # get the bounding box
+    samples_bbox <- sf::st_bbox(samples)
+    # get the labels
+    labels <- sits_labels(samples)
+
+    # if colors are not specified, get them from the configuration file
+    if (purrr::is_null(legend)) {
+        colors <- .config_colors(
+            labels = labels,
+            palette = palette,
+            rev = TRUE
+        )
+    } else {
+        .check_chr_within(
+            x = labels,
+            within = names(legend),
+            msg = "some labels are missing from the legend"
+        )
+        colors <- unname(legend[labels])
+    }
+    # create a pallete of colors
+    factpal <- leaflet::colorFactor(
+        palette = colors,
+        domain = labels
+    )
+
+    # use the neuron tibble with id neuron and samples per neuron
+    # group neurons by neuron_id, best classes
+    # filter by label, prior and posterior probability
+    neurons_best <- x$labelled_neurons %>%
+        dplyr::group_by(.data[["id_neuron"]]) %>%
+        dplyr::slice_max(.data[["count"]], with_ties = FALSE) %>%
+        dplyr::filter(.data[["label_samples"]] == label,
+                      .data[["post_prob"]] <= prob_max,
+                      .data[["post_prob"]] >= prob_min)
+
+    # use the sits tibble with time series and cols: id_sample and id_neuron
+    # filter by id_neuron
+    samples_label <-  x$data %>%
+        dplyr::inner_join(neurons_best, by = c("id_neuron" = "id_neuron"))
+
+    # create an interative map
+    leaf_map <- leaflet::leaflet() %>%
+        leaflet::addProviderTiles(
+            map = .,
+            provider = leaflet::providers$Esri.WorldImagery,
+            group = "ESRI"
+        ) %>%
+        leaflet::addProviderTiles(
+            map = .,
+            provider = leaflet::providers$GeoportailFrance.orthos,
+            group = "GeoPortalFrance"
+        ) %>%
+        leaflet::addProviderTiles(
+            map = .,
+            provider = leaflet::providers$OpenStreetMap,
+            group = "OSM"
+        ) %>%
+        leafem::addMouseCoordinates(map = .) %>%
+        leaflet::flyToBounds(
+            map = .,
+            lng1 = samples_bbox[["xmin"]],
+            lat1 = samples_bbox[["ymin"]],
+            lng2 = samples_bbox[["xmax"]],
+            lat2 = samples_bbox[["ymax"]]
+        ) %>%
+        leaflet::addCircleMarkers(
+            map = .,
+            data = samples_label,
+            popup = ~as.character(post_prob),
+            color = ~factpal(label),
+            radius = 4,
+            stroke = FALSE,
+            fillOpacity = 1,
+            group = "Samples"
+        ) %>%
+        leaflet::addLayersControl(
+            map = .,
+            baseGroups = c("ESRI", "GeoPortalFrance", "OSM"),
+            overlayGroups = c("Samples"),
+            options = leaflet::layersControlOptions(collapsed = FALSE)
+        ) %>%
+        leaflet::addLegend("topright",
+                           pal     = factpal,
+                           values  = samples$label,
+                           title   = "Training Samples",
+                           opacity = 1
         )
     return(leaf_map)
 }
@@ -581,7 +699,21 @@ sits_view.classified_image <- function(x, ...,
         )
     return(leaf_map)
 }
+#' @rdname sits_view
+#'
+#' @export
+#'
+sits_view.probs_cube <- function(x, ...) {
+    stop("sits_view not available for object of class probs_cube")
+}
 
+#' @rdname sits_view
+#'
+#' @export
+#'
+sits_view.default <- function(x, ...) {
+    stop(paste0("sits_view not available for object of class ", class(x)[1]))
+}
 #' @title  Return the colors associated to the classified image
 #' @name .view_get_colors
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

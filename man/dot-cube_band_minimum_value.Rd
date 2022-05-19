@@ -12,7 +12,7 @@
 \item{band}{Band}
 }
 \value{
-minimum value for the band in the data cube
+Minimum value for the band in the data cube
 }
 \description{
 Minimum value of a cube band

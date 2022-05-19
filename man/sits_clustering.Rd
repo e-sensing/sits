@@ -3,8 +3,6 @@
 \name{sits_clustering}
 \alias{sits_clustering}
 \alias{sits_cluster_dendro}
-\alias{sits_cluster_frequency}
-\alias{sits_cluster_clean}
 \title{Find clusters in time series samples}
 \usage{
 sits_cluster_dendro(
@@ -17,10 +15,6 @@ sits_cluster_dendro(
   .plot = TRUE,
   ...
 )
-
-sits_cluster_frequency(samples)
-
-sits_cluster_clean(samples)
 }
 \arguments{
 \item{samples}{Tibble with input set of time series.}
@@ -44,13 +38,6 @@ to dtwclust::tsclust() function.}
 }
 \value{
 Tibble with added "cluster" column.
-
-\code{sits_cluster_frequency()} returns a matrix containing
-all frequencies of labels in clusters.
-
-\code{sits_cluster_clean()} takes a tibble with time series
-that has an additional `cluster` produced by \code{sits_cluster_dendro()}
-and removes labels that are minority in each cluster.
 }
 \description{
 These functions support hierarchical agglomerative clustering in
@@ -80,19 +67,6 @@ if (sits_run_examples()) {
     clusters <- sits_cluster_dendro(cerrado_2classes)
 }
 
-if (sits_run_examples()) {
-    clusters <- sits_cluster_dendro(cerrado_2classes)
-    freq <- sits_cluster_frequency(clusters)
-    freq
-}
-if (sits_run_examples()) {
-    clusters <- sits_cluster_dendro(cerrado_2classes)
-    freq1 <- sits_cluster_frequency(clusters)
-    freq1
-    clean_clusters <- sits_cluster_clean(clusters)
-    freq2 <- sits_cluster_frequency(clean_clusters)
-    freq2
-}
 }
 \references{
 "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)

@@ -157,8 +157,7 @@ sits_config <- function(processing_bloat = NULL,
 
 #' @rdname sits_configuration
 #'
-#' @return
-#' \code{sits_config_show()} returns a \code{list} containing the respective
+#' @return A \code{list} containing the respective
 #' configuration printed in the console.
 #'
 #' @export
@@ -239,9 +238,7 @@ sits_config_show <- function(source = NULL,
 
 #' @rdname sits_configuration
 #'
-#' @return
-#' \code{sits_list_collections()} prints the collections available in
-#' each cloud service supported by sits.
+#' @return Prints collections available in each cloud service supported by sits.
 #'
 #' @export
 sits_list_collections <- function(source = NULL) {
@@ -466,7 +463,7 @@ sits_list_collections <- function(source = NULL) {
 #' @title Return the internal configuration file (only for developers)
 #' @name config_internals_file
 #' @keywords internal
-#' @return default configuration file
+#' @return default internal configuration file
 .config_internals_file <- function() {
 
     # load the default configuration file
@@ -480,7 +477,7 @@ sits_list_collections <- function(source = NULL) {
 #' @title Return the default configuration file for colors
 #' @name config_colors_file
 #' @keywords internal
-#' @return default configuration file
+#' @return default color configuration file
 .config_colors_file <- function() {
 
     # load the default configuration file
@@ -555,7 +552,7 @@ sits_list_collections <- function(source = NULL) {
 #' @param collection    Collection to be searched in the data source.
 #' @param bands         Bands to be included.
 #'
-#' @return An invisible null
+#' @return              Called for side effects.
 .config_check_bands <- function(source, collection, bands) {
 
     # set caller to show in errors
@@ -587,7 +584,7 @@ sits_list_collections <- function(source = NULL) {
 #' @title Check GEOTIFF creation options
 #' @name .config_gtiff_default_options
 #' @keywords internal
-#' @return  the creation options associated to the configuration
+#' @return  the creation options associated to GTIFF files
 .config_gtiff_default_options <- function() {
     res <- .config_get(key = c("gdal_creation_options"))
 
@@ -606,7 +603,7 @@ sits_list_collections <- function(source = NULL) {
 #'
 #' @param  data    Time series or data cube.
 #'
-#' @return an error if the meta data type is wrong
+#' @return         The meta data type associated to a sits object.
 .config_data_meta_type <- function(data) {
 
     # set caller to show in errors
@@ -1097,7 +1094,7 @@ sits_list_collections <- function(source = NULL) {
 #' @title Retrieve the valid types of metadata search
 #' @name .config_metadata_search_strategies
 #' @keywords internal
-#' @return Character values
+#' @return metadata search strategies used by sits.
 .config_metadata_search_strategies <- function() {
     res <- .config_get(key = c("metadata_search_strategies"))
 

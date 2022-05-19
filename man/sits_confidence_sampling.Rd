@@ -22,7 +22,9 @@ sits_confidence_samples(
 \item{min_dist_pixels}{Minimum distance among suggested points (in pixels).}
 }
 \value{
-A data.frame with longitude & latitude in WGS84.
+A data.frame with longitude & latitude in WGS84 of locations
+            for each class that meet the criteria of minimum margin of
+            confidence and minimum geographical distance between them.
 
 if (sits_run_examples()) {
     # create a data cube

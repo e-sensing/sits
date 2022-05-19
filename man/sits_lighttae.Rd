@@ -55,7 +55,7 @@ to reset the patience counter.}
 \item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }
 \value{
-A fitted model to be passed to \code{\link[sits]{sits_classify}}
+A fitted model to be used for classification of data cubes.
 }
 \description{
 Implementation of Light Temporal Attention Encoder (L-TAE)

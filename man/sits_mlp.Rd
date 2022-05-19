@@ -58,8 +58,7 @@ to reset the patience counter.}
 \item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }
 \value{
-Either a model to be passed in sits_predict
-                          or a function prepared to be called further.
+A torch mlp model to be used for classification.
 }
 \description{
 Use a multi-layer perceptron algorithm to classify data.

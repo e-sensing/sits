@@ -24,12 +24,13 @@ sits_bands <- function(x) {
     UseMethod("sits_bands", x)
 }
 
+#' @rdname sits_bands
 #' @export
 #'
 sits_bands.sits <- function(x) {
     return(setdiff(names(sits_time_series(x)), "Index"))
 }
-
+#' @rdname sits_bands
 #' @export
 #'
 sits_bands.sits_cube <- function(x) {
@@ -45,12 +46,14 @@ sits_bands.sits_cube <- function(x) {
     return(unlist(bands))
 }
 
+#' @rdname sits_bands
 #' @export
 #'
 sits_bands.patterns <- function(x) {
     return(sits_bands.sits(x))
 }
 
+#' @rdname sits_bands
 #' @export
 #'
 sits_bands.sits_model <- function(x) {

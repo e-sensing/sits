@@ -110,11 +110,16 @@ sits_cluster_dendro <- function(samples = NULL,
     message("result is a tibble with cluster indexes...")
     return(samples)
 }
+
 #'
-#' @rdname sits_clustering
-#' @return
-#' \code{sits_cluster_frequency()} returns a matrix containing
-#' all frequencies of labels in clusters.
+#' @title Show label frequency in each cluster produced by dendrogram analysis
+#' @name sits_cluster_frequency
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @param samples         Tibble with input set of time series with additional
+#'                        cluster information produced
+#'                        by \code{sits::sits_cluster_dendro}.
+#' @return                A matrix containing frequencies
+#'                        of labels in clusters.
 #' @examples
 #' if (sits_run_examples()) {
 #'     clusters <- sits_cluster_dendro(cerrado_2classes)
@@ -144,12 +149,20 @@ sits_cluster_frequency <- function(samples) {
     )
     return(result)
 }
-#'
-#' @rdname sits_clustering
-#' @return
-#' \code{sits_cluster_clean()} takes a tibble with time series
+
+#' @title Removes labels that are minority in each cluster.
+#' @name sits_cluster_clean
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description Takes a tibble with time series
 #' that has an additional `cluster` produced by \code{sits_cluster_dendro()}
 #' and removes labels that are minority in each cluster.
+#'
+#' @param samples         Tibble with input set of time series with additional
+#'                        cluster information produced
+#'                        by \code{sits::sits_cluster_dendro()}.
+#' @return                Tibble with time series where clusters have been
+#'                        cleaned of labels that were in a minority at each
+#'                        cluster.
 #' @examples
 #' if (sits_run_examples()) {
 #'     clusters <- sits_cluster_dendro(cerrado_2classes)

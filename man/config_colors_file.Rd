@@ -8,7 +8,7 @@
 .config_colors_file()
 }
 \value{
-default configuration file
+default color configuration file
 }
 \description{
 Return the default configuration file for colors

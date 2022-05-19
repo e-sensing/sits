@@ -12,7 +12,7 @@
 \item{roi}{spatial region of interest}
 }
 \value{
-logical
+does a spatial ROI intersect a data cube?
 }
 \description{
 Informs if a spatial ROI intersects a data cube

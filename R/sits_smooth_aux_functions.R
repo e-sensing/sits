@@ -6,7 +6,7 @@
 #' @param output_dir   Directory where block will be written.
 #' @param block        Block designation.
 #'
-#' @return  returns a filename
+#' @return  A filename to store an output block from smoothing operation.
 #'
 .smth_filename <- function(tile,
                            output_dir,

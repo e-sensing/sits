@@ -21,9 +21,11 @@
 
 \item{interval}{Interval between classifications.}
 
-\item{overlap}{Minimum overlapping between one match
-and the interval of classification.
-For details see dtwSat::twdtwApply help.}
+\item{overlap}{Minimum overlapping between one match and the
+interval of classification. For details see dtwSat::twdtwApply help.}
+}
+\value{
+Return the same input value.
 }
 \description{
 Plots the results of TWDTW classification (uses dtwSat).

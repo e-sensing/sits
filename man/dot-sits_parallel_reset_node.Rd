@@ -9,6 +9,9 @@
 \arguments{
 \item{worker_id}{id of the cluster work to be recreated}
 }
+\value{
+No value, called for side effect.
+}
 \description{
 Recreates a cluster worker
 }

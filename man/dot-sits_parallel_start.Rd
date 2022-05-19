@@ -11,6 +11,9 @@
 
 \item{log}{a logical indicating if log files must be written}
 }
+\value{
+No value, called for side effect.
+}
 \description{
 Start a new sits cluster for parallel processing
 }

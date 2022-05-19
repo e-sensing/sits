@@ -18,7 +18,9 @@
 \item{title}{Title of plot.}
 }
 \value{
-The plot itself.
+A plot object produced by the ggplot2 package
+                     containing color bars showing the confusion
+                     between classes.
 }
 \description{
 Plot a bar graph with informations about each cluster.

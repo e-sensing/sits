@@ -17,7 +17,8 @@
 #' @param output_dir    Directory where files will be saved.
 #' @param ...           Named expressions to be evaluated.
 #'
-#' @return A sits tibble or a sits cube with new bands.
+#' @return A sits tibble or a sits cube with new bands, produced
+#'         according to the requested expression.
 #'
 #' @examples
 #' # Get a time series

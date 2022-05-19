@@ -122,8 +122,11 @@ sits_som_map <- function(data,
     kohonen_obj <-
         kohonen::supersom(
             time_series,
-            grid = kohonen::somgrid(grid_xdim, grid_ydim,
-                "rectangular", "gaussian",
+            grid = kohonen::somgrid(
+                xdim = grid_xdim,
+                ydim = grid_ydim,
+                topo = "rectangular",
+                neighbourhood.fct = "gaussian",
                 toroidal = FALSE
             ),
             rlen = rlen,
@@ -414,7 +417,7 @@ sits_som_evaluate_cluster <- function(som_map) {
 #' @param labelled_neurons A tibble containing information about each neuron.
 #' @param som_radius       Distance in the SOM map to consider neighbours
 
-#' @return                 Returns the probability of a sample belongs
+#' @return                 The probability of a sample belongs
 #'                         to a cluster based on the class of neuron
 #'                         and its neighborhood.
 

@@ -13,10 +13,6 @@ sits_time_series <- function(data) {
     return(data$time_series[[1]])
 }
 
-
-
-
-
 #' @title Create a sits tibble to store the time series information
 #' @name .sits_tibble
 #' @keywords internal

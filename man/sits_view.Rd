@@ -3,13 +3,26 @@
 \name{sits_view}
 \alias{sits_view}
 \alias{sits_view.sits}
+\alias{sits_view.som_map}
 \alias{sits_view.raster_cube}
 \alias{sits_view.classified_image}
+\alias{sits_view.probs_cube}
+\alias{sits_view.default}
 \title{View data cubes and samples in leaflet}
 \usage{
 sits_view(x, ...)
 
 \method{sits_view}{sits}(x, ..., legend = NULL, palette = "Harmonic")
+
+\method{sits_view}{som_map}(
+  x,
+  ...,
+  label,
+  prob_max = 1,
+  prob_min = 0.7,
+  legend = NULL,
+  palette = "Harmonic"
+)
 
 \method{sits_view}{raster_cube}(
   x,
@@ -26,6 +39,10 @@ sits_view(x, ...)
 )
 
 \method{sits_view}{classified_image}(x, ..., tiles = NULL, legend = NULL, palette = "default")
+
+\method{sits_view}{probs_cube}(x, ...)
+
+\method{sits_view}{default}(x, ...)
 }
 \arguments{
 \item{x}{Object of class "sits",
@@ -36,6 +53,14 @@ sits_view(x, ...)
 \item{legend}{Named vector that associates labels to colors.}
 
 \item{palette}{Palette provided in the configuration file.}
+
+\item{label}{Label from the SOM map to be shown.}
+
+\item{prob_max}{Maximum a posteriori probability for SOM neuron
+samples to be shown}
+
+\item{prob_min}{Minimum a posteriori probability for SOM neuron
+samples to be shown}
 
 \item{band}{For plotting grey images.}
 
@@ -52,7 +77,9 @@ sits_view(x, ...)
 \item{class_cube}{Classified cube to be overlayed on top on image.}
 }
 \value{
-Leaflet object.
+A leaflet object containing either samples or
+                      data cubes embedded in a global map that can
+                      be visualized directly in an RStudio viewer.
 }
 \description{
 Uses leaflet to visualize time series, raster cube and

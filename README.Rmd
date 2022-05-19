@@ -21,26 +21,29 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 
 <!-- [![Build Status](https://drone.dpi.inpe.br/api/badges/e-sensing/sits/status.svg)](https://drone.dpi.inpe.br/e-sensing/sits) -->
-[![Build Status](https://cloud.drone.io/api/badges/e-sensing/sits/status.svg)](https://cloud.drone.io/e-sensing/sits)
+[![CRAN status](https://www.r-pkg.org/badges/version/sits)](https://cran.r-project.org/package=sits)
+[![Build status](https://cloud.drone.io/api/badges/e-sensing/sits/status.svg)](https://cloud.drone.io/e-sensing/sits)
 [![codecov](https://codecov.io/gh/e-sensing/sits/branch/dev/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
 [![Documentation](https://img.shields.io/badge/docs-online-blueviolet)](https://e-sensing.github.io/sitsbook/)
-[![Software Life Cycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
+[![Life cycle](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![Software License](https://img.shields.io/badge/license-GPL--2-green)](https://github.com/e-sensing/sits/blob/master/LICENSE)
 
 <!-- badges: end -->
 
 ## Overview
 
-The `sits` R package provides a set of tools for analysis, visualization and classification of satellite image time series. The package supports classification of image data cubes  using machine learning methods. The basic workflow in SITS is:
+`sits` is an open source R package for satellite image time series analysis. It enables users to apply machine learning techniques for classifying image time series obtained from earth observation data cubes. The basic workflow in SITS is:
 
-1. Select a subset of an image collection available on a cloud providers such as AWS, Microsoft Planetary Computer, Digital Earth Africa or Brazil Data Cube. 
-2. Build a regular data cube using the chosen image collection.
-3. Extract time series from the data cube which are used as training data.
+1. Select an image collection available on cloud providers: AWS, Microsoft Planetary Computer, Digital Earth Africa and Brazil Data Cube. 
+2. Build a regular data cube using analysis-ready image collections.
+3. Extract labelled time series from data cubes to be used as training samples.
 4. Perform quality control and filtering on the samples. 
-5. Train a machine learning model using the extracted samples.
-6. Classify the data cube using the trained model.
-7. Post-process the classified images. 
-8. Evaluate the accuracy of the classification using best practices.
+5. Use the samples to train machine learning models.
+6. Tune machine learning models for improved accuracy.
+7. Classify data cubes using machine learning models.
+8. Post-process classified images to remove outliers and estimate uncertainty. 
+9. Evaluate classification accuracy using best practices.
+10. Improve results with active learning and self-supervised learning methods.
 
 ```{r sits, echo = FALSE, out.width = "60%", out.height = "60%", fig.align="center", fig.cap="Conceptual view of data cubes (source: authors)"}
 knitr::include_graphics("inst/extdata/markdown/figures/sits_general_view.jpg")
@@ -61,15 +64,19 @@ Those that want to evaluate the `sits` package before installing are invited to 
 
 ### Pre-Requisites
 
-The `sits` package relies on `sf`, `terra` and `raster`, which in turn, require the installation of the GDAL and PROJ libraries. Please follow the instructions for installing `sf` together with GDAL available at the [RSpatial sf github repository](https://github.com/r-spatial/sf).
+The `sits` package relies on the geospatial packages `sf`, `stars`, `gdalcubes` and `terra`, which depend on the external libraries GDAL and PROJ. Please follow the instructions for installing `sf` together with GDAL available at the [RSpatial sf github repository](https://github.com/r-spatial/sf).
 
 ### Obtaining SITS
 
-SITS is currently available on github: 
+SITS can be installed from CRAN: 
 
 ```{r, eval = FALSE}
-# Please install the `sits` package from github
-# and its dependencies
+install.packages("sits")
+```
+
+The development version is available on github.
+
+```{r, eval = FALSE}
 devtools::install_github("e-sensing/sits", dependencies = TRUE)
 ```
 
@@ -81,46 +88,37 @@ library(sits)
 
 ## Building Earth Observation Data Cubes
 
-### Image Collections Accessible by SITS
+### Image Collections Accessible by `sits`
 
-The `sits` R package allows advanced data analysis on big EO data cubes available in cloud computing services.  *Data cubes* are collections of remote sensing images that have been organized to have spatial cells of the same size, covering a regular area in space and time. These data cubes are built from analysis-ready image collections available in the cloud.
+The `sits` package allows users to created data cubes from analysis-ready data (ARD) image collections available in cloud services. The collections accessible in `sits` `r packageVersion("sits")` are:
 
-```{r dcconcept, echo = FALSE, out.width = "90%", out.height = "90%", fig.align="center", fig.cap="Conceptual view of data cubes (source: authors)"}
-knitr::include_graphics("inst/extdata/markdown/figures/datacube_conception.jpg")
-```
-
-The image collections accessible in `sits` version 0.17.0 to build EO data cubes are:
-
-1. AWS: Sentinel-2/2A level 2A collections. 
-2. Brazil Data Cube (BDC): Open data collections of Sentinel-2, Landsat-8 and CBERS-4 images.
-3. Digital Earth Africa (DEAFRICA): Open data collection of Sentinel-2/2A and Landsat-8 for Africa.
-4. Microsoft Planetary Computer (MSPC): Open data collection of Sentinel-2/2A and Landsat-8. 
+1. Brazil Data Cube (BDC): Open data collections of Sentinel-2, Landsat-8 and CBERS-4 images.
+2. Microsoft Planetary Computer (MSPC): Open data collection of Sentinel-2/2A and Landsat-8
+3. AWS: Sentinel-2/2A level 2A collections. 
+4. Digital Earth Africa (DEAFRICA): Open data collection of Sentinel-2/2A and Landsat-8 for Africa.
 5. USGS: Landsat-4/5/7/8 collections, which are not open data. 
 
-Open data collections do not require payment of access fees to cloud providers. Except for those in the Brazil Data Cube, these collections are not regular. Irregular collections require further processing before they can be used in `sits` for classification using machine learning methods.
+Open data collections do not require payment of access fees. Except for those in the Brazil Data Cube, these collections are not regular. Irregular collections require further processing before they can be used for classification using machine learning models.
 
+### Building a Data Cube from an ARD Image Collection
 
-### Building an EO Data Cube from an ARD Image Collection
-
-The following code defines an irregular data cube of Sentinel-2/2A images available in the Planetary Computer, using the open data collection "sentinel-s2-l2a-cogs".  The geographical area of the data cube is defined by the tiles "20LKP" and "20LLKP", and the temporal extent by a start and end date.  Access to other cloud services works in similar ways. 
+The following code defines an irregular data cube of Sentinel-2/2A images available in the Microsoft Planetary Computer, using the open data collection "SENTINEL-2-L2A".  The geographical area of the data cube is defined by the tiles "20LKP" and "20LLKP", and the temporal extent by a start and end date.  Access to other cloud services works in similar ways. 
 
 ```{r, echo = TRUE}
 s2_cube <- sits_cube(source = "MSPC",
                      collection = "SENTINEL-2-L2A",
                      tiles = c("20LKP", "20LLP"),
-                     bands = c("B03", "B04", "B08", "B8A", "B11", "SCL"),
+                     bands = c("B03", "B08", "B11", "SCL"),
                      start_date = as.Date("2018-07-01"),
                      end_date = as.Date("2019-06-30")
 )
 ```
 
-The cube can be shown in a leaflet using `sits_view()`. 
-```{r, echo = TRUE, eval = FALSE}
-# View a color composite on a leaflet
-sits_view(s2_cube, green = "B08", blue = "B03", red = "B04")
-```
+This cube is irregular. The timelines of tiles "20LKP" and "20LLKP" and the resolutions of the bands are different. Sentinel-2 bands "B03" and "B08" have 10 m resolution, while band "B11" and the cloud band "SCL" have 20 m resolution. Irregular collections need an additional processing step to be converted to regular data cubes, as described below.
 
-This cube is irregular. The timelines of tiles "20LKP" and "20LLKP" and the resolutions of the bands are different. Sentinel-2 bands "B03", "B04", and "B08" have 10 m resolution, while bands "B8A", "B11" and the cloud band "SCL" have 20 m resolution. Irregular collections need an additional processing step to be converted to regular data cubes, as described below.
+```{r dcconcept, echo = FALSE, out.width = "90%", out.height = "90%", fig.align="center", fig.cap="Conceptual view of data cubes (source: authors)"}
+knitr::include_graphics("inst/extdata/markdown/figures/datacube_conception.jpg")
+```
 
 After defining an irregular ARD image collection from a cloud service using `sits_cube()`, users should run `sits_regularize()` to build a regular data cube. This function uses the [gdalcubes R package](https://github.com/appelmar/gdalcubes), described in [Appel and Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92). 
 
@@ -133,6 +131,13 @@ gc_cube <- sits_regularize(cube          = s2_cube,
                            multicores    = 4)
 ```
 The above command builds a regular data cube with all bands interpolated to 60 meter spatial resolution and 15 days temporal resolution. Regular data cubes are the input to the `sits` functions for time series retrieval, building machine learning models, and classification of raster images and time series.
+
+The cube can be shown in a leaflet using `sits_view()`. 
+```{r, echo = TRUE, eval = FALSE}
+# View a color composite on a leaflet
+sits_view(s2_cube[1,], green = "B08", blue = "B03", red = "B04")
+```
+
 
 ## Working with Time Series in SITS
 

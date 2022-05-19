@@ -2,9 +2,15 @@
 % Please edit documentation in R/sits_merge.R
 \name{sits_merge}
 \alias{sits_merge}
+\alias{sits_merge.sits}
+\alias{sits_merge.raster_cube}
 \title{Merge two data sets (time series or cubes)}
 \usage{
 sits_merge(data1, data2, ..., suffix = c(".1", ".2"))
+
+\method{sits_merge}{sits}(data1, data2, ..., suffix = c(".1", ".2"))
+
+\method{sits_merge}{raster_cube}(data1, data2, ..., suffix = c(".1", ".2"))
 }
 \arguments{
 \item{data1}{Time series or cube to be merged.}

@@ -363,6 +363,10 @@ sits_get_data.data.frame <- function(cube,
 #' @param multicores      Number of threads to process the time series.
 #' @param progress        A logical value indicating if a progress bar
 #'                        should be shown. Default is \code{FALSE}.
+#'
+#' @return                A tibble with a set of time series retrieved
+#'                        from a data cube.
+#'
 .sits_get_ts <- function(cube,
                          samples, ...,
                          bands = NULL,
@@ -375,6 +379,7 @@ sits_get_data.data.frame <- function(cube,
     UseMethod(".sits_get_ts", cube)
 }
 
+#' @name .sits_get_ts
 #' @keywords internal
 #' @export
 .sits_get_ts.raster_cube <- function(cube,
@@ -578,13 +583,13 @@ sits_get_data.data.frame <- function(cube,
     return(ts_tbl)
 }
 
-#' @title check if all points have been retrieved
+#' @title Check if all points have been retrieved
 #' @name .sits_get_data_check
 #' @keywords internal
 #' @param n_rows_input     Number of rows in input.
 #' @param n_rows_output    Number of rows in output.
 #'
-#' @return A logical value
+#' @return No return value, called for side effects.
 #'
 .sits_get_data_check <- function(n_rows_input, n_rows_output) {
 
@@ -599,8 +604,6 @@ sits_get_data.data.frame <- function(cube,
     } else {
         message("All points have been retrieved")
     }
-
-    return(invisible(TRUE))
 }
 
 #' @title Extracts the time series average by polygon.

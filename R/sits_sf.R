@@ -6,7 +6,7 @@
 #' @description Return a sits_tibble as a sf object of point geometry.
 #'
 #' @param samples A sits tibble with one or more time series.
-#' @return        Return a sits_tibble as a sf object of point geometry.
+#' @return        An sf object of point geometry.
 #' @export
 sits_as_sf <- function(samples) {
     .check_chr_within(
@@ -115,6 +115,7 @@ sits_as_sf <- function(samples) {
 #' @param sf_object       sf object.
 #' @param label_attr      Attribute used as a polygon label
 #' @param label           Label to be assigned if no attribute is provided
+#' @return  A tibble with latitude/longitude points.
 #'
 .sits_sf_point_to_tibble <- function(sf_object, label_attr, label) {
 
@@ -148,6 +149,7 @@ sits_as_sf <- function(samples) {
 #' @param label           Label to be assigned to points
 #' @param n_sam_pol       Number of samples per polygon to be read
 #' @param pol_id          ID attribute for polygons shapefile.
+#' @return A tibble with latitude/longitude points from POLYGON geometry
 #'
 .sits_sf_polygon_to_tibble <- function(sf_object,
                                        label_attr,

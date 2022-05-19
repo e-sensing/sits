@@ -50,45 +50,40 @@
 \item{dates}{Dates to be filtered.}
 }
 \value{
-Vector with requested information.
+Vector with requested information obtained in the file_info.
+
+The file info for a cube with a single tile
+        filtered by bands if required.
+
+Number of rows for a given tile.
+         Throws an error if rows are not equal.
+
+Number of cols for a given tile
+          Throws an error if cols are not equal
+
+A single path to a file
+         throws an error if there is more than one path.
+
+Paths to the cube bands
+
+The X resolution for a single tiled cube.
+        Throws an error if resolution is not unique.
+
+The Y resolution for a single tiled cube
+        Throws an error if resolution is not unique
+
+the file ids for a single tile
+
+the timeline  for a single tile
+
+start date for a single tile
+
+end date for a single tile
+
+bands present in the cube
 }
 \description{
 Functions to work with file info tibble
-}
-\details{
-Return the file info for a cube with a single tile
-Filter by bands if required
-
-Return number of rows for a given tile
-Throws an error if rows are not equal
-
-Returns number of cols for a given tile
-Throws an error if cols are not equal
-
-Returns a single path to a file
-Throws an error if there is more than one path
-
-Returns a single path to a file
-Throws an error if there is more than one path
-
-Returns the X resolution for a single tiled cube
-Throws an error if resolution is not unique
-
-Returns the Y resolution for a single tiled cube
-Throws an error if resolution is not unique
-
-Returns the file ids for a single tiled cube
-
-Returns timeline  for a single tiled cube
-
-Returns start date  for a single tiled cube
-Throws an error if cube is not a processed one
-
-Returns start date  for a single tiled cube
-Throws an error if cube is not a processed one
-
-Returns the bands for the cube
-Throws an error bands are NULL
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

@@ -84,7 +84,7 @@ if (sits_run_examples()) {
         output_dir = dir_images,
         res = 60,
         period = "P16D",
-        multicores = 4,
+        multicores = 2,
         memsize = 16
     )
 }

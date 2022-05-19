@@ -12,6 +12,9 @@
 
 \item{fun}{Function that performs calculation on the input data.}
 }
+\value{
+A closure that encapsulates the function applied to data.
+}
 \description{
 This internal function implements the factory method pattern.
 Its creates a generic interface to closures in R so that the functions

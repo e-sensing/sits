@@ -12,7 +12,7 @@
 \item{...}{additional parameters to be passed to raster package}
 }
 \value{
-raster package object
+Raster package object
 }
 \description{
 Raster package internal open raster function

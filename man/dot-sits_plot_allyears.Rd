@@ -9,6 +9,10 @@
 \arguments{
 \item{data}{One or more time series.}
 }
+\value{
+A plot object produced by the ggplot2 package
+               showing an individual time series.
+}
 \description{
 For each lat/long location in the data, join temporal
 instances of the same place together for plotting.

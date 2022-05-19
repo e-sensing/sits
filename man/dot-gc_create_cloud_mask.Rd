@@ -10,7 +10,7 @@
 \item{cube}{Data cube.}
 }
 \value{
-\code{Gdalcubes::image_mask} with information about mask band.
+\code{gdalcubes::image_mask} with information about mask band.
 }
 \description{
 Create an gdalcubes::image_mask object

@@ -13,6 +13,9 @@
 
 \item{label}{Label to be assigned if no attribute is provided}
 }
+\value{
+A tibble with latitude/longitude points.
+}
 \description{
 Obtain a tibble with latitude/longitude points from POINT geometry
 }

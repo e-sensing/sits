@@ -26,7 +26,7 @@
 out_size parameter is informed)}
 }
 \value{
-numeric matrix
+Numeric matrix read from file based on parameter block
 }
 \description{
 Raster package internal read raster stack file function

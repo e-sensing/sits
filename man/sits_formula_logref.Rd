@@ -11,7 +11,7 @@ sits_formula_logref(predictors_index = -2:0)
 to compose formula (default: -2:0).}
 }
 \value{
-A function that computes a valid formula.
+A function that computes a valid formula using a log function.
 }
 \description{
 A function to be used as a symbolic description

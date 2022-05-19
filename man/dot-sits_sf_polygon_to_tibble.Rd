@@ -17,6 +17,9 @@
 
 \item{pol_id}{ID attribute for polygons shapefile.}
 }
+\value{
+A tibble with latitude/longitude points from POLYGON geometry
+}
 \description{
 Obtain a tibble from POLYGON geometry
 }

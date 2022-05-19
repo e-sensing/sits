@@ -14,7 +14,7 @@
 #' @param  output_dir        Output directory for classified files.
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple runs).
-#' @return A data cube
+#' @return                   A data cube with an image with the classified map.
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.

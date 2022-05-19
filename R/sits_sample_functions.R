@@ -114,7 +114,7 @@ sits_sample <- function(data,
 #'                              oversampling).
 #' @param  multicores           Number of cores to process the data (default 2).
 #'
-#' @return A sits tibble with a fixed quantity of samples.
+#' @return A sits tibble with reduced sample imbalance.
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
@@ -124,8 +124,9 @@ sits_sample <- function(data,
 #'     sits_labels_summary(samples_modis_4bands)
 #'     # reduce the sample imbalance
 #'     new_samples <- sits_reduce_imbalance(samples_modis_4bands,
-#'         n_samples_over = 200, n_samples_under = 200,
-#'         multicores = 4
+#'         n_samples_over = 200,
+#'         n_samples_under = 200,
+#'         multicores = 1
 #'     )
 #'     # print the labels summary for the rebalanced set
 #'     sits_labels_summary(new_samples)

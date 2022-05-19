@@ -23,7 +23,7 @@ to string and escaped.}
 \item{flag}{A logical value to set the debug flag}
 }
 \value{
-For .sits_debug, a logical value with current debug flag
+A logical value with current debug flag
 }
 \description{
 .sits_debug_log: (internal) logs to a CSV file the following values:

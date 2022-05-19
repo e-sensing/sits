@@ -22,8 +22,8 @@
 #'                for prediction.
 #' @param n       Maximum number of samples to consider.
 #'
-#' @return
-#' A tibble with sample-to-sample and sample-to-prediction distances.
+#' @return        A tibble with sample-to-sample
+#'                and sample-to-prediction distances.
 #'
 #' @examples
 #' if (sits_run_examples()) {

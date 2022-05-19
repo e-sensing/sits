@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_shp.R
 \name{.sits_shp_check_validity}
 \alias{.sits_shp_check_validity}
-\title{Check the validity of the shape file}
+\title{Check the validity of the shape file and return an sf object}
 \usage{
 .sits_shp_check_validity(shp_file, shp_attr = NULL, label = NULL)
 }
@@ -14,9 +14,9 @@
 \item{label}{Label to be used instead of shp_attr}
 }
 \value{
-A sf object.
+A valid sf object of POINT or POLYGON geometry.
 }
 \description{
-Check the validity of the shape file
+Check the validity of the shape file and return an sf object
 }
 \keyword{internal}

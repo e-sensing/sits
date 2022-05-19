@@ -27,7 +27,7 @@ classification.}
 (in the case of multiple runs).}
 }
 \value{
-A data cube
+A data cube with an image with the classified map.
 }
 \description{
 Takes a set of classified raster layers with probabilities,

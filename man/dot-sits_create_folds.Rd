@@ -11,6 +11,9 @@
 
 \item{folds}{Number of folds}
 }
+\value{
+A list of row position integers corresponding to the training data.
+}
 \description{
 Split a sits tibble into k groups, based on the label.
 }

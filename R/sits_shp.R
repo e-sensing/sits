@@ -43,7 +43,7 @@
     return(samples)
 }
 
-#' @title Check the validity of the shape file
+#' @title Check the validity of the shape file and return an sf object
 #' @name .sits_shp_check_validity
 #' @keywords internal
 #'
@@ -51,7 +51,7 @@
 #' @param shp_attr        attribute in the shapefile that contains the label
 #' @param label           Label to be used instead of shp_attr
 #'
-#' @return A sf object.
+#' @return A valid sf object of POINT or POLYGON geometry.
 .sits_shp_check_validity <- function(shp_file, shp_attr = NULL, label = NULL) {
 
     # set caller to show in errors

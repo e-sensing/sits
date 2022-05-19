@@ -30,6 +30,7 @@ sits_bbox <- function(data, wgs84 = FALSE, ...) {
     UseMethod("sits_bbox", data)
 }
 
+#' @rdname sits_bbox
 #' @export
 #'
 sits_bbox.sits <- function(data, ...) {
@@ -47,7 +48,7 @@ sits_bbox.sits <- function(data, ...) {
     names(bbox) <- c("xmin", "ymin", "xmax", "ymax")
     return(bbox)
 }
-
+#' @rdname sits_bbox
 #' @export
 #'
 sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
@@ -84,6 +85,17 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
 
     return(bbox)
 }
+#' @title Convert coordinates to bounding box
+#' @name .sits_coords_to_bbox_wgs84
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param xmin           Minimum X coordinate
+#' @param ymin           Minimum Y coordinate
+#' @param xmax           Maximum X coordinate
+#' @param ymax           Maximum Y coordinate
+#' @param crs            Projection for X,Y coordinates
+#' @return               Coordinates in WGS84.
 
 .sits_coords_to_bbox_wgs84 <- function(xmin, xmax, ymin, ymax, crs) {
     pt1 <- c(xmin, ymax)

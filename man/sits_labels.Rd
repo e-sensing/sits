@@ -2,15 +2,28 @@
 % Please edit documentation in R/sits_labels.R
 \name{sits_labels}
 \alias{sits_labels}
+\alias{sits_labels.sits}
+\alias{sits_labels.sits_cube}
+\alias{sits_labels.patterns}
+\alias{sits_labels.sits_model}
 \title{Get labels associated to a data set}
 \usage{
 sits_labels(data)
+
+\method{sits_labels}{sits}(data)
+
+\method{sits_labels}{sits_cube}(data)
+
+\method{sits_labels}{patterns}(data)
+
+\method{sits_labels}{sits_model}(data)
 }
 \arguments{
 \item{data}{Time series or a cube.}
 }
 \value{
-Labels.
+The labels associated to a set of time series or to
+                 a data cube.
 }
 \description{
 Finds labels in a sits tibble or data cube

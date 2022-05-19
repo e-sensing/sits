@@ -6,6 +6,9 @@
 \usage{
 .raster_check_block(block)
 }
+\value{
+No value, called for side effects.
+}
 \description{
 Check for block object consistency
 }

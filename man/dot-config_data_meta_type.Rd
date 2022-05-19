@@ -10,7 +10,7 @@
 \item{data}{Time series or data cube.}
 }
 \value{
-an error if the meta data type is wrong
+The meta data type associated to a sits object.
 }
 \description{
 associates a valid SITS class to the data

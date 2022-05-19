@@ -52,7 +52,7 @@
 #'                           to reset the patience counter.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
 #'
-#' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
+#' @return A fitted model to be used for classification.
 #'
 #' @note
 #' Please refer to the sits documentation available in

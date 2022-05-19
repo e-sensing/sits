@@ -170,6 +170,9 @@ NULL
 #' }
 #' }
 #' @keywords internal
+#'
+#' @return The same input value if no error occurs
+#'
 .check_that <- function(x, ...,
                         local_msg = NULL,
                         msg = NULL) {

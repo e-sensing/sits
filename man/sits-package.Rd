@@ -23,19 +23,19 @@ and post-processing.
 Useful links:
 \itemize{
   \item \url{https://github.com/e-sensing/sits/}
+  \item \url{https://e-sensing.github.io/sitsbook/}
   \item Report bugs at \url{https://github.com/e-sensing/sits/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Gilberto Camara \email{gilberto.camara@inpe.br}
+\strong{Maintainer}: Gilberto Camara \email{gilberto.camara.inpe@gmail.com}
 
 Authors:
 \itemize{
   \item Rolf Simoes \email{rolf.simoes@inpe.br}
   \item Felipe Souza \email{felipe.carvalho@inpe.br}
   \item Lorena Santos \email{lorena.santos@inpe.br}
-  \item Alexandre Carvalho \email{alexandre.ywata@ipea.gov.br}
   \item Pedro Andrade \email{pedro.andrade@inpe.br}
   \item Karine Ferreira \email{karine.ferreira@inpe.br}
   \item Alber Sanchez \email{alber.ipia@inpe.br}

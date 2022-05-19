@@ -2,9 +2,15 @@
 % Please edit documentation in R/sits_bbox.R
 \name{sits_bbox}
 \alias{sits_bbox}
+\alias{sits_bbox.sits}
+\alias{sits_bbox.sits_cube}
 \title{Get the bounding box of the data}
 \usage{
 sits_bbox(data, wgs84 = FALSE, ...)
+
+\method{sits_bbox}{sits}(data, ...)
+
+\method{sits_bbox}{sits_cube}(data, wgs84 = FALSE, ...)
 }
 \arguments{
 \item{data}{Valid sits tibble (time series or a cube).}

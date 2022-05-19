@@ -14,7 +14,9 @@
 \item{plot_title}{title for the plot.}
 }
 \value{
-The plot itself.
+A plot object produced by the ggplot2 package
+                      each time series associated to one band
+                      and one label.
 }
 \description{
 Plots a set of  time series together.

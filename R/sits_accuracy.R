@@ -418,7 +418,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 #'
 #' @param x         Object of class \code{sits_assessment}.
 #' @param digits    Number of significant digits when printed.
-#' @return           \code{x}   is invisibly returned.
+#' @return          No return value, called for side effects.
 #'
 #' @keywords internal
 #' @export
@@ -464,8 +464,6 @@ sits_accuracy_summary <- function(x,
     rownames(out) <- rep("", nrow(out))
 
     print(out, quote = FALSE)
-
-    invisible(x)
 }
 #' @title Print the values of a confusion matrix
 #' @name print.sits_assessment
@@ -477,7 +475,7 @@ sits_accuracy_summary <- function(x,
 #' @param x         Object of class \code{confusionMatrix}.
 #' @param \dots     Other parameters passed to the "print" function.
 #' @param digits    Number of significant digits when printed.
-#' @return           \code{x}   is invisibly returned.
+#' @return          No return value, called for side effects.
 #'
 #' @keywords internal
 #' @export
@@ -581,8 +579,6 @@ print.sits_assessment <- function(x, ...,
 
         print(out, quote = FALSE)
     }
-
-    invisible(x)
 }
 #' @title Print the area assessment
 #' @name print.sits_area_assessment
@@ -594,7 +590,7 @@ print.sits_assessment <- function(x, ...,
 #' @param x         An object of class \code{sits_area_assessment}.
 #' @param \dots     Other parameters passed to the "print" function
 #' @param digits    Significant digits
-#' @return          \code{x}   is invisibly returned.
+#' @return          No return value, called for side effects.
 #'
 #' @keywords internal
 #' @export

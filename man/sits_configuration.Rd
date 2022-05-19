@@ -52,11 +52,10 @@ before loading config files? Default is
 \code{sits_config()} returns a \code{list} containing the final
 configuration options.
 
-\code{sits_config_show()} returns a \code{list} containing the respective
+A \code{list} containing the respective
 configuration printed in the console.
 
-\code{sits_list_collections()} prints the collections available in
-each cloud service supported by sits.
+Prints collections available in each cloud service supported by sits.
 }
 \description{
 These functions load and show sits configurations.

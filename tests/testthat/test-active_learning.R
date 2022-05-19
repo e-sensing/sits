@@ -14,6 +14,7 @@ test_that("Suggested samples have low confidence, high entropy", {
         sits::samples_modis_4bands,
         bands = c("NDVI")
     )
+    set.seed(123)
     xgb_model <- sits_train(samples_ndvi,
         ml_method = sits_xgboost(verbose = FALSE)
     )
@@ -43,18 +44,18 @@ test_that("Suggested samples have low confidence, high entropy", {
     )))
     expect_true(all(samples_df[["label"]] == "NoClass"))
 
-    unc_raster <- terra::rast(sits:::.file_info_path(uncert_cube))
+    unc_raster <- .raster_open_rast(sits:::.file_info_path(uncert_cube))
     samples_sf <- sf::st_as_sf(samples_df,
         coords = c("longitude", "latitude"),
         crs = 4326
     )
     samples_sf <- sf::st_transform(samples_sf, crs = terra::crs(unc_raster))
-    var_df <- terra::extract(unc_raster, terra::vect(samples_sf))
+    var_df <- .raster_extract(unc_raster, terra::vect(samples_sf))
     samples_df <- cbind(samples_df, var_df)
 
-    expect_true(min(samples_df$lyr1) > mean(unc_raster[]))
-    expect_true(max(samples_df$lyr1) == max(unc_raster[]))
-    expect_true(mean(samples_df$lyr1) > mean(unc_raster[]))
+    expect_true(min(samples_df$focal_median) > mean(unc_raster[]))
+    expect_true(max(samples_df$focal_median) == max(unc_raster[]))
+    expect_true(mean(samples_df$focal_median) > mean(unc_raster[]))
 })
 
 test_that("Increased samples have high confidence, low entropy", {

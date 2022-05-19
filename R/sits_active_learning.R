@@ -30,7 +30,10 @@
 #' @param n               Number of suggested points.
 #' @param min_dist_pixels Minimum distance among suggested points (in pixels).
 #'
-#' @return     A data.frame with longitude & latitude in WGS84.
+#' @return     A data.frame with longitude & latitude in WGS84 with locations
+#'             which have high uncertainty and meet the minimum distance
+#'             criteria.
+#'
 #'
 #' @references
 #' Robert Monarch, "Human-in-the-Loop Machine Learning: Active learning
@@ -157,7 +160,9 @@ sits_uncertainty_sampling <- function(cube,
 #' @param min_margin      Minimum margin of confidence to select a sample
 #' @param min_dist_pixels Minimum distance among suggested points (in pixels).
 #'
-#' @return     A data.frame with longitude & latitude in WGS84.
+#' @return     A data.frame with longitude & latitude in WGS84 of locations
+#'             for each class that meet the criteria of minimum margin of
+#'             confidence and minimum geographical distance between them.
 #'
 #' if (sits_run_examples()) {
 #'     # create a data cube

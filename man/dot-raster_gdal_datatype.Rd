@@ -7,7 +7,7 @@
 .raster_gdal_datatype(data_type)
 }
 \value{
-character string
+GDAL datatype associated to internal data type used by sits
 }
 \description{
 Convert internal data type to gdal data type

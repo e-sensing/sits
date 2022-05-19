@@ -7,7 +7,7 @@
 .config_metadata_search_strategies()
 }
 \value{
-Character values
+metadata search strategies used by sits.
 }
 \description{
 Retrieve the valid types of metadata search
