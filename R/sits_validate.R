@@ -187,6 +187,11 @@ sits_kfold_validate <- function(samples,
 #'
 #' @return A \code{caret::confusionMatrix} object to be used for
 #'         validation assessment.
+#'
+#' @examples
+#' if (sits_run_examples()){
+#'    conf_matrix <- sits_validate(cerrado_2classes)
+#' }
 #' @export
 sits_validate <- function(samples,
                           samples_validation = NULL,

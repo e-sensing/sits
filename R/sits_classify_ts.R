@@ -59,9 +59,8 @@ sits_show_prediction <- function(class) {
     # compute prediction vector
     pred <- names(int_labels[max.col(prediction)])
 
-    idx <- 1
-
-    data_pred <- slider::slide_dfr(data, function(row) {
+    data_pred <- slider::slide2_dfr(data, seq_along(1:nrow(data)),
+                                    function(row, row_n) {
 
         # get the timeline of the row
         timeline_row <- lubridate::as_date(row$time_series[[1]]$Index)
@@ -77,10 +76,12 @@ sits_show_prediction <- function(class) {
                 num_samples = nrow(row$time_series[[1]])
             )
         }
-
+        idx_fst <- row_n + (row_n - 1)*(length(ref_dates_lst))
+        idx_lst <- idx_fst + length(ref_dates_lst) - 1
+        idx_seq <- seq.int(idx_fst, idx_lst)
         # store the classification results
-        pred_sample <- ref_dates_lst %>%
-            purrr::map_dfr(function(rd) {
+        pred_sample <- purrr::map2_dfr(ref_dates_lst, idx_seq,
+            function(rd, idx) {
                 probs_date <- rbind.data.frame(prediction[idx, ])
                 names(probs_date) <- names(prediction[idx, ])
                 pred_date <- tibble::tibble(
@@ -88,7 +89,6 @@ sits_show_prediction <- function(class) {
                     to = as.Date(rd[2]),
                     class = pred[idx]
                 )
-                idx <<- idx + 1
                 pred_date <- dplyr::bind_cols(pred_date, probs_date)
             })
         row$predicted <- list(pred_sample)

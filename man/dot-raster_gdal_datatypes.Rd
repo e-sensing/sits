@@ -16,3 +16,4 @@ a \code{character} with datatypes.
 \description{
 Match sits data types to GDAL data types
 }
+\keyword{internal}

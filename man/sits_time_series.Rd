@@ -15,6 +15,9 @@ A tibble in sits format with the time series.
 \description{
 Returns the time series associated to a row of the a sits tibble
 }
+\examples{
+sits_time_series(cerrado_2classes)
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

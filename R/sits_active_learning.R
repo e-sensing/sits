@@ -163,7 +163,7 @@ sits_uncertainty_sampling <- function(cube,
 #' @return     A data.frame with longitude & latitude in WGS84 of locations
 #'             for each class that meet the criteria of minimum margin of
 #'             confidence and minimum geographical distance between them.
-#'
+#' @examples
 #' if (sits_run_examples()) {
 #'     # create a data cube
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -175,7 +175,7 @@ sits_uncertainty_sampling <- function(cube,
 #'         parse_info = c("X1", "X2", "tile", "band", "date")
 #'     )
 #'     # build a random forest model
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI")
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
 #'     # classify the cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)

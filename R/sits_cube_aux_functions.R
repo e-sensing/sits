@@ -633,7 +633,7 @@
 
 #' @title Check if the bands of all tiles of the cube are the same
 #' @name .cube_unique_bands
-#'
+#' @keywords internal
 #' @param  cube         input data cube
 #' @return TRUE/FALSE
 .cube_unique_bands <- function(cube) {
@@ -649,7 +649,7 @@
 }
 #' @title Check if bboxes of all tiles of the cube are the same
 #' @name .cube_unique_bbox
-#'
+#' @keywords internal
 #' @param  cube         input data cube
 #' @return TRUE/FALSE
 .cube_unique_bbox <- function(cube) {
@@ -694,7 +694,7 @@
 }
 #' @title Check if sizes of all tiles of the cube are the same
 #' @name .cube_unique_tile_size
-#'
+#' @keywords internal
 #' @param  cube         input data cube
 #' @return TRUE/FALSE
 .cube_unique_tile_size <- function(cube) {
@@ -716,7 +716,7 @@
 
 #' @title Check if timelines all tiles of the cube are the same
 #' @name .cube_unique_timeline
-#'
+#' @keywords internal
 #' @param  cube         input data cube
 #' @return TRUE/FALSE
 .cube_unique_timeline <- function(cube) {

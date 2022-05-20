@@ -287,8 +287,9 @@ sits_reduce_imbalance <- function(samples,
 
     return(new_samples)
 }
-#' Oversample a dataset by SMOTE.
-#'
+#' @title Oversample a dataset by SMOTE.
+#' @name .sits_oversample_smote
+#' @keywords internal
 #' Lifted from R package "scutr".
 #'
 #' @param data Dataset to be oversampled.
@@ -335,6 +336,7 @@ sits_reduce_imbalance <- function(samples,
 
 #' @title Oversample a dataset by SMOTE.
 #' @name .sits_smote
+#' @keywords internal
 #' @description
 #' Lifted from R package "smotefamily"
 #' to reduce number of dependencies in "sits".

@@ -19,5 +19,11 @@
 The oversampled dataset.
 }
 \description{
-Lifted from R package "scutr".
+Oversample a dataset by SMOTE.
 }
+\keyword{"scutr".}
+\keyword{Lifted}
+\keyword{R}
+\keyword{from}
+\keyword{internal}
+\keyword{package}

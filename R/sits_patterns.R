@@ -31,6 +31,12 @@
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_run_examples()) {
+#'    patterns <- sits_patterns(cerrado_2classes)
+#'    plot(patterns)
+#'}
+#'
 #' @export
 sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
     # verifies if mgcv package is installed
