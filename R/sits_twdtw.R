@@ -48,7 +48,7 @@
 #' @examples
 #' if (sits_run_examples()){
 #' # Retrieve the set of samples for the Mato Grosso region
-#' samples <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
+#' samples <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # get a point and classify the point with the ml_model
 #' point <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))

@@ -13,3 +13,13 @@ A logical value
 This function informs if sits examples should run.
 This is useful to avoid running slow examples in CRAN environment.
 }
+\examples{
+# unset active tests
+Sys.setenv("R_CONFIG_RUN_EXAMPLES"="NO")
+# result should be false
+isFALSE(sits_run_examples())
+# set active tests
+Sys.setenv("R_CONFIG_RUN_EXAMPLES"="YES")
+# result should be true
+isTRUE(sits_run_examples())
+}
