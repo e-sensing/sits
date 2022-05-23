@@ -12,10 +12,8 @@
 }
 
 .onLoad <- function(lib, pkg) {
-    if (Sys.getenv("R_CONFIG_ACTIVE_TESTS") == "")
-        Sys.setenv(R_CONFIG_ACTIVE_TESTS = "NO")
-    if (Sys.getenv("R_CONFIG_RUN_EXAMPLES") == "")
-        Sys.setenv(R_CONFIG_RUN_EXAMPLES = "NO")
+    Sys.setenv(R_CONFIG_ACTIVE_TESTS = "NO")
+    Sys.setenv(R_CONFIG_RUN_EXAMPLES = "NO")
     Sys.setenv(R_CONFIG_FILE = "config.yml")
     sits_config()
 }

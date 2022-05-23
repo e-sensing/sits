@@ -29,20 +29,22 @@ analysis. It enables users to apply machine learning techniques for
 classifying image time series obtained from earth observation data
 cubes. The basic workflow in SITS is:
 
-1.  Select an image collection available on cloud providers: AWS,
+1.  Select an image collection available on cloud providers AWS,
     Microsoft Planetary Computer, Digital Earth Africa and Brazil Data
     Cube.
 2.  Build a regular data cube using analysis-ready image collections.
 3.  Extract labelled time series from data cubes to be used as training
     samples.
-4.  Perform quality control and filtering on the samples.
-5.  Use the samples to train machine learning models.
-6.  Tune machine learning models for improved accuracy.
-7.  Classify data cubes using machine learning models.
-8.  Post-process classified images to remove outliers and estimate
-    uncertainty.
-9.  Evaluate classification accuracy using best practices.
-10. Improve results with active learning and self-supervised learning
+4.  Perform quality control using self-organised maps.
+5.  Filtering time series samples for noise reduction.
+6.  Use the samples to train machine learning models.
+7.  Tune machine learning models for improved accuracy.
+8.  Classify data cubes using machine learning models.
+9.  Post-process classified images with Bayesian smoothing to remove
+    outliers.
+10. Estimate uncertainty values of classified images.
+11. Evaluate classification accuracy using best practices.
+12. Improve results with active learning and self-supervised learning
     methods.
 
 <img src="inst/extdata/markdown/figures/sits_general_view.jpg" title="Conceptual view of data cubes (source: authors)" alt="Conceptual view of data cubes (source: authors)" width="60%" height="60%" style="display: block; margin: auto;" />
@@ -93,8 +95,8 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 ``` r
 # load the sits library
 library(sits)
-#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.2/Resources/library/sits/extdata/config.yml
-#> Color configurations found in /Library/Frameworks/R.framework/Versions/4.2/Resources/library/sits/extdata/config_colors.yml
+#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config.yml
+#> Color configurations found in /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config_colors.yml
 #> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
@@ -142,6 +144,7 @@ s2_cube <- sits_cube(source = "MSPC",
                      start_date = as.Date("2018-07-01"),
                      end_date = as.Date("2019-06-30")
 )
+#>   |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
 ```
 
 This cube is irregular. The timelines of tiles “20LKP” and “20LLKP” and
@@ -204,6 +207,7 @@ raster_cube <- sits_cube(
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
 )
+#>   |                                                                              |                                                                      |   0%  |                                                                              |===                                                                   |   4%  |                                                                              |======                                                                |   9%  |                                                                              |=========                                                             |  13%  |                                                                              |============                                                          |  17%  |                                                                              |===============                                                       |  22%  |                                                                              |==================                                                    |  26%  |                                                                              |=====================                                                 |  30%  |                                                                              |========================                                              |  35%  |                                                                              |===========================                                           |  39%  |                                                                              |==============================                                        |  43%  |                                                                              |=================================                                     |  48%  |                                                                              |=====================================                                 |  52%  |                                                                              |========================================                              |  57%  |                                                                              |===========================================                           |  61%  |                                                                              |==============================================                        |  65%  |                                                                              |=================================================                     |  70%  |                                                                              |====================================================                  |  74%  |                                                                              |=======================================================               |  78%  |                                                                              |==========================================================            |  83%  |                                                                              |=============================================================         |  87%  |                                                                              |================================================================      |  91%  |                                                                              |===================================================================   |  96%  |                                                                              |======================================================================| 100%
 # obtain a set of samples defined by a CSV file
 csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
                         package = "sits")
@@ -271,7 +275,6 @@ som_map <- sits_som_map(samples_modis_4bands,
                         grid_ydim = 6)
 # plot the map
 plot(som_map)
-#> Warning in par(opar): argument 1 does not name a graphical parameter
 ```
 
 <img src="man/figures/README-unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
@@ -379,10 +382,10 @@ sinop <- sits_cube(
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
 )
+#>   |                                                                              |                                                                      |   0%  |                                                                              |===                                                                   |   4%  |                                                                              |======                                                                |   9%  |                                                                              |=========                                                             |  13%  |                                                                              |============                                                          |  17%  |                                                                              |===============                                                       |  22%  |                                                                              |==================                                                    |  26%  |                                                                              |=====================                                                 |  30%  |                                                                              |========================                                              |  35%  |                                                                              |===========================                                           |  39%  |                                                                              |==============================                                        |  43%  |                                                                              |=================================                                     |  48%  |                                                                              |=====================================                                 |  52%  |                                                                              |========================================                              |  57%  |                                                                              |===========================================                           |  61%  |                                                                              |==============================================                        |  65%  |                                                                              |=================================================                     |  70%  |                                                                              |====================================================                  |  74%  |                                                                              |=======================================================               |  78%  |                                                                              |==========================================================            |  83%  |                                                                              |=============================================================         |  87%  |                                                                              |================================================================      |  91%  |                                                                              |===================================================================   |  96%  |                                                                              |======================================================================| 100%
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(sinop, ml_model = tempcnn_model)
-#> Recovery mode. Classified probability image detected in the provided directory.
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(probs_cube)
 # generate a thematic map

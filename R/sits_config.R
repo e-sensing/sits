@@ -161,7 +161,8 @@ sits_config <- function(processing_bloat = NULL,
 #'
 #' @return A \code{list} containing the respective
 #' configuration printed in the console.
-#'
+#' @examples
+#' sits_config_show()
 #' @export
 sits_config_show <- function(source = NULL,
                              collection = NULL,

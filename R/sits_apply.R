@@ -27,8 +27,6 @@
 #' point2 <-
 #'     sits_select(point_mt_6bands, "NDVI") %>%
 #'     sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
-NULL
-
 #' @rdname sits_apply
 #' @export
 sits_apply <- function(data, ...) {
