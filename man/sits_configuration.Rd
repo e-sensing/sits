@@ -87,6 +87,10 @@ location of their file in the environmental variable
 To see the key entries and contents of the current configuration values,
 use \code{sits_config_show()}.
 }
+\examples{
+current_config <- sits_config()
+sits_config_show()
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 

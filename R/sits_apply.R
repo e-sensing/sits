@@ -27,8 +27,6 @@
 #' point2 <-
 #'     sits_select(point_mt_6bands, "NDVI") %>%
 #'     sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
-NULL
-
 #' @rdname sits_apply
 #' @export
 sits_apply <- function(data, ...) {
@@ -260,6 +258,9 @@ sits_apply.raster_cube <- function(data, ...,
                     "_block_", b[["first_row"]], "_", b[["nrows"]], ".tif"
                 )
 
+                # get default missing value
+                missing_value <- .config_get("raster_cube_missing_value")
+
                 # Write values
                 .raster_write_rast(
                     r_obj = r_obj,
@@ -267,7 +268,8 @@ sits_apply.raster_cube <- function(data, ...,
                     format = "GTiff",
                     data_type = .config_get("raster_cube_data_type"),
                     gdal_options = .config_gtiff_default_options(),
-                    overwrite = TRUE
+                    overwrite = TRUE,
+                    missing_value = missing_value
                 )
 
                 # Clean memory

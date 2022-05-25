@@ -15,6 +15,12 @@ An sf object of point geometry.
 \description{
 Return a sits_tibble as a sf object of point geometry.
 }
+\examples{
+if (sits_run_examples()) {
+   # convert sits tibble to sf object
+   sf_object <- sits_as_sf(cerrado_2classes)
+}
+}
 \author{
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 

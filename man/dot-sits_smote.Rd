@@ -31,3 +31,4 @@ Chawla, N., Bowyer, K., Hall, L. and Kegelmeyer, W. 2002.
 \author{
 Wacharasak Siriseriwan <wacharasak.s@gmail.com>
 }
+\keyword{internal}

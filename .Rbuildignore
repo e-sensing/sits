@@ -19,5 +19,6 @@
 ^\.gcno$
 ^tags
 ^\.swp
+^codemeta.json
 LICENSE
 

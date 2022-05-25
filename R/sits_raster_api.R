@@ -101,7 +101,7 @@
 }
 #' @title Match sits data types to GDAL data types
 #' @name .raster_gdal_datatypes
-#'
+#' @keywords internal
 #' @param sits_names a \code{logical} indicating whether the types are supported
 #'  by sits.
 #'

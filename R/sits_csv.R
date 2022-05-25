@@ -16,6 +16,9 @@
 #'
 #' @return            No return value, called for side effects.
 #'
+#' @examples
+#' csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
+#' sits_to_csv(cerrado_2classes, file = csv_file)
 #' @export
 #'
 sits_to_csv <- function(data, file) {

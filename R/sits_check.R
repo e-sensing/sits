@@ -69,8 +69,6 @@
 #' @return
 #' Unless otherwise specified, all checking functions return the same
 #' argument as \code{x} if a \code{TRUE} evaluation occurs.
-NULL
-
 #' @rdname check_functions
 #'
 #' @details

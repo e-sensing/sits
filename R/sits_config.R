@@ -54,6 +54,8 @@ NULL
 #' \code{sits_config()} returns a \code{list} containing the final
 #' configuration options.
 #'
+#' @examples
+#' current_config <- sits_config()
 #' @export
 sits_config <- function(processing_bloat = NULL,
                         rstac_pagination_limit = NULL,
@@ -159,7 +161,8 @@ sits_config <- function(processing_bloat = NULL,
 #'
 #' @return A \code{list} containing the respective
 #' configuration printed in the console.
-#'
+#' @examples
+#' sits_config_show()
 #' @export
 sits_config_show <- function(source = NULL,
                              collection = NULL,

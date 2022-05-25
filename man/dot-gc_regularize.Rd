@@ -36,3 +36,4 @@ Appel, Marius; Pebesma, Edzer. On-demand processing of data cubes
  from satellite image collections with the gdalcubes library. Data, v. 4,
  n. 3, p. 92, 2019. DOI: 10.3390/data4030092.
 }
+\keyword{internal}

@@ -446,7 +446,7 @@
 #' @title Build a regular data cube from an irregular one
 #'
 #' @name .gc_regularize
-#'
+#' @keywords internal
 #' @description Creates cubes with regular time intervals
 #'  using the gdalcubes package.
 #'

@@ -7,6 +7,11 @@
 #'
 #' @param samples A sits tibble with one or more time series.
 #' @return        An sf object of point geometry.
+#' @examples
+#' if (sits_run_examples()) {
+#'    # convert sits tibble to sf object
+#'    sf_object <- sits_as_sf(cerrado_2classes)
+#'}
 #' @export
 sits_as_sf <- function(samples) {
     .check_chr_within(

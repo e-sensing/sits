@@ -40,6 +40,11 @@ the validation test set.
 
 This function returns the confusion matrix, and Kappa values.
 }
+\examples{
+if (sits_run_examples()){
+   conf_matrix <- sits_validate(cerrado_2classes)
+}
+}
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 

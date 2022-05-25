@@ -60,9 +60,20 @@
 #'
 #' @description
 #' This function informs if sits test should run.
-#' This is useful to avoid running slow tests in CRAN environment.
-#'
-#' @return A logical value
+#' Useful to avoid running slow tests in CRAN environment.
+#' Behaviour controlled by environmental variable R_CONFIG_ACTIVE_TESTS
+#' @return TRUE/FALSE
+#' @examples
+#' if (sits_run_examples()) {
+#' # unset active tests
+#' Sys.setenv("R_CONFIG_ACTIVE_TESTS"="NO")
+#' # result should be false
+#' isFALSE(sits_active_tests())
+#' # set active tests
+#' Sys.setenv("R_CONFIG_ACTIVE_TESTS"="YES")
+#' # result should be true
+#' isTRUE(sits_active_tests())
+#' }
 #'
 #' @export
 sits_active_tests <- function() {
@@ -78,7 +89,20 @@ sits_active_tests <- function() {
 #' This is useful to avoid running slow examples in CRAN environment.
 #'
 #' @return A logical value
+#' @examples
+#' if (sits_run_examples()) {
+#' # set active tests
+#' #' Sys.setenv("R_CONFIG_RUN_EXAMPLES"="YES")
+#' # result should be true
+#' isTRUE(sits_run_examples())
+#' # unset active tests
+#' Sys.setenv("R_CONFIG_RUN_EXAMPLES"="NO")
+#' # result should be false
+#' isFALSE(sits_run_examples())
+#' }
 #'
+#'
+
 #' @export
 sits_run_examples <- function() {
     return(Sys.getenv("R_CONFIG_RUN_EXAMPLES", unset = "NO") != "NO")

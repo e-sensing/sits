@@ -7,9 +7,23 @@
 sits_active_tests()
 }
 \value{
-A logical value
+TRUE/FALSE
 }
 \description{
 This function informs if sits test should run.
-This is useful to avoid running slow tests in CRAN environment.
+Useful to avoid running slow tests in CRAN environment.
+Behaviour controlled by environmental variable R_CONFIG_ACTIVE_TESTS
+}
+\examples{
+if (sits_run_examples()) {
+# unset active tests
+Sys.setenv("R_CONFIG_ACTIVE_TESTS"="NO")
+# result should be false
+isFALSE(sits_active_tests())
+# set active tests
+Sys.setenv("R_CONFIG_ACTIVE_TESTS"="YES")
+# result should be true
+isTRUE(sits_active_tests())
+}
+
 }

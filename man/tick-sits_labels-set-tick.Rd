@@ -31,6 +31,15 @@ A probs cube with modified labels.
 Given a sits tibble with a set of labels, renames the labels
 to the specified in value.
 }
+\examples{
+# show original samples ("Cerrado" and "Pasture")
+sits_labels(cerrado_2classes)
+# rename label samples to "Savanna" and "Grasslands"
+sits_labels(cerrado_2classes) <-  c("Savanna", "Grasslands")
+# see the change
+sits_labels(cerrado_2classes)
+
+}
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

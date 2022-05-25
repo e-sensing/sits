@@ -15,3 +15,4 @@ TRUE/FALSE
 \description{
 Check if timelines all tiles of the cube are the same
 }
+\keyword{internal}

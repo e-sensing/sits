@@ -25,28 +25,6 @@ sits_confidence_samples(
 A data.frame with longitude & latitude in WGS84 of locations
             for each class that meet the criteria of minimum margin of
             confidence and minimum geographical distance between them.
-
-if (sits_run_examples()) {
-    # create a data cube
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    cube <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
-    )
-    # build a random forest model
-    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI")
-    rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
-    # classify the cube
-    probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
-    # run a Bayesian smoothing
-    bayes_cube <- sits_smooth(probs_cube)
-    # obtain a new set of samples for active learning
-    # the samples are located in uncertain places
-    new_samples <- sits_confidence_sampling(bayes_cube)
-}
 }
 \description{
 Suggest points for increasing the training set. These points are labelled
@@ -70,6 +48,29 @@ This function is best used in the following context
 The Bayesian smoothing procedure will reduce the classification outliers
 and thus increase the likelihood that the resulting pixels with provide
 good quality samples for each class.
+}
+\examples{
+if (sits_run_examples()) {
+    # create a data cube
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+    # build a random forest model
+    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+    rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
+    # classify the cube
+    probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+    # run a Bayesian smoothing
+    bayes_cube <- sits_smooth(probs_cube)
+    # obtain a new set of samples for active learning
+    # the samples are located in uncertain places
+    new_samples <- sits_confidence_sampling(bayes_cube)
+}
 }
 \author{
 Alber Sanchez, \email{alber.sanchez@inpe.br}

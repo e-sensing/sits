@@ -45,9 +45,29 @@
 #' @param  .plot         Plot the output?
 #' @return A dtwSat S4 object with the matches.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_run_examples()){
+#' # Retrieve the set of samples for the Mato Grosso region
+#' samples <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+#'
+#' # get a point and classify the point with the ml_model
+#' point <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
+#'
+#' # plot the series
+#' plot(point)
+#'
+#' # obtain a set of patterns for these samples
+#' patterns <- sits_patterns(samples)
+#' plot(patterns)
+#'
+#' # find the matches between the patterns and the time series
+#' # using the TWDTW algorithm
+#' # (uses the dtwSat R package)
+#' matches <- sits_twdtw_classify(point, patterns,
+#'     bands = c("NDVI", "EVI"),
+#'     alpha = -0.1, beta = 100, theta = 0.5, keep = TRUE
+#' )
+#' }
 #' @export
 sits_twdtw_classify <- function(samples,
                                 patterns,

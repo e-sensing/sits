@@ -1607,7 +1607,19 @@ plot.torch_model <- function(x, y, ...) {
 #' "Machine learning-based global maps of ecological variables and the
 #' challenge of assessing them" Nature Communications, 13,2022.
 #' DOI: 10.1038/s41467-022-29838-9.
-#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # read a shapefile for the state of Mato Grosso, Brazil
+#'     mt_shp <- system.file("extdata/shapefiles/mato_grosso/mt.shp",
+#'         package = "sits"
+#'     )
+#'     # convert to an sf object
+#'     mt_sf <- sf::read_sf(mt_shp)
+#'     # calculate sample-to-sample and sample-to-prediction distances
+#'     distances <- sits_geo_dist(samples_modis_4bands, mt_sf)
+#'     # plot sample-to-sample and sample-to-prediction distances
+#'     plot(distances)
+#' }
 #' @export
 #'
 plot.geo_distances <- function(x, y, ...) {

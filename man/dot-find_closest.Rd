@@ -21,3 +21,4 @@ For each point in x, find the closest point in y (and their distance).
 \author{
 Alber Sanchez, \email{alber.sanchez@inpe.br}
 }
+\keyword{internal}

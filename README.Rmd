@@ -34,16 +34,18 @@ knitr::opts_chunk$set(
 
 `sits` is an open source R package for satellite image time series analysis. It enables users to apply machine learning techniques for classifying image time series obtained from earth observation data cubes. The basic workflow in SITS is:
 
-1. Select an image collection available on cloud providers: AWS, Microsoft Planetary Computer, Digital Earth Africa and Brazil Data Cube. 
+1. Select an image collection available on cloud providers AWS, Microsoft Planetary Computer, Digital Earth Africa and Brazil Data Cube. 
 2. Build a regular data cube using analysis-ready image collections.
 3. Extract labelled time series from data cubes to be used as training samples.
-4. Perform quality control and filtering on the samples. 
-5. Use the samples to train machine learning models.
-6. Tune machine learning models for improved accuracy.
-7. Classify data cubes using machine learning models.
-8. Post-process classified images to remove outliers and estimate uncertainty. 
-9. Evaluate classification accuracy using best practices.
-10. Improve results with active learning and self-supervised learning methods.
+4. Perform quality control using self-organised maps.
+5. Filtering time series samples for noise reduction.
+6. Use the samples to train machine learning models.
+7. Tune machine learning models for improved accuracy.
+8. Classify data cubes using machine learning models.
+9. Post-process classified images with Bayesian smoothing to remove outliers. 
+10. Estimate uncertainty values of classified images.
+11. Evaluate classification accuracy using best practices.
+12. Improve results with active learning and self-supervised learning methods.
 
 ```{r sits, echo = FALSE, out.width = "60%", out.height = "60%", fig.align="center", fig.cap="Conceptual view of data cubes (source: authors)"}
 knitr::include_graphics("inst/extdata/markdown/figures/sits_general_view.jpg")

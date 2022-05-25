@@ -71,7 +71,7 @@ sits_geo_dist <- function(samples, roi = NULL, n = 1000) {
 #' @title Find the closest points.
 #'
 #' @author Alber Sanchez, \email{alber.sanchez@@inpe.br}
-#'
+#' @keywords internal
 #' @description
 #' For each point in x, find the closest point in y (and their distance).
 #'
