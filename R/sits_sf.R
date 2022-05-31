@@ -129,9 +129,17 @@ sits_as_sf <- function(samples) {
 
     # if geom_type is POINT, use the points provided in the shapefile
     points <- sf::st_coordinates(sf_object$geometry)
-    if (!purrr::is_null(label_attr)) {
+
+    if ("label" %in% colnames(sf_df)) {
+        labels <- sf_df[, "label"]
+    } else if (!purrr::is_null(label_attr)) {
+        .check_chr_within(
+            x = label_attr,
+            within = colnames(sf_df)
+        )
+
         l1_lst <- as.list(sf_df[, label_attr])
-        labels <- as.vector(l1_lst[[1]])
+        labels <- as.character(l1_lst)
     } else {
         labels <- rep(label, times = nrow(points))
     }
@@ -184,7 +192,10 @@ sits_as_sf <- function(samples) {
     points.tb <- seq_len(nrow(sf_object)) %>%
         purrr::map_dfr(function(i) {
             # retrieve the class from the shape attribute
-            if (!purrr::is_null(label_attr) &&
+
+            if ("label" %in% colnames(sf_df)) {
+                label <- unname(as.character(sf_df[i, "label"]))
+            } else if (!purrr::is_null(label_attr) &&
                 label_attr %in% colnames(sf_df)) {
                 label <- unname(as.character(sf_df[i, label_attr]))
             }
