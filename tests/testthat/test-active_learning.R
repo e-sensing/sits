@@ -59,7 +59,7 @@ test_that("Suggested samples have low confidence, high entropy", {
 })
 
 test_that("Increased samples have high confidence, low entropy", {
-    testthat::skip_on_cran()
+
 
     # Get uncertaintly cube.
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")

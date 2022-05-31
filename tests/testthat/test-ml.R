@@ -1,5 +1,4 @@
 test_that("SVM  - Formula logref", {
-    skip_on_cran()
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     svm_model <- sits_train(
         samples_mt_ndvi,
@@ -81,7 +80,6 @@ test_that("Random Forest", {
 })
 
 test_that("Random Forest - Whittaker", {
-    skip_on_cran()
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     samples_mt_whit <- sits_filter(samples_mt_ndvi, filter = sits_whittaker())
     rfor_model <- sits_train(samples_mt_whit, sits_rfor(num_trees = 200))
@@ -98,7 +96,6 @@ test_that("Random Forest - Whittaker", {
 })
 
 test_that("Random Forest - SGolay", {
-    skip_on_cran()
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     samples_mt_sg <- sits_filter(samples_mt_ndvi, filter = sits_sgolay())
     rfor_model <- sits_train(samples_mt_sg, sits_rfor(num_trees = 200))
@@ -138,7 +135,6 @@ test_that("XGBoost", {
 
 
 test_that("DL-MLP", {
-    skip_on_cran()
     model <- sits_train(
         sits_select(samples_modis_4bands, bands = "NDVI"),
         sits_mlp(
@@ -160,7 +156,6 @@ test_that("DL-MLP", {
 })
 
 test_that("ResNet", {
-    skip_on_cran()
     samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 
     model <- tryCatch(
@@ -187,7 +182,6 @@ test_that("ResNet", {
 })
 
 test_that("TempCNN model", {
-    skip_on_cran()
     model <- sits_train(
         sits_select(samples_modis_4bands, bands = "NDVI"),
         sits_tempcnn(epochs = 5)
@@ -208,7 +202,6 @@ test_that("TempCNN model", {
 })
 
 test_that("LightTAE model", {
-    skip_on_cran()
     model <- sits_train(
         sits_select(samples_modis_4bands, bands = "NDVI"),
         sits_lighttae(epochs = 5)
@@ -227,7 +220,6 @@ test_that("LightTAE model", {
 })
 
 test_that("PSETAE model", {
-    skip_on_cran()
     model <- sits_train(
         sits_select(samples_modis_4bands, bands = "NDVI"),
         sits_tae(epochs = 5)

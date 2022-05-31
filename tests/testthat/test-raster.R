@@ -44,7 +44,6 @@ test_that("One-year, single core classification", {
 })
 
 test_that("One-year, multicore classification", {
-    testthat::skip_on_cran()
 
     samples_ndvi <- sits_select(samples_modis_4bands,
         bands = c("NDVI")
@@ -124,7 +123,6 @@ test_that("One-year, multicore classification", {
 })
 
 test_that("One-year, single core classification with filter", {
-    testthat::skip_on_cran()
 
     samples_filt <-
         sits_select(samples_modis_4bands, bands = c("NDVI")) %>%
@@ -158,7 +156,6 @@ test_that("One-year, single core classification with filter", {
 })
 
 test_that("One-year, multicore classification with Savitzky-Golay filter", {
-    testthat::skip_on_cran()
 
     samples_filt <-
         sits_select(samples_modis_4bands, bands = c("NDVI")) %>%
@@ -215,7 +212,6 @@ test_that("One-year, multicore classification with Savitzky-Golay filter", {
 })
 
 test_that("One-year, multicore classification with Whittaker filter", {
-    testthat::skip_on_cran()
 
     samples_filt <-
         sits_select(samples_modis_4bands, bands = c("NDVI")) %>%
@@ -271,7 +267,6 @@ test_that("One-year, multicore classification with Whittaker filter", {
 })
 
 test_that("One-year, multicore classification with torch", {
-    testthat::skip_on_cran()
 
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
@@ -323,7 +318,6 @@ test_that("One-year, multicore classification with torch", {
 })
 
 test_that("One-year, multicore classification with ResNet", {
-    testthat::skip_on_cran()
 
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
@@ -375,7 +369,6 @@ test_that("One-year, multicore classification with ResNet", {
 })
 
 test_that("One-year, multicore classification with TAE", {
-    testthat::skip_on_cran()
 
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
@@ -427,7 +420,6 @@ test_that("One-year, multicore classification with TAE", {
 })
 
 test_that("One-year, multicore classification with LightTAE", {
-    testthat::skip_on_cran()
 
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
