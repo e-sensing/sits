@@ -503,9 +503,6 @@
         msg = "invalid 'output_dir' parameter."
     )
 
-    # append gdalcubes path
-    path_db <- file.path(output_dir, "gdalcubes.db")
-
     # precondition - is the period valid?
     .check_na(lubridate::duration(period),
         msg = "invalid period specified"
@@ -585,8 +582,6 @@
 
         # for cubes that have a time limit to expire - mspc cubes only
         cube <- .cube_token_generator(cube)
-        # create an image collection
-        .gc_create_database_stac(cube = cube, path_db = path_db)
 
         # process bands and tiles in parallel
         .sits_parallel_map(jobs, function(job) {
@@ -598,6 +593,7 @@
 
             # filter tile
             tile <- dplyr::filter(cube, .data[["tile"]] == !!tile_name)
+
             # for cubes that have a time limit to expire - mspc cubes only
             tile <- .cube_token_generator(tile)
 
@@ -607,6 +603,12 @@
                 local_msg = paste0("no tile '", tile_name, "' found"),
                 msg = "invalid tile"
             )
+
+            # append gdalcubes path
+            path_db <- tempfile(pattern = "gc", fileext = ".db")
+
+            # create an image collection
+            .gc_create_database_stac(cube = tile, path_db = path_db)
 
             # create a gdalcubes::cube_view
             cube_view <- .gc_create_cube_view(
