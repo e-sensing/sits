@@ -1,5 +1,4 @@
 test_that("Sample", {
-    testthat::skip_on_cran()
 
     data(cerrado_2classes)
 

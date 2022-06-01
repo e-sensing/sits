@@ -195,7 +195,39 @@ test_that("Reading a SHP file from RASTER", {
     )
 
     expect_equal(object = nrow(points_shp_avg), expected = 3)
-    expect_equal(object = sits_labels(points_shp_avg), expected = "NoClass")
+    expect_equal(
+        object = sits_labels(points_shp_avg),
+        expected = c("a", "b", "c")
+    )
+
+    temp_shp_no_label <- dplyr::select(temp_shp, -.data[["label"]])
+    points_shp_no_label <- sits_get_data(raster_cube,
+                                    samples = temp_shp_no_label,
+                                    pol_avg = TRUE,
+                                    pol_id = "id",
+                                    output_dir = tempdir()
+    )
+
+    expect_equal(object = nrow(points_shp_no_label), expected = 3)
+    expect_equal(
+        object = sits_labels(points_shp_no_label),
+        expected = "NoClass"
+    )
+
+    temp_shp_label_attr <- dplyr::rename(temp_shp, label_2 = .data[["label"]])
+    points_shp_label_attr <- sits_get_data(raster_cube,
+                                           samples = temp_shp_label_attr,
+                                           pol_avg = TRUE,
+                                           pol_id = "id",
+                                           label_attr = "label_2",
+                                           output_dir = tempdir()
+    )
+
+    expect_equal(object = nrow(points_shp_label_attr), expected = 3)
+    expect_equal(
+        object = sits_labels(points_shp_label_attr),
+        expected = c("a", "b", "c")
+    )
 
 
     expect_error(
@@ -217,7 +249,7 @@ test_that("Reading a SHP file from RASTER", {
 })
 
 test_that("Test reading shapefile from BDC", {
-    testthat::skip_on_cran()
+
 
     # check "BDC_ACCESS_KEY" - mandatory one per user
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")

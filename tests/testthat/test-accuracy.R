@@ -37,7 +37,6 @@ test_that("conf_matrix - more than 2 classes", {
     expect_true(grepl("Kappa", p1[15]))
 })
 test_that("XLS", {
-    testthat::skip_on_cran()
     set.seed(1234)
     data(cerrado_2classes)
     acc <- sits_kfold_validate(cerrado_2classes,
@@ -54,7 +53,6 @@ test_that("XLS", {
 })
 
 test_that("K-fold validate", {
-    testthat::skip_on_cran()
     set.seed(1234)
     data("samples_modis_4bands")
     samples <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
