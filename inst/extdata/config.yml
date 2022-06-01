@@ -814,12 +814,12 @@ sources:
                 open_data_token: false
                 metadata_search : "feature"
                 ext_tolerance: 0
-    SWISS                   :
-        s3_class            : ["swiss_cube", "stac_cube", "raster_cube"]
+    SDC                     :
+        s3_class            : ["sdc_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
         url                 : "https://explorer.swissdatacube.org/stac"
         collections         :
-            S2_L2A_10M_SWISS:
+            S2_L2A_10M_SWISS: &swiss_s2
                 bands       :
                     B01     : &swiss_msi_10m
                         missing_value : -9999
@@ -885,7 +885,7 @@ sources:
                 collection_name: "s2_l2a_10m_swiss"
                 open_data: true
                 open_data_token: false
-                metadata_search : "tile"
+                metadata_search : "feature"
                 ext_tolerance: 0
             LS8_LASRC_SWISS : &swiss_l8
                 bands       :
