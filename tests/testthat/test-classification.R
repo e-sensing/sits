@@ -25,7 +25,7 @@ test_that("Classify with random forest - single core and multicore", {
 })
 
 test_that("Classify a set of time series with svm + filter", {
-    testthat::skip_on_cran()
+
 
     # single core
     samples_filt <-
@@ -47,7 +47,7 @@ test_that("Classify a set of time series with svm + filter", {
 })
 
 test_that("Classify time series with TWDTW method", {
-    testthat::skip_on_cran()
+
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     patterns <- sits_patterns(samples_mt_ndvi)
     expect_true(all(sits_labels(patterns) %in% sits_labels(samples_mt_ndvi)))

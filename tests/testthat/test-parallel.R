@@ -1,5 +1,5 @@
 test_that("One-year, multi-core classification in parallel", {
-    testthat::skip_on_cran()
+
 
     l8_cube <- tryCatch(
         {
