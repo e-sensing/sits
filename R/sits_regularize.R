@@ -17,22 +17,31 @@
 #'  from satellite image collections with the gdalcubes library. Data, v. 4,
 #'  n. 3, p. 92, 2019. DOI: 10.3390/data4030092.
 #'
-#' @param cube             \code{sits_cube} object whose observation
-#'                         period and/or spatial resolution is not constant.
-#' @param period           ISO8601-compliant time period for regular
-#'                         data cubes, with number and unit, where
-#'                         "D", "M" and "Y" stand for days, month and year;
-#'                          e.g., "P16D" for 16 days.
-#' @param res              Spatial resolution of regularized images (in meters).
-#' @param output_dir       Valid directory for storing regularized images.
-#' @param multicores       Number of cores used for regularization;
-#'                         used for parallel processing of input.
-#' @param memsize          Memory available for regularization (in GB).
-#' @param progress         show progress bar?
+#' @param cube       \code{sits_cube} object whose observation
+#'                   period and/or spatial resolution is not constant.
+#' @param period     ISO8601-compliant time period for regular
+#'                   data cubes, with number and unit, where
+#'                   "D", "M" and "Y" stand for days, month and year;
+#'                    e.g., "P16D" for 16 days.
+#' @param res        Spatial resolution of regularized images (in meters).
+#' @param roi        A named \code{numeric} vector with a region of interest.
+#'                   See more above.
+#' @param output_dir Valid directory for storing regularized images.
+#' @param multicores Number of cores used for regularization;
+#'                   used for parallel processing of input.
+#' @param memsize    Memory available for regularization (in GB).
+#' @param progress   show progress bar?
 #'
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @note
+#'    The "roi" parameter defines a region of interest. It can be
+#'    an sf_object, a shapefile, or a bounding box vector with
+#'    named XY values ("xmin", "xmax", "ymin", "ymax") or
+#'    named lat/long values ("lat_min", "lat_max", "long_min", "long_max").
+#'    The \code{sits_regularize} function will crop the images that contain the
+#'    roi region.
 #' @note
 #'       The aggregation method used in \code{sits_regularize}
 #'       sorts the images based on cloud cover, where images with the fewest
@@ -76,6 +85,7 @@
 sits_regularize <- function(cube,
                             period,
                             res,
+                            roi = NULL,
                             output_dir,
                             multicores = 1,
                             memsize = 4,
@@ -84,6 +94,7 @@ sits_regularize <- function(cube,
         cube = cube,
         period = period,
         res = res,
+        roi = roi,
         output_dir = output_dir,
         multicores = multicores,
         progress = progress

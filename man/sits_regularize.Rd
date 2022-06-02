@@ -8,6 +8,7 @@ sits_regularize(
   cube,
   period,
   res,
+  roi = NULL,
   output_dir,
   multicores = 1,
   memsize = 4,
@@ -24,6 +25,9 @@ data cubes, with number and unit, where
  e.g., "P16D" for 16 days.}
 
 \item{res}{Spatial resolution of regularized images (in meters).}
+
+\item{roi}{A named \code{numeric} vector with a region of interest.
+See more above.}
 
 \item{output_dir}{Valid directory for storing regularized images.}
 
@@ -52,6 +56,13 @@ data cubes.
 \note{
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
+
+The "roi" parameter defines a region of interest. It can be
+   an sf_object, a shapefile, or a bounding box vector with
+   named XY values ("xmin", "xmax", "ymin", "ymax") or
+   named lat/long values ("lat_min", "lat_max", "long_min", "long_max").
+   The \code{sits_regularize} function will crop the images that contain the
+   roi region.
 
 The aggregation method used in \code{sits_regularize}
       sorts the images based on cloud cover, where images with the fewest

@@ -4,7 +4,15 @@
 \alias{.gc_regularize}
 \title{Build a regular data cube from an irregular one}
 \usage{
-.gc_regularize(cube, period, res, output_dir, multicores = 1, progress = TRUE)
+.gc_regularize(
+  cube,
+  period,
+  res,
+  roi,
+  output_dir,
+  multicores = 1,
+  progress = TRUE
+)
 }
 \arguments{
 \item{cube}{Data cube whose spacing of observation
@@ -16,6 +24,8 @@ with number and unit, e.g., "P16D" for 16 days.
 Use "D", "M" and "Y" for days, month and year.}
 
 \item{res}{Spatial resolution of the regularized images.}
+
+\item{roi}{A named \code{numeric} vector with a region of interest.}
 
 \item{output_dir}{Valid directory where the
 regularized images will be written.}
