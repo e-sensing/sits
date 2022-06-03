@@ -2,20 +2,20 @@
 #'
 #' @description A multiple endmember spectral mixture analyses...
 #'
-#' @param cube       ...
-#' @param endmembers ...
-#' @param memsize    ...
-#' @param multicores ...
-#' @param output_dir ...
-#' @param progress   ...
+#' @param cube        A sits data cube.
+#' @param endmembers  Reference endmembers spectra
+#' @param memsize     Memory available for mixture model (in GB).
+#' @param multicores  Number of cores to be used for generate the mixture model.
+#' @param output_dir  Directory for output file.
+#' @param progress    Show progress bar?
 #'
-#' @return a cube ...
-sits_unmixing <- function(cube,
-                          endmembers_spectra,
-                          memsize = 1,
-                          multicores = 2,
-                          output_dir = getwd(),
-                          progress = TRUE) {
+#' @return a cube with the generated endmembers.
+sits_mixture_model <- function(cube,
+                               endmembers_spectra,
+                               memsize = 1,
+                               multicores = 2,
+                               output_dir = getwd(),
+                               progress = TRUE) {
 
     .check_set_caller("sits_unmixing")
 

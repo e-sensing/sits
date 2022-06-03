@@ -34,7 +34,5 @@ Defines the number of blocks of a Raster Brick
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
-
-Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
 \keyword{internal}
