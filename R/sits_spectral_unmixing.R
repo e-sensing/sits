@@ -17,7 +17,7 @@ sits_mixture_model <- function(cube,
                                output_dir = getwd(),
                                progress = TRUE) {
 
-    .check_set_caller("sits_unmixing")
+    .check_set_caller("sits_mixture_model")
 
     .check_that(
         inherits(endmembers_spectra, c("tbl_df", "tbl", "data.frame", "character")),
