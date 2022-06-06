@@ -12,7 +12,7 @@
 \item{band}{Band}
 }
 \value{
-maximum value for the band in the data cube
+Maximum value for the band in the data cube.
 }
 \description{
 Maximum value of a cube band

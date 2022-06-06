@@ -1,5 +1,6 @@
 #' @title Supported raster packages
 #' @keywords internal
+#' @return   Names of raster packages supported by sits
 .raster_supported_packages <- function() {
     return(c("terra"))
 }
@@ -9,7 +10,7 @@
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @return package representation class
+#' @return name of the package.
 .raster_check_package <- function() {
     pkg_class <- .config_raster_pkg()
     class(pkg_class) <- pkg_class
@@ -21,6 +22,7 @@
 #' @name .raster_check_block
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @return  No value, called for side effects.
 .raster_check_block <- function(block) {
 
     # set caller to show in errors
@@ -50,6 +52,7 @@
 #' @name .raster_check_bbox
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @return  No value, called for side effects.
 .raster_check_bbox <- function(bbox) {
 
     # set caller to show in errors
@@ -74,7 +77,7 @@
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @return character string
+#' @return GDAL datatype associated to internal data type used by sits
 .raster_gdal_datatype <- function(data_type) {
 
     # GDAL data types
@@ -83,14 +86,14 @@
 
     # check data_type type
     .check_chr(data_type,
-               len_min = 1, len_max = 1,
-               msg = "invalid 'data_type' parameter"
+        len_min = 1, len_max = 1,
+        msg = "invalid 'data_type' parameter"
     )
 
     .check_chr_within(data_type,
-                      within = .raster_gdal_datatypes(sits_names = TRUE),
-                      discriminator = "one_of",
-                      msg = "invalid 'data_type' parameter"
+        within = .raster_gdal_datatypes(sits_names = TRUE),
+        discriminator = "one_of",
+        msg = "invalid 'data_type' parameter"
     )
 
     # convert
@@ -98,7 +101,7 @@
 }
 #' @title Match sits data types to GDAL data types
 #' @name .raster_gdal_datatypes
-#'
+#' @keywords internal
 #' @param sits_names a \code{logical} indicating whether the types are supported
 #'  by sits.
 #'
@@ -125,7 +128,7 @@
 #'
 #' @param data_type   sits internal raster data type.
 #'
-#' @return character string
+#' @return  internal data type used by raster package
 .raster_data_type <- function(data_type) {
 
     # check data type
@@ -149,7 +152,7 @@
 #'
 #' @param method   sits internal raster resampling method.
 #'
-#' @return character string
+#' @return resampling method (if valid)
 .raster_resampling <- function(method) {
 
     # check data type
@@ -174,7 +177,7 @@
 #' @param r_obj   raster package object
 #' @param ...     additional parameters to be passed to raster package
 #'
-#' @return Numeric matrix
+#' @return Numeric matrix associated to raster object
 .raster_get_values <- function(r_obj, ...) {
 
     # check package
@@ -193,7 +196,7 @@
 #' @param values  Numeric matrix to copy to raster object
 #' @param ...     additional parameters to be passed to raster package
 #'
-#' @return raster package object
+#' @return        Raster object
 .raster_set_values <- function(r_obj, values, ...) {
 
     # check package
@@ -211,7 +214,7 @@
 #' @param xy      numeric matrix with coordinates
 #' @param ...     additional parameters to be passed to raster package
 #'
-#' @return numeric matrix with raster values for each coordinate
+#' @return Numeric matrix with raster values for each coordinate
 .raster_extract <- function(r_obj, xy, ...) {
 
     # check package
@@ -229,7 +232,7 @@
 #' @param nlayers  number of raster layers
 #' @param ...     additional parameters to be passed to raster package
 #'
-#' @return raster package object
+#' @return Raster package object
 .raster_rast <- function(r_obj, nlayers = 1, ...) {
 
     # check package
@@ -246,7 +249,7 @@
 #' @param file    raster file to be opened
 #' @param ...     additional parameters to be passed to raster package
 #'
-#' @return raster package object
+#' @return Raster package object
 .raster_open_rast <- function(file, ...) {
 
     # set caller to show in errors
@@ -279,7 +282,7 @@
 #' @param ...           additional parameters to be passed to raster package
 #' @param missing_value A \code{integer} with image's missing value
 #'
-#' @return numeric matrix
+#' @return              No value, called for side effects.
 .raster_write_rast <- function(r_obj,
                                file,
                                format,
@@ -366,7 +369,7 @@
 #' out_size parameter is informed)
 #' @param ...     additional parameters to be passed to raster package
 #'
-#' @return numeric matrix
+#' @return Numeric matrix read from file based on parameter block
 .raster_read_stack <- function(files, ...,
                                block = NULL,
                                out_size = NULL,
@@ -405,13 +408,15 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj   raster package object to be written
-#' @param block   numeric vector with names "first_col", "ncols", "first_row", "nrows".
+#' @param block   numeric vector with names "first_col", "ncols", "first_row",
+#'                "nrows".
 #' @param bbox    numeric vector with names "xmin", "xmax", "ymin", "ymax".
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @note block starts at (1, 1)
 #'
-#' @return numeric matrix
+#' @return        Subset of a raster object as defined by either block
+#'                or bbox parameters
 .raster_crop <- function(r_obj, ..., block = NULL, bbox = NULL) {
 
     # pre-condition
@@ -445,7 +450,7 @@
 #' @param r_obj    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #'
-#' @return raster object spatial properties
+#' @return Raster object spatial properties
 .raster_nrows <- function(r_obj, ...) {
 
     # check package
@@ -690,6 +695,9 @@
 #' @param gdal_options   Compression method to be used
 #' @param overwrite      Overwrite the file?
 #' @param progress       Show progress bar?
+#'
+#' @return No return value, called for side effects.
+#'
 .raster_merge <- function(in_files,
                           out_file,
                           format,

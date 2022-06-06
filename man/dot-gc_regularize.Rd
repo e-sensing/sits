@@ -4,7 +4,15 @@
 \alias{.gc_regularize}
 \title{Build a regular data cube from an irregular one}
 \usage{
-.gc_regularize(cube, period, res, output_dir, multicores = 1, progress = TRUE)
+.gc_regularize(
+  cube,
+  period,
+  res,
+  roi,
+  output_dir,
+  multicores = 1,
+  progress = TRUE
+)
 }
 \arguments{
 \item{cube}{Data cube whose spacing of observation
@@ -16,6 +24,8 @@ with number and unit, e.g., "P16D" for 16 days.
 Use "D", "M" and "Y" for days, month and year.}
 
 \item{res}{Spatial resolution of the regularized images.}
+
+\item{roi}{A named \code{numeric} vector with a region of interest.}
 
 \item{output_dir}{Valid directory where the
 regularized images will be written.}
@@ -32,7 +42,8 @@ Creates cubes with regular time intervals
  using the gdalcubes package.
 }
 \references{
-APPEL, Marius; PEBESMA, Edzer. On-demand processing of data cubes
+Appel, Marius; Pebesma, Edzer. On-demand processing of data cubes
  from satellite image collections with the gdalcubes library. Data, v. 4,
  n. 3, p. 92, 2019. DOI: 10.3390/data4030092.
 }
+\keyword{internal}

@@ -3,9 +3,15 @@
 \name{`sits_labels<-`}
 \alias{`sits_labels<-`}
 \alias{sits_labels<-}
+\alias{sits_labels<-.sits}
+\alias{sits_labels<-.probs_cube}
 \title{Change the labels of a set of time series}
 \usage{
 sits_labels(data) <- value
+
+\method{sits_labels}{sits}(data) <- value
+
+\method{sits_labels}{probs_cube}(data) <- value
 }
 \arguments{
 \item{data}{Data cube or time series.}
@@ -16,24 +22,23 @@ labels order returned by \code{\link{sits_labels}}.}
 }
 \value{
 A sits tibble with modified labels.
+
+A sits tibble with modified labels.
+
+A probs cube with modified labels.
 }
 \description{
 Given a sits tibble with a set of labels, renames the labels
 to the specified in value.
 }
 \examples{
-# Read a set of time series with information on deforestation
-data("samples_modis_4bands")
-# Print the labels
-sits_labels(samples_modis_4bands)
-# Create a conversion list.
-# relabel the data
-sits_labels(samples_modis_4bands) <- c(
-  "Natural", "Natural",
-  "Anthropic", "Anthropic"
-)
-# show the new labels
-sits_labels(samples_modis_4bands)
+# show original samples ("Cerrado" and "Pasture")
+sits_labels(cerrado_2classes)
+# rename label samples to "Savanna" and "Grasslands"
+sits_labels(cerrado_2classes) <-  c("Savanna", "Grasslands")
+# see the change
+sits_labels(cerrado_2classes)
+
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

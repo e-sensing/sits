@@ -14,7 +14,7 @@
 \item{bands}{Bands to be included.}
 }
 \value{
-An invisible null
+Called for side effects.
 }
 \description{
 Checks if the requested bands are available in the collection

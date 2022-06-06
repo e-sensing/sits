@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{.sits_plot_ggplot_series_na}
 \alias{.sits_plot_ggplot_series_na}
-\title{Plot one timeSeries wih NAs using ggplot}
+\title{Plot one time series with NAs using ggplot}
 \usage{
 .sits_plot_ggplot_series_na(row)
 }
@@ -10,7 +10,8 @@
 \item{row}{row of a sits tibble with the time series to be plotted.}
 }
 \value{
-The plot itself.
+A plot object produced by the ggplot2 package
+                   which shows the NA values of a time series.
 }
 \description{
 Plots a set of time series using ggplot, showing where NAs are.

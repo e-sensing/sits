@@ -21,7 +21,7 @@ A matrix with values.
 This function returns the values of a sits tibble
 (according a specified format).
 This function is useful to use packages such as ggplot2, dtwclust, or kohonen
-that require values that are rowwise or colwise organised.
+that require values that are rowwise or colwise organized.
 }
 \examples{
 # Retrieve a set of time series with 2 classes

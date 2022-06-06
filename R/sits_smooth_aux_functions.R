@@ -6,12 +6,11 @@
 #' @param output_dir   Directory where block will be written.
 #' @param block        Block designation.
 #'
-#' @return  returns a filename witn
+#' @return  A filename to store an output block from smoothing operation.
 #'
 .smth_filename <- function(tile,
                            output_dir,
                            block) {
-
     band <- .file_info_bands(tile)
 
     start_date <- .file_info_start_date(tile)
@@ -19,16 +18,19 @@
     end_date <- .file_info_end_date(tile)
 
     b_filename <- paste("cube",
-                        .cube_tiles(tile),
-                        band,
-                        start_date,
-                        end_date, sep = "_")
+        .cube_tiles(tile),
+        band,
+        start_date,
+        end_date,
+        sep = "_"
+    )
 
     b_filename <- paste(b_filename,
-                        "block",
-                        block[["first_row"]],
-                        block[["nrows"]] + block[["first_row"]] - 1,
-                        sep = "_")
+        "block",
+        block[["first_row"]],
+        block[["nrows"]] + block[["first_row"]] - 1,
+        sep = "_"
+    )
 
     b_path <- paste0(file.path(output_dir, b_filename), ".tif")
 
@@ -56,13 +58,14 @@
         x = inherits(cube, "probs_cube"),
         msg = "input is not probability cube"
     )
-    size <- .cube_size(cube[1,])
+    size <- .cube_size(cube[1, ])
     n_layers <- length(cube$labels[[1]])
     bloat_mem <- .config_processing_bloat()
     n_bytes <- 8
 
     # total memory needed to do all work in GB
-    needed_memory <-  1E-09 * size[["ncols"]] * size[["nrows"]] * n_layers * bloat_mem * n_bytes
+    image_size <- size[["ncols"]] * size[["nrows"]]
+    needed_memory <- image_size * 1E-09 * n_layers * bloat_mem * n_bytes
 
     # minimum block size
     min_block_x_size <- size["ncols"] # for now, only vertical blocking
@@ -70,7 +73,8 @@
 
     # compute factors
     memory_factor <- needed_memory / memsize
-    blocking_factor <- size[["ncols"]] / min_block_x_size * size[["nrows"]] / min_block_y_size
+
+    blocking_factor <- image_size / (min_block_x_size * min_block_y_size)
 
     # stop if blocking factor is less than memory factor!
     # reason: the provided memory is not enough to process the data by
@@ -92,8 +96,10 @@
     blocks <- list(
         # theoretical max_multicores = floor(blocking_factor / memory_factor),
         block_x_size = floor(min_block_x_size),
-        block_y_size = min(floor(blocking_factor / memory_factor / multicores),
-                           size[["nrows"]])
+        block_y_size = min(
+            floor(blocking_factor / memory_factor / multicores),
+            size[["nrows"]]
+        )
     )
 
     return(blocks)
@@ -104,7 +110,6 @@
                                  ysize,
                                  block_y_size,
                                  overlapping_y_size) {
-
     r1 <- seq(1, ysize - 1, by = block_y_size)
     r2 <- c(r1[-1] - 1, ysize)
     nr1 <- r2 - r1 + 1

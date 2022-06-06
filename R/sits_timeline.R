@@ -9,6 +9,11 @@
 #'
 #' @param  data     either a sits tibble, a data cube, or a trained model.
 #'
+#' @return      Timeline of sample set or of data cube.
+#'
+#' @examples
+#' sits_timeline(samples_modis_4bands)
+#'
 #' @export
 #'
 sits_timeline <- function(data) {
@@ -53,42 +58,20 @@ sits_timeline.raster_cube <- function(data) {
 
 #' @export
 #'
-sits_timeline.satveg_cube <- function(data) {
-
-    # retrieve the time series
-    ts <- .sits_satveg_ts_from_txt(
-        longitude = -55.50563,
-        latitude = -11.71557,
-        data
-    )
-    # return the timeline of the cube
-    return(as.Date(ts$Index))
-}
-
-#' @export
-#'
-sits_timeline.wtss_cube <- function(data) {
-
-    # return the timeline of the cube
-    return(.file_info_timeline_wtss(data))
-}
-
-#' @export
-#'
 sits_timeline.probs_cube <- function(data) {
-
     # return the timeline of the cube
-    start_date <- .file_info_start_date(data)
-    end_date <- .file_info_end_date(data)
+    start_date <- .file_info_start_date(data[1, ])
+    end_date <- .file_info_end_date(data[1, ])
     timeline_probs <- c(start_date, end_date)
     return(timeline_probs)
 }
+
 #' @export
 #'
 sits_timeline.uncertainty_cube <- function(data) {
     # return the timeline of the cube
-    start_date <- .file_info_start_date(data)
-    end_date <- .file_info_end_date(data)
+    start_date <- .file_info_start_date(data[1, ])
+    end_date <- .file_info_end_date(data[1, ])
     timeline_uncert <- c(start_date, end_date)
     return(timeline_uncert)
 }
@@ -97,8 +80,8 @@ sits_timeline.uncertainty_cube <- function(data) {
 sits_timeline.classified_image <- function(data) {
 
     # return the timeline of the cube
-    start_date <- .file_info_start_date(data)
-    end_date <- .file_info_end_date(data)
+    start_date <- .file_info_start_date(data[1, ])
+    end_date <- .file_info_end_date(data[1, ])
     timeline_class <- c(start_date, end_date)
     return(timeline_class)
 }
@@ -261,7 +244,7 @@ sits_timeline.classified_image <- function(data) {
     }
     # what is the difference in days between the last two days of the timeline?
     timeline_diff <- as.integer(timeline[length(timeline)] -
-                                    timeline[length(timeline) - 1])
+        timeline[length(timeline) - 1])
 
     # if the difference in days in the timeline is smaller than the difference
     # between the reference date and the last date of the timeline, then
@@ -519,17 +502,17 @@ sits_timeline.classified_image <- function(data) {
 }
 
 #' @title Find if the date information is correct
-#' @name  .sits_timeline_date_format
+#' @name  .sits_timeline_format
 #' @keywords internal
 #' @description Given a information about dates, check if the date can be
 #'              interpreted by lubridate
 #' @param date   a date information
 #' @return date class vector
 #'
-.sits_timeline_date_format <- function(date) {
+.sits_timeline_format <- function(date) {
 
     # set caller to show in errors
-    .check_set_caller(".sits_timeline_date_format")
+    .check_set_caller(".sits_timeline_format")
     .check_length(
         x = date,
         len_min = 1,

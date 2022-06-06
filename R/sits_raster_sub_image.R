@@ -4,14 +4,14 @@
 
 #' @param  cube            data cube (one tile only).
 #' @param  roi             spatial region of interest
-#' @return                 logical
+#' @return                 does a spatial ROI intersect a data cube?
 #'
 .sits_raster_sub_image_intersects <- function(cube, roi) {
 
     # pre-condition
     .check_num(nrow(cube),
-               min = 1, max = 1, is_integer = TRUE,
-               msg = "process one tile at a time only"
+        min = 1, max = 1, is_integer = TRUE,
+        msg = "process one tile at a time only"
     )
     # if roi is null, returns TRUE
     if (purrr::is_null(roi)) {
@@ -22,7 +22,7 @@
         # check for roi crs
         if (is.null(sf::st_crs(roi))) {
             stop(".sits_raster_sub_image_intersects: invalid roi crs",
-                 call. = FALSE
+                call. = FALSE
             )
         }
         # reproject roi to tile crs
@@ -47,7 +47,7 @@
 
         # check for intersection
         return(apply(sf::st_intersects(sf_region, roi), 1, any) ||
-                   apply(sf::st_within(sf_region, roi), 1, any))
+            apply(sf::st_within(sf_region, roi), 1, any))
     }
 
     # if the ROI is defined, calculate the bounding box
@@ -70,8 +70,8 @@
 
     # pre-condition
     .check_num(nrow(tile),
-               min = 1, max = 1, is_integer = TRUE,
-               msg = "process one tile only"
+        min = 1, max = 1, is_integer = TRUE,
+        msg = "process one tile only"
     )
 
     # if the ROI is defined, calculate the bounding box
@@ -96,8 +96,8 @@
 
     # pre-condition
     .check_num(nrow(tile),
-               min = 1, max = 1, is_integer = TRUE,
-               msg = "process one tile only"
+        min = 1, max = 1, is_integer = TRUE,
+        msg = "process one tile only"
     )
 
     # by default, the sub_image has the same dimension as the main cube
@@ -132,39 +132,39 @@
 
     # pre-condition
     .check_num(nrow(tile),
-               min = 1, max = 1, is_integer = TRUE,
-               msg = "process one tile only"
+        min = 1, max = 1, is_integer = TRUE,
+        msg = "process one tile only"
     )
 
     # pre-conditions
     .check_num(bbox[["xmin"]],
-               max = bbox[["xmax"]],
-               msg = "invalid bbox value"
+        max = bbox[["xmax"]],
+        msg = "invalid bbox value"
     )
 
     .check_num(bbox[["ymin"]],
-               max = bbox[["ymax"]],
-               msg = "invalid bbox value"
+        max = bbox[["ymax"]],
+        msg = "invalid bbox value"
     )
 
     .check_num(bbox[["xmin"]],
-               min = tile[["xmin"]], max = tile[["xmax"]],
-               msg = "bbox value is outside the tile"
+        min = tile[["xmin"]], max = tile[["xmax"]],
+        msg = "bbox value is outside the tile"
     )
 
     .check_num(bbox[["xmax"]],
-               min = tile[["xmin"]], max = tile[["xmax"]],
-               msg = "bbox value is outside the cube"
+        min = tile[["xmin"]], max = tile[["xmax"]],
+        msg = "bbox value is outside the cube"
     )
 
     .check_num(bbox[["ymin"]],
-               min = tile[["ymin"]], max = tile[["ymax"]],
-               msg = "bbox value is outside the cube"
+        min = tile[["ymin"]], max = tile[["ymax"]],
+        msg = "bbox value is outside the cube"
     )
 
     .check_num(bbox[["ymax"]],
-               min = tile[["ymin"]], max = tile[["ymax"]],
-               msg = "bbox value is outside the cube"
+        min = tile[["ymin"]], max = tile[["ymax"]],
+        msg = "bbox value is outside the cube"
     )
 
     # get ncols and nrows
@@ -208,26 +208,6 @@
         crs = tile[["crs"]]
     )
 
-    # compute first_col (terra code below)
-    # if (bbox[["xmin"]] >= tile[["xmin"]] && bbox[["xmin"]] < tile[["xmax"]]) {
-    #
-    #     first_col <- trunc((bbox[["xmin"]] - tile[["xmin"]]) / res[["xres"]]) + 1
-    #
-    # } else if (bbox[["xmin"]] == tile[["xmax"]]) {
-    #
-    #     first_col <- size[["ncols"]]
-    # }
-
-    # compute first_row (terra code below)
-    # if (bbox[["ymax"]] > tile[["ymin"]] && bbox[["ymax"]] <= tile[["ymax"]]) {
-    #
-    #     first_row <- trunc((tile[["ymax"]] - bbox[["ymax"]]) / res[["yres"]]) + 1
-    #
-    # } else if (bbox[["ymax"]] == tile[["ymin"]]) {
-    #
-    #     first_row <- size[["nrows"]]
-    # }
-
     tolerance <- .config_get(key = c(
         "sources", .cube_source(tile),
         "collections", .cube_collection(tile),
@@ -236,33 +216,33 @@
 
     # pre-conditions
     .check_num(si[["xmin"]],
-               max = si[["xmax"]],
-               msg = "invalid subimage value"
+        max = si[["xmax"]],
+        msg = "invalid subimage value"
     )
 
     .check_num(si[["ymin"]],
-               max = si[["ymax"]],
-               msg = "invalid subimage value"
+        max = si[["ymax"]],
+        msg = "invalid subimage value"
     )
 
     .check_num(si[["xmin"]],
-               min = tile[["xmin"]], max = tile[["xmax"]],
-               tolerance = tolerance, msg = "invalid subimage value"
+        min = tile[["xmin"]], max = tile[["xmax"]],
+        tolerance = tolerance, msg = "invalid subimage value"
     )
 
     .check_num(si[["xmax"]],
-               min = tile[["xmin"]], max = tile[["xmax"]],
-               tolerance = tolerance, msg = "invalid subimage value"
+        min = tile[["xmin"]], max = tile[["xmax"]],
+        tolerance = tolerance, msg = "invalid subimage value"
     )
 
     .check_num(si[["ymin"]],
-               min = tile[["ymin"]], max = tile[["ymax"]],
-               tolerance = tolerance, msg = "invalid subimage value"
+        min = tile[["ymin"]], max = tile[["ymax"]],
+        tolerance = tolerance, msg = "invalid subimage value"
     )
 
     .check_num(si[["ymax"]],
-               min = tile[["ymin"]], max = tile[["ymax"]],
-               tolerance = tolerance, msg = "invalid subimage value"
+        min = tile[["ymin"]], max = tile[["ymax"]],
+        tolerance = tolerance, msg = "invalid subimage value"
     )
 
     return(si)
@@ -282,8 +262,8 @@
 
     # pre-condition
     .check_num(nrow(tile),
-               min = 1, max = 1, is_integer = TRUE,
-               msg = "process one tile only"
+        min = 1, max = 1, is_integer = TRUE,
+        msg = "process one tile only"
     )
 
     # get ncols and nrows
@@ -292,25 +272,25 @@
 
     # pre-conditions
     .check_num(block[["first_col"]],
-               min = 1, max = size[["ncols"]],
-               msg = "invalid 'first_col' of block parameter"
+        min = 1, max = size[["ncols"]],
+        msg = "invalid 'first_col' of block parameter"
     )
 
     .check_num(block[["ncols"]],
-               min = 1,
-               max = size[["ncols"]] - block[["first_col"]] + 1,
-               msg = "invalid 'ncols' of block parameter"
+        min = 1,
+        max = size[["ncols"]] - block[["first_col"]] + 1,
+        msg = "invalid 'ncols' of block parameter"
     )
 
     .check_num(block[["first_row"]],
-               min = 1, max = size[["nrows"]],
-               msg = "invalid 'first_row' of block parameter"
+        min = 1, max = size[["nrows"]],
+        msg = "invalid 'first_row' of block parameter"
     )
 
     .check_num(block[["nrows"]],
-               min = 1,
-               max = size[["nrows"]] - block[["first_row"]] + 1,
-               msg = "invalid 'nrows' of block parameter"
+        min = 1,
+        max = size[["nrows"]] - block[["first_row"]] + 1,
+        msg = "invalid 'nrows' of block parameter"
     )
 
     # tile template
@@ -359,33 +339,33 @@
 
     # pre-conditions
     .check_num(si[["xmin"]],
-               max = si[["xmax"]],
-               msg = "invalid subimage value"
+        max = si[["xmax"]],
+        msg = "invalid subimage value"
     )
 
     .check_num(si[["ymin"]],
-               max = si[["ymax"]],
-               msg = "invalid subimage value"
+        max = si[["ymax"]],
+        msg = "invalid subimage value"
     )
 
     .check_num(si[["xmin"]],
-               min = tile[["xmin"]], max = tile[["xmax"]],
-               tolerance = tolerance, msg = "invalid subimage value"
+        min = tile[["xmin"]], max = tile[["xmax"]],
+        tolerance = tolerance, msg = "invalid subimage value"
     )
 
     .check_num(si[["xmax"]],
-               min = tile[["xmin"]], max = tile[["xmax"]],
-               tolerance = tolerance, msg = "invalid subimage value"
+        min = tile[["xmin"]], max = tile[["xmax"]],
+        tolerance = tolerance, msg = "invalid subimage value"
     )
 
     .check_num(si[["ymin"]],
-               min = tile[["ymin"]], max = tile[["ymax"]],
-               tolerance = tolerance, msg = "invalid subimage value"
+        min = tile[["ymin"]], max = tile[["ymax"]],
+        tolerance = tolerance, msg = "invalid subimage value"
     )
 
     .check_num(si[["ymax"]],
-               min = tile[["ymin"]], max = tile[["ymax"]],
-               tolerance = tolerance, msg = "invalid subimage value"
+        min = tile[["ymin"]], max = tile[["ymax"]],
+        tolerance = tolerance, msg = "invalid subimage value"
     )
 
     return(si)

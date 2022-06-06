@@ -15,7 +15,7 @@ sits_tempcnn(
   epochs = 150,
   batch_size = 128,
   validation_split = 0.2,
-  optimizer = optim_adamw,
+  optimizer = torchopt::optim_adamw,
   opt_hparams = list(lr = 0.005, eps = 1e-08, weight_decay = 1e-06),
   lr_decay_epochs = 1,
   lr_decay_rate = 0.95,
@@ -69,7 +69,7 @@ to reset the patience counter.}
 \item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }
 \value{
-A fitted model to be passed to \code{\link[sits]{sits_classify}}
+A fitted model to be used for classification.
 }
 \description{
 Use a TempCNN algorithm to classify data, which has
@@ -85,20 +85,39 @@ team: Marc Russwurm, Charlotte Pelletier, Marco Korner, Maximilian Zollner.
 The original python code is available at the website
 https://github.com/dl4sits/BreizhCrops. This code is licensed as GPL-3.
 }
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
+}
 \examples{
-\dontrun{
-# Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
-
-# Build a machine learning model based on deep learning
-tc_model <- sits_train(samples_modis_4bands, sits_tempcnn())
-# Plot the model
-plot(tc_model)
-
-# get a point and classify the point with the ml_model
-point <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI", "NIR", "MIR"))
-class <- sits_classify(point, tc_model)
-
-plot(class, bands = c("NDVI", "EVI"))
+if (sits_run_examples()) {
+    # select a set of samples
+    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+    # create a TempCNN model
+    torch_model <- sits_train(samples_ndvi, sits_tempcnn())
+    # plot the model
+    plot(torch_model)
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+    # classify a data cube
+    probs_cube <- sits_classify(data = cube, ml_model = torch_model)
+    # plot the probability cube
+    plot(probs_cube)
+    # smooth the probability cube using Bayesian statistics
+    bayes_cube <- sits_smooth(probs_cube)
+    # plot the smoothed cube
+    plot(bayes_cube)
+    # label the probability cube
+    label_cube <- sits_label_classification(bayes_cube)
+    # plot the labelled cube
+    plot(label_cube)
 }
 }
 \references{

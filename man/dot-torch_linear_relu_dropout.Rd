@@ -2,7 +2,8 @@
 % Please edit documentation in R/sits_torch_linear.R
 \name{.torch_linear_relu_dropout}
 \alias{.torch_linear_relu_dropout}
-\title{Torch module for linear transformation with relu activation and dropout}
+\title{Torch module for linear transformation with relu activation and
+dropout}
 \usage{
 .torch_linear_relu_dropout(input_dim, output_dim, dropout_rate)
 }

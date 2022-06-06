@@ -3,14 +3,17 @@
 .source_collection_access_test.mspc_cube <- function(source,
                                                      collection,
                                                      bands, ...,
+                                                     start_date = NULL,
+                                                     end_date = NULL,
                                                      dry_run = TRUE) {
     # require package
-    if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop("Please install package rstac", call. = FALSE)
-    }
+    .check_require_packages("rstac")
+
     items_query <- .stac_create_items_query(
         source = source,
         collection = collection,
+        start_date = start_date,
+        end_date = end_date,
         limit = 1
     )
     # assert that service is online
@@ -113,7 +116,7 @@
     # assign href
     items_info <- suppressWarnings(
         rstac::items_sign(items_info,
-                          sign_fn = rstac::sign_planetary_computer()
+            sign_fn = rstac::sign_planetary_computer()
         )
     )
     return(items_info)

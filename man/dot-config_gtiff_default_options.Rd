@@ -7,7 +7,7 @@
 .config_gtiff_default_options()
 }
 \value{
-the creation options associated to the configuration
+the creation options associated to GTIFF files
 }
 \description{
 Check GEOTIFF creation options

@@ -14,23 +14,23 @@
 \item{d_in}{Dimension of input values.}
 }
 \value{
-An outout encoder tensor.
+An output encoder tensor.
 }
 \description{
 In order to calculate attentions with a query,
-this function takes the dot product of ‘query’ with the ‘keys’
-and gets scores/weights for the ‘values.’
-Each score/weight the relevance between the ‘query’ and each ‘key’.
-And you reweight the ‘values’ with the scores/weights,
-and take the summation of the reweighted ‘values.
+this function takes the dot product of query with the keys
+and gets scores/weights for the values.
+Each score/weight the relevance between the query and each key.
+And you reweight the values with the scores/weights,
+and take the summation of the reweighted values.
 
 This implementation is based on the code made available by Vivien Garnot
 https://github.com/VSainteuf/lightweight-temporal-attention-pytorch
 }
 \references{
 Vivien Sainte Fare Garnot and Loic Landrieu,
-"Lightweight Temporal Self-Attention
-for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+"Lightweight Temporal Self-Attention for Classifying Satellite Image
+Time Series", https://arxiv.org/abs/2007.00586
 }
 \author{
 Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}

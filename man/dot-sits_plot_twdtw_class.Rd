@@ -13,7 +13,7 @@
 )
 }
 \arguments{
-\item{matches}{dtwSatS4 matches objects produced by sits_TWDTW_matches.}
+\item{matches}{dtwSat S4 objects produced by sits_TWDTW_matches.}
 
 \item{start_date}{Start date of the plot (used for classifications).}
 
@@ -21,9 +21,11 @@
 
 \item{interval}{Interval between classifications.}
 
-\item{overlap}{Minimum overlapping between one match
-and the interval of classification.
-For details see dtwSat::twdtwApply help.}
+\item{overlap}{Minimum overlapping between one match and the
+interval of classification. For details see dtwSat::twdtwApply help.}
+}
+\value{
+Return the same input value.
 }
 \description{
 Plots the results of TWDTW classification (uses dtwSat).

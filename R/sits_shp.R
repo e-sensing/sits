@@ -1,129 +1,49 @@
-#' @title Obtain a tibble with lat/long points to be retrieved from a SHP
-#' @name .sits_shp_to_tibble
+#' @title Transform a shapefile into a samples file
+#' @name .sits_get_samples_from_shp
+#' @author Gilberto Camara
 #' @keywords internal
-#'
-#' @description reads a shapefile and retrieves a sits tibble
-#' containing a set of lat/long points for data retrieval
-#'
-#' @param sf_shape        sf object that contains a SHP file.
-#' @param shp_attr        Attribute in the shapefile used as a polygon label.
-#' @param label           Label to be assigned to points.
-#' @param .n_shp_pol      Number of samples per polygon to be read
-#'                        (for POLYGON or MULTIPOLYGON shapes).
+#' @param shp_file        Shapefile that describes the data to be retrieved.
+#' @param label           Default label for samples.
+#' @param shp_attr        Shapefile attribute that describes the label.
+#' @param start_date      Start date for the data set.
+#' @param end_date        End date for the data set.
+#' @param .n_shp_pol      Number of samples per polygon to be read.
 #' @param .shp_id         ID attribute for polygons shapefile.
-#' @return                A sits tibble with points to to be read.
-.sits_shp_to_tibble <- function(sf_shape,
-                                shp_attr,
-                                label,
-                                .n_shp_pol,
-                                .shp_id) {
-
-    # get the geometry type
-    geom_type <- sf::st_geometry_type(sf_shape)[1]
-
-    # if the shapefile is not in planar coordinates, convert it
-    sf_shape <- suppressWarnings(sf::st_transform(sf_shape, crs = 4326))
-
-    # get a tibble with points and labels
-    if (geom_type == "POINT") {
-        points_tbl <- .sits_shp_point_to_tibble(sf_shape,
-                                                shp_attr,
-                                                label)
-    } else {
-        points_tbl <- .sits_shp_polygon_to_tibble(sf_shape,
-                                                  shp_attr,
-                                                  label,
-                                                  .n_shp_pol,
-                                                  .shp_id)
-    }
-
-    return(points_tbl)
-}
-
-#' @title Obtain a tibble with latitude and longitude points from POINT geometry
-#' @name .sits_shp_point_to_tibble
-#' @keywords internal
+#'                        (for POLYGON or MULTIPOLYGON shapefile).
+#' @return                A tibble with information the samples to be retrieved.
 #'
-#' @param sf_shape        sf object linked to a shapefile.
-#' @param shp_attr        Attribute in the shapefile used as a polygon label
-#' @param label           Label to be assigned to points
-#'
-.sits_shp_point_to_tibble <- function(sf_shape, shp_attr, label) {
+.sits_get_samples_from_shp <- function(shp_file,
+                                       label,
+                                       shp_attr,
+                                       start_date,
+                                       end_date,
+                                       n_shp_pol,
+                                       shp_id) {
 
-    # get the db file
-    shp_df <- sf::st_drop_geometry(sf_shape)
-
-    # if geom_type is POINT, use the points provided in the shapefile
-    points <- sf::st_coordinates(sf_shape$geometry)
-    if (!purrr::is_null(shp_attr)) {
-        l1_lst <- as.list(shp_df[, shp_attr])
-        labels <- as.vector(l1_lst[[1]])
-    } else {
-        labels <- rep(label, times = nrow(points))
-    }
-    # build a tibble with lat/long and label
-    points_tbl <- tibble::tibble(
-        longitude = points[, 1],
-        latitude = points[, 2],
-        label = labels
+    # pre-condition - check the shape file and its attribute
+    sf_shape <- .sits_shp_check_validity(
+        shp_file = shp_file,
+        shp_attr = shp_attr,
+        label = label
+    )
+    # get the points to be read
+    samples <- .sits_sf_to_tibble(
+        sf_object   = sf_shape,
+        label_attr  = shp_attr,
+        label       = label,
+        n_sam_pol   = n_shp_pol,
+        pol_id      = shp_id
     )
 
-    return(points_tbl)
+    samples <- dplyr::mutate(samples,
+        start_date = as.Date(start_date),
+        end_date = as.Date(end_date)
+    )
+
+    return(samples)
 }
 
-#' @title Obtain a tibble from POLYGON geometry
-#' @name .sits_shp_polygon_to_tibble
-#' @keywords internal
-#'
-#' @param sf_shape        sf object linked to a shapefile
-#' @param shp_attr        Attribute in the shapefile used as a polygon label
-#' @param label           Label to be assigned to points
-#' @param .n_shp_pol      Number of samples per polygon to be read
-#' @param .shp_id         ID attribute for polygons shapefile.
-#'
-.sits_shp_polygon_to_tibble <- function(sf_shape, shp_attr, label,
-                                        .n_shp_pol, .shp_id) {
-
-    # get the db file
-    shp_df <- sf::st_drop_geometry(sf_shape)
-
-    points.tb <- seq_len(nrow(sf_shape)) %>%
-        purrr::map_dfr(function(i) {
-            # retrieve the class from the shape attribute
-            if (!purrr::is_null(shp_attr) && shp_attr %in% colnames(shp_df)) {
-                label <- unname(as.character(shp_df[i, shp_attr]))
-            }
-            if (!purrr::is_null(.shp_id) && .shp_id %in% colnames(shp_df)) {
-                polygon_id <- unname(as.character(shp_df[i, .shp_id]))
-            }
-
-            # obtain a set of samples based on polygons
-            points <- list(sf::st_sample(sf_shape[i, ], size = .n_shp_pol))
-            # get one time series per sample
-            pts.tb <- points %>%
-                purrr::pmap_dfr(function(p) {
-                    pll <- sf::st_geometry(p)[[1]]
-                    row <- tibble::tibble(
-                        longitude = pll[1],
-                        latitude = pll[2],
-                        label = label
-                    )
-
-                    if (!purrr::is_null(.shp_id) &&
-                        .shp_id %in% colnames(shp_df))
-                        row <- tibble::add_column(
-                            row,
-                            polygon_id = polygon_id
-                        )
-
-                    return(row)
-                })
-            return(pts.tb)
-        })
-    return(points.tb)
-}
-
-#' @title Check the validity of the shape file
+#' @title Check the validity of the shape file and return an sf object
 #' @name .sits_shp_check_validity
 #' @keywords internal
 #'
@@ -131,7 +51,7 @@
 #' @param shp_attr        attribute in the shapefile that contains the label
 #' @param label           Label to be used instead of shp_attr
 #'
-#' @return A sf object.
+#' @return A valid sf object of POINT or POLYGON geometry.
 .sits_shp_check_validity <- function(shp_file, shp_attr = NULL, label = NULL) {
 
     # set caller to show in errors
@@ -180,35 +100,4 @@
         )
     }
     return(sf_shape)
-}
-
-#' @title Extracts the time series average by polygon.
-#' @name .sits_shp_avg_polygon
-#' @keywords internal
-#' @description This function extracts the average of the automatically
-#' generated points for each polygon in a shapefile.
-#'
-#' @param data A sits tibble with points time series.
-#'
-#' @return A sits tibble with the average of all points by each polygon.
-.sits_shp_avg_polygon <- function(data) {
-
-    bands <- sits_bands(data)
-    columns_to_avg <- c(bands, "latitude", "longitude")
-
-    data_avg <- data %>% tidyr::unnest(cols = "time_series") %>%
-        dplyr::group_by(.data[["Index"]],
-                        .data[["start_date"]],
-                        .data[["end_date"]],
-                        .data[["label"]],
-                        .data[["cube"]],
-                        .data[["polygon_id"]]) %>%
-        dplyr::summarise(dplyr::across(!!columns_to_avg, mean, na.rm = TRUE),
-                         .groups = "drop") %>%
-        tidyr::nest("time_series" = c("Index", bands)) %>%
-        dplyr::select(!!colnames(data))
-
-    class(data_avg) <- class(data)
-
-    return(data_avg)
 }

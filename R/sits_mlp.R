@@ -35,12 +35,14 @@
 #' @param min_delta	         Minimum improvement in loss function
 #'                           to reset the patience counter.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
-#' @return                   Either a model to be passed in sits_predict
-#'                           or a function prepared to be called further.
+#' @return                   A torch mlp model to be used for classification.
+#'
 #'
 #' @note
-#' The parameters for the MLP have been chosen based on the work by Wang et al. 2017
-#' that takes multilayer perceptrons as the baseline for time series classifications:
+#' The parameters for the MLP have been chosen based on the work by
+#' Wang et al. 2017
+#' that takes multilayer perceptrons as the baseline for time series
+#' classifications:
 #' (a) Three layers with 512 neurons each, specified by the parameter `layers`;
 #' (b) dropout rates of 10%, 20%, and 30% for the layers;
 #' (c) the "optimizer_adam" as optimizer (default value);
@@ -51,26 +53,45 @@
 #' will be randomly set side for validation.
 #' (g) The "relu" activation function.
 #'
-#'#' @references
+#' #' @references
 #'
 #' Zhiguang Wang, Weizhong Yan, and Tim Oates,
 #' "Time series classification from scratch with deep neural networks:
 #'  A strong baseline",
 #'  2017 international joint conference on neural networks (IJCNN).
 #'
-#'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' \dontrun{
-#' # Retrieve the set of samples for the Mato Grosso region
-#' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train(samples_modis_4bands, sits_mlp())
-#' # get a point with a 16 year time series
-#' point_4classes <- sits_select(point_mt_6bands,
-#'                               bands = c("NDVI", "EVI", "NIR", "MIR"))
-#' # classify the point
-#' point_class <- sits_classify(point_4classes, dl_model)
-#' # plot the classified point
-#' plot(point_class)
+#' if (sits_run_examples()) {
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create an MLP model
+#'     torch_model <- sits_train(samples_ndvi, sits_mlp())
+#'     # plot the model
+#'     plot(torch_model)
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = torch_model)
+#'     # plot the probability cube
+#'     plot(probs_cube)
+#'     # smooth the probability cube using Bayesian statistics
+#'     bayes_cube <- sits_smooth(probs_cube)
+#'     # plot the smoothed cube
+#'     plot(bayes_cube)
+#'     # label the probability cube
+#'     label_cube <- sits_label_classification(bayes_cube)
+#'     # plot the labelled cube
+#'     plot(label_cube)
 #' }
 #' @export
 #'
@@ -78,11 +99,12 @@ sits_mlp <- function(samples = NULL,
                      samples_validation = NULL,
                      layers = c(512, 512, 512),
                      dropout_rates = c(0.20, 0.30, 0.40),
-                     optimizer = torch::optim_adam,
+                     optimizer = torchopt::optim_adamw,
                      opt_hparams = list(
                          lr = 0.001,
                          eps = 1e-08,
-                         weight_decay = 0),
+                         weight_decay = 1.0e-06
+                     ),
                      epochs = 100,
                      batch_size = 64,
                      validation_split = 0.2,
@@ -96,24 +118,83 @@ sits_mlp <- function(samples = NULL,
     # function that returns a torch model based on samples
     result_fun <- function(samples) {
 
-        # verifies if torch package is installed
-        if (!requireNamespace("torch", quietly = TRUE)) {
-            stop("Please install package torch", call. = FALSE)
-        }
+        # verifies if torch and luz packages is installed
+        .check_require_packages(c("torch", "luz"))
 
-        # verifies if luz package is installed
-        if (!requireNamespace("luz", quietly = TRUE)) {
-            stop("Please install package luz", call. = FALSE)
-        }
+        .sits_tibble_test(samples)
 
         # pre-conditions
+        # check layers
+        .check_num(
+            x = layers,
+            exclusive_min = 0,
+            len_min = 1,
+            is_integer = TRUE
+        )
+        # check dropout_rates
+        .check_num(
+            x = dropout_rates,
+            min = 0,
+            max = 1,
+            len_min = 1
+        )
+        # check layers and dropout_rates
         .check_that(
             x = length(layers) == length(dropout_rates),
             msg = "number of layers does not match number of dropout rates"
         )
+        # check optimizer
+        .check_null(x = optimizer)
+        # check epochs
+        .check_num(
+            x = epochs,
+            exclusive_min = 0,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE
+        )
+        # check batch_size
+        .check_num(
+            x = batch_size,
+            exclusive_min = 0,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE
+        )
+        # check validation_split parameter if samples_validation is not passed
+        if (purrr::is_null(samples_validation)) {
+            .check_num(
+                x = validation_split,
+                exclusive_min = 0,
+                max = 0.5,
+                len_min = 1,
+                len_max = 1,
+                msg = "invalid 'validation_split' parameter"
+            )
+        }
+        # check patience
+        .check_num(
+            x = patience,
+            min = 1,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE
+        )
+        # check min_delta
+        .check_num(
+            x = min_delta,
+            min = 0,
+            len_min = 1,
+            len_max = 1
+        )
+        # check verbose
+        .check_lgl(verbose)
+
         # data normalization
         stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
+        train_samples <- .sits_distances(
+            .sits_ml_normalize_data(samples, stats)
+        )
 
         # is the training data correct?
         .check_chr_within(
@@ -126,12 +207,17 @@ sits_mlp <- function(samples = NULL,
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
         if (!is.null(opt_hparams)) {
+
+            .check_lst(x = opt_hparams)
+
             .check_chr_within(
                 x = names(opt_hparams),
                 within = names(optim_params_function)
             )
-            optim_params_function <- utils::modifyList(optim_params_function,
-                                                opt_hparams)
+            optim_params_function <- utils::modifyList(
+                optim_params_function,
+                opt_hparams
+            )
         }
         # get the timeline of the data
         timeline <- sits_timeline(samples)
@@ -227,7 +313,8 @@ sits_mlp <- function(samples = NULL,
                 # add softmax tensor
                 tensors[[length(tensors) + 1]] <- torch::nn_softmax(dim = 2)
 
-                # create a sequential module that calls the layers in the same order.
+                # create a sequential module that calls the layers in the same
+                # order.
                 self$model <- torch::nn_sequential(!!!tensors)
             },
             forward = function(x) {
@@ -266,14 +353,24 @@ sits_mlp <- function(samples = NULL,
         model_to_raw <- function(model) {
             con <- rawConnection(raw(), open = "wr")
             torch::torch_save(model, con)
-            on.exit( {close(con)}, add = TRUE)
+            on.exit(
+                {
+                    close(con)
+                },
+                add = TRUE
+            )
             r <- rawConnectionValue(con)
             r
         }
 
         model_from_raw <- function(object) {
             con <- rawConnection(object)
-            on.exit( {close(con)}, add = TRUE)
+            on.exit(
+                {
+                    close(con)
+                },
+                add = TRUE
+            )
             module <- torch::torch_load(con)
             module
         }
@@ -284,9 +381,7 @@ sits_mlp <- function(samples = NULL,
         model_predict <- function(values) {
 
             # verifies if torch package is installed
-            if (!requireNamespace("torch", quietly = TRUE)) {
-                stop("Please install package torch", call. = FALSE)
-            }
+            .check_require_packages("torch")
 
             # set torch threads to 1
             # function does not work on MacOS

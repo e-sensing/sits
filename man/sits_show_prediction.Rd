@@ -17,16 +17,17 @@ This function takes a tibble with a classified time series
 by a machine learning method and displays the result.
 }
 \examples{
-# Retrieve the samples for Mato Grosso
-# select band "NDVI"
-samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-# select a random forest model
-rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 200))
-# classify the point
-point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-point_class <- sits_classify(point_ndvi, rfor_model)
-# show the prediction
-sits_show_prediction(point_class)
+if (sits_run_examples()) {
+    # Retrieve the samples for Mato Grosso
+    # train a tempCNN model
+    ml_model <- sits_train(samples_modis_4bands, ml_method = sits_tempcnn)
+    # classify the point
+    bands_model <- sits_bands(ml_model)
+    point_4bands <- sits_select(point_mt_6bands, bands = bands_model)
+    point_class <- sits_classify(point_4bands, ml_model)
+    sits_show_prediction(point_class)
+}
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

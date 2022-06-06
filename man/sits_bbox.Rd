@@ -2,9 +2,15 @@
 % Please edit documentation in R/sits_bbox.R
 \name{sits_bbox}
 \alias{sits_bbox}
+\alias{sits_bbox.sits}
+\alias{sits_bbox.sits_cube}
 \title{Get the bounding box of the data}
 \usage{
 sits_bbox(data, wgs84 = FALSE, ...)
+
+\method{sits_bbox}{sits}(data, ...)
+
+\method{sits_bbox}{sits_cube}(data, wgs84 = FALSE, ...)
 }
 \arguments{
 \item{data}{Valid sits tibble (time series or a cube).}
@@ -14,13 +20,17 @@ sits_bbox(data, wgs84 = FALSE, ...)
 \item{...}{Additional parameters (not implemented).}
 }
 \value{
-Bounding box in WGS84 for time series aor
+Bounding box in WGS84 for time series or
                  on the cube projection for a data cube
-                 unless wgs84 parameteris TRUE.
+                 unless wgs84 parameter is TRUE.
 }
 \description{
 Obtain a vector of limits (either on lat/long for time series
               or in projection coordinates in the case of cubes)
+}
+\examples{
+bbox <- sits_bbox(samples_modis_4bands)
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -14,19 +14,27 @@
 \item{...}{Further specifications for \link{plot}.}
 }
 \value{
-The plot itself.
+A plot object produced by ggplot2
+                      with one average pattern per label.
 }
 \description{
+Plots the patterns to be used for classification
+
 Given a sits tibble with a set of patterns, plot them.
 }
-\examples{
-\dontrun{
-# Read a set of samples with 2 classes ("Cerrado" and "Pasture")
-# Plot the patterns
-plot(sits_patterns(cerrado_2classes))
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
+This code is reused from the dtwSat package by Victor Maus.
 }
-
+\examples{
+if (sits_run_examples()) {
+    # plot patterns
+    plot(sits_patterns(cerrado_2classes))
+}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Victor Maus, \email{vwmaus1@gmail.com}
 }

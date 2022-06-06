@@ -1,5 +1,4 @@
 test_that("Plot Time Series and Images", {
-
     testthat::skip_on_cran()
 
     cerrado_ndvi <- sits_select(cerrado_2classes, "NDVI")
@@ -23,9 +22,9 @@ test_that("Plot Time Series and Images", {
     rfor_model <- sits_train(samples_mt_ndvi, ml_method = sits_rfor())
     point_class <- sits_classify(point_ndvi, rfor_model)
     p3 <- plot(point_class)
-    expect_equal(p3$labels$y, "Value")
-    expect_equal(p3$labels$x, "Time")
-    expect_equal(p3$theme$legend.position, "bottom")
+    expect_equal(p3[[1]]$labels$y, "Value")
+    expect_equal(p3[[1]]$labels$x, "Time")
+    expect_equal(p3[[1]]$theme$legend.position, "bottom")
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -38,24 +37,10 @@ test_that("Plot Time Series and Images", {
     size_x <- bbox[["xmax"]] - bbox[["xmin"]]
     size_y <- bbox[["ymax"]] - bbox[["ymin"]]
 
-    roi <- c(
-        xmin = floor(bbox[["xmin"]] + size_x / 4),
-        xmax = floor(bbox[["xmax"]] - size_x / 4),
-        ymin = floor(bbox[["ymin"]] + size_y / 4),
-        ymax = floor(bbox[["ymax"]] - size_y / 4)
-    )
 
-    r_obj <- plot(sinop,
-                  red = "EVI", blue = "EVI", green = "NDVI",
-                  roi = roi
-    )
+    r_obj <- plot(sinop, band = "NDVI")
 
     expect_equal(terra::nlyr(r_obj), 3)
-    expect_equal(terra::ncol(r_obj), 128)
-
-    r_obj <- plot(sinop, band = "EVI")
-
-    expect_equal(terra::nlyr(r_obj), 1)
     expect_equal(terra::ncol(r_obj), 254)
 
     sinop_probs <- suppressMessages(
@@ -76,10 +61,10 @@ test_that("Plot Time Series and Images", {
     expect_equal(p_probs$lend, "round")
 
     sinop_uncert <- sits_uncertainty(sinop_probs,
-                                     output_dir = tempdir()
+        output_dir = tempdir()
     )
 
-    p_uncert <- plot(sinop_uncert, n_breaks = 11, breaks = "pretty")
+    p_uncert <- plot(sinop_uncert)
 
     expect_equal(p_uncert$adj, 0.5)
     expect_equal(p_uncert$lend, "round")
@@ -87,7 +72,7 @@ test_that("Plot Time Series and Images", {
     expect_equal(p_uncert$lty, "solid")
 
     sinop_labels <- sits_label_classification(sinop_probs,
-                                              output_dir = tempdir()
+        output_dir = tempdir()
     )
 
     p4 <- plot(sinop_labels, title = "Classified image")
@@ -96,13 +81,13 @@ test_that("Plot Time Series and Images", {
     expect_true(p4$layers[[1]]$inherit.aes)
 
     p5 <- plot(sinop_labels,
-               title = "Classified image",
-               legend = c(
-                   "Cerrado" = "#B9E3B2",
-                   "Forest" = "#68BE70",
-                   "Pasture" = "#EEF8EB",
-                   "Soy_Corn" = "#F17C1A"
-               )
+        title = "Classified image",
+        legend = c(
+            "Cerrado" = "#B9E3B2",
+            "Forest" = "#68BE70",
+            "Pasture" = "#EEF8EB",
+            "Soy_Corn" = "#F17C1A"
+        )
     )
 
     expect_equal(p5$labels$title, "Classified image")
@@ -114,11 +99,10 @@ test_that("Plot Time Series and Images", {
 })
 
 test_that("Dendrogram Plot", {
-
     testthat::skip_on_cran()
 
     cluster_obj <- sits:::.sits_cluster_dendrogram(cerrado_2classes,
-                                                   bands = c("NDVI", "EVI")
+        bands = c("NDVI", "EVI")
     )
     cut.vec <- sits:::.sits_cluster_dendro_bestcut(
         cerrado_2classes,
@@ -135,19 +119,17 @@ test_that("Dendrogram Plot", {
 })
 
 test_that("Plot torch model", {
-
     testthat::skip_on_cran()
 
-    samples_mt_2bands <- sits_select(samples_modis_4bands,
-                                     bands = c("NDVI", "EVI")
+    samples_ndvi <- sits_select(samples_modis_4bands,
+        bands = c("NDVI")
     )
     model <- sits_train(
-        samples_mt_2bands,
+        samples_ndvi,
         sits_mlp(
             layers = c(128, 128),
             dropout_rates = c(0.5, 0.4),
-            epochs = 50,
-            verbose = 0
+            epochs = 50
         )
     )
     pk <- plot(model)
@@ -172,7 +154,6 @@ test_that("Plot series with NA", {
 })
 
 test_that("SOM map plot", {
-
     testthat::skip_on_cran()
 
     set.seed(1234)
@@ -183,7 +164,7 @@ test_that("SOM map plot", {
             grid_ydim = 5
         ))
 
-    p <- plot(som_map)
+    p <- suppressWarnings(plot(som_map))
     expect_true(all(names(p$rect) %in% c("w", "h", "left", "top")))
 
     pc <- plot(som_map, type = "mapping")
@@ -191,7 +172,6 @@ test_that("SOM map plot", {
 })
 
 test_that("SOM evaluate cluster plot", {
-
     testthat::skip_on_cran()
 
     set.seed(1234)

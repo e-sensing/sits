@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{.sits_plot_together}
 \alias{.sits_plot_together}
-\title{Plot a set of time series for the same spatio-temporal reference}
+\title{Plot a set of time series for the same spatiotemporal reference}
 \usage{
 .sits_plot_together(data)
 }
@@ -10,7 +10,9 @@
 \item{data}{A sits tibble with the list of time series to be plotted.}
 }
 \value{
-The plot itself.
+A set of plots produced by the ggplot2 package
+                  each containing all time series associated to one band
+                  and one label.
 }
 \description{
 Plots all time series for the same label together.

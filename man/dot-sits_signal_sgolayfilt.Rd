@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_filters.R
 \name{.sits_signal_sgolayfilt}
 \alias{.sits_signal_sgolayfilt}
-\title{Savitsky-Golay smoothing filter}
+\title{Savitzky-Golay smoothing filter}
 \usage{
 .sits_signal_sgolayfilt(x, p = 3, n = p + 3 - p\%\%2, m = 0, ts = 1)
 }
@@ -21,7 +21,7 @@
 A time series with filtered values.
 }
 \description{
-Smooth the data in x with a Savitsky-Golay smoothing filter of
+Smooth the data in x with a Savitzky-Golay smoothing filter of
   polynomial order p and length n, n odd, n > p.  By default, p=3
    and n=p+2 or n=p+3 if p is even. This filters is particularly good
    at preserving lineshape while

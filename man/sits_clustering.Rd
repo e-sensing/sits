@@ -3,8 +3,6 @@
 \name{sits_clustering}
 \alias{sits_clustering}
 \alias{sits_cluster_dendro}
-\alias{sits_cluster_frequency}
-\alias{sits_cluster_clean}
 \title{Find clusters in time series samples}
 \usage{
 sits_cluster_dendro(
@@ -17,10 +15,6 @@ sits_cluster_dendro(
   .plot = TRUE,
   ...
 )
-
-sits_cluster_frequency(samples)
-
-sits_cluster_clean(samples)
 }
 \arguments{
 \item{samples}{Tibble with input set of time series.}
@@ -44,49 +38,35 @@ to dtwclust::tsclust() function.}
 }
 \value{
 Tibble with added "cluster" column.
-
-\code{sits_cluster_frequency()} returns a matrix containing
-all frequencies of labels in clusters.
-
-\code{sits_cluster_clean()} takes a tibble with time series
-that has an additional `cluster` produced by \code{sits_cluster_dendro()}
-and removes labels that are minority in each cluster.
 }
 \description{
-These functions support hierarchical agglomerative clustering in sits.
-They provide support from creating a dendrogram and using it for cleaning samples.
+These functions support hierarchical agglomerative clustering in
+sits. They provide support from creating a dendrogram and using it for
+cleaning samples.
 
-\code{sits_cluster_dendro()} takes a tibble containing time series and produces
-a sits tibble with an added "cluster" column. The function first calculates a dendrogram and
-obtains a validity index for best clustering using the adjusted Rand Index.
-After cutting the dendrogram using the chosen validity index, it assigns a
-cluster to each sample.
+\code{sits_cluster_dendro()} takes a tibble containing time series and
+produces a sits tibble with an added "cluster" column. The function first
+calculates a dendrogram and obtains a validity index for best clustering
+using the adjusted Rand Index. After cutting the dendrogram using the chosen
+validity index, it assigns a cluster to each sample.
 
-\code{sits_cluster_frequency()} computes the contingency table between labels and clusters
-and produces a matrix
+\code{sits_cluster_frequency()} computes the contingency table between labels
+and clusters and produces a matrix.
 It needs as input a tibble produced by \code{sits_cluster_dendro()}.
 
 \code{sits_cluster_clean()} takes a tibble with time series
 that has an additional `cluster` produced by \code{sits_cluster_dendro()}
 and removes labels that are minority in each cluster.
 }
-\examples{
-\dontrun{
-# load a simple data set with two classes
-data(cerrado_2classes)
-# calculate the dendrogram and the best clusters
-clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("NDVI", "EVI"))
-# show clusters samples frequency
-sits_cluster_frequency(clusters)
-# remove cluster 3 from the samples
-clusters_new <- dplyr::filter(clusters, cluster != 3)
-# show clusters samples frequency of the new data set
-sits_cluster_frequency(clusters_new)
-# clean all remaining clusters
-cleaned <- sits_cluster_clean(clusters_new)
-# show clusters samples frequency
-sits_cluster_frequency(cleaned)
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
+\examples{
+if (sits_run_examples()) {
+    clusters <- sits_cluster_dendro(cerrado_2classes)
+}
+
 }
 \references{
 "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)

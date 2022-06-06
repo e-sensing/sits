@@ -15,7 +15,8 @@
     .check_set_caller(".local_cube")
 
     # is this a cube with results?
-    if (!purrr::is_null(bands) && all(bands %in% .config_get("sits_results_bands"))) {
+    if (!purrr::is_null(bands) &&
+        all(bands %in% .config_get("sits_results_bands"))) {
         results_cube <- TRUE
     } else {
         results_cube <- FALSE
@@ -40,7 +41,10 @@
         .check_chr_contains(
             parse_info,
             contains = .config_get("results_parse_info_col"),
-            msg = "parse_info must include tile, start_date, end_date, and band."
+            msg = paste(
+                "parse_info must include tile, start_date, end_date,",
+                "and band."
+            )
         )
     } else {
         .check_chr_contains(
@@ -101,9 +105,9 @@
         items_tile <- dplyr::filter(items, .data[["tile"]] == !!tile)
         # make a new cube tile
         if (results_cube) {
-
-            if (purrr::is_null(labels))
+            if (purrr::is_null(labels)) {
                 labels <- NA
+            }
 
             tile_cube <- .local_results_items_cube(
                 source = source,
@@ -124,7 +128,7 @@
 
     if (results_cube) {
         result_class <- .config_get("sits_results_s3_class")[[bands]]
-        class(cube)  <- c(result_class, "raster_cube", class(cube))
+        class(cube) <- c(result_class, "raster_cube", class(cube))
     } else {
         class(cube) <- .cube_s3class(cube)
     }
@@ -144,7 +148,8 @@
     .check_set_caller(".local_cube_items_new")
 
     # is this a cube with results?
-    if (!purrr::is_null(bands) && bands[[1]] %in% .config_get("sits_results_bands")) {
+    if (!purrr::is_null(bands) &&
+        bands[[1]] %in% .config_get("sits_results_bands")) {
         results_cube <- TRUE
     } else {
         results_cube <- FALSE
@@ -160,8 +165,8 @@
     )
     # post-condition
     .check_chr(img_files,
-               allow_empty = FALSE, len_min = 1,
-               msg = "no file found in provided directory"
+        allow_empty = FALSE, len_min = 1,
+        msg = "no file found in provided directory"
     )
 
     # remove the extension
@@ -171,8 +176,9 @@
     img_files_lst <- strsplit(img_files_noext, split = delim)
 
     are_img_files_ok <- purrr::map_lgl(img_files_lst, function(img_file) {
-        if (length(img_file) == length(parse_info))
+        if (length(img_file) == length(parse_info)) {
             return(TRUE)
+        }
         return(FALSE)
     })
 
@@ -194,7 +200,7 @@
     # joint the list into a tibble and convert bands name to upper case
     items <- suppressMessages(
         tibble::as_tibble(img_files_mx,
-                          .name_repair = "universal"
+            .name_repair = "universal"
         )
     )
     # read the image files into a tibble with added parse info
@@ -202,7 +208,7 @@
     # joint the list into a tibble and convert bands name to upper case
     items <- suppressMessages(
         tibble::as_tibble(img_files_mx,
-                          .name_repair = "universal"
+            .name_repair = "universal"
         )
     )
     # get the information on the required bands, dates and path
@@ -226,9 +232,13 @@
                 .data[["path"]]
             ) %>%
             # check the start date format
-            dplyr::mutate(start_date = .sits_timeline_date_format(.data[["start_date"]])) %>%
+            dplyr::mutate(
+                start_date = .sits_timeline_format(.data[["start_date"]])
+            ) %>%
             # check the end date format
-            dplyr::mutate(end_date = .sits_timeline_date_format(.data[["end_date"]])) %>%
+            dplyr::mutate(
+                end_date = .sits_timeline_format(.data[["end_date"]])
+            ) %>%
             # filter to remove duplicate combinations of file and band
             dplyr::distinct(
                 .data[["tile"]],
@@ -253,7 +263,7 @@
                 .data[["path"]]
             ) %>%
             # check the date format
-            dplyr::mutate(date = .sits_timeline_date_format(.data[["date"]])) %>%
+            dplyr::mutate(date = .sits_timeline_format(.data[["date"]])) %>%
             # filter to remove duplicate combinations of file and band
             dplyr::distinct(
                 .data[["tile"]],
@@ -274,7 +284,7 @@
     }
     # post-condition
     .check_that(nrow(items) > 0,
-                msg = "no files found in the interval"
+        msg = "no files found in the interval"
     )
     return(items)
 }
@@ -301,8 +311,8 @@
     if (!purrr::is_null(bands)) {
         # verify that the requested bands exist
         .check_chr_within(bands,
-                          within = unique(items[["band"]]),
-                          msg = "invalid 'bands' value"
+            within = unique(items[["band"]]),
+            msg = "invalid 'bands' value"
         )
         # select the requested bands
         items <- dplyr::filter(items, .data[["band"]] %in% !!bands)
@@ -318,7 +328,7 @@
     .check_set_caller(".local_cube_file_info")
     # post-condition
     .check_that(nrow(items) > 0,
-                msg = "invalid 'items' parameter"
+        msg = "invalid 'items' parameter"
     )
     # add feature id (fid)
     items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) %>%
@@ -371,7 +381,7 @@
 
     # post-condition
     .check_that(nrow(items) > 0,
-                msg = "invalid 'items' parameter"
+        msg = "invalid 'items' parameter"
     )
     # get all the items
     items <- slider::slide_dfr(items, function(item) {

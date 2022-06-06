@@ -53,23 +53,40 @@
 #' @param min_delta	         Minimum improvement to reset the patience counter.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
 #'
-#' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
+#' @return A fitted model to be used for classification.
 #'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' \dontrun{
-#' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
-#'
-#' # Build a machine learning model based on deep learning
-#' tae_model <- sits_train(samples_modis_4bands, sits_tae())
-#' # Plot the model
-#' plot(tae_model)
-#'
-#' # get a point and classify the point with the ml_model
-#' point <- sits_select(point_mt_6bands,
-#'     bands = c("NDVI", "EVI", "NIR", "MIR")
-#' )
-#' class <- sits_classify(point, tae_model)
-#' plot(class, bands = c("NDVI", "EVI"))
+#' if (sits_run_examples()) {
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create a TAE model
+#'     torch_model <- sits_train(samples_ndvi, sits_tae())
+#'     # plot the model
+#'     plot(torch_model)
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = torch_model)
+#'     # plot the probability cube
+#'     plot(probs_cube)
+#'     # smooth the probability cube using Bayesian statistics
+#'     bayes_cube <- sits_smooth(probs_cube)
+#'     # plot the smoothed cube
+#'     plot(bayes_cube)
+#'     # label the probability cube
+#'     label_cube <- sits_label_classification(bayes_cube)
+#'     # plot the labelled cube
+#'     plot(label_cube)
 #' }
 #' @export
 sits_tae <- function(samples = NULL,
@@ -77,10 +94,12 @@ sits_tae <- function(samples = NULL,
                      epochs = 150,
                      batch_size = 64,
                      validation_split = 0.2,
-                     optimizer = torch::optim_adam,
-                     opt_hparams = list(lr = 0.001,
-                                        eps = 1e-08,
-                                        weight_decay = 0),
+                     optimizer = torchopt::optim_adamw,
+                     opt_hparams = list(
+                         lr = 0.001,
+                         eps = 1e-08,
+                         weight_decay = 1.0e-06
+                     ),
                      lr_decay_epochs = 1,
                      lr_decay_rate = 0.95,
                      patience = 20,
@@ -92,40 +111,84 @@ sits_tae <- function(samples = NULL,
 
     # function that returns torch model based on a sits sample data.table
     result_fun <- function(samples) {
-        # verifies if torch package is installed
-        if (!requireNamespace("torch", quietly = TRUE)) {
-            stop("Please install package torch", call. = FALSE)
-        }
-        # verifies if torch package is installed
-        if (!requireNamespace("luz", quietly = TRUE)) {
-            stop("Please install package luz", call. = FALSE)
-        }
+        # verifies if torch and luz packages is installed
+        .check_require_packages(c("torch", "luz"))
+
+        .sits_tibble_test(samples)
+
         # preconditions
+        # check epochs
+        .check_num(
+            x = epochs,
+            min = 1,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE
+        )
+        # check batch_size
+        .check_num(
+            x = batch_size,
+            min = 1,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE
+        )
+        # check validation_split parameter if samples_validation is not passed
+        if (purrr::is_null(samples_validation)) {
+            .check_num(
+                x = validation_split,
+                exclusive_min = 0,
+                max = 0.5,
+                len_min = 1,
+                len_max = 1
+            )
+        }
+
+        # check lr_decay_epochs
         .check_num(
             x = lr_decay_epochs,
             is_integer = TRUE,
             len_max = 1,
-            min = 1,
-            msg = "invalid learning rate decay epochs"
+            min = 1
         )
+        # check lr_decay_rate
         .check_num(
             x = lr_decay_rate,
-            len_max = 1,
+            exclusive_min = 0,
             max = 1,
-            min = 0,
-            allow_zero = FALSE,
-            msg = "invalid learning rate decay"
+            len_max = 1
         )
+        # check opt_params
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
         if (!is.null(names(opt_hparams))) {
             .check_chr_within(
                 x = names(opt_hparams),
-                within = names(optim_params_function)
+                within = names(optim_params_function),
+                msg = "invalid hyperparameters provided in optimizer"
             )
-            optim_params_function <- utils::modifyList(optim_params_function,
-                                                       opt_hparams)
+            optim_params_function <- utils::modifyList(
+                optim_params_function,
+                opt_hparams
+            )
         }
+        # check patience
+        .check_num(
+            x = patience,
+            min = 1,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE
+        )
+        # check min_delta
+        .check_num(
+            x = min_delta,
+            min = 0,
+            len_min = 1,
+            len_max = 1
+        )
+        # check verbose
+        .check_lgl(verbose)
 
         # get the timeline of the data
         timeline <- sits_timeline(samples)
@@ -147,7 +210,9 @@ sits_tae <- function(samples = NULL,
 
         # data normalization
         stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
+        train_samples <- .sits_distances(
+            .sits_ml_normalize_data(samples, stats)
+        )
 
         # is the training data correct?
         .check_chr_within(
@@ -241,7 +306,7 @@ sits_tae <- function(samples = NULL,
                 # classification using softmax
                 self$softmax <- torch::nn_softmax(dim = -1)
             },
-            forward = function(x){
+            forward = function(x) {
                 x <- x %>%
                     self$spatial_encoder() %>%
                     self$temporal_attention_encoder() %>%
@@ -257,7 +322,7 @@ sits_tae <- function(samples = NULL,
                 module = pse_tae_model,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
-                optimizer = torch::optim_adam
+                optimizer = optimizer
             ) %>%
             luz::set_hparams(
                 n_bands  = n_bands,
@@ -312,6 +377,7 @@ sits_tae <- function(samples = NULL,
             if (!requireNamespace("torch", quietly = TRUE)) {
                 stop("Please install package torch", call. = FALSE)
             }
+            .check_require_packages("torch")
 
             # set torch threads to 1
             # function does not work on MacOS
@@ -342,8 +408,10 @@ sits_tae <- function(samples = NULL,
             return(prediction)
         }
 
-        class(model_predict) <- c("torch_model", "sits_model",
-                                  class(model_predict))
+        class(model_predict) <- c(
+            "torch_model", "sits_model",
+            class(model_predict)
+        )
 
         return(model_predict)
     }

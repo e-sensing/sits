@@ -13,7 +13,7 @@ sits_config(
   raster_api_package = NULL,
   gdal_creation_options = NULL,
   gdalcubes_chunk_size = NULL,
-  leaflet_max_Mbytes = NULL,
+  leaflet_max_megabytes = NULL,
   leaflet_comp_factor = NULL,
   reset = FALSE
 )
@@ -34,12 +34,13 @@ to block size.}
 
 \item{gdalcubes_chunk_size}{Chunk size to be used by gdalcubes}
 
-\item{leaflet_max_Mbytes}{Maximage size of an image for leaflet (in MB)}
+\item{leaflet_max_megabytes}{Max image size of an image for leaflet (in MB)}
 
 \item{leaflet_comp_factor}{Compression factor for leaflet RGB display.}
 
 \item{reset}{Should current configuration options be cleaned
-before loading config files? Default \code{FALSE}.}
+before loading config files? Default is
+\code{FALSE}.}
 
 \item{source}{Data source to be shown in detail.}
 
@@ -51,11 +52,10 @@ before loading config files? Default \code{FALSE}.}
 \code{sits_config()} returns a \code{list} containing the final
 configuration options.
 
-\code{sits_config_show()} returns a \code{list} containing the respective
+A \code{list} containing the respective
 configuration printed in the console.
 
-\code{sits_list_collections()} prints the collections available in
-each cloud service supported by sits.
+Prints collections available in each cloud service supported by sits.
 }
 \description{
 These functions load and show sits configurations.
@@ -86,6 +86,10 @@ location of their file in the environmental variable
 
 To see the key entries and contents of the current configuration values,
 use \code{sits_config_show()}.
+}
+\examples{
+current_config <- sits_config()
+sits_config_show()
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

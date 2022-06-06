@@ -25,7 +25,7 @@
 #' Observations and Remote Sensing, 9(8):3729-3739,
 #'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
-#' @param  samples       A sits tibble to be classified using TWTDW.
+#' @param  samples       A sits tibble to be classified using TWDTW.
 #' @param  patterns      Patterns to be used for classification.
 #' @param  bands         Names of the bands to be used for classification.
 #' @param  dist_method   Name of the method to derive the local cost matrix.
@@ -44,13 +44,14 @@
 #'                       the interval of classification.
 #' @param  .plot         Plot the output?
 #' @return A dtwSat S4 object with the matches.
+#'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()){
 #' # Retrieve the set of samples for the Mato Grosso region
 #' samples <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # get a point and classify the point with the ml_model
-#' point <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+#' point <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 #'
 #' # plot the series
 #' plot(point)
@@ -63,8 +64,8 @@
 #' # using the TWDTW algorithm
 #' # (uses the dtwSat R package)
 #' matches <- sits_twdtw_classify(point, patterns,
-#'   bands = c("NDVI", "EVI"),
-#'   alpha = -0.1, beta = 100, theta = 0.5, keep = TRUE
+#'     bands = c("NDVI", "EVI"),
+#'     alpha = -0.1, beta = 100, theta = 0.5, keep = TRUE
 #' )
 #' }
 #' @export
@@ -83,18 +84,13 @@ sits_twdtw_classify <- function(samples,
                                 overlap = 0.5,
                                 .plot = TRUE) {
     # verifies if dtwSat package is installed
-    if (!(suppressWarnings(requireNamespace("dtwSat", quietly = TRUE)))) {
-        stop("Please install package dtwSat", call. = FALSE)
-    }
+    suppressWarnings(.check_require_packages("dtwSat"))
 
     # does the input data exist?
     .sits_tibble_test(samples)
 
     # check the bands
     bands <- .sits_tibble_bands_check(samples, bands)
-
-    # create a list to store the results of the TWDTW matches
-    matches <- list()
 
     # select the bands for patterns time series and convert to TWDTW format
     twdtw_patterns <- patterns %>%
@@ -131,19 +127,19 @@ sits_twdtw_classify <- function(samples,
 
     # Classify a sits tibble using the matches found by the TWDTW methods
     samples <- .sits_twdtw_breaks(matches_lst,
-                                  samples,
-                                  start_date = start_date,
-                                  end_date = end_date,
-                                  interval,
-                                  overlap
+        samples,
+        start_date = start_date,
+        end_date = end_date,
+        interval,
+        overlap
     )
     # plot the classification
     if (.plot) {
         .sits_plot_twdtw_class(matches_lst,
-                               start_date = start_date,
-                               end_date = end_date,
-                               interval = interval,
-                               overlap = overlap
+            start_date = start_date,
+            end_date = end_date,
+            interval = interval,
+            overlap = overlap
         )
     }
     return(samples)
@@ -166,7 +162,7 @@ sits_twdtw_classify <- function(samples,
 #' ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
 #' @param  matches       A dtwSat S4 object with the matches
-#'                       produced by the sits_TWTDW_matches function.
+#'                       produced by the sits_TWDTW_matches function.
 #' @param  samples       Input for the TWDTW matching function.
 #' @param  start_date    The start date of the classification period.
 #' @param  end_date      The end date of the classification period.
@@ -182,9 +178,7 @@ sits_twdtw_classify <- function(samples,
                                overlap = 0.5) {
 
     # verifies if dtwSat package is installed
-    if (!(suppressWarnings(requireNamespace("dtwSat", quietly = TRUE)))) {
-        stop("Please install package dtwSat", call. = FALSE)
-    }
+    .check_require_packages("dtwSat")
 
     # create a tibble to store the results
     predicted_lst <-
@@ -224,18 +218,13 @@ sits_twdtw_classify <- function(samples,
 #' @description Converts sits tibble to an instance of a TWDTW class.
 #'
 #' @param  samples      A tibble in sits format with time series
-#'                      to be converted to TWTDW time series.
+#'                      to be converted to TWDTW time series.
 #' @return An object of the twdtwTimeSeries class).
 .sits_twdtw_from_tibble <- function(samples) {
-    # verifies if methods package is installed
-    if (!requireNamespace("methods", quietly = TRUE)) {
-        stop("Please install package methods", call. = FALSE)
-    }
+    # verifies if methods and zoo packages are installed
+    .check_require_packages(c("methods", "zoo"))
 
-    # verifies if zoo package is installed
-    if (!requireNamespace("zoo", quietly = TRUE)) {
-        stop("Please install package zoo", call. = FALSE)
-    }
+    # verifies if  package is installed
     # transform each sits time series into a list of zoo
     ts <- samples$time_series %>%
         purrr::map(
@@ -244,8 +233,8 @@ sits_twdtw_classify <- function(samples,
 
     # create a new twdtwTimeSeries object from list above
     ts_twdtw <- methods::new("twdtwTimeSeries",
-                             timeseries = ts,
-                             labels = as.character(samples$label)
+        timeseries = ts,
+        labels = as.character(samples$label)
     )
     return(ts_twdtw)
 }

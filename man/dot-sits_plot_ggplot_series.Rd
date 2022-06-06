@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{.sits_plot_ggplot_series}
 \alias{.sits_plot_ggplot_series}
-\title{Plot one timeSeries using ggplot}
+\title{Plot one time series using ggplot}
 \usage{
 .sits_plot_ggplot_series(row)
 }
@@ -10,7 +10,8 @@
 \item{row}{row of a sits tibble with the time series to be plotted.}
 }
 \value{
-The plot itself.
+A plot object produced by the ggplot2 package showing
+                   one time series.
 }
 \description{
 Plots a set of time series using ggplot. This function is used

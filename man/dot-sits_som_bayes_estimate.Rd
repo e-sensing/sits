@@ -17,7 +17,7 @@ provided by "kohonen" package}
 \item{som_radius}{Distance in the SOM map to consider neighbours}
 }
 \value{
-Returns the probability of a sample belongs
+The probability of a sample belongs
                         to a cluster based on the class of neuron
                         and its neighborhood.
 }

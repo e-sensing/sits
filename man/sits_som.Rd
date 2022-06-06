@@ -56,7 +56,7 @@ sits_som_evaluate_cluster(som_map)
 \item{keep}{Which types of evaluation to be maintained in the data.}
 }
 \value{
-\code{sits_som_map()} prodices a list with three members:
+\code{sits_som_map()} produces a list with three members:
 (1) the samples tibble, with one additional column indicating
 to which neuron each sample has been mapped;
 (2) the Kohonen map, used for plotting and cluster quality measures;
@@ -97,26 +97,32 @@ based on the results of the SOM map.  The algorithm identifies noisy samples,
 using `prior_threshold` for the prior probability
 and `posterior_threshold` for the posterior probability.
 Each sample receives an evaluation tag, according to the following rule:
-(a) If the prior probability is < `prior_threshold`, the sample is tagged as "remove";
-(b) If the prior probability is >= `prior_threshold` and the posterior probability
-is >=`posterior_threshold`, the sample is tagged as "clean";
+(a) If the prior probability is < `prior_threshold`, the sample is tagged
+as "remove";
+(b) If the prior probability is >= `prior_threshold` and the posterior
+probability is >=`posterior_threshold`, the sample is tagged as "clean";
 (c) If the prior probability is >= `posterior_threshold` and
-the posterior probability is < `posterior_threshold`, the sample is tagged as "analyze" for further inspection.
+the posterior probability is < `posterior_threshold`, the sample is tagged as
+"analyze" for further inspection.
 The user can define which tagged samples will be returned using the "keep"
 parameter, with the following options: "clean", "analyze", "remove".
 }
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
+}
 \examples{
-\dontrun{
-# Produce a cluster map
-som_map <- sits_som_map(samples_modis_4bands)
-# plot the som map
-plot(som_map)
-# calculate the mixture inside clusters
-eval <- sits_som_evaluate_cluster(som_map)
-# plot the cluster evaluation
-plot(eval)
-# Clean the samples to get better quality ones
-clean_samples <- sits_som_clean_samples(som_map)
+if (sits_run_examples()) {
+    # create a som map
+    som_map <- sits_som_map(samples_modis_4bands)
+    # plot the som map
+    plot(som_map)
+    # evaluate the som map and create clusters
+    clusters_som <- sits_som_evaluate_cluster(som_map)
+    # plot the cluster evaluation
+    plot(clusters_som)
+    # clean the samples
+    new_samples <- sits_som_clean_samples(som_map)
 }
 
 }

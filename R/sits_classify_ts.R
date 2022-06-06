@@ -11,16 +11,17 @@
 #' @return          Tibble with the columns "from", "to", "class"
 #'
 #' @examples
-#' # Retrieve the samples for Mato Grosso
-#' # select band "NDVI"
-#' samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-#' # select a random forest model
-#' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 200))
-#' # classify the point
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' point_class <- sits_classify(point_ndvi, rfor_model)
-#' # show the prediction
-#' sits_show_prediction(point_class)
+#' if (sits_run_examples()) {
+#'     # Retrieve the samples for Mato Grosso
+#'     # train a tempCNN model
+#'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_tempcnn)
+#'     # classify the point
+#'     bands_model <- sits_bands(ml_model)
+#'     point_4bands <- sits_select(point_mt_6bands, bands = bands_model)
+#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     sits_show_prediction(point_class)
+#' }
+#'
 #' @export
 sits_show_prediction <- function(class) {
 
@@ -68,11 +69,12 @@ sits_show_prediction <- function(class) {
     names(int_labels) <- labels
 
     # compute prediction vector
-    pred <- names(int_labels[max.col(prediction)])
+    pred_labels <- names(int_labels[max.col(prediction)])
 
     idx <- 1
 
-    data_pred <- slider::slide_dfr(data, function(row) {
+    data_pred <- slider::slide2_dfr(data, seq_len(nrow(data)),
+                                    function(row, row_n) {
 
         # get the timeline of the row
         timeline_row <- lubridate::as_date(row$time_series[[1]]$Index)
@@ -88,18 +90,25 @@ sits_show_prediction <- function(class) {
                 num_samples = nrow(row$time_series[[1]])
             )
         }
+        idx_fst <- (row_n - 1)*(length(ref_dates_lst)) + 1
+        idx_lst <- idx_fst + length(ref_dates_lst) - 1
+        pred_row <- prediction[idx_fst:idx_lst,]
+        if (idx_lst == idx_fst)
+            pred_row <- matrix(pred_row, nrow = 1,
+                               dimnames = list(NULL, colnames(prediction)))
+        pred_row_lab <- pred_labels[idx_fst:idx_lst]
 
         # store the classification results
-        pred_sample <- ref_dates_lst %>%
-            purrr::map_dfr(function(rd) {
-                probs_date <- rbind.data.frame(prediction[idx, ])
-                names(probs_date) <- names(prediction[idx, ])
+        pred_sample <- purrr::map2_dfr(ref_dates_lst,
+                                       seq_len(length(ref_dates_lst)),
+            function(rd, idx) {
+                probs_date <- rbind.data.frame(pred_row[idx, ])
+                names(probs_date) <- names(pred_row[idx, ])
                 pred_date <- tibble::tibble(
                     from = as.Date(rd[1]),
                     to = as.Date(rd[2]),
-                    class = pred[idx]
+                    class = pred_row_lab[idx]
                 )
-                idx <<- idx + 1
                 pred_date <- dplyr::bind_cols(pred_date, probs_date)
             })
         row$predicted <- list(pred_sample)

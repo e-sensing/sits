@@ -4,7 +4,10 @@
 \alias{:=}
 \title{Set by reference in data.table}
 \arguments{
-\item{lhs, rhs}{A visualisation and a function to apply to it.}
+\item{lhs, rhs}{A visualization and a function to apply to it.}
+}
+\value{
+DT is modified by reference and returned invisibly.
 }
 \description{
 Data.table assignment by reference.

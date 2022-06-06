@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{.sits_plot_ggplot_together}
 \alias{.sits_plot_ggplot_together}
-\title{Plot many timeSeries together using ggplot}
+\title{Plot many time series together using ggplot}
 \usage{
 .sits_plot_ggplot_together(melted, means, plot_title)
 }
@@ -14,7 +14,9 @@
 \item{plot_title}{title for the plot.}
 }
 \value{
-The plot itself.
+A plot object produced by the ggplot2 package
+                      each time series associated to one band
+                      and one label.
 }
 \description{
 Plots a set of  time series together.

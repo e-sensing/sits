@@ -27,7 +27,7 @@ oversampling).}
 \item{multicores}{Number of cores to process the data (default 2).}
 }
 \value{
-A sits tibble with a fixed quantity of samples.
+A sits tibble with reduced sample imbalance.
 }
 \description{
 Takes a sits tibble with different labels and
@@ -36,21 +36,25 @@ using the synthetic minority oversampling technique (SMOTE)
 for oversampling. Undersampling is done using the SOM methods available in
 the sits package.
 }
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
+}
 \examples{
-# Retrieve a set of time series with 2 classes
-data(samples_modis_4bands)
-# Print the labels of the resulting tibble
-sits_labels_summary(samples_modis_4bands)
-# Samples the data set
-new_data <- sits_reduce_imbalance(samples_modis_4bands)
-# Print the labels of the resulting tibble
-sits_labels_summary(new_data)
+if (sits_run_examples()) {
+    # print the labels summary for a sample set
+    sits_labels_summary(samples_modis_4bands)
+    # reduce the sample imbalance
+    new_samples <- sits_reduce_imbalance(samples_modis_4bands,
+        n_samples_over = 200,
+        n_samples_under = 200,
+        multicores = 1
+    )
+    # print the labels summary for the rebalanced set
+    sits_labels_summary(new_samples)
+}
 }
 \references{
-Oversampling uses the "oversample_smote" function
-implemented in the "scutr" package developed by Keenan Ganz and
-avaliable in https://github.com/s-kganz/scutr.
-
 The reference paper on SMOTE is
 N. V. Chawla, K. W. Bowyer, L. O.Hall, W. P. Kegelmeyer,
 “SMOTE: synthetic minority over-sampling technique,”

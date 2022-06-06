@@ -12,7 +12,7 @@
 \item{band}{Band}
 }
 \value{
-scale factor for the band in the data cube
+Scale factor for the band in the data cube.
 }
 \description{
 Scale factor of a cube band

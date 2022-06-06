@@ -3,13 +3,26 @@
 \name{sits_view}
 \alias{sits_view}
 \alias{sits_view.sits}
+\alias{sits_view.som_map}
 \alias{sits_view.raster_cube}
 \alias{sits_view.classified_image}
+\alias{sits_view.probs_cube}
+\alias{sits_view.default}
 \title{View data cubes and samples in leaflet}
 \usage{
 sits_view(x, ...)
 
 \method{sits_view}{sits}(x, ..., legend = NULL, palette = "Harmonic")
+
+\method{sits_view}{som_map}(
+  x,
+  ...,
+  label,
+  prob_max = 1,
+  prob_min = 0.7,
+  legend = NULL,
+  palette = "Harmonic"
+)
 
 \method{sits_view}{raster_cube}(
   x,
@@ -18,7 +31,7 @@ sits_view(x, ...)
   red = NULL,
   green = NULL,
   blue = NULL,
-  tiles = NULL,
+  tiles = x$tile[[1]],
   dates = sits_timeline(x)[1],
   class_cube = NULL,
   legend = NULL,
@@ -26,6 +39,10 @@ sits_view(x, ...)
 )
 
 \method{sits_view}{classified_image}(x, ..., tiles = NULL, legend = NULL, palette = "default")
+
+\method{sits_view}{probs_cube}(x, ...)
+
+\method{sits_view}{default}(x, ...)
 }
 \arguments{
 \item{x}{Object of class "sits",
@@ -36,6 +53,14 @@ sits_view(x, ...)
 \item{legend}{Named vector that associates labels to colors.}
 
 \item{palette}{Palette provided in the configuration file.}
+
+\item{label}{Label from the SOM map to be shown.}
+
+\item{prob_max}{Maximum a posteriori probability for SOM neuron
+samples to be shown}
+
+\item{prob_min}{Minimum a posteriori probability for SOM neuron
+samples to be shown}
 
 \item{band}{For plotting grey images.}
 
@@ -52,33 +77,62 @@ sits_view(x, ...)
 \item{class_cube}{Classified cube to be overlayed on top on image.}
 }
 \value{
-Leaflet object.
+A leaflet object containing either samples or
+                      data cubes embedded in a global map that can
+                      be visualized directly in an RStudio viewer.
 }
 \description{
 Uses leaflet to visualize time series, raster cube and
 classified images
 }
-\examples{
-\donttest{
-# view a collection of time series
-sits_view(samples_modis_4bands)
-
-# view a temporal instance of a cube
-
-data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-
-modis_cube <- sits_cube(
-  source = "BDC",
-  collection = "MOD13Q1-6",
-  bands = c("NDVI", "EVI"),
-  data_dir = data_dir,
-  parse_info = c("X1", "X2", "tile", "band", "date")
-)
-
-# plot the data cube
-sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", times = 1)
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
+\examples{
+if (sits_run_examples()) {
+    sits_view(cerrado_2classes)
 
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+
+    modis_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+    # get the timeline
+    timeline <- sits_timeline(modis_cube)
+    # view the data cube
+    sits_view(modis_cube,
+        band = "NDVI",
+        dates = timeline[[1]]
+    )
+
+    samples_ndvi <- sits_select(samples_modis_4bands,
+        bands = c("NDVI")
+    )
+    rf_model <- sits_train(samples_ndvi, sits_rfor())
+
+    modis_probs <- sits_classify(
+        data = modis_cube,
+        ml_model = rf_model,
+        output_dir = tempdir(),
+        memsize = 4,
+        multicores = 1
+    )
+    modis_label <- sits_label_classification(modis_probs,
+        output_dir = tempdir()
+    )
+
+    sits_view(modis_label)
+
+    sits_view(modis_cube,
+        band = "NDVI",
+        class_cube = modis_label,
+        dates = sits_timeline(modis_cube)[[1]]
+    )
+}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

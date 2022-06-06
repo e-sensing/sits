@@ -34,7 +34,8 @@ sits_apply(data, ...)
 \item{output_dir}{Directory where files will be saved.}
 }
 \value{
-A sits tibble or a sits cube with new bands.
+A sits tibble or a sits cube with new bands, produced
+        according to the requested expression.
 }
 \description{
 Apply a named expression to a sits cube or a sits tibble
@@ -46,8 +47,8 @@ cubes, it materializes a new band in `output_dir` using `gdalcubes`.
 # Apply a normalization function
 
 point2 <-
-  sits_select(point_mt_6bands, "NDVI") \%>\%
-  sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
+    sits_select(point_mt_6bands, "NDVI") \%>\%
+    sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

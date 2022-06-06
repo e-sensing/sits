@@ -4,8 +4,32 @@
 #' @description Remove NA by linear interpolation
 #'
 #' @param  data          A time series vector or matrix
-#' @return               A set of filtered time series.
-#'
+#' @return               A set of filtered time series using
+#'                       the imputation function.
+#' @examples
+#' if (sits_run_examples()) {
+#'     # reading a lat/long from a local cube
+#'     # create a cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     raster_cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     samples <- tibble::tibble(longitude = -55.66738, latitude = -11.76990)
+#'     point_ndvi <- sits_get_data(
+#'                   cube = raster_cube,
+#'                   samples = samples,
+#'                   impute_fn = sits_impute_linear())
+#'     #
+#'     # reading samples from a cube based on a  CSV file
+#'     csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
+#'         package = "sits"
+#'     )
+#'     points <- sits_get_data(cube = raster_cube, samples = csv_file)
+#' }
 #' @export
 #'
 sits_impute_linear <- function(data = NULL) {

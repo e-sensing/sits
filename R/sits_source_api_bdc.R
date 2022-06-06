@@ -38,7 +38,10 @@
     # check documentation mode
     progress <- .check_documentation(progress)
     # fetching all the metadata
-    items_info <- rstac::items_fetch(items = items_info, progress = progress)
+    items_info <- rstac::items_fetch(
+        items = items_info,
+        progress = progress, ...
+    )
 
     return(items_info)
 }

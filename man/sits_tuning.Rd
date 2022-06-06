@@ -2,18 +2,18 @@
 % Please edit documentation in R/sits_tuning.R
 \name{sits_tuning}
 \alias{sits_tuning}
-\title{Tuning deep learning models hyper-parameters}
+\title{Tuning machine learning models hyper-parameters}
 \usage{
 sits_tuning(
   samples,
   samples_validation = NULL,
   validation_split = 0.2,
-  ml_functions = list(sits_tempcnn, sits_lighttae),
-  opt_functions = list(torch::optim_adam, optim_adamw),
-  learning_rates = c(0.01, 0.005, 0.001),
-  eps_values = c(1e-06, 1e-07, 1e-08),
-  weight_decays = c(0, 1e-05, 1e-06),
-  multicores = 2
+  ml_method = sits_tempcnn(),
+  params = sits_tuning_hparams(optimizer = torchopt::optim_adamw, opt_hparams = list(lr
+    = beta(0.3, 5))),
+  trials = 30,
+  multicores = 2,
+  progress = FALSE
 )
 }
 \arguments{
@@ -24,48 +24,70 @@ sits_tuning(
 \item{validation_split}{Percent of original time series set to be used
 for validation (if samples_validation is NULL)}
 
-\item{ml_functions}{List of machine learning functions to be tested.}
+\item{ml_method}{Machine learning method.}
 
-\item{opt_functions}{Optimization functions to be tested.}
+\item{params}{List with hyper parameters to be passed to
+\code{ml_method}. User can use \code{uniform}, \code{choice},
+\code{randint}, \code{normal}, \code{lognormal}, \code{loguniform},
+and \code{beta} distribution functions to randomize parameters.}
 
-\item{learning_rates}{Learning rates to be tested.}
+\item{trials}{Number of random trials to perform the random search.}
 
-\item{eps_values}{Values of eps to be tested. Each eps value
-is the term added to the denominator to
-improve numerical stability.}
+\item{multicores}{Number of cores to process in parallel}
 
-\item{weight_decays}{Values of weight decay to be tested.
-These are the the L2 regularization params
-(note the weight decay is not correctly
-implemented in the adam optimization)}
-
-\item{multicores}{Multicores to be used}
+\item{progress}{Show progress bar?}
 }
 \value{
-A list containing the best torch optimizer and its parameters.
+A tibble containing all parameters used to train on each trial
+  ordered by accuracy
 }
 \description{
-Deep learning models use stochastic gradient descent techniques to
-find optimal solutions. To that end, these models use optimization
-algorithms that approximate the actual solution, which would be
-computationally expensive. Each of these algorithms uses a set of
-hyperparameters, that have to be adjusted to achieve best performance
-for each application.
-This function combines all parameters and computes torch models to
-parameter combination, do a validation using validation samples or
-splitting samples using validation_split. The function returns the
+Machine learning models use stochastic gradient descent (SGD) techniques to
+find optimal solutions. To perform SGD, models use optimization
+algorithms which have hyperparameters that have to be adjusted
+to achieve best performance for each application.
+
+This function performs a random search on values of selected hyperparameters.
+Instead of performing an exhaustive test of all parameter combinations,
+it selecting them randomly. Validation is done using an independent set
+of samples or by a validation split.  The function returns the
 best hyper-parameters in a list.
+
+hyper-parameters passed to \code{params} parameter should be passed
+by calling \code{sits_tuning_hparams()} function.
+}
+\note{
+Please refer to the sits documentation available in
+  <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
-\donttest{
-
-# tuning cerrado samples
-data(cerrado_2classes)
-hparams <- sits_tuning(samples        = cerrado_2classes,
-                             ml_functions   = list(sits_tempcnn),
-                             opt_functions  = list(torch::optim_adam),
-                             learning_rates = c(0.005, 0.001),
-                             eps_values     = 1e-06,
-                             weight_decays  = 0)
+if (sits_run_examples()) {
+    # find best learning rate parameters for TempCNN
+    tuned <- sits_tuning(
+        samples_modis_4bands,
+        ml_method = sits_tempcnn(),
+        params = sits_tuning_hparams(
+            optimizer = choice(
+                torchopt::optim_adamw,
+                torchopt::optim_yogi
+            ),
+            opt_hparams = list(
+                lr = beta(0.3, 5)
+            )
+        ),
+        trials = 4,
+        multicores = 2,
+        progress = FALSE
+    )
+    # obtain accuracy, kappa and best_lr
+    accuracy <- tuned$tuning$accuracy
+    kappa <- tuned$tuning$accuracy
+    best_lr <- tuned$tuning$params[[1]]$opt_hparams
 }
+
+}
+\references{
+James Bergstra, Yoshua Bengio,
+ "Random Search for Hyper-Parameter Optimization".
+ Journal of Machine Learning Research. 13: 281–305, 2012.
 }

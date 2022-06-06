@@ -49,7 +49,7 @@
 \item{...}{additional parameters to be passed to raster package}
 }
 \value{
-raster object spatial properties
+Raster object spatial properties
 }
 \description{
 Raster package internal object properties

@@ -6,6 +6,9 @@
 \usage{
 .sits_parallel_stop()
 }
+\value{
+No value, called for side effect.
+}
 \description{
 Stop all workers of the sits cluster
 }

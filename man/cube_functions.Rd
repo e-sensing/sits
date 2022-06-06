@@ -14,7 +14,7 @@
 \item{add_cloud}{Include the cloud band?}
 }
 \value{
-NULL if function fails
+No return value, called for side effects.
 }
 \description{
 Check if bands are part of a data cube

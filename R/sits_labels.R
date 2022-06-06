@@ -5,7 +5,8 @@
 #' @description  Finds labels in a sits tibble or data cube
 #'
 #' @param data      Time series or a cube.
-#' @return          Labels.
+#' @return          The labels associated to a set of time series or to
+#'                  a data cube.
 #'
 #' @examples
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
@@ -21,6 +22,7 @@ sits_labels <- function(data) {
     UseMethod("sits_labels", data)
 }
 
+#' @rdname sits_labels
 #' @export
 #'
 sits_labels.sits <- function(data) {
@@ -30,18 +32,19 @@ sits_labels.sits <- function(data) {
     return(sort(unique(data$label)))
 }
 
+#' @rdname sits_labels
 #' @export
 #'
 sits_labels.sits_cube <- function(data) {
     return(data$labels[[1]])
 }
-
+#' @rdname sits_labels
 #' @export
 #'
 sits_labels.patterns <- function(data) {
     return(data$label)
 }
-
+#' @rdname sits_labels
 #' @export
 #'
 sits_labels.sits_model <- function(data) {
@@ -75,20 +78,14 @@ sits_labels.sits_model <- function(data) {
 #'                   labels order returned by \code{\link{sits_labels}}.
 #'
 #' @return           A sits tibble with modified labels.
-#'
 #' @examples
-#' # Read a set of time series with information on deforestation
-#' data("samples_modis_4bands")
-#' # Print the labels
-#' sits_labels(samples_modis_4bands)
-#' # Create a conversion list.
-#' # relabel the data
-#' sits_labels(samples_modis_4bands) <- c(
-#'   "Natural", "Natural",
-#'   "Anthropic", "Anthropic"
-#' )
-#' # show the new labels
-#' sits_labels(samples_modis_4bands)
+#' # show original samples ("Cerrado" and "Pasture")
+#' sits_labels(cerrado_2classes)
+#' # rename label samples to "Savanna" and "Grasslands"
+#' sits_labels(cerrado_2classes) <-  c("Savanna", "Grasslands")
+#' # see the change
+#' sits_labels(cerrado_2classes)
+#'
 #' @export
 #'
 `sits_labels<-` <- function(data, value) {
@@ -100,7 +97,9 @@ sits_labels.sits_model <- function(data) {
     UseMethod("sits_labels<-", data)
 }
 
+#' @name `sits_labels<-`
 #' @export
+#' @return           A sits tibble with modified labels.
 #'
 `sits_labels<-.sits` <- function(data, value) {
 
@@ -139,19 +138,22 @@ sits_labels.sits_model <- function(data) {
     data$label <- value[data$label]
     return(data)
 }
+#' @name `sits_labels<-`
 #' @export
+#' @return           A probs cube with modified labels.
 #'
 `sits_labels<-.probs_cube` <- function(data, value) {
     # precondition
     n_labels <- length(sits_labels(data))
     .check_chr(value,
-               len_min = n_labels,
-               msg = "not enough new labels to replace current ones"
+        len_min = n_labels,
+        msg = "not enough new labels to replace current ones"
     )
     rows <- slider::slide_dfr(data, function(row) {
         row$labels <- list(value)
         return(row)
     })
+    return(rows)
 }
 
 #' @title Inform label distribution of a set of time series
@@ -161,7 +163,7 @@ sits_labels.sits_model <- function(data) {
 #'
 #' @param data      Valid sits tibble
 #'
-#' @return A tibble with labels frequency.
+#' @return A tibble with the frequency of each label.
 #'
 #' @examples
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
@@ -174,6 +176,7 @@ sits_labels_summary <- function(data) {
     UseMethod("sits_labels_summary", data)
 }
 
+#' @rdname sits_labels_summary
 #' @export
 #'
 sits_labels_summary.sits <- function(data) {

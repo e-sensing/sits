@@ -17,12 +17,20 @@ entropy_probs <- function(mtx, n) {
     .Call(`_sits_entropy_probs`, mtx, n)
 }
 
+least_probs <- function(mtx, n) {
+    .Call(`_sits_least_probs`, mtx, n)
+}
+
 linear_interp <- function(mtx) {
     .Call(`_sits_linear_interp`, mtx)
 }
 
 linear_interp_vec <- function(vec) {
     .Call(`_sits_linear_interp_vec`, vec)
+}
+
+margin_probs <- function(mtx, n) {
+    .Call(`_sits_margin_probs`, mtx, n)
 }
 
 nnls_solver <- function(x, A, iterate = 400L, tolerance = 0.000001) {
@@ -33,15 +41,15 @@ normalize_data <- function(data, min, max) {
     .Call(`_sits_normalize_data`, data, min, max)
 }
 
-reg_resample <- function(band, cloud, ratio_band_out, ratio_cloud_out, nrows_out, ncols_out, cloud_interp) {
-    .Call(`_sits_reg_resample`, band, cloud, ratio_band_out, ratio_cloud_out, nrows_out, ncols_out, cloud_interp)
-}
-
-reg_agg_first <- function(band_dates) {
-    .Call(`_sits_reg_agg_first`, band_dates)
+ratio_probs <- function(mtx, n) {
+    .Call(`_sits_ratio_probs`, mtx, n)
 }
 
 smooth_whit <- function(data, lambda, length) {
     .Call(`_sits_smooth_whit`, data, lambda, length)
+}
+
+smooth_whit_mtx <- function(data, lambda, length) {
+    .Call(`_sits_smooth_whit_mtx`, data, lambda, length)
 }
 

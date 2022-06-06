@@ -8,7 +8,7 @@
 .config_internals_file()
 }
 \value{
-default configuration file
+default internal configuration file
 }
 \description{
 Return the internal configuration file (only for developers)

@@ -10,7 +10,7 @@ sits_lighttae(
   epochs = 150,
   batch_size = 128,
   validation_split = 0.2,
-  optimizer = optim_adamw,
+  optimizer = torchopt::optim_adamw,
   opt_hparams = list(lr = 0.005, eps = 1e-08, weight_decay = 1e-06),
   lr_decay_epochs = 50,
   lr_decay_rate = 1,
@@ -55,11 +55,11 @@ to reset the patience counter.}
 \item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }
 \value{
-A fitted model to be passed to \code{\link[sits]{sits_classify}}
+A fitted model to be used for classification of data cubes.
 }
 \description{
 Implementation of Light Temporal Attention Encoder (L-TAE)
-for satellite image time seri
+for satellite image time series
 
 This function is based on the paper by Vivien Garnot referenced below
 and code available on github at
@@ -70,21 +70,39 @@ We also used the code made available by Maja Schneider in her work with
 Marco Körner referenced below and available at
 https://github.com/maja601/RC2020-psetae.
 }
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
+}
 \examples{
-\dontrun{
-# Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
-
-# Build a machine learning model based on deep learning
-ltae_model <- sits_train(samples_modis_4bands, sits_lighttae())
-# Plot the model
-plot(tae_model)
-
-# get a point and classify the point with the ml_model
-point <- sits_select(point_mt_6bands,
-    bands = c("NDVI", "EVI", "NIR", "MIR")
-)
-class <- sits_classify(point, tae_model)
-plot(class, bands = c("NDVI", "EVI"))
+if (sits_run_examples()) {
+    # select a set of samples
+    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+    # create a lightTAE model
+    torch_model <- sits_train(samples_ndvi, sits_lighttae())
+    # plot the model
+    plot(torch_model)
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+    # classify a data cube
+    probs_cube <- sits_classify(data = cube, ml_model = torch_model)
+    # plot the probability cube
+    plot(probs_cube)
+    # smooth the probability cube using Bayesian statistics
+    bayes_cube <- sits_smooth(probs_cube)
+    # plot the smoothed cube
+    plot(bayes_cube)
+    # label the probability cube
+    label_cube <- sits_label_classification(bayes_cube)
+    # plot the labelled cube
+    plot(label_cube)
 }
 }
 \references{

@@ -1,6 +1,6 @@
 #' @title Export a sits tibble metadata to the CSV format
 #'
-#' @name sits_metadata_to_csv
+#' @name sits_to_csv
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -14,17 +14,14 @@
 #' @param  data       Time series.
 #' @param  file       Name of the exported CSV file.
 #'
-#' @return The status of the operation.
+#' @return            No return value, called for side effects.
 #'
 #' @examples
-#' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
-#' data(cerrado_2classes)
-#' # export a time series
 #' csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
-#' sits_metadata_to_csv(cerrado_2classes, file = csv_file)
+#' sits_to_csv(cerrado_2classes, file = csv_file)
 #' @export
 #'
-sits_metadata_to_csv <- function(data, file) {
+sits_to_csv <- function(data, file) {
 
     # set caller to show in errors
     .check_set_caller("sits_metadata_to_csv")
@@ -52,15 +49,13 @@ sits_metadata_to_csv <- function(data, file) {
 
     # write the CSV file
     utils::write.csv(csv, file, row.names = FALSE, quote = FALSE)
-
-    return(invisible(file))
 }
 #' @title Check if a CSV tibble is valid
 #' @name  .sits_csv_check
 #' @keywords internal
 #'
 #' @param  csv       Tibble read from a CSV file
-#' @return A logical value
+#' @return           Does the CSV file contain the columns needed by sits?
 #'
 .sits_csv_check <- function(csv) {
 
@@ -76,4 +71,32 @@ sits_metadata_to_csv <- function(data, file) {
     )
 
     return(invisible(TRUE))
+}
+#' @title Transform a shapefile into a samples file
+#' @name .sits_get_samples_from_csv
+#' @author Gilberto Camara
+#' @keywords internal
+#' @param csv_file        CSV that describes the data to be retrieved.
+#' @return                A tibble with information the samples to be retrieved
+#'
+.sits_get_samples_from_csv <- function(csv_file) {
+
+    # read sample information from CSV file and put it in a tibble
+    samples <- tibble::as_tibble(utils::read.csv(csv_file))
+
+    # pre-condition - check if CSV file is correct
+    .sits_csv_check(samples)
+
+    # select valid columns
+    samples <- dplyr::select(
+        samples,
+        dplyr::all_of(.config_get("df_sample_columns"))
+    )
+
+    samples <- dplyr::mutate(samples,
+        start_date = as.Date(.data[["start_date"]]),
+        end_date = as.Date(.data[["end_date"]])
+    )
+
+    return(samples)
 }

@@ -5,7 +5,7 @@
 #' @description This function returns the values of a sits tibble
 #' (according a specified format).
 #' This function is useful to use packages such as ggplot2, dtwclust, or kohonen
-#' that require values that are rowwise or colwise organised.
+#' that require values that are rowwise or colwise organized.
 #'
 #' @param  data       A sits tibble with time series for different bands.
 #' @param  bands      Bands whose values are to be extracted.

@@ -27,20 +27,42 @@
 #' @param ml_method          Machine learning method.
 #' @param multicores         Number of cores to process in parallel.
 #'
-#' @return A tibble containing pairs of reference and predicted values.
+#' @return A \code{caret::confusionMatrix} object to be used for
+#'         validation assessment.
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @examples
-#' \donttest{
-#' # read a set of samples
-#' data(cerrado_2classes)
-#' # two fold validation with random forest
-#' acc <- sits_kfold_validate(cerrado_2classes,
-#'   folds = 2,
-#'   ml_method = sits_rfor(num_trees = 100)
-#' )
-#' }
-#' @export
+#' if (sits_run_examples()) {
+#'     # A dataset containing a tibble with time series samples
+#'     # for the Mato Grosso state in Brasil
+#'     # create a list to store the results
+#'     results <- list()
 #'
+#'     # accuracy assessment lightTAE
+#'     acc_ltae <- sits_kfold_validate(samples_modis_4bands,
+#'         folds = 5,
+#'         ml_method = sits_lighttae()
+#'     )
+#'     # use a name
+#'     acc_ltae$name <- "LightTAE"
+#'     # put the result in a list
+#'     results[[length(results) + 1]] <- acc_ltae
+#'
+#'     # Deep Learning - ResNet
+#'     acc_rn <- sits_kfold_validate(samples_modis_4bands,
+#'         folds = 5,
+#'         ml_method = sits_resnet()
+#'     )
+#'     acc_rn$name <- "ResNet"
+#'     # put the result in a list
+#'     results[[length(results) + 1]] <- acc_rn
+#'     # save to xlsx file
+#'     sits_to_xlsx(results, file = "./accuracy_mato_grosso_dl.xlsx")
+#' }
+#'
+#' @export
 sits_kfold_validate <- function(samples,
                                 folds = 5,
                                 ml_method = sits_rfor(),
@@ -48,10 +70,9 @@ sits_kfold_validate <- function(samples,
 
     # set caller to show in errors
     .check_set_caller("sits_kfold_validate")
+
     # require package
-    if (!requireNamespace("caret", quietly = TRUE)) {
-        stop("Please install package caret", call. = FALSE)
-    }
+    .check_require_packages("caret")
 
     # pre-condition
     .check_that(
@@ -61,8 +82,10 @@ sits_kfold_validate <- function(samples,
     )
 
     # pre-condition
-    .check_num(multicores, min = 1, is_integer = TRUE,
-               msg = "Invalid multicores parameter")
+    .check_num(multicores,
+        min = 1, is_integer = TRUE,
+        msg = "Invalid multicores parameter"
+    )
 
     # get the labels of the data
     labels <- sits_labels(samples)
@@ -81,13 +104,11 @@ sits_kfold_validate <- function(samples,
     # create partitions different splits of the input data
     samples <- .sits_create_folds(samples, folds = folds)
 
-    # create prediction and reference vector
-    pred_vec <- character()
-    ref_vec <- character()
 
     # start parallel process
-    if (multicores > folds)
+    if (multicores > folds) {
         multicores <- folds
+    }
 
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop())
@@ -118,12 +139,9 @@ sits_kfold_validate <- function(samples,
 
         # extract the values
         values <- names(int_labels[max.col(prediction)])
-
-        ref_vec <- c(ref_vec, data_test$label)
-        pred_vec <- c(pred_vec, values)
         remove(ml_model)
 
-        return(list(pred = pred_vec, ref = ref_vec))
+        return(list(pred = values, ref = data_test$label))
     }, n_retries = 0, progress = FALSE)
 
     pred <- unlist(lapply(conf_lst, function(x) x$pred))
@@ -167,7 +185,13 @@ sits_kfold_validate <- function(samples,
 #'                           for validation (if samples_validation is NULL)
 #' @param ml_method          Machine learning method.
 #'
-#' @return A tibble containing pairs of reference and predicted values.
+#' @return A \code{caret::confusionMatrix} object to be used for
+#'         validation assessment.
+#'
+#' @examples
+#' if (sits_run_examples()){
+#'    conf_matrix <- sits_validate(cerrado_2classes)
+#' }
 #' @export
 sits_validate <- function(samples,
                           samples_validation = NULL,
@@ -176,10 +200,9 @@ sits_validate <- function(samples,
 
     # set caller to show in errors
     .check_set_caller("sits_validate")
+
     # require package
-    if (!requireNamespace("caret", quietly = TRUE)) {
-        stop("Please install package caret", call. = FALSE)
-    }
+    .check_require_packages("caret")
 
     # pre-condition
     .check_that(
@@ -256,15 +279,17 @@ sits_validate <- function(samples,
 #'
 #' @keywords internal
 #' @param data   A sits tibble to be partitioned.
-#' @param folds     Number of folds
+#' @param folds  Number of folds
+#'
+#' @return A list of row position integers corresponding to the training data.
 #'
 .sits_create_folds <- function(data, folds = 5) {
     # verify if data exists
     .sits_tibble_test(data)
     # splits the data into k groups
     data$folds <- caret::createFolds(data$label,
-                                     k = folds,
-                                     returnTrain = FALSE, list = FALSE
+        k = folds,
+        returnTrain = FALSE, list = FALSE
     )
     return(data)
 }

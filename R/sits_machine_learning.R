@@ -1,100 +1,3 @@
-#' @title Train multinomial log-linear models
-#' @name sits_mlr
-#'
-#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Use multinomial log-linear (mlr) fitting model to classify data.
-#' This function receives a tibble with a set of attributes X
-#' for each observation Y. These attributes are the values of the time series
-#' for each band.
-#' This function is a front-end to the "multinom" method in the "nnet" package.
-#' Please refer to the documentation in that package for more details.
-#'
-#' @param samples          Time series with the training samples.
-#' @param formula          Symbolic description of the model to be fit.
-#'                         (default: sits_formula_logref).
-#' @param n_weights        Maximum number of weights
-#'                         (should be proportional to size of input data).
-#' @param maxit            Maximum number of iterations (default 300).
-#' @param ...              Other parameters to be passed to nnet::multinom.
-#' @return                 Model fitted to input data
-#'                        (to be passed to \code{\link[sits]{sits_classify}})
-#' @examples
-#' \dontrun{
-#' # Retrieve the set of samples for  Mato Grosso region (provided by EMBRAPA)
-#' samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
-#'
-#' # Build a machine learning model
-#' ml_model <- sits_train(samples_2bands, sits_mlr())
-#'
-#' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
-#' class.tb <- sits_classify(point.tb, ml_model)
-#' plot(class.tb, bands = c("NDVI", "EVI"))
-#' }
-#'
-#' @export
-#'
-sits_mlr <- function(samples = NULL, formula = sits_formula_linear(),
-                     n_weights = 20000, maxit = 2000, ...) {
-
-    # function that returns nnet::multinom model based on a sits sample tibble
-    result_fun <- function(samples) {
-
-        # verifies if nnet package is installed
-        if (!requireNamespace("nnet", quietly = TRUE)) {
-            stop("Please install package nnet", call. = FALSE)
-        }
-
-        # samples normalization
-        stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
-
-        # if parameter formula is a function
-        # call it passing as argument the input data sample.
-        # The function must return a valid formula.
-        if (inherits(formula, "function")) {
-            formula <- formula(train_samples)
-        }
-
-        # call nnet::multinom method and return the trained multinom model
-        result_mlr <- nnet::multinom(
-            formula = formula,
-            data = train_samples,
-            maxit = maxit,
-            MaxNWts = n_weights,
-            trace = FALSE, ...,
-            na.action = stats::na.fail
-        )
-
-        # construct model predict closure function and returns
-        model_predict <- function(values) {
-
-            # verifies if nnet package is installed
-            if (!requireNamespace("nnet", quietly = TRUE)) {
-                stop("Please install package nnet", call. = FALSE)
-            }
-
-            # return probabilities
-            prediction <- data.table::as.data.table(
-                stats::predict(result_mlr, newdata = values, type = "probs")
-            )
-
-            return(prediction)
-        }
-        class(model_predict) <- c(
-            "mlr_model", "sits_model",
-            class(model_predict)
-        )
-        return(model_predict)
-    }
-
-    result <- .sits_factory_function(samples, result_fun)
-    return(result)
-}
-
 #' @title Train random forest models
 #' @name sits_rfor
 #'
@@ -106,38 +9,75 @@ sits_mlr <- function(samples = NULL, formula = sits_formula_linear(),
 #' This function is a front-end to the "randomForest" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param samples          Time series with the training samples.
-#' @param num_trees        Number of trees to grow.
-#'                         This should not be set to too small a number,
-#'                         to ensure that every input row gets predicted
-#'                         at least a few times (default: 200).
-#' @param nodesize         Minimum size of terminal nodes
-#'                         (default 1 for classification).
-#' @param ...              Other parameters to be passed
-#'                         to `randomForest::randomForest` function.
-#' @return                 Model fitted to input data
-#'                         (to be passed to \code{\link[sits]{sits_classify}}).
+#' @param samples    Time series with the training samples.
+#' @param num_trees  Number of trees to grow. This should not be set to too
+#'   small a number, to ensure that every input row gets predicted
+#'   at least a few times (default: 200).
+#' @param mtry       Number of variables randomly sampled as candidates at
+#'   each split (default: NULL - use default value of
+#'   \code{randomForest::randomForest()} function, i.e.
+#'   \code{floor(sqrt(features))}).
+#' @param ...        Other parameters to be passed
+#'                   to `randomForest::randomForest` function.
+#' @return           Model fitted to input data
+#'                   (to be passed to \code{\link[sits]{sits_classify}}).
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
 #' @examples
-#' # Retrieve the set of samples for the Mato Grosso region
-#' samples_MT_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-#' # Build a random forest model
-#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 200))
-#' # get a point with a 16 year time series
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' # classify the point
-#' class.tb <- sits_classify(point_ndvi, rfor_model)
+#' if (sits_run_examples()) {
+#'     # Example of training a model for time series classification
+#'     # Retrieve the samples for Mato Grosso
+#'     # train a random forest model
+#'     rf_model <- sits_train(samples_modis_4bands,
+#'                            ml_method = sits_rfor(mtry = 20))
+#'     # select the bands to classify the point
+#'     sample_bands <- sits_bands(samples_modis_4bands)
+#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
+#'     # classify the point
+#'     point_class <- sits_classify(point_4bands, rf_model)
+#'     plot(point_class)
+#' }
 #' @export
 #'
-sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
+sits_rfor <- function(samples = NULL,
+                      num_trees = 200,
+                      mtry = NULL, ...) {
 
     # function that returns `randomForest::randomForest` model
     result_fun <- function(samples) {
-        train_samples <- .sits_distances(samples)
 
         # verifies if randomForest package is installed
-        if (!requireNamespace("randomForest", quietly = TRUE)) {
-            stop("Please install package randomForest", call. = FALSE)
-        }
+        .check_require_packages("randomForest")
+
+        # get predictors features
+        train_samples <- .sits_distances(samples)
+
+        # check num_trees
+        .check_num(
+            x = num_trees,
+            min = 1,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE,
+            msg = "invalid 'num_trees' parameter"
+        )
+
+        # check mtry
+        # apply the same mtry default value of randomForest package
+        n_features <- ncol(train_samples) - 2
+        if (purrr::is_null(mtry))
+            mtry <- floor(sqrt(n_features))
+        .check_num(
+            x = mtry,
+            min = 1,
+            max = n_features,
+            len_min = 1,
+            len_max = 1,
+            is_integer = TRUE,
+            msg = "invalid 'mtry' parameter"
+        )
 
         # call `randomForest::randomForest` method and return the trained model
         reference <- train_samples[, reference]
@@ -146,6 +86,7 @@ sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
             y = as.factor(reference),
             samples = NULL,
             ntree = num_trees,
+            mtry = mtry,
             nodesize = 1,
             norm.votes = FALSE, ...,
             na.action = stats::na.fail
@@ -155,13 +96,11 @@ sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
         model_predict <- function(values) {
 
             # verifies if ranger package is installed
-            if (!requireNamespace("randomForest", quietly = TRUE)) {
-                stop("Please install package randomForest", call. = FALSE)
-            }
+            .check_require_packages("randomForest")
 
             return(stats::predict(result_rfor,
-                                  newdata = values,
-                                  type = "prob"
+                newdata = values,
+                type = "prob"
             ))
         }
         class(model_predict) <- c(
@@ -211,20 +150,22 @@ sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
 #' @param ...              Other parameters to be passed to e1071::svm function.
 #' @return                 Model fitted to input data
 #'                         (to be passed to \code{\link[sits]{sits_classify}})
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' \dontrun{
-#' # Retrieve the set of samples for  Mato Grosso  (provided by EMBRAPA)
-#' samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
-#'
-#' # Build a machine learning model
-#' ml_model <- sits_train(samples_2bands, sits_svm())
-#'
-#' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
-#' class.tb <- sits_classify(point.tb, ml_model)
-#' plot(class.tb, bands = c("NDVI", "EVI"))
+#' if (sits_run_examples()) {
+#'     # Example of training a model for time series classification
+#'     # Retrieve the samples for Mato Grosso
+#'     # train an SVM model
+#'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_svm)
+#'     # select the bands to classify the point
+#'     sample_bands <- sits_bands(samples_modis_4bands)
+#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
+#'     # classify the point
+#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     plot(point_class)
 #' }
-#'
 #' @export
 #'
 sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
@@ -237,13 +178,13 @@ sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
     result_fun <- function(samples) {
 
         # verifies if e1071 package is installed
-        if (!requireNamespace("e1071", quietly = TRUE)) {
-            stop("Please install package e1071", call. = FALSE)
-        }
+        .check_require_packages("e1071")
 
         # data normalization
         stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
+        train_samples <- .sits_distances(
+            .sits_ml_normalize_data(samples, stats)
+        )
 
         # The function must return a valid formula.
         if (inherits(formula, "function")) {
@@ -265,14 +206,12 @@ sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
         model_predict <- function(values) {
 
             # verifies if e1071 package is installed
-            if (!requireNamespace("e1071", quietly = TRUE)) {
-                stop("Please install package e1071", call. = FALSE)
-            }
+            .check_require_packages("e1071")
 
             # get the prediction
             preds <- stats::predict(result_svm,
-                                    newdata = values,
-                                    probability = TRUE
+                newdata = values,
+                probability = TRUE
             )
             # retrieve the predicted probabilities
             prediction <- data.table::as.data.table(attr(
@@ -296,162 +235,6 @@ sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
     result <- .sits_factory_function(samples, result_fun)
     return(result)
 }
-#' @title Train models using lightGBM algorithm
-#' @name sits_lightgbm
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#'
-#' @description This function uses the lightGBM algorithm for model training.
-#' LightGBM is a fast, distributed, high performance gradient boosting
-#' framework based on decision trees.
-#'
-#' @references
-#' Guolin Ke, Qi Meng, Thomas Finley, Taifeng Wang, Wei Chen,
-#' Weidong Ma, Qiwei Ye, Tie-Yan Liu.
-#' "LightGBM: A Highly Efficient Gradient Boosting Decision Tree".
-#' Advances in Neural Information Processing Systems 30 (NIPS 2017), pp. 3149-3157.
-#'
-#' @param samples              Time series with the training samples.
-#' @param boosting_type        Type of boosting algorithm
-#'                             (options: "gbdt", "rf", "dart", "goss").
-#' @param num_iterations       Number of iterations.
-#' @param max_depth            Limit the max depth for tree model.
-#' @param min_samples_leaf     Min size of data in one leaf
-#'                             (can be used to deal with over-fitting).
-#' @param learning_rate        Learning rate of the algorithm
-#' @param n_iter_no_change     Number of iterations to stop training
-#'                             when validation metrics don't improve.
-#' @param validation_split     Fraction of training data
-#'                             to be used as validation data.
-#' @param record               Record iteration message?
-#' @param ...                  Additional parameters for
-#'                             \code{lightgbm::lgb.train} function.
-#'
-#' @export
-sits_lightgbm <- function(samples = NULL,
-                          boosting_type = "gbdt",
-                          num_iterations = 100,
-                          max_depth = 6,
-                          min_samples_leaf = 10,
-                          learning_rate = 0.1,
-                          n_iter_no_change = 10,
-                          validation_split = 0.2,
-                          record = TRUE, ...) {
-
-    # set caller to show in errors
-    .check_set_caller("sits_lightgbm")
-
-    # function that returns lightgbm model
-    result_fun <- function(samples) {
-
-        # verifies if lightgbm package is installed
-        if (!requireNamespace("lightgbm", quietly = TRUE)) {
-            stop("Please install package lightgbm", call. = FALSE)
-        }
-        labels <- sits_labels(samples)
-        n_labels <- length(labels)
-        # lightGBM uses numerical labels starting from 0
-        int_labels <- c(1:n_labels) - 1
-        # create a named vector with integers match the class labels
-        names(int_labels) <- labels
-
-        # data normalization
-        stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
-
-        # split the data into training and validation data sets
-        # create partitions different splits of the input data
-        test_samples <- .sits_distances_sample(train_samples,
-                                            frac = validation_split
-        )
-        # remove the lines used for validation
-        train_samples <- train_samples[!test_samples, on = "original_row"]
-
-        n_samples_train <- nrow(train_samples)
-        n_samples_test <- nrow(test_samples)
-
-        # shuffle the data
-        train_samples <- train_samples[sample(
-            nrow(train_samples),
-            nrow(train_samples)
-        ), ]
-        test_samples <- test_samples[sample(
-            nrow(test_samples),
-            nrow(test_samples)
-        ), ]
-
-        # transform the training data to LGBM
-        lgbm_train_data <- lightgbm::lgb.Dataset(
-            data = as.matrix(train_samples[, -2:0]),
-            label = unname(int_labels[train_samples[[2]]])
-        )
-        # transform the training data to LGBM
-        lgbm_test_data <- lightgbm::lgb.Dataset(
-            data = as.matrix(test_samples[, -2:0]),
-            label = unname(int_labels[test_samples[[2]]])
-        )
-        if (n_labels > 2) {
-            objective <- "multiclass"
-        } else {
-            objective <- "binary"
-        }
-        # set the training params
-        train_params <- list(
-            boosting_type = boosting_type,
-            objective = objective,
-            min_samples_leaf = min_samples_leaf,
-            max_depth = max_depth,
-            learning_rate = learning_rate,
-            num_class = n_labels,
-            num_iterations = num_iterations,
-            n_iter_no_change = n_iter_no_change
-        )
-        # train the model
-        lgbm_model <- lightgbm::lgb.train(
-            data    = lgbm_train_data,
-            valids  = list(test_data = lgbm_test_data),
-            params  = train_params,
-            verbose = -1,
-            record  = record,
-            ...
-        )
-        # save the model to string
-        lgbm_model_string <- lgbm_model$save_model_to_string(NULL)
-
-        # construct model predict enclosure function and returns
-        model_predict <- function(values) {
-
-            # verifies if ranger package is installed
-            if (!requireNamespace("lightgbm", quietly = TRUE)) {
-                stop("Please install package lightgbm", call. = FALSE)
-            }
-
-            # reload the model
-            lgbm_model <- lightgbm::lgb.load(model_str = lgbm_model_string)
-            # predict values
-            prediction <- data.table::as.data.table(
-                stats::predict(lgbm_model,
-                               data = as.matrix(values[, -2:0]),
-                               rawscore = FALSE,
-                               reshape = TRUE
-                )
-            )
-            # adjust the names of the columns of the probs
-            colnames(prediction) <- labels
-            # retrieve the prediction results
-            return(prediction)
-        }
-        class(model_predict) <- c(
-            "lightgbm_model", "sits_model",
-            class(model_predict)
-        )
-        return(model_predict)
-    }
-    result <- .sits_factory_function(samples, result_fun)
-    return(result)
-}
-
 #' @title Train extreme gradient boosting models
 #' @name sits_xgboost
 #'
@@ -497,21 +280,22 @@ sits_lightgbm <- function(samples = NULL,
 #' @return                 Model fitted to input data
 #'                         (to be passed to \code{\link[sits]{sits_classify}})
 #'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' \dontrun{
-#' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
-#'
-#' # Build a machine learning model based on xgboost
-#' xgb_model <- sits_train(samples_modis_4bands, sits_xgboost(nrounds = 10))
-#'
-#' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select(point_mt_6bands,
-#'   bands = c("NDVI", "EVI", "NIR", "MIR")
-#' )
-#' class.tb <- sits_classify(point.tb, xgb_model)
-#' plot(class.tb, bands = c("NDVI", "EVI"))
+#' if (sits_run_examples()) {
+#'     # Example of training a model for time series classification
+#'     # Retrieve the samples for Mato Grosso
+#'     # train a xgboost model
+#'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_xgboost)
+#'     # select the bands to classify the point
+#'     sample_bands <- sits_bands(samples_modis_4bands)
+#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
+#'     # classify the point
+#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     plot(point_class)
 #' }
-#'
 #' @export
 #'
 sits_xgboost <- function(samples = NULL,
@@ -533,16 +317,14 @@ sits_xgboost <- function(samples = NULL,
     result_fun <- function(samples) {
 
         # verifies if xgboost package is installed
-        if (!requireNamespace("xgboost", quietly = TRUE)) {
-            stop("Please install package xgboost", call. = FALSE)
-        }
+        .check_require_packages("xgboost")
 
         # get the labels of the data
         labels <- sits_labels(samples)
         .check_length(
             x = labels,
             len_min = 1,
-            msg = "invalid data - bad labels"
+            msg = "invalid number of labels"
         )
         n_labels <- length(labels)
 
@@ -585,16 +367,14 @@ sits_xgboost <- function(samples = NULL,
         model_predict <- function(values) {
 
             # verifies if xgboost package is installed
-            if (!requireNamespace("xgboost", quietly = TRUE)) {
-                stop("Please install package xgboost", call. = FALSE)
-            }
+            .check_require_packages("xgboost")
 
             # transform input  into a matrix (remove first two columns)
             # retrieve the prediction probabilities
             prediction <- data.table::as.data.table(
                 stats::predict(model_xgb, data.matrix(values[, -2:0]),
-                               ntreelimit = ntreelimit,
-                               reshape = TRUE
+                    ntreelimit = ntreelimit,
+                    reshape = TRUE
                 )
             )
             # adjust the names of the columns of the probs
@@ -629,8 +409,21 @@ sits_xgboost <- function(samples = NULL,
 #'
 #' @param predictors_index  Index of the valid columns
 #'                          to compose formula (default: -2:0).
-#' @return A function that computes a valid formula.
-#'
+#' @return A function that computes a valid formula using a log function.
+#' @examples
+#' if (sits_run_examples()) {
+#'     # Example of training a model for time series classification
+#'     # Retrieve the samples for Mato Grosso
+#'     # train an SVM model
+#'     ml_model <- sits_train(samples_modis_4bands,
+#'         ml_method = sits_svm(formula = sits_formula_logref()))
+#'     # select the bands to classify the point
+#'     sample_bands <- sits_bands(samples_modis_4bands)
+#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
+#'     # classify the point
+#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     plot(point_class)
+#' }
 #' @export
 #'
 sits_formula_logref <- function(predictors_index = -2:0) {
@@ -663,7 +456,7 @@ sits_formula_logref <- function(predictors_index = -2:0) {
         result_for <- stats::as.formula(paste0(
             "factor(reference)~",
             paste0(paste0("log(`", categories, "`)"),
-                   collapse = "+"
+                collapse = "+"
             )
         ))
         return(result_for)
@@ -685,8 +478,21 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #'
 #' @param predictors_index  Index of the valid columns
 #'                    whose names are used to compose formula (default: -2:0).
-#' @return A function that computes a valid formula.
-#'
+#' @return A function that computes a valid formula using a linear function.
+#' @examples
+#' if (sits_run_examples()) {
+#'     # Example of training a model for time series classification
+#'     # Retrieve the samples for Mato Grosso
+#'     # train an SVM model
+#'     ml_model <- sits_train(samples_modis_4bands,
+#'         ml_method = sits_svm(formula = sits_formula_logref()))
+#'     # select the bands to classify the point
+#'     sample_bands <- sits_bands(samples_modis_4bands)
+#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
+#'     # classify the point
+#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     plot(point_class)
+#' }
 #' @export
 #'
 sits_formula_linear <- function(predictors_index = -2:0) {
@@ -718,7 +524,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
         result_for <- stats::as.formula(paste0(
             "factor(reference)~",
             paste0(paste0(categories,
-                          collapse = "+"
+                collapse = "+"
             ))
         ))
         return(result_for)
@@ -759,7 +565,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
             paste(bands, collapse = ", "),
             ") do not match model bands (",
             paste(colnames(stats[, -1]),
-                  collapse = ", "
+                collapse = ", "
             ), ")"
         )
     )
@@ -842,7 +648,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #' standard deviation of all the time series.
 #'
 #' @param data     A sits tibble.
-#' @return A tibble with statistics.
+#' @return A tibble with statistics for normalization of time series.
 .sits_ml_normalization_param <- function(data) {
     .sits_tibble_test(data)
     Index <- NULL # to avoid setting global variable
@@ -854,12 +660,12 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     dt_med <- dt[, lapply(.SD, stats::median, na.rm = TRUE)]
     dt_quant_2 <- dt[, lapply(.SD, function(x) {
         stats::quantile(x, 0.02,
-                        na.rm = TRUE
+            na.rm = TRUE
         )
     })]
     dt_quant_98 <- dt[, lapply(.SD, function(x) {
         stats::quantile(x, 0.98,
-                        na.rm = TRUE
+            na.rm = TRUE
         )
     })]
     stats <- dplyr::bind_cols(
@@ -878,20 +684,22 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #'
 #' @param ml_model     A trained model.
 #'
-#' @return A tibble with samples used to train model
+#' @return A tibble with samples used to train a machine learning model.
 #'
 .sits_ml_model_samples <- function(ml_model) {
 
     # pre-condition
-    if (!inherits(ml_model, "function")) {
-        stop("invalid 'ml_model' parameter")
-    }
+    .check_that(
+        x = inherits(ml_model, "function"),
+        local_msg = "value should be a function",
+        msg = "invalid 'ml_model' parameter"
+    )
 
     # pre-condition
     .check_chr_contains(
         x = ls(environment(ml_model)),
         contains = "samples",
-        msg = "no samples found in the sits model"
+        msg = "invalid 'ml_model' function environment"
     )
 
     return(environment(ml_model)$samples)

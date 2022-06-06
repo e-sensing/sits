@@ -11,7 +11,7 @@ sits_formula_logref(predictors_index = -2:0)
 to compose formula (default: -2:0).}
 }
 \value{
-A function that computes a valid formula.
+A function that computes a valid formula using a log function.
 }
 \description{
 A function to be used as a symbolic description
@@ -21,6 +21,21 @@ The `predictors_index` parameter informs
 the positions of `tb` fields corresponding to formula independent variables.
 If no value is given, the default is NULL,
 a value indicating that all fields will be used as predictors.
+}
+\examples{
+if (sits_run_examples()) {
+    # Example of training a model for time series classification
+    # Retrieve the samples for Mato Grosso
+    # train an SVM model
+    ml_model <- sits_train(samples_modis_4bands,
+        ml_method = sits_svm(formula = sits_formula_logref()))
+    # select the bands to classify the point
+    sample_bands <- sits_bands(samples_modis_4bands)
+    point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
+    # classify the point
+    point_class <- sits_classify(point_4bands, ml_model)
+    plot(point_class)
+}
 }
 \author{
 Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}

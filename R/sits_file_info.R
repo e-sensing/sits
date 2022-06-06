@@ -8,14 +8,13 @@
 #' @param dates   Dates to be filtered.
 #' @param fid     Feature id (fid) to be filtered.
 #'
-#' @return        Vector with requested information.
+#' @return        Vector with requested information obtained in the file_info.
 NULL
 
 #' @rdname file_info_functions
 #'
-#' @details
-#' Return the file info for a cube with a single tile
-#' Filter by bands if required
+#' @return The file info for a cube with a single tile
+#'         filtered by bands if required.
 #'
 .file_info <- function(cube,
                        bands = NULL,
@@ -25,8 +24,8 @@ NULL
 
     # pre-condition - one tile at a time
     .check_num(nrow(cube),
-               min = 1, max = 1, is_integer = TRUE,
-               msg = "process one tile at a time for file_info"
+        min = 1, max = 1, is_integer = TRUE,
+        msg = "process one tile at a time for file_info"
     )
 
     # get the file info associated with the tile
@@ -42,15 +41,14 @@ NULL
     if (!is.null(fid)) {
         fids <- .file_info_fids(cube)
         .check_chr_within(paste0(fid),
-                          within = paste0(fids),
-                          msg = "invalid fid value"
+            within = paste0(fids),
+            msg = "invalid fid value"
         )
         file_info <- file_info[file_info[["fid"]] == fid, ]
     }
 
     if (!is.null(start_date)) {
         cube_start_date <- sort(.file_info_timeline(cube))[[1]]
-
 
         .check_that(start_date >= cube_start_date, msg = "invalid start date")
 
@@ -67,42 +65,40 @@ NULL
 
     return(file_info)
 }
+
 #' @rdname file_info_functions
 #'
-#' @details
-#' Return number of rows for a given tile
-#' Throws an error if rows are not equal
+#' @return  Number of rows for a given tile.
+#'          Throws an error if rows are not equal.
 #'
 .file_info_nrows <- function(cube, bands = NULL) {
     file_info <- .file_info(cube, bands = bands)
     nrows <- unique(file_info[["nrows"]])
 
     .check_num(length(nrows),
-               min = 1, max = 1, is_integer = TRUE,
-               msg = "wrong nrows parameter in file_info"
+        min = 1, max = 1, is_integer = TRUE,
+        msg = "wrong nrows parameter in file_info"
     )
     return(nrows)
 }
 #' @rdname file_info_functions
 #'
-#' @details
-#' Returns number of cols for a given tile
-#' Throws an error if cols are not equal
+#' @return   Number of cols for a given tile
+#'           Throws an error if cols are not equal
 .file_info_ncols <- function(cube, bands = NULL) {
     file_info <- .file_info(cube, bands = bands)
     ncols <- unique(file_info[["ncols"]])
 
     .check_num(length(ncols),
-               min = 1, max = 1, is_integer = TRUE,
-               msg = "wrong ncols parameter in file_info"
+        min = 1, max = 1, is_integer = TRUE,
+        msg = "wrong ncols parameter in file_info"
     )
     return(ncols)
 }
 #' @rdname file_info_functions
 #'
-#' @details
-#' Returns a single path to a file
-#' Throws an error if there is more than one path
+#' @return  A single path to a file
+#'          throws an error if there is more than one path.
 .file_info_path <- function(cube) {
     file_info <- .file_info(cube)
     path <- file_info[["path"]][[1]]
@@ -113,9 +109,8 @@ NULL
 
 #' @rdname file_info_functions
 #'
-#' @details
-#' Returns a single path to a file
-#' Throws an error if there is more than one path
+#' @return Paths to the cube bands
+#'
 .file_info_paths <- function(cube, bands = NULL) {
     file_info <- .file_info(cube, bands = bands)
 
@@ -128,81 +123,62 @@ NULL
 
 #' @rdname file_info_functions
 #'
-#' @details
-#' Returns the X resolution for a single tiled cube
-#' Throws an error if resolution is not unique
+#' @return The X resolution for a single tiled cube.
+#'         Throws an error if resolution is not unique.
 .file_info_xres <- function(cube, bands = NULL) {
     file_info <- .file_info(cube, bands = bands)
     xres <- unique(file_info[["xres"]])
 
     .check_num(length(xres),
-               min = 1, is_integer = TRUE,
-               msg = "wrong xres in file_info"
+        min = 1, is_integer = TRUE,
+        msg = "wrong xres in file_info"
     )
     return(xres)
 }
 #' @rdname file_info_functions
 #'
-#' @details
-#' Returns the Y resolution for a single tiled cube
-#' Throws an error if resolution is not unique
+#' @return The Y resolution for a single tiled cube
+#'         Throws an error if resolution is not unique
 .file_info_yres <- function(cube, bands = NULL) {
     file_info <- .file_info(cube, bands = bands)
     yres <- unique(file_info[["yres"]])
 
     .check_num(length(yres),
-               min = 1, is_integer = TRUE,
-               msg = "wrong yres in file_info"
+        min = 1, is_integer = TRUE,
+        msg = "wrong yres in file_info"
     )
     return(yres)
 }
 #' @rdname file_info_functions
 #'
-#' @details
-#' Returns the file ids for a single tiled cube
+#' @return the file ids for a single tile
 .file_info_fids <- function(cube) {
     file_info <- .file_info(cube)
     fids <- unique(file_info[["fid"]])
 
     .check_num(length(fids),
-               min = 1, is_integer = TRUE,
-               msg = "wrong fid in file_info"
+        min = 1, is_integer = TRUE,
+        msg = "wrong fid in file_info"
     )
     return(fids)
 }
 #' @rdname file_info_functions
 #'
-#' @details
-#' Returns timeline  for a single tiled cube
+#' @return the timeline  for a single tile
 .file_info_timeline <- function(cube) {
     file_info <- .file_info(cube)
     timeline <- unique(lubridate::as_date(file_info[["date"]]))
 
     .check_num(length(timeline),
-               min = 1, is_integer = TRUE,
-               msg = "wrong timeline in file_info"
+        min = 1, is_integer = TRUE,
+        msg = "wrong timeline in file_info"
     )
     return(timeline)
 }
 #' @rdname file_info_functions
 #'
-#' @details
-#' Returns timeline  for a single tiled cube
-.file_info_timeline_wtss <- function(cube) {
-    file_info <- .file_info(cube)
-    timeline <- unique(lubridate::as_date(file_info[["date"]][[1]]))
-
-    .check_num(length(timeline),
-               min = 1, is_integer = TRUE,
-               msg = "wrong timeline in file_info"
-    )
-    return(timeline)
-}
-#' @rdname file_info_functions
+#' @return start date for a single tile
 #'
-#' @details
-#' Returns start date  for a single tiled cube
-#' Throws an error if cube is not a processed one
 .file_info_start_date <- function(cube) {
     .check_chr_contains(
         x = class(cube),
@@ -221,16 +197,14 @@ NULL
 
     start_date <- unique(lubridate::as_date(file_info[["start_date"]]))
     .check_num(length(start_date),
-               min = 1, max = 1,
-               msg = "wrong start_date parameter in file_info"
+        min = 1, max = 1,
+        msg = "wrong start_date parameter in file_info"
     )
     return(start_date)
 }
 #' @rdname file_info_functions
 #'
-#' @details
-#' Returns start date  for a single tiled cube
-#' Throws an error if cube is not a processed one
+#' @return end date for a single tile
 .file_info_end_date <- function(cube) {
     .check_chr_contains(
         x = class(cube),
@@ -249,23 +223,21 @@ NULL
     end_date <- unique(lubridate::as_date(file_info[["end_date"]]))
 
     .check_num(length(end_date),
-               min = 1, max = 1,
-               msg = "wrong end_date parameter in file_info"
+        min = 1, max = 1,
+        msg = "wrong end_date parameter in file_info"
     )
     return(end_date)
 }
 #' @rdname file_info_functions
 #'
-#' @details
-#' Returns the bands for the cube
-#' Throws an error bands are NULL
+#' @return bands present in the cube
 .file_info_bands <- function(cube) {
     file_info <- .file_info(cube)
     bands <- unique(unlist(file_info[["band"]]))
 
     .check_num(length(bands),
-               min = 1, is_integer = TRUE,
-               msg = "wrong bands parameter in file_info"
+        min = 1, is_integer = TRUE,
+        msg = "wrong bands parameter in file_info"
     )
 
     return(bands)

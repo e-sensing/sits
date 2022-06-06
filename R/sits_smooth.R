@@ -43,44 +43,39 @@
 #'             IEEE Transactions on Geoscience and Remote Sensing,
 #'             50 (11), 4534-4545, 2012 (for gaussian and bilateral smoothing)
 #'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' \dontrun{
-#' # Retrieve the samples for Mato Grosso
-#' # select band "ndvi"
-#'
-#' samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-#'
-#' # select a random forest model
-#' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
-#'
-#' # create a data cube based on the information about the files
-#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#' cube <- sits_cube(
-#'   source = "BDC",
-#'   collection = "MOD13Q1-6",
-#'   data_dir = data_dir,
-#'   delim = "_",
-#'   parse_info = c("X1", "X2", "tile", "band", "date")
-#' )
-#'
-#' # classify the raster image
-#' probs_cube <- sits_classify(cube,
-#'   ml_model = rfor_model,
-#'   output_dir = tempdir(),
-#'   memsize = 4, multicores = 2
-#' )
-#'
-#' # smooth the result with a bayesian filter
-#' bayes_cube <- sits_smooth(probs_cube,
-#'   type = "bayes", output_dir = tempdir()
-#' )
-#'
-#' # smooth the result with a bilateral filter
-#' bil_cube <- sits_smooth(probs_cube,
-#'   type = "bilateral", output_dir = tempdir()
-#' )
+#' if (sits_run_examples()) {
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create a ResNet model
+#'     torch_model <- sits_train(samples_ndvi, sits_resnet())
+#'     # plot the model
+#'     plot(torch_model)
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = torch_model)
+#'     # plot the probability cube
+#'     plot(probs_cube)
+#'     # smooth the probability cube using Bayesian statistics
+#'     bayes_cube <- sits_smooth(probs_cube)
+#'     # plot the smoothed cube
+#'     plot(bayes_cube)
+#'     # label the probability cube
+#'     label_cube <- sits_label_classification(bayes_cube)
+#'     # plot the labelled cube
+#'     plot(label_cube)
 #' }
-#'
 #' @export
 #'
 sits_smooth <- function(cube, type = "bayes", ...) {
@@ -88,9 +83,7 @@ sits_smooth <- function(cube, type = "bayes", ...) {
     # set caller to show in errors
     .check_set_caller("sits_smooth")
 
-    if (!requireNamespace("parallel", quietly = TRUE)) {
-        stop("Please install package parallel.", call. = FALSE)
-    }
+    .check_require_packages("parallel")
 
     # check if cube has probability data
     .check_that(
@@ -145,10 +138,9 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     } else {
         .check_num(
             x = smoothness,
-            min = 1,
+            exclusive_min = 1,
             len_max = 1,
-            allow_zero = FALSE,
-            msg = "smoothness must be greater than 1"
+            msg = "invalid 'smoothness' parameter"
         )
         smoothness <- diag(smoothness, nrow = n_labels, ncol = n_labels)
     }
@@ -156,19 +148,20 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     # precondition 4 - multicores
     .check_num(
         x = multicores,
-        len_max = 1,
         min = 1,
-        allow_zero = FALSE,
-        msg = "multicores must be at least 1"
+        len_min = 1,
+        len_max = 1,
+        is_integer = TRUE,
+        msg = "invalid 'multicores' parameter"
     )
 
     # precondition 5 - memory
     .check_num(
         x = memsize,
+        exclusive_min = 0,
+        len_min = 1,
         len_max = 1,
-        min = 1,
-        allow_zero = FALSE,
-        msg = "memsize must be positive"
+        msg = "invalid 'memsize' parameter"
     )
 
     # precondition 6 - output dir
@@ -261,8 +254,9 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(NULL)
+        }
 
         # overlapping pixels
         overlapping_y_size <- ceiling(window_size / 2) - 1
@@ -275,7 +269,8 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             xsize = size[["ncols"]],
             ysize = size[["nrows"]],
             block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = overlapping_y_size)
+            overlapping_y_size = overlapping_y_size
+        )
 
         # open probability file
         in_file <- .file_info_path(tile)
@@ -293,19 +288,20 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             raster_out <- .do_bayes(chunk = chunk)
 
             # create extent
-            blk_no_overlap <- list(first_row = block$crop_first_row,
-                                   nrows = block$crop_nrows,
-                                   first_col = block$crop_first_col,
-                                   ncols = block$crop_ncols)
+            blk_no_overlap <- list(
+                first_row = block$crop_first_row,
+                nrows = block$crop_nrows,
+                first_col = block$crop_first_col,
+                ncols = block$crop_ncols
+            )
 
             # crop removing overlaps
             raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
-
-            # export to temp file
-            block_file <- .smth_filename(tile = tile_new,
-                                         output_dir = output_dir,
-                                         block = block)
-
+            block_file <- .smth_filename(
+                tile = tile_new,
+                output_dir = output_dir,
+                block = block
+            )
             # save chunk
             .raster_write_rast(
                 r_obj = raster_out,
@@ -331,7 +327,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
         # get tile from cube
-        tile <- cube[i,]
+        tile <- cube[i, ]
 
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
@@ -350,8 +346,9 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(tile_new)
+        }
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
@@ -363,7 +360,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             .raster_merge(
                 in_files = tmp_blocks,
                 out_file = out_file,
-                format   = "GTiff",
+                format = "GTiff",
                 gdal_datatype =
                     .raster_gdal_datatype(.config_get("probs_cube_data_type")),
                 gdal_options =
@@ -382,8 +379,6 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
     return(result_cube)
 }
-
-
 
 #' @rdname sits_smooth
 #'
@@ -416,29 +411,28 @@ sits_smooth.bilateral <- function(cube,
     .check_num(
         x = sigma,
         len_max = 1,
-        min = 1,
-        allow_zero = FALSE,
-        msg = "sigma must be positive"
+        exclusive_min = 0,
+        msg = "invalid 'sigma' parameter"
     )
 
     # precondition 4 - multicores
     .check_num(
         x = multicores,
-        len_max = 1,
         min = 1,
-        allow_zero = FALSE,
-        msg = "multicores must be at least 1"
+        len_min = 1,
+        len_max = 1,
+        is_integer = TRUE,
+        msg = "invalid 'multicores' parameter"
     )
 
-    # precondition 5 - memsize
+    # precondition 5 - memory
     .check_num(
         x = memsize,
+        exclusive_min = 0,
+        len_min = 1,
         len_max = 1,
-        min = 1,
-        allow_zero = FALSE,
-        msg = "memsize must be positive"
+        msg = "invalid 'memsize' parameter"
     )
-
     # precondition 6 - output dir
     .check_file(
         x = output_dir,
@@ -454,16 +448,16 @@ sits_smooth.bilateral <- function(cube,
 
     # calculate gauss kernel
     gauss_kernel <- function(window_size, sigma) {
-
         stopifnot(window_size %% 2 != 0)
 
         w_center <- ceiling(window_size / 2)
         w_seq <- seq_len(window_size)
         x <- stats::dnorm(
-            (abs(rep(w_seq, each = window_size) - w_center) ^ 2 +
-                 abs(rep(w_seq, window_size) - w_center) ^ 2) ^ (1 / 2),
-            sd = sigma) / stats::dnorm(0)
-        matrix(x / sum(x), nrow = window_size, byrow = T)
+            (abs(rep(w_seq, each = window_size) - w_center)^2 +
+                abs(rep(w_seq, window_size) - w_center)^2)^(1 / 2),
+            sd = sigma
+        ) / stats::dnorm(0)
+        matrix(x / sum(x), nrow = window_size, byrow = TRUE)
     }
 
     gs_matrix <- gauss_kernel(window_size, sigma)
@@ -534,8 +528,9 @@ sits_smooth.bilateral <- function(cube,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(NULL)
+        }
 
         # overlapping pixels
         overlapping_y_size <- ceiling(window_size / 2) - 1
@@ -548,7 +543,8 @@ sits_smooth.bilateral <- function(cube,
             xsize = size[["ncols"]],
             ysize = size[["nrows"]],
             block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = overlapping_y_size)
+            overlapping_y_size = overlapping_y_size
+        )
 
         # open probability file
         in_file <- .file_info_path(tile)
@@ -566,18 +562,20 @@ sits_smooth.bilateral <- function(cube,
             raster_out <- .do_bilateral(chunk = chunk)
 
             # create extent
-            blk_no_overlap <- list(first_row = block$crop_first_row,
-                                   nrows = block$crop_nrows,
-                                   first_col = block$crop_first_col,
-                                   ncols = block$crop_ncols)
+            blk_no_overlap <- list(
+                first_row = block$crop_first_row,
+                nrows = block$crop_nrows,
+                first_col = block$crop_first_col,
+                ncols = block$crop_ncols
+            )
 
             # crop removing overlaps
             raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
-
-            # export to temp file
-            block_file <- .smth_filename(tile = tile_new,
-                                         output_dir = output_dir,
-                                         block = block)
+            block_file <- .smth_filename(
+                tile = tile_new,
+                output_dir = output_dir,
+                block = block
+            )
 
             # save chunk
             .raster_write_rast(
@@ -604,7 +602,7 @@ sits_smooth.bilateral <- function(cube,
     result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
         # get tile from cube
-        tile <- cube[i,]
+        tile <- cube[i, ]
 
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
@@ -623,8 +621,9 @@ sits_smooth.bilateral <- function(cube,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(tile_new)
+        }
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
@@ -636,7 +635,7 @@ sits_smooth.bilateral <- function(cube,
             .raster_merge(
                 in_files = tmp_blocks,
                 out_file = out_file,
-                format   = "GTiff",
+                format = "GTiff",
                 gdal_datatype =
                     .raster_gdal_datatype(.config_get("probs_cube_data_type")),
                 gdal_options =

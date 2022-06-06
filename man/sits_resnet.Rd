@@ -12,7 +12,7 @@ sits_resnet(
   epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
-  optimizer = optim_adamw,
+  optimizer = torchopt::optim_adamw,
   opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
   lr_decay_epochs = 1,
   lr_decay_rate = 0.95,
@@ -56,12 +56,13 @@ weight_decay:       L2 regularization}
 \item{patience}{Number of epochs without improvements until
 training stops.}
 
-\item{min_delta}{Minimum improvement to reset the patience counter.}
+\item{min_delta}{Minimum improvement in loss function
+to reset the patience counter.}
 
 \item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }
 \value{
-A fitted model to be passed to \code{\link[sits]{sits_classify}}.
+A fitted model to be used for classification.
 }
 \description{
 Use a ResNet architecture for classifying image time series.
@@ -77,7 +78,8 @@ Please refer to the paper for more details.
 The R-torch version is based on the code made available by Zhiguang Wang,
 author of the original paper. The code was developed in python using keras.
 
-https://github.com/cauchyturing/UCR_Time_Series_Classification_Deep_Learning_Baseline/blob/master/ResNet.py
+https://github.com/cauchyturing
+(repo: UCR_Time_Series_Classification_Deep_Learning_Baseline)
 
 The R-torch version also considered the code by Ignacio Oguiza,
 whose implementation is available at
@@ -86,21 +88,39 @@ https://github.com/timeseriesAI/tsai/blob/main/tsai/models/ResNet.py.
 There are differences between Wang's Keras code and Oguiza torch code.
 In this case, we have used Wang's keras code as the main reference.
 }
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
+}
 \examples{
-\dontrun{
-# Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
-
-# Build a machine learning model based on deep learning
-rn_model <- sits_train(samples_modis_4bands, sits_resnet())
-# Plot the model
-plot(rn_model)
-
-# get a point and classify the point with the ml_model
-point <- sits_select(point_mt_6bands,
-    bands = c("NDVI", "EVI", "NIR", "MIR")
-)
-class <- sits_classify(point, rn_model)
-plot(class, bands = c("NDVI", "EVI"))
+if (sits_run_examples()) {
+    # select a set of samples
+    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+    # create a ResNet model
+    torch_model <- sits_train(samples_ndvi, sits_resnet())
+    # plot the model
+    plot(torch_model)
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+    # classify a data cube
+    probs_cube <- sits_classify(data = cube, ml_model = torch_model)
+    # plot the probability cube
+    plot(probs_cube)
+    # smooth the probability cube using Bayesian statistics
+    bayes_cube <- sits_smooth(probs_cube)
+    # plot the smoothed cube
+    plot(bayes_cube)
+    # label the probability cube
+    label_cube <- sits_label_classification(bayes_cube)
+    # plot the labelled cube
+    plot(label_cube)
 }
 }
 \references{

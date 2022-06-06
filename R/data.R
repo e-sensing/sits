@@ -15,7 +15,7 @@
 #'   label (the class label associated to the sample),
 #'   cube (the name of the cube associated with the data),
 #'   time_series (list containing a tibble with the values of the time series).
-"cerrado_2classes"
+NULL
 
 #' @title A time series sample with data from 2000 to 2016
 #' @description A dataset containing a tibble with one time series samples
@@ -59,7 +59,6 @@ NULL
 NULL
 
 #' @title Samples of Amazon tropical forest biome for deforestation analysis
-#'
 #'
 #' @docType data
 #' @name samples_l8_rondonia_2bands

@@ -23,13 +23,13 @@ to string and escaped.}
 \item{flag}{A logical value to set the debug flag}
 }
 \value{
-For .sits_debug, a logical value with current debug flag
+A logical value with current debug flag
 }
 \description{
 .sits_debug_log: (internal) logs to a CSV file the following values:
 \itemize{
 \item date_time: event date and time
-\item pid: process PID
+\item pid: process identifier
 \item event: event name
 \item elapsed_time: duration (in seconds) from the last log call
 \item mem_used: session used memory (in MB)

@@ -12,7 +12,7 @@
 \item{...}{additional parameters to be passed to raster package}
 }
 \value{
-Numeric matrix
+Numeric matrix associated to raster object
 }
 \description{
 Raster package internal get values function

@@ -25,19 +25,23 @@
         self$block <- torch::nn_sequential(
             torch::nn_linear(
                 in_features = input_dim,
-                out_features = output_dim),
+                out_features = output_dim
+            ),
             torch::nn_batch_norm1d(
-                num_features = output_dim),
+                num_features = output_dim
+            ),
             torch::nn_relu(),
             torch::nn_dropout(
-                p = dropout_rate)
+                p = dropout_rate
+            )
         )
     },
     forward = function(x) {
         self$block(x)
     }
 )
-#' @title Torch module for linear transformation with relu activation and dropout
+#' @title Torch module for linear transformation with relu activation and
+#' dropout
 #' @name .torch_linear_relu_dropout
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
@@ -95,9 +99,11 @@
         self$block <- torch::nn_sequential(
             torch::nn_linear(
                 in_features = input_dim,
-                out_features = output_dim),
+                out_features = output_dim
+            ),
             torch::nn_batch_norm1d(
-                num_features = output_dim),
+                num_features = output_dim
+            ),
             torch::nn_relu()
         )
     },
@@ -113,8 +119,8 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
-#' @description Defines a set of torch modules composed of; (a) linear transformation;
-#' (b) batch normalization; (c) relu activation
+#' @description Defines a set of torch modules composed of:
+#' (a) linear transformation; (b) batch normalization; (c) relu activation
 #'
 #' @param input_dim         Input dimension of neural net.
 #' @param hidden_dims       Hidden dimensions of neural net.
@@ -123,8 +129,7 @@
 #'
 .torch_multi_linear_batch_norm_relu <- torch::nn_module(
     classname = "torch_multi_linear_batch_norm_relu",
-
-    initialize = function(input_dim, hidden_dims){
+    initialize = function(input_dim, hidden_dims) {
         tensors <- list()
 
         # input layer
@@ -151,4 +156,3 @@
         self$model(x)
     }
 )
-

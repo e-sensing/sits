@@ -22,7 +22,8 @@ for validation (if samples_validation is NULL)}
 \item{ml_method}{Machine learning method.}
 }
 \value{
-A tibble containing pairs of reference and predicted values.
+A \code{caret::confusionMatrix} object to be used for
+        validation assessment.
 }
 \description{
 One round of cross-validation involves partitioning a sample of data
@@ -38,6 +39,11 @@ validation_split. The accuracy is determined by the result of
 the validation test set.
 
 This function returns the confusion matrix, and Kappa values.
+}
+\examples{
+if (sits_run_examples()){
+   conf_matrix <- sits_validate(cerrado_2classes)
+}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

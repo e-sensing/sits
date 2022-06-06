@@ -1,4 +1,3 @@
-
 #' @keywords internal
 #' @export
 .raster_check_package.terra <- function() {
@@ -6,19 +5,13 @@
     # package namespace
     pkg_name <- "terra"
 
-    # check if raster package is available
-    if (!requireNamespace(pkg_name, quietly = TRUE)) {
-        stop(paste(
-            ".sits_config_raster_package: package", pkg_name,
-            "not available. Please install the package for CRAN."
-        ), call. = FALSE)
-    }
+    # check if terra package is available
+    .check_require_packages(pkg_name)
 
     class(pkg_name) <- pkg_name
 
     return(invisible(pkg_name))
 }
-
 
 #' @keywords internal
 #' @export
@@ -28,7 +21,7 @@
 
 #' @keywords internal
 #' @export
-.raster_resampling <- function(method, ...) {
+.raster_resampling.terra <- function(method, ...) {
     return(method)
 }
 
@@ -49,7 +42,7 @@
 .raster_set_values.terra <- function(r_obj, values, ...) {
     terra::values(x = r_obj) <- as.matrix(values)
 
-    return(invisible(r_obj))
+    return(r_obj)
 }
 
 #' @keywords internal
@@ -187,7 +180,7 @@
     # do resample
     if (!is.null(out_size) &&
         (in_size[["nrows"]] != out_size[["nrows"]] ||
-         in_size[["ncols"]] != out_size[["ncols"]])) {
+            in_size[["ncols"]] != out_size[["ncols"]])) {
         bbox <- .raster_bbox(r_obj, block = block)
 
         out_r_obj <- .raster_new_rast(
@@ -358,6 +351,7 @@
 
 #' @keywords internal
 #' @export
+#'
 .raster_freq.terra <- function(r_obj, ...) {
     terra::freq(x = r_obj, bylayer = TRUE)
 }

@@ -12,7 +12,7 @@
 \item{add_cloud}{Include the cloud band?}
 }
 \value{
-a \code{vector} with the bands.
+A \code{vector} with the cube bands.
 }
 \description{
 Return bands of a data cube

@@ -29,6 +29,9 @@
 
 \item{progress}{Show progress bar?}
 }
+\value{
+No return value, called for side effects.
+}
 \description{
 Merge all input files into one raster file
 }

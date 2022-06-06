@@ -5,7 +5,7 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description To merge two series, we consider that they contain different
-#' attributes but refer to the same data cube, and spatio-temporal location.
+#' attributes but refer to the same data cube, and spatiotemporal location.
 #' This function is useful to merge different bands of the same locations.
 #' For example, one may want to put the raw and smoothed bands
 #' for the same set of locations in the same tibble.
@@ -20,16 +20,18 @@
 #'                   these suffixes will be added.
 #'
 #' @return merged data sets
+#' @examples
+#' if (sits_run_examples()) {
+#'     # Retrieve a time series with values of NDVI
+#'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'
-#' @examples {
-#'   # Retrieve a time series with values of NDVI
-#'   point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#'   # Apply Savitsky-Golay filter on NDVI
-#'   point_ndvi_sg <- point_ndvi %>%
-#'     sits_filter(sits_sgolay())
+#'     # Filter the point using the Whittaker smoother
+#'     point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 3.0))
+#'     # Merge time series
+#'     point_ndvi <- sits_merge(point_ndvi, point_whit, suffix = c("", ".WHIT"))
 #'
-#'   # Merge time series back
-#'   point <- sits_merge(point_ndvi, point_ndvi_sg, suffix = c("", ".SG"))
+#'     # Plot the two points to see the smoothing effect
+#'     plot(point_ndvi)
 #' }
 #' @export
 #'
@@ -42,6 +44,7 @@ sits_merge <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     UseMethod("sits_merge", data1)
 }
 
+#' @rdname sits_merge
 #' @export
 sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 
@@ -97,7 +100,7 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     )
     return(result)
 }
-
+#' @rdname sits_merge
 #' @export
 #'
 sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {

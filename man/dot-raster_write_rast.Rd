@@ -34,7 +34,7 @@
 \item{missing_value}{A \code{integer} with image's missing value}
 }
 \value{
-numeric matrix
+No value, called for side effects.
 }
 \description{
 Raster package internal write raster file function

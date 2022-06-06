@@ -22,7 +22,7 @@ sits_twdtw_classify(
 )
 }
 \arguments{
-\item{samples}{A sits tibble to be classified using TWTDW.}
+\item{samples}{A sits tibble to be classified using TWDTW.}
 
 \item{patterns}{Patterns to be used for classification.}
 
@@ -74,12 +74,12 @@ vegetation types. It also considers inter-annual climatic and
 seasonal variability.
 }
 \examples{
-\dontrun{
+if (sits_run_examples()){
 # Retrieve the set of samples for the Mato Grosso region
 samples <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 
 # get a point and classify the point with the ml_model
-point <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+point <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 
 # plot the series
 plot(point)
@@ -92,8 +92,8 @@ plot(patterns)
 # using the TWDTW algorithm
 # (uses the dtwSat R package)
 matches <- sits_twdtw_classify(point, patterns,
-  bands = c("NDVI", "EVI"),
-  alpha = -0.1, beta = 100, theta = 0.5, keep = TRUE
+    bands = c("NDVI", "EVI"),
+    alpha = -0.1, beta = 100, theta = 0.5, keep = TRUE
 )
 }
 }

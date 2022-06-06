@@ -15,7 +15,9 @@
 \item{...}{Further specifications for \link{plot}.}
 }
 \value{
-The plot itself.
+A series of plot objects produced by ggplot2 showing all
+  time series associated to each combination of band and label,
+  and including the median, and first and third quartile ranges.
 }
 \description{
 This is a generic function. Parameters depend on the specific
@@ -25,11 +27,13 @@ required parameters:
  \item{sits tibble: }          {see \code{\link{plot.sits}}}
  \item{patterns: }             {see \code{\link{plot.patterns}}}
  \item{SOM map: }              {see \code{\link{plot.som_map}}}
- \item{classified time series: } {see \code{\link{plot.predicted}}}
- \item{raster  cube: }         {see \code{\link{plot.raster_cube}}}
- \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
- \item{classified image: }     {see \code{\link{plot.classified_image}}}
  \item{SOM evaluate cluster: } {see \code{\link{plot.som_evaluate_cluster}}}
+ \item{classified time series: } {see \code{\link{plot.predicted}}}
+ \item{raster cube: }         {see \code{\link{plot.raster_cube}}}
+ \item{torch ML model: } {see \code{\link{plot.torch_model}}}
+ \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
+ \item{model uncertainty: } {see \code{\link{plot.uncertainty_cube}}}
+ \item{classified image: }     {see \code{\link{plot.classified_image}}}
 }
 
 In the case of time series, the plot function produces different plots
@@ -43,15 +47,14 @@ based on the input data. If the input data has less than 30 samples, it
 will default to "all years". If there are more than 30 samples,
 it will default to "together".
 }
-\examples{
-\dontrun{
-# Read a set of samples with 2 classes ("Cerrado" and "Pasture")
-# Plot all the samples together
-plot(cerrado_2classes)
-# Plot the first 20 samples (defaults to "allyears")
-plot(cerrado_2classes[1:20, ])
-}
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 
+if (sits_run_examples()) {
+# plot sets of time series
+plot(cerrado_2classes)
+}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

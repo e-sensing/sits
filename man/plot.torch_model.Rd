@@ -14,26 +14,27 @@
 \item{...}{Further specifications for \link{plot}.}
 }
 \value{
-The plot itself.
+A plot object produced by the ggplot2 package
+                      showing the evolution of the loss and
+                      accuracy of the model.
 }
 \description{
 Plots a deep learning model developed using torch.
 }
 \note{
 This code has been lifted from the "keras" package.
+
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
-\dontrun{
-# Get a set of samples
-samples_ndvi_evi <- sits_select(samples_modis_4bands,
-  bands = c("NDVI", "EVI")
-)
-
-# train a deep learning model
-dl_model <- sits_train(samples_ndvi_evi, ml_method = sits_mlp())
-plot(dl_model)
+if (sits_run_examples()) {
+    # Retrieve the samples for Mato Grosso
+    # train a tempCNN model
+    ml_model <- sits_train(samples_modis_4bands, ml_method = sits_tempcnn)
+    # plot the model
+    plot(ml_model)
 }
-
 }
 \author{
 Felipe Souza, \email{lipecaso@gmail.com}
