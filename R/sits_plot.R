@@ -529,6 +529,8 @@ plot.probs_cube <- function(x, ...,
     # get the labels
     labels_cube <- sits_labels(x)
 
+    # resize to the [0..1] interval
+    stars_mosaic <- stars_mosaic * .config_get("raster_cube_scale_factor")
     # verify if label is not NULL
     if (!purrr::is_null(labels)) {
         # label is not null, then plot only the label

@@ -140,6 +140,34 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// smooth_sg
+arma::vec smooth_sg(const arma::vec& data, const arma::mat& f_res, const int& p, const int& n);
+RcppExport SEXP _sits_smooth_sg(SEXP dataSEXP, SEXP f_resSEXP, SEXP pSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type f_res(f_resSEXP);
+    Rcpp::traits::input_parameter< const int& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(smooth_sg(data, f_res, p, n));
+    return rcpp_result_gen;
+END_RCPP
+}
+// smooth_sg_mtx
+arma::mat smooth_sg_mtx(const arma::mat& data, const arma::mat& f_res, const int& p, const int& n);
+RcppExport SEXP _sits_smooth_sg_mtx(SEXP dataSEXP, SEXP f_resSEXP, SEXP pSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type f_res(f_resSEXP);
+    Rcpp::traits::input_parameter< const int& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(smooth_sg_mtx(data, f_res, p, n));
+    return rcpp_result_gen;
+END_RCPP
+}
 // smooth_whit
 NumericVector smooth_whit(const NumericVector& data, const double& lambda, const int& length);
 RcppExport SEXP _sits_smooth_whit(SEXP dataSEXP, SEXP lambdaSEXP, SEXP lengthSEXP) {
@@ -178,6 +206,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_margin_probs", (DL_FUNC) &_sits_margin_probs, 2},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
     {"_sits_ratio_probs", (DL_FUNC) &_sits_ratio_probs, 2},
+    {"_sits_smooth_sg", (DL_FUNC) &_sits_smooth_sg, 4},
+    {"_sits_smooth_sg_mtx", (DL_FUNC) &_sits_smooth_sg_mtx, 4},
     {"_sits_smooth_whit", (DL_FUNC) &_sits_smooth_whit, 3},
     {"_sits_smooth_whit_mtx", (DL_FUNC) &_sits_smooth_whit_mtx, 3},
     {NULL, NULL, 0}
