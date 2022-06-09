@@ -9,9 +9,9 @@
 \arguments{
 \item{tile}{Data cube tile}
 
-\item{period}{Period of time in which it
-is desired to apply in the cube, must be provided based on ISO8601, where 1
-number and a unit are provided, for example "P16D".}
+\item{period}{Period of time in which it is desired to apply in the cube,
+must be provided based on ISO8601, where 1 number and a
+unit are provided, for example "P16D".}
 
 \item{res}{Spatial resolution of the image that
 will be aggregated.}
@@ -21,8 +21,9 @@ will be aggregated.}
 \item{agg_method}{Aggregation method.}
 
 \item{resampling}{Resampling method.
-Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
-gdalwarp (see https://gdal.org/programs/gdalwarp.html).
+Options: \code{near}, \code{bilinear}, \code{bicubic} or
+others supported by gdalwarp
+(see https://gdal.org/programs/gdalwarp.html).
 Default is "bilinear".}
 
 \item{toi}{Timeline of intersection.}
