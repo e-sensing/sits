@@ -59,6 +59,8 @@
 #' )
 #'
 #' @return a sits cube with the generated fractions.
+#'
+#' @export
 sits_mixture_model <- function(cube,
                                endmembers_spectra,
                                memsize = 1,
