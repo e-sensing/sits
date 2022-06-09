@@ -6,8 +6,10 @@ using namespace Rcpp;
 using namespace std;
 //using namespace arma; //included for simple mat. multiplication
 
-// The original implementation is available at
-// https://github.com/bleutner/RStoolbox/blob/master/src/nnls_solver.cpp
+// This function was implemented by Jakob Schwalb-Willmann in the
+// RStoolbox package (GPL>=3).
+// The source code can be found in
+// https://github.com/bleutner/RStoolbox/tree/v0.3.0
 
 //[[Rcpp::export]]
 arma::mat nnls_solver(const arma::mat x,

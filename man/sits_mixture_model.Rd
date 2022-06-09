@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_spectral_unmixing.R
 \name{sits_mixture_model}
 \alias{sits_mixture_model}
-\title{Create a multiple endmember spectral mixture analyses fractions images}
+\title{Multiple endmember spectral mixture analyses}
 \usage{
 sits_mixture_model(
   cube,
@@ -10,25 +10,80 @@ sits_mixture_model(
   memsize = 1,
   multicores = 2,
   output_dir = getwd(),
+  rmse_band = TRUE,
   progress = TRUE
 )
 }
 \arguments{
 \item{cube}{A sits data cube.}
 
+\item{endmembers_spectra}{Reference endmembers spectra in a tibble format.
+(see details below).}
+
 \item{memsize}{Memory available for mixture model (in GB).}
 
-\item{multicores}{Number of cores to be used for generate the mixture model.}
+\item{multicores}{Number of cores to be used for generate the
+mixture model.}
 
 \item{output_dir}{Directory for output file.}
 
-\item{progress}{Show progress bar?}
+\item{rmse_band}{A boolean indicating whether the error associated
+with the linear model should be generated.
+If true, a new band with the errors for each pixel
+is generated using the root mean square
+measure (RMSE). Default is TRUE.}
 
-\item{endmembers}{Reference endmembers spectra}
+\item{progress}{Show progress bar?}
 }
 \value{
-a cube with the generated endmembers.
+a sits cube with the generated fractions.
 }
 \description{
-A multiple endmember spectral mixture analyses...
+Create a multiple endmember spectral mixture analyses fractions
+images. To calculate the fraction of each endmember, the non-negative least
+squares (NNLS) solver is used. The NNLS implementation was made by Jakob
+Schwalb-Willmann in RStoolbox package (licensed as GPL>=3).
+}
+\note{
+The \code{endmembers_spectra} parameter should be a tibble, csv or
+a shapefile. \code{endmembers_spectra} must have the following columns:
+\code{type}, which defines the endmembers that will be
+created and the columns corresponding to the bands that will be used in the
+mixing model.
+}
+\examples{
+# --- Create a cube based on a local MODIS data
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+
+modis_cube <- sits_cube(
+    source = "BDC",
+    collection = "MOD13Q1-6",
+    data_dir = data_dir,
+    delim = "_"
+)
+
+endmembers_spectra <-
+    tibble::tibble(
+        type = c("vegetation", "not-vegetation"),
+        NDVI = c(8500, 3400)
+    )
+
+mixture_cube <- sits_mixture_model(
+    cube = modis_cube,
+    endmembers_spectra = endmembers_spectra,
+    memsize = 4,
+    multicores = 2,
+    output_dir = tempdir()
+)
+
+}
+\references{
+\code{RStoolbox} package (https://github.com/bleutner/RStoolbox/)
+}
+\author{
+Felipe Carvalho, \email{felipe.carvalho@inpe.br}
+
+Felipe Carlos,   \email{efelipecarlos@gmail.com}
+
+Rolf Simoes,     \email{rolf.simoes@inpe.br}
 }

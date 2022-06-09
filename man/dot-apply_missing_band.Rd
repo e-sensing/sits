@@ -7,14 +7,14 @@
 \usage{
 .apply_missing_band(cube, band)
 
-.mesma_get_jobs_lst(cube, endmembers)
+.mesma_get_jobs_lst(cube, fractions)
 }
 \arguments{
 \item{cube}{Data cube.}
 
 \item{band}{Band name.}
 
-\item{endmembers}{...}
+\item{fractions}{Name of output fractions.}
 }
 \value{
 List of combination among tiles, bands, and dates
@@ -26,6 +26,6 @@ List of combination among tiles, endmembers, and dates
 \description{
 Finds the missing bands in a cube
 
-Finds the missing bands in a cube
+Create a list of jobs
 }
 \keyword{internal}

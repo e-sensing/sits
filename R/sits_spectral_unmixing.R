@@ -1,27 +1,76 @@
-#' @title Create a multiple endmember spectral mixture analyses fractions images
+#' @title Multiple endmember spectral mixture analyses
 #'
-#' @description A multiple endmember spectral mixture analyses...
+#' @name sits_mixture_model
 #'
-#' @param cube        A sits data cube.
-#' @param endmembers  Reference endmembers spectra
-#' @param memsize     Memory available for mixture model (in GB).
-#' @param multicores  Number of cores to be used for generate the mixture model.
-#' @param output_dir  Directory for output file.
-#' @param progress    Show progress bar?
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @author Rolf Simoes,     \email{rolf.simoes@@inpe.br}
 #'
-#' @return a cube with the generated endmembers.
+#' @description Create a multiple endmember spectral mixture analyses fractions
+#' images. To calculate the fraction of each endmember, the non-negative least
+#' squares (NNLS) solver is used. The NNLS implementation was made by Jakob
+#' Schwalb-Willmann in RStoolbox package (licensed as GPL>=3).
+#'
+#' @references \code{RStoolbox} package (https://github.com/bleutner/RStoolbox/)
+#'
+#' @param cube                A sits data cube.
+#' @param endmembers_spectra  Reference endmembers spectra in a tibble format.
+#'                            (see details below).
+#' @param memsize             Memory available for mixture model (in GB).
+#' @param multicores          Number of cores to be used for generate the
+#'                            mixture model.
+#' @param output_dir          Directory for output file.
+#' @param rmse_band           A boolean indicating whether the error associated
+#'                            with the linear model should be generated.
+#'                            If true, a new band with the errors for each pixel
+#'                            is generated using the root mean square
+#'                            measure (RMSE). Default is TRUE.
+#' @param progress            Show progress bar?
+#'
+#' @note The \code{endmembers_spectra} parameter should be a tibble, csv or
+#' a shapefile. \code{endmembers_spectra} must have the following columns:
+#' \code{type}, which defines the endmembers that will be
+#' created and the columns corresponding to the bands that will be used in the
+#' mixing model.
+#'
+#' @examples
+#' # --- Create a cube based on a local MODIS data
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'
+#' modis_cube <- sits_cube(
+#'     source = "BDC",
+#'     collection = "MOD13Q1-6",
+#'     data_dir = data_dir,
+#'     delim = "_"
+#' )
+#'
+#' endmembers_spectra <-
+#'     tibble::tibble(
+#'         type = c("vegetation", "not-vegetation"),
+#'         NDVI = c(8500, 3400)
+#'     )
+#'
+#' mixture_cube <- sits_mixture_model(
+#'     cube = modis_cube,
+#'     endmembers_spectra = endmembers_spectra,
+#'     memsize = 4,
+#'     multicores = 2,
+#'     output_dir = tempdir()
+#' )
+#'
+#' @return a sits cube with the generated fractions.
 sits_mixture_model <- function(cube,
                                endmembers_spectra,
                                memsize = 1,
                                multicores = 2,
                                output_dir = getwd(),
+                               rmse_band = TRUE,
                                progress = TRUE) {
 
     .check_set_caller("sits_mixture_model")
 
     .check_that(
-        inherits(endmembers_spectra, c("tbl_df", "tbl", "data.frame", "character")),
-        msg = "invalid endmembers parameter."
+        inherits(endmembers_spectra, c("tbl_df", "data.frame", "character"))
     )
 
     if (inherits(endmembers_spectra, "character"))
@@ -30,13 +79,14 @@ sits_mixture_model <- function(cube,
             file_ext = tolower(tools::file_ext(endmembers_spectra))
         )
 
+    # Ensure that all columns are in uppercase
     endmembers_spectra <- dplyr::rename_with(endmembers_spectra, toupper)
 
     # Pre-condition
-    .check_chr_contains(
-        colnames(endmembers_spectra),
-        contains = c("TYPE", .cube_bands(cube, add_cloud = FALSE)),
-        msg = "invalid endmembers columns"
+    .check_chr_within(
+        x = colnames(endmembers_spectra),
+        within = c("TYPE", .cube_bands(cube, add_cloud = FALSE)),
+        msg = "invalid 'endmembers_spectra' columns"
     )
 
     # Pre-condition
@@ -55,20 +105,24 @@ sits_mixture_model <- function(cube,
     output_dir <- path.expand(output_dir)
     .check_file(output_dir, msg = "invalid output directory")
 
-    # Take only columns take intersects between two tibbles
-    reference_spectra_bands <- intersect(
+    # Take only bands that intersects between two tibbles
+    ref_spectral_bands <- intersect(
         .cube_bands(cube, add_cloud = FALSE),
         setdiff(colnames(endmembers_spectra), "TYPE")
     )
 
-    reference_spectra <- as.matrix(endmembers_spectra[, reference_spectra_bands])
-    endmembers_fractions <- endmembers_spectra[["TYPE"]]
+    # Scale the reference spectra
+    reference_spectra <- .mesma_scale_endmembers(cube, endmembers_spectra)
 
-    cube_selected <- sits_select(cube, reference_spectra_bands)
+    output_fracs <- endmembers_spectra[["TYPE"]]
+    if (rmse_band)
+        output_fracs <- c(output_fracs, "rmse")
+
+    cube_filtered <- sits_select(cube, ref_spectral_bands)
 
     jobs <- .mesma_get_jobs_lst(
-        cube = cube_selected,
-        endmembers = endmembers_fractions
+        cube = cube_filtered,
+        fractions = output_fracs
     )
 
     # Already processed?
@@ -80,16 +134,16 @@ sits_mixture_model <- function(cube,
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    images_lst <- .sits_parallel_map(jobs, function(job) {
+    .sits_parallel_map(jobs, function(job) {
 
         # Get parameters from each job
         tile_name <- job[[1]]
         fid <- job[[2]]
 
         # Filter tile
-        tile <- dplyr::filter(cube_selected, .data[["tile"]] == !!tile_name)
+        tile <- dplyr::filter(cube_filtered, .data[["tile"]] == !!tile_name)
 
-        in_bands <- .cube_bands(cube_selected)
+        in_bands <- .cube_bands(cube_filtered)
 
         # File_info filtered by bands
         in_fi_fid <- .file_info(
@@ -98,22 +152,23 @@ sits_mixture_model <- function(cube,
             fid = fid
         )
 
-        # output fractions files
-        output_filenames <- .create_filename(
-            "cube", tile_name, c(endmembers_fractions, "probs"),
-            in_fi_fid[["date"]],
+        output_files <- .create_filename(
+            "cube", tile_name, output_fracs, in_fi_fid[["date"]],
             ext = ".tif",
             output_dir = output_dir
         )
 
-        names(output_filenames) <- c(endmembers_fractions, "probs")
+        names(output_files) <- output_fracs
 
         # Does output file exists?
-        if (all(file.exists(output_filenames))) {
-            # TODO: if any output_filenames exists
-            # returning a message to the user because some files
-            # in not in directory
-            return(output_filenames)
+        if (all(file.exists(output_files))) {
+            message(
+                paste(
+                    "Recovery mode. Detected fractions bands in",
+                    "the provided directory."
+                )
+            )
+            return(output_files)
         }
 
         # Divide the input data in blocks
@@ -151,16 +206,12 @@ sits_mixture_model <- function(cube,
                 values <- .raster_read_stack(in_files[[band]], block = b)
 
                 # # Correct NA, minimum, maximum, and missing values
-                # TODO
-                # is it necessary correcting for the spectra mixture model?
-                # values[values == missing_value] <- NA
-                # values[values < minimum_value] <- NA
-                # values[values > maximum_value] <- NA
+                values[values == missing_value] <- NA
+                values[values < minimum_value] <- NA
+                values[values > maximum_value] <- NA
 
                 # compute scale and offset
-                # TODO
-                # is it necessary scaling for the spectra mixture model?
-                #values <- scale_factor * values + offset_value
+                values <- scale_factor * values + offset_value
                 values <- as.data.frame(values)
                 return(values)
             })
@@ -169,18 +220,20 @@ sits_mixture_model <- function(cube,
             names(in_values) <- in_bands
             in_values <- as.matrix(in_values)
 
-            # Evaluate expressions, scale and offset values
+            # Apply the non-negative least squares solver
             out_values <- nnls_solver(
                 x = in_values,
                 A = reference_spectra
             )
 
             # Apply scale and offset
-            # TODO:
-            # is this will be scaled?
-            # out_values <- out_values /
-            #     .config_get("raster_cube_scale_factor") -
-            #     .config_get("raster_cube_offset_value")
+            out_values <- out_values /
+                .config_get("raster_cube_scale_factor") -
+                .config_get("raster_cube_offset_value")
+
+            # rmse is in the last column
+            if (!rmse_band)
+                out_values[, 1:ncol(out_values) - 1]
 
             # Compute block spatial parameters
             params <- .cube_params_block(tile, block = b)
@@ -193,32 +246,31 @@ sits_mixture_model <- function(cube,
                 xmax = params[["xmax"]],
                 ymin = params[["ymin"]],
                 ymax = params[["ymax"]],
-                nlayers = length(endmembers_fractions) + 1,
+                nlayers = length(output_fracs),
                 crs = params[["crs"]]
             )
 
             # Set values
             r_obj <- .raster_set_values(r_obj, out_values)
+            names(r_obj) <- output_fracs
 
-            names(r_obj) <- c(endmembers_fractions, "probs")
+            filenames_block <- purrr::map_chr(names(r_obj), function(frac) {
 
-            filenames_block <- purrr::map_chr(names(r_obj), function(em_fraction) {
-
-                output_filenames_frac <-
-                    output_filenames[names(output_filenames) == em_fraction]
+                output_files_frac <-
+                    output_files[names(output_files) == frac]
 
                 # Define the file name of the raster file to be written
                 filename_block <- paste0(
-                    tools::file_path_sans_ext(output_filenames_frac),
+                    tools::file_path_sans_ext(output_files_frac),
                     "_block_", b[["first_row"]], "_", b[["nrows"]], ".tif"
                 )
 
                 # Write values
                 .raster_write_rast(
-                    r_obj = r_obj[[em_fraction]],
+                    r_obj = r_obj[[frac]],
                     file = filename_block,
                     format = "GTiff",
-                    data_type = "FLT4S", # TODO: change this
+                    data_type = .config_get("raster_cube_data_type"),
                     gdal_options = .config_gtiff_default_options(),
                     overwrite = TRUE
                 )
@@ -226,7 +278,7 @@ sits_mixture_model <- function(cube,
                 # Clean memory
                 gc()
 
-                names(filename_block) <- em_fraction
+                names(filename_block) <- frac
                 return(filename_block)
             })
 
@@ -234,22 +286,24 @@ sits_mixture_model <- function(cube,
             return(filenames_block)
         })
 
-
         # Merge result
         blocks_path <- unlist(blocks_path)
 
         # Join predictions
         if (!is.null(blocks_path)) {
 
-            output_file_fractions <- purrr::map_chr(c(endmembers_fractions, "probs"), function(em_frac) {
+            output_file_fracs <- purrr::map_chr(output_fracs, function(frac) {
 
-                blocks_fracs_path <- blocks_path[names(blocks_path) == em_frac]
-                output_frac_path <- output_filenames[names(output_filenames) == em_frac]
+                blocks_fracs_path <- blocks_path[names(blocks_path) == frac]
+                output_frac_path <- output_files[names(output_files) == frac]
+
                 .raster_merge(
                     in_files = blocks_fracs_path,
                     out_file = output_frac_path,
                     format = "GTiff",
-                    gdal_datatype = "FLT4S", # TODO: change this
+                    gdal_datatype = .raster_gdal_datatype(
+                        .config_get("raster_cube_data_type")
+                    ),
                     gdal_options = .config_gtiff_default_options(),
                     overwrite = TRUE,
                     progress = progress
@@ -261,7 +315,7 @@ sits_mixture_model <- function(cube,
 
         }
 
-        return(output_file_fractions)
+        return(output_file_fracs)
     })
 
     # Create local cube from files in output directory
@@ -294,18 +348,17 @@ sits_mixture_model <- function(cube,
     sf::st_read(endmembers)
 }
 
-#' @title Finds the missing bands in a cube
+#' @title Create a list of jobs
 #'
 #' @name .apply_missing_band
 #' @keywords internal
 #'
 #' @param cube       Data cube.
-#' @param endmembers   ...
+#' @param fractions  Name of output fractions.
 #'
 #' @return           List of combination among tiles, endmembers, and dates
 #'                   that are missing from the cube.
-#'
-.mesma_get_jobs_lst <- function(cube, endmembers) {
+.mesma_get_jobs_lst <- function(cube, fractions) {
 
     # Define function to show in case of error
     .check_set_caller(".mesma_get_jobs_lst")
@@ -314,7 +367,7 @@ sits_mixture_model <- function(cube,
         tl <- sits_timeline(tile)
         fi <- .file_info(tile)
 
-        fi_band <- fi[fi[["band"]] %in% endmembers, ]
+        fi_band <- fi[fi[["band"]] %in% fractions, ]
         missing_dates <- tl[!tl %in% unique(fi_band[["date"]])]
         fi <- fi[fi[["date"]] %in% missing_dates, ]
 
@@ -325,4 +378,25 @@ sits_mixture_model <- function(cube,
     }), recursive = FALSE)
 
     return(tile_datetime)
+}
+
+#' @title Scale the endmembers spectra
+#'
+#' @name .mesma_scale_endmembers
+#' @keywords internal
+#'
+#' @param cube                Data cube.
+#' @param endmembers_spectra  Tibble with endmembers spectra values.
+#'
+#' @return a matrix with spectral values scaled.
+.mesma_scale_endmembers <- function(cube, endmembers_spectra) {
+
+    endmembers_bands <- setdiff(colnames(endmembers_spectra), "TYPE")
+
+    em_spectra_scaled <- purrr::map_dfc(endmembers_bands, function(band) {
+        scale_factor <- .cube_band_scale_factor(cube[1,], band = band)
+        endmembers_spectra[, band] <- endmembers_spectra[, band] * scale_factor
+    })
+
+    return(as.matrix(em_spectra_scaled))
 }
