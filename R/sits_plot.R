@@ -12,6 +12,8 @@
 #'  \item{SOM evaluate cluster: } {see \code{\link{plot.som_evaluate_cluster}}}
 #'  \item{classified time series: } {see \code{\link{plot.predicted}}}
 #'  \item{raster cube: }         {see \code{\link{plot.raster_cube}}}
+#'  \item{random forest model:} {see \code{\link{plot.rfor_model}}}
+#'  \item{xgboost model:} {see \code{\link{plot.xgb_model}}}
 #'  \item{torch ML model: } {see \code{\link{plot.torch_model}}}
 #'  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
 #'  \item{model uncertainty: } {see \code{\link{plot.uncertainty_cube}}}
@@ -856,7 +858,43 @@ plot.classified_image <- function(x, y, ...,
     graphics::plot(g)
     return(invisible(g))
 }
+#' @title  Plot Random Forest  model
+#' @name   plot.rfor_model
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Plots the important variables in a random forest model.
+#'
+#'
+#' @param  x             Object of class "rf_model".
+#' @param  y             Ignored.
+#' @param  ...           Further specifications for \link{plot}.
+#' @return               A random forest object.
+#'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_run_examples()) {
+#'     # Retrieve the samples for Mato Grosso
+#'     # train a random forest model
+#'     rf_model <- sits_train(samples_modis_4bands,  ml_method = sits_rfor())
+#'     # plot the model
+#'     plot(rf_model)
+#' }
+#' @export
+#'
+plot.rfor_model <- function(x, y, ...){
+    # verifies if randomForestExplainer package is installed
+    .check_require_packages("randomForestExplainer")
+    # retrieve the random forest object from the enviroment
+    rf <- environment(x)$result_rfor
+    p <- randomForestExplainer::plot_min_depth_distribution(rf)
+    return(p)
+}
 
+
+
+#'
 #' @title  Plot confusion between clusters
 #' @name   plot.som_evaluate_cluster
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
@@ -1001,7 +1039,41 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
         ncol = 1
     )
 }
-
+#' @title  Plot XGB model
+#' @name   plot.xgb_model
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Plots the important variables in a random forest model.
+#'
+#'
+#' @param  x             Object of class "xgb_model".
+#' @param  ...           Further specifications for \link{plot}.
+#' @param  n_trees       Number of trees to be plotted
+#' @return               A plot object.
+#'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_run_examples()) {
+#'     # Retrieve the samples for Mato Grosso
+#'     # train a random forest model
+#'     xgb_model <- sits_train(samples_modis_4bands,
+#'            ml_method = sits_xgboost())
+#'     # plot the model
+#'     plot(xgb_model)
+#' }
+#' @export
+#'
+plot.xbg_model <- function(x, ..., n_trees = 3){
+    # verifies if DiagrammeR package is installed
+    .check_require_packages("DiagrammeR")
+    # retrieve the XGB object from the enviroment
+    xgb <- environment(xgb_model)$model_xgb
+    # plot the trees
+    p <- xgboost::xgb.plot.tree(model = xgb, trees = 0:(ntrees - 1))
+    return(p)
+}
 #' @title  Plot Torch (deep learning) model
 #' @name   plot.torch_model
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
