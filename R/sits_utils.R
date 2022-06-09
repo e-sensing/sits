@@ -55,7 +55,7 @@
 
 #' @title Informs if sits tests should run
 #'
-#' @name sits_active_tests
+#' @name sits_run_tests
 #'
 #' @description
 #' This function informs if sits test should run.
@@ -64,19 +64,23 @@
 #' @return TRUE/FALSE
 #' @examples
 #' if (sits_run_examples()) {
-#' # unset active tests
-#' Sys.setenv("R_CONFIG_ACTIVE_TESTS"="NO")
-#' # result should be false
-#' isFALSE(sits_active_tests())
+#' # recover config state
+#' config_tests <- sits_run_tests()
+#' # set active tests to FALSE
+#' sits_config(run_tests = FALSE)
+#' isFALSE(sits_run_tests())
+#' # recover config state
 #' # set active tests
-#' Sys.setenv("R_CONFIG_ACTIVE_TESTS"="YES")
+#' sits_config(run_tests = TRUE)
 #' # result should be true
-#' isTRUE(sits_active_tests())
+#' isTRUE(sits_run_tests())
+#' # restore previous state
+#' sits_config(run_tests = config_tests)
 #' }
 #'
 #' @export
-sits_active_tests <- function() {
-    return(Sys.getenv("R_CONFIG_ACTIVE_TESTS", unset = "NO") != "NO")
+sits_run_tests <- function() {
+    return(.config_get("run_tests", default = FALSE))
 }
 
 #' @title Informs if sits examples should run
@@ -90,19 +94,16 @@ sits_active_tests <- function() {
 #' @return A logical value
 #' @examples
 #' if (sits_run_examples()) {
-#' # set active tests
-#' #' Sys.setenv("R_CONFIG_RUN_EXAMPLES"="YES")
-#' # result should be true
-#' isTRUE(sits_run_examples())
-#' # unset active tests
-#' Sys.setenv("R_CONFIG_RUN_EXAMPLES"="NO")
-#' # result should be false
+#' # set examples to FALSE
+#' sits_config(run_examples = FALSE)
 #' isFALSE(sits_run_examples())
+#' # recover config state
+#' sits_config(run_examples = TRUE)
 #' }
 #'
 #'
 
 #' @export
 sits_run_examples <- function() {
-    return(Sys.getenv("R_CONFIG_RUN_EXAMPLES", unset = "NO") != "NO")
+    return(.config_get("run_examples", default = FALSE))
 }

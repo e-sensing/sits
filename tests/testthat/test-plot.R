@@ -1,5 +1,5 @@
 test_that("Plot Time Series and Images", {
-    testthat::skip_on_cran()
+
 
     cerrado_ndvi <- sits_select(cerrado_2classes, "NDVI")
 
@@ -99,7 +99,7 @@ test_that("Plot Time Series and Images", {
 })
 
 test_that("Dendrogram Plot", {
-    testthat::skip_on_cran()
+
 
     cluster_obj <- sits:::.sits_cluster_dendrogram(cerrado_2classes,
         bands = c("NDVI", "EVI")
@@ -119,7 +119,7 @@ test_that("Dendrogram Plot", {
 })
 
 test_that("Plot torch model", {
-    testthat::skip_on_cran()
+
 
     samples_ndvi <- sits_select(samples_modis_4bands,
         bands = c("NDVI")
@@ -154,7 +154,7 @@ test_that("Plot series with NA", {
 })
 
 test_that("SOM map plot", {
-    testthat::skip_on_cran()
+
 
     set.seed(1234)
     som_map <-
@@ -172,7 +172,7 @@ test_that("SOM map plot", {
 })
 
 test_that("SOM evaluate cluster plot", {
-    testthat::skip_on_cran()
+
 
     set.seed(1234)
     som_map <-

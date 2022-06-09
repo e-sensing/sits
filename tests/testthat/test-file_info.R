@@ -1,5 +1,5 @@
 test_that("file_info functions", {
-    testthat::skip_on_cran()
+
 
     cbers_cube <- tryCatch(
         {
@@ -101,7 +101,7 @@ test_that("file_info functions", {
 
 
 test_that("file_info functions for result cubes", {
-    testthat::skip_on_cran()
+
 
     samples_modis <- sits_select(samples_modis_4bands,
         bands = c("NDVI")
@@ -153,7 +153,7 @@ test_that("file_info functions for result cubes", {
 })
 
 test_that("file_info errors", {
-    testthat::skip_on_cran()
+
 
     s2_cube <- sits_cube(
         source = "AWS",

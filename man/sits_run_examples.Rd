@@ -15,14 +15,11 @@ This is useful to avoid running slow examples in CRAN environment.
 }
 \examples{
 if (sits_run_examples()) {
-# set active tests
-#' Sys.setenv("R_CONFIG_RUN_EXAMPLES"="YES")
-# result should be true
-isTRUE(sits_run_examples())
-# unset active tests
-Sys.setenv("R_CONFIG_RUN_EXAMPLES"="NO")
-# result should be false
+# set examples to FALSE
+sits_config(run_examples = FALSE)
 isFALSE(sits_run_examples())
+# recover config state
+sits_config(run_examples = TRUE)
 }
 
 

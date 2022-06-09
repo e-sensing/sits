@@ -45,6 +45,14 @@ ratio_probs <- function(mtx, n) {
     .Call(`_sits_ratio_probs`, mtx, n)
 }
 
+smooth_sg <- function(data, f_res, p, n) {
+    .Call(`_sits_smooth_sg`, data, f_res, p, n)
+}
+
+smooth_sg_mtx <- function(data, f_res, p, n) {
+    .Call(`_sits_smooth_sg_mtx`, data, f_res, p, n)
+}
+
 smooth_whit <- function(data, lambda, length) {
     .Call(`_sits_smooth_whit`, data, lambda, length)
 }

@@ -32,7 +32,7 @@ test_that("Reading a raster cube", {
 })
 
 test_that("Creating cubes from BDC", {
-    testthat::skip_on_cran()
+
 
     # check "BDC_ACCESS_KEY" - mandatory one per user
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
@@ -84,7 +84,7 @@ test_that("Creating cubes from BDC", {
 })
 
 test_that("Creating cubes from BDC - based on ROI with shapefile", {
-    testthat::skip_on_cran()
+
 
     # check "BDC_ACCESS_KEY" - mandatory one per user
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
@@ -140,7 +140,7 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
 })
 
 test_that("Creating cubes from BDC - invalid roi", {
-    testthat::skip_on_cran()
+
 
     # check "BDC_ACCESS_KEY" - mandatory one per user
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
@@ -179,7 +179,7 @@ test_that("Creating cubes from BDC - invalid roi", {
 })
 
 test_that("Creating cubes from DEA", {
-    testthat::skip_on_cran()
+
 
     dea_cube <- tryCatch(
         {
@@ -215,7 +215,7 @@ test_that("Creating cubes from DEA", {
 })
 
 test_that("Creating cubes from DEA - error using tiles", {
-    testthat::skip_on_cran()
+
 
     expect_error(
         dea_cube <-
@@ -308,7 +308,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
 
 
 test_that("Creating cubes from USGS", {
-    testthat::skip_on_cran()
+
 
     # check "AWS_ACCESS_KEY_ID" - mandatory one per user
     aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
@@ -397,7 +397,7 @@ test_that("Creating cubes from USGS", {
 })
 
 test_that("Creating Sentinel cubes from MSPC", {
-    testthat::skip_on_cran()
+
 
     s2_cube <- tryCatch(
         {
@@ -433,7 +433,7 @@ test_that("Creating Sentinel cubes from MSPC", {
 })
 
 test_that("Creating Sentinel cubes from MSPC with ROI", {
-    testthat::skip_on_cran()
+
 
     shp_file <- system.file("extdata/shapefiles/df_bsb/df_bsb.shp",
         package = "sits"
@@ -481,7 +481,7 @@ test_that("Creating Sentinel cubes from MSPC with ROI", {
 })
 
 test_that("Creating Landsat cubes from MSPC", {
-    testthat::skip_on_cran()
+
 
     l8_cube <- tryCatch(
         {

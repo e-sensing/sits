@@ -1,5 +1,4 @@
 test_that("EVI generation", {
-    testthat::skip_on_cran()
 
     s2_cube <- tryCatch(
         {

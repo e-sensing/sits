@@ -109,14 +109,19 @@
     # resume feature
     # if tile already exists, return probs_cube
     if (file.exists(.file_info_path(probs_cube))) {
-        message(
-            paste(
-                "Recovery mode. Classified probability image detected in",
-                "the provided directory."
+        old_file <- .file_info_path(probs_cube)
+        if (all(.raster_bbox(.raster_open_rast(old_file))
+                == sits_bbox(probs_cube))) {
+            message(
+                paste(
+                    "Recovery mode. Classified probability image detected in",
+                    "the provided directory.\n",
+                    "If you want a new classification for the same cube, ",
+                    "please use the version parameter."
+                )
             )
-        )
-
-        return(probs_cube)
+            return(probs_cube)
+        }
     }
 
     # show initial time for classification
