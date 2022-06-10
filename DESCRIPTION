@@ -133,6 +133,7 @@ Collate:
     'sits_lighttae.R'
     'sits_machine_learning.R'
     'sits_merge.R'
+    'sits_mixture_model.R'
     'sits_mlp.R'
     'sits_parallel.R'
     'sits_patterns.R'
