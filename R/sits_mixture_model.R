@@ -319,7 +319,7 @@ sits_mixture_model <- function(cube,
         }
 
         return(output_file_fracs)
-    })
+    }, progress = progress)
 
     # Create local cube from files in output directory
     local_cube <- sits_cube(
