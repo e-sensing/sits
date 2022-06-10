@@ -862,7 +862,7 @@ sources:
                         bit_mask      : TRUE
                         band_name     : "qa_pixel"
                         values        :
-                            0         : "missing_data"
+                            0         : "Missing data"
                             1         : "Dilated Cloud"
                             2         : "High confidence cirrus"
                             3         : "High confidence cloud"
@@ -870,23 +870,21 @@ sources:
                             5         : "High confidence snow cover"
                             6         : "Clear"
                             7         : "Water"
-                            8         : "Medium/High confidence of cloud"
-                            9         : "Low confidence of cloud"
-                            10        : "High confidence of cloud shadow"
-                            11        : "Low confidence of cloud shadow"
-                            12        : "High confidence of snow"
-                            13        : "Low confidence of snow"
-                            14        : "High confidence of cirrus"
-                            15        : "Low confidence of cirrus"
-                        interp_values : [0, 1, 2, 3, 4, 5, 8, 10, 12, 14]
+                            8         : "Low/High confidence of cloud"
+                            9         : "Medium/High confidence of cloud"
+                            10        : "Low/High confidence of cloud shadow"
+                            11        : "Medium/High confidence of cloud shadow"
+                            12        : "Low/High confidence of snow"
+                            13        : "Medium/High confidence of snow"
+                            14        : "Low/High confidence of cirrus"
+                            15        : "Medium/High confidence of cirrus"
+                        interp_values : [0, 1, 2, 3, 4, 5, 9, 11, 13, 15]
                         resampling    : "near"
                         resolution    : 30
-                satellite   : "LANDSAT-8"
+                satellite   : "LANDSAT-8/9"
                 sensor      : "OLI"
                 collection_name: "landsat-c2l2-sr"
                 platforms   :
-                    LANDSAT-5: "LANDSAT_5"
-                    LANDSAT-7: "LANDSAT_7"
                     LANDSAT-8: "LANDSAT_8"
                     LANDSAT-9: "LANDSAT_9"
                 access_vars :
@@ -934,9 +932,9 @@ sources:
                         band_name     : "swir22"
                     CLOUD   :
                         bit_mask      : TRUE
-                        band_name     : "cloud_qa"
+                        band_name     : "qa_pixel"
                         values        :
-                            0         : "missing_data"
+                            0         : "Missing data"
                             1         : "Dilated Cloud"
                             2         : "High confidence cirrus"
                             3         : "High confidence cloud"
@@ -944,15 +942,15 @@ sources:
                             5         : "High confidence snow cover"
                             6         : "Clear"
                             7         : "Water"
-                            8         : "Medium/High confidence of cloud"
-                            9         : "Low confidence of cloud"
-                            10        : "High confidence of cloud shadow"
-                            11        : "Low confidence of cloud shadow"
-                            12        : "High confidence of snow"
-                            13        : "Low confidence of snow"
-                            14        : "High confidence of cirrus"
-                            15        : "Low confidence of cirrus"
-                        interp_values : [0, 1, 2, 3, 4, 5, 8, 10, 12, 14]
+                            8         : "Low/High confidence of cloud"
+                            9         : "Medium/High confidence of cloud"
+                            10        : "Low/High confidence of cloud shadow"
+                            11        : "Medium/High confidence of cloud shadow"
+                            12        : "Low/High confidence of snow"
+                            13        : "Medium/High confidence of snow"
+                            14        : "Low/High confidence of cirrus"
+                            15        : "Medium/High confidence of cirrus"
+                        interp_values : [0, 1, 2, 3, 4, 5, 9, 11, 13, 15]
                         resampling    : "near"
                         resolution    : 30
                 satellite   : "LANDSAT"
