@@ -35,29 +35,31 @@
 #' mixing model.
 #'
 #' @examples
-#' # --- Create a cube based on a local MODIS data
-#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' if (sits_run_examples()) {
+#'    # --- Create a cube based on a local MODIS data
+#'    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'
-#' modis_cube <- sits_cube(
-#'     source = "BDC",
-#'     collection = "MOD13Q1-6",
-#'     data_dir = data_dir,
-#'     delim = "_"
-#' )
+#'    modis_cube <- sits_cube(
+#'        source = "BDC",
+#'        collection = "MOD13Q1-6",
+#'        data_dir = data_dir,
+#'        delim = "_"
+#'    )
 #'
-#' endmembers_spectra <-
-#'     tibble::tibble(
-#'         type = c("vegetation", "not-vegetation"),
-#'         NDVI = c(8500, 3400)
-#'     )
+#'    endmembers_spectra <-
+#'        tibble::tibble(
+#'            type = c("vegetation", "not-vegetation"),
+#'            NDVI = c(8500, 3400)
+#'    )
 #'
-#' mixture_cube <- sits_mixture_model(
-#'     cube = modis_cube,
-#'     endmembers_spectra = endmembers_spectra,
-#'     memsize = 4,
-#'     multicores = 2,
-#'     output_dir = tempdir()
-#' )
+#'    mixture_cube <- sits_mixture_model(
+#'        cube = modis_cube,
+#'        endmembers_spectra = endmembers_spectra,
+#'        memsize = 4,
+#'        multicores = 2,
+#'        output_dir = tempdir()
+#'    )
+#' }
 #'
 #' @return a sits cube with the generated fractions.
 #'
