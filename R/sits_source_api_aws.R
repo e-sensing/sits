@@ -35,10 +35,24 @@
 .source_items_new.aws_cube <- function(source,
                                        collection,
                                        stac_query, ...,
-                                       tiles = NULL) {
+                                       tiles = NULL,
+                                       platform = NULL) {
 
     # set caller to show in errors
     .check_set_caller(".source_items_new.aws_cube")
+
+    if (!is.null(platform)) {
+        platform <- .stac_format_platform(
+            source = source,
+            collection = collection,
+            platform = platform
+        )
+
+        stac_query <- rstac::ext_query(
+            q = stac_query,
+            "platform" == platform
+        )
+    }
 
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles)) {

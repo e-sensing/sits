@@ -55,6 +55,30 @@
     return(datetime)
 }
 
+#' @title Platform format
+#' @name .stac_format_platform
+#' @keywords internal
+#'
+#' @param source     A \code{character} value referring to a valid data source.
+#' @param collection Image collection.
+#' @param platform   Sensor platform
+#'
+#' @return      a \code{character} formatted as parameter to STAC requisition.
+.stac_format_platform <- function(source, collection, platform) {
+    platforms <- .config_get(
+        key = c("sources", source, "collections",  collection, "platforms")
+    )
+
+    platform_source <- platforms[platform]
+    .check_length(
+        x = platform_source,
+        len_min = 1,
+        len_max = 1
+    )
+
+    return(unlist(platform_source, use.names = FALSE))
+}
+
 #' @title Add href locator to gdal file
 #' @name .stac_add_gdal_vsi
 #' @keywords internal
