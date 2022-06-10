@@ -113,7 +113,8 @@
 .source_items_new.usgs_cube <- function(source,
                                         collection,
                                         stac_query, ...,
-                                        tiles = NULL) {
+                                        tiles = NULL,
+                                        platform = NULL) {
 
     # set caller to show in errors
     .check_set_caller(".source_items_new.usgs_cube")
@@ -127,13 +128,25 @@
     # request with more than searched items throws 502 error
     stac_query$params$limit <- 300
 
+    if (!is.null(platform)) {
+        platform <- .stac_format_platform(
+            source = source,
+            collection = collection,
+            platform = platform
+        )
+
+        stac_query <- rstac::ext_query(
+            q = stac_query,
+            "platform" == platform
+        )
+    }
+
     # adding search filter in query
     stac_query <- rstac::ext_query(
         q = stac_query,
         "landsat:correction" %in% c("L2SR", "L2SP"),
         "landsat:collection_category" %in% c("T1", "T2"),
         "landsat:collection_number" %in% "02",
-        "platform" %in% "LANDSAT_8",
         "datetime" >= datetime[[1]],
         "datetime" <= datetime[[2]]
     )

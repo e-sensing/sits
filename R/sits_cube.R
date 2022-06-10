@@ -272,7 +272,8 @@ sits_cube.stac_cube <- function(source,
                                 tiles = NULL,
                                 roi = NULL,
                                 start_date = NULL,
-                                end_date = NULL) {
+                                end_date = NULL,
+                                platform = NULL) {
     dots <- list(...)
 
     # deal with wrong parameter "band"
@@ -354,7 +355,8 @@ sits_cube.stac_cube <- function(source,
         tiles = tiles,
         roi_sf = roi,
         start_date = start_date,
-        end_date = end_date, ...
+        end_date = end_date,
+        platform = platform, ...
     )
 }
 

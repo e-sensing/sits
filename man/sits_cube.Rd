@@ -17,7 +17,8 @@ sits_cube(source, collection, ..., data_dir = NULL)
   tiles = NULL,
   roi = NULL,
   start_date = NULL,
-  end_date = NULL
+  end_date = NULL,
+  platform = NULL
 )
 
 \method{sits_cube}{local_cube}(

@@ -69,12 +69,25 @@
 `.source_items_new.mspc_cube_sentinel-2-l2a` <- function(source,
                                                          collection,
                                                          stac_query, ...,
-                                                         tiles = NULL) {
+                                                         tiles = NULL,
+                                                         platform = NULL) {
 
     # set caller to show in errors
     .check_set_caller(".source_items_new.mspc_cube_sentinel-2-l2a")
 
-    # if specified, a filter per tile is added to the query
+    if (!is.null(platform)) {
+        platform <- .stac_format_platform(
+            source = source,
+            collection = collection,
+            platform = platform
+        )
+
+        stac_query <- rstac::ext_query(
+            q = stac_query, "platform" == platform
+        )
+    }
+
+    # mspc does not support %in% operator, so we have to
     if (!is.null(tiles)) {
         items_list <- lapply(tiles, function(tile) {
             stac_query <- rstac::ext_query(
@@ -132,13 +145,27 @@
 
 #' @keywords internal
 #' @export
-`.source_items_new.mspc_cube_landsat-8-c2-l2` <- function(source,
+`.source_items_new.mspc_cube_landsat-c2-l2` <- function(source,
                                                           collection,
                                                           stac_query, ...,
-                                                          tiles = NULL) {
+                                                          tiles = NULL,
+                                                          platform = NULL) {
 
     # set caller to show in errors
-    .check_set_caller(".source_items_new.mspc_cube_landsat-8-c2-l2")
+    .check_set_caller(".source_items_new.mspc_cube_landsat-c2-l2")
+
+    if (!is.null(platform)) {
+
+        platform <- .stac_format_platform(
+            source = source,
+            collection = collection,
+            platform = platform
+        )
+
+        stac_query <- rstac::ext_query(
+            q = stac_query, "platform" == platform
+        )
+    }
 
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles)) {
@@ -196,7 +223,7 @@
 
 #' @keywords internal
 #' @export
-`.source_items_tile.mspc_cube_landsat-8-c2-l2` <- function(source,
+`.source_items_tile.mspc_cube_landsat-c2-l2` <- function(source,
                                                            items, ...,
                                                            collection = NULL) {
 
