@@ -27,6 +27,8 @@
 #' @param collection   Image collection in data source (To find out
 #'  the supported collections, use \code{\link{sits_list_collections}()}).
 #' @param ...          Other parameters to be passed for specific types.
+#' @param platform     Optional parameter specifying the platform in case
+#'                     of collections that include more than one satellite.
 #' @param tiles        Tiles from the collection to be included in
 #'                     the cube (see details below).
 #' @param roi          Filter collection by region of interest
@@ -214,17 +216,17 @@
 #'         collection = "landsat-c2l2-sr",
 #'         bands = c("B04", "CLOUD"),
 #'         roi = c(
-#'             "xmin" = 17.379,
-#'             "ymin" = 1.1573,
-#'             "xmax" = 17.410,
-#'             "ymax" = 1.1910
+#'             "xmin" = -50.379,
+#'             "ymin" = -10.1573,
+#'             "xmax" = -50.410,
+#'             "ymax" = -10.1910
 #'         ),
 #'         start_date = "2019-01-01",
 #'         end_date = "2019-10-28"
 #'     )
 #'
 #'
-#'     # -- Creating Sentinel cubes from MSPC"
+#'     # -- Creating Sentinel cube from MSPC"
 #'     s2_cube <- sits_cube(
 #'         source = "MSPC",
 #'         collection = "sentinel-2-l2a",
@@ -232,6 +234,21 @@
 #'         bands = c("B05", "CLOUD"),
 #'         start_date = "2018-07-18",
 #'         end_date = "2018-08-23"
+#'     )
+#'
+#'     # -- Creating Landsat cube from MSPC"
+#'     mspc_cube <- sits_cube(
+#'         source = "MSPC",
+#'         collection = "LANDSAT-C2-L2",
+#'         bands = c("BLUE", "RED", "CLOUD"),
+#'         roi = c(
+#'             "xmin" = -50.379,
+#'             "ymin" = -10.1573,
+#'             "xmax" = -50.410,
+#'             "ymax" = -10.1910
+#'         ),
+#'         start_date = "2005-01-01",
+#'         end_date = "2006-10-28"
 #'     )
 #'
 #'     # --- Create a cube based on a local MODIS data
