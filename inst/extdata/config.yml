@@ -21,7 +21,7 @@ gdal_creation_options   : ["COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES"]
 # maxbytes per plot (in MB)
 plot_max_Mbytes: 16
 # maxbytes for leaflet (in MB)
-leaflet_max_megabytes : 32
+leaflet_max_megabytes : 64
 # estimated compression factor for leaflet
 leaflet_comp_factor : 0.50
 

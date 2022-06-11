@@ -305,11 +305,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     expect_equal(sits_timeline(ts), sits_timeline(rg_cube))
 })
 
-
-
 test_that("Creating cubes from USGS", {
-
-
     # check "AWS_ACCESS_KEY_ID" - mandatory one per user
     aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
 
@@ -403,7 +399,7 @@ test_that("Creating Sentinel cubes from MSPC", {
         {
             sits_cube(
                 source = "MSPC",
-                collection = "sentinel-2-l2a",
+                collection = "SENTINEL-2-L2A",
                 tiles = "20LKP",
                 bands = c("B05", "CLOUD"),
                 start_date = as.Date("2018-07-18"),
@@ -444,7 +440,7 @@ test_that("Creating Sentinel cubes from MSPC with ROI", {
         {
             sits_cube(
                 source = "MSPC",
-                collection = "sentinel-2-l2a",
+                collection = "SENTINEL-2-L2A",
                 roi = sf_bsb,
                 bands = c("B05", "CLOUD"),
                 start_date = as.Date("2018-07-18"),
@@ -482,21 +478,20 @@ test_that("Creating Sentinel cubes from MSPC with ROI", {
 
 test_that("Creating Landsat cubes from MSPC", {
 
+    shp_file <- system.file("extdata/shapefiles/df_bsb/df_bsb.shp",
+                            package = "sits"
+    )
+    sf_bsb <- sf::read_sf(shp_file)
 
-    l8_cube <- tryCatch(
+    landsat_cube <- tryCatch(
         {
             sits_cube(
                 source = "MSPC",
-                collection = "landsat-8-c2-l2",
-                roi = c(
-                    "lon_min" = 17.379,
-                    "lat_min" = 1.1573,
-                    "lon_max" = 17.410,
-                    "lat_max" = 1.1910
-                ),
-                bands = c("B03", "CLOUD"),
-                start_date = as.Date("2019-07-18"),
-                end_date = as.Date("2019-10-23")
+                collection = "LANDSAT-C2-L2",
+                roi = sf_bsb,
+                bands = c("NIR08", "CLOUD"),
+                start_date = as.Date("2008-07-18"),
+                end_date = as.Date("2008-10-23")
             )
         },
         error = function(e) {
@@ -504,65 +499,68 @@ test_that("Creating Landsat cubes from MSPC", {
         }
     )
 
-    testthat::skip_if(purrr::is_null(l8_cube), "MSPC is not accessible")
+    testthat::skip_if(purrr::is_null(landsat_cube), "MSPC is not accessible")
 
-    expect_true(all(sits_bands(l8_cube) %in% c("B03", "CLOUD")))
-    expect_false(.cube_is_regular(l8_cube))
-    expect_equal(class(.file_info_xres(l8_cube)), "numeric")
+    expect_true(all(sits_bands(landsat_cube) %in% c("NIR08", "CLOUD")))
+    expect_false(.cube_is_regular(landsat_cube))
+    expect_equal(class(.file_info_xres(landsat_cube[1,])), "numeric")
+    expect_true(any(grepl("LT05", landsat_cube$file_info[[1]]$fid)))
+    expect_true(any(grepl("LE07", landsat_cube$file_info[[1]]$fid)))
 
-    file_info <- l8_cube$file_info[[1]]
+    file_info <- landsat_cube$file_info[[1]]
     r <- .raster_open_rast(file_info$path[[1]])
 
-    expect_equal(l8_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
-    expect_equal(l8_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
+    expect_equal(landsat_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
+    expect_equal(landsat_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
 
     output_dir <- paste0(tempdir(), "/images")
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
 
-    rg_l8 <- sits_regularize(
-        cube        = l8_cube,
+    rg_landsat <- sits_regularize(
+        cube        = landsat_cube,
         output_dir  = output_dir,
-        res         = 330,
+        res         = 240,
         period      = "P30D",
-        multicores  = 1
+        multicores  = 4
     )
 
-    size <- .cube_size(rg_l8)
+    size <- .cube_size(rg_landsat[1,])
 
-    expect_equal(size[["nrows"]], 704)
-    expect_equal(size[["ncols"]], 685)
+    expect_equal(size[["nrows"]], 856)
+    expect_equal(size[["ncols"]], 967)
 
-    expect_true(.cube_is_regular(rg_l8))
+    expect_true(.cube_is_regular(rg_landsat))
 
-    l8_cube_tile <- tryCatch(
+    l5_cube <- tryCatch(
         {
             sits_cube(
                 source = "MSPC",
-                collection = "landsat-8-c2-l2",
-                bands = c("B04", "CLOUD"),
-                tiles = "223067",
-                start_date = "2019-01-01",
-                end_date = "2019-10-28"
+                collection = "LANDSAT-C2-L2",
+                platform = "LANDSAT-5",
+                roi = sf_bsb,
+                bands = c("NIR08", "CLOUD"),
+                start_date = as.Date("2008-07-18"),
+                end_date = as.Date("2008-10-23")
             )
         },
         error = function(e) {
             return(NULL)
         }
     )
+    expect_true(any(grepl("LT05", l5_cube$file_info[[1]]$fid)))
+    expect_false(any(grepl("LE07", l5_cube$file_info[[1]]$fid)))
 
-    testthat::skip_if(
-        purrr::is_null(l8_cube_tile),
-        "MSPC is not accessible"
+    expect_error(sits_cube(
+                source = "MSPC",
+                collection = "LANDSAT-C2-L2",
+                bands = c("NIR08", "CLOUD"),
+                tiles = "220071",
+                start_date = "2019-01-01",
+                end_date = "2019-10-28"
+            )
     )
-    bbox <- sits_bbox(l8_cube_tile)
-    expect_lt(bbox["xmax"], 760000)
-    expect_lt(bbox["ymax"], -1000000)
-
-    file_info <- l8_cube_tile$file_info[[1]]
-    r_obj <- sits:::.raster_open_rast(file_info$path[[1]])
-    expect_equal(nrow(r_obj), file_info[1, ]$nrows)
 })
 
 test_that("Creating a raster stack cube with BDC band names", {

@@ -162,6 +162,24 @@ parameter \code{parse_info} is specified differently:
 }
 }
 \note{
+In MSPC, sits can access are two open data collections:
+\code{"SENTINEL-S2-L2A"} for Sentinel-2/2A images, and
+\code{"LANDSAT-C2-L2"} for the Landsat-4/5/7/8/9 collection.
+(requester-pays) and \code{"SENTINEL-S2-L2A-COGS"} (open data).
+
+Sentinel-2/2A level 2A files in MSPC are organized by sensor
+resolution. The bands in 10m resolution are \code{"B02"}, \code{"B03"},
+\code{"B04"}, and \code{"B08"}. The  20m bands are \code{"B05"},
+\code{"B06"}, \code{"B07"}, \code{"B8A"}, \code{"B11"}, and \code{"B12"}.
+Bands \code{"B01"} and \code{"B09"} are available at 60m resolution.
+The \code{"CLOUD"} band is also available.
+
+All Landsat-4/5/7/8/9 images in MSPC have bands with 30 meter
+resolution. To account for differences between the different sensors,
+Landsat bands in this collection have been renamed \code{"BLUE"},
+\code{"GREEN"}, \code{"RED"}, \code{"NIR08"}, \code{"SWIR16"}
+and \code{"SWIR22"}. The \code{"CLOUD"} band is also available.
+
 In AWS, there are two types of collections: open data and
 requester-pays. Currently, \code{sits} supports collection
 \code{"SENTINEL-S2-L2A"}
