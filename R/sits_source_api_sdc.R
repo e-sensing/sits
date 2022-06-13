@@ -39,6 +39,14 @@
 
 #' @keywords internal
 #' @export
+.source_item_get_cloud_cover.sdc_cube <- function(source, ...,
+                                                   item,
+                                                   collection = NULL) {
+    return(NA)
+}
+
+#' @keywords internal
+#' @export
 .source_items_tile.sdc_cube <- function(source, ...,
                                              items,
                                              collection = NULL) {
@@ -59,9 +67,22 @@
 
     # post-conditions
     .check_chr(hrefs, allow_empty = FALSE)
+
+    # fix local images - temporary solution
+    is_local_images <- grepl(pattern = "^file://", x = hrefs)
+    if (any(is_local_images)) {
+        server_path <- "https://explorer.swissdatacube.org"
+
+        hrefs[is_local_images] <- gsub(
+            pattern = "^file://",
+            replacement = server_path,
+            x = hrefs[is_local_images]
+        )
+    }
+
     # add gdal VSI in href urls
     vsi_hrefs <- .stac_add_gdal_fs(hrefs)
     vsi_hrefs <- sprintf('%s:"%s":%s', "NETCDF", vsi_hrefs, asset_names)
 
-    return(hrefs)
+    return(vsi_hrefs)
 }
