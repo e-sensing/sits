@@ -166,53 +166,59 @@
             q = stac_query, "platform" == platform
         )
     }
+    .check_that(is.null(tiles),
+                local_msg = "Error when retrieving Landsat collection",
+                msg = "Searching by tiles not allowed, use roi"
+    )
 
+    # commented out, tile search in MSPC Landsat collection is not working
     # if specified, a filter per tile is added to the query
-    if (!is.null(tiles)) {
-        items_list <- lapply(tiles, function(tile) {
-            # format tile parameter provided by users
-            sep_tile <- .usgs_format_tiles(tile)
-            # add filter by wrs path and row
-            stac_query <- rstac::ext_query(
-                q = stac_query,
-                "landsat:wrs_path" == sep_tile$wrs_path,
-                "landsat:wrs_row" == sep_tile$wrs_row
-            )
-            # making the request
-            items <- rstac::post_request(q = stac_query, ...)
+    # if (!is.null(tiles)) {
+    #     items_list <- lapply(tiles, function(tile) {
+    #         # format tile parameter provided by users
+    #         sep_tile <- .usgs_format_tiles(tile)
+    #         # add filter by wrs path and row
+    #         stac_query <- rstac::ext_query(
+    #             q = stac_query,
+    #             "landsat:wrs_path" == sep_tile$wrs_path,
+    #             "landsat:wrs_row" == sep_tile$wrs_row
+    #         )
+    #         # making the request
+    #         items <- rstac::post_request(q = stac_query, ...)
+    #
+    #         # checks if the collection returned zero items
+    #         .check_that(
+    #             x = !(rstac::items_length(items) == 0),
+    #             msg = "the provided search returned zero items."
+    #         )
+    #
+    #         # fetching all the metadata and updating to upper case instruments
+    #         items <- suppressWarnings(
+    #             rstac::items_fetch(items = items, progress = FALSE)
+    #         )
+    #     })
+    #     # getting the first item info
+    #     items <- items_list[[1]]
+    #     # joining the items
+    #     items$features <- do.call(
+    #         c,
+    #         args = lapply(items_list, `[[`, "features")
+    #     )
+    # } else {
 
-            # checks if the collection returned zero items
-            .check_that(
-                x = !(rstac::items_length(items) == 0),
-                msg = "the provided search returned zero items."
-            )
+    # making the request based on ROI
+    items <- rstac::post_request(q = stac_query, ...)
 
-            # fetching all the metadata and updating to upper case instruments
-            items <- suppressWarnings(
-                rstac::items_fetch(items = items, progress = FALSE)
-            )
-        })
-        # getting the first item info
-        items <- items_list[[1]]
-        # joining the items
-        items$features <- do.call(
-            c,
-            args = lapply(items_list, `[[`, "features")
-        )
-    } else {
-        # making the request
-        items <- rstac::post_request(q = stac_query, ...)
-
-        # checks if the collection returned zero items
-        .check_that(
-            x = !(rstac::items_length(items) == 0),
-            msg = "the provided search returned zero items."
-        )
-        # fetching all the metadata and updating to upper case instruments
-        items <- suppressWarnings(
-            rstac::items_fetch(items = items, progress = FALSE)
-        )
-    }
+    # checks if the collection returned zero items
+    .check_that(
+        x = !(rstac::items_length(items) == 0),
+        msg = "the provided search returned zero items."
+    )
+    # fetching all the metadata and updating to upper case instruments
+    items <- suppressWarnings(
+        rstac::items_fetch(items = items, progress = FALSE)
+    )
+    # }
 
     # assign href
     items <- suppressWarnings(

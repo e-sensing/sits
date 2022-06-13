@@ -31,8 +31,8 @@ sits_view(x, ...)
   red = NULL,
   green = NULL,
   blue = NULL,
-  tiles = x$tile[[1]],
-  dates = sits_timeline(x)[1],
+  tiles = NULL,
+  dates = NULL,
   class_cube = NULL,
   legend = NULL,
   palette = "default"

@@ -139,6 +139,15 @@
             q = stac_query,
             "platform" == platform
         )
+    } else {
+        platform <- unlist(unname(.config_get(
+            key = c("sources", source, "collections",  collection, "platforms")
+        )))
+
+        stac_query <- rstac::ext_query(
+            q = stac_query,
+            "platform" %in% platform
+        )
     }
 
     # adding search filter in query
