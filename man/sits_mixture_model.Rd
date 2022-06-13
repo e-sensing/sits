@@ -11,6 +11,7 @@ sits_mixture_model(
   multicores = 2,
   output_dir = getwd(),
   rmse_band = TRUE,
+  remove_outliers = TRUE,
   progress = TRUE
 )
 }
@@ -32,6 +33,12 @@ with the linear model should be generated.
 If true, a new band with the errors for each pixel
 is generated using the root mean square
 measure (RMSE). Default is TRUE.}
+
+\item{remove_outliers}{A boolean indicating whether values larger and
+smaller than the limits in the image metadata, and
+missing values should be marked as NA. This
+parameter can be used when the cloud component is
+added to the mixture model. Default is TRUE.}
 
 \item{progress}{Show progress bar?}
 }
