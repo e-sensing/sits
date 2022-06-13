@@ -288,6 +288,11 @@ sits_cube.stac_cube <- function(source,
         tiles <- as.character(dots[["tile"]])
     }
 
+    # ensuring that duplicate tiles will not be propagated
+    if (!is.null(tiles)) {
+        tiles <- unique(tiles)
+    }
+
     if (!is.null(roi) && !is.null(tiles)) {
         stop(paste(
             "It is not possible to search with roi and tiles.",
