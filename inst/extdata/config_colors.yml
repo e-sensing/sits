@@ -433,4 +433,7 @@ colors:
     CorteRaso_Queimada          : "#FF4B4E"
     CorteRaso_SoloExposto       : "#DAAF61"
     CorteRaso_Vegetacao         : "#C3D32F"
+    Burned_Area                 : "#FF4B4E"
+    Cleared_Area                : "#DAAF61"
+    Highly_Degraded             : "#C3D32F"
 

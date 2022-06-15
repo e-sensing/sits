@@ -448,13 +448,13 @@ sits_accuracy_summary <- function(x,
     )
 
     overall_text <- c(
-        paste(overall["Accuracy"]), accuracy_ci, "",
+        paste(overall["Accuracy"]), accuracy_ci,
         paste(overall["Kappa"])
     )
 
-    overall_names <- c("Accuracy", "95% CI", "", "Kappa")
+    overall_names <- c("Accuracy", "95% CI", "Kappa")
 
-    cat("\nOverall Statistics\n")
+    cat("Overall Statistics")
     overall_names <- ifelse(overall_names == "",
         "",
         paste(overall_names, ":")

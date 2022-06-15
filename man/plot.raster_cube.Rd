@@ -12,7 +12,7 @@
   green = NULL,
   blue = NULL,
   tile = x$tile[[1]],
-  date = sits_timeline(x)[1]
+  date = NULL
 )
 }
 \arguments{

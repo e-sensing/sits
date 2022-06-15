@@ -326,7 +326,7 @@ plot.raster_cube <- function(x, ...,
                              green = NULL,
                              blue = NULL,
                              tile = x$tile[[1]],
-                             date = sits_timeline(x)[1]) {
+                             date = NULL) {
     .check_chr_contains(
         x = x$tile,
         contains = tile,
@@ -377,17 +377,24 @@ plot.raster_cube <- function(x, ...,
 
     # select only one tile
     row <- dplyr::filter(x, .data[["tile"]] == !!tile)
-    # use only one date
-    date <- as.Date(date)
-    .check_that(
-        length(date) == 1,
-        msg = "plot handles one date at a time"
-    )
-    .check_that(
-        date %in% sits_timeline(row),
-        msg = "requested date is not part of the cube"
-    )
 
+    # if dates are not informed, show the first possible date
+    if (purrr::is_null(date))
+        date <- sits_timeline(row)[1]
+    else {
+        # use only one date
+        date <- as.Date(date)
+        .check_that(
+            length(date) == 1,
+            msg = "plot handles one date at a time"
+        )
+        # check if date is inside the timeline
+        tile_dates <- sits_timeline(row)
+        if (!date %in% tile_dates) {
+            idx_date <- which.min(abs(date - tile_dates))
+            date <- tile_dates[idx_date]
+        }
+    }
     # plot the selected tile
     # select the bands for the timeline
     bds_date <- dplyr::filter(.file_info(row), .data[["date"]] == !!date)
