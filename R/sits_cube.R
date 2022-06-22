@@ -27,6 +27,8 @@
 #' @param collection   Image collection in data source (To find out
 #'  the supported collections, use \code{\link{sits_list_collections}()}).
 #' @param ...          Other parameters to be passed for specific types.
+#' @param platform     Optional parameter specifying the platform in case
+#'                     of collections that include more than one satellite.
 #' @param tiles        Tiles from the collection to be included in
 #'                     the cube (see details below).
 #' @param roi          Filter collection by region of interest
@@ -112,6 +114,23 @@
 #' }
 #'
 #'
+#' @note In MSPC, sits can access are two open data collections:
+#' \code{"SENTINEL-S2-L2A"} for Sentinel-2/2A images, and
+#' \code{"LANDSAT-C2-L2"} for the Landsat-4/5/7/8/9 collection.
+#' (requester-pays) and \code{"SENTINEL-S2-L2A-COGS"} (open data).
+#'
+#' @note Sentinel-2/2A level 2A files in MSPC are organized by sensor
+#' resolution. The bands in 10m resolution are \code{"B02"}, \code{"B03"},
+#' \code{"B04"}, and \code{"B08"}. The  20m bands are \code{"B05"},
+#' \code{"B06"}, \code{"B07"}, \code{"B8A"}, \code{"B11"}, and \code{"B12"}.
+#' Bands \code{"B01"} and \code{"B09"} are available at 60m resolution.
+#' The \code{"CLOUD"} band is also available.
+#'
+#' @note All Landsat-4/5/7/8/9 images in MSPC have bands with 30 meter
+#' resolution. To account for differences between the different sensors,
+#' Landsat bands in this collection have been renamed \code{"BLUE"},
+#' \code{"GREEN"}, \code{"RED"}, \code{"NIR08"}, \code{"SWIR16"}
+#' and \code{"SWIR22"}. The \code{"CLOUD"} band is also available.
 #'
 #' @note In AWS, there are two types of collections: open data and
 #' requester-pays. Currently, \code{sits} supports collection
@@ -214,17 +233,17 @@
 #'         collection = "landsat-c2l2-sr",
 #'         bands = c("B04", "CLOUD"),
 #'         roi = c(
-#'             "xmin" = 17.379,
-#'             "ymin" = 1.1573,
-#'             "xmax" = 17.410,
-#'             "ymax" = 1.1910
+#'             "xmin" = -50.379,
+#'             "ymin" = -10.1573,
+#'             "xmax" = -50.410,
+#'             "ymax" = -10.1910
 #'         ),
 #'         start_date = "2019-01-01",
 #'         end_date = "2019-10-28"
 #'     )
 #'
 #'
-#'     # -- Creating Sentinel cubes from MSPC"
+#'     # -- Creating Sentinel cube from MSPC"
 #'     s2_cube <- sits_cube(
 #'         source = "MSPC",
 #'         collection = "sentinel-2-l2a",
@@ -232,6 +251,21 @@
 #'         bands = c("B05", "CLOUD"),
 #'         start_date = "2018-07-18",
 #'         end_date = "2018-08-23"
+#'     )
+#'
+#'     # -- Creating Landsat cube from MSPC"
+#'     mspc_cube <- sits_cube(
+#'         source = "MSPC",
+#'         collection = "LANDSAT-C2-L2",
+#'         bands = c("BLUE", "RED", "CLOUD"),
+#'         roi = c(
+#'             "xmin" = -50.379,
+#'             "ymin" = -10.1573,
+#'             "xmax" = -50.410,
+#'             "ymax" = -10.1910
+#'         ),
+#'         start_date = "2005-01-01",
+#'         end_date = "2006-10-28"
 #'     )
 #'
 #'     # --- Create a cube based on a local MODIS data
@@ -272,7 +306,8 @@ sits_cube.stac_cube <- function(source,
                                 tiles = NULL,
                                 roi = NULL,
                                 start_date = NULL,
-                                end_date = NULL) {
+                                end_date = NULL,
+                                platform = NULL) {
     dots <- list(...)
 
     # deal with wrong parameter "band"
@@ -354,7 +389,8 @@ sits_cube.stac_cube <- function(source,
         tiles = tiles,
         roi_sf = roi,
         start_date = start_date,
-        end_date = end_date, ...
+        end_date = end_date,
+        platform = platform, ...
     )
 }
 

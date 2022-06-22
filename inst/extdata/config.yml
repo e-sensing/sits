@@ -21,7 +21,7 @@ gdal_creation_options   : ["COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES"]
 # maxbytes per plot (in MB)
 plot_max_Mbytes: 16
 # maxbytes for leaflet (in MB)
-leaflet_max_megabytes : 32
+leaflet_max_megabytes : 64
 # estimated compression factor for leaflet
 leaflet_comp_factor : 0.50
 
@@ -508,6 +508,9 @@ sources:
                         resolution  : 20
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
+                platforms   :
+                    SENTINEL-2A: "sentinel-2a"
+                    SENTINEL-2B: "sentinel-2b"
                 collection_name: "sentinel-s2-l2a"
                 token_vars  :  ["AWS_ACCESS_KEY_ID","AWS_SECRET_ACCESS_KEY"]
                 access_vars :
@@ -576,6 +579,9 @@ sources:
                         band_name    : "B12"
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
+                platforms   :
+                    SENTINEL-2A: "sentinel-2a"
+                    SENTINEL-2B: "sentinel-2b"
                 collection_name: "sentinel-s2-l1c"
                 token_vars  :  ["AWS_ACCESS_KEY_ID","AWS_SECRET_ACCESS_KEY"]
                 access_vars :
@@ -659,6 +665,9 @@ sources:
                         resolution  :  20
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
+                platforms   :
+                    SENTINEL-2A: "sentinel-2a"
+                    SENTINEL-2B: "sentinel-2b"
                 collection_name: "sentinel-s2-l2a-cogs"
                 access_vars :
                     AWS_DEFAULT_REGION   : "us-west-1"
@@ -980,7 +989,7 @@ sources:
                         bit_mask      : TRUE
                         band_name     : "qa_pixel"
                         values        :
-                            0         : "missing_data"
+                            0         : "Missing data"
                             1         : "Dilated Cloud"
                             2         : "High confidence cirrus"
                             3         : "High confidence cloud"
@@ -988,16 +997,23 @@ sources:
                             5         : "High confidence snow cover"
                             6         : "Clear"
                             7         : "Water"
-                            9         : "High confidence of cloud"
-                            11        : "High confidence of cloud shadow"
-                            13        : "High confidence of snow"
-                            15        : "High confidence of cirrus"
-                        interp_values : [0, 1, 2, 3, 4, 5]
+                            8         : "Low/High confidence of cloud"
+                            9         : "Medium/High confidence of cloud"
+                            10        : "Low/High confidence of cloud shadow"
+                            11        : "Medium/High confidence of cloud shadow"
+                            12        : "Low/High confidence of snow"
+                            13        : "Medium/High confidence of snow"
+                            14        : "Low/High confidence of cirrus"
+                            15        : "Medium/High confidence of cirrus"
+                        interp_values : [0, 1, 2, 3, 4, 5, 9, 11, 13, 15]
                         resampling    : "near"
                         resolution    : 30
-                satellite   : "LANDSAT-8"
+                satellite   : "LANDSAT-8/9"
                 sensor      : "OLI"
                 collection_name: "landsat-c2l2-sr"
+                platforms   :
+                    LANDSAT-8: "LANDSAT_8"
+                    LANDSAT-9: "LANDSAT_9"
                 access_vars :
                     AWS_DEFAULT_REGION: "us-west-2"
                     AWS_S3_ENDPOINT   : "s3.amazonaws.com"
@@ -1015,9 +1031,9 @@ sources:
         url                 : "https://planetarycomputer.microsoft.com/api/stac/v1"
         token_url           : "https://planetarycomputer.microsoft.com/api/sas/v1/token"
         collections         :
-            LANDSAT-8-C2-L2 : &mspc_oli
+            LANDSAT-C2-L2   : &mspc_oli
                 bands       :
-                    B01     : &mspc_oli_30m
+                    BLUE    : &mspc_oli_30m
                         missing_value : 0
                         minimum_value : 7273
                         maximum_value : 43636
@@ -1025,30 +1041,27 @@ sources:
                         offset_value  : -0.2
                         resampling    : "bilinear"
                         resolution    : 30
-                        band_name     : "SR_B1"
-                    B02     :
+                        band_name     : "blue"
+                    GREEN   :
                         <<: *mspc_oli_30m
-                        band_name     : "SR_B2"
-                    B03     :
+                        band_name     : "green"
+                    RED     :
                         <<: *mspc_oli_30m
-                        band_name     : "SR_B3"
-                    B04     :
+                        band_name     : "red"
+                    NIR08   :
                         <<: *mspc_oli_30m
-                        band_name     : "SR_B4"
-                    B05     :
+                        band_name     : "nir08"
+                    SWIR16  :
                         <<: *mspc_oli_30m
-                        band_name     : "SR_B5"
-                    B06     :
+                        band_name     : "swir16"
+                    SWIR22  :
                         <<: *mspc_oli_30m
-                        band_name     : "SR_B6"
-                    B07     :
-                        <<: *mspc_oli_30m
-                        band_name     : "SR_B7"
+                        band_name     : "swir22"
                     CLOUD   :
                         bit_mask      : TRUE
-                        band_name     : "QA_PIXEL"
+                        band_name     : "qa_pixel"
                         values        :
-                            0         : "missing_data"
+                            0         : "Missing data"
                             1         : "Dilated Cloud"
                             2         : "High confidence cirrus"
                             3         : "High confidence cloud"
@@ -1056,16 +1069,25 @@ sources:
                             5         : "High confidence snow cover"
                             6         : "Clear"
                             7         : "Water"
-                            9         : "High confidence of cloud"
-                            11        : "High confidence of cloud shadow"
-                            13        : "High confidence of snow"
-                            15        : "High confidence of cirrus"
-                        interp_values : [0, 1, 2, 3, 4, 5]
+                            8         : "Low/High confidence of cloud"
+                            9         : "Medium/High confidence of cloud"
+                            10        : "Low/High confidence of cloud shadow"
+                            11        : "Medium/High confidence of cloud shadow"
+                            12        : "Low/High confidence of snow"
+                            13        : "Medium/High confidence of snow"
+                            14        : "Low/High confidence of cirrus"
+                            15        : "Medium/High confidence of cirrus"
+                        interp_values : [0, 1, 2, 3, 4, 5, 9, 11, 13, 15]
                         resampling    : "near"
                         resolution    : 30
-                satellite   : "LANDSAT-8"
-                sensor      : "OLI"
-                collection_name: "landsat-8-c2-l2"
+                satellite   : "LANDSAT"
+                sensor      : "TM/ETM+/OLI"
+                platforms   :
+                    LANDSAT-5: "landsat-5"
+                    LANDSAT-7: "landsat-7"
+                    LANDSAT-8: "landsat-8"
+                    LANDSAT-9: "landsat-9"
+                collection_name: "landsat-c2-l2"
                 open_data: true
                 open_data_token: false
                 tile_required: false
@@ -1144,6 +1166,9 @@ sources:
                         resolution   :  20
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
+                platforms   :
+                    SENTINEL-2A: "Sentinel-2A"
+                    SENTINEL-2B: "Sentinel-2B"
                 collection_name: "sentinel-2-l2a"
                 open_data: true
                 open_data_token: false

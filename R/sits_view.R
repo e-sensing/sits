@@ -301,8 +301,8 @@ sits_view.raster_cube <- function(x, ...,
                                   red = NULL,
                                   green = NULL,
                                   blue = NULL,
-                                  tiles = x$tile[[1]],
-                                  dates = sits_timeline(x)[1],
+                                  tiles = NULL,
+                                  dates = NULL,
                                   class_cube = NULL,
                                   legend = NULL,
                                   palette = "default") {
@@ -320,19 +320,7 @@ sits_view.raster_cube <- function(x, ...,
 
     # verifies if leafem and leaflet packages are installed
     .check_require_packages(c("leafem", "leaflet"))
-    # check that dates are valid
-    timeline <- sits_timeline(x)
-    .check_that(
-        all(as.Date(dates) %in% timeline),
-        msg = "requested dates are not part of the cube timeline"
-    )
-    # try to find tiles in the list of tiles of the cube
-    .check_chr_within(
-        tiles,
-        x$tile,
-        msg = "requested tiles are not part of cube"
-    )
-    # pre-condition 2
+    # pre-condition for band
     .check_that(
         !(purrr::is_null(band)) ||
             (!(purrr::is_null(red)) &&
@@ -372,33 +360,41 @@ sits_view.raster_cube <- function(x, ...,
         b_index <- 3
     }
 
-    # filter the tiles to be processed
-    cube_tiles <- dplyr::filter(x, .data[["tile"]] %in% tiles)
+    # if tiles are not informed, show all
+    if (!purrr::is_null(tiles)) {
+        # try to find tiles in the list of tiles of the cube
+        .check_chr_within(
+            tiles,
+            x$tile,
+            msg = "requested tiles are not part of cube"
+        )
+        # filter the tiles to be processed
+        cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
+    }
+    else
+        cube <- x
 
-    # verifies if cube has a single timeline
-    timeline <- sits_timeline(cube_tiles)
-    .check_that(!is.list(timeline),
-        local_msg = "more than one timeline per cube",
-        msg = "cannot visualize cube"
-    )
+    # if dates are not informed, show the first possible date
+    if (purrr::is_null(dates))
+        dates <- sits_timeline(cube[1,])[1]
 
-
-    nrows_merge <- sum(slider::slide_dbl(cube_tiles, function(tile) {
+    nrows_merge <- sum(slider::slide_dbl(cube, function(tile) {
         # retrieve the file info for the tile
         fi <- .file_info(tile)
         return(max(fi[["nrows"]]))
     }))
-    ncols_merge <- sum(slider::slide_dbl(cube_tiles, function(tile) {
+    ncols_merge <- sum(slider::slide_dbl(cube, function(tile) {
         # retrieve the file info for the tile
         fi <- .file_info(tile)
         return(max(fi[["ncols"]]))
     }))
 
     # find out if resampling is required (for big images)
-    size <- .view_resample_size(
+    output_size <- .view_resample_size(
         nrows = nrows_merge,
         ncols = ncols_merge,
-        ntiles = nrow(cube_tiles)
+        ndates = length(dates),
+        ntiles = nrow(cube)
     )
     # create a leaflet and add providers
     leaf_map <- leaflet::leaflet() %>%
@@ -422,9 +418,15 @@ sits_view.raster_cube <- function(x, ...,
     # obtain the raster objects for the dates chosen
     for (i in seq_along(dates)) {
         date <- as.Date(dates[[i]])
-        st_objs <- slider::slide(cube_tiles, function(tile) {
+        st_objs <- slider::slide(cube, function(tile) {
             # retrieve the file info for the tile
             fi <- .file_info(tile)
+            # check if date is inside the timeline
+            tile_dates <- sits_timeline(tile)
+            if (!date %in% tile_dates) {
+                idx_date <- which.min(abs(date - tile_dates))
+                date <- tile_dates[idx_date]
+            }
             # filter by date
             images_date <- dplyr::filter(fi, as.Date(.data[["date"]]) == !!date)
             # if there is only one band, RGB files will be the same
@@ -445,8 +447,8 @@ sits_view.raster_cube <- function(x, ...,
                 rgb_files,
                 along = "band",
                 RasterIO = list(
-                    "nBufXSize" = size["xsize"],
-                    "nBufYSize" = size["ysize"]
+                    "nBufXSize" = output_size["xsize"],
+                    "nBufYSize" = output_size["ysize"]
                 ),
                 proxy = FALSE
             )
@@ -479,7 +481,7 @@ sits_view.raster_cube <- function(x, ...,
             quantiles = c(0.1, 0.9),
             project = FALSE,
             group = paste0(date),
-            maxBytes = size["leaflet_maxbytes"]
+            maxBytes = output_size["leaflet_maxbytes"]
         )
     }
 
@@ -503,18 +505,19 @@ sits_view.raster_cube <- function(x, ...,
             legend = legend,
             palette = palette
         )
-        # select the tiles that will be shown
-        cube_tiles <- dplyr::filter(class_cube, .data[["tile"]] %in% tiles)
+        if (!purrr::is_null(tiles))
+            # select the tiles that will be shown
+            class_cube <- dplyr::filter(class_cube, .data[["tile"]] %in% tiles)
 
         # create the stars objects that correspond to the tiles
-        st_objs <- slider::slide(cube_tiles, function(tile) {
+        st_objs <- slider::slide(class_cube, function(tile) {
             # obtain the raster stars object
             st_obj <- stars::read_stars(
                 .file_info_path(tile),
                 RAT = labels,
                 RasterIO = list(
-                    "nBufXSize" = size["xsize"],
-                    "nBufYSize" = size["ysize"]
+                    "nBufXSize" = output_size["xsize"],
+                    "nBufYSize" = output_size["ysize"]
                 )
             )
         })
@@ -547,7 +550,7 @@ sits_view.raster_cube <- function(x, ...,
             method = "ngb",
             group = "classification",
             project = FALSE,
-            maxBytes = size["leaflet_maxbytes"]
+            maxBytes = output_size["leaflet_maxbytes"]
         ) %>%
             leaflet::addLegend(
                 "topright",
@@ -583,19 +586,17 @@ sits_view.classified_image <- function(x, ...,
 
     # deal with tiles
     # check if tile exists
-    if (purrr::is_null(tiles)) {
-        tiles <- x$tile[[1]]
+    if (!purrr::is_null(tiles)) {
+        # try to find tiles in the list of tiles of the cube
+        .check_chr_within(
+            tiles,
+            x$tile,
+            msg = "requested tiles are not part of cube"
+        )
+        # select the tiles that will be shown
+        cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
     }
 
-    if (is.numeric(tiles)) {
-        tiles <- x$tile[[tiles]]
-    }
-    # try to find tiles in the list of tiles of the cube
-    .check_chr_within(
-        tiles,
-        x$tile,
-        msg = "requested tiles are not part of cube"
-    )
     # get the labels
     labels <- sits_labels(x)
     names(labels) <- seq_along(labels)
@@ -605,10 +606,8 @@ sits_view.classified_image <- function(x, ...,
         legend = legend,
         palette = palette
     )
-    # select the tiles that will be shown
-    cube_tiles <- dplyr::filter(x, .data[["tile"]] %in% tiles)
     # find size of image to be merged
-    nrows_merge <- sum(slider::slide_dbl(cube_tiles, function(tile) {
+    nrows_merge <- sum(slider::slide_dbl(cube, function(tile) {
         # retrieve the file info for the tile
         fi <- .file_info(tile)
         return(max(fi[["nrows"]]))
@@ -619,20 +618,21 @@ sits_view.classified_image <- function(x, ...,
         return(max(fi[["ncols"]]))
     }))
     # find out if resampling is required (for big images)
-    size <- .view_resample_size(
+    output_size <- .view_resample_size(
         nrows = nrows_merge,
         ncols = ncols_merge,
-        ntiles = nrow(cube_tiles)
+        ndates = 1,
+        ntiles = nrow(cube)
     )
     # create the stars objects that correspond to the tiles
-    st_objs <- slider::slide(cube_tiles, function(tile) {
+    st_objs <- slider::slide(cube, function(tile) {
         # obtain the raster stars object
         st_obj <- stars::read_stars(
             .file_info_path(tile),
             RAT = labels,
             RasterIO = list(
-                "nBufXSize" = size["xsize"],
-                "nBufYSize" = size["ysize"]
+                "nBufXSize" = output_size["xsize"],
+                "nBufYSize" = output_size["ysize"]
             )
         )
     })
@@ -681,7 +681,7 @@ sits_view.classified_image <- function(x, ...,
             method = "ngb",
             group = "classification",
             project = FALSE,
-            maxBytes = size["leaflet_maxbytes"]
+            maxBytes = output_size["leaflet_maxbytes"]
         ) %>%
         # add the the layers control
         leaflet::addLayersControl(
@@ -749,23 +749,24 @@ sits_view.default <- function(x, ...) {
 #'
 #' @param  nrows         Number of rows in the input image.
 #' @param  ncols         Number of cols in the input image.
+#' @param  ndates        Number of dates to show
 #' @param  ntiles        Number of tiles in the input image.
 #' @return               Cell size for x and y coordinates.
 #' @keywords internal
 #'
 #'
-.view_resample_size <- function(nrows, ncols, ntiles) {
+.view_resample_size <- function(nrows, ncols, ndates, ntiles) {
 
     # get the maximum number of bytes to be displayed per tile
     max_megabytes <- .config_get(key = "leaflet_max_megabytes")
     # get the compression factor
     comp <- .config_get(key = "leaflet_comp_factor")
 
-    # calculate the size of the input image in bytes
+    # calculate the total size of all input images in bytes
     # note that leaflet considers 4 bytes per pixel
-    in_size_mbytes <- 4 * nrows * ncols * comp * ntiles
+    in_size_mbytes <- 4 * nrows * ncols * ndates * ntiles * comp
     # do we need to compress?
-    ratio <- max((in_size_mbytes / (max_megabytes * ntiles * 1024 * 1024)), 1)
+    ratio <- max((in_size_mbytes / (max_megabytes * 1024 * 1024)), 1)
     # only create local files if required
     if (ratio > 1) {
         new_nrows <- round(nrows / sqrt(ratio))
@@ -774,7 +775,7 @@ sits_view.default <- function(x, ...) {
         new_nrows <- round(nrows)
         new_ncols <- round(ncols)
     }
-    leaflet_maxbytes <- 4 * new_nrows * new_ncols * ntiles
+    leaflet_maxbytes <- 4 * new_nrows * new_ncols
     return(c(
         "xsize" = new_ncols, "ysize" = new_nrows,
         "leaflet_maxbytes" = leaflet_maxbytes

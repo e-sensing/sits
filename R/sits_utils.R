@@ -53,7 +53,6 @@
     return(filenames)
 }
 
-
 #' @title Informs if sits tests should run
 #'
 #' @name sits_run_tests

@@ -12,7 +12,7 @@
 #' @param samples    Time series with the training samples.
 #' @param num_trees  Number of trees to grow. This should not be set to too
 #'   small a number, to ensure that every input row gets predicted
-#'   at least a few times (default: 200).
+#'   at least a few times (default: 120).
 #' @param mtry       Number of variables randomly sampled as candidates at
 #'   each split (default: NULL - use default value of
 #'   \code{randomForest::randomForest()} function, i.e.
@@ -42,7 +42,7 @@
 #' @export
 #'
 sits_rfor <- function(samples = NULL,
-                      num_trees = 200,
+                      num_trees = 120,
                       mtry = NULL, ...) {
 
     # function that returns `randomForest::randomForest` model

@@ -4,12 +4,14 @@
 \alias{.view_resample_size}
 \title{Return the cell size for the image to be resamples}
 \usage{
-.view_resample_size(nrows, ncols, ntiles)
+.view_resample_size(nrows, ncols, ndates, ntiles)
 }
 \arguments{
 \item{nrows}{Number of rows in the input image.}
 
 \item{ncols}{Number of cols in the input image.}
+
+\item{ndates}{Number of dates to show}
 
 \item{ntiles}{Number of tiles in the input image.}
 }

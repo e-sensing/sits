@@ -30,6 +30,8 @@ required parameters:
  \item{SOM evaluate cluster: } {see \code{\link{plot.som_evaluate_cluster}}}
  \item{classified time series: } {see \code{\link{plot.predicted}}}
  \item{raster cube: }         {see \code{\link{plot.raster_cube}}}
+ \item{random forest model:} {see \code{\link{plot.rfor_model}}}
+ \item{xgboost model:} {see \code{\link{plot.xgb_model}}}
  \item{torch ML model: } {see \code{\link{plot.torch_model}}}
  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
  \item{model uncertainty: } {see \code{\link{plot.uncertainty_cube}}}

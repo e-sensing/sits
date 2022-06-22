@@ -126,7 +126,8 @@ sits_apply.raster_cube <- function(data, ...,
             in_bands <- .cube_bands(tile)
 
             # Find which bands are in input expressions
-            char_expr <- toupper(deparse(list_expr[[out_band]]))
+            char_expr <- paste(toupper(deparse(list_expr[[out_band]])),
+                               collapse = "")
             used_bands <- purrr::map_lgl(in_bands, grepl, char_expr)
 
             # Pre-condition

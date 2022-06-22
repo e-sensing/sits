@@ -33,12 +33,24 @@ margin_probs <- function(mtx, n) {
     .Call(`_sits_margin_probs`, mtx, n)
 }
 
+nnls_solver <- function(x, A, iterate = 400L, tolerance = 0.000001) {
+    .Call(`_sits_nnls_solver`, x, A, iterate, tolerance)
+}
+
 normalize_data <- function(data, min, max) {
     .Call(`_sits_normalize_data`, data, min, max)
 }
 
 ratio_probs <- function(mtx, n) {
     .Call(`_sits_ratio_probs`, mtx, n)
+}
+
+smooth_sg <- function(data, f_res, p, n) {
+    .Call(`_sits_smooth_sg`, data, f_res, p, n)
+}
+
+smooth_sg_mtx <- function(data, f_res, p, n) {
+    .Call(`_sits_smooth_sg_mtx`, data, f_res, p, n)
 }
 
 smooth_whit <- function(data, lambda, length) {

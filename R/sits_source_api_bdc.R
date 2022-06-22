@@ -17,7 +17,8 @@
 .source_items_new.bdc_cube <- function(source, ...,
                                        collection,
                                        stac_query,
-                                       tiles = NULL) {
+                                       tiles = NULL,
+                                       platform = NULL) {
     # set caller to show in errors
     .check_set_caller(".source_items_new.bdc_cube")
     # if specified, a filter per tile is added to the query
