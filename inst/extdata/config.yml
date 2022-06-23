@@ -899,11 +899,11 @@ sources:
             LS8_LASRC_SWISS : &swiss_l8
                 bands       :
                     B01     : &swiss_oli_30m
-                        missing_value : 0
-                        minimum_value : 7273
-                        maximum_value : 43636
-                        scale_factor  : 0.0000275
-                        offset_value  : -0.2
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
                         resampling    : "bilinear"
                         resolution    : 30
                         band_name     : "coastal_aerosol"
@@ -930,17 +930,22 @@ sources:
                         band_name     : "pixel_qa"
                         values        :
                             0         : "missing_data"
-                            1         : "Dilated Cloud"
-                            2         : "High confidence cirrus"
-                            4         : "High confidence cloud shadow"
-                            5         : "High confidence snow cover"
-                            6         : "Clear"
-                            7         : "Water"
-                            9         : "High confidence of cloud"
-                            11        : "High confidence of cloud shadow"
-                            13        : "High confidence of snow"
-                            15        : "High confidence of cirrus"
-                        interp_values : [0, 1, 2, 3, 4, 5]
+                            1         : "Clear"
+                            2         : "Water"
+                            3         : "Cloud Shadow"
+                            4         : "Snow"
+                            5         : "Cloud"
+                            6         : "Low/High confidence of cloud"
+                            7         : "Medium/High confidence of cloud"
+                            8         : "Low/High confidence of cirrus"
+                            9         : "Medium/High confidence of cirrus"
+                            10        : "Terrain Occlusion"
+                            11        : "Unused"
+                            12        : "Unused"
+                            13        : "Unused"
+                            14        : "Unused"
+                            15        : "Unused"
+                        interp_values : [0, 3, 4, 5, 7, 9, 10]
                         resampling    : "near"
                         resolution    : 30
                 satellite   : "LANDSAT-8"
