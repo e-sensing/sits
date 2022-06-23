@@ -40,17 +40,20 @@
 #' @keywords internal
 #' @export
 .source_item_get_cloud_cover.sdc_cube <- function(source, ...,
-                                                   item,
-                                                   collection = NULL) {
+                                                  item,
+                                                  collection = NULL) {
     return(NA)
 }
 
 #' @keywords internal
 #' @export
 .source_items_tile.sdc_cube <- function(source, ...,
-                                             items,
-                                             collection = NULL) {
-    rstac::items_reap(items, field = c("properties", "cubedash:region_code"))
+                                        items,
+                                        collection = NULL) {
+    gsub(pattern = "_",
+         replacement = "-",
+         x = rstac::items_reap(items,
+                               field = c("properties", "cubedash:region_code")))
 }
 
 
