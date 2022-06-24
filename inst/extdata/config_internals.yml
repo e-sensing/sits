@@ -70,7 +70,7 @@ raster_cube_missing_value : -9999
 raster_cube_minimum_value : -10000
 raster_cube_maximum_value : 10000
 
-# configuration for generate tokens for mspc cubes
+# configuration for generate tokens for mpc cubes
 cube_token_generator_n_tries: 3
 
 # configuration for probability cubes

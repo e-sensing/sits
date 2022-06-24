@@ -392,13 +392,13 @@ test_that("Creating cubes from USGS", {
     expect_equal(usgs_cube_2$xmin[[1]], .raster_xmin(r), tolerance = 1)
 })
 
-test_that("Creating Sentinel cubes from MSPC", {
+test_that("Creating Sentinel cubes from MPC", {
 
 
     s2_cube <- tryCatch(
         {
             sits_cube(
-                source = "MSPC",
+                source = "MPC",
                 collection = "SENTINEL-2-L2A",
                 tiles = "20LKP",
                 bands = c("B05", "CLOUD"),
@@ -413,7 +413,7 @@ test_that("Creating Sentinel cubes from MSPC", {
 
     testthat::skip_if(
         purrr::is_null(s2_cube),
-        "MSPC is not accessible"
+        "MPC is not accessible"
     )
 
     expect_true(all(sits_bands(s2_cube) %in% c("B05", "CLOUD")))
@@ -428,7 +428,7 @@ test_that("Creating Sentinel cubes from MSPC", {
     expect_equal(s2_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
 })
 
-test_that("Creating Sentinel cubes from MSPC with ROI", {
+test_that("Creating Sentinel cubes from MPC with ROI", {
 
 
     shp_file <- system.file("extdata/shapefiles/df_bsb/df_bsb.shp",
@@ -439,7 +439,7 @@ test_that("Creating Sentinel cubes from MSPC with ROI", {
     s2_cube <- tryCatch(
         {
             sits_cube(
-                source = "MSPC",
+                source = "MPC",
                 collection = "SENTINEL-2-L2A",
                 roi = sf_bsb,
                 bands = c("B05", "CLOUD"),
@@ -452,7 +452,7 @@ test_that("Creating Sentinel cubes from MSPC with ROI", {
         }
     )
 
-    testthat::skip_if(purrr::is_null(s2_cube), "MSPC is not accessible")
+    testthat::skip_if(purrr::is_null(s2_cube), "MPC is not accessible")
 
     expect_true(all(sits_bands(s2_cube) %in% c("B05", "CLOUD")))
 
@@ -476,7 +476,7 @@ test_that("Creating Sentinel cubes from MSPC with ROI", {
     )
 })
 
-test_that("Creating Landsat cubes from MSPC", {
+test_that("Creating Landsat cubes from MPC", {
 
     shp_file <- system.file("extdata/shapefiles/df_bsb/df_bsb.shp",
                             package = "sits"
@@ -486,7 +486,7 @@ test_that("Creating Landsat cubes from MSPC", {
     landsat_cube <- tryCatch(
         {
             sits_cube(
-                source = "MSPC",
+                source = "MPC",
                 collection = "LANDSAT-C2-L2",
                 roi = sf_bsb,
                 bands = c("NIR08", "CLOUD"),
@@ -499,7 +499,7 @@ test_that("Creating Landsat cubes from MSPC", {
         }
     )
 
-    testthat::skip_if(purrr::is_null(landsat_cube), "MSPC is not accessible")
+    testthat::skip_if(purrr::is_null(landsat_cube), "MPC is not accessible")
 
     expect_true(all(sits_bands(landsat_cube) %in% c("NIR08", "CLOUD")))
     expect_false(.cube_is_regular(landsat_cube))
@@ -536,7 +536,7 @@ test_that("Creating Landsat cubes from MSPC", {
     l5_cube <- tryCatch(
         {
             sits_cube(
-                source = "MSPC",
+                source = "MPC",
                 collection = "LANDSAT-C2-L2",
                 platform = "LANDSAT-5",
                 roi = sf_bsb,
@@ -553,7 +553,7 @@ test_that("Creating Landsat cubes from MSPC", {
     expect_false(any(grepl("LE07", l5_cube$file_info[[1]]$fid)))
 
     expect_error(sits_cube(
-                source = "MSPC",
+                source = "MPC",
                 collection = "LANDSAT-C2-L2",
                 bands = c("NIR08", "CLOUD"),
                 tiles = "220071",

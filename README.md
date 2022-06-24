@@ -95,12 +95,12 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 ``` r
 # load the sits library
 library(sits)
-#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config.yml
-#> Color configurations found in /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config_colors.yml
+#> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.2/sits/extdata/config.yml
+#> Color configurations found in /home/sits/R/x86_64-pc-linux-gnu-library/4.2/sits/extdata/config_colors.yml
 #> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.0.0.
+#> Loaded sits v1.0.1.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 ```
@@ -111,11 +111,11 @@ library(sits)
 
 The `sits` package allows users to created data cubes from
 analysis-ready data (ARD) image collections available in cloud services.
-The collections accessible in `sits` 1.0.0 are:
+The collections accessible in `sits` 1.0.1 are:
 
 1.  Brazil Data Cube (BDC): Open data collections of Sentinel-2,
     Landsat-8 and CBERS-4 images.
-2.  Microsoft Planetary Computer (MSPC): Open data collection of
+2.  Microsoft Planetary Computer (MPC): Open data collection of
     Sentinel-2/2A and Landsat-8
 3.  AWS: Sentinel-2/2A level 2A collections.
 4.  Digital Earth Africa (DEAFRICA): Open data collection of
@@ -137,7 +137,7 @@ a start and end date. Access to other cloud services works in similar
 ways.
 
 ``` r
-s2_cube <- sits_cube(source = "MSPC",
+s2_cube <- sits_cube(source = "MPC",
                      collection = "SENTINEL-2-L2A",
                      tiles = c("20LKP", "20LLP"),
                      bands = c("B03", "B08", "B11", "SCL"),
@@ -275,16 +275,17 @@ som_map <- sits_som_map(samples_modis_4bands,
                         grid_ydim = 6)
 # plot the map
 plot(som_map)
+#> Warning in par(opar): argument 1 does not name a graphical parameter
 ```
 
 <img src="man/figures/README-unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
 
 This function uses the [“kohonen” R
 package](https://www.jstatsoft.org/article/view/v087i07) to compute a
-SOM grid. Each sample is assigned to a neuron, and neurons are placed in
-the grid based on similarity. Each neuron will be associated with a
-discrete probability distribution. Homogeneous neurons (those with a
-single class) are assumed to be composed of good quality samples.
+SOM grid \[7\]. Each sample is assigned to a neuron, and neurons are
+placed in the grid based on similarity. Each neuron will be associated
+with a discrete probability distribution. Homogeneous neurons (those
+with a single class) are assumed to be composed of good quality samples.
 Heterogeneous neurons (those with two or more classes with significant
 probability) are likely to contain noisy samples. Noisy samples can then
 be identified and removed from the sample set using
@@ -330,8 +331,8 @@ available in SITS:
 -   Random forests (`sits_rfor()`)
 -   Extreme gradient boosting (`sits_xgboost()`)
 -   Multi-layer perceptrons (`sits_mlp()`)
--   Deep Residual Networks (`sits_resnet()`) (see ref. \[7\])
--   1D convolution neural networks (`sits_tempcnn()`) (see ref. \[8\])
+-   Deep Residual Networks (`sits_resnet()`) (see ref. \[8\])
+-   1D convolution neural networks (`sits_tempcnn()`) (see ref. \[9\])
 -   Temporal self-attention encoder (`sits_tae()`) (see ref. \[10\])
 -   Lightweight temporal attention encoder (`sits_lighttae()`) (see ref.
     \[11\] and \[12\])
@@ -447,19 +448,19 @@ be used in connection with sits.
     Cubes from Satellite Image Collections with the Gdalcubes Library.”
     Data 4 (3): 1–16, 2020. <doi:10.3390/data4030092>.
 
--   \[7\] Hassan Fawaz, Germain Forestier, Jonathan Weber, Lhassane
+-   \[7\] Ron Wehrens and Johannes Kruisselbrink, “Flexible
+    Self-Organising Maps in kohonen 3.0”. Journal of Statistical
+    Software, 87(7), 2018. <doi:10.18637/jss.v087.i07>.
+
+-   \[8\] Hassan Fawaz, Germain Forestier, Jonathan Weber, Lhassane
     Idoumghar, and Pierre-Alain Muller, “Deep learning for time series
     classification: a review”. Data Mining and Knowledge Discovery,
     33(4): 917–963, 2019. \<arxiv:1809.04356\>.
 
--   \[8\] Charlotte Pelletier, Geoffrey I. Webb, and Francois Petitjean.
+-   \[9\] Charlotte Pelletier, Geoffrey I. Webb, and Francois Petitjean.
     “Temporal Convolutional Neural Network for the Classification of
     Satellite Image Time Series.” Remote Sensing 11 (5), 2019.
     <doi:10.3390/rs11050523>.
-
--   \[9\] Ron Wehrens and Johannes Kruisselbrink, “Flexible
-    Self-Organising Maps in kohonen 3.0”. Journal of Statistical
-    Software, 87(7), 2018. <doi:10.18637/jss.v087.i07>.
 
 -   \[10\] Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine
     Chehata, “Satellite Image Time Series Classification with Pixel-Set
@@ -483,13 +484,14 @@ Appelhans, Henrik Bengtsson, Robert Hijmans, Edzer Pebesma, and Ron
 Wehrens, respectively chief developers of the packages `gdalcubes`,
 `leafem`, `data.table`, `terra/raster`, `sf`/`stars`, and `kohonen`. The
 `sits` package is also much indebted to the work of the RStudio team,
-including the `tidyverse` and the `keras` packages. We thank Charlotte
-Pelletier and Hassan Fawaz for sharing the python code that has been
-reused for the TempCNN and ResNet machine learning models. We would like
-to thank Maja Schneider for sharing the python code that helped the
-implementation of the `sits_lighttae()` and `sits_tae()` model. We
-recognise the importance of the work by Chris Holmes and Mattias Mohr on
-the STAC specification and API.
+including the `tidyverse`. We are indepted to Daniel Falbel for his and
+the `torch` packages. We thank Charlotte Pelletier and Hassan Fawaz for
+sharing the python code that has been reused for the TempCNN and ResNet
+machine learning models. We would like to thank Maja Schneider for
+sharing the python code that helped the implementation of the
+`sits_lighttae()` and `sits_tae()` model. We recognise the importance of
+the work by Chris Holmes and Mattias Mohr on the STAC specification and
+API.
 
 ## Acknowledgements for Financial and Material Support
 
