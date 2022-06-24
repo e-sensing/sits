@@ -1029,8 +1029,8 @@ sources:
                 tile_required: false
                 metadata_search : "feature"
                 ext_tolerance: 0
-    MSPC                    :
-        s3_class            : ["mspc_cube", "stac_cube", "raster_cube"]
+    MPC                     :
+        s3_class            : ["mpc_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
         rstac_version       : "1.0.0"
         url                 : "https://planetarycomputer.microsoft.com/api/stac/v1"
