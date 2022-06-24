@@ -418,7 +418,9 @@ sits_view.raster_cube <- function(x, ...,
     # obtain the raster objects for the dates chosen
     for (i in seq_along(dates)) {
         date <- as.Date(dates[[i]])
-        st_objs <- slider::slide(cube, function(tile) {
+        for (row in seq_len(nrow(cube))) {
+            # get tile
+            tile <- cube[row,]
             # retrieve the file info for the tile
             fi <- .file_info(tile)
             # check if date is inside the timeline
@@ -452,40 +454,31 @@ sits_view.raster_cube <- function(x, ...,
                 ),
                 proxy = FALSE
             )
-            return(st_obj)
-        })
 
-        # keep the first object
-        st_merge <- st_objs[[1]]
+            # resample and warp the image
+            st_obj_new <- stars::st_warp(
+                src = st_obj,
+                crs = sf::st_crs("EPSG:3857")
+            )
 
-        # mosaic the data
-        # if there is more than one stars object, merge them
-        if (length(st_objs) > 1) {
-            st_merge <- stars::st_mosaic(
-                st_objs[[1]],
-                st_objs[[2:length(st_objs)]]
+            # add raster RGB to leaflet
+            leaf_map <- leafem::addRasterRGB(
+                leaf_map,
+                x = st_obj_new,
+                r = r_index,
+                g = g_index,
+                b = b_index,
+                quantiles = c(0.1, 0.9),
+                project = FALSE,
+                group = paste(tile[["tile"]], date),
+                maxBytes = output_size["leaflet_maxbytes"]
             )
         }
-        # resample and warp the image
-        st_obj_new <- stars::st_warp(
-            src = st_merge,
-            crs = sf::st_crs("EPSG:3857")
-        )
-        # add raster RGB to leaflet
-        leaf_map <- leafem::addRasterRGB(
-            leaf_map,
-            x = st_obj_new,
-            r = r_index,
-            g = g_index,
-            b = b_index,
-            quantiles = c(0.1, 0.9),
-            project = FALSE,
-            group = paste0(date),
-            maxBytes = output_size["leaflet_maxbytes"]
-        )
     }
 
-    overlay_grps <- paste0(dates)
+    overlay_grps <- unlist(purrr::map(cube[["tile"]], function(tile) {
+        paste(tile, dates)
+    }))
 
     # should we overlay a classified image?
     if (!purrr::is_null(class_cube)) {
@@ -757,7 +750,7 @@ sits_view.default <- function(x, ...) {
 #'
 .view_resample_size <- function(nrows, ncols, ndates, ntiles) {
 
-    # get the maximum number of bytes to be displayed per tile
+    # get the maximum number of bytes to be displayed (total)
     max_megabytes <- .config_get(key = "leaflet_max_megabytes")
     # get the compression factor
     comp <- .config_get(key = "leaflet_comp_factor")
