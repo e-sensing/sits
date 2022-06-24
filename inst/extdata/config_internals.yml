@@ -106,6 +106,8 @@ reg_file_parse_info: ["cube", "tile", "band", "date"]
 # gdalcubes parameters
 gdalcubes_chunk_size: [1, 2048, 2048]
 gdalcubes_type_format: "int16"
+gdalcubes_cog_generate: true
+gdalcubes_cog_resample_overview: "bilinear"
 
 # uncertainty window function
 uncertainty_window_functions:
