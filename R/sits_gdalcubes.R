@@ -418,13 +418,19 @@
     gdalcubes_co <- purrr::map(gtiff_options, `[[`, 2)
     names(gdalcubes_co) <- purrr::map_chr(gtiff_options, `[[`, 1)
 
+    # get cog config parameters
+    generate_cog <- .config_get("gdalcubes_cog_generate")
+    cog_overview <- .config_get("gdalcubes_cog_resample_overview")
+
     # write the aggregated cubes
     img_paths <- gdalcubes::write_tif(
         x = raster_cube,
         dir = output_dir,
         prefix = files_prefix,
         creation_options = gdalcubes_co,
-        pack = pack, ...
+        pack = pack,
+        COG = generate_cog,
+        rsmpl_overview = cog_overview, ...
     )
 
     # post-condition
