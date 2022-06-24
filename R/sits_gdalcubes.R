@@ -583,7 +583,7 @@
 
     while (!finished) {
 
-        # for cubes that have a time limit to expire - mspc cubes only
+        # for cubes that have a time limit to expire - mpc cubes only
         cube <- .cube_token_generator(cube)
 
         # process bands and tiles in parallel
@@ -597,7 +597,7 @@
             # filter tile
             tile <- dplyr::filter(cube, .data[["tile"]] == !!tile_name)
 
-            # for cubes that have a time limit to expire - mspc cubes only
+            # for cubes that have a time limit to expire - mpc cubes only
             tile <- .cube_token_generator(tile)
 
             # post-condition

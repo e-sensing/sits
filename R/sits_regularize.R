@@ -4,7 +4,7 @@
 #'
 #' @description Produces regular data cubes for analysis-ready data (ARD)
 #' image collections. Analysis-ready data (ARD) collections available in
-#' AWS, MSPC, USGS and DEAfrica are not regular in space and time.
+#' AWS, MPC, USGS and DEAfrica are not regular in space and time.
 #' Bands may have different resolutions,
 #' images may not cover the entire time, and time intervals are not regular.
 #' For this reason, subsets of these collection need to be converted to

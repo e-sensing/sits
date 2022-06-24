@@ -151,13 +151,13 @@
         value = length(blocks)
     )
 
-    # for cubes that have a time limit to expire - mspc cubes only
+    # for cubes that have a time limit to expire - mpc cubes only
     tile <- .cube_token_generator(tile)
 
     # read the blocks and compute the probabilities
     filenames <- .sits_parallel_map(blocks, function(b) {
 
-        # for cubes that have a time limit to expire - mspc cubes only
+        # for cubes that have a time limit to expire - mpc cubes only
         tile <- .cube_token_generator(tile)
 
         probs_cube_filename <- tools::file_path_sans_ext(

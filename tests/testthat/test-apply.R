@@ -3,7 +3,7 @@ test_that("EVI generation", {
     s2_cube <- tryCatch(
         {
             sits_cube(
-                source = "MSPC",
+                source = "MPC",
                 collection = "sentinel-2-l2a",
                 tiles = "20LKP",
                 bands = c("B05", "B8A", "CLOUD"),
@@ -18,7 +18,7 @@ test_that("EVI generation", {
 
     testthat::skip_if(
         purrr::is_null(s2_cube),
-        "MSPC is not accessible"
+        "MPC is not accessible"
     )
 
     dir_images <- paste0(tempdir(), "/images/")

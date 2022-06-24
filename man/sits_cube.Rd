@@ -38,7 +38,7 @@ sits_cube(source, collection, ..., data_dir = NULL)
 }
 \arguments{
 \item{source}{Data source (one of \code{"AWS"}, \code{"BDC"},
-\code{"DEAFRICA"}, \code{"MSPC"}, \code{"USGS"}).}
+\code{"DEAFRICA"}, \code{"MPC"}, \code{"USGS"}).}
 
 \item{collection}{Image collection in data source (To find out
 the supported collections, use \code{\link{sits_list_collections}()}).}
@@ -87,7 +87,7 @@ The following cloud providers are supported, based on the STAC protocol:
   see http://brazildatacube.org/}
   \item{\code{"DEAFRICA"}: }{Digital Earth Africa,
   see https://www.digitalearthafrica.org/}
-  \item{\code{"MSPC"}: }{Microsoft Planetary Computer,
+  \item{\code{"MPC"}: }{Microsoft Planetary Computer,
   see https://planetarycomputer.microsoft.com/}
   \item{\code{"USGS"}:}{USGS LANDSAT collection,
   see https://registry.opendata.aws/usgs-landsat/}
@@ -99,7 +99,7 @@ Data cubes can also be created using local files (see details).
 To create cubes from cloud providers, users need to inform:
 \itemize{
 \item{\code{source}: }{One of \code{"AWS"}, \code{"BDC"}, \code{"DEAFRICA"},
-\code{"MSPC"}, \code{"USGS"}.}
+\code{"MPC"}, \code{"USGS"}.}
 \item{\code{collection}: }{Use \code{sits_list_collections()} to see which
   collections are supported.}
 \item{\code{tiles}: }{A set of tiles defined according to the collection
@@ -162,19 +162,19 @@ parameter \code{parse_info} is specified differently:
 }
 }
 \note{
-In MSPC, sits can access are two open data collections:
+In MPC, sits can access are two open data collections:
 \code{"SENTINEL-S2-L2A"} for Sentinel-2/2A images, and
 \code{"LANDSAT-C2-L2"} for the Landsat-4/5/7/8/9 collection.
 (requester-pays) and \code{"SENTINEL-S2-L2A-COGS"} (open data).
 
-Sentinel-2/2A level 2A files in MSPC are organized by sensor
+Sentinel-2/2A level 2A files in MPC are organized by sensor
 resolution. The bands in 10m resolution are \code{"B02"}, \code{"B03"},
 \code{"B04"}, and \code{"B08"}. The  20m bands are \code{"B05"},
 \code{"B06"}, \code{"B07"}, \code{"B8A"}, \code{"B11"}, and \code{"B12"}.
 Bands \code{"B01"} and \code{"B09"} are available at 60m resolution.
 The \code{"CLOUD"} band is also available.
 
-All Landsat-4/5/7/8/9 images in MSPC have bands with 30 meter
+All Landsat-4/5/7/8/9 images in MPC have bands with 30 meter
 resolution. To account for differences between the different sensors,
 Landsat bands in this collection have been renamed \code{"BLUE"},
 \code{"GREEN"}, \code{"RED"}, \code{"NIR08"}, \code{"SWIR16"}
@@ -290,9 +290,9 @@ if (sits_run_examples()) {
     )
 
 
-    # -- Creating Sentinel cube from MSPC"
+    # -- Creating Sentinel cube from MPC"
     s2_cube <- sits_cube(
-        source = "MSPC",
+        source = "MPC",
         collection = "sentinel-2-l2a",
         tiles = "20LKP",
         bands = c("B05", "CLOUD"),
@@ -300,9 +300,9 @@ if (sits_run_examples()) {
         end_date = "2018-08-23"
     )
 
-    # -- Creating Landsat cube from MSPC"
-    mspc_cube <- sits_cube(
-        source = "MSPC",
+    # -- Creating Landsat cube from MPC"
+    mpc_cube <- sits_cube(
+        source = "MPC",
         collection = "LANDSAT-C2-L2",
         bands = c("BLUE", "RED", "CLOUD"),
         roi = c(

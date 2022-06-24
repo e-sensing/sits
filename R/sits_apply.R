@@ -99,7 +99,7 @@ sits_apply.raster_cube <- function(data, ...,
 
     finished <- length(jobs) == 0
     while (!finished) {
-        # for cubes that have a time limit to expire - mspc cubes only
+        # for cubes that have a time limit to expire - mpc cubes only
         data <- .cube_token_generator(data)
 
         # Process bands and tiles in parallel
@@ -112,7 +112,7 @@ sits_apply.raster_cube <- function(data, ...,
             # Filter tile
             tile <- dplyr::filter(data, .data[["tile"]] == !!tile_name)
 
-            # for cubes that have a time limit to expire - mspc cubes only
+            # for cubes that have a time limit to expire - mpc cubes only
             tile <- .cube_token_generator(tile)
 
             # Post-condition
