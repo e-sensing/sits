@@ -5,7 +5,7 @@
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
 #' @author Rolf Simoes,     \email{rolf.simoes@@inpe.br}
-#' @author Alber Sanchez, \email{alber.sanchez@@inpe.br}
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description Create a multiple endmember spectral mixture analyses fractions
 #' images. To calculate the fraction of each endmember, the non-negative least

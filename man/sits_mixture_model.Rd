@@ -89,5 +89,5 @@ Felipe Carlos,   \email{efelipecarlos@gmail.com}
 
 Rolf Simoes,     \email{rolf.simoes@inpe.br}
 
-Alber Sanchez, \email{alber.sanchez@inpe.br}
+Alber Sanchez, \email{alber.ipia@inpe.br}
 }
