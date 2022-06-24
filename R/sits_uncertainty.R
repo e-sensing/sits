@@ -4,7 +4,7 @@
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @param  cube              Probability data cube.
 #' @param  type              Method to measure uncertainty. See details.
@@ -345,7 +345,8 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
     # bind rows
     result_cube <- dplyr::bind_rows(result_cube)
 
-    class(result_cube) <- c("uncertainty_cube", class(cube))
+    class(result_cube) <- c("uncertainty_cube",
+                            setdiff(class(cube), "probs_cube"))
 
     return(result_cube)
 }
@@ -615,7 +616,8 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
     # bind rows
     result_cube <- dplyr::bind_rows(result_cube)
 
-    class(result_cube) <- c("uncertainty_cube", class(cube))
+    class(result_cube) <- c("uncertainty_cube",
+                            setdiff(class(cube), "probs_cube"))
 
     return(result_cube)
 }
@@ -885,7 +887,8 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
     # bind rows
     result_cube <- dplyr::bind_rows(result_cube)
 
-    class(result_cube) <- c("uncertainty_cube", class(cube))
+    class(result_cube) <- c("uncertainty_cube",
+                            setdiff(class(cube), "probs_cube"))
 
     return(result_cube)
 }
@@ -1155,7 +1158,8 @@ sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
     # bind rows
     result_cube <- dplyr::bind_rows(result_cube)
 
-    class(result_cube) <- c("uncertainty_cube", class(cube))
+    class(result_cube) <- c("uncertainty_cube",
+                            setdiff(class(cube), "probs_cube"))
 
     return(result_cube)
 }
