@@ -26,6 +26,11 @@
 #'                            If true, a new band with the errors for each pixel
 #'                            is generated using the root mean square
 #'                            measure (RMSE). Default is TRUE.
+#' @param remove_outliers     A boolean indicating whether values larger and
+#'                            smaller than the limits in the image metadata, and
+#'                            missing values should be marked as NA. This
+#'                            parameter can be used when the cloud component is
+#'                            added to the mixture model. Default is TRUE.
 #' @param progress            Show progress bar?
 #'
 #' @note The \code{endmembers_spectra} parameter should be a tibble, csv or
@@ -70,6 +75,7 @@ sits_mixture_model <- function(cube,
                                multicores = 2,
                                output_dir = getwd(),
                                rmse_band = TRUE,
+                               remove_outliers = TRUE,
                                progress = TRUE) {
 
     .check_set_caller("sits_mixture_model")
@@ -198,11 +204,6 @@ sits_mixture_model <- function(cube,
                         values_from = "path"
                     )
 
-                # Get the missing values, minimum values and scale factors
-                missing_value <- .cube_band_missing_value(tile, band = band)
-                minimum_value <- .cube_band_minimum_value(tile, band = band)
-                maximum_value <- .cube_band_maximum_value(tile, band = band)
-
                 # Scale the data set
                 scale_factor <- .cube_band_scale_factor(tile, band = band)
                 offset_value <- .cube_band_offset_value(tile, band = band)
@@ -210,11 +211,17 @@ sits_mixture_model <- function(cube,
                 # Read the values
                 values <- .raster_read_stack(in_files[[band]], block = b)
 
-                # # Correct NA, minimum, maximum, and missing values
-                values[values == missing_value] <- NA
-                values[values < minimum_value] <- NA
-                values[values > maximum_value] <- NA
+                if (remove_outliers) {
+                    # Get the missing values, minimum values and scale factors
+                    missing_value <- .cube_band_missing_value(tile, band = band)
+                    minimum_value <- .cube_band_minimum_value(tile, band = band)
+                    maximum_value <- .cube_band_maximum_value(tile, band = band)
 
+                    # Correct NA, minimum, maximum, and missing values
+                    values[values == missing_value] <- NA
+                    values[values < minimum_value] <- NA
+                    values[values > maximum_value] <- NA
+                }
                 # compute scale and offset
                 values <- scale_factor * values + offset_value
                 values <- as.data.frame(values)
