@@ -95,7 +95,7 @@ library(sits)
 The `sits` package allows users to created data cubes from analysis-ready data (ARD) image collections available in cloud services. The collections accessible in `sits` `r packageVersion("sits")` are:
 
 1. Brazil Data Cube (BDC): Open data collections of Sentinel-2, Landsat-8 and CBERS-4 images.
-2. Microsoft Planetary Computer (MSPC): Open data collection of Sentinel-2/2A and Landsat-8
+2. Microsoft Planetary Computer (MPC): Open data collection of Sentinel-2/2A and Landsat-8
 3. AWS: Sentinel-2/2A level 2A collections. 
 4. Digital Earth Africa (DEAFRICA): Open data collection of Sentinel-2/2A and Landsat-8 for Africa.
 5. USGS: Landsat-4/5/7/8 collections, which are not open data. 
@@ -107,7 +107,7 @@ Open data collections do not require payment of access fees. Except for those in
 The following code defines an irregular data cube of Sentinel-2/2A images available in the Microsoft Planetary Computer, using the open data collection "SENTINEL-2-L2A".  The geographical area of the data cube is defined by the tiles "20LKP" and "20LLKP", and the temporal extent by a start and end date.  Access to other cloud services works in similar ways. 
 
 ```{r, echo = TRUE}
-s2_cube <- sits_cube(source = "MSPC",
+s2_cube <- sits_cube(source = "MPC",
                      collection = "SENTINEL-2-L2A",
                      tiles = c("20LKP", "20LLP"),
                      bands = c("B03", "B08", "B11", "SCL"),
