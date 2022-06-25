@@ -58,7 +58,7 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
 
     filter_call <- function(data) {
         if (inherits(data, "sits")) {
-            .apply_across(data, fn = filter_fun)
+            .apply_across(data = data, fn = filter_fun)
         } else {
             filter_fun(data)
         }
@@ -79,7 +79,7 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
 #'
 #' @export
 sits_filter <- function(data, filter = sits_whittaker()) {
-    result <- .apply_across(data, fn = filter)
+    result <- filter(data)
 
     return(result)
 }
@@ -137,7 +137,7 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5) {
 
     filter_call <- function(data) {
         if (inherits(data, "sits")) {
-            .apply_across(data, fn = filter_fun)
+            .apply_across(data = data, fn = filter_fun)
         } else {
             filter_fun(data)
         }
