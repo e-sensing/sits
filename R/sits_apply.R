@@ -51,53 +51,30 @@ sits_apply.raster_cube <- function(data, ...,
     .check_set_caller("sits_apply.raster_cube")
     progress <- .check_documentation(progress)
 
-    # Capture dots as a list of quoted expressions
-    list_expr <- lapply(substitute(list(...), env = environment()),
-        unlist,
-        recursive = FALSE
-    )[-1]
-
-    # check bands names from expression
-    .check_lst(list_expr,
-        min_len = 1, max_len = 1,
-        msg = "invalid expression value"
-    )
-
-    # Get out band
-    out_band <- toupper(names(list_expr))
-    names(list_expr) <- out_band
-
     # Check output_dir
     output_dir <- path.expand(output_dir)
     .check_file(output_dir,
         msg = "invalid output directory"
     )
 
-    # Define function to give a name to output new file
-    out_file_name <- function(tile_name, band, date, output_dir) {
-        # Prepare file name
-        file_prefix <- paste("cube", tile_name, band, date, sep = "_")
-        file_name <- paste(file_prefix, "tif", sep = ".")
-        file_path <- paste(output_dir, file_name, sep = "/")
-        return(file_path)
-    }
+    # Get output band expression
+    list_expr <- .apply_capture_expression(...)
+    out_band <- names(list_expr)
 
     # Prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # Find the tiles that have not been processed yet
-    jobs <- .apply_missing_band(
+    jobs <- .apply_find_missing_band(
         cube = data,
         band = out_band
     )
 
     # Already processed?
-    if (length(jobs) == 0) {
-        return(data)
-    }
-
     finished <- length(jobs) == 0
+    if (finished) return(data)
+
     while (!finished) {
         # for cubes that have a time limit to expire - mspc cubes only
         data <- .cube_token_generator(data)
@@ -147,7 +124,7 @@ sits_apply.raster_cube <- function(data, ...,
             )
 
             # Output file name
-            out_file_path <- out_file_name(
+            out_file_path <- .apply_out_file_name(
                 tile_name = .cube_tiles(tile),
                 band = out_band,
                 date = in_fi_fid[["date"]][[1]],
@@ -315,7 +292,7 @@ sits_apply.raster_cube <- function(data, ...,
         )
 
         # Find the tiles that have not been processed yet
-        jobs <- .apply_missing_band(
+        jobs <- .apply_find_missing_band(
             cube = local_cube,
             band = out_band
         )
@@ -327,38 +304,95 @@ sits_apply.raster_cube <- function(data, ...,
     return(local_cube)
 }
 
-#' @rdname sits_apply
+#' @title Apply an expression across all bands
+#'
+#' @name .apply_across
 #' @keywords internal
+#'
+#' @param data  Tile name.
+#'
+#' @return      A sits tibble with all processed bands.
+#'
 .apply_across <- function(data, fn, ...) {
 
-    # Define function to show in case of error
-    .check_set_caller(".apply_across")
+    # Pre-conditions
+    .check_that(
+        x = inherits(data, "sits"),
+        local_msg = "(data should be a sits tibble)",
+        msg = "invalid samples parameter"
+    )
 
-    fn_across <- fn
-    .sits_fast_apply(data, col = "time_series", fn = function(x, ...) {
-        dplyr::mutate(x, dplyr::across(
-            dplyr::matches(sits_bands(data)),
-            fn_across, ...
-        ))
-    }, ...)
+    result <-
+        .sits_fast_apply(data, col = "time_series", fn = function(x, ...) {
+            dplyr::mutate(x, dplyr::across(
+                dplyr::matches(sits_bands(data)),
+                fn, ...
+            ))
+        }, ...)
+
+    return(result)
 }
 
+#' @title Captures a band expression
+#'
+#' @name .apply_capture_expression
+#' @keywords internal
+#'
+#' @param tile_name  Tile name.
+#'
+#' @return           Named list with one expression
+#'
+.apply_capture_expression <- function(...) {
+    # Capture dots as a list of quoted expressions
+    list_expr <- lapply(substitute(list(...), env = environment()),
+                        unlist,
+                        recursive = FALSE)[-1]
+
+    # Check bands names from expression
+    .check_lst(list_expr,
+               min_len = 1, max_len = 1,
+               msg = "invalid expression value"
+    )
+
+    # Get out band
+    out_band <- toupper(gsub("_", "-", names(list_expr)))
+    names(list_expr) <- out_band
+
+    return(list_expr)
+}
+
+#' @title Returns a new file name
+#'
+#' @name .apply_out_file_name
+#' @keywords internal
+#'
+#' @param tile_name  Tile name.
+#' @param band       Band name.
+#' @param date       Observation date.
+#' @param output_dir Base directory.
+#'
+#' @return           File path.
+#'
+.apply_out_file_name <- function(tile_name, band, date, output_dir) {
+    # Prepare file name
+    file_prefix <- paste("cube", tile_name, band, date, sep = "_")
+    file_name <- paste(file_prefix, "tif", sep = ".")
+    file_path <- paste(output_dir, file_name, sep = "/")
+    return(file_path)
+}
 
 #' @title Finds the missing bands in a cube
 #'
-#' @name .apply_missing_band
+#' @name .apply_find_missing_band
 #' @keywords internal
 #'
-#' @param cube       Data cube.
-#' @param band       Band name.
+#' @param cube   Data cube.
+#' @param band   Band name.
 #'
-#' @return           List of combination among tiles, bands, and dates
-#'                   that are missing from the cube.
+#' @return       List of combination among tiles, bands, and dates
+#'               that are missing from the cube.
 #'
-.apply_missing_band <- function(cube, band) {
-
-    # Define function to show in case of error
-    .check_set_caller(".apply_missing_band")
+.apply_find_missing_band <- function(cube, band) {
 
     # Pre-condition
     .check_length(band, len_min = 1, len_max = 1)
@@ -399,9 +433,6 @@ sits_apply.raster_cube <- function(data, ...,
 #'
 .apply_raster_blocks <- function(nbands, sub_image, memsize, multicores) {
 
-    # Define function to show in case of error
-    .check_set_caller(".apply_raster_blocks")
-
     # Get the number of blocks
     nblocks <- .apply_raster_blocks_estimate(
         nbands = nbands,
@@ -434,9 +465,6 @@ sits_apply.raster_cube <- function(data, ...,
                                           sub_image,
                                           memsize,
                                           multicores) {
-
-    # Define function to show in case of error
-    .check_set_caller(".apply_raster_blocks_estimate")
 
     # Number of bytes per pixel
     nbytes <- 8
