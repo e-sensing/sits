@@ -4,14 +4,21 @@
 \alias{sits_uncertainty_sampling}
 \title{Suggest samples for enhancing classification accuracy}
 \usage{
-sits_uncertainty_sampling(cube, n = 100, min_dist_pixels = 10)
+sits_uncertainty_sampling(
+  uncert_cube,
+  n = 100,
+  min_uncert = 0.4,
+  sampling_window = 10
+)
 }
 \arguments{
-\item{cube}{A `sits` uncertainty cube. See `sits_uncertainty`.}
-
 \item{n}{Number of suggested points.}
 
-\item{min_dist_pixels}{Minimum distance among suggested points (in pixels).}
+\item{min_uncert}{Minimum uncertainty value to select a sample.}
+
+\item{sampling_window}{Window size for collecting points (in pixels).}
+
+\item{cube}{A `sits` uncertainty cube. See `sits_uncertainty`.}
 }
 \value{
 A `tibble` with longitude & latitude in WGS84 with locations
