@@ -45,6 +45,10 @@ ratio_probs <- function(mtx, n) {
     .Call(`_sits_ratio_probs`, mtx, n)
 }
 
+max_sampling <- function(data, band, img_nrow, img_ncol, window_size) {
+    .Call(`_sits_max_sampling`, data, band, img_nrow, img_ncol, window_size)
+}
+
 smooth_sg <- function(data, f_res, p, n) {
     .Call(`_sits_smooth_sg`, data, f_res, p, n)
 }
