@@ -289,7 +289,7 @@
                                data_type,
                                gdal_options,
                                overwrite, ...,
-                               missing_value = NULL) {
+                               missing_value = NA) {
 
     # check package
     pkg_class <- .raster_check_package()
@@ -407,6 +407,50 @@
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
+#' @param r_obj         Raster package object to be written
+#' @param file          File name to save cropped raster.
+#' @param format        GDAL file format string (e.g. GTiff)
+#' @param data_type     sits internal raster data type. One of "INT1U",
+#'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
+#' @param gdal_options  GDAL creation option string (e.g. COMPRESS=LZW)
+#' @param overwrite     logical indicating if file can be overwritten
+#' @param block         numeric vector with names "first_col", "ncols", "first_row",
+#'                      "nrows".
+#' @param missing_value A \code{integer} with image's missing value
+#'
+#' @note block starts at (1, 1)
+#'
+#' @return        Subset of a raster object as defined by either block
+#'                or bbox parameters
+.raster_crop <- function(r_obj,
+                         file,
+                         format,
+                         data_type,
+                         gdal_options,
+                         overwrite,
+                         block,
+                         missing_value = NA) {
+
+    # pre-condition
+    .check_null(
+        x = block,
+        msg = "invalid 'block' parameter"
+    )
+
+    # check block
+    .raster_check_block(block = block)
+
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_crop", pkg_class)
+}
+
+#' @title Raster package internal crop raster function
+#' @name .raster_crop_metadata
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
 #' @param r_obj   raster package object to be written
 #' @param block   numeric vector with names "first_col", "ncols", "first_row",
 #'                "nrows".
@@ -417,7 +461,7 @@
 #'
 #' @return        Subset of a raster object as defined by either block
 #'                or bbox parameters
-.raster_crop <- function(r_obj, ..., block = NULL, bbox = NULL) {
+.raster_crop_metadata <- function(r_obj, ..., block = NULL, bbox = NULL) {
 
     # pre-condition
     .check_that(
@@ -439,7 +483,7 @@
     # check package
     pkg_class <- .raster_check_package()
 
-    UseMethod(".raster_crop", pkg_class)
+    UseMethod(".raster_crop_metadata", pkg_class)
 }
 
 #' @title Raster package internal object properties
@@ -562,7 +606,10 @@
             ymax = .raster_ymax(r_obj)
         )
     } else {
-        r_crop <- .raster_crop(.raster_rast(r_obj = r_obj), block = block)
+        r_crop <- .raster_crop_metadata(
+            .raster_rast(r_obj = r_obj),
+            block = block
+        )
         bbox <- .raster_bbox(r_crop)
     }
 
