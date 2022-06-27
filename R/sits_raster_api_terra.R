@@ -239,9 +239,60 @@
 
 #' @keywords internal
 #' @export
-.raster_crop.terra <- function(r_obj, ...,
-                               block = NULL,
-                               bbox = NULL) {
+.raster_crop.terra <- function(r_obj,
+                               file,
+                               format,
+                               data_type,
+                               gdal_options,
+                               overwrite,
+                               block,
+                               missing_value = NA) {
+
+    # obtain coordinates from columns and rows
+    # get extent
+    xmin <- terra::xFromCol(
+        object = r_obj,
+        col    = block[["first_col"]]
+    )
+    xmax <- terra::xFromCol(
+        object = r_obj,
+        col    = block[["first_col"]] + block[["ncols"]] - 1
+    )
+    ymax <- terra::yFromRow(
+        object = r_obj,
+        row    = block[["first_row"]]
+    )
+    ymin <- terra::yFromRow(
+        object = r_obj,
+        row    = block[["first_row"]] + block[["nrows"]] - 1
+    )
+
+    # xmin, xmax, ymin, ymax
+    extent <- terra::ext(x = c(xmin, xmax, ymin, ymax))
+
+    # crop raster
+    suppressWarnings(
+        terra::crop(
+            x = r_obj,
+            y = extent,
+            snap = "out",
+            filename = file,
+            wopt = list(
+                filetype = format,
+                datatype = data_type,
+                gdal = gdal_options
+            ),
+            NAflag = missing_value,
+            overwrite = overwrite
+        )
+    )
+}
+
+#' @keywords internal
+#' @export
+.raster_crop_metadata.terra <- function(r_obj, ...,
+                                        block = NULL,
+                                        bbox = NULL) {
 
     # obtain coordinates from columns and rows
     if (!is.null(block)) {
