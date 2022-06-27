@@ -1,33 +1,90 @@
-#' @title Return a sits_tibble as a point sf object.
+#' @title Return a sits_tibble or sits_cube as an sf object.
 #' @name sits_as_sf
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
-#' @description Return a sits_tibble as a sf object of point geometry.
+#' @description Return a sits_tibble or sits_cube as an sf object.
 #'
-#' @param samples A sits tibble with one or more time series.
-#' @return        An sf object of point geometry.
+#' @param samples A sits tibble or sits cube.
+#' @return        An sf object of point or polygon geometry.
 #' @examples
 #' if (sits_run_examples()) {
-#'    # convert sits tibble to sf object
+#'    # convert sits tibble to an sf object (point)
 #'    sf_object <- sits_as_sf(cerrado_2classes)
+#'
+#'    # convert sits cube to an sf object (polygon)
+#'    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'    cube <- sits_cube(
+#'        source = "BDC",
+#'        collection = "MOD13Q1-6",
+#'        data_dir = data_dir,
+#'        delim = "_",
+#'        parse_info = c("X1", "X2", "tile", "band", "date")
+#'    )
+#'    sf_objet <- sits_as_sf(cube)
 #'}
 #' @export
-sits_as_sf <- function(samples) {
+sits_as_sf <- function(data) {
+    UseMethod("sits_as_sf", data)
+}
+
+#' @export
+#' @rdname sits_as_sf
+sits_as_sf.sits <- function(data) {
     .check_chr_within(
         x = .config_get("df_sample_columns"),
-        within = colnames(samples),
+        within = colnames(data),
         msg = "data input is not valid"
     )
-
-    samples_sf <- sf::st_as_sf(samples,
+    samples_sf <- sf::st_as_sf(data,
         coords = c("longitude", "latitude"),
         crs = 4326,
         remove = FALSE
     )
-
     return(samples_sf)
 }
+
+#' @export
+#' @rdname sits_as_sf
+sits_as_sf.raster_cube <- function(data) {
+    stopifnot(inherits(data, "sits_cube"))
+    data %>%
+        dplyr::mutate(extent_wgs84 = purrr::pmap(
+            dplyr::select(., xmin, xmax, ymin, ymax, crs),
+            sits:::.sits_coords_to_bbox_wgs84
+        )) %>%
+        dplyr::mutate(sf_obj = purrr::map(
+            extent_wgs84,
+            function(x){
+                sf::st_sfc(
+                    sf::st_polygon(list(rbind(
+                        c(x["xmin"], x["ymin"]),
+                        c(x["xmin"], x["ymax"]),
+                        c(x["xmax"], x["ymax"]),
+                        c(x["xmax"], x["ymin"]),
+                        c(x["xmin"], x["ymin"])
+                   ))),
+                   crs = 4326
+               )
+           })
+        ) %>%
+        dplyr::select(-xmin, -xmax, -ymin, -ymax, -crs,
+                      -extent_wgs84) %>%
+        dplyr::rowwise() %>%
+        dplyr::group_split() %>%
+        purrr::map(function(x){
+            sf::st_sf(
+                dplyr::select(x, -sf_obj),
+                geom = magrittr::extract2(dplyr::pull(x, sf_obj), 1)
+            ) %>%
+            tibble::as_tibble() %>%
+            sf::st_as_sf() %>%
+            return()
+        }) %>%
+        do.call(rbind, .) %>%
+        return()
+}
+
 #' @title Transform an sf object into a samples file
 #' @name .sits_get_samples_from_sf
 #' @author Gilberto Camara
