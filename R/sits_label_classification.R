@@ -164,7 +164,24 @@ sits_label_classification <- function(cube,
             b <- .raster_open_rast(in_file)
 
             # crop adding overlaps
-            chunk <- .raster_crop(r_obj = b, block = block)
+            temp_chunk_file <- .create_chunk_file(
+                output_dir = output_dir,
+                pattern = "chunk_class_",
+                ext = ".tif"
+            )
+            chunk <- .raster_crop(
+                r_obj = b,
+                file = temp_chunk_file,
+                format = "GTiff",
+                data_type = .raster_data_type(
+                    .config_get("class_cube_data_type")
+                ),
+                gdal_options = .config_gtiff_default_options(),
+                overwrite = TRUE,
+                block = block
+            )
+            # Delete temp file
+            on.exit(unlink(temp_chunk_file), add = TRUE)
 
             # process it
             raster_out <- .do_map(chunk = chunk)
