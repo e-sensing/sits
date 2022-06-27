@@ -14,9 +14,9 @@ sits_uncertainty_sampling(cube, n = 100, min_dist_pixels = 10)
 \item{min_dist_pixels}{Minimum distance among suggested points (in pixels).}
 }
 \value{
-A data.frame with longitude & latitude in WGS84 with locations
-            which have high uncertainty and meet the minimum distance
-            criteria.
+A `tibble` with longitude & latitude in WGS84 with locations
+which have high uncertainty and meet the minimum distance
+criteria.
 }
 \description{
 Suggest samples for regions of high uncertainty as predicted by the model.
@@ -53,10 +53,8 @@ if (sits_run_examples()) {
     rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
     # classify the cube
     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
-    # run a Bayesian smoothing
-    bayes_cube <- sits_smooth(probs_cube)
     # create an uncertainty cube
-    uncert_cube <- sits_uncertainty(bayes_cube)
+    uncert_cube <- sits_uncertainty(probs_cube)
     # obtain a new set of samples for active learning
     # the samples are located in uncertain places
     new_samples <- sits_uncertainty_sampling(uncert_cube)
@@ -68,7 +66,7 @@ Robert Monarch, "Human-in-the-Loop Machine Learning: Active learning
 and annotation for human-centered AI". Manning Publications, 2021.
 }
 \author{
-Alber Sanchez, \email{alber.sanchez@inpe.br}
+Alber Sanchez, \email{alber.ipia@inpe.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 
