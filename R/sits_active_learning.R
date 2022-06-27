@@ -116,7 +116,10 @@ sits_uncertainty_sampling <- function(cube,
 
     # Slice result samples
     result_tb <- samples_tb %>%
-        dplyr::slice_max(order_by = .data[["value"]], n = n) %>%
+        dplyr::slice_max(
+            order_by = .data[["value"]], n = n,
+            with_ties = FALSE
+        ) %>%
         dplyr::select(-.data[["value"]])
 
     # Warn if it cannot suggest all required samples
@@ -268,14 +271,27 @@ sits_confidence_sampling <- function(probs_cube,
 
     # Slice result samples
     result_tb <- samples_tb %>%
-        dplyr::slice_max(order_by = .data[["value"]], n = n) %>%
+        dplyr::group_by(.data[["label"]]) %>%
+        dplyr::slice_max(
+            order_by = .data[["value"]], n = n,
+            with_ties = FALSE
+        ) %>%
+        dplyr::ungroup() %>%
         dplyr::select(-.data[["value"]])
 
     # Warn if it cannot suggest all required samples
-    if (nrow(result_tb) < n)
-        warning(paste("Unable to suggest", n, "samples.",
-                      "Try an smaller min_dist_pixels or an",
-                      "larger min_margin parameter."), call. = FALSE)
+    incomplete_labels <- result_tb %>%
+        dplyr::count(.data[["label"]]) %>%
+        dplyr::filter(.data[["n"]] < !!n) %>%
+        dplyr::pull(.data[["label"]])
+
+    if (length(incomplete_labels) > 0)
+        warning(sprintf(
+            paste("Unable to suggest %s samples for labels %s.",
+                  "Try an smaller min_dist_pixels or an",
+                  "smaller min_margin parameter."),
+            n, paste0("'", incomplete_labels, "'", collapse = ", ")
+        ), call. = FALSE)
 
     return(result_tb)
 }
@@ -321,7 +337,11 @@ sits_confidence_sampling <- function(probs_cube,
             img_ncol = terra::ncol(r_obj),
             window_size = min_dist_pixels
         ) %>%
-        dplyr::slice_max(.data[["value"]], n = n)
+        dplyr::slice_max(
+            .data[["value"]],
+            n = n,
+            with_ties = FALSE
+        )
 
     # Get the values' positions.
     result_tb <- r_obj %>%
