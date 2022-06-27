@@ -28,7 +28,8 @@
 #'
 #' @param cube            A `sits` uncertainty cube. See `sits_uncertainty`.
 #' @param n               Number of suggested points.
-#' @param min_dist_pixels Minimum distance among suggested points (in pixels).
+#' @param min_uncert      Minimum uncertainty value to select a sample.
+#' @param sampling_window Window size for collecting points (in pixels).
 #'
 #' @return
 #' A `tibble` with longitude & latitude in WGS84 with locations
@@ -65,15 +66,16 @@
 #'
 #' @export
 #'
-sits_uncertainty_sampling <- function(cube,
+sits_uncertainty_sampling <- function(uncert_cube,
                                       n = 100,
-                                      min_dist_pixels = 10) {
+                                      min_uncert = 0.4,
+                                      sampling_window = 10) {
 
     .check_set_caller("sits_uncertainty_sampling")
 
     # Pre-conditions
     .check_that(
-        x = inherits(cube, what = "uncertainty_cube"),
+        x = inherits(uncert_cube, what = "uncertainty_cube"),
         local_msg = "please run sits_uncertainty() first",
         msg = "input cube is not an uncertainty cube"
     )
@@ -85,22 +87,29 @@ sits_uncertainty_sampling <- function(cube,
         msg = "invalid n parameter"
     )
     .check_num(
-        x = min_dist_pixels,
+        x = sampling_window,
         min = 1,
         len_min = 1,
         len_max = 1,
-        msg = "invalid min_dist_pixels parameter"
+        msg = "invalid sampling_window parameter"
     )
 
     # Slide on cube tiles
-    samples_tb <- slider::slide_dfr(cube, function(tile) {
+    samples_tb <- slider::slide_dfr(uncert_cube, function(tile) {
         path <- .file_info_path(tile)
         # Get a list of values of high uncertainty
         top_values <- .raster_open_rast(path) %>%
             .get_top_values(
                 band = 1,
                 n = n,
-                min_dist_pixels = min_dist_pixels
+                sampling_window = sampling_window
+            ) %>%
+            dplyr::mutate(
+                value = .data[["value"]] *
+                    .config_get("probs_cube_scale_factor")
+            ) %>%
+            dplyr::filter(
+                .data[["value"]] >= min_uncert
             ) %>%
             dplyr::select(dplyr::matches(
                 c("longitude", "latitude", "value")
@@ -120,13 +129,21 @@ sits_uncertainty_sampling <- function(cube,
             order_by = .data[["value"]], n = n,
             with_ties = FALSE
         ) %>%
-        dplyr::select(-.data[["value"]])
+        dplyr::transmute(
+            longitude = .data[["longitude"]],
+            latitude = .data[["latitude"]],
+            start_date = .data[["start_date"]],
+            end_date = .data[["end_date"]],
+            label = .data[["label"]],
+            uncertainty = .data[["value"]]
+        )
 
     # Warn if it cannot suggest all required samples
     if (nrow(result_tb) < n)
         warning(paste("Unable to suggest", n, "samples.",
-                      "Try an smaller min_dist_pixels parameter."))
+                      "Try a smaller sampling_window parameter."))
 
+    class(result_tb) <- c("sits_uncertainty", class(result_tb))
     return(result_tb)
 }
 
@@ -165,7 +182,7 @@ sits_uncertainty_sampling <- function(cube,
 #' @param probs_cube      A `sits` probability cube. See `sits_classify`.
 #' @param n               Number of suggested points per class.
 #' @param min_margin      Minimum margin of confidence to select a sample
-#' @param min_dist_pixels Minimum distance among suggested points (in pixels).
+#' @param sampling_window Window size for collecting points (in pixels).
 #'
 #' @return
 #' A `tibble` with longitude & latitude in WGS84 with locations
@@ -197,7 +214,7 @@ sits_uncertainty_sampling <- function(cube,
 sits_confidence_sampling <- function(probs_cube,
                                      n = 20,
                                      min_margin = .90,
-                                     min_dist_pixels = 10) {
+                                     sampling_window = 10) {
 
     .check_set_caller("sits_confidence_sampling")
 
@@ -223,11 +240,11 @@ sits_confidence_sampling <- function(probs_cube,
         msg = "invalid min_margin parameter"
     )
     .check_num(
-        x = min_dist_pixels,
+        x = sampling_window,
         min = 0,
         len_min = 1,
         len_max = 1,
-        msg = "invalid min_dist_pixels parameter"
+        msg = "invalid sampling_window parameter"
     )
     # get labels
     labels <- sits_labels(probs_cube)
@@ -245,7 +262,7 @@ sits_confidence_sampling <- function(probs_cube,
                 .get_top_values(
                     band = i,
                     n = n,
-                    min_dist_pixels = min_dist_pixels
+                    sampling_window = sampling_window
                 ) %>%
                 dplyr::mutate(
                     value = .data[["value"]] *
@@ -277,7 +294,14 @@ sits_confidence_sampling <- function(probs_cube,
             with_ties = FALSE
         ) %>%
         dplyr::ungroup() %>%
-        dplyr::select(-.data[["value"]])
+        dplyr::transmute(
+            longitude = .data[["longitude"]],
+            latitude = .data[["latitude"]],
+            start_date = .data[["start_date"]],
+            end_date = .data[["end_date"]],
+            label = .data[["label"]],
+            confidence = .data[["value"]]
+        )
 
     # Warn if it cannot suggest all required samples
     incomplete_labels <- result_tb %>%
@@ -287,12 +311,13 @@ sits_confidence_sampling <- function(probs_cube,
 
     if (length(incomplete_labels) > 0)
         warning(sprintf(
-            paste("Unable to suggest %s samples for labels %s.",
-                  "Try an smaller min_dist_pixels or an",
+            paste("Unable to suggest %s samples for label(s) %s.",
+                  "Try a smaller sampling_window or a",
                   "smaller min_margin parameter."),
             n, paste0("'", incomplete_labels, "'", collapse = ", ")
         ), call. = FALSE)
 
+    class(result_tb) <- c("sits_confidence", class(result_tb))
     return(result_tb)
 }
 
@@ -304,13 +329,13 @@ sits_confidence_sampling <- function(probs_cube,
 #' Get the top values of a raster as a point `sf` object. The values
 #' locations are guaranteed to be separated by a certain number of pixels.
 #'
-#' @param raster          A `terra` raster object.
+#' @param raster          A raster object.
 #' @param n               Number of values to extract.
-#' @param min_dist_pixels Minimum distance among values (in pixels).
+#' @param sampling_window Window size to collect a point (in pixels).
 #'
 #' @return                A point `tibble` object.
 #'
-.get_top_values <- function(r_obj, band, n, min_dist_pixels) {
+.get_top_values <- function(r_obj, band, n, sampling_window) {
 
     # Pre-conditions
     .check_num(
@@ -322,11 +347,11 @@ sits_confidence_sampling <- function(probs_cube,
         msg = "invalid band parameter"
     )
     .check_num(
-        x = min_dist_pixels,
+        x = sampling_window,
         min = 1,
         len_min = 1,
         len_max = 1,
-        msg = "invalid min_dist_pixels parameter"
+        msg = "invalid sampling_window parameter"
     )
 
     # Get top values
@@ -335,7 +360,7 @@ sits_confidence_sampling <- function(probs_cube,
             band = band - 1,
             img_nrow = terra::nrow(r_obj),
             img_ncol = terra::ncol(r_obj),
-            window_size = min_dist_pixels
+            window_size = sampling_window
         ) %>%
         dplyr::slice_max(
             .data[["value"]],

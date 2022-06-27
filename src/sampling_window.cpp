@@ -17,8 +17,8 @@ DataFrame max_sampling(const IntegerMatrix& data,
         return DataFrame::create(_["cell"] = res_cell, _["value"] = res_value);
 
     // compute values for each pixel
-    for (int i = 0; i < img_nrow; i += 2 * window_size) {
-        for (int j = 0; j < img_ncol; j += 2 * window_size) {
+    for (int i = 0; i < img_nrow; i += window_size) {
+        for (int j = 0; j < img_ncol; j += window_size) {
             int max_wi = std::min(img_nrow, i + window_size);
             int max_wj = std::min(img_ncol, j + window_size);
             int cell = 0;
