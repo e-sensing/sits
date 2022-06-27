@@ -4,14 +4,14 @@
 \alias{.get_top_values}
 \title{Get top values of a raster.}
 \usage{
-.get_top_values(r_obj, band, n, min_dist_pixels)
+.get_top_values(r_obj, band, n, sampling_window)
 }
 \arguments{
 \item{n}{Number of values to extract.}
 
-\item{min_dist_pixels}{Minimum distance among values (in pixels).}
+\item{sampling_window}{Window size to collect a point (in pixels).}
 
-\item{raster}{A `terra` raster object.}
+\item{raster}{A raster object.}
 }
 \value{
 A point `tibble` object.
