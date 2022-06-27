@@ -100,9 +100,31 @@ test_that("Apply", {
 })
 
 
-test_that("samples_as_sf works", {
+test_that("samples_as_sf works (point)", {
     samples_tb <- cerrado_2classes
     samples_sf <- sits_as_sf(samples_tb)
 
     expect_true(inherits(samples_sf, "sf"))
+    expect_equal(
+        as.character(unique(sf::st_geometry_type(samples_sf))),
+        "POINT"
+    )
+})
+
+test_that("samples_as_sf works (polygon)", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+    cube_sf <- sits_as_sf(cube)
+
+    expect_true(inherits(cube_sf, "sf"))
+    expect_equal(
+        as.character(unique(sf::st_geometry_type(cube_sf))),
+        "POLYGON"
+    )
 })
