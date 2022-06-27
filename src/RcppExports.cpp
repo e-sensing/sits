@@ -154,6 +154,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// max_sampling
+DataFrame max_sampling(const IntegerMatrix& data, const int band, const int img_nrow, const int img_ncol, const int window_size);
+RcppExport SEXP _sits_max_sampling(SEXP dataSEXP, SEXP bandSEXP, SEXP img_nrowSEXP, SEXP img_ncolSEXP, SEXP window_sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const int >::type band(bandSEXP);
+    Rcpp::traits::input_parameter< const int >::type img_nrow(img_nrowSEXP);
+    Rcpp::traits::input_parameter< const int >::type img_ncol(img_ncolSEXP);
+    Rcpp::traits::input_parameter< const int >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(max_sampling(data, band, img_nrow, img_ncol, window_size));
+    return rcpp_result_gen;
+END_RCPP
+}
 // smooth_sg
 arma::vec smooth_sg(const arma::vec& data, const arma::mat& f_res, const int& p, const int& n);
 RcppExport SEXP _sits_smooth_sg(SEXP dataSEXP, SEXP f_resSEXP, SEXP pSEXP, SEXP nSEXP) {
@@ -221,6 +236,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_nnls_solver", (DL_FUNC) &_sits_nnls_solver, 4},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
     {"_sits_ratio_probs", (DL_FUNC) &_sits_ratio_probs, 2},
+    {"_sits_max_sampling", (DL_FUNC) &_sits_max_sampling, 5},
     {"_sits_smooth_sg", (DL_FUNC) &_sits_smooth_sg, 4},
     {"_sits_smooth_sg_mtx", (DL_FUNC) &_sits_smooth_sg_mtx, 4},
     {"_sits_smooth_whit", (DL_FUNC) &_sits_smooth_whit, 3},
