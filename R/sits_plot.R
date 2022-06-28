@@ -1076,9 +1076,9 @@ plot.xbg_model <- function(x, ..., n_trees = 3){
     # verifies if DiagrammeR package is installed
     .check_require_packages("DiagrammeR")
     # retrieve the XGB object from the enviroment
-    xgb <- environment(xgb_model)$model_xgb
+    xgb <- environment(x)$model_xgb
     # plot the trees
-    p <- xgboost::xgb.plot.tree(model = xgb, trees = 0:(ntrees - 1))
+    p <- xgboost::xgb.plot.tree(model = xgb, trees = seq_len(n_trees) - 1)
     return(p)
 }
 #' @title  Plot Torch (deep learning) model
