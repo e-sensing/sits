@@ -52,11 +52,17 @@ sits_as_sf.raster_cube <- function(data, ...) {
     stopifnot(inherits(data, "sits_cube"))
     data %>%
         dplyr::mutate(extent_wgs84 = purrr::pmap(
-            dplyr::select(., xmin, xmax, ymin, ymax, crs),
+            dplyr::select(
+                .data[["xmin"]],
+                .data[["xmax"]],
+                .data[["ymin"]],
+                .data[["ymax"]],
+                .data[["crs"]]
+            ),
             .sits_coords_to_bbox_wgs84
         )) %>%
         dplyr::mutate(sf_obj = purrr::map(
-            extent_wgs84,
+            .data[["extent_wgs84"]],
             function(x){
                 sf::st_sfc(
                     sf::st_polygon(list(rbind(
@@ -70,14 +76,20 @@ sits_as_sf.raster_cube <- function(data, ...) {
                )
            })
         ) %>%
-        dplyr::select(-xmin, -xmax, -ymin, -ymax, -crs,
-                      -extent_wgs84) %>%
+        dplyr::select(
+            -.data[["xmin"]],
+            -.data[["xmax"]],
+            -.data[["ymin"]],
+            -.data[["ymax"]],
+            -.data[["crs"]],
+            -.data[["extent_wgs84"]]
+        ) %>%
         dplyr::rowwise() %>%
         dplyr::group_split() %>%
         purrr::map(function(x){
             sf::st_sf(
-                dplyr::select(x, -sf_obj),
-                geom = magrittr::extract2(dplyr::pull(x, sf_obj), 1)
+                dplyr::select(x, -.data[["sf_obj"]]),
+                geom = magrittr::extract2(dplyr::pull(x, .data[["sf_obj"]]), 1)
             ) %>%
             tibble::as_tibble() %>%
             sf::st_as_sf() %>%
