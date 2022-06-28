@@ -5,8 +5,8 @@
 #'
 #' @description Return a sits_tibble or sits_cube as an sf object.
 #'
-#' @param samples A sits tibble or sits cube.
-#' @return        An sf object of point or polygon geometry.
+#' @param data   A sits tibble or sits cube.
+#' @return       An sf object of point or polygon geometry.
 #' @examples
 #' if (sits_run_examples()) {
 #'    # convert sits tibble to an sf object (point)
@@ -51,7 +51,7 @@ sits_as_sf.raster_cube <- function(data) {
     data %>%
         dplyr::mutate(extent_wgs84 = purrr::pmap(
             dplyr::select(., xmin, xmax, ymin, ymax, crs),
-            sits:::.sits_coords_to_bbox_wgs84
+            .sits_coords_to_bbox_wgs84
         )) %>%
         dplyr::mutate(sf_obj = purrr::map(
             extent_wgs84,

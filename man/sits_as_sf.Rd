@@ -13,7 +13,7 @@ sits_as_sf(data)
 \method{sits_as_sf}{raster_cube}(data)
 }
 \arguments{
-\item{samples}{A sits tibble or sits cube.}
+\item{data}{A sits tibble or sits cube.}
 }
 \value{
 An sf object of point or polygon geometry.
