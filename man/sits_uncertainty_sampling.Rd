@@ -18,7 +18,8 @@ sits_uncertainty_sampling(
 
 \item{min_uncert}{Minimum uncertainty value to select a sample.}
 
-\item{sampling_window}{Window size for collecting points (in pixels).}
+\item{sampling_window}{Window size for collecting points (in pixels).
+The minimum window size is 10.}
 }
 \value{
 A `tibble` with longitude & latitude in WGS84 with locations

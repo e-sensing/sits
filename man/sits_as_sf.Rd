@@ -6,14 +6,16 @@
 \alias{sits_as_sf.raster_cube}
 \title{Return a sits_tibble or sits_cube as an sf object.}
 \usage{
-sits_as_sf(data)
+sits_as_sf(data, ..., crs)
 
-\method{sits_as_sf}{sits}(data)
+\method{sits_as_sf}{sits}(data, ..., crs = 4326)
 
-\method{sits_as_sf}{raster_cube}(data)
+\method{sits_as_sf}{raster_cube}(data, ...)
 }
 \arguments{
 \item{data}{A sits tibble or sits cube.}
+
+\item{crs}{A coordinate reference system of samples.}
 }
 \value{
 An sf object of point or polygon geometry.

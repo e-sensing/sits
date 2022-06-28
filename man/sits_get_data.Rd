@@ -18,6 +18,7 @@ sits_get_data(
   end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
   label = "NoClass",
   bands = sits_bands(cube),
+  crs = 4326,
   impute_fn = sits_impute_linear(),
   label_attr = NULL,
   n_sam_pol = 30,
@@ -35,6 +36,7 @@ sits_get_data(
   samples,
   ...,
   bands = sits_bands(cube),
+  crs = 4326,
   impute_fn = sits_impute_linear(),
   multicores = 4,
   output_dir = ".",
@@ -96,6 +98,7 @@ sits_get_data(
   end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
   label = "NoClass",
   bands = sits_bands(cube),
+  crs = 4326,
   impute_fn = sits_impute_linear(),
   multicores = 4,
   output_dir = ".",
@@ -118,6 +121,13 @@ in "YYYY-MM-DD" format (optional).}
 \item{label}{Label to be assigned to the time series (optional).}
 
 \item{bands}{Bands to be retrieved (optional).}
+
+\item{crs}{A coordinate reference system of samples.
+The provided crs could be a character
+(e.g, "EPSG:4326" or "WGS84" or a proj4string), or a
+a numeric with the EPSG code (e.g. 4326).
+This parameter only works for 'csv' or data.frame'
+samples. Default is 4326.}
 
 \item{impute_fn}{Imputation function for NA values.}
 
