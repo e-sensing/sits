@@ -605,7 +605,7 @@ sits_view.classified_image <- function(x, ...,
         fi <- .file_info(tile)
         return(max(fi[["nrows"]]))
     }))
-    ncols_merge <- sum(slider::slide_dbl(cube_tiles, function(tile) {
+    ncols_merge <- sum(slider::slide_dbl(cube, function(tile) {
         # retrieve the file info for the tile
         fi <- .file_info(tile)
         return(max(fi[["ncols"]]))
