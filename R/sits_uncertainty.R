@@ -249,12 +249,29 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
             b <- .raster_open_rast(in_file)
 
             # crop adding overlaps
-            chunk <- .raster_crop(r_obj = b, block = block)
+            temp_chunk_file <- .create_chunk_file(
+                output_dir = output_dir,
+                pattern = "chunk_entrop_overlap_",
+                ext = ".tif"
+            )
+            chunk <- .raster_crop(
+                r_obj = b,
+                file = temp_chunk_file,
+                format = "GTiff",
+                data_type = .raster_data_type(
+                    .config_get("probs_cube_data_type")
+                ),
+                gdal_options = .config_gtiff_default_options(),
+                overwrite = TRUE,
+                block = block
+            )
+            # Delete temp file
+            on.exit(unlink(temp_chunk_file), add = TRUE)
 
             # process it
             raster_out <- .do_entropy(chunk = chunk)
 
-            # create extent
+            # Create extent
             blk_no_overlap <- list(
                 first_row = block$crop_first_row,
                 nrows = block$crop_nrows,
@@ -262,18 +279,15 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
                 ncols = block$crop_ncols
             )
 
-            # crop removing overlaps
-            raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
-
-            # export to temp file
             block_file <- .smth_filename(
                 tile = tile_new,
                 output_dir = output_dir,
                 block = block
             )
 
-            # save chunk
-            .raster_write_rast(
+            # Save chunk
+            # Crop removing overlaps
+            .raster_crop(
                 r_obj = raster_out,
                 file = block_file,
                 format = "GTiff",
@@ -281,7 +295,8 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
                     .config_get("probs_cube_data_type")
                 ),
                 gdal_options = .config_gtiff_default_options(),
-                overwrite = TRUE
+                overwrite = TRUE,
+                block = blk_no_overlap
             )
 
             return(block_file)
@@ -519,7 +534,24 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
             b <- .raster_open_rast(in_file)
 
             # crop adding overlaps
-            chunk <- .raster_crop(r_obj = b, block = block)
+            temp_chunk_file <- .create_chunk_file(
+                output_dir = output_dir,
+                pattern = "chunk_least_overlap_",
+                ext = ".tif"
+            )
+            chunk <- .raster_crop(
+                r_obj = b,
+                file = temp_chunk_file,
+                format = "GTiff",
+                data_type = .raster_data_type(
+                    .config_get("probs_cube_data_type")
+                ),
+                gdal_options = .config_gtiff_default_options(),
+                overwrite = TRUE,
+                block = block
+            )
+            # Delete temp file
+            on.exit(unlink(temp_chunk_file), add = TRUE)
 
             # process it
             raster_out <- .do_least(chunk = chunk)
@@ -532,18 +564,15 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
                 ncols = block$crop_ncols
             )
 
-            # crop removing overlaps
-            raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
-
-            # export to temp file
             block_file <- .smth_filename(
                 tile = tile_new,
                 output_dir = output_dir,
                 block = block
             )
 
-            # save chunk
-            .raster_write_rast(
+            # Save chunk
+            # Crop removing overlaps
+            .raster_crop(
                 r_obj = raster_out,
                 file = block_file,
                 format = "GTiff",
@@ -551,7 +580,8 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
                     .config_get("probs_cube_data_type")
                 ),
                 gdal_options = .config_gtiff_default_options(),
-                overwrite = TRUE
+                overwrite = TRUE,
+                block = blk_no_overlap
             )
 
             return(block_file)
@@ -789,7 +819,24 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
             b <- .raster_open_rast(in_file)
 
             # crop adding overlaps
-            chunk <- .raster_crop(r_obj = b, block = block)
+            temp_chunk_file <- .create_chunk_file(
+                output_dir = output_dir,
+                pattern = "chunk_margin_overlap_",
+                ext = ".tif"
+            )
+            chunk <- .raster_crop(
+                r_obj = b,
+                file = temp_chunk_file,
+                format = "GTiff",
+                data_type = .raster_data_type(
+                    .config_get("probs_cube_data_type")
+                ),
+                gdal_options = .config_gtiff_default_options(),
+                overwrite = TRUE,
+                block = block
+            )
+            # Delete temp file
+            on.exit(unlink(temp_chunk_file), add = TRUE)
 
             # process it
             raster_out <- .do_margin(chunk = chunk)
@@ -802,18 +849,15 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
                 ncols = block$crop_ncols
             )
 
-            # crop removing overlaps
-            raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
-
-            # export to temp file
             block_file <- .smth_filename(
                 tile = tile_new,
                 output_dir = output_dir,
                 block = block
             )
 
-            # save chunk
-            .raster_write_rast(
+            # Save chunk
+            # Crop removing overlaps
+            .raster_crop(
                 r_obj = raster_out,
                 file = block_file,
                 format = "GTiff",
@@ -821,7 +865,8 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
                     .config_get("probs_cube_data_type")
                 ),
                 gdal_options = .config_gtiff_default_options(),
-                overwrite = TRUE
+                overwrite = TRUE,
+                block = blk_no_overlap
             )
 
             return(block_file)
@@ -1059,7 +1104,24 @@ sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
             b <- .raster_open_rast(in_file)
 
             # crop adding overlaps
-            chunk <- .raster_crop(r_obj = b, block = block)
+            temp_chunk_file <- .create_chunk_file(
+                output_dir = output_dir,
+                pattern = "chunk_ratio_overlap_",
+                ext = ".tif"
+            )
+            chunk <- .raster_crop(
+                r_obj = b,
+                file = temp_chunk_file,
+                format = "GTiff",
+                data_type = .raster_data_type(
+                    .config_get("probs_cube_data_type")
+                ),
+                gdal_options = .config_gtiff_default_options(),
+                overwrite = TRUE,
+                block = block
+            )
+            # Delete temp file
+            on.exit(unlink(temp_chunk_file), add = TRUE)
 
             # process it
             raster_out <- .do_ratio(chunk = chunk)
@@ -1072,18 +1134,15 @@ sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
                 ncols = block$crop_ncols
             )
 
-            # crop removing overlaps
-            raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
-
-            # export to temp file
             block_file <- .smth_filename(
                 tile = tile_new,
                 output_dir = output_dir,
                 block = block
             )
 
-            # save chunk
-            .raster_write_rast(
+            # Save chunk
+            # Crop removing overlaps
+            .raster_crop(
                 r_obj = raster_out,
                 file = block_file,
                 format = "GTiff",
@@ -1091,7 +1150,8 @@ sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
                     .config_get("probs_cube_data_type")
                 ),
                 gdal_options = .config_gtiff_default_options(),
-                overwrite = TRUE
+                overwrite = TRUE,
+                block = blk_no_overlap
             )
 
             return(block_file)

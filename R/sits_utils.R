@@ -53,6 +53,38 @@
     return(filenames)
 }
 
+#' @title Create chunk file
+#' @name .create_chunk_file
+#' @keywords internal
+#
+#' @description Create a temp file name.
+#'
+#' @param output_dir  A character with the output directory to be concatenated.
+#' @param pattern     File name pattern.
+#' @param ext         File extension.
+#'
+#' @return A character with the file name.
+.create_chunk_file <- function(output_dir,
+                               pattern,
+                               ext = ".tif") {
+
+    # Try create '.sits' directory in output_dir
+    path <- file.path(output_dir, ".sits")
+    if (!dir.exists(path))
+        dir.create(path)
+
+    # Pre-condition
+    .check_file(
+        x = path,
+        msg = "Cannot create '.sits' temp directory"
+    )
+
+    filename <- tempfile(tmpdir = path,
+                         pattern = pattern,
+                         fileext = ext)
+    return(filename)
+}
+
 #' @title Informs if sits tests should run
 #'
 #' @name sits_run_tests

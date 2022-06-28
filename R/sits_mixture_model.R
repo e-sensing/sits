@@ -352,7 +352,7 @@ sits_mixture_model <- function(cube,
 
 .mesma_get_data.csv <- function(endmembers, file_ext) {
 
-    read.csv(endmembers)
+    utils::read.csv(endmembers)
 }
 
 .mesma_get_data.shp <- function(endmembers, file_ext) {

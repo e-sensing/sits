@@ -4,17 +4,35 @@
 \alias{.raster_crop}
 \title{Raster package internal crop raster function}
 \usage{
-.raster_crop(r_obj, ..., block = NULL, bbox = NULL)
+.raster_crop(
+  r_obj,
+  file,
+  format,
+  data_type,
+  gdal_options,
+  overwrite,
+  block,
+  missing_value = NA
+)
 }
 \arguments{
-\item{r_obj}{raster package object to be written}
+\item{r_obj}{Raster package object to be written}
 
-\item{...}{additional parameters to be passed to raster package}
+\item{file}{File name to save cropped raster.}
+
+\item{format}{GDAL file format string (e.g. GTiff)}
+
+\item{data_type}{sits internal raster data type. One of "INT1U",
+"INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".}
+
+\item{gdal_options}{GDAL creation option string (e.g. COMPRESS=LZW)}
+
+\item{overwrite}{logical indicating if file can be overwritten}
 
 \item{block}{numeric vector with names "first_col", "ncols", "first_row",
 "nrows".}
 
-\item{bbox}{numeric vector with names "xmin", "xmax", "ymin", "ymax".}
+\item{missing_value}{A \code{integer} with image's missing value}
 }
 \value{
 Subset of a raster object as defined by either block

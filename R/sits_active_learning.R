@@ -26,7 +26,7 @@
 #' and thus increase the likelihood that the resulting pixels with high
 #' uncertainty have meaningful information.
 #'
-#' @param cube            A `sits` uncertainty cube. See `sits_uncertainty`.
+#' @param uncert_cube     A `sits` uncertainty cube. See `sits_uncertainty`.
 #' @param n               Number of suggested points.
 #' @param min_uncert      Minimum uncertainty value to select a sample.
 #' @param sampling_window Window size for collecting points (in pixels).
@@ -99,7 +99,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
         path <- .file_info_path(tile)
         # Get a list of values of high uncertainty
         top_values <- .raster_open_rast(path) %>%
-            .get_top_values(
+            .sits_get_top_values(
                 band = 1,
                 n = n,
                 sampling_window = sampling_window
@@ -259,7 +259,7 @@ sits_confidence_sampling <- function(probs_cube,
 
             # Get a list of values of high confidence & apply threshold
             top_values <- r_obj %>%
-                .get_top_values(
+                .sits_get_top_values(
                     band = i,
                     n = n,
                     sampling_window = sampling_window
@@ -329,13 +329,17 @@ sits_confidence_sampling <- function(probs_cube,
 #' Get the top values of a raster as a point `sf` object. The values
 #' locations are guaranteed to be separated by a certain number of pixels.
 #'
-#' @param raster          A raster object.
+#' @param r_obj           A raster object.
+#' @param band            A numeric band index used to read bricks.
 #' @param n               Number of values to extract.
 #' @param sampling_window Window size to collect a point (in pixels).
 #'
 #' @return                A point `tibble` object.
 #'
-.get_top_values <- function(r_obj, band, n, sampling_window) {
+.sits_get_top_values <- function(r_obj,
+                                 band,
+                                 n,
+                                 sampling_window) {
 
     # Pre-conditions
     .check_num(
