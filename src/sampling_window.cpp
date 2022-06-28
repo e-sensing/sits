@@ -21,20 +21,18 @@ DataFrame max_sampling(const IntegerMatrix& data,
         for (int j = 0; j < img_ncol; j += window_size) {
             int max_wi = std::min(img_nrow, i + window_size);
             int max_wj = std::min(img_ncol, j + window_size);
-            int cell = 0;
-            int max_value = data(i * img_ncol + j, band);
-            for (int wi = i; wi < max_wi; wi++) {
-                for (int wj = j; wj < max_wj; wj++) {
+            int cell = i * img_ncol + j;
+            int max_value = data(cell, band);
+            for (int wi = i; wi < max_wi; ++wi) {
+                for (int wj = j; wj < max_wj; ++wj) {
                     if (data(wi * img_ncol + wj, band) > max_value) {
-                        max_value = data(wi * img_ncol + wj, band);
                         cell = wi * img_ncol + wj;
+                        max_value = data(cell, band);
                     }
                 }
             }
-            if (cell > 0) {
-                res_cell.push_back(cell);
-                res_value.push_back(max_value);
-            }
+            res_cell.push_back(cell);
+            res_value.push_back(max_value);
         }
     }
 

@@ -22,6 +22,7 @@ services}
   samples,
   ...,
   bands,
+  crs = 4326,
   impute_fn,
   multicores,
   output_dir,
@@ -41,6 +42,13 @@ services}
 
 \item{progress}{A logical value indicating if a progress bar
 should be shown. Default is \code{FALSE}.}
+
+\item{crs}{A coordinate reference system of samples.
+The provided crs could be a character
+(e.g, "EPSG:4326" or "WGS84" or a proj4string), or a
+a numeric with the EPSG code (e.g. 4326).
+This parameter only works for 'csv' or data.frame'
+samples. Default is 4326.}
 }
 \value{
 A tibble with a set of time series retrieved

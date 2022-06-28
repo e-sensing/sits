@@ -30,6 +30,7 @@
 #' @param n               Number of suggested points.
 #' @param min_uncert      Minimum uncertainty value to select a sample.
 #' @param sampling_window Window size for collecting points (in pixels).
+#'                        The minimum window size is 10.
 #'
 #' @return
 #' A `tibble` with longitude & latitude in WGS84 with locations
@@ -88,7 +89,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
     )
     .check_num(
         x = sampling_window,
-        min = 1,
+        min = 10,
         len_min = 1,
         len_max = 1,
         msg = "invalid sampling_window parameter"
@@ -143,7 +144,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
         warning(paste("Unable to suggest", n, "samples.",
                       "Try a smaller sampling_window parameter."))
 
-    class(result_tb) <- c("sits_uncertainty", class(result_tb))
+    class(result_tb) <- c("sits_uncertainty", "sits", class(result_tb))
     return(result_tb)
 }
 
@@ -183,6 +184,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
 #' @param n               Number of suggested points per class.
 #' @param min_margin      Minimum margin of confidence to select a sample
 #' @param sampling_window Window size for collecting points (in pixels).
+#'                        The minimum window size is 10.
 #'
 #' @return
 #' A `tibble` with longitude & latitude in WGS84 with locations
@@ -241,7 +243,7 @@ sits_confidence_sampling <- function(probs_cube,
     )
     .check_num(
         x = sampling_window,
-        min = 0,
+        min = 10,
         len_min = 1,
         len_max = 1,
         msg = "invalid sampling_window parameter"
@@ -317,7 +319,7 @@ sits_confidence_sampling <- function(probs_cube,
             n, paste0("'", incomplete_labels, "'", collapse = ", ")
         ), call. = FALSE)
 
-    class(result_tb) <- c("sits_confidence", class(result_tb))
+    class(result_tb) <- c("sits_confidence", "sits", class(result_tb))
     return(result_tb)
 }
 

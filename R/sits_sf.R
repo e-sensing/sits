@@ -6,6 +6,7 @@
 #' @description Return a sits_tibble or sits_cube as an sf object.
 #'
 #' @param data   A sits tibble or sits cube.
+#' @param crs    A coordinate reference system of samples.
 #' @return       An sf object of point or polygon geometry.
 #' @examples
 #' if (sits_run_examples()) {
@@ -24,21 +25,22 @@
 #'    sf_objet <- sits_as_sf(cube)
 #'}
 #' @export
-sits_as_sf <- function(data) {
+sits_as_sf <- function(data, ..., crs) {
     UseMethod("sits_as_sf", data)
 }
 
 #' @export
 #' @rdname sits_as_sf
-sits_as_sf.sits <- function(data) {
+sits_as_sf.sits <- function(data, ..., crs = 4326) {
     .check_chr_within(
         x = .config_get("df_sample_columns"),
         within = colnames(data),
         msg = "data input is not valid"
     )
+
     samples_sf <- sf::st_as_sf(data,
         coords = c("longitude", "latitude"),
-        crs = 4326,
+        crs = crs,
         remove = FALSE
     )
     return(samples_sf)
@@ -46,7 +48,7 @@ sits_as_sf.sits <- function(data) {
 
 #' @export
 #' @rdname sits_as_sf
-sits_as_sf.raster_cube <- function(data) {
+sits_as_sf.raster_cube <- function(data, ...) {
     stopifnot(inherits(data, "sits_cube"))
     data %>%
         dplyr::mutate(extent_wgs84 = purrr::pmap(
@@ -132,6 +134,8 @@ sits_as_sf.raster_cube <- function(data) {
         start_date = as.Date(start_date),
         end_date = as.Date(end_date)
     )
+
+    class(samples) <- c("sits", class(samples))
 
     return(samples)
 }

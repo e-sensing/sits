@@ -7,11 +7,13 @@
 #'
 #' @param longitude       Longitude of the chosen location.
 #' @param latitude        Latitude of the chosen location.
-#' @param crs             Projection definition to be converted to.
+#' @param crs          Projection definition to be converted to.
 #' @return                Tibble with X and Y coordinates.
-.sits_proj_from_latlong <- function(longitude, latitude, crs) {
+.sits_proj_from_latlong <- function(longitude,
+                                    latitude,
+                                    crs) {
     t <- tibble::tibble(long = longitude, lat = latitude) %>%
-        sf::st_as_sf(coords = c("long", "lat"), crs = "EPSG:4326") %>%
+        sf::st_as_sf(coords = c("long", "lat"), crs = 4326) %>%
         sf::st_transform(crs = crs) %>%
         sf::st_coordinates() %>%
         tibble::as_tibble()
