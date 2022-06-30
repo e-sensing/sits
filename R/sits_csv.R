@@ -98,5 +98,7 @@ sits_to_csv <- function(data, file) {
         end_date = as.Date(.data[["end_date"]])
     )
 
+    class(samples) <- c("sits", class(samples))
+
     return(samples)
 }

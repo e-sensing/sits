@@ -8,7 +8,7 @@ sits_confidence_sampling(
   probs_cube,
   n = 20,
   min_margin = 0.9,
-  min_dist_pixels = 10
+  sampling_window = 10
 )
 }
 \arguments{
@@ -18,7 +18,8 @@ sits_confidence_sampling(
 
 \item{min_margin}{Minimum margin of confidence to select a sample}
 
-\item{min_dist_pixels}{Minimum distance among suggested points (in pixels).}
+\item{sampling_window}{Window size for collecting points (in pixels).
+The minimum window size is 10.}
 }
 \value{
 A `tibble` with longitude & latitude in WGS84 with locations

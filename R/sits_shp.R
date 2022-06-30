@@ -40,6 +40,8 @@
         end_date = as.Date(end_date)
     )
 
+    class(samples) <- c("sits", class(samples))
+
     return(samples)
 }
 
