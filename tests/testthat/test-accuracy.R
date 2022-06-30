@@ -12,7 +12,7 @@ test_that("conf_matrix -2 classes", {
     expect_true(acc$overall["Accuracy"] > 0.90)
     expect_true(acc$overall["Kappa"] > 0.90)
     p <- capture.output(sits_accuracy_summary(acc))
-    expect_true(grepl("Accuracy", p[4]))
+    expect_true(grepl("Accuracy", p[2]))
 
     p1 <- capture.output(acc)
     expect_true(grepl("Confusion Matrix", p1[1]))
@@ -105,8 +105,7 @@ test_that("Accuracy areas", {
     label_cube <- sits_label_classification(
         probs_cube,
         memsize = 4,
-        multicores = 1,
-        output_dir = tempdir()
+        multicores = 1
     )
 
     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",

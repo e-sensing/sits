@@ -40,7 +40,7 @@ missing values should be marked as NA. This
 parameter can be used when the cloud component is
 added to the mixture model. Default is TRUE.}
 
-\item{progress}{Show progress bar?}
+\item{progress}{Show progress bar? Default is TRUE.}
 }
 \value{
 a sits cube with the generated fractions.
@@ -56,7 +56,7 @@ The \code{endmembers_spectra} parameter should be a tibble, csv or
 a shapefile. \code{endmembers_spectra} must have the following columns:
 \code{type}, which defines the endmembers that will be
 created and the columns corresponding to the bands that will be used in the
-mixing model.
+mixture model.
 }
 \examples{
 if (sits_run_examples()) {
@@ -70,10 +70,9 @@ if (sits_run_examples()) {
        delim = "_"
    )
 
-   endmembers_spectra <-
-       tibble::tibble(
-           type = c("vegetation", "not-vegetation"),
-           NDVI = c(8500, 3400)
+   endmembers_spectra <- tibble::tibble(
+       type = c("vegetation", "not-vegetation"),
+       NDVI = c(8500, 3400)
    )
 
    mixture_cube <- sits_mixture_model(
