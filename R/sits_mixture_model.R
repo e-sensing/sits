@@ -31,13 +31,13 @@
 #'                            missing values should be marked as NA. This
 #'                            parameter can be used when the cloud component is
 #'                            added to the mixture model. Default is TRUE.
-#' @param progress            Show progress bar?
+#' @param progress            Show progress bar? Default is TRUE.
 #'
 #' @note The \code{endmembers_spectra} parameter should be a tibble, csv or
 #' a shapefile. \code{endmembers_spectra} must have the following columns:
 #' \code{type}, which defines the endmembers that will be
 #' created and the columns corresponding to the bands that will be used in the
-#' mixing model.
+#' mixture model.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -51,10 +51,9 @@
 #'        delim = "_"
 #'    )
 #'
-#'    endmembers_spectra <-
-#'        tibble::tibble(
-#'            type = c("vegetation", "not-vegetation"),
-#'            NDVI = c(8500, 3400)
+#'    endmembers_spectra <- tibble::tibble(
+#'        type = c("vegetation", "not-vegetation"),
+#'        NDVI = c(8500, 3400)
 #'    )
 #'
 #'    mixture_cube <- sits_mixture_model(
@@ -243,9 +242,9 @@ sits_mixture_model <- function(cube,
                 .config_get("raster_cube_scale_factor") -
                 .config_get("raster_cube_offset_value")
 
-            # rmse is in the last column
+            # Remove the rmse value in the last column
             if (!rmse_band)
-                out_values[, 1:ncol(out_values) - 1]
+                out_values <- out_values[, -ncol(out_values)]
 
             # Compute block spatial parameters
             params <- .cube_params_block(tile, block = b)
@@ -335,6 +334,7 @@ sits_mixture_model <- function(cube,
         source = .cube_source(cube),
         collection = .cube_collection(cube),
         data_dir = output_dir,
+        bands = output_fracs,
         parse_info = c("x1", "tile", "band", "date"),
         multicores = multicores,
         progress = progress
