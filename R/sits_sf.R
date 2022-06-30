@@ -52,7 +52,7 @@ sits_as_sf.raster_cube <- function(data, ...) {
     stopifnot(inherits(data, "sits_cube"))
     data %>%
         dplyr::mutate(extent_wgs84 = purrr::pmap(
-            dplyr::select(
+            dplyr::select(.,
                 .data[["xmin"]],
                 .data[["xmax"]],
                 .data[["ymin"]],

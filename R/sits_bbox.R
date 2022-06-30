@@ -96,7 +96,6 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
 #' @param ymax           Maximum Y coordinate
 #' @param crs            Projection for X,Y coordinates
 #' @return               Coordinates in WGS84.
-
 .sits_coords_to_bbox_wgs84 <- function(xmin, xmax, ymin, ymax, crs) {
     pt1 <- c(xmin, ymax)
     pt2 <- c(xmax, ymax)
