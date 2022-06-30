@@ -7,6 +7,7 @@
 #'
 #' @param data   A sits tibble or sits cube.
 #' @param crs    A coordinate reference system of samples.
+#' @param ...    Additional parameters.
 #' @return       An sf object of point or polygon geometry.
 #' @examples
 #' if (sits_run_examples()) {
@@ -52,7 +53,7 @@ sits_as_sf.raster_cube <- function(data, ...) {
     stopifnot(inherits(data, "sits_cube"))
     data %>%
         dplyr::mutate(extent_wgs84 = purrr::pmap(
-            dplyr::select(
+            dplyr::select(.,
                 .data[["xmin"]],
                 .data[["xmax"]],
                 .data[["ymin"]],
