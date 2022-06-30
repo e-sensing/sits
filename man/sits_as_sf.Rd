@@ -15,6 +15,8 @@ sits_as_sf(data, ..., crs)
 \arguments{
 \item{data}{A sits tibble or sits cube.}
 
+\item{...}{Additional parameters.}
+
 \item{crs}{A coordinate reference system of samples.}
 }
 \value{

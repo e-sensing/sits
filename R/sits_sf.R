@@ -7,6 +7,7 @@
 #'
 #' @param data   A sits tibble or sits cube.
 #' @param crs    A coordinate reference system of samples.
+#' @param ...    Additional parameters.
 #' @return       An sf object of point or polygon geometry.
 #' @examples
 #' if (sits_run_examples()) {
