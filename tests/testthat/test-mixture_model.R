@@ -72,4 +72,3 @@ test_that("Mixture model without RMSE band", {
     expect_true(.raster_nrows(r_obj) == .cube_size(modis_cube)[["nrows"]])
     unlink(list.files(tempdir(), full.names = TRUE))
 })
-

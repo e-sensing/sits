@@ -82,7 +82,6 @@ test_that("Sample", {
     expect_equal(dim(data)[1], 20)
 })
 
-
 test_that("Values", {
     values <- sits_values(cerrado_2classes[1:2, ], format = "bands_dates_cases")
 
@@ -98,7 +97,6 @@ test_that("Apply", {
 
     expect_true("NDWI" %in% sits_bands(samples_modis_index))
 })
-
 
 test_that("samples_as_sf works (point)", {
     samples_tb <- cerrado_2classes
