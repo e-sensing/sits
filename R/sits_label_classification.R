@@ -174,7 +174,7 @@ sits_label_classification <- function(cube,
                 file = temp_chunk_file,
                 format = "GTiff",
                 data_type = .raster_data_type(
-                    .config_get("class_cube_data_type")
+                    .config_get("probs_cube_data_type")
                 ),
                 gdal_options = .config_gtiff_default_options(),
                 overwrite = TRUE,
