@@ -87,7 +87,11 @@
 
     # build file_info for the items
     if (results_cube) {
-        items <- .local_results_cube_file_info(items = items)
+        items <- .local_results_cube_file_info(
+            items = items,
+            multicores = multicores,
+            progress = progress
+        )
     } else {
         items <- .local_cube_file_info(
             items = items,
@@ -340,7 +344,7 @@
         on.exit(.sits_parallel_stop(), add = TRUE)
     }
     # do parallel requests
-    items <- .sits_parallel_map(unique(items[["fid"]]), function(i) {
+    results_lst <- .sits_parallel_map(unique(items[["fid"]]), function(i) {
         # filter by feature
         item <- dplyr::filter(items, .data[["fid"]] == !!i)
         # open band rasters and get assets info
@@ -355,26 +359,42 @@
                     tibble::as_tibble_row(c(res, bbox, size, list(crs = crs)))
                 },
                 error = function(e) {
-                    NULL
+                    path
                 }
             )
         })
         # remove corrupted assets
-        bad_assets <- purrr::map_lgl(assets_info, purrr::is_null)
+        bad_assets <- purrr::map_lgl(assets_info, purrr::is_character)
         item <- item[!bad_assets, ]
 
         # bind items and assets info
-        item <- dplyr::bind_cols(item, dplyr::bind_rows(assets_info))
-        return(item)
+        result <- list(
+            item = dplyr::bind_cols(
+                item, dplyr::bind_rows(assets_info[!bad_assets])
+            ),
+            error = unlist(assets_info[bad_assets])
+        )
+        return(result)
     }, progress = progress)
+
+    items <- purrr::map(results_lst, `[[`, "item")
+    errors <- unlist(purrr::map(results_lst, `[[`, "error"))
+    if (length(errors) > 0)
+        warning(
+            paste("Cannot open file(s):",
+                  paste0("'", errors, "'", collapse = ", ")),
+            call. = FALSE,
+            immediate. = TRUE
+        )
 
     items <- dplyr::bind_rows(items) %>%
         dplyr::arrange(.data[["date"]], .data[["fid"]], .data[["band"]])
 
     return(items)
 }
+
 #' @keywords internal
-.local_results_cube_file_info <- function(items) {
+.local_results_cube_file_info <- function(items, multicores, progress) {
 
     # set caller to show in errors
     .check_set_caller(".local_results_cube_file_info")
@@ -383,32 +403,60 @@
     .check_that(nrow(items) > 0,
         msg = "invalid 'items' parameter"
     )
-    # get all the items
-    items <- slider::slide_dfr(items, function(item) {
+
+    # prepare parallel requests
+    if (is.null(sits_env[["cluster"]])) {
+        .sits_parallel_start(workers = multicores, log = FALSE)
+        on.exit(.sits_parallel_stop(), add = TRUE)
+    }
+    # do parallel requests
+    results_lst <- .sits_parallel_map(seq_len(nrow(items)), function(i) {
+
+        item <- items[i, ]
         # open band rasters and get assets info
         assets_info <- purrr::map(item[["path"]], function(path) {
             tryCatch(
                 {
                     asset <- .raster_open_rast(path)
-                    res <- .raster_res(asset)
+                    res  <- .raster_res(asset)
+                    crs  <- .raster_crs(asset)
                     bbox <- .raster_bbox(asset)
                     size <- .raster_size(asset)
-                    crs <- .raster_crs(asset)
 
                     # return a tibble row
                     tibble::as_tibble_row(c(res, bbox, size, list(crs = crs)))
                 },
                 error = function(e) {
-                    NULL
+                    path
                 }
             )
         })
 
-        # bind items and assets info
-        item <- dplyr::bind_cols(item, dplyr::bind_rows(assets_info))
+        # remove corrupted assets
+        bad_assets <- purrr::map_lgl(assets_info, purrr::is_character)
 
-        return(item)
-    })
+        # bind items and assets info
+        results <- list(
+            item = dplyr::bind_cols(
+                item, dplyr::bind_rows(assets_info[!bad_assets])
+            ),
+            error = unlist(assets_info[bad_assets])
+        )
+
+        return(results)
+    }, progress = progress)
+
+    items_lst <- purrr::map(results_lst, `[[`, "item")
+    errors <- unlist(purrr::map(results_lst, `[[`, "error"))
+    if (length(errors) > 0)
+        warning(
+            paste("Cannot open file(s):",
+                  paste0("'", errors, "'", collapse = ", ")),
+            call. = FALSE,
+            immediate. = TRUE
+        )
+
+    items <- dplyr::bind_rows(items_lst)
 
     return(items)
 }
