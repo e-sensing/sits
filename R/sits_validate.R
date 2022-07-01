@@ -87,6 +87,17 @@ sits_kfold_validate <- function(samples,
         msg = "Invalid multicores parameter"
     )
 
+    # For now, torch models does not support multicores in Windows
+    if (multicores > 1 && .Platform$OS.type == "windows" &&
+        "optimizer" %in% ls(environment(ml_method))) {
+        multicores <- 1
+        warning(
+            "sits_kfold_validate() works only with 1 core in Windows OS.",
+            call. = FALSE,
+            immediate. = TRUE
+        )
+    }
+
     # get the labels of the data
     labels <- sits_labels(samples)
 

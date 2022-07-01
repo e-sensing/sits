@@ -132,7 +132,7 @@ sits_rfor <- function(samples = NULL,
 #'
 #' @param samples             Time series with the training samples.
 #' @param formula          Symbolic description of the model to be fit.
-#'                         (default: sits_formula_logref).
+#'                         (default: sits_formula_linear).
 #' @param scale            Logical vector indicating the variables to be scaled.
 #' @param cachesize        Cache memory in MB (default = 1000).
 #' @param kernel           Kernel used in training and predicting.
@@ -141,7 +141,7 @@ sits_rfor <- function(samples = NULL,
 #' @param degree           Exponential of polynomial type kernel (default: 3).
 #' @param coef0            Parameter needed for kernels of type polynomial
 #'                         and sigmoid (default: 0).
-#' @param cost             Cost of constraints violation (default: 10.
+#' @param cost             Cost of constraints violation (default: 10).
 #' @param tolerance        Tolerance of termination criterion (default: 0.001).
 #' @param epsilon          Epsilon in the insensitive-loss function
 #'                         (default: 0.1).
@@ -168,7 +168,7 @@ sits_rfor <- function(samples = NULL,
 #' }
 #' @export
 #'
-sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
+sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
                      scale = FALSE, cachesize = 1000,
                      kernel = "radial", degree = 3, coef0 = 0,
                      cost = 10, tolerance = 0.001,

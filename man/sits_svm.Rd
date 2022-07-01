@@ -6,7 +6,7 @@
 \usage{
 sits_svm(
   samples = NULL,
-  formula = sits_formula_logref(),
+  formula = sits_formula_linear(),
   scale = FALSE,
   cachesize = 1000,
   kernel = "radial",
@@ -23,7 +23,7 @@ sits_svm(
 \item{samples}{Time series with the training samples.}
 
 \item{formula}{Symbolic description of the model to be fit.
-(default: sits_formula_logref).}
+(default: sits_formula_linear).}
 
 \item{scale}{Logical vector indicating the variables to be scaled.}
 
@@ -38,7 +38,7 @@ options: "linear", "polynomial", "radial", "sigmoid"
 \item{coef0}{Parameter needed for kernels of type polynomial
 and sigmoid (default: 0).}
 
-\item{cost}{Cost of constraints violation (default: 10.}
+\item{cost}{Cost of constraints violation (default: 10).}
 
 \item{tolerance}{Tolerance of termination criterion (default: 0.001).}
 

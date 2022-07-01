@@ -589,9 +589,11 @@ sits_view.classified_image <- function(x, ...,
         # select the tiles that will be shown
         cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
     }
+    else
+        cube <- x
 
     # get the labels
-    labels <- sits_labels(x)
+    labels <- sits_labels(cube)
     names(labels) <- seq_along(labels)
     # obtain the colors
     colors <- .view_get_colors(
