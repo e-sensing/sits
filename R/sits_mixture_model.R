@@ -151,7 +151,7 @@ sits_mixture_model <- function(cube,
         fid <- job[[2]]
 
         # Filter tile
-        tile <- .cube_tile(cube_filtered, tile_name = tile_name)
+        tile <- dplyr::filter(cube_filtered, tile == !!tile_name)
 
         in_bands <- .cube_bands(cube_filtered)
 
