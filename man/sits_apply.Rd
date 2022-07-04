@@ -35,6 +35,8 @@ kernel functions, please see details).}
 \item{multicores}{Number of cores to be used for classification.}
 
 \item{output_dir}{Directory where files will be saved.}
+
+\item{progress}{Show progress bar?}
 }
 \value{
 A sits tibble or a sits cube with new bands, produced

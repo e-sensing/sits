@@ -20,6 +20,7 @@
 #' @param memsize       Memory available for classification (in GB).
 #' @param multicores    Number of cores to be used for classification.
 #' @param output_dir    Directory where files will be saved.
+#' @param progress      Show progress bar?
 #' @param ...           Named expressions to be evaluated (see details).
 #'
 #' @details
