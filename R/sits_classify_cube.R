@@ -115,8 +115,8 @@
             message(
                 paste(
                     "Recovery mode. Classified probability image detected in",
-                    "the provided directory.\n",
-                    "If you want a new classification for the same cube, ",
+                    "the provided directory.",
+                    "\nIf you want a new classification for the same cube,",
                     "please use the version parameter."
                 )
             )

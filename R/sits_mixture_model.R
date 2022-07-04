@@ -93,6 +93,13 @@ sits_mixture_model <- function(cube,
     endmembers_spectra <- dplyr::rename_with(endmembers_spectra, toupper)
 
     # Pre-condition
+    .check_chr_contains(
+        x = colnames(endmembers_spectra),
+        contains = "TYPE",
+        msg = paste("The reference endmembers spectra should be provided."),
+    )
+
+    # Pre-condition
     .check_chr_within(
         x = colnames(endmembers_spectra),
         within = c("TYPE", .cube_bands(cube, add_cloud = FALSE)),
@@ -404,11 +411,18 @@ sits_mixture_model <- function(cube,
 .mesma_scale_endmembers <- function(cube, endmembers_spectra) {
 
     endmembers_bands <- setdiff(colnames(endmembers_spectra), "TYPE")
+    em_spec <- dplyr::select(
+        endmembers_spectra,
+        dplyr::all_of(!!endmembers_bands)
+    )
 
-    em_spectra_scaled <- purrr::map_dfc(endmembers_bands, function(band) {
-        scale_factor <- .cube_band_scale_factor(cube[1,], band = band)
-        endmembers_spectra[, band] <- endmembers_spectra[, band] * scale_factor
-    })
+    em_spec <- dplyr::mutate(
+        em_spec,
+        dplyr::across(
+            .cols = endmembers_bands,
+            ~ .x * .cube_band_scale_factor(cube[1,], band = dplyr::cur_column())
+        )
+    )
 
-    return(as.matrix(em_spectra_scaled))
+    return(as.matrix(em_spec))
 }
