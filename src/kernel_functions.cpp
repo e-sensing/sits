@@ -6,11 +6,11 @@ IntegerVector locus_mirror(int size, int leg) {
     IntegerVector res(size + 2 * leg);
     for (int i = 0; i < res.length(); ++i) {
         if (i < leg)
-            res(i) = leg - i;
+            res(i) = leg - i - 1;
         else if (i < size + leg)
             res(i) = i - leg;
         else
-            res(i) = 2 * size + leg - i - 2;
+            res(i) = 2 * size + leg - i - 1;
     }
     return res;
 }
