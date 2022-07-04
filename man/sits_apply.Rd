@@ -62,6 +62,9 @@ according the Chebyshev distance. This neighborhood form a
 square window (also known as kernel) around the central pixel
 (Moore neighborhood). Users can set the \code{window_size}
 parameter to adjust the size of the kernel window.
+The image is conceptually mirrored at the edges so that neighborhood
+including a pixel outside the image is equivalent to take the
+'mirrored' pixel inside the edge.
 
 \code{sits_apply()} applies a function to the kernel and its result
 is assigned to a corresponding central pixel on a new matrix.
@@ -69,9 +72,7 @@ The kernel slides throughout the input image and this process
 generates an entire new matrix, which is returned as a new band
 to the cube. The kernel functions ignores any \code{NA} values
 inside the kernel window. Central pixel is \code{NA} just only
-all pixels in the window are \code{NA}. Also, when the kernel slides
-in the border of an input image, only those cells of the kernel
-intersecting the image is considered by kernel functions.
+all pixels in the window are \code{NA}.
 
 Kernel functions
 }
