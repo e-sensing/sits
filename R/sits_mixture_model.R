@@ -5,7 +5,7 @@
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
 #' @author Rolf Simoes,     \email{rolf.simoes@@inpe.br}
-#' @author Alber Sanchez, \email{alber.sanchez@@inpe.br}
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description Create a multiple endmember spectral mixture analyses fractions
 #' images. To calculate the fraction of each endmember, the non-negative least
@@ -158,7 +158,7 @@ sits_mixture_model <- function(cube,
         fid <- job[[2]]
 
         # Filter tile
-        tile <- dplyr::filter(cube_filtered, .data[["tile"]] == !!tile_name)
+        tile <- dplyr::filter(cube_filtered, tile == !!tile_name)
 
         in_bands <- .cube_bands(cube_filtered)
 
@@ -189,7 +189,7 @@ sits_mixture_model <- function(cube,
         }
 
         # Divide the input data in blocks
-        blocks <- .apply_raster_blocks(
+        blocks <- .mesma_raster_blocks(
             nbands = length(in_bands),
             sub_image = .sits_raster_sub_image_default(tile),
             memsize = memsize,
@@ -425,4 +425,81 @@ sits_mixture_model <- function(cube,
     )
 
     return(as.matrix(em_spec))
+}
+#' @title Define a reasonable block size to process an image subset
+#' @name .mesma_raster_blocks
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Defines the size of the block of an image to be read.
+#' For example, a Raster Brick with 500 rows and 500 columns
+#' and 400 time instances will have a total pixel size
+#' of 800 Mb if pixels are 64-bit.
+#'
+#' @param  nbands     Number of bands to open.
+#' @param  sub_image  Bounding box of the ROI.
+#' @param  memsize    Memory available for classification (in GB).
+#' @param  multicores Number of cores to process the time series.
+#' @return            List with three attributes: n (number of blocks),
+#'                    rows (list of rows to begin),
+#'                    nrows (number of rows to read at each iteration).
+#'
+.mesma_raster_blocks <- function(nbands, sub_image, memsize, multicores) {
+
+    # Get the number of blocks
+    nblocks <- .mesma_raster_blocks_estimate(
+        nbands = nbands,
+        sub_image = sub_image,
+        memsize = memsize,
+        multicores = multicores
+    )
+
+    blocks <- .sits_raster_block_list(
+        nblocks = nblocks,
+        sub_image = sub_image
+    )
+
+    return(blocks)
+}
+
+#' @title Estimate the number of blocks
+#' @name .mesma_raster_blocks_estimate
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Defines the number of blocks of a Raster Brick
+#'              to be read into memory.
+#'
+#' @param  nbands     Number of bands to open.
+#' @param  sub_image  Area of interest in the image.
+#' @param  memsize    Memory available for classification (in GB).
+#' @param  multicores Number of cores to process the time series.
+#' @return            Number of blocks to be read.
+.mesma_raster_blocks_estimate <- function(nbands,
+                                          sub_image,
+                                          memsize,
+                                          multicores) {
+
+    # Number of bytes per pixel
+    nbytes <- 8
+    # Estimated processing bloat
+    proc_bloat <- as.numeric(.config_processing_bloat())
+    if (proc_bloat == 0) proc_bloat <- multicores
+
+    # Number of rows and cols
+    nrows <- sub_image[["nrows"]]
+    ncols <- sub_image[["ncols"]]
+    # Single instance size
+    output_data_size <- nrows * ncols * nbytes
+    # Total size including all bands
+    input_data_size <- output_data_size * nbands
+
+    # Number of output instances is the same as input
+    # Estimated size of the data for apply
+    class_data_size <- (input_data_size + output_data_size) * proc_bloat
+
+    # Number of passes to read the full data sets
+    nblocks <- ceiling(class_data_size * 1e-09 / memsize * multicores)
+
+    return(nblocks)
 }

@@ -19,6 +19,6 @@ A data.frame with the columns from (row number in a), b
 For each point in x, find the closest point in y (and their distance).
 }
 \author{
-Alber Sanchez, \email{alber.sanchez@inpe.br}
+Alber Sanchez, \email{alber.ipia@inpe.br}
 }
 \keyword{internal}

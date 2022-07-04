@@ -69,6 +69,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// kernel_fun
+NumericVector kernel_fun(const NumericMatrix& data, const int band, const int img_nrow, const int img_ncol, const int window_size, const int fun);
+RcppExport SEXP _sits_kernel_fun(SEXP dataSEXP, SEXP bandSEXP, SEXP img_nrowSEXP, SEXP img_ncolSEXP, SEXP window_sizeSEXP, SEXP funSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const int >::type band(bandSEXP);
+    Rcpp::traits::input_parameter< const int >::type img_nrow(img_nrowSEXP);
+    Rcpp::traits::input_parameter< const int >::type img_ncol(img_ncolSEXP);
+    Rcpp::traits::input_parameter< const int >::type window_size(window_sizeSEXP);
+    Rcpp::traits::input_parameter< const int >::type fun(funSEXP);
+    rcpp_result_gen = Rcpp::wrap(kernel_fun(data, band, img_nrow, img_ncol, window_size, fun));
+    return rcpp_result_gen;
+END_RCPP
+}
 // least_probs
 IntegerVector least_probs(const IntegerMatrix& mtx, const int& n);
 RcppExport SEXP _sits_least_probs(SEXP mtxSEXP, SEXP nSEXP) {
@@ -229,6 +245,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_kernel_smoother", (DL_FUNC) &_sits_kernel_smoother, 5},
     {"_sits_bilateral_smoother", (DL_FUNC) &_sits_bilateral_smoother, 5},
     {"_sits_entropy_probs", (DL_FUNC) &_sits_entropy_probs, 2},
+    {"_sits_kernel_fun", (DL_FUNC) &_sits_kernel_fun, 6},
     {"_sits_least_probs", (DL_FUNC) &_sits_least_probs, 2},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},

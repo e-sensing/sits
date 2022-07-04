@@ -2,7 +2,7 @@
 #'
 #' @name sits_geo_dist
 #'
-#' @author Alber Sanchez, \email{alber.sanchez@@inpe.br}
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -70,7 +70,7 @@ sits_geo_dist <- function(samples, roi = NULL, n = 1000) {
 
 #' @title Find the closest points.
 #'
-#' @author Alber Sanchez, \email{alber.sanchez@@inpe.br}
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @keywords internal
 #' @description
 #' For each point in x, find the closest point in y (and their distance).
