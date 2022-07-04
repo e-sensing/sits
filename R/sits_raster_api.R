@@ -601,8 +601,8 @@
         # return a named bbox
         bbox <- c(
             xmin = .raster_xmin(r_obj),
-            xmax = .raster_xmax(r_obj),
             ymin = .raster_ymin(r_obj),
+            xmax = .raster_xmax(r_obj),
             ymax = .raster_ymax(r_obj)
         )
     } else {
