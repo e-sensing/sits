@@ -102,7 +102,7 @@ sits_mixture_model <- function(cube,
     # Pre-condition
     .check_chr_within(
         x = colnames(endmembers_spectra),
-        within =  c("TYPE", .cube_bands(cube, add_cloud = FALSE)),
+        within = c("TYPE", .cube_bands(cube, add_cloud = FALSE)),
         msg = "invalid 'endmembers_spectra' columns"
     )
 
