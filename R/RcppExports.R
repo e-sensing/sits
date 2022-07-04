@@ -17,6 +17,10 @@ entropy_probs <- function(mtx, n) {
     .Call(`_sits_entropy_probs`, mtx, n)
 }
 
+kernel_fun <- function(data, band, img_nrow, img_ncol, window_size, fun) {
+    .Call(`_sits_kernel_fun`, data, band, img_nrow, img_ncol, window_size, fun)
+}
+
 least_probs <- function(mtx, n) {
     .Call(`_sits_least_probs`, mtx, n)
 }
