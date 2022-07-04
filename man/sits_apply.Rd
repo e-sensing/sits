@@ -13,6 +13,7 @@ sits_apply(data, ...)
 \method{sits_apply}{raster_cube}(
   data,
   ...,
+  window_size = 3,
   memsize = 1,
   multicores = 2,
   output_dir = getwd(),
@@ -22,7 +23,12 @@ sits_apply(data, ...)
 \arguments{
 \item{data}{Valid sits tibble or cube}
 
-\item{...}{Named expressions to be evaluated.}
+\item{...}{Named expressions to be evaluated (see details).}
+
+\item{window_size}{An even number representing the size of the
+sliding window of sits kernel functions
+used in expressions (for a list of supported
+kernel functions, please see details).}
 
 \item{memsize}{Memory available for classification (in GB).}
 
@@ -37,8 +43,52 @@ A sits tibble or a sits cube with new bands, produced
 \description{
 Apply a named expression to a sits cube or a sits tibble
 to be evaluated and generate new bands (indices). In the case of sits
-cubes, it materializes a new band in `output_dir` using `gdalcubes`.
+cubes, it materializes a new band in \code{output_dir} using
+\code{gdalcubes}.
 }
+\details{
+\code{sits_apply()} allow any valid R expression to compute new bands.
+Use R syntax to pass an expression to this function.
+Besides arithmetic operators, you can use virtually any R function
+that can be applied to elements of a matrix (functions that are
+unaware of matrix sizes, e.g. \code{sqrt()}, \code{sin()},
+\code{log()}).
+
+Also, \code{sits_apply()} accepts a predefined set of kernel functions
+(see below) that can be applied to pixels considering its
+neighborhood. \code{sits_apply()} considers a neighborhood of a
+pixel as a set of pixels equidistant to it (including itself)
+according the Chebyshev distance. This neighborhood form a
+square window (also known as kernel) around the central pixel
+(Moore neighborhood). Users can set the \code{window_size}
+parameter to adjust the size of the kernel window.
+
+\code{sits_apply()} applies a function to the kernel and its result
+is assigned to a corresponding central pixel on a new matrix.
+The kernel slides throughout the input image and this process
+generates an entire new matrix, which is returned as a new band
+to the cube. The kernel functions ignores any \code{NA} values
+inside the kernel window. Central pixel is \code{NA} just only
+all pixels in the window are \code{NA}. Also, when the kernel slides
+in the border of an input image, only those cells of the kernel
+intersecting the image is considered by kernel functions.
+
+Kernel functions
+}
+\section{Summarizing kernel functions}{
+
+\itemize{
+\item{\code{w_median()}: returns the median of the neighborhood's values.}
+\item{\code{w_sum()}: returns the sum of the neighborhood's values.}
+\item{\code{w_mean()}: returns the mean of the neighborhood's values.}
+\item{\code{w_sd()}: returns the standard deviation of the neighborhood's
+  values.}
+\item{\code{w_var()}: returns the variance of the neighborhood's values.}
+\item{\code{w_min()}: returns the minimum of the neighborhood's values.}
+\item{\code{w_max()}: returns the maximum of the neighborhood's values.}
+}
+}
+
 \examples{
 # Get a time series
 # Apply a normalization function
