@@ -528,7 +528,7 @@ test_that("One-year, multicores classification with cloud band", {
         output_dir = tempdir(),
         CLOUD = ifelse(NDVI <= 0.2, 0.0002, 0.0001),
         memsize = 4,
-        multicores = 1
+        multicores = 2
     )
 
     kern_cube <- sits_apply(
@@ -540,13 +540,14 @@ test_that("One-year, multicores classification with cloud band", {
         multicores = 2
     )
 
-    cube_merged <- sits_merge(data1 = cube, data2 = cloud_cube)
+    cube_merged <- sits_merge(data1 = cube, data2 = kern_cube)
 
     samples_ndvi <- sits_get_data(
         cube = cube_merged,
         samples = csv_file,
         multicores = 2
     )
+
     rf_model <- sits_train(samples_ndvi, ml_method = sits_rfor)
 
     probs_cube <- tryCatch(
