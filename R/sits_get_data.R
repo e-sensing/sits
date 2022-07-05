@@ -160,7 +160,7 @@ sits_get_data.csv <- function(cube,
                               bands = sits_bands(cube),
                               crs = 4326,
                               impute_fn = sits_impute_linear(),
-                              multicores = 4,
+                              multicores = 2,
                               output_dir = ".",
                               progress = FALSE) {
     samples <- .sits_get_samples_from_csv(samples)
@@ -193,7 +193,7 @@ sits_get_data.shp <- function(cube,
                               n_sam_pol = 30,
                               pol_avg = FALSE,
                               pol_id = NULL,
-                              multicores = 4,
+                              multicores = 2,
                               output_dir = ".",
                               progress = FALSE) {
 
@@ -243,7 +243,7 @@ sits_get_data.sf <- function(cube,
                              n_sam_pol = 30,
                              pol_avg = FALSE,
                              pol_id = NULL,
-                             multicores = 4,
+                             multicores = 2,
                              output_dir = ".",
                              progress = FALSE) {
 
@@ -286,7 +286,7 @@ sits_get_data.sits <- function(cube,
                                ...,
                                bands = sits_bands(cube),
                                impute_fn = sits_impute_linear(),
-                               multicores = 4,
+                               multicores = 2,
                                output_dir = ".",
                                progress = FALSE) {
     # check if samples contains all the required columns
@@ -327,7 +327,7 @@ sits_get_data.data.frame <- function(cube,
                                      bands = sits_bands(cube),
                                      crs = 4326,
                                      impute_fn = sits_impute_linear(),
-                                     multicores = 4,
+                                     multicores = 2,
                                      output_dir = ".",
                                      progress = FALSE) {
 

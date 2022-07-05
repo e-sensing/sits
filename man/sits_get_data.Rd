@@ -38,7 +38,7 @@ sits_get_data(
   bands = sits_bands(cube),
   crs = 4326,
   impute_fn = sits_impute_linear(),
-  multicores = 4,
+  multicores = 2,
   output_dir = ".",
   progress = FALSE
 )
@@ -56,7 +56,7 @@ sits_get_data(
   n_sam_pol = 30,
   pol_avg = FALSE,
   pol_id = NULL,
-  multicores = 4,
+  multicores = 2,
   output_dir = ".",
   progress = FALSE
 )
@@ -74,7 +74,7 @@ sits_get_data(
   n_sam_pol = 30,
   pol_avg = FALSE,
   pol_id = NULL,
-  multicores = 4,
+  multicores = 2,
   output_dir = ".",
   progress = FALSE
 )
@@ -85,7 +85,7 @@ sits_get_data(
   ...,
   bands = sits_bands(cube),
   impute_fn = sits_impute_linear(),
-  multicores = 4,
+  multicores = 2,
   output_dir = ".",
   progress = FALSE
 )
@@ -100,7 +100,7 @@ sits_get_data(
   bands = sits_bands(cube),
   crs = 4326,
   impute_fn = sits_impute_linear(),
-  multicores = 4,
+  multicores = 2,
   output_dir = ".",
   progress = FALSE
 )
