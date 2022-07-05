@@ -49,18 +49,19 @@
 #' @keywords internal
 #'
 #' @param tile       Data cube tile
-#' @param period     Period of time in which it
-#'  is desired to apply in the cube, must be provided based on ISO8601, where 1
-#'  number and a unit are provided, for example "P16D".
+#' @param period     Period of time in which it is desired to apply in the cube,
+#'                   must be provided based on ISO8601, where 1 number and a
+#'                   unit are provided, for example "P16D".
 #' @param res        Spatial resolution of the image that
-#'  will be aggregated.
+#'                   will be aggregated.
 #' @param roi        Region of interest.
 #' @param toi        Timeline of intersection.
 #' @param agg_method Aggregation method.
 #' @param resampling Resampling method.
-#'  Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
-#'  gdalwarp (see https://gdal.org/programs/gdalwarp.html).
-#'  Default is "bilinear".
+#'                   Options: \code{near}, \code{bilinear}, \code{bicubic} or
+#'                   others supported by gdalwarp
+#'                   (see https://gdal.org/programs/gdalwarp.html).
+#'                   Default is "bilinear".
 #'
 #' @return           \code{Cube_view} object from gdalcubes.
 .gc_create_cube_view <- function(tile,
@@ -94,22 +95,14 @@
         bbox_roi <- .sits_roi_bbox(roi, tile)
     }
 
-    # convert roi to gdalcubes
-    roi <- list(
-        left = bbox_roi[["xmin"]],
-        right = bbox_roi[["xmax"]],
-        bottom = bbox_roi[["ymin"]],
-        top = bbox_roi[["ymax"]]
-    )
-
     # create a gdalcubes extent
     extent <- list(
-        left = roi[["left"]],
-        right = roi[["right"]],
-        bottom = roi[["bottom"]],
-        top = roi[["top"]],
-        t0 = format(date, "%Y-%m-%d"),
-        t1 = format(date, "%Y-%m-%d")
+        left   = bbox_roi[["xmin"]],
+        right  = bbox_roi[["xmax"]],
+        bottom = bbox_roi[["ymin"]],
+        top    = bbox_roi[["ymax"]],
+        t0     = format(date, "%Y-%m-%d"),
+        t1     = format(date, "%Y-%m-%d")
     )
 
     # create a list of cube view
@@ -425,13 +418,19 @@
     gdalcubes_co <- purrr::map(gtiff_options, `[[`, 2)
     names(gdalcubes_co) <- purrr::map_chr(gtiff_options, `[[`, 1)
 
+    # get cog config parameters
+    generate_cog <- .config_get("gdalcubes_cog_generate")
+    cog_overview <- .config_get("gdalcubes_cog_resample_overview")
+
     # write the aggregated cubes
     img_paths <- gdalcubes::write_tif(
         x = raster_cube,
         dir = output_dir,
         prefix = files_prefix,
         creation_options = gdalcubes_co,
-        pack = pack, ...
+        pack = pack,
+        COG = generate_cog,
+        rsmpl_overview = cog_overview, ...
     )
 
     # post-condition
@@ -455,22 +454,24 @@
 #'  n. 3, p. 92, 2019. DOI: 10.3390/data4030092.
 #'
 #'
-#' @param cube         Data cube whose spacing of observation
-#'                     times is not constant and will be regularized
-#'                     by the \code{gdalcubes} package.
-#' @param output_dir   Valid directory where the
-#'                     regularized images will be written.
-#' @param period       ISO8601 time period for regular data cubes
-#'                     with number and unit, e.g., "P16D" for 16 days.
-#'                     Use "D", "M" and "Y" for days, month and year.
-#' @param res          Spatial resolution of the regularized images.
-#' @param multicores   Number of cores used for regularization.
-#' @param progress     Show progress bar?
+#' @param cube       Data cube whose spacing of observation
+#'                   times is not constant and will be regularized
+#'                   by the \code{gdalcubes} package.
+#' @param output_dir Valid directory where the
+#'                   regularized images will be written.
+#' @param period     ISO8601 time period for regular data cubes
+#'                   with number and unit, e.g., "P16D" for 16 days.
+#'                   Use "D", "M" and "Y" for days, month and year.
+#' @param res        Spatial resolution of the regularized images.
+#' @param roi        A named \code{numeric} vector with a region of interest.
+#' @param multicores Number of cores used for regularization.
+#' @param progress   Show progress bar?
 #'
 #' @return             Data cube with aggregated images.
 .gc_regularize <- function(cube,
                            period,
                            res,
+                           roi,
                            output_dir,
                            multicores = 1,
                            progress = TRUE) {
@@ -503,9 +504,6 @@
         msg = "invalid 'output_dir' parameter."
     )
 
-    # append gdalcubes path
-    path_db <- file.path(output_dir, "gdalcubes.db")
-
     # precondition - is the period valid?
     .check_na(lubridate::duration(period),
         msg = "invalid period specified"
@@ -536,6 +534,14 @@
         is_integer = TRUE,
         msg = "invalid 'multicores' parameter"
     )
+
+    # filter only intersecting tiles
+    intersects <- slider::slide_lgl(
+        cube, .sits_raster_sub_image_intersects, roi
+    )
+
+    # retrieve only intersecting tiles
+    cube <- cube[intersects, ]
 
     # timeline of intersection
     timeline <- .gc_get_valid_timeline(cube, period = period)
@@ -583,10 +589,8 @@
 
     while (!finished) {
 
-        # for cubes that have a time limit to expire - mspc cubes only
+        # for cubes that have a time limit to expire - mpc cubes only
         cube <- .cube_token_generator(cube)
-        # create an image collection
-        .gc_create_database_stac(cube = cube, path_db = path_db)
 
         # process bands and tiles in parallel
         .sits_parallel_map(jobs, function(job) {
@@ -598,7 +602,8 @@
 
             # filter tile
             tile <- dplyr::filter(cube, .data[["tile"]] == !!tile_name)
-            # for cubes that have a time limit to expire - mspc cubes only
+
+            # for cubes that have a time limit to expire - mpc cubes only
             tile <- .cube_token_generator(tile)
 
             # post-condition
@@ -608,11 +613,17 @@
                 msg = "invalid tile"
             )
 
+            # append gdalcubes path
+            path_db <- tempfile(pattern = "gc", fileext = ".db")
+
+            # create an image collection
+            .gc_create_database_stac(cube = tile, path_db = path_db)
+
             # create a gdalcubes::cube_view
             cube_view <- .gc_create_cube_view(
                 tile = tile,
                 period = period,
-                roi = NULL,
+                roi = roi,
                 res = res,
                 date = date,
                 agg_method = "first",

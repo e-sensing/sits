@@ -2,23 +2,44 @@
 % Please edit documentation in R/sits_sf.R
 \name{sits_as_sf}
 \alias{sits_as_sf}
-\title{Return a sits_tibble as a point sf object.}
+\alias{sits_as_sf.sits}
+\alias{sits_as_sf.raster_cube}
+\title{Return a sits_tibble or sits_cube as an sf object.}
 \usage{
-sits_as_sf(samples)
+sits_as_sf(data, ..., crs)
+
+\method{sits_as_sf}{sits}(data, ..., crs = 4326)
+
+\method{sits_as_sf}{raster_cube}(data, ...)
 }
 \arguments{
-\item{samples}{A sits tibble with one or more time series.}
+\item{data}{A sits tibble or sits cube.}
+
+\item{...}{Additional parameters.}
+
+\item{crs}{A coordinate reference system of samples.}
 }
 \value{
-An sf object of point geometry.
+An sf object of point or polygon geometry.
 }
 \description{
-Return a sits_tibble as a sf object of point geometry.
+Return a sits_tibble or sits_cube as an sf object.
 }
 \examples{
 if (sits_run_examples()) {
-   # convert sits tibble to sf object
+   # convert sits tibble to an sf object (point)
    sf_object <- sits_as_sf(cerrado_2classes)
+
+   # convert sits cube to an sf object (polygon)
+   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+   cube <- sits_cube(
+       source = "BDC",
+       collection = "MOD13Q1-6",
+       data_dir = data_dir,
+       delim = "_",
+       parse_info = c("X1", "X2", "tile", "band", "date")
+   )
+   sf_objet <- sits_as_sf(cube)
 }
 }
 \author{

@@ -4,19 +4,27 @@
 \alias{sits_uncertainty_sampling}
 \title{Suggest samples for enhancing classification accuracy}
 \usage{
-sits_uncertainty_sampling(cube, n = 100, min_dist_pixels = 10)
+sits_uncertainty_sampling(
+  uncert_cube,
+  n = 100,
+  min_uncert = 0.4,
+  sampling_window = 10
+)
 }
 \arguments{
-\item{cube}{A `sits` uncertainty cube. See `sits_uncertainty`.}
+\item{uncert_cube}{A `sits` uncertainty cube. See `sits_uncertainty`.}
 
 \item{n}{Number of suggested points.}
 
-\item{min_dist_pixels}{Minimum distance among suggested points (in pixels).}
+\item{min_uncert}{Minimum uncertainty value to select a sample.}
+
+\item{sampling_window}{Window size for collecting points (in pixels).
+The minimum window size is 10.}
 }
 \value{
-A data.frame with longitude & latitude in WGS84 with locations
-            which have high uncertainty and meet the minimum distance
-            criteria.
+A `tibble` with longitude & latitude in WGS84 with locations
+which have high uncertainty and meet the minimum distance
+criteria.
 }
 \description{
 Suggest samples for regions of high uncertainty as predicted by the model.
@@ -53,10 +61,8 @@ if (sits_run_examples()) {
     rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
     # classify the cube
     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
-    # run a Bayesian smoothing
-    bayes_cube <- sits_smooth(probs_cube)
     # create an uncertainty cube
-    uncert_cube <- sits_uncertainty(bayes_cube)
+    uncert_cube <- sits_uncertainty(probs_cube)
     # obtain a new set of samples for active learning
     # the samples are located in uncertain places
     new_samples <- sits_uncertainty_sampling(uncert_cube)
@@ -68,7 +74,7 @@ Robert Monarch, "Human-in-the-Loop Machine Learning: Active learning
 and annotation for human-centered AI". Manning Publications, 2021.
 }
 \author{
-Alber Sanchez, \email{alber.sanchez@inpe.br}
+Alber Sanchez, \email{alber.ipia@inpe.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 

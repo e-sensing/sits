@@ -140,7 +140,17 @@ sits_label_classification <- function(cube,
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file)) {
-            return(NULL)
+            if (all(.raster_bbox(.raster_open_rast(out_file))
+                    == sits_bbox(tile_new))) {
+                message(paste0(
+                    "Recovery mode: classified image file found in '",
+                    dirname(out_file), "' directory. ",
+                    "(If you want a new classified image, please ",
+                    "change the directory in the 'output_dir' or the ",
+                    "value of 'version' parameter)"
+                ))
+                return(NULL)
+            }
         }
 
         # get cube size
@@ -164,7 +174,24 @@ sits_label_classification <- function(cube,
             b <- .raster_open_rast(in_file)
 
             # crop adding overlaps
-            chunk <- .raster_crop(r_obj = b, block = block)
+            temp_chunk_file <- .create_chunk_file(
+                output_dir = output_dir,
+                pattern = "chunk_class_",
+                ext = ".tif"
+            )
+            chunk <- .raster_crop(
+                r_obj = b,
+                file = temp_chunk_file,
+                format = "GTiff",
+                data_type = .raster_data_type(
+                    .config_get("probs_cube_data_type")
+                ),
+                gdal_options = .config_gtiff_default_options(),
+                overwrite = TRUE,
+                block = block
+            )
+            # Delete temp file
+            on.exit(unlink(temp_chunk_file), add = TRUE)
 
             # process it
             raster_out <- .do_map(chunk = chunk)

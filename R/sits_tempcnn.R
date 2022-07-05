@@ -90,13 +90,13 @@
 #' @export
 sits_tempcnn <- function(samples = NULL,
                          samples_validation = NULL,
-                         cnn_layers = c(64, 64, 64),
-                         cnn_kernels = c(5, 5, 5),
-                         cnn_dropout_rates = c(0.50, 0.50, 0.50),
+                         cnn_layers = c(128, 128, 128),
+                         cnn_kernels = c(7, 7, 7),
+                         cnn_dropout_rates = c(0.20, 0.20, 0.20),
                          dense_layer_nodes = 256,
                          dense_layer_dropout_rate = 0.50,
                          epochs = 150,
-                         batch_size = 128,
+                         batch_size = 64,
                          validation_split = 0.2,
                          optimizer = torchopt::optim_adamw,
                          opt_hparams = list(

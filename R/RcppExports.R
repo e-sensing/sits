@@ -17,6 +17,10 @@ entropy_probs <- function(mtx, n) {
     .Call(`_sits_entropy_probs`, mtx, n)
 }
 
+kernel_fun <- function(data, band, img_nrow, img_ncol, window_size, fun) {
+    .Call(`_sits_kernel_fun`, data, band, img_nrow, img_ncol, window_size, fun)
+}
+
 least_probs <- function(mtx, n) {
     .Call(`_sits_least_probs`, mtx, n)
 }
@@ -33,12 +37,28 @@ margin_probs <- function(mtx, n) {
     .Call(`_sits_margin_probs`, mtx, n)
 }
 
+nnls_solver <- function(x, A, iterate = 400L, tolerance = 0.000001) {
+    .Call(`_sits_nnls_solver`, x, A, iterate, tolerance)
+}
+
 normalize_data <- function(data, min, max) {
     .Call(`_sits_normalize_data`, data, min, max)
 }
 
 ratio_probs <- function(mtx, n) {
     .Call(`_sits_ratio_probs`, mtx, n)
+}
+
+max_sampling <- function(data, band, img_nrow, img_ncol, window_size) {
+    .Call(`_sits_max_sampling`, data, band, img_nrow, img_ncol, window_size)
+}
+
+smooth_sg <- function(data, f_res, p, n) {
+    .Call(`_sits_smooth_sg`, data, f_res, p, n)
+}
+
+smooth_sg_mtx <- function(data, f_res, p, n) {
+    .Call(`_sits_smooth_sg_mtx`, data, f_res, p, n)
 }
 
 smooth_whit <- function(data, lambda, length) {

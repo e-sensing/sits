@@ -255,7 +255,17 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file)) {
-            return(NULL)
+            if (all(.raster_bbox(.raster_open_rast(out_file))
+                    == sits_bbox(tile_new))) {
+                message(paste0(
+                    "Recovery mode: smoothed image file found in '",
+                    dirname(out_file), "' directory. ",
+                    "(If you want a new smoothing, please ",
+                    "change the directory in the 'output_dir' or the ",
+                    "value of 'version' parameter)"
+                ))
+                return(NULL)
+            }
         }
 
         # overlapping pixels
@@ -278,16 +288,33 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         # process blocks in parallel
         block_files_lst <- .sits_parallel_map(blocks, function(block) {
 
-            # open brick
+            # Open brick
             b <- .raster_open_rast(in_file)
 
-            # crop adding overlaps
-            chunk <- .raster_crop(r_obj = b, block = block)
+            # Crop adding overlaps
+            temp_chunk_file <- .create_chunk_file(
+                output_dir = output_dir,
+                pattern = "chunk_bayes_overlap_",
+                ext = ".tif"
+            )
+            chunk <- .raster_crop(
+                r_obj = b,
+                file = temp_chunk_file,
+                format = "GTiff",
+                data_type = .raster_data_type(
+                    .config_get("probs_cube_data_type")
+                ),
+                gdal_options = .config_gtiff_default_options(),
+                overwrite = TRUE,
+                block = block
+            )
+            # Delete temp file
+            on.exit(unlink(temp_chunk_file), add = TRUE)
 
-            # process it
+            # Process it
             raster_out <- .do_bayes(chunk = chunk)
 
-            # create extent
+            # Create extent
             blk_no_overlap <- list(
                 first_row = block$crop_first_row,
                 nrows = block$crop_nrows,
@@ -295,15 +322,15 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                 ncols = block$crop_ncols
             )
 
-            # crop removing overlaps
-            raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
             block_file <- .smth_filename(
                 tile = tile_new,
                 output_dir = output_dir,
                 block = block
             )
-            # save chunk
-            .raster_write_rast(
+
+            # Save chunk
+            # Crop removing overlaps
+            .raster_crop(
                 r_obj = raster_out,
                 file = block_file,
                 format = "GTiff",
@@ -311,7 +338,8 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                     .config_get("probs_cube_data_type")
                 ),
                 gdal_options = .config_gtiff_default_options(),
-                overwrite = TRUE
+                overwrite = TRUE,
+                block = blk_no_overlap
             )
 
             return(block_file)
@@ -323,13 +351,13 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     })
 
 
-    # process each brick layer (each time step) individually
+    # Process each brick layer (each time step) individually
     result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
-        # get tile from cube
+        # Get tile from cube
         tile <- cube[i, ]
 
-        # create metadata for raster cube
+        # Create metadata for raster cube
         tile_new <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
@@ -342,20 +370,20 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             version    = version
         )
 
-        # prepare output filename
+        # Prepare output filename
         out_file <- .file_info_path(tile_new)
 
-        # if file exists skip it (resume feature)
+        # If file exists skip it (resume feature)
         if (file.exists(out_file)) {
             return(tile_new)
         }
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
-        # apply function to blocks
+        # Apply function to blocks
         on.exit(unlink(tmp_blocks))
 
-        # merge to save final result
+        # Merge to save final result
         suppressWarnings(
             .raster_merge(
                 in_files = tmp_blocks,
@@ -454,7 +482,7 @@ sits_smooth.bilateral <- function(cube,
         w_seq <- seq_len(window_size)
         x <- stats::dnorm(
             (abs(rep(w_seq, each = window_size) - w_center)^2 +
-                abs(rep(w_seq, window_size) - w_center)^2)^(1 / 2),
+                 abs(rep(w_seq, window_size) - w_center)^2)^(1 / 2),
             sd = sigma
         ) / stats::dnorm(0)
         matrix(x / sum(x), nrow = window_size, byrow = TRUE)
@@ -529,7 +557,17 @@ sits_smooth.bilateral <- function(cube,
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file)) {
-            return(NULL)
+            if (all(.raster_bbox(.raster_open_rast(out_file))
+                    == sits_bbox(tile_new))) {
+                message(paste0(
+                    "Recovery mode: smoothed image file found in '",
+                    dirname(out_file), "' directory. ",
+                    "(If you want a new smoothing, please ",
+                    "change the directory in the 'output_dir' or the ",
+                    "value of 'version' parameter)"
+                ))
+                return(NULL)
+            }
         }
 
         # overlapping pixels
@@ -556,12 +594,29 @@ sits_smooth.bilateral <- function(cube,
             b <- .raster_open_rast(in_file)
 
             # crop adding overlaps
-            chunk <- .raster_crop(r_obj = b, block = block)
+            temp_chunk_file <- .create_chunk_file(
+                output_dir = output_dir,
+                pattern = "chunk_bilat_overlap_",
+                ext = ".tif"
+            )
+            chunk <- .raster_crop(
+                r_obj = b,
+                file = temp_chunk_file,
+                format = "GTiff",
+                data_type = .raster_data_type(
+                    .config_get("probs_cube_data_type")
+                ),
+                gdal_options = .config_gtiff_default_options(),
+                overwrite = TRUE,
+                block = block
+            )
+            # Delete temp file
+            on.exit(unlink(temp_chunk_file), add = TRUE)
 
             # process it
             raster_out <- .do_bilateral(chunk = chunk)
 
-            # create extent
+            # Create extent
             blk_no_overlap <- list(
                 first_row = block$crop_first_row,
                 nrows = block$crop_nrows,
@@ -569,16 +624,14 @@ sits_smooth.bilateral <- function(cube,
                 ncols = block$crop_ncols
             )
 
-            # crop removing overlaps
-            raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
             block_file <- .smth_filename(
                 tile = tile_new,
                 output_dir = output_dir,
                 block = block
             )
 
-            # save chunk
-            .raster_write_rast(
+            # Save chunk
+            .raster_crop(
                 r_obj = raster_out,
                 file = block_file,
                 format = "GTiff",
@@ -586,7 +639,8 @@ sits_smooth.bilateral <- function(cube,
                     .config_get("probs_cube_data_type")
                 ),
                 gdal_options = .config_gtiff_default_options(),
-                overwrite = TRUE
+                overwrite = TRUE,
+                block = blk_no_overlap
             )
 
             return(block_file)

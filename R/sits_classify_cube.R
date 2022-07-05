@@ -109,14 +109,18 @@
     # resume feature
     # if tile already exists, return probs_cube
     if (file.exists(.file_info_path(probs_cube))) {
-        message(
-            paste(
-                "Recovery mode. Classified probability image detected in",
-                "the provided directory."
-            )
-        )
-
-        return(probs_cube)
+        old_file <- .file_info_path(probs_cube)
+        if (all(.raster_bbox(.raster_open_rast(old_file))
+                == sits_bbox(probs_cube))) {
+            message(paste0(
+                "Recovery mode: classified image file found in '",
+                dirname(old_file), "' directory. ",
+                "(If you want a new classifcation, please ",
+                "change the directory in the 'output_dir' or the ",
+                "value of 'version' parameter)"
+            ))
+            return(probs_cube)
+        }
     }
 
     # show initial time for classification
@@ -146,13 +150,13 @@
         value = length(blocks)
     )
 
-    # for cubes that have a time limit to expire - mspc cubes only
+    # for cubes that have a time limit to expire - mpc cubes only
     tile <- .cube_token_generator(tile)
 
     # read the blocks and compute the probabilities
     filenames <- .sits_parallel_map(blocks, function(b) {
 
-        # for cubes that have a time limit to expire - mspc cubes only
+        # for cubes that have a time limit to expire - mpc cubes only
         tile <- .cube_token_generator(tile)
 
         probs_cube_filename <- tools::file_path_sans_ext(

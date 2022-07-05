@@ -44,7 +44,6 @@ test_that("One-year, single core classification", {
 })
 
 test_that("One-year, multicore classification", {
-    testthat::skip_on_cran()
 
     samples_ndvi <- sits_select(samples_modis_4bands,
         bands = c("NDVI")
@@ -124,7 +123,6 @@ test_that("One-year, multicore classification", {
 })
 
 test_that("One-year, single core classification with filter", {
-    testthat::skip_on_cran()
 
     samples_filt <-
         sits_select(samples_modis_4bands, bands = c("NDVI")) %>%
@@ -158,7 +156,6 @@ test_that("One-year, single core classification with filter", {
 })
 
 test_that("One-year, multicore classification with Savitzky-Golay filter", {
-    testthat::skip_on_cran()
 
     samples_filt <-
         sits_select(samples_modis_4bands, bands = c("NDVI")) %>%
@@ -215,7 +212,6 @@ test_that("One-year, multicore classification with Savitzky-Golay filter", {
 })
 
 test_that("One-year, multicore classification with Whittaker filter", {
-    testthat::skip_on_cran()
 
     samples_filt <-
         sits_select(samples_modis_4bands, bands = c("NDVI")) %>%
@@ -271,7 +267,6 @@ test_that("One-year, multicore classification with Whittaker filter", {
 })
 
 test_that("One-year, multicore classification with torch", {
-    testthat::skip_on_cran()
 
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
@@ -323,7 +318,6 @@ test_that("One-year, multicore classification with torch", {
 })
 
 test_that("One-year, multicore classification with ResNet", {
-    testthat::skip_on_cran()
 
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
@@ -375,7 +369,6 @@ test_that("One-year, multicore classification with ResNet", {
 })
 
 test_that("One-year, multicore classification with TAE", {
-    testthat::skip_on_cran()
 
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
@@ -427,7 +420,6 @@ test_that("One-year, multicore classification with TAE", {
 })
 
 test_that("One-year, multicore classification with LightTAE", {
-    testthat::skip_on_cran()
 
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
@@ -538,13 +530,24 @@ test_that("One-year, multicores classification with cloud band", {
         memsize = 4,
         multicores = 2
     )
-    cube_merged <- sits_merge(data1 = cube, data2 = cloud_cube)
+
+    kern_cube <- sits_apply(
+        data = cube,
+        output_dir = tempdir(),
+        NDVI_TEXTURE = w_sd(NDVI),
+        window_size = 3,
+        memsize = 4,
+        multicores = 2
+    )
+
+    cube_merged <- sits_merge(data1 = cube, data2 = kern_cube)
 
     samples_ndvi <- sits_get_data(
         cube = cube_merged,
         samples = csv_file,
         multicores = 2
     )
+
     rf_model <- sits_train(samples_ndvi, ml_method = sits_rfor)
 
     probs_cube <- tryCatch(
@@ -750,6 +753,39 @@ test_that("One-year, multicore classification with post-processing", {
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_uncert$file_info[[1]]$path))))
+})
+
+test_that("One-year, multicores processing mixture model ", {
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+
+    endmembers_spectra <-
+        tibble::tibble(
+            type = c("vegetation", "not-vegetation"),
+            NDVI = c(8500, 3400)
+        )
+
+    mix_cube <- sits_mixture_model(
+        cube = cube,
+        endmembers_spectra = endmembers_spectra,
+        memsize = 4,
+        multicores = 2,
+        output_dir = tempdir()
+    )
+
+    expect_true(all(file.exists(unlist(mix_cube$file_info[[1]]$path))))
+    expect_true(
+        all(c("NOT-VEGETATION", "VEGETATION", "RMSE") %in% sits_bands(mix_cube))
+    )
+
+    unlink(mix_cube$file_info[[1]]$path)
 })
 
 test_that("Raster GDAL datatypes", {

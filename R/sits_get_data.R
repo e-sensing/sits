@@ -32,6 +32,12 @@
 #'                        "YYYY-MM-DD" format (optional).
 #' @param label           Label to be assigned to the time series (optional).
 #' @param bands           Bands to be retrieved (optional).
+#' @param crs             A coordinate reference system of samples.
+#'                        The provided crs could be a character
+#'                        (e.g, "EPSG:4326" or "WGS84" or a proj4string), or a
+#'                        a numeric with the EPSG code (e.g. 4326).
+#'                        This parameter only works for 'csv' or data.frame'
+#'                        samples. Default is 4326.
 #' @param impute_fn       Imputation function for NA values.
 #' @param label_attr      Attribute in the shapefile or sf object to be used
 #'                        as a polygon label.
@@ -107,12 +113,13 @@ sits_get_data <- function(cube,
                           ),
                           label = "NoClass",
                           bands = sits_bands(cube),
+                          crs = 4326,
                           impute_fn = sits_impute_linear(),
                           label_attr = NULL,
                           n_sam_pol = 30,
                           pol_avg = FALSE,
                           pol_id = NULL,
-                          multicores = 4,
+                          multicores = 2,
                           output_dir = ".",
                           progress = FALSE) {
 
@@ -151,8 +158,9 @@ sits_get_data.csv <- function(cube,
                               samples,
                               ...,
                               bands = sits_bands(cube),
+                              crs = 4326,
                               impute_fn = sits_impute_linear(),
-                              multicores = 4,
+                              multicores = 2,
                               output_dir = ".",
                               progress = FALSE) {
     samples <- .sits_get_samples_from_csv(samples)
@@ -161,6 +169,7 @@ sits_get_data.csv <- function(cube,
         cube       = cube,
         samples    = samples,
         bands      = bands,
+        crs        = crs,
         impute_fn  = impute_fn,
         multicores = multicores,
         output_dir = output_dir,
@@ -184,7 +193,7 @@ sits_get_data.shp <- function(cube,
                               n_sam_pol = 30,
                               pol_avg = FALSE,
                               pol_id = NULL,
-                              multicores = 4,
+                              multicores = 2,
                               output_dir = ".",
                               progress = FALSE) {
 
@@ -234,7 +243,7 @@ sits_get_data.sf <- function(cube,
                              n_sam_pol = 30,
                              pol_avg = FALSE,
                              pol_id = NULL,
-                             multicores = 4,
+                             multicores = 2,
                              output_dir = ".",
                              progress = FALSE) {
 
@@ -277,7 +286,7 @@ sits_get_data.sits <- function(cube,
                                ...,
                                bands = sits_bands(cube),
                                impute_fn = sits_impute_linear(),
-                               multicores = 4,
+                               multicores = 2,
                                output_dir = ".",
                                progress = FALSE) {
     # check if samples contains all the required columns
@@ -316,8 +325,9 @@ sits_get_data.data.frame <- function(cube,
                                      ),
                                      label = "NoClass",
                                      bands = sits_bands(cube),
+                                     crs = 4326,
                                      impute_fn = sits_impute_linear(),
-                                     multicores = 4,
+                                     multicores = 2,
                                      output_dir = ".",
                                      progress = FALSE) {
 
@@ -339,11 +349,13 @@ sits_get_data.data.frame <- function(cube,
     if (!("end_date" %in% colnames(samples))) {
         samples$end_date <- end_date
     }
+    class(samples) <- c("sits", class(samples))
 
     data <- .sits_get_ts(
         cube       = cube,
         samples    = samples,
         bands      = bands,
+        crs        = crs,
         impute_fn  = impute_fn,
         multicores = multicores,
         output_dir = output_dir,
@@ -358,6 +370,12 @@ sits_get_data.data.frame <- function(cube,
 #' @keywords internal
 #' @param cube            Data cube from where data is to be retrieved.
 #' @param samples         Samples to be retrieved.
+#' @param crs             A coordinate reference system of samples.
+#'                        The provided crs could be a character
+#'                        (e.g, "EPSG:4326" or "WGS84" or a proj4string), or a
+#'                        a numeric with the EPSG code (e.g. 4326).
+#'                        This parameter only works for 'csv' or data.frame'
+#'                        samples. Default is 4326.
 #' @param bands           Bands to be retrieved (optional).
 #' @param impute_fn       Imputation function for NA values.
 #' @param multicores      Number of threads to process the time series.
@@ -385,29 +403,18 @@ sits_get_data.data.frame <- function(cube,
 .sits_get_ts.raster_cube <- function(cube,
                                      samples, ...,
                                      bands,
+                                     crs = 4326,
                                      impute_fn,
                                      multicores,
                                      output_dir,
                                      progress) {
-    samples_sf <- sits_as_sf(samples)
 
-    are_samples_in_tiles <- purrr::map_lgl(seq_len(nrow(cube)), function(i) {
-        .sits_raster_sub_image_intersects(
-            cube = cube[i, ],
-            roi = samples_sf
-        )
-    })
-    .check_that(
-        any(are_samples_in_tiles),
-        msg = "The provided tile(s) does not intersects with samples."
-    )
+    samples <- .sits_transform_samples(samples = samples, crs = crs)
+
     # filter only tiles that intersects with samples
-    cube <- cube[are_samples_in_tiles, ]
-
-    .check_chr_within(
-        x = .config_get("df_sample_columns"),
-        within = colnames(samples),
-        msg = "data input is not valid"
+    cube <- .sits_filter_intersecting_tiles(
+        cube = cube,
+        samples = samples
     )
 
     # pre-condition - check bands

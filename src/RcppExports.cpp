@@ -69,6 +69,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// kernel_fun
+NumericVector kernel_fun(const NumericMatrix& data, const int band, const int img_nrow, const int img_ncol, const int window_size, const int fun);
+RcppExport SEXP _sits_kernel_fun(SEXP dataSEXP, SEXP bandSEXP, SEXP img_nrowSEXP, SEXP img_ncolSEXP, SEXP window_sizeSEXP, SEXP funSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const int >::type band(bandSEXP);
+    Rcpp::traits::input_parameter< const int >::type img_nrow(img_nrowSEXP);
+    Rcpp::traits::input_parameter< const int >::type img_ncol(img_ncolSEXP);
+    Rcpp::traits::input_parameter< const int >::type window_size(window_sizeSEXP);
+    Rcpp::traits::input_parameter< const int >::type fun(funSEXP);
+    rcpp_result_gen = Rcpp::wrap(kernel_fun(data, band, img_nrow, img_ncol, window_size, fun));
+    return rcpp_result_gen;
+END_RCPP
+}
 // least_probs
 IntegerVector least_probs(const IntegerMatrix& mtx, const int& n);
 RcppExport SEXP _sits_least_probs(SEXP mtxSEXP, SEXP nSEXP) {
@@ -115,6 +131,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// nnls_solver
+arma::mat nnls_solver(const arma::mat x, const arma::mat A, const int iterate, const float tolerance);
+RcppExport SEXP _sits_nnls_solver(SEXP xSEXP, SEXP ASEXP, SEXP iterateSEXP, SEXP toleranceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::mat >::type A(ASEXP);
+    Rcpp::traits::input_parameter< const int >::type iterate(iterateSEXP);
+    Rcpp::traits::input_parameter< const float >::type tolerance(toleranceSEXP);
+    rcpp_result_gen = Rcpp::wrap(nnls_solver(x, A, iterate, tolerance));
+    return rcpp_result_gen;
+END_RCPP
+}
 // normalize_data
 NumericMatrix normalize_data(const NumericMatrix& data, const double& min, const double& max);
 RcppExport SEXP _sits_normalize_data(SEXP dataSEXP, SEXP minSEXP, SEXP maxSEXP) {
@@ -137,6 +167,49 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const IntegerMatrix& >::type mtx(mtxSEXP);
     Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
     rcpp_result_gen = Rcpp::wrap(ratio_probs(mtx, n));
+    return rcpp_result_gen;
+END_RCPP
+}
+// max_sampling
+DataFrame max_sampling(const IntegerMatrix& data, const int band, const int img_nrow, const int img_ncol, const int window_size);
+RcppExport SEXP _sits_max_sampling(SEXP dataSEXP, SEXP bandSEXP, SEXP img_nrowSEXP, SEXP img_ncolSEXP, SEXP window_sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const int >::type band(bandSEXP);
+    Rcpp::traits::input_parameter< const int >::type img_nrow(img_nrowSEXP);
+    Rcpp::traits::input_parameter< const int >::type img_ncol(img_ncolSEXP);
+    Rcpp::traits::input_parameter< const int >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(max_sampling(data, band, img_nrow, img_ncol, window_size));
+    return rcpp_result_gen;
+END_RCPP
+}
+// smooth_sg
+arma::vec smooth_sg(const arma::vec& data, const arma::mat& f_res, const int& p, const int& n);
+RcppExport SEXP _sits_smooth_sg(SEXP dataSEXP, SEXP f_resSEXP, SEXP pSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type f_res(f_resSEXP);
+    Rcpp::traits::input_parameter< const int& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(smooth_sg(data, f_res, p, n));
+    return rcpp_result_gen;
+END_RCPP
+}
+// smooth_sg_mtx
+arma::mat smooth_sg_mtx(const arma::mat& data, const arma::mat& f_res, const int& p, const int& n);
+RcppExport SEXP _sits_smooth_sg_mtx(SEXP dataSEXP, SEXP f_resSEXP, SEXP pSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type f_res(f_resSEXP);
+    Rcpp::traits::input_parameter< const int& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(smooth_sg_mtx(data, f_res, p, n));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -172,12 +245,17 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_kernel_smoother", (DL_FUNC) &_sits_kernel_smoother, 5},
     {"_sits_bilateral_smoother", (DL_FUNC) &_sits_bilateral_smoother, 5},
     {"_sits_entropy_probs", (DL_FUNC) &_sits_entropy_probs, 2},
+    {"_sits_kernel_fun", (DL_FUNC) &_sits_kernel_fun, 6},
     {"_sits_least_probs", (DL_FUNC) &_sits_least_probs, 2},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
     {"_sits_margin_probs", (DL_FUNC) &_sits_margin_probs, 2},
+    {"_sits_nnls_solver", (DL_FUNC) &_sits_nnls_solver, 4},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
     {"_sits_ratio_probs", (DL_FUNC) &_sits_ratio_probs, 2},
+    {"_sits_max_sampling", (DL_FUNC) &_sits_max_sampling, 5},
+    {"_sits_smooth_sg", (DL_FUNC) &_sits_smooth_sg, 4},
+    {"_sits_smooth_sg_mtx", (DL_FUNC) &_sits_smooth_sg_mtx, 4},
     {"_sits_smooth_whit", (DL_FUNC) &_sits_smooth_whit, 3},
     {"_sits_smooth_whit_mtx", (DL_FUNC) &_sits_smooth_whit_mtx, 3},
     {NULL, NULL, 0}

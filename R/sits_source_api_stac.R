@@ -67,7 +67,8 @@
                                    tiles,
                                    roi_sf,
                                    start_date,
-                                   end_date, ...) {
+                                   end_date,
+                                   platform, ...) {
 
     # set caller to show in errors
     .check_set_caller(".source_cube.stac_cube")
@@ -85,7 +86,8 @@
         source = source,
         collection = collection,
         stac_query = items_query,
-        tiles = tiles, ...
+        tiles = tiles,
+        platform = platform, ...
     )
     # filter bands in items
     items <- .source_items_bands_select(

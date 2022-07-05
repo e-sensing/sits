@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 1.0.1
+Version: 1.1.0
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara.inpe@gmail.com'),
@@ -68,6 +68,7 @@ Suggests:
     dendextend,
     dtwclust,
     dtwSat (>= 0.2.7),
+    DiagrammeR,
     digest,
     e1071,
     FNN,
@@ -83,11 +84,12 @@ Suggests:
     mgcv,
     openxlsx,
     randomForest,
+    randomForestExplainer,
     RcppArmadillo (>= 0.11),
     scales,
     stars (>= 0.5),
     testthat (>= 3.1.3),
-    torchopt(>= 0.1.1),
+    torchopt(>= 0.1.2),
     xgboost,
     zoo
 Config/testthat/edition: 3
@@ -132,6 +134,7 @@ Collate:
     'sits_lighttae.R'
     'sits_machine_learning.R'
     'sits_merge.R'
+    'sits_mixture_model.R'
     'sits_mlp.R'
     'sits_parallel.R'
     'sits_patterns.R'
@@ -156,7 +159,8 @@ Collate:
     'sits_source_api_bdc.R'
     'sits_source_api_deafrica.R'
     'sits_source_api_local.R'
-    'sits_source_api_mspc.R'
+    'sits_source_api_mpc.R'
+    'sits_source_api_sdc.R'
     'sits_source_api_stac.R'
     'sits_source_api_usgs.R'
     'sits_space_time_operations.R'

@@ -1,5 +1,11 @@
 # These are configuration parameters that can be set by users
 
+# run tests
+run_tests : false
+
+# run examples
+run_examples : false
+
 # estimated relative growth size of R memory relative to block size
 processing_bloat        : 5
 
@@ -15,7 +21,7 @@ gdal_creation_options   : ["COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES"]
 # maxbytes per plot (in MB)
 plot_max_Mbytes: 16
 # maxbytes for leaflet (in MB)
-leaflet_max_megabytes : 32
+leaflet_max_megabytes : 64
 # estimated compression factor for leaflet
 leaflet_comp_factor : 0.50
 
@@ -56,7 +62,7 @@ sources:
                         <<: *bdc_awfi_b13
                         band_name     : "BAND16"
                     CLOUD   : &bdc_awfi_cloud
-                        bit_mask      : FALSE
+                        bit_mask      : false
                         band_name     : "CMASK"
                         values        :
                             0         : "No Data"
@@ -113,7 +119,7 @@ sources:
                         <<: *bdc_mux_b5
                         band_name     : "BAND8"
                     CLOUD   : &bdc_mux_cloud
-                        bit_mask      : FALSE
+                        bit_mask      : false
                         band_name     : "CMASK"
                         values        :
                             0         : "No Data"
@@ -196,7 +202,7 @@ sources:
                         <<: *bdc_oli_band1
                         band_name     : "band7"
                     CLOUD   : &bdc_oli_cloud
-                        bit_mask      : FALSE
+                        bit_mask      : false
                         band_name     : "Fmask4"
                         values        :
                             0         : "Clear Land"
@@ -256,7 +262,7 @@ sources:
                         <<: *bdc_modis_blue
                         band_name     : "MIR_reflectance"
                     CLOUD   : &bdc_modis_cloud
-                        bit_mask      : FALSE
+                        bit_mask      : false
                         band_name     : "pixel_reliability"
                         values        :
                             0         : "Use with confidence"
@@ -338,7 +344,7 @@ sources:
                         <<: *bdc_sen2cor_msi_band1
                         band_name     : "B12"
                     CLOUD   :
-                        bit_mask     : FALSE
+                        bit_mask     : false
                         band_name    : "SCL"
                         values       :
                             0        : "missing_data"
@@ -400,7 +406,7 @@ sources:
                         <<: *bdc_oli_band1
                         band_name     : "SR_B7"
                     CLOUD   : &bdc_oli_cloud
-                        bit_mask      : TRUE
+                        bit_mask      : true
                         band_name     : "QA_PIXEL"
                         values        :
                             0         : "missing_data"
@@ -483,7 +489,7 @@ sources:
                         <<: *aws_msi_20m
                         band_name    : "B12"
                     CLOUD   :
-                        bit_mask     : FALSE
+                        bit_mask     : false
                         band_name    : "SCL"
                         values       :
                             0        : "missing_data"
@@ -502,13 +508,16 @@ sources:
                         resolution  : 20
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
+                platforms   :
+                    SENTINEL-2A: "sentinel-2a"
+                    SENTINEL-2B: "sentinel-2b"
                 collection_name: "sentinel-s2-l2a"
                 token_vars  :  ["AWS_ACCESS_KEY_ID","AWS_SECRET_ACCESS_KEY"]
                 access_vars :
                     AWS_DEFAULT_REGION   : "eu-central-1"
                     AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                     AWS_REQUEST_PAYER    : "requester"
-                    AWS_NO_SIGN_REQUEST  : FALSE
+                    AWS_NO_SIGN_REQUEST  : false
                 open_data   : false
                 metadata_search : "tile"
                 ext_tolerance: 0
@@ -570,13 +579,16 @@ sources:
                         band_name    : "B12"
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
+                platforms   :
+                    SENTINEL-2A: "sentinel-2a"
+                    SENTINEL-2B: "sentinel-2b"
                 collection_name: "sentinel-s2-l1c"
                 token_vars  :  ["AWS_ACCESS_KEY_ID","AWS_SECRET_ACCESS_KEY"]
                 access_vars :
                     AWS_DEFAULT_REGION   : "eu-central-1"
                     AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                     AWS_REQUEST_PAYER    : "requester"
-                    AWS_NO_SIGN_REQUEST  : FALSE
+                    AWS_NO_SIGN_REQUEST  : false
                 open_data   : false
                 metadata_search : "tile"
                 ext_tolerance: 0
@@ -634,7 +646,7 @@ sources:
                         <<: *aws_cog_msi_20m
                         band_name    : "B12"
                     CLOUD   :
-                        bit_mask     : FALSE
+                        bit_mask     : false
                         band_name    : "SCL"
                         values       :
                             0        : "missing_data"
@@ -653,11 +665,14 @@ sources:
                         resolution  :  20
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
+                platforms   :
+                    SENTINEL-2A: "sentinel-2a"
+                    SENTINEL-2B: "sentinel-2b"
                 collection_name: "sentinel-s2-l2a-cogs"
                 access_vars :
                     AWS_DEFAULT_REGION   : "us-west-1"
                     AWS_S3_ENDPOINT      : "s3.amazonaws.com"
-                    AWS_NO_SIGN_REQUEST  : TRUE
+                    AWS_NO_SIGN_REQUEST  : true
                 open_data: true
                 open_data_token: false
                 metadata_search: "tile"
@@ -722,7 +737,7 @@ sources:
                         <<: *deafrica_msi_20m
                         band_name     : "B12"
                     CLOUD   :
-                        bit_mask      : FALSE
+                        bit_mask      : false
                         band_name     : "SCL"
                         values        :
                             0         : "missing_data"
@@ -745,7 +760,7 @@ sources:
                 access_vars :
                     AWS_DEFAULT_REGION: "af-south-1"
                     AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
-                    AWS_NO_SIGN_REQUEST: TRUE
+                    AWS_NO_SIGN_REQUEST: true
                 open_data: true
                 open_data_token: false
                 metadata_search : "tile"
@@ -780,7 +795,7 @@ sources:
                         <<: *deafrica_oli_30m
                         band_name     : "SR_B7"
                     CLOUD   :
-                        bit_mask      : TRUE
+                        bit_mask      : true
                         band_name     : "QA_PIXEL"
                         values        :
                             0         : "missing_data"
@@ -803,7 +818,139 @@ sources:
                 access_vars :
                     AWS_DEFAULT_REGION: "af-south-1"
                     AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
-                    AWS_NO_SIGN_REQUEST: TRUE
+                    AWS_NO_SIGN_REQUEST: true
+                open_data: true
+                open_data_token: false
+                metadata_search : "feature"
+                ext_tolerance: 0
+    SDC                     :
+        s3_class            : ["sdc_cube", "stac_cube", "raster_cube"]
+        service             : "STAC"
+        url                 : "https://explorer.swissdatacube.org/stac"
+        collections         :
+            S2_L2A_10M_SWISS: &swiss_s2
+                bands       :
+                    B01     : &swiss_msi_10m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    :  10
+                        band_name     : "coastal_aerosol"
+                    B02     :
+                        <<: *swiss_msi_10m
+                        band_name     : "blue"
+                    B03     :
+                        <<: *swiss_msi_10m
+                        band_name     : "green"
+                    B04     :
+                        <<: *swiss_msi_10m
+                        band_name     : "red"
+                    B05     :
+                        <<: *swiss_msi_10m
+                        band_name     : "veg5"
+                    B06     :
+                        <<: *swiss_msi_10m
+                        band_name     : "veg6"
+                    B07     :
+                        <<: *swiss_msi_10m
+                        band_name     : "veg7"
+                    B08     :
+                        <<: *swiss_msi_10m
+                        band_name     : "nir"
+                    B8A     :
+                        <<: *swiss_msi_10m
+                        band_name     : "narrow_nir"
+                    B09     :
+                        <<: *swiss_msi_10m
+                        band_name     : "water_vapour"
+                    B11     :
+                        <<: *swiss_msi_10m
+                        band_name     : "swir1"
+                    B12     :
+                        <<: *swiss_msi_10m
+                        band_name     : "swir2"
+                    CLOUD   :
+                        bit_mask      : false
+                        band_name     : "slc"
+                        values        :
+                            0         : "missing_data"
+                            1         : "defective pixel"
+                            2         : "shadows"
+                            3         : "cloud shadows"
+                            4         : "vegetation"
+                            5         : "non-vegetated"
+                            6         : "water"
+                            7         : "unclassified"
+                            8         : "cloud medium"
+                            9         : "cloud high"
+                            10        : "thin cirrus"
+                            11        : "snow or ice"
+                        interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
+                        resolution   :  20
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
+                collection_name: "s2_l2a_10m_swiss"
+                open_data: true
+                open_data_token: false
+                metadata_search : "feature"
+                ext_tolerance: 0
+            LS8_LASRC_SWISS : &swiss_l8
+                bands       :
+                    B01     : &swiss_oli_30m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "coastal_aerosol"
+                    B02     :
+                        <<: *swiss_oli_30m
+                        band_name     : "blue"
+                    B03     :
+                        <<: *swiss_oli_30m
+                        band_name     : "green"
+                    B04     :
+                        <<: *swiss_oli_30m
+                        band_name     : "red"
+                    B05     :
+                        <<: *swiss_oli_30m
+                        band_name     : "nir"
+                    B06     :
+                        <<: *swiss_oli_30m
+                        band_name     : "swir1"
+                    B07     :
+                        <<: *swiss_oli_30m
+                        band_name     : "swir2"
+                    CLOUD   :
+                        bit_mask      : true
+                        band_name     : "pixel_qa"
+                        values        :
+                            0         : "missing_data"
+                            1         : "Clear"
+                            2         : "Water"
+                            3         : "Cloud Shadow"
+                            4         : "Snow"
+                            5         : "Cloud"
+                            6         : "Low/High confidence of cloud"
+                            7         : "Medium/High confidence of cloud"
+                            8         : "Low/High confidence of cirrus"
+                            9         : "Medium/High confidence of cirrus"
+                            10        : "Terrain Occlusion"
+                            11        : "Unused"
+                            12        : "Unused"
+                            13        : "Unused"
+                            14        : "Unused"
+                            15        : "Unused"
+                        interp_values : [0, 3, 4, 5, 7, 9, 10]
+                        resampling    : "near"
+                        resolution    : 30
+                satellite   : "LANDSAT-8"
+                sensor      : "OLI"
+                collection_name: "ls8_lasrc_swiss"
                 open_data: true
                 open_data_token: false
                 metadata_search : "feature"
@@ -844,10 +991,10 @@ sources:
                         <<: *usgs_oli_30m
                         band_name     : "swir22"
                     CLOUD   :
-                        bit_mask      : TRUE
+                        bit_mask      : true
                         band_name     : "qa_pixel"
                         values        :
-                            0         : "missing_data"
+                            0         : "Missing data"
                             1         : "Dilated Cloud"
                             2         : "High confidence cirrus"
                             3         : "High confidence cloud"
@@ -855,36 +1002,43 @@ sources:
                             5         : "High confidence snow cover"
                             6         : "Clear"
                             7         : "Water"
-                            9         : "High confidence of cloud"
-                            11        : "High confidence of cloud shadow"
-                            13        : "High confidence of snow"
-                            15        : "High confidence of cirrus"
-                        interp_values : [0, 1, 2, 3, 4, 5]
+                            8         : "Low/High confidence of cloud"
+                            9         : "Medium/High confidence of cloud"
+                            10        : "Low/High confidence of cloud shadow"
+                            11        : "Medium/High confidence of cloud shadow"
+                            12        : "Low/High confidence of snow"
+                            13        : "Medium/High confidence of snow"
+                            14        : "Low/High confidence of cirrus"
+                            15        : "Medium/High confidence of cirrus"
+                        interp_values : [0, 1, 2, 3, 4, 5, 9, 11, 13, 15]
                         resampling    : "near"
                         resolution    : 30
-                satellite   : "LANDSAT-8"
+                satellite   : "LANDSAT-8/9"
                 sensor      : "OLI"
                 collection_name: "landsat-c2l2-sr"
+                platforms   :
+                    LANDSAT-8: "LANDSAT_8"
+                    LANDSAT-9: "LANDSAT_9"
                 access_vars :
                     AWS_DEFAULT_REGION: "us-west-2"
                     AWS_S3_ENDPOINT   : "s3.amazonaws.com"
                     AWS_REQUEST_PAYER : "requester"
-                    AWS_NO_SIGN_REQUEST  : FALSE
+                    AWS_NO_SIGN_REQUEST  : false
                 open_data: false
                 open_data_token: false
                 tile_required: false
                 metadata_search : "feature"
                 ext_tolerance: 0
-    MSPC                    :
-        s3_class            : ["mspc_cube", "stac_cube", "raster_cube"]
+    MPC                     :
+        s3_class            : ["mpc_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
         rstac_version       : "1.0.0"
         url                 : "https://planetarycomputer.microsoft.com/api/stac/v1"
         token_url           : "https://planetarycomputer.microsoft.com/api/sas/v1/token"
         collections         :
-            LANDSAT-8-C2-L2 : &mspc_oli
+            LANDSAT-C2-L2   : &mspc_oli
                 bands       :
-                    B01     : &mspc_oli_30m
+                    BLUE    : &mspc_oli_30m
                         missing_value : 0
                         minimum_value : 7273
                         maximum_value : 43636
@@ -892,30 +1046,27 @@ sources:
                         offset_value  : -0.2
                         resampling    : "bilinear"
                         resolution    : 30
-                        band_name     : "SR_B1"
-                    B02     :
+                        band_name     : "blue"
+                    GREEN   :
                         <<: *mspc_oli_30m
-                        band_name     : "SR_B2"
-                    B03     :
+                        band_name     : "green"
+                    RED     :
                         <<: *mspc_oli_30m
-                        band_name     : "SR_B3"
-                    B04     :
+                        band_name     : "red"
+                    NIR08   :
                         <<: *mspc_oli_30m
-                        band_name     : "SR_B4"
-                    B05     :
+                        band_name     : "nir08"
+                    SWIR16  :
                         <<: *mspc_oli_30m
-                        band_name     : "SR_B5"
-                    B06     :
+                        band_name     : "swir16"
+                    SWIR22  :
                         <<: *mspc_oli_30m
-                        band_name     : "SR_B6"
-                    B07     :
-                        <<: *mspc_oli_30m
-                        band_name     : "SR_B7"
+                        band_name     : "swir22"
                     CLOUD   :
-                        bit_mask      : TRUE
-                        band_name     : "QA_PIXEL"
+                        bit_mask      : true
+                        band_name     : "qa_pixel"
                         values        :
-                            0         : "missing_data"
+                            0         : "Missing data"
                             1         : "Dilated Cloud"
                             2         : "High confidence cirrus"
                             3         : "High confidence cloud"
@@ -923,16 +1074,25 @@ sources:
                             5         : "High confidence snow cover"
                             6         : "Clear"
                             7         : "Water"
-                            9         : "High confidence of cloud"
-                            11        : "High confidence of cloud shadow"
-                            13        : "High confidence of snow"
-                            15        : "High confidence of cirrus"
-                        interp_values : [0, 1, 2, 3, 4, 5]
+                            8         : "Low/High confidence of cloud"
+                            9         : "Medium/High confidence of cloud"
+                            10        : "Low/High confidence of cloud shadow"
+                            11        : "Medium/High confidence of cloud shadow"
+                            12        : "Low/High confidence of snow"
+                            13        : "Medium/High confidence of snow"
+                            14        : "Low/High confidence of cirrus"
+                            15        : "Medium/High confidence of cirrus"
+                        interp_values : [0, 1, 2, 3, 4, 5, 9, 11, 13, 15]
                         resampling    : "near"
                         resolution    : 30
-                satellite   : "LANDSAT-8"
-                sensor      : "OLI"
-                collection_name: "landsat-8-c2-l2"
+                satellite   : "LANDSAT"
+                sensor      : "TM/ETM+/OLI"
+                platforms   :
+                    LANDSAT-5: "landsat-5"
+                    LANDSAT-7: "landsat-7"
+                    LANDSAT-8: "landsat-8"
+                    LANDSAT-9: "landsat-9"
+                collection_name: "landsat-c2-l2"
                 open_data: true
                 open_data_token: false
                 tile_required: false
@@ -992,7 +1152,7 @@ sources:
                         <<: *mspc_msi_20m
                         band_name     : "B12"
                     CLOUD   :
-                        bit_mask      : FALSE
+                        bit_mask      : false
                         band_name     : "SCL"
                         values        :
                             0         : "missing_data"
@@ -1011,6 +1171,9 @@ sources:
                         resolution   :  20
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
+                platforms   :
+                    SENTINEL-2A: "Sentinel-2A"
+                    SENTINEL-2B: "Sentinel-2B"
                 collection_name: "sentinel-2-l2a"
                 open_data: true
                 open_data_token: false

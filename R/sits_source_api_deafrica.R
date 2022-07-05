@@ -3,7 +3,8 @@
 .source_items_new.deafrica_cube <- function(source, ...,
                                             collection,
                                             stac_query,
-                                            tiles = NULL) {
+                                            tiles = NULL,
+                                            platform = NULL) {
 
     # set caller to show in errors
     .check_set_caller(".source_items_new.deafrica_cube")

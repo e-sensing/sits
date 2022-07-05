@@ -12,7 +12,7 @@
   gdal_options,
   overwrite,
   ...,
-  missing_value = NULL
+  missing_value = NA
 )
 }
 \arguments{

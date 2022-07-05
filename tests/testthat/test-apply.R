@@ -1,10 +1,9 @@
 test_that("EVI generation", {
-    testthat::skip_on_cran()
 
     s2_cube <- tryCatch(
         {
             sits_cube(
-                source = "MSPC",
+                source = "MPC",
                 collection = "sentinel-2-l2a",
                 tiles = "20LKP",
                 bands = c("B05", "B8A", "CLOUD"),
@@ -19,7 +18,7 @@ test_that("EVI generation", {
 
     testthat::skip_if(
         purrr::is_null(s2_cube),
-        "MSPC is not accessible"
+        "MPC is not accessible"
     )
 
     dir_images <- paste0(tempdir(), "/images/")
@@ -36,12 +35,12 @@ test_that("EVI generation", {
         output_dir  = dir_images,
         res         = 160,
         period      = "P1M",
-        multicores  = 4
+        multicores  = 2
     )
 
     gc_cube_new <- sits_apply(gc_cube,
         EVI2 = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),
-        multicores = 4,
+        multicores = 2,
         output_dir = dir_images
     )
 

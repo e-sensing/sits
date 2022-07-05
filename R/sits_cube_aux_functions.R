@@ -1036,7 +1036,7 @@
 }
 
 #' @export
-.cube_token_generator.mspc_cube <- function(cube) {
+.cube_token_generator.mpc_cube <- function(cube) {
     file_info <- cube[["file_info"]][[1]]
     fi_paths <- file_info[["path"]]
 
@@ -1082,7 +1082,7 @@
 
     .check_that(
         !is.null(res_content),
-        msg = "invalid mspc token."
+        msg = "invalid mpc token."
     )
 
     token_parsed <- httr::parse_url(paste0("?", res_content[["token"]]))

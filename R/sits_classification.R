@@ -129,7 +129,7 @@ sits_classify.sits <- function(data,
 
     # Apply filter
     if (!purrr::is_null(filter_fn)) {
-        data <- .apply_across(data, fn = filter_fn)
+        data <- .apply_across(data = data, fn = filter_fn)
     }
 
     # precondition - are the samples valid?

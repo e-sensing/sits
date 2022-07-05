@@ -184,7 +184,7 @@
     )
 
     # compute block
-    r_crop <- .raster_crop(r_obj, bbox = bbox)
+    r_crop <- .raster_crop_metadata(r_obj, bbox = bbox)
     row <- .raster_row(
         r_obj,
         y = .raster_ymax(r_crop) - 0.5 * .raster_yres(r_crop)
@@ -306,7 +306,7 @@
     )
 
     # compute block
-    r_crop <- .raster_crop(r_obj, block = block)
+    r_crop <- .raster_crop_metadata(r_obj, block = block)
 
     row <- .raster_row(
         r_obj,

@@ -17,7 +17,8 @@ sits_cube(source, collection, ..., data_dir = NULL)
   tiles = NULL,
   roi = NULL,
   start_date = NULL,
-  end_date = NULL
+  end_date = NULL,
+  platform = NULL
 )
 
 \method{sits_cube}{local_cube}(
@@ -37,7 +38,7 @@ sits_cube(source, collection, ..., data_dir = NULL)
 }
 \arguments{
 \item{source}{Data source (one of \code{"AWS"}, \code{"BDC"},
-\code{"DEAFRICA"}, \code{"MSPC"}, \code{"USGS"}).}
+\code{"DEAFRICA"}, \code{"MPC"}, \code{"USGS"}).}
 
 \item{collection}{Image collection in data source (To find out
 the supported collections, use \code{\link{sits_list_collections}()}).}
@@ -58,6 +59,9 @@ the cube (see details below).}
 
 \item{start_date, end_date}{Initial and final dates to include
 images from the collection in the cube (optional).}
+
+\item{platform}{Optional parameter specifying the platform in case
+of collections that include more than one satellite.}
 
 \item{labels}{Labels associated to the classes (only for result cubes).}
 
@@ -83,7 +87,7 @@ The following cloud providers are supported, based on the STAC protocol:
   see http://brazildatacube.org/}
   \item{\code{"DEAFRICA"}: }{Digital Earth Africa,
   see https://www.digitalearthafrica.org/}
-  \item{\code{"MSPC"}: }{Microsoft Planetary Computer,
+  \item{\code{"MPC"}: }{Microsoft Planetary Computer,
   see https://planetarycomputer.microsoft.com/}
   \item{\code{"USGS"}:}{USGS LANDSAT collection,
   see https://registry.opendata.aws/usgs-landsat/}
@@ -95,7 +99,7 @@ Data cubes can also be created using local files (see details).
 To create cubes from cloud providers, users need to inform:
 \itemize{
 \item{\code{source}: }{One of \code{"AWS"}, \code{"BDC"}, \code{"DEAFRICA"},
-\code{"MSPC"}, \code{"USGS"}.}
+\code{"MPC"}, \code{"USGS"}.}
 \item{\code{collection}: }{Use \code{sits_list_collections()} to see which
   collections are supported.}
 \item{\code{tiles}: }{A set of tiles defined according to the collection
@@ -158,6 +162,24 @@ parameter \code{parse_info} is specified differently:
 }
 }
 \note{
+In MPC, sits can access are two open data collections:
+\code{"SENTINEL-S2-L2A"} for Sentinel-2/2A images, and
+\code{"LANDSAT-C2-L2"} for the Landsat-4/5/7/8/9 collection.
+(requester-pays) and \code{"SENTINEL-S2-L2A-COGS"} (open data).
+
+Sentinel-2/2A level 2A files in MPC are organized by sensor
+resolution. The bands in 10m resolution are \code{"B02"}, \code{"B03"},
+\code{"B04"}, and \code{"B08"}. The  20m bands are \code{"B05"},
+\code{"B06"}, \code{"B07"}, \code{"B8A"}, \code{"B11"}, and \code{"B12"}.
+Bands \code{"B01"} and \code{"B09"} are available at 60m resolution.
+The \code{"CLOUD"} band is also available.
+
+All Landsat-4/5/7/8/9 images in MPC have bands with 30 meter
+resolution. To account for differences between the different sensors,
+Landsat bands in this collection have been renamed \code{"BLUE"},
+\code{"GREEN"}, \code{"RED"}, \code{"NIR08"}, \code{"SWIR16"}
+and \code{"SWIR22"}. The \code{"CLOUD"} band is also available.
+
 In AWS, there are two types of collections: open data and
 requester-pays. Currently, \code{sits} supports collection
 \code{"SENTINEL-S2-L2A"}
@@ -258,24 +280,39 @@ if (sits_run_examples()) {
         collection = "landsat-c2l2-sr",
         bands = c("B04", "CLOUD"),
         roi = c(
-            "xmin" = 17.379,
-            "ymin" = 1.1573,
-            "xmax" = 17.410,
-            "ymax" = 1.1910
+            "xmin" = -50.379,
+            "ymin" = -10.1573,
+            "xmax" = -50.410,
+            "ymax" = -10.1910
         ),
         start_date = "2019-01-01",
         end_date = "2019-10-28"
     )
 
 
-    # -- Creating Sentinel cubes from MSPC"
+    # -- Creating Sentinel cube from MPC"
     s2_cube <- sits_cube(
-        source = "MSPC",
+        source = "MPC",
         collection = "sentinel-2-l2a",
         tiles = "20LKP",
         bands = c("B05", "CLOUD"),
         start_date = "2018-07-18",
         end_date = "2018-08-23"
+    )
+
+    # -- Creating Landsat cube from MPC"
+    mpc_cube <- sits_cube(
+        source = "MPC",
+        collection = "LANDSAT-C2-L2",
+        bands = c("BLUE", "RED", "CLOUD"),
+        roi = c(
+            "xmin" = -50.379,
+            "ymin" = -10.1573,
+            "xmax" = -50.410,
+            "ymax" = -10.1910
+        ),
+        start_date = "2005-01-01",
+        end_date = "2006-10-28"
     )
 
     # --- Create a cube based on a local MODIS data

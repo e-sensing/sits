@@ -1,5 +1,5 @@
 test_that("View", {
-    testthat::skip_on_cran()
+
     v <- sits_view(cerrado_2classes)
     expect_true("leaflet" %in% class(v))
     expect_true(all(v$x$calls[[6]]$args[[1]]$labels %in%

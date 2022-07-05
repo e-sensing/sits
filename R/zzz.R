@@ -12,8 +12,6 @@
 }
 
 .onLoad <- function(lib, pkg) {
-    Sys.setenv(R_CONFIG_ACTIVE_TESTS = "NO")
-    Sys.setenv(R_CONFIG_RUN_EXAMPLES = "NO")
     Sys.setenv(R_CONFIG_FILE = "config.yml")
     sits_config()
 }
@@ -26,6 +24,7 @@ sits_env$model_formula <- "log"
 # Include the following global variables in the sits package
 utils::globalVariables(c(
     ".", # magrittr
+    ".x", # dplyr
     ":=", ".SD", ".SDcols", ".N", # data.table
     "self", "ctx", "super", "private", # torch
     "uniform", "choice", "randint",
@@ -35,5 +34,6 @@ utils::globalVariables(c(
 #' @importFrom lubridate %within% %m+%
 #' @importFrom Rcpp sourceCpp
 #' @importFrom dplyr .data
+#' @importFrom utils read.csv
 #' @useDynLib sits, .registration = TRUE
 NULL
