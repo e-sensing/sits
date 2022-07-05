@@ -2,10 +2,9 @@
 % Please edit documentation in R/sits_plot.R
 \name{plot.xgb_model}
 \alias{plot.xgb_model}
-\alias{plot.xbg_model}
 \title{Plot XGB model}
 \usage{
-\method{plot}{xbg_model}(x, ..., n_trees = 3)
+\method{plot}{xgb_model}(x, ..., n_trees = 3)
 }
 \arguments{
 \item{x}{Object of class "xgb_model".}
