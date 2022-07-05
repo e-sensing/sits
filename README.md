@@ -27,7 +27,7 @@ License](https://img.shields.io/badge/license-GPL--2-green)](https://github.com/
 `sits` is an open source R package for satellite image time series
 analysis. It enables users to apply machine learning techniques for
 classifying image time series obtained from earth observation data
-cubes. The basic workflow in SITS is:
+cubes. The basic workflow in `sits` is:
 
 1.  Select an image collection available on cloud providers AWS,
     Microsoft Planetary Computer, Digital Earth Africa and Brazil Data
@@ -49,7 +49,7 @@ cubes. The basic workflow in SITS is:
 
 <img src="inst/extdata/markdown/figures/sits_general_view.jpg" title="Conceptual view of data cubes (source: authors)" alt="Conceptual view of data cubes (source: authors)" width="60%" height="60%" style="display: block; margin: auto;" />
 
-## SITS on Kaggle
+## `sits` on Kaggle
 
 Those that want to evaluate the `sits` package before installing are
 invited to run the examples available on
@@ -78,9 +78,9 @@ PROJ. Please follow the instructions for installing `sf` together with
 GDAL available at the [RSpatial sf github
 repository](https://github.com/r-spatial/sf).
 
-### Obtaining SITS
+### Obtaining `sits`
 
-SITS can be installed from CRAN:
+`sits` can be installed from CRAN:
 
 ``` r
 install.packages("sits")
@@ -95,12 +95,12 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 ``` r
 # load the sits library
 library(sits)
-#> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.2/sits/extdata/config.yml
-#> Color configurations found in /home/sits/R/x86_64-pc-linux-gnu-library/4.2/sits/extdata/config_colors.yml
+#> Using configuration file: C:/Users/rolf/Softwares/R-4.1.2/library/sits/extdata/config.yml
+#> Color configurations found in C:/Users/rolf/Softwares/R-4.1.2/library/sits/extdata/config_colors.yml
 #> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.0.1.
+#> Loaded sits v1.1.0.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 ```
@@ -111,16 +111,23 @@ library(sits)
 
 The `sits` package allows users to created data cubes from
 analysis-ready data (ARD) image collections available in cloud services.
-The collections accessible in `sits` 1.0.1 are:
+The collections accessible in `sits` 1.1.0 are:
 
-1.  Brazil Data Cube (BDC): Open data collections of Sentinel-2,
-    Landsat-8 and CBERS-4 images.
-2.  Microsoft Planetary Computer (MPC): Open data collection of
-    Sentinel-2/2A and Landsat-8
-3.  AWS: Sentinel-2/2A level 2A collections.
-4.  Digital Earth Africa (DEAFRICA): Open data collection of
-    Sentinel-2/2A and Landsat-8 for Africa.
-5.  USGS: Landsat-4/5/7/8 collections, which are not open data.
+1.  Brazil Data Cube
+    ([BDC](http://brazildatacube.org/en/home-page-2/#dataproducts)):
+    Open data collections of Sentinel-2, Landsat-8 and CBERS-4 images.
+2.  Microsoft Planetary Computer
+    ([MPC](https://planetarycomputer.microsoft.com/catalog)): Open data
+    collection of Sentinel-2/2A and Landsat-8
+3.  Earth on AWS ([AWS](https://aws.amazon.com/earth/)): Sentinel-2/2A
+    level 2A collections.
+4.  Digital Earth Africa
+    ([DEAFRICA](https://www.digitalearthafrica.org/)): Open data
+    collection of Sentinel-2/2A and Landsat-8 for Africa.
+5.  [USGS](https://landsatlook.usgs.gov/stac-browser): Landsat-4/5/7/8
+    collections, which are not open data.
+6.  Swiss Data Cube ([SDC](https://www.swissdatacube.org/)): Open data
+    collection of Sentinel-2/2A and Landsat-8.
 
 Open data collections do not require payment of access fees. Except for
 those in the Brazil Data Cube, these collections are not regular.
@@ -131,28 +138,30 @@ for classification using machine learning models.
 
 The following code defines an irregular data cube of Sentinel-2/2A
 images available in the Microsoft Planetary Computer, using the open
-data collection “SENTINEL-2-L2A”. The geographical area of the data cube
-is defined by the tiles “20LKP” and “20LLKP”, and the temporal extent by
-a start and end date. Access to other cloud services works in similar
-ways.
+data collection `"SENTINEL-2-L2A"`. The geographical area of the data
+cube is defined by the tiles `"20LKP"` and `"20LLKP"`, and the temporal
+extent by a start and end date. Access to other cloud services works in
+similar ways.
 
 ``` r
-s2_cube <- sits_cube(source = "MPC",
-                     collection = "SENTINEL-2-L2A",
-                     tiles = c("20LKP", "20LLP"),
-                     bands = c("B03", "B08", "B11", "SCL"),
-                     start_date = as.Date("2018-07-01"),
-                     end_date = as.Date("2019-06-30")
+s2_cube <- sits_cube(
+    source = "MPC",
+    collection = "SENTINEL-2-L2A",
+    tiles = c("20LKP", "20LLP"),
+    bands = c("B03", "B08", "B11", "SCL"),
+    start_date = as.Date("2018-07-01"),
+    end_date = as.Date("2019-06-30"),
+    progress = FALSE
 )
 #>   |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
 ```
 
-This cube is irregular. The timelines of tiles “20LKP” and “20LLKP” and
-the resolutions of the bands are different. Sentinel-2 bands “B03” and
-“B08” have 10 m resolution, while band “B11” and the cloud band “SCL”
-have 20 m resolution. Irregular collections need an additional
-processing step to be converted to regular data cubes, as described
-below.
+This cube is irregular. The timelines of tiles `"20LKP"` and `"20LLKP"`
+and the resolutions of the bands are different. Sentinel-2 bands `"B03"`
+and `"B08"` have 10-meters resolution, while band `"B11"` and the cloud
+band `"SCL"` have 20-meters resolution. Irregular collections need an
+additional processing step to be converted to regular data cubes, as
+described below.
 
 <img src="inst/extdata/markdown/figures/datacube_conception.jpg" title="Conceptual view of data cubes (source: authors)" alt="Conceptual view of data cubes (source: authors)" width="90%" height="90%" style="display: block; margin: auto;" />
 
@@ -163,18 +172,20 @@ package](https://github.com/appelmar/gdalcubes), described in [Appel and
 Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92).
 
 ``` r
-gc_cube <- sits_regularize(cube          = s2_cube,
-                           output_dir    = tempdir(),
-                           period        = "P15D",
-                           res           = 60, 
-                           multicores    = 4)
+gc_cube <- sits_regularize(
+    cube          = s2_cube,
+    output_dir    = tempdir(),
+    period        = "P15D",
+    res           = 60, 
+    multicores    = 4
+)
 ```
 
 The above command builds a regular data cube with all bands interpolated
-to 60 meter spatial resolution and 15 days temporal resolution. Regular
-data cubes are the input to the `sits` functions for time series
-retrieval, building machine learning models, and classification of
-raster images and time series.
+to 60 m spatial resolution and 15-days temporal resolution. Regular data
+cubes are the input to the `sits` functions for time series retrieval,
+building machine learning models, and classification of raster images
+and time series.
 
 The cube can be shown in a leaflet using `sits_view()`.
 
@@ -183,15 +194,15 @@ The cube can be shown in a leaflet using `sits_view()`.
 sits_view(s2_cube[1,], green = "B08", blue = "B03", red = "B04")
 ```
 
-## Working with Time Series in SITS
+## Working with Time Series in `sits`
 
 ### Accessing Time Series in Data Cubes
 
-SITS has been designed to use satellite image time series to derive
+`sits` has been designed to use satellite image time series to derive
 machine learning models. After the data cube has been created, time
 series can be retrieved individually or by using CSV or SHP files, as in
 the following example. The example below uses a data cube in a local
-directory, whose images have been obtained from the “MOD13Q1-6”
+directory, whose images have been obtained from the `"MOD13Q1-6"`
 collection of the Brazil Data Cube.
 
 ``` r
@@ -205,9 +216,9 @@ raster_cube <- sits_cube(
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
-    parse_info = c("X1", "X2", "tile", "band", "date")
+    parse_info = c("X1", "X2", "tile", "band", "date"),
+    progress = FALSE
 )
-#>   |                                                                              |                                                                      |   0%  |                                                                              |===                                                                   |   4%  |                                                                              |======                                                                |   9%  |                                                                              |=========                                                             |  13%  |                                                                              |============                                                          |  17%  |                                                                              |===============                                                       |  22%  |                                                                              |==================                                                    |  26%  |                                                                              |=====================                                                 |  30%  |                                                                              |========================                                              |  35%  |                                                                              |===========================                                           |  39%  |                                                                              |==============================                                        |  43%  |                                                                              |=================================                                     |  48%  |                                                                              |=====================================                                 |  52%  |                                                                              |========================================                              |  57%  |                                                                              |===========================================                           |  61%  |                                                                              |==============================================                        |  65%  |                                                                              |=================================================                     |  70%  |                                                                              |====================================================                  |  74%  |                                                                              |=======================================================               |  78%  |                                                                              |==========================================================            |  83%  |                                                                              |=============================================================         |  87%  |                                                                              |================================================================      |  91%  |                                                                              |===================================================================   |  96%  |                                                                              |======================================================================| 100%
 # obtain a set of samples defined by a CSV file
 csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
                         package = "sits")
@@ -216,12 +227,12 @@ points <- sits_get_data(raster_cube, samples = csv_file)
 #> All points have been retrieved
 # show the time series
 points[1:3,]
-#> # A tibble: 3 × 7
+#> # A tibble: 3 x 7
 #>   longitude latitude start_date end_date   label    cube      time_series      
 #>       <dbl>    <dbl> <date>     <date>     <chr>    <chr>     <list>           
-#> 1     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [23 × 2]>
-#> 2     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [23 × 2]>
-#> 3     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn MOD13Q1-6 <tibble [23 × 2]>
+#> 1     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [23 x 2]>
+#> 2     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [23 x 2]>
+#> 3     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn MOD13Q1-6 <tibble [23 x 2]>
 ```
 
 After a time series has been obtained, it is loaded in a tibble. The
@@ -258,7 +269,7 @@ plot(samples_cerrado)
 
 ### Clustering for sample quality control
 
-Clustering methods in SITS improve the quality of the samples and to
+Clustering methods in `sits` improve the quality of the samples and to
 remove those that might have been wrongly labeled or that have low
 discriminatory power. Good samples lead to good classification maps.
 `sits` provides support for sample quality control using Self-organizing
@@ -269,13 +280,13 @@ quality of the samples.
 ``` r
 # load the kohonen library
 library(kohonen)
+#> Warning: package 'kohonen' was built under R version 4.1.3
 # create a SOM map from the samples
 som_map <- sits_som_map(samples_modis_4bands,
                         grid_xdim = 6,
                         grid_ydim = 6)
 # plot the map
 plot(som_map)
-#> Warning in par(opar): argument 1 does not name a graphical parameter
 ```
 
 <img src="man/figures/README-unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
@@ -323,9 +334,9 @@ point_ndvi %>%
 
 ### Training Machine Learning Models
 
-SITS provides support for the classification of both individual time
+`sits` provides support for the classification of both individual time
 series as well as data cubes. The following machine learning methods are
-available in SITS:
+available in `sits`:
 
 -   Support vector machines (`sits_svm()`)
 -   Random forests (`sits_rfor()`)
@@ -381,9 +392,9 @@ sinop <- sits_cube(
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
-    parse_info = c("X1", "X2", "tile", "band", "date")
+    parse_info = c("X1", "X2", "tile", "band", "date"),
+    progress = FALSE
 )
-#>   |                                                                              |                                                                      |   0%  |                                                                              |===                                                                   |   4%  |                                                                              |======                                                                |   9%  |                                                                              |=========                                                             |  13%  |                                                                              |============                                                          |  17%  |                                                                              |===============                                                       |  22%  |                                                                              |==================                                                    |  26%  |                                                                              |=====================                                                 |  30%  |                                                                              |========================                                              |  35%  |                                                                              |===========================                                           |  39%  |                                                                              |==============================                                        |  43%  |                                                                              |=================================                                     |  48%  |                                                                              |=====================================                                 |  52%  |                                                                              |========================================                              |  57%  |                                                                              |===========================================                           |  61%  |                                                                              |==============================================                        |  65%  |                                                                              |=================================================                     |  70%  |                                                                              |====================================================                  |  74%  |                                                                              |=======================================================               |  78%  |                                                                              |==========================================================            |  83%  |                                                                              |=============================================================         |  87%  |                                                                              |================================================================      |  91%  |                                                                              |===================================================================   |  96%  |                                                                              |======================================================================| 100%
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(sinop, ml_model = tempcnn_model)
@@ -523,6 +534,6 @@ material support:
 
 ## How to contribute
 
-The SITS project is released with a [Contributor Code of
+The `sits` project is released with a [Contributor Code of
 Conduct](https://github.com/e-sensing/sits/blob/master/CODE_OF_CONDUCT.md).
 By contributing to this project, you agree to abide by its terms.
