@@ -68,6 +68,7 @@ Suggests:
     dendextend,
     dtwclust,
     dtwSat (>= 0.2.7),
+    DiagrammeR,
     digest,
     e1071,
     FNN,

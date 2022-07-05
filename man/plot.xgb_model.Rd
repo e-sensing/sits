@@ -18,7 +18,7 @@
 A plot object.
 }
 \description{
-Plots the important variables in a random forest model.
+Plots the important variables in an extreme gradient boosting.
 }
 \note{
 Please refer to the sits documentation available in
@@ -27,7 +27,7 @@ Please refer to the sits documentation available in
 \examples{
 if (sits_run_examples()) {
     # Retrieve the samples for Mato Grosso
-    # train a random forest model
+    # train an extreme gradient boosting
     xgb_model <- sits_train(samples_modis_4bands,
            ml_method = sits_xgboost())
     # plot the model

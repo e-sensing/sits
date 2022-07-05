@@ -119,7 +119,7 @@ sits_get_data <- function(cube,
                           n_sam_pol = 30,
                           pol_avg = FALSE,
                           pol_id = NULL,
-                          multicores = 4,
+                          multicores = 2,
                           output_dir = ".",
                           progress = FALSE) {
 
