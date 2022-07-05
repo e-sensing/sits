@@ -1,4 +1,4 @@
-#' @title Multiple endmember spectral mixture analyses
+#' @title Multiple endmember spectral mixture analysis
 #'
 #' @name sits_mixture_model
 #'

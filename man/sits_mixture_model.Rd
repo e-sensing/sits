@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_mixture_model.R
 \name{sits_mixture_model}
 \alias{sits_mixture_model}
-\title{Multiple endmember spectral mixture analyses}
+\title{Multiple endmember spectral mixture analysis}
 \usage{
 sits_mixture_model(
   cube,
