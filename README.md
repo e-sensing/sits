@@ -172,11 +172,13 @@ package](https://github.com/appelmar/gdalcubes), described in [Appel and
 Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92).
 
 ``` r
-gc_cube <- sits_regularize(cube          = s2_cube,
-                           output_dir    = tempdir(),
-                           period        = "P15D",
-                           res           = 60, 
-                           multicores    = 4)
+gc_cube <- sits_regularize(
+    cube          = s2_cube,
+    output_dir    = tempdir(),
+    period        = "P15D",
+    res           = 60, 
+    multicores    = 4
+)
 ```
 
 The above command builds a regular data cube with all bands interpolated
