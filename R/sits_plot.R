@@ -1072,7 +1072,7 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #' }
 #' @export
 #'
-plot.xbg_model <- function(x, ..., n_trees = 3){
+plot.xgb_model <- function(x, ..., n_trees = 3){
     # verifies if DiagrammeR package is installed
     .check_require_packages("DiagrammeR")
     # retrieve the XGB object from the enviroment
