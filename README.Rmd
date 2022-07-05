@@ -14,6 +14,9 @@ knitr::opts_chunk$set(
   comment = "#>",
   fig.path = "man/figures/README-"
 )
+# set seed for reproducibility
+set.seed(4242)
+torch::torch_manual_seed(1234)
 ```
 
 <img src="inst/extdata/sticker/sits_sticker.png" alt="SITS icon" align="right" height="150" width="150"/>
