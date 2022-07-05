@@ -183,8 +183,8 @@ sits_apply.raster_cube <- function(data, ...,
 
             # For now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
             blocks <- .apply_compute_blocks(
-                xsize = in_fi_fid[["ncols"]],
-                ysize = in_fi_fid[["nrows"]],
+                xsize = in_fi_fid[["ncols"]][[1]],
+                ysize = in_fi_fid[["nrows"]][[1]],
                 block_y_size = block_size[["block_y_size"]],
                 overlapping_y_size = overlapping_y_size
             )
@@ -271,12 +271,12 @@ sits_apply.raster_cube <- function(data, ...,
 
                 # New raster
                 raster_out <- .raster_new_rast(
-                    nrows = in_fi_fid[["nrows"]],
-                    ncols = in_fi_fid[["ncols"]],
-                    xmin = in_fi_fid[["xmin"]],
-                    xmax = in_fi_fid[["xmax"]],
-                    ymin = in_fi_fid[["ymin"]],
-                    ymax = in_fi_fid[["ymax"]],
+                    nrows = in_fi_fid[["nrows"]][[1]],
+                    ncols = in_fi_fid[["ncols"]][[1]],
+                    xmin = in_fi_fid[["xmin"]][[1]],
+                    xmax = in_fi_fid[["xmax"]][[1]],
+                    ymin = in_fi_fid[["ymin"]][[1]],
+                    ymax = in_fi_fid[["ymax"]][[1]],
                     nlayers = 1,
                     crs = tile[["crs"]]
                 )
