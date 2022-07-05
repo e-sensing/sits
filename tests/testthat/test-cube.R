@@ -231,7 +231,6 @@ test_that("Creating cubes from DEA - error using tiles", {
     )
 })
 
-
 test_that("Regularizing cubes from AWS, and extracting samples from them", {
     s2_cube_open <- tryCatch(
         {

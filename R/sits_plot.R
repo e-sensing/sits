@@ -1050,7 +1050,7 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #' @name   plot.xgb_model
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Plots the important variables in a random forest model.
+#' @description Plots the important variables in an extreme gradient boosting.
 #'
 #'
 #' @param  x             Object of class "xgb_model".
@@ -1064,7 +1064,7 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #' @examples
 #' if (sits_run_examples()) {
 #'     # Retrieve the samples for Mato Grosso
-#'     # train a random forest model
+#'     # train an extreme gradient boosting
 #'     xgb_model <- sits_train(samples_modis_4bands,
 #'            ml_method = sits_xgboost())
 #'     # plot the model

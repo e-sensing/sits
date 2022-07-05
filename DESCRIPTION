@@ -68,6 +68,7 @@ Suggests:
     dendextend,
     dtwclust,
     dtwSat (>= 0.2.7),
+    DiagrammeR,
     digest,
     e1071,
     FNN,
@@ -88,7 +89,7 @@ Suggests:
     scales,
     stars (>= 0.5),
     testthat (>= 3.1.3),
-    torchopt(>= 0.1.1),
+    torchopt(>= 0.1.2),
     xgboost,
     zoo
 Config/testthat/edition: 3
