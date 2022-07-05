@@ -222,7 +222,17 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file)) {
-            return(NULL)
+            if (all(.raster_bbox(.raster_open_rast(out_file))
+                    == sits_bbox(tile_new))) {
+                message(paste0(
+                    "Recovery mode: uncertainty image file found in '",
+                    dirname(out_file), "' directory. ",
+                    "(If you want a new uncertainty image, please ",
+                    "change the directory in the 'output_dir' or the ",
+                    "value of 'version' parameter)"
+                ))
+                return(NULL)
+            }
         }
 
         # overlapping pixels
@@ -508,7 +518,17 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file)) {
-            return(NULL)
+            if (all(.raster_bbox(.raster_open_rast(out_file))
+                    == sits_bbox(tile_new))) {
+                message(paste0(
+                    "Recovery mode: uncertainty image file found in '",
+                    dirname(out_file), "' directory. ",
+                    "(If you want a new uncertainty image, please ",
+                    "change the directory in the 'output_dir' or the ",
+                    "value of 'version' parameter)"
+                ))
+                return(NULL)
+            }
         }
 
         # overlapping pixels
@@ -794,7 +814,17 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file)) {
-            return(NULL)
+            if (all(.raster_bbox(.raster_open_rast(out_file))
+                    == sits_bbox(tile_new))) {
+                message(paste0(
+                    "Recovery mode: uncertainty image file found in '",
+                    dirname(out_file), "' directory. ",
+                    "(If you want a new uncertainty image, please ",
+                    "change the directory in the 'output_dir' or the ",
+                    "value of 'version' parameter)"
+                ))
+                return(NULL)
+            }
         }
 
         # overlapping pixels
@@ -1080,7 +1110,17 @@ sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file)) {
-            return(NULL)
+            if (all(.raster_bbox(.raster_open_rast(out_file))
+                    == sits_bbox(tile_new))) {
+                message(paste0(
+                    "Recovery mode: uncertainty image file found in '",
+                    dirname(out_file), "' directory. ",
+                    "(If you want a new uncertainty image, please ",
+                    "change the directory in the 'output_dir' or the ",
+                    "value of 'version' parameter)"
+                ))
+                return(NULL)
+            }
         }
 
         # overlapping pixels

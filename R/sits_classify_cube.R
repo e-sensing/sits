@@ -112,14 +112,13 @@
         old_file <- .file_info_path(probs_cube)
         if (all(.raster_bbox(.raster_open_rast(old_file))
                 == sits_bbox(probs_cube))) {
-            message(
-                paste(
-                    "Recovery mode. Classified probability image detected in",
-                    "the provided directory.",
-                    "\nIf you want a new classification for the same cube,",
-                    "please use the version parameter."
-                )
-            )
+            message(paste0(
+                "Recovery mode: classified image file found in '",
+                dirname(old_file), "' directory. ",
+                "(If you want a new classifcation, please ",
+                "change the directory in the 'output_dir' or the ",
+                "value of 'version' parameter)"
+            ))
             return(probs_cube)
         }
     }
