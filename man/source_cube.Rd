@@ -66,6 +66,8 @@ file in the tile: date, band, resolution, and path (or URL).}
 \item{asset}{A \code{raster} object to retrieve information.}
 
 \item{data_dir}{Directory where local files are stored}
+
+\item{progress}{Show a progress bar?}
 }
 \value{
 The values returned by each function are described as follows.
