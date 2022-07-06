@@ -68,7 +68,8 @@
                                    roi_sf,
                                    start_date,
                                    end_date,
-                                   platform, ...) {
+                                   platform,
+                                   progress, ...) {
 
     # set caller to show in errors
     .check_set_caller(".source_cube.stac_cube")
@@ -100,7 +101,8 @@
     cube <- .source_items_cube(
         source = source,
         items = items,
-        collection = collection, ...
+        collection = collection,
+        progress = progress, ...
     )
     if (is.character(tiles)) {
         # post-condition
@@ -144,7 +146,8 @@
 .source_items_cube.stac_cube <- function(source,
                                          items, ...,
                                          collection = NULL,
-                                         multicores = 2) {
+                                         multicores = 2,
+                                         progress) {
 
     # set caller to show in errors
     .check_set_caller(".source_items_cube.stac_cube")
@@ -164,8 +167,6 @@
         features = items[["features"]]
     )
 
-    # prepare number of workers
-    progress <- TRUE
     # check documentation mode
     progress <- .check_documentation(progress)
 
