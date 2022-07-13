@@ -26,14 +26,14 @@
 #' and thus increase the likelihood that the resulting pixels with high
 #' uncertainty have meaningful information.
 #'
-#' @param uncert_cube     A `sits` uncertainty cube. See `sits_uncertainty`.
+#' @param uncert_cube     An uncertainty cube. See \code{sits_uncertainty}.
 #' @param n               Number of suggested points.
 #' @param min_uncert      Minimum uncertainty value to select a sample.
 #' @param sampling_window Window size for collecting points (in pixels).
 #'                        The minimum window size is 10.
 #'
 #' @return
-#' A `tibble` with longitude & latitude in WGS84 with locations
+#' A tibble with longitude and latitude in WGS84 with locations
 #' which have high uncertainty and meet the minimum distance
 #' criteria.
 #'
@@ -180,14 +180,14 @@ sits_uncertainty_sampling <- function(uncert_cube,
 #' and thus increase the likelihood that the resulting pixels with provide
 #' good quality samples for each class.
 #'
-#' @param probs_cube      A `sits` probability cube. See `sits_classify`.
+#' @param probs_cube      A probability cube. See \code{sits_classify}.
 #' @param n               Number of suggested points per class.
 #' @param min_margin      Minimum margin of confidence to select a sample
 #' @param sampling_window Window size for collecting points (in pixels).
 #'                        The minimum window size is 10.
 #'
 #' @return
-#' A `tibble` with longitude & latitude in WGS84 with locations
+#' A tibble with longitude and latitude in WGS84 with locations
 #' which have high uncertainty and meet the minimum distance
 #' criteria.
 #'
