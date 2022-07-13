@@ -193,7 +193,11 @@ sits_som_map <- function(data,
 
     # prepare a color assignment to the SOM map
     kohonen_obj$neuron_label <- labels_max
-    kohonen_obj <- .sits_som_paint_neurons(kohonen_obj)
+
+    # only paint neurons if number of labels is greater than one
+    if (length(unique(labels_max)) > 1)
+        kohonen_obj <- .sits_som_paint_neurons(kohonen_obj)
+
     # return the som_map object
     som_map <-
         list(
