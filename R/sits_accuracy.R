@@ -247,8 +247,15 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 
         # Get the frequency count and value for each labelled image
         freq <- .cube_area_freq(tile)
+        # pixel area
+        # get the resolution
+        res <- .cube_resolution(tile)
+        # convert the area to hectares
+        area <- freq$count * prod(res) / 10000
         # Include class names
-        freq <- dplyr::mutate(freq, class = labels_cube[freq$value])
+        freq <- dplyr::mutate(freq,
+                              area = area,
+                              class = labels_cube[freq$value])
         return(freq)
     })
     # Get a tibble by binding the row (duplicated labels with different counts)
@@ -256,10 +263,10 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # summarize the counts for each label
     freq <- freq %>%
         dplyr::group_by(class) %>%
-        dplyr::summarise(count = sum(.data[["count"]]))
+        dplyr::summarise(area = sum(.data[["area"]]))
 
     # Area is taken as the sum of pixels
-    area <- freq$count
+    area <- freq$area
     # Names of area are the classes
     names(area) <- freq$class
     # NAs are set to 0
@@ -353,12 +360,6 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 
     # reorder the area based on the error matrix
     area <- area[colnames(error_matrix)]
-
-    # get the resolution
-    res <- .cube_resolution(cube)
-
-    # convert the area to hectares
-    area <- area * prod(res) / 10000
 
     # calculate class areas
     weight <- area / sum(area)
