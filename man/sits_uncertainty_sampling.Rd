@@ -12,7 +12,7 @@ sits_uncertainty_sampling(
 )
 }
 \arguments{
-\item{uncert_cube}{A `sits` uncertainty cube. See `sits_uncertainty`.}
+\item{uncert_cube}{An uncertainty cube. See \code{sits_uncertainty}.}
 
 \item{n}{Number of suggested points.}
 
@@ -22,7 +22,7 @@ sits_uncertainty_sampling(
 The minimum window size is 10.}
 }
 \value{
-A `tibble` with longitude & latitude in WGS84 with locations
+A tibble with longitude and latitude in WGS84 with locations
 which have high uncertainty and meet the minimum distance
 criteria.
 }

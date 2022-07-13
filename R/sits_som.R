@@ -260,7 +260,7 @@ sits_som_clean_samples <- function(som_map,
             .data[["id_neuron"]]
         ) %>%
         dplyr::inner_join(som_map$labelled_neurons,
-            by = c("id_neuron", "label" = "label_samples")
+                          by = c("id_neuron", "label" = "label_samples")
         ) %>%
         dplyr::mutate(
             eval = .detect_class_noise(

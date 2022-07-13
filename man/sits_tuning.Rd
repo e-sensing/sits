@@ -68,8 +68,7 @@ if (sits_run_examples()) {
         ml_method = sits_tempcnn(),
         params = sits_tuning_hparams(
             optimizer = choice(
-                torchopt::optim_adamw,
-                torchopt::optim_yogi
+                torchopt::optim_adamw
             ),
             opt_hparams = list(
                 lr = beta(0.3, 5)
@@ -79,10 +78,10 @@ if (sits_run_examples()) {
         multicores = 2,
         progress = FALSE
     )
-    # obtain accuracy, kappa and best_lr
-    accuracy <- tuned$tuning$accuracy
-    kappa <- tuned$tuning$accuracy
-    best_lr <- tuned$tuning$params[[1]]$opt_hparams
+    # obtain best accuracy, kappa and best_lr
+    accuracy <- tuned$accuracy[[1]]
+    kappa <- tuned$kappa[[1]]
+    best_lr <- tuned$opt_hparams[[1]]$lr
 }
 
 }
