@@ -12,7 +12,7 @@ sits_confidence_sampling(
 )
 }
 \arguments{
-\item{probs_cube}{A `sits` probability cube. See `sits_classify`.}
+\item{probs_cube}{A probability cube. See \code{sits_classify}.}
 
 \item{n}{Number of suggested points per class.}
 
@@ -22,7 +22,7 @@ sits_confidence_sampling(
 The minimum window size is 10.}
 }
 \value{
-A `tibble` with longitude & latitude in WGS84 with locations
+A tibble with longitude and latitude in WGS84 with locations
 which have high uncertainty and meet the minimum distance
 criteria.
 }
