@@ -60,17 +60,40 @@ sits_values.bands_cases_dates <- function(data, bands = NULL, format) {
     if (purrr::is_null(bands)) {
         bands <- sits_bands(data)
     }
-    # populates result
-    values <- bands %>% purrr::map(function(band) {
-        data$time_series %>%
-            purrr::map(function(ts) {
-                dplyr::select(ts, dplyr::one_of(band))
-            }) %>%
-            data.frame() %>%
-            tibble::as_tibble() %>%
-            as.matrix() %>%
-            t()
+
+    distances_tbl <- data %>%
+        dplyr::mutate(
+            original_row = seq_len(nrow(data))
+        ) %>%
+        tidyr::unnest("time_series") %>%
+        dplyr::select("original_row", !!bands) %>%
+        dplyr::group_by(.data[["original_row"]]) %>%
+        dplyr::mutate(temp_index = seq_len(dplyr::n())) %>%
+        dplyr::ungroup()
+
+    if (length(bands) > 1) {
+        distances_tbl <- tidyr::pivot_wider(
+            distances_tbl,
+            names_from = .data[["temp_index"]],
+            values_from = !!bands,
+            names_sep = ""
+        )
+    } else {
+        distances_tbl <- tidyr::pivot_wider(
+            distances_tbl,
+            names_from = .data[["temp_index"]],
+            values_from = !!bands,
+            names_prefix = bands,
+            names_sep = ""
+        )
+    }
+
+    values <- purrr::map(bands, function(band) {
+        unname(as.matrix(dplyr::select(
+            distances_tbl, dplyr::starts_with(band))
+        ))
     })
+
     names(values) <- bands
     return(values)
 }
