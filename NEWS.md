@@ -2,6 +2,9 @@
 
 # What's new in SITS version 1.1.0
 
+### Hotfix version 1.1.0-1
+* Fix sits_accuracy() function (issue #807)
+
 ### New features in SITS version 1.1.0
 * Introduced support to kernel functions in `sits_apply`
 * Introduced new function `sits_mixture_model` for spectral mixture analysis
