@@ -1,5 +1,10 @@
 # SITS Release History
 
+# What's new in SITS version 1.2.0-dev (development version)
+
+### New features in SITS version 1.2.0-dev
+* `sits_get_data()` can be used to retrieve labeled cube
+
 # What's new in SITS version 1.1.0
 
 ### Hotfix version 1.1.0-2
