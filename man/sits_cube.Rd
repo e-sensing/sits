@@ -18,7 +18,8 @@ sits_cube(source, collection, ..., data_dir = NULL)
   roi = NULL,
   start_date = NULL,
   end_date = NULL,
-  platform = NULL
+  platform = NULL,
+  progress = TRUE
 )
 
 \method{sits_cube}{local_cube}(
@@ -63,6 +64,8 @@ images from the collection in the cube (optional).}
 \item{platform}{Optional parameter specifying the platform in case
 of collections that include more than one satellite.}
 
+\item{progress}{Show a progress bar?}
+
 \item{labels}{Labels associated to the classes (only for result cubes).}
 
 \item{parse_info}{Parsing information for local files.}
@@ -70,8 +73,6 @@ of collections that include more than one satellite.}
 \item{delim}{Delimiter for parsing local files.}
 
 \item{multicores}{Number of workers for parallel processing}
-
-\item{progress}{Show a progress bar?}
 }
 \value{
 A \code{tibble} describing the contents of a data cube.

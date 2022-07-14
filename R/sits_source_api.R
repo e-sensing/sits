@@ -818,6 +818,7 @@ NULL
 #' @param file_info  A \code{tibble} that organizes the metadata about each
 #' file in the tile: date, band, resolution, and path (or URL).
 #' @param bands      Bands to be selected in the collection.
+#' @param progress   Show a progress bar?
 #'
 #' @return
 #' The values returned by each function are described as follows.
