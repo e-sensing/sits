@@ -1,6 +1,18 @@
 # SITS Release History
 
+# What's new in SITS version 1.2.0-dev (development version)
+
+### New features in SITS version 1.2.0-dev
+* `sits_get_data()` can be used to retrieve labeled cube
+
 # What's new in SITS version 1.1.0
+
+### Hotfix version 1.1.0-2
+* Improve sits_values() function (issue #810)
+* Fix sits_reduce_imbalance() function (issue #809)
+
+### Hotfix version 1.1.0-1
+* Fix sits_accuracy() function (issue #807)
 
 ### New features in SITS version 1.1.0
 * Introduced support to kernel functions in `sits_apply`

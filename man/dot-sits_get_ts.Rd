@@ -3,6 +3,7 @@
 \name{.sits_get_ts}
 \alias{.sits_get_ts}
 \alias{.sits_get_ts.raster_cube}
+\alias{.sits_get_ts.classified_image}
 \title{Dispatch function to get time series from data cubes and cloud
 services}
 \usage{
@@ -18,6 +19,18 @@ services}
 )
 
 \method{.sits_get_ts}{raster_cube}(
+  cube,
+  samples,
+  ...,
+  bands,
+  crs = 4326,
+  impute_fn,
+  multicores,
+  output_dir,
+  progress
+)
+
+\method{.sits_get_ts}{classified_image}(
   cube,
   samples,
   ...,
