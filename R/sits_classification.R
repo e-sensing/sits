@@ -144,7 +144,7 @@ sits_classify.sits <- function(data,
     if (!all(bands_samples == bands_data))
         sits_bands(bands_data) <- sits_select(bands_data,
                                               sits_bands(bands_samples)
-
+        )
 
     # get normalization params
     stats <- environment(ml_model)$stats
