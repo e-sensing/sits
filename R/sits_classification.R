@@ -141,12 +141,10 @@ sits_classify.sits <- function(data,
     # check band order is the same
     bands_samples <- sits_bands(samples)
     bands_data <- sits_bands(data)
-    .check_that(all(bands_samples == bands_data),
-        msg = paste(
-            "Order of the bands must be the same in samples",
-            "and in data"
-        )
-    )
+    if (!all(bands_samples == bands_data))
+        sits_bands(bands_data) <- sits_select(bands_data,
+                                              sits_bands(bands_samples)
+
 
     # get normalization params
     stats <- environment(ml_model)$stats
