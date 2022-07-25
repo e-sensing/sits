@@ -848,14 +848,15 @@ plot.classified_image <- function(x, y, ...,
         colors <- unname(legend[labels])
     }
     # set the names of the color vector
-    names(colors) <- as.character(c(1:nclasses))
+    # names(colors) <- as.character(c(1:nclasses))
+    fill_colors <- unname(colors[labels])
 
     # plot the data with ggplot
     g <- ggplot2::ggplot(df, ggplot2::aes(.data[["x"]], .data[["y"]])) +
         ggplot2::geom_raster(ggplot2::aes(fill = factor(class))) +
         ggplot2::labs(title = title) +
         ggplot2::scale_fill_manual(
-            values = colors,
+            values = fill_colors,
             labels = labels,
             guide = ggplot2::guide_legend(
                 title = "Classes"
