@@ -165,7 +165,7 @@ sits_apply.raster_cube <- function(data, ...,
                 output_dir = output_dir
             )
 
-            # Does output file exists?
+            # if file exists skip it (resume feature)
             if (file.exists(out_file_path)) {
                 return(out_file_path)
             }
@@ -191,6 +191,15 @@ sits_apply.raster_cube <- function(data, ...,
 
             # Save each output block and return paths
             blocks_path <- purrr::map(blocks, function(block) {
+
+                # Define the file name of the raster file to be written
+                filename_block <- paste0(
+                    tools::file_path_sans_ext(out_file_path),
+                    "_block_", block[["first_row"]], "_",
+                    block[["nrows"]], ".tif"
+                )
+                # if file exists skip it (resume feature)
+                if (file.exists(filename_block)) return(filename_block)
 
                 # Load bands data
                 in_values <- purrr::map(in_bands, function(band) {
@@ -267,33 +276,36 @@ sits_apply.raster_cube <- function(data, ...,
                     .config_get("raster_cube_offset_value")
 
                 # Compute block spatial parameters
-                params <- .cube_params_block(tile, block = block)
-
-                # New raster
-                raster_out <- .raster_new_rast(
-                    nrows = in_fi_fid[["nrows"]][[1]],
-                    ncols = in_fi_fid[["ncols"]][[1]],
+                params <- .sits_raster_sub_image_from_block(
+                    block = block,
+                    source = .cube_source(tile),
+                    collection = .cube_collection(tile),
                     xmin = in_fi_fid[["xmin"]][[1]],
                     xmax = in_fi_fid[["xmax"]][[1]],
                     ymin = in_fi_fid[["ymin"]][[1]],
                     ymax = in_fi_fid[["ymax"]][[1]],
-                    nlayers = 1,
+                    nrows = in_fi_fid[["nrows"]][[1]],
+                    ncols = in_fi_fid[["ncols"]][[1]],
                     crs = tile[["crs"]]
+                )
+
+                # New raster
+                raster_out <- .raster_new_rast(
+                    nrows = params[["nrows"]],
+                    ncols = params[["ncols"]],
+                    xmin = params[["xmin"]],
+                    xmax = params[["xmax"]],
+                    ymin = params[["ymin"]],
+                    ymax = params[["ymax"]],
+                    nlayers = 1,
+                    crs = params[["crs"]]
                 )
 
                 # Set values
                 raster_out <- .raster_set_values(raster_out, out_values)
 
-                # Define the file name of the raster file to be written
-                filename_block <- paste0(
-                    tools::file_path_sans_ext(out_file_path),
-                    "_block_", block[["first_row"]], "_",
-                    block[["nrows"]], ".tif"
-                )
-
                 # get default missing value
                 missing_value <- .config_get("raster_cube_missing_value")
-
 
                 # Create extent
                 blk_no_overlap <- list(

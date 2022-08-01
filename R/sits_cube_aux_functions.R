@@ -805,11 +805,19 @@
         msg = "invalid block value"
     )
 
-    params <- .sits_raster_sub_image_from_block(block = block, tile = cube)
+    source <- .cube_source(cube)
+    collection <- .cube_collection(cube)
+
+    params <- .sits_raster_sub_image_from_block(
+        block = block,
+        source = source,
+        collection = collection,
+        tile = cube
+    )
 
     tolerance <- .config_get(key = c(
-        "sources", .cube_source(cube),
-        "collections", .cube_collection(cube),
+        "sources", source,
+        "collections", collection,
         "ext_tolerance"
     ))
 

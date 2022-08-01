@@ -253,22 +253,52 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param block          a valid block with \code{first_col}, \code{first_row},
-#'  \code{nrows}, and \code{ncols}.
-#' @param tile           tile of data cube
-#' @return               sub_image with additional info on first row,
-#'                       first col, nrows, ncols, and crs.
-.sits_raster_sub_image_from_block <- function(block, tile) {
+#' @param block      a valid block with \code{first_col}, \code{first_row},
+#'                   \code{nrows}, and \code{ncols}.
+#' @param tile       tile of data cube
+#' @param source     a \code{character} with the cube source.
+#' @param collection a \code{character} with the cube collection.
+#' @param tile       a \code{tibble} with a sits cube object.
+#' @param xmin       a \code{numeric} with the xmin value.
+#' @param xmax       a \code{numeric} with the xmax value.
+#' @param ymin       a \code{numeric} with the ymin value.
+#' @param ymax       a \code{numeric} with the ymax value.
+#' @param nrows      a \code{numeric} with the nrows value.
+#' @param ncols      a \code{numeric} with the nclols value.
+#' @param crs        a \code{character} with the crs value.
+#'
+#' @return sub_image with additional info on first row, first col, nrows,
+#' ncols, and crs.
+.sits_raster_sub_image_from_block <- function(block,
+                                              source,
+                                              collection,
+                                              tile = NULL, ...,
+                                              xmin = NULL,
+                                              xmax = NULL,
+                                              ymin = NULL,
+                                              ymax = NULL,
+                                              nrows = NULL,
+                                              ncols = NULL,
+                                              crs = NULL) {
 
-    # pre-condition
-    .check_num(nrow(tile),
-        min = 1, max = 1, is_integer = TRUE,
-        msg = "process one tile only"
-    )
+    size <- c(nrows = nrows, ncols = ncols)
 
     # get ncols and nrows
-    # throw an error if size are not the same
-    size <- .cube_size(tile)
+    if (!is.null(tile)) {
+
+        # pre-condition
+        .check_num(nrow(tile),
+                   min = 1, max = 1, is_integer = TRUE,
+                   msg = "process one tile only"
+        )
+
+        size <- .cube_size(tile)
+        xmax <- tile[["xmax"]]
+        xmin <- tile[["xmin"]]
+        ymin <- tile[["ymin"]]
+        ymax <- tile[["ymax"]]
+        crs <- tile[["crs"]]
+    }
 
     # pre-conditions
     .check_num(block[["first_col"]],
@@ -297,12 +327,12 @@
     r_obj <- .raster_new_rast(
         nrows = size[["nrows"]],
         ncols = size[["ncols"]],
-        xmin = tile[["xmin"]],
-        xmax = tile[["xmax"]],
-        ymin = tile[["ymin"]],
-        ymax = tile[["ymax"]],
+        xmin = xmin,
+        xmax = xmax,
+        ymin = ymin,
+        ymax = ymax,
         nlayers = 1,
-        crs = tile[["crs"]]
+        crs = crs
     )
 
     # compute block
@@ -328,12 +358,12 @@
         xmax = .raster_xmax(r_crop),
         ymin = .raster_ymin(r_crop),
         ymax = .raster_ymax(r_crop),
-        crs = tile[["crs"]]
+        crs = crs
     )
 
     tolerance <- .config_get(key = c(
-        "sources", .cube_source(tile),
-        "collections", .cube_collection(tile),
+        "sources", source,
+        "collections", collection,
         "ext_tolerance"
     ))
 
@@ -349,22 +379,22 @@
     )
 
     .check_num(si[["xmin"]],
-        min = tile[["xmin"]], max = tile[["xmax"]],
+        min = xmin, max = xmax,
         tolerance = tolerance, msg = "invalid subimage value"
     )
 
     .check_num(si[["xmax"]],
-        min = tile[["xmin"]], max = tile[["xmax"]],
+        min = xmin, max = xmax,
         tolerance = tolerance, msg = "invalid subimage value"
     )
 
     .check_num(si[["ymin"]],
-        min = tile[["ymin"]], max = tile[["ymax"]],
+        min = ymin, max = ymax,
         tolerance = tolerance, msg = "invalid subimage value"
     )
 
     .check_num(si[["ymax"]],
-        min = tile[["ymin"]], max = tile[["ymax"]],
+        min = ymin, max = ymax,
         tolerance = tolerance, msg = "invalid subimage value"
     )
 
