@@ -208,10 +208,11 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     .sits_classify_check_params(data, ml_model)
 
     # precondition - test if cube is regular
-    if (!.cube_is_regular(data)) {
-        stop("sits can only classify regular cubes. \n
-             Please use sits_regularize()")
-    }
+    .check_that(
+        x = .cube_is_regular(data),
+        local_msg = "Please use sits_regularize()",
+        msg = "sits can only classify regular cubes"
+    )
 
     # precondition - multicores
     .check_num(

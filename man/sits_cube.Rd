@@ -278,7 +278,7 @@ if (sits_run_examples()) {
     usgs_cube <- sits_cube(
         source = "USGS",
         collection = "landsat-c2l2-sr",
-        bands = c("B04", "CLOUD"),
+        bands = c("GREEN", "CLOUD"),
         roi = c(
             "xmin" = -50.379,
             "ymin" = -10.1573,
