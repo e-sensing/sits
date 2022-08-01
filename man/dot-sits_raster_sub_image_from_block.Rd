@@ -29,6 +29,8 @@
 
 \item{tile}{a \code{tibble} with a sits cube object.}
 
+\item{...}{no additional parameters are supported.}
+
 \item{xmin}{a \code{numeric} with the xmin value.}
 
 \item{xmax}{a \code{numeric} with the xmax value.}

@@ -259,6 +259,7 @@
 #' @param source     a \code{character} with the cube source.
 #' @param collection a \code{character} with the cube collection.
 #' @param tile       a \code{tibble} with a sits cube object.
+#' @param ...        no additional parameters are supported.
 #' @param xmin       a \code{numeric} with the xmin value.
 #' @param xmax       a \code{numeric} with the xmax value.
 #' @param ymin       a \code{numeric} with the ymin value.
