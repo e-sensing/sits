@@ -102,6 +102,13 @@ sits_apply.raster_cube <- function(data, ...,
     .check_set_caller("sits_apply.raster_cube")
     progress <- .check_documentation(progress)
 
+    # precondition - test if cube is regular
+    .check_that(
+        x = .cube_is_regular(data),
+        local_msg = "Please use sits_regularize()",
+        msg = "sits can only create new bands in regular cubes"
+    )
+
     # Check output_dir
     output_dir <- path.expand(output_dir)
     .check_file(output_dir,
@@ -136,14 +143,7 @@ sits_apply.raster_cube <- function(data, ...,
             tile_name <- job[[1]]
             fid <- job[[3]]
 
-            # Filter tile
-            tile <- dplyr::filter(data, tile == tile_name)
-
-            .check_that(
-                x = nrow(tile) == 1,
-                local_msg = "tile names are not unique",
-                msg = "invalid cube"
-            )
+            tile <- .cube_filter(cube = data, tile = tile_name, fid = fid)
 
             # for cubes that have a time limit to expire - mpc cubes only
             tile <- .cube_token_generator(tile)
@@ -151,17 +151,11 @@ sits_apply.raster_cube <- function(data, ...,
             # Get all input bands in cube data
             in_bands <- .apply_input_bands(tile, expr = expr)
 
-            # tile filtered by bands
-            tile <- sits_select(tile, bands = in_bands)
-
-            # get file_info for a given fid
-            in_fi_fid <- .file_info(tile, fid = fid)
-
             # Output file name
             out_file_path <- .apply_out_file_name(
                 tile_name = .cube_tiles(tile),
                 band = out_band,
-                date = in_fi_fid[["date"]][[1]],
+                date = sits_timeline(tile)[[1]],
                 output_dir = output_dir
             )
 
@@ -183,8 +177,8 @@ sits_apply.raster_cube <- function(data, ...,
 
             # For now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
             blocks <- .apply_compute_blocks(
-                xsize = in_fi_fid[["ncols"]][[1]],
-                ysize = in_fi_fid[["nrows"]][[1]],
+                xsize = .file_info_nrows(tile),
+                ysize = .file_info_ncols(tile),
                 block_y_size = block_size[["block_y_size"]],
                 overlapping_y_size = overlapping_y_size
             )
@@ -205,7 +199,7 @@ sits_apply.raster_cube <- function(data, ...,
                 in_values <- purrr::map(in_bands, function(band) {
 
                     # Transform file_info columns as bands and values as paths
-                    in_files <- in_fi_fid %>%
+                    in_files <- .file_info(tile) %>%
                         dplyr::select(dplyr::all_of(c("band", "path"))) %>%
                         tidyr::pivot_wider(
                             names_from = "band",
@@ -276,18 +270,7 @@ sits_apply.raster_cube <- function(data, ...,
                     .config_get("raster_cube_offset_value")
 
                 # Compute block spatial parameters
-                params <- .sits_raster_sub_image_from_block(
-                    block = block,
-                    source = .cube_source(tile),
-                    collection = .cube_collection(tile),
-                    xmin = in_fi_fid[["xmin"]][[1]],
-                    xmax = in_fi_fid[["xmax"]][[1]],
-                    ymin = in_fi_fid[["ymin"]][[1]],
-                    ymax = in_fi_fid[["ymax"]][[1]],
-                    nrows = in_fi_fid[["nrows"]][[1]],
-                    ncols = in_fi_fid[["ncols"]][[1]],
-                    crs = tile[["crs"]]
-                )
+                params <- .cube_params_block(cube = tile, block = block)
 
                 # New raster
                 raster_out <- .raster_new_rast(
