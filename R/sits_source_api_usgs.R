@@ -120,11 +120,10 @@
     dates_chr <- strsplit(x = stac_query$params$datetime, split = "/")[[1]]
 
     # the usgs stac only accepts RFC 3339 datetime format
-    formated_datetime <- paste(
+    stac_query$params$datetime <- paste(
         format(as.Date(dates_chr), "%Y-%m-%dT%H:%M:%SZ"),
         collapse = "/"
     )
-    stac_query$params$datetime <- formated_datetime
 
     # request with more than searched items throws 502 error
     stac_query$params$limit <- 300
@@ -189,10 +188,7 @@
 
     # if more than 2 times items pagination are found the progress bar
     # is displayed
-    matched_items <- rstac::items_matched(
-        items = items,
-        matched_field = c("context", "matched")
-    )
+    matched_items <- rstac::items_matched(items = items)
 
     # progress bar
     progress <- matched_items > 2 * .config_rstac_limit()
@@ -202,11 +198,7 @@
 
     # fetching all the metadata and updating to upper case instruments
     items_info <- suppressWarnings(
-        rstac::items_fetch(
-            items = items,
-            progress = progress,
-            matched_field = c("context", "matched")
-        )
+        rstac::items_fetch(items = items, progress = progress)
     )
     return(items_info)
 }
