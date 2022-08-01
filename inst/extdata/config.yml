@@ -1,10 +1,10 @@
 # These are configuration parameters that can be set by users
 
 # run tests
-run_tests : false
+run_tests : true
 
 # run examples
-run_examples : false
+run_examples : true
 
 # estimated relative growth size of R memory relative to block size
 processing_bloat        : 5
@@ -959,11 +959,11 @@ sources:
         s3_class            : ["usgs_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
         rstac_version       : "0.9.0"
-        url                 : "https://landsatlook.usgs.gov/sat-api/stac"
+        url                 : "https://landsatlook.usgs.gov/stac-server"
         collections         :
             LANDSAT-C2L2-SR : &usgs_oli
                 bands       :
-                    B01     : &usgs_oli_30m
+                    BLUE    : &usgs_oli_30m
                         missing_value : 0
                         minimum_value : 7273
                         maximum_value : 43636
@@ -971,23 +971,20 @@ sources:
                         offset_value  : -0.2
                         resampling    : "bilinear"
                         resolution    : 30
-                        band_name     : "coastal"
-                    B02     :
-                        <<: *usgs_oli_30m
                         band_name     : "blue"
-                    B03     :
+                    GREEN   :
                         <<: *usgs_oli_30m
                         band_name     : "green"
-                    B04     :
+                    RED     :
                         <<: *usgs_oli_30m
                         band_name     : "red"
-                    B05     :
+                    NIR08   :
                         <<: *usgs_oli_30m
                         band_name     : "nir08"
-                    B06     :
+                    SWIR16  :
                         <<: *usgs_oli_30m
                         band_name     : "swir16"
-                    B07     :
+                    SWIR22  :
                         <<: *usgs_oli_30m
                         band_name     : "swir22"
                     CLOUD   :
@@ -1013,12 +1010,14 @@ sources:
                         interp_values : [0, 1, 2, 3, 4, 5, 9, 11, 13, 15]
                         resampling    : "near"
                         resolution    : 30
-                satellite   : "LANDSAT-8/9"
-                sensor      : "OLI"
-                collection_name: "landsat-c2l2-sr"
+                satellite   : "LANDSAT"
+                sensor      : "TM/ETM+/OLI"
                 platforms   :
+                    LANDSAT-5: "LANDSAT_5"
+                    LANDSAT-7: "LANDSAT_7"
                     LANDSAT-8: "LANDSAT_8"
                     LANDSAT-9: "LANDSAT_9"
+                collection_name: "landsat-c2l2-sr"
                 access_vars :
                     AWS_DEFAULT_REGION: "us-west-2"
                     AWS_S3_ENDPOINT   : "s3.amazonaws.com"
