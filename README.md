@@ -49,6 +49,12 @@ cubes. The basic workflow in `sits` is:
 
 <img src="inst/extdata/markdown/figures/sits_general_view.jpg" title="Conceptual view of data cubes (source: authors)" alt="Conceptual view of data cubes (source: authors)" width="60%" height="60%" style="display: block; margin: auto;" />
 
+## Documentation
+
+Detailed documentation on how to use `sits` is available in the e-book
+[“Satellite Image Time Series Analysis on Earth Observation Data
+Cubes”](https://e-sensing.github.io/sitsbook/).
+
 ## `sits` on Kaggle
 
 Those that want to evaluate the `sits` package before installing are
@@ -95,9 +101,9 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 ``` r
 # load the sits library
 library(sits)
-#> Using configuration file: C:/Users/rolf/Softwares/R-4.1.2/library/sits/extdata/config.yml
-#> Color configurations found in C:/Users/rolf/Softwares/R-4.1.2/library/sits/extdata/config_colors.yml
-#> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
+#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.2/Resources/library/sits/extdata/config.yml
+#> Color configurations found in /Library/Frameworks/R.framework/Versions/4.2/Resources/library/sits/extdata/config_colors.yml
+#> Additional configurations found in ~/.sits/config_user.yml
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
 #> Loaded sits v1.2.0.
@@ -153,7 +159,6 @@ s2_cube <- sits_cube(
     end_date = as.Date("2019-06-30"),
     progress = FALSE
 )
-#>   |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
 ```
 
 This cube is irregular. The timelines of tiles `"20LKP"` and `"20LLKP"`
@@ -227,12 +232,12 @@ points <- sits_get_data(raster_cube, samples = csv_file)
 #> All points have been retrieved
 # show the time series
 points[1:3,]
-#> # A tibble: 3 x 7
+#> # A tibble: 3 × 7
 #>   longitude latitude start_date end_date   label    cube      time_series      
 #>       <dbl>    <dbl> <date>     <date>     <chr>    <chr>     <list>           
-#> 1     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [23 x 2]>
-#> 2     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [23 x 2]>
-#> 3     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn MOD13Q1-6 <tibble [23 x 2]>
+#> 1     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [23 × 2]>
+#> 2     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [23 × 2]>
+#> 3     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn MOD13Q1-6 <tibble [23 × 2]>
 ```
 
 After a time series has been obtained, it is loaded in a tibble. The
@@ -280,13 +285,13 @@ quality of the samples.
 ``` r
 # load the kohonen library
 library(kohonen)
-#> Warning: package 'kohonen' was built under R version 4.1.3
 # create a SOM map from the samples
 som_map <- sits_som_map(samples_modis_4bands,
                         grid_xdim = 6,
                         grid_ydim = 6)
 # plot the map
 plot(som_map)
+#> Warning in par(opar): argument 1 does not name a graphical parameter
 ```
 
 <img src="man/figures/README-unnamed-chunk-11-1.png" title="Samples analysis using SOM (grid 6x6)" alt="Samples analysis using SOM (grid 6x6)" style="display: block; margin: auto;" />

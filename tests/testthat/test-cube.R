@@ -330,7 +330,7 @@ test_that("Creating cubes from USGS", {
             sits_cube(
                 source = "USGS",
                 collection = "landsat-c2l2-sr",
-                bands = c("B04", "CLOUD"),
+                bands = c("GREEN", "CLOUD"),
                 roi = c(
                     "xmin" = 17.379,
                     "ymin" = 1.1573,
@@ -338,7 +338,7 @@ test_that("Creating cubes from USGS", {
                     "ymax" = 1.1910
                 ),
                 start_date = "2019-01-01",
-                end_date = "2019-10-28"
+                end_date = "2019-02-01"
             )
         },
         error = function(e) {
@@ -349,7 +349,7 @@ test_that("Creating cubes from USGS", {
         purrr::is_null(usgs_cube_1),
         "USGS is not accessible"
     )
-    expect_true(all(sits_bands(usgs_cube_1) %in% c("B04", "CLOUD")))
+    expect_true(all(sits_bands(usgs_cube_1) %in% c("GREEN", "CLOUD")))
 
     expect_equal(class(.cube_resolution(usgs_cube_1)), "numeric")
 
@@ -364,7 +364,7 @@ test_that("Creating cubes from USGS", {
             sits_cube(
                 source = "USGS",
                 collection = "landsat-c2l2-sr",
-                bands = c("B04", "CLOUD"),
+                bands = c("GREEN", "CLOUD"),
                 tiles = "223067",
                 start_date = "2019-01-01",
                 end_date = "2019-10-28"
@@ -380,7 +380,7 @@ test_that("Creating cubes from USGS", {
         "USGS is not accessible"
     )
 
-    expect_true(all(sits_bands(usgs_cube_2) %in% c("B04", "CLOUD")))
+    expect_true(all(sits_bands(usgs_cube_2) %in% c("GREEN", "CLOUD")))
 
     expect_equal(class(.cube_resolution(usgs_cube_2)), "numeric")
 

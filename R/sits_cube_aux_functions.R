@@ -556,6 +556,62 @@
     return(values)
 }
 
+#' @title Given a tile, fid, and band, return a new cube with bounding box
+#' values updated.
+#' @name .cube_filter
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Given a data cube and a tile, fid, and band, return a new
+#' cube with bounding box updated
+#'
+#' @param cube Metadata about a data cube
+#' @param tile A tile name
+#' @param fid  A feature fid
+#' @param band A band name
+#'
+#' @return a sits cube with bounding box values updated.
+#'
+.cube_filter <- function(cube, tile = NULL, fid = NULL, band = NULL) {
+
+    if (!is.null(tile)) {
+        cube <- dplyr::filter(cube, .data[["tile"]] == !!tile)
+
+        .check_that(
+            x = nrow(cube) == 1,
+            local_msg = "tile names are not unique",
+            msg = "invalid cube"
+        )
+    }
+
+    # get file_info for a given fid
+    fi_cube <- .file_info(cube, fid = fid)
+
+    # cube filtered by bands
+    cube <- sits_select(cube, bands = band)
+
+    source <- .cube_source(cube)
+    col <- .cube_collection(cube)
+
+    cube_tile <- .cube_create(
+        source = source,
+        collection = col,
+        satellite = .source_collection_satellite(source, col),
+        sensor = .source_collection_sensor(source, col),
+        tile = tile,
+        xmin = max(fi_cube[["xmin"]]),
+        xmax = min(fi_cube[["xmax"]]),
+        ymin = max(fi_cube[["ymin"]]),
+        ymax = min(fi_cube[["ymax"]]),
+        crs = .cube_crs(cube),
+        file_info = fi_cube
+    )
+
+    class(cube_tile) <- class(cube)
+
+    return(cube_tile)
+}
+
 #' @title Verify if two cubes are equal
 #'
 #' @name .cube_is_equal
@@ -805,11 +861,19 @@
         msg = "invalid block value"
     )
 
-    params <- .sits_raster_sub_image_from_block(block = block, tile = cube)
+    source <- .cube_source(cube)
+    collection <- .cube_collection(cube)
+
+    params <- .sits_raster_sub_image_from_block(
+        block = block,
+        source = source,
+        collection = collection,
+        tile = cube
+    )
 
     tolerance <- .config_get(key = c(
-        "sources", .cube_source(cube),
-        "collections", .cube_collection(cube),
+        "sources", source,
+        "collections", collection,
         "ext_tolerance"
     ))
 
