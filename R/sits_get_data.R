@@ -557,8 +557,18 @@ sits_get_data.data.frame <- function(cube,
         dplyr::summarise(dplyr::across(bands, stats::na.omit)) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
-        tidyr::nest(time_series = !!c("Index", bands)) %>%
+        tidyr::nest(time_series = !!c("Index", dplyr::all_of(bands))) %>%
         dplyr::select(-c("tile", "#..id"))
+
+
+    # get the first point that intersect more than one tile
+    # eg sentinel 2 mgrs grid
+    ts_tbl <- ts_tbl %>%
+        dplyr::group_by(.data[["longitude"]], .data[["latitude"]],
+                        .data[["start_date"]], .data[["end_date"]],
+                        .data[["label"]], .data[["cube"]]) %>%
+        dplyr::slice_head(n = 1) %>%
+        dplyr::ungroup()
 
     # recreate hash values
     hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
@@ -743,8 +753,17 @@ sits_get_data.data.frame <- function(cube,
         dplyr::summarise(dplyr::across(bands, stats::na.omit)) %>%
         dplyr::arrange(.data[["from"]]) %>%
         dplyr::ungroup() %>%
-        tidyr::nest(predicted = !!c("from", "to", bands)) %>%
+        tidyr::nest(predicted = !!c("from", "to", dplyr::all_of(bands))) %>%
         dplyr::select(-c("tile", "#..id"))
+
+    # get the first point that intersect more than one tile
+    # eg sentinel 2 mgrs grid
+    ts_tbl <- ts_tbl %>%
+        dplyr::group_by(.data[["longitude"]], .data[["latitude"]],
+                        .data[["start_date"]], .data[["end_date"]],
+                        .data[["label"]], .data[["cube"]]) %>%
+        dplyr::slice_head(n = 1) %>%
+        dplyr::ungroup()
 
     # recreate hash values
     hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
