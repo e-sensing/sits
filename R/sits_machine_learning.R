@@ -88,6 +88,7 @@ sits_rfor <- function(samples = NULL,
             ntree = num_trees,
             mtry = mtry,
             nodesize = 1,
+            localImp = TRUE,
             norm.votes = FALSE, ...,
             na.action = stats::na.fail
         )

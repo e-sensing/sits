@@ -85,6 +85,7 @@ Suggests:
     openxlsx,
     randomForest,
     randomForestExplainer,
+    RColorBrewer,
     RcppArmadillo (>= 0.11),
     scales,
     stars (>= 0.5),

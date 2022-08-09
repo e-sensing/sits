@@ -295,12 +295,16 @@ plot.predicted <- function(x, y, ...,
 #'
 #' @param  x             Object of class "raster_cube".
 #' @param  ...           Further specifications for \link{plot}.
+#' @param  samples       samples to be plotted together with image
 #' @param  band          Band for plotting grey images.
 #' @param  red           Band for red color.
 #' @param  green         Band for green color.
 #' @param  blue          Band for blue color.
 #' @param  tile          Tile to be plotted.
 #' @param  date          Date to be plotted.
+#' @param  pallete       RColorBrewer palette to plot B/W image
+#' @param  n_colors      Number of colors to display B/W image
+#' @param  sample_color  RColorBrewer name to display the samples
 #'
 #' @return               A plot object produced by the terra package
 #'                       with an RGB or B/W image.
@@ -321,12 +325,19 @@ plot.predicted <- function(x, y, ...,
 #' }
 #' @export
 plot.raster_cube <- function(x, ...,
+                             samples = NULL,
                              band = NULL,
                              red = NULL,
                              green = NULL,
                              blue = NULL,
                              tile = x$tile[[1]],
-                             date = NULL) {
+                             date = NULL,
+                             pallete = "Greens",
+                             n_colors = 12,
+                             sample_color = "Set1") {
+    # install RColorBrewer if not available
+    .check_require_packages("RColorBrewer")
+
     .check_chr_contains(
         x = x$tile,
         contains = tile,
@@ -347,34 +358,6 @@ plot.raster_cube <- function(x, ...,
             "'blue' parameters should be informed"
         )
     )
-
-    # check if bands are valid
-    if (!purrr::is_null(band)) {
-        .check_chr_within(
-            band,
-            within = sits_bands(x),
-            discriminator = "any_of",
-            msg = "invalid band"
-        )
-        # plot as grayscale
-        red <- band
-        green <- band
-        blue <- band
-        r_index <- 1
-        g_index <- 1
-        b_index <- 1
-    } else {
-        .check_chr_within(
-            c(red, green, blue),
-            within = sits_bands(x),
-            discriminator = "all_of",
-            msg = "invalid RGB bands selection"
-        )
-        r_index <- 1
-        g_index <- 2
-        b_index <- 3
-    }
-
     # select only one tile
     row <- dplyr::filter(x, .data[["tile"]] == !!tile)
 
@@ -395,28 +378,79 @@ plot.raster_cube <- function(x, ...,
             date <- tile_dates[idx_date]
         }
     }
-    # plot the selected tile
-    # select the bands for the timeline
+
+    # select the bands for the chosen date
     bds_date <- dplyr::filter(.file_info(row), .data[["date"]] == !!date)
-    # get RGB files for the requested timeline
-    red_file <- dplyr::filter(bds_date, .data[["band"]] == red)$path
-    green_file <- dplyr::filter(bds_date, .data[["band"]] == green)$path
-    blue_file <- dplyr::filter(bds_date, .data[["band"]] == blue)$path
-    # put the band on a raster/terra stack
-    rgb_stack <- c(red_file, green_file, blue_file)
 
-    # use the raster package to obtain a raster object from a stack
-    r_obj <- .raster_open_stack.terra(rgb_stack)
-    # plor the data using terra
-    suppressWarnings(
-        terra::plotRGB(r_obj,
-            r = r_index,
-            g = g_index,
-            b = b_index,
-            stretch = "hist"
+    # check if bands are valid
+    if (!purrr::is_null(band)) {
+        .check_chr_within(
+            band,
+            within = sits_bands(x),
+            discriminator = "any_of",
+            msg = "invalid band"
         )
-    )
+        # check if n_colors is a valid number
+        .check_num(
+            x = n_colors,
+            min = 1,
+            max = 256,
+            is_integer = TRUE,
+            len_min = 1,
+            len_max = 1
+        )
 
+        # plot a single band
+        bw_file <- dplyr::filter(bds_date, .data[["band"]] == band)$path
+        # use the terra package to obtain a terra object from a stack
+        r_obj <- .raster_open_stack.terra(bw_file)
+
+        # check if pallete name exists in ColorBrewer
+        .check_chr_contains(
+            x = rownames(RColorBrewer::brewer.pal.info),
+            contains = palette,
+            msg = "Invalid pallete name: must be a ColorBrewer name"
+        )
+        # calculate the color palette
+        max_col <- RColorBrewer::brewer.pal.info[pallete,]$maxcolors
+        # plot the data using terra
+        library(terra)
+        suppressWarnings(
+            plot(r_obj,
+                 col = grDevices::colorRampPalette(
+                     RColorBrewer::brewer.pal(max_col, pallete))(n_colors)
+            )
+        )
+
+    } else {
+        .check_chr_within(
+            c(red, green, blue),
+            within = sits_bands(x),
+            discriminator = "all_of",
+            msg = "invalid RGB bands selection"
+        )
+        r_index <- 1
+        g_index <- 2
+        b_index <- 3
+        # get RGB files for the requested timeline
+        red_file <- dplyr::filter(bds_date, .data[["band"]] == red)$path
+        green_file <- dplyr::filter(bds_date, .data[["band"]] == green)$path
+        blue_file <- dplyr::filter(bds_date, .data[["band"]] == blue)$path
+        # put the band on a raster/terra stack
+        rgb_stack <- c(red_file, green_file, blue_file)
+
+        # use the terra package to obtain a terra object from a stack
+        r_obj <- .raster_open_stack.terra(rgb_stack)
+        # plot the data using terra
+        suppressWarnings(
+            terra::plotRGB(r_obj,
+                           r = r_index,
+                           g = g_index,
+                           b = b_index,
+                           stretch = "hist"
+            )
+        )
+    }
     return(invisible(r_obj))
 }
 #' @title  Plot probability cubes
@@ -893,13 +927,11 @@ plot.classified_image <- function(x, y, ...,
 plot.rfor_model <- function(x, y, ...){
     # verifies if randomForestExplainer package is installed
     .check_require_packages("randomForestExplainer")
-    # retrieve the random forest object from the enviroment
+    # retrieve the random forest object from the env iroment
     rf <- environment(x)$result_rfor
     p <- randomForestExplainer::plot_min_depth_distribution(rf)
     return(p)
 }
-
-
 
 #'
 #' @title  Plot confusion between clusters
