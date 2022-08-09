@@ -1131,7 +1131,9 @@
     while (is.null(res_content) && n_tries > 0) {
         res_content <- tryCatch(
             {
-                httr::content(httr::GET(url), encoding = "UTF-8")
+                res <- httr::GET(url)
+                httr::stop_for_status(res)
+                return(httr::content(res, encoding = "UTF-8"))
             },
             error = function(e) {
                 return(NULL)
