@@ -1128,12 +1128,12 @@
 
     res_content <- NULL
     n_tries <- .config_get("cube_token_generator_n_tries")
+    time_sleep <- 30
     while (is.null(res_content) && n_tries > 0) {
         res_content <- tryCatch(
             {
-                res <- httr::GET(url)
-                httr::stop_for_status(res)
-                return(httr::content(res, encoding = "UTF-8"))
+                res <- httr::stop_for_status(httr::GET(url))
+                httr::content(res, encoding = "UTF-8")
             },
             error = function(e) {
                 return(NULL)
@@ -1141,9 +1141,10 @@
         )
 
         if (is.null(res_content)) {
-            Sys.sleep(10)
+            Sys.sleep(time_sleep)
         }
         n_tries <- n_tries - 1
+        time_sleep <- time_sleep + 10
     }
 
     .check_that(
