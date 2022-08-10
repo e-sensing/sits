@@ -1222,7 +1222,7 @@
 
 #' @export
 .cube_is_token_expired.default <- function(cube) {
-    return(cube)
+    return(FALSE)
 }
 
 #' @export
