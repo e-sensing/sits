@@ -1099,6 +1099,7 @@
     UseMethod(".cube_token_generator", source)
 }
 
+
 #' @export
 .cube_token_generator.mpc_cube <- function(cube) {
     file_info <- cube[["file_info"]][[1]]
@@ -1110,25 +1111,19 @@
         return(cube)
     }
 
-    if ("token_expires" %in% colnames(file_info)) {
-        difftime_token <- difftime(
-            time1 = file_info[["token_expires"]][[1]],
-            time2 = as.POSIXlt(Sys.time(), tz = "UTC"),
-            units = "mins"
-        )
-
-        # verify if there are still 25 minutes left to expire
-        if (difftime_token - 15 > 25) {
-            return(cube)
-        }
+    # we consider token is expired when the remaining time is
+    # less than 5 minutes
+    if (!.cube_is_token_expired(cube)) {
+        return(cube)
     }
 
     token_endpoint <- .config_get(c("sources", .cube_source(cube), "token_url"))
     url <- paste0(token_endpoint, "/", tolower(.cube_collection(cube)))
 
     res_content <- NULL
+
     n_tries <- .config_get("cube_token_generator_n_tries")
-    time_sleep <- 30
+    sleep_time <- .config_get("cube_token_generator_sleep_time")
     while (is.null(res_content) && n_tries > 0) {
         res_content <- tryCatch(
             {
@@ -1141,10 +1136,9 @@
         )
 
         if (is.null(res_content)) {
-            Sys.sleep(time_sleep)
+            Sys.sleep(sleep_time)
         }
         n_tries <- n_tries - 1
-        time_sleep <- time_sleep + 10
     }
 
     .check_that(
@@ -1180,6 +1174,57 @@
 
     return(cube)
 }
+
+#' @title Check if a cube token was expired
+#' @name .cube_is_token_expires
+#' @keywords internal
+#'
+#' @param cube input data cube
+#'
+#' @return a boolean value.
+.cube_is_token_expired <- function(cube) {
+    source <- .source_new(
+        source = .cube_source(cube),
+        collection = .cube_collection(cube)
+    )
+
+    UseMethod(".cube_is_token_expired", source)
+}
+
+#' @export
+.cube_is_token_expired.mpc_cube <- function(cube) {
+    file_info <- cube[["file_info"]][[1]]
+    fi_paths <- file_info[["path"]]
+
+    min_remaining_time <- .config_get(
+        "cube_token_generator_min_remaining_time",
+        default = 0
+    )
+
+    are_local_paths <- !grepl(pattern = "^/vsi", x = fi_paths)
+    # ignore in case of regularized and local cubes
+    if (all(are_local_paths)) {
+        return(cube)
+    }
+
+    if ("token_expires" %in% colnames(file_info)) {
+        difftime_token <- difftime(
+            time1 = file_info[["token_expires"]][[1]],
+            time2 = as.POSIXlt(Sys.time(), tz = "UTC"),
+            units = "mins"
+        )
+
+        return(difftime_token < min_remaining_time)
+    }
+
+    return(FALSE)
+}
+
+#' @export
+.cube_is_token_expired.default <- function(cube) {
+    return(cube)
+}
+
 #' @export
 .cube_token_generator.default <- function(cube) {
     return(cube)

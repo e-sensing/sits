@@ -72,6 +72,8 @@ raster_cube_maximum_value : 10000
 
 # configuration for generate tokens for mpc cubes
 cube_token_generator_n_tries: 3
+cube_token_generator_sleep_time: 10
+cube_token_generator_min_remaining_time: 5
 
 # configuration for probability cubes
 probs_cube_scale_factor : 0.0001
