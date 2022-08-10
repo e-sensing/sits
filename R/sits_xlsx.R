@@ -47,7 +47,7 @@ sits_to_xlsx <- function(acc_lst, file, data = NULL) {
     # create a workbook to save the results
     workbook <- openxlsx::createWorkbook("accuracy")
     # eo_names of the accuracy assessment parameters
-    eo_n <- c("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)")
+    eo_n <- c("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)|(F1)")
     # defined the number of sheets
     num_sheets <- length(acc_lst)
     .check_length(
@@ -84,14 +84,15 @@ sits_to_xlsx <- function(acc_lst, file, data = NULL) {
         # obtain the per class accuracy assessment
         if (dim(cf_mat$table)[1] > 2) {
             # per class accuracy assessment
-            acc_bc <- t(cf_mat$byClass[, c(1:4)])
+            acc_bc <- t(cf_mat$byClass[, c(1:4,7)])
             # remove prefix from confusion matrix table
             colnames(acc_bc) <- new_names
             row.names(acc_bc) <- c(
                 "Sensitivity (PA)",
                 "Specificity",
                 "PosPredValue (UA)",
-                "NegPredValue"
+                "NegPredValue",
+                "F1 score"
             )
         } else {
             # this is the case of ony two classes

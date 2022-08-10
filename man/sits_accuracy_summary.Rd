@@ -7,7 +7,7 @@
 sits_accuracy_summary(x, digits = max(3, getOption("digits") - 3))
 }
 \arguments{
-\item{x}{Object of class \code{sits_assessment}.}
+\item{x}{Object of class \code{sits_accuracy}.}
 
 \item{digits}{Number of significant digits when printed.}
 }

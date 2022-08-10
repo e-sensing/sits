@@ -302,12 +302,13 @@ plot.predicted <- function(x, y, ...,
 #' @param  blue          Band for blue color.
 #' @param  tile          Tile to be plotted.
 #' @param  date          Date to be plotted.
-#' @param  pallete       RColorBrewer palette to plot B/W image
+#' @param  palette       RColorBrewer palette to plot B/W image
 #' @param  n_colors      Number of colors to display B/W image
 #' @param  sample_color  RColorBrewer name to display the samples
 #'
 #' @return               A plot object produced by the terra package
-#'                       with an RGB or B/W image.
+#'                       with an RGB image or a B/W image on a color
+#'                       scale chosen from the RColorBrewer palette.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -332,8 +333,8 @@ plot.raster_cube <- function(x, ...,
                              blue = NULL,
                              tile = x$tile[[1]],
                              date = NULL,
-                             pallete = "Greens",
-                             n_colors = 12,
+                             palette = "YlGn",
+                             n_colors = 32,
                              sample_color = "Set1") {
     # install RColorBrewer if not available
     .check_require_packages("RColorBrewer")
@@ -409,16 +410,15 @@ plot.raster_cube <- function(x, ...,
         .check_chr_contains(
             x = rownames(RColorBrewer::brewer.pal.info),
             contains = palette,
-            msg = "Invalid pallete name: must be a ColorBrewer name"
+            msg = "Invalid palette name: must be a ColorBrewer name"
         )
         # calculate the color palette
-        max_col <- RColorBrewer::brewer.pal.info[pallete,]$maxcolors
+        max_col <- RColorBrewer::brewer.pal.info[palette,]$maxcolors
         # plot the data using terra
-        library(terra)
         suppressWarnings(
-            plot(r_obj,
+            terra::plot(r_obj,
                  col = grDevices::colorRampPalette(
-                     RColorBrewer::brewer.pal(max_col, pallete))(n_colors)
+                     RColorBrewer::brewer.pal(max_col, palette))(n_colors)
             )
         )
 
@@ -934,6 +934,86 @@ plot.rfor_model <- function(x, y, ...){
 }
 
 #'
+#' @title  Plot confusion matrix
+#' @name   plot.sits_accuracy
+#' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
+#'
+#' @description Plot a bar graph with informations about the confusion matrix
+#'
+#' @param  x            Object of class "plot.sits_accuracy".
+#' @param  y            Ignored.
+#' @param  ...          Further specifications for \link{plot}.
+#' @param  title        Title of plot.
+#' @return              A plot object produced by the ggplot2 package
+#'                      containing color bars showing the confusion
+#'                      between classes.
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_run_examples()) {
+#'     # show accuracy for a set of samples
+#'     train_data <- sits_sample(samples_modis_4bands, n = 200)
+#'     test_data <- sits_sample(samples_modis_4bands, n = 200)
+#'     # compute a random forest model
+#'     rfor_model <- sits_train(train_data, sits_rfor())
+#'     # classify training points
+#'     points_class <- sits_classify(test_data, rfor_model)
+#'     # calculate accuracy
+#'     acc <- sits_accuracy(points_class)
+#'     # plot accuracy
+#'     plot(acc)
+#'
+#' }
+#' @export
+#'
+plot.sits_accuracy <- function(x, y, ...,
+                                      title = "Confusion matrix") {
+    stopifnot(missing(y))
+    data <- x
+    if (!inherits(data, "sits_accuracy")) {
+        message("unable to plot - please run sits_accuracy")
+        return(invisible(NULL))
+    }
+
+    # configure plot colors
+    # get labels from cluster table
+    labels <- colnames(x$table)
+    colors <- .config_colors(
+        labels = labels,
+        palette = "Spectral",
+        rev = TRUE
+    )
+
+    data <- tibble::as_tibble(t(prop.table(x$table, margin = 2)))
+
+    colnames(data) <- c("pred", "class", "conf_per")
+
+    p <- ggplot2::ggplot() +
+        ggplot2::geom_bar(
+            ggplot2::aes(
+                y = .data[["conf_per"]],
+                x = .data[["pred"]],
+                fill = class
+            ),
+            data = data,
+            stat = "identity",
+            position = ggplot2::position_dodge()
+        ) +
+        ggplot2::theme_minimal() +
+        ggplot2::theme(
+            axis.text.x =
+                ggplot2::element_text(angle = 60, hjust = 1)
+        ) +
+        ggplot2::labs(x = "Class", y = "Agreement with reference") +
+        ggplot2::scale_fill_manual(name = "Class", values = colors) +
+        ggplot2::ggtitle(title)
+
+    p <- graphics::plot(p)
+    return(invisible(p))
+}
+
+#'
 #' @title  Plot confusion between clusters
 #' @name   plot.som_evaluate_cluster
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
@@ -1002,7 +1082,7 @@ plot.som_evaluate_cluster <- function(x, y, ...,
             axis.text.x =
                 ggplot2::element_text(angle = 60, hjust = 1)
         ) +
-        ggplot2::labs(x = "Cluster", y = "Percentage of mixture") +
+        ggplot2::labs(x = "Class", y = "Percentage of mixture") +
         ggplot2::scale_fill_manual(name = "Class label", values = colors) +
         ggplot2::ggtitle(title)
 

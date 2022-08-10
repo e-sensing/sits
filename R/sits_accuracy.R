@@ -120,13 +120,13 @@ sits_accuracy.sits <- function(data, ...) {
     ref_fac <- factor(ref, levels = unique_ref)
 
     # Call caret package to the classification statistics
-    assess <- caret::confusionMatrix(pred_fac, ref_fac)
+    acc <- caret::confusionMatrix(pred_fac, ref_fac)
 
     # Assign class to result
-    class(assess) <- c("sits_assessment", class(assess))
+    class(acc) <- c("sits_accuracy", class(acc))
 
     # return caret confusion matrix
-    return(assess)
+    return(acc)
 }
 #' @rdname sits_accuracy
 #' @export
@@ -273,10 +273,10 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     area[is.na(area)] <- 0
 
     # Compute accuracy metrics
-    assess <- .sits_accuracy_area_assess(data, error_matrix, area)
+    acc_area <- .sits_accuracy_area_assess(data, error_matrix, area)
 
-    class(assess) <- c("sits_area_assessment", class(assess))
-    return(assess)
+    class(acc_area) <- c("sits_area_accuracy", class(acc_area))
+    return(acc_area)
 }
 
 #' @title Obtains the predicted value of a reference set
@@ -417,7 +417,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 #' @description Adaptation of the caret::print.confusionMatrix method
 #'              for the more common usage in Earth Observation.
 #'
-#' @param x         Object of class \code{sits_assessment}.
+#' @param x         Object of class \code{sits_accuracy}.
 #' @param digits    Number of significant digits when printed.
 #' @return          No return value, called for side effects.
 #'
@@ -429,14 +429,14 @@ sits_accuracy_summary <- function(x,
     # set caller to show in errors
     .check_set_caller("sits_accuracy_summary")
 
-    if ("sits_area_assessment" %in% class(x)) {
-        print.sits_area_assessment(x)
+    if ("sits_area_accuracy" %in% class(x)) {
+        print.sits_area_accuracy(x)
         return(invisible(TRUE))
     }
     .check_that(
-        x = inherits(x, what = "sits_assessment"),
+        x = inherits(x, what = "sits_accuracy"),
         local_msg = "please run sits_accuracy() first",
-        msg = "input does not contain assessment information"
+        msg = "input does not contain accuracy information"
     )
     # round the data to the significant digits
     overall <- round(x$overall, digits = digits)
@@ -467,7 +467,7 @@ sits_accuracy_summary <- function(x,
     print(out, quote = FALSE)
 }
 #' @title Print the values of a confusion matrix
-#' @name print.sits_assessment
+#' @name print.sits_accuracy
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Adaptation of the caret::print.confusionMatrix method
@@ -480,7 +480,7 @@ sits_accuracy_summary <- function(x,
 #'
 #' @keywords internal
 #' @export
-print.sits_assessment <- function(x, ...,
+print.sits_accuracy <- function(x, ...,
                                   digits = max(3, getOption("digits") - 3)) {
     # rename confusion matrix names
     names(x) <- c("positive", "table", "overall", "by_class", "mode", "dots")
@@ -533,7 +533,7 @@ print.sits_assessment <- function(x, ...,
         measures <- t(x$by_class)
         rownames(measures) <- c(
             "Prod Acc (Sensitivity)", "Specificity",
-            "User Acc (Pos Pred Value)", "Neg Pred Value", "F1"
+            "User Acc (Pos Pred Value)", "Neg Pred Value", "F1 score"
         )
         print(measures, digits = digits)
     } else {
@@ -581,21 +581,21 @@ print.sits_assessment <- function(x, ...,
         print(out, quote = FALSE)
     }
 }
-#' @title Print the area assessment
-#' @name print.sits_area_assessment
+#' @title Print the area-weighted accuracy
+#' @name print.sits_area_accuracy
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Adaptation of the caret::print.confusionMatrix method
 #'              for the more common usage in Earth Observation.
 #'
-#' @param x         An object of class \code{sits_area_assessment}.
+#' @param x         An object of class \code{sits_area_accuracy}.
 #' @param \dots     Other parameters passed to the "print" function
 #' @param digits    Significant digits
 #' @return          No return value, called for side effects.
 #'
 #' @keywords internal
 #' @export
-print.sits_area_assessment <- function(x, ..., digits = 2) {
+print.sits_area_accuracy <- function(x, ..., digits = 2) {
 
     # round the data to the significant digits
     overall <- round(x$accuracy$overall, digits = digits)
@@ -606,7 +606,7 @@ print.sits_area_assessment <- function(x, ..., digits = 2) {
     acc_user <- round(x$accuracy$user, digits = digits)
     acc_prod <- round(x$accuracy$producer, digits = digits)
 
-    # Print assessment values
+    # Print accuracy values
     tb <- t(dplyr::bind_rows(acc_user, acc_prod))
     colnames(tb) <- c("User", "Producer")
 
