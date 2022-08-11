@@ -137,7 +137,6 @@
     )
 }
 
-
 #' @title Missing value of a cube band
 #' @keywords internal
 #' @name .cube_band_missing_value
@@ -269,6 +268,7 @@
 
     return(mv)
 }
+
 #' @title Scale factor of a cube band
 #' @keywords internal
 #' @name .cube_band_scale_factor
@@ -1113,7 +1113,8 @@
 
     # we consider token is expired when the remaining time is
     # less than 5 minutes
-    if (!.cube_is_token_expired(cube)) {
+    if ("token_expires" %in% colnames(file_info) &&
+        !.cube_is_token_expired(cube)) {
         return(cube)
     }
 
