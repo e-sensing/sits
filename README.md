@@ -101,12 +101,12 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 ``` r
 # load the sits library
 library(sits)
-#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.2/Resources/library/sits/extdata/config.yml
-#> Color configurations found in /Library/Frameworks/R.framework/Versions/4.2/Resources/library/sits/extdata/config_colors.yml
-#> Additional configurations found in ~/.sits/config_user.yml
+#> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.2/sits/extdata/config.yml
+#> Color configurations found in /home/sits/R/x86_64-pc-linux-gnu-library/4.2/sits/extdata/config_colors.yml
+#> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.1.0-2.
+#> Loaded sits v1.2.0.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 ```
@@ -117,7 +117,7 @@ library(sits)
 
 The `sits` package allows users to created data cubes from
 analysis-ready data (ARD) image collections available in cloud services.
-The collections accessible in `sits` 1.1.0.2 are:
+The collections accessible in `sits` 1.2.0 are:
 
 1.  Brazil Data Cube
     ([BDC](http://brazildatacube.org/en/home-page-2/#dataproducts)):
