@@ -1205,7 +1205,7 @@
     are_local_paths <- !grepl(pattern = "^/vsi", x = fi_paths)
     # ignore in case of regularized and local cubes
     if (all(are_local_paths)) {
-        return(cube)
+        return(FALSE)
     }
 
     if ("token_expires" %in% colnames(file_info)) {
