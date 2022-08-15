@@ -195,8 +195,8 @@
 #' @keywords internal
 #' @export
 `.source_items_tile.mpc_cube_landsat-c2-l2` <- function(source,
-                                                           items, ...,
-                                                           collection = NULL) {
+                                                        items, ...,
+                                                        collection = NULL) {
 
     # store tile info in items object
     items$features <- purrr::map(items$features, function(feature) {

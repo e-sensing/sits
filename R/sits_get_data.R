@@ -498,6 +498,8 @@ sits_get_data.data.frame <- function(cube,
             ncol = 2
         )
         colnames(xy) <- c("X", "Y")
+
+
         # build the sits tibble for the storing the points
         samples_tbl <- slider::slide_dfr(samples, function(point) {
 
@@ -521,6 +523,8 @@ sits_get_data.data.frame <- function(cube,
             # return valid row of time series
             return(sample)
         })
+
+        # extract time series
         ts <- .sits_raster_data_get_ts(
             tile = tile,
             points = samples_tbl,
