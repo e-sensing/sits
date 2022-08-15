@@ -54,6 +54,9 @@ torch::torch_manual_seed(1234)
 knitr::include_graphics("inst/extdata/markdown/figures/sits_general_view.jpg")
 ```
 
+## Documentation 
+
+Detailed documentation on how to use `sits` is available in the e-book ["Satellite Image Time Series Analysis on Earth Observation Data Cubes"](https://e-sensing.github.io/sitsbook/).
 
 ## `sits` on Kaggle
 

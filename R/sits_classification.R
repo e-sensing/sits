@@ -141,12 +141,8 @@ sits_classify.sits <- function(data,
     # check band order is the same
     bands_samples <- sits_bands(samples)
     bands_data <- sits_bands(data)
-    .check_that(all(bands_samples == bands_data),
-        msg = paste(
-            "Order of the bands must be the same in samples",
-            "and in data"
-        )
-    )
+    if (!all(bands_samples == bands_data))
+        data <- sits_select(data, sits_bands(samples))
 
     # get normalization params
     stats <- environment(ml_model)$stats
@@ -212,10 +208,11 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     .sits_classify_check_params(data, ml_model)
 
     # precondition - test if cube is regular
-    if (!.cube_is_regular(data)) {
-        stop("sits can only classify regular cubes. \n
-             Please use sits_regularize()")
-    }
+    .check_that(
+        x = .cube_is_regular(data),
+        local_msg = "Please use sits_regularize()",
+        msg = "sits can only classify regular cubes"
+    )
 
     # precondition - multicores
     .check_num(
