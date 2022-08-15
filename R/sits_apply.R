@@ -143,10 +143,13 @@ sits_apply.raster_cube <- function(data, ...,
             tile_name <- job[[1]]
             fid <- job[[3]]
 
-            tile <- .cube_filter(cube = data, tile = tile_name, fid = fid)
+            # we consider token is expired when the remaining time is
+            # less than 5 minutes
+            if (.cube_is_token_expired(data)) {
+                return(NULL)
+            }
 
-            # for cubes that have a time limit to expire - mpc cubes only
-            tile <- .cube_token_generator(tile)
+            tile <- .cube_filter(cube = data, tile = tile_name, fid = fid)
 
             # Get all input bands in cube data
             in_bands <- .apply_input_bands(tile, expr = expr)
@@ -351,7 +354,7 @@ sits_apply.raster_cube <- function(data, ...,
             data_dir = output_dir,
             parse_info = c("x1", "tile", "band", "date"),
             multicores = multicores,
-            progress = progress
+            progress = FALSE
         )
 
         # Find the tiles that have not been processed yet
