@@ -137,7 +137,6 @@
     )
 }
 
-
 #' @title Missing value of a cube band
 #' @keywords internal
 #' @name .cube_band_missing_value
@@ -269,6 +268,7 @@
 
     return(mv)
 }
+
 #' @title Scale factor of a cube band
 #' @keywords internal
 #' @name .cube_band_scale_factor
@@ -556,6 +556,62 @@
     return(values)
 }
 
+#' @title Given a tile, fid, and band, return a new cube with bounding box
+#' values updated.
+#' @name .cube_filter
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Given a data cube and a tile, fid, and band, return a new
+#' cube with bounding box updated
+#'
+#' @param cube Metadata about a data cube
+#' @param tile A tile name
+#' @param fid  A feature fid
+#' @param band A band name
+#'
+#' @return a sits cube with bounding box values updated.
+#'
+.cube_filter <- function(cube, tile = NULL, fid = NULL, band = NULL) {
+
+    if (!is.null(tile)) {
+        cube <- dplyr::filter(cube, .data[["tile"]] == !!tile)
+
+        .check_that(
+            x = nrow(cube) == 1,
+            local_msg = "tile names are not unique",
+            msg = "invalid cube"
+        )
+    }
+
+    # get file_info for a given fid
+    fi_cube <- .file_info(cube, fid = fid)
+
+    # cube filtered by bands
+    cube <- sits_select(cube, bands = band)
+
+    source <- .cube_source(cube)
+    col <- .cube_collection(cube)
+
+    cube_tile <- .cube_create(
+        source = source,
+        collection = col,
+        satellite = .source_collection_satellite(source, col),
+        sensor = .source_collection_sensor(source, col),
+        tile = tile,
+        xmin = max(fi_cube[["xmin"]]),
+        xmax = min(fi_cube[["xmax"]]),
+        ymin = max(fi_cube[["ymin"]]),
+        ymax = min(fi_cube[["ymax"]]),
+        crs = .cube_crs(cube),
+        file_info = fi_cube
+    )
+
+    class(cube_tile) <- class(cube)
+
+    return(cube_tile)
+}
+
 #' @title Verify if two cubes are equal
 #'
 #' @name .cube_is_equal
@@ -805,11 +861,19 @@
         msg = "invalid block value"
     )
 
-    params <- .sits_raster_sub_image_from_block(block = block, tile = cube)
+    source <- .cube_source(cube)
+    collection <- .cube_collection(cube)
+
+    params <- .sits_raster_sub_image_from_block(
+        block = block,
+        source = source,
+        collection = collection,
+        tile = cube
+    )
 
     tolerance <- .config_get(key = c(
-        "sources", .cube_source(cube),
-        "collections", .cube_collection(cube),
+        "sources", source,
+        "collections", collection,
         "ext_tolerance"
     ))
 
@@ -1035,6 +1099,7 @@
     UseMethod(".cube_token_generator", source)
 }
 
+
 #' @export
 .cube_token_generator.mpc_cube <- function(cube) {
     file_info <- cube[["file_info"]][[1]]
@@ -1046,28 +1111,25 @@
         return(cube)
     }
 
-    if ("token_expires" %in% colnames(file_info)) {
-        difftime_token <- difftime(
-            time1 = file_info[["token_expires"]][[1]],
-            time2 = as.POSIXlt(Sys.time(), tz = "UTC"),
-            units = "mins"
-        )
-
-        # verify if there are still 25 minutes left to expire
-        if (difftime_token - 15 > 25) {
-            return(cube)
-        }
+    # we consider token is expired when the remaining time is
+    # less than 5 minutes
+    if ("token_expires" %in% colnames(file_info) &&
+        !.cube_is_token_expired(cube)) {
+        return(cube)
     }
 
     token_endpoint <- .config_get(c("sources", .cube_source(cube), "token_url"))
     url <- paste0(token_endpoint, "/", tolower(.cube_collection(cube)))
 
     res_content <- NULL
+
     n_tries <- .config_get("cube_token_generator_n_tries")
+    sleep_time <- .config_get("cube_token_generator_sleep_time")
     while (is.null(res_content) && n_tries > 0) {
         res_content <- tryCatch(
             {
-                httr::content(httr::GET(url), encoding = "UTF-8")
+                res <- httr::stop_for_status(httr::GET(url))
+                httr::content(res, encoding = "UTF-8")
             },
             error = function(e) {
                 return(NULL)
@@ -1075,7 +1137,7 @@
         )
 
         if (is.null(res_content)) {
-            Sys.sleep(10)
+            Sys.sleep(sleep_time)
         }
         n_tries <- n_tries - 1
     }
@@ -1113,6 +1175,57 @@
 
     return(cube)
 }
+
+#' @title Check if a cube token was expired
+#' @name .cube_is_token_expires
+#' @keywords internal
+#'
+#' @param cube input data cube
+#'
+#' @return a boolean value.
+.cube_is_token_expired <- function(cube) {
+    source <- .source_new(
+        source = .cube_source(cube),
+        collection = .cube_collection(cube)
+    )
+
+    UseMethod(".cube_is_token_expired", source)
+}
+
+#' @export
+.cube_is_token_expired.mpc_cube <- function(cube) {
+    file_info <- cube[["file_info"]][[1]]
+    fi_paths <- file_info[["path"]]
+
+    min_remaining_time <- .config_get(
+        "cube_token_generator_min_remaining_time",
+        default = 0
+    )
+
+    are_local_paths <- !grepl(pattern = "^/vsi", x = fi_paths)
+    # ignore in case of regularized and local cubes
+    if (all(are_local_paths)) {
+        return(FALSE)
+    }
+
+    if ("token_expires" %in% colnames(file_info)) {
+        difftime_token <- difftime(
+            time1 = file_info[["token_expires"]][[1]],
+            time2 = as.POSIXlt(Sys.time(), tz = "UTC"),
+            units = "mins"
+        )
+
+        return(difftime_token < min_remaining_time)
+    }
+
+    return(FALSE)
+}
+
+#' @export
+.cube_is_token_expired.default <- function(cube) {
+    return(FALSE)
+}
+
 #' @export
 .cube_token_generator.default <- function(cube) {
     return(cube)
