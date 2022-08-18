@@ -205,15 +205,14 @@ sits_as_sf.raster_cube <- function(data, ...) {
     points <- sf::st_coordinates(sf_object$geometry)
 
     if ("label" %in% colnames(sf_df)) {
-        labels <- sf_df[, "label"]
+        labels <- as.character(unlist(sf_df[, "label"], use.names = FALSE))
     } else if (!purrr::is_null(label_attr)) {
         .check_chr_within(
             x = label_attr,
             within = colnames(sf_df)
         )
 
-        l1_lst <- as.list(sf_df[, label_attr])
-        labels <- as.character(l1_lst)
+        labels <- as.character(unlist(sf_df[, label_attr], use.names = FALSE))
     } else {
         labels <- rep(label, times = nrow(points))
     }
@@ -268,10 +267,14 @@ sits_as_sf.raster_cube <- function(data, ...) {
             # retrieve the class from the shape attribute
 
             if ("label" %in% colnames(sf_df)) {
-                label <- unname(as.character(sf_df[i, "label"]))
+                label <- as.character(
+                    unlist(sf_df[i, "label"], use.names = FALSE)
+                )
             } else if (!purrr::is_null(label_attr) &&
                 label_attr %in% colnames(sf_df)) {
-                label <- unname(as.character(sf_df[i, label_attr]))
+                label <- as.character(
+                    unlist(sf_df[i, label_attr], use.names = FALSE)
+                )
             }
             if (!purrr::is_null(pol_id) && pol_id %in% colnames(sf_df)) {
                 polygon_id <- unname(as.character(sf_df[i, pol_id]))

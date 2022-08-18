@@ -106,7 +106,7 @@ library(sits)
 #> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.2.0.
+#> Loaded sits v1.1.0-5.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 ```
@@ -117,7 +117,7 @@ library(sits)
 
 The `sits` package allows users to created data cubes from
 analysis-ready data (ARD) image collections available in cloud services.
-The collections accessible in `sits` 1.2.0 are:
+The collections accessible in `sits` 1.1.0.5 are:
 
 1.  Brazil Data Cube
     ([BDC](http://brazildatacube.org/en/home-page-2/#dataproducts)):
@@ -159,6 +159,7 @@ s2_cube <- sits_cube(
     end_date = as.Date("2019-06-30"),
     progress = FALSE
 )
+#>   |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
 ```
 
 This cube is irregular. The timelines of tiles `"20LKP"` and `"20LLKP"`
