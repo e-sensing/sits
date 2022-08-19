@@ -13,6 +13,8 @@
 #' @param cube       Classified image cube to be reclassified.
 #' @param mask       Classified image cube with additional information
 #'                   to be used in expressions.
+#' @param mask_na_values Set cube pixels to NA where corresponding pixels in
+#'                   mask are NA.
 #' @param memsize    Memory available for classification (in GB).
 #' @param multicores Number of cores to be used for classification.
 #' @param output_dir Directory where files will be saved.
@@ -83,7 +85,11 @@
 #'                         "r2020", "r2021"),
 #'         "Water_Mask" = mask == "Water",
 #'         "NonForest_Mask" = mask %in% c("NonForest", "NonForest2"),
-#'         output_dir = tempdir()
+#'         mask_na_values = TRUE,
+#'         memsize = 1,
+#'         multicores = 1,
+#'         output_dir = getwd(),
+#'         progress = TRUE
 #'     )
 #'
 #'     plot(ro_mask, palette = "Geyser")
@@ -91,6 +97,7 @@
 #' @rdname sits_reclassify
 #' @export
 sits_reclassify <- function(cube, mask, ...,
+                            mask_na_values = TRUE,
                             memsize = 1,
                             multicores = 2,
                             output_dir = getwd(),
@@ -189,8 +196,6 @@ sits_reclassify <- function(cube, mask, ...,
                 overwrite = TRUE,
                 block = block
             )
-            # Remove block mask file on function exit
-            on.exit(unlink(block_file), add = TRUE)
             # Create a mask file based on block
             mask_obj <- .raster_rast(
                 r_obj = r_obj,
@@ -252,7 +257,8 @@ sits_reclassify <- function(cube, mask, ...,
                 mask_obj = mask_obj,
                 labels_mask = labels_mask,
                 exprs = exprs,
-                labels_out = labels_out
+                labels_out = labels_out,
+                mask_na_values = mask_na_values
             )
             # Set values
             r_obj <- .raster_set_values(
@@ -294,7 +300,7 @@ sits_reclassify <- function(cube, mask, ...,
         # Update tile
         tile[["labels"]] <- list(labels_out)
         tile[["file_info"]] <- fi_row
-        return(fi_row)
+        return(tile)
     }, progress = progress)
     # Bind all tiles_fid
     result <- tiles_fid %>%
@@ -320,19 +326,20 @@ sits_reclassify <- function(cube, mask, ...,
                          mask_obj,
                          labels_mask,
                          exprs,
-                         labels_out) {
+                         labels_out,
+                         mask_na_values) {
 
-    # get evaluation environment
+    # Get evaluation environment
     env <- list2env(list(
-        # read values and convert to character
+        # Read values and convert to character
         cube = labels_cube[.raster_get_values(r_obj)],
         mask = labels_mask[.raster_get_values(mask_obj)]
     ))
 
-    # get cube matrix
+    # Get cube matrix
     values <- env[["cube"]]
 
-    # evaluate expressions
+    # Evaluate expressions
     for (label in names(exprs)) {
         expr <- exprs[[label]]
         # evaluate
@@ -346,8 +353,13 @@ sits_reclassify <- function(cube, mask, ...,
         values[result] <- label
     }
 
-    # produce final matrix
+    # Produce final matrix
     values <- match(values, labels_out)
+
+    # Mask NA values
+    if (mask_na_values) {
+        values[is.na(env[["mask"]])] <- NA
+    }
 
     return(values)
 }
@@ -365,7 +377,7 @@ sits_reclassify <- function(cube, mask, ...,
 .rclasf_get_jobs <- function(cube) {
 
     tile_fid <- unlist(slider::slide(cube, function(tile) {
-        fi <- .file_info(cube)
+        fi <- .file_info(tile)
         purrr::map(seq_len(nrow(fi)), function(i)
             list(tile[["tile"]], i))
     }), recursive = FALSE)
