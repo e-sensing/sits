@@ -51,8 +51,6 @@
 #' inside the kernel window. Central pixel is \code{NA} just only
 #' all pixels in the window are \code{NA}.
 #'
-#' Kernel functions
-#'
 #' @section Summarizing kernel functions:
 #' \itemize{
 #' \item{\code{w_median()}: returns the median of the neighborhood's values.}
