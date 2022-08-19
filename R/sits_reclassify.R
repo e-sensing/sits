@@ -165,8 +165,8 @@ sits_reclassify <- function(cube, mask, ...,
         )
         # For now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
         blocks <- .rclasf_compute_blocks(
-            xsize = .file_info_nrows(tile),
-            ysize = .file_info_ncols(tile),
+            xsize = .file_info_ncols(tile),
+            ysize = .file_info_nrows(tile),
             block_y_size = block_size[["block_y_size"]]
         )
         # Save each output block and return paths
