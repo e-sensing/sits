@@ -60,7 +60,7 @@ sf_geom_types_supported : ["POINT", "POLYGON", "MULTIPOLYGON"]
 local_s3_class          : ["local_cube", "raster_cube"]
 local_file_extensions   : ["tiff", "tif", "jp2", "hdf", "vrt"]
 local_parse_info_col    : ["tile", "band", "date"]
-local_parse_info_def    : ["X1", "X2", "tile", "band", "date"]
+local_parse_info_def    : ["X1", "tile", "band", "date"]
 
 # default configuration for raster cubes
 raster_cube_scale_factor : 0.0001
@@ -72,6 +72,8 @@ raster_cube_maximum_value : 10000
 
 # configuration for generate tokens for mpc cubes
 cube_token_generator_n_tries: 3
+cube_token_generator_sleep_time: 10
+cube_token_generator_min_remaining_time: 5
 
 # configuration for probability cubes
 probs_cube_scale_factor : 0.0001

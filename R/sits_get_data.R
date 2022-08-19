@@ -132,10 +132,10 @@ sits_get_data <- function(cube,
     )
 
     # pre-condition - all tiles have same bands
-    .check_that(
-        x = .cube_is_regular(cube),
-        local_msg = "Please use sits_regularize()",
-        msg = "sits can only get data from regular cubes"
+    is_regular <- .cube_is_regular(cube)
+    .check_that(is_regular,
+        local_msg = "tiles have different bands and dates",
+        msg = "cube is inconsistent"
     )
 
     if (is.character(samples)) {
@@ -498,6 +498,8 @@ sits_get_data.data.frame <- function(cube,
             ncol = 2
         )
         colnames(xy) <- c("X", "Y")
+
+
         # build the sits tibble for the storing the points
         samples_tbl <- slider::slide_dfr(samples, function(point) {
 
@@ -521,6 +523,8 @@ sits_get_data.data.frame <- function(cube,
             # return valid row of time series
             return(sample)
         })
+
+        # extract time series
         ts <- .sits_raster_data_get_ts(
             tile = tile,
             points = samples_tbl,

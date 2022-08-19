@@ -295,15 +295,20 @@ plot.predicted <- function(x, y, ...,
 #'
 #' @param  x             Object of class "raster_cube".
 #' @param  ...           Further specifications for \link{plot}.
+#' @param  samples       samples to be plotted together with image
 #' @param  band          Band for plotting grey images.
 #' @param  red           Band for red color.
 #' @param  green         Band for green color.
 #' @param  blue          Band for blue color.
 #' @param  tile          Tile to be plotted.
 #' @param  date          Date to be plotted.
+#' @param  palette       RColorBrewer palette to plot B/W image
+#' @param  n_colors      Number of colors to display B/W image
+#' @param  sample_color  RColorBrewer name to display the samples
 #'
 #' @return               A plot object produced by the terra package
-#'                       with an RGB or B/W image.
+#'                       with an RGB image or a B/W image on a color
+#'                       scale chosen from the RColorBrewer palette.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -321,12 +326,19 @@ plot.predicted <- function(x, y, ...,
 #' }
 #' @export
 plot.raster_cube <- function(x, ...,
+                             samples = NULL,
                              band = NULL,
                              red = NULL,
                              green = NULL,
                              blue = NULL,
                              tile = x$tile[[1]],
-                             date = NULL) {
+                             date = NULL,
+                             palette = "YlGn",
+                             n_colors = 32,
+                             sample_color = "Set1") {
+    # install RColorBrewer if not available
+    .check_require_packages("RColorBrewer")
+
     .check_chr_contains(
         x = x$tile,
         contains = tile,
@@ -347,34 +359,6 @@ plot.raster_cube <- function(x, ...,
             "'blue' parameters should be informed"
         )
     )
-
-    # check if bands are valid
-    if (!purrr::is_null(band)) {
-        .check_chr_within(
-            band,
-            within = sits_bands(x),
-            discriminator = "any_of",
-            msg = "invalid band"
-        )
-        # plot as grayscale
-        red <- band
-        green <- band
-        blue <- band
-        r_index <- 1
-        g_index <- 1
-        b_index <- 1
-    } else {
-        .check_chr_within(
-            c(red, green, blue),
-            within = sits_bands(x),
-            discriminator = "all_of",
-            msg = "invalid RGB bands selection"
-        )
-        r_index <- 1
-        g_index <- 2
-        b_index <- 3
-    }
-
     # select only one tile
     row <- dplyr::filter(x, .data[["tile"]] == !!tile)
 
@@ -395,28 +379,78 @@ plot.raster_cube <- function(x, ...,
             date <- tile_dates[idx_date]
         }
     }
-    # plot the selected tile
-    # select the bands for the timeline
+
+    # select the bands for the chosen date
     bds_date <- dplyr::filter(.file_info(row), .data[["date"]] == !!date)
-    # get RGB files for the requested timeline
-    red_file <- dplyr::filter(bds_date, .data[["band"]] == red)$path
-    green_file <- dplyr::filter(bds_date, .data[["band"]] == green)$path
-    blue_file <- dplyr::filter(bds_date, .data[["band"]] == blue)$path
-    # put the band on a raster/terra stack
-    rgb_stack <- c(red_file, green_file, blue_file)
 
-    # use the raster package to obtain a raster object from a stack
-    r_obj <- .raster_open_stack.terra(rgb_stack)
-    # plor the data using terra
-    suppressWarnings(
-        terra::plotRGB(r_obj,
-            r = r_index,
-            g = g_index,
-            b = b_index,
-            stretch = "hist"
+    # check if bands are valid
+    if (!purrr::is_null(band)) {
+        .check_chr_within(
+            band,
+            within = sits_bands(x),
+            discriminator = "any_of",
+            msg = "invalid band"
         )
-    )
+        # check if n_colors is a valid number
+        .check_num(
+            x = n_colors,
+            min = 1,
+            max = 256,
+            is_integer = TRUE,
+            len_min = 1,
+            len_max = 1
+        )
 
+        # plot a single band
+        bw_file <- dplyr::filter(bds_date, .data[["band"]] == band)$path
+        # use the terra package to obtain a terra object from a stack
+        r_obj <- .raster_open_stack.terra(bw_file)
+
+        # check if pallete name exists in ColorBrewer
+        .check_chr_contains(
+            x = rownames(RColorBrewer::brewer.pal.info),
+            contains = palette,
+            msg = "Invalid palette name: must be a ColorBrewer name"
+        )
+        # calculate the color palette
+        max_col <- RColorBrewer::brewer.pal.info[palette,]$maxcolors
+        # plot the data using terra
+        suppressWarnings(
+            terra::plot(r_obj,
+                 col = grDevices::colorRampPalette(
+                     RColorBrewer::brewer.pal(max_col, palette))(n_colors)
+            )
+        )
+
+    } else {
+        .check_chr_within(
+            c(red, green, blue),
+            within = sits_bands(x),
+            discriminator = "all_of",
+            msg = "invalid RGB bands selection"
+        )
+        r_index <- 1
+        g_index <- 2
+        b_index <- 3
+        # get RGB files for the requested timeline
+        red_file <- dplyr::filter(bds_date, .data[["band"]] == red)$path
+        green_file <- dplyr::filter(bds_date, .data[["band"]] == green)$path
+        blue_file <- dplyr::filter(bds_date, .data[["band"]] == blue)$path
+        # put the band on a raster/terra stack
+        rgb_stack <- c(red_file, green_file, blue_file)
+
+        # use the terra package to obtain a terra object from a stack
+        r_obj <- .raster_open_stack.terra(rgb_stack)
+        # plot the data using terra
+        suppressWarnings(
+            terra::plotRGB(r_obj,
+                           r = r_index,
+                           g = g_index,
+                           b = b_index,
+                           stretch = "hist"
+            )
+        )
+    }
     return(invisible(r_obj))
 }
 #' @title  Plot probability cubes
@@ -894,13 +928,91 @@ plot.classified_image <- function(x, y, ...,
 plot.rfor_model <- function(x, y, ...){
     # verifies if randomForestExplainer package is installed
     .check_require_packages("randomForestExplainer")
-    # retrieve the random forest object from the enviroment
+    # retrieve the random forest object from the env iroment
     rf <- environment(x)$result_rfor
     p <- randomForestExplainer::plot_min_depth_distribution(rf)
     return(p)
 }
 
+#'
+#' @title  Plot confusion matrix
+#' @name   plot.sits_accuracy
+#' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
+#'
+#' @description Plot a bar graph with informations about the confusion matrix
+#'
+#' @param  x            Object of class "plot.sits_accuracy".
+#' @param  y            Ignored.
+#' @param  ...          Further specifications for \link{plot}.
+#' @param  title        Title of plot.
+#' @return              A plot object produced by the ggplot2 package
+#'                      containing color bars showing the confusion
+#'                      between classes.
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_run_examples()) {
+#'     # show accuracy for a set of samples
+#'     train_data <- sits_sample(samples_modis_4bands, n = 200)
+#'     test_data <- sits_sample(samples_modis_4bands, n = 200)
+#'     # compute a random forest model
+#'     rfor_model <- sits_train(train_data, sits_rfor())
+#'     # classify training points
+#'     points_class <- sits_classify(test_data, rfor_model)
+#'     # calculate accuracy
+#'     acc <- sits_accuracy(points_class)
+#'     # plot accuracy
+#'     plot(acc)
+#'
+#' }
+#' @export
+#'
+plot.sits_accuracy <- function(x, y, ...,
+                                      title = "Confusion matrix") {
+    stopifnot(missing(y))
+    data <- x
+    if (!inherits(data, "sits_accuracy")) {
+        message("unable to plot - please run sits_accuracy")
+        return(invisible(NULL))
+    }
 
+    # configure plot colors
+    # get labels from cluster table
+    labels <- colnames(x$table)
+    colors <- .config_colors(
+        labels = labels,
+        palette = "Spectral",
+        rev = TRUE
+    )
+
+    data <- tibble::as_tibble(t(prop.table(x$table, margin = 2)))
+
+    colnames(data) <- c("pred", "class", "conf_per")
+
+    p <- ggplot2::ggplot() +
+        ggplot2::geom_bar(
+            ggplot2::aes(
+                y = .data[["conf_per"]],
+                x = .data[["pred"]],
+                fill = class
+            ),
+            data = data,
+            stat = "identity",
+            position = ggplot2::position_dodge()
+        ) +
+        ggplot2::theme_minimal() +
+        ggplot2::theme(
+            axis.text.x =
+                ggplot2::element_text(angle = 60, hjust = 1)
+        ) +
+        ggplot2::labs(x = "Class", y = "Agreement with reference") +
+        ggplot2::scale_fill_manual(name = "Class", values = colors) +
+        ggplot2::ggtitle(title)
+
+    p <- graphics::plot(p)
+    return(invisible(p))
+}
 
 #'
 #' @title  Plot confusion between clusters
@@ -971,7 +1083,7 @@ plot.som_evaluate_cluster <- function(x, y, ...,
             axis.text.x =
                 ggplot2::element_text(angle = 60, hjust = 1)
         ) +
-        ggplot2::labs(x = "Cluster", y = "Percentage of mixture") +
+        ggplot2::labs(x = "Class", y = "Percentage of mixture") +
         ggplot2::scale_fill_manual(name = "Class label", values = colors) +
         ggplot2::ggtitle(title)
 
@@ -1589,79 +1701,6 @@ plot.torch_model <- function(x, y, ...) {
     }
     return(c("ratio" = ratio, "nrows" = new_nrows, "ncols" = new_ncols))
 }
-
-#' @title Plot classification alignments using the dtwSat package
-#' @name .sits_plot_twdtw_alignments
-#' @keywords internal
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description     Plots the alignments from TWDTW classification
-#'
-#' @param matches   A list of dtwSat S4 match objects produced by
-#'   sits_TWDTW_matches.
-#'
-#' @return Return the same input value.
-#'
-.sits_plot_twdtw_alignments <- function(matches) {
-    # verifies if dtwSat package is installed
-    if (!requireNamespace("dtwSat", quietly = TRUE)) {
-        stop("Please install package dtwSat", call. = FALSE)
-    }
-
-    matches %>%
-        purrr::map(function(m) {
-            dtwSat::plot(m, type = "alignments") %>%
-                graphics::plot()
-        })
-    return(invisible(matches))
-}
-
-#' @title Plot classification results using the dtwSat package
-#' @name .sits_plot_twdtw_class
-#' @keywords internal
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description         Plots the results of TWDTW classification (uses dtwSat).
-#'
-#' @param  matches      dtwSat S4 objects produced by sits_TWDTW_matches.
-#' @param  start_date   Start date of the plot (used for classifications).
-#' @param  end_date     End date of the plot (used for classifications).
-#' @param  interval     Interval between classifications.
-#' @param  overlap      Minimum overlapping between one match and the
-#'   interval of classification. For details see dtwSat::twdtwApply help.
-#' @return Return the same input value.
-#'
-.sits_plot_twdtw_class <- function(matches,
-                                   start_date = NULL,
-                                   end_date = NULL,
-                                   interval = "12 month",
-                                   overlap = 0.5) {
-    # verifies if dtwSat package is installed
-    .check_require_packages("dtwSat")
-
-    matches %>%
-        purrr::map(function(m) {
-            if (purrr::is_null(start_date) | purrr::is_null(end_date)) {
-                dplot <- dtwSat::plot(m,
-                    type = "classification",
-                    overlap = 0.5
-                )
-            } else {
-                dplot <- dtwSat::plot(m,
-                    type = "classification",
-                    from = start_date,
-                    to = end_date,
-                    by = interval,
-                    overlap = overlap
-                )
-            }
-            graphics::plot(dplot)
-        })
-    return(invisible(matches))
-}
-
 
 
 
