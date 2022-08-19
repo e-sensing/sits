@@ -7,18 +7,24 @@
 \method{plot}{raster_cube}(
   x,
   ...,
+  samples = NULL,
   band = NULL,
   red = NULL,
   green = NULL,
   blue = NULL,
   tile = x$tile[[1]],
-  date = NULL
+  date = NULL,
+  palette = "YlGn",
+  n_colors = 32,
+  sample_color = "Set1"
 )
 }
 \arguments{
 \item{x}{Object of class "raster_cube".}
 
 \item{...}{Further specifications for \link{plot}.}
+
+\item{samples}{samples to be plotted together with image}
 
 \item{band}{Band for plotting grey images.}
 
@@ -31,10 +37,17 @@
 \item{tile}{Tile to be plotted.}
 
 \item{date}{Date to be plotted.}
+
+\item{palette}{RColorBrewer palette to plot B/W image}
+
+\item{n_colors}{Number of colors to display B/W image}
+
+\item{sample_color}{RColorBrewer name to display the samples}
 }
 \value{
 A plot object produced by the terra package
-                      with an RGB or B/W image.
+                      with an RGB image or a B/W image on a color
+                      scale chosen from the RColorBrewer palette.
 }
 \description{
 Plot RGB raster cube

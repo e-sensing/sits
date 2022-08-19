@@ -164,11 +164,11 @@ sits_kfold_validate <- function(samples,
     ref_fac <- factor(ref, levels = unique_ref)
 
     # call caret package to the classification statistics
-    assess <- caret::confusionMatrix(pred_fac, ref_fac)
+    acc <- caret::confusionMatrix(pred_fac, ref_fac)
 
-    class(assess) <- c("sits_assessment", class(assess))
+    class(acc) <- c("sits_accuracy", class(acc))
 
-    return(assess)
+    return(acc)
 }
 #' @title Validate time series samples
 #' @name sits_validate
@@ -274,11 +274,11 @@ sits_validate <- function(samples,
     ref_fac <- factor(ref, levels = unique_ref)
 
     # call caret package to the classification statistics
-    assess <- caret::confusionMatrix(pred_fac, ref_fac)
+    acc <- caret::confusionMatrix(pred_fac, ref_fac)
 
-    class(assess) <- c("sits_assessment", class(assess))
+    class(acc) <- c("sits_accuracy", class(acc))
 
-    return(assess)
+    return(acc)
 }
 #' @title Create partitions of a data set
 #' @name  .sits_create_folds

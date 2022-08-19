@@ -600,11 +600,14 @@
             band <- job[[2]]
             date <- job[[3]]
 
+            # we consider token is expired when the remaining time is
+            # less than 5 minutes
+            if (.cube_is_token_expired(cube)) {
+                return(NULL)
+            }
+
             # filter tile
             tile <- dplyr::filter(cube, .data[["tile"]] == !!tile_name)
-
-            # for cubes that have a time limit to expire - mpc cubes only
-            tile <- .cube_token_generator(tile)
 
             # post-condition
             .check_that(
@@ -669,7 +672,7 @@
                     data_dir = output_dir,
                     parse_info = c("x1", "tile", "band", "date"),
                     multicores = multicores,
-                    progress = progress
+                    progress = FALSE
                 )
             },
             error = function(e) {

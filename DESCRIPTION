@@ -67,7 +67,6 @@ Suggests:
     caret,
     dendextend,
     dtwclust,
-    dtwSat (>= 0.2.7),
     DiagrammeR,
     digest,
     e1071,
@@ -85,6 +84,7 @@ Suggests:
     openxlsx,
     randomForest,
     randomForestExplainer,
+    RColorBrewer,
     RcppArmadillo (>= 0.11),
     scales,
     stars (>= 0.5),
@@ -175,7 +175,6 @@ Collate:
     'sits_timeline.R'
     'sits_train.R'
     'sits_tuning.R'
-    'sits_twdtw.R'
     'sits_utils.R'
     'sits_uncertainty.R'
     'sits_validate.R'
