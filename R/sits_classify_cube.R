@@ -115,7 +115,7 @@
             message(paste0(
                 "Recovery mode: classified image file found in '",
                 dirname(old_file), "' directory. ",
-                "(If you want a new classifcation, please ",
+                "(If you want a new classification, please ",
                 "change the directory in the 'output_dir' or the ",
                 "value of 'version' parameter)"
             ))
