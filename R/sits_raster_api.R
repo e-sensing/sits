@@ -223,6 +223,38 @@
     UseMethod(".raster_extract", pkg_class)
 }
 
+#' @title Raster package internal extract values function
+#' @name .raster_ext_as_sf
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj   raster package object
+#'
+#' @return An object with raster extent.
+.raster_ext_as_sf <- function(r_obj) {
+
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_ext_as_sf", pkg_class)
+}
+
+#' @title Raster package internal extract values function
+#' @name .raster_ext_as_sf
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj  raster package object
+#'
+#' @return An vector with the file block size.
+.raster_file_blocksize <- function(r_obj) {
+
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_file_blocksize", pkg_class)
+}
+
 #' @title Raster package internal object creation
 #' @name .raster_rast
 #' @keywords internal
