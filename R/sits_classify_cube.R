@@ -52,9 +52,7 @@
 
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
-
-    # get samples labels
-    labels <- sits_labels(samples)
+    samples_labels <- sits_labels(samples)
 
     # precondition - are the samples empty?
     .check_that(
@@ -64,9 +62,9 @@
 
     # precondition - are the sample bands contained in the cube bands?
     tile_bands <- sits_bands(tile)
-    bands <- sits_bands(samples)
+    samples_bands <- sits_bands(samples)
     .check_chr_within(
-        x = bands,
+        x = samples_bands,
         within = tile_bands,
         msg = "some bands in samples are not in cube"
     )
@@ -74,20 +72,33 @@
     # retrieve the normalization stats from the model
     stats <- environment(ml_model)$stats
 
-    # is there a region of interest?
-    if (purrr::is_null(roi)) {
-        sub_image <- .sits_raster_sub_image_default(tile)
-    } else {
-        sub_image <- .sits_raster_sub_image(tile = tile, roi = roi)
-    }
+    rast_template <- .raster_open_rast(.file_info_path(tile))
+    file_blocksize <- .raster_file_blocksize(rast_template)
 
-    # divide the input data in blocks
-    blocks <- .sits_raster_blocks(
-        tile = tile,
-        ml_model = ml_model,
-        sub_image = sub_image,
+    jobs <- .jobs_create(
+        block_nrows = file_blocksize[["block_nrows"]],
+        block_ncols = file_blocksize[["block_ncols"]],
+        block_overlap = 0,
+        ncols = .file_info_ncols(tile),
+        nrows = .file_info_nrows(tile),
+        xmin = tile[["xmin"]],
+        xmax = tile[["xmax"]],
+        ymin = tile[["ymin"]],
+        ymax = tile[["ymax"]],
+        crs = tile[["crs"]]
+    )
+
+    .jobs_check_multicores(
+        jobs = jobs,
+        npaths = length(.file_info_paths(tile)),
         memsize = memsize,
-        multicores = multicores
+        multicores = multicores,
+        overlap = 0
+    )
+
+    jobs <- .jobs_filter_roi(
+        jobs = jobs,
+        roi = roi
     )
 
     # get timeline
@@ -98,10 +109,10 @@
         cube       = tile,
         cube_class = "probs_cube",
         band_name  = "probs",
-        labels     = labels,
+        labels     = samples_labels,
         start_date = timeline[[1]],
         end_date   = timeline[[length(timeline)]],
-        bbox       = sub_image,
+        bbox       = .sits_raster_sub_image_default(tile),
         output_dir = output_dir,
         version    = version
     )
@@ -126,9 +137,9 @@
     # show initial time for classification
     if (verbose) {
         message(paste0(
-            "Using ", length(blocks),
-            " blocks of size (", blocks[[1]][["nrows"]],
-            " x ", blocks[[1]][["ncols"]], ")"
+            "Using ", length(jobs),
+            " blocks of size (", jobs[["nrows"]][[1]],
+            " x ", jobs[["ncols"]][[1]], ")"
         ))
 
         start_time <- Sys.time()
@@ -147,14 +158,21 @@
         output_dir = output_dir,
         event = "start classification",
         key = "blocks",
-        value = length(blocks)
+        value = length(jobs)
     )
 
     # for cubes that have a time limit to expire - mpc cubes only
     tile <- .cube_token_generator(tile)
 
     # read the blocks and compute the probabilities
-    filenames <- .sits_parallel_map(blocks, function(b) {
+    filenames <- .sits_parallel_map(seq_len(nrow(jobs)), function(i) {
+        job <- jobs[i, ]
+        job <- dplyr::transmute(job,
+                                first_col = .data[["col"]],
+                                first_row = .data[["row"]],
+                                nrows = .data[["nrows"]],
+                                ncols = .data[["ncols"]]
+        )
 
         # for cubes that have a time limit to expire - mpc cubes only
         tile <- .cube_token_generator(tile)
@@ -169,7 +187,7 @@
         filename_block <- .create_filename(
             filenames = c(
                 probs_cube_filename, "block",
-                b[["first_row"]], b[["nrows"]]
+                job[["first_row"]], job[["nrows"]]
             ),
             ext = ".tif",
             output_dir = probs_cube_dir
@@ -222,14 +240,14 @@
             output_dir = output_dir,
             event = "before preprocess block",
             key = "block",
-            value = b
+            value = job
         )
 
         # read the data
         distances <- .sits_raster_data_read(
             cube       = tile,
             samples    = samples,
-            extent     = b,
+            extent     = job,
             stats      = stats,
             filter_fn  = filter_fn,
             impute_fn  = impute_fn
@@ -269,7 +287,7 @@
         pred_block <- round(scale_factor_save * pred_block, digits = 0)
 
         # compute block spatial parameters
-        params <- .cube_params_block(tile, b)
+        params <- .cube_params_block(tile, job)
 
         # create a new raster
         r_obj <- .raster_new_rast(
@@ -279,7 +297,7 @@
             xmax    = params[["xmax"]],
             ymin    = params[["ymin"]],
             ymax    = params[["ymax"]],
-            nlayers = length(labels),
+            nlayers = length(samples_labels),
             crs     = params[["crs"]]
         )
 
