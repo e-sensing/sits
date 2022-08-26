@@ -3,10 +3,10 @@
 # What's new in SITS version 1.1.0
 
 ### Hotfix version 1.1.0-7
-* Fix support to BDC cubes in `sits_regularize()`
+* Fix support to BDC cubes in `sits_regularize()` (issue #848)
 
 ### Hotfix version 1.1.0-6
-* Fix resume feature in `sits_classify()` on BDC cubes
+* Fix resume feature in `sits_classify()` on BDC cubes (issue #844)
 
 ### Hotfix version 1.1.0-5
 * Fix bound box issue in image blocks produced by `sits_apply()`
