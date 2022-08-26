@@ -10,7 +10,7 @@
   format,
   gdal_datatype,
   gdal_options,
-  overwrite,
+  multicores = 2,
   progress = FALSE
 )
 }
@@ -25,7 +25,7 @@
 
 \item{gdal_options}{Compression method to be used}
 
-\item{overwrite}{Overwrite the file?}
+\item{multicores}{Number of cores to process merging}
 
 \item{progress}{Show progress bar?}
 }

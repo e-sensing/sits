@@ -46,6 +46,7 @@
     progress <- .check_documentation(progress)
 
     # some models have parallel processing built in
+    original_multicores <- multicores
     if ("xgb_model" %in% class(ml_model)) {
         multicores <- 1
     }
@@ -330,6 +331,10 @@
 
     # put the filenames in a vector
     filenames <- unlist(filenames)
+
+    # Remove blocks
+    on.exit(unlink(filenames), add = TRUE)
+
     # log
     .sits_debug_log(
         output_dir = output_dir,
@@ -345,7 +350,8 @@
         format = "GTiff",
         gdal_datatype = .raster_gdal_datatype(probs_cube_dt),
         gdal_options = .config_gtiff_default_options(),
-        overwrite = TRUE
+        multicores = original_multicores,
+        progress = FALSE
     )
 
     # adjust nrows and ncols
