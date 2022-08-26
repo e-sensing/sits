@@ -4,6 +4,7 @@
 
 ### Hotfix version 1.1.0-7
 * Fix support to BDC cubes in `sits_regularize()` (issue #848)
+* Fix support to classified_image cubes in `sits_labels()<-` (issue #846)
 
 ### Hotfix version 1.1.0-6
 * Fix resume feature in `sits_classify()` on BDC cubes (issue #844)
