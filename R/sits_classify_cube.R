@@ -137,7 +137,7 @@
     # show initial time for classification
     if (verbose) {
         message(paste0(
-            "Using ", length(jobs),
+            "Using ", nrow(jobs),
             " blocks of size (", jobs[["nrows"]][[1]],
             " x ", jobs[["ncols"]][[1]], ")"
         ))
@@ -187,7 +187,7 @@
         filename_block <- .create_filename(
             filenames = c(
                 probs_cube_filename, "block",
-                job[["first_row"]], job[["nrows"]]
+                job[["first_row"]], job[["first_col"]]
             ),
             ext = ".tif",
             output_dir = probs_cube_dir
