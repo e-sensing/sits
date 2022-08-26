@@ -808,7 +808,7 @@
     # merge using gdal warp
     suppressWarnings(
         gdalUtilities::gdalwarp(
-            srcfile = path.expand(srcfile),
+            srcfile = path.expand(in_files),
             dstfile = out_file,
             ot = gdal_datatype,
             of = format,
