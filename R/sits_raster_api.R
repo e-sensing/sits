@@ -740,7 +740,7 @@
 #' @param format         Format to write the file
 #' @param gdal_datatype  Data type in gdal format
 #' @param gdal_options   Compression method to be used
-#' @param overwrite      Overwrite the file?
+#' @param multicores     Number of cores to process merging
 #' @param progress       Show progress bar?
 #'
 #' @return No return value, called for side effects.
@@ -750,7 +750,7 @@
                           format,
                           gdal_datatype,
                           gdal_options,
-                          overwrite,
+                          multicores = 2,
                           progress = FALSE) {
 
     # set caller to show in errors
@@ -760,10 +760,11 @@
     progress <- .check_documentation(progress)
 
     # check if in_file length is at least one
-    .check_length(
+    .check_chr(
         x = in_files,
-        min = 1,
-        msg = "no file to merge"
+        allow_empty = FALSE,
+        len_min = 1,
+        msg = "invalid input files to merge"
     )
 
     # check if all informed files exist
@@ -772,77 +773,19 @@
         msg = "file does not exist"
     )
 
-    # check overwrite parameter
-    .check_that(
-        x = (file.exists(out_file) && overwrite) ||
-            !file.exists(out_file),
-        msg = "cannot overwrite existing file"
+    # merge using gdal warp
+    suppressWarnings(
+        gdalUtilities::gdalwarp(
+            srcfile = path.expand(srcfile),
+            dstfile = out_file,
+            ot = gdal_datatype,
+            of = format,
+            wo = paste0("NUM_THREADS=", multicores),
+            multi = TRUE,
+            co = gdal_options,
+            overwrite = TRUE
+        )
     )
 
-    # delete result file
-    if (file.exists(out_file)) {
-        unlink(out_file)
-    }
-
-    # maximum files to merge at a time
-    # this value was obtained empirically
-    group_len <- 32
-
-    # keep in_files
-    delete_files <- FALSE
-
-    # prepare to loop
-    loop_files <- in_files
-
-    # loop until one file is obtained
-    while (length(loop_files) > 1) {
-
-        # group input files to be merged
-        group_files <- tapply(
-            loop_files,
-            rep(seq_len(ceiling(length(loop_files) / group_len)),
-                each = group_len,
-                length.out = length(loop_files)
-            ), c
-        )
-
-        # merge groups
-        loop_files <- .sits_parallel_map(group_files, function(group) {
-            srcfile <- unlist(group)
-
-            # temp output file
-            dstfile <- tempfile(
-                tmpdir = dirname(out_file[[1]]),
-                fileext = ".tif"
-            )
-
-            # merge using gdal warp
-            gdalUtilities::gdalwarp(
-                srcfile = path.expand(srcfile),
-                dstfile = dstfile,
-                ot = gdal_datatype,
-                of = format,
-                co = gdal_options,
-                overwrite = overwrite
-            )
-
-            # delete temp files
-            if (delete_files) unlink(srcfile)
-
-            return(dstfile)
-        }, progress = progress)
-
-        loop_files <- unlist(loop_files)
-
-        # delete temp files
-        delete_files <- TRUE
-    }
-
-    # in_files is the output of above loop
-    file.rename(loop_files, out_file)
-
-    # delete
-    unlink(in_files)
-
-    return(invisible(NULL))
+    return(invisible(out_file))
 }

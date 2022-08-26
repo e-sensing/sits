@@ -325,6 +325,9 @@ sits_apply.raster_cube <- function(data, ...,
             # Merge result
             blocks_path <- unlist(blocks_path)
 
+            # Remove blocks
+            on.exit(unlink(blocks_path), add = TRUE)
+
             # Join predictions
             if (!is.null(blocks_path)) {
                 .raster_merge(
@@ -335,8 +338,8 @@ sits_apply.raster_cube <- function(data, ...,
                         .config_get("raster_cube_data_type")
                     ),
                     gdal_options = .config_gtiff_default_options(),
-                    overwrite = TRUE,
-                    progress = progress
+                    multicores = 1,
+                    progress = FALSE
                 )
             }
             return(out_file_path)

@@ -281,6 +281,8 @@ sits_reclassify <- function(cube, mask, ...,
         })
         # Merge result
         blocks_path <- unlist(blocks_path)
+        # Remove blocks
+        on.exit(unlink(blocks_path), add = TRUE)
         # Join predictions
         .raster_merge(
             in_files = blocks_path,
@@ -290,11 +292,9 @@ sits_reclassify <- function(cube, mask, ...,
                 .config_get("class_cube_data_type")
             ),
             gdal_options = .config_gtiff_default_options(),
-            overwrite = TRUE,
-            progress = progress
+            multicores = 1,
+            progress = FALSE
         )
-        # Remove block files on function exit
-        on.exit(unlink(blocks_path), add = TRUE)
         # Prepare result updating path
         fi_row[["path"]] <- out_file
         # Update tile
