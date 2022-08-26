@@ -180,7 +180,7 @@
     # do resample
     if (!is.null(out_size) &&
         (in_size[["nrows"]] != out_size[["nrows"]] ||
-            in_size[["ncols"]] != out_size[["ncols"]])) {
+         in_size[["ncols"]] != out_size[["ncols"]])) {
         bbox <- .raster_bbox(r_obj, block = block)
 
         out_r_obj <- .raster_new_rast(
@@ -392,11 +392,11 @@
     )
 
     if (!is.na(crs[["code"]])) {
-        return(c(crs = paste(crs[["authority"]], crs[["code"]], sep = ":")))
+        return(paste(crs[["authority"]], crs[["code"]], sep = ":"))
     }
 
     suppressWarnings(
-        c(crs = as.character(terra::crs(x = r_obj)))
+        as.character(terra::crs(x = r_obj))
     )
 }
 
