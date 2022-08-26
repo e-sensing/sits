@@ -380,21 +380,20 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
-        # Apply function to blocks
-        on.exit(unlink(tmp_blocks))
+        # Remove blocks
+        on.exit(unlink(tmp_blocks), add = TRUE)
 
         # Merge to save final result
-        suppressWarnings(
-            .raster_merge(
-                in_files = tmp_blocks,
-                out_file = out_file,
-                format = "GTiff",
-                gdal_datatype =
-                    .raster_gdal_datatype(.config_get("probs_cube_data_type")),
-                gdal_options =
-                    .config_gtiff_default_options(),
-                overwrite = TRUE
-            )
+        .raster_merge(
+            in_files = tmp_blocks,
+            out_file = out_file,
+            format = "GTiff",
+            gdal_datatype =
+                .raster_gdal_datatype(.config_get("probs_cube_data_type")),
+            gdal_options =
+                .config_gtiff_default_options(),
+            multicores = 1,
+            progress = FALSE
         )
 
         return(tile_new)
@@ -681,21 +680,20 @@ sits_smooth.bilateral <- function(cube,
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
-        # apply function to blocks
-        on.exit(unlink(tmp_blocks))
+        # Remove blocks
+        on.exit(unlink(tmp_blocks), add = TRUE)
 
         # merge to save final result
-        suppressWarnings(
-            .raster_merge(
-                in_files = tmp_blocks,
-                out_file = out_file,
-                format = "GTiff",
-                gdal_datatype =
-                    .raster_gdal_datatype(.config_get("probs_cube_data_type")),
-                gdal_options =
-                    .config_gtiff_default_options(),
-                overwrite = TRUE
-            )
+        .raster_merge(
+            in_files = tmp_blocks,
+            out_file = out_file,
+            format = "GTiff",
+            gdal_datatype =
+                .raster_gdal_datatype(.config_get("probs_cube_data_type")),
+            gdal_options =
+                .config_gtiff_default_options(),
+            multicores = 1,
+            progress = TRUE
         )
 
         return(tile_new)

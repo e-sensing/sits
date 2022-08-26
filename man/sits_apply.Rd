@@ -75,8 +75,6 @@ generates an entire new matrix, which is returned as a new band
 to the cube. The kernel functions ignores any \code{NA} values
 inside the kernel window. Central pixel is \code{NA} just only
 all pixels in the window are \code{NA}.
-
-Kernel functions
 }
 \section{Summarizing kernel functions}{
 

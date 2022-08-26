@@ -788,6 +788,71 @@ test_that("One-year, multicores processing mixture model ", {
     unlink(mix_cube$file_info[[1]]$path)
 })
 
+test_that("One-year, multicores processing reclassify", {
+    # Open mask map
+    data_dir <- system.file("extdata/raster/prodes", package = "sits")
+    prodes2021 <- sits_cube(
+        source = "USGS",
+        collection = "LANDSAT-C2L2-SR",
+        data_dir = data_dir,
+        parse_info = c("x1", "tile", "start_date", "end_date",
+                       "band", "version"),
+        bands = "class",
+        labels = c("Forest", "Water", "NonForest",
+                   "NonForest2", "NoClass", "d2007", "d2008",
+                   "d2009", "d2010", "d2011", "d2012",
+                   "d2013", "d2014", "d2015", "d2016",
+                   "d2017", "d2018", "r2010", "r2011",
+                   "r2012", "r2013", "r2014", "r2015",
+                   "r2016", "r2017", "r2018", "d2019",
+                   "r2019", "d2020", "NoClass", "r2020",
+                   "Clouds2021", "d2021", "r2021")
+    )
+    # Open classification map
+    data_dir <- system.file("extdata/raster/classif", package = "sits")
+    ro_class <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        data_dir = data_dir,
+        parse_info = c("x1", "tile", "start_date", "end_date",
+                       "band", "version"),
+        bands = "class",
+        labels = c("ClearCut_Fire", "ClearCut_BareSoil",
+                   "ClearCut_Veg", "Forest")
+    )
+    # Reclassify cube
+    ro_mask <- sits_reclassify(
+        cube = ro_class,
+        mask = prodes2021,
+        "Old_Deforestation" =
+            mask %in% c("d2007", "d2008", "d2009",
+                        "d2010", "d2011", "d2012",
+                        "d2013", "d2014", "d2015",
+                        "d2016", "d2017", "d2018",
+                        "r2010", "r2011", "r2012",
+                        "r2013", "r2014", "r2015",
+                        "r2016", "r2017", "r2018",
+                        "d2019", "r2019", "d2020",
+                        "r2020", "r2021"),
+        "Water_Mask" = mask == "Water",
+        "NonForest_Mask" = mask %in% c("NonForest", "NonForest2"),
+        mask_na_values = TRUE,
+        memsize = 4,
+        multicores = 6,
+        output_dir = tempdir(),
+        progress = TRUE
+    )
+
+    expect_equal(
+        sits_labels(ro_mask),
+        c("ClearCut_Fire", "ClearCut_BareSoil",
+          "ClearCut_Veg", "Forest", "Old_Deforestation",
+          "Water_Mask", "NonForest_Mask")
+    )
+
+    unlink(ro_mask$file_info[[1]]$path)
+})
+
 test_that("Raster GDAL datatypes", {
     gdal_type <- sits:::.raster_gdal_datatype("INT2U")
     expect_equal(gdal_type, "UInt16")
