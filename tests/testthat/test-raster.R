@@ -14,7 +14,7 @@ test_that("One-year, single core classification", {
         data_dir = data_dir,
         delim = "_",
         bands = "NDVI",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
     sinop_probs <- sits_classify(
         data = sinop,
@@ -62,7 +62,7 @@ test_that("One-year, multicore classification", {
         data_dir = data_dir,
         delim = "_",
         bands = "NDVI",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
 
     sinop_probs <- tryCatch(
@@ -137,7 +137,7 @@ test_that("One-year, single core classification with filter", {
         data_dir = data_dir,
         delim = "_",
         bands = "NDVI",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
 
     sinop_probs <- suppressMessages(
@@ -171,7 +171,7 @@ test_that("One-year, multicore classification with Savitzky-Golay filter", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
 
     sinop_2014_probs <- tryCatch(
@@ -227,7 +227,7 @@ test_that("One-year, multicore classification with Whittaker filter", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
 
     sinop_2014_probs <- tryCatch(
@@ -279,7 +279,7 @@ test_that("One-year, multicore classification with torch", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
 
     sinop_2014_probs <- tryCatch(
@@ -330,7 +330,7 @@ test_that("One-year, multicore classification with ResNet", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
 
     sinop_2014_probs <- tryCatch(
@@ -381,7 +381,7 @@ test_that("One-year, multicore classification with TAE", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
 
     sinop_2014_probs <- tryCatch(
@@ -432,7 +432,7 @@ test_that("One-year, multicore classification with LightTAE", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
 
     sinop_2014_probs <- tryCatch(
@@ -520,7 +520,7 @@ test_that("One-year, multicores classification with cloud band", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
 
     cloud_cube <- sits_apply(
@@ -763,7 +763,7 @@ test_that("One-year, multicores processing mixture model ", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
 
     endmembers_spectra <-
@@ -795,7 +795,7 @@ test_that("One-year, multicores processing reclassify", {
         source = "USGS",
         collection = "LANDSAT-C2L2-SR",
         data_dir = data_dir,
-        parse_info = c("x1", "tile", "start_date", "end_date",
+        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
                        "band", "version"),
         bands = "class",
         labels = c("Forest", "Water", "NonForest",
@@ -814,7 +814,7 @@ test_that("One-year, multicores processing reclassify", {
         source = "MPC",
         collection = "SENTINEL-2-L2A",
         data_dir = data_dir,
-        parse_info = c("x1", "tile", "start_date", "end_date",
+        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
                        "band", "version"),
         bands = "class",
         labels = c("ClearCut_Fire", "ClearCut_BareSoil",

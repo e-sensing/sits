@@ -348,7 +348,7 @@ sits_apply.raster_cube <- function(data, ...,
             source = .cube_source(data),
             collection = .cube_collection(data),
             data_dir = output_dir,
-            parse_info = c("x1", "tile", "band", "date"),
+            parse_info = c("X1", "tile", "band", "date"),
             multicores = multicores,
             progress = FALSE
         )

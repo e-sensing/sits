@@ -8,7 +8,7 @@ test_that("Suggested samples have low confidence, high entropy", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
     samples_ndvi <- sits_select(
         sits::samples_modis_4bands,
@@ -56,7 +56,7 @@ test_that("Increased samples have high confidence, low entropy", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
     samples_ndvi <- sits_select(
         sits::samples_modis_4bands,

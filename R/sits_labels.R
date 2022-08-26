@@ -156,6 +156,24 @@ sits_labels.sits_model <- function(data) {
     return(rows)
 }
 
+#' @name `sits_labels<-`
+#' @export
+#' @return           A probs cube with modified labels.
+#'
+`sits_labels<-.classified_image` <- function(data, value) {
+    # precondition
+    n_labels <- length(sits_labels(data))
+    .check_chr(value,
+               len_min = n_labels,
+               msg = "not enough new labels to replace current ones"
+    )
+    rows <- slider::slide_dfr(data, function(row) {
+        row$labels <- list(value)
+        return(row)
+    })
+    return(rows)
+}
+
 #' @title Inform label distribution of a set of time series
 #' @name sits_labels_summary
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}

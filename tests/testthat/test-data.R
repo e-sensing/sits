@@ -7,7 +7,7 @@ test_that("Reading a LAT/LONG from RASTER", {
                 collection = "MOD13Q1-6",
                 data_dir = data_dir,
                 delim = "_",
-                parse_info = c("X1", "X2", "tile", "band", "date")
+                parse_info = c("X1", "tile", "band", "date")
             )
         },
         error = function(e) {
@@ -37,7 +37,7 @@ test_that("Reading a LAT/LONG from RASTER with crs parameter", {
                 collection = "MOD13Q1-6",
                 data_dir = data_dir,
                 delim = "_",
-                parse_info = c("X1", "X2", "tile", "band", "date")
+                parse_info = c("X1", "tile", "band", "date")
             )
         },
         error = function(e) {
@@ -71,7 +71,7 @@ test_that("Reading a CSV file from RASTER", {
                 collection = "MOD13Q1-6",
                 data_dir = data_dir,
                 delim = "_",
-                parse_info = c("X1", "X2", "tile", "band", "date")
+                parse_info = c("X1", "tile", "band", "date")
             )
         },
         error = function(e) {
@@ -124,7 +124,7 @@ test_that("Reading a CSV file from RASTER with crs parameter", {
                 collection = "MOD13Q1-6",
                 data_dir = data_dir,
                 delim = "_",
-                parse_info = c("X1", "X2", "tile", "band", "date")
+                parse_info = c("X1", "tile", "band", "date")
             )
         },
         error = function(e) {
@@ -179,7 +179,7 @@ test_that("Reading a SHP file from RASTER", {
                 collection = "MOD13Q1-6",
                 data_dir = data_dir,
                 delim = "_",
-                parse_info = c("X1", "X2", "tile", "band", "date")
+                parse_info = c("X1", "tile", "band", "date")
             )
         },
         error = function(e) {

@@ -12,8 +12,8 @@
   red = NULL,
   green = NULL,
   blue = NULL,
-  tile = x$tile[[1]],
-  date = NULL,
+  tiles = x$tile[[1]],
+  dates = NULL,
   palette = "YlGn",
   n_colors = 32,
   sample_color = "Set1"
@@ -34,9 +34,9 @@
 
 \item{blue}{Band for blue color.}
 
-\item{tile}{Tile to be plotted.}
+\item{tiles}{Tiles to be plotted.}
 
-\item{date}{Date to be plotted.}
+\item{dates}{Dates to be plotted.}
 
 \item{palette}{RColorBrewer palette to plot B/W image}
 
@@ -61,10 +61,10 @@ if (sits_run_examples()) {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
     # plot NDVI band of the second date date of the data cube
-    plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
+    plot(cube, band = "NDVI", dates = sits_timeline(cube)[c(1:2)])
 }
 }
 \author{

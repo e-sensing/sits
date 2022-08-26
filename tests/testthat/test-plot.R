@@ -31,7 +31,7 @@ test_that("Plot Time Series and Images", {
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
     bbox <- sits_bbox(sinop)
     size_x <- bbox[["xmax"]] - bbox[["xmin"]]
@@ -40,8 +40,8 @@ test_that("Plot Time Series and Images", {
 
     r_obj <- plot(sinop, band = "NDVI")
 
-    expect_equal(terra::nlyr(r_obj), 3)
-    expect_equal(terra::ncol(r_obj), 254)
+    expect_equal(terra::nlyr(r_obj[[1]][[1]][[1]]), 1)
+    expect_equal(terra::ncol(r_obj[[1]][[1]][[1]]), 254)
 
     sinop_probs <- suppressMessages(
         sits_classify(
