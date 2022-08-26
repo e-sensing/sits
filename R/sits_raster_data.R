@@ -309,3 +309,79 @@
     class(points) <- c("sits", class(points))
     return(points)
 }
+
+#' @title Extract a time series from raster
+#' @name .sits_image_classified_get_ts
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Retrieve a set of time series for a raster data cube.
+#'
+#' @param tile              Metadata describing a tile of a raster data cube.
+#' @param points            tibble with points
+#' @param band              Band to be retrieved.
+#' @param xy                A matrix with longitude as X and latitude as Y.
+#' @param output_dir        An output directory to save temporary time series.
+#' @return                  A sits tibble with the time series.
+.sits_image_classified_get_ts <- function(tile,
+                                          points,
+                                          band,
+                                          xy,
+                                          output_dir = output_dir) {
+
+    # set caller to show in errors
+    .check_set_caller(".sits_image_classified_get_ts")
+
+    # get timeline
+    timeline <- sits_timeline(tile)
+
+    # check timeline
+    .check_length(
+        x = timeline,
+        len_min = 2,
+        len_max = 2,
+        msg = "invalid classified timeline"
+    )
+
+    # get tile labels
+    labels <- sits_labels(tile)
+
+    # check for labels
+    .check_null(
+        x = labels,
+        msg = "tiles should have labels field defined"
+    )
+
+    # get the values of the time series as matrix
+    values_band <- .cube_extract(
+        cube = tile,
+        band_cube = band,
+        xy = xy
+    )
+
+    # each row of the values matrix is a spatial point
+    traj_lst <- as.list(unname(unlist(values_band)))
+
+    # check if all values fits the labels
+    max_label_index <- max(unlist(traj_lst))
+    .check_that(
+        x = max_label_index <= length(labels),
+        local_msg = paste(
+            "cube should have at least", max_label_index, "labels"
+        ),
+        msg = "pixel values do not correspond to any label"
+    )
+
+    # now we have to transpose the data
+    traj_samples <- traj_lst %>%
+        purrr::map(function(x) tibble::tibble(class = labels[x]))
+
+    points$predicted <- purrr::map2(
+        points$predicted,
+        traj_samples,
+        dplyr::bind_cols
+    )
+
+    class(points) <- unique(c("predicted", "sits", class(points)))
+    return(points)
+}
