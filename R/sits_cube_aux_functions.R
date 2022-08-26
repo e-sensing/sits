@@ -645,6 +645,64 @@
     })
 }
 
+#' @title Checks if the local raster and the cube have exactly the same bbox
+#'
+#' @name .cube_is_equal_bbox
+#'
+#' @keywords internal
+#'
+#' @description Given a cube this function checks if the cube and the local
+#' raster have the exact box.
+#'
+#' @param cube   a sits cube
+#'
+#' @return a \code{logical} value.
+.cube_is_equal_bbox <- function(cube) {
+    local_raster <- .file_info_path(cube)
+
+    # open raster and get bbox
+    rast <- .raster_open_rast(local_raster)
+    rast_bbox <- .raster_bbox(rast)
+
+    # converting the bbox to wgs84 because our tolerance factor is in
+    # degrees
+    rast_bbox_info <- .sits_coords_to_bbox_wgs84(
+        xmin = rast_bbox[["xmin"]],
+        ymin = rast_bbox[["ymin"]],
+        xmax = rast_bbox[["xmax"]],
+        ymax = rast_bbox[["ymax"]],
+        crs  = .raster_crs(rast)
+    )
+
+    rast_poly <- sf::st_as_sfc(
+        sf::st_bbox(
+            rast_bbox_info,
+            crs = 4326
+        )
+    )
+    cube_poly <- sf::st_as_sfc(
+        sf::st_bbox(
+            sits_bbox(cube, wgs84 = TRUE),
+            crs = 4326
+        )
+    )
+
+    tolerance <- .config_get(key = c(
+        "sources", .cube_source(cube),
+        "collections", .cube_collection(cube),
+        "ext_tolerance"
+    ))
+
+    is_equals_exact_polys <- sf::st_equals_exact(
+        x = rast_poly,
+        y = cube_poly,
+        sparse = FALSE,
+        par = tolerance
+    )
+
+    # converting to vector because sf returns a 1x1 matrix
+    return(c(is_equals_exact_polys))
+}
 #' @title Check if cube is regular
 #' @name .cube_is_regular
 #' @keywords internal
