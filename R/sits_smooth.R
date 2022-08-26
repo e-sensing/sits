@@ -255,8 +255,8 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file)) {
-            if (all(.raster_bbox(.raster_open_rast(out_file))
-                    == sits_bbox(tile_new))) {
+
+            if (.cube_is_equal_bbox(tile_new)) {
                 message(paste0(
                     "Recovery mode: smoothed image file found in '",
                     dirname(out_file), "' directory. ",
@@ -557,8 +557,8 @@ sits_smooth.bilateral <- function(cube,
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file)) {
-            if (all(.raster_bbox(.raster_open_rast(out_file))
-                    == sits_bbox(tile_new))) {
+
+            if (.cube_is_equal_bbox(tile_new)) {
                 message(paste0(
                     "Recovery mode: smoothed image file found in '",
                     dirname(out_file), "' directory. ",
