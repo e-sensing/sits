@@ -2,6 +2,21 @@
 
 # What's new in SITS version 1.1.0
 
+### Hotfix version 1.1.0-7
+* Fix out of memory error in sits_label_classification() and sits_smooth()
+
+### Hotfix version 1.1.0-6
+* Fix resume feature in sits_classify() on BDC cubes (issue #844)
+
+### Hotfix version 1.1.0-5
+* Fix bound box issue in image blocks produced by sits_apply()
+
+### Hotfix version 1.1.0-4
+* Fix MPC cube time expiration bug
+
+### Hotfix version 1.1.0-3
+* Fix bound box issue in image blocks produced by sits_apply()
+
 ### Hotfix version 1.1.0-2
 * Improve sits_values() function (issue #810)
 * Fix sits_reduce_imbalance() function (issue #809)
