@@ -342,6 +342,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                 block = blk_no_overlap
             )
 
+            gc()
             return(block_file)
         })
 
