@@ -60,7 +60,7 @@
     )
     size <- .cube_size(cube[1, ])
     n_layers <- length(cube$labels[[1]])
-    bloat_mem <- .config_processing_bloat()
+    bloat_mem <- .config_get(key = "processing_bloat_smooth")
     n_bytes <- 8
 
     # total memory needed to do all work in GB

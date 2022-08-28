@@ -21,6 +21,10 @@ kernel_fun <- function(data, band, img_nrow, img_ncol, window_size, fun) {
     .Call(`_sits_kernel_fun`, data, band, img_nrow, img_ncol, window_size, fun)
 }
 
+label_max_prob <- function(x) {
+    .Call(`_sits_label_max_prob`, x)
+}
+
 least_probs <- function(mtx, n) {
     .Call(`_sits_least_probs`, mtx, n)
 }
