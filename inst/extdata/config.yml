@@ -8,6 +8,8 @@ run_examples : false
 
 # estimated relative growth size of R memory relative to block size
 processing_bloat        : 5
+processing_bloat_smooth : 8
+
 
 # number of items returned by stac service
 rstac_pagination_limit  : 400

@@ -180,8 +180,8 @@ sits_apply.raster_cube <- function(data, ...,
 
             # For now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
             blocks <- .apply_compute_blocks(
-                xsize = .file_info_nrows(tile),
-                ysize = .file_info_ncols(tile),
+                xsize = .file_info_ncols(tile),
+                ysize = .file_info_nrows(tile),
                 block_y_size = block_size[["block_y_size"]],
                 overlapping_y_size = overlapping_y_size
             )
@@ -352,7 +352,7 @@ sits_apply.raster_cube <- function(data, ...,
             source = .cube_source(data),
             collection = .cube_collection(data),
             data_dir = output_dir,
-            parse_info = c("x1", "tile", "band", "date"),
+            parse_info = c("X1", "tile", "band", "date"),
             multicores = multicores,
             progress = FALSE
         )
