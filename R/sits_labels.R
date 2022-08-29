@@ -140,20 +140,24 @@ sits_labels.sits_model <- function(data) {
 }
 #' @name `sits_labels<-`
 #' @export
-#' @return           A probs cube with modified labels.
+#' @return    A probs or classified_image cube with modified labels.
 #'
 `sits_labels<-.probs_cube` <- function(data, value) {
     # precondition
-    n_labels <- length(sits_labels(data))
-    .check_chr(value,
-        len_min = n_labels,
-        msg = "not enough new labels to replace current ones"
+    .check_chr(
+        x = value,
+        allow_empty = FALSE,
+        len_min = length(sits_labels(data)),
+        len_max = length(sits_labels(data)),
+        msg = "number of new labels dos not match current labels"
     )
-    rows <- slider::slide_dfr(data, function(row) {
-        row$labels <- list(value)
-        return(row)
-    })
-    return(rows)
+    data[["labels"]] <- list(value)
+    return(data)
+}
+#' @export
+#'
+`sits_labels<-.classified_image` <- function(data, value) {
+    return(`sits_labels<-.probs_cube`(data, value))
 }
 
 #' @name `sits_labels<-`

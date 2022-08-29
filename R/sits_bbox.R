@@ -102,6 +102,12 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
     pt3 <- c(xmax, ymin)
     pt4 <- c(xmin, ymin)
 
+    # detect if crs is an EPSG code
+    epsg <- suppressWarnings(as.numeric(crs))
+    if (!is.na(epsg)) {
+        crs <- epsg
+    }
+
     bbox <- sf::st_sfc(
         sf::st_polygon(list(rbind(pt1, pt2, pt3, pt4, pt1))),
         crs = crs

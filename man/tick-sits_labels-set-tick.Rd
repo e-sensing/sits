@@ -28,9 +28,7 @@ A sits tibble with modified labels.
 
 A sits tibble with modified labels.
 
-A probs cube with modified labels.
-
-A probs cube with modified labels.
+A probs or classified_image cube with modified labels.
 }
 \description{
 Given a sits tibble with a set of labels, renames the labels
