@@ -23,6 +23,19 @@ test_that("One-year, single core classification", {
         memsize = 4,
         multicores = 1
     )
+
+    # testing resume feature
+    expect_message(
+        object = { sits_classify(
+            data = sinop,
+            ml_model = rfor_model,
+            output_dir = tempdir(),
+            memsize = 4,
+            multicores = 1
+        ) },
+        regexp = "Recovery mode: "
+    )
+
     sits_labels(sinop_probs) <- c(
         "Cerrado", "Floresta",
         "Pastagem", "Soja_Milho"
@@ -636,6 +649,15 @@ test_that("One-year, multicore classification with post-processing", {
         sinop_probs,
         output_dir = temp_dir
     )
+
+    # testing resume feature
+    expect_message(
+        object = { sits_label_classification(
+            sinop_probs,
+            output_dir = temp_dir
+        ) },
+        regexp = "Recovery mode: "
+    )
     expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
 
     expect_true(length(sits_timeline(sinop_class)) ==
@@ -665,6 +687,16 @@ test_that("One-year, multicore classification with post-processing", {
         sinop_probs,
         output_dir = temp_dir,
         multicores = 2
+    )
+
+    # testing the recovery feature
+    expect_message(
+        object = { sits_smooth(
+            sinop_probs,
+            output_dir = temp_dir,
+            multicores = 2
+        ) },
+        regexp = "Recovery mode: "
     )
     expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
 
@@ -699,6 +731,17 @@ test_that("One-year, multicore classification with post-processing", {
         type = "bilateral",
         output_dir = temp_dir,
         multicores = 1
+    )
+
+    # testing the recovery feature
+    expect_message(
+        object = { sits_smooth(
+            cube = sinop_probs,
+            type = "bilateral",
+            output_dir = temp_dir,
+            multicores = 1
+        ) },
+        regexp = "Recovery mode: "
     )
 
     expect_true(all(file.exists(unlist(sinop_bil$file_info[[1]]$path))))

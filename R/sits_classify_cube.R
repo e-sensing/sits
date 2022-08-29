@@ -120,10 +120,12 @@
 
     # resume feature
     # if tile already exists, return probs_cube
-    if (file.exists(.file_info_path(probs_cube))) {
-        old_file <- .file_info_path(probs_cube)
-        if (all(.raster_bbox(.raster_open_rast(old_file))
-                == sits_bbox(probs_cube))) {
+    out_file <- .file_info_path(probs_cube)
+    if (file.exists(out_file)) {
+
+        # checks if the local raster and cube have the exact equals bbox
+        # (the tolerance factor is considered)
+        if (.cube_is_equal_bbox(probs_cube)) {
             message(paste0(
                 "Recovery mode: classified image file found in '",
                 dirname(old_file), "' directory. ",
