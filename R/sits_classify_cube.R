@@ -334,9 +334,6 @@
     # put the filenames in a vector
     filenames <- unlist(filenames)
 
-    # Remove blocks
-    on.exit(unlink(filenames), add = TRUE)
-
     # log
     .sits_debug_log(
         output_dir = output_dir,
@@ -356,6 +353,10 @@
         progress = FALSE
     )
 
+    # Remove blocks
+    if (file.exists(out_file)) {
+        on.exit(unlink(filenames), add = TRUE)
+    }
     # adjust nrows and ncols
     r_obj <- .raster_open_rast(out_file)
     file_info <- .file_info(probs_cube)
