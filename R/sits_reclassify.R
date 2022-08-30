@@ -242,8 +242,8 @@ sits_reclassify <- function(cube, mask, ...,
             )
             # Warp mask cube into mask block file
             gdalUtilities::gdalwarp(
-                srcfile = mask_files,
-                dstfile = block_mask_file,
+                srcfile = path.expand(mask_files),
+                dstfile = path.expand(block_mask_file),
                 r = "near",
                 multi = TRUE,
                 wo = c("NUM_THREADS=ALL_CPUS")

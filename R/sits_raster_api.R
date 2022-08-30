@@ -809,7 +809,7 @@
     suppressWarnings(
         gdalUtilities::gdalwarp(
             srcfile = path.expand(in_files),
-            dstfile = out_file,
+            dstfile = path.expand(out_file),
             ot = gdal_datatype,
             of = format,
             wo = paste0("NUM_THREADS=", multicores),
