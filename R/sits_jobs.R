@@ -134,7 +134,7 @@
     return(jobs[is_intersected, ])
 }
 
-.jobs_get_block <- function(jobs) {
+.jobs_get_blocks <- function(jobs) {
     dplyr::transmute(jobs,
                      first_col = .data[["col"]],
                      first_row = .data[["row"]],
