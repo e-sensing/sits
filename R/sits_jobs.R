@@ -1,6 +1,7 @@
-.jobs_check_multicores <- function(jobs, npaths, memsize, multicores, overlap) {
+.jobs_calculate_max_blocks <- function(jobs, npaths, memsize, multicores, overlap) {
     # number of bytes per pixel
     nbytes <- 8
+
     # estimated processing bloat
     proc_bloat <- as.numeric(.config_processing_bloat())
 
@@ -8,24 +9,39 @@
     block_ncols <- template[["block_ncols"]]
     block_nrows <- template[["block_nrows"]]
 
-    # regra universal -> 1 bloco por processo
     block_mem <- (block_nrows + 2 * overlap) * (block_ncols + 2 * overlap) *
         npaths * nbytes * proc_bloat * 1e-09
 
     # quantidade max de blocos simultaneos
-    max_parallel_blocks <- floor(memsize / block_mem)
+    memsize / block_mem
+}
+
+.jobs_check_multicores <- function(jobs, npaths, memsize, multicores, overlap) {
+    max_parallel_blocks <- .jobs_calculate_max_blocks(
+        jobs = jobs,
+        npaths = npaths,
+        memsize = memsize,
+        multicores = multicores,
+        overlap = overlap
+    )
 
     .check_num(
-        x = max_parallel_blocks,
+        x = floor(max_parallel_blocks),
         min = 1,
         msg = "provided 'memsize' is insufficient for processing"
     )
 
-    return(min(multicores, max_parallel_blocks))
+    return(invisible(NULL))
+}
+
+# will be implemented in future
+.jobs_merge <- function(jobs, max_parallel_blocks, multicores) {
+
+    return(invisible(jobs))
 }
 
 .jobs_template <- function(jobs) {
-    attr(jobs, "tempĺate")
+    attr(jobs, "template")
 }
 
 .jobs_create <- function(block_ncols,
@@ -74,7 +90,6 @@
     return(jobs)
 }
 
-
 .jobs_filter_roi <- function(jobs, roi = NULL) {
     if (is.null(roi)) {
         return(jobs)
@@ -117,4 +132,13 @@
     })
 
     return(jobs[is_intersected, ])
+}
+
+.jobs_get_block <- function(jobs) {
+    dplyr::transmute(jobs,
+                     first_col = .data[["col"]],
+                     first_row = .data[["row"]],
+                     nrows = .data[["nrows"]],
+                     ncols = .data[["ncols"]]
+    )
 }

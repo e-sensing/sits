@@ -101,6 +101,9 @@
         jobs = jobs,
         roi = roi
     )
+    if (nrow(jobs) == 0) {
+        return(NULL)
+    }
 
     # get timeline
     timeline <- sits_timeline(tile)
@@ -169,13 +172,7 @@
 
     # read the blocks and compute the probabilities
     filenames <- .sits_parallel_map(seq_len(nrow(jobs)), function(i) {
-        job <- jobs[i, ]
-        job <- dplyr::transmute(job,
-                                first_col = .data[["col"]],
-                                first_row = .data[["row"]],
-                                nrows = .data[["nrows"]],
-                                ncols = .data[["ncols"]]
-        )
+        block <- .jobs_get_blocks(jobs[i, ])
 
         # for cubes that have a time limit to expire - mpc cubes only
         tile <- .cube_token_generator(tile)
@@ -190,7 +187,7 @@
         filename_block <- .create_filename(
             filenames = c(
                 probs_cube_filename, "block",
-                job[["first_row"]], job[["first_col"]]
+                block[["first_row"]], block[["first_col"]]
             ),
             ext = ".tif",
             output_dir = probs_cube_dir
@@ -243,14 +240,14 @@
             output_dir = output_dir,
             event = "before preprocess block",
             key = "block",
-            value = job
+            value = block
         )
 
         # read the data
         distances <- .sits_raster_data_read(
             cube       = tile,
             samples    = samples,
-            extent     = job,
+            extent     = block,
             stats      = stats,
             filter_fn  = filter_fn,
             impute_fn  = impute_fn
@@ -290,7 +287,7 @@
         pred_block <- round(scale_factor_save * pred_block, digits = 0)
 
         # compute block spatial parameters
-        params <- .cube_params_block(tile, job)
+        params <- .cube_params_block(tile, block)
 
         # create a new raster
         r_obj <- .raster_new_rast(
