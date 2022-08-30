@@ -11,7 +11,7 @@ test_that("One-year, multicore classification with ROI", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
 
     bbox <- sits_bbox(sinop)
@@ -66,7 +66,7 @@ test_that("Bbox in WGS 84", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
 
     bbox <- sits_bbox(sinop, wgs84 = TRUE)
@@ -80,7 +80,7 @@ test_that("Functions that work with ROI", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
     # create a roi
     roi <- sits_bbox(cube)
@@ -122,7 +122,7 @@ test_that("Internal functions in ROI", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
     # create a roi
     roi <- sits_bbox(cube)

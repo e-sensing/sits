@@ -344,7 +344,7 @@ sits_mixture_model <- function(cube,
         collection = .cube_collection(cube),
         data_dir = output_dir,
         bands = output_fracs,
-        parse_info = c("x1", "tile", "band", "date"),
+        parse_info = c("X1", "tile", "band", "date"),
         multicores = multicores,
         progress = progress
     )

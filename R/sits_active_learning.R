@@ -51,7 +51,7 @@
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir,
 #'         delim = "_",
-#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # build a random forest model
 #'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
@@ -201,7 +201,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir,
 #'         delim = "_",
-#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # build a random forest model
 #'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))

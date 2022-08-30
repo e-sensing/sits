@@ -300,8 +300,8 @@ plot.predicted <- function(x, y, ...,
 #' @param  red           Band for red color.
 #' @param  green         Band for green color.
 #' @param  blue          Band for blue color.
-#' @param  tile          Tile to be plotted.
-#' @param  date          Date to be plotted.
+#' @param  tiles         Tiles to be plotted.
+#' @param  dates         Dates to be plotted.
 #' @param  palette       RColorBrewer palette to plot B/W image
 #' @param  n_colors      Number of colors to display B/W image
 #' @param  sample_color  RColorBrewer name to display the samples
@@ -319,10 +319,10 @@ plot.predicted <- function(x, y, ...,
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir,
 #'         delim = "_",
-#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # plot NDVI band of the second date date of the data cube
-#'     plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
+#'     plot(cube, band = "NDVI", dates = sits_timeline(cube)[c(1:2)])
 #' }
 #' @export
 plot.raster_cube <- function(x, ...,
@@ -331,17 +331,20 @@ plot.raster_cube <- function(x, ...,
                              red = NULL,
                              green = NULL,
                              blue = NULL,
-                             tile = x$tile[[1]],
-                             date = NULL,
+                             tiles = x$tile[[1]],
+                             dates = NULL,
                              palette = "YlGn",
                              n_colors = 32,
                              sample_color = "Set1") {
+
+    dots <- list(...)
+
     # install RColorBrewer if not available
     .check_require_packages("RColorBrewer")
 
     .check_chr_contains(
         x = x$tile,
-        contains = tile,
+        contains = tiles,
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
@@ -359,99 +362,130 @@ plot.raster_cube <- function(x, ...,
             "'blue' parameters should be informed"
         )
     )
-    # select only one tile
-    row <- dplyr::filter(x, .data[["tile"]] == !!tile)
+    # deal with wrong parameter "tile"
+    if ("tile" %in% names(dots) && missing(tiles)) {
+        message("please use tiles instead of tile as parameter")
+        tiles <- dots[["tile"]]
+    }
+    # if tiles are not informed, show all
+    if (!purrr::is_null(tiles)) {
+        # try to find tiles in the list of tiles of the cube
+        .check_chr_within(
+            tiles,
+            x$tile,
+            msg = "requested tiles are not part of cube"
+        )
+        # filter the tiles to be processed
+        cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
+    }
+    else
+        cube <- x[1,]
 
-    # if dates are not informed, show the first possible date
-    if (purrr::is_null(date))
-        date <- sits_timeline(row)[1]
-    else {
-        # use only one date
-        date <- as.Date(date)
+    # deal with parameter "date"
+    if ("date" %in% names(dots) && missing(dates)) {
+        message("please use dates instead of date as parameter")
+        dates <- as.Date(dots[["date"]])
+    }
+    # go tile by tile and plot all dates
+
+    r_objs <- slider::slide(cube, function(row){
+        # get the timeline
+        dates_row <- sits_timeline(row)
+        # if dates are not informed, show the first possible date
+        if (purrr::is_null(dates))
+            dates <- dates_row[1]
+        # check dates exist
+        start_date <- dates_row[1]
+        end_date <- dates_row[length(dates_row)]
         .check_that(
-            length(date) == 1,
-            msg = "plot handles one date at a time"
+            x = all(as.Date(dates) >= start_date) &&
+                all(as.Date(dates) <= end_date),
+            local_msg = "date is not in cube timeline",
+            msg = "invalid dates parameter"
         )
-        # check if date is inside the timeline
-        tile_dates <- sits_timeline(row)
-        if (!date %in% tile_dates) {
-            idx_date <- which.min(abs(date - tile_dates))
-            date <- tile_dates[idx_date]
-        }
-    }
+        r_obj_list <- purrr::map(dates, function(date){
+            # if date is not in row timeline, get the closest one
+            if (!date %in% dates_row) {
+                idx_date <- which.min(abs(as.Date(date) - dates_row))
+                date <- dates_row[idx_date]
+            }
+            # select the bands for the chosen date
+            bds <- dplyr::filter(.file_info(row), .data[["date"]] == !!date)
 
-    # select the bands for the chosen date
-    bds_date <- dplyr::filter(.file_info(row), .data[["date"]] == !!date)
+            # Plot a B/W band as false color
+            if (!purrr::is_null(band)) {
+                .check_chr_within(
+                    band,
+                    within = sits_bands(x),
+                    discriminator = "any_of",
+                    msg = "invalid band"
+                )
+                # check if n_colors is a valid number
+                .check_num(
+                    x = n_colors,
+                    min = 1,
+                    max = 256,
+                    is_integer = TRUE,
+                    len_min = 1,
+                    len_max = 1
+                )
 
-    # check if bands are valid
-    if (!purrr::is_null(band)) {
-        .check_chr_within(
-            band,
-            within = sits_bands(x),
-            discriminator = "any_of",
-            msg = "invalid band"
-        )
-        # check if n_colors is a valid number
-        .check_num(
-            x = n_colors,
-            min = 1,
-            max = 256,
-            is_integer = TRUE,
-            len_min = 1,
-            len_max = 1
-        )
+                # plot a single band
+                bw_file <- dplyr::filter(bds, .data[["band"]] == band)$path
+                # use the terra package to obtain a terra object from a stack
+                r_obj <- .raster_open_stack.terra(bw_file)
 
-        # plot a single band
-        bw_file <- dplyr::filter(bds_date, .data[["band"]] == band)$path
-        # use the terra package to obtain a terra object from a stack
-        r_obj <- .raster_open_stack.terra(bw_file)
+                # check if pallete name exists in ColorBrewer
+                .check_chr_contains(
+                    x = rownames(RColorBrewer::brewer.pal.info),
+                    contains = palette,
+                    msg = "Invalid palette name: must be a ColorBrewer name"
+                )
+                # calculate the color palette
+                max_col <- RColorBrewer::brewer.pal.info[palette,]$maxcolors
+                # plot the data using terra
+                suppressWarnings(
+                    terra::plot(r_obj,
+                                col = grDevices::colorRampPalette(
+                                    RColorBrewer::brewer.pal(max_col, palette))(n_colors)
+                    )
+                )
+            }
+            # plot RGB image
+            else {
+                .check_chr_within(
+                    c(red, green, blue),
+                    within = sits_bands(x),
+                    discriminator = "all_of",
+                    msg = "invalid RGB bands selection"
+                )
+                r_index <- 1
+                g_index <- 2
+                b_index <- 3
+                # get RGB files for the requested timeline
+                red_file <- dplyr::filter(bds, .data[["band"]] == red)$path
+                green_file <- dplyr::filter(bds, .data[["band"]] == green)$path
+                blue_file <- dplyr::filter(bds, .data[["band"]] == blue)$path
+                # put the band on a raster/terra stack
+                rgb_stack <- c(red_file, green_file, blue_file)
 
-        # check if pallete name exists in ColorBrewer
-        .check_chr_contains(
-            x = rownames(RColorBrewer::brewer.pal.info),
-            contains = palette,
-            msg = "Invalid palette name: must be a ColorBrewer name"
-        )
-        # calculate the color palette
-        max_col <- RColorBrewer::brewer.pal.info[palette,]$maxcolors
-        # plot the data using terra
-        suppressWarnings(
-            terra::plot(r_obj,
-                 col = grDevices::colorRampPalette(
-                     RColorBrewer::brewer.pal(max_col, palette))(n_colors)
-            )
-        )
-
-    } else {
-        .check_chr_within(
-            c(red, green, blue),
-            within = sits_bands(x),
-            discriminator = "all_of",
-            msg = "invalid RGB bands selection"
-        )
-        r_index <- 1
-        g_index <- 2
-        b_index <- 3
-        # get RGB files for the requested timeline
-        red_file <- dplyr::filter(bds_date, .data[["band"]] == red)$path
-        green_file <- dplyr::filter(bds_date, .data[["band"]] == green)$path
-        blue_file <- dplyr::filter(bds_date, .data[["band"]] == blue)$path
-        # put the band on a raster/terra stack
-        rgb_stack <- c(red_file, green_file, blue_file)
-
-        # use the terra package to obtain a terra object from a stack
-        r_obj <- .raster_open_stack.terra(rgb_stack)
-        # plot the data using terra
-        suppressWarnings(
-            terra::plotRGB(r_obj,
-                           r = r_index,
-                           g = g_index,
-                           b = b_index,
-                           stretch = "hist"
-            )
-        )
-    }
-    return(invisible(r_obj))
+                # use the terra package to obtain a terra object from a stack
+                r_obj <- .raster_open_stack.terra(rgb_stack)
+                # plot the data using terra
+                suppressWarnings(
+                    terra::plotRGB(r_obj,
+                                   r = r_index,
+                                   g = g_index,
+                                   b = b_index,
+                                   stretch = "hist"
+                    )
+                )
+            }
+            return(r_obj)
+        })
+        return(r_obj_list)
+    })
+    return(invisible(r_objs))
 }
 #' @title  Plot probability cubes
 #' @name   plot.probs_cube
@@ -495,7 +529,7 @@ plot.raster_cube <- function(x, ...,
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir,
 #'         delim = "_",
-#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
@@ -511,6 +545,8 @@ plot.probs_cube <- function(x, ...,
                             breaks = "pretty",
                             n_colors = 20,
                             palette = "Terrain") {
+
+    dots <- list(...)
     # verifies if stars package is installed
     .check_require_packages("stars")
 
@@ -528,6 +564,11 @@ plot.probs_cube <- function(x, ...,
         discriminator = "any_of",
         msg = "invalid color palette"
     )
+    # deal with wrong parameter "tile"
+    if ("tile" %in% names(dots) && missing(tiles)) {
+        message("please use tiles instead of tile as parameter")
+        tiles <- dots[["tile"]]
+    }
     # precondition
     if (purrr::is_null(tiles)) {
         tiles <- x$tile[[1]]
@@ -641,7 +682,7 @@ plot.probs_cube <- function(x, ...,
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir,
 #'         delim = "_",
-#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
@@ -657,6 +698,8 @@ plot.uncertainty_cube <- function(x, ...,
                                   n_colors = 14,
                                   intervals = "log",
                                   palette = "YlOrRd") {
+    # get other parameters
+    dots <- list(...)
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -674,6 +717,11 @@ plot.uncertainty_cube <- function(x, ...,
         discriminator = "any_of",
         msg = "invalid color palette"
     )
+    # deal with wrong parameter "tile"
+    if ("tile" %in% names(dots) && missing(tiles)) {
+        message("please use tiles instead of tile as parameter")
+        tiles <- dots[["tile"]]
+    }
     # precondition
     if (purrr::is_null(tiles)) {
         tiles <- x$tile[[1]]
@@ -763,7 +811,7 @@ plot.uncertainty_cube <- function(x, ...,
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir,
 #'         delim = "_",
-#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
@@ -784,6 +832,9 @@ plot.classified_image <- function(x, y, ...,
     # set caller to show in errors
     .check_set_caller(".sits_plot_classified_image")
 
+    # get other parameters
+    dots <- list(...)
+
     # precondition - cube must be a labelled cube
     cube <- x
     .check_chr_within(
@@ -800,7 +851,11 @@ plot.classified_image <- function(x, y, ...,
         discriminator = "any_of",
         msg = "invalid color palette"
     )
-
+    # deal with wrong parameter "tile"
+    if ("tile" %in% names(dots) && missing(tiles)) {
+        message("please use tiles instead of tile as parameter")
+        tiles <- dots[["tile"]]
+    }
     # precondition
     if (purrr::is_null(tiles)) {
         tiles <- cube$tile[[1]]

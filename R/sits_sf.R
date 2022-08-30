@@ -21,7 +21,7 @@
 #'        collection = "MOD13Q1-6",
 #'        data_dir = data_dir,
 #'        delim = "_",
-#'        parse_info = c("X1", "X2", "tile", "band", "date")
+#'        parse_info = c("X1", "tile", "band", "date")
 #'    )
 #'    sf_objet <- sits_as_sf(cube)
 #'}

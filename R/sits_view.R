@@ -41,7 +41,7 @@
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir,
-#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # get the timeline
 #'     timeline <- sits_timeline(modis_cube)
@@ -307,6 +307,8 @@ sits_view.raster_cube <- function(x, ...,
                                   legend = NULL,
                                   palette = "default") {
     # preconditions
+    # get other parameters
+    dots <- list(...)
     # Probs cube not supported
     .check_that(!inherits(x, "probs_cube"),
         local_msg = paste0("sits_view not available for probability cube")
@@ -359,7 +361,16 @@ sits_view.raster_cube <- function(x, ...,
         g_index <- 2
         b_index <- 3
     }
-
+    # deal with parameter "date"
+    if ("date" %in% names(dots) && missing(dates)) {
+        message("please use dates instead of date as parameter")
+        dates <- as.Date(dots[["date"]])
+    }
+    # deal with wrong parameter "tile"
+    if ("tile" %in% names(dots) && missing(tiles)) {
+        message("please use tiles instead of tile as parameter")
+        tiles <- dots[["tile"]]
+    }
     # if tiles are not informed, show all
     if (!purrr::is_null(tiles)) {
         # try to find tiles in the list of tiles of the cube
@@ -377,6 +388,12 @@ sits_view.raster_cube <- function(x, ...,
     # if dates are not informed, show the first possible date
     if (purrr::is_null(dates))
         dates <- sits_timeline(cube[1,])[1]
+    # check dates exist
+    .check_that(
+        x = all(as.Date(dates) %in% sits_timeline(cube[1,])),
+        local_msg = "date is not in cube timeline",
+        msg = "invalid dates parameter"
+    )
 
     nrows_merge <- sum(slider::slide_dbl(cube, function(tile) {
         # retrieve the file info for the tile
