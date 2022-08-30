@@ -50,9 +50,9 @@
         )
     }
 
-    distances <- data.table::data.table(distances_tbl)
+    distances_tbl <- data.table::data.table(distances_tbl)
 
-    return(distances)
+    return(distances_tbl)
 }
 
 #' @title Classify a distances tibble using machine learning models
