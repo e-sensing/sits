@@ -11,7 +11,7 @@
   gdal_datatype,
   gdal_options,
   multicores = 2,
-  progress = FALSE
+  overwrite = TRUE
 )
 }
 \arguments{
@@ -27,7 +27,7 @@
 
 \item{multicores}{Number of cores to process merging}
 
-\item{progress}{Show progress bar?}
+\item{overwrite}{Should the output file be overwritten?}
 }
 \value{
 No return value, called for side effects.
