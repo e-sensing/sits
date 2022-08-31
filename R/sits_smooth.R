@@ -393,8 +393,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                 .raster_gdal_datatype(.config_get("probs_cube_data_type")),
             gdal_options =
                 .config_gtiff_default_options(),
-            multicores = 1,
-            progress = FALSE
+            multicores = 1
         )
 
         return(tile_new)
@@ -693,8 +692,7 @@ sits_smooth.bilateral <- function(cube,
                 .raster_gdal_datatype(.config_get("probs_cube_data_type")),
             gdal_options =
                 .config_gtiff_default_options(),
-            multicores = 1,
-            progress = TRUE
+            multicores = 1
         )
 
         return(tile_new)

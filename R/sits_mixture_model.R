@@ -325,8 +325,7 @@ sits_mixture_model <- function(cube,
                         .config_get("raster_cube_data_type")
                     ),
                     gdal_options = .config_gtiff_default_options(),
-                    multicores = 1,
-                    progress = FALSE
+                    multicores = 1
                 )
 
                 return(output_frac_path)

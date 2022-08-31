@@ -359,8 +359,7 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
                 .raster_gdal_datatype(.config_get("probs_cube_data_type")),
             gdal_options =
                 .config_gtiff_default_options(),
-            multicores = 1,
-            progress = TRUE
+            multicores = 1
         )
 
         return(tile_new)
@@ -654,8 +653,7 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
                 .raster_gdal_datatype(.config_get("probs_cube_data_type")),
             gdal_options =
                 .config_gtiff_default_options(),
-            multicores = 1,
-            progress = FALSE
+            multicores = 1
         )
 
         return(tile_new)
@@ -949,8 +947,7 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
                 .raster_gdal_datatype(.config_get("probs_cube_data_type")),
             gdal_options =
                 .config_gtiff_default_options(),
-            multicores = 1,
-            progress = FALSE
+            multicores = 1
         )
 
         return(tile_new)
@@ -1244,8 +1241,7 @@ sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
                 .raster_gdal_datatype(.config_get("probs_cube_data_type")),
             gdal_options =
                 .config_gtiff_default_options(),
-            multicores = 1,
-            progress = FALSE
+            multicores = 1
         )
 
         return(tile_new)

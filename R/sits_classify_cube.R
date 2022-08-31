@@ -171,7 +171,7 @@
     tile <- .cube_token_generator(tile)
 
     # read the blocks and compute the probabilities
-    filenames <- .sits_parallel_map(seq_len(nrow(jobs)), function(i) {
+    blocks_files <- .sits_parallel_map(seq_len(nrow(jobs)), function(i) {
         block <- .jobs_get_blocks(jobs[i, ])
 
         # for cubes that have a time limit to expire - mpc cubes only
@@ -329,7 +329,7 @@
     }, progress = progress)
 
     # put the filenames in a vector
-    filenames <- unlist(filenames)
+    blocks_files <- unlist(blocks_files)
 
     # log
     .sits_debug_log(
@@ -340,19 +340,39 @@
     # join predictions
     out_file <- .file_info_path(probs_cube)
     probs_cube_dt <- .config_get("probs_cube_data_type")
+
+    # Create a template raster based on the first image of the tile
+    temp_obj <- .raster_rast(
+        r_obj = .raster_open_rast(file = .file_info_path(tile)),
+        nlayers = length(samples_labels)
+    )
+    # Set init values to NA
+    temp_obj <- .raster_set_values(
+        r_obj = temp_obj,
+        values = NA
+    )
+    # Write empty block mask file as template
+    .raster_write_rast(
+        r_obj = temp_obj,
+        file = out_file,
+        format = "GTiff",
+        data_type = .config_get("probs_cube_data_type"),
+        gdal_options = .config_gtiff_default_options(),
+        overwrite = TRUE
+    )
     .raster_merge(
-        in_files = filenames,
+        in_files = blocks_files,
         out_file = out_file,
         format = "GTiff",
         gdal_datatype = .raster_gdal_datatype(probs_cube_dt),
         gdal_options = .config_gtiff_default_options(),
         multicores = original_multicores,
-        progress = FALSE
+        overwrite = FALSE
     )
 
     # Remove blocks
     if (file.exists(out_file)) {
-        on.exit(unlink(filenames), add = TRUE)
+        on.exit(unlink(blocks_files), add = TRUE)
     }
     # adjust nrows and ncols
     r_obj <- .raster_open_rast(out_file)

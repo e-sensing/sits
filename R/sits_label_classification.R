@@ -262,8 +262,7 @@ sits_label_classification <- function(cube,
                 .raster_gdal_datatype(.config_get("class_cube_data_type")),
             gdal_options =
                 .config_gtiff_default_options(),
-            multicores = 1,
-            progress = FALSE
+            multicores = 1
         )
 
         return(tile_new)

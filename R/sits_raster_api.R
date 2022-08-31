@@ -773,7 +773,7 @@
 #' @param gdal_datatype  Data type in gdal format
 #' @param gdal_options   Compression method to be used
 #' @param multicores     Number of cores to process merging
-#' @param progress       Show progress bar?
+#' @param overwrite      Should the output file be overwritten?
 #'
 #' @return No return value, called for side effects.
 #'
@@ -783,41 +783,101 @@
                           gdal_datatype,
                           gdal_options,
                           multicores = 2,
-                          progress = FALSE) {
+                          overwrite = TRUE) {
 
     # set caller to show in errors
     .check_set_caller(".raster_merge")
 
-    # check documentation mode
-    progress <- .check_documentation(progress)
-
+    in_files <- path.expand(in_files)
+    multi <- multicores > 1
     # check if in_file length is at least one
-    .check_chr(
+    .check_file(
         x = in_files,
-        allow_empty = FALSE,
-        len_min = 1,
+        extensions = "tif",
         msg = "invalid input files to merge"
-    )
-
-    # check if all informed files exist
-    .check_that(
-        x = all(file.exists(in_files)),
-        msg = "file does not exist"
     )
 
     # merge using gdal warp
     suppressWarnings(
         gdalUtilities::gdalwarp(
-            srcfile = path.expand(in_files),
+            srcfile = in_files,
             dstfile = path.expand(out_file),
             ot = gdal_datatype,
             of = format,
             wo = paste0("NUM_THREADS=", multicores),
-            multi = TRUE,
+            multi = multi,
             co = gdal_options,
-            overwrite = TRUE
+            overwrite = overwrite
         )
     )
 
     return(invisible(out_file))
+}
+
+.raster_clone <- function(file, nlayers = NULL) {
+    r_obj <- .raster_open_rast(file = file)
+
+    if (is.null(nlayers)) {
+        nlayers <- .raster_nlayers(r_obj = r_obj)
+    }
+
+    return(
+        .raster_rast(
+            r_obj = r_obj,
+            nlyrs = nlayers,
+            vals = NA
+        )
+    )
+}
+
+.raster_template <- function(file,
+                             out_file,
+                             format = "GTiff",
+                             data_type,
+                             ,
+                             block = NULL,
+                             nlayers = NULL) {
+
+    r_obj <- .raster_clone(file = file, nlayers = nlayers)
+    gdal_options <- .config_gtiff_default_options()
+    if (!is.null(block)) {
+        # Read a block
+        r_obj <- .raster_crop(
+            r_obj = r_obj,
+            file = out_file,
+            format = format,
+            data_type = data_type,
+            gdal_options = gdal_options,
+            overwrite = TRUE,
+            block = block
+        )
+    }
+
+    # Create a mask file based on block
+    mask_obj <- .raster_rast(
+        r_obj = r_obj,
+        nlayers = 1
+    )
+    # Set init values to NA
+    temp_obj <- .raster_set_values(
+        r_obj = mask_obj,
+        values = NA
+    )
+    # Block mask file name
+    block_mask_file <- paste0(
+        tools::file_path_sans_ext(block_file),
+        "_mask.tif"
+    )
+    # Write empty block mask file as template
+    .raster_write_rast(
+        r_obj = temp_obj,
+        file = block_mask_file,
+        format = "GTiff",
+        data_type = .config_get("class_cube_data_type"),
+        gdal_options = .config_gtiff_default_options(),
+        overwrite = TRUE,
+        missing_value = 0
+    )
+
+
 }
