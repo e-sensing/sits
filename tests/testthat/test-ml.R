@@ -111,8 +111,6 @@ test_that("Random Forest - SGolay", {
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
-
-
 test_that("XGBoost", {
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     model <- sits_train(
@@ -132,7 +130,6 @@ test_that("XGBoost", {
         sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
-
 
 test_that("DL-MLP", {
     model <- sits_train(
