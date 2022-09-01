@@ -9,9 +9,8 @@
   out_file,
   format,
   gdal_datatype,
-  gdal_options,
-  overwrite,
-  progress = FALSE
+  multicores = 2,
+  overwrite = TRUE
 )
 }
 \arguments{
@@ -23,11 +22,9 @@
 
 \item{gdal_datatype}{Data type in gdal format}
 
-\item{gdal_options}{Compression method to be used}
+\item{multicores}{Number of cores to process merging}
 
-\item{overwrite}{Overwrite the file?}
-
-\item{progress}{Show progress bar?}
+\item{overwrite}{Should the output file be overwritten?}
 }
 \value{
 No return value, called for side effects.

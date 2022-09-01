@@ -9,7 +9,6 @@
   file,
   format,
   data_type,
-  gdal_options,
   overwrite,
   block,
   missing_value = NA
@@ -24,8 +23,6 @@
 
 \item{data_type}{sits internal raster data type. One of "INT1U",
 "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".}
-
-\item{gdal_options}{GDAL creation option string (e.g. COMPRESS=LZW)}
 
 \item{overwrite}{logical indicating if file can be overwritten}
 

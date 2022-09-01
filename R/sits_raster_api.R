@@ -223,6 +223,38 @@
     UseMethod(".raster_extract", pkg_class)
 }
 
+#' @title Raster package internal extract values function
+#' @name .raster_ext_as_sf
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj   raster package object
+#'
+#' @return An object with raster extent.
+.raster_ext_as_sf <- function(r_obj) {
+
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_ext_as_sf", pkg_class)
+}
+
+#' @title Raster package internal extract values function
+#' @name .raster_ext_as_sf
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj  raster package object
+#'
+#' @return An vector with the file block size.
+.raster_file_blocksize <- function(r_obj) {
+
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_file_blocksize", pkg_class)
+}
+
 #' @title Raster package internal object creation
 #' @name .raster_rast
 #' @keywords internal
@@ -277,7 +309,6 @@
 #' @param format        GDAL file format string (e.g. GTiff)
 #' @param data_type     sits internal raster data type. One of "INT1U",
 #'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
-#' @param gdal_options  GDAL creation option string (e.g. COMPRESS=LZW)
 #' @param overwrite     logical indicating if file can be overwritten
 #' @param ...           additional parameters to be passed to raster package
 #' @param missing_value A \code{integer} with image's missing value
@@ -287,7 +318,6 @@
                                file,
                                format,
                                data_type,
-                               gdal_options,
                                overwrite, ...,
                                missing_value = NA) {
 
@@ -412,7 +442,6 @@
 #' @param format        GDAL file format string (e.g. GTiff)
 #' @param data_type     sits internal raster data type. One of "INT1U",
 #'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
-#' @param gdal_options  GDAL creation option string (e.g. COMPRESS=LZW)
 #' @param overwrite     logical indicating if file can be overwritten
 #' @param block         numeric vector with names "first_col", "ncols", "first_row",
 #'                      "nrows".
@@ -426,7 +455,6 @@
                          file,
                          format,
                          data_type,
-                         gdal_options,
                          overwrite,
                          block,
                          missing_value = NA) {
@@ -739,9 +767,8 @@
 #' @param out_file       Output raster file path
 #' @param format         Format to write the file
 #' @param gdal_datatype  Data type in gdal format
-#' @param gdal_options   Compression method to be used
-#' @param overwrite      Overwrite the file?
-#' @param progress       Show progress bar?
+#' @param multicores     Number of cores to process merging
+#' @param overwrite      Should the output file be overwritten?
 #'
 #' @return No return value, called for side effects.
 #'
@@ -749,100 +776,98 @@
                           out_file,
                           format,
                           gdal_datatype,
-                          gdal_options,
-                          overwrite,
-                          progress = FALSE) {
+                          multicores = 2,
+                          overwrite = TRUE) {
 
     # set caller to show in errors
     .check_set_caller(".raster_merge")
 
-    # check documentation mode
-    progress <- .check_documentation(progress)
-
+    in_files <- path.expand(in_files)
+    multi <- multicores > 1
     # check if in_file length is at least one
-    .check_length(
+    .check_file(
         x = in_files,
-        min = 1,
-        msg = "no file to merge"
+        extensions = "tif",
+        msg = "invalid input files to merge"
     )
 
-    # check if all informed files exist
-    .check_that(
-        x = all(file.exists(in_files)),
-        msg = "file does not exist"
-    )
-
-    # check overwrite parameter
-    .check_that(
-        x = (file.exists(out_file) && overwrite) ||
-            !file.exists(out_file),
-        msg = "cannot overwrite existing file"
-    )
-
-    # delete result file
-    if (file.exists(out_file)) {
-        unlink(out_file)
-    }
-
-    # maximum files to merge at a time
-    # this value was obtained empirically
-    group_len <- 32
-
-    # keep in_files
-    delete_files <- FALSE
-
-    # prepare to loop
-    loop_files <- in_files
-
-    # loop until one file is obtained
-    while (length(loop_files) > 1) {
-
-        # group input files to be merged
-        group_files <- tapply(
-            loop_files,
-            rep(seq_len(ceiling(length(loop_files) / group_len)),
-                each = group_len,
-                length.out = length(loop_files)
-            ), c
+    # merge using gdal warp
+    suppressWarnings(
+        gdalUtilities::gdalwarp(
+            srcfile = in_files,
+            dstfile = path.expand(out_file),
+            ot = gdal_datatype,
+            of = format,
+            wo = paste0("NUM_THREADS=", multicores),
+            multi = multi,
+            co = .config_gtiff_default_options(),
+            overwrite = overwrite
         )
+    )
 
-        # merge groups
-        loop_files <- .sits_parallel_map(group_files, function(group) {
-            srcfile <- unlist(group)
+    return(invisible(out_file))
+}
 
-            # temp output file
-            dstfile <- tempfile(
-                tmpdir = dirname(out_file[[1]]),
-                fileext = ".tif"
-            )
+.raster_clone <- function(file, nlayers = NULL) {
+    r_obj <- .raster_open_rast(file = file)
 
-            # merge using gdal warp
-            gdalUtilities::gdalwarp(
-                srcfile = path.expand(srcfile),
-                dstfile = dstfile,
-                ot = gdal_datatype,
-                of = format,
-                co = gdal_options,
-                overwrite = overwrite
-            )
-
-            # delete temp files
-            if (delete_files) unlink(srcfile)
-
-            return(dstfile)
-        }, progress = progress)
-
-        loop_files <- unlist(loop_files)
-
-        # delete temp files
-        delete_files <- TRUE
+    if (is.null(nlayers)) {
+        nlayers <- .raster_nlayers(r_obj = r_obj)
     }
 
-    # in_files is the output of above loop
-    file.rename(loop_files, out_file)
+    return(
+        .raster_rast(
+            r_obj = r_obj,
+            nlyrs = nlayers,
+            vals = NA
+        )
+    )
+}
 
-    # delete
-    unlink(in_files)
+.raster_template <- function(file,
+                             out_file,
+                             format = "GTiff",
+                             data_type,
+                             block = NULL,
+                             nlayers = NULL) {
 
-    return(invisible(NULL))
+    r_obj <- .raster_clone(file = file, nlayers = nlayers)
+    if (!is.null(block)) {
+        # Read a block
+        r_obj <- .raster_crop(
+            r_obj = r_obj,
+            file = out_file,
+            format = format,
+            data_type = data_type,
+            overwrite = TRUE,
+            block = block
+        )
+    }
+
+    # Create a mask file based on block
+    mask_obj <- .raster_rast(
+        r_obj = r_obj,
+        nlayers = 1
+    )
+    # Set init values to NA
+    temp_obj <- .raster_set_values(
+        r_obj = mask_obj,
+        values = NA
+    )
+    # Block mask file name
+    block_mask_file <- paste0(
+        tools::file_path_sans_ext(block_file),
+        "_mask.tif"
+    )
+    # Write empty block mask file as template
+    .raster_write_rast(
+        r_obj = temp_obj,
+        file = block_mask_file,
+        format = "GTiff",
+        data_type = .config_get("class_cube_data_type"),
+        overwrite = TRUE,
+        missing_value = 0
+    )
+
+
 }

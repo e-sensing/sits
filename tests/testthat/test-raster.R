@@ -483,46 +483,6 @@ test_that("One-year, multicore classification with LightTAE", {
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
 
-test_that("One-year, multicore and multiblocks classification", {
-
-    sits::sits_config(processing_bloat = 9000)
-
-    samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-    rf_model <- sits_train(samples_ndvi, ml_method = sits_rfor)
-
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    cube <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir
-    )
-
-    probs_cube <- tryCatch(
-        {
-            suppressMessages(
-                sits_classify(
-                    cube,
-                    rf_model,
-                    output_dir = tempdir(),
-                    memsize = 4,
-                    multicores = 2
-                )
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    sits::sits_config(processing_bloat = 5)
-
-    if (purrr::is_null(probs_cube)) {
-        skip("Unable to allocate multicores")
-    }
-
-    expect_true(all(file.exists(unlist(probs_cube$file_info[[1]]$path))))
-})
-
 test_that("One-year, multicores classification with cloud band", {
 
     csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
@@ -591,7 +551,7 @@ test_that("One-year, multicore classification with post-processing", {
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
 
-    torch_model <- sits_train(samples_ndvi, sits_tempcnn(epochs = 10))
+    torch_model <- sits_train(samples_ndvi, sits_tempcnn(epochs = 5))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(

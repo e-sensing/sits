@@ -129,6 +129,7 @@ Collate:
     'sits_geo_dist.R'
     'sits_get_data.R'
     'sits_imputation.R'
+    'sits_jobs.R'
     'sits_labels.R'
     'sits_label_classification.R'
     'sits_lighttae.R'

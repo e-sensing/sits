@@ -289,7 +289,6 @@ sits_mixture_model <- function(cube,
                     file = filename_block,
                     format = "GTiff",
                     data_type = .config_get("raster_cube_data_type"),
-                    gdal_options = .config_gtiff_default_options(),
                     overwrite = TRUE
                 )
 
@@ -313,6 +312,8 @@ sits_mixture_model <- function(cube,
             output_file_fracs <- purrr::map_chr(output_fracs, function(frac) {
 
                 blocks_fracs_path <- blocks_path[names(blocks_path) == frac]
+                # Remove blocks
+                on.exit(unlink(blocks_fracs_path), add = TRUE)
                 output_frac_path <- output_files[names(output_files) == frac]
 
                 .raster_merge(
@@ -322,9 +323,7 @@ sits_mixture_model <- function(cube,
                     gdal_datatype = .raster_gdal_datatype(
                         .config_get("raster_cube_data_type")
                     ),
-                    gdal_options = .config_gtiff_default_options(),
-                    overwrite = TRUE,
-                    progress = progress
+                    multicores = 1
                 )
 
                 return(output_frac_path)

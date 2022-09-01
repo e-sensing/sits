@@ -46,15 +46,14 @@
     progress <- .check_documentation(progress)
 
     # some models have parallel processing built in
+    original_multicores <- multicores
     if ("xgb_model" %in% class(ml_model)) {
         multicores <- 1
     }
 
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
-
-    # get samples labels
-    labels <- sits_labels(samples)
+    samples_labels <- sits_labels(samples)
 
     # precondition - are the samples empty?
     .check_that(
@@ -64,9 +63,9 @@
 
     # precondition - are the sample bands contained in the cube bands?
     tile_bands <- sits_bands(tile)
-    bands <- sits_bands(samples)
+    samples_bands <- sits_bands(samples)
     .check_chr_within(
-        x = bands,
+        x = samples_bands,
         within = tile_bands,
         msg = "some bands in samples are not in cube"
     )
@@ -74,21 +73,37 @@
     # retrieve the normalization stats from the model
     stats <- environment(ml_model)$stats
 
-    # is there a region of interest?
-    if (purrr::is_null(roi)) {
-        sub_image <- .sits_raster_sub_image_default(tile)
-    } else {
-        sub_image <- .sits_raster_sub_image(tile = tile, roi = roi)
-    }
+    rast_template <- .raster_open_rast(.file_info_path(tile))
+    file_blocksize <- .raster_file_blocksize(rast_template)
 
-    # divide the input data in blocks
-    blocks <- .sits_raster_blocks(
-        tile = tile,
-        ml_model = ml_model,
-        sub_image = sub_image,
-        memsize = memsize,
-        multicores = multicores
+    jobs <- .jobs_create(
+        block_nrows = file_blocksize[["block_nrows"]],
+        block_ncols = file_blocksize[["block_ncols"]],
+        block_overlap = 0,
+        ncols = .file_info_ncols(tile),
+        nrows = .file_info_nrows(tile),
+        xmin = tile[["xmin"]],
+        xmax = tile[["xmax"]],
+        ymin = tile[["ymin"]],
+        ymax = tile[["ymax"]],
+        crs = tile[["crs"]]
     )
+
+    .jobs_check_multicores(
+        jobs = jobs,
+        npaths = length(.file_info_paths(tile)),
+        memsize = memsize,
+        multicores = multicores,
+        overlap = 0
+    )
+
+    jobs <- .jobs_filter_roi(
+        jobs = jobs,
+        roi = roi
+    )
+    if (nrow(jobs) == 0) {
+        return(NULL)
+    }
 
     # get timeline
     timeline <- sits_timeline(tile)
@@ -98,10 +113,10 @@
         cube       = tile,
         cube_class = "probs_cube",
         band_name  = "probs",
-        labels     = labels,
+        labels     = samples_labels,
         start_date = timeline[[1]],
         end_date   = timeline[[length(timeline)]],
-        bbox       = sub_image,
+        bbox       = .sits_raster_sub_image_default(tile),
         output_dir = output_dir,
         version    = version
     )
@@ -116,7 +131,7 @@
         if (.cube_is_equal_bbox(probs_cube)) {
             message(paste0(
                 "Recovery mode: classified image file found in '",
-                dirname(old_file), "' directory. ",
+                dirname(out_file), "' directory. ",
                 "(If you want a new classification, please ",
                 "change the directory in the 'output_dir' or the ",
                 "value of 'version' parameter)"
@@ -128,9 +143,9 @@
     # show initial time for classification
     if (verbose) {
         message(paste0(
-            "Using ", length(blocks),
-            " blocks of size (", blocks[[1]][["nrows"]],
-            " x ", blocks[[1]][["ncols"]], ")"
+            "Using ", nrow(jobs),
+            " blocks of size (", jobs[["nrows"]][[1]],
+            " x ", jobs[["ncols"]][[1]], ")"
         ))
 
         start_time <- Sys.time()
@@ -149,14 +164,15 @@
         output_dir = output_dir,
         event = "start classification",
         key = "blocks",
-        value = length(blocks)
+        value = length(jobs)
     )
 
     # for cubes that have a time limit to expire - mpc cubes only
     tile <- .cube_token_generator(tile)
 
     # read the blocks and compute the probabilities
-    filenames <- .sits_parallel_map(blocks, function(b) {
+    blocks_files <- .sits_parallel_map(seq_len(nrow(jobs)), function(i) {
+        block <- .jobs_get_blocks(jobs[i, ])
 
         # for cubes that have a time limit to expire - mpc cubes only
         tile <- .cube_token_generator(tile)
@@ -171,7 +187,7 @@
         filename_block <- .create_filename(
             filenames = c(
                 probs_cube_filename, "block",
-                b[["first_row"]], b[["nrows"]]
+                block[["first_row"]], block[["first_col"]]
             ),
             ext = ".tif",
             output_dir = probs_cube_dir
@@ -224,14 +240,14 @@
             output_dir = output_dir,
             event = "before preprocess block",
             key = "block",
-            value = b
+            value = block
         )
 
         # read the data
         distances <- .sits_raster_data_read(
             cube       = tile,
             samples    = samples,
-            extent     = b,
+            extent     = block,
             stats      = stats,
             filter_fn  = filter_fn,
             impute_fn  = impute_fn
@@ -271,7 +287,7 @@
         pred_block <- round(scale_factor_save * pred_block, digits = 0)
 
         # compute block spatial parameters
-        params <- .cube_params_block(tile, b)
+        params <- .cube_params_block(tile, block)
 
         # create a new raster
         r_obj <- .raster_new_rast(
@@ -281,7 +297,7 @@
             xmax    = params[["xmax"]],
             ymin    = params[["ymin"]],
             ymax    = params[["ymax"]],
-            nlayers = length(labels),
+            nlayers = length(samples_labels),
             crs     = params[["crs"]]
         )
 
@@ -297,7 +313,6 @@
             file         = filename_block,
             format       = "GTiff",
             data_type    = .config_get("probs_cube_data_type"),
-            gdal_options = .config_gtiff_default_options(),
             overwrite    = TRUE
         )
         # log
@@ -313,7 +328,8 @@
     }, progress = progress)
 
     # put the filenames in a vector
-    filenames <- unlist(filenames)
+    blocks_files <- unlist(blocks_files)
+
     # log
     .sits_debug_log(
         output_dir = output_dir,
@@ -323,15 +339,38 @@
     # join predictions
     out_file <- .file_info_path(probs_cube)
     probs_cube_dt <- .config_get("probs_cube_data_type")
+
+    # Create a template raster based on the first image of the tile
+    temp_obj <- .raster_rast(
+        r_obj = .raster_open_rast(file = .file_info_path(tile)),
+        nlayers = length(samples_labels)
+    )
+    # Set init values to NA
+    temp_obj <- .raster_set_values(
+        r_obj = temp_obj,
+        values = NA
+    )
+    # Write empty block mask file as template
+    .raster_write_rast(
+        r_obj = temp_obj,
+        file = out_file,
+        format = "GTiff",
+        data_type = .config_get("probs_cube_data_type"),
+        overwrite = TRUE
+    )
     .raster_merge(
-        in_files = filenames,
+        in_files = blocks_files,
         out_file = out_file,
         format = "GTiff",
         gdal_datatype = .raster_gdal_datatype(probs_cube_dt),
-        gdal_options = .config_gtiff_default_options(),
-        overwrite = TRUE
+        multicores = original_multicores,
+        overwrite = FALSE
     )
 
+    # Remove blocks
+    if (file.exists(out_file)) {
+        on.exit(unlink(blocks_files), add = TRUE)
+    }
     # adjust nrows and ncols
     r_obj <- .raster_open_rast(out_file)
     file_info <- .file_info(probs_cube)

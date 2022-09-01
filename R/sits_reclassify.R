@@ -192,7 +192,6 @@ sits_reclassify <- function(cube, mask, ...,
                 data_type = .raster_data_type(
                     .config_get("class_cube_data_type")
                 ),
-                gdal_options = .config_gtiff_default_options(),
                 overwrite = TRUE,
                 block = block
             )
@@ -217,7 +216,6 @@ sits_reclassify <- function(cube, mask, ...,
                 file = block_mask_file,
                 format = "GTiff",
                 data_type = .config_get("class_cube_data_type"),
-                gdal_options = .config_gtiff_default_options(),
                 overwrite = TRUE,
                 missing_value = 0
             )
@@ -242,8 +240,8 @@ sits_reclassify <- function(cube, mask, ...,
             )
             # Warp mask cube into mask block file
             gdalUtilities::gdalwarp(
-                srcfile = mask_files,
-                dstfile = block_mask_file,
+                srcfile = path.expand(mask_files),
+                dstfile = path.expand(block_mask_file),
                 r = "near",
                 multi = TRUE,
                 wo = c("NUM_THREADS=ALL_CPUS")
@@ -271,7 +269,6 @@ sits_reclassify <- function(cube, mask, ...,
                 file = block_file,
                 format = "GTiff",
                 data_type = .config_get("class_cube_data_type"),
-                gdal_options = .config_gtiff_default_options(),
                 overwrite = TRUE,
                 missing_value = 0
             )
@@ -281,6 +278,8 @@ sits_reclassify <- function(cube, mask, ...,
         })
         # Merge result
         blocks_path <- unlist(blocks_path)
+        # Remove blocks
+        on.exit(unlink(blocks_path), add = TRUE)
         # Join predictions
         .raster_merge(
             in_files = blocks_path,
@@ -289,12 +288,8 @@ sits_reclassify <- function(cube, mask, ...,
             gdal_datatype = .raster_gdal_datatype(
                 .config_get("class_cube_data_type")
             ),
-            gdal_options = .config_gtiff_default_options(),
-            overwrite = TRUE,
-            progress = progress
+            multicores = 1
         )
-        # Remove block files on function exit
-        on.exit(unlink(blocks_path), add = TRUE)
         # Prepare result updating path
         fi_row[["path"]] <- out_file
         # Update tile

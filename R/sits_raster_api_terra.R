@@ -53,6 +53,26 @@
 
 #' @keywords internal
 #' @export
+.raster_ext_as_sf.terra <- function(r_obj) {
+    suppressWarnings(
+        sf::st_as_sf(terra::as.polygons(
+            x = terra::ext(r_obj),
+            crs = terra::crs(r_obj)
+        ))
+    )
+}
+
+#' @keywords internal
+#' @export
+.raster_file_blocksize.terra <- function(r_obj) {
+        block_size <- c(terra::fileBlocksize(r_obj))
+        names(block_size) <- c("block_nrows", "block_ncols")
+
+        return(block_size)
+}
+
+#' @keywords internal
+#' @export
 .raster_rast.terra <- function(r_obj, nlayers = 1, ...) {
     suppressWarnings(
         terra::rast(x = r_obj, nlyrs = nlayers, ...)
@@ -73,7 +93,6 @@
                                      file,
                                      format,
                                      data_type,
-                                     gdal_options,
                                      overwrite, ...,
                                      missing_value = NA) {
 
@@ -87,7 +106,7 @@
             wopt = list(
                 filetype = format,
                 datatype = data_type,
-                gdal = gdal_options
+                gdal = .config_gtiff_default_options()
             ),
             NAflag = missing_value,
             overwrite = overwrite, ...
@@ -243,7 +262,6 @@
                                file,
                                format,
                                data_type,
-                               gdal_options,
                                overwrite,
                                block,
                                missing_value = NA) {
@@ -280,7 +298,7 @@
             wopt = list(
                 filetype = format,
                 datatype = data_type,
-                gdal = gdal_options
+                gdal = .config_gtiff_default_options()
             ),
             NAflag = missing_value,
             overwrite = overwrite

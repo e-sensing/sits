@@ -156,12 +156,9 @@
         return(values)
     })
 
-    data <- NULL
+    values_bands <- do.call(cbind, values_bands)
 
-    # create a data.table joining the values
-    data <- do.call(cbind, values_bands)
-
-    return(data)
+    return(values_bands)
 }
 
 #' @title Extract a time series from raster
