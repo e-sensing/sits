@@ -155,10 +155,6 @@
         ))
     }
 
-    # prepare parallelization
-    .sits_parallel_start(workers = multicores, log = verbose)
-    on.exit(.sits_parallel_stop(), add = TRUE)
-
     # log
     .sits_debug_log(
         output_dir = output_dir,
@@ -336,35 +332,25 @@
         event = "end classification"
     )
 
-    # join predictions
     out_file <- .file_info_path(probs_cube)
     probs_cube_dt <- .config_get("probs_cube_data_type")
 
     # Create a template raster based on the first image of the tile
-    temp_obj <- .raster_rast(
-        r_obj = .raster_open_rast(file = .file_info_path(tile)),
-        nlayers = length(samples_labels)
+    .raster_template(
+        file = .file_info_path(tile),
+        out_file = out_file,
+        data_type = probs_cube_dt,
+        nlayers = length(samples_labels),
+        missing_value = .config_get("probs_cube_missing_value")
     )
-    # Set init values to NA
-    temp_obj <- .raster_set_values(
-        r_obj = temp_obj,
-        values = NA
-    )
-    # Write empty block mask file as template
-    .raster_write_rast(
-        r_obj = temp_obj,
-        file = out_file,
-        format = "GTiff",
-        data_type = .config_get("probs_cube_data_type"),
-        overwrite = TRUE
-    )
+
     .raster_merge(
         in_files = blocks_files,
         out_file = out_file,
         format = "GTiff",
         gdal_datatype = .raster_gdal_datatype(probs_cube_dt),
         multicores = original_multicores,
-        overwrite = FALSE
+        overwrite = 0
     )
 
     # Remove blocks

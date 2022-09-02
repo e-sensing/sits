@@ -254,6 +254,10 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
 
+    # prepare parallelization
+    .sits_parallel_start(workers = multicores, log = verbose)
+    on.exit(.sits_parallel_stop(), add = TRUE)
+
     # deal with the case where the cube has multiple rows
     probs_cube <- slider::slide_dfr(data, function(tile) {
 
