@@ -86,14 +86,14 @@
 
     # check data_type type
     .check_chr(data_type,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'data_type' parameter"
+               len_min = 1, len_max = 1,
+               msg = "invalid 'data_type' parameter"
     )
 
     .check_chr_within(data_type,
-        within = .raster_gdal_datatypes(sits_names = TRUE),
-        discriminator = "one_of",
-        msg = "invalid 'data_type' parameter"
+                      within = .raster_gdal_datatypes(sits_names = TRUE),
+                      discriminator = "one_of",
+                      msg = "invalid 'data_type' parameter"
     )
 
     # convert
@@ -814,14 +814,9 @@
     if (is.null(nlayers)) {
         nlayers <- .raster_nlayers(r_obj = r_obj)
     }
+    r_obj <- .raster_rast(r_obj = r_obj, nlayers = nlayers, vals = NA)
 
-    return(
-        .raster_rast(
-            r_obj = r_obj,
-            nlyrs = nlayers,
-            vals = NA
-        )
-    )
+    return(r_obj)
 }
 
 .raster_template <- function(file,
@@ -829,45 +824,63 @@
                              format = "GTiff",
                              data_type,
                              block = NULL,
-                             nlayers = NULL) {
+                             nlayers = NULL,
+                             missing_value = NULL) {
 
     r_obj <- .raster_clone(file = file, nlayers = nlayers)
+    if (is.null(missing_value)) {
+        missing_value <- .raster_missing_value(file = file)
+    }
+
     if (!is.null(block)) {
         # Read a block
-        r_obj <- .raster_crop(
+        .raster_crop(
             r_obj = r_obj,
             file = out_file,
             format = format,
             data_type = data_type,
             overwrite = TRUE,
-            block = block
+            block = block,
+            missing_value = missing_value
         )
+
+        return(out_file)
     }
 
-    # Create a mask file based on block
-    mask_obj <- .raster_rast(
-        r_obj = r_obj,
-        nlayers = 1
-    )
-    # Set init values to NA
-    temp_obj <- .raster_set_values(
-        r_obj = mask_obj,
-        values = NA
-    )
-    # Block mask file name
-    block_mask_file <- paste0(
-        tools::file_path_sans_ext(block_file),
-        "_mask.tif"
-    )
     # Write empty block mask file as template
     .raster_write_rast(
-        r_obj = temp_obj,
-        file = block_mask_file,
+        r_obj = r_obj,
+        file = out_file,
         format = "GTiff",
-        data_type = .config_get("class_cube_data_type"),
+        data_type = data_type,
         overwrite = TRUE,
-        missing_value = 0
+        missing_value = missing_value
     )
 
-
+    return(out_file)
 }
+
+#' @title Raster package internal open raster function
+#' @name .raster_missing_value
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param file    raster file to be opened
+#'
+#' @return a numeric with no data value
+.raster_missing_value <- function(file) {
+    # set caller to show in errors
+    .check_set_caller(".raster_missing_value")
+
+    # check for file length == 1
+    .check_that(
+        length(file) == 1,
+        msg = "more than one file were informed"
+    )
+
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_missing_value", pkg_class)
+}
+

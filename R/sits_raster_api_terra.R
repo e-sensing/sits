@@ -437,3 +437,20 @@
 .raster_row.terra <- function(r_obj, y) {
     terra::rowFromY(r_obj, y)
 }
+
+#' @keywords internal
+#' @export
+.raster_missing_value.terra <- function(file) {
+
+    gdal_info <- terra::describe(file)
+    gdal_info <- gdal_info[grepl(pattern = "NoData Value=", x = gdal_info)]
+
+    nodata_value <- gsub(pattern = ".*NoData Value=",
+                         replacement = "",
+                         x = gdal_info)
+
+    if (length(nodata_value) == 0) {
+        return(NULL)
+    }
+    return(as.numeric(nodata_value))
+}
