@@ -78,9 +78,11 @@ cube_token_generator_min_remaining_time: 5
 # configuration for probability cubes
 probs_cube_scale_factor : 0.0001
 probs_cube_data_type    : "INT2U"
+probs_cube_missing_value: 65535
 
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"
+class_cube_missing_value: 255
 
 # minimum number of files for sits local cube to be run on parallel
 local_min_files_for_parallel : 20
