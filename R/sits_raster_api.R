@@ -884,3 +884,31 @@
     UseMethod(".raster_missing_value", pkg_class)
 }
 
+.raster_is_valid <- function(file) {
+    # resume processing in case of failure
+    if (!file.exists(file)) {
+        return(FALSE)
+    }
+    # try to open the file
+    r_obj <- tryCatch({
+        .raster_open_rast(file)
+    },
+    error = function(e) {
+        return(NULL)
+    })
+    # File is not valid
+    if (is.null(r_obj)) {
+        return(FALSE)
+    }
+    # if file can be opened, check if the result is correct
+    # this file will not be processed again
+    # Verify if the raster is corrupted
+    tryCatch({
+        .raster_get_values(r_obj)
+        return(TRUE)
+    },
+    error = function(e) {
+        unlink(file)
+    })
+    return(FALSE)
+}
