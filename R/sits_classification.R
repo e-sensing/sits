@@ -191,7 +191,8 @@ sits_classify.sits <- function(data,
 #' @rdname sits_classify
 #'
 #' @export
-sits_classify.raster_cube <- function(data, ml_model, ...,
+sits_classify.raster_cube <- function(data,
+                                      ml_model, ...,
                                       roi = NULL,
                                       filter_fn = NULL,
                                       impute_fn = sits_impute_linear(),
@@ -204,16 +205,24 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                                       verbose = FALSE,
                                       progress = FALSE) {
 
-    # precondition - checks if the cube and ml_model are valid
-    .sits_classify_check_params(data, ml_model)
-
+    # set caller to show in errors
+    .check_set_caller("sits_classify.raster_cube")
     # precondition - test if cube is regular
     .check_that(
         x = .cube_is_regular(data),
         local_msg = "Please use sits_regularize()",
         msg = "sits can only classify regular cubes"
     )
-
+    # precondition - checks if the cube and ml_model are valid
+    .sits_classify_check_params(data, ml_model)
+    # precondition - roi
+    if (!is.null(roi)) {
+        roi <- .sits_parse_roi_cube(roi)
+    }
+    # update multicores parameter
+    if ("xgb_model" %in% class(ml_model)) {
+        multicores <- 1
+    }
     # precondition - multicores
     .check_num(
         x = multicores,
@@ -223,7 +232,6 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
         is_integer = TRUE,
         msg = "invalid 'multicores' parameter"
     )
-
     # precondition - memory
     .check_num(
         x = memsize,
@@ -232,43 +240,64 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
         len_max = 1,
         msg = "invalid 'memsize' parameter"
     )
-
     # precondition - output dir
     .check_file(
         x = output_dir,
-        msg = "invalid output dir"
+        msg = "invalid 'output_dir' parameter"
     )
-
     # precondition - version
-    .check_chr(x = version, len_min = 1, msg = "invalid version")
+    .check_chr(
+        x = version,
+        len_min = 1,
+        msg = "invalid 'version' parameter"
+    )
+    # check documentation mode
+    progress <- .check_documentation(progress)
 
     # filter only intersecting tiles
     intersects <- slider::slide_lgl(
         data, .sits_raster_sub_image_intersects,
         roi = roi
     )
-
     # retrieve only intersecting tiles
     data <- data[intersects, ]
+
 
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
 
-    # prepare parallelization
+
+    # Get block size
+    block_size <- .raster_file_blocksize(
+        r_obj = .raster_open_rast(.file_info_path(data[1,]))
+    )
+    # Check minimum memory needed to process one block
+    original_multicores <- multicores
+    multicores <- .jobs_max_multicores(
+        job_nrows = block_size[["block_nrows"]],
+        job_ncols = block_size[["block_ncols"]],
+        npaths = length(.file_info_paths(data[1,])),
+        nbytes = 8,
+        proc_bloat = .config_processing_bloat(),
+        memsize = memsize,
+        multicores = original_multicores,
+        overlap = 0
+    )
+    # prepare parallel processing
     .sits_parallel_start(workers = multicores, log = verbose)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    # deal with the case where the cube has multiple rows
-    probs_cube <- slider::slide_dfr(data, function(tile) {
-
+    # Classification
+    # Process each tile sequentially
+    tiles_blocks <- slider::slide(data, function(tile) {
         # find out what is the row subset that is contained
         # inside the start_date and end_date
         if (!purrr::is_null(start_date) && !purrr::is_null(end_date)) {
             old_timeline <- sits_timeline(tile)
             new_timeline <- .sits_timeline_during(
-                old_timeline,
-                start_date,
-                end_date
+                timeline = old_timeline,
+                start_date = start_date,
+                end_date = end_date
             )
 
             # filter the cube by start and end dates
@@ -278,32 +307,77 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                     .data[["date"]] <= new_timeline[length(new_timeline)]
             )
         }
-
-        # check
-        samples_timeline_length <- length(sits_timeline(samples))
-        tiles_timeline_length <- length(sits_timeline(tile))
-
+        # check timelines of samples and tile
         .check_that(
-            samples_timeline_length == tiles_timeline_length,
+            length(sits_timeline(samples)) == length(sits_timeline(tile)),
             msg = "number of instances of samples and cube differ"
         )
-
+        # Compute how many jobs to process
+        jobs <- .jobs_create(
+            block_nrows = block_size[["block_nrows"]],
+            block_ncols = block_size[["block_ncols"]],
+            block_overlap = 0,
+            ncols = .file_info_ncols(tile),
+            nrows = .file_info_nrows(tile),
+            xmin = tile[["xmin"]],
+            xmax = tile[["xmax"]],
+            ymin = tile[["ymin"]],
+            ymax = tile[["ymax"]],
+            crs = tile[["crs"]],
+            roi = roi
+        )
+        # If no jobs to process return NULL
+        if (nrow(jobs) == 0) {
+            return(NULL)
+        }
         # classify the data
-        probs_row <- .sits_classify_multicores(
-            tile       = tile,
-            ml_model   = ml_model,
-            roi        = roi,
-            filter_fn  = filter_fn,
-            impute_fn  = impute_fn,
-            memsize    = memsize,
+        blocks_files <- .sits_classify_blocks_multicores(
+            tile = tile,
+            ml_model = ml_model,
+            roi = roi,
+            filter_fn = filter_fn,
+            impute_fn = impute_fn,
+            memsize = memsize,
             multicores = multicores,
             output_dir = output_dir,
-            version    = version,
-            verbose    = verbose,
-            progress   = progress
+            progress = progress
         )
 
-        return(probs_row)
+        return(blocks_files)
+    })
+
+    # Merge
+
+    # Check minimum memory needed to process one block
+    multicores <- .jobs_max_multicores(
+        job_nrows = block_size[["block_nrows"]],
+        job_ncols = block_size[["block_ncols"]],
+        npaths = length(sits_labels(samples)),
+        nbytes = 2,
+        proc_bloat = 5,
+        memsize = memsize,
+        multicores = original_multicores,
+        overlap = 0
+    )
+
+    .sits_parallel_map(tiles_blocks, function(tile) {
+        # Create a template raster based on the first image of the tile
+        .raster_template(
+            file = .file_info_path(tile),
+            out_file = out_file,
+            data_type = probs_cube_dt,
+            nlayers = length(samples_labels),
+            missing_value = .config_get("probs_cube_missing_value")
+        )
+        # Merge blocks
+        .raster_merge(
+            in_files = blocks_files,
+            out_file = out_file,
+            format = "GTiff",
+            gdal_datatype = .raster_gdal_datatype(probs_cube_dt),
+            multicores = original_multicores,
+            overwrite = 0
+        )
     })
 
     return(probs_cube)
