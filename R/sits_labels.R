@@ -51,17 +51,8 @@ sits_labels.sits_model <- function(data) {
 
     # set caller to show in errors
     .check_set_caller("sits_labels.sits_model")
-    .check_that(
-        x = inherits(data, "function"),
-        msg = "invalid sits model"
-    )
-    .check_chr_within(
-        x = "samples",
-        within = ls(environment(data)),
-        discriminator = "any_of",
-        msg = "no samples found in the sits model"
-    )
-    return(sits_labels.sits(environment(data)$samples))
+    samples <- .sits_ml_model_samples(data)
+    return(sits_labels.sits(samples))
 }
 #' @title Change the labels of a set of time series
 #'
