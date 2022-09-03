@@ -703,5 +703,10 @@ sits_formula_linear <- function(predictors_index = -2:0) {
         msg = "invalid 'ml_model' function environment"
     )
 
-    return(environment(ml_model)$samples)
+    samples <- environment(ml_model)$samples
+
+    # post-condition
+    .sits_tibble_test(samples)
+
+    return(samples)
 }

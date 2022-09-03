@@ -33,7 +33,8 @@ sits_timeline.sits <- function(data) {
 #' @export
 #'
 sits_timeline.sits_model <- function(data) {
-    return(environment(data)$samples$time_series[[1]]$Index)
+    samples <- .sits_ml_model_samples(data)
+    return(samples$time_series[[1]]$Index)
 }
 
 #' @export

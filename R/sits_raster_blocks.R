@@ -57,7 +57,7 @@
                                          multicores) {
 
     # retrieve the samples
-    samples <- environment(ml_model)$samples
+    samples <- .sits_ml_model_samples(ml_model)
     # get the number of bands
     nbands <- length(sits_bands(samples))
     # does the cube have a cloud band?
@@ -84,7 +84,7 @@
     nbands_data_size <- single_data_size * nbands
 
     # number of labels
-    nlabels <- length(sits_labels(environment(ml_model)$samples))
+    nlabels <- length(sits_labels(samples))
     # estimated size of the data for classification
     input_data_size <- as.numeric(ninterval) * nbands_data_size
     output_data_size <- as.numeric(nlabels) * single_data_size
