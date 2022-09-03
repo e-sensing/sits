@@ -1,49 +1,62 @@
-.jobs_calculate_max_blocks <- function(jobs, npaths, memsize, multicores, overlap) {
-    # number of bytes per pixel
-    nbytes <- 8
-
-    # estimated processing bloat
-    proc_bloat <- as.numeric(.config_processing_bloat())
-
-    template <- .jobs_template(jobs)
-    block_ncols <- template[["block_ncols"]]
-    block_nrows <- template[["block_nrows"]]
-
-    block_mem <- (block_nrows + 2 * overlap) * (block_ncols + 2 * overlap) *
+.jobs_max_multicores <- function(job_ncols,
+                                 job_nrows,
+                                 npaths,
+                                 nbytes,
+                                 proc_bloat,
+                                 memsize,
+                                 multicores,
+                                 overlap) {
+    # Memory needed per block
+    block_mem <- (job_nrows + 2 * overlap) * (job_ncols + 2 * overlap) *
         npaths * nbytes * proc_bloat * 1e-09
-
-    # quantidade max de blocos simultaneos
-    memsize / block_mem
-}
-
-.jobs_check_multicores <- function(jobs, npaths, memsize, multicores, overlap) {
-    max_parallel_blocks <- .jobs_calculate_max_blocks(
-        jobs = jobs,
-        npaths = npaths,
-        memsize = memsize,
-        multicores = multicores,
-        overlap = overlap
-    )
-
-    .check_num(
-        x = floor(max_parallel_blocks),
-        min = 1,
+    # Max parallel blocks supported by memsize
+    max_blocks <- floor(memsize / block_mem)
+    # Check if memsize is above minimum needed to process one block
+    .check_that(
+        x = max_blocks > 0,
+        local_msg = paste("minimum memsize needed is",
+                          block_mem, "GB"),
         msg = "provided 'memsize' is insufficient for processing"
     )
-
-    return(invisible(NULL))
+    # Max multicores
+    return(min(multicores, max_blocks))
 }
-
-# will be implemented in future
-.jobs_merge <- function(jobs, max_parallel_blocks, multicores) {
-
-    return(invisible(jobs))
+.jobs_create_job <- function(col,
+                             row,
+                             ncols,
+                             nrows,
+                             max_ncols,
+                             max_nrows,
+                             overlap,
+                             template_obj) {
+    # Start job creation
+    job <- tibble::tibble(
+        col = as.integer(max(1, col - overlap)),
+        row = as.integer(max(1, row - overlap))
+    )
+    job[["ncols"]] = as.integer(
+        min(job[["col"]] + ncols + overlap - 1, max_ncols) - job[["col"]] + 1
+    )
+    job[["nrows"]] = as.integer(
+        min(job[["row"]] + nrows + overlap - 1, max_nrows) - job[["row"]] + 1
+    )
+    job[["overlap"]] = as.integer(overlap)
+    # Crop block from template
+    r_obj <- .raster_crop_metadata(
+        r_obj = template_obj,
+        block = c(first_col = col,
+                  first_row = row,
+                  ncols = job[["ncols"]],
+                  nrows = job[["nrows"]])
+    )
+    # Add bbox information
+    job[["xmin"]] = .raster_xmin(r_obj = r_obj)
+    job[["xmax"]] = .raster_xmax(r_obj = r_obj)
+    job[["ymin"]] = .raster_ymin(r_obj = r_obj)
+    job[["ymax"]] = .raster_ymax(r_obj = r_obj)
+    job[["crs"]] = .raster_crs(r_obj = r_obj)
+    return(job)
 }
-
-.jobs_template <- function(jobs) {
-    attr(jobs, "template")
-}
-
 .jobs_create <- function(block_ncols,
                          block_nrows,
                          block_overlap = 0,
@@ -53,92 +66,111 @@
                          xmax,
                          ymin,
                          ymax,
-                         crs) {
-
-    jobs <- purrr::pmap_dfr(
-        purrr::cross_df(list(
-            col = seq(1, ncols - block_overlap, block_ncols),
-            row = seq(1, nrows - block_overlap, block_nrows)
-        )),
-        function(col, row, block_ncols, block_nrows, ncols, nrows, overlap) {
-            jobs <- tibble::tibble(
-                col = as.integer(max(1, col - overlap)),
-                row = as.integer(max(1, row - overlap)),
-                ncols = as.integer(min(.data[["col"]] + block_ncols + overlap - 1, ncols) - .data[["col"]] + 1),
-                nrows = as.integer(min(.data[["row"]] + block_nrows + overlap - 1, nrows) - .data[["row"]] + 1),
-                overlap = as.integer(overlap)
-            )
-
-        },
-        block_ncols = block_ncols,
-        block_nrows = block_nrows,
-        ncols = ncols,
+                         crs,
+                         roi = NULL) {
+    # Prepare raster tile template
+    template_obj <- .raster_new_rast(
         nrows = nrows,
-        overlap = block_overlap
+        ncols = ncols,
+        xmin = xmin,
+        xmax = xmax,
+        ymin = ymin,
+        ymax = ymax,
+        nlayers = 1,
+        crs = crs
     )
-
-    attr(jobs, "template") <- list(block_ncols = block_ncols,
-                                   block_nrows = block_nrows,
-                                   nrows = nrows,
-                                   ncols = ncols,
-                                   xmin = xmin,
-                                   xmax = xmax,
-                                   ymin = ymin,
-                                   ymax = ymax,
-                                   crs = crs)
-
-    return(jobs)
-}
-
-.jobs_filter_roi <- function(jobs, roi = NULL) {
+    # Generate (col, row) for all blocks
+    cols_rows <- purrr::cross_df(list(
+        col = seq(1, ncols - block_overlap, block_ncols),
+        row = seq(1, nrows - block_overlap, block_nrows)
+    ))
+    # Create all jobs
+    jobs <- purrr::pmap(cols_rows, .jobs_create_job,
+        ncols = block_ncols,
+        nrows = block_nrows,
+        max_ncols = ncols,
+        max_nrows = nrows,
+        overlap = block_overlap,
+        template = template_obj
+    )
+    # If no roi was provided return all jobs
     if (is.null(roi)) {
         return(jobs)
     }
-
-    template <- .jobs_template(jobs)
-
-    # tile template
-    template <- .raster_new_rast(
-        nrows = template[["nrows"]],
-        ncols = template[["ncols"]],
-        xmin = template[["xmin"]],
-        xmax = template[["xmax"]],
-        ymin = template[["ymin"]],
-        ymax = template[["ymax"]],
-        nlayers = 1,
-        crs = template[["crs"]]
-    )
-
-    roi <- sf::st_transform(
-        x = .sits_parse_roi_cube(roi),
-        crs = .raster_crs(template)
-    )
-
-    is_intersected <- purrr::pmap_lgl(jobs, function(col,
-                                                     row,
-                                                     ncols,
-                                                     nrows, ...) {
-
-        r_obj <- .raster_crop_metadata(
-            r_obj = template,
-            block = c(first_col = col,
-                      first_row = row,
-                      ncols = ncols,
-                      nrows = nrows)
-        )
-        block_ext <- .raster_ext_as_sf(r_obj)
-
-        any(c(sf::st_intersects(x = block_ext, y = roi, sparse = FALSE)))
-    })
-
-    return(jobs[is_intersected, ])
+    # Filter intersecting jobs
+    jobs <- .jobs_intersects(jobs = jobs, roi = roi)
+    return(jobs)
 }
-
-.jobs_get_blocks <- function(jobs) {
-    dplyr::transmute(jobs,
-                     first_col = .data[["col"]],
-                     first_row = .data[["row"]],
-                     nrows = .data[["nrows"]],
-                     ncols = .data[["ncols"]]
+.jobs_intersects <- function(jobs, roi) {
+    # Preconditions
+    .check_that(
+        x = length(jobs),
+        min = 1,
+        local_msg = "number of jobs should be >= 1",
+        msg = "invalid 'jobs' parameter"
     )
+    .check_that(
+        x = inherits(roi, "sf"),
+        local_msg = "value should be an sf object",
+        msg = "invalid 'roi' parameter"
+    )
+    crs <- jobs[[1]][["crs"]]
+    # Reproject roi to template's CRS
+    roi <- sf::st_transform(
+        x = roi,
+        crs = crs
+    )
+    # Compute intersecting jobs
+    jobs <- purrr::keep(jobs, function(job) {
+        any(c(sf::st_intersects(
+            x = .jobs_as_sf(job = job),
+            y = roi,
+            sparse = FALSE)
+        ))
+    })
+    return(jobs)
+}
+# .jobs_process <- function(job, files, fn) {
+#     .raster_read_stack(
+#         files = files,
+#         block = .jobs_as_block(job)
+#     )
+# }
+# .jobs_process <- function(job, ..., fn) {
+#     chunk_lst <- purrr::map(
+#         list(...), .raster_read_stack,
+#         block = .jobs_as_block(job)
+#     )
+#     res <- fn(chunk_lst)
+#
+# }
+.jobs_as_block <- function(job) {
+    dplyr::transmute(
+        job,
+        first_col = .data[["col"]],
+        first_row = .data[["row"]],
+        nrows = .data[["nrows"]],
+        ncols = .data[["ncols"]]
+    )
+}
+.jobs_as_sf <- function(job) {
+    .bbox_as_sf(
+        xmin = job[["xmin"]],
+        xmax = job[["xmax"]],
+        ymin = job[["ymin"]],
+        ymax = job[["ymax"]],
+        crs = job[["crs"]]
+    )
+}
+.bbox_as_sf <- function(xmin, xmax, ymin, ymax, crs) {
+    geom <- sf::st_sfc(sf::st_polygon(list(
+        rbind(c(xmin, ymax), c(xmax, ymax),
+              c(xmax, ymin), c(xmin, ymin),
+              c(xmin, ymax)))
+    ))
+    sf_obj <- sf::st_sf(
+        geometry = geom,
+        crs = crs
+    )
+    return(sf_obj)
 }
