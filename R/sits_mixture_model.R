@@ -169,8 +169,9 @@ sits_mixture_model <- function(cube,
             fid = fid
         )
 
-        output_files <- .create_filename(
-            "cube", tile_name, output_fracs, unique(in_fi_fid[["date"]]),
+        output_files <- .file_path(
+            "cube", tile_name, output_fracs,
+            unique(in_fi_fid[["date"]]),
             ext = ".tif",
             output_dir = output_dir
         )
