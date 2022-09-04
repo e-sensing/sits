@@ -4,10 +4,10 @@
 \alias{.sits_classify_check_params}
 \title{Check classification parameters}
 \usage{
-.sits_classify_check_params(cube, ml_model)
+.sits_classify_check_params(tile, ml_model)
 }
 \arguments{
-\item{cube}{Tibble with information about a data cube.}
+\item{tile}{Tibble with information about a data cube.}
 
 \item{ml_model}{An R model trained by \code{\link[sits]{sits_train}}.}
 }
