@@ -254,7 +254,14 @@ sits_classify.raster_cube <- function(data,
     # check documentation mode
     progress <- .check_documentation(progress)
 
-    # filter only intersecting tiles
+    # spatial filter
+    data <- .cube_intersects(
+        cube = data,
+        roi = roi,
+        start_date = start_date,
+        end_date = end_date
+    )
+
     intersects <- slider::slide_lgl(
         data, .sits_raster_sub_image_intersects,
         roi = roi
@@ -262,17 +269,32 @@ sits_classify.raster_cube <- function(data,
     # retrieve only intersecting tiles
     data <- data[intersects, ]
 
+    # temporal filter only
+    # inside the start_date and end_date
+    if (!purrr::is_null(start_date) && !purrr::is_null(end_date)) {
+        old_timeline <- sits_timeline(tile)
+        new_timeline <- .sits_timeline_during(
+            timeline = old_timeline,
+            start_date = start_date,
+            end_date = end_date
+        )
+
+        # filter the cube by start and end dates
+        tile$file_info[[1]] <- dplyr::filter(
+            .file_info(tile),
+            .data[["date"]] >= new_timeline[1] &
+                .data[["date"]] <= new_timeline[length(new_timeline)]
+        )
+    }
+
 
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
-
-
     # Get block size
     block_size <- .raster_file_blocksize(
         r_obj = .raster_open_rast(.file_info_path(data[1,]))
     )
     # Check minimum memory needed to process one block
-    original_multicores <- multicores
     multicores <- .jobs_max_multicores(
         job_nrows = block_size[["block_nrows"]],
         job_ncols = block_size[["block_ncols"]],
@@ -280,7 +302,7 @@ sits_classify.raster_cube <- function(data,
         nbytes = 8,
         proc_bloat = .config_processing_bloat(),
         memsize = memsize,
-        multicores = original_multicores,
+        multicores = multicores,
         overlap = 0
     )
     # prepare parallel processing
@@ -290,23 +312,29 @@ sits_classify.raster_cube <- function(data,
     # Classification
     # Process each tile sequentially
     tiles_blocks <- slider::slide(data, function(tile) {
-        # find out what is the row subset that is contained
-        # inside the start_date and end_date
-        if (!purrr::is_null(start_date) && !purrr::is_null(end_date)) {
-            old_timeline <- sits_timeline(tile)
-            new_timeline <- .sits_timeline_during(
-                timeline = old_timeline,
-                start_date = start_date,
-                end_date = end_date
-            )
+        # Result cube
+        # Get timeline
+        timeline <- sits_timeline(tile)
+        # create the metadata for the probability cube
+        probs_cube <- .cube_derived_create(
+            cube       = tile,
+            cube_class = "probs_cube",
+            band_name  = "probs",
+            labels     = sits_labels(samples),
+            start_date = timeline[[1]],
+            end_date   = timeline[[length(timeline)]],
+            bbox       = .sits_raster_sub_image_default(tile),
+            output_dir = output_dir,
+            version    = version
+        )
+        probs_tile <- .tile_create_probs(
+            tile = tile,
+            labels = sits_labels(samples),
 
-            # filter the cube by start and end dates
-            tile$file_info[[1]] <- dplyr::filter(
-                .file_info(tile),
-                .data[["date"]] >= new_timeline[1] &
-                    .data[["date"]] <= new_timeline[length(new_timeline)]
-            )
-        }
+        )
+
+
+
         # check timelines of samples and tile
         .check_that(
             length(sits_timeline(samples)) == length(sits_timeline(tile)),
@@ -343,24 +371,7 @@ sits_classify.raster_cube <- function(data,
             progress = progress
         )
 
-        return(blocks_files)
-    })
-
-    # Merge
-
-    # Check minimum memory needed to process one block
-    multicores <- .jobs_max_multicores(
-        job_nrows = block_size[["block_nrows"]],
-        job_ncols = block_size[["block_ncols"]],
-        npaths = length(sits_labels(samples)),
-        nbytes = 2,
-        proc_bloat = 5,
-        memsize = memsize,
-        multicores = original_multicores,
-        overlap = 0
-    )
-
-    .sits_parallel_map(tiles_blocks, function(tile) {
+        # Merge
         # Create a template raster based on the first image of the tile
         .raster_template(
             file = .file_info_path(tile),
@@ -378,6 +389,7 @@ sits_classify.raster_cube <- function(data,
             multicores = original_multicores,
             overwrite = 0
         )
+        return(blocks_files)
     })
 
     return(probs_cube)
