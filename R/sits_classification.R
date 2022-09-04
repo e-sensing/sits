@@ -200,7 +200,7 @@ sits_classify.raster_cube <- function(data,
                                       end_date = NULL,
                                       memsize = 8,
                                       multicores = 2,
-                                      output_dir = ".",
+                                      output_dir = getwd(),
                                       version = "v1",
                                       verbose = FALSE,
                                       progress = FALSE) {
@@ -255,41 +255,20 @@ sits_classify.raster_cube <- function(data,
     progress <- .check_documentation(progress)
 
     # spatial filter
-    data <- .cube_intersects(
-        cube = data,
-        roi = roi,
-        start_date = start_date,
-        end_date = end_date
-    )
-
-    intersects <- slider::slide_lgl(
-        data, .sits_raster_sub_image_intersects,
-        roi = roi
-    )
-    # retrieve only intersecting tiles
-    data <- data[intersects, ]
-
-    # temporal filter only
-    # inside the start_date and end_date
-    if (!purrr::is_null(start_date) && !purrr::is_null(end_date)) {
-        old_timeline <- sits_timeline(tile)
-        new_timeline <- .sits_timeline_during(
-            timeline = old_timeline,
+    if (!is.null(roi)) {
+        data <- .cube_spatial_filter(
+            cube = data,
+            roi = .roi_as_sf(roi)
+        )
+    }
+    # temporal filter
+    if (!is.null(start_date) || !is.null(end_date)) {
+        data <- .cube_temporal_filter(
+            cube = data,
             start_date = start_date,
             end_date = end_date
         )
-
-        # filter the cube by start and end dates
-        tile$file_info[[1]] <- dplyr::filter(
-            .file_info(tile),
-            .data[["date"]] >= new_timeline[1] &
-                .data[["date"]] <= new_timeline[length(new_timeline)]
-        )
     }
-
-
-    # retrieve the samples from the model
-    samples <- .sits_ml_model_samples(ml_model)
     # Get block size
     block_size <- .raster_file_blocksize(
         r_obj = .raster_open_rast(.file_info_path(data[1,]))
@@ -305,17 +284,33 @@ sits_classify.raster_cube <- function(data,
         multicores = multicores,
         overlap = 0
     )
-    # prepare parallel processing
+    # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = verbose)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # Classification
     # Process each tile sequentially
     tiles_blocks <- slider::slide(data, function(tile) {
-        # Result cube
         # Get timeline
         timeline <- sits_timeline(tile)
+        # Retrieve the samples from the model
+        samples <- .sits_ml_model_samples(ml_model)
         # create the metadata for the probability cube
+
+        # output filename
+        out_file <- .file_path(
+            tile[["satellite"]],
+            tile[["sensor"]],
+            tile[["tile"]],
+            start_date,
+            end_date,
+            band_name,
+            version,
+            ext = "tif",
+            output_dir = output_dir
+        )
+
+
         probs_cube <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
@@ -330,10 +325,9 @@ sits_classify.raster_cube <- function(data,
         probs_tile <- .tile_create_probs(
             tile = tile,
             labels = sits_labels(samples),
-
+            output_dir = output_dir,
+            version    = version
         )
-
-
 
         # check timelines of samples and tile
         .check_that(

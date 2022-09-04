@@ -162,15 +162,3 @@
         crs = job[["crs"]]
     )
 }
-.bbox_as_sf <- function(xmin, xmax, ymin, ymax, crs) {
-    geom <- sf::st_sfc(sf::st_polygon(list(
-        rbind(c(xmin, ymax), c(xmax, ymax),
-              c(xmax, ymin), c(xmin, ymin),
-              c(xmin, ymax)))
-    ))
-    sf_obj <- sf::st_sf(
-        geometry = geom,
-        crs = crs
-    )
-    return(sf_obj)
-}

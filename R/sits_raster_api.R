@@ -826,6 +826,11 @@
                              block = NULL,
                              nlayers = NULL,
                              missing_value = NULL) {
+    .check_that(
+        !file.exists(out_file),
+        local_msg = paste("file", out_file, "exists"),
+        msg = "invalid 'out_file' parameter"
+    )
 
     r_obj <- .raster_clone(file = file, nlayers = nlayers)
     if (is.null(missing_value)) {
@@ -857,7 +862,7 @@
         missing_value = missing_value
     )
 
-    return(out_file)
+    return(r_obj)
 }
 
 #' @title Raster package internal open raster function

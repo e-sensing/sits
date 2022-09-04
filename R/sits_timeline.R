@@ -494,10 +494,7 @@ sits_timeline.classified_image <- function(data) {
         timeline <= lubridate::as_date(end_date)
     .check_that(
         x = any(valid),
-        msg = paste(
-            "no valid data between ",
-            as.Date(start_date), " and ", as.Date(end_date)
-        )
+        msg = paste("no valid data between", start_date, "and", end_date)
     )
     return(timeline[valid])
 }
