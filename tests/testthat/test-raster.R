@@ -545,7 +545,7 @@ test_that("One-year, multicores classification with cloud band", {
     samples_ndvi <- sits_get_data(
         cube = cube_merged,
         samples = csv_file,
-        multicores = 2
+        multicores = 1
     )
 
     rf_model <- sits_train(samples_ndvi, ml_method = sits_rfor)

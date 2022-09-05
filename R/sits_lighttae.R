@@ -122,36 +122,16 @@ sits_lighttae <- function(samples = NULL,
     result_fun <- function(samples) {
         # verifies if torch and luz  packages is installed
         .check_require_packages(c("torch", "luz"))
-
-        .sits_tibble_test(samples)
-
+        # check valid samples
+        .check_is_sits_tibble(samples)
         # preconditions
         # check epochs
-        .check_num(
-            x = epochs,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
+        .check_int_parameter(epochs)
         # check batch_size
-        .check_num(
-            x = batch_size,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
+        .check_int_parameter(batch_size)
         # check validation_split parameter if samples_validation is not passed
-        if (purrr::is_null(samples_validation)) {
-            .check_num(
-                x = validation_split,
-                exclusive_min = 0,
-                max = 0.5,
-                len_min = 1,
-                len_max = 1
-            )
-        }
+        if (purrr::is_null(samples_validation))
+            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
         # check opt_params
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
@@ -167,36 +147,13 @@ sits_lighttae <- function(samples = NULL,
             )
         }
         # check lr_decay_epochs
-        .check_num(
-            x = lr_decay_epochs,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
+        .check_int_parameter(lr_decay_epochs)
         # check lr_decay_rate
-        .check_num(
-            x = lr_decay_rate,
-            exclusive_min = 0,
-            max = 1,
-            len_min = 1,
-            len_max = 1
-        )
+        .check_num_parameter(lr_decay_rate, exclusive_min = 0, max = 1)
         # check patience
-        .check_num(
-            x = patience,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
+        .check_int_parameter(patience)
         # check min_delta
-        .check_num(
-            x = min_delta,
-            min = 0,
-            len_min = 1,
-            len_max = 1
-        )
+        .check_num_parameter(min_delta, min = 0)
         # check verbose
         .check_lgl(verbose)
 
@@ -219,32 +176,12 @@ sits_lighttae <- function(samples = NULL,
         train_samples <- .sits_distances(
             .sits_ml_normalize_data(samples, stats)
         )
-
         # is the training data correct?
-        .check_chr_within(
-            x = "reference",
-            within = names(train_samples),
-            discriminator = "any_of",
-            msg = "input data does not contain distances"
-        )
+        .check_valid_distances(train_samples, samples)
 
         if (!is.null(samples_validation)) {
-
-            # check if the labels matches with train data
-            .check_that(
-                all(sits_labels(samples_validation) %in% labels) &&
-                    all(labels %in% sits_labels(samples_validation))
-            )
-            # check if the timeline matches with train data
-            .check_that(
-                length(sits_timeline(samples_validation)) == length(timeline)
-            )
-            # check if the bands matches with train data
-            .check_that(
-                all(sits_bands(samples_validation) %in% bands) &&
-                    all(bands %in% sits_bands(samples_validation))
-            )
-
+            .check_samples_validation(samples_validation,
+                                      labels, timeline, bands)
             test_samples <- .sits_distances(
                 .sits_ml_normalize_data(samples_validation, stats)
             )
@@ -255,7 +192,6 @@ sits_lighttae <- function(samples = NULL,
                 train_samples,
                 frac = validation_split
             )
-
             # remove the lines used for validation
             train_samples <- train_samples[!test_samples, on = "original_row"]
         }

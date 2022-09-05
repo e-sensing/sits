@@ -29,7 +29,6 @@
 #' @param output_dir Valid directory for storing regularized images.
 #' @param multicores Number of cores used for regularization;
 #'                   used for parallel processing of input.
-#' @param memsize    Memory available for regularization (in GB).
 #' @param progress   show progress bar?
 #'
 #' @note
@@ -76,8 +75,7 @@
 #'         output_dir = dir_images,
 #'         res = 60,
 #'         period = "P16D",
-#'         multicores = 2,
-#'         memsize = 16
+#'         multicores = 2
 #'     )
 #' }
 #'
@@ -88,8 +86,30 @@ sits_regularize <- function(cube,
                             roi = NULL,
                             output_dir,
                             multicores = 1,
-                            memsize = 4,
                             progress = TRUE) {
+
+    # preconditions
+    .check_is_raster_cube(cube)
+    # is the period valid?
+    .check_na(lubridate::duration(period),
+              msg = "invalid period specified"
+    )
+    .check_num_parameter(res, exclusive_min = 0)
+    # precondition - check output dir fix
+    output_dir <- normalizePath(output_dir)
+    # verifies the path to save the images
+    .check_output_dir(output_dir)
+    # multicores
+    .check_multicores(multicores)
+    .check_lgl(progress)
+
+    # pre-condition - cube contains cloud band?
+    .check_that(
+        .source_cloud() %in% sits_bands(cube),
+        local_msg = "cube does not have cloud band",
+        msg = "invalid cube"
+    )
+
     .gc_regularize(
         cube = cube,
         period = period,

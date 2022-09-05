@@ -13,7 +13,7 @@
 #' \code{gdalcubes}.
 #'
 #' @param data          Valid sits tibble or cube
-#' @param window_size   An even number representing the size of the
+#' @param window_size   An odd number representing the size of the
 #'                      sliding window of sits kernel functions
 #'                      used in expressions (for a list of supported
 #'                      kernel functions, please see details).
@@ -101,17 +101,11 @@ sits_apply.raster_cube <- function(data, ...,
     progress <- .check_documentation(progress)
 
     # precondition - test if cube is regular
-    .check_that(
-        x = .cube_is_regular(data),
-        local_msg = "Please use sits_regularize()",
-        msg = "sits can only create new bands in regular cubes"
-    )
+    .check_cube_is_regular(data)
 
     # Check output_dir
     output_dir <- path.expand(output_dir)
-    .check_file(output_dir,
-        msg = "invalid output directory"
-    )
+    .check_output_dir(output_dir)
 
     # Get output band expression
     expr <- .apply_capture_expression(...)
@@ -375,11 +369,7 @@ sits_apply.raster_cube <- function(data, ...,
 .apply_across <- function(data, fn, ...) {
 
     # Pre-conditions
-    .check_that(
-        x = inherits(data, "sits"),
-        local_msg = "(data should be a sits tibble)",
-        msg = "invalid samples parameter"
-    )
+    .check_is_sits_tibble(data)
 
     result <-
         .sits_fast_apply(data, col = "time_series", fn = function(x, ...) {
@@ -408,10 +398,7 @@ sits_apply.raster_cube <- function(data, ...,
                         recursive = FALSE)[-1]
 
     # Check bands names from expression
-    .check_lst(list_expr,
-               min_len = 1, max_len = 1,
-               msg = "invalid expression value"
-    )
+    .check_expression(list_expr)
 
     # Get out band
     out_band <- toupper(gsub("_", "-", names(list_expr)))
@@ -514,11 +501,8 @@ sits_apply.raster_cube <- function(data, ...,
 #'
 .apply_estimate_block_size <- function(cube, multicores, memsize) {
 
-    # precondition 1 - check if cube has probability data
-    .check_that(
-        x = inherits(cube, "raster_cube"),
-        msg = "input is not a raster cube"
-    )
+    # precondition 1 - check if cube is regular
+    .check_cube_is_regular(cube)
 
     size <- .cube_size(cube[1,])
     n_bands <- length(.cube_bands(cube))
@@ -583,12 +567,7 @@ sits_apply.raster_cube <- function(data, ...,
 .apply_input_bands <- function(tile, expr) {
 
     # Pre-condition
-    .check_num(
-        x = nrow(tile),
-        min = 1,
-        max = 1,
-        msg = "invalid tile parameter"
-    )
+    .check_cube_has_one_tile(tile)
 
     # Get all required bands in expression
     expr_bands <- toupper(.apply_get_all_names(expr[[1]]))
@@ -649,13 +628,7 @@ sits_apply.raster_cube <- function(data, ...,
 .kern_functions <- function(window_size, img_nrow, img_ncol) {
 
     # Pre-conditions
-    .check_num(
-        x = window_size,
-        min = 3,
-        max = min(img_nrow, img_ncol) - 1,
-        is_integer = TRUE,
-        msg = "invalid 'window_size' parameter"
-    )
+    .check_window_size(window_size, max = min(img_nrow, img_ncol) - 1)
 
     result_env <- list2env(list(
         w_median = function(m) {

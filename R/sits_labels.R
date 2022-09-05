@@ -28,7 +28,6 @@ sits_labels <- function(data) {
 sits_labels.sits <- function(data) {
 
     # pre-condition
-    .cube_check(data)
     return(sort(unique(data$label)))
 }
 
@@ -51,10 +50,7 @@ sits_labels.sits_model <- function(data) {
 
     # set caller to show in errors
     .check_set_caller("sits_labels.sits_model")
-    .check_that(
-        x = inherits(data, "function"),
-        msg = "invalid sits model"
-    )
+    .check_is_sits_model(data)
     .check_chr_within(
         x = "samples",
         within = ls(environment(data)),
@@ -104,7 +100,7 @@ sits_labels.sits_model <- function(data) {
 `sits_labels<-.sits` <- function(data, value) {
 
     # does the input data exist?
-    .sits_tibble_test(data)
+    .check_is_sits_tibble(data)
 
     labels <- sits_labels(data)
 

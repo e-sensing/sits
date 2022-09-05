@@ -119,25 +119,15 @@ sits_classify.sits <- function(data,
                                multicores = 2) {
 
     # precondition: verify that the data is correct
-    .sits_tibble_test(data)
-
-    # precondition: ensure the machine learning model has been built
-    .check_null(
-        x = ml_model,
-        msg = "please provide a trained ML model"
-    )
+    .check_valid_samples(data)
+    # precondition - are the samples form the model valid?
+    samples <- .sits_ml_model_samples(ml_model)
+    .check_valid_samples(samples)
 
     # Apply filter
     if (!purrr::is_null(filter_fn)) {
         data <- .apply_across(data = data, fn = filter_fn)
     }
-
-    # precondition - are the samples valid?
-    samples <- .sits_ml_model_samples(ml_model)
-    .check_that(
-        x = nrow(samples) > 0,
-        msg = "missing original samples"
-    )
     # check band order is the same
     bands_samples <- sits_bands(samples)
     bands_data <- sits_bands(data)
@@ -157,13 +147,8 @@ sits_classify.sits <- function(data,
         # no, input data does not need to be normalized
         distances <- .sits_distances(data)
     }
-
-
     # post condition: is distance data valid?
-    .check_that(
-        x = nrow(distances) > 0,
-        msg = "problem with normalization"
-    )
+    .check_valid_distances(distances, data)
 
     # calculate the breaks in the time for multi-year classification
     class_info <- .sits_timeline_class_info(
@@ -208,39 +193,15 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     .sits_classify_check_params(data, ml_model)
 
     # precondition - test if cube is regular
-    .check_that(
-        x = .cube_is_regular(data),
-        local_msg = "Please use sits_regularize()",
-        msg = "sits can only classify regular cubes"
-    )
-
+    .check_cube_is_regular(data)
     # precondition - multicores
-    .check_num(
-        x = multicores,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        is_integer = TRUE,
-        msg = "invalid 'multicores' parameter"
-    )
-
-    # precondition - memory
-    .check_num(
-        x = memsize,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'memsize' parameter"
-    )
-
+    .check_multicores(multicores)
+    # precondition - memsize
+    .check_memsize(memsize)
     # precondition - output dir
-    .check_file(
-        x = output_dir,
-        msg = "invalid output dir"
-    )
-
+    .check_output_dir(output_dir)
     # precondition - version
-    .check_chr(x = version, len_min = 1, msg = "invalid version")
+    .check_version(version)
 
     # filter only intersecting tiles
     intersects <- slider::slide_lgl(
@@ -253,6 +214,8 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
 
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
+    # precondition - are the samples valid?
+    .check_valid_samples(samples)
 
     # deal with the case where the cube has multiple rows
     probs_cube <- slider::slide_dfr(data, function(tile) {
@@ -274,15 +237,8 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                     .data[["date"]] <= new_timeline[length(new_timeline)]
             )
         }
-
-        # check
-        samples_timeline_length <- length(sits_timeline(samples))
-        tiles_timeline_length <- length(sits_timeline(tile))
-
-        .check_that(
-            samples_timeline_length == tiles_timeline_length,
-            msg = "number of instances of samples and cube differ"
-        )
+        # Do the samples and tile match their timeline length?
+        .check_samples_tile_match(samples, tile)
 
         # classify the data
         probs_row <- .sits_classify_multicores(

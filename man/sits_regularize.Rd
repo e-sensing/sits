@@ -11,7 +11,6 @@ sits_regularize(
   roi = NULL,
   output_dir,
   multicores = 1,
-  memsize = 4,
   progress = TRUE
 )
 }
@@ -33,8 +32,6 @@ See more above.}
 
 \item{multicores}{Number of cores used for regularization;
 used for parallel processing of input.}
-
-\item{memsize}{Memory available for regularization (in GB).}
 
 \item{progress}{show progress bar?}
 }
@@ -95,8 +92,7 @@ if (sits_run_examples()) {
         output_dir = dir_images,
         res = 60,
         period = "P16D",
-        multicores = 2,
-        memsize = 16
+        multicores = 2
     )
 }
 

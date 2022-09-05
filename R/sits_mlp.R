@@ -120,23 +120,13 @@ sits_mlp <- function(samples = NULL,
 
         # verifies if torch and luz packages is installed
         .check_require_packages(c("torch", "luz"))
-
-        .sits_tibble_test(samples)
-
         # pre-conditions
         # check layers
-        .check_num(
-            x = layers,
-            exclusive_min = 0,
-            len_min = 1,
-            is_integer = TRUE
-        )
+        .check_int_parameter(layers, len_max = 2^31 - 1)
         # check dropout_rates
-        .check_num(
-            x = dropout_rates,
-            min = 0,
-            max = 1,
-            len_min = 1
+        .check_num_parameter(dropout_rates,
+                             min = 0, max = 1,
+                             len_min = length(layers), len_max = length(layers)
         )
         # check layers and dropout_rates
         .check_that(
@@ -146,47 +136,16 @@ sits_mlp <- function(samples = NULL,
         # check optimizer
         .check_null(x = optimizer)
         # check epochs
-        .check_num(
-            x = epochs,
-            exclusive_min = 0,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
+        .check_int_parameter(epochs)
         # check batch_size
-        .check_num(
-            x = batch_size,
-            exclusive_min = 0,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
+        .check_int_parameter(batch_size)
         # check validation_split parameter if samples_validation is not passed
-        if (purrr::is_null(samples_validation)) {
-            .check_num(
-                x = validation_split,
-                exclusive_min = 0,
-                max = 0.5,
-                len_min = 1,
-                len_max = 1,
-                msg = "invalid 'validation_split' parameter"
-            )
-        }
+        if (purrr::is_null(samples_validation))
+            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
         # check patience
-        .check_num(
-            x = patience,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
+        .check_int_parameter(patience)
         # check min_delta
-        .check_num(
-            x = min_delta,
-            min = 0,
-            len_min = 1,
-            len_max = 1
-        )
+        .check_num_parameter(min_delta, min = 0)
         # check verbose
         .check_lgl(verbose)
 
@@ -197,12 +156,7 @@ sits_mlp <- function(samples = NULL,
         )
 
         # is the training data correct?
-        .check_chr_within(
-            x = "reference",
-            within = names(train_samples),
-            discriminator = "any_of",
-            msg = "input data does not contain distances"
-        )
+        .check_valid_distances(train_samples, samples)
 
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
@@ -232,22 +186,9 @@ sits_mlp <- function(samples = NULL,
         names(int_labels) <- labels
 
         if (!is.null(samples_validation)) {
-
-            # check if the labels matches with train data
-            .check_that(
-                all(sits_labels(samples_validation) %in% labels) &&
-                    all(labels %in% sits_labels(samples_validation))
-            )
-            # check if the timeline matches with train data
-            .check_that(
-                length(sits_timeline(samples_validation)) == length(timeline)
-            )
-            # check if the bands matches with train data
-            .check_that(
-                all(sits_bands(samples_validation) %in% bands) &&
-                    all(bands %in% sits_bands(samples_validation))
-            )
-
+            # check samples validation
+            .check_samples_validation(samples_validation,
+                                      labels, timeline, bands)
             test_samples <- .sits_distances(
                 .sits_ml_normalize_data(samples_validation, stats)
             )

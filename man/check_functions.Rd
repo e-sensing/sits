@@ -26,6 +26,31 @@
 \alias{.check_warn}
 \alias{.check_error}
 \alias{.check_documentation}
+\alias{.check_num_parameter}
+\alias{.check_int_parameter}
+\alias{.check_chr_parameter}
+\alias{.check_window_size}
+\alias{.check_band_in_cube}
+\alias{.check_multicores}
+\alias{.check_memsize}
+\alias{.check_output_dir}
+\alias{.check_version}
+\alias{.check_expression}
+\alias{.check_predicted}
+\alias{.check_is_sits_cube}
+\alias{.check_is_raster_cube}
+\alias{.check_is_sits_tibble}
+\alias{.check_is_sits_accuracy}
+\alias{.check_is_sits_model}
+\alias{.check_valid_samples}
+\alias{.check_samples_validation}
+\alias{.check_valid_samples_cluster}
+\alias{.check_valid_distances}
+\alias{.check_file_csv}
+\alias{.check_csv}
+\alias{.check_pred_ref_match}
+\alias{.check_samples_tile_match}
+\alias{.check_valid_labels_ref}
 \title{Check functions}
 \usage{
 .check_set_caller(caller)
@@ -135,6 +160,65 @@
 .check_error(expr, ..., msg = NULL)
 
 .check_documentation(progress)
+
+.check_num_parameter(
+  param,
+  min = -Inf,
+  max = Inf,
+  len_min = 1,
+  len_max = 1,
+  allow_na = FALSE,
+  exclusive_min = -Inf,
+  tolerance = 0
+)
+
+.check_int_parameter(param, min = 1, max = 2^31 - 1, len_min = 1, len_max = 1)
+
+.check_chr_parameter(param, len_min = 1, len_max = 1)
+
+.check_window_size(window_size, min = 1, max = 2^32 - 1)
+
+.check_band_in_cube(band, cube)
+
+.check_multicores(multicores)
+
+.check_memsize(memsize)
+
+.check_output_dir(output_dir)
+
+.check_version(version)
+
+.check_expression(list_expr)
+
+.check_predicted(data)
+
+.check_is_sits_cube(data)
+
+.check_is_raster_cube(data)
+
+.check_is_sits_tibble(data)
+
+.check_is_sits_accuracy(data)
+
+.check_is_sits_model(model)
+
+.check_valid_samples(data)
+
+.check_samples_validation(samples_validation, labels, timeline, bands)
+
+.check_valid_samples_cluster(data)
+
+.check_valid_distances(distances, samples)
+
+.check_file_csv(file)
+
+.check_csv(csv)
+
+.check_pred_ref_match(reference, predicted)
+
+.check_samples_tile_match(samples, tile)
+
+.check_valid_labels_ref(data)
 }
 \arguments{
 \item{caller}{A \code{character} value with the caller name.}

@@ -35,14 +35,8 @@ sits_train <- function(samples, ml_method = sits_svm()) {
 
     # set caller to show in errors
     .check_set_caller("sits_train")
-
-    # is the input data a valid sits tibble?
-    .check_chr_within(
-        x = "label",
-        within = names(samples),
-        discriminator = "any_of",
-        msg = "input data does not contain a valid sits tibble"
-    )
+    # check if samples are valid
+    .check_valid_samples(samples)
 
     # is the train method a function?
     .check_that(

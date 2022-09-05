@@ -106,7 +106,7 @@ sits_som_map <- function(data,
     .check_require_packages("kohonen")
 
     # does the input data exist?
-    .sits_tibble_test(data)
+    .check_is_sits_tibble(data)
     # is are there more neurons than samples?
     n_samples <- nrow(data)
     .check_that(

@@ -119,90 +119,35 @@ sits_tempcnn <- function(samples = NULL,
         # verifies if torch and luz packages are installed
         .check_require_packages(c("torch", "luz"))
 
-        .sits_tibble_test(samples)
-
         # preconditions
         # check cnn_layers
-        .check_num(
-            x = cnn_layers,
-            min = 1,
-            len_min = 3,
-            len_max = 3,
-            is_integer = TRUE
-        )
+        .check_int_parameter(cnn_layers, len_max = 2^31 - 1)
         # check cnn_kernels
-        .check_num(
-            x = cnn_kernels,
-            min = 1,
-            len_min = 3,
-            len_max = 3,
-            is_integer = TRUE
-        )
+        .check_int_parameter(cnn_kernels,
+                             len_min = length(cnn_layers),
+                             len_max = length(cnn_layers))
         # check cnn_dropout_rates
-        .check_length(
-            x = cnn_dropout_rates,
-            min = 0,
-            max = 1,
-            len_min = 3,
-            len_max = 3
+        .check_num_parameter(cnn_dropout_rates, min = 0, max = 1,
+                             len_min = length(cnn_layers),
+                             len_max = length(cnn_layers)
         )
         # check dense_layer_nodes
-        .check_num(
-            x = dense_layer_nodes,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
+        .check_int_parameter(dense_layer_nodes, len_max = 1)
         # check dense_layer_dropout_rate
-        .check_num(
-            x = dense_layer_dropout_rate,
-            min = 0,
-            max = 1,
-            len_min = 1,
+        .check_num_parameter(dense_layer_dropout_rate, min = 0, max = 1,
             len_max = 1
         )
         # check lr_decay_epochs
-        .check_num(
-            x = lr_decay_epochs,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
+        .check_int_parameter(lr_decay_epochs)
         # check lr_decay_rate
-        .check_num(
-            x = lr_decay_rate,
-            exclusive_min = 0,
-            max = 1,
-            len_min = 1,
-            len_max = 1
-        )
+        .check_num_parameter(lr_decay_rate, exclusive_min = 0, max = 1)
         # check validation_split parameter if samples_validation is not passed
-        if (purrr::is_null(samples_validation)) {
-            .check_num(
-                x = validation_split,
-                exclusive_min = 0,
-                max = 0.5,
-                len_min = 1,
-                len_max = 1
-            )
-        }
+        if (purrr::is_null(samples_validation))
+            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
         # check patience
-        .check_num(
-            x = patience,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
+        .check_int_parameter(patience)
         # check min_delta
-        .check_num(
-            x = min_delta,
-            min = 0,
-            len_min = 1,
-            len_max = 1
-        )
+        .check_num_parameter(min_delta, min = 0)
         # check verbose
         .check_lgl(verbose)
 

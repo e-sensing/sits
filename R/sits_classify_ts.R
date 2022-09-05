@@ -28,7 +28,8 @@ sits_show_prediction <- function(class) {
     # set caller to show in errors
     .check_set_caller("sits_show_prediction")
 
-    .sits_tibble_test(class)
+    .check_is_sits_tibble(class)
+    .check_predicted(class)
 
     .check_chr_within(
         x = .config_get("ts_predicted_cols"),

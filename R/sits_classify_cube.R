@@ -52,24 +52,8 @@
 
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
-
     # get samples labels
     labels <- sits_labels(samples)
-
-    # precondition - are the samples empty?
-    .check_that(
-        x = nrow(samples) > 0,
-        msg = "original samples not saved"
-    )
-
-    # precondition - are the sample bands contained in the cube bands?
-    tile_bands <- sits_bands(tile)
-    bands <- sits_bands(samples)
-    .check_chr_within(
-        x = bands,
-        within = tile_bands,
-        msg = "some bands in samples are not in cube"
-    )
 
     # retrieve the normalization stats from the model
     stats <- environment(ml_model)$stats

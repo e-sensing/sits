@@ -592,6 +592,15 @@
 
     UseMethod(".raster_crs", pkg_class)
 }
+#' @name .raster_properties
+#' @keywords internal
+.raster_sources <- function(r_obj, ...) {
+
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_sources", pkg_class)
+}
 
 #' @name .raster_properties
 #' @keywords internal

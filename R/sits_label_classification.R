@@ -58,41 +58,15 @@ sits_label_classification <- function(cube,
     .check_set_caller("sits_label_classification")
 
     # precondition - check if cube has probability data
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "input is not probability cube"
-    )
-    # precondition 2 - multicores
-    .check_num(
-        x = multicores,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        is_integer = TRUE,
-        msg = "invalid 'multicores' parameter"
-    )
-
-    # precondition - memory
-    .check_num(
-        x = memsize,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'memsize' parameter"
-    )
-
-    # precondition 4 - output dir
-    .check_file(
-        x = output_dir,
-        msg = "invalid output dir"
-    )
-
-    # precondition 5 - version
-    .check_chr(
-        x = version,
-        len_min = 1,
-        msg = "invalid version"
-    )
+    .check_cube_is_probs_cube(cube)
+    # precondition - multicores
+    .check_multicores(multicores)
+    # precondition - memsize
+    .check_memsize(memsize)
+    # precondition - output dir
+    .check_output_dir(output_dir)
+    # precondition - version
+    .check_version(version)
 
     # mapping function to be executed by workers cluster
     .do_map <- function(chunk) {

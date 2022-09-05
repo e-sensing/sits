@@ -55,29 +55,14 @@ sits_rfor <- function(samples = NULL,
         train_samples <- .sits_distances(samples)
 
         # check num_trees
-        .check_num(
-            x = num_trees,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE,
-            msg = "invalid 'num_trees' parameter"
-        )
+        .check_int_parameter(num_trees)
 
         # check mtry
         # apply the same mtry default value of randomForest package
         n_features <- ncol(train_samples) - 2
         if (purrr::is_null(mtry))
             mtry <- floor(sqrt(n_features))
-        .check_num(
-            x = mtry,
-            min = 1,
-            max = n_features,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE,
-            msg = "invalid 'mtry' parameter"
-        )
+        .check_int_parameter(mtry, min = 1, max = n_features)
 
         # call `randomForest::randomForest` method and return the trained model
         reference <- train_samples[, reference]
@@ -322,11 +307,6 @@ sits_xgboost <- function(samples = NULL,
 
         # get the labels of the data
         labels <- sits_labels(samples)
-        .check_length(
-            x = labels,
-            len_min = 1,
-            msg = "invalid number of labels"
-        )
         n_labels <- length(labels)
 
         # create a named vector with integers match the class labels
@@ -551,9 +531,6 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     # set caller to show in errors
     .check_set_caller(".sits_ml_normalize_data")
 
-    # test if data is valid
-    .sits_tibble_test(data)
-
     # get the bands of the input data
     bands <- sits_bands(data)
 
@@ -651,7 +628,6 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #' @param data     A sits tibble.
 #' @return A tibble with statistics for normalization of time series.
 .sits_ml_normalization_param <- function(data) {
-    .sits_tibble_test(data)
     Index <- NULL # to avoid setting global variable
 
     dt <- data.table::data.table(dplyr::bind_rows(data$time_series))

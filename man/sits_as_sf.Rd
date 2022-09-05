@@ -39,7 +39,7 @@ if (sits_run_examples()) {
        delim = "_",
        parse_info = c("X1", "tile", "band", "date")
    )
-   sf_objet <- sits_as_sf(cube)
+   sf_object <- sits_as_sf(cube)
 }
 }
 \author{

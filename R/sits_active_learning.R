@@ -75,25 +75,10 @@ sits_uncertainty_sampling <- function(uncert_cube,
     .check_set_caller("sits_uncertainty_sampling")
 
     # Pre-conditions
-    .check_that(
-        x = inherits(uncert_cube, what = "uncertainty_cube"),
-        local_msg = "please run sits_uncertainty() first",
-        msg = "input cube is not an uncertainty cube"
-    )
-    .check_num(
-        x = n,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid n parameter"
-    )
-    .check_num(
-        x = sampling_window,
-        min = 10,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid sampling_window parameter"
-    )
+    .check_cube_is_uncert_cube(uncert_cube)
+    .check_int_parameter(n, min = 1, max = 10000)
+    .check_num_parameter(min_uncert, min = 0.2, max = 1.0)
+    .check_int_parameter(sampling_window, min = 10)
 
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(uncert_cube, function(tile) {
@@ -221,33 +206,11 @@ sits_confidence_sampling <- function(probs_cube,
     .check_set_caller("sits_confidence_sampling")
 
     # Pre-conditions
-    .check_that(
-        x = inherits(probs_cube, what = "probs_cube"),
-        local_msg = "please run sits_classify() first",
-        msg = "input cube is not a probability cube"
-    )
-    .check_num(
-        x = n,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid n parameter"
-    )
-    .check_num(
-        x = min_margin,
-        exclusive_min = 0,
-        max = 1,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid min_margin parameter"
-    )
-    .check_num(
-        x = sampling_window,
-        min = 10,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid sampling_window parameter"
-    )
+    .check_cube_is_probs_cube(probs_cube)
+    .check_int_parameter(n, min = 20)
+    .check_num_parameter(min_margin, min = 0.01, max = 1.0)
+    .check_int_parameter(sampling_window, min = 10)
+
     # get labels
     labels <- sits_labels(probs_cube)
 
@@ -343,23 +306,7 @@ sits_confidence_sampling <- function(probs_cube,
                                  n,
                                  sampling_window) {
 
-    # Pre-conditions
-    .check_num(
-        x = band,
-        min = 1,
-        max = .raster_nlayers(r_obj),
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid band parameter"
-    )
-    .check_num(
-        x = sampling_window,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid sampling_window parameter"
-    )
-
+    # Pre-conditions have been checked in calling functions
     # Get top values
     samples_tb <- terra::values(r_obj, mat = TRUE) %>%
         max_sampling(

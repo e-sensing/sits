@@ -23,7 +23,7 @@
 #'        delim = "_",
 #'        parse_info = c("X1", "tile", "band", "date")
 #'    )
-#'    sf_objet <- sits_as_sf(cube)
+#'    sf_object <- sits_as_sf(cube)
 #'}
 #' @export
 sits_as_sf <- function(data, ..., crs) {
@@ -33,11 +33,7 @@ sits_as_sf <- function(data, ..., crs) {
 #' @export
 #' @rdname sits_as_sf
 sits_as_sf.sits <- function(data, ..., crs = 4326) {
-    .check_chr_within(
-        x = .config_get("df_sample_columns"),
-        within = colnames(data),
-        msg = "data input is not valid"
-    )
+    .check_is_sits_tibble(data)
 
     samples_sf <- sf::st_as_sf(data,
         coords = c("longitude", "latitude"),
@@ -50,7 +46,6 @@ sits_as_sf.sits <- function(data, ..., crs = 4326) {
 #' @export
 #' @rdname sits_as_sf
 sits_as_sf.raster_cube <- function(data, ...) {
-    stopifnot(inherits(data, "sits_cube"))
     data %>%
         dplyr::mutate(extent_wgs84 = purrr::pmap(
             dplyr::select(.,

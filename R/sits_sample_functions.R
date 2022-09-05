@@ -36,7 +36,7 @@ sits_sample <- function(data,
     .check_set_caller("sits_sample")
 
     # verify if data is valid
-    .sits_tibble_test(data)
+    .check_is_sits_tibble(data)
 
     # verify if either n or frac is informed
     .check_that(
@@ -139,17 +139,10 @@ sits_reduce_imbalance <- function(samples,
 
     # set caller to show in errors
     .check_set_caller("sits_reduce_imbalance")
-    # pre-condition
-    .check_num(n_samples_over,
-        min = 1, len_min = 1, len_max = 1,
-        is_integer = TRUE, allow_null = TRUE,
-        msg = "invalid 'n_samples_over' parameter"
-    )
-    .check_num(n_samples_under,
-        min = 1, len_min = 1, len_max = 1,
-        is_integer = TRUE, allow_null = TRUE,
-        msg = "invalid 'n_samples_under' parameter"
-    )
+    # pre-conditions
+    .check_is_sits_tibble(samples)
+    .check_int_parameter(n_samples_over)
+    .check_int_parameter(n_samples_under)
 
     # check if number of required samples are correctly entered
     if (!purrr::is_null(n_samples_over) && !purrr::is_null(n_samples_under)) {

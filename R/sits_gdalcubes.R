@@ -76,18 +76,7 @@
     .check_set_caller(".gc_create_cube_view")
 
     # pre-conditions
-    .check_that(nrow(tile) == 1,
-        msg = "tile must have only one row."
-    )
-
-    .check_null(period,
-        msg = "the parameter 'period' must be provided."
-    )
-
-    .check_num(res,
-        allow_null = TRUE, len_max = 1,
-        msg = "the parameter 'res' is invalid."
-    )
+    .check_cube_has_one_tile(tile)
 
     # get bbox roi
     bbox_roi <- sits_bbox(tile)
@@ -484,56 +473,6 @@
 
     # require gdalcubes package
     .check_require_packages("gdalcubes")
-
-    # precondition - test if provided object is a raster cube
-    .check_that(
-        x = inherits(cube, "raster_cube"),
-        msg = paste(
-            "provided cube is invalid,",
-            "please provide a 'raster_cube' object.",
-            "see '?sits_cube' for more information."
-        )
-    )
-
-    # precondition - check output dir fix
-    output_dir <- normalizePath(output_dir)
-
-    # verifies the path to save the images
-    .check_that(
-        x = dir.exists(output_dir),
-        msg = "invalid 'output_dir' parameter."
-    )
-
-    # precondition - is the period valid?
-    .check_na(lubridate::duration(period),
-        msg = "invalid period specified"
-    )
-
-    # precondition - is the resolution valid?
-    .check_num(
-        x = res,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'res' parameter"
-    )
-
-    # pre-condition - cube contains cloud band?
-    .check_that(
-        .source_cloud() %in% sits_bands(cube),
-        local_msg = "cube does not have cloud band",
-        msg = "invalid cube"
-    )
-
-    # precondition - is the multicores valid?
-    .check_num(
-        x = multicores,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        is_integer = TRUE,
-        msg = "invalid 'multicores' parameter"
-    )
 
     # filter only intersecting tiles
     intersects <- slider::slide_lgl(

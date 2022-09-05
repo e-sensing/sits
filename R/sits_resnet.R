@@ -131,86 +131,26 @@ sits_resnet <- function(samples = NULL,
 
         # verifies if torch and luz packages are installed
         .check_require_packages(c("torch", "luz"))
-
-        .sits_tibble_test(samples)
-
-        .check_num(
-            x = blocks,
-            exclusive_min = 0,
-            len_min = 1,
-            is_integer = TRUE
-        )
-
-        .check_num(
-            x = kernels,
-            exclusive_min = 0,
-            len_min = 3,
-            len_max = 3,
-            is_integer = TRUE
-        )
-
-        .check_num(
-            x = epochs,
-            exclusive_min = 0,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
-
-        .check_num(
-            x = batch_size,
-            exclusive_min = 0,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
-
+        # preconditions
+        .check_int_parameter(blocks, min = 1, len_max = 2^31 - 1)
+        .check_int_parameter(kernels, min = 1,
+                             len_min = length(blocks), len_max = length(blocks))
+        .check_int_parameter(epochs)
+        .check_int_parameter(batch_size)
         .check_that(!purrr::is_null(optimizer),
                     msg = "invalid 'optimizer' parameter")
-
-        .check_num(
-            x = lr_decay_epochs,
-            is_integer = TRUE,
-            len_max = 1,
-            min = 1
-        )
-
-        .check_num(
-            x = lr_decay_rate,
-            exclusive_min = 0,
-            max = 1,
-            len_max = 1
-        )
-
-        .check_num(
-            x = patience,
-            min = 0,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
-
-        .check_num(
-            x = min_delta,
-            min = 0,
-            max = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = FALSE
-        )
+        .check_int_parameter(lr_decay_epochs)
+        .check_num_parameter(lr_decay_rate, exclusive_min = 0, max = 1)
+        # check patience
+        .check_int_parameter(patience)
+        # check min_delta
+        .check_num_parameter(min_delta, min = 0)
         # check verbose
         .check_lgl(verbose)
 
         # check validation_split parameter if samples_validation is not passed
-        if (purrr::is_null(samples_validation)) {
-            .check_num(
-                x = validation_split,
-                exclusive_min = 0,
-                max = 0.5,
-                len_min = 1,
-                len_max = 1
-            )
-        }
+        if (purrr::is_null(samples_validation))
+            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
 
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
