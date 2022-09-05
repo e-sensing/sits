@@ -763,30 +763,31 @@
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param in_files       Input file paths
-#' @param out_file       Output raster file path
-#' @param format         Format to write the file
-#' @param gdal_datatype  Data type in gdal format
-#' @param multicores     Number of cores to process merging
-#' @param overwrite      Should the output file be overwritten?
+#' @param files         Input file paths
+#' @param out_file      Output raster file path
+#' @param format        Format to write the file
+#' @param data_type     sits internal raster data type. One of "INT1U",
+#'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
+#' @param multicores    Number of cores to process merging
+#' @param overwrite     Should the output file be overwritten?
 #'
 #' @return No return value, called for side effects.
 #'
-.raster_merge <- function(in_files,
+.raster_merge <- function(files,
                           out_file,
                           format,
-                          gdal_datatype,
+                          data_type,
                           multicores = 2,
                           overwrite = TRUE) {
 
     # set caller to show in errors
     .check_set_caller(".raster_merge")
 
-    in_files <- path.expand(in_files)
+    files <- path.expand(files)
     multi <- multicores > 1
     # check if in_file length is at least one
     .check_file(
-        x = in_files,
+        x = files,
         extensions = "tif",
         msg = "invalid input files to merge"
     )
@@ -794,14 +795,14 @@
     # merge using gdal warp
     suppressWarnings(
         gdalUtilities::gdalwarp(
-            srcfile = in_files,
+            srcfile = files,
             dstfile = path.expand(out_file),
-            ot = gdal_datatype,
+            ot = .raster_gdal_datatype(data_type),
             of = format,
             wo = paste0("NUM_THREADS=", multicores),
             multi = multi,
             co = .config_gtiff_default_options(),
-            overwrite = overwrite
+            overwrite = if (overwrite) 1 else 0
         )
     )
 
@@ -823,45 +824,31 @@
                              out_file,
                              format = "GTiff",
                              data_type,
-                             block = NULL,
                              nlayers = NULL,
                              missing_value = NULL) {
+    # Check if file exists
     .check_that(
-        !file.exists(out_file),
-        local_msg = paste("file", out_file, "exists"),
+        x = !file.exists(out_file),
+        local_msg = paste0("file '", out_file, "' already exists"),
         msg = "invalid 'out_file' parameter"
     )
-
-    r_obj <- .raster_clone(file = file, nlayers = nlayers)
-    if (is.null(missing_value)) {
-        missing_value <- .raster_missing_value(file = file)
-    }
-
-    if (!is.null(block)) {
-        # Read a block
-        .raster_crop(
-            r_obj = r_obj,
-            file = out_file,
-            format = format,
-            data_type = data_type,
-            overwrite = TRUE,
-            block = block,
-            missing_value = missing_value
-        )
-
-        return(out_file)
-    }
-
-    # Write empty block mask file as template
-    .raster_write_rast(
-        r_obj = r_obj,
-        file = out_file,
-        format = "GTiff",
-        data_type = data_type,
-        overwrite = TRUE,
-        missing_value = missing_value
+    # Create an empty image template
+    gdalUtilities::gdal_translate(
+        src_dataset = path.expand(file),
+        dst_dataset = path.expand(out_file),
+        ot = .raster_gdal_datatype(data_type),
+        of = "GTiff",
+        b = rep(1, nlayers),
+        scale = c(0, 1, 0, 0),
+        a_nodata = 0,
+        co = .config_gtiff_default_options()
     )
-
+    # Delete auxiliary files
+    unlink(paste0(out_file, ".aux.xml"))
+    # Open template
+    r_obj <- .raster_open_rast(
+        file = out_file
+    )
     return(r_obj)
 }
 
