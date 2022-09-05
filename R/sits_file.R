@@ -1,31 +1,27 @@
 
-.file_block_name <- function(output_file, block) {
+.file_block_name <- function(pattern, block, output_dir) {
     # Get output_dir
-    output_dir <- dirname(output_file)
-    # Get output file name as template
-    output_file <- tools::file_path_sans_ext(
-        basename(output_file)
+    .file_path(
+        pattern, "block", block[["first_row"]],
+        block[["first_col"]],
+        ext = "tif",
+        output_dir = file.path(output_dir, ".sits"),
+        create_dir = TRUE
     )
-    .file_path(output_file, "block",
-               block[["first_row"]], block[["first_col"]],
-               ext = ".tif",
-               output_dir = output_dir)
 }
 
-.file_tile_name <- function(tile) {
-    # output filename
-    file_name <- paste0(
-        tile[["satellite"]], "_",
-        tile[["sensor"]], "_",
-        tile[["tile"]], "_",
-        start_date, "_",
-        end_date, "_",
-        band_name, "_",
-        version, ".tif"
+.file_probs_name <- function(tile, version, output_dir) {
+    .file_path(
+        tile[["satellite"]],
+        tile[["sensor"]],
+        tile[["tile"]],
+        .tile_start_date(tile),
+        .tile_end_date(tile),
+        .config_get("probs_cube_band"),
+        version,
+        ext = "tif",
+        output_dir = output_dir
     )
-
-    file_name <- file.path(output_dir, file_name)
-
 }
 
 .file_path <- function(...,
@@ -46,4 +42,12 @@
         filenames <- file.path(output_dir, filenames)
     }
     return(filenames)
+}
+
+.file_sans_ext <- function(file) {
+    gsub("(.*)\\..+$", "\\1", file)
+}
+
+.file_base <- function(file) {
+    gsub("[?].*$", "", gsub("^.*/", "", file))
 }
