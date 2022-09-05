@@ -3,19 +3,19 @@
                                  npaths,
                                  nbytes,
                                  proc_bloat,
+                                 overlap,
                                  memsize,
-                                 multicores,
-                                 overlap) {
+                                 multicores) {
     # Memory needed per block
-    block_mem <- (job_nrows + 2 * overlap) * (job_ncols + 2 * overlap) *
+    job_memsize <- (job_nrows + 2 * overlap) * (job_ncols + 2 * overlap) *
         npaths * nbytes * proc_bloat * 1e-09
     # Max parallel blocks supported by memsize
-    max_blocks <- floor(memsize / block_mem)
+    max_blocks <- floor(memsize / job_memsize)
     # Check if memsize is above minimum needed to process one block
     .check_that(
         x = max_blocks > 0,
         local_msg = paste("minimum memsize needed is",
-                          block_mem, "GB"),
+                          job_memsize, "GB"),
         msg = "provided 'memsize' is insufficient for processing"
     )
     # Max multicores
@@ -160,5 +160,31 @@
         ymin = job[["ymin"]],
         ymax = job[["ymax"]],
         crs = job[["crs"]]
+    )
+}
+.job_save_values <- function(job, values, data_type, out_file) {
+    # create a new raster
+    r_obj <- .raster_new_rast(
+        nrows = job[["nrows"]],
+        ncols = job[["ncols"]],
+        xmin = job[["xmin"]],
+        xmax = job[["xmax"]],
+        ymin = job[["ymin"]],
+        ymax = job[["ymax"]],
+        nlayers = ncol(values),
+        crs = job[["crs"]]
+    )
+    # copy values
+    r_obj <- .raster_set_values(
+        r_obj = r_obj,
+        values = values
+    )
+    # write the probabilities to a raster file
+    .raster_write_rast(
+        r_obj = r_obj,
+        file = out_file,
+        format = "GTiff",
+        data_type = data_type,
+        overwrite = TRUE
     )
 }
