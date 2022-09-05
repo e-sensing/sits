@@ -2,38 +2,34 @@
 % Please edit documentation in R/sits_classify_cube.R
 \name{.sits_classify_blocks_multicores}
 \alias{.sits_classify_blocks_multicores}
+\alias{.sits_classify_job}
 \title{Classify a chunk of raster data  using multicores}
 \usage{
-.sits_classify_blocks_multicores(
+.sits_classify_job(
+  job,
   tile,
   ml_model,
-  roi,
   filter_fn,
   impute_fn,
-  memsize,
-  multicores,
-  output_dir,
-  progress
+  file_pattern,
+  output_dir
 )
 }
 \arguments{
+\item{job}{A job containing information about the block to be
+processed.}
+
 \item{tile}{Single tile of a data cube.}
 
 \item{ml_model}{Model trained by \code{\link[sits]{sits_train}}.}
-
-\item{roi}{Region of interest.}
 
 \item{filter_fn}{Smoothing filter function to be applied to the data.}
 
 \item{impute_fn}{Impute function to replace NA.}
 
-\item{memsize}{Memory available for classification (in GB).}
-
-\item{multicores}{Number of cores.}
+\item{file_pattern}{Output block file name pattern.}
 
 \item{output_dir}{Output directory.}
-
-\item{progress}{Show progress bar?}
 }
 \value{
 List of the classified raster layers.

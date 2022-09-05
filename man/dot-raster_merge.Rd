@@ -5,22 +5,23 @@
 \title{Merge all input files into one raster file}
 \usage{
 .raster_merge(
-  in_files,
+  files,
   out_file,
   format,
-  gdal_datatype,
+  data_type,
   multicores = 2,
   overwrite = TRUE
 )
 }
 \arguments{
-\item{in_files}{Input file paths}
+\item{files}{Input file paths}
 
 \item{out_file}{Output raster file path}
 
 \item{format}{Format to write the file}
 
-\item{gdal_datatype}{Data type in gdal format}
+\item{data_type}{sits internal raster data type. One of "INT1U",
+"INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".}
 
 \item{multicores}{Number of cores to process merging}
 
