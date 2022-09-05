@@ -44,6 +44,7 @@
 #' @return No value, called for side effect.
 #'
 .sits_parallel_start <- function(workers, log) {
+    .sits_debug(flag = log)
     if (!.sits_parallel_is_open() ||
         length(sits_env[["cluster"]]) != workers) {
         .sits_parallel_stop()
