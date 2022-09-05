@@ -330,12 +330,10 @@ sits_apply.raster_cube <- function(data, ...,
             # Join predictions
             if (!is.null(blocks_path)) {
                 .raster_merge(
-                    in_files = blocks_path,
+                    files = blocks_path,
                     out_file = out_file_path,
                     format = "GTiff",
-                    gdal_datatype = .raster_gdal_datatype(
-                        .config_get("raster_cube_data_type")
-                    ),
+                    data_type = .config_get("raster_cube_data_type"),
                     multicores = 1
                 )
             }

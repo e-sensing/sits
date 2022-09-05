@@ -384,11 +384,10 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
         # Merge to save final result
         .raster_merge(
-            in_files = tmp_blocks,
+            files = tmp_blocks,
             out_file = out_file,
             format = "GTiff",
-            gdal_datatype =
-                .raster_gdal_datatype(.config_get("probs_cube_data_type")),
+            data_type = .config_get("probs_cube_data_type"),
             multicores = 1
         )
 
@@ -679,11 +678,10 @@ sits_smooth.bilateral <- function(cube,
 
         # merge to save final result
         .raster_merge(
-            in_files = tmp_blocks,
+            files = tmp_blocks,
             out_file = out_file,
             format = "GTiff",
-            gdal_datatype =
-                .raster_gdal_datatype(.config_get("probs_cube_data_type")),
+            data_type = .config_get("probs_cube_data_type"),
             multicores = 1
         )
 

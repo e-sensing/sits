@@ -282,12 +282,10 @@ sits_reclassify <- function(cube, mask, ...,
         on.exit(unlink(blocks_path), add = TRUE)
         # Join predictions
         .raster_merge(
-            in_files = blocks_path,
+            files = blocks_path,
             out_file = out_file,
             format = "GTiff",
-            gdal_datatype = .raster_gdal_datatype(
-                .config_get("class_cube_data_type")
-            ),
+            data_type = .config_get("class_cube_data_type"),
             multicores = 1
         )
         # Prepare result updating path

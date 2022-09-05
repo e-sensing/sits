@@ -318,12 +318,10 @@ sits_mixture_model <- function(cube,
                 output_frac_path <- output_files[names(output_files) == frac]
 
                 .raster_merge(
-                    in_files = blocks_fracs_path,
+                    files = blocks_fracs_path,
                     out_file = output_frac_path,
                     format = "GTiff",
-                    gdal_datatype = .raster_gdal_datatype(
-                        .config_get("raster_cube_data_type")
-                    ),
+                    data_type = .config_get("raster_cube_data_type"),
                     multicores = 1
                 )
 
