@@ -390,10 +390,6 @@ sits_mlp <- function(samples = NULL,
             # restore model
             torch_model$model <- model_from_raw(serialized_model)
 
-            # transform input (data.table) into a matrix
-            # (remove first two columns)
-            values <- data.matrix(values[, -2:0])
-
             # retrieve the prediction probabilities
             predicted <- data.table::as.data.table(
                 torch::as_array(

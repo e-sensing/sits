@@ -464,7 +464,7 @@ sits_tempcnn <- function(samples = NULL,
             n_times <- nrow(sits_time_series(samples[1, ]))
             n_bands <- length(sits_bands(samples))
             values_x <- array(
-                data = as.matrix(values[, -2:0]),
+                data = values,
                 dim = c(n_samples, n_times, n_bands)
             )
             # retrieve the prediction probabilities

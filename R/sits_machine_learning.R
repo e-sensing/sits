@@ -373,7 +373,7 @@ sits_xgboost <- function(samples = NULL,
             # transform input  into a matrix (remove first two columns)
             # retrieve the prediction probabilities
             prediction <- data.table::as.data.table(
-                stats::predict(model_xgb, data.matrix(values[, -2:0]),
+                stats::predict(model_xgb, values,
                     ntreelimit = ntreelimit,
                     reshape = TRUE
                 )
@@ -627,13 +627,6 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     # note the use of "..b" instead of ",b"
     quant_2 <- as.numeric(stats[2, band, with = FALSE])
     quant_98 <- as.numeric(stats[3, band, with = FALSE])
-
-    # auxiliary function to normalize a block of data
-    normalize_block <- function(chunk, quant_2, quant_98) {
-        # normalize a block of data
-        values_block <- normalize_data(chunk, quant_2, quant_98)
-        return(values_block)
-    }
 
     data <- normalize_data(data, quant_2, quant_98)
 
