@@ -123,7 +123,7 @@ sits_lighttae <- function(samples = NULL,
         # verifies if torch and luz  packages is installed
         .check_require_packages(c("torch", "luz"))
         # check valid samples
-        .check_is_sits_tibble(samples)
+        .check_samples(samples)
         # preconditions
         # check epochs
         .check_int_parameter(epochs)
@@ -176,12 +176,11 @@ sits_lighttae <- function(samples = NULL,
         train_samples <- .sits_distances(
             .sits_ml_normalize_data(samples, stats)
         )
-        # is the training data correct?
-        .check_valid_distances(train_samples, samples)
 
         if (!is.null(samples_validation)) {
             .check_samples_validation(samples_validation,
                                       labels, timeline, bands)
+            # test samples are extracted from validation data
             test_samples <- .sits_distances(
                 .sits_ml_normalize_data(samples_validation, stats)
             )

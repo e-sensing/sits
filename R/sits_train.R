@@ -36,7 +36,7 @@ sits_train <- function(samples, ml_method = sits_svm()) {
     # set caller to show in errors
     .check_set_caller("sits_train")
     # check if samples are valid
-    .check_valid_samples(samples)
+    .check_samples(samples)
 
     # is the train method a function?
     .check_that(

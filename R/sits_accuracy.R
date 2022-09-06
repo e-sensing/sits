@@ -283,7 +283,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # retrieve the reference labels
     ref <- class$label
     # does the input data contains valid reference labels?
-    .check_valid_labels_ref(ref)
+    .check_labels(ref)
     # build the tibble
     pred_ref <- tibble::tibble("predicted" = pred, "reference" = ref)
     return(pred_ref)

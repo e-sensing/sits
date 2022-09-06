@@ -72,7 +72,7 @@ sits_uncertainty <- function(cube, type = "least", ...,
     .check_require_packages("parallel")
 
     # check if cube has probability data
-    .check_cube_is_probs_cube(cube)
+    .check_is_probs_cube(cube)
     # precondition - multicores
     .check_multicores(multicores)
     # precondition - memsize
@@ -589,7 +589,7 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
                                     version = "v1") {
 
     # precondition 1 - check if cube has probability data
-    .check_cube_is_probs_cube(cube)
+    .check_is_probs_cube(cube)
 
     # precondition 2 - test window size
     .check_window_size(window_size)

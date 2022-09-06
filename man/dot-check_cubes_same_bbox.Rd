@@ -7,15 +7,14 @@
 .check_cubes_same_bbox(cube1, cube2)
 }
 \arguments{
-\item{cubes}{list of input data cubes}
+\item{cube1}{input data cube}
+
+\item{cube2}{input data cube}
 }
 \value{
-TRUE/FALSE
+No return value, called for side effects.
 }
 \description{
 Check if  cubes have the same bbox
-}
-\author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
 \keyword{internal}

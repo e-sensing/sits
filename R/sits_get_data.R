@@ -132,7 +132,7 @@ sits_get_data <- function(cube,
     )
 
     # pre-condition - all tiles have same bands
-    is_regular <- .check_cube_is_regular(cube)
+    is_regular <- .check_is_regular(cube)
     .check_that(is_regular,
         local_msg = "tiles have different bands and dates",
         msg = "cube is inconsistent"

@@ -6,6 +6,14 @@
 \usage{
 .check_error_matrix_area(error_matrix, area)
 }
+\arguments{
+\item{error_matrix}{Error matrix for classification}
+
+\item{area}{Area of each class}
+}
+\value{
+No return value, called for side effects.
+}
 \description{
 Check if errox matrix and area are correct
 }

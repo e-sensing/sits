@@ -86,7 +86,7 @@ sits_smooth <- function(cube, type = "bayes", ...) {
     .check_require_packages("parallel")
 
     # check if cube has probability data
-    .check_cube_is_probs_cube(cube)
+    .check_is_probs_cube(cube)
 
     # define the class of the smoothing
     class(type) <- c(type, class(type))

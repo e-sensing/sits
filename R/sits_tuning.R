@@ -87,10 +87,10 @@ sits_tuning <- function(samples,
 
     # pre-conditions
     # check samples
-    .check_valid_samples(samples)
+    .check_samples(samples)
     # check samples_validation parameter if it is passed
     if (!purrr::is_null(samples_validation)) {
-        .check_valid_samples(samples_validation)
+        .check_samples(samples_validation)
     }
     # check validation_split parameter if samples_validation is not passed
     if (purrr::is_null(samples_validation)) {

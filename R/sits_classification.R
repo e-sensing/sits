@@ -119,10 +119,10 @@ sits_classify.sits <- function(data,
                                multicores = 2) {
 
     # precondition: verify that the data is correct
-    .check_valid_samples(data)
+    .check_samples(data)
     # precondition - are the samples form the model valid?
     samples <- .sits_ml_model_samples(ml_model)
-    .check_valid_samples(samples)
+    .check_samples(samples)
 
     # Apply filter
     if (!purrr::is_null(filter_fn)) {
@@ -148,7 +148,7 @@ sits_classify.sits <- function(data,
         distances <- .sits_distances(data)
     }
     # post condition: is distance data valid?
-    .check_valid_distances(distances, data)
+    .check_distances(distances, data)
 
     # calculate the breaks in the time for multi-year classification
     class_info <- .sits_timeline_class_info(
@@ -191,7 +191,7 @@ sits_classify.raster_cube <- function(data,
                                       progress = FALSE) {
 
     # precondition - test if cube is regular
-    .check_cube_is_regular(data)
+    .check_is_regular(data)
     # precondition - multicores
     .check_multicores(multicores)
     # precondition - memsize
@@ -235,7 +235,7 @@ sits_classify.raster_cube <- function(data,
     # Retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
     # precondition - are the samples valid?
-    .check_valid_samples(samples)
+    .check_samples(samples)
     # Check timelines of samples and tile
     .check_that(
         length(sits_timeline(samples)) == length(sits_timeline(data)),

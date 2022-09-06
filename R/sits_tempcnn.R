@@ -196,22 +196,9 @@ sits_tempcnn <- function(samples = NULL,
         )
 
         if (!is.null(samples_validation)) {
-
-            # check if the labels matches with train data
-            .check_that(
-                all(sits_labels(samples_validation) %in% labels) &&
-                    all(labels %in% sits_labels(samples_validation))
-            )
-            # check if the timeline matches with train data
-            .check_that(
-                length(sits_timeline(samples_validation)) == length(timeline)
-            )
-            # check if the bands matches with train data
-            .check_that(
-                all(sits_bands(samples_validation) %in% bands) &&
-                    all(bands %in% sits_bands(samples_validation))
-            )
-
+            .check_samples_validation(samples_validation,
+                                      labels, timeline, bands)
+            # test samples are extracted from validation data
             test_samples <- .sits_distances(
                 .sits_ml_normalize_data(samples_validation, stats)
             )

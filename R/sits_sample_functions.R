@@ -36,7 +36,7 @@ sits_sample <- function(data,
     .check_set_caller("sits_sample")
 
     # verify if data is valid
-    .check_is_sits_tibble(data)
+    .check_samples(data)
 
     # verify if either n or frac is informed
     .check_that(
@@ -140,7 +140,7 @@ sits_reduce_imbalance <- function(samples,
     # set caller to show in errors
     .check_set_caller("sits_reduce_imbalance")
     # pre-conditions
-    .check_is_sits_tibble(samples)
+    .check_samples(samples)
     .check_int_parameter(n_samples_over)
     .check_int_parameter(n_samples_under)
 

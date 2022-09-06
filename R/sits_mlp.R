@@ -155,9 +155,6 @@ sits_mlp <- function(samples = NULL,
             .sits_ml_normalize_data(samples, stats)
         )
 
-        # is the training data correct?
-        .check_valid_distances(train_samples, samples)
-
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
         if (!is.null(opt_hparams)) {
@@ -189,6 +186,7 @@ sits_mlp <- function(samples = NULL,
             # check samples validation
             .check_samples_validation(samples_validation,
                                       labels, timeline, bands)
+            # test samples are extracted from validation data
             test_samples <- .sits_distances(
                 .sits_ml_normalize_data(samples_validation, stats)
             )

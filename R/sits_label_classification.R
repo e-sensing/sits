@@ -58,7 +58,7 @@ sits_label_classification <- function(cube,
     .check_set_caller("sits_label_classification")
 
     # precondition - check if cube has probability data
-    .check_cube_is_probs_cube(cube)
+    .check_is_probs_cube(cube)
     # precondition - multicores
     .check_multicores(multicores)
     # precondition - memsize
