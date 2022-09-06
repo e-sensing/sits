@@ -80,7 +80,7 @@ probs_cube_scale_factor : 0.0001
 probs_cube_data_type    : "INT2U"
 probs_cube_missing_value: 65535
 probs_cube_band         : "probs"
-probs_cube_class        : ["probs_cube", "raster_cube", "tbl_df",
+probs_cube_class        : ["probs_cube", "raster_cube", "sits_cube", "tbl_df",
                            "tbl", "data.frame"]
 
 # configuration for classified cubes
