@@ -82,10 +82,7 @@ sits_kfold_validate <- function(samples,
     )
 
     # pre-condition
-    .check_num(multicores,
-        min = 1, is_integer = TRUE,
-        msg = "Invalid multicores parameter"
-    )
+    .check_multicores(multicores)
 
     # For now, torch models does not support multicores in Windows
     if (multicores > 1 && .Platform$OS.type == "windows" &&
@@ -296,7 +293,6 @@ sits_validate <- function(samples,
 #'
 .sits_create_folds <- function(data, folds = 5) {
     # verify if data exists
-    .sits_tibble_test(data)
     # splits the data into k groups
     data$folds <- caret::createFolds(data$label,
         k = folds,

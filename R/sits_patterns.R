@@ -42,10 +42,11 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
     # verifies if mgcv package is installed
     .check_require_packages("mgcv")
 
+
     # function that is used to be called as a value from another function
     result_fun <- function(tb) {
         # does the input data exist?
-        .sits_tibble_test(tb)
+        .check_valid_samples(tb)
         # find the bands of the data
         bds <- sits_bands(tb)
         # create a tibble to store the results

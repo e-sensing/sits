@@ -35,9 +35,6 @@ sits_bbox <- function(data, wgs84 = FALSE, ...) {
 #'
 sits_bbox.sits <- function(data, ...) {
 
-    # Is the data a valid set of time series?
-    .sits_tibble_test(data)
-
     # Get the max and min longitudes and latitudes
     lon_max <- max(data$longitude)
     lon_min <- min(data$longitude)
@@ -54,7 +51,7 @@ sits_bbox.sits <- function(data, ...) {
 sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
 
     # Pre-condition
-    .cube_check(data)
+    .check_is_sits_cube(data)
 
     if (!wgs84 && length(unique(data[["crs"]])) > 1) {
         warning("cube has more than one projection - using wgs84 coords")

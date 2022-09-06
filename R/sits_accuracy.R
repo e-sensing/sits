@@ -97,11 +97,7 @@ sits_accuracy.sits <- function(data, ...) {
     .check_require_packages("caret")
 
     # Does the input data contain a set of predicted values?
-    .check_chr_contains(
-        x = names(data),
-        contains = "predicted",
-        msg = "input data without predicted values"
-    )
+    .check_predicted(data)
 
     # Recover predicted and reference vectors from input
     # Is the input the result of a sits_classify?
@@ -133,10 +129,7 @@ sits_accuracy.sits <- function(data, ...) {
 sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 
     # sits only accepts "csv" files
-    .check_file(
-        x = validation_csv,
-        extensions = "csv"
-    )
+    .check_file_csv(validation_csv)
 
     # Read sample information from CSV file and put it in a tibble
     csv_tb <- tibble::as_tibble(
@@ -147,11 +140,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     )
 
     # Precondition - check if CSV file is correct
-    .check_chr_contains(
-        x = colnames(csv_tb),
-        contains = c("longitude", "latitude", "label"),
-        msg = "invalid csv file"
-    )
+    .check_csv(csv_tb)
 
     # Find the labels of the cube
     labels_cube <- sits_labels(data)
@@ -218,10 +207,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         # Get reference classes
         reference <- points_row$label
         # Does the number of predicted and reference values match?
-        .check_that(
-            x = length(reference) == length(predicted),
-            msg = "predicted and reference vector do not match"
-        )
+        .check_pred_ref_match(reference, predicted)
         # Create a tibble to store the results
         tb <- tibble::tibble(predicted = predicted, reference = reference)
         # Return the list
@@ -296,11 +282,8 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 
     # retrieve the reference labels
     ref <- class$label
-    # does the input data contained valid reference labels?
-    .check_that(
-        x = !("NoClass" %in% (ref)),
-        msg = "input data without labels"
-    )
+    # does the input data contains valid reference labels?
+    .check_valid_labels_ref(ref)
     # build the tibble
     pred_ref <- tibble::tibble("predicted" = pred, "reference" = ref)
     return(pred_ref)
@@ -332,31 +315,10 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 
     # set caller to show in errors
     .check_set_caller(".sits_accuracy_area_assess")
-
-    .check_chr_contains(
-        x = class(cube),
-        contains = "classified_image"
-    )
-
-    if (any(dim(error_matrix) == 0)) {
-        stop("invalid dimensions in error matrix.", call. = FALSE)
-    }
-    if (length(unique(dim(error_matrix))) != 1) {
-        stop("The error matrix is not square.", call. = FALSE)
-    }
-    if (!all(colnames(error_matrix) == rownames(error_matrix))) {
-        stop("Labels mismatch in error matrix.", call. = FALSE)
-    }
-    if (unique(dim(error_matrix)) != length(area)) {
-        stop("Mismatch between error matrix and area vector.",
-            call. = FALSE
-        )
-    }
-    if (!all(names(area) %in% colnames(error_matrix))) {
-        stop("Label mismatch between error matrix and area vector.",
-            call. = FALSE
-        )
-    }
+    # check if cube has the right type
+    .check_cube_is_classified_image(cube)
+    # check error matrix
+    .check_error_matrix_area(error_matrix, area)
 
     # reorder the area based on the error matrix
     area <- area[colnames(error_matrix)]
@@ -428,16 +390,15 @@ sits_accuracy_summary <- function(x,
 
     # set caller to show in errors
     .check_set_caller("sits_accuracy_summary")
+    # is data of class sits_accuracy
+    .check_is_sits_accuracy(x)
 
     if ("sits_area_accuracy" %in% class(x)) {
         print.sits_area_accuracy(x)
         return(invisible(TRUE))
     }
-    .check_that(
-        x = inherits(x, what = "sits_accuracy"),
-        local_msg = "please run sits_accuracy() first",
-        msg = "input does not contain accuracy information"
-    )
+    # is data of class sits_accuracy
+    .check_is_sits_accuracy(x)
     # round the data to the significant digits
     overall <- round(x$overall, digits = digits)
 

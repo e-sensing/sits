@@ -15,9 +15,6 @@
 #'
 .sits_distances <- function(data) {
 
-    # check the sits tibble
-    .sits_tibble_test(data)
-
     # get bands order
     bands <- names(data$time_series[[1]][-1])
 
@@ -51,6 +48,8 @@
     }
 
     distances_tbl <- data.table::data.table(distances_tbl)
+    # postcondition
+    .check_na(distances_tbl)
 
     return(distances_tbl)
 }

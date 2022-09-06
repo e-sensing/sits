@@ -171,8 +171,6 @@ sits_timeline.classified_image <- function(data) {
         len_min = 1,
         msg = "sits_timeline_class_info: invalid timeline"
     )
-    # precondition: are the samples valid?
-    .sits_tibble_test(samples)
     # find the labels
     labels <- sits_labels(samples)
     # find the bands
@@ -559,7 +557,6 @@ sits_timeline.classified_image <- function(data) {
 #' @return       TRUE if the length of time series is unique
 #'
 .sits_timeline_check <- function(data) {
-    .sits_tibble_test(data)
     if (length(unique(lapply(data$time_series, nrow))) == 1) {
         return(TRUE)
     } else {

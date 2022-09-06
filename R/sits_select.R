@@ -59,9 +59,6 @@ sits_select.sits <- function(data, bands, ...) {
 #' @export
 sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
 
-    # pre-condition - cube
-    .cube_check(data)
-
     if (!is.null(tiles)) {
         .check_chr_type(tiles)
         data <- dplyr::filter(data, .data[["tile"]] %in% !!tiles)
@@ -76,7 +73,7 @@ sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
         }
 
         # pre-condition - check bands
-        .cube_bands_check(tile, bands = bands)
+        .check_cube_bands(tile, bands = bands)
 
         db_info <- .file_info(tile)
         db_info <- dplyr::filter(

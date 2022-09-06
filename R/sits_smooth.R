@@ -86,14 +86,10 @@ sits_smooth <- function(cube, type = "bayes", ...) {
     .check_require_packages("parallel")
 
     # check if cube has probability data
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "input is not probability cube"
-    )
+    .check_cube_is_probs_cube(cube)
 
     # define the class of the smoothing
     class(type) <- c(type, class(type))
-
     UseMethod("sits_smooth", type)
 }
 
@@ -110,17 +106,8 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               output_dir = ".",
                               version = "v1") {
 
-    # precondition 1 - check if cube has probability data
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "input is not probability cube"
-    )
-
-    # precondition 2 - test window size
-    .check_that(
-        x = window_size %% 2 != 0,
-        msg = "window_size must be an odd number"
-    )
+    # precondition - test window size
+    .check_window_size(window_size)
 
     # find out how many labels exist
     n_labels <- length(sits_labels(cube[1, ]))
@@ -136,46 +123,18 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             )
         )
     } else {
-        .check_num(
-            x = smoothness,
-            exclusive_min = 1,
-            len_max = 1,
-            msg = "invalid 'smoothness' parameter"
-        )
+        .check_num_parameter(smoothness, exclusive_min = 0)
         smoothness <- diag(smoothness, nrow = n_labels, ncol = n_labels)
     }
 
-    # precondition 4 - multicores
-    .check_num(
-        x = multicores,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        is_integer = TRUE,
-        msg = "invalid 'multicores' parameter"
-    )
-
-    # precondition 5 - memory
-    .check_num(
-        x = memsize,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'memsize' parameter"
-    )
-
-    # precondition 6 - output dir
-    .check_file(
-        x = output_dir,
-        msg = "invalid output dir"
-    )
-
-    # precondition 7 - version
-    .check_chr(
-        x = version,
-        len_min = 1,
-        msg = "invalid version"
-    )
+    # precondition - multicores
+    .check_multicores(multicores)
+    # precondition - memsize
+    .check_memsize(memsize)
+    # precondition - output dir
+    .check_output_dir(output_dir)
+    # precondition - version
+    .check_version(version)
 
     # create a window
     window <- matrix(1, nrow = window_size, ncol = window_size)
@@ -286,6 +245,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         in_file <- .file_info_path(tile)
 
         # process blocks in parallel
+        # .sits_parallel_function(blocks, function, in_file, output_dir)
         block_files_lst <- .sits_parallel_map(blocks, function(block) {
 
             # Open brick
@@ -426,60 +386,23 @@ sits_smooth.bilateral <- function(cube,
                                   output_dir = ".",
                                   version = "v1") {
 
-    # precondition 1 - check if cube has probability data
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "input is not probability cube"
-    )
-
-    # precondition 2 - test window size
-    .check_that(
-        x = window_size %% 2 != 0,
-        msg = "window_size must be an odd number"
-    )
-
-    # prediction 3 - test variance
-    .check_num(
-        x = sigma,
-        len_max = 1,
-        exclusive_min = 0,
-        msg = "invalid 'sigma' parameter"
-    )
-
-    # precondition 4 - multicores
-    .check_num(
-        x = multicores,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        is_integer = TRUE,
-        msg = "invalid 'multicores' parameter"
-    )
-
-    # precondition 5 - memory
-    .check_num(
-        x = memsize,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'memsize' parameter"
-    )
-    # precondition 6 - output dir
-    .check_file(
-        x = output_dir,
-        msg = "invalid output dir"
-    )
-
-    # precondition 7 - version
-    .check_chr(
-        x = version,
-        len_min = 1,
-        msg = "invalid version"
-    )
+    # precondition - window size
+    .check_window_size(window_size)
+    # prediction - variance
+    .check_num_parameter(sigma, exclusive_min = 0)
+    # prediction - tau
+    .check_num_parameter(tau, exclusive_min = 0)
+    # precondition - multicores
+    .check_multicores(multicores)
+    # precondition - memsize
+    .check_memsize(memsize)
+    # precondition - output dir
+    .check_output_dir(output_dir)
+    # precondition - version
+    .check_version(version)
 
     # calculate gauss kernel
     gauss_kernel <- function(window_size, sigma) {
-        stopifnot(window_size %% 2 != 0)
 
         w_center <- ceiling(window_size / 2)
         w_seq <- seq_len(window_size)

@@ -86,22 +86,15 @@ sits_tuning <- function(samples,
     .check_set_caller("sits_tuning")
 
     # pre-conditions
-    # check samples parameter
-    .sits_tibble_test(samples)
+    # check samples
+    .check_valid_samples(samples)
     # check samples_validation parameter if it is passed
     if (!purrr::is_null(samples_validation)) {
-        .sits_tibble_test(samples_validation)
+        .check_valid_samples(samples_validation)
     }
     # check validation_split parameter if samples_validation is not passed
     if (purrr::is_null(samples_validation)) {
-        .check_num(
-            x = validation_split,
-            exclusive_min = 0,
-            max = 0.5,
-            len_min = 1,
-            len_max = 1,
-            msg = "invalid 'validation_split' parameter"
-        )
+        .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
     }
     # check 'ml_functions' parameter
     ml_function <- substitute(ml_method, env = environment())
@@ -127,19 +120,10 @@ sits_tuning <- function(samples,
     # update formals with provided parameters in params
     params <- utils::modifyList(params_default, params)
     # check trials
-    .check_num(
-        x = trials,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        is_integer = TRUE,
-        msg = "invalid 'trials' parameter"
-    )
+    .check_int_parameter(trials)
     # check 'multicores' parameter
-    .check_num(
-        x = multicores, min = 1, len_min = 1, len_max = 1, is_integer = TRUE,
-        msg = "invalid 'multicores' parameter"
-    )
+    .check_multicores(multicores)
+
     # generate random params
     params_lst <- purrr::map(
         seq_len(trials),

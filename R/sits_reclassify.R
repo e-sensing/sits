@@ -107,18 +107,8 @@ sits_reclassify <- function(cube, mask, ...,
     .check_set_caller("sits_reclassify")
 
     # pre-conditions
-    .check_that(
-        x = inherits(cube, "classified_image"),
-        local_msg = "value should be a classified_image",
-        msg = "invalid 'cube' parameter"
-    )
-
-    # pre-conditions
-    .check_that(
-        x = inherits(mask, "classified_image"),
-        local_msg = "value should be a classified_image",
-        msg = "invalid 'mask' parameter"
-    )
+    .check_cube_is_classified_image(cube)
+    .check_cube_is_classified_image(mask)
 
     # capture expressions
     exprs <- as.list(substitute(list(...), environment()))[-1]

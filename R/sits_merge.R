@@ -48,11 +48,7 @@ sits_merge <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 #' @export
 sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 
-    # precondition
-    .sits_tibble_test(data1)
-    .sits_tibble_test(data2)
-
-    # if some parameter is empty returns the another one
+    # precondition - data sets are not empty
     .check_that(
         x = nrow(data1) > 0 & nrow(data2) > 0,
         msg = "invalid input data"
@@ -106,8 +102,8 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 
     # pre-condition - check cube type
-    .cube_check(data1)
-    .cube_check(data2)
+    .check_is_sits_cube(data1)
+    .check_is_sits_cube(data2)
 
     .check_that(
         x = data1$satellite == data2$satellite,

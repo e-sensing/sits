@@ -119,25 +119,15 @@ sits_classify.sits <- function(data,
                                multicores = 2) {
 
     # precondition: verify that the data is correct
-    .sits_tibble_test(data)
-
-    # precondition: ensure the machine learning model has been built
-    .check_null(
-        x = ml_model,
-        msg = "please provide a trained ML model"
-    )
+    .check_valid_samples(data)
+    # precondition - are the samples form the model valid?
+    samples <- .sits_ml_model_samples(ml_model)
+    .check_valid_samples(samples)
 
     # Apply filter
     if (!purrr::is_null(filter_fn)) {
         data <- .apply_across(data = data, fn = filter_fn)
     }
-
-    # precondition - are the samples valid?
-    samples <- .sits_ml_model_samples(ml_model)
-    .check_that(
-        x = nrow(samples) > 0,
-        msg = "missing original samples"
-    )
     # check band order is the same
     bands_samples <- sits_bands(samples)
     bands_data <- sits_bands(data)
@@ -157,13 +147,8 @@ sits_classify.sits <- function(data,
         # no, input data does not need to be normalized
         distances <- .sits_distances(data)
     }
-
-
     # post condition: is distance data valid?
-    .check_that(
-        x = nrow(distances) > 0,
-        msg = "problem with normalization"
-    )
+    .check_valid_distances(distances, data)
 
     # calculate the breaks in the time for multi-year classification
     class_info <- .sits_timeline_class_info(
@@ -205,61 +190,21 @@ sits_classify.raster_cube <- function(data,
                                       verbose = FALSE,
                                       progress = FALSE) {
 
-    # Set caller to show in errors
-    .check_set_caller("sits_classify.raster_cube")
-    # Precondition - checks if the cube and ml_model are valid
-    #.sits_classify_check_params(data, ml_model)
-    # Precondition - checks if data is empty
-    .check_that(
-        x = nrow(data) > 0,
-        local_msg = "cube is empty",
-        msg = "invalid 'data' parameter"
-    )
-    # Check documentation mode
-    progress <- .check_documentation(progress)
-    # Precondition - test if cube is regular
-    .check_that(
-        x = .cube_is_regular(data),
-        local_msg = "Please use sits_regularize()",
-        msg = "sits can only classify regular cubes"
-    )
-    # Precondition - roi
-    if (!is.null(roi)) {
-        roi <- .sits_parse_roi_cube(roi)
-    }
+    # precondition - test if cube is regular
+    .check_cube_is_regular(data)
+    # precondition - multicores
+    .check_multicores(multicores)
+    # precondition - memsize
+    .check_memsize(memsize)
+    # precondition - output dir
+    .check_output_dir(output_dir)
+    # precondition - version
+    .check_version(version)
+
     # Update multicores parameter
     if ("xgb_model" %in% class(ml_model)) {
         multicores <- 1
     }
-    # Precondition - multicores
-    .check_num(
-        x = multicores,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        is_integer = TRUE,
-        msg = "invalid 'multicores' parameter"
-    )
-    # Precondition - memory
-    .check_num(
-        x = memsize,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'memsize' parameter"
-    )
-    # Precondition - output dir
-    .check_file(
-        x = output_dir,
-        msg = "invalid 'output_dir' parameter"
-    )
-    # Precondition - version
-    .check_chr(
-        x = version,
-        len_min = 1,
-        msg = "invalid 'version' parameter"
-    )
-
     # Spatial filter
     if (!is.null(roi)) {
         data <- .cube_spatial_filter(
@@ -289,6 +234,8 @@ sits_classify.raster_cube <- function(data,
     }
     # Retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
+    # precondition - are the samples valid?
+    .check_valid_samples(samples)
     # Check timelines of samples and tile
     .check_that(
         length(sits_timeline(samples)) == length(sits_timeline(data)),

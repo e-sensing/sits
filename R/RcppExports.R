@@ -13,6 +13,18 @@ bilateral_smoother <- function(m, m_nrow, m_ncol, w, tau) {
     .Call(`_sits_bilateral_smoother`, m, m_nrow, m_ncol, w, tau)
 }
 
+average_probs <- function(data_lst) {
+    .Call(`_sits_average_probs`, data_lst)
+}
+
+weighted_probs <- function(data_lst, weights) {
+    .Call(`_sits_weighted_probs`, data_lst, weights)
+}
+
+weighted_uncert_probs <- function(data_lst, unc_lst) {
+    .Call(`_sits_weighted_uncert_probs`, data_lst, unc_lst)
+}
+
 entropy_probs <- function(mtx, n) {
     .Call(`_sits_entropy_probs`, mtx, n)
 }
