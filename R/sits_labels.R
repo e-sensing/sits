@@ -100,24 +100,15 @@ sits_labels.sits_model <- function(data) {
 `sits_labels<-.sits` <- function(data, value) {
 
     # does the input data exist?
-    .check_is_sits_tibble(data)
+    .check_samples(data)
 
     labels <- sits_labels(data)
 
-    # check if value is an atomic vector
-    .check_chr_type(
-        x = value,
-        msg = "value must be a character vetor"
+    # check if value and labels match
+    .check_chr_parameter(value,
+                         len_max = length(labels),
+                         len_min = length(labels)
     )
-
-    # check if length is correct
-    .check_length(
-        x = labels,
-        len_max = length(value),
-        len_min = length(value),
-        msg = "informed labels have a different expected length"
-    )
-
     # check if there are no NA
     .check_that(
         x = all(!is.na(value)),

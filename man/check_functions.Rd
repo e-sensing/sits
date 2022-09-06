@@ -7,7 +7,6 @@
 \alias{.check_that}
 \alias{.check_null}
 \alias{.check_na}
-\alias{.check_require_packages}
 \alias{.check_names}
 \alias{.check_length}
 \alias{.check_apply}
@@ -25,32 +24,6 @@
 \alias{.check_env_var}
 \alias{.check_warn}
 \alias{.check_error}
-\alias{.check_documentation}
-\alias{.check_num_parameter}
-\alias{.check_int_parameter}
-\alias{.check_chr_parameter}
-\alias{.check_window_size}
-\alias{.check_band_in_cube}
-\alias{.check_multicores}
-\alias{.check_memsize}
-\alias{.check_output_dir}
-\alias{.check_version}
-\alias{.check_expression}
-\alias{.check_predicted}
-\alias{.check_is_sits_cube}
-\alias{.check_is_raster_cube}
-\alias{.check_is_sits_tibble}
-\alias{.check_is_sits_accuracy}
-\alias{.check_is_sits_model}
-\alias{.check_valid_samples}
-\alias{.check_samples_validation}
-\alias{.check_valid_samples_cluster}
-\alias{.check_valid_distances}
-\alias{.check_file_csv}
-\alias{.check_csv}
-\alias{.check_pred_ref_match}
-\alias{.check_samples_tile_match}
-\alias{.check_valid_labels_ref}
 \title{Check functions}
 \usage{
 .check_set_caller(caller)
@@ -62,8 +35,6 @@
 .check_null(x, ..., msg = NULL)
 
 .check_na(x, ..., allow_na = FALSE, msg = NULL)
-
-.check_require_packages(x, ..., msg = "Please install package(s)")
 
 .check_names(x, ..., is_named = TRUE, msg = NULL)
 
@@ -158,67 +129,6 @@
 .check_warn(expr)
 
 .check_error(expr, ..., msg = NULL)
-
-.check_documentation(progress)
-
-.check_num_parameter(
-  param,
-  min = -Inf,
-  max = Inf,
-  len_min = 1,
-  len_max = 1,
-  allow_na = FALSE,
-  exclusive_min = -Inf,
-  tolerance = 0
-)
-
-.check_int_parameter(param, min = 1, max = 2^31 - 1, len_min = 1, len_max = 1)
-
-.check_chr_parameter(param, len_min = 1, len_max = 1)
-
-.check_window_size(window_size, min = 1, max = 2^32 - 1)
-
-.check_band_in_cube(band, cube)
-
-.check_multicores(multicores)
-
-.check_memsize(memsize)
-
-.check_output_dir(output_dir)
-
-.check_version(version)
-
-.check_expression(list_expr)
-
-.check_predicted(data)
-
-.check_is_sits_cube(data)
-
-.check_is_raster_cube(data)
-
-.check_is_sits_tibble(data)
-
-.check_is_sits_accuracy(data)
-
-.check_is_sits_model(model)
-
-.check_valid_samples(data)
-
-.check_samples_validation(samples_validation, labels, timeline, bands)
-
-.check_valid_samples_cluster(data)
-
-.check_valid_distances(distances, samples)
-
-.check_file_csv(file)
-
-.check_csv(csv)
-
-.check_pred_ref_match(reference, predicted)
-
-.check_samples_tile_match(samples, tile)
-
-.check_valid_labels_ref(data)
 }
 \arguments{
 \item{caller}{A \code{character} value with the caller name.}
@@ -316,7 +226,7 @@ argument as \code{x} if a \code{TRUE} evaluation occurs.
 
 \code{.check_set_caller()} returns \code{NULL}.
 
-\code{.check_identify_caller()} returns a \code{character} value.
+the name of the function that is being tested.
 
 The same input value if no error occurs
 }
@@ -374,10 +284,6 @@ is out of the range specified by \code{len_min} and \code{len_max}
 \code{.check_apply()} throws an error only if \code{fn_check}
 function throws an error when applied to each \code{x} element.
 }
-}
-
-Check type functions:
-\itemize{
 \item{
 \code{.check_lgl_type()} throws an error if \code{x} type is not
 \code{logical}.

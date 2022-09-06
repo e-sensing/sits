@@ -7,15 +7,12 @@
 .check_cube_is_uncert_cube(cube)
 }
 \arguments{
-\item{cube}{input data cube}
+\item{cube}{a sits cube to be tested}
 }
 \value{
-TRUE/FALSE
+No return value, called for side effects
 }
 \description{
 Check if cube is a uncert cube
-}
-\author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
 \keyword{internal}

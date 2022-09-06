@@ -322,7 +322,7 @@
     .check_set_caller(".cube_derived_create")
 
     # only one tile at a time is processed
-    .check_cube_has_one_tile(cube)
+    .check_has_one_tile(cube)
 
     # output filename
     file_name <- paste0(
@@ -405,7 +405,7 @@
     .check_set_caller(".cube_extract")
 
     # pre-condition - one tile at a time
-    .check_cube_has_one_tile(cube)
+    .check_has_one_tile(cube)
     # does the cube contain the band?
     .check_band_in_cube(band_cube, cube)
 
@@ -446,7 +446,7 @@
 
     if (!is.null(tile)) {
         cube <- dplyr::filter(cube, .data[["tile"]] == !!tile)
-        .check_cube_has_one_tile(cube)
+        .check_has_one_tile(cube)
     }
 
     # get file_info for a given fid
@@ -551,7 +551,7 @@
 .cube_params_block <- function(cube, block) {
 
     # pre-condition - one tile at a time
-    .check_cube_has_one_tile(cube)
+    .check_has_one_tile(cube)
 
     # pre-conditions
     .check_int_parameter(block[["first_row"]],
@@ -751,7 +751,7 @@
 .cube_tile_bbox <- function(cube) {
 
     # pre-condition - one tile at a time
-    .check_cube_has_one_tile(cube)
+    .check_has_one_tile(cube)
 
     bbox <- vector("double", length = 4)
     names(bbox) <- c("xmin", "ymin", "xmax", "ymax")

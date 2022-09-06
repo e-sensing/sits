@@ -10,7 +10,7 @@
 #' sits_time_series(cerrado_2classes)
 #' @export
 sits_time_series <- function(data) {
-    .check_valid_samples(data)
+    .check_samples(data)
     return(data$time_series[[1]])
 }
 
@@ -127,7 +127,7 @@ sits_time_series <- function(data) {
 #'
 .sits_tibble_prune <- function(data) {
     # verify that tibble is correct
-    .check_is_sits_tibble(data)
+    .check_samples(data)
 
     n_samples <- data$time_series %>%
         purrr::map_int(function(t) {

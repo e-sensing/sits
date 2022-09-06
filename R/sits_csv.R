@@ -27,7 +27,7 @@ sits_to_csv <- function(data, file) {
     .check_set_caller("sits_metadata_to_csv")
 
     # check the samples are valid
-    .check_valid_samples(data)
+    .check_samples(data)
 
     .check_that(
         x = suppressWarnings(file.create(file)),

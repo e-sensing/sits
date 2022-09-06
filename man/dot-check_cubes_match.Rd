@@ -2,20 +2,19 @@
 % Please edit documentation in R/sits_check.R
 \name{.check_cubes_match}
 \alias{.check_cubes_match}
-\title{Check if uncert cubes have the same organization}
+\title{Check if two cubes have the same organization}
 \usage{
 .check_cubes_match(cube1, cube2)
 }
 \arguments{
-\item{cubes}{list of input data cubes}
+\item{cube1}{input data cube}
+
+\item{cube2}{input data cube}
 }
 \value{
-TRUE/FALSE
+No return value, called for side effects.
 }
 \description{
-Check if uncert cubes have the same organization
-}
-\author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
+Check if two cubes have the same organization
 }
 \keyword{internal}

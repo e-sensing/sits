@@ -7,15 +7,12 @@
 .check_cube_is_classified_image(cube)
 }
 \arguments{
-\item{cube}{input data cube}
+\item{cube}{a sits cube to be tested}
 }
 \value{
-TRUE/FALSE
+No return value, called for side effects
 }
 \description{
 Check if cube is a classified image
-}
-\author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
 \keyword{internal}

@@ -91,7 +91,7 @@ sits_combine_predictions.average <- function(cubes,
 
 
     # is every cube a probs cube
-    purrr::map(cubes, .check_cube_is_probs_cube)
+    purrr::map(cubes, .check_is_probs_cube)
     # check if cubes match
     .check_cube_list_match(cubes)
 
@@ -308,7 +308,7 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
 
     # check if probs cubes and uncert cubes are valid and match
     # is every cube a probs cube
-    purrr::map(cubes, .check_cube_is_probs_cube)
+    purrr::map(cubes, .check_is_probs_cube)
     # check if cubes match
     .check_cube_list_match(cubes)
     # all uncert cubes are valid
@@ -566,8 +566,8 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
 #' @param uncert       include uncertainty cubes?
 #'
 #' @return  returns a list with following information:
-#'             - multicores theoretical upper bound;
-#'             - block x_size (horizontal) and y_size (vertical)
+#'          multicores theoretical upper bound;
+#'          block x_size (horizontal) and y_size (vertical)
 #'
 .comb_estimate_block_size <- function(cubes,
                                       multicores,

@@ -206,7 +206,7 @@ sits_confidence_sampling <- function(probs_cube,
     .check_set_caller("sits_confidence_sampling")
 
     # Pre-conditions
-    .check_cube_is_probs_cube(probs_cube)
+    .check_is_probs_cube(probs_cube)
     .check_int_parameter(n, min = 20)
     .check_num_parameter(min_margin, min = 0.01, max = 1.0)
     .check_int_parameter(sampling_window, min = 10)

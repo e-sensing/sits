@@ -33,7 +33,7 @@ sits_as_sf <- function(data, ..., crs) {
 #' @export
 #' @rdname sits_as_sf
 sits_as_sf.sits <- function(data, ..., crs = 4326) {
-    .check_is_sits_tibble(data)
+    .check_samples(data)
 
     samples_sf <- sf::st_as_sf(data,
         coords = c("longitude", "latitude"),

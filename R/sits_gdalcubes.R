@@ -76,7 +76,7 @@
     .check_set_caller(".gc_create_cube_view")
 
     # pre-conditions
-    .check_cube_has_one_tile(tile)
+    .check_has_one_tile(tile)
 
     # get bbox roi
     bbox_roi <- sits_bbox(tile)

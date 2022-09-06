@@ -101,7 +101,7 @@ sits_apply.raster_cube <- function(data, ...,
     progress <- .check_documentation(progress)
 
     # precondition - test if cube is regular
-    .check_cube_is_regular(data)
+    .check_is_regular(data)
 
     # Check output_dir
     output_dir <- path.expand(output_dir)
@@ -369,7 +369,7 @@ sits_apply.raster_cube <- function(data, ...,
 .apply_across <- function(data, fn, ...) {
 
     # Pre-conditions
-    .check_is_sits_tibble(data)
+    .check_samples(data)
 
     result <-
         .sits_fast_apply(data, col = "time_series", fn = function(x, ...) {
@@ -502,7 +502,7 @@ sits_apply.raster_cube <- function(data, ...,
 .apply_estimate_block_size <- function(cube, multicores, memsize) {
 
     # precondition 1 - check if cube is regular
-    .check_cube_is_regular(cube)
+    .check_is_regular(cube)
 
     size <- .cube_size(cube[1,])
     n_bands <- length(.cube_bands(cube))
@@ -567,7 +567,7 @@ sits_apply.raster_cube <- function(data, ...,
 .apply_input_bands <- function(tile, expr) {
 
     # Pre-condition
-    .check_cube_has_one_tile(tile)
+    .check_has_one_tile(tile)
 
     # Get all required bands in expression
     expr_bands <- toupper(.apply_get_all_names(expr[[1]]))
