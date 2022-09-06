@@ -63,7 +63,7 @@ A combined probability cube
 Calculate an ensemble predictor based a list of probability
 cubes. The function combines the output of two or more classifier
 to derive a value which is based on weights assigned to each model.
-The supported types of ensemble predictors are 'average', 'weights', and
+The supported types of ensemble predictors are 'average' and
 'uncertainty'.
 }
 \note{
