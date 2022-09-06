@@ -251,13 +251,23 @@ sits_label_classification <- function(cube,
         # Remove blocks
         on.exit(unlink(tmp_blocks), add = TRUE)
 
+        # Create a template raster based on the first image of the tile
+        .raster_template(
+            file = .file_info_path(tile),
+            out_file = out_file,
+            data_type = .config_get("class_cube_data_type"),
+            nlayers = 1,
+            missing_value = .config_get("class_cube_missing_value")
+        )
+
         # merge to save final result
         .raster_merge(
             files = tmp_blocks,
             out_file = out_file,
             format = "GTiff",
             data_type = .config_get("class_cube_data_type"),
-            multicores = 1
+            multicores = 1,
+            overwrite = FALSE
         )
 
         return(tile_new)

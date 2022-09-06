@@ -379,6 +379,14 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
+        .raster_template(
+            file = .file_info_path(tile),
+            out_file = out_file,
+            data_type = .config_get("probs_cube_data_type"),
+            nlayers = length(.cube_labels(tile)),
+            missing_value = .config_get("probs_cube_missing_value")
+        )
+
         # Remove blocks
         on.exit(unlink(tmp_blocks), add = TRUE)
 
@@ -388,7 +396,8 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             out_file = out_file,
             format = "GTiff",
             data_type = .config_get("probs_cube_data_type"),
-            multicores = 1
+            multicores = 1,
+            overwrite = FALSE
         )
 
         return(tile_new)
@@ -672,6 +681,14 @@ sits_smooth.bilateral <- function(cube,
         }
 
         tmp_blocks <- blocks_tile_lst[[i]]
+
+        .raster_template(
+            file = .file_info_path(tile),
+            out_file = out_file,
+            data_type = .config_get("probs_cube_data_type"),
+            nlayers = length(.cube_labels(tile)),
+            missing_value = .config_get("probs_cube_missing_value")
+        )
 
         # Remove blocks
         on.exit(unlink(tmp_blocks), add = TRUE)
