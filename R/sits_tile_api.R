@@ -487,7 +487,7 @@
 .fi_during <- function(fi, start_date, end_date) {
     !.fi_is_empty(
         .fi_temporal_filter(
-            fi = ,
+            fi = fi,
             start_date = start_date,
             end_date = end_date
         )
@@ -495,7 +495,7 @@
 }
 
 .fi_temporal_filter <- function(fi, start_date, end_date) {
-    if (fi[["band"]] %in% .config_get("sits_results_bands")) {
+    if (all(unique(fi[["band"]]) %in% .config_get("sits_results_bands"))) {
         class(fi) <- unique(c("class_cube", class(fi)))
     } else {
         class(fi) <- unique(c("eo_cube", class(fi)))
@@ -637,13 +637,13 @@
 .ml_model_stats_quant2_band <- function(ml_model, band) {
     stats <- .ml_model_stats(ml_model)
     if (is.null(stats)) return(NULL)
-    stats[2, band]
+    stats[["quant_2"]][[band]]
 }
 
 .ml_model_stats_quant98_band <- function(ml_model, band) {
     stats <- .ml_model_stats(ml_model)
     if (is.null(stats)) return(NULL)
-    stats[3, band]
+    stats[["quant_98"]][[band]]
 }
 
 .ml_model_samples <- function(ml_model) {
@@ -663,6 +663,22 @@
     .samples_labels(.ml_model_samples(ml_model))
 }
 
+.ml_norm_param <- function(data) {
+    ts <- dplyr::select(dplyr::bind_rows(data$time_series), -.data[["Index"]])
+    med <- dplyr::summarise(ts, dplyr::across(
+        .fns = stats::median, na.rm = TRUE
+    ))
+    quant_2 <- dplyr::summarise(ts, dplyr::across(
+        .fns = stats::quantile, probs = 0.02, na.rm = TRUE
+    ))
+    quant_98 <- dplyr::summarise(ts, dplyr::across(
+        .fns = stats::quantile, probs = 0.98, na.rm = TRUE
+    ))
+    stats <- list(med = med, quant_2 = quant_2, quant_98 = quant_98)
+
+    return(stats)
+}
+
 #---- samples ----
 .samples_bands <- function(samples) {
     setdiff(names(samples[["time_series"]][[1]]), "Index")
@@ -670,4 +686,15 @@
 
 .samples_labels <- function(samples) {
     sort(unique(samples[["label"]]))
+}
+
+.samples_normalize <- function(samples, stats) {
+    bands <- .samples_bands(samples)
+
+    data_norm <- .apply_across(samples, fn = function(b, stats) {
+        band <- dplyr::cur_column()
+        quant_2 <- stats[["quant_2"]][[band]]
+        quant_98 <- stats[["quant_98"]][[band]]
+        c(normalize_data(as.matrix(b), quant_2, quant_98))
+    }, stats = stats)
 }
