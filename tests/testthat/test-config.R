@@ -39,7 +39,8 @@ test_that("User functions", {
 
     expect_equal(
         .config_gtiff_default_options(),
-        c("COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES")
+        c("COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES", "TILED=YES",
+          "BLOCKXSIZE=512", "BLOCKYSIZE=512")
     )
 
     # load default + user config
