@@ -22,7 +22,7 @@ sits_combine_predictions(
   ...,
   multicores = 2,
   memsize = 4,
-  output_dir = ".",
+  output_dir = getwd(),
   version = "v1"
 )
 

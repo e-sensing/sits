@@ -86,7 +86,7 @@ sits_combine_predictions.average <- function(cubes,
                                              type = "average", ...,
                                              multicores = 2,
                                              memsize = 4,
-                                             output_dir = ".",
+                                             output_dir = getwd(),
                                              version = "v1") {
 
 
@@ -203,7 +203,6 @@ sits_combine_predictions.average <- function(cubes,
                     data_type = .raster_data_type(
                         .config_get("probs_cube_data_type")
                     ),
-                    gdal_options = .config_gtiff_default_options(),
                     overwrite = TRUE,
                     block = block
                 )
@@ -303,7 +302,7 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
                                             uncert_cubes,
                                             multicores = 2,
                                             memsize = 4,
-                                            output_dir = ".",
+                                            output_dir = getwd(),
                                             version = "v1") {
 
     # check if probs cubes and uncert cubes are valid and match
