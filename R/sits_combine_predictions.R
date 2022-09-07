@@ -272,7 +272,7 @@ sits_combine_predictions.average <- function(cubes,
         # merge to save final result
         suppressWarnings(
             .raster_merge(
-                in_files = tmp_blocks,
+                files = tmp_blocks,
                 out_file = out_file,
                 format = "GTiff",
                 data_type = .config_get("probs_cube_data_type"),
@@ -527,7 +527,7 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
         # merge to save final result
         suppressWarnings(
             .raster_merge(
-                in_files = tmp_blocks,
+                files = tmp_blocks,
                 out_file = out_file,
                 format = "GTiff",
                 data_type = .config_get("probs_cube_data_type"),
