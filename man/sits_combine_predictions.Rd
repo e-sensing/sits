@@ -33,7 +33,7 @@ sits_combine_predictions(
   uncert_cubes,
   multicores = 2,
   memsize = 4,
-  output_dir = ".",
+  output_dir = getwd(),
   version = "v1"
 )
 }

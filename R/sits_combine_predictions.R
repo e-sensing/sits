@@ -275,10 +275,7 @@ sits_combine_predictions.average <- function(cubes,
                 in_files = tmp_blocks,
                 out_file = out_file,
                 format = "GTiff",
-                gdal_datatype =
-                    .raster_gdal_datatype(.config_get("probs_cube_data_type")),
-                gdal_options =
-                    .config_gtiff_default_options(),
+                data_type = .config_get("probs_cube_data_type"),
                 overwrite = TRUE
             )
         )
@@ -437,7 +434,6 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
                     data_type = .raster_data_type(
                         .config_get("probs_cube_data_type")
                     ),
-                    gdal_options = .config_gtiff_default_options(),
                     overwrite = TRUE,
                     block = block
                 )
@@ -460,7 +456,6 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
                     data_type = .raster_data_type(
                         .config_get("probs_cube_data_type")
                     ),
-                    gdal_options = .config_gtiff_default_options(),
                     overwrite = TRUE,
                     block = block
                 )
@@ -535,10 +530,7 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
                 in_files = tmp_blocks,
                 out_file = out_file,
                 format = "GTiff",
-                gdal_datatype =
-                    .raster_gdal_datatype(.config_get("probs_cube_data_type")),
-                gdal_options =
-                    .config_gtiff_default_options(),
+                data_type = .config_get("probs_cube_data_type"),
                 overwrite = TRUE
             )
         )
