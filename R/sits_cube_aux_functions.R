@@ -260,6 +260,14 @@
     return(ov)
 }
 
+#' @title Check if R object is a data cube
+#' @keywords internal
+#' @name .cube_check
+#' @param cube  R object to be checked
+#' @return TRUE/FALSE
+.cube_check <- function(cube) {
+    return(inherits(cube, "sits_cube"))
+}
 
 #' @title Return collection of a data cube
 #' @keywords internal
