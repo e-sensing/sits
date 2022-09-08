@@ -75,13 +75,35 @@ cube_token_generator_n_tries: 3
 cube_token_generator_sleep_time: 10
 cube_token_generator_min_remaining_time: 5
 
-# configuration for probability cubes
+# old configuration for probability cubes
 probs_cube_scale_factor : 0.0001
 probs_cube_data_type    : "INT2U"
 probs_cube_missing_value: 65535
 probs_cube_band         : "probs"
-probs_cube_class        : ["probs_cube", "raster_cube", "tbl_df",
-                           "tbl", "data.frame"]
+probs_cube_class        : ["probs_cube", "raster_cube"]
+# configuration for probs_cube (probability cube)
+# (informed pixel values before scaling)
+default_values       :
+    eo_cube          :
+        data_type    : "INT2S"
+        missing_value: -32768
+        minimum_value: -10000
+        maximum_value: 10000
+        offset_value : 0
+        scale_factor : 0.0001
+
+# Derived cube definitions
+derived_cube         :
+    probs_cube       :
+        s3_class     : ["probs_cube", "derived_cube", "raster_cube"]
+        bands        :
+            probs    :
+                data_type    : "INT2U"
+                missing_value: 65535
+                minimum_value: 0
+                maximum_value: 10000
+                offset_value : 0
+                scale_factor : 0.0001
 
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"
