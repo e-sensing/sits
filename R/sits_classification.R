@@ -474,8 +474,9 @@ sits_classify.raster_cube <- function(data,
                 stats <- .ml_model_stats(ml_model)
                 if (!is.null(stats$quant_2[[band]]) &&
                     !is.null(stats$quant_98[[band]])) {
-                    values <- normalize_data(values, stats$quant_2[[band]],
-                                             stats$quant_98[[band]])
+                    values <- normalize_data(
+                        values, stats$quant_2[[band]], stats$quant_98[[band]]
+                    )
                 }
 
 
