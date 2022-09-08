@@ -137,6 +137,9 @@
     # prepare resolution
     resolution <- c(xres, yres)
 
+    # prepare crs
+    if (is.numeric(crs)) crs <- paste0("EPSG:", crs)
+
     if (is.null(resolution)) {
 
         # create a raster object
