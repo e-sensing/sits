@@ -225,7 +225,7 @@ sits_label_classification <- function(cube,
 
         # Create a template raster based on the first image of the tile
         .raster_template(
-            file = .file_info_path(tile),
+            base_file = .file_info_path(tile),
             out_file = out_file,
             data_type = .config_get("class_cube_data_type"),
             nlayers = 1,
