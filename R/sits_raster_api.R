@@ -899,3 +899,26 @@
     })
     return(FALSE)
 }
+
+.raster_write_block <- function(file, block, bbox, values, data_type) {
+    # create a new raster
+    r_obj <- .raster_new_rast(
+        nrows = block[["nrows"]], ncols = block[["ncols"]],
+        xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
+        ymin = bbox[["ymin"]], ymax = bbox[["ymax"]],
+        nlayers = ncol(values), crs = bbox[["crs"]]
+    )
+    # copy values
+    r_obj <- .raster_set_values(
+        r_obj = r_obj,
+        values = values
+    )
+    # write the probabilities to a raster file
+    .raster_write_rast(
+        r_obj = r_obj,
+        file = file,
+        data_type = data_type,
+        overwrite = TRUE
+    )
+    file
+}
