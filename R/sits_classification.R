@@ -294,95 +294,106 @@ sits_classify.raster_cube <- function(data,
         length(sits_timeline(samples)) == length(sits_timeline(data)),
         msg = "number of instances of samples and cube differ"
     )
-    # Get block size
-    block_size <- .raster_file_blocksize(
-        r_obj = .raster_open_rast(.file_info_path(data[1,]))
+    # Get job size
+    job_size <- .raster_file_blocksize(
+        .raster_open_rast(.file_info_path(data[1,]))
     )
     # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = job_size, npaths = length(.file_info_paths(data[1,])) +
+            length(.ml_model_labels(ml_model)), nbytes = 8,
+        proc_bloat = .config_processing_bloat(), overlap = 0
+    )
+    # Check if memsize is above minimum needed to process one block
+    .check_that(
+        x = job_memsize < memsize,
+        local_msg = paste("minimum memsize needed is", job_memsize, "GB"),
+        msg = "provided 'memsize' is insufficient for processing"
+    )
     multicores <- .jobs_max_multicores(
-        job_nrows = block_size[["block_nrows"]],
-        job_ncols = block_size[["block_ncols"]],
-        npaths = length(.file_info_paths(data[1,])) +
-            length(.ml_model_labels(ml_model)),
-        nbytes = 8,
-        proc_bloat = .config_processing_bloat(),
-        overlap = 0,
-        memsize = memsize,
-        multicores = multicores
+        job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
     # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = verbose)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
+    # # Callback final tile classification
+    # .callback(process = "cube_classification", event = "started",
+    #           context = environment())
     # Show block information
     if (verbose) {
         start_time <- Sys.time()
-        message("Using blocks of size (", block_size[["block_nrows"]],
-                " x ", block_size[["block_ncols"]], ")")
+        message("Using blocks of size (", block_size[["nrows"]],
+                " x ", block_size[["ncols"]], ")")
     }
     # Classification
     # Process each tile sequentially
-    probs_cube <- slider::slide_dfr(data, function(tile) {
+    probs_cube <- .cube_foreach_tile(data, function(tile) {
         # Output file
-        out_file <- .file_probs_name(
-            tile = tile,
-            version = version,
-            output_dir = output_dir
-        )
+        out_file <- .file_probs_name(tile = tile, version = version,
+                                     output_dir = output_dir)
         # Resume feature
         if (file.exists(out_file)) {
+            # # Callback final tile classification
+            # .callback(process = "tile_classification", event = "recovery",
+            #           context = environment())
             message("Recovery: Tile '", tile[["tile"]], "' already exists.")
             message("(If you want to produce a new image, please ",
                     "change 'output_dir' or 'version' parameters)")
-            probs_tile <- .tile_open_probs(
-                tile = tile,
-                labels = .ml_model_labels(ml_model),
-                file = out_file
+            probs_tile <- .tile_probs_from_file(
+                file = out_file,
+                band = "probs",
+                base_tile = tile,
+                labels = .ml_model_labels(ml_model)
             )
             return(probs_tile)
         }
+        # # Callback final tile classification
+        # .callback(process = "tile_classification", event = "started",
+        #           context = environment())
         # Show initial time for tile classification
         if (verbose) {
             tile_start_time <- Sys.time()
             message("Starting classification of tile '",
                     tile[["tile"]], "' at ", start_time)
         }
+        # Create jobs
         # Compute how many jobs to process
         jobs <- .jobs_create(
-            block_nrows = block_size[["block_nrows"]],
-            block_ncols = block_size[["block_ncols"]],
-            block_overlap = 0,
-            ncols = .file_info_ncols(tile),
-            nrows = .file_info_nrows(tile),
-            xmin = tile[["xmin"]],
-            xmax = tile[["xmax"]],
-            ymin = tile[["ymin"]],
-            ymax = tile[["ymax"]],
-            crs = tile[["crs"]],
-            roi = roi
+            job_size = job_size, block_overlap = 0,
+            ncols = .tile_ncols(tile), nrows = .tile_nrows(tile),
+            xmin = .tile_xmin(tile), xmax = .tile_xmax(tile),
+            ymin = .tile_ymin(tile), ymax = .tile_ymax(tile),
+            crs = .tile_crs(tile), roi = roi
         )
-        # Blocks file name pattern
-        block_pattern <- .file_sans_ext(.file_base(out_file))
-        # Process blocks in parallel
-        block_files <- .sits_parallel_map(
-            x = jobs,
-            fn = .sits_classify_job,
-            tile = tile,
-            ml_model = ml_model,
-            filter_fn = filter_fn,
-            impute_fn = impute_fn,
-            file_pattern = block_pattern,
-            output_dir = output_dir,
-            progress = progress
-        )
-        # Create a new prob tile and template
-        probs_tile <- .tile_create_probs(
-            tile = tile,
+        # Process jobs in parallel
+        block_files <- .jobs_parallel_chr(jobs, function(job) {
+            # Read and preprocess values from rasters
+            values <- .jobs_read_tile_eo(
+                job = job, tile = tile, ml_model = ml_model,
+                impute_fn = impute_fn, filter_fn = filter_fn)
+            # Apply the classification model
+            probs <- ml_model(values)
+            # Preprocess values
+            probs <- probs * round(1 / .conf_probs_band_scale())
+            # Prepare and save results as raster
+            .jobs_write_values(
+                job = job, values = probs,
+                data_type = .conf_probs_band_data_type(),
+                file_pattern = .file_base(.file_sans_ext(out_file)),
+                output_dir
+            )
+        })
+        # Merge blocks into a new probs_cube tile
+        probs_tile <- .tile_probs_merge_blocks(
+            file = out_file, band = "probs",
             labels = .ml_model_labels(ml_model),
-            out_file = out_file,
-            block_files = unlist(block_files),
+            base_tile = tile, block_files = block_files,
             multicores = multicores
         )
+        # # Callback final tile classification
+        # .callback(process = "tile_classification", event = "finished",
+        #           context = environment())
         # show final time for classification
         if (verbose) {
             tile_end_time <- Sys.time()
@@ -393,6 +404,9 @@ sits_classify.raster_cube <- function(data,
         }
         return(probs_tile)
     })
+    # # Callback final tile classification
+    # .callback(process = "cube_classification", event = "finished",
+    #           context = environment())
     # Show block information
     if (verbose) {
         end_time <- Sys.time()
