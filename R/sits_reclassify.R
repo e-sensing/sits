@@ -188,7 +188,6 @@ sits_reclassify <- function(cube, mask, ...,
             r_obj <- .raster_crop(
                 r_obj = .raster_open_rast(file = fi_row[["path"]]),
                 file = block_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("class_cube_data_type")
                 ),
@@ -214,7 +213,6 @@ sits_reclassify <- function(cube, mask, ...,
             .raster_write_rast(
                 r_obj = temp_obj,
                 file = block_mask_file,
-                format = "GTiff",
                 data_type = .config_get("class_cube_data_type"),
                 overwrite = TRUE,
                 missing_value = 0
@@ -267,7 +265,6 @@ sits_reclassify <- function(cube, mask, ...,
             .raster_write_rast(
                 r_obj = r_obj,
                 file = block_file,
-                format = "GTiff",
                 data_type = .config_get("class_cube_data_type"),
                 overwrite = TRUE,
                 missing_value = 0
@@ -284,7 +281,6 @@ sits_reclassify <- function(cube, mask, ...,
         .raster_merge(
             files = blocks_path,
             out_file = out_file,
-            format = "GTiff",
             data_type = .config_get("class_cube_data_type"),
             multicores = 1
         )
