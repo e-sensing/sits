@@ -41,3 +41,7 @@
 .file_base <- function(file) {
     gsub("[?].*$", "", gsub("^.*/", "", file))
 }
+
+.file_pattern <- function(file) {
+    .file_sans_ext(.file_base(file))
+}
