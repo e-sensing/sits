@@ -368,22 +368,250 @@ sits_classify.raster_cube <- function(data,
         )
         # Process jobs in parallel
         block_files <- .jobs_parallel_chr(jobs, function(job) {
-            # Read and preprocess values from rasters
-            values <- .jobs_read_tile_eo(
-                job = job, tile = tile, ml_model = ml_model,
-                impute_fn = impute_fn, filter_fn = filter_fn)
-            # Apply the classification model
-            probs <- ml_model(values)
-            # Preprocess values
-            probs <- probs * round(1 / .conf_probs_band_scale())
-            # Prepare and save results as raster
-            .jobs_write_values(
-                job = job, values = probs,
-                data_type = .conf_probs_band_data_type(),
-                file_pattern = .file_base(.file_sans_ext(out_file)),
-                output_dir
+            # Get job block
+            block <- .jobs_as_block(job)
+            # Get file_info to read files
+            fi <- .fi(tile)
+            #
+            # Log here
+            #
+            .sits_debug_log(
+                output_dir = output_dir,
+                event = "start_block_data_read_preprocess",
+                key = "block",
+                value = block
             )
+            # Get model bands
+            bands <- .ml_model_bands(ml_model)
+            # Read and preprocess values from rasters
+            if (.band_cloud() %in% bands) {
+
+
+                #
+                # Log here
+                #
+                .sits_debug_log(
+                    output_dir = output_dir,
+                    event = "start_block_data_read_cloud",
+                    key = "block",
+                    value = block
+                )
+
+
+                # Get cloud values
+                cloud_mask <- .fi_read_block(fi = fi, band = , block = block)
+
+
+                #
+                # Log here
+                #
+                .sits_debug_log(
+                    output_dir = output_dir,
+                    event = "end_block_data_read_cloud"
+                )
+
+
+                # Get cloud parameters
+                interp_values <- .tile_cloud_interp_values(tile)
+                is_bit_mask <- .tile_cloud_bit_mask(tile)
+
+
+                #
+                # Log here
+                #
+                .sits_debug_log(
+                    output_dir = output_dir,
+                    event = "start_block_data_process_cloud",
+                    key = "bitmask",
+                    value = is_bit_mask
+                )
+
+
+                # Prepare cloud_mask
+                # Identify values to be removed
+                cloud_mask <- if (!is_bit_mask) cloud_mask %in% interp_values
+                else matrix(bitwAnd(cloud_mask, sum(2^interp_values)) > 0,
+                            nrow = length(cloud_mask))
+
+
+                #
+                # Log here
+                #
+                .sits_debug_log(
+                    output_dir = output_dir,
+                    event = "end_block_data_process_cloud"
+                )
+
+
+            }
+            # For each band (except cloud) get values from files
+            values <- purrr::map(.bands(bands, cloud = FALSE), function(band) {
+
+
+                #
+                # Log here
+                #
+                .sits_debug_log(
+                    output_dir = output_dir,
+                    event = "start_block_data_read_band",
+                    key = "band",
+                    value = band
+                )
+
+
+                # Get band values
+                values <- .fi_read_block(fi = fi, band = band, block = block)
+
+
+                #
+                # Log here
+                #
+                .sits_debug_log(
+                    output_dir = output_dir,
+                    event = "end_block_data_read_band"
+                )
+
+
+                #
+                # Log here
+                #
+                .sits_debug_log(
+                    output_dir = output_dir,
+                    event = "start_block_data_process_band",
+                    key = "band",
+                    value = band
+                )
+
+
+                # Remove cloud masked pixels
+                if (.band_cloud() %in% bands) {
+                    values[cloud_mask] <- NA
+                }
+                # Correct missing, minimum, and maximum values; and scale values
+                # Get band defaults for derived cube from config
+                conf_band <- .conf_eo_band(
+                    source = .tile_source(tile),
+                    collection = .tile_collection(tile),
+                    band = band
+                )
+                # This can be ignored as it is already process by gdal
+                # miss_value = .band_miss_value(conf_band)
+                # if (!is.null(miss_value)) {
+                #     values[values == miss_value] <- NA
+                # }
+                min_value <- .band_min_value(conf_band)
+                if (!is.null(min_value)) {
+                    values[values < min_value] <- NA
+                }
+                max_value <- .band_max_value(conf_band)
+                if (!is.null(max_value)) {
+                    values[values > max_value] <- NA
+                }
+                # Remove NA pixels
+                if (!is.null(impute_fn)) {
+                    values <- impute_fn(values)
+                }
+                offset <- .band_offset(conf_band)
+                if (!is.null(offset)) {
+                    values <- values - offset
+                }
+                scale <- .band_scale(conf_band)
+                if (!is.null(scale)) {
+                    values <- values * scale
+                }
+                # Filter the time series
+                if (!(is.null(filter_fn))) {
+                    values <- filter_fn(values)
+                }
+                # Normalize values
+                stats <- .ml_model_stats(ml_model)
+                if (!is.null(stats$q02) && !is.null(stats$q98)) {
+                    values <- normalize_data(values, stats$q02, stats$q98)
+                }
+
+
+                #
+                # Log here
+                #
+                .sits_debug_log(
+                    output_dir = output_dir,
+                    event = "end_block_data_process_band"
+                )
+
+
+                values
+            })
+            # Compose final data
+            values <- do.call(cbind, values)
+            colnames(values) <- .ml_model_attr_names(ml_model)
+            # Apply the classification model to values
+
+
+            #
+            # Log here
+            #
+            .sits_debug_log(
+                output_dir = output_dir,
+                event = "start_block_data_classification",
+                key = "model",
+                value = class(ml_model)[[1]]
+            )
+
+
+            probs <- ml_model(values)
+
+
+            #
+            # Log here
+            #
+            .sits_debug_log(
+                output_dir = output_dir,
+                event = "end_block_data_classification"
+            )
+
+            # Prepare probability to be saved
+            probs <- probs * round(1 / .conf_probs_band_scale())
+            # Output file name
+            block_file <- .file_block_name(
+                pattern = .file_pattern(out_file),
+                block = block,
+                output_dir = output_dir
+            )
+
+
+            #
+            # Log here
+            #
+            .sits_debug_log(
+                output_dir = output_dir,
+                event = "start_block_data_save",
+                key = "file",
+                value = block_file
+            )
+
+
+            # Prepare and save results as raster
+            .raster_write_block(
+                file = block_file,
+                block = block,
+                bbox = .bbox(job),
+                values = probs,
+                data_type = .conf_probs_band_data_type()
+            )
+
+            #
+            # Log here
+            #
+            .sits_debug_log(
+                output_dir = output_dir,
+                event = "end_block_data_classification"
+            )
+
+            block_file
         })
+        # # Callback final tile classification
+        # .callback(event = "merge_blocks", status = "begin",
+        #           context = environment())
         # Merge blocks into a new probs_cube tile
         probs_tile <- .tile_probs_merge_blocks(
             file = out_file, band = "probs",
@@ -392,7 +620,7 @@ sits_classify.raster_cube <- function(data,
             multicores = multicores
         )
         # # Callback final tile classification
-        # .callback(process = "tile_classification", event = "finished",
+        # .callback(event = "tile_classification", status = "end",
         #           context = environment())
         # show final time for classification
         if (verbose) {
@@ -405,7 +633,7 @@ sits_classify.raster_cube <- function(data,
         return(probs_tile)
     })
     # # Callback final tile classification
-    # .callback(process = "cube_classification", event = "finished",
+    # .callback(event = "cube_classification", status = "end",
     #           context = environment())
     # Show block information
     if (verbose) {
