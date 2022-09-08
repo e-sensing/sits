@@ -4,21 +4,12 @@
 \alias{.raster_merge}
 \title{Merge all input files into one raster file}
 \usage{
-.raster_merge(
-  files,
-  out_file,
-  format,
-  data_type,
-  multicores = 2,
-  overwrite = TRUE
-)
+.raster_merge(files, out_file, data_type, multicores = 2, overwrite = TRUE)
 }
 \arguments{
 \item{files}{Input file paths}
 
 \item{out_file}{Output raster file path}
-
-\item{format}{Format to write the file}
 
 \item{data_type}{sits internal raster data type. One of "INT1U",
 "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".}
