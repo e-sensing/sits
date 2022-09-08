@@ -1,372 +1,649 @@
+#---- bbox api ----
+
+.bbox_type <- function(bbox) {
+    if (all(c("xmin", "xmax", "ymin", "ymax", "crs") %in% names(bbox)))
+        "crs"
+    else if (all(c("xmin", "xmax", "ymin", "ymax") %in% names(bbox)))
+        "no_crs"
+    else
+        stop("object does not have a valid bbox")
+}
+
+.bbox_switch <- function(bbox, ...) {
+    switch(.bbox_type(bbox), ...)
+}
+
+.bbox <- function(bbox) {
+    .bbox_switch(
+        bbox,
+        crs = c(bbox[c("xmin", "xmax", "ymin", "ymax", "crs")]),
+        no_crs = {
+            warning("object has no crs, assuming 'EPSG:4326'")
+            c(bbox[c("xmin", "xmax", "ymin", "ymax")], crs = 4326)
+        }
+    )
+}
+
+.bbox_xmin <- function(bbox) {
+    bbox[["xmin"]]
+}
+
+.bbox_xmax <- function(bbox) {
+    bbox[["xmax"]]
+}
+
+.bbox_ymin <- function(bbox) {
+    bbox[["ymin"]]
+}
+
+.bbox_ymax <- function(bbox) {
+    bbox[["ymax"]]
+}
+
+.bbox_crs <- function(bbox) {
+    bbox[["crs"]]
+}
+
+.bbox_as_sf <- function(bbox, as_crs = NULL) {
+    if (is.null(as_crs) && length(unique(bbox[["crs"]])) > 1) {
+        warning("object has multiples crs values, transforming to 'EPSG:4326'")
+        as_crs <- 4326
+    }
+    purrr::pmap_dfr(as.list(bbox), function(xmin, xmax, ymin, ymax, crs, ...) {
+        geom <- sf::st_sf(
+            geometry = sf::st_sfc(
+                sf::st_polygon(list(
+                    rbind(c(xmin, ymax), c(xmax, ymax), c(xmax, ymin),
+                          c(xmin, ymin), c(xmin, ymax))
+                ))
+            ),
+            crs = crs
+        )
+        if (!is.null(as_crs)) {
+            geom <- sf::st_transform(geom, crs = as_crs)
+        }
+        geom
+    })
+}
+
+
+# s2_cube <- sits_cube(
+#     source = "AWS",
+#     collection = "SENTINEL-S2-L2A-COGS",
+#     tiles = c("20LKP", "20LLP", "20LNQ", "21LTH"),
+#     bands = c("B08", "B11"),
+#     start_date = "2018-07-12",
+#     end_date = "2019-07-28"
+# )
+# .bbox(s2_cube)
+# .bbox_as_sf(s2_cube[1:3,])
+# .bbox_as_sf(s2_cube)
+# .bbox_as_sf(s2_cube, as_crs = 4326)
+
 #---- roi api ----
+.roi_type <- function(roi) {
+    if (all(c("lon_min", "lon_max", "lat_min", "lat_max") %in% names(roi)))
+        "ll"
+    else if (inherits(roi, c("sf", "sfc")))
+        "sf"
+    else if (all(c("xmin", "xmax", "ymin", "ymax") %in% names(roi)))
+        "xy"
+    else
+        stop("invalid 'roi' parameter")
+}
+
+.roi_switch <- function(roi, ...) {
+    switch(.roi_type(roi), ...)
+}
+
+.roi_xy_as_sf <- function(roi) {
+    .bbox_as_sf(roi)
+}
+
+.roi_ll_as_sf <- function(roi) {
+    .bbox_as_sf(c(
+        xmin = roi[["lon_min"]],
+        xmax = roi[["lon_max"]],
+        ymin = roi[["lat_min"]],
+        ymax = roi[["lat_max"]],
+        crs = 4326)
+    )
+}
 
 .roi_as_sf <- function(roi) {
-    xy_names <- c("xmin", "xmax", "ymin", "ymax")
-    ll_names <- c("lon_min", "lon_max", "lat_min", "lat_max")
+    .roi_switch(
+        roi,
+        "sf" = roi,
+        "xy" = .roi_xy_as_sf(roi),
+        "ll" = .roi_ll_as_sf(roi)
+    )
+}
 
-    if (inherits(roi, "sf")) {
-        roi
-    } else if (all(xy_names %in% names(roi))) {
-        .bbox_as_sf(
-            xmin = roi[["xmin"]],
-            xmax = roi[["xmax"]],
-            ymin = roi[["ymin"]],
-            ymax = roi[["ymax"]],
-            crs = if (is.null(roi[["crs"]])) 4326 else roi[["crs"]]
-        )
-    } else if (all(ll_names %in% names(roi))) {
-        .bbox_as_sf(
-            xmin = roi[["lon_min"]],
-            xmax = roi[["lon_max"]],
-            ymin = roi[["lat_min"]],
-            ymax = roi[["lat_max"]],
-            crs = 4326
-        )
-    } else {
-        .check_that(
-            is.null(roi),
-            local_msg = "invalid ROI definition",
-            msg = "invalid 'roi' parameter"
-        )
+# .roi_as_sf(c(lon_min = 1, lon_max = 2, lat_min = 3, lat_max = 4))
+# .roi_as_sf(c(xmin = 1, xmax = 2, ymin = 3, ymax = 4))
+# .roi_as_sf(c(xmin = 1, xmax = 2, ymin = 3, ymax = 4, crs = 4674))
+
+#---- utils api ----
+
+.intersects <- function(x, y) {
+    as_crs <- sf::st_crs(x)
+    y <- sf::st_transform(y, crs = as_crs)
+    any(c(sf::st_intersects(x, y, sparse = FALSE)))
+}
+
+.try <- function(expr, ..., rollback = NULL, default = NULL, msg = NULL) {
+    has_default <- !missing(default)
+    tryCatch(expr, ..., error = function(e) {
+        if (!is.null(rollback)) rollback
+        if (has_default) return(default)
+        stop(if (!is.null(msg)) msg else e$message)
+    })
+}
+
+.date <- function(x) {
+    lubridate::as_date(unlist(x))
+}
+
+.between <- function(x, min, max) {
+    min <= x & x <= max
+}
+
+.period_check <- function(period) {
+    if (!grepl("^P[0-9]+(D|M|Y)$", period))
+        stop("invalid period format")
+}
+.period_val <- function(period) {
+    .period_check(period)
+    as.numeric(gsub("^P([0-9]+)(D|M|Y)", "\\1", period))
+}
+
+.period_unit <- function(period) {
+    .period_check(period)
+    unit <- c(D = "day", M = "month", Y = "year")
+    unit[[gsub("^P[0-9]+(D|M|Y)$", "\\1", period)]]
+}
+
+.bands <- function(..., exclude = NULL) {
+    setdiff(c(...), exclude)
+}
+
+.set_class <- function(x, ...) {
+    class(x) <- unique(c(...))
+    x
+}
+
+.set_cube_class <- function(x, ...) {
+    .set_class(x, ..., c("sits_cube", "tbl_df", "tbl", "data.frame"))
+}
+
+#---- config ----
+
+.conf_exists <- function(...) {
+    key <- c(...)
+    !is.null(.try(sits_env[["config"]][[key]], default = NULL))
+}
+
+.conf <- function(...) {
+    key <- c(...)
+    if (!.conf_exists(key))
+        stop("key '", paste(key, collapse = "->"), "' not found in config")
+    sits_env[["config"]][[c(key)]]
+}
+
+# eo_cube
+
+.conf_eo_band_exists <- function(source, collection, band) {
+    .conf_exists("sources", source, "collections", collection, "bands", band)
+}
+
+.conf_eo_band <- function(source, collection, band) {
+    if (!.conf_eo_band_exists(source, collection, band))
+        return(.conf("default_values", "eo_cube"))
+    .conf("sources", source, "collections", collection, "bands", band)
+}
+
+# derived_cube
+
+.conf_derived_band <- function(derived_class, band) {
+    .conf("derived_cube", derived_class, "bands", band)
+}
+
+.band_data_type <- function(conf) {
+    conf[["data_type"]][[1]]
+}
+
+.band_miss_value <- function(conf) {
+    conf[["missing_value"]][[1]]
+}
+
+.band_min_value <- function(conf) {
+    conf[["minimum_value"]][[1]]
+}
+
+.band_max_value <- function(conf) {
+    conf[["maximum_value"]][[1]]
+}
+
+.band_scale <- function(conf) {
+    conf[["scale_factor"]][[1]]
+}
+
+.band_offset <- function(conf) {
+    conf[["offset_value"]][[1]]
+}
+
+.band_cloud_interp_values <- function(conf) {
+    conf[["interp_values"]]
+}
+
+.band_cloud_bit_mask <- function(conf) {
+    conf[["bit_mask"]][[1]]
+}
+
+.band_cloud <- function() {
+    "CLOUD"
+}
+
+# probs_cube
+
+.conf_probs_class <- function() {
+    .conf("derived_cube", "probs_cube", "s3_class")
+}
+
+.conf_probs_band_data_type <- function() {
+    .conf("derived_cube", "probs_cube", "bands", "probs", "data_type")
+}
+
+.conf_probs_band_scale <- function() {
+    .conf("derived_cube", "probs_cube", "bands", "probs", "scale_factor")
+}
+
+# .conf_exists("sources", "BDC", "collections", "MOD13Q1-6")
+# .conf_exists("sources", "BDC", "collections", "MOD13Q1-7")
+# .conf_eo_band("BDC", "MOD13Q1-6", "NIR", "missing_value")
+# .conf_eo_band("BDC", "MOD13Q1-6", "NBR", "missing_value")
+# .conf_derived_cube("probs_cube", "bands")
+# .conf_derived_cube("probs_cube", "NBR")
+# .conf_derived_cube_band("probs_cube", "probs", "missing_value")
+# .conf_derived_cube_band("probs_cube", "bayes", "missing_value")
+
+
+#---- fi api ----
+
+.fi_type <- function(fi) {
+    if ("date" %in% names(fi))
+        "eo"
+    else if (all(c("start_date", "end_date") %in% names(fi)))
+        "derived"
+    else
+        stop("invalid file info")
+}
+
+.fi_switch <- function(fi, ...) {
+    switch(.fi_type(fi), ...)
+}
+
+.fi <- function(x) {
+    x[["file_info"]][[1]]
+}
+
+.fi_eo <- function(fid, band, date, ncols, nrows, xres, yres, xmin,
+                   xmax, ymin, ymax, path, miss_value, min_value,
+                   max_value, scale, offset, source, collection) {
+    # Get band defaults for eo cube from config
+    conf_band <- .conf_eo_band(source = source, collection = collection,
+                               band = band)
+    # Create a new earth observation file_info
+    tibble::tibble(
+        fid = fid, band = band, date = date,
+        ncols = ncols, nrows = nrows, xres = xres,
+        yres = yres, xmin = xmin, xmax = xmax,
+        ymin = ymin, ymax = ymax, path = path,
+        miss_value = .band_miss_value(conf_band),
+        min_value  = .band_min_value(conf_band),
+        max_value = .band_max_value(conf_band),
+        scale = .band_scale(conf_band),
+        offset = .band_offset(conf_band)
+    )
+
+}
+
+.fi_derived <- function(band, start_date, end_date, ncols, nrows,
+                        xres, yres, xmin, xmax, ymin, ymax, crs, path) {
+    # Create a new derived file_info
+    tibble::tibble(
+        band = band, start_date = start_date,
+        end_date = end_date, ncols = ncols,
+        nrows = nrows, xres = xres, yres = yres,
+        xmin = xmin, xmax = xmax, ymin = ymin,
+        ymax = ymax, crs = crs, path = path
+    )
+}
+
+.fi_derived_from_file <- function(file, band, derived_class, start_date,
+                                  end_date) {
+    file <- path.expand(file)
+    r_obj <- .raster_open_rast(file)
+    .fi_derived(
+        band = band, start_date = start_date,
+        end_date = end_date, ncols = .raster_ncols(r_obj),
+        nrows = .raster_nrows(r_obj), xres = .raster_xres(r_obj),
+        yres = .raster_yres(r_obj), xmin = .raster_xmin(r_obj),
+        xmax = .raster_xmax(r_obj), ymin = .raster_ymin(r_obj),
+        ymax = .raster_ymax(r_obj), crs = .raster_crs(r_obj),
+        path = file
+    )
+}
+
+.fi_fid <- function(fi) {
+    fi[["fid"]]
+}
+
+.fi_bands <- function(fi) {
+    sort(unique(fi[["band"]]))
+}
+
+.fi_min_date <- function(fi) {
+    .fi_switch(
+        fi = fi,
+        eo = min(.date(fi[["date"]])),
+        derived = min(.date(fi[["start_date"]]))
+    )
+}
+
+.fi_max_date <- function(fi) {
+    .fi_switch(
+        fi = fi,
+        eo = max(.date(fi[["date"]])),
+        derived = max(.date(fi[["end_date"]]))
+    )
+}
+
+.fi_timeline <- function(fi) {
+    .fi_switch(
+        fi = fi,
+        eo = unique(.date(fi[["date"]])),
+        derived = unique(.date(fi[["start_date"]]))
+    )
+}
+
+.fi_xres <- function(fi) {
+    fi[["xres"]]
+}
+
+.fi_yres <- function(fi) {
+    fi[["yres"]]
+}
+
+.fi_nrows <- function(fi) {
+    fi[["nrows"]]
+}
+
+.fi_ncols <- function(fi) {
+    fi[["ncols"]]
+}
+
+.fi_paths <- function(fi) {
+    fi[["path"]]
+}
+
+.fi_path <- function(fi) {
+    fi[["path"]][[1]]
+}
+
+.fi_during <- function(fi, start_date, end_date) {
+    fi_start <- .fi_min_date(fi)
+    fi_end <- .fi_max_date(fi)
+    any(.between(fi_start, start_date, end_date),
+        .between(fi_end, start_date, end_date),
+        .between(start_date, fi_start, fi_end),
+        .between(end_date, fi_start, fi_end))
+}
+
+.fi_temporal_filter <- function(fi, start_date, end_date) {
+    if (is.null(start_date)) {
+        start_date <- .fi_min_date(fi)
     }
+    if (is.null(end_date)) {
+        end_date <- .fi_max_date(fi)
+    }
+    dplyr::filter(fi, !!start_date <= .data[["date"]],
+                  .data[["date"]] <= !!end_date)
 }
 
-#---- bbox api ----
-.bbox_as_sf <- function(xmin, xmax, ymin, ymax, crs) {
-    geom <- sf::st_sfc(sf::st_polygon(list(
-        rbind(c(xmin, ymax), c(xmax, ymax),
-              c(xmax, ymin), c(xmin, ymin),
-              c(xmin, ymax)))
-    ))
-    sf_obj <- sf::st_sf(
-        geometry = geom,
-        crs = crs
+.fi_band_filter <- function(fi, band) {
+    fi <- dplyr::filter(fi, band %in% !!band)
+}
+
+.fi_read_block <- function(fi, band, block) {
+    fi <- .fi_band_filter(fi = fi, band = band)
+    files <- .fi_paths(fi)
+    if (length(files) == 0) return(NULL)
+    # Read values from files (pixels in rows, bands in cols)
+    .raster_read_stack(
+        files = files,
+        block = block
     )
-    return(sf_obj)
 }
 
-#---- cube api ----
+#---- tile api (generic) ----
 
-.cube_spatial_filter <- function(cube, roi) {
-    intersects <- slider::slide_lgl(
-        cube,
-        .tile_intersects,
-        roi = roi
-    )
-    cube[intersects,]
+.tile_source <- function(tile) {
+    UseMethod(".tile_source", tile)
 }
 
-.cube_temporal_filter <- function(cube, start_date, end_date) {
-    intersects <- slider::slide_lgl(
-        cube,
-        .tile_during,
-        start_date = start_date,
-        end_date = end_date
-    )
-    cube[intersects,]
+.tile_collection <- function(tile) {
+    UseMethod(".tile_collection", tile)
 }
 
+.tile_name <- function(tile) {
+    UseMethod(".tile_name", tile)
+}
 
-#---- tile api ----
+.tile_xmin <- function(tile) {
+    UseMethod(".tile_xmin", tile)
+}
+
+.tile_xmax <- function(tile) {
+    UseMethod(".tile_xmax", tile)
+}
+
+.tile_ymin <- function(tile) {
+    UseMethod(".tile_ymin", tile)
+}
+
+.tile_ymax <- function(tile) {
+    UseMethod(".tile_ymax", tile)
+}
+
+.tile_crs <- function(tile) {
+    UseMethod(".tile_crs", tile)
+}
+
+.tile_ncols <- function(tile) {
+    UseMethod(".tile_ncols", tile)
+}
+
+.tile_nrows <- function(tile) {
+    UseMethod(".tile_nrows", tile)
+}
+
+.tile_labels <- function(tile) {
+    UseMethod(".tile_labels", tile)
+}
+
+.tile_bands <- function(tile) {
+    UseMethod(".tile_bands", tile)
+}
 
 .tile_cloud_interp_values <- function(tile) {
-    # Get value from config
-    value <- .config_get(key = c(
-        "sources", tile[["source"]],
-        "collections", tile[["collection"]],
-        "bands", .source_cloud(),
-        "interp_values"
-    ))
-    # Post-condition
-    .check_num(
-        x = value,
-        msg = "invalid 'interp_values' in config file"
-    )
-    return(value)
+    UseMethod(".tile_cloud_interp_values", tile)
 }
 
 .tile_cloud_bit_mask <- function(tile) {
-    # Get value from config
-    value <- .config_get(key = c(
-        "sources", tile[["source"]],
-        "collections", tile[["collection"]],
-        "bands", .source_cloud(),
-        "bit_mask"
-    ))
-    # Post-condition
-    .check_num(
-        x = value,
-        msg = "invalid 'bit_mask' in config file"
-    )
-    return(value)
+    UseMethod(".tile_cloud_bit_mask", tile)
 }
 
-.tile_band_missing_value <- function(tile, band) {
-    # Get value from config
-    value <- .config_get(
-        key = c(
-            "sources", tile[["source"]],
-            "collections", tile[["collection"]],
-            "bands", band[[1]], "missing_value"
-        ),
-        default = .config_get("raster_cube_missing_value")
-    )
-    # Post-condition
-    .check_num(
-        x = value,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'missing_value' in config file"
-    )
-    return(value)
-}
-
-.tile_band_minimum_value <- function(tile, band) {
-    # Get value from config
-    value <- .config_get(
-        key = c(
-            "sources", tile[["source"]],
-            "collections", tile[["collection"]],
-            "bands", band[[1]], "minimum_value"
-        ),
-        default = .config_get("raster_cube_minimum_value")
-    )
-    # Post-condition
-    .check_num(
-        x = value,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'minimum_value' in config file"
-    )
-    return(value)
-}
-
-.tile_band_maximum_value <- function(tile, band) {
-    # Get value from config
-    value <- .config_get(
-        key = c(
-            "sources", tile[["source"]],
-            "collections", tile[["collection"]],
-            "bands", band[[1]], "maximum_value"
-        ),
-        default = .config_get("raster_cube_maximum_value")
-    )
-    # Post-condition
-    .check_num(
-        x = value,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'maximum_value' in config file"
-    )
-    return(value)
-}
-
-
-.tile_band_scale_factor <- function(tile, band) {
-    # Get value from config
-    value <- .config_get(
-        key = c(
-            "sources", tile[["source"]],
-            "collections", tile[["collection"]],
-            "bands", band[[1]], "scale_factor"
-        ),
-        default = .config_get("raster_cube_scale_factor")
-    )
-    # Post-condition
-    .check_num(
-        x = value,
-        exclusive_min = 0,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'scale_factor' in config file"
-    )
-    return(value)
-}
-
-
-.tile_band_offset_value <- function(tile, band) {
-    # Get value from config
-    value <- .config_get(
-        key = c(
-            "sources", tile[["source"]],
-            "collections", tile[["collection"]],
-            "bands", band[[1]], "offset_value"
-        ),
-        default = .config_get("raster_cube_offset_value")
-    )
-    # Post-condition
-    .check_num(
-        x = value,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'offset_value' in config file"
-    )
-    return(value)
-}
-
-.tile_intersects <- function(tile, roi) {
-    # Reproject roi to tile CRS
-    roi <- sf::st_transform(
-        x = roi,
-        crs = tile[["crs"]]
-    )
-    # Compute intersecting jobs
-    any(c(sf::st_intersects(
-        x = .tile_as_sf(tile),
-        y = roi,
-        sparse = FALSE)
-    ))
+.tile_derived_class <- function(tile) {
+    UseMethod(".tile_derived_class", tile)
 }
 
 .tile_as_sf <- function(tile) {
-    .bbox_as_sf(
-        xmin = tile[["xmin"]],
-        xmax = tile[["xmax"]],
-        ymin = tile[["ymin"]],
-        ymax = tile[["ymax"]],
-        crs =  tile[["crs"]]
-    )
+    UseMethod(".tile_as_sf", tile)
+}
+
+.tile_intersects <- function(tile, roi) {
+    UseMethod(".tile_intersects", tile)
 }
 
 .tile_during <- function(tile, start_date, end_date) {
+    UseMethod(".tile_during", tile)
+}
+
+.tile_start_date <- function(tile) {
+    UseMethod(".tile_start_date", tile)
+}
+
+.tile_end_date <- function(tile) {
+    UseMethod(".tile_end_date", tile)
+}
+
+.tile_timeline <- function(tile) {
+    UseMethod(".tile_timeline", tile)
+}
+
+.tile_file_info <- function(tile) {
+    UseMethod(".tile_file_info", tile)
+}
+
+`.tile_file_info<-` <- function(tile, value) {
+    UseMethod(".tile_file_info<-", tile)
+}
+
+.tile_read_block <- function(tile, bands, block, impute_fn, filter_fn,
+                             ml_model) {
+    UseMethod(".tile_read_block", tile)
+}
+
+#---- tile api (raster_cube) ----
+
+#' @export
+.tile_source.raster_cube <- function(tile) {
+    tile[["source"]][[1]]
+}
+
+#' @export
+.tile_collection.raster_cube <- function(tile) {
+    tile[["collection"]][[1]]
+}
+
+#' @export
+.tile_name.raster_cube <- function(tile) {
+    tile[["tile"]][[1]]
+}
+
+#' @export
+.tile_xmin.raster_cube <- function(tile) {
+    .bbox_xmin(tile)[[1]]
+}
+
+#' @export
+.tile_xmax.raster_cube <- function(tile) {
+    .bbox_xmax(tile)[[1]]
+}
+
+#' @export
+.tile_ymin.raster_cube <- function(tile) {
+    .bbox_ymin(tile)[[1]]
+}
+
+#' @export
+.tile_ymax.raster_cube <- function(tile) {
+    .bbox_ymax(tile)[[1]]
+}
+
+#' @export
+.tile_crs.raster_cube <- function(tile) {
+    .bbox_crs(tile)[[1]]
+}
+
+#' @export
+.tile_ncols.raster_cube <- function(tile) {
+    if ("ncols" %in% tile) return(tile[["ncols"]][[1]])
+    .fi_ncols(.fi(tile))[[1]]
+}
+
+#' @export
+.tile_nrows.raster_cube <- function(tile) {
+    if ("nrows" %in% tile) return(tile[["nrows"]][[1]])
+    .fi_nrows(.fi(tile))[[1]]
+}
+
+#' @export
+.tile_labels.raster_cube <- function(tile) {
+    tile[["labels"]][[1]]
+}
+
+#' @export
+.tile_bands.raster_cube <- function(tile) {
+    .fi_bands(.fi(tile))
+}
+
+#' @export
+.tile_as_sf.raster_cube <- function(tile) {
+    .bbox_as_sf(tile)
+}
+
+#' @export
+.tile_intersects.raster_cube <- function(tile, roi) {
+    .intersects(.tile_as_sf(tile), .roi_as_sf(roi))
+}
+
+#' @export
+.tile_during.raster_cube <- function(tile, start_date, end_date) {
     .fi_during(
-        fi = .tile_file_info(tile),
+        fi = .fi(tile),
         start_date = start_date,
         end_date = end_date
     )
 }
 
-.tile_start_date <- function(tile) {
-    fi <- .tile_file_info(tile)
-    min(.fi_timeline(fi))
+#' @export
+.tile_start_date.raster_cube <- function(tile) {
+    fi <- .fi(tile)
+    .fi_min_date(fi)
 }
 
-.tile_end_date <- function(tile) {
-    fi <- .tile_file_info(tile)
-    max(.fi_timeline(fi))
+#' @export
+.tile_end_date.raster_cube <- function(tile) {
+    fi <- .fi(tile)
+    .fi_max_date(fi)
 }
 
-.tile_open_probs <- function(tile, labels, file) {
-    # Open tile
-    .tile_open(
-        tile = tile,
-        tile_class = .config_get("probs_cube_class"),
-        labels = labels,
-        band_name = .config_get("probs_cube_band"),
-        file = file
-    )
+#' @export
+.tile_timeline.raster_cube <- function(tile) {
+    fi <- .fi(tile)
+    .fi_timeline(fi)
 }
 
-.tile_create_probs <- function(tile,
-                               labels,
-                               out_file,
-                               block_files,
-                               multicores) {
-    # Create tile and template
-    probs_tile <- .tile_create(
-        tile = tile,
-        tile_class = .config_get("probs_cube_class"),
-        labels = labels,
-        band_name = .config_get("probs_cube_band"),
-        data_type = .config_get("probs_cube_data_type"),
-        missing_value = .config_get("probs_cube_missing_value"),
-        out_file = out_file
-    )
-    # Merge blocks
-    tryCatch({
-        .raster_merge(
-            files = block_files,
-            out_file = out_file,
-            format = "GTiff",
-            data_type = .config_get("probs_cube_data_type"),
-            multicores = multicores,
-            overwrite = FALSE
-        )
-    }, error = function(e) {
-        unlink(out_file)
-        stop(e$message, call. = FALSE)
-    })
-    # If everything goes well, delete block files
-    unlink(block_files)
-    return(probs_tile)
+#' @export
+.tile_file_info.raster_cube <- function(tile) {
+    .fi(tile)
 }
 
-.tile_open <- function(tile,
-                       tile_class,
-                       labels = NULL,
-                       band_name,
-                       file) {
-    # Create file_info and template
-    tile[["file_info"]][[1]] <- .fi_open(
-        tile = tile,
-        band_name = band_name,
-        start_date = .tile_start_date(tile),
-        end_date = .tile_end_date(tile),
-        labels = labels,
-        file = file
-    )
-    # If there are labels, include them
-    if (!is.null(labels)) {
-        tile <- tibble::add_column(
-            tile,
-            labels = list(labels),
-            .before = "file_info"
-        )
-    }
-    # Set tile class
-    class(tile) <- tile_class
-    return(tile)
-}
-
-.tile_create <- function(tile,
-                         tile_class,
-                         labels = NULL,
-                         band_name,
-                         data_type,
-                         missing_value,
-                         out_file) {
-    # Create file_info and template
-    tile[["file_info"]][[1]] <- .fi_create(
-        tile = tile,
-        band_name = band_name,
-        start_date = .tile_start_date(tile),
-        end_date = .tile_end_date(tile),
-        nlayers = if (is.null(labels)) 1 else length(labels),
-        data_type = data_type,
-        missing_value = missing_value,
-        out_file = out_file
-    )
-    # If there are labels, include them
-    if (!is.null(labels)) {
-        tile <- tibble::add_column(
-            tile,
-            labels = list(labels),
-            .before = "file_info"
-        )
-    }
-    # Set tile class
-    class(tile) <- tile_class
-    return(tile)
-}
-
-.tile_file_info <- function(tile) {
-    tile[["file_info"]][[1]]
-}
-
-`.tile_file_info<-` <- function(tile, value) {
+#' @export
+`.tile_file_info<-.raster_cube` <- function(tile, value) {
     tile[["file_info"]][[1]] <- value
     tile
 }
 
-.tile_read_block <- function(tile,
-                             bands,
-                             block,
-                             impute_fn,
-                             filter_fn,
-                             ml_model) {
+#' @export
+.tile_read_block.raster_cube <- function(tile, bands, block, impute_fn,
+                                         filter_fn, ml_model) {
     # Get file_info
-    fi <- .tile_file_info(tile)
+    fi <- .fi(tile)
     # Get cloud values
-    cloud_mask <- .fi_read_block(
-        fi = fi,
-        band = .source_cloud(),
-        block = block
-    )
+    cloud_mask <- .fi_read_block(fi = fi, band = .band_cloud(), block = block)
     # Prepare cloud_mask
     if (!is.null(cloud_mask)) {
         cloud_mask <- .values_cloud_mask(
@@ -376,213 +653,286 @@
         )
     }
     # Prepare bands
-    bands <- setdiff(bands, .source_cloud())
-    names(bands) <- bands
+    bands <- .bands(bands, exclude = .band_cloud(), named = TRUE)
     # Get file_info
-    fi <- .tile_file_info(tile)
+    fi <- .fi(tile)
     # Get bands values
     values_bands <- purrr::map(bands, function(band) {
+        # Get band values
         values <- .fi_read_block(fi = fi, band = band, block = block)
+        # Remove cloud masked pixels
+        if (!is.null(cloud_mask)) values[cloud_mask] <- NA
+        # Correct missing, minimum, and maximum values; and scale values
+        # Get band defaults for derived cube from config
+        conf_band <- .conf_eo_band(
+            source = .tile_source(tile), collection = .tile_collection(tile),
+            band = band)
+        # This can be ignored (already process by gdal)
+        #miss_value = .band_miss_value(conf_band)
+        #if (!is.null(miss_value)) values[values == miss_value] <- NA
+        min_value  = .band_min_value(conf_band)
+        if (!is.null(min_value)) values[values < min_value] <- NA
+        max_value = .band_max_value(conf_band)
+        if (!is.null(max_value)) values[values > max_value] <- NA
+        offset = .band_offset(conf_band)
+        if (!is.null(offset)) values <- values - offset
+        scale = .band_scale(conf_band)
+        if (!is.null(scale)) values <- values * scale
+        # Remove NA pixels
+        if (!is.null(impute_fn)) values <- impute_fn(values)
+        # Filter the time series
+        if (!(is.null(filter_fn))) values <- filter_fn(values)
+        # Normalize values
         # Retrieve the normalization stats from the model
         stats_quant_02 <- .ml_model_stats_quant2_band(
-            ml_model = ml_model,
-            band = band
-        )
+            ml_model = ml_model, band = band)
         stats_quant_98 <- .ml_model_stats_quant98_band(
-            ml_model = ml_model,
-            band = band
-        )
-        # Preprocess values
-        .values_preprocess_bands(
-            values = values,
-            cloud_mask = cloud_mask,
-            missing_value = .tile_band_missing_value(tile = tile, band = band),
-            minimum_value = .tile_band_minimum_value(tile = tile, band = band),
-            maximum_value = .tile_band_maximum_value(tile = tile, band = band),
-            scale_factor = .tile_band_scale_factor(tile = tile, band = band),
-            offset_value = .tile_band_offset_value(tile = tile, band = band),
-            impute_fn = impute_fn,
-            filter_fn = filter_fn,
-            stats_quant_02 = stats_quant_02,
-            stats_quant_98 = stats_quant_98
-        )
+            ml_model = ml_model, band = band)
+        if (!is.null(stats_quant_02) && !is.null(stats_quant_98)) {
+            values <- normalize_data(values, stats_quant_02, stats_quant_98)
+        }
+        values
     })
     values_bands <- do.call(cbind, values_bands)
     colnames(values_bands) <- .ml_model_attr_names(ml_model)
     values_bands
 }
 
+#---- tile api (eo_cube) ----
 
-#---- fi api ----
+#' @export
+.tile_cloud_interp_values.eo_cube <- function(tile) {
+    conf_band <- .conf_eo_band(
+        source = .tile_source(tile),
+        collection = .tile_collection(tile),
+        band = .band_cloud())
+    .band_cloud_interp_values(conf_band)
+}
 
-.fi_open <- function(tile,
-                     band_name,
-                     start_date,
-                     end_date,
-                     labels,
-                     file) {
+#' @export
+.tile_cloud_bit_mask.eo_cube <- function(tile) {
+    conf_band <- .conf_eo_band(
+        source = .tile_source(tile),
+        collection = .tile_collection(tile),
+        band = .band_cloud())
+    .band_cloud_bit_mask(conf_band)
+}
+
+# .tile_cloud_interp_values(s2_cube[1,])
+# .tile_cloud_bit_mask(s2_cube[2,])
+# .tile_band_miss_value(s2_cube[3,], "B08")
+# .tile_band_min_value(s2_cube[4,], "B8A")
+# .tile_band_max_value(s2_cube[1,], "B04")
+# .tile_band_scale(s2_cube[2,], "B11")
+# .tile_band_offset(s2_cube[3,], "B03")
+# .tile_band_miss_value(s2_cube[3,], "NBR")
+# .tile_band_min_value(s2_cube[4,], "NBR")
+# .tile_band_max_value(s2_cube[1,], "NBR")
+# .tile_band_scale(s2_cube[2,], "NBR")
+# .tile_band_offset(s2_cube[3,], "NBR")
+
+
+
+#---- tile api (derived_cube) ----
+
+#' @export
+.tile_derived_class.derived_cube <- function(tile) {
+    class(tile)[[1]]
+}
+
+#---- tile creators ----
+
+.tile_derived_from_file <- function(file, band, base_tile, derived_class,
+                                    labels = NULL) {
+    # Open raster
     r_obj <- .raster_open_rast(file)
     # Check number of labels
     if (!is.null(labels)) {
         .check_that(
             x = .raster_nlayers(r_obj) == length(labels),
-            local_msg = "number of layers does not match labels",
-            msg = "invalid 'file' or 'labels' parameter"
+            local_msg = "number of file layers does not match labels",
+            msg = "invalid 'file' and 'labels' parameter"
         )
     }
-    # Set the file information
-    tibble::tibble(
-        band = band_name,
-        start_date = start_date,
-        end_date = end_date,
-        xmin = .raster_xmin(r_obj),
-        xmax = .raster_xmax(r_obj),
-        ymin = .raster_ymin(r_obj),
-        ymax = .raster_ymax(r_obj),
-        xres = .raster_xres(r_obj),
-        yres = .raster_yres(r_obj),
-        nrows = .raster_nrows(r_obj),
-        ncols = .raster_ncols(r_obj),
-        path = file
+    # Create file_info based on file
+    .tile_file_info(base_tile) <- .fi_derived_from_file(
+        file = file, band = band, derived_class = derived_class,
+        start_date = .tile_start_date(base_tile),
+        end_date = .tile_end_date(base_tile)
+    )
+    # If there are labels, include them before file_info
+    base_tile[["labels"]] <- NULL
+    if (!is.null(labels)) {
+        base_tile <- tibble::add_column(base_tile, labels = list(labels),
+                                        .before = "file_info")
+    }
+    # Set tile class
+    .set_cube_class(base_tile, derived_class)
+}
+
+# ---- tile probs api ----
+
+.tile_probs_from_file <- function(file, band, base_tile, labels) {
+    .tile_derived_from_file(
+        file = file,
+        band = band,
+        base_tile = base_tile,
+        derived_class = .conf_probs_class(),
+        labels = labels
     )
 }
 
-.fi_create <- function(tile,
-                       band_name,
-                       start_date,
-                       end_date,
-                       nlayers,
-                       data_type,
-                       missing_value,
-                       out_file) {
+.tile_probs_merge_blocks <- function(file, band, labels, base_tile,
+                                     block_files, multicores) {
+    # Get data type
+    data_type <- .conf_probs_band_data_type()
     # Create a template raster based on the first image of the tile
-    r_obj <- .raster_template(
-        file = .file_info_path(tile),
-        out_file = out_file,
-        data_type = data_type,
-        nlayers = nlayers,
-        missing_value = missing_value
+    .raster_template(
+        base_file = .fi_path(.fi(base_tile)),
+        out_file = file, data_type = data_type,
+        nlayers = max(1, length(labels))
     )
-    # Set the file information
-    tibble::tibble(
-        band = band_name,
-        start_date = start_date,
-        end_date = end_date,
-        xmin = .raster_xmin(r_obj),
-        xmax = .raster_xmax(r_obj),
-        ymin = .raster_ymin(r_obj),
-        ymax = .raster_ymax(r_obj),
-        xres = .raster_xres(r_obj),
-        yres = .raster_yres(r_obj),
-        nrows = .raster_nrows(r_obj),
-        ncols = .raster_ncols(r_obj),
-        path = out_file
+    # Create tile based on template
+    tile <- .tile_probs_from_file(
+        file = file, band = band, base_tile = base_tile, labels = labels
     )
-}
-
-.fi_timeline <- function(fi) {
-    unique(as.Date(fi[["date"]]))
-}
-
-.fi_during <- function(fi, start_date, end_date) {
-    !.fi_is_empty(
-        .fi_temporal_filter(
-            fi = ,
-            start_date = start_date,
-            end_date = end_date
-        )
+    # Merge blocks into template file
+    .try(
+        .raster_merge(
+            files = block_files, out_file = file,
+            data_type = data_type, multicores = multicores,
+            overwrite = FALSE),
+        rollback = unlink(file)
     )
+    # If all goes well, delete block files
+    unlink(block_files)
+    tile
 }
 
-.fi_temporal_filter <- function(fi, start_date, end_date) {
-    if (fi[["band"]] %in% .config_get("sits_results_bands")) {
-        class(fi) <- unique(c("class_cube", class(fi)))
-    } else {
-        class(fi) <- unique(c("eo_cube", class(fi)))
-    }
-    UseMethod(".fi_temporal_filter", fi)
+#---- cube api (generics) ----
+
+.cube_foreach_tile <- function(cube, fn, ...) {
+    UseMethod(".cube_foreach_tile", cube)
 }
 
-.fi_temporal_filter.eo_cube <- function(fi, start_date, end_date) {
-    if (is.null(start_date)) {
-        start_date <- min(fi[["date"]])
-    }
-    if (is.null(end_date)) {
-        end_date <- max(fi[["date"]])
-    }
+.cube_intersects <- function(cube, roi) {
+    UseMethod(".cube_intersects", cube)
+}
 
-    dplyr::filter(
-        fi,
-        !!start_date <= .data[["date"]],
-        .data[["date"]] <= !!end_date
+.cube_spatial_filter <- function(cube, roi) {
+    UseMethod(".cube_spatial_filter", cube)
+}
+
+.cube_during <- function(cube, start_date, end_date) {
+    UseMethod(".cube_during", cube)
+}
+
+.cube_start_date <- function(cube, innermost) {
+    UseMethod(".cube_start_date", cube)
+}
+
+.cube_end_date <- function(cube, innermost) {
+    UseMethod(".cube_end_date", cube)
+}
+
+.cube_timeline <- function(cube, period, origin) {
+    UseMethod(".cube_timeline", cube)
+}
+
+.cube_temporal_filter <- function(cube, start_date, end_date) {
+    UseMethod(".cube_temporal_filter", cube)
+}
+
+#---- cube api (raster_cube) ----
+
+#' @export
+.cube_foreach_tile.raster_cube <- function(cube, fn, ...) {
+    slider::slide_dfr(cube, fn, ...)
+}
+
+#' @export
+.cube_intersects.raster_cube <- function(cube, roi) {
+    slider::slide_lgl(cube, .tile_intersects, roi = .roi_as_sf(roi))
+}
+
+#' @export
+.cube_spatial_filter.raster_cube <- function(cube, roi) {
+    cube[.cube_intersects(cube, roi), ]
+}
+
+#' @export
+.cube_during.raster_cube <- function(cube, start_date, end_date) {
+    slider::slide_lgl(cube, .tile_during, start_date = start_date,
+                      end_date = end_date)
+}
+
+#' @export
+.cube_start_date.raster_cube <- function(cube, innermost = TRUE) {
+    dates <- .date(slider::slide(cube, .tile_start_date))
+    if (innermost) return(max(dates))
+    min(dates)
+}
+
+#' @export
+.cube_end_date.raster_cube <- function(cube, innermost = TRUE) {
+    dates <- .date(slider::slide(cube, .tile_end_date))
+    if (innermost) return(min(dates))
+    max(dates)
+}
+
+#' @export
+.cube_temporal_filter.raster_cube <- function(cube, start_date, end_date) {
+    cube[.cube_during(cube, start_date, end_date), ]
+}
+
+#' @export
+.cube_timeline.raster_cube <- function(cube, period = "P1D",
+                                       origin = .cube_start_date(cube, innermost = FALSE)) {
+    values <- slider::slide_dfr(cube, function(tile) {
+        tibble::tibble(tile = tile[["tile"]],
+                       timeline = .tile_timeline(!!tile))
+    })
+    values <- dplyr::filter(values, !!origin <= .data[["timeline"]])
+    values <- dplyr::arrange(values, .data[["timeline"]])
+    values <- slider::slide_period_dfr(
+        values,
+        values[["timeline"]],
+        .period_unit(period),
+        function(x) {
+            x[["start_date"]] <- min(x[["timeline"]])
+            x[["end_date"]] <- max(x[["timeline"]])
+            dplyr::count(x, .data[["start_date"]], .data[["end_date"]],
+                         .data[["tile"]])
+        },
+        .every = .period_val(period),
+        .origin = origin,
+        .complete = TRUE
     )
+    tidyr::pivot_wider(values, id_cols = c("start_date", "end_date"),
+                       names_from = "tile", values_from = "n")
 }
 
-.fi_temporal_filter.class_cube <- function(fi, start_date, end_date) {
-    if (is.null(start_date)) {
-        start_date <- min(fi[["start_date"]])
-    }
-    if (is.null(end_date)) {
-        end_date <- max(fi[["end_date"]])
-    }
+# s2_cube <- sits_cube(
+#     source = "AWS",
+#     collection = "SENTINEL-S2-L2A-COGS",
+#     tiles = c("20LKP", "20LLP", "20LNQ", "21LTH"),
+#     bands = c("B08", "B11"),
+#     start_date = "2018-07-12",
+#     end_date = "2019-07-28"
+# )
+# .cube_intersects(s2_cube, s2_cube[2:3,])
+# .cube_intersects(s2_cube, s2_cube[4,])
+# .cube_spatial_filter(s2_cube, .bbox_as_sf(s2_cube[3:4,]))
+# .cube_spatial_filter(s2_cube, .bbox_as_sf(s2_cube[3:4,], as_crs = 4326))
+# .cube_start_date(s2_cube)
+# .cube_end_date(s2_cube)
+# .cube_temporal_filter(s2_cube, start_date = "2017-01-01", end_date = "2018-07-12")
+# .cube_temporal_filter(s2_cube, start_date = "2017-01-01", end_date = "2018-07-14")
+# .cube_temporal_filter(s2_cube, start_date = "2019-07-25", end_date = "2020-07-28")
+# .cube_temporal_filter(s2_cube, start_date = "2019-07-28", end_date = "2020-07-28")
 
-    dplyr::filter(
-        fi,
-        !!start_date <= .data[["start_date"]],
-        .data[["start_date"]] <= !!end_date,
-        !!start_date <= .data[["end_date"]],
-        .data[["end_date"]] <= !!end_date,
-    )
-}
-
-.fi_is_empty <- function(fi) {
-    nrow(fi) == 0
-}
-
-.fi_read_block <- function(fi, band, block) {
-    files <- fi[["path"]][fi[["band"]] == band]
-    if (length(files) == 0) return(NULL)
-    .raster_read_stack(
-        files = files,
-        block = block
-    )
-}
 
 #---- values ----
-.values_preprocess_bands <- function(values,
-                                     cloud_mask,
-                                     missing_value,
-                                     minimum_value,
-                                     maximum_value,
-                                     scale_factor,
-                                     offset_value,
-                                     impute_fn,
-                                     filter_fn,
-                                     stats_quant_02,
-                                     stats_quant_98) {
-    # Correct NA, minimum, maximum, and missing values
-    values[values < minimum_value] <- NA
-    values[values > maximum_value] <- NA
-    values[values == missing_value] <- NA
-    # Change the points under cloud mask to NA
-    if (!is.null(cloud_mask)) {
-        values[cloud_mask] <- NA
-    }
-    # Remove NA pixels
-    if (!is.null(impute_fn) && any(is.na(values))) {
-        values <- impute_fn(values)
-    }
-    values <- scale_factor * values + offset_value
-    # Filter the data
-    if (!(is.null(filter_fn))) {
-        values <- filter_fn(values)
-    }
-    # Normalize the data
-    if (!is.null(stats_quant_02) && !is.null(stats_quant_98)) {
-        values <- normalize_data(values, stats_quant_02, stats_quant_98)
-    }
-    return(values)
-}
 
 .values_cloud_mask <- function(values, interp_values, is_bit_mask) {
     if (is_bit_mask) {
@@ -622,7 +972,6 @@
     .raster_write_rast(
         r_obj = r_obj,
         file = out_file,
-        format = "GTiff",
         data_type = data_type,
         overwrite = TRUE
     )
@@ -670,4 +1019,29 @@
 
 .samples_labels <- function(samples) {
     sort(unique(samples[["label"]]))
+}
+
+.samples_data <- function(samples, band) {
+    samples <- dplyr::transmute(
+        samples,
+        id = seq_len(dplyr::n()),
+        time_series = .data[["time_series"]])
+    samples <- tidyr::unnest(
+        samples, "time_series")
+    samples <- dplyr::group_by(
+        samples, .data[["id"]])
+    samples <- dplyr::mutate(
+        samples, Index = seq_len(dplyr::n()))
+    samples <- dplyr::ungroup(samples)
+    samples <- dplyr::select(
+        samples, .data[["id"]], .data[["Index"]], !!band)
+    samples <- tidyr::pivot_wider(
+        samples,
+        id_cols = "id",
+        names_from = "Index",
+        values_from = !!band,
+        names_prefix = paste0(band, "."),
+        names_sep = "_"
+    )
+    dplyr::select(samples, -.data[["id"]])
 }
