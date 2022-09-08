@@ -1,10 +1,13 @@
 #---- bbox api ----
+.bbox_fields <- c("xmin", "xmax", "ymin", "ymax", "crs")
+
+.bbox_fields_nocrs <- c("xmin", "xmax", "ymin", "ymax")
 
 .bbox_type <- function(bbox) {
-    if (all(c("xmin", "xmax", "ymin", "ymax", "crs") %in% names(bbox)))
-        "crs"
-    else if (all(c("xmin", "xmax", "ymin", "ymax") %in% names(bbox)))
-        "no_crs"
+    if (all(.bbox_fields %in% names(bbox)))
+        "with_crs"
+    else if (all(.bbox_fields_nocrs %in% names(bbox)))
+        "without_crs"
     else
         stop("object does not have a valid bbox")
 }
@@ -13,13 +16,21 @@
     switch(.bbox_type(bbox), ...)
 }
 
-.bbox <- function(bbox) {
+.bbox <- function(bbox, crs = NULL) {
     .bbox_switch(
         bbox,
-        crs = c(bbox[c("xmin", "xmax", "ymin", "ymax", "crs")]),
-        no_crs = {
-            warning("object has no crs, assuming 'EPSG:4326'")
-            c(bbox[c("xmin", "xmax", "ymin", "ymax")], crs = 4326)
+        with_crs = {
+            if (!is.null(crs)) {
+                warning("object has crs, ignoring provided 'crs' parameter")
+            }
+            c(bbox[.bbox_fields])
+        },
+        without_crs = {
+            if (is.null(crs)) {
+                warning("object has no crs, assuming 'EPSG:4326'")
+                crs <- 4326
+            }
+            c(bbox[.bbox_fields_nocrs], crs = crs)
         }
     )
 }
@@ -45,7 +56,7 @@
 }
 
 .bbox_as_sf <- function(bbox, as_crs = NULL) {
-    if (is.null(as_crs) && length(unique(bbox[["crs"]])) > 1) {
+    if (length(unique(bbox[["crs"]])) > 1 && is.null(as_crs)) {
         warning("object has multiples crs values, transforming to 'EPSG:4326'")
         as_crs <- 4326
     }
@@ -128,7 +139,7 @@
 .intersects <- function(x, y) {
     as_crs <- sf::st_crs(x)
     y <- sf::st_transform(y, crs = as_crs)
-    any(c(sf::st_intersects(x, y, sparse = FALSE)))
+    apply(sf::st_intersects(x, y, sparse = FALSE), 1, any)
 }
 
 .try <- function(expr, ..., rollback = NULL, default = NULL, msg = NULL) {
@@ -163,8 +174,9 @@
     unit[[gsub("^P[0-9]+(D|M|Y)$", "\\1", period)]]
 }
 
-.bands <- function(..., exclude = NULL) {
-    setdiff(c(...), exclude)
+.bands <- function(..., cloud = FALSE) {
+    if (cloud) return(c(...))
+    setdiff(c(...), .band_cloud())
 }
 
 .set_class <- function(x, ...) {
@@ -637,67 +649,6 @@
     tile
 }
 
-#' @export
-.tile_read_block.raster_cube <- function(tile, bands, block, impute_fn,
-                                         filter_fn, ml_model) {
-    # Get file_info
-    fi <- .fi(tile)
-    # Get cloud values
-    cloud_mask <- .fi_read_block(fi = fi, band = .band_cloud(), block = block)
-    # Prepare cloud_mask
-    if (!is.null(cloud_mask)) {
-        cloud_mask <- .values_cloud_mask(
-            values = cloud_mask,
-            interp_values = .tile_cloud_interp_values(tile),
-            is_bit_mask = .tile_cloud_bit_mask(tile)
-        )
-    }
-    # Prepare bands
-    bands <- .bands(bands, exclude = .band_cloud(), named = TRUE)
-    # Get file_info
-    fi <- .fi(tile)
-    # Get bands values
-    values_bands <- purrr::map(bands, function(band) {
-        # Get band values
-        values <- .fi_read_block(fi = fi, band = band, block = block)
-        # Remove cloud masked pixels
-        if (!is.null(cloud_mask)) values[cloud_mask] <- NA
-        # Correct missing, minimum, and maximum values; and scale values
-        # Get band defaults for derived cube from config
-        conf_band <- .conf_eo_band(
-            source = .tile_source(tile), collection = .tile_collection(tile),
-            band = band)
-        # This can be ignored (already process by gdal)
-        #miss_value = .band_miss_value(conf_band)
-        #if (!is.null(miss_value)) values[values == miss_value] <- NA
-        min_value  = .band_min_value(conf_band)
-        if (!is.null(min_value)) values[values < min_value] <- NA
-        max_value = .band_max_value(conf_band)
-        if (!is.null(max_value)) values[values > max_value] <- NA
-        offset = .band_offset(conf_band)
-        if (!is.null(offset)) values <- values - offset
-        scale = .band_scale(conf_band)
-        if (!is.null(scale)) values <- values * scale
-        # Remove NA pixels
-        if (!is.null(impute_fn)) values <- impute_fn(values)
-        # Filter the time series
-        if (!(is.null(filter_fn))) values <- filter_fn(values)
-        # Normalize values
-        # Retrieve the normalization stats from the model
-        stats_quant_02 <- .ml_model_stats_quant2_band(
-            ml_model = ml_model, band = band)
-        stats_quant_98 <- .ml_model_stats_quant98_band(
-            ml_model = ml_model, band = band)
-        if (!is.null(stats_quant_02) && !is.null(stats_quant_98)) {
-            values <- normalize_data(values, stats_quant_02, stats_quant_98)
-        }
-        values
-    })
-    values_bands <- do.call(cbind, values_bands)
-    colnames(values_bands) <- .ml_model_attr_names(ml_model)
-    values_bands
-}
-
 #---- tile api (eo_cube) ----
 
 #' @export
@@ -931,51 +882,6 @@
 # .cube_temporal_filter(s2_cube, start_date = "2019-07-25", end_date = "2020-07-28")
 # .cube_temporal_filter(s2_cube, start_date = "2019-07-28", end_date = "2020-07-28")
 
-
-#---- values ----
-
-.values_cloud_mask <- function(values, interp_values, is_bit_mask) {
-    if (is_bit_mask) {
-        matrix(
-            bitwAnd(values, sum(2^interp_values)) > 0,
-            nrow = length(values)
-        )
-    } else {
-        values %in% interp_values
-    }
-}
-
-.values_preprocess_probs <- function(values) {
-    # convert probabilities matrix to INT2U
-    scale_factor <- .config_get("probs_cube_scale_factor")
-    round(round(1 / scale_factor) * values, digits = 0)
-}
-
-.values_save_job <- function(values, job, out_file, data_type) {
-    # create a new raster
-    r_obj <- .raster_new_rast(
-        nrows = job[["nrows"]],
-        ncols = job[["ncols"]],
-        xmin = job[["xmin"]],
-        xmax = job[["xmax"]],
-        ymin = job[["ymin"]],
-        ymax = job[["ymax"]],
-        nlayers = ncol(values),
-        crs = job[["crs"]]
-    )
-    # copy values
-    r_obj <- .raster_set_values(
-        r_obj = r_obj,
-        values = values
-    )
-    # write the probabilities to a raster file
-    .raster_write_rast(
-        r_obj = r_obj,
-        file = out_file,
-        data_type = data_type,
-        overwrite = TRUE
-    )
-}
 
 #---- ml_model ----
 
