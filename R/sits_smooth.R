@@ -300,7 +300,6 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             chunk <- .raster_crop(
                 r_obj = b,
                 file = temp_chunk_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("probs_cube_data_type")
                 ),
@@ -332,7 +331,6 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             .raster_crop(
                 r_obj = raster_out,
                 file = block_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("probs_cube_data_type")
                 ),
@@ -386,7 +384,6 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         .raster_merge(
             files = tmp_blocks,
             out_file = out_file,
-            format = "GTiff",
             data_type = .config_get("probs_cube_data_type"),
             multicores = 1
         )
@@ -596,7 +593,6 @@ sits_smooth.bilateral <- function(cube,
             chunk <- .raster_crop(
                 r_obj = b,
                 file = temp_chunk_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("probs_cube_data_type")
                 ),
@@ -627,7 +623,6 @@ sits_smooth.bilateral <- function(cube,
             .raster_crop(
                 r_obj = raster_out,
                 file = block_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("probs_cube_data_type")
                 ),
@@ -680,7 +675,6 @@ sits_smooth.bilateral <- function(cube,
         .raster_merge(
             files = tmp_blocks,
             out_file = out_file,
-            format = "GTiff",
             data_type = .config_get("probs_cube_data_type"),
             multicores = 1
         )

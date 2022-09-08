@@ -181,7 +181,6 @@ sits_label_classification <- function(cube,
             chunk <- .raster_crop(
                 r_obj = b,
                 file = temp_chunk_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("probs_cube_data_type")
                 ),
@@ -203,7 +202,6 @@ sits_label_classification <- function(cube,
             .raster_write_rast(
                 r_obj = raster_out,
                 file = block_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("class_cube_data_type")
                 ),
@@ -255,7 +253,6 @@ sits_label_classification <- function(cube,
         .raster_merge(
             files = tmp_blocks,
             out_file = out_file,
-            format = "GTiff",
             data_type = .config_get("class_cube_data_type"),
             multicores = 1
         )

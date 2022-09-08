@@ -765,7 +765,6 @@
 #'
 #' @param files         Input file paths
 #' @param out_file      Output raster file path
-#' @param format        Format to write the file
 #' @param data_type     sits internal raster data type. One of "INT1U",
 #'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
 #' @param multicores    Number of cores to process merging
@@ -775,7 +774,6 @@
 #'
 .raster_merge <- function(files,
                           out_file,
-                          format,
                           data_type,
                           multicores = 2,
                           overwrite = TRUE) {
@@ -784,7 +782,6 @@
     .check_set_caller(".raster_merge")
 
     files <- path.expand(files)
-    multi <- multicores > 1
     # check if in_file length is at least one
     .check_file(
         x = files,
@@ -798,9 +795,9 @@
             srcfile = files,
             dstfile = path.expand(out_file),
             ot = .raster_gdal_datatype(data_type),
-            of = format,
+            of = "GTiff",
             wo = paste0("NUM_THREADS=", multicores),
-            multi = multi,
+            multi = TRUE,
             co = .config_gtiff_default_options(),
             overwrite = if (overwrite) 1 else 0
         )
@@ -820,12 +817,10 @@
     return(r_obj)
 }
 
-.raster_template <- function(file,
+.raster_template <- function(base_file,
                              out_file,
-                             format = "GTiff",
                              data_type,
-                             nlayers = NULL,
-                             missing_value = NULL) {
+                             nlayers = NULL) {
     # Check if file exists
     .check_that(
         x = !file.exists(out_file),
@@ -834,7 +829,7 @@
     )
     # Create an empty image template
     gdalUtilities::gdal_translate(
-        src_dataset = path.expand(file),
+        src_dataset = path.expand(base_file),
         dst_dataset = path.expand(out_file),
         ot = .raster_gdal_datatype(data_type),
         of = "GTiff",

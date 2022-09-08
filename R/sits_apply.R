@@ -303,7 +303,6 @@ sits_apply.raster_cube <- function(data, ...,
                 .raster_crop(
                     r_obj = raster_out,
                     file = filename_block,
-                    format = "GTiff",
                     data_type = .raster_data_type(
                         .config_get("raster_cube_data_type")
                     ),
@@ -332,7 +331,6 @@ sits_apply.raster_cube <- function(data, ...,
                 .raster_merge(
                     files = blocks_path,
                     out_file = out_file_path,
-                    format = "GTiff",
                     data_type = .config_get("raster_cube_data_type"),
                     multicores = 1
                 )

@@ -267,7 +267,6 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
             chunk <- .raster_crop(
                 r_obj = b,
                 file = temp_chunk_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("probs_cube_data_type")
                 ),
@@ -299,7 +298,6 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
             .raster_crop(
                 r_obj = raster_out,
                 file = block_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("probs_cube_data_type")
                 ),
@@ -352,7 +350,6 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
         .raster_merge(
             files = tmp_blocks,
             out_file = out_file,
-            format = "GTiff",
             data_type = .config_get("probs_cube_data_type"),
             multicores = 1
         )
@@ -556,7 +553,6 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
             chunk <- .raster_crop(
                 r_obj = b,
                 file = temp_chunk_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("probs_cube_data_type")
                 ),
@@ -588,7 +584,6 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
             .raster_crop(
                 r_obj = raster_out,
                 file = block_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("probs_cube_data_type")
                 ),
@@ -641,7 +636,6 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
         .raster_merge(
             files = tmp_blocks,
             out_file = out_file,
-            format = "GTiff",
             data_type = .config_get("probs_cube_data_type"),
             multicores = 1
         )
@@ -845,7 +839,6 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
             chunk <- .raster_crop(
                 r_obj = b,
                 file = temp_chunk_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("probs_cube_data_type")
                 ),
@@ -877,7 +870,6 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
             .raster_crop(
                 r_obj = raster_out,
                 file = block_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("probs_cube_data_type")
                 ),
@@ -930,7 +922,6 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
         .raster_merge(
             files = tmp_blocks,
             out_file = out_file,
-            format = "GTiff",
             data_type = .config_get("probs_cube_data_type"),
             multicores = 1
         )
@@ -1134,7 +1125,6 @@ sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
             chunk <- .raster_crop(
                 r_obj = b,
                 file = temp_chunk_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("probs_cube_data_type")
                 ),
@@ -1166,7 +1156,6 @@ sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
             .raster_crop(
                 r_obj = raster_out,
                 file = block_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("probs_cube_data_type")
                 ),
@@ -1219,7 +1208,6 @@ sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
         .raster_merge(
             files = tmp_blocks,
             out_file = out_file,
-            format = "GTiff",
             data_type = .config_get("probs_cube_data_type"),
             multicores = 1
         )

@@ -288,7 +288,6 @@ sits_mixture_model <- function(cube,
                 .raster_write_rast(
                     r_obj = r_obj[[frac]],
                     file = filename_block,
-                    format = "GTiff",
                     data_type = .config_get("raster_cube_data_type"),
                     overwrite = TRUE
                 )
@@ -320,7 +319,6 @@ sits_mixture_model <- function(cube,
                 .raster_merge(
                     files = blocks_fracs_path,
                     out_file = output_frac_path,
-                    format = "GTiff",
                     data_type = .config_get("raster_cube_data_type"),
                     multicores = 1
                 )

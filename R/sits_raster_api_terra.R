@@ -66,7 +66,7 @@
 #' @export
 .raster_file_blocksize.terra <- function(r_obj) {
         block_size <- c(terra::fileBlocksize(r_obj))
-        names(block_size) <- c("block_nrows", "block_ncols")
+        names(block_size) <- c("nrows", "ncols")
 
         return(block_size)
 }
@@ -83,7 +83,7 @@
 #' @export
 .raster_open_rast.terra <- function(file, ...) {
     suppressWarnings(
-        terra::rast(x = file, ...)
+        terra::rast(x = path.expand(file), ...)
     )
 }
 
@@ -91,7 +91,6 @@
 #' @export
 .raster_write_rast.terra <- function(r_obj,
                                      file,
-                                     format,
                                      data_type,
                                      overwrite, ...,
                                      missing_value = NA) {
@@ -102,9 +101,9 @@
     suppressWarnings(
         terra::writeRaster(
             x = r_obj,
-            filename = file,
+            filename = path.expand(file),
             wopt = list(
-                filetype = format,
+                filetype = "GTiff",
                 datatype = data_type,
                 gdal = .config_gtiff_default_options()
             ),
@@ -176,7 +175,7 @@
 #' @export
 .raster_open_stack.terra <- function(files, ...) {
     suppressWarnings(
-        terra::rast(files, ...)
+        terra::rast(x = path.expand(files), ...)
     )
 }
 
@@ -191,7 +190,7 @@
     method <- .raster_resampling(method = method)
 
     # create raster objects
-    r_obj <- .raster_open_stack.terra(files = files, ...)
+    r_obj <- .raster_open_stack.terra(files = path.expand(files), ...)
 
     # get raster size
     in_size <- .raster_size(r_obj)
@@ -260,7 +259,6 @@
 #' @export
 .raster_crop.terra <- function(r_obj,
                                file,
-                               format,
                                data_type,
                                overwrite,
                                block,
@@ -294,9 +292,9 @@
             x = r_obj,
             y = extent,
             snap = "out",
-            filename = file,
+            filename = path.expand(file),
             wopt = list(
-                filetype = format,
+                filetype = "GTiff",
                 datatype = data_type,
                 gdal = .config_gtiff_default_options()
             ),
@@ -442,7 +440,7 @@
 #' @export
 .raster_missing_value.terra <- function(file) {
 
-    gdal_info <- terra::describe(file)
+    gdal_info <- terra::describe(path.expand(file))
     gdal_info <- gdal_info[grepl(pattern = "NoData Value=", x = gdal_info)]
 
     nodata_value <- gsub(pattern = ".*NoData Value=",
