@@ -711,10 +711,9 @@
 #' @param  cube         input data cube
 #' @return TRUE/FALSE
 .cube_is_regular <- function(cube) {
-    source <- .source_new(source = .cube_source(cube))
 
     # Dispatch
-    UseMethod(".cube_is_regular", source)
+    UseMethod(".cube_is_regular", cube)
 }
 
 #' @name .cube_is_regular
@@ -1149,12 +1148,8 @@
 #'
 #' @return A sits cube
 .cube_token_generator <- function(cube) {
-    source <- .source_new(
-        source = .cube_source(cube),
-        collection = .cube_collection(cube)
-    )
 
-    UseMethod(".cube_token_generator", source)
+    UseMethod(".cube_token_generator", cube)
 }
 
 
@@ -1242,12 +1237,8 @@
 #'
 #' @return a boolean value.
 .cube_is_token_expired <- function(cube) {
-    source <- .source_new(
-        source = .cube_source(cube),
-        collection = .cube_collection(cube)
-    )
 
-    UseMethod(".cube_is_token_expired", source)
+    UseMethod(".cube_is_token_expired", cube)
 }
 
 #' @export
