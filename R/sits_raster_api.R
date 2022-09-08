@@ -316,7 +316,6 @@
 #' @return              No value, called for side effects.
 .raster_write_rast <- function(r_obj,
                                file,
-                               format,
                                data_type,
                                overwrite, ...,
                                missing_value = NA) {
@@ -439,7 +438,6 @@
 #'
 #' @param r_obj         Raster package object to be written
 #' @param file          File name to save cropped raster.
-#' @param format        GDAL file format string (e.g. GTiff)
 #' @param data_type     sits internal raster data type. One of "INT1U",
 #'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
 #' @param overwrite     logical indicating if file can be overwritten
@@ -453,7 +451,6 @@
 #'                or bbox parameters
 .raster_crop <- function(r_obj,
                          file,
-                         format,
                          data_type,
                          overwrite,
                          block,
@@ -829,7 +826,8 @@
 .raster_template <- function(base_file,
                              out_file,
                              data_type,
-                             nlayers = NULL) {
+                             nlayers = NULL,
+                             missing_value) {
     # Check if file exists
     .check_that(
         x = !file.exists(out_file),
@@ -843,8 +841,8 @@
         ot = .raster_gdal_datatype(data_type),
         of = "GTiff",
         b = rep(1, nlayers),
-        scale = c(0, 1, 0, 0),
-        a_nodata = 0,
+        scale = c(0, 1, missing_value, missing_value),
+        a_nodata = missing_value,
         co = .config_gtiff_default_options()
     )
     # Delete auxiliary files
