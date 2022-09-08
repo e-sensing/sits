@@ -10,8 +10,7 @@
 #' sits_time_series(cerrado_2classes)
 #' @export
 sits_time_series <- function(data) {
-    .sits_tibble_test(data)
-
+    .check_samples(data)
     return(data$time_series[[1]])
 }
 
@@ -66,8 +65,6 @@ sits_time_series <- function(data) {
 #' @return               The converted sits tibble
 #'
 .sits_tibble_align_dates <- function(data, ref_dates) {
-    # verify that tibble is correct
-    .sits_tibble_test(data)
     # function to shift a time series in time
     shift_ts <- function(d, k) {
         dplyr::bind_rows(
@@ -130,7 +127,7 @@ sits_time_series <- function(data) {
 #'
 .sits_tibble_prune <- function(data) {
     # verify that tibble is correct
-    .sits_tibble_test(data)
+    .check_samples(data)
 
     n_samples <- data$time_series %>%
         purrr::map_int(function(t) {
@@ -175,34 +172,6 @@ sits_time_series <- function(data) {
         )
     }
     return(bands)
-}
-
-#' @title Tests if a sits tibble is valid
-#' @name .sits_tibble_test
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Tests if a sits tibble exists or has data inside.
-#'
-#' @param data  A sits tibble.
-#' @return Returns TRUE if data has data.
-.sits_tibble_test <- function(data) {
-
-    # set caller to show in errors
-    .check_set_caller(".sits_tibble_test")
-    .check_null(x = data, "invalid data parameter")
-    .check_num(
-        x = nrow(data),
-        min = 1, msg = "invalid number of rows"
-    )
-    .check_chr_contains(
-        x = colnames(data),
-        contains = .config_get("sits_tibble_cols"),
-        discriminator = "all_of",
-        msg = "Data is not a valid sits tibble"
-    )
-    return(TRUE)
 }
 #' @title Apply a function to one band of a time series
 #' @name .sits_fast_apply

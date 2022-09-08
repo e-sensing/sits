@@ -418,6 +418,13 @@
         as.character(terra::crs(x = r_obj))
     )
 }
+#' @name .raster_properties
+#' @keywords internal
+.raster_sources.terra <- function(r_obj, ...) {
+
+    sources <- terra::sources(r_obj)
+    return(sources)
+}
 
 #' @keywords internal
 #' @export

@@ -57,6 +57,41 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// average_probs
+NumericMatrix average_probs(const List& data_lst);
+RcppExport SEXP _sits_average_probs(SEXP data_lstSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const List& >::type data_lst(data_lstSEXP);
+    rcpp_result_gen = Rcpp::wrap(average_probs(data_lst));
+    return rcpp_result_gen;
+END_RCPP
+}
+// weighted_probs
+NumericMatrix weighted_probs(const List& data_lst, const NumericVector& weights);
+RcppExport SEXP _sits_weighted_probs(SEXP data_lstSEXP, SEXP weightsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const List& >::type data_lst(data_lstSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type weights(weightsSEXP);
+    rcpp_result_gen = Rcpp::wrap(weighted_probs(data_lst, weights));
+    return rcpp_result_gen;
+END_RCPP
+}
+// weighted_uncert_probs
+NumericMatrix weighted_uncert_probs(const List& data_lst, const List& unc_lst);
+RcppExport SEXP _sits_weighted_uncert_probs(SEXP data_lstSEXP, SEXP unc_lstSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const List& >::type data_lst(data_lstSEXP);
+    Rcpp::traits::input_parameter< const List& >::type unc_lst(unc_lstSEXP);
+    rcpp_result_gen = Rcpp::wrap(weighted_uncert_probs(data_lst, unc_lst));
+    return rcpp_result_gen;
+END_RCPP
+}
 // entropy_probs
 IntegerVector entropy_probs(const IntegerMatrix& mtx, const int& n);
 RcppExport SEXP _sits_entropy_probs(SEXP mtxSEXP, SEXP nSEXP) {
@@ -255,6 +290,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_bayes_smoother", (DL_FUNC) &_sits_bayes_smoother, 6},
     {"_sits_kernel_smoother", (DL_FUNC) &_sits_kernel_smoother, 5},
     {"_sits_bilateral_smoother", (DL_FUNC) &_sits_bilateral_smoother, 5},
+    {"_sits_average_probs", (DL_FUNC) &_sits_average_probs, 1},
+    {"_sits_weighted_probs", (DL_FUNC) &_sits_weighted_probs, 2},
+    {"_sits_weighted_uncert_probs", (DL_FUNC) &_sits_weighted_uncert_probs, 2},
     {"_sits_entropy_probs", (DL_FUNC) &_sits_entropy_probs, 2},
     {"_sits_kernel_fun", (DL_FUNC) &_sits_kernel_fun, 6},
     {"_sits_label_max_prob", (DL_FUNC) &_sits_label_max_prob, 1},

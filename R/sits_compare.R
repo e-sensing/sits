@@ -24,7 +24,7 @@ NULL
         msg = "invalid tolerance parameter"
     )
 
-    return(abs(x - y) <= tolerance)
+    return(all(abs(x - y) <= tolerance))
 }
 
 #' @rdname comparison_functions
@@ -37,7 +37,7 @@ NULL
         msg = "invalid tolerance parameter"
     )
 
-    return((y - x) > tolerance)
+    return(all((y - x) > tolerance))
 }
 
 #' @rdname comparison_functions
@@ -50,7 +50,7 @@ NULL
         msg = "invalid tolerance parameter"
     )
 
-    return((x - y) > tolerance)
+    return(all((x - y) > tolerance))
 }
 
 #' @rdname comparison_functions

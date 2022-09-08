@@ -114,50 +114,24 @@ sits_tae <- function(samples = NULL,
         # verifies if torch and luz packages is installed
         .check_require_packages(c("torch", "luz"))
 
-        .sits_tibble_test(samples)
-
         # preconditions
         # check epochs
-        .check_num(
-            x = epochs,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
+        .check_int_parameter(epochs)
         # check batch_size
-        .check_num(
-            x = batch_size,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
+        .check_int_parameter(batch_size)
         # check validation_split parameter if samples_validation is not passed
-        if (purrr::is_null(samples_validation)) {
-            .check_num(
-                x = validation_split,
-                exclusive_min = 0,
-                max = 0.5,
-                len_min = 1,
-                len_max = 1
-            )
-        }
-
+        if (purrr::is_null(samples_validation))
+            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
         # check lr_decay_epochs
-        .check_num(
-            x = lr_decay_epochs,
-            is_integer = TRUE,
-            len_max = 1,
-            min = 1
-        )
+        .check_int_parameter(lr_decay_epochs)
         # check lr_decay_rate
-        .check_num(
-            x = lr_decay_rate,
-            exclusive_min = 0,
-            max = 1,
-            len_max = 1
-        )
+        .check_num_parameter(lr_decay_rate, exclusive_min = 0, max = 1)
+        # check patience
+        .check_int_parameter(patience)
+        # check min_delta
+        .check_num_parameter(min_delta, min = 0)
+        # check verbose
+        .check_lgl(verbose)
         # check opt_params
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
@@ -172,24 +146,6 @@ sits_tae <- function(samples = NULL,
                 opt_hparams
             )
         }
-        # check patience
-        .check_num(
-            x = patience,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
-        # check min_delta
-        .check_num(
-            x = min_delta,
-            min = 0,
-            len_min = 1,
-            len_max = 1
-        )
-        # check verbose
-        .check_lgl(verbose)
-
         # get the timeline of the data
         timeline <- sits_timeline(samples)
         # get the bands of the data
@@ -213,7 +169,6 @@ sits_tae <- function(samples = NULL,
         train_samples <- .sits_distances(
             .sits_ml_normalize_data(samples, stats)
         )
-
         # is the training data correct?
         .check_chr_within(
             x = "reference",
@@ -223,22 +178,10 @@ sits_tae <- function(samples = NULL,
         )
 
         if (!is.null(samples_validation)) {
-
-            # check if the labels matches with train data
-            .check_that(
-                all(sits_labels(samples_validation) %in% labels) &&
-                    all(labels %in% sits_labels(samples_validation))
-            )
-            # check if the timeline matches with train data
-            .check_that(
-                length(sits_timeline(samples_validation)) == length(timeline)
-            )
-            # check if the bands matches with train data
-            .check_that(
-                all(sits_bands(samples_validation) %in% bands) &&
-                    all(bands %in% sits_bands(samples_validation))
-            )
-
+            # check samples validation
+            .check_samples_validation(samples_validation,
+                                      labels, timeline, bands)
+            # test samples are extracted from validation data
             test_samples <- .sits_distances(
                 .sits_ml_normalize_data(samples_validation, stats)
             )

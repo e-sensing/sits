@@ -542,7 +542,7 @@ plot.raster_cube <- function(x, ...,
 plot.probs_cube <- function(x, ...,
                             tiles = NULL,
                             labels = NULL,
-                            breaks = "pretty",
+                            breaks = "equal",
                             n_colors = 20,
                             palette = "Terrain") {
 

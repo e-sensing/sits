@@ -33,7 +33,7 @@ test_that("One-year, single core classification", {
             memsize = 4,
             multicores = 1
         ) },
-        regexp = "Recovery mode: "
+        regexp = "Recovery: "
     )
 
     sits_labels(sinop_probs) <- c(
@@ -47,10 +47,10 @@ test_that("One-year, single core classification", {
 
     expect_true(.raster_nrows(r_obj) == .cube_size(sinop_probs)[["nrows"]])
 
-    max_lyr1 <- max(.raster_get_values(r_obj)[, 1])
+    max_lyr1 <- max(.raster_get_values(r_obj)[, 1], na.rm = TRUE)
     expect_true(max_lyr1 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
@@ -126,10 +126,10 @@ test_that("One-year, multicore classification", {
         sits:::.raster_nrows(r_obj) == sits:::.cube_size(sinop_probs)[["nrows"]]
     )
 
-    max_lyr2 <- max(sits:::.raster_get_values(r_obj)[, 2])
+    max_lyr2 <- max(sits:::.raster_get_values(r_obj)[, 2], na.rm = TRUE)
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(sits:::.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(sits:::.raster_get_values(r_obj)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
@@ -215,10 +215,10 @@ test_that("One-year, multicore classification with Savitzky-Golay filter", {
     expect_true(sits:::.raster_nrows(r_obj) ==
         sits:::.cube_size(sinop_2014_probs)[["nrows"]])
 
-    max_lyr2 <- max(sits:::.raster_get_values(r_obj)[, 2])
+    max_lyr2 <- max(sits:::.raster_get_values(r_obj)[, 2], na.rm = TRUE)
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(sits:::.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(sits:::.raster_get_values(r_obj)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
@@ -321,10 +321,10 @@ test_that("One-year, multicore classification with torch", {
 
     expect_true(.raster_nrows(r_obj) == .cube_size(sinop_2014_probs)[["nrows"]])
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
@@ -372,10 +372,10 @@ test_that("One-year, multicore classification with ResNet", {
 
     expect_true(.raster_nrows(r_obj) == .cube_size(sinop_2014_probs)[["nrows"]])
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
@@ -513,12 +513,12 @@ test_that("One-year, multicores classification with cloud band", {
         multicores = 2
     )
 
-    cube_merged <- sits_merge(data1 = cube, data2 = kern_cube)
+    cube_merged <- sits_merge(data1 = cloud_cube, data2 = kern_cube)
 
     samples_ndvi <- sits_get_data(
         cube = cube_merged,
         samples = csv_file,
-        multicores = 2
+        multicores = 1
     )
 
     rf_model <- sits_train(samples_ndvi, ml_method = sits_rfor)
@@ -616,7 +616,7 @@ test_that("One-year, multicore classification with post-processing", {
             sinop_probs,
             output_dir = temp_dir
         ) },
-        regexp = "Recovery mode: "
+        regexp = "Recovery"
     )
     expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
 
@@ -656,7 +656,7 @@ test_that("One-year, multicore classification with post-processing", {
             output_dir = temp_dir,
             multicores = 2
         ) },
-        regexp = "Recovery mode: "
+        regexp = "Recovery"
     )
     expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
 
@@ -666,10 +666,10 @@ test_that("One-year, multicore classification with post-processing", {
     r_bay <- .raster_open_rast(sinop_bayes$file_info[[1]]$path[[1]])
     expect_true(.raster_nrows(r_bay) == .cube_size(sinop_probs)[["nrows"]])
 
-    max_bay2 <- max(.raster_get_values(r_bay)[, 2])
+    max_bay2 <- max(.raster_get_values(r_bay)[, 2], na.rm = TRUE)
     expect_true(max_bay2 <= 10000)
 
-    max_bay3 <- max(.raster_get_values(r_bay)[, 3])
+    max_bay3 <- max(.raster_get_values(r_bay)[, 3], na.rm = TRUE)
     expect_true(max_bay3 <= 10000)
 
     sinop_bayes_2 <- sits_cube(
@@ -684,7 +684,7 @@ test_that("One-year, multicore classification with post-processing", {
         )
     )
 
-    expect_true(.cube_is_equal(sinop_bayes, sinop_bayes))
+    expect_true(.cube_is_equal(sinop_bayes, sinop_bayes_2))
 
     sinop_bil <- sits_smooth(
         cube = sinop_probs,

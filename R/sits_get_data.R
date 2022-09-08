@@ -132,7 +132,7 @@ sits_get_data <- function(cube,
     )
 
     # pre-condition - all tiles have same bands
-    is_regular <- .cube_is_regular(cube)
+    is_regular <- .check_is_regular(cube)
     .check_that(is_regular,
         local_msg = "tiles have different bands and dates",
         msg = "cube is inconsistent"
@@ -422,7 +422,7 @@ sits_get_data.data.frame <- function(cube,
         bands <- .cube_bands(cube)
     }
 
-    .cube_bands_check(cube, bands = bands)
+    .check_cube_bands(cube, bands = bands)
 
     # is the cloud band available?
     cld_band <- .source_cloud()
@@ -630,7 +630,7 @@ sits_get_data.data.frame <- function(cube,
         bands <- .cube_bands(cube)
     }
 
-    .cube_bands_check(cube, bands = bands)
+    .check_cube_bands(cube, bands = bands)
 
     # get cubes timeline
     tl <- sits_timeline(cube)

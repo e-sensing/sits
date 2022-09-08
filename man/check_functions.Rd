@@ -7,7 +7,6 @@
 \alias{.check_that}
 \alias{.check_null}
 \alias{.check_na}
-\alias{.check_require_packages}
 \alias{.check_names}
 \alias{.check_length}
 \alias{.check_apply}
@@ -25,7 +24,6 @@
 \alias{.check_env_var}
 \alias{.check_warn}
 \alias{.check_error}
-\alias{.check_documentation}
 \title{Check functions}
 \usage{
 .check_set_caller(caller)
@@ -37,8 +35,6 @@
 .check_null(x, ..., msg = NULL)
 
 .check_na(x, ..., allow_na = FALSE, msg = NULL)
-
-.check_require_packages(x, ..., msg = "Please install package(s)")
 
 .check_names(x, ..., is_named = TRUE, msg = NULL)
 
@@ -133,8 +129,6 @@
 .check_warn(expr)
 
 .check_error(expr, ..., msg = NULL)
-
-.check_documentation(progress)
 }
 \arguments{
 \item{caller}{A \code{character} value with the caller name.}
@@ -232,7 +226,7 @@ argument as \code{x} if a \code{TRUE} evaluation occurs.
 
 \code{.check_set_caller()} returns \code{NULL}.
 
-\code{.check_identify_caller()} returns a \code{character} value.
+the name of the function that is being tested.
 
 The same input value if no error occurs
 }
@@ -290,10 +284,6 @@ is out of the range specified by \code{len_min} and \code{len_max}
 \code{.check_apply()} throws an error only if \code{fn_check}
 function throws an error when applied to each \code{x} element.
 }
-}
-
-Check type functions:
-\itemize{
 \item{
 \code{.check_lgl_type()} throws an error if \code{x} type is not
 \code{logical}.

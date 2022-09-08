@@ -33,7 +33,7 @@ NULL
 
     # check bands
     if (!is.null(bands)) {
-        .cube_bands_check(cube, bands = bands)
+        .check_cube_bands(cube, bands = bands)
         file_info <- file_info[file_info[["band"]] %in% bands, ]
     }
 
@@ -56,10 +56,9 @@ NULL
     }
 
     if (!is.null(end_date)) {
-        cube_end_date <- sort(.file_info_timeline(cube), decreasing = TRUE)[[1]]
-
+        cube_end_date <- sort(.file_info_timeline(cube),
+                              decreasing = TRUE)[[1]]
         .check_that(end_date < cube_end_date, msg = "invalid end date")
-
         file_info <- file_info[file_info[["date"]] < end_date, ]
     }
 
@@ -75,10 +74,7 @@ NULL
     file_info <- .file_info(cube, bands = bands)
     nrows <- unique(file_info[["nrows"]])
 
-    .check_num(length(nrows),
-        min = 1, max = 1, is_integer = TRUE,
-        msg = "wrong nrows parameter in file_info"
-    )
+    .check_int_parameter(length(nrows), min = 1, max = 1)
     return(nrows)
 }
 #' @rdname file_info_functions
@@ -89,10 +85,7 @@ NULL
     file_info <- .file_info(cube, bands = bands)
     ncols <- unique(file_info[["ncols"]])
 
-    .check_num(length(ncols),
-        min = 1, max = 1, is_integer = TRUE,
-        msg = "wrong ncols parameter in file_info"
-    )
+    .check_int_parameter(length(ncols), min = 1, max = 1)
     return(ncols)
 }
 #' @rdname file_info_functions
@@ -115,7 +108,6 @@ NULL
     file_info <- .file_info(cube, bands = bands)
 
     paths <- file_info[["path"]]
-
     .check_chr_type(paths, msg = "wrong paths type in file_info")
 
     return(paths)

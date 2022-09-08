@@ -24,11 +24,10 @@
 #' The uncertainty measure is relevant in the context of active leaning,
 #' and helps to increase the quantity and quality of training samples by
 #' providing information about the confidence of the model.
-#' The supported types of uncertainty are 'entropy', 'least', 'margin' and
-#' 'ratio'. 'entropy' is the difference between all predictions expressed as
+#' The supported types of uncertainty are 'entropy', 'least', and 'margin'.
+#' 'entropy' is the difference between all predictions expressed as
 #' entropy, 'least' is the difference between 100% and most confident
-#' prediction, 'margin' is the difference between the two most confident
-#' predictions, and 'ratio' is the ratio between the two most confident
+#' prediction, and 'margin' is the difference between the two most confident
 #' predictions.
 #'
 #' @references Monarch, Robert Munro. Human-in-the-Loop Machine Learning:
@@ -73,10 +72,15 @@ sits_uncertainty <- function(cube, type = "least", ...,
     .check_require_packages("parallel")
 
     # check if cube has probability data
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "input is not probability cube"
-    )
+    .check_is_probs_cube(cube)
+    # precondition - multicores
+    .check_multicores(multicores)
+    # precondition - memsize
+    .check_memsize(memsize)
+    # precondition - output dir
+    .check_output_dir(output_dir)
+    # precondition - version
+    .check_version(version)
     # define the class of the smoothing
     class(type) <- c(type, class(type))
     UseMethod("sits_uncertainty", type)
@@ -94,21 +98,10 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
                                      output_dir = ".",
                                      version = "v1") {
 
-    # precondition 1 - check if cube has probability data
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "input is not probability cube"
-    )
+    # precondition - test window size
+    .check_window_size(window_size)
 
-    # precondition 2 - test window size
-    if (!purrr::is_null(window_size)) {
-        .check_that(
-            x = window_size %% 2 != 0,
-            msg = "window_size must be an odd number"
-        )
-    }
-
-    # precondition 3 - test window function
+    # precondition - test window function
     .check_chr_within(
         x = window_fn,
         within = .config_names("uncertainty_window_functions"),
@@ -125,43 +118,10 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
     # find out how many labels exist
     n_labels <- length(sits_labels(cube[1, ]))
 
-    # precondition 4 - multicores
-    .check_num(
-        x = multicores,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        is_integer = TRUE,
-        msg = "invalid 'multicores' parameter"
-    )
-
-    # precondition 5 - memory
-    .check_num(
-        x = memsize,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'memsize' parameter"
-    )
-
-    # precondition 6 - output dir
-    .check_file(
-        x = output_dir,
-        msg = "invalid output dir"
-    )
-
-    # precondition 7 - version
-    .check_chr(
-        x = version,
-        len_min = 1,
-        msg = "invalid version"
-    )
-
     # create a window
     window <- NULL
-    if (!purrr::is_null(window_size) && window_size > 1) {
+    if (window_size > 1)
         window <- matrix(1, nrow = window_size, ncol = window_size)
-    }
 
     # entropy uncertainty index to be executed by workers cluster
     .do_entropy <- function(chunk) {
@@ -380,21 +340,10 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
                                    output_dir = ".",
                                    version = "v1") {
 
-    # precondition 1 - check if cube has probability data
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "input is not probability cube"
-    )
+    # precondition - test window size
+    .check_window_size(window_size)
 
-    # precondition 2 - test window size
-    if (!purrr::is_null(window_size)) {
-        .check_that(
-            x = window_size %% 2 != 0,
-            msg = "window_size must be an odd number"
-        )
-    }
-
-    # precondition 3 - test window function
+    # precondition - test window function
     .check_chr_within(
         x = window_fn,
         within = .config_names("uncertainty_window_functions"),
@@ -411,43 +360,10 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
     # find out how many labels exist
     n_labels <- length(sits_labels(cube[1, ]))
 
-    # precondition 4 - multicores
-    .check_num(
-        x = multicores,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        is_integer = TRUE,
-        msg = "invalid 'multicores' parameter"
-    )
-
-    # precondition 5 - memory
-    .check_num(
-        x = memsize,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'memsize' parameter"
-    )
-
-    # precondition 6 - output dir
-    .check_file(
-        x = output_dir,
-        msg = "invalid output dir"
-    )
-
-    # precondition 7 - version
-    .check_chr(
-        x = version,
-        len_min = 1,
-        msg = "invalid version"
-    )
-
     # create a window
     window <- NULL
-    if (!purrr::is_null(window_size) && window_size > 1) {
+    if (window_size > 1)
         window <- matrix(1, nrow = window_size, ncol = window_size)
-    }
 
     # least confidence  uncertainty index to be executed by workers cluster
     .do_least <- function(chunk) {
@@ -667,18 +583,10 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
                                     version = "v1") {
 
     # precondition 1 - check if cube has probability data
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "input is not probability cube"
-    )
+    .check_is_probs_cube(cube)
 
     # precondition 2 - test window size
-    if (!purrr::is_null(window_size)) {
-        .check_that(
-            x = window_size %% 2 != 0,
-            msg = "window_size must be an odd number"
-        )
-    }
+    .check_window_size(window_size)
 
     # precondition 3 - test window function
     .check_chr_within(
@@ -697,41 +605,9 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
     # find out how many labels exist
     n_labels <- length(sits_labels(cube[1, ]))
 
-    # precondition 4 - multicores
-    .check_num(
-        x = multicores,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        is_integer = TRUE,
-        msg = "invalid 'multicores' parameter"
-    )
-
-    # precondition 5 - memory
-    .check_num(
-        x = memsize,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'memsize' parameter"
-    )
-
-    # precondition 6 - output dir
-    .check_file(
-        x = output_dir,
-        msg = "invalid output dir"
-    )
-
-    # precondition 7 - version
-    .check_chr(
-        x = version,
-        len_min = 1,
-        msg = "invalid version"
-    )
-
     # create a window
     window <- NULL
-    if (!purrr::is_null(window_size) && window_size > 1) {
+    if (window_size > 1) {
         window <- matrix(1, nrow = window_size, ncol = window_size)
     }
 
@@ -897,292 +773,6 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
             cube       = tile,
             cube_class = "uncertainty_cube",
             band_name  = "margin",
-            labels     = .cube_labels(tile),
-            start_date = .file_info_start_date(tile),
-            end_date   = .file_info_end_date(tile),
-            bbox       = .cube_tile_bbox(tile),
-            output_dir = output_dir,
-            version    = version
-        )
-
-        # prepare output filename
-        out_file <- .file_info_path(tile_new)
-
-        # if file exists skip it (resume feature)
-        if (file.exists(out_file)) {
-            return(tile_new)
-        }
-
-        tmp_blocks <- blocks_tile_lst[[i]]
-
-        # Remove blocks
-        on.exit(unlink(tmp_blocks), add = TRUE)
-
-        # merge to save final result
-        .raster_merge(
-            files = tmp_blocks,
-            out_file = out_file,
-            data_type = .config_get("probs_cube_data_type"),
-            multicores = 1
-        )
-
-        return(tile_new)
-    })
-
-    # bind rows
-    result_cube <- dplyr::bind_rows(result_cube)
-
-    class(result_cube) <- c("uncertainty_cube",
-                            setdiff(class(cube), "probs_cube"))
-
-    return(result_cube)
-}
-
-
-
-#' @rdname sits_uncertainty
-#'
-#' @export
-#'
-sits_uncertainty.ratio <- function(cube, type = "ratio", ...,
-                                    window_size = 5,
-                                    window_fn = "median",
-                                    multicores = 2,
-                                    memsize = 4,
-                                    output_dir = ".",
-                                    version = "v1") {
-
-    # precondition 1 - check if cube has probability data
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "input is not probability cube"
-    )
-
-    # precondition 2 - test window size
-    if (!purrr::is_null(window_size)) {
-        .check_that(
-            x = window_size %% 2 != 0,
-            msg = "window_size must be an odd number"
-        )
-    }
-
-    # precondition 3 - test window function
-    .check_chr_within(
-        x = window_fn,
-        within = .config_names("uncertainty_window_functions"),
-        msg = "Invalid 'window_fn' parameter"
-    )
-    # resolve window_fn parameter
-    window_fn <- .config_get(key = c(
-        "uncertainty_window_functions",
-        window_fn
-    ))
-    config_fun <- strsplit(window_fn, "::")[[1]]
-    window_fn <- get(config_fun[[2]], envir = asNamespace(config_fun[[1]]))
-
-    # find out how many labels exist
-    n_labels <- length(sits_labels(cube[1, ]))
-
-    # precondition 4 - multicores
-    .check_num(
-        x = multicores,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        is_integer = TRUE,
-        msg = "invalid 'multicores' parameter"
-    )
-
-    # precondition 5 - memory
-    .check_num(
-        x = memsize,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'memsize' parameter"
-    )
-
-    # precondition 6 - output dir
-    .check_file(
-        x = output_dir,
-        msg = "invalid output dir"
-    )
-
-    # precondition 7 - version
-    .check_chr(
-        x = version,
-        len_min = 1,
-        msg = "invalid version"
-    )
-
-    # create a window
-    window <- NULL
-    if (!purrr::is_null(window_size) && window_size > 1) {
-        window <- matrix(1, nrow = window_size, ncol = window_size)
-    }
-
-    # ratio of confidence uncertainty index to be executed by workers cluster
-    .do_ratio <- function(chunk) {
-        data <- .raster_get_values(r_obj = chunk)
-        # process ratio of confidence
-        unc <- ratio_probs(data, n_labels)
-        # create cube
-        res <- .raster_rast(
-            r_obj = chunk,
-            nlayers = 1
-        )
-        # copy values
-        res <- .raster_set_values(
-            r_obj = res,
-            values = unc
-        )
-        # process window
-        if (!is.null(window)) {
-            res <- terra::focal(
-                res,
-                w = window,
-                fun = window_fn,
-                na.rm = TRUE
-            )
-        }
-        return(res)
-    }
-
-    # compute which block size is many tiles to be computed
-    block_size <- .smth_estimate_block_size(
-        cube = cube,
-        multicores = multicores,
-        memsize = memsize
-    )
-
-    # start parallel processes
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop())
-
-    # process each brick layer (each time step) individually
-    blocks_tile_lst <- slider::slide(cube, function(tile) {
-
-        # create metadata for raster cube
-        tile_new <- .cube_derived_create(
-            cube       = tile,
-            cube_class = "uncertainty_cube",
-            band_name  = "ratio",
-            labels     = .cube_labels(tile),
-            start_date = .file_info_start_date(tile),
-            end_date   = .file_info_end_date(tile),
-            bbox       = .cube_tile_bbox(tile),
-            output_dir = output_dir,
-            version    = version
-        )
-
-        # prepare output filename
-        out_file <- .file_info_path(tile_new)
-
-        # if file exists skip it (resume feature)
-        if (file.exists(out_file)) {
-            if (all(.raster_bbox(.raster_open_rast(out_file))
-                    == sits_bbox(tile_new))) {
-                message(paste0(
-                    "Recovery mode: uncertainty image file found in '",
-                    dirname(out_file), "' directory. ",
-                    "(If you want a new uncertainty image, please ",
-                    "change the directory in the 'output_dir' or the ",
-                    "value of 'version' parameter)"
-                ))
-                return(NULL)
-            }
-        }
-
-        # overlapping pixels
-        overlapping_y_size <- ceiling(window_size / 2) - 1
-
-        # get cube size
-        size <- .cube_size(tile)
-
-        # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
-        blocks <- .smth_compute_blocks(
-            xsize = size[["ncols"]],
-            ysize = size[["nrows"]],
-            block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = overlapping_y_size
-        )
-
-        # open probability file
-        in_file <- .file_info_path(tile)
-
-        # process blocks in parallel
-        block_files_lst <- .sits_parallel_map(blocks, function(block) {
-
-            # open brick
-            b <- .raster_open_rast(in_file)
-
-            # crop adding overlaps
-            temp_chunk_file <- .create_chunk_file(
-                output_dir = output_dir,
-                pattern = "chunk_ratio_overlap_",
-                ext = ".tif"
-            )
-            chunk <- .raster_crop(
-                r_obj = b,
-                file = temp_chunk_file,
-                data_type = .raster_data_type(
-                    .config_get("probs_cube_data_type")
-                ),
-                overwrite = TRUE,
-                block = block
-            )
-            # Delete temp file
-            on.exit(unlink(temp_chunk_file), add = TRUE)
-
-            # process it
-            raster_out <- .do_ratio(chunk = chunk)
-
-            # create extent
-            blk_no_overlap <- list(
-                first_row = block$crop_first_row,
-                nrows = block$crop_nrows,
-                first_col = block$crop_first_col,
-                ncols = block$crop_ncols
-            )
-
-            block_file <- .smth_filename(
-                tile = tile_new,
-                output_dir = output_dir,
-                block = block
-            )
-
-            # Save chunk
-            # Crop removing overlaps
-            .raster_crop(
-                r_obj = raster_out,
-                file = block_file,
-                data_type = .raster_data_type(
-                    .config_get("probs_cube_data_type")
-                ),
-                overwrite = TRUE,
-                block = blk_no_overlap
-            )
-
-            return(block_file)
-        })
-
-        block_files <- unlist(block_files_lst)
-
-        return(invisible(block_files))
-    })
-
-
-    # process each brick layer (each time step) individually
-    result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
-
-        # get tile from cube
-        tile <- cube[i, ]
-
-        # create metadata for raster cube
-        tile_new <- .cube_derived_create(
-            cube       = tile,
-            cube_class = "uncertainty_cube",
-            band_name  = "ratio",
             labels     = .cube_labels(tile),
             start_date = .file_info_start_date(tile),
             end_date   = .file_info_end_date(tile),

@@ -52,11 +52,10 @@ sits_cluster_dendro <- function(samples = NULL,
                                 k = NULL,
                                 palette = "RdYlGn",
                                 .plot = TRUE, ...) {
-
-    # verify if data is OK
-    .sits_tibble_test(samples)
-
+    # needs package dtwclust
     .check_require_packages("dtwclust")
+    # verify if data is OK
+    .check_samples(samples)
 
     # bands in sits are uppercase
     bands <- .sits_tibble_bands_check(samples, bands)
@@ -133,11 +132,7 @@ sits_cluster_frequency <- function(samples) {
     .check_set_caller("sits_cluster_frequency")
 
     # is the input data the result of a cluster function?
-    .check_chr_contains(
-        names(samples),
-        contains = "cluster",
-        msg = "missing cluster column"
-    )
+    .check_samples_cluster(samples)
 
     # compute frequency table (matrix)
     result <- table(samples$label, samples$cluster)
@@ -179,11 +174,7 @@ sits_cluster_clean <- function(samples) {
     .check_set_caller("sits_cluster_clean")
 
     # is the input data the result of a cluster function?
-    .check_chr_contains(
-        names(samples),
-        contains = "cluster",
-        msg = "input data does not contain cluster column"
-    )
+    .check_samples_cluster(samples)
 
     # compute frequency table (matrix)
     result <- table(samples$label, samples$cluster)
@@ -237,11 +228,7 @@ sits_cluster_clean <- function(samples) {
     .check_require_packages("dtwclust")
 
     # is the input data the result of a cluster function?
-    .check_chr_contains(
-        names(samples),
-        contains = "cluster",
-        msg = "input data does not have cluster column"
-    )
+    .check_samples_cluster(samples)
 
     # compute CVIs and return
     result <- dtwclust::cvi(

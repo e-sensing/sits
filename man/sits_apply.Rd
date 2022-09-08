@@ -25,7 +25,7 @@ sits_apply(data, ...)
 
 \item{...}{Named expressions to be evaluated (see details).}
 
-\item{window_size}{An even number representing the size of the
+\item{window_size}{An odd number representing the size of the
 sliding window of sits kernel functions
 used in expressions (for a list of supported
 kernel functions, please see details).}

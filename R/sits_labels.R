@@ -28,7 +28,6 @@ sits_labels <- function(data) {
 sits_labels.sits <- function(data) {
 
     # pre-condition
-    .cube_check(data)
     return(sort(unique(data$label)))
 }
 
@@ -51,8 +50,14 @@ sits_labels.sits_model <- function(data) {
 
     # set caller to show in errors
     .check_set_caller("sits_labels.sits_model")
-    samples <- .sits_ml_model_samples(data)
-    return(sits_labels.sits(samples))
+    .check_is_sits_model(data)
+    .check_chr_within(
+        x = "samples",
+        within = ls(environment(data)),
+        discriminator = "any_of",
+        msg = "no samples found in the sits model"
+    )
+    return(sits_labels.sits(environment(data)$samples))
 }
 #' @title Change the labels of a set of time series
 #'
@@ -95,24 +100,15 @@ sits_labels.sits_model <- function(data) {
 `sits_labels<-.sits` <- function(data, value) {
 
     # does the input data exist?
-    .sits_tibble_test(data)
+    .check_samples(data)
 
     labels <- sits_labels(data)
 
-    # check if value is an atomic vector
-    .check_chr_type(
-        x = value,
-        msg = "value must be a character vetor"
+    # check if value and labels match
+    .check_chr_parameter(value,
+                         len_max = length(labels),
+                         len_min = length(labels)
     )
-
-    # check if length is correct
-    .check_length(
-        x = labels,
-        len_max = length(value),
-        len_min = length(value),
-        msg = "informed labels have a different expected length"
-    )
-
     # check if there are no NA
     .check_that(
         x = all(!is.na(value)),

@@ -71,21 +71,6 @@
 #'
 .cube_area_freq <- function(cube) {
 
-    # set caller to show in errors
-    .check_set_caller(".cube_area_freq")
-
-    # pre-condition - one tile at a time
-    .check_num(nrow(cube),
-        min = 1, max = 1, is_integer = TRUE,
-        msg = "process one tile at a time"
-    )
-
-    # precondition
-    .check_that(
-        x = inherits(cube, "classified_image"),
-        msg = "requires a labelled cube"
-    )
-
     # open first raster
     r_obj <- .raster_open_rast(.file_info_path(cube))
 
@@ -106,35 +91,13 @@
     bands <- sits_bands(cube)
 
     # post-condition
-    .check_chr(bands,
-        min_len = 1, is_named = FALSE,
-        msg = "inconsistent 'bands' information"
-    )
+    .check_chr_parameter(bands, len_max = 2^31 - 1)
 
     if (!add_cloud) {
         bands <- bands[bands != .source_cloud()]
     }
 
     return(bands)
-}
-#' @title Check if bands are part of a data cube
-#' @keywords internal
-#' @name .cube_bands_check
-#' @param cube          Data cube
-#' @param bands         Bands to be check
-#' @param add_cloud     Include the cloud band?
-#'
-#' @return No return value, called for side effects.
-#' @rdname cube_functions
-#'
-.cube_bands_check <- function(cube, bands, add_cloud = TRUE) {
-
-    # all bands are upper case
-    .check_chr_within(bands,
-        within = .cube_bands(cube = cube, add_cloud = add_cloud),
-        case_sensitive = FALSE,
-        msg = "invalid 'bands' parameter"
-    )
 }
 
 #' @title Missing value of a cube band
@@ -148,17 +111,8 @@
 .cube_band_missing_value <- function(cube, band) {
 
     # pre-condition
-    .check_chr(band,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'band' parameter"
-    )
-
-    .check_chr_within(band,
-        within = .cube_bands(cube = cube, add_cloud = FALSE),
-        discriminator = "one_of",
-        case_sensitive = FALSE,
-        msg = "invalid 'band' parameter"
-    )
+    .check_chr_parameter(band)
+    .check_band_in_cube(band, cube)
 
     # bands names are upper case
     band <- toupper(band)
@@ -173,10 +127,7 @@
     )
 
     # post-condition
-    .check_num(mv,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'missing_value' value"
-    )
+    .check_num_parameter(mv, allow_na = TRUE)
 
     return(mv)
 }
@@ -191,18 +142,9 @@
 #'
 .cube_band_minimum_value <- function(cube, band) {
 
-    # pre-condition
-    .check_chr(band,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'band' parameter"
-    )
-
-    .check_chr_within(band,
-        within = .cube_bands(cube = cube, add_cloud = FALSE),
-        discriminator = "one_of",
-        case_sensitive = FALSE,
-        msg = "invalid 'band' parameter"
-    )
+    # pre-conditions
+    .check_chr_parameter(band)
+    .check_band_in_cube(band, cube)
 
     # bands names are upper case
     band <- toupper(band)
@@ -217,10 +159,7 @@
     )
 
     # post-condition
-    .check_num(mv,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'minimum_value' value"
-    )
+    .check_num_parameter(mv)
 
     return(mv)
 }
@@ -235,18 +174,9 @@
 #'
 .cube_band_maximum_value <- function(cube, band) {
 
-    # pre-condition
-    .check_chr(band,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'band' parameter"
-    )
-
-    .check_chr_within(band,
-        within = .cube_bands(cube = cube, add_cloud = FALSE),
-        discriminator = "one_of",
-        case_sensitive = FALSE,
-        msg = "invalid 'band' parameter"
-    )
+    # pre-conditions
+    .check_chr_parameter(band)
+    .check_band_in_cube(band, cube)
 
     # bands names are upper case
     band <- toupper(band)
@@ -261,10 +191,7 @@
     )
 
     # post-condition
-    .check_num(mv,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'maximum_value' value"
-    )
+    .check_num_parameter(mv)
 
     return(mv)
 }
@@ -281,17 +208,9 @@
 .cube_band_scale_factor <- function(cube, band) {
 
     # pre-condition
-    .check_chr(band,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'band' parameter"
-    )
+    .check_chr_parameter(band)
+    .check_band_in_cube(band, cube)
 
-    .check_chr_within(band,
-        within = .cube_bands(cube = cube, add_cloud = FALSE),
-        discriminator = "one_of",
-        case_sensitive = FALSE,
-        msg = "invalid 'band' parameter"
-    )
     # bands names are upper case
     band <- toupper(band)
 
@@ -305,13 +224,7 @@
     )
 
     # post-condition
-    .check_num(
-        x = sf,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'scale_factor' value"
-    )
+    .check_num_parameter(sf, exclusive_min = 0)
 
     return(sf)
 }
@@ -326,17 +239,8 @@
 .cube_band_offset_value <- function(cube, band) {
 
     # pre-condition
-    .check_chr(band,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'band' parameter"
-    )
-
-    .check_chr_within(band,
-        within = .cube_bands(cube = cube, add_cloud = FALSE),
-        discriminator = "one_of",
-        case_sensitive = FALSE,
-        msg = "invalid 'band' parameter"
-    )
+    .check_chr_parameter(band)
+    .check_band_in_cube(band, cube)
 
     # bands names are upper case
     band <- toupper(band)
@@ -351,14 +255,10 @@
     )
 
     # post-condition
-    .check_num(ov,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'offset_value' value"
-    )
+    .check_num_parameter(ov)
 
     return(ov)
 }
-
 
 #' @title Check if R object is a data cube
 #' @keywords internal
@@ -375,15 +275,12 @@
 #' @param cube  data cube
 #' @return collection associated to the cube
 .cube_collection <- function(cube) {
-    col <- unique(cube[["collection"]])
+    collection <- unique(cube[["collection"]])
 
     # post-condition
-    .check_chr(col,
-        allow_empty = FALSE, len_min = 1, len_max = 1,
-        msg = "invalid collection value"
-    )
+    .check_chr_parameter(collection)
 
-    return(col)
+    return(collection)
 }
 #' @title Return crs of a data cube
 #' @keywords internal
@@ -394,11 +291,7 @@
     crs <- unique(cube[["crs"]])
 
     # post-condition
-    .check_chr(crs,
-        allow_empty = FALSE, allow_NA = FALSE,
-        len_min = 1, len_max = 1,
-        msg = "invalid crs value"
-    )
+    .check_chr_parameter(crs, len_max = nrow(cube))
 
     return(crs)
 }
@@ -436,11 +329,8 @@
     # set caller to show in errors
     .check_set_caller(".cube_derived_create")
 
-    # ensure metadata tibble exists
-    .check_that(
-        x = nrow(cube) == 1,
-        msg = "accepts only one tile at a time"
-    )
+    # only one tile at a time is processed
+    .check_has_one_tile(cube)
 
     # output filename
     file_name <- paste0(
@@ -523,21 +413,9 @@
     .check_set_caller(".cube_extract")
 
     # pre-condition - one tile at a time
-    .check_num(nrow(cube),
-        min = 1, max = 1, is_integer = TRUE,
-        msg = "process one tile at a time"
-    )
-
-    # precondition 2
-    .check_chr_within(
-        x = band_cube,
-        within = sits_bands(cube),
-        discriminator = "one_of",
-        msg = paste(
-            "band", band_cube,
-            "is not available in the cube"
-        )
-    )
+    .check_has_one_tile(cube)
+    # does the cube contain the band?
+    .check_band_in_cube(band_cube, cube)
 
     # filter the files that contain the band
     band <- dplyr::filter(.file_info(cube), .data[["band"]] == band_cube)
@@ -576,12 +454,7 @@
 
     if (!is.null(tile)) {
         cube <- dplyr::filter(cube, .data[["tile"]] == !!tile)
-
-        .check_that(
-            x = nrow(cube) == 1,
-            local_msg = "tile names are not unique",
-            msg = "invalid cube"
-        )
+        .check_has_one_tile(cube)
     }
 
     # get file_info for a given fid
@@ -849,7 +722,6 @@
     return(length(unique(timelines)) == 1 &&
         any(purrr::map_dbl(timelines, length) == 1))
 }
-
 #' @title Return the labels of the cube
 #' @name .cube_labels
 #' @keywords internal
@@ -892,30 +764,22 @@
 .cube_params_block <- function(cube, block) {
 
     # pre-condition - one tile at a time
-    .check_num(nrow(cube),
-        min = 1, max = 1, is_integer = TRUE,
-        msg = "process one tile at a time"
-    )
+    .check_has_one_tile(cube)
 
     # pre-conditions
-    .check_num(block[["first_row"]],
-        min = 1, max = .cube_size(cube)[["nrows"]],
-        msg = "invalid block value"
+    .check_int_parameter(block[["first_row"]],
+                         min = 1, max = .cube_size(cube)[["nrows"]]
     )
-
-    .check_num(block[["first_col"]],
+    .check_int_parameter(block[["first_col"]],
         min = 1, max = .cube_size(cube)[["ncols"]],
-        msg = "invalid block value"
     )
 
-    .check_num(block[["nrows"]],
-        min = 1, max = .cube_size(cube)[["nrows"]],
-        msg = "invalid block value"
+    .check_int_parameter(block[["nrows"]],
+        min = 1, max = .cube_size(cube)[["nrows"]]
     )
 
-    .check_num(block[["ncols"]],
-        min = 1, max = .cube_size(cube)[["ncols"]],
-        msg = "invalid block value"
+    .check_int_parameter(block[["ncols"]],
+        min = 1, max = .cube_size(cube)[["ncols"]]
     )
 
     source <- .cube_source(cube)
@@ -935,24 +799,29 @@
     ))
 
     # post-conditions
-    .check_num(params[["xmin"]],
+    xmin <- params[["xmin"]]
+    .check_num_parameter(
+        xmin,
         min = cube[["xmin"]], max = cube[["xmax"]],
-        tolerance = tolerance, msg = "invalid params value"
+        tolerance = tolerance
     )
-
-    .check_num(params[["xmax"]],
+    xmax <- params[["xmax"]]
+    .check_num_parameter(
+        xmax,
         min = cube[["xmin"]], max = cube[["xmax"]],
-        tolerance = tolerance, msg = "invalid params value"
+        tolerance = tolerance
     )
-
-    .check_num(params[["ymin"]],
+    ymin <- params[["ymin"]]
+    .check_num_parameter(
+        ymin,
         min = cube[["ymin"]], max = cube[["ymax"]],
-        tolerance = tolerance, msg = "invalid params value"
+        tolerance = tolerance
     )
-
-    .check_num(params[["ymax"]],
+    ymax <- params[["ymax"]]
+    .check_num_parameter(
+        ymax,
         min = cube[["ymin"]], max = cube[["ymax"]],
-        tolerance = tolerance, msg = "invalid params value"
+        tolerance = tolerance
     )
 
     return(params)
@@ -969,16 +838,8 @@
 
     # tile template
     xres <- .file_info_xres(cube, bands = bands)
-
-
     # post-condition
-    .check_num(
-        x = xres,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'xres' value"
-    )
+    .check_num_parameter(xres, exclusive_min = 0)
 
     return(xres)
 }
@@ -994,15 +855,8 @@
 
     # tile template
     yres <- .file_info_yres(cube, bands = bands)
-
     # post-condition
-    .check_num(
-        x = yres,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'yres' value"
-    )
+    .check_num_parameter(yres, exclusive_min = 0)
 
     return(yres)
 }
@@ -1047,15 +901,8 @@
     ncols <- .file_info_ncols(cube, bands = bands)
 
     # post-conditions
-    .check_num(nrows,
-        min = 1, len_min = 1, len_max = 1,
-        is_integer = TRUE, msg = "invalid number of rows"
-    )
-
-    .check_num(ncols,
-        min = 1, len_min = 1, len_max = 1,
-        is_integer = TRUE, msg = "invalid number of columns"
-    )
+    .check_int_parameter(nrows)
+    .check_int_parameter(ncols)
 
     size <- c(nrows = nrows, ncols = ncols)
 
@@ -1117,10 +964,7 @@
 .cube_tile_bbox <- function(cube) {
 
     # pre-condition - one tile at a time
-    .check_num(nrow(cube),
-        min = 1, max = 1, is_integer = TRUE,
-        msg = "process one tile at a time"
-    )
+    .check_has_one_tile(cube)
 
     bbox <- vector("double", length = 4)
     names(bbox) <- c("xmin", "ymin", "xmax", "ymax")
@@ -1139,6 +983,24 @@
 
     return(bbox)
 }
+#' @title Get tolerance of a cube for comparison purposes
+#' @name .cube_tolerance
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube input data cube
+#'
+#' @return The numerical tolerance value
+#'
+.cube_tolerance <- function(cube){
+    tolerance <- .config_get(key = c(
+        "sources", .cube_source(cube),
+        "collections", .cube_collection(cube),
+        "ext_tolerance"
+    ))
+    return(tolerance)
+}
+
 
 #' @title Generate token to cube
 #' @name .cube_token_generator
@@ -1279,3 +1141,5 @@
 .cube_token_generator.default <- function(cube) {
     return(cube)
 }
+
+

@@ -9,7 +9,7 @@
   ...,
   tiles = NULL,
   labels = NULL,
-  breaks = "pretty",
+  breaks = "equal",
   n_colors = 20,
   palette = "Terrain"
 )

@@ -27,14 +27,7 @@ sits_show_prediction <- function(class) {
 
     # set caller to show in errors
     .check_set_caller("sits_show_prediction")
-
-    .sits_tibble_test(class)
-
-    .check_chr_within(
-        x = .config_get("ts_predicted_cols"),
-        within = names(class$predicted[[1]]),
-        msg = "tibble has not been classified"
-    )
+    .check_predicted(class)
 
     return(dplyr::select(
         dplyr::bind_rows(class$predicted),
