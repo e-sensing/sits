@@ -67,105 +67,6 @@
     return(jobs)
 }
 
-.jobs_read_tile_eo <- function(job, tile, ml_model, impute_fn, filter_fn) {
-    # Convert job to block
-    block <- .jobs_as_block(job)
-    # Get file_info
-    fi <- .fi(tile)
-    # Get cloud values
-    cloud_mask <- .fi_read_block(fi = fi, band = .band_cloud(), block = block)
-    # Prepare cloud_mask
-    if (!is.null(cloud_mask)) {
-        cloud_mask <- .values_cloud_mask(
-            values = cloud_mask,
-            interp_values = .tile_cloud_interp_values(tile),
-            is_bit_mask = .tile_cloud_bit_mask(tile)
-        )
-    }
-    # Get model bands
-    bands <- .ml_model_bands(ml_model)
-    # Get bands values
-    values <- purrr::map(bands, function(band) {
-        # Get band values
-        values <- .fi_read_block(fi = fi, band = band, block = block)
-        # Remove cloud masked pixels
-        if (!is.null(cloud_mask)) values[cloud_mask] <- NA
-        # Correct missing, minimum, and maximum values; and scale values
-        # Get band defaults for derived cube from config
-        conf_band <- .conf_eo_band(
-            source = .tile_source(tile), collection = .tile_collection(tile),
-            band = band
-        )
-        # This can be ignored as it is already process by gdal
-        # miss_value = .band_miss_value(conf_band)
-        # if (!is.null(miss_value)) {
-        #     values[values == miss_value] <- NA
-        # }
-        min_value <- .band_min_value(conf_band)
-        if (!is.null(min_value)) {
-            values[values < min_value] <- NA
-        }
-        max_value <- .band_max_value(conf_band)
-        if (!is.null(max_value)) {
-            values[values > max_value] <- NA
-        }
-        # Remove NA pixels
-        if (!is.null(impute_fn)) {
-            values <- impute_fn(values)
-        }
-        offset <- .band_offset(conf_band)
-        if (!is.null(offset)) {
-            values <- values - offset
-        }
-        scale <- .band_scale(conf_band)
-        if (!is.null(scale)) {
-            values <- values * scale
-        }
-        # Filter the time series
-        if (!(is.null(filter_fn))) {
-            values <- filter_fn(values)
-        }
-        # Normalize values
-        stats <- .ml_model_stats(ml_model)
-        if (!is.null(stats$q02) && !is.null(stats$q98)) {
-            values <- normalize_data(values, stats$q02, stats$q98)
-        }
-        values
-    })
-    values <- do.call(cbind, values)
-    colnames(values) <- .ml_model_attr_names(ml_model)
-    values
-}
-
-.jobs_write_values <- function(job, values, data_type, file_pattern,
-                               output_dir) {
-    # create a new raster
-    r_obj <- .raster_new_rast(
-        nrows = job[["nrows"]], ncols = job[["ncols"]],
-        xmin = job[["xmin"]], xmax = job[["xmax"]],
-        ymin = job[["ymin"]], ymax = job[["ymax"]],
-        nlayers = ncol(values), crs = job[["crs"]]
-    )
-    # copy values
-    r_obj <- .raster_set_values(
-        r_obj = r_obj,
-        values = values
-    )
-    # Get output file name
-    file <- .file_block_name(
-        pattern = file_pattern, block = .jobs_as_block(job),
-        output_dir = output_dir
-    )
-    # write the probabilities to a raster file
-    .raster_write_rast(
-        r_obj = r_obj,
-        file = file,
-        data_type = data_type,
-        overwrite = TRUE
-    )
-    file
-}
-
 .jobs_intersects <- function(jobs, roi) {
     # Preconditions
     .check_that(
@@ -179,21 +80,8 @@
         local_msg = "value should be an sf object",
         msg = "invalid 'roi' parameter"
     )
-    crs <- jobs[[1]][["crs"]]
-    # Reproject roi to template's CRS
-    roi <- sf::st_transform(
-        x = roi,
-        crs = crs
-    )
-    # Compute intersecting jobs
-    jobs <- purrr::keep(jobs, function(job) {
-        any(c(sf::st_intersects(
-            x = .jobs_as_sf(job = job),
-            y = roi,
-            sparse = FALSE)
-        ))
-    })
-    return(jobs)
+
+    jobs[.intersects(.bbox_as_sf(dplyr::bind_rows(jobs)), roi)]
 }
 
 .jobs_as_block <- function(job) {
@@ -204,9 +92,6 @@
         nrows = .data[["nrows"]],
         ncols = .data[["ncols"]]
     )
-}
-.jobs_as_sf <- function(job) {
-    .bbox_as_sf(job)
 }
 
 .jobs_parallel_chr <- function(jobs, fn, ...) {
