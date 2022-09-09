@@ -6,7 +6,7 @@
 \usage{
 sits_mixture_model(
   cube,
-  endmembers_spectra,
+  endmembers,
   memsize = 1,
   multicores = 2,
   output_dir = getwd(),
@@ -17,9 +17,6 @@ sits_mixture_model(
 }
 \arguments{
 \item{cube}{A sits data cube.}
-
-\item{endmembers_spectra}{Reference endmembers spectra in a tibble format.
-(see details below).}
 
 \item{memsize}{Memory available for mixture model (in GB).}
 
@@ -41,14 +38,17 @@ parameter can be used when the cloud component is
 added to the mixture model. Default is TRUE.}
 
 \item{progress}{Show progress bar? Default is TRUE.}
+
+\item{endmembers_spectra}{Reference endmembers spectra in a tibble format.
+(see details below).}
 }
 \value{
 a sits cube with the generated fractions.
 }
 \description{
 Create a multiple endmember spectral mixture analyses fractions
-images. To calculate the fraction of each endmember, the non-negative least
-squares (NNLS) solver is used. The NNLS implementation was made by Jakob
+images. We use the non-negative least squares (NNLS) solver to calculate the
+fractions of each endmember. The NNLS implementation was made by Jakob
 Schwalb-Willmann in RStoolbox package (licensed as GPL>=3).
 }
 \note{
@@ -60,27 +60,38 @@ mixture model.
 }
 \examples{
 if (sits_run_examples()) {
-   # --- Create a cube based on a local MODIS data
-   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-
-   modis_cube <- sits_cube(
-       source = "BDC",
-       collection = "MOD13Q1-6",
-       data_dir = data_dir,
-       delim = "_"
+   # Creating a sentinel 2 cube
+   s2_cube <- sits_cube(
+       source = "AWS",
+       collection = "SENTINEL-S2-L2A-COGS",
+       tiles = "20LKP",
+       bands = c("B02", "B03", "B04", "B8A", "B11", "B12", "CLOUD"),
+       start_date = "2019-06-13",
+       end_date = "2019-06-30"
    )
 
-   endmembers_spectra <- tibble::tibble(
-       type = c("vegetation", "not-vegetation"),
-       NDVI = c(8500, 3400)
+   # Regularize sentinel cube
+   reg_cube <- sits_regularize(
+       cube = s2_cube,
+       period = "P16D",
+       res = 160,
+       multicores = 2
    )
 
-   mixture_cube <- sits_mixture_model(
-       cube = modis_cube,
-       endmembers_spectra = endmembers_spectra,
+   # Create the endmembers fractions tibble
+   em <- tibble::tribble(
+          ~type, ~B02, ~B03, ~B04, ~B8A, ~B11, ~B12,
+       "forest",  200,  352,  189, 2800, 1340,  546,
+         "land",  400,  650,  700, 3600, 3500, 1800,
+        "water",  700, 1100, 1400,  850,   40,   26,
+   )
+
+   # Generate the mixture model
+   mm <- sits_mixture_model(
+       cube = reg_cube,
+       endmembers = em,
        memsize = 4,
-       multicores = 2,
-       output_dir = tempdir()
+       multicores = 2
    )
 }
 
@@ -95,5 +106,5 @@ Felipe Carlos,   \email{efelipecarlos@gmail.com}
 
 Rolf Simoes,     \email{rolf.simoes@inpe.br}
 
-Alber Sanchez, \email{alber.ipia@inpe.br}
+Alber Sanchez,   \email{alber.ipia@inpe.br}
 }
