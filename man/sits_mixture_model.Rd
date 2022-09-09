@@ -18,49 +18,56 @@ sits_mixture_model(
 \arguments{
 \item{cube}{A sits data cube.}
 
-\item{memsize}{Memory available for mixture model (in GB).}
+\item{endmembers}{Reference spectral endmembers.
+(see details below).}
+
+\item{memsize}{Memory available for the mixture model (in GB).}
 
 \item{multicores}{Number of cores to be used for generate the
 mixture model.}
 
-\item{output_dir}{Directory for output file.}
+\item{output_dir}{Directory for output images.}
 
 \item{rmse_band}{A boolean indicating whether the error associated
 with the linear model should be generated.
-If true, a new band with the errors for each pixel
+If true, a new band with errors for each pixel
 is generated using the root mean square
 measure (RMSE). Default is TRUE.}
 
 \item{remove_outliers}{A boolean indicating whether values larger and
-smaller than the limits in the image metadata, and
-missing values should be marked as NA. This
-parameter can be used when the cloud component is
-added to the mixture model. Default is TRUE.}
+smaller than the limits of the image metadata,
+and missing values should be marked as NA.
+Default is TRUE.}
 
 \item{progress}{Show progress bar? Default is TRUE.}
-
-\item{endmembers_spectra}{Reference endmembers spectra in a tibble format.
-(see details below).}
 }
 \value{
-a sits cube with the generated fractions.
+a sits cube with the fractions of each endmember.
+        The sum of all fractions is restricted to 1 (scaled from 0 to 10000),
+        corresponding to the abundance of the endmembers in the pixels.
 }
 \description{
 Create a multiple endmember spectral mixture analyses fractions
 images. We use the non-negative least squares (NNLS) solver to calculate the
-fractions of each endmember. The NNLS implementation was made by Jakob
+fractions of each endmember. The NNLS was implemented by Jakob
 Schwalb-Willmann in RStoolbox package (licensed as GPL>=3).
 }
-\note{
-The \code{endmembers_spectra} parameter should be a tibble, csv or
-a shapefile. \code{endmembers_spectra} must have the following columns:
+\details{
+The \code{endmembers} parameter should be a tibble, csv or
+a shapefile. \code{endmembers} parameter must have the following columns:
 \code{type}, which defines the endmembers that will be
 created and the columns corresponding to the bands that will be used in the
-mixture model.
+mixture model. See the \code{example} in this documentation for more details.
+
+If you want to generate cloud endmembers,
+it is useful to set the parameter \code{remove_outliers} to \code{FALSE}.
+Some image products have cloud values that exceed the limits set by the
+metadata, and therefore these values are removed if this option
+is \code{TRUE}.
 }
 \examples{
 if (sits_run_examples()) {
-   # Creating a sentinel 2 cube
+   # Creating a sentinel-2 AWS cube
    s2_cube <- sits_cube(
        source = "AWS",
        collection = "SENTINEL-S2-L2A-COGS",
@@ -70,12 +77,13 @@ if (sits_run_examples()) {
        end_date = "2019-06-30"
    )
 
-   # Regularize sentinel cube
+   # Cube regularization for 16 days and 160 meters
    reg_cube <- sits_regularize(
        cube = s2_cube,
        period = "P16D",
        res = 160,
-       multicores = 2
+       multicores = 2,
+       output_dir = tempdir()
    )
 
    # Create the endmembers fractions tibble
@@ -91,7 +99,8 @@ if (sits_run_examples()) {
        cube = reg_cube,
        endmembers = em,
        memsize = 4,
-       multicores = 2
+       multicores = 2,
+       output_dir = tempdir()
    )
 }
 
