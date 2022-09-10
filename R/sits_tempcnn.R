@@ -118,7 +118,8 @@ sits_tempcnn <- function(samples = NULL,
 
         # verifies if torch and luz packages are installed
         .check_require_packages(c("torch", "luz"))
-
+        # pre-conditions for samples
+        .check_samples_train(samples)
         # preconditions
         # check cnn_layers
         .check_int_parameter(cnn_layers, len_max = 2^31 - 1)

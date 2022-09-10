@@ -131,7 +131,9 @@ sits_resnet <- function(samples = NULL,
 
         # verifies if torch and luz packages are installed
         .check_require_packages(c("torch", "luz"))
-        # preconditions
+        # pre-conditions for samples
+        .check_samples_train(samples)
+        # preconditions for model
         .check_int_parameter(blocks, min = 1, len_max = 2^31 - 1)
         .check_int_parameter(kernels, min = 1,
                              len_min = length(blocks), len_max = length(blocks))

@@ -335,31 +335,4 @@
     }
     return(probs_cube)
 }
-#' @title Check classification parameters
-#' @name .sits_classify_check_params
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Verify that required parameters are correct.
-#'
-#' @param  cube            Tibble with information about a data cube.
-#' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
-#' @return Tests succeeded?
-.sits_classify_check_params <- function(cube, ml_model) {
 
-    # set caller to show in errors
-    .check_set_caller(".sits_classify_check_params")
-
-    # ensure metadata tibble exists
-    .check_that(
-        x = nrow(cube) > 0,
-        msg = "invalid metadata for the cube"
-    )
-
-    # ensure the machine learning model has been built
-    .check_null(
-        x = ml_model,
-        msg = "trained ML model not available"
-    )
-
-    return(invisible(TRUE))
-}

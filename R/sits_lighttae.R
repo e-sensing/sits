@@ -123,7 +123,7 @@ sits_lighttae <- function(samples = NULL,
         # verifies if torch and luz  packages is installed
         .check_require_packages(c("torch", "luz"))
         # check valid samples
-        .check_samples(samples)
+        .check_samples_train(samples)
         # preconditions
         # check epochs
         .check_int_parameter(epochs)
