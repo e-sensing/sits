@@ -73,7 +73,7 @@
     # set caller to show in errors
     .check_set_caller(".sits_distances_classify")
 
-    # torch-based models do their own arallelization
+    # torch-based models do their own parallelization
     if (inherits(ml_model, c("torch_model", "xgb_model"))) {
         multicores <- 1
     }
@@ -108,7 +108,7 @@
         colnames(dist_block) <- attr_names
 
         # classify the subset data
-        pred_block <- ml_model(dist_block)
+        pred_block <- ml_model(dist_block[, -2:0])
 
         return(pred_block)
     }
