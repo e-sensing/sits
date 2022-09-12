@@ -241,10 +241,10 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
 
             # Create extent
             blk_no_overlap <- list(
-                first_row = block$crop_first_row,
-                nrows = block$crop_nrows,
-                first_col = block$crop_first_col,
-                ncols = block$crop_ncols
+                col = block$crop_col,
+                row = block$crop_row,
+                ncols = block$crop_ncols,
+                nrows = block$crop_nrows
             )
 
             block_file <- .smth_filename(
@@ -301,18 +301,25 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
             return(tile_new)
         }
 
-        tmp_blocks <- blocks_tile_lst[[i]]
+        block_files <- blocks_tile_lst[[i]]
 
-        # apply function to blocks
-        on.exit(unlink(tmp_blocks), add = TRUE)
+        # Join predictions
+        if (is.null(block_files)) {
+            return(NULL)
+        }
 
-        # merge to save final result
-        .raster_merge(
-            files = tmp_blocks,
+        # Merge final result
+        .raster_merge_blocks(
+            base_file = .file_info_path(tile),
+            block_files = block_files,
             out_file = out_file,
             data_type = .config_get("probs_cube_data_type"),
+            missing_value = .config_get("probs_cube_missing_value"),
             multicores = 1
         )
+
+        # Remove blocks
+        on.exit(unlink(block_files), add = TRUE)
 
         return(tile_new)
     })
@@ -483,10 +490,10 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
 
             # create extent
             blk_no_overlap <- list(
-                first_row = block$crop_first_row,
-                nrows = block$crop_nrows,
-                first_col = block$crop_first_col,
-                ncols = block$crop_ncols
+                col = block$crop_col,
+                row = block$crop_row,
+                ncols = block$crop_ncols,
+                nrows = block$crop_nrows
             )
 
             block_file <- .smth_filename(
@@ -543,18 +550,25 @@ sits_uncertainty.least <- function(cube, type = "least", ...,
             return(tile_new)
         }
 
-        tmp_blocks <- blocks_tile_lst[[i]]
+        block_files <- blocks_tile_lst[[i]]
 
-        # Remove blocks
-        on.exit(unlink(tmp_blocks), add = TRUE)
+        # Join predictions
+        if (is.null(block_files)) {
+            return(NULL)
+        }
 
-        # merge to save final result
-        .raster_merge(
-            files = tmp_blocks,
+        # Merge final result
+        .raster_merge_blocks(
+            base_file = .file_info_path(tile),
+            block_files = block_files,
             out_file = out_file,
             data_type = .config_get("probs_cube_data_type"),
+            missing_value = .config_get("probs_cube_missing_value"),
             multicores = 1
         )
+
+        # Remove blocks
+        on.exit(unlink(block_files), add = TRUE)
 
         return(tile_new)
     })
@@ -729,10 +743,10 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
 
             # create extent
             blk_no_overlap <- list(
-                first_row = block$crop_first_row,
-                nrows = block$crop_nrows,
-                first_col = block$crop_first_col,
-                ncols = block$crop_ncols
+                col = block$crop_col,
+                row = block$crop_row,
+                ncols = block$crop_ncols,
+                nrows = block$crop_nrows
             )
 
             block_file <- .smth_filename(
@@ -789,18 +803,25 @@ sits_uncertainty.margin <- function(cube, type = "margin", ...,
             return(tile_new)
         }
 
-        tmp_blocks <- blocks_tile_lst[[i]]
+        block_files <- blocks_tile_lst[[i]]
 
-        # Remove blocks
-        on.exit(unlink(tmp_blocks), add = TRUE)
+        # Join predictions
+        if (is.null(block_files)) {
+            return(NULL)
+        }
 
-        # merge to save final result
-        .raster_merge(
-            files = tmp_blocks,
+        # Merge final result
+        .raster_merge_blocks(
+            base_file = .file_info_path(tile),
+            block_files = block_files,
             out_file = out_file,
             data_type = .config_get("probs_cube_data_type"),
+            missing_value = .config_get("probs_cube_missing_value"),
             multicores = 1
         )
+
+        # Remove blocks
+        on.exit(unlink(block_files), add = TRUE)
 
         return(tile_new)
     })

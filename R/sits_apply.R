@@ -147,7 +147,7 @@ sits_apply.raster_cube <- function(data, ...,
             in_bands <- .apply_input_bands(tile, expr = expr)
 
             # Output file name
-            out_file_path <- .apply_out_file_name(
+            out_file <- .apply_out_file_name(
                 tile_name = .cube_tiles(tile),
                 band = out_band,
                 date = sits_timeline(tile)[[1]],
@@ -155,8 +155,8 @@ sits_apply.raster_cube <- function(data, ...,
             )
 
             # if file exists skip it (resume feature)
-            if (file.exists(out_file_path)) {
-                return(out_file_path)
+            if (file.exists(out_file)) {
+                return(out_file)
             }
 
             # Compute the size of blocks to be computed
@@ -179,11 +179,11 @@ sits_apply.raster_cube <- function(data, ...,
             )
 
             # Save each output block and return paths
-            blocks_path <- purrr::map(blocks, function(block) {
+            block_files <- purrr::map(blocks, function(block) {
                 # Define the file name of the raster file to be written
                 filename_block <- paste0(
-                    tools::file_path_sans_ext(out_file_path),
-                    "_block_", block[["first_row"]], "_",
+                    tools::file_path_sans_ext(out_file),
+                    "_block_", block[["row"]], "_",
                     block[["nrows"]], ".tif"
                 )
                 # if file exists skip it (resume feature)
@@ -217,7 +217,7 @@ sits_apply.raster_cube <- function(data, ...,
                     # Read the values
                     values <- tryCatch(
                         {
-                            .raster_read_stack(in_files[[band]], block = block)
+                            .raster_read_rast(in_files[[band]], block = block)
                         },
                         error = function(e) {
                             return(NULL)
@@ -286,9 +286,9 @@ sits_apply.raster_cube <- function(data, ...,
 
                 # Create extent
                 blk_no_overlap <- list(
-                    first_row = block$crop_first_row,
+                    row = block$crop_row,
                     nrows = block$crop_nrows,
-                    first_col = block$crop_first_col,
+                    col = block$crop_col,
                     ncols = block$crop_ncols
                 )
 
@@ -297,9 +297,7 @@ sits_apply.raster_cube <- function(data, ...,
                 .raster_crop(
                     r_obj = raster_out,
                     file = filename_block,
-                    data_type = .raster_data_type(
-                        .config_get("raster_cube_data_type")
-                    ),
+                    data_type = .config_get("raster_cube_data_type"),
                     overwrite = TRUE,
                     block = blk_no_overlap
                 )
@@ -310,26 +308,32 @@ sits_apply.raster_cube <- function(data, ...,
                 return(filename_block)
             })
 
-            if (length(Filter(is.null, blocks_path)) > 0) {
+            if (length(Filter(is.null, block_files)) > 0) {
                 return(NULL)
             }
 
             # Merge result
-            blocks_path <- unlist(blocks_path)
-
-            # Remove blocks
-            on.exit(unlink(blocks_path), add = TRUE)
+            block_files <- unlist(block_files)
 
             # Join predictions
-            if (!is.null(blocks_path)) {
-                .raster_merge(
-                    files = blocks_path,
-                    out_file = out_file_path,
-                    data_type = .config_get("raster_cube_data_type"),
-                    multicores = 1
-                )
+            if (is.null(block_files)) {
+                return(NULL)
             }
-            return(out_file_path)
+
+            # Merge final result
+            .raster_merge_blocks(
+                base_file = .file_info_path(tile),
+                block_files = block_files,
+                out_file = out_file,
+                data_type = .config_get("raster_cube_data_type"),
+                missing_value = .config_get("raster_cube_missing_value"),
+                multicores = 1
+            )
+
+            # Remove blocks
+            on.exit(unlink(block_files), add = TRUE)
+
+            return(out_file)
         }, progress = progress, n_retries = 0)
 
         # Find the tiles that have not been processed yet
@@ -470,15 +474,15 @@ sits_apply.raster_cube <- function(data, ...,
     # define each block as a list element
     blocks <- mapply(
         list,
-        first_row      = ovr_r1,
-        nrows          = ovr_nr1,
-        first_col      = 1,
-        ncols          = xsize,
-        crop_first_row = r1 - ovr_r1 + 1,
-        crop_nrows     = nr1,
-        crop_first_col = 1,
-        crop_ncols     = xsize,
-        SIMPLIFY       = FALSE
+        row = ovr_r1,
+        nrows = ovr_nr1,
+        col = 1,
+        ncols = xsize,
+        crop_row = r1 - ovr_r1 + 1,
+        crop_nrows = nr1,
+        crop_col = 1,
+        crop_ncols = xsize,
+        SIMPLIFY = FALSE
     )
 
     return(blocks)

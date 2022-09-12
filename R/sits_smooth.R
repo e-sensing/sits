@@ -274,10 +274,10 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
             # Create extent
             blk_no_overlap <- list(
-                first_row = block$crop_first_row,
-                nrows = block$crop_nrows,
-                first_col = block$crop_first_col,
-                ncols = block$crop_ncols
+                col = block$crop_col,
+                row = block$crop_row,
+                ncols = block$crop_ncols,
+                nrows = block$crop_nrows
             )
 
             block_file <- .smth_filename(
@@ -335,27 +335,25 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             return(tile_new)
         }
 
-        tmp_blocks <- blocks_tile_lst[[i]]
+        blocks_path <- blocks_tile_lst[[i]]
 
-        .raster_template(
-            file = .file_info_path(tile),
+        # Join predictions
+        if (is.null(blocks_path)) {
+            return(NULL)
+        }
+
+        # Merge into template
+        .raster_merge_blocks(
+            base_file = .file_info_path(tile),
+            block_files = blocks_path,
             out_file = out_file,
             data_type = .config_get("probs_cube_data_type"),
-            nlayers = length(.cube_labels(tile)),
-            missing_value = .config_get("probs_cube_missing_value")
+            missing_value = .config_get("probs_cube_missing_value"),
+            multicores = 1
         )
 
         # Remove blocks
-        on.exit(unlink(tmp_blocks), add = TRUE)
-
-        # Merge to save final result
-        .raster_merge(
-            files = tmp_blocks,
-            out_file = out_file,
-            data_type = .config_get("probs_cube_data_type"),
-            multicores = 1,
-            overwrite = FALSE
-        )
+        on.exit(unlink(blocks_path), add = TRUE)
 
         return(tile_new)
     })
@@ -539,10 +537,10 @@ sits_smooth.bilateral <- function(cube,
 
             # Create extent
             blk_no_overlap <- list(
-                first_row = block$crop_first_row,
-                nrows = block$crop_nrows,
-                first_col = block$crop_first_col,
-                ncols = block$crop_ncols
+                col = block$crop_col,
+                row = block$crop_row,
+                ncols = block$crop_ncols,
+                nrows = block$crop_nrows
             )
 
             block_file <- .smth_filename(
@@ -598,26 +596,25 @@ sits_smooth.bilateral <- function(cube,
             return(tile_new)
         }
 
-        tmp_blocks <- blocks_tile_lst[[i]]
+        blocks_path <- blocks_tile_lst[[i]]
 
-        .raster_template(
-            file = .file_info_path(tile),
+        # Join predictions
+        if (is.null(blocks_path)) {
+            return(NULL)
+        }
+
+        # Merge into template
+        .raster_merge_blocks(
+            base_file = .file_info_path(tile),
+            block_files = blocks_path,
             out_file = out_file,
             data_type = .config_get("probs_cube_data_type"),
-            nlayers = length(.cube_labels(tile)),
-            missing_value = .config_get("probs_cube_missing_value")
+            missing_value = .config_get("probs_cube_missing_value"),
+            multicores = 1
         )
 
         # Remove blocks
-        on.exit(unlink(tmp_blocks), add = TRUE)
-
-        # merge to save final result
-        .raster_merge(
-            files = tmp_blocks,
-            out_file = out_file,
-            data_type = .config_get("probs_cube_data_type"),
-            multicores = 1
-        )
+        on.exit(unlink(blocks_path), add = TRUE)
 
         return(tile_new)
     })
