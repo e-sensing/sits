@@ -1411,13 +1411,13 @@
     )
 }
 #' @title Check if cube is a classified image
-#' @name .check_cube_is_classified_image
+#' @name .check_cube_is_class_cube
 #' @param cube a sits cube to be tested
 #' @return  No return value, called for side effects
 #' @keywords internal
-.check_cube_is_classified_image <- function(cube) {
+.check_cube_is_class_cube <- function(cube) {
     .check_that(
-        x = inherits(cube, "classified_image"),
+        x = inherits(cube, "class_cube"),
         msg = "cube is not classified image"
     )
 }

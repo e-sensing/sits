@@ -608,7 +608,7 @@ sits_get_data.data.frame <- function(cube,
 #' @name .sits_get_ts
 #' @keywords internal
 #' @export
-.sits_get_ts.classified_image <- function(cube,
+.sits_get_ts.class_cube <- function(cube,
                                           samples, ...,
                                           bands,
                                           crs = 4326,

@@ -127,7 +127,7 @@ sits_labels.sits_model <- function(data) {
 }
 #' @name `sits_labels<-`
 #' @export
-#' @return    A probs or classified_image cube with modified labels.
+#' @return    A probs or class_cube cube with modified labels.
 #'
 `sits_labels<-.probs_cube` <- function(data, value) {
     # precondition
@@ -143,7 +143,7 @@ sits_labels.sits_model <- function(data) {
 }
 #' @export
 #'
-`sits_labels<-.classified_image` <- function(data, value) {
+`sits_labels<-.class_cube` <- function(data, value) {
     return(`sits_labels<-.probs_cube`(data, value))
 }
 
@@ -151,7 +151,7 @@ sits_labels.sits_model <- function(data) {
 #' @export
 #' @return           A probs cube with modified labels.
 #'
-`sits_labels<-.classified_image` <- function(data, value) {
+`sits_labels<-.class_cube` <- function(data, value) {
     # precondition
     n_labels <- length(sits_labels(data))
     .check_chr(value,

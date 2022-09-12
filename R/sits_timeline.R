@@ -78,7 +78,7 @@ sits_timeline.uncertainty_cube <- function(data) {
 }
 #' @export
 #'
-sits_timeline.classified_image <- function(data) {
+sits_timeline.class_cube <- function(data) {
 
     # return the timeline of the cube
     start_date <- .file_info_start_date(data[1, ])
