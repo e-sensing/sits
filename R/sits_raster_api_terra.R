@@ -176,14 +176,14 @@
 
 #' @keywords internal
 #' @export
-.raster_read_rast.terra <- function(file, ..., block = NULL,
+.raster_read_rast.terra <- function(files, ..., block = NULL,
                                     method = "bilinear") {
 
     # convert the method to the actual package
     method <- .raster_resampling(method = method)
 
     # create raster objects
-    r_obj <- .raster_open_rast.terra(file = path.expand(file), ...)
+    r_obj <- .raster_open_rast.terra(file = path.expand(files), ...)
 
     # start read
     if (purrr::is_null(block)) {
@@ -201,12 +201,12 @@
         # read values
         terra::readStart(r_obj)
         values <- terra::readValues(
-            x      = r_obj,
-            row    = block[["row"]],
-            nrows  = block[["nrows"]],
-            col    = block[["col"]],
-            ncols  = block[["ncols"]],
-            mat    = TRUE
+            x = r_obj,
+            row = block[["row"]],
+            nrows = block[["nrows"]],
+            col = block[["col"]],
+            ncols = block[["ncols"]],
+            mat = TRUE
         )
         # close file descriptor
         terra::readStop(r_obj)
