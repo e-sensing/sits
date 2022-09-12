@@ -190,6 +190,11 @@ sits_classify.raster_cube <- function(data,
                                       verbose = FALSE,
                                       progress = FALSE) {
 
+    # check documentation mode
+    progress <- .check_documentation(progress)
+
+    # precondition - checks if the cube and ml_model are valid
+    .sits_classify_check_params(data, ml_model)
     # precondition - test if cube is regular
     .check_is_regular(data)
     # precondition - multicores
@@ -200,11 +205,10 @@ sits_classify.raster_cube <- function(data,
     .check_output_dir(output_dir)
     # precondition - version
     .check_version(version)
-
-    # Update multicores parameter
-    if ("xgb_model" %in% class(ml_model)) {
-        multicores <- 1
-    }
+    # Retrieve the samples from the model
+    samples <- .sits_ml_model_samples(ml_model)
+    # precondition - are the samples valid?
+    .check_samples(samples)
     # Spatial filter
     if (!is.null(roi)) {
         data <- .cube_spatial_filter(
@@ -232,23 +236,14 @@ sits_classify.raster_cube <- function(data,
             msg = "invalid 'start_date' and 'end_date' parameters"
         )
     }
-    # Retrieve the samples from the model
-    samples <- .sits_ml_model_samples(ml_model)
-    # precondition - are the samples valid?
-    .check_samples(samples)
-    # Check timelines of samples and tile
-    .check_that(
-        length(sits_timeline(samples)) == length(sits_timeline(data)),
-        msg = "number of instances of samples and cube differ"
-    )
     # Get job size
     job_size <- .raster_file_blocksize(
-        .raster_open_rast(.file_info_path(data[1,]))
+        .raster_open_rast(.fi_path(.fi(.tile(data))))
     )
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
-        job_size = job_size, npaths = length(.file_info_paths(data[1,])) +
-            length(.ml_model_labels(ml_model)), nbytes = 8,
+        job_size = job_size, npaths = length(.fi_paths(.fi(.tile(data)))) +
+            length(.ml_labels(ml_model)), nbytes = 8,
         proc_bloat = .config_processing_bloat(), overlap = 0
     )
     # Check if memsize is above minimum needed to process one block
@@ -257,9 +252,15 @@ sits_classify.raster_cube <- function(data,
         local_msg = paste("minimum memsize needed is", job_memsize, "GB"),
         msg = "provided 'memsize' is insufficient for processing"
     )
+    # Update multicores parameter
     multicores <- .jobs_max_multicores(
         job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
+    # Update multicores parameter
+    if ("xgb_model" %in% .ml_class(ml_model)) {
+        multicores <- 1
+    }
+
     # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = verbose)
     on.exit(.sits_parallel_stop(), add = TRUE)
@@ -270,316 +271,24 @@ sits_classify.raster_cube <- function(data,
     # Show block information
     if (verbose) {
         start_time <- Sys.time()
-        message("Using blocks of size (", block_size[["nrows"]],
-                " x ", block_size[["ncols"]], ")")
+        message("Using blocks of size (", .nrows(job_size),
+                " x ", .ncols(job_size), ")")
     }
     # Classification
     # Process each tile sequentially
     probs_cube <- .cube_foreach_tile(data, function(tile) {
-        # Output file
-        out_file <- .file_probs_name(tile = tile, version = version,
-                                     output_dir = output_dir)
-        # Resume feature
-        if (file.exists(out_file)) {
-            # # Callback final tile classification
-            # .callback(process = "tile_classification", event = "recovery",
-            #           context = environment())
-            message("Recovery: Tile '", tile[["tile"]], "' already exists.")
-            message("(If you want to produce a new image, please ",
-                    "change 'output_dir' or 'version' parameters)")
-            probs_tile <- .tile_probs_from_file(
-                file = out_file,
-                band = "probs",
-                base_tile = tile,
-                labels = .ml_model_labels(ml_model)
-            )
-            return(probs_tile)
-        }
-        # # Callback final tile classification
-        # .callback(process = "tile_classification", event = "started",
-        #           context = environment())
-        # Show initial time for tile classification
-        if (verbose) {
-            tile_start_time <- Sys.time()
-            message("Starting classification of tile '",
-                    tile[["tile"]], "' at ", start_time)
-        }
-        # Create jobs
-        # Compute how many jobs to process
-        jobs <- .jobs_create(
-            job_size = job_size, block_overlap = 0,
-            ncols = .tile_ncols(tile), nrows = .tile_nrows(tile),
-            xmin = .tile_xmin(tile), xmax = .tile_xmax(tile),
-            ymin = .tile_ymin(tile), ymax = .tile_ymax(tile),
-            crs = .tile_crs(tile), roi = roi
+
+        # Do the samples and tile match their timeline length?
+        .check_samples_tile_match(samples, tile)
+
+        # Classify the data
+        probs_tile <- .sits_classify_tile(
+            tile = tile, ml_model = ml_model, roi = roi, filter_fn = filter_fn,
+            impute_fn = impute_fn, memsize = memsize, multicores = multicores,
+            output_dir = output_dir, version = version, verbose = verbose,
+            progress = progress
         )
-        # Process jobs in parallel
-        block_files <- .jobs_parallel_chr(jobs, function(job) {
-            # Get job block
-            block <- .jobs_as_block(job)
-            # Get file_info to read files
-            fi <- .fi(tile)
-            #
-            # Log here
-            #
-            .sits_debug_log(
-                output_dir = output_dir,
-                event = "start_block_data_read_preprocess",
-                key = "block",
-                value = block
-            )
-            # Get model bands
-            bands <- .ml_model_bands(ml_model)
-            # Read and preprocess values from rasters
-            if (.band_cloud() %in% bands) {
 
-
-                #
-                # Log here
-                #
-                .sits_debug_log(
-                    output_dir = output_dir,
-                    event = "start_block_data_read_cloud",
-                    key = "block",
-                    value = block
-                )
-
-
-                # Get cloud values
-                cloud_mask <- .fi_read_block(fi = fi, band = , block = block)
-
-
-                #
-                # Log here
-                #
-                .sits_debug_log(
-                    output_dir = output_dir,
-                    event = "end_block_data_read_cloud"
-                )
-
-
-                # Get cloud parameters
-                interp_values <- .tile_cloud_interp_values(tile)
-                is_bit_mask <- .tile_cloud_bit_mask(tile)
-
-
-                #
-                # Log here
-                #
-                .sits_debug_log(
-                    output_dir = output_dir,
-                    event = "start_block_data_process_cloud",
-                    key = "bitmask",
-                    value = is_bit_mask
-                )
-
-
-                # Prepare cloud_mask
-                # Identify values to be removed
-                cloud_mask <- if (!is_bit_mask) cloud_mask %in% interp_values
-                else matrix(bitwAnd(cloud_mask, sum(2^interp_values)) > 0,
-                            nrow = length(cloud_mask))
-
-
-                #
-                # Log here
-                #
-                .sits_debug_log(
-                    output_dir = output_dir,
-                    event = "end_block_data_process_cloud"
-                )
-
-
-            }
-            # For each band (except cloud) get values from files
-            values <- purrr::map(.bands(bands, cloud = FALSE), function(band) {
-
-
-                #
-                # Log here
-                #
-                .sits_debug_log(
-                    output_dir = output_dir,
-                    event = "start_block_data_read_band",
-                    key = "band",
-                    value = band
-                )
-
-
-                # Get band values
-                values <- .fi_read_block(fi = fi, band = band, block = block)
-
-
-                #
-                # Log here
-                #
-                .sits_debug_log(
-                    output_dir = output_dir,
-                    event = "end_block_data_read_band"
-                )
-
-
-                #
-                # Log here
-                #
-                .sits_debug_log(
-                    output_dir = output_dir,
-                    event = "start_block_data_process_band",
-                    key = "band",
-                    value = band
-                )
-
-
-                # Remove cloud masked pixels
-                if (.band_cloud() %in% bands) {
-                    values[cloud_mask] <- NA
-                }
-                # Correct missing, minimum, and maximum values; and scale values
-                # Get band defaults for derived cube from config
-                conf_band <- .conf_eo_band(
-                    source = .tile_source(tile),
-                    collection = .tile_collection(tile),
-                    band = band
-                )
-                # This can be ignored as it is already process by gdal
-                # miss_value = .band_miss_value(conf_band)
-                # if (!is.null(miss_value)) {
-                #     values[values == miss_value] <- NA
-                # }
-                min_value <- .band_min_value(conf_band)
-                if (!is.null(min_value)) {
-                    values[values < min_value] <- NA
-                }
-                max_value <- .band_max_value(conf_band)
-                if (!is.null(max_value)) {
-                    values[values > max_value] <- NA
-                }
-                # Remove NA pixels
-                if (!is.null(impute_fn)) {
-                    values <- impute_fn(values)
-                }
-                offset <- .band_offset(conf_band)
-                if (!is.null(offset)) {
-                    values <- values - offset
-                }
-                scale <- .band_scale(conf_band)
-                if (!is.null(scale)) {
-                    values <- values * scale
-                }
-                # Filter the time series
-                if (!(is.null(filter_fn))) {
-                    values <- filter_fn(values)
-                }
-                # Normalize values
-                stats <- .ml_model_stats(ml_model)
-                if (!is.null(stats$quant_2[[band]]) &&
-                    !is.null(stats$quant_98[[band]])) {
-                    values <- normalize_data(
-                        values, stats$quant_2[[band]], stats$quant_98[[band]]
-                    )
-                }
-
-
-                #
-                # Log here
-                #
-                .sits_debug_log(
-                    output_dir = output_dir,
-                    event = "end_block_data_process_band"
-                )
-
-
-                values
-            })
-            # Compose final data
-            values <- do.call(cbind, values)
-            colnames(values) <- .ml_model_attr_names(ml_model)
-            # Apply the classification model to values
-
-
-            #
-            # Log here
-            #
-            .sits_debug_log(
-                output_dir = output_dir,
-                event = "start_block_data_classification",
-                key = "model",
-                value = class(ml_model)[[1]]
-            )
-
-
-            probs <- ml_model(values)
-
-
-            #
-            # Log here
-            #
-            .sits_debug_log(
-                output_dir = output_dir,
-                event = "end_block_data_classification"
-            )
-
-            # Prepare probability to be saved
-            probs <- probs * round(1 / .conf_probs_band_scale())
-            # Output file name
-            block_file <- .file_block_name(
-                pattern = .file_pattern(out_file),
-                block = block,
-                output_dir = output_dir
-            )
-
-
-            #
-            # Log here
-            #
-            .sits_debug_log(
-                output_dir = output_dir,
-                event = "start_block_data_save",
-                key = "file",
-                value = block_file
-            )
-
-
-            # Prepare and save results as raster
-            .raster_write_block(
-                file = block_file,
-                block = block,
-                bbox = .bbox(job),
-                values = probs,
-                data_type = .conf_probs_band_data_type()
-            )
-
-            #
-            # Log here
-            #
-            .sits_debug_log(
-                output_dir = output_dir,
-                event = "end_block_data_classification"
-            )
-
-            block_file
-        })
-        # # Callback final tile classification
-        # .callback(event = "merge_blocks", status = "begin",
-        #           context = environment())
-        # Merge blocks into a new probs_cube tile
-        probs_tile <- .tile_probs_merge_blocks(
-            file = out_file, band = "probs",
-            labels = .ml_model_labels(ml_model),
-            base_tile = tile, block_files = block_files,
-            multicores = multicores
-        )
-        # # Callback final tile classification
-        # .callback(event = "tile_classification", status = "end",
-        #           context = environment())
-        # show final time for classification
-        if (verbose) {
-            tile_end_time <- Sys.time()
-            message("Tile '", tile[["tile"]], "' finished at ", tile_end_time)
-            message("Elapsed time of ",
-                    format(round(tile_end_time - tile_start_time, digits = 2)))
-            message("")
-        }
         return(probs_tile)
     })
     # # Callback final tile classification
