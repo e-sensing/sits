@@ -67,7 +67,7 @@ sits_rfor <- function(samples = NULL,
         # call `randomForest::randomForest` method and return the trained model
         reference <- train_samples[, reference]
         result_rfor <- randomForest::randomForest(
-            x = train_samples[, 3:ncol(train_samples)],
+            x = train_samples[, -2:0],
             y = as.factor(reference),
             samples = NULL,
             ntree = num_trees,

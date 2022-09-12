@@ -228,14 +228,14 @@ sits_resnet <- function(samples = NULL,
 
         # organize data for model training
         train_x <- array(
-            data = as.matrix(train_samples[, 3:ncol(train_samples)]),
+            data = as.matrix(train_samples[, -2:0]),
             dim = c(n_samples_train, n_times, n_bands)
         )
         train_y <- unname(int_labels[as.vector(train_samples$reference)])
 
         # create the test data
         test_x <- array(
-            data = as.matrix(test_samples[, 3:ncol(test_samples)]),
+            data = as.matrix(test_samples[, -2:0]),
             dim = c(n_samples_test, n_times, n_bands)
         )
         test_y <- unname(int_labels[as.vector(test_samples$reference)])
