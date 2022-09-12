@@ -116,63 +116,31 @@ sits_classify.sits <- function(data,
                                ml_model,
                                ...,
                                filter_fn = NULL,
-                               multicores = 2) {
+                               multicores = 2,
+                               progress = FALSE) {
 
     # precondition: verify that the data to be classified is correct
     .check_samples(data)
     # precondition - is the model valid?
     .check_is_sits_model(ml_model)
-    # recover the samples from the model
-    samples <- .sits_ml_model_samples(ml_model)
+    # precondition - multicores
+    .check_multicores(multicores)
 
-    # Apply filter
-    if (!purrr::is_null(filter_fn)) {
-        data <- .apply_across(data = data, fn = filter_fn)
+    # torch-based models do their own parallelization
+    if (inherits(ml_model, c("torch_model", "xgb_model"))) {
+        multicores <- 1
     }
-    # check band order is the same
-    bands_samples <- sits_bands(samples)
-    bands_data <- sits_bands(data)
-    if (!all(bands_samples == bands_data))
-        data <- sits_select(data, sits_bands(samples))
-
-    # get normalization params
-    stats <- environment(ml_model)$stats
-    # has the training data been normalized?
-    if (!purrr::is_null(stats)) {
-        # yes, then normalize the input data
-        distances <- .sits_distances(.sits_ml_normalize_data(
-            data = data,
-            stats = stats
-        ))
-    } else {
-        # no, input data does not need to be normalized
-        distances <- .sits_distances(data)
-    }
-    # post condition: is distance data valid?
-    .check_distances(distances, data)
-
-    # calculate the breaks in the time for multi-year classification
-    class_info <- .sits_timeline_class_info(
-        data = data,
-        samples = samples
-    )
 
     # retrieve the the predicted results
-    prediction <- .sits_distances_classify(
-        distances = distances,
-        class_info = class_info,
+    classified_ts <- .sits_classify_ts(
+        samples = data,
         ml_model = ml_model,
-        multicores = multicores
+        filter_fn = filter_fn,
+        multicores = multicores,
+        progress = progress
     )
 
-    # Store the result in the input data
-    data_pred <- .sits_tibble_prediction(
-        data = data,
-        class_info = class_info,
-        prediction = prediction
-    )
-    class(data_pred) <- c("predicted", class(data))
-    return(data_pred)
+    return(classified_ts)
 }
 #' @rdname sits_classify
 #'
