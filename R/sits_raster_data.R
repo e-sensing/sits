@@ -163,8 +163,8 @@
         }
         # Normalize values
         stats <- .ml_stats(ml_model)
-        q02 <- .ml_stats_q02_band(stats, band)
-        q98 <- .ml_stats_q98_band(stats, band)
+        q02 <- .stats_q02_band(stats, band)
+        q98 <- .stats_q98_band(stats, band)
         if (!is.null(q02) && !is.null(q98)) {
             values <- normalize_data(values, q02, q98)
         }

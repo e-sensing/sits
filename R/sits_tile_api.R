@@ -948,18 +948,6 @@
     environment(ml_model)[["stats"]]
 }
 
-.ml_stats_q02_band <- function(ml_model, band) {
-    stats <- .ml_stats(ml_model)
-    quantile_02 <- 2
-    stats[[band]][[quantile_02]]
-}
-
-.ml_stats_q98_band <- function(ml_model, band) {
-    stats <- .ml_stats(ml_model)
-    quantile_98 <- 3
-    stats[[band]][[quantile_98]]
-}
-
 .ml_samples <- function(ml_model) {
     environment(ml_model)[["samples"]]
 }
@@ -985,12 +973,27 @@
     purrr::map(.ml_bands(ml_model), fn, ...)
 }
 
+# ---- stats ----
+.stats_q02_band <- function(stats, band) {
+    quantile_02 <- 2
+    stats[[band]][[quantile_02]]
+}
+
+.stats_q98_band <- function(stats, band) {
+    quantile_98 <- 3
+    stats[[band]][[quantile_98]]
+}
+
 #---- sits (samples) ----
-
-
 
 .sits_bands <- function(samples) {
     setdiff(names(samples[["time_series"]][[1]]), "Index")
+}
+
+.sits_select <- function(samples, bands) {
+    .sits_fast_apply(samples, col = "time_series", function(x) {
+        dplyr::select(x, dplyr::all_of(c("#..", "Index", bands)))
+    })
 }
 
 .sits_labels <- function(samples) {
@@ -998,12 +1001,16 @@
 }
 
 .distances <- function(samples, bands, label_col = TRUE) {
-    label <- if (label_col) "label"
+    label <- NULL
+    if (label_col) {
+        samples <- dplyr::mutate(samples, reference = .data[["label"]])
+        label <- "reference"
+    }
     samples <- samples[c(label, "time_series")]
-    samples[["id"]] <- seq_len(nrow(samples))
+    samples[["original_row"]] <- seq_len(nrow(samples))
     samples <- tidyr::unnest(samples, "time_series")
-    samples <- samples[c("id", label, bands)]
-    samples <- dplyr::group_by(samples, .data[["id"]])
+    samples <- samples[c("original_row", label, bands)]
+    samples <- dplyr::group_by(samples, .data[["original_row"]])
     samples <- dplyr::mutate(samples, index = seq_len(dplyr::n()))
     samples <- dplyr::ungroup(samples)
     # Arrange data: samples x bands/index
@@ -1013,17 +1020,25 @@
         names_sep = ""
     )
     # Remove 'id' column
-    samples[,-1]
+    return(samples)
 }
 
 .sits_normalize <- function(samples, stats) {
-
-    bands <- .sits_bands(samples)
-
-    data_norm <- .apply_across(samples, function(b) {
+    .apply_across(samples, function(b) {
         band <- dplyr::cur_column()
-        quant_2 <- stats[["quant_2"]][[band]]
-        quant_98 <- stats[["quant_98"]][[band]]
-        c(normalize_data(as.matrix(b), quant_2, quant_98))
+        quant_02 <- .stats_q02_band(stats, band)
+        quant_98 <- .stats_q98_band(stats, band)
+        c(normalize_data(as.matrix(b), quant_02, quant_98))
     })
+}
+
+.sits_get_chunk_ts <- function(samples, nchunks) {
+    ngroup <- ceiling(nrow(samples) / nchunks)
+    group_id <- rep(seq_len(nchunks), each = ngroup)[seq_len(nrow(samples))]
+
+    samples[["group_id"]] <- group_id
+    dplyr::group_split(
+        dplyr::group_by(samples, .data[["group_id"]]),
+        .keep = FALSE
+    )
 }
