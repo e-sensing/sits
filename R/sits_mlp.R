@@ -333,7 +333,7 @@ sits_mlp <- function(samples = NULL,
             # retrieve the prediction probabilities
             predicted <- data.table::as.data.table(
                 torch::as_array(
-                    stats::predict(torch_model, values)
+                    stats::predict(torch_model, data.matrix(values))
                 )
             )
 
