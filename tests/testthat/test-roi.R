@@ -149,8 +149,8 @@ test_that("Internal functions in ROI", {
     bb[["ymin"]] <- bb[["ymin"]] + x_size / 4
 
     si <- .sits_raster_sub_image_from_bbox(bb, cube)
-    expect_equal(si[["first_row"]], 1)
-    expect_equal(si[["first_col"]], 64)
-    expect_equal(si[["nrows"]], 81)
+    expect_equal(si[["col"]], 64)
+    expect_equal(si[["row"]], 1)
     expect_equal(si[["ncols"]], 191)
+    expect_equal(si[["nrows"]], 81)
 })

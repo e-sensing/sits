@@ -45,7 +45,7 @@
         # Crop block from template
         r_obj <- .raster_crop_metadata(
             r_obj = template_obj,
-            block = c(first_col = col, first_row = row, ncols = job[["ncols"]],
+            block = c(col = col, row = row, ncols = job[["ncols"]],
                       nrows = job[["nrows"]])
         )
         # Add bbox information
@@ -82,16 +82,6 @@
     )
 
     jobs[.intersects(.bbox_as_sf(dplyr::bind_rows(jobs)), roi)]
-}
-
-.jobs_as_block <- function(job) {
-    dplyr::transmute(
-        job,
-        first_col = .data[["col"]],
-        first_row = .data[["row"]],
-        nrows = .data[["nrows"]],
-        ncols = .data[["ncols"]]
-    )
 }
 
 .jobs_parallel_chr <- function(jobs, fn, ...) {

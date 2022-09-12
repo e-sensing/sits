@@ -27,8 +27,8 @@
 
     b_filename <- paste(b_filename,
         "block",
-        block[["first_row"]],
-        block[["nrows"]] + block[["first_row"]] - 1,
+        block[["row"]],
+        block[["nrows"]] + block[["row"]] - 1,
         sep = "_"
     )
 
@@ -120,15 +120,15 @@
     # define each block as a list element
     blocks <- mapply(
         list,
-        first_row      = ovr_r1,
-        nrows          = ovr_nr1,
-        first_col      = 1,
-        ncols          = xsize,
-        crop_first_row = r1 - ovr_r1 + 1,
-        crop_nrows     = nr1,
-        crop_first_col = 1,
-        crop_ncols     = xsize,
-        SIMPLIFY       = FALSE
+        row = ovr_r1,
+        nrows = ovr_nr1,
+        col = 1,
+        ncols = xsize,
+        crop_row = r1 - ovr_r1 + 1,
+        crop_nrows = nr1,
+        crop_col = 1,
+        crop_ncols = xsize,
+        SIMPLIFY = FALSE
     )
 
     return(blocks)

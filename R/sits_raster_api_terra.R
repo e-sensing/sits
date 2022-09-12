@@ -176,83 +176,40 @@
 
 #' @keywords internal
 #' @export
-.raster_open_stack.terra <- function(files, ...) {
-    suppressWarnings(
-        terra::rast(x = path.expand(files), ...)
-    )
-}
-
-#' @keywords internal
-#' @export
-.raster_read_stack.terra <- function(files, ...,
-                                     block = NULL,
-                                     out_size = NULL,
-                                     method = "bilinear") {
+.raster_read_rast.terra <- function(file, ..., block = NULL,
+                                    method = "bilinear") {
 
     # convert the method to the actual package
     method <- .raster_resampling(method = method)
 
     # create raster objects
-    r_obj <- .raster_open_stack.terra(files = path.expand(files), ...)
+    r_obj <- .raster_open_rast.terra(file = path.expand(file), ...)
 
-    # get raster size
-    in_size <- .raster_size(r_obj)
-
-    # do resample
-    if (!is.null(out_size) &&
-        (in_size[["nrows"]] != out_size[["nrows"]] ||
-         in_size[["ncols"]] != out_size[["ncols"]])) {
-        bbox <- .raster_bbox(r_obj, block = block)
-
-        out_r_obj <- .raster_new_rast(
-            nrows = out_size[["nrows"]],
-            ncols = out_size[["ncols"]],
-            xmin = bbox[["xmin"]],
-            xmax = bbox[["xmax"]],
-            ymin = bbox[["ymin"]],
-            ymax = bbox[["ymax"]],
-            nlayers = .raster_nlayers(r_obj),
-            crs = .raster_crs(r_obj)
-        )
-
-        out_r_obj <- terra::resample(r_obj, out_r_obj, method = method)
+    # start read
+    if (purrr::is_null(block)) {
 
         # read values
-        terra::readStart(out_r_obj)
+        terra::readStart(r_obj)
         values <- terra::readValues(
-            x   = out_r_obj,
+            x   = r_obj,
             mat = TRUE
         )
         # close file descriptor
-        terra::readStop(out_r_obj)
+        terra::readStop(r_obj)
     } else {
 
-        # start read
-        if (purrr::is_null(block)) {
-
-            # read values
-            terra::readStart(r_obj)
-            values <- terra::readValues(
-                x   = r_obj,
-                mat = TRUE
-            )
-            # close file descriptor
-            terra::readStop(r_obj)
-        } else {
-
-            # read values
-            terra::readStart(r_obj)
-            values <- terra::readValues(
-                x      = r_obj,
-                row    = block[["first_row"]],
-                nrows  = block[["nrows"]],
-                col    = block[["first_col"]],
-                ncols  = block[["ncols"]],
-                mat    = TRUE
-            )
-            # close file descriptor
-            terra::readStop(r_obj)
-        }
+        # read values
+        terra::readStart(r_obj)
+        values <- terra::readValues(
+            x      = r_obj,
+            row    = block[["row"]],
+            nrows  = block[["nrows"]],
+            col    = block[["col"]],
+            ncols  = block[["ncols"]],
+            mat    = TRUE
+        )
+        # close file descriptor
+        terra::readStop(r_obj)
     }
 
     return(values)
@@ -271,19 +228,19 @@
     # get extent
     xmin <- terra::xFromCol(
         object = r_obj,
-        col    = block[["first_col"]]
+        col = block[["col"]]
     )
     xmax <- terra::xFromCol(
         object = r_obj,
-        col    = block[["first_col"]] + block[["ncols"]] - 1
+        col = block[["col"]] + block[["ncols"]] - 1
     )
     ymax <- terra::yFromRow(
         object = r_obj,
-        row    = block[["first_row"]]
+        row = block[["row"]]
     )
     ymin <- terra::yFromRow(
         object = r_obj,
-        row    = block[["first_row"]] + block[["nrows"]] - 1
+        row = block[["row"]] + block[["nrows"]] - 1
     )
 
     # xmin, xmax, ymin, ymax
@@ -319,19 +276,19 @@
         # get extent
         xmin <- terra::xFromCol(
             object = r_obj,
-            col    = block[["first_col"]]
+            col = block[["col"]]
         )
         xmax <- terra::xFromCol(
             object = r_obj,
-            col    = block[["first_col"]] + block[["ncols"]] - 1
+            col = block[["col"]] + block[["ncols"]] - 1
         )
         ymax <- terra::yFromRow(
             object = r_obj,
-            row    = block[["first_row"]]
+            row = block[["row"]]
         )
         ymin <- terra::yFromRow(
             object = r_obj,
-            row    = block[["first_row"]] + block[["nrows"]] - 1
+            row = block[["row"]] + block[["nrows"]] - 1
         )
     } else if (!is.null(bbox)) {
         xmin <- bbox[["xmin"]]
