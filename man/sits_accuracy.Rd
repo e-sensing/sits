@@ -3,14 +3,14 @@
 \name{sits_accuracy}
 \alias{sits_accuracy}
 \alias{sits_accuracy.sits}
-\alias{sits_accuracy.classified_image}
+\alias{sits_accuracy.class_cube}
 \title{Assess classification accuracy (area-weighted method)}
 \usage{
 sits_accuracy(data, ...)
 
 \method{sits_accuracy}{sits}(data, ...)
 
-\method{sits_accuracy}{classified_image}(data, ..., validation_csv)
+\method{sits_accuracy}{class_cube}(data, ..., validation_csv)
 }
 \arguments{
 \item{data}{Either a data cube with classified images or

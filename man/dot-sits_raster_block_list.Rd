@@ -12,8 +12,8 @@
 \item{sub_image}{Area of interest in the image.}
 }
 \value{
-List with named vectors
-                        ("first_row", "nrows", "first_col", "ncols").
+List with named vectors with (\code{col},
+                        \code{row}, \code{ncols}, \code{nrows}).
 }
 \description{
 Calculate a list of blocks to be read from disk to memory

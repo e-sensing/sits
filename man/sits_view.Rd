@@ -5,7 +5,7 @@
 \alias{sits_view.sits}
 \alias{sits_view.som_map}
 \alias{sits_view.raster_cube}
-\alias{sits_view.classified_image}
+\alias{sits_view.class_cube}
 \alias{sits_view.probs_cube}
 \alias{sits_view.default}
 \title{View data cubes and samples in leaflet}
@@ -38,7 +38,7 @@ sits_view(x, ...)
   palette = "default"
 )
 
-\method{sits_view}{classified_image}(x, ..., tiles = NULL, legend = NULL, palette = "default")
+\method{sits_view}{class_cube}(x, ..., tiles = NULL, legend = NULL, palette = "default")
 
 \method{sits_view}{probs_cube}(x, ...)
 

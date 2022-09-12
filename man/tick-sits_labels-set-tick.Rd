@@ -5,7 +5,7 @@
 \alias{sits_labels<-}
 \alias{sits_labels<-.sits}
 \alias{sits_labels<-.probs_cube}
-\alias{sits_labels<-.classified_image}
+\alias{sits_labels<-.class_cube}
 \title{Change the labels of a set of time series}
 \usage{
 sits_labels(data) <- value
@@ -14,7 +14,7 @@ sits_labels(data) <- value
 
 \method{sits_labels}{probs_cube}(data) <- value
 
-\method{sits_labels}{classified_image}(data) <- value
+\method{sits_labels}{class_cube}(data) <- value
 }
 \arguments{
 \item{data}{Data cube or time series.}
@@ -28,7 +28,7 @@ A sits tibble with modified labels.
 
 A sits tibble with modified labels.
 
-A probs or classified_image cube with modified labels.
+A probs or class_cube cube with modified labels.
 
 A probs cube with modified labels.
 }
