@@ -2,12 +2,12 @@
 # s3 classes known to sits
 sits_s3_classes :   ["sits", "patterns", "predicted", "sits_model",
                     "sits_cube", "raster_cube", "probs_cube",
-                    "uncertainty_cube", "classified_image",
+                    "uncertainty_cube", "class_cube",
                     "stac_cube", "bdc_cube", "aws_cube",
                     "usgs_cube", "deafrica_cube"]
 
 # s3 classes resulting from classification and post-classification
-sits_s3_classes_proc :   ["probs_cube","uncertainty_cube", "classified_image"]
+sits_s3_classes_proc :   ["probs_cube","uncertainty_cube", "class_cube"]
 
 # bands resulting from classification and post-classification
 sits_results_bands : ["probs", "bayes", "bilat", "gauss", "uncert",
@@ -21,7 +21,7 @@ sits_results_s3_class:
                     gauss: "probs_cube"
                     uncert: "uncertainty_cube"
                     entropy: "uncertainty_cube"
-                    class:  "classified_image"
+                    class:  "class_cube"
 
 # parsing info contents for results cube
 results_parse_info_def : ["X1", "X2", "tile", "start_date", "end_date",
@@ -105,6 +105,16 @@ derived_cube         :
                 maximum_value: 10000
                 offset_value : 0
                 scale_factor : 0.0001
+    class_cube       :
+        s3_class     : ["class_cube", "derived_cube", "raster_cube"]
+        bands        :
+            class    :
+                data_type    : "INT1U"
+                missing_value: 255
+                minimum_value: 0
+                maximum_value: 254
+                offset_value : 0
+                scale_factor : 1
 
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"
