@@ -1,166 +1,237 @@
 #' @title Read a block of values retrieved from a set of raster images
-#' @name  .sits_raster_data_read
+#' @name  .sits_classify_data_read
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param  cube            input data cube.
-#' @param  samples         tibble with samples.
-#' @param  extent          bounding box in (i,j) coordinates
-#' @param  stats           normalization parameters.
-#' @param  filter_fn       smoothing filter to be applied.
-#' @param  impute_fn       impute function to replace NA
-#' @return A data.table with values for classification.
-.sits_raster_data_read <- function(cube,
-                                   samples,
-                                   extent,
-                                   stats,
-                                   filter_fn,
-                                   impute_fn) {
+#' @param  tile            Input tile to read data.
+#' @param  block           Bounding box in (col, row, ncols, nrows).
+#' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
+#' @param  filter_fn       Smoothing filter function to be applied to the data.
+#' @param  impute_fn       Impute function to replace NA.
+#' @param  output_dir      Output directory.
+#' @return A matrix with values for classification.
+.sits_classify_data_read <- function(tile, block, ml_model, impute_fn,
+                                     filter_fn, output_dir) {
 
-    # get the bands in the same order as the samples
-    bands <- sits_bands(samples)
+    # Get file_info to read files
+    fi <- .fi(tile)
+    # Get model bands
+    bands <- .fi_bands(fi)
+    # Read and preprocess values from cloud
+    cloud_mask <- NULL
+    if (.band_cloud() %in% bands) {
 
-    # preprocess the input data
-    data <- .sits_raster_data_preprocess(
-        cube      = cube,
-        bands     = bands,
-        extent    = extent,
-        impute_fn = impute_fn,
-        stats     = stats,
-        filter_fn = filter_fn
-    )
 
-    # create two additional columns for prediction
-    two_cols <- data.table::data.table(
-        "original_row" = rep(1, nrow(data)),
-        "reference" = rep("NoClass", nrow(data))
-    )
-
-    # join the two columns with the data values
-    data <- data.table::as.data.table(cbind(two_cols, data))
-
-    # get the attribute names set column names for DT
-    colnames(data) <- names(.sits_distances(samples[1, ]))
-
-    return(data)
-}
-
-#' @title Preprocess a set of values retrieved from a raster
-#' @name  .sits_raster_data_preprocess
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  cube             data cube being processed
-#' @param  bands            bands to be processed
-#' @param  extent           extent to be read
-#' @param  filter_fn        smoothing filter to be applied.
-#' @param  stats            normalization parameters.
-#' @param  impute_fn        imputing function to be applied to replace NA
-#' @return Matrix with pre-processed values.
-.sits_raster_data_preprocess <- function(cube,
-                                         bands,
-                                         extent,
-                                         filter_fn = NULL,
-                                         stats = NULL,
-                                         impute_fn) {
-
-    # set caller to show in errors
-    .check_set_caller(".sits_raster_data_preprocess")
-
-    # get the file information for the cube
-    file_info <- .file_info(cube)
-
-    # does the cube have a cloud band?
-    cld_band <- .source_cloud()
-    if (cld_band %in% sits_bands(cube)) {
-        cld_index <- .source_cloud_interp_values(
-            source = .cube_source(cube = cube),
-            collection = .cube_collection(cube = cube)
+        #
+        # Log here
+        #
+        .sits_debug_log(
+            output_dir = output_dir,
+            event = "start_block_data_read",
+            key = "band",
+            value = .band_cloud()
         )
 
-        cld_files <- dplyr::filter(file_info, .data[["band"]] == cld_band)$path
-        clouds <- .raster_read_stack(files = cld_files, block = extent)
 
-        # get information about cloud bitmask
-        if (.source_cloud_bit_mask(
-            source = .cube_source(cube = cube),
-            collection = .cube_collection(cube = cube)
-        )) {
-            clouds <- as.matrix(clouds)
-            cld_rows <- nrow(clouds)
-            clouds <- matrix(bitwAnd(clouds, sum(2^cld_index)),
-                nrow = cld_rows
-            ) > 0
-        } else {
-            clouds <- clouds %in% cld_index
-        }
-    } else {
-        clouds <- NULL
+        # Get cloud values
+        cloud_mask <- .fi_read_block(fi = fi, band = .band_cloud(),
+                                     block = block)
+
+
+        #
+        # Log here
+        #
+        .sits_debug_log(
+            output_dir = output_dir,
+            event = "end_block_data_read",
+            key = "band",
+            value = .band_cloud()
+        )
+
+
+        # Get cloud parameters
+        interp_values <- .tile_cloud_interp_values(tile)
+        is_bit_mask <- .tile_cloud_bit_mask(tile)
+
+
+        #
+        # Log here
+        #
+        .sits_debug_log(
+            output_dir = output_dir,
+            event = "start_block_data_process",
+            key = "cloud_bit_mask",
+            value = is_bit_mask
+        )
+
+
+        # Prepare cloud_mask
+        # Identify values to be removed
+        cloud_mask <- if (!is_bit_mask) cloud_mask %in% interp_values
+        else matrix(bitwAnd(cloud_mask, sum(2^interp_values)) > 0,
+                    nrow = length(cloud_mask))
+
+
+        #
+        # Log here
+        #
+        .sits_debug_log(
+            output_dir = output_dir,
+            event = "end_block_data_process",
+            key = "cloud_bit_mask",
+            value = is_bit_mask
+        )
+
+
     }
+    # Read and preprocess values from each band
+    values <- .ml_foreach_band(ml_model, function(band) {
 
-    # read the values from the raster ordered by bands
-    values_bands <- purrr::map(bands, function(b) {
 
-        # define the input raster files for band
-        bnd_files <- dplyr::filter(file_info, .data[["band"]] == b)$path
-
-        # are there bands associated to the files?
-        .check_length(
-            x = bnd_files,
-            len_min = 1,
-            msg = paste("no files for band", b)
+        #
+        # Log here
+        #
+        .sits_debug_log(
+            output_dir = output_dir,
+            event = "start_block_data_read",
+            key = "band",
+            value = band
         )
 
-        # read the values
-        values <- .raster_read_stack(
-            files = bnd_files,
-            block = extent
+
+        # Get band values
+        values <- .fi_read_block(fi = fi, band = band, block = block)
+
+
+        #
+        # Log here
+        #
+        .sits_debug_log(
+            output_dir = output_dir,
+            event = "end_block_data_read",
+            key = "band",
+            value = band
         )
 
-        # get the missing values, minimum values and scale factors
-        missing_value <- .cube_band_missing_value(cube = cube, band = b)
-        minimum_value <- .cube_band_minimum_value(cube = cube, band = b)
-        maximum_value <- .cube_band_maximum_value(cube = cube, band = b)
 
-        # correct NA, minimum, maximum, and missing values
-        values[values < minimum_value] <- NA
-        values[values > maximum_value] <- NA
-        values[values == missing_value] <- NA
+        #
+        # Log here
+        #
+        .sits_debug_log(
+            output_dir = output_dir,
+            event = "start_block_data_process",
+            key = "band",
+            value = band
+        )
 
-        # change the points under clouds to NA
-        if (!purrr::is_null(clouds)) {
-            values[clouds] <- NA
+
+        # Remove cloud masked pixels
+        if (!is.null(cloud_mask)) {
+            values[cloud_mask] <- NA
         }
-
-        # remove NA pixels
-        if (!purrr::is_null(impute_fn) && any(is.na(values))) {
+        # Correct missing, minimum, and maximum values; and scale values
+        # Get band defaults for derived cube from config
+        conf_band <- .tile_band_conf(tile = tile, band = band)
+        miss_value <- .band_miss_value(conf_band)
+        if (!is.null(miss_value)) {
+            values[values == miss_value] <- NA
+        }
+        min_value <- .band_min_value(conf_band)
+        if (!is.null(min_value)) {
+            values[values < min_value] <- NA
+        }
+        max_value <- .band_max_value(conf_band)
+        if (!is.null(max_value)) {
+            values[values > max_value] <- NA
+        }
+        # Remove NA pixels
+        if (!is.null(impute_fn)) {
             values <- impute_fn(values)
         }
-
-        # scale the data set
-        scale_factor <- .cube_band_scale_factor(cube, band = b)
-        offset_value <- .cube_band_offset_value(cube = cube, band = b)
-
-        values <- scale_factor * values + offset_value
-
-        # filter the data
-        if (!(purrr::is_null(filter_fn))) {
+        scale <- .band_scale(conf_band)
+        if (!is.null(scale) && scale != 1) {
+            values <- values * scale
+        }
+        offset <- .band_offset(conf_band)
+        if (!is.null(offset) && offset != 0) {
+            values <- values + offset
+        }
+        # Filter the time series
+        if (!is.null(filter_fn)) {
             values <- filter_fn(values)
         }
-
-        # normalize the data
-        if (!purrr::is_null(stats)) {
-            values <- .sits_ml_normalize_matrix(values, stats, b)
+        # Normalize values
+        stats <- .ml_stats(ml_model)
+        q02 <- .ml_stats_q02_band(stats, band)
+        q98 <- .ml_stats_q98_band(stats, band)
+        if (!is.null(q02) && !is.null(q98)) {
+            values <- normalize_data(values, q02, q98)
         }
 
-        return(values)
+
+        #
+        # Log here
+        #
+        .sits_debug_log(
+            output_dir = output_dir,
+            event = "end_block_data_process",
+            key = "band",
+            value = band
+        )
+
+        # Return values
+        values
     })
+    # Compose final values
+    values <- do.call(cbind, values)
+    colnames(values) <- .ml_attr_names(ml_model)
 
-    values_bands <- do.call(cbind, values_bands)
-
-    return(values_bands)
+    return(values)
 }
+#' @title Read a block of values retrieved from a derived cube
+#' @name  .sits_derived_data_read
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  tile            Input tile to read data.
+#' @param  band            Band to read data from tile.
+#' @param  block           Bounding box in (col, row, ncols, nrows).
+#' @return A matrix with probability values for labeling.
+.sits_derived_data_read <- function(tile, band, block) {
 
+    # Get file_info to read files
+    fi <- .fi(tile)
+    # Read and preprocess values from band
+    # Get band values
+    values <- .fi_read_block(fi = fi, band = band, block = block)
+    # Correct missing, minimum, and maximum values; and scale values
+    # Get band defaults for derived cube from config
+    conf_band <- .tile_band_conf(tile = tile, band = band)
+    miss_value <- .band_miss_value(conf_band)
+    if (!is.null(miss_value)) {
+        values[values == miss_value] <- NA
+    }
+    min_value <- .band_min_value(conf_band)
+    if (!is.null(min_value)) {
+        values[values < min_value] <- min_value
+    }
+    max_value <- .band_max_value(conf_band)
+    if (!is.null(max_value)) {
+        values[values > max_value] <- max_value
+    }
+    scale <- .band_scale(conf_band)
+    if (!is.null(scale) && scale != 1) {
+        values <- values * scale
+    }
+    offset <- .band_offset(conf_band)
+    if (!is.null(offset) && offset != 0) {
+        values <- values + offset
+    }
+
+    return(values)
+}
 #' @title Extract a time series from raster
 #' @name .sits_raster_data_get_ts
 #' @keywords internal
