@@ -407,6 +407,7 @@ sits_cube.stac_cube <- function(source,
 sits_cube.local_cube <- function(source,
                                  collection,
                                  data_dir, ...,
+                                 tiles = NULL,
                                  bands = NULL,
                                  start_date = NULL,
                                  end_date = NULL,
@@ -430,7 +431,7 @@ sits_cube.local_cube <- function(source,
 
     # deal with wrong parameter "band" in dots
     if ("band" %in% names(dots) && missing(bands)) {
-        message("please use bands instead of band as parameter")
+        message("please, use 'bands' instead of 'band' as parameter")
         bands <- as.character(dots[["band"]])
     }
 
@@ -441,6 +442,7 @@ sits_cube.local_cube <- function(source,
         data_dir = data_dir,
         parse_info = parse_info,
         delim = delim,
+        tiles = tiles,
         bands = bands,
         labels = labels,
         start_date = start_date,

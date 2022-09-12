@@ -66,7 +66,7 @@
 #' @export
 .raster_file_blocksize.terra <- function(r_obj) {
         block_size <- c(terra::fileBlocksize(r_obj))
-        names(block_size) <- c("block_nrows", "block_ncols")
+        names(block_size) <- c("nrows", "ncols")
 
         return(block_size)
 }
@@ -83,7 +83,7 @@
 #' @export
 .raster_open_rast.terra <- function(file, ...) {
     suppressWarnings(
-        terra::rast(x = file, ...)
+        terra::rast(x = path.expand(file), ...)
     )
 }
 
@@ -91,7 +91,6 @@
 #' @export
 .raster_write_rast.terra <- function(r_obj,
                                      file,
-                                     format,
                                      data_type,
                                      overwrite, ...,
                                      missing_value = NA) {
@@ -102,9 +101,9 @@
     suppressWarnings(
         terra::writeRaster(
             x = r_obj,
-            filename = file,
+            filename = path.expand(file),
             wopt = list(
-                filetype = format,
+                filetype = "GTiff",
                 datatype = data_type,
                 gdal = .config_gtiff_default_options()
             ),
@@ -137,6 +136,9 @@
 
     # prepare resolution
     resolution <- c(xres, yres)
+
+    # prepare crs
+    if (is.numeric(crs)) crs <- paste0("EPSG:", crs)
 
     if (is.null(resolution)) {
 
@@ -174,83 +176,40 @@
 
 #' @keywords internal
 #' @export
-.raster_open_stack.terra <- function(files, ...) {
-    suppressWarnings(
-        terra::rast(files, ...)
-    )
-}
-
-#' @keywords internal
-#' @export
-.raster_read_stack.terra <- function(files, ...,
-                                     block = NULL,
-                                     out_size = NULL,
-                                     method = "bilinear") {
+.raster_read_rast.terra <- function(files, ..., block = NULL,
+                                    method = "bilinear") {
 
     # convert the method to the actual package
     method <- .raster_resampling(method = method)
 
     # create raster objects
-    r_obj <- .raster_open_stack.terra(files = files, ...)
+    r_obj <- .raster_open_rast.terra(file = path.expand(files), ...)
 
-    # get raster size
-    in_size <- .raster_size(r_obj)
-
-    # do resample
-    if (!is.null(out_size) &&
-        (in_size[["nrows"]] != out_size[["nrows"]] ||
-         in_size[["ncols"]] != out_size[["ncols"]])) {
-        bbox <- .raster_bbox(r_obj, block = block)
-
-        out_r_obj <- .raster_new_rast(
-            nrows = out_size[["nrows"]],
-            ncols = out_size[["ncols"]],
-            xmin = bbox[["xmin"]],
-            xmax = bbox[["xmax"]],
-            ymin = bbox[["ymin"]],
-            ymax = bbox[["ymax"]],
-            nlayers = .raster_nlayers(r_obj),
-            crs = .raster_crs(r_obj)
-        )
-
-        out_r_obj <- terra::resample(r_obj, out_r_obj, method = method)
+    # start read
+    if (purrr::is_null(block)) {
 
         # read values
-        terra::readStart(out_r_obj)
+        terra::readStart(r_obj)
         values <- terra::readValues(
-            x   = out_r_obj,
+            x   = r_obj,
             mat = TRUE
         )
         # close file descriptor
-        terra::readStop(out_r_obj)
+        terra::readStop(r_obj)
     } else {
 
-        # start read
-        if (purrr::is_null(block)) {
-
-            # read values
-            terra::readStart(r_obj)
-            values <- terra::readValues(
-                x   = r_obj,
-                mat = TRUE
-            )
-            # close file descriptor
-            terra::readStop(r_obj)
-        } else {
-
-            # read values
-            terra::readStart(r_obj)
-            values <- terra::readValues(
-                x      = r_obj,
-                row    = block[["first_row"]],
-                nrows  = block[["nrows"]],
-                col    = block[["first_col"]],
-                ncols  = block[["ncols"]],
-                mat    = TRUE
-            )
-            # close file descriptor
-            terra::readStop(r_obj)
-        }
+        # read values
+        terra::readStart(r_obj)
+        values <- terra::readValues(
+            x = r_obj,
+            row = block[["row"]],
+            nrows = block[["nrows"]],
+            col = block[["col"]],
+            ncols = block[["ncols"]],
+            mat = TRUE
+        )
+        # close file descriptor
+        terra::readStop(r_obj)
     }
 
     return(values)
@@ -260,7 +219,6 @@
 #' @export
 .raster_crop.terra <- function(r_obj,
                                file,
-                               format,
                                data_type,
                                overwrite,
                                block,
@@ -270,19 +228,19 @@
     # get extent
     xmin <- terra::xFromCol(
         object = r_obj,
-        col    = block[["first_col"]]
+        col = block[["col"]]
     )
     xmax <- terra::xFromCol(
         object = r_obj,
-        col    = block[["first_col"]] + block[["ncols"]] - 1
+        col = block[["col"]] + block[["ncols"]] - 1
     )
     ymax <- terra::yFromRow(
         object = r_obj,
-        row    = block[["first_row"]]
+        row = block[["row"]]
     )
     ymin <- terra::yFromRow(
         object = r_obj,
-        row    = block[["first_row"]] + block[["nrows"]] - 1
+        row = block[["row"]] + block[["nrows"]] - 1
     )
 
     # xmin, xmax, ymin, ymax
@@ -294,9 +252,9 @@
             x = r_obj,
             y = extent,
             snap = "out",
-            filename = file,
+            filename = path.expand(file),
             wopt = list(
-                filetype = format,
+                filetype = "GTiff",
                 datatype = data_type,
                 gdal = .config_gtiff_default_options()
             ),
@@ -318,19 +276,19 @@
         # get extent
         xmin <- terra::xFromCol(
             object = r_obj,
-            col    = block[["first_col"]]
+            col = block[["col"]]
         )
         xmax <- terra::xFromCol(
             object = r_obj,
-            col    = block[["first_col"]] + block[["ncols"]] - 1
+            col = block[["col"]] + block[["ncols"]] - 1
         )
         ymax <- terra::yFromRow(
             object = r_obj,
-            row    = block[["first_row"]]
+            row = block[["row"]]
         )
         ymin <- terra::yFromRow(
             object = r_obj,
-            row    = block[["first_row"]] + block[["nrows"]] - 1
+            row = block[["row"]] + block[["nrows"]] - 1
         )
     } else if (!is.null(bbox)) {
         xmin <- bbox[["xmin"]]
@@ -449,7 +407,7 @@
 #' @export
 .raster_missing_value.terra <- function(file) {
 
-    gdal_info <- terra::describe(file)
+    gdal_info <- terra::describe(path.expand(file))
     gdal_info <- gdal_info[grepl(pattern = "NoData Value=", x = gdal_info)]
 
     nodata_value <- gsub(pattern = ".*NoData Value=",

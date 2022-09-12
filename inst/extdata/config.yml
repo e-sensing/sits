@@ -33,8 +33,9 @@ leaflet_max_megabytes : 64
 leaflet_comp_factor : 0.50
 
 sources:
-    BDC                     :
-        s3_class            : ["bdc_cube", "stac_cube", "raster_cube"]
+    BDC:
+        s3_class            : ["bdc_cube", "stac_cube", "eo_cube",
+                               "raster_cube"]
         service             : "STAC"
         url                 : "https://brazildatacube.dpi.inpe.br/stac/"
         collections         :
@@ -438,7 +439,8 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0.01
     AWS                     :
-        s3_class            : ["aws_cube", "stac_cube", "raster_cube"]
+        s3_class            : ["aws_cube", "stac_cube", "eo_cube",
+                               "raster_cube"]
         service             : "STAC"
         url                 : "https://earth-search.aws.element84.com/v0/"
         collections         :
@@ -686,7 +688,8 @@ sources:
                 review_dates: ["2020-08-16"]
                 ext_tolerance: 0
     DEAFRICA                :
-        s3_class            : ["deafrica_cube", "stac_cube", "raster_cube"]
+        s3_class            : ["deafrica_cube", "stac_cube", "eo_cube",
+                               "raster_cube"]
         service             : "STAC"
         url                 : "https://explorer.digitalearth.africa/stac/"
         collections         :
@@ -831,7 +834,8 @@ sources:
                 metadata_search : "feature"
                 ext_tolerance: 0
     SDC                     :
-        s3_class            : ["sdc_cube", "stac_cube", "raster_cube"]
+        s3_class            : ["sdc_cube", "stac_cube", "eo_cube",
+                               "raster_cube"]
         service             : "STAC"
         url                 : "https://explorer.swissdatacube.org/stac"
         collections         :
@@ -963,7 +967,8 @@ sources:
                 metadata_search : "feature"
                 ext_tolerance: 0
     USGS                    :
-        s3_class            : ["usgs_cube", "stac_cube", "raster_cube"]
+        s3_class            : ["usgs_cube", "stac_cube", "eo_cube",
+                               "raster_cube"]
         service             : "STAC"
         rstac_version       : "0.9.0"
         url                 : "https://landsatlook.usgs.gov/stac-server"
@@ -1036,7 +1041,8 @@ sources:
                 metadata_search : "feature"
                 ext_tolerance: 0
     MPC                     :
-        s3_class            : ["mpc_cube", "stac_cube", "raster_cube"]
+        s3_class            : ["mpc_cube", "stac_cube", "eo_cube",
+                               "raster_cube"]
         service             : "STAC"
         rstac_version       : "1.0.0"
         url                 : "https://planetarycomputer.microsoft.com/api/stac/v1"

@@ -126,7 +126,7 @@ sits_accuracy.sits <- function(data, ...) {
 }
 #' @rdname sits_accuracy
 #' @export
-sits_accuracy.classified_image <- function(data, ..., validation_csv) {
+sits_accuracy.class_cube <- function(data, ..., validation_csv) {
 
     # sits only accepts "csv" files
     .check_file_csv(validation_csv)
@@ -316,7 +316,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # set caller to show in errors
     .check_set_caller(".sits_accuracy_area_assess")
     # check if cube has the right type
-    .check_cube_is_classified_image(cube)
+    .check_cube_is_class_cube(cube)
     # check error matrix
     .check_error_matrix_area(error_matrix, area)
 

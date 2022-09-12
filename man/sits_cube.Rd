@@ -27,6 +27,7 @@ sits_cube(source, collection, ..., data_dir = NULL)
   collection,
   data_dir,
   ...,
+  tiles = NULL,
   bands = NULL,
   start_date = NULL,
   end_date = NULL,

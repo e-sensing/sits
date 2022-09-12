@@ -17,7 +17,7 @@
 #'  \item{torch ML model: } {see \code{\link{plot.torch_model}}}
 #'  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
 #'  \item{model uncertainty: } {see \code{\link{plot.uncertainty_cube}}}
-#'  \item{classified image: }     {see \code{\link{plot.classified_image}}}
+#'  \item{classified image: }     {see \code{\link{plot.class_cube}}}
 #' }
 #'
 #' In the case of time series, the plot function produces different plots
@@ -414,26 +414,14 @@ plot.raster_cube <- function(x, ...,
 
             # Plot a B/W band as false color
             if (!purrr::is_null(band)) {
-                .check_chr_within(
-                    band,
-                    within = sits_bands(x),
-                    discriminator = "any_of",
-                    msg = "invalid band"
-                )
+                .check_band_in_cube(band, row)
                 # check if n_colors is a valid number
-                .check_num(
-                    x = n_colors,
-                    min = 1,
-                    max = 256,
-                    is_integer = TRUE,
-                    len_min = 1,
-                    len_max = 1
-                )
+                .check_int_parameter(n_colors, min = 1, max = 256)
 
                 # plot a single band
                 bw_file <- dplyr::filter(bds, .data[["band"]] == band)$path
                 # use the terra package to obtain a terra object from a stack
-                r_obj <- .raster_open_stack.terra(bw_file)
+                r_obj <- .raster_open_rast.terra(bw_file)
 
                 # check if pallete name exists in ColorBrewer
                 .check_chr_contains(
@@ -445,9 +433,11 @@ plot.raster_cube <- function(x, ...,
                 max_col <- RColorBrewer::brewer.pal.info[palette,]$maxcolors
                 # plot the data using terra
                 suppressWarnings(
-                    terra::plot(r_obj,
-                                col = grDevices::colorRampPalette(
-                                    RColorBrewer::brewer.pal(max_col, palette))(n_colors)
+                    terra::plot(
+                        x = r_obj,
+                        y = 1,
+                        col = grDevices::colorRampPalette(
+                            RColorBrewer::brewer.pal(max_col, palette))(n_colors)
                     )
                 )
             }
@@ -466,11 +456,11 @@ plot.raster_cube <- function(x, ...,
                 red_file <- dplyr::filter(bds, .data[["band"]] == red)$path
                 green_file <- dplyr::filter(bds, .data[["band"]] == green)$path
                 blue_file <- dplyr::filter(bds, .data[["band"]] == blue)$path
-                # put the band on a raster/terra stack
+                # put the band on a stack
                 rgb_stack <- c(red_file, green_file, blue_file)
 
                 # use the terra package to obtain a terra object from a stack
-                r_obj <- .raster_open_stack.terra(rgb_stack)
+                r_obj <- .raster_open_rast.terra(rgb_stack)
                 # plot the data using terra
                 suppressWarnings(
                     terra::plotRGB(r_obj,
@@ -780,11 +770,11 @@ plot.uncertainty_cube <- function(x, ...,
 }
 
 #' @title  Plot classified images
-#' @name   plot.classified_image
+#' @name   plot.class_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description plots a classified raster using ggplot.
 #'
-#' @param  x               Object of class "classified_image".
+#' @param  x               Object of class "class_cube".
 #' @param  y               Ignored.
 #' @param  ...             Further specifications for \link{plot}.
 #' @param  tiles           Tiles to be plotted.
@@ -822,7 +812,7 @@ plot.uncertainty_cube <- function(x, ...,
 #' }
 #' @export
 #'
-plot.classified_image <- function(x, y, ...,
+plot.class_cube <- function(x, y, ...,
                                   tiles = NULL,
                                   title = "Classified Image",
                                   legend = NULL,
@@ -830,7 +820,7 @@ plot.classified_image <- function(x, y, ...,
                                   rev = TRUE) {
     stopifnot(missing(y))
     # set caller to show in errors
-    .check_set_caller(".sits_plot_classified_image")
+    .check_set_caller(".sits_plot_class_cube")
 
     # get other parameters
     dots <- list(...)
@@ -838,7 +828,7 @@ plot.classified_image <- function(x, y, ...,
     # precondition - cube must be a labelled cube
     cube <- x
     .check_chr_within(
-        x = "classified_image",
+        x = "class_cube",
         within = class(cube),
         discriminator = "any_of",
         msg = "cube must be a classified image"

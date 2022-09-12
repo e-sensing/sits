@@ -46,7 +46,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
     # function that is used to be called as a value from another function
     result_fun <- function(tb) {
         # does the input data exist?
-        .check_samples(tb)
+        .check_samples_train(tb)
         # find the bands of the data
         bds <- sits_bands(tb)
         # create a tibble to store the results

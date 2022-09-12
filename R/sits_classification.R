@@ -118,11 +118,12 @@ sits_classify.sits <- function(data,
                                filter_fn = NULL,
                                multicores = 2) {
 
-    # precondition: verify that the data is correct
+    # precondition: verify that the data to be classified is correct
     .check_samples(data)
-    # precondition - are the samples form the model valid?
+    # precondition - is the model valid?
+    .check_is_sits_model(ml_model)
+    # recover the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
-    .check_samples(samples)
 
     # Apply filter
     if (!purrr::is_null(filter_fn)) {
@@ -190,6 +191,11 @@ sits_classify.raster_cube <- function(data,
                                       verbose = FALSE,
                                       progress = FALSE) {
 
+    # check documentation mode
+    progress <- .check_documentation(progress)
+
+    # precondition - checks if the cube and ml_model are valid
+    .check_cube_model(data, ml_model)
     # precondition - test if cube is regular
     .check_is_regular(data)
     # precondition - multicores
@@ -200,11 +206,10 @@ sits_classify.raster_cube <- function(data,
     .check_output_dir(output_dir)
     # precondition - version
     .check_version(version)
-
-    # Update multicores parameter
-    if ("xgb_model" %in% class(ml_model)) {
-        multicores <- 1
-    }
+    # Retrieve the samples from the model
+    samples <- .sits_ml_model_samples(ml_model)
+    # precondition - are the samples valid?
+    .check_samples(samples)
     # Spatial filter
     if (!is.null(roi)) {
         data <- .cube_spatial_filter(
@@ -232,114 +237,64 @@ sits_classify.raster_cube <- function(data,
             msg = "invalid 'start_date' and 'end_date' parameters"
         )
     }
-    # Retrieve the samples from the model
-    samples <- .sits_ml_model_samples(ml_model)
-    # precondition - are the samples valid?
-    .check_samples(samples)
-    # Check timelines of samples and tile
-    .check_that(
-        length(sits_timeline(samples)) == length(sits_timeline(data)),
-        msg = "number of instances of samples and cube differ"
-    )
-    # Get block size
-    block_size <- .raster_file_blocksize(
-        r_obj = .raster_open_rast(.file_info_path(data[1,]))
+    # Get job size
+    job_size <- .raster_file_blocksize(
+        .raster_open_rast(.fi_path(.fi(.tile(data))))
     )
     # Check minimum memory needed to process one block
-    multicores <- .jobs_max_multicores(
-        job_nrows = block_size[["block_nrows"]],
-        job_ncols = block_size[["block_ncols"]],
-        npaths = length(.file_info_paths(data[1,])) +
-            length(.ml_model_labels(ml_model)),
-        nbytes = 8,
-        proc_bloat = .config_processing_bloat(),
-        overlap = 0,
-        memsize = memsize,
-        multicores = multicores
+    job_memsize <- .jobs_memsize(
+        job_size = job_size, npaths = length(.fi_paths(.fi(.tile(data)))) +
+            length(.ml_labels(ml_model)), nbytes = 8,
+        proc_bloat = .config_processing_bloat(), overlap = 0
     )
+    # Check if memsize is above minimum needed to process one block
+    .check_that(
+        x = job_memsize < memsize,
+        local_msg = paste("minimum memsize needed is", job_memsize, "GB"),
+        msg = "provided 'memsize' is insufficient for processing"
+    )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+    )
+    # Update multicores parameter
+    if ("xgb_model" %in% .ml_class(ml_model)) {
+        multicores <- 1
+    }
+
     # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = verbose)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
+    # # Callback final tile classification
+    # .callback(process = "cube_classification", event = "started",
+    #           context = environment())
     # Show block information
     if (verbose) {
         start_time <- Sys.time()
-        message("Using blocks of size (", block_size[["block_nrows"]],
-                " x ", block_size[["block_ncols"]], ")")
+        message("Using blocks of size (", .nrows(job_size),
+                " x ", .ncols(job_size), ")")
     }
     # Classification
     # Process each tile sequentially
-    probs_cube <- slider::slide_dfr(data, function(tile) {
-        # Output file
-        out_file <- .file_probs_name(
-            tile = tile,
-            version = version,
-            output_dir = output_dir
-        )
-        # Resume feature
-        if (file.exists(out_file)) {
-            message("Recovery: Tile '", tile[["tile"]], "' already exists.")
-            message("(If you want to produce a new image, please ",
-                    "change 'output_dir' or 'version' parameters)")
-            probs_tile <- .tile_open_probs(
-                tile = tile,
-                labels = .ml_model_labels(ml_model),
-                file = out_file
-            )
-            return(probs_tile)
-        }
-        # Show initial time for tile classification
-        if (verbose) {
-            tile_start_time <- Sys.time()
-            message("Starting classification of tile '",
-                    tile[["tile"]], "' at ", start_time)
-        }
-        # Compute how many jobs to process
-        jobs <- .jobs_create(
-            block_nrows = block_size[["block_nrows"]],
-            block_ncols = block_size[["block_ncols"]],
-            block_overlap = 0,
-            ncols = .file_info_ncols(tile),
-            nrows = .file_info_nrows(tile),
-            xmin = tile[["xmin"]],
-            xmax = tile[["xmax"]],
-            ymin = tile[["ymin"]],
-            ymax = tile[["ymax"]],
-            crs = tile[["crs"]],
-            roi = roi
-        )
-        # Blocks file name pattern
-        block_pattern <- .file_sans_ext(.file_base(out_file))
-        # Process blocks in parallel
-        block_files <- .sits_parallel_map(
-            x = jobs,
-            fn = .sits_classify_job,
-            tile = tile,
-            ml_model = ml_model,
-            filter_fn = filter_fn,
-            impute_fn = impute_fn,
-            file_pattern = block_pattern,
-            output_dir = output_dir,
+    probs_cube <- .cube_foreach_tile(data, function(tile) {
+
+        # Do the samples and tile match their timeline length?
+        .check_samples_tile_match(samples, tile)
+
+        # Classify the data
+        probs_tile <- .sits_classify_tile(
+            tile = tile, ml_model = ml_model, roi = roi, filter_fn = filter_fn,
+            impute_fn = impute_fn, memsize = memsize, multicores = multicores,
+            output_dir = output_dir, version = version, verbose = verbose,
             progress = progress
         )
-        # Create a new prob tile and template
-        probs_tile <- .tile_create_probs(
-            tile = tile,
-            labels = .ml_model_labels(ml_model),
-            out_file = out_file,
-            block_files = unlist(block_files),
-            multicores = multicores
-        )
-        # show final time for classification
-        if (verbose) {
-            tile_end_time <- Sys.time()
-            message("Tile '", tile[["tile"]], "' finished at ", tile_end_time)
-            message("Elapsed time of ",
-                    format(round(tile_end_time - tile_start_time, digits = 2)))
-            message("")
-        }
+
         return(probs_tile)
     })
+    # # Callback final tile classification
+    # .callback(event = "cube_classification", status = "end",
+    #           context = environment())
     # Show block information
     if (verbose) {
         end_time <- Sys.time()

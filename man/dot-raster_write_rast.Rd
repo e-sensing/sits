@@ -4,22 +4,12 @@
 \alias{.raster_write_rast}
 \title{Raster package internal write raster file function}
 \usage{
-.raster_write_rast(
-  r_obj,
-  file,
-  format,
-  data_type,
-  overwrite,
-  ...,
-  missing_value = NA
-)
+.raster_write_rast(r_obj, file, data_type, overwrite, ..., missing_value = NA)
 }
 \arguments{
 \item{r_obj}{raster package object to be written}
 
 \item{file}{file path to save raster file}
-
-\item{format}{GDAL file format string (e.g. GTiff)}
 
 \item{data_type}{sits internal raster data type. One of "INT1U",
 "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".}
@@ -29,6 +19,8 @@
 \item{...}{additional parameters to be passed to raster package}
 
 \item{missing_value}{A \code{integer} with image's missing value}
+
+\item{format}{GDAL file format string (e.g. GTiff)}
 }
 \value{
 No value, called for side effects.

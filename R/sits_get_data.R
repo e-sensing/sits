@@ -290,12 +290,7 @@ sits_get_data.sits <- function(cube,
                                output_dir = ".",
                                progress = FALSE) {
     # check if samples contains all the required columns
-    .check_chr_contains(
-        x = colnames(samples),
-        contains = .config_get("df_sample_columns"),
-        discriminator = "all_of",
-        msg = "data input is not valid"
-    )
+
 
     data <- .sits_get_ts(
         cube       = cube,
@@ -608,7 +603,7 @@ sits_get_data.data.frame <- function(cube,
 #' @name .sits_get_ts
 #' @keywords internal
 #' @export
-.sits_get_ts.classified_image <- function(cube,
+.sits_get_ts.class_cube <- function(cube,
                                           samples, ...,
                                           bands,
                                           crs = 4326,

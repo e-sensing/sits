@@ -68,258 +68,172 @@ sits_label_classification <- function(cube,
     # precondition - version
     .check_version(version)
 
-    # mapping function to be executed by workers cluster
-    .do_map <- function(chunk) {
-
-        # read raster
-        data <- .raster_get_values(r_obj = chunk)
-        # get layer of max probability
-        data <- label_max_prob(data)
-        # create cube labels
-        res <- .raster_rast(r_obj = chunk, nlayers = 1)
-        # copy values
-        res <- .raster_set_values(r_obj = res, values = data)
-        return(res)
-    }
-
-    # compute which block size is many tiles to be computed
-    block_size <- .label_estimate_block_size(
-        cube = cube,
-        multicores = multicores,
-        memsize = memsize
+    # Get job size
+    job_size <- .raster_file_blocksize(
+        .raster_open_rast(.fi_path(.fi(.tile(cube))))
+    )
+    # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = job_size, npaths = length(.fi_paths(.fi(.tile(cube)))) +
+            length(.tile_labels(.tile(cube))), nbytes = 8,
+        proc_bloat = .config_processing_bloat(), overlap = 0
+    )
+    # Check if memsize is above minimum needed to process one block
+    .check_that(
+        x = job_memsize < memsize,
+        local_msg = paste("minimum memsize needed is", job_memsize, "GB"),
+        msg = "provided 'memsize' is insufficient for processing"
+    )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
 
-    # start parallel processes
+    # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop())
+    on.exit(.sits_parallel_stop(), add = TRUE)
 
-    # process each brick layer (each time step) individually
-    blocks_tile_lst <- slider::slide(cube, function(tile) {
+    # Labeling
+    # Process each tile sequentially
+    class_cube <- .cube_foreach_tile(cube, function(tile) {
 
-        # create metadata for raster cube
-        tile_new <- .cube_derived_create(
-            cube       = tile,
-            cube_class = "classified_image",
-            band_name  = "class",
-            labels     = .cube_labels(tile),
-            start_date = .file_info_start_date(tile),
-            end_date   = .file_info_end_date(tile),
-            bbox       = .cube_tile_bbox(tile),
-            output_dir = output_dir,
-            version    = version
+        # Classify the data
+        class_tile <- .sits_label_tile(
+            tile = tile, label_fn = label_max_prob, memsize = memsize,
+            multicores = multicores, output_dir = output_dir,
+            version = version
         )
 
-        # prepare output filename
-        out_file <- .file_info_path(tile_new)
-
-        # if file exists skip it (resume feature)
-        if (file.exists(out_file)) {
-            if (.cube_is_equal_bbox(tile_new)) {
-                message(paste0(
-                    "Recovery mode: classified image file found in '",
-                    dirname(out_file), "' directory. ",
-                    "(If you want a new classified image, please ",
-                    "change the directory in the 'output_dir' or the ",
-                    "value of 'version' parameter)"
-                ))
-                return(NULL)
-            }
-        }
-
-        # get cube size
-        size <- .cube_size(tile)
-
-        # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
-        blocks <- .smth_compute_blocks(
-            xsize = size[["ncols"]],
-            ysize = size[["nrows"]],
-            block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = 0
-        )
-
-        # open probability file
-        in_file <- .file_info_path(tile)
-
-        # process blocks in parallel
-        block_files_lst <- .sits_parallel_map(blocks, function(block) {
-
-            # open brick
-            b <- .raster_open_rast(in_file)
-
-            # crop adding overlaps
-            temp_chunk_file <- .create_chunk_file(
-                output_dir = output_dir,
-                pattern = "chunk_class_",
-                ext = ".tif"
-            )
-            chunk <- .raster_crop(
-                r_obj = b,
-                file = temp_chunk_file,
-                format = "GTiff",
-                data_type = .raster_data_type(
-                    .config_get("probs_cube_data_type")
-                ),
-                overwrite = TRUE,
-                block = block
-            )
-            # Delete temp file
-            on.exit(unlink(temp_chunk_file), add = TRUE)
-
-            # process it
-            raster_out <- .do_map(chunk = chunk)
-            block_file <- .smth_filename(
-                tile = tile_new,
-                output_dir = output_dir,
-                block = block
-            )
-
-            # save chunk
-            .raster_write_rast(
-                r_obj = raster_out,
-                file = block_file,
-                format = "GTiff",
-                data_type = .raster_data_type(
-                    .config_get("class_cube_data_type")
-                ),
-                overwrite = TRUE
-            )
-
-            gc()
-            return(block_file)
-        })
-
-        block_files <- unlist(block_files_lst)
-
-        return(invisible(block_files))
+        return(class_tile)
     })
 
-    # process each brick layer (each time step) individually
-    res_cube_lst <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
+    return(class_cube)
 
-        # get tile from cube
-        tile <- cube[i, ]
-
-        # create metadata for raster cube
-        tile_new <- .cube_derived_create(
-            cube       = tile,
-            cube_class = "classified_image",
-            band_name  = "class",
-            labels     = .cube_labels(tile),
-            start_date = .file_info_start_date(tile),
-            end_date   = .file_info_end_date(tile),
-            bbox       = .cube_tile_bbox(tile),
-            output_dir = output_dir,
-            version    = version
-        )
-
-        # prepare output filename
-        out_file <- .file_info_path(tile_new)
-
-        # if file exists skip it (resume feature)
-        if (file.exists(out_file)) {
-            return(tile_new)
-        }
-
-        tmp_blocks <- blocks_tile_lst[[i]]
-
-        # Remove blocks
-        on.exit(unlink(tmp_blocks), add = TRUE)
-
-        # Create a template raster based on the first image of the tile
-        .raster_template(
-            file = .file_info_path(tile),
-            out_file = out_file,
-            data_type = .config_get("class_cube_data_type"),
-            nlayers = 1,
-            missing_value = .config_get("class_cube_missing_value")
-        )
-
-        # merge to save final result
-        .raster_merge(
-            files = tmp_blocks,
-            out_file = out_file,
-            format = "GTiff",
-            data_type = .config_get("class_cube_data_type"),
-            multicores = 1,
-            overwrite = FALSE
-        )
-
-        return(tile_new)
-    })
-
-    # bind rows
-    result_cube <- dplyr::bind_rows(res_cube_lst)
-
-    class(result_cube) <- unique(c("classified_image", class(result_cube)))
-
-    return(result_cube)
 }
 
-#' @title Estimate the number of blocks to run .sits_split_cluster in label cube
-#' @name .label_estimate_block_size
-#' @keywords internal
-#'
-#' @param cube         input data cube
-#' @param multicores   number of processes to split up the data
-#' @param memsize      maximum overall memory size (in GB)
-#'
-#' @return  returns a list with following information:
-#'             - multicores theoretical upper bound;
-#'             - block x_size (horizontal) and y_size (vertical)
-#'
-.label_estimate_block_size <- function(cube, multicores, memsize) {
+.sits_label_tile  <- function(tile,
+                              label_fn,
+                              memsize,
+                              multicores,
+                              output_dir,
+                              version) {
 
-    # set caller to show in errors
-    .check_set_caller(".label_estimate_block_size")
-
-    # precondition 1 - check if cube has probability data
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "input is not probability cube"
+    # Output file
+    out_file <- .file_class_name(
+        tile = tile, version = version, output_dir = output_dir
     )
-    size <- .cube_size(cube[1, ])
-    n_layers <- length(cube$labels[[1]])
-    bloat_mem <- .config_get(key = "processing_bloat")
-    n_bytes <- 8
-
-    # total memory needed to do all work in GB
-    image_size <- size[["ncols"]] * size[["nrows"]]
-    needed_memory <- image_size * 1E-09 * n_layers * bloat_mem * n_bytes
-
-    # minimum block size
-    min_block_x_size <- size["ncols"] # for now, only vertical blocking
-    min_block_y_size <- 1
-
-    # compute factors
-    memory_factor <- needed_memory / memsize
-
-    blocking_factor <- image_size / (min_block_x_size * min_block_y_size)
-
-    # stop if blocking factor is less than memory factor!
-    # reason: the provided memory is not enough to process the data by
-    # breaking it into small chunks
-    .check_that(
-        x = memory_factor <= blocking_factor,
-        msg = "provided memory not enough to run the job"
-    )
-
-    # update multicores to the maximum possible processes given the available
-    # memory and blocking factor
-    multicores <- min(floor(blocking_factor / memory_factor), multicores)
-
-    # compute blocking allocation that maximizes the
-    # block / (memory * multicores) ratio, i.e. maximize parallel processes
-    # and returns the following information:
-    # - multicores theoretical upper bound;
-    # - block x_size (horizontal) and y_size (vertical)
-    blocks <- list(
-        # theoretical max_multicores = floor(blocking_factor / memory_factor),
-        block_x_size = floor(min_block_x_size),
-        block_y_size = min(
-            floor(blocking_factor / memory_factor / multicores),
-            size[["nrows"]]
+    # Resume feature
+    if (file.exists(out_file)) {
+        # # Callback final tile classification
+        # .callback(process = "tile_classification", event = "recovery",
+        #           context = environment())
+        message("Recovery: tile '", tile[["tile"]], "' already exists.")
+        message("(If you want to produce a new image, please ",
+                "change 'output_dir' or 'version' parameters)")
+        probs_tile <- .tile_class_from_file(
+            file = out_file,
+            band = "probs",
+            base_tile = tile
         )
+        return(probs_tile)
+    }
+    # Create jobs
+    # Get job size
+    job_size <- .raster_file_blocksize(
+        .raster_open_rast(.fi_path(.fi(tile)))
+    )
+    # Compute how many jobs to process
+    jobs <- .jobs_create(
+        job_size = job_size, block_overlap = 0,
+        ncols = .tile_ncols(tile), nrows = .tile_nrows(tile),
+        xmin = .xmin(tile), xmax = .xmax(tile),
+        ymin = .ymin(tile), ymax = .ymax(tile),
+        crs = .crs(tile)
+    )
+    # Process jobs in parallel
+    block_files <- .jobs_parallel_chr(jobs, function(job) {
+        # Get job block
+        block <- .block(job)
+        # Output file name
+        block_file <- .file_block_name(
+            pattern = .file_pattern(out_file),
+            block = block,
+            output_dir = output_dir
+        )
+        # Resume processing in case of failure
+        if (file.exists(block_file)) {
+            # Try to open the file
+            r_obj <- .try(.raster_open_rast(block_file), default = NULL)
+            # If file can be opened, check if the result is correct
+            # this file will not be processed again
+            if (!is.null(r_obj)) {
+                # Verify if the raster is corrupted
+                valid_block <- .try({
+                    .raster_get_values(r_obj)
+                    # Return value
+                    TRUE
+                },
+                default = {
+                    unlink(block_file)
+                    # Return value
+                    FALSE
+                })
+
+                if (valid_block) {
+                    return(block_file)
+                }
+            }
+        }
+        # Read and preprocess values
+        probs <- .sits_derived_data_read(
+            tile = tile, band = "probs", block = block
+        )
+
+        # Apply the labeling function to values
+        class_values <- label_fn(probs)
+
+        # Are the results consistent with the data input?
+        .check_that(
+            x = nrow(class_values) == nrow(probs),
+            msg = paste(
+                "number of rows of class matrix is different",
+                "from number of input pixels"
+            )
+        )
+
+        # Prepare probability to be saved
+        conf_band <- .conf_derived_band(
+            derived_class = "class_cube", band = "class"
+        )
+        offset <- .band_offset(conf_band)
+        if (!is.null(offset) && offset != 0) {
+            class_values <- class_values - offset
+        }
+        scale <- .band_scale(conf_band)
+        if (!is.null(scale) && scale != 1) {
+            class_values <- class_values / scale
+        }
+
+        # Prepare and save results as raster
+        .raster_write_block(
+            file = block_file,
+            block = block,
+            bbox = .bbox(job),
+            values = class_values,
+            data_type = .band_data_type(conf_band)
+        )
+
+        # Returned value
+        block_file
+    })
+
+    # Merge blocks into a new class_cube tile
+    class_tile <- .tile_class_merge_blocks(
+        file = out_file, band = "class",
+        labels = .tile_labels(tile),
+        base_tile = tile, block_files = block_files,
+        multicores = multicores
     )
 
-    return(blocks)
+    return(class_tile)
 }

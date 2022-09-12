@@ -10,7 +10,6 @@
 #' sits_time_series(cerrado_2classes)
 #' @export
 sits_time_series <- function(data) {
-    .check_samples(data)
     return(data$time_series[[1]])
 }
 

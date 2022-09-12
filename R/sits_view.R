@@ -430,6 +430,12 @@ sits_view.raster_cube <- function(x, ...,
             provider = leaflet::providers$OpenStreetMap,
             group = "OSM"
         ) %>%
+        leaflet::addWMSTiles(
+            map = .,
+            baseUrl = "https://tiles.maps.eox.at/wms/",
+            layers = c("s2cloudless-2020_3857_512"),
+            group = "Sentinel-2-2020"
+        ) %>%
         leafem::addMouseCoordinates(map = .)
 
     # obtain the raster objects for the dates chosen
@@ -501,7 +507,7 @@ sits_view.raster_cube <- function(x, ...,
     if (!purrr::is_null(class_cube)) {
         # check that class_cube is valid
         .check_that(
-            x = inherits(class_cube, c("classified_image")),
+            x = inherits(class_cube, c("class_cube")),
             msg = "classified cube to be overlayed is invalid"
         )
         # define overlay groups
@@ -575,7 +581,7 @@ sits_view.raster_cube <- function(x, ...,
     leaf_map <- leaf_map %>%
         leaflet::addLayersControl(
             map = .,
-            baseGroups = c("GeoPortalFrance", "ESRI", "OSM"),
+            baseGroups = c("GeoPortalFrance", "ESRI", "OSM", "Sentinel-2-2020"),
             overlayGroups = overlay_grps,
             options = leaflet::layersControlOptions(collapsed = FALSE)
         )
@@ -587,7 +593,7 @@ sits_view.raster_cube <- function(x, ...,
 #'
 #' @export
 #'
-sits_view.classified_image <- function(x, ...,
+sits_view.class_cube <- function(x, ...,
                                        tiles = NULL,
                                        legend = NULL,
                                        palette = "default") {

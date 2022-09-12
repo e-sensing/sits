@@ -216,7 +216,7 @@ sits_mixture_model <- function(cube,
         )
 
         # Save each output value
-        blocks_path <- purrr::map(blocks, function(b) {
+        block_files <- purrr::map(blocks, function(b) {
 
             # Read bands data
             in_values <- purrr::map_dfc(in_bands, function(band) {
@@ -234,7 +234,7 @@ sits_mixture_model <- function(cube,
                 offset_value <- .cube_band_offset_value(tile, band = band)
 
                 # Read the values
-                values <- .raster_read_stack(in_files[[band]], block = b)
+                values <- .raster_read_rast(in_files[[band]], block = b)
 
                 if (remove_outliers) {
                     # Get the missing values, minimum values and scale factors
@@ -298,14 +298,13 @@ sits_mixture_model <- function(cube,
                 # Define the file name of the raster file to be written
                 filename_block <- paste0(
                     tools::file_path_sans_ext(output_files_frac),
-                    "_block_", b[["first_row"]], "_", b[["nrows"]], ".tif"
+                    "_block_", b[["row"]], "_", b[["nrows"]], ".tif"
                 )
 
                 # Write values
                 .raster_write_rast(
                     r_obj = r_obj[[frac]],
                     file = filename_block,
-                    format = "GTiff",
                     data_type = .config_get("raster_cube_data_type"),
                     overwrite = TRUE
                 )
@@ -322,31 +321,34 @@ sits_mixture_model <- function(cube,
         })
 
         # Merge result
-        blocks_path <- unlist(blocks_path)
+        block_files <- unlist(block_files)
 
         # Join predictions
-        if (!is.null(blocks_path)) {
-
-            output_file_fracs <- purrr::map_chr(output_fracs, function(frac) {
-
-                blocks_fracs_path <- blocks_path[names(blocks_path) == frac]
-                # Remove blocks
-                on.exit(unlink(blocks_fracs_path), add = TRUE)
-                output_frac_path <- output_files[names(output_files) == frac]
-
-                .raster_merge(
-                    files = blocks_fracs_path,
-                    out_file = output_frac_path,
-                    format = "GTiff",
-                    data_type = .config_get("raster_cube_data_type"),
-                    multicores = 1
-                )
-
-                return(output_frac_path)
-            })
-
-
+        if (is.null(block_files)) {
+            return(NULL)
         }
+
+        output_file_fracs <- purrr::map_chr(output_fracs, function(frac) {
+
+            blocks_fracs_path <- block_files[names(block_files) == frac]
+            output_frac_path <- output_files[names(output_files) == frac]
+
+            # Merge final result
+            .raster_merge_blocks(
+                base_file = .file_info_path(tile),
+                block_files = blocks_fracs_path,
+                out_file = output_frac_path,
+                data_type = .config_get("raster_cube_data_type"),
+                missing_value = .config_get("raster_cube_missing_value"),
+                multicores = 1
+            )
+
+            # Remove blocks
+            on.exit(unlink(blocks_fracs_path), add = TRUE)
+
+            return(output_frac_path)
+        })
+
 
         return(output_file_fracs)
     }, progress = progress)

@@ -107,8 +107,8 @@ sits_reclassify <- function(cube, mask, ...,
     .check_set_caller("sits_reclassify")
 
     # pre-conditions
-    .check_cube_is_classified_image(cube)
-    .check_cube_is_classified_image(mask)
+    .check_cube_is_class_cube(cube)
+    .check_cube_is_class_cube(mask)
 
     # capture expressions
     exprs <- as.list(substitute(list(...), environment()))[-1]
@@ -167,18 +167,17 @@ sits_reclassify <- function(cube, mask, ...,
             block_y_size = block_size[["block_y_size"]]
         )
         # Save each output block and return paths
-        blocks_path <- purrr::map(blocks, function(block) {
+        block_files <- purrr::map(blocks, function(block) {
             # Define the file name of the raster file to be written
             block_file <- paste0(
                 tools::file_path_sans_ext(out_file),
-                "_block_", block[["first_row"]], "_",
+                "_block_", block[["row"]], "_",
                 block[["nrows"]], ".tif"
             )
             # Read a block
             r_obj <- .raster_crop(
                 r_obj = .raster_open_rast(file = fi_row[["path"]]),
                 file = block_file,
-                format = "GTiff",
                 data_type = .raster_data_type(
                     .config_get("class_cube_data_type")
                 ),
@@ -204,7 +203,6 @@ sits_reclassify <- function(cube, mask, ...,
             .raster_write_rast(
                 r_obj = temp_obj,
                 file = block_mask_file,
-                format = "GTiff",
                 data_type = .config_get("class_cube_data_type"),
                 overwrite = TRUE,
                 missing_value = 0
@@ -257,7 +255,6 @@ sits_reclassify <- function(cube, mask, ...,
             .raster_write_rast(
                 r_obj = r_obj,
                 file = block_file,
-                format = "GTiff",
                 data_type = .config_get("class_cube_data_type"),
                 overwrite = TRUE,
                 missing_value = 0
@@ -266,18 +263,28 @@ sits_reclassify <- function(cube, mask, ...,
             gc()
             return(block_file)
         })
+
         # Merge result
-        blocks_path <- unlist(blocks_path)
-        # Remove blocks
-        on.exit(unlink(blocks_path), add = TRUE)
+        block_files <- unlist(block_files)
+
         # Join predictions
-        .raster_merge(
-            files = blocks_path,
+        if (is.null(block_files)) {
+            return(NULL)
+        }
+
+        # Merge final result
+        .raster_merge_blocks(
+            base_file = .file_info_path(tile),
+            block_files = block_files,
             out_file = out_file,
-            format = "GTiff",
             data_type = .config_get("class_cube_data_type"),
+            missing_value = .config_get("class_cube_missing_value"),
             multicores = 1
         )
+
+        # Remove blocks
+        on.exit(unlink(block_files), add = TRUE)
+
         # Prepare result updating path
         fi_row[["path"]] <- out_file
         # Update tile
@@ -379,11 +386,11 @@ sits_reclassify <- function(cube, mask, ...,
     # define each block as a list element
     blocks <- mapply(
         list,
-        first_row      = r1,
-        nrows          = nr1,
-        first_col      = 1,
-        ncols          = xsize,
-        SIMPLIFY       = FALSE
+        row       = r1,
+        nrows     = nr1,
+        col       = 1,
+        ncols     = xsize,
+        SIMPLIFY  = FALSE
     )
 
     return(blocks)
@@ -404,7 +411,7 @@ sits_reclassify <- function(cube, mask, ...,
 
     # precondition 1 - check if cube has probability data
     .check_that(
-        x = inherits(cube, "classified_image"),
+        x = inherits(cube, "class_cube"),
         msg = "input is not a classified cube"
     )
 

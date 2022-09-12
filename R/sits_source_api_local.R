@@ -4,6 +4,7 @@
                         data_dir,
                         parse_info,
                         delim,
+                        tiles,
                         bands,
                         labels,
                         start_date,
@@ -84,6 +85,13 @@
             items = items
         )
     }
+    # filter tiles
+    if (!purrr::is_null(tiles)) {
+        items <- .local_cube_items_tiles_select(
+            tiles = tiles,
+            items = items
+        )
+    }
 
     # build file_info for the items
     if (results_cube) {
@@ -132,7 +140,8 @@
 
     if (results_cube) {
         result_class <- .config_get("sits_results_s3_class")[[bands]]
-        class(cube) <- c(result_class, "raster_cube", class(cube))
+        class(cube) <- c(result_class, "derived_cube", "raster_cube",
+                         class(cube))
     } else {
         class(cube) <- .cube_s3class(cube)
     }
@@ -321,6 +330,24 @@
         # select the requested bands
         items <- dplyr::filter(items, .data[["band"]] %in% !!bands)
     }
+    return(items)
+}
+#' @keywords internal
+.local_cube_items_tiles_select <- function(tiles,
+                                           items) {
+
+    # set caller to show in errors
+    .check_set_caller(".local_cube_items_tiles_select")
+
+    # filter tiles
+    # verify that the requested tiles exist
+    .check_chr_within(tiles,
+                      within = unique(items[["tile"]]),
+                      msg = "invalid 'tiles' value"
+    )
+    # select the requested bands
+    items <- dplyr::filter(items, .data[["tile"]] %in% !!tiles)
+
     return(items)
 }
 
@@ -564,14 +591,15 @@
             "band",
             "start_date",
             "end_date",
-            "xmin",
-            "ymin",
-            "xmax",
-            "ymax",
+            "ncols",
+            "nrows",
             "xres",
             "yres",
-            "nrows",
-            "ncols",
+            "xmin",
+            "xmax",
+            "ymin",
+            "ymax",
+            "crs",
             "path"
         ))
     )
@@ -583,8 +611,8 @@
         sensor = .source_collection_sensor(source, collection),
         tile = tile,
         xmin = max(file_info[["xmin"]]),
-        ymin = max(file_info[["ymin"]]),
         xmax = min(file_info[["xmax"]]),
+        ymin = max(file_info[["ymin"]]),
         ymax = min(file_info[["ymax"]]),
         crs = crs,
         labels = labels,

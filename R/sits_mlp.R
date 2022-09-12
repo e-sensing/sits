@@ -121,6 +121,7 @@ sits_mlp <- function(samples = NULL,
         # verifies if torch and luz packages is installed
         .check_require_packages(c("torch", "luz"))
         # pre-conditions
+        .check_samples_train(samples)
         # check layers
         .check_int_parameter(layers, len_max = 2^31 - 1)
         # check dropout_rates

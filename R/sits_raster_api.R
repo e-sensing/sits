@@ -31,13 +31,13 @@
     # precondition 1
     .check_chr_contains(
         x = names(block),
-        contains = c("first_row", "nrows", "first_col", "ncols"),
+        contains = c("row", "nrows", "col", "ncols"),
         msg = "invalid 'block' parameter"
     )
 
     # precondition 2
     .check_that(
-        x = block[["first_row"]] > 0 && block[["first_col"]] > 0,
+        x = block[["row"]] > 0 && block[["col"]] > 0,
         msg = "invalid block"
     )
 
@@ -316,7 +316,6 @@
 #' @return              No value, called for side effects.
 .raster_write_rast <- function(r_obj,
                                file,
-                               format,
                                data_type,
                                overwrite, ...,
                                missing_value = NA) {
@@ -359,60 +358,20 @@
     UseMethod(".raster_new_rast", pkg_class)
 }
 
-#' @title Raster package internal open raster stack function
-#' @name .raster_open_stack
+#' @title Raster package internal read raster file function
+#' @name .raster_read_rast
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param files   raster files to be opened
-#' @param ...     additional parameters to be passed to raster package
-#'
-#' @return raster package object
-.raster_open_stack <- function(files, ...) {
-
-    # set caller to show in errors
-    .check_set_caller(".raster_open_stack")
-
-    # check for files length > 0
-    .check_length(
-        x = files,
-        min = 1,
-        msg = "no file informed"
-    )
-
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_open_stack", pkg_class)
-}
-
-#' @title Raster package internal read raster stack file function
-#' @name .raster_read_stack
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param files   raster files to be read
-#' @param block   numeric vector with names "first_col", "ncols",
-#'   "first_row", "nrows".
-#' @param out_size a numeric vector with names "nrows" and "ncols"
+#' @param file    path to raster file(s) to be read
+#' @param block   a valid block with (\code{col}, \code{row},
+#'                \code{ncols}, \code{nrows}).
 #' @param method  method used to resample pixels (used only in case of
 #' out_size parameter is informed)
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return Numeric matrix read from file based on parameter block
-.raster_read_stack <- function(files, ...,
-                               block = NULL,
-                               out_size = NULL,
-                               method = "bilinear") {
-
-    # check out_size
-    if (!purrr::is_null(out_size)) {
-        .check_chr_contains(
-            names(out_size),
-            contains = c("nrows", "ncols"),
-            msg = "invalid 'out_size' parameter"
-        )
-    }
+.raster_read_rast <- function(files, ..., block = NULL, method = "bilinear") {
 
     # check method
     .check_chr_within(
@@ -429,7 +388,7 @@
     # check package
     pkg_class <- .raster_check_package()
 
-    UseMethod(".raster_read_stack", pkg_class)
+    UseMethod(".raster_read_rast", pkg_class)
 }
 
 #' @title Raster package internal crop raster function
@@ -439,12 +398,11 @@
 #'
 #' @param r_obj         Raster package object to be written
 #' @param file          File name to save cropped raster.
-#' @param format        GDAL file format string (e.g. GTiff)
 #' @param data_type     sits internal raster data type. One of "INT1U",
 #'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
 #' @param overwrite     logical indicating if file can be overwritten
-#' @param block         numeric vector with names "first_col", "ncols", "first_row",
-#'                      "nrows".
+#' @param block         a valid block with (\code{col}, \code{row},
+#'                      \code{ncols}, \code{nrows}).
 #' @param missing_value A \code{integer} with image's missing value
 #'
 #' @note block starts at (1, 1)
@@ -453,7 +411,6 @@
 #'                or bbox parameters
 .raster_crop <- function(r_obj,
                          file,
-                         format,
                          data_type,
                          overwrite,
                          block,
@@ -480,9 +437,11 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj   raster package object to be written
-#' @param block   numeric vector with names "first_col", "ncols", "first_row",
-#'                "nrows".
-#' @param bbox    numeric vector with names "xmin", "xmax", "ymin", "ymax".
+#' @param block   a valid block with (\code{col}, \code{row},
+#'                \code{ncols}, \code{nrows}).
+#' @param bbox    numeric vector with (xmin, xmax, ymin, ymax).
+#' @param bbox    numeric vector with (\code{xmin}, \code{xmax},
+#'                \code{ymin}, \code{ymax}).
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @note block starts at (1, 1)
@@ -774,7 +733,6 @@
 #'
 #' @param files         Input file paths
 #' @param out_file      Output raster file path
-#' @param format        Format to write the file
 #' @param data_type     sits internal raster data type. One of "INT1U",
 #'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
 #' @param multicores    Number of cores to process merging
@@ -782,39 +740,63 @@
 #'
 #' @return No return value, called for side effects.
 #'
-.raster_merge <- function(files,
-                          out_file,
-                          format,
-                          data_type,
-                          multicores = 2,
-                          overwrite = TRUE) {
+.raster_merge_blocks <- function(base_file,
+                                 block_files,
+                                 out_file,
+                                 data_type,
+                                 missing_value,
+                                 multicores = 2) {
 
     # set caller to show in errors
-    .check_set_caller(".raster_merge")
+    .check_set_caller(".raster_merge_blocks")
 
-    files <- path.expand(files)
-    multi <- multicores > 1
-    # check if in_file length is at least one
+    # Expand paths for block_files
+    block_files <- path.expand(block_files)
+    # Expand paths for out_file
+    out_file <- path.expand(out_file)
+    # Check if out_file not exists
+    .check_that(
+        x = !file.exists(out_file),
+        local_msg = paste0("file '", out_file, "' already exists"),
+        msg = "invalid 'out_file' parameter"
+    )
+    # check if block_files length is at least one
     .check_file(
-        x = files,
+        x = block_files,
         extensions = "tif",
         msg = "invalid input files to merge"
     )
-
-    # merge using gdal warp
-    suppressWarnings(
-        gdalUtilities::gdalwarp(
-            srcfile = files,
-            dstfile = path.expand(out_file),
-            ot = .raster_gdal_datatype(data_type),
-            of = format,
-            wo = paste0("NUM_THREADS=", multicores),
-            multi = multi,
-            co = .config_gtiff_default_options(),
-            overwrite = if (overwrite) 1 else 0
-        )
+    # Get number of layers
+    nlayers <- .raster_nlayers(.raster_open_rast(block_files[[1]]))
+    # Create an empty image template
+    gdalUtilities::gdal_translate(
+        src_dataset = path.expand(base_file),
+        dst_dataset = path.expand(out_file),
+        ot = .raster_gdal_datatype(data_type),
+        of = "GTiff",
+        b = rep(1, nlayers),
+        scale = c(0, 1, missing_value, missing_value),
+        a_nodata = missing_value,
+        co = .config_gtiff_default_options()
     )
-
+    # Delete auxiliary files
+    on.exit(unlink(paste0(out_file, ".aux.xml")), add = TRUE)
+    # Merge into template
+    .try({
+        # merge using gdal warp
+        suppressWarnings(
+            gdalUtilities::gdalwarp(
+                srcfile = block_files,
+                dstfile = out_file,
+                wo = paste0("NUM_THREADS=", multicores),
+                multi = TRUE,
+                overwrite = FALSE
+            )
+        )
+    },
+    .rollback = {
+        unlink(out_file)
+    })
     return(invisible(out_file))
 }
 
@@ -826,38 +808,6 @@
     }
     r_obj <- .raster_rast(r_obj = r_obj, nlayers = nlayers, vals = NA)
 
-    return(r_obj)
-}
-
-.raster_template <- function(file,
-                             out_file,
-                             format = "GTiff",
-                             data_type,
-                             nlayers = NULL,
-                             missing_value = NULL) {
-    # Check if file exists
-    .check_that(
-        x = !file.exists(out_file),
-        local_msg = paste0("file '", out_file, "' already exists"),
-        msg = "invalid 'out_file' parameter"
-    )
-    # Create an empty image template
-    gdalUtilities::gdal_translate(
-        src_dataset = path.expand(file),
-        dst_dataset = path.expand(out_file),
-        ot = .raster_gdal_datatype(data_type),
-        of = "GTiff",
-        b = rep(1, nlayers),
-        scale = c(0, 1, 0, 0),
-        a_nodata = 0,
-        co = .config_gtiff_default_options()
-    )
-    # Delete auxiliary files
-    unlink(paste0(out_file, ".aux.xml"))
-    # Open template
-    r_obj <- .raster_open_rast(
-        file = out_file
-    )
     return(r_obj)
 }
 
@@ -912,4 +862,27 @@
         unlink(file)
     })
     return(FALSE)
+}
+
+.raster_write_block <- function(file, block, bbox, values, data_type) {
+    # create a new raster
+    r_obj <- .raster_new_rast(
+        nrows = block[["nrows"]], ncols = block[["ncols"]],
+        xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
+        ymin = bbox[["ymin"]], ymax = bbox[["ymax"]],
+        nlayers = ncol(values), crs = bbox[["crs"]]
+    )
+    # copy values
+    r_obj <- .raster_set_values(
+        r_obj = r_obj,
+        values = values
+    )
+    # write the probabilities to a raster file
+    .raster_write_rast(
+        r_obj = r_obj,
+        file = file,
+        data_type = data_type,
+        overwrite = TRUE
+    )
+    file
 }

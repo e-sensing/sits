@@ -140,7 +140,7 @@ sits_reduce_imbalance <- function(samples,
     # set caller to show in errors
     .check_set_caller("sits_reduce_imbalance")
     # pre-conditions
-    .check_samples(samples)
+    .check_samples_train(samples)
     .check_int_parameter(n_samples_over)
     .check_int_parameter(n_samples_under)
 

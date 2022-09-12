@@ -67,11 +67,11 @@ NULL
     }
     # source name is upper case
     classes <- .source_s3class(source = toupper(source))
-    class(source) <- c(classes, class(source))
+    class(source) <- unique(c(classes, class(source)))
 
     if (!is.null(collection)) {
         classes <- c(paste(classes, tolower(collection), sep = "_"), classes)
-        class(source) <- c(classes, class(source))
+        class(source) <- unique(c(classes, class(source)))
     }
     return(source)
 }

@@ -105,8 +105,8 @@
     bbox <- .cube_tile_bbox(tile)
 
     sub_image <- c(
-        first_row = 1,
-        first_col = 1,
+        row = 1,
+        col = 1,
         nrows = size[["nrows"]],
         ncols = size[["ncols"]],
         xmin = bbox[["xmin"]],
@@ -197,8 +197,8 @@
 
     # set initial values
     si <- list(
-        first_row = row,
-        first_col = col,
+        row = row,
+        col = col,
         nrows = .raster_nrows(r_crop),
         ncols = .raster_ncols(r_crop),
         xmin = .raster_xmin(r_crop),
@@ -253,8 +253,8 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param block      a valid block with \code{first_col}, \code{first_row},
-#'                   \code{nrows}, and \code{ncols}.
+#' @param block      a valid block with (\code{col}, \code{row},
+#'                   \code{ncols}, \code{nrows}).
 #' @param tile       tile of data cube
 #' @param source     a \code{character} with the cube source.
 #' @param collection a \code{character} with the cube collection.
@@ -302,25 +302,25 @@
     }
 
     # pre-conditions
-    .check_num(block[["first_col"]],
+    .check_num(block[["col"]],
         min = 1, max = size[["ncols"]],
-        msg = "invalid 'first_col' of block parameter"
+        msg = "invalid 'col' of block parameter"
     )
 
     .check_num(block[["ncols"]],
         min = 1,
-        max = size[["ncols"]] - block[["first_col"]] + 1,
+        max = size[["ncols"]] - block[["col"]] + 1,
         msg = "invalid 'ncols' of block parameter"
     )
 
-    .check_num(block[["first_row"]],
+    .check_num(block[["row"]],
         min = 1, max = size[["nrows"]],
-        msg = "invalid 'first_row' of block parameter"
+        msg = "invalid 'row' of block parameter"
     )
 
     .check_num(block[["nrows"]],
         min = 1,
-        max = size[["nrows"]] - block[["first_row"]] + 1,
+        max = size[["nrows"]] - block[["row"]] + 1,
         msg = "invalid 'nrows' of block parameter"
     )
 
@@ -351,8 +351,8 @@
 
     # set initial values
     si <- list(
-        first_row = row,
-        first_col = col,
+        row = row,
+        col = col,
         nrows = .raster_nrows(r_crop),
         ncols = .raster_ncols(r_crop),
         xmin = .raster_xmin(r_crop),

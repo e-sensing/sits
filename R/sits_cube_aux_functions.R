@@ -361,14 +361,15 @@
         band       = band_name,
         start_date = start_date,
         end_date   = end_date,
-        xmin       = bbox[["xmin"]],
-        ymin       = bbox[["ymin"]],
-        xmax       = bbox[["xmax"]],
-        ymax       = bbox[["ymax"]],
+        ncols      = ncols_cube_class,
+        nrows      = nrows_cube_class,
         xres       = res[["xres"]],
         yres       = res[["yres"]],
-        nrows      = nrows_cube_class,
-        ncols      = ncols_cube_class,
+        xmin       = bbox[["xmin"]],
+        xmax       = bbox[["xmax"]],
+        ymin       = bbox[["ymin"]],
+        ymax       = bbox[["ymax"]],
+        crs        = cube[["crs"]][[1]],
         path       = file_name
     )
 
@@ -388,7 +389,8 @@
         file_info  = file_info
     )
 
-    class(dev_cube) <- unique(c(cube_class, "raster_cube", class(dev_cube)))
+    class(dev_cube) <- unique(c(cube_class, "derived_cube", "raster_cube",
+                                class(dev_cube)))
 
     return(dev_cube)
 }
@@ -421,7 +423,7 @@
     band <- dplyr::filter(.file_info(cube), .data[["band"]] == band_cube)
 
     # create a stack object
-    r_obj <- .raster_open_stack(band$path)
+    r_obj <- .raster_open_rast(band$path)
 
     # extract the values
     values <- .raster_extract(r_obj, xy)
@@ -584,10 +586,9 @@
 #' @param  cube         input data cube
 #' @return TRUE/FALSE
 .cube_is_regular <- function(cube) {
-    source <- .source_new(source = .cube_source(cube))
 
     # Dispatch
-    UseMethod(".cube_is_regular", source)
+    UseMethod(".cube_is_regular", cube)
 }
 
 #' @name .cube_is_regular
@@ -768,10 +769,10 @@
     .check_has_one_tile(cube)
 
     # pre-conditions
-    .check_int_parameter(block[["first_row"]],
+    .check_int_parameter(block[["row"]],
                          min = 1, max = .cube_size(cube)[["nrows"]]
     )
-    .check_int_parameter(block[["first_col"]],
+    .check_int_parameter(block[["col"]],
         min = 1, max = .cube_size(cube)[["ncols"]],
     )
 
@@ -1011,12 +1012,8 @@
 #'
 #' @return A sits cube
 .cube_token_generator <- function(cube) {
-    source <- .source_new(
-        source = .cube_source(cube),
-        collection = .cube_collection(cube)
-    )
 
-    UseMethod(".cube_token_generator", source)
+    UseMethod(".cube_token_generator", cube)
 }
 
 
@@ -1104,12 +1101,8 @@
 #'
 #' @return a boolean value.
 .cube_is_token_expired <- function(cube) {
-    source <- .source_new(
-        source = .cube_source(cube),
-        collection = .cube_collection(cube)
-    )
 
-    UseMethod(".cube_is_token_expired", source)
+    UseMethod(".cube_is_token_expired", cube)
 }
 
 #' @export

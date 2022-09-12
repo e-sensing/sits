@@ -131,7 +131,9 @@ sits_resnet <- function(samples = NULL,
 
         # verifies if torch and luz packages are installed
         .check_require_packages(c("torch", "luz"))
-        # preconditions
+        # pre-conditions for samples
+        .check_samples_train(samples)
+        # preconditions for model
         .check_int_parameter(blocks, min = 1, len_max = 2^31 - 1)
         .check_int_parameter(kernels, min = 1,
                              len_min = length(blocks), len_max = length(blocks))
@@ -228,14 +230,14 @@ sits_resnet <- function(samples = NULL,
 
         # organize data for model training
         train_x <- array(
-            data = as.matrix(train_samples[, 3:ncol(train_samples)]),
+            data = as.matrix(train_samples[, -2:0]),
             dim = c(n_samples_train, n_times, n_bands)
         )
         train_y <- unname(int_labels[as.vector(train_samples$reference)])
 
         # create the test data
         test_x <- array(
-            data = as.matrix(test_samples[, 3:ncol(test_samples)]),
+            data = as.matrix(test_samples[, -2:0]),
             dim = c(n_samples_test, n_times, n_bands)
         )
         test_y <- unname(int_labels[as.vector(test_samples$reference)])
