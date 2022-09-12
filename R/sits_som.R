@@ -106,7 +106,7 @@ sits_som_map <- function(data,
     .check_require_packages("kohonen")
 
     # does the input data exist?
-    .check_samples(data)
+    .check_samples_train(data)
     # is are there more neurons than samples?
     n_samples <- nrow(data)
     .check_that(

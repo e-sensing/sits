@@ -1457,26 +1457,49 @@
         msg = "input does not contain model information"
     )
 }
-#' @title Does the input data contain a valid sits tibble?
+#' @title Does the data contain the cols of sample data and is not empty?
 #' @name .check_samples
 #' @param data a sits tibble
 #' @return  No return value, called for side effects.
 #' @keywords internal
 .check_samples <- function(data){
-    cols <- c("latitude", "longitude", "start_date", "end_date", "label")
     .check_that(
-        x = cols %in% colnames(data),
+        x = all(.config_get("df_sample_columns") %in% colnames(data)),
         msg = "invalid samples file"
     )
     .check_that(
         x = nrow(data) > 0,
-        msg = "invalid samples file"
+        msg = "samples file does not contain values"
     )
+}
+
+#' @title Can the input data be used for training?
+#' @name .check_samples_train
+#' @param data a sits tibble
+#' @return  No return value, called for side effects.
+#' @keywords internal
+.check_samples_train <- function(data){
+    .check_samples(data)
+    # check that there is no NA in labels
     labels <- unique(data$label)
-    .check_chr(labels,
-               allow_empty = FALSE,
-               len_min = 1,
-               msg = "invalid labels in samples file"
+    .check_that(
+        x = !("NoClass" %in% labels) && !("" %in% labels),
+        msg = "invalid labels in samples file"
+    )
+    # unnest time series
+    distances <- data %>%
+        dplyr::mutate(
+            original_row = seq_len(nrow(data))
+        ) %>%
+        tidyr::unnest("time_series")
+    # check there is an Index column
+    .check_that(
+        x = "Index" %in% colnames(distances)
+    )
+    # check there are no NA in distances
+    .check_that(
+        x = !(anyNA(distances)),
+        msg = "samples contain NA values"
     )
 }
 #' @title Is the samples_validation object valid?
@@ -1545,6 +1568,34 @@
         x = ncol(distances) == 2 + n_bands*n_times,
         msg = "invalid distances file"
     )
+}
+#' @title Check classification parameters
+#' @name .check_cube_model
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Verify that required parameters are correct.
+#'
+#' @param  cube            Tibble with information about a data cube.
+#' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
+#' @return No value called for side effects
+.check_cube_model <- function(cube, ml_model) {
+
+    # set caller to show in errors
+    .check_set_caller(".check_cube_model")
+
+    # ensure metadata tibble exists
+    .check_that(
+        x = nrow(cube) > 0,
+        msg = "invalid metadata for the cube"
+    )
+
+    # ensure the machine learning model has been built
+    .check_null(
+        x = ml_model,
+        msg = "trained ML model not available"
+    )
+    # precondition - test is model is valid
+    .check_is_sits_model(ml_model)
 }
 
 #' @title Check if cube has only one tile

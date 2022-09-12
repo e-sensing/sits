@@ -4,6 +4,7 @@
                         data_dir,
                         parse_info,
                         delim,
+                        tiles,
                         bands,
                         labels,
                         start_date,
@@ -81,6 +82,13 @@
             source = source,
             collection = collection,
             bands = bands,
+            items = items
+        )
+    }
+    # filter tiles
+    if (!purrr::is_null(tiles)) {
+        items <- .local_cube_items_tiles_select(
+            tiles = tiles,
             items = items
         )
     }
@@ -322,6 +330,24 @@
         # select the requested bands
         items <- dplyr::filter(items, .data[["band"]] %in% !!bands)
     }
+    return(items)
+}
+#' @keywords internal
+.local_cube_items_tiles_select <- function(tiles,
+                                           items) {
+
+    # set caller to show in errors
+    .check_set_caller(".local_cube_items_tiles_select")
+
+    # filter tiles
+    # verify that the requested tiles exist
+    .check_chr_within(tiles,
+                      within = unique(items[["tile"]]),
+                      msg = "invalid 'tiles' value"
+    )
+    # select the requested bands
+    items <- dplyr::filter(items, .data[["tile"]] %in% !!tiles)
+
     return(items)
 }
 

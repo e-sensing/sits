@@ -290,12 +290,7 @@ sits_get_data.sits <- function(cube,
                                output_dir = ".",
                                progress = FALSE) {
     # check if samples contains all the required columns
-    .check_chr_contains(
-        x = colnames(samples),
-        contains = .config_get("df_sample_columns"),
-        discriminator = "all_of",
-        msg = "data input is not valid"
-    )
+
 
     data <- .sits_get_ts(
         cube       = cube,

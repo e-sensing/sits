@@ -118,11 +118,12 @@ sits_classify.sits <- function(data,
                                filter_fn = NULL,
                                multicores = 2) {
 
-    # precondition: verify that the data is correct
+    # precondition: verify that the data to be classified is correct
     .check_samples(data)
-    # precondition - are the samples form the model valid?
+    # precondition - is the model valid?
+    .check_is_sits_model(ml_model)
+    # recover the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
-    .check_samples(samples)
 
     # Apply filter
     if (!purrr::is_null(filter_fn)) {
@@ -194,7 +195,7 @@ sits_classify.raster_cube <- function(data,
     progress <- .check_documentation(progress)
 
     # precondition - checks if the cube and ml_model are valid
-    .sits_classify_check_params(data, ml_model)
+    .check_cube_model(data, ml_model)
     # precondition - test if cube is regular
     .check_is_regular(data)
     # precondition - multicores

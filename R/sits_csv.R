@@ -34,8 +34,7 @@ sits_to_csv <- function(data, file) {
         msg = "file is not writable"
     )
 
-    csv_columns <- c("longitude", "latitude",
-                     "start_date", "end_date", "label")
+    csv_columns <- .config_get("df_sample_columns")
     # select the parts of the tibble to be saved
     csv <- dplyr::select(data, dplyr::all_of(csv_columns))
 

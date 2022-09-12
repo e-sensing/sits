@@ -114,7 +114,9 @@ sits_tae <- function(samples = NULL,
         # verifies if torch and luz packages is installed
         .check_require_packages(c("torch", "luz"))
 
-        # preconditions
+        # pre-conditions for samples
+        .check_samples_train(samples)
+        # preconditions for model
         # check epochs
         .check_int_parameter(epochs)
         # check batch_size

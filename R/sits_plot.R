@@ -414,21 +414,9 @@ plot.raster_cube <- function(x, ...,
 
             # Plot a B/W band as false color
             if (!purrr::is_null(band)) {
-                .check_chr_within(
-                    band,
-                    within = sits_bands(x),
-                    discriminator = "any_of",
-                    msg = "invalid band"
-                )
+                .check_band_in_cube(band, row)
                 # check if n_colors is a valid number
-                .check_num(
-                    x = n_colors,
-                    min = 1,
-                    max = 256,
-                    is_integer = TRUE,
-                    len_min = 1,
-                    len_max = 1
-                )
+                .check_int_parameter(n_colors, min = 1, max = 256)
 
                 # plot a single band
                 bw_file <- dplyr::filter(bds, .data[["band"]] == band)$path
@@ -445,9 +433,11 @@ plot.raster_cube <- function(x, ...,
                 max_col <- RColorBrewer::brewer.pal.info[palette,]$maxcolors
                 # plot the data using terra
                 suppressWarnings(
-                    terra::plot(r_obj,
-                                col = grDevices::colorRampPalette(
-                                    RColorBrewer::brewer.pal(max_col, palette))(n_colors)
+                    terra::plot(
+                        x = r_obj,
+                        y = 1,
+                        col = grDevices::colorRampPalette(
+                            RColorBrewer::brewer.pal(max_col, palette))(n_colors)
                     )
                 )
             }
@@ -466,7 +456,7 @@ plot.raster_cube <- function(x, ...,
                 red_file <- dplyr::filter(bds, .data[["band"]] == red)$path
                 green_file <- dplyr::filter(bds, .data[["band"]] == green)$path
                 blue_file <- dplyr::filter(bds, .data[["band"]] == blue)$path
-                # put the band on a raster/terra stack
+                # put the band on a stack
                 rgb_stack <- c(red_file, green_file, blue_file)
 
                 # use the terra package to obtain a terra object from a stack
