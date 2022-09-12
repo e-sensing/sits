@@ -551,7 +551,7 @@ test_that("One-year, multicore classification with post-processing", {
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
 
-    torch_model <- sits_train(samples_ndvi, sits_tempcnn(epochs = 5))
+    torch_model <- sits_train(samples_ndvi, sits_tempcnn())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -701,7 +701,7 @@ test_that("One-year, multicore classification with post-processing", {
             output_dir = temp_dir,
             multicores = 1
         ) },
-        regexp = "Recovery mode: "
+        regexp = "Recovery"
     )
 
     expect_true(all(file.exists(unlist(sinop_bil$file_info[[1]]$path))))
