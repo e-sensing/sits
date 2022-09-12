@@ -1,19 +1,14 @@
 
-.file_block_name <- function(pattern, block, output_dir) {
-    # Get output_dir
-    .file_path(
-        pattern, "block", block[["first_row"]], block[["first_col"]],
-        ext = "tif", output_dir = file.path(output_dir, ".sits"),
-        create_dir = TRUE
-    )
+.file_sans_ext <- function(file) {
+    gsub("(.*)\\..+$", "\\1", file)
 }
 
-.file_probs_name <- function(tile, version, output_dir) {
-    .file_path(
-        tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
-        .tile_start_date(tile), .tile_end_date(tile), "probs", version,
-        ext = "tif", output_dir = output_dir
-    )
+.file_base <- function(file) {
+    gsub("[?].*$", "", gsub("^.*/", "", file))
+}
+
+.file_pattern <- function(file) {
+    .file_sans_ext(.file_base(file))
 }
 
 .file_path <- function(..., ext = NULL, output_dir = NULL,
@@ -34,14 +29,27 @@
     return(filenames)
 }
 
-.file_sans_ext <- function(file) {
-    gsub("(.*)\\..+$", "\\1", file)
+.file_block_name <- function(pattern, block, output_dir) {
+    # Get output_dir
+    .file_path(
+        pattern, "block", block[["row"]], block[["col"]],
+        ext = "tif", output_dir = file.path(output_dir, ".sits"),
+        create_dir = TRUE
+    )
 }
 
-.file_base <- function(file) {
-    gsub("[?].*$", "", gsub("^.*/", "", file))
+.file_probs_name <- function(tile, version, output_dir) {
+    .file_path(
+        tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
+        .tile_start_date(tile), .tile_end_date(tile), "probs", version,
+        ext = "tif", output_dir = output_dir
+    )
 }
 
-.file_pattern <- function(file) {
-    .file_sans_ext(.file_base(file))
+.file_class_name <- function(tile, version, output_dir) {
+    .file_path(
+        tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
+        .tile_start_date(tile), .tile_end_date(tile), "class", version,
+        ext = "tif", output_dir = output_dir
+    )
 }

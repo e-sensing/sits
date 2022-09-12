@@ -430,7 +430,7 @@ sits_cube.local_cube <- function(source,
 
     # deal with wrong parameter "band" in dots
     if ("band" %in% names(dots) && missing(bands)) {
-        message("please use bands instead of band as parameter")
+        message("please, use 'bands' instead of 'band' as parameter")
         bands <- as.character(dots[["band"]])
     }
 
