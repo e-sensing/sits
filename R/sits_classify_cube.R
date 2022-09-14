@@ -32,8 +32,8 @@
                                  verbose, progress) {
 
     # Output file
-    out_file <- .file_probs_name(
-        tile = tile, version = version, output_dir = output_dir
+    out_file <- .file_derived_name(
+        tile = tile, band = "probs", version = version, output_dir = output_dir
     )
     # Resume feature
     if (file.exists(out_file)) {
@@ -98,7 +98,7 @@
             )
 
             # Try to open the file
-            r_obj <- .try(.raster_open_rast(block_file), default = NULL)
+            r_obj <- .try(.raster_open_rast(block_file), .default = NULL)
 
             # If file can be opened, check if the result is correct
             # this file will not be processed again
@@ -121,7 +121,7 @@
                     # Return value
                     TRUE
                 },
-                default = {
+                .default = {
                     unlink(block_file)
 
                     #
@@ -165,6 +165,8 @@
             impute_fn = impute_fn, filter_fn = filter_fn,
             output_dir = output_dir
         )
+        # Avoid memory bloat
+        original_nrows <- nrow(values)
 
 
         #
@@ -188,11 +190,11 @@
         )
 
         # Apply the classification model to values
-        probs <- ml_model(values)
+        values <- ml_model(values)
 
         # Are the results consistent with the data input?
         .check_that(
-            x = nrow(probs) == nrow(values),
+            x = nrow(values) == original_nrows,
             msg = paste(
                 "number of rows of probability matrix is different",
                 "from number of input pixels"
@@ -215,11 +217,11 @@
         )
         offset <- .band_offset(conf_band)
         if (!is.null(offset) && offset != 0) {
-            probs <- probs - offset
+            values <- values - offset
         }
         scale <- .band_scale(conf_band)
         if (!is.null(scale) && scale != 1) {
-            probs <- probs / scale
+            values <- values / scale
         }
 
 
@@ -239,7 +241,7 @@
             file = block_file,
             block = block,
             bbox = .bbox(job),
-            values = probs,
+            values = values,
             data_type = .band_data_type(conf_band)
         )
 
