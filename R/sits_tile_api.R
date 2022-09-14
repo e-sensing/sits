@@ -711,7 +711,8 @@
 
 # ---- tile probs api ----
 
-.tile_probs_from_file <- function(file, band, base_tile, labels) {
+.tile_probs_from_file <- function(file, band, derived_class,
+                                  base_tile, labels) {
     # Open block file to be merged
     r_obj <- .raster_open_rast(file)
     # Check number of labels is correct
@@ -724,15 +725,16 @@
         file = file,
         band = band,
         base_tile = base_tile,
-        derived_class = "probs_cube",
+        derived_class = derived_class,
         labels = labels
     )
 }
 
-.tile_probs_merge_blocks <- function(file, band, labels, base_tile,
+.tile_probs_merge_blocks <- function(file, band, derived_class,
+                                     labels, base_tile,
                                      block_files, multicores) {
     # Get conf band
-    conf_band <- .conf_derived_band(derived_class = "probs_cube", band = band)
+    conf_band <- .conf_derived_band(derived_class = derived_class, band = band)
     # Get data type
     data_type <- .band_data_type(conf_band)
     # Create a template raster based on the first image of the tile
@@ -746,7 +748,8 @@
     )
     # Create tile based on template
     tile <- .tile_probs_from_file(
-        file = file, band = band, base_tile = base_tile, labels = labels
+        file = file, band = band, derived_class = derived_class,
+        base_tile = base_tile, labels = labels
     )
     # If all goes well, delete block files
     unlink(block_files)
@@ -755,20 +758,20 @@
 
 # ---- tile class api ----
 
-.tile_class_from_file <- function(file, band, base_tile) {
+.tile_class_from_file <- function(file, band, derived_class, base_tile) {
     .tile_derived_from_file(
         file = file,
         band = band,
         base_tile = base_tile,
-        derived_class = "class_cube",
+        derived_class = derived_class,
         labels = .tile_labels(base_tile)
     )
 }
 
-.tile_class_merge_blocks <- function(file, band, labels, base_tile,
-                                     block_files, multicores) {
+.tile_class_merge_blocks <- function(file, band, derived_class, labels,
+                                     base_tile, block_files, multicores) {
     # Get band conf
-    conf_band <- .conf_derived_band(derived_class = "class_cube", band = band)
+    conf_band <- .conf_derived_band(derived_class = derived_class, band = band)
     # Get data type
     data_type <- .band_data_type(conf_band)
     # Create a template raster based on the first image of the tile
@@ -782,7 +785,8 @@
     )
     # Create tile based on template
     tile <- .tile_class_from_file(
-        file = file, band = band, base_tile = base_tile
+        file = file, band = band, derived_class = derived_class,
+        base_tile = base_tile
     )
     # If all goes well, delete block files
     unlink(block_files)
