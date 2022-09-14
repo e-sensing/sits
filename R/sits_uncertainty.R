@@ -61,15 +61,9 @@
 #'     plot(uncert_cube)
 #' }
 #' @export
-sits_uncertainty <- function(cube, type = "least", ...,
-                             multicores = 2,
-                             memsize = 8,
-                             output_dir = ".",
-                             version = "v1") {
-    # set caller to show in errors
-    .check_set_caller("sits_uncertainty")
-
-    .check_require_packages("parallel")
+sits_uncertainty <- function(cube, type = "least", window_size = 5,
+                             window_fn = "median", memsize = 4, multicores = 2,
+                             output_dir = getwd(), version = "v1") {
 
     # check if cube has probability data
     .check_is_probs_cube(cube)
@@ -81,9 +75,331 @@ sits_uncertainty <- function(cube, type = "least", ...,
     .check_output_dir(output_dir)
     # precondition - version
     .check_version(version)
-    # define the class of the smoothing
-    class(type) <- c(type, class(type))
-    UseMethod("sits_uncertainty", type)
+    # precondition - test window size
+    .check_window_size(window_size)
+
+    # precondition - test window function
+    .check_chr_within(
+        x = window_fn,
+        within = .config_names("uncertainty_window_functions"),
+        msg = "Invalid 'window_fn' parameter"
+    )
+    # resolve window_fn parameter
+    window_fn <- .config_get(key = c(
+        "uncertainty_window_functions",
+        window_fn
+    ))
+    config_fun <- strsplit(window_fn, "::")[[1]]
+    window_fn <- get(config_fun[[2]], envir = asNamespace(config_fun[[1]]))
+
+
+    # Get job size
+    job_size <- .raster_file_blocksize(
+        .raster_open_rast(.fi_path(.fi(.tile(cube))))
+    )
+    # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = job_size, npaths = length(.fi_paths(.fi(.tile(cube)))) *
+            length(.tile_labels(.tile(cube))), nbytes = 8,
+        proc_bloat = .config_processing_bloat(), overlap = 0
+    )
+    # Check if memsize is above minimum needed to process one block
+    .check_that(
+        x = job_memsize < memsize,
+        local_msg = paste("minimum memsize needed is", job_memsize, "GB"),
+        msg = "provided 'memsize' is insufficient for processing"
+    )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+    )
+
+    # Prepare parallel processing
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop(), add = TRUE)
+
+    # Uncertainty
+    # Process each tile sequentially
+    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
+
+        # Classify the data
+        class_tile <- .sits_uncertainty_tile(
+            tile = tile, label_fn = label_max_prob, memsize = memsize,
+            multicores = multicores, output_dir = output_dir,
+            version = version
+        )
+
+        return(class_tile)
+    })
+
+    return(uncert_cube)
+}
+
+.sits_uncertainty_tile <- function(tile, band, uncert_fn, window_fn, overlap,
+                                   memsize, multicores, output_dir, version) {
+    # Output file
+    out_file <- .file_derived_name(
+        tile = tile, band = band, version = version, output_dir = output_dir
+    )
+    # Resume feature
+    if (file.exists(out_file)) {
+        # # Callback final tile classification
+        # .callback(process = "tile_classification", event = "recovery",
+        #           context = environment())
+        message("Recovery: tile '", tile[["tile"]], "' already exists.")
+        message("(If you want to produce a new image, please ",
+                "change 'output_dir' or 'version' parameters)")
+        uncert_tile <- .tile_uncertainty_from_file(
+            file = out_file,
+            band = band,
+            base_tile = tile
+        )
+        return(uncert_tile)
+    }
+    # Create jobs
+    # Get job size
+    job_size <- .raster_file_blocksize(
+        .raster_open_rast(.fi_path(.fi(tile)))
+    )
+    # Compute how many jobs to process
+    jobs <- .jobs_create(
+        job_size = job_size, block_overlap = 0,
+        ncols = .tile_ncols(tile), nrows = .tile_nrows(tile),
+        xmin = .xmin(tile), xmax = .xmax(tile),
+        ymin = .ymin(tile), ymax = .ymax(tile),
+        crs = .crs(tile)
+    )
+
+
+
+
+
+
+
+
+
+    # find out how many labels exist
+    n_labels <- length(sits_labels(cube[1, ]))
+
+    # create a window
+    window <- NULL
+    if (window_size > 1)
+        window <- matrix(1, nrow = window_size, ncol = window_size)
+
+    # least confidence  uncertainty index to be executed by workers cluster
+    .do_least <- function(chunk) {
+        data <- .raster_get_values(r_obj = chunk)
+        # process least confidence
+        unc <- least_probs(data, n_labels)
+        # create cube
+        res <- .raster_rast(
+            r_obj = chunk,
+            nlayers = 1
+        )
+        # copy values
+        res <- .raster_set_values(
+            r_obj = res,
+            values = unc
+        )
+        # process window
+        if (!is.null(window)) {
+            res <- terra::focal(
+                res,
+                w = window,
+                fun = window_fn,
+                na.rm = TRUE
+            )
+        }
+        return(res)
+    }
+
+    # compute which block size is many tiles to be computed
+    block_size <- .smth_estimate_block_size(
+        cube = cube,
+        multicores = multicores,
+        memsize = memsize
+    )
+
+    # start parallel processes
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop())
+
+    # process each brick layer (each time step) individually
+    blocks_tile_lst <- slider::slide(cube, function(tile) {
+
+        # create metadata for raster cube
+        tile_new <- .cube_derived_create(
+            cube       = tile,
+            cube_class = "uncertainty_cube",
+            band_name  = "least",
+            labels     = .cube_labels(tile),
+            start_date = .file_info_start_date(tile),
+            end_date   = .file_info_end_date(tile),
+            bbox       = .cube_tile_bbox(tile),
+            output_dir = output_dir,
+            version    = version
+        )
+
+        # prepare output filename
+        out_file <- .file_info_path(tile_new)
+
+        # if file exists skip it (resume feature)
+        if (file.exists(out_file)) {
+            if (all(.raster_bbox(.raster_open_rast(out_file))
+                    == sits_bbox(tile_new))) {
+                message(paste0(
+                    "Recovery mode: uncertainty image file found in '",
+                    dirname(out_file), "' directory. ",
+                    "(If you want a new uncertainty image, please ",
+                    "change the directory in the 'output_dir' or the ",
+                    "value of 'version' parameter)"
+                ))
+                return(NULL)
+            }
+        }
+
+        # overlapping pixels
+        overlapping_y_size <- ceiling(window_size / 2) - 1
+
+        # get cube size
+        size <- .cube_size(tile)
+
+        # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
+        blocks <- .smth_compute_blocks(
+            xsize = size[["ncols"]],
+            ysize = size[["nrows"]],
+            block_y_size = block_size[["block_y_size"]],
+            overlapping_y_size = overlapping_y_size
+        )
+
+        # open probability file
+        in_file <- .file_info_path(tile)
+
+        # process blocks in parallel
+        block_files_lst <- .sits_parallel_map(blocks, function(block) {
+
+            # open brick
+            b <- .raster_open_rast(in_file)
+
+            # crop adding overlaps
+            temp_chunk_file <- .create_chunk_file(
+                output_dir = output_dir,
+                pattern = "chunk_least_overlap_",
+                ext = ".tif"
+            )
+            chunk <- .raster_crop(
+                r_obj = b,
+                file = temp_chunk_file,
+                data_type = .raster_data_type(
+                    .config_get("probs_cube_data_type")
+                ),
+                overwrite = TRUE,
+                block = block
+            )
+            # Delete temp file
+            on.exit(unlink(temp_chunk_file), add = TRUE)
+
+            # process it
+            raster_out <- .do_least(chunk = chunk)
+
+            # create extent
+            blk_no_overlap <- list(
+                col = block$crop_col,
+                row = block$crop_row,
+                ncols = block$crop_ncols,
+                nrows = block$crop_nrows
+            )
+
+            block_file <- .smth_filename(
+                tile = tile_new,
+                output_dir = output_dir,
+                block = block
+            )
+
+            # Save chunk
+            # Crop removing overlaps
+            .raster_crop(
+                r_obj = raster_out,
+                file = block_file,
+                data_type = .raster_data_type(
+                    .config_get("probs_cube_data_type")
+                ),
+                overwrite = TRUE,
+                block = blk_no_overlap
+            )
+
+            return(block_file)
+        })
+
+        block_files <- unlist(block_files_lst)
+
+        return(invisible(block_files))
+    })
+
+
+    # process each brick layer (each time step) individually
+    result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
+
+        # get tile from cube
+        tile <- cube[i, ]
+
+        # create metadata for raster cube
+        tile_new <- .cube_derived_create(
+            cube       = tile,
+            cube_class = "uncertainty_cube",
+            band_name  = "least",
+            labels     = .cube_labels(tile),
+            start_date = .file_info_start_date(tile),
+            end_date   = .file_info_end_date(tile),
+            bbox       = .cube_tile_bbox(tile),
+            output_dir = output_dir,
+            version    = version
+        )
+
+        # prepare output filename
+        out_file <- .file_info_path(tile_new)
+
+        # if file exists skip it (resume feature)
+        if (file.exists(out_file)) {
+            return(tile_new)
+        }
+
+        block_files <- blocks_tile_lst[[i]]
+
+        # Join predictions
+        if (is.null(block_files)) {
+            return(NULL)
+        }
+
+        # Merge final result
+        .raster_merge_blocks(
+            base_file = .file_info_path(tile),
+            block_files = block_files,
+            out_file = out_file,
+            data_type = .config_get("probs_cube_data_type"),
+            missing_value = .config_get("probs_cube_missing_value"),
+            multicores = 1
+        )
+
+        # Remove blocks
+        on.exit(unlink(block_files), add = TRUE)
+
+        return(tile_new)
+    })
+
+    # bind rows
+    result_cube <- dplyr::bind_rows(result_cube)
+
+    class(result_cube) <- c("uncertainty_cube",
+                            setdiff(class(cube), "probs_cube"))
+
+    return(result_cube)
+
+
+
+
+
+    return(class_tile)
 }
 
 #' @rdname sits_uncertainty

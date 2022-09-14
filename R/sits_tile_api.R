@@ -788,6 +788,18 @@
     tile
 }
 
+# ---- tile uncertainty api ----
+
+.tile_uncertainty_from_file <- function(file, band, base_tile) {
+    .tile_derived_from_file(
+        file = file,
+        band = band,
+        base_tile = base_tile,
+        derived_class = "uncertainty_cube",
+        labels = .tile_labels(base_tile)
+    )
+}
+
 #---- cube api (utils) ----
 
 .cube_set_class <- function(x, ...) {
