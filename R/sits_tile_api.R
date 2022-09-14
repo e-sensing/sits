@@ -5,12 +5,13 @@
     lubridate::as_date(unlist(x))
 }
 
-.try <- function(expr, ..., .rollback = NULL, default = NULL, msg = NULL) {
-    has_default <- !missing(default)
+.try <- function(expr, ..., .rollback = NULL, .default = NULL,
+                 .msg_error = NULL) {
+    has_default <- !missing(.default)
     tryCatch(expr, ..., error = function(e) {
         if (!is.null(.rollback)) .rollback
-        if (has_default) return(default)
-        stop(if (!is.null(msg)) msg else e$message)
+        if (has_default) return(.default)
+        stop(if (!is.null(.msg_error)) .msg_error else e$message)
     })
 }
 
@@ -232,7 +233,7 @@
 
 .conf_exists <- function(...) {
     key <- c(...)
-    !is.null(.try(sits_env[["config"]][[key]], default = NULL))
+    !is.null(.try(sits_env[["config"]][[key]], .default = NULL))
 }
 
 .conf <- function(...) {
@@ -787,6 +788,9 @@
     unlink(block_files)
     tile
 }
+
+
+# ---- tile smooth api ----
 
 #---- cube api (utils) ----
 
