@@ -13,106 +13,14 @@
 #' @return A matrix with values for classification.
 .sits_classify_data_read <- function(tile, block, ml_model, impute_fn,
                                      filter_fn, output_dir) {
-
-    # Get file_info to read files
-    fi <- .fi(tile)
-    # Get model bands
-    bands <- .fi_bands(fi)
     # Read and preprocess values from cloud
-    cloud_mask <- NULL
-    if (.band_cloud() %in% bands) {
-
-
-        #
-        # Log here
-        #
-        .sits_debug_log(
-            output_dir = output_dir,
-            event = "start_block_data_read",
-            key = "band",
-            value = .band_cloud()
-        )
-
-
-        # Get cloud values
-        cloud_mask <- .fi_read_block(fi = fi, band = .band_cloud(),
-                                     block = block)
-
-
-        #
-        # Log here
-        #
-        .sits_debug_log(
-            output_dir = output_dir,
-            event = "end_block_data_read",
-            key = "band",
-            value = .band_cloud()
-        )
-
-
-        # Get cloud parameters
-        interp_values <- .tile_cloud_interp_values(tile)
-        is_bit_mask <- .tile_cloud_bit_mask(tile)
-
-
-        #
-        # Log here
-        #
-        .sits_debug_log(
-            output_dir = output_dir,
-            event = "start_block_data_process",
-            key = "cloud_bit_mask",
-            value = is_bit_mask
-        )
-
-
-        # Prepare cloud_mask
-        # Identify values to be removed
-        cloud_mask <- if (!is_bit_mask) cloud_mask %in% interp_values
-        else matrix(bitwAnd(cloud_mask, sum(2^interp_values)) > 0,
-                    nrow = length(cloud_mask))
-
-
-        #
-        # Log here
-        #
-        .sits_debug_log(
-            output_dir = output_dir,
-            event = "end_block_data_process",
-            key = "cloud_bit_mask",
-            value = is_bit_mask
-        )
-
-
-    }
+    # Get cloud values (NULL if not exists)
+    cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
     # Read and preprocess values from each band
     values <- .ml_foreach_band(ml_model, function(band) {
 
-
-        #
-        # Log here
-        #
-        .sits_debug_log(
-            output_dir = output_dir,
-            event = "start_block_data_read",
-            key = "band",
-            value = band
-        )
-
-
         # Get band values
-        values <- .fi_read_block(fi = fi, band = band, block = block)
-
-
-        #
-        # Log here
-        #
-        .sits_debug_log(
-            output_dir = output_dir,
-            event = "end_block_data_read",
-            key = "band",
-            value = band
-        )
+        values <- .tile_read_block(tile = tile, band = band, block = block)
 
 
         #
@@ -121,41 +29,17 @@
         .sits_debug_log(
             output_dir = output_dir,
             event = "start_block_data_process",
-            key = "band",
-            value = band
+            key = "process",
+            value = "cloud-impute-filter"
         )
-
 
         # Remove cloud masked pixels
         if (!is.null(cloud_mask)) {
             values[cloud_mask] <- NA
         }
-        # Correct missing, minimum, and maximum values; and scale values
-        # Get band defaults for derived cube from config
-        conf_band <- .tile_band_conf(tile = tile, band = band)
-        miss_value <- .band_miss_value(conf_band)
-        if (!is.null(miss_value)) {
-            values[values == miss_value] <- NA
-        }
-        min_value <- .band_min_value(conf_band)
-        if (!is.null(min_value)) {
-            values[values < min_value] <- NA
-        }
-        max_value <- .band_max_value(conf_band)
-        if (!is.null(max_value)) {
-            values[values > max_value] <- NA
-        }
         # Remove NA pixels
         if (!is.null(impute_fn)) {
             values <- impute_fn(values)
-        }
-        scale <- .band_scale(conf_band)
-        if (!is.null(scale) && scale != 1) {
-            values <- values * scale
-        }
-        offset <- .band_offset(conf_band)
-        if (!is.null(offset) && offset != 0) {
-            values <- values + offset
         }
         # Filter the time series
         if (!is.null(filter_fn)) {
@@ -186,49 +70,6 @@
     # Compose final values
     values <- do.call(cbind, values)
     colnames(values) <- .ml_attr_names(ml_model)
-
-    return(values)
-}
-#' @title Read a block of values retrieved from a derived cube
-#' @name  .sits_derived_data_read
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  tile            Input tile to read data.
-#' @param  band            Band to read data from tile.
-#' @param  block           Bounding box in (col, row, ncols, nrows).
-#' @return A matrix with probability values for labeling.
-.sits_derived_data_read <- function(tile, band, block) {
-
-    # Get file_info to read files
-    fi <- .fi(tile)
-    # Read and preprocess values from band
-    # Get band values
-    values <- .fi_read_block(fi = fi, band = band, block = block)
-    # Correct missing, minimum, and maximum values; and scale values
-    # Get band defaults for derived cube from config
-    conf_band <- .tile_band_conf(tile = tile, band = band)
-    miss_value <- .band_miss_value(conf_band)
-    if (!is.null(miss_value)) {
-        values[values == miss_value] <- NA
-    }
-    min_value <- .band_min_value(conf_band)
-    if (!is.null(min_value)) {
-        values[values < min_value] <- min_value
-    }
-    max_value <- .band_max_value(conf_band)
-    if (!is.null(max_value)) {
-        values[values > max_value] <- max_value
-    }
-    scale <- .band_scale(conf_band)
-    if (!is.null(scale) && scale != 1) {
-        values <- values * scale
-    }
-    offset <- .band_offset(conf_band)
-    if (!is.null(offset) && offset != 0) {
-        values <- values + offset
-    }
 
     return(values)
 }

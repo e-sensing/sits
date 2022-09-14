@@ -108,12 +108,8 @@ sits_label_classification <- function(cube,
 
 }
 
-.sits_label_tile  <- function(tile,
-                              label_fn,
-                              memsize,
-                              multicores,
-                              output_dir,
-                              version) {
+.sits_label_tile  <- function(tile, label_fn, memsize, multicores,
+                              output_dir, version) {
 
     # Output file
     out_file <- .file_class_name(
@@ -182,7 +178,7 @@ sits_label_classification <- function(cube,
             }
         }
         # Read and preprocess values
-        probs <- .sits_derived_data_read(
+        probs <- .tile_read_block(
             tile = tile, band = "probs", block = block
         )
 
