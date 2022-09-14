@@ -195,9 +195,9 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param  tile            Input tile to read data.
-#' @param  band            Band to read data from tile.
-#' @param  block           Bounding box in (col, row, ncols, nrows).
+#' @param  tile     Input tile to read data.
+#' @param  band     Band to read data from tile.
+#' @param  block    Bounding box in (col, row, ncols, nrows).
 #' @return A matrix with probability values for labeling.
 .sits_derived_data_read <- function(tile, band, block) {
 
