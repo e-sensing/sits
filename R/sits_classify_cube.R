@@ -261,6 +261,7 @@
     # Merge blocks into a new probs_cube tile
     probs_tile <- .tile_probs_merge_blocks(
         file = out_file, band = "probs",
+        derived_class = "probs_cube",
         labels = .ml_labels(ml_model),
         base_tile = tile, block_files = block_files,
         multicores = multicores
