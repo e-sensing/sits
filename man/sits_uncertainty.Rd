@@ -10,14 +10,15 @@
 sits_uncertainty(
   cube,
   type = "least",
-  ...,
+  window_size = 5,
+  window_fn = "median",
+  memsize = 4,
   multicores = 2,
-  memsize = 8,
-  output_dir = ".",
+  output_dir = getwd(),
   version = "v1"
 )
 
-\method{sits_uncertainty}{entropy}(
+sits_uncertainty.entropy(
   cube,
   type = "entropy",
   ...,
@@ -29,7 +30,7 @@ sits_uncertainty(
   version = "v1"
 )
 
-\method{sits_uncertainty}{least}(
+sits_uncertainty.least(
   cube,
   type = "least",
   ...,
@@ -41,7 +42,7 @@ sits_uncertainty(
   version = "v1"
 )
 
-\method{sits_uncertainty}{margin}(
+sits_uncertainty.margin(
   cube,
   type = "margin",
   ...,
@@ -58,21 +59,21 @@ sits_uncertainty(
 
 \item{type}{Method to measure uncertainty. See details.}
 
-\item{...}{Parameters for specific functions.}
+\item{window_size}{Size of neighborhood to calculate entropy.}
 
-\item{multicores}{Number of cores to run the function.}
+\item{window_fn}{Function to be applied in entropy calculation.}
 
 \item{memsize}{Maximum overall memory (in GB) to run the
 function.}
+
+\item{multicores}{Number of cores to run the function.}
 
 \item{output_dir}{Output directory for image files.}
 
 \item{version}{Version of resulting image.
 (in the case of multiple tests)}
 
-\item{window_size}{Size of neighborhood to calculate entropy.}
-
-\item{window_fn}{Function to be applied in entropy calculation.}
+\item{...}{Parameters for specific functions.}
 }
 \value{
 An uncertainty data cube
