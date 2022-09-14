@@ -144,23 +144,23 @@ BEGIN_RCPP
 END_RCPP
 }
 // linear_interp
-IntegerMatrix linear_interp(IntegerMatrix& mtx);
+NumericMatrix linear_interp(NumericMatrix& mtx);
 RcppExport SEXP _sits_linear_interp(SEXP mtxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerMatrix& >::type mtx(mtxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type mtx(mtxSEXP);
     rcpp_result_gen = Rcpp::wrap(linear_interp(mtx));
     return rcpp_result_gen;
 END_RCPP
 }
 // linear_interp_vec
-IntegerVector linear_interp_vec(IntegerVector& vec);
+NumericVector linear_interp_vec(NumericVector& vec);
 RcppExport SEXP _sits_linear_interp_vec(SEXP vecSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerVector& >::type vec(vecSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type vec(vecSEXP);
     rcpp_result_gen = Rcpp::wrap(linear_interp_vec(vec));
     return rcpp_result_gen;
 END_RCPP
