@@ -231,6 +231,7 @@ sits_label_classification <- function(cube,
     # Merge blocks into a new class_cube tile
     class_tile <- .tile_class_merge_blocks(
         file = out_file, band = "class",
+        derived_class = "class_cube",
         labels = .tile_labels(tile),
         base_tile = tile, block_files = block_files,
         multicores = multicores
