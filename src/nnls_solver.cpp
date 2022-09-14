@@ -75,7 +75,7 @@ arma::mat nnls_solver(const arma::mat x,
 
         //fill
         ret(0,A_nEM) = rmse;
-        sol.row(i) = ret; //xv.t();
+        sol.row(i) = ret.each_col() / arma::sum(ret, 1); //xv.t();
     }
     return(sol); //mat
 }

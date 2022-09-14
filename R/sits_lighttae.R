@@ -347,7 +347,7 @@ sits_lighttae <- function(samples = NULL,
             n_times <- nrow(sits_time_series(samples[1, ]))
             n_bands <- length(sits_bands(samples))
             values_x <- array(
-                data = values,
+                data = as.matrix(values),
                 dim = c(n_samples, n_times, n_bands)
             )
             # retrieve the prediction probabilities

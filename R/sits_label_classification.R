@@ -54,9 +54,6 @@ sits_label_classification <- function(cube,
                                       output_dir = ".",
                                       version = "v1") {
 
-    # set caller to show in errors
-    .check_set_caller("sits_label_classification")
-
     # precondition - check if cube has probability data
     .check_is_probs_cube(cube)
     # precondition - multicores
@@ -74,7 +71,7 @@ sits_label_classification <- function(cube,
     )
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
-        job_size = job_size, npaths = length(.fi_paths(.fi(.tile(cube)))) +
+        job_size = job_size, npaths = length(.fi_paths(.fi(.tile(cube)))) *
             length(.tile_labels(.tile(cube))), nbytes = 8,
         proc_bloat = .config_processing_bloat(), overlap = 0
     )

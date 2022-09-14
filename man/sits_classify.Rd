@@ -8,7 +8,14 @@
 \usage{
 sits_classify(data, ml_model, ...)
 
-\method{sits_classify}{sits}(data, ml_model, ..., filter_fn = NULL, multicores = 2)
+\method{sits_classify}{sits}(
+  data,
+  ml_model,
+  ...,
+  filter_fn = NULL,
+  multicores = 2,
+  progress = FALSE
+)
 
 \method{sits_classify}{raster_cube}(
   data,
@@ -38,6 +45,8 @@ sits_classify(data, ml_model, ...)
 
 \item{multicores}{Number of cores to be used for classification.}
 
+\item{progress}{Show progress bar?}
+
 \item{roi}{Region of interest (see below)}
 
 \item{impute_fn}{Impute function to replace NA.}
@@ -54,8 +63,6 @@ sits_classify(data, ml_model, ...)
 classifications).}
 
 \item{verbose}{Print information about processing time?}
-
-\item{progress}{Show progress bar?}
 }
 \value{
 Predicted data (classified time series)

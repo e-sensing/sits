@@ -353,7 +353,7 @@ sits_xgboost <- function(samples = NULL,
             # transform input  into a matrix (remove first two columns)
             # retrieve the prediction probabilities
             prediction <- data.table::as.data.table(
-                stats::predict(model_xgb, values,
+                stats::predict(model_xgb, data.matrix(values),
                     ntreelimit = ntreelimit,
                     reshape = TRUE
                 )

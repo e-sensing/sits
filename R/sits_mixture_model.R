@@ -5,116 +5,136 @@
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
 #' @author Rolf Simoes,     \email{rolf.simoes@@inpe.br}
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#' @author Alber Sanchez,   \email{alber.ipia@@inpe.br}
 #'
 #' @description Create a multiple endmember spectral mixture analyses fractions
-#' images. To calculate the fraction of each endmember, the non-negative least
-#' squares (NNLS) solver is used. The NNLS implementation was made by Jakob
+#' images. We use the non-negative least squares (NNLS) solver to calculate the
+#' fractions of each endmember. The NNLS was implemented by Jakob
 #' Schwalb-Willmann in RStoolbox package (licensed as GPL>=3).
 #'
 #' @references \code{RStoolbox} package (https://github.com/bleutner/RStoolbox/)
 #'
 #' @param cube                A sits data cube.
-#' @param endmembers_spectra  Reference endmembers spectra in a tibble format.
+#' @param endmembers          Reference spectral endmembers.
 #'                            (see details below).
-#' @param memsize             Memory available for mixture model (in GB).
+#' @param memsize             Memory available for the mixture model (in GB).
 #' @param multicores          Number of cores to be used for generate the
 #'                            mixture model.
-#' @param output_dir          Directory for output file.
+#' @param output_dir          Directory for output images.
 #' @param rmse_band           A boolean indicating whether the error associated
 #'                            with the linear model should be generated.
-#'                            If true, a new band with the errors for each pixel
+#'                            If true, a new band with errors for each pixel
 #'                            is generated using the root mean square
 #'                            measure (RMSE). Default is TRUE.
 #' @param remove_outliers     A boolean indicating whether values larger and
-#'                            smaller than the limits in the image metadata, and
-#'                            missing values should be marked as NA. This
-#'                            parameter can be used when the cloud component is
-#'                            added to the mixture model. Default is TRUE.
+#'                            smaller than the limits of the image metadata,
+#'                            and missing values should be marked as NA.
+#'                            Default is TRUE.
 #' @param progress            Show progress bar? Default is TRUE.
+#' @return a sits cube with the fractions of each endmember.
+#'         The sum of all fractions is restricted to 1 (scaled from 0 to 10000),
+#'         corresponding to the abundance of the endmembers in the pixels.
 #'
-#' @note The \code{endmembers_spectra} parameter should be a tibble, csv or
-#' a shapefile. \code{endmembers_spectra} must have the following columns:
+#' @details
+#'
+#' The \code{endmembers} parameter should be a tibble, csv or
+#' a shapefile. \code{endmembers} parameter must have the following columns:
 #' \code{type}, which defines the endmembers that will be
 #' created and the columns corresponding to the bands that will be used in the
-#' mixture model.
+#' mixture model. See the \code{example} in this documentation for more details.
+#'
+#' If you want to generate cloud endmembers,
+#' it is useful to set the parameter \code{remove_outliers} to \code{FALSE}.
+#' Some image products have cloud values that exceed the limits set by the
+#' metadata, and therefore these values are removed if this option
+#' is \code{TRUE}.
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'    # --- Create a cube based on a local MODIS data
-#'    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#'
-#'    modis_cube <- sits_cube(
-#'        source = "BDC",
-#'        collection = "MOD13Q1-6",
-#'        data_dir = data_dir,
-#'        delim = "_"
+#'    # Creating a sentinel-2 AWS cube
+#'    s2_cube <- sits_cube(
+#'        source = "AWS",
+#'        collection = "SENTINEL-S2-L2A-COGS",
+#'        tiles = "20LKP",
+#'        bands = c("B02", "B03", "B04", "B8A", "B11", "B12", "CLOUD"),
+#'        start_date = "2019-06-13",
+#'        end_date = "2019-06-30"
 #'    )
 #'
-#'    endmembers_spectra <- tibble::tibble(
-#'        type = c("vegetation", "not-vegetation"),
-#'        NDVI = c(8500, 3400)
+#'    # Cube regularization for 16 days and 160 meters
+#'    reg_cube <- sits_regularize(
+#'        cube = s2_cube,
+#'        period = "P16D",
+#'        res = 160,
+#'        multicores = 2,
+#'        output_dir = tempdir()
 #'    )
 #'
-#'    mixture_cube <- sits_mixture_model(
-#'        cube = modis_cube,
-#'        endmembers_spectra = endmembers_spectra,
+#'    # Create the endmembers fractions tibble
+#'    em <- tibble::tribble(
+#'           ~type, ~B02, ~B03, ~B04, ~B8A, ~B11, ~B12,
+#'        "forest",  200,  352,  189, 2800, 1340,  546,
+#'          "land",  400,  650,  700, 3600, 3500, 1800,
+#'         "water",  700, 1100, 1400,  850,   40,   26,
+#'    )
+#'
+#'    # Generate the mixture model
+#'    mm <- sits_mixture_model(
+#'        cube = reg_cube,
+#'        endmembers = em,
 #'        memsize = 4,
 #'        multicores = 2,
 #'        output_dir = tempdir()
 #'    )
 #' }
 #'
-#' @return a sits cube with the generated fractions.
-#'
 #' @export
 sits_mixture_model <- function(cube,
-                               endmembers_spectra,
+                               endmembers,
                                memsize = 1,
                                multicores = 2,
                                output_dir = getwd(),
                                rmse_band = TRUE,
                                remove_outliers = TRUE,
                                progress = TRUE) {
-
     .check_set_caller("sits_mixture_model")
 
     .check_that(
-        inherits(endmembers_spectra, c("tbl_df", "data.frame", "character"))
+        inherits(endmembers, c("tbl_df", "data.frame", "character"))
     )
 
-    if (inherits(endmembers_spectra, "character"))
-        endmembers_spectra <- .mesma_get_data(
-            endmembers = endmembers_spectra,
-            file_ext = tolower(tools::file_ext(endmembers_spectra))
+    if (inherits(endmembers, "character")) {
+        endmembers <- .mesma_get_data(
+            endmembers = endmembers,
+            file_ext = tolower(tools::file_ext(endmembers))
         )
-
+    }
     # Ensure that all columns are in uppercase
-    endmembers_spectra <- dplyr::rename_with(endmembers_spectra, toupper)
+    endmembers <- dplyr::rename_with(endmembers, toupper)
 
     # Pre-condition
     .check_chr_contains(
-        x = colnames(endmembers_spectra),
+        x = colnames(endmembers),
         contains = "TYPE",
         msg = paste("The reference endmembers spectra should be provided."),
     )
 
     # Pre-condition
     .check_chr_within(
-        x = colnames(endmembers_spectra),
+        x = colnames(endmembers),
         within = c("TYPE", .cube_bands(cube, add_cloud = FALSE)),
         msg = "invalid 'endmembers_spectra' columns"
     )
 
     # Pre-condition
     .check_that(
-        nrow(endmembers_spectra) > 1,
+        nrow(endmembers) > 1,
         msg = "at least two endmembers fractions must be provided."
     )
 
     # Pre-condition
     .check_that(
-        nrow(endmembers_spectra) < .cube_bands(cube, add_cloud = FALSE),
+        nrow(endmembers) < .cube_bands(cube, add_cloud = FALSE),
         msg = "Endmembers must be less than the number of spectral bands."
     )
 
@@ -123,19 +143,19 @@ sits_mixture_model <- function(cube,
     .check_file(output_dir, msg = "invalid output directory")
 
     # Take only bands that intersects between two tibbles
-    ref_spectral_bands <- intersect(
-        .cube_bands(cube, add_cloud = FALSE),
-        setdiff(colnames(endmembers_spectra), "TYPE")
+    in_bands <- intersect(
+        setdiff(colnames(endmembers), "TYPE"),
+        .cube_bands(cube, add_cloud = FALSE)
     )
 
     # Scale the reference spectra
-    reference_spectra <- .mesma_scale_endmembers(cube, endmembers_spectra)
-
-    output_fracs <- endmembers_spectra[["TYPE"]]
-    if (rmse_band)
+    em_scaled <- .mesma_scale_endmembers(cube, endmembers)
+    output_fracs <- endmembers[["TYPE"]]
+    if (rmse_band) {
         output_fracs <- c(output_fracs, "rmse")
+    }
 
-    cube_filtered <- sits_select(cube, ref_spectral_bands)
+    cube_filtered <- sits_select(cube, in_bands)
 
     jobs <- .mesma_get_jobs_lst(
         cube = cube_filtered,
@@ -159,8 +179,6 @@ sits_mixture_model <- function(cube,
 
         # Filter tile
         tile <- dplyr::filter(cube_filtered, tile == !!tile_name)
-
-        in_bands <- .cube_bands(cube_filtered)
 
         # File_info filtered by bands
         in_fi_fid <- .file_info(
@@ -200,7 +218,7 @@ sits_mixture_model <- function(cube,
         # Save each output value
         block_files <- purrr::map(blocks, function(b) {
 
-            # Load bands data
+            # Read bands data
             in_values <- purrr::map_dfc(in_bands, function(band) {
 
                 # Transform file_info columns as bands and values as paths
@@ -235,14 +253,12 @@ sits_mixture_model <- function(cube,
                 return(values)
             })
 
-            # Set band names
-            names(in_values) <- in_bands
-            in_values <- as.matrix(in_values)
+            in_values <- do.call(cbind, in_values)
 
             # Apply the non-negative least squares solver
             out_values <- nnls_solver(
                 x = in_values,
-                A = reference_spectra
+                A = em_scaled
             )
 
             # Apply scale and offset
@@ -251,8 +267,9 @@ sits_mixture_model <- function(cube,
                 .config_get("raster_cube_offset_value")
 
             # Remove the rmse value in the last column
-            if (!rmse_band)
+            if (!rmse_band) {
                 out_values <- out_values[, -ncol(out_values)]
+            }
 
             # Compute block spatial parameters
             params <- .cube_params_block(tile, block = b)
