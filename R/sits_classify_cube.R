@@ -148,33 +148,11 @@
         tile <- .cube_token_generator(tile)
 
 
-        #
-        # Log here
-        #
-        .sits_debug_log(
-            output_dir = output_dir,
-            event = "start_block_data_read_preprocess",
-            key = "block",
-            value = block
-        )
-
-
         # Read and preprocess values
         values <- .sits_classify_data_read(
             tile = tile, block = block, ml_model = ml_model,
             impute_fn = impute_fn, filter_fn = filter_fn,
             output_dir = output_dir
-        )
-
-
-        #
-        # Log here
-        #
-        .sits_debug_log(
-            output_dir = output_dir,
-            event = "end_block_data_read_preprocess",
-            key = "block",
-            value = block
         )
 
         #
