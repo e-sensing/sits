@@ -7,8 +7,8 @@
     gsub("[?].*$", "", gsub("^.*/", "", file))
 }
 
-.file_pattern <- function(file) {
-    .file_sans_ext(.file_base(file))
+.file_pattern <- function(file, suffix = "") {
+    paste0(.file_sans_ext(.file_base(file)), suffix)
 }
 
 .file_path <- function(..., ext = NULL, output_dir = NULL,
@@ -38,18 +38,10 @@
     )
 }
 
-.file_probs_name <- function(tile, version, output_dir) {
+.file_derived_name <- function(tile, band, version, output_dir) {
     .file_path(
         tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
-        .tile_start_date(tile), .tile_end_date(tile), "probs", version,
-        ext = "tif", output_dir = output_dir
-    )
-}
-
-.file_class_name <- function(tile, version, output_dir) {
-    .file_path(
-        tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
-        .tile_start_date(tile), .tile_end_date(tile), "class", version,
+        .tile_start_date(tile), .tile_end_date(tile), band, version,
         ext = "tif", output_dir = output_dir
     )
 }
