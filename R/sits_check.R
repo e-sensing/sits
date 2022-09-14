@@ -1569,6 +1569,28 @@
         msg = "invalid distances file"
     )
 }
+
+#' @title Does the data contain the cols of sample data and is not empty?
+#' @name .check_smoothness
+#' @param smoothness a matrix or numeric value
+#' @param nlabels    a numeric value
+#' @return  No return value, called for side effects.
+#' @keywords internal
+.check_smoothness <- function(smoothness, nlabels) {
+    if (is.matrix(smoothness)) {
+        .check_that(
+            x = (nrow(smoothness) == ncol(smoothness)) &&
+                (ncol(smoothness) == nlabels),
+            msg = paste(
+                "smoothness must be square matrix of",
+                "the same length as the number of labels"
+            )
+        )
+    } else {
+        .check_num_parameter(smoothness, exclusive_min = 0)
+    }
+}
+
 #' @title Check classification parameters
 #' @name .check_cube_model
 #' @keywords internal
