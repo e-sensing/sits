@@ -90,3 +90,12 @@
     values_lst <- .sits_parallel_map(jobs, fn, ..., progress = TRUE)
     vapply(values_lst, c, NA_character_)
 }
+
+.jobs_remove_overlap <- function(job) {
+    list(
+        col = min(job$overlap + 1, job$col),
+        row = min(job$overlap + 1, job$row),
+        ncols = job$crop_ncols,
+        nrows = job$crop_nrows
+    )
+}
