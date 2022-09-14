@@ -374,6 +374,10 @@
     sort(unique(fi[["band"]]))
 }
 
+.fi_band_filter <- function(fi, band) {
+    dplyr::filter(fi, band %in% !!band)
+}
+
 .fi_min_date <- function(fi) {
     .fi_switch(
         fi = fi,
@@ -406,24 +410,26 @@
     as.character(fi[["path"]][[1]])
 }
 
+.fi_as_sf <- function(fi) {
+    .bbox_as_sf(fi)
+}
+
 .fi_during <- function(fi, start_date, end_date) {
-    fi_start <- .fi_min_date(fi)
-    fi_end <- .fi_max_date(fi)
-    any(.between(fi_start, start_date, end_date),
-        .between(fi_end, start_date, end_date),
-        .between(start_date, fi_start, fi_end),
-        .between(end_date, fi_start, fi_end))
+    .between(.fi_timeline(fi), start_date, end_date)
 }
 
 .fi_temporal_filter <- function(fi, start_date, end_date) {
     if (is.null(start_date)) start_date <- .fi_min_date(fi)
     if (is.null(end_date)) end_date <- .fi_max_date(fi)
-    dplyr::filter(fi, !!start_date <= .data[["date"]],
-                  .data[["date"]] <= !!end_date)
+    fi[.fi_during(fi, start_date, end_date), ]
 }
 
-.fi_band_filter <- function(fi, band) {
-    dplyr::filter(fi, band %in% !!band)
+.fi_intersects <- function(fi, roi) {
+    .intersects(.fi_as_sf(fi), .roi_as_sf(roi))
+}
+
+.fi_spatial_filter <- function(fi, roi) {
+    fi[.fi_intersects(fi, roi), ]
 }
 
 .fi_read_block <- function(fi, band, block) {
@@ -438,12 +444,20 @@
     #
 }
 
-#---- tile api (generic) ----
+#---- .tile() ----
 
+#' @description get first tile of a cube
+#' @return tile
 .tile <- function(cube) {
     UseMethod(".tile", cube)
 }
 
+#' @export
+.tile.raster_cube <- function(cube) {
+    cube[1,]
+}
+
+#---- .tile_source() ----
 .tile_source <- function(tile) {
     UseMethod(".tile_source", tile)
 }
@@ -462,6 +476,18 @@
 
 `.tile_labels<-` <- function(tile, value) {
     UseMethod(".tile_labels<-", tile)
+}
+
+.tile_file_info <- function(tile) {
+    UseMethod(".tile_file_info", tile)
+}
+
+`.tile_file_info<-` <- function(tile, value) {
+    UseMethod(".tile_file_info<-", tile)
+}
+
+.tile_as_sf <- function(tile) {
+    UseMethod(".tile_as_sf", tile)
 }
 
 .tile_bands <- function(tile) {
@@ -488,22 +514,6 @@
     UseMethod(".tile_nrows", tile)
 }
 
-.tile_derived_class <- function(tile) {
-    UseMethod(".tile_derived_class", tile)
-}
-
-.tile_as_sf <- function(tile) {
-    UseMethod(".tile_as_sf", tile)
-}
-
-.tile_intersects <- function(tile, roi) {
-    UseMethod(".tile_intersects", tile)
-}
-
-.tile_during <- function(tile, start_date, end_date) {
-    UseMethod(".tile_during", tile)
-}
-
 .tile_start_date <- function(tile) {
     UseMethod(".tile_start_date", tile)
 }
@@ -516,25 +526,37 @@
     UseMethod(".tile_timeline", tile)
 }
 
-.tile_file_info <- function(tile) {
-    UseMethod(".tile_file_info", tile)
+#' @description does tile bbox intersect roi?
+#' @return logical
+.tile_intersects <- function(tile, roi) {
+    UseMethod(".tile_intersects", tile)
 }
 
-`.tile_file_info<-` <- function(tile, value) {
-    UseMethod(".tile_file_info<-", tile)
+.tile_spatial_filter <- function(tile, roi) {
+    UseMethod(".tile_spatial_filter", tile)
 }
 
-.tile_read_block <- function(tile, bands, block, impute_fn, filter_fn,
-                             ml_model) {
+#' @description is any timeline date between start_date and end_date?
+#' @return logical
+.tile_during <- function(tile, start_date, end_date) {
+    UseMethod(".tile_during", tile)
+}
+
+#' @description filter tile's file_info by start_date and end_date.
+#' @return tile
+.tile_temporal_filter <- function(tile, start_date, end_date) {
+    UseMethod(".tile_temporal_filter", tile)
+}
+
+.tile_read_block <- function(tile, band, block) {
     UseMethod(".tile_read_block", tile)
 }
 
-#---- tile api (raster_cube) ----
-
-#' @export
-.tile.raster_cube <- function(cube) {
-    cube[1,]
+.tile_derived_class <- function(tile) {
+    UseMethod(".tile_derived_class", tile)
 }
+
+#---- tile api (raster_cube) ----
 
 #' @export
 .tile_source.raster_cube <- function(tile) {
@@ -564,39 +586,20 @@
 }
 
 #' @export
-.tile_bands.raster_cube <- function(tile) {
-    .fi_bands(.fi(tile))
+.tile_file_info.raster_cube <- function(tile) {
+    .fi(tile)
 }
 
 #' @export
-.tile_ncols.raster_cube <- function(tile) {
-    if ("ncols" %in% tile) return(.ncols(tile)[[1]])
-    unique(.ncols(.fi(tile)))
-}
-
-#' @export
-.tile_nrows.raster_cube <- function(tile) {
-    if ("nrows" %in% tile) return(.nrows(tile)[[1]])
-    unique(.nrows(.fi(tile)))
+`.tile_file_info<-.raster_cube` <- function(tile, value) {
+    tile[["file_info"]] <- NULL
+    tile[["file_info"]] <- list(value)
+    tile
 }
 
 #' @export
 .tile_as_sf.raster_cube <- function(tile) {
     .bbox_as_sf(tile)
-}
-
-#' @export
-.tile_intersects.raster_cube <- function(tile, roi) {
-    .intersects(.tile_as_sf(tile), .roi_as_sf(roi))
-}
-
-#' @export
-.tile_during.raster_cube <- function(tile, start_date, end_date) {
-    .fi_during(
-        fi = .fi(tile),
-        start_date = start_date,
-        end_date = end_date
-    )
 }
 
 #' @export
@@ -615,14 +618,49 @@
 }
 
 #' @export
-.tile_file_info.raster_cube <- function(tile) {
-    .fi(tile)
+.tile_bands.raster_cube <- function(tile) {
+    .fi_bands(.fi(tile))
 }
 
 #' @export
-`.tile_file_info<-.raster_cube` <- function(tile, value) {
-    tile[["file_info"]] <- NULL
-    tile[["file_info"]] <- list(value)
+.tile_ncols.raster_cube <- function(tile) {
+    if ("ncols" %in% tile) return(.ncols(tile)[[1]])
+    unique(.ncols(.fi(tile)))
+}
+
+#' @export
+.tile_nrows.raster_cube <- function(tile) {
+    if ("nrows" %in% tile) return(.nrows(tile)[[1]])
+    unique(.nrows(.fi(tile)))
+}
+
+#' @export
+.tile_intersects.raster_cube <- function(tile, roi) {
+    .intersects(.tile_as_sf(tile), .roi_as_sf(roi))
+}
+
+#' @export
+.tile_spatial_filter.raster_cube <- function(tile, roi) {
+    .tile_file_info(tile) <- .fi_spatial_filter(
+        fi = .fi(tile), roi = roi
+    )
+    tile
+}
+
+#' @export
+.tile_during.raster_cube <- function(tile, start_date, end_date) {
+    any(.fi_during(
+        fi = .fi(tile),
+        start_date = start_date,
+        end_date = end_date
+    ))
+}
+
+#' @export
+.tile_temporal_filter.raster_cube <- function(tile, start_date, end_date) {
+    .tile_file_info(tile) <- .fi_temporal_filter(
+        fi = .fi(tile), start_date = start_date, end_date = end_date
+    )
     tile
 }
 
@@ -708,7 +746,7 @@
     .cube_set_class(base_tile, .conf_derived_s3class(derived_class))
 }
 
-# ---- tile probs api ----
+# ---- tile constructors (probs) ----
 
 .tile_probs_from_file <- function(file, band, base_tile, labels) {
     # Open block file to be merged
@@ -752,7 +790,7 @@
     tile
 }
 
-# ---- tile class api ----
+# ---- tile constructors (class) ----
 
 .tile_class_from_file <- function(file, band, base_tile) {
     .tile_derived_from_file(
@@ -796,6 +834,18 @@
 
 #---- cube api (generics) ----
 
+.cube_start_date <- function(cube, innermost) {
+    UseMethod(".cube_start_date", cube)
+}
+
+.cube_end_date <- function(cube, innermost) {
+    UseMethod(".cube_end_date", cube)
+}
+
+.cube_timeline <- function(cube, period, origin) {
+    UseMethod(".cube_timeline", cube)
+}
+
 .cube_foreach_tile <- function(cube, fn, ...) {
     UseMethod(".cube_foreach_tile", cube)
 }
@@ -812,23 +862,25 @@
     UseMethod(".cube_during", cube)
 }
 
-.cube_start_date <- function(cube, innermost) {
-    UseMethod(".cube_start_date", cube)
-}
-
-.cube_end_date <- function(cube, innermost) {
-    UseMethod(".cube_end_date", cube)
-}
-
-.cube_timeline <- function(cube, period, origin) {
-    UseMethod(".cube_timeline", cube)
-}
-
 .cube_temporal_filter <- function(cube, start_date, end_date) {
     UseMethod(".cube_temporal_filter", cube)
 }
 
 #---- cube api (raster_cube) ----
+
+#' @export
+.cube_start_date.raster_cube <- function(cube, innermost = TRUE) {
+    dates <- .as_date(slider::slide(cube, .tile_start_date))
+    if (innermost) return(max(dates))
+    min(dates)
+}
+
+#' @export
+.cube_end_date.raster_cube <- function(cube, innermost = TRUE) {
+    dates <- .as_date(slider::slide(cube, .tile_end_date))
+    if (innermost) return(min(dates))
+    max(dates)
+}
 
 #' @export
 .cube_foreach_tile.raster_cube <- function(cube, fn, ...) {
@@ -849,20 +901,6 @@
 .cube_during.raster_cube <- function(cube, start_date, end_date) {
     slider::slide_lgl(cube, .tile_during, start_date = start_date,
                       end_date = end_date)
-}
-
-#' @export
-.cube_start_date.raster_cube <- function(cube, innermost = TRUE) {
-    dates <- .as_date(slider::slide(cube, .tile_start_date))
-    if (innermost) return(max(dates))
-    min(dates)
-}
-
-#' @export
-.cube_end_date.raster_cube <- function(cube, innermost = TRUE) {
-    dates <- .as_date(slider::slide(cube, .tile_end_date))
-    if (innermost) return(min(dates))
-    max(dates)
 }
 
 #' @export
