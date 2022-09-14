@@ -105,6 +105,13 @@ derived_cube         :
                 maximum_value: 10000
                 offset_value : 0
                 scale_factor : 0.0001
+            bayes    :
+                data_type    : "INT2U"
+                missing_value: 65535
+                minimum_value: 0
+                maximum_value: 10000
+                offset_value : 0
+                scale_factor : 0.0001
     class_cube       :
         s3_class     : ["class_cube", "derived_cube", "raster_cube"]
         bands        :
