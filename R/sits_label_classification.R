@@ -6,15 +6,15 @@
 #' @description Takes a set of classified raster layers with probabilities,
 #'              and label them based on the maximum probability for each pixel.
 #'
-#' @param  cube              Classified image data cube.
-#' @param  multicores        Number of workers to label the classification in
-#'                           parallel.
-#' @param  memsize           maximum overall memory (in GB) to label the
-#'                           classification.
-#' @param  output_dir        Output directory for classified files.
-#' @param  version           Version of resulting image
-#'                           (in the case of multiple runs).
-#' @return                   A data cube with an image with the classified map.
+#' @param  cube        Classified image data cube.
+#' @param  multicores  Number of workers to label the classification in
+#'                     parallel.
+#' @param  memsize     maximum overall memory (in GB) to label the
+#'                     classification.
+#' @param  output_dir  Output directory for classified files.
+#' @param  version     Version of resulting image
+#'                     (in the case of multiple runs).
+#' @return             A data cube with an image with the classified map.
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
@@ -116,7 +116,6 @@ sits_label_classification.probs_cube <- function(cube, multicores = 2,
 
 .sits_label_tile  <- function(tile, band, label_fn, memsize, multicores,
                               output_dir, version) {
-
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
@@ -158,39 +157,17 @@ sits_label_classification.probs_cube <- function(cube, multicores = 2,
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (file.exists(block_file)) {
-            # Try to open the file
-            r_obj <- .try(.raster_open_rast(block_file), .default = NULL)
-            # If file can be opened, check if the result is correct
-            # this file will not be processed again
-            if (!is.null(r_obj)) {
-                # Verify if the raster is corrupted
-                valid_block <- .try({
-                    .raster_get_values(r_obj)
-                    # Return value
-                    TRUE
-                },
-                .default = {
-                    unlink(block_file)
-                    # Return value
-                    FALSE
-                })
-
-                if (valid_block) {
-                    return(block_file)
-                }
-            }
+        if (.raster_is_valid(block_file)) {
+            return(block_file)
         }
         # Read and preprocess values
         values <- .tile_read_block(
             tile = tile, band = .tile_bands(tile), block = block
         )
-        # Avoid memory bloat
+        # Used to check values (below)
         original_nrows <- nrow(values)
-
         # Apply the labeling function to values
         values <- label_fn(values)
-
         # Are the results consistent with the data input?
         .check_that(
             x = nrow(values) == original_nrows,
@@ -199,7 +176,6 @@ sits_label_classification.probs_cube <- function(cube, multicores = 2,
                 "from number of input pixels"
             )
         )
-
         # Prepare probability to be saved
         band_conf <- .conf_derived_band(
             derived_class = "class_cube", band = band
@@ -212,14 +188,12 @@ sits_label_classification.probs_cube <- function(cube, multicores = 2,
         if (!is.null(scale) && scale != 1) {
             values <- values / scale
         }
-
         # Prepare and save results as raster
         .raster_write_block(
             file = block_file, block = block, bbox = .bbox(job),
             values = values, data_type = .band_data_type(band_conf),
             missing_value = .band_miss_value(band_conf)
         )
-
         # Returned value
         block_file
     })

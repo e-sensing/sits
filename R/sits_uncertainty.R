@@ -6,17 +6,15 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
-#' @param  cube              Probability data cube.
-#' @param  type              Method to measure uncertainty. See details.
-#' @param  ...               Parameters for specific functions.
-#' @param  window_size       Size of neighborhood to calculate entropy.
-#' @param  window_fn         Function to be applied in entropy calculation.
-#' @param  multicores        Number of cores to run the function.
-#' @param  memsize           Maximum overall memory (in GB) to run the
-#'                           function.
-#' @param  output_dir        Output directory for image files.
-#' @param  version           Version of resulting image.
-#'                           (in the case of multiple tests)
+#' @param  cube         Probability data cube.
+#' @param  type         Method to measure uncertainty. See details.
+#' @param  ...          Parameters for specific functions.
+#' @param  window_size  Size of neighborhood to calculate entropy.
+#' @param  multicores   Number of cores to run the function.
+#' @param  memsize      Maximum overall memory (in GB) to run the function.
+#' @param  output_dir   Output directory for image files.
+#' @param  version      Version of resulting image (in the case of
+#'                      multiple tests).
 #' @return An uncertainty data cube
 #'
 #' @description Calculate the uncertainty cube based on the probabilities
@@ -89,7 +87,6 @@ sits_uncertainty <- function(cube, type = "least", window_size = 5,
 sits_uncertainty.probs_cube <- function(cube, type = "least", window_size = 5,
                                         memsize = 4, multicores = 2,
                                         output_dir = getwd(), version = "v1") {
-
     # Get job size
     job_size <- .raster_file_blocksize(
         .raster_open_rast(.fi_path(.fi(.tile(cube))))
@@ -111,10 +108,7 @@ sits_uncertainty.probs_cube <- function(cube, type = "least", window_size = 5,
         job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
     # Prepare uncertainty function
-    # create a window
-    window <- NULL
-    if (window_size > 1)
-        window <- matrix(1, nrow = window_size, ncol = window_size)
+    uncert_fn <- .uncertainty_fn_list[[type]]
 
     # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = FALSE)
@@ -126,8 +120,7 @@ sits_uncertainty.probs_cube <- function(cube, type = "least", window_size = 5,
 
         # Classify the data
         class_tile <- .uncertainty_tile(
-            tile = tile, band = "uncert",
-            uncert_fn = .uncertainty_fn_list[[type]],
+            tile = tile, band = "uncert", uncert_fn = uncert_fn,
             window_size = window_size, memsize = memsize,
             multicores = multicores, output_dir = output_dir,
             version = version
@@ -189,34 +182,9 @@ sits_uncertainty.probs_cube <- function(cube, type = "least", window_size = 5,
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (file.exists(block_file)) {
+        if (.raster_is_valid(block_file)) {
             unlink(overlap_block_file)
-            # Try to open the file
-            r_obj <- .try({
-                .raster_open_rast(block_file)
-            },
-            .default = {
-                unlink(block_file)
-                NULL
-            })
-            # If file can be opened, check if the result is correct
-            # this file will not be processed again
-            if (!is.null(r_obj)) {
-                # Verify if the raster is corrupted
-                valid_block <- .try({
-                    .raster_get_values(r_obj)
-                    # Return value
-                    TRUE
-                },
-                .default = {
-                    unlink(block_file)
-                    # Return value
-                    FALSE
-                })
-                if (valid_block) {
-                    return(block_file)
-                }
-            }
+            return(block_file)
         }
         # Read and preprocess values
         values <- .tile_read_block(
@@ -225,7 +193,10 @@ sits_uncertainty.probs_cube <- function(cube, type = "least", window_size = 5,
         # Used in check (below)
         original_nrows <- nrow(values)
         # Apply the labeling function to values
-        values <- uncert_fn(values)
+        values <- uncert_fn(
+            data = values, ncols = .ncols(block), nrows = .nrows(block),
+            window_size = window_size
+        )
         # Are the results consistent with the data input?
         .check_that(
             x = nrow(values) == original_nrows,
@@ -274,42 +245,46 @@ sits_uncertainty.probs_cube <- function(cube, type = "least", window_size = 5,
     uncert_tile
 }
 
-
-
 #---- uncertainty functions ----
 
 .uncertainty_fn_least <- function(data, ncols, nrows, window_size) {
     # Pocess least confidence
-    data <- C_least_probs(data)
+    data <- C_least_probs(data) # return a matrix[rows(data),1]
     # Process window
-    data <- C_kernel_fun(
-        data = data, band = 0, img_nrow = nrow, img_ncol = ncol,
-        window_size = window_size, fun = 0 # 0: median
-    )
+    if (window_size > 1) {
+        data <- C_kernel_median(
+            x = data, ncols = ncols, nrows = nrows, band = 0,
+            window_size = window_size
+        )
+    }
     # Return data
     data
 }
 
 .uncertainty_fn_entropy <- function(data, ncols, nrows, window_size) {
     # Pocess least confidence
-    data <- C_entropy_probs(data)
+    data <- C_entropy_probs(data) # return a matrix[rows(data),1]
     # Process window
-    data <- C_kernel_fun(
-        data = data, band = 0, img_nrow = nrow, img_ncol = ncol,
-        window_size = window_size, fun = 0 # 0: median
-    )
+    if (window_size > 1) {
+        data <- C_kernel_median(
+            x = data, ncols = ncols, nrows = nrows, band = 0,
+            window_size = window_size
+        )
+    }
     # Return data
     data
 }
 
 .uncertainty_fn_margin <- function(data, ncols, nrows, window_size) {
     # Pocess least confidence
-    data <- C_margin_probs(data)
+    data <- C_margin_probs(data) # return a matrix[rows(data),1]
     # Process window
-    data <- C_kernel_fun(
-        data = data, band = 0, img_nrow = nrow, img_ncol = ncol,
-        window_size = window_size, fun = 0 # 0: median
-    )
+    if (window_size > 1) {
+        data <- C_kernel_median(
+            x = data, ncols = ncols, nrows = nrows, band = 0,
+            window_size = window_size
+        )
+    }
     # Return data
     data
 }

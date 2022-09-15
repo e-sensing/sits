@@ -82,72 +82,17 @@
         )
 
         # Resume processing in case of failure
-        if (file.exists(block_file)) {
-
-            #
-            # log
-            #
-            .sits_debug_log(
-                event = "start_classification_block_validation",
-                key = "block_file",
-                value = block_file
-            )
-
-            # Try to open the file
-            r_obj <- .try(.raster_open_rast(block_file), .default = NULL)
-
-            # If file can be opened, check if the result is correct
-            # this file will not be processed again
-            if (!is.null(r_obj)) {
-
-                # Verify if the raster is corrupted
-                valid_block <- .try({
-                    .raster_get_values(r_obj)
-
-                    #
-                    # log
-                    #
-                    .sits_debug_log(
-                        event = "end_classification_block_validation",
-                        key = "is_valid",
-                        value = TRUE
-                    )
-
-                    # Return value
-                    TRUE
-                },
-                .default = {
-                    unlink(block_file)
-
-                    #
-                    # log
-                    #
-                    .sits_debug_log(
-                        event = "end_classification_block_validation",
-                        key = "is_valid",
-                        value = FALSE
-                    )
-
-                    # Return value
-                    FALSE
-                })
-
-                if (valid_block) {
-                    return(block_file)
-                }
-            }
+        if (.raster_is_valid(block_file)) {
+            return(block_file)
         }
-
         # for cubes that have a time limit to expire - mpc cubes only
         tile <- .cube_token_generator(tile)
-
-
         # Read and preprocess values
         values <- .sits_classify_data_read(
             tile = tile, block = block, ml_model = ml_model,
             impute_fn = impute_fn, filter_fn = filter_fn
         )
-        # Used to check values
+        # Used to check values (below)
         original_nrows <- nrow(values)
 
         #
