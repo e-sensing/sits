@@ -864,7 +864,8 @@
     return(FALSE)
 }
 
-.raster_write_block <- function(file, block, bbox, values, data_type) {
+.raster_write_block <- function(file, block, bbox, values, data_type,
+                                missing_value) {
     # create a new raster
     r_obj <- .raster_new_rast(
         nrows = block[["nrows"]], ncols = block[["ncols"]],
@@ -882,7 +883,8 @@
         r_obj = r_obj,
         file = file,
         data_type = data_type,
-        overwrite = TRUE
+        overwrite = TRUE,
+        missing_value = missing_value
     )
     file
 }
