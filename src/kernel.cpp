@@ -16,67 +16,93 @@ IntegerVector locus_mirror(int size, int leg) {
     return res;
 }
 
+typedef double _kernel_fun(const NumericVector&);
+
 // kernel functions
-void _median(NumericVector& res, int i, const NumericVector& neigh) {
-    res(i) = median(neigh, true);
+double _median(const NumericVector& neigh) {
+    return median(neigh, true);
 }
-void _sum(NumericVector& res, int i, const NumericVector& neigh) {
-    res(i) = sum(na_omit(neigh));
+double _sum(const NumericVector& neigh) {
+    return sum(na_omit(neigh));
 }
-void _mean(NumericVector& res, int i, const NumericVector& neigh) {
-    res(i) = mean(na_omit(neigh));
+double _mean(const NumericVector& neigh) {
+    return mean(na_omit(neigh));
 }
-void _sd(NumericVector& res, int i, const NumericVector& neigh) {
-    res(i) = sd(na_omit(neigh));
+double _sd(const NumericVector& neigh) {
+    return sd(na_omit(neigh));
 }
-void _var(NumericVector& res, int i, const NumericVector& neigh) {
-    res(i) = var(na_omit(neigh));
+double _var(const NumericVector& neigh) {
+    return var(na_omit(neigh));
 }
-void _min(NumericVector& res, int i, const NumericVector& neigh) {
-    res(i) = min(na_omit(neigh));
+double _min(const NumericVector& neigh) {
+    return min(na_omit(neigh));
 }
-void _max(NumericVector& res, int i, const NumericVector& neigh) {
-    res(i) = max(na_omit(neigh));
+double _max(const NumericVector& neigh) {
+    return max(na_omit(neigh));
 }
 
-// [[Rcpp::export]]
-NumericVector C_kernel_fun(const NumericMatrix& data, const int band,
-                           const int img_nrow, const int img_ncol,
-                           const int window_size, const int fun) {
-
+inline NumericVector kernel_fun(const NumericMatrix& x, int ncols,
+                                int nrows, int band, int window_size,
+                                _kernel_fun _fun) {
     // initialize result vectors
-    NumericVector res(data.nrow());
+    NumericVector res(x.nrow());
     NumericVector neigh(window_size * window_size);
     if (window_size < 1) {
-        res = data(_, band);
+        res = x(_, band);
         return res;
     }
-
-    // function
-    if (fun >= 7) stop("invalid function index");
-    void (*_fun[7])(NumericVector&, int, const NumericVector&) = {
-        _median, _sum, _mean, _sd, _var, _min, _max
-        //0      //1   //2    //3  //4   //5   //6
-    };
-
     // compute window leg
     int leg = window_size / 2;
-
     // compute locus mirror
-    IntegerVector loci = locus_mirror(img_nrow, leg);
-    IntegerVector locj = locus_mirror(img_ncol, leg);
-
+    IntegerVector loci = locus_mirror(nrows, leg);
+    IntegerVector locj = locus_mirror(ncols, leg);
     // compute values for each pixel
-    for (int i = 0; i < img_nrow; ++i) {
-        for (int j = 0; j < img_ncol; ++j) {
+    for (int i = 0; i < nrows; ++i) {
+        for (int j = 0; j < ncols; ++j) {
             // window
             for (int wi = 0; wi < window_size; ++wi)
                 for (int wj = 0; wj < window_size; ++wj)
                     neigh(wi * window_size + wj) =
-                        data(loci(wi + i) * img_ncol + locj(wj + j), band);
+                        x(loci(wi + i) * ncols + locj(wj + j), band);
             // call specific function
-            (*_fun[fun])(res, i * img_ncol + j, neigh);
+            res(i * ncols + j) = _fun(neigh);
         }
     }
     return res;
+}
+
+// [[Rcpp::export]]
+NumericVector C_kernel_median(const NumericMatrix& x, int ncols,
+                              int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _median);
+}
+// [[Rcpp::export]]
+NumericVector C_kernel_sum(const NumericMatrix& x, int ncols,
+                           int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _sum);
+}
+// [[Rcpp::export]]
+NumericVector C_kernel_mean(const NumericMatrix& x, int ncols,
+                            int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _mean);
+}
+// [[Rcpp::export]]
+NumericVector C_kernel_sd(const NumericMatrix& x, int ncols,
+                          int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _sd);
+}
+// [[Rcpp::export]]
+NumericVector C_kernel_var(const NumericMatrix& x, int ncols,
+                           int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _var);
+}
+// [[Rcpp::export]]
+NumericVector C_kernel_min(const NumericMatrix& x, int ncols,
+                           int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _min);
+}
+// [[Rcpp::export]]
+NumericVector C_kernel_max(const NumericMatrix& x, int ncols,
+                           int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _max);
 }

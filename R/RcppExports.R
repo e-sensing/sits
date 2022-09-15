@@ -25,8 +25,32 @@ weighted_uncert_probs <- function(data_lst, unc_lst) {
     .Call(`_sits_weighted_uncert_probs`, data_lst, unc_lst)
 }
 
-C_kernel_fun <- function(data, band, img_nrow, img_ncol, window_size, fun) {
-    .Call(`_sits_C_kernel_fun`, data, band, img_nrow, img_ncol, window_size, fun)
+C_kernel_median <- function(x, ncols, nrows, band, window_size) {
+    .Call(`_sits_C_kernel_median`, x, ncols, nrows, band, window_size)
+}
+
+C_kernel_sum <- function(x, ncols, nrows, band, window_size) {
+    .Call(`_sits_C_kernel_sum`, x, ncols, nrows, band, window_size)
+}
+
+C_kernel_mean <- function(x, ncols, nrows, band, window_size) {
+    .Call(`_sits_C_kernel_mean`, x, ncols, nrows, band, window_size)
+}
+
+C_kernel_sd <- function(x, ncols, nrows, band, window_size) {
+    .Call(`_sits_C_kernel_sd`, x, ncols, nrows, band, window_size)
+}
+
+C_kernel_var <- function(x, ncols, nrows, band, window_size) {
+    .Call(`_sits_C_kernel_var`, x, ncols, nrows, band, window_size)
+}
+
+C_kernel_min <- function(x, ncols, nrows, band, window_size) {
+    .Call(`_sits_C_kernel_min`, x, ncols, nrows, band, window_size)
+}
+
+C_kernel_max <- function(x, ncols, nrows, band, window_size) {
+    .Call(`_sits_C_kernel_max`, x, ncols, nrows, band, window_size)
 }
 
 C_label_max_prob <- function(x) {

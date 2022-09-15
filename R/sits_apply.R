@@ -632,73 +632,66 @@ sits_apply.raster_cube <- function(data, ...,
 
     result_env <- list2env(list(
         w_median = function(m) {
-            C_kernel_fun(
-                data = m,
+            C_kernel_median(
+                x = m,
+                ncols = img_ncol,
+                nrows = img_nrow,
                 band = 0,
-                img_nrow = img_nrow,
-                img_ncol = img_ncol,
-                window_size = window_size,
-                fun = 0
+                window_size = window_size
             )
         },
         w_sum = function(m) {
-            C_kernel_fun(
-                data = m,
+            C_kernel_sum(
+                x = m,
+                ncols = img_ncol,
+                nrows = img_nrow,
                 band = 0,
-                img_nrow = img_nrow,
-                img_ncol = img_ncol,
-                window_size = window_size,
-                fun = 1
+                window_size = window_size
             )
         },
         w_mean = function(m) {
-            C_kernel_fun(
-                data = m,
+            C_kernel_mean(
+                x = m,
+                ncols = img_ncol,
+                nrows = img_nrow,
                 band = 0,
-                img_nrow = img_nrow,
-                img_ncol = img_ncol,
-                window_size = window_size,
-                fun = 2
+                window_size = window_size
             )
         },
         w_sd = function(m) {
-            C_kernel_fun(
-                data = m,
+            C_kernel_sd(
+                x = m,
+                ncols = img_ncol,
+                nrows = img_nrow,
                 band = 0,
-                img_nrow = img_nrow,
-                img_ncol = img_ncol,
-                window_size = window_size,
-                fun = 3
+                window_size = window_size
             )
         },
         w_var = function(m) {
-            C_kernel_fun(
-                data = m,
+            C_kernel_var(
+                x = m,
+                ncols = img_ncol,
+                nrows = img_nrow,
                 band = 0,
-                img_nrow = img_nrow,
-                img_ncol = img_ncol,
-                window_size = window_size,
-                fun = 4
+                window_size = window_size
             )
         },
         w_min = function(m) {
-            C_kernel_fun(
-                data = m,
+            C_kernel_min(
+                x = m,
+                ncols = img_ncol,
+                nrows = img_nrow,
                 band = 0,
-                img_nrow = img_nrow,
-                img_ncol = img_ncol,
-                window_size = window_size,
-                fun = 5
+                window_size = window_size
             )
         },
         w_max = function(m) {
-            C_kernel_fun(
-                data = m,
+            C_kernel_max(
+                x = m,
+                ncols = img_ncol,
+                nrows = img_nrow,
                 band = 0,
-                img_nrow = img_nrow,
-                img_ncol = img_ncol,
-                window_size = window_size,
-                fun = 6
+                window_size = window_size
             )
         }
     ), parent = parent.env(environment()), hash = TRUE)
