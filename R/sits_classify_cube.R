@@ -44,9 +44,7 @@
         message("(If you want to produce a new image, please ",
                 "change 'output_dir' or 'version' parameters)")
         probs_tile <- .tile_probs_from_file(
-            file = out_file,
-            band = "probs",
-            base_tile = tile,
+            file = out_file, band = "probs", base_tile = tile,
             labels = .ml_labels(ml_model)
         )
         return(probs_tile)
@@ -79,8 +77,7 @@
         block <- .block(job)
         # Output file name
         block_file <- .file_block_name(
-            pattern = .file_pattern(out_file),
-            block = block,
+            pattern = .file_pattern(out_file), block = block,
             output_dir = output_dir
         )
 
@@ -190,14 +187,14 @@
         )
 
         # Prepare probability to be saved
-        conf_band <- .conf_derived_band(
+        band_conf <- .conf_derived_band(
             derived_class = "probs_cube", band = "probs"
         )
-        offset <- .band_offset(conf_band)
+        offset <- .band_offset(band_conf)
         if (!is.null(offset) && offset != 0) {
             values <- values - offset
         }
-        scale <- .band_scale(conf_band)
+        scale <- .band_scale(band_conf)
         if (!is.null(scale) && scale != 1) {
             values <- values / scale
         }
@@ -216,11 +213,9 @@
 
         # Prepare and save results as raster
         .raster_write_block(
-            file = block_file,
-            block = block,
-            bbox = .bbox(job),
-            values = values,
-            data_type = .band_data_type(conf_band)
+            file = block_file, block = block, bbox = .bbox(job),
+            values = values, data_type = .band_data_type(band_conf),
+            missing_value = .band_miss_value(band_conf)
         )
 
         #
@@ -233,16 +228,13 @@
             value = block_file
         )
 
-        # Returned value
+        # Returned block file
         block_file
     })
     # Merge blocks into a new probs_cube tile
     probs_tile <- .tile_probs_merge_blocks(
-        file = out_file, band = "probs",
-        derived_class = "probs_cube",
-        labels = .ml_labels(ml_model),
-        base_tile = tile, block_files = block_files,
-        multicores = multicores
+        file = out_file, band = "probs", labels = .ml_labels(ml_model),
+        base_tile = tile, block_files = block_files, multicores = multicores
     )
     # # Callback final tile classification
     # .callback(event = "tile_classification", status = "end",
@@ -255,6 +247,6 @@
                 format(round(tile_end_time - tile_start_time, digits = 2)))
         message("")
     }
-
-    return(probs_tile)
+    # Return probs tile
+    probs_tile
 }
