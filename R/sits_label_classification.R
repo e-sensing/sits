@@ -48,11 +48,8 @@
 #'     plot(label_cube)
 #' }
 #' @export
-sits_label_classification <- function(cube,
-                                      multicores = 2,
-                                      memsize = 4,
-                                      output_dir = ".",
-                                      version = "v1") {
+sits_label_classification <- function(cube, multicores = 2, memsize = 4,
+                                      output_dir = getwd(), version = "v1") {
 
     # precondition - check if cube has probability data
     .check_is_probs_cube(cube)
@@ -64,6 +61,14 @@ sits_label_classification <- function(cube,
     .check_output_dir(output_dir)
     # precondition - version
     .check_version(version)
+
+    UseMethod("sits_label_classification", cube)
+}
+
+sits_label_classification.probs_cube <- function(cube, multicores = 2,
+                                                 memsize = 4,
+                                                 output_dir = getwd(),
+                                                 version = "v1") {
 
     # Get job size
     job_size <- .raster_file_blocksize(
@@ -96,9 +101,9 @@ sits_label_classification <- function(cube,
 
         # Classify the data
         class_tile <- .sits_label_tile(
-            tile = tile, label_fn = label_max_prob, memsize = memsize,
-            multicores = multicores, output_dir = output_dir,
-            version = version
+            tile = tile, band = "class", label_fn = C_label_max_prob,
+            memsize = memsize, multicores = multicores,
+            output_dir = output_dir, version = version
         )
 
         return(class_tile)
@@ -107,12 +112,14 @@ sits_label_classification <- function(cube,
     return(class_cube)
 }
 
-.sits_label_tile  <- function(tile, label_fn, memsize, multicores,
+#---- internal functions ----
+
+.sits_label_tile  <- function(tile, band, label_fn, memsize, multicores,
                               output_dir, version) {
 
     # Output file
     out_file <- .file_derived_name(
-        tile = tile, band = "class", version = version, output_dir = output_dir
+        tile = tile, band = band, version = version, output_dir = output_dir
     )
     # Resume feature
     if (file.exists(out_file)) {
@@ -123,9 +130,7 @@ sits_label_classification <- function(cube,
         message("(If you want to produce a new image, please ",
                 "change 'output_dir' or 'version' parameters)")
         class_tile <- .tile_class_from_file(
-            file = out_file,
-            band = "class",
-            base_tile = tile
+            file = out_file, band = band, base_tile = tile
         )
         return(class_tile)
     }
@@ -196,39 +201,34 @@ sits_label_classification <- function(cube,
         )
 
         # Prepare probability to be saved
-        conf_band <- .conf_derived_band(
-            derived_class = "class_cube", band = "class"
+        band_conf <- .conf_derived_band(
+            derived_class = "class_cube", band = band
         )
-        offset <- .band_offset(conf_band)
+        offset <- .band_offset(band_conf)
         if (!is.null(offset) && offset != 0) {
             values <- values - offset
         }
-        scale <- .band_scale(conf_band)
+        scale <- .band_scale(band_conf)
         if (!is.null(scale) && scale != 1) {
             values <- values / scale
         }
 
         # Prepare and save results as raster
         .raster_write_block(
-            file = block_file,
-            block = block,
-            bbox = .bbox(job),
-            values = values,
-            data_type = .band_data_type(conf_band)
+            file = block_file, block = block, bbox = .bbox(job),
+            values = values, data_type = .band_data_type(band_conf),
+            missing_value = .band_miss_value(band_conf)
         )
 
         # Returned value
         block_file
     })
-
     # Merge blocks into a new class_cube tile
     class_tile <- .tile_class_merge_blocks(
-        file = out_file, band = "class",
-        derived_class = "class_cube",
-        labels = .tile_labels(tile),
+        file = out_file, band = band, labels = .tile_labels(tile),
         base_tile = tile, block_files = block_files,
         multicores = multicores
     )
-
-    return(class_tile)
+    # Return class tile
+    class_tile
 }
