@@ -25,20 +25,12 @@ weighted_uncert_probs <- function(data_lst, unc_lst) {
     .Call(`_sits_weighted_uncert_probs`, data_lst, unc_lst)
 }
 
-entropy_probs <- function(mtx, n) {
-    .Call(`_sits_entropy_probs`, mtx, n)
+C_kernel_fun <- function(data, band, img_nrow, img_ncol, window_size, fun) {
+    .Call(`_sits_C_kernel_fun`, data, band, img_nrow, img_ncol, window_size, fun)
 }
 
-kernel_fun <- function(data, band, img_nrow, img_ncol, window_size, fun) {
-    .Call(`_sits_kernel_fun`, data, band, img_nrow, img_ncol, window_size, fun)
-}
-
-label_max_prob <- function(x) {
-    .Call(`_sits_label_max_prob`, x)
-}
-
-least_probs <- function(mtx, n) {
-    .Call(`_sits_least_probs`, mtx, n)
+C_label_max_prob <- function(x) {
+    .Call(`_sits_C_label_max_prob`, x)
 }
 
 linear_interp <- function(mtx) {
@@ -49,20 +41,12 @@ linear_interp_vec <- function(vec) {
     .Call(`_sits_linear_interp_vec`, vec)
 }
 
-margin_probs <- function(mtx, n) {
-    .Call(`_sits_margin_probs`, mtx, n)
-}
-
 nnls_solver <- function(x, A, iterate = 400L, tolerance = 0.000001) {
     .Call(`_sits_nnls_solver`, x, A, iterate, tolerance)
 }
 
 normalize_data <- function(data, min, max) {
     .Call(`_sits_normalize_data`, data, min, max)
-}
-
-ratio_probs <- function(mtx, n) {
-    .Call(`_sits_ratio_probs`, mtx, n)
 }
 
 max_sampling <- function(data, band, img_nrow, img_ncol, window_size) {
@@ -83,5 +67,17 @@ smooth_whit <- function(data, lambda, length) {
 
 smooth_whit_mtx <- function(data, lambda, length) {
     .Call(`_sits_smooth_whit_mtx`, data, lambda, length)
+}
+
+C_entropy_probs <- function(x) {
+    .Call(`_sits_C_entropy_probs`, x)
+}
+
+C_margin_probs <- function(x) {
+    .Call(`_sits_C_margin_probs`, x)
+}
+
+C_least_probs <- function(x) {
+    .Call(`_sits_C_least_probs`, x)
 }
 
