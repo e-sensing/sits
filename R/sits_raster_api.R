@@ -841,11 +841,12 @@
         return(FALSE)
     }
     # try to open the file
-    r_obj <- tryCatch({
+    r_obj <- .try({
         .raster_open_rast(file)
     },
-    error = function(e) {
-        return(NULL)
+    .default = {
+        unlink(file)
+        NULL
     })
     # File is not valid
     if (is.null(r_obj)) {
@@ -854,14 +855,14 @@
     # if file can be opened, check if the result is correct
     # this file will not be processed again
     # Verify if the raster is corrupted
-    tryCatch({
+    .try({
         .raster_get_values(r_obj)
-        return(TRUE)
+        TRUE
     },
-    error = function(e) {
+    .default = {
         unlink(file)
+        FALSE
     })
-    return(FALSE)
 }
 
 .raster_write_block <- function(file, block, bbox, values, data_type,
