@@ -91,6 +91,15 @@
     vapply(values_lst, c, NA_character_)
 }
 
+.jobs_map_dfr <- function(jobs, fn, fn_value, ...) {
+    do.call(rbind, lapply(jobs, fn, ...))
+}
+
+.jobs_map_dfc <- function(jobs, fn, fn_value, ...) {
+    do.call(cbind, lapply(jobs, fn, ...))
+}
+
+
 .jobs_remove_overlap <- function(job) {
     list(
         col = min(job$overlap + 1, job$col),
