@@ -92,21 +92,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// entropy_probs
-IntegerVector entropy_probs(const IntegerMatrix& mtx, const int& n);
-RcppExport SEXP _sits_entropy_probs(SEXP mtxSEXP, SEXP nSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type mtx(mtxSEXP);
-    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
-    rcpp_result_gen = Rcpp::wrap(entropy_probs(mtx, n));
-    return rcpp_result_gen;
-END_RCPP
-}
-// kernel_fun
-NumericVector kernel_fun(const NumericMatrix& data, const int band, const int img_nrow, const int img_ncol, const int window_size, const int fun);
-RcppExport SEXP _sits_kernel_fun(SEXP dataSEXP, SEXP bandSEXP, SEXP img_nrowSEXP, SEXP img_ncolSEXP, SEXP window_sizeSEXP, SEXP funSEXP) {
+// C_kernel_fun
+NumericVector C_kernel_fun(const NumericMatrix& data, const int band, const int img_nrow, const int img_ncol, const int window_size, const int fun);
+RcppExport SEXP _sits_C_kernel_fun(SEXP dataSEXP, SEXP bandSEXP, SEXP img_nrowSEXP, SEXP img_ncolSEXP, SEXP window_sizeSEXP, SEXP funSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -116,30 +104,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type img_ncol(img_ncolSEXP);
     Rcpp::traits::input_parameter< const int >::type window_size(window_sizeSEXP);
     Rcpp::traits::input_parameter< const int >::type fun(funSEXP);
-    rcpp_result_gen = Rcpp::wrap(kernel_fun(data, band, img_nrow, img_ncol, window_size, fun));
+    rcpp_result_gen = Rcpp::wrap(C_kernel_fun(data, band, img_nrow, img_ncol, window_size, fun));
     return rcpp_result_gen;
 END_RCPP
 }
-// label_max_prob
-arma::ucolvec label_max_prob(const arma::mat& x);
-RcppExport SEXP _sits_label_max_prob(SEXP xSEXP) {
+// C_label_max_prob
+arma::ucolvec C_label_max_prob(const arma::mat& x);
+RcppExport SEXP _sits_C_label_max_prob(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(label_max_prob(x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// least_probs
-IntegerVector least_probs(const IntegerMatrix& mtx, const int& n);
-RcppExport SEXP _sits_least_probs(SEXP mtxSEXP, SEXP nSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type mtx(mtxSEXP);
-    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
-    rcpp_result_gen = Rcpp::wrap(least_probs(mtx, n));
+    rcpp_result_gen = Rcpp::wrap(C_label_max_prob(x));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -162,18 +138,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector& >::type vec(vecSEXP);
     rcpp_result_gen = Rcpp::wrap(linear_interp_vec(vec));
-    return rcpp_result_gen;
-END_RCPP
-}
-// margin_probs
-IntegerVector margin_probs(const IntegerMatrix& mtx, const int& n);
-RcppExport SEXP _sits_margin_probs(SEXP mtxSEXP, SEXP nSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type mtx(mtxSEXP);
-    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
-    rcpp_result_gen = Rcpp::wrap(margin_probs(mtx, n));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -201,18 +165,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type min(minSEXP);
     Rcpp::traits::input_parameter< const double& >::type max(maxSEXP);
     rcpp_result_gen = Rcpp::wrap(normalize_data(data, min, max));
-    return rcpp_result_gen;
-END_RCPP
-}
-// ratio_probs
-IntegerVector ratio_probs(const IntegerMatrix& mtx, const int& n);
-RcppExport SEXP _sits_ratio_probs(SEXP mtxSEXP, SEXP nSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type mtx(mtxSEXP);
-    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
-    rcpp_result_gen = Rcpp::wrap(ratio_probs(mtx, n));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -285,6 +237,39 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// C_entropy_probs
+arma::mat C_entropy_probs(const arma::mat& x);
+RcppExport SEXP _sits_C_entropy_probs(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_entropy_probs(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_margin_probs
+arma::mat C_margin_probs(const arma::mat& x);
+RcppExport SEXP _sits_C_margin_probs(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_margin_probs(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_least_probs
+arma::mat C_least_probs(const arma::mat& x);
+RcppExport SEXP _sits_C_least_probs(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_least_probs(x));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_sits_bayes_smoother", (DL_FUNC) &_sits_bayes_smoother, 6},
@@ -293,21 +278,20 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_average_probs", (DL_FUNC) &_sits_average_probs, 1},
     {"_sits_weighted_probs", (DL_FUNC) &_sits_weighted_probs, 2},
     {"_sits_weighted_uncert_probs", (DL_FUNC) &_sits_weighted_uncert_probs, 2},
-    {"_sits_entropy_probs", (DL_FUNC) &_sits_entropy_probs, 2},
-    {"_sits_kernel_fun", (DL_FUNC) &_sits_kernel_fun, 6},
-    {"_sits_label_max_prob", (DL_FUNC) &_sits_label_max_prob, 1},
-    {"_sits_least_probs", (DL_FUNC) &_sits_least_probs, 2},
+    {"_sits_C_kernel_fun", (DL_FUNC) &_sits_C_kernel_fun, 6},
+    {"_sits_C_label_max_prob", (DL_FUNC) &_sits_C_label_max_prob, 1},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
-    {"_sits_margin_probs", (DL_FUNC) &_sits_margin_probs, 2},
     {"_sits_nnls_solver", (DL_FUNC) &_sits_nnls_solver, 4},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
-    {"_sits_ratio_probs", (DL_FUNC) &_sits_ratio_probs, 2},
     {"_sits_max_sampling", (DL_FUNC) &_sits_max_sampling, 5},
     {"_sits_smooth_sg", (DL_FUNC) &_sits_smooth_sg, 4},
     {"_sits_smooth_sg_mtx", (DL_FUNC) &_sits_smooth_sg_mtx, 4},
     {"_sits_smooth_whit", (DL_FUNC) &_sits_smooth_whit, 3},
     {"_sits_smooth_whit_mtx", (DL_FUNC) &_sits_smooth_whit_mtx, 3},
+    {"_sits_C_entropy_probs", (DL_FUNC) &_sits_C_entropy_probs, 1},
+    {"_sits_C_margin_probs", (DL_FUNC) &_sits_C_margin_probs, 1},
+    {"_sits_C_least_probs", (DL_FUNC) &_sits_C_least_probs, 1},
     {NULL, NULL, 0}
 };
 

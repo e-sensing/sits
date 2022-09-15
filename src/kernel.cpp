@@ -2,6 +2,7 @@
 
 using namespace Rcpp;
 
+// compute outside indices of a vector as a mirror
 IntegerVector locus_mirror(int size, int leg) {
     IntegerVector res(size + 2 * leg);
     for (int i = 0; i < res.length(); ++i) {
@@ -15,7 +16,7 @@ IntegerVector locus_mirror(int size, int leg) {
     return res;
 }
 
-// functions
+// kernel functions
 void _median(NumericVector& res, int i, const NumericVector& neigh) {
     res(i) = median(neigh, true);
 }
@@ -39,12 +40,9 @@ void _max(NumericVector& res, int i, const NumericVector& neigh) {
 }
 
 // [[Rcpp::export]]
-NumericVector kernel_fun(const NumericMatrix& data,
-                         const int band,
-                         const int img_nrow,
-                         const int img_ncol,
-                         const int window_size,
-                         const int fun) {
+NumericVector C_kernel_fun(const NumericMatrix& data, const int band,
+                           const int img_nrow, const int img_ncol,
+                           const int window_size, const int fun) {
 
     // initialize result vectors
     NumericVector res(data.nrow());
