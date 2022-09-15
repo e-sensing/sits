@@ -17,10 +17,13 @@
     cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
     # Read and preprocess values from each band
     values <- .ml_foreach_band(ml_model, function(band) {
-
         # Get band values
         values <- .tile_read_block(tile = tile, band = band, block = block)
-
+        # Check if there are values
+        .check_null(
+            x = values,
+            msg = paste0("invalid data read from band '", band, "'")
+        )
 
         #
         # Log here

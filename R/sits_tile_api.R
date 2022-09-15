@@ -449,7 +449,7 @@
 
 
     # Read values from all files in file_info
-    .raster_read_rast(files = files, block = block)
+    values <- .raster_read_rast(files = files, block = block)
 
 
     #
@@ -461,6 +461,8 @@
         value = band
     )
 
+    # Return values
+    values
 }
 
 .fi_foreach_image <- function(fi, fn, ...) {
