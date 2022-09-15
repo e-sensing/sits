@@ -19,31 +19,31 @@ IntegerVector locus_mirror(int size, int leg) {
 typedef double _kernel_fun(const NumericVector&);
 
 // kernel functions
-double _median(const NumericVector& neigh) {
+inline double _median(const NumericVector& neigh) {
     return median(neigh, true);
 }
-double _sum(const NumericVector& neigh) {
+inline double _sum(const NumericVector& neigh) {
     return sum(na_omit(neigh));
 }
-double _mean(const NumericVector& neigh) {
+inline double _mean(const NumericVector& neigh) {
     return mean(na_omit(neigh));
 }
-double _sd(const NumericVector& neigh) {
+inline double _sd(const NumericVector& neigh) {
     return sd(na_omit(neigh));
 }
-double _var(const NumericVector& neigh) {
+inline double _var(const NumericVector& neigh) {
     return var(na_omit(neigh));
 }
-double _min(const NumericVector& neigh) {
+inline double _min(const NumericVector& neigh) {
     return min(na_omit(neigh));
 }
-double _max(const NumericVector& neigh) {
+inline double _max(const NumericVector& neigh) {
     return max(na_omit(neigh));
 }
 
-inline NumericVector kernel_fun(const NumericMatrix& x, int ncols,
-                                int nrows, int band, int window_size,
-                                _kernel_fun _fun) {
+NumericVector kernel_fun(const NumericMatrix& x, int ncols,
+                         int nrows, int band, int window_size,
+                         _kernel_fun _fun) {
     // initialize result vectors
     NumericVector res(x.nrow());
     NumericVector neigh(window_size * window_size);
