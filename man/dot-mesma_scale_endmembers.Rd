@@ -2,14 +2,15 @@
 % Please edit documentation in R/sits_mixture_model.R
 \name{.mesma_scale_endmembers}
 \alias{.mesma_scale_endmembers}
+\alias{.mm_scale_endmembers}
 \title{Scale the endmembers spectra}
 \usage{
-.mesma_scale_endmembers(cube, endmembers_spectra)
+.mm_scale_endmembers(endmembers, cube)
 }
 \arguments{
-\item{cube}{Data cube.}
+\item{endmembers}{Tibble with endmembers spectra values.}
 
-\item{endmembers_spectra}{Tibble with endmembers spectra values.}
+\item{cube}{Data cube.}
 }
 \value{
 a matrix with spectral values scaled.
