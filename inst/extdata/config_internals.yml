@@ -96,9 +96,9 @@ default_values       :
 # Derived cube definitions
 derived_cube         :
     probs_cube       :
-        s3_class     : ["probs_cube", "derived_cube", "raster_cube"]
+        s3_class     : [ "probs_cube", "derived_cube", "raster_cube" ]
         bands        :
-            probs    : &probs_cube
+            probs    : &int2u_0_10000
                 data_type    : "INT2U"
                 missing_value: 65535
                 minimum_value: 0
@@ -106,11 +106,20 @@ derived_cube         :
                 offset_value : 0
                 scale_factor : 0.0001
             bayes    :
-                <<: *probs_cube
+                <<: *int2u_0_10000
             bilat    :
-                <<: *probs_cube
+                <<: *int2u_0_10000
+    uncertainty_cube :
+        s3_class     : [ "uncertainty_cube", "derived_cube", "raster_cube" ]
+        bands        :
+            least    :
+                <<: *int2u_0_10000
+            entropy  :
+                <<: *int2u_0_10000
+            margin   :
+                <<: *int2u_0_10000
     class_cube       :
-        s3_class     : ["class_cube", "derived_cube", "raster_cube"]
+        s3_class     : [ "class_cube", "derived_cube", "raster_cube" ]
         bands        :
             class    :
                 data_type    : "INT1U"
