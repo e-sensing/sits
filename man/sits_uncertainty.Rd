@@ -21,19 +21,16 @@ sits_uncertainty(
 
 \item{window_size}{Size of neighborhood to calculate entropy.}
 
-\item{memsize}{Maximum overall memory (in GB) to run the
-function.}
+\item{memsize}{Maximum overall memory (in GB) to run the function.}
 
 \item{multicores}{Number of cores to run the function.}
 
 \item{output_dir}{Output directory for image files.}
 
-\item{version}{Version of resulting image.
-(in the case of multiple tests)}
+\item{version}{Version of resulting image (in the case of
+multiple tests).}
 
 \item{...}{Parameters for specific functions.}
-
-\item{window_fn}{Function to be applied in entropy calculation.}
 }
 \value{
 An uncertainty data cube
