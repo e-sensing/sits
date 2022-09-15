@@ -83,6 +83,8 @@ sits_uncertainty <- function(cube, type = "least", window_size = 5,
     UseMethod("sits_uncertainty", cube)
 }
 
+#' @rdname sits_uncertainty
+#' @export
 sits_uncertainty.probs_cube <- function(cube, type = "least", window_size = 5,
                                         memsize = 4, multicores = 2,
                                         output_dir = getwd(), version = "v1") {

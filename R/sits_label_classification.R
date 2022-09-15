@@ -65,6 +65,8 @@ sits_label_classification <- function(cube, multicores = 2, memsize = 4,
     UseMethod("sits_label_classification", cube)
 }
 
+#' @rdname sits_label_classification
+#' @export
 sits_label_classification.probs_cube <- function(cube, multicores = 2,
                                                  memsize = 4,
                                                  output_dir = getwd(),
