@@ -711,8 +711,7 @@
 
 # ---- tile probs api ----
 
-.tile_probs_from_file <- function(file, band, derived_class,
-                                  base_tile, labels) {
+.tile_probs_from_file <- function(file, band, base_tile, labels) {
     # Open block file to be merged
     r_obj <- .raster_open_rast(file)
     # Check number of labels is correct
@@ -725,16 +724,15 @@
         file = file,
         band = band,
         base_tile = base_tile,
-        derived_class = derived_class,
+        derived_class = "probs_cube",
         labels = labels
     )
 }
 
-.tile_probs_merge_blocks <- function(file, band, derived_class,
-                                     labels, base_tile,
+.tile_probs_merge_blocks <- function(file, band, labels, base_tile,
                                      block_files, multicores) {
     # Get conf band
-    conf_band <- .conf_derived_band(derived_class = derived_class, band = band)
+    conf_band <- .conf_derived_band(derived_class = "probs_cube", band = band)
     # Get data type
     data_type <- .band_data_type(conf_band)
     # Create a template raster based on the first image of the tile
@@ -748,7 +746,7 @@
     )
     # Create tile based on template
     tile <- .tile_probs_from_file(
-        file = file, band = band, derived_class = derived_class,
+        file = file, band = band,
         base_tile = base_tile, labels = labels
     )
     # If all goes well, delete block files
@@ -803,6 +801,25 @@
 }
 
 #---- cube api (generics) ----
+.cube_select <- function(cube, bands) {
+    UseMethod(".cube_select", cube)
+}
+
+.cube_select.raster_cube <- function(cube, bands) {
+    .cube_foreach_tile(cube, function(tile) {
+        # default bands
+        if (is.null(bands)) {
+            bands <- .cube_bands(tile)
+        }
+
+        # pre-condition - check bands
+        .check_cube_bands(tile, bands = bands)
+
+        db_info <- .fi_band_filter(.fi(tile), band = bands)
+        tile$file_info[[1]] <- db_info
+        return(tile)
+    })
+}
 
 .cube_foreach_tile <- function(cube, fn, ...) {
     UseMethod(".cube_foreach_tile", cube)
