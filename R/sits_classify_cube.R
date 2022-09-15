@@ -88,7 +88,6 @@
             # log
             #
             .sits_debug_log(
-                output_dir = output_dir,
                 event = "start_classification_block_validation",
                 key = "block_file",
                 value = block_file
@@ -109,7 +108,6 @@
                     # log
                     #
                     .sits_debug_log(
-                        output_dir = output_dir,
                         event = "end_classification_block_validation",
                         key = "is_valid",
                         value = TRUE
@@ -125,7 +123,6 @@
                     # log
                     #
                     .sits_debug_log(
-                        output_dir = output_dir,
                         event = "end_classification_block_validation",
                         key = "is_valid",
                         value = FALSE
@@ -148,17 +145,15 @@
         # Read and preprocess values
         values <- .sits_classify_data_read(
             tile = tile, block = block, ml_model = ml_model,
-            impute_fn = impute_fn, filter_fn = filter_fn,
-            output_dir = output_dir
+            impute_fn = impute_fn, filter_fn = filter_fn
         )
-        # Avoid memory bloat
+        # Used to check values
         original_nrows <- nrow(values)
 
         #
         # Log here
         #
         .sits_debug_log(
-            output_dir = output_dir,
             event = "start_block_data_classification",
             key = "model",
             value = .ml_class(ml_model)
@@ -180,7 +175,6 @@
         # Log here
         #
         .sits_debug_log(
-            output_dir = output_dir,
             event = "end_block_data_classification",
             key = "model",
             value = .ml_class(ml_model)
@@ -204,7 +198,6 @@
         # Log here
         #
         .sits_debug_log(
-            output_dir = output_dir,
             event = "start_block_data_save",
             key = "file",
             value = block_file
@@ -222,7 +215,6 @@
         # Log here
         #
         .sits_debug_log(
-            output_dir = output_dir,
             event = "end_block_data_save",
             key = "file",
             value = block_file

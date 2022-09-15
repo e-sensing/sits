@@ -9,10 +9,9 @@
 #' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
 #' @param  filter_fn       Smoothing filter function to be applied to the data.
 #' @param  impute_fn       Impute function to replace NA.
-#' @param  output_dir      Output directory.
 #' @return A matrix with values for classification.
 .sits_classify_data_read <- function(tile, block, ml_model, impute_fn,
-                                     filter_fn, output_dir) {
+                                     filter_fn) {
     # Read and preprocess values from cloud
     # Get cloud values (NULL if not exists)
     cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
@@ -27,7 +26,6 @@
         # Log here
         #
         .sits_debug_log(
-            output_dir = output_dir,
             event = "start_block_data_process",
             key = "process",
             value = "cloud-impute-filter"
@@ -58,7 +56,6 @@
         # Log here
         #
         .sits_debug_log(
-            output_dir = output_dir,
             event = "end_block_data_process",
             key = "band",
             value = band

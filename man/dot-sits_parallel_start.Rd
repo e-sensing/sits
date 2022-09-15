@@ -4,7 +4,7 @@
 \alias{.sits_parallel_start}
 \title{Start a new sits cluster for parallel processing}
 \usage{
-.sits_parallel_start(workers, log)
+.sits_parallel_start(workers, log, output_dir = getwd())
 }
 \arguments{
 \item{workers}{number of cluster to instantiate}

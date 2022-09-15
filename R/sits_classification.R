@@ -231,7 +231,8 @@ sits_classify.raster_cube <- function(data,
     }
 
     # Prepare parallel processing
-    .sits_parallel_start(workers = multicores, log = verbose)
+    .sits_parallel_start(workers = multicores, log = verbose,
+                         output_dir = output_dir)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # # Callback final tile classification

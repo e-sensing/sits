@@ -43,7 +43,9 @@
 #' @param log       a logical indicating if log files must be written
 #' @return No value, called for side effect.
 #'
-.sits_parallel_start <- function(workers, log) {
+.sits_parallel_start <- function(workers, log, output_dir = getwd()) {
+    # Set output_dir
+    sits_env$output_dir <- output_dir
     .sits_debug(flag = log)
     if (!.sits_parallel_is_open() ||
         length(sits_env[["cluster"]]) != workers) {

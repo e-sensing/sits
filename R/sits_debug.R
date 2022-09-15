@@ -26,7 +26,6 @@
 #' flag is TRUE
 #'
 #' @param flag         A logical value to set the debug flag
-#' @param output_dir   Output directory to write log file
 #' @param event        The name of the event to be logged
 #' @param key          A key describing the value.
 #' @param value        Any value to be logged. The value will be converted
@@ -36,12 +35,16 @@
 NULL
 
 #' @rdname sits_debug_log
-.sits_debug_log <- function(output_dir = ".", event = "", key = "",
-                            value = "") {
+.sits_debug_log <- function(event = "", key = "", value = "") {
 
     # if debug flag is FALSE, then exit
     if (!.sits_debug()) {
         return(invisible(NULL))
+    }
+    # Get output_dir
+    output_dir <- sits_env$output_dir
+    if (is.null(output_dir)) {
+        output_dir <- getwd()
     }
 
     # record time to compute elapsed time

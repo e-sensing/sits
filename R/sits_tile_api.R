@@ -442,7 +442,6 @@
     # Log here
     #
     .sits_debug_log(
-        output_dir = output_dir,
         event = "start_block_data_read",
         key = "band",
         value = band
@@ -457,7 +456,6 @@
     # Log here
     #
     .sits_debug_log(
-        output_dir = output_dir,
         event = "end_block_data_read",
         key = "band",
         value = band
@@ -794,7 +792,6 @@
     # Log here
     #
     .sits_debug_log(
-        output_dir = output_dir,
         event = "start_block_data_process",
         key = "band",
         value = band
@@ -830,7 +827,6 @@
     # Log here
     #
     .sits_debug_log(
-        output_dir = output_dir,
         event = "end_block_data_process",
         key = "band",
         value = band
@@ -852,7 +848,6 @@
     # Log here
     #
     .sits_debug_log(
-        output_dir = output_dir,
         event = "start_block_data_process",
         key = "band",
         value = band
@@ -888,7 +883,6 @@
     # Log here
     #
     .sits_debug_log(
-        output_dir = output_dir,
         event = "end_block_data_process",
         key = "band",
         value = band
@@ -920,7 +914,6 @@
     # Log here
     #
     .sits_debug_log(
-        output_dir = output_dir,
         event = "start_block_data_process",
         key = "cloud_mask",
         value = "cloud_mask"
@@ -946,7 +939,6 @@
     # Log here
     #
     .sits_debug_log(
-        output_dir = output_dir,
         event = "end_block_data_process",
         key = "cloud_bit_mask",
         value = is_bit_mask
