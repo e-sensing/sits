@@ -6,6 +6,13 @@
 \usage{
 .cube_timeline_acquisiton(cube, period, origin)
 }
+\arguments{
+\item{cube}{A cube.}
+
+\item{period}{Period character vector in ISO format.}
+
+\item{origin}{A date.}
+}
 \value{
 tibble
 }

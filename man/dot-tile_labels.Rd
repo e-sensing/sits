@@ -9,6 +9,11 @@
 
 .tile_labels(tile) <- value
 }
+\arguments{
+\item{tile}{A tile.}
+
+\item{value}{Label character vector.}
+}
 \value{
 character
 

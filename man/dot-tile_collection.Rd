@@ -6,6 +6,9 @@
 \usage{
 .tile_collection(tile)
 }
+\arguments{
+\item{tile}{A tile.}
+}
 \value{
 character
 }

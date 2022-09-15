@@ -6,6 +6,9 @@
 \usage{
 .tile_derived_class(tile)
 }
+\arguments{
+\item{tile}{A tile.}
+}
 \value{
 character
 }

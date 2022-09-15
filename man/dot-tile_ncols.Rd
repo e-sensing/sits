@@ -6,11 +6,14 @@
 \usage{
 .tile_ncols(tile)
 }
+\arguments{
+\item{tile}{A tile.}
+}
 \value{
 integer
 }
 \description{
-Get number of image columns from 'ncols' field (if it exists)
-or from unique 'ncols' in file_info (which can be more than one if tile
-images has multiples 'ncols').
+Get number of image columns from \code{ncols} field (if it exists)
+or from unique \code{ncols} in file_info (which can be more than one if tile
+images has multiples \code{ncols}).
 }

@@ -6,6 +6,9 @@
 \usage{
 .cube_end_date(cube)
 }
+\arguments{
+\item{cube}{A cube.}
+}
 \value{
 date
 }

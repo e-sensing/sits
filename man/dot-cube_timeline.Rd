@@ -6,6 +6,9 @@
 \usage{
 .cube_timeline(cube)
 }
+\arguments{
+\item{cube}{A cube.}
+}
 \value{
 date or list(date)
 }

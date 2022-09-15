@@ -6,6 +6,9 @@
 \usage{
 .tile_timeline(tile)
 }
+\arguments{
+\item{tile}{A tile.}
+}
 \value{
 date
 }

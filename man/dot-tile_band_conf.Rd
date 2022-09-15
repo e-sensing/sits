@@ -6,6 +6,11 @@
 \usage{
 .tile_band_conf(tile, band)
 }
+\arguments{
+\item{tile}{A tile.}
+
+\item{band}{Band character vector.}
+}
 \value{
 band_conf or band_cloud_conf
 }

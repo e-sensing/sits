@@ -6,6 +6,9 @@
 \usage{
 .tile_bands(tile)
 }
+\arguments{
+\item{tile}{A tile.}
+}
 \value{
 character
 }

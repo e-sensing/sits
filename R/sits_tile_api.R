@@ -472,6 +472,7 @@
 #---- | .tile() ----
 
 #' @title Tile API
+#' @param cube A cube.
 #' @description Get first tile of a cube.
 #' @return tile
 .tile <- function(cube) {
@@ -485,6 +486,7 @@
 
 #---- | .tile_source() ----
 #' @title Tile API
+#' @param tile A tile.
 #' @description Get tile source field.
 #' @return character
 .tile_source <- function(tile) {
@@ -499,6 +501,7 @@
 
 #---- | .tile_collection() ----
 #' @title Tile API
+#' @param tile A tile.
 #' @description Get tile collection field.
 #' @return character
 .tile_collection <- function(tile) {
@@ -513,6 +516,7 @@
 
 #---- | .tile_name() ----
 #' @title Tile API
+#' @param tile A tile.
 #' @description Get tile name field.
 #' @return character
 .tile_name <- function(tile) {
@@ -527,6 +531,7 @@
 
 #---- | .tile_labels() ----
 #' @title Tile API
+#' @param tile A tile.
 #' @description Get tile labels field.
 #' @return character
 .tile_labels <- function(tile) {
@@ -540,6 +545,7 @@
 }
 
 #' @name .tile_labels
+#' @param value Label character vector.
 #' @description Set tile labels field.
 #' @return tile
 `.tile_labels<-` <- function(tile, value) {
@@ -549,12 +555,13 @@
 #' @export
 `.tile_labels<-.raster_cube` <- function(tile, value) {
     tile <- .tile(tile)
-    tile[["labels"]] <- list(value)
+    tile[["labels"]] <- list(as.character(value))
     tile
 }
 
 #---- | .tile_file_info() ----
 #' @title Tile API
+#' @param tile A tile.
 #' @description Get tile file_info field.
 #' @return file_info
 .tile_file_info <- function(tile) {
@@ -567,6 +574,7 @@
 }
 
 #' @name .tile_file_info
+#' @param value A file_info tibble.
 #' @description Set tile file_info field.
 #' @return tile
 `.tile_file_info<-` <- function(tile, value) {
@@ -582,7 +590,8 @@
 
 #---- | .tile_as_sf() ----
 #' @title Tile API
-#' @description Convert tile 'bbox' to a sf polygon object.
+#' @param tile A tile.
+#' @description Convert tile \code{bbox} to a sf polygon object.
 #' @return file_info
 .tile_as_sf <- function(tile) {
     UseMethod(".tile_as_sf", tile)
@@ -595,6 +604,7 @@
 
 #---- | .tile_start_date() ----
 #' @title Tile API
+#' @param tile A tile.
 #' @description Get first date from file_info.
 #' @return date
 .tile_start_date <- function(tile) {
@@ -608,6 +618,7 @@
 
 #---- | .tile_end_date() ----
 #' @title Tile API
+#' @param tile A tile.
 #' @description Get end date from file_info.
 #' @return date
 .tile_end_date <- function(tile) {
@@ -621,6 +632,7 @@
 
 #---- | .tile_timeline() ----
 #' @title Tile API
+#' @param tile A tile.
 #' @description Get unique timeline from file_info.
 #' @return date
 .tile_timeline <- function(tile) {
@@ -634,6 +646,7 @@
 
 #---- | .tile_bands() ----
 #' @title Tile API
+#' @param tile A tile.
 #' @description Get sorted unique bands from file_info.
 #' @return character
 .tile_bands <- function(tile) {
@@ -647,6 +660,8 @@
 
 #---- | .tile_band_conf() ----
 #' @title Tile API
+#' @param tile A tile.
+#' @param band Band character vector.
 #' @description Get a band definition from config.
 #' @return band_conf or band_cloud_conf
 .tile_band_conf <- function(tile, band) {
@@ -657,7 +672,7 @@
 .tile_band_conf.eo_cube <- function(tile, band) {
     .conf_eo_band(
         source = .tile_source(tile), collection = .tile_collection(tile),
-        band = band
+        band = band[[1]]
     )
 }
 
@@ -668,9 +683,10 @@
 
 #---- | .tile_ncols() ----
 #' @title Tile API
-#' @description Get number of image columns from 'ncols' field (if it exists)
-#' or from unique 'ncols' in file_info (which can be more than one if tile
-#' images has multiples 'ncols').
+#' @param tile A tile.
+#' @description Get number of image columns from \code{ncols} field (if it exists)
+#' or from unique \code{ncols} in file_info (which can be more than one if tile
+#' images has multiples \code{ncols}).
 #' @return integer
 .tile_ncols <- function(tile) {
     UseMethod(".tile_ncols", tile)
@@ -684,9 +700,10 @@
 
 #---- | .tile_nrows() ----
 #' @title Tile API
-#' @description Get number of image columns from 'nrows' field (if it exists)
-#' or from unique 'nrows' in file_info (which can be more than one if tile
-#' images has multiples 'nrows').
+#' @param tile A tile.
+#' @description Get number of image columns from \code{nrows} field (if it exists)
+#' or from unique \code{nrows} in file_info (which can be more than one if tile
+#' images has multiples \code{nrows}).
 #' @return integer
 .tile_nrows <- function(tile) {
     UseMethod(".tile_nrows", tile)
@@ -700,7 +717,9 @@
 
 #---- | .tile_intersects() ----
 #' @title Tile API
-#' @description Does tile 'bbox' intersect 'roi' parameter?
+#' @param tile A tile.
+#' @param roi A region of interest (ROI).
+#' @description Does tile \code{bbox} intersect \code{roi} parameter?
 #' @return logical
 .tile_intersects <- function(tile, roi) {
     UseMethod(".tile_intersects", tile)
@@ -713,7 +732,9 @@
 
 #---- | .tile_spatial_filter() ----
 #' @title Tile API
-#' @description Filter file_info entries that intersect 'roi' parameter.
+#' @param tile A tile.
+#' @param roi A region of interest (ROI).
+#' @description Filter file_info entries that intersect \code{roi} parameter.
 #' @return logical
 .tile_spatial_filter <- function(tile, roi) {
     UseMethod(".tile_spatial_filter", tile)
@@ -728,6 +749,8 @@
 
 #---- | .tile_during() ----
 #' @title Tile API
+#' @param tile A tile.
+#' @param start_date,end_date Date of start and end.
 #' @description Is any date of tile's timeline between 'start_date'
 #' and 'end_date'?
 #' @return logical
@@ -744,6 +767,8 @@
 
 #---- | .tile_temporal_filter() ----
 #' @title Tile API
+#' @param tile A tile.
+#' @param start_date,end_date Date of start and end.
 #' @description Filter file_info entries by 'start_date' and 'end_date.'
 #' @return tile
 .tile_temporal_filter <- function(tile, start_date, end_date) {
@@ -761,6 +786,7 @@
 
 #---- | .tile_derived_class() ----
 #' @title Tile API
+#' @param tile A tile.
 #' @description Get derived class of a tile.
 #' @return character
 .tile_derived_class <- function(tile) {
@@ -774,7 +800,10 @@
 
 #---- | .tile_read_block() ----
 #' @title Tile API
-#' @description Read and preprocess a 'block' of 'band' values from
+#' @param tile A tile.
+#' @param band Band character vector.
+#' @param block A block list with (col, row, ncols, nrows).
+#' @description Read and preprocess a \code{block} of \code{band} values from
 #' file_info rasters.
 #' @return numeric
 .tile_read_block <- function(tile, band, block) {
@@ -895,7 +924,9 @@
 
 #---- | .tile_cloud_read_block() ----
 #' @title Tile API
-#' @description Read and preprocess a 'block' of cloud values from
+#' @param tile A tile.
+#' @param block A block list with (col, row, ncols, nrows).
+#' @description Read and preprocess a \code{block} of cloud values from
 #' file_info rasters.
 #' @return numeric
 .tile_cloud_read_block <- function(tile, block) {
@@ -973,7 +1004,6 @@
 }
 
 # ---- | <probs_cube> ----
-
 .tile_probs_from_file <- function(file, band, base_tile, labels) {
     # Open block file to be merged
     r_obj <- .raster_open_rast(file)
@@ -1012,7 +1042,6 @@
 }
 
 # ---- | <class_cube> ----
-
 .tile_class_from_file <- function(file, band, base_tile) {
     .tile_derived_from_file(
         file = file, band = band, base_tile = base_tile,
@@ -1043,7 +1072,6 @@
 }
 
 # ---- | <uncertainty_cube> ----
-
 .tile_uncertainty_from_file <- function(file, band, base_tile) {
     .tile_derived_from_file(
         file = file, band = band, base_tile = base_tile,
@@ -1085,6 +1113,7 @@
 
 #---- | .cube_start_date() ----
 #' @title Cube API
+#' @param cube A cube.
 #' @description Get start dates from each tile.
 #' @return date
 .cube_start_date <- function(cube) {
@@ -1098,6 +1127,7 @@
 
 #---- | .cube_end_date() ----
 #' @title Cube API
+#' @param cube A cube.
 #' @description Get end date from each tile.
 #' @return date
 .cube_end_date <- function(cube) {
@@ -1111,6 +1141,7 @@
 
 #---- | .cube_timeline() ----
 #' @title Cube API
+#' @param cube A cube.
 #' @description Get timeline from each cube. If there are at least two
 #' different timelines, all timelines will be returned in a list).
 #' @return date or list(date)
@@ -1128,6 +1159,9 @@
 
 #---- | .cube_timeline_acquisiton() ----
 #' @title Cube API
+#' @param cube A cube.
+#' @param period Period character vector in ISO format.
+#' @param origin A date.
 #' @description Compute how many images were acquired in different periods
 #' and different tiles.
 #' @return tibble
@@ -1169,6 +1203,9 @@
 
 #---- | .cube_foreach_tile() ----
 #' @title Cube API
+#' @param cube A cube.
+#' @param fn A function.
+#' @param ... Additional arguments to be passed to \code{fn}.
 #' @description Iterates over each cube tile, passing tile to function's
 #' first argument.
 #' @return cube
@@ -1183,7 +1220,9 @@
 
 #---- | .cube_intersects() ----
 #' @title Cube API
-#' @description What tiles intersect 'roi' parameter?
+#' @param cube A cube.
+#' @param roi A region of interest (ROI).
+#' @description What tiles intersect \code{roi} parameter?
 #' @return logical
 .cube_intersects <- function(cube, roi) {
     UseMethod(".cube_intersects", cube)
@@ -1196,7 +1235,9 @@
 
 #---- | .cube_spatial_filter() ----
 #' @title Cube API
-#' @description Filter tiles that intersect 'roi' parameter.
+#' @param cube A cube.
+#' @param roi A region of interest (ROI).
+#' @description Filter tiles that intersect \code{roi} parameter.
 #' @return cube
 .cube_spatial_filter <- function(cube, roi) {
     UseMethod(".cube_spatial_filter", cube)
@@ -1209,6 +1250,8 @@
 
 #---- | .cube_during() ----
 #' @title Cube API
+#' @param cube A cube.
+#' @param start_date,end_date Date of start and end.
 #' @description What tiles have file_info entries between 'start_date'
 #' and 'end_date'?
 #' @return logical
@@ -1223,9 +1266,14 @@
 }
 
 #---- | .cube_temporal_filter() ----
-#' @title Cube API
-#' @description Filter tiles with 'file_info' entries between 'start_date'
+#' Cube API
+#'
+#' Filter tiles with 'file_info' entries between 'start_date'
 #' and 'end_date'.
+#'
+#' @param cube A cube.
+#' @param start_date,end_date Date of start and end.
+#'
 #' @return cube
 .cube_temporal_filter <- function(cube, start_date, end_date) {
     UseMethod(".cube_temporal_filter", cube)

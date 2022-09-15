@@ -6,10 +6,17 @@
 \usage{
 .tile_read_block(tile, band, block)
 }
+\arguments{
+\item{tile}{A tile.}
+
+\item{band}{Band character vector.}
+
+\item{block}{A block list with (col, row, ncols, nrows).}
+}
 \value{
 numeric
 }
 \description{
-Read and preprocess a 'block' of 'band' values from
+Read and preprocess a \code{block} of \code{band} values from
 file_info rasters.
 }

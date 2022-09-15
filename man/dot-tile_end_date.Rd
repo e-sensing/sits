@@ -6,6 +6,9 @@
 \usage{
 .tile_end_date(tile)
 }
+\arguments{
+\item{tile}{A tile.}
+}
 \value{
 date
 }

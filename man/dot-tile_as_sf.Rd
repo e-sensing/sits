@@ -6,9 +6,12 @@
 \usage{
 .tile_as_sf(tile)
 }
+\arguments{
+\item{tile}{A tile.}
+}
 \value{
 file_info
 }
 \description{
-Convert tile 'bbox' to a sf polygon object.
+Convert tile \code{bbox} to a sf polygon object.
 }

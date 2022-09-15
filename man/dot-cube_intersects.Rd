@@ -6,9 +6,14 @@
 \usage{
 .cube_intersects(cube, roi)
 }
+\arguments{
+\item{cube}{A cube.}
+
+\item{roi}{A region of interest (ROI).}
+}
 \value{
 logical
 }
 \description{
-What tiles intersect 'roi' parameter?
+What tiles intersect \code{roi} parameter?
 }

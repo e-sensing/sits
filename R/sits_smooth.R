@@ -205,7 +205,6 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         probs_tile <- .tile_probs_from_file(
             file = out_file,
             band = band,
-            derived_class = "probs_cube",
             base_tile = tile,
             labels = .tile_labels(tile)
         )

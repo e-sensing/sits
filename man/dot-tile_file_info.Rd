@@ -9,6 +9,11 @@
 
 .tile_file_info(tile) <- value
 }
+\arguments{
+\item{tile}{A tile.}
+
+\item{value}{A file_info tibble.}
+}
 \value{
 file_info
 

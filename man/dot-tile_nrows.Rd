@@ -6,11 +6,14 @@
 \usage{
 .tile_nrows(tile)
 }
+\arguments{
+\item{tile}{A tile.}
+}
 \value{
 integer
 }
 \description{
-Get number of image columns from 'nrows' field (if it exists)
-or from unique 'nrows' in file_info (which can be more than one if tile
-images has multiples 'nrows').
+Get number of image columns from \code{nrows} field (if it exists)
+or from unique \code{nrows} in file_info (which can be more than one if tile
+images has multiples \code{nrows}).
 }

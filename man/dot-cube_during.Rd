@@ -6,6 +6,11 @@
 \usage{
 .cube_during(cube, start_date, end_date)
 }
+\arguments{
+\item{cube}{A cube.}
+
+\item{start_date, end_date}{Date of start and end.}
+}
 \value{
 logical
 }

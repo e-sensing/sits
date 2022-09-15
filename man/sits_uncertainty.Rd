@@ -29,8 +29,6 @@ sits_uncertainty(
 
 \item{version}{Version of resulting image (in the case of
 multiple tests).}
-
-\item{...}{Parameters for specific functions.}
 }
 \value{
 An uncertainty data cube

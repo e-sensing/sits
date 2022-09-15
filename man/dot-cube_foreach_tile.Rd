@@ -6,6 +6,13 @@
 \usage{
 .cube_foreach_tile(cube, fn, ...)
 }
+\arguments{
+\item{cube}{A cube.}
+
+\item{fn}{A function.}
+
+\item{...}{Additional arguments to be passed to \code{fn}.}
+}
 \value{
 cube
 }

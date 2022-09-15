@@ -6,6 +6,11 @@
 \usage{
 .tile_temporal_filter(tile, start_date, end_date)
 }
+\arguments{
+\item{tile}{A tile.}
+
+\item{start_date, end_date}{Date of start and end.}
+}
 \value{
 tile
 }

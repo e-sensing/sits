@@ -6,9 +6,14 @@
 \usage{
 .tile_spatial_filter(tile, roi)
 }
+\arguments{
+\item{tile}{A tile.}
+
+\item{roi}{A region of interest (ROI).}
+}
 \value{
 logical
 }
 \description{
-Filter file_info entries that intersect 'roi' parameter.
+Filter file_info entries that intersect \code{roi} parameter.
 }

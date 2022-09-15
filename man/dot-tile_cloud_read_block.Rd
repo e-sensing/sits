@@ -6,10 +6,15 @@
 \usage{
 .tile_cloud_read_block(tile, block)
 }
+\arguments{
+\item{tile}{A tile.}
+
+\item{block}{A block list with (col, row, ncols, nrows).}
+}
 \value{
 numeric
 }
 \description{
-Read and preprocess a 'block' of cloud values from
+Read and preprocess a \code{block} of cloud values from
 file_info rasters.
 }

@@ -8,7 +8,6 @@
 #'
 #' @param  cube         Probability data cube.
 #' @param  type         Method to measure uncertainty. See details.
-#' @param  ...          Parameters for specific functions.
 #' @param  window_size  Size of neighborhood to calculate entropy.
 #' @param  multicores   Number of cores to run the function.
 #' @param  memsize      Maximum overall memory (in GB) to run the function.

@@ -6,9 +6,14 @@
 \usage{
 .cube_spatial_filter(cube, roi)
 }
+\arguments{
+\item{cube}{A cube.}
+
+\item{roi}{A region of interest (ROI).}
+}
 \value{
 cube
 }
 \description{
-Filter tiles that intersect 'roi' parameter.
+Filter tiles that intersect \code{roi} parameter.
 }

@@ -6,9 +6,14 @@
 \usage{
 .tile_intersects(tile, roi)
 }
+\arguments{
+\item{tile}{A tile.}
+
+\item{roi}{A region of interest (ROI).}
+}
 \value{
 logical
 }
 \description{
-Does tile 'bbox' intersect 'roi' parameter?
+Does tile \code{bbox} intersect \code{roi} parameter?
 }

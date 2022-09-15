@@ -6,6 +6,9 @@
 \usage{
 .tile(cube)
 }
+\arguments{
+\item{cube}{A cube.}
+}
 \value{
 tile
 }
