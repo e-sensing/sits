@@ -335,7 +335,6 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     # Merge blocks into a new probs_cube tile
     probs_tile <- .tile_probs_merge_blocks(
         file = out_file, band = band,
-        derived_class = "probs_cube",
         labels = .tile_labels(tile),
         base_tile = tile, block_files = block_files,
         multicores = multicores
