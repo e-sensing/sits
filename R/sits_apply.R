@@ -632,7 +632,7 @@ sits_apply.raster_cube <- function(data, ...,
 
     result_env <- list2env(list(
         w_median = function(m) {
-            kernel_fun(
+            C_kernel_fun(
                 data = m,
                 band = 0,
                 img_nrow = img_nrow,
@@ -642,7 +642,7 @@ sits_apply.raster_cube <- function(data, ...,
             )
         },
         w_sum = function(m) {
-            kernel_fun(
+            C_kernel_fun(
                 data = m,
                 band = 0,
                 img_nrow = img_nrow,
@@ -652,7 +652,7 @@ sits_apply.raster_cube <- function(data, ...,
             )
         },
         w_mean = function(m) {
-            kernel_fun(
+            C_kernel_fun(
                 data = m,
                 band = 0,
                 img_nrow = img_nrow,
@@ -662,7 +662,7 @@ sits_apply.raster_cube <- function(data, ...,
             )
         },
         w_sd = function(m) {
-            kernel_fun(
+            C_kernel_fun(
                 data = m,
                 band = 0,
                 img_nrow = img_nrow,
@@ -672,7 +672,7 @@ sits_apply.raster_cube <- function(data, ...,
             )
         },
         w_var = function(m) {
-            kernel_fun(
+            C_kernel_fun(
                 data = m,
                 band = 0,
                 img_nrow = img_nrow,
@@ -682,7 +682,7 @@ sits_apply.raster_cube <- function(data, ...,
             )
         },
         w_min = function(m) {
-            kernel_fun(
+            C_kernel_fun(
                 data = m,
                 band = 0,
                 img_nrow = img_nrow,
@@ -692,7 +692,7 @@ sits_apply.raster_cube <- function(data, ...,
             )
         },
         w_max = function(m) {
-            kernel_fun(
+            C_kernel_fun(
                 data = m,
                 band = 0,
                 img_nrow = img_nrow,
