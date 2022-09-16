@@ -53,8 +53,8 @@ margin_probs <- function(mtx, n) {
     .Call(`_sits_margin_probs`, mtx, n)
 }
 
-nnls_solver <- function(x, A, iterate = 400L, tolerance = 0.000001) {
-    .Call(`_sits_nnls_solver`, x, A, iterate, tolerance)
+nnls_solver <- function(x, A, rmse, iterate = 400L, tolerance = 0.000001) {
+    .Call(`_sits_nnls_solver`, x, A, rmse, iterate, tolerance)
 }
 
 normalize_data <- function(data, min, max) {
