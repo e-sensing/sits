@@ -51,7 +51,7 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'    # Creating a sentinel-2 AWS cube
+#'    # Create a sentinel-2 cube
 #'    s2_cube <- sits_cube(
 #'        source = "AWS",
 #'        collection = "SENTINEL-S2-L2A-COGS",
@@ -70,7 +70,7 @@
 #'        output_dir = tempdir()
 #'    )
 #'
-#'    # Create the endmembers fractions tibble
+#'    # Create the endmembers tibble
 #'    em <- tibble::tribble(
 #'           ~type, ~B02, ~B03, ~B04, ~B8A, ~B11, ~B12,
 #'        "forest",  200,  352,  189, 2800, 1340,  546,
@@ -100,7 +100,7 @@ sits_mixture_model <- function(cube,
     # check documentation mode
     progress <- .check_documentation(progress)
 
-    # precondition - test if cube is regular
+    # preconditions
     .check_is_regular(cube)
     #precondition - endmembers
     .check_inherits(x = endmembers, inherits = c("data.frame", "character"))
@@ -121,7 +121,7 @@ sits_mixture_model <- function(cube,
     endmembers <- .mm_format_endmembers(endmembers, cube)
     .check_endmembers_parameter(endmembers, cube)
 
-    # In case cube bands  is different from endmembers bands
+    # In case cube bands is different from endmembers bands
     in_bands <- .mm_intersect_bands(endmembers, cube)
     cube <- .cube_select(cube, in_bands)
 
@@ -138,24 +138,24 @@ sits_mixture_model <- function(cube,
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    .sits_parallel_map(steps, function(step) {
+    tiles_mm <- .sits_parallel_map(steps, function(step) {
 
         # Get parameters from each job
         tile_name <- step[[1]]
         fid <- step[[2]]
 
         # Filter tile
-        tile <- dplyr::filter(cube, tile == !!tile_name)
+        tile <- .cube_filter(cube, tile = tile_name)
+
+        # Scale the reference spectra
+        em_scaled <- .mm_scale_endmembers(endmembers, tile)
 
         # File_info filtered by bands
-        in_fi_fid <- .file_info(cube = tile, bands = in_bands, fid = fid)
+        in_fi_fid <- .file_info(cube = tile, fid = fid)
 
-        output_files <- .file_path(
-            "cube", tile_name, output_fracs,
-            unique(in_fi_fid[["date"]]),
-            ext = ".tif",
-            output_dir = output_dir
-        )
+        output_files <- .file_eocube_name(tile = tile, band = output_fracs,
+                                          date = unique(in_fi_fid[["date"]]),
+                                          output_dir = output_dir)
 
         names(output_files) <- output_fracs
 
@@ -170,26 +170,18 @@ sits_mixture_model <- function(cube,
             return(output_files)
         }
 
-        # Divide the input data in blocks
-        blocks <- .mesma_raster_blocks(
-            nbands = length(in_bands),
-            sub_image = .sits_raster_sub_image_default(tile),
-            memsize = memsize,
-            multicores = multicores
-        )
         # Create jobs
         # Get job size
         job_size <- .raster_file_blocksize(
             .raster_open_rast(.fi_path(.fi(tile)))
         )
         # Compute how many jobs to process
-        # Add roi parameter? its make sense?
         jobs <- .jobs_create(
             job_size = job_size, block_overlap = 0,
             ncols = .tile_ncols(tile), nrows = .tile_nrows(tile),
             xmin = .xmin(tile), xmax = .xmax(tile),
             ymin = .ymin(tile), ymax = .ymax(tile),
-            crs = .crs(tile), roi = NULL
+            crs = .crs(tile), roi = FALSE
         )
 
         # Save each output value
@@ -202,92 +194,72 @@ sits_mixture_model <- function(cube,
                 values <- .fi_read_block(fi = in_fi_fid, band = band,
                                          block = block)
 
-                # Scale the data set
-                scale_factor <- .cube_band_scale_factor(tile, band = band)
-                offset_value <- .cube_band_offset_value(tile, band = band)
-
-                missing_value <- .cube_band_missing_value(tile, band = band)
-                if (!is.null(missing_value)) {
-                    values[values == missing_value] <- NA
+                conf_band <- .tile_band_conf(tile = tile, band = band)
+                miss_value <- .band_miss_value(conf_band)
+                if (!is.null(miss_value)) {
+                    values[values == miss_value] <- NA
+                }
+                min_value <- .band_min_value(conf_band)
+                if (!is.null(min_value)) {
+                    values[values < min_value] <- NA
+                }
+                max_value <- .band_max_value(conf_band)
+                if (!is.null(max_value)) {
+                    values[values > max_value] <- NA
+                }
+                scale <- .band_scale(conf_band)
+                if (!is.null(scale) && scale != 1) {
+                    values <- values * scale
+                }
+                offset <- .band_offset(conf_band)
+                if (!is.null(offset) && offset != 0) {
+                    values <- values + offset
                 }
 
-                minimum_value <- .cube_band_minimum_value(tile, band = band)
-                maximum_value <- .cube_band_maximum_value(tile, band = band)
-
-                # Correct NA, minimum, maximum, and missing values
-
-                values[values < minimum_value] <- NA
-                values[values > maximum_value] <- NA
-                # compute scale and offset
-                values <- scale_factor * values + offset_value
                 values <- as.data.frame(values)
                 return(values)
             })
 
-            # Scale the reference spectra
-            em_scaled <- .mm_scale_endmembers(endmembers, cube)
             # Apply the non-negative least squares solver
             values <- nnls_solver(
                 x = as.matrix(values),
-                A = em_scaled
+                A = em_scaled,
+                rmse = rmse_band
             )
 
-            # Apply scale and offset
-            values <- values /
-                .config_get("raster_cube_scale_factor") -
-                .config_get("raster_cube_offset_value")
-
-            # Remove the rmse value in the last column
-            if (!rmse_band) {
-                values <- values[, -ncol(values)]
+            offset <- .config_get("raster_cube_offset_value")
+            if (!is.null(offset)) {
+                values <- values - offset
+            }
+            scale <- .config_get("raster_cube_offset_value")
+            if (!is.null(scale)) {
+                values <- values * scale
             }
 
-            # Compute block spatial parameters
-            params <- .cube_params_block(tile, block = job)
-
-            # New raster
-            r_obj <- .raster_new_rast(
-                nrows = params[["nrows"]],
-                ncols = params[["ncols"]],
-                xmin = params[["xmin"]],
-                xmax = params[["xmax"]],
-                ymin = params[["ymin"]],
-                ymax = params[["ymax"]],
-                nlayers = length(output_fracs),
-                crs = params[["crs"]]
-            )
-
-            # Set values
-            r_obj <- .raster_set_values(r_obj, values)
-            names(r_obj) <- output_fracs
-
-            filenames_block <- purrr::map_chr(names(r_obj), function(frac) {
-
-                output_files_frac <-
-                    output_files[names(output_files) == frac]
-
-                # Define the file name of the raster file to be written
-                filename_block <- paste0(
-                    tools::file_path_sans_ext(output_files_frac),
-                    "_block_", job[["row"]], "_", job[["nrows"]], ".tif"
+            filenames_block <- purrr::map_chr(length(output_fracs), function(i) {
+                output_frac <- .file_eocube_name(
+                    tile = tile, band = output_fracs[[i]],
+                    date = unique(in_fi_fid[["date"]]), output_dir = output_dir
                 )
-
-                # Write values
-                .raster_write_rast(
-                    r_obj = r_obj[[frac]],
-                    file = filename_block,
-                    data_type = .config_get("raster_cube_data_type"),
-                    overwrite = TRUE
+                block_file <- .file_block_name(
+                    pattern = .file_pattern(output_frac),
+                    block = block,
+                    output_dir = output_dir
                 )
-
-                # Clean memory
-                gc()
-
-                names(filename_block) <- frac
-                return(filename_block)
+                .raster_write_block(
+                    file = block_file,
+                    block = block,
+                    bbox = .bbox(job),
+                    values = values,
+                    data_type = .config_get("raster_cube_data_type")
+                )
+                return(block_file)
             })
 
-            names(filenames_block) <- names(r_obj)
+            # Clean memory
+            gc()
+
+            names(filenames_block) <- output_fracs
             return(filenames_block)
         })
 
@@ -299,43 +271,70 @@ sits_mixture_model <- function(cube,
             return(NULL)
         }
 
-        output_file_fracs <- purrr::map_chr(output_fracs, function(frac) {
-
-            blocks_fracs_path <- block_files[names(block_files) == frac]
-            output_frac_path <- output_files[names(output_files) == frac]
-
-            # Merge final result
-            .raster_merge_blocks(
-                base_file = .file_info_path(tile),
-                block_files = blocks_fracs_path,
-                out_file = output_frac_path,
-                data_type = .config_get("raster_cube_data_type"),
-                missing_value = .config_get("raster_cube_missing_value"),
-                multicores = 1
+        local_tile <- purrr::imap_dfr(block_files, function(x) {
+            .tile_raster_merge_blocks(
+                file = , band, labels, base_tile, block_files = block_files,
+                multicores
             )
-
-            # Remove blocks
-            on.exit(unlink(blocks_fracs_path), add = TRUE)
-
-            return(output_frac_path)
         })
 
 
-        return(output_file_fracs)
+        return(local_tile)
     }, progress = progress)
 
     # Create local cube from files in output directory
-    local_cube <- sits_cube(
-        source = .cube_source(cube),
-        collection = .cube_collection(cube),
-        data_dir = output_dir,
-        bands = output_fracs,
-        parse_info = c("X1", "tile", "band", "date"),
-        multicores = multicores,
-        progress = progress
-    )
+    local_cube <- dplyr::bind_rows(tiles_mm)
 
     return(local_cube)
+}
+
+.tile_raster_merge_blocks <- function(file, band, labels, base_tile,
+                                      block_files, multicores) {
+
+    # Get conf band
+    conf_band <- .conf_eo_band(source = .tile_source(base_tile),
+                               collection = .tile_collection(base_tile),
+                               band = band)
+    # Get data type
+    data_type <- .band_data_type(conf_band)
+    # Create a template raster based on the first image of the tile
+    .raster_merge_blocks(
+        base_file = .fi_path(.fi(base_tile)),
+        block_files = block_files,
+        out_file = file,
+        data_type = data_type,
+        missing_value = .band_miss_value(conf_band),
+        multicores = multicores
+    )
+    # Create tile based on template
+    tile <- .tile_eo_from_file(
+        file = file, band = band,
+        base_tile = base_tile, labels = labels
+    )
+    # If all goes well, delete block files
+    unlink(block_files)
+    tile
+
+    purrr::map_chr(output_fracs, function(frac) {
+
+        blocks_fracs_path <- block_files[names(block_files) == frac]
+        output_frac_path <- output_files[names(output_files) == frac]
+
+        # Merge final result
+        .raster_merge_blocks(
+            base_file = .file_info_path(tile),
+            block_files = blocks_fracs_path,
+            out_file = output_frac_path,
+            data_type = .config_get("raster_cube_data_type"),
+            missing_value = .config_get("raster_cube_missing_value"),
+            multicores = 1
+        )
+
+        # Remove blocks
+        on.exit(unlink(blocks_fracs_path), add = TRUE)
+
+        return(output_frac_path)
+    })
 }
 
 .mesma_get_data <- function(endmembers, file_ext) {
