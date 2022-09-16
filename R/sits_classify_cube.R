@@ -72,7 +72,7 @@
         crs = .crs(tile), roi = roi
     )
     # Process jobs in parallel
-    block_files <- .jobs_parallel_chr(jobs, function(job) {
+block_files <- .jobs_parallel_chr(jobs, function(job) {
         # Get job block
         block <- .block(job)
         # Output file name

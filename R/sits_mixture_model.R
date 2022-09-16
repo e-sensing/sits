@@ -97,73 +97,40 @@ sits_mixture_model <- function(cube,
                                rmse_band = TRUE,
                                remove_outliers = TRUE,
                                progress = TRUE) {
-    .check_set_caller("sits_mixture_model")
+    # check documentation mode
+    progress <- .check_documentation(progress)
 
-    .check_that(
-        inherits(endmembers, c("tbl_df", "data.frame", "character"))
-    )
-
-    if (inherits(endmembers, "character")) {
-        endmembers <- .mesma_get_data(
-            endmembers = endmembers,
-            file_ext = tolower(tools::file_ext(endmembers))
-        )
-    }
-    # Ensure that all columns are in uppercase
-    endmembers <- dplyr::rename_with(endmembers, toupper)
-
-    # Pre-condition
-    .check_chr_contains(
-        x = colnames(endmembers),
-        contains = "TYPE",
-        msg = paste("The reference endmembers spectra should be provided."),
-    )
-
-    # Pre-condition
-    .check_chr_within(
-        x = colnames(endmembers),
-        within = c("TYPE", .cube_bands(cube, add_cloud = FALSE)),
-        msg = "invalid 'endmembers_spectra' columns"
-    )
-
-    # Pre-condition
-    .check_that(
-        nrow(endmembers) > 1,
-        msg = "at least two endmembers fractions must be provided."
-    )
-
-    # Pre-condition
-    .check_that(
-        nrow(endmembers) < .cube_bands(cube, add_cloud = FALSE),
-        msg = "Endmembers must be less than the number of spectral bands."
-    )
-
-    # Check output_dir
+    # precondition - test if cube is regular
+    .check_is_regular(cube)
+    #precondition - endmembers
+    .check_inherits(x = endmembers, inherits = c("data.frame", "character"))
+    # precondition - memsize
+    .check_memsize(memsize)
+    # precondition - multicores
+    .check_multicores(multicores)
+    # precondition - output dir
     output_dir <- path.expand(output_dir)
-    .check_file(output_dir, msg = "invalid output directory")
+    .check_output_dir(output_dir)
+    # precondition - rmse_band
+    .check_lgl_type(rmse_band)
+    # precondition - remove_outiliers
+    .check_lgl_type(remove_outliers)
+    # precondition - progress
+    .check_lgl_type(progress)
 
-    # Take only bands that intersects between two tibbles
-    in_bands <- intersect(
-        setdiff(colnames(endmembers), "TYPE"),
-        .cube_bands(cube, add_cloud = FALSE)
-    )
+    endmembers <- .mm_format_endmembers(endmembers, cube)
+    .check_endmembers_parameter(endmembers, cube)
 
-    # Scale the reference spectra
-    em_scaled <- .mesma_scale_endmembers(cube, endmembers)
-    output_fracs <- endmembers[["TYPE"]]
-    if (rmse_band) {
-        output_fracs <- c(output_fracs, "rmse")
-    }
+    # In case cube bands  is different from endmembers bands
+    in_bands <- .mm_intersect_bands(endmembers, cube)
+    cube <- .cube_select(cube, in_bands)
 
-    cube_filtered <- sits_select(cube, in_bands)
+    output_fracs <- .mm_get_fractions_name(endmembers, rmse_band)
 
-    jobs <- .mesma_get_jobs_lst(
-        cube = cube_filtered,
-        fractions = output_fracs
-    )
+    steps <- .mm_get_steps_lst(cube, output_fracs)
 
     # Already processed?
-    if (length(jobs) == 0) {
+    if (length(steps) == 0) {
         return(cube)
     }
 
@@ -171,21 +138,17 @@ sits_mixture_model <- function(cube,
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    .sits_parallel_map(jobs, function(job) {
+    .sits_parallel_map(steps, function(step) {
 
         # Get parameters from each job
-        tile_name <- job[[1]]
-        fid <- job[[2]]
+        tile_name <- step[[1]]
+        fid <- step[[2]]
 
         # Filter tile
-        tile <- dplyr::filter(cube_filtered, tile == !!tile_name)
+        tile <- dplyr::filter(cube, tile == !!tile_name)
 
         # File_info filtered by bands
-        in_fi_fid <- .file_info(
-            cube = tile,
-            bands = in_bands,
-            fid = fid
-        )
+        in_fi_fid <- .file_info(cube = tile, bands = in_bands, fid = fid)
 
         output_files <- .file_path(
             "cube", tile_name, output_fracs,
@@ -214,65 +177,73 @@ sits_mixture_model <- function(cube,
             memsize = memsize,
             multicores = multicores
         )
+        # Create jobs
+        # Get job size
+        job_size <- .raster_file_blocksize(
+            .raster_open_rast(.fi_path(.fi(tile)))
+        )
+        # Compute how many jobs to process
+        # Add roi parameter? its make sense?
+        jobs <- .jobs_create(
+            job_size = job_size, block_overlap = 0,
+            ncols = .tile_ncols(tile), nrows = .tile_nrows(tile),
+            xmin = .xmin(tile), xmax = .xmax(tile),
+            ymin = .ymin(tile), ymax = .ymax(tile),
+            crs = .crs(tile), roi = NULL
+        )
 
         # Save each output value
-        block_files <- purrr::map(blocks, function(b) {
+        block_files <- purrr::map(jobs, function(job) {
 
+            block <- .block(job)
             # Read bands data
-            in_values <- purrr::map_dfc(in_bands, function(band) {
+            values <- purrr::map_dfc(in_bands, function(band) {
 
-                # Transform file_info columns as bands and values as paths
-                in_files <- in_fi_fid %>%
-                    dplyr::select(dplyr::all_of(c("band", "path"))) %>%
-                    tidyr::pivot_wider(
-                        names_from = "band",
-                        values_from = "path"
-                    )
+                values <- .fi_read_block(fi = in_fi_fid, band = band,
+                                         block = block)
 
                 # Scale the data set
                 scale_factor <- .cube_band_scale_factor(tile, band = band)
                 offset_value <- .cube_band_offset_value(tile, band = band)
 
-                # Read the values
-                values <- .raster_read_rast(in_files[[band]], block = b)
-
-                if (remove_outliers) {
-                    # Get the missing values, minimum values and scale factors
-                    missing_value <- .cube_band_missing_value(tile, band = band)
-                    minimum_value <- .cube_band_minimum_value(tile, band = band)
-                    maximum_value <- .cube_band_maximum_value(tile, band = band)
-
-                    # Correct NA, minimum, maximum, and missing values
+                missing_value <- .cube_band_missing_value(tile, band = band)
+                if (!is.null(missing_value)) {
                     values[values == missing_value] <- NA
-                    values[values < minimum_value] <- NA
-                    values[values > maximum_value] <- NA
                 }
+
+                minimum_value <- .cube_band_minimum_value(tile, band = band)
+                maximum_value <- .cube_band_maximum_value(tile, band = band)
+
+                # Correct NA, minimum, maximum, and missing values
+
+                values[values < minimum_value] <- NA
+                values[values > maximum_value] <- NA
                 # compute scale and offset
                 values <- scale_factor * values + offset_value
                 values <- as.data.frame(values)
                 return(values)
             })
 
-            in_values <- do.call(cbind, in_values)
-
+            # Scale the reference spectra
+            em_scaled <- .mm_scale_endmembers(endmembers, cube)
             # Apply the non-negative least squares solver
-            out_values <- nnls_solver(
-                x = in_values,
+            values <- nnls_solver(
+                x = as.matrix(values),
                 A = em_scaled
             )
 
             # Apply scale and offset
-            out_values <- out_values /
+            values <- values /
                 .config_get("raster_cube_scale_factor") -
                 .config_get("raster_cube_offset_value")
 
             # Remove the rmse value in the last column
             if (!rmse_band) {
-                out_values <- out_values[, -ncol(out_values)]
+                values <- values[, -ncol(values)]
             }
 
             # Compute block spatial parameters
-            params <- .cube_params_block(tile, block = b)
+            params <- .cube_params_block(tile, block = job)
 
             # New raster
             r_obj <- .raster_new_rast(
@@ -287,7 +258,7 @@ sits_mixture_model <- function(cube,
             )
 
             # Set values
-            r_obj <- .raster_set_values(r_obj, out_values)
+            r_obj <- .raster_set_values(r_obj, values)
             names(r_obj) <- output_fracs
 
             filenames_block <- purrr::map_chr(names(r_obj), function(frac) {
@@ -298,7 +269,7 @@ sits_mixture_model <- function(cube,
                 # Define the file name of the raster file to be written
                 filename_block <- paste0(
                     tools::file_path_sans_ext(output_files_frac),
-                    "_block_", b[["row"]], "_", b[["nrows"]], ".tif"
+                    "_block_", job[["row"]], "_", job[["nrows"]], ".tif"
                 )
 
                 # Write values
@@ -384,26 +355,49 @@ sits_mixture_model <- function(cube,
     sf::st_read(endmembers)
 }
 
-#' @title Create a list of jobs
+.mm_format_endmembers <- function(endmembers, cube) {
+    if (!inherits(endmembers, "character")) {
+        endmembers <- .mesma_get_data(
+            endmembers = endmembers,
+            file_ext = tolower(tools::file_ext(endmembers))
+        )
+    }
+    # Ensure that all columns are in uppercase
+    endmembers <- dplyr::rename_with(endmembers, toupper)
+
+    return(endmembers)
+}
+
+.mm_get_fractions_name <- function(endmembers, rmse_band) {
+    output_fracs <- endmembers[["TYPE"]]
+    if (rmse_band) {
+        output_fracs <- c(output_fracs, "RMSE")
+    }
+}
+
+.mm_intersect_bands <- function(endmembers, cube) {
+    intersect(
+        setdiff(colnames(endmembers), "TYPE"),
+        .cube_bands(cube, add_cloud = FALSE)
+    )
+}
+
+#' @title Create a list of steps
 #'
-#' @name .apply_missing_band
+#' @name .mm_get_steps_lst
 #' @keywords internal
 #'
-#' @param cube       Data cube.
-#' @param fractions  Name of output fractions.
+#' @param cube             Data cube.
+#' @param output_fractions Name of output fractions.
 #'
 #' @return           List of combination among tiles, endmembers, and dates
 #'                   that are missing from the cube.
-.mesma_get_jobs_lst <- function(cube, fractions) {
-
-    # Define function to show in case of error
-    .check_set_caller(".mesma_get_jobs_lst")
-
+.mm_get_steps_lst <- function(cube, output_fractions) {
     tile_datetime <- unlist(slider::slide(cube, function(tile) {
-        tl <- sits_timeline(tile)
-        fi <- .file_info(tile)
+        tl <- .tile_timeline(tile)
+        fi <- .fi(tile)
 
-        fi_band <- fi[fi[["band"]] %in% fractions, ]
+        fi_band <- fi[fi[["band"]] %in% output_fractions, ]
         missing_dates <- tl[!tl %in% unique(fi_band[["date"]])]
         fi <- fi[fi[["date"]] %in% missing_dates, ]
 
@@ -421,17 +415,14 @@ sits_mixture_model <- function(cube,
 #' @name .mesma_scale_endmembers
 #' @keywords internal
 #'
-#' @param cube                Data cube.
-#' @param endmembers_spectra  Tibble with endmembers spectra values.
+#' @param endmembers Tibble with endmembers spectra values.
+#' @param cube       Data cube.
 #'
 #' @return a matrix with spectral values scaled.
-.mesma_scale_endmembers <- function(cube, endmembers_spectra) {
+.mm_scale_endmembers <- function(endmembers, cube) {
 
-    endmembers_bands <- setdiff(colnames(endmembers_spectra), "TYPE")
-    em_spec <- dplyr::select(
-        endmembers_spectra,
-        dplyr::all_of(!!endmembers_bands)
-    )
+    endmembers_bands <- setdiff(colnames(endmembers), "TYPE")
+    em_spec <- dplyr::select(endmembers, dplyr::all_of(!!endmembers_bands))
 
     em_spec <- dplyr::mutate(
         em_spec,

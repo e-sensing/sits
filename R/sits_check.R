@@ -1995,6 +1995,51 @@
 
     return(invisible(x))
 }
+#' @title Checks if the object inherits classes
+#' @name .check_inherits
+#' @param x        input object
+#' @param inherits a character vector with the classes
+#' @return No return value, called for side effects.
+#' @keywords internal
+.check_inherits <- function(x, inherits, msg = "invalid inheritance") {
+    .check_that(
+        x = inherits(x, inherits),
+        msg = msg
+    )
+}
+#' @title Checks if the endmembers data is in a valid parameter
+#' @name .check_endmembers_parameter
+#' @param endmembers Reference spectral endmembers.
+#' @param cube       A sits cube
+#' @return No return value, called for side effects.
+#' @keywords internal
+.check_endmembers_parameter <- function(endmembers, cube) {
+    # Pre-condition
+    .check_chr_contains(
+        x = colnames(endmembers),
+        contains = "TYPE",
+        msg = "The reference endmembers spectra should be provided",
+    )
+
+    # Pre-condition
+    .check_chr_within(
+        x = colnames(endmembers),
+        within = c("TYPE", .cube_bands(cube, add_cloud = FALSE)),
+        msg = "invalid 'endmembers_spectra' columns"
+    )
+
+    # Pre-condition
+    .check_that(
+        nrow(endmembers) > 1,
+        msg = "at least two endmembers fractions must be provided."
+    )
+
+    # Pre-condition
+    .check_that(
+        nrow(endmembers) < .cube_bands(cube, add_cloud = FALSE),
+        msg = "Endmembers must be less than the number of spectral bands."
+    )
+}
 #' @title Checks if working in documentation mode
 #' @name .check_documentation
 #' @param progress  flag set to show progress bar
