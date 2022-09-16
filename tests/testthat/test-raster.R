@@ -279,12 +279,12 @@ test_that("One-year, multicore classification with Whittaker filter", {
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
 
-test_that("One-year, multicore classification with torch", {
+test_that("One-year, multicore classification with MLP", {
 
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
 
-    torch_model <- sits_train(samples_ndvi, sits_mlp())
+    torch_model <- sits_train(samples_ndvi, sits_mlp(epochs = 20))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -335,7 +335,7 @@ test_that("One-year, multicore classification with ResNet", {
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
 
-    torch_model <- sits_train(samples_ndvi, sits_resnet())
+    torch_model <- sits_train(samples_ndvi, sits_resnet(epochs = 20))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -386,7 +386,7 @@ test_that("One-year, multicore classification with TAE", {
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
 
-    torch_model <- sits_train(samples_ndvi, sits_tae())
+    torch_model <- sits_train(samples_ndvi, sits_tae(epochs = 20))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -437,7 +437,7 @@ test_that("One-year, multicore classification with LightTAE", {
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
 
-    torch_model <- sits_train(samples_ndvi, sits_lighttae())
+    torch_model <- sits_train(samples_ndvi, sits_lighttae(epochs = 20))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -551,7 +551,7 @@ test_that("One-year, multicore classification with post-processing", {
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
 
-    torch_model <- sits_train(samples_ndvi, sits_tempcnn())
+    rfor_model <- sits_train(samples_ndvi, sits_rfor())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -574,10 +574,10 @@ test_that("One-year, multicore classification with post-processing", {
             suppressMessages(
                 sits_classify(
                     sinop,
-                    torch_model,
+                    rfor_model,
                     output_dir = temp_dir,
                     memsize = 4,
-                    multicores = 2
+                    multicores = 1
                 )
             )
         },
@@ -718,7 +718,8 @@ test_that("One-year, multicore classification with post-processing", {
     sinop_uncert <- sits_uncertainty(
         cube = sinop_bayes,
         type = "entropy",
-        output_dir = temp_dir
+        output_dir = temp_dir,
+        multicores = 1
     )
 
     expect_true(all(file.exists(unlist(sinop_uncert$file_info[[1]]$path))))
@@ -740,7 +741,7 @@ test_that("One-year, multicore classification with post-processing", {
     timeline_probs <- sits_timeline(sinop_probs)
     timeline_unc <- sits_timeline(sinop_uncert)
     timeline_class <- sits_timeline(sinop_class)
-    timeline_model <- sits_timeline(torch_model)
+    timeline_model <- sits_timeline(rfor_model)
     timeline_ts <- sits_timeline(samples_modis_4bands)
 
     expect_equal(timeline_ts, timeline_model)
