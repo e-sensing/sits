@@ -2007,33 +2007,45 @@
         msg = msg
     )
 }
+#' @title Checks if the character parameter is empty
+#' @name .check_empty_char
+#' @param x a character vector
+#' @return No return value, called for side effects.
+#' @keywords internal
+.check_empty_char <- function(x, msg, ...) {
+    .check_that(all(nzchar(x)), msg = msg, ...)
+}
 #' @title Checks if the endmembers data is in a valid parameter
 #' @name .check_endmembers_parameter
-#' @param endmembers Reference spectral endmembers.
+#' @param endmembers Reference spectra endmembers.
 #' @param cube       A sits cube
 #' @return No return value, called for side effects.
 #' @keywords internal
 .check_endmembers_parameter <- function(endmembers, cube) {
+    # Pre-condition
+    .check_na(endmembers)
+
+    .check_empty_char(endmembers[["TYPE"]],
+        msg = "The reference endmembers cannot be empty"
+    )
+
     # Pre-condition
     .check_chr_contains(
         x = colnames(endmembers),
         contains = "TYPE",
         msg = "The reference endmembers spectra should be provided",
     )
-
     # Pre-condition
     .check_chr_within(
         x = colnames(endmembers),
         within = c("TYPE", .cube_bands(cube, add_cloud = FALSE)),
-        msg = "invalid 'endmembers_spectra' columns"
+        msg = "invalid 'endmembers' columns"
     )
-
     # Pre-condition
     .check_that(
         nrow(endmembers) > 1,
         msg = "at least two endmembers fractions must be provided."
     )
-
     # Pre-condition
     .check_that(
         nrow(endmembers) < .cube_bands(cube, add_cloud = FALSE),
