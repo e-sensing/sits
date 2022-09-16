@@ -499,7 +499,7 @@
     multicores <- max(1, round(multicores / 2))
 
     # start processes
-    .sits_parallel_start(multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop())
 
     # does a local cube exist
@@ -667,7 +667,7 @@
 
             # remove cache
             .sits_parallel_stop()
-            .sits_parallel_start(multicores, log = FALSE)
+            .sits_parallel_start(workers = multicores, log = FALSE)
         }
     }
 

@@ -193,7 +193,7 @@
     }
 
     # prepare parallel requests
-    .sits_parallel_start(multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # do parallel requests
