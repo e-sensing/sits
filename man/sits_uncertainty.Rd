@@ -2,9 +2,20 @@
 % Please edit documentation in R/sits_uncertainty.R
 \name{sits_uncertainty}
 \alias{sits_uncertainty}
+\alias{sits_uncertainty.probs_cube}
 \title{Estimate classification uncertainty based on probs cube}
 \usage{
 sits_uncertainty(
+  cube,
+  type = "least",
+  window_size = 5,
+  memsize = 4,
+  multicores = 2,
+  output_dir = getwd(),
+  version = "v1"
+)
+
+\method{sits_uncertainty}{probs_cube}(
   cube,
   type = "least",
   window_size = 5,
