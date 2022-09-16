@@ -2,9 +2,18 @@
 % Please edit documentation in R/sits_label_classification.R
 \name{sits_label_classification}
 \alias{sits_label_classification}
+\alias{sits_label_classification.probs_cube}
 \title{Build a labelled image from a probability cube}
 \usage{
 sits_label_classification(
+  cube,
+  multicores = 2,
+  memsize = 4,
+  output_dir = getwd(),
+  version = "v1"
+)
+
+\method{sits_label_classification}{probs_cube}(
   cube,
   multicores = 2,
   memsize = 4,
