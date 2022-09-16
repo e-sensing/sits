@@ -41,14 +41,14 @@ inline double _max(const NumericVector& neigh) {
     return max(na_omit(neigh));
 }
 
-NumericVector kernel_fun(const NumericMatrix& x, int ncols,
+NumericMatrix kernel_fun(const NumericMatrix& x, int ncols,
                          int nrows, int band, int window_size,
                          _kernel_fun _fun) {
     // initialize result vectors
-    NumericVector res(x.nrow());
+    NumericMatrix res(x.nrow(), 1);
     NumericVector neigh(window_size * window_size);
     if (window_size < 1) {
-        res = x(_, band);
+        res(_, 0) = x(_, band);
         return res;
     }
     // compute window leg
@@ -65,7 +65,7 @@ NumericVector kernel_fun(const NumericMatrix& x, int ncols,
                     neigh(wi * window_size + wj) =
                         x(loci(wi + i) * ncols + locj(wj + j), band);
             // call specific function
-            res(i * ncols + j) = _fun(neigh);
+            res(i * ncols + j, 0) = _fun(neigh);
         }
     }
     return res;
