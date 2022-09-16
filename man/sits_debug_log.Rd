@@ -8,7 +8,7 @@
 \usage{
 .sits_debug_log(event = "", key = "", value = "")
 
-.sits_debug(flag = NULL)
+.sits_debug(flag = NULL, output_dir = NULL)
 }
 \arguments{
 \item{event}{The name of the event to be logged}
@@ -19,6 +19,8 @@
 to string and escaped.}
 
 \item{flag}{A logical value to set the debug flag}
+
+\item{output_dir}{directory to save logs.}
 }
 \value{
 A logical value with current debug flag
