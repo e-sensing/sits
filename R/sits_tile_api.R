@@ -556,7 +556,7 @@
 #' @export
 .tile_labels.raster_cube <- function(tile) {
     tile <- .tile(tile)
-    as.character(tile[["labels"]])
+    as.character(tile[["labels"]][[1]])
 }
 
 #' @name .tile_labels
