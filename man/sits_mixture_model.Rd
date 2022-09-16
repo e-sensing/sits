@@ -67,7 +67,7 @@ is \code{TRUE}.
 }
 \examples{
 if (sits_run_examples()) {
-   # Creating a sentinel-2 AWS cube
+   # Create a sentinel-2 cube
    s2_cube <- sits_cube(
        source = "AWS",
        collection = "SENTINEL-S2-L2A-COGS",
@@ -86,7 +86,7 @@ if (sits_run_examples()) {
        output_dir = tempdir()
    )
 
-   # Create the endmembers fractions tibble
+   # Create the endmembers tibble
    em <- tibble::tribble(
           ~type, ~B02, ~B03, ~B04, ~B8A, ~B11, ~B12,
        "forest",  200,  352,  189, 2800, 1340,  546,

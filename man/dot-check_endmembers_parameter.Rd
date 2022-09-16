@@ -7,7 +7,7 @@
 .check_endmembers_parameter(endmembers, cube)
 }
 \arguments{
-\item{endmembers}{Reference spectral endmembers.}
+\item{endmembers}{Reference spectra endmembers.}
 
 \item{cube}{A sits cube}
 }
