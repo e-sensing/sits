@@ -14,12 +14,15 @@ using namespace std;
 //[[Rcpp::export]]
 arma::mat nnls_solver(const arma::mat x,
                       const arma::mat A,
+                      const bool rmse,
                       const int iterate = 400,
                       const float tolerance = 0.000001) {
 
     int A_nEM = A.n_rows;
+    int A_ncols = (rmse) ? A_nEM+1 : A_nEM;
     int b_npix = x.n_rows;
-    arma::mat sol(b_npix, A_nEM+1);
+
+    arma::mat sol(b_npix, A_ncols, arma::fill::zeros);
 
     for(int i = 0; i < b_npix; i++){ // parallelization with clusterR possible with this framework? --> test
 
@@ -67,15 +70,19 @@ arma::mat nnls_solver(const arma::mat x,
         float rmsem = mean(mean(pow(ppdiff, 2)));
         float rmse = sqrt(rmsem);
 
-        arma::mat ret(1, (A_nEM+1));
+        arma::mat ret(1, A_ncols);
+        arma::colvec colsums = arma::sum(prob, 1);
 
         for(int f = 0; f < A_nEM; f++) {
-            ret(0,f) = prob(0,f);
+            ret(0,f) = arma::as_scalar(prob(0,f)/colsums);
         }
 
-        //fill
-        ret(0,A_nEM) = rmse;
-        sol.row(i) = ret.each_col() / arma::sum(ret, 1); //xv.t();
+        //should the rmse be add
+        if (rmse) {
+            ret(0, A_ncols) = rmse;
+        }
+
+        sol.row(i) = ret; //xv.t();
     }
     return(sol); //mat
 }

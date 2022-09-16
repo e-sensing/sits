@@ -178,16 +178,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // nnls_solver
-arma::mat nnls_solver(const arma::mat x, const arma::mat A, const int iterate, const float tolerance);
-RcppExport SEXP _sits_nnls_solver(SEXP xSEXP, SEXP ASEXP, SEXP iterateSEXP, SEXP toleranceSEXP) {
+arma::mat nnls_solver(const arma::mat x, const arma::mat A, const bool rmse, const int iterate, const float tolerance);
+RcppExport SEXP _sits_nnls_solver(SEXP xSEXP, SEXP ASEXP, SEXP rmseSEXP, SEXP iterateSEXP, SEXP toleranceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat >::type x(xSEXP);
     Rcpp::traits::input_parameter< const arma::mat >::type A(ASEXP);
+    Rcpp::traits::input_parameter< const bool >::type rmse(rmseSEXP);
     Rcpp::traits::input_parameter< const int >::type iterate(iterateSEXP);
     Rcpp::traits::input_parameter< const float >::type tolerance(toleranceSEXP);
-    rcpp_result_gen = Rcpp::wrap(nnls_solver(x, A, iterate, tolerance));
+    rcpp_result_gen = Rcpp::wrap(nnls_solver(x, A, rmse, iterate, tolerance));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -300,7 +301,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
     {"_sits_margin_probs", (DL_FUNC) &_sits_margin_probs, 2},
-    {"_sits_nnls_solver", (DL_FUNC) &_sits_nnls_solver, 4},
+    {"_sits_nnls_solver", (DL_FUNC) &_sits_nnls_solver, 5},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
     {"_sits_ratio_probs", (DL_FUNC) &_sits_ratio_probs, 2},
     {"_sits_max_sampling", (DL_FUNC) &_sits_max_sampling, 5},
