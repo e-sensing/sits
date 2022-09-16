@@ -121,7 +121,7 @@ sits_uncertainty.probs_cube <- function(cube, type = "least", window_size = 5,
 
         # Classify the data
         class_tile <- .uncertainty_tile(
-            tile = tile, band = "uncert", uncert_fn = uncert_fn,
+            tile = tile, band = type, uncert_fn = uncert_fn,
             window_size = window_size, memsize = memsize,
             multicores = multicores, output_dir = output_dir,
             version = version
