@@ -30,6 +30,7 @@
 #' @param key          A key describing the value.
 #' @param value        Any value to be logged. The value will be converted
 #'                     to string and escaped.
+#' @param output_dir   directory to save logs.
 #'
 #' @return             A logical value with current debug flag
 NULL
@@ -44,7 +45,7 @@ NULL
     # Get output_dir
     output_dir <- sits_env$output_dir
     if (is.null(output_dir)) {
-        output_dir <- getwd()
+        return(invisible(NULL))
     }
 
     # record time to compute elapsed time
@@ -115,7 +116,7 @@ NULL
 }
 
 #' @rdname sits_debug_log
-.sits_debug <- function(flag = NULL) {
+.sits_debug <- function(flag = NULL, output_dir = NULL) {
 
     # set caller to show in errors
     .check_set_caller(".sits_debug")
@@ -140,6 +141,9 @@ NULL
 
     # set debug flag
     sits_env$debug_flag <- flag
+
+    # set output_dir
+    sits_env$output_dir <- output_dir
 
     return(invisible(flag))
 }
