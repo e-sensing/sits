@@ -4,14 +4,7 @@
 \alias{.sits_classify_data_read}
 \title{Read a block of values retrieved from a set of raster images}
 \usage{
-.sits_classify_data_read(
-  tile,
-  block,
-  ml_model,
-  impute_fn,
-  filter_fn,
-  output_dir
-)
+.sits_classify_data_read(tile, block, ml_model, impute_fn, filter_fn)
 }
 \arguments{
 \item{tile}{Input tile to read data.}
@@ -23,8 +16,6 @@
 \item{impute_fn}{Impute function to replace NA.}
 
 \item{filter_fn}{Smoothing filter function to be applied to the data.}
-
-\item{output_dir}{Output directory.}
 }
 \value{
 A matrix with values for classification.

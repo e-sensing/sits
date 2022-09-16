@@ -2,54 +2,26 @@
 % Please edit documentation in R/sits_uncertainty.R
 \name{sits_uncertainty}
 \alias{sits_uncertainty}
-\alias{sits_uncertainty.entropy}
-\alias{sits_uncertainty.least}
-\alias{sits_uncertainty.margin}
+\alias{sits_uncertainty.probs_cube}
 \title{Estimate classification uncertainty based on probs cube}
 \usage{
 sits_uncertainty(
   cube,
   type = "least",
-  ...,
-  multicores = 2,
-  memsize = 8,
-  output_dir = ".",
-  version = "v1"
-)
-
-\method{sits_uncertainty}{entropy}(
-  cube,
-  type = "entropy",
-  ...,
   window_size = 5,
-  window_fn = "median",
-  multicores = 2,
   memsize = 4,
-  output_dir = ".",
+  multicores = 2,
+  output_dir = getwd(),
   version = "v1"
 )
 
-\method{sits_uncertainty}{least}(
+\method{sits_uncertainty}{probs_cube}(
   cube,
   type = "least",
-  ...,
   window_size = 5,
-  window_fn = "median",
-  multicores = 2,
   memsize = 4,
-  output_dir = ".",
-  version = "v1"
-)
-
-\method{sits_uncertainty}{margin}(
-  cube,
-  type = "margin",
-  ...,
-  window_size = 5,
-  window_fn = "median",
   multicores = 2,
-  memsize = 4,
-  output_dir = ".",
+  output_dir = getwd(),
   version = "v1"
 )
 }
@@ -58,21 +30,16 @@ sits_uncertainty(
 
 \item{type}{Method to measure uncertainty. See details.}
 
-\item{...}{Parameters for specific functions.}
+\item{window_size}{Size of neighborhood to calculate entropy.}
+
+\item{memsize}{Maximum overall memory (in GB) to run the function.}
 
 \item{multicores}{Number of cores to run the function.}
 
-\item{memsize}{Maximum overall memory (in GB) to run the
-function.}
-
 \item{output_dir}{Output directory for image files.}
 
-\item{version}{Version of resulting image.
-(in the case of multiple tests)}
-
-\item{window_size}{Size of neighborhood to calculate entropy.}
-
-\item{window_fn}{Function to be applied in entropy calculation.}
+\item{version}{Version of resulting image (in the case of
+multiple tests).}
 }
 \value{
 An uncertainty data cube

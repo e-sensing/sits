@@ -345,7 +345,7 @@ sits_smooth.bilateral <- function(cube,
         }
 
         # Read and preprocess values
-        values <- .sits_derived_data_read(
+        values <- .tile_read_block(
             tile = tile, band = .tile_bands(tile), block = block
         )
         # Avoid memory bloat
@@ -363,14 +363,14 @@ sits_smooth.bilateral <- function(cube,
             )
         )
         # Prepare probability to be saved
-        conf_band <- .conf_derived_band(
+        band_conf <- .conf_derived_band(
             derived_class = "probs_cube", band = band
         )
-        offset <- .band_offset(conf_band)
+        offset <- .band_offset(band_conf)
         if (!is.null(offset) && offset != 0) {
             values <- values - offset
         }
-        scale <- .band_scale(conf_band)
+        scale <- .band_scale(band_conf)
         if (!is.null(scale) && scale != 1) {
             values <- values / scale
         }
@@ -381,7 +381,8 @@ sits_smooth.bilateral <- function(cube,
             block = block,
             bbox = .bbox(job),
             values = values,
-            data_type = .band_data_type(conf_band)
+            data_type = .band_data_type(band_conf),
+            missing_value = .band_miss_value(band_conf)
         )
 
         # Create extent to crop overlaps
@@ -396,7 +397,8 @@ sits_smooth.bilateral <- function(cube,
                 .config_get("probs_cube_data_type")
             ),
             overwrite = TRUE,
-            block = blk_no_overlap
+            block = blk_no_overlap,
+            missing_value = .band_miss_value(band_conf)
         )
 
         gc()
@@ -405,13 +407,11 @@ sits_smooth.bilateral <- function(cube,
     })
     # Merge blocks into a new probs_cube tile
     probs_tile <- .tile_probs_merge_blocks(
-        file = out_file, band = band,
-        labels = .tile_labels(tile),
-        base_tile = tile, block_files = block_files,
-        multicores = multicores
+        file = out_file, band = band, labels = .tile_labels(tile),
+        base_tile = tile, block_files = block_files, multicores = multicores
     )
-    on.exit(unlink(block_files), add = TRUE)
-    return(invisible(probs_tile))
+    # Return tile
+    probs_tile
 }
 
 .smooth_bayes <- function(window, smoothness, covar) {

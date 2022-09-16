@@ -44,9 +44,7 @@
         message("(If you want to produce a new image, please ",
                 "change 'output_dir' or 'version' parameters)")
         probs_tile <- .tile_probs_from_file(
-            file = out_file,
-            band = "probs",
-            base_tile = tile,
+            file = out_file, band = "probs", base_tile = tile,
             labels = .ml_labels(ml_model)
         )
         return(probs_tile)
@@ -74,116 +72,33 @@
         crs = .crs(tile), roi = roi
     )
     # Process jobs in parallel
-    block_files <- .jobs_parallel_chr(jobs, function(job) {
+block_files <- .jobs_parallel_chr(jobs, function(job) {
         # Get job block
         block <- .block(job)
         # Output file name
         block_file <- .file_block_name(
-            pattern = .file_pattern(out_file),
-            block = block,
+            pattern = .file_pattern(out_file), block = block,
             output_dir = output_dir
         )
 
         # Resume processing in case of failure
-        if (file.exists(block_file)) {
-
-            #
-            # log
-            #
-            .sits_debug_log(
-                output_dir = output_dir,
-                event = "start_classification_block_validation",
-                key = "block_file",
-                value = block_file
-            )
-
-            # Try to open the file
-            r_obj <- .try(.raster_open_rast(block_file), .default = NULL)
-
-            # If file can be opened, check if the result is correct
-            # this file will not be processed again
-            if (!is.null(r_obj)) {
-
-                # Verify if the raster is corrupted
-                valid_block <- .try({
-                    .raster_get_values(r_obj)
-
-                    #
-                    # log
-                    #
-                    .sits_debug_log(
-                        output_dir = output_dir,
-                        event = "end_classification_block_validation",
-                        key = "is_valid",
-                        value = TRUE
-                    )
-
-                    # Return value
-                    TRUE
-                },
-                .default = {
-                    unlink(block_file)
-
-                    #
-                    # log
-                    #
-                    .sits_debug_log(
-                        output_dir = output_dir,
-                        event = "end_classification_block_validation",
-                        key = "is_valid",
-                        value = FALSE
-                    )
-
-                    # Return value
-                    FALSE
-                })
-
-                if (valid_block) {
-                    return(block_file)
-                }
-            }
+        if (.raster_is_valid(block_file)) {
+            return(block_file)
         }
-
         # for cubes that have a time limit to expire - mpc cubes only
         tile <- .cube_token_generator(tile)
-
-
-        #
-        # Log here
-        #
-        .sits_debug_log(
-            output_dir = output_dir,
-            event = "start_block_data_read_preprocess",
-            key = "block",
-            value = block
-        )
-
-
         # Read and preprocess values
         values <- .sits_classify_data_read(
             tile = tile, block = block, ml_model = ml_model,
-            impute_fn = impute_fn, filter_fn = filter_fn,
-            output_dir = output_dir
+            impute_fn = impute_fn, filter_fn = filter_fn
         )
-        # Avoid memory bloat
+        # Used to check values (below)
         original_nrows <- nrow(values)
 
-
         #
         # Log here
         #
         .sits_debug_log(
-            output_dir = output_dir,
-            event = "end_block_data_read_preprocess",
-            key = "block",
-            value = block
-        )
-
-        #
-        # Log here
-        #
-        .sits_debug_log(
-            output_dir = output_dir,
             event = "start_block_data_classification",
             key = "model",
             value = .ml_class(ml_model)
@@ -205,21 +120,20 @@
         # Log here
         #
         .sits_debug_log(
-            output_dir = output_dir,
             event = "end_block_data_classification",
             key = "model",
             value = .ml_class(ml_model)
         )
 
         # Prepare probability to be saved
-        conf_band <- .conf_derived_band(
+        band_conf <- .conf_derived_band(
             derived_class = "probs_cube", band = "probs"
         )
-        offset <- .band_offset(conf_band)
+        offset <- .band_offset(band_conf)
         if (!is.null(offset) && offset != 0) {
             values <- values - offset
         }
-        scale <- .band_scale(conf_band)
+        scale <- .band_scale(band_conf)
         if (!is.null(scale) && scale != 1) {
             values <- values / scale
         }
@@ -229,7 +143,6 @@
         # Log here
         #
         .sits_debug_log(
-            output_dir = output_dir,
             event = "start_block_data_save",
             key = "file",
             value = block_file
@@ -238,32 +151,27 @@
 
         # Prepare and save results as raster
         .raster_write_block(
-            file = block_file,
-            block = block,
-            bbox = .bbox(job),
-            values = values,
-            data_type = .band_data_type(conf_band)
+            file = block_file, block = block, bbox = .bbox(job),
+            values = values, data_type = .band_data_type(band_conf),
+            missing_value = .band_miss_value(band_conf)
         )
 
         #
         # Log here
         #
         .sits_debug_log(
-            output_dir = output_dir,
             event = "end_block_data_save",
             key = "file",
             value = block_file
         )
 
-        # Returned value
+        # Returned block file
         block_file
     })
     # Merge blocks into a new probs_cube tile
     probs_tile <- .tile_probs_merge_blocks(
-        file = out_file, band = "probs",
-        labels = .ml_labels(ml_model),
-        base_tile = tile, block_files = block_files,
-        multicores = multicores
+        file = out_file, band = "probs", labels = .ml_labels(ml_model),
+        base_tile = tile, block_files = block_files, multicores = multicores
     )
     # # Callback final tile classification
     # .callback(event = "tile_classification", status = "end",
@@ -276,6 +184,6 @@
                 format(round(tile_end_time - tile_start_time, digits = 2)))
         message("")
     }
-
-    return(probs_tile)
+    # Return probs tile
+    probs_tile
 }

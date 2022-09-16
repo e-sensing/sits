@@ -26,21 +26,25 @@
 #' flag is TRUE
 #'
 #' @param flag         A logical value to set the debug flag
-#' @param output_dir   Output directory to write log file
 #' @param event        The name of the event to be logged
 #' @param key          A key describing the value.
 #' @param value        Any value to be logged. The value will be converted
 #'                     to string and escaped.
+#' @param output_dir   directory to save logs.
 #'
 #' @return             A logical value with current debug flag
 NULL
 
 #' @rdname sits_debug_log
-.sits_debug_log <- function(output_dir = ".", event = "", key = "",
-                            value = "") {
+.sits_debug_log <- function(event = "", key = "", value = "") {
 
     # if debug flag is FALSE, then exit
     if (!.sits_debug()) {
+        return(invisible(NULL))
+    }
+    # Get output_dir
+    output_dir <- sits_env$output_dir
+    if (is.null(output_dir)) {
         return(invisible(NULL))
     }
 
@@ -112,7 +116,7 @@ NULL
 }
 
 #' @rdname sits_debug_log
-.sits_debug <- function(flag = NULL) {
+.sits_debug <- function(flag = NULL, output_dir = NULL) {
 
     # set caller to show in errors
     .check_set_caller(".sits_debug")
@@ -137,6 +141,9 @@ NULL
 
     # set debug flag
     sits_env$debug_flag <- flag
+
+    # set output_dir
+    sits_env$output_dir <- output_dir
 
     return(invisible(flag))
 }

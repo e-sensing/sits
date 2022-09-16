@@ -6,15 +6,15 @@
 #' @description Takes a set of classified raster layers with probabilities,
 #'              and label them based on the maximum probability for each pixel.
 #'
-#' @param  cube              Classified image data cube.
-#' @param  multicores        Number of workers to label the classification in
-#'                           parallel.
-#' @param  memsize           maximum overall memory (in GB) to label the
-#'                           classification.
-#' @param  output_dir        Output directory for classified files.
-#' @param  version           Version of resulting image
-#'                           (in the case of multiple runs).
-#' @return                   A data cube with an image with the classified map.
+#' @param  cube        Classified image data cube.
+#' @param  multicores  Number of workers to label the classification in
+#'                     parallel.
+#' @param  memsize     maximum overall memory (in GB) to label the
+#'                     classification.
+#' @param  output_dir  Output directory for classified files.
+#' @param  version     Version of resulting image
+#'                     (in the case of multiple runs).
+#' @return             A data cube with an image with the classified map.
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
@@ -48,14 +48,8 @@
 #'     plot(label_cube)
 #' }
 #' @export
-sits_label_classification <- function(cube,
-                                      multicores = 2,
-                                      memsize = 4,
-                                      output_dir = ".",
-                                      version = "v1") {
-
-    # set caller to show in errors
-    .check_set_caller("sits_label_classification")
+sits_label_classification <- function(cube, multicores = 2, memsize = 4,
+                                      output_dir = getwd(), version = "v1") {
 
     # precondition - check if cube has probability data
     .check_is_probs_cube(cube)
@@ -68,13 +62,23 @@ sits_label_classification <- function(cube,
     # precondition - version
     .check_version(version)
 
+    UseMethod("sits_label_classification", cube)
+}
+
+#' @rdname sits_label_classification
+#' @export
+sits_label_classification.probs_cube <- function(cube, multicores = 2,
+                                                 memsize = 4,
+                                                 output_dir = getwd(),
+                                                 version = "v1") {
+
     # Get job size
     job_size <- .raster_file_blocksize(
         .raster_open_rast(.fi_path(.fi(.tile(cube))))
     )
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
-        job_size = job_size, npaths = length(.fi_paths(.fi(.tile(cube)))) +
+        job_size = job_size, npaths = length(.fi_paths(.fi(.tile(cube)))) *
             length(.tile_labels(.tile(cube))), nbytes = 8,
         proc_bloat = .config_processing_bloat(), overlap = 0
     )
@@ -99,9 +103,9 @@ sits_label_classification <- function(cube,
 
         # Classify the data
         class_tile <- .sits_label_tile(
-            tile = tile, label_fn = label_max_prob, memsize = memsize,
-            multicores = multicores, output_dir = output_dir,
-            version = version
+            tile = tile, band = "class", label_fn = C_label_max_prob,
+            memsize = memsize, multicores = multicores,
+            output_dir = output_dir, version = version
         )
 
         return(class_tile)
@@ -110,16 +114,13 @@ sits_label_classification <- function(cube,
     return(class_cube)
 }
 
-.sits_label_tile  <- function(tile,
-                              label_fn,
-                              memsize,
-                              multicores,
-                              output_dir,
-                              version) {
+#---- internal functions ----
 
+.sits_label_tile  <- function(tile, band, label_fn, memsize, multicores,
+                              output_dir, version) {
     # Output file
     out_file <- .file_derived_name(
-        tile = tile, band = "class", version = version, output_dir = output_dir
+        tile = tile, band = band, version = version, output_dir = output_dir
     )
     # Resume feature
     if (file.exists(out_file)) {
@@ -130,9 +131,7 @@ sits_label_classification <- function(cube,
         message("(If you want to produce a new image, please ",
                 "change 'output_dir' or 'version' parameters)")
         class_tile <- .tile_class_from_file(
-            file = out_file,
-            band = "class",
-            base_tile = tile
+            file = out_file, band = band, base_tile = tile
         )
         return(class_tile)
     }
@@ -160,39 +159,17 @@ sits_label_classification <- function(cube,
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (file.exists(block_file)) {
-            # Try to open the file
-            r_obj <- .try(.raster_open_rast(block_file), .default = NULL)
-            # If file can be opened, check if the result is correct
-            # this file will not be processed again
-            if (!is.null(r_obj)) {
-                # Verify if the raster is corrupted
-                valid_block <- .try({
-                    .raster_get_values(r_obj)
-                    # Return value
-                    TRUE
-                },
-                .default = {
-                    unlink(block_file)
-                    # Return value
-                    FALSE
-                })
-
-                if (valid_block) {
-                    return(block_file)
-                }
-            }
+        if (.raster_is_valid(block_file)) {
+            return(block_file)
         }
         # Read and preprocess values
-        values <- .sits_derived_data_read(
+        values <- .tile_read_block(
             tile = tile, band = .tile_bands(tile), block = block
         )
-        # Avoid memory bloat
+        # Used to check values (below)
         original_nrows <- nrow(values)
-
         # Apply the labeling function to values
         values <- label_fn(values)
-
         # Are the results consistent with the data input?
         .check_that(
             x = nrow(values) == original_nrows,
@@ -201,41 +178,33 @@ sits_label_classification <- function(cube,
                 "from number of input pixels"
             )
         )
-
         # Prepare probability to be saved
-        conf_band <- .conf_derived_band(
-            derived_class = "class_cube", band = "class"
+        band_conf <- .conf_derived_band(
+            derived_class = "class_cube", band = band
         )
-        offset <- .band_offset(conf_band)
+        offset <- .band_offset(band_conf)
         if (!is.null(offset) && offset != 0) {
             values <- values - offset
         }
-        scale <- .band_scale(conf_band)
+        scale <- .band_scale(band_conf)
         if (!is.null(scale) && scale != 1) {
             values <- values / scale
         }
-
         # Prepare and save results as raster
         .raster_write_block(
-            file = block_file,
-            block = block,
-            bbox = .bbox(job),
-            values = values,
-            data_type = .band_data_type(conf_band)
+            file = block_file, block = block, bbox = .bbox(job),
+            values = values, data_type = .band_data_type(band_conf),
+            missing_value = .band_miss_value(band_conf)
         )
-
         # Returned value
         block_file
     })
-
     # Merge blocks into a new class_cube tile
     class_tile <- .tile_class_merge_blocks(
-        file = out_file, band = "class",
-        derived_class = "class_cube",
-        labels = .tile_labels(tile),
+        file = out_file, band = band, labels = .tile_labels(tile),
         base_tile = tile, block_files = block_files,
         multicores = multicores
     )
-
-    return(class_tile)
+    # Return class tile
+    class_tile
 }
