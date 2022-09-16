@@ -226,6 +226,7 @@ sits_mixture_model <- function(cube,
                 A = em_scaled,
                 rmse = rmse_band
             )
+            colnames(values) <- output_fracs
 
             offset <- .config_get("raster_cube_offset_value")
             if (!is.null(offset)) {
@@ -236,13 +237,13 @@ sits_mixture_model <- function(cube,
                 values <- values * scale
             }
 
-            filenames_block <- purrr::map_chr(length(output_fracs), function(i) {
+            filenames_block <- purrr::map_chr(output_fracs, function(of) {
                 output_frac <- .file_eocube_name(
-                    tile = tile, band = output_fracs[[i]],
+                    tile = tile, band = of,
                     date = unique(in_fi_fid[["date"]]), output_dir = output_dir
                 )
                 block_file <- .file_block_name(
-                    pattern = .file_pattern(output_frac),
+                    pattern = .file_pattern(of),
                     block = block,
                     output_dir = output_dir
                 )
@@ -250,7 +251,7 @@ sits_mixture_model <- function(cube,
                     file = block_file,
                     block = block,
                     bbox = .bbox(job),
-                    values = values,
+                    values = values[, of],
                     data_type = .config_get("raster_cube_data_type")
                 )
                 return(block_file)
@@ -259,7 +260,6 @@ sits_mixture_model <- function(cube,
             # Clean memory
             gc()
 
-            names(filenames_block) <- output_fracs
             return(filenames_block)
         })
 
@@ -271,10 +271,12 @@ sits_mixture_model <- function(cube,
             return(NULL)
         }
 
-        local_tile <- purrr::imap_dfr(block_files, function(x) {
+        local_tile <- purrr::map_dfr(output_fracs, function(of) {
+            band_blocks_file <- .mm_filter_blocks_file(block_files, of)
             .tile_raster_merge_blocks(
-                file = , band, labels, base_tile, block_files = block_files,
-                multicores
+                file = output_files[[of]], band = of, base_tile = tile,
+                block_files = band_blocks_file,
+                multicores = 1
             )
         })
 
@@ -286,6 +288,10 @@ sits_mixture_model <- function(cube,
     local_cube <- dplyr::bind_rows(tiles_mm)
 
     return(local_cube)
+}
+
+.mm_filter_blocks_file <- function(blocks_file, band) {
+    blocks_file[grepl(pattern = band, x = blocks_file)]
 }
 
 .tile_raster_merge_blocks <- function(file, band, labels, base_tile,
