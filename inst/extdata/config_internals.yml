@@ -101,7 +101,7 @@ derived_cube         :
             probs    : &int2u_0_10000
                 data_type    : "INT2U"
                 missing_value: 65535
-                minimum_value: 0
+                minimum_value: 1
                 maximum_value: 10000
                 offset_value : 0
                 scale_factor : 0.0001

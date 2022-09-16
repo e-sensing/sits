@@ -1286,6 +1286,28 @@
     cube[.cube_during(cube, start_date, end_date), ]
 }
 
+#---- | .cube_select() ----
+
+.cube_select <- function(cube, bands) {
+    UseMethod(".cube_select", cube)
+}
+
+.cube_select.raster_cube <- function(cube, bands) {
+    .cube_foreach_tile(cube, function(tile) {
+        # default bands
+        if (is.null(bands)) {
+            bands <- .cube_bands(tile)
+        }
+
+        # pre-condition - check bands
+        .check_cube_bands(tile, bands = bands)
+
+        db_info <- .fi_band_filter(.fi(tile), band = bands)
+        tile$file_info[[1]] <- db_info
+        return(tile)
+    })
+}
+
 # s2_cube <- sits_cube(
 #     source = "AWS",
 #     collection = "SENTINEL-S2-L2A-COGS",
