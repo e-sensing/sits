@@ -287,12 +287,6 @@
     # set caller to show in errors
     .check_set_caller(".raster_open_rast")
 
-    # check for file length == 1
-    .check_that(
-        length(file) == 1,
-        msg = "more than one file were informed"
-    )
-
     # check package
     pkg_class <- .raster_check_package()
 
