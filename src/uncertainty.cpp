@@ -6,7 +6,7 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 arma::mat C_entropy_probs(const arma::mat& x) {
-    return -arma::sum(x * (arma::log(x) / log(x.n_cols)));
+    return -arma::sum(x % (arma::log(x) / log(x.n_cols)), 1);
 }
 
 // [[Rcpp::export]]
