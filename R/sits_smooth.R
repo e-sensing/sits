@@ -109,9 +109,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     # precondition - test window size
     .check_window_size(window_size)
     # precondition - covar
-    .check_lgl_type(
-        x = covar
-    )
+    .check_lgl_type(covar)
     # precondition - multicores
     .check_multicores(multicores)
     # precondition - memsize
@@ -166,11 +164,88 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         # Smooth the data
         probs_tile <- .sits_smooth_tile(
             tile = tile, band = "bayes",
-            overlap = overlap, smooth_fn = .smooth_bayes,
-            params_fn = list(smoothness = smoothness, covar = covar,
-                             window = window),
+            overlap = overlap,
+            smooth_fn = .smooth_bayes(smoothness = smoothness,
+                                      covar = covar, window = window),
             memsize = memsize, multicores = multicores,
             output_dir = output_dir, version = version
+        )
+
+        return(probs_tile)
+    })
+
+    return(probs_cube)
+}
+
+#' @rdname sits_smooth
+#'
+#' @export
+#'
+sits_smooth.bilateral <- function(cube,
+                                  type = "bilateral",
+                                  ...,
+                                  window_size = 5,
+                                  sigma = 8,
+                                  tau = 0.1,
+                                  multicores = 2,
+                                  memsize = 4,
+                                  output_dir = ".",
+                                  version = "v1") {
+
+    # precondition - window size
+    .check_window_size(window_size)
+    # prediction - variance
+    .check_num_parameter(sigma, exclusive_min = 0)
+    # prediction - tau
+    .check_num_parameter(tau, exclusive_min = 0)
+    # precondition - multicores
+    .check_multicores(multicores)
+    # precondition - memsize
+    .check_memsize(memsize)
+    # precondition - output dir
+    .check_output_dir(output_dir)
+    # precondition - version
+    .check_version(version)
+
+    # Get job size
+    job_size <- .raster_file_blocksize(
+        .raster_open_rast(.fi_path(.fi(.tile(cube))))
+    )
+    # Overlapping pixels
+    overlap <- ceiling(window_size / 2) - 1
+    # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = job_size, npaths = length(.tile_labels(.tile(cube))),
+        nbytes = 8, proc_bloat = .config_processing_bloat(), overlap = overlap
+    )
+
+    # Check if memsize is above minimum needed to process one block
+    .check_that(
+        x = job_memsize < memsize,
+        local_msg = paste("minimum memsize needed is", job_memsize, "GB"),
+        msg = "provided 'memsize' is insufficient for processing"
+    )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+    )
+
+    # Prepare parallel processing
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop(), add = TRUE)
+
+    # Smoothing
+    # Process each tile sequentially
+    probs_cube <- .cube_foreach_tile(cube, function(tile) {
+
+        # Smooth the data
+        probs_tile <- .sits_smooth_tile(
+            tile = tile, band = "bilat",
+            overlap = overlap,
+            smooth_fn = .smooth_bilat(window_size = window_size,
+                                      sigma = sigma, tau = tau),
+            memsize = memsize, multicores = multicores, output_dir = output_dir,
+            version = version
         )
 
         return(probs_tile)
@@ -183,7 +258,6 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               band,
                               overlap,
                               smooth_fn,
-                              params_fn,
                               memsize,
                               multicores,
                               output_dir,
@@ -205,7 +279,6 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         probs_tile <- .tile_probs_from_file(
             file = out_file,
             band = band,
-            derived_class = "probs_cube",
             base_tile = tile,
             labels = .tile_labels(tile)
         )
@@ -279,9 +352,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         original_nrows <- nrow(values)
 
         # Apply the probability function to values
-        params_fn[["values"]] <- values
-        params_fn[["block"]] <- block
-        values <- do.call(smooth_fn, params_fn)
+        values <- smooth_fn(values = values, block = block)
 
         # Are the results consistent with the data input?
         .check_that(
@@ -343,114 +414,42 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     return(invisible(probs_tile))
 }
 
-.smooth_bayes <- function(values, block, window, smoothness, covar) {
+.smooth_bayes <- function(window, smoothness, covar) {
+    values <- function(values, block) {
+        # compute logit
+        values <- log(values / (rowSums(values) - values))
 
-    # compute logit
-    values <- log(values / (rowSums(values) - values))
+        # process Bayesian
+        values <- bayes_smoother(
+            m = values,
+            m_nrow = block[["nrows"]],
+            m_ncol = block[["ncols"]],
+            w = window,
+            sigma = smoothness,
+            covar_sigma0 = covar
+        )
 
-    # process Bayesian
-    values <- bayes_smoother(
-        m = values,
-        m_nrow = block[["nrows"]],
-        m_ncol = block[["ncols"]],
-        w = window,
-        sigma = smoothness,
-        covar_sigma0 = covar
-    )
+        # calculate the Bayesian probability for the pixel
+        values <- exp(values) / (exp(values) + 1)
 
-    # calculate the Bayesian probability for the pixel
-    values <- exp(values) / (exp(values) + 1)
-
+        return(values)
+    }
     return(values)
 }
 
-#' @rdname sits_smooth
-#'
-#' @export
-#'
-sits_smooth.bilateral <- function(cube,
-                                  type = "bilateral",
-                                  ...,
-                                  window_size = 5,
-                                  sigma = 8,
-                                  tau = 0.1,
-                                  multicores = 2,
-                                  memsize = 4,
-                                  output_dir = ".",
-                                  version = "v1") {
-
-    # precondition - window size
-    .check_window_size(window_size)
-    # prediction - variance
-    .check_num_parameter(sigma, exclusive_min = 0)
-    # prediction - tau
-    .check_num_parameter(tau, exclusive_min = 0)
-    # precondition - multicores
-    .check_multicores(multicores)
-    # precondition - memsize
-    .check_memsize(memsize)
-    # precondition - output dir
-    .check_output_dir(output_dir)
-    # precondition - version
-    .check_version(version)
-
-    # Get job size
-    job_size <- .raster_file_blocksize(
-        .raster_open_rast(.fi_path(.fi(.tile(cube))))
-    )
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
-    # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = job_size, npaths = length(.tile_labels(.tile(cube))),
-        nbytes = 8, proc_bloat = .config_processing_bloat(), overlap = overlap
-    )
-
-    # Check if memsize is above minimum needed to process one block
-    .check_that(
-        x = job_memsize < memsize,
-        local_msg = paste("minimum memsize needed is", job_memsize, "GB"),
-        msg = "provided 'memsize' is insufficient for processing"
-    )
-    # Update multicores parameter
-    multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
-    )
-
-    # Prepare parallel processing
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop(), add = TRUE)
-
-    # Smoothing
-    # Process each tile sequentially
-    probs_cube <- .cube_foreach_tile(cube, function(tile) {
-
-        # Smooth the data
-        probs_tile <- .sits_smooth_tile(
-            tile = tile, band = "bilat",
-            overlap = overlap, smooth_fn = .smooth_bilat,
-            params_fn = list(window_size = window_size, sigma = sigma, tau = tau),
-            memsize = memsize, multicores = multicores, output_dir = output_dir,
-            version = version
+.smooth_bilat <- function(window_size, sigma, tau) {
+    values <- function(values, block) {
+        gs_matrix <- .smooth_gauss_kernel(window_size, sigma)
+        # process bilateral smoother
+        values <- bilateral_smoother(
+            m = values,
+            m_nrow = block[["nrows"]],
+            m_ncol = block[["ncols"]],
+            w = gs_matrix,
+            tau = tau
         )
-
-        return(probs_tile)
-    })
-
-    return(probs_cube)
-}
-
-.smooth_bilat <- function(values, block, window_size, sigma, tau) {
-
-    gs_matrix <- .smooth_gauss_kernel(window_size, sigma)
-    # process bilateral smoother
-    values <- bilateral_smoother(
-        m = values,
-        m_nrow = block[["nrows"]],
-        m_ncol = block[["ncols"]],
-        w = gs_matrix,
-        tau = tau
-    )
+        return(values)
+    }
     return(values)
 }
 
