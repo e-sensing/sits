@@ -341,6 +341,19 @@
     )
 }
 
+.fi_eo_from_file <- function(file, fid, date, band) {
+    file <- path.expand(file)
+    r_obj <- .raster_open_rast(file)
+    .fi_eo(
+        fid = fid, band = band, date = date,
+        ncols = .raster_ncols(r_obj),
+        nrows = .raster_nrows(r_obj), xres = .raster_xres(r_obj),
+        yres = .raster_yres(r_obj), xmin = .raster_xmin(r_obj),
+        xmax = .raster_xmax(r_obj), ymin = .raster_ymin(r_obj),
+        ymax = .raster_ymax(r_obj), path = file
+    )
+}
+
 .fi_derived <- function(band, start_date, end_date, ncols, nrows,
                         xres, yres, xmin, xmax, ymin, ymax, crs, path) {
     # Create a new derived file_info
@@ -704,6 +717,26 @@
     .tile_file_info(base_tile) <- .fi_derived_from_file(
         file = file, band = band, start_date = .tile_start_date(base_tile),
         end_date = .tile_end_date(base_tile)
+    )
+    # Set tile class
+    .cube_set_class(base_tile, .conf_derived_s3class(derived_class))
+}
+
+
+# ---- tile eo api ----
+.tile_eo_from_file <- function(file, fid, band, base_tile) {
+
+    # Open raster
+    r_obj <- .raster_open_rast(file)
+    # Update spatial bbox
+    .xmin(base_tile) <- .raster_xmin(r_obj)
+    .xmax(base_tile) <- .raster_xmax(r_obj)
+    .ymin(base_tile) <- .raster_ymin(r_obj)
+    .ymax(base_tile) <- .raster_ymax(r_obj)
+    .crs(base_tile) <- .raster_crs(r_obj)
+    # Update file_info
+    .tile_file_info(base_tile) <- .fi_eo_from_file(
+        file = file, fid = fid, band = band, date = .tile_date(base_tile)
     )
     # Set tile class
     .cube_set_class(base_tile, .conf_derived_s3class(derived_class))
