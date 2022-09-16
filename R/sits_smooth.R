@@ -127,7 +127,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         smoothness <- diag(smoothness, nrow = nlabels, ncol = nlabels)
     }
 
-    # create a window
+    # Create a window
     window <- matrix(1, nrow = window_size, ncol = window_size)
 
     # Get job size
@@ -165,8 +165,8 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         probs_tile <- .sits_smooth_tile(
             tile = tile, band = "bayes",
             overlap = overlap,
-            smooth_fn = .smooth_bayes(smoothness = smoothness,
-                                      covar = covar, window = window),
+            smooth_fn = .smooth_bayes(window = window,
+                                      smoothness = smoothness, covar = covar),
             memsize = memsize, multicores = multicores,
             output_dir = output_dir, version = version
         )
@@ -182,8 +182,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 #' @export
 #'
 sits_smooth.bilateral <- function(cube,
-                                  type = "bilateral",
-                                  ...,
+                                  type = "bilateral", ...,
                                   window_size = 5,
                                   sigma = 8,
                                   tau = 0.1,
@@ -206,6 +205,16 @@ sits_smooth.bilateral <- function(cube,
     .check_output_dir(output_dir)
     # precondition - version
     .check_version(version)
+
+    # Create a window
+    w_center <- ceiling(window_size / 2)
+    w_seq <- seq_len(window_size)
+    x <- stats::dnorm(
+        (abs(rep(w_seq, each = window_size) - w_center)^2 +
+             abs(rep(w_seq, window_size) - w_center)^2)^(1 / 2),
+        sd = sigma
+    ) / stats::dnorm(0)
+    window <- matrix(x / sum(x), nrow = window_size, byrow = TRUE)
 
     # Get job size
     job_size <- .raster_file_blocksize(
@@ -242,7 +251,7 @@ sits_smooth.bilateral <- function(cube,
         probs_tile <- .sits_smooth_tile(
             tile = tile, band = "bilat",
             overlap = overlap,
-            smooth_fn = .smooth_bilat(window_size = window_size,
+            smooth_fn = .smooth_bilat(window = window,
                                       sigma = sigma, tau = tau),
             memsize = memsize, multicores = multicores, output_dir = output_dir,
             version = version
@@ -437,29 +446,17 @@ sits_smooth.bilateral <- function(cube,
     return(values)
 }
 
-.smooth_bilat <- function(window_size, sigma, tau) {
+.smooth_bilat <- function(window, sigma, tau) {
     values <- function(values, block) {
-        gs_matrix <- .smooth_gauss_kernel(window_size, sigma)
         # process bilateral smoother
         values <- bilateral_smoother(
             m = values,
             m_nrow = block[["nrows"]],
             m_ncol = block[["ncols"]],
-            w = gs_matrix,
+            w = window,
             tau = tau
         )
         return(values)
     }
     return(values)
-}
-
-.smooth_gauss_kernel <- function(window_size, sigma) {
-    w_center <- ceiling(window_size / 2)
-    w_seq <- seq_len(window_size)
-    x <- stats::dnorm(
-        (abs(rep(w_seq, each = window_size) - w_center)^2 +
-             abs(rep(w_seq, window_size) - w_center)^2)^(1 / 2),
-        sd = sigma
-    ) / stats::dnorm(0)
-    matrix(x / sum(x), nrow = window_size, byrow = TRUE)
 }
