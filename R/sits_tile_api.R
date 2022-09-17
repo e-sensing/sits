@@ -1,6 +1,13 @@
 
 #---- sits api (generic) ----
 
+# alias
+.as_int <- as.integer
+
+.as_chr <- as.character
+
+.as_dbl <- as.numeric
+
 .as_date <- function(x) {
     lubridate::as_date(unlist(x, recursive = FALSE))
 }
@@ -37,7 +44,7 @@
 }
 
 .xmin <- function(x) {
-    as.numeric(.compact(x[["xmin"]]))
+    .as_dbl(.compact(x[["xmin"]]))
 }
 
 `.xmin<-` <- function(x, value) {
@@ -46,7 +53,7 @@
 }
 
 .xmax <- function(x) {
-    as.numeric(.compact(x[["xmax"]]))
+    .as_dbl(.compact(x[["xmax"]]))
 }
 
 `.xmax<-` <- function(x, value) {
@@ -55,7 +62,7 @@
 }
 
 .ymin <- function(x) {
-    as.numeric(.compact(x[["ymin"]]))
+    .as_dbl(.compact(x[["ymin"]]))
 }
 
 `.ymin<-` <- function(x, value) {
@@ -64,7 +71,7 @@
 }
 
 .ymax <- function(x) {
-    as.numeric(.compact(x[["ymax"]]))
+    .as_dbl(.compact(x[["ymax"]]))
 }
 
 `.ymax<-` <- function(x, value) {
@@ -74,7 +81,7 @@
 
 .crs <- function(x) {
     crs <- .compact(x[["crs"]])
-    if (!is.numeric(crs)) return(as.character(crs))
+    if (!is.numeric(crs)) return(.as_chr(crs))
     paste0("EPSG:", crs)
 }
 
@@ -84,19 +91,19 @@
 }
 
 .col <- function(x) {
-    as.integer(.compact(x[["col"]]))
+    .as_int(.compact(x[["col"]]))
 }
 
 .row <- function(x) {
-    as.integer(.compact(x[["row"]]))
+    .as_int(.compact(x[["row"]]))
 }
 
 .ncols <- function(x) {
-    as.integer(.compact(x[["ncols"]]))
+    .as_int(.compact(x[["ncols"]]))
 }
 
 .nrows <- function(x) {
-    as.integer(.compact(x[["nrows"]]))
+    .as_int(.compact(x[["nrows"]]))
 }
 
 .xres <- function(x) {
@@ -107,12 +114,19 @@
     (.ymax(x) - .ymin(x)) / .nrows(x)
 }
 
+
+#---- block api ----
+
 .block_cols <- c("col", "row", "ncols", "nrows")
 
 .block <- function(x) {
     if (!all(.block_cols %in% names(x)))
         return(NULL)
     as.list(x[.block_cols])
+}
+
+.block_size <- function(block, overlap) {
+    (block[["nrows"]] + 2 * overlap) * (block[["ncols"]] + 2 * overlap)
 }
 
 #---- bbox api ----
@@ -220,7 +234,7 @@
 
 .period_val <- function(period) {
     .period_check(period)
-    as.numeric(gsub("^P([0-9]+)(D|M|Y)", "\\1", period))
+    .as_dbl(gsub("^P([0-9]+)(D|M|Y)", "\\1", period))
 }
 
 .period_unit <- function(period) {
@@ -266,35 +280,35 @@
 }
 
 .band_data_type <- function(conf) {
-    as.character(conf[["data_type"]][[1]])
+    .as_chr(conf[["data_type"]][[1]])
 }
 
 .band_miss_value <- function(conf) {
-    as.numeric(conf[["missing_value"]][[1]])
+    .as_dbl(conf[["missing_value"]][[1]])
 }
 
 .band_min_value <- function(conf) {
-    as.numeric(conf[["minimum_value"]][[1]])
+    .as_dbl(conf[["minimum_value"]][[1]])
 }
 
 .band_max_value <- function(conf) {
-    as.numeric(conf[["maximum_value"]][[1]])
+    .as_dbl(conf[["maximum_value"]][[1]])
 }
 
 .band_scale <- function(conf) {
-    as.numeric(conf[["scale_factor"]][[1]])
+    .as_dbl(conf[["scale_factor"]][[1]])
 }
 
 .band_offset <- function(conf) {
-    as.numeric(conf[["offset_value"]][[1]])
+    .as_dbl(conf[["offset_value"]][[1]])
 }
 
 .band_cloud_interp_values <- function(conf) {
-    as.integer(conf[["interp_values"]])
+    .as_int(conf[["interp_values"]])
 }
 
 .band_cloud_bit_mask <- function(conf) {
-    as.integer(conf[["bit_mask"]][[1]])
+    .as_int(conf[["bit_mask"]][[1]])
 }
 
 .band_cloud <- function() {
@@ -323,7 +337,7 @@
 }
 
 .fi_switch <- function(fi, ...) {
-    switch(.fi_type(fi), ...)
+    switch(.fi_type(fi), ..., stop("invalid file_info type"))
 }
 
 .fi <- function(x) {
@@ -341,12 +355,11 @@
     )
 }
 
-.fi_eo_from_file <- function(file, fid, date, band) {
-    file <- path.expand(file)
+.fi_eo_from_file <- function(file, fid, band, date) {
+    file <- path.expand(file[[1]])
     r_obj <- .raster_open_rast(file)
     .fi_eo(
-        fid = fid, band = band, date = date,
-        ncols = .raster_ncols(r_obj),
+        fid = fid, band = band, date = date, ncols = .raster_ncols(r_obj),
         nrows = .raster_nrows(r_obj), xres = .raster_xres(r_obj),
         yres = .raster_yres(r_obj), xmin = .raster_xmin(r_obj),
         xmax = .raster_xmax(r_obj), ymin = .raster_ymin(r_obj),
@@ -381,11 +394,18 @@
 }
 
 .fi_fid <- function(fi) {
-    as.character(fi[["fid"]])
+    .as_chr(fi[["fid"]])
+}
+
+.fi_fid_filter <- function(fi, fid) {
+    .fi_switch(
+        fi = fi,
+        eo_cube = fi[.fi_bands(fi) %in% .as_chr(fid), ]
+    )
 }
 
 .fi_bands <- function(fi) {
-    as.character(fi[["band"]])
+    .as_chr(fi[["band"]])
 }
 
 .fi_band_filter <- function(fi, band) {
@@ -408,6 +428,20 @@
     )
 }
 
+.fi_dates <- function(fi) {
+    .fi_switch(
+        fi = fi,
+        eo_cube = .as_date(fi[["date"]])
+    )
+}
+
+.fi_date <- function(fi) {
+    .fi_switch(
+        fi = fi,
+        eo_cube = .as_date(fi[["date"]][[1]])
+    )
+}
+
 .fi_timeline <- function(fi) {
     .fi_switch(
         fi = fi,
@@ -417,11 +451,11 @@
 }
 
 .fi_paths <- function(fi) {
-    as.character(fi[["path"]])
+    .as_chr(fi[["path"]])
 }
 
 .fi_path <- function(fi) {
-    as.character(fi[["path"]][[1]])
+    .as_chr(fi[["path"]][[1]])
 }
 
 .fi_as_sf <- function(fi) {
@@ -511,7 +545,7 @@
 #' @export
 .tile_source.raster_cube <- function(tile) {
     tile <- .tile(tile)
-    as.character(tile[["source"]])
+    .as_chr(tile[["source"]])
 }
 
 #---- | .tile_collection() ----
@@ -526,7 +560,7 @@
 #' @export
 .tile_collection.raster_cube <- function(tile) {
     tile <- .tile(tile)
-    as.character(tile[["collection"]])
+    .as_chr(tile[["collection"]])
 }
 
 #---- | .tile_name() ----
@@ -541,7 +575,7 @@
 #' @export
 .tile_name.raster_cube <- function(tile) {
     tile <- .tile(tile)
-    as.character(tile[["tile"]])
+    .as_chr(tile[["tile"]])
 }
 
 #---- | .tile_labels() ----
@@ -556,7 +590,7 @@
 #' @export
 .tile_labels.raster_cube <- function(tile) {
     tile <- .tile(tile)
-    as.character(tile[["labels"]][[1]])
+    .as_chr(tile[["labels"]][[1]])
 }
 
 #' @name .tile_labels
@@ -570,7 +604,7 @@
 #' @export
 `.tile_labels<-.raster_cube` <- function(tile, value) {
     tile <- .tile(tile)
-    tile[["labels"]] <- list(as.character(value))
+    tile[["labels"]] <- list(.as_chr(value))
     tile
 }
 
@@ -670,7 +704,7 @@
 
 #' @export
 .tile_bands.raster_cube <- function(tile) {
-    sort(unique(.fi_bands(.fi(tile))))
+    unique(.fi_bands(.fi(tile)))
 }
 
 #---- | .tile_band_conf() ----
@@ -730,6 +764,23 @@
     unique(.nrows(.fi(tile)))
 }
 
+#---- | .tile_band_filter() ----
+#' @title Tile API
+#' @param tile A tile.
+#' @param band A region of interest (ROI).
+#' @description Filter file_info entries of a given \code{band}.
+#' @return tile
+.tile_band_filter <- function(tile, band) {
+    UseMethod(".tile_band_filter", tile)
+}
+
+#' @export
+.tile_band_filter.raster_cube <- function(tile, band) {
+    tile <- .tile(tile)
+    .tile_file_info(tile) <- .fi_band_filter(fi = .fi(tile), band = band)
+    tile
+}
+
 #---- | .tile_intersects() ----
 #' @title Tile API
 #' @param tile A tile.
@@ -750,7 +801,7 @@
 #' @param tile A tile.
 #' @param roi A region of interest (ROI).
 #' @description Filter file_info entries that intersect \code{roi} parameter.
-#' @return logical
+#' @return tile
 .tile_spatial_filter <- function(tile, roi) {
     UseMethod(".tile_spatial_filter", tile)
 }
@@ -994,11 +1045,23 @@
     values
 }
 
+#---- .tile_chunk_create() ----
+
+.tile_chunk_create <- function(tile, overlap, roi = NULL) {
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(tile))))
+    # Compute chunks
+    .chunk_create(
+        block = block, overlap = overlap, ncols = .tile_ncols(tile),
+        nrows = .tile_nrows(tile), xmin = .xmin(tile), xmax = .xmax(tile),
+        ymin = .ymin(tile), ymax = .ymax(tile), crs = .crs(tile), roi = roi
+    )
+}
+
 #---- Tile constructors: ----
 
 # ---- | tile eo api ----
-.tile_eo_from_file <- function(file, fid, band, base_tile) {
-
+.tile_eo_from_file <- function(file, fid, band, date, base_tile) {
     # Open raster
     r_obj <- .raster_open_rast(file)
     # Update spatial bbox
@@ -1009,10 +1072,10 @@
     .crs(base_tile) <- .raster_crs(r_obj)
     # Update file_info
     .tile_file_info(base_tile) <- .fi_eo_from_file(
-        file = file, fid = fid, band = band, date = .tile_date(base_tile)
+        file = file, fid = fid, band = band, date = date
     )
-    # Set tile class
-    .cube_set_class(base_tile, .conf_derived_s3class(derived_class))
+    # Return eo tile
+    base_tile
 }
 
 
@@ -1144,6 +1207,16 @@
 #---- | .cube_set_class() ----
 .cube_set_class <- function(x, ...) {
     .set_class(x, ..., c("sits_cube", "tbl_df", "tbl", "data.frame"))
+}
+
+#---- | .cube_band_conf() ----
+.cube_band_conf <- function(cube, band) {
+    UseMethod(".cube_band_conf", cube)
+}
+
+#' @export
+.cube_band_conf.raster_cube <- function(cube, band) {
+    .tile_band_conf(tile = cube, band = band)
 }
 
 #---- | .cube_start_date() ----
@@ -1319,27 +1392,38 @@
     cube[.cube_during(cube, start_date, end_date), ]
 }
 
-#---- | .cube_select() ----
+#---- | .cube_band_filter() ----
 
-.cube_select <- function(cube, bands) {
-    UseMethod(".cube_select", cube)
+.cube_band_filter <- function(cube, band) {
+    UseMethod(".cube_band_filter", cube)
 }
 
-.cube_select.raster_cube <- function(cube, bands) {
+.cube_band_filter.raster_cube <- function(cube, band) {
     .cube_foreach_tile(cube, function(tile) {
-        # default bands
-        if (is.null(bands)) {
-            bands <- .cube_bands(tile)
-        }
-
-        # pre-condition - check bands
-        .check_cube_bands(tile, bands = bands)
-
-        db_info <- .fi_band_filter(.fi(tile), band = bands)
-        tile$file_info[[1]] <- db_info
-        return(tile)
+        .tile_band_filter(tile = tile, band = band)
     })
 }
+
+#---- | .cube_tiles() ----
+
+.cube_tiles <- function(cube) {
+    UseMethod(".cube_tiles", cube)
+}
+
+.cube_tiles.raster_cube <- function(cube) {
+    .as_chr(cube[["tile"]])
+}
+
+#---- | .cube_tile_filter() ----
+
+.cube_tile_filter <- function(cube, tile) {
+    UseMethod(".cube_tile_filter", cube)
+}
+
+.cube_tile_filter.raster_cube <- function(cube, tile) {
+    cube[.cube_tiles(cube) %in% tile, ]
+}
+
 
 # s2_cube <- sits_cube(
 #     source = "AWS",
@@ -1490,5 +1574,65 @@
     dplyr::group_split(
         dplyr::group_by(samples, .data[["group_id"]]),
         .keep = FALSE
+    )
+}
+
+#---- chunk ----
+
+.chunk_create <- function(block, overlap, ncols, nrows, xmin, xmax,
+                          ymin, ymax, crs, roi = NULL) {
+    # Prepare raster tile template
+    r_obj <- .raster_new_rast(
+        nrows = nrows, ncols = ncols, xmin = xmin, xmax = xmax,
+        ymin = ymin, ymax = ymax, nlayers = 1, crs = crs
+    )
+    chunks <- purrr::cross_df(list(
+        col = seq(1, ncols, .ncols(block)),
+        row = seq(1, nrows, .nrows(block))
+    ))
+    chunks[["col"]] <- .as_int(pmax(1, .col(chunks) - overlap))
+    chunks[["row"]] <- .as_int(pmax(1, .row(chunks) - overlap))
+    chunks[["ncols"]] <- .as_int(
+        pmin(ncols, .col(chunks) + .ncols(block) + overlap - 1) -
+            .col(chunks) + 1
+    )
+    chunks[["nrows"]] <- .as_int(
+        pmin(nrows, .row(chunks) + .nrows(block) + overlap - 1) -
+            .row(chunks) + 1
+    )
+    chunks <- slider::slide_dfr(chunks, function(chunk) {
+        # Crop block from template
+        r_obj <- .raster_crop_metadata(r_obj = r_obj, block = .block(chunk))
+        # Add bbox information
+        .xmin(chunk) <- .raster_xmin(r_obj = r_obj)
+        .xmax(chunk) <- .raster_xmax(r_obj = r_obj)
+        .ymin(chunk) <- .raster_ymin(r_obj = r_obj)
+        .ymax(chunk) <- .raster_ymax(r_obj = r_obj)
+        .crs(chunk) <- .raster_crs(r_obj = r_obj)
+        chunk
+    })
+    # Chunk overlap
+    chunks[["overlap"]] <- .as_int(overlap)
+    # Chunk size without overlap
+    chunks[["crop_ncols"]] <- .as_int(
+        pmin(ncols - .col(chunks) + 1, .ncols(block))
+    )
+    chunks[["crop_nrows"]] <- .as_int(
+        pmin(nrows - .row(chunks) + 1, .nrows(block))
+    )
+    # If no roi was provided return all chunks
+    if (is.null(roi) || nrow(chunks) == 0) {
+        return(chunks)
+    }
+    # Return intersecting chunks
+    chunks[.intersects(.bbox_as_sf(chunks), .roi_as_sf(roi)), ]
+}
+
+.chunk_block_no_overlap <- function(chunk) {
+    list(
+        col = .as_int(pmin(chunk[["overlap"]] + 1, .col(chunk))),
+        row = .as_int(pmin(chunk[["overlap"]] + 1, .row(chunk))),
+        ncols = .as_int(chunk[["crop_ncols"]]),
+        nrows = .as_int(chunk[["crop_nrows"]])
     )
 }
