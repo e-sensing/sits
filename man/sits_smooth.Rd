@@ -6,7 +6,16 @@
 \alias{sits_smooth.bilateral}
 \title{Smooth probability cubes with spatial predictors}
 \usage{
-sits_smooth(cube, type = "bayes", ...)
+sits_smooth(
+  cube,
+  type = "bayes",
+  ...,
+  window_size = 5,
+  memsize = 4,
+  multicores = 2,
+  output_dir = getwd(),
+  version = "v1"
+)
 
 \method{sits_smooth}{bayes}(
   cube,
@@ -17,7 +26,7 @@ sits_smooth(cube, type = "bayes", ...)
   covar = FALSE,
   multicores = 2,
   memsize = 4,
-  output_dir = ".",
+  output_dir = getwd(),
   version = "v1"
 )
 
@@ -30,7 +39,7 @@ sits_smooth(cube, type = "bayes", ...)
   tau = 0.1,
   multicores = 2,
   memsize = 4,
-  output_dir = ".",
+  output_dir = getwd(),
   version = "v1"
 )
 }
@@ -43,6 +52,16 @@ sits_smooth(cube, type = "bayes", ...)
 
 \item{window_size}{Size of the neighbourhood.}
 
+\item{memsize}{Maximum overall memory (in GB) to run the
+smoothing.}
+
+\item{multicores}{Number of cores to run the smoothing function}
+
+\item{output_dir}{Output directory for image files}
+
+\item{version}{Version of resulting image
+(in the case of multiple tests)}
+
 \item{smoothness}{Estimated variance of logit of class probabilities
 (Bayesian smoothing parameter). It can be either
 a matrix or a scalar.}
@@ -50,16 +69,6 @@ a matrix or a scalar.}
 \item{covar}{a logical argument indicating if a covariance
 matrix must be computed as the prior covariance
 for bayesian smoothing.}
-
-\item{multicores}{Number of cores to run the smoothing function}
-
-\item{memsize}{Maximum overall memory (in GB) to run the
-smoothing.}
-
-\item{output_dir}{Output directory for image files}
-
-\item{version}{Version of resulting image
-(in the case of multiple tests)}
 
 \item{sigma}{Standard deviation of the spatial Gaussian kernel
 (for bilateral smoothing)}
@@ -90,9 +99,7 @@ if (sits_run_examples()) {
     # select a set of samples
     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
     # create a ResNet model
-    torch_model <- sits_train(samples_ndvi, sits_resnet())
-    # plot the model
-    plot(torch_model)
+    torch_model <- sits_train(samples_ndvi, sits_resnet(epochs = 20))
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
