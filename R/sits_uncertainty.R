@@ -62,81 +62,119 @@ sits_uncertainty <- function(cube, type = "least", window_size = 5,
                              memsize = 4, multicores = 2,
                              output_dir = getwd(), version = "v1") {
 
-    # check if cube has probability data
+    # Check if cube has probability data
     .check_is_probs_cube(cube)
-    # check type
-    .check_chr_within(
-        x = type, within = names(.uncertainty_fn_list),
-        msg = "invalid 'type' parameter"
-    )
-    # check multicores
-    .check_multicores(multicores)
-    # check memsize
+    # Check window size
+    .check_window_size(window_size)
+    # Check memsize
     .check_memsize(memsize)
+    # Check multicores
+    .check_multicores(multicores)
     # check output dir
     .check_output_dir(output_dir)
     # check version
     .check_version(version)
-    # check window size
-    .check_window_size(window_size)
 
-    UseMethod("sits_uncertainty", cube)
-}
-
-#' @rdname sits_uncertainty
-#' @export
-sits_uncertainty.probs_cube <- function(cube, type = "least", window_size = 5,
-                                        memsize = 4, multicores = 2,
-                                        output_dir = getwd(), version = "v1") {
-    # Get job size
-    job_size <- .raster_file_blocksize(
-        .raster_open_rast(.fi_path(.fi(.tile(cube))))
-    )
+    # Check memory and multicores
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(cube))))
+    # Overlapping pixels
+    overlap <- ceiling(window_size / 2) - 1
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
-        job_size = job_size, npaths = length(.fi_paths(.fi(.tile(cube)))) *
-            length(.tile_labels(.tile(cube))), nbytes = 8,
-        proc_bloat = .config_processing_bloat(), overlap = 0
-    )
-    # Check if memsize is above minimum needed to process one block
-    .check_that(
-        x = job_memsize < memsize,
-        local_msg = paste("minimum memsize needed is", job_memsize, "GB"),
-        msg = "provided 'memsize' is insufficient for processing"
+        job_size = .block_size(block = block, overlap = overlap),
+        # npaths = input(nlayers) + output(1)
+        npaths = length(.fi_paths(.fi(cube))) *
+            (length(.tile_labels(cube)) + 1),
+        nbytes = 8, proc_bloat = .config_processing_bloat()
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
         job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
-    # Prepare uncertainty function
-    uncert_fn <- .uncertainty_fn_list[[type]]
 
     # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
+    # Define the class of the smoothing
+    class(type) <- c(type, class(type))
+    UseMethod("sits_uncertainty", type)
+}
+
+#' @rdname sits_uncertainty
+#' @export
+sits_uncertainty.least <- function(cube, type = "least", window_size = 5,
+                                   memsize = 4, multicores = 2,
+                                   output_dir = getwd(), version = "v1") {
+    # Uncertainty parameters checked in smooth function creation
+    # Create uncertainty function
+    uncert_fn <- .uncertainty_fn_least(window_size = window_size)
+    # Overlapping pixels
+    overlap <- ceiling(window_size / 2) - 1
     # Uncertainty
     # Process each tile sequentially
     uncert_cube <- .cube_foreach_tile(cube, function(tile) {
-
-        # Classify the data
-        class_tile <- .uncertainty_tile(
-            tile = tile, band = type, uncert_fn = uncert_fn,
-            window_size = window_size, memsize = memsize,
-            multicores = multicores, output_dir = output_dir,
-            version = version
+        # Compute uncertainty
+        uncert_tile <- .uncertainty_tile(
+            tile = tile, band = "least", overlap = overlap,
+            uncert_fn = uncert_fn, output_dir = output_dir, version = version
         )
-
-        return(class_tile)
+        return(uncert_tile)
     })
+    return(uncert_cube)
+}
 
+#' @rdname sits_uncertainty
+#' @export
+sits_uncertainty.entropy <- function(cube, type = "entropy", window_size = 5,
+                                     memsize = 4, multicores = 2,
+                                     output_dir = getwd(), version = "v1") {
+    # Uncertainty parameters checked in smooth function creation
+    # Create uncertainty function
+    uncert_fn <- .uncertainty_fn_entropy(window_size = window_size)
+    # Overlapping pixels
+    overlap <- ceiling(window_size / 2) - 1
+    # Uncertainty
+    # Process each tile sequentially
+    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
+        # Compute uncertainty
+        uncert_tile <- .uncertainty_tile(
+            tile = tile, band = "entropy", overlap = overlap,
+            uncert_fn = uncert_fn, output_dir = output_dir, version = version
+        )
+        return(uncert_tile)
+    })
+    return(uncert_cube)
+}
+
+#' @rdname sits_uncertainty
+#' @export
+sits_uncertainty.margin <- function(cube, type = "margin", window_size = 5,
+                                    memsize = 4, multicores = 2,
+                                    output_dir = getwd(), version = "v1") {
+    # Uncertainty parameters checked in smooth function creation
+    # Create uncertainty function
+    uncert_fn <- .uncertainty_fn_margin(window_size = window_size)
+    # Overlapping pixels
+    overlap <- ceiling(window_size / 2) - 1
+    # Uncertainty
+    # Process each tile sequentially
+    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
+        # Compute uncertainty
+        uncert_tile <- .uncertainty_tile(
+            tile = tile, band = "margin", overlap = overlap,
+            uncert_fn = uncert_fn, output_dir = output_dir, version = version
+        )
+        return(uncert_tile)
+    })
     return(uncert_cube)
 }
 
 #---- internal functions ----
 
-.uncertainty_tile <- function(tile, band, uncert_fn, window_size, memsize,
-                              multicores, output_dir, version) {
+.uncertainty_tile <- function(tile, band, overlap, uncert_fn, output_dir,
+                              version) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
@@ -154,58 +192,27 @@ sits_uncertainty.probs_cube <- function(cube, type = "least", window_size = 5,
         )
         return(uncert_tile)
     }
-    # Create jobs
-    # Get job size
-    job_size <- .raster_file_blocksize(
-        .raster_open_rast(.fi_path(.fi(tile)))
-    )
-    # Compute how many jobs to process
-    jobs <- .jobs_create(
-        job_size = job_size, block_overlap = 0,
-        ncols = .tile_ncols(tile), nrows = .tile_nrows(tile),
-        xmin = .xmin(tile), xmax = .xmax(tile),
-        ymin = .ymin(tile), ymax = .ymax(tile),
-        crs = .crs(tile)
-    )
+    # Create chunks as jobs
+    chunks <- .tile_chunk_create(tile = tile, overlap = overlap)
     # Process jobs in parallel
-    block_files <- .jobs_parallel_chr(jobs, function(job) {
-        # Get job block
-        block <- .block(job)
-        # Output overlap file name
-        overlap_block_file <- .file_block_name(
-            pattern = .file_pattern(file = out_file, suffix = "_overlap"),
-            block = block,
-            output_dir = output_dir
-        )
-        # Output file name
+    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
+        # Job block
+        block <- .block(chunk)
+        # Block file name
         block_file <- .file_block_name(
             pattern = .file_pattern(out_file), block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure
         if (.raster_is_valid(block_file)) {
-            unlink(overlap_block_file)
             return(block_file)
         }
         # Read and preprocess values
         values <- .tile_read_block(
             tile = tile, band = .tile_bands(tile), block = block
         )
-        # Used in check (below)
-        original_nrows <- nrow(values)
         # Apply the labeling function to values
-        values <- uncert_fn(
-            data = values, ncols = .ncols(block), nrows = .nrows(block),
-            window_size = window_size
-        )
-        # Are the results consistent with the data input?
-        .check_that(
-            x = nrow(values) == original_nrows,
-            msg = paste(
-                "number of rows of class matrix is different",
-                "from number of input pixels"
-            )
-        )
+        values <- uncert_fn(data = values, block = block)
         # Prepare uncertainty to be saved
         band_conf <- .conf_derived_band(
             derived_class = "uncertainty_cube", band = band
@@ -218,29 +225,25 @@ sits_uncertainty.probs_cube <- function(cube, type = "least", window_size = 5,
         if (!is.null(scale) && scale != 1) {
             values <- values / scale
         }
+        # Job crop block
+        crop_block <- .chunk_block_no_overlap(chunk)
         # Prepare and save results as raster
         .raster_write_block(
-            file = overlap_block_file, block = block, bbox = .bbox(job),
+            file = block_file, block = block, bbox = .bbox(chunk),
             values = values, data_type = .band_data_type(band_conf),
-            missing_value = .band_miss_value(band_conf)
+            missing_value = .band_miss_value(band_conf),
+            crop_block = crop_block
         )
-        # Create extent to crop overlaps
-        blk_no_overlap <- .jobs_remove_overlap(job)
-        # Save chunk
-        # Crop removing overlaps
-        .raster_crop(
-            r_obj = .raster_open_rast(overlap_block_file), file = block_file,
-            data_type = .band_data_type(band_conf), overwrite = TRUE,
-            block = blk_no_overlap, missing_value = .band_miss_value(band_conf)
-        )
-        on.exit(unlink(overlap_block_file), add = TRUE)
+        # Free memory
+        gc()
         # Return block file
         block_file
     })
     # Merge blocks into a new uncertainty_cube tile
     uncert_tile <- .tile_uncertainty_merge_blocks(
         file = out_file, band = band, labels = .tile_labels(tile),
-        base_tile = tile, block_files = block_files, multicores = multicores
+        base_tile = tile, block_files = block_files,
+        multicores = .jobs_multicores()
     )
     # Return uncertainty tile
     uncert_tile
@@ -248,51 +251,88 @@ sits_uncertainty.probs_cube <- function(cube, type = "least", window_size = 5,
 
 #---- uncertainty functions ----
 
-.uncertainty_fn_least <- function(data, ncols, nrows, window_size) {
-    # Pocess least confidence
-    data <- C_least_probs(data) # return a matrix[rows(data),1]
-    # Process window
-    if (window_size > 1) {
-        data <- C_kernel_median(
-            x = data, ncols = ncols, nrows = nrows, band = 0,
-            window_size = window_size
+.uncertainty_fn_least <- function(window_size) {
+    # Check window size
+    .check_window_size(window_size)
+
+    # Define uncertainty function
+    uncert_fn <- function(values, block) {
+        # Used in check (below)
+        original_nrows <- nrow(values)
+        # Pocess least confidence
+        values <- C_least_probs(values) # return a matrix[rows(values),1]
+        # Process window
+        if (window_size > 1) {
+            values <- C_kernel_median(
+                x = values, ncols = .ncols(block), nrows = .nrows(block),
+                band = 0, window_size = window_size
+            )
+        }
+        # Are the results consistent with the data input?
+        .check_that(
+            x = nrow(values) == original_nrows,
+            msg = paste(
+                "number of rows of class matrix is different",
+                "from number of input pixels"
+            )
         )
+        # Return data
+        values
     }
-    # Return data
-    data
+    # Return closure
+    uncert_fn
 }
 
-.uncertainty_fn_entropy <- function(data, ncols, nrows, window_size) {
-    # Pocess least confidence
-    data <- C_entropy_probs(data) # return a matrix[rows(data),1]
-    # Process window
-    if (window_size > 1) {
-        data <- C_kernel_median(
-            x = data, ncols = ncols, nrows = nrows, band = 0,
-            window_size = window_size
+.uncertainty_fn_entropy <- function(window_size) {
+    # Check window size
+    .check_window_size(window_size)
+
+    # Define uncertainty function
+    uncert_fn <- function(values, block) {
+        # Used in check (below)
+        original_nrows <- nrow(values)
+        # Pocess least confidence
+        values <- C_entropy_probs(values) # return a matrix[rows(values),1]
+        # Process window
+        if (window_size > 1) {
+            values <- C_kernel_median(
+                x = values, ncols = .ncols(block), nrows = .nrows(block),
+                band = 0, window_size = window_size
+            )
+        }
+        # Are the results consistent with the data input?
+        .check_that(
+            x = nrow(values) == original_nrows,
+            msg = paste(
+                "number of rows of class matrix is different",
+                "from number of input pixels"
+            )
         )
+        # Return data
+        values
     }
-    # Return data
-    data
+    # Return closure
+    uncert_fn
 }
 
-.uncertainty_fn_margin <- function(data, ncols, nrows, window_size) {
-    # Pocess least confidence
-    data <- C_margin_probs(data) # return a matrix[rows(data),1]
-    # Process window
-    if (window_size > 1) {
-        data <- C_kernel_median(
-            x = data, ncols = ncols, nrows = nrows, band = 0,
-            window_size = window_size
-        )
-    }
-    # Return data
-    data
-}
+.uncertainty_fn_margin <- function(window_size) {
+    # Check window size
+    .check_window_size(window_size)
 
-# List of uncertainty functions
-.uncertainty_fn_list <- list(
-    least = .uncertainty_fn_least,
-    entropy = .uncertainty_fn_entropy,
-    margin = .uncertainty_fn_margin
-)
+    # Define uncertainty function
+    uncert_fn <- function(values, block) {
+        # Pocess least confidence
+        values <- C_margin_probs(values) # return a matrix[rows(data),1]
+        # Process window
+        if (window_size > 1) {
+            values <- C_kernel_median(
+                x = values, ncols = .ncols(block), nrows = .nrows(block),
+                band = 0, window_size = window_size
+            )
+        }
+        # Return data
+        values
+    }
+    # Return closure
+    uncert_fn
+}

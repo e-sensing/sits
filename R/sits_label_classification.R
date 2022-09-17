@@ -62,31 +62,16 @@ sits_label_classification <- function(cube, multicores = 2, memsize = 4,
     # precondition - version
     .check_version(version)
 
-    UseMethod("sits_label_classification", cube)
-}
-
-#' @rdname sits_label_classification
-#' @export
-sits_label_classification.probs_cube <- function(cube, multicores = 2,
-                                                 memsize = 4,
-                                                 output_dir = getwd(),
-                                                 version = "v1") {
-
-    # Get job size
-    job_size <- .raster_file_blocksize(
-        .raster_open_rast(.fi_path(.fi(.tile(cube))))
-    )
+    # Check memory and multicores
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(cube))))
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
-        job_size = job_size, npaths = length(.fi_paths(.fi(.tile(cube)))) *
-            length(.tile_labels(.tile(cube))), nbytes = 8,
-        proc_bloat = .config_processing_bloat(), overlap = 0
-    )
-    # Check if memsize is above minimum needed to process one block
-    .check_that(
-        x = job_memsize < memsize,
-        local_msg = paste("minimum memsize needed is", job_memsize, "GB"),
-        msg = "provided 'memsize' is insufficient for processing"
+        job_size = .block_size(block = block, overlap = 0),
+        # npaths = input(nlayers) + output(1)
+        npaths = length(.fi_paths(.fi(cube))) *
+            (length(.tile_labels(cube)) + 1),
+        nbytes = 8, proc_bloat = .config_processing_bloat()
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
@@ -97,27 +82,33 @@ sits_label_classification.probs_cube <- function(cube, multicores = 2,
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    # Labeling
+    UseMethod("sits_label_classification", cube)
+}
+
+#' @rdname sits_label_classification
+#' @export
+sits_label_classification.probs_cube <- function(cube, multicores = 2,
+                                                 memsize = 4,
+                                                 output_dir = getwd(),
+                                                 version = "v1") {
+    # Labeling parameters checked in label function
+    # Create label classification function
+    label_fn <- .label_fn_majority()
     # Process each tile sequentially
     class_cube <- .cube_foreach_tile(cube, function(tile) {
-
         # Classify the data
-        class_tile <- .sits_label_tile(
-            tile = tile, band = "class", label_fn = C_label_max_prob,
-            memsize = memsize, multicores = multicores,
+        class_tile <- .label_tile(
+            tile = tile, band = "class", label_fn = label_fn,
             output_dir = output_dir, version = version
         )
-
         return(class_tile)
     })
-
     return(class_cube)
 }
 
 #---- internal functions ----
 
-.sits_label_tile  <- function(tile, band, label_fn, memsize, multicores,
-                              output_dir, version) {
+.label_tile  <- function(tile, band, label_fn, output_dir, version) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
@@ -135,27 +126,15 @@ sits_label_classification.probs_cube <- function(cube, multicores = 2,
         )
         return(class_tile)
     }
-    # Create jobs
-    # Get job size
-    job_size <- .raster_file_blocksize(
-        .raster_open_rast(.fi_path(.fi(tile)))
-    )
-    # Compute how many jobs to process
-    jobs <- .jobs_create(
-        job_size = job_size, block_overlap = 0,
-        ncols = .tile_ncols(tile), nrows = .tile_nrows(tile),
-        xmin = .xmin(tile), xmax = .xmax(tile),
-        ymin = .ymin(tile), ymax = .ymax(tile),
-        crs = .crs(tile)
-    )
+    # Create chunks as jobs
+    chunks <- .tile_chunk_create(tile = tile, overlap = 0)
     # Process jobs in parallel
-    block_files <- .jobs_parallel_chr(jobs, function(job) {
+    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Get job block
-        block <- .block(job)
+        block <- .block(chunk)
         # Output file name
         block_file <- .file_block_name(
-            pattern = .file_pattern(out_file),
-            block = block,
+            pattern = .file_pattern(out_file), block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure
@@ -166,18 +145,8 @@ sits_label_classification.probs_cube <- function(cube, multicores = 2,
         values <- .tile_read_block(
             tile = tile, band = .tile_bands(tile), block = block
         )
-        # Used to check values (below)
-        original_nrows <- nrow(values)
         # Apply the labeling function to values
         values <- label_fn(values)
-        # Are the results consistent with the data input?
-        .check_that(
-            x = nrow(values) == original_nrows,
-            msg = paste(
-                "number of rows of class matrix is different",
-                "from number of input pixels"
-            )
-        )
         # Prepare probability to be saved
         band_conf <- .conf_derived_band(
             derived_class = "class_cube", band = band
@@ -192,10 +161,13 @@ sits_label_classification.probs_cube <- function(cube, multicores = 2,
         }
         # Prepare and save results as raster
         .raster_write_block(
-            file = block_file, block = block, bbox = .bbox(job),
+            file = block_file, block = block, bbox = .bbox(chunk),
             values = values, data_type = .band_data_type(band_conf),
-            missing_value = .band_miss_value(band_conf)
+            missing_value = .band_miss_value(band_conf),
+            crop_block = NULL
         )
+        # Free memory
+        gc()
         # Returned value
         block_file
     })
@@ -203,8 +175,31 @@ sits_label_classification.probs_cube <- function(cube, multicores = 2,
     class_tile <- .tile_class_merge_blocks(
         file = out_file, band = band, labels = .tile_labels(tile),
         base_tile = tile, block_files = block_files,
-        multicores = multicores
+        multicores = .jobs_multicores()
     )
     # Return class tile
     class_tile
+}
+
+#---- label functions ----
+
+.label_fn_majority <- function() {
+
+    label_fn <- function(values) {
+        # Used to check values (below)
+        original_nrows <- nrow(values)
+        values <- C_label_max_prob(values)
+        # Are the results consistent with the data input?
+        .check_that(
+            x = nrow(values) == original_nrows,
+            msg = paste(
+                "number of rows of class matrix is different",
+                "from number of input pixels"
+            )
+        )
+        # Return values
+        values
+    }
+    # Return closure
+    label_fn
 }
