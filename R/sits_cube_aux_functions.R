@@ -55,7 +55,7 @@
         cube <- tibble::add_column(cube, file_info = list(file_info))
     }
 
-    class(cube) <- unique(c("sits_cube", class(cube)))
+    class(cube) <- unique(c("raster_cube", "sits_cube", class(cube)))
 
     return(cube)
 }
