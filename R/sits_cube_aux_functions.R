@@ -934,27 +934,6 @@
     return(src)
 }
 
-#' @title Get cube tiles
-#' @name .cube_tiles
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  cube input data cube
-#'
-#' @return A vector with tile names
-.cube_tiles <- function(cube) {
-    tiles <- unique(cube[["tile"]])
-
-    # post-condition
-    .check_chr(tiles,
-        allow_empty = FALSE, len_min = nrow(cube),
-        len_max = nrow(cube),
-        msg = "invalid cube 'tile' values"
-    )
-
-    return(tiles)
-}
-
 #' @title Get bbox of a cube (single tile)
 #' @name .cube_tile_bbox
 #' @keywords internal
