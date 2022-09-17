@@ -212,7 +212,7 @@ sits_uncertainty.margin <- function(cube, type = "margin", window_size = 5,
             tile = tile, band = .tile_bands(tile), block = block
         )
         # Apply the labeling function to values
-        values <- uncert_fn(data = values, block = block)
+        values <- uncert_fn(values = values, block = block)
         # Prepare uncertainty to be saved
         band_conf <- .conf_derived_band(
             derived_class = "uncertainty_cube", band = band
