@@ -123,7 +123,7 @@ test_that("User functions", {
 
     expect_output(
         object = sits_config_show(source = "BDC"),
-        regexp = "s3_class: bdc_cube, stac_cube, raster_cube"
+        regexp = "s3_class: bdc_cube, stac_cube, eo_cube, raster_cube"
     )
 
     expect_output(
@@ -189,7 +189,7 @@ test_that("User functions", {
     )
     expect_equal(
         .source_s3class(source = "BDC"),
-        c("bdc_cube", "stac_cube", "raster_cube")
+        c("bdc_cube", "stac_cube", "eo_cube", "raster_cube")
     )
 
     expect_error(
