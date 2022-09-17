@@ -14,10 +14,9 @@ test_that("One-year, multicore classification with ROI", {
         parse_info = c("X1", "tile", "band", "date")
     )
 
-    bbox <- sits_bbox(sinop)
+    bbox <- .bbox(sinop)
     bbox[["xmax"]] <- (bbox[["xmax"]] - bbox[["xmin"]]) / 2 + bbox[["xmin"]]
     bbox[["ymax"]] <- (bbox[["ymax"]] - bbox[["ymin"]]) / 2 + bbox[["ymin"]]
-
 
     sinop_probs <- tryCatch(
         {
