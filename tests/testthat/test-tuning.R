@@ -5,7 +5,7 @@ test_that("Tuning - random search", {
 
     tuned <- sits_tuning(
         samples_modis_4bands,
-        ml_method = sits_tempcnn(epochs = 10),
+        ml_method = sits_tempcnn(epochs = 5),
         params = sits_tuning_hparams(
             optimizer = torch::optim_adam,
             opt_hparams = list(
