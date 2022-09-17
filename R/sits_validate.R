@@ -258,7 +258,7 @@ sits_validate <- function(samples,
     }
 
     # classify the test data
-    prediction <- ml_model(distances)
+    prediction <- ml_model(distances[, -2:0])
 
     # extract the values
     # create prediction and reference vector
