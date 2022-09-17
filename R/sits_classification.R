@@ -110,7 +110,6 @@ sits_classify <- function(data, ml_model, ...) {
     UseMethod("sits_classify", data)
 }
 #' @rdname sits_classify
-#'
 #' @export
 sits_classify.sits <- function(data,
                                ml_model,
@@ -143,7 +142,6 @@ sits_classify.sits <- function(data,
     return(classified_ts)
 }
 #' @rdname sits_classify
-#'
 #' @export
 sits_classify.raster_cube <- function(data,
                                       ml_model, ...,
@@ -205,21 +203,15 @@ sits_classify.raster_cube <- function(data,
             msg = "invalid 'start_date' and 'end_date' parameters"
         )
     }
-    # Get job size
-    job_size <- .raster_file_blocksize(
-        .raster_open_rast(.fi_path(.fi(.tile(data))))
-    )
+    # Check memory and multicores
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(data))))
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
-        job_size = job_size, npaths = length(.fi_paths(.fi(.tile(data)))) +
-            length(.ml_labels(ml_model)), nbytes = 8,
-        proc_bloat = .config_processing_bloat(), overlap = 0
-    )
-    # Check if memsize is above minimum needed to process one block
-    .check_that(
-        x = job_memsize < memsize,
-        local_msg = paste("minimum memsize needed is", job_memsize, "GB"),
-        msg = "provided 'memsize' is insufficient for processing"
+        job_size = .block_size(block = block, overlap = 0),
+        # npaths = input(1*bands*dates) + output(nlayers)
+        npaths = length(.fi_paths(.fi(data))) + length(.ml_labels(ml_model)),
+        nbytes = 8, proc_bloat = .config_processing_bloat()
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
@@ -231,8 +223,9 @@ sits_classify.raster_cube <- function(data,
     }
 
     # Prepare parallel processing
-    .sits_parallel_start(workers = multicores, log = verbose,
-                         output_dir = output_dir)
+    .sits_parallel_start(
+        workers = multicores, log = verbose, output_dir = output_dir
+    )
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # # Callback final tile classification
@@ -241,24 +234,20 @@ sits_classify.raster_cube <- function(data,
     # Show block information
     if (verbose) {
         start_time <- Sys.time()
-        message("Using blocks of size (", .nrows(job_size),
-                " x ", .ncols(job_size), ")")
+        message("Using blocks of size (", .nrows(block),
+                " x ", .ncols(block), ")")
     }
     # Classification
     # Process each tile sequentially
     probs_cube <- .cube_foreach_tile(data, function(tile) {
-
         # Do the samples and tile match their timeline length?
         .check_samples_tile_match(samples, tile)
-
         # Classify the data
-        probs_tile <- .sits_classify_tile(
-            tile = tile, ml_model = ml_model, roi = roi, filter_fn = filter_fn,
-            impute_fn = impute_fn, memsize = memsize, multicores = multicores,
-            output_dir = output_dir, version = version, verbose = verbose,
-            progress = progress
+        probs_tile <- .classify_tile(
+            tile = tile, band = "probs", ml_model = ml_model, roi = roi,
+            filter_fn = filter_fn, impute_fn = impute_fn,
+            output_dir = output_dir, version = version, verbose = verbose
         )
-
         return(probs_tile)
     })
     # # Callback final tile classification

@@ -1,5 +1,5 @@
 #' @title Classify a chunk of raster data  using multicores
-#' @name .sits_classify_tile
+#' @name .classify_tile
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -16,24 +16,21 @@
 #' in the classified images for each corresponding year.
 #'
 #' @param  tile            Single tile of a data cube.
+#' @param  band            Band to be produced.
 #' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
 #' @param  roi             Region of interest.
 #' @param  filter_fn       Smoothing filter function to be applied to the data.
 #' @param  impute_fn       Impute function to replace NA.
-#' @param  memsize         Memory available for classification (in GB).
-#' @param  multicores      Number of cores.
 #' @param  output_dir      Output directory.
 #' @param  version         Version of result.
 #' @param  verbose         print processing information?
-#' @param  progress        Show progress bar?
 #' @return List of the classified raster layers.
-.sits_classify_tile  <- function(tile, ml_model, roi, filter_fn, impute_fn,
-                                 memsize, multicores, output_dir, version,
-                                 verbose, progress) {
+.classify_tile  <- function(tile, band, ml_model, roi, filter_fn, impute_fn,
+                            output_dir, version, verbose) {
 
     # Output file
     out_file <- .file_derived_name(
-        tile = tile, band = "probs", version = version, output_dir = output_dir
+        tile = tile, band = band, version = version, output_dir = output_dir
     )
     # Resume feature
     if (file.exists(out_file)) {
@@ -44,7 +41,7 @@
         message("(If you want to produce a new image, please ",
                 "change 'output_dir' or 'version' parameters)")
         probs_tile <- .tile_probs_from_file(
-            file = out_file, band = "probs", base_tile = tile,
+            file = out_file, band = band, base_tile = tile,
             labels = .ml_labels(ml_model)
         )
         return(probs_tile)
@@ -58,37 +55,23 @@
         message("Starting classification of tile '",
                 tile[["tile"]], "' at ", tile_start_time)
     }
-    # Create jobs
-    # Get job size
-    job_size <- .raster_file_blocksize(
-        .raster_open_rast(.fi_path(.fi(tile)))
-    )
-    # Compute how many jobs to process
-    jobs <- .jobs_create(
-        job_size = job_size, block_overlap = 0,
-        ncols = .tile_ncols(tile), nrows = .tile_nrows(tile),
-        xmin = .xmin(tile), xmax = .xmax(tile),
-        ymin = .ymin(tile), ymax = .ymax(tile),
-        crs = .crs(tile), roi = roi
-    )
+    # Create chunks as jobs
+    chunks <- .tile_chunk_create(tile = tile, overlap = 0, roi = roi)
     # Process jobs in parallel
-    block_files <- .jobs_parallel_chr(jobs, function(job) {
-        # Get job block
-        block <- .block(job)
-        # Output file name
+    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
+        # Job block
+        block <- .block(chunk)
+        # Block file name
         block_file <- .file_block_name(
             pattern = .file_pattern(out_file), block = block,
             output_dir = output_dir
         )
-
         # Resume processing in case of failure
         if (.raster_is_valid(block_file)) {
             return(block_file)
         }
-        # for cubes that have a time limit to expire - mpc cubes only
-        tile <- .cube_token_generator(tile)
         # Read and preprocess values
-        values <- .sits_classify_data_read(
+        values <- .classify_data_read(
             tile = tile, block = block, ml_model = ml_model,
             impute_fn = impute_fn, filter_fn = filter_fn
         )
@@ -127,7 +110,7 @@
 
         # Prepare probability to be saved
         band_conf <- .conf_derived_band(
-            derived_class = "probs_cube", band = "probs"
+            derived_class = "probs_cube", band = band
         )
         offset <- .band_offset(band_conf)
         if (!is.null(offset) && offset != 0) {
@@ -151,9 +134,10 @@
 
         # Prepare and save results as raster
         .raster_write_block(
-            file = block_file, block = block, bbox = .bbox(job),
+            file = block_file, block = block, bbox = .bbox(chunk),
             values = values, data_type = .band_data_type(band_conf),
-            missing_value = .band_miss_value(band_conf)
+            missing_value = .band_miss_value(band_conf),
+            crop_block = NULL
         )
 
         #
@@ -165,13 +149,17 @@
             value = block_file
         )
 
+
+        # Free memory
+        gc()
         # Returned block file
         block_file
     })
     # Merge blocks into a new probs_cube tile
     probs_tile <- .tile_probs_merge_blocks(
-        file = out_file, band = "probs", labels = .ml_labels(ml_model),
-        base_tile = tile, block_files = block_files, multicores = multicores
+        file = out_file, band = band, labels = .ml_labels(ml_model),
+        base_tile = tile, block_files = block_files,
+        multicores = .jobs_multicores()
     )
     # # Callback final tile classification
     # .callback(event = "tile_classification", status = "end",
@@ -186,4 +174,80 @@
     }
     # Return probs tile
     probs_tile
+}
+#' @title Read a block of values retrieved from a set of raster images
+#' @name  .classify_data_read
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  tile            Input tile to read data.
+#' @param  block           Bounding box in (col, row, ncols, nrows).
+#' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
+#' @param  filter_fn       Smoothing filter function to be applied to the data.
+#' @param  impute_fn       Impute function to replace NA.
+#' @return A matrix with values for classification.
+.classify_data_read <- function(tile, block, ml_model, impute_fn, filter_fn) {
+    # for cubes that have a time limit to expire - mpc cubes only
+    tile <- .cube_token_generator(tile)
+    # Read and preprocess values from cloud
+    # Get cloud values (NULL if not exists)
+    cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
+    # Read and preprocess values from each band
+    values <- .ml_foreach_band(ml_model, function(band) {
+        # Get band values
+        values <- .tile_read_block(tile = tile, band = band, block = block)
+        # Check if there are values
+        .check_null(
+            x = values,
+            msg = paste0("invalid data read from band '", band, "'")
+        )
+
+        #
+        # Log here
+        #
+        .sits_debug_log(
+            event = "start_block_data_process",
+            key = "process",
+            value = "cloud-impute-filter"
+        )
+
+        # Remove cloud masked pixels
+        if (!is.null(cloud_mask)) {
+            values[cloud_mask] <- NA
+        }
+        # Remove NA pixels
+        if (!is.null(impute_fn)) {
+            values <- impute_fn(values)
+        }
+        # Filter the time series
+        if (!is.null(filter_fn)) {
+            values <- filter_fn(values)
+        }
+        # Normalize values
+        stats <- .ml_stats(ml_model)
+        q02 <- .stats_q02_band(stats, band)
+        q98 <- .stats_q98_band(stats, band)
+        if (!is.null(q02) && !is.null(q98)) {
+            values <- normalize_data(values, q02, q98)
+        }
+
+
+        #
+        # Log here
+        #
+        .sits_debug_log(
+            event = "end_block_data_process",
+            key = "band",
+            value = band
+        )
+
+        # Return values
+        values
+    })
+    # Compose final values
+    values <- do.call(cbind, values)
+    colnames(values) <- .ml_attr_names(ml_model)
+
+    return(values)
 }

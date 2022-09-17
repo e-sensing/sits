@@ -46,7 +46,7 @@
     )
 }
 
-.file_eocube_name <- function(tile, band, date, output_dir) {
+.file_eo_name <- function(tile, band, date, output_dir) {
     .file_path(
         "cube", .tile_name(tile), band, date,
         ext = ".tif", output_dir = output_dir

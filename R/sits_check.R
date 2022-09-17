@@ -1577,18 +1577,14 @@
 #' @return  No return value, called for side effects.
 #' @keywords internal
 .check_smoothness <- function(smoothness, nlabels) {
-    if (is.matrix(smoothness)) {
-        .check_that(
-            x = (nrow(smoothness) == ncol(smoothness)) &&
-                (ncol(smoothness) == nlabels),
-            msg = paste(
-                "smoothness must be square matrix of",
-                "the same length as the number of labels"
-            )
+    .check_that(
+        x = (nrow(smoothness) == ncol(smoothness)) &&
+            (ncol(smoothness) == nlabels),
+        msg = paste(
+            "smoothness must be square matrix of",
+            "the same length as the number of labels"
         )
-    } else {
-        .check_num_parameter(smoothness, exclusive_min = 0)
-    }
+    )
 }
 
 #' @title Check classification parameters
@@ -2023,33 +2019,34 @@
 #' @keywords internal
 .check_endmembers_parameter <- function(endmembers, cube) {
     # Pre-condition
-    .check_na(endmembers)
-
-    .check_empty_char(endmembers[["TYPE"]],
-        msg = "The reference endmembers cannot be empty"
+    .check_na(
+        x = endmembers,
+        msg = "Invalid 'endmembers' parameter"
     )
-
     # Pre-condition
     .check_chr_contains(
         x = colnames(endmembers),
         contains = "TYPE",
-        msg = "The reference endmembers spectra should be provided",
+        msg = "Invalid 'endmembers' parameter"
+    )
+    # Pre-condition
+    .check_chr(
+        x = .mm_endmembers(endmembers), allow_empty = FALSE, len_min = 1,
+        msg = "The reference endmembers cannot be empty"
     )
     # Pre-condition
     .check_chr_within(
-        x = colnames(endmembers),
-        within = c("TYPE", .cube_bands(cube, add_cloud = FALSE)),
+        x = .mm_bands(endmembers),
+        within = .cube_bands(cube, add_cloud = FALSE),
         msg = "invalid 'endmembers' columns"
     )
     # Pre-condition
     .check_that(
-        nrow(endmembers) > 1,
-        msg = "at least two endmembers fractions must be provided."
-    )
-    # Pre-condition
-    .check_that(
-        nrow(endmembers) < .cube_bands(cube, add_cloud = FALSE),
-        msg = "Endmembers must be less than the number of spectral bands."
+        nrow(endmembers) < colnames(endmembers),
+        msg = paste(
+            "Endmembers must be less or equal than the",
+            "number of spectral bands."
+        )
     )
 }
 #' @title Checks if working in documentation mode

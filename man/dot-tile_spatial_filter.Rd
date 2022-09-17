@@ -12,7 +12,7 @@
 \item{roi}{A region of interest (ROI).}
 }
 \value{
-logical
+tile
 }
 \description{
 Filter file_info entries that intersect \code{roi} parameter.

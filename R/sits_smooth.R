@@ -51,9 +51,7 @@
 #'     # select a set of samples
 #'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a ResNet model
-#'     torch_model <- sits_train(samples_ndvi, sits_resnet())
-#'     # plot the model
-#'     plot(torch_model)
+#'     torch_model <- sits_train(samples_ndvi, sits_resnet(epochs = 20))
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
@@ -77,201 +75,106 @@
 #'     plot(label_cube)
 #' }
 #' @export
-#'
-sits_smooth <- function(cube, type = "bayes", ...) {
+sits_smooth <- function(cube, type = "bayes", ..., window_size = 5,
+                        memsize = 4, multicores = 2, output_dir = getwd(),
+                        version = "v1") {
 
-    # set caller to show in errors
-    .check_set_caller("sits_smooth")
-
-    .check_require_packages("parallel")
-
-    # check if cube has probability data
+    # Check if cube has probability data
     .check_is_probs_cube(cube)
+    # Check window size
+    .check_window_size(window_size)
+    # Check memsize
+    .check_memsize(memsize)
+    # Check multicores
+    .check_multicores(multicores)
+    # Check output dir
+    .check_output_dir(output_dir)
+    # Check version
+    .check_version(version)
 
-    # define the class of the smoothing
+    # Check memory and multicores
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(cube))))
+    # Overlapping pixels
+    overlap <- ceiling(window_size / 2) - 1
+    # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = .block_size(block = block, overlap = overlap),
+        # npaths = input(nlayers) + output(nlayers)
+        npaths = length(.fi_paths(.fi(cube))) * length(.tile_labels(cube)) * 2,
+        nbytes = 8, proc_bloat = .config_processing_bloat()
+    )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+    )
+
+    # Prepare parallel processing
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop(), add = TRUE)
+
+    # Define the class of the smoothing
     class(type) <- c(type, class(type))
     UseMethod("sits_smooth", type)
 }
 
 #' @rdname sits_smooth
-#'
 #' @export
-#'
-sits_smooth.bayes <- function(cube, type = "bayes", ...,
-                              window_size = 5,
-                              smoothness = 20,
-                              covar = FALSE,
-                              multicores = 2,
-                              memsize = 4,
-                              output_dir = ".",
-                              version = "v1") {
-
-    # precondition - test window size
-    .check_window_size(window_size)
-    # precondition - covar
-    .check_lgl_type(covar)
-    # precondition - multicores
-    .check_multicores(multicores)
-    # precondition - memsize
-    .check_memsize(memsize)
-    # precondition - output dir
-    .check_output_dir(output_dir)
-    # precondition - version
-    .check_version(version)
-    # find out how many labels exist
-    nlabels <- length(.tile_labels(.tile(cube)))
-    # precondition - smoothness
-    .check_smoothness(smoothness, nlabels)
-
-    if (!is.matrix(smoothness)) {
-        smoothness <- diag(smoothness, nrow = nlabels, ncol = nlabels)
-    }
-
-    # Create a window
-    window <- matrix(1, nrow = window_size, ncol = window_size)
-
-    # Get job size
-    job_size <- .raster_file_blocksize(
-        .raster_open_rast(.fi_path(.fi(.tile(cube))))
+sits_smooth.bayes <- function(cube, type = "bayes", ..., window_size = 5,
+                              smoothness = 20, covar = FALSE,
+                              multicores = 2, memsize = 4,
+                              output_dir = getwd(), version = "v1") {
+    # Smooth parameters checked in smooth function creation
+    # Create smooth function
+    smooth_fn <- .smooth_fn_bayes(
+        window_size = window_size, smoothness = smoothness,
+        covar = covar, nlabels = length(.tile_labels(cube))
     )
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
-    # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = job_size, npaths = length(.tile_labels(.tile(cube))),
-        nbytes = 8, proc_bloat = .config_processing_bloat(), overlap = overlap
-    )
-
-    # Check if memsize is above minimum needed to process one block
-    .check_that(
-        x = job_memsize < memsize,
-        local_msg = paste("minimum memsize needed is", job_memsize, "GB"),
-        msg = "provided 'memsize' is insufficient for processing"
-    )
-    # Update multicores parameter
-    multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
-    )
-
-    # Prepare parallel processing
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop(), add = TRUE)
-
     # Smoothing
     # Process each tile sequentially
     probs_cube <- .cube_foreach_tile(cube, function(tile) {
-
         # Smooth the data
         probs_tile <- .sits_smooth_tile(
-            tile = tile, band = "bayes",
-            overlap = overlap,
-            smooth_fn = .smooth_bayes(window = window,
-                                      smoothness = smoothness, covar = covar),
-            memsize = memsize, multicores = multicores,
-            output_dir = output_dir, version = version
+            tile = tile, band = "bayes", overlap = overlap,
+            smooth_fn = smooth_fn, output_dir = output_dir, version = version
         )
-
         return(probs_tile)
     })
-
     return(probs_cube)
 }
 
 #' @rdname sits_smooth
-#'
 #' @export
-#'
-sits_smooth.bilateral <- function(cube,
-                                  type = "bilateral", ...,
-                                  window_size = 5,
-                                  sigma = 8,
-                                  tau = 0.1,
-                                  multicores = 2,
-                                  memsize = 4,
-                                  output_dir = ".",
-                                  version = "v1") {
-
-    # precondition - window size
-    .check_window_size(window_size)
-    # prediction - variance
-    .check_num_parameter(sigma, exclusive_min = 0)
-    # prediction - tau
-    .check_num_parameter(tau, exclusive_min = 0)
-    # precondition - multicores
-    .check_multicores(multicores)
-    # precondition - memsize
-    .check_memsize(memsize)
-    # precondition - output dir
-    .check_output_dir(output_dir)
-    # precondition - version
-    .check_version(version)
-
-    # Create a window
-    w_center <- ceiling(window_size / 2)
-    w_seq <- seq_len(window_size)
-    x <- stats::dnorm(
-        (abs(rep(w_seq, each = window_size) - w_center)^2 +
-             abs(rep(w_seq, window_size) - w_center)^2)^(1 / 2),
-        sd = sigma
-    ) / stats::dnorm(0)
-    window <- matrix(x / sum(x), nrow = window_size, byrow = TRUE)
-
-    # Get job size
-    job_size <- .raster_file_blocksize(
-        .raster_open_rast(.fi_path(.fi(.tile(cube))))
+sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
+                                  window_size = 5, sigma = 8, tau = 0.1,
+                                  multicores = 2, memsize = 4,
+                                  output_dir = getwd(), version = "v1") {
+    # Smooth parameters checked in smooth function creation
+    # Create smooth function
+    smooth_fn <- .smooth_fn_bilat(
+        window_size = window_size, sigma = sigma, tau = tau
     )
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
-    # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = job_size, npaths = length(.tile_labels(.tile(cube))),
-        nbytes = 8, proc_bloat = .config_processing_bloat(), overlap = overlap
-    )
-
-    # Check if memsize is above minimum needed to process one block
-    .check_that(
-        x = job_memsize < memsize,
-        local_msg = paste("minimum memsize needed is", job_memsize, "GB"),
-        msg = "provided 'memsize' is insufficient for processing"
-    )
-    # Update multicores parameter
-    multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
-    )
-
-    # Prepare parallel processing
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop(), add = TRUE)
-
     # Smoothing
     # Process each tile sequentially
     probs_cube <- .cube_foreach_tile(cube, function(tile) {
-
         # Smooth the data
         probs_tile <- .sits_smooth_tile(
-            tile = tile, band = "bilat",
-            overlap = overlap,
-            smooth_fn = .smooth_bilat(window = window,
-                                      sigma = sigma, tau = tau),
-            memsize = memsize, multicores = multicores, output_dir = output_dir,
-            version = version
+            tile = tile, band = "bilat", overlap = overlap,
+            smooth_fn = smooth_fn, output_dir = output_dir, version = version
         )
-
         return(probs_tile)
     })
-
     return(probs_cube)
 }
 
-.sits_smooth_tile <- function(tile,
-                              band,
-                              overlap,
-                              smooth_fn,
-                              memsize,
-                              multicores,
-                              output_dir,
-                              version) {
+#---- internal functions ----
 
+.sits_smooth_tile <- function(tile, band, overlap, smooth_fn, output_dir,
+                              version) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version,
@@ -286,91 +189,32 @@ sits_smooth.bilateral <- function(cube,
         message("(If you want to produce a new image, please ",
                 "change 'output_dir' or 'version' parameters)")
         probs_tile <- .tile_probs_from_file(
-            file = out_file,
-            band = band,
-            base_tile = tile,
+            file = out_file, band = band, base_tile = tile,
             labels = .tile_labels(tile)
         )
         return(probs_tile)
     }
-    # Create jobs
-    # Get job size
-    job_size <- .raster_file_blocksize(
-        .raster_open_rast(.fi_path(.fi(tile)))
-    )
-    # Compute how many jobs to process
-    jobs <- .jobs_create(
-        job_size = job_size, block_overlap = overlap,
-        ncols = .tile_ncols(tile), nrows = .tile_nrows(tile),
-        xmin = .xmin(tile), xmax = .xmax(tile),
-        ymin = .ymin(tile), ymax = .ymax(tile),
-        crs = .crs(tile)
-    )
+    # Create chunks as jobs
+    chunks <- .tile_chunk_create(tile = tile, overlap = overlap)
     # Process jobs in parallel
-    block_files <- .jobs_parallel_chr(jobs, function(job) {
-        # Get job block
-        block <- .block(job)
-        # Output overlap file name
-        overlap_block_file <- .file_block_name(
-            pattern = .file_pattern(file = out_file, suffix = "_overlap"),
-            block = block,
-            output_dir = output_dir
-        )
-        # Output file name
+    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
+        # Job block
+        block <- .block(chunk)
+        # Block file name
         block_file <- .file_block_name(
-            pattern = .file_pattern(file = out_file),
-            block = block,
+            pattern = .file_pattern(out_file), block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (file.exists(block_file)) {
-            unlink(overlap_block_file)
-            # Try to open the file
-            r_obj <- .try({
-                .raster_open_rast(block_file)
-            },
-            .default = {
-                unlink(block_file)
-                NULL
-            })
-            # If file can be opened, check if the result is correct
-            # this file will not be processed again
-            if (!is.null(r_obj)) {
-                # Verify if the raster is corrupted
-                valid_block <- .try({
-                    .raster_get_values(r_obj)
-                    # Return value
-                    TRUE
-                },
-                .default = {
-                    unlink(block_file)
-                    # Return value
-                    FALSE
-                })
-                if (valid_block) {
-                    return(block_file)
-                }
-            }
+        if (.raster_is_valid(block_file)) {
+            return(block_file)
         }
-
         # Read and preprocess values
         values <- .tile_read_block(
             tile = tile, band = .tile_bands(tile), block = block
         )
-        # Avoid memory bloat
-        original_nrows <- nrow(values)
-
         # Apply the probability function to values
         values <- smooth_fn(values = values, block = block)
-
-        # Are the results consistent with the data input?
-        .check_that(
-            x = nrow(values) == original_nrows,
-            msg = paste(
-                "number of rows of class matrix is different",
-                "from number of input pixels"
-            )
-        )
         # Prepare probability to be saved
         band_conf <- .conf_derived_band(
             derived_class = "probs_cube", band = band
@@ -383,52 +227,53 @@ sits_smooth.bilateral <- function(cube,
         if (!is.null(scale) && scale != 1) {
             values <- values / scale
         }
-
+        # Job crop block
+        crop_block <- .chunk_block_no_overlap(chunk)
         # Prepare and save results as raster
         .raster_write_block(
-            file = overlap_block_file,
-            block = block,
-            bbox = .bbox(job),
-            values = values,
-            data_type = .band_data_type(band_conf),
-            missing_value = .band_miss_value(band_conf)
+            file = block_file, block = block, bbox = .bbox(chunk),
+            values = values, data_type = .band_data_type(band_conf),
+            missing_value = .band_miss_value(band_conf),
+            crop_block = crop_block
         )
-
-        # Create extent to crop overlaps
-        blk_no_overlap <- .jobs_remove_overlap(job)
-
-        # Save chunk
-        # Crop removing overlaps
-        .raster_crop(
-            r_obj = .raster_open_rast(overlap_block_file),
-            file = block_file,
-            data_type = .raster_data_type(
-                .config_get("probs_cube_data_type")
-            ),
-            overwrite = TRUE,
-            block = blk_no_overlap,
-            missing_value = .band_miss_value(band_conf)
-        )
-
+        # Free memory
         gc()
-        on.exit(unlink(overlap_block_file), add = TRUE)
-        return(block_file)
+        # Return block file
+        block_file
     })
     # Merge blocks into a new probs_cube tile
     probs_tile <- .tile_probs_merge_blocks(
         file = out_file, band = band, labels = .tile_labels(tile),
-        base_tile = tile, block_files = block_files, multicores = multicores
+        base_tile = tile, block_files = block_files,
+        multicores = .jobs_multicores()
     )
-    # Return tile
+    # Return probs tile
     probs_tile
 }
 
-.smooth_bayes <- function(window, smoothness, covar) {
-    values <- function(values, block) {
-        # compute logit
-        values <- log(values / (rowSums(values) - values))
+#---- smooth functions ----
 
-        # process Bayesian
+.smooth_fn_bayes <- function(window_size, smoothness, covar, nlabels) {
+    # Check window size
+    .check_window_size(window_size)
+    # Check covar
+    .check_lgl_type(covar)
+    # Prepare smoothness parameter
+    if (!is.matrix(smoothness)) {
+        smoothness <- diag(smoothness, nrow = nlabels, ncol = nlabels)
+    }
+    # Check smoothness
+    .check_smoothness(smoothness, nlabels)
+    # Create a window
+    window <- matrix(1, nrow = window_size, ncol = window_size)
+
+    # Define smooth function
+    smooth_fn <- function(values, block) {
+        # Check values length
+        original_nrows <- nrow(values)
+        # Compute logit
+        values <- log(values / (rowSums(values) - values))
+        # Process Bayesian
         values <- bayes_smoother(
             m = values,
             m_nrow = block[["nrows"]],
@@ -437,26 +282,61 @@ sits_smooth.bilateral <- function(cube,
             sigma = smoothness,
             covar_sigma0 = covar
         )
-
-        # calculate the Bayesian probability for the pixel
+        # Compute inverse logit
         values <- exp(values) / (exp(values) + 1)
-
-        return(values)
+        # Are the results consistent with the data input?
+        .check_that(
+            x = nrow(values) == original_nrows,
+            msg = paste(
+                "number of rows of class matrix is different",
+                "from number of input pixels"
+            )
+        )
+        # Return values
+        values
     }
-    return(values)
+    # Return a closure
+    smooth_fn
 }
 
-.smooth_bilat <- function(window, sigma, tau) {
-    values <- function(values, block) {
-        # process bilateral smoother
+.smooth_fn_bilat <- function(window_size, sigma, tau) {
+    # Check window size
+    .check_window_size(window_size)
+    # Check variance
+    .check_num_parameter(sigma, exclusive_min = 0)
+    # Check tau
+    .check_num_parameter(tau, exclusive_min = 0)
+    # Create a Gaussian window
+    center <- ceiling(window_size / 2)
+    seq <- seq_len(window_size)
+    seq_h <- rep(seq, each = window_size)
+    seq_v <- rep(seq, window_size)
+    x <- stats::dnorm(
+        x = sqrt((seq_h - center)^2 + (seq_v - center)^2), sd = sigma
+    ) / stats::dnorm(0)
+    # Normalize and convert to matrix
+    window <- matrix(x / sum(x), nrow = window_size, byrow = TRUE)
+
+    # Define smooth function
+    smooth_fn <- function(values, block) {
+        # Check values length
+        original_nrows <- nrow(values)
+        # Process bilateral smoother and return
         values <- bilateral_smoother(
-            m = values,
-            m_nrow = block[["nrows"]],
-            m_ncol = block[["ncols"]],
-            w = window,
-            tau = tau
+            m = values, m_nrow = .nrows(block), m_ncol = .ncols(block),
+            w = window, tau = tau
         )
-        return(values)
+        # Are the results consistent with the data input?
+        .check_that(
+            x = nrow(values) == original_nrows,
+            msg = paste(
+                "number of rows of class matrix is different",
+                "from number of input pixels"
+            )
+        )
+        # Return values
+        values
     }
-    return(values)
+    # Return a closure
+    smooth_fn
 }

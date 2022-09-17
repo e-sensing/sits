@@ -120,12 +120,13 @@ sits_mixture_model <- function(cube,
 
     endmembers <- .mm_format_endmembers(endmembers, cube)
     .check_endmembers_parameter(endmembers, cube)
-
+    # Scale the reference spectra
+    endmembers <- .mm_scale_endmembers(endmembers = endmembers, cube = cube)
     # In case cube bands is different from endmembers bands
-    in_bands <- .mm_intersect_bands(endmembers, cube)
-    cube <- .cube_select(cube, in_bands)
-
-    output_fracs <- .mm_get_fractions_name(endmembers, rmse_band)
+    bands <- .mm_bands(endmembers)
+    cube <- .cube_band_filter(cube, band = bands)
+    # Fractions to be produced
+    output_fracs <- .mm_endmembers(endmembers, include_rmse = rmse_band)
 
     steps <- .mm_get_steps_lst(cube, output_fracs)
 
@@ -138,24 +139,21 @@ sits_mixture_model <- function(cube,
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    tiles_mm <- .sits_parallel_map(steps, function(step) {
+    # Parallel process
+    tiles_mm <- .sits_parallel_map(steps, function(mm_job) {
 
         # Get parameters from each job
-        tile_name <- step[[1]]
-        fid <- step[[2]]
-
+        tile_name <- .mm_job_get_tile(mm_job)
+        fid <- .mm_job_get_fid(mm_job)
         # Filter tile
-        tile <- .cube_filter(cube, tile = tile_name)
+        tile <- .cube_tile_filter(cube, tile = tile_name)
+        # Filter file_info by fid
+        fi <- .fi_fid_filter(fi = .fi(tile), fid = fid)
 
-        # Scale the reference spectra
-        em_scaled <- .mm_scale_endmembers(endmembers, tile)
-
-        # File_info filtered by bands
-        in_fi_fid <- .file_info(cube = tile, fid = fid)
-
-        output_files <- .file_eocube_name(tile = tile, band = output_fracs,
-                                          date = unique(in_fi_fid[["date"]]),
-                                          output_dir = output_dir)
+        output_files <- .file_eo_name(
+            tile = tile, band = output_fracs, date = .fi_date(fi),
+            output_dir = output_dir
+        )
 
         names(output_files) <- output_fracs
 
@@ -189,9 +187,9 @@ sits_mixture_model <- function(cube,
 
             block <- .block(job)
             # Read bands data
-            values <- purrr::map_dfc(in_bands, function(band) {
+            values <- purrr::map_dfc(bands, function(band) {
 
-                values <- .fi_read_block(fi = in_fi_fid, band = band,
+                values <- .fi_read_block(fi = fi, band = band,
                                          block = block)
 
                 conf_band <- .tile_band_conf(tile = tile, band = band)
@@ -223,7 +221,7 @@ sits_mixture_model <- function(cube,
             # Apply the non-negative least squares solver
             values <- nnls_solver(
                 x = as.matrix(values),
-                A = em_scaled,
+                A = .mm_as_matrix(endmembers),
                 rmse = rmse_band
             )
             colnames(values) <- output_fracs
@@ -240,7 +238,7 @@ sits_mixture_model <- function(cube,
             filenames_block <- purrr::map_chr(output_fracs, function(of) {
                 output_frac <- .file_eocube_name(
                     tile = tile, band = of,
-                    date = unique(in_fi_fid[["date"]]), output_dir = output_dir
+                    date = unique(fi[["date"]]), output_dir = output_dir
                 )
                 block_file <- .file_block_name(
                     pattern = .file_pattern(of),
@@ -273,7 +271,7 @@ sits_mixture_model <- function(cube,
 
         local_tile <- purrr::map_dfr(output_fracs, function(of) {
             band_blocks_file <- .mm_filter_blocks_file(block_files, of)
-            .tile_raster_merge_blocks(
+            .tile_eo_merge_blocks(
                 file = output_files[[of]], band = of, base_tile = tile,
                 block_files = band_blocks_file,
                 multicores = 1
@@ -294,8 +292,8 @@ sits_mixture_model <- function(cube,
     blocks_file[grepl(pattern = band, x = blocks_file)]
 }
 
-.tile_raster_merge_blocks <- function(file, band, labels, base_tile,
-                                      block_files, multicores) {
+.tile_eo_merge_blocks <- function(file, band, labels, base_tile,
+                                  block_files, multicores) {
 
     # Get conf band
     conf_band <- .conf_eo_band(source = .tile_source(base_tile),
@@ -380,13 +378,6 @@ sits_mixture_model <- function(cube,
     }
 }
 
-.mm_intersect_bands <- function(endmembers, cube) {
-    intersect(
-        setdiff(colnames(endmembers), "TYPE"),
-        .cube_bands(cube, add_cloud = FALSE)
-    )
-}
-
 #' @title Create a list of steps
 #'
 #' @name .mm_get_steps_lst
@@ -425,19 +416,18 @@ sits_mixture_model <- function(cube,
 #'
 #' @return a matrix with spectral values scaled.
 .mm_scale_endmembers <- function(endmembers, cube) {
-
-    endmembers_bands <- setdiff(colnames(endmembers), "TYPE")
-    em_spec <- dplyr::select(endmembers, dplyr::all_of(!!endmembers_bands))
-
-    em_spec <- dplyr::mutate(
-        em_spec,
-        dplyr::across(
-            .cols = endmembers_bands,
-            ~ .x * .cube_band_scale_factor(cube[1,], band = dplyr::cur_column())
-        )
+    bands <- .mm_bands(endmembers)
+    endmembers <- dplyr::mutate(
+        endmembers,
+        dplyr::across(bands, function(x) {
+            band_conf <- .cube_band_conf(
+                cube = cube, cube = dplyr::cur_column()
+            )
+            x * .band_scale(band_conf) + .band_offset(band_conf)
+        })
     )
-
-    return(as.matrix(em_spec))
+    # Return endmembers
+    endmembers
 }
 #' @title Define a reasonable block size to process an image subset
 #' @name .mesma_raster_blocks
@@ -515,4 +505,28 @@ sits_mixture_model <- function(cube,
     nblocks <- ceiling(class_data_size * 1e-09 / memsize * multicores)
 
     return(nblocks)
+}
+
+.mm_bands <- function(em) {
+    setdiff(colnames(em), "TYPE")
+}
+
+.mm_endmembers <- function(em, include_rmse = FALSE) {
+    if (!include_rmse) return(em[["TYPE"]])
+    c(em[["TYPE"]], "RMSE")
+}
+
+.mm_as_matrix <- function(em) {
+    bands <- .mm_bands(em)
+    as.matrix(em[, bands])
+}
+
+.mm_job_get_tile <- function(job) {
+    task <- .jobs_get_task(job)
+    task[[1]]
+}
+
+.mm_job_get_fid <- function(job) {
+    task <- .jobs_get_task(job)
+    task[[2]]
 }
