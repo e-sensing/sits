@@ -860,7 +860,7 @@
 }
 
 .raster_write_block <- function(file, block, bbox, values, data_type,
-                                missing_value) {
+                                missing_value, crop_block = NULL) {
     # create a new raster
     r_obj <- .raster_new_rast(
         nrows = block[["nrows"]], ncols = block[["ncols"]],
@@ -873,13 +873,19 @@
         r_obj = r_obj,
         values = values
     )
-    # write the probabilities to a raster file
-    .raster_write_rast(
-        r_obj = r_obj,
-        file = file,
-        data_type = data_type,
-        overwrite = TRUE,
-        missing_value = missing_value
+    # If no crop_block provided write the probabilities to a raster file
+    if (is.null(crop_block)) {
+        .raster_write_rast(
+            r_obj = r_obj, file = file, data_type = data_type,
+            overwrite = TRUE, missing_value = missing_value
+        )
+        return(file)
+    }
+    # Crop removing overlaps
+    .raster_crop(
+        r_obj = r_obj, file = file, data_type = data_type, overwrite = TRUE,
+        block = crop_block, missing_value = missing_value
     )
+    # Return file path
     file
 }
