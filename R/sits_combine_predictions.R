@@ -219,7 +219,6 @@ sits_combine_predictions.average <- function(cubes,
                 r_obj = raster_out,
                 file = block_file,
                 data_type = .config_get("probs_cube_data_type"),
-                gdal_options = .config_gtiff_default_options(),
                 overwrite    = TRUE
             )
             # Delete temp file
