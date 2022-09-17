@@ -1,6 +1,4 @@
 test_that("One-year, multi-core classification in parallel", {
-
-
     l8_cube <- tryCatch(
         {
             sits_cube(
