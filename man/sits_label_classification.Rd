@@ -7,8 +7,8 @@
 \usage{
 sits_label_classification(
   cube,
-  multicores = 2,
   memsize = 4,
+  multicores = 2,
   output_dir = getwd(),
   version = "v1"
 )
@@ -24,11 +24,11 @@ sits_label_classification(
 \arguments{
 \item{cube}{Classified image data cube.}
 
-\item{multicores}{Number of workers to label the classification in
-parallel.}
-
 \item{memsize}{maximum overall memory (in GB) to label the
 classification.}
+
+\item{multicores}{Number of workers to label the classification in
+parallel.}
 
 \item{output_dir}{Output directory for classified files.}
 

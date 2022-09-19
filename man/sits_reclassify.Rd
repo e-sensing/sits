@@ -12,7 +12,7 @@ sits_reclassify(
   memsize = 1,
   multicores = 2,
   output_dir = getwd(),
-  progress = TRUE
+  version = "v1"
 )
 }
 \arguments{

@@ -20,7 +20,5 @@ character
 tile
 }
 \description{
-Get tile labels field.
-
-Set tile labels field.
+Get/set tile labels field.
 }

@@ -20,7 +20,5 @@ file_info
 tile
 }
 \description{
-Get tile file_info field.
-
-Set tile file_info field.
+Get/set tile file_info field.
 }

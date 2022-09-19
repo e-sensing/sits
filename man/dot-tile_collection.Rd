@@ -2,7 +2,8 @@
 % Please edit documentation in R/sits_tile_api.R
 \name{.tile_collection}
 \alias{.tile_collection}
-\title{Tile API}
+\title{Tile API
+Get tile collection field.}
 \usage{
 .tile_collection(tile)
 }
@@ -13,5 +14,6 @@
 character
 }
 \description{
+Tile API
 Get tile collection field.
 }
