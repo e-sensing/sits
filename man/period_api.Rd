@@ -48,6 +48,7 @@ Can be one of \code{'day'}, \code{'month'}, or \code{'year'}.
 
 }}
 \examples{
+\dontrun{
 .period_check("P16D") # valid
 .period_check("P1M10D") # error: invalid period format
 .period_val("P16D") # 16
@@ -56,5 +57,5 @@ Can be one of \code{'day'}, \code{'month'}, or \code{'year'}.
 .period_unit("P16D") # day
 .period_unit("P2M") # month
 .period_unit("P1Y") # year
-
+}
 }

@@ -37,11 +37,12 @@ A \code{block} is any \code{list} or \code{tibble} containing
 
 }}
 \examples{
+\dontrun{
 x <- list(a = 0, z = 0)
 .block(x) # NULL
 x <- list(a = 0, col = 1, row = 2, ncols = 3, nrows = 4, z = 0)
 .block(x)
 .block_size(x, 0)
 .block_size(x, 2)
-
+}
 }

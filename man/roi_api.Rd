@@ -49,6 +49,7 @@ parameter (One of \code{'sf'}, \code{'bbox'}, or \code{'lonlat'}).
 
 }}
 \examples{
+\dontrun{
 x <- list(lon_min = 1, lon_max = 2, lat_min = 3, lat_max = 4)
 .roi_type(x) # lonlat
 .roi_as_sf(x)
@@ -60,7 +61,7 @@ x <- list(xmin = 1, xmax = 2, ymin = 3, ymax = 4, crs = 3857)
   lonlat = "It's in WGS 84",
   bbox = paste("It's in", .crs(x))
 )
-
+}
 }
 \seealso{
 \code{\link{.bbox}()}

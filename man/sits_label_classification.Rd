@@ -15,8 +15,8 @@ sits_label_classification(
 
 \method{sits_label_classification}{probs_cube}(
   cube,
-  multicores = 2,
   memsize = 4,
+  multicores = 2,
   output_dir = getwd(),
   version = "v1"
 )
