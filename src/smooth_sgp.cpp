@@ -15,7 +15,6 @@ arma::vec signal_filter(const arma::vec& filt,
                         const arma::vec& x) {
 
     arma::uword len_init = filt.n_rows - 1;
-    arma::uword len_ext  = x.n_rows + len_init;
     arma::vec ext_x(len_init, arma::fill::zeros);
     arma::vec result(x.n_rows);
     // extend the input vector with left-side zeros
