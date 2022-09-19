@@ -84,8 +84,7 @@ sits_uncertainty <- function(cube, type = "least", window_size = 5,
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = overlap),
         # npaths = input(nlayers) + output(1)
-        npaths = length(.fi_paths(.fi(cube))) *
-            (length(.tile_labels(cube)) + 1),
+        npaths = length(.tile_labels(cube)) + 1,
         nbytes = 8, proc_bloat = .config_processing_bloat()
     )
     # Update multicores parameter
@@ -229,7 +228,7 @@ sits_uncertainty.margin <- function(cube, type = "margin", window_size = 5,
         crop_block <- .chunk_block_no_overlap(chunk)
         # Prepare and save results as raster
         .raster_write_block(
-            file = block_file, block = block, bbox = .bbox(chunk),
+            files = block_file, block = block, bbox = .bbox(chunk),
             values = values, data_type = .band_data_type(band_conf),
             missing_value = .band_miss_value(band_conf),
             crop_block = crop_block

@@ -42,7 +42,7 @@
                 "change 'output_dir' or 'version' parameters)")
         probs_tile <- .tile_probs_from_file(
             file = out_file, band = band, base_tile = tile,
-            labels = .ml_labels(ml_model)
+            labels = .ml_labels(ml_model), update_bbox = TRUE
         )
         return(probs_tile)
     }
@@ -134,7 +134,7 @@
 
         # Prepare and save results as raster
         .raster_write_block(
-            file = block_file, block = block, bbox = .bbox(chunk),
+            files = block_file, block = block, bbox = .bbox(chunk),
             values = values, data_type = .band_data_type(band_conf),
             missing_value = .band_miss_value(band_conf),
             crop_block = NULL
@@ -159,7 +159,7 @@
     probs_tile <- .tile_probs_merge_blocks(
         file = out_file, band = band, labels = .ml_labels(ml_model),
         base_tile = tile, block_files = block_files,
-        multicores = .jobs_multicores()
+        multicores = .jobs_multicores(), update_bbox = TRUE
     )
     # # Callback final tile classification
     # .callback(event = "tile_classification", status = "end",
@@ -194,7 +194,7 @@
     # Get cloud values (NULL if not exists)
     cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
     # Read and preprocess values from each band
-    values <- .ml_foreach_band(ml_model, function(band) {
+    values <- purrr::map_dfc(.ml_bands(ml_model), function(band) {
         # Get band values
         values <- .tile_read_block(tile = tile, band = band, block = block)
         # Check if there are values
@@ -243,11 +243,11 @@
         )
 
         # Return values
-        values
+        as.data.frame(values)
     })
     # Compose final values
-    values <- do.call(cbind, values)
+    values <- as.matrix(values)
     colnames(values) <- .ml_attr_names(ml_model)
-
-    return(values)
+    # Return values
+    values
 }
