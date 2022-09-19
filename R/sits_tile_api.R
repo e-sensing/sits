@@ -1192,22 +1192,21 @@
 
 .tile_probs_merge_blocks <- function(file, band, labels, base_tile,
                                      block_files, multicores, update_bbox) {
-    # Create probs cube and return it
-    tile <- .tile_derived_merge_blocks(
-        file = file, band = band, labels = labels,
-        base_tile = base_tile, derived_class = "probs_cube",
-        block_files = block_files, multicores = multicores,
-        update_bbox = update_bbox
-    )
-    # Open block file to be merged
-    r_obj <- .raster_open_rast(file)
+    # Open first block file to be merged
+    r_obj <- .raster_open_rast(unlist(block_files)[[1]])
     # Check number of labels is correct
     .check_that(
         x = .raster_nlayers(r_obj) == length(labels),
         local_msg = "number of image layers does not match labels",
         msg = "invalid 'file' parameter"
     )
-    tile
+    # Create probs cube and return it
+    .tile_derived_merge_blocks(
+        file = file, band = band, labels = labels,
+        base_tile = base_tile, derived_class = "probs_cube",
+        block_files = block_files, multicores = multicores,
+        update_bbox = update_bbox
+    )
 }
 
 # ---- | <class_cube> ----

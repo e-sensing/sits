@@ -876,6 +876,7 @@
 
 .raster_write_block <- function(files, block, bbox, values, data_type,
                                 missing_value, crop_block = NULL) {
+    # to support old models convert values to matrix
     values <- as.matrix(values)
     nlayers <- ncol(values)
     if (length(files) > 1) {
