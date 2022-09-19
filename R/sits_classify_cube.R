@@ -57,12 +57,16 @@
     }
     # Create chunks as jobs
     chunks <- .tile_chunks_create(tile = tile, overlap = 0)
-    # How many chunks there are in tile?
-    nchunks <- nrow(chunks)
-    # Intersecting chunks with ROI
-    chunks <- .chunks_filter_spatial(chunks = chunks, roi = roi)
-    # Should bbox of resulting tile be updated?
-    update_bbox <- nrow(chunks) != nchunks
+    # By default, update_bbox is FALSE
+    update_bbox <- FALSE
+    if (.has(roi)) {
+        # How many chunks there are in tile?
+        nchunks <- nrow(chunks)
+        # Intersecting chunks with ROI
+        chunks <- .chunks_filter_spatial(chunks = chunks, roi = roi)
+        # Should bbox of resulting tile be updated?
+        update_bbox <- nrow(chunks) != nchunks
+    }
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
