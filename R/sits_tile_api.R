@@ -1304,14 +1304,14 @@ NULL
     values
 }
 
-#---- | .tile_chunk_create() ----
+#---- | .tile_chunks_create() ----
 
-.tile_chunk_create <- function(tile, overlap, roi = NULL) {
+.tile_chunks_create <- function(tile, overlap) {
     # Get block size
     block <-
         .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(tile))))
     # Compute chunks
-    .chunk_create(
+    .chunks_create(
         block = block,
         overlap = overlap,
         ncols = .tile_ncols(tile),
@@ -1320,8 +1320,7 @@ NULL
         xmax = .xmax(tile),
         ymin = .ymin(tile),
         ymax = .ymax(tile),
-        crs = .crs(tile),
-        roi = roi
+        crs = .crs(tile)
     )
 }
 
@@ -1916,16 +1915,15 @@ NULL
 
 #---- chunk ----
 
-.chunk_create <- function(block,
-                          overlap,
-                          ncols,
-                          nrows,
-                          xmin,
-                          xmax,
-                          ymin,
-                          ymax,
-                          crs,
-                          roi = NULL) {
+.chunks_create <- function(block,
+                           overlap,
+                           ncols,
+                           nrows,
+                           xmin,
+                           xmax,
+                           ymin,
+                           ymax,
+                           crs) {
     # Prepare raster tile template
     r_obj <- .raster_new_rast(
         nrows = nrows,
@@ -1968,19 +1966,19 @@ NULL
                                            .ncols(block)))
     chunks[["crop_nrows"]] <- .as_int(pmin(nrows - .row(chunks) + 1,
                                            .nrows(block)))
-    # If no roi was provided return all chunks
-    if (is.null(roi) || nrow(chunks) == 0) {
-        return(chunks)
-    }
-    # Return intersecting chunks
-    chunks[.intersects(.bbox_as_sf(chunks), .roi_as_sf(roi)), ]
+    # Return chunks
+    chunks
 }
 
-.chunk_block_no_overlap <- function(chunk) {
+.chunks_block_no_overlap <- function(chunk) {
     list(
         col = .as_int(pmin(chunk[["overlap"]] + 1, .col(chunk))),
         row = .as_int(pmin(chunk[["overlap"]] + 1, .row(chunk))),
         ncols = .as_int(chunk[["crop_ncols"]]),
         nrows = .as_int(chunk[["crop_nrows"]])
     )
+}
+
+.chunks_filter_spatial <- function(chunks, roi) {
+    chunks[.intersects(.bbox_as_sf(chunks), .roi_as_sf(roi)), ]
 }

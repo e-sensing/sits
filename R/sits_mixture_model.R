@@ -215,7 +215,7 @@ sits_mixture_model <- function(cube,
     # Remove remaining incomplete fractions files
     unlink(out_files)
     # Create chunks as jobs
-    chunks <- .tile_chunk_create(tile = feature, overlap = 0)
+    chunks <- .tile_chunks_create(tile = feature, overlap = 0)
     # Process jobs sequentially
     block_files <- .jobs_map_sequential(chunks, function(chunk) {
         # Get job block

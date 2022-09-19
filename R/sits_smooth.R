@@ -195,7 +195,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
         return(probs_tile)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunk_create(tile = tile, overlap = overlap)
+    chunks <- .tile_chunks_create(tile = tile, overlap = overlap)
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -229,7 +229,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
             values <- values / scale
         }
         # Job crop block
-        crop_block <- .chunk_block_no_overlap(chunk)
+        crop_block <- .chunks_block_no_overlap(chunk)
         # Prepare and save results as raster
         .raster_write_block(
             files = block_file, block = block, bbox = .bbox(chunk),

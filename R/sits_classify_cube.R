@@ -56,7 +56,13 @@
                 tile[["tile"]], "' at ", tile_start_time)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunk_create(tile = tile, overlap = 0, roi = roi)
+    chunks <- .tile_chunks_create(tile = tile, overlap = 0)
+    # How many chunks there are in tile?
+    nchunks <- nrow(chunks)
+    # Intersecting chunks with ROI
+    chunks <- .chunks_filter_spatial(chunks = chunks, roi = roi)
+    # Should bbox of resulting tile be updated?
+    update_bbox <- nrow(chunks) != nchunks
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -159,7 +165,7 @@
     probs_tile <- .tile_probs_merge_blocks(
         file = out_file, band = band, labels = .ml_labels(ml_model),
         base_tile = tile, block_files = block_files,
-        multicores = .jobs_multicores(), update_bbox = TRUE
+        multicores = .jobs_multicores(), update_bbox = update_bbox
     )
     # # Callback final tile classification
     # .callback(event = "tile_classification", status = "end",

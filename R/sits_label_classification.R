@@ -122,7 +122,7 @@ sits_label_classification.probs_cube <- function(cube, memsize = 4,
         return(class_tile)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunk_create(tile = tile, overlap = 0)
+    chunks <- .tile_chunks_create(tile = tile, overlap = 0)
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Get job block
