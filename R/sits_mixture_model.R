@@ -26,11 +26,8 @@
 #'                            If true, a new band with errors for each pixel
 #'                            is generated using the root mean square
 #'                            measure (RMSE). Default is TRUE.
-#' @param remove_outliers     A boolean indicating whether values larger and
-#'                            smaller than the limits of the image metadata,
-#'                            and missing values should be marked as NA.
-#'                            Default is TRUE.
 #' @param progress            Show progress bar? Default is TRUE.
+#'
 #' @return a sits cube with the fractions of each endmember.
 #'         The sum of all fractions is restricted to 1 (scaled from 0 to 10000),
 #'         corresponding to the abundance of the endmembers in the pixels.
@@ -99,7 +96,6 @@ sits_mixture_model <- function(cube,
                                multicores = 2,
                                output_dir = getwd(),
                                rmse_band = TRUE,
-                               remove_outliers = TRUE,
                                progress = TRUE) {
     # check documentation mode
     progress <- .check_documentation(progress)
@@ -115,8 +111,6 @@ sits_mixture_model <- function(cube,
     .check_output_dir(output_dir)
     # precondition - rmse_band
     .check_lgl_type(rmse_band)
-    # precondition - remove_outiliers
-    .check_lgl_type(remove_outliers)
     # precondition - progress
     .check_lgl_type(progress)
 
@@ -293,7 +287,7 @@ sits_mixture_model <- function(cube,
         as.data.frame(values)
     })
     # Return values
-    return(values)
+    values
 }
 
 # ---- endmembers functions ----
