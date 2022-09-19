@@ -12,77 +12,71 @@ using namespace std;
 // https://github.com/bleutner/RStoolbox/tree/v0.3.0
 
 //[[Rcpp::export]]
-arma::mat nnls_solver(const arma::mat x,
-                      const arma::mat A,
-                      const bool rmse,
-                      const int iterate = 400,
-                      const float tolerance = 0.000001) {
+arma::mat C_nnls_solver(const arma::mat& x,
+                        const arma::mat& em,
+                        const bool rmse,
+                        const int max_it = 400,
+                        const float tol = 0.000001) {
 
-    int A_nEM = A.n_rows;
-    int A_ncols = (rmse) ? A_nEM+1 : A_nEM;
-    int b_npix = x.n_rows;
+    int n_fracs_in = em.n_rows;
+    int n_fracs_out = (rmse) ? n_fracs_in + 1 : n_fracs_in;
 
-    arma::mat sol(b_npix, A_ncols, arma::fill::zeros);
+    int n_pixels = x.n_rows;
 
-    for(int i = 0; i < b_npix; i++){ // parallelization with clusterR possible with this framework? --> test
+    arma::mat s(n_pixels, n_fracs_out, arma::fill::zeros);
 
-        arma::vec xv(A_nEM), xstore(A_nEM);
-        xv.fill(0);
-        xstore.fill(-9999);
+    arma::mat y(n_fracs_in, n_pixels), y_prior(n_fracs_in, n_pixels);
+    y.fill(0);
+    y_prior.fill(-9999);
+    arma::mat y_diff = y - y_prior; // create a non-negative matrix
 
-        // create a non-negative vector
-        arma::vec xdiff = xv - xstore;
+    // switching to arma here for nice matrix multiplication
+    arma::mat emx = -em * x.t(); // negative A * b
+    arma::mat em2 = em * em.t(); // A * transposed A
 
-        // switching to arma here for nice matrix multiplication
-        arma::vec nab = -A * x.row(i).t(); // negative A * b
-        arma::mat ata = A * A.t(); // A * transposed A
+    arma::rowvec temporary(n_pixels);
+    int j = 0;
 
-        double temporary;
-        int j = 0;
+    // execute solving loop
+    while(j < max_it && arma::any(arma::max(arma::abs(y_diff), 0) > tol)) {
+        y_prior = y;
 
-        //execute solving loop
-        while(j < iterate && max(abs(xdiff)) > tolerance) {
-            xstore = xv;
+        for (int k = 0; k < n_fracs_in; k++) {
 
-            for (int k = 0; k < A_nEM; k++) {
+            temporary = y.row(k) - emx.row(k) / em2(k,k);
+            temporary.clamp(0, arma::datum::inf);
 
-                temporary = xv[k] - nab[k] / ata(k,k);
-                if (temporary < 0){
-                    temporary = 0;
-                }
+            arma::rowvec temp2 = temporary - y.row(k);
+            temp2.elem(arma::find(temporary == y.row(k))).zeros();
 
-                if (temporary != xv[k]){
-                    nab += ((temporary - xv[k]) * ata.row(k).t());
-                }
+            emx += em2.col(k) * temp2;
 
-                xv[k] = temporary;
-            }
-            xdiff = xv-xstore;
-            ++j;
+            y.row(k) = temporary;
         }
-
-        //predict values
-        arma::mat prob = xv.t();
-        arma::mat pred = prob * A;
-
-        //calculate RMSE
-        arma::mat ppdiff = pred.row(0) - x.row(i);
-        float rmsem = mean(mean(pow(ppdiff, 2)));
-        float rmse = sqrt(rmsem);
-
-        arma::mat ret(1, A_ncols);
-        arma::colvec colsums = arma::sum(prob, 1);
-
-        for(int f = 0; f < A_nEM; f++) {
-            ret(0,f) = arma::as_scalar(prob(0,f)/colsums);
-        }
-
-        //should the rmse be add
-        if (rmse) {
-            ret(0, A_ncols) = rmse;
-        }
-
-        sol.row(i) = ret; //xv.t();
+        y_diff = y - y_prior;
+        ++j;
     }
-    return(sol); //mat
+
+    // predict values
+    arma::mat probs = y.t();
+
+    // calculate RMSE
+    arma::mat preds = probs * em;
+    arma::mat ppdiff = preds - x;
+    arma::mat error = arma::sqrt(arma::mean(arma::pow(ppdiff, 2), 1));
+
+    // normalization between 0 and 1
+    arma::colvec prob_sum = arma::sum(probs, 1);
+    for (arma::uword i = 0; i < probs.n_cols; i++) {
+        probs.col(i) /= prob_sum;
+    }
+
+    // prepare output
+    s.cols(0, n_fracs_in - 1) = probs;
+
+    // should the rmse be added?
+    if (rmse) {
+        s.col(n_fracs_out - 1) = error;
+    }
+    return s;
 }
