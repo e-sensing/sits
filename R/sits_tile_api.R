@@ -157,13 +157,14 @@
 #' \code{nrows}.
 #'
 #' @examples
+#' \dontrun{
 #' x <- list(a = 0, z = 0)
 #' .block(x) # NULL
 #' x <- list(a = 0, col = 1, row = 2, ncols = 3, nrows = 4, z = 0)
 #' .block(x)
 #' .block_size(x, 0)
 #' .block_size(x, 2)
-#'
+#' }
 #' @name block_api
 NULL
 
@@ -296,6 +297,7 @@ NULL
 #' @seealso \code{\link{.bbox}()}
 #'
 #' @examples
+#' \dontrun{
 #' x <- list(lon_min = 1, lon_max = 2, lat_min = 3, lat_max = 4)
 #' .roi_type(x) # lonlat
 #' .roi_as_sf(x)
@@ -307,7 +309,7 @@ NULL
 #'   lonlat = "It's in WGS 84",
 #'   bbox = paste("It's in", .crs(x))
 #' )
-#'
+#' }
 #' @name roi_api
 NULL
 
@@ -372,6 +374,7 @@ NULL
 #' @param period A \code{character}.
 #'
 #' @examples
+#' \dontrun{
 #' .period_check("P16D") # valid
 #' .period_check("P1M10D") # error: invalid period format
 #' .period_val("P16D") # 16
@@ -380,7 +383,7 @@ NULL
 #' .period_unit("P16D") # day
 #' .period_unit("P2M") # month
 #' .period_unit("P1Y") # year
-#'
+#' }
 #' @name period_api
 NULL
 
