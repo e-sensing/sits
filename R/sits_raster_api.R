@@ -805,7 +805,7 @@
                 # merge using gdal warp
                 suppressWarnings(
                     gdalUtilities::gdalwarp(
-                        srcfile = files,
+                        srcfile = merge_files,
                         dstfile = out_file,
                         wo = paste0("NUM_THREADS=", multicores),
                         multi = TRUE,
@@ -823,7 +823,7 @@
                 # merge using gdal warp
                 suppressWarnings(
                     gdalUtilities::gdalwarp(
-                        srcfile = files,
+                        srcfile = merge_files,
                         dstfile = out_file,
                         wo = paste0("NUM_THREADS=", multicores),
                         ot = .raster_gdal_datatype(data_type),
