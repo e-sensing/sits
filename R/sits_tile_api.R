@@ -207,6 +207,7 @@ NULL
 #' CRS.
 #'
 #' @examples
+#' \dontrun{
 #' x <- list(a = 0, z = 0)
 #' .bbox(x) # NULL
 #' x <- list(
@@ -216,7 +217,7 @@ NULL
 #' .bbox(x)
 #' .bbox_as_sf(x) # 3 features
 #' .bbox_as_sf(x, as_crs = "EPSG:3857")
-#'
+#' }
 #' @name bbox_api
 NULL
 
