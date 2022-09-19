@@ -322,9 +322,9 @@ sits_apply.raster_cube <- function(data, ...,
 
             # Merge final result
             .raster_merge_blocks(
+                out_files = out_file,
                 base_file = .file_info_path(tile),
                 block_files = block_files,
-                out_files = out_file,
                 data_type = .config_get("raster_cube_data_type"),
                 missing_value = .config_get("raster_cube_missing_value"),
                 multicores = 1

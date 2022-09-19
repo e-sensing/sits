@@ -720,27 +720,46 @@
 
     return(params)
 }
+.raster_template <- function(base_file, out_file, nlayers, data_type,
+                             missing_value) {
+    # Create an empty image template
+    gdalUtilities::gdal_translate(
+        src_dataset = path.expand(base_file),
+        dst_dataset = path.expand(out_file),
+        ot = .raster_gdal_datatype(data_type),
+        of = "GTiff",
+        b = rep(1, nlayers),
+        scale = c(0, 1, missing_value, missing_value),
+        a_nodata = missing_value,
+        co = .config_gtiff_default_options(),
+        q = TRUE
+    )
+    # Delete auxiliary files
+    on.exit(unlink(paste0(out_file, ".aux.xml")), add = TRUE)
+    return(out_file)
+}
 #' @title Merge all input files into one raster file
 #' @name .raster_merge
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param files         Input file paths
-#' @param out_file      Output raster file path
+#' @param out_files     Output raster files path.
+#' @param base_file     Raster file path to be used as template. If \code{NULL},
+#'   all block_files will be merged without a template.
+#' @param block_files   Input block files paths.
 #' @param data_type     sits internal raster data type. One of "INT1U",
 #'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
+#' @param missing_value Missing value of out_files.
 #' @param multicores    Number of cores to process merging
-#' @param overwrite     Should the output file be overwritten?
 #'
 #' @return No return value, called for side effects.
 #'
-.raster_merge_blocks <- function(base_file,
+.raster_merge_blocks <- function(out_files,
+                                 base_file,
                                  block_files,
-                                 out_files,
                                  data_type,
                                  missing_value,
                                  multicores = 2) {
-
     # Check consistency between block_files and out_files
     if (is.list(block_files)) {
         if (any(lengths(block_files) != length(out_files))) {
@@ -755,19 +774,18 @@
 
     # for each file merge blocks
     for (i in seq_along(out_files)) {
-        out_file <- out_files[[i]]
-        # Get file paths
-        files <- purrr::map_chr(block_files, `[[`, i)
-        # Expand paths for block_files
-        files <- path.expand(files)
         # Expand paths for out_file
-        out_file <- path.expand(out_file)
+        out_file <- path.expand(out_files[[i]])
         # Check if out_file not exists
         .check_that(
             x = !file.exists(out_file),
             local_msg = paste0("file '", out_file, "' already exists"),
             msg = "invalid 'out_file' parameter"
         )
+        # Get file paths
+        merge_files <- purrr::map_chr(block_files, `[[`, i)
+        # Expand paths for block_files
+        merge_files <- path.expand(merge_files)
         # check if block_files length is at least one
         .check_file(
             x = files,
@@ -775,38 +793,54 @@
             msg = "invalid input files to merge"
         )
         # Get number of layers
-        nlayers <- .raster_nlayers(.raster_open_rast(files[[1]]))
-        # Create an empty image template
-        gdalUtilities::gdal_translate(
-            src_dataset = path.expand(base_file),
-            dst_dataset = path.expand(out_file),
-            ot = .raster_gdal_datatype(data_type),
-            of = "GTiff",
-            b = rep(1, nlayers),
-            scale = c(0, 1, missing_value, missing_value),
-            a_nodata = missing_value,
-            co = .config_gtiff_default_options()
-        )
-        # Delete auxiliary files
-        on.exit(unlink(paste0(out_file, ".aux.xml")), add = TRUE)
-        # Merge into template
-        .try({
-            # merge using gdal warp
-            suppressWarnings(
-                gdalUtilities::gdalwarp(
-                    srcfile = files,
-                    dstfile = out_file,
-                    wo = paste0("NUM_THREADS=", multicores),
-                    multi = TRUE,
-                    overwrite = FALSE
-                )
+        nlayers <- .raster_nlayers(.raster_open_rast(merge_files[[1]]))
+        if (.has(base_file)) {
+            # Create raster template
+            .raster_template(
+                base_file = base_file, out_file = out_file, nlayers = nlayers,
+                data_type = data_type, missing_value = missing_value
             )
-        },
-        .rollback = {
-            unlink(out_file)
-        })
+            # Merge into template
+            .try({
+                # merge using gdal warp
+                suppressWarnings(
+                    gdalUtilities::gdalwarp(
+                        srcfile = files,
+                        dstfile = out_file,
+                        wo = paste0("NUM_THREADS=", multicores),
+                        multi = TRUE,
+                        q = TRUE,
+                        overwrite = FALSE
+                    )
+                )
+            },
+            .rollback = {
+                unlink(out_file)
+            })
+        } else {
+            # Merge into template
+            .try({
+                # merge using gdal warp
+                suppressWarnings(
+                    gdalUtilities::gdalwarp(
+                        srcfile = files,
+                        dstfile = out_file,
+                        wo = paste0("NUM_THREADS=", multicores),
+                        ot = .raster_gdal_datatype(data_type),
+                        multi = TRUE,
+                        of = "GTiff",
+                        q = TRUE,
+                        co = .config_gtiff_default_options(),
+                        overwrite = FALSE
+                    )
+                )
+            },
+            .rollback = {
+                unlink(out_file)
+            })
+        }
     }
-    out_files
+    return(out_files)
 }
 
 .raster_clone <- function(file, nlayers = NULL) {
