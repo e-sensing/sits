@@ -1964,9 +1964,9 @@ NULL
     chunks[["overlap"]] <- .as_int(overlap)
     # Chunk size without overlap
     chunks[["crop_ncols"]] <- .as_int(pmin(ncols - .col(chunks) + 1,
-                                           .ncols(block)))
+                                           .ncols(chunks) - overlap))
     chunks[["crop_nrows"]] <- .as_int(pmin(nrows - .row(chunks) + 1,
-                                           .nrows(block)))
+                                           .nrows(chunks) - overlap))
     # Return chunks
     chunks
 }
