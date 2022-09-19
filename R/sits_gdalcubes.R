@@ -406,7 +406,7 @@
     .check_set_caller(".gc_save_raster_cube")
 
     # convert sits gtiff options to gdalcubes format
-    gtiff_options <- strsplit(.config_gtiff_default_options(), split = "=")
+    gtiff_options <- strsplit(.config_get("gdalcubes_options"), split = "=")
     gdalcubes_co <- purrr::map(gtiff_options, `[[`, 2)
     names(gdalcubes_co) <- purrr::map_chr(gtiff_options, `[[`, 1)
 
