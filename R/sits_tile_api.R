@@ -11,6 +11,10 @@
     lubridate::as_date(unlist(x, recursive = FALSE))
 }
 
+.has <- function(x) {
+    length(x) > 0
+}
+
 .try <- function(expr,
                  ...,
                  .rollback = NULL,
@@ -288,11 +292,6 @@ NULL
 #' @param default_crs If no CRS is present in a \code{bbox} object passed
 #' to \code{crs}, which CRS should be used? If \code{NULL} default CRS will
 #' be \code{'EPSG:4326'}.
-#' @param default_crs If no \code{crs} is present in \code{bbox} passed in
-#' \code{roi}, which \code{crs} should be used? If \code{NULL} default
-#' \code{crs} will be 'EPSG:4326'.
-#' @param as_crs A crs to project \code{bbox}. Useful if bbox has multiples
-#' crs.
 #'
 #' @seealso \code{\link{.bbox}()}
 #'
@@ -1167,14 +1166,17 @@ NULL
 #' @param tile A tile.
 #' @param band Band character vector.
 #' @param block A block list with (col, row, ncols, nrows).
+#' @param replace_by_minmax Should values out of minimum and maximum range
+#'   be replaced by minimum and maximum value? If \code{FALSE}, values out
+#'   of range will be replaced by \code{NA}.
 #'
 #' @return numeric
-.tile_read_block <- function(tile, band, block) {
+.tile_read_block <- function(tile, band, block, replace_by_minmax) {
     UseMethod(".tile_read_block", tile)
 }
 
 #' @export
-.tile_read_block.raster_cube <- function(tile, band, block) {
+.tile_read_block.raster_cube <- function(tile, band, block, replace_by_minmax) {
     fi <- .fi(tile)
     values <- .fi_read_block(
         fi = fi,
@@ -1200,85 +1202,23 @@ NULL
     # apply scale and offset.
     band_conf <- .tile_band_conf(tile = tile, band = band)
     miss_value <- .band_miss_value(band_conf)
-    if (!is.null(miss_value)) {
+    if (.has(miss_value)) {
         values[values == miss_value] <- NA
     }
     min_value <- .band_min_value(band_conf)
-    if (!is.null(min_value)) {
-        values[values < min_value] <- min_value
+    if (.has(min_value)) {
+        values[values < min_value] <- if (replace_by_minmax) min_value else NA
     }
     max_value <- .band_max_value(band_conf)
-    if (!is.null(max_value)) {
-        values[values > max_value] <- max_value
+    if (.has(max_value)) {
+        values[values > max_value] <- if (replace_by_minmax) max_value else NA
     }
     scale <- .band_scale(band_conf)
-    if (!is.null(scale) && scale != 1) {
+    if (.has(scale) && scale != 1) {
         values <- values * scale
     }
     offset <- .band_offset(band_conf)
-    if (!is.null(offset) && offset != 0) {
-        values <- values + offset
-    }
-
-
-    #
-    # Log here
-    #
-    .sits_debug_log(
-        event = "end_block_data_process",
-        key = "band",
-        value = band
-    )
-
-
-    # Return values
-    values
-}
-
-#' @export
-.tile_read_block.eo_cube <- function(tile, band, block) {
-    fi <- .fi(tile)
-    values <- .fi_read_block(
-        fi = fi,
-        band = band,
-        block = block
-    )
-    if (is.null(values)) {
-        return(NULL)
-    }
-
-
-    #
-    # Log here
-    #
-    .sits_debug_log(
-        event = "start_block_data_process",
-        key = "band",
-        value = band
-    )
-
-
-    # Correct missing, minimum, and maximum values and
-    # apply scale and offset.
-    band_conf <- .tile_band_conf(tile = tile, band = band)
-    miss_value <- .band_miss_value(band_conf)
-    if (!is.null(miss_value)) {
-        values[values == miss_value] <- NA
-    }
-    min_value <- .band_min_value(band_conf)
-    if (!is.null(min_value)) {
-        values[values < min_value] <- NA
-    }
-    max_value <- .band_max_value(band_conf)
-    if (!is.null(max_value)) {
-        values[values > max_value] <- NA
-    }
-    scale <- .band_scale(band_conf)
-    if (!is.null(scale) && scale != 1) {
-        values <- values * scale
-    }
-    offset <- .band_offset(band_conf)
-    if (!is.null(offset) && offset != 0) {
+    if (.has(offset) && offset != 0) {
         values <- values + offset
     }
 
@@ -1316,7 +1256,8 @@ NULL
     values <- .tile_read_block(
         tile = tile,
         band = .band_cloud(),
-        block = block
+        block = block,
+        replace_by_minmax = FALSE
     )
     if (is.null(values)) {
         return(NULL)
@@ -1427,8 +1368,8 @@ NULL
     band_conf <- .tile_band_conf(tile = base_tile, band = bands)
     # Create a template raster based on the first image of the tile
     .raster_merge_blocks(
-        base_file = .fi_path(.fi(base_tile)), block_files = block_files,
-        out_files = files, data_type = .band_data_type(band_conf),
+        out_files = files, base_file = .fi_path(.fi(base_tile)),
+        block_files = block_files, data_type = .band_data_type(band_conf),
         missing_value = .band_miss_value(band_conf), multicores = multicores
     )
     # Create tile based on template
@@ -1472,10 +1413,12 @@ NULL
                                        update_bbox) {
     # Get conf band
     band_conf <- .conf_derived_band(derived_class = derived_class, band = band)
+    # Set base tile
+    base_file <- if (update_bbox) NULL else .fi_path(.fi(base_tile))
     # Create a template raster based on the first image of the tile
     .raster_merge_blocks(
-        base_file = .fi_path(.fi(base_tile)), block_files = block_files,
-        out_files = file, data_type = .band_data_type(band_conf),
+        out_files = file, base_file = base_file,
+        block_files = block_files, data_type = .band_data_type(band_conf),
         missing_value = .band_miss_value(band_conf), multicores = multicores
     )
     # Create tile based on template

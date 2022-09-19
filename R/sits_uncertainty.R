@@ -208,7 +208,8 @@ sits_uncertainty.margin <- function(cube, type = "margin", window_size = 5,
         }
         # Read and preprocess values
         values <- .tile_read_block(
-            tile = tile, band = .tile_bands(tile), block = block
+            tile = tile, band = .tile_bands(tile), block = block,
+            replace_by_minmax = TRUE
         )
         # Apply the labeling function to values
         values <- uncert_fn(values = values, block = block)

@@ -174,7 +174,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
 #---- internal functions ----
 
 .smooth_tile <- function(tile, band, overlap, smooth_fn, output_dir,
-                              version) {
+                         version) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version,
@@ -211,7 +211,8 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
         }
         # Read and preprocess values
         values <- .tile_read_block(
-            tile = tile, band = .tile_bands(tile), block = block
+            tile = tile, band = .tile_bands(tile), block = block,
+            replace_by_minmax = TRUE
         )
         # Apply the probability function to values
         values <- smooth_fn(values = values, block = block)

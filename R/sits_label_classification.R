@@ -138,7 +138,8 @@ sits_label_classification.probs_cube <- function(cube, multicores = 2,
         }
         # Read and preprocess values
         values <- .tile_read_block(
-            tile = tile, band = .tile_bands(tile), block = block
+            tile = tile, band = .tile_bands(tile), block = block,
+            replace_by_minmax = TRUE
         )
         # Apply the labeling function to values
         values <- label_fn(values)

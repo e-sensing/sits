@@ -273,7 +273,9 @@ sits_mixture_model <- function(cube,
     # Read and preprocess values from each band
     values <- purrr::map_dfc(.endmembers_bands(em), function(band) {
         # Get band values
-        values <- .tile_read_block(tile = tile, band = band, block = block)
+        values <- .tile_read_block(
+            tile = tile, band = band, block = block, replace_by_minmax = FALSE
+        )
         # Check if there are values
         .check_null(
             x = values,
