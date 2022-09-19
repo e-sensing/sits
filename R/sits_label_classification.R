@@ -48,18 +48,14 @@
 #'     plot(label_cube)
 #' }
 #' @export
-sits_label_classification <- function(cube, multicores = 2, memsize = 4,
+sits_label_classification <- function(cube, memsize = 4, multicores = 2,
                                       output_dir = getwd(), version = "v1") {
 
-    # precondition - check if cube has probability data
+    # Pre-conditions - Check parameters
     .check_is_probs_cube(cube)
-    # precondition - multicores
-    .check_multicores(multicores)
-    # precondition - memsize
     .check_memsize(memsize)
-    # precondition - output dir
+    .check_multicores(multicores)
     .check_output_dir(output_dir)
-    # precondition - version
     .check_version(version)
 
     # Check memory and multicores
