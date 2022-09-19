@@ -86,7 +86,6 @@ probs_cube_class        : ["probs_cube", "raster_cube", "sits_cube", "tbl_df",
 # (informed pixel values before scaling)
 default_values       :
     eo_cube          :
-        s3_class     : ["eo_cube", "local_cube", "raster_cube"]
         data_type    : "INT2S"
         missing_value: -32768
         minimum_value: -10000
