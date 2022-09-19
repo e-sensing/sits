@@ -788,9 +788,9 @@
         merge_files <- path.expand(merge_files)
         # check if block_files length is at least one
         .check_file(
-            x = files,
+            x = merge_files,
             extensions = "tif",
-            msg = "invalid input files to merge"
+            msg = "invalid input block files to merge"
         )
         # Get number of layers
         nlayers <- .raster_nlayers(.raster_open_rast(merge_files[[1]]))
