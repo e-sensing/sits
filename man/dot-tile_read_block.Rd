@@ -4,7 +4,7 @@
 \alias{.tile_read_block}
 \title{Tile API}
 \usage{
-.tile_read_block(tile, band, block)
+.tile_read_block(tile, band, block, replace_by_minmax)
 }
 \arguments{
 \item{tile}{A tile.}
@@ -12,6 +12,10 @@
 \item{band}{Band character vector.}
 
 \item{block}{A block list with (col, row, ncols, nrows).}
+
+\item{replace_by_minmax}{Should values out of minimum and maximum range
+be replaced by minimum and maximum value? If \code{FALSE}, values out
+of range will be replaced by \code{NA}.}
 }
 \value{
 numeric

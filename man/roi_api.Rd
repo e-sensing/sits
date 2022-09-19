@@ -18,12 +18,9 @@
 
 \item{...}{Parameters to be evaluated accordingly to \code{roi} type.}
 
-\item{default_crs}{If no \code{crs} is present in \code{bbox} passed in
-\code{roi}, which \code{crs} should be used? If \code{NULL} default
-\code{crs} will be 'EPSG:4326'.}
-
-\item{as_crs}{A crs to project \code{bbox}. Useful if bbox has multiples
-crs.}
+\item{default_crs}{If no CRS is present in a \code{bbox} object passed
+to \code{crs}, which CRS should be used? If \code{NULL} default CRS will
+be \code{'EPSG:4326'}.}
 }
 \value{
 \code{.roi_type()}: \code{character}.
