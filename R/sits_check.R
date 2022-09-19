@@ -1991,18 +1991,6 @@
 
     return(invisible(x))
 }
-#' @title Checks if the object inherits classes
-#' @name .check_inherits
-#' @param x        input object
-#' @param inherits a character vector with the classes
-#' @return No return value, called for side effects.
-#' @keywords internal
-.check_inherits <- function(x, inherits, msg = "invalid inheritance") {
-    .check_that(
-        x = inherits(x, inherits),
-        msg = msg
-    )
-}
 #' @title Checks if the character parameter is empty
 #' @name .check_empty_char
 #' @param x a character vector
@@ -2011,44 +1999,53 @@
 .check_empty_char <- function(x, msg, ...) {
     .check_that(all(nzchar(x)), msg = msg, ...)
 }
+.check_endmembers_parameter <- function(x) {
+    .check_that(
+        x = inherits(x, c("data.frame", "character")),
+        msg = "invalid 'endmembers' parameter"
+    )
+}
 #' @title Checks if the endmembers data is in a valid parameter
-#' @name .check_endmembers_parameter
-#' @param endmembers Reference spectra endmembers.
-#' @param cube       A sits cube
+#' @name .check_endmembers_tbl
+#' @param em   Reference spectra endmembers.
+#' @param cube A sits cube
 #' @return No return value, called for side effects.
 #' @keywords internal
-.check_endmembers_parameter <- function(endmembers, cube) {
+.check_endmembers_tbl <- function(em) {
     # Pre-condition
     .check_na(
-        x = endmembers,
+        x = em,
         msg = "Invalid 'endmembers' parameter"
     )
     # Pre-condition
     .check_chr_contains(
-        x = colnames(endmembers),
+        x = colnames(em),
         contains = "TYPE",
         msg = "Invalid 'endmembers' parameter"
     )
     # Pre-condition
     .check_chr(
-        x = .mm_endmembers(endmembers), allow_empty = FALSE, len_min = 1,
+        x = .endmembers_fracs(em), allow_empty = FALSE, len_min = 1,
         msg = "The reference endmembers cannot be empty"
     )
     # Pre-condition
-    .check_chr_within(
-        x = .mm_bands(endmembers),
-        within = .cube_bands(cube, add_cloud = FALSE),
-        msg = "invalid 'endmembers' columns"
-    )
-    # Pre-condition
     .check_that(
-        nrow(endmembers) < colnames(endmembers),
+        nrow(em) < ncol(em),
         msg = paste(
             "Endmembers must be less or equal than the",
             "number of spectral bands."
         )
     )
 }
+
+.check_endmembers_bands <- function(em, cube) {
+    .check_chr_within(
+        x = .endmembers_bands(em),
+        within = .cube_bands(cube, add_cloud = FALSE),
+        msg = "invalid 'endmembers' columns"
+    )
+}
+
 #' @title Checks if working in documentation mode
 #' @name .check_documentation
 #' @param progress  flag set to show progress bar
