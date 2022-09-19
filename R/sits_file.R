@@ -1,6 +1,12 @@
 
 .file_sans_ext <- function(file) {
+    file <- .file_base(file)
     gsub("(.*)\\..+$", "\\1", file)
+}
+
+.file_ext <- function(file) {
+    file <- .file_base(file)
+    gsub(".*\\.(.+)$", "\\1", file)
 }
 
 .file_base <- function(file) {

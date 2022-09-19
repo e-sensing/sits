@@ -759,38 +759,6 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(all(file.remove(unlist(sinop_uncert$file_info[[1]]$path))))
 })
 
-# test_that("One-year, multicores processing mixture model ", {
-#     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#     cube <- sits_cube(
-#         source = "BDC",
-#         collection = "MOD13Q1-6",
-#         data_dir = data_dir,
-#         delim = "_",
-#         parse_info = c("X1", "tile", "band", "date")
-#     )
-#
-#     endmembers_spectra <-
-#         tibble::tibble(
-#             type = c("vegetation", "not-vegetation"),
-#             NDVI = c(8500, 3400)
-#         )
-#
-#     mix_cube <- sits_mixture_model(
-#         cube = cube,
-#         endmembers_spectra = endmembers_spectra,
-#         memsize = 4,
-#         multicores = 2,
-#         output_dir = tempdir()
-#     )
-#
-#     expect_true(all(file.exists(unlist(mix_cube$file_info[[1]]$path))))
-#     expect_true(
-#         all(c("NOT-VEGETATION", "VEGETATION", "RMSE") %in% sits_bands(mix_cube))
-#     )
-#
-#     unlink(mix_cube$file_info[[1]]$path)
-# })
-
 test_that("One-year, multicores processing reclassify", {
     # Open mask map
     data_dir <- system.file("extdata/raster/prodes", package = "sits")

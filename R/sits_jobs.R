@@ -38,3 +38,8 @@
     values_lst <- .jobs_map_parallel(jobs, fn, ...)
     vapply(values_lst, c, NA_character_)
 }
+
+.jobs_map_parallel_dfr <- function(jobs, fn, ...) {
+    values_lst <- .jobs_map_parallel(jobs, fn, ...)
+    dplyr::bind_rows(values_lst)
+}

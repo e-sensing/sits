@@ -132,6 +132,13 @@
     (.ymax(x) - .ymin(x)) / .nrows(x)
 }
 
+.by <- function(data, col, fn, ...) {
+    unname(c(by(data, data[[col]], fn, ...)))
+}
+
+.by_lgl <- function(data, col, fn, ...) {
+    vapply(.by(data, col, fn, ...), c, logical(1))
+}
 
 #---- block API: ----
 
@@ -532,13 +539,14 @@ NULL
     )
 }
 
-.fi_eo_from_file <- function(file, fid, band, date) {
-    file <- path.expand(file[[1]])
-    r_obj <- .raster_open_rast(file)
+.fi_eo_from_files <- function(files, fid, bands, date) {
+    .check_that(length(files) == length(bands))
+    files <- path.expand(files)
+    r_obj <- .raster_open_rast(files)
     .fi_eo(
-        fid = fid,
-        band = band,
-        date = date,
+        fid = fid[[1]],
+        band = bands,
+        date = date[[1]],
         ncols = .raster_ncols(r_obj),
         nrows = .raster_nrows(r_obj),
         xres = .raster_xres(r_obj),
@@ -726,13 +734,6 @@ NULL
 
     # Return values
     values
-}
-
-
-
-
-.fi_foreach_image <- function(fi, fn, ...) {
-    #
 }
 
 #---- Tile API: ----
@@ -1380,37 +1381,72 @@ NULL
     )
 }
 
+#---- | .tile_feature_create() ----
+
+.cube_feature_create <- function(cube) {
+    .cube_foreach_tile(cube, .tile_feature_create)
+}
+
+.tile_feature_create <- function(tile) {
+    tile <- .tile(tile)
+    features <- tile[, c("tile", "file_info")]
+    features <- tidyr::unnest(features, "file_info")
+    features[["feature"]] <- features[["fid"]]
+    features <- tidyr::nest(features, file_info = -c("tile", "feature"))
+    tile <- tile[rep(1, nrow(features)), ]
+    tile[["file_info"]] <- features[["file_info"]]
+    tile
+}
+
 #---- Tile constructors: ----
 
-#---- | tile eo api ----
-.tile_eo_from_file <- function(file, fid, band, date, base_tile) {
-    # Open raster
-    r_obj <- .raster_open_rast(file)
-    # Update spatial bbox
-    .xmin(base_tile) <- .raster_xmin(r_obj)
-    .xmax(base_tile) <- .raster_xmax(r_obj)
-    .ymin(base_tile) <- .raster_ymin(r_obj)
-    .ymax(base_tile) <- .raster_ymax(r_obj)
-    .crs(base_tile) <- .raster_crs(r_obj)
+# ---- | tile eo api ----
+.tile_eo_from_files <- function(files, fid, bands, date, base_tile,
+                                update_bbox) {
+    if (update_bbox) {
+        # Open raster
+        r_obj <- .raster_open_rast(files)
+        # Update spatial bbox
+        .xmin(base_tile) <- .raster_xmin(r_obj)
+        .xmax(base_tile) <- .raster_xmax(r_obj)
+        .ymin(base_tile) <- .raster_ymin(r_obj)
+        .ymax(base_tile) <- .raster_ymax(r_obj)
+        .crs(base_tile) <- .raster_crs(r_obj)
+    }
     # Update file_info
-    .tile_file_info(base_tile) <- .fi_eo_from_file(
-        file = file,
-        fid = fid,
-        band = band,
-        date = date
+    .tile_file_info(base_tile) <- .fi_eo_from_files(
+        files = files, fid = fid, bands = bands, date = date
     )
     # Return eo tile
     base_tile
 }
 
+.tile_eo_merge_blocks <- function(files, bands, base_tile, block_files,
+                                  multicores, update_bbox) {
+    # Get conf band
+    band_conf <- .tile_band_conf(tile = base_tile, band = bands)
+    # Create a template raster based on the first image of the tile
+    .raster_merge_blocks(
+        base_file = .fi_path(.fi(base_tile)), block_files = block_files,
+        out_files = files, data_type = .band_data_type(band_conf),
+        missing_value = .band_miss_value(band_conf), multicores = multicores
+    )
+    # Create tile based on template
+    tile <- .tile_eo_from_files(
+        files = files, fid = .fi_fid(.fi(base_tile)), bands = bands,
+        date = .fi_date(.fi(base_tile)), base_tile = base_tile,
+        update_bbox = update_bbox
+    )
+    # If all goes well, delete block files
+    unlink(unlist(block_files))
+    # Return eo tile
+    tile
+}
 
 #---- | <derived_cube> ----
-.tile_derived_from_file <-
-    function(file,
-             band,
-             base_tile,
-             derived_class,
-             labels = NULL) {
+.tile_derived_from_file <- function(file, band, base_tile, derived_class,
+                                    labels = NULL, update_bbox) {
+    if (update_bbox) {
         # Open raster
         r_obj <- .raster_open_rast(file)
         # Update spatial bbox
@@ -1419,21 +1455,44 @@ NULL
         .ymin(base_tile) <- .raster_ymin(r_obj)
         .ymax(base_tile) <- .raster_ymax(r_obj)
         .crs(base_tile) <- .raster_crs(r_obj)
-        # Update labels before file_info
-        .tile_labels(base_tile) <- labels
-        # Update file_info
-        .tile_file_info(base_tile) <- .fi_derived_from_file(
-            file = file,
-            band = band,
-            start_date = .tile_start_date(base_tile),
-            end_date = .tile_end_date(base_tile)
-        )
-        # Set tile class and return tile
-        .cube_set_class(base_tile, .conf_derived_s3class(derived_class))
     }
+    # Update labels before file_info
+    .tile_labels(base_tile) <- labels
+    # Update file_info
+    .tile_file_info(base_tile) <- .fi_derived_from_file(
+        file = file, band = band, start_date = .tile_start_date(base_tile),
+        end_date = .tile_end_date(base_tile)
+    )
+    # Set tile class and return tile
+    .cube_set_class(base_tile, .conf_derived_s3class(derived_class))
+}
 
-#---- | <probs_cube> ----
-.tile_probs_from_file <- function(file, band, base_tile, labels) {
+.tile_derived_merge_blocks <- function(file, band, labels, base_tile,
+                                       derived_class, block_files, multicores,
+                                       update_bbox) {
+    # Get conf band
+    band_conf <- .conf_derived_band(derived_class = derived_class, band = band)
+    # Create a template raster based on the first image of the tile
+    .raster_merge_blocks(
+        base_file = .fi_path(.fi(base_tile)), block_files = block_files,
+        out_files = file, data_type = .band_data_type(band_conf),
+        missing_value = .band_miss_value(band_conf), multicores = multicores
+    )
+    # Create tile based on template
+    tile <- .tile_derived_from_file(
+        file = file, band = band, base_tile = base_tile,
+        derived_class = derived_class, labels = labels,
+        update_bbox = update_bbox
+    )
+    # If all goes well, delete block files
+    unlink(block_files)
+    # Return derived tile
+    tile
+}
+
+# ---- | <probs_cube> ----
+.tile_probs_from_file <- function(file, band, base_tile, labels,
+                                  update_bbox) {
     # Open block file to be merged
     r_obj <- .raster_open_rast(file)
     # Check number of labels is correct
@@ -1443,136 +1502,72 @@ NULL
         msg = "invalid 'file' parameter"
     )
     .tile_derived_from_file(
-        file = file,
-        band = band,
-        base_tile = base_tile,
-        derived_class = "probs_cube",
-        labels = labels
+        file = file, band = band, base_tile = base_tile,
+        derived_class = "probs_cube", labels = labels,
+        update_bbox = update_bbox
     )
 }
 
-.tile_probs_merge_blocks <- function(file,
-                                     band,
-                                     labels,
-                                     base_tile,
-                                     block_files,
-                                     multicores) {
-    # Get conf band
-    band_conf <-
-        .conf_derived_band(derived_class = "probs_cube", band = band)
-    # Get data type
-    data_type <- .band_data_type(band_conf)
-    # Create a template raster based on the first image of the tile
-    .raster_merge_blocks(
-        base_file = .fi_path(.fi(base_tile)),
-        block_files = block_files,
-        out_file = file,
-        data_type = data_type,
-        missing_value = .band_miss_value(band_conf),
-        multicores = multicores
+.tile_probs_merge_blocks <- function(file, band, labels, base_tile,
+                                     block_files, multicores, update_bbox) {
+    # Open first block file to be merged
+    r_obj <- .raster_open_rast(unlist(block_files)[[1]])
+    # Check number of labels is correct
+    .check_that(
+        x = .raster_nlayers(r_obj) == length(labels),
+        local_msg = "number of image layers does not match labels",
+        msg = "invalid 'file' parameter"
     )
-    # Create tile based on template
-    tile <- .tile_probs_from_file(
-        file = file,
-        band = band,
-        base_tile = base_tile,
-        labels = labels
+    # Create probs cube and return it
+    .tile_derived_merge_blocks(
+        file = file, band = band, labels = labels,
+        base_tile = base_tile, derived_class = "probs_cube",
+        block_files = block_files, multicores = multicores,
+        update_bbox = update_bbox
     )
-    # If all goes well, delete block files
-    unlink(block_files)
-    # Return probs tile
-    tile
 }
 
 #---- | <class_cube> ----
 .tile_class_from_file <- function(file, band, base_tile) {
     .tile_derived_from_file(
-        file = file,
-        band = band,
-        base_tile = base_tile,
-        derived_class = "class_cube",
-        labels = .tile_labels(base_tile)
+        file = file, band = band, base_tile = base_tile,
+        derived_class = "class_cube", labels = .tile_labels(base_tile),
+        update_bbox = FALSE
     )
 }
 
-.tile_class_merge_blocks <- function(file,
-                                     band,
-                                     labels,
-                                     base_tile,
-                                     block_files,
-                                     multicores) {
-    # Get band conf
-    band_conf <-
-        .conf_derived_band(derived_class = "class_cube", band = band)
-    # Get data type
-    data_type <- .band_data_type(band_conf)
-    # Create a template raster based on the first image of the tile
-    .raster_merge_blocks(
-        base_file = .fi_path(.fi(base_tile)),
-        block_files = block_files,
-        out_file = file,
-        data_type = data_type,
-        missing_value = .band_miss_value(band_conf),
-        multicores = multicores
+.tile_class_merge_blocks <- function(file, band, labels, base_tile,
+                                     block_files, multicores) {
+    # Create class cube and return it
+    .tile_derived_merge_blocks(
+        file = file, band = band, labels = labels,
+        base_tile = base_tile, derived_class = "class_cube",
+        block_files = block_files, multicores = multicores,
+        update_bbox = FALSE
     )
-    # Create tile based on template
-    tile <- .tile_class_from_file(
-        file = file,
-        band = band,
-        base_tile = base_tile
-    )
-    # If all goes well, delete block files
-    unlink(block_files)
-    # Return class tile
-    tile
 }
 
 #---- | <uncertainty_cube> ----
 .tile_uncertainty_from_file <- function(file, band, base_tile) {
     .tile_derived_from_file(
-        file = file,
-        band = band,
-        base_tile = base_tile,
-        derived_class = "uncertainty_cube",
-        labels = .tile_labels(base_tile)
+        file = file, band = band, base_tile = base_tile,
+        derived_class = "uncertainty_cube", labels = .tile_labels(base_tile),
+        update_bbox = FALSE
     )
 }
 
-.tile_uncertainty_merge_blocks <-
-    function(file,
-             band,
-             labels,
-             base_tile,
-             block_files,
-             multicores) {
-        # Get conf band
-        band_conf <- .conf_derived_band(derived_class = "uncertainty_cube",
-                                        band = band)
-        # Get data type
-        data_type <- .band_data_type(band_conf)
-        # Create a template raster based on the first image of the tile
-        .raster_merge_blocks(
-            base_file = .fi_path(.fi(base_tile)),
-            block_files = block_files,
-            out_file = file,
-            data_type = data_type,
-            missing_value = .band_miss_value(band_conf),
-            multicores = multicores
-        )
-        # Create tile based on template
-        tile <- .tile_uncertainty_from_file(
-            file = file,
-            band = band,
-            base_tile = base_tile
-        )
-        # If all goes well, delete block files
-        unlink(block_files)
-        # Return uncertainty tile
-        tile
-    }
+.tile_uncertainty_merge_blocks <- function(file, band, labels, base_tile,
+                                           block_files, multicores) {
+    # Create uncertainty cube and return it
+    .tile_derived_merge_blocks(
+        file = file, band = band, labels = labels,
+        base_tile = base_tile, derived_class = "uncertainty_cube",
+        block_files = block_files, multicores = multicores,
+        update_bbox = FALSE
+    )
+}
 
-
-#---- Cube API: ----
+#---- Cube API ----
 
 #---- | .cube_set_class() ----
 .cube_set_class <- function(x, ...) {
@@ -2008,10 +2003,10 @@ NULL
     chunks[["nrows"]] <- .as_int(pmin(nrows, .row(chunks) +
                                           .nrows(block) + overlap - 1) -
                                      .row(chunks) + 1)
-    chunks <- slider::slide_dfr(chunks, function(chunk) {
+    chunks <- slider::slide_dfr(chunks, function(chunk, template) {
         # Crop block from template
         r_obj <-
-            .raster_crop_metadata(r_obj = r_obj, block = .block(chunk))
+            .raster_crop_metadata(r_obj = template, block = .block(chunk))
         # Add bbox information
         .xmin(chunk) <- .raster_xmin(r_obj = r_obj)
         .xmax(chunk) <- .raster_xmax(r_obj = r_obj)
@@ -2019,7 +2014,7 @@ NULL
         .ymax(chunk) <- .raster_ymax(r_obj = r_obj)
         .crs(chunk) <- .raster_crs(r_obj = r_obj)
         chunk
-    })
+    }, template = r_obj)
     # Chunk overlap
     chunks[["overlap"]] <- .as_int(overlap)
     # Chunk size without overlap

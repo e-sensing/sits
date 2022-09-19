@@ -8,21 +8,21 @@
 .raster_merge_blocks(
   base_file,
   block_files,
-  out_file,
+  out_files,
   data_type,
   missing_value,
   multicores = 2
 )
 }
 \arguments{
-\item{out_file}{Output raster file path}
-
 \item{data_type}{sits internal raster data type. One of "INT1U",
 "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".}
 
 \item{multicores}{Number of cores to process merging}
 
 \item{files}{Input file paths}
+
+\item{out_file}{Output raster file path}
 
 \item{overwrite}{Should the output file be overwritten?}
 }

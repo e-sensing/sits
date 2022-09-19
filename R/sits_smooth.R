@@ -101,7 +101,7 @@ sits_smooth <- function(cube, type = "bayes", ..., window_size = 5,
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = overlap),
         # npaths = input(nlayers) + output(nlayers)
-        npaths = length(.fi_paths(.fi(cube))) * length(.tile_labels(cube)) * 2,
+        npaths = length(.tile_labels(cube)) * 2,
         nbytes = 8, proc_bloat = .config_processing_bloat()
     )
     # Update multicores parameter
@@ -136,7 +136,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ..., window_size = 5,
     # Process each tile sequentially
     probs_cube <- .cube_foreach_tile(cube, function(tile) {
         # Smooth the data
-        probs_tile <- .sits_smooth_tile(
+        probs_tile <- .smooth_tile(
             tile = tile, band = "bayes", overlap = overlap,
             smooth_fn = smooth_fn, output_dir = output_dir, version = version
         )
@@ -162,7 +162,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
     # Process each tile sequentially
     probs_cube <- .cube_foreach_tile(cube, function(tile) {
         # Smooth the data
-        probs_tile <- .sits_smooth_tile(
+        probs_tile <- .smooth_tile(
             tile = tile, band = "bilat", overlap = overlap,
             smooth_fn = smooth_fn, output_dir = output_dir, version = version
         )
@@ -173,7 +173,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
 
 #---- internal functions ----
 
-.sits_smooth_tile <- function(tile, band, overlap, smooth_fn, output_dir,
+.smooth_tile <- function(tile, band, overlap, smooth_fn, output_dir,
                               version) {
     # Output file
     out_file <- .file_derived_name(
@@ -190,7 +190,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
                 "change 'output_dir' or 'version' parameters)")
         probs_tile <- .tile_probs_from_file(
             file = out_file, band = band, base_tile = tile,
-            labels = .tile_labels(tile)
+            labels = .tile_labels(tile), update_bbox = FALSE
         )
         return(probs_tile)
     }
@@ -231,7 +231,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
         crop_block <- .chunk_block_no_overlap(chunk)
         # Prepare and save results as raster
         .raster_write_block(
-            file = block_file, block = block, bbox = .bbox(chunk),
+            files = block_file, block = block, bbox = .bbox(chunk),
             values = values, data_type = .band_data_type(band_conf),
             missing_value = .band_miss_value(band_conf),
             crop_block = crop_block
@@ -245,7 +245,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
     probs_tile <- .tile_probs_merge_blocks(
         file = out_file, band = band, labels = .tile_labels(tile),
         base_tile = tile, block_files = block_files,
-        multicores = .jobs_multicores()
+        multicores = .jobs_multicores(), update_bbox = FALSE
     )
     # Return probs tile
     probs_tile

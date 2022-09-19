@@ -65,8 +65,8 @@ linear_interp_vec <- function(vec) {
     .Call(`_sits_linear_interp_vec`, vec)
 }
 
-nnls_solver <- function(x, A, rmse, iterate = 400L, tolerance = 0.000001) {
-    .Call(`_sits_nnls_solver`, x, A, rmse, iterate, tolerance)
+C_nnls_solver <- function(x, em, rmse, max_it = 400L, tol = 0.000001) {
+    .Call(`_sits_C_nnls_solver`, x, em, rmse, max_it, tol)
 }
 
 normalize_data <- function(data, min, max) {

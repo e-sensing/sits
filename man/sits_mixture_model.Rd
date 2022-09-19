@@ -11,7 +11,6 @@ sits_mixture_model(
   multicores = 2,
   output_dir = getwd(),
   rmse_band = TRUE,
-  remove_outliers = TRUE,
   progress = TRUE
 )
 }
@@ -33,11 +32,6 @@ with the linear model should be generated.
 If true, a new band with errors for each pixel
 is generated using the root mean square
 measure (RMSE). Default is TRUE.}
-
-\item{remove_outliers}{A boolean indicating whether values larger and
-smaller than the limits of the image metadata,
-and missing values should be marked as NA.
-Default is TRUE.}
 
 \item{progress}{Show progress bar? Default is TRUE.}
 }
@@ -82,6 +76,10 @@ if (sits_run_examples()) {
        cube = s2_cube,
        period = "P16D",
        res = 160,
+       roi = c(lon_min = -65.54870165,
+               lat_min = -10.63479162,
+               lon_max = -65.07629670,
+               lat_max = -10.36046639),
        multicores = 2,
        output_dir = tempdir()
    )
