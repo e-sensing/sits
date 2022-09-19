@@ -736,62 +736,77 @@
 #'
 .raster_merge_blocks <- function(base_file,
                                  block_files,
-                                 out_file,
+                                 out_files,
                                  data_type,
                                  missing_value,
                                  multicores = 2) {
 
-    # set caller to show in errors
-    .check_set_caller(".raster_merge_blocks")
+    # Check consistency between block_files and out_files
+    if (is.list(block_files)) {
+        if (any(lengths(block_files) != length(out_files))) {
+            stop("number of 'block_files' does not match 'out_file' length")
+        }
+    } else {
+        if (length(out_files) != 1) {
+            stop("invalid 'out_files' length")
+        }
+        block_files <- as.list(block_files)
+    }
 
-    # Expand paths for block_files
-    block_files <- path.expand(block_files)
-    # Expand paths for out_file
-    out_file <- path.expand(out_file)
-    # Check if out_file not exists
-    .check_that(
-        x = !file.exists(out_file),
-        local_msg = paste0("file '", out_file, "' already exists"),
-        msg = "invalid 'out_file' parameter"
-    )
-    # check if block_files length is at least one
-    .check_file(
-        x = block_files,
-        extensions = "tif",
-        msg = "invalid input files to merge"
-    )
-    # Get number of layers
-    nlayers <- .raster_nlayers(.raster_open_rast(block_files[[1]]))
-    # Create an empty image template
-    gdalUtilities::gdal_translate(
-        src_dataset = path.expand(base_file),
-        dst_dataset = path.expand(out_file),
-        ot = .raster_gdal_datatype(data_type),
-        of = "GTiff",
-        b = rep(1, nlayers),
-        scale = c(0, 1, missing_value, missing_value),
-        a_nodata = missing_value,
-        co = .config_gtiff_default_options()
-    )
-    # Delete auxiliary files
-    on.exit(unlink(paste0(out_file, ".aux.xml")), add = TRUE)
-    # Merge into template
-    .try({
-        # merge using gdal warp
-        suppressWarnings(
-            gdalUtilities::gdalwarp(
-                srcfile = block_files,
-                dstfile = out_file,
-                wo = paste0("NUM_THREADS=", multicores),
-                multi = TRUE,
-                overwrite = FALSE
-            )
+    # for each file merge blocks
+    for (i in seq_along(out_files)) {
+        out_file <- out_files[[i]]
+        # Get file paths
+        files <- purrr::map_chr(block_files, `[[`, i)
+        # Expand paths for block_files
+        files <- path.expand(files)
+        # Expand paths for out_file
+        out_file <- path.expand(out_file)
+        # Check if out_file not exists
+        .check_that(
+            x = !file.exists(out_file),
+            local_msg = paste0("file '", out_file, "' already exists"),
+            msg = "invalid 'out_file' parameter"
         )
-    },
-    .rollback = {
-        unlink(out_file)
-    })
-    return(invisible(out_file))
+        # check if block_files length is at least one
+        .check_file(
+            x = files,
+            extensions = "tif",
+            msg = "invalid input files to merge"
+        )
+        # Get number of layers
+        nlayers <- .raster_nlayers(.raster_open_rast(files[[1]]))
+        # Create an empty image template
+        gdalUtilities::gdal_translate(
+            src_dataset = path.expand(base_file),
+            dst_dataset = path.expand(out_file),
+            ot = .raster_gdal_datatype(data_type),
+            of = "GTiff",
+            b = rep(1, nlayers),
+            scale = c(0, 1, missing_value, missing_value),
+            a_nodata = missing_value,
+            co = .config_gtiff_default_options()
+        )
+        # Delete auxiliary files
+        on.exit(unlink(paste0(out_file, ".aux.xml")), add = TRUE)
+        # Merge into template
+        .try({
+            # merge using gdal warp
+            suppressWarnings(
+                gdalUtilities::gdalwarp(
+                    srcfile = files,
+                    dstfile = out_file,
+                    wo = paste0("NUM_THREADS=", multicores),
+                    multi = TRUE,
+                    overwrite = FALSE
+                )
+            )
+        },
+        .rollback = {
+            unlink(out_file)
+        })
+    }
+    out_files
 }
 
 .raster_clone <- function(file, nlayers = NULL) {
@@ -829,17 +844,17 @@
     UseMethod(".raster_missing_value", pkg_class)
 }
 
-.raster_is_valid <- function(file) {
+.raster_is_valid <- function(files) {
     # resume processing in case of failure
-    if (!file.exists(file)) {
+    if (!all(file.exists(files))) {
         return(FALSE)
     }
     # try to open the file
     r_obj <- .try({
-        .raster_open_rast(file)
+        .raster_open_rast(files)
     },
     .default = {
-        unlink(file)
+        unlink(files)
         NULL
     })
     # File is not valid
@@ -854,38 +869,53 @@
         TRUE
     },
     .default = {
-        unlink(file)
+        unlink(files)
         FALSE
     })
 }
 
-.raster_write_block <- function(file, block, bbox, values, data_type,
+.raster_write_block <- function(files, block, bbox, values, data_type,
                                 missing_value, crop_block = NULL) {
-    # create a new raster
-    r_obj <- .raster_new_rast(
-        nrows = block[["nrows"]], ncols = block[["ncols"]],
-        xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
-        ymin = bbox[["ymin"]], ymax = bbox[["ymax"]],
-        nlayers = ncol(values), crs = bbox[["crs"]]
-    )
-    # copy values
-    r_obj <- .raster_set_values(
-        r_obj = r_obj,
-        values = values
-    )
-    # If no crop_block provided write the probabilities to a raster file
-    if (is.null(crop_block)) {
-        .raster_write_rast(
-            r_obj = r_obj, file = file, data_type = data_type,
-            overwrite = TRUE, missing_value = missing_value
-        )
-        return(file)
+    nlayers <- ncol(values)
+    if (length(files) > 1) {
+        if (length(files) != ncol(values)) {
+            stop("number of output files does not match number of layers")
+        }
+        # Write each layer in a separate file
+        nlayers <- 1
     }
-    # Crop removing overlaps
-    .raster_crop(
-        r_obj = r_obj, file = file, data_type = data_type, overwrite = TRUE,
-        block = crop_block, missing_value = missing_value
-    )
+    for (i in seq_along(files)) {
+        # Get i-th file
+        file <- files[[i]]
+        # Get layers to be saved
+        cols <- if (length(files) > 1) i else seq_len(nlayers)
+        # Create a new raster
+        r_obj <- .raster_new_rast(
+            nrows = block[["nrows"]], ncols = block[["ncols"]],
+            xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
+            ymin = bbox[["ymin"]], ymax = bbox[["ymax"]],
+            nlayers = nlayers, crs = bbox[["crs"]]
+        )
+        # Copy values
+        r_obj <- .raster_set_values(
+            r_obj = r_obj,
+            values = values[, cols]
+        )
+        # If no crop_block provided write the probabilities to a raster file
+        if (is.null(crop_block)) {
+            .raster_write_rast(
+                r_obj = r_obj, file = file, data_type = data_type,
+                overwrite = TRUE, missing_value = missing_value
+            )
+        } else {
+            # Crop removing overlaps
+            .raster_crop(
+                r_obj = r_obj, file = file, data_type = data_type,
+                overwrite = TRUE, block = crop_block,
+                missing_value = missing_value
+            )
+        }
+    }
     # Return file path
-    file
+    files
 }
