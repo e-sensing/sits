@@ -57,6 +57,10 @@ C_label_max_prob <- function(x) {
     .Call(`_sits_C_label_max_prob`, x)
 }
 
+C_label_max_prob2 <- function(X) {
+    .Call(`_sits_C_label_max_prob2`, X)
+}
+
 linear_interp <- function(mtx) {
     .Call(`_sits_linear_interp`, mtx)
 }

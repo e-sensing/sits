@@ -208,6 +208,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// C_label_max_prob2
+arma::colvec C_label_max_prob2(const arma::mat& X);
+RcppExport SEXP _sits_C_label_max_prob2(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_label_max_prob2(X));
+    return rcpp_result_gen;
+END_RCPP
+}
 // linear_interp
 NumericMatrix linear_interp(NumericMatrix& mtx);
 RcppExport SEXP _sits_linear_interp(SEXP mtxSEXP) {
@@ -376,6 +387,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_kernel_min", (DL_FUNC) &_sits_C_kernel_min, 5},
     {"_sits_C_kernel_max", (DL_FUNC) &_sits_C_kernel_max, 5},
     {"_sits_C_label_max_prob", (DL_FUNC) &_sits_C_label_max_prob, 1},
+    {"_sits_C_label_max_prob2", (DL_FUNC) &_sits_C_label_max_prob2, 1},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
     {"_sits_C_nnls_solver", (DL_FUNC) &_sits_C_nnls_solver, 5},
