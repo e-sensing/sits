@@ -187,87 +187,95 @@ NULL
     min <= x & x <= max
 }
 
-#---- generic accessors ----
+#---- Generic accessors ----
 
 #' bbox accessors
 #'
-#' These functions are accessors of bbox fields inside \code{vectors}.
+#' These functions are accessors of \code{bbox} fields of a \code{vector}.
 #' Getters functions returns the respective field values with the expected
 #' data type. Setters functions convert value to expected data type and
-#' store it in respective fields on a given object. If value has no length,
-#' and the field is not \code{atomic} it is removed from the object.
+#' store it in respective fields on a given object. If value has no length
+#' and the \code{vector} is not \code{atomic}, it is removed from the object.
+#'
+#' \code{.xmin()}, \code{.xmax()}, \code{.ymin()}, \code{.ymax()},
+#' and \code{.crs()} get/set, respectively, \code{"xmin"}, \code{"xmax"},
+#' \code{"ymin"}, \code{"ymax"}, and \code{"crs"} fields.
 #'
 #' @param x Object to get/set field value.
 #' @param value Value to set on object field.
 #'
 #' @examples
 #' \dontrun{
-#'
+#' x <- c(xmax = "123")
+#' .xmax(x) # 123 as number
+#' x <- list(xmin = 1, xmax = 2, ymin = 3, ymax = 4)
+#' .crs(x) <- 4326
+#' x # with 'crs' field
+#' .as_crs(3857) # EPSG:3857
 #' }
+#'
+#' @return Getters return respective field value or \code{NULL}, if it doesn't
+#'   exist. Setters return the updated \code{x} object.
+#'
+#' @family accessors
 #' @keywords internal
 #' @name bbox_accessors
 NULL
 
 #' @describeIn bbox_accessors Get \code{'xmin'} field.
-#' @return \code{numeric}.
 .xmin <- function(x) {
-    .as_dbl(.compact(x[["xmin"]]))
+    if (.has(x[["xmin"]])) .as_dbl(.compact(x[["xmin"]])) else NULL
 }
 
-#' @describeIn bbox_accessors Set \code{'xmin'} field.
-#' @return Updated object \code{x}.
+#' @describeIn bbox_accessors Set \code{'xmin'} field as numeric.
 `.xmin<-` <- function(x, value) {
-    x[["xmin"]] <- if (.has(x)) .as_dbl(value) else NULL
+    x[["xmin"]] <- if (.has(value)) .as_dbl(value) else NULL
     x
 }
 
 #' @describeIn bbox_accessors Get \code{'xmax'} field.
-#' @return \code{numeric}.
 .xmax <- function(x) {
-    .as_dbl(.compact(x[["xmax"]]))
+    if (.has(x[["xmax"]])) .as_dbl(.compact(x[["xmax"]])) else NULL
 }
 
-#' @describeIn bbox_accessors Set \code{'xmax'} field.
+#' @describeIn bbox_accessors Set \code{'xmax'} field as numeric.
 #' @return Updated object \code{x}.
 `.xmax<-` <- function(x, value) {
-    x[["xmax"]] <- if (.has(x)) .as_dbl(value) else NULL
+    x[["xmax"]] <- if (.has(value)) .as_dbl(value) else NULL
     x
 }
 
 #' @describeIn bbox_accessors Get \code{'ymin'} field.
-#' @return \code{numeric}.
 .ymin <- function(x) {
-    .as_dbl(.compact(x[["ymin"]]))
+    if (.has(x[["ymin"]])) .as_dbl(.compact(x[["ymin"]])) else NULL
 }
 
-#' @describeIn bbox_accessors Set \code{'ymin'} field.
-#' @return Updated object \code{x}.
+#' @describeIn bbox_accessors Set \code{'ymin'} field as numeric.
 `.ymin<-` <- function(x, value) {
-    x[["ymin"]] <- if (.has(x)) .as_dbl(value) else NULL
+    x[["ymin"]] <- if (.has(value)) .as_dbl(value) else NULL
     x
 }
 
 #' @describeIn bbox_accessors Get \code{'ymax'} field.
 #' @return \code{numeric}.
 .ymax <- function(x) {
-    .as_dbl(.compact(x[["ymax"]]))
+    if (.has(x[["ymax"]])) .as_dbl(.compact(x[["ymax"]])) else NULL
 }
 
-#' @describeIn bbox_accessors Set \code{'ymax'} field.
-#' @return Updated object \code{x}.
+#' @describeIn bbox_accessors Set \code{'ymax'} field as numeric.
 `.ymax<-` <- function(x, value) {
-    x[["ymax"]] <- if (.has(x)) .as_dbl(value) else NULL
+    x[["ymax"]] <- if (.has(value)) .as_dbl(value) else NULL
     x
 }
 
-#' @describeIn bbox_accessors Convert a CRS value to \code{character}.
-#' @return \code{character}.
+#' @describeIn bbox_accessors Convert a CRS numeric value to \code{character},
+#'   appending it after \code{'EPSG:'}.
 .as_crs <- function(x) {
     if (.has(x)) {
         if (is.character(x))
-            x
+            .compact(x)
         else if (is.numeric(x))
-            paste0("EPSG:", x)
+            paste0("EPSG:", .compact(x))
         else if (is.na(x))
             NA_character_
         else
@@ -277,53 +285,137 @@ NULL
 }
 
 #' @describeIn bbox_accessors Get \code{'crs'} field.
-#' @return \code{character}.
 .crs <- function(x) {
-    crs <- .compact(x[["crs"]])
-    .as_chr(crs)
+    .as_crs(x[["crs"]])
 }
 
-#' @describeIn bbox_accessors Set \code{'crs'} field.
-#' @return Updated object \code{x}.
+#' @describeIn bbox_accessors Set \code{'crs'} field as \code{character} string.
 `.crs<-` <- function(x, value) {
-    x[["crs"]] <- .as_crs(value)
+    x[["crs"]] <- if (.has(value)) .as_crs(value) else NULL
     x
 }
 
-# block accessors
+#' Block accessors
+#'
+#' These functions are accessors of \code{block} fields in a \code{vector}.
+#' Getters functions returns the respective field values with the expected
+#' data type. Setters functions convert value to expected data type and
+#' store it in respective fields on a given object. If value has no length
+#' and the \code{vector} is not \code{atomic}, it is removed from the object.
+#'
+#' \code{.col()}, \code{.row()}, \code{.ncols()}, and \code{.nrows()} get/set,
+#' respectively, \code{"col"}, \code{"row"}, \code{"ncols"}, and
+#' \code{"nrows"} fields.
+#'
+#' @param x Object to get field value.
+#' @param value Value to set on object field.
+#'
+#' @examples
+#' \dontrun{
+#' x <- c(row = 3.45)
+#' .row(x) # 3 as integer
+#' x <- list(col = 1, row = 2, ncols = 3)
+#' .nrows(x) # NULL
+#' .nrows(x) <- 4
+#' x
+#' }
+#'
+#' @return Getters return respective field value or \code{NULL}, if it doesn't
+#'   exist. Setters return the updated \code{x} object.
+#'
+#' @family accessors
+#' @keywords internal
+#' @name block_accessors
+NULL
 
+#' @describeIn block_accessors Get \code{'col'} field.
 .col <- function(x) {
-    .as_int(.compact(x[["col"]]))
+    if (.has(x[["col"]])) .as_int(.compact(x[["col"]])) else NULL
 }
 
+#' @describeIn block_accessors Set \code{'col'} field as integer.
+`.col<-` <- function(x, value) {
+    x[["col"]] <- if (.has(value)) .as_int(value) else NULL
+    x
+}
+
+#' @describeIn block_accessors Get \code{'row'} field.
 .row <- function(x) {
-    .as_int(.compact(x[["row"]]))
+    if (.has(x[["row"]])) .as_int(.compact(x[["row"]])) else NULL
 }
 
+#' @describeIn block_accessors Set \code{'row'} field as integer.
+`.row<-` <- function(x, value) {
+    x[["row"]] <- if (.has(value)) .as_int(value) else NULL
+    x
+}
+
+#' @describeIn block_accessors Get \code{'ncols'} field.
 .ncols <- function(x) {
-    .as_int(.compact(x[["ncols"]]))
+    if (.has(x[["ncols"]])) .as_int(.compact(x[["ncols"]])) else NULL
 }
 
+#' @describeIn block_accessors Set \code{'ncols'} field as integer.
+`.ncols<-` <- function(x, value) {
+    x[["ncols"]] <- if (.has(value)) .as_int(value) else NULL
+    x
+}
+
+#' @describeIn block_accessors Get \code{'nrows'} field.
 .nrows <- function(x) {
-    .as_int(.compact(x[["nrows"]]))
+    if (.has(x[["nrows"]])) .as_int(.compact(x[["nrows"]])) else NULL
 }
 
-# block/bbox
+#' @describeIn block_accessors Set \code{'nrows'} field as integer.
+`.nrows<-` <- function(x, value) {
+    x[["nrows"]] <- if (.has(value)) .as_int(value) else NULL
+    x
+}
 
+#' chunk accessors
+#'
+#' These functions are accessors of \code{chunk} fields in a \code{vector}.
+#'
+#' \code{.xres()} and \code{.yres()} computes, respectively, \code{"xres"} and
+#' \code{"yres"} values from chunk fields. The values are computed as
+#' \itemize{
+#' \item \eqn{xres=(xmax - xmin)/ncols}
+#' \item \eqn{yres=(ymax - ymin)/nrows}
+#' }
+#'
+#' @param x Object to get field value.
+#' @param value Value to set on object field.
+#'
+#' @examples
+#' \dontrun{
+#' x <- c(nrows = 100, ymin = 1, ymax = 10)
+#' .yres(x) # 0.09
+#' }
+#'
+#' @return \code{numeric}.
+#'
+#' @family accessors
+#' @keywords internal
+#' @name chunk_accessors
+NULL
+
+#' @describeIn chunk_accessors Computes \code{x} resolution of a \code{chunk}.
 .xres <- function(x) {
     (.xmax(x) - .xmin(x)) / .ncols(x)
 }
 
+#' @describeIn chunk_accessors Computes \code{y} resolution of a \code{chunk}.
 .yres <- function(x) {
     (.ymax(x) - .ymin(x)) / .nrows(x)
 }
 
 #---- block API: ----
 
-#' Block API
+#' Block
 #'
-#' A \code{block} is any \code{list} or \code{tibble} containing
-#' \code{col}, \code{row}, \code{ncols}, and \code{nrows} fields.
+#' A block represents a region of a matrix. A \code{block} is any
+#' \code{list} or \code{tibble} containing \code{col}, \code{row},
+#' \code{ncols}, and \code{nrows} fields.
 #'
 #' @param x Any object to extract a \code{block}.
 #' @param block Any object with \code{ncols}, \code{nrows} fields.
@@ -362,7 +454,7 @@ NULL
 #' @describeIn block_api Compute the number of pixels for a
 #' \code{block} considering an additional overlapping parameter.
 #'
-#' @return \code{.block_size()}: \code{numeric}.
+#' @return \code{.block_size()}: \code{integer}.
 .block_size <- function(block, overlap = 0) {
     (block[["nrows"]] + 2 * overlap) * (block[["ncols"]] + 2 * overlap)
 }
@@ -371,8 +463,9 @@ NULL
 
 #' bbox API
 #'
-#' A \code{bbox} is any \code{list} or \code{tibble} containing \code{xmin},
-#' \code{xmax}, \code{ymin}, \code{ymax}, and \code{crs} fields.
+#' A bounding box represents a rectangular geographical region in a certain
+#' projection. A \code{bbox} is any \code{list} or \code{tibble} containing
+#' \code{xmin}, \code{xmax}, \code{ymin}, \code{ymax}, and \code{crs} fields.
 #' A \code{bbox} may contains multiple entries.
 #'
 #' @param x Any object to extract a \code{bbox}.
@@ -395,6 +488,9 @@ NULL
 #' .bbox_as_sf(x) # 3 features
 #' .bbox_as_sf(x, as_crs = "EPSG:3857")
 #' }
+#'
+#' @family region objects API
+#' @keywords internal
 #' @name bbox_api
 NULL
 
@@ -455,9 +551,9 @@ NULL
     })
 }
 
-#---- ROI API: ----
+#---- roi API: ----
 
-#' ROI API
+#' roi API
 #'
 #' A ROI (or 'Region of Interest') represents an geographic area. There are
 #' three types of ROI objects, namely \code{sf} (from package \code{sf}),
@@ -471,8 +567,6 @@ NULL
 #' @param default_crs If no CRS is present in a \code{bbox} object passed
 #' to \code{crs}, which CRS should be used? If \code{NULL} default CRS will
 #' be \code{'EPSG:4326'}.
-#'
-#' @seealso \code{\link{.bbox}()}
 #'
 #' @examples
 #' \dontrun{
@@ -488,6 +582,9 @@ NULL
 #'   bbox = paste("It's in", .crs(x))
 #' )
 #' }
+#'
+#' @family region objects API
+#' @keywords internal
 #' @name roi_api
 NULL
 
@@ -1365,7 +1462,25 @@ NULL
     if ("nrows" %in% tile) {
         return(.nrows(tile)[[1]])
     }
-    unique(.nrows(.fi(tile)))
+    .nrows(.fi(tile))[[1]]
+}
+
+#---- | .tile_size() ----
+#' Tile API
+#'
+#' Get the size of tile from \code{ncols} and \code{nrows} fields
+#' (if they exist) or from first entry in file_info.
+#'
+#' @param tile A tile.
+#'
+#' @return \code{block}
+.tile_size <- function(tile) {
+    UseMethod(".tile_size", tile)
+}
+
+#' @export
+.tile_size.raster_cube <- function(tile) {
+    list(ncols = .tile_ncols(tile), nrows = .tile_nrows(tile))
 }
 
 #---- | .tile_band_filter() ----
@@ -1648,13 +1763,8 @@ NULL
     .chunks_create(
         block = block,
         overlap = overlap,
-        ncols = .tile_ncols(tile),
-        nrows = .tile_nrows(tile),
-        xmin = .xmin(tile),
-        xmax = .xmax(tile),
-        ymin = .ymin(tile),
-        ymax = .ymax(tile),
-        crs = .crs(tile)
+        image_size = .tile_size(tile),
+        image_bbox = .bbox(tile)
     )
 }
 
@@ -2251,76 +2361,3 @@ NULL
     )
 }
 
-#---- chunk ----
-
-.chunks_create <- function(block,
-                           overlap,
-                           ncols,
-                           nrows,
-                           xmin,
-                           xmax,
-                           ymin,
-                           ymax,
-                           crs) {
-    # Prepare raster tile template
-    r_obj <- .raster_new_rast(
-        nrows = nrows,
-        ncols = ncols,
-        xmin = xmin,
-        xmax = xmax,
-        ymin = ymin,
-        ymax = ymax,
-        nlayers = 1,
-        crs = crs
-    )
-    chunks <- purrr::cross_df(list(
-        col = seq(1, ncols, .ncols(block)),
-        row = seq(1, nrows, .nrows(block))
-    ))
-    chunks[["col"]] <- .as_int(pmax(1, .col(chunks) - overlap))
-    chunks[["row"]] <- .as_int(pmax(1, .row(chunks) - overlap))
-    chunks[["ncols"]] <-
-        .as_int(pmin(ncols, .col(chunks) + .ncols(block) + overlap - 1) -
-                    .col(chunks) + 1)
-    chunks[["nrows"]] <-
-        .as_int(pmin(nrows, .row(chunks) + .nrows(block) + overlap - 1) -
-                    .row(chunks) + 1)
-    chunks <- slider::slide_dfr(chunks, function(chunk, template) {
-        # Crop block from template
-        r_obj <-
-            .raster_crop_metadata(r_obj = template, block = .block(chunk))
-        # Add bbox information
-        .xmin(chunk) <- .raster_xmin(r_obj = r_obj)
-        .xmax(chunk) <- .raster_xmax(r_obj = r_obj)
-        .ymin(chunk) <- .raster_ymin(r_obj = r_obj)
-        .ymax(chunk) <- .raster_ymax(r_obj = r_obj)
-        .crs(chunk) <- .raster_crs(r_obj = r_obj)
-        chunk
-    }, template = r_obj)
-    # Chunk overlap
-    chunks[["overlap"]] <- .as_int(overlap)
-    # Chunk size without overlap
-    chunks[["crop_ncols"]] <- .as_int(pmin(
-        ncols - .col(chunks) + 1,
-        .ncols(chunks) - overlap
-    ))
-    chunks[["crop_nrows"]] <- .as_int(pmin(
-        nrows - .row(chunks) + 1,
-        .nrows(chunks) - overlap
-    ))
-    # Return chunks
-    chunks
-}
-
-.chunks_block_no_overlap <- function(chunk) {
-    list(
-        col = .as_int(pmin(chunk[["overlap"]] + 1, .col(chunk))),
-        row = .as_int(pmin(chunk[["overlap"]] + 1, .row(chunk))),
-        ncols = .as_int(chunk[["crop_ncols"]]),
-        nrows = .as_int(chunk[["crop_nrows"]])
-    )
-}
-
-.chunks_filter_spatial <- function(chunks, roi) {
-    chunks[.intersects(.bbox_as_sf(chunks), .roi_as_sf(roi)), ]
-}
