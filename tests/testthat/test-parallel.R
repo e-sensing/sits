@@ -47,11 +47,11 @@ test_that("One-year, multi-core classification in parallel", {
 
     r_obj <- sits:::.raster_open_rast(.file_info_path(l8_probs))
 
-    expect_equal(l8_probs[["xmin"]], l8_cube[["xmin"]])
-    expect_equal(l8_probs[["xmax"]], l8_cube[["xmax"]])
+    expect_true(l8_probs[["xmin"]] > l8_cube[["xmin"]])
+    expect_true(l8_probs[["xmax"]] < l8_cube[["xmax"]])
 
-    expect_equal(
-        sits:::.raster_nrows(r_obj), sits:::.cube_size(l8_cube)[["nrows"]]
+    expect_true(
+        sits:::.raster_nrows(r_obj) < sits:::.cube_size(l8_cube)[["nrows"]]
     )
 
     expect_equal(
