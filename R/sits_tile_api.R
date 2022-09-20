@@ -1,26 +1,155 @@
-#---- sits API (generic): ----
+#---- data type ----
 
-# alias
+#' Data type functions
+#'
+#' These are a short named version of data type functions.
+#'
+#' @param x Input value.
+#' @param ... Additional parameters.
+#'
+#' @examples
+#' \dontrun{
+#' .as_int(1.234)
+#' .as_dbl(42L)
+#' x <- 1.234
+#' .as_int(x) == x # x is not integer
+#' x <- 42.0
+#' .as_int(x) == x # x is an integer
+#' .as_chr(x)
+#' .as_date(list("2020-01-01", "2022-12-01"))
+#' .has(list()) # FALSE
+#' .has(NULL) # FALSE
+#' .has(c()) # FALSE
+#' .has(FALSE) # TRUE
+#' .set_class(list(), "new_class")
+#' .compact(c(1, 2, 3)) # 1 2 3
+#' .compact(c(1, 1, 1)) # 1
+#' }
+#' @keywords internal
+#' @name data_type
+NULL
+
+#' @describeIn data_type Convert an input to \code{integer}. This is
+#'   the same function as \code{as.integer()}.
+#' @return \code{integer}
 .as_int <- as.integer
 
+#' @describeIn data_type Convert an input to \code{character}. This is
+#'   the same function as \code{as.character()}.
+#' @return \code{character}
 .as_chr <- as.character
 
+#' @describeIn data_type Convert an input to \code{numeric}. This is
+#'   the same function as \code{as.numeric()}.
+#' @return \code{numeric}
 .as_dbl <- as.numeric
 
+#' @describeIn data_type Convert an input to a date type. This is
+#'   the same function as \code{lubridate::as_date()}.
+#' @return \code{date}
 .as_date <- function(x) {
     lubridate::as_date(unlist(x, recursive = FALSE))
 }
 
+#' @describeIn data_type Check if an input has a value or nor. Any zero length
+#'   value of any type is evaluated as \code{FALSE}. This function is broader
+#'   than \code{is.null()} that only accounts for \code{NULL} value.
+#' @return \code{logical}
 .has <- function(x) {
     length(x) > 0
 }
 
+#' @describeIn data_type Set \code{class} of object \code{x}.
+#' @return Updated object \code{x}.
+.set_class <- function(x, ...) {
+    class(x) <- unique(c(...))
+    x
+}
+
+#' @describeIn data_type Evaluates unique values of \code{x}. If there is
+#'   only one unique value, return it. Otherwise return all \code{x}.
+#' @return Same value as \code{x} or the unique value in \code{x} (if
+#'   this is the case).
+.compact <- function(x) {
+    value <- unique(x)
+    if (length(value) != 1) {
+        return(x)
+    }
+    value
+}
+
+#----  Utility functions ----
+
+#' Handling error
+#'
+#' This functions is a fancy implementation of \code{tryCatch()}. It
+#' has a shorter name and provide a easy functionality of rolling back
+#' (run an expression in case of error, but not avoiding it),
+#' of default value (run expression in case of error bypassing it).
+#' Customized error messages can be passed to \code{msg_error} param.
+#'
+#' The order of execution is the following:
+#' \enumerate{
+#' \item try evaluate \code{expr};
+#' \item if everything goes well, run step 6 and return the last expression
+#'   evaluated in \code{expr} (end);
+#' \item if an error occurs in step 1, evaluate \code{.rollback} expression
+#'   (if informed);
+#' \item if \code{.default} is not informed, run step 6 and throws
+#'   the error (end);
+#' \item if \code{.default} is informed, evaluate it, run step 6, and
+#'   return the last expression in \code{.default} (end);
+#' \item evaluate \code{.finally} (if informed).
+#' }
+#'
+#' @param expr Expression to be evaluated.
+#' @param ... Additional parameter to be passed to \code{tryCatach()}.
+#' @param .rollback Expression to run in case of error.
+#' @param .default Expression to evaluate and return in case of error
+#'   (setting this parameter avoids error raising).
+#' @param .msg_error An optional customized error message.
+#' @param .finally An optional expression to run before exit function
+#'   (with error or not).
+#'
+#' @examples
+#' \dontrun{
+#' .try({
+#'   file <- tempfile("test.txt")
+#'   cat(letters, file = file)
+#'   cat(letters[["a"]], file = file, append = TRUE) # error!
+#' },
+#' .rollback = {
+#'   unlink(file) # delete file before error is thrown
+#' })
+#'
+#' value <- .try({
+#'   addr <- url("http://example.com/")
+#'   open(addr)
+#'   readLines(addr)
+#'   "You have access to the internet!" # don't use return()!
+#' },
+#' .default = {
+#'   "You do not have access to the internet!" # bypass any error!
+#' },
+#' .finally = {
+#'   close(addr) # close connection before exit (with error or not)
+#' })
+#' print(value)
+#' }
+#'
+#' @return Last expression evaluated in \code{expr}, if no error occurs.
+#'   If an error occurs, the function returns the last expression
+#'   evaluated in \code{.default} parameter. If \code{.default} parameter
+#'   is not informed, the function will raise the error.
+#' @keywords internal
 .try <- function(expr,
                  ...,
                  .rollback = NULL,
                  .default = NULL,
-                 .msg_error = NULL) {
+                 .msg_error = NULL,
+                 .finally = NULL) {
     has_default <- !missing(.default)
+    if (!missing(.finally)) on.exit(.finally)
     tryCatch(
         expr,
         ...,
@@ -40,6 +169,14 @@
     )
 }
 
+.by <- function(data, col, fn, ...) {
+    unname(c(by(data, data[[col]], fn, ...)))
+}
+
+.by_lgl <- function(data, col, fn, ...) {
+    vapply(.by(data, col, fn, ...), c, logical(1))
+}
+
 .intersects <- function(x, y) {
     as_crs <- sf::st_crs(x)
     y <- sf::st_transform(y, crs = as_crs)
@@ -50,67 +187,107 @@
     min <= x & x <= max
 }
 
-.set_class <- function(x, ...) {
-    class(x) <- unique(c(...))
-    x
-}
+#---- generic accessors ----
 
-.compact <- function(x) {
-    value <- unique(x)
-    if (length(value) != 1) {
-        return(x)
-    }
-    value
-}
+#' bbox accessors
+#'
+#' These functions are accessors of bbox fields inside \code{vectors}.
+#' Getters functions returns the respective field values with the expected
+#' data type. Setters functions convert value to expected data type and
+#' store it in respective fields on a given object. If value has no length,
+#' and the field is not \code{atomic} it is removed from the object.
+#'
+#' @param x Object to get/set field value.
+#' @param value Value to set on object field.
+#'
+#' @examples
+#' \dontrun{
+#'
+#' }
+#' @keywords internal
+#' @name bbox_accessors
+NULL
 
+#' @describeIn bbox_accessors Get \code{'xmin'} field.
+#' @return \code{numeric}.
 .xmin <- function(x) {
     .as_dbl(.compact(x[["xmin"]]))
 }
 
+#' @describeIn bbox_accessors Set \code{'xmin'} field.
+#' @return Updated object \code{x}.
 `.xmin<-` <- function(x, value) {
-    x[["xmin"]] <- value
+    x[["xmin"]] <- if (.has(x)) .as_dbl(value) else NULL
     x
 }
 
+#' @describeIn bbox_accessors Get \code{'xmax'} field.
+#' @return \code{numeric}.
 .xmax <- function(x) {
     .as_dbl(.compact(x[["xmax"]]))
 }
 
+#' @describeIn bbox_accessors Set \code{'xmax'} field.
+#' @return Updated object \code{x}.
 `.xmax<-` <- function(x, value) {
-    x[["xmax"]] <- value
+    x[["xmax"]] <- if (.has(x)) .as_dbl(value) else NULL
     x
 }
 
+#' @describeIn bbox_accessors Get \code{'ymin'} field.
+#' @return \code{numeric}.
 .ymin <- function(x) {
     .as_dbl(.compact(x[["ymin"]]))
 }
 
+#' @describeIn bbox_accessors Set \code{'ymin'} field.
+#' @return Updated object \code{x}.
 `.ymin<-` <- function(x, value) {
-    x[["ymin"]] <- value
+    x[["ymin"]] <- if (.has(x)) .as_dbl(value) else NULL
     x
 }
 
+#' @describeIn bbox_accessors Get \code{'ymax'} field.
+#' @return \code{numeric}.
 .ymax <- function(x) {
     .as_dbl(.compact(x[["ymax"]]))
 }
 
+#' @describeIn bbox_accessors Set \code{'ymax'} field.
+#' @return Updated object \code{x}.
 `.ymax<-` <- function(x, value) {
-    x[["ymax"]] <- value
+    x[["ymax"]] <- if (.has(x)) .as_dbl(value) else NULL
     x
 }
 
+#' @describeIn bbox_accessors Convert a CRS value to \code{character}.
+#' @return \code{character}.
+.as_crs <- function(x) {
+    if (.has(x)) {
+        if (is.character(x))
+            x
+        else if (is.numeric(x))
+            paste0("EPSG:", x)
+        stop("invalid crs value")
+    } else
+        NULL
+}
+
+#' @describeIn bbox_accessors Get \code{'crs'} field.
+#' @return \code{character}.
 .crs <- function(x) {
     crs <- .compact(x[["crs"]])
-    if (!is.numeric(crs)) {
-        return(.as_chr(crs))
-    }
-    paste0("EPSG:", crs)
+    .as_chr(crs)
 }
 
+#' @describeIn bbox_accessors Set \code{'crs'} field.
+#' @return Updated object \code{x}.
 `.crs<-` <- function(x, value) {
-    x[["crs"]] <- value
+    x[["crs"]] <- .as_crs(value)
     x
 }
+
+# block accessors
 
 .col <- function(x) {
     .as_int(.compact(x[["col"]]))
@@ -134,14 +311,6 @@
 
 .yres <- function(x) {
     (.ymax(x) - .ymin(x)) / .nrows(x)
-}
-
-.by <- function(data, col, fn, ...) {
-    unname(c(by(data, data[[col]], fn, ...)))
-}
-
-.by_lgl <- function(data, col, fn, ...) {
-    vapply(.by(data, col, fn, ...), c, logical(1))
 }
 
 #---- block API: ----
@@ -688,10 +857,10 @@ NULL
 }
 
 .fi_temporal_filter <- function(fi, start_date, end_date) {
-    if (is.null(start_date)) {
+    if (!.has(start_date)) {
         start_date <- .fi_min_date(fi)
     }
-    if (is.null(end_date)) {
+    if (!.has(end_date)) {
         end_date <- .fi_max_date(fi)
     }
     fi[.fi_during(fi, start_date, end_date), ]
@@ -708,7 +877,7 @@ NULL
 .fi_read_block <- function(fi, band, block) {
     fi <- .fi_band_filter(fi = fi, band = band)
     files <- .fi_paths(fi)
-    if (length(files) == 0) {
+    if (!.has(files)) {
         return(NULL)
     }
 
@@ -1187,7 +1356,7 @@ NULL
         band = band,
         block = block
     )
-    if (is.null(values)) {
+    if (!.has(values)) {
         return(NULL)
     }
 
@@ -1263,7 +1432,7 @@ NULL
         block = block,
         replace_by_minmax = FALSE
     )
-    if (is.null(values)) {
+    if (!.has(values)) {
         return(NULL)
     }
 
@@ -1288,7 +1457,8 @@ NULL
         values <- values %in% interp_values
     } else {
         values <- matrix(bitwAnd(values, sum(2^interp_values)) > 0,
-                         nrow = length(values))
+                         nrow = length(values)
+        )
     }
 
 
@@ -1595,12 +1765,14 @@ NULL
     function(cube,
              period = "P1D",
              origin = NULL) {
-        if (is.null(origin)) {
+        if (!.has(origin)) {
             origin <- .cube_start_date(cube)
         }
         values <- slider::slide_dfr(cube, function(tile) {
-            tibble::tibble(tile = tile[["tile"]],
-                           dates = .tile_timeline(!!tile))
+            tibble::tibble(
+                tile = tile[["tile"]],
+                dates = .tile_timeline(!!tile)
+            )
         })
         values <- dplyr::filter(values, !!origin <= .data[["dates"]])
         values <- dplyr::arrange(values, .data[["dates"]])
@@ -1609,8 +1781,10 @@ NULL
             function(x) {
                 x[["from_date"]] <- min(x[["dates"]])
                 x[["to_date"]] <- max(x[["dates"]])
-                dplyr::count(x, .data[["from_date"]], .data[["to_date"]],
-                             .data[["tile"]])
+                dplyr::count(
+                    x, .data[["from_date"]], .data[["to_date"]],
+                    .data[["tile"]]
+                )
             },
             .every = .period_val(period), .origin = origin, .complete = TRUE
         )
@@ -1963,10 +2137,14 @@ NULL
     # Chunk overlap
     chunks[["overlap"]] <- .as_int(overlap)
     # Chunk size without overlap
-    chunks[["crop_ncols"]] <- .as_int(pmin(ncols - .col(chunks) + 1,
-                                           .ncols(chunks) - overlap))
-    chunks[["crop_nrows"]] <- .as_int(pmin(nrows - .row(chunks) + 1,
-                                           .nrows(chunks) - overlap))
+    chunks[["crop_ncols"]] <- .as_int(pmin(
+        ncols - .col(chunks) + 1,
+        .ncols(chunks) - overlap
+    ))
+    chunks[["crop_nrows"]] <- .as_int(pmin(
+        nrows - .row(chunks) + 1,
+        .nrows(chunks) - overlap
+    ))
     # Return chunks
     chunks
 }
