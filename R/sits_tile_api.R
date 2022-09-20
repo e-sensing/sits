@@ -558,7 +558,7 @@ NULL
         xmax = .raster_xmax(r_obj),
         ymin = .raster_ymin(r_obj),
         ymax = .raster_ymax(r_obj),
-        path = file
+        path = files
     )
 }
 
