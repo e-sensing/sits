@@ -226,7 +226,7 @@ sits_uncertainty.margin <- function(cube, type = "margin", window_size = 5,
             values <- values / scale
         }
         # Job crop block
-        crop_block <- .chunks_block_no_overlap(chunk)
+        crop_block <- .block(.chunks_no_overlap(chunk))
         # Prepare and save results as raster
         .raster_write_block(
             files = block_file, block = block, bbox = .bbox(chunk),
