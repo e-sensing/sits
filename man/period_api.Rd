@@ -5,7 +5,7 @@
 \alias{.period_check}
 \alias{.period_val}
 \alias{.period_unit}
-\title{Period API}
+\title{period API}
 \usage{
 .period_check(period)
 

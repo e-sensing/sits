@@ -5,7 +5,7 @@
 \alias{.roi_type}
 \alias{.roi_switch}
 \alias{.roi_as_sf}
-\title{ROI API}
+\title{roi API}
 \usage{
 .roi_type(roi)
 
@@ -62,7 +62,13 @@ x <- list(xmin = 1, xmax = 2, ymin = 3, ymax = 4, crs = 3857)
   bbox = paste("It's in", .crs(x))
 )
 }
+
 }
 \seealso{
-\code{\link{.bbox}()}
+Other region objects API: 
+\code{\link{bbox_api}},
+\code{\link{block_api}},
+\code{\link{chunks_api}}
 }
+\concept{region objects API}
+\keyword{internal}
