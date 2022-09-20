@@ -268,7 +268,10 @@ NULL
             x
         else if (is.numeric(x))
             paste0("EPSG:", x)
-        stop("invalid crs value")
+        else if (is.na(x))
+            NA_character_
+        else
+            stop("invalid crs value")
     } else
         NULL
 }
@@ -304,6 +307,8 @@ NULL
 .nrows <- function(x) {
     .as_int(.compact(x[["nrows"]]))
 }
+
+# block/bbox
 
 .xres <- function(x) {
     (.xmax(x) - .xmin(x)) / .ncols(x)
@@ -2116,12 +2121,12 @@ NULL
     ))
     chunks[["col"]] <- .as_int(pmax(1, .col(chunks) - overlap))
     chunks[["row"]] <- .as_int(pmax(1, .row(chunks) - overlap))
-    chunks[["ncols"]] <- .as_int(pmin(ncols, .col(chunks) +
-                                          .ncols(block) + overlap - 1) -
-                                     .col(chunks) + 1)
-    chunks[["nrows"]] <- .as_int(pmin(nrows, .row(chunks) +
-                                          .nrows(block) + overlap - 1) -
-                                     .row(chunks) + 1)
+    chunks[["ncols"]] <-
+        .as_int(pmin(ncols, .col(chunks) + .ncols(block) + overlap - 1) -
+                    .col(chunks) + 1)
+    chunks[["nrows"]] <-
+        .as_int(pmin(nrows, .row(chunks) + .nrows(block) + overlap - 1) -
+                    .row(chunks) + 1)
     chunks <- slider::slide_dfr(chunks, function(chunk, template) {
         # Crop block from template
         r_obj <-
