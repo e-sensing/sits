@@ -1170,8 +1170,7 @@ NULL
 #' Tile API
 #'
 #' Get number of image columns from \code{ncols} field (if it exists)
-#' or from unique \code{ncols} in file_info (which can be more than one if tile
-#' images has multiples \code{ncols}).
+#' or from first \code{ncols} in file_info.
 #'
 #' @param tile A tile.
 #'
