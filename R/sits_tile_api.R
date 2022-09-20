@@ -339,6 +339,9 @@ NULL
 #' .block_size(x, 0)
 #' .block_size(x, 2)
 #' }
+#'
+#' @family region objects API
+#' @keywords internal
 #' @name block_api
 NULL
 
