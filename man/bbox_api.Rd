@@ -29,8 +29,9 @@ CRS.}
 \code{.bbox_as_sf()}: \code{sf}.
 }
 \description{
-A \code{bbox} is any \code{list} or \code{tibble} containing \code{xmin},
-\code{xmax}, \code{ymin}, \code{ymax}, and \code{crs} fields.
+A bounding box represents a rectangular geographical region in a certain
+projection. A \code{bbox} is any \code{list} or \code{tibble} containing
+\code{xmin}, \code{xmax}, \code{ymin}, \code{ymax}, and \code{crs} fields.
 A \code{bbox} may contains multiple entries.
 }
 \section{Functions}{
@@ -54,4 +55,13 @@ x <- list(
 .bbox_as_sf(x) # 3 features
 .bbox_as_sf(x, as_crs = "EPSG:3857")
 }
+
 }
+\seealso{
+Other region objects API: 
+\code{\link{block_api}},
+\code{\link{chunks_api}},
+\code{\link{roi_api}}
+}
+\concept{region objects API}
+\keyword{internal}

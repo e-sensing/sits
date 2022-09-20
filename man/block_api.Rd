@@ -4,7 +4,7 @@
 \alias{block_api}
 \alias{.block}
 \alias{.block_size}
-\title{Block API}
+\title{Block}
 \usage{
 .block(x)
 
@@ -21,11 +21,12 @@
 \value{
 \code{.block()}: \code{block}.
 
-\code{.block_size()}: \code{numeric}.
+\code{.block_size()}: \code{integer}.
 }
 \description{
-A \code{block} is any \code{list} or \code{tibble} containing
-\code{col}, \code{row}, \code{ncols}, and \code{nrows} fields.
+A block represents a region of a matrix. A \code{block} is any
+\code{list} or \code{tibble} containing \code{col}, \code{row},
+\code{ncols}, and \code{nrows} fields.
 }
 \section{Functions}{
 \itemize{
@@ -45,4 +46,13 @@ x <- list(a = 0, col = 1, row = 2, ncols = 3, nrows = 4, z = 0)
 .block_size(x, 0)
 .block_size(x, 2)
 }
+
 }
+\seealso{
+Other region objects API: 
+\code{\link{bbox_api}},
+\code{\link{chunks_api}},
+\code{\link{roi_api}}
+}
+\concept{region objects API}
+\keyword{internal}

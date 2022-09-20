@@ -14,6 +14,5 @@ integer
 }
 \description{
 Get number of image columns from \code{nrows} field (if it exists)
-or from unique \code{nrows} in file_info (which can be more than one if tile
-images has multiples \code{nrows}).
+or from first \code{nrows} in file_info.
 }
