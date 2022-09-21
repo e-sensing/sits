@@ -29,6 +29,10 @@
     slider::slide_chr(jobs, fn, ...)
 }
 
+.jobs_map_sequential_dfr <- function(jobs, fn, ...) {
+    slider::slide_dfr(jobs, fn, ...)
+}
+
 .jobs_map_parallel <- function(jobs, fn, ...) {
     jobs <- slider::slide(jobs, identity)
     .sits_parallel_map(jobs, fn, ..., progress = TRUE)
