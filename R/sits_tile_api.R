@@ -1937,23 +1937,6 @@ NULL
     )
 }
 
-#---- | .tile_feature_create() ----
-
-.cube_feature_create <- function(cube) {
-    .cube_foreach_tile(cube, .tile_feature_create)
-}
-
-.tile_feature_create <- function(tile) {
-    tile <- .tile(tile)
-    features <- tile[, c("tile", "file_info")]
-    features <- tidyr::unnest(features, "file_info")
-    features[["feature"]] <- features[["fid"]]
-    features <- tidyr::nest(features, file_info = -c("tile", "feature"))
-    tile <- tile[rep(1, nrow(features)), ]
-    tile[["file_info"]] <- features[["file_info"]]
-    tile
-}
-
 #---- Tile constructors: ----
 
 # ---- | tile eo api ----
@@ -2362,6 +2345,26 @@ NULL
     cube[.cube_tiles(cube) %in% tile, ]
 }
 
+#---- | .cube_merge_features() ----
+
+.cube_feature_create <- function(tile) {
+    features <- tile[, c("tile", "file_info")]
+    features <- tidyr::unnest(features, "file_info")
+    features[["feature"]] <- features[["fid"]]
+    features <- tidyr::nest(features, file_info = -c("tile", "feature"))
+    tile <- tile[rep(1, nrow(features)), ]
+    tile[["file_info"]] <- features[["file_info"]]
+    tile
+}
+
+.cube_merge_features <- function(features) {
+    cube <- tidyr::nest(
+        tidyr::unnest(features, "file_info", names_sep = "."),
+        file_info = tidyr::starts_with("file_info"), .names_sep = "."
+    )
+    class(cube) <- class(features)
+    cube
+}
 
 # s2_cube <- sits_cube(
 #     source = "AWS",
