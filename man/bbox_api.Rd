@@ -4,7 +4,7 @@
 \alias{bbox_api}
 \alias{.bbox}
 \alias{.bbox_as_sf}
-\title{bbox API}
+\title{Bbox API}
 \usage{
 .bbox(x, ..., default_crs = NULL)
 
@@ -58,7 +58,10 @@ x <- list(
 
 }
 \seealso{
+\link{bbox_accessors}
+
 Other region objects API: 
+\code{\link{.intersects}()},
 \code{\link{block_api}},
 \code{\link{chunks_api}},
 \code{\link{roi_api}}

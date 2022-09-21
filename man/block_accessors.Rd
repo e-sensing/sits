@@ -81,6 +81,7 @@ x
 }
 \seealso{
 Other accessors: 
+\code{\link{band_accessors}},
 \code{\link{bbox_accessors}},
 \code{\link{chunk_accessors}}
 }

@@ -6,7 +6,7 @@
 \alias{.chunks_as_raster}
 \alias{.chunks_no_overlap}
 \alias{.chunks_filter_spatial}
-\title{chunks API}
+\title{Chunks API}
 \usage{
 .chunks_create(block, overlap, image_size, image_bbox)
 
@@ -84,7 +84,10 @@ identical(.bbox(cropped), .bbox(.chunks_no_overlap(cropped)))
 
 }
 \seealso{
+\link{chunk_accessors}
+
 Other region objects API: 
+\code{\link{.intersects}()},
 \code{\link{bbox_api}},
 \code{\link{block_api}},
 \code{\link{roi_api}}

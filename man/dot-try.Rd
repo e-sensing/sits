@@ -16,7 +16,7 @@
 \arguments{
 \item{expr}{Expression to be evaluated.}
 
-\item{...}{Additional parameter to be passed to \code{tryCatach()}.}
+\item{...}{Additional parameter to be passed to \code{tryCatch()}.}
 
 \item{.rollback}{Expression to run in case of error.}
 
@@ -35,7 +35,7 @@ Last expression evaluated in \code{expr}, if no error occurs.
   is not informed, the function will raise the error.
 }
 \description{
-This functions is a fancy implementation of \code{tryCatch()}. It
+This is a fancy implementation of \code{tryCatch()}. It
 has a shorter name and provide a easy functionality of rolling back
 (run an expression in case of error, but not avoiding it),
 of default value (run expression in case of error bypassing it).
@@ -83,4 +83,11 @@ print(value)
 }
 
 }
+\seealso{
+\link{tryCatch()}
+
+Other utility functions: 
+\code{\link{.intersects}()}
+}
+\concept{utility functions}
 \keyword{internal}

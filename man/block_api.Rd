@@ -4,7 +4,7 @@
 \alias{block_api}
 \alias{.block}
 \alias{.block_size}
-\title{Block}
+\title{Block API}
 \usage{
 .block(x)
 
@@ -49,7 +49,10 @@ x <- list(a = 0, col = 1, row = 2, ncols = 3, nrows = 4, z = 0)
 
 }
 \seealso{
+\link{block_accessors}
+
 Other region objects API: 
+\code{\link{.intersects}()},
 \code{\link{bbox_api}},
 \code{\link{chunks_api}},
 \code{\link{roi_api}}

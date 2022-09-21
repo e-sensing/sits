@@ -19,9 +19,9 @@
 \value{
 \code{.period_check()}: nothing.
 
-\code{.period_val()}: integer.
+\code{.period_val()}: numeric value of a period.
 
-\code{.period_unit()}: character.
+\code{.period_unit()}: description of unit of a period.
 }
 \description{
 According to ISO-8601 a duration is the amount of intervening time
@@ -58,4 +58,11 @@ Can be one of \code{'day'}, \code{'month'}, or \code{'year'}.
 .period_unit("P2M") # month
 .period_unit("P1Y") # year
 }
+
 }
+\seealso{
+Other data types: 
+\code{\link{data_type}}
+}
+\concept{data types}
+\keyword{internal}

@@ -5,7 +5,7 @@
 \alias{.roi_type}
 \alias{.roi_switch}
 \alias{.roi_as_sf}
-\title{roi API}
+\title{ROI API}
 \usage{
 .roi_type(roi)
 
@@ -30,7 +30,7 @@ be \code{'EPSG:4326'}.}
 \code{.roi_as_sf()}: \code{sf}.
 }
 \description{
-A ROI (or 'Region of Interest') represents an geographic area. There are
+A Region of Interest (ROI) represents an geographic area. There are
 three types of ROI objects, namely \code{sf} (from package \code{sf}),
 \code{bbox} (from \code{.bbox()}), and \code{lonlat}.
 A \code{lonlat} object is any \code{vector} containing \code{lon_min},
@@ -66,6 +66,7 @@ x <- list(xmin = 1, xmax = 2, ymin = 3, ymax = 4, crs = 3857)
 }
 \seealso{
 Other region objects API: 
+\code{\link{.intersects}()},
 \code{\link{bbox_api}},
 \code{\link{block_api}},
 \code{\link{chunks_api}}

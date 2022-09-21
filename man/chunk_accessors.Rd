@@ -4,7 +4,7 @@
 \alias{chunk_accessors}
 \alias{.xres}
 \alias{.yres}
-\title{chunk accessors}
+\title{Chunk accessors}
 \usage{
 .xres(x)
 
@@ -16,10 +16,11 @@
 \item{value}{Value to set on object field.}
 }
 \value{
-\code{numeric}.
+Spatial resolution.
 }
 \description{
-These functions are accessors of \code{chunk} fields in a \code{vector}.
+These functions are read-only accessors of \code{chunk} fields in a
+\code{vector}.
 }
 \details{
 \code{.xres()} and \code{.yres()} computes, respectively, \code{"xres"} and
@@ -45,6 +46,7 @@ x <- c(nrows = 100, ymin = 1, ymax = 10)
 }
 \seealso{
 Other accessors: 
+\code{\link{band_accessors}},
 \code{\link{bbox_accessors}},
 \code{\link{block_accessors}}
 }

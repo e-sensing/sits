@@ -11,11 +11,11 @@
 \alias{.compact}
 \title{Data type functions}
 \usage{
-.as_int()
+.as_int(x)
 
-.as_chr()
+.as_chr(x)
 
-.as_dbl()
+.as_dbl(x)
 
 .as_date(x)
 
@@ -31,13 +31,13 @@
 \item{...}{Additional parameters.}
 }
 \value{
-\code{integer}
+\code{integer} or \code{NULL} if value is empty.
 
-\code{character}
+\code{character} or \code{NULL} if value is empty.
 
-\code{numeric}
+\code{numeric} or \code{NULL} if value is empty.
 
-\code{date}
+\code{date} or \code{NULL} if value is empty.
 
 \code{logical}
 
@@ -51,14 +51,11 @@ These are a short named version of data type functions.
 }
 \section{Functions}{
 \itemize{
-\item \code{.as_int()}: Convert an input to \code{integer}. This is
-the same function as \code{as.integer()}.
+\item \code{.as_int()}: Convert an input to \code{integer}.
 
-\item \code{.as_chr()}: Convert an input to \code{character}. This is
-the same function as \code{as.character()}.
+\item \code{.as_chr()}: Convert an input to \code{character}.
 
-\item \code{.as_dbl()}: Convert an input to \code{numeric}. This is
-the same function as \code{as.numeric()}.
+\item \code{.as_dbl()}: Convert an input to \code{numeric}.
 
 \item \code{.as_date()}: Convert an input to a date type. This is
 the same function as \code{lubridate::as_date()}.
@@ -91,5 +88,11 @@ x <- 42.0
 .compact(c(1, 2, 3)) # 1 2 3
 .compact(c(1, 1, 1)) # 1
 }
+
 }
+\seealso{
+Other data types: 
+\code{\link{period_api}}
+}
+\concept{data types}
 \keyword{internal}

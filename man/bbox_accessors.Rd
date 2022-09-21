@@ -13,7 +13,7 @@
 \alias{.as_crs}
 \alias{.crs}
 \alias{.crs<-}
-\title{bbox accessors}
+\title{Bbox accessors}
 \usage{
 .xmin(x)
 
@@ -45,10 +45,6 @@
 \value{
 Getters return respective field value or \code{NULL}, if it doesn't
   exist. Setters return the updated \code{x} object.
-
-Updated object \code{x}.
-
-\code{numeric}.
 }
 \description{
 These functions are accessors of \code{bbox} fields of a \code{vector}.
@@ -101,6 +97,7 @@ x # with 'crs' field
 }
 \seealso{
 Other accessors: 
+\code{\link{band_accessors}},
 \code{\link{block_accessors}},
 \code{\link{chunk_accessors}}
 }
