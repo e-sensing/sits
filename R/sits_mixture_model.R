@@ -160,26 +160,14 @@ sits_mixture_model <- function(cube,
     features <- .jobs_map_parallel_dfr(features, function(feature) {
         # Process the data
         output_feature <- .mixture_feature(
-            feature = feature,
-            em = em,
-            mixture_fn = mixture_fn,
-            out_fracs = out_fracs,
-            output_dir = output_dir,
+            feature = feature, em = em, mixture_fn = mixture_fn,
+            out_fracs = out_fracs, output_dir = output_dir,
             version = version
         )
         return(output_feature)
     })
     # Join output features as a cube and return it
     .cube_merge_features(features)
-}
-
-.cube_merge_features <- function(features) {
-    cube <- tidyr::nest(
-        tidyr::unnest(features, "file_info", names_sep = "."),
-        file_info = tidyr::starts_with("file_info"), .names_sep = "."
-    )
-    class(cube) <- class(features)
-    cube
 }
 
 # ---- mixture functions ----
