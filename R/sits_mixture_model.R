@@ -235,19 +235,19 @@ sits_mixture_model <- function(cube,
         values <- mixture_fn(values = as.matrix(values))
         # Prepare fractions to be saved
         band_conf <- .tile_band_conf(tile = feature, band = out_fracs)
-        offset <- .band_offset(band_conf)
+        offset <- .offset(band_conf)
         if (!is.null(offset) && offset != 0) {
             values <- values - offset
         }
-        scale <- .band_scale(band_conf)
+        scale <- .scale(band_conf)
         if (!is.null(scale) && scale != 1) {
             values <- values / scale
         }
         # Prepare and save results as raster
         .raster_write_block(
             files = block_files, block = block, bbox = .bbox(chunk),
-            values = values, data_type = .band_data_type(band_conf),
-            missing_value = .band_miss_value(band_conf),
+            values = values, data_type = .data_type(band_conf),
+            missing_value = .miss_value(band_conf),
             crop_block = NULL
         )
         # Free memory
@@ -331,7 +331,7 @@ sits_mixture_model <- function(cube,
             band_conf <- .cube_band_conf(
                 cube = cube, band = dplyr::cur_column()
             )
-            x * .band_scale(band_conf) + .band_offset(band_conf)
+            x * .scale(band_conf) + .offset(band_conf)
         })
     )
     # Return endmembers

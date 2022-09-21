@@ -217,11 +217,11 @@ sits_uncertainty.margin <- function(cube, type = "margin", window_size = 5,
         band_conf <- .conf_derived_band(
             derived_class = "uncertainty_cube", band = band
         )
-        offset <- .band_offset(band_conf)
+        offset <- .offset(band_conf)
         if (!is.null(offset) && offset != 0) {
             values <- values - offset
         }
-        scale <- .band_scale(band_conf)
+        scale <- .scale(band_conf)
         if (!is.null(scale) && scale != 1) {
             values <- values / scale
         }
@@ -230,8 +230,8 @@ sits_uncertainty.margin <- function(cube, type = "margin", window_size = 5,
         # Prepare and save results as raster
         .raster_write_block(
             files = block_file, block = block, bbox = .bbox(chunk),
-            values = values, data_type = .band_data_type(band_conf),
-            missing_value = .band_miss_value(band_conf),
+            values = values, data_type = .data_type(band_conf),
+            missing_value = .miss_value(band_conf),
             crop_block = crop_block
         )
         # Free memory
