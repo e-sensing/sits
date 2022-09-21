@@ -7,11 +7,13 @@
 .tile(cube)
 }
 \arguments{
-\item{cube}{A cube.}
+\item{cube}{A \code{cube} or a \code{tile}.}
 }
 \value{
-tile
+The first row of a cube.
 }
 \description{
-Get first tile of a cube.
+A \code{cube} consists of multiple tiles stacked together as rows of a
+\code{tibble}. Get first tile of a cube. This function should be called
+by all tile API function to ensure that only one tile will be processed.
 }

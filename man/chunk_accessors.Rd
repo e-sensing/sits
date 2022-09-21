@@ -48,7 +48,8 @@ x <- c(nrows = 100, ymin = 1, ymax = 10)
 Other accessors: 
 \code{\link{band_accessors}},
 \code{\link{bbox_accessors}},
-\code{\link{block_accessors}}
+\code{\link{block_accessors}},
+\code{\link{tile_accessors}}
 }
 \concept{accessors}
 \keyword{internal}

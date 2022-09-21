@@ -81,7 +81,8 @@ x <- .conf_eo_band(
 Other accessors: 
 \code{\link{bbox_accessors}},
 \code{\link{block_accessors}},
-\code{\link{chunk_accessors}}
+\code{\link{chunk_accessors}},
+\code{\link{tile_accessors}}
 }
 \concept{accessors}
 \keyword{internal}

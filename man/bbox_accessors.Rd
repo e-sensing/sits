@@ -99,7 +99,8 @@ x # with 'crs' field
 Other accessors: 
 \code{\link{band_accessors}},
 \code{\link{block_accessors}},
-\code{\link{chunk_accessors}}
+\code{\link{chunk_accessors}},
+\code{\link{tile_accessors}}
 }
 \concept{accessors}
 \keyword{internal}

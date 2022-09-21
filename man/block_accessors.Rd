@@ -83,7 +83,8 @@ x
 Other accessors: 
 \code{\link{band_accessors}},
 \code{\link{bbox_accessors}},
-\code{\link{chunk_accessors}}
+\code{\link{chunk_accessors}},
+\code{\link{tile_accessors}}
 }
 \concept{accessors}
 \keyword{internal}

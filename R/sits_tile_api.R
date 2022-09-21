@@ -1393,15 +1393,15 @@ NULL
 
 #---- Tile API: ----
 
-#---- | .tile() ----
-
 #' Tile API
 #'
-#' Get first tile of a cube.
+#' A \code{cube} consists of multiple tiles stacked together as rows of a
+#' \code{tibble}. Get first tile of a cube. This function should be called
+#' by all tile API function to ensure that only one tile will be processed.
 #'
-#' @param cube A cube.
+#' @param cube A \code{cube} or a \code{tile}.
 #'
-#' @return tile
+#' @return The first row of a cube.
 .tile <- function(cube) {
     UseMethod(".tile", cube)
 }
@@ -1411,83 +1411,102 @@ NULL
     cube[1, ]
 }
 
-#---- | .tile_source() ----
-#' Tile API
+#' Tile field accessors
 #'
-#' Get tile source field.
+#' These functions are accessors of \code{tile} objects. A
+#' \code{tile} is a only-one-row \code{tibble} \code{cube} that stores
+#' metadata of a cube.
 #'
-#' @param tile A tile.
+#' @param tile A \code{tile} or \code{cube} (only first row will be considered).
+#' @param value A value to set in a \code{tile} field.
 #'
-#' @return character
+#' @returns Respective \code{tile} field value.
+#'
+#' @family accessors
+#' @keywords internal
+#' @name tile_accessors
+NULL
+
+#' @describeIn tile_accessors Get \code{'source'} field of a \code{tile}.
 .tile_source <- function(tile) {
     UseMethod(".tile_source", tile)
 }
 
 #' @export
 .tile_source.raster_cube <- function(tile) {
-    tile <- .tile(tile)
-    .as_chr(tile[["source"]])
+    .as_chr(tile[["source"]][[1]])
 }
 
-#---- | .tile_collection() ----
-#' Tile API
-
-#' Get tile collection field.
-
-#' @param tile A tile.
-
-#' @return character
+#' @describeIn tile_accessors Get \code{'collection'} field of a \code{tile}.
 .tile_collection <- function(tile) {
     UseMethod(".tile_collection", tile)
 }
 
 #' @export
 .tile_collection.raster_cube <- function(tile) {
-    tile <- .tile(tile)
-    .as_chr(tile[["collection"]])
+    .as_chr(tile[["collection"]][[1]])
 }
 
-#---- | .tile_name() ----
-#' Tile API
-#'
-#' Get tile name field.
-#'
-#' @param tile A tile.
-#'
-#' @return character
+#' @describeIn tile_accessors Get \code{'tile'} field of a \code{tile}.
 .tile_name <- function(tile) {
     UseMethod(".tile_name", tile)
 }
 
 #' @export
 .tile_name.raster_cube <- function(tile) {
-    tile <- .tile(tile)
-    .as_chr(tile[["tile"]])
+    .as_chr(tile[["tile"]][[1]])
 }
 
-#---- | .tile_labels() ----
-#' Tile API
-#'
-#' Get/set tile labels field.
-#'
-#' @param tile A tile.
-#'
-#' @return character
+#' @describeIn tile_accessors Get number of image columns from \code{ncols}
+#'   field (if it exists) or from first \code{ncols} in file_info.
+.tile_ncols <- function(tile) {
+    UseMethod(".tile_ncols", tile)
+}
+
+#' @export
+.tile_ncols.raster_cube <- function(tile) {
+    if ("ncols" %in% tile) {
+        return(.ncols(tile)[[1]])
+    }
+    .ncols(.fi(tile))[[1]]
+}
+
+#' @describeIn tile_accessors Get number of image columns from \code{nrows}
+#'   field (if it exists) or from first \code{nrows} in file_info.
+.tile_nrows <- function(tile) {
+    UseMethod(".tile_nrows", tile)
+}
+
+#' @export
+.tile_nrows.raster_cube <- function(tile) {
+    if ("nrows" %in% tile) {
+        return(.nrows(tile)[[1]])
+    }
+    .nrows(.fi(tile))[[1]]
+}
+
+#' @describeIn tile_accessors Get the size of tile from \code{ncols} and
+#'   \code{nrows} fields (if they exist) or from first entry in file_info.
+.tile_size <- function(tile) {
+    UseMethod(".tile_size", tile)
+}
+
+#' @export
+.tile_size.raster_cube <- function(tile) {
+    list(ncols = .tile_ncols(tile), nrows = .tile_nrows(tile))
+}
+
+#' @describeIn tile_accessors Get \code{'labels'} field of a \code{tile}.
 .tile_labels <- function(tile) {
     UseMethod(".tile_labels", tile)
 }
 
 #' @export
 .tile_labels.raster_cube <- function(tile) {
-    tile <- .tile(tile)
     .as_chr(tile[["labels"]][[1]])
 }
 
-#' @name .tile_labels
-#'
-#' @param value Label character vector.
-#'
-#' @return tile
+#' @describeIn tile_accessors Set \code{'labels'} field of a \code{tile}.
 `.tile_labels<-` <- function(tile, value) {
     UseMethod(".tile_labels<-", tile)
 }
@@ -1499,28 +1518,17 @@ NULL
     tile
 }
 
-#---- | .tile_file_info() ----
-#' Tile API
-#'
-#' Get/set tile file_info field.
-#'
-#' @param tile A tile.
-#'
-#' @return file_info
+#' @describeIn tile_accessors Get \code{'file_info'} field of a \code{tile}.
 .tile_file_info <- function(tile) {
     UseMethod(".tile_file_info", tile)
 }
 
 #' @export
 .tile_file_info.raster_cube <- function(tile) {
-    .fi(tile) # Get first file_info
+    .fi(tile) # Get the first file_info
 }
 
-#' @name .tile_file_info
-#'
-#' @param value A file_info tibble.
-#'
-#' @return tile
+#' @describeIn tile_accessors Set \code{'file_info'} field of a \code{tile}.
 `.tile_file_info<-` <- function(tile, value) {
     UseMethod(".tile_file_info<-", tile)
 }
@@ -1642,66 +1650,6 @@ NULL
 #' @export
 .tile_band_conf.derived_cube <- function(tile, band) {
     .conf_derived_band(derived_class = .tile_derived_class(tile), band = band)
-}
-
-#---- | .tile_ncols() ----
-#' Tile API
-#'
-#' Get number of image columns from \code{ncols} field (if it exists)
-#' or from first \code{ncols} in file_info.
-#'
-#' @param tile A tile.
-#'
-#' @return integer
-.tile_ncols <- function(tile) {
-    UseMethod(".tile_ncols", tile)
-}
-
-#' @export
-.tile_ncols.raster_cube <- function(tile) {
-    if ("ncols" %in% tile) {
-        return(.ncols(tile)[[1]])
-    }
-    .ncols(.fi(tile))[[1]]
-}
-
-#---- | .tile_nrows() ----
-#' Tile API
-#'
-#' Get number of image columns from \code{nrows} field (if it exists)
-#' or from first \code{nrows} in file_info.
-#'
-#' @param tile A tile.
-#'
-#' @return integer
-.tile_nrows <- function(tile) {
-    UseMethod(".tile_nrows", tile)
-}
-
-#' @export
-.tile_nrows.raster_cube <- function(tile) {
-    if ("nrows" %in% tile) {
-        return(.nrows(tile)[[1]])
-    }
-    .nrows(.fi(tile))[[1]]
-}
-
-#---- | .tile_size() ----
-#' Tile API
-#'
-#' Get the size of tile from \code{ncols} and \code{nrows} fields
-#' (if they exist) or from first entry in file_info.
-#'
-#' @param tile A tile.
-#'
-#' @return \code{block}
-.tile_size <- function(tile) {
-    UseMethod(".tile_size", tile)
-}
-
-#' @export
-.tile_size.raster_cube <- function(tile) {
-    list(ncols = .tile_ncols(tile), nrows = .tile_nrows(tile))
 }
 
 #---- | .tile_band_filter() ----
