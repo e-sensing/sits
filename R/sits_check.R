@@ -1265,6 +1265,7 @@
         msg = "window_size must be an odd number"
     )
 }
+
 #' @title Check if band is present in the cube
 #' @name .check_band_in_cube
 #' @param band name of the band
@@ -2037,7 +2038,6 @@
         )
     )
 }
-
 .check_endmembers_bands <- function(em, cube) {
     .check_chr_within(
         x = .endmembers_bands(em),
@@ -2045,7 +2045,16 @@
         msg = "invalid 'endmembers' columns"
     )
 }
-
+.check_res <- function(x) {
+    .check_num(
+        x = x,
+        exclusive_min = 0,
+        len_min = 1,
+        len_max = 1,
+        allow_null = TRUE,
+        msg = "invalid 'res' parameter."
+    )
+}
 #' @title Checks if working in documentation mode
 #' @name .check_documentation
 #' @param progress  flag set to show progress bar
