@@ -203,6 +203,8 @@ sits_classify.raster_cube <- function(data,
             msg = "invalid 'start_date' and 'end_date' parameters"
         )
     }
+    # Do the samples and tile match their timeline length?
+    .check_samples_tile_match(samples, data)
     # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(data))))
@@ -240,8 +242,6 @@ sits_classify.raster_cube <- function(data,
     # Classification
     # Process each tile sequentially
     probs_cube <- .cube_foreach_tile(data, function(tile) {
-        # Do the samples and tile match their timeline length?
-        .check_samples_tile_match(samples, tile)
         # Classify the data
         probs_tile <- .classify_tile(
             tile = tile, band = "probs", ml_model = ml_model, roi = roi,
