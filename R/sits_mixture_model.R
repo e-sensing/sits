@@ -100,7 +100,7 @@ sits_mixture_model <- function(cube,
     # check documentation mode
     progress <- .check_documentation(progress)
 
-    #precondition - endmembers
+    # precondition - endmembers
     .check_endmembers_parameter(endmembers)
     # precondition - memsize
     .check_memsize(memsize)
@@ -173,15 +173,6 @@ sits_mixture_model <- function(cube,
     .cube_merge_features(features)
 }
 
-.cube_merge_features <- function(features) {
-    cube <- tidyr::nest(
-        tidyr::unnest(features, "file_info", names_sep = "."),
-        file_info = tidyr::starts_with("file_info"), .names_sep = "."
-    )
-    class(cube) <- class(features)
-    cube
-}
-
 # ---- mixture functions ----
 .mixture_feature <- function(feature,
                              em,
@@ -195,7 +186,7 @@ sits_mixture_model <- function(cube,
         date = .tile_start_date(feature), output_dir = output_dir
     )
     # Resume feature
-    if (all(file.exists(out_files))) {
+    if (.raster_is_valid(out_files)) {
         # # Callback final tile classification
         # .callback(process = "mixtureModel", event = "recovery",
         #           context = environment())

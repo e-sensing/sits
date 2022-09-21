@@ -557,7 +557,7 @@ NULL
         xmax = .raster_xmax(r_obj),
         ymin = .raster_ymin(r_obj),
         ymax = .raster_ymax(r_obj),
-        path = file
+        path = files
     )
 }
 
@@ -1745,6 +1745,16 @@ NULL
     cube[.cube_tiles(cube) %in% tile, ]
 }
 
+#---- | .cube_merge_features() ----
+
+.cube_merge_features <- function(features) {
+    cube <- tidyr::nest(
+        tidyr::unnest(features, "file_info", names_sep = "."),
+        file_info = tidyr::starts_with("file_info"), .names_sep = "."
+    )
+    class(cube) <- class(features)
+    cube
+}
 
 # s2_cube <- sits_cube(
 #     source = "AWS",
