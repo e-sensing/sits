@@ -25,30 +25,38 @@
 #' .compact(c(1, 2, 3)) # 1 2 3
 #' .compact(c(1, 1, 1)) # 1
 #' }
+#'
+#' @family data types
 #' @keywords internal
 #' @name data_type
 NULL
 
-#' @describeIn data_type Convert an input to \code{integer}. This is
-#'   the same function as \code{as.integer()}.
-#' @return \code{integer}
-.as_int <- as.integer
+#' @describeIn data_type Convert an input to \code{integer}.
+#'
+#' @return \code{integer} or \code{NULL} if value is empty.
+.as_int <- function(x) {
+    if (.has(x)) as.integer(x) else NULL
+}
+#' @describeIn data_type Convert an input to \code{character}.
+#'
+#' @return \code{character} or \code{NULL} if value is empty.
+.as_chr <- function(x) {
+    if (.has(x)) as.character(x) else NULL
+}
 
-#' @describeIn data_type Convert an input to \code{character}. This is
-#'   the same function as \code{as.character()}.
-#' @return \code{character}
-.as_chr <- as.character
-
-#' @describeIn data_type Convert an input to \code{numeric}. This is
-#'   the same function as \code{as.numeric()}.
-#' @return \code{numeric}
-.as_dbl <- as.numeric
+#' @describeIn data_type Convert an input to \code{numeric}.
+#'
+#' @return \code{numeric} or \code{NULL} if value is empty.
+.as_dbl <- function(x) {
+    if (.has(x)) as.numeric(x) else NULL
+}
 
 #' @describeIn data_type Convert an input to a date type. This is
 #'   the same function as \code{lubridate::as_date()}.
-#' @return \code{date}
+#'
+#' @return \code{date} or \code{NULL} if value is empty.
 .as_date <- function(x) {
-    lubridate::as_date(unlist(x, recursive = FALSE))
+    if (.has(x)) lubridate::as_date(unlist(x, recursive = FALSE)) else NULL
 }
 
 #' @describeIn data_type Check if an input has a value or nor. Any zero length
@@ -82,7 +90,7 @@ NULL
 
 #' Handling error
 #'
-#' This functions is a fancy implementation of \code{tryCatch()}. It
+#' This is a fancy implementation of \code{tryCatch()}. It
 #' has a shorter name and provide a easy functionality of rolling back
 #' (run an expression in case of error, but not avoiding it),
 #' of default value (run expression in case of error bypassing it).
@@ -103,7 +111,7 @@ NULL
 #' }
 #'
 #' @param expr Expression to be evaluated.
-#' @param ... Additional parameter to be passed to \code{tryCatach()}.
+#' @param ... Additional parameter to be passed to \code{tryCatch()}.
 #' @param .rollback Expression to run in case of error.
 #' @param .default Expression to evaluate and return in case of error
 #'   (setting this parameter avoids error raising).
@@ -137,10 +145,13 @@ NULL
 #' print(value)
 #' }
 #'
-#' @return Last expression evaluated in \code{expr}, if no error occurs.
+#' @returns Last expression evaluated in \code{expr}, if no error occurs.
 #'   If an error occurs, the function returns the last expression
 #'   evaluated in \code{.default} parameter. If \code{.default} parameter
 #'   is not informed, the function will raise the error.
+#'
+#' @seealso \link{tryCatch()}
+#' @family utility functions
 #' @keywords internal
 .try <- function(expr,
                  ...,
@@ -177,6 +188,28 @@ NULL
     vapply(.by(data, col, fn, ...), c, logical(1))
 }
 
+#' Spatial intersects
+#'
+#' This function is based on \code{sf::st_intersects()}. It projects \code{y}
+#' to the CRS of \code{x} before compute intersection. For each geometry of
+#' \code{x}, the function returns the \code{TRUE} if it intersects with any
+#' geometry of \code{y}, otherwise it returns \code{FALSE}.
+#'
+#' @param x,y \code{sf} geometries.
+#'
+#' @returns A \code{logical} vector indicating which geometries of \code{x}
+#' intersects \code{y} geometries.
+#'
+#' @examples
+#' \dontrun{
+#' x <- .bbox_as_sf(c(xmin=1, xmax=2, ymin=3, ymax=4, crs=4326))
+#' y <- .roi_as_sf(c(lon_min=1.5, lon_max=3, lat_min=3.5, lat_max=5))
+#' .intersects(x, y) # TRUE
+#' }
+#'
+#' @family utility functions
+#' @family region objects API
+#' @keywords internal
 .intersects <- function(x, y) {
     as_crs <- sf::st_crs(x)
     y <- sf::st_transform(y, crs = as_crs)
@@ -189,7 +222,7 @@ NULL
 
 #---- Generic accessors ----
 
-#' bbox accessors
+#' Bbox accessors
 #'
 #' These functions are accessors of \code{bbox} fields of a \code{vector}.
 #' Getters functions returns the respective field values with the expected
@@ -214,7 +247,7 @@ NULL
 #' .as_crs(3857) # EPSG:3857
 #' }
 #'
-#' @return Getters return respective field value or \code{NULL}, if it doesn't
+#' @returns Getters return respective field value or \code{NULL}, if it doesn't
 #'   exist. Setters return the updated \code{x} object.
 #'
 #' @family accessors
@@ -224,47 +257,45 @@ NULL
 
 #' @describeIn bbox_accessors Get \code{'xmin'} field.
 .xmin <- function(x) {
-    if (.has(x[["xmin"]])) .as_dbl(.compact(x[["xmin"]])) else NULL
+    .as_dbl(.compact(x[["xmin"]]))
 }
 
 #' @describeIn bbox_accessors Set \code{'xmin'} field as numeric.
 `.xmin<-` <- function(x, value) {
-    x[["xmin"]] <- if (.has(value)) .as_dbl(value) else NULL
+    x[["xmin"]] <- .as_dbl(value)
     x
 }
 
 #' @describeIn bbox_accessors Get \code{'xmax'} field.
 .xmax <- function(x) {
-    if (.has(x[["xmax"]])) .as_dbl(.compact(x[["xmax"]])) else NULL
+    .as_dbl(.compact(x[["xmax"]]))
 }
 
 #' @describeIn bbox_accessors Set \code{'xmax'} field as numeric.
-#' @return Updated object \code{x}.
 `.xmax<-` <- function(x, value) {
-    x[["xmax"]] <- if (.has(value)) .as_dbl(value) else NULL
+    x[["xmax"]] <- .as_dbl(value)
     x
 }
 
 #' @describeIn bbox_accessors Get \code{'ymin'} field.
 .ymin <- function(x) {
-    if (.has(x[["ymin"]])) .as_dbl(.compact(x[["ymin"]])) else NULL
+    .as_dbl(.compact(x[["ymin"]]))
 }
 
 #' @describeIn bbox_accessors Set \code{'ymin'} field as numeric.
 `.ymin<-` <- function(x, value) {
-    x[["ymin"]] <- if (.has(value)) .as_dbl(value) else NULL
+    x[["ymin"]] <- .as_dbl(value)
     x
 }
 
 #' @describeIn bbox_accessors Get \code{'ymax'} field.
-#' @return \code{numeric}.
 .ymax <- function(x) {
-    if (.has(x[["ymax"]])) .as_dbl(.compact(x[["ymax"]])) else NULL
+    .as_dbl(.compact(x[["ymax"]]))
 }
 
 #' @describeIn bbox_accessors Set \code{'ymax'} field as numeric.
 `.ymax<-` <- function(x, value) {
-    x[["ymax"]] <- if (.has(value)) .as_dbl(value) else NULL
+    x[["ymax"]] <- .as_dbl(value)
     x
 }
 
@@ -280,8 +311,7 @@ NULL
             NA_character_
         else
             stop("invalid crs value")
-    } else
-        NULL
+    }
 }
 
 #' @describeIn bbox_accessors Get \code{'crs'} field.
@@ -291,7 +321,7 @@ NULL
 
 #' @describeIn bbox_accessors Set \code{'crs'} field as \code{character} string.
 `.crs<-` <- function(x, value) {
-    x[["crs"]] <- if (.has(value)) .as_crs(value) else NULL
+    x[["crs"]] <- .as_crs(value)
     x
 }
 
@@ -320,7 +350,7 @@ NULL
 #' x
 #' }
 #'
-#' @return Getters return respective field value or \code{NULL}, if it doesn't
+#' @returns Getters return respective field value or \code{NULL}, if it doesn't
 #'   exist. Setters return the updated \code{x} object.
 #'
 #' @family accessors
@@ -330,51 +360,52 @@ NULL
 
 #' @describeIn block_accessors Get \code{'col'} field.
 .col <- function(x) {
-    if (.has(x[["col"]])) .as_int(.compact(x[["col"]])) else NULL
+    .as_int(.compact(x[["col"]]))
 }
 
 #' @describeIn block_accessors Set \code{'col'} field as integer.
 `.col<-` <- function(x, value) {
-    x[["col"]] <- if (.has(value)) .as_int(value) else NULL
+    x[["col"]] <- .as_int(value)
     x
 }
 
 #' @describeIn block_accessors Get \code{'row'} field.
 .row <- function(x) {
-    if (.has(x[["row"]])) .as_int(.compact(x[["row"]])) else NULL
+    .as_int(.compact(x[["row"]]))
 }
 
 #' @describeIn block_accessors Set \code{'row'} field as integer.
 `.row<-` <- function(x, value) {
-    x[["row"]] <- if (.has(value)) .as_int(value) else NULL
+    x[["row"]] <- .as_int(value)
     x
 }
 
 #' @describeIn block_accessors Get \code{'ncols'} field.
 .ncols <- function(x) {
-    if (.has(x[["ncols"]])) .as_int(.compact(x[["ncols"]])) else NULL
+    .as_int(.compact(x[["ncols"]]))
 }
 
 #' @describeIn block_accessors Set \code{'ncols'} field as integer.
 `.ncols<-` <- function(x, value) {
-    x[["ncols"]] <- if (.has(value)) .as_int(value) else NULL
+    x[["ncols"]] <- .as_int(value)
     x
 }
 
 #' @describeIn block_accessors Get \code{'nrows'} field.
 .nrows <- function(x) {
-    if (.has(x[["nrows"]])) .as_int(.compact(x[["nrows"]])) else NULL
+    .as_int(.compact(x[["nrows"]]))
 }
 
 #' @describeIn block_accessors Set \code{'nrows'} field as integer.
 `.nrows<-` <- function(x, value) {
-    x[["nrows"]] <- if (.has(value)) .as_int(value) else NULL
+    x[["nrows"]] <- .as_int(value)
     x
 }
 
-#' chunk accessors
+#' Chunk accessors
 #'
-#' These functions are accessors of \code{chunk} fields in a \code{vector}.
+#' These functions are read-only accessors of \code{chunk} fields in a
+#' \code{vector}.
 #'
 #' \code{.xres()} and \code{.yres()} computes, respectively, \code{"xres"} and
 #' \code{"yres"} values from chunk fields. The values are computed as
@@ -392,7 +423,7 @@ NULL
 #' .yres(x) # 0.09
 #' }
 #'
-#' @return \code{numeric}.
+#' @returns Spatial resolution.
 #'
 #' @family accessors
 #' @keywords internal
@@ -409,9 +440,82 @@ NULL
     (.ymax(x) - .ymin(x)) / .nrows(x)
 }
 
+#' Band configuration accessors
+#'
+#' These functions are read-only accessors of \code{band_conf} objects. A
+#' \code{band_conf} is an entry of band definition in config. It can be
+#' from an \code{eo_cube} or \code{derived_cube}.
+#'
+#' @param conf A band definition value from config. Can be retrieved by
+#'   \code{.conf_eo_band()} or \code{.conf_derived_band()}.
+#'
+#' @examples
+#' \dontrun{
+#' # Get configuration band
+#' x <- .conf_eo_band(
+#'   source = "BDC",
+#'   collection = "MOD13Q1-6",
+#'   band = "NIR"
+#' )
+#'
+#' .
+#' }
+#'
+#' @returns Respective configuration value.
+#'
+#' @family accessors
+#' @keywords internal
+#' @name band_accessors
+NULL
+
+#' @describeIn band_accessors Get \code{data_type} entry.
+.data_type <- function(conf) {
+    .as_chr(conf[["data_type"]][[1]])
+}
+
+#' @describeIn band_accessors Get \code{missing_value} entry.
+.miss_value <- function(conf) {
+    .as_dbl(conf[["missing_value"]][[1]])
+}
+
+#' @describeIn band_accessors Get \code{minimum_value} entry.
+.min_value <- function(conf) {
+    .as_dbl(conf[["minimum_value"]][[1]])
+}
+
+#' @describeIn band_accessors Get \code{maximum_value} entry.
+.max_value <- function(conf) {
+    .as_dbl(conf[["maximum_value"]][[1]])
+}
+
+#' @describeIn band_accessors Get \code{scale_factor} entry.
+.scale <- function(conf) {
+    .as_dbl(conf[["scale_factor"]][[1]])
+}
+
+#' @describeIn band_accessors Get \code{offset_value} entry.
+.offset <- function(conf) {
+    .as_dbl(conf[["offset_value"]][[1]])
+}
+
+#' @describeIn band_accessors Get \code{interp_values} entry.
+.cloud_interp_values <- function(conf) {
+    .as_int(conf[["interp_values"]])
+}
+
+#' @describeIn band_accessors Get \code{bit_mask} entry.
+.cloud_bit_mask <- function(conf) {
+    .as_int(conf[["bit_mask"]][[1]])
+}
+
+#' @describeIn band_accessors Return name of the cloud band.
+.band_cloud <- function() {
+    "CLOUD"
+}
+
 #---- block API: ----
 
-#' Block
+#' Block API
 #'
 #' A block represents a region of a matrix. A \code{block} is any
 #' \code{list} or \code{tibble} containing \code{col}, \code{row},
@@ -432,6 +536,7 @@ NULL
 #' .block_size(x, 2)
 #' }
 #'
+#' @seealso \link{block_accessors}
 #' @family region objects API
 #' @keywords internal
 #' @name block_api
@@ -443,7 +548,7 @@ NULL
 #' @describeIn block_api Extract a \code{block} from any given
 #' \code{vector}.
 #'
-#' @return \code{.block()}: \code{block}.
+#' @returns \code{.block()}: \code{block}.
 .block <- function(x) {
     if (!all(.block_cols %in% names(x))) {
         return(NULL)
@@ -454,14 +559,14 @@ NULL
 #' @describeIn block_api Compute the number of pixels for a
 #' \code{block} considering an additional overlapping parameter.
 #'
-#' @return \code{.block_size()}: \code{integer}.
+#' @returns \code{.block_size()}: \code{integer}.
 .block_size <- function(block, overlap = 0) {
     (block[["nrows"]] + 2 * overlap) * (block[["ncols"]] + 2 * overlap)
 }
 
 #---- bbox API: ----
 
-#' bbox API
+#' Bbox API
 #'
 #' A bounding box represents a rectangular geographical region in a certain
 #' projection. A \code{bbox} is any \code{list} or \code{tibble} containing
@@ -489,6 +594,7 @@ NULL
 #' .bbox_as_sf(x, as_crs = "EPSG:3857")
 #' }
 #'
+#' @seealso \link{bbox_accessors}
 #' @family region objects API
 #' @keywords internal
 #' @name bbox_api
@@ -500,7 +606,7 @@ NULL
 #' @describeIn bbox_api extract a \code{bbox} from any given
 #' \code{vector}.
 #'
-#' @return \code{.bbox()}: \code{bbox}.
+#' @returns \code{.bbox()}: \code{bbox}.
 .bbox <- function(x, ..., default_crs = NULL) {
     if (!all(.bbox_cols %in% names(x))) {
         return(NULL)
@@ -518,7 +624,7 @@ NULL
 #' @describeIn bbox_api Convert a \code{bbox} into a
 #' \code{sf} polygon object.
 #'
-#' @return \code{.bbox_as_sf()}: \code{sf}.
+#' @returns \code{.bbox_as_sf()}: \code{sf}.
 .bbox_as_sf <- function(bbox, ..., default_crs = NULL, as_crs = NULL) {
     bbox <- .bbox(bbox, default_crs = default_crs)
     if (!all(c(.bbox_cols, "crs") %in% names(bbox))) {
@@ -553,9 +659,9 @@ NULL
 
 #---- roi API: ----
 
-#' roi API
+#' ROI API
 #'
-#' A ROI (or 'Region of Interest') represents an geographic area. There are
+#' A Region of Interest (ROI) represents an geographic area. There are
 #' three types of ROI objects, namely \code{sf} (from package \code{sf}),
 #' \code{bbox} (from \code{.bbox()}), and \code{lonlat}.
 #' A \code{lonlat} object is any \code{vector} containing \code{lon_min},
@@ -594,7 +700,7 @@ NULL
 #' @describeIn roi_api Tells which type of ROI is in \code{roi}
 #' parameter (One of \code{'sf'}, \code{'bbox'}, or \code{'lonlat'}).
 #'
-#' @return \code{.roi_type()}: \code{character}.
+#' @returns \code{.roi_type()}: \code{character}.
 .roi_type <- function(roi) {
     if (inherits(roi, c("sf", "sfc"))) {
         "sf"
@@ -610,7 +716,7 @@ NULL
 #' @describeIn roi_api Chooses one of the arguments passed in
 #' \code{...} according to which type of \code{roi} parameter.
 #'
-#' @return \code{.roi_switch()}: one of the arguments in \code{...}.
+#' @returns \code{.roi_switch()}: one of the arguments in \code{...}.
 .roi_switch <- function(roi, ...) {
     switch(.roi_type(roi),
            ...
@@ -619,7 +725,7 @@ NULL
 
 #' @describeIn roi_api Converts \code{roi} to an \code{sf} object.
 #'
-#' @return \code{.roi_as_sf()}: \code{sf}.
+#' @returns \code{.roi_as_sf()}: \code{sf}.
 .roi_as_sf <- function(roi, default_crs = NULL) {
     .roi_switch(
         roi = roi, sf = roi,
@@ -632,9 +738,9 @@ NULL
     )
 }
 
-#---- chunks API ----
+#---- chunks API: ----
 
-#' chunks API
+#' Chunks API
 #'
 #' A chunk represents a rectangular region definition of a matrix and
 #' its corresponding geographical area. So, a chunk object contains a
@@ -671,6 +777,7 @@ NULL
 #' )
 #' }
 #'
+#' @seealso \link{chunk_accessors}
 #' @family region objects API
 #' @keywords internal
 #' @name chunks_api
@@ -679,7 +786,7 @@ NULL
 #' @describeIn chunks_api Creates a tibble of chunks with the same size as
 #'   \code{block} and additional \code{overlap}.
 #'
-#' @return \code{.chunks_create()}: \code{chunks} tibble.
+#' @returns \code{.chunks_create()}: \code{chunks} tibble.
 .chunks_create <- function(block, overlap, image_size, image_bbox) {
     # Generate all starting block points (col, row)
     chunks <- purrr::cross_df(list(
@@ -728,7 +835,7 @@ NULL
 #' @describeIn chunks_api Creates an empty \code{raster} object based on the
 #'   first chunk passed in \code{chunk} parameter.
 #'
-#' @return \code{raster} object.
+#' @returns \code{raster} object.
 .chunks_as_raster <- function(chunk, nlayers) {
     .raster_new_rast(
         nrows = .nrows(chunk)[[1]],
@@ -745,7 +852,7 @@ NULL
 #' @describeIn chunks_api Creates a \code{chunk} that can be used to
 #'   remove overlaps.
 #'
-#' @return \code{.chunks_no_overlap()}: \code{chunks} tibble.
+#' @returns \code{.chunks_no_overlap()}: \code{chunks} tibble.
 .chunks_no_overlap <- function(chunks) {
     # Generate blocks
     cropped <- tibble::tibble(
@@ -784,7 +891,7 @@ NULL
 #' @describeIn chunks_api Filter \code{chunks} that intersects a given
 #'   \code{roi}.
 #'
-#' @return \code{.chunks_filter_spatial()}: \code{chunks} tibble.
+#' @returns \code{.chunks_filter_spatial()}: \code{chunks} tibble.
 .chunks_filter_spatial <- function(chunks, roi) {
     chunks[.intersects(.bbox_as_sf(chunks), .roi_as_sf(roi)), ]
 }
@@ -816,13 +923,16 @@ NULL
 #' .period_unit("P2M") # month
 #' .period_unit("P1Y") # year
 #' }
+#'
+#' @family data types
+#' @keywords internal
 #' @name period_api
 NULL
 
 #' @describeIn period_api Check if a character string is a valid
 #' \code{period}.
 #'
-#' @return \code{.period_check()}: nothing.
+#' @returns \code{.period_check()}: nothing.
 .period_check <- function(period) {
     if (!grepl("^P[0-9]+[DMY]$", period)) {
         stop("invalid period format")
@@ -832,7 +942,7 @@ NULL
 #' @describeIn period_api Return the value part of a
 #' \code{period}.
 #'
-#' @return \code{.period_val()}: integer.
+#' @returns \code{.period_val()}: numeric value of a period.
 .period_val <- function(period) {
     .period_check(period)
     .as_dbl(gsub("^P([0-9]+)[DMY]$", "\\1", period))
@@ -841,7 +951,7 @@ NULL
 #' @describeIn period_api Return the unit of a \code{period}.
 #' Can be one of \code{'day'}, \code{'month'}, or \code{'year'}.
 #'
-#' @return \code{.period_unit()}: character.
+#' @returns \code{.period_unit()}: description of unit of a period.
 .period_unit <- function(period) {
     .period_check(period)
     unit <- c(D = "day", M = "month", Y = "year")
@@ -850,77 +960,188 @@ NULL
 
 #---- Config: ----
 
-.conf_exists <- function(...) {
-    key <- c(...)
-    !is.null(.try(sits_env[["config"]][[key]], .default = NULL))
-}
+#' Basic access config functions
+#'
+#' These are basic functions to access config options.
+#'
+#' @param ... Set of \code{character} values representing a key to access
+#'   some hierarchical config entry.
+#' @param throw_error Should an error be thrown if test fails?
+#'
+#' @examples
+#' \dontrun{
+#' .conf_exists("run_tests") # TRUE
+#' .conf("run_tests")
+#' .conf_exists("not_existing_entry") # FALSE
+#' }
+#'
+#' @returns Configuration value.
+#'
+#' @family config functions
+#' @keywords internal
+#' @name config_api
+NULL
 
-.conf <- function(...) {
+#' @describeIn config_api Tests if a key provided as \code{character} values
+#'   in \code{...} parameter exists in the config. If \code{throws_error} is
+#'   \code{TRUE} and the test failed, an error is raised.
+.conf_exists <- function(..., throw_error = FALSE) {
     key <- c(...)
-    if (!.conf_exists(key)) {
+    exists <- !is.null(.try(sits_env[["config"]][[key]], .default = NULL))
+    if (!exists && throw_error) {
         stop("key '", paste(key, collapse = "->"), "' not found in config")
     }
+    # Return test
+    exists
+}
+
+#' @describeIn config_api Get a config value located in a key provided as
+#'   \code{character} values in \code{...} parameter. If a key does not
+#'   exists, throws an error. Use \code{.conf_exists()} to test for a key
+#'   existence.
+.conf <- function(...) {
+    key <- c(...)
+    # Check for key existence and throws an error if it not exists
+    .conf_exists(key, throw_error = TRUE)
     sits_env[["config"]][[c(key)]]
 }
 
-# eo_cube
+#' Config functions for \code{eo_cube}
+#'
+#' These are syntactic sugar functions to easily access config options for
+#' bands of \code{eo_cube} cubes. \code{eo_cubes} are a S3 class representation
+#' for an Earth Observation cube. It is the primary data used to obtain a
+#' classification map.
+#'
+#' The config entries of a \code{eo_cube} are located in
+#' \code{sources -> <SOURCE> -> collections -> <COLLECTION>} key.
+#' Values for \code{source}, \code{collection}, and \code{band} are uppercase.
+#'
+#' @param source Source name.
+#' @param collection Collection name.
+#' @param band Band name.
+#'
+#' @examples
+#' \dontrun{
+#' # tests if 'BDC -> MOD13Q1-6 -> NDVI' key exists in config
+#' .conf_eo_band_exists(
+#'   source = "BDC",
+#'   collection = "MOD13Q1-6",
+#'   band = "NDVI"
+#' )
+#' # get configuration for band NDVI of 'BDC -> MOD13Q1-6' collection
+#' x <- .conf_eo_band(
+#'   source = "BDC",
+#'   collection = "MOD13Q1-6",
+#'   band = "NDVI"
+#' )
+#' }
+#'
+#' @returns Configuration value.
+#'
+#' @seealso Band accessors: \link{band_accessors}
+#' @family config functions
+#' @keywords internal
+#' @name eo_cube_config
+NULL
 
+#' @describeIn eo_cube_config Tests if a \code{band} entry exists in config
+#'   for some \code{source} and \code{collection}. If neither \code{source}
+#'   nor \code{collection} entry are found in config, an error is thrown.
+#'   Use \code{.conf_exists()} to test for \code{source} and \code{collection}
+#'   existence.
 .conf_eo_band_exists <- function(source, collection, band) {
+    # source, collection, and band are uppercase
+    source <- toupper(source)
+    collection <- toupper(collection)
+    band <- toupper(band)
+    # Check for source and collection and throws an error if it not exists
+    .conf_exists(
+        "sources", source, "collections", collection,
+        throw_error = TRUE
+    )
+    # Test for band and return
     .conf_exists("sources", source, "collections", collection, "bands", band)
 }
 
+#' @describeIn eo_cube_config Get a config value of for a \code{band} located
+#'   in a \code{source} and \code{collection}. If the \code{band} is not
+#'   found, a default value will be returned from config. If neither
+#'   \code{source} nor \code{collection} entry are found in config, an
+#'   error is thrown. Use \code{.conf_exists()} to test for \code{source} and
+#'   \code{collection} existence.
 .conf_eo_band <- function(source, collection, band) {
+    # Return a default value if band does not exists in config
     if (!.conf_eo_band_exists(source, collection, band)) {
         return(.conf("default_values", "eo_cube"))
     }
+    # Get band config value and return it
     .conf("sources", source, "collections", collection, "bands", band)
 }
 
-# derived_cube
+#' Config functions for \code{derived_cube}
+#'
+#' These are syntactic sugar functions to easily access config options for
+#' bands of \code{derived_cube} cubes. \code{derived_cubes} are a S3 class
+#' representation of a cube generated by the classification workflow starting
+#' from an Earth Observation data cube.
+#'
+#' There are several classes of \code{derived_cube}:
+#' \itemize{
+#' \item \code{probs_cube}: multilayer probability cube produced by a
+#'   classification with the probabilities attributed to each class by a
+#'   model. The possible band names are \code{'probs'}, \code{'bayes'}, and
+#'   \code{'bilat'}, acronyms for 'probability', 'Bayesian smoothing', and
+#'   'Bilateral smoothing'.
+#' \item \code{class_cube}: labeled cube (classified map) produced by choosing
+#'   a label for each pixel. Its unique band name is \code{'class'}.
+#' \item \code{uncertainty_cube}: a cube produced to measure the uncertainty of
+#'   a classification for each pixel. The possible band names are
+#'   \code{'least'}, \code{'entropy'}, and \code{'margin'}, acronyms for
+#'   the method used to produce the cube.
+#'   \code{'bilat'}, acronyms for 'probability', 'Bayesian smoothing', and
+#'   'Bilateral smoothing'.
+#' }
+#'
+#' Values for \code{derived_class} and \code{band} are lowercase. This was
+#' done to avoid conflicts with \code{eo_cube} band naming (uppercase).
+#' The config entries of a \code{derived_cube} are located in
+#' \code{derived_cube -> <derived_class>} key.
+#'
+#' @param derived_class Class name of the \code{derived_cube}.
+#' @param band Band name.
+#'
+#' @examples
+#' \dontrun{
+#' # get S3 class value that a derived_cube of class 'probs' must have
+#' .conf_derived_s3class("probs")
+#' }
+#'
+#' @returns Configuration value.
+#'
+#' @seealso Band accessors: \link{band_accessors}
+#' @family config functions
+#' @keywords internal
+#' @name derived_cube_config
+NULL
 
+#' @describeIn derived_cube_config Get the S3 class values to instantiate a
+#'   new \code{derived_cube}.
 .conf_derived_s3class <- function(derived_class) {
+    # derived_class is lowercase
+    derived_class <- tolower(derived_class)
     .conf("derived_cube", derived_class, "s3_class")
 }
 
+#' @describeIn derived_cube_config Get the S3 class values to instantiate a
+#'   new \code{derived_cube}.
 .conf_derived_band <- function(derived_class, band) {
+    # derived_class and band are lowercase
+    derived_class <- tolower(derived_class)
+    band <- tolower(band)
     .conf("derived_cube", derived_class, "bands", band)
 }
 
-.band_data_type <- function(conf) {
-    .as_chr(conf[["data_type"]][[1]])
-}
-
-.band_miss_value <- function(conf) {
-    .as_dbl(conf[["missing_value"]][[1]])
-}
-
-.band_min_value <- function(conf) {
-    .as_dbl(conf[["minimum_value"]][[1]])
-}
-
-.band_max_value <- function(conf) {
-    .as_dbl(conf[["maximum_value"]][[1]])
-}
-
-.band_scale <- function(conf) {
-    .as_dbl(conf[["scale_factor"]][[1]])
-}
-
-.band_offset <- function(conf) {
-    .as_dbl(conf[["offset_value"]][[1]])
-}
-
-.band_cloud_interp_values <- function(conf) {
-    .as_int(conf[["interp_values"]])
-}
-
-.band_cloud_bit_mask <- function(conf) {
-    .as_int(conf[["bit_mask"]][[1]])
-}
-
-.band_cloud <- function() {
-    "CLOUD"
-}
 
 # .conf_exists("sources", "BDC", "collections", "MOD13Q1-6")
 # .conf_exists("sources", "BDC", "collections", "MOD13Q1-7")
@@ -1652,23 +1873,23 @@ NULL
     # Correct missing, minimum, and maximum values and
     # apply scale and offset.
     band_conf <- .tile_band_conf(tile = tile, band = band)
-    miss_value <- .band_miss_value(band_conf)
+    miss_value <- .miss_value(band_conf)
     if (.has(miss_value)) {
         values[values == miss_value] <- NA
     }
-    min_value <- .band_min_value(band_conf)
+    min_value <- .min_value(band_conf)
     if (.has(min_value)) {
         values[values < min_value] <- if (replace_by_minmax) min_value else NA
     }
-    max_value <- .band_max_value(band_conf)
+    max_value <- .max_value(band_conf)
     if (.has(max_value)) {
         values[values > max_value] <- if (replace_by_minmax) max_value else NA
     }
-    scale <- .band_scale(band_conf)
+    scale <- .scale(band_conf)
     if (.has(scale) && scale != 1) {
         values <- values * scale
     }
-    offset <- .band_offset(band_conf)
+    offset <- .offset(band_conf)
     if (.has(offset) && offset != 0) {
         values <- values + offset
     }
@@ -1727,8 +1948,8 @@ NULL
 
     # Get cloud parameters
     cloud_conf <- .tile_band_conf(tile = tile, band = .band_cloud())
-    interp_values <- .band_cloud_interp_values(cloud_conf)
-    is_bit_mask <- .band_cloud_bit_mask(cloud_conf)
+    interp_values <- .cloud_interp_values(cloud_conf)
+    is_bit_mask <- .cloud_bit_mask(cloud_conf)
     # Prepare cloud_mask
     # Identify values to be removed
     if (!is_bit_mask) {
@@ -1815,8 +2036,8 @@ NULL
     # Create a template raster based on the first image of the tile
     .raster_merge_blocks(
         out_files = files, base_file = .fi_path(.fi(base_tile)),
-        block_files = block_files, data_type = .band_data_type(band_conf),
-        missing_value = .band_miss_value(band_conf), multicores = multicores
+        block_files = block_files, data_type = .data_type(band_conf),
+        missing_value = .miss_value(band_conf), multicores = multicores
     )
     # Create tile based on template
     tile <- .tile_eo_from_files(
@@ -1864,8 +2085,8 @@ NULL
     # Create a template raster based on the first image of the tile
     .raster_merge_blocks(
         out_files = file, base_file = base_file,
-        block_files = block_files, data_type = .band_data_type(band_conf),
-        missing_value = .band_miss_value(band_conf), multicores = multicores
+        block_files = block_files, data_type = .data_type(band_conf),
+        missing_value = .miss_value(band_conf), multicores = multicores
     )
     # Create tile based on template
     tile <- .tile_derived_from_file(
