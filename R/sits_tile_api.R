@@ -1372,12 +1372,13 @@ NULL
     .intersects(.fi_as_sf(fi), .roi_as_sf(roi))
 }
 
-.fi_spatial_filter <- function(fi, roi) {
+.fi_filter_spatial <- function(fi, roi) {
     fi[.fi_intersects(fi, roi), ]
 }
 
 .fi_read_block <- function(fi, band, block) {
-    fi <- .fi_band_filter(fi = fi, band = band)
+    band <- band[[1]]
+    fi <- .fi_filter_bands(fi = fi, bands = band)
     files <- .fi_paths(fi)
     if (!.has(files)) {
         return(NULL)
