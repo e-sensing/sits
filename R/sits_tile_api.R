@@ -1358,7 +1358,7 @@ NULL
     .between(.fi_timeline(fi), start_date, end_date)
 }
 
-.fi_temporal_filter <- function(fi, start_date, end_date) {
+.fi_filter_temporal <- function(fi, start_date, end_date) {
     if (!.has(start_date)) {
         start_date <- .fi_min_date(fi)
     }
