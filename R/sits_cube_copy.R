@@ -25,35 +25,35 @@ sits_cube_copy <- function(cube,
     features <- .cube_feature_create(cube)
     # Process each tile sequentially
     features <- .jobs_map_sequential_dfr(features, function(feature) {
-        local_tile <- .download_tile(
+        local_tile <- .download_feature(
             feature = feature, res = res,
-            roi = roi, output_dir = output_dir
+            roi = roi, output_dir = output_dir,
+            progress = progress
         )
     })
     # Join output features as a cube and return it
     .cube_merge_features(features)
 }
 
-.download_tile <- function(feature, res, roi, output_dir, progress) {
+.download_feature <- function(feature, res, roi, output_dir, progress) {
     # Get all paths and expand
-    paths <- path.expand(.fi_paths(.fi(feature)))
-    # Create a list of user parameters
-    gdal_params <- .get_gdal_params(feature = feature, roi = roi, res = res)
+    files <- path.expand(.fi_paths(.fi(feature)))
+    # Create a list of user parameters as gdal format
+    gdal_params <- .gdal_format_params(feature = feature, roi = roi, res = res)
     # Start parallel downloading
-    destfiles <- .jobs_map_parallel_chr(paths, function(path) {
-        # Create dest file
-        destfile <- file.path(output_dir, .file_base(path))
+    destfiles <- .jobs_map_parallel_chr(files, function(file) {
+        # Create output file
+        out_file <- file.path(output_dir, .file_base(file))
         # Resume feature
-        if (.raster_is_valid(destfile)) {
-            return(destfile)
+        if (.raster_is_valid(out_file)) {
+            return(out_file)
         }
+        # Get a gdal or default download
+        download_fn <- .download_controller(out_file, gdal_params)
         # Download file
-        destfile <- download_fn(
-            path = path, destfile = destfile, gdal_params = gdal_params,
-            output_dir = output_dir
-        )
+        out_file <- download_fn(file)
         # Return the destination file path
-        destfile
+        out_file
     })
 
     update_bbox <- if (is.null(roi) && is.null(res)) FALSE else TRUE
@@ -65,85 +65,61 @@ sits_cube_copy <- function(cube,
     return(feature)
 }
 
-.get_gdal_params <- function(feature, roi, res) {
+.gdal_format_params <- function(feature, roi, res) {
     gdal_params <- list()
     if (!is.null(res)) {
-        gdal_params[["tr"]] <- .get_gdal_res(res)
+        gdal_params[["tr"]] <- c(res, res)
     }
     if (!is.null(roi)) {
-        gdal_params[["srcwin"]] <- .get_gdal_roi(feature = feature, roi = roi)
+        gdal_params[["srcwin"]] <- .gdal_as_srcwin(feature = feature, roi = roi)
     }
     gdal_params[c("of", "co")] <- list("GTiff", .config_gtiff_default_options())
 
     gdal_params
 }
 
-.get_gdal_roi <- function(feature, roi) {
+.gdal_as_srcwin <- function(feature, roi) {
     block <- .sits_raster_sub_image(tile = feature, roi = roi)
-    c(xoff = block[["first_col"]] - 1,
-      yoff = block[["first_row"]] - 1,
+    c(xoff = block[["col"]] - 1,
+      yoff = block[["row"]] - 1,
       xsize = block[["ncols"]],
       ysize = block[["nrows"]]
     )
 }
 
-.get_gdal_res <- function(res) {
-    c(res, res)
-}
-
-.file_is_local_path <- function(path) {
-    !grepl(pattern = "^[^:]+:", x = path)
-}
-
-.file_remove_vsi <- function(path) {
-    gsub(pattern = "^(/vsicurl/|/vsis3/|/vsigs/)", replacement = "", x = path)
-}
-
-.gdal_download <- function(destfile, gdal_params) {
-    download_fn <- function(path) {
-        gdal_params[c("src_dataset", "dst_dataset")] <- list(path, destfile)
-        do.call(
-            what = gdalUtilities::gdal_translate,
-            args = gdal_params
-        )
-    }
-    download_fn
-}
-
-.base_download <- function(destfile) {
-    donwload_fn <- function(path) {
-        download.file(
-            url = .file_remove_vsi(path),
-            destfile = destfile,
-            method = "wget",
-            quiet = TRUE
-        )
-    }
-    donwload_fn
-}
-
-.is_spatial_download <- function(gdal_params) {
-    "srcwin" %in% names(gdal_params) || "res" %in% names(gdal_params)
-}
-
-download_controler <- function(destile, gdal_params) {
-    if (.is_spatial_download(gdal_params)) {
-        download_fn <- .gdal_download(destile, gdal_params)
+.download_controller <- function(destfile, gdal_params) {
+    # gdal is used if the image needs to be cropped or resampled
+    if (any(c("srcwin", "tr") %in% names(gdal_params))) {
+        download_fn <- .download_gdal(destfile, gdal_params)
     } else {
-        download_fn <- .base_download(destile)
+        download_fn <- .download_base(destfile)
     }
     return(download_fn)
 }
 
-download_fn <- function(path, destfile, gdal_params, output_dir) {
-    # Add file scheme in path
-    if (.file_is_local_path(path)) {
-        path <- .file_path("file://", path)
+.download_gdal <- function(destfile, gdal_params) {
+    download_fn <- function(file) {
+        gdal_params[c("src_dataset", "dst_dataset")] <- list(file, destfile)
+        do.call(
+            what = gdalUtilities::gdal_translate,
+            args = gdal_params
+        )
+        destfile
     }
-    # Get a spatial or default download
-    download_fun <- download_controler(destfile, gdal_params)
-    # Download file
-    .try(download_fun(path),  default = function(e) stop(e$message))
-    # Return destination file
-    destfile
+    download_fn
+}
+
+.download_base <- function(destfile) {
+    donwload_fn <- function(file) {
+        # Add file scheme in path
+        if (.file_is_local(file)) {
+            file <- .file_path("file://", file, sep = "")
+        }
+        download.file(
+            url = .file_remove_vsi(file),
+            destfile = destfile, quiet = TRUE
+        )
+        destfile
+    }
+    donwload_fn
 }
