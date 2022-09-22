@@ -27,6 +27,7 @@
     }
     if (!is.null(output_dir)) {
         output_dir <- gsub("[/]*$", "", output_dir)
+        output_dir <- path.expand(output_dir)
         if (!dir.exists(output_dir) && create_dir) {
             dir.create(output_dir, recursive = TRUE)
         }
