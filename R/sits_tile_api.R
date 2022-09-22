@@ -619,14 +619,20 @@ NULL
     if (!all(.bbox_cols %in% names(x))) {
         return(NULL)
     }
+    xmin <- pmin(x[["xmin"]], x[["xmax"]])
+    xmax <- pmax(x[["xmin"]], x[["xmax"]])
+    ymin <- pmin(x[["ymin"]], x[["ymax"]])
+    ymax <- pmax(x[["ymin"]], x[["ymax"]])
     if ("crs" %in% names(x)) {
-        return(as.list(x[c(.bbox_cols, "crs")]))
+        crs <- x[["crs"]]
+    } else {
+        crs <- default_crs
+        if (is.null(default_crs)) {
+            warning("object has no crs, assuming 'EPSG:4326'")
+            crs <- "EPSG:4326"
+        }
     }
-    if (is.null(default_crs)) {
-        warning("object has no crs, assuming 'EPSG:4326'")
-        default_crs <- "EPSG:4326"
-    }
-    as.list(c(x[.bbox_cols], list(crs = default_crs)))
+    list(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, crs = crs)
 }
 
 #' @describeIn bbox_api Convert a \code{bbox} into a
