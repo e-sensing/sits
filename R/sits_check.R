@@ -1344,6 +1344,19 @@
     )
 }
 
+#' @title Does the values has same number of pixels than input values?
+#' @name .check_predicted
+#' @param values a matrix of processed values
+#' @param input_pixels number of pixels in input matrix
+#' @return  No return value, called for side effects.
+#' @keywords internal
+.check_processed_values <- function(values, input_pixels) {
+    .check_that(
+        x = .has(nrow(values)) && nrow(values) == input_pixels,
+        msg = paste("size of processed matrix is different",
+                    "from number of input pixels")
+    )
+}
 #' @title Does the input data contain a set of predicted values?
 #' @name .check_predicted
 #' @param data a sits tibble
@@ -1531,7 +1544,7 @@
             all(bands %in% sits_bands(samples_validation))
     )
 }
-#' @title Do the samples contain a cluster collumn?
+#' @title Do the samples contain a cluster column?
 #' @name .check_samples_cluster
 #' @param data a sits tibble with cluster col
 #' @return  No return value, called for side effects.
