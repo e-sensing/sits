@@ -18,18 +18,13 @@ rstac_pagination_limit  : 400
 raster_api_package      : "terra"
 
 # GDAL GTiff default creation options
-gdal_creation_options   : ["COMPRESS=LZW",
-                           "PREDICTOR=2",
-                           "BIGTIFF=YES",
-                           "TILED=YES",
-                           "BLOCKXSIZE=512",
-                           "BLOCKYSIZE=512"]
+gdal_creation_options   : [ "COMPRESS=LZW", "PREDICTOR=2",
+                            "BIGTIFF=YES", "TILED=YES",
+                            "BLOCKXSIZE=512", "BLOCKYSIZE=512" ]
 
-gdalcubes_options   : ["COMPRESS=LZW",
-                       "PREDICTOR=2",
-                       "BIGTIFF=YES",
-                       "BLOCKXSIZE=512",
-                       "BLOCKYSIZE=512"]
+gdalcubes_options       : ["COMPRESS=LZW", "PREDICTOR=2",
+                           "BIGTIFF=YES", "BLOCKXSIZE=512",
+                           "BLOCKYSIZE=512"]
 
 # maxbytes per plot (in MB)
 plot_max_Mbytes: 16
