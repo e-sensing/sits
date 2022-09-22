@@ -1749,13 +1749,11 @@ NULL
 #' @export
 .tile_during.raster_cube <- function(tile, start_date, end_date) {
     any(.fi_during(
-        fi = .fi(tile),
-        start_date = start_date,
-        end_date = end_date
+        fi = .fi(tile), start_date = start_date, end_date = end_date
     ))
 }
 
-#---- | .tile_temporal_filter() ----
+#---- | .tile_filter_temporal() ----
 #' Tile API
 #'
 #' Filter file_info entries by 'start_date' and 'end_date.'
@@ -1764,15 +1762,15 @@ NULL
 #' @param start_date,end_date Date of start and end.
 #'
 #' @return tile
-.tile_temporal_filter <- function(tile, start_date, end_date) {
-    UseMethod(".tile_temporal_filter", tile)
+.tile_filter_temporal <- function(tile, start_date, end_date) {
+    UseMethod(".tile_filter_temporal", tile)
 }
 
 #' @export
-.tile_temporal_filter.raster_cube <-
+.tile_filter_temporal.raster_cube <-
     function(tile, start_date, end_date) {
         tile <- .tile(tile)
-        .tile_file_info(tile) <- .fi_temporal_filter(
+        .tile_file_info(tile) <- .fi_filter_temporal(
             fi = .fi(tile),
             start_date = start_date,
             end_date = end_date
