@@ -2319,25 +2319,28 @@ NULL
 #' @param start_date,end_date Date of start and end.
 #'
 #' @return cube
-.cube_temporal_filter <- function(cube, start_date, end_date) {
-    UseMethod(".cube_temporal_filter", cube)
+.cube_filter_temporal <- function(cube, start_date, end_date) {
+    UseMethod(".cube_filter_temporal", cube)
 }
 
 #' @export
-.cube_temporal_filter.raster_cube <-
-    function(cube, start_date, end_date) {
-        cube[.cube_during(cube, start_date, end_date), ]
+.cube_filter_temporal.raster_cube <- function(cube, start_date, end_date) {
+    during <- .cube_during(cube, start_date, end_date)
+    if (!any(during)) {
+        stop("informed interval does not interesect cube")
     }
-
-#---- | .cube_band_filter() ----
-
-.cube_band_filter <- function(cube, band) {
-    UseMethod(".cube_band_filter", cube)
+    cube[during, ]
 }
 
-.cube_band_filter.raster_cube <- function(cube, band) {
-    .cube_foreach_tile(cube, function(tile) {
-        .tile_band_filter(tile = tile, band = band)
+#---- | .cube_filter_bands() ----
+
+.cube_filter_bands <- function(cube, bands) {
+    UseMethod(".cube_filter_bands", cube)
+}
+
+.cube_filter_bands.raster_cube <- function(cube, bands) {
+    slider::slide_dfr(cube, function(tile) {
+        .tile_filter_bands(tile = tile, bands = bands)
     })
 }
 
@@ -2392,16 +2395,16 @@ NULL
 # )
 # .cube_intersects(s2_cube, s2_cube[2:3,])
 # .cube_intersects(s2_cube, s2_cube[4,])
-# .cube_spatial_filter(s2_cube, .bbox_as_sf(s2_cube[3:4,]))
-# .cube_spatial_filter(s2_cube, .bbox_as_sf(s2_cube[3:4,], as_crs = 4326))
+# .cube_filter_spatial(s2_cube, .bbox_as_sf(s2_cube[3:4,]))
+# .cube_filter_spatial(s2_cube, .bbox_as_sf(s2_cube[3:4,], as_crs = 4326))
 # .cube_start_date(s2_cube)
 # .cube_end_date(s2_cube)
 # .cube_timeline(s2_cube)
-# .cube_temporal_filter(s2_cube, start_date = "2017-01-01", end_date = "2018-07-12")
-# .cube_temporal_filter(s2_cube, start_date = "2017-01-01", end_date = "2018-07-14")
-# .cube_temporal_filter(s2_cube, start_date = "2019-07-25", end_date = "2020-07-28")
-# .cube_temporal_filter(s2_cube, start_date = "2019-07-28", end_date = "2020-07-28")
-# .cube_temporal_filter(s2_cube, start_date = "2014-07-28", end_date = "2015-07-28")
+# .cube_filter_temporal(s2_cube, start_date = "2017-01-01", end_date = "2018-07-12")
+# .cube_filter_temporal(s2_cube, start_date = "2017-01-01", end_date = "2018-07-14")
+# .cube_filter_temporal(s2_cube, start_date = "2019-07-25", end_date = "2020-07-28")
+# .cube_filter_temporal(s2_cube, start_date = "2019-07-28", end_date = "2020-07-28")
+# .cube_filter_temporal(s2_cube, start_date = "2014-07-28", end_date = "2015-07-28")
 #
 # sinop <- sits_cube(
 #     source = "BDC",
