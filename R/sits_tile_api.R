@@ -1341,6 +1341,24 @@ NULL
     tile
 }
 
+#---- | .tile_asset_create() ----
+
+.cube_asset_create <- function(cube) {
+    .cube_foreach_tile(cube, .tile_asset_create)
+}
+
+.tile_asset_create <- function(tile) {
+    tile <- .tile(tile)
+    assets <- tile[, c("tile", "file_info")]
+    assets <- tidyr::unnest(assets, "file_info")
+    assets[["feature"]] <- assets[["fid"]]
+    assets[["asset"]] <- assets[["band"]]
+    assets <- tidyr::nest(assets, file_info = -c("tile", "feature", "asset"))
+    tile <- tile[rep(1, nrow(assets)), ]
+    tile[["file_info"]] <- assets[["file_info"]]
+    tile
+}
+
 #---- Tile constructors: ----
 
 # ---- | tile eo api ----
@@ -1754,6 +1772,12 @@ NULL
     )
     class(cube) <- class(features)
     cube
+}
+
+#---- | .cube_merge_assets() ----
+
+.cube_merge_assets <- function(assets) {
+    .cube_merge_features(assets)
 }
 
 # s2_cube <- sits_cube(
