@@ -13,13 +13,11 @@
 #' @param cube       Classified image cube to be reclassified.
 #' @param mask       Classified image cube with additional information
 #'                   to be used in expressions.
-#' @param mask_na_values Set cube pixels to NA where corresponding pixels in
-#'                   mask are NA.
+#' @param rules      Named expressions to be evaluated (see details).
 #' @param memsize    Memory available for classification (in GB).
 #' @param multicores Number of cores to be used for classification.
 #' @param output_dir Directory where files will be saved.
 #' @param progress   Show progress bar?
-#' @param ...        Named expressions to be evaluated (see details).
 #'
 #' @details
 #' \code{sits_reclassify()} allow any valid R expression to compute
@@ -96,371 +94,236 @@
 #' }
 #' @rdname sits_reclassify
 #' @export
-sits_reclassify <- function(cube, mask, ...,
-                            mask_na_values = TRUE,
-                            memsize = 1,
-                            multicores = 2,
-                            output_dir = getwd(),
-                            progress = TRUE) {
+sits_reclassify <- function(cube, mask, rules, memsize = 1, multicores = 2,
+                            output_dir = getwd(), version = "v1") {
 
-    # set caller
-    .check_set_caller("sits_reclassify")
-
-    # pre-conditions
+    # Pre-conditions - Check parameters
     .check_cube_is_class_cube(cube)
     .check_cube_is_class_cube(mask)
-
-    # capture expressions
-    exprs <- as.list(substitute(list(...), environment()))[-1]
-    .check_lst(
-        x = exprs,
-        min_len = 1,
-        msg = "invalid expression parameter"
-    )
-
-    # Check output_dir
+    .check_memsize(memsize)
+    .check_multicores(multicores)
+    # Expand output_dir path
     output_dir <- path.expand(output_dir)
-    .check_file(output_dir,
-                msg = "invalid output directory"
+    .check_output_dir(output_dir)
+    .check_version(version)
+
+    # Check memory and multicores
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(cube))))
+    # Check minimum memory needed to process one block
+    # npaths = input(1) + output(1)
+    job_memsize <- .jobs_memsize(
+        job_size = .block_size(block = block, overlap = 0),
+        npaths = 2,
+        nbytes = 8, proc_bloat = .config_processing_bloat()
     )
-
-    # get input labels
-    labels_cube <- sits_labels(cube)
-    labels_mask <- sits_labels(mask)
-
-    # get output labels
-    labels_out <- unique(c(labels_cube, names(exprs)))
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+    )
 
     # Prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    # get all jobs
-    jobs <- .rclasf_get_jobs(cube = cube)
+    UseMethod("sits_reclassify", cube)
+}
 
+#' @rdname sits_reclassify
+#' @export
+sits_reclassify.class_cube <- function(cube, mask, rules, memsize = 4,
+                                       multicores = 2, output_dir = getwd(),
+                                       version = "v1") {
+    # Capture expression
+    rules <- as.list(substitute(rules, environment()))[-1]
+
+    # Reclassify parameters checked in reclassify function
+    # Create reclassification function
+    reclassify_fn <- .reclassify_fn_expr(
+        rules = rules, labels_cube = .tile_labels(cube),
+        labels_mask = .tile_labels(mask)
+    )
+    # Filter mask - bands
+    mask <- .cube_filter_bands(cube = mask, bands = "class")
+    # Process each tile sequentially
+    class_cube <- .cube_foreach_tile(cube, function(tile, mask) {
+        # Filter mask - temporal
+        mask <- .try({
+            .cube_filter_temporal(
+                cube = mask, start_date = .tile_start_date(tile),
+                end_date = .tile_end_date(tile)
+            )
+        },
+        .msg_error = "mask's interval does not intersect cube"
+        )
+        # Filter mask - spatial
+        mask <- .try({
+            .cube_filter_spatial(cube = mask, roi = .bbox(tile))
+        },
+        .msg_error = "mask's roi does not intersect cube"
+        )
+        # Get output labels
+        labels <- unique(c(.tile_labels(cube), names(rules)))
+        # Classify the data
+        class_tile <- .reclassify_tile(
+            tile = tile, mask = mask, band = "class", labels = labels,
+            reclassify_fn = reclassify_fn, output_dir = output_dir,
+            version = version
+        )
+        return(class_tile)
+    }, mask = mask)
+    return(class_cube)
+}
+
+#---- internal functions ----
+
+.reclassify_tile <- function(tile, mask, band, labels, reclassify_fn,
+                             output_dir, version) {
+    # Output files
+    out_file <- .file_derived_name(
+        tile = tile, band = band, version = version, output_dir = output_dir
+    )
+    # Resume feature
+    if (file.exists(out_file)) {
+        # # Callback final tile classification
+        # .callback(process = "tile_classification", event = "recovery",
+        #           context = environment())
+        message("Recovery: tile '", tile[["tile"]], "' already exists.")
+        message("(If you want to produce a new image, please ",
+                "change 'output_dir' or 'version' parameters)")
+        class_tile <- .tile_class_from_file(
+            file = out_file, band = band, base_tile = tile
+        )
+        return(class_tile)
+    }
+    # Create chunks as jobs
+    chunks <- .tile_chunks_create(tile = tile, overlap = 0)
     # start parallel process
-    tiles_fid <- .sits_parallel_map(jobs, function(job) {
-        # Get parameters from each job
-        tile_name <- job[[1]]
-        fi_idx <- job[[2]]
-        # Get tile to be processed
-        tile <- .cube_filter(cube = cube, tile = tile_name)
-        # Get file_info
-        fi <- .file_info(tile)
-        fi_row <- fi[fi_idx,]
+    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
+        # Get job block
+        block <- .block(chunk)
         # Output file name
-        out_file <- path.expand(file.path(
-            output_dir,
-            basename(fi_row[["path"]])
-        ))
-        # Compute the size of blocks to be computed
-        # (it should be the whole cube)
-        block_size <- .rclasf_estimate_block_size(
-            cube = tile,
-            multicores = multicores,
-            memsize = memsize
+        block_file <- .file_block_name(
+            pattern = .file_pattern(out_file), block = block,
+            output_dir = output_dir
         )
-        # For now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
-        blocks <- .rclasf_compute_blocks(
-            xsize = .file_info_ncols(tile),
-            ysize = .file_info_nrows(tile),
-            block_y_size = block_size[["block_y_size"]]
+        # Output mask file name
+        mask_block_file <- .file_block_name(
+            pattern = .file_pattern(out_file, suffix = "_mask"),
+            block = block, output_dir = output_dir
         )
-        # Save each output block and return paths
-        block_files <- purrr::map(blocks, function(block) {
-            # Define the file name of the raster file to be written
-            block_file <- paste0(
-                tools::file_path_sans_ext(out_file),
-                "_block_", block[["row"]], "_",
-                block[["nrows"]], ".tif"
-            )
-            # Read a block
-            r_obj <- .raster_crop(
-                r_obj = .raster_open_rast(file = fi_row[["path"]]),
-                file = block_file,
-                data_type = .raster_data_type(
-                    .config_get("class_cube_data_type")
-                ),
-                overwrite = TRUE,
-                block = block
-            )
-            # Create a mask file based on block
-            mask_obj <- .raster_rast(
-                r_obj = r_obj,
-                nlayers = 1
-            )
-            # Set init values to NA
-            temp_obj <- .raster_set_values(
-                r_obj = mask_obj,
-                values = NA
-            )
-            # Block mask file name
-            block_mask_file <- paste0(
-                tools::file_path_sans_ext(block_file),
-                "_mask.tif"
-            )
-            # Write empty block mask file as template
-            .raster_write_rast(
-                r_obj = temp_obj,
-                file = block_mask_file,
-                data_type = .config_get("class_cube_data_type"),
-                overwrite = TRUE,
-                missing_value = 0
-            )
-            # Remove block mask file on function exit
-            on.exit(unlink(block_mask_file), add = TRUE)
-            # Filter mask cube by start_date end_date and get all files
-            mask_files <- slider::slide(mask, function(tile_mask) {
-                fi_mask <- .file_info(tile_mask)
-                fi_mask_inter <- dplyr::filter(
-                    fi_mask,
-                    (.data[["start_date"]] <= fi_row[["end_date"]]
-                     & .data[["end_date"]] >= fi_row[["start_date"]])
-                )
-                return(fi_mask_inter[["path"]])
-            }) %>% unlist()
-            # Check if there is any file intersecting tile's interval
-            .check_chr(
-                x = mask_files,
-                allow_empty = FALSE,
-                len_min = 1,
-                msg = "mask cube interval does not match cube interval"
-            )
-            # Warp mask cube into mask block file
-            gdalUtilities::gdalwarp(
-                srcfile = path.expand(mask_files),
-                dstfile = path.expand(block_mask_file),
-                r = "near",
-                multi = TRUE,
-                wo = c("NUM_THREADS=ALL_CPUS")
-            )
-            # Open warped file to process expressions
-            mask_obj <- .raster_open_rast(file = block_mask_file)
-            # Evaluate expressions
-            values <- .rclasf_eval(
-                r_obj = r_obj,
-                labels_cube = labels_cube,
-                mask_obj = mask_obj,
-                labels_mask = labels_mask,
-                exprs = exprs,
-                labels_out = labels_out,
-                mask_na_values = mask_na_values
-            )
-            # Set values
-            r_obj <- .raster_set_values(
-                r_obj = r_obj,
-                values = values
-            )
-            # Write empty mask file as template
-            .raster_write_rast(
-                r_obj = r_obj,
-                file = block_file,
-                data_type = .config_get("class_cube_data_type"),
-                overwrite = TRUE,
-                missing_value = 0
-            )
-            # Clean memory
-            gc()
+        # If there is any mask file delete it
+        unlink(mask_block_file)
+        # Resume processing in case of failure
+        if (.raster_is_valid(block_file)) {
             return(block_file)
-        })
-
-        # Merge result
-        block_files <- unlist(block_files)
-
-        # Join predictions
-        if (is.null(block_files)) {
-            return(NULL)
         }
-
-        # Merge final result
-        .raster_merge_blocks(
-            out_files = out_file,
-            base_file = .file_info_path(tile),
-            block_files = block_files,
-            data_type = .config_get("class_cube_data_type"),
-            missing_value = .config_get("class_cube_missing_value"),
-            multicores = 1
+        # Project mask block to template block
+        # Get band conf missing value
+        band_conf <- .conf_derived_band(
+            derived_class = "class_cube", band = band
         )
-
-        # Remove blocks
-        on.exit(unlink(block_files), add = TRUE)
-
-        # Prepare result updating path
-        fi_row[["path"]] <- out_file
-        # Update tile
-        tile[["labels"]] <- list(labels_out)
-        tile[["file_info"]] <- fi_row
-        return(tile)
-    }, progress = progress)
-    # Bind all tiles_fid
-    result <- tiles_fid %>%
-        dplyr::bind_rows() %>%
-        dplyr::group_by(
-            .data[["source"]], .data[["collection"]],
-            .data[["satellite"]], .data[["sensor"]],
-            .data[["tile"]], .data[["xmin"]], .data[["xmax"]],
-            .data[["ymin"]], .data[["ymax"]], .data[["crs"]],
-            .data[["labels"]]
-        ) %>%
-        dplyr::summarise(
-            file_info = list(dplyr::bind_rows(.data[["file_info"]])),
-            .groups = "drop"
+        # Create template block for mask
+        .gdal_template_block(
+            block = block, bbox = .bbox(chunk), file = mask_block_file,
+            nlayers = 1, miss_value = .miss_value(band_conf),
+            data_type = .data_type(band_conf)
         )
-    # Set class
-    class(result) <- class(cube)
-    return(result)
+        # Copy values from mask cube into mask template
+        .gdal_merge_into(
+            file = mask_block_file,
+            base_files = .fi_paths(.cube_file_info(mask)), multicores = 1
+        )
+        # Build a new tile for mask based on template
+        mask_tile <- .tile_class_from_file(
+            file = mask_block_file, band = "class", .tile(mask)
+        )
+        # Read and preprocess values
+        values <- .tile_read_block(
+            tile = tile, band = .tile_bands(tile), block = block,
+            replace_by_minmax = TRUE
+        )
+        # Read and preprocess values of mask block
+        mask_values <- .tile_read_block(
+            tile = mask_tile, band = .tile_bands(mask_tile), block = NULL,
+            replace_by_minmax = TRUE
+        )
+        # Evaluate expressions
+        values <- reclassify_fn(values = values, mask_values = mask_values)
+        offset <- .offset(band_conf)
+        if (!is.null(offset) && offset != 0) {
+            values <- values - offset
+        }
+        scale <- .scale(band_conf)
+        if (!is.null(scale) && scale != 1) {
+            values <- values / scale
+        }
+        # Prepare and save results as raster
+        .raster_write_block(
+            files = block_file, block = block, bbox = .bbox(chunk),
+            values = values, data_type = .data_type(band_conf),
+            missing_value = .miss_value(band_conf),
+            crop_block = NULL
+        )
+        # Delete unneeded mask block file
+        unlink(mask_block_file)
+        # Free memory
+        gc()
+        # Returned value
+        block_file
+    })
+    # Merge blocks into a new class_cube tile
+    class_tile <- .tile_class_merge_blocks(
+        file = out_file, band = band, labels = labels, base_tile = tile,
+        block_files = block_files, multicores = .jobs_multicores()
+    )
+    # Return class tile
+    class_tile
 }
 
-.rclasf_eval <- function(r_obj,
-                         labels_cube,
-                         mask_obj,
-                         labels_mask,
-                         exprs,
-                         labels_out,
-                         mask_na_values) {
-
-    # Get evaluation environment
-    env <- list2env(list(
-        # Read values and convert to character
-        cube = labels_cube[.raster_get_values(r_obj)],
-        mask = labels_mask[.raster_get_values(mask_obj)]
-    ))
-
-    # Get cube matrix
-    values <- env[["cube"]]
-
-    # Evaluate expressions
-    for (label in names(exprs)) {
-        expr <- exprs[[label]]
-        # evaluate
-        result <- eval(expr, envir = env)
-        # check
-        .check_lgl_type(
-            x = result,
-            msg = paste0("invalid expression ", expr)
-        )
-        # update states
-        values[result] <- label
+.reclassify_fn_expr <- function(rules, labels_cube, labels_mask) {
+    # Check if rules are named
+    if (!all(.has_name(rules))) {
+        stop("rules should be named")
     }
-
-    # Produce final matrix
-    values <- match(values, labels_out)
-
-    # Mask NA values
-    if (mask_na_values) {
+    # Get output labels
+    labels <- unique(c(labels_cube, names(rules)))
+    # Define reclassify function
+    reclassify_fn <- function(values, mask_values) {
+        # Check compatibility
+        if (!all(dim(values) == dim(mask_values))) {
+            stop("cube and mask values have different sizes")
+        }
+        # Used to check values (below)
+        input_pixels <- nrow(values)
+        # New evaluation environment
+        env <- list2env(list(
+            # Read values and convert to character
+            cube = labels_cube[values], mask = labels_mask[mask_values]
+        ))
+        # Get values as character
+        values <- env[["cube"]]
+        # Evaluate each expression
+        for (label in names(rules)) {
+            # Get expression
+            expr <- rules[[label]]
+            # Evaluate
+            result <- eval(expr, envir = env)
+            # Update values
+            if (!is.logical(result)) {
+                stop("expression should evaluate to logical values")
+            }
+            values[result] <- label
+        }
+        # Get values as numeric
+        values <- matrix(data = match(values, labels), nrow = input_pixels)
+        # Mask NA values
         values[is.na(env[["mask"]])] <- NA
+        # Are the results consistent with the data input?
+        .check_processed_values(values, input_pixels)
+        # Return values
+        values
     }
-
-    return(values)
-}
-
-
-#' @title List all jobs to be computed
-#'
-#' @name .rclasf_get_jobs
-#' @keywords internal
-#'
-#' @param cube   Data cube.
-#'
-#' @return       List of combination among tiles and dates.
-#'
-.rclasf_get_jobs <- function(cube) {
-
-    tile_fid <- unlist(slider::slide(cube, function(tile) {
-        fi <- .file_info(tile)
-        purrr::map(seq_len(nrow(fi)), function(i)
-            list(tile[["tile"]], i))
-    }), recursive = FALSE)
-
-    return(tile_fid)
-}
-
-# function to compute blocks grid
-.rclasf_compute_blocks <- function(xsize,
-                                   ysize,
-                                   block_y_size) {
-    r1 <- seq(1, ysize - 1, by = block_y_size)
-    r2 <- c(r1[-1] - 1, ysize)
-    nr1 <- r2 - r1 + 1
-
-    # define each block as a list element
-    blocks <- mapply(
-        list,
-        row       = r1,
-        nrows     = nr1,
-        col       = 1,
-        ncols     = xsize,
-        SIMPLIFY  = FALSE
-    )
-
-    return(blocks)
-}
-#' @title Estimate the number of blocks
-#' @name .rclasf_estimate_block_size
-#' @keywords internal
-#'
-#' @param cube         input data cube
-#' @param multicores   number of processes to split up the data
-#' @param memsize      maximum overall memory size (in GB)
-#'
-#' @return  returns a list with following information:
-#'             - multicores theoretical upper bound;
-#'             - block x_size (horizontal) and y_size (vertical)
-#'
-.rclasf_estimate_block_size <- function(cube, multicores, memsize) {
-
-    # precondition 1 - check if cube has probability data
-    .check_that(
-        x = inherits(cube, "class_cube"),
-        msg = "input is not a classified cube"
-    )
-
-    # Get info to compute memory
-    size <- .cube_size(cube[1,])
-    n_bands <- 1
-    n_times <- nrow(.file_info(cube))
-    bloat_mem <- .config_processing_bloat()
-    n_bytes <- 8
-
-    # total memory needed to do all work in GB
-    image_size <- size[["ncols"]] * size[["nrows"]]
-    needed_memory <- image_size * 1E-09 * n_bands * n_times *
-        bloat_mem * n_bytes
-
-    # minimum block size
-    min_block_x_size <- size["ncols"] # for now, only vertical blocking
-    min_block_y_size <- 1
-
-    # compute factors
-    memory_factor <- needed_memory / memsize
-
-    blocking_factor <- image_size / (min_block_x_size * min_block_y_size)
-
-    # stop if blocking factor is less than memory factor!
-    # reason: the provided memory is not enough to process the data by
-    # breaking it into small chunks
-    .check_that(
-        x = memory_factor <= blocking_factor,
-        msg = "provided memory not enough to run the job"
-    )
-
-    # update multicores to the maximum possible processes given the available
-    # memory and blocking factor
-    multicores <- min(floor(blocking_factor / memory_factor), multicores)
-
-    # compute blocking allocation that maximizes the
-    # block / (memory * multicores) ratio, i.e. maximize parallel processes
-    # and returns the following information:
-    # - multicores theoretical upper bound;
-    # - block x_size (horizontal) and y_size (vertical)
-    blocks <- list(
-        # theoretical max_multicores = floor(blocking_factor / memory_factor),
-        block_x_size = floor(min_block_x_size),
-        block_y_size = min(
-            floor(blocking_factor / memory_factor / multicores),
-            size[["nrows"]]
-        )
-    )
-
-    return(blocks)
+    # Return closure
+    reclassify_fn
 }
