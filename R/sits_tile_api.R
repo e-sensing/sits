@@ -1295,8 +1295,13 @@ NULL
     .as_chr(fi[["band"]])
 }
 
-.fi_band_filter <- function(fi, band) {
-    fi[.fi_bands(fi) %in% band, ]
+.fi_filter_bands <- function(fi, bands) {
+    bands_in_fi <- bands %in% .fi_bands(fi)
+    if (!all(bands_in_fi)) {
+        missing_bands <- paste0("'", bands[!bands_in_fi], "'", collapse = ",")
+        stop("band(s) ", missing_bands, " not found")
+    }
+    fi[.fi_bands(fi) %in% bands, ]
 }
 
 .fi_min_date <- function(fi) {
