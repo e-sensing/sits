@@ -1816,11 +1816,7 @@ NULL
 #' @export
 .tile_read_block.raster_cube <- function(tile, band, block, replace_by_minmax) {
     fi <- .fi(tile)
-    values <- .fi_read_block(
-        fi = fi,
-        band = band,
-        block = block
-    )
+    values <- .fi_read_block(fi = fi, band = band, block = block)
     if (!.has(values)) {
         return(NULL)
     }
@@ -2304,14 +2300,12 @@ NULL
 
 #' @export
 .cube_during.raster_cube <- function(cube, start_date, end_date) {
-    slider::slide_lgl(cube,
-                      .tile_during,
-                      start_date = start_date,
-                      end_date = end_date
+    slider::slide_lgl(
+        cube, .tile_during, start_date = start_date, end_date = end_date
     )
 }
 
-#---- | .cube_temporal_filter() ----
+#---- | .cube_filter_temporal() ----
 #' Cube API
 #'
 #' Filter tiles with 'file_info' entries between 'start_date'
