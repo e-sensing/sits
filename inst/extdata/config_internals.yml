@@ -82,8 +82,18 @@ probs_cube_missing_value: 65535
 probs_cube_band         : "probs"
 probs_cube_class        : ["probs_cube", "raster_cube", "sits_cube", "tbl_df",
                            "tbl", "data.frame"]
-# configuration for probs_cube (probability cube)
-# (informed pixel values before scaling)
+
+# GDAL GTiff presets
+gdal_presets         :
+    block            :
+        of           : "GTiff"
+        co           : ["COMPRESS=NONE", "BIGTIFF=NO"] # cannot be tiled!
+    image            :
+        of           : "GTiff"
+        co           : ["COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES",
+                        "TILED=YES", "BLOCKXSIZE=512", "BLOCKYSIZE=512"]
+
+# Default values for non-registered bands
 default_values       :
     eo_cube          :
         data_type    : "INT2S"
@@ -161,7 +171,3 @@ gdalcubes_chunk_size: [1, 2048, 2048]
 gdalcubes_type_format: "int16"
 gdalcubes_cog_generate: true
 gdalcubes_cog_resample_overview: "bilinear"
-
-# uncertainty window function
-uncertainty_window_functions:
-    median: "stats::median"
