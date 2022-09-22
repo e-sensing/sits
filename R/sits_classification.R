@@ -178,29 +178,12 @@ sits_classify.raster_cube <- function(data,
     .check_samples(samples)
     # Spatial filter
     if (!is.null(roi)) {
-        data <- .cube_spatial_filter(
-            cube = data,
-            roi = .roi_as_sf(roi)
-        )
-        # precondition - checks if data is empty
-        .check_that(
-            x = nrow(data) > 0,
-            local_msg = "informed ROI does not interesect cube",
-            msg = "invalid 'roi' parameter"
-        )
+        data <- .cube_filter_spatial(cube = data, roi = .roi_as_sf(roi))
     }
     # Temporal filter
     if (!is.null(start_date) || !is.null(end_date)) {
-        data <- .cube_temporal_filter(
-            cube = data,
-            start_date = start_date,
-            end_date = end_date
-        )
-        # precondition - checks if data is empty
-        .check_that(
-            x = nrow(data) > 0,
-            local_msg = "informed interval does not interesect cube",
-            msg = "invalid 'start_date' and 'end_date' parameters"
+        data <- .cube_filter_temporal(
+            cube = data, start_date = start_date, end_date = end_date
         )
     }
     # Do the samples and tile match their timeline length?
