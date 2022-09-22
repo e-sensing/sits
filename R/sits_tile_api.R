@@ -2129,14 +2129,14 @@ NULL
     .set_class(x, ..., c("sits_cube", "tbl_df", "tbl", "data.frame"))
 }
 
-#---- | .cube_band_conf() ----
-.cube_band_conf <- function(cube, band) {
-    UseMethod(".cube_band_conf", cube)
+#---- | .cube_file_info() ----
+.cube_file_info <- function(cube) {
+    UseMethod(".cube_file_info", cube)
 }
 
 #' @export
-.cube_band_conf.raster_cube <- function(cube, band) {
-    .tile_band_conf(tile = cube, band = band)
+.cube_file_info.raster_cube <- function(cube) {
+    tidyr::unnest(cube["file_info"], "file_info")
 }
 
 #---- | .cube_start_date() ----
@@ -2272,19 +2272,23 @@ NULL
     slider::slide_lgl(cube, .tile_intersects, roi = .roi_as_sf(roi))
 }
 
-#---- | .cube_spatial_filter() ----
+#---- | .cube_filter_spatial() ----
 #' @title Cube API
 #' @param cube A cube.
 #' @param roi A region of interest (ROI).
 #' @description Filter tiles that intersect \code{roi} parameter.
 #' @return cube
-.cube_spatial_filter <- function(cube, roi) {
-    UseMethod(".cube_spatial_filter", cube)
+.cube_filter_spatial <- function(cube, roi) {
+    UseMethod(".cube_filter_spatial", cube)
 }
 
 #' @export
-.cube_spatial_filter.raster_cube <- function(cube, roi) {
-    cube[.cube_intersects(cube, roi), ]
+.cube_filter_spatial.raster_cube <- function(cube, roi) {
+    intersecting <- .cube_intersects(cube, roi)
+    if (!any(intersecting)) {
+        stop("informed roi does not intersect cube")
+    }
+    cube[intersecting, ]
 }
 
 #---- | .cube_during() ----
