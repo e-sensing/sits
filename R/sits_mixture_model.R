@@ -123,7 +123,7 @@ sits_mixture_model <- function(cube,
     bands <- .endmembers_bands(em)
     # The cube is filtered here in case some fraction
     # is added as a band
-    cube <- .cube_band_filter(cube = cube, band = bands)
+    cube <- .cube_filter_bands(cube = cube, bands = bands)
     # Check if cube is regular
     .check_is_regular(cube)
     # Pre-condition
@@ -193,12 +193,12 @@ sits_mixture_model <- function(cube,
         message("(If you want to produce a new image, please ",
                 "change 'output_dir' or 'version' parameters)")
         # Create tile based on template
-        feature <- .tile_eo_from_files(
+        fracs_feature <- .tile_eo_from_files(
             files = out_files, fid = .fi_fid(.fi(feature)),
             bands = out_fracs, date = .tile_start_date(feature),
             base_tile = feature, update_bbox = FALSE
         )
-        return(feature)
+        return(fracs_feature)
     }
     # Remove remaining incomplete fractions files
     unlink(out_files)
@@ -243,13 +243,13 @@ sits_mixture_model <- function(cube,
         # Returned block files for each fraction
         block_files
     })
-    # Merge blocks into a new class_cube tile
-    fracs_tile <- .tile_eo_merge_blocks(
+    # Merge blocks into a new eo_cube tile feature
+    fracs_feature <- .tile_eo_merge_blocks(
         files = out_files, bands = out_fracs, base_tile = feature,
         block_files = block_files, multicores = 1, update_bbox = FALSE
     )
-    # Return a feature tile
-    fracs_tile
+    # Return a eo_cube tile feature
+    fracs_feature
 }
 
 .mixture_data_read <- function(tile, block, em) {
@@ -316,8 +316,8 @@ sits_mixture_model <- function(cube,
     em <- dplyr::mutate(
         em,
         dplyr::across(bands, function(x) {
-            band_conf <- .cube_band_conf(
-                cube = cube, band = dplyr::cur_column()
+            band_conf <- .tile_band_conf(
+                tile = cube, band = dplyr::cur_column()
             )
             x * .scale(band_conf) + .offset(band_conf)
         })
