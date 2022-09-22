@@ -2,17 +2,27 @@
 % Please edit documentation in R/sits_reclassify.R
 \name{sits_reclassify}
 \alias{sits_reclassify}
+\alias{sits_reclassify.class_cube}
 \title{Reclassify a classified cube}
 \usage{
 sits_reclassify(
   cube,
   mask,
-  ...,
-  mask_na_values = TRUE,
+  rules,
   memsize = 1,
   multicores = 2,
   output_dir = getwd(),
-  progress = TRUE
+  version = "v1"
+)
+
+\method{sits_reclassify}{class_cube}(
+  cube,
+  mask,
+  rules,
+  memsize = 4,
+  multicores = 2,
+  output_dir = getwd(),
+  version = "v1"
 )
 }
 \arguments{
@@ -21,10 +31,7 @@ sits_reclassify(
 \item{mask}{Classified image cube with additional information
 to be used in expressions.}
 
-\item{...}{Named expressions to be evaluated (see details).}
-
-\item{mask_na_values}{Set cube pixels to NA where corresponding pixels in
-mask are NA.}
+\item{rules}{Named expressions to be evaluated (see details).}
 
 \item{memsize}{Memory available for classification (in GB).}
 

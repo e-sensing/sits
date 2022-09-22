@@ -7,6 +7,7 @@
 \alias{.as_dbl}
 \alias{.as_date}
 \alias{.has}
+\alias{.has_name}
 \alias{.set_class}
 \alias{.compact}
 \title{Data type functions}
@@ -20,6 +21,8 @@
 .as_date(x)
 
 .has(x)
+
+.has_name(x)
 
 .set_class(x, ...)
 
@@ -38,6 +41,8 @@
 \code{numeric} or \code{NULL} if value is empty.
 
 \code{date} or \code{NULL} if value is empty.
+
+\code{logical}
 
 \code{logical}
 
@@ -60,9 +65,12 @@ These are a short named version of data type functions.
 \item \code{.as_date()}: Convert an input to a date type. This is
 the same function as \code{lubridate::as_date()}.
 
-\item \code{.has()}: Check if an input has a value or nor. Any zero length
+\item \code{.has()}: Check if an input has a value or not. Any zero length
 value of any type is evaluated as \code{FALSE}. This function is broader
 than \code{is.null()} that only accounts for \code{NULL} value.
+
+\item \code{.has_name()}: Check if an input has names or not. If there is
+any element without a name the function evaluates as \code{FALSE}.
 
 \item \code{.set_class()}: Set \code{class} of object \code{x}.
 

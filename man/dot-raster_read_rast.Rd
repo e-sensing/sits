@@ -4,16 +4,13 @@
 \alias{.raster_read_rast}
 \title{Raster package internal read raster file function}
 \usage{
-.raster_read_rast(files, ..., block = NULL, method = "bilinear")
+.raster_read_rast(files, ..., block = NULL)
 }
 \arguments{
 \item{...}{additional parameters to be passed to raster package}
 
 \item{block}{a valid block with (\code{col}, \code{row},
 \code{ncols}, \code{nrows}).}
-
-\item{method}{method used to resample pixels (used only in case of
-out_size parameter is informed)}
 
 \item{file}{path to raster file(s) to be read}
 }
