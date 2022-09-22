@@ -1711,7 +1711,7 @@ NULL
     .intersects(x = .tile_as_sf(tile), y = .roi_as_sf(roi))
 }
 
-#---- | .tile_spatial_filter() ----
+#---- | .tile_filter_spatial() ----
 #' Tile API
 #'
 #' Filter file_info entries that intersect \code{roi} parameter.
@@ -1720,15 +1720,15 @@ NULL
 #' @param roi A region of interest (ROI).
 #'
 #' @return tile
-.tile_spatial_filter <- function(tile, roi) {
-    UseMethod(".tile_spatial_filter", tile)
+.tile_filter_spatial <- function(tile, roi) {
+    UseMethod(".tile_filter_spatial", tile)
 }
 
 #' @export
-.tile_spatial_filter.raster_cube <- function(tile, roi) {
+.tile_filter_spatial.raster_cube <- function(tile, roi) {
     tile <- .tile(tile)
     .tile_file_info(tile) <-
-        .fi_spatial_filter(fi = .fi(tile), roi = roi)
+        .fi_filter_spatial(fi = .fi(tile), roi = roi)
     tile
 }
 
