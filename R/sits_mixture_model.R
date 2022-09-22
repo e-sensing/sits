@@ -345,7 +345,7 @@ sits_mixture_model <- function(cube,
     em_mtx <- .endmembers_as_matrix(em)
     mixture_fn <- function(values) {
         # Check values length
-        original_nrows <- nrow(values)
+        input_pixels <- nrow(values)
         # Process bilateral smoother and return
         values <- C_nnls_solver(
             x = as.matrix(values),
@@ -353,13 +353,7 @@ sits_mixture_model <- function(cube,
             rmse = rmse
         )
         # Are the results consistent with the data input?
-        .check_that(
-            x = nrow(values) == original_nrows,
-            msg = paste(
-                "number of rows of class matrix is different",
-                "from number of input pixels"
-            )
-        )
+        .check_processed_values(values, input_pixels)
         # Return values
         values
     }

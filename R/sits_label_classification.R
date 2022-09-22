@@ -91,7 +91,7 @@ sits_label_classification.probs_cube <- function(cube, memsize = 4,
     label_fn <- .label_fn_majority()
     # Process each tile sequentially
     class_cube <- .cube_foreach_tile(cube, function(tile) {
-        # Classify the data
+        # Label the data
         class_tile <- .label_tile(
             tile = tile, band = "class", label_fn = label_fn,
             output_dir = output_dir, version = version
@@ -183,16 +183,10 @@ sits_label_classification.probs_cube <- function(cube, memsize = 4,
 
     label_fn <- function(values) {
         # Used to check values (below)
-        original_nrows <- nrow(values)
+        input_pixels <- nrow(values)
         values <- C_label_max_prob2(values)
         # Are the results consistent with the data input?
-        .check_that(
-            x = nrow(values) == original_nrows,
-            msg = paste(
-                "number of rows of class matrix is different",
-                "from number of input pixels"
-            )
-        )
+        .check_processed_values(values, input_pixels)
         # Return values
         values
     }

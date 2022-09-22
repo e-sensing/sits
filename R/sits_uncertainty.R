@@ -258,8 +258,8 @@ sits_uncertainty.margin <- function(cube, type = "margin", window_size = 5,
     # Define uncertainty function
     uncert_fn <- function(values, block) {
         # Used in check (below)
-        original_nrows <- nrow(values)
-        # Pocess least confidence
+        input_pixels <- nrow(values)
+        # Process least confidence
         values <- C_least_probs(values) # return a matrix[rows(values),1]
         # Process window
         if (window_size > 1) {
@@ -269,13 +269,7 @@ sits_uncertainty.margin <- function(cube, type = "margin", window_size = 5,
             )
         }
         # Are the results consistent with the data input?
-        .check_that(
-            x = nrow(values) == original_nrows,
-            msg = paste(
-                "number of rows of class matrix is different",
-                "from number of input pixels"
-            )
-        )
+        .check_processed_values(values, input_pixels)
         # Return data
         values
     }
@@ -290,8 +284,8 @@ sits_uncertainty.margin <- function(cube, type = "margin", window_size = 5,
     # Define uncertainty function
     uncert_fn <- function(values, block) {
         # Used in check (below)
-        original_nrows <- nrow(values)
-        # Pocess least confidence
+        input_pixels <- nrow(values)
+        # Process least confidence
         values <- C_entropy_probs(values) # return a matrix[rows(values),1]
         # Process window
         if (window_size > 1) {
@@ -301,13 +295,7 @@ sits_uncertainty.margin <- function(cube, type = "margin", window_size = 5,
             )
         }
         # Are the results consistent with the data input?
-        .check_that(
-            x = nrow(values) == original_nrows,
-            msg = paste(
-                "number of rows of class matrix is different",
-                "from number of input pixels"
-            )
-        )
+        .check_processed_values(values, input_pixels)
         # Return data
         values
     }

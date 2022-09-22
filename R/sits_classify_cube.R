@@ -86,7 +86,7 @@
             impute_fn = impute_fn, filter_fn = filter_fn
         )
         # Used to check values (below)
-        original_nrows <- nrow(values)
+        input_pixels <- nrow(values)
 
         #
         # Log here
@@ -101,13 +101,8 @@
         values <- ml_model(values)
 
         # Are the results consistent with the data input?
-        .check_that(
-            x = nrow(values) == original_nrows,
-            msg = paste(
-                "number of rows of probability matrix is different",
-                "from number of input pixels"
-            )
-        )
+        .check_processed_values(values, input_pixels)
+
 
         #
         # Log here

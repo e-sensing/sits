@@ -271,13 +271,13 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
     # Define smooth function
     smooth_fn <- function(values, block) {
         # Check values length
-        original_nrows <- nrow(values)
+        input_pixels <- nrow(values)
         # Compute logit
         values <- log(values / (rowSums(values) - values))
         # Process Bayesian
         values <- bayes_smoother(
             m = values,
-            m_nrow = block[["nrows"]],
+            m_nrow = .nrows(block),
             m_ncol = block[["ncols"]],
             w = window,
             sigma = smoothness,
@@ -286,13 +286,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
         # Compute inverse logit
         values <- exp(values) / (exp(values) + 1)
         # Are the results consistent with the data input?
-        .check_that(
-            x = nrow(values) == original_nrows,
-            msg = paste(
-                "number of rows of class matrix is different",
-                "from number of input pixels"
-            )
-        )
+        .check_processed_values(values, input_pixels)
         # Return values
         values
     }
@@ -321,20 +315,14 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
     # Define smooth function
     smooth_fn <- function(values, block) {
         # Check values length
-        original_nrows <- nrow(values)
+        input_pixels <- nrow(values)
         # Process bilateral smoother and return
         values <- bilateral_smoother(
             m = values, m_nrow = .nrows(block), m_ncol = .ncols(block),
             w = window, tau = tau
         )
         # Are the results consistent with the data input?
-        .check_that(
-            x = nrow(values) == original_nrows,
-            msg = paste(
-                "number of rows of class matrix is different",
-                "from number of input pixels"
-            )
-        )
+        .check_processed_values(values, input_pixels)
         # Return values
         values
     }
