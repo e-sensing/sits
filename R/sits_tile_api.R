@@ -59,12 +59,20 @@ NULL
     if (.has(x)) lubridate::as_date(unlist(x, recursive = FALSE)) else NULL
 }
 
-#' @describeIn data_type Check if an input has a value or nor. Any zero length
+#' @describeIn data_type Check if an input has a value or not. Any zero length
 #'   value of any type is evaluated as \code{FALSE}. This function is broader
 #'   than \code{is.null()} that only accounts for \code{NULL} value.
 #' @return \code{logical}
 .has <- function(x) {
     length(x) > 0
+}
+
+#' @describeIn data_type Check if an input has names or not. If there is
+#'   any element without a name the function evaluates as \code{FALSE}.
+#' @return \code{logical}
+.has_name <- function(x) {
+    if (.has(names(x))) return(names(x) != "")
+    rep(FALSE, length(x))
 }
 
 #' @describeIn data_type Set \code{class} of object \code{x}.
