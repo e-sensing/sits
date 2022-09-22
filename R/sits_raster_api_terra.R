@@ -176,11 +176,7 @@
 
 #' @keywords internal
 #' @export
-.raster_read_rast.terra <- function(files, ..., block = NULL,
-                                    method = "bilinear") {
-
-    # convert the method to the actual package
-    method <- .raster_resampling(method = method)
+.raster_read_rast.terra <- function(files, ..., block = NULL) {
 
     # create raster objects
     r_obj <- .raster_open_rast.terra(file = path.expand(files), ...)

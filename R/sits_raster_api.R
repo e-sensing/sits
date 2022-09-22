@@ -360,19 +360,10 @@
 #' @param file    path to raster file(s) to be read
 #' @param block   a valid block with (\code{col}, \code{row},
 #'                \code{ncols}, \code{nrows}).
-#' @param method  method used to resample pixels (used only in case of
-#' out_size parameter is informed)
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return Numeric matrix read from file based on parameter block
-.raster_read_rast <- function(files, ..., block = NULL, method = "bilinear") {
-
-    # check method
-    .check_chr_within(
-        method,
-        within = .config_get("valid_raster_resampling"),
-        msg = "invalid 'method' parameter"
-    )
+.raster_read_rast <- function(files, ..., block = NULL) {
 
     # check block
     if (!purrr::is_null(block)) {
@@ -720,6 +711,7 @@
 
     return(params)
 }
+
 .raster_template <- function(base_file, out_file, nlayers, data_type,
                              missing_value) {
     # Create an empty image template
@@ -738,6 +730,7 @@
     on.exit(unlink(paste0(out_file, ".aux.xml")), add = TRUE)
     return(out_file)
 }
+
 #' @title Merge all input files into one raster file
 #' @name .raster_merge
 #' @keywords internal
