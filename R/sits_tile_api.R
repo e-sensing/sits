@@ -1672,24 +1672,24 @@ NULL
     .conf_derived_band(derived_class = .tile_derived_class(tile), band = band)
 }
 
-#---- | .tile_band_filter() ----
+#---- | .tile_filter_bands() ----
 #' Tile API
 #'
 #' Filter file_info entries of a given \code{band}.
 #'
 #' @param tile A tile.
-#' @param band A region of interest (ROI).
+#' @param bands Band names to be filtered.
 #'
 #' @return tile
-.tile_band_filter <- function(tile, band) {
-    UseMethod(".tile_band_filter", tile)
+.tile_filter_bands <- function(tile, bands) {
+    UseMethod(".tile_filter_bands", tile)
 }
 
 #' @export
-.tile_band_filter.raster_cube <- function(tile, band) {
+.tile_filter_bands.raster_cube <- function(tile, bands) {
     tile <- .tile(tile)
     .tile_file_info(tile) <-
-        .fi_band_filter(fi = .fi(tile), band = band)
+        .fi_filter_bands(fi = .fi(tile), bands = bands)
     tile
 }
 
