@@ -1,16 +1,14 @@
 
+.file_base <- function(file) {
+    gsub("[?].*$", "", gsub("^.*/", "", file))
+}
+
 .file_sans_ext <- function(file) {
-    file <- .file_base(file)
-    gsub("(.*)\\..+$", "\\1", file)
+    gsub("(.*)\\..+$", "\\1", .file_base(file))
 }
 
 .file_ext <- function(file) {
-    file <- .file_base(file)
-    gsub(".*\\.(.+)$", "\\1", file)
-}
-
-.file_base <- function(file) {
-    gsub("[?].*$", "", gsub("^.*/", "", file))
+    gsub(".*\\.(.+)$", "\\1", .file_base(file))
 }
 
 .file_pattern <- function(file, suffix = "") {
@@ -33,7 +31,7 @@
         }
         filenames <- file.path(output_dir, filenames)
     }
-    return(filenames)
+    filenames
 }
 
 .file_block_name <- function(pattern, block, output_dir) {
