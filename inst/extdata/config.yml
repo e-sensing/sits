@@ -50,6 +50,7 @@ sources:
                         offset_value  : 0
                         resolution    : 64
                         band_name     : "NDVI"
+                        data_type     : "INT2S"
                     EVI     :
                         <<: *bdc_awfi_ndvi
                         band_name     : "EVI"
@@ -61,6 +62,7 @@ sources:
                         offset_value  : 0
                         resolution   :  64
                         band_name     : "BAND13"
+                        data_type     : "INT2S"
                     B14     :
                         <<: *bdc_awfi_b13
                         band_name     : "BAND14"
@@ -79,6 +81,7 @@ sources:
                             255       : "Cloud"
                         interp_values : [0, 255]
                         resolution   :  64
+                        data_type     : "INT1U"
                 satellite   : "CBERS-4"
                 sensor      : "AWFI"
                 collection_name: "CB4_64-1"
@@ -105,8 +108,9 @@ sources:
                         maximum_value : 10000
                         scale_factor  : 0.0001
                         offset_value  : 0
-                        resolution   :  20
+                        resolution    :  20
                         band_name     : "NDVI"
+                        data_type     : "INT2S"
                     EVI     :
                         <<: *bdc_mux_ndvi
                         band_name      : "EVI"
@@ -118,6 +122,7 @@ sources:
                         offset_value  : 0
                         resolution    :  20
                         band_name     : "BAND5"
+                        data_type     : "INT2S"
                     B6      :
                         <<: *bdc_mux_b5
                         band_name     : "BAND6"
@@ -136,6 +141,7 @@ sources:
                             255       : "Cloud"
                         interp_values : [0, 255]
                         resolution   :  20
+                        data_type     : "INT1U"
                 satellite   : "CBERS-4"
                 sensor      : "MUX"
                 collection_name: "CB4MUX_20-1"
@@ -179,8 +185,9 @@ sources:
                         maximum_value : 10000
                         scale_factor  : 0.0001
                         offset_value  : 0
-                        resolution    :  30
+                        resolution    : 30
                         band_name     : "NDVI"
+                        data_type     : "INT2S"
                     EVI     :
                         <<: *bdc_oli_ndvi
                         band_name     : "EVI"
@@ -190,8 +197,9 @@ sources:
                         maximum_value : 10000
                         scale_factor  : 0.0001
                         offset_value  : 0
-                        resolution   : [30]
+                        resolution    : 30
                         band_name     : "band1"
+                        data_type     : "INT2S"
                     B2      :
                         <<: *bdc_oli_band1
                         band_name     : "band2"
@@ -222,6 +230,7 @@ sources:
                             255       : "No Data"
                         interp_values : [2, 3, 4, 255]
                         resolution    : 30
+                        data_type     : "INT1U"
                 satellite   : "LANDSAT-8"
                 sensor      : "OLI"
                 collection_name: "LC8_30-1"
@@ -242,7 +251,7 @@ sources:
                 ext_tolerance: 0.01
             MOD13Q1-6       : &bdc_mod
                 bands       :
-                    NDVI              : &bdc_modis_ndvi
+                    NDVI    : &bdc_modis_ndvi
                         missing_value : -3000
                         minimum_value : -2000
                         maximum_value : 10000
@@ -250,6 +259,7 @@ sources:
                         offset_value  : 0
                         resolution    :  231.656
                         band_name     : "NDVI"
+                        data_type     : "INT2S"
                     EVI     :
                         <<: *bdc_modis_ndvi
                         band_name     : "EVI"
@@ -261,6 +271,7 @@ sources:
                         offset_value  : 0
                         resolution   :  231.656
                         band_name     : "blue_reflectance"
+                        data_type     : "INT2S"
                     RED     :
                         <<: *bdc_modis_blue
                         band_name     : "red_reflectance"
@@ -281,6 +292,7 @@ sources:
                             255       : "Fill/No Data-Not Processed"
                         interp_values : [2, 3, 255]
                         resolution   :  231.656
+                        data_type     : "INT1U"
                 satellite   : "TERRA"
                 sensor      : "MODIS"
                 collection_name: "MOD13Q1-6"
@@ -308,6 +320,7 @@ sources:
                         offset_value  : 0
                         resolution    : 10
                         band_name     : "NDVI"
+                        data_type     : "INT2S"
                     EVI     :
                         <<: *bdc_sen2cor_msi_ndvi
                         band_name     : "EVI"
@@ -319,6 +332,7 @@ sources:
                         offset_value  : 0
                         resolution    :  10
                         band_name     : "B01"
+                        data_type     : "INT2S"
                     B02     :
                         <<: *bdc_sen2cor_msi_band1
                         band_name     : "B02"
@@ -369,7 +383,8 @@ sources:
                             10       : "thin cirrus"
                             11       : "snow or ice"
                         interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
-                        resolution  :  10
+                        resolution   :  10
+                        data_type    : "INT1U"
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "S2-SEN2COR_10_16D_STK-1"
@@ -388,17 +403,19 @@ sources:
                         offset_value  : 0
                         resolution    :  30
                         band_name     : "NDVI"
+                        data_type     : "INT2S"
                     EVI     :
                         <<: *bdc_oli_ndvi
                         band_name     : "EVI"
                     B2      : &bdc_moz_band2
                         missing_value : -9999
-                        minimum_value : 1
-                        maximum_value : 65455
+                        minimum_value : 0
+                        maximum_value : 10000
                         scale_factor  : 0.0001
                         offset_value  : 0
                         resolution    : 30
                         band_name     : "SR_B2"
+                        data_type     : "INT2S"
                     B3      :
                         <<: *bdc_oli_band1
                         band_name     : "SR_B3"
@@ -431,6 +448,7 @@ sources:
                             15        : "High confidence of cirrus"
                         interp_values : [0, 1, 2, 4, 5, 9, 11, 13, 15]
                         resolution    : 30
+                        data_type     : "INT2U"
                 satellite   : "LANDSAT-8"
                 sensor      : "OLI"
                 collection_name: "LANDSAT-MOZ_30_1M_STK-1"
@@ -455,6 +473,7 @@ sources:
                         offset_value : 0
                         resolution  :  60
                         band_name    : "B01"
+                        data_type     : "INT2S"
                     B02     : &aws_msi_10m
                         missing_value: -9999
                         minimum_value: 0
@@ -463,6 +482,7 @@ sources:
                         offset_value : 0
                         resolution  :  10
                         band_name    : "B02"
+                        data_type     : "INT2S"
                     B03     :
                         <<: *aws_msi_10m
                         band_name    : "B03"
@@ -477,6 +497,7 @@ sources:
                         offset_value : 0
                         resolution  :  20
                         band_name    : "B05"
+                        data_type     : "INT2S"
                     B06     :
                         <<: *aws_msi_20m
                         band_name    : "B06"
@@ -516,6 +537,7 @@ sources:
                             11       : "snow or ice"
                         interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
                         resolution  : 20
+                        data_type     : "INT1U"
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 platforms   :
@@ -541,6 +563,7 @@ sources:
                         offset_value : 0
                         resolution  :  60
                         band_name    : "B01"
+                        data_type     : "INT2S"
                     B02     : &aws_msi_l1c_10m
                         missing_value: -9999
                         minimum_value: 0
@@ -549,6 +572,7 @@ sources:
                         offset_value : 0
                         resolution  :  10
                         band_name    : "B02"
+                        data_type     : "INT2S"
                     B03     :
                         <<: *aws_msi_l1c_10m
                         band_name    : "B03"
@@ -563,6 +587,7 @@ sources:
                         offset_value : 0
                         resolution  :  20
                         band_name    : "B05"
+                        data_type     : "INT2S"
                     B06     :
                         <<: *aws_msi_l1c_20m
                         band_name    : "B06"
@@ -610,8 +635,9 @@ sources:
                         maximum_value: 10000
                         scale_factor : 0.0001
                         offset_value : 0
-                        resolution  :  60
+                        resolution   : 60
                         band_name    : "B01"
+                        data_type    : "INT2S"
                     B02     : &aws_cog_msi_10m
                         missing_value: -9999
                         minimum_value: 0
@@ -620,6 +646,7 @@ sources:
                         offset_value : 0
                         resolution  :  10
                         band_name    : "B02"
+                        data_type    : "INT2S"
                     B03     :
                         <<: *aws_cog_msi_10m
                         band_name    : "B03"
@@ -634,6 +661,7 @@ sources:
                         offset_value : 0
                         resolution  :  20
                         band_name    : "B05"
+                        data_type    : "INT2S"
                     B06     :
                         <<: *aws_cog_msi_20m
                         band_name    : "B06"
@@ -673,6 +701,7 @@ sources:
                             11       : "snow or ice"
                         interp_values: [0, 1, 2, 3, 7, 8, 9, 10, 11]
                         resolution  :  20
+                        data_type    : "INT1U"
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 platforms   :
@@ -704,6 +733,7 @@ sources:
                         offset_value  : 0
                         resolution   :  60
                         band_name     : "B01"
+                        data_type    : "INT2S"
                     B02     : &deafrica_msi_10m
                         missing_value : -9999
                         minimum_value : 0
@@ -712,6 +742,7 @@ sources:
                         offset_value  : 0
                         resolution   :  10
                         band_name     : "B02"
+                        data_type    : "INT2S"
                     B03     :
                         <<: *deafrica_msi_10m
                         band_name     : "B03"
@@ -726,6 +757,7 @@ sources:
                         offset_value  : 0
                         resolution   :  20
                         band_name     : "B05"
+                        data_type    : "INT2S"
                     B06     :
                         <<: *deafrica_msi_20m
                         band_name     : "B06"
@@ -765,6 +797,7 @@ sources:
                             11        : "snow or ice"
                         interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
                         resolution   :  20
+                        data_type    : "INT1U"
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "s2_l2a"
@@ -787,6 +820,7 @@ sources:
                         resampling    : "bilinear"
                         resolution    : 30
                         band_name     : "SR_B1"
+                        data_type     : "INT2U"
                     B02     :
                         <<: *deafrica_oli_30m
                         band_name     : "SR_B2"
@@ -823,6 +857,7 @@ sources:
                         interp_values : [0, 1, 2, 3, 4, 5]
                         resampling    : "near"
                         resolution    : 30
+                        data_type     : "INT2U"
                 satellite   : "LANDSAT-8"
                 sensor      : "OLI"
                 collection_name: "ls8_sr"
@@ -850,6 +885,7 @@ sources:
                         offset_value  : 0
                         resolution    :  10
                         band_name     : "coastal_aerosol"
+                        data_type     : "INT2S"
                     B02     :
                         <<: *swiss_msi_10m
                         band_name     : "blue"
@@ -901,6 +937,7 @@ sources:
                             11        : "snow or ice"
                         interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
                         resolution   :  20
+                        data_type     : "INT1U"
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "s2_l2a_10m_swiss"
@@ -919,6 +956,7 @@ sources:
                         resampling    : "bilinear"
                         resolution    : 30
                         band_name     : "coastal_aerosol"
+                        data_type     : "INT2S"
                     B02     :
                         <<: *swiss_oli_30m
                         band_name     : "blue"
@@ -960,6 +998,7 @@ sources:
                         interp_values : [0, 3, 4, 5, 7, 9, 10]
                         resampling    : "near"
                         resolution    : 30
+                        data_type     : "INT2U"
                 satellite   : "LANDSAT-8"
                 sensor      : "OLI"
                 collection_name: "ls8_lasrc_swiss"
@@ -985,6 +1024,7 @@ sources:
                         resampling    : "bilinear"
                         resolution    : 30
                         band_name     : "blue"
+                        data_type     : "INT2U"
                     GREEN   :
                         <<: *usgs_oli_30m
                         band_name     : "green"
@@ -1023,6 +1063,7 @@ sources:
                         interp_values : [0, 1, 2, 3, 4, 5, 9, 11, 13, 15]
                         resampling    : "near"
                         resolution    : 30
+                        data_type     : "INT2U"
                 satellite   : "LANDSAT"
                 sensor      : "TM/ETM+/OLI"
                 platforms   :
@@ -1060,6 +1101,7 @@ sources:
                         resampling    : "bilinear"
                         resolution    : 30
                         band_name     : "blue"
+                        data_type     : "INT2U"
                     GREEN   :
                         <<: *mspc_oli_30m
                         band_name     : "green"
@@ -1098,6 +1140,7 @@ sources:
                         interp_values : [0, 1, 2, 3, 4, 5, 9, 11, 13, 15]
                         resampling    : "near"
                         resolution    : 30
+                        data_type     : "INT2U"
                 satellite   : "LANDSAT"
                 sensor      : "TM/ETM+/OLI"
                 platforms   :
@@ -1121,6 +1164,7 @@ sources:
                         offset_value  : 0
                         resolution   :  60
                         band_name     : "B01"
+                        data_type     : "INT2S"
                     B02     : &mspc_msi_10m
                         missing_value : -9999
                         minimum_value : 0
@@ -1129,6 +1173,7 @@ sources:
                         offset_value  : 0
                         resolution   :  10
                         band_name     : "B02"
+                        data_type     : "INT2S"
                     B03     :
                         <<: *mspc_msi_10m
                         band_name     : "B03"
@@ -1143,6 +1188,7 @@ sources:
                         offset_value  : 0
                         resolution   :  20
                         band_name     : "B05"
+                        data_type     : "INT2S"
                     B06     :
                         <<: *mspc_msi_20m
                         band_name     : "B06"
@@ -1182,6 +1228,7 @@ sources:
                             11        : "snow or ice"
                         interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
                         resolution   :  20
+                        data_type     : "INT1U"
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 platforms   :
