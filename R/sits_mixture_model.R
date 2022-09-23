@@ -164,8 +164,7 @@ sits_mixture_model <- function(cube,
             em = em,
             mixture_fn = mixture_fn,
             out_fracs = out_fracs,
-            output_dir = output_dir,
-            version = version
+            output_dir = output_dir
         )
         return(output_feature)
     })
@@ -178,8 +177,7 @@ sits_mixture_model <- function(cube,
                              em,
                              mixture_fn,
                              out_fracs,
-                             output_dir,
-                             version) {
+                             output_dir) {
     # Output files
     out_files <- .file_eo_name(
         tile = feature, band = out_fracs,
