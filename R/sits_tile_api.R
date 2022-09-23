@@ -1767,7 +1767,8 @@ NULL
 
 .cube_merge_features <- function(features) {
     cube <- tidyr::nest(
-        tidyr::unnest(features, "file_info", names_sep = "."),
+        dplyr::arrange(tidyr::unnest(features, "file_info", names_sep = "."),
+                       .data[["file_info.date"]], .data[["file_info.band"]]),
         file_info = tidyr::starts_with("file_info"), .names_sep = "."
     )
     class(cube) <- class(features)
