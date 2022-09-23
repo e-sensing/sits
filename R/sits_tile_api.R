@@ -1378,11 +1378,9 @@ NULL
 
 .fi_read_block <- function(fi, band, block) {
     band <- band[[1]]
+    # Stops if no band is found
     fi <- .fi_filter_bands(fi = fi, bands = band)
     files <- .fi_paths(fi)
-    if (!.has(files)) {
-        return(NULL)
-    }
 
     #
     # Log here
@@ -1816,10 +1814,8 @@ NULL
 #' @export
 .tile_read_block.raster_cube <- function(tile, band, block, replace_by_minmax) {
     fi <- .fi(tile)
+    # Stops if band is not found
     values <- .fi_read_block(fi = fi, band = band, block = block)
-    if (!.has(values)) {
-        return(NULL)
-    }
 
 
     #
@@ -1887,15 +1883,13 @@ NULL
 
 #' @export
 .tile_cloud_read_block.eo_cube <- function(tile, block) {
-    values <- .tile_read_block(
-        tile = tile,
-        band = .band_cloud(),
-        block = block,
-        replace_by_minmax = FALSE
-    )
-    if (!.has(values)) {
+    if (!.band_cloud() %in% .tile_bands(tile)) {
         return(NULL)
     }
+    values <- .tile_read_block(
+        tile = tile, band = .band_cloud(), block = block,
+        replace_by_minmax = FALSE
+    )
 
 
     #
