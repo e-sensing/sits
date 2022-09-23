@@ -516,9 +516,46 @@ NULL
     .as_int(conf[["bit_mask"]][[1]])
 }
 
-#' @describeIn band_accessors Return name of the cloud band.
+#---- Band API: ----
+
+#' Band API
+#'
+#' We use term \code{band} to refer either to spectral bands as index generated
+#' from images of actual sensor bands. To organize internal metadata and work
+#' properly there are some restrictions in band names. These functions aims
+#' to impose band name restrictions.
+#'
+#' @param band Band name.
+#'
+#' @examples
+#' \dontrun{
+#' .band_cloud() # 'CLOUD'
+#' # eo bands name are uppercase
+#' .band_eo("nDvI") # 'NDVI'
+#' # derived bands name are lowercase
+#' .band_derived("PrObS") # 'probs'
+#' # bands name cannot have '_' (underscore)
+#' .band_eo("NDVI_2") # 'NDVI-2'
+#' }
+#'
+#' @seealso \link{band_accessors}
+#' @name band_api
+NULL
+
+#' @describeIn band_api Returns the name of cloud band.
 .band_cloud <- function() {
     "CLOUD"
+}
+
+#' @describeIn band_api Returns a well formatted band name for \code{eo_cube}.
+.band_eo <- function(band) {
+    gsub("_", "-", toupper(band))
+}
+
+#' @describeIn band_api Returns a well formatted band name for
+#'   \code{derived_cube}.
+.band_derived <- function(band) {
+    gsub("_", "-", tolower(band))
 }
 
 #---- block API: ----
@@ -1068,7 +1105,7 @@ NULL
     # source, collection, and band are uppercase
     source <- toupper(source)
     collection <- toupper(collection)
-    band <- toupper(band)
+    band <- .band_eo(band)
     # Check for source and collection and throws an error if it not exists
     .conf_exists(
         "sources", source, "collections", collection,
@@ -1085,6 +1122,8 @@ NULL
 #'   error is thrown. Use \code{.conf_exists()} to test for \code{source} and
 #'   \code{collection} existence.
 .conf_eo_band <- function(source, collection, band) {
+    # Format band name
+    band <- .band_eo(band)
     # Return a default value if band does not exists in config
     if (!.conf_eo_band_exists(source, collection, band)) {
         return(.conf("default_values", "eo_cube"))
@@ -1150,9 +1189,10 @@ NULL
 #' @describeIn derived_cube_config Get the S3 class values to instantiate a
 #'   new \code{derived_cube}.
 .conf_derived_band <- function(derived_class, band) {
-    # derived_class and band are lowercase
+    # Format band
+    band <- .band_derived(band)
+    # Derived_class is lowercase
     derived_class <- tolower(derived_class)
-    band <- tolower(band)
     .conf("derived_cube", derived_class, "bands", band)
 }
 
@@ -1192,19 +1232,11 @@ NULL
 
 .fi_eo <- function(fid, band, date, ncols, nrows, xres, yres, xmin, xmax,
                    ymin, ymax, path) {
-    # Create a new earth observation file_info
+    # Create a new eo file_info
     tibble::tibble(
-        fid = fid, band = band,
-        date = date,
-        ncols = ncols,
-        nrows = nrows,
-        xres = xres,
-        yres = yres,
-        xmin = xmin,
-        xmax = xmax,
-        ymin = ymin,
-        ymax = ymax,
-        path = path
+        fid = fid, band = .band_eo(band), date = date, ncols = ncols,
+        nrows = nrows, xres = xres, yres = yres, xmin = xmin, xmax = xmax,
+        ymin = ymin, ymax = ymax, path = path
     )
 }
 
@@ -1228,57 +1260,29 @@ NULL
     )
 }
 
-.fi_derived <- function(band,
-                        start_date,
-                        end_date,
-                        ncols,
-                        nrows,
-                        xres,
-                        yres,
-                        xmin,
-                        xmax,
-                        ymin,
-                        ymax,
-                        crs,
-                        path) {
+.fi_derived <- function(band, start_date, end_date, ncols, nrows, xres, yres,
+                        xmin, xmax, ymin, ymax, crs, path) {
     # Create a new derived file_info
     tibble::tibble(
-        band = band,
-        start_date = start_date,
-        end_date = end_date,
-        ncols = ncols,
-        nrows = nrows,
-        xres = xres,
-        yres = yres,
-        xmin = xmin,
-        xmax = xmax,
-        ymin = ymin,
-        ymax = ymax,
-        crs = crs,
-        path = path
+        band = .band_derived(band), start_date = start_date,
+        end_date = end_date, ncols = ncols, nrows = nrows,
+        xres = xres, yres = yres, xmin = xmin, xmax = xmax,
+        ymin = ymin, ymax = ymax, crs = crs, path = path
     )
 }
 
-.fi_derived_from_file <-
-    function(file, band, start_date, end_date) {
-        file <- path.expand(file)
-        r_obj <- .raster_open_rast(file)
-        .fi_derived(
-            band = band,
-            start_date = start_date,
-            end_date = end_date,
-            ncols = .raster_ncols(r_obj),
-            nrows = .raster_nrows(r_obj),
-            xres = .raster_xres(r_obj),
-            yres = .raster_yres(r_obj),
-            xmin = .raster_xmin(r_obj),
-            xmax = .raster_xmax(r_obj),
-            ymin = .raster_ymin(r_obj),
-            ymax = .raster_ymax(r_obj),
-            crs = .raster_crs(r_obj),
-            path = file
-        )
-    }
+.fi_derived_from_file <- function(file, band, start_date, end_date) {
+    file <- path.expand(file)
+    r_obj <- .raster_open_rast(file)
+    .fi_derived(
+        band = band, start_date = start_date, end_date = end_date,
+        ncols = .raster_ncols(r_obj), nrows = .raster_nrows(r_obj),
+        xres = .raster_xres(r_obj), yres = .raster_yres(r_obj),
+        xmin = .raster_xmin(r_obj), xmax = .raster_xmax(r_obj),
+        ymin = .raster_ymin(r_obj), ymax = .raster_ymax(r_obj),
+        crs = .raster_crs(r_obj), path = file
+    )
+}
 
 .fi_fid <- function(fi) {
     .as_chr(fi[["fid"]])
@@ -1659,8 +1663,7 @@ NULL
 #' @export
 .tile_band_conf.eo_cube <- function(tile, band) {
     .conf_eo_band(
-        source = .tile_source(tile),
-        collection = .tile_collection(tile),
+        source = .tile_source(tile), collection = .tile_collection(tile),
         band = band[[1]]
     )
 }
@@ -1684,10 +1687,18 @@ NULL
 }
 
 #' @export
-.tile_filter_bands.raster_cube <- function(tile, bands) {
+.tile_filter_bands.eo_cube <- function(tile, bands) {
     tile <- .tile(tile)
     .tile_file_info(tile) <-
-        .fi_filter_bands(fi = .fi(tile), bands = bands)
+        .fi_filter_bands(fi = .fi(tile), bands = .band_eo(bands))
+    tile
+}
+
+#' @export
+.tile_filter_bands.derived_cube <- function(tile, bands) {
+    tile <- .tile(tile)
+    .tile_file_info(tile) <-
+        .fi_filter_bands(fi = .fi(tile), bands = .band_derived(bands))
     tile
 }
 
@@ -1725,8 +1736,7 @@ NULL
 #' @export
 .tile_filter_spatial.raster_cube <- function(tile, roi) {
     tile <- .tile(tile)
-    .tile_file_info(tile) <-
-        .fi_filter_spatial(fi = .fi(tile), roi = roi)
+    .tile_file_info(tile) <- .fi_filter_spatial(fi = .fi(tile), roi = roi)
     tile
 }
 
@@ -1765,16 +1775,13 @@ NULL
 }
 
 #' @export
-.tile_filter_temporal.raster_cube <-
-    function(tile, start_date, end_date) {
-        tile <- .tile(tile)
-        .tile_file_info(tile) <- .fi_filter_temporal(
-            fi = .fi(tile),
-            start_date = start_date,
-            end_date = end_date
-        )
-        tile
-    }
+.tile_filter_temporal.raster_cube <- function(tile, start_date, end_date) {
+    tile <- .tile(tile)
+    .tile_file_info(tile) <- .fi_filter_temporal(
+        fi = .fi(tile), start_date = start_date, end_date = end_date
+    )
+    tile
+}
 
 #---- | .tile_derived_class() ----
 #' Tile API
@@ -1799,23 +1806,26 @@ NULL
 #' Read and preprocess a \code{block} of \code{band} values from
 #' file_info rasters.
 #'
+#' \code{eo_cube} preprocess is slightly different from
+#' \code{derived_cube}: values outside the range of minimum and maximum for
+#' a band are replaced by \code{NA} in \code{eo_cube}. In \code{derived_cube},
+#' values outside allowed range are clamped and replaced by minimum or maximum
+#' values.
+#'
 #' @param tile A tile.
 #' @param band Band character vector.
 #' @param block A block list with (col, row, ncols, nrows).
-#' @param replace_by_minmax Should values out of minimum and maximum range
-#'   be replaced by minimum and maximum value? If \code{FALSE}, values out
-#'   of range will be replaced by \code{NA}.
 #'
 #' @return numeric
-.tile_read_block <- function(tile, band, block, replace_by_minmax) {
+.tile_read_block <- function(tile, band, block) {
     UseMethod(".tile_read_block", tile)
 }
 
 #' @export
-.tile_read_block.raster_cube <- function(tile, band, block, replace_by_minmax) {
+.tile_read_block.eo_cube <- function(tile, band, block) {
     fi <- .fi(tile)
     # Stops if band is not found
-    values <- .fi_read_block(fi = fi, band = band, block = block)
+    values <- .fi_read_block(fi = fi, band = .band_eo(band), block = block)
 
 
     #
@@ -1837,11 +1847,11 @@ NULL
     }
     min_value <- .min_value(band_conf)
     if (.has(min_value)) {
-        values[values < min_value] <- if (replace_by_minmax) min_value else NA
+        values[values < min_value] <- NA
     }
     max_value <- .max_value(band_conf)
     if (.has(max_value)) {
-        values[values > max_value] <- if (replace_by_minmax) max_value else NA
+        values[values > max_value] <- NA
     }
     scale <- .scale(band_conf)
     if (.has(scale) && scale != 1) {
@@ -1867,6 +1877,38 @@ NULL
     values
 }
 
+#' @export
+.tile_read_block.derived_cube <- function(tile, band, block) {
+    fi <- .fi(tile)
+    # Stops if band is not found
+    values <- .fi_read_block(fi = fi, band = .band_derived(band), block = block)
+    # Correct missing, minimum, and maximum values and
+    # apply scale and offset.
+    band_conf <- .tile_band_conf(tile = tile, band = band)
+    miss_value <- .miss_value(band_conf)
+    if (.has(miss_value)) {
+        values[values == miss_value] <- NA
+    }
+    min_value <- .min_value(band_conf)
+    if (.has(min_value)) {
+        values[values < min_value] <- min_value
+    }
+    max_value <- .max_value(band_conf)
+    if (.has(max_value)) {
+        values[values > max_value] <- max_value
+    }
+    scale <- .scale(band_conf)
+    if (.has(scale) && scale != 1) {
+        values <- values * scale
+    }
+    offset <- .offset(band_conf)
+    if (.has(offset) && offset != 0) {
+        values <- values + offset
+    }
+    # Return values
+    values
+}
+
 #---- | .tile_cloud_read_block() ----
 #' Tile API
 #'
@@ -1887,8 +1929,7 @@ NULL
         return(NULL)
     }
     values <- .tile_read_block(
-        tile = tile, band = .band_cloud(), block = block,
-        replace_by_minmax = FALSE
+        tile = tile, band = .band_cloud(), block = block
     )
 
 
@@ -2040,8 +2081,7 @@ NULL
 }
 
 # ---- | <probs_cube> ----
-.tile_probs_from_file <- function(file, band, base_tile, labels,
-                                  update_bbox) {
+.tile_probs_from_file <- function(file, band, base_tile, labels, update_bbox) {
     # Open block file to be merged
     r_obj <- .raster_open_rast(file)
     # Check number of labels is correct
@@ -2492,6 +2532,12 @@ NULL
 }
 
 .sits_select <- function(samples, bands) {
+    # Missing bands
+    miss_bands <- bands[!bands %in% .sits_bands(samples)]
+    if (.has(miss_bands)) {
+        stop("band(s) ", paste0("'", miss_bands, "'", collapse = ", "),
+             " not found")
+    }
     .sits_fast_apply(samples, col = "time_series", function(x) {
         dplyr::select(x, dplyr::all_of(c("#..", "Index", bands)))
     })
@@ -2558,11 +2604,11 @@ NULL
     }
 }
 
-.expr_chars <- function(expr) {
+.expr_calls <- function(expr) {
     if (is.call(expr)) {
-        unique(unlist(lapply(as.list(expr)[-1], .expr_names)))
-    } else if (is.character(expr)) {
-        .as_chr(expr)
+        unique(c(
+            paste0(expr[[1]]), unlist(lapply(as.list(expr)[-1], .expr_calls))
+        ))
     } else {
         character()
     }
