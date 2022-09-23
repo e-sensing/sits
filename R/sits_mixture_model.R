@@ -171,11 +171,7 @@ sits_mixture_model <- function(cube,
 }
 
 # ---- mixture functions ----
-.mixture_feature <- function(feature,
-                             em,
-                             mixture_fn,
-                             out_fracs,
-                             output_dir,
+.mixture_feature <- function(feature, em, mixture_fn, out_fracs, output_dir,
                              version) {
     # Output files
     out_files <- .file_eo_name(
@@ -258,12 +254,12 @@ sits_mixture_model <- function(cube,
     # Read and preprocess values from cloud
     # Get cloud values (NULL if not exists)
     cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
+    # Get endmembers bands
+    bands <- .endmembers_bands(em)
     # Read and preprocess values from each band
-    values <- purrr::map_dfc(.endmembers_bands(em), function(band) {
+    values <- purrr::map_dfc(bands, function(band) {
         # Get band values
-        values <- .tile_read_block(
-            tile = tile, band = band, block = block, replace_by_minmax = FALSE
-        )
+        values <- .tile_read_block(tile = tile, band = band, block = block)
         # Check if there are values
         .check_null(
             x = values,
@@ -281,6 +277,7 @@ sits_mixture_model <- function(cube,
 }
 
 # ---- endmembers functions ----
+
 .endmembers_type <- function(em) {
     if (is.data.frame(em)) {
         "tbl_df"
@@ -314,8 +311,7 @@ sits_mixture_model <- function(cube,
 .endmembers_scale <- function(em, cube) {
     bands <- .endmembers_bands(em)
     em <- dplyr::mutate(
-        em,
-        dplyr::across(bands, function(x) {
+        em, dplyr::across(bands, function(x) {
             band_conf <- .tile_band_conf(
                 tile = cube, band = dplyr::cur_column()
             )
@@ -331,8 +327,8 @@ sits_mixture_model <- function(cube,
 }
 
 .endmembers_fracs <- function(em, include_rmse = FALSE) {
-    if (!include_rmse) return(toupper(em[["TYPE"]]))
-    toupper(c(em[["TYPE"]], "RMSE"))
+    if (!include_rmse) return(em[["TYPE"]])
+    c(em[["TYPE"]], "RMSE")
 }
 
 .endmembers_as_matrix <- function(em) {
@@ -340,7 +336,8 @@ sits_mixture_model <- function(cube,
     as.matrix(em[, bands])
 }
 
-# ---- mixture model fn ----
+# ---- mixture model functions ----
+
 .mixture_fn_nnls <- function(em, rmse) {
     em_mtx <- .endmembers_as_matrix(em)
     mixture_fn <- function(values) {

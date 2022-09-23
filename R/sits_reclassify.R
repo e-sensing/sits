@@ -241,13 +241,11 @@ sits_reclassify.class_cube <- function(cube, mask, rules, memsize = 4,
         )
         # Read and preprocess values
         values <- .tile_read_block(
-            tile = tile, band = .tile_bands(tile), block = block,
-            replace_by_minmax = TRUE
+            tile = tile, band = .tile_bands(tile), block = block
         )
         # Read and preprocess values of mask block
         mask_values <- .tile_read_block(
-            tile = mask_tile, band = .tile_bands(mask_tile), block = NULL,
-            replace_by_minmax = TRUE
+            tile = mask_tile, band = .tile_bands(mask_tile), block = NULL
         )
         # Evaluate expressions
         values <- reclassify_fn(values = values, mask_values = mask_values)

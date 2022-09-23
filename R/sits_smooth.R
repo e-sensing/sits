@@ -211,8 +211,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
         }
         # Read and preprocess values
         values <- .tile_read_block(
-            tile = tile, band = .tile_bands(tile), block = block,
-            replace_by_minmax = TRUE
+            tile = tile, band = .tile_bands(tile), block = block
         )
         # Apply the probability function to values
         values <- smooth_fn(values = values, block = block)
