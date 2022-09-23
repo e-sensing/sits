@@ -19,7 +19,6 @@ test_that("file_info functions", {
         message = "BDC is not accessible"
     )
 
-
     # only works with one tile
     expect_error(.file_info(cbers_cube))
 

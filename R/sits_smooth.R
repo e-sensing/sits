@@ -88,6 +88,7 @@ sits_smooth <- function(cube, type = "bayes", ..., window_size = 5,
     # Check multicores
     .check_multicores(multicores)
     # Check output dir
+    output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
     # Check version
     .check_version(version)

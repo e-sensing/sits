@@ -237,7 +237,6 @@
             values <- normalize_data(values, q02, q98)
         }
 
-
         #
         # Log here
         #

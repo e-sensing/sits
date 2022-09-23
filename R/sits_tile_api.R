@@ -2398,25 +2398,63 @@ NULL
     cube[.cube_tiles(cube) %in% tile, ]
 }
 
-#---- | .cube_merge_features() ----
 
-.cube_feature_create <- function(tile) {
-    features <- tile[, c("tile", "file_info")]
-    features <- tidyr::unnest(features, "file_info")
-    features[["feature"]] <- features[["fid"]]
-    features <- tidyr::nest(features, file_info = -c("tile", "feature"))
-    tile <- tile[rep(1, nrow(features)), ]
-    tile[["file_info"]] <- features[["file_info"]]
-    tile
+#---- | .cube_create_features() ----
+
+
+.cube_create_features <- function(cube) {
+    # Process for each tile and return a cube
+    slider::slide_dfr(cube, function(tile) {
+        features <- tile[, c("tile", "file_info")]
+        features <- tidyr::unnest(features, "file_info")
+        features[["feature"]] <- features[["fid"]]
+        features <- tidyr::nest(features, file_info = -c("tile", "feature"))
+        # Replicate each tile so that we can copy file_info to cube
+        tile <- tile[rep(1, nrow(features)), ]
+        tile[["file_info"]] <- features[["file_info"]]
+        tile
+    })
 }
 
+#---- | .cube_merge_features() ----
+
 .cube_merge_features <- function(features) {
-    cube <- tidyr::nest(
-        tidyr::unnest(features, "file_info", names_sep = "."),
-        file_info = tidyr::starts_with("file_info"), .names_sep = "."
+    cube <- tidyr::unnest(features, "file_info", names_sep = ".")
+    cube <- dplyr::arrange(
+        cube, .data[["file_info.date"]], .data[["file_info.band"]]
     )
-    class(cube) <- class(features)
-    cube
+    cube <- tidyr::nest(
+        cube, file_info = tidyr::starts_with("file_info"),
+        .names_sep = "."
+    )
+    # Set class features and return
+    .set_class(cube, class(features))
+}
+
+
+#---- | .cube_create_assets() ----
+
+.cube_create_assets <- function(cube) {
+    # Process for each tile and return a cube
+    slider::slide_dfr(cube, function(tile) {
+        assets <- tile[, c("tile", "file_info")]
+        assets <- tidyr::unnest(assets, "file_info")
+        assets[["feature"]] <- assets[["fid"]]
+        assets[["asset"]] <- assets[["band"]]
+        assets <- tidyr::nest(
+            assets, file_info = -c("tile", "feature", "asset")
+        )
+        # Replicate each tile so that we can copy file_info to cube
+        tile <- tile[rep(1, nrow(assets)), ]
+        tile[["file_info"]] <- assets[["file_info"]]
+        tile
+    })
+}
+
+#---- | .cube_merge_assets() ----
+
+.cube_merge_assets <- function(assets) {
+    .cube_merge_features(assets)
 }
 
 # s2_cube <- sits_cube(
@@ -2448,6 +2486,8 @@ NULL
 # .cube_timeline(sinop)
 # .cube_start_date(sinop)
 # .cube_end_date(sinop)
+# identical(.cube_merge_features(.cube_create_features(s2_cube)), s2_cube)
+# identical(.cube_merge_assets(.cube_create_assets(s2_cube)), s2_cube)
 
 #---- ml_model ----
 

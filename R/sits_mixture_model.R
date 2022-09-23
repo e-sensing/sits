@@ -90,17 +90,13 @@
 #' }
 #'
 #' @export
-sits_mixture_model <- function(cube,
-                               endmembers,
-                               memsize = 1,
-                               multicores = 2,
-                               output_dir = getwd(),
-                               rmse_band = TRUE,
+sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
+                               output_dir = getwd(), rmse_band = TRUE,
                                progress = TRUE) {
     # check documentation mode
     progress <- .check_documentation(progress)
 
-    #precondition - endmembers
+    # precondition - endmembers
     .check_endmembers_parameter(endmembers)
     # precondition - memsize
     .check_memsize(memsize)
@@ -155,14 +151,13 @@ sits_mixture_model <- function(cube,
     # Create mixture processing function
     mixture_fn <- .mixture_fn_nnls(em = em, rmse = rmse_band)
     # Create features as jobs
-    features <- .cube_feature_create(cube)
+    features <- .cube_create_features(cube)
     # Process each feature in parallel
     features <- .jobs_map_parallel_dfr(features, function(feature) {
         # Process the data
         output_feature <- .mixture_feature(
             feature = feature, em = em, mixture_fn = mixture_fn,
-            out_fracs = out_fracs, output_dir = output_dir,
-            version = version
+            out_fracs = out_fracs, output_dir = output_dir
         )
         return(output_feature)
     })
@@ -171,15 +166,14 @@ sits_mixture_model <- function(cube,
 }
 
 # ---- mixture functions ----
-.mixture_feature <- function(feature, em, mixture_fn, out_fracs, output_dir,
-                             version) {
+.mixture_feature <- function(feature, em, mixture_fn, out_fracs, output_dir) {
     # Output files
     out_files <- .file_eo_name(
         tile = feature, band = out_fracs,
         date = .tile_start_date(feature), output_dir = output_dir
     )
     # Resume feature
-    if (all(file.exists(out_files))) {
+    if (.raster_is_valid(out_files)) {
         # # Callback final tile classification
         # .callback(process = "mixtureModel", event = "recovery",
         #           context = environment())

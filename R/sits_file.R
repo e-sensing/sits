@@ -16,8 +16,8 @@
 }
 
 .file_path <- function(..., ext = NULL, output_dir = NULL,
-                       create_dir = FALSE) {
-    filenames <- paste(..., sep = "_")
+                       create_dir = FALSE, sep = "_") {
+    filenames <- paste(..., sep = sep)
     if (!is.null(ext)) {
         # remove extension final point
         ext <- gsub("^[.]*", "", ext)
@@ -32,6 +32,14 @@
         filenames <- file.path(output_dir, filenames)
     }
     filenames
+}
+
+.file_is_local <- function(file) {
+    !grepl(pattern = "^[^:]+:", x = file)
+}
+
+.file_remove_vsi <- function(file) {
+    gsub(pattern = "^(/vsicurl/|/vsis3/|/vsigs/)", replacement = "", x = file)
 }
 
 .file_block_name <- function(pattern, block, output_dir) {
