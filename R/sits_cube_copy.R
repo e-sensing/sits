@@ -1,3 +1,52 @@
+#' Copy the images of a cube to a local directory
+#'
+#' This function downloads the images of a cube in parallel.
+#' A region of interest (\code{roi}) can be provided to crop
+#' the images and a resolution (\code{res}) to resample the
+#' bands.
+#'
+#' @param cube       A sits cube
+#' @param roi        A Region of interest. See details bellow.
+#' @param res        An integer value corresponds to the output
+#'                   spatial resolution of the images.
+#'                   Default is NULL.
+#' @param output_dir Output directory where images will be saved.
+#' @param multicores Number of workers for parallel downloading.
+#' @param progress   Show progress bar?
+#'
+#' @return a sits cube with updated metadata.
+#'
+#' @note
+#'    The \code{roi} parameter defines a region of interest. It can be
+#'    an sf_object, a shapefile, or a bounding box vector with
+#'    named XY values ("xmin", "xmax", "ymin", "ymax") or
+#'    named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'   # Creating a sits cube from BDC
+#'   bdc_cube <- sits_cube(
+#'       source = "BDC",
+#'       collection = "CB4_64_16D_STK-1",
+#'       tiles = c("022024", "022025"),
+#'       bands = c("B15", "CLOUD"),
+#'       start_date = "2018-01-01",
+#'       end_date = "2018-01-12"
+#'   )
+#'
+#'   # Downloading images to a temporary directory
+#'   cube_local <- sits_cube_copy(
+#'       cube = bdc_cube,
+#'       output_dir = tempdir(),
+#'       roi = c(lon_min = -42.28469009,
+#'               lat_min = -14.95411527,
+#'               lon_max = -41.74745556,
+#'               lat_max = -14.65950650),
+#'       multicores = 2
+#'   )
+#' }
+#'
+#' @export
 sits_cube_copy <- function(cube,
                            roi = NULL,
                            res = NULL,
@@ -30,7 +79,7 @@ sits_cube_copy <- function(cube,
             roi = roi, output_dir = output_dir,
             progress = progress
         )
-    })
+    }, progress = progress)
     # Join output assets as a cube and return it
     .cube_merge_assets(assets)
 }
