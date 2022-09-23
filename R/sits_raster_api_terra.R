@@ -219,7 +219,8 @@
                                overwrite,
                                block,
                                missing_value = NA) {
-
+    # Update missing_value
+    missing_value <- if (is.null(missing_value)) NA else missing_value
     # obtain coordinates from columns and rows
     # get extent
     xmin <- terra::xFromCol(
