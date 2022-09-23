@@ -41,12 +41,8 @@ C_kernel_max <- function(x, ncols, nrows, band, window_size) {
     .Call(`_sits_C_kernel_max`, x, ncols, nrows, band, window_size)
 }
 
-C_label_max_prob <- function(x) {
-    .Call(`_sits_C_label_max_prob`, x)
-}
-
-C_label_max_prob2 <- function(X) {
-    .Call(`_sits_C_label_max_prob2`, X)
+C_label_max_prob <- function(X) {
+    .Call(`_sits_C_label_max_prob`, X)
 }
 
 linear_interp <- function(mtx) {

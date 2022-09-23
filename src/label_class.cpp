@@ -4,12 +4,7 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-arma::ucolvec C_label_max_prob(const arma::mat& x) {
-    return arma::index_max(x, 1) + 1;
-}
-
-// [[Rcpp::export]]
-arma::colvec C_label_max_prob2(const arma::mat& X) {
+arma::colvec C_label_max_prob(const arma::mat& X) {
     arma::colvec Y(X.n_rows);
     arma::mat Z = X;
     Z.replace(arma::datum::nan, 0);
