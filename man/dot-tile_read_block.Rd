@@ -4,7 +4,7 @@
 \alias{.tile_read_block}
 \title{Tile API}
 \usage{
-.tile_read_block(tile, band, block, replace_by_minmax)
+.tile_read_block(tile, band, block)
 }
 \arguments{
 \item{tile}{A tile.}
@@ -12,10 +12,6 @@
 \item{band}{Band character vector.}
 
 \item{block}{A block list with (col, row, ncols, nrows).}
-
-\item{replace_by_minmax}{Should values out of minimum and maximum range
-be replaced by minimum and maximum value? If \code{FALSE}, values out
-of range will be replaced by \code{NA}.}
 }
 \value{
 numeric
@@ -23,4 +19,11 @@ numeric
 \description{
 Read and preprocess a \code{block} of \code{band} values from
 file_info rasters.
+}
+\details{
+\code{eo_cube} preprocess is slightly different from
+\code{derived_cube}: values outside the range of minimum and maximum for
+a band are replaced by \code{NA} in \code{eo_cube}. In \code{derived_cube},
+values outside allowed range are clamped and replaced by minimum or maximum
+values.
 }

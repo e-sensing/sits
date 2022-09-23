@@ -10,7 +10,6 @@
 \alias{.offset}
 \alias{.cloud_interp_values}
 \alias{.cloud_bit_mask}
-\alias{.band_cloud}
 \title{Band configuration accessors}
 \usage{
 .data_type(conf)
@@ -28,8 +27,6 @@
 .cloud_interp_values(conf)
 
 .cloud_bit_mask(conf)
-
-.band_cloud()
 }
 \arguments{
 \item{conf}{A band definition value from config. Can be retrieved by
@@ -60,8 +57,6 @@ from an \code{eo_cube} or \code{derived_cube}.
 \item \code{.cloud_interp_values()}: Get \code{interp_values} entry.
 
 \item \code{.cloud_bit_mask()}: Get \code{bit_mask} entry.
-
-\item \code{.band_cloud()}: Return name of the cloud band.
 
 }}
 \examples{
