@@ -71,7 +71,7 @@ sits_cube_copy <- function(cube,
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
     # Create assets as jobs
-    assets <- .cube_asset_create(cube)
+    assets <- .cube_create_assets(cube)
     # Process each tile sequentially
     assets <- .jobs_map_parallel_dfr(assets, function(asset) {
         local_tile <- .download_asset(

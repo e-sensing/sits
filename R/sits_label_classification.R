@@ -183,7 +183,7 @@ sits_label_classification.probs_cube <- function(cube, memsize = 4,
     label_fn <- function(values) {
         # Used to check values (below)
         input_pixels <- nrow(values)
-        values <- C_label_max_prob2(values)
+        values <- C_label_max_prob(values)
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         # Return values
