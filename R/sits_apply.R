@@ -88,10 +88,10 @@
 #'
 #' # Generate a texture images with variance in NDVI images
 #' cube_texture <- sits_apply(
-#'     cube,
+#'     data = cube,
 #'     NDVITEXTURE = w_var(NDVI),
 #'     window_size = 5,
-#'     output_dir = tempdir()
+#'     output_dir = getwd()
 #' )
 #'
 #' @rdname sits_apply
@@ -110,11 +110,8 @@ sits_apply.sits <- function(data, ...) {
 
 #' @rdname sits_apply
 #' @export
-sits_apply.raster_cube <- function(data, ...,
-                                   window_size = 3,
-                                   memsize = 1,
-                                   multicores = 2,
-                                   output_dir = getwd(),
+sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
+                                   multicores = 2, output_dir = getwd(),
                                    progress = TRUE) {
     # check documentation mode
     progress <- .check_documentation(progress)
@@ -128,7 +125,6 @@ sits_apply.raster_cube <- function(data, ...,
     # Check multicores
     .check_multicores(multicores)
     # Check output_dir
-    output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
 
     # Get output band expression
@@ -159,7 +155,7 @@ sits_apply.raster_cube <- function(data, ...,
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # Create features as jobs
-    features_cube <- .cube_feature_create(data)
+    features_cube <- .cube_create_features(data)
 
     # Process each feature in parallel
     features_band <- .jobs_map_parallel_dfr(features_cube, function(feature) {
@@ -179,7 +175,8 @@ sits_apply.raster_cube <- function(data, ...,
     .cube_merge_features(dplyr::bind_rows(list(features_cube, features_band)))
 }
 
-.apply_feature <- function(feature, window_size, expr, out_band, in_bands, overlap, output_dir) {
+.apply_feature <- function(feature, window_size, expr, out_band, in_bands,
+                           overlap, output_dir) {
     # Output file
     out_file <- .file_eo_name(
         tile = feature, band = out_band,
@@ -221,8 +218,9 @@ sits_apply.raster_cube <- function(data, ...,
             return(block_files)
         }
         # Read bands data
-        values <- .apply_data_read(tile = feature, block = block,
-                                     in_bands = in_bands)
+        values <- .apply_data_read(
+            tile = feature, block = block, in_bands = in_bands
+        )
         # Evaluate expression here
         # Band and kernel evaluation
         values <- eval(
@@ -236,21 +234,21 @@ sits_apply.raster_cube <- function(data, ...,
         )
         # Prepare fractions to be saved
         band_conf <- .tile_band_conf(tile = feature, band = out_band)
-        offset <- .band_offset(band_conf)
+        offset <- .offset(band_conf)
         if (!is.null(offset) && offset != 0) {
             values <- values - offset
         }
-        scale <- .band_scale(band_conf)
+        scale <- .scale(band_conf)
         if (!is.null(scale) && scale != 1) {
             values <- values / scale
         }
         # Job crop block
-        crop_block <- .chunks_block_no_overlap(chunk)
+        crop_block <- .block(.chunks_no_overlap(chunk))
         # Prepare and save results as raster
         .raster_write_block(
             files = block_files, block = block, bbox = .bbox(chunk),
-            values = values, data_type = .band_data_type(band_conf),
-            missing_value = .band_miss_value(band_conf),
+            values = values, data_type = .data_type(band_conf),
+            missing_value = .miss_value(band_conf),
             crop_block = crop_block
         )
         # Free memory
@@ -276,14 +274,7 @@ sits_apply.raster_cube <- function(data, ...,
     # Read and preprocess values from each band
     values <- purrr::map_dfc(in_bands, function(band) {
         # Get band values
-        values <- .tile_read_block(
-            tile = tile, band = band, block = block, replace_by_minmax = FALSE
-        )
-        # Check if there are values
-        .check_null(
-            x = values,
-            msg = paste0("invalid data read from band '", band, "'")
-        )
+        values <- .tile_read_block(tile = tile, band = band, block = block)
         # Remove cloud masked pixels
         if (!is.null(cloud_mask)) {
             values[cloud_mask] <- NA
@@ -347,152 +338,6 @@ sits_apply.raster_cube <- function(data, ...,
     return(list_expr)
 }
 
-#' @title Returns a new file name
-#'
-#' @name .apply_out_file_name
-#' @keywords internal
-#'
-#' @param tile_name  Tile name.
-#' @param band       Band name.
-#' @param date       Observation date.
-#' @param output_dir Base directory.
-#'
-#' @return           File path.
-#'
-.apply_out_file_name <- function(tile_name, band, date, output_dir) {
-    # Prepare file name
-    file_prefix <- paste("cube", tile_name, band, date, sep = "_")
-    file_name <- paste(file_prefix, "tif", sep = ".")
-    file_path <- paste(output_dir, file_name, sep = "/")
-    return(file_path)
-}
-
-#' @title Finds the missing bands in a cube
-#'
-#' @name .apply_find_missing_band
-#' @keywords internal
-#'
-#' @param cube   Data cube.
-#' @param band   Band name.
-#'
-#' @return       List of combination among tiles, bands, and dates
-#'               that are missing from the cube.
-#'
-.apply_find_missing_band <- function(cube, band) {
-
-    # Pre-condition
-    .check_length(band, len_min = 1, len_max = 1)
-
-    tile_band_fid <- unlist(slider::slide(cube, function(tile) {
-        tl <- sits_timeline(tile)
-        fi <- .file_info(tile)
-        fi_band <- fi[fi[["band"]] == band, ]
-        missing_dates <- tl[!tl %in% fi_band[["date"]]]
-        fi <- fi[fi[["date"]] %in% missing_dates, ]
-        if (nrow(fi) == 0) {
-            return(NULL)
-        }
-        purrr::cross3(.cube_tiles(tile), band, unique(fi[["fid"]]))
-    }), recursive = FALSE)
-
-    return(tile_band_fid)
-}
-
-
-# function to compute blocks grid
-.apply_compute_blocks <- function(xsize,
-                                  ysize,
-                                  block_y_size,
-                                  overlapping_y_size) {
-    r1 <- seq(1, ysize - 1, by = block_y_size)
-    r2 <- c(r1[-1] - 1, ysize)
-    nr1 <- r2 - r1 + 1
-    ovr_r1 <- c(1, c(r1[-1] - overlapping_y_size))
-    ovr_r2 <- c(r2[-length(r2)] + overlapping_y_size, ysize)
-    ovr_nr1 <- ovr_r2 - ovr_r1 + 1
-
-    # define each block as a list element
-    blocks <- mapply(
-        list,
-        row = ovr_r1,
-        nrows = ovr_nr1,
-        col = 1,
-        ncols = xsize,
-        crop_row = r1 - ovr_r1 + 1,
-        crop_nrows = nr1,
-        crop_col = 1,
-        crop_ncols = xsize,
-        SIMPLIFY = FALSE
-    )
-
-    return(blocks)
-}
-#' @title Estimate the number of blocks
-#' @name .apply_estimate_block_size
-#' @keywords internal
-#'
-#' @param cube         input data cube
-#' @param multicores   number of processes to split up the data
-#' @param memsize      maximum overall memory size (in GB)
-#'
-#' @return  returns a list with following information:
-#'             - multicores theoretical upper bound;
-#'             - block x_size (horizontal) and y_size (vertical)
-#'
-.apply_estimate_block_size <- function(cube, multicores, memsize) {
-
-    # precondition 1 - check if cube is regular
-    .check_is_regular(cube)
-
-    size <- .cube_size(cube[1,])
-    n_bands <- length(.cube_bands(cube))
-    n_times <- length(.file_info_timeline(cube[1,]))
-    bloat_mem <- .config_processing_bloat()
-    n_bytes <- 8
-
-    # total memory needed to do all work in GB
-    image_size <- size[["ncols"]] * size[["nrows"]]
-    needed_memory <- image_size * 1E-09 * n_bands * n_times *
-        bloat_mem * n_bytes
-
-    # minimum block size
-    min_block_x_size <- size["ncols"] # for now, only vertical blocking
-    min_block_y_size <- 1
-
-    # compute factors
-    memory_factor <- needed_memory / memsize
-
-    blocking_factor <- image_size / (min_block_x_size * min_block_y_size)
-
-    # stop if blocking factor is less than memory factor!
-    # reason: the provided memory is not enough to process the data by
-    # breaking it into small chunks
-    .check_that(
-        x = memory_factor <= blocking_factor,
-        msg = "provided memory not enough to run the job"
-    )
-
-    # update multicores to the maximum possible processes given the available
-    # memory and blocking factor
-    multicores <- min(floor(blocking_factor / memory_factor), multicores)
-
-    # compute blocking allocation that maximizes the
-    # block / (memory * multicores) ratio, i.e. maximize parallel processes
-    # and returns the following information:
-    # - multicores theoretical upper bound;
-    # - block x_size (horizontal) and y_size (vertical)
-    blocks <- list(
-        # theoretical max_multicores = floor(blocking_factor / memory_factor),
-        block_x_size = floor(min_block_x_size),
-        block_y_size = min(
-            floor(blocking_factor / memory_factor / multicores),
-            size[["nrows"]]
-        )
-    )
-
-    return(blocks)
-}
-
 #' @title Finds out all existing bands in an expression
 #'
 #' @name .apply_input_bands
@@ -529,20 +374,6 @@ sits_apply.raster_cube <- function(data, ...,
     return(bands)
 }
 
-
-#' @title Returns all kernel functions in an expression
-#'
-#' @name .apply_input_kernels
-#' @keywords internal
-#'
-#' @param expr       Expression.
-#'
-#' @return           List with all used kernel functions.
-#'
-.apply_get_kernel_window_size <- function(expr) {
-
-}
-
 #' @title Returns all names in an expression
 #'
 #' @name .apply_get_all_names
@@ -570,65 +401,44 @@ sits_apply.raster_cube <- function(data, ...,
     result_env <- list2env(list(
         w_median = function(m) {
             C_kernel_median(
-                x = as.matrix(m),
-                ncols = img_ncol,
-                nrows = img_nrow,
-                band = 0,
-                window_size = window_size
+                x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
+                band = 0, window_size = window_size
             )
         },
         w_sum = function(m) {
             C_kernel_sum(
-                x = as.matrix(m),
-                ncols = img_ncol,
-                nrows = img_nrow,
-                band = 0,
-                window_size = window_size
+                x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
+                band = 0, window_size = window_size
             )
         },
         w_mean = function(m) {
             C_kernel_mean(
-                x = as.matrix(m),
-                ncols = img_ncol,
-                nrows = img_nrow,
-                band = 0,
-                window_size = window_size
+                x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
+                band = 0, window_size = window_size
             )
         },
         w_sd = function(m) {
             C_kernel_sd(
-                x = as.matrix(m),
-                ncols = img_ncol,
-                nrows = img_nrow,
-                band = 0,
-                window_size = window_size
+                x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
+                band = 0, window_size = window_size
             )
         },
         w_var = function(m) {
             C_kernel_var(
-                x = as.matrix(m),
-                ncols = img_ncol,
-                nrows = img_nrow,
-                band = 0,
-                window_size = window_size
+                x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
+                band = 0, window_size = window_size
             )
         },
         w_min = function(m) {
             C_kernel_min(
-                x = as.matrix(m),
-                ncols = img_ncol,
-                nrows = img_nrow,
-                band = 0,
-                window_size = window_size
+                x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
+                band = 0, window_size = window_size
             )
         },
         w_max = function(m) {
             C_kernel_max(
-                x = as.matrix(m),
-                ncols = img_ncol,
-                nrows = img_nrow,
-                band = 0,
-                window_size = window_size
+                x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
+                band = 0, window_size = window_size
             )
         }
     ), parent = parent.env(environment()), hash = TRUE)
