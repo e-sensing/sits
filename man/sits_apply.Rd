@@ -111,7 +111,7 @@ cube <- sits_cube(
 
 # Generate a texture images with variance in NDVI images
 cube_texture <- sits_apply(
-    cube,
+    data = cube,
     NDVITEXTURE = w_var(NDVI),
     window_size = 5,
     output_dir = tempdir()
