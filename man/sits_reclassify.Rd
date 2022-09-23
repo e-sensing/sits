@@ -39,7 +39,7 @@ to be used in expressions.}
 
 \item{output_dir}{Directory where files will be saved.}
 
-\item{progress}{Show progress bar?}
+\item{version}{Version of resulting image (in the case of multiple runs).}
 }
 \value{
 A classified image cube.

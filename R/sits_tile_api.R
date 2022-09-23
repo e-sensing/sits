@@ -158,7 +158,7 @@ NULL
 #'   evaluated in \code{.default} parameter. If \code{.default} parameter
 #'   is not informed, the function will raise the error.
 #'
-#' @seealso \link{tryCatch()}
+#' @seealso \code{\link[base]{tryCatch()}}
 #' @family utility functions
 #' @keywords internal
 .try <- function(expr,

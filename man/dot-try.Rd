@@ -84,7 +84,7 @@ print(value)
 
 }
 \seealso{
-\link{tryCatch()}
+\code{\link[base]{tryCatch()}}
 
 Other utility functions: 
 \code{\link{.intersects}()}

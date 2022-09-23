@@ -17,7 +17,7 @@
 #' @param memsize    Memory available for classification (in GB).
 #' @param multicores Number of cores to be used for classification.
 #' @param output_dir Directory where files will be saved.
-#' @param progress   Show progress bar?
+#' @param version    Version of resulting image (in the case of multiple runs).
 #'
 #' @details
 #' \code{sits_reclassify()} allow any valid R expression to compute
