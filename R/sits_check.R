@@ -2053,7 +2053,7 @@
 
 .check_endmembers_bands <- function(em, cube) {
     .check_chr_within(
-        x = .endmembers_bands(em),
+        x = .band_eo(.endmembers_bands(em)),
         within = .cube_bands(cube, add_cloud = FALSE),
         msg = "invalid 'endmembers' columns"
     )
