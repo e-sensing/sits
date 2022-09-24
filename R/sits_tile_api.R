@@ -2611,31 +2611,37 @@ NULL
     sort(unique(samples[["label"]]))
 }
 
-.sits_attrs <- function(samples) {
+.sits_features <- function(samples, stats = NULL) {
     # Assumes that each time series in 'samples' have the
     # same number of observations
     # Get band names
     bands <- .sits_bands(samples)
     # Get all time series
-    attrs <- .sits_ts(samples)
+    features <- .sits_ts(samples)
     # Select attributes columns
-    attrs <- attrs[c("sample_id", "label", bands)]
+    features <- features[c("sample_id", "label", bands)]
     # Add sequence 'index' column grouped by 'sample_id'
-    attrs <- .by_dfr(data = attrs, col = "sample_id", fn = function(x) {
+    features <- .by_dfr(data = features, col = "sample_id", fn = function(x) {
         x[["index"]] <- seq_len(nrow(x))
         x
     })
     # Arrange data - 'sample_id' x 'bands-index'
-    attrs <- tidyr::pivot_wider(
-        data = attrs, names_from = "index", values_from = bands,
+    features <- tidyr::pivot_wider(
+        data = features, names_from = "index", values_from = bands,
         names_prefix = ifelse(length(bands) == 1, bands, ""),
         names_sep = ""
     )
+    # Normalize data
+    if (.has(stats)) {
+        features[, -2:0] <- .values_normalize(
+            values = .features_values(features), stats = stats
+        )
+    }
     # Return attributes values
-    attrs
+    features
 }
 
-.sits_attrs_stats <- function(samples) {
+.sits_features_stats <- function(samples) {
     # Get band names
     bands <- .sits_bands(samples)
     # Get all time series
@@ -2647,28 +2653,39 @@ NULL
     q98 <- apply(attrs, 2, stats::quantile, probs = 0.98, na.rm = TRUE)
     # Number of observations
     nobs <- .sits_nobs(samples)
-    # Replicate stats and update names
-    attr_names <- rep(names(q02), each = nobs)
-    q02 <- .set_names(rep(q02, each = nobs), attr_names)
-    q98 <- .set_names(rep(q98, each = nobs), attr_names)
+    # Replicate stats
+    q02 <- rep(unname(q02), each = nobs)
+    q98 <- rep(unname(q98), each = nobs)
     # Return stats object
     list(q02 = q02, q98 = q98)
 }
 
+.features_values <- function(features) {
+    as.matrix(features[, -2:0])
+}
+
+`.features_values<-` <- function(features, value) {
+    tibble::as_tibble(cbind(
+        features[, -2:0], as.matrix(features[, -2:0])
+    ))
+}
+
+.features_reference <- function(features) {
+    features[["label"]]
+}
+
 .values_normalize <- function(values, stats) {
-    q02 <- .stats_q02(stats)
-    q98 <- .stats_q98(stats)
-    C_normalize_data(data = values, min = q02, max = q98)
+    C_normalize_data(
+        data = values, min = .stats_q02(stats), max = .stats_q98(stats)
+    )
 }
 
 .sits_get_chunk_ts <- function(samples, nchunks) {
     ngroup <- ceiling(nrow(samples) / nchunks)
-    group_id <-
-        rep(seq_len(nchunks), each = ngroup)[seq_len(nrow(samples))]
-
+    group_id <- rep(seq_len(nchunks), each = ngroup)[seq_len(nrow(samples))]
     samples[["group_id"]] <- group_id
-    dplyr::group_split(dplyr::group_by(samples, .data[["group_id"]]),
-                       .keep = FALSE
+    dplyr::group_split(
+        dplyr::group_by(samples, .data[["group_id"]]), .keep = FALSE
     )
 }
 

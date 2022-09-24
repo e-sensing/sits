@@ -52,7 +52,7 @@ sits_rfor <- function(samples = NULL, num_trees = 120, mtry = NULL, ...) {
         # Get labels (used later to ensure column order in result matrix)
         labels <- .sits_labels(samples)
         # Get predictors features
-        train_samples <- .sits_attrs(samples)
+        train_samples <- .sits_features(samples)
 
         # Apply the same 'mtry' default value of 'randomForest' package
         if (purrr::is_null(mtry)) {
@@ -64,11 +64,10 @@ sits_rfor <- function(samples = NULL, num_trees = 120, mtry = NULL, ...) {
 
         # Train a random forest model
         model <- randomForest::randomForest(
-            x = as.matrix(train_samples[, -2:0]),
-            y = train_samples[["reference"]], samples = NULL,
-            ntree = num_trees, mtry = mtry, nodesize = 1,
-            localImp = TRUE, norm.votes = FALSE, ...,
-            na.action = stats::na.fail
+            x = .features_values(train_samples),
+            y = .features_reference(train_samples), samples = NULL,
+            ntree = num_trees, mtry = mtry, nodesize = 1, localImp = TRUE,
+            norm.votes = FALSE, ..., na.action = stats::na.fail
         )
 
         # Function that predicts labels of input values
@@ -156,9 +155,8 @@ sits_rfor <- function(samples = NULL, num_trees = 120, mtry = NULL, ...) {
 #' @export
 #'
 sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
-                     scale = FALSE, cachesize = 1000,
-                     kernel = "radial", degree = 3, coef0 = 0,
-                     cost = 10, tolerance = 0.001,
+                     scale = FALSE, cachesize = 1000, kernel = "radial",
+                     degree = 3, coef0 = 0, cost = 10, tolerance = 0.001,
                      epsilon = 0.1, cross = 10, ...) {
 
     # Function that trains a support vector machine model
@@ -167,8 +165,6 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
         .check_require_packages("e1071")
         # Get labels (used later to ensure column order in result matrix)
         labels <- .sits_labels(samples)
-        # Get predictors features
-        train_samples <- .sits_attrs(samples)
         # Get normalized training samples
         # Variable name changed 'stats' -> 'ml_stats' purposefully.
         # Only models trained in versions prior to 1.2 has variable 'stats'.
@@ -176,10 +172,9 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
         #   on input data before classification.
         # sits still works with these models by normalizing data before
         #   classification.
-        ml_stats <- .sits_attrs_stats(samples)
-        train_samples <- .values_normalize(
-            values = train_samples, stats = ml_stats
-        )
+        ml_stats <- .sits_features_stats(samples)
+        # Get predictors features
+        train_samples <- .sits_features(samples, stats = ml_stats)
         # Update formula parameter
         if (inherits(formula, "function")) {
             formula <- formula(train_samples)
@@ -187,11 +182,10 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
 
         # Train a svm model
         model <- e1071::svm(
-            formula = formula, data = as.matrix(train_samples[, -2:0]),
-            scale = scale, kernel = kernel, degree = degree, cost = cost,
-            coef0 = coef0, cachesize = cachesize, tolerance = tolerance,
-            epsilon = epsilon, cross = cross, probability = TRUE, ...,
-            na.action = ml_stats::na.fail
+            formula = formula, data = train_samples, scale = scale,
+            kernel = kernel, degree = degree, cost = cost, coef0 = coef0,
+            cachesize = cachesize, tolerance = tolerance, epsilon = epsilon,
+            cross = cross, probability = TRUE, ..., na.action = stats::na.fail
         )
 
         # Function that predicts labels of input values
@@ -201,9 +195,7 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
             # Used to check values (below)
             input_pixels <- nrow(values)
             # Performs data normalization
-            values <- .values_normalize(
-                values = values, stats = ml_stats
-            )
+            values <- .values_normalize(values = values, stats = ml_stats)
             # Do classification
             values <- stats::predict(
                 object = model, newdata = values, probability = TRUE
@@ -303,12 +295,13 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
         # Get labels (used later to ensure column order in result matrix)
         labels <- .sits_labels(samples)
         # Get predictors features
-        train_samples <- .sits_attrs(samples)
+        train_samples <- .sits_features(samples)
         # Transform labels to integer code before train
         code_labels <- seq_along(labels)
         names(code_labels) <- labels
         # Reference labels for each sample expressed as numerical values
-        references <- unname(code_labels[train_samples[["reference"]]]) - 1
+        references <-
+            unname(code_labels[.features_reference(train_samples)]) - 1
         # Define the parameters of the model
         params <- list(
             booster = "gbtree", objective = "multi:softprob",
@@ -319,9 +312,9 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
         )
         # Train a xgboost model
         model <- xgboost::xgboost(
-            data = as.matrix(train_samples[, -2:0]), label = references,
-            num_class = length(labels), params = params, nrounds = nrounds,
-            verbose = FALSE
+            data = .features_values(train_samples),
+            label = references, num_class = length(labels), params = params,
+            nrounds = nrounds, verbose = FALSE
         )
         # Get best ntreelimit
         ntreelimit <- model$best_ntreelimit
@@ -334,8 +327,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
             input_pixels <- nrow(values)
             # Do classification
             values <- stats::predict(
-                object = model, as.matrix(values), ntreelimit = ntreelimit,
-                reshape = TRUE
+                object = model, values, ntreelimit = ntreelimit, reshape = TRUE
             )
             # Are the results consistent with the data input?
             .check_processed_values(values, input_pixels)
@@ -416,7 +408,7 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 
         # compute formula result
         result_for <- stats::as.formula(paste0(
-            "factor(reference)~",
+            "factor(label)~",
             paste0(paste0("log(`", categories, "`)"),
                 collapse = "+"
             )
@@ -484,7 +476,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 
         # compute formula result
         result_for <- stats::as.formula(paste0(
-            "factor(reference)~",
+            "factor(label)~",
             paste0(paste0(categories,
                 collapse = "+"
             ))
