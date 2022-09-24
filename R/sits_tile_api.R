@@ -2504,42 +2504,12 @@ NULL
 
 #---- ml_model ----
 
-
-.ml_stats_create <- function(samples) {
-    ts <- dplyr::bind_rows(samples[["time_series"]])
-    # Remove Index column
-    ts <- dplyr::select(ts, -.data[["Index"]])
-    # Compute median
-    med <- dplyr::summarise(
-        ts,
-        dplyr::across(dplyr::everything(), stats::median, na.rm = TRUE)
-    )
-    # Compute quantile 0.02
-    q02 <- dplyr::summarise(
-        ts,
-        dplyr::across(
-            dplyr::everything(),
-            stats::quantile,
-            probs = 0.02,
-            na.rm = TRUE
-        )
-    )
-    # Compute quantile 0.98
-    q98 <- dplyr::summarise(
-        ts,
-        dplyr::across(
-            dplyr::everything(),
-            stats::quantile,
-            probs = 0.98,
-            na.rm = TRUE
-        )
-    )
-    # Return stats object
-    dplyr::bind_rows(med, q02, q98)
+.ml_stats_0 <- function(ml_model) {
+    environment(ml_model)[["stats"]]
 }
 
 .ml_stats <- function(ml_model) {
-    environment(ml_model)[["stats"]]
+    environment(ml_model)[["ml_stats"]]
 }
 
 .ml_samples <- function(ml_model) {
