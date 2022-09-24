@@ -2538,19 +2538,60 @@ NULL
 }
 
 #---- stats ----
-.stats_q02_band <- function(stats, band) {
+
+# Supports former version of stats
+.stats_0_q02 <- function(stats, band) {
     quantile_02 <- 2
     stats[[band]][[quantile_02]]
 }
 
-.stats_q98_band <- function(stats, band) {
+# Supports former version of stats
+.stats_0_q98 <- function(stats, band) {
     quantile_98 <- 3
     stats[[band]][[quantile_98]]
 }
 
+.stats_q02 <- function(stats) {
+    stats[["q02"]]
+}
+
+.stats_q98 <- function(stats) {
+    stats[["q98"]]
+}
+
 #---- sits (samples) ----
 
+.sits_ts <- function(samples) {
+    # Add sample_id column
+    samples[["sample_id"]] <- seq_len(nrow(samples))
+    # Extract time_series from column
+    ts <- tidyr::unnest(
+        data = samples[c("sample_id", "label", "time_series")],
+        cols = "time_series"
+    )
+    # Number of observations for the first sample
+    nobs <- .sits_nobs(samples)
+    # Select number of observations equal to first sample
+    ts <- .by_dfr(data = ts, col = "sample_id", fn = function(x) {
+        if (nrow(x) == nobs) {
+            x
+        } else if (nrow(x) > nobs) {
+            x[seq_len(nobs), ]
+        } else {
+            stop("number of time series observations differs from first sample")
+        }
+    })
+    # Select columns equal to first sample and return
+    ts[c("sample_id", "label", "Index", .sits_bands(samples))]
+}
+
+.sits_nobs <- function(samples) {
+    # Number of observations of the first sample governs whole samples data
+    nrow(samples[["time_series"]][[1]])
+}
+
 .sits_bands <- function(samples) {
+    # Bands of the first sample governs whole samples data
     setdiff(names(samples[["time_series"]][[1]]), "Index")
 }
 
@@ -2570,38 +2611,54 @@ NULL
     sort(unique(samples[["label"]]))
 }
 
-.distances <- function(samples, bands, label_col = TRUE) {
-    label <- NULL
-    if (label_col) {
-        samples <- dplyr::mutate(samples, reference = .data[["label"]])
-        label <- "reference"
-    }
-    samples <- samples[c(label, "time_series")]
-    samples[["original_row"]] <- seq_len(nrow(samples))
-    samples <- tidyr::unnest(samples, "time_series")
-    samples <- samples[c("original_row", label, bands)]
-    samples <- dplyr::group_by(samples, .data[["original_row"]])
-    samples <- dplyr::mutate(samples, index = seq_len(dplyr::n()))
-    samples <- dplyr::ungroup(samples)
-    # Arrange data: samples x bands/index
-    samples <- tidyr::pivot_wider(
-        samples,
-        names_from = "index",
-        values_from = bands,
+.sits_attrs <- function(samples) {
+    # Assumes that each time series in 'samples' have the
+    # same number of observations
+    # Get band names
+    bands <- .sits_bands(samples)
+    # Get all time series
+    attrs <- .sits_ts(samples)
+    # Select attributes columns
+    attrs <- attrs[c("sample_id", "label", bands)]
+    # Add sequence 'index' column grouped by 'sample_id'
+    attrs <- .by_dfr(data = attrs, col = "sample_id", fn = function(x) {
+        x[["index"]] <- seq_len(nrow(x))
+        x
+    })
+    # Arrange data - 'sample_id' x 'bands-index'
+    attrs <- tidyr::pivot_wider(
+        data = attrs, names_from = "index", values_from = bands,
         names_prefix = ifelse(length(bands) == 1, bands, ""),
         names_sep = ""
     )
-    # Remove 'id' column
-    return(samples)
+    # Return attributes values
+    attrs
 }
 
-.sits_normalize <- function(samples, stats) {
-    .apply_across(samples, function(b) {
-        band <- dplyr::cur_column()
-        quant_02 <- .stats_q02_band(stats, band)
-        quant_98 <- .stats_q98_band(stats, band)
-        c(normalize_data(as.matrix(b), quant_02, quant_98))
-    })
+.sits_attrs_stats <- function(samples) {
+    # Get band names
+    bands <- .sits_bands(samples)
+    # Get all time series
+    attrs <- .sits_ts(samples)
+    # Select attributes
+    attrs <- attrs[bands]
+    # Compute stats
+    q02 <- apply(attrs, 2, stats::quantile, probs = 0.02, na.rm = TRUE)
+    q98 <- apply(attrs, 2, stats::quantile, probs = 0.98, na.rm = TRUE)
+    # Number of observations
+    nobs <- .sits_nobs(samples)
+    # Replicate stats and update names
+    attr_names <- rep(names(q02), each = nobs)
+    q02 <- .set_names(rep(q02, each = nobs), attr_names)
+    q98 <- .set_names(rep(q98, each = nobs), attr_names)
+    # Return stats object
+    list(q02 = q02, q98 = q98)
+}
+
+.values_normalize <- function(values, stats) {
+    q02 <- .stats_q02(stats)
+    q98 <- .stats_q98(stats)
+    C_normalize_data(data = values, min = q02, max = q98)
 }
 
 .sits_get_chunk_ts <- function(samples, nchunks) {
