@@ -193,8 +193,16 @@ NULL
     )
 }
 
+.rbind <- function(x) {
+    do.call(rbind, args = x)
+}
+
 .by <- function(data, col, fn, ...) {
     unname(c(by(data, data[[col]], fn, ...)))
+}
+
+.by_dfr <- function(data, col, fn, ...) {
+    .rbind(.by(data, col, fn, ...))
 }
 
 .by_lgl <- function(data, col, fn, ...) {
