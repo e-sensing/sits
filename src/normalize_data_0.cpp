@@ -16,11 +16,11 @@ NumericMatrix C_normalize_data_0(const NumericMatrix& data, const double& min,
 
     new_data = (data - min) / (max - min);
 
-    for (int i = 0; i < ncols; i++)
+    for (int i = 0; i < ncols; i++) {
         for (int j = 0; j < nrows; j++){
             if (new_data(j,i) >= 1.0) new_data(j,i) = 1.0;
             if (new_data(j,i) <= 0.0) new_data(j,i) = 0.0001;
         }
-
-        return new_data;
+    }
+    return new_data;
 }
