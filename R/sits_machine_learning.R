@@ -41,62 +41,63 @@
 #' }
 #' @export
 #'
-sits_rfor <- function(samples = NULL,
-                      num_trees = 120,
-                      mtry = NULL, ...) {
+sits_rfor <- function(samples = NULL, num_trees = 120, mtry = NULL, ...) {
 
-    # function that returns `randomForest::randomForest` model
-    result_fun <- function(samples) {
-
-        # verifies if randomForest package is installed
+    # Function that trains a random forest model
+    train_fun <- function(samples) {
+        # Verifies if 'randomForest' package is installed
         .check_require_packages("randomForest")
-
-        # get predictors features
-        train_samples <- .sits_distances(samples)
-
-        # check num_trees
+        # Checks 'num_trees'
         .check_int_parameter(num_trees)
+        # Get labels (used later to ensure column order in result matrix)
+        labels <- .sits_labels(samples)
+        # Get predictors features
+        train_samples <- .sits_attrs(samples)
 
-        # check mtry
-        # apply the same mtry default value of randomForest package
-        n_features <- ncol(train_samples) - 2
-        if (purrr::is_null(mtry))
+        # Apply the same 'mtry' default value of 'randomForest' package
+        if (purrr::is_null(mtry)) {
+            n_features <- ncol(train_samples) - 2
             mtry <- floor(sqrt(n_features))
-        .check_int_parameter(mtry, min = 1, max = n_features)
+            # Checks 'mtry'
+            .check_int_parameter(mtry, min = 1, max = n_features)
+        }
 
-        # call `randomForest::randomForest` method and return the trained model
-        reference <- train_samples[, reference]
-        result_rfor <- randomForest::randomForest(
-            x = train_samples[, -2:0],
-            y = as.factor(reference),
-            samples = NULL,
-            ntree = num_trees,
-            mtry = mtry,
-            nodesize = 1,
-            localImp = TRUE,
-            norm.votes = FALSE, ...,
+        # Train a random forest model
+        model <- randomForest::randomForest(
+            x = as.matrix(train_samples[, -2:0]),
+            y = train_samples[["reference"]], samples = NULL,
+            ntree = num_trees, mtry = mtry, nodesize = 1,
+            localImp = TRUE, norm.votes = FALSE, ...,
             na.action = stats::na.fail
         )
 
-        # construct model predict enclosure function and returns
-        model_predict <- function(values) {
-
-            # verifies if ranger package is installed
+        # Function that predicts labels of input values
+        predict_fun <- function(values) {
+            # Verifies if ranger package is installed
             .check_require_packages("randomForest")
-
-            return(stats::predict(result_rfor,
-                newdata = values,
-                type = "prob"
-            ))
+            # Used to check values (below)
+            input_pixels <- nrow(values)
+            # Do classification
+            values <- stats::predict(
+                object = model, newdata = values, type = "prob"
+            )
+            # Are the results consistent with the data input?
+            .check_processed_values(values, input_pixels)
+            # Reorder matrix columns if needed
+            if (any(labels != colnames(values))) {
+                values <- values[, labels]
+            }
+            return(values)
         }
-        class(model_predict) <- c(
-            "rfor_model", "sits_model",
-            class(model_predict)
+        # Set model class
+        predict_fun <- .set_class(
+            predict_fun, "rfor_model", "sits_model", class(predict_fun)
         )
-        return(model_predict)
+        return(predict_fun)
     }
-
-    result <- .sits_factory_function(samples, result_fun)
+    # If samples is informed, train a model and return a predict function
+    # Otherwise give back a train function to train model further
+    result <- .sits_factory_function(samples, train_fun)
     return(result)
 }
 #' @title Train support vector machine models
@@ -160,65 +161,70 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
                      cost = 10, tolerance = 0.001,
                      epsilon = 0.1, cross = 10, ...) {
 
-    # function that returns e1071::svm model based on a sits sample tibble
-    result_fun <- function(samples) {
-
-        # verifies if e1071 package is installed
+    # Function that trains a support vector machine model
+    train_fun <- function(samples) {
+        # Verifies if e1071 package is installed
         .check_require_packages("e1071")
-
-        # data normalization
-        stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(
-            .sits_ml_normalize_data(samples, stats)
+        # Get labels (used later to ensure column order in result matrix)
+        labels <- .sits_labels(samples)
+        # Get predictors features
+        train_samples <- .sits_attrs(samples)
+        # Get normalized training samples
+        # Variable name changed 'stats' -> 'ml_stats' purposefully.
+        # Only models trained in versions prior to 1.2 has variable 'stats'.
+        # New models has ml_stats that are applied automatically (see below)
+        #   on input data before classification.
+        # sits still works with these models by normalizing data before
+        #   classification.
+        ml_stats <- .sits_attrs_stats(samples)
+        train_samples <- .values_normalize(
+            values = train_samples, stats = ml_stats
         )
-
-        # The function must return a valid formula.
+        # Update formula parameter
         if (inherits(formula, "function")) {
             formula <- formula(train_samples)
         }
 
-        # call e1071::svm method and return the trained svm model
-        result_svm <- e1071::svm(
-            formula = formula, data = train_samples,
-            scale = scale, kernel = kernel,
-            degree = degree, cost = cost, coef0 = coef0,
-            cachesize = cachesize, tolerance = tolerance,
-            epsilon = epsilon, cross = cross,
-            probability = TRUE, ...,
-            na.action = stats::na.fail
+        # Train a svm model
+        model <- e1071::svm(
+            formula = formula, data = as.matrix(train_samples[, -2:0]),
+            scale = scale, kernel = kernel, degree = degree, cost = cost,
+            coef0 = coef0, cachesize = cachesize, tolerance = tolerance,
+            epsilon = epsilon, cross = cross, probability = TRUE, ...,
+            na.action = ml_stats::na.fail
         )
 
-        # construct model predict closure function and returns
-        model_predict <- function(values) {
-
-            # verifies if e1071 package is installed
+        # Function that predicts labels of input values
+        predict_fun <- function(values) {
+            # Verifies if e1071 package is installed
             .check_require_packages("e1071")
-
-            # get the prediction
-            preds <- stats::predict(result_svm,
-                newdata = values,
-                probability = TRUE
+            # Used to check values (below)
+            input_pixels <- nrow(values)
+            # Performs data normalization
+            values <- .values_normalize(
+                values = values, stats = ml_stats
             )
-            # retrieve the predicted probabilities
-            prediction <- data.table::as.data.table(attr(
-                preds,
-                "probabilities"
-            ))
-            # reorder the matrix according to the column names
-            data.table::setcolorder(
-                prediction,
-                sort(colnames(prediction))
+            # Do classification
+            values <- stats::predict(
+                object = model, newdata = values, probability = TRUE
             )
-
-            return(prediction)
+            # Get the predicted probabilities
+            values <- attr(values, "probabilities")
+            # Reorder matrix columns if needed
+            if (any(labels != colnames(values))) {
+                values <- values[, labels]
+            }
+            return(values)
         }
-        class(model_predict) <- c(
-            "svm_model", "sits_model",
-            class(model_predict)
+        # Set model class
+        predict_fun <- .set_class(
+            predict_fun, "svm_model", "sits_model", class(predict_fun)
         )
-        return(model_predict)
+        return(predict_fun)
     }
-    result <- .sits_factory_function(samples, result_fun)
+    # If samples is informed, train a model and return a predict function
+    # Otherwise give back a train function to train model further
+    result <- .sits_factory_function(samples, train_fun)
     return(result)
 }
 #' @title Train extreme gradient boosting models
@@ -284,93 +290,68 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
 #' }
 #' @export
 #'
-sits_xgboost <- function(samples = NULL,
-                         learning_rate = 0.15,
-                         min_split_loss = 1,
-                         max_depth = 5,
-                         min_child_weight = 1,
-                         max_delta_step = 1,
-                         subsample = 0.8,
-                         nfold = 5,
-                         nrounds = 100,
-                         early_stopping_rounds = 20,
-                         verbose = FALSE) {
+sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
+                         min_split_loss = 1, max_depth = 5,
+                         min_child_weight = 1, max_delta_step = 1,
+                         subsample = 0.8, nfold = 5, nrounds = 100,
+                         early_stopping_rounds = 20, verbose = FALSE) {
 
-    # set caller to show in errors
-    .check_set_caller("sits_xgboost")
-
-    # function that returns xgb model
-    result_fun <- function(samples) {
-
+    # Function that trains a xgb model
+    train_fun <- function(samples) {
         # verifies if xgboost package is installed
         .check_require_packages("xgboost")
-
-        # get the labels of the data
-        labels <- sits_labels(samples)
-        n_labels <- length(labels)
-
-        # create a named vector with integers match the class labels
-        int_labels <- c(1:n_labels)
-        names(int_labels) <- labels
-
-        # get the training data
-        train_samples <- .sits_distances(samples)
-
-        # reference labels for each sample expressed as numerical values
-        references <- unname(int_labels[as.vector(train_samples$reference)]) - 1
-
-        # define the parameters of the model
+        # Get labels (used later to ensure column order in result matrix)
+        labels <- .sits_labels(samples)
+        # Get predictors features
+        train_samples <- .sits_attrs(samples)
+        # Transform labels to integer code before train
+        code_labels <- seq_along(labels)
+        names(code_labels) <- labels
+        # Reference labels for each sample expressed as numerical values
+        references <- unname(code_labels[train_samples[["reference"]]]) - 1
+        # Define the parameters of the model
         params <- list(
-            booster = "gbtree",
-            objective = "multi:softprob",
-            eval_metric = "mlogloss",
-            eta = learning_rate,
-            gamma = min_split_loss,
-            max_depth = max_depth,
+            booster = "gbtree", objective = "multi:softprob",
+            eval_metric = "mlogloss", eta = learning_rate,
+            gamma = min_split_loss, max_depth = max_depth,
             min_child_weight = min_child_weight,
-            max_delta_step = max_delta_step,
-            subsample = subsample
+            max_delta_step = max_delta_step, subsample = subsample
         )
-
-        # define the model
-        model_xgb <- xgboost::xgboost(
-            data = as.matrix(train_samples[, -2:0]),
-            label = references,
-            num_class = length(labels),
-            params = params,
-            nrounds = nrounds,
+        # Train a xgboost model
+        model <- xgboost::xgboost(
+            data = as.matrix(train_samples[, -2:0]), label = references,
+            num_class = length(labels), params = params, nrounds = nrounds,
             verbose = FALSE
         )
+        # Get best ntreelimit
+        ntreelimit <- model$best_ntreelimit
 
-        ntreelimit <- model_xgb$best_ntreelimit
-
-        # construct model predict closure function and returns
-        model_predict <- function(values) {
-
-            # verifies if xgboost package is installed
+        # Function that predicts labels of input values
+        predict_fun <- function(values) {
+            # Verifies if xgboost package is installed
             .check_require_packages("xgboost")
-
-            # transform input  into a matrix (remove first two columns)
-            # retrieve the prediction probabilities
-            prediction <- data.table::as.data.table(
-                stats::predict(model_xgb, data.matrix(values),
-                    ntreelimit = ntreelimit,
-                    reshape = TRUE
-                )
+            # Used to check values (below)
+            input_pixels <- nrow(values)
+            # Do classification
+            values <- stats::predict(
+                object = model, as.matrix(values), ntreelimit = ntreelimit,
+                reshape = TRUE
             )
-            # adjust the names of the columns of the probs
-            colnames(prediction) <- labels
-            # retrieve the prediction results
-            return(prediction)
+            # Are the results consistent with the data input?
+            .check_processed_values(values, input_pixels)
+            # Update the columns names to labels
+            colnames(values) <- labels
+            return(values)
         }
-        class(model_predict) <- c(
-            "xgb_model", "sits_model",
-            class(model_predict)
+        # Set model class
+        predict_fun <- .set_class(
+            predict_fun, "xgb_model", "sits_model", class(predict_fun)
         )
-        return(model_predict)
+        return(predict_fun)
     }
-
-    result <- .sits_factory_function(samples, result_fun)
+    # If samples is informed, train a model and return a predict function
+    # Otherwise give back a train function to train model further
+    result <- .sits_factory_function(samples, train_fun)
     return(result)
 }
 
