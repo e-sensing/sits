@@ -26,35 +26,33 @@
 #' .compact(c(1, 1, 1)) # 1
 #' }
 #'
+#' @returns See description of each function.
+#'
 #' @family data types
 #' @keywords internal
 #' @name data_type
 NULL
 
 #' @describeIn data_type Convert an input to \code{integer}.
-#'
-#' @return \code{integer} or \code{NULL} if value is empty.
+#'   Returns \code{integer} or \code{NULL} if value is empty.
 .as_int <- function(x) {
     if (.has(x)) as.integer(x) else NULL
 }
 #' @describeIn data_type Convert an input to \code{character}.
-#'
-#' @return \code{character} or \code{NULL} if value is empty.
+#'   Returns \code{character} or \code{NULL} if value is empty.
 .as_chr <- function(x) {
     if (.has(x)) as.character(x) else NULL
 }
 
 #' @describeIn data_type Convert an input to \code{numeric}.
-#'
-#' @return \code{numeric} or \code{NULL} if value is empty.
+#'   Returns \code{numeric} or \code{NULL} if value is empty.
 .as_dbl <- function(x) {
     if (.has(x)) as.numeric(x) else NULL
 }
 
 #' @describeIn data_type Convert an input to a date type. This is
 #'   the same function as \code{lubridate::as_date()}.
-#'
-#' @return \code{date} or \code{NULL} if value is empty.
+#'   Returns \code{date} or \code{NULL} if value is empty.
 .as_date <- function(x) {
     if (.has(x)) lubridate::as_date(unlist(x, recursive = FALSE)) else NULL
 }
@@ -62,21 +60,28 @@ NULL
 #' @describeIn data_type Check if an input has a value or not. Any zero length
 #'   value of any type is evaluated as \code{FALSE}. This function is broader
 #'   than \code{is.null()} that only accounts for \code{NULL} value.
-#' @return \code{logical}
+#'   Returns \code{logical}.
 .has <- function(x) {
     length(x) > 0
 }
 
 #' @describeIn data_type Check if an input has names or not. If there is
 #'   any element without a name the function evaluates as \code{FALSE}.
-#' @return \code{logical}
+#'   Returns \code{logical}.
 .has_name <- function(x) {
     if (.has(names(x))) return(names(x) != "")
     rep(FALSE, length(x))
 }
 
+#' @describeIn data_type Set \code{names} of elements of object \code{x}.
+#'   Returns updated \code{x} object.
+.set_names <- function(x, n) {
+    names(x) <- n
+    x
+}
+
 #' @describeIn data_type Set \code{class} of object \code{x}.
-#' @return Updated object \code{x}.
+#'   Returns updated \code{x} object.
 .set_class <- function(x, ...) {
     class(x) <- unique(c(...))
     x
@@ -84,7 +89,7 @@ NULL
 
 #' @describeIn data_type Evaluates unique values of \code{x}. If there is
 #'   only one unique value, return it. Otherwise return all \code{x}.
-#' @return Same value as \code{x} or the unique value in \code{x} (if
+#'   Returns same value as \code{x} or the unique value in \code{x} (if
 #'   this is the case).
 .compact <- function(x) {
     value <- unique(x)
