@@ -193,7 +193,7 @@
 #' @param  impute_fn       Impute function to replace NA.
 #' @return A matrix with values for classification.
 .classify_data_read <- function(tile, block, ml_model, impute_fn, filter_fn) {
-    # for cubes that have a time limit to expire - mpc cubes only
+    # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
     # Read and preprocess values from cloud
     # Get cloud values (NULL if not exists)
@@ -218,23 +218,29 @@
         )
 
         # Remove cloud masked pixels
-        if (!is.null(cloud_mask)) {
+        if (.has(cloud_mask)) {
             values[cloud_mask] <- NA
         }
         # Remove NA pixels
-        if (!is.null(impute_fn)) {
+        if (.has(impute_fn)) {
             values <- impute_fn(values)
         }
         # Filter the time series
-        if (!is.null(filter_fn)) {
+        if (.has(filter_fn)) {
             values <- filter_fn(values)
         }
-        # Normalize values
-        stats <- .ml_stats(ml_model)
-        q02 <- .stats_q02_band(stats, band)
-        q98 <- .stats_q98_band(stats, band)
-        if (!is.null(q02) && !is.null(q98)) {
-            values <- normalize_data(values, q02, q98)
+        # Normalize values for old version model classifiers that
+        #   do not normalize values itself
+        # Models trained after version 1.2 do this automatically before
+        #   classification
+        stats <- .ml_stats_0(ml_model) # works for old models only!!
+        if (.has(stats)) {
+            q02 <- .stats_0_q02(stats, band)
+            q98 <- .stats_0_q98(stats, band)
+            if (!is.null(q02) && !is.null(q98)) {
+                # Use C_normalize_data_0 to process old version of normalization
+                values <- C_normalize_data_0(values, q02, q98)
+            }
         }
 
         #
