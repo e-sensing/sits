@@ -57,8 +57,12 @@ C_nnls_solver <- function(x, em, rmse, max_it = 400L, tol = 0.000001) {
     .Call(`_sits_C_nnls_solver`, x, em, rmse, max_it, tol)
 }
 
-normalize_data <- function(data, min, max) {
-    .Call(`_sits_normalize_data`, data, min, max)
+C_normalize_data <- function(data, min, max) {
+    .Call(`_sits_C_normalize_data`, data, min, max)
+}
+
+C_normalize_data_0 <- function(data, min, max) {
+    .Call(`_sits_C_normalize_data_0`, data, min, max)
 }
 
 max_sampling <- function(data, band, img_nrow, img_ncol, window_size) {

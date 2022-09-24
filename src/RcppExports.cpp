@@ -199,16 +199,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// normalize_data
-NumericMatrix normalize_data(const NumericMatrix& data, const double& min, const double& max);
-RcppExport SEXP _sits_normalize_data(SEXP dataSEXP, SEXP minSEXP, SEXP maxSEXP) {
+// C_normalize_data
+arma::mat C_normalize_data(const arma::mat& data, const arma::rowvec& min, const arma::rowvec& max);
+RcppExport SEXP _sits_C_normalize_data(SEXP dataSEXP, SEXP minSEXP, SEXP maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const arma::rowvec& >::type min(minSEXP);
+    Rcpp::traits::input_parameter< const arma::rowvec& >::type max(maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_normalize_data(data, min, max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_normalize_data_0
+NumericMatrix C_normalize_data_0(const NumericMatrix& data, const double& min, const double& max);
+RcppExport SEXP _sits_C_normalize_data_0(SEXP dataSEXP, SEXP minSEXP, SEXP maxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const double& >::type min(minSEXP);
     Rcpp::traits::input_parameter< const double& >::type max(maxSEXP);
-    rcpp_result_gen = Rcpp::wrap(normalize_data(data, min, max));
+    rcpp_result_gen = Rcpp::wrap(C_normalize_data_0(data, min, max));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -376,7 +389,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
     {"_sits_C_nnls_solver", (DL_FUNC) &_sits_C_nnls_solver, 5},
-    {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
+    {"_sits_C_normalize_data", (DL_FUNC) &_sits_C_normalize_data, 3},
+    {"_sits_C_normalize_data_0", (DL_FUNC) &_sits_C_normalize_data_0, 3},
     {"_sits_max_sampling", (DL_FUNC) &_sits_max_sampling, 5},
     {"_sits_bayes_smoother", (DL_FUNC) &_sits_bayes_smoother, 6},
     {"_sits_kernel_smoother", (DL_FUNC) &_sits_kernel_smoother, 5},
