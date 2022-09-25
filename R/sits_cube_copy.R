@@ -167,14 +167,16 @@ sits_cube_copy <- function(cube,
 
 .download_base <- function(out_file) {
     donwload_fn <- function(file) {
-        # Add file scheme in path
+        # Remove vsi driver path
+        file <- .file_remove_vsi(file)
+        # Add file scheme in local paths
         if (.file_is_local(file)) {
             file <- .file_path("file://", file, sep = "")
         }
         download.file(
-            url = .file_remove_vsi(file),
-            destfile = out_file, quiet = TRUE
+            url = file, destfile = out_file, quiet = TRUE, mode = "wb"
         )
+        # Return file name
         out_file
     }
     donwload_fn
