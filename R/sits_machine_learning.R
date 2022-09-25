@@ -52,7 +52,7 @@ sits_rfor <- function(samples = NULL, num_trees = 120, mtry = NULL, ...) {
         # Get labels (used later to ensure column order in result matrix)
         labels <- .sits_labels(samples)
         # Get predictors features
-        train_samples <- .sits_features(samples)
+        train_samples <- .sits_predictors(samples)
 
         # Apply the same 'mtry' default value of 'randomForest' package
         if (purrr::is_null(mtry)) {
@@ -64,10 +64,11 @@ sits_rfor <- function(samples = NULL, num_trees = 120, mtry = NULL, ...) {
 
         # Train a random forest model
         model <- randomForest::randomForest(
-            x = .features_values(train_samples),
-            y = .features_reference(train_samples), samples = NULL,
-            ntree = num_trees, mtry = mtry, nodesize = 1, localImp = TRUE,
-            norm.votes = FALSE, ..., na.action = stats::na.fail
+            x = .pred_features(train_samples),
+            y = as.factor(.pred_references(train_samples)),
+            samples = NULL, ntree = num_trees, mtry = mtry,
+            nodesize = 1, localImp = TRUE, norm.votes = FALSE, ...,
+            na.action = stats::na.fail
         )
 
         # Function that predicts labels of input values
@@ -172,9 +173,11 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
         #   on input data before classification.
         # sits still works with these models by normalizing data before
         #   classification.
-        ml_stats <- .sits_features_stats(samples)
+        ml_stats <- .sits_stats(samples)
         # Get predictors features
-        train_samples <- .sits_features(samples, stats = ml_stats)
+        train_samples <- .sits_predictors(samples)
+        # Normalize predictors
+        train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
         # Update formula parameter
         if (inherits(formula, "function")) {
             formula <- formula(train_samples)
@@ -195,7 +198,7 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
             # Used to check values (below)
             input_pixels <- nrow(values)
             # Performs data normalization
-            values <- .values_normalize(values = values, stats = ml_stats)
+            values <- .pred_normalize(pred = values, stats = ml_stats)
             # Do classification
             values <- stats::predict(
                 object = model, newdata = values, probability = TRUE
@@ -295,13 +298,13 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
         # Get labels (used later to ensure column order in result matrix)
         labels <- .sits_labels(samples)
         # Get predictors features
-        train_samples <- .sits_features(samples)
+        train_samples <- .sits_predictors(samples)
         # Transform labels to integer code before train
         code_labels <- seq_along(labels)
         names(code_labels) <- labels
         # Reference labels for each sample expressed as numerical values
         references <-
-            unname(code_labels[.features_reference(train_samples)]) - 1
+            unname(code_labels[.pred_references(train_samples)]) - 1
         # Define the parameters of the model
         params <- list(
             booster = "gbtree", objective = "multi:softprob",
@@ -312,7 +315,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
         )
         # Train a xgboost model
         model <- xgboost::xgboost(
-            data = .features_values(train_samples),
+            data = .pred_features(train_samples),
             label = references, num_class = length(labels), params = params,
             nrounds = nrounds, verbose = FALSE
         )
@@ -535,7 +538,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
                         quant_2 <- as.numeric(stats[2, b, with = FALSE])
                         quant_98 <- as.numeric(stats[3, b, with = FALSE])
                         # call C++ for better performance
-                        m <- normalize_data(
+                        m <- C_normalize_data_0(
                             as.matrix(ts[, b]),
                             quant_2,
                             quant_98
@@ -578,7 +581,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     quant_2 <- as.numeric(stats[2, band, with = FALSE])
     quant_98 <- as.numeric(stats[3, band, with = FALSE])
 
-    data <- normalize_data(data, quant_2, quant_98)
+    data <- C_normalize_data_0(data, quant_2, quant_98)
 
     return(data)
 }
