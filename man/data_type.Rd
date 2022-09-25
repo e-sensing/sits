@@ -8,7 +8,6 @@
 \alias{.as_date}
 \alias{.has}
 \alias{.has_name}
-\alias{.set_names}
 \alias{.set_class}
 \alias{.compact}
 \title{Data type functions}
@@ -24,8 +23,6 @@
 .has(x)
 
 .has_name(x)
-
-.set_names(x, n)
 
 .set_class(x, ...)
 
@@ -65,9 +62,6 @@ Returns \code{logical}.
 \item \code{.has_name()}: Check if an input has names or not. If there is
 any element without a name the function evaluates as \code{FALSE}.
 Returns \code{logical}.
-
-\item \code{.set_names()}: Set \code{names} of elements of object \code{x}.
-Returns updated \code{x} object.
 
 \item \code{.set_class()}: Set \code{class} of object \code{x}.
 Returns updated \code{x} object.
