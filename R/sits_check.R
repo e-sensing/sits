@@ -1495,26 +1495,18 @@
 .check_samples_train <- function(data){
     .check_samples(data)
     # check that there is no NA in labels
-    labels <- unique(data$label)
+    labels <- .sits_labels(data)
     .check_that(
-        x = !("NoClass" %in% labels) && !("" %in% labels),
-        msg = "invalid labels in samples file"
+        x = !("NoClass" %in% labels) && !("" %in% labels) &&
+            !any(is.na(labels)),
+        msg = "invalid labels in samples data"
     )
-    # unnest time series
-    distances <- data %>%
-        dplyr::mutate(
-            original_row = seq_len(nrow(data))
-        ) %>%
-        tidyr::unnest("time_series")
+    # Get unnested time series
+    ts <- .sits_ts(data)
     # check there is an Index column
-    .check_that(
-        x = "Index" %in% colnames(distances)
-    )
+    .check_that(x = "Index" %in% colnames(ts))
     # check there are no NA in distances
-    .check_that(
-        x = !(anyNA(distances)),
-        msg = "samples contain NA values"
-    )
+    .check_that(x = !(anyNA(ts)), msg = "samples contain NA values")
 }
 #' @title Is the samples_validation object valid?
 #' @name .check_samples_validation
@@ -1567,7 +1559,7 @@
 #' @return  No return value, called for side effects.
 #' @keywords internal
 .check_distances <- function(distances, samples){
-    cols <- c("original_row", "reference")
+    cols <- .pred_cols # From predictors API
     .check_that(
         x = cols %in% colnames(distances),
         msg = "invalid distances file"
