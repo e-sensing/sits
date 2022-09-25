@@ -315,7 +315,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
         )
         # Train a xgboost model
         model <- xgboost::xgboost(
-            data = .pred_features(train_samples),
+            data = as.matrix(.pred_features(train_samples)),
             label = references, num_class = length(labels), params = params,
             nrounds = nrounds, verbose = FALSE
         )
