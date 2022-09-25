@@ -74,11 +74,12 @@ sits_cube_copy <- function(cube,
     assets <- .cube_create_assets(cube)
     # Process each tile sequentially
     assets <- .jobs_map_parallel_dfr(assets, function(asset) {
-        local_tile <- .download_asset(
-            asset = asset, res = res,
-            roi = roi, output_dir = output_dir,
+        local_asset <- .download_asset(
+            asset = asset, res = res, roi = roi, output_dir = output_dir,
             progress = progress
         )
+        # Return local tile
+        local_asset
     }, progress = progress)
     # Join output assets as a cube and return it
     .cube_merge_assets(assets)
