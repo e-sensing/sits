@@ -195,10 +195,10 @@
 .classify_data_read <- function(tile, block, ml_model, impute_fn, filter_fn) {
     # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
-    # Read and preprocess values from cloud
+    # Read and preprocess values of cloud
     # Get cloud values (NULL if not exists)
     cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
-    # Read and preprocess values from each band
+    # Read and preprocess values of each band
     values <- purrr::map_dfc(.ml_bands(ml_model), function(band) {
         # Get band values
         values <- .tile_read_block(tile = tile, band = band, block = block)
@@ -257,7 +257,8 @@
     })
     # Compose final values
     values <- as.matrix(values)
-    colnames(values) <- .ml_attr_names(ml_model)
+    # Set values features name
+    colnames(values) <- .ml_features_name(ml_model)
     # Return values
     values
 }
