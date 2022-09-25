@@ -94,7 +94,18 @@ sits_cube_copy <- function(cube,
     out_file <- file.path(output_dir, .file_base(file))
     # Resume feature
     if (.raster_is_valid(out_file)) {
-        return(out_file)
+        # # Callback final tile classification
+        # .callback(process = "tile_classification", event = "recovery",
+        #           context = environment())
+        message("Recovery: file '", out_file, "' already exists.")
+        message("(If you want to produce a new image, please ",
+                "change 'output_dir' parameter)")
+        asset <- .tile_eo_from_files(
+            files = out_file, fid = .fi_fid(.fi(asset)),
+            bands = .fi_bands(.fi(asset)), date = .tile_start_date(asset),
+            base_tile = asset, update_bbox = TRUE
+        )
+        return(asset)
     }
     # Get a gdal or default download
     download_fn <- .download_controller(out_file, gdal_params)
