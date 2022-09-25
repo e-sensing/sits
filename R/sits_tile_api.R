@@ -73,13 +73,6 @@ NULL
     rep(FALSE, length(x))
 }
 
-#' @describeIn data_type Set \code{names} of elements of object \code{x}.
-#'   Returns updated \code{x} object.
-.set_names <- function(x, n) {
-    names(x) <- n
-    x
-}
-
 #' @describeIn data_type Set \code{class} of object \code{x}.
 #'   Returns updated \code{x} object.
 .set_class <- function(x, ...) {
@@ -239,6 +232,11 @@ NULL
 
 .between <- function(x, min, max) {
     min <= x & x <= max
+}
+
+.partitions <- function(x, n) {
+    n <- max(1, min(length(x), n))
+    .as_int(round(seq.int(from = 1, to = n, length.out = length(x))))
 }
 
 #---- Generic accessors ----
@@ -2520,8 +2518,8 @@ NULL
     class(ml_model)[[1]]
 }
 
-.ml_attr_names <- function(ml_model) {
-    # Get attr names from variable used in training
+.ml_features_name <- function(ml_model) {
+    # Get feature names from variable used in training
     names(environment(ml_model)[["train_samples"]])[-2:0]
 }
 
@@ -2533,8 +2531,24 @@ NULL
     .sits_labels(.ml_samples(ml_model))
 }
 
-.ml_foreach_band <- function(ml_model, fn, ...) {
-    purrr::map(.ml_bands(ml_model), fn, ...)
+.torch_serialize_model <- function(model) {
+    # Open raw connection
+    con <- rawConnection(raw(), open = "wr")
+    # Close connection on exit
+    on.exit(close(con), add = TRUE)
+    # Serialize and save torch model on connection
+    torch::torch_save(model, con)
+    # Read serialized model and return
+    rawConnectionValue(con)
+}
+
+.torch_unserialize_model <- function(raw) {
+    # Open raw connection to read model
+    con <- rawConnection(raw)
+    # Close connection on exit
+    on.exit(close(con), add = TRUE)
+    # Unserialize and load torch model from connection and return
+    torch::torch_load(con)
 }
 
 #---- stats ----
@@ -2569,23 +2583,25 @@ NULL
         data = samples[c("sample_id", "label", "time_series")],
         cols = "time_series"
     )
-    # Number of observations for the first sample
-    nobs <- .sits_nobs(samples)
-    # Select number of observations equal to first sample
+    # Select the same bands as in the first sample
+    ts <- ts[c("sample_id", "label", "Index", .sits_bands(samples))]
+    # Get the time series length for the first sample
+    ntimes <- .sits_ntimes(samples)
+    # Prune time series according to the first sample
     ts <- .by_dfr(data = ts, col = "sample_id", fn = function(x) {
-        if (nrow(x) == nobs) {
+        if (nrow(x) == ntimes) {
             x
-        } else if (nrow(x) > nobs) {
-            x[seq_len(nobs), ]
+        } else if (nrow(x) > ntimes) {
+            x[seq_len(ntimes), ]
         } else {
-            stop("number of time series observations differs from first sample")
+            stop("time series length differs from first sample")
         }
     })
-    # Select columns equal to first sample and return
-    ts[c("sample_id", "label", "Index", .sits_bands(samples))]
+    # Return time series
+    ts
 }
 
-.sits_nobs <- function(samples) {
+.sits_ntimes <- function(samples) {
     # Number of observations of the first sample governs whole samples data
     nrow(samples[["time_series"]][[1]])
 }
@@ -2595,7 +2611,7 @@ NULL
     setdiff(names(samples[["time_series"]][[1]]), "Index")
 }
 
-.sits_select <- function(samples, bands) {
+.sits_filter_bands <- function(samples, bands) {
     # Missing bands
     miss_bands <- bands[!bands %in% .sits_bands(samples)]
     if (.has(miss_bands)) {
@@ -2608,85 +2624,140 @@ NULL
 }
 
 .sits_labels <- function(samples) {
-    sort(unique(samples[["label"]]))
+    sort(unique(samples[["label"]]), na.last = TRUE)
 }
 
-.sits_features <- function(samples, stats = NULL) {
-    # Assumes that each time series in 'samples' have the
-    # same number of observations
-    # Get band names
+.sits_split <- function(samples, split_intervals) {
+    slider::slide_dfr(samples, function(sample) {
+        ts <- sample[["time_series"]][[1]]
+        purrr::map_dfr(split_intervals, function(index) {
+            new_sample <- sample
+            start <- index[[1]]
+            end <- index[[2]]
+            new_sample[["time_series"]][[1]] <- ts[seq(start, end), ]
+            new_sample[["start_date"]] <- ts[["Index"]][[start]]
+            new_sample[["end_date"]] <- ts[["Index"]][[end]]
+            new_sample
+        })
+    })
+}
+
+.sits_predictors <- function(samples, ml_model = NULL) {
+    # Get samples time series
+    pred <- .sits_ts(samples)
+    # By default get bands as the same of first sample
     bands <- .sits_bands(samples)
-    # Get all time series
-    features <- .sits_ts(samples)
-    # Select attributes columns
-    features <- features[c("sample_id", "label", bands)]
+    # Preprocess time series
+    if (.has(ml_model)) {
+        # Update bands to the model bands
+        bands <- .ml_bands(ml_model)
+        # If a model is informed, get predictors from model bands
+        pred <- pred[c(.pred_cols, bands)]
+        # Normalize values for old version model classifiers that
+        #   do not normalize values itself
+        # Models trained after version 1.2 do this automatically before
+        #   classification
+        stats <- .ml_stats_0(ml_model) # works for old models only!!
+        if (.has(stats)) {
+            # Read and preprocess values of each band
+            pred[bands] <- purrr::imap_dfc(pred[bands], function(values, band) {
+                # Get old stats parameters
+                q02 <- .stats_0_q02(stats, band)
+                q98 <- .stats_0_q98(stats, band)
+                if (!is.null(q02) && !is.null(q98)) {
+                    # Use C_normalize_data_0 to process old version of
+                    #   normalization
+                    values <- C_normalize_data_0(
+                        data = as.matrix(values), min = q02, max = q98
+                    )
+                    # Convert from matrix to vector and return
+                    unlist(values)
+                }
+                # Return updated values
+                values
+            })
+            # Return updated time series
+            pred
+        }
+    }
+    # Create predictors...
+    pred <- pred[c(.pred_cols, bands)]
     # Add sequence 'index' column grouped by 'sample_id'
-    features <- .by_dfr(data = features, col = "sample_id", fn = function(x) {
+    pred <- .by_dfr(data = pred, col = "sample_id", fn = function(x) {
         x[["index"]] <- seq_len(nrow(x))
         x
     })
-    # Arrange data - 'sample_id' x 'bands-index'
-    features <- tidyr::pivot_wider(
-        data = features, names_from = "index", values_from = bands,
+    # Rearrange data to create predictors
+    pred <- tidyr::pivot_wider(
+        data = pred, names_from = "index", values_from = bands,
         names_prefix = ifelse(length(bands) == 1, bands, ""),
         names_sep = ""
     )
-    # Normalize data
-    if (.has(stats)) {
-        features[, -2:0] <- .values_normalize(
-            values = .features_values(features), stats = stats
-        )
-    }
-    # Return attributes values
-    features
+    # Return predictors
+    pred
 }
 
-.sits_features_stats <- function(samples) {
-    # Get band names
-    bands <- .sits_bands(samples)
+.sits_stats <- function(samples) {
     # Get all time series
-    attrs <- .sits_ts(samples)
+    preds <- .sits_ts(samples)
     # Select attributes
-    attrs <- attrs[bands]
+    preds <- preds[.sits_bands(samples)]
     # Compute stats
-    q02 <- apply(attrs, 2, stats::quantile, probs = 0.02, na.rm = TRUE)
-    q98 <- apply(attrs, 2, stats::quantile, probs = 0.98, na.rm = TRUE)
+    q02 <- apply(preds, 2, stats::quantile, probs = 0.02, na.rm = TRUE)
+    q98 <- apply(preds, 2, stats::quantile, probs = 0.98, na.rm = TRUE)
     # Number of observations
-    nobs <- .sits_nobs(samples)
+    ntimes <- .sits_ntimes(samples)
     # Replicate stats
-    q02 <- rep(unname(q02), each = nobs)
-    q98 <- rep(unname(q98), each = nobs)
+    q02 <- rep(unname(q02), each = ntimes)
+    q98 <- rep(unname(q98), each = ntimes)
     # Return stats object
     list(q02 = q02, q98 = q98)
 }
 
-.features_values <- function(features) {
-    as.matrix(features[, -2:0])
+# ---- Predictors ----
+
+.pred_cols <- c("sample_id", "label")
+
+.pred_features <- function(pred) {
+    if (all(.pred_cols %in% names(pred))) {
+        pred[, -2:0]
+    } else {
+        pred
+    }
 }
 
-`.features_values<-` <- function(features, value) {
-    tibble::as_tibble(cbind(
-        features[, -2:0], as.matrix(features[, -2:0])
-    ))
+`.pred_features<-` <- function(pred, value) {
+    if (all(.pred_cols %in% names(pred))) {
+        pred[, -2:0] <- value
+    } else {
+        pred[,] <- value
+    }
+    pred
 }
 
-.features_reference <- function(features) {
-    features[["label"]]
+.pred_references <- function(pred) {
+    if (all(.pred_cols %in% names(pred))) .as_chr(pred[["label"]]) else NULL
 }
 
-.values_normalize <- function(values, stats) {
-    C_normalize_data(
+.pred_normalize <- function(pred, stats) {
+    values <- as.matrix(.pred_features(pred))
+    values <- C_normalize_data(
         data = values, min = .stats_q02(stats), max = .stats_q98(stats)
     )
+    .pred_features(pred) <- values
+    # Return predictors
+    pred
 }
 
-.sits_get_chunk_ts <- function(samples, nchunks) {
-    ngroup <- ceiling(nrow(samples) / nchunks)
-    group_id <- rep(seq_len(nchunks), each = ngroup)[seq_len(nrow(samples))]
-    samples[["group_id"]] <- group_id
-    dplyr::group_split(
-        dplyr::group_by(samples, .data[["group_id"]]), .keep = FALSE
-    )
+.pred_create_partition <- function(pred, partitions) {
+    pred[["part_id"]] <- .partitions(x = seq_len(nrow(pred)), n = partitions)
+    tidyr::nest(pred, predictors = -"part_id")
+}
+
+# ---- Partitions ----
+
+.part_predictors <- function(part) {
+    if (.has(part[["predictors"]])) part[["predictors"]][[1]] else NULL
 }
 
 # ---- expressions ----
