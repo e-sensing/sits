@@ -152,13 +152,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // C_label_max_prob
-arma::colvec C_label_max_prob(const arma::mat& X);
-RcppExport SEXP _sits_C_label_max_prob(SEXP XSEXP) {
+arma::colvec C_label_max_prob(const arma::mat& x);
+RcppExport SEXP _sits_C_label_max_prob(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_label_max_prob(X));
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_label_max_prob(x));
     return rcpp_result_gen;
 END_RCPP
 }
