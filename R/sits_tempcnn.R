@@ -190,7 +190,7 @@ sits_tempcnn <- function(samples = NULL,
 
         # is the training data correct?
         .check_chr_within(
-            x = "reference",
+            x = "label",
             within = names(train_samples),
             discriminator = "any_of",
             msg = "input data does not contain distances"
@@ -212,7 +212,7 @@ sits_tempcnn <- function(samples = NULL,
             )
 
             # remove the lines used for validation
-            train_samples <- train_samples[!test_samples, on = "original_row"]
+            train_samples <- train_samples[!test_samples, on = "sample_id"]
         }
         n_samples_train <- nrow(train_samples)
         n_samples_test <- nrow(test_samples)
@@ -235,7 +235,7 @@ sits_tempcnn <- function(samples = NULL,
             dim = c(n_samples_train, n_times, n_bands)
         )
         # transform training reference to an integer vector
-        train_y <- unname(int_labels[as.vector(train_samples$reference)])
+        train_y <- unname(int_labels[.pred_references(train_samples)])
 
         # transform test data into a 3D tensor
         # remove first two columns
@@ -245,7 +245,7 @@ sits_tempcnn <- function(samples = NULL,
             dim = c(n_samples_test, n_times, n_bands)
         )
         # transform test reference to an integer vector
-        test_y <- unname(int_labels[as.vector(test_samples$reference)])
+        test_y <- unname(int_labels[.pred_references(test_samples)])
 
         # set random seed for torch
         torch::torch_manual_seed(sample.int(10^5, 1))

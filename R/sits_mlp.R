@@ -200,7 +200,7 @@ sits_mlp <- function(samples = NULL,
             )
 
             # remove the lines used for validation
-            train_samples <- train_samples[!test_samples, on = "original_row"]
+            train_samples <- train_samples[!test_samples, on = "sample_id"]
         }
         # shuffle the data
         train_samples <- train_samples[sample(
@@ -214,11 +214,11 @@ sits_mlp <- function(samples = NULL,
 
         # organize data for model training
         train_x <- data.matrix(train_samples[, -2:0])
-        train_y <- unname(int_labels[as.vector(train_samples$reference)])
+        train_y <- unname(int_labels[.pred_references(train_samples)])
 
         # create the test data
         test_x <- data.matrix(test_samples[, -2:0])
-        test_y <- unname(int_labels[as.vector(test_samples$reference)])
+        test_y <- unname(int_labels[.pred_references(test_samples)])
 
         # set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
