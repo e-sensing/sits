@@ -100,11 +100,10 @@
 #' @export
 sits_classify <- function(data, ml_model, ...) {
 
-    # set caller to show in errors
-    .check_set_caller("sits_classify")
-
     # check data type
     data <- .config_data_meta_type(data)
+    # precondition - is the model valid?
+    .check_is_sits_model(ml_model)
 
     # dispatch
     UseMethod("sits_classify", data)
@@ -120,8 +119,6 @@ sits_classify.sits <- function(data,
 
     # precondition: verify that the data to be classified is correct
     .check_samples(data)
-    # precondition - is the model valid?
-    .check_is_sits_model(ml_model)
     # precondition - multicores
     .check_multicores(multicores)
 
