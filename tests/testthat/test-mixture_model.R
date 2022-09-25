@@ -10,6 +10,10 @@ test_that("Mixture model tests", {
         end_date = "2019-07-30"
     )
 
+    # Delete files before check
+    unlink(list.files(path = tempdir(), pattern = "\\.jp2$", full.names = T))
+    unlink(list.files(path = tempdir(), pattern = "\\.tif$", full.names = T))
+
     # Cube regularization for 16 days and 320 meters
     reg_cube <- sits_regularize(
         cube = s2_cube,
@@ -36,7 +40,7 @@ test_that("Mixture model tests", {
         cube = reg_cube,
         endmembers = em,
         memsize = 2,
-        multicores = 4,
+        multicores = 1,
         output_dir = tempdir(),
         rmse_band = TRUE
     )
