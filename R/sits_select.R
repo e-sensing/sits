@@ -48,7 +48,7 @@ sits_select.sits <- function(data, bands, ...) {
         within = sits_bands(data),
         msg = "Invalid bands values"
     )
-    data <- .sits_select(data, bands)
+    data <- .sits_filter_bands(data, bands)
     return(data)
 }
 
