@@ -330,7 +330,8 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
             input_pixels <- nrow(values)
             # Do classification
             values <- stats::predict(
-                object = model, values, ntreelimit = ntreelimit, reshape = TRUE
+                object = model, as.matrix(values), ntreelimit = ntreelimit,
+                reshape = TRUE
             )
             # Are the results consistent with the data input?
             .check_processed_values(values, input_pixels)
