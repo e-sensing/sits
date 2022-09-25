@@ -103,12 +103,12 @@ sits_accuracy.sits <- function(data, ...) {
     # Is the input the result of a sits_classify?
     if ("label" %in% names(data)) {
         pred_ref <- .sits_accuracy_pred_ref(data)
-        pred <- pred_ref$predicted
-        ref <- pred_ref$reference
+        pred <- pred_ref[["predicted"]]
+        ref <- pred_ref[["reference"]]
     } else {
         # is the input the result of the sits_kfold_validate?
-        pred <- data$predicted
-        ref <- data$reference
+        pred <- data[["predicted"]]
+        ref <- data[["reference"]]
     }
     # Create factor vectors for caret
     unique_ref <- unique(ref)
@@ -218,11 +218,11 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
 
     # Create the error matrix
     error_matrix <- table(
-        factor(pred_ref$predicted,
+        factor(pred_ref[["predicted"]],
             levels = labels_cube,
             labels = labels_cube
         ),
-        factor(pred_ref$reference,
+        factor(pred_ref[["reference"]],
             levels = labels_cube,
             labels = labels_cube
         )
@@ -285,7 +285,7 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
     # does the input data contains valid reference labels?
     .check_labels(ref)
     # build the tibble
-    pred_ref <- tibble::tibble("predicted" = pred, "reference" = ref)
+    pred_ref <- tibble::tibble(predicted = pred, reference = ref)
     return(pred_ref)
 }
 
