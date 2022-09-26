@@ -46,8 +46,8 @@
 
     # Convert samples time series in predictors and preprocess data
     pred <- .sits_predictors(samples = splitted, ml_model = ml_model)
-    # post condition: is distance data valid?
-    .check_distances(pred, splitted)
+    # Post condition: is predictor data valid?
+    .check_predictors(pred, splitted)
 
     # Divide samples predictors in chunks to parallel processing
     parts <- .pred_create_partition(pred = pred, partitions = multicores)

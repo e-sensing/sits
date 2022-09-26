@@ -1476,7 +1476,7 @@
         msg = "invalid sits model"
     )
     .check_that(
-        x = "model" %in% ls(environment(model)),
+        x = any(c("model", "torch_model") %in% ls(environment(model))),
         local_msg = "please, run sits_train() first",
         msg = "invalid sits model"
     )
@@ -1570,27 +1570,27 @@
         msg = "missing cluster column"
     )
 }
-#' @title Are the distances valid?
-#' @name .check_distances
-#' @param distances a data.table with distances values
-#' @param samples samples from where the distances have been calculated
+#' @title Are the predictors valid?
+#' @name .check_predictors
+#' @param pred a tibble with predictors values
+#' @param samples samples from where the predictors have been calculated
 #' @return  No return value, called for side effects.
 #' @keywords internal
-.check_distances <- function(distances, samples){
+.check_predictors <- function(pred, samples){
     cols <- .pred_cols # From predictors API
     .check_that(
-        x = cols %in% colnames(distances),
-        msg = "invalid distances file"
+        x = cols %in% colnames(pred),
+        msg = "invalid predictors data"
     )
     .check_that(
-        x = nrow(distances) > 0,
-        msg = "invalid distances file"
+        x = nrow(pred) > 0,
+        msg = "invalid predictors data"
     )
     n_bands <- length(sits_bands(samples))
     n_times <- length(sits_timeline(samples))
     .check_that(
-        x = ncol(distances) == 2 + n_bands*n_times,
-        msg = "invalid distances file"
+        x = ncol(pred) == 2 + n_bands * n_times,
+        msg = "invalid predictors data"
     )
 }
 
