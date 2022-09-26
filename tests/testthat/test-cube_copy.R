@@ -26,7 +26,7 @@ test_that("Downloading and cropping cubes from BDC", {
                 lat_min = -14.95411527,
                 lon_max = -41.74745556,
                 lat_max = -14.65950650),
-        multicores = 4
+        multicores = 2
     )
 
     # Comparing tiles
@@ -58,7 +58,7 @@ test_that("Downloading and cropping cubes from BDC", {
                 lat_min = -14.95411527,
                 lon_max = -41.74745556,
                 lat_max = -14.65950650),
-        multicores = 4
+        multicores = 2
     )
 
     # Comparing tiles
@@ -139,7 +139,7 @@ test_that("Downloading entire images from local cubes", {
                 lon_max = -55.60154307,
                 lat_max = -11.60790603),
         res = 464,
-        multicores = 4
+        multicores = 2
     )
 
     # Comparing bounding boxes
