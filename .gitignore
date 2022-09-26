@@ -24,9 +24,10 @@ Meta
 *.bkp
 Makevars
 Makevars.*
+.sits/
 *.gcda
 *.gcno
-^_snaps
+_snaps/
 tags
 R/tags
 *.swp

@@ -48,9 +48,7 @@ sits_select.sits <- function(data, bands, ...) {
         within = sits_bands(data),
         msg = "Invalid bands values"
     )
-    data <- .sits_fast_apply(data, col = "time_series", function(x) {
-        dplyr::select(x, dplyr::all_of(c("#..", "Index", bands)))
-    })
+    data <- .sits_filter_bands(data, bands)
     return(data)
 }
 

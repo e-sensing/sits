@@ -2,17 +2,27 @@
 % Please edit documentation in R/sits_reclassify.R
 \name{sits_reclassify}
 \alias{sits_reclassify}
+\alias{sits_reclassify.class_cube}
 \title{Reclassify a classified cube}
 \usage{
 sits_reclassify(
   cube,
   mask,
-  ...,
-  mask_na_values = TRUE,
+  rules,
   memsize = 1,
   multicores = 2,
   output_dir = getwd(),
-  progress = TRUE
+  version = "v1"
+)
+
+\method{sits_reclassify}{class_cube}(
+  cube,
+  mask,
+  rules,
+  memsize = 4,
+  multicores = 2,
+  output_dir = getwd(),
+  version = "v1"
 )
 }
 \arguments{
@@ -21,10 +31,7 @@ sits_reclassify(
 \item{mask}{Classified image cube with additional information
 to be used in expressions.}
 
-\item{...}{Named expressions to be evaluated (see details).}
-
-\item{mask_na_values}{Set cube pixels to NA where corresponding pixels in
-mask are NA.}
+\item{rules}{Named expressions to be evaluated (see details).}
 
 \item{memsize}{Memory available for classification (in GB).}
 
@@ -32,7 +39,7 @@ mask are NA.}
 
 \item{output_dir}{Directory where files will be saved.}
 
-\item{progress}{Show progress bar?}
+\item{version}{Version of resulting image (in the case of multiple runs).}
 }
 \value{
 A classified image cube.
@@ -92,23 +99,24 @@ if (sits_run_examples()) {
     ro_mask <- sits_reclassify(
         cube = ro_class,
         mask = prodes2021,
-        "Old_Deforestation" =
-            mask \%in\% c("d2007", "d2008", "d2009",
-                        "d2010", "d2011", "d2012",
-                        "d2013", "d2014", "d2015",
-                        "d2016", "d2017", "d2018",
-                        "r2010", "r2011", "r2012",
-                        "r2013", "r2014", "r2015",
-                        "r2016", "r2017", "r2018",
-                        "d2019", "r2019", "d2020",
-                        "r2020", "r2021"),
-        "Water_Mask" = mask == "Water",
-        "NonForest_Mask" = mask \%in\% c("NonForest", "NonForest2"),
-        mask_na_values = TRUE,
+        rules = list(
+            "Old_Deforestation" = mask \%in\% c(
+                "d2007", "d2008", "d2009",
+                "d2010", "d2011", "d2012",
+                "d2013", "d2014", "d2015",
+                "d2016", "d2017", "d2018",
+                "r2010", "r2011", "r2012",
+                "r2013", "r2014", "r2015",
+                "r2016", "r2017", "r2018",
+                "d2019", "r2019", "d2020",
+                "r2020", "r2021"
+            ),
+            "Water_Mask" = mask == "Water",
+            "NonForest_Mask" = mask \%in\% c("NonForest", "NonForest2")
+        ),
         memsize = 1,
         multicores = 1,
-        output_dir = getwd(),
-        progress = TRUE
+        output_dir = getwd()
     )
 
     plot(ro_mask, palette = "Geyser")

@@ -1,6 +1,4 @@
 test_that("file_info functions", {
-
-
     cbers_cube <- tryCatch(
         {
             sits_cube(
@@ -20,7 +18,6 @@ test_that("file_info functions", {
     testthat::skip_if(purrr::is_null(cbers_cube),
         message = "BDC is not accessible"
     )
-
 
     # only works with one tile
     expect_error(.file_info(cbers_cube))
@@ -99,7 +96,6 @@ test_that("file_info functions", {
     )
 })
 
-
 test_that("file_info functions for result cubes", {
 
 
@@ -153,8 +149,6 @@ test_that("file_info functions for result cubes", {
 })
 
 test_that("file_info errors", {
-
-
     s2_cube <- sits_cube(
         source = "AWS",
         collection = "SENTINEL-S2-L2A-COGS",

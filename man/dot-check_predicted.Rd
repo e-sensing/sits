@@ -2,17 +2,28 @@
 % Please edit documentation in R/sits_check.R
 \name{.check_predicted}
 \alias{.check_predicted}
-\title{Does the input data contain a set of predicted values?}
+\alias{.check_processed_values}
+\title{Does the values has same number of pixels than input values?}
 \usage{
+.check_processed_values(values, input_pixels)
+
 .check_predicted(data)
 }
 \arguments{
+\item{values}{a matrix of processed values}
+
+\item{input_pixels}{number of pixels in input matrix}
+
 \item{data}{a sits tibble}
 }
 \value{
 No return value, called for side effects.
+
+No return value, called for side effects.
 }
 \description{
+Does the values has same number of pixels than input values?
+
 Does the input data contain a set of predicted values?
 }
 \keyword{internal}

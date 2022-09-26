@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_check.R
 \name{.check_samples_cluster}
 \alias{.check_samples_cluster}
-\title{Do the samples contain a cluster collumn?}
+\title{Do the samples contain a cluster column?}
 \usage{
 .check_samples_cluster(data)
 }
@@ -13,6 +13,6 @@
 No return value, called for side effects.
 }
 \description{
-Do the samples contain a cluster collumn?
+Do the samples contain a cluster column?
 }
 \keyword{internal}

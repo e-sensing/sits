@@ -68,7 +68,7 @@
         self$layers_spatial_encoder <- layers_spatial_encoder
         self$spatial_encoder <- .torch_multi_linear_batch_norm_relu(
             input_dim = n_bands,
-            hidden_dim = layers_spatial_encoder
+            hidden_dims = layers_spatial_encoder
         )
     },
     forward = function(input) {

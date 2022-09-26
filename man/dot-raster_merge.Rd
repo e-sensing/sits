@@ -2,32 +2,32 @@
 % Please edit documentation in R/sits_raster_api.R
 \name{.raster_merge}
 \alias{.raster_merge}
+\alias{.raster_merge_blocks}
 \title{Merge all input files into one raster file}
 \usage{
-.raster_merge(
-  in_files,
-  out_file,
-  format,
-  gdal_datatype,
-  gdal_options,
-  overwrite,
-  progress = FALSE
+.raster_merge_blocks(
+  out_files,
+  base_file,
+  block_files,
+  data_type,
+  missing_value,
+  multicores = 2
 )
 }
 \arguments{
-\item{in_files}{Input file paths}
+\item{out_files}{Output raster files path.}
 
-\item{out_file}{Output raster file path}
+\item{base_file}{Raster file path to be used as template. If \code{NULL},
+all block_files will be merged without a template.}
 
-\item{format}{Format to write the file}
+\item{block_files}{Input block files paths.}
 
-\item{gdal_datatype}{Data type in gdal format}
+\item{data_type}{sits internal raster data type. One of "INT1U",
+"INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".}
 
-\item{gdal_options}{Compression method to be used}
+\item{missing_value}{Missing value of out_files.}
 
-\item{overwrite}{Overwrite the file?}
-
-\item{progress}{Show progress bar?}
+\item{multicores}{Number of cores to process merging}
 }
 \value{
 No return value, called for side effects.

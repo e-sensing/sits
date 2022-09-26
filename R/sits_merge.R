@@ -113,6 +113,7 @@ sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
         x = data1$sensor == data2$sensor,
         msg = "cubes from different sensors"
     )
+
     .check_that(
         all(.cube_resolution(data1) == .cube_resolution(data2)),
         msg = "merge cubes requires same resolution"

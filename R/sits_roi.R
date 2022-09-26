@@ -82,7 +82,6 @@
 #' @keywords internal
 #' @param  roi             spatial region of interest
 #' @return                 roi in WGS84 projection or NULL if error
-#' @export
 .sits_parse_roi_cube <- function(roi) {
     # set caller to show in errors
     .check_set_caller(".sits_parse_roi_cube")
@@ -207,7 +206,6 @@
 #' @keywords internal
 #' @param  roi_sf   region of interest as sf object
 #' @return a geojson polygon geometry
-#' @export
 .sits_roi_sf_to_geojson <- function(roi_sf) {
 
     # pre-conditions

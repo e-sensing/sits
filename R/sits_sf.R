@@ -197,7 +197,7 @@ sits_as_sf.raster_cube <- function(data, ...) {
     sf_df <- sf::st_drop_geometry(sf_object)
 
     # if geom_type is POINT, use the points provided in the shapefile
-    points <- sf::st_coordinates(sf_object$geometry)
+    points <- sf::st_coordinates(sf_object)
 
     if ("label" %in% colnames(sf_df)) {
         labels <- as.character(unlist(sf_df[, "label"], use.names = FALSE))

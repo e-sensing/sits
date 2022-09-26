@@ -1265,6 +1265,7 @@
         msg = "window_size must be an odd number"
     )
 }
+
 #' @title Check if band is present in the cube
 #' @name .check_band_in_cube
 #' @param band name of the band
@@ -1344,6 +1345,19 @@
     )
 }
 
+#' @title Does the values has same number of pixels than input values?
+#' @name .check_predicted
+#' @param values a matrix of processed values
+#' @param input_pixels number of pixels in input matrix
+#' @return  No return value, called for side effects.
+#' @keywords internal
+.check_processed_values <- function(values, input_pixels) {
+    .check_that(
+        x = .has(nrow(values)) && nrow(values) == input_pixels,
+        msg = paste("size of processed matrix is different",
+                    "from number of input pixels")
+    )
+}
 #' @title Does the input data contain a set of predicted values?
 #' @name .check_predicted
 #' @param data a sits tibble
@@ -1411,13 +1425,13 @@
     )
 }
 #' @title Check if cube is a classified image
-#' @name .check_cube_is_classified_image
+#' @name .check_cube_is_class_cube
 #' @param cube a sits cube to be tested
 #' @return  No return value, called for side effects
 #' @keywords internal
-.check_cube_is_classified_image <- function(cube) {
+.check_cube_is_class_cube <- function(cube) {
     .check_that(
-        x = inherits(cube, "classified_image"),
+        x = inherits(cube, "class_cube"),
         msg = "cube is not classified image"
     )
 }
@@ -1452,10 +1466,31 @@
 #' @keywords internal
 .check_is_sits_model <- function(model){
     .check_that(
-        x = inherits(model, what = "sits_model"),
-        local_msg = "please run sits_train() first",
-        msg = "input does not contain model information"
+        x = inherits(model, "function"),
+        local_msg = "please, run sits_train() first",
+        msg = "invalid sits model"
     )
+    .check_that(
+        x = inherits(model, "sits_model"),
+        local_msg = "please, run sits_train() first",
+        msg = "invalid sits model"
+    )
+    .check_that(
+        x = any(c("model", "torch_model",
+                  # Old models
+                  "result_rfor", "result_svm", "model_xgb") %in%
+                    ls(environment(model))),
+        local_msg = "please, run sits_train() first",
+        msg = "invalid sits model"
+    )
+    .check_that(
+        x = "samples" %in% ls(environment(model)),
+        local_msg = "please, run sits_train() first",
+        msg = "invalid sits model"
+    )
+    # Check model samples
+    samples <- .ml_samples(model)
+    .check_samples(samples)
 }
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @name .check_samples
@@ -1469,7 +1504,7 @@
     )
     .check_that(
         x = nrow(data) > 0,
-        msg = "samples file does not contain values"
+        msg = "samples does not contain values"
     )
 }
 
@@ -1481,26 +1516,18 @@
 .check_samples_train <- function(data){
     .check_samples(data)
     # check that there is no NA in labels
-    labels <- unique(data$label)
+    labels <- .sits_labels(data)
     .check_that(
-        x = !("NoClass" %in% labels) && !("" %in% labels),
-        msg = "invalid labels in samples file"
+        x = !("NoClass" %in% labels) && !("" %in% labels) &&
+            !any(is.na(labels)),
+        msg = "invalid labels in samples data"
     )
-    # unnest time series
-    distances <- data %>%
-        dplyr::mutate(
-            original_row = seq_len(nrow(data))
-        ) %>%
-        tidyr::unnest("time_series")
+    # Get unnested time series
+    ts <- .sits_ts(data)
     # check there is an Index column
-    .check_that(
-        x = "Index" %in% colnames(distances)
-    )
+    .check_that(x = "Index" %in% colnames(ts))
     # check there are no NA in distances
-    .check_that(
-        x = !(anyNA(distances)),
-        msg = "samples contain NA values"
-    )
+    .check_that(x = !(anyNA(ts)), msg = "samples contain NA values")
 }
 #' @title Is the samples_validation object valid?
 #' @name .check_samples_validation
@@ -1531,7 +1558,7 @@
             all(bands %in% sits_bands(samples_validation))
     )
 }
-#' @title Do the samples contain a cluster collumn?
+#' @title Do the samples contain a cluster column?
 #' @name .check_samples_cluster
 #' @param data a sits tibble with cluster col
 #' @return  No return value, called for side effects.
@@ -1546,29 +1573,47 @@
         msg = "missing cluster column"
     )
 }
-#' @title Are the distances valid?
-#' @name .check_distances
-#' @param distances a data.table with distances values
-#' @param samples samples from where the distances have been calculated
+#' @title Are the predictors valid?
+#' @name .check_predictors
+#' @param pred a tibble with predictors values
+#' @param samples samples from where the predictors have been calculated
 #' @return  No return value, called for side effects.
 #' @keywords internal
-.check_distances <- function(distances, samples){
-    cols <- c("original_row", "reference")
+.check_predictors <- function(pred, samples){
+    cols <- .pred_cols # From predictors API
     .check_that(
-        x = cols %in% colnames(distances),
-        msg = "invalid distances file"
+        x = cols %in% colnames(pred),
+        msg = "invalid predictors data"
     )
     .check_that(
-        x = nrow(distances) > 0,
-        msg = "invalid distances file"
+        x = nrow(pred) > 0,
+        msg = "invalid predictors data"
     )
     n_bands <- length(sits_bands(samples))
     n_times <- length(sits_timeline(samples))
     .check_that(
-        x = ncol(distances) == 2 + n_bands*n_times,
-        msg = "invalid distances file"
+        x = ncol(pred) == 2 + n_bands * n_times,
+        msg = "invalid predictors data"
     )
 }
+
+#' @title Does the data contain the cols of sample data and is not empty?
+#' @name .check_smoothness
+#' @param smoothness a matrix or numeric value
+#' @param nlabels    a numeric value
+#' @return  No return value, called for side effects.
+#' @keywords internal
+.check_smoothness <- function(smoothness, nlabels) {
+    .check_that(
+        x = (nrow(smoothness) == ncol(smoothness)) &&
+            (ncol(smoothness) == nlabels),
+        msg = paste(
+            "smoothness must be square matrix of",
+            "the same length as the number of labels"
+        )
+    )
+}
+
 #' @title Check classification parameters
 #' @name .check_cube_model
 #' @keywords internal
@@ -1579,9 +1624,6 @@
 #' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
 #' @return No value called for side effects
 .check_cube_model <- function(cube, ml_model) {
-
-    # set caller to show in errors
-    .check_set_caller(".check_cube_model")
 
     # ensure metadata tibble exists
     .check_that(
@@ -1972,6 +2014,69 @@
     )
 
     return(invisible(x))
+}
+#' @title Checks if the character parameter is empty
+#' @name .check_empty_char
+#' @param x a character vector
+#' @return No return value, called for side effects.
+#' @keywords internal
+.check_empty_char <- function(x, msg, ...) {
+    .check_that(all(nzchar(x)), msg = msg, ...)
+}
+.check_endmembers_parameter <- function(x) {
+    .check_that(
+        x = inherits(x, c("data.frame", "character")),
+        msg = "invalid 'endmembers' parameter"
+    )
+}
+#' @title Checks if the endmembers data is in a valid parameter
+#' @name .check_endmembers_tbl
+#' @param em   Reference spectra endmembers.
+#' @param cube A sits cube
+#' @return No return value, called for side effects.
+#' @keywords internal
+.check_endmembers_tbl <- function(em) {
+    # Pre-condition
+    .check_na(
+        x = em,
+        msg = "Invalid 'endmembers' parameter"
+    )
+    # Pre-condition
+    .check_chr_contains(
+        x = colnames(em),
+        contains = "TYPE",
+        msg = "Invalid 'endmembers' parameter"
+    )
+    # Pre-condition
+    .check_chr(
+        x = .endmembers_fracs(em), allow_empty = FALSE, len_min = 1,
+        msg = "The reference endmembers cannot be empty"
+    )
+    # Pre-condition
+    .check_that(
+        nrow(em) < ncol(em),
+        msg = paste(
+            "Endmembers must be less or equal than the",
+            "number of spectral bands."
+        )
+    )
+}
+.check_endmembers_bands <- function(em, cube) {
+    .check_chr_within(
+        x = .band_eo(.endmembers_bands(em)),
+        within = .cube_bands(cube, add_cloud = FALSE),
+        msg = "invalid 'endmembers' columns"
+    )
+}
+.check_res <- function(x) {
+    .check_num(
+        x = x,
+        exclusive_min = 0,
+        len_min = 1,
+        len_max = 1,
+        allow_null = TRUE,
+        msg = "invalid 'res' parameter."
+    )
 }
 #' @title Checks if working in documentation mode
 #' @name .check_documentation

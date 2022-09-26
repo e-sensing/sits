@@ -4,12 +4,14 @@
 \alias{.sits_parallel_start}
 \title{Start a new sits cluster for parallel processing}
 \usage{
-.sits_parallel_start(workers, log)
+.sits_parallel_start(workers, log, output_dir = NULL)
 }
 \arguments{
 \item{workers}{number of cluster to instantiate}
 
 \item{log}{a logical indicating if log files must be written}
+
+\item{output_dir}{output_dir where to save logs.}
 }
 \value{
 No value, called for side effect.

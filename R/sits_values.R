@@ -63,11 +63,11 @@ sits_values.bands_cases_dates <- function(data, bands = NULL, format) {
 
     distances_tbl <- data %>%
         dplyr::mutate(
-            original_row = seq_len(nrow(data))
+            sample_id = seq_len(nrow(data))
         ) %>%
         tidyr::unnest("time_series") %>%
-        dplyr::select("original_row", !!bands) %>%
-        dplyr::group_by(.data[["original_row"]]) %>%
+        dplyr::select("sample_id", !!bands) %>%
+        dplyr::group_by(.data[["sample_id"]]) %>%
         dplyr::mutate(temp_index = seq_len(dplyr::n())) %>%
         dplyr::ungroup()
 

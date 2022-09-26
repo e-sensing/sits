@@ -44,20 +44,13 @@ sits_labels.patterns <- function(data) {
     return(data$label)
 }
 #' @rdname sits_labels
-#' @export
 #'
+#' @export
 sits_labels.sits_model <- function(data) {
-
-    # set caller to show in errors
-    .check_set_caller("sits_labels.sits_model")
     .check_is_sits_model(data)
-    .check_chr_within(
-        x = "samples",
-        within = ls(environment(data)),
-        discriminator = "any_of",
-        msg = "no samples found in the sits model"
-    )
-    return(sits_labels.sits(environment(data)$samples))
+    # Get labels from ml_model
+    labels <- .ml_labels(data)
+    return(labels)
 }
 #' @title Change the labels of a set of time series
 #'
@@ -127,27 +120,31 @@ sits_labels.sits_model <- function(data) {
 }
 #' @name `sits_labels<-`
 #' @export
-#' @return           A probs cube with modified labels.
+#' @return    A probs or class_cube cube with modified labels.
 #'
 `sits_labels<-.probs_cube` <- function(data, value) {
     # precondition
-    n_labels <- length(sits_labels(data))
-    .check_chr(value,
-        len_min = n_labels,
-        msg = "not enough new labels to replace current ones"
+    .check_chr(
+        x = value,
+        allow_empty = FALSE,
+        len_min = length(sits_labels(data)),
+        len_max = length(sits_labels(data)),
+        msg = "number of new labels dos not match current labels"
     )
-    rows <- slider::slide_dfr(data, function(row) {
-        row$labels <- list(value)
-        return(row)
-    })
-    return(rows)
+    data[["labels"]] <- list(value)
+    return(data)
+}
+#' @export
+#'
+`sits_labels<-.class_cube` <- function(data, value) {
+    return(`sits_labels<-.probs_cube`(data, value))
 }
 
 #' @name `sits_labels<-`
 #' @export
 #' @return           A probs cube with modified labels.
 #'
-`sits_labels<-.classified_image` <- function(data, value) {
+`sits_labels<-.class_cube` <- function(data, value) {
     # precondition
     n_labels <- length(sits_labels(data))
     .check_chr(value,

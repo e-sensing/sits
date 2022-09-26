@@ -6,13 +6,11 @@
 \alias{.sits_debug}
 \title{sits log functions}
 \usage{
-.sits_debug_log(output_dir = ".", event = "", key = "", value = "")
+.sits_debug_log(event = "", key = "", value = "")
 
-.sits_debug(flag = NULL)
+.sits_debug(flag = NULL, output_dir = NULL)
 }
 \arguments{
-\item{output_dir}{Output directory to write log file}
-
 \item{event}{The name of the event to be logged}
 
 \item{key}{A key describing the value.}
@@ -21,6 +19,8 @@
 to string and escaped.}
 
 \item{flag}{A logical value to set the debug flag}
+
+\item{output_dir}{directory to save logs.}
 }
 \value{
 A logical value with current debug flag

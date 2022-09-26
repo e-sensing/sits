@@ -86,7 +86,7 @@ sits_combine_predictions.average <- function(cubes,
                                              type = "average", ...,
                                              multicores = 2,
                                              memsize = 4,
-                                             output_dir = ".",
+                                             output_dir = getwd(),
                                              version = "v1") {
 
 
@@ -199,11 +199,9 @@ sits_combine_predictions.average <- function(cubes,
                 chunk <- .raster_crop(
                     r_obj = b,
                     file = temp_chunk_file,
-                    format = "GTiff",
                     data_type = .raster_data_type(
                         .config_get("probs_cube_data_type")
                     ),
-                    gdal_options = .config_gtiff_default_options(),
                     overwrite = TRUE,
                     block = block
                 )
@@ -220,9 +218,7 @@ sits_combine_predictions.average <- function(cubes,
             .raster_write_rast(
                 r_obj = raster_out,
                 file = block_file,
-                format = "GTiff",
                 data_type = .config_get("probs_cube_data_type"),
-                gdal_options = .config_gtiff_default_options(),
                 overwrite    = TRUE
             )
             # Delete temp file
@@ -265,23 +261,19 @@ sits_combine_predictions.average <- function(cubes,
             return(tile_new)
         }
 
-        tmp_blocks <- blocks_tile_lst[[i]]
+        block_files <- blocks_tile_lst[[i]]
 
         # apply function to blocks
-        on.exit(unlink(tmp_blocks))
+        on.exit(unlink(block_files))
 
-        # merge to save final result
-        suppressWarnings(
-            .raster_merge(
-                in_files = tmp_blocks,
-                out_file = out_file,
-                format = "GTiff",
-                gdal_datatype =
-                    .raster_gdal_datatype(.config_get("probs_cube_data_type")),
-                gdal_options =
-                    .config_gtiff_default_options(),
-                overwrite = TRUE
-            )
+        # Merge final result
+        .raster_merge_blocks(
+            out_files = out_file,
+            base_file = .file_info_path(tile),
+            block_files = block_files,
+            data_type = .config_get("probs_cube_data_type"),
+            missing_value = .config_get("probs_cube_missing_value"),
+            multicores = 1
         )
 
         return(tile_new)
@@ -290,7 +282,7 @@ sits_combine_predictions.average <- function(cubes,
     # bind rows
     result_cube <- dplyr::bind_rows(result_cube)
 
-    class(result_cube) <- c("probs_cube", class(cubes[[1]]))
+    class(result_cube) <- unique(c("probs_cube", class(cubes[[1]])))
 
     return(result_cube)
 }
@@ -303,7 +295,7 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
                                             uncert_cubes,
                                             multicores = 2,
                                             memsize = 4,
-                                            output_dir = ".",
+                                            output_dir = getwd(),
                                             version = "v1") {
 
     # check if probs cubes and uncert cubes are valid and match
@@ -434,11 +426,9 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
                 chunk <- .raster_crop(
                     r_obj = b,
                     file = temp_chunk_file,
-                    format = "GTiff",
                     data_type = .raster_data_type(
                         .config_get("probs_cube_data_type")
                     ),
-                    gdal_options = .config_gtiff_default_options(),
                     overwrite = TRUE,
                     block = block
                 )
@@ -457,11 +447,9 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
                 chunk <- .raster_crop(
                     r_obj = b,
                     file = temp_chunk_file,
-                    format = "GTiff",
                     data_type = .raster_data_type(
                         .config_get("probs_cube_data_type")
                     ),
-                    gdal_options = .config_gtiff_default_options(),
                     overwrite = TRUE,
                     block = block
                 )
@@ -479,7 +467,6 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
             .raster_write_rast(
                 r_obj = raster_out,
                 file = block_file,
-                format = "GTiff",
                 data_type = .config_get("probs_cube_data_type"),
                 gdal_options = .config_gtiff_default_options(),
                 overwrite    = TRUE
@@ -525,24 +512,20 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
             return(tile_new)
         }
 
-        tmp_blocks <- blocks_tile_lst[[i]]
+        block_files <- blocks_tile_lst[[i]]
 
-        # apply function to blocks
-        on.exit(unlink(tmp_blocks))
-
-        # merge to save final result
-        suppressWarnings(
-            .raster_merge(
-                in_files = tmp_blocks,
-                out_file = out_file,
-                format = "GTiff",
-                gdal_datatype =
-                    .raster_gdal_datatype(.config_get("probs_cube_data_type")),
-                gdal_options =
-                    .config_gtiff_default_options(),
-                overwrite = TRUE
-            )
+        # Merge final result
+        .raster_merge_blocks(
+            out_files = out_file,
+            base_file = .file_info_path(tile),
+            block_files = block_files,
+            data_type = .config_get("probs_cube_data_type"),
+            missing_value = .config_get("probs_cube_missing_value"),
+            multicores = 1
         )
+
+        # Remove blocks
+        on.exit(unlink(block_files), add = TRUE)
 
         return(tile_new)
     })
@@ -550,7 +533,7 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
     # bind rows
     result_cube <- dplyr::bind_rows(result_cube)
 
-    class(result_cube) <- c("probs_cube", class(cubes[[1]]))
+    class(result_cube) <- unique(c("probs_cube", class(cubes[[1]])))
 
     return(result_cube)
 }

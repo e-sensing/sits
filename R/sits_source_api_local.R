@@ -140,7 +140,8 @@
 
     if (results_cube) {
         result_class <- .config_get("sits_results_s3_class")[[bands]]
-        class(cube) <- c(result_class, "raster_cube", class(cube))
+        class(cube) <- c(result_class, "derived_cube", "raster_cube",
+                         "sits_cube", class(cube))
     } else {
         class(cube) <- .cube_s3class(cube)
     }
@@ -590,14 +591,15 @@
             "band",
             "start_date",
             "end_date",
-            "xmin",
-            "ymin",
-            "xmax",
-            "ymax",
+            "ncols",
+            "nrows",
             "xres",
             "yres",
-            "nrows",
-            "ncols",
+            "xmin",
+            "xmax",
+            "ymin",
+            "ymax",
+            "crs",
             "path"
         ))
     )
@@ -609,8 +611,8 @@
         sensor = .source_collection_sensor(source, collection),
         tile = tile,
         xmin = max(file_info[["xmin"]]),
-        ymin = max(file_info[["ymin"]]),
         xmax = min(file_info[["xmax"]]),
+        ymin = max(file_info[["ymin"]]),
         ymax = min(file_info[["ymax"]]),
         crs = crs,
         labels = labels,

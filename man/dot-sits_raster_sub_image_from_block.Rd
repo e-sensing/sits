@@ -20,8 +20,8 @@
 )
 }
 \arguments{
-\item{block}{a valid block with \code{first_col}, \code{first_row},
-\code{nrows}, and \code{ncols}.}
+\item{block}{a valid block with (\code{col}, \code{row},
+\code{ncols}, \code{nrows}).}
 
 \item{source}{a \code{character} with the cube source.}
 

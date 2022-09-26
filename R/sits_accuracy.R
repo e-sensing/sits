@@ -103,12 +103,12 @@ sits_accuracy.sits <- function(data, ...) {
     # Is the input the result of a sits_classify?
     if ("label" %in% names(data)) {
         pred_ref <- .sits_accuracy_pred_ref(data)
-        pred <- pred_ref$predicted
-        ref <- pred_ref$reference
+        pred <- pred_ref[["predicted"]]
+        ref <- pred_ref[["reference"]]
     } else {
         # is the input the result of the sits_kfold_validate?
-        pred <- data$predicted
-        ref <- data$reference
+        pred <- data[["predicted"]]
+        ref <- data[["reference"]]
     }
     # Create factor vectors for caret
     unique_ref <- unique(ref)
@@ -126,7 +126,7 @@ sits_accuracy.sits <- function(data, ...) {
 }
 #' @rdname sits_accuracy
 #' @export
-sits_accuracy.classified_image <- function(data, ..., validation_csv) {
+sits_accuracy.class_cube <- function(data, ..., validation_csv) {
 
     # sits only accepts "csv" files
     .check_file_csv(validation_csv)
@@ -218,11 +218,11 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 
     # Create the error matrix
     error_matrix <- table(
-        factor(pred_ref$predicted,
+        factor(pred_ref[["predicted"]],
             levels = labels_cube,
             labels = labels_cube
         ),
-        factor(pred_ref$reference,
+        factor(pred_ref[["reference"]],
             levels = labels_cube,
             labels = labels_cube
         )
@@ -285,7 +285,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # does the input data contains valid reference labels?
     .check_labels(ref)
     # build the tibble
-    pred_ref <- tibble::tibble("predicted" = pred, "reference" = ref)
+    pred_ref <- tibble::tibble(predicted = pred, reference = ref)
     return(pred_ref)
 }
 
@@ -316,7 +316,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # set caller to show in errors
     .check_set_caller(".sits_accuracy_area_assess")
     # check if cube has the right type
-    .check_cube_is_classified_image(cube)
+    .check_cube_is_class_cube(cube)
     # check error matrix
     .check_error_matrix_area(error_matrix, area)
 

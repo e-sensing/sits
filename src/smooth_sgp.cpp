@@ -14,16 +14,15 @@ using namespace Rcpp;
 arma::vec signal_filter(const arma::vec& filt,
                         const arma::vec& x) {
 
-    int len_init = filt.n_rows - 1;
-    int len_ext  = x.n_rows + len_init;
+    arma::uword len_init = filt.n_rows - 1;
     arma::vec ext_x(len_init, arma::fill::zeros);
     arma::vec result(x.n_rows);
     // extend the input vector with left-side zeros
     ext_x = arma::join_cols(ext_x, x);
 
-    for (int i = 0; i < x.n_rows; i++){
+    for (arma::uword i = 0; i < x.n_rows; i++){
         double out = 0;
-        for (int j = 0; j < filt.n_rows; j++){
+        for (arma::uword j = 0; j < filt.n_rows; j++){
             out +=  ext_x(i+j) * filt(filt.n_rows - (j + 1));
         }
         result(i) = out;

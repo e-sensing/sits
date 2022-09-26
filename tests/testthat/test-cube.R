@@ -240,7 +240,8 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
                 tiles = c("20LKP", "20LLP"),
                 bands = c("B8A", "SCL"),
                 start_date = "2018-10-01",
-                end_date = "2018-11-01"
+                end_date = "2018-11-01",
+                multicores = 1
             )
         },
         error = function(e) {

@@ -35,5 +35,6 @@ utils::globalVariables(c(
 #' @importFrom Rcpp sourceCpp
 #' @importFrom dplyr .data
 #' @importFrom utils read.csv
+#' @importFrom utils download.file
 #' @useDynLib sits, .registration = TRUE
 NULL

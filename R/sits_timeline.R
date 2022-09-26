@@ -33,7 +33,9 @@ sits_timeline.sits <- function(data) {
 #' @export
 #'
 sits_timeline.sits_model <- function(data) {
-    return(environment(data)$samples$time_series[[1]]$Index)
+    .check_is_sits_model(data)
+    samples <- .ml_samples(data)
+    return(samples$time_series[[1]]$Index)
 }
 
 #' @export
@@ -77,7 +79,7 @@ sits_timeline.uncertainty_cube <- function(data) {
 }
 #' @export
 #'
-sits_timeline.classified_image <- function(data) {
+sits_timeline.class_cube <- function(data) {
 
     # return the timeline of the cube
     start_date <- .file_info_start_date(data[1, ])
@@ -491,10 +493,7 @@ sits_timeline.classified_image <- function(data) {
         timeline <= lubridate::as_date(end_date)
     .check_that(
         x = any(valid),
-        msg = paste(
-            "no valid data between ",
-            as.Date(start_date), " and ", as.Date(end_date)
-        )
+        msg = paste("no valid data between", start_date, "and", end_date)
     )
     return(timeline[valid])
 }

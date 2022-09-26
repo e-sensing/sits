@@ -2,21 +2,12 @@
 % Please edit documentation in R/sits_model_export.R
 \name{sits_model_export}
 \alias{sits_model_export}
-\alias{sits_model_export.rfor_model}
-\alias{sits_model_export.svm_model}
-\alias{sits_model_export.xgb_model}
-\alias{sits_model_export.torch_model}
+\alias{sits_model_export.sits_model}
 \title{Export classification models}
 \usage{
 sits_model_export(ml_model)
 
-\method{sits_model_export}{rfor_model}(ml_model)
-
-\method{sits_model_export}{svm_model}(ml_model)
-
-\method{sits_model_export}{xgb_model}(ml_model)
-
-\method{sits_model_export}{torch_model}(ml_model)
+\method{sits_model_export}{sits_model}(ml_model)
 }
 \arguments{
 \item{ml_model}{A trained machine learning model}

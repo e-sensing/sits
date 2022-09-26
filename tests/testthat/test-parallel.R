@@ -1,6 +1,4 @@
 test_that("One-year, multi-core classification in parallel", {
-
-
     l8_cube <- tryCatch(
         {
             sits_cube(
@@ -61,12 +59,12 @@ test_that("One-year, multi-core classification in parallel", {
         sits:::.cube_size(l8_probs)[["nrows"]]
     )
 
-    max_lyr2 <- max(sits:::.raster_get_values(r_obj)[, 2])
+    max_lyr2 <- max(sits:::.raster_get_values(r_obj)[, 2], na.rm = TRUE)
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(sits:::.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(sits:::.raster_get_values(r_obj)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 10000)
 
-    min_lyr3 <- min(sits:::.raster_get_values(r_obj)[, 3])
+    min_lyr3 <- min(sits:::.raster_get_values(r_obj)[, 3], na.rm = TRUE)
     expect_true(min_lyr3 >= 0)
 })

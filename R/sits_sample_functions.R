@@ -233,7 +233,7 @@ sits_reduce_imbalance <- function(samples,
                 dist_over <- .sits_oversample_smote(
                     data = dist_band,
                     cls = cls,
-                    cls_col = "reference",
+                    cls_col = "label",
                     m = n_samples_over
                 )
                 # put the oversampled data into a samples tibble
@@ -248,7 +248,7 @@ sits_reduce_imbalance <- function(samples,
                         latitude = lat,
                         start_date = as.Date(start_date),
                         end_date = as.Date(end_date),
-                        label = row[["reference"]],
+                        label = row[["label"]],
                         cube = cube,
                         time_series = list(time_series)
                     )

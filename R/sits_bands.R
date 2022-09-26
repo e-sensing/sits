@@ -57,10 +57,7 @@ sits_bands.patterns <- function(x) {
 #' @export
 #'
 sits_bands.sits_model <- function(x) {
-    .check_that(
-        x = inherits(x, "function"),
-        msg = "invalid sits model"
-    )
-
-    return(sits_bands(.sits_ml_model_samples(x)))
+    .check_is_sits_model(x)
+    bands <- .ml_bands(x)
+    return(bands)
 }

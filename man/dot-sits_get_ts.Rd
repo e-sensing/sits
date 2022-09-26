@@ -3,7 +3,7 @@
 \name{.sits_get_ts}
 \alias{.sits_get_ts}
 \alias{.sits_get_ts.raster_cube}
-\alias{.sits_get_ts.classified_image}
+\alias{.sits_get_ts.class_cube}
 \title{Dispatch function to get time series from data cubes and cloud
 services}
 \usage{
@@ -30,7 +30,7 @@ services}
   progress
 )
 
-\method{.sits_get_ts}{classified_image}(
+\method{.sits_get_ts}{class_cube}(
   cube,
   samples,
   ...,

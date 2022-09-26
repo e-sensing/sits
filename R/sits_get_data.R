@@ -445,7 +445,7 @@ sits_get_data.data.frame <- function(cube,
 
         hash_bundle <- digest::digest(list(tile, samples), algo = "md5")
 
-        filename <- .create_filename(
+        filename <- .file_path(
             "samples", hash_bundle,
             ext = ".rds",
             output_dir = output_dir
@@ -579,7 +579,7 @@ sits_get_data.data.frame <- function(cube,
 
     # recreate file names to delete them
     # samples will be recycled for each hash_bundle
-    temp_timeseries <- .create_filename(
+    temp_timeseries <- .file_path(
         "samples", hash_bundle,
         ext = "rds",
         output_dir = output_dir
@@ -603,7 +603,7 @@ sits_get_data.data.frame <- function(cube,
 #' @name .sits_get_ts
 #' @keywords internal
 #' @export
-.sits_get_ts.classified_image <- function(cube,
+.sits_get_ts.class_cube <- function(cube,
                                           samples, ...,
                                           bands,
                                           crs = 4326,
@@ -644,7 +644,7 @@ sits_get_data.data.frame <- function(cube,
 
         hash_bundle <- digest::digest(list(tile, samples), algo = "md5")
 
-        filename <- .create_filename(
+        filename <- .file_path(
             "samples", hash_bundle,
             ext = ".rds",
             output_dir = output_dir
@@ -774,7 +774,7 @@ sits_get_data.data.frame <- function(cube,
 
     # recreate file names to delete them
     # samples will be recycled for each hash_bundle
-    temp_timeseries <- .create_filename(
+    temp_timeseries <- .file_path(
         "samples", hash_bundle,
         ext = "rds",
         output_dir = output_dir

@@ -17,7 +17,7 @@
 #'  \item{torch ML model: } {see \code{\link{plot.torch_model}}}
 #'  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
 #'  \item{model uncertainty: } {see \code{\link{plot.uncertainty_cube}}}
-#'  \item{classified image: }     {see \code{\link{plot.classified_image}}}
+#'  \item{classified image: }     {see \code{\link{plot.class_cube}}}
 #' }
 #'
 #' In the case of time series, the plot function produces different plots
@@ -421,7 +421,7 @@ plot.raster_cube <- function(x, ...,
                 # plot a single band
                 bw_file <- dplyr::filter(bds, .data[["band"]] == band)$path
                 # use the terra package to obtain a terra object from a stack
-                r_obj <- .raster_open_stack.terra(bw_file)
+                r_obj <- .raster_open_rast.terra(bw_file)
 
                 # check if pallete name exists in ColorBrewer
                 .check_chr_contains(
@@ -460,7 +460,7 @@ plot.raster_cube <- function(x, ...,
                 rgb_stack <- c(red_file, green_file, blue_file)
 
                 # use the terra package to obtain a terra object from a stack
-                r_obj <- .raster_open_stack.terra(rgb_stack)
+                r_obj <- .raster_open_rast.terra(rgb_stack)
                 # plot the data using terra
                 suppressWarnings(
                     terra::plotRGB(r_obj,
@@ -770,11 +770,11 @@ plot.uncertainty_cube <- function(x, ...,
 }
 
 #' @title  Plot classified images
-#' @name   plot.classified_image
+#' @name   plot.class_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description plots a classified raster using ggplot.
 #'
-#' @param  x               Object of class "classified_image".
+#' @param  x               Object of class "class_cube".
 #' @param  y               Ignored.
 #' @param  ...             Further specifications for \link{plot}.
 #' @param  tiles           Tiles to be plotted.
@@ -812,7 +812,7 @@ plot.uncertainty_cube <- function(x, ...,
 #' }
 #' @export
 #'
-plot.classified_image <- function(x, y, ...,
+plot.class_cube <- function(x, y, ...,
                                   tiles = NULL,
                                   title = "Classified Image",
                                   legend = NULL,
@@ -820,7 +820,7 @@ plot.classified_image <- function(x, y, ...,
                                   rev = TRUE) {
     stopifnot(missing(y))
     # set caller to show in errors
-    .check_set_caller(".sits_plot_classified_image")
+    .check_set_caller(".sits_plot_class_cube")
 
     # get other parameters
     dots <- list(...)
@@ -828,7 +828,7 @@ plot.classified_image <- function(x, y, ...,
     # precondition - cube must be a labelled cube
     cube <- x
     .check_chr_within(
-        x = "classified_image",
+        x = "class_cube",
         within = class(cube),
         discriminator = "any_of",
         msg = "cube must be a classified image"
@@ -928,15 +928,17 @@ plot.classified_image <- function(x, y, ...,
     }
     # set the names of the color vector
     # names(colors) <- as.character(c(1:nclasses))
-    fill_colors <- unname(colors[labels])
+    df[["class"]] <- labels[df[["class"]]]
+    classes <- sort(unique(df[["class"]]))
+    fill_colors <- unname(colors[classes])
 
     # plot the data with ggplot
     g <- ggplot2::ggplot(df, ggplot2::aes(.data[["x"]], .data[["y"]])) +
-        ggplot2::geom_raster(ggplot2::aes(fill = factor(class))) +
+        ggplot2::geom_raster(ggplot2::aes(fill = class)) +
         ggplot2::labs(title = title) +
         ggplot2::scale_fill_manual(
             values = fill_colors,
-            labels = labels,
+            labels = classes,
             guide = ggplot2::guide_legend(
                 title = "Classes"
             )
@@ -973,8 +975,9 @@ plot.classified_image <- function(x, y, ...,
 plot.rfor_model <- function(x, y, ...){
     # verifies if randomForestExplainer package is installed
     .check_require_packages("randomForestExplainer")
+    .check_is_sits_model(x)
     # retrieve the random forest object from the env iroment
-    rf <- environment(x)$result_rfor
+    rf <- .ml_model(x)
     p <- randomForestExplainer::plot_min_depth_distribution(rf)
     return(p)
 }
@@ -1233,8 +1236,9 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 plot.xgb_model <- function(x, ..., n_trees = 3){
     # verifies if DiagrammeR package is installed
     .check_require_packages("DiagrammeR")
+    .check_is_sits_model(x)
     # retrieve the XGB object from the enviroment
-    xgb <- environment(x)$model_xgb
+    xgb <- .ml_model(x)
     # plot the trees
     p <- xgboost::xgb.plot.tree(model = xgb, trees = seq_len(n_trees) - 1)
     return(p)

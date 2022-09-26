@@ -11,7 +11,8 @@ test_that("SVM  - Formula logref", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_class <- sits_classify(
         data = point_ndvi,
-        ml_model = svm_model
+        ml_model = svm_model,
+        multicores = 1
     )
 
     expect_true(sits_labels(point_class) == "NoClass")
@@ -111,8 +112,6 @@ test_that("Random Forest - SGolay", {
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
-
-
 test_that("XGBoost", {
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     model <- sits_train(
@@ -132,7 +131,6 @@ test_that("XGBoost", {
         sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
-
 
 test_that("DL-MLP", {
     model <- sits_train(
@@ -238,7 +236,10 @@ test_that("PSETAE model", {
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
-test_that("normalization", {
+test_that("normalization former version", {
+    #
+    # Old (yet supported) normalization
+    #
     stats <- .sits_ml_normalization_param(cerrado_2classes)
 
     norm1 <- .sits_ml_normalize_data(
@@ -266,4 +267,29 @@ test_that("normalization", {
 
     expect_equal(stats1[1, NDVI], stats3[1, NDVI], tolerance = 0.001)
     expect_equal(stats1[2, NDVI], stats3[2, NDVI], tolerance = 0.001)
+})
+
+test_that("normalization new version", {
+    #
+    # New normalization
+    #
+    stats <- .sits_stats(cerrado_2classes)
+
+    # In new version only predictors can be normalized
+    preds <- .sits_predictors(cerrado_2classes)
+
+    # Now, 'norm1' is a normalized predictors
+    preds_norm <- .pred_normalize(preds, stats)
+
+    # From predictors, get feature values
+    values <- .pred_features(preds)
+    values_norm <- .pred_features(preds_norm)
+
+    # Normalized data should have minimum value between
+    #   0.0001 (inclusive) and abs(min(values))
+    expect_true(1e-4 <= min(values_norm) && min(values_norm) < abs(min(values)))
+
+    # Normalized data should have maximum value between
+    #   abs(max(values)) and 1.0 (inclusive)
+    expect_true(abs(max(values)) < max(values_norm) && max(values_norm) <= 1.0)
 })

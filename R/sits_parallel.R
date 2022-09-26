@@ -39,11 +39,13 @@
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param workers   number of cluster to instantiate
-#' @param log       a logical indicating if log files must be written
+#' @param workers    number of cluster to instantiate
+#' @param log        a logical indicating if log files must be written
+#' @param output_dir output_dir where to save logs.
 #' @return No value, called for side effect.
 #'
-.sits_parallel_start <- function(workers, log) {
+.sits_parallel_start <- function(workers, log, output_dir = NULL) {
+    .sits_debug(flag = log, output_dir = output_dir)
     if (!.sits_parallel_is_open() ||
         length(sits_env[["cluster"]]) != workers) {
         .sits_parallel_stop()
@@ -60,7 +62,7 @@
 
             parallel::clusterExport(
                 cl = sits_env[["cluster"]],
-                varlist = c("lib_paths", "log", "env_vars"),
+                varlist = c("lib_paths", "log", "env_vars", "output_dir"),
                 envir = environment()
             )
             parallel::clusterEvalQ(
@@ -76,7 +78,7 @@
             # export debug flag
             parallel::clusterEvalQ(
                 cl = sits_env[["cluster"]],
-                expr = sits:::.sits_debug(flag = log)
+                expr = sits:::.sits_debug(flag = log, output_dir = output_dir)
             )
         }
     }

@@ -8,7 +8,14 @@
 \usage{
 sits_classify(data, ml_model, ...)
 
-\method{sits_classify}{sits}(data, ml_model, ..., filter_fn = NULL, multicores = 2)
+\method{sits_classify}{sits}(
+  data,
+  ml_model,
+  ...,
+  filter_fn = NULL,
+  multicores = 2,
+  progress = FALSE
+)
 
 \method{sits_classify}{raster_cube}(
   data,
@@ -21,7 +28,7 @@ sits_classify(data, ml_model, ...)
   end_date = NULL,
   memsize = 8,
   multicores = 2,
-  output_dir = ".",
+  output_dir = getwd(),
   version = "v1",
   verbose = FALSE,
   progress = FALSE
@@ -37,6 +44,8 @@ sits_classify(data, ml_model, ...)
 \item{filter_fn}{Smoothing filter to be applied (if desired).}
 
 \item{multicores}{Number of cores to be used for classification.}
+
+\item{progress}{Show progress bar?}
 
 \item{roi}{Region of interest (see below)}
 
@@ -54,8 +63,6 @@ sits_classify(data, ml_model, ...)
 classifications).}
 
 \item{verbose}{Print information about processing time?}
-
-\item{progress}{Show progress bar?}
 }
 \value{
 Predicted data (classified time series)

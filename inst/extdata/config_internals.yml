@@ -2,12 +2,12 @@
 # s3 classes known to sits
 sits_s3_classes :   ["sits", "patterns", "predicted", "sits_model",
                     "sits_cube", "raster_cube", "probs_cube",
-                    "uncertainty_cube", "classified_image",
+                    "uncertainty_cube", "class_cube",
                     "stac_cube", "bdc_cube", "aws_cube",
                     "usgs_cube", "deafrica_cube"]
 
 # s3 classes resulting from classification and post-classification
-sits_s3_classes_proc :   ["probs_cube","uncertainty_cube", "classified_image"]
+sits_s3_classes_proc :   ["probs_cube","uncertainty_cube", "class_cube"]
 
 # bands resulting from classification and post-classification
 sits_results_bands : ["probs", "bayes", "bilat", "gauss", "uncert",
@@ -21,7 +21,7 @@ sits_results_s3_class:
                     gauss: "probs_cube"
                     uncert: "uncertainty_cube"
                     entropy: "uncertainty_cube"
-                    class:  "classified_image"
+                    class:  "class_cube"
 
 # parsing info contents for results cube
 results_parse_info_def : ["X1", "X2", "tile", "start_date", "end_date",
@@ -75,12 +75,73 @@ cube_token_generator_n_tries: 3
 cube_token_generator_sleep_time: 10
 cube_token_generator_min_remaining_time: 5
 
-# configuration for probability cubes
+# old configuration for probability cubes
 probs_cube_scale_factor : 0.0001
 probs_cube_data_type    : "INT2U"
+probs_cube_missing_value: 65535
+probs_cube_band         : "probs"
+probs_cube_class        : ["probs_cube", "raster_cube", "sits_cube", "tbl_df",
+                           "tbl", "data.frame"]
+
+# GDAL GTiff presets
+gdal_presets         :
+    block            :
+        of           : "GTiff"
+        co           : ["COMPRESS=NONE", "BIGTIFF=NO"] # cannot be tiled!
+    image            :
+        of           : "GTiff"
+        co           : ["COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES",
+                        "TILED=YES", "BLOCKXSIZE=512", "BLOCKYSIZE=512"]
+
+# Default values for non-registered bands
+default_values       :
+    eo_cube          :
+        data_type    : "INT2S"
+        missing_value: -32768
+        minimum_value: -10000
+        maximum_value: 10000
+        offset_value : 0
+        scale_factor : 0.0001
+
+# Derived cube definitions
+derived_cube         :
+    probs_cube       :
+        s3_class     : [ "probs_cube", "derived_cube", "raster_cube" ]
+        bands        :
+            probs    : &int2u_0_10000
+                data_type    : "INT2U"
+                missing_value: 65535
+                minimum_value: 1
+                maximum_value: 10000
+                offset_value : 0
+                scale_factor : 0.0001
+            bayes    :
+                <<: *int2u_0_10000
+            bilat    :
+                <<: *int2u_0_10000
+    uncertainty_cube :
+        s3_class     : [ "uncertainty_cube", "derived_cube", "raster_cube" ]
+        bands        :
+            least    :
+                <<: *int2u_0_10000
+            entropy  :
+                <<: *int2u_0_10000
+            margin   :
+                <<: *int2u_0_10000
+    class_cube       :
+        s3_class     : [ "class_cube", "derived_cube", "raster_cube" ]
+        bands        :
+            class    :
+                data_type    : "INT1U"
+                missing_value: 255
+                minimum_value: 0
+                maximum_value: 254
+                offset_value : 0
+                scale_factor : 1
 
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"
+class_cube_missing_value: 255
 
 # minimum number of files for sits local cube to be run on parallel
 local_min_files_for_parallel : 20
@@ -110,7 +171,3 @@ gdalcubes_chunk_size: [1, 2048, 2048]
 gdalcubes_type_format: "int16"
 gdalcubes_cog_generate: true
 gdalcubes_cog_resample_overview: "bilinear"
-
-# uncertainty window function
-uncertainty_window_functions:
-    median: "stats::median"

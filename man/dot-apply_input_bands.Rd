@@ -4,12 +4,12 @@
 \alias{.apply_input_bands}
 \title{Finds out all existing bands in an expression}
 \usage{
-.apply_input_bands(tile, expr)
+.apply_input_bands(cube, expr)
 }
 \arguments{
-\item{tile}{Data cube tile.}
-
 \item{expr}{Band expression.}
+
+\item{tile}{Data cube tile.}
 }
 \value{
 List of combination among tiles, bands, and dates
