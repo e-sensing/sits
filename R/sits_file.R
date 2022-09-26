@@ -35,7 +35,7 @@
 }
 
 .file_is_local <- function(file) {
-    !grepl(pattern = "^[^:]+:", x = file)
+    !grepl(pattern = "^(http[s]?|s3)://", x = file)
 }
 
 .file_remove_vsi <- function(file) {

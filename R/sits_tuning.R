@@ -137,26 +137,25 @@ sits_tuning <- function(samples,
 
     # validate in parallel
     result_lst <- .sits_parallel_map(params_lst, function(params) {
-        # prepare parameters
+        # Prepare parameters
         params <- purrr::map(params, eval)
-
-        # prepare ml_method
+        # Prepare ml_method
         ml_method <- do.call(ml_function, args = params)
-
-        # do validation
+        # Do validation
         acc <- sits_validate(
             samples = samples,
             samples_validation = samples_validation,
             validation_split = validation_split,
             ml_method = ml_method
         )
-
+        # Prepare result
         result <- tibble::tibble(
             accuracy = acc[["overall"]][["Accuracy"]],
             kappa = acc[["overall"]][["Kappa"]],
             acc = list(acc)
         )
-
+        # Remove variable 'ml_method'
+        remove(ml_method)
         return(result)
     }, progress = progress, n_retries = 0)
 

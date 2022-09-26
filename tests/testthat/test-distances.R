@@ -20,12 +20,12 @@ test_that("compute distances in time series for indices", {
     )
 
     testthat::expect_equal(
-        sample_distances[102, "reference"][[1]],
+        sample_distances[102, "label"][[1]],
         "Pasture"
     )
 
     testthat::expect_equal(
-        sample_distances[500, "original_row"][[1]],
+        sample_distances[500, "sample_id"][[1]],
         500
     )
 })
@@ -59,12 +59,12 @@ test_that("compute distances in time series for bands and indices", {
     )
 
     testthat::expect_equal(
-        sample_distances[102, "reference"][[1]],
+        sample_distances[102, "label"][[1]],
         "Pasture"
     )
 
     testthat::expect_equal(
-        sample_distances[500, "original_row"][[1]],
+        sample_distances[500, "sample_id"][[1]],
         500
     )
 })

@@ -1466,10 +1466,31 @@
 #' @keywords internal
 .check_is_sits_model <- function(model){
     .check_that(
-        x = inherits(model, what = "sits_model"),
-        local_msg = "please run sits_train() first",
-        msg = "input does not contain model information"
+        x = inherits(model, "function"),
+        local_msg = "please, run sits_train() first",
+        msg = "invalid sits model"
     )
+    .check_that(
+        x = inherits(model, "sits_model"),
+        local_msg = "please, run sits_train() first",
+        msg = "invalid sits model"
+    )
+    .check_that(
+        x = any(c("model", "torch_model",
+                  # Old models
+                  "result_rfor", "result_svm", "model_xgb") %in%
+                    ls(environment(model))),
+        local_msg = "please, run sits_train() first",
+        msg = "invalid sits model"
+    )
+    .check_that(
+        x = "samples" %in% ls(environment(model)),
+        local_msg = "please, run sits_train() first",
+        msg = "invalid sits model"
+    )
+    # Check model samples
+    samples <- .ml_samples(model)
+    .check_samples(samples)
 }
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @name .check_samples
@@ -1483,7 +1504,7 @@
     )
     .check_that(
         x = nrow(data) > 0,
-        msg = "samples file does not contain values"
+        msg = "samples does not contain values"
     )
 }
 
@@ -1495,26 +1516,18 @@
 .check_samples_train <- function(data){
     .check_samples(data)
     # check that there is no NA in labels
-    labels <- unique(data$label)
+    labels <- .sits_labels(data)
     .check_that(
-        x = !("NoClass" %in% labels) && !("" %in% labels),
-        msg = "invalid labels in samples file"
+        x = !("NoClass" %in% labels) && !("" %in% labels) &&
+            !any(is.na(labels)),
+        msg = "invalid labels in samples data"
     )
-    # unnest time series
-    distances <- data %>%
-        dplyr::mutate(
-            original_row = seq_len(nrow(data))
-        ) %>%
-        tidyr::unnest("time_series")
+    # Get unnested time series
+    ts <- .sits_ts(data)
     # check there is an Index column
-    .check_that(
-        x = "Index" %in% colnames(distances)
-    )
+    .check_that(x = "Index" %in% colnames(ts))
     # check there are no NA in distances
-    .check_that(
-        x = !(anyNA(distances)),
-        msg = "samples contain NA values"
-    )
+    .check_that(x = !(anyNA(ts)), msg = "samples contain NA values")
 }
 #' @title Is the samples_validation object valid?
 #' @name .check_samples_validation
@@ -1560,27 +1573,27 @@
         msg = "missing cluster column"
     )
 }
-#' @title Are the distances valid?
-#' @name .check_distances
-#' @param distances a data.table with distances values
-#' @param samples samples from where the distances have been calculated
+#' @title Are the predictors valid?
+#' @name .check_predictors
+#' @param pred a tibble with predictors values
+#' @param samples samples from where the predictors have been calculated
 #' @return  No return value, called for side effects.
 #' @keywords internal
-.check_distances <- function(distances, samples){
-    cols <- c("original_row", "reference")
+.check_predictors <- function(pred, samples){
+    cols <- .pred_cols # From predictors API
     .check_that(
-        x = cols %in% colnames(distances),
-        msg = "invalid distances file"
+        x = cols %in% colnames(pred),
+        msg = "invalid predictors data"
     )
     .check_that(
-        x = nrow(distances) > 0,
-        msg = "invalid distances file"
+        x = nrow(pred) > 0,
+        msg = "invalid predictors data"
     )
     n_bands <- length(sits_bands(samples))
     n_times <- length(sits_timeline(samples))
     .check_that(
-        x = ncol(distances) == 2 + n_bands*n_times,
-        msg = "invalid distances file"
+        x = ncol(pred) == 2 + n_bands * n_times,
+        msg = "invalid predictors data"
     )
 }
 
@@ -1611,9 +1624,6 @@
 #' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
 #' @return No value called for side effects
 .check_cube_model <- function(cube, ml_model) {
-
-    # set caller to show in errors
-    .check_set_caller(".check_cube_model")
 
     # ensure metadata tibble exists
     .check_that(

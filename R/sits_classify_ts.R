@@ -16,80 +16,52 @@
                               filter_fn,
                               multicores,
                               progress) {
-    # recover the samples from the model
-    model_samples <- .ml_samples(ml_model)
 
-    # check band order is the same
-    model_bands <- .sits_bands(model_samples)
-    bands <- .sits_bands(samples)
-
-    # its used equals comparison instead IN because the order of the bands
-    # must be the same
-    if (!all(model_bands == bands)) {
-        samples <- .sits_select(samples, model_bands)
-    }
-
-    # Apply filter
-    if (!is.null(filter_fn)) {
-        samples <- .apply_across(data = samples, fn = filter_fn)
-    }
-
-    # get normalization params
-    stats <- .ml_stats(ml_model)
-    # has the training data been normalized?
-    if (!is.null(stats)) {
-        samples <- .sits_normalize(samples = samples, stats = stats)
-    }
-
-    # calculate the breaks in the time for multi-year classification
-    class_info <- .sits_timeline_class_info(
-        data = samples,
-        samples = model_samples
-    )
-
-    distances <- .sits_distances(samples)
-    # post condition: is distance data valid?
-    .check_distances(distances, samples)
-
-    # define the column names
-    attr_names <- names(.sits_distances(.sits_ml_model_samples(ml_model)[1, ]))
-
-    # select the data table indexes for each time index
-    selected_idx <- .sits_timeline_dist_indexes(
-        class_info,
-        ncol(distances)
-    )
-
-    # classify a block of data
-    classify_block <- function(block) {
-        block <- data.table::as.data.table(block)
-        # create a list to store the data tables to be used for prediction
-        rows <- purrr::map(selected_idx, function(sel_index) {
-            block_sel <- block[, sel_index, with = FALSE]
-            return(block_sel)
-        })
-        # create a set of distances to be classified
-        pred_block <- data.table::rbindlist(rows, use.names = FALSE)
-        # set the attribute names of the columns
-        colnames(pred_block) <- attr_names
-
-        # classify the subset data
-        pred_block <- ml_model(pred_block[, -2:0])
-
-        return(pred_block)
-    }
-
+    # Start parallel workers
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    distances <- .sits_get_chunk_ts(distances, multicores)
+    # Get bands from model
+    bands <- .ml_bands(ml_model)
 
-    prediction <- .sits_parallel_map(
-        x = distances,
-        fn = classify_block,
-        progress = progress
+    # Update samples bands order
+    if (any(bands != .sits_bands(samples))) {
+        samples <- .sits_filter_bands(samples, bands)
+    }
+
+    # Apply time series filter
+    if (.has(filter_fn)) {
+        samples <- .apply_across(data = samples, fn = filter_fn)
+    }
+
+    # Compute the breaks in time for multiyear classification
+    class_info <- .sits_timeline_class_info(
+        data = samples, samples = .ml_samples(ml_model)
     )
-    prediction  <- do.call(rbind, prediction)
+
+    # Split long time series of samples in a set of small time series
+    splitted <- .sits_split(
+        samples = samples, split_intervals = class_info[["dates_index"]][[1]]
+    )
+
+    # Convert samples time series in predictors and preprocess data
+    pred <- .sits_predictors(samples = splitted, ml_model = ml_model)
+    # Post condition: is predictor data valid?
+    .check_predictors(pred, splitted)
+
+    # Divide samples predictors in chunks to parallel processing
+    parts <- .pred_create_partition(pred = pred, partitions = multicores)
+    # Do parallel process
+    prediction <- .jobs_map_parallel_dfr(parts, function(part) {
+        # Get predictors of a given partition
+        pred_part <- .part_predictors(part)
+        # Get predictors features to classify
+        values <- .pred_features(pred_part)
+        # Classify
+        values <- ml_model(values)
+        # Return classification
+        tibble::as_tibble(values)
+    }, progress = progress)
 
     # Store the result in the input data
     prediction <- .sits_tibble_prediction(
@@ -97,9 +69,8 @@
         class_info = class_info,
         prediction = prediction
     )
-    class(prediction) <- c("predicted", class(samples))
-
-    return(prediction)
+    # Set result class and return it
+    .set_class(x = prediction, "predicted", class(samples))
 }
 
 #' @title Shows the predicted labels for a classified tibble

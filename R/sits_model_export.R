@@ -20,32 +20,9 @@ sits_model_export <- function(ml_model){
 #' @rdname sits_model_export
 #'
 #' @export
-sits_model_export.rfor_model <- function(ml_model){
-    # extract the result of the R RandomForest package
-    rf_model <- environment(ml_model)$result_rfor
-    return(rf_model)
-}
-#' @rdname sits_model_export
-#'
-#' @export
-sits_model_export.svm_model <- function(ml_model){
-    # extract the result of the R RandomForest package
-    svm_model <- environment(ml_model)$result_svm
-    return(svm_model)
-}
-#' @rdname sits_model_export
-#'
-#' @export
-sits_model_export.xgb_model <- function(ml_model){
-    # extract the result of the R RandomForest package
-    xgb_model <- environment(ml_model)$model_xgb
-    return(xgb_model)
-}
-#' @rdname sits_model_export
-#'
-#' @export
-sits_model_export.torch_model <- function(ml_model){
-    # extract the result of the R RandomForest package
-    dl_model <- environment(ml_model)$torch_model
-    return(dl_model)
+sits_model_export.sits_model <- function(ml_model){
+    .check_is_sits_model(ml_model)
+    # Extract the result of the R RandomForest package
+    model <- .ml_model(ml_model)
+    return(model)
 }

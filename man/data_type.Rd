@@ -34,22 +34,7 @@
 \item{...}{Additional parameters.}
 }
 \value{
-\code{integer} or \code{NULL} if value is empty.
-
-\code{character} or \code{NULL} if value is empty.
-
-\code{numeric} or \code{NULL} if value is empty.
-
-\code{date} or \code{NULL} if value is empty.
-
-\code{logical}
-
-\code{logical}
-
-Updated object \code{x}.
-
-Same value as \code{x} or the unique value in \code{x} (if
-  this is the case).
+See description of each function.
 }
 \description{
 These are a short named version of data type functions.
@@ -57,25 +42,34 @@ These are a short named version of data type functions.
 \section{Functions}{
 \itemize{
 \item \code{.as_int()}: Convert an input to \code{integer}.
+Returns \code{integer} or \code{NULL} if value is empty.
 
 \item \code{.as_chr()}: Convert an input to \code{character}.
+Returns \code{character} or \code{NULL} if value is empty.
 
 \item \code{.as_dbl()}: Convert an input to \code{numeric}.
+Returns \code{numeric} or \code{NULL} if value is empty.
 
 \item \code{.as_date()}: Convert an input to a date type. This is
 the same function as \code{lubridate::as_date()}.
+Returns \code{date} or \code{NULL} if value is empty.
 
 \item \code{.has()}: Check if an input has a value or not. Any zero length
 value of any type is evaluated as \code{FALSE}. This function is broader
 than \code{is.null()} that only accounts for \code{NULL} value.
+Returns \code{logical}.
 
 \item \code{.has_name()}: Check if an input has names or not. If there is
 any element without a name the function evaluates as \code{FALSE}.
+Returns \code{logical}.
 
 \item \code{.set_class()}: Set \code{class} of object \code{x}.
+Returns updated \code{x} object.
 
 \item \code{.compact()}: Evaluates unique values of \code{x}. If there is
 only one unique value, return it. Otherwise return all \code{x}.
+Returns same value as \code{x} or the unique value in \code{x} (if
+this is the case).
 
 }}
 \examples{

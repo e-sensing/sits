@@ -298,8 +298,9 @@ sits_som_evaluate_cluster <- function(som_map) {
         neuron_label = neuron_label
     )
 
-    # Agreegate in the sample dataset the label of each neuron
-    data <- som_map$data %>% dplyr::inner_join(id_neuron_label_tb)
+    # Aggregate in the sample dataset the label of each neuron
+    data <- som_map$data %>%
+        dplyr::inner_join(id_neuron_label_tb, by = c("id_neuron"))
 
     # Get only id, label and neuron_label
     temp_data <- unique(dplyr::select(

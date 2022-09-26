@@ -2,7 +2,7 @@
 #include <cmath>
 // [[Rcpp::depends(RcppArmadillo)]]
 
-using namespace Rcpp;
+using namespace std;
 
 // [[Rcpp::export]]
 arma::mat C_entropy_probs(const arma::mat& x) {

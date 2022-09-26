@@ -44,20 +44,13 @@ sits_labels.patterns <- function(data) {
     return(data$label)
 }
 #' @rdname sits_labels
-#' @export
 #'
+#' @export
 sits_labels.sits_model <- function(data) {
-
-    # set caller to show in errors
-    .check_set_caller("sits_labels.sits_model")
     .check_is_sits_model(data)
-    .check_chr_within(
-        x = "samples",
-        within = ls(environment(data)),
-        discriminator = "any_of",
-        msg = "no samples found in the sits model"
-    )
-    return(sits_labels.sits(environment(data)$samples))
+    # Get labels from ml_model
+    labels <- .ml_labels(data)
+    return(labels)
 }
 #' @title Change the labels of a set of time series
 #'

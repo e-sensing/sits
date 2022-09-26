@@ -19,16 +19,15 @@
     bands <- names(data$time_series[[1]][-1])
 
     # create a tibble with the time series transposed from columns to rows
-    # and create original_row and reference columns as the first two
+    # and create sample_id and reference columns as the first two
     # columns for training
     distances_tbl <- data %>%
         dplyr::mutate(
-            original_row = seq_len(nrow(data)),
-            reference = .data[["label"]]
+            sample_id = seq_len(nrow(data))
         ) %>%
         tidyr::unnest("time_series") %>%
-        dplyr::select("original_row", "reference", !!bands) %>%
-        dplyr::group_by(.data[["original_row"]]) %>%
+        dplyr::select("sample_id", "label", !!bands) %>%
+        dplyr::group_by(.data[["sample_id"]]) %>%
         dplyr::mutate(temp_index = seq_len(dplyr::n())) %>%
         dplyr::ungroup()
 
@@ -73,8 +72,8 @@
 #'                         of informed labels and all other.
 .sits_distances_sample <- function(distances, frac) {
     # compute sampling
-    reference <- NULL # to avoid setting global variable
-    result <- distances[, .SD[sample(.N, round(frac * .N))], by = reference]
+    label <- NULL # to avoid setting global variable
+    result <- distances[, .SD[sample(.N, round(frac * .N))], by = label]
 
     return(result)
 }

@@ -74,11 +74,12 @@ sits_cube_copy <- function(cube,
     assets <- .cube_create_assets(cube)
     # Process each tile sequentially
     assets <- .jobs_map_parallel_dfr(assets, function(asset) {
-        local_tile <- .download_asset(
-            asset = asset, res = res,
-            roi = roi, output_dir = output_dir,
+        local_asset <- .download_asset(
+            asset = asset, res = res, roi = roi, output_dir = output_dir,
             progress = progress
         )
+        # Return local tile
+        local_asset
     }, progress = progress)
     # Join output assets as a cube and return it
     .cube_merge_assets(assets)
@@ -93,7 +94,18 @@ sits_cube_copy <- function(cube,
     out_file <- file.path(output_dir, .file_base(file))
     # Resume feature
     if (.raster_is_valid(out_file)) {
-        return(out_file)
+        # # Callback final tile classification
+        # .callback(process = "tile_classification", event = "recovery",
+        #           context = environment())
+        message("Recovery: file '", out_file, "' already exists.")
+        message("(If you want to produce a new image, please ",
+                "change 'output_dir' parameter)")
+        asset <- .tile_eo_from_files(
+            files = out_file, fid = .fi_fid(.fi(asset)),
+            bands = .fi_bands(.fi(asset)), date = .tile_start_date(asset),
+            base_tile = asset, update_bbox = TRUE
+        )
+        return(asset)
     }
     # Get a gdal or default download
     download_fn <- .download_controller(out_file, gdal_params)
@@ -155,14 +167,16 @@ sits_cube_copy <- function(cube,
 
 .download_base <- function(out_file) {
     donwload_fn <- function(file) {
-        # Add file scheme in path
+        # Remove vsi driver path
+        file <- .file_remove_vsi(file)
+        # Add file scheme in local paths
         if (.file_is_local(file)) {
             file <- .file_path("file://", file, sep = "")
         }
         download.file(
-            url = .file_remove_vsi(file),
-            destfile = out_file, quiet = TRUE
+            url = file, destfile = out_file, quiet = TRUE, mode = "wb"
         )
+        # Return file name
         out_file
     }
     donwload_fn
