@@ -928,15 +928,17 @@ plot.class_cube <- function(x, y, ...,
     }
     # set the names of the color vector
     # names(colors) <- as.character(c(1:nclasses))
-    fill_colors <- unname(colors[labels])
+    df[["class"]] <- labels[df[["class"]]]
+    classes <- sort(unique(df[["class"]]))
+    fill_colors <- unname(colors[classes])
 
     # plot the data with ggplot
     g <- ggplot2::ggplot(df, ggplot2::aes(.data[["x"]], .data[["y"]])) +
-        ggplot2::geom_raster(ggplot2::aes(fill = factor(class))) +
+        ggplot2::geom_raster(ggplot2::aes(fill = class)) +
         ggplot2::labs(title = title) +
         ggplot2::scale_fill_manual(
             values = fill_colors,
-            labels = labels,
+            labels = classes,
             guide = ggplot2::guide_legend(
                 title = "Classes"
             )
@@ -973,8 +975,9 @@ plot.class_cube <- function(x, y, ...,
 plot.rfor_model <- function(x, y, ...){
     # verifies if randomForestExplainer package is installed
     .check_require_packages("randomForestExplainer")
+    .check_is_sits_model(x)
     # retrieve the random forest object from the env iroment
-    rf <- environment(x)$result_rfor
+    rf <- .ml_model(x)
     p <- randomForestExplainer::plot_min_depth_distribution(rf)
     return(p)
 }
@@ -1233,8 +1236,9 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 plot.xgb_model <- function(x, ..., n_trees = 3){
     # verifies if DiagrammeR package is installed
     .check_require_packages("DiagrammeR")
+    .check_is_sits_model(x)
     # retrieve the XGB object from the enviroment
-    xgb <- environment(x)$model_xgb
+    xgb <- .ml_model(x)
     # plot the trees
     p <- xgboost::xgb.plot.tree(model = xgb, trees = seq_len(n_trees) - 1)
     return(p)
