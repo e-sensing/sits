@@ -91,7 +91,7 @@
 #'     data = cube,
 #'     NDVITEXTURE = w_var(NDVI),
 #'     window_size = 5,
-#'     output_dir = getwd()
+#'     output_dir = tempdir()
 #' )
 #'
 #' @rdname sits_apply
