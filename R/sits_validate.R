@@ -129,7 +129,7 @@ sits_kfold_validate <- function(samples,
         # Classify the test data
         values <- ml_model(values)
         # Extract classified labels (majority probability)
-        values <- labels[C_label_max_prob(values)]
+        values <- labels[C_label_max_prob(as.matrix(values))]
         # Removes 'ml_model' variable
         remove(ml_model)
         return(list(pred = values, ref = .pred_references(pred_test)))
@@ -227,7 +227,7 @@ sits_validate <- function(samples,
     # Get the labels of the data
     labels <- .sits_labels(samples)
     # Extract classified labels (majority probability)
-    predicted_labels <- labels[C_label_max_prob(values)]
+    predicted_labels <- labels[C_label_max_prob(as.matrix(values))]
     # Call caret to provide assessment
     predicted <- factor(predicted_labels, levels = labels)
     reference <- factor(.pred_references(predictors), levels = labels)
