@@ -112,129 +112,116 @@ sits_mlp <- function(samples = NULL,
                      min_delta = 0.01,
                      verbose = FALSE) {
 
-    # set caller to show in errors
-    .check_set_caller("sits_mlp")
-
-    # function that returns a torch model based on samples
-    result_fun <- function(samples) {
-
-        # verifies if torch and luz packages is installed
+    # Function that trains a torch model based on samples
+    train_fun <- function(samples) {
+        # Avoid add a global variable for 'self'
+        self <- NULL
+        # Verifies if 'torch' and 'luz' packages is installed
         .check_require_packages(c("torch", "luz"))
-        # pre-conditions
+        # Pre-conditions:
         .check_samples_train(samples)
-        # check layers
-        .check_int_parameter(layers, len_max = 2^31 - 1)
-        # check dropout_rates
-        .check_num_parameter(dropout_rates,
-                             min = 0, max = 1,
-                             len_min = length(layers), len_max = length(layers)
+        .check_int_parameter(epochs)
+        .check_int_parameter(batch_size)
+        .check_null(optimizer, msg = "invalid 'optimizer' parameter")
+        # Check layers and dropout_rates
+        .check_int_parameter(param = layers, len_max = 2^31 - 1)
+        .check_num_parameter(
+            param = dropout_rates, min = 0, max = 1,
+            len_min = length(layers), len_max = length(layers)
         )
-        # check layers and dropout_rates
         .check_that(
             x = length(layers) == length(dropout_rates),
             msg = "number of layers does not match number of dropout rates"
         )
-        # check optimizer
-        .check_null(x = optimizer)
-        # check epochs
-        .check_int_parameter(epochs)
-        # check batch_size
-        .check_int_parameter(batch_size)
-        # check validation_split parameter if samples_validation is not passed
-        if (purrr::is_null(samples_validation))
-            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
-        # check patience
-        .check_int_parameter(patience)
-        # check min_delta
-        .check_num_parameter(min_delta, min = 0)
-        # check verbose
-        .check_lgl(verbose)
-
-        # data normalization
-        stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(
-            .sits_ml_normalize_data(samples, stats)
-        )
-
-        # get parameters list and remove the 'param' parameter
+        # Check validation_split parameter if samples_validation is not passed
+        if (is.null(samples_validation)) {
+            .check_num_parameter(
+                param = validation_split, exclusive_min = 0, max = 0.5
+            )
+        }
+        # Check opt_hparams
+        # Get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
-        if (!is.null(opt_hparams)) {
-
-            .check_lst(x = opt_hparams)
-
+        if (.has(opt_hparams)) {
+            .check_lst(opt_hparams, msg = "invalid 'opt_hparams' parameter")
             .check_chr_within(
                 x = names(opt_hparams),
-                within = names(optim_params_function)
+                within = names(optim_params_function),
+                msg = "invalid hyperparameters provided in optimizer"
             )
             optim_params_function <- utils::modifyList(
-                optim_params_function,
-                opt_hparams
+                x = optim_params_function, val = opt_hparams
             )
         }
-        # get the timeline of the data
-        timeline <- sits_timeline(samples)
-        # get the bands of the data
-        bands <- sits_bands(samples)
-        # get the labels of the data
+        # Other pre-conditions:
+        .check_int_parameter(patience)
+        .check_num_parameter(param = min_delta, min = 0)
+        .check_lgl(verbose)
+
+        # Samples labels
         labels <- sits_labels(samples)
+        # Samples bands
+        bands <- .sits_bands(samples)
+        # Samples timeline
+        timeline <- sits_timeline(samples)
 
-        # create a named vector with integers match the class labels
-        n_labels <- length(labels)
-        int_labels <- c(1:n_labels)
-        names(int_labels) <- labels
+        # Create numeric labels vector
+        code_labels <- seq_along(labels)
+        names(code_labels) <- labels
 
+        # Data normalization
+        stats <- .sits_ml_normalization_param(samples)
+        train_samples <- .sits_distances(
+            .sits_ml_normalize_data(data = samples, stats = stats)
+        )
+        # Post condition: is predictor data valid?
+        .check_predictors(pred = train_samples, samples = samples)
         if (!is.null(samples_validation)) {
-            # check samples validation
-            .check_samples_validation(samples_validation,
-                                      labels, timeline, bands)
-            # test samples are extracted from validation data
+            .check_samples_validation(
+                samples_validation = samples_validation, labels = labels,
+                timeline = timeline, bands = bands
+            )
+            # Test samples are extracted from validation data
             test_samples <- .sits_distances(
-                .sits_ml_normalize_data(samples_validation, stats)
+                .sits_ml_normalize_data(
+                    data = samples_validation, stats = stats
+                )
             )
         } else {
-            # split the data into training and validation data sets
-            # create partitions different splits of the input data
+            # Split the data into training and validation data sets
+            # Create partitions different splits of the input data
             test_samples <- .sits_distances_sample(
-                train_samples,
-                frac = validation_split
+                distances = train_samples, frac = validation_split
             )
-
-            # remove the lines used for validation
+            # Remove the lines used for validation
             train_samples <- train_samples[!test_samples, on = "sample_id"]
         }
-        # shuffle the data
+        # Shuffle the data
         train_samples <- train_samples[sample(
-            nrow(train_samples),
-            nrow(train_samples)
+            nrow(train_samples), nrow(train_samples)
         ), ]
         test_samples <- test_samples[sample(
-            nrow(test_samples),
-            nrow(test_samples)
+            nrow(test_samples), nrow(test_samples)
         ), ]
-
-        # organize data for model training
+        # Organize data for model training
         train_x <- data.matrix(train_samples[, -2:0])
-        train_y <- unname(int_labels[.pred_references(train_samples)])
-
-        # create the test data
+        train_y <- unname(code_labels[.pred_references(train_samples)])
+        # Create the test data
         test_x <- data.matrix(test_samples[, -2:0])
-        test_y <- unname(int_labels[.pred_references(test_samples)])
-
-        # set torch seed
+        test_y <- unname(code_labels[.pred_references(test_samples)])
+        # Set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
-
-        mlp_module <- torch::nn_module(
-            "mlp_module",
+        # Define the MLP architecture
+        mlp_model <- torch::nn_module(
+            classname = "model_mlp",
             initialize = function(num_pred, layers, dropout_rates, y_dim) {
                 tensors <- list()
-
                 # input layer
                 tensors[[1]] <- .torch_linear_relu_dropout(
                     input_dim = num_pred,
                     output_dim = layers[1],
                     dropout_rate = dropout_rates[1]
                 )
-
                 # if hidden layers is a vector then we add those layers
                 if (length(layers) > 1) {
                     for (i in 2:length(layers)) {
@@ -252,7 +239,6 @@ sits_mlp <- function(samples = NULL,
                     torch::nn_linear(layers[length(layers)], y_dim)
                 # add softmax tensor
                 tensors[[length(tensors) + 1]] <- torch::nn_softmax(dim = 2)
-
                 # create a sequential module that calls the layers in the same
                 # order.
                 self$model <- torch::nn_sequential(!!!tensors)
@@ -261,11 +247,12 @@ sits_mlp <- function(samples = NULL,
                 self$model(x)
             }
         )
-        # train the model using the "luz" package
+        # Set torch threads to 1
         torch::torch_set_num_threads(1)
+        # Train the model using luz
         torch_model <-
             luz::setup(
-                module = mlp_module,
+                module = mlp_model,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
                 optimizer = optimizer
@@ -274,7 +261,7 @@ sits_mlp <- function(samples = NULL,
                 num_pred = ncol(train_x),
                 layers = layers,
                 dropout_rates = dropout_rates,
-                y_dim = length(int_labels)
+                y_dim = length(code_labels)
             ) %>%
             luz::set_opt_hparams(
                 !!!optim_params_function
@@ -289,66 +276,42 @@ sits_mlp <- function(samples = NULL,
                 )),
                 verbose = verbose
             )
+        # Serialize model
+        serialized_model <- .torch_serialize_model(torch_model$model)
 
-        model_to_raw <- function(model) {
-            con <- rawConnection(raw(), open = "wr")
-            torch::torch_save(model, con)
-            on.exit(
-                {
-                    close(con)
-                },
-                add = TRUE
-            )
-            r <- rawConnectionValue(con)
-            r
-        }
-
-        model_from_raw <- function(object) {
-            con <- rawConnection(object)
-            on.exit(
-                {
-                    close(con)
-                },
-                add = TRUE
-            )
-            module <- torch::torch_load(con)
-            module
-        }
-        # serialize model
-        serialized_model <- model_to_raw(torch_model$model)
-
-        # build predict closure function
-        model_predict <- function(values) {
-
-            # verifies if torch package is installed
+        # Function that predicts labels of input values
+        predict_fun <- function(values) {
+            # Verifies if torch package is installed
             .check_require_packages("torch")
-
-            # set torch threads to 1
-            # function does not work on MacOS
+            # Set torch threads to 1
+            # Note: function does not work on MacOS
             suppressWarnings(torch::torch_set_num_threads(1))
-
-            # restore model
-            torch_model$model <- model_from_raw(serialized_model)
-
-            # retrieve the prediction probabilities
-            predicted <- data.table::as.data.table(
-                torch::as_array(
-                    stats::predict(torch_model, data.matrix(values))
-                )
+            # Unserialize model
+            torch_model$model <- .torch_unserialize_model(serialized_model)
+            # Used to check values (below)
+            input_pixels <- nrow(values)
+            # Transform input into matrix
+            values <- as.matrix(values)
+            # Do classification
+            values <- torch::as_array(
+                stats::predict(object = torch_model, values)
             )
-
-            # add the class labels as the column names
-            colnames(predicted) <- labels
-
-            return(predicted)
+            # Are the results consistent with the data input?
+            .check_processed_values(
+                values = values, input_pixels = input_pixels
+            )
+            # Update the columns names to labels
+            colnames(values) <- labels
+            return(values)
         }
-        class(model_predict) <- c(
-            "torch_model", "sits_model",
-            class(model_predict)
+        # Set model class
+        predict_fun <- .set_class(
+            predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
-        return(model_predict)
+        return(predict_fun)
     }
-
-    result <- .sits_factory_function(samples, result_fun)
+    # If samples is informed, train a model and return a predict function
+    # Otherwise give back a train function to train model further
+    result <- .sits_factory_function(samples, train_fun)
     return(result)
 }
