@@ -564,29 +564,6 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     return(data)
 }
 
-#' @title Normalize the time series values in the case of a matrix
-#' @name .sits_ml_normalize_matrix
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description this function normalizes one band of the values read
-#' from a raster
-#'
-#' @param  data           Matrix of values.
-#' @param  stats          Statistics for normalization.
-#' @param  band           Band to be normalized.
-#' @return                A normalized matrix.
-.sits_ml_normalize_matrix <- function(data, stats, band) {
-    # select the 2% and 98% quantiles
-    # note the use of "..b" instead of ",b"
-    quant_2 <- as.numeric(stats[2, band, with = FALSE])
-    quant_98 <- as.numeric(stats[3, band, with = FALSE])
-
-    data <- C_normalize_data_0(data, quant_2, quant_98)
-
-    return(data)
-}
-
 #' @title Normalize the time series in the given sits_tibble
 #' @name .sits_ml_normalization_param
 #' @keywords internal
@@ -621,38 +598,4 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     )
 
     return(stats)
-}
-#' @title Get the samples from a ml_model
-#' @name .sits_ml_model_samples
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description this function get the samples from a ml_model object.
-#'
-#' @param ml_model     A trained model.
-#'
-#' @return A tibble with samples used to train a machine learning model.
-#'
-.sits_ml_model_samples <- function(ml_model) {
-
-    # pre-condition
-    .check_that(
-        x = inherits(ml_model, "function"),
-        local_msg = "value should be a function",
-        msg = "invalid 'ml_model' parameter"
-    )
-
-    # pre-condition
-    .check_chr_contains(
-        x = ls(environment(ml_model)),
-        contains = "samples",
-        msg = "invalid 'ml_model' function environment"
-    )
-
-    samples <- environment(ml_model)$samples
-
-    # post-condition
-    .check_is_sits_tibble(samples)
-
-    return(samples)
 }
