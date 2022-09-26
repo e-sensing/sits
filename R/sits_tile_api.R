@@ -2503,7 +2503,13 @@ NULL
 #---- ml_model ----
 
 .ml_model <- function(ml_model) {
-    environment(ml_model)[["model"]]
+    if ("model" %in% ls(environment(ml_model))) {
+        environment(ml_model)[["model"]]
+    } else if ("torch_model" %in% ls(environment(ml_model))) {
+        environment(ml_model)[["torch_model"]]
+    } else {
+        stop("cannot extract model object")
+    }
 }
 
 .ml_stats_0 <- function(ml_model) {
