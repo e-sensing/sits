@@ -62,7 +62,7 @@ test_that("Mixture model tests", {
         cube = reg_cube,
         endmembers = em,
         memsize = 2,
-        multicores = 4,
+        multicores = 2,
         output_dir = tempdir(),
         rmse_band = FALSE
     )
