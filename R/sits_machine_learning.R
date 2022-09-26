@@ -53,6 +53,8 @@ sits_rfor <- function(samples = NULL, num_trees = 120, mtry = NULL, ...) {
         labels <- .sits_labels(samples)
         # Get predictors features
         train_samples <- .sits_predictors(samples)
+        # Post condition: is predictor data valid?
+        .check_predictors(pred = train_samples, samples = samples)
 
         # Apply the same 'mtry' default value of 'randomForest' package
         if (purrr::is_null(mtry)) {
@@ -178,6 +180,8 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
         train_samples <- .sits_predictors(samples)
         # Normalize predictors
         train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
+        # Post condition: is predictor data valid?
+        .check_predictors(pred = train_samples, samples = samples)
         # Update formula parameter
         if (inherits(formula, "function")) {
             formula <- formula(train_samples)
@@ -299,6 +303,8 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
         labels <- .sits_labels(samples)
         # Get predictors features
         train_samples <- .sits_predictors(samples)
+        # Post condition: is predictor data valid?
+        .check_predictors(pred = train_samples, samples = samples)
         # Transform labels to integer code before train
         code_labels <- seq_along(labels)
         names(code_labels) <- labels
