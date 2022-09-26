@@ -114,7 +114,7 @@ cube_texture <- sits_apply(
     data = cube,
     NDVITEXTURE = w_var(NDVI),
     window_size = 5,
-    output_dir = getwd()
+    output_dir = tempdir()
 )
 
 }
