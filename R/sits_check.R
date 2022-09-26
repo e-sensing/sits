@@ -1466,10 +1466,28 @@
 #' @keywords internal
 .check_is_sits_model <- function(model){
     .check_that(
-        x = inherits(model, what = "sits_model"),
-        local_msg = "please run sits_train() first",
-        msg = "input does not contain model information"
+        x = inherits(model, "function"),
+        local_msg = "please, run sits_train() first",
+        msg = "invalid sits model"
     )
+    .check_that(
+        x = inherits(model, "sits_model"),
+        local_msg = "please, run sits_train() first",
+        msg = "invalid sits model"
+    )
+    .check_that(
+        x = "model" %in% ls(environment(model)),
+        local_msg = "please, run sits_train() first",
+        msg = "invalid sits model"
+    )
+    .check_that(
+        x = "samples" %in% ls(environment(model)),
+        local_msg = "please, run sits_train() first",
+        msg = "invalid sits model"
+    )
+    # Check model samples
+    samples <- .ml_samples(model)
+    .check_samples(samples)
 }
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @name .check_samples
@@ -1483,7 +1501,7 @@
     )
     .check_that(
         x = nrow(data) > 0,
-        msg = "samples file does not contain values"
+        msg = "samples does not contain values"
     )
 }
 
@@ -1603,9 +1621,6 @@
 #' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
 #' @return No value called for side effects
 .check_cube_model <- function(cube, ml_model) {
-
-    # set caller to show in errors
-    .check_set_caller(".check_cube_model")
 
     # ensure metadata tibble exists
     .check_that(
