@@ -2502,11 +2502,17 @@ NULL
 
 #---- ml_model ----
 
+.ml_model <- function(ml_model) {
+    environment(ml_model)[["model"]]
+}
+
 .ml_stats_0 <- function(ml_model) {
+    # Old stats variable
     environment(ml_model)[["stats"]]
 }
 
 .ml_stats <- function(ml_model) {
+    # New stats variable
     environment(ml_model)[["ml_stats"]]
 }
 
