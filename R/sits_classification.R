@@ -157,22 +157,14 @@ sits_classify.raster_cube <- function(data,
     # check documentation mode
     progress <- .check_documentation(progress)
 
-    # precondition - checks if the cube and ml_model are valid
-    .check_cube_model(data, ml_model)
-    # precondition - test if cube is regular
+    # preconditions
     .check_is_regular(data)
-    # precondition - multicores
+    .check_is_sits_model(ml_model)
     .check_multicores(multicores)
-    # precondition - memsize
     .check_memsize(memsize)
-    # precondition - output dir
     .check_output_dir(output_dir)
-    # precondition - version
     .check_version(version)
-    # Retrieve the samples from the model
-    samples <- .sits_ml_model_samples(ml_model)
-    # precondition - are the samples valid?
-    .check_samples(samples)
+
     # Spatial filter
     if (!is.null(roi)) {
         data <- .cube_filter_spatial(cube = data, roi = .roi_as_sf(roi))
@@ -183,8 +175,10 @@ sits_classify.raster_cube <- function(data,
             cube = data, start_date = start_date, end_date = end_date
         )
     }
+    # Retrieve the samples from the model
+    samples <- .ml_samples(ml_model)
     # Do the samples and tile match their timeline length?
-    .check_samples_tile_match(samples, data)
+    .check_samples_tile_match(samples = samples, tile = data)
     # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(data))))
