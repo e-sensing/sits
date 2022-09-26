@@ -114,95 +114,95 @@ sits_lighttae <- function(samples = NULL,
                           min_delta = 0.01,
                           verbose = FALSE) {
 
-    # function that returns torch model based on a sits sample data.table
+    # Function that trains a torch model based on samples
     train_fun <- function(samples) {
-        # verifies if torch and luz  packages is installed
+        # Avoid add a global variable for 'self'
+        self <- NULL
+        # Verifies if 'torch' and 'luz' packages is installed
         .check_require_packages(c("torch", "luz"))
-        # check valid samples
+        # Pre-conditions:
         .check_samples_train(samples)
-        # preconditions
-        # check epochs
         .check_int_parameter(epochs)
-        # check batch_size
         .check_int_parameter(batch_size)
-        # check validation_split parameter if samples_validation is not passed
-        if (purrr::is_null(samples_validation))
-            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
-        # check opt_params
-        # get parameters list and remove the 'param' parameter
+        .check_null(optimizer, msg = "invalid 'optimizer' parameter")
+        # Check validation_split parameter if samples_validation is not passed
+        if (is.null(samples_validation)) {
+            .check_num_parameter(
+                param = validation_split, exclusive_min = 0, max = 0.5
+            )
+        }
+        # Check opt_hparams
+        # Get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
-        if (!is.null(names(opt_hparams))) {
+        if (.has(opt_hparams)) {
+            .check_lst(opt_hparams, msg = "invalid 'opt_hparams' parameter")
             .check_chr_within(
                 x = names(opt_hparams),
                 within = names(optim_params_function),
                 msg = "invalid hyperparameters provided in optimizer"
             )
             optim_params_function <- utils::modifyList(
-                optim_params_function,
-                opt_hparams
+                x = optim_params_function, val = opt_hparams
             )
         }
-        # check lr_decay_epochs
+        # Other pre-conditions:
         .check_int_parameter(lr_decay_epochs)
-        # check lr_decay_rate
-        .check_num_parameter(lr_decay_rate, exclusive_min = 0, max = 1)
-        # check patience
+        .check_num_parameter(param = lr_decay_rate, exclusive_min = 0, max = 1)
         .check_int_parameter(patience)
-        # check min_delta
-        .check_num_parameter(min_delta, min = 0)
-        # check verbose
+        .check_num_parameter(param = min_delta, min = 0)
         .check_lgl(verbose)
 
-        # Get labels from samples
+        # Samples labels
         labels <- .sits_labels(samples)
+        # Samples bands
+        bands <- .sits_bands(samples)
+        # Samples timeline
+        timeline <- sits_timeline(samples)
+
         # Create numeric labels vector
         code_labels <- seq_along(labels)
         names(code_labels) <- labels
-        bands <- .sits_bands(samples)
 
-        # Number of bands and number of samples
+        # Number of labels, bands, and number of samples (used below)
         n_labels <- length(labels)
-        n_bands <- length(sits_bands(samples))
+        n_bands <- length(bands)
         n_times <- .sits_ntimes(samples)
-        # Timeline of samples
-        timeline <- sits_timeline(samples)
 
         # Data normalization
         stats <- .sits_ml_normalization_param(samples)
         train_samples <- .sits_distances(
             .sits_ml_normalize_data(data = samples, stats = stats)
         )
+        # Post condition: is predictor data valid?
+        .check_predictors(pred = train_samples, samples = samples)
         if (!is.null(samples_validation)) {
             .check_samples_validation(
                 samples_validation = samples_validation, labels = labels,
                 timeline = timeline, bands = bands
             )
-            # test samples are extracted from validation data
+            # Test samples are extracted from validation data
             test_samples <- .sits_distances(
                 .sits_ml_normalize_data(
                     data = samples_validation, stats = stats
                 )
             )
         } else {
-            # split the data into training and validation data sets
-            # create partitions different splits of the input data
+            # Split the data into training and validation data sets
+            # Create partitions different splits of the input data
             test_samples <- .sits_distances_sample(
-                train_samples,
-                frac = validation_split
+                distances = train_samples, frac = validation_split
             )
-            # remove the lines used for validation
+            # Remove the lines used for validation
             train_samples <- train_samples[!test_samples, on = "sample_id"]
         }
         n_samples_train <- nrow(train_samples)
         n_samples_test <- nrow(test_samples)
-        # shuffle the data
+        # Shuffle the data
         train_samples <- train_samples[sample(
-            nrow(train_samples),
-            nrow(train_samples)
+            nrow(train_samples), nrow(train_samples)
         ), ]
         test_samples <- test_samples[sample(
-            nrow(test_samples),
-            nrow(test_samples)
+            nrow(test_samples), nrow(test_samples)
         ), ]
         # Organize data for model training
         train_x <- array(
@@ -218,9 +218,9 @@ sits_lighttae <- function(samples = NULL,
         test_y <- unname(code_labels[.pred_references(test_samples)])
         # Set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
-        # Define the PSE-TAE model
+        # Define the L-TAE architecture
         light_tae_model <- torch::nn_module(
-            classname = "model_light_temporal_attention_encoder",
+            classname = "model_ltae",
             initialize = function(n_bands,
                                   n_labels,
                                   timeline,
@@ -308,7 +308,7 @@ sits_lighttae <- function(samples = NULL,
         # Serialize model
         serialized_model <- .torch_serialize_model(torch_model$model)
 
-        # construct model predict closure function and returns
+        # Function that predicts labels of input values
         predict_fun <- function(values) {
             # Verifies if torch package is installed
             .check_require_packages("torch")
@@ -323,7 +323,7 @@ sits_lighttae <- function(samples = NULL,
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
             n_times <- .sits_ntimes(samples)
-            n_bands <- length(sits_bands(samples))
+            n_bands <- length(bands)
             values <- array(
                 data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
             )
@@ -332,7 +332,9 @@ sits_lighttae <- function(samples = NULL,
                 stats::predict(object = torch_model, values)
             )
             # Are the results consistent with the data input?
-            .check_processed_values(values, input_pixels)
+            .check_processed_values(
+                values = values, input_pixels = input_pixels
+            )
             # Update the columns names to labels
             colnames(values) <- labels
             return(values)
