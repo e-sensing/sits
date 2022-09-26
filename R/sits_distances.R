@@ -72,8 +72,8 @@
 #'                         of informed labels and all other.
 .sits_distances_sample <- function(distances, frac) {
     # compute sampling
-    reference <- NULL # to avoid setting global variable
-    result <- distances[, .SD[sample(.N, round(frac * .N))], by = reference]
+    label <- NULL # to avoid setting global variable
+    result <- distances[, .SD[sample(.N, round(frac * .N))], by = label]
 
     return(result)
 }
