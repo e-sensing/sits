@@ -299,13 +299,10 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
 
 .endmembers_scale <- function(em, cube) {
     bands <- .endmembers_bands(em)
-    em <- dplyr::mutate(
-        em, dplyr::across(bands, function(x) {
-            band_conf <- .tile_band_conf(
-                tile = cube, band = dplyr::cur_column()
-            )
-            x * .scale(band_conf) + .offset(band_conf)
-        })
+    em <- dplyr::mutate(em, dplyr::across(bands, function(values) {
+        band_conf <- .tile_band_conf(tile = cube, band = dplyr::cur_column())
+        values * .scale(band_conf) + .offset(band_conf)
+    })
     )
     # Return endmembers
     em
