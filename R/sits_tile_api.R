@@ -166,18 +166,18 @@ NULL
                  .msg_error = NULL,
                  .finally = NULL) {
     has_default <- !missing(.default)
-    if (!missing(.finally)) on.exit(.finally)
+    if (.has(.finally)) on.exit(.finally, add = TRUE)
     tryCatch(
         expr,
         ...,
         error = function(e) {
-            if (!is.null(.rollback)) {
+            if (.has(.rollback)) {
                 .rollback
             }
             if (has_default) {
                 return(.default)
             }
-            stop(if (!is.null(.msg_error)) {
+            stop(if (.has(.msg_error)) {
                 .msg_error
             } else {
                 e$message
@@ -712,7 +712,7 @@ NULL
             ))), crs = crs
         )
         # Project CRS
-        if (!is.null(as_crs)) {
+        if (.has(as_crs)) {
             geom <- sf::st_transform(geom, crs = as_crs)
         }
         geom
@@ -1049,7 +1049,7 @@ NULL
 #'   \code{TRUE} and the test failed, an error is raised.
 .conf_exists <- function(..., throw_error = FALSE) {
     key <- c(...)
-    exists <- !is.null(.try(sits_env[["config"]][[key]], .default = NULL))
+    exists <- .has(.try(sits_env[["config"]][[key]], .default = NULL))
     if (!exists && throw_error) {
         stop("key '", paste(key, collapse = "->"), "' not found in config")
     }
@@ -2676,7 +2676,7 @@ NULL
                 # Get old stats parameters
                 q02 <- .stats_0_q02(stats, band)
                 q98 <- .stats_0_q98(stats, band)
-                if (!is.null(q02) && !is.null(q98)) {
+                if (.has(q02) && .has(q98)) {
                     # Use C_normalize_data_0 to process old version of
                     #   normalization
                     values <- C_normalize_data_0(

@@ -250,11 +250,11 @@ sits_reclassify.class_cube <- function(cube, mask, rules, memsize = 4,
         # Evaluate expressions
         values <- reclassify_fn(values = values, mask_values = mask_values)
         offset <- .offset(band_conf)
-        if (!is.null(offset) && offset != 0) {
+        if (.has(offset) && offset != 0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (!is.null(scale) && scale != 1) {
+        if (.has(scale) && scale != 1) {
             values <- values / scale
         }
         # Prepare and save results as raster

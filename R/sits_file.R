@@ -18,12 +18,12 @@
 .file_path <- function(..., ext = NULL, output_dir = NULL,
                        create_dir = FALSE, sep = "_") {
     filenames <- paste(..., sep = sep)
-    if (!is.null(ext)) {
+    if (.has(ext)) {
         # remove extension final point
         ext <- gsub("^[.]*", "", ext)
         filenames <- paste(filenames, ext, sep = ".")
     }
-    if (!is.null(output_dir)) {
+    if (.has(output_dir)) {
         output_dir <- gsub("[/]*$", "", output_dir)
         output_dir <- path.expand(output_dir)
         if (!dir.exists(output_dir) && create_dir) {

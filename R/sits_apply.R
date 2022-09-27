@@ -235,11 +235,11 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
         # Prepare fractions to be saved
         band_conf <- .tile_band_conf(tile = feature, band = out_band)
         offset <- .offset(band_conf)
-        if (!is.null(offset) && offset != 0) {
+        if (.has(offset) && offset != 0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (!is.null(scale) && scale != 1) {
+        if (.has(scale) && scale != 1) {
             values <- values / scale
         }
         # Job crop block
@@ -276,7 +276,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
         # Get band values
         values <- .tile_read_block(tile = tile, band = band, block = block)
         # Remove cloud masked pixels
-        if (!is.null(cloud_mask)) {
+        if (.has(cloud_mask)) {
             values[cloud_mask] <- NA
         }
         # Return values

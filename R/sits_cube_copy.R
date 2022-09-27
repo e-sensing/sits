@@ -123,10 +123,10 @@ sits_cube_copy <- function(cube,
 
 .gdal_format_params <- function(asset, roi, res) {
     gdal_params <- list()
-    if (!is.null(res)) {
+    if (.has(res)) {
         gdal_params[["tr"]] <- c(res, res)
     }
-    if (!is.null(roi)) {
+    if (.has(roi)) {
         gdal_params[["srcwin"]] <- .gdal_as_srcwin(asset = asset, roi = roi)
     }
     gdal_params[c("of", "co")] <- list("GTiff", .config_gtiff_default_options())

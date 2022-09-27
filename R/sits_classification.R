@@ -166,11 +166,11 @@ sits_classify.raster_cube <- function(data,
     .check_version(version)
 
     # Spatial filter
-    if (!is.null(roi)) {
+    if (.has(roi)) {
         data <- .cube_filter_spatial(cube = data, roi = .roi_as_sf(roi))
     }
     # Temporal filter
-    if (!is.null(start_date) || !is.null(end_date)) {
+    if (.has(start_date) || .has(end_date)) {
         data <- .cube_filter_temporal(
             cube = data, start_date = start_date, end_date = end_date
         )

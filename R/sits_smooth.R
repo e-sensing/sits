@@ -221,11 +221,11 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
             derived_class = "probs_cube", band = band
         )
         offset <- .offset(band_conf)
-        if (!is.null(offset) && offset != 0) {
+        if (.has(offset) && offset != 0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (!is.null(scale) && scale != 1) {
+        if (.has(scale) && scale != 1) {
             values <- values / scale
         }
         # Job crop block

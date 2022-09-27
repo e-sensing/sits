@@ -118,11 +118,11 @@
             derived_class = "probs_cube", band = band
         )
         offset <- .offset(band_conf)
-        if (!is.null(offset) && offset != 0) {
+        if (.has(offset) && offset != 0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (!is.null(scale) && scale != 1) {
+        if (.has(scale) && scale != 1) {
             values <- values / scale
         }
 
@@ -232,7 +232,7 @@
         if (.has(stats)) {
             q02 <- .stats_0_q02(stats, band)
             q98 <- .stats_0_q98(stats, band)
-            if (!is.null(q02) && !is.null(q98)) {
+            if (.has(q02) && .has(q98)) {
                 # Use C_normalize_data_0 to process old version of normalization
                 values <- C_normalize_data_0(values, q02, q98)
             }
