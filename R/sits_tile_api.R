@@ -2661,10 +2661,8 @@ NULL
     bands <- .sits_bands(samples)
     # Preprocess time series
     if (.has(ml_model)) {
-        # Update bands to the model bands
-        bands <- .ml_bands(ml_model)
         # If a model is informed, get predictors from model bands
-        pred <- pred[c(.pred_cols, bands)]
+        bands <- .ml_bands(ml_model)
         # Normalize values for old version model classifiers that
         #   do not normalize values itself
         # Models trained after version 1.2 do this automatically before
@@ -2688,8 +2686,6 @@ NULL
                 # Return updated values
                 values
             })
-            # Return updated time series
-            pred
         }
     }
     # Create predictors...
