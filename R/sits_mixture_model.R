@@ -252,13 +252,8 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     bands <- .endmembers_bands(em)
     # Read and preprocess values from each band
     values <- purrr::map_dfc(bands, function(band) {
-        # Get band values
+        # Get band values (stops if band not found)
         values <- .tile_read_block(tile = tile, band = band, block = block)
-        # Check if there are values
-        .check_null(
-            x = values,
-            msg = paste0("invalid data read from band '", band, "'")
-        )
         # Remove cloud masked pixels
         if (!is.null(cloud_mask)) {
             values[cloud_mask] <- NA
