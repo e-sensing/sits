@@ -33,7 +33,7 @@
 
 .as_crs(x)
 
-.crs(x)
+.crs(x, default_crs = NULL)
 
 .crs(x) <- value
 }
@@ -41,6 +41,8 @@
 \item{x}{Object to get/set field value.}
 
 \item{value}{Value to set on object field.}
+
+\item{default_crs}{Default crs value if object doesn't have one.}
 }
 \value{
 Getters return respective field value or \code{NULL}, if it doesn't

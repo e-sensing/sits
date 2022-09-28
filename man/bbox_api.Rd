@@ -2,10 +2,13 @@
 % Please edit documentation in R/sits_tile_api.R
 \name{bbox_api}
 \alias{bbox_api}
+\alias{.has_bbox}
 \alias{.bbox}
 \alias{.bbox_as_sf}
 \title{Bbox API}
 \usage{
+.has_bbox(x)
+
 .bbox(x, ..., default_crs = NULL)
 
 .bbox_as_sf(bbox, ..., default_crs = NULL, as_crs = NULL)
@@ -26,6 +29,8 @@ CRS.}
 \value{
 \code{.bbox()}: \code{bbox}.
 
+\code{.bbox()}: \code{bbox}.
+
 \code{.bbox_as_sf()}: \code{sf}.
 }
 \description{
@@ -36,7 +41,9 @@ A \code{bbox} may contains multiple entries.
 }
 \section{Functions}{
 \itemize{
-\item \code{.bbox()}: extract a \code{bbox} from any given
+\item \code{.has_bbox()}: Does vector \code{x} has \code{bbox} fields?
+
+\item \code{.bbox()}: Extract a \code{bbox} from any given
 \code{vector}.
 
 \item \code{.bbox_as_sf()}: Convert a \code{bbox} into a
