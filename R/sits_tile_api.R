@@ -699,11 +699,11 @@ NULL
 #' @returns \code{.bbox_as_sf()}: \code{sf}.
 .bbox_as_sf <- function(bbox, ..., default_crs = NULL, as_crs = NULL) {
     bbox <- .bbox(bbox, default_crs = default_crs)
-    if (!all(c(.bbox_cols, "crs") %in% names(bbox))) {
+    if (!.has(bbox)) {
         stop("object does not have a valid bbox")
     }
     # Check if there are multiple CRS in bbox
-    if (length(.crs(bbox)) > 1 && is.null(as_crs)) {
+    if (length(.crs(bbox)) > 1 && !.has(as_crs)) {
         warning(
             "object has multiples crs values, reprojecting to ",
             "EPSG:4326\n", "(use 'as_crs' to reproject to a ",
@@ -712,19 +712,18 @@ NULL
         as_crs <- "EPSG:4326"
     }
     # Convert to sf object and return it
-    purrr::pmap_dfr(as.list(bbox), function(xmin, xmax, ymin, ymax, crs, ...) {
+    purrr::pmap_dfr(bbox, function(xmin, xmax, ymin, ymax, crs) {
         geom <- sf::st_sf(
-            geometry = sf::st_sfc(sf::st_polygon(list(
-                rbind(
-                    c(xmin, ymax), c(xmax, ymax), c(xmax, ymin),
-                    c(xmin, ymin), c(xmin, ymax)
-                )
-            ))), crs = crs
+            geometry = sf::st_sfc(sf::st_polygon(list(rbind(
+                c(xmin, ymax), c(xmax, ymax), c(xmax, ymin), c(xmin, ymin),
+                c(xmin, ymax)
+            )))), crs = crs
         )
         # Project CRS
         if (.has(as_crs)) {
             geom <- sf::st_transform(geom, crs = as_crs)
         }
+        # Return geom
         geom
     })
 }
