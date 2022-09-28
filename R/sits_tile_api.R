@@ -255,6 +255,7 @@ NULL
 #'
 #' @param x Object to get/set field value.
 #' @param value Value to set on object field.
+#' @param default_crs Default crs value if object doesn't have one.
 #'
 #' @examples
 #' \dontrun{
@@ -334,8 +335,12 @@ NULL
 }
 
 #' @describeIn bbox_accessors Get \code{'crs'} field.
-.crs <- function(x) {
-    .as_crs(x[["crs"]])
+.crs <- function(x, default_crs = NULL) {
+    if ("crs" %in% names(x)) {
+        .as_crs(x[["crs"]])
+    } else {
+        default_crs
+    }
 }
 
 #' @describeIn bbox_accessors Set \code{'crs'} field as \code{character} string.
