@@ -664,27 +664,32 @@ NULL
 # bbox fields
 .bbox_cols <- c("xmin", "xmax", "ymin", "ymax")
 
-#' @describeIn bbox_api extract a \code{bbox} from any given
+#' @describeIn bbox_api Does vector \code{x} has \code{bbox} fields?
+#'
+#' @returns \code{.bbox()}: \code{bbox}.
+.has_bbox <- function(x) {
+    all(.bbox_cols %in% names(x))
+}
+
+#' @describeIn bbox_api Extract a \code{bbox} from any given
 #' \code{vector}.
 #'
 #' @returns \code{.bbox()}: \code{bbox}.
 .bbox <- function(x, ..., default_crs = NULL) {
-    if (!all(.bbox_cols %in% names(x))) {
+    if (!.has_bbox(x)) {
         return(NULL)
     }
-    xmin <- pmin(x[["xmin"]], x[["xmax"]])
-    xmax <- pmax(x[["xmin"]], x[["xmax"]])
-    ymin <- pmin(x[["ymin"]], x[["ymax"]])
-    ymax <- pmax(x[["ymin"]], x[["ymax"]])
-    if ("crs" %in% names(x)) {
-        crs <- x[["crs"]]
-    } else {
-        crs <- default_crs
-        if (is.null(default_crs)) {
-            warning("object has no crs, assuming 'EPSG:4326'")
-            crs <- "EPSG:4326"
+    xmin <- pmin(.xmin(x), .xmax(x))
+    xmax <- pmax(.xmin(x), .xmax(x))
+    ymin <- pmin(.ymin(x), .ymax(x))
+    ymax <- pmax(.ymin(x), .ymax(x))
+    crs <- .crs(x, default_crs = {
+        if (!.has(default_crs)) {
+            warning("object has no crs, assuming 'EPSG:4326'", call. = FALSE)
+            default_crs <- "EPSG:4326"
         }
-    }
+        default_crs
+    })
     list(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, crs = crs)
 }
 
