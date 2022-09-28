@@ -1229,10 +1229,47 @@ NULL
 
 #---- fi API: ----
 
+#' File info API
+#'
+#' A \code{file_info} represents a set of raster references. It is a
+#' \code{tibble} containing metadata describing images (e.g. bbox, band,
+#' size, spatial resolution, date) and a path to access the resource. There
+#' are two types of \code{file_info}: a \code{eo_cube} file info and a
+#' \code{derived_cube} file_info. The main differences are in the metadata
+#' stored by each type.
+#'
+#' @param fi A \code{file_info}.
+#' @param ... Parameters to be evaluated accordingly to \code{file_info} type.
+#'
+#' @examples
+#' \dontrun{
+#' }
+#'
+#' @family file info API
+#' @keywords internal
+#' @name fi_api
+NULL
+
+# cols of eo_cube file info
+# columns not included and to be removed from file_info in the future:
+#  - xres, yres;
+# columns not in the file_info but to be included in the future:
+#  - crs;
+.fi_eo_cols <- c("fid", "band", "date", "ncols", "nrows", "xmin", "xmax",
+                 "ymin", "ymax", "path")
+
+# rows of derived_cube file info
+# columns not included and to be removed from file_info in the future:
+#  - xres, yres;
+# columns not in the file_info but to be included in the future:
+#  - crs;
+.fi_derived_cols <- c("band", "start_date", "end_date", "ncols", "nrows",
+                      "xmin", "xmax", "ymin", "ymax", "path")
+
 .fi_type <- function(fi) {
-    if ("date" %in% names(fi)) {
+    if (all(.fi_eo_cols %in% names(fi))) {
         "eo_cube"
-    } else if (all(c("start_date", "end_date") %in% names(fi))) {
+    } else if (all(.fi_derived_cols %in% names(fi))) {
         "derived_cube"
     } else {
         stop("invalid file info")
