@@ -89,7 +89,7 @@ sits_cube_copy <- function(cube,
     # Get all paths and expand
     file <- path.expand(.fi_paths(.fi(asset)))
     # Create a list of user parameters as gdal format
-    gdal_params <- .gdal_format_params(asset = asset, roi = roi, res = res)
+    gdal_params <- .gdal_translate_format_params(asset = asset, roi = roi, res = res)
     # Create output file
     out_file <- file.path(output_dir, .file_base(file))
     # Resume feature
@@ -121,13 +121,20 @@ sits_cube_copy <- function(cube,
     asset
 }
 
-.gdal_format_params <- function(asset, roi, res) {
+.gdal_contructor_params <- function(srcwin = NULL,
+                                    cutline = NULL,
+                                    tr = NULL,
+                                    multi = NULL,
+                                    wm = NULL) {
     gdal_params <- list()
-    if (!is.null(res)) {
-        gdal_params[["tr"]] <- c(res, res)
+    if (!is.null(tr)) {
+        gdal_params[["tr"]] <- tr
     }
-    if (!is.null(roi)) {
-        gdal_params[["srcwin"]] <- .gdal_as_srcwin(asset = asset, roi = roi)
+    if (!is.null(srcwin)) {
+        gdal_params[["srcwin"]] <- srcwin
+    }
+    if (!is.null(cutline)) {
+        gdal_params[["cutline"]] <- cutline
     }
     gdal_params[c("of", "co")] <- list("GTiff", .config_gtiff_default_options())
 
@@ -141,6 +148,10 @@ sits_cube_copy <- function(cube,
       xsize = block[["ncols"]],
       ysize = block[["nrows"]]
     )
+}
+
+.gdal_as_tr <- function(res) {
+    c(res, res)
 }
 
 .download_controller <- function(out_file, gdal_params) {
