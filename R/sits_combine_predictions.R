@@ -57,10 +57,10 @@
 #' }
 #' @export
 sits_combine_predictions <- function(cubes, type = "average", ...,
-                             multicores = 2,
-                             memsize = 8,
-                             output_dir = ".",
-                             version = "v1") {
+                                     multicores = 2,
+                                     memsize = 8,
+                                     output_dir = ".",
+                                     version = "v1") {
     # set caller to show in errors
     .check_set_caller("sits_combine_predictions")
     # check required packages
@@ -292,11 +292,11 @@ sits_combine_predictions.average <- function(cubes,
 #' @export
 #'
 sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ...,
-                                            uncert_cubes,
-                                            multicores = 2,
-                                            memsize = 4,
-                                            output_dir = getwd(),
-                                            version = "v1") {
+                                                 uncert_cubes,
+                                                 multicores = 2,
+                                                 memsize = 4,
+                                                 output_dir = getwd(),
+                                                 version = "v1") {
 
     # check if probs cubes and uncert cubes are valid and match
     # is every cube a probs cube
