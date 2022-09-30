@@ -144,7 +144,12 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     multicores <- .jobs_max_multicores(
         job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
-
+    # Update block parameter
+    block <- .block_merge(
+        block = block, job_memsize = job_memsize,
+        image_size = .tile_size(.tile(cube)), memsize = memsize,
+        multicores = multicores
+    )
     # Prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
@@ -156,7 +161,8 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     features <- .jobs_map_parallel_dfr(features, function(feature) {
         # Process the data
         output_feature <- .mixture_feature(
-            feature = feature, em = em, mixture_fn = mixture_fn,
+            feature = feature, block = block,
+            em = em, mixture_fn = mixture_fn,
             out_fracs = out_fracs, output_dir = output_dir
         )
         return(output_feature)
@@ -166,7 +172,8 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
 }
 
 # ---- mixture functions ----
-.mixture_feature <- function(feature, em, mixture_fn, out_fracs, output_dir) {
+.mixture_feature <- function(feature, block, em, mixture_fn, out_fracs,
+                             output_dir) {
     # Output files
     out_files <- .file_eo_name(
         tile = feature, band = out_fracs,
@@ -193,7 +200,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     # Remove remaining incomplete fractions files
     unlink(out_files)
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = feature, overlap = 0)
+    chunks <- .tile_chunks_create(tile = feature, overlap = 0, block = block)
     # Process jobs sequentially
     block_files <- .jobs_map_sequential(chunks, function(chunk) {
         # Get job block
