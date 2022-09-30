@@ -116,7 +116,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     .check_endmembers_tbl(em)
 
     # Get endmembers bands
-    bands <- .endmembers_bands(em)
+    bands <- setdiff(.cube_bands(cube), .endmembers_fracs(em))
     # The cube is filtered here in case some fraction
     # is added as a band
     cube <- .cube_filter_bands(cube = cube, bands = bands)
@@ -153,7 +153,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     # Create features as jobs
     features_cube <- .cube_create_features(cube)
     # Process each feature in parallel
-    features_fracs <- .jobs_map_parallel_dfr(features, function(feature) {
+    features_fracs <- .jobs_map_parallel_dfr(features_cube, function(feature) {
         # Process the data
         output_feature <- .mixture_feature(
             feature = feature, em = em, mixture_fn = mixture_fn,
@@ -321,8 +321,8 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
 }
 
 .endmembers_fracs <- function(em, include_rmse = FALSE) {
-    if (!include_rmse) return(em[["TYPE"]])
-    c(em[["TYPE"]], "RMSE")
+    if (!include_rmse) return(toupper(em[["TYPE"]]))
+    toupper(c(em[["TYPE"]], "RMSE"))
 }
 
 .endmembers_as_matrix <- function(em) {
