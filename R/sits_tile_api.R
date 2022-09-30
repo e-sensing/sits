@@ -620,6 +620,29 @@ NULL
     (block[["nrows"]] + 2 * overlap) * (block[["ncols"]] + 2 * overlap)
 }
 
+.block_merge <- function(block, job_memsize, image_size, memsize, multicores) {
+    # memory per core
+    mpc <- floor(memsize / multicores)
+    # blocks per core
+    bpc <- floor(mpc / job_memsize)
+    # blocks per line
+    bpl <- ceiling(image_size[["ncols"]] / block[["ncols"]])
+    if (bpc <= bpl) {
+        # 1st optimization - line level
+        # number of steps to process whole line
+        n_step_blocks <- ceiling(bpl / bpc)
+        # number of blocks per column
+        return(c(nrows = block[["nrows"]],
+                 ncols = ceiling(bpl / n_step_blocks) * block[["ncols"]]))
+    }
+    # 2nd optimization - area level
+    # block per whole line
+    bpwl <- floor(bpc / bpl)
+    return(c(nrows = floor(bpc / bpwl) * block[["nrows"]],
+             ncols = bpl * block[["ncols"]]))
+}
+
+
 #---- bbox API: ----
 
 #' Bbox API
@@ -1984,10 +2007,12 @@ NULL
 
 #---- | .tile_chunks_create() ----
 
-.tile_chunks_create <- function(tile, overlap) {
+.tile_chunks_create <- function(tile, overlap, block = NULL) {
     # Get block size
-    block <-
-        .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(tile))))
+    if (is.null(block)) {
+        block <-
+            .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(tile))))
+    }
     # Compute chunks
     .chunks_create(
         block = block,
