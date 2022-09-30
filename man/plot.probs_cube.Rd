@@ -10,7 +10,7 @@
   tiles = NULL,
   labels = NULL,
   breaks = "equal",
-  n_colors = 20,
+  colors = rev(grDevices::terrain.colors(12, alpha = NULL)),
   palette = "Terrain"
 )
 }
@@ -25,9 +25,7 @@
 
 \item{breaks}{Type of class intervals.}
 
-\item{n_colors}{Number of colors to plot.}
-
-\item{palette}{HCL palette used for visualization.}
+\item{colors}{R color palette}
 }
 \value{
 A plot object produced by the stars package

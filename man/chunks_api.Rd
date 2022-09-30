@@ -63,7 +63,7 @@ remove overlaps.
 
 }}
 \examples{
-\dontrun{
+if (sits_run_examples()) {
 chunks <- .chunks_create(
   block = c(ncols = 512, nrows = 512),
   overlap = 2,

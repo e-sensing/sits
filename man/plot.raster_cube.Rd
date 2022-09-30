@@ -7,24 +7,19 @@
 \method{plot}{raster_cube}(
   x,
   ...,
-  samples = NULL,
   band = NULL,
   red = NULL,
   green = NULL,
   blue = NULL,
   tiles = x$tile[[1]],
   dates = NULL,
-  palette = "YlGn",
-  n_colors = 32,
-  sample_color = "Set1"
+  colors = rev(grDevices::terrain.colors(30, alpha = NULL))
 )
 }
 \arguments{
 \item{x}{Object of class "raster_cube".}
 
 \item{...}{Further specifications for \link{plot}.}
-
-\item{samples}{samples to be plotted together with image}
 
 \item{band}{Band for plotting grey images.}
 
@@ -38,9 +33,9 @@
 
 \item{dates}{Dates to be plotted.}
 
-\item{palette}{RColorBrewer palette to plot B/W image}
+\item{colors}{An R color palette}
 
-\item{n_colors}{Number of colors to display B/W image}
+\item{samples}{samples to be plotted together with image}
 
 \item{sample_color}{RColorBrewer name to display the samples}
 }

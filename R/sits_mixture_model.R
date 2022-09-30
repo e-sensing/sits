@@ -151,9 +151,9 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     # Create mixture processing function
     mixture_fn <- .mixture_fn_nnls(em = em, rmse = rmse_band)
     # Create features as jobs
-    features <- .cube_create_features(cube)
+    features_cube <- .cube_create_features(cube)
     # Process each feature in parallel
-    features <- .jobs_map_parallel_dfr(features, function(feature) {
+    features_fracs <- .jobs_map_parallel_dfr(features, function(feature) {
         # Process the data
         output_feature <- .mixture_feature(
             feature = feature, em = em, mixture_fn = mixture_fn,
@@ -162,7 +162,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
         return(output_feature)
     })
     # Join output features as a cube and return it
-    .cube_merge_features(features)
+    .cube_merge_features(dplyr::bind_rows(list(features_cube, features_fracs)))
 }
 
 # ---- mixture functions ----

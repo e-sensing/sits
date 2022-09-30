@@ -60,7 +60,7 @@ from an \code{eo_cube} or \code{derived_cube}.
 
 }}
 \examples{
-\dontrun{
+if (sits_run_examples()) {
 # Get configuration band
 x <- .conf_eo_band(
   source = "BDC",

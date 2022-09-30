@@ -57,7 +57,7 @@ The order of execution is the following:
 }
 }
 \examples{
-\dontrun{
+if (sits_run_examples()) {
 .try({
   file <- tempfile("test.txt")
   cat(letters, file = file)
