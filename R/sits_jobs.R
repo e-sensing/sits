@@ -17,6 +17,34 @@
     min(multicores, max_blocks)
 }
 
+.jobs_optimal_block <- function(job_memsize, block, image_size, memsize,
+                                multicores) {
+    # Memory per core
+    mpc <- floor(memsize / multicores)
+    # Blocks per core
+    bpc <- floor(mpc / job_memsize)
+    # Image horizontal blocks
+    hb <- ceiling(image_size[["ncols"]] / block[["ncols"]])
+    if (bpc < hb * 2) {
+        # 1st optimization - line level
+        # Number of segments to process whole line
+        h_nsegs <- ceiling(hb / bpc)
+        # Number of horizontal blocks
+        return(c(ncols = ceiling(hb / h_nsegs) * block[["ncols"]],
+                 nrows = block[["nrows"]]))
+    }
+    # 2nd optimization - area level
+    # Lines per core
+    lpc <- floor(bpc / hb)
+    # Image vertical blocks
+    vb <- ceiling(image_size[["nrows"]] / block[["nrows"]])
+    # Number of vertical segments
+    v_nsegs <- ceiling(vb / lpc)
+    # Number of vertical blocks
+    return(c(ncols = hb * block[["ncols"]],
+             nrows = ceiling(vb / v_nsegs) * block[["nrows"]]))
+}
+
 .jobs_multicores <- function() {
     length(sits_env[["cluster"]])
 }
