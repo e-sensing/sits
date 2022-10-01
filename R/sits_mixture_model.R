@@ -145,13 +145,14 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
         job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
     # Update block parameter
-    block <- .block_merge(
-        block = block, job_memsize = job_memsize,
+    block <- .jobs_optimal_block(
+        job_memsize = job_memsize, block = block,
         image_size = .tile_size(.tile(cube)), memsize = memsize,
         multicores = multicores
     )
     # Prepare parallelization
-    .sits_parallel_start(workers = multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores, log = TRUE,
+                         output_dir = output_dir)
     on.exit(.sits_parallel_stop(), add = TRUE)
     # Create mixture processing function
     mixture_fn <- .mixture_fn_nnls(em = em, rmse = rmse_band)
@@ -205,6 +206,11 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     block_files <- .jobs_map_sequential(chunks, function(chunk) {
         # Get job block
         block <- .block(chunk)
+        .sits_debug_log(
+            event = "block_size",
+            key = "list",
+            value = block
+        )
         # Block file name for each fraction
         block_files <- .file_block_name(
             pattern = .file_pattern(out_files), block = block,
@@ -216,8 +222,18 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
         }
         # Read bands data
         values <- .mixture_data_read(tile = feature, block = block, em = em)
+        .sits_debug_log(
+            event = "start_nnls_solver",
+            key = "dim_values",
+            value = dim(values)
+        )
         # Apply the non-negative least squares solver
         values <- mixture_fn(values = as.matrix(values))
+        .sits_debug_log(
+            event = "end_nnls_solver",
+            key = "dim_values",
+            value = dim(values)
+        )
         # Prepare fractions to be saved
         band_conf <- .tile_band_conf(tile = feature, band = out_fracs)
         offset <- .offset(band_conf)
@@ -229,6 +245,11 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
             values <- values / scale
         }
         # Prepare and save results as raster
+        .sits_debug_log(
+            event = "write_block",
+            key = "files",
+            value = block_files
+        )
         .raster_write_block(
             files = block_files, block = block, bbox = .bbox(chunk),
             values = values, data_type = .data_type(band_conf),
