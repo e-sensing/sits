@@ -184,15 +184,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// batch_contructor
-arma::mat batch_contructor(const int& n_pixels, const int& max_lines);
-RcppExport SEXP _sits_batch_contructor(SEXP n_pixelsSEXP, SEXP max_linesSEXP) {
+// batch_calc
+arma::mat batch_calc(const int& n_pixels, const int& max_lines_per_batch);
+RcppExport SEXP _sits_batch_calc(SEXP n_pixelsSEXP, SEXP max_lines_per_batchSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const int& >::type n_pixels(n_pixelsSEXP);
-    Rcpp::traits::input_parameter< const int& >::type max_lines(max_linesSEXP);
-    rcpp_result_gen = Rcpp::wrap(batch_contructor(n_pixels, max_lines));
+    Rcpp::traits::input_parameter< const int& >::type max_lines_per_batch(max_lines_per_batchSEXP);
+    rcpp_result_gen = Rcpp::wrap(batch_calc(n_pixels, max_lines_per_batch));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -415,7 +415,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_label_max_prob", (DL_FUNC) &_sits_C_label_max_prob, 1},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
-    {"_sits_batch_contructor", (DL_FUNC) &_sits_batch_contructor, 2},
+    {"_sits_batch_calc", (DL_FUNC) &_sits_batch_calc, 2},
     {"_sits_C_nnls_solver_batch", (DL_FUNC) &_sits_C_nnls_solver_batch, 5},
     {"_sits_C_nnls_solver", (DL_FUNC) &_sits_C_nnls_solver, 5},
     {"_sits_C_normalize_data", (DL_FUNC) &_sits_C_normalize_data, 3},
