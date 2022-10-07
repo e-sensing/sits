@@ -33,7 +33,7 @@ to impose band name restrictions.
 
 }}
 \examples{
-\dontrun{
+if (sits_run_examples()) {
 .band_cloud() # 'CLOUD'
 # eo bands name are uppercase
 .band_eo("nDvI") # 'NDVI'

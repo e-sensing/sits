@@ -49,7 +49,7 @@ parameter (One of \code{'sf'}, \code{'bbox'}, or \code{'lonlat'}).
 
 }}
 \examples{
-\dontrun{
+if (sits_run_examples()) {
 x <- list(lon_min = 1, lon_max = 2, lat_min = 3, lat_max = 4)
 .roi_type(x) # lonlat
 .roi_as_sf(x)

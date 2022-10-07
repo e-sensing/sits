@@ -11,7 +11,14 @@ sits_select(data, bands, ...)
 
 \method{sits_select}{sits}(data, bands, ...)
 
-\method{sits_select}{sits_cube}(data, bands, ..., tiles = NULL)
+\method{sits_select}{sits_cube}(
+  data,
+  bands = NULL,
+  ...,
+  tiles = NULL,
+  start_date = NULL,
+  end_date = NULL
+)
 
 \method{sits_select}{patterns}(data, bands, ...)
 }
@@ -24,6 +31,10 @@ sits_select(data, bands, ...)
 function.}
 
 \item{tiles}{Character vector with the names of the tiles.}
+
+\item{start_date}{Character value with the start date band to be filtered.}
+
+\item{end_date}{Character value with the end date band to be filtered.}
 }
 \value{
 For sits tibble, returns a sits tibble with the selected bands.

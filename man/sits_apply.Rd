@@ -91,6 +91,7 @@ all pixels in the window are \code{NA}.
 }
 
 \examples{
+if (sits_run_examples()) {
 # Get a time series
 # Apply a normalization function
 
@@ -116,7 +117,7 @@ cube_texture <- sits_apply(
     window_size = 5,
     output_dir = tempdir()
 )
-
+}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

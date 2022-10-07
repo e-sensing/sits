@@ -116,7 +116,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     .check_endmembers_tbl(em)
 
     # Get endmembers bands
-    bands <- .endmembers_bands(em)
+    bands <- setdiff(.cube_bands(cube), .endmembers_fracs(em))
     # The cube is filtered here in case some fraction
     # is added as a band
     cube <- .cube_filter_bands(cube = cube, bands = bands)
@@ -144,29 +144,37 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     multicores <- .jobs_max_multicores(
         job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
-
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_memsize = job_memsize, block = block,
+        image_size = .tile_size(.tile(cube)), memsize = memsize,
+        multicores = multicores
+    )
     # Prepare parallelization
-    .sits_parallel_start(workers = multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores, log = TRUE,
+                         output_dir = output_dir)
     on.exit(.sits_parallel_stop(), add = TRUE)
     # Create mixture processing function
     mixture_fn <- .mixture_fn_nnls(em = em, rmse = rmse_band)
     # Create features as jobs
-    features <- .cube_create_features(cube)
+    features_cube <- .cube_create_features(cube)
     # Process each feature in parallel
-    features <- .jobs_map_parallel_dfr(features, function(feature) {
+    features_fracs <- .jobs_map_parallel_dfr(features_cube, function(feature) {
         # Process the data
         output_feature <- .mixture_feature(
-            feature = feature, em = em, mixture_fn = mixture_fn,
+            feature = feature, block = block,
+            em = em, mixture_fn = mixture_fn,
             out_fracs = out_fracs, output_dir = output_dir
         )
         return(output_feature)
     })
     # Join output features as a cube and return it
-    .cube_merge_features(features)
+    .cube_merge_features(dplyr::bind_rows(list(features_cube, features_fracs)))
 }
 
 # ---- mixture functions ----
-.mixture_feature <- function(feature, em, mixture_fn, out_fracs, output_dir) {
+.mixture_feature <- function(feature, block, em, mixture_fn, out_fracs,
+                             output_dir) {
     # Output files
     out_files <- .file_eo_name(
         tile = feature, band = out_fracs,
@@ -193,11 +201,16 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     # Remove remaining incomplete fractions files
     unlink(out_files)
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = feature, overlap = 0)
+    chunks <- .tile_chunks_create(tile = feature, overlap = 0, block = block)
     # Process jobs sequentially
     block_files <- .jobs_map_sequential(chunks, function(chunk) {
         # Get job block
         block <- .block(chunk)
+        .sits_debug_log(
+            event = "block_size",
+            key = "list",
+            value = block
+        )
         # Block file name for each fraction
         block_files <- .file_block_name(
             pattern = .file_pattern(out_files), block = block,
@@ -209,8 +222,18 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
         }
         # Read bands data
         values <- .mixture_data_read(tile = feature, block = block, em = em)
+        .sits_debug_log(
+            event = "start_nnls_solver",
+            key = "dim_values",
+            value = dim(values)
+        )
         # Apply the non-negative least squares solver
         values <- mixture_fn(values = as.matrix(values))
+        .sits_debug_log(
+            event = "end_nnls_solver",
+            key = "dim_values",
+            value = dim(values)
+        )
         # Prepare fractions to be saved
         band_conf <- .tile_band_conf(tile = feature, band = out_fracs)
         offset <- .offset(band_conf)
@@ -222,6 +245,11 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
             values <- values / scale
         }
         # Prepare and save results as raster
+        .sits_debug_log(
+            event = "write_block",
+            key = "files",
+            value = block_files
+        )
         .raster_write_block(
             files = block_files, block = block, bbox = .bbox(chunk),
             values = values, data_type = .data_type(band_conf),
@@ -321,8 +349,8 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
 }
 
 .endmembers_fracs <- function(em, include_rmse = FALSE) {
-    if (!include_rmse) return(em[["TYPE"]])
-    c(em[["TYPE"]], "RMSE")
+    if (!include_rmse) return(toupper(em[["TYPE"]]))
+    toupper(c(em[["TYPE"]], "RMSE"))
 }
 
 .endmembers_as_matrix <- function(em) {
@@ -338,7 +366,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
         # Check values length
         input_pixels <- nrow(values)
         # Process bilateral smoother and return
-        values <- C_nnls_solver(
+        values <- C_nnls_solver_batch(
             x = as.matrix(values),
             em = em_mtx,
             rmse = rmse

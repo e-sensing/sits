@@ -38,7 +38,7 @@ A block represents a region of a matrix. A \code{block} is any
 
 }}
 \examples{
-\dontrun{
+if (sits_run_examples()) {
 x <- list(a = 0, z = 0)
 .block(x) # NULL
 x <- list(a = 0, col = 1, row = 2, ncols = 3, nrows = 4, z = 0)

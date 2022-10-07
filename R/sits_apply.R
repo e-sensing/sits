@@ -68,6 +68,7 @@
 #'         according to the requested expression.
 #'
 #' @examples
+#' if (sits_run_examples()) {
 #' # Get a time series
 #' # Apply a normalization function
 #'
@@ -93,7 +94,7 @@
 #'     window_size = 5,
 #'     output_dir = tempdir()
 #' )
-#'
+#' }
 #' @rdname sits_apply
 #' @export
 sits_apply <- function(data, ...) {
@@ -149,7 +150,12 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
     multicores <- .jobs_max_multicores(
         job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
-
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_memsize = job_memsize, block = block,
+        image_size = .tile_size(.tile(data)), memsize = memsize,
+        multicores = multicores
+    )
     # Prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
@@ -162,6 +168,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
         # Process the data
         output_feature <- .apply_feature(
             feature = feature,
+            block = block,
             expr = expr,
             window_size = window_size,
             out_band = out_band,
@@ -175,8 +182,8 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
     .cube_merge_features(dplyr::bind_rows(list(features_cube, features_band)))
 }
 
-.apply_feature <- function(feature, window_size, expr, out_band, in_bands,
-                           overlap, output_dir) {
+.apply_feature <- function(feature, block, window_size, expr, out_band,
+                           in_bands, overlap, output_dir) {
     # Output file
     out_file <- .file_eo_name(
         tile = feature, band = out_band,
@@ -203,7 +210,9 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
     # Remove remaining incomplete fractions files
     unlink(out_file)
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = feature, overlap = overlap)
+    chunks <- .tile_chunks_create(
+        tile = feature, overlap = overlap, block = block
+    )
     # Process jobs sequentially
     block_files <- .jobs_map_sequential(chunks, function(chunk) {
         # Get job block

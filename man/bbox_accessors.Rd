@@ -85,7 +85,7 @@ appending it after \code{'EPSG:'}.
 
 }}
 \examples{
-\dontrun{
+if (sits_run_examples()) {
 x <- c(xmax = "123")
 .xmax(x) # 123 as number
 x <- list(xmin = 1, xmax = 2, ymin = 3, ymax = 4)

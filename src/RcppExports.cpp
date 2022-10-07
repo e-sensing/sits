@@ -184,6 +184,33 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// batch_calc
+arma::mat batch_calc(const int& n_pixels, const int& max_lines_per_batch);
+RcppExport SEXP _sits_batch_calc(SEXP n_pixelsSEXP, SEXP max_lines_per_batchSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const int& >::type n_pixels(n_pixelsSEXP);
+    Rcpp::traits::input_parameter< const int& >::type max_lines_per_batch(max_lines_per_batchSEXP);
+    rcpp_result_gen = Rcpp::wrap(batch_calc(n_pixels, max_lines_per_batch));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_nnls_solver_batch
+arma::mat C_nnls_solver_batch(const arma::mat& x, const arma::mat& em, const bool rmse, const int max_it, const float tol);
+RcppExport SEXP _sits_C_nnls_solver_batch(SEXP xSEXP, SEXP emSEXP, SEXP rmseSEXP, SEXP max_itSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type em(emSEXP);
+    Rcpp::traits::input_parameter< const bool >::type rmse(rmseSEXP);
+    Rcpp::traits::input_parameter< const int >::type max_it(max_itSEXP);
+    Rcpp::traits::input_parameter< const float >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_nnls_solver_batch(x, em, rmse, max_it, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
 // C_nnls_solver
 arma::mat C_nnls_solver(const arma::mat& x, const arma::mat& em, const bool rmse, const int max_it, const float tol);
 RcppExport SEXP _sits_C_nnls_solver(SEXP xSEXP, SEXP emSEXP, SEXP rmseSEXP, SEXP max_itSEXP, SEXP tolSEXP) {
@@ -388,6 +415,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_label_max_prob", (DL_FUNC) &_sits_C_label_max_prob, 1},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
+    {"_sits_batch_calc", (DL_FUNC) &_sits_batch_calc, 2},
+    {"_sits_C_nnls_solver_batch", (DL_FUNC) &_sits_C_nnls_solver_batch, 5},
     {"_sits_C_nnls_solver", (DL_FUNC) &_sits_C_nnls_solver, 5},
     {"_sits_C_normalize_data", (DL_FUNC) &_sits_C_normalize_data, 3},
     {"_sits_C_normalize_data_0", (DL_FUNC) &_sits_C_normalize_data_0, 3},

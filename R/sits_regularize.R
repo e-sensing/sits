@@ -91,9 +91,7 @@ sits_regularize <- function(cube,
     # preconditions
     .check_is_raster_cube(cube)
     # is the period valid?
-    .check_na(lubridate::duration(period),
-              msg = "invalid period specified"
-    )
+    .check_na(lubridate::duration(period), msg = "invalid period specified")
     .check_num_parameter(res, exclusive_min = 0)
     # precondition - check output dir fix
     output_dir <- normalizePath(output_dir)
