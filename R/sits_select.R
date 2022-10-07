@@ -55,33 +55,27 @@ sits_select.sits <- function(data, bands, ...) {
 #' @rdname sits_select
 #'
 #' @export
-sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
-
+sits_select.sits_cube <- function(data,
+                                  bands =  NULL, ...,
+                                  tiles = NULL,
+                                  start_date = NULL,
+                                  end_date = NULL) {
     if (!is.null(tiles)) {
         .check_chr_type(tiles)
-        data <- dplyr::filter(data, .data[["tile"]] %in% !!tiles)
+        data <- .cube_filter_tiles(cube = data, tiles = tiles)
     }
 
-    # filter the file info
-    data <- slider::slide_dfr(data, function(tile) {
+    if (!is.null(bands)) {
+        .check_chr_type(bands)
+        data <- .cube_filter_bands(cube = data, bands = bands)
+    }
 
-        # default bands
-        if (is.null(bands)) {
-            bands <- .cube_bands(tile)
-        }
-
-        # pre-condition - check bands
-        .check_cube_bands(tile, bands = bands)
-
-        db_info <- .file_info(tile)
-        db_info <- dplyr::filter(
-            db_info,
-            .data[["band"]] %in% dplyr::all_of(bands)
+    if (!is.null(start_date) || !is.null(end_date)) {
+        .check_dates_parameter(c(start_date, end_date))
+        data <- .cube_filter_dates(
+            cube = data, start_date = start_date, end_date = end_date
         )
-
-        tile$file_info[[1]] <- db_info
-        return(tile)
-    })
+    }
 
     return(data)
 }
