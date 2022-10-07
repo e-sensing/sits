@@ -2379,6 +2379,33 @@ NULL
     cube[during, ]
 }
 
+#---- | .cube_filter_dates() ----
+
+.cube_filter_dates <- function(cube, start_date, end_date) {
+    UseMethod(".cube_filter_dates", cube)
+}
+
+.cube_filter_dates.eo_cube <- function(cube, start_date, end_date) {
+    slider::slide_dfr(cube, function(tile) {
+        .tile_filter_dates(
+            tile = tile, start_date = start_date, end_date = end_date
+        )
+    })
+}
+
+.tile_filter_dates <- function(tile, start_date, end_date) {
+    UseMethod(".tile_filter_dates", tile)
+}
+
+.tile_filter_dates.eo_cube <- function(tile, start_date, end_date) {
+    tile <- .tile(tile)
+    .tile_file_info(tile) <-
+        .fi_filter_temporal(
+            fi = .fi(tile), start_date = start_date, end_date = end_date
+        )
+    tile
+}
+
 #---- | .cube_filter_bands() ----
 
 .cube_filter_bands <- function(cube, bands) {
@@ -2401,14 +2428,14 @@ NULL
     .as_chr(cube[["tile"]])
 }
 
-#---- | .cube_tile_filter() ----
+#---- | .cube_filter_tiles() ----
 
-.cube_tile_filter <- function(cube, tile) {
-    UseMethod(".cube_tile_filter", cube)
+.cube_filter_tiles <- function(cube, tiles) {
+    UseMethod(".cube_filter_tiles", cube)
 }
 
-.cube_tile_filter.raster_cube <- function(cube, tile) {
-    cube[.cube_tiles(cube) %in% tile, ]
+.cube_filter_tiles.raster_cube <- function(cube, tiles) {
+    cube[.cube_tiles(cube) %in% tiles, ]
 }
 
 
