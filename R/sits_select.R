@@ -3,10 +3,12 @@
 #' @name sits_select
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param data         A sits tibble or data cube.
-#' @param bands        Character vector with the names of the bands.
-#' @param tiles        Character vector with the names of the tiles.
-#' @param ...          Additional parameters to be provided in the select
+#' @param data       A sits tibble or data cube.
+#' @param bands      Character vector with the names of the bands.
+#' @param start_date Character value with the start date band to be filtered.
+#' @param end_date   Character value with the end date band to be filtered.
+#' @param tiles      Character vector with the names of the tiles.
+#' @param ...        Additional parameters to be provided in the select
 #'  function.
 #'
 #' @description Filter only the selected bands from a tibble or a data cube.
