@@ -73,7 +73,7 @@ this is the case).
 
 }}
 \examples{
-\dontrun{
+if (sits_run_examples()) {
 .as_int(1.234)
 .as_dbl(42L)
 x <- 1.234

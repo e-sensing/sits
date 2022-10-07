@@ -68,6 +68,7 @@
 #'         according to the requested expression.
 #'
 #' @examples
+#' if (sits_run_examples()) {
 #' # Get a time series
 #' # Apply a normalization function
 #'
@@ -93,7 +94,7 @@
 #'     window_size = 5,
 #'     output_dir = tempdir()
 #' )
-#'
+#' }
 #' @rdname sits_apply
 #' @export
 sits_apply <- function(data, ...) {
