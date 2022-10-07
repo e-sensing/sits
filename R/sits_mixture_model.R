@@ -366,7 +366,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
         # Check values length
         input_pixels <- nrow(values)
         # Process bilateral smoother and return
-        values <- C_nnls_solver(
+        values <- C_nnls_solver_batch(
             x = as.matrix(values),
             em = em_mtx,
             rmse = rmse
