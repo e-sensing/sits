@@ -1216,6 +1216,36 @@
         tolerance = tolerance
     )
 }
+
+#' @title Check is dates parameter are valid
+#' @name .check_dates_parameter
+#' @param  param   parameter to be checked
+#' @param  len_min minimum length of vector
+#' @param  len_max maximum length of vector
+#' @param  allow_null allow NULL?
+#'
+#' @return          No return value, called for side effects.
+#' @keywords internal
+.check_dates_parameter <- function(param, len_min = 1, len_max = 2^31 - 1,
+                                   allow_null = TRUE) {
+    .check_chr(
+        x = param,
+        len_max = len_max,
+        len_min = len_min,
+        allow_null = allow_null
+    )
+    # Standard regexp of RFC 3339
+    pattern_rfc <- "^\\d{4}-\\d{2}-\\d{2}$"
+    .check_that(
+        x = all(grepl(pattern_rfc, param, perl = TRUE)),
+        msg = "invalid date format",
+        local_msg = paste(
+            "'start_date' and 'end_date' should follow",
+            "year-month-day format: YYYY-MM-DD"
+        )
+    )
+}
+
 #' @title Check is integer parameter is valid using reasonable defaults
 #' @name .check_int_parameter
 #' @param  x   parameter to be checked
