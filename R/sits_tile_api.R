@@ -1806,7 +1806,9 @@ NULL
 
 #' @export
 .tile_band_conf.derived_cube <- function(tile, band) {
-    .conf_derived_band(derived_class = .tile_derived_class(tile), band = band)
+    .conf_derived_band(
+        derived_class = .tile_derived_class(tile), band = band[[1]]
+    )
 }
 
 #---- | .tile_filter_bands() ----
@@ -2823,7 +2825,7 @@ NULL
     # Rearrange data to create predictors
     pred <- tidyr::pivot_wider(
         data = pred, names_from = "index", values_from = bands,
-        names_prefix = ifelse(length(bands) == 1, bands, ""),
+        names_prefix = if (length(bands) == 1) bands else "",
         names_sep = ""
     )
     # Return predictors
