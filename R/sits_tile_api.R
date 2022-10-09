@@ -601,55 +601,69 @@ NULL
     .as_int(conf[["bit_mask"]][[1]])
 }
 
-#---- Band API: ----
-
-#' Band API
+#' Point accessors
 #'
-#' We use term \code{band} to refer either to spectral bands as index generated
-#' from images of actual sensor bands. To organize internal metadata and work
-#' properly there are some restrictions in band names. These functions aims
-#' to impose band name restrictions.
+#' These functions are accessors of \code{point} fields of a \code{vector}.
+#' Getters functions returns the respective field values with the expected
+#' data type. Setters functions convert value to expected data type and
+#' store it in respective fields on a given object. If value has no length
+#' and the \code{vector} is not \code{atomic}, it is removed from the object.
 #'
-#' @param band Band name.
+#' \code{.lon()} and \code{.lat()} get/set, respectively, \code{"longitude"}
+#' and \code{"latitude"} fields.
+#'
+#' @param x Object to get/set field value.
+#' @param value Value to set on object field.
 #'
 #' @examples
 #' \dontrun{
-#' .band_cloud() # 'CLOUD'
-#' # eo bands name are uppercase
-#' .band_eo("nDvI") # 'NDVI'
-#' # derived bands name are lowercase
-#' .band_derived("PrObS") # 'probs'
-#' # bands name cannot have '_' (underscore)
-#' .band_eo("NDVI_2") # 'NDVI-2'
+#' x <- c(longitude = "123")
+#' .lon(x) # 123 as number
+#' x <- list(longitude = 1:10)
+#' .lat(x) <- 11:20
+#' x # with 'longitude' and 'latitude' fields
 #' }
 #'
-#' @seealso \link{band_accessors}
-#' @name band_api
+#' @returns Getters return respective field value or \code{NULL}, if it doesn't
+#'   exist. Setters return the updated \code{x} object.
+#'
+#' @family accessors
+#' @keywords internal
+#' @name point_accessors
 NULL
 
-#' @describeIn band_api Returns the name of cloud band.
-.band_cloud <- function() {
-    "CLOUD"
+#' @describeIn point_accessors Get \code{'longitude'} field.
+.lon <- function(x) {
+    .as_dbl(.compact(x[["longitude"]]))
 }
 
-#' @describeIn band_api Returns a well formatted band name for \code{eo_cube}.
-.band_eo <- function(band) {
-    gsub("_", "-", toupper(band))
+#' @describeIn point_accessors Set \code{'longitude'} field as numeric.
+`.lon<-` <- function(x, value) {
+    x[["longitude"]] <- .as_dbl(value)
+    x
 }
 
-#' @describeIn band_api Returns a well formatted band name for
-#'   \code{derived_cube}.
-.band_derived <- function(band) {
-    gsub("_", "-", tolower(band))
+#' @describeIn point_accessors Get \code{'latitude'} field.
+.lat <- function(x) {
+    .as_dbl(.compact(x[["latitude"]]))
 }
 
-#---- block API: ----
+#' @describeIn point_accessors Set \code{'latitude'} field as numeric.
+`.lat<-` <- function(x, value) {
+    x[["latitude"]] <- .as_dbl(value)
+    x
+}
+
+#---- Block API: ----
 
 #' Block API
 #'
 #' A block represents a region of a matrix. A \code{block} is any
 #' \code{list} or \code{tibble} containing \code{col}, \code{row},
 #' \code{ncols}, and \code{nrows} fields.
+#'
+#' \code{col} and \code{row} fields are optional. If not present, they
+#' are assumed to be \code{1}.
 #'
 #' @param x Any object to extract a \code{block}.
 #' @param block Any object with \code{ncols}, \code{nrows} fields.
