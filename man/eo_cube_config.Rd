@@ -51,15 +51,11 @@ error is thrown. Use \code{.conf_exists()} to test for \code{source} and
 if (sits_run_examples()) {
 # tests if 'BDC -> MOD13Q1-6 -> NDVI' key exists in config
 .conf_eo_band_exists(
-  source = "BDC",
-  collection = "MOD13Q1-6",
-  band = "NDVI"
+  source = "BDC", collection = "MOD13Q1-6", band = "NDVI"
 )
 # get configuration for band NDVI of 'BDC -> MOD13Q1-6' collection
 x <- .conf_eo_band(
-  source = "BDC",
-  collection = "MOD13Q1-6",
-  band = "NDVI"
+  source = "BDC", collection = "MOD13Q1-6", band = "NDVI"
 )
 }
 

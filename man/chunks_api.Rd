@@ -90,6 +90,7 @@ Other region objects API:
 \code{\link{.intersects}()},
 \code{\link{bbox_api}},
 \code{\link{block_api}},
+\code{\link{point_api}},
 \code{\link{roi_api}}
 }
 \concept{region objects API}

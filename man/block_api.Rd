@@ -2,10 +2,13 @@
 % Please edit documentation in R/sits_tile_api.R
 \name{block_api}
 \alias{block_api}
+\alias{.has_block}
 \alias{.block}
 \alias{.block_size}
 \title{Block API}
 \usage{
+.has_block(x)
+
 .block(x)
 
 .block_size(block, overlap = 0)
@@ -19,6 +22,8 @@
 \code{nrows}.}
 }
 \value{
+\code{.has_block()}: \code{logical}.
+
 \code{.block()}: \code{block}.
 
 \code{.block_size()}: \code{integer}.
@@ -28,8 +33,14 @@ A block represents a region of a matrix. A \code{block} is any
 \code{list} or \code{tibble} containing \code{col}, \code{row},
 \code{ncols}, and \code{nrows} fields.
 }
+\details{
+\code{col} and \code{row} fields are optional. If not present, they
+are assumed to be \code{1}.
+}
 \section{Functions}{
 \itemize{
+\item \code{.has_block()}: Does vector \code{x} has \code{block} fields?
+
 \item \code{.block()}: Extract a \code{block} from any given
 \code{vector}.
 
@@ -41,10 +52,10 @@ A block represents a region of a matrix. A \code{block} is any
 if (sits_run_examples()) {
 x <- list(a = 0, z = 0)
 .block(x) # NULL
-x <- list(a = 0, col = 1, row = 2, ncols = 3, nrows = 4, z = 0)
-.block(x)
-.block_size(x, 0)
-.block_size(x, 2)
+x <- list(a = 0, row = 2, ncols = 3, nrows = 4, z = 0)
+.block(x) # col defaults to 1
+.block_size(x, overlap = 0)
+.block_size(x, overlap = 2)
 }
 
 }
@@ -55,6 +66,7 @@ Other region objects API:
 \code{\link{.intersects}()},
 \code{\link{bbox_api}},
 \code{\link{chunks_api}},
+\code{\link{point_api}},
 \code{\link{roi_api}}
 }
 \concept{region objects API}

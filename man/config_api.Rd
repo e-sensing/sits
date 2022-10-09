@@ -38,7 +38,7 @@ existence.
 if (sits_run_examples()) {
 .conf_exists("run_tests") # TRUE
 .conf("run_tests")
-.conf_exists("not_existing_entry") # FALSE
+.conf_exists("not_existing_config_entry") # FALSE
 }
 
 }

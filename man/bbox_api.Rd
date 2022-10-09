@@ -27,7 +27,7 @@ used? If \code{NULL} default CRS will be \code{'EPSG:4326'}.}
 CRS.}
 }
 \value{
-\code{.bbox()}: \code{bbox}.
+\code{.has_bbox()}: \code{logical}.
 
 \code{.bbox()}: \code{bbox}.
 
@@ -71,6 +71,7 @@ Other region objects API:
 \code{\link{.intersects}()},
 \code{\link{block_api}},
 \code{\link{chunks_api}},
+\code{\link{point_api}},
 \code{\link{roi_api}}
 }
 \concept{region objects API}

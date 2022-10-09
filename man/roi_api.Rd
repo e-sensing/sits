@@ -69,7 +69,8 @@ Other region objects API:
 \code{\link{.intersects}()},
 \code{\link{bbox_api}},
 \code{\link{block_api}},
-\code{\link{chunks_api}}
+\code{\link{chunks_api}},
+\code{\link{point_api}}
 }
 \concept{region objects API}
 \keyword{internal}

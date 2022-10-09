@@ -78,7 +78,8 @@ Other accessors:
 \code{\link{band_accessors}},
 \code{\link{bbox_accessors}},
 \code{\link{block_accessors}},
-\code{\link{chunk_accessors}}
+\code{\link{chunk_accessors}},
+\code{\link{point_accessors}}
 }
 \concept{accessors}
 \keyword{internal}

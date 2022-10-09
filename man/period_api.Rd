@@ -29,7 +29,7 @@ in a time interval. Here, we use a simplified representation of a duration
 that we call \code{period}.
 }
 \details{
-It is represented by the the regular expression
+\code{period} is represented by the the regular expression
 \code{^P[0-9]+[DMY]$}. \code{P} is the period designator placed at the
 start of the string. \code{[0-9]+} is the integer value and is followed
 by a \code{period} unit: \code{Y} is the year designator, \code{M} is the
@@ -48,7 +48,7 @@ Can be one of \code{'day'}, \code{'month'}, or \code{'year'}.
 
 }}
 \examples{
-if (sits_run_examples()) {
+\dontrun{
 .period_check("P16D") # valid
 .period_check("P1M10D") # error: invalid period format
 .period_val("P16D") # 16

@@ -49,6 +49,7 @@ Other accessors:
 \code{\link{band_accessors}},
 \code{\link{bbox_accessors}},
 \code{\link{block_accessors}},
+\code{\link{point_accessors}},
 \code{\link{tile_accessors}}
 }
 \concept{accessors}

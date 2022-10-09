@@ -59,7 +59,10 @@ new \code{derived_cube}.
 \examples{
 if (sits_run_examples()) {
 # get S3 class value that a derived_cube of class 'probs' must have
-.conf_derived_s3class("probs")
+.conf_derived_s3class("probs_cube")
+.conf_derived_band("probs_cube", "probs")
+.conf_derived_band("class_cube", "class")
+.conf_derived_band("probs_cube", "NBR") # error
 }
 
 }
