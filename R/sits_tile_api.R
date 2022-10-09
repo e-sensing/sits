@@ -1305,6 +1305,82 @@ NULL
 # .conf_derived_cube_band("probs_cube", "probs", "missing_value")
 # .conf_derived_cube_band("probs_cube", "bayes", "missing_value")
 
+# ---- Point API ----
+
+#' Point API
+#'
+#' A point represents an dimensionless geographical location in
+#' 'EPSG:4326' projection. A \code{point} is any \code{list} or \code{tibble}
+#' containing \code{longitude} and \code{latitude} fields. A \code{point} may
+#' contains multiple entries.
+#'
+#' @param x Any object to extract a \code{point}.
+#' @param ... Additional parameters.
+#' @param point A \code{point}.
+#' @param as_crs A CRS to project \code{point}.
+#'
+#' @examples
+#' \dontrun{
+#' x <- list(a = 0, z = 0)
+#' .point(x) # NULL
+#' x <- list(a = 0, longitude = 1:3, b = 2:4, latitude = 2, z = 0)
+#' .point(x)
+#' .point_as_sf(x) # 3 features
+#' .point_as_sf(x, as_crs = "EPSG:3857") # reprojected features
+#' }
+#'
+#' @seealso \link{point_accessors}
+#' @family region objects API
+#' @keywords internal
+#' @name point_api
+NULL
+
+# point fields
+.point_cols <- c("longitude", "latitude")
+
+#' @describeIn point_api Does vector \code{x} has \code{point} fields?
+#'
+#' @returns \code{.has_point()}: \code{logical}.
+.has_point <- function(x) {
+    all(.point_cols %in% names(x))
+}
+
+#' @describeIn point_api Extract a \code{point} from any given
+#' \code{vector}.
+#'
+#' @returns \code{.point()}: \code{point}.
+.point <- function(x, ..., crs = NULL) {
+    if (!.has_point(x)) {
+        return(NULL)
+    }
+    if (!.has(crs)) crs <- "EPSG:4326"
+    list(longitude = .lon(x), latitude = .lat(x), crs = crs)
+}
+
+#' @describeIn point_api Convert a \code{point} into a
+#' \code{sf} point object.
+#'
+#' @returns \code{.point_as_sf()}: \code{sf}.
+.point_as_sf <- function(point, ..., crs = NULL, as_crs = NULL) {
+    point <- .point(point, crs = crs)
+    if (!.has(point)) {
+        stop("object does not have a valid point")
+    }
+    # Convert to sf object and return it
+    purrr::pmap_dfr(point, function(longitude, latitude, crs) {
+        geom <- sf::st_sf(
+            geometry = sf::st_sfc(sf::st_point(c(longitude, latitude))),
+            crs = crs
+        )
+        # Project CRS
+        if (.has(as_crs)) {
+            geom <- sf::st_transform(geom, crs = as_crs)
+        }
+        # Return geom
+        geom
+    })
+}
+
 
 #---- fi API: ----
 
