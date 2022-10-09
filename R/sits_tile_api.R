@@ -36,25 +36,25 @@ NULL
 #' @describeIn data_type Convert an input to \code{integer}.
 #'   Returns \code{integer} or \code{NULL} if value is empty.
 .as_int <- function(x) {
-    if (.has(x)) as.integer(x) else NULL
+    .default(as.integer(x))
 }
 #' @describeIn data_type Convert an input to \code{character}.
 #'   Returns \code{character} or \code{NULL} if value is empty.
 .as_chr <- function(x) {
-    if (.has(x)) as.character(x) else NULL
+    .default(as.character(x))
 }
 
 #' @describeIn data_type Convert an input to \code{numeric}.
 #'   Returns \code{numeric} or \code{NULL} if value is empty.
 .as_dbl <- function(x) {
-    if (.has(x)) as.numeric(x) else NULL
+    .default(as.numeric(x))
 }
 
 #' @describeIn data_type Convert an input to a date type. This is
 #'   the same function as \code{lubridate::as_date()}.
 #'   Returns \code{date} or \code{NULL} if value is empty.
 .as_date <- function(x) {
-    if (.has(x)) lubridate::as_date(unlist(x, recursive = FALSE)) else NULL
+    .default(lubridate::as_date(unlist(x, recursive = FALSE)))
 }
 
 #' @describeIn data_type Check if an input has a value or not. Any zero length
