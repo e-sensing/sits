@@ -1298,16 +1298,6 @@ NULL
     .conf("derived_cube", derived_class, "bands", band)
 }
 
-
-# .conf_exists("sources", "BDC", "collections", "MOD13Q1-6")
-# .conf_exists("sources", "BDC", "collections", "MOD13Q1-7")
-# .conf_eo_band("BDC", "MOD13Q1-6", "NIR", "missing_value")
-# .conf_eo_band("BDC", "MOD13Q1-6", "NBR", "missing_value")
-# .conf_derived_cube("probs_cube", "bands")
-# .conf_derived_cube("probs_cube", "NBR")
-# .conf_derived_cube_band("probs_cube", "probs", "missing_value")
-# .conf_derived_cube_band("probs_cube", "bayes", "missing_value")
-
 # ---- Point API ----
 
 #' Point API
