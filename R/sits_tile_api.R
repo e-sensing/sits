@@ -759,7 +759,7 @@ NULL
 
 #' @describeIn bbox_api Does vector \code{x} has \code{bbox} fields?
 #'
-#' @returns \code{.bbox()}: \code{bbox}.
+#' @returns \code{.has_bbox()}: \code{logical}.
 .has_bbox <- function(x) {
     all(.bbox_cols %in% names(x))
 }
@@ -772,18 +772,28 @@ NULL
     if (!.has_bbox(x)) {
         return(NULL)
     }
-    xmin <- pmin(.xmin(x), .xmax(x))
-    xmax <- pmax(.xmin(x), .xmax(x))
-    ymin <- pmin(.ymin(x), .ymax(x))
-    ymax <- pmax(.ymin(x), .ymax(x))
-    crs <- .crs(x, default_crs = {
-        if (!.has(default_crs)) {
-            warning("object has no crs, assuming 'EPSG:4326'", call. = FALSE)
-            default_crs <- "EPSG:4326"
-        }
-        default_crs
-    })
-    list(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, crs = crs)
+    xmin <- .xmin(x)
+    xmax <- .xmax(x)
+    ymin <- .ymin(x)
+    ymax <- .ymax(x)
+    crs <- .crs(x, default_crs = .default(
+        x = default_crs, default = {
+        warning("object has no crs, assuming 'EPSG:4326'", call. = FALSE)
+        "EPSG:4326"
+    }))
+    bbox <- .common_size(
+        xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, crs = crs
+    )
+    xmin <- pmin(.xmin(bbox), .xmax(bbox))
+    xmax <- pmax(.xmin(bbox), .xmax(bbox))
+    ymin <- pmin(.ymin(bbox), .ymax(bbox))
+    ymax <- pmax(.ymin(bbox), .ymax(bbox))
+    .xmin(bbox) <- xmin
+    .xmax(bbox) <- xmax
+    .ymin(bbox) <- ymin
+    .ymax(bbox) <- ymax
+    # Return bbox
+    x
 }
 
 #' @describeIn bbox_api Convert a \code{bbox} into a
