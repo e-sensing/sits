@@ -198,10 +198,6 @@ NULL
     .rbind(.by(data, col, fn, ...))
 }
 
-.by_lgl <- function(data, col, fn, ...) {
-    vapply(.by(data, col, fn, ...), c, logical(1))
-}
-
 #' Spatial intersects
 #'
 #' This function is based on \code{sf::st_intersects()}. It projects \code{y}
