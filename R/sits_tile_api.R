@@ -1070,66 +1070,46 @@ NULL
     chunks[.intersects(.bbox_as_sf(chunks), .roi_as_sf(roi)), ]
 }
 
-#---- period API: ----
+#---- Band API: ----
 
-#' period API
+#' Band API
 #'
-#' According to ISO-8601 a duration is the amount of intervening time
-#' in a time interval. Here, we use a simplified representation of a duration
-#' that we call \code{period}.
+#' We use term \code{band} to refer either to spectral bands as index generated
+#' from images of actual sensor bands. To organize internal metadata and work
+#' properly there are some restrictions in band names. These functions aims
+#' to impose band name restrictions.
 #'
-#' It is represented by the the regular expression
-#' \code{^P[0-9]+[DMY]$}. \code{P} is the period designator placed at the
-#' start of the string. \code{[0-9]+} is the integer value and is followed
-#' by a \code{period} unit: \code{Y} is the year designator, \code{M} is the
-#' month designator, and \code{D} is the day designator.
-#'
-#' @param period A \code{character}.
+#' @param band Band name.
 #'
 #' @examples
 #' \dontrun{
-#' .period_check("P16D") # valid
-#' .period_check("P1M10D") # error: invalid period format
-#' .period_val("P16D") # 16
-#' .period_val("P2M") # 2
-#' .period_val("P1Y") # 1
-#' .period_unit("P16D") # day
-#' .period_unit("P2M") # month
-#' .period_unit("P1Y") # year
+#' .band_cloud() # 'CLOUD'
+#' # eo bands name are uppercase
+#' .band_eo("nDvI") # 'NDVI'
+#' # derived bands name are lowercase
+#' .band_derived("PrObS") # 'probs'
+#' # bands name cannot have '_' (underscore)
+#' .band_eo("NDVI_2") # 'NDVI-2'
 #' }
 #'
-#' @family data types
-#' @keywords internal
-#' @name period_api
+#' @seealso \link{band_accessors}
+#' @name band_api
 NULL
 
-#' @describeIn period_api Check if a character string is a valid
-#' \code{period}.
-#'
-#' @returns \code{.period_check()}: nothing.
-.period_check <- function(period) {
-    if (!grepl("^P[0-9]+[DMY]$", period)) {
-        stop("invalid period format")
-    }
+#' @describeIn band_api Returns the name of cloud band.
+.band_cloud <- function() {
+    "CLOUD"
 }
 
-#' @describeIn period_api Return the value part of a
-#' \code{period}.
-#'
-#' @returns \code{.period_val()}: numeric value of a period.
-.period_val <- function(period) {
-    .period_check(period)
-    .as_dbl(gsub("^P([0-9]+)[DMY]$", "\\1", period))
+#' @describeIn band_api Returns a well formatted band name for \code{eo_cube}.
+.band_eo <- function(band) {
+    gsub("_", "-", toupper(band))
 }
 
-#' @describeIn period_api Return the unit of a \code{period}.
-#' Can be one of \code{'day'}, \code{'month'}, or \code{'year'}.
-#'
-#' @returns \code{.period_unit()}: description of unit of a period.
-.period_unit <- function(period) {
-    .period_check(period)
-    unit <- c(D = "day", M = "month", Y = "year")
-    unit[[gsub("^P[0-9]+([DMY])$", "\\1", period)]]
+#' @describeIn band_api Returns a well formatted band name for
+#'   \code{derived_cube}.
+.band_derived <- function(band) {
+    gsub("_", "-", tolower(band))
 }
 
 #---- Config: ----
@@ -1146,7 +1126,7 @@ NULL
 #' \dontrun{
 #' .conf_exists("run_tests") # TRUE
 #' .conf("run_tests")
-#' .conf_exists("not_existing_entry") # FALSE
+#' .conf_exists("not_existing_config_entry") # FALSE
 #' }
 #'
 #' @returns Configuration value.
@@ -1199,15 +1179,11 @@ NULL
 #' \dontrun{
 #' # tests if 'BDC -> MOD13Q1-6 -> NDVI' key exists in config
 #' .conf_eo_band_exists(
-#'   source = "BDC",
-#'   collection = "MOD13Q1-6",
-#'   band = "NDVI"
+#'   source = "BDC", collection = "MOD13Q1-6", band = "NDVI"
 #' )
 #' # get configuration for band NDVI of 'BDC -> MOD13Q1-6' collection
 #' x <- .conf_eo_band(
-#'   source = "BDC",
-#'   collection = "MOD13Q1-6",
-#'   band = "NDVI"
+#'   source = "BDC", collection = "MOD13Q1-6", band = "NDVI"
 #' )
 #' }
 #'
