@@ -51,7 +51,7 @@ A \code{bbox} may contains multiple entries.
 
 }}
 \examples{
-\dontrun{
+if (sits_run_examples()) {
 x <- list(a = 0, z = 0)
 .bbox(x) # NULL
 x <- list(

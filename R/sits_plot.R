@@ -302,8 +302,7 @@ plot.predicted <- function(x, y, ...,
 #' @param  blue          Band for blue color.
 #' @param  tiles         Tiles to be plotted.
 #' @param  dates         Dates to be plotted.
-#' @param  palette       RColorBrewer palette to plot B/W image
-#' @param  n_colors      Number of colors to display B/W image
+#' @param  colors        An R color palette
 #' @param  sample_color  RColorBrewer name to display the samples
 #'
 #' @return               A plot object produced by the terra package
@@ -325,22 +324,18 @@ plot.predicted <- function(x, y, ...,
 #'     plot(cube, band = "NDVI", dates = sits_timeline(cube)[c(1:2)])
 #' }
 #' @export
-plot.raster_cube <- function(x, ...,
-                             samples = NULL,
-                             band = NULL,
-                             red = NULL,
-                             green = NULL,
-                             blue = NULL,
-                             tiles = x$tile[[1]],
-                             dates = NULL,
-                             palette = "YlGn",
-                             n_colors = 32,
-                             sample_color = "Set1") {
+plot.raster_cube <- function(
+        x, ...,
+        band = NULL,
+        red = NULL,
+        green = NULL,
+        blue = NULL,
+        tiles = x$tile[[1]],
+        dates = NULL,
+        colors = rev(grDevices::terrain.colors(30, alpha = NULL))
+) {
 
     dots <- list(...)
-
-    # install RColorBrewer if not available
-    .check_require_packages("RColorBrewer")
 
     .check_chr_contains(
         x = x$tile,
@@ -415,29 +410,19 @@ plot.raster_cube <- function(x, ...,
             # Plot a B/W band as false color
             if (!purrr::is_null(band)) {
                 .check_band_in_cube(band, row)
-                # check if n_colors is a valid number
-                .check_int_parameter(n_colors, min = 1, max = 256)
 
                 # plot a single band
-                bw_file <- dplyr::filter(bds, .data[["band"]] == band)$path
+                bw_file <- dplyr::filter(bds, .data[["band"]] == !!band)$path
                 # use the terra package to obtain a terra object from a stack
                 r_obj <- .raster_open_rast.terra(bw_file)
 
-                # check if pallete name exists in ColorBrewer
-                .check_chr_contains(
-                    x = rownames(RColorBrewer::brewer.pal.info),
-                    contains = palette,
-                    msg = "Invalid palette name: must be a ColorBrewer name"
-                )
-                # calculate the color palette
-                max_col <- RColorBrewer::brewer.pal.info[palette,]$maxcolors
                 # plot the data using terra
                 suppressWarnings(
                     terra::plot(
                         x = r_obj,
                         y = 1,
-                        col = grDevices::colorRampPalette(
-                            RColorBrewer::brewer.pal(max_col, palette))(n_colors)
+                        col = colors,
+                        ...
                     )
                 )
             }
@@ -487,8 +472,7 @@ plot.raster_cube <- function(x, ...,
 #' @param tiles          Tiles to be plotted.
 #' @param labels         Labels to plot (optional).
 #' @param breaks         Type of class intervals.
-#' @param n_colors       Number of colors to plot.
-#' @param palette        HCL palette used for visualization.
+#' @param colors         R color palette
 #' @return               A plot object produced by the stars package
 #'                       containing maps of probabilities associated
 #'                       to each class for each pixel.
@@ -529,12 +513,13 @@ plot.raster_cube <- function(x, ...,
 #'
 #' @export
 #'
-plot.probs_cube <- function(x, ...,
-                            tiles = NULL,
-                            labels = NULL,
-                            breaks = "equal",
-                            n_colors = 20,
-                            palette = "Terrain") {
+plot.probs_cube <- function(
+        x, ...,
+        tiles = NULL,
+        labels = NULL,
+        breaks = "equal",
+        colors = rev(grDevices::terrain.colors(12, alpha = NULL)),
+        palette = "Terrain") {
 
     dots <- list(...)
     # verifies if stars package is installed
@@ -546,13 +531,6 @@ plot.probs_cube <- function(x, ...,
         within = .config_get("class_intervals"),
         discriminator = "any_of",
         msg = "invalid class interval"
-    )
-    # precondition - check palette
-    .check_chr_within(
-        x = palette,
-        within = grDevices::hcl.pals(),
-        discriminator = "any_of",
-        msg = "invalid color palette"
     )
     # deal with wrong parameter "tile"
     if ("tile" %in% names(dots) && missing(tiles)) {
@@ -575,15 +553,7 @@ plot.probs_cube <- function(x, ...,
     # filter the cube
     x <- dplyr::filter(x, .data[["tile"]] %in% tiles)
     # define the number of colors
-    n_breaks <- n_colors + 1
-    # define the output color palette
-    col <- grDevices::hcl.colors(
-        n = n_colors,
-        palette = palette,
-        alpha = 1,
-        rev = TRUE
-    )
-
+    n_breaks <- length(colors) + 1
 
     # read the paths to plot
     paths <- slider::slide_chr(x, function(row) {
@@ -616,7 +586,7 @@ plot.probs_cube <- function(x, ...,
                 plot(
                     breaks = breaks,
                     nbreaks = n_breaks,
-                    col = col,
+                    col = colors,
                     main = labels
                 )
         })
@@ -625,7 +595,7 @@ plot.probs_cube <- function(x, ...,
             p <- plot(stars_mosaic,
                 breaks = breaks,
                 nbreaks = n_breaks,
-                col = col,
+                col = colors,
                 main = labels_cube
             )
         })
@@ -643,9 +613,8 @@ plot.probs_cube <- function(x, ...,
 #' @param  x             Object of class "probs_image".
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tiles          Tiles to be plotted.
-#' @param n_colors       Number of colors to plot.
 #' @param intervals      Type of class intervals.
-#' @param palette        HCL palette used for visualization.
+#' @param colors         R color palette (vector)
 #'
 #' @return               A plot object produced by the stars package
 #'                       with a map showing the uncertainty associated
@@ -683,11 +652,13 @@ plot.probs_cube <- function(x, ...,
 #' }
 #' @export
 #'
-plot.uncertainty_cube <- function(x, ...,
-                                  tiles = NULL,
-                                  n_colors = 14,
-                                  intervals = "log",
-                                  palette = "YlOrRd") {
+plot.uncertainty_cube <- function(
+        x, ...,
+        tiles = NULL,
+        intervals = "log",
+        colors = grDevices::colorRampPalette(
+            RColorBrewer::brewer.pal(9, "YlOrRd"))(16)
+) {
     # get other parameters
     dots <- list(...)
 
@@ -699,13 +670,6 @@ plot.uncertainty_cube <- function(x, ...,
         within = .config_get("class_intervals"),
         discriminator = "any_of",
         msg = "invalid class interval"
-    )
-    # precondition - check palette
-    .check_chr_within(
-        x = palette,
-        within = grDevices::hcl.pals(),
-        discriminator = "any_of",
-        msg = "invalid color palette"
     )
     # deal with wrong parameter "tile"
     if ("tile" %in% names(dots) && missing(tiles)) {
@@ -728,14 +692,8 @@ plot.uncertainty_cube <- function(x, ...,
     # filter the cube
     x <- dplyr::filter(x, .data[["tile"]] %in% tiles)
     # define the number of colors
-    n_breaks <- n_colors + 1
+    n_breaks <- length(colors) + 1
     # define the output color palette
-    col <- grDevices::hcl.colors(
-        n = n_colors,
-        palette = palette,
-        alpha = 1,
-        rev = TRUE
-    )
     if (intervals == "log") {
         breaks <- as.integer(
             1e+04 * (log(c(1:n_breaks))^1.6) / (log(n_breaks)^1.6)
@@ -763,7 +721,7 @@ plot.uncertainty_cube <- function(x, ...,
     p <- suppressMessages(plot(stars_mosaic,
         breaks = breaks,
         nbreaks = n_breaks,
-        col = col,
+        col = colors,
         main = "Uncertainty"
     ))
     return(invisible(p))

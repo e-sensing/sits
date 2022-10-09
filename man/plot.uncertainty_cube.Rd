@@ -8,9 +8,8 @@
   x,
   ...,
   tiles = NULL,
-  n_colors = 14,
   intervals = "log",
-  palette = "YlOrRd"
+  colors = (grDevices::colorRampPalette(RColorBrewer::brewer.pal(9, "YlOrRd")))(16)
 )
 }
 \arguments{
@@ -20,11 +19,9 @@
 
 \item{tiles}{Tiles to be plotted.}
 
-\item{n_colors}{Number of colors to plot.}
-
 \item{intervals}{Type of class intervals.}
 
-\item{palette}{HCL palette used for visualization.}
+\item{colors}{R color palette (vector)}
 }
 \value{
 A plot object produced by the stars package

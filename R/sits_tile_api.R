@@ -8,7 +8,7 @@
 #' @param ... Additional parameters.
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' .as_int(1.234)
 #' .as_dbl(42L)
 #' x <- 1.234
@@ -126,7 +126,7 @@ NULL
 #'   (with error or not).
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' .try({
 #'   file <- tempfile("test.txt")
 #'   cat(letters, file = file)
@@ -211,7 +211,7 @@ NULL
 #' intersects \code{y} geometries.
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' x <- .bbox_as_sf(c(xmin=1, xmax=2, ymin=3, ymax=4, crs=4326))
 #' y <- .roi_as_sf(c(lon_min=1.5, lon_max=3, lat_min=3.5, lat_max=5))
 #' .intersects(x, y) # TRUE
@@ -327,7 +327,7 @@ NULL
 #' @param default_crs Default crs value if object doesn't have one.
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' x <- c(xmax = "123")
 #' .xmax(x) # 123 as number
 #' x <- list(xmin = 1, xmax = 2, ymin = 3, ymax = 4)
@@ -434,7 +434,7 @@ NULL
 #' @param value Value to set on object field.
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' x <- c(row = 3.45)
 #' .row(x) # 3 as integer
 #' x <- list(col = 1, row = 2, ncols = 3)
@@ -511,7 +511,7 @@ NULL
 #' @param value Value to set on object field.
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' x <- c(nrows = 100, ymin = 1, ymax = 10)
 #' .yres(x) # 0.09
 #' }
@@ -543,7 +543,7 @@ NULL
 #'   \code{.conf_eo_band()} or \code{.conf_derived_band()}.
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' # Get configuration band
 #' x <- .conf_eo_band(
 #'   source = "BDC",
@@ -671,7 +671,7 @@ NULL
 #' \code{nrows}.
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' x <- list(a = 0, z = 0)
 #' .block(x) # NULL
 #' x <- list(a = 0, row = 2, ncols = 3, nrows = 4, z = 0)
@@ -736,7 +736,7 @@ NULL
 #' CRS.
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' x <- list(a = 0, z = 0)
 #' .bbox(x) # NULL
 #' x <- list(
@@ -849,7 +849,7 @@ NULL
 #' be \code{'EPSG:4326'}.
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' x <- list(lon_min = 1, lon_max = 2, lat_min = 3, lat_max = 4)
 #' .roi_type(x) # lonlat
 #' .roi_as_sf(x)
@@ -932,7 +932,7 @@ NULL
 #' @param chunks A \code{chunk}.
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' chunks <- .chunks_create(
 #'   block = c(ncols = 512, nrows = 512),
 #'   overlap = 2,
@@ -1123,7 +1123,7 @@ NULL
 #' @param throw_error Should an error be thrown if test fails?
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' .conf_exists("run_tests") # TRUE
 #' .conf("run_tests")
 #' .conf_exists("not_existing_config_entry") # FALSE
@@ -1176,7 +1176,7 @@ NULL
 #' @param band Band name.
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' # tests if 'BDC -> MOD13Q1-6 -> NDVI' key exists in config
 #' .conf_eo_band_exists(
 #'   source = "BDC", collection = "MOD13Q1-6", band = "NDVI"
@@ -1264,7 +1264,7 @@ NULL
 #' @param band Band name.
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' # get S3 class value that a derived_cube of class 'probs' must have
 #' .conf_derived_s3class("probs_cube")
 #' .conf_derived_band("probs_cube", "probs")
@@ -1373,7 +1373,6 @@ NULL
         geom
     })
 }
-
 
 #---- fi API: ----
 
