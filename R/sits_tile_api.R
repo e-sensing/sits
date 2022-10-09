@@ -1266,7 +1266,7 @@ NULL
 #' @examples
 #' \dontrun{
 #' # get S3 class value that a derived_cube of class 'probs' must have
-#' .conf_derived_s3class("probs")
+#' .conf_derived_s3class("probs_cube")
 #' }
 #'
 #' @returns Configuration value.
