@@ -831,7 +831,7 @@ NULL
     })
 }
 
-#---- roi API: ----
+#---- ROI API: ----
 
 #' ROI API
 #'
@@ -912,7 +912,7 @@ NULL
     )
 }
 
-#---- chunks API: ----
+#---- Chunks API: ----
 
 #' Chunks API
 #'
