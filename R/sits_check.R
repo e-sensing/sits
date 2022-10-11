@@ -1224,7 +1224,7 @@
 #' @param  len_max maximum length of vector
 #' @param  allow_null allow NULL?
 #'
-#' @return          No return value, called for side effects.
+#' @return No return value, called for side effects.
 #' @keywords internal
 .check_dates_parameter <- function(param, len_min = 1, len_max = 2^31 - 1,
                                    allow_null = TRUE) {
