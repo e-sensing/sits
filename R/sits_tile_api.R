@@ -1539,13 +1539,6 @@ NULL
     )
 }
 
-.fi_date <- function(fi) {
-    .fi_switch(
-        fi = fi,
-        eo_cube = .as_date(fi[["date"]][[1]])
-    )
-}
-
 .fi_timeline <- function(fi) {
     .fi_switch(
         fi = fi,
