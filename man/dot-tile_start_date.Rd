@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_tile_api.R
 \name{.tile_start_date}
 \alias{.tile_start_date}
-\title{Tile API}
+\title{Get first date from tile}
 \usage{
 .tile_start_date(tile)
 }
@@ -13,5 +13,6 @@
 date
 }
 \description{
-Get first date from file_info.
+Get first date from tile
 }
+\keyword{internal}

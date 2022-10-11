@@ -1,9 +1,10 @@
 
 #' @title sits log functions
 #'
-#' @name sits_debug_log
+#' @name .sits_debug_log
 #'
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description
@@ -35,7 +36,7 @@
 #' @return             A logical value with current debug flag
 NULL
 
-#' @rdname sits_debug_log
+#' @rdname .sits_debug_log
 .sits_debug_log <- function(event = "", key = "", value = "") {
 
     # if debug flag is FALSE, then exit

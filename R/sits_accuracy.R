@@ -51,17 +51,15 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # show accuracy for a set of samples
-#'     train_data <- sits_sample(samples_modis_4bands, n = 200)
-#'     test_data <- sits_sample(samples_modis_4bands, n = 200)
+#'     train_data <- sits_sample(samples_modis_ndvi, n = 200)
+#'     test_data <- sits_sample(samples_modis_ndvi, n = 200)
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     points_class <- sits_classify(test_data, rfor_model)
 #'     acc <- sits_accuracy(points_class)
 #'
 #'     # show accuracy for a data cube classification
-#'     # select a set of samples
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a random forest model
-#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
@@ -147,10 +145,10 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
 
     # Create a list of (predicted, reference) values
     # Consider all tiles of the data cube
-    pred_ref_lst <- slider::slide(data, function(row) {
+    pred_ref_lst <- slider::slide(data, function(tile) {
 
         # Find the labelled band
-        labelled_band <- sits_bands(row)
+        labelled_band <- .tile_bands(tile)
 
         # Is the labelled band unique?
         .check_length(
@@ -163,7 +161,7 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
         xy_tb <- .sits_proj_from_latlong(
             longitude = csv_tb$longitude,
             latitude = csv_tb$latitude,
-            crs = .cube_crs(row)
+            crs = .crs(tile)
         )
 
         # join lat-long with XY values in a single tibble
@@ -197,9 +195,9 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
         colnames(xy) <- c("X", "Y")
 
         # Extract values from cube
-        values <- .cube_extract(
-            cube = row,
-            band_cube = labelled_band,
+        values <- .tile_extract(
+            tile = row,
+            band = labelled_band,
             xy = xy
         )
         # Get the predicted values
@@ -232,7 +230,7 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
     freq_lst <- slider::slide(data, function(tile) {
 
         # Get the frequency count and value for each labelled image
-        freq <- .cube_area_freq(tile)
+        freq <- .tile_area_freq(tile)
         # pixel area
         # get the resolution
         res <- .cube_resolution(tile)
@@ -268,6 +266,7 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
 #' @title Obtains the predicted value of a reference set
 #' @name .sits_accuracy_pred_ref
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Obtains a tibble of predicted and reference values
@@ -293,6 +292,7 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
 #' @name .sits_accuracy_area_assess
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @keywords internal
+#' @noRd
 #' @param cube         Data cube.
 #' @param error_matrix Matrix given in sample counts.
 #'                     Columns represent the reference data and

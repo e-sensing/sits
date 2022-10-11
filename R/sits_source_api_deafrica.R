@@ -1,4 +1,5 @@
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_new.deafrica_cube <- function(source, ...,
                                             collection,
@@ -20,8 +21,7 @@
     items_info <- rstac::post_request(q = stac_query, ...)
     # if more than 2 times items pagination are found the progress bar
     # is displayed
-    progress <- rstac::items_matched(items_info) > 2 * .config_rstac_limit()
-
+    progress <- rstac::items_matched(items_info) > 2 * .conf("rstac_pagination_limit")
     # check documentation mode
     progress <- .check_documentation(progress)
 
@@ -39,6 +39,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_tile.deafrica_cube <- function(source, ...,
                                              items,

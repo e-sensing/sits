@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_tile_api.R
 \name{.tile_end_date}
 \alias{.tile_end_date}
-\title{Tile API}
+\title{Get end date from file_info.}
 \usage{
 .tile_end_date(tile)
 }
@@ -15,3 +15,4 @@ date
 \description{
 Get end date from file_info.
 }
+\keyword{internal}

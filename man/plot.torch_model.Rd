@@ -31,7 +31,7 @@ Please refer to the sits documentation available in
 if (sits_run_examples()) {
     # Retrieve the samples for Mato Grosso
     # train a tempCNN model
-    ml_model <- sits_train(samples_modis_4bands, ml_method = sits_tempcnn)
+    ml_model <- sits_train(samples_modis_ndvi, ml_method = sits_tempcnn)
     # plot the model
     plot(ml_model)
 }

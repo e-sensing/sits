@@ -48,7 +48,6 @@ Imports:
     dplyr (>= 1.0.0),
     gdalUtilities,
     grDevices,
-    ggplot2,
     graphics,
     lubridate,
     parallel (>= 4.0.5),
@@ -73,6 +72,7 @@ Suggests:
     FNN,
     gdalcubes (>= 0.6.0),
     geojsonsf,
+    ggplot2,
     httr,
     jsonlite,
     kohonen(>= 3.0.11),
@@ -89,6 +89,7 @@ Suggests:
     scales,
     stars (>= 0.5),
     testthat (>= 3.1.3),
+    tmap,
     torchopt(>= 0.1.2),
     xgboost,
     zoo
@@ -112,6 +113,7 @@ Collate:
     'sits_classification.R'
     'sits_classify_ts.R'
     'sits_classify_cube.R'
+    'sits_colors.R'
     'sits_combine_predictions.R'
     'sits_compare.R'
     'sits_config.R'

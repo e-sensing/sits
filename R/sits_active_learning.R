@@ -54,8 +54,7 @@
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # build a random forest model
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
-#'     rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
+#'     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
 #'     # classify the cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
 #'     # create an uncertainty cube
@@ -82,7 +81,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
 
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(uncert_cube, function(tile) {
-        path <- .file_info_path(tile)
+        path <-  .tile_path(tile)
         # Get a list of values of high uncertainty
         top_values <- .raster_open_rast(path) %>%
             .sits_get_top_values(
@@ -92,7 +91,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
             ) %>%
             dplyr::mutate(
                 value = .data[["value"]] *
-                    .config_get("probs_cube_scale_factor")
+                    .conf("probs_cube_scale_factor")
             ) %>%
             dplyr::filter(
                 .data[["value"]] >= min_uncert
@@ -102,8 +101,8 @@ sits_uncertainty_sampling <- function(uncert_cube,
             )) %>%
             tibble::as_tibble()
         # All the cube's uncertainty images have the same start & end dates.
-        top_values[["start_date"]] <- .file_info_start_date(tile)
-        top_values[["end_date"]] <- .file_info_end_date(tile)
+        top_values[["start_date"]] <- .tile_start_date(tile)
+        top_values[["end_date"]]   <- .tile_end_date(tile)
         top_values[["label"]] <- "NoClass"
 
         return(top_values)
@@ -189,8 +188,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # build a random forest model
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
-#'     rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
+#'     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
 #'     # classify the cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
 #'     # obtain a new set of samples for active learning
@@ -217,7 +215,7 @@ sits_confidence_sampling <- function(probs_cube,
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(probs_cube, function(tile) {
         # Open raster
-        r_obj <- .raster_open_rast(.file_info_path(tile))
+        r_obj <- .raster_open_rast(.tile_path(tile))
 
         # Get samples for each label
         purrr::map2_dfr(labels, seq_along(labels), function(lab, i) {
@@ -231,7 +229,7 @@ sits_confidence_sampling <- function(probs_cube,
                 ) %>%
                 dplyr::mutate(
                     value = .data[["value"]] *
-                        .config_get("probs_cube_scale_factor")
+                        .conf("probs_cube_scale_factor")
                 ) %>%
                 dplyr::filter(
                     .data[["value"]] >= min_margin
@@ -243,8 +241,8 @@ sits_confidence_sampling <- function(probs_cube,
 
             # All the cube's uncertainty images have the same start &
             # end dates.
-            top_values[["start_date"]] <- .file_info_start_date(tile)
-            top_values[["end_date"]] <- .file_info_end_date(tile)
+            top_values[["start_date"]] <- .tile_start_date(tile)
+            top_values[["end_date"]]   <- .tile_end_date(tile)
             top_values[["label"]] <- lab
 
             return(top_values)
@@ -289,7 +287,7 @@ sits_confidence_sampling <- function(probs_cube,
 #' @title Get top values of a raster.
 #'
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#'
+#' @keywords internal
 #' @description
 #' Get the top values of a raster as a point `sf` object. The values
 #' locations are guaranteed to be separated by a certain number of pixels.
@@ -308,11 +306,11 @@ sits_confidence_sampling <- function(probs_cube,
 
     # Pre-conditions have been checked in calling functions
     # Get top values
-    samples_tb <- terra::values(r_obj, mat = TRUE) %>%
+    samples_tb <- .raster_get_values(r_obj) %>%
         max_sampling(
             band = band - 1,
-            img_nrow = terra::nrow(r_obj),
-            img_ncol = terra::ncol(r_obj),
+            img_nrow = .raster_nrows(r_obj),
+            img_ncol = .raster_ncols(r_obj),
             window_size = sampling_window
         ) %>%
         dplyr::slice_max(
@@ -329,7 +327,7 @@ sits_confidence_sampling <- function(probs_cube,
         tibble::as_tibble() %>%
         sf::st_as_sf(
             coords = c("x", "y"),
-            crs = terra::crs(r_obj),
+            crs = .raster_crs(r_obj),
             dim = "XY",
             remove = TRUE
         ) %>%

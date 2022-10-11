@@ -1,7 +1,7 @@
 test_that("SVM  - Formula logref", {
-    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
+
     svm_model <- sits_train(
-        samples_mt_ndvi,
+        samples_modis_ndvi,
         sits_svm(
             formula = sits_formula_logref(),
             kernel = "radial",
@@ -18,16 +18,14 @@ test_that("SVM  - Formula logref", {
     expect_true(sits_labels(point_class) == "NoClass")
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)))
+        sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
 test_that("SVM  - Formula logref - difference", {
-    samples_mt_2bands <- sits_select(samples_modis_4bands,
-        bands = c("NDVI", "EVI")
-    )
+
     svm_model <- sits_train(
-        samples_mt_2bands,
+        samples_modis_ndvi,
         ml_method = sits_svm(
             formula = sits_formula_logref(),
             kernel = "radial",
@@ -41,14 +39,14 @@ test_that("SVM  - Formula logref - difference", {
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_2bands)))
+        sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 100)
 })
 
 test_that("SVM - Formula linear", {
-    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
+
     svm_model <- sits_train(
-        samples_mt_ndvi,
+        samples_modis_ndvi,
         sits_svm(
             formula = sits_formula_linear(),
             kernel = "radial",
@@ -62,13 +60,13 @@ test_that("SVM - Formula linear", {
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)))
+        sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
 test_that("Random Forest", {
-    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-    rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 200))
+
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 200))
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_class <- sits_classify(
         data = point_ndvi,
@@ -76,13 +74,13 @@ test_that("Random Forest", {
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)))
+        sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
 test_that("Random Forest - Whittaker", {
-    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-    samples_mt_whit <- sits_filter(samples_mt_ndvi, filter = sits_whittaker())
+
+    samples_mt_whit <- sits_filter(samples_modis_ndvi, filter = sits_whittaker())
     rfor_model <- sits_train(samples_mt_whit, sits_rfor(num_trees = 200))
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_whit <- sits_filter(point_ndvi, filter = sits_whittaker())
@@ -92,13 +90,13 @@ test_that("Random Forest - Whittaker", {
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)))
+        sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
 test_that("Random Forest - SGolay", {
-    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-    samples_mt_sg <- sits_filter(samples_mt_ndvi, filter = sits_sgolay())
+
+    samples_mt_sg <- sits_filter(samples_modis_ndvi, filter = sits_sgolay())
     rfor_model <- sits_train(samples_mt_sg, sits_rfor(num_trees = 200))
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_sg <- sits_filter(point_ndvi, filter = sits_sgolay())
@@ -108,14 +106,14 @@ test_that("Random Forest - SGolay", {
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)))
+        sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
 test_that("XGBoost", {
-    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
+
     model <- sits_train(
-        samples_mt_ndvi,
+        samples_modis_ndvi,
         sits_xgboost(
             nrounds = 10,
             verbose = FALSE
@@ -128,13 +126,13 @@ test_that("XGBoost", {
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)))
+        sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
 test_that("DL-MLP", {
     model <- sits_train(
-        sits_select(samples_modis_4bands, bands = "NDVI"),
+        samples_modis_ndvi,
         sits_mlp(
             layers = c(128, 128),
             dropout_rates = c(0.5, 0.4),
@@ -149,16 +147,16 @@ test_that("DL-MLP", {
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_modis_4bands)))
+        sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
 test_that("ResNet", {
-    samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
+
 
     model <- tryCatch(
         {
-            sits_train(samples_ndvi, sits_resnet(epochs = 5))
+            sits_train(samples_modis_ndvi, sits_resnet(epochs = 5))
         },
         error = function(e) {
             return(NULL)
@@ -175,13 +173,12 @@ test_that("ResNet", {
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_ndvi)))
+        sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
 test_that("TempCNN model", {
-    model <- sits_train(
-        sits_select(samples_modis_4bands, bands = "NDVI"),
+    model <- sits_train(samples_modis_ndvi,
         sits_tempcnn(epochs = 5)
     )
 
@@ -195,13 +192,12 @@ test_that("TempCNN model", {
         )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_modis_4bands)))
+        sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
 test_that("LightTAE model", {
-    model <- sits_train(
-        sits_select(samples_modis_4bands, bands = "NDVI"),
+    model <- sits_train(samples_modis_ndvi,
         sits_lighttae(epochs = 5)
     )
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
@@ -213,13 +209,12 @@ test_that("LightTAE model", {
         )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_modis_4bands)))
+        sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
 test_that("PSETAE model", {
-    model <- sits_train(
-        sits_select(samples_modis_4bands, bands = "NDVI"),
+    model <- sits_train(samples_modis_ndvi,
         sits_tae(epochs = 5)
     )
 
@@ -232,7 +227,7 @@ test_that("PSETAE model", {
         )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_modis_4bands)))
+        sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 

@@ -7,11 +7,10 @@
 \method{plot}{probs_cube}(
   x,
   ...,
-  tiles = NULL,
+  tile = x$tile[[1]],
   labels = NULL,
-  breaks = "equal",
-  colors = rev(grDevices::terrain.colors(12, alpha = NULL)),
-  palette = "Terrain"
+  palette = "YlGnBu",
+  rev = FALSE
 )
 }
 \arguments{
@@ -19,39 +18,25 @@
 
 \item{...}{Further specifications for \link{plot}.}
 
-\item{tiles}{Tiles to be plotted.}
+\item{tile}{Tile to be plotted.}
 
 \item{labels}{Labels to plot (optional).}
 
-\item{breaks}{Type of class intervals.}
+\item{palette}{RColorBrewer palette}
 
-\item{colors}{R color palette}
+\item{rev}{Reverse order of colors in palette?}
 }
 \value{
-A plot object produced by the stars package
-                      containing maps of probabilities associated
+A plot containing maps of probabilities associated
                       to each class for each pixel.
 }
 \description{
 plots a probability cube using stars
 }
-\note{
-\itemize{Possible class intervals
- \item{"sd":} {intervals based on the average and standard deviation.}
- \item{"equal": } {divides the range of the variable into n parts.}
- \item{"pretty": } {number of breaks likely to be legible.}
- \item{"quantile": } {quantile breaks}
- \item{"log": }{logarithm plot}
- }
-
-The function accepts color palettes are defined in grDevices::hcl.pals()
-}
 \examples{
 if (sits_run_examples()) {
-    # select a set of samples
-    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
     # create a random forest model
-    rfor_model <- sits_train(samples_ndvi, sits_rfor())
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(

@@ -18,3 +18,4 @@ cube
 Filter tiles with 'file_info' entries between 'start_date'
 and 'end_date'.
 }
+\keyword{internal}

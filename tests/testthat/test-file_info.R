@@ -20,49 +20,40 @@ test_that("file_info functions", {
     )
 
     # only works with one tile
-    expect_error(.file_info(cbers_cube))
 
     cbers_tile <- cbers_cube[1, ]
 
     # file info
-    expect_s3_class(.file_info(cbers_tile), "tbl_df")
-    expect_equal(.file_info(cbers_tile), cbers_tile[["file_info"]][[1]])
+    expect_s3_class(.fi(cbers_tile), "tbl_df")
+    expect_equal(.fi(cbers_tile), cbers_tile[["file_info"]][[1]])
 
     # tile size
-    expect_equal(.file_info_nrows(cbers_tile), 6865)
-    expect_equal(.file_info_ncols(cbers_tile), 10504)
+    expect_equal(.fi(cbers_tile)[["nrows"]], 6865)
+    expect_equal(.fi(cbers_tile)[["ncols"]], 10504)
 
     # tile paths
-    expect_length(.file_info_path(cbers_tile), 1)
-    expect_length(.file_info_paths(cbers_tile), 8)
+    expect_length(.fi_path(.fi(cbers_tile)), 1)
+    expect_length(.fi_paths(.fi(cbers_tile)), 8)
 
     # tile resolutions
-    expect_equal(.file_info_xres(cbers_tile), 63.99735, tolerance = 10e-6)
-    expect_equal(.file_info_yres(cbers_tile), 64.00234, tolerance = 10e-6)
+    expect_equal(.fi(cbers_tile)[["xres"]], 63.99735, tolerance = 10e-6)
+    expect_equal(.fi(cbers_tile)[["yres"]], 64.00234, tolerance = 10e-6)
 
     # tile properties
-    expect_length(.file_info_fids(cbers_tile), 4)
-    expect_length(.file_info_timeline(cbers_tile), 4)
-    expect_equal(.file_info_bands(cbers_tile), c("EVI", "NDVI"))
+    expect_length(.fi(cbers_tile)[["fid"]], 4)
+    expect_length(.tile_timeline(cbers_tile), 4)
+    expect_equal(.tile_bands(cbers_tile), c("EVI", "NDVI"))
 
     # tile filters
-    tile_fid <- .file_info(
-        cbers_tile,
-        fid = "CB4_64_16D_STK_v001_022024_2018-09-14_2018-09-29"
+    tile_fid <- dplyr::filter(.fi(cbers_tile),
+        fid == "CB4_64_16D_STK_v001_022024_2018-09-14_2018-09-29"
     )
 
     expect_s3_class(tile_fid, "tbl_df")
     expect_equal(nrow(tile_fid), 2)
 
-    expect_error(
-        .file_info(
-            cbers_tile,
-            fid = "CB4_64_16D_STK_v001_022024_2019-08-13_2019-08-28_ABC"
-        )
-    )
-
-    tile_sliced_date <- .file_info(
-        cbers_tile,
+    tile_sliced_date <- .fi_filter_interval(
+        .fi(cbers_tile),
         start_date = "2018-08-29",
         end_date = "2018-09-14"
     )
@@ -70,42 +61,18 @@ test_that("file_info functions", {
     expect_s3_class(tile_sliced_date, "tbl_df")
     expect_equal(nrow(tile_sliced_date), 2)
 
-    expect_error(
-        .file_info(
-            cbers_tile,
-            start_date = "2020-07-12",
-            end_date = "2021-07-28"
-        )
-    )
+    tile_band <- .tile_filter_bands(cbers_tile, bands = "NDVI")
 
-    expect_error(
-        .file_info(
-            cbers_tile,
-            start_date = "2019-07-12",
-            end_date = "2021-07-28"
-        )
-    )
-
-    tile_band <- .file_info(cbers_tile, bands = "NDVI")
-
-    expect_s3_class(tile_band, "tbl_df")
-    expect_equal(nrow(tile_band), 4)
-
-    expect_error(
-        .file_info(cbers_tile, bands = "NDVIABC")
-    )
+    expect_s3_class(.fi(tile_band), "tbl_df")
+    expect_equal(nrow(.fi(tile_band)), 4)
 })
 
 test_that("file_info functions for result cubes", {
 
 
-    samples_modis <- sits_select(samples_modis_4bands,
-        bands = c("NDVI")
-    )
-
     # build an extreme gradient boosting model
     xgb_model <- sits_train(
-        samples_modis,
+        samples_modis_ndvi,
         sits_xgboost(nrounds = 50, verbose = FALSE)
     )
 
@@ -130,22 +97,12 @@ test_that("file_info functions for result cubes", {
         multicores = 2
     )
 
-    expect_error(.file_info_start_date(local_cube))
-    expect_error(.file_info_end_date(local_cube))
-
-    expect_equal(class(.file_info_start_date(probs_cube)), "Date")
-    expect_equal(class(.file_info_end_date(probs_cube)), "Date")
-
-    # timeline
-    expect_error(.file_info_timeline(probs_cube))
-
     # tile resolutions
-    expect_equal(.file_info_xres(probs_cube), 231.656, tolerance = 10e-6)
-    expect_equal(.file_info_yres(probs_cube), 231.6564, tolerance = 10e-6)
+    expect_equal(.fi(probs_cube)[["xres"]], 231.656, tolerance = 10e-6)
+    expect_equal(.fi(probs_cube)[["yres"]], 231.6564, tolerance = 10e-6)
 
     # tile properties
-    expect_error(.file_info_fids(probs_cube))
-    expect_equal(.file_info_bands(probs_cube), "probs")
+    expect_equal(.tile_bands(probs_cube), "probs")
 })
 
 test_that("file_info errors", {
@@ -158,35 +115,10 @@ test_that("file_info errors", {
         end_date = "2018-10-01"
     )
 
-    # only works with one tile
-    expect_error(.file_info(s2_cube))
-
     s2_tile <- s2_cube[1, ]
 
     # file info
-    expect_s3_class(.file_info(s2_tile), "tbl_df")
+    expect_s3_class(.fi(s2_tile), "tbl_df")
 
-    # raster size
-    expect_error(.file_info_nrows(s2_tile))
-    expect_error(.file_info_ncols(s2_tile))
-
-    s2_tile[["file_info"]][[1]][["path"]] <- 1:18
-    expect_error(.file_info_path(s2_tile))
-    expect_error(.file_info_paths(s2_tile))
-
-    # cube resolution
-    s2_tile[["file_info"]][[1]][["xres"]] <- NULL
-    s2_tile[["file_info"]][[1]][["yres"]] <- NULL
-    expect_error(.file_info_xres(s2_tile))
-    expect_error(.file_info_yres(s2_tile))
-
-    # cube properties
-    s2_tile[["file_info"]][[1]][["fid"]] <- NULL
-    expect_error(.file_info_fids(s2_tile))
-
-    s2_tile[["file_info"]][[1]][["date"]] <- NULL
-    expect_error(.file_info_timeline(s2_tile))
-
-    s2_tile[["file_info"]][[1]][["band"]] <- NULL
-    expect_error(.file_info_bands(s2_tile))
+    expect_error(.check_is_regular(s2_cube))
 })

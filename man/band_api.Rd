@@ -47,3 +47,4 @@ if (sits_run_examples()) {
 \seealso{
 \link{band_accessors}
 }
+\keyword{internal}

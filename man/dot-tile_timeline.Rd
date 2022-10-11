@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_tile_api.R
 \name{.tile_timeline}
 \alias{.tile_timeline}
-\title{Tile API}
+\title{Get unique timeline from file_info.}
 \usage{
 .tile_timeline(tile)
 }
@@ -10,8 +10,9 @@
 \item{tile}{A tile.}
 }
 \value{
-date
+a timeline
 }
 \description{
 Get unique timeline from file_info.
 }
+\keyword{internal}

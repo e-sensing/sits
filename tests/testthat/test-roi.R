@@ -1,9 +1,5 @@
 test_that("One-year, multicore classification with ROI", {
-    samples_ndvi <- sits_select(samples_modis_4bands,
-        bands = c("NDVI")
-    )
-
-    rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 30))
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 30))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -87,7 +83,7 @@ test_that("Functions that work with ROI", {
     roi[["ymax"]] <- (roi[["ymax"]] - roi[["ymin"]]) / 2 + roi[["ymin"]]
 
     # retrieve the bounding box for this ROI
-    bbox_1 <- .sits_roi_bbox(roi, cube)
+    bbox_1 <- .roi_bbox(roi, cube)
 
     expect_true(length(.sits_bbox_intersect(bbox_1, cube)) == 4)
 
@@ -102,14 +98,14 @@ test_that("Functions that work with ROI", {
         sf::st_as_sf(coords = c("longitude", "latitude"), crs = 4326)
 
     # read a bbox as an sf object
-    bbox_2 <- .sits_roi_bbox(sf_obj, cube)
+    bbox_2 <- .roi_bbox(sf_obj, cube)
     expect_true(length(.sits_bbox_intersect(bbox_2, cube)) == 4)
 
     # extract the bounding box from a set of lat/long points
     sf_bbox <- sf::st_bbox(sf_obj)
     names(sf_bbox) <- c("lon_min", "lat_min", "lon_max", "lat_max")
     class(sf_bbox) <- c("vector")
-    bbox_3 <- .sits_roi_bbox(sf_bbox, cube)
+    bbox_3 <- .roi_bbox(sf_bbox, cube)
 
     expect_true(length(.sits_bbox_intersect(bbox_3, cube)) == 4)
 })
@@ -147,7 +143,7 @@ test_that("Internal functions in ROI", {
     bb[["xmin"]] <- bb[["xmin"]] + x_size / 4
     bb[["ymin"]] <- bb[["ymin"]] + x_size / 4
 
-    si <- .sits_raster_sub_image_from_bbox(bb, cube)
+    si <- .raster_sub_image_from_bbox(bb, cube)
     expect_equal(si[["col"]], 64)
     expect_equal(si[["row"]], 1)
     expect_equal(si[["ncols"]], 191)

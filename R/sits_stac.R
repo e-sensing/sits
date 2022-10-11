@@ -2,7 +2,7 @@
 #'
 #' @description Select bands in stac items by sits bands.
 #' @keywords internal
-#'
+#' @noRd
 #' @param items        \code{STACItemcollection} object from rstac package.
 #' @param bands_source Source bands (provider bands).
 #' @param bands_sits   Sits bands.
@@ -41,7 +41,7 @@
 #' @title Datetime format
 #' @name .stac_format_datetime
 #' @keywords internal
-#'
+#' @noRd
 #' @param start_date Initial date for cube.
 #' @param end_date   Final date for the cube.
 #'
@@ -58,15 +58,15 @@
 #' @title Platform format
 #' @name .stac_format_platform
 #' @keywords internal
-#'
+#' @noRd
 #' @param source     A \code{character} value referring to a valid data source.
 #' @param collection Image collection.
 #' @param platform   Sensor platform
 #'
 #' @return      a \code{character} formatted as parameter to STAC requisition.
 .stac_format_platform <- function(source, collection, platform) {
-    platforms <- .config_get(
-        key = c("sources", source, "collections",  collection, "platforms")
+    platforms <- .conf(
+        "sources", source, "collections",  collection, "platforms"
     )
 
     platform_source <- platforms[platform]
@@ -82,6 +82,7 @@
 #' @title Add href locator to gdal file
 #' @name .stac_add_gdal_vsi
 #' @keywords internal
+#' @noRd
 #' @description Currently, HTTP, S3 (AWS), and google storage (gs)
 #'  links are supported.
 #'
@@ -117,7 +118,7 @@
 #' @name .stac_items_query
 #' @description Creates a query using rstac package to send to STAC API.
 #' @keywords internal
-#'
+#' @noRd
 #' @param source     Name of the STAC provider.
 #' @param collection Collection to be searched in the data source.
 #' @param ...        Other parameters to be passed for specific types.
@@ -148,11 +149,11 @@
     # obtain the bounding box and intersects parameters
     if (!purrr::is_null(roi_sf)) {
         # convert to geojson
-        roi_geojson <- .sits_roi_sf_to_geojson(roi_sf)
+        roi_geojson <- .roi_sf_to_geojson(roi_sf)
     }
     # get the limit items to be returned in each page
     if (is.null(limit)) {
-        limit <- .config_rstac_limit()
+        limit <- .conf("rstac_pagination_limit")
     }
     # create a query object to be searched by STAC
     rstac_query <- rstac::stac_search(

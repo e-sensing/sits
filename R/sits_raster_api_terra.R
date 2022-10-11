@@ -1,4 +1,5 @@
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_check_package.terra <- function() {
 
@@ -14,18 +15,21 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_data_type.terra <- function(data_type, ...) {
     return(data_type)
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_resampling.terra <- function(method, ...) {
     return(method)
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_get_values.terra <- function(r_obj, ...) {
 
@@ -38,6 +42,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_set_values.terra <- function(r_obj, values, ...) {
     terra::values(x = r_obj) <- as.matrix(values)
@@ -46,12 +51,14 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_extract.terra <- function(r_obj, xy, ...) {
     terra::extract(x = r_obj, y = xy, ...)
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_ext_as_sf.terra <- function(r_obj) {
     suppressWarnings(
@@ -63,6 +70,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_file_blocksize.terra <- function(r_obj) {
         block_size <- c(terra::fileBlocksize(r_obj))
@@ -72,6 +80,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_rast.terra <- function(r_obj, nlayers = 1, ...) {
     suppressWarnings(
@@ -80,6 +89,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_open_rast.terra <- function(file, ...) {
     suppressWarnings(
@@ -88,6 +98,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_write_rast.terra <- function(r_obj,
                                      file,
@@ -105,7 +116,7 @@
             wopt = list(
                 filetype = "GTiff",
                 datatype = data_type,
-                gdal = .config_gtiff_default_options()
+                gdal = .conf("gdal_creation_options")
             ),
             NAflag = missing_value,
             overwrite = overwrite, ...
@@ -122,6 +133,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_new_rast.terra <- function(nrows,
                                    ncols,
@@ -175,6 +187,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_read_rast.terra <- function(files, ..., block = NULL) {
 
@@ -212,6 +225,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_crop.terra <- function(r_obj,
                                file,
@@ -253,7 +267,7 @@
             wopt = list(
                 filetype = "GTiff",
                 datatype = data_type,
-                gdal = .config_gtiff_default_options()
+                gdal = .conf("gdal_creation_options")
             ),
             NAflag = missing_value,
             overwrite = overwrite
@@ -262,6 +276,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_crop_metadata.terra <- function(r_obj, ...,
                                         block = NULL,
@@ -304,30 +319,35 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_nrows.terra <- function(r_obj, ...) {
     terra::nrow(x = r_obj)
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_ncols.terra <- function(r_obj, ...) {
     terra::ncol(x = r_obj)
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_nlayers.terra <- function(r_obj, ...) {
     terra::nlyr(x = r_obj)
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_xmax.terra <- function(r_obj, ...) {
     terra::xmax(x = r_obj)
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_xmin.terra <- function(r_obj, ...) {
     terra::xmin(x = r_obj)
@@ -335,29 +355,34 @@
 
 #' @keywords internal
 #' @export
+#' @noRd
 .raster_ymax.terra <- function(r_obj, ...) {
     terra::ymax(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
+#' @noRd
 .raster_ymin.terra <- function(r_obj, ...) {
     terra::ymin(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
+#' @noRd
 .raster_xres.terra <- function(r_obj, ...) {
     terra::xres(x = r_obj)
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_yres.terra <- function(r_obj, ...) {
     terra::yres(x = r_obj)
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_crs.terra <- function(r_obj, ...) {
     crs <- suppressWarnings(
@@ -372,8 +397,9 @@
         as.character(terra::crs(x = r_obj))
     )
 }
-#' @name .raster_properties
+#' @name .raster_sources.terra
 #' @keywords internal
+#' @noRd
 .raster_sources.terra <- function(r_obj, ...) {
 
     sources <- terra::sources(r_obj)
@@ -381,6 +407,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 #'
 .raster_freq.terra <- function(r_obj, ...) {
@@ -388,6 +415,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_col.terra <- function(r_obj, x) {
     terra::colFromX(r_obj, x)
@@ -395,12 +423,14 @@
 
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_row.terra <- function(r_obj, y) {
     terra::rowFromY(r_obj, y)
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .raster_missing_value.terra <- function(file) {
 

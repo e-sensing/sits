@@ -34,7 +34,6 @@ NULL
 #'   cube (the name of the cube associated with the data),
 #'   time_series (list containing a tibble with the values of the time series).
 NULL
-
 #' @title Samples of nine classes for the state of Mato Grosso
 #'
 #' @description A dataset containing a tibble with time series samples
@@ -46,8 +45,8 @@ NULL
 #'
 #' @docType data
 #' @keywords datasets
-#' @name samples_modis_4bands
-#' @usage data(samples_modis_4bands)
+#' @name samples_modis_ndvi
+#' @usage data(samples_modis_ndvi)
 #' @format A tibble with 1308 rows and 7 variables:
 #'   longitude: East-west coordinate of the time series sample (WGS 84),
 #'   latitude (North-south coordinate of the time series sample in WGS 84),
@@ -57,7 +56,6 @@ NULL
 #'   cube (the name of the cube associated with the data),
 #'   time_series (list containing a tibble with the values of the time series).
 NULL
-
 #' @title Samples of Amazon tropical forest biome for deforestation analysis
 #'
 #' @docType data

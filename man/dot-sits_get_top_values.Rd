@@ -25,3 +25,4 @@ locations are guaranteed to be separated by a certain number of pixels.
 \author{
 Alber Sanchez, \email{alber.ipia@inpe.br}
 }
+\keyword{internal}

@@ -1,6 +1,7 @@
 #' @title Use time series values as distances for training patterns
 #' @name .sits_distances
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'

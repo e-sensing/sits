@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_tile_api.R
 \name{.tile_as_sf}
 \alias{.tile_as_sf}
-\title{Tile API}
+\title{Convert tile \code{bbox} to a sf polygon object.}
 \usage{
 .tile_as_sf(tile)
 }
@@ -10,8 +10,9 @@
 \item{tile}{A tile.}
 }
 \value{
-file_info
+sf object
 }
 \description{
-Convert tile \code{bbox} to a sf polygon object.
+Tile API
 }
+\keyword{internal}

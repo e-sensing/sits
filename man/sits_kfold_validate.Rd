@@ -56,7 +56,7 @@ if (sits_run_examples()) {
     results <- list()
 
     # accuracy assessment lightTAE
-    acc_ltae <- sits_kfold_validate(samples_modis_4bands,
+    acc_ltae <- sits_kfold_validate(samples_modis_ndvi,
         folds = 5,
         ml_method = sits_lighttae()
     )
@@ -66,7 +66,7 @@ if (sits_run_examples()) {
     results[[length(results) + 1]] <- acc_ltae
 
     # Deep Learning - ResNet
-    acc_rn <- sits_kfold_validate(samples_modis_4bands,
+    acc_rn <- sits_kfold_validate(samples_modis_ndvi,
         folds = 5,
         ml_method = sits_resnet()
     )

@@ -11,9 +11,10 @@
   red = NULL,
   green = NULL,
   blue = NULL,
-  tiles = x$tile[[1]],
-  dates = NULL,
-  colors = rev(grDevices::terrain.colors(30, alpha = NULL))
+  tile = x$tile[[1]],
+  date = sits_timeline(x)[[1]],
+  palette = "RdYlGn",
+  rev = FALSE
 )
 }
 \arguments{
@@ -29,23 +30,24 @@
 
 \item{blue}{Band for blue color.}
 
-\item{tiles}{Tiles to be plotted.}
+\item{tile}{Tile to be plotted.}
 
-\item{dates}{Dates to be plotted.}
+\item{date}{Date to be plotted.}
 
-\item{colors}{An R color palette}
+\item{palette}{An RColorBrewer palette}
 
-\item{samples}{samples to be plotted together with image}
-
-\item{sample_color}{RColorBrewer name to display the samples}
+\item{rev}{Reverse the color order in the palette?}
 }
 \value{
-A plot object produced by the terra package
-                      with an RGB image or a B/W image on a color
-                      scale chosen from the RColorBrewer palette.
+A plot object with an RGB image
+                      or a B/W image on a color
+                      scale using the pallete
 }
 \description{
 Plot RGB raster cube
+}
+\note{
+To see which color palettes are supported, please run
 }
 \examples{
 if (sits_run_examples()) {
@@ -59,7 +61,7 @@ if (sits_run_examples()) {
         parse_info = c("X1", "tile", "band", "date")
     )
     # plot NDVI band of the second date date of the data cube
-    plot(cube, band = "NDVI", dates = sits_timeline(cube)[c(1:2)])
+    plot(cube, band = "NDVI", date = sits_timeline(cube)[c(1:2)])
 }
 }
 \author{

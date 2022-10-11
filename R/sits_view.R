@@ -50,11 +50,8 @@
 #'         band = "NDVI",
 #'         dates = timeline[[1]]
 #'     )
-#'
-#'     samples_ndvi <- sits_select(samples_modis_4bands,
-#'         bands = c("NDVI")
-#'     )
-#'     rf_model <- sits_train(samples_ndvi, sits_rfor())
+#'     # train a model
+#'     rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
 #'
 #'     modis_probs <- sits_classify(
 #'         data = modis_cube,
@@ -112,7 +109,7 @@ sits_view.sits <- function(x, ...,
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .config_colors(
+        colors <- .colors_get(
             labels = labels,
             palette = palette,
             rev = TRUE
@@ -210,7 +207,7 @@ sits_view.som_map <- function(x, ...,
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .config_colors(
+        colors <- .colors_get(
             labels = labels,
             palette = palette,
             rev = TRUE
@@ -313,12 +310,12 @@ sits_view.raster_cube <- function(x, ...,
     .check_that(!inherits(x, "probs_cube"),
         local_msg = paste0("sits_view not available for probability cube")
     )
-    # Remote files not working in Windows (bug in stars)
-    .check_that(
-        !(.Platform$OS.type == "windows" &&
-            grepl("^/vsi", .file_info_path(x[1, ]))),
-        msg = "sits_view not working in Windows OS for remote files"
-    )
+    # # Remote files not working in Windows (bug in stars)
+    # .check_that(
+    #     !(.Platform$OS.type == "windows" &&
+    #         grepl("^/vsi", .file_info_path(x[1, ]))),
+    #     msg = "sits_view not working in Windows OS for remote files"
+    # )
 
     # verifies if leafem and leaflet packages are installed
     .check_require_packages(c("leafem", "leaflet"))
@@ -397,12 +394,12 @@ sits_view.raster_cube <- function(x, ...,
 
     nrows_merge <- sum(slider::slide_dbl(cube, function(tile) {
         # retrieve the file info for the tile
-        fi <- .file_info(tile)
+        fi <- .fi(tile)
         return(max(fi[["nrows"]]))
     }))
     ncols_merge <- sum(slider::slide_dbl(cube, function(tile) {
         # retrieve the file info for the tile
-        fi <- .file_info(tile)
+        fi <- .fi(tile)
         return(max(fi[["ncols"]]))
     }))
 
@@ -445,7 +442,7 @@ sits_view.raster_cube <- function(x, ...,
             # get tile
             tile <- cube[row,]
             # retrieve the file info for the tile
-            fi <- .file_info(tile)
+            fi <- .fi(tile)
             # check if date is inside the timeline
             tile_dates <- sits_timeline(tile)
             if (!date %in% tile_dates) {
@@ -529,7 +526,7 @@ sits_view.raster_cube <- function(x, ...,
         st_objs <- slider::slide(class_cube, function(tile) {
             # obtain the raster stars object
             st_obj <- stars::read_stars(
-                .file_info_path(tile),
+                .fi_path(.fi(tile)),
                 RAT = labels,
                 RasterIO = list(
                     "nBufXSize" = output_size["xsize"],
@@ -627,12 +624,12 @@ sits_view.class_cube <- function(x, ...,
     # find size of image to be merged
     nrows_merge <- sum(slider::slide_dbl(cube, function(tile) {
         # retrieve the file info for the tile
-        fi <- .file_info(tile)
+        fi <- .fi(tile)
         return(max(fi[["nrows"]]))
     }))
     ncols_merge <- sum(slider::slide_dbl(cube, function(tile) {
         # retrieve the file info for the tile
-        fi <- .file_info(tile)
+        fi <- .fi(tile)
         return(max(fi[["ncols"]]))
     }))
     # find out if resampling is required (for big images)
@@ -646,7 +643,7 @@ sits_view.class_cube <- function(x, ...,
     st_objs <- slider::slide(cube, function(tile) {
         # obtain the raster stars object
         st_obj <- stars::read_stars(
-            .file_info_path(tile),
+            .fi_path(.fi(tile)),
             RAT = labels,
             RasterIO = list(
                 "nBufXSize" = output_size["xsize"],
@@ -746,7 +743,7 @@ sits_view.default <- function(x, ...) {
 .view_get_colors <- function(labels, legend, palette) {
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .config_colors(
+        colors <- .colors_get(
             labels = labels,
             palette = palette,
             rev = TRUE
@@ -776,9 +773,9 @@ sits_view.default <- function(x, ...) {
 .view_resample_size <- function(nrows, ncols, ndates, ntiles) {
 
     # get the maximum number of bytes to be displayed (total)
-    max_megabytes <- .config_get(key = "leaflet_max_megabytes")
+    max_megabytes <- .conf("leaflet_max_megabytes")
     # get the compression factor
-    comp <- .config_get(key = "leaflet_comp_factor")
+    comp <- .conf("leaflet_comp_factor")
 
     # calculate the total size of all input images in bytes
     # note that leaflet considers 4 bytes per pixel

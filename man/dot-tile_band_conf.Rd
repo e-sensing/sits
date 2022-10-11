@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_tile_api.R
 \name{.tile_band_conf}
 \alias{.tile_band_conf}
-\title{Tile API}
+\title{Get a band definition from config.}
 \usage{
 .tile_band_conf(tile, band)
 }
@@ -17,3 +17,4 @@ band_conf or band_cloud_conf
 \description{
 Get a band definition from config.
 }
+\keyword{internal}

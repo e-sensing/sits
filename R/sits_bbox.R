@@ -17,7 +17,7 @@
 #'                  unless wgs84 parameter is TRUE.
 #'
 #' @examples
-#' bbox <- sits_bbox(samples_modis_4bands)
+#' bbox <- sits_bbox(samples_modis_ndvi)
 #'
 #' @export
 #'
@@ -25,7 +25,7 @@ sits_bbox <- function(data, wgs84 = FALSE, ...) {
     .check_set_caller("sits_bbox")
 
     # Get the meta-type (sits or cube)
-    data <- .config_data_meta_type(data)
+    data <- .conf_data_meta_type(data)
 
     UseMethod("sits_bbox", data)
 }
@@ -83,8 +83,9 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
     return(bbox)
 }
 #' @title Convert coordinates to bounding box
-#' @name .sits_coords_to_bbox_wgs84
+#' @name .bbox_wgs84
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param xmin           Minimum X coordinate
@@ -93,7 +94,7 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
 #' @param ymax           Maximum Y coordinate
 #' @param crs            Projection for X,Y coordinates
 #' @return               Coordinates in WGS84.
-.sits_coords_to_bbox_wgs84 <- function(xmin, xmax, ymin, ymax, crs) {
+.bbox_wgs84 <- function(xmin, xmax, ymin, ymax, crs) {
     pt1 <- c(xmin, ymax)
     pt2 <- c(xmax, ymax)
     pt3 <- c(xmax, ymin)
@@ -119,6 +120,7 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
 #' @title Intersection between a bounding box and a cube
 #' @name .sits_bbox_intersect
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param bbox           Bounding box for a region of interest.
@@ -166,6 +168,7 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
 #' @title Convert a bounding box to a sf object (polygon)
 #' @name .sits_bbox_to_sf
 #' @keywords internal
+#' @noRd
 #' @param xmin,xmax,ymin,ymax  Bounding box values.
 #' @param crs                  Valid crs value.
 #' @return                     An sf object.
@@ -181,4 +184,103 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
     ), crs = crs)
 
     return(sf_obj)
+}
+#---- bbox API: ----
+
+#' Bbox API
+#'
+#' A bounding box represents a rectangular geographical region in a certain
+#' projection. A \code{bbox} is any \code{list} or \code{tibble} containing
+#' \code{xmin}, \code{xmax}, \code{ymin}, \code{ymax}, and \code{crs} fields.
+#' A \code{bbox} may contains multiple entries.
+#'
+#' @param x Any object to extract a \code{bbox}.
+#' @param ... Additional parameters.
+#' @param default_crs If no CRS is present in \code{x}, which CRS should be
+#' used? If \code{NULL} default CRS will be \code{'EPSG:4326'}.
+#' @param bbox A \code{bbox}.
+#' @param as_crs A CRS to project \code{bbox}. Useful if bbox has multiples
+#' CRS.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#' x <- list(a = 0, z = 0)
+#' .bbox(x) # NULL
+#' x <- list(
+#'   a = 0, xmin = 1:3, xmax = 2:4, ymin = 3:5, ymax = 4:6,
+#'   crs = 4326, z = 0
+#' )
+#' .bbox(x)
+#' .bbox_as_sf(x) # 3 features
+#' .bbox_as_sf(x, as_crs = "EPSG:3857")
+#' }
+#'
+#' @seealso \link{bbox_accessors}
+#' @family region objects API
+#' @keywords internal
+#' @noRd
+#' @name bbox_api
+NULL
+
+# bbox fields
+.bbox_cols <- c("xmin", "xmax", "ymin", "ymax")
+
+#' @describeIn bbox_api extract a \code{bbox} from any given
+#' \code{vector}.
+#' @noRd
+#' @returns \code{.bbox()}: \code{bbox}.
+.bbox <- function(x, ..., default_crs = NULL) {
+    if (!all(.bbox_cols %in% names(x))) {
+        return(NULL)
+    }
+    xmin <- pmin(x[["xmin"]], x[["xmax"]])
+    xmax <- pmax(x[["xmin"]], x[["xmax"]])
+    ymin <- pmin(x[["ymin"]], x[["ymax"]])
+    ymax <- pmax(x[["ymin"]], x[["ymax"]])
+    if ("crs" %in% names(x)) {
+        crs <- x[["crs"]]
+    } else {
+        crs <- default_crs
+        if (is.null(default_crs)) {
+            warning("object has no crs, assuming 'EPSG:4326'")
+            crs <- "EPSG:4326"
+        }
+    }
+    list(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, crs = crs)
+}
+
+#' @describeIn bbox_api Convert a \code{bbox} into a
+#' \code{sf} polygon object.
+#' @noRd
+#' @returns \code{.bbox_as_sf()}: \code{sf}.
+.bbox_as_sf <- function(bbox, ..., default_crs = NULL, as_crs = NULL) {
+    bbox <- .bbox(bbox, default_crs = default_crs)
+    if (!all(c(.bbox_cols, "crs") %in% names(bbox))) {
+        stop("object does not have a valid bbox")
+    }
+    # Check if there are multiple CRS in bbox
+    if (length(.crs(bbox)) > 1 && is.null(as_crs)) {
+        warning(
+            "object has multiples crs values, reprojecting to ",
+            "EPSG:4326\n", "(use 'as_crs' to reproject to a ",
+            "different crs value)"
+        )
+        as_crs <- "EPSG:4326"
+    }
+    # Convert to sf object and return it
+    purrr::pmap_dfr(as.list(bbox), function(xmin, xmax, ymin, ymax, crs, ...) {
+        geom <- sf::st_sf(
+            geometry = sf::st_sfc(sf::st_polygon(list(
+                rbind(
+                    c(xmin, ymax), c(xmax, ymax), c(xmax, ymin),
+                    c(xmin, ymin), c(xmin, ymax)
+                )
+            ))), crs = crs
+        )
+        # Project CRS
+        if (!is.null(as_crs)) {
+            geom <- sf::st_transform(geom, crs = as_crs)
+        }
+        geom
+    })
 }

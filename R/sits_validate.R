@@ -41,7 +41,7 @@
 #'     results <- list()
 #'
 #'     # accuracy assessment lightTAE
-#'     acc_ltae <- sits_kfold_validate(samples_modis_4bands,
+#'     acc_ltae <- sits_kfold_validate(samples_modis_ndvi,
 #'         folds = 5,
 #'         ml_method = sits_lighttae()
 #'     )
@@ -51,7 +51,7 @@
 #'     results[[length(results) + 1]] <- acc_ltae
 #'
 #'     # Deep Learning - ResNet
-#'     acc_rn <- sits_kfold_validate(samples_modis_4bands,
+#'     acc_rn <- sits_kfold_validate(samples_modis_ndvi,
 #'         folds = 5,
 #'         ml_method = sits_resnet()
 #'     )

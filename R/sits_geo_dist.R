@@ -34,7 +34,7 @@
 #'     # convert to an sf object
 #'     mt_sf <- sf::read_sf(mt_shp)
 #'     # calculate sample-to-sample and sample-to-prediction distances
-#'     distances <- sits_geo_dist(samples_modis_4bands, mt_sf)
+#'     distances <- sits_geo_dist(samples_modis_ndvi, mt_sf)
 #'     # plot sample-to-sample and sample-to-prediction distances
 #'     plot(distances)
 #' }
@@ -72,6 +72,7 @@ sits_geo_dist <- function(samples, roi = NULL, n = 1000) {
 #'
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @keywords internal
+#' @noRd
 #' @description
 #' For each point in x, find the closest point in y (and their distance).
 #'

@@ -2,6 +2,7 @@
 #' @title Stop all workers of the sits cluster
 #' @name .sits_parallel_stop
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @return No value, called for side effect.
 #'
@@ -21,6 +22,7 @@
 #' @title Check if sits clusters are open or not
 #' @name .sits_parallel_is_open
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @return No value, called for side effect.
 #'
@@ -37,6 +39,7 @@
 #' @title Start a new sits cluster for parallel processing
 #' @name .sits_parallel_start
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param workers    number of cluster to instantiate
@@ -87,6 +90,7 @@
 #' @title Recreates a cluster worker
 #' @name .sits_parallel_reset_node
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param worker_id   id of the cluster work to be recreated
@@ -105,9 +109,9 @@
     sits_env[["cluster"]][[worker_id]] <- parallel::makePSOCKcluster(1)[[1]]
 }
 
-#' @title Fault tolerant version of some parallel functions
-#' @name sits_parallel_fault_tolerant
+#' @name .sits_parallel_recv_one_data
 #' @keywords internal
+#' @noRd
 #'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -172,8 +176,9 @@
     return(list(node = worker_id, value = value))
 }
 
-#' @rdname sits_parallel_fault_tolerant
+#' @name .sits_parallel_recv_one_result
 #' @keywords internal
+#' @noRd
 #' @return      List with values and nodes
 .sits_parallel_recv_one_result <- function() {
 
@@ -183,8 +188,9 @@
     return(list(value = v$value$value, node = v$node, tag = v$value$tag))
 }
 
-#' @rdname sits_parallel_fault_tolerant
+#' @rdname .sits_parallel_cluster_apply
 #' @keywords internal
+#' @noRd
 #' @return      No value, called for side effect.
 .sits_parallel_cluster_apply <- function(x, fn, ..., pb = NULL) {
 
@@ -247,6 +253,7 @@
 #' @title Maps a function to a given list in parallel or sequential processing
 #' @name .sits_parallel_map
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param x               List to be passed to a function.
@@ -261,6 +268,8 @@
 .sits_parallel_map <- function(x, fn, ..., progress = FALSE,
                                n_retries = 3, sleep = 0) {
 
+    # check documentation mode
+    progress <- .check_documentation(progress)
     # create progress bar
     pb <- NULL
     progress <- progress && (length(x) > 0)

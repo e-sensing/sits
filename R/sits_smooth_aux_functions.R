@@ -1,111 +1,14 @@
-#' @title Create a filename to store an output block from smoothing operation
-#' @name .smth_block_filename
+#' @name .smth_compute_blocks
+#' @description Function to compute blocks grid
 #' @keywords internal
+#' @noRd
 #'
-#' @param tile         Output tile to be written.
-#' @param output_dir   Directory where block will be written.
-#' @param block        Block designation.
+#' @param xsize        X size of the image
+#' @param ysize        Y size of the image
+#' @param block_y_size Y size of the block
+#' @param overlapping_y_size   Size of the overlap
+#' @return  A list of blocks
 #'
-#' @return  A filename to store an output block from smoothing operation.
-#'
-.smth_filename <- function(tile,
-                           output_dir,
-                           block) {
-    band <- .file_info_bands(tile)
-
-    start_date <- .file_info_start_date(tile)
-
-    end_date <- .file_info_end_date(tile)
-
-    b_filename <- paste("cube",
-        .cube_tiles(tile),
-        band,
-        start_date,
-        end_date,
-        sep = "_"
-    )
-
-    b_filename <- paste(b_filename,
-        "block",
-        block[["row"]],
-        block[["nrows"]] + block[["row"]] - 1,
-        sep = "_"
-    )
-
-    b_path <- paste0(file.path(output_dir, b_filename), ".tif")
-
-    return(b_path)
-}
-#' @title Estimate the number of blocks to run .sits_split_cluster
-#' @name .smth_estimate_block_size
-#' @keywords internal
-#'
-#' @param cube         input data cube
-#' @param multicores   number of processes to split up the data
-#' @param memsize      maximum overall memory size (in GB)
-#'
-#' @return  returns a list with following information:
-#'             - multicores theoretical upper bound;
-#'             - block x_size (horizontal) and y_size (vertical)
-#'
-.smth_estimate_block_size <- function(cube, multicores, memsize) {
-
-    # set caller to show in errors
-    .check_set_caller(".smth_estimate_block_size")
-
-    # precondition 1 - check if cube has probability data
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "input is not probability cube"
-    )
-    size <- .cube_size(cube[1, ])
-    n_layers <- length(cube$labels[[1]])
-    bloat_mem <- .config_get(key = "processing_bloat_smooth")
-    n_bytes <- 8
-
-    # total memory needed to do all work in GB
-    image_size <- size[["ncols"]] * size[["nrows"]]
-    needed_memory <- image_size * 1E-09 * n_layers * bloat_mem * n_bytes
-
-    # minimum block size
-    min_block_x_size <- size["ncols"] # for now, only vertical blocking
-    min_block_y_size <- 1
-
-    # compute factors
-    memory_factor <- needed_memory / memsize
-
-    blocking_factor <- image_size / (min_block_x_size * min_block_y_size)
-
-    # stop if blocking factor is less than memory factor!
-    # reason: the provided memory is not enough to process the data by
-    # breaking it into small chunks
-    .check_that(
-        x = memory_factor <= blocking_factor,
-        msg = "provided memory not enough to run the job"
-    )
-
-    # update multicores to the maximum possible processes given the available
-    # memory and blocking factor
-    multicores <- min(floor(blocking_factor / memory_factor), multicores)
-
-    # compute blocking allocation that maximizes the
-    # block / (memory * multicores) ratio, i.e. maximize parallel processes
-    # and returns the following information:
-    # - multicores theoretical upper bound;
-    # - block x_size (horizontal) and y_size (vertical)
-    blocks <- list(
-        # theoretical max_multicores = floor(blocking_factor / memory_factor),
-        block_x_size = floor(min_block_x_size),
-        block_y_size = min(
-            floor(blocking_factor / memory_factor / multicores),
-            size[["nrows"]]
-        )
-    )
-
-    return(blocks)
-}
-
-# function to compute blocks grid
 .smth_compute_blocks <- function(xsize,
                                  ysize,
                                  block_y_size,

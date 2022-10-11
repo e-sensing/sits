@@ -53,14 +53,14 @@ test_that("EVI generation", {
     expect_true(start_date == as.Date("2019-07-01"))
     expect_true(end_date == as.Date("2019-08-01"))
 
-    file_info_b05 <- .file_info(gc_cube_new, bands = "B05")
-    b05_band_1 <- terra::rast(file_info_b05$path[[1]])
+    file_info_b05 <- .fi(gc_cube_new) %>% .fi_filter_bands(bands = "B05")
+    b05_band_1 <- .raster_open_rast(file_info_b05$path[[1]])
 
-    file_info_b8a <- .file_info(gc_cube_new, bands = "B8A")
-    b8a_band_1 <- terra::rast(file_info_b8a$path[[1]])
+    file_info_b8a <- .fi(gc_cube_new) %>% .fi_filter_bands(bands = "B8A")
+    b8a_band_1 <- .raster_open_rast(file_info_b8a$path[[1]])
 
-    file_info_evi2 <- .file_info(gc_cube_new, bands = "EVI2")
-    evi2_band_1 <- terra::rast(file_info_evi2$path[[1]])
+    file_info_evi2 <- .fi(gc_cube_new) %>% .fi_filter_bands(bands = "EVI2")
+    evi2_band_1 <- .raster_open_rast(file_info_evi2$path[[1]])
 
     b05_100 <- as.numeric(b05_band_1[100] / 10000)
     b8a_100 <- as.numeric(b8a_band_1[100] / 10000)

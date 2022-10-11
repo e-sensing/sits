@@ -1,6 +1,7 @@
 #' @title Format tile parameter provided by users
 #' @name .usgs_format_tiles
 #' @keywords internal
+#' @noRd
 #'
 #' @param tiles     Tiles provided by users.
 #' @return          Attributes of wrs path and row.
@@ -30,6 +31,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_collection_access_test.usgs_cube <- function(source, ...,
                                                      collection,
@@ -94,6 +96,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_item_get_hrefs.usgs_cube <- function(source, item, ...,
                                              collection = NULL) {
@@ -106,6 +109,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_new.usgs_cube <- function(source,
                                         collection,
@@ -140,9 +144,11 @@
             "platform" == platform
         )
     } else {
-        platform <- unlist(unname(.config_get(
-            key = c("sources", source, "collections",  collection, "platforms")
-        )))
+        platform <- unlist(unname(
+            .conf(
+            "sources", source, "collections",  collection, "platforms"
+            )
+        ))
 
         stac_query <- rstac::ext_query(
             q = stac_query,
@@ -191,11 +197,9 @@
     matched_items <- rstac::items_matched(items = items)
 
     # progress bar
-    progress <- matched_items > 2 * .config_rstac_limit()
-
+    progress <- matched_items > 2 * .conf("rstac_pagination_limit")
     # check documentation mode
     progress <- .check_documentation(progress)
-
     # fetching all the metadata and updating to upper case instruments
     items_info <- suppressWarnings(
         rstac::items_fetch(items = items, progress = progress)
@@ -204,6 +208,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_tile.usgs_cube <- function(source,
                                          items, ...,

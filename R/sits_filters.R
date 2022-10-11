@@ -190,7 +190,7 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5) {
 #' values as y(k) = F(i,:) * x(k-i+1:k+n-i).
 #'
 #' @keywords internal
-#'
+#' @noRd
 #' @param p            Filter order (integer).
 #' @param n            Filter length (must be odd)
 #' @param m            Derivative to calculate (default = 0)
@@ -233,6 +233,7 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5) {
 #' @description Calculates the Moore-Penrose generalized inverse of a matrix X.
 #'
 #' @keywords internal
+#' @noRd
 #'
 #' @param mtx Matrix for which the Moore-Penrose inverse is required.
 #' @param tol A relative tolerance to detect zero singular values.

@@ -74,10 +74,8 @@
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'     # select a set of samples
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a ResNet model
-#'     torch_model <- sits_train(samples_ndvi, sits_resnet())
+#'     torch_model <- sits_train(samples_modis_ndvi, sits_resnet())
 #'     # plot the model
 #'     plot(torch_model)
 #'     # create a data cube from local files
