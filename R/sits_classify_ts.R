@@ -26,7 +26,7 @@
 
     # Update samples bands order
     if (any(bands != .sits_bands(samples))) {
-        samples <- .sits_filter_bands(samples, bands)
+        samples <- .sits_select_bands(samples = samples, bands = bands)
     }
 
     # Apply time series filter
