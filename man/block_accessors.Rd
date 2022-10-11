@@ -69,7 +69,7 @@ respectively, \code{"col"}, \code{"row"}, \code{"ncols"}, and
 
 }}
 \examples{
-if (sits_run_examples()) {
+\dontrun{
 x <- c(row = 3.45)
 .row(x) # 3 as integer
 x <- list(col = 1, row = 2, ncols = 3)

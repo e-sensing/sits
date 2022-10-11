@@ -48,7 +48,7 @@ error is thrown. Use \code{.conf_exists()} to test for \code{source} and
 
 }}
 \examples{
-if (sits_run_examples()) {
+\dontrun{
 # tests if 'BDC -> MOD13Q1-6 -> NDVI' key exists in config
 .conf_eo_band_exists(
   source = "BDC",

@@ -48,7 +48,7 @@ Can be one of \code{'day'}, \code{'month'}, or \code{'year'}.
 
 }}
 \examples{
-if (sits_run_examples()) {
+\dontrun{
 .period_check("P16D") # valid
 .period_check("P1M10D") # error: invalid period format
 .period_val("P16D") # 16

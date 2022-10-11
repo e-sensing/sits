@@ -38,7 +38,7 @@ These functions are read-only accessors of \code{chunk} fields in a
 
 }}
 \examples{
-if (sits_run_examples()) {
+\dontrun{
 x <- c(nrows = 100, ymin = 1, ymax = 10)
 .yres(x) # 0.09
 }

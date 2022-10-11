@@ -35,7 +35,7 @@ existence.
 
 }}
 \examples{
-if (sits_run_examples()) {
+\dontrun{
 .conf_exists("run_tests") # TRUE
 .conf("run_tests")
 .conf_exists("not_existing_entry") # FALSE

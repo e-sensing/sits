@@ -57,7 +57,7 @@ new \code{derived_cube}.
 
 }}
 \examples{
-if (sits_run_examples()) {
+\dontrun{
 # get S3 class value that a derived_cube of class 'probs' must have
 .conf_derived_s3class("probs")
 }
