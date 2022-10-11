@@ -242,7 +242,6 @@
 #'         end_date = "2019-10-28"
 #'     )
 #'
-#'
 #'     # -- Creating Sentinel cube from MPC"
 #'     s2_cube <- sits_cube(
 #'         source = "MPC",
