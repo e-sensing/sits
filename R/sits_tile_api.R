@@ -1305,14 +1305,15 @@ NULL
 
 #' Point API
 #'
-#' A point represents an dimensionless geographical location in
-#' 'EPSG:4326' projection. A \code{point} is any \code{list} or \code{tibble}
+#' A point represents a dimensionless geographical location in a given
+#' projection. A \code{point} is any \code{list} or \code{tibble}
 #' containing \code{longitude} and \code{latitude} fields. A \code{point} may
 #' contains multiple entries.
 #'
 #' @param x Any object to extract a \code{point}.
 #' @param ... Additional parameters.
 #' @param point A \code{point}.
+#' @param crs The point CRS. If not informed, default CRS is \code{'EPSG:4326'}.
 #' @param as_crs A CRS to project \code{point}.
 #'
 #' @examples
