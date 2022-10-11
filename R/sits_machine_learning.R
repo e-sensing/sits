@@ -52,7 +52,7 @@ sits_rfor <- function(samples = NULL, num_trees = 120, mtry = NULL, ...) {
         # Get labels (used later to ensure column order in result matrix)
         labels <- .sits_labels(samples)
         # Get predictors features
-        train_samples <- .sits_predictors(samples)
+        train_samples <- .predictors(samples)
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
 
@@ -177,7 +177,7 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
         #   classification.
         ml_stats <- .sits_stats(samples)
         # Get predictors features
-        train_samples <- .sits_predictors(samples)
+        train_samples <- .predictors(samples)
         # Normalize predictors
         train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
         # Post condition: is predictor data valid?
@@ -302,7 +302,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
         # Get labels (used later to ensure column order in result matrix)
         labels <- .sits_labels(samples)
         # Get predictors features
-        train_samples <- .sits_predictors(samples)
+        train_samples <- .predictors(samples)
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
         # Transform labels to integer code before train

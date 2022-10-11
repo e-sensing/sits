@@ -45,7 +45,7 @@
     )
 
     # Convert samples time series in predictors and preprocess data
-    pred <- .sits_predictors(samples = splitted, ml_model = ml_model)
+    pred <- .predictors(samples = splitted, ml_model = ml_model)
     # Post condition: is predictor data valid?
     .check_predictors(pred, splitted)
 
