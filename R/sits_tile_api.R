@@ -191,6 +191,9 @@ NULL
 }
 
 .by <- function(data, col, fn, ...) {
+    if (!col %in% names(data)) {
+        stop("invalid 'col' parameter: '", col, "' not found in data columns")
+    }
     unname(c(by(data, data[[col]], fn, ...)))
 }
 
