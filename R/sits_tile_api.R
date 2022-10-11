@@ -2963,7 +2963,7 @@ NULL
 # ---- Partitions ----
 
 .part_predictors <- function(part) {
-    if (.has(part[["predictors"]])) part[["predictors"]][[1]] else NULL
+    .default(part[["predictors"]][[1]])
 }
 
 # ---- expressions ----
