@@ -2225,7 +2225,7 @@ NULL
     # Create tile based on template
     tile <- .tile_eo_from_files(
         files = files, fid = .fi_fid(.fi(base_tile)), bands = bands,
-        date = .fi_date(.fi(base_tile)), base_tile = base_tile,
+        date = .fi_min_date(.fi(base_tile)), base_tile = base_tile,
         update_bbox = update_bbox
     )
     # If all goes well, delete block files
