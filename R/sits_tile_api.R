@@ -2846,9 +2846,15 @@ NULL
     })
 }
 
-.sits_predictors <- function(samples, ml_model = NULL) {
+# ---- Predictors ----
+
+.pred_cols <- c("sample_id", "label")
+
+.predictors <- function(samples, ml_model = NULL) {
+    # Prune samples time series
+    samples <- .sits_prune(samples)
     # Get samples time series
-    pred <- .sits_ts(samples)
+    pred <- .ts(samples)
     # By default get bands as the same of first sample
     bands <- .sits_bands(samples)
     # Preprocess time series
