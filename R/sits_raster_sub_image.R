@@ -1,12 +1,12 @@
 #' @title Informs if a spatial ROI intersects a data cube
-#' @name .sits_raster_sub_image_intersects
+#' @name .raster_sub_image_intersects
 #' @keywords internal
-
+#' @noRd
 #' @param  cube            data cube (one tile only).
 #' @param  roi             spatial region of interest
 #' @return                 does a spatial ROI intersect a data cube?
 #'
-.sits_raster_sub_image_intersects <- function(cube, roi) {
+.raster_sub_image_intersects <- function(cube, roi) {
 
     # pre-condition
     .check_num(nrow(cube),
@@ -21,7 +21,7 @@
     if (inherits(roi, "sf")) {
         # check for roi crs
         if (is.null(sf::st_crs(roi))) {
-            stop(".sits_raster_sub_image_intersects: invalid roi crs",
+            stop(".raster_sub_image_intersects: invalid roi crs",
                 call. = FALSE
             )
         }
@@ -51,7 +51,7 @@
     }
 
     # if the ROI is defined, calculate the bounding box
-    bbox_roi <- .sits_roi_bbox(roi, cube)
+    bbox_roi <- .roi_bbox(roi, cube)
 
     # calculate the intersection between the bbox of the ROI and the cube tile
     bbox_in <- .sits_bbox_intersect(bbox_roi, cube)
@@ -59,14 +59,14 @@
     return(!purrr::is_null(bbox_in))
 }
 #' @title Find the dimensions and location of a spatial ROI in a data cube
-#' @name .sits_raster_sub_image
+#' @name .raster_sub_image
 #' @keywords internal
-
+#' @noRd
 #' @param  tile            tile of data cube.
 #' @param  roi             spatial region of interest
 #' @return                 vector with information on the subimage
 #'
-.sits_raster_sub_image <- function(tile, roi) {
+.raster_sub_image <- function(tile, roi) {
 
     # pre-condition
     .check_num(nrow(tile),
@@ -75,24 +75,24 @@
     )
 
     # if the ROI is defined, calculate the bounding box
-    bbox_roi <- .sits_roi_bbox(roi, tile)
+    bbox_roi <- .roi_bbox(roi, tile)
 
     # calculate the intersection between the bbox of the ROI and the cube
     bbox_in <- .sits_bbox_intersect(bbox_roi, tile)
 
     # return the sub_image
-    sub_image <- .sits_raster_sub_image_from_bbox(bbox_in, tile)
+    sub_image <- .raster_sub_image_from_bbox(bbox_in, tile)
 
     return(sub_image)
 }
 #' @title Find the dimensions of the sub image without ROI
-#' @name .sits_raster_sub_image_default
+#' @name .raster_sub_image_default
 #' @keywords internal
-
+#' @noRd
 #' @param  tile            tile of data cube.
 #' @param  sf_region       spatial region of interest (sf_object)
 #' @return                 vector with information on the subimage
-.sits_raster_sub_image_default <- function(tile) {
+.raster_sub_image_default <- function(tile) {
 
     # pre-condition
     .check_num(nrow(tile),
@@ -119,8 +119,9 @@
 }
 
 #' @title Extract a sub_image from a bounding box and a cube
-#' @name .sits_raster_sub_image_from_bbox
+#' @name .raster_sub_image_from_bbox
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param bbox           bounding box for a region of interest
@@ -128,7 +129,7 @@
 #' @return               sub_image with additional info on first row,
 #'                       first col, nrows, ncols
 #'
-.sits_raster_sub_image_from_bbox <- function(bbox, tile) {
+.raster_sub_image_from_bbox <- function(bbox, tile) {
 
     # pre-condition
     .check_num(nrow(tile),
@@ -208,11 +209,11 @@
         crs = tile[["crs"]]
     )
 
-    tolerance <- .config_get(key = c(
+    tolerance <- .conf(
         "sources", .cube_source(tile),
         "collections", .cube_collection(tile),
         "ext_tolerance"
-    ))
+    )
 
     # pre-conditions
     .check_num(si[["xmin"]],
@@ -249,8 +250,9 @@
 }
 
 #' @title Extract a sub_image from a valid block
-#' @name .sits_raster_sub_image_from_block
+#' @name .raster_sub_image_from_block
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param block      a valid block with (\code{col}, \code{row},
@@ -270,7 +272,7 @@
 #'
 #' @return sub_image with additional info on first row, first col, nrows,
 #' ncols, and crs.
-.sits_raster_sub_image_from_block <- function(block,
+.raster_sub_image_from_block <- function(block,
                                               source,
                                               collection,
                                               tile = NULL, ...,
@@ -362,11 +364,11 @@
         crs = crs
     )
 
-    tolerance <- .config_get(key = c(
+    tolerance <- .conf(
         "sources", source,
         "collections", collection,
         "ext_tolerance"
-    ))
+    )
 
     # pre-conditions
     .check_num(si[["xmin"]],

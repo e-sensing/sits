@@ -1,4 +1,5 @@
 #' @keywords internal
+#' @noRd
 #' @export
 .source_collection_access_test.stac_cube <- function(source, collection,
                                                      bands, ...,
@@ -60,6 +61,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_cube.stac_cube <- function(source,
                                    collection,
@@ -120,6 +122,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_bands_select.stac_cube <- function(source,
                                                  items,
@@ -142,6 +145,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_cube.stac_cube <- function(source,
                                          items, ...,
@@ -166,9 +170,6 @@
         ),
         features = items[["features"]]
     )
-
-    # check documentation mode
-    progress <- .check_documentation(progress)
 
     if (.source_collection_metadata_search(
         source = source,
@@ -344,10 +345,14 @@
     )
 
     # review known malformed paths
-    review_date <- .config_get(c(
-        "sources", source, "collections",
-        collection, "review_dates"
-    ), default = NA)
+    review_date <- .try(
+        .conf(
+        "sources", source,
+        "collections", collection,
+        "review_dates"
+        ),
+        .default = NA
+    )
 
     if (!is.na(review_date)) {
         data <- dplyr::filter(cube, .data[["date"]] == !!review_date) %>%
@@ -414,6 +419,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_item_get_date.stac_cube <- function(source,
                                             item, ...,
@@ -424,6 +430,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_item_get_hrefs.stac_cube <- function(source,
                                              item, ...,
@@ -437,6 +444,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_item_get_cloud_cover.stac_cube <- function(source, ...,
                                                    item,
@@ -445,6 +453,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_item_get_bands.stac_cube <- function(source,
                                              item, ...,
@@ -453,7 +462,8 @@
 }
 
 #' @rdname source_cube
-#'
+#' @keywords internal
+#' @noRd
 #' @description \code{.source_tile_get_bbox()} retrieves the bounding
 #' box from items of a tile.
 #'
@@ -489,6 +499,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_fid.stac_cube <- function(source,
                                         items, ...,

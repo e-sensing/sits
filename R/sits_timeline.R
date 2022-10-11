@@ -12,14 +12,14 @@
 #' @return      Timeline of sample set or of data cube.
 #'
 #' @examples
-#' sits_timeline(samples_modis_4bands)
+#' sits_timeline(samples_modis_ndvi)
 #'
 #' @export
 #'
 sits_timeline <- function(data) {
     .check_set_caller("sits_timeline")
     # get the meta-type (sits or cube)
-    data <- .config_data_meta_type(data)
+    data <- .conf_data_meta_type(data)
 
     UseMethod("sits_timeline", data)
 }
@@ -44,7 +44,7 @@ sits_timeline.raster_cube <- function(data) {
 
     # pick the list of timelines
     timelines.lst <- slider::slide(data, function(tile) {
-        timeline_tile <- .file_info_timeline(tile)
+        timeline_tile <- .tile_timeline(tile)
         return(timeline_tile)
     })
     names(timelines.lst) <- data$tile
@@ -60,32 +60,10 @@ sits_timeline.raster_cube <- function(data) {
 
 #' @export
 #'
-sits_timeline.probs_cube <- function(data) {
+sits_timeline.derived_cube <- function(data) {
     # return the timeline of the cube
-    start_date <- .file_info_start_date(data[1, ])
-    end_date <- .file_info_end_date(data[1, ])
-    timeline_probs <- c(start_date, end_date)
-    return(timeline_probs)
-}
-
-#' @export
-#'
-sits_timeline.uncertainty_cube <- function(data) {
-    # return the timeline of the cube
-    start_date <- .file_info_start_date(data[1, ])
-    end_date <- .file_info_end_date(data[1, ])
-    timeline_uncert <- c(start_date, end_date)
-    return(timeline_uncert)
-}
-#' @export
-#'
-sits_timeline.class_cube <- function(data) {
-
-    # return the timeline of the cube
-    start_date <- .file_info_start_date(data[1, ])
-    end_date <- .file_info_end_date(data[1, ])
-    timeline_class <- c(start_date, end_date)
-    return(timeline_class)
+    timeline <- .tile_timeline(data)
+    return(timeline)
 }
 
 #' @title Check cube timeline against requested start and end dates

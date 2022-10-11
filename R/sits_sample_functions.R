@@ -121,9 +121,9 @@ sits_sample <- function(data,
 #' @examples
 #' if (sits_run_examples()) {
 #'     # print the labels summary for a sample set
-#'     sits_labels_summary(samples_modis_4bands)
+#'     sits_labels_summary(samples_modis_ndvi)
 #'     # reduce the sample imbalance
-#'     new_samples <- sits_reduce_imbalance(samples_modis_4bands,
+#'     new_samples <- sits_reduce_imbalance(samples_modis_ndvi,
 #'         n_samples_over = 200,
 #'         n_samples_under = 200,
 #'         multicores = 1
@@ -186,7 +186,7 @@ sits_reduce_imbalance <- function(samples,
             dplyr::pull(.data[["label"]])
     }
 
-    new_samples <- .sits_tibble()
+    new_samples <- .tibble()
 
     if (length(classes_under) > 0) {
         .sits_parallel_start(workers = multicores, log = FALSE)
@@ -283,6 +283,8 @@ sits_reduce_imbalance <- function(samples,
 #' @title Oversample a dataset by SMOTE.
 #' @name .sits_oversample_smote
 #' @keywords internal
+#' @noRd
+#' @description
 #' Lifted from R package "scutr".
 #'
 #' @param data Dataset to be oversampled.
@@ -330,6 +332,7 @@ sits_reduce_imbalance <- function(samples,
 #' @title Oversample a dataset by SMOTE.
 #' @name .sits_smote
 #' @keywords internal
+#' @noRd
 #' @description
 #' Lifted from R package "smotefamily"
 #' to reduce number of dependencies in "sits".
@@ -348,8 +351,6 @@ sits_reduce_imbalance <- function(samples,
 #'   Journal of Artificial Intelligence Research. 16, 321-357.
 #' @return A list with the following values.
 #'
-
-
 .sits_smote <- function(data, target, K = 5, dup_size = 0) {
     ncD <- ncol(data) # The number of attributes
     n_target <- table(target)
@@ -426,7 +427,8 @@ sits_reduce_imbalance <- function(samples,
     return(knD[, 2:(n_clust + 1)])
 }
 .sits_n_dup_max <- function(size_input, size_P, size_N, dup_size = 0) {
-    # Size_P is the number of positive used for generating not actual size of P
+    # Size_P is the number of positive used
+    # for generating actual size of P
     if (is.vector(dup_size) && length(dup_size) > 1) {
         if (length(which(dup_size == 0)) > 0) {
             sizeM <- floor((2 * size_N - size_input) / size_P)

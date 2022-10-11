@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_tile_api.R
 \name{.tile_bands}
 \alias{.tile_bands}
-\title{Tile API}
+\title{Get sorted unique bands from file_info.}
 \usage{
 .tile_bands(tile)
 }
@@ -10,8 +10,9 @@
 \item{tile}{A tile.}
 }
 \value{
-character
+names of bands in the tile
 }
 \description{
 Get sorted unique bands from file_info.
 }
+\keyword{internal}

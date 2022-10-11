@@ -1,4 +1,5 @@
 #' @keywords internal
+#' @noRd
 .local_cube <- function(source,
                         collection,
                         data_dir,
@@ -17,7 +18,7 @@
 
     # is this a cube with results?
     if (!purrr::is_null(bands) &&
-        all(bands %in% .config_get("sits_results_bands"))) {
+        all(bands %in% .conf("sits_results_bands"))) {
         results_cube <- TRUE
     } else {
         results_cube <- FALSE
@@ -32,16 +33,16 @@
     # is parse info NULL? use the default
     if (purrr::is_null(parse_info)) {
         if (results_cube) {
-            parse_info <- .config_get("results_parse_info_def")
+            parse_info <- .conf("results_parse_info_def")
         } else {
-            parse_info <- .config_get("local_parse_info_def")
+            parse_info <- .conf("local_parse_info_def")
         }
     }
     # precondition - does the parse info have band and date?
     if (results_cube) {
         .check_chr_contains(
             parse_info,
-            contains = .config_get("results_parse_info_col"),
+            contains = .conf("results_parse_info_col"),
             msg = paste(
                 "parse_info must include tile, start_date, end_date,",
                 "and band."
@@ -50,7 +51,7 @@
     } else {
         .check_chr_contains(
             parse_info,
-            contains = .config_get("local_parse_info_col"),
+            contains = .conf("local_parse_info_col"),
             msg = "parse_info must include tile, date, and band."
         )
     }
@@ -63,8 +64,6 @@
             bands <- toupper(bands)
         }
     }
-    # check documentation mode
-    progress <- .check_documentation(progress)
 
     # make query and retrieve items
     items <- .local_cube_items_new(
@@ -139,7 +138,7 @@
     })
 
     if (results_cube) {
-        result_class <- .config_get("sits_results_s3_class")[[bands]]
+        result_class <- .conf("sits_results_s3_class")[[bands]]
         class(cube) <- c(result_class, "derived_cube", "raster_cube",
                          "sits_cube", class(cube))
     } else {
@@ -150,6 +149,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 .local_cube_items_new <- function(data_dir,
                                   parse_info,
                                   delim,
@@ -162,14 +162,14 @@
 
     # is this a cube with results?
     if (!purrr::is_null(bands) &&
-        bands[[1]] %in% .config_get("sits_results_bands")) {
+        bands[[1]] %in% .conf("sits_results_bands")) {
         results_cube <- TRUE
     } else {
         results_cube <- FALSE
     }
     # how many of those files are images?
     # retrieve the known file extensions
-    file_ext <- .config_local_file_extensions()
+    file_ext <- .conf("local_file_extensions")
 
     # list the files in the data directory
     img_files <- list.files(
@@ -303,6 +303,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 .local_cube_items_bands_select <- function(source,
                                            collection,
                                            bands,
@@ -333,6 +334,7 @@
     return(items)
 }
 #' @keywords internal
+#' @noRd
 .local_cube_items_tiles_select <- function(tiles,
                                            items) {
 
@@ -352,6 +354,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 .local_cube_file_info <- function(items,
                                   multicores,
                                   progress) {
@@ -421,6 +424,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 .local_results_cube_file_info <- function(items, multicores, progress) {
 
     # set caller to show in errors
@@ -489,6 +493,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 .local_cube_items_cube <- function(source,
                                    collection,
                                    items) {
@@ -556,6 +561,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 .local_results_items_cube <- function(source,
                                       collection,
                                       items,

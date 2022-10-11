@@ -47,3 +47,4 @@ to impose band name restrictions.
 \seealso{
 \link{band_accessors}
 }
+\keyword{internal}

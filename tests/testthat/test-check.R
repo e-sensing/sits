@@ -588,8 +588,8 @@ test_that("Checks", {
         .check_file(character(0))
     )
     expect_equal(
-        .check_file(.config_file()),
-        .config_file()
+        .check_file(.conf_file()),
+        .conf_file()
     )
     expect_error(
         .check_file("file_does_not_exist")

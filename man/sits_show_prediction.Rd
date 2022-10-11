@@ -20,11 +20,10 @@ by a machine learning method and displays the result.
 if (sits_run_examples()) {
     # Retrieve the samples for Mato Grosso
     # train a tempCNN model
-    ml_model <- sits_train(samples_modis_4bands, ml_method = sits_tempcnn)
+    ml_model <- sits_train(samples_modis_ndvi, ml_method = sits_tempcnn)
     # classify the point
-    bands_model <- sits_bands(ml_model)
-    point_4bands <- sits_select(point_mt_6bands, bands = bands_model)
-    point_class <- sits_classify(point_4bands, ml_model)
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+    point_class <- sits_classify(point_ndvi, ml_model)
     sits_show_prediction(point_class)
 }
 

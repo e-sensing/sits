@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_tile_api.R
 \name{.tile_filter_bands}
 \alias{.tile_filter_bands}
-\title{Tile API}
+\title{Filter file_info entries of a given \code{band}.}
 \usage{
 .tile_filter_bands(tile, bands)
 }
@@ -12,8 +12,9 @@
 \item{bands}{Band names to be filtered.}
 }
 \value{
-tile
+tile with selected files for the bands
 }
 \description{
 Filter file_info entries of a given \code{band}.
 }
+\keyword{internal}

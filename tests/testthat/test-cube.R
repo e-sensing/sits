@@ -80,7 +80,7 @@ test_that("Creating cubes from BDC", {
     expect_error(sits:::.cube_size(cbers_cube), "process one tile at a time")
 
     cube_nrows <- sits:::.cube_size(cbers_cube[1, ])[["nrows"]]
-    expect_true(terra::nrow(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
 
 test_that("Creating cubes from BDC - based on ROI with shapefile", {
@@ -134,7 +134,7 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
     expect_gt(bbox["xmax"], bbox_shp["xmax"])
     expect_gt(bbox["ymax"], bbox_shp["ymax"])
     intersects <- slider::slide_lgl(modis_cube, function(tile) {
-        sits:::.sits_raster_sub_image_intersects(tile, sf_bla)
+        sits:::.raster_sub_image_intersects(tile, sf_bla)
     })
     expect_true(all(intersects))
 })
@@ -257,7 +257,6 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
 
     expect_error(.cube_size(s2_cube_open))
     expect_error(.cube_resolution(s2_cube_open))
-    expect_error(.file_info_nrows(s2_cube_open))
 
     dir_images <- paste0(tempdir(), "/images2/")
     if (!dir.exists(dir_images)) {
@@ -280,18 +279,16 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     expect_equal(tile_bbox$xmax, 309780, tolerance = 1e-1)
     expect_equal(tile_bbox$xmin, 199980, tolerance = 1e-1)
 
-    tile_fileinfo <- .file_info(rg_cube[1, ])
+    tile_fileinfo <- .fi(rg_cube)
 
     expect_equal(nrow(tile_fileinfo), 2)
 
-    csv_file <- system.file("extdata/samples/samples_amazonia_sentinel2.csv",
+    csv_file <- system.file("extdata/samples/samples_amazonia.csv",
         package = "sits"
     )
 
     # read sample information from CSV file and put it in a tibble
     samples <- tibble::as_tibble(utils::read.csv(csv_file))
-    expect_equal(nrow(samples), 1202)
-    samples <- dplyr::sample_n(samples, size = 10, replace = FALSE)
 
     ts <- sits_get_data(
         cube = rg_cube,
@@ -431,17 +428,15 @@ test_that("Creating Sentinel cubes from MPC", {
 test_that("Creating Sentinel cubes from MPC with ROI", {
 
 
-    shp_file <- system.file("extdata/shapefiles/df_bsb/df_bsb.shp",
-        package = "sits"
-    )
-    sf_bsb <- sf::read_sf(shp_file)
+    bbox <- c(xmin = -48.28579, ymin = -16.05026,
+              xmax = -47.30839, ymax = -15.50026)
 
     s2_cube <- tryCatch(
         {
             sits_cube(
                 source = "MPC",
                 collection = "SENTINEL-2-L2A",
-                roi = sf_bsb,
+                roi = bbox,
                 bands = c("B05", "CLOUD"),
                 start_date = as.Date("2018-07-18"),
                 end_date = as.Date("2018-08-23")
@@ -478,17 +473,14 @@ test_that("Creating Sentinel cubes from MPC with ROI", {
 
 test_that("Creating Landsat cubes from MPC", {
 
-    shp_file <- system.file("extdata/shapefiles/df_bsb/df_bsb.shp",
-                            package = "sits"
-    )
-    sf_bsb <- sf::read_sf(shp_file)
-
+    bbox <- c(xmin = -48.28579, ymin = -16.05026,
+              xmax = -47.30839, ymax = -15.50026)
     landsat_cube <- tryCatch(
         {
             sits_cube(
                 source = "MPC",
                 collection = "LANDSAT-C2-L2",
-                roi = sf_bsb,
+                roi = bbox,
                 bands = c("NIR08", "CLOUD"),
                 start_date = as.Date("2008-07-18"),
                 end_date = as.Date("2008-10-23")
@@ -503,7 +495,6 @@ test_that("Creating Landsat cubes from MPC", {
 
     expect_true(all(sits_bands(landsat_cube) %in% c("NIR08", "CLOUD")))
     expect_false(.check_is_regular(landsat_cube))
-    expect_equal(class(.file_info_xres(landsat_cube[1,])), "numeric")
     expect_true(any(grepl("LT05", landsat_cube$file_info[[1]]$fid)))
     expect_true(any(grepl("LE07", landsat_cube$file_info[[1]]$fid)))
 
@@ -539,7 +530,7 @@ test_that("Creating Landsat cubes from MPC", {
                 source = "MPC",
                 collection = "LANDSAT-C2-L2",
                 platform = "LANDSAT-5",
-                roi = sf_bsb,
+                roi = bbox,
                 bands = c("NIR08", "CLOUD"),
                 start_date = as.Date("2008-07-18"),
                 end_date = as.Date("2008-10-23")

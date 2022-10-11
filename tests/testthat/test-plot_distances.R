@@ -4,7 +4,7 @@ test_that("geo_distances", {
     )
     mt_sf <- sf::read_sf(mt_shp)
 
-    distances <- sits_geo_dist(samples_modis_4bands, mt_sf)
+    distances <- sits_geo_dist(samples_modis_ndvi, mt_sf)
 
     expect_true("geo_distances" %in% class(distances))
     ss <- as.vector(dplyr::filter(

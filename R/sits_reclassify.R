@@ -116,7 +116,7 @@ sits_reclassify <- function(cube, mask, rules, memsize = 1, multicores = 2,
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
         npaths = 2,
-        nbytes = 8, proc_bloat = .config_processing_bloat()
+        nbytes = 8, proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
@@ -233,7 +233,7 @@ sits_reclassify.class_cube <- function(cube, mask, rules, memsize = 4,
         # Copy values from mask cube into mask template
         .gdal_merge_into(
             file = mask_block_file,
-            base_files = .fi_paths(.cube_file_info(mask)), multicores = 1
+            base_files = .fi_paths(.fi(mask)), multicores = 1
         )
         # Build a new tile for mask based on template
         mask_tile <- .tile_class_from_file(

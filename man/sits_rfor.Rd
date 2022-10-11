@@ -39,13 +39,12 @@ if (sits_run_examples()) {
     # Example of training a model for time series classification
     # Retrieve the samples for Mato Grosso
     # train a random forest model
-    rf_model <- sits_train(samples_modis_4bands,
+    rf_model <- sits_train(samples_modis_ndvi,
                            ml_method = sits_rfor(mtry = 20))
-    # select the bands to classify the point
-    sample_bands <- sits_bands(samples_modis_4bands)
-    point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
     # classify the point
-    point_class <- sits_classify(point_4bands, rf_model)
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+    # classify the point
+    point_class <- sits_classify(point_ndvi, rf_model)
     plot(point_class)
 }
 }

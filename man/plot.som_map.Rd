@@ -36,7 +36,7 @@ Please refer to the sits documentation available in
 \examples{
 if (sits_run_examples()) {
     # create a SOM map
-    som_map <- sits_som_map(samples_modis_4bands)
+    som_map <- sits_som_map(samples_modis_ndvi)
     # plot the SOM map
     plot(som_map)
 }

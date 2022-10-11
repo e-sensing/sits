@@ -27,7 +27,7 @@ Please refer to the sits documentation available in
 if (sits_run_examples()) {
     # Retrieve the samples for Mato Grosso
     # train an extreme gradient boosting
-    xgb_model <- sits_train(samples_modis_4bands,
+    xgb_model <- sits_train(samples_modis_ndvi,
            ml_method = sits_xgboost())
     # plot the model
     plot(xgb_model)

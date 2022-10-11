@@ -40,7 +40,7 @@ sits_merge <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     # set caller to show in errors
     .check_set_caller("sits_merge")
     # get the meta-type (sits or cube)
-    data1 <- .config_data_meta_type(data1)
+    data1 <- .conf_data_meta_type(data1)
     UseMethod("sits_merge", data1)
 }
 
@@ -79,8 +79,8 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
             local_msg = "duplicated band names",
             msg = "invalid band names"
         )
-        data1 <- .sits_rename_bands(data1, bands1)
-        data2 <- .sits_rename_bands(data2, bands2)
+        data1 <- .band_rename(data1, bands1)
+        data2 <- .band_rename(data2, bands2)
     }
     # prepare result
     result <- data1
@@ -155,12 +155,12 @@ sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
                 local_msg = "use suffix to avoid band duplication",
                 msg = "duplicated band names"
             )
-            x <- .sits_rename_bands(x, bands1)
-            y <- .sits_rename_bands(y, bands2)
+            x <- .band_rename(x, bands1)
+            y <- .band_rename(y, bands2)
         }
 
         x[["file_info"]][[1]] <- dplyr::arrange(
-            dplyr::bind_rows(.file_info(x), .file_info(y)),
+            dplyr::bind_rows(.fi(x), .fi(y)),
             .data[["date"]], .data[["band"]]
         )
 

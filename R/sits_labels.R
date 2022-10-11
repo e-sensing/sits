@@ -18,7 +18,7 @@
 sits_labels <- function(data) {
 
     # get the meta-type (sits or cube)
-    data <- .config_data_meta_type(data)
+    data <- .conf_data_meta_type(data)
     UseMethod("sits_labels", data)
 }
 
@@ -82,7 +82,7 @@ sits_labels.sits_model <- function(data) {
     # set caller to show in errors
     .check_set_caller("sits_labels")
     # get the meta-type (sits or cube)
-    data <- .config_data_meta_type(data)
+    data <- .conf_data_meta_type(data)
     UseMethod("sits_labels<-", data)
 }
 

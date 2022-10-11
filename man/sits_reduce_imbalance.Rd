@@ -43,9 +43,9 @@ Please refer to the sits documentation available in
 \examples{
 if (sits_run_examples()) {
     # print the labels summary for a sample set
-    sits_labels_summary(samples_modis_4bands)
+    sits_labels_summary(samples_modis_ndvi)
     # reduce the sample imbalance
-    new_samples <- sits_reduce_imbalance(samples_modis_4bands,
+    new_samples <- sits_reduce_imbalance(samples_modis_ndvi,
         n_samples_over = 200,
         n_samples_under = 200,
         multicores = 1

@@ -203,7 +203,7 @@ sits_get_data.shp <- function(cube,
         msg = "invalid 'pol_id' parameter."
     )
 
-    samples <- .sits_get_samples_from_shp(
+    samples <- .shp_get_samples(
         shp_file    = samples,
         label       = label,
         shp_attr    = label_attr,
@@ -253,7 +253,7 @@ sits_get_data.sf <- function(cube,
     )
 
     # check if sf object contains all the required columns
-    samples <- .sits_get_samples_from_sf(
+    samples <- .sf_get_samples(
         sf_object     = samples,
         label         = label,
         label_attr    = label_attr,
@@ -363,6 +363,7 @@ sits_get_data.data.frame <- function(cube,
 #' @name .sits_get_ts
 #' @author Gilberto Camara
 #' @keywords internal
+#' @noRd
 #' @param cube            Data cube from where data is to be retrieved.
 #' @param samples         Samples to be retrieved.
 #' @param crs             A coordinate reference system of samples.
@@ -394,6 +395,7 @@ sits_get_data.data.frame <- function(cube,
 
 #' @name .sits_get_ts
 #' @keywords internal
+#' @noRd
 #' @export
 .sits_get_ts.raster_cube <- function(cube,
                                      samples, ...,
@@ -520,7 +522,7 @@ sits_get_data.data.frame <- function(cube,
         })
 
         # extract time series
-        ts <- .sits_raster_data_get_ts(
+        ts <- .raster_data_get_ts(
             tile = tile,
             points = samples_tbl,
             bands = band,
@@ -602,6 +604,7 @@ sits_get_data.data.frame <- function(cube,
 
 #' @name .sits_get_ts
 #' @keywords internal
+#' @noRd
 #' @export
 .sits_get_ts.class_cube <- function(cube,
                                           samples, ...,
@@ -795,6 +798,7 @@ sits_get_data.data.frame <- function(cube,
 #' @title Check if all points have been retrieved
 #' @name .sits_get_data_check
 #' @keywords internal
+#' @noRd
 #' @param n_rows_input     Number of rows in input.
 #' @param n_rows_output    Number of rows in output.
 #'
@@ -818,6 +822,7 @@ sits_get_data.data.frame <- function(cube,
 #' @title Extracts the time series average by polygon.
 #' @name .sits_avg_polygon
 #' @keywords internal
+#' @noRd
 #' @description This function extracts the average of the automatically
 #' generated points for each polygon in a shapefile.
 #'

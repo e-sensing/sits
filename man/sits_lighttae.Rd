@@ -76,10 +76,8 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-    # select a set of samples
-    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
     # create a lightTAE model
-    torch_model <- sits_train(samples_ndvi, sits_lighttae())
+    torch_model <- sits_train(samples_modis_ndvi, sits_lighttae())
     # plot the model
     plot(torch_model)
     # create a data cube from local files

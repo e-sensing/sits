@@ -1,6 +1,7 @@
 #' @title Creates the description of a data cube
 #' @name .cube_create
 #' @keywords internal
+#' @noRd
 #'
 #' @description Print information and save metadata about a data cube.
 #'
@@ -59,36 +60,16 @@
 
     return(cube)
 }
-
-
-#' @title Given a labelled cube, return the band information
-#' @name .cube_area_freq
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param cube   Data cube
-#'
-#' @return Frequency of each label in the data cube
-#'
-.cube_area_freq <- function(cube) {
-
-    # open first raster
-    r_obj <- .raster_open_rast(.file_info_path(cube))
-
-    # retrieve the frequency
-    freq <- tibble::as_tibble(.raster_freq(r_obj))
-
-    return(freq)
-}
-
 #' @title Return bands of a data cube
 #' @keywords internal
+#' @noRd
 #' @name .cube_bands
 #' @param cube       Data cube
 #' @param add_cloud  Include the cloud band?
 #'
 #' @return A \code{vector} with the cube bands.
 .cube_bands <- function(cube, add_cloud = TRUE) {
-    bands <- sits_bands(cube)
+    bands <- .tile_bands(cube)
 
     # post-condition
     .check_chr_parameter(bands, len_max = 2^31 - 1)
@@ -100,177 +81,9 @@
     return(bands)
 }
 
-#' @title Missing value of a cube band
-#' @keywords internal
-#' @name .cube_band_missing_value
-#' @param cube  Data cube
-#' @param band  Band
-#'
-#' @return The missing value for the band.
-#'
-.cube_band_missing_value <- function(cube, band) {
-
-    # pre-condition
-    .check_chr_parameter(band)
-    .check_band_in_cube(band, cube)
-
-    # bands names are upper case
-    band <- toupper(band)
-
-    mv <- .config_get(
-        key = c(
-            "sources", .cube_source(cube = cube),
-            "collections", .cube_collection(cube = cube),
-            "bands", band, "missing_value"
-        ),
-        default = .config_get(key = "raster_cube_missing_value")
-    )
-
-    # post-condition
-    .check_num_parameter(mv, allow_na = TRUE)
-
-    return(mv)
-}
-
-#' @title Minimum value of a cube band
-#' @keywords internal
-#' @name .cube_band_minimum_value
-#' @param cube  Data cube
-#' @param band  Band
-#'
-#' @return Minimum value for the band in the data cube
-#'
-.cube_band_minimum_value <- function(cube, band) {
-
-    # pre-conditions
-    .check_chr_parameter(band)
-    .check_band_in_cube(band, cube)
-
-    # bands names are upper case
-    band <- toupper(band)
-
-    mv <- .config_get(
-        key = c(
-            "sources", .cube_source(cube = cube),
-            "collections", .cube_collection(cube = cube),
-            "bands", band, "minimum_value"
-        ),
-        default = .config_get(key = "raster_cube_minimum_value")
-    )
-
-    # post-condition
-    .check_num_parameter(mv)
-
-    return(mv)
-}
-
-#' @title Maximum value of a cube band
-#' @keywords internal
-#' @name .cube_band_maximum_value
-#' @param cube  Data cube
-#' @param band  Band
-#'
-#' @return Maximum value for the band in the data cube.
-#'
-.cube_band_maximum_value <- function(cube, band) {
-
-    # pre-conditions
-    .check_chr_parameter(band)
-    .check_band_in_cube(band, cube)
-
-    # bands names are upper case
-    band <- toupper(band)
-
-    mv <- .config_get(
-        key = c(
-            "sources", .cube_source(cube = cube),
-            "collections", .cube_collection(cube = cube),
-            "bands", band, "maximum_value"
-        ),
-        default = .config_get(key = "raster_cube_maximum_value")
-    )
-
-    # post-condition
-    .check_num_parameter(mv)
-
-    return(mv)
-}
-
-#' @title Scale factor of a cube band
-#' @keywords internal
-#' @name .cube_band_scale_factor
-#'
-#' @param cube  Data cube
-#' @param band  Band
-#'
-#' @return Scale factor for the band in the data cube.
-#'
-.cube_band_scale_factor <- function(cube, band) {
-
-    # pre-condition
-    .check_chr_parameter(band)
-    .check_band_in_cube(band, cube)
-
-    # bands names are upper case
-    band <- toupper(band)
-
-    sf <- .config_get(
-        key = c(
-            "sources", .cube_source(cube = cube),
-            "collections", .cube_collection(cube = cube),
-            "bands", band, "scale_factor"
-        ),
-        default = .config_get(key = "raster_cube_scale_factor")
-    )
-
-    # post-condition
-    .check_num_parameter(sf, exclusive_min = 0)
-
-    return(sf)
-}
-
-#' @title Offset value of a cube band
-#' @keywords internal
-#' @name .cube_band_offset_value
-#' @param cube  Data cube
-#' @param band  Band
-#' @return offset value for the band in the data cube
-#'
-.cube_band_offset_value <- function(cube, band) {
-
-    # pre-condition
-    .check_chr_parameter(band)
-    .check_band_in_cube(band, cube)
-
-    # bands names are upper case
-    band <- toupper(band)
-
-    ov <- .config_get(
-        key = c(
-            "sources", .cube_source(cube = cube),
-            "collections", .cube_collection(cube = cube),
-            "bands", band, "offset_value"
-        ),
-        default = .config_get(key = "raster_cube_offset_value")
-    )
-
-    # post-condition
-    .check_num_parameter(ov)
-
-    return(ov)
-}
-
-#' @title Check if R object is a data cube
-#' @keywords internal
-#' @name .cube_check
-#' @param cube  R object to be checked
-#' @return TRUE/FALSE
-.cube_check <- function(cube) {
-    return(inherits(cube, "sits_cube"))
-}
-
 #' @title Return collection of a data cube
 #' @keywords internal
+#' @noRd
 #' @name .cube_collection
 #' @param cube  data cube
 #' @return collection associated to the cube
@@ -284,6 +97,7 @@
 }
 #' @title Return crs of a data cube
 #' @keywords internal
+#' @noRd
 #' @name .cube_crs
 #' @param cube  data cube
 #' @return crs associated to the cube
@@ -298,6 +112,7 @@
 #' @title Create a data cube derived from another
 #' @name .cube_derived_create
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Take a tibble containing metadata about a data cube
@@ -316,7 +131,7 @@
 #'
 #' @return output data cube
 #'
-.cube_derived_create <- function(cube,
+.cube_derived_create <- function(tile,
                                  cube_class,
                                  band_name,
                                  labels,
@@ -330,13 +145,13 @@
     .check_set_caller(".cube_derived_create")
 
     # only one tile at a time is processed
-    .check_has_one_tile(cube)
+    .check_has_one_tile(tile)
 
     # output filename
     file_name <- paste0(
-        cube[["satellite"]], "_",
-        cube[["sensor"]], "_",
-        cube[["tile"]], "_",
+        tile[["satellite"]], "_",
+        tile[["sensor"]], "_",
+        tile[["tile"]], "_",
         start_date, "_",
         end_date, "_",
         band_name, "_",
@@ -345,15 +160,15 @@
 
     file_name <- file.path(output_dir, file_name)
 
-    res <- .cube_resolution(cube)
+    res <- .cube_resolution(tile)
 
     if (!purrr::is_null(bbox)) {
-        sub_image <- .sits_raster_sub_image(tile = cube, roi = bbox)
+        sub_image <- .raster_sub_image(tile = tile, roi = bbox)
         nrows_cube_class <- sub_image[["nrows"]]
         ncols_cube_class <- sub_image[["ncols"]]
     } else {
-        nrows_cube_class <- .file_info_nrows(cube)
-        ncols_cube_class <- .file_info_ncols(cube)
+        nrows_cube_class <- .tile_nrows(tile)
+        ncols_cube_class <- .tile_ncols(tile)
     }
 
     # set the file information
@@ -369,22 +184,22 @@
         xmax       = bbox[["xmax"]],
         ymin       = bbox[["ymin"]],
         ymax       = bbox[["ymax"]],
-        crs        = cube[["crs"]][[1]],
+        crs        = tile[["crs"]],
         path       = file_name
     )
 
     # set the metadata for the probability cube
     dev_cube <- .cube_create(
-        source     = .cube_source(cube),
-        collection = .cube_collection(cube),
-        satellite  = cube$satellite,
-        sensor     = cube$sensor,
-        tile       = cube$tile,
+        source     = .tile_source(tile),
+        collection = .tile_collection(tile),
+        satellite  = tile[["satellite"]],
+        sensor     = tile[["sensor"]],
+        tile       = tile[["tile"]],
         xmin       = bbox[["xmin"]],
         xmax       = bbox[["xmax"]],
         ymin       = bbox[["ymin"]],
         ymax       = bbox[["ymax"]],
-        crs        = cube$crs,
+        crs        = tile$crs,
         labels     = labels,
         file_info  = file_info
     )
@@ -395,451 +210,18 @@
     return(dev_cube)
 }
 
-#' @title Given a band, return a set of values for chosen location
-#' @name .cube_extract
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Given a data cube, retrieve the time series of XY locations
-#'
-#' @param cube        Metadata about a data cube
-#' @param band_cube   Name of the band to the retrieved
-#' @param xy          Matrix with XY location
-#'
-#' @return Numeric matrix with raster values for each coordinate.
-#'
-.cube_extract <- function(cube, band_cube, xy) {
-
-
-    # set caller to show in errors
-    .check_set_caller(".cube_extract")
-
-    # pre-condition - one tile at a time
-    .check_has_one_tile(cube)
-    # does the cube contain the band?
-    .check_band_in_cube(band_cube, cube)
-
-    # filter the files that contain the band
-    band <- dplyr::filter(.file_info(cube), .data[["band"]] == band_cube)
-
-    # create a stack object
-    r_obj <- .raster_open_rast(band$path)
-
-    # extract the values
-    values <- .raster_extract(r_obj, xy)
-
-    # is the data valid?
-    .check_that(
-        x = nrow(values) == nrow(xy),
-        msg = "error in retrieving data"
-    )
-    return(values)
-}
-
-#' @title Given a tile, fid, and band, return a new cube with bounding box
-#' values updated.
-#' @name .cube_filter
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Given a data cube and a tile, fid, and band, return a new
-#' cube with bounding box updated
-#'
-#' @param cube Metadata about a data cube
-#' @param tile A tile name
-#' @param fid  A feature fid
-#' @param band A band name
-#'
-#' @return a sits cube with bounding box values updated.
-#'
-.cube_filter <- function(cube, tile = NULL, fid = NULL, band = NULL) {
-
-    if (!is.null(tile)) {
-        cube <- dplyr::filter(cube, .data[["tile"]] == !!tile)
-        .check_has_one_tile(cube)
-    }
-
-    # get file_info for a given fid
-    fi_cube <- .file_info(cube, fid = fid)
-
-    # cube filtered by bands
-    cube <- sits_select(cube, bands = band)
-
-    source <- .cube_source(cube)
-    col <- .cube_collection(cube)
-
-    cube_tile <- .cube_create(
-        source = source,
-        collection = col,
-        satellite = .source_collection_satellite(source, col),
-        sensor = .source_collection_sensor(source, col),
-        tile = tile,
-        xmin = max(fi_cube[["xmin"]]),
-        xmax = min(fi_cube[["xmax"]]),
-        ymin = max(fi_cube[["ymin"]]),
-        ymax = min(fi_cube[["ymax"]]),
-        crs = .cube_crs(cube),
-        file_info = fi_cube
-    )
-
-    class(cube_tile) <- class(cube)
-
-    return(cube_tile)
-}
-
-#' @title Verify if two cubes are equal
-#'
-#' @name .cube_is_equal
-#'
-#' @keywords internal
-#'
-#' @description Given two cubes verify if they are equal
-#'
-#' @param x,y   a sits cube
-#'
-#' @return a \code{logical} value.
-.cube_is_equal <- function(x, y) {
-    if (nrow(x) != nrow(y)) {
-        return(FALSE)
-    }
-
-    slider::slide2_lgl(x, y, function(xtile, ytile) {
-        test_metadata <- isTRUE(dplyr::all_equal(
-            dplyr::select(xtile, -.data[["file_info"]], -.data[["crs"]]),
-            dplyr::select(ytile, -.data[["file_info"]], -.data[["crs"]])
-        ))
-
-        test_file_info <- isTRUE(dplyr::all_equal(
-            xtile[["file_info"]][[1]],
-            ytile[["file_info"]][[1]]
-        ))
-
-        test_crs <- sf::st_crs(xtile[["crs"]]) == sf::st_crs(ytile[["crs"]])
-
-        return(all(c(test_metadata, test_file_info, test_crs)))
-    })
-}
-
-#' @title Checks if the local raster and the cube have exactly the same bbox
-#'
-#' @name .cube_is_equal_bbox
-#'
-#' @keywords internal
-#'
-#' @description Given a cube this function checks if the cube and the local
-#' raster have the exact box.
-#'
-#' @param cube   a sits cube
-#'
-#' @return a \code{logical} value.
-.cube_is_equal_bbox <- function(cube) {
-    local_raster <- .file_info_path(cube)
-
-    # open raster and get bbox
-    rast <- .raster_open_rast(local_raster)
-    rast_bbox <- .raster_bbox(rast)
-
-    # converting the bbox to wgs84 because our tolerance factor is in
-    # degrees
-    rast_bbox_info <- .sits_coords_to_bbox_wgs84(
-        xmin = rast_bbox[["xmin"]],
-        ymin = rast_bbox[["ymin"]],
-        xmax = rast_bbox[["xmax"]],
-        ymax = rast_bbox[["ymax"]],
-        crs  = .raster_crs(rast)
-    )
-
-    rast_poly <- sf::st_as_sfc(
-        sf::st_bbox(
-            rast_bbox_info,
-            crs = 4326
-        )
-    )
-    cube_poly <- sf::st_as_sfc(
-        sf::st_bbox(
-            sits_bbox(cube, wgs84 = TRUE),
-            crs = 4326
-        )
-    )
-
-    tolerance <- .config_get(key = c(
-        "sources", .cube_source(cube),
-        "collections", .cube_collection(cube),
-        "ext_tolerance"
-    ))
-
-    is_equals_exact_polys <- sf::st_equals_exact(
-        x = rast_poly,
-        y = cube_poly,
-        sparse = FALSE,
-        par = tolerance
-    )
-
-    # converting to vector because sf returns a 1x1 matrix
-    return(c(is_equals_exact_polys))
-}
-#' @title Check if cube is regular
-#' @name .cube_is_regular
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  cube         input data cube
-#' @return TRUE/FALSE
-.cube_is_regular <- function(cube) {
-
-    # Dispatch
-    UseMethod(".cube_is_regular", cube)
-}
-
-#' @name .cube_is_regular
-#' @export
-.cube_is_regular.raster_cube <- function(cube) {
-    if (!.cube_unique_bands(cube)) {
-        return(FALSE)
-    }
-
-    if (!.cube_unique_bbox(cube)) {
-        return(FALSE)
-    }
-
-    if (!.cube_unique_tile_size(cube)) {
-        return(FALSE)
-    }
-
-    if (!.cube_unique_timeline(cube)) {
-        return(FALSE)
-    }
-
-    return(TRUE)
-}
-
-#' @name .cube_is_regular
-#' @export
-.cube_is_regular.default <- function(cube) {
-    return(TRUE)
-}
-
-#' @title Check if the bands of all tiles of the cube are the same
-#' @name .cube_unique_bands
-#' @keywords internal
-#' @param  cube         input data cube
-#' @return TRUE/FALSE
-.cube_unique_bands <- function(cube) {
-    # check if all tiles have the same bands
-    bands <- slider::slide(cube, function(tile) {
-        return(.cube_bands(tile))
-    })
-    if (length(unique(bands)) != 1) {
-        return(FALSE)
-    } else {
-        return(TRUE)
-    }
-}
-#' @title Check if bboxes of all tiles of the cube are the same
-#' @name .cube_unique_bbox
-#' @keywords internal
-#' @param  cube         input data cube
-#' @return TRUE/FALSE
-.cube_unique_bbox <- function(cube) {
-    tolerance <- .config_get(
-        key = c(
-            "sources", .cube_source(cube),
-            "collections", .cube_collection(cube),
-            "ext_tolerance"
-        )
-    )
-
-    # check if the resolutions are unique
-    equal_bbox <- slider::slide_lgl(cube, function(tile) {
-        file_info <- .file_info(tile)
-
-        test <-
-            (.is_eq(max(file_info[["xmax"]]),
-                min(file_info[["xmax"]]),
-                tolerance = tolerance
-            ) &&
-                .is_eq(max(file_info[["xmin"]]),
-                    min(file_info[["xmin"]]),
-                    tolerance = tolerance
-                ) &&
-                .is_eq(max(file_info[["ymin"]]),
-                    min(file_info[["ymin"]]),
-                    tolerance = tolerance
-                ) &&
-                .is_eq(max(file_info[["ymax"]]),
-                    min(file_info[["ymax"]]),
-                    tolerance = tolerance
-                ))
-
-        return(test)
-    })
-
-    if (!all(equal_bbox)) {
-        return(FALSE)
-    } else {
-        return(TRUE)
-    }
-}
-#' @title Check if sizes of all tiles of the cube are the same
-#' @name .cube_unique_tile_size
-#' @keywords internal
-#' @param  cube         input data cube
-#' @return TRUE/FALSE
-.cube_unique_tile_size <- function(cube) {
-    # check if the sizes of all tiles are the same
-    test_cube_size <- slider::slide_lgl(cube, function(tile) {
-        if (length(unique(.file_info(tile)[["nrows"]])) > 1 ||
-            length(unique(.file_info(tile)[["ncols"]])) > 1) {
-            return(FALSE)
-        }
-        return(TRUE)
-    })
-
-    if (!all(test_cube_size)) {
-        return(FALSE)
-    } else {
-        return(TRUE)
-    }
-}
-
-#' @title Check if timelines all tiles of the cube are the same
-#' @name .cube_unique_timeline
-#' @keywords internal
-#' @param  cube         input data cube
-#' @return TRUE/FALSE
-.cube_unique_timeline <- function(cube) {
-    # get the bands
-    bands <- slider::slide(cube, function(tile) {
-        return(.cube_bands(tile))
-    })
-    # check if timelines are unique
-    timelines <- slider::slide(cube, function(tile) {
-        unique(purrr::map(unlist(unique(bands)), function(band) {
-            tile_band <- sits_select(tile, bands = band)
-            sits_timeline(tile_band)
-        }))
-    })
-
-    # function to test timelines
-    return(length(unique(timelines)) == 1 &&
-        any(purrr::map_dbl(timelines, length) == 1))
-}
-#' @title Return the labels of the cube
-#' @name .cube_labels
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  cube         input data cube
-#' @return a vector with the labels of the cube
-.cube_labels <- function(cube) {
-    labs <- unique(cube[["labels"]])
-
-    # post-condition
-    .check_lst(labs,
-        min_len = 1, max_len = 1,
-        is_named = FALSE,
-        msg = "invalid 'labels' value"
-    )
-
-    labs <- unlist(labs, use.names = FALSE)
-
-    # post-condition
-    .check_chr(labs,
-        allow_na = TRUE, allow_empty = FALSE,
-        len_min = 1, allow_null = TRUE,
-        msg = "invalid 'labels' value"
-    )
-
-    return(labs)
-}
-
-#' @title Determine the block spatial parameters of a given cube
-#' @name .cube_params_block
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Based on the R object associated to a raster object,
-#'                 determine its parameters
-#' @param cube     A valid cube
-#' @param block    A block inside the cube
-#' @return A tibble with the cube parameters
-.cube_params_block <- function(cube, block) {
-
-    # pre-condition - one tile at a time
-    .check_has_one_tile(cube)
-
-    # pre-conditions
-    .check_int_parameter(block[["row"]],
-                         min = 1, max = .cube_size(cube)[["nrows"]]
-    )
-    .check_int_parameter(block[["col"]],
-        min = 1, max = .cube_size(cube)[["ncols"]],
-    )
-
-    .check_int_parameter(block[["nrows"]],
-        min = 1, max = .cube_size(cube)[["nrows"]]
-    )
-
-    .check_int_parameter(block[["ncols"]],
-        min = 1, max = .cube_size(cube)[["ncols"]]
-    )
-
-    source <- .cube_source(cube)
-    collection <- .cube_collection(cube)
-
-    params <- .sits_raster_sub_image_from_block(
-        block = block,
-        source = source,
-        collection = collection,
-        tile = cube
-    )
-
-    tolerance <- .config_get(key = c(
-        "sources", source,
-        "collections", collection,
-        "ext_tolerance"
-    ))
-
-    # post-conditions
-    xmin <- params[["xmin"]]
-    .check_num_parameter(
-        xmin,
-        min = cube[["xmin"]], max = cube[["xmax"]],
-        tolerance = tolerance
-    )
-    xmax <- params[["xmax"]]
-    .check_num_parameter(
-        xmax,
-        min = cube[["xmin"]], max = cube[["xmax"]],
-        tolerance = tolerance
-    )
-    ymin <- params[["ymin"]]
-    .check_num_parameter(
-        ymin,
-        min = cube[["ymin"]], max = cube[["ymax"]],
-        tolerance = tolerance
-    )
-    ymax <- params[["ymax"]]
-    .check_num_parameter(
-        ymax,
-        min = cube[["ymin"]], max = cube[["ymax"]],
-        tolerance = tolerance
-    )
-
-    return(params)
-}
-
 #' @title Return the cube resolution of the x axis
 #' @name .cube_xres
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param  cube         input data cube
 #' @return a numeric with the x resolution
-.cube_xres <- function(cube, bands = NULL) {
+.cube_xres <- function(cube) {
 
     # tile template
-    xres <- .file_info_xres(cube, bands = bands)
+    xres <- .fi(cube)[["xres"]]
     # post-condition
     .check_num_parameter(xres, exclusive_min = 0)
 
@@ -849,14 +231,15 @@
 #' @title Return the cube resolution of the y axis
 #' @name .cube_yres
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param  cube         input data cube
 #' @return a numeric with the y resolution
-.cube_yres <- function(cube, bands = NULL) {
+.cube_yres <- function(cube) {
 
     # tile template
-    yres <- .file_info_yres(cube, bands = bands)
+    yres <- .fi(cube)[["yres"]]
     # post-condition
     .check_num_parameter(yres, exclusive_min = 0)
 
@@ -866,6 +249,7 @@
 #' @title Return the resolution of the cube
 #' @name .cube_resolution
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param  cube         input data cube
@@ -878,6 +262,7 @@
 #' @title Return the S3 class of the cube
 #' @name .cube_s3class
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param  cube         input data cube
@@ -892,15 +277,16 @@
 #' @title Return the size of the cube (nrows x ncols)
 #' @name .cube_size
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param  cube         input data cube
-#' @return a vector with the labels of the cube
-.cube_size <- function(cube, ..., bands = NULL) {
+#' @return a vector with the size of the cube
+.cube_size <- function(cube) {
 
     # get the file size
-    nrows <- .file_info_nrows(cube, bands = bands)
-    ncols <- .file_info_ncols(cube, bands = bands)
+    nrows <- .fi(cube)[["nrows"]]
+    ncols <- .fi(cube)[["ncols"]]
 
     # post-conditions
     .check_int_parameter(nrows)
@@ -913,6 +299,7 @@
 #' @title Get cube source
 #' @name .cube_source
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param  cube input data cube
@@ -934,59 +321,10 @@
     return(src)
 }
 
-#' @title Get bbox of a cube (single tile)
-#' @name .cube_tile_bbox
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  cube input data cube
-#'
-#' @return A vector with tile names
-.cube_tile_bbox <- function(cube) {
-
-    # pre-condition - one tile at a time
-    .check_has_one_tile(cube)
-
-    bbox <- vector("double", length = 4)
-    names(bbox) <- c("xmin", "ymin", "xmax", "ymax")
-
-    bbox["xmin"] <- cube["xmin"]
-    bbox["ymin"] <- cube["ymin"]
-    bbox["xmax"] <- cube["xmax"]
-    bbox["ymax"] <- cube["ymax"]
-
-    # post-condition
-    .check_lst(bbox,
-        min_len = 4, max_len = 4, fn_check = .check_num,
-        len_min = 1, len_max = 1,
-        msg = "invalid tile 'bbox' value"
-    )
-
-    return(bbox)
-}
-#' @title Get tolerance of a cube for comparison purposes
-#' @name .cube_tolerance
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  cube input data cube
-#'
-#' @return The numerical tolerance value
-#'
-.cube_tolerance <- function(cube){
-    tolerance <- .config_get(key = c(
-        "sources", .cube_source(cube),
-        "collections", .cube_collection(cube),
-        "ext_tolerance"
-    ))
-    return(tolerance)
-}
-
-
 #' @title Generate token to cube
 #' @name .cube_token_generator
 #' @keywords internal
-#'
+#' @noRd
 #' @param  cube input data cube
 #'
 #' @return A sits cube
@@ -1014,13 +352,13 @@
         return(cube)
     }
 
-    token_endpoint <- .config_get(c("sources", .cube_source(cube), "token_url"))
+    token_endpoint <- .conf("sources", .cube_source(cube), "token_url")
     url <- paste0(token_endpoint, "/", tolower(.cube_collection(cube)))
 
     res_content <- NULL
 
-    n_tries <- .config_get("cube_token_generator_n_tries")
-    sleep_time <- .config_get("cube_token_generator_sleep_time")
+    n_tries <- .conf("cube_token_generator_n_tries")
+    sleep_time <- .conf("cube_token_generator_sleep_time")
     while (is.null(res_content) && n_tries > 0) {
         res_content <- tryCatch(
             {
@@ -1071,11 +409,15 @@
 
     return(cube)
 }
+#' @export
+.cube_token_generator.default <- function(cube) {
+    return(cube)
+}
 
 #' @title Check if a cube token was expired
 #' @name .cube_is_token_expires
 #' @keywords internal
-#'
+#' @noRd
 #' @param cube input data cube
 #'
 #' @return a boolean value.
@@ -1089,9 +431,8 @@
     file_info <- cube[["file_info"]][[1]]
     fi_paths <- file_info[["path"]]
 
-    min_remaining_time <- .config_get(
-        "cube_token_generator_min_remaining_time",
-        default = 0
+    min_remaining_time <- .conf(
+        "cube_token_generator_min_remaining_time"
     )
 
     are_local_paths <- !grepl(pattern = "^/vsi", x = fi_paths)
@@ -1117,10 +458,358 @@
 .cube_is_token_expired.default <- function(cube) {
     return(FALSE)
 }
+#' @name .cube_set_class
+#' @param cub   data cube
+#' @keywords internal
+#' @description sets the class of a data cube
+.cube_set_class <- function(cube, ...) {
+    .set_class(cube, ..., c("sits_cube", "tbl_df", "tbl", "data.frame"))
+}
+
+#' @name .cube_file_info
+#' @keywords internal
+#' @description retrieves the file info for the cube
+#' @param cube data cube
+.cube_file_info <- function(cube) {
+    UseMethod(".cube_file_info", cube)
+}
 
 #' @export
-.cube_token_generator.default <- function(cube) {
-    return(cube)
+.cube_file_info.raster_cube <- function(cube) {
+    tidyr::unnest(cube["file_info"], "file_info")
 }
+
+#' @name .cube_start_date
+#' @description Get start dates based on the various tiles of a cube
+#' @keywords internal
+#' @param cube A cube.
+#' @return date
+.cube_start_date <- function(cube) {
+    UseMethod(".cube_start_date", cube)
+}
+
+#' @export
+.cube_start_date.raster_cube <- function(cube) {
+    .compact(.as_date(slider::slide(cube, .tile_start_date)))
+}
+
+#' @name .cube_end_date
+#' @description Get end date from each tile.
+#' @keywords internal
+#' @param cube A cube.
+#' @return date
+.cube_end_date <- function(cube) {
+    UseMethod(".cube_end_date", cube)
+}
+
+#' @export
+.cube_end_date.raster_cube <- function(cube) {
+    .compact(.as_date(slider::slide(cube, .tile_end_date)))
+}
+
+#' @name .cube_timeline
+#' @keywords internal
+#' @param cube A cube.
+#' @description Get timeline from each cube. If there are at least two
+#' different timelines, all timelines will be returned in a list).
+#' @return date or list(date)
+.cube_timeline <- function(cube) {
+    UseMethod(".cube_timeline", cube)
+}
+
+#' @export
+.cube_timeline.raster_cube <- function(cube) {
+    values <- .compact(slider::slide(cube, .tile_timeline))
+    if (length(values) != 1) {
+        return(values)
+    }
+    .as_date(values)
+}
+
+#' @name .cube_timeline_acquisiton
+#' @keywords internal
+#' @param cube A cube.
+#' @param period Period character vector in ISO format.
+#' @param origin A date.
+#' @description Compute how many images were acquired in different periods
+#' and different tiles.
+#' @return tibble
+.cube_timeline_acquisiton <- function(cube, period, origin) {
+    UseMethod(".cube_timeline_acquisiton", cube)
+}
+
+#' @export
+.cube_timeline_acquisiton.raster_cube <-
+    function(cube,
+             period = "P1D",
+             origin = NULL) {
+        if (!.has(origin)) {
+            origin <- .cube_start_date(cube)
+        }
+        values <- slider::slide_dfr(cube, function(tile) {
+            tibble::tibble(
+                tile = tile[["tile"]],
+                dates = .tile_timeline(!!tile)
+            )
+        })
+        values <- dplyr::filter(values, !!origin <= .data[["dates"]])
+        values <- dplyr::arrange(values, .data[["dates"]])
+        values <- slider::slide_period_dfr(
+            values, values[["dates"]], .period_unit(period),
+            function(x) {
+                x[["from_date"]] <- min(x[["dates"]])
+                x[["to_date"]] <- max(x[["dates"]])
+                dplyr::count(
+                    x, .data[["from_date"]], .data[["to_date"]],
+                    .data[["tile"]]
+                )
+            },
+            .every = .period_val(period), .origin = origin, .complete = TRUE
+        )
+        id_cols <- c("from_date", "to_date")
+        if (all(values[["from_date"]] == values[["to_date"]])) {
+            values[["date"]] <- values[["from_date"]]
+            id_cols <- "date"
+        }
+        tidyr::pivot_wider(
+            values,
+            id_cols = id_cols,
+            names_from = "tile",
+            values_from = "n"
+        )
+    }
+
+#' @name .cube_foreach_tile
+#' @description Iterates over each cube tile, passing tile to function's
+#' first argument.
+#' @keywords internal
+#' @param cube A cube.
+#' @param fn A function.
+#' @param ... Additional arguments to be passed to \code{fn}.
+#' @return cube
+.cube_foreach_tile <- function(cube, fn, ...) {
+    UseMethod(".cube_foreach_tile", cube)
+}
+
+#' @export
+.cube_foreach_tile.raster_cube <- function(cube, fn, ...) {
+    slider::slide_dfr(cube, fn, ...)
+}
+
+#' @name .cube_intersects
+#' @param cube A cube.
+#' @param roi A region of interest (ROI).
+#' @description What tiles intersect \code{roi} parameter?
+#' @keywords internal
+#' @return logical
+.cube_intersects <- function(cube, roi) {
+    UseMethod(".cube_intersects", cube)
+}
+
+#' @export
+.cube_intersects.raster_cube <- function(cube, roi) {
+    slider::slide_lgl(cube, .tile_intersects, roi = .roi_as_sf(roi))
+}
+#' @name .cube_filter_spatial
+#' @param cube A cube.
+#' @param roi A region of interest (ROI).
+#' @description Filter tiles that intersect \code{roi} parameter.
+#' @keywords internal
+#' @return cube
+.cube_filter_spatial <- function(cube, roi) {
+    UseMethod(".cube_filter_spatial", cube)
+}
+
+#' @export
+.cube_filter_spatial.raster_cube <- function(cube, roi) {
+    intersecting <- .cube_intersects(cube, roi)
+    if (!any(intersecting)) {
+        stop("informed roi does not intersect cube")
+    }
+    cube[intersecting, ]
+}
+
+#' @name .cube_during
+#' @keywords internal
+#' @param cube A cube.
+#' @param start_date,end_date Date of start and end.
+#' @description What tiles have file_info entries between 'start_date'
+#' and 'end_date'?
+#' @return logical
+.cube_during <- function(cube, start_date, end_date) {
+    UseMethod(".cube_during", cube)
+}
+
+#' @export
+.cube_during.raster_cube <- function(cube, start_date, end_date) {
+    slider::slide_lgl(
+        cube, .tile_during, start_date = start_date, end_date = end_date
+    )
+}
+
+#' @name .cube_filter_temporal
+#' @description Filter tiles with 'file_info' entries
+#'    between 'start_date' and 'end_date'.
+#' @keywords internal
+#' @param cube A cube.
+#' @param start_date,end_date Date of start and end.
+#' @return cube
+.cube_filter_temporal <- function(cube, start_date, end_date) {
+    UseMethod(".cube_filter_temporal", cube)
+}
+
+#' @export
+.cube_filter_temporal.raster_cube <- function(cube, start_date, end_date) {
+    during <- .cube_during(cube, start_date, end_date)
+    if (!any(during)) {
+        stop("informed interval does not interesect cube")
+    }
+    cube[during, ]
+}
+
+#' @name .cube_filter_bands
+#' @description filter the cube based on a set of bands
+#' @keywords internal
+#' @param   cube   data cube
+#' @param   bands  set of bands
+#' @return         filtered data cube
+.cube_filter_bands <- function(cube, bands) {
+    UseMethod(".cube_filter_bands", cube)
+}
+#' @keywords internal
+.cube_filter_bands.raster_cube <- function(cube, bands) {
+    slider::slide_dfr(cube, function(tile) {
+        .tile_filter_bands(tile = tile, bands = bands)
+    })
+}
+
+#' @name .cube_tiles
+#' @description Returns the tiles of a data cube
+#' @keywords internal
+#' @param cube
+#' @return set of the tiles of the cube
+.cube_tiles <- function(cube) {
+    UseMethod(".cube_tiles", cube)
+}
+#' @keywords internal
+.cube_tiles.raster_cube <- function(cube) {
+    .as_chr(cube[["tile"]])
+}
+
+#' @name .cube_filter_tile
+#' @description filter the cube to retrieve a single tile
+#' @keywords internal
+#' @param    cube   datacube
+#' @param    tile   name of a tile
+#' @return   filtered cube
+.cube_filter_tile <- function(cube, tile) {
+    UseMethod(".cube_filter_tile", cube)
+}
+#' @keywords internal
+.cube_filter_tile.raster_cube <- function(cube, tile) {
+    cube[.cube_tiles(cube) %in% tile, ]
+}
+
+
+#' @name .cube_create_features
+#' @description create internal cube features with ID
+#' @keywords internal
+#' @noRd
+#' @param cube  datacube
+#' @return cube with feature ID in file info
+.cube_create_features <- function(cube) {
+    # Process for each tile and return a cube
+    slider::slide_dfr(cube, function(tile) {
+        features <- tile[, c("tile", "file_info")]
+        features <- tidyr::unnest(features, "file_info")
+        features[["feature"]] <- features[["fid"]]
+        features <- tidyr::nest(features, file_info = -c("tile", "feature"))
+        # Replicate each tile so that we can copy file_info to cube
+        tile <- tile[rep(1, nrow(features)), ]
+        tile[["file_info"]] <- features[["file_info"]]
+        tile
+    })
+}
+
+#' @name .cube_merge_features
+#' @description merge features into a data cube
+#' @keywords internal
+#' @noRd
+#' @param features  cube features
+#' @return merged data cube
+.cube_merge_features <- function(features) {
+    cube <- tidyr::unnest(features, "file_info", names_sep = ".")
+    cube <- dplyr::arrange(
+        cube, .data[["file_info.date"]], .data[["file_info.band"]]
+    )
+    cube <- tidyr::nest(
+        cube, file_info = tidyr::starts_with("file_info"),
+        .names_sep = "."
+    )
+    # Set class features and return
+    .set_class(cube, class(features))
+}
+
+
+#' @name .cube_create_assets
+#' @description create assets for a data cube, by assigning a unique ID
+#' @keywords internal
+#' @param  cube  datacube
+#' @return a data cube with
+#'
+.cube_create_assets <- function(cube) {
+    # Process for each tile and return a cube
+    slider::slide_dfr(cube, function(tile) {
+        assets <- tile[, c("tile", "file_info")]
+        assets <- tidyr::unnest(assets, "file_info")
+        assets[["feature"]] <- assets[["fid"]]
+        assets[["asset"]] <- assets[["band"]]
+        assets <- tidyr::nest(
+            assets, file_info = -c("tile", "feature", "asset")
+        )
+        # Replicate each tile so that we can copy file_info to cube
+        tile <- tile[rep(1, nrow(assets)), ]
+        tile[["file_info"]] <- assets[["file_info"]]
+        tile
+    })
+}
+
+#' @keywords internal
+.cube_merge_assets <- function(assets) {
+    .cube_merge_features(assets)
+}
+
+# s2_cube <- sits_cube(
+#     source = "AWS",
+#     collection = "SENTINEL-S2-L2A-COGS",
+#     tiles = c("20LKP", "20LLP", "20LNQ", "21LTH"),
+#     bands = c("B08", "B11"),
+#     start_date = "2018-07-12",
+#     end_date = "2019-07-28"
+# )
+# .cube_intersects(s2_cube, s2_cube[2:3,])
+# .cube_intersects(s2_cube, s2_cube[4,])
+# .cube_filter_spatial(s2_cube, .bbox_as_sf(s2_cube[3:4,]))
+# .cube_filter_spatial(s2_cube, .bbox_as_sf(s2_cube[3:4,], as_crs = 4326))
+# .cube_start_date(s2_cube)
+# .cube_end_date(s2_cube)
+# .cube_timeline(s2_cube)
+# .cube_filter_temporal(s2_cube, start_date = "2017-01-01", end_date = "2018-07-12")
+# .cube_filter_temporal(s2_cube, start_date = "2017-01-01", end_date = "2018-07-14")
+# .cube_filter_temporal(s2_cube, start_date = "2019-07-25", end_date = "2020-07-28")
+# .cube_filter_temporal(s2_cube, start_date = "2019-07-28", end_date = "2020-07-28")
+# .cube_filter_temporal(s2_cube, start_date = "2014-07-28", end_date = "2015-07-28")
+#
+# sinop <- sits_cube(
+#     source = "BDC",
+#     collection = "MOD13Q1-6",
+#     data_dir = system.file("extdata/raster/mod13q1", package = "sits")
+# )
+# .cube_timeline(sinop)
+# .cube_start_date(sinop)
+# .cube_end_date(sinop)
+# identical(.cube_merge_features(.cube_create_features(s2_cube)), s2_cube)
+# identical(.cube_merge_assets(.cube_create_assets(s2_cube)), s2_cube)
+
 
 

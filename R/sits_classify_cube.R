@@ -1,6 +1,7 @@
 #' @title Classify a chunk of raster data  using multicores
 #' @name .classify_tile
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -183,6 +184,7 @@
 #' @title Read a block of values retrieved from a set of raster images
 #' @name  .classify_data_read
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'

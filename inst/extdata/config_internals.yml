@@ -13,6 +13,14 @@ sits_s3_classes_proc :   ["probs_cube","uncertainty_cube", "class_cube"]
 sits_results_bands : ["probs", "bayes", "bilat", "gauss", "uncert",
                       "entropy", "class"]
 
+# color palettes available in sits
+sits_color_palettes:    ["BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu",
+                        "RdYlGn", "Spectral", "Accent", "Dark2", "Paired",
+                        "Pastel1", "Pastel2", "Set1", "Set2", "Set3",
+                        "BuGn", "BuPu", "GnBu", "PuBu", "PuBuGn", "PuRd", "RdPu",
+                        "YlGn", "YlGnBu", "YlOrRd", "YlOrBr", "OrRd",
+                        "Blues", "Greens", "Oranges", "Reds", "Greys", "Purples"]
+
 # bands resulting from classification and post-classification
 sits_results_s3_class:
                     probs: "probs_cube"

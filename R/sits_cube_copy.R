@@ -53,8 +53,7 @@ sits_cube_copy <- function(cube,
                            output_dir = getwd(),
                            multicores = 2,
                            progress = TRUE) {
-    # check documentation mode
-    progress <- .check_documentation(progress)
+
 
     # precondition - cube
     .check_is_sits_cube(cube)
@@ -129,13 +128,13 @@ sits_cube_copy <- function(cube,
     if (.has(roi)) {
         gdal_params[["srcwin"]] <- .gdal_as_srcwin(asset = asset, roi = roi)
     }
-    gdal_params[c("of", "co")] <- list("GTiff", .config_gtiff_default_options())
+    gdal_params[c("of", "co")] <- list("GTiff", .conf("gdal_creation_options"))
 
     gdal_params
 }
 
 .gdal_as_srcwin <- function(asset, roi) {
-    block <- .sits_raster_sub_image(tile = asset, roi = roi)
+    block <- .raster_sub_image(tile = asset, roi = roi)
     c(xoff = block[["col"]] - 1,
       yoff = block[["row"]] - 1,
       xsize = block[["ncols"]],

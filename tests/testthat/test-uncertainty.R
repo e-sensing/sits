@@ -9,11 +9,7 @@ test_that("uncertainty works", {
         delim = "_",
         parse_info = c("X1", "tile", "band", "date")
     )
-    samples_ndvi <- sits_select(
-        sits::samples_modis_4bands,
-        bands = c("NDVI")
-    )
-    xgb_model <- sits_train(samples_ndvi,
+    xgb_model <- sits_train(samples_modis_ndvi,
         ml_method = sits_xgboost(verbose = FALSE)
     )
     probs_cube <- sits_classify(
@@ -61,15 +57,15 @@ test_that("uncertainty works", {
     expect_true(all(dim(entropy_fi) == dim(least_fi),
                     dim(entropy_fi) == dim(margin_fi)))
 
-    entropy_r <- terra::rast(entropy_fi[["path"]])
+    entropy_r <- .raster_open_rast(entropy_fi[["path"]])
     expect_true(all(range(entropy_r[]) > 0))
     expect_true(range(entropy_r[])[2] > range(entropy_r[])[1])
 
-    least_r <- terra::rast(least_fi[["path"]])
+    least_r <- .raster_open_rast(least_fi[["path"]])
     expect_true(all(range(least_r[]) >= 0))
     expect_true(range(least_r[])[2] > range(least_r[])[1])
 
-    margin_r <- terra::rast(margin_fi[["path"]])
+    margin_r <- .raster_open_rast(margin_fi[["path"]])
     expect_true(all(range(margin_r[]) > 0))
     expect_true(range(margin_r[])[2] > range(margin_r[])[1])
 

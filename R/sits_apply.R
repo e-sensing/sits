@@ -106,7 +106,7 @@ sits_apply <- function(data, ...) {
 sits_apply.sits <- function(data, ...) {
     .check_set_caller("sits_apply.sits")
 
-    .sits_fast_apply(data, col = "time_series", fn = dplyr::mutate, ...)
+    .apply(data, col = "time_series", fn = dplyr::mutate, ...)
 }
 
 #' @rdname sits_apply
@@ -114,8 +114,6 @@ sits_apply.sits <- function(data, ...) {
 sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
                                    multicores = 2, output_dir = getwd(),
                                    progress = TRUE) {
-    # check documentation mode
-    progress <- .check_documentation(progress)
 
     # check cube
     .check_is_regular(data)
@@ -144,7 +142,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = overlap),
         npaths = length(in_bands) + 1,
-        nbytes = 8, proc_bloat = .config_processing_bloat()
+        nbytes = 8, proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
@@ -171,11 +169,47 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
             output_dir = output_dir
         )
         return(output_feature)
-    })
+    }, progress = progress)
     # Join output features as a cube and return it
     .cube_merge_features(dplyr::bind_rows(list(features_cube, features_band)))
 }
+#' @title Apply a function to one band of a time series
+#' @name .apply
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  data      Tibble.
+#' @param  col       Column where function should be applied
+#' @param  fn        Function to be applied.
+#' @return           Tibble where function has been applied.
+#'
+.apply <- function(data, col, fn, ...) {
 
+    # pre-condition
+    .check_chr_within(col,
+                      within = names(data),
+                      msg = "invalid column name"
+    )
+    # select data do unpack
+    x <- data[col]
+    # prepare to unpack
+    x[["#.."]] <- seq_len(nrow(data))
+    # unpack
+    x <- tidyr::unnest(x, cols = dplyr::all_of(col))
+    x <- dplyr::group_by(x, .data[["#.."]])
+    # apply user function
+    x <- fn(x, ...)
+    # pack
+    x <- dplyr::ungroup(x)
+    x <- tidyr::nest(x, `..unnest_col` = -dplyr::any_of("#.."))
+    # remove garbage
+    x[["#.."]] <- NULL
+    names(x) <- col
+    # prepare result
+    data[[col]] <- x[[col]]
+    return(data)
+}
 .apply_feature <- function(feature, window_size, expr, out_band, in_bands,
                            overlap, output_dir) {
     # Output file
@@ -293,6 +327,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
 #'
 #' @name .apply_across
 #' @keywords internal
+#' @noRd
 #'
 #' @param data  Tile name.
 #'
@@ -304,7 +339,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
     .check_samples(data)
 
     result <-
-        .sits_fast_apply(data, col = "time_series", fn = function(x, ...) {
+        .apply(data, col = "time_series", fn = function(x, ...) {
             dplyr::mutate(x, dplyr::across(
                 dplyr::matches(sits_bands(data)),
                 fn, ...
@@ -318,6 +353,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
 #'
 #' @name .apply_capture_expression
 #' @keywords internal
+#' @noRd
 #'
 #' @param tile_name  Tile name.
 #'
@@ -343,6 +379,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
 #'
 #' @name .apply_input_bands
 #' @keywords internal
+#' @noRd
 #'
 #' @param tile       Data cube tile.
 #' @param expr       Band expression.
@@ -379,7 +416,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
 #'
 #' @name .apply_get_all_names
 #' @keywords internal
-#'
+#' @noRd
 #' @param expr       Expression.
 #'
 #' @return           Character vector with all names in expression.

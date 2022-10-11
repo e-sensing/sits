@@ -1,7 +1,7 @@
 #' @title  Comparison functions
 #'
 #' @keywords internal
-#'
+#' @noRd
 #' @name comparison_functions
 #'
 #' @description Functions to compare two numeric vectors using tolerance

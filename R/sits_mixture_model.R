@@ -93,8 +93,6 @@
 sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
                                output_dir = getwd(), rmse_band = TRUE,
                                progress = TRUE) {
-    # check documentation mode
-    progress <- .check_documentation(progress)
 
     # precondition - endmembers
     .check_endmembers_parameter(endmembers)
@@ -138,7 +136,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
         npaths = length(bands) + length(out_fracs),
-        nbytes = 8, proc_bloat = .config_processing_bloat()
+        nbytes = 8, proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
@@ -160,7 +158,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
             out_fracs = out_fracs, output_dir = output_dir
         )
         return(output_feature)
-    })
+    }, progress = progress)
     # Join output features as a cube and return it
     .cube_merge_features(dplyr::bind_rows(list(features_cube, features_fracs)))
 }

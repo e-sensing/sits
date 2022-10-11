@@ -336,7 +336,7 @@ sits_cube.stac_cube <- function(source,
     }
     # check if roi is provided correctly
     if (!purrr::is_null(roi)) {
-        roi <- .sits_parse_roi_cube(roi)
+        roi <- .roi_check(roi)
     }
 
     # source is upper case
@@ -371,7 +371,7 @@ sits_cube.stac_cube <- function(source,
     }
 
     # Pre-condition - checks if the bands are supported by the collection
-    .config_check_bands(
+    .conf_check_bands(
         source = source,
         collection = collection,
         bands = bands
@@ -421,8 +421,6 @@ sits_cube.local_cube <- function(source,
     # precondition - data directory must be provided
     .check_file(x = data_dir, msg = "'data_dir' parameter must be provided.")
 
-    # check documentation mode
-    progress <- .check_documentation(progress)
     # precondition - check source and collection
     .source_check(source = source)
     .source_collection_check(source = source, collection = collection)

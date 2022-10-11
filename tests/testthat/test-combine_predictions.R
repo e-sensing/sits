@@ -8,16 +8,14 @@ test_that("Combine predictions", {
         delim = "_",
         parse_info = c("X1", "tile", "band", "date")
     )
-    # select a set of samples
-    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
     # create a random forest model
-    rfor_model <- sits_train(samples_ndvi, sits_rfor())
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
     # classify a data cube using rfor model
     probs_rfor_cube <- sits_classify(data = cube, ml_model = rfor_model,
                                      output_dir = tempdir(),
                                      version = "rfor")
     # create an XGBoost model
-    xgb_model <- sits_train(samples_ndvi, sits_xgboost())
+    xgb_model <- sits_train(samples_modis_ndvi, sits_xgboost())
     # classify a data cube using xgboost model
     probs_xgb_cube <- sits_classify(data = cube, ml_model = xgb_model,
                                     output_dir = tempdir(),

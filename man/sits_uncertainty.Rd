@@ -84,10 +84,8 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-    # select a set of samples
-    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
     # create a random forest model
-    rfor_model <- sits_train(samples_ndvi, sits_rfor())
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(

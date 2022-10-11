@@ -69,10 +69,8 @@
 #' if (sits_run_examples()) {
 #'     # Example of classification of a time series
 #'     # Retrieve the samples for Mato Grosso
-#'     # select the NDVI band
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # train a random forest model
-#'     rf_model <- sits_train(samples_ndvi, ml_method = sits_rfor)
+#'     rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
 #'
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = c("NDVI"))
@@ -101,7 +99,7 @@
 sits_classify <- function(data, ml_model, ...) {
 
     # check data type
-    data <- .config_data_meta_type(data)
+    data <- .conf_data_meta_type(data)
     # precondition - is the model valid?
     .check_is_sits_model(ml_model)
 
@@ -115,7 +113,7 @@ sits_classify.sits <- function(data,
                                ...,
                                filter_fn = NULL,
                                multicores = 2,
-                               progress = FALSE) {
+                               progress = TRUE) {
 
     # precondition: verify that the data to be classified is correct
     .check_samples(data)
@@ -151,11 +149,8 @@ sits_classify.raster_cube <- function(data,
                                       multicores = 2,
                                       output_dir = getwd(),
                                       version = "v1",
-                                      verbose = FALSE,
-                                      progress = FALSE) {
-
-    # check documentation mode
-    progress <- .check_documentation(progress)
+                                      verbose = TRUE,
+                                      progress = TRUE) {
 
     # preconditions
     .check_is_regular(data)
@@ -187,7 +182,7 @@ sits_classify.raster_cube <- function(data,
         job_size = .block_size(block = block, overlap = 0),
         # npaths = input(1*bands*dates) + output(nlayers)
         npaths = length(.fi_paths(.fi(data))) + length(.ml_labels(ml_model)),
-        nbytes = 8, proc_bloat = .config_processing_bloat()
+        nbytes = 8, proc_bloat = .conf_processing_bloat()
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
@@ -218,9 +213,14 @@ sits_classify.raster_cube <- function(data,
     probs_cube <- .cube_foreach_tile(data, function(tile) {
         # Classify the data
         probs_tile <- .classify_tile(
-            tile = tile, band = "probs", ml_model = ml_model, roi = roi,
-            filter_fn = filter_fn, impute_fn = impute_fn,
-            output_dir = output_dir, version = version, verbose = verbose
+            tile = tile, band = "probs",
+            ml_model = ml_model,
+            roi = roi,
+            filter_fn = filter_fn,
+            impute_fn = impute_fn,
+            output_dir = output_dir,
+            version = version,
+            verbose = verbose
         )
         return(probs_tile)
     })

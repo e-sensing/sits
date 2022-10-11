@@ -29,7 +29,7 @@ Obtain a vector of limits (either on lat/long for time series
               or in projection coordinates in the case of cubes)
 }
 \examples{
-bbox <- sits_bbox(samples_modis_4bands)
+bbox <- sits_bbox(samples_modis_ndvi)
 
 }
 \author{

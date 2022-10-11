@@ -37,10 +37,8 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'     # select a set of samples
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a random forest model
-#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
@@ -85,7 +83,7 @@ sits_uncertainty <- function(cube, type = "least", window_size = 5,
         job_size = .block_size(block = block, overlap = overlap),
         # npaths = input(nlayers) + output(1)
         npaths = length(.tile_labels(cube)) + 1,
-        nbytes = 8, proc_bloat = .config_processing_bloat()
+        nbytes = 8, proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(

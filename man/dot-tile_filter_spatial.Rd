@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_tile_api.R
 \name{.tile_filter_spatial}
 \alias{.tile_filter_spatial}
-\title{Tile API}
+\title{Filter file_info entries that intersect \code{roi} parameter.}
 \usage{
 .tile_filter_spatial(tile, roi)
 }
@@ -17,3 +17,4 @@ tile
 \description{
 Filter file_info entries that intersect \code{roi} parameter.
 }
+\keyword{internal}

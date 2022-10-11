@@ -1,4 +1,5 @@
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_new.sdc_cube <- function(source, ...,
                                        collection,
@@ -19,11 +20,10 @@
     items_info <- rstac::post_request(q = stac_query, ...)
     # if more than 2 times items pagination are found the progress bar
     # is displayed
-    progress <- rstac::items_matched(items_info) > 2 * .config_rstac_limit()
-
+    progress <- rstac::items_matched(items_info) > 2 *
+        .conf("rstac_pagination_limit")
     # check documentation mode
     progress <- .check_documentation(progress)
-
     # fetching all the metadata and updating to upper case instruments
     items_info <- rstac::items_fetch(items = items_info, progress = progress)
     # checks if the items returned any items
@@ -46,6 +46,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_tile.sdc_cube <- function(source, ...,
                                         items,
@@ -58,6 +59,7 @@
 
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_item_get_hrefs.sdc_cube <- function(source,
                                             item, ...,

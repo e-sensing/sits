@@ -15,3 +15,4 @@ No return value, called for side effects.
 \description{
 Check is version parameter is valid using reasonable defaults
 }
+\keyword{internal}

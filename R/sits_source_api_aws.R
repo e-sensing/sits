@@ -1,7 +1,7 @@
 #' @title Verify items tiles
 #' @name .aws_tiles
 #' @keywords internal
-#'
+#' @noRd
 #' @param tiles  Tile names to be searched.
 #'
 #' @return a \code{tibble} with information of tiles to be searched in STAC AWS.
@@ -31,6 +31,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_new.aws_cube <- function(source,
                                        collection,
@@ -78,11 +79,10 @@
 
     # if more than 2 times items pagination are found the progress bar
     # is displayed
-    progress <- rstac::items_matched(items_info) > 2 * .config_rstac_limit()
-
+    progress <- rstac::items_matched(items_info) > 2 *
+        .conf("rstac_pagination_limit")
     # check documentation mode
     progress <- .check_documentation(progress)
-
     # fetching all the metadata
     items_info <- rstac::items_fetch(
         items = items_info,
@@ -93,6 +93,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_tile.aws_cube <- function(source,
                                         items, ...,

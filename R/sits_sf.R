@@ -55,7 +55,7 @@ sits_as_sf.raster_cube <- function(data, ...) {
                 .data[["ymax"]],
                 .data[["crs"]]
             ),
-            .sits_coords_to_bbox_wgs84
+            .bbox_wgs84
         )) %>%
         dplyr::mutate(sf_obj = purrr::map(
             .data[["extent_wgs84"]],
@@ -96,9 +96,10 @@ sits_as_sf.raster_cube <- function(data, ...) {
 }
 
 #' @title Transform an sf object into a samples file
-#' @name .sits_get_samples_from_sf
+#' @name .sf_get_samples
 #' @author Gilberto Camara
 #' @keywords internal
+#' @noRd
 #' @param sf_object       sf object that describes the data to be retrieved.
 #' @param label           Default label for samples.
 #' @param label_attr      sf attribute that describes the label.
@@ -109,16 +110,16 @@ sits_as_sf.raster_cube <- function(data, ...) {
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
 #' @return                A tibble with information the samples to be retrieved.
 #'
-.sits_get_samples_from_sf <- function(sf_object,
-                                      label,
-                                      label_attr,
-                                      start_date,
-                                      end_date,
-                                      n_sam_pol,
-                                      pol_id) {
+.sf_get_samples <- function(sf_object,
+                            label,
+                            label_attr,
+                            start_date,
+                            end_date,
+                            n_sam_pol,
+                            pol_id) {
 
     # get the points to be read
-    samples <- .sits_sf_to_tibble(
+    samples <- .sf_to_tibble(
         sf_object   = sf_object,
         label_attr  = label_attr,
         label       = label,
@@ -135,26 +136,25 @@ sits_as_sf.raster_cube <- function(data, ...) {
 
     return(samples)
 }
-#' @title Obtain a tibble with lat/long points to be retrieved from an sf object
-#'
-#' @name .sits_sf_to_tibble
+#' @title Obtain a tibble with lat/long points from an sf object
+#' @name .sf_to_tibble
 #' @keywords internal
-#'
+#' @noRd
 #' @description reads a shapefile and retrieves a sits tibble
 #' containing a set of lat/long points for data retrieval
 #'
 #' @param sf_object       sf object .
-#' @param label_attr      Attribute in the sf object used as a polygon label.
+#' @param label_attr      Attribute in sf object used as a polygon label.
 #' @param label           Label to be assigned to points.
 #' @param n_sam_pol       Number of samples per polygon to be read
 #'                        (for POLYGON or MULTIPOLYGON shapes).
 #' @param  pol_id         ID attribute for polygons.
 #' @return                A sits tibble with points to to be read.
-.sits_sf_to_tibble <- function(sf_object,
-                               label_attr,
-                               label,
-                               n_sam_pol,
-                               pol_id) {
+.sf_to_tibble <- function(sf_object,
+                          label_attr,
+                          label,
+                          n_sam_pol,
+                          pol_id) {
 
     # get the geometry type
     geom_type <- sf::st_geometry_type(sf_object)[1]

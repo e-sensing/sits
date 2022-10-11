@@ -32,7 +32,7 @@ sits_select <- function(data, bands, ...) {
     # set caller to show in errors
     .check_set_caller("sits_select")
     # get the meta-type (sits or cube)
-    data <- .config_data_meta_type(data)
+    data <- .conf_data_meta_type(data)
     UseMethod("sits_select", data)
 }
 
@@ -57,31 +57,13 @@ sits_select.sits <- function(data, bands, ...) {
 #' @export
 sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
 
+    # filter tiles
     if (!is.null(tiles)) {
-        .check_chr_type(tiles)
-        data <- dplyr::filter(data, .data[["tile"]] %in% !!tiles)
+        data <- .cube_filter_tile(data, tiles)
     }
 
-    # filter the file info
-    data <- slider::slide_dfr(data, function(tile) {
-
-        # default bands
-        if (is.null(bands)) {
-            bands <- .cube_bands(tile)
-        }
-
-        # pre-condition - check bands
-        .check_cube_bands(tile, bands = bands)
-
-        db_info <- .file_info(tile)
-        db_info <- dplyr::filter(
-            db_info,
-            .data[["band"]] %in% dplyr::all_of(bands)
-        )
-
-        tile$file_info[[1]] <- db_info
-        return(tile)
-    })
+    # filter bands
+    data <- ..cube_filter_bands(data, bands)
 
     return(data)
 }

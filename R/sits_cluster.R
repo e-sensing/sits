@@ -58,7 +58,7 @@ sits_cluster_dendro <- function(samples = NULL,
     .check_samples_train(samples)
 
     # bands in sits are uppercase
-    bands <- .sits_tibble_bands_check(samples, bands)
+    bands <- .tibble_bands_check(samples, bands)
 
     # calculate the dendrogram object
     message("calculating dendrogram...")
@@ -97,7 +97,7 @@ sits_cluster_dendro <- function(samples = NULL,
     # plot the dendrogram
     message("Plotting dendrogram...")
     if (.plot) {
-        .sits_plot_dendrogram(
+        .plot_dendrogram(
             data = samples,
             cluster = cluster,
             cutree_height = best_cut["height"],
@@ -203,6 +203,7 @@ sits_cluster_clean <- function(samples) {
 #' @title Cluster validity indices
 #' @name .sits_cluster_validity
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Compute different cluster validity indices. This function needs
@@ -243,6 +244,7 @@ sits_cluster_clean <- function(samples) {
 #' @title Compute a dendrogram using hierarchical clustering
 #' @name .sits_cluster_dendrogram
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -298,6 +300,7 @@ sits_cluster_clean <- function(samples) {
 #' @title Compute validity indexes to a range of cut height
 #' @name .sits_cluster_dendro_bestcut
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Reads a dendrogram object and its corresponding sits tibble and

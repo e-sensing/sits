@@ -114,7 +114,7 @@ Please refer to the sits documentation available in
 \examples{
 if (sits_run_examples()) {
     # create a som map
-    som_map <- sits_som_map(samples_modis_4bands)
+    som_map <- sits_som_map(samples_modis_ndvi)
     # plot the som map
     plot(som_map)
     # evaluate the som map and create clusters

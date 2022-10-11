@@ -4,24 +4,18 @@
 \alias{plot.uncertainty_cube}
 \title{Plot uncertainty cubes}
 \usage{
-\method{plot}{uncertainty_cube}(
-  x,
-  ...,
-  tiles = NULL,
-  intervals = "log",
-  colors = (grDevices::colorRampPalette(RColorBrewer::brewer.pal(9, "YlOrRd")))(16)
-)
+\method{plot}{uncertainty_cube}(x, ..., tile = x$tile[[1]], palette = "RdYlGn", rev = TRUE)
 }
 \arguments{
 \item{x}{Object of class "probs_image".}
 
 \item{...}{Further specifications for \link{plot}.}
 
-\item{tiles}{Tiles to be plotted.}
+\item{tile}{Tiles to be plotted.}
 
-\item{intervals}{Type of class intervals.}
+\item{palette}{An RColorBrewer palette}
 
-\item{colors}{R color palette (vector)}
+\item{rev}{Reverse the color order in the palette?}
 }
 \value{
 A plot object produced by the stars package
@@ -31,21 +25,10 @@ A plot object produced by the stars package
 \description{
 plots a probability cube using stars
 }
-\note{
-\itemize{Possible class intervals
- \item{"sd":} {intervals based on the average and standard deviation.}
- \item{"equal": } {divides the range of the variable into n parts.}
- \item{"quantile": } {quantile breaks}
- \item{"pretty": } {number of breaks likely to be legible.}
- \item{"log" :} {logarithm plot.}
- }
-}
 \examples{
 if (sits_run_examples()) {
-    # select a set of samples
-    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
     # create a random forest model
-    rfor_model <- sits_train(samples_ndvi, sits_rfor())
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
