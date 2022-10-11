@@ -2777,58 +2777,146 @@ NULL
     stats[["q98"]]
 }
 
-#---- sits (samples) ----
+#---- time_series ----
 
-.sits_ts <- function(samples) {
+.ts_cols <- c("sample_id", "label")
+
+.is_ts <- function(x) {
+    "Index" %in% names(x) && is.data.frame(x)
+}
+
+.has_ts <- function(x) {
+    "time_series" %in% names(x) && .is_ts(x[["time_series"]][[1]])
+}
+
+.ts <- function(x) {
+    # Check time_series column
+    if (!.has_ts(x)) {
+        stop("time_series not found")
+    }
     # Add sample_id column
-    samples[["sample_id"]] <- seq_len(nrow(samples))
+    x[["sample_id"]] <- seq_along(x[["time_series"]])
     # Extract time_series from column
     ts <- tidyr::unnest(
-        data = samples[c("sample_id", "label", "time_series")],
+        data = x[c(.ts_cols, "time_series")],
         cols = "time_series"
     )
-    # Select the same bands as in the first sample
-    ts <- ts[c("sample_id", "label", "Index", .sits_bands(samples))]
-    # Get the time series length for the first sample
-    ntimes <- .sits_ntimes(samples)
-    # Prune time series according to the first sample
-    ts <- .by_dfr(data = ts, col = "sample_id", fn = function(x) {
-        if (nrow(x) == ntimes) {
-            x
-        } else if (nrow(x) > ntimes) {
-            x[seq_len(ntimes), ]
-        } else {
-            stop("time series length differs from first sample")
-        }
-    })
     # Return time series
     ts
 }
 
+`.ts<-` <- function(x, value) {
+    if (!.is_ts(value)) {
+        stop("invalid time series value")
+    }
+    # Pack time series
+    value <- tidyr::nest(value, time_series = -.ts_cols)
+    x[["time_series"]] <- value[["time_series"]]
+    # Return samples
+    x
+}
+
+.ts_index <- function(ts) {
+    .as_date(ts[["Index"]])
+}
+
+.ts_bands <- function(ts) {
+    setdiff(colnames(ts), c(.ts_cols, "Index"))
+}
+
+.ts_select_bands <- function(ts, bands) {
+    # Check missing bands
+    miss_bands <- bands[!bands %in% .ts_bands(ts)]
+    if (.has(miss_bands)) {
+        stop("band(s) ", .collapse("'", miss_bands, "'"), " not found")
+    }
+    # Select the same bands as in the first sample
+    ts <- ts[unique(c(.ts_cols, "Index", bands))]
+    # Return time series
+    ts
+}
+
+
+
+#---- sits (samples) ----
+
+.sits_ts <- function(samples) {
+    # Check time_series column
+    if (!.has_ts(samples)) {
+        stop("time_series column not found")
+    }
+    # Return time series of the first sample
+    samples[["time_series"]][[1]]
+}
+
 .sits_ntimes <- function(samples) {
     # Number of observations of the first sample governs whole samples data
-    nrow(samples[["time_series"]][[1]])
+    nrow(.sits_ts(samples))
 }
 
 .sits_bands <- function(samples) {
     # Bands of the first sample governs whole samples data
-    setdiff(names(samples[["time_series"]][[1]]), "Index")
+    setdiff(names(.sits_ts(samples)), "Index")
 }
 
-.sits_filter_bands <- function(samples, bands) {
-    # Missing bands
-    miss_bands <- bands[!bands %in% .sits_bands(samples)]
-    if (.has(miss_bands)) {
-        stop("band(s) ", paste0("'", miss_bands, "'", collapse = ", "),
-             " not found")
-    }
-    .sits_fast_apply(samples, col = "time_series", function(x) {
-        dplyr::select(x, dplyr::all_of(c("#..", "Index", bands)))
-    })
+.sits_select_bands <- function(samples, bands) {
+    # Filter samples
+    .ts(samples) <- .ts_select_bands(ts = .ts(samples), bands = bands)
+    # Return samples
+    samples
 }
 
 .sits_labels <- function(samples) {
     sort(unique(samples[["label"]]), na.last = TRUE)
+}
+
+.sits_filter_labels <- function(samples, labels) {
+    # Check missing labels
+    miss_labels <- labels[!labels %in% .sits_labels(samples)]
+    if (.has(miss_labels)) {
+        stop("label(s) ", .collapse("'", miss_labels, "'"), " not found")
+    }
+    # Filter labels
+    samples <- samples[samples[["label"]] %in% labels, ]
+    # Return samples
+    samples
+}
+
+.sits_foreach_ts <- function(samples, fn, ...) {
+    # Apply function to each time_series
+    samples[["time_series"]] <- lapply(samples[["time_series"]], fn, ...)
+    # Return samples
+    samples
+}
+
+.sits_prune <- function(samples) {
+    # Get the time series length for the first sample
+    ntimes <- .sits_ntimes(samples)
+    # Prune time series according to the first time series length and return
+    .sits_foreach_ts(samples, function(ts) {
+        if (nrow(ts) >= ntimes) {
+            ts[seq_len(ntimes), ]
+        } else {
+            stop("time series length is smaller than the first sample")
+        }
+    })
+}
+
+.sits_stats <- function(samples) {
+    # Get all time series
+    preds <- .sits_ts(samples)
+    # Select attributes
+    preds <- preds[.sits_bands(samples)]
+    # Compute stats
+    q02 <- apply(preds, 2, stats::quantile, probs = 0.02, na.rm = TRUE)
+    q98 <- apply(preds, 2, stats::quantile, probs = 0.98, na.rm = TRUE)
+    # Number of observations
+    ntimes <- .sits_ntimes(samples)
+    # Replicate stats
+    q02 <- rep(unname(q02), each = ntimes)
+    q98 <- rep(unname(q98), each = ntimes)
+    # Return stats object
+    list(q02 = q02, q98 = q98)
 }
 
 .sits_split <- function(samples, split_intervals) {
