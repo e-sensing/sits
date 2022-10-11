@@ -2991,27 +2991,6 @@ NULL
     pred
 }
 
-.sits_stats <- function(samples) {
-    # Get all time series
-    preds <- .sits_ts(samples)
-    # Select attributes
-    preds <- preds[.sits_bands(samples)]
-    # Compute stats
-    q02 <- apply(preds, 2, stats::quantile, probs = 0.02, na.rm = TRUE)
-    q98 <- apply(preds, 2, stats::quantile, probs = 0.98, na.rm = TRUE)
-    # Number of observations
-    ntimes <- .sits_ntimes(samples)
-    # Replicate stats
-    q02 <- rep(unname(q02), each = ntimes)
-    q98 <- rep(unname(q98), each = ntimes)
-    # Return stats object
-    list(q02 = q02, q98 = q98)
-}
-
-# ---- Predictors ----
-
-.pred_cols <- c("sample_id", "label")
-
 .pred_features <- function(pred) {
     if (all(.pred_cols %in% names(pred))) {
         pred[, -2:0]
