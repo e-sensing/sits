@@ -69,7 +69,7 @@ test_that("Creating cubes from BDC", {
     expect_true(all(sits_bands(cbers_cube) %in%
         c("NDVI", "EVI", "B13", "B14", "B15", "B16", "CLOUD")))
     bbox <- sits_bbox(cbers_cube)
-    int_bbox <- sits:::.sits_bbox_intersect(bbox, cbers_cube[1, ])
+    int_bbox <- .bbox_intersect(bbox, cbers_cube[1, ])
     expect_true(all(int_bbox == sits_bbox(cbers_cube[1, ])))
 
     timeline <- sits_timeline(cbers_cube)
@@ -272,7 +272,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     )
 
     tile_size <- .cube_size(rg_cube[1, ])
-    tile_bbox <- .cube_tile_bbox(rg_cube[1, ])
+    tile_bbox <- sits_bbox(rg_cube[1, ])
 
     expect_equal(tile_size[["nrows"]], 458)
     expect_equal(tile_size[["ncols"]], 458)

@@ -6,7 +6,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
-
+#' @noRd
 #' @description
 #' Defines a torch module for temporal attention encoding, inspired by the
 #' work of Vaswani et al(2017). Since Attention models contain
@@ -192,6 +192,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
+#' @noRd
 #' @description Defines a torch module for temporal attention encoding.
 #'
 #' This implementation is based on the code made available by Vivien Garnot
@@ -332,6 +333,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
+#' @noRd
 #' @description Defines a torch module for temporal attention encoding.
 #'
 #' In order to calculate attentions with a query, as I said in the last article,
@@ -401,6 +403,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
+#' @noRd
 #' @description
 #' In order to calculate attentions with a query,
 #' this function takes the dot product of query with the keys

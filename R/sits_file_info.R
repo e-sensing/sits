@@ -6,17 +6,11 @@
 #'
 #' @param cube    Input data cube.
 #' @param bands   Bands to be filtered
-#' @param dates   Dates to be filtered.
+#' @param start_date   Initial date to be filtered.
+#' @param end_date   Last date to be filtered.
 #' @param fid     Feature id (fid) to be filtered.
 #'
 #' @return        Vector with requested information obtained in the file_info.
-NULL
-
-#' @rdname file_info_functions
-#'
-#' @return The file info for a cube with a single tile
-#'         filtered by bands if required.
-#'
 .fi <- function(cube,
                 bands = NULL,
                 fid = NULL,
@@ -68,7 +62,7 @@ NULL
 
 
 #' @rdname file_info_functions
-#'
+#' @noRd
 #' @return the file ids for a single tile
 .fi_fids <- function(fi) {
     fids <- unique(fi[["fid"]])

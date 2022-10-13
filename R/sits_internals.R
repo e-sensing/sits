@@ -92,10 +92,12 @@ NULL
     value
 }
 
-#----  Utility functions ----
 
-#' Handling error
-#'
+#' @title Handling error
+#' @name .try
+#' @keywords internal
+#' @noRd
+#' @description
 #' This is a fancy implementation of \code{tryCatch()}. It
 #' has a shorter name and provide a easy functionality of rolling back
 #' (run an expression in case of error, but not avoiding it),
@@ -157,8 +159,7 @@ NULL
 #'   is not informed, the function will raise the error.
 #'
 #' @seealso \code{\link[base]{tryCatch}}
-#' @family utility functions
-#' @keywords internal
+#'
 .try <- function(expr,
                  ...,
                  .rollback = NULL,
@@ -202,34 +203,6 @@ NULL
     vapply(.by(data, col, fn, ...), c, logical(1))
 }
 
-#' Spatial intersects
-#'
-#' This function is based on \code{sf::st_intersects()}. It projects \code{y}
-#' to the CRS of \code{x} before compute intersection. For each geometry of
-#' \code{x}, the function returns the \code{TRUE} if it intersects with any
-#' geometry of \code{y}, otherwise it returns \code{FALSE}.
-#'
-#' @param x,y \code{sf} geometries.
-#'
-#' @returns A \code{logical} vector indicating which geometries of \code{x}
-#' intersects \code{y} geometries.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#' x <- .bbox_as_sf(c(xmin=1, xmax=2, ymin=3, ymax=4, crs=4326))
-#' y <- .roi_as_sf(c(lon_min=1.5, lon_max=3, lat_min=3.5, lat_max=5))
-#' .intersects(x, y) # TRUE
-#' }
-#'
-#' @family utility functions
-#' @family region objects API
-#' @keywords internal
-.intersects <- function(x, y) {
-    as_crs <- sf::st_crs(x)
-    y <- sf::st_transform(y, crs = as_crs)
-    apply(sf::st_intersects(x, y, sparse = FALSE), 1, any)
-}
-
 .between <- function(x, min, max) {
     min <= x & x <= max
 }
@@ -239,290 +212,84 @@ NULL
     .as_int(round(seq.int(from = 1, to = n, length.out = length(x))))
 }
 
-#---- Generic accessors ----
 
-#' Bbox accessors
+
+
+#  Band configuration accessors
+#
+#  These functions are read-only accessors of band_conf objects. A
+#  band_conf is an entry of band definition in config. It can be associated
+#  to an eo_cube or derived_cube
 #'
-#' These functions are accessors of \code{bbox} fields of a \code{vector}.
-#' Getters functions returns the respective field values with the expected
-#' data type. Setters functions convert value to expected data type and
-#' store it in respective fields on a given object. If value has no length
-#' and the \code{vector} is not \code{atomic}, it is removed from the object.
+
 #'
-#' \code{.xmin()}, \code{.xmax()}, \code{.ymin()}, \code{.ymax()},
-#' and \code{.crs()} get/set, respectively, \code{"xmin"}, \code{"xmax"},
-#' \code{"ymin"}, \code{"ymax"}, and \code{"crs"} fields.
-#'
-#' @param x Object to get/set field value.
-#' @param value Value to set on object field.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#' x <- c(xmax = "123")
-#' .xmax(x) # 123 as number
-#' x <- list(xmin = 1, xmax = 2, ymin = 3, ymax = 4)
-#' .crs(x) <- 4326
-#' x # with 'crs' field
-#' .as_crs(3857) # EPSG:3857
-#' }
-#'
-#' @returns Getters return respective field value or \code{NULL}, if it doesn't
-#'   exist. Setters return the updated \code{x} object.
-#'
-#' @family accessors
-#' @keywords internal
-#' @name bbox_accessors
-NULL
 
-#' @describeIn bbox_accessors Get \code{'xmin'} field.
-.xmin <- function(x) {
-    .as_dbl(.compact(x[["xmin"]]))
-}
-
-#' @describeIn bbox_accessors Set \code{'xmin'} field as numeric.
-`.xmin<-` <- function(x, value) {
-    x[["xmin"]] <- .as_dbl(value)
-    x
-}
-
-#' @describeIn bbox_accessors Get \code{'xmax'} field.
-.xmax <- function(x) {
-    .as_dbl(.compact(x[["xmax"]]))
-}
-
-#' @describeIn bbox_accessors Set \code{'xmax'} field as numeric.
-`.xmax<-` <- function(x, value) {
-    x[["xmax"]] <- .as_dbl(value)
-    x
-}
-
-#' @describeIn bbox_accessors Get \code{'ymin'} field.
-.ymin <- function(x) {
-    .as_dbl(.compact(x[["ymin"]]))
-}
-
-#' @describeIn bbox_accessors Set \code{'ymin'} field as numeric.
-`.ymin<-` <- function(x, value) {
-    x[["ymin"]] <- .as_dbl(value)
-    x
-}
-
-#' @describeIn bbox_accessors Get \code{'ymax'} field.
-.ymax <- function(x) {
-    .as_dbl(.compact(x[["ymax"]]))
-}
-
-#' @describeIn bbox_accessors Set \code{'ymax'} field as numeric.
-`.ymax<-` <- function(x, value) {
-    x[["ymax"]] <- .as_dbl(value)
-    x
-}
-
-#' @describeIn bbox_accessors Convert a CRS numeric value to \code{character},
-#'   appending it after \code{'EPSG:'}.
-.as_crs <- function(x) {
-    if (.has(x)) {
-        if (is.character(x))
-            .compact(x)
-        else if (is.numeric(x))
-            paste0("EPSG:", .compact(x))
-        else if (is.na(x))
-            NA_character_
-        else
-            stop("invalid crs value")
-    }
-}
-
-#' @describeIn bbox_accessors Get \code{'crs'} field.
-.crs <- function(x) {
-    .as_crs(x[["crs"]])
-}
-
-#' @describeIn bbox_accessors Set \code{'crs'} field as \code{character} string.
-`.crs<-` <- function(x, value) {
-    x[["crs"]] <- .as_crs(value)
-    x
-}
-
-#' Block accessors
-#'
-#' These functions are accessors of \code{block} fields in a \code{vector}.
-#' Getters functions returns the respective field values with the expected
-#' data type. Setters functions convert value to expected data type and
-#' store it in respective fields on a given object. If value has no length
-#' and the \code{vector} is not \code{atomic}, it is removed from the object.
-#'
-#' \code{.col()}, \code{.row()}, \code{.ncols()}, and \code{.nrows()} get/set,
-#' respectively, \code{"col"}, \code{"row"}, \code{"ncols"}, and
-#' \code{"nrows"} fields.
-#'
-#' @param x Object to get field value.
-#' @param value Value to set on object field.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#' x <- c(row = 3.45)
-#' .row(x) # 3 as integer
-#' x <- list(col = 1, row = 2, ncols = 3)
-#' .nrows(x) # NULL
-#' .nrows(x) <- 4
-#' x
-#' }
-#'
-#' @returns Getters return respective field value or \code{NULL}, if it doesn't
-#'   exist. Setters return the updated \code{x} object.
-#'
-#' @family accessors
-#' @keywords internal
-#' @name block_accessors
-NULL
-
-#' @describeIn block_accessors Get \code{'col'} field.
-.col <- function(x) {
-    .as_int(.compact(x[["col"]]))
-}
-
-#' @describeIn block_accessors Set \code{'col'} field as integer.
-`.col<-` <- function(x, value) {
-    x[["col"]] <- .as_int(value)
-    x
-}
-
-#' @describeIn block_accessors Get \code{'row'} field.
-.row <- function(x) {
-    .as_int(.compact(x[["row"]]))
-}
-
-#' @describeIn block_accessors Set \code{'row'} field as integer.
-`.row<-` <- function(x, value) {
-    x[["row"]] <- .as_int(value)
-    x
-}
-
-#' @describeIn block_accessors Get \code{'ncols'} field.
-.ncols <- function(x) {
-    .as_int(.compact(x[["ncols"]]))
-}
-
-#' @describeIn block_accessors Set \code{'ncols'} field as integer.
-`.ncols<-` <- function(x, value) {
-    x[["ncols"]] <- .as_int(value)
-    x
-}
-
-#' @describeIn block_accessors Get \code{'nrows'} field.
-.nrows <- function(x) {
-    .as_int(.compact(x[["nrows"]]))
-}
-
-#' @describeIn block_accessors Set \code{'nrows'} field as integer.
-`.nrows<-` <- function(x, value) {
-    x[["nrows"]] <- .as_int(value)
-    x
-}
-
-#' Chunk accessors
-#'
-#' These functions are read-only accessors of \code{chunk} fields in a
-#' \code{vector}.
-#'
-#' \code{.xres()} and \code{.yres()} computes, respectively, \code{"xres"} and
-#' \code{"yres"} values from chunk fields. The values are computed as
-#' \itemize{
-#' \item \eqn{xres=(xmax - xmin)/ncols}
-#' \item \eqn{yres=(ymax - ymin)/nrows}
-#' }
-#'
-#' @param x Object to get field value.
-#' @param value Value to set on object field.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#' x <- c(nrows = 100, ymin = 1, ymax = 10)
-#' .yres(x) # 0.09
-#' }
-#'
-#' @returns Spatial resolution.
-#'
-#' @family accessors
-#' @keywords internal
-#' @name chunk_accessors
-NULL
-
-#' @describeIn chunk_accessors Computes \code{x} resolution of a \code{chunk}.
-.xres <- function(x) {
-    (.xmax(x) - .xmin(x)) / .ncols(x)
-}
-
-#' @describeIn chunk_accessors Computes \code{y} resolution of a \code{chunk}.
-.yres <- function(x) {
-    (.ymax(x) - .ymin(x)) / .nrows(x)
-}
-
-#' Band configuration accessors
-#'
-#' These functions are read-only accessors of \code{band_conf} objects. A
-#' \code{band_conf} is an entry of band definition in config. It can be
-#' from an \code{eo_cube} or \code{derived_cube}.
-#'
+#' @name .data_type
+#' @noRd
 #' @param conf A band definition value from config. Can be retrieved by
-#'   \code{.conf_eo_band()} or \code{.conf_derived_band()}.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#' # Get configuration band
-#' x <- .conf_eo_band(
-#'   source = "BDC",
-#'   collection = "MOD13Q1-6",
-#'   band = "NIR"
-#' )
-#'
-#' .
-#' }
-#'
-#' @returns Respective configuration value.
-#'
-#' @family accessors
-#' @keywords internal
-#' @name band_accessors
-NULL
-
-#' @describeIn band_accessors Get \code{data_type} entry.
+#'   .conf_eo_band() or .conf_derived_band().
+#' @return data type associated to the configuration
 .data_type <- function(conf) {
     .as_chr(conf[["data_type"]][[1]])
 }
 
-#' @describeIn band_accessors Get \code{missing_value} entry.
+#' @name .miss_value
+#' @noRd
+#' @param conf A band definition value from config. Can be retrieved by
+#'   .conf_eo_band() or .conf_derived_band().
+#' @return  missing value associated to the band
 .miss_value <- function(conf) {
     .as_dbl(conf[["missing_value"]][[1]])
 }
-
-#' @describeIn band_accessors Get \code{minimum_value} entry.
+#' @name .min_value
+#' @noRd
+#' @param conf A band definition value from config. Can be retrieved by
+#'   .conf_eo_band() or .conf_derived_band().
+#' @return  minimum value associated to the band
 .min_value <- function(conf) {
     .as_dbl(conf[["minimum_value"]][[1]])
 }
 
-#' @describeIn band_accessors Get \code{maximum_value} entry.
+#' @name .max_value
+#' @noRd
+#' @param conf A band definition value from config. Can be retrieved by
+#'   .conf_eo_band() or .conf_derived_band().
+#' @return  maximum value associated to the band
 .max_value <- function(conf) {
     .as_dbl(conf[["maximum_value"]][[1]])
 }
 
-#' @describeIn band_accessors Get \code{scale_factor} entry.
+#' @name .scale
+#' @noRd
+#' @param conf A band definition value from config. Can be retrieved by
+#'   .conf_eo_band() or .conf_derived_band().
+#' @return  scale factor associated to the band
 .scale <- function(conf) {
     .as_dbl(conf[["scale_factor"]][[1]])
 }
 
-#' @describeIn band_accessors Get \code{offset_value} entry.
+#' @name .offset
+#' @noRd
+#' @param conf A band definition value from config. Can be retrieved by
+#'   .conf_eo_band() or .conf_derived_band().
+#' @return  offset value associated to the band
 .offset <- function(conf) {
     .as_dbl(conf[["offset_value"]][[1]])
 }
-
-#' @describeIn band_accessors Get \code{interp_values} entry.
+#' @name .cloud_interp_values
+#' @noRd
+#' @param conf A band definition value from config. Can be retrieved by
+#'   .conf_eo_band() or .conf_derived_band().
+#' @return  cloud interpolation values associated to the band
 .cloud_interp_values <- function(conf) {
     .as_int(conf[["interp_values"]])
 }
 
-#' @describeIn band_accessors Get \code{bit_mask} entry.
+#' @name .cloud_bit_mask
+#' @noRd
+#' @param conf A band definition value from config. Can be retrieved by
+#'   .conf_eo_band() or .conf_derived_band().
+#' @return  cloud bit maks values associated to the band.
 .cloud_bit_mask <- function(conf) {
     .as_int(conf[["bit_mask"]][[1]])
 }

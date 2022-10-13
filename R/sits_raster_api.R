@@ -214,6 +214,63 @@
 
     UseMethod(".raster_set_values", pkg_class)
 }
+#' @title Get top values of a raster.
+#'
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @description
+#' Get the top values of a raster as a point `sf` object. The values
+#' locations are guaranteed to be separated by a certain number of pixels.
+#'
+#' @param r_obj           A raster object.
+#' @param band            A numeric band index used to read bricks.
+#' @param n               Number of values to extract.
+#' @param sampling_window Window size to collect a point (in pixels).
+#'
+#' @return                A point `tibble` object.
+#'
+.raster_get_top_values <- function(r_obj,
+                                   band,
+                                   n,
+                                   sampling_window) {
+
+    # Pre-conditions have been checked in calling functions
+    # Get top values
+    samples_tb <- .raster_get_values(r_obj) %>%
+        max_sampling(
+            band = band - 1,
+            img_nrow = .raster_nrows(r_obj),
+            img_ncol = .raster_ncols(r_obj),
+            window_size = sampling_window
+        ) %>%
+        dplyr::slice_max(
+            .data[["value"]],
+            n = n,
+            with_ties = FALSE
+        )
+
+    # Get the values' positions.
+    result_tb <- r_obj %>%
+        terra::xyFromCell(
+            cell = samples_tb[["cell"]]
+        ) %>%
+        tibble::as_tibble() %>%
+        sf::st_as_sf(
+            coords = c("x", "y"),
+            crs = .raster_crs(r_obj),
+            dim = "XY",
+            remove = TRUE
+        ) %>%
+        sf::st_transform(crs = 4326) %>%
+        sf::st_coordinates() %>%
+        magrittr::set_colnames(
+            value = c("longitude", "latitude")
+        ) %>%
+        dplyr::bind_cols(samples_tb)
+
+    return(result_tb)
+}
 
 #' @title Raster package internal extract values function
 #' @name .raster_extract

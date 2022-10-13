@@ -63,7 +63,7 @@ sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
     }
 
     # filter bands
-    data <- ..cube_filter_bands(data, bands)
+    data <- .cube_filter_bands(data, bands)
 
     return(data)
 }

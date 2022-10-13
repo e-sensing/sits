@@ -114,7 +114,7 @@ sits_kfold_validate <- function(samples,
     on.exit(.sits_parallel_stop())
 
     # Create partitions different splits of the input data
-    samples <- .sits_create_folds(samples, folds = folds)
+    samples <- .create_folds(samples, folds = folds)
     # Do parallel process
     conf_lst <- .sits_parallel_map(seq_len(folds), function(k) {
         # Split data into training and test data sets
@@ -206,7 +206,7 @@ sits_validate <- function(samples,
     .check_samples_train(samples)
 
     if (is.null(samples_validation)) {
-        samples <- .sits_samples_split(
+        samples <- .tibble_samples_split(
             samples = samples,
             validation_split = validation_split
         )
@@ -237,7 +237,7 @@ sits_validate <- function(samples,
     .set_class(x = acc_obj, "sits_accuracy", class(acc_obj))
 }
 #' @title Create partitions of a data set
-#' @name  .sits_create_folds
+#' @name  .create_folds
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Alexandre Ywata, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -245,12 +245,13 @@ sits_validate <- function(samples,
 #' @description Split a sits tibble into k groups, based on the label.
 #'
 #' @keywords internal
+#' @noRd
 #' @param data   A sits tibble to be partitioned.
 #' @param folds  Number of folds
 #'
 #' @return A list of row position integers corresponding to the training data.
 #'
-.sits_create_folds <- function(data, folds = 5) {
+.create_folds <- function(data, folds = 5) {
     # verify if data exists
     # splits the data into k groups
     data$folds <- caret::createFolds(data$label,

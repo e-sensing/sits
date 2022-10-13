@@ -36,7 +36,7 @@
     }
 
     # Compute the breaks in time for multiyear classification
-    class_info <- .sits_timeline_class_info(
+    class_info <- .timeline_class_info(
         data = samples, samples = .ml_samples(ml_model)
     )
 

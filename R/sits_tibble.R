@@ -75,7 +75,7 @@
             # when we are processing samples with different dates
             if (timeline_row[1] != timeline_global[1]) {
                 # what are the reference dates to do the classification?
-                ref_dates_lst <- .sits_timeline_match(
+                ref_dates_lst <- .timeline_match(
                     timeline = timeline_row,
                     ref_start_date = lubridate::as_date(row$start_date),
                     ref_end_date = lubridate::as_date(row$end_date),
@@ -244,16 +244,25 @@
     return(bands)
 }
 
+#' @title Returns a time series
+#' @name  .tibble_time_series
+#' @noRd
+#' @param data  a tibble with time series
+#' @return  time series
+.tibble_time_series <- function(data) {
+    return(data$time_series[[1]])
+}
+
 #' @title Split a sits tibble
-#' @name .sits_samples_split
+#' @name .tibble_samples_split
 #' @keywords internal
-#'
+#' @noRd
 #' @description Add a column to sits tibble indicating if a sample is
 #' training sample or not.
 #'
 #' @param data  A sits tibble.
 #' @return Returns TRUE if data has data.
-.sits_samples_split <- function(samples, validation_split = 0.2) {
+.tibble_samples_split <- function(samples, validation_split = 0.2) {
     result <-
         samples %>%
         dplyr::group_by(.data[["label"]]) %>%

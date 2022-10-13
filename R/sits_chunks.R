@@ -1,52 +1,22 @@
-#---- chunks API: ----
 
-#' Chunks API
-#'
-#' A chunk is a tibble of rectangular regions defining a matrix and
-#' its corresponding geographical area. So, each  region contains a
-#' \code{block} and a \code{bbox} information. chunks can be used to access
-#' specific raster image regions and optimize memory usage.
-#'
-#' Generally, chunks are created from an actual image that is divided
-#' into small blocks. The chunks also provide overlapping support, that is,
-#' chunks that intersects its neighbors by some amount of pixels.
-#'
-#' @param block A \code{block} to represent the common chunk size.
-#' @param overlap An integer informing overlapping size in pixels.
-#' @param image_size A \code{block} informing original image's matrix size.
-#' @param image_bbox A \code{bbox} informing original image bbox.
-#' @param chunks A \code{chunk}.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#' chunks <- .chunks_create(
-#'   block = c(ncols = 512, nrows = 512),
-#'   overlap = 2,
-#'   image_size = c(ncols = 4000, nrows = 4000),
-#'   image_bbox = c(xmin = 1, xmax = 2, ymin = 3, ymax = 4, crs = 4326)
-#' )
-#' # remove overlaps from chunks
-#' cropped <- .chunks_no_overlap(chunks)
-#' # removing overlaps from a non overlapped chunks produces identical bbox
-#' identical(.bbox(cropped), .bbox(.chunks_no_overlap(cropped)))
-#' # blocks from 'cropped' can be used to remove any overlap from rasters
-#' # produced from 'chunks'.
-#' .chunks_filter_spatial(
-#'   chunks = chunks,
-#'   roi = c(lon_min = 1.3, lon_max = 1.7, lat_min = 3.3, lat_max = 3.7)
-#' )
-#' }
-#'
-#' @seealso \link{chunk_accessors}
-#' @family region objects API
-#' @keywords internal
-#' @name chunks_api
-NULL
-
-#' @describeIn chunks_api Creates a tibble of chunks with the same size as
-#'   \code{block} and additional \code{overlap}.
-#'
-#' @returns \code{.chunks_create()}: \code{chunks} tibble.
+# Chunks API
+#
+#  A chunk is a tibble of rectangular regions defining a matrix and
+#  its corresponding geographical area. So, each  region contains a
+#  \code{block} and a \code{bbox} information. chunks can be used to access
+#  specific raster image regions and optimize memory usage.
+#
+#  Generally, chunks are created from an actual image that is divided
+#  into small blocks. The chunks also provide overlapping support, that is,
+#  chunks that intersects its neighbors by some amount of pixels.
+#
+#' @name .chunks_create
+#' @noRd
+#' @param block        A block  to represent the common chunk size.
+#' @param overlap      Ooverlap size in pixels.
+#' @param image_size   Original image's matrix size.
+#' @param image_bbox   Original image bbox.
+#' @return             A data frame with chunks
 .chunks_create <- function(block, overlap, image_size, image_bbox) {
     # Generate all starting block points (col, row)
     chunks <- purrr::cross_df(list(
@@ -92,10 +62,12 @@ NULL
     chunks
 }
 
-#' @describeIn chunks_api Creates an empty \code{raster} object based on the
-#'   first chunk passed in \code{chunk} parameter.
-#'
-#' @returns \code{raster} object.
+#' @title Create a raster based on a chunk
+#' @name .chunks_as_raster
+#' @noRd
+#' @param chunk    A data frame with chunks
+#' @param nlayers  number of layers in the raster
+#' @return raster object.
 .chunks_as_raster <- function(chunk, nlayers) {
     .raster_new_rast(
         nrows = .nrows(chunk)[[1]],
@@ -109,10 +81,12 @@ NULL
     )
 }
 
-#' @describeIn chunks_api Creates a \code{chunk} that can be used to
-#'   remove overlaps.
+#' @title Creates a chunk to remove overlaps
+#' @name .chunks_no_overlap
+#' @noRd
+#' @param chunks  A data frame with chunks
+#' @return        A data frame with chunks without overlap
 #'
-#' @returns \code{.chunks_no_overlap()}: \code{chunks} tibble.
 .chunks_no_overlap <- function(chunks) {
     # Generate blocks
     cropped <- tibble::tibble(
@@ -148,10 +122,34 @@ NULL
     cropped
 }
 
-#' @describeIn chunks_api Filter \code{chunks} that intersects a given
-#'   \code{roi}.
+#' @title Filter chunks that intersects a given roi
+#' @name .chunks_filter_spatial
+#' @noRd
+#' @param chunks A data frame with chunks
+#' @param roi    Region of interest
+#' @return       A data frame with filtered chunks
 #'
-#' @returns \code{.chunks_filter_spatial()}: \code{chunks} tibble.
 .chunks_filter_spatial <- function(chunks, roi) {
     chunks[.intersects(.bbox_as_sf(chunks), .roi_as_sf(roi)), ]
 }
+
+# Chunk accessors
+#
+# These functions are read-only accessors of chunk fields
+#
+#  .xres() and .yres()} computes, respectively, \code{"xres"} and
+#  \code{"yres"} values from chunk fields. The values are computed as
+#  \itemize{
+#  \item \eqn{xres=(xmax - xmin)/ncols}
+#  \item \eqn{yres=(ymax - ymin)/nrows}
+#
+#
+.xres <- function(x) {
+    (.xmax(x) - .xmin(x)) / .ncols(x)
+}
+
+#' @noRd
+.yres <- function(x) {
+    (.ymax(x) - .ymin(x)) / .nrows(x)
+}
+

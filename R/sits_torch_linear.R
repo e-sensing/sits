@@ -6,6 +6,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
+#' @noRd
 #' @description Defines a torch module composed of; (a) linear transformation;
 #' (b) batch normalization; (c) relu activation; (d) dropout
 #'
@@ -49,6 +50,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
+#' @noRd
 #' @description Defines a torch module composed of; (a) linear transformation;
 #' (b) relu activation; (c) dropout
 #'
@@ -82,6 +84,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
+#' @noRd
 #' @description Defines a torch module composed of; (a) linear transformation;
 #' (b) batch normalization; (c) relu activation
 #'
@@ -119,6 +122,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
+#' @noRd
 #' @description Defines a set of torch modules composed of:
 #' (a) linear transformation; (b) batch normalization; (c) relu activation
 #'

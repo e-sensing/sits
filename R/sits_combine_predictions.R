@@ -137,7 +137,7 @@ sits_combine_predictions.average <- function(cubes,
         tile <- tile_lst[[1]]
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
-            cube       = tile,
+            tile       = tile,
             cube_class = "probs_cube",
             band_name  = "probs",
             labels     = .tile_labels(tile),
@@ -240,7 +240,7 @@ sits_combine_predictions.average <- function(cubes,
 
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
-            cube       = tile,
+            tile       = tile,
             cube_class = "probs_cube",
             band_name  = "probs",
             labels     = .tile_labels(tile),
@@ -289,12 +289,14 @@ sits_combine_predictions.average <- function(cubes,
 #'
 #' @export
 #'
-sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ...,
-                                            uncert_cubes,
-                                            multicores = 2,
-                                            memsize = 4,
-                                            output_dir = getwd(),
-                                            version = "v1") {
+sits_combine_predictions.uncertainty <- function(
+        cubes,
+        type = "uncertainty", ...,
+        uncert_cubes,
+        multicores = 2,
+        memsize = 4,
+        output_dir = getwd(),
+        version = "v1") {
 
     # check if probs cubes and uncert cubes are valid and match
     # is every cube a probs cube
@@ -359,7 +361,7 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
         tile <- cubes[[1]][i,]
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
-            cube       = tile,
+            tile       = tile,
             cube_class = "probs_cube",
             band_name  = "probs",
             labels     = .tile_labels(tile),
@@ -492,7 +494,7 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
 
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
-            cube       = tile,
+            tile       = tile,
             cube_class = "probs_cube",
             band_name  = "probs",
             labels     = .tile_labels(tile),

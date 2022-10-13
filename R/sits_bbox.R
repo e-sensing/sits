@@ -61,7 +61,7 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
         bbox_dfr <- slider::slide_dfr(data, function(tile) {
             # create and return the bounding box
 
-            bbox <- .sits_coords_to_bbox_wgs84(
+            bbox <- .bbox_wgs84(
                 xmin = tile[["xmin"]],
                 ymin = tile[["ymin"]],
                 xmax = tile[["xmax"]],
@@ -118,7 +118,7 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
 }
 
 #' @title Intersection between a bounding box and a cube
-#' @name .sits_bbox_intersect
+#' @name .bbox_intersect
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -127,7 +127,7 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
 #' @param cube           Data cube.
 #' @return               Vector the bounding box intersection.
 #'
-.sits_bbox_intersect <- function(bbox, cube) {
+.bbox_intersect <- function(bbox, cube) {
     bbox_out <- vector("double", length = 4)
     names(bbox_out) <- c("xmin", "ymin", "xmax", "ymax")
 
@@ -185,14 +185,13 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
 
     return(sf_obj)
 }
-#---- bbox API: ----
 
-#' Bbox API
-#'
-#' A bounding box represents a rectangular geographical region in a certain
-#' projection. A \code{bbox} is any \code{list} or \code{tibble} containing
-#' \code{xmin}, \code{xmax}, \code{ymin}, \code{ymax}, and \code{crs} fields.
-#' A \code{bbox} may contains multiple entries.
+#  Bounding box API
+#
+#  A bounding box represents a rectangular geographical region in a certain
+#  projection. A \code{bbox} is any \code{list} or \code{tibble} containing
+#  \code{xmin}, \code{xmax}, \code{ymin}, \code{ymax}, and \code{crs} fields.
+#   A \code{bbox} may contains multiple entries.
 #'
 #' @param x Any object to extract a \code{bbox}.
 #' @param ... Additional parameters.
@@ -283,4 +282,93 @@ NULL
         }
         geom
     })
+}
+
+#  Bounding box accessors
+#
+#  These functions are accessors of bbox fields of a vector.
+#  Getters functions returns the respective field values with the expected
+#  data type. Setters functions convert value to expected data type and
+#  store it in respective fields on a given object. If value has no length
+#  and the vector is not atomic, it is removed from the object.
+#'
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#' x <- c(xmax = "123")
+#' .xmax(x) # 123 as number
+#' x <- list(xmin = 1, xmax = 2, ymin = 3, ymax = 4)
+#' .crs(x) <- 4326
+#' x # with 'crs' field
+#' .as_crs(3857) # EPSG:3857
+#' }
+#'
+
+#' @noRd
+.xmin <- function(x) {
+    .as_dbl(.compact(x[["xmin"]]))
+}
+
+#' @noRd
+`.xmin<-` <- function(x, value) {
+    x[["xmin"]] <- .as_dbl(value)
+    x
+}
+
+#' @noRd
+.xmax <- function(x) {
+    .as_dbl(.compact(x[["xmax"]]))
+}
+
+#' @noRd
+`.xmax<-` <- function(x, value) {
+    x[["xmax"]] <- .as_dbl(value)
+    x
+}
+
+#' @noRd
+.ymin <- function(x) {
+    .as_dbl(.compact(x[["ymin"]]))
+}
+
+#' @noRd
+`.ymin<-` <- function(x, value) {
+    x[["ymin"]] <- .as_dbl(value)
+    x
+}
+
+#' @noRd
+.ymax <- function(x) {
+    .as_dbl(.compact(x[["ymax"]]))
+}
+
+#' @noRd
+`.ymax<-` <- function(x, value) {
+    x[["ymax"]] <- .as_dbl(value)
+    x
+}
+
+#' @noRd
+.as_crs <- function(x) {
+    if (.has(x)) {
+        if (is.character(x))
+            .compact(x)
+        else if (is.numeric(x))
+            paste0("EPSG:", .compact(x))
+        else if (is.na(x))
+            NA_character_
+        else
+            stop("invalid crs value")
+    }
+}
+
+#' @noRd
+.crs <- function(x) {
+    .as_crs(x[["crs"]])
+}
+
+#' @noRd
+`.crs<-` <- function(x, value) {
+    x[["crs"]] <- .as_crs(value)
+    x
 }

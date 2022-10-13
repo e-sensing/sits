@@ -134,7 +134,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
 
     # Check memory and multicores
     # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(data))))
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
     # Check minimum memory needed to process one block

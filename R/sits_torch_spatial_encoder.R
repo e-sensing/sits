@@ -6,6 +6,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
+#' @noRd
 #' @description Defines a torch module for spatial encoding.
 #'
 #' This function is based on the paper by Vivien Garnot referenced below
@@ -103,6 +104,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
+#' @noRd
 #' @description Defines a torch module for positional encoding, based on
 #' the concepts of Vaswani et al (2017) and Garnot et al ()
 #'

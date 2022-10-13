@@ -27,7 +27,7 @@
 \item{rev}{Reverse order of colors in palette?}
 }
 \value{
-A plot containing maps of probabilities associated
+A plot containing probabilities associated
                       to each class for each pixel.
 }
 \description{

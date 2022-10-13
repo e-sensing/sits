@@ -28,7 +28,7 @@ sits_bands <- function(x) {
 #' @export
 #'
 sits_bands.sits <- function(x) {
-    return(setdiff(names(sits_time_series(x)), "Index"))
+    return(setdiff(names(.tibble_time_series(x)), "Index"))
 }
 #' @rdname sits_bands
 #' @export
@@ -124,15 +124,15 @@ sits_bands.sits_model <- function(x) {
         return(x)
     })
 }
-#---- Band API: ----
-
-#' Band API
-#'
-#' We use term \code{band} to refer either to spectral bands as index generated
-#' from images of actual sensor bands. To organize internal metadata and work
-#' properly there are some restrictions in band names. These functions aims
-#' to impose band name restrictions.
-#'
+#  Band API
+#  We use term \code{band} to refer either to spectral bands as index generated
+#  from images of actual sensor bands. To organize internal metadata and work
+#  properly there are some restrictions in band names. These functions aims
+#  to impose band name restrictions.
+#' @name band_api
+#' @seealso \link{band_accessors}
+#' @keywords internals
+#' @noRd
 #' @param band Band name.
 #'
 #' @examples
@@ -146,28 +146,20 @@ sits_bands.sits_model <- function(x) {
 #' .band_eo("NDVI_2") # 'NDVI-2'
 #' }
 #'
-#' @seealso \link{band_accessors}
-#' @name band_api
 NULL
-
-#' @describeIn band_api Returns the name of cloud band.
-#' @keywords internal
 #' @noRd
 .band_cloud <- function() {
     "CLOUD"
 }
-
-#' @describeIn band_api Returns a well formatted band name for \code{eo_cube}.
 #' @keywords internal
 #' @noRd
+#' @return a well formatted band name for eo_cubes.
 .band_eo <- function(band) {
     gsub("_", "-", toupper(band))
 }
-
-#' @describeIn band_api Returns a well formatted band name for
-#'   \code{derived_cube}.
 #' @keywords internal
 #' @noRd
+#' @return a well formatted band name for derived cubes.
 .band_derived <- function(band) {
     gsub("_", "-", tolower(band))
 }

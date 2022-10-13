@@ -5,7 +5,6 @@
 #' @importFrom magrittr %>%
 #' @name %>%
 #' @rdname pipe
-#' @noRd
 #' @param lhs,rhs A visualization and a function to apply to it.
 #' @return Apply lhs as input to rhs function
 #' @export

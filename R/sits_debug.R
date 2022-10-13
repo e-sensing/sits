@@ -1,14 +1,11 @@
 
 #' @title sits log functions
-#'
 #' @name .sits_debug_log
-#'
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description
-#' .sits_debug_log: (internal) logs to a CSV file the following values:
+#' @description logs to a CSV file the following values:
 #' \itemize{
 #' \item date_time: event date and time
 #' \item pid: process identifier
@@ -22,9 +19,6 @@
 #' The log file name will be the same as the base name of the current
 #' session's temporary directory.
 #'
-#' .sits_debug: When called without parameters retrieves the
-#' current debug flag value. The sits write log files when the debug
-#' flag is TRUE
 #'
 #' @param flag         A logical value to set the debug flag
 #' @param event        The name of the event to be logged
@@ -34,9 +28,6 @@
 #' @param output_dir   directory to save logs.
 #'
 #' @return             A logical value with current debug flag
-NULL
-
-#' @rdname .sits_debug_log
 .sits_debug_log <- function(event = "", key = "", value = "") {
 
     # if debug flag is FALSE, then exit
@@ -116,7 +107,17 @@ NULL
     return(invisible(NULL))
 }
 
-#' @rdname sits_debug_log
+#' @title sits debug log functions
+#' @name .sits_debug
+#' @keywords internal
+#' @noRd
+#' @description  When called without parameters retrieves the
+#' current debug flag value. Flag sets the current flag
+#' and output_dir writes the debug info to a directory.
+#'
+#' @param flag         A logical value to set the debug flag
+#' @param output_dir   Directory to write the debug info.
+#' @return  flag associated to the debug
 .sits_debug <- function(flag = NULL, output_dir = NULL) {
 
     # set caller to show in errors

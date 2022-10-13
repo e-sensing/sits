@@ -755,7 +755,7 @@ sits_list_collections <- function(source = NULL) {
     # check metadata_search
     if (!missing(metadata_search)) {
         .check_chr_within(metadata_search,
-            within = .conf_metadata_search_strategies(),
+            within = .conf("metadata_search_strategies"),
             msg = "invalid 'metadata_search' value"
         )
     }
@@ -1038,33 +1038,9 @@ sits_list_collections <- function(source = NULL) {
 
     return(res)
 }
-#---- Config API ----
 
-#' Basic access config functions
-#'
-#' These are basic functions to access config options.
-#'
-#' @param ... Set of \code{character} values representing a key to access
-#'   some hierarchical config entry.
-#' @param throw_error Should an error be thrown if test fails?
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#' .conf_exists("run_tests") # TRUE
-#' .conf("run_tests")
-#' .conf_exists("not_existing_entry") # FALSE
-#' }
-#'
-#' @returns Configuration value.
-#'
-#' @family config functions
-#' @keywords internal
-#' @name config_api
-NULL
-
-#' @describeIn config_api Tests if a key provided as \code{character} values
-#'   in \code{...} parameter exists in the config. If \code{throws_error} is
-#'   \code{TRUE} and the test failed, an error is raised.
+#  Basic access config functions
+#  tests if a key exists in the config.
 .conf_exists <- function(..., throw_error = FALSE) {
     key <- c(...)
     exists <- !is.null(.try(sits_env[["config"]][[key]], .default = NULL))
@@ -1075,31 +1051,54 @@ NULL
     exists
 }
 
-#' @describeIn config_api Get a config value located in a key provided as
-#'   \code{character} values in \code{...} parameter. If a key does not
-#'   exists, throws an error. Use \code{.conf_exists()} to test for a key
-#'   existence.
+# Get a config value based on a key
 .conf <- function(...) {
     key <- c(...)
     # Check for key existence and throws an error if it not exists
     .conf_exists(key, throw_error = TRUE)
     sits_env[["config"]][[c(key)]]
 }
+#' #' @title Given a key, get config values
+#' #' @name .conf
+#' #' @keywords internal
+#' #' @return config values associated to a key
+#' .conf <- function(key, default = NULL) {
+#'     res <- tryCatch(
+#'         {
+#'             sits_env$config[[key]]
+#'         },
+#'         error = function(e) {
+#'             return(default)
+#'         }
+#'     )
+#'
+#'     # set default
+#'     if (is.null(res)) {
+#'         res <- default
+#'     }
+#'
+#'     # post-condition
+#'     .check_null(res,
+#'                 msg = paste(
+#'                     "key",
+#'                     paste0("'", paste0(key, collapse = "$"), "'"),
+#'                     "not found"
+#'                 )
+#'     )
+#'
+#'     return(res)
+#' }
 
-#' Config functions for \code{eo_cube}
-#'
-#' These are syntactic sugar functions to easily access config options for
-#' bands of \code{eo_cube} cubes. \code{eo_cubes} are a S3 class representation
-#' for an Earth Observation cube. It is the primary data used to obtain a
-#' classification map.
-#'
-#' The config entries of a \code{eo_cube} are located in
-#' \code{sources -> <SOURCE> -> collections -> <COLLECTION>} key.
-#' Values for \code{source}, \code{collection}, and \code{band} are uppercase.
-#'
-#' @param source Source name.
-#' @param collection Collection name.
-#' @param band Band name.
+#  Config functions eo_cube
+#
+#  These are syntactic sugar functions to easily access config options for
+#  bands of eo_cube cubes which is a S3 class representation
+#  for an Earth Observation cube. It is the primary data used to obtain a
+#  classification map.
+#
+#  The config entries of a eo_cube} are located in
+#  sources -> <SOURCE> -> collections -> <COLLECTION> key.
+#  Values for source, collection, and band are uppercase.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -1117,19 +1116,14 @@ NULL
 #' )
 #' }
 #'
-#' @returns Configuration value.
-#'
 #' @seealso Band accessors: \link{band_accessors}
 #' @family config functions
 #' @keywords internal
-#' @name eo_cube_config
+#' @noRd
 NULL
-
-#' @describeIn eo_cube_config Tests if a \code{band} entry exists in config
-#'   for some \code{source} and \code{collection}. If neither \code{source}
-#'   nor \code{collection} entry are found in config, an error is thrown.
-#'   Use \code{.conf_exists()} to test for \code{source} and \code{collection}
-#'   existence.
+#    Tests if a band entry exists in config
+#    for source and collection. If neither source
+#    nor collection entries are found in config, an error is thrown.
 .conf_eo_band_exists <- function(source, collection, band) {
     # source, collection, and band are uppercase
     source <- toupper(source)
@@ -1144,12 +1138,10 @@ NULL
     .conf_exists("sources", source, "collections", collection, "bands", band)
 }
 
-#' @describeIn eo_cube_config Get a config value of for a \code{band} located
-#'   in a \code{source} and \code{collection}. If the \code{band} is not
-#'   found, a default value will be returned from config. If neither
-#'   \code{source} nor \code{collection} entry are found in config, an
-#'   error is thrown. Use \code{.conf_exists()} to test for \code{source} and
-#'   \code{collection} existence.
+#  Get a config value of for a band from a source and collection. If the band
+#  is not found, a default value will be returned from config. If neither
+#  source nor collection entries are found in configuration file, an
+#  error is thrown.
 .conf_eo_band <- function(source, collection, band) {
     # Format band name
     band <- .band_eo(band)
@@ -1161,62 +1153,46 @@ NULL
     .conf("sources", source, "collections", collection, "bands", band)
 }
 
-#' Config functions for \code{derived_cube}
-#'
-#' These are syntactic sugar functions to easily access config options for
-#' bands of \code{derived_cube} cubes. \code{derived_cubes} are a S3 class
-#' representation of a cube generated by the classification workflow starting
-#' from an Earth Observation data cube.
-#'
-#' There are several classes of \code{derived_cube}:
-#' \itemize{
-#' \item \code{probs_cube}: multilayer probability cube produced by a
-#'   classification with the probabilities attributed to each class by a
-#'   model. The possible band names are \code{'probs'}, \code{'bayes'}, and
-#'   \code{'bilat'}, acronyms for 'probability', 'Bayesian smoothing', and
-#'   'Bilateral smoothing'.
-#' \item \code{class_cube}: labeled cube (classified map) produced by choosing
-#'   a label for each pixel. Its unique band name is \code{'class'}.
-#' \item \code{uncertainty_cube}: a cube produced to measure the uncertainty of
-#'   a classification for each pixel. The possible band names are
-#'   \code{'least'}, \code{'entropy'}, and \code{'margin'}, acronyms for
-#'   the method used to produce the cube.
-#'   \code{'bilat'}, acronyms for 'probability', 'Bayesian smoothing', and
-#'   'Bilateral smoothing'.
-#' }
-#'
-#' Values for \code{derived_class} and \code{band} are lowercase. This was
-#' done to avoid conflicts with \code{eo_cube} band naming (uppercase).
-#' The config entries of a \code{derived_cube} are located in
-#' \code{derived_cube -> <derived_class>} key.
-#'
-#' @param derived_class Class name of the \code{derived_cube}.
-#' @param band Band name.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#' # get S3 class value that a derived_cube of class 'probs' must have
-#' .conf_derived_s3class("probs")
-#' }
-#'
-#' @returns Configuration value.
-#'
-#' @seealso Band accessors: \link{band_accessors}
-#' @family config functions
-#' @keywords internal
-#' @name derived_cube_config
-NULL
+#  Config functions for derived_cube
+#  These are syntactic sugar functions to easily access config options for
+#  bands of  derived_cube cubes, which are a S3 class
+#  representation of cubes generated by the classification workflow starting
+#  from an Earth Observation data cube.
+#
+#  There are several classes of \code{derived_cube}:
+#   (a) probs_cube}: multilayer probability cube produced by a
+#   classification with the probabilities attributed to each class by a
+#   model. The possible band names are 'probs', 'bayes', and
+#   'bilat', acronyms for 'probability', 'Bayesian smoothing', and
+#   'Bilateral smoothing'.
+#   (b) class_cube}: labeled cube (classified map) produced by choosing
+#   a label for each pixel. Its unique band name is 'class'.
+#   (c) uncertainty_cube}: a cube produced to measure the uncertainty of
+#   a classification for each pixel. The possible band names are
+#    'least', 'entropy', and 'margin', acronyms for
+#   the method used to produce the cube.
+#
+#  Values for derived_class and band are lowercase. This was
+#  done to avoid conflicts with eo_cube band naming (uppercase).
+#  The config entries of a derived_cube are located in
+#  derived_cube -> <derived_class> key.
+#
 
-#' @describeIn derived_cube_config Get the S3 class values to instantiate a
-#'   new \code{derived_cube}.
+#' @name derived_cube_config
+#' @noRd
+#' @param derived_class  one of the derived classes for a cube
+#' @return Get the S3 class values to instantiate a derived_cube
 .conf_derived_s3class <- function(derived_class) {
     # derived_class is lowercase
     derived_class <- tolower(derived_class)
     .conf("derived_cube", derived_class, "s3_class")
 }
 
-#' @describeIn derived_cube_config Get the S3 class values to instantiate a
-#'   new \code{derived_cube}.
+#' @name .conf_derived_band
+#' @noRd
+#' @param derived_class  one of the derived classes for a cube
+#' @param band    a possible band for a derived cube
+#' @return  Get the S3 class values to instantiate a new derived_cube
 .conf_derived_band <- function(derived_class, band) {
     # Format band
     band <- .band_derived(band)

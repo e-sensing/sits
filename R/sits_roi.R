@@ -158,7 +158,7 @@
     )
 
     # convert to sf object
-    sf_obj <- .roi_as_sf(roi, crs = 4326)
+    sf_obj <- .roi_as_sf(roi, default_crs = 4326)
 
     return(sf_obj)
 }
@@ -228,16 +228,15 @@
 
     return(geojson)
 }
-#---- roi API: ----
-#' ROI API
-#'
-#' A Region of Interest (ROI) represents an geographic area. There are
-#' three types of ROI objects, namely \code{sf} (from package \code{sf}),
-#' \code{bbox} (from \code{.bbox()}), and \code{lonlat}.
-#' A \code{lonlat} object is any \code{vector} containing \code{lon_min},
-#' \code{lon_max}, \code{lat_min}, and \code{lat_max} fields. Its CRS is
-#' defined to be \code{'EPSG:4326'}.
-#'
+#  ROI API
+#
+#  A Region of Interest (ROI) represents an geographic area. There are
+#  three types of ROI objects, namely \code{sf} (from package \code{sf}),
+#  \code{bbox} (from \code{.bbox()}), and \code{lonlat}.
+#  A \code{lonlat} object is any \code{vector} containing \code{lon_min},
+#  \code{lon_max}, \code{lat_min}, and \code{lat_max} fields. Its CRS is
+#  defined to be \code{'EPSG:4326'}.
+#
 #' @param roi A \code{roi}.
 #' @param ... Parameters to be evaluated accordingly to \code{roi} type.
 #' @param default_crs If no CRS is present in a \code{bbox} object passed

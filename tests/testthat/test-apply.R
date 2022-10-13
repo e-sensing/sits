@@ -102,7 +102,7 @@ test_that("EVI generation", {
         EVI2_NEW = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1)
     )
 
-    values_evi2 <- sits_time_series(evi_tibble_2)$EVI2
-    values_evi2_new <- sits_time_series(evi_tibble_2)$EVI2_NEW
+    values_evi2 <- .tibble_time_series(evi_tibble_2)$EVI2
+    values_evi2_new <- .tibble_time_series(evi_tibble_2)$EVI2_NEW
     expect_equal(values_evi2, values_evi2_new, tolerance = 0.001)
 })

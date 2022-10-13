@@ -44,7 +44,7 @@ sits_train <- function(samples, ml_method = sits_svm()) {
     )
 
     .check_that(
-        x = .sits_timeline_check(samples) == TRUE,
+        x = .timeline_check(samples) == TRUE,
         msg = paste0(
             "Samples have different timeline lengths", "\n",
             "Use .tibble_prune or sits_fix_timeline"

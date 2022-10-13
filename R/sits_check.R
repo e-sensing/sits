@@ -1959,8 +1959,8 @@
     )
     ok <- slider::slide2_lgl(cube1, cube2,
                            function(tile_first, tile_cube){
-            return(.is_eq(unlist(.cube_tile_bbox(tile_first)),
-                          unlist(.cube_tile_bbox(tile_cube)),
+            return(.is_eq(unlist(sits_bbox(tile_first)),
+                          unlist(sits_bbox(tile_cube)),
                           tolerance = tolerance)
             )
     })
@@ -1973,6 +1973,7 @@
 #' @title Check if cubes have the same size
 #' @name .check_cubes_same_size
 #' @keywords internal
+#' @noRd
 #' @param  cube1     input data cube
 #' @param  cube2     input data cube
 #' @return No return value, called for side effects.

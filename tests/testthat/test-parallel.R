@@ -45,7 +45,7 @@ test_that("One-year, multi-core classification in parallel", {
     )
 
 
-    r_obj <- .raster_open_rast(.fi_path(.fi(l8_probs)))
+    r_obj <- .raster_open_rast(.tile_path(l8_probs))
 
     expect_true(l8_probs[["xmin"]] > l8_cube[["xmin"]])
     expect_true(l8_probs[["xmax"]] < l8_cube[["xmax"]])

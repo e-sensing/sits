@@ -130,7 +130,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
 
     # Check memory and multicores
     # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(cube))))
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
     # npaths = input(bands) + output(fracs)
     job_memsize <- .jobs_memsize(

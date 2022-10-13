@@ -1,62 +1,35 @@
+#  Tile API
+#
+#  A cube consists of multiple tiles stacked together as rows of a
+#  tibble. A tile is a only-one-row tibble that stores
+#  metadata of a spatial partition of a cube.
 
-
-
-
-
-
-
-
-
-
-
-
-#---- Tile API: ----
-
-#' Tile API
-#'
-#' A \code{cube} consists of multiple tiles stacked together as rows of a
-#' \code{tibble}. Get first tile of a cube. This function should be called
+#' @title Get first tile of a cube
+#' @name .tile
+#' @noRd
+#' @description This function should be called
 #' by all tile API function to ensure that only one tile will be processed.
-#'
 #' @param cube A \code{cube} or a \code{tile}.
-#'
-#' @return The first row of a cube.
+#' @return The first tile of a cube.
 .tile <- function(cube) {
     UseMethod(".tile", cube)
 }
-
 #' @export
 .tile.raster_cube <- function(cube) {
     cube[1, ]
 }
 
-#' Tile field accessors
-#'
-#' These functions are accessors of \code{tile} objects. A
-#' \code{tile} is a only-one-row \code{tibble} \code{cube} that stores
-#' metadata of a cube.
-#'
-#' @param tile A \code{tile} or \code{cube} (only first row will be considered).
-#' @param value A value to set in a \code{tile} field.
-#'
-#' @returns Respective \code{tile} field value.
-#'
-#' @family accessors
-#' @keywords internal
-#' @name tile_accessors
-NULL
-
-#' @describeIn tile_accessors Get \code{'source'} field of a \code{tile}.
+#  Tile field accessors
+#  These functions enable access components of tiles. A
+#
 .tile_source <- function(tile) {
     UseMethod(".tile_source", tile)
 }
-
 #' @export
 .tile_source.raster_cube <- function(tile) {
     .as_chr(tile[["source"]][[1]])
 }
-
-#' @describeIn tile_accessors Get \code{'collection'} field of a \code{tile}.
+#
 .tile_collection <- function(tile) {
     UseMethod(".tile_collection", tile)
 }
@@ -66,22 +39,18 @@ NULL
     .as_chr(tile[["collection"]][[1]])
 }
 
-#' @describeIn tile_accessors Get \code{'tile'} field of a \code{tile}.
+#
 .tile_name <- function(tile) {
     UseMethod(".tile_name", tile)
 }
-
-#' @export
+#
 .tile_name.raster_cube <- function(tile) {
     .as_chr(tile[["tile"]][[1]])
 }
-
-#' @describeIn tile_accessors Get number of image columns from \code{ncols}
-#'   field (if it exists) or from first \code{ncols} in file_info.
+#
 .tile_ncols <- function(tile) {
     UseMethod(".tile_ncols", tile)
 }
-
 #' @export
 .tile_ncols.raster_cube <- function(tile) {
     if ("ncols" %in% tile) {
@@ -89,13 +58,10 @@ NULL
     }
     .ncols(.fi(tile))[[1]]
 }
-
-#' @describeIn tile_accessors Get number of image columns from \code{nrows}
-#'   field (if it exists) or from first \code{nrows} in file_info.
+#
 .tile_nrows <- function(tile) {
     UseMethod(".tile_nrows", tile)
 }
-
 #' @export
 .tile_nrows.raster_cube <- function(tile) {
     if ("nrows" %in% tile) {
@@ -103,86 +69,68 @@ NULL
     }
     .nrows(.fi(tile))[[1]]
 }
-
-#' @describeIn tile_accessors Get the size of tile from \code{ncols} and
-#'   \code{nrows} fields (if they exist) or from first entry in file_info.
+#
 .tile_size <- function(tile) {
     UseMethod(".tile_size", tile)
 }
-
 #' @export
 .tile_size.raster_cube <- function(tile) {
     list(ncols = .tile_ncols(tile), nrows = .tile_nrows(tile))
 }
-
-#' @describeIn tile_accessors Get \code{'labels'} field of a \code{tile}.
+#
 .tile_labels <- function(tile) {
     UseMethod(".tile_labels", tile)
 }
-
 #' @export
 .tile_labels.raster_cube <- function(tile) {
     .as_chr(tile[["labels"]][[1]])
 }
-
-#' @describeIn tile_accessors Set \code{'labels'} field of a \code{tile}.
+#
 `.tile_labels<-` <- function(tile, value) {
     UseMethod(".tile_labels<-", tile)
 }
-
 #' @export
 `.tile_labels<-.raster_cube` <- function(tile, value) {
     tile <- .tile(tile)
     tile[["labels"]] <- list(.as_chr(value))
     tile
 }
-
-#' @describeIn tile_accessors Get \code{'file_info'} field of a \code{tile}.
+#
 .tile_file_info <- function(tile) {
     UseMethod(".tile_file_info", tile)
 }
-
 #' @export
 .tile_file_info.raster_cube <- function(tile) {
     .fi(tile) # Get the first file_info
 }
-
-#' @describeIn tile_accessors Set \code{'file_info'} field of a \code{tile}.
+#'
 `.tile_file_info<-` <- function(tile, value) {
     UseMethod(".tile_file_info<-", tile)
 }
-
 #' @export
 `.tile_file_info<-.raster_cube` <- function(tile, value) {
     tile <- .tile(tile)
     tile[["file_info"]] <- list(value)
     tile
 }
-
-#---- | .tile_as_sf() ----
-#' Tile API
-#'
-#' @title Convert tile \code{bbox} to a sf polygon object.
+#' @title Convert tile bbox to a sf polygon object.
 #' @name .tile_as_sf
 #' @param tile A tile.
 #' @keywords internal
-#'
+#' @noRd
 #' @return sf object
 .tile_as_sf <- function(tile) {
     UseMethod(".tile_as_sf", tile)
 }
-#' @title Convert raster cube \code{bbox} to a sf polygon object.
-#' @name .tile_as_sf.raster_cube
-#' @param tile A tile.
 #' @export
 .tile_as_sf.raster_cube <- function(tile) {
     .bbox_as_sf(.tile(tile))
 }
-
 #'
 #' @title Get first date from tile
 #' @name .tile_start_date
 #' @keywords internal
+#' @noRd
 #' @param tile A tile.
 #'
 #' @return date
@@ -193,38 +141,35 @@ NULL
 .tile_start_date.raster_cube <- function(tile) {
     .fi_min_date(.fi(tile))
 }
-
 #'
 #' @title Get end date from file_info.
 #' @name .tile_end_date
 #' @keywords internal
+#' @noRd
 #' @param tile A tile.
 #'
 #' @return date
 .tile_end_date <- function(tile) {
     UseMethod(".tile_end_date", tile)
 }
-
 #' @export
 .tile_end_date.raster_cube <- function(tile) {
     .fi_max_date(.fi(tile))
 }
-
 #' @title Get unique timeline from file_info.
 #' @name .tile_timeline
 #' @keywords internal
+#' @noRd
 #' @param tile A tile.
 #'
 #' @return a timeline
 .tile_timeline <- function(tile) {
     UseMethod(".tile_timeline", tile)
 }
-
 #' @export
 .tile_timeline.raster_cube <- function(tile) {
     unique(.fi_timeline(.fi(tile)))
 }
-
 #' @title Get sorted unique bands from file_info.
 #' @name .tile_path
 #' @keywords internal
@@ -234,20 +179,22 @@ NULL
 #' @param date A date in the tile
 #'
 #' @return First path of file info
-.tile_path <- function(tile, band, date) {
+.tile_path <- function(tile, band = NULL, date = NULL) {
     UseMethod(".tile_path", tile)
 }
 #' @export
 .tile_path.raster_cube <- function(tile, band, date){
-    tile <- .tile_filter_bands(tile, band) %>%
-        .tile_filter_date(date)
-    path <- .fi(tile) %>% .fi_path()
+    if (!purrr::is_null(band) & !purrr::is_null(date)) {
+        tile <- .tile_filter_bands(tile, band) %>%
+            .tile_filter_date(date)
+    }
+    path <- .fi(.tile(tile)) %>% .fi_path()
     path
 }
-
 #' @title Get sorted unique bands from file_info.
 #' @name .tile_bands
 #' @keywords internal
+#' @noRd
 #' @param tile A tile.
 #'
 #' @return names of bands in the tile
@@ -259,11 +206,11 @@ NULL
 .tile_bands.raster_cube <- function(tile) {
     unique(.fi_bands(.fi(tile)))
 }
-
 #'
 #' @title Get a band definition from config.
 #' @name .tile_band_conf
 #' @keywords internal
+#' @noRd
 #' @param tile A tile.
 #' @param band Band character vector.
 #'
@@ -271,7 +218,6 @@ NULL
 .tile_band_conf <- function(tile, band) {
     UseMethod(".tile_band_conf", tile)
 }
-
 #' @export
 .tile_band_conf.eo_cube <- function(tile, band) {
     .conf_eo_band(
@@ -283,11 +229,11 @@ NULL
 .tile_band_conf.derived_cube <- function(tile, band) {
     .conf_derived_band(derived_class = .tile_derived_class(tile), band = band)
 }
-
 #'
 #' @title Filter file_info entries of a given \code{band}.
 #' @name .tile_filter_bands
 #' @keywords internal
+#' @noRd
 #' @param tile A tile.
 #' @param bands Band names to be filtered.
 #'
@@ -295,7 +241,6 @@ NULL
 .tile_filter_bands <- function(tile, bands) {
     UseMethod(".tile_filter_bands", tile)
 }
-
 #' @export
 .tile_filter_bands.eo_cube <- function(tile, bands) {
     tile <- .tile(tile)
@@ -303,7 +248,6 @@ NULL
         .fi_filter_bands(fi = .fi(tile), bands = .band_eo(bands))
     tile
 }
-
 #' @export
 .tile_filter_bands.derived_cube <- function(tile, bands) {
     tile <- .tile(tile)
@@ -313,8 +257,9 @@ NULL
 }
 #'
 #' @title Does tile \code{bbox} intersect \code{roi} parameter?
-#' @name .tile_intersects()
+#' @name .tile_intersects
 #' @keywords internal
+#' @noRd
 #' @param tile A tile.
 #' @param roi A region of interest (ROI).
 #'
@@ -322,15 +267,14 @@ NULL
 .tile_intersects <- function(tile, roi) {
     UseMethod(".tile_intersects", tile)
 }
-
 #' @export
 .tile_intersects.raster_cube <- function(tile, roi) {
     .intersects(x = .tile_as_sf(tile), y = .roi_as_sf(roi))
 }
-
-#' @title Filter file_info entries that intersect \code{roi} parameter.
+#' @title Filter file_info entries that intersect roi.
 #' @name .tile_filter_spatial
 #' @keywords internal
+#' @noRd
 #' @param tile A tile.
 #' @param roi A region of interest (ROI).
 #'
@@ -338,21 +282,18 @@ NULL
 .tile_filter_spatial <- function(tile, roi) {
     UseMethod(".tile_filter_spatial", tile)
 }
-
 #' @export
 .tile_filter_spatial.raster_cube <- function(tile, roi) {
     tile <- .tile(tile)
     .tile_file_info(tile) <- .fi_filter_spatial(fi = .fi(tile), roi = roi)
     tile
 }
-
-#---- |  ----
-#' Tile API
 #'
 #' @title Is any date of tile's timeline between 'start_date'
 #' and 'end_date'?
-#' @name .tile_during()
+#' @name .tile_during
 #' @keywords internal
+#' @noRd
 #' @param tile A tile.
 #' @param start_date,end_date Date of start and end.
 #'
@@ -360,7 +301,6 @@ NULL
 .tile_during <- function(tile, start_date, end_date) {
     UseMethod(".tile_during", tile)
 }
-
 #' @export
 .tile_during.raster_cube <- function(tile, start_date, end_date) {
     any(.fi_during(
@@ -371,6 +311,7 @@ NULL
 #' @title Filter file_info entries by 'start_date' and 'end_date.'
 #' @name .tile_filter_interval
 #' @keywords internal
+#' @noRd
 #' @param tile A tile.
 #' @param start_date,end_date Date of start and end.
 #'
@@ -378,7 +319,6 @@ NULL
 .tile_filter_interval <- function(tile, start_date, end_date) {
     UseMethod(".tile_filter_interval", tile)
 }
-
 #' @export
 .tile_filter_interval.raster_cube <- function(tile, start_date, end_date) {
     tile <- .tile(tile)
@@ -391,6 +331,7 @@ NULL
 #' @title Filter file_info entries by date
 #' @name .tile_filter_date
 #' @keywords internal
+#' @noRd
 #' @param tile A tile.
 #' @param date Desired date
 #'
@@ -400,29 +341,29 @@ NULL
 }
 #'
 #' @title Get derived class of a tile.
-#' @name .tile_derived_class()
+#' @name .tile_derived_class
 #' @keywords internal
+#' @noRd
 #' @param tile A tile.
 #'
 #' @return derived class
 .tile_derived_class <- function(tile) {
     UseMethod(".tile_derived_class", tile)
 }
-
 #' @export
 .tile_derived_class.derived_cube <- function(tile) {
     class(tile)[[1]]
 }
-
 #'
-#' @title Read and preprocess a \code{block} of \code{band} values from
+#' @title Read and preprocess a block of band values from
 #' file_info rasters.
-#' @name .tile_read_block()
+#' @name .tile_read_block
 #' @keywords internal
+#' @noRd
 #' @description
-#' \code{eo_cube} preprocess is slightly different from
-#' \code{derived_cube}: values outside the range of minimum and maximum for
-#' a band are replaced by \code{NA} in \code{eo_cube}. In \code{derived_cube},
+#' eo_cube tiles preprocess is slightly different from
+#' derived_cube tiles. Values outside the range of minimum and maximum for
+#' a band are replaced by NA in eo_cubes. In derived_cubes,
 #' values outside allowed range are clamped and replaced by minimum or maximum
 #' values.
 #'
@@ -434,7 +375,6 @@ NULL
 .tile_read_block <- function(tile, band, block) {
     UseMethod(".tile_read_block", tile)
 }
-
 #' @export
 .tile_read_block.eo_cube <- function(tile, band, block) {
     fi <- .fi(tile)
@@ -513,12 +453,12 @@ NULL
     # Return values
     return(values)
 }
-
 #'
-#' @title Read and preprocess a \code{block} of cloud values from
+#' @title Read and preprocess a block of cloud values from
 #' file_info rasters.
-#' @name .tile_cloud_read_block()
+#' @name .tile_cloud_read_block
 #' @keywords internal
+#' @noRd
 #' @param tile A tile.
 #' @param block A block list with (col, row, ncols, nrows).
 #'
@@ -526,7 +466,6 @@ NULL
 .tile_cloud_read_block <- function(tile, block) {
     UseMethod(".tile_cloud_read_block", tile)
 }
-
 #' @export
 .tile_cloud_read_block.eo_cube <- function(tile, block) {
     if (!.band_cloud() %in% .tile_bands(tile)) {
@@ -567,10 +506,10 @@ NULL
     # Return values
     return(values)
 }
-
 #' @title Create chunks of a tile to be processed
-#' @name .tile_chunks_create()
+#' @name .tile_chunks_create
 #' @keywords internal
+#' @noRd
 #' @param tile tile to be processed
 #' @param overlap overlap between tiles
 #' @return set of chunks to be read from the file
@@ -578,7 +517,7 @@ NULL
 .tile_chunks_create <- function(tile, overlap) {
     # Get block size
     block <-
-        .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(tile))))
+        .raster_file_blocksize(.raster_open_rast(.tile_path(tile)))
     # Compute chunks
     .chunks_create(
         block = block,
@@ -587,10 +526,10 @@ NULL
         image_bbox = .bbox(tile)
     )
 }
-
 #' @title read an EO tile from files
 #' @name .tile_eo_from_files
 #' @keywords internal
+#' @noRd
 #' @param files files to be read
 #' @param fid   file ID
 #' @param bands bands to be read in the files
@@ -620,6 +559,7 @@ NULL
 #' @title Merge block from an EO tile
 #' @name .tile_eo_merge_blocks
 #' @keywords internal
+#' @noRd
 #' @param files files to be merged
 #' @param bands bands to be used in the files
 #' @param base_tile  reference tile used in the operation
@@ -633,7 +573,7 @@ NULL
     band_conf <- .tile_band_conf(tile = base_tile, band = bands)
     # Create a template raster based on the first image of the tile
     .raster_merge_blocks(
-        out_files = files, base_file = .fi_path(.fi(base_tile)),
+        out_files = files, base_file = .tile_path(base_tile),
         block_files = block_files, data_type = .data_type(band_conf),
         missing_value = .miss_value(band_conf), multicores = multicores
     )
@@ -648,8 +588,17 @@ NULL
     # Return eo tile
     tile
 }
-
-#---- | <derived_cube> ----
+#' @title Create a tile derived from a file
+#' @name .tile_derived_from_file
+#' @keywords internal
+#' @noRd
+#' @param files files to be merged
+#' @param band  band to be used in the tile
+#' @param base_tile  reference tile used in the operation
+#' @param derived_class class of the derived tile
+#' @param labels labels associated to the tile
+#' @param update_bbox  should bbox be updated?
+#' @return a new tile
 .tile_derived_from_file <- function(file, band, base_tile, derived_class,
                                     labels = NULL, update_bbox) {
     if (update_bbox) {
@@ -672,14 +621,26 @@ NULL
     # Set tile class and return tile
     .cube_set_class(base_tile, .conf_derived_s3class(derived_class))
 }
-
+#' @title Write values of a derived tile from a set of blocks
+#' @name .tile_derived_merge_blocks
+#' @keywords internal
+#' @noRd
+#' @param file file to be written
+#' @param band  band to be used in the tile
+#' @param labels labels associated to the tile
+#' @param base_tile  reference tile used in the operation
+#' @param derived_class class of the derived tile
+#' @param block_files  files that host the blocks
+#' @param multicores  number of parallel processes
+#' @param update_bbox  should bbox be updated?
+#' @return a new tile with files written
 .tile_derived_merge_blocks <- function(file, band, labels, base_tile,
                                        derived_class, block_files, multicores,
                                        update_bbox) {
     # Get conf band
     band_conf <- .conf_derived_band(derived_class = derived_class, band = band)
     # Set base tile
-    base_file <- if (update_bbox) NULL else .fi_path(.fi(base_tile))
+    base_file <- if (update_bbox) NULL else .tile_path(base_tile)
     # Create a template raster based on the first image of the tile
     .raster_merge_blocks(
         out_files = file, base_file = base_file,
@@ -698,7 +659,16 @@ NULL
     tile
 }
 
-# ---- | <probs_cube> ----
+#' @title Create a "probs" tile
+#' @name .tile_probs_from_file
+#' @keywords internal
+#' @noRd
+#' @param file file to be written
+#' @param band  band to be used in the tile
+#' @param base_tile  reference tile used in the operation
+#' @param labels labels associated to the tile
+#' @param update_bbox  should bbox be updated?
+#' @return a new probs tile
 .tile_probs_from_file <- function(file, band, base_tile, labels, update_bbox) {
     # Open block file to be merged
     r_obj <- .raster_open_rast(file)
@@ -714,7 +684,18 @@ NULL
         update_bbox = update_bbox
     )
 }
-
+#' @title Write values of a probs tile from a set of blocks
+#' @name .tile_probs_merge_blocks
+#' @keywords internal
+#' @noRd
+#' @param file file to be written
+#' @param band  band to be used in the tile
+#' @param labels labels associated to the tile
+#' @param base_tile  reference tile used in the operation
+#' @param block_files  files that host the blocks
+#' @param multicores  number of parallel processes
+#' @param update_bbox  should bbox be updated?
+#' @return a new probs tile with files written
 .tile_probs_merge_blocks <- function(file, band, labels, base_tile,
                                      block_files, multicores, update_bbox) {
     # Open first block file to be merged
@@ -734,7 +715,14 @@ NULL
     )
 }
 
-#---- | <class_cube> ----
+#' @title Create a "class" tile
+#' @name .tile_class_from_file
+#' @keywords internal
+#' @noRd
+#' @param file file to be written
+#' @param band  band to be used in the tile
+#' @param base_tile  reference tile used in the operation (probs)
+#' @return a new probs tile
 .tile_class_from_file <- function(file, band, base_tile) {
     .tile_derived_from_file(
         file = file, band = band, base_tile = base_tile,
@@ -742,7 +730,17 @@ NULL
         update_bbox = FALSE
     )
 }
-
+#' @title Write values of a class tile from a set of blocks
+#' @name .tile_class_merge_blocks
+#' @keywords internal
+#' @noRd
+#' @param file file to be written
+#' @param band  band to be used in the tile
+#' @param labels labels associated to the tile
+#' @param base_tile  reference tile used in the operation
+#' @param block_files  files that host the blocks
+#' @param multicores  number of parallel processes
+#' @return a new class tile with files written
 .tile_class_merge_blocks <- function(file, band, labels, base_tile,
                                      block_files, multicores) {
     # Create class cube and return it
@@ -754,7 +752,14 @@ NULL
     )
 }
 
-#---- | <uncertainty_cube> ----
+#' @title Create an "uncertainity" tile
+#' @name .tile_uncertainty_from_file
+#' @keywords internal
+#' @noRd
+#' @param file file to be written
+#' @param band  band to be used in the tile
+#' @param base_tile  reference tile used in the operation (probs)
+#' @return a new uncertainty tile
 .tile_uncertainty_from_file <- function(file, band, base_tile) {
     .tile_derived_from_file(
         file = file, band = band, base_tile = base_tile,
@@ -762,7 +767,17 @@ NULL
         update_bbox = FALSE
     )
 }
-
+#' @title Write values of a uncertainty tile from a set of blocks
+#' @name .tile_uncertainty_merge_blocks
+#' @keywords internal
+#' @noRd
+#' @param file file to be written
+#' @param band  band to be used in the tile
+#' @param labels labels associated to the tile
+#' @param base_tile  reference tile used in the operation
+#' @param block_files  files that host the blocks
+#' @param multicores  number of parallel processes
+#' @return a new uncertainty tile with files written
 .tile_uncertainty_merge_blocks <- function(file, band, labels, base_tile,
                                            block_files, multicores) {
     # Create uncertainty cube and return it
@@ -786,7 +801,6 @@ NULL
 
     UseMethod(".tile_area_freq", tile)
 }
-#' @rdname .tile_area_freq
 #' @export
 .tile_area_freq.class_cube <- function(tile) {
 
