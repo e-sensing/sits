@@ -115,7 +115,8 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
                                    multicores = 2, output_dir = getwd(),
                                    progress = TRUE) {
 
-    # check cube
+    # Check cube
+    .check_is_sits_cube(data)
     .check_is_regular(data)
     # Check window size
     .check_window_size(window_size)
