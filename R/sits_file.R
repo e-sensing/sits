@@ -15,6 +15,10 @@
     paste0(.file_sans_ext(.file_base(file)), suffix)
 }
 
+.file_normalize <- function(file) {
+    normalizePath(path.expand(file))
+}
+
 .file_path <- function(..., ext = NULL, output_dir = NULL,
                        create_dir = FALSE, sep = "_") {
     filenames <- paste(..., sep = sep)
@@ -25,7 +29,7 @@
     }
     if (.has(output_dir)) {
         output_dir <- gsub("[/]*$", "", output_dir)
-        output_dir <- path.expand(output_dir)
+        output_dir <- .file_normalize(output_dir)
         if (!dir.exists(output_dir) && create_dir) {
             dir.create(output_dir, recursive = TRUE)
         }
