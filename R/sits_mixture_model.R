@@ -161,7 +161,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
         return(output_feature)
     }, progress = progress)
     # Join output features as a cube and return it
-    .cube_merge_features(dplyr::bind_rows(list(features_cube, features_fracs)))
+    .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_fracs)))
 }
 
 # ---- mixture functions ----
