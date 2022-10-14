@@ -1375,6 +1375,20 @@
         msg = "invalid version"
     )
 }
+#' @title Check is version parameter is valid using reasonable defaults
+#' @name .check_version
+#' @keywords internal
+#' @noRd
+#' @param  progress progress parameter
+#' @return          No return value, called for side effects.
+.check_progress <- function(progress){
+    .check_lgl(
+        x = progress,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid progress"
+    )
+}
 #' @title Check is expression parameter is valid using reasonable defaults
 #' @name .check_expression
 #' @param  list_expr expression parameter
