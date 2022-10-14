@@ -119,6 +119,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     # is added as a band
     cube <- .cube_filter_bands(cube = cube, bands = bands)
     # Check if cube is regular
+    .check_is_sits_cube(cube)
     .check_is_regular(cube)
     # Pre-condition
     .check_endmembers_bands(em = em, cube = cube)
