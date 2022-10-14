@@ -115,22 +115,20 @@ sits_colors_show <- function(name, n_colors = 32){
     } else {
         labels_found <- labels[labels %in% names(colors_palette)]
         if (length(labels_found) > round(length(labels) / 2)) {
-            warning("Some labels are not available in the chosen palette",
+            warning("some labels are not available in the chosen palette",
                     call. = FALSE
             )
             missing_labels <- unique(labels[!(labels %in% labels_found)])
-            warning(paste0("Consider adjusting labels: ", missing_labels),
-                    call. = FALSE
-            )
+            warning("consider adjusting labels: ",
+                    paste0(missing_labels, collapse = ", "),
+                    call. = FALSE)
         } else {
-            warning("Most labels are not available in the chosen palette",
+            warning("most labels are not available in the chosen palette",
                     call. = FALSE
             )
         }
 
-        warning(paste0("Using hcl_color palette ", palette),
-                call. = FALSE
-        )
+        warning("using hcl_color palette ", palette, call. = FALSE)
 
         # get the number of labels
         n_labels <- length(unique(labels))
