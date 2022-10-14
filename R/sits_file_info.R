@@ -164,11 +164,11 @@ NULL
 }
 
 .fi_as_sf <- function(fi) {
-    .bbox_as_sf(fi)
+    .bbox_as_sf(.bbox(fi))
 }
 
 .fi_during <- function(fi, start_date, end_date) {
-    .between(.fi_timeline(fi), start_date, end_date)
+    .between(.fi_timeline(fi), start_date[[1]], end_date[[1]])
 }
 
 .fi_filter_interval <- function(fi, start_date, end_date) {
@@ -178,7 +178,22 @@ NULL
     if (!.has(end_date)) {
         end_date <- .fi_max_date(fi)
     }
-    fi[.fi_during(fi, start_date, end_date), ]
+    dates_in_fi <- .fi_during(
+        fi = fi, start_date = start_date, end_date = end_date
+    )
+    if (!any(dates_in_fi)) {
+        stop("no dates found between interval ", start_date[[1]], end_date[[1]])
+    }
+    fi[dates_in_fi, ]
+}
+
+.fi_filter_dates <- function(fi, dates) {
+    dates_in_fi <- dates %in% .fi_timeline(fi)
+    if (!all(dates_in_fi)) {
+        miss_dates <- paste0("'", dates[!dates_in_fi], "'", collapse = ",")
+        stop("date(s) ", miss_dates, " not found")
+    }
+    fi[.fi_bands(fi) %in% dates, ]
 }
 
 .fi_intersects <- function(fi, roi) {
@@ -186,7 +201,11 @@ NULL
 }
 
 .fi_filter_spatial <- function(fi, roi) {
-    fi[.fi_intersects(fi, roi), ]
+    features_in_fi <- .fi_intersects(fi = fi, roi = roi)
+    if (!any(features_in_fi)) {
+        stop("no feature intersects informed roi")
+    }
+    fi[features_in_fi, ]
 }
 
 .fi_read_block <- function(fi, band, block) {
