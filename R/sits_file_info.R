@@ -9,76 +9,26 @@
 #' @param dates   Dates to be filtered.
 #' @param fid     Feature id (fid) to be filtered.
 #'
-#' @return        Vector with requested information obtained in the file_info.
+#' @return  See each function description.
+#' @name file_info_api
+#' @keywords internal
 NULL
 
-#' @rdname file_info_functions
-#'
-#' @return The file info for a cube with a single tile
-#'         filtered by bands if required.
-#'
-.fi <- function(cube,
-                bands = NULL,
-                fid = NULL,
-                start_date = NULL,
-                end_date = NULL) {
-
-    # pre-condition - one tile at a time
-    .check_num(nrow(cube),
-        min = 1, max = 1, is_integer = TRUE,
-        msg = "process one tile at a time for file_info"
-    )
-
-    # get the file info associated with the tile
-    file_info <- cube[["file_info"]][[1]]
-
-    # check bands
-    if (!is.null(bands)) {
-        .check_cube_bands(cube, bands = bands)
-        file_info <- file_info[file_info[["band"]] %in% bands, ]
-    }
-
-    # filter fid
-    if (!is.null(fid)) {
-        fids <- .fi_fids(file_info)
-        .check_chr_within(paste0(fid),
-            within = paste0(fids),
-            msg = "invalid fid value"
-        )
-        file_info <- file_info[file_info[["fid"]] == fid, ]
-    }
-
-    if (!is.null(start_date)) {
-        cube_start_date <- sort(.fi_timeline(file_info))[[1]]
-
-        .check_that(start_date >= cube_start_date, msg = "invalid start date")
-
-        file_info <- file_info[file_info[["date"]] >= start_date, ]
-    }
-
-    if (!is.null(end_date)) {
-        cube_end_date <- sort(.fi_timeline(file_info),
-                              decreasing = TRUE)[[1]]
-        .check_that(end_date < cube_end_date, msg = "invalid end date")
-        file_info <- file_info[file_info[["date"]] < end_date, ]
-    }
-
-    return(file_info)
+#' @describeIn file_info_api Get \code{file_info} from a \code{tile}. If a
+#'   \code{cube} is informed, get the \code{file_info} from the first
+#'   \code{tile}. Returns a \code{file_info}.
+.fi <- function(tile) {
+    tile[["file_info"]][[1]]
 }
 
-
-#' @rdname file_info_functions
-#'
-#' @return the file ids for a single tile
-.fi_fids <- function(fi) {
-    fids <- unique(fi[["fid"]])
-
-    .check_num(length(fids),
-        min = 1, is_integer = TRUE,
-        msg = "wrong fid in file_info"
-    )
-    return(fids)
+#' @describeIn file_info_api Set \code{'file_info'} field of a \code{tile}.
+#'   If a \code{cube} is informed, considers only the first \code{tile}.
+`.fi<-` <- function(tile, value) {
+    tile <- .tile(tile)
+    tile[["file_info"]] <- list(value)
+    tile
 }
+
 .fi_type <- function(fi) {
     if ("date" %in% names(fi)) {
         "eo_cube"
