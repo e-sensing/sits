@@ -88,28 +88,26 @@ sits_regularize <- function(cube,
                             multicores = 1,
                             progress = TRUE) {
 
-    # preconditions
+    # Pre-conditions
     .check_is_raster_cube(cube)
-    # is the period valid?
-    .check_na(lubridate::duration(period),
-              msg = "invalid period specified"
-    )
-    .check_num_parameter(res, exclusive_min = 0)
-    # precondition - check output dir fix
-    output_dir <- normalizePath(output_dir)
-    # verifies the path to save the images
-    .check_output_dir(output_dir)
-    # multicores
-    .check_multicores(multicores)
-    .check_lgl(progress)
-
-    # pre-condition - cube contains cloud band?
+    # Does cube contain cloud band?
     .check_that(
-        .source_cloud() %in% sits_bands(cube),
+        .band_cloud() %in% .cube_bands(cube),
         local_msg = "cube does not have cloud band",
         msg = "invalid cube"
     )
+    .period_check(period)
+    .check_num_parameter(res, exclusive_min = 0)
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi)
+    }
+    # Normalize path
+    output_dir <- .file_normalize(output_dir)
+    .check_output_dir(output_dir)
+    .check_multicores(multicores)
+    .check_progress(progress)
 
+    # Regularize
     .gc_regularize(
         cube = cube,
         period = period,
