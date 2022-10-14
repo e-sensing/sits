@@ -6,7 +6,7 @@
 #' bands.
 #'
 #' @param cube       A sits cube
-#' @param roi        A Region of interest. See details bellow.
+#' @param roi        A Region of interest. See details below.
 #' @param res        An integer value corresponds to the output
 #'                   spatial resolution of the images.
 #'                   Default is NULL.
