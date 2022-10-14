@@ -55,7 +55,7 @@ sits_run_tests <- function() {
 #' @export
 sits_run_examples <- function() {
     return(.try(
-        .conf("run_tests"),
+        .conf("run_examples"),
         .default = FALSE
     )
     )

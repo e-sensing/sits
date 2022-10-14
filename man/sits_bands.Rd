@@ -25,11 +25,11 @@ sits_bands(x)
 A vector with the names of the bands.
 }
 \description{
-Finds the names of the bands of
-              a set of time series or of a data cube
+Finds the names of the bands of a set of time series or of a data cube
 }
 \examples{
 bands <- sits_bands(point_mt_6bands)
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

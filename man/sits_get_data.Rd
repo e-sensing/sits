@@ -25,7 +25,7 @@ sits_get_data(
   pol_avg = FALSE,
   pol_id = NULL,
   multicores = 2,
-  output_dir = ".",
+  output_dir = getwd(),
   progress = FALSE
 )
 
@@ -39,7 +39,7 @@ sits_get_data(
   crs = 4326,
   impute_fn = sits_impute_linear(),
   multicores = 2,
-  output_dir = ".",
+  output_dir = getwd(),
   progress = FALSE
 )
 

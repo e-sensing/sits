@@ -50,21 +50,16 @@ test_that("One-year, multi-core classification in parallel", {
     expect_true(l8_probs[["xmin"]] > l8_cube[["xmin"]])
     expect_true(l8_probs[["xmax"]] < l8_cube[["xmax"]])
 
-    expect_true(
-        sits:::.raster_nrows(r_obj) < sits:::.cube_size(l8_cube)[["nrows"]]
-    )
+    expect_true(.raster_nrows(r_obj) < .tile_nrows(l8_cube))
 
-    expect_equal(
-        sits:::.raster_nrows(r_obj),
-        sits:::.cube_size(l8_probs)[["nrows"]]
-    )
+    expect_equal(.raster_nrows(r_obj), .tile_nrows(l8_probs))
 
-    max_lyr2 <- max(sits:::.raster_get_values(r_obj)[, 2], na.rm = TRUE)
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(sits:::.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 10000)
 
-    min_lyr3 <- min(sits:::.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    min_lyr3 <- min(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
     expect_true(min_lyr3 >= 0)
 })

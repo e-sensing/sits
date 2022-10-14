@@ -67,7 +67,7 @@
                                    collection,
                                    bands,
                                    tiles,
-                                   roi_sf,
+                                   roi,
                                    start_date,
                                    end_date,
                                    platform,
@@ -80,7 +80,7 @@
     items_query <- .stac_create_items_query(
         source = source,
         collection = collection,
-        roi_sf = roi_sf,
+        roi = roi,
         start_date = start_date,
         end_date = end_date, ...
     )
@@ -238,10 +238,8 @@
         )
         # check if metadata was retrieved
         if (is.null(asset_info)) {
-            warning(paste(
-                "cannot open files:\n",
-                paste(paths, collapse = ", ")
-            ), call. = FALSE)
+            warning("cannot open files:\n", paste(paths, collapse = ", "),
+                    call. = FALSE)
             return(NULL)
         }
         # generate file_info
@@ -307,10 +305,8 @@
                 )
                 # check if metadata was retrieved
                 if (is.null(asset_info)) {
-                    warning(paste(
-                        "cannot open files:\n",
-                        paste(paths, collapse = ", ")
-                    ), call. = FALSE)
+                    warning("cannot open files:\n",
+                            paste(paths, collapse = ", "), call. = FALSE)
                     return(NULL)
                 }
             }
@@ -347,9 +343,9 @@
     # review known malformed paths
     review_date <- .try(
         .conf(
-        "sources", source,
-        "collections", collection,
-        "review_dates"
+            "sources", source,
+            "collections", collection,
+            "review_dates"
         ),
         .default = NA
     )

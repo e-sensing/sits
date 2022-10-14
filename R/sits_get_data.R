@@ -120,26 +120,19 @@ sits_get_data <- function(cube,
                           pol_avg = FALSE,
                           pol_id = NULL,
                           multicores = 2,
-                          output_dir = ".",
+                          output_dir = getwd(),
                           progress = FALSE) {
 
-    # set caller to show in errors
-    .check_set_caller("sits_get_data")
-    # precondition - output_dir exists
-    .check_that(
-        dir.exists(output_dir),
-        msg = "invalid output directory"
-    )
-
-    # pre-condition - all tiles have same bands
-    is_regular <- .check_is_regular(cube)
-    .check_that(is_regular,
-        local_msg = "tiles have different bands and dates",
-        msg = "cube is inconsistent"
-    )
+    # Pre-conditions
+    .check_is_sits_cube(cube)
+    .check_is_regular(cube)
+    .check_bands_in_cube(bands = bands, cube = cube)
+    .check_multicores(multicores)
+    .check_output_dir(output_dir)
+    .check_progress(progress)
 
     if (is.character(samples)) {
-        class(samples) <- c(tools::file_ext(samples), class(samples))
+        class(samples) <- c(.file_ext(samples), class(samples))
     }
 
     UseMethod("sits_get_data", samples)
@@ -152,7 +145,6 @@ sits_get_data.default <- function(cube, samples, ...) {
 }
 
 #' @rdname sits_get_data
-#'
 #' @export
 sits_get_data.csv <- function(cube,
                               samples,
@@ -161,10 +153,11 @@ sits_get_data.csv <- function(cube,
                               crs = 4326,
                               impute_fn = sits_impute_linear(),
                               multicores = 2,
-                              output_dir = ".",
+                              output_dir = getwd(),
                               progress = FALSE) {
-    samples <- .sits_get_samples_from_csv(samples)
 
+    # Get samples
+    samples <- .sits_get_samples_from_csv(samples)
     data <- .sits_get_ts(
         cube       = cube,
         samples    = samples,
@@ -178,7 +171,6 @@ sits_get_data.csv <- function(cube,
     return(data)
 }
 #' @rdname sits_get_data
-#'
 #' @export
 sits_get_data.shp <- function(cube,
                               samples,
@@ -226,9 +218,7 @@ sits_get_data.shp <- function(cube,
     }
     return(data)
 }
-#
 #' @rdname sits_get_data
-#'
 #' @export
 sits_get_data.sf <- function(cube,
                              samples,
@@ -279,7 +269,6 @@ sits_get_data.sf <- function(cube,
     return(data)
 }
 #' @rdname sits_get_data
-#'
 #' @export
 sits_get_data.sits <- function(cube,
                                samples,
@@ -406,22 +395,19 @@ sits_get_data.data.frame <- function(cube,
                                      output_dir,
                                      progress) {
 
-    samples <- .proj_transform_samples(samples = samples, crs = crs)
-
-    # filter only tiles that intersects with samples
-    cube <- .cube_filter_intersecting_tiles(
+    # Filter only tiles that intersects with samples
+    cube <- .cube_filter_spatial(
         cube = cube,
-        samples = samples
+        roi = .point_as_sf(point = .point(x = samples, crs = crs))
     )
 
-    # pre-condition - check bands
+    # Pre-conditions
     if (is.null(bands)) {
         bands <- .cube_bands(cube)
     }
-
     .check_cube_bands(cube, bands = bands)
 
-    # is the cloud band available?
+    # Is the cloud band available?
     cld_band <- .source_cloud()
 
     if (cld_band %in% bands) {
@@ -615,12 +601,10 @@ sits_get_data.data.frame <- function(cube,
                                           output_dir,
                                           progress) {
 
-    samples <- .proj_transform_samples(samples = samples, crs = crs)
-
-    # filter only tiles that intersects with samples
-    cube <- .cube_filter_intersecting_tiles(
+    # Filter only tiles that intersects with samples
+    cube <- .cube_filter_spatial(
         cube = cube,
-        samples = samples
+        roi = .point_as_sf(point = .point(x = samples, crs = crs))
     )
 
     # pre-condition - check bands

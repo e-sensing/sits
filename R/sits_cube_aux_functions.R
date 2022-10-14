@@ -160,8 +160,6 @@
 
     file_name <- file.path(output_dir, file_name)
 
-    res <- .cube_resolution(tile)
-
     if (!purrr::is_null(bbox)) {
         sub_image <- .raster_sub_image(tile = tile, roi = bbox)
         nrows_cube_class <- sub_image[["nrows"]]
@@ -178,8 +176,8 @@
         end_date   = end_date,
         ncols      = ncols_cube_class,
         nrows      = nrows_cube_class,
-        xres       = res[["xres"]],
-        yres       = res[["yres"]],
+        xres       = .xres(tile),
+        yres       = .yres(tile),
         xmin       = bbox[["xmin"]],
         xmax       = bbox[["xmax"]],
         ymin       = bbox[["ymin"]],
@@ -210,55 +208,6 @@
     return(dev_cube)
 }
 
-#' @title Return the cube resolution of the x axis
-#' @name .cube_xres
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  cube         input data cube
-#' @return a numeric with the x resolution
-.cube_xres <- function(cube) {
-
-    # tile template
-    xres <- .fi(cube)[["xres"]]
-    # post-condition
-    .check_num_parameter(xres, exclusive_min = 0)
-
-    return(xres)
-}
-
-#' @title Return the cube resolution of the y axis
-#' @name .cube_yres
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  cube         input data cube
-#' @return a numeric with the y resolution
-.cube_yres <- function(cube) {
-
-    # tile template
-    yres <- .fi(cube)[["yres"]]
-    # post-condition
-    .check_num_parameter(yres, exclusive_min = 0)
-
-    return(yres)
-}
-
-#' @title Return the resolution of the cube
-#' @name .cube_resolution
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  cube         input data cube
-#' @return a vector with the x and y resolution
-.cube_resolution <- function(cube, bands = NULL) {
-    cube <- sits_select(cube, bands = bands)
-    return(c(xres = .cube_xres(cube), yres = .cube_yres(cube)))
-}
-
 #' @title Return the S3 class of the cube
 #' @name .cube_s3class
 #' @keywords internal
@@ -274,27 +223,27 @@
     ))
 }
 
-#' @title Return the size of the cube (nrows x ncols)
-#' @name .cube_size
+#' @title Return the column size of each tile
+#' @name .cube_ncols
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param  cube         input data cube
-#' @return a vector with the size of the cube
-.cube_size <- function(cube) {
-
-    # get the file size
-    nrows <- .fi(cube)[["nrows"]]
-    ncols <- .fi(cube)[["ncols"]]
-
-    # post-conditions
-    .check_int_parameter(nrows)
-    .check_int_parameter(ncols)
-
-    size <- c(nrows = nrows, ncols = ncols)
-
-    return(size)
+#' @param  cube  input data cube
+#' @return integer
+.cube_ncols <- function(cube) {
+    slider::slide_int(cube, .tile_ncols)
+}
+#' @title Return the row size of each tile
+#' @name .cube_nrows
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube  input data cube
+#' @return integer
+.cube_nrows <- function(cube) {
+    slider::slide_int(cube, .tile_nrows)
 }
 #' @title Get cube source
 #' @name .cube_source
@@ -320,7 +269,27 @@
 
     return(src)
 }
-
+#' @title Verify if cube is regular
+#' @name .cube_is_regular
+#' @keywords internal
+#' @noRd
+#' @param cube  datacube
+#' @return logical
+.cube_is_regular <- function(cube) {
+    if (!.check_has_unique_bands(cube)) {
+        return(FALSE)
+    }
+    if (!.check_has_unique_bbox(cube)) {
+        return(FALSE)
+    }
+    if (!.check_has_unique_tile_size(cube)) {
+        return(FALSE)
+    }
+    if (!.check_has_unique_timeline(cube)) {
+        return(FALSE)
+    }
+    return(TRUE)
+}
 #' @title Generate token to cube
 #' @name .cube_token_generator
 #' @keywords internal
@@ -458,71 +427,70 @@
 .cube_is_token_expired.default <- function(cube) {
     return(FALSE)
 }
-#' @title Sets the class of a data cube
-#' @name .cube_set_class
-#' @param cube   data cube
+
+
+
+#' Cube API
+#'
+#' A \code{cube} is a \code{tibble} containing information on how to access
+#' some data cube. Each row of a \code{cube} is a \code{tile}, which represents
+#' a rectangular spatial region of space in some projection.
+#' For more details, see tiles API.
+#'
+#' @param fn     A function.
+#' @param roi    A region of interest (ROI).
+#' @param start_date,end_date Date of start and end.
+#' @param bands  A set of band names.
+#' @param tiles  A set of tile names.
+#' @param ...    Additional arguments (see details).
+#'
+#' @returns See description of each function.
+#' @family cube and tile functions
 #' @keywords internal
+#' @name cube_api
 #' @noRd
+NULL
+
+#' @title Sets the class of a data cube
+#' @noRd
+#' @param cube  A data cube.
+#' @param ...  Provide additional class names.
+#' @returns  An updated data cube.
 .cube_set_class <- function(cube, ...) {
     .set_class(cube, ..., c("sits_cube", "tbl_df", "tbl", "data.frame"))
 }
-
-#' @title retrieves the file info for the cube
-#' @name .cube_file_info
-#' @keywords internal
+#' @title Get start date from each tile in a cube
 #' @noRd
-#' @param cube data cube
-.cube_file_info <- function(cube) {
-    UseMethod(".cube_file_info", cube)
-}
-
-#' @export
-.cube_file_info.raster_cube <- function(cube) {
-    tidyr::unnest(cube["file_info"], "file_info")
-}
-
-#' @title Get start dates based on the various tiles of a cube
-#' @name .cube_start_date
-#' @keywords internal
-#' @noRd
-#' @param cube A cube.
-#' @return date
+#' @param cube  A data cube.
+#' @return  A vector of dates.
 .cube_start_date <- function(cube) {
     UseMethod(".cube_start_date", cube)
 }
-
 #' @export
 .cube_start_date.raster_cube <- function(cube) {
     .compact(.as_date(slider::slide(cube, .tile_start_date)))
 }
-
-#' @title Get end date from each tile.
-#' @name .cube_end_date
-#' @keywords internal
+#' @title Get end date from each tile in a cube
 #' @noRd
-#' @param cube A cube.
-#' @return date
+#' @param cube  A data cube.
+#' @return  A vector of dates.
 .cube_end_date <- function(cube) {
     UseMethod(".cube_end_date", cube)
 }
-
 #' @export
 .cube_end_date.raster_cube <- function(cube) {
     .compact(.as_date(slider::slide(cube, .tile_end_date)))
 }
-
-#' @title Get timeline from each cube.
-#' @name .cube_timeline
-#' @keywords internal
+#' @title Get timeline from each tile in a cube
 #' @noRd
-#' @param cube A cube.
-#' @description  If there are at least two
-#' different timelines, all timelines will be returned in a list).
-#' @return date or list(date)
+#' @param cube  A cube.
+#' @details
+#' Returns a unique timeline if there are a unique value. If there are at
+#' least two different timelines, all timelines will be returned in a list.
+#' @return A vector of dates.
 .cube_timeline <- function(cube) {
     UseMethod(".cube_timeline", cube)
 }
-
 #' @export
 .cube_timeline.raster_cube <- function(cube) {
     values <- .compact(slider::slide(cube, .tile_timeline))
@@ -531,26 +499,22 @@
     }
     .as_date(values)
 }
-
 #' @title Find out how many images are in cube during a period
-#' @name .cube_timeline_acquisiton
-#' @keywords internal
 #' @noRd
-#' @param cube A cube.
-#' @param period Period character vector in ISO format.
-#' @param origin A date.
-#' @description Compute how many images were acquired in different periods
+#' @param cube  A data cube.
+#' @param period  Period character vector in ISO format.
+#' @param origin  The first date to start count.
+#' @details
+#' Compute how many images were acquired in different periods
 #' and different tiles.
-#' @return tibble
-.cube_timeline_acquisiton <- function(cube, period, origin) {
-    UseMethod(".cube_timeline_acquisiton", cube)
+#' @returns A tibble
+.cube_timeline_acquisition <- function(cube, period, origin) {
+    UseMethod(".cube_timeline_acquisition", cube)
 }
-
 #' @export
-.cube_timeline_acquisiton.raster_cube <- function(
-        cube,
-        period = "P1D",
-        origin = NULL) {
+.cube_timeline_acquisition.raster_cube <- function(cube,
+                                                   period = "P1D",
+                                                   origin = NULL) {
     if (!.has(origin)) {
         origin <- .cube_start_date(cube)
     }
@@ -588,84 +552,67 @@
 }
 
 #' @title Tile iteration
-#' @name .cube_foreach_tile
-#' @description Iterates over each cube tile, passing tile to function's
-#' first argument.
-#' @keywords internal
 #' @noRd
-#' @param cube A cube.
-#' @param fn A function.
-#' @param ... Additional arguments to be passed to \code{fn}.
-#' @return cube
+#' @param cube  A data cube.
+#' @param fn  A function that receives and return a tile.
+#' @param ...  Additional arguments to be passed to `fn`.
+#' @details
+#' Iterates over each cube tile, passing tile to function's first argument.
+#' @returns  A processed data cube.
 .cube_foreach_tile <- function(cube, fn, ...) {
     UseMethod(".cube_foreach_tile", cube)
 }
-
 #' @export
 .cube_foreach_tile.raster_cube <- function(cube, fn, ...) {
     slider::slide_dfr(cube, fn, ...)
 }
-
 #' @title What tiles intersect \code{roi} parameter?
-#' @name .cube_intersects
-#' @param cube A cube.
-#' @param roi A region of interest (ROI).
-#' @keywords internal
 #' @noRd
-#' @return logical
+#' @param cube  A data cube.
+#' @param roi  A region of interest (ROI).
+#' @return A logical vector.
 .cube_intersects <- function(cube, roi) {
     UseMethod(".cube_intersects", cube)
 }
-
 #' @export
 .cube_intersects.raster_cube <- function(cube, roi) {
     slider::slide_lgl(cube, .tile_intersects, roi = .roi_as_sf(roi))
 }
 #' @title Filter tiles that intersect \code{roi} parameter.
-#' @name .cube_filter_spatial
-#' @keywords internal
 #' @noRd
-#' @param cube A cube.
-#' @param roi A region of interest (ROI).
-#' @return cube
+#' @param cube  A data cube.
+#' @param roi  A region of interest (ROI).
+#' @return  A filtered data cube.
 .cube_filter_spatial <- function(cube, roi) {
     UseMethod(".cube_filter_spatial", cube)
 }
-
 #' @export
 .cube_filter_spatial.raster_cube <- function(cube, roi) {
     intersecting <- .cube_intersects(cube, roi)
     if (!any(intersecting)) {
-        stop("informed roi does not intersect cube")
+        stop("spatial region does not intersect cube")
     }
     cube[intersecting, ]
 }
-
-#' @title Retrieve tiles with images during an interval
-#' @name .cube_during
-#' @keywords internal
+#' @title Test tiles with images during an interval
 #' @noRd
-#' @param cube A cube.
-#' @param start_date,end_date Date of start and end.
-#' @return logical
+#' @param cube  A data cube.
+#' @param start_date,end_date  Dates of interval.
+#' @return A logical vector
 .cube_during <- function(cube, start_date, end_date) {
     UseMethod(".cube_during", cube)
 }
-
 #' @export
 .cube_during.raster_cube <- function(cube, start_date, end_date) {
     slider::slide_lgl(
         cube, .tile_during, start_date = start_date, end_date = end_date
     )
 }
-
 #' @title Filter tiles inside a temporal interval
-#' @name .cube_filter_temporal
-#' @keywords internal
 #' @noRd
-#' @param cube A cube.
-#' @param start_date,end_date Date of start and end.
-#' @return cube
+#' @param cube  A data cube.
+#' @param start_date,end_date  Dates of interval.
+#' @return  A filtered data cube.
 .cube_filter_temporal <- function(cube, start_date, end_date) {
     UseMethod(".cube_filter_temporal", cube)
 }
@@ -678,30 +625,24 @@
     }
     cube[during, ]
 }
-
-#' @title filter the cube based on a set of bands
-#' @name .cube_filter_bands
-#' @keywords internal
+#' @title Filter cube based on a set of bands
 #' @noRd
-#' @param   cube   data cube
-#' @param   bands  set of bands
-#' @return         filtered data cube
+#' @param cube  A data cube.
+#' @param bands  Band names.
+#' @return  Filtered data cube.
 .cube_filter_bands <- function(cube, bands) {
     UseMethod(".cube_filter_bands", cube)
 }
 #' @export
 .cube_filter_bands.raster_cube <- function(cube, bands) {
-    slider::slide_dfr(cube, function(tile) {
+    .cube_foreach_tile(cube, function(tile) {
         .tile_filter_bands(tile = tile, bands = bands)
     })
 }
-
-#' @title Returns the tiles of a data cube
-#' @name .cube_tiles
-#' @keywords internal
+#' @title Returns the tile names of a data cube
 #' @noRd
-#' @param cube  data cube
-#' @return set of the tiles of the cube
+#' @param cube  A data cube.
+#' @return  Names of tiles.
 .cube_tiles <- function(cube) {
     UseMethod(".cube_tiles", cube)
 }
@@ -709,58 +650,25 @@
 .cube_tiles.raster_cube <- function(cube) {
     .as_chr(cube[["tile"]])
 }
-
-#' @title filter the cube to retrieve a single tile
-#' @name .cube_filter_tile
-#' @keywords internal
+#' @title Filter the cube using tile names
 #' @noRd
-#' @param    cube   datacube
-#' @param    tile   name of a tile
-#' @return   filtered cube
-.cube_filter_tile <- function(cube, tile) {
-    UseMethod(".cube_filter_tile", cube)
+#' @param cube  A data cube.
+#' @param tiles  Tile names.
+#' @return  Filtered data cube.
+.cube_filter_tiles <- function(cube, tiles) {
+    UseMethod(".cube_filter_tiles", cube)
 }
 #' @export
-.cube_filter_tile.raster_cube <- function(cube, tile) {
-    cube[.cube_tiles(cube) %in% tile, ]
-}
-#' @title Filter tiles that intersects with samples
-#' @name .cube_filter_intersecting_tiles
-#' @keywords internal
-#' @noRd
-#' @description Filter tiles that intersects with samples.
-#'
-#' @param cube     Data cube from where data is to be retrieved.
-#' @param samples  Samples to be retrieved.
-#'
-#' @return A cube with filtered tiles.
-.cube_filter_intersecting_tiles <- function(cube, samples) {
-    samples_sf <- sits_as_sf(data = samples)
-
-    are_samples_in_tiles <- slider::slide_lgl(cube, function(tile) {
-        .raster_sub_image_intersects(
-            cube = tile,
-            roi = samples_sf
-        )
-    })
-    .check_that(
-        any(are_samples_in_tiles),
-        msg = "The provided tile(s) does not intersects with samples."
-    )
-    # filter only tiles that intersects with samples
-    cube <- cube[are_samples_in_tiles, ]
-
-    return(cube)
+.cube_filter_tiles.raster_cube <- function(cube, tiles) {
+    cube[.cube_tiles(cube) %in% tiles, ]
 }
 #' @title Create internal cube features with ID
-#' @name .cube_create_features
-#' @keywords internal
 #' @noRd
 #' @param cube  data cube
 #' @return cube with feature ID in file info
-.cube_create_features <- function(cube) {
+.cube_split_features <- function(cube) {
     # Process for each tile and return a cube
-    slider::slide_dfr(cube, function(tile) {
+    .cube_foreach_tile(cube, function(tile) {
         features <- tile[, c("tile", "file_info")]
         features <- tidyr::unnest(features, "file_info")
         features[["feature"]] <- features[["fid"]]
@@ -771,36 +679,14 @@
         tile
     })
 }
-#' @title Merge features into a data cube
-#' @name .cube_merge_features
-#' @keywords internal
-#' @noRd
-#' @param features  cube features
-#' @return merged data cube
-.cube_merge_features <- function(features) {
-    cube <- tidyr::unnest(features, "file_info", names_sep = ".")
-    cube <- dplyr::arrange(
-        cube, .data[["file_info.date"]], .data[["file_info.band"]]
-    )
-    cube <- tidyr::nest(
-        cube, file_info = tidyr::starts_with("file_info"),
-        .names_sep = "."
-    )
-    # Set class features and return
-    .set_class(cube, class(features))
-}
-
-
 #' @title create assets for a data cube by assigning a unique ID
-#' @name .cube_create_assets
-#' @keywords internal
 #' @noRd
 #' @param  cube  datacube
 #' @return a data cube with assets (file ID)
 #'
-.cube_create_assets <- function(cube) {
+.cube_split_assets <- function(cube) {
     # Process for each tile and return a cube
-    slider::slide_dfr(cube, function(tile) {
+    .cube_foreach_tile(cube, function(tile) {
         assets <- tile[, c("tile", "file_info")]
         assets <- tidyr::unnest(assets, "file_info")
         assets[["feature"]] <- assets[["fid"]]
@@ -814,44 +700,21 @@
         tile
     })
 }
-
-#' @keywords internal
+#' @title Merge features into a data cube
 #' @noRd
-.cube_merge_assets <- function(assets) {
-    .cube_merge_features(assets)
+#' @param features  cube features
+#' @return merged data cube
+.cube_merge_tiles <- function(cube) {
+    cube <- tidyr::unnest(cube, "file_info", names_sep = ".")
+    cube <- dplyr::arrange(
+        cube, .data[["file_info.date"]], .data[["file_info.band"]]
+    )
+    cube <- tidyr::nest(
+        cube, file_info = tidyr::starts_with("file_info"),
+        .names_sep = "."
+    )
+    # Set class features
+    cube <- .set_class(cube, class(cube))
+    # Return cube
+    cube
 }
-
-# s2_cube <- sits_cube(
-#     source = "AWS",
-#     collection = "SENTINEL-S2-L2A-COGS",
-#     tiles = c("20LKP", "20LLP", "20LNQ", "21LTH"),
-#     bands = c("B08", "B11"),
-#     start_date = "2018-07-12",
-#     end_date = "2019-07-28"
-# )
-# .cube_intersects(s2_cube, s2_cube[2:3,])
-# .cube_intersects(s2_cube, s2_cube[4,])
-# .cube_filter_spatial(s2_cube, .bbox_as_sf(s2_cube[3:4,]))
-# .cube_filter_spatial(s2_cube, .bbox_as_sf(s2_cube[3:4,], as_crs = 4326))
-# .cube_start_date(s2_cube)
-# .cube_end_date(s2_cube)
-# .cube_timeline(s2_cube)
-# .cube_filter_temporal(s2_cube, start_date = "2017-01-01", end_date = "2018-07-12")
-# .cube_filter_temporal(s2_cube, start_date = "2017-01-01", end_date = "2018-07-14")
-# .cube_filter_temporal(s2_cube, start_date = "2019-07-25", end_date = "2020-07-28")
-# .cube_filter_temporal(s2_cube, start_date = "2019-07-28", end_date = "2020-07-28")
-# .cube_filter_temporal(s2_cube, start_date = "2014-07-28", end_date = "2015-07-28")
-#
-# sinop <- sits_cube(
-#     source = "BDC",
-#     collection = "MOD13Q1-6",
-#     data_dir = system.file("extdata/raster/mod13q1", package = "sits")
-# )
-# .cube_timeline(sinop)
-# .cube_start_date(sinop)
-# .cube_end_date(sinop)
-# identical(.cube_merge_features(.cube_create_features(s2_cube)), s2_cube)
-# identical(.cube_merge_assets(.cube_create_assets(s2_cube)), s2_cube)
-
-
-

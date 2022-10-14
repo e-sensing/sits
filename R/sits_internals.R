@@ -1,7 +1,9 @@
-#---- data type ----
-
-#' Data type functions
+#' @title Data type functions
+#' @noRd
 #'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
 #' These are a short named version of data type functions.
 #'
 #' @param x Input value.
@@ -26,64 +28,67 @@
 #' .compact(c(1, 1, 1)) # 1
 #' }
 #'
-#' @returns See description of each function.
-#'
-#' @family data types
-#' @keywords internal
-#' @name data_type
 NULL
 
-#' @describeIn data_type Convert an input to \code{integer}.
-#'   Returns \code{integer} or \code{NULL} if value is empty.
+#' @title Convert an input to \code{integer}.
+#' @noRd
+#' @returns An integer or `NULL` if value is empty.
 .as_int <- function(x) {
-    if (.has(x)) as.integer(x) else NULL
+    .default(as.integer(x))
 }
-#' @describeIn data_type Convert an input to \code{character}.
+
+#' @title Convert an input to \code{character}.
 #'   Returns \code{character} or \code{NULL} if value is empty.
+#' @noRd
 .as_chr <- function(x) {
-    if (.has(x)) as.character(x) else NULL
+    .default(as.character(x))
 }
 
-#' @describeIn data_type Convert an input to \code{numeric}.
+#' @title Convert an input to \code{numeric}.
 #'   Returns \code{numeric} or \code{NULL} if value is empty.
+#' @noRd
 .as_dbl <- function(x) {
-    if (.has(x)) as.numeric(x) else NULL
+    .default(as.numeric(x))
 }
 
-#' @describeIn data_type Convert an input to a date type. This is
-#'   the same function as \code{lubridate::as_date()}.
-#'   Returns \code{date} or \code{NULL} if value is empty.
+#' @title Convert an input to \code{Date}.
+#'   Returns \code{Date} or \code{NULL} if value is empty.
+#' @noRd
 .as_date <- function(x) {
-    if (.has(x)) lubridate::as_date(unlist(x, recursive = FALSE)) else NULL
+    .default(lubridate::as_date(unlist(x, recursive = FALSE)))
 }
 
-#' @describeIn data_type Check if an input has a value or not. Any zero length
+#' @title Check if an input has a value or not. Any zero length
 #'   value of any type is evaluated as \code{FALSE}. This function is broader
 #'   than \code{is.null()} that only accounts for \code{NULL} value.
 #'   Returns \code{logical}.
+#' @noRd
 .has <- function(x) {
     length(x) > 0
 }
 
-#' @describeIn data_type Check if an input has names or not. If there is
+#' @title Check if an input has names or not. If there is
 #'   any element without a name the function evaluates as \code{FALSE}.
 #'   Returns \code{logical}.
+#' @noRd
 .has_name <- function(x) {
     if (.has(names(x))) return(names(x) != "")
     rep(FALSE, length(x))
 }
 
-#' @describeIn data_type Set \code{class} of object \code{x}.
+#' @title Set \code{class} of object \code{x}.
 #'   Returns updated \code{x} object.
+#' @noRd
 .set_class <- function(x, ...) {
     class(x) <- unique(c(...))
     x
 }
 
-#' @describeIn data_type Evaluates unique values of \code{x}. If there is
+#' @title Evaluates unique values of \code{x}. If there is
 #'   only one unique value, return it. Otherwise return all \code{x}.
 #'   Returns same value as \code{x} or the unique value in \code{x} (if
 #'   this is the case).
+#' @noRd
 .compact <- function(x) {
     value <- unique(x)
     if (length(value) != 1) {
@@ -92,11 +97,11 @@ NULL
     value
 }
 
-
 #' @title Handling error
-#' @name .try
-#' @keywords internal
 #' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
 #' @description
 #' This is a fancy implementation of \code{tryCatch()}. It
 #' has a shorter name and provide a easy functionality of rolling back
@@ -105,18 +110,16 @@ NULL
 #' Customized error messages can be passed to \code{msg_error} param.
 #'
 #' The order of execution is the following:
-#' \enumerate{
-#' \item try evaluate \code{expr};
-#' \item if everything goes well, run step 6 and return the last expression
+#' (1) try evaluate \code{expr};
+#' (2) if everything goes well, run step 6 and return the last expression
 #'   evaluated in \code{expr} (end);
-#' \item if an error occurs in step 1, evaluate \code{.rollback} expression
+#' (3) if an error occurs in step 1, evaluate \code{.rollback} expression
 #'   (if informed);
-#' \item if \code{.default} is not informed, run step 6 and throws
+#' (4) if \code{.default} is not informed, run step 6 and throws
 #'   the error (end);
-#' \item if \code{.default} is informed, evaluate it, run step 6, and
+#' (5) if \code{.default} is informed, evaluate it, run step 6, and
 #'   return the last expression in \code{.default} (end);
-#' \item evaluate \code{.finally} (if informed).
-#' }
+#' (6) evaluate \code{.finally} (if informed).
 #'
 #' @param expr Expression to be evaluated.
 #' @param ... Additional parameter to be passed to \code{tryCatch()}.
@@ -158,8 +161,6 @@ NULL
 #'   evaluated in \code{.default} parameter. If \code{.default} parameter
 #'   is not informed, the function will raise the error.
 #'
-#' @seealso \code{\link[base]{tryCatch}}
-#'
 .try <- function(expr,
                  ...,
                  .rollback = NULL,
@@ -191,16 +192,24 @@ NULL
     do.call(rbind, args = x)
 }
 
+.discard <- function(data, cols) {
+    cols <- which(names(data) %in% cols)
+    if (.has(cols)) {
+        data <- data[-cols]
+    }
+    # Return data
+    data
+}
+
 .by <- function(data, col, fn, ...) {
+    if (!col %in% names(data)) {
+        stop("invalid 'col' parameter: '", col, "' not found in data columns")
+    }
     unname(c(by(data, data[[col]], fn, ...)))
 }
 
 .by_dfr <- function(data, col, fn, ...) {
     .rbind(.by(data, col, fn, ...))
-}
-
-.by_lgl <- function(data, col, fn, ...) {
-    vapply(.by(data, col, fn, ...), c, logical(1))
 }
 
 .between <- function(x, min, max) {
@@ -212,84 +221,161 @@ NULL
     .as_int(round(seq.int(from = 1, to = n, length.out = length(x))))
 }
 
+.collapse <- function(...) {
+    paste0(..., collapse = ", ")
+}
+
+.default <- function(x, default = NULL) {
+    if (.has(x)) return(x)
+    default
+}
+
+.common_size <- function(...) {
+    tibble::tibble(...)
+}
 
 
-
-#  Band configuration accessors
-#
-#  These functions are read-only accessors of band_conf objects. A
-#  band_conf is an entry of band definition in config. It can be associated
-#  to an eo_cube or derived_cube
+#' @title Points accessors
+#' @noRd
 #'
-
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
+#' @description
+#' These functions are accessors of `point` fields in a object tibble.
+#' Getters functions returns the respective field values with the expected
+#' data type. Setters functions convert value to expected data type and
+#' store it in respective fields on a given object. If value has no length
+#' it is removed from the object.
+#'
+#' `.lon()` and `.lat()` get/set, respectively, `"longitude"`
+#' and `"latitude"` fields.
+#'
+#' @param x Object to get/set field value.
+#' @param value Value to set on object field.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#' x <- c(longitude = "123")
+#' .lon(x) # 123 as number
+#' x <- list(longitude = 1:10)
+#' .lat(x) <- 11:20
+#' x # with 'longitude' and 'latitude' fields
+#' }
+#'
+NULL
 
-#' @name .data_type
+#' @title Get \code{'longitude'} field.
 #' @noRd
-#' @param conf A band definition value from config. Can be retrieved by
-#'   .conf_eo_band() or .conf_derived_band().
-#' @return data type associated to the configuration
-.data_type <- function(conf) {
-    .as_chr(conf[["data_type"]][[1]])
-}
-
-#' @name .miss_value
-#' @noRd
-#' @param conf A band definition value from config. Can be retrieved by
-#'   .conf_eo_band() or .conf_derived_band().
-#' @return  missing value associated to the band
-.miss_value <- function(conf) {
-    .as_dbl(conf[["missing_value"]][[1]])
-}
-#' @name .min_value
-#' @noRd
-#' @param conf A band definition value from config. Can be retrieved by
-#'   .conf_eo_band() or .conf_derived_band().
-#' @return  minimum value associated to the band
-.min_value <- function(conf) {
-    .as_dbl(conf[["minimum_value"]][[1]])
-}
-
-#' @name .max_value
-#' @noRd
-#' @param conf A band definition value from config. Can be retrieved by
-#'   .conf_eo_band() or .conf_derived_band().
-#' @return  maximum value associated to the band
-.max_value <- function(conf) {
-    .as_dbl(conf[["maximum_value"]][[1]])
+.lon <- function(x) {
+    .as_dbl(.compact(x[["longitude"]]))
 }
 
-#' @name .scale
+#' @title Set \code{'longitude'} field as numeric.
 #' @noRd
-#' @param conf A band definition value from config. Can be retrieved by
-#'   .conf_eo_band() or .conf_derived_band().
-#' @return  scale factor associated to the band
-.scale <- function(conf) {
-    .as_dbl(conf[["scale_factor"]][[1]])
+`.lon<-` <- function(x, value) {
+    x[["longitude"]] <- .as_dbl(value)
+    x
 }
 
-#' @name .offset
+#' @title Get \code{'latitude'} field.
 #' @noRd
-#' @param conf A band definition value from config. Can be retrieved by
-#'   .conf_eo_band() or .conf_derived_band().
-#' @return  offset value associated to the band
-.offset <- function(conf) {
-    .as_dbl(conf[["offset_value"]][[1]])
-}
-#' @name .cloud_interp_values
-#' @noRd
-#' @param conf A band definition value from config. Can be retrieved by
-#'   .conf_eo_band() or .conf_derived_band().
-#' @return  cloud interpolation values associated to the band
-.cloud_interp_values <- function(conf) {
-    .as_int(conf[["interp_values"]])
+.lat <- function(x) {
+    .as_dbl(.compact(x[["latitude"]]))
 }
 
-#' @name .cloud_bit_mask
+#' @title Set \code{'latitude'} field as numeric.
 #' @noRd
-#' @param conf A band definition value from config. Can be retrieved by
-#'   .conf_eo_band() or .conf_derived_band().
-#' @return  cloud bit maks values associated to the band.
-.cloud_bit_mask <- function(conf) {
-    .as_int(conf[["bit_mask"]][[1]])
+`.lat<-` <- function(x, value) {
+    x[["latitude"]] <- .as_dbl(value)
+    x
+}
+
+#' @title Point API
+#' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' A point represents a dimensionless geographical location in a given
+#' projection. A \code{point} is any \code{list} or \code{tibble}
+#' containing \code{longitude} and \code{latitude} fields. A \code{point} may
+#' contains multiple entries.
+#'
+#' @param x Any object to extract a \code{point}.
+#' @param ... Additional parameters.
+#' @param point A \code{point}.
+#' @param crs The point CRS. If not informed, default CRS is \code{'EPSG:4326'}.
+#' @param as_crs A CRS to project \code{point}.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#' x <- list(a = 0, z = 0)
+#' .point(x) # NULL
+#' x <- list(a = 0, longitude = 1:3, b = 2:4, latitude = 2, z = 0)
+#' .point(x)
+#' .point_as_sf(x) # 3 features
+#' .point_as_sf(x, as_crs = "EPSG:3857") # reprojected features
+#' }
+NULL
+
+# point fields
+.point_cols <- c("longitude", "latitude")
+
+#' @title Does vector \code{x} has \code{point} fields?
+#' @returns \code{.has_point()}: \code{logical}.
+#' @noRd
+.has_point <- function(x) {
+    all(.point_cols %in% names(x))
+}
+
+#' @title Is vector \code{x} a \code{point} object?
+#' @returns \code{.is_point()}: \code{logical}.
+#' @noRd
+.is_point <- function(x) {
+    setequal(names(x), c(.point_cols, "crs"))
+}
+
+.check_point <- function(x) {
+    if (!.is_point(x)) {
+        stop("object is not a valid point")
+    }
+}
+
+#' @title Extract a \code{point} from any given \code{vector}.
+#' @returns \code{.point()}: \code{point}.
+#' @noRd
+.point <- function(x, crs = NULL, as_crs = NULL) {
+    if (!.has_point(x)) {
+        return(NULL)
+    }
+    if (!.has(crs)) crs <- "EPSG:4326"
+    # Create point
+    point <- .common_size(longitude = .lon(x), latitude = .lat(x), crs = crs)
+    # Project to CRS
+    if (.has(as_crs)) {
+        point <- .point_as_sf(point = point, as_crs = as_crs)
+    }
+    # Return point
+    point
+}
+
+#' @title Convert a \code{point} into a \code{sf} point object.
+#' @returns \code{.point_as_sf()}: \code{sf}.
+#' @noRd
+.point_as_sf <- function(point, as_crs = NULL) {
+    #Check for valid point
+    .check_point(point)
+    # Convert to sf object and return it
+    purrr::pmap_dfr(point, function(longitude, latitude, crs) {
+        geom <- sf::st_sf(
+            geometry = sf::st_sfc(sf::st_point(c(longitude, latitude))),
+            crs = crs
+        )
+        # Project CRS
+        if (.has(as_crs)) {
+            geom <- sf::st_transform(geom, crs = as_crs)
+        }
+        # Return geom
+        geom
+    })
 }

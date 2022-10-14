@@ -27,7 +27,7 @@
 
     # Update samples bands order
     if (any(bands != .sits_bands(samples))) {
-        samples <- .sits_filter_bands(samples, bands)
+        samples <- .sits_select_bands(samples = samples, bands = bands)
     }
 
     # Apply time series filter
@@ -46,7 +46,7 @@
     )
 
     # Convert samples time series in predictors and preprocess data
-    pred <- .sits_predictors(samples = splitted, ml_model = ml_model)
+    pred <- .predictors(samples = splitted, ml_model = ml_model)
     # Post condition: is predictor data valid?
     .check_predictors(pred, splitted)
 

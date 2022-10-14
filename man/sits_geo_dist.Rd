@@ -4,19 +4,20 @@
 \alias{sits_geo_dist}
 \title{Compute the minimum distances among samples and prediction points.}
 \usage{
-sits_geo_dist(samples, roi = NULL, n = 1000)
+sits_geo_dist(samples, crs = "EPSG:4326", roi, n = 1000)
 }
 \arguments{
-\item{samples}{A `sits` tibble with time series samples.}
+\item{samples}{A \code{samples} training data set.}
 
-\item{roi}{A `sf` object (polygon) with a region of interest
-for prediction.}
+\item{crs}{CRS of the \code{samples} points.}
+
+\item{roi}{A region of interest (ROI) used to extract random
+predicted points.}
 
 \item{n}{Maximum number of samples to consider.}
 }
 \value{
-A tibble with sample-to-sample
-               and sample-to-prediction distances.
+A tibble with sample-to-sample and sample-to-prediction distances.
 }
 \description{
 Compute the minimum distances among samples and samples to prediction

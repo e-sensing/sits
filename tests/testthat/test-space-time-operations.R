@@ -15,7 +15,7 @@ test_that("Time Series Dates", {
 })
 test_that("Timeline date", {
     timeline <- sits_timeline(cerrado_2classes)
-    expect_true(sits:::.timeline_valid_date(
+    expect_true(.timeline_valid_date(
         as.Date("2000-09-12"),
         timeline
     ))

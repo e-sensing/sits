@@ -84,8 +84,10 @@
     return(samples)
 }
 #' @title Spatial intersects
-#' @name .intersects
 #' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
 #' @description
 #' This function is based on sf::st_intersects(). It projects y
 #' to the CRS of x before compute intersection. For each geometry of x,

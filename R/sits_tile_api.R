@@ -1,14 +1,20 @@
-#  Tile API
-#
-#  A cube consists of multiple tiles stacked together as rows of a
-#  tibble. A tile is a only-one-row tibble that stores
-#  metadata of a spatial partition of a cube.
+#' @title Tile API
+#' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' A cube consists of multiple tiles stacked together as rows of a
+#' tibble. A tile is a only-one-row tibble that stores
+#' metadata of a spatial partition of a cube.
+#'
+NULL
 
 #' @title Get first tile of a cube
-#' @name .tile
 #' @noRd
-#' @description This function should be called
-#' by all tile API function to ensure that only one tile will be processed.
+#' @description
+#' This function should be called by all tile API function to ensure that
+#' only one tile will be processed.
 #' @param cube A \code{cube} or a \code{tile}.
 #' @return The first tile of a cube.
 .tile <- function(cube) {
@@ -95,38 +101,19 @@
     tile[["labels"]] <- list(.as_chr(value))
     tile
 }
-#
-.tile_file_info <- function(tile) {
-    UseMethod(".tile_file_info", tile)
-}
-#' @export
-.tile_file_info.raster_cube <- function(tile) {
-    .fi(tile) # Get the first file_info
-}
-#'
-`.tile_file_info<-` <- function(tile, value) {
-    UseMethod(".tile_file_info<-", tile)
-}
-#' @export
-`.tile_file_info<-.raster_cube` <- function(tile, value) {
-    tile <- .tile(tile)
-    tile[["file_info"]] <- list(value)
-    tile
-}
-#' @title Convert tile bbox to a sf polygon object.
-#' @name .tile_as_sf
-#' @param tile A tile.
-#' @keywords internal
+
+#' @title Convert tile \code{bbox} to a sf polygon object.
 #' @noRd
+#' @param tile A tile.
 #' @return sf object
 .tile_as_sf <- function(tile) {
     UseMethod(".tile_as_sf", tile)
 }
 #' @export
 .tile_as_sf.raster_cube <- function(tile) {
-    .bbox_as_sf(.tile(tile))
+    .bbox_as_sf(.bbox(.tile(tile)))
 }
-#'
+
 #' @title Get first date from tile
 #' @name .tile_start_date
 #' @keywords internal
@@ -178,19 +165,47 @@
 #' @param band A band in the tile
 #' @param date A date in the tile
 #'
-#' @return First path of file info
+#' @return Path of first asset in `file_info`
 .tile_path <- function(tile, band = NULL, date = NULL) {
     UseMethod(".tile_path", tile)
 }
+
 #' @export
-.tile_path.raster_cube <- function(tile, band, date){
-    if (!purrr::is_null(band) & !purrr::is_null(date)) {
-        tile <- .tile_filter_bands(tile, band) %>%
-            .tile_filter_date(date)
+.tile_path.raster_cube <- function(tile, band = NULL, date = NULL) {
+    if (.has(band)) {
+        tile <- .tile_filter_bands(tile = tile, bands = band[[1]])
     }
-    path <- .fi(.tile(tile)) %>% .fi_path()
+    if (.has(date)) {
+        tile <- .tile_filter_dates(tile = tile, dates = date[[1]])
+    }
+    # Get path of first asset
+    path <- .fi_path(.fi(tile))
+    # Return path
     path
 }
+#' @title Get sorted unique bands from file_info.
+#' @name .tile_path
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#' @param band Band name.
+#'
+#' @returns Paths to `file_info` assets
+.tile_paths <- function(tile, band = NULL) {
+    UseMethod(".tile_paths", tile)
+}
+
+#' @export
+.tile_paths.raster_cube <- function(tile, band = NULL) {
+    if (.has(band)) {
+        tile <- .tile_filter_bands(tile = tile, bands = band)
+    }
+    # Get assets path
+    paths <- .fi_paths(.fi(tile))
+    # Return paths
+    paths
+}
+
 #' @title Get sorted unique bands from file_info.
 #' @name .tile_bands
 #' @keywords internal
@@ -227,7 +242,9 @@
 }
 #' @export
 .tile_band_conf.derived_cube <- function(tile, band) {
-    .conf_derived_band(derived_class = .tile_derived_class(tile), band = band)
+    .conf_derived_band(
+        derived_class = .tile_derived_class(tile), band = band[[1]]
+    )
 }
 #'
 #' @title Filter file_info entries of a given \code{band}.
@@ -244,15 +261,13 @@
 #' @export
 .tile_filter_bands.eo_cube <- function(tile, bands) {
     tile <- .tile(tile)
-    .tile_file_info(tile) <-
-        .fi_filter_bands(fi = .fi(tile), bands = .band_eo(bands))
+    .fi(tile) <- .fi_filter_bands(fi = .fi(tile), bands = .band_eo(bands))
     tile
 }
 #' @export
 .tile_filter_bands.derived_cube <- function(tile, bands) {
     tile <- .tile(tile)
-    .tile_file_info(tile) <-
-        .fi_filter_bands(fi = .fi(tile), bands = .band_derived(bands))
+    .fi(tile) <- .fi_filter_bands(fi = .fi(tile), bands = .band_derived(bands))
     tile
 }
 #'
@@ -285,7 +300,7 @@
 #' @export
 .tile_filter_spatial.raster_cube <- function(tile, roi) {
     tile <- .tile(tile)
-    .tile_file_info(tile) <- .fi_filter_spatial(fi = .fi(tile), roi = roi)
+    .fi(tile) <- .fi_filter_spatial(fi = .fi(tile), roi = roi)
     tile
 }
 #'
@@ -322,22 +337,24 @@
 #' @export
 .tile_filter_interval.raster_cube <- function(tile, start_date, end_date) {
     tile <- .tile(tile)
-    .tile_file_info(tile) <- .fi_filter_interval(
+    .fi(tile) <- .fi_filter_interval(
         fi = .fi(tile), start_date = start_date, end_date = end_date
     )
     tile
 }
 #'
 #' @title Filter file_info entries by date
-#' @name .tile_filter_date
+#' @name .tile_filter_dates
 #' @keywords internal
 #' @noRd
 #' @param tile A tile.
-#' @param date Desired date
+#' @param dates Desired date
 #'
 #' @return file_info entries
-.tile_filter_date <- function(tile, date) {
-    .tile_filter_interval(tile, start_date = date, end_date = date)
+.tile_filter_dates <- function(tile, dates) {
+    tile <- .tile(tile)
+    .fi(tile) <- .fi_filter_dates(fi = .fi(tile), dates = dates)
+    tile
 }
 #'
 #' @title Get derived class of a tile.
@@ -550,7 +567,7 @@
         .crs(base_tile) <- .raster_crs(r_obj)
     }
     # Update file_info
-    .tile_file_info(base_tile) <- .fi_eo_from_files(
+    .fi(base_tile) <- .fi_eo_from_files(
         files = files, fid = fid, bands = bands, date = date
     )
     # Return eo tile
@@ -580,7 +597,7 @@
     # Create tile based on template
     tile <- .tile_eo_from_files(
         files = files, fid = .fi_fid(.fi(base_tile)), bands = bands,
-        date = .fi_date(.fi(base_tile)), base_tile = base_tile,
+        date = .fi_min_date(.fi(base_tile)), base_tile = base_tile,
         update_bbox = update_bbox
     )
     # If all goes well, delete block files
@@ -614,7 +631,7 @@
     # Update labels before file_info
     .tile_labels(base_tile) <- labels
     # Update file_info
-    .tile_file_info(base_tile) <- .fi_derived_from_file(
+    .fi(base_tile) <- .fi_derived_from_file(
         file = file, band = band, start_date = .tile_start_date(base_tile),
         end_date = .tile_end_date(base_tile)
     )
@@ -788,30 +805,29 @@
         update_bbox = FALSE
     )
 }
+
 #' @title Given a labelled cube, return the band information
-#' @name .tile_area_freq
-#' @keywords internal
-#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param tile   Tile of a data cube
 #'
 #' @return Frequency of each label in the data cube
-#'
+#' @name .tile_area_freq
+#' @keywords internal
+#' @noRd
 .tile_area_freq <- function(tile) {
 
     UseMethod(".tile_area_freq", tile)
 }
 #' @export
 .tile_area_freq.class_cube <- function(tile) {
-
-    # open first raster
-    r_obj <- .raster_open_rast(.tile_path(tile))
-
-    # retrieve the frequency
+    # Open first raster
+    r_obj <- .raster_open_rast(.fi_path(.fi(tile)))
+    # Retrieve the frequency
     freq <- tibble::as_tibble(.raster_freq(r_obj))
-
-    return(freq)
+    # Return frequencies
+    freq
 }
+
 #' @title Given a tile and a band, return a set of values for chosen location
 #' @name .tile_extract
 #' @noRd
@@ -828,35 +844,20 @@
 #'
 .tile_extract <- function(tile, band, xy) {
 
-
-    # set caller to show in errors
-    .check_set_caller(".tile_extract")
-
-    # pre-condition - one tile at a time
-    .check_has_one_tile(tile)
-    # does the cube contain the band?
-    .check_band_in_cube(band, tile)
-
-    # filter the files that contain the band
-    band <- .tile_filter_bands(tile, band)
-
-    # create a stack object
-    r_obj <- .raster_open_rast(band$path)
-
-    # extract the values
+    # Create a stack object
+    r_obj <- .raster_open_rast(.tile_paths(tile = tile, band = band))
+    # Extract the values
     values <- .raster_extract(r_obj, xy)
-
-    # is the data valid?
-    .check_that(
-        x = nrow(values) == nrow(xy),
-        msg = "error in retrieving data"
-    )
+    # Is the data valid?
+    if (nrow(values) != nrow(xy)) {
+        stop("number of extracted points differ from requested points")
+    }
     return(values)
 }
 
 
 #---- ml_model ----
-#' @keywords internal
+
 .ml_model <- function(ml_model) {
     if ("model" %in% ls(environment(ml_model))) {
         environment(ml_model)[["model"]]
@@ -866,38 +867,38 @@
         stop("cannot extract model object")
     }
 }
-#' @keywords internal
+
 .ml_stats_0 <- function(ml_model) {
     # Old stats variable
     environment(ml_model)[["stats"]]
 }
-#' @keywords internal
+
 .ml_stats <- function(ml_model) {
     # New stats variable
     environment(ml_model)[["ml_stats"]]
 }
-#' @keywords internal
+
 .ml_samples <- function(ml_model) {
     environment(ml_model)[["samples"]]
 }
-#' @keywords internal
+
 .ml_class <- function(ml_model) {
     class(ml_model)[[1]]
 }
-#' @keywords internal
+
 .ml_features_name <- function(ml_model) {
     # Get feature names from variable used in training
     names(environment(ml_model)[["train_samples"]])[-2:0]
 }
-#' @keywords internal
+
 .ml_bands <- function(ml_model) {
     .sits_bands(.ml_samples(ml_model))
 }
-#' @keywords internal
+
 .ml_labels <- function(ml_model) {
     .sits_labels(.ml_samples(ml_model))
 }
-#' @keywords internal
+
 .torch_serialize_model <- function(model) {
     # Open raw connection
     con <- rawConnection(raw(), open = "wr")
@@ -908,7 +909,7 @@
     # Read serialized model and return
     rawConnectionValue(con)
 }
-#' @keywords internal
+
 .torch_unserialize_model <- function(raw) {
     # Open raw connection to read model
     con <- rawConnection(raw)
@@ -919,151 +920,151 @@
 }
 
 #---- stats ----
-#' @keywords internal
-# Supports former version of stats
+
+#' @title Supports former version of stats
+#' @noRd
 .stats_0_q02 <- function(stats, band) {
     quantile_02 <- 2
     stats[[band]][[quantile_02]]
 }
-#' @keywords internal
-# Supports former version of stats
+
+#' @title Supports former version of stats
+#' @noRd
 .stats_0_q98 <- function(stats, band) {
     quantile_98 <- 3
     stats[[band]][[quantile_98]]
 }
-#' @keywords internal
+
 .stats_q02 <- function(stats) {
     stats[["q02"]]
 }
-#' @keywords internal
+
 .stats_q98 <- function(stats) {
     stats[["q98"]]
 }
 
-#---- sits (samples) ----
-#' @keywords internal
-.sits_ts <- function(samples) {
+#---- time_series ----
+
+.ts_cols <- c("sample_id", "label")
+
+.is_ts <- function(x) {
+    "Index" %in% names(x) && is.data.frame(x)
+}
+
+.has_ts <- function(x) {
+    "time_series" %in% names(x) && .is_ts(x[["time_series"]][[1]])
+}
+
+.ts <- function(x) {
+    # Check time_series column
+    if (!.has_ts(x)) {
+        stop("time_series not found")
+    }
     # Add sample_id column
-    samples[["sample_id"]] <- seq_len(nrow(samples))
+    x[["sample_id"]] <- seq_along(x[["time_series"]])
     # Extract time_series from column
     ts <- tidyr::unnest(
-        data = samples[c("sample_id", "label", "time_series")],
+        data = x[c(.ts_cols, "time_series")],
         cols = "time_series"
     )
-    # Select the same bands as in the first sample
-    ts <- ts[c("sample_id", "label", "Index", .sits_bands(samples))]
-    # Get the time series length for the first sample
-    ntimes <- .sits_ntimes(samples)
-    # Prune time series according to the first sample
-    ts <- .by_dfr(data = ts, col = "sample_id", fn = function(x) {
-        if (nrow(x) == ntimes) {
-            x
-        } else if (nrow(x) > ntimes) {
-            x[seq_len(ntimes), ]
-        } else {
-            stop("time series length differs from first sample")
-        }
-    })
     # Return time series
     ts
 }
-#' @keywords internal
+
+`.ts<-` <- function(x, value) {
+    if (!.is_ts(value)) {
+        stop("invalid time series value")
+    }
+    # Pack time series
+    value <- tidyr::nest(value, time_series = -.ts_cols)
+    x[["time_series"]] <- value[["time_series"]]
+    # Return samples
+    x
+}
+
+.ts_index <- function(ts) {
+    .as_date(ts[["Index"]])
+}
+
+.ts_bands <- function(ts) {
+    setdiff(colnames(ts), c(.ts_cols, "Index"))
+}
+
+.ts_select_bands <- function(ts, bands) {
+    # Check missing bands
+    miss_bands <- bands[!bands %in% .ts_bands(ts)]
+    if (.has(miss_bands)) {
+        stop("band(s) ", .collapse("'", miss_bands, "'"), " not found")
+    }
+    # Select the same bands as in the first sample
+    ts <- ts[unique(c(.ts_cols, "Index", bands))]
+    # Return time series
+    ts
+}
+
+#---- sits (samples) ----
+
+.sits_ts <- function(samples) {
+    # Check time_series column
+    if (!.has_ts(samples)) {
+        stop("time_series column not found")
+    }
+    # Return time series of the first sample
+    samples[["time_series"]][[1]]
+}
+
 .sits_ntimes <- function(samples) {
     # Number of observations of the first sample governs whole samples data
-    nrow(samples[["time_series"]][[1]])
+    nrow(.sits_ts(samples))
 }
-#' @keywords internal
+
 .sits_bands <- function(samples) {
     # Bands of the first sample governs whole samples data
-    setdiff(names(samples[["time_series"]][[1]]), "Index")
+    setdiff(names(.sits_ts(samples)), "Index")
 }
-#' @keywords internal
-.sits_filter_bands <- function(samples, bands) {
-    # Missing bands
-    miss_bands <- bands[!bands %in% .sits_bands(samples)]
-    if (.has(miss_bands)) {
-        stop("band(s) ", paste0("'", miss_bands, "'", collapse = ", "),
-             " not found")
-    }
-    .apply(samples, col = "time_series", function(x) {
-        dplyr::select(x, dplyr::all_of(c("#..", "Index", bands)))
-    })
+.sits_select_bands <- function(samples, bands) {
+    # Filter samples
+    .ts(samples) <- .ts_select_bands(ts = .ts(samples), bands = bands)
+    # Return samples
+    samples
 }
-#' @keywords internal
+
 .sits_labels <- function(samples) {
     sort(unique(samples[["label"]]), na.last = TRUE)
 }
-#' @keywords internal
-.sits_split <- function(samples, split_intervals) {
-    slider::slide_dfr(samples, function(sample) {
-        ts <- sample[["time_series"]][[1]]
-        purrr::map_dfr(split_intervals, function(index) {
-            new_sample <- sample
-            start <- index[[1]]
-            end <- index[[2]]
-            new_sample[["time_series"]][[1]] <- ts[seq(start, end), ]
-            new_sample[["start_date"]] <- ts[["Index"]][[start]]
-            new_sample[["end_date"]] <- ts[["Index"]][[end]]
-            new_sample
-        })
-    })
-}
-#' @keywords internal
-.sits_predictors <- function(samples, ml_model = NULL) {
-    # Get samples time series
-    pred <- .sits_ts(samples)
-    # By default get bands as the same of first sample
-    bands <- .sits_bands(samples)
-    # Preprocess time series
-    if (.has(ml_model)) {
-        # Update bands to the model bands
-        bands <- .ml_bands(ml_model)
-        # If a model is informed, get predictors from model bands
-        pred <- pred[c(.pred_cols, bands)]
-        # Normalize values for old version model classifiers that
-        #   do not normalize values itself
-        # Models trained after version 1.2 do this automatically before
-        #   classification
-        stats <- .ml_stats_0(ml_model) # works for old models only!!
-        if (.has(stats)) {
-            # Read and preprocess values of each band
-            pred[bands] <- purrr::imap_dfc(pred[bands], function(values, band) {
-                # Get old stats parameters
-                q02 <- .stats_0_q02(stats, band)
-                q98 <- .stats_0_q98(stats, band)
-                if (!is.null(q02) && !is.null(q98)) {
-                    # Use C_normalize_data_0 to process old version of
-                    #   normalization
-                    values <- C_normalize_data_0(
-                        data = as.matrix(values), min = q02, max = q98
-                    )
-                    # Convert from matrix to vector and return
-                    unlist(values)
-                }
-                # Return updated values
-                values
-            })
-            # Return updated time series
-            pred
-        }
+
+.sits_filter_labels <- function(samples, labels) {
+    # Check missing labels
+    miss_labels <- labels[!labels %in% .sits_labels(samples)]
+    if (.has(miss_labels)) {
+        stop("label(s) ", .collapse("'", miss_labels, "'"), " not found")
     }
-    # Create predictors...
-    pred <- pred[c(.pred_cols, bands)]
-    # Add sequence 'index' column grouped by 'sample_id'
-    pred <- .by_dfr(data = pred, col = "sample_id", fn = function(x) {
-        x[["index"]] <- seq_len(nrow(x))
-        x
-    })
-    # Rearrange data to create predictors
-    pred <- tidyr::pivot_wider(
-        data = pred, names_from = "index", values_from = bands,
-        names_prefix = ifelse(length(bands) == 1, bands, ""),
-        names_sep = ""
-    )
-    # Return predictors
-    pred
+    # Filter labels
+    samples <- samples[samples[["label"]] %in% labels, ]
+    # Return samples
+    samples
 }
-#' @keywords internal
+
+.sits_foreach_ts <- function(samples, fn, ...) {
+    # Apply function to each time_series
+    samples[["time_series"]] <- lapply(samples[["time_series"]], fn, ...)
+    # Return samples
+    samples
+}
+
+.sits_prune <- function(samples) {
+    # Get the time series length for the first sample
+    ntimes <- .sits_ntimes(samples)
+    # Prune time series according to the first time series length and return
+    .sits_foreach_ts(samples, function(ts) {
+        if (nrow(ts) >= ntimes) {
+            ts[seq_len(ntimes), ]
+        } else {
+            stop("time series length is smaller than the first sample")
+        }
+    })
+}
+
 .sits_stats <- function(samples) {
     # Get all time series
     preds <- .sits_ts(samples)
@@ -1081,10 +1082,78 @@
     list(q02 = q02, q98 = q98)
 }
 
+.sits_split <- function(samples, split_intervals) {
+    slider::slide_dfr(samples, function(sample) {
+        ts <- sample[["time_series"]][[1]]
+        purrr::map_dfr(split_intervals, function(index) {
+            new_sample <- sample
+            start <- index[[1]]
+            end <- index[[2]]
+            new_sample[["time_series"]][[1]] <- ts[seq(start, end), ]
+            new_sample[["start_date"]] <- ts[["Index"]][[start]]
+            new_sample[["end_date"]] <- ts[["Index"]][[end]]
+            new_sample
+        })
+    })
+}
+
 # ---- Predictors ----
 
 .pred_cols <- c("sample_id", "label")
-#' @keywords internal
+
+.predictors <- function(samples, ml_model = NULL) {
+    # Prune samples time series
+    samples <- .sits_prune(samples)
+    # Get samples time series
+    pred <- .ts(samples)
+    # By default get bands as the same of first sample
+    bands <- .sits_bands(samples)
+    # Preprocess time series
+    if (.has(ml_model)) {
+        # If a model is informed, get predictors from model bands
+        bands <- .ml_bands(ml_model)
+        # Normalize values for old version model classifiers that
+        #   do not normalize values itself
+        # Models trained after version 1.2 do this automatically before
+        #   classification
+        stats <- .ml_stats_0(ml_model) # works for old models only!!
+        if (.has(stats)) {
+            # Read and preprocess values of each band
+            pred[bands] <- purrr::imap_dfc(pred[bands], function(values, band) {
+                # Get old stats parameters
+                q02 <- .stats_0_q02(stats, band)
+                q98 <- .stats_0_q98(stats, band)
+                if (.has(q02) && .has(q98)) {
+                    # Use C_normalize_data_0 to process old version of
+                    #   normalization
+                    values <- C_normalize_data_0(
+                        data = as.matrix(values), min = q02, max = q98
+                    )
+                    # Convert from matrix to vector and return
+                    unlist(values)
+                }
+                # Return updated values
+                values
+            })
+        }
+    }
+    # Create predictors...
+    pred <- pred[c(.pred_cols, bands)]
+    # Add sequence 'index' column grouped by 'sample_id'
+    pred <- .by_dfr(data = pred, col = "sample_id", fn = function(x) {
+        x[["index"]] <- seq_len(nrow(x))
+        x
+    })
+    # Rearrange data to create predictors
+    pred <- tidyr::pivot_wider(
+        data = pred, names_from = "index", values_from = bands,
+        names_prefix = if (length(bands) == 1) bands else "",
+        names_sep = ""
+    )
+    # Return predictors
+    pred
+}
+
 .pred_features <- function(pred) {
     if (all(.pred_cols %in% names(pred))) {
         pred[, -2:0]
@@ -1092,7 +1161,7 @@
         pred
     }
 }
-#' @keywords internal
+
 `.pred_features<-` <- function(pred, value) {
     if (all(.pred_cols %in% names(pred))) {
         pred[, -2:0] <- value
@@ -1101,11 +1170,11 @@
     }
     pred
 }
-#' @keywords internal
+
 .pred_references <- function(pred) {
     if (all(.pred_cols %in% names(pred))) .as_chr(pred[["label"]]) else NULL
 }
-#' @keywords internal
+
 .pred_normalize <- function(pred, stats) {
     values <- as.matrix(.pred_features(pred))
     values <- C_normalize_data(
@@ -1115,20 +1184,20 @@
     # Return predictors
     pred
 }
-#' @keywords internal
+
 .pred_create_partition <- function(pred, partitions) {
     pred[["part_id"]] <- .partitions(x = seq_len(nrow(pred)), n = partitions)
     tidyr::nest(pred, predictors = -"part_id")
 }
 
 # ---- Partitions ----
-#' @keywords internal
+
 .part_predictors <- function(part) {
-    if (.has(part[["predictors"]])) part[["predictors"]][[1]] else NULL
+    .default(part[["predictors"]][[1]])
 }
 
 # ---- expressions ----
-#' @keywords internal
+
 .expr_names <- function(expr) {
     if (is.call(expr)) {
         unique(unlist(lapply(as.list(expr)[-1], .expr_names)))
@@ -1138,7 +1207,7 @@
         character()
     }
 }
-#' @keywords internal
+
 .expr_calls <- function(expr) {
     if (is.call(expr)) {
         unique(c(
@@ -1150,12 +1219,13 @@
 }
 
 # ---- gdal API ----
+
 .gdal_data_type <- c(
     "INT1U" = "Byte", "INT2U" = "UInt16", "INT2S" = "Int16",
     "INT4U" = "UInt32", "INT4S" = "Int32", "FLT4S" = "Float32",
     "FLT8S" = "Float64"
 )
-#' @keywords internal
+
 .gdal_params <- function(params) {
     # Check if parameters are named
     if (!all(.has_name(params))) {
@@ -1171,21 +1241,21 @@
         }
     }, names(params), unname(params), USE.NAMES = FALSE))
 }
-#' @keywords internal
+
 .gdal_translate <- function(file, base_file, params, quiet) {
     sf::gdal_utils(
         util = "translate", source = base_file[[1]], destination = file[[1]],
         options = .gdal_params(params), quiet = quiet
     )
 }
-#' @keywords internal
+
 .gdal_warp <- function(file, base_files, params, quiet) {
     sf::gdal_utils(
         util = "warp", source = base_files, destination = file[[1]],
         options = .gdal_params(params), quiet = quiet
     )
 }
-#' @keywords internal
+
 .gdal_template_from_file <- function(base_file, file, nlayers, miss_value,
                                      data_type) {
     # Convert to gdal data type
@@ -1216,7 +1286,7 @@
     # Return file
     file
 }
-#' @keywords internal
+
 .gdal_template_block <- function(block, bbox, file, nlayers, miss_value,
                                  data_type) {
     # Get first file
@@ -1259,7 +1329,7 @@
     # Return file
     file
 }
-#' @keywords internal
+
 .gdal_merge_into <- function(file, base_files, multicores) {
     # Merge src_files
     file <- .try({

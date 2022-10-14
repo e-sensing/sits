@@ -1375,6 +1375,20 @@
         msg = "invalid version"
     )
 }
+#' @title Check is version parameter is valid using reasonable defaults
+#' @name .check_version
+#' @keywords internal
+#' @noRd
+#' @param  progress progress parameter
+#' @return          No return value, called for side effects.
+.check_progress <- function(progress){
+    .check_lgl(
+        x = progress,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid progress"
+    )
+}
 #' @title Check is expression parameter is valid using reasonable defaults
 #' @name .check_expression
 #' @param  list_expr expression parameter
@@ -1720,23 +1734,10 @@
 #' @param cube  datacube
 #' @return  TRUE/FALSE
 .check_is_regular <- function(cube) {
-    if (!.check_has_unique_bands(cube)) {
-        return(FALSE)
-    }
-
-    if (!.check_has_unique_bbox(cube)) {
-        return(FALSE)
-    }
-
-    if (!.check_has_unique_tile_size(cube)) {
-        return(FALSE)
-    }
-
-    if (!.check_has_unique_timeline(cube)) {
-        return(FALSE)
-    }
-
-    return(TRUE)
+    .check_that(
+        x = .cube_is_regular(cube),
+        msg = "cube is not regular, please run sits_regularize() first"
+    )
 }
 
 #' @title Check if the bands of all tiles of the cube are the same
@@ -1959,8 +1960,8 @@
     )
     ok <- slider::slide2_lgl(cube1, cube2,
                            function(tile_first, tile_cube){
-            return(.is_eq(unlist(sits_bbox(tile_first)),
-                          unlist(sits_bbox(tile_cube)),
+            return(.is_eq(unlist(.bbox(tile_first)),
+                          unlist(.bbox(tile_cube)),
                           tolerance = tolerance)
             )
     })
@@ -1979,8 +1980,10 @@
 #' @return No return value, called for side effects.
 .check_cubes_same_size <- function(cube1, cube2) {
     .check_that(
-        x = .cube_size(cube1) == .cube_size(cube2),
-        msg = "cubes do not have the same size")
+        x = all(.cube_ncols(cube1) == .cube_ncols(cube2)) &&
+            all(.cube_nrows(cube1) == .cube_nrows(cube2)),
+        msg = "cubes do not have the same size"
+    )
 }
 
 #' @title Check if cubes have the same tiles

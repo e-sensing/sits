@@ -6,11 +6,11 @@
 \alias{sits_as_sf.raster_cube}
 \title{Return a sits_tibble or sits_cube as an sf object.}
 \usage{
-sits_as_sf(data, ..., crs)
+sits_as_sf(data, ..., as_crs = NULL)
 
-\method{sits_as_sf}{sits}(data, ..., crs = 4326)
+\method{sits_as_sf}{sits}(data, ..., crs = "EPSG:4326", as_crs = NULL)
 
-\method{sits_as_sf}{raster_cube}(data, ...)
+\method{sits_as_sf}{raster_cube}(data, ..., as_crs = NULL)
 }
 \arguments{
 \item{data}{A sits tibble or sits cube.}

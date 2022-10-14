@@ -323,20 +323,20 @@ sits_cube.stac_cube <- function(source,
         tiles <- as.character(dots[["tile"]])
     }
 
-    # ensuring that duplicate tiles will not be propagated
-    if (!is.null(tiles)) {
+    # Ensures that only a spatial filter is informed
+    if (.has(roi) && .has(tiles)) {
+        stop("It is not possible to search with roi and tiles.",
+             "Please provide only roi or tiles.")
+    }
+
+    # Ensures that there are no duplicate tiles
+    if (.has(tiles)) {
         tiles <- unique(tiles)
     }
 
-    if (!is.null(roi) && !is.null(tiles)) {
-        stop(paste(
-            "It is not possible to search with roi and tiles.",
-            "Please provide only roi or tiles."
-        ))
-    }
-    # check if roi is provided correctly
-    if (!purrr::is_null(roi)) {
-        roi <- .roi_check(roi)
+    # Converts provided roi to sf
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi)
     }
 
     # source is upper case
@@ -393,7 +393,7 @@ sits_cube.stac_cube <- function(source,
         collection = collection,
         bands = bands,
         tiles = tiles,
-        roi_sf = roi,
+        roi = roi,
         start_date = start_date,
         end_date = end_date,
         platform = platform,

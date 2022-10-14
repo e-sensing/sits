@@ -81,128 +81,6 @@
         )
     )
 }
-#' @title Parse is a ROI is valid for an existing data cube
-#' @name .roi_check
-#' @keywords internal
-#' @noRd
-#' @param  roi             spatial region of interest
-#' @return                 roi in WGS84 projection or NULL if error
-.roi_check <- function(roi) {
-    # set caller to show in errors
-    .check_set_caller(".roi_check")
-
-    if (!(inherits(roi, "sf"))) {
-        if (all(c("xmin", "xmax", "ymin", "ymax") %in% names(roi))) {
-            class(roi) <- c("xy", class(roi))
-        } else if (all(
-            c("lon_min", "lon_max", "lat_min", "lat_max") %in% names(roi)
-        )) {
-            class(roi) <- c("ll", class(roi))
-        }
-    }
-
-    .check_that(
-        x = inherits(roi, c("sf", "xy", "ll")),
-        msg = "invalid definition of ROI"
-    )
-
-    UseMethod(".roi_check", roi)
-}
-#' @title Parse is a ROI defined as sf is valid for an existing data cube
-#' @name .roi_check.sf
-#' @keywords internal
-#' @noRd
-#' @param  roi   spatial region of interest
-#' @return       roi in WGS84 projection
-#' @export
-.roi_check.sf <- function(roi) {
-    roi_crs <- sf::st_crs(roi, parameters = TRUE)
-    .check_lst(roi_crs, min_len = 1, msg = "invalid crs in provided roi.")
-
-    if (roi_crs[["epsg"]] != 4326) {
-        message("The supplied roi will be transformed to the WGS 84.")
-        roi <- sf::st_transform(roi, crs = 4326)
-    }
-
-    # return converted roi
-    return(roi)
-}
-
-#' @title Parse a ROI defined as lat-long
-#' @name .roi_check.ll
-#' @keywords internal
-#' @noRd
-#' @param  roi     spatial region of interest
-#' @return a sf object in WGS84 projection
-#' @export
-.roi_check.ll <- function(roi) {
-    .check_num(
-        roi[["lon_min"]],
-        min = -180.0, max = 180.00,
-        msg = "roi should be provided in WGS84 coordinates"
-    )
-    .check_num(
-        roi[["lon_max"]],
-        min = -180.0, max = 180.00,
-        msg = "roi should be provided in WGS84 coordinates"
-    )
-    .check_num(
-        roi[["lat_min"]],
-        min = -90.0, max = 90.00,
-        msg = "roi should be provided in WGS84 coordinates"
-    )
-    .check_num(
-        roi[["lat_max"]],
-        min = -90.0, max = 90.00,
-        msg = "roi should be provided in WGS84 coordinates"
-    )
-
-    # convert to sf object
-    sf_obj <- .roi_as_sf(roi, default_crs = 4326)
-
-    return(sf_obj)
-}
-#' @title Parse a ROI defined as XY
-#' @name .roi_check.xy
-#' @keywords internal
-#' @noRd
-#' @param  roi   spatial region of interest
-#' @return a sf object in WGS84 projection
-#' @export
-.roi_check.xy <- function(roi) {
-    .check_num(
-        roi[["xmin"]],
-        min = -180.0, max = 180.00,
-        msg = "roi should be provided in WGS84 coordinates"
-    )
-    .check_num(
-        roi[["xmax"]],
-        min = -180.0, max = 180.00,
-        msg = "roi should be provided in WGS84 coordinates"
-    )
-    .check_num(
-        roi[["ymin"]],
-        min = -90.0, max = 90.00,
-        msg = "roi should be provided in WGS84 coordinates"
-    )
-    .check_num(
-        roi[["ymax"]],
-        min = -90.0, max = 90.00,
-        msg = "roi should be provided in WGS84 coordinates"
-    )
-
-    # convert to sf object
-    sf_obj <- .sits_bbox_to_sf(
-        xmin = roi[["xmin"]],
-        xmax = roi[["xmax"]],
-        ymin = roi[["ymin"]],
-        ymax = roi[["ymax"]],
-        crs = 4326
-    )
-
-    return(sf_obj)
-}
-
 #' @title Convert a ROI defined as sf object to a geojson polygon geometry
 #' @name .roi_sf_to_geojson
 #' @keywords internal
@@ -240,8 +118,9 @@
 #' @param roi A \code{roi}.
 #' @param ... Parameters to be evaluated accordingly to \code{roi} type.
 #' @param default_crs If no CRS is present in a \code{bbox} object passed
-#' to \code{crs}, which CRS should be used? If \code{NULL} default CRS will
-#' be \code{'EPSG:4326'}.
+#'   to \code{crs}, which CRS should be used? If \code{NULL} default CRS will
+#'   be \code{'EPSG:4326'}.
+#' @param as_crs CRS to project \code{sf} object.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -260,21 +139,21 @@
 #'
 #' @family region objects API
 #' @keywords internal
-#' @noRd
 #' @name roi_api
+#' @noRd
 NULL
 
 # roi 'lonlat' fields
 .roi_lonlat_cols <- c("lon_min", "lon_max", "lat_min", "lat_max")
 
 #' @describeIn roi_api Tells which type of ROI is in \code{roi}
-#' parameter (One of \code{'sf'}, \code{'bbox'}, or \code{'lonlat'}).
-#' @noRd
+#'   parameter (One of \code{'sf'}, \code{'bbox'}, or \code{'lonlat'}).
 #' @returns \code{.roi_type()}: \code{character}.
+#' @noRd
 .roi_type <- function(roi) {
     if (inherits(roi, c("sf", "sfc"))) {
         "sf"
-    } else if (all(.bbox_cols %in% names(roi))) {
+    } else if (.has_bbox(roi)) {
         "bbox"
     } else if (all(.roi_lonlat_cols %in% names(roi))) {
         "lonlat"
@@ -284,26 +163,30 @@ NULL
 }
 
 #' @describeIn roi_api Chooses one of the arguments passed in
-#' \code{...} according to which type of \code{roi} parameter.
-#' @noRd
+#'   \code{...} according to which type of \code{roi} parameter.
 #' @returns \code{.roi_switch()}: one of the arguments in \code{...}.
+#' @noRd
 .roi_switch <- function(roi, ...) {
-    switch(.roi_type(roi),
-           ...
-    )
+    switch(.roi_type(roi), ...)
 }
 
 #' @describeIn roi_api Converts \code{roi} to an \code{sf} object.
-#' @noRd
 #' @returns \code{.roi_as_sf()}: \code{sf}.
-.roi_as_sf <- function(roi, default_crs = NULL) {
-    .roi_switch(
+#' @noRd
+.roi_as_sf <- function(roi, default_crs = NULL, as_crs = NULL) {
+    roi <- .roi_switch(
         roi = roi, sf = roi,
-        bbox = .bbox_as_sf(roi, default_crs = default_crs),
+        bbox = .bbox_as_sf(.bbox(roi, default_crs = default_crs)),
         lonlat = .bbox_as_sf(list(
             xmin = roi[["lon_min"]], xmax = roi[["lon_max"]],
             ymin = roi[["lat_min"]], ymax = roi[["lat_max"]],
             crs = "EPSG:4326"
         ))
     )
+    # Project roi
+    if (.has(as_crs)) {
+        roi <- sf::st_transform(roi, crs = as_crs)
+    }
+    # Return roi
+    roi
 }

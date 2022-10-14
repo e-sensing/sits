@@ -1,78 +1,32 @@
-#' @title Functions to work with file info tibble
-#' @name file_info_functions
-#' @keywords internal
+#' @title File info API
 #' @noRd
+#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param cube    Input data cube.
-#' @param bands   Bands to be filtered
-#' @param start_date   Initial date to be filtered.
-#' @param end_date   Last date to be filtered.
-#' @param fid     Feature id (fid) to be filtered.
+#' @description
+#' Set of functions for handling `file_info`.
 #'
-#' @return        Vector with requested information obtained in the file_info.
-.fi <- function(cube,
-                bands = NULL,
-                fid = NULL,
-                start_date = NULL,
-                end_date = NULL) {
+NULL
 
-    # pre-condition - one tile at a time
-    .check_num(nrow(cube),
-        min = 1, max = 1, is_integer = TRUE,
-        msg = "process one tile at a time for file_info"
-    )
-
-    # get the file info associated with the tile
-    file_info <- cube[["file_info"]][[1]]
-
-    # check bands
-    if (!is.null(bands)) {
-        .check_cube_bands(cube, bands = bands)
-        file_info <- file_info[file_info[["band"]] %in% bands, ]
-    }
-
-    # filter fid
-    if (!is.null(fid)) {
-        fids <- .fi_fids(file_info)
-        .check_chr_within(paste0(fid),
-            within = paste0(fids),
-            msg = "invalid fid value"
-        )
-        file_info <- file_info[file_info[["fid"]] == fid, ]
-    }
-
-    if (!is.null(start_date)) {
-        cube_start_date <- sort(.fi_timeline(file_info))[[1]]
-
-        .check_that(start_date >= cube_start_date, msg = "invalid start date")
-
-        file_info <- file_info[file_info[["date"]] >= start_date, ]
-    }
-
-    if (!is.null(end_date)) {
-        cube_end_date <- sort(.fi_timeline(file_info),
-                              decreasing = TRUE)[[1]]
-        .check_that(end_date < cube_end_date, msg = "invalid end date")
-        file_info <- file_info[file_info[["date"]] < end_date, ]
-    }
-
-    return(file_info)
-}
-
-
-#' @rdname file_info_functions
+#' @title Get `file_info` from a given tile.
 #' @noRd
-#' @return the file ids for a single tile
-.fi_fids <- function(fi) {
-    fids <- unique(fi[["fid"]])
-
-    .check_num(length(fids),
-        min = 1, is_integer = TRUE,
-        msg = "wrong fid in file_info"
-    )
-    return(fids)
+#' @param tile  A tile.
+#' @returns A `file_info` tibble.
+.fi <- function(tile) {
+    tile[["file_info"]][[1]]
 }
+
+#' @title Set `file_info` into a given tile.
+#' @noRd
+#' @param tile  A tile.
+#' @param value  A `file_info` to be set.
+#' @returns An updated tile tibble.
+`.fi<-` <- function(tile, value) {
+    tile <- .tile(tile)
+    tile[["file_info"]] <- list(value)
+    tile
+}
+
 .fi_type <- function(fi) {
     if ("date" %in% names(fi)) {
         "eo_cube"
@@ -148,10 +102,17 @@
     .as_chr(fi[["fid"]])
 }
 
-.fi_fid_filter <- function(fi, fid) {
+.fi_filter_fid <- function(fi, fid) {
     .fi_switch(
         fi = fi,
-        eo_cube = fi[.fi_bands(fi) %in% .as_chr(fid), ]
+        eo_cube = {
+            fid_in_fi <- fid %in% .fi_fid(fi)
+            if (!all(fid_in_fi)) {
+                miss_fid <- paste0("'", fid[!fid_in_fi], "'", collapse = ",")
+                stop("fid(s) ", miss_fid, " not found")
+            }
+            fi[.fi_fid(fi) %in% .as_chr(fid), ]
+        }
     )
 }
 
@@ -162,8 +123,8 @@
 .fi_filter_bands <- function(fi, bands) {
     bands_in_fi <- bands %in% .fi_bands(fi)
     if (!all(bands_in_fi)) {
-        missing_bands <- paste0("'", bands[!bands_in_fi], "'", collapse = ",")
-        stop("band(s) ", missing_bands, " not found")
+        miss_bands <- paste0("'", bands[!bands_in_fi], "'", collapse = ",")
+        stop("band(s) ", miss_bands, " not found")
     }
     fi[.fi_bands(fi) %in% bands, ]
 }
@@ -184,20 +145,6 @@
     )
 }
 
-.fi_dates <- function(fi) {
-    .fi_switch(
-        fi = fi,
-        eo_cube = .as_date(fi[["date"]])
-    )
-}
-
-.fi_date <- function(fi) {
-    .fi_switch(
-        fi = fi,
-        eo_cube = .as_date(fi[["date"]][[1]])
-    )
-}
-
 .fi_timeline <- function(fi) {
     .fi_switch(
         fi = fi,
@@ -215,11 +162,11 @@
 }
 
 .fi_as_sf <- function(fi) {
-    .bbox_as_sf(fi)
+    .bbox_as_sf(.bbox(fi))
 }
 
 .fi_during <- function(fi, start_date, end_date) {
-    .between(.fi_timeline(fi), start_date, end_date)
+    .between(.fi_timeline(fi), start_date[[1]], end_date[[1]])
 }
 
 .fi_filter_interval <- function(fi, start_date, end_date) {
@@ -229,7 +176,22 @@
     if (!.has(end_date)) {
         end_date <- .fi_max_date(fi)
     }
-    fi[.fi_during(fi, start_date, end_date), ]
+    dates_in_fi <- .fi_during(
+        fi = fi, start_date = start_date, end_date = end_date
+    )
+    if (!any(dates_in_fi)) {
+        stop("no dates found between interval ", start_date[[1]], end_date[[1]])
+    }
+    fi[dates_in_fi, ]
+}
+
+.fi_filter_dates <- function(fi, dates) {
+    dates_in_fi <- dates %in% .fi_timeline(fi)
+    if (!all(dates_in_fi)) {
+        miss_dates <- paste0("'", dates[!dates_in_fi], "'", collapse = ",")
+        stop("date(s) ", miss_dates, " not found")
+    }
+    fi[.fi_bands(fi) %in% dates, ]
 }
 
 .fi_intersects <- function(fi, roi) {
@@ -237,7 +199,11 @@
 }
 
 .fi_filter_spatial <- function(fi, roi) {
-    fi[.fi_intersects(fi, roi), ]
+    features_in_fi <- .fi_intersects(fi = fi, roi = roi)
+    if (!any(features_in_fi)) {
+        stop("no feature intersects informed roi")
+    }
+    fi[features_in_fi, ]
 }
 
 .fi_read_block <- function(fi, band, block) {

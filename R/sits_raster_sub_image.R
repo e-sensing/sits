@@ -86,7 +86,6 @@
     return(sub_image)
 }
 
-
 #' @title Extract a sub_image from a bounding box and a cube
 #' @name .raster_sub_image_from_bbox
 #' @keywords internal
@@ -137,14 +136,10 @@
         msg = "bbox value is outside the cube"
     )
 
-    # get ncols and nrows
-    # throw an error if size are not the same
-    size <- .cube_size(tile)
-
     # tile template
     r_obj <- .raster_new_rast(
-        nrows = size[["nrows"]],
-        ncols = size[["ncols"]],
+        nrows = .tile_nrows(tile),
+        ncols = .tile_ncols(tile),
         xmin = tile[["xmin"]],
         xmax = tile[["xmax"]],
         ymin = tile[["ymin"]],
@@ -242,16 +237,16 @@
 #' @return sub_image with additional info on first row, first col, nrows,
 #' ncols, and crs.
 .raster_sub_image_from_block <- function(block,
-                                              source,
-                                              collection,
-                                              tile = NULL, ...,
-                                              xmin = NULL,
-                                              xmax = NULL,
-                                              ymin = NULL,
-                                              ymax = NULL,
-                                              nrows = NULL,
-                                              ncols = NULL,
-                                              crs = NULL) {
+                                         source,
+                                         collection,
+                                         tile = NULL, ...,
+                                         xmin = NULL,
+                                         xmax = NULL,
+                                         ymin = NULL,
+                                         ymax = NULL,
+                                         nrows = NULL,
+                                         ncols = NULL,
+                                         crs = NULL) {
 
     size <- c(nrows = nrows, ncols = ncols)
 
@@ -259,12 +254,12 @@
     if (!is.null(tile)) {
 
         # pre-condition
-        .check_num(nrow(tile),
-                   min = 1, max = 1, is_integer = TRUE,
-                   msg = "process one tile only"
+        .check_num(
+            x = nrow(tile), min = 1, max = 1, is_integer = TRUE,
+            msg = "process one tile only"
         )
 
-        size <- .cube_size(tile)
+        size <- c(nrows = .tile_nrows(tile), ncols = .tile_ncols(tile))
         xmax <- tile[["xmax"]]
         xmin <- tile[["xmin"]]
         ymin <- tile[["ymin"]]
@@ -273,23 +268,27 @@
     }
 
     # pre-conditions
-    .check_num(block[["col"]],
+    .check_num(
+        x = block[["col"]],
         min = 1, max = size[["ncols"]],
         msg = "invalid 'col' of block parameter"
     )
 
-    .check_num(block[["ncols"]],
+    .check_num(
+        x = block[["ncols"]],
         min = 1,
         max = size[["ncols"]] - block[["col"]] + 1,
         msg = "invalid 'ncols' of block parameter"
     )
 
-    .check_num(block[["row"]],
+    .check_num(
+        x = block[["row"]],
         min = 1, max = size[["nrows"]],
         msg = "invalid 'row' of block parameter"
     )
 
-    .check_num(block[["nrows"]],
+    .check_num(
+        x = block[["nrows"]],
         min = 1,
         max = size[["nrows"]] - block[["row"]] + 1,
         msg = "invalid 'nrows' of block parameter"
@@ -340,32 +339,38 @@
     )
 
     # pre-conditions
-    .check_num(si[["xmin"]],
+    .check_num(
+        x = si[["xmin"]],
         max = si[["xmax"]],
         msg = "invalid subimage value"
     )
 
-    .check_num(si[["ymin"]],
+    .check_num(
+        x = si[["ymin"]],
         max = si[["ymax"]],
         msg = "invalid subimage value"
     )
 
-    .check_num(si[["xmin"]],
+    .check_num(
+        x = si[["xmin"]],
         min = xmin, max = xmax,
         tolerance = tolerance, msg = "invalid subimage value"
     )
 
-    .check_num(si[["xmax"]],
+    .check_num(
+        x = si[["xmax"]],
         min = xmin, max = xmax,
         tolerance = tolerance, msg = "invalid subimage value"
     )
 
-    .check_num(si[["ymin"]],
+    .check_num(
+        x = si[["ymin"]],
         min = ymin, max = ymax,
         tolerance = tolerance, msg = "invalid subimage value"
     )
 
-    .check_num(si[["ymax"]],
+    .check_num(
+        x = si[["ymax"]],
         min = ymin, max = ymax,
         tolerance = tolerance, msg = "invalid subimage value"
     )

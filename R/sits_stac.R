@@ -122,7 +122,7 @@
 #' @param source     Name of the STAC provider.
 #' @param collection Collection to be searched in the data source.
 #' @param ...        Other parameters to be passed for specific types.
-#' @param roi_sf     Region of interest as sf object.
+#' @param roi        Region of interest as sf object.
 #' @param start_date Initial date for the cube (optional).
 #' @param end_date   Final date for the cube  (optional).
 #' @param limit      Limit items to be returned in requisition.
@@ -130,7 +130,7 @@
 #' @return an \code{RSTACQuery} object.
 .stac_create_items_query <- function(source,
                                      collection, ...,
-                                     roi_sf = NULL,
+                                     roi = NULL,
                                      start_date = NULL,
                                      end_date = NULL,
                                      limit = NULL) {
@@ -147,9 +147,9 @@
     # by default, roi is NULL
     roi_geojson <- NULL
     # obtain the bounding box and intersects parameters
-    if (!purrr::is_null(roi_sf)) {
+    if (!purrr::is_null(roi)) {
         # convert to geojson
-        roi_geojson <- .roi_sf_to_geojson(roi_sf)
+        roi_geojson <- .roi_sf_to_geojson(roi)
     }
     # get the limit items to be returned in each page
     if (is.null(limit)) {

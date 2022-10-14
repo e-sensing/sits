@@ -26,73 +26,40 @@
 #'    sf_object <- sits_as_sf(cube)
 #'}
 #' @export
-sits_as_sf <- function(data, ..., crs) {
+sits_as_sf <- function(data, ..., as_crs = NULL) {
     UseMethod("sits_as_sf", data)
 }
 
 #' @export
 #' @rdname sits_as_sf
-sits_as_sf.sits <- function(data, ..., crs = 4326) {
+sits_as_sf.sits <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
+
+    # Pre-conditions
     .check_samples(data)
 
-    samples_sf <- sf::st_as_sf(data,
-        coords = c("longitude", "latitude"),
-        crs = crs,
-        remove = FALSE
-    )
-    return(samples_sf)
+    # Convert samples to sf
+    geom <- .point_as_sf(.point(data, crs = crs), as_crs = as_crs)
+
+    # Bind columns
+    data <- dplyr::bind_cols(geom, .discard(data, "time_series"))
+
+    return(data)
 }
 
 #' @export
 #' @rdname sits_as_sf
-sits_as_sf.raster_cube <- function(data, ...) {
-    data %>%
-        dplyr::mutate(extent_wgs84 = purrr::pmap(
-            dplyr::select(.,
-                .data[["xmin"]],
-                .data[["xmax"]],
-                .data[["ymin"]],
-                .data[["ymax"]],
-                .data[["crs"]]
-            ),
-            .bbox_wgs84
-        )) %>%
-        dplyr::mutate(sf_obj = purrr::map(
-            .data[["extent_wgs84"]],
-            function(x){
-                sf::st_sfc(
-                    sf::st_polygon(list(rbind(
-                        c(x["xmin"], x["ymin"]),
-                        c(x["xmin"], x["ymax"]),
-                        c(x["xmax"], x["ymax"]),
-                        c(x["xmax"], x["ymin"]),
-                        c(x["xmin"], x["ymin"])
-                   ))),
-                   crs = 4326
-               )
-           })
-        ) %>%
-        dplyr::select(
-            -.data[["xmin"]],
-            -.data[["xmax"]],
-            -.data[["ymin"]],
-            -.data[["ymax"]],
-            -.data[["crs"]],
-            -.data[["extent_wgs84"]]
-        ) %>%
-        dplyr::rowwise() %>%
-        dplyr::group_split() %>%
-        purrr::map(function(x){
-            sf::st_sf(
-                dplyr::select(x, -.data[["sf_obj"]]),
-                geom = magrittr::extract2(dplyr::pull(x, .data[["sf_obj"]]), 1)
-            ) %>%
-            tibble::as_tibble() %>%
-            sf::st_as_sf() %>%
-            return()
-        }) %>%
-        do.call(rbind, .) %>%
-        return()
+sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
+
+    # Pre-conditions
+    .check_is_raster_cube(data)
+
+    # Convert cube bbox to sf
+    geom <- .bbox_as_sf(.bbox_from_tbl(data), as_crs = as_crs)
+
+    # Bind columns
+    data <- dplyr::bind_cols(geom, .discard(data, "file_info"))
+
+    return(data)
 }
 
 #' @title Transform an sf object into a samples file

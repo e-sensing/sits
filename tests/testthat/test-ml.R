@@ -271,7 +271,7 @@ test_that("normalization new version", {
     stats <- .sits_stats(cerrado_2classes)
 
     # In new version only predictors can be normalized
-    preds <- .sits_predictors(cerrado_2classes)
+    preds <- .predictors(cerrado_2classes)
 
     # Now, 'norm1' is a normalized predictors
     preds_norm <- .pred_normalize(preds, stats)

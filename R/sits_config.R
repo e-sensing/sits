@@ -1039,8 +1039,30 @@ sits_list_collections <- function(source = NULL) {
     return(res)
 }
 
-#  Basic access config functions
-#  tests if a key exists in the config.
+#' @title Basic access config functions
+#' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' These are basic functions to access config options.
+#'
+#' @param ... Set of \code{character} values representing a key to access
+#'   some hierarchical config entry.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#' .conf_exists("run_tests") # TRUE
+#' .conf("run_tests")
+#' .conf_exists("not_existing_entry") # FALSE
+#' }
+NULL
+
+#' @title Check if a key exists in config
+#' @noRd
+#' @param throw_error  Should an error be thrown if test fails?
+#' @returns  A logical value or an error if key not found and
+#'   `throw_error` is `TRUE`.
 .conf_exists <- function(..., throw_error = FALSE) {
     key <- c(...)
     exists <- !is.null(.try(sits_env[["config"]][[key]], .default = NULL))
@@ -1050,55 +1072,29 @@ sits_list_collections <- function(source = NULL) {
     # Return test
     exists
 }
-
-# Get a config value based on a key
+#' @title Get a config value based on a key
+#' @noRd
+#' @returns A value in config or an error if key does not exists.
 .conf <- function(...) {
     key <- c(...)
     # Check for key existence and throws an error if it not exists
     .conf_exists(key, throw_error = TRUE)
     sits_env[["config"]][[c(key)]]
 }
-#' #' @title Given a key, get config values
-#' #' @name .conf
-#' #' @keywords internal
-#' #' @return config values associated to a key
-#' .conf <- function(key, default = NULL) {
-#'     res <- tryCatch(
-#'         {
-#'             sits_env$config[[key]]
-#'         },
-#'         error = function(e) {
-#'             return(default)
-#'         }
-#'     )
+#' @title Config functions eo_cube
+#' @noRd
 #'
-#'     # set default
-#'     if (is.null(res)) {
-#'         res <- default
-#'     }
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#'     # post-condition
-#'     .check_null(res,
-#'                 msg = paste(
-#'                     "key",
-#'                     paste0("'", paste0(key, collapse = "$"), "'"),
-#'                     "not found"
-#'                 )
-#'     )
-#'
-#'     return(res)
-#' }
-
-#  Config functions eo_cube
+#' @description
+#' These are syntactic sugar functions to easily access config options for
+#' bands of `eo_cube` cubes which is a S3 class representation
+#' for an Earth Observation cube. It is the primary data used to obtain a
+#' classification map.
 #
-#  These are syntactic sugar functions to easily access config options for
-#  bands of eo_cube cubes which is a S3 class representation
-#  for an Earth Observation cube. It is the primary data used to obtain a
-#  classification map.
-#
-#  The config entries of a eo_cube} are located in
-#  sources -> <SOURCE> -> collections -> <COLLECTION> key.
-#  Values for source, collection, and band are uppercase.
+#' The config entries of a `eo_cube` are located in
+#' `sources -> <SOURCE> -> collections -> <COLLECTION>` key.
+#' Values for source, collection, and band are uppercase.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -1115,15 +1111,15 @@ sits_list_collections <- function(source = NULL) {
 #'   band = "NDVI"
 #' )
 #' }
-#'
-#' @seealso Band accessors: \link{band_accessors}
-#' @family config functions
-#' @keywords internal
-#' @noRd
 NULL
-#    Tests if a band entry exists in config
-#    for source and collection. If neither source
-#    nor collection entries are found in config, an error is thrown.
+
+#' @title Check if a band entry exists in config
+#' @noRd
+#' @param source  Data source.
+#' @param collection  Collection in the data source.
+#' @param band  Band name.
+#' @returns  A logical value or an error if `source` or `collections`
+#'   does not exists.
 .conf_eo_band_exists <- function(source, collection, band) {
     # source, collection, and band are uppercase
     source <- toupper(source)
@@ -1138,10 +1134,16 @@ NULL
     .conf_exists("sources", source, "collections", collection, "bands", band)
 }
 
-#  Get a config value of for a band from a source and collection. If the band
-#  is not found, a default value will be returned from config. If neither
-#  source nor collection entries are found in configuration file, an
-#  error is thrown.
+#' @title Get a config value for a band
+#' @noRd
+#' @param source  Data source.
+#' @param collection  Collection in the data source.
+#' @param band  Band name.
+#' @details
+#' If the band is not found, a default value will be returned from config.
+#' If neither source nor collection entries are found in configuration file,
+#' an error is thrown.
+#' @returns  A value in config.
 .conf_eo_band <- function(source, collection, band) {
     # Format band name
     band <- .band_eo(band)
@@ -1153,46 +1155,57 @@ NULL
     .conf("sources", source, "collections", collection, "bands", band)
 }
 
-#  Config functions for derived_cube
-#  These are syntactic sugar functions to easily access config options for
-#  bands of  derived_cube cubes, which are a S3 class
-#  representation of cubes generated by the classification workflow starting
-#  from an Earth Observation data cube.
-#
-#  There are several classes of \code{derived_cube}:
-#   (a) probs_cube}: multilayer probability cube produced by a
-#   classification with the probabilities attributed to each class by a
-#   model. The possible band names are 'probs', 'bayes', and
-#   'bilat', acronyms for 'probability', 'Bayesian smoothing', and
-#   'Bilateral smoothing'.
-#   (b) class_cube}: labeled cube (classified map) produced by choosing
-#   a label for each pixel. Its unique band name is 'class'.
-#   (c) uncertainty_cube}: a cube produced to measure the uncertainty of
-#   a classification for each pixel. The possible band names are
-#    'least', 'entropy', and 'margin', acronyms for
-#   the method used to produce the cube.
-#
-#  Values for derived_class and band are lowercase. This was
-#  done to avoid conflicts with eo_cube band naming (uppercase).
-#  The config entries of a derived_cube are located in
-#  derived_cube -> <derived_class> key.
-#
-
-#' @name derived_cube_config
+#' @title Config functions for derived_cube
 #' @noRd
-#' @param derived_class  one of the derived classes for a cube
-#' @return Get the S3 class values to instantiate a derived_cube
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' These are syntactic sugar functions to easily access config options for
+#' bands of `derived_cube` cubes. `derived_cube`s are a S3 class
+#' representation of a cube generated by the classification workflow starting
+#' from an Earth Observation data cube.
+#'
+#' There are several classes of `derived_cube`:
+#' * probs_cube: multilayer probability cube produced by a
+#'   classification with the probabilities attributed to each class by a
+#'   model. The possible band names are 'probs', 'bayes', and
+#'   'bilat', acronyms for 'probability', 'Bayesian smoothing', and
+#'   'Bilateral smoothing'.
+#' * class_cube: labeled cube (classified map) produced by choosing
+#'   a label for each pixel. Its unique band name is 'class'.
+#' * uncertainty_cube: a cube produced to measure the uncertainty of
+#'   a classification for each pixel. The possible band names are
+#'   'least', 'entropy', and 'margin', acronyms for the method used to
+#'   produce the cube.
+#'
+#' Values for `derived_class` and band are lowercase. This was
+#' done to avoid conflicts with `eo_cube` band naming (uppercase).
+#' The config entries of a `derived_cube` are located in
+#' `derived_cube -> <derived_class>` key.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#' # get S3 class value that a derived_cube of class 'probs' must have
+#' .conf_derived_s3class("probs")
+#' }
+#'
+NULL
+
+#' @title Get the S3 class values of a `derived_cube`
+#' @noRd
+#' @param derived_class  A `derived_cube` class name.
+#' @return A S3 class.
 .conf_derived_s3class <- function(derived_class) {
     # derived_class is lowercase
     derived_class <- tolower(derived_class)
     .conf("derived_cube", derived_class, "s3_class")
 }
-
-#' @name .conf_derived_band
+#' @title Get a band configuration of a `derived_cube`
 #' @noRd
-#' @param derived_class  one of the derived classes for a cube
-#' @param band    a possible band for a derived cube
-#' @return  Get the S3 class values to instantiate a new derived_cube
+#' @param derived_class  A `derived_cube` class name.
+#' @param band  Band name of `derived_cube`.
+#' @return  A band configuration.
 .conf_derived_band <- function(derived_class, band) {
     # Format band
     band <- .band_derived(band)
@@ -1201,3 +1214,71 @@ NULL
     .conf("derived_cube", derived_class, "bands", band)
 }
 
+
+#' @title Band configuration accessors
+#' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' These functions are read-only accessors of band_conf objects. A
+#' band_conf is an entry of band definition in config. It can be associated
+#' to an eo_cube or derived_cube
+#'
+NULL
+
+#' @title Get the data type from a band configuration
+#' @param conf  A band definition value from config.
+#' @return  Data type associated to the configuration
+.data_type <- function(conf) {
+    .as_chr(conf[["data_type"]][[1]])
+}
+#' @title Get the missing value from a band configuration
+#' @noRd
+#' @param conf  A band definition value from config.
+#' @return  Missing value associated to the band
+.miss_value <- function(conf) {
+    .as_dbl(conf[["missing_value"]][[1]])
+}
+#' @title Get the minimum value from a band configuration
+#' @noRd
+#' @param conf  A band definition value from config.
+#' @return  Minimum value associated to the band
+.min_value <- function(conf) {
+    .as_dbl(conf[["minimum_value"]][[1]])
+}
+#' @title Get the maximum value from a band configuration
+#' @noRd
+#' @param conf  A band definition value from config.
+#' @return  Maximum value associated to the band
+.max_value <- function(conf) {
+    .as_dbl(conf[["maximum_value"]][[1]])
+}
+#' @title Get the scale factor from a band configuration
+#' @noRd
+#' @param conf  A band definition value from config.
+#' @return  Scale factor associated to the band
+.scale <- function(conf) {
+    .as_dbl(conf[["scale_factor"]][[1]])
+}
+#' @title Get the offset value from a band configuration
+#' @noRd
+#' @param conf  A band definition value from config.
+#' @return  Offset value associated to the band
+.offset <- function(conf) {
+    .as_dbl(conf[["offset_value"]][[1]])
+}
+#' @title Get the cloud interpolation values from a band configuration
+#' @noRd
+#' @param conf  A band definition value from config.
+#' @return  Cloud interpolation values associated to the band
+.cloud_interp_values <- function(conf) {
+    .as_int(conf[["interp_values"]])
+}
+#' @title Get the bit mask flag from a band configuration
+#' @noRd
+#' @param conf  A band definition value from config.
+#' @return  Cloud bit mask values associated to the band.
+.cloud_bit_mask <- function(conf) {
+    .as_int(conf[["bit_mask"]][[1]])
+}

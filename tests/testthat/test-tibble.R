@@ -39,7 +39,7 @@ test_that("Bands", {
 test_that("Bbox", {
     bbox <- sits_bbox(samples_modis_ndvi)
     expect_true(all(names(bbox) %in%
-        c("xmin", "ymin", "xmax", "ymax")))
+        c("xmin", "ymin", "xmax", "ymax", "crs")))
     expect_true(bbox["xmin"] < -60.0)
 })
 

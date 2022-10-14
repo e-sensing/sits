@@ -1,6 +1,4 @@
-#---- period API: ----
-
-#' period API
+#' Period API
 #'
 #' According to ISO-8601 a duration is the amount of intervening time
 #' in a time interval. Here, we use a simplified representation of a duration
@@ -28,33 +26,31 @@
 #'
 #' @family data types
 #' @keywords internal
-#' @noRd
 #' @name period_api
+#' @noRd
 NULL
 
-#' @describeIn period_api Check if a character string is a valid
-#' \code{period}.
-#' @noRd
+#' @describeIn period_api Check if a character string is a valid \code{period}.
 #' @returns \code{.period_check()}: nothing.
+#' @noRd
 .period_check <- function(period) {
     if (!grepl("^P[0-9]+[DMY]$", period)) {
         stop("invalid period format")
     }
 }
 
-#' @describeIn period_api Return the value part of a
-#' \code{period}.
-#' @noRd
+#' @describeIn period_api Return the value part of a \code{period}.
 #' @returns \code{.period_val()}: numeric value of a period.
+#' @noRd
 .period_val <- function(period) {
     .period_check(period)
     .as_dbl(gsub("^P([0-9]+)[DMY]$", "\\1", period))
 }
 
 #' @describeIn period_api Return the unit of a \code{period}.
-#' Can be one of \code{'day'}, \code{'month'}, or \code{'year'}.
-#' @noRd
+#'   Can be one of \code{'day'}, \code{'month'}, or \code{'year'}.
 #' @returns \code{.period_unit()}: description of unit of a period.
+#' @noRd
 .period_unit <- function(period) {
     .period_check(period)
     unit <- c(D = "day", M = "month", Y = "year")

@@ -115,7 +115,7 @@ sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     )
 
     .check_that(
-        all(.cube_resolution(data1) == .cube_resolution(data2)),
+        all(.xres(data1) == .xres(data2)) && all(.yres(data1) == .yres(data2)),
         msg = "merge cubes requires same resolution"
     )
     .check_that(

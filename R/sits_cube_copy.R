@@ -6,7 +6,7 @@
 #' bands.
 #'
 #' @param cube       A sits cube
-#' @param roi        A Region of interest. See details bellow.
+#' @param roi        A Region of interest. See details below.
 #' @param res        An integer value corresponds to the output
 #'                   spatial resolution of the images.
 #'                   Default is NULL.
@@ -54,25 +54,25 @@ sits_cube_copy <- function(cube,
                            multicores = 2,
                            progress = TRUE) {
 
-
-    # precondition - cube
+    # Pre-conditions
     .check_is_sits_cube(cube)
-    # precondition - res
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi)
+    }
     .check_res(res)
-    # precondition - output dir
     output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
-    # precondition - multicores
     .check_multicores(multicores)
-    # precondition - progress
-    .check_lgl_type(progress)
+    .check_progress(progress)
+
     # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
+
     # Create assets as jobs
-    assets <- .cube_create_assets(cube)
+    cube_assets <- .cube_split_assets(cube)
     # Process each tile sequentially
-    assets <- .jobs_map_parallel_dfr(assets, function(asset) {
+    cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
         local_asset <- .download_asset(
             asset = asset, res = res, roi = roi, output_dir = output_dir,
             progress = progress
@@ -81,7 +81,7 @@ sits_cube_copy <- function(cube,
         local_asset
     }, progress = progress)
     # Join output assets as a cube and return it
-    .cube_merge_assets(assets)
+    .cube_merge_tiles(cube_assets)
 }
 
 .download_asset <- function(asset, res, roi, output_dir, progress) {
@@ -122,10 +122,10 @@ sits_cube_copy <- function(cube,
 
 .gdal_format_params <- function(asset, roi, res) {
     gdal_params <- list()
-    if (!is.null(res)) {
+    if (.has(res)) {
         gdal_params[["tr"]] <- c(res, res)
     }
-    if (!is.null(roi)) {
+    if (.has(roi)) {
         gdal_params[["srcwin"]] <- .gdal_as_srcwin(asset = asset, roi = roi)
     }
     gdal_params[c("of", "co")] <- list("GTiff", .conf("gdal_creation_options"))

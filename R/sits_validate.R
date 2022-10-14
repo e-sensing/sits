@@ -88,11 +88,8 @@ sits_kfold_validate <- function(samples,
     if (multicores > 1 && .Platform$OS.type == "windows" &&
         "optimizer" %in% ls(environment(ml_method))) {
         multicores <- 1
-        warning(
-            "sits_kfold_validate() works only with 1 core in Windows OS.",
-            call. = FALSE,
-            immediate. = TRUE
-        )
+        warning("sits_kfold_validate() works only with 1 core in Windows OS.",
+                call. = FALSE, immediate. = TRUE)
     }
 
     # Get labels from samples
@@ -123,7 +120,7 @@ sits_kfold_validate <- function(samples,
         # Create a machine learning model
         ml_model <- sits_train(samples = data_train, ml_method = ml_method)
         # Convert samples time series in predictors and preprocess data
-        pred_test <- .sits_predictors(samples = data_test, ml_model = ml_model)
+        pred_test <- .predictors(samples = data_test, ml_model = ml_model)
         # Get predictors features to classify
         values <- .pred_features(pred_test)
         # Classify the test data
@@ -217,9 +214,7 @@ sits_validate <- function(samples,
     # create a machine learning model
     ml_model <- sits_train(samples = samples, ml_method = ml_method)
     # Convert samples time series in predictors and preprocess data
-    predictors <- .sits_predictors(
-        samples = samples_validation, ml_model = ml_model
-    )
+    predictors <- .predictors(samples = samples_validation, ml_model = ml_model)
     # Get predictors features to classify
     values <- .pred_features(predictors)
     # Classify

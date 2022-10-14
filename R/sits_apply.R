@@ -115,7 +115,8 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
                                    multicores = 2, output_dir = getwd(),
                                    progress = TRUE) {
 
-    # check cube
+    # Check cube
+    .check_is_sits_cube(data)
     .check_is_regular(data)
     # Check window size
     .check_window_size(window_size)
@@ -154,7 +155,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # Create features as jobs
-    features_cube <- .cube_create_features(data)
+    features_cube <- .cube_split_features(data)
 
     # Process each feature in parallel
     features_band <- .jobs_map_parallel_dfr(features_cube, function(feature) {
@@ -171,7 +172,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
         return(output_feature)
     }, progress = progress)
     # Join output features as a cube and return it
-    .cube_merge_features(dplyr::bind_rows(list(features_cube, features_band)))
+    .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_band)))
 }
 #' @title Apply a function to one band of a time series
 #' @name .apply
@@ -270,11 +271,11 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
         # Prepare fractions to be saved
         band_conf <- .tile_band_conf(tile = feature, band = out_band)
         offset <- .offset(band_conf)
-        if (!is.null(offset) && offset != 0) {
+        if (.has(offset) && offset != 0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (!is.null(scale) && scale != 1) {
+        if (.has(scale) && scale != 1) {
             values <- values / scale
         }
         # Job crop block
@@ -311,7 +312,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
         # Get band values
         values <- .tile_read_block(tile = tile, band = band, block = block)
         # Remove cloud masked pixels
-        if (!is.null(cloud_mask)) {
+        if (.has(cloud_mask)) {
             values[cloud_mask] <- NA
         }
         # Return values

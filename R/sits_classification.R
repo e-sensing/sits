@@ -96,14 +96,17 @@
 #' }
 #'
 #' @export
-sits_classify <- function(data, ml_model, ...) {
+sits_classify <- function(data, ml_model, ...,
+                          filter_fn = NULL,
+                          multicores = 2,
+                          progress = TRUE) {
 
-    # check data type
+    # Pre-conditions
     data <- .conf_data_meta_type(data)
-    # precondition - is the model valid?
     .check_is_sits_model(ml_model)
+    .check_multicores(multicores)
+    .check_progress(progress)
 
-    # dispatch
     UseMethod("sits_classify", data)
 }
 #' @rdname sits_classify
@@ -115,17 +118,15 @@ sits_classify.sits <- function(data,
                                multicores = 2,
                                progress = TRUE) {
 
-    # precondition: verify that the data to be classified is correct
+    # Pre-conditions
     .check_samples(data)
-    # precondition - multicores
-    .check_multicores(multicores)
 
-    # torch-based models do their own parallelization
-    if (inherits(ml_model, c("torch_model", "xgb_model"))) {
+    # Update multicores: xgb model do its own parallelization
+    if (inherits(ml_model, "xgb_model")) {
         multicores <- 1
     }
 
-    # retrieve the the predicted results
+    # Do classification
     classified_ts <- .sits_classify_ts(
         samples = data,
         ml_model = ml_model,
@@ -153,19 +154,18 @@ sits_classify.raster_cube <- function(data,
                                       progress = TRUE) {
 
     # preconditions
+    .check_is_sits_cube(data)
     .check_is_regular(data)
-    .check_is_sits_model(ml_model)
-    .check_multicores(multicores)
     .check_memsize(memsize)
     .check_output_dir(output_dir)
     .check_version(version)
 
     # Spatial filter
-    if (!is.null(roi)) {
+    if (.has(roi)) {
         data <- .cube_filter_spatial(cube = data, roi = .roi_as_sf(roi))
     }
     # Temporal filter
-    if (!is.null(start_date) || !is.null(end_date)) {
+    if (.has(start_date) || .has(end_date)) {
         data <- .cube_filter_temporal(
             cube = data, start_date = start_date, end_date = end_date
         )
@@ -176,11 +176,11 @@ sits_classify.raster_cube <- function(data,
     .check_samples_tile_match(samples = samples, tile = data)
     # Check memory and multicores
     # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(tile)))
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
-        npaths = length(.tile_path(data)) + length(.ml_labels(ml_model)),
+        npaths = length(.tile_paths(data)) + length(.ml_labels(ml_model)),
         nbytes = 8,
         proc_bloat = .conf("processing_bloat")
     )
@@ -221,7 +221,8 @@ sits_classify.raster_cube <- function(data,
             impute_fn = impute_fn,
             output_dir = output_dir,
             version = version,
-            verbose = verbose
+            verbose = verbose,
+            progress = progress
         )
         return(probs_tile)
     })

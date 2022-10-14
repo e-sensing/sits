@@ -48,7 +48,7 @@ sits_select.sits <- function(data, bands, ...) {
         within = sits_bands(data),
         msg = "Invalid bands values"
     )
-    data <- .sits_filter_bands(data, bands)
+    data <- .sits_select_bands(samples = data, bands = bands)
     return(data)
 }
 
@@ -59,11 +59,11 @@ sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
 
     # filter tiles
     if (!is.null(tiles)) {
-        data <- .cube_filter_tile(data, tiles)
+        data <- .cube_filter_tiles(cube = data, tiles = tiles)
     }
 
     # filter bands
-    data <- .cube_filter_bands(data, bands)
+    data <- .cube_filter_bands(cube = data, bands = bands)
 
     return(data)
 }

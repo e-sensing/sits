@@ -97,15 +97,15 @@ test_that("Plot Time Series and Images", {
 test_that("Dendrogram Plot", {
 
 
-    cluster_obj <- sits:::.sits_cluster_dendrogram(cerrado_2classes,
+    cluster_obj <- .sits_cluster_dendrogram(cerrado_2classes,
         bands = c("NDVI", "EVI")
     )
-    cut.vec <- sits:::.sits_cluster_dendro_bestcut(
+    cut.vec <- .sits_cluster_dendro_bestcut(
         cerrado_2classes,
         cluster_obj
     )
 
-    dend <- sits:::.plot_dendrogram(
+    dend <- .plot_dendrogram(
         data = cerrado_2classes,
         cluster = cluster_obj,
         cutree_height = cut.vec["height"],
