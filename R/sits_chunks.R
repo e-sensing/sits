@@ -41,12 +41,13 @@
 #' @family region objects API
 #' @keywords internal
 #' @name chunks_api
+#' @noRd
 NULL
 
 #' @describeIn chunks_api Creates a tibble of chunks with the same size as
 #'   \code{block} and additional \code{overlap}.
-#'
 #' @returns \code{.chunks_create()}: \code{chunks} tibble.
+#' @noRd
 .chunks_create <- function(block, overlap, image_size, image_bbox) {
     # Generate all starting block points (col, row)
     chunks <- purrr::cross_df(list(
@@ -94,8 +95,8 @@ NULL
 
 #' @describeIn chunks_api Creates an empty \code{raster} object based on the
 #'   first chunk passed in \code{chunk} parameter.
-#'
 #' @returns \code{raster} object.
+#' @noRd
 .chunks_as_raster <- function(chunk, nlayers) {
     .raster_new_rast(
         nrows = .nrows(chunk)[[1]],
@@ -111,8 +112,8 @@ NULL
 
 #' @describeIn chunks_api Creates a \code{chunk} that can be used to
 #'   remove overlaps.
-#'
 #' @returns \code{.chunks_no_overlap()}: \code{chunks} tibble.
+#' @noRd
 .chunks_no_overlap <- function(chunks) {
     # Generate blocks
     cropped <- tibble::tibble(
@@ -150,8 +151,8 @@ NULL
 
 #' @describeIn chunks_api Filter \code{chunks} that intersects a given
 #'   \code{roi}.
-#'
 #' @returns \code{.chunks_filter_spatial()}: \code{chunks} tibble.
+#' @noRd
 .chunks_filter_spatial <- function(chunks, roi) {
-    chunks[.intersects(.bbox_as_sf(chunks), .roi_as_sf(roi)), ]
+    chunks[.intersects(.bbox_as_sf(.bbox(chunks)), .roi_as_sf(roi)), ]
 }
