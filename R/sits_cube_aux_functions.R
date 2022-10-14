@@ -639,59 +639,51 @@ NULL
     cube[during, ]
 }
 
-#' @name .cube_filter_bands
-#' @description filter the cube based on a set of bands
-#' @keywords internal
-#' @param   cube   data cube
-#' @param   bands  set of bands
-#' @return         filtered data cube
+#' @describeIn cube_api Select bands of each \code{tile} based on the
+#'   set of informed \code{bands}. Returns \code{cube} with selected bands.
+#' @noRd
 .cube_filter_bands <- function(cube, bands) {
     UseMethod(".cube_filter_bands", cube)
 }
-#' @keywords internal
+
+#' @export
 .cube_filter_bands.raster_cube <- function(cube, bands) {
-    slider::slide_dfr(cube, function(tile) {
+    .cube_foreach_tile(cube, function(tile) {
         .tile_filter_bands(tile = tile, bands = bands)
     })
 }
 
-#' @name .cube_tiles
-#' @description Returns the tiles of a data cube
-#' @keywords internal
-#' @param cube
-#' @return set of the tiles of the cube
+#' @describeIn cube_api Get the tile names of a \code{cube}. Returns a
+#'   \code{character} vector.
+#' @noRd
 .cube_tiles <- function(cube) {
     UseMethod(".cube_tiles", cube)
 }
-#' @keywords internal
+
+#' @export
 .cube_tiles.raster_cube <- function(cube) {
     .as_chr(cube[["tile"]])
 }
 
-#' @name .cube_filter_tile
-#' @description filter the cube to retrieve a single tile
-#' @keywords internal
-#' @param    cube   datacube
-#' @param    tile   name of a tile
-#' @return   filtered cube
-.cube_filter_tile <- function(cube, tile) {
-    UseMethod(".cube_filter_tile", cube)
-}
-#' @keywords internal
-.cube_filter_tile.raster_cube <- function(cube, tile) {
-    cube[.cube_tiles(cube) %in% tile, ]
-}
-
-
-#' @name .cube_create_features
-#' @description create internal cube features with ID
-#' @keywords internal
+#' @describeIn cube_api Filters a cube by tile name. Returns a filtered
+#'   \code{cube}.
 #' @noRd
-#' @param cube  datacube
-#' @return cube with feature ID in file info
-.cube_create_features <- function(cube) {
+.cube_filter_tiles <- function(cube, tiles) {
+    UseMethod(".cube_filter_tiles", cube)
+}
+
+#' @export
+.cube_filter_tiles.raster_cube <- function(cube, tiles) {
+    cube[.cube_tiles(cube) %in% tiles, ]
+}
+
+#' @describeIn cube_api Splits each \code{file_info} feature into a distinct
+#'   tile in data \code{cube}. Returns a \code{cube} with as much tiles as
+#'   features in \code{file_info}.
+#' @noRd
+.cube_split_features <- function(cube) {
     # Process for each tile and return a cube
-    slider::slide_dfr(cube, function(tile) {
+    .cube_foreach_tile(cube, function(tile) {
         features <- tile[, c("tile", "file_info")]
         features <- tidyr::unnest(features, "file_info")
         features[["feature"]] <- features[["fid"]]
@@ -703,35 +695,13 @@ NULL
     })
 }
 
-#' @name .cube_merge_features
-#' @description merge features into a data cube
-#' @keywords internal
+#' @describeIn cube_api Splits each \code{file_info} asset (feature and band)
+#'   into a distinct tile in data \code{cube}. Returns a \code{cube} with
+#'   as much tiles as assets in \code{file_info}.
 #' @noRd
-#' @param features  cube features
-#' @return merged data cube
-.cube_merge_features <- function(features) {
-    cube <- tidyr::unnest(features, "file_info", names_sep = ".")
-    cube <- dplyr::arrange(
-        cube, .data[["file_info.date"]], .data[["file_info.band"]]
-    )
-    cube <- tidyr::nest(
-        cube, file_info = tidyr::starts_with("file_info"),
-        .names_sep = "."
-    )
-    # Set class features and return
-    .set_class(cube, class(features))
-}
-
-
-#' @name .cube_create_assets
-#' @description create assets for a data cube, by assigning a unique ID
-#' @keywords internal
-#' @param  cube  datacube
-#' @return a data cube with
-#'
-.cube_create_assets <- function(cube) {
+.cube_split_assets <- function(cube) {
     # Process for each tile and return a cube
-    slider::slide_dfr(cube, function(tile) {
+    .cube_foreach_tile(cube, function(tile) {
         assets <- tile[, c("tile", "file_info")]
         assets <- tidyr::unnest(assets, "file_info")
         assets[["feature"]] <- assets[["fid"]]
