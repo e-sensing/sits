@@ -16,7 +16,7 @@
 }
 
 .file_normalize <- function(file) {
-    normalizePath(path.expand(file))
+    path.expand(file)
 }
 
 .file_path <- function(..., ext = NULL, output_dir = NULL,
