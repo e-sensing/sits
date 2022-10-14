@@ -119,8 +119,9 @@
 #' @param roi A \code{roi}.
 #' @param ... Parameters to be evaluated accordingly to \code{roi} type.
 #' @param default_crs If no CRS is present in a \code{bbox} object passed
-#' to \code{crs}, which CRS should be used? If \code{NULL} default CRS will
-#' be \code{'EPSG:4326'}.
+#'   to \code{crs}, which CRS should be used? If \code{NULL} default CRS will
+#'   be \code{'EPSG:4326'}.
+#' @param as_crs CRS to project \code{sf} object.
 #'
 #' @examples
 #' if (sits_run_examples()) {
