@@ -6,7 +6,14 @@
 \alias{sits_classify.raster_cube}
 \title{Classify time series or data cubes}
 \usage{
-sits_classify(data, ml_model, ...)
+sits_classify(
+  data,
+  ml_model,
+  ...,
+  filter_fn = NULL,
+  multicores = 2,
+  progress = TRUE
+)
 
 \method{sits_classify}{sits}(
   data,

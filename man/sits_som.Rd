@@ -45,13 +45,11 @@ sits_som_evaluate_cluster(som_map)
 
 \item{mode}{Type of learning algorithm (default = "online").}
 
-\item{som_map}{Object returned by \code{\link[sits]{sits_som_map}}.}
+\item{som_map}{Kohonen map}
 
-\item{prior_threshold}{Threshold of conditional probability
-(frequency of samples assigned to the same SOM neuron).}
+\item{prior_threshold}{prior to bayesian analysis}
 
-\item{posterior_threshold}{Threshold of posterior probability
-(influenced by the SOM neighborhood).}
+\item{posterior_threshold}{used after bayesian analysis}
 
 \item{keep}{Which types of evaluation to be maintained in the data.}
 }
@@ -67,11 +65,9 @@ based on the frequency of samples of this class allocated to the neuron;
 (b) the posterior probability that this class belongs to a cluster,
 using data for the neighbours on the SOM map.
 
-\code{sits_som_clean_samples()} produces
-a sits tibble with an two additional columns.The first indicates if
-each sample is clean, should be analyzed or
-should be removed. The second indicates
-the posterior probability of the sample
+tibble with an two additional columns.
+The first indicates if each sample is clean, should be analyzed or
+should be removed. The second is the posterior probability of the sample.
 
 \code{sits_som_evaluate_cluster()} produces a tibble with the clusters
 found by the SOM map. For each cluster, ir provides the percentage

@@ -10,8 +10,6 @@
 \alias{.tile_size}
 \alias{.tile_labels}
 \alias{.tile_labels<-}
-\alias{.tile_file_info}
-\alias{.tile_file_info<-}
 \title{Tile field accessors}
 \usage{
 .tile_source(tile)
@@ -29,10 +27,6 @@
 .tile_labels(tile)
 
 .tile_labels(tile) <- value
-
-.tile_file_info(tile)
-
-.tile_file_info(tile) <- value
 }
 \arguments{
 \item{tile}{A \code{tile} or \code{cube} (only first row will be considered).}
@@ -68,18 +62,6 @@ field (if it exists) or from first \code{nrows} in file_info.
 
 \item \code{.tile_labels(tile) <- value}: Set \code{'labels'} field of a \code{tile}.
 
-\item \code{.tile_file_info()}: Get \code{'file_info'} field of a \code{tile}.
-
-\item \code{.tile_file_info(tile) <- value}: Set \code{'file_info'} field of a \code{tile}.
-
 }}
-\seealso{
-Other accessors: 
-\code{\link{band_accessors}},
-\code{\link{bbox_accessors}},
-\code{\link{block_accessors}},
-\code{\link{chunk_accessors}},
-\code{\link{point_accessors}}
-}
 \concept{accessors}
 \keyword{internal}
