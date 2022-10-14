@@ -269,7 +269,27 @@
 
     return(src)
 }
-
+#' @title Verify if cube is regular
+#' @name .cube_is_regular
+#' @keywords internal
+#' @noRd
+#' @param cube  datacube
+#' @return logical
+.cube_is_regular <- function(cube) {
+    if (!.check_has_unique_bands(cube)) {
+        return(FALSE)
+    }
+    if (!.check_has_unique_bbox(cube)) {
+        return(FALSE)
+    }
+    if (!.check_has_unique_tile_size(cube)) {
+        return(FALSE)
+    }
+    if (!.check_has_unique_timeline(cube)) {
+        return(FALSE)
+    }
+    return(TRUE)
+}
 #' @title Generate token to cube
 #' @name .cube_token_generator
 #' @keywords internal
