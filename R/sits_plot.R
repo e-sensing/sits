@@ -365,7 +365,7 @@ plot.raster_cube <- function(
                 msg = "date is not contained in the cube timeline")
 
     # filter the tile to be processed
-    tile <- .cube_filter_tile(x, tile)
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # Plot a B/W band as false color
     if (!purrr::is_null(band)) {
@@ -441,7 +441,7 @@ plot.probs_cube <- function(
     )
 
     # filter the cube
-    tile <- .cube_filter_tile(x, tile)
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot the probs cube
     p <- .plot_probs(tile, labels, palette, rev)
@@ -503,7 +503,7 @@ plot.uncertainty_cube <- function(
     )
 
     # filter the cube
-    tile <- cube_filter_tile(x, tile)
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # read the files to plot
     file <- .fi(tile) %>% .fi_path()
@@ -766,7 +766,7 @@ plot.class_cube <- function(x, y, ...,
         )
     }
     # select only one tile
-    cube <- .cube_filter_tile(cube, tiles)
+    cube <- .cube_filter_tiles(cube = cube, tiles = tiles)
 
     r_objs <- slider::slide(cube, function(tile) {
         # get the raster object
