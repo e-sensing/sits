@@ -17,7 +17,7 @@ NULL
 #'
 #' @return   all source names available in sits.
 .sources <- function() {
-    src <- .conf("sources")
+    src <- names(.conf("sources"))
     # source names are upper case
     src <- toupper(src)
     # post-condition
@@ -189,7 +189,7 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
     # find the bands available in the collection
-    bands <- .conf("sources", source, "collections", collection, "bands")
+    bands <- names(.conf("sources", source, "collections", collection, "bands"))
     # bands names are upper case
     bands <- toupper(bands)
     # add the cloud band?
