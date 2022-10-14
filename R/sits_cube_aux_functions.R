@@ -517,23 +517,18 @@ NULL
     .as_date(values)
 }
 
-#' @name .cube_timeline_acquisiton
-#' @keywords internal
-#' @param cube A cube.
-#' @param period Period character vector in ISO format.
-#' @param origin A date.
-#' @description Compute how many images were acquired in different periods
-#' and different tiles.
-#' @return tibble
-.cube_timeline_acquisiton <- function(cube, period, origin) {
-    UseMethod(".cube_timeline_acquisiton", cube)
+#' @describeIn cube_api Compute how many images were acquired in different
+#'   periods and different tiles. Returns a \code{tibble} with all acquisition
+#'   dates organized by tile.
+#' @noRd
+.cube_timeline_acquisition <- function(cube, period, origin) {
+    UseMethod(".cube_timeline_acquisition", cube)
 }
 
 #' @export
-.cube_timeline_acquisiton.raster_cube <-
-    function(cube,
-             period = "P1D",
-             origin = NULL) {
+.cube_timeline_acquisition.raster_cube <- function(cube,
+                                                   period = "P1D",
+                                                   origin = NULL) {
         if (!.has(origin)) {
             origin <- .cube_start_date(cube)
         }
