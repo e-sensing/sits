@@ -193,13 +193,7 @@
         tidyr::nest(features = -.data[["fid"]])
 
     features <- slider::slide_dfr(features, function(feat) {
-        bbox <- .bbox_wgs84(
-            xmin = feat$features[[1]][["xmin"]][[1]],
-            xmax = feat$features[[1]][["xmax"]][[1]],
-            ymin = feat$features[[1]][["ymin"]][[1]],
-            ymax = feat$features[[1]][["ymax"]][[1]],
-            crs = feat$features[[1]][[crs_type]][[1]]
-        )
+        bbox <- .bbox(feat$features[[1]][1, ], as_crs = "EPSG:4326")
 
         feat$features[[1]] <- dplyr::mutate(feat$features[[1]],
                                             xmin = bbox[["xmin"]],
