@@ -24,10 +24,11 @@
 #' @param  impute_fn       Impute function to replace NA.
 #' @param  output_dir      Output directory.
 #' @param  version         Version of result.
-#' @param  verbose         print processing information?
+#' @param  verbose         Print processing information?
+#' @param  progress        Show progress bar?
 #' @return List of the classified raster layers.
 .classify_tile  <- function(tile, band, ml_model, roi, filter_fn, impute_fn,
-                            output_dir, version, verbose) {
+                            output_dir, version, verbose, progress) {
 
     # Output file
     out_file <- .file_derived_name(
@@ -160,7 +161,7 @@
         gc()
         # Returned block file
         block_file
-    })
+    }, progress = progress)
     # Merge blocks into a new probs_cube tile
     probs_tile <- .tile_probs_merge_blocks(
         file = out_file, band = band, labels = .ml_labels(ml_model),
