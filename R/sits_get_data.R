@@ -153,10 +153,11 @@ sits_get_data.csv <- function(cube,
                               crs = 4326,
                               impute_fn = sits_impute_linear(),
                               multicores = 2,
-                              output_dir = ".",
+                              output_dir = getwd(),
                               progress = FALSE) {
-    samples <- .sits_get_samples_from_csv(samples)
 
+    # Get samples
+    samples <- .sits_get_samples_from_csv(samples)
     data <- .sits_get_ts(
         cube       = cube,
         samples    = samples,
