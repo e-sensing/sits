@@ -1734,23 +1734,10 @@
 #' @param cube  datacube
 #' @return  TRUE/FALSE
 .check_is_regular <- function(cube) {
-    if (!.check_has_unique_bands(cube)) {
-        return(FALSE)
-    }
-
-    if (!.check_has_unique_bbox(cube)) {
-        return(FALSE)
-    }
-
-    if (!.check_has_unique_tile_size(cube)) {
-        return(FALSE)
-    }
-
-    if (!.check_has_unique_timeline(cube)) {
-        return(FALSE)
-    }
-
-    return(TRUE)
+    .check_that(
+        x = .cube_is_regular(cube),
+        msg = "cube is not regular, please run sits_regularize() first"
+    )
 }
 
 #' @title Check if the bands of all tiles of the cube are the same
