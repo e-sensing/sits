@@ -200,6 +200,15 @@ NULL
     do.call(rbind, args = x)
 }
 
+.discard <- function(data, cols) {
+    cols <- which(names(data) %in% cols)
+    if (.has(cols)) {
+        data <- data[-cols]
+    }
+    # Return data
+    data
+}
+
 .by <- function(data, col, fn, ...) {
     if (!col %in% names(data)) {
         stop("invalid 'col' parameter: '", col, "' not found in data columns")
