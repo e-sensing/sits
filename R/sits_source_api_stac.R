@@ -238,10 +238,8 @@
         )
         # check if metadata was retrieved
         if (is.null(asset_info)) {
-            warning(paste(
-                "cannot open files:\n",
-                paste(paths, collapse = ", ")
-            ), call. = FALSE)
+            warning("cannot open files:\n", paste(paths, collapse = ", "),
+                    call. = FALSE)
             return(NULL)
         }
         # generate file_info
@@ -307,10 +305,8 @@
                 )
                 # check if metadata was retrieved
                 if (is.null(asset_info)) {
-                    warning(paste(
-                        "cannot open files:\n",
-                        paste(paths, collapse = ", ")
-                    ), call. = FALSE)
+                    warning("cannot open files:\n",
+                            paste(paths, collapse = ", "), call. = FALSE)
                     return(NULL)
                 }
             }
@@ -347,9 +343,9 @@
     # review known malformed paths
     review_date <- .try(
         .conf(
-        "sources", source,
-        "collections", collection,
-        "review_dates"
+            "sources", source,
+            "collections", collection,
+            "review_dates"
         ),
         .default = NA
     )
