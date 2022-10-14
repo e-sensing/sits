@@ -234,7 +234,7 @@ NULL
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' x <- .bbox_as_sf(c(xmin=1, xmax=2, ymin=3, ymax=4, crs=4326))
+#' x <- .bbox_as_sf(.bbox(c(xmin=1, xmax=2, ymin=3, ymax=4, crs=4326)))
 #' y <- .roi_as_sf(c(lon_min=1.5, lon_max=3, lat_min=3.5, lat_max=5))
 #' .intersects(x, y) # TRUE
 #' }
@@ -268,7 +268,7 @@ NULL
 }
 
 .common_size <- function(...) {
-    c(data.frame(...))
+    tibble::tibble(...)
 }
 
 #---- Generic accessors ----
@@ -677,39 +677,57 @@ NULL
 #' @family region objects API
 #' @keywords internal
 #' @name point_api
+#' @noRd
 NULL
 
 # point fields
 .point_cols <- c("longitude", "latitude")
 
 #' @describeIn point_api Does vector \code{x} has \code{point} fields?
-#'
 #' @returns \code{.has_point()}: \code{logical}.
+#' @noRd
 .has_point <- function(x) {
     all(.point_cols %in% names(x))
 }
 
-#' @describeIn point_api Extract a \code{point} from any given
-#' \code{vector}.
-#'
+#' @describeIn point_api Is vector \code{x} a \code{point} object?
+#' @returns \code{.is_point()}: \code{logical}.
+#' @noRd
+.is_point <- function(x) {
+    setequal(names(x), c(.point_cols, "crs"))
+}
+
+.check_point <- function(x) {
+    if (!.is_point(x)) {
+        stop("object is not a valid point")
+    }
+}
+
+#' @describeIn point_api Extract a \code{point} from any given \code{vector}.
 #' @returns \code{.point()}: \code{point}.
-.point <- function(x, ..., crs = NULL) {
+#' @noRd
+.point <- function(x, crs = NULL, as_crs = NULL) {
     if (!.has_point(x)) {
         return(NULL)
     }
     if (!.has(crs)) crs <- "EPSG:4326"
-    list(longitude = .lon(x), latitude = .lat(x), crs = crs)
+    # Create point
+    point <- .common_size(longitude = .lon(x), latitude = .lat(x), crs = crs)
+    # Project to CRS
+    if (.has(as_crs)) {
+        point <- .point_as_sf(point = point, as_crs = as_crs)
+    }
+    # Return point
+    point
 }
 
 #' @describeIn point_api Convert a \code{point} into a
 #' \code{sf} point object.
-#'
 #' @returns \code{.point_as_sf()}: \code{sf}.
-.point_as_sf <- function(point, ..., crs = NULL, as_crs = NULL) {
-    point <- .point(point, crs = crs)
-    if (!.has(point)) {
-        stop("object does not have a valid point")
-    }
+#' @noRd
+.point_as_sf <- function(point, as_crs = NULL) {
+    #Check for valid point
+    .check_point(point)
     # Convert to sf object and return it
     purrr::pmap_dfr(point, function(longitude, latitude, crs) {
         geom <- sf::st_sf(
