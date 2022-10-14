@@ -32,88 +32,28 @@ sits_bbox <- function(data, ..., as_crs = NULL) {
 #' @rdname sits_bbox
 #' @export
 #'
-sits_bbox.sits <- function(data, ...) {
+sits_bbox.sits <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
 
-    # Get the max and min longitudes and latitudes
-    lon_max <- max(data$longitude)
-    lon_min <- min(data$longitude)
-    lat_max <- max(data$latitude)
-    lat_min <- min(data$latitude)
-    # create and return the bounding box
-    bbox <- c(lon_min, lat_min, lon_max, lat_max)
-    names(bbox) <- c("xmin", "ymin", "xmax", "ymax")
+    # Pre-conditions
+    .check_samples(data)
+
+    # Convert to bbox
+    bbox <- .bbox(.point(x = data, crs = crs, as_crs = as_crs))
+
     return(bbox)
 }
 #' @rdname sits_bbox
 #' @export
 #'
-sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
+sits_bbox.sits_cube <- function(data, ..., as_crs = NULL) {
 
     # Pre-condition
     .check_is_sits_cube(data)
 
-    if (!wgs84 && length(unique(data[["crs"]])) > 1) {
-        warning("cube has more than one projection - using wgs84 coords")
-        wgs84 <- TRUE
-    }
-    if (wgs84) {
-        bbox_dfr <- slider::slide_dfr(data, function(tile) {
-            # create and return the bounding box
-
-            bbox <- .sits_coords_to_bbox_wgs84(
-                xmin = tile[["xmin"]],
-                ymin = tile[["ymin"]],
-                xmax = tile[["xmax"]],
-                ymax = tile[["ymax"]],
-                crs  = tile[["crs"]][[1]]
-            )
-            tibble::as_tibble_row(c(bbox))
-        })
-    } else {
-        bbox_dfr <- data[c("xmin", "ymin", "xmax", "ymax")]
-    }
-    bbox <- c(
-        "xmin" = min(bbox_dfr[["xmin"]]),
-        "ymin" = min(bbox_dfr[["ymin"]]),
-        "xmax" = max(bbox_dfr[["xmax"]]),
-        "ymax" = max(bbox_dfr[["ymax"]])
-    )
+    # Convert to bbox
+    bbox <- .bbox(x = data, as_crs = as_crs)
 
     return(bbox)
-}
-#' @title Convert coordinates to bounding box
-#' @name .bbox_wgs84
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param xmin           Minimum X coordinate
-#' @param ymin           Minimum Y coordinate
-#' @param xmax           Maximum X coordinate
-#' @param ymax           Maximum Y coordinate
-#' @param crs            Projection for X,Y coordinates
-#' @return               Coordinates in WGS84.
-.bbox_wgs84 <- function(xmin, xmax, ymin, ymax, crs) {
-    pt1 <- c(xmin, ymax)
-    pt2 <- c(xmax, ymax)
-    pt3 <- c(xmax, ymin)
-    pt4 <- c(xmin, ymin)
-
-    # detect if crs is an EPSG code
-    epsg <- suppressWarnings(as.numeric(crs))
-    if (!is.na(epsg)) {
-        crs <- epsg
-    }
-
-    bbox <- sf::st_sfc(
-        sf::st_polygon(list(rbind(pt1, pt2, pt3, pt4, pt1))),
-        crs = crs
-    )
-
-    # Create a polygon and transform the proj
-    bbox_latlng <- c(sf::st_bbox(sf::st_transform(bbox, crs = 4326)))
-
-    return(bbox_latlng)
 }
 
 #' @title Intersection between a bounding box and a cube
@@ -164,26 +104,6 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
     return(bbox_out)
 }
 
-#' @title Convert a bounding box to a sf object (polygon)
-#' @name .sits_bbox_to_sf
-#' @keywords internal
-#' @noRd
-#' @param xmin,xmax,ymin,ymax  Bounding box values.
-#' @param crs                  Valid crs value.
-#' @return                     An sf object.
-#'
-.sits_bbox_to_sf <- function(xmin, xmax, ymin, ymax, crs) {
-    pt1 <- c(xmin, ymax)
-    pt2 <- c(xmax, ymax)
-    pt3 <- c(xmax, ymin)
-    pt4 <- c(xmin, ymin)
-
-    sf_obj <- sf::st_sf(geometry = sf::st_sfc(
-        sf::st_polygon(list(rbind(pt1, pt2, pt3, pt4, pt1)))
-    ), crs = crs)
-
-    return(sf_obj)
-}
 #---- bbox API: ----
 
 #' Bbox API
