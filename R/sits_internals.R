@@ -31,30 +31,42 @@
 #' @family data types
 #' @keywords internal
 #' @name data_type
+#' @noRd
 NULL
 
 #' @describeIn data_type Convert an input to \code{integer}.
 #'   Returns \code{integer} or \code{NULL} if value is empty.
+#' @noRd
 .as_int <- function(x) {
     .default(as.integer(x))
 }
 
 #' @describeIn data_type Convert an input to \code{character}.
 #'   Returns \code{character} or \code{NULL} if value is empty.
+#' @noRd
 .as_chr <- function(x) {
     .default(as.character(x))
 }
 
 #' @describeIn data_type Convert an input to \code{numeric}.
 #'   Returns \code{numeric} or \code{NULL} if value is empty.
+#' @noRd
 .as_dbl <- function(x) {
     .default(as.numeric(x))
+}
+
+#' @describeIn data_type Convert an input to \code{Date}.
+#'   Returns \code{Date} or \code{NULL} if value is empty.
+#' @noRd
+.as_date <- function(x) {
+    .default(lubridate::as_date(unlist(x, recursive = FALSE)))
 }
 
 #' @describeIn data_type Check if an input has a value or not. Any zero length
 #'   value of any type is evaluated as \code{FALSE}. This function is broader
 #'   than \code{is.null()} that only accounts for \code{NULL} value.
 #'   Returns \code{logical}.
+#' @noRd
 .has <- function(x) {
     length(x) > 0
 }
@@ -62,6 +74,7 @@ NULL
 #' @describeIn data_type Check if an input has names or not. If there is
 #'   any element without a name the function evaluates as \code{FALSE}.
 #'   Returns \code{logical}.
+#' @noRd
 .has_name <- function(x) {
     if (.has(names(x))) return(names(x) != "")
     rep(FALSE, length(x))
@@ -69,6 +82,7 @@ NULL
 
 #' @describeIn data_type Set \code{class} of object \code{x}.
 #'   Returns updated \code{x} object.
+#' @noRd
 .set_class <- function(x, ...) {
     class(x) <- unique(c(...))
     x
@@ -78,6 +92,7 @@ NULL
 #'   only one unique value, return it. Otherwise return all \code{x}.
 #'   Returns same value as \code{x} or the unique value in \code{x} (if
 #'   this is the case).
+#' @noRd
 .compact <- function(x) {
     value <- unique(x)
     if (length(value) != 1) {
@@ -153,7 +168,7 @@ NULL
 #' @seealso \code{\link[base]{tryCatch}}
 #' @family utility functions
 #' @keywords internal
-
+#' @noRd
 .try <- function(expr,
                  ...,
                  .rollback = NULL,
@@ -218,6 +233,7 @@ NULL
 #' @family utility functions
 #' @family region objects API
 #' @keywords internal
+#' @noRd
 .intersects <- function(x, y) {
     as_crs <- sf::st_crs(x)
     y <- sf::st_transform(y, crs = as_crs)
@@ -279,47 +295,56 @@ NULL
 #' @family accessors
 #' @keywords internal
 #' @name bbox_accessors
+#' @noRd
 NULL
 
 #' @describeIn bbox_accessors Get \code{'xmin'} field.
+#' @noRd
 .xmin <- function(x) {
     .as_dbl(.compact(x[["xmin"]]))
 }
 
 #' @describeIn bbox_accessors Set \code{'xmin'} field as numeric.
+#' @noRd
 `.xmin<-` <- function(x, value) {
     x[["xmin"]] <- .as_dbl(value)
     x
 }
 
 #' @describeIn bbox_accessors Get \code{'xmax'} field.
+#' @noRd
 .xmax <- function(x) {
     .as_dbl(.compact(x[["xmax"]]))
 }
 
 #' @describeIn bbox_accessors Set \code{'xmax'} field as numeric.
+#' @noRd
 `.xmax<-` <- function(x, value) {
     x[["xmax"]] <- .as_dbl(value)
     x
 }
 
 #' @describeIn bbox_accessors Get \code{'ymin'} field.
+#' @noRd
 .ymin <- function(x) {
     .as_dbl(.compact(x[["ymin"]]))
 }
 
 #' @describeIn bbox_accessors Set \code{'ymin'} field as numeric.
+#' @noRd
 `.ymin<-` <- function(x, value) {
     x[["ymin"]] <- .as_dbl(value)
     x
 }
 
 #' @describeIn bbox_accessors Get \code{'ymax'} field.
+#' @noRd
 .ymax <- function(x) {
     .as_dbl(.compact(x[["ymax"]]))
 }
 
 #' @describeIn bbox_accessors Set \code{'ymax'} field as numeric.
+#' @noRd
 `.ymax<-` <- function(x, value) {
     x[["ymax"]] <- .as_dbl(value)
     x
@@ -327,6 +352,7 @@ NULL
 
 #' @describeIn bbox_accessors Convert a CRS numeric value to \code{character},
 #'   appending it after \code{'EPSG:'}.
+#' @noRd
 .as_crs <- function(x) {
     if (.has(x)) {
         if (is.character(x))
@@ -341,11 +367,13 @@ NULL
 }
 
 #' @describeIn bbox_accessors Get \code{'crs'} field.
+#' @noRd
 .crs <- function(x) {
     .as_crs(x[["crs"]])
 }
 
 #' @describeIn bbox_accessors Set \code{'crs'} field as \code{character} string.
+#' @noRd
 `.crs<-` <- function(x, value) {
     x[["crs"]] <- .as_crs(value)
     x
@@ -382,47 +410,56 @@ NULL
 #' @family accessors
 #' @keywords internal
 #' @name block_accessors
+#' @noRd
 NULL
 
 #' @describeIn block_accessors Get \code{'col'} field.
+#' @noRd
 .col <- function(x) {
     .as_int(.compact(x[["col"]]))
 }
 
 #' @describeIn block_accessors Set \code{'col'} field as integer.
+#' @noRd
 `.col<-` <- function(x, value) {
     x[["col"]] <- .as_int(value)
     x
 }
 
 #' @describeIn block_accessors Get \code{'row'} field.
+#' @noRd
 .row <- function(x) {
     .as_int(.compact(x[["row"]]))
 }
 
 #' @describeIn block_accessors Set \code{'row'} field as integer.
+#' @noRd
 `.row<-` <- function(x, value) {
     x[["row"]] <- .as_int(value)
     x
 }
 
 #' @describeIn block_accessors Get \code{'ncols'} field.
+#' @noRd
 .ncols <- function(x) {
     .as_int(.compact(x[["ncols"]]))
 }
 
 #' @describeIn block_accessors Set \code{'ncols'} field as integer.
+#' @noRd
 `.ncols<-` <- function(x, value) {
     x[["ncols"]] <- .as_int(value)
     x
 }
 
 #' @describeIn block_accessors Get \code{'nrows'} field.
+#' @noRd
 .nrows <- function(x) {
     .as_int(.compact(x[["nrows"]]))
 }
 
 #' @describeIn block_accessors Set \code{'nrows'} field as integer.
+#' @noRd
 `.nrows<-` <- function(x, value) {
     x[["nrows"]] <- .as_int(value)
     x
@@ -454,14 +491,17 @@ NULL
 #' @family accessors
 #' @keywords internal
 #' @name chunk_accessors
+#' @noRd
 NULL
 
 #' @describeIn chunk_accessors Computes \code{x} resolution of a \code{chunk}.
+#' @noRd
 .xres <- function(x) {
     (.xmax(x) - .xmin(x)) / .ncols(x)
 }
 
 #' @describeIn chunk_accessors Computes \code{y} resolution of a \code{chunk}.
+#' @noRd
 .yres <- function(x) {
     (.ymax(x) - .ymin(x)) / .nrows(x)
 }
@@ -483,8 +523,6 @@ NULL
 #'   collection = "MOD13Q1-6",
 #'   band = "NIR"
 #' )
-#'
-#' .
 #' }
 #'
 #' @returns Respective configuration value.
@@ -492,44 +530,53 @@ NULL
 #' @family accessors
 #' @keywords internal
 #' @name band_accessors
+#' @noRd
 NULL
 
 #' @describeIn band_accessors Get \code{data_type} entry.
+#' @noRd
 .data_type <- function(conf) {
     .as_chr(conf[["data_type"]][[1]])
 }
 
 #' @describeIn band_accessors Get \code{missing_value} entry.
+#' @noRd
 .miss_value <- function(conf) {
     .as_dbl(conf[["missing_value"]][[1]])
 }
 
 #' @describeIn band_accessors Get \code{minimum_value} entry.
+#' @noRd
 .min_value <- function(conf) {
     .as_dbl(conf[["minimum_value"]][[1]])
 }
 
 #' @describeIn band_accessors Get \code{maximum_value} entry.
+#' @noRd
 .max_value <- function(conf) {
     .as_dbl(conf[["maximum_value"]][[1]])
 }
 
 #' @describeIn band_accessors Get \code{scale_factor} entry.
+#' @noRd
 .scale <- function(conf) {
     .as_dbl(conf[["scale_factor"]][[1]])
 }
 
 #' @describeIn band_accessors Get \code{offset_value} entry.
+#' @noRd
 .offset <- function(conf) {
     .as_dbl(conf[["offset_value"]][[1]])
 }
 
 #' @describeIn band_accessors Get \code{interp_values} entry.
+#' @noRd
 .cloud_interp_values <- function(conf) {
     .as_int(conf[["interp_values"]])
 }
 
 #' @describeIn band_accessors Get \code{bit_mask} entry.
+#' @noRd
 .cloud_bit_mask <- function(conf) {
     .as_int(conf[["bit_mask"]][[1]])
 }
@@ -549,7 +596,7 @@ NULL
 #' @param value Value to set on object field.
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' x <- c(longitude = "123")
 #' .lon(x) # 123 as number
 #' x <- list(longitude = 1:10)
@@ -563,25 +610,30 @@ NULL
 #' @family accessors
 #' @keywords internal
 #' @name point_accessors
+#' @noRd
 NULL
 
 #' @describeIn point_accessors Get \code{'longitude'} field.
+#' @noRd
 .lon <- function(x) {
     .as_dbl(.compact(x[["longitude"]]))
 }
 
 #' @describeIn point_accessors Set \code{'longitude'} field as numeric.
+#' @noRd
 `.lon<-` <- function(x, value) {
     x[["longitude"]] <- .as_dbl(value)
     x
 }
 
 #' @describeIn point_accessors Get \code{'latitude'} field.
+#' @noRd
 .lat <- function(x) {
     .as_dbl(.compact(x[["latitude"]]))
 }
 
 #' @describeIn point_accessors Set \code{'latitude'} field as numeric.
+#' @noRd
 `.lat<-` <- function(x, value) {
     x[["latitude"]] <- .as_dbl(value)
     x
@@ -603,7 +655,7 @@ NULL
 #' @param as_crs A CRS to project \code{point}.
 #'
 #' @examples
-#' \dontrun{
+#' if (sits_run_examples()) {
 #' x <- list(a = 0, z = 0)
 #' .point(x) # NULL
 #' x <- list(a = 0, longitude = 1:3, b = 2:4, latitude = 2, z = 0)
