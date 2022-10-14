@@ -137,7 +137,7 @@ sits_combine_predictions.average <- function(cubes,
         tile <- tile_lst[[1]]
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
-            cube       = tile,
+            tile       = tile,
             cube_class = "probs_cube",
             band_name  = "probs",
             labels     = .tile_labels(tile),
@@ -240,7 +240,7 @@ sits_combine_predictions.average <- function(cubes,
 
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
-            cube       = tile,
+            tile       = tile,
             cube_class = "probs_cube",
             band_name  = "probs",
             labels     = .tile_labels(tile),
@@ -359,7 +359,7 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
         tile <- cubes[[1]][i,]
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
-            cube       = tile,
+            tile       = tile,
             cube_class = "probs_cube",
             band_name  = "probs",
             labels     = .tile_labels(tile),
@@ -492,7 +492,7 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
 
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
-            cube       = tile,
+            tile       = tile,
             cube_class = "probs_cube",
             band_name  = "probs",
             labels     = .tile_labels(tile),
