@@ -427,18 +427,46 @@
 .cube_is_token_expired.default <- function(cube) {
     return(FALSE)
 }
-#' @name .cube_set_class
-#' @param cub   data cube
+
+# ---- cube API ----
+
+#' Cube API
+#'
+#' A \code{cube} is a \code{tibble} containing information on how to access
+#' some data cube. Each row of a \code{cube} is a \code{tile}, which represents
+#' a rectangular spatial region of space in some projection.
+#' For more details, see tiles API.
+#'
+#' @param cube   A \code{cube}.
+#' @param period Period character vector in ISO format.
+#' @param origin The first date to start count.
+#' @param fn     A function.
+#' @param roi    A region of interest (ROI).
+#' @param start_date,end_date Date of start and end.
+#' @param bands  A set of band names.
+#' @param tiles  A set of tile names.
+#' @param ...    Additional arguments (see details).
+#'
+#' @returns See description of each function.
+#' @family cube and tile functions
 #' @keywords internal
-#' @description sets the class of a data cube
+#' @name cube_api
+#' @noRd
+NULL
+
+#' @describeIn cube_api Sets the S3 class of a \code{cube}. Returns the same
+#'   input object with S3 class.
+#' @details
+#' \code{.cube_set_class()}: \code{...} is used to provide additional class
+#' names to be set.
+#' @noRd
 .cube_set_class <- function(cube, ...) {
     .set_class(cube, ..., c("sits_cube", "tbl_df", "tbl", "data.frame"))
 }
 
-#' @name .cube_file_info
-#' @keywords internal
-#' @description retrieves the file info for the cube
-#' @param cube data cube
+#' @describeIn cube_api Retrieves the \code{file_info} of the cube \code{cube}.
+#'   Returns \code{file_info} of all tiles merged into a unique \code{tibble}.
+#' @noRd
 .cube_file_info <- function(cube) {
     UseMethod(".cube_file_info", cube)
 }
@@ -448,11 +476,9 @@
     tidyr::unnest(cube["file_info"], "file_info")
 }
 
-#' @name .cube_start_date
-#' @description Get start dates based on the various tiles of a cube
-#' @keywords internal
-#' @param cube A cube.
-#' @return date
+#' @describeIn cube_api Get start date from each cube \code{tile}. Returns
+#'   a vector of dates.
+#' @noRd
 .cube_start_date <- function(cube) {
     UseMethod(".cube_start_date", cube)
 }
@@ -462,11 +488,9 @@
     .compact(.as_date(slider::slide(cube, .tile_start_date)))
 }
 
-#' @name .cube_end_date
-#' @description Get end date from each tile.
-#' @keywords internal
-#' @param cube A cube.
-#' @return date
+#' @describeIn cube_api Get end date from each cube \code{tile}. Returns
+#'   a vector of dates.
+#' @noRd
 .cube_end_date <- function(cube) {
     UseMethod(".cube_end_date", cube)
 }
@@ -476,12 +500,10 @@
     .compact(.as_date(slider::slide(cube, .tile_end_date)))
 }
 
-#' @name .cube_timeline
-#' @keywords internal
-#' @param cube A cube.
-#' @description Get timeline from each cube. If there are at least two
-#' different timelines, all timelines will be returned in a list).
-#' @return date or list(date)
+#' @describeIn cube_api Get timeline from each \code{tile}. If there are at
+#'   least two different timelines, all timelines will be returned in a list).
+#'   Returns a vector of dates or a \code{list}.
+#' @noRd
 .cube_timeline <- function(cube) {
     UseMethod(".cube_timeline", cube)
 }
@@ -548,14 +570,13 @@
         )
     }
 
-#' @name .cube_foreach_tile
-#' @description Iterates over each cube tile, passing tile to function's
-#' first argument.
-#' @keywords internal
-#' @param cube A cube.
-#' @param fn A function.
-#' @param ... Additional arguments to be passed to \code{fn}.
-#' @return cube
+#' @describeIn cube_api Iterates over each tile, passing it the function's
+#'   first argument. The function should returns a tile to compose
+#'   a new \code{cube}. Returns a \code{cube} with each function result.
+#' @details
+#' \code{.cube_foreach_tile()}: \code{...} Additional arguments to be passed
+#' to \code{fn}.
+#' @noRd
 .cube_foreach_tile <- function(cube, fn, ...) {
     UseMethod(".cube_foreach_tile", cube)
 }
@@ -565,12 +586,9 @@
     slider::slide_dfr(cube, fn, ...)
 }
 
-#' @name .cube_intersects
-#' @param cube A cube.
-#' @param roi A region of interest (ROI).
-#' @description What tiles intersect \code{roi} parameter?
-#' @keywords internal
-#' @return logical
+#' @describeIn cube_api What tiles intersect \code{roi} parameter?
+#'   Returns a \code{logical} vector.
+#' @noRd
 .cube_intersects <- function(cube, roi) {
     UseMethod(".cube_intersects", cube)
 }
@@ -579,12 +597,9 @@
 .cube_intersects.raster_cube <- function(cube, roi) {
     slider::slide_lgl(cube, .tile_intersects, roi = .roi_as_sf(roi))
 }
-#' @name .cube_filter_spatial
-#' @param cube A cube.
-#' @param roi A region of interest (ROI).
-#' @description Filter tiles that intersect \code{roi} parameter.
-#' @keywords internal
-#' @return cube
+#' @describeIn cube_api Filter tiles that intersect \code{roi} parameter.
+#'   Return filtered \code{cube}.
+#' @noRd
 .cube_filter_spatial <- function(cube, roi) {
     UseMethod(".cube_filter_spatial", cube)
 }
@@ -593,18 +608,14 @@
 .cube_filter_spatial.raster_cube <- function(cube, roi) {
     intersecting <- .cube_intersects(cube, roi)
     if (!any(intersecting)) {
-        stop("informed roi does not intersect cube")
+        stop("spatial region does not intersect cube")
     }
     cube[intersecting, ]
 }
 
-#' @name .cube_during
-#' @keywords internal
-#' @param cube A cube.
-#' @param start_date,end_date Date of start and end.
-#' @description What tiles have file_info entries between 'start_date'
-#' and 'end_date'?
-#' @return logical
+#' @describeIn cube_api What tiles have file_info entries between
+#'   \code{start_date} and \code{end_date}? Returns a \code{logical} vector.
+#' @noRd
 .cube_during <- function(cube, start_date, end_date) {
     UseMethod(".cube_during", cube)
 }
@@ -616,13 +627,10 @@
     )
 }
 
-#' @name .cube_filter_temporal
-#' @description Filter tiles with 'file_info' entries
-#'    between 'start_date' and 'end_date'.
-#' @keywords internal
-#' @param cube A cube.
-#' @param start_date,end_date Date of start and end.
-#' @return cube
+#' @describeIn cube_api Filters tiles that have at least one
+#'   \code{file_info} entry between \code{start_date} and \code{end_date}.
+#'   Returns a filtered \code{cube}.
+#' @noRd
 .cube_filter_temporal <- function(cube, start_date, end_date) {
     UseMethod(".cube_filter_temporal", cube)
 }
