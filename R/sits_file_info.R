@@ -104,10 +104,17 @@ NULL
     .as_chr(fi[["fid"]])
 }
 
-.fi_fid_filter <- function(fi, fid) {
+.fi_filter_fid <- function(fi, fid) {
     .fi_switch(
         fi = fi,
-        eo_cube = fi[.fi_bands(fi) %in% .as_chr(fid), ]
+        eo_cube = {
+            fid_in_fi <- fid %in% .fi_fid(fi)
+            if (!all(fid_in_fi)) {
+                miss_fid <- paste0("'", fid[!fid_in_fi], "'", collapse = ",")
+                stop("fid(s) ", miss_fid, " not found")
+            }
+            fi[.fi_fid(fi) %in% .as_chr(fid), ]
+        }
     )
 }
 
