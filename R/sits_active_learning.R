@@ -125,8 +125,8 @@ sits_uncertainty_sampling <- function(uncert_cube,
 
     # Warn if it cannot suggest all required samples
     if (nrow(result_tb) < n)
-        warning(paste("Unable to suggest", n, "samples.",
-                      "Try a smaller sampling_window parameter."))
+        warning("unable to suggest ", n, " samples.\n",
+                "(try a smaller sampling_window parameter)", call. = FALSE)
 
     class(result_tb) <- c("sits_uncertainty", "sits", class(result_tb))
     return(result_tb)
