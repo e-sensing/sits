@@ -22,7 +22,7 @@
                              shp_id) {
 
     # pre-condition - check the shape file and its attribute
-    sf_shape <- .sits_shp_check_validity(
+    sf_shape <- .shp_check_validity(
         shp_file = shp_file,
         shp_attr = shp_attr,
         label = label
