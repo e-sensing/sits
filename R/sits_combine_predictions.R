@@ -166,13 +166,10 @@ sits_combine_predictions.average <- function(cubes,
             }
         }
 
-        # get cube size
-        size <- .cube_size(tile)
-
         # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
         blocks <- .smth_compute_blocks(
-            xsize = size[["ncols"]],
-            ysize = size[["nrows"]],
+            xsize = .tile_ncols(tile),
+            ysize = .tile_nrows(tile),
             block_y_size = block_size[["block_y_size"]],
             overlapping_y_size = 0
         )
@@ -387,13 +384,11 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
                 return(NULL)
             }
         }
-        # get cube size
-        size <- .cube_size(tile)
 
         # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
         blocks <- .smth_compute_blocks(
-            xsize = size[["ncols"]],
-            ysize = size[["nrows"]],
+            xsize = .tile_ncols(tile),
+            ysize = .tile_nrows(tile),
             block_y_size = block_size[["block_y_size"]],
             overlapping_y_size = 0
         )
@@ -557,13 +552,9 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
                                       memsize,
                                       uncert = FALSE) {
 
-    # set caller to show in errors
-    .check_set_caller(".comb_estimate_block_size")
-
     cube <- cubes[[1]]
     n_comb <- length(cubes)
 
-    size <- .cube_size(cube[1, ])
     n_layers <- length(cube$labels[[1]])
     bloat_mem <- .conf("processing_bloat")
     n_bytes <- 8
@@ -573,11 +564,11 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
         n_layers <- n_layers + n_comb
 
     # total memory needed in GB
-    image_size <- size[["ncols"]] * size[["nrows"]]
+    image_size <- .tile_ncols(cube) * .tile_nrows(cube)
     needed_memory <- n_comb * image_size * 1E-09 * n_layers * bloat_mem * n_bytes
 
     # minimum block size
-    min_block_x_size <- size["ncols"] # for now, only vertical blocking
+    min_block_x_size <- .tile_ncols(cube) # for now, only vertical blocking
     min_block_y_size <- 1
 
     # compute factors
@@ -607,7 +598,7 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
         block_x_size = floor(min_block_x_size),
         block_y_size = min(
             floor(blocking_factor / memory_factor / multicores),
-            size[["nrows"]]
+            .tile_nrows(cube)
         )
     )
 
