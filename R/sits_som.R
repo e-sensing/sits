@@ -209,8 +209,8 @@ sits_som_map <- function(data,
     return(som_map)
 }
 
-#' @name sits_som_clean_samples
-
+#' @rdname sits_som
+#'
 #' @param som_map   Kohonen map
 #' @param prior_threshold        prior to bayesian analysis
 #' @param posterior_threshold    used after bayesian analysis
