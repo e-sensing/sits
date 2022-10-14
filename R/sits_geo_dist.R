@@ -17,13 +17,13 @@
 #' Nature Communications 13, 2208 (2022).
 #' https://doi.org/10.1038/s41467-022-29838-9
 #'
-#' @param samples A `sits` tibble with time series samples.
-#' @param roi     A `sf` object (polygon) with a region of interest
-#'                for prediction.
+#' @param samples A \code{samples} training data set.
+#' @param crs     CRS of the \code{samples} points.
+#' @param roi     A region of interest (ROI) used to extract random
+#'   predicted points.
 #' @param n       Maximum number of samples to consider.
 #'
-#' @return        A tibble with sample-to-sample
-#'                and sample-to-prediction distances.
+#' @return A tibble with sample-to-sample and sample-to-prediction distances.
 #'
 #' @examples
 #' if (sits_run_examples()) {
