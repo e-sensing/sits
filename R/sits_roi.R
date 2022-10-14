@@ -164,26 +164,30 @@ NULL
 }
 
 #' @describeIn roi_api Chooses one of the arguments passed in
-#' \code{...} according to which type of \code{roi} parameter.
-#' @noRd
+#'   \code{...} according to which type of \code{roi} parameter.
 #' @returns \code{.roi_switch()}: one of the arguments in \code{...}.
+#' @noRd
 .roi_switch <- function(roi, ...) {
-    switch(.roi_type(roi),
-           ...
-    )
+    switch(.roi_type(roi), ...)
 }
 
 #' @describeIn roi_api Converts \code{roi} to an \code{sf} object.
-#' @noRd
 #' @returns \code{.roi_as_sf()}: \code{sf}.
-.roi_as_sf <- function(roi, default_crs = NULL) {
-    .roi_switch(
+#' @noRd
+.roi_as_sf <- function(roi, default_crs = NULL, as_crs = NULL) {
+    roi <- .roi_switch(
         roi = roi, sf = roi,
-        bbox = .bbox_as_sf(roi, default_crs = default_crs),
+        bbox = .bbox_as_sf(.bbox(roi, default_crs = default_crs)),
         lonlat = .bbox_as_sf(list(
             xmin = roi[["lon_min"]], xmax = roi[["lon_max"]],
             ymin = roi[["lat_min"]], ymax = roi[["lat_max"]],
             crs = "EPSG:4326"
         ))
     )
+    # Project roi
+    if (.has(as_crs)) {
+        roi <- sf::st_transform(roi, crs = as_crs)
+    }
+    # Return roi
+    roi
 }
