@@ -1060,11 +1060,13 @@ sits_list_collections <- function(source = NULL) {
 #' @family config functions
 #' @keywords internal
 #' @name config_api
+#' @noRd
 NULL
 
 #' @describeIn config_api Tests if a key provided as \code{character} values
 #'   in \code{...} parameter exists in the config. If \code{throws_error} is
 #'   \code{TRUE} and the test failed, an error is raised.
+#' @noRd
 .conf_exists <- function(..., throw_error = FALSE) {
     key <- c(...)
     exists <- !is.null(.try(sits_env[["config"]][[key]], .default = NULL))
@@ -1079,6 +1081,7 @@ NULL
 #'   \code{character} values in \code{...} parameter. If a key does not
 #'   exists, throws an error. Use \code{.conf_exists()} to test for a key
 #'   existence.
+#' @noRd
 .conf <- function(...) {
     key <- c(...)
     # Check for key existence and throws an error if it not exists
@@ -1123,6 +1126,7 @@ NULL
 #' @family config functions
 #' @keywords internal
 #' @name eo_cube_config
+#' @noRd
 NULL
 
 #' @describeIn eo_cube_config Tests if a \code{band} entry exists in config
@@ -1130,6 +1134,7 @@ NULL
 #'   nor \code{collection} entry are found in config, an error is thrown.
 #'   Use \code{.conf_exists()} to test for \code{source} and \code{collection}
 #'   existence.
+#' @noRd
 .conf_eo_band_exists <- function(source, collection, band) {
     # source, collection, and band are uppercase
     source <- toupper(source)
@@ -1150,6 +1155,7 @@ NULL
 #'   \code{source} nor \code{collection} entry are found in config, an
 #'   error is thrown. Use \code{.conf_exists()} to test for \code{source} and
 #'   \code{collection} existence.
+#' @noRd
 .conf_eo_band <- function(source, collection, band) {
     # Format band name
     band <- .band_eo(band)
@@ -1205,10 +1211,12 @@ NULL
 #' @family config functions
 #' @keywords internal
 #' @name derived_cube_config
+#' @noRd
 NULL
 
 #' @describeIn derived_cube_config Get the S3 class values to instantiate a
 #'   new \code{derived_cube}.
+#' @noRd
 .conf_derived_s3class <- function(derived_class) {
     # derived_class is lowercase
     derived_class <- tolower(derived_class)
@@ -1217,6 +1225,7 @@ NULL
 
 #' @describeIn derived_cube_config Get the S3 class values to instantiate a
 #'   new \code{derived_cube}.
+#' @noRd
 .conf_derived_band <- function(derived_class, band) {
     # Format band
     band <- .band_derived(band)
