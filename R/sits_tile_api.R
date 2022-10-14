@@ -198,16 +198,46 @@ NULL
 #' @param band A band in the tile
 #' @param date A date in the tile
 #'
-#' @return First path of file info
-.tile_path <- function(tile, band, date) {
+#' @return Path of first asset in `file_info`
+.tile_path <- function(tile, band = NULL, date = NULL) {
     UseMethod(".tile_path", tile)
 }
+
 #' @export
-.tile_path.raster_cube <- function(tile, band, date){
-    tile <- .tile_filter_bands(tile, band) %>%
-        .tile_filter_date(date)
-    path <- .fi(tile) %>% .fi_path()
+.tile_path.raster_cube <- function(tile, band = NULL, date = NULL) {
+    if (.has(band)) {
+        tile <- .tile_filter_bands(tile = tile, bands = band[[1]])
+    }
+    if (.has(date)) {
+        tile <- .tile_filter_dates(tile = tile, dates = date[[1]])
+    }
+    # Get path of first asset
+    path <- .fi_path(.fi(tile))
+    # Return path
     path
+}
+
+#' @title Get sorted unique bands from file_info.
+#' @name .tile_path
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#' @param band Band name.
+#'
+#' @returns Paths to `file_info` assets
+.tile_paths <- function(tile, band = NULL) {
+    UseMethod(".tile_paths", tile)
+}
+
+#' @export
+.tile_paths.raster_cube <- function(tile, band = NULL) {
+    if (.has(band)) {
+        tile <- .tile_filter_bands(tile = tile, bands = band)
+    }
+    # Get assets path
+    paths <- .fi_paths(.fi(tile))
+    # Return paths
+    paths
 }
 
 #' @title Get sorted unique bands from file_info.
