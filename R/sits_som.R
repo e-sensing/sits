@@ -50,15 +50,6 @@
 #' @param rlen           Number of iterations to produce the SOM.
 #' @param som_radius     Radius of SOM neighborhood.
 #' @param mode           Type of learning algorithm (default = "online").
-#' @param som_map        Object returned by \code{\link[sits]{sits_som_map}}.
-#' @param prior_threshold      Threshold of conditional probability
-#'                (frequency of samples assigned to the same SOM neuron).
-#' @param posterior_threshold       Threshold of posterior probability
-#'                              (influenced by the SOM neighborhood).
-#' @param keep      Which types of evaluation to be maintained in the data.
-#'
-#'
-#' @rdname sits_som
 #' @return
 #' \code{sits_som_map()} produces a list with three members:
 #' (1) the samples tibble, with one additional column indicating
@@ -209,11 +200,14 @@ sits_som_map <- function(data,
     return(som_map)
 }
 
-#' @rdname sits_som
-#'
-#' @param som_map   Kohonen map
-#' @param prior_threshold        prior to bayesian analysis
-#' @param posterior_threshold    used after bayesian analysis
+#' @title Cleans the samples based on SOM map information
+#' @name sits_som_clean_samples
+#' @param som_map              Object returned by \code{\link[sits]{sits_som_map}}.
+#' @param prior_threshold      Threshold of conditional probability
+#'                (frequency of samples assigned to the same SOM neuron).
+#' @param posterior_threshold   Threshold of posterior probability
+#'                              (influenced by the SOM neighborhood).
+#' @param keep      Which types of evaluation to be maintained in the data.
 #'
 #' @return tibble with an two additional columns.
 #' The first indicates if each sample is clean, should be analyzed or
@@ -278,12 +272,15 @@ sits_som_clean_samples <- function(som_map,
     return(data)
 }
 
-#' @rdname sits_som
-#'
-#' @return
+#' @title Evaluate cluster
+#' @name sits_som_evaluate_cluster
+#' @description
 #' \code{sits_som_evaluate_cluster()} produces a tibble with the clusters
-#' found by the SOM map. For each cluster, ir provides the percentage
+#' found by the SOM map. For each cluster, it provides the percentage
 #' of classes inside it.
+#' @param som_map   A SOM map produced by the som_map() function
+#' @return A tibble stating the purity for each cluster
+#'
 #' @export
 sits_som_evaluate_cluster <- function(som_map) {
     # Sanity check

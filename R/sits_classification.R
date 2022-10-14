@@ -176,13 +176,13 @@ sits_classify.raster_cube <- function(data,
     .check_samples_tile_match(samples = samples, tile = data)
     # Check memory and multicores
     # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(data))))
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
-        # npaths = input(1*bands*dates) + output(nlayers)
-        npaths = length(.fi_paths(.fi(data))) + length(.ml_labels(ml_model)),
-        nbytes = 8, proc_bloat = .conf("processing_bloat")
+        npaths = length(.tile_paths(data)) + length(.ml_labels(ml_model)),
+        nbytes = 8,
+        proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
@@ -213,7 +213,8 @@ sits_classify.raster_cube <- function(data,
     probs_cube <- .cube_foreach_tile(data, function(tile) {
         # Classify the data
         probs_tile <- .classify_tile(
-            tile = tile, band = "probs",
+            tile = tile,
+            band = "probs",
             ml_model = ml_model,
             roi = roi,
             filter_fn = filter_fn,

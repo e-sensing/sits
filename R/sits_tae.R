@@ -179,7 +179,7 @@ sits_tae <- function(samples = NULL,
         } else {
             # Split the data into training and validation data sets
             # Create partitions different splits of the input data
-            test_samples <- .sits_distances_sample(
+            test_samples <- .distances_sample(
                 distances = train_samples, frac = validation_split
             )
             # Remove the lines used for validation

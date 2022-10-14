@@ -455,7 +455,7 @@ sits_get_data.data.frame <- function(cube,
         }
 
         # get XY
-        xy_tb <- .sits_proj_from_latlong(
+        xy_tb <- .proj_from_latlong(
             longitude = samples[["longitude"]],
             latitude  = samples[["latitude"]],
             crs       = .cube_crs(tile)
@@ -487,7 +487,7 @@ sits_get_data.data.frame <- function(cube,
         samples_tbl <- slider::slide_dfr(samples, function(point) {
 
             # get the valid timeline
-            dates <- .sits_timeline_during(
+            dates <- .timeline_during(
                 timeline   = tl,
                 start_date = as.Date(point[["start_date"]]),
                 end_date   = as.Date(point[["end_date"]])
@@ -601,12 +601,10 @@ sits_get_data.data.frame <- function(cube,
                                           output_dir,
                                           progress) {
 
-    samples <- .sits_transform_samples(samples = samples, crs = crs)
-
-    # filter only tiles that intersects with samples
-    cube <- .sits_filter_intersecting_tiles(
+    # Filter only tiles that intersects with samples
+    cube <- .cube_filter_spatial(
         cube = cube,
-        samples = samples
+        roi = .point_as_sf(point = .point(x = samples, crs = crs))
     )
 
     # pre-condition - check bands
@@ -655,7 +653,7 @@ sits_get_data.data.frame <- function(cube,
         }
 
         # get XY
-        xy_tb <- .sits_proj_from_latlong(
+        xy_tb <- .proj_from_latlong(
             longitude = samples[["longitude"]],
             latitude  = samples[["latitude"]],
             crs       = .cube_crs(tile)
@@ -685,7 +683,7 @@ sits_get_data.data.frame <- function(cube,
         samples_tbl <- slider::slide_dfr(samples, function(point) {
 
             # get the valid timeline
-            dates <- .sits_timeline_during(
+            dates <- .timeline_during(
                 timeline   = tl,
                 start_date = as.Date(point[["start_date"]]),
                 end_date   = as.Date(point[["end_date"]])
@@ -706,7 +704,7 @@ sits_get_data.data.frame <- function(cube,
             # return valid row of time series
             return(sample)
         })
-        ts <- .sits_image_classified_get_ts(
+        ts <- .raster_class_get_ts(
             tile = tile,
             points = samples_tbl,
             band = "class",

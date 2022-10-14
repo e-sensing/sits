@@ -142,9 +142,9 @@ test_that("User functions", {
         ))
     )
 
-    expect_equal(
-        .source_url(source = "TEST"),
-        NA_character_
+    expect_error(
+        object = .source_url(source = "TEST"),
+        regexp = "key 'sources->TEST->url' not found in config"
     )
 
     expect_equal(
@@ -152,9 +152,8 @@ test_that("User functions", {
         "https://brazildatacube.dpi.inpe.br/stac/"
     )
 
-    expect_equal(
-        .source_service(source = "TEST"),
-        NA_character_
+    expect_error(
+        .source_service(source = "TEST")
     )
 
     expect_equal(

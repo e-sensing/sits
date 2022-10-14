@@ -441,29 +441,17 @@ sits_view.raster_cube <- function(x, ...,
         for (row in seq_len(nrow(cube))) {
             # get tile
             tile <- cube[row,]
-            # retrieve the file info for the tile
-            fi <- .fi(tile)
             # check if date is inside the timeline
             tile_dates <- sits_timeline(tile)
             if (!date %in% tile_dates) {
                 idx_date <- which.min(abs(date - tile_dates))
                 date <- tile_dates[idx_date]
             }
-            # filter by date
-            images_date <- dplyr::filter(fi, as.Date(.data[["date"]]) == !!date)
+            # filter by date and band
             # if there is only one band, RGB files will be the same
-            red_file <- dplyr::filter(
-                images_date,
-                .data[["band"]] == red
-            )$path[[1]]
-            green_file <- dplyr::filter(
-                images_date,
-                .data[["band"]] == green
-            )$path[[1]]
-            blue_file <- dplyr::filter(
-                images_date,
-                .data[["band"]] == blue
-            )$path[[1]]
+            red_file   <- .tile_path(tile, red, date)
+            green_file <- .tile_path(tile, green, date)
+            blue_file  <- .tile_path(tile, blue, date)
             rgb_files <- c(r = red_file, g = green_file, b = blue_file)
             st_obj <- stars::read_stars(
                 rgb_files,
@@ -526,7 +514,7 @@ sits_view.raster_cube <- function(x, ...,
         st_objs <- slider::slide(class_cube, function(tile) {
             # obtain the raster stars object
             st_obj <- stars::read_stars(
-                .fi_path(.fi(tile)),
+                .tile_path(tile),
                 RAT = labels,
                 RasterIO = list(
                     "nBufXSize" = output_size["xsize"],
@@ -643,7 +631,7 @@ sits_view.class_cube <- function(x, ...,
     st_objs <- slider::slide(cube, function(tile) {
         # obtain the raster stars object
         st_obj <- stars::read_stars(
-            .fi_path(.fi(tile)),
+            .tile_path(tile),
             RAT = labels,
             RasterIO = list(
                 "nBufXSize" = output_size["xsize"],
@@ -731,13 +719,14 @@ sits_view.default <- function(x, ...) {
 }
 #' @title  Return the colors associated to the classified image
 #' @name .view_get_colors
+#' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  labels        Labels of the classified cube.
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file.
 #' @return               Colors for legend of classified image.
-#' @keywords internal
 #'
 #'
 .view_get_colors <- function(labels, legend, palette) {
@@ -760,6 +749,8 @@ sits_view.default <- function(x, ...) {
 }
 #' @title  Return the cell size for the image to be resamples
 #' @name .view_resample_size
+#' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  nrows         Number of rows in the input image.
@@ -767,7 +758,6 @@ sits_view.default <- function(x, ...) {
 #' @param  ndates        Number of dates to show
 #' @param  ntiles        Number of tiles in the input image.
 #' @return               Cell size for x and y coordinates.
-#' @keywords internal
 #'
 #'
 .view_resample_size <- function(nrows, ncols, ndates, ntiles) {

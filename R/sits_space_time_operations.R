@@ -1,19 +1,5 @@
-#' @title Get the time series for a row of a sits tibble
-#' @name sits_time_series
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Returns the time series associated to a row of the a sits tibble
-#'
-#' @param data     A sits tibble with one or more time series.
-#' @return A tibble in sits format with the time series.
-#' @examples
-#' sits_time_series(cerrado_2classes)
-#' @export
-sits_time_series <- function(data) {
-    return(data$time_series[[1]])
-}
 #' @title Coordinate transformation (lat/long to X/Y)
-#' @name .sits_proj_from_latlong
+#' @name .proj_from_latlong
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -24,7 +10,7 @@ sits_time_series <- function(data) {
 #' @param latitude  Latitude of the chosen location.
 #' @param crs       Projection definition to be converted to.
 #' @return          Tibble with X and Y coordinates.
-.sits_proj_from_latlong <- function(longitude,
+.proj_from_latlong <- function(longitude,
                                     latitude,
                                     crs) {
     t <- tibble::tibble(long = longitude, lat = latitude) %>%
@@ -38,7 +24,7 @@ sits_time_series <- function(data) {
 }
 
 #' @title Coordinate transformation (X/Y to lat/long)
-#' @name .sits_proj_to_latlong
+#' @name .proj_to_latlong
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -49,7 +35,7 @@ sits_time_series <- function(data) {
 #' @param y   Y coordinate of the chosen location.
 #' @param crs Projection definition to be converted from.
 #' @return Matrix with latlong coordinates.
-.sits_proj_to_latlong <- function(x, y, crs) {
+.proj_to_latlong <- function(x, y, crs) {
     ll <- tibble::tibble(xc = x, yc = y) %>%
         sf::st_as_sf(coords = c("xc", "yc"), crs = crs) %>%
         sf::st_transform(crs = "EPSG:4326") %>%
@@ -59,19 +45,8 @@ sits_time_series <- function(data) {
     return(ll)
 }
 
-#' @title Checks if the crs provided is valid
-#' @name .sits_proj_format_crs
-#' @keywords internal
-#' @noRd
-#'
-#' @param crs a \code{numeric} or \code{character} with CRS.
-#'
-#' @return a \code{character} with the formatted CRS.
-.sits_proj_format_crs <- function(crs) {
-    return(sf::st_crs(crs)[["input"]])
-}
 #' @title Transform samples to wgs84
-#' @name .sits_transform_samples
+#' @name .proj_transform_samples
 #' @keywords internal
 #' @noRd
 #
@@ -87,7 +62,7 @@ sits_time_series <- function(data) {
 #'                        samples. Default is 4326.
 #'
 #' @return A tibble with tranformed points.
-.sits_transform_samples <- function(samples, crs) {
+.proj_transform_samples <- function(samples, crs) {
 
     .check_chr_within(
         x = .conf("df_sample_columns"),
@@ -107,4 +82,32 @@ sits_time_series <- function(data) {
     samples <- sf::st_drop_geometry(samples)
 
     return(samples)
+}
+#' @title Spatial intersects
+#' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' This function is based on sf::st_intersects(). It projects y
+#' to the CRS of x before compute intersection. For each geometry of x,
+#' returns TRUE if it intersects with any geometry of y,
+#' otherwise it returns FALSE.
+#'
+#' @param x,y sf geometries.
+#'
+#' @returns A vector indicating which geometries of x
+#' intersect geometries of y.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#' x <- .bbox_as_sf(c(xmin=1, xmax=2, ymin=3, ymax=4, crs=4326))
+#' y <- .roi_as_sf(c(lon_min=1.5, lon_max=3, lat_min=3.5, lat_max=5))
+#' .intersects(x, y) # TRUE
+#' }
+#'
+.intersects <- function(x, y) {
+    as_crs <- sf::st_crs(x)
+    y <- sf::st_transform(y, crs = as_crs)
+    apply(sf::st_intersects(x, y, sparse = FALSE), 1, any)
 }

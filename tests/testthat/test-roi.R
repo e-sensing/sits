@@ -80,7 +80,7 @@ test_that("Functions that work with ROI", {
     # retrieve the bounding box for this ROI
     bbox_1 <- .roi_bbox(roi, cube)
 
-    expect_true(length(.sits_bbox_intersect(bbox_1, cube)) == 4)
+    expect_true(length(.bbox_intersect(bbox_1, cube)) == 4)
 
     # read a set of lat long coordinates
     csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
@@ -94,7 +94,7 @@ test_that("Functions that work with ROI", {
 
     # read a bbox as an sf object
     bbox_2 <- .roi_bbox(sf_obj, cube)
-    expect_true(length(.sits_bbox_intersect(bbox_2, cube)) == 4)
+    expect_true(length(.bbox_intersect(bbox_2, cube)) == 4)
 
     # extract the bounding box from a set of lat/long points
     sf_bbox <- sf::st_bbox(sf_obj)
@@ -102,7 +102,7 @@ test_that("Functions that work with ROI", {
     class(sf_bbox) <- c("vector")
     bbox_3 <- .roi_bbox(sf_bbox, cube)
 
-    expect_true(length(.sits_bbox_intersect(bbox_3, cube)) == 4)
+    expect_true(length(.bbox_intersect(bbox_3, cube)) == 4)
 })
 
 test_that("Internal functions in ROI", {
@@ -123,9 +123,7 @@ test_that("Internal functions in ROI", {
 
     roi_2size["xmax"] <- roi[["xmax"]] - 2 * x_size
     roi_2size["xmin"] <- roi[["xmin"]] - 2 * x_size
-    expect_null(
-        .bbox_intersection(.bbox(roi_2size), .bbox(cube))
-    )
+    expect_null(.bbox_intersection(.bbox(roi_2size), .bbox(cube)))
 
     bbox <- sits_bbox(cube)
     bbox[["xmax"]] <- bbox[["xmax"]] + x_size

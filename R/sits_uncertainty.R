@@ -75,7 +75,7 @@ sits_uncertainty <- function(cube, type = "least", window_size = 5,
 
     # Check memory and multicores
     # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(cube))))
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
     # Check minimum memory needed to process one block

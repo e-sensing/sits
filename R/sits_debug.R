@@ -1,35 +1,28 @@
-#' Sits log functions
-#'
-#' Set of functions for log generation.
-#'
-#' @param flag         A logical value to set the debug flag
-#' @param event        The name of the event to be logged
-#' @param key          A key describing the value.
-#' @param value        Any value to be logged. The value will be converted
-#'                     to string and escaped.
-#' @param output_dir   directory to save logs.
-#'
-#' @return             A logical value with current debug flag
-#'
-#' @name log_functions
-#' @keywords internal
+#' @title Log functions
 #' @noRd
-NULL
-
-#' @describeIn log_functions Generate a log entry into a CSV file.
-#' @details
-#' Log entry is composed of the following values:
-#' \itemize{
-#' \item date_time: event date and time
-#' \item pid: process identifier
-#' \item event: event name
-#' \item elapsed_time: duration (in seconds) from the last log call
-#' \item mem_used: session used memory (in MB)
-#' \item max_mem_used: maximum memory used (in MB) from first log call
-#' \item tag: any character string to be registered
-#' }
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' logs to a CSV file the following values:
+#' * date_time: event date and time
+#' * pid: process identifier
+#' * event: event name
+#' * elapsed_time: duration (in seconds) from the last log call
+#' * mem_used: session used memory (in MB)
+#' * max_mem_used: maximum memory used (in MB) from first log call
+#' * tag: any character string to be registered
+#'
 #' Each event will be logged in one row in the log file.
-#' @noRd
+#' The log file name will be the same as the base name of the current
+#' session's temporary directory.
+#'
+#' @param flag  A logical value to set the debug flag
+#' @param event  The name of the event to be logged
+#' @param key  A key describing the value.
+#' @param value  Any value to be logged. The value will be converted
+#'   to string and escaped.
+#' @return  A logical value with current debug flag
 .sits_debug_log <- function(event = "", key = "", value = "") {
     # If debug flag is FALSE, then exit
     if (!.sits_debug()) {
@@ -86,11 +79,19 @@ NULL
     return(invisible(NULL))
 }
 
-#' @describeIn log_functions When called without parameters retrieves the
-#'   current debug flag value. The sits write log files when the debug
-#'   flag is \code{TRUE}. Returns a \code{logical} informing current
-#'   debug flag.
+#' @title Log functions
 #' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' When called without parameters retrieves the current debug flag value.
+#' Flag sets the current flag and output_dir writes the debug info to
+#' a directory.
+#'
+#' @param flag  A logical value to set the debug flag.
+#' @param output_dir  Directory to write the debug info.
+#' @return  The flag associated to the debug.
 .sits_debug <- function(flag = NULL, output_dir = NULL) {
     # If no parameter is passed get current debug flag
     if (is.null(flag)) {

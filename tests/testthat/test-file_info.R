@@ -32,8 +32,8 @@ test_that("file_info functions", {
     expect_equal(.fi(cbers_tile)[["ncols"]], 10504)
 
     # tile paths
-    expect_length(.fi_path(.fi(cbers_tile)), 1)
-    expect_length(.fi_paths(.fi(cbers_tile)), 8)
+    expect_length(.tile_path(cbers_tile), 1)
+    expect_length(.tile_path(cbers_tile), 8)
 
     # tile resolutions
     expect_equal(.fi(cbers_tile)[["xres"]], 63.99735, tolerance = 10e-6)

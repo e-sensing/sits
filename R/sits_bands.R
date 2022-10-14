@@ -5,16 +5,18 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description  Finds the names of the bands of
-#'               a set of time series or of a data cube
+#' @description
+#' Finds the names of the bands of a set of time series or of a data cube
 #'
-#' @param x         Valid sits tibble (time series or a cube)
+#' @param x Valid sits tibble (time series or a cube)
 #'
-#' @return          A vector with the names of the bands.
+#' @returns
+#' A vector with the names of the bands.
+#'
 #' @examples
 #' bands <- sits_bands(point_mt_6bands)
-#' @export
 #'
+#' @export
 sits_bands <- function(x) {
 
     # Set caller to show in errors
@@ -26,13 +28,11 @@ sits_bands <- function(x) {
 
 #' @rdname sits_bands
 #' @export
-#'
 sits_bands.sits <- function(x) {
-    return(setdiff(names(sits_time_series(x)), "Index"))
+    return(setdiff(names(.tibble_time_series(x)), "Index"))
 }
 #' @rdname sits_bands
 #' @export
-#'
 sits_bands.sits_cube <- function(x) {
     bands_lst <- slider::slide(x, function(tile) {
         bands_tile <- .tile_bands(tile)
@@ -48,14 +48,11 @@ sits_bands.sits_cube <- function(x) {
 
 #' @rdname sits_bands
 #' @export
-#'
 sits_bands.patterns <- function(x) {
     return(sits_bands.sits(x))
 }
-
 #' @rdname sits_bands
 #' @export
-#'
 sits_bands.sits_model <- function(x) {
     .check_is_sits_model(x)
     bands <- .ml_bands(x)
@@ -66,7 +63,6 @@ sits_bands.sits_model <- function(x) {
 .band_rename <- function(x, bands) {
     UseMethod(".band_rename", x)
 }
-
 #' @export
 .band_rename.sits <- function(x, bands) {
     data_bands <- sits_bands(x)
@@ -124,16 +120,17 @@ sits_bands.sits_model <- function(x) {
         return(x)
     })
 }
-#---- Band API: ----
 
-#' Band API
+#' @noRd
+#' @title Band API
 #'
-#' We use term \code{band} to refer either to spectral bands as index generated
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' We use term band to refer either to spectral bands as index generated
 #' from images of actual sensor bands. To organize internal metadata and work
 #' properly there are some restrictions in band names. These functions aims
 #' to impose band name restrictions.
-#'
-#' @param band Band name.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -146,28 +143,22 @@ sits_bands.sits_model <- function(x) {
 #' .band_eo("NDVI_2") # 'NDVI-2'
 #' }
 #'
-#' @seealso \link{band_accessors}
-#' @keywords internal
-#' @name band_api
-#' @noRd
 NULL
 
-#' @describeIn band_api Returns the name of cloud band.
 #' @noRd
+#' @return cloud band name.
 .band_cloud <- function() {
     "CLOUD"
 }
-
-#' @describeIn band_api Returns a well formatted band name for \code{eo_cube}.
 #' @noRd
+#' @param band Band name.
+#' @return a well formatted band name for eo_cubes.
 .band_eo <- function(band) {
     gsub("_", "-", toupper(band))
 }
-
-#' @describeIn band_api Returns a well formatted band name for
-#'   \code{derived_cube}.
 #' @noRd
+#' @param band Band name.
+#' @return a well formatted band name for derived cubes.
 .band_derived <- function(band) {
     gsub("_", "-", tolower(band))
 }
-

@@ -503,11 +503,10 @@ plot.uncertainty_cube <- function(
     )
 
     # filter the cube
-    tile <- .cube_filter_tiles(cube = x, tiles = tile)
+    tile <- .cube_filter_tiles(cube = x, tiles = tile[[1]])
 
     # read the files to plot
-    file <- .fi(tile) %>% .fi_path()
-
+    file <- .tile_path(tile)
     # plot the data using tmap
     p <- .plot_false_color(file, "Uncert", palette, rev)
 
@@ -611,7 +610,7 @@ plot.uncertainty_cube <- function(
 
 
     # get the path
-    probs_path <- .fi(tile) %>% .fi_path
+    probs_path <- .tile_path(tile)
     # read the file using stars
     probs_st <- stars::read_stars(probs_path)
     # scale the data
@@ -770,7 +769,7 @@ plot.class_cube <- function(x, y, ...,
 
     r_objs <- slider::slide(cube, function(tile) {
         # get the raster object
-        path <- .fi(tile) %>% .fi_path()
+        path <- .tile_path(tile)
         r <- suppressWarnings(.raster_open_rast(path))
         return(r)
     })
@@ -1435,7 +1434,7 @@ plot.torch_model <- function(x, y, ...) {
 #'
 #' @name .plot_ggplot_series_na
 #' @keywords internal
-#'
+#' @noRd
 #' @description Plots a set of time series using ggplot, showing where NAs are.
 #'
 #' @param row         row of a sits tibble with the time series to be plotted.

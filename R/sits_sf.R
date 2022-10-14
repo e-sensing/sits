@@ -54,7 +54,7 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
     .check_is_raster_cube(data)
 
     # Convert cube bbox to sf
-    geom <- .bbox_as_sf(.bbox_from_df(data), as_crs = as_crs)
+    geom <- .bbox_as_sf(.bbox_from_tbl(data), as_crs = as_crs)
 
     # Bind columns
     data <- dplyr::bind_cols(geom, .discard(data, "file_info"))
@@ -131,13 +131,13 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
 
     # get a tibble with points and labels
     if (geom_type == "POINT") {
-        points_tbl <- .sits_sf_point_to_tibble(
+        points_tbl <- .sf_point_to_tibble(
             sf_object,
             label_attr,
             label
         )
     } else {
-        points_tbl <- .sits_sf_polygon_to_tibble(
+        points_tbl <- .sf_polygon_to_tibble(
             sf_object,
             label_attr,
             label,
@@ -150,15 +150,15 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
 }
 
 #' @title Obtain a tibble with latitude/longitude points from POINT geometry
-#' @name .sits_sf_point_to_tibble
+#' @name .sf_point_to_tibble
 #' @keywords internal
-#'
+#' @noRd
 #' @param sf_object       sf object.
 #' @param label_attr      Attribute used as a polygon label
 #' @param label           Label to be assigned if no attribute is provided
 #' @return  A tibble with latitude/longitude points.
 #'
-.sits_sf_point_to_tibble <- function(sf_object, label_attr, label) {
+.sf_point_to_tibble <- function(sf_object, label_attr, label) {
 
     # get the db file
     sf_df <- sf::st_drop_geometry(sf_object)
@@ -189,9 +189,9 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
 }
 
 #' @title Obtain a tibble from POLYGON geometry
-#' @name .sits_sf_polygon_to_tibble
+#' @name .sf_polygon_to_tibble
 #' @keywords internal
-#'
+#' @noRd
 #' @param sf_object       sf object linked to a shapefile
 #' @param label_attr      Attribute in the shapefile used as a polygon label
 #' @param label           Label to be assigned to points
@@ -199,7 +199,7 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
 #' @param pol_id          ID attribute for polygons shapefile.
 #' @return A tibble with latitude/longitude points from POLYGON geometry
 #'
-.sits_sf_polygon_to_tibble <- function(sf_object,
+.sf_polygon_to_tibble <- function(sf_object,
                                        label_attr,
                                        label,
                                        n_sam_pol,

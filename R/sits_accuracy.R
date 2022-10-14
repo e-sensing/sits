@@ -158,7 +158,7 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
         )
 
         # get xy in cube projection
-        xy_tb <- .sits_proj_from_latlong(
+        xy_tb <- .proj_from_latlong(
             longitude = csv_tb$longitude,
             latitude = csv_tb$latitude,
             crs = .crs(tile)

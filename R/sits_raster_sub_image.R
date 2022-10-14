@@ -54,7 +54,7 @@
     bbox_roi <- .roi_bbox(roi, cube)
 
     # calculate the intersection between the bbox of the ROI and the cube tile
-    bbox_in <- .sits_bbox_intersect(bbox_roi, cube)
+    bbox_in <- .bbox_intersect(bbox_roi, cube)
 
     return(!purrr::is_null(bbox_in))
 }
@@ -78,41 +78,10 @@
     bbox_roi <- .roi_bbox(roi, tile)
 
     # calculate the intersection between the bbox of the ROI and the cube
-    bbox_in <- .sits_bbox_intersect(bbox_roi, tile)
+    bbox_in <- .bbox_intersect(bbox_roi, tile)
 
     # return the sub_image
     sub_image <- .raster_sub_image_from_bbox(bbox_in, tile)
-
-    return(sub_image)
-}
-#' @title Find the dimensions of the sub image without ROI
-#' @name .raster_sub_image_default
-#' @keywords internal
-#' @noRd
-#' @param  tile            tile of data cube.
-#' @param  sf_region       spatial region of interest (sf_object)
-#' @return                 vector with information on the subimage
-.raster_sub_image_default <- function(tile) {
-
-    # pre-condition
-    .check_num(nrow(tile),
-        min = 1, max = 1, is_integer = TRUE,
-        msg = "process one tile only"
-    )
-
-    # by default, the sub_image has the same dimension as the main cube
-    bbox <- .bbox(tile)
-
-    sub_image <- c(
-        row = 1,
-        col = 1,
-        nrows = .tile_nrows(tile),
-        ncols = .tile_ncols(tile),
-        xmin = bbox[["xmin"]],
-        xmax = bbox[["xmax"]],
-        ymin = bbox[["ymin"]],
-        ymax = bbox[["ymax"]]
-    )
 
     return(sub_image)
 }

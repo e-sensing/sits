@@ -3,8 +3,6 @@
 \name{sits_som}
 \alias{sits_som}
 \alias{sits_som_map}
-\alias{sits_som_clean_samples}
-\alias{sits_som_evaluate_cluster}
 \title{Use SOM for quality analysis of time series samples}
 \usage{
 sits_som_map(
@@ -17,15 +15,6 @@ sits_som_map(
   som_radius = 2,
   mode = "online"
 )
-
-sits_som_clean_samples(
-  som_map,
-  prior_threshold = 0.6,
-  posterior_threshold = 0.6,
-  keep = c("clean", "analyze")
-)
-
-sits_som_evaluate_cluster(som_map)
 }
 \arguments{
 \item{data}{A tibble with samples to be clustered.}
@@ -44,14 +33,6 @@ sits_som_evaluate_cluster(som_map)
 \item{som_radius}{Radius of SOM neighborhood.}
 
 \item{mode}{Type of learning algorithm (default = "online").}
-
-\item{som_map}{Kohonen map}
-
-\item{prior_threshold}{prior to bayesian analysis}
-
-\item{posterior_threshold}{used after bayesian analysis}
-
-\item{keep}{Which types of evaluation to be maintained in the data.}
 }
 \value{
 \code{sits_som_map()} produces a list with three members:
@@ -64,14 +45,6 @@ where each class of each neuron is associated to two values:
 based on the frequency of samples of this class allocated to the neuron;
 (b) the posterior probability that this class belongs to a cluster,
 using data for the neighbours on the SOM map.
-
-tibble with an two additional columns.
-The first indicates if each sample is clean, should be analyzed or
-should be removed. The second is the posterior probability of the sample.
-
-\code{sits_som_evaluate_cluster()} produces a tibble with the clusters
-found by the SOM map. For each cluster, ir provides the percentage
-of classes inside it.
 }
 \description{
 These function use self-organized maps to perform

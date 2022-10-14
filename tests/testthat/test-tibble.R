@@ -22,7 +22,7 @@ test_that("Apply", {
             (max(NDVI) - min(NDVI))
     )
 
-    expect_equal(sum((sits_time_series(point2))$NDVI_norm),
+    expect_equal(sum((.tibble_time_series(point2))$NDVI_norm),
         216.6617,
         tolerance = 0.1
     )
@@ -39,7 +39,7 @@ test_that("Bands", {
 test_that("Bbox", {
     bbox <- sits_bbox(samples_modis_ndvi)
     expect_true(all(names(bbox) %in%
-        c("xmin", "ymin", "xmax", "ymax")))
+        c("xmin", "ymin", "xmax", "ymax", "crs")))
     expect_true(bbox["xmin"] < -60.0)
 })
 
@@ -49,7 +49,7 @@ test_that("Merge", {
     result <- sits_merge(point_ndvi, point_evi)
 
     expect_true(length(sits_timeline(result)) == 412)
-    expect_true(ncol(sits_time_series(result)) == 3)
+    expect_true(ncol(.tibble_time_series(result)) == 3)
 
     result2 <- sits_merge(point_ndvi, point_ndvi)
     expect_true(all(sits_bands(result2) %in% c("NDVI.1", "NDVI.2")))
@@ -58,7 +58,7 @@ test_that("Merge", {
 test_that("Prune", {
     data("cerrado_2classes")
     new_data <- cerrado_2classes[1:3, ]
-    ts_1 <- sits_time_series(new_data[1, ])
+    ts_1 <- .tibble_time_series(new_data[1, ])
     ts_2 <- ts_1[1:10, ]
     new_data$time_series[[1]] <- ts_2
 

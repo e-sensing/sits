@@ -78,7 +78,7 @@
 
         # each row of the values matrix is a spatial point
         ts_band_lst <- purrr::map(seq_len(nrow(values_band)), function(i) {
-            t_point <- .sits_timeline_during(
+            t_point <- .timeline_during(
                 timeline   = timeline,
                 start_date = lubridate::as_date(points$start_date[[i]]),
                 end_date   = lubridate::as_date(points$end_date[[i]])
@@ -147,7 +147,7 @@
 }
 
 #' @title Extract a time series from raster
-#' @name .sits_image_classified_get_ts
+#' @name .taster_class_get_ts
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -160,14 +160,14 @@
 #' @param xy                A matrix with longitude as X and latitude as Y.
 #' @param output_dir        An output directory to save temporary time series.
 #' @return                  A sits tibble with the time series.
-.sits_image_classified_get_ts <- function(tile,
+.raster_class_get_ts <- function(tile,
                                           points,
                                           band,
                                           xy,
                                           output_dir = output_dir) {
 
     # set caller to show in errors
-    .check_set_caller(".sits_image_classified_get_ts")
+    .check_set_caller(".raster_class_get_ts")
 
     # get timeline
     timeline <- sits_timeline(tile)

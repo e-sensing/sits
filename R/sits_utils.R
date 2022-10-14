@@ -52,8 +52,6 @@ sits_run_tests <- function() {
 #' sits_config(run_examples = TRUE)
 #' }
 #'
-#'
-
 #' @export
 sits_run_examples <- function() {
     return(.try(
@@ -63,33 +61,3 @@ sits_run_examples <- function() {
     )
 }
 
-
-
-#' @title Filter tiles that intersects with samples
-#' @name .sits_filter_intersecting_tiles
-#' @keywords internal
-#
-#' @description Filter tiles that intersects with samples.
-#'
-#' @param cube     Data cube from where data is to be retrieved.
-#' @param samples  Samples to be retrieved.
-#'
-#' @return A cube with filtered tiles.
-.sits_filter_intersecting_tiles <- function(cube, samples) {
-    samples_sf <- sits_as_sf(data = samples)
-
-    are_samples_in_tiles <- slider::slide_lgl(cube, function(tile) {
-        .raster_sub_image_intersects(
-            cube = tile,
-            roi = samples_sf
-        )
-    })
-    .check_that(
-        any(are_samples_in_tiles),
-        msg = "The provided tile(s) does not intersects with samples."
-    )
-    # filter only tiles that intersects with samples
-    cube <- cube[are_samples_in_tiles, ]
-
-    return(cube)
-}

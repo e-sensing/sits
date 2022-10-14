@@ -1,13 +1,13 @@
-#' Block API
+#' @title Block API
+#' @noRd
 #'
-#' A block represents a region of a matrix. A \code{block} is any
-#' \code{list} or \code{tibble} containing \code{col}, \code{row},
-#' \code{ncols}, and \code{nrows} fields.
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param x Any object to extract a \code{block}.
-#' @param block Any object with \code{ncols}, \code{nrows} fields.
-#' @param overlap Pixels to increase/decrease block \code{ncols} and
-#' \code{nrows}.
+#' @param x  Any object to extract a block.
+#'
+#' @description
+#' A block represents a region of a matrix. A block is any
+#' list or tibble containing col, row, ncols, and nrows fields.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -19,26 +19,20 @@
 #' .block_size(x, 2)
 #' }
 #'
-#' @seealso \link{block_accessors}
-#' @family region objects API
-#' @keywords internal
-#' @noRd
-#' @name block_api
 NULL
 
 # block fields
 .block_cols <- c("col", "row", "ncols", "nrows")
 
-#' @describeIn block_api Does vector \code{x} has \code{block} fields?
-#' @returns \code{.has_block()}: \code{logical}.
+#' @title Check if an object contains a block
 #' @noRd
+#' @returns A logical indicating if an object contains a block.
 .has_block <- function(x) {
     all(.block_cols %in% names(x))
 }
-
-#' @describeIn block_api Extract a \code{block} from any given \code{vector}.
-#' @returns \code{.block()}: \code{block}.
+#' @title Create a block
 #' @noRd
+#' @returns A block from any given object
 .block <- function(x) {
     if (!.has_block(x)) {
         return(NULL)
@@ -48,11 +42,61 @@ NULL
     # Return a block
     .common_size(col = col, row = row, ncols = .ncols(x), nrows = .nrows(x))
 }
-
-#' @describeIn block_api Compute the number of pixels for a \code{block}
-#'   considering an additional overlapping parameter.
-#' @returns \code{.block_size()}: \code{integer}.
+#' @title Compute block size in pixels
 #' @noRd
+#' @param block  A block.
+#' @param overlap  Pixels to increase/decrease block `ncols` and `nrows`.
+#' @returns The size of a block with overlaps.
 .block_size <- function(block, overlap = 0) {
-    (block[["nrows"]] + 2 * overlap) * (block[["ncols"]] + 2 * overlap)
+    (.nrows(block) + 2 * overlap) * (.ncols(block) + 2 * overlap)
+}
+
+#' @title Block accessors
+#' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' These functions are accessors of block fields in a vector.
+#' Getters functions returns the respective field values with the expected
+#' data type. Setters functions convert value to expected data type and
+#' store it in respective fields on a given object. If value has no length
+#' and the vector is not atomic, it is removed from the object.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#' x <- list(nrows = 123)
+#' .nrows(x)
+#' .ncols(x) <- 234
+#' x
+#' }
+NULL
+
+.col <- function(x) {
+    .as_int(.compact(x[["col"]]))
+}
+`.col<-` <- function(x, value) {
+    x[["col"]] <- .as_int(value)
+    x
+}
+.row <- function(x) {
+    .as_int(.compact(x[["row"]]))
+}
+`.row<-` <- function(x, value) {
+    x[["row"]] <- .as_int(value)
+    x
+}
+.ncols <- function(x) {
+    .as_int(.compact(x[["ncols"]]))
+}
+`.ncols<-` <- function(x, value) {
+    x[["ncols"]] <- .as_int(value)
+    x
+}
+.nrows <- function(x) {
+    .as_int(.compact(x[["nrows"]]))
+}
+`.nrows<-` <- function(x, value) {
+    x[["nrows"]] <- .as_int(value)
+    x
 }

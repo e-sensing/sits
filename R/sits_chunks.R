@@ -1,21 +1,17 @@
-#---- chunks API: ----
-
-#' Chunks API
+#' @title Chunks API
+#' @noRd
 #'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
 #' A chunk is a tibble of rectangular regions defining a matrix and
 #' its corresponding geographical area. So, each  region contains a
-#' \code{block} and a \code{bbox} information. chunks can be used to access
+#' block and a bbox information. chunks can be used to access
 #' specific raster image regions and optimize memory usage.
 #'
 #' Generally, chunks are created from an actual image that is divided
 #' into small blocks. The chunks also provide overlapping support, that is,
 #' chunks that intersects its neighbors by some amount of pixels.
-#'
-#' @param block A \code{block} to represent the common chunk size.
-#' @param overlap An integer informing overlapping size in pixels.
-#' @param image_size A \code{block} informing original image's matrix size.
-#' @param image_bbox A \code{bbox} informing original image bbox.
-#' @param chunks A \code{chunk}.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -36,18 +32,15 @@
 #'   roi = c(lon_min = 1.3, lon_max = 1.7, lat_min = 3.3, lat_max = 3.7)
 #' )
 #' }
-#'
-#' @seealso \link{chunk_accessors}
-#' @family region objects API
-#' @keywords internal
-#' @name chunks_api
-#' @noRd
 NULL
 
-#' @describeIn chunks_api Creates a tibble of chunks with the same size as
-#'   \code{block} and additional \code{overlap}.
-#' @returns \code{.chunks_create()}: \code{chunks} tibble.
+#' @title Create chunks
 #' @noRd
+#' @param block  A block to represent the common chunk size.
+#' @param overlap  An overlapping size in pixels.
+#' @param image_size  A block with original image size.
+#' @param image_bbox  A bbox with original image bbox.
+#' @returns  A tibble with chunks.
 .chunks_create <- function(block, overlap, image_size, image_bbox) {
     # Generate all starting block points (col, row)
     chunks <- purrr::cross_df(list(
@@ -92,11 +85,11 @@ NULL
     # Return chunks
     chunks
 }
-
-#' @describeIn chunks_api Creates an empty \code{raster} object based on the
-#'   first chunk passed in \code{chunk} parameter.
-#' @returns \code{raster} object.
+#' @title Convert chunk into raster
 #' @noRd
+#' @param chunk  A tibble with chunks
+#' @param nlayers  Number of layers in the raster
+#' @return  An empty raster object based on the on a chunk.
 .chunks_as_raster <- function(chunk, nlayers) {
     .raster_new_rast(
         nrows = .nrows(chunk)[[1]],
@@ -109,11 +102,10 @@ NULL
         crs = .crs(chunk)[[1]]
     )
 }
-
-#' @describeIn chunks_api Creates a \code{chunk} that can be used to
-#'   remove overlaps.
-#' @returns \code{.chunks_no_overlap()}: \code{chunks} tibble.
+#' @title Remove overlaps from chunks
 #' @noRd
+#' @param chunk  A tibble with chunks
+#' @returns  A tibble with chunks without overlap.
 .chunks_no_overlap <- function(chunks) {
     # Generate blocks
     cropped <- tibble::tibble(
@@ -148,11 +140,46 @@ NULL
     # Return cropped chunks
     cropped
 }
-
-#' @describeIn chunks_api Filter \code{chunks} that intersects a given
-#'   \code{roi}.
-#' @returns \code{.chunks_filter_spatial()}: \code{chunks} tibble.
+#' @title Filter chunks that intersects a given roi
 #' @noRd
+#' @param chunks  A data frame with chunks
+#' @param roi  Region of interest
+#' @returns  A tibble with filtered chunks
 .chunks_filter_spatial <- function(chunks, roi) {
-    chunks[.intersects(.bbox_as_sf(.bbox(chunks)), .roi_as_sf(roi)), ]
+    chunks[.intersects(.bbox_as_sf(.bbox_from_tbl(chunks)), .roi_as_sf(roi)), ]
+}
+
+#' @title Chunk accessors
+#' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' These functions are read-only accessors of chunk fields
+#' `.xres()` and `.yres()` computes, respectively, horizontal and vertial
+#' spatial resolution from chunks. The values are computed as:
+#' * xres = (xmax - xmin) / ncols
+#' * yres = (ymax - ymin) / nrows
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#' x <- c(nrows = 100, ymin = 1, ymax = 10)
+#' .yres(x) # 0.09
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' modis_cube <- sits_cube(
+#'   source = "BDC",
+#'   collection = "MOD13Q1-6",
+#'   data_dir = data_dir,
+#'   delim = "_"
+#' )
+#' .xres(.fi(modis_cube))
+#' .yres(.fi(modis_cube))
+#' }
+NULL
+
+.xres <- function(x) {
+    (.xmax(x) - .xmin(x)) / .ncols(x)
+}
+.yres <- function(x) {
+    (.ymax(x) - .ymin(x)) / .nrows(x)
 }

@@ -1,7 +1,9 @@
-#---- data type ----
-
-#' Data type functions
+#' @title Data type functions
+#' @noRd
 #'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
 #' These are a short named version of data type functions.
 #'
 #' @param x Input value.
@@ -26,43 +28,37 @@
 #' .compact(c(1, 1, 1)) # 1
 #' }
 #'
-#' @returns See description of each function.
-#'
-#' @family data types
-#' @keywords internal
-#' @name data_type
-#' @noRd
 NULL
 
-#' @describeIn data_type Convert an input to \code{integer}.
-#'   Returns \code{integer} or \code{NULL} if value is empty.
+#' @title Convert an input to \code{integer}.
 #' @noRd
+#' @returns An integer or `NULL` if value is empty.
 .as_int <- function(x) {
     .default(as.integer(x))
 }
 
-#' @describeIn data_type Convert an input to \code{character}.
+#' @title Convert an input to \code{character}.
 #'   Returns \code{character} or \code{NULL} if value is empty.
 #' @noRd
 .as_chr <- function(x) {
     .default(as.character(x))
 }
 
-#' @describeIn data_type Convert an input to \code{numeric}.
+#' @title Convert an input to \code{numeric}.
 #'   Returns \code{numeric} or \code{NULL} if value is empty.
 #' @noRd
 .as_dbl <- function(x) {
     .default(as.numeric(x))
 }
 
-#' @describeIn data_type Convert an input to \code{Date}.
+#' @title Convert an input to \code{Date}.
 #'   Returns \code{Date} or \code{NULL} if value is empty.
 #' @noRd
 .as_date <- function(x) {
     .default(lubridate::as_date(unlist(x, recursive = FALSE)))
 }
 
-#' @describeIn data_type Check if an input has a value or not. Any zero length
+#' @title Check if an input has a value or not. Any zero length
 #'   value of any type is evaluated as \code{FALSE}. This function is broader
 #'   than \code{is.null()} that only accounts for \code{NULL} value.
 #'   Returns \code{logical}.
@@ -71,7 +67,7 @@ NULL
     length(x) > 0
 }
 
-#' @describeIn data_type Check if an input has names or not. If there is
+#' @title Check if an input has names or not. If there is
 #'   any element without a name the function evaluates as \code{FALSE}.
 #'   Returns \code{logical}.
 #' @noRd
@@ -80,7 +76,7 @@ NULL
     rep(FALSE, length(x))
 }
 
-#' @describeIn data_type Set \code{class} of object \code{x}.
+#' @title Set \code{class} of object \code{x}.
 #'   Returns updated \code{x} object.
 #' @noRd
 .set_class <- function(x, ...) {
@@ -88,7 +84,7 @@ NULL
     x
 }
 
-#' @describeIn data_type Evaluates unique values of \code{x}. If there is
+#' @title Evaluates unique values of \code{x}. If there is
 #'   only one unique value, return it. Otherwise return all \code{x}.
 #'   Returns same value as \code{x} or the unique value in \code{x} (if
 #'   this is the case).
@@ -101,10 +97,12 @@ NULL
     value
 }
 
-#----  Utility functions ----
-
-#' Handling error
+#' @title Handling error
+#' @noRd
 #'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
 #' This is a fancy implementation of \code{tryCatch()}. It
 #' has a shorter name and provide a easy functionality of rolling back
 #' (run an expression in case of error, but not avoiding it),
@@ -112,18 +110,16 @@ NULL
 #' Customized error messages can be passed to \code{msg_error} param.
 #'
 #' The order of execution is the following:
-#' \enumerate{
-#' \item try evaluate \code{expr};
-#' \item if everything goes well, run step 6 and return the last expression
+#' (1) try evaluate \code{expr};
+#' (2) if everything goes well, run step 6 and return the last expression
 #'   evaluated in \code{expr} (end);
-#' \item if an error occurs in step 1, evaluate \code{.rollback} expression
+#' (3) if an error occurs in step 1, evaluate \code{.rollback} expression
 #'   (if informed);
-#' \item if \code{.default} is not informed, run step 6 and throws
+#' (4) if \code{.default} is not informed, run step 6 and throws
 #'   the error (end);
-#' \item if \code{.default} is informed, evaluate it, run step 6, and
+#' (5) if \code{.default} is informed, evaluate it, run step 6, and
 #'   return the last expression in \code{.default} (end);
-#' \item evaluate \code{.finally} (if informed).
-#' }
+#' (6) evaluate \code{.finally} (if informed).
 #'
 #' @param expr Expression to be evaluated.
 #' @param ... Additional parameter to be passed to \code{tryCatch()}.
@@ -165,10 +161,6 @@ NULL
 #'   evaluated in \code{.default} parameter. If \code{.default} parameter
 #'   is not informed, the function will raise the error.
 #'
-#' @seealso \code{\link[base]{tryCatch}}
-#' @family utility functions
-#' @keywords internal
-#' @noRd
 .try <- function(expr,
                  ...,
                  .rollback = NULL,
@@ -220,35 +212,6 @@ NULL
     .rbind(.by(data, col, fn, ...))
 }
 
-#' Spatial intersects
-#'
-#' This function is based on \code{sf::st_intersects()}. It projects \code{y}
-#' to the CRS of \code{x} before compute intersection. For each geometry of
-#' \code{x}, the function returns the \code{TRUE} if it intersects with any
-#' geometry of \code{y}, otherwise it returns \code{FALSE}.
-#'
-#' @param x,y \code{sf} geometries.
-#'
-#' @returns A \code{logical} vector indicating which geometries of \code{x}
-#' intersects \code{y} geometries.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#' x <- .bbox_as_sf(.bbox(c(xmin=1, xmax=2, ymin=3, ymax=4, crs=4326)))
-#' y <- .roi_as_sf(c(lon_min=1.5, lon_max=3, lat_min=3.5, lat_max=5))
-#' .intersects(x, y) # TRUE
-#' }
-#'
-#' @family utility functions
-#' @family region objects API
-#' @keywords internal
-#' @noRd
-.intersects <- function(x, y) {
-    as_crs <- sf::st_crs(x)
-    y <- sf::st_transform(y, crs = as_crs)
-    apply(sf::st_intersects(x, y, sparse = FALSE), 1, any)
-}
-
 .between <- function(x, min, max) {
     min <= x & x <= max
 }
@@ -271,335 +234,21 @@ NULL
     tibble::tibble(...)
 }
 
-#---- Generic accessors ----
 
-#' Bbox accessors
+#' @title Points accessors
+#' @noRd
 #'
-#' These functions are accessors of \code{bbox} fields of a \code{vector}.
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' These functions are accessors of `point` fields in a object tibble.
 #' Getters functions returns the respective field values with the expected
 #' data type. Setters functions convert value to expected data type and
 #' store it in respective fields on a given object. If value has no length
-#' and the \code{vector} is not \code{atomic}, it is removed from the object.
+#' it is removed from the object.
 #'
-#' \code{.xmin()}, \code{.xmax()}, \code{.ymin()}, \code{.ymax()},
-#' and \code{.crs()} get/set, respectively, \code{"xmin"}, \code{"xmax"},
-#' \code{"ymin"}, \code{"ymax"}, and \code{"crs"} fields.
-#'
-#' @param x Object to get/set field value.
-#' @param value Value to set on object field.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#' x <- c(xmax = "123")
-#' .xmax(x) # 123 as number
-#' x <- list(xmin = 1, xmax = 2, ymin = 3, ymax = 4)
-#' .crs(x) <- 4326
-#' x # with 'crs' field
-#' .as_crs(3857) # EPSG:3857
-#' }
-#'
-#' @returns Getters return respective field value or \code{NULL}, if it doesn't
-#'   exist. Setters return the updated \code{x} object.
-#'
-#' @family accessors
-#' @keywords internal
-#' @name bbox_accessors
-#' @noRd
-NULL
-
-#' @describeIn bbox_accessors Get \code{'xmin'} field.
-#' @noRd
-.xmin <- function(x) {
-    .as_dbl(.compact(x[["xmin"]]))
-}
-
-#' @describeIn bbox_accessors Set \code{'xmin'} field as numeric.
-#' @noRd
-`.xmin<-` <- function(x, value) {
-    x[["xmin"]] <- .as_dbl(value)
-    x
-}
-
-#' @describeIn bbox_accessors Get \code{'xmax'} field.
-#' @noRd
-.xmax <- function(x) {
-    .as_dbl(.compact(x[["xmax"]]))
-}
-
-#' @describeIn bbox_accessors Set \code{'xmax'} field as numeric.
-#' @noRd
-`.xmax<-` <- function(x, value) {
-    x[["xmax"]] <- .as_dbl(value)
-    x
-}
-
-#' @describeIn bbox_accessors Get \code{'ymin'} field.
-#' @noRd
-.ymin <- function(x) {
-    .as_dbl(.compact(x[["ymin"]]))
-}
-
-#' @describeIn bbox_accessors Set \code{'ymin'} field as numeric.
-#' @noRd
-`.ymin<-` <- function(x, value) {
-    x[["ymin"]] <- .as_dbl(value)
-    x
-}
-
-#' @describeIn bbox_accessors Get \code{'ymax'} field.
-#' @noRd
-.ymax <- function(x) {
-    .as_dbl(.compact(x[["ymax"]]))
-}
-
-#' @describeIn bbox_accessors Set \code{'ymax'} field as numeric.
-#' @noRd
-`.ymax<-` <- function(x, value) {
-    x[["ymax"]] <- .as_dbl(value)
-    x
-}
-
-#' @describeIn bbox_accessors Convert a CRS numeric value to \code{character},
-#'   appending it after \code{'EPSG:'}.
-#' @noRd
-.as_crs <- function(x) {
-    if (.has(x)) {
-        if (is.character(x))
-            .compact(x)
-        else if (is.numeric(x))
-            paste0("EPSG:", .compact(x))
-        else if (is.na(x))
-            NA_character_
-        else
-            stop("invalid crs value")
-    }
-}
-
-#' @describeIn bbox_accessors Get \code{'crs'} field.
-#' @noRd
-.crs <- function(x) {
-    .as_crs(x[["crs"]])
-}
-
-#' @describeIn bbox_accessors Set \code{'crs'} field as \code{character} string.
-#' @noRd
-`.crs<-` <- function(x, value) {
-    x[["crs"]] <- .as_crs(value)
-    x
-}
-
-#' Block accessors
-#'
-#' These functions are accessors of \code{block} fields in a \code{vector}.
-#' Getters functions returns the respective field values with the expected
-#' data type. Setters functions convert value to expected data type and
-#' store it in respective fields on a given object. If value has no length
-#' and the \code{vector} is not \code{atomic}, it is removed from the object.
-#'
-#' \code{.col()}, \code{.row()}, \code{.ncols()}, and \code{.nrows()} get/set,
-#' respectively, \code{"col"}, \code{"row"}, \code{"ncols"}, and
-#' \code{"nrows"} fields.
-#'
-#' @param x Object to get field value.
-#' @param value Value to set on object field.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#' x <- c(row = 3.45)
-#' .row(x) # 3 as integer
-#' x <- list(col = 1, row = 2, ncols = 3)
-#' .nrows(x) # NULL
-#' .nrows(x) <- 4
-#' x
-#' }
-#'
-#' @returns Getters return respective field value or \code{NULL}, if it doesn't
-#'   exist. Setters return the updated \code{x} object.
-#'
-#' @family accessors
-#' @keywords internal
-#' @name block_accessors
-#' @noRd
-NULL
-
-#' @describeIn block_accessors Get \code{'col'} field.
-#' @noRd
-.col <- function(x) {
-    .as_int(.compact(x[["col"]]))
-}
-
-#' @describeIn block_accessors Set \code{'col'} field as integer.
-#' @noRd
-`.col<-` <- function(x, value) {
-    x[["col"]] <- .as_int(value)
-    x
-}
-
-#' @describeIn block_accessors Get \code{'row'} field.
-#' @noRd
-.row <- function(x) {
-    .as_int(.compact(x[["row"]]))
-}
-
-#' @describeIn block_accessors Set \code{'row'} field as integer.
-#' @noRd
-`.row<-` <- function(x, value) {
-    x[["row"]] <- .as_int(value)
-    x
-}
-
-#' @describeIn block_accessors Get \code{'ncols'} field.
-#' @noRd
-.ncols <- function(x) {
-    .as_int(.compact(x[["ncols"]]))
-}
-
-#' @describeIn block_accessors Set \code{'ncols'} field as integer.
-#' @noRd
-`.ncols<-` <- function(x, value) {
-    x[["ncols"]] <- .as_int(value)
-    x
-}
-
-#' @describeIn block_accessors Get \code{'nrows'} field.
-#' @noRd
-.nrows <- function(x) {
-    .as_int(.compact(x[["nrows"]]))
-}
-
-#' @describeIn block_accessors Set \code{'nrows'} field as integer.
-#' @noRd
-`.nrows<-` <- function(x, value) {
-    x[["nrows"]] <- .as_int(value)
-    x
-}
-
-#' Chunk accessors
-#'
-#' These functions are read-only accessors of \code{chunk} fields in a
-#' \code{vector}.
-#'
-#' \code{.xres()} and \code{.yres()} computes, respectively, \code{"xres"} and
-#' \code{"yres"} values from chunk fields. The values are computed as
-#' \itemize{
-#' \item \eqn{xres=(xmax - xmin)/ncols}
-#' \item \eqn{yres=(ymax - ymin)/nrows}
-#' }
-#'
-#' @param x Object to get field value.
-#' @param value Value to set on object field.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#' x <- c(nrows = 100, ymin = 1, ymax = 10)
-#' .yres(x) # 0.09
-#' }
-#'
-#' @returns Spatial resolution.
-#'
-#' @family accessors
-#' @keywords internal
-#' @name chunk_accessors
-#' @noRd
-NULL
-
-#' @describeIn chunk_accessors Computes \code{x} resolution of a \code{chunk}.
-#' @noRd
-.xres <- function(x) {
-    (.xmax(x) - .xmin(x)) / .ncols(x)
-}
-
-#' @describeIn chunk_accessors Computes \code{y} resolution of a \code{chunk}.
-#' @noRd
-.yres <- function(x) {
-    (.ymax(x) - .ymin(x)) / .nrows(x)
-}
-
-#' Band configuration accessors
-#'
-#' These functions are read-only accessors of \code{band_conf} objects. A
-#' \code{band_conf} is an entry of band definition in config. It can be
-#' from an \code{eo_cube} or \code{derived_cube}.
-#'
-#' @param conf A band definition value from config. Can be retrieved by
-#'   \code{.conf_eo_band()} or \code{.conf_derived_band()}.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#' # Get configuration band
-#' x <- .conf_eo_band(
-#'   source = "BDC",
-#'   collection = "MOD13Q1-6",
-#'   band = "NIR"
-#' )
-#' }
-#'
-#' @returns Respective configuration value.
-#'
-#' @family accessors
-#' @keywords internal
-#' @name band_accessors
-#' @noRd
-NULL
-
-#' @describeIn band_accessors Get \code{data_type} entry.
-#' @noRd
-.data_type <- function(conf) {
-    .as_chr(conf[["data_type"]][[1]])
-}
-
-#' @describeIn band_accessors Get \code{missing_value} entry.
-#' @noRd
-.miss_value <- function(conf) {
-    .as_dbl(conf[["missing_value"]][[1]])
-}
-
-#' @describeIn band_accessors Get \code{minimum_value} entry.
-#' @noRd
-.min_value <- function(conf) {
-    .as_dbl(conf[["minimum_value"]][[1]])
-}
-
-#' @describeIn band_accessors Get \code{maximum_value} entry.
-#' @noRd
-.max_value <- function(conf) {
-    .as_dbl(conf[["maximum_value"]][[1]])
-}
-
-#' @describeIn band_accessors Get \code{scale_factor} entry.
-#' @noRd
-.scale <- function(conf) {
-    .as_dbl(conf[["scale_factor"]][[1]])
-}
-
-#' @describeIn band_accessors Get \code{offset_value} entry.
-#' @noRd
-.offset <- function(conf) {
-    .as_dbl(conf[["offset_value"]][[1]])
-}
-
-#' @describeIn band_accessors Get \code{interp_values} entry.
-#' @noRd
-.cloud_interp_values <- function(conf) {
-    .as_int(conf[["interp_values"]])
-}
-
-#' @describeIn band_accessors Get \code{bit_mask} entry.
-#' @noRd
-.cloud_bit_mask <- function(conf) {
-    .as_int(conf[["bit_mask"]][[1]])
-}
-
-#' Point accessors
-#'
-#' These functions are accessors of \code{point} fields of a \code{vector}.
-#' Getters functions returns the respective field values with the expected
-#' data type. Setters functions convert value to expected data type and
-#' store it in respective fields on a given object. If value has no length
-#' and the \code{vector} is not \code{atomic}, it is removed from the object.
-#'
-#' \code{.lon()} and \code{.lat()} get/set, respectively, \code{"longitude"}
-#' and \code{"latitude"} fields.
+#' `.lon()` and `.lat()` get/set, respectively, `"longitude"`
+#' and `"latitude"` fields.
 #'
 #' @param x Object to get/set field value.
 #' @param value Value to set on object field.
@@ -613,45 +262,40 @@ NULL
 #' x # with 'longitude' and 'latitude' fields
 #' }
 #'
-#' @returns Getters return respective field value or \code{NULL}, if it doesn't
-#'   exist. Setters return the updated \code{x} object.
-#'
-#' @family accessors
-#' @keywords internal
-#' @name point_accessors
-#' @noRd
 NULL
 
-#' @describeIn point_accessors Get \code{'longitude'} field.
+#' @title Get \code{'longitude'} field.
 #' @noRd
 .lon <- function(x) {
     .as_dbl(.compact(x[["longitude"]]))
 }
 
-#' @describeIn point_accessors Set \code{'longitude'} field as numeric.
+#' @title Set \code{'longitude'} field as numeric.
 #' @noRd
 `.lon<-` <- function(x, value) {
     x[["longitude"]] <- .as_dbl(value)
     x
 }
 
-#' @describeIn point_accessors Get \code{'latitude'} field.
+#' @title Get \code{'latitude'} field.
 #' @noRd
 .lat <- function(x) {
     .as_dbl(.compact(x[["latitude"]]))
 }
 
-#' @describeIn point_accessors Set \code{'latitude'} field as numeric.
+#' @title Set \code{'latitude'} field as numeric.
 #' @noRd
 `.lat<-` <- function(x, value) {
     x[["latitude"]] <- .as_dbl(value)
     x
 }
 
-# ---- Point API ----
-
-#' Point API
+#' @title Point API
+#' @noRd
 #'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
 #' A point represents a dimensionless geographical location in a given
 #' projection. A \code{point} is any \code{list} or \code{tibble}
 #' containing \code{longitude} and \code{latitude} fields. A \code{point} may
@@ -672,25 +316,19 @@ NULL
 #' .point_as_sf(x) # 3 features
 #' .point_as_sf(x, as_crs = "EPSG:3857") # reprojected features
 #' }
-#'
-#' @seealso \link{point_accessors}
-#' @family region objects API
-#' @keywords internal
-#' @name point_api
-#' @noRd
 NULL
 
 # point fields
 .point_cols <- c("longitude", "latitude")
 
-#' @describeIn point_api Does vector \code{x} has \code{point} fields?
+#' @title Does vector \code{x} has \code{point} fields?
 #' @returns \code{.has_point()}: \code{logical}.
 #' @noRd
 .has_point <- function(x) {
     all(.point_cols %in% names(x))
 }
 
-#' @describeIn point_api Is vector \code{x} a \code{point} object?
+#' @title Is vector \code{x} a \code{point} object?
 #' @returns \code{.is_point()}: \code{logical}.
 #' @noRd
 .is_point <- function(x) {
@@ -703,7 +341,7 @@ NULL
     }
 }
 
-#' @describeIn point_api Extract a \code{point} from any given \code{vector}.
+#' @title Extract a \code{point} from any given \code{vector}.
 #' @returns \code{.point()}: \code{point}.
 #' @noRd
 .point <- function(x, crs = NULL, as_crs = NULL) {
@@ -721,8 +359,7 @@ NULL
     point
 }
 
-#' @describeIn point_api Convert a \code{point} into a
-#' \code{sf} point object.
+#' @title Convert a \code{point} into a \code{sf} point object.
 #' @returns \code{.point_as_sf()}: \code{sf}.
 #' @noRd
 .point_as_sf <- function(point, as_crs = NULL) {

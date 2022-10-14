@@ -24,7 +24,7 @@ test_that("Reading a LAT/LONG from RASTER", {
     point_ndvi <- sits_get_data(raster_cube, samples)
 
     expect_equal(names(point_ndvi)[1], "longitude")
-    expect_true(ncol(sits_time_series(point_ndvi)) == 2)
+    expect_true(ncol(.tibble_time_series(point_ndvi)) == 2)
     expect_true(length(sits_timeline(point_ndvi)) == 23)
 })
 
@@ -58,7 +58,7 @@ test_that("Reading a LAT/LONG from RASTER with crs parameter", {
     )
 
     expect_equal(names(point_ndvi)[1], "longitude")
-    expect_true(ncol(sits_time_series(point_ndvi)) == 2)
+    expect_true(ncol(.tibble_time_series(point_ndvi)) == 2)
     expect_true(length(sits_timeline(point_ndvi)) == 23)
 })
 
@@ -100,7 +100,7 @@ test_that("Reading a CSV file from RASTER", {
     expect_true("Forest" %in% sits_labels(points_poly))
     expect_equal(names(points_poly)[1], "longitude")
     expect_equal(length(names(points_poly)), 7)
-    expect_true(ncol(sits_time_series(points_poly)) == 2)
+    expect_true(ncol(.tibble_time_series(points_poly)) == 2)
     expect_true(length(sits_timeline(points_poly)) == 23)
 
     points_df <- sits_get_data(raster_cube,
@@ -111,7 +111,7 @@ test_that("Reading a CSV file from RASTER", {
     expect_true("Forest" %in% sits_labels(points_df))
     expect_equal(names(points_df)[1], "longitude")
     expect_equal(length(names(points_df)), 7)
-    expect_true(ncol(sits_time_series(points_df)) == 2)
+    expect_true(ncol(.tibble_time_series(points_df)) == 2)
     expect_true(length(sits_timeline(points_df)) == 23)
 })
 
@@ -166,7 +166,7 @@ test_that("Reading a CSV file from RASTER with crs parameter", {
     expect_true("Forest" %in% sits_labels(points_df))
     expect_equal(names(points_df)[1], "longitude")
     expect_equal(length(names(points_df)), 7)
-    expect_true(ncol(sits_time_series(points_df)) == 2)
+    expect_true(ncol(.tibble_time_series(points_df)) == 2)
     expect_true(length(sits_timeline(points_df)) == 23)
 })
 

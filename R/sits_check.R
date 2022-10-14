@@ -1974,6 +1974,7 @@
 #' @title Check if cubes have the same size
 #' @name .check_cubes_same_size
 #' @keywords internal
+#' @noRd
 #' @param  cube1     input data cube
 #' @param  cube2     input data cube
 #' @return No return value, called for side effects.

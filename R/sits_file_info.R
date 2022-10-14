@@ -1,28 +1,26 @@
-#' File info API
-#'
-#' Set of functions to handling \code{file_info}.
+#' @title File info API
+#' @noRd
 #'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param cube    Input data cube.
-#' @param bands   Bands to be filtered
-#' @param dates   Dates to be filtered.
-#' @param fid     Feature id (fid) to be filtered.
+#' @description
+#' Set of functions for handling `file_info`.
 #'
-#' @return  See each function description.
-#' @name file_info_api
-#' @keywords internal
 NULL
 
-#' @describeIn file_info_api Get \code{file_info} from a \code{tile}. If a
-#'   \code{cube} is informed, get the \code{file_info} from the first
-#'   \code{tile}. Returns a \code{file_info}.
+#' @title Get `file_info` from a given tile.
+#' @noRd
+#' @param tile  A tile.
+#' @returns A `file_info` tibble.
 .fi <- function(tile) {
     tile[["file_info"]][[1]]
 }
 
-#' @describeIn file_info_api Set \code{'file_info'} field of a \code{tile}.
-#'   If a \code{cube} is informed, considers only the first \code{tile}.
+#' @title Set `file_info` into a given tile.
+#' @noRd
+#' @param tile  A tile.
+#' @param value  A `file_info` to be set.
+#' @returns An updated tile tibble.
 `.fi<-` <- function(tile, value) {
     tile <- .tile(tile)
     tile[["file_info"]] <- list(value)

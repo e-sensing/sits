@@ -147,9 +147,9 @@ NULL
 }
 
 #' @title Source bands functions
-#' @name source_bands
+#' @name .source_bands
 #' @keywords internal
-#'
+#' @noRd
 #' @description
 #' These functions provide an API to handle/retrieve data from bands.
 #'
@@ -169,7 +169,7 @@ NULL
 #' The values returned by each function are described as follows.
 NULL
 
-#' @rdname source_bands
+#' @rdname .source_bands
 #' @noRd
 #' @description \code{.source_bands()} lists all bands defined in a collection
 #' that matches the criteria defined by its parameters. If no filter is
@@ -215,7 +215,7 @@ NULL
     return(bands)
 }
 
-#' @rdname source_bands
+#' @rdname .source_bands
 #' @noRd
 #' @description \code{.source_bands_reap()} reaps the attributes' values
 #' indicated by \code{key} argument for all bands filtered by its parameters.
@@ -268,7 +268,7 @@ NULL
     return(result)
 }
 
-#' @rdname source_bands
+#' @rdname .source_bands
 #' @noRd
 #' @description \code{.source_bands_band_name()} returns the \code{band_name}
 #' attribute of all bands filtered by its parameters.
@@ -301,7 +301,7 @@ NULL
     return(bands)
 }
 
-#' @rdname source_bands
+#' @rdname .source_bands
 #' @noRd
 #' @description \code{.source_bands_resolution()} returns the
 #' \code{resolution} attribute of all bands filtered by its parameters.
@@ -339,7 +339,7 @@ NULL
     return(resolution)
 }
 
-#' @rdname source_bands
+#' @rdname .source_bands
 #' @noRd
 #' @description \code{.source_bands_to_sits()} converts any bands to its
 #' sits name indicated in band entry.
@@ -376,7 +376,7 @@ NULL
     return(unname(bands_converter[bands]))
 }
 
-#' @rdname source_bands
+#' @rdname .source_bands
 #' @noRd
 #' @description \code{.source_bands_to_source()} converts any bands to its
 #' corresponding names indicated in \code{band_name} attribute.
@@ -406,7 +406,7 @@ NULL
     return(unname(bands_converter[bands]))
 }
 
-#' @rdname source_bands
+#' @rdname .source_bands
 #' @noRd
 #' @description \code{.source_cloud()} lists cloud band for a collection.
 #'
@@ -416,7 +416,7 @@ NULL
     return("CLOUD")
 }
 
-#' @rdname source_bands
+#' @rdname .source_bands
 #' @noRd
 #' @description \code{.source_cloud_bit_mask()} returns the \code{bit_mask}
 #' attribute of a cloud band, indicating if the cloud band is a bit mask.
@@ -445,7 +445,7 @@ NULL
     return(bit_mask)
 }
 
-#' @rdname source_bands
+#' @rdname .source_bands
 #' @noRd
 #' @description \code{.source_cloud_values()} returns the \code{values}
 #' attribute of a cloud band.
@@ -473,7 +473,7 @@ NULL
     return(vls)
 }
 
-#' @rdname source_bands
+#' @rdname .source_bands
 #' @noRd
 #' @description \code{.source_cloud_interp_values()} returns the
 #' \code{interp_values} attribute of a cloud band, indicating which value/bit
@@ -502,9 +502,9 @@ NULL
 }
 
 #' @title Source collection functions
-#' @name source_collection
+#' @name .source_collection
 #' @keywords internal
-#'
+#' @noRd
 #' @description
 #' These functions provide an API to handle/retrieve data from source's
 #' collections.
@@ -519,7 +519,7 @@ NULL
 #' The values returned by each function are described as follows.
 NULL
 
-#' @rdname source_collection
+#' @rdname .source_collection
 #' @noRd
 #' @description \code{.source_collections()} lists all collections of a source.
 #'
@@ -536,7 +536,7 @@ NULL
     return(collections)
 }
 
-#' @rdname source_collection
+#' @rdname .source_collection
 #' @noRd
 .source_collection_access_test <- function(source, collection, ...) {
     source <- .source_new(source)
@@ -544,7 +544,7 @@ NULL
     UseMethod(".source_collection_access_test", source)
 }
 
-#' @rdname source_collection
+#' @rdname .source_collection
 #' @noRd
 #' @description \code{.source_collection_access_vars_set} sets
 #' \code{access_vars} environment variables.
@@ -577,7 +577,7 @@ NULL
     return(invisible(vars))
 }
 
-#' @rdname source_collection
+#' @rdname .source_collection
 #' @noRd
 #' @description \code{.source_collection_check()} checks if a collection
 #' is from a source.
@@ -626,7 +626,7 @@ NULL
     return(invisible(metadata_search))
 }
 
-#' @rdname source_collection
+#' @rdname .source_collection
 #' @noRd
 #' @description \code{.source_collection_name()} returns the name of a
 #' collection in its original source.
@@ -658,7 +658,7 @@ NULL
     return(res)
 }
 
-#' @rdname source_collection
+#' @rdname .source_collection
 #' @noRd
 #' @description \code{.source_collection_open_data()} informs if a
 #' collection is open data or not.
@@ -692,7 +692,7 @@ NULL
     )
     return(res)
 }
-#' @rdname source_collection
+#' @rdname .source_collection
 #' @noRd
 #' @description \code{.source_collection_open_data_token()} informs if a
 #' collection requires a token to access.
@@ -727,7 +727,7 @@ NULL
     return(res)
 }
 
-#' @rdname source_collection
+#' @rdname .source_collection
 #' @noRd
 #' @description \code{.source_collection_token_check()} checks if a collection
 #' needs environmental variables.
@@ -760,7 +760,7 @@ NULL
     }
 }
 
-#' @rdname source_collection
+#' @rdname .source_collection
 #' @noRd
 #' @description \code{.source_collection_tile_check()} checks if a collection
 #' requires tiles to be defined
@@ -793,9 +793,9 @@ NULL
 }
 
 #' @title Functions to instantiate a new cube from a source
-#' @name source_cube
+#' @name .source_cube
 #' @keywords internal
-#'
+#' @noRd
 #' @description
 #' These functions provide an API to instantiate a new cube object and
 #' access/retrieve information from services or local files to fill
@@ -820,7 +820,7 @@ NULL
 #' The values returned by each function are described as follows.
 NULL
 
-#' @rdname source_cube
+#' @rdname .source_cube
 #' @noRd
 #' @description \code{.source_cube()} is called to start the cube creation
 #' from a source.
@@ -833,7 +833,7 @@ NULL
     UseMethod(".source_cube", source)
 }
 
-#' @rdname source_cube
+#' @rdname .source_cube
 #' @noRd
 #' @description \code{.source_item_get_date()} retrieves the date of an item
 #' (a set of images from different bands that forms a scene).
@@ -845,7 +845,7 @@ NULL
     UseMethod(".source_item_get_date", source)
 }
 
-#' @rdname source_cube
+#' @rdname .source_cube
 #' @noRd
 #' @description \code{.source_item_get_hrefs()} retrieves the paths or URLs of
 #' each file bands of an item.
@@ -858,7 +858,7 @@ NULL
     UseMethod(".source_item_get_hrefs", source)
 }
 
-#' @rdname source_cube
+#' @rdname .source_cube
 #' @noRd
 #' @description \code{.source_item_get_cloud_cover()} retrieves the percentage
 #' of cloud cover of an image.
@@ -870,7 +870,7 @@ NULL
     UseMethod(".source_item_get_cloud_cover", source)
 }
 
-#' @rdname source_cube
+#' @rdname .source_cube
 #' @noRd
 #' @description \code{.source_item_get_bands()} retrieves the bands present
 #' in an item.
@@ -883,7 +883,7 @@ NULL
     UseMethod(".source_item_get_bands", source)
 }
 
-#' @rdname source_cube
+#' @rdname .source_cube
 #' @noRd
 #' @description \code{.source_items_new()} this function is called to create
 #' an items object. In case of Web services, this function is responsible for
@@ -897,7 +897,7 @@ NULL
     UseMethod(".source_items_new", source)
 }
 
-#' @rdname source_cube
+#' @rdname .source_cube
 #' @noRd
 #' @title Item selection from Bands
 #' @name .source_items_bands_select
@@ -913,7 +913,7 @@ NULL
     UseMethod(".source_items_bands_select", source)
 }
 
-#' @rdname source_cube
+#' @rdname .source_cube
 #' @noRd
 #' @description \code{.source_items_fid()} retrieves the feature id of
 #' all items.
@@ -925,7 +925,7 @@ NULL
     UseMethod(".source_items_fid", source)
 }
 
-#' @rdname source_cube
+#' @rdname .source_cube
 #' @noRd
 #' @description \code{.source_items_file_info()} creates the \code{fileinfo}
 #' specification from items object.
@@ -938,7 +938,7 @@ NULL
     UseMethod(".source_items_file_info", source)
 }
 
-#' @rdname source_cube
+#' @rdname .source_cube
 #' @noRd
 #' @description \code{.source_items_tile()} organizes items by tiles
 #' and arrange items in each tile by date.
@@ -951,7 +951,7 @@ NULL
     UseMethod(".source_items_tile", source)
 }
 
-#' @rdname source_cube
+#' @rdname .source_cube
 #' @noRd
 #' @description \code{.source_items_get_sensor()} retrieves the sensor from
 #' items object.
@@ -971,7 +971,7 @@ NULL
     return(res)
 }
 
-#' @rdname source_cube
+#' @rdname .source_cube
 #' @noRd
 #' @description \code{.source_items_get_satellite()} retrieves the satellite
 #' name (platform) from items object.
@@ -992,7 +992,7 @@ NULL
     return(res)
 }
 
-#' @rdname source_cube
+#' @rdname .source_cube
 #' @noRd
 #' @description \code{.source_tile_get_bbox()} retrieves the bounding
 #' box from items of a tile.

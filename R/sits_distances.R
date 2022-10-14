@@ -55,8 +55,9 @@
 }
 
 #' @title Sample a percentage of a time series distance matrix
-#' @name .sits_distances_sample
+#' @name .distances_sample
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Takes a sits tibble with different labels and
@@ -71,7 +72,7 @@
 #' @param  frac            Percentage of samples to pick.
 #' @return                 Data.table with a fixed quantity of samples
 #'                         of informed labels and all other.
-.sits_distances_sample <- function(distances, frac) {
+.distances_sample <- function(distances, frac) {
     # compute sampling
     label <- NULL # to avoid setting global variable
     result <- distances[, .SD[sample(.N, round(frac * .N))], by = label]

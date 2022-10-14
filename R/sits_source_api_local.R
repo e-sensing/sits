@@ -246,11 +246,11 @@
             ) %>%
             # check the start date format
             dplyr::mutate(
-                start_date = .sits_timeline_format(.data[["start_date"]])
+                start_date = .timeline_format(.data[["start_date"]])
             ) %>%
             # check the end date format
             dplyr::mutate(
-                end_date = .sits_timeline_format(.data[["end_date"]])
+                end_date = .timeline_format(.data[["end_date"]])
             ) %>%
             # filter to remove duplicate combinations of file and band
             dplyr::distinct(
@@ -276,7 +276,7 @@
                 .data[["path"]]
             ) %>%
             # check the date format
-            dplyr::mutate(date = .sits_timeline_format(.data[["date"]])) %>%
+            dplyr::mutate(date = .timeline_format(.data[["date"]])) %>%
             # filter to remove duplicate combinations of file and band
             dplyr::distinct(
                 .data[["tile"]],
