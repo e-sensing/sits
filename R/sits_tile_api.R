@@ -126,28 +126,6 @@ NULL
     tile
 }
 
-#' @describeIn tile_accessors Get \code{'file_info'} field of a \code{tile}.
-.tile_file_info <- function(tile) {
-    UseMethod(".tile_file_info", tile)
-}
-
-#' @export
-.tile_file_info.raster_cube <- function(tile) {
-    .fi(tile) # Get the first file_info
-}
-
-#' @describeIn tile_accessors Set \code{'file_info'} field of a \code{tile}.
-`.tile_file_info<-` <- function(tile, value) {
-    UseMethod(".tile_file_info<-", tile)
-}
-
-#' @export
-`.tile_file_info<-.raster_cube` <- function(tile, value) {
-    tile <- .tile(tile)
-    tile[["file_info"]] <- list(value)
-    tile
-}
-
 #---- | .tile_as_sf() ----
 #' Tile API
 #'
