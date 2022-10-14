@@ -125,8 +125,8 @@ NULL
 .fi_filter_bands <- function(fi, bands) {
     bands_in_fi <- bands %in% .fi_bands(fi)
     if (!all(bands_in_fi)) {
-        missing_bands <- paste0("'", bands[!bands_in_fi], "'", collapse = ",")
-        stop("band(s) ", missing_bands, " not found")
+        miss_bands <- paste0("'", bands[!bands_in_fi], "'", collapse = ",")
+        stop("band(s) ", miss_bands, " not found")
     }
     fi[.fi_bands(fi) %in% bands, ]
 }
