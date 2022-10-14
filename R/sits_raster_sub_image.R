@@ -101,14 +101,13 @@
     )
 
     # by default, the sub_image has the same dimension as the main cube
-    size <- .cube_size(tile)
-    bbox <- .cube_tile_bbox(tile)
+    bbox <- .bbox(tile)
 
     sub_image <- c(
         row = 1,
         col = 1,
-        nrows = size[["nrows"]],
-        ncols = size[["ncols"]],
+        nrows = .tile_nrows(tile),
+        ncols = .tile_ncols(tile),
         xmin = bbox[["xmin"]],
         xmax = bbox[["xmax"]],
         ymin = bbox[["ymin"]],
@@ -168,14 +167,10 @@
         msg = "bbox value is outside the cube"
     )
 
-    # get ncols and nrows
-    # throw an error if size are not the same
-    size <- .cube_size(tile)
-
     # tile template
     r_obj <- .raster_new_rast(
-        nrows = size[["nrows"]],
-        ncols = size[["ncols"]],
+        nrows = .tile_nrows(tile),
+        ncols = .tile_ncols(tile),
         xmin = tile[["xmin"]],
         xmax = tile[["xmax"]],
         ymin = tile[["ymin"]],
@@ -290,12 +285,12 @@
     if (!is.null(tile)) {
 
         # pre-condition
-        .check_num(nrow(tile),
-                   min = 1, max = 1, is_integer = TRUE,
-                   msg = "process one tile only"
+        .check_num(
+            x = nrow(tile), min = 1, max = 1, is_integer = TRUE,
+            msg = "process one tile only"
         )
 
-        size <- .cube_size(tile)
+        size <- c(nrows = .tile_nrows(tile), ncols = .tile_ncols(tile))
         xmax <- tile[["xmax"]]
         xmin <- tile[["xmin"]]
         ymin <- tile[["ymin"]]
