@@ -58,8 +58,6 @@
 #' @return A valid sf object of POINT or POLYGON geometry.
 .shp_check_validity <- function(shp_file, shp_attr = NULL, label = NULL) {
 
-    # set caller to show in errors
-    .check_set_caller(".sits_shp_check_validity")
     # pre-condition - does the shapefile exist?
     .check_file(x = shp_file, msg = "shapefile does not exist")
     # read the shapefile
