@@ -755,7 +755,7 @@ sits_list_collections <- function(source = NULL) {
     # check metadata_search
     if (!missing(metadata_search)) {
         .check_chr_within(metadata_search,
-            within = .conf_metadata_search_strategies(),
+            within = .conf("metadata_search_strategies"),
             msg = "invalid 'metadata_search' value"
         )
     }
