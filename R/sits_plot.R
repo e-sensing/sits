@@ -377,7 +377,7 @@ plot.raster_cube <- function(
     }
     # plot RGB image
     else {
-        .check_bands_in_cube(c(red, green, blue), cube)
+        .check_bands_in_cube(c(red, green, blue), tile)
         # get RGB files for the requested timeline
         red_file   <- .tile_path(tile, red, date)
         green_file <- .tile_path(tile, green, date)
