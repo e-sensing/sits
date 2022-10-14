@@ -145,7 +145,6 @@ sits_get_data.default <- function(cube, samples, ...) {
 }
 
 #' @rdname sits_get_data
-#'
 #' @export
 sits_get_data.csv <- function(cube,
                               samples,
@@ -171,7 +170,6 @@ sits_get_data.csv <- function(cube,
     return(data)
 }
 #' @rdname sits_get_data
-#'
 #' @export
 sits_get_data.shp <- function(cube,
                               samples,
@@ -219,9 +217,7 @@ sits_get_data.shp <- function(cube,
     }
     return(data)
 }
-#
 #' @rdname sits_get_data
-#'
 #' @export
 sits_get_data.sf <- function(cube,
                              samples,
@@ -272,7 +268,6 @@ sits_get_data.sf <- function(cube,
     return(data)
 }
 #' @rdname sits_get_data
-#'
 #' @export
 sits_get_data.sits <- function(cube,
                                samples,
