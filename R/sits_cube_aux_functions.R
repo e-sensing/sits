@@ -716,9 +716,24 @@ NULL
     })
 }
 
-#' @keywords internal
-.cube_merge_assets <- function(assets) {
-    .cube_merge_features(assets)
+#' @describeIn cube_api Merges identical tiles into one \code{tile} and
+#'   stacks features into one \code{file_info}. Returns a \code{cube} with
+#'   all identical tiles merged. This function is the opposite of
+#'   \code{.cube_split_features()} and \code{.cube_split_assets()}.
+#' @noRd
+.cube_merge_tiles <- function(cube) {
+    cube <- tidyr::unnest(cube, "file_info", names_sep = ".")
+    cube <- dplyr::arrange(
+        cube, .data[["file_info.date"]], .data[["file_info.band"]]
+    )
+    cube <- tidyr::nest(
+        cube, file_info = tidyr::starts_with("file_info"),
+        .names_sep = "."
+    )
+    # Set class features
+    cube <- .set_class(cube, class(cube))
+    # Return cube
+    cube
 }
 
 # s2_cube <- sits_cube(
@@ -750,8 +765,8 @@ NULL
 # .cube_timeline(sinop)
 # .cube_start_date(sinop)
 # .cube_end_date(sinop)
-# identical(.cube_merge_features(.cube_create_features(s2_cube)), s2_cube)
-# identical(.cube_merge_assets(.cube_create_assets(s2_cube)), s2_cube)
+# identical(.cube_merge_tiles(.cube_split_features(s2_cube)), s2_cube)
+# identical(.cube_merge_tiles(.cube_split_assets(s2_cube)), s2_cube)
 
 
 
