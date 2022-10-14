@@ -8,21 +8,20 @@
 #' @description  Obtain a vector of limits (either on lat/long for time series
 #'               or in projection coordinates in the case of cubes)
 #'
-#' @param data      Valid sits tibble (time series or a cube).
-#' @param wgs84     Reproject bbox to WGS84 (EPSG:4326)?
-#' @param ...       Additional parameters (not implemented).
+#' @param data   \code{samples} data or \code{cube}.
+#' @param crs    CRS of the samples points.
+#' @param as_crs CRS to project the resulting \code{bbox}.
+#' @param ...    Additional parameters.
 #'
-#' @return          Bounding box in WGS84 for time series or
-#'                  on the cube projection for a data cube
-#'                  unless wgs84 parameter is TRUE.
+#' @return A \code{bbox}.
 #'
 #' @examples
-#' bbox <- sits_bbox(samples_modis_ndvi)
-#'
+#' if (sits_run_examples()) {
+#' sits_bbox(samples_modis_ndvi)
+#' }
 #' @export
 #'
-sits_bbox <- function(data, wgs84 = FALSE, ...) {
-    .check_set_caller("sits_bbox")
+sits_bbox <- function(data, ..., as_crs = NULL) {
 
     # Get the meta-type (sits or cube)
     data <- .conf_data_meta_type(data)
@@ -194,13 +193,13 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
 #' \code{xmin}, \code{xmax}, \code{ymin}, \code{ymax}, and \code{crs} fields.
 #' A \code{bbox} may contains multiple entries.
 #'
-#' @param x Any object to extract a \code{bbox}.
-#' @param ... Additional parameters.
+#' @param x      Any object to extract a \code{bbox}.
+#' @param ...    Parameters to be evaluated accordingly to input object.
 #' @param default_crs If no CRS is present in \code{x}, which CRS should be
-#' used? If \code{NULL} default CRS will be \code{'EPSG:4326'}.
-#' @param bbox A \code{bbox}.
-#' @param as_crs A CRS to project \code{bbox}. Useful if bbox has multiples
-#' CRS.
+#'   used? If \code{NULL} default CRS will be \code{'EPSG:4326'}.
+#' @param bbox   A \code{bbox}.
+#' @param as_crs A CRS to project \code{bbox}. Useful if bbox has
+#'   multiples CRS.
 #'
 #' @examples
 #' if (sits_run_examples()) {
