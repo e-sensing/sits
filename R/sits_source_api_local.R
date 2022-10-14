@@ -409,13 +409,11 @@
 
     items <- purrr::map(results_lst, `[[`, "item")
     errors <- unlist(purrr::map(results_lst, `[[`, "error"))
-    if (length(errors) > 0)
-        warning(
-            paste("Cannot open file(s):",
-                  paste0("'", errors, "'", collapse = ", ")),
-            call. = FALSE,
-            immediate. = TRUE
-        )
+    if (length(errors) > 0) {
+        warning("cannot open file(s): ",
+                paste0("'", errors, "'", collapse = ", "),
+                call. = FALSE, immediate. = TRUE)
+    }
 
     items <- dplyr::bind_rows(items) %>%
         dplyr::arrange(.data[["date"]], .data[["fid"]], .data[["band"]])
@@ -479,13 +477,11 @@
 
     items_lst <- purrr::map(results_lst, `[[`, "item")
     errors <- unlist(purrr::map(results_lst, `[[`, "error"))
-    if (length(errors) > 0)
-        warning(
-            paste("Cannot open file(s):",
-                  paste0("'", errors, "'", collapse = ", ")),
-            call. = FALSE,
-            immediate. = TRUE
-        )
+    if (length(errors) > 0) {
+        warning("cannot open file(s):",
+                paste0("'", errors, "'", collapse = ", "),
+                call. = FALSE, immediate. = TRUE)
+    }
 
     items <- dplyr::bind_rows(items_lst)
 
