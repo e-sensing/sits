@@ -232,10 +232,9 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
         # Get the frequency count and value for each labelled image
         freq <- .tile_area_freq(tile)
         # pixel area
-        # get the resolution
-        res <- .cube_resolution(tile)
         # convert the area to hectares
-        area <- freq$count * prod(res) / 10000
+        # assumption: spatial resolution unit is meters
+        area <- freq$count * .xres(tile) * .yres(tile) / 10000
         # Include class names
         freq <- dplyr::mutate(freq,
                               area = area,
