@@ -138,12 +138,10 @@ NULL
 .tile_as_sf <- function(tile) {
     UseMethod(".tile_as_sf", tile)
 }
-#' @title Convert raster cube \code{bbox} to a sf polygon object.
-#' @name .tile_as_sf.raster_cube
-#' @param tile A tile.
+
 #' @export
 .tile_as_sf.raster_cube <- function(tile) {
-    .bbox_as_sf(.tile(tile))
+    .bbox_as_sf(.bbox(.tile(tile)))
 }
 
 #'
@@ -268,16 +266,14 @@ NULL
 #' @export
 .tile_filter_bands.eo_cube <- function(tile, bands) {
     tile <- .tile(tile)
-    .tile_file_info(tile) <-
-        .fi_filter_bands(fi = .fi(tile), bands = .band_eo(bands))
+    .fi(tile) <- .fi_filter_bands(fi = .fi(tile), bands = .band_eo(bands))
     tile
 }
 
 #' @export
 .tile_filter_bands.derived_cube <- function(tile, bands) {
     tile <- .tile(tile)
-    .tile_file_info(tile) <-
-        .fi_filter_bands(fi = .fi(tile), bands = .band_derived(bands))
+    .fi(tile) <- .fi_filter_bands(fi = .fi(tile), bands = .band_derived(bands))
     tile
 }
 #'
@@ -311,7 +307,7 @@ NULL
 #' @export
 .tile_filter_spatial.raster_cube <- function(tile, roi) {
     tile <- .tile(tile)
-    .tile_file_info(tile) <- .fi_filter_spatial(fi = .fi(tile), roi = roi)
+    .fi(tile) <- .fi_filter_spatial(fi = .fi(tile), roi = roi)
     tile
 }
 
@@ -580,7 +576,7 @@ NULL
         .crs(base_tile) <- .raster_crs(r_obj)
     }
     # Update file_info
-    .tile_file_info(base_tile) <- .fi_eo_from_files(
+    .fi(base_tile) <- .fi_eo_from_files(
         files = files, fid = fid, bands = bands, date = date
     )
     # Return eo tile
@@ -634,7 +630,7 @@ NULL
     # Update labels before file_info
     .tile_labels(base_tile) <- labels
     # Update file_info
-    .tile_file_info(base_tile) <- .fi_derived_from_file(
+    .fi(base_tile) <- .fi_derived_from_file(
         file = file, band = band, start_date = .tile_start_date(base_tile),
         end_date = .tile_end_date(base_tile)
     )
@@ -742,31 +738,30 @@ NULL
         update_bbox = FALSE
     )
 }
+
 #' @title Given a labelled cube, return the band information
-#' @name .tile_area_freq
-#' @keywords internal
-#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param tile   Tile of a data cube
 #'
 #' @return Frequency of each label in the data cube
-#'
+#' @name .tile_area_freq
+#' @keywords internal
+#' @noRd
 .tile_area_freq <- function(tile) {
 
     UseMethod(".tile_area_freq", tile)
 }
-#' @rdname .tile_area_freq
+
 #' @export
 .tile_area_freq.class_cube <- function(tile) {
-
-    # open first raster
-    r_obj <- .raster_open_rast(.tile_path(tile))
-
-    # retrieve the frequency
+    # Open first raster
+    r_obj <- .raster_open_rast(.fi_path(.fi(tile)))
+    # Retrieve the frequency
     freq <- tibble::as_tibble(.raster_freq(r_obj))
-
-    return(freq)
+    # Return frequencies
+    freq
 }
+
 #' @title Given a tile and a band, return a set of values for chosen location
 #' @name .tile_extract
 #' @noRd
@@ -783,29 +778,14 @@ NULL
 #'
 .tile_extract <- function(tile, band, xy) {
 
-
-    # set caller to show in errors
-    .check_set_caller(".tile_extract")
-
-    # pre-condition - one tile at a time
-    .check_has_one_tile(tile)
-    # does the cube contain the band?
-    .check_band_in_cube(band, tile)
-
-    # filter the files that contain the band
-    band <- .tile_filter_bands(tile, band)
-
-    # create a stack object
-    r_obj <- .raster_open_rast(band$path)
-
-    # extract the values
+    # Create a stack object
+    r_obj <- .raster_open_rast(.tile_paths(tile = tile, band = band))
+    # Extract the values
     values <- .raster_extract(r_obj, xy)
-
-    # is the data valid?
-    .check_that(
-        x = nrow(values) == nrow(xy),
-        msg = "error in retrieving data"
-    )
+    # Is the data valid?
+    if (nrow(values) != nrow(xy)) {
+        stop("number of extracted points differ from requested points")
+    }
     return(values)
 }
 
