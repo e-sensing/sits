@@ -16,7 +16,7 @@ NULL
 #' @noRd
 #' @returns A logical value
 .is_eq <- function(x, y, tolerance = 0) {
-    if (tolerance[[1]] <= 0) {
+    if (tolerance[[1]] < 0) {
         stop("invalid tolerance parameter")
     }
     # Compute result and return
@@ -26,7 +26,7 @@ NULL
 #' @noRd
 #' @returns A logical value
 .is_lt <- function(x, y, tolerance = 0) {
-    if (tolerance[[1]] <= 0) {
+    if (tolerance[[1]] < 0) {
         stop("invalid tolerance parameter")
     }
     # Compute result and return
@@ -36,7 +36,7 @@ NULL
 #' @noRd
 #' @returns A logical value
 .is_gt <- function(x, y, tolerance = 0) {
-    if (tolerance[[1]] <= 0) {
+    if (tolerance[[1]] < 0) {
         stop("invalid tolerance parameter")
     }
     # Compute result and return
