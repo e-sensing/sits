@@ -377,21 +377,23 @@ NULL
 #' @export
 .tile_filter_interval.raster_cube <- function(tile, start_date, end_date) {
     tile <- .tile(tile)
-    .tile_file_info(tile) <- .fi_filter_interval(
+    .fi(tile) <- .fi_filter_interval(
         fi = .fi(tile), start_date = start_date, end_date = end_date
     )
     tile
 }
 #'
 #' @title Filter file_info entries by date
-#' @name .tile_filter_date
+#' @name .tile_filter_dates
 #' @keywords internal
 #' @param tile A tile.
-#' @param date Desired date
+#' @param dates Desired date
 #'
 #' @return file_info entries
-.tile_filter_date <- function(tile, date) {
-    .tile_filter_interval(tile, start_date = date, end_date = date)
+.tile_filter_dates <- function(tile, dates) {
+    tile <- .tile(tile)
+    .fi(tile) <- .fi_filter_dates(fi = .fi(tile), dates = dates)
+    tile
 }
 #'
 #' @title Get derived class of a tile.
