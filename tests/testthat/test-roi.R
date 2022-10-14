@@ -14,22 +14,17 @@ test_that("One-year, multicore classification with ROI", {
     bbox[["xmax"]] <- (bbox[["xmax"]] - bbox[["xmin"]]) / 2 + bbox[["xmin"]]
     bbox[["ymax"]] <- (bbox[["ymax"]] - bbox[["ymin"]]) / 2 + bbox[["ymin"]]
 
-    sinop_probs <- tryCatch(
-        {
-            suppressMessages(
-                sits_classify(
-                    data = sinop,
-                    ml_model = rfor_model,
-                    output_dir = tempdir(),
-                    roi = bbox,
-                    memsize = 4,
-                    multicores = 2
-                )
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
+    sinop_probs <- .try({
+        sits_classify(
+            data = sinop,
+            ml_model = rfor_model,
+            output_dir = tempdir(),
+            roi = bbox,
+            memsize = 4,
+            multicores = 2
+        )
+    },
+    .default = NULL
     )
 
     if (purrr::is_null(sinop_probs)) {
@@ -64,8 +59,8 @@ test_that("Bbox in WGS 84", {
         parse_info = c("X1", "tile", "band", "date")
     )
 
-    bbox <- sits_bbox(sinop, wgs84 = TRUE)
-    expect_true(all(names(bbox) %in% c("xmin", "ymin", "xmax", "ymax")))
+    bbox <- sits_bbox(sinop, as_crs = "EPSG:4326")
+    expect_true(all(names(bbox) %in% c("xmin", "ymin", "xmax", "ymax", "crs")))
 })
 
 test_that("Functions that work with ROI", {
@@ -128,7 +123,9 @@ test_that("Internal functions in ROI", {
 
     roi_2size["xmax"] <- roi[["xmax"]] - 2 * x_size
     roi_2size["xmin"] <- roi[["xmin"]] - 2 * x_size
-    expect_null(.sits_bbox_intersect(roi_2size, cube))
+    expect_null(
+        .bbox_intersection(.bbox(roi_2size), .bbox(cube))
+    )
 
     bbox <- sits_bbox(cube)
     bbox[["xmax"]] <- bbox[["xmax"]] + x_size
@@ -136,7 +133,7 @@ test_that("Internal functions in ROI", {
     bbox[["ymax"]] <- bbox[["ymax"]] + x_size
     bbox[["ymin"]] <- bbox[["ymin"]] - x_size
 
-    int_bbox <- .sits_bbox_intersect(bbox, cube)
+    int_bbox <- .bbox_intersection(.bbox(bbox), .bbox(cube))
     expect_true(all(int_bbox == sits_bbox(cube)))
 
     bb <- sits_bbox(cube)

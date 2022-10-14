@@ -42,7 +42,7 @@ test_that("One-year, single core classification", {
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == .cube_size(sinop_probs)[["nrows"]])
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_probs))
 
     max_lyr1 <- max(.raster_get_values(r_obj)[, 1], na.rm = TRUE)
     expect_true(max_lyr1 <= 10000)
@@ -114,15 +114,13 @@ test_that("One-year, multicore classification", {
     )
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-    r_obj <- sits:::.raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
-    expect_true(
-        sits:::.raster_nrows(r_obj) == sits:::.cube_size(sinop_probs)[["nrows"]]
-    )
+    r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_probs))
 
-    max_lyr2 <- max(sits:::.raster_get_values(r_obj)[, 2], na.rm = TRUE)
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(sits:::.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
@@ -197,15 +195,14 @@ test_that("One-year, multicore classification with Savitzky-Golay filter", {
     }
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
-    r_obj <- sits:::.raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
+    r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(sits:::.raster_nrows(r_obj) ==
-        sits:::.cube_size(sinop_2014_probs)[["nrows"]])
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
 
-    max_lyr2 <- max(sits:::.raster_get_values(r_obj)[, 2], na.rm = TRUE)
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(sits:::.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
@@ -252,7 +249,7 @@ test_that("One-year, multicore classification with Whittaker filter", {
 
     r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == .cube_size(sinop_2014_probs)[["nrows"]])
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
 
     max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
@@ -300,7 +297,7 @@ test_that("One-year, multicore classification with MLP", {
 
     r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == .cube_size(sinop_2014_probs)[["nrows"]])
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
 
     max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
     expect_true(max_lyr2 <= 10000)
@@ -348,7 +345,7 @@ test_that("One-year, multicore classification with TempCNN", {
 
     r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == .cube_size(sinop_2014_probs)[["nrows"]])
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
 
     max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
     expect_true(max_lyr2 <= 10000)
@@ -396,7 +393,7 @@ test_that("One-year, multicore classification with ResNet", {
 
     r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == .cube_size(sinop_2014_probs)[["nrows"]])
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
 
     max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
     expect_true(max_lyr2 <= 10000)
@@ -444,7 +441,7 @@ test_that("One-year, multicore classification with TAE", {
 
     r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == .cube_size(sinop_2014_probs)[["nrows"]])
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
 
     max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
@@ -492,7 +489,7 @@ test_that("One-year, multicore classification with LightTAE", {
 
     r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == .cube_size(sinop_2014_probs)[["nrows"]])
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
 
     max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
@@ -655,7 +652,7 @@ test_that("One-year, multicore classification with post-processing", {
         length(sits_timeline(sinop_probs)))
 
     r_bay <- .raster_open_rast(sinop_bayes$file_info[[1]]$path[[1]])
-    expect_true(.raster_nrows(r_bay) == .cube_size(sinop_probs)[["nrows"]])
+    expect_true(.raster_nrows(r_bay) == .tile_nrows(sinop_probs))
 
     max_bay2 <- max(.raster_get_values(r_bay)[, 2], na.rm = TRUE)
     expect_true(max_bay2 <= 10000)
@@ -684,7 +681,7 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(all(file.exists(unlist(sinop_bil$file_info[[1]]$path))))
 
     r_bil <- .raster_open_rast(sinop_bil$file_info[[1]]$path[[1]])
-    expect_true(.raster_nrows(r_bil) == .cube_size(sinop_probs)[["nrows"]])
+    expect_true(.raster_nrows(r_bil) == .tile_nrows(sinop_probs))
 
     max_bil2 <- max(.raster_get_values(r_bil)[, 2])
     expect_true(max_bil2 <= 10000)
@@ -701,7 +698,7 @@ test_that("One-year, multicore classification with post-processing", {
 
     expect_true(all(file.exists(unlist(sinop_uncert$file_info[[1]]$path))))
     r_unc <- .raster_open_rast(sinop_uncert$file_info[[1]]$path[[1]])
-    expect_true(.raster_nrows(r_unc) == .cube_size(sinop_probs)[["nrows"]])
+    expect_true(.raster_nrows(r_unc) == .tile_nrows(sinop_probs))
 
     max_unc <- max(.raster_get_values(r_unc))
     expect_true(max_unc <= 10000)
@@ -803,6 +800,6 @@ test_that("One-year, multicores processing reclassify", {
 })
 
 test_that("Raster GDAL datatypes", {
-    gdal_type <- sits:::.raster_gdal_datatype("INT2U")
+    gdal_type <- .raster_gdal_datatype("INT2U")
     expect_equal(gdal_type, "UInt16")
 })

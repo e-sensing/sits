@@ -93,8 +93,8 @@ test_that("Accuracy areas", {
 
 
     expect_true(all(file.exists(unlist(probs_cube$file_info[[1]]$path))))
-    tc_obj <- sits:::.raster_open_rast(probs_cube$file_info[[1]]$path[[1]])
-    expect_true(nrow(tc_obj) == sits:::.cube_size(probs_cube)[["nrows"]])
+    tc_obj <- .raster_open_rast(probs_cube$file_info[[1]]$path[[1]])
+    expect_true(nrow(tc_obj) == .tile_nrows(probs_cube))
 
     label_cube <- sits_label_classification(
         probs_cube,

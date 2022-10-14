@@ -76,7 +76,7 @@ test_that("EVI generation", {
     evi2_calc_150 <- 2.5 * (b8a_150 - b05_150) / (b8a_150 + 2.4 * b05_150 + 1)
     expect_equal(evi2_150, evi2_calc_150, tolerance = 0.001)
 
-    bbox_cube <- sits_bbox(gc_cube_new, wgs84 = TRUE)
+    bbox_cube <- sits_bbox(gc_cube_new, as_crs = "EPSG:4326")
     lats <- runif(10, min = bbox_cube["ymin"], max = bbox_cube["ymax"])
     longs <- runif(10, min = bbox_cube["xmin"], max = bbox_cube["xmax"])
 

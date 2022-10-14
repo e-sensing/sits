@@ -55,7 +55,7 @@ test_that("Mixture model tests", {
 
     r_obj <- .raster_open_rast(mm_rmse$file_info[[1]]$path[[2]])
 
-    expect_true(.raster_nrows(r_obj) == .cube_size(reg_cube)[["nrows"]])
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(reg_cube))
 
     # Generate the mixture model
     mm <- sits_mixture_model(
@@ -77,7 +77,7 @@ test_that("Mixture model tests", {
 
     r_obj <- .raster_open_rast(mm$file_info[[1]]$path[[2]])
 
-    expect_true(.raster_nrows(r_obj) == .cube_size(reg_cube)[["nrows"]])
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(reg_cube))
     unlink(list.files(tempdir(), full.names = TRUE))
 
 })
