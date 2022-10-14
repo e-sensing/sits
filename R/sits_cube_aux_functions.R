@@ -160,8 +160,6 @@
 
     file_name <- file.path(output_dir, file_name)
 
-    res <- .cube_resolution(tile)
-
     if (!purrr::is_null(bbox)) {
         sub_image <- .raster_sub_image(tile = tile, roi = bbox)
         nrows_cube_class <- sub_image[["nrows"]]
@@ -178,8 +176,8 @@
         end_date   = end_date,
         ncols      = ncols_cube_class,
         nrows      = nrows_cube_class,
-        xres       = res[["xres"]],
-        yres       = res[["yres"]],
+        xres       = .xres(tile),
+        yres       = .yres(tile),
         xmin       = bbox[["xmin"]],
         xmax       = bbox[["xmax"]],
         ymin       = bbox[["ymin"]],
@@ -210,55 +208,6 @@
     return(dev_cube)
 }
 
-#' @title Return the cube resolution of the x axis
-#' @name .cube_xres
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  cube         input data cube
-#' @return a numeric with the x resolution
-.cube_xres <- function(cube) {
-
-    # tile template
-    xres <- .fi(cube)[["xres"]]
-    # post-condition
-    .check_num_parameter(xres, exclusive_min = 0)
-
-    return(xres)
-}
-
-#' @title Return the cube resolution of the y axis
-#' @name .cube_yres
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  cube         input data cube
-#' @return a numeric with the y resolution
-.cube_yres <- function(cube) {
-
-    # tile template
-    yres <- .fi(cube)[["yres"]]
-    # post-condition
-    .check_num_parameter(yres, exclusive_min = 0)
-
-    return(yres)
-}
-
-#' @title Return the resolution of the cube
-#' @name .cube_resolution
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  cube         input data cube
-#' @return a vector with the x and y resolution
-.cube_resolution <- function(cube, bands = NULL) {
-    cube <- sits_select(cube, bands = bands)
-    return(c(xres = .cube_xres(cube), yres = .cube_yres(cube)))
-}
-
 #' @title Return the S3 class of the cube
 #' @name .cube_s3class
 #' @keywords internal
@@ -274,27 +223,27 @@
     ))
 }
 
-#' @title Return the size of the cube (nrows x ncols)
-#' @name .cube_size
+#' @title Return the column size of each tile
+#' @name .cube_ncols
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param  cube         input data cube
-#' @return a vector with the size of the cube
-.cube_size <- function(cube) {
-
-    # get the file size
-    nrows <- .fi(cube)[["nrows"]]
-    ncols <- .fi(cube)[["ncols"]]
-
-    # post-conditions
-    .check_int_parameter(nrows)
-    .check_int_parameter(ncols)
-
-    size <- c(nrows = nrows, ncols = ncols)
-
-    return(size)
+#' @param  cube  input data cube
+#' @return integer
+.cube_ncols <- function(cube) {
+    slider::slide_int(cube, .tile_ncols)
+}
+#' @title Return the row size of each tile
+#' @name .cube_nrows
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube  input data cube
+#' @return integer
+.cube_nrows <- function(cube) {
+    slider::slide_int(cube, .tile_nrows)
 }
 #' @title Get cube source
 #' @name .cube_source
