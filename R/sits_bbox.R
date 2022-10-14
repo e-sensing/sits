@@ -137,84 +137,178 @@ sits_bbox.sits_cube <- function(data, ..., as_crs = NULL) {
 #' @seealso \link{bbox_accessors}
 #' @family region objects API
 #' @keywords internal
-#' @noRd
 #' @name bbox_api
+#' @noRd
 NULL
 
 # bbox fields
 .bbox_cols <- c("xmin", "xmax", "ymin", "ymax")
 
 #' @describeIn bbox_api Does vector \code{x} has \code{bbox} fields?
-#'
 #' @returns \code{.has_bbox()}: \code{logical}.
+#' @noRd
 .has_bbox <- function(x) {
     all(.bbox_cols %in% names(x))
 }
 
-#' @describeIn bbox_api extract a \code{bbox} from any given
-#' \code{vector}.
-#' @noRd
-#' @returns \code{.bbox()}: \code{bbox}.
-.bbox <- function(x, ..., default_crs = NULL) {
-    if (!.has_bbox(x)) {
-        return(NULL)
+.is_bbox <- function(x) {
+    setequal(names(x), c(.bbox_cols, "crs"))
+}
+
+.check_bbox <- function(x) {
+    if (!.is_bbox(x)) {
+        stop("object is not a valid bbox")
     }
+}
+
+#' @describeIn bbox_api Tells which bbox type is in \code{x}
+#'   parameter (One of \code{'sf'}, \code{'df'}, or \code{'point'}).
+#' @returns \code{.bbox_type()}: \code{character}.
+#' @noRd
+.bbox_type <- function(x) {
+    if (inherits(x, c("sf", "sfc"))) {
+        "sf"
+    } else if (.has_bbox(x)) {
+        "df"
+    } else if (.is_point(x)) {
+        "point"
+    } else {
+        stop("cannot extract bbox from object of class ", class(x))
+    }
+}
+
+#' @describeIn bbox_api Chooses one of the arguments passed in
+#'   \code{...} according to which type of \code{bbox} parameter.
+#' @returns \code{.bbox_switch()}: one of the arguments in \code{...}.
+#' @noRd
+.bbox_switch <- function(x, ...) {
+    switch(.bbox_type(x), ...)
+}
+
+#' @describeIn bbox_api Extract a \code{bbox} from any given \code{object}.
+#' @returns \code{.bbox()}: \code{bbox}.
+#' @noRd
+.bbox <- function(x, default_crs = NULL, as_crs = NULL) {
+    x <- .bbox_switch(
+        x = x,
+        sf = .bbox_from_sf(x),
+        df = .bbox_from_df(x = x, default_crs = default_crs),
+        point = .bbox_from_point(x)
+    )
+    # Convert to sf and get bbox
+    geom <- .bbox_as_sf(bbox = x, as_crs = as_crs)
+    bbox <- .bbox_from_sf(geom)
+    # Update crs
+    if (.has(as_crs)) {
+        .crs(bbox) <- as_crs
+    }
+    # Return bbox
+    bbox
+}
+
+#' @describeIn bbox_api Extract a \code{bbox} from any given \code{sf}.
+#' @returns \code{.bbox_from_sf()}: \code{bbox}.
+#' @noRd
+.bbox_from_sf <- function(x) {
+    bbox <- tibble::as_tibble_row(c(sf::st_bbox(x)))
+    bbox <- bbox[.bbox_cols]
+    .crs(bbox) <- sf::st_crs(x)[["wkt"]]
+    # Return bbox
+    bbox
+}
+
+#' @describeIn bbox_api Extract a \code{bbox} from any given \code{tibble}.
+#' @returns \code{.bbox_from_df()}: \code{bbox}.
+#' @noRd
+.bbox_from_df <- function(x, default_crs = NULL) {
     xmin <- .xmin(x)
     xmax <- .xmax(x)
     ymin <- .ymin(x)
     ymax <- .ymax(x)
-    crs <- .crs(x, default_crs = .default(
-        x = default_crs, default = {
+    if ("crs" %in% names(x)) {
+        crs <- .crs(x)
+    } else {
+        crs <- .default(default_crs, default = {
             warning("object has no crs, assuming 'EPSG:4326'", call. = FALSE)
             "EPSG:4326"
-        }))
+        })
+    }
+    # Create a bbox
     bbox <- .common_size(
         xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, crs = crs
     )
+    # Fix inconsistencies
     xmin <- pmin(.xmin(bbox), .xmax(bbox))
     xmax <- pmax(.xmin(bbox), .xmax(bbox))
     ymin <- pmin(.ymin(bbox), .ymax(bbox))
     ymax <- pmax(.ymin(bbox), .ymax(bbox))
+    # Compute final bbox
     .xmin(bbox) <- xmin
     .xmax(bbox) <- xmax
     .ymin(bbox) <- ymin
     .ymax(bbox) <- ymax
     # Return bbox
-    x
+    bbox
 }
 
-#' @describeIn bbox_api Convert a \code{bbox} into a
-#' \code{sf} polygon object.
+#' @describeIn bbox_api Extract a \code{bbox} from any given \code{point}.
+#' @returns \code{.bbox_from_point()}: \code{bbox}.
 #' @noRd
+.bbox_from_point <- function(point) {
+    # Create bbox
+    bbox <- .common_size(
+        xmin = min(.lon(point)), xmax = max(.lon(point)),
+        ymin = min(.lat(point)), ymax = max(.lat(point)),
+        crs = .crs(point)
+    )
+    # Return bbox
+    bbox
+}
+
+#' @describeIn bbox_api Convert a \code{bbox} into a \code{sf} polygon object.
 #' @returns \code{.bbox_as_sf()}: \code{sf}.
-.bbox_as_sf <- function(bbox, ..., default_crs = NULL, as_crs = NULL) {
-    bbox <- .bbox(bbox, default_crs = default_crs)
-    if (!all(c(.bbox_cols, "crs") %in% names(bbox))) {
-        stop("object does not have a valid bbox")
-    }
+#' @noRd
+.bbox_as_sf <- function(bbox, as_crs = NULL) {
+    # Check for a valid bbox
+    .check_bbox(bbox)
     # Check if there are multiple CRS in bbox
     if (length(.crs(bbox)) > 1 && is.null(as_crs)) {
-        warning(
-            "object has multiples crs values, reprojecting to ",
-            "EPSG:4326\n", "(use 'as_crs' to reproject to a ",
-            "different crs value)"
-        )
+        warning("object has multiples CRS values, reprojecting to ",
+                "'EPSG:4326'\n", "(use 'as_crs' to reproject to a ",
+                "different CRS)", call. = FALSE)
         as_crs <- "EPSG:4326"
     }
     # Convert to sf object and return it
-    purrr::pmap_dfr(as.list(bbox), function(xmin, xmax, ymin, ymax, crs, ...) {
-        geom <- sf::st_sf(
+    geom <- purrr::pmap_dfr(bbox, function(xmin, xmax, ymin, ymax, crs, ...) {
+        sf::st_sf(
             geometry = sf::st_sfc(sf::st_polygon(list(
-                rbind(
-                    c(xmin, ymax), c(xmax, ymax), c(xmax, ymin),
-                    c(xmin, ymin), c(xmin, ymax)
-                )
+                rbind(c(xmin, ymax), c(xmax, ymax), c(xmax, ymin),
+                      c(xmin, ymin), c(xmin, ymax))
             ))), crs = crs
         )
-        # Project CRS
-        if (!is.null(as_crs)) {
-            geom <- sf::st_transform(geom, crs = as_crs)
-        }
-        geom
     })
+    # Project CRS
+    if (!is.null(as_crs)) {
+        geom <- sf::st_transform(geom, crs = as_crs)
+    }
+    # Return geom
+    geom
+}
+
+.bbox_intersection <- function(x, y) {
+    # Check for a valid bbox
+    .check_bbox(x)
+    .check_bbox(y)
+    # Transform y projection according with x
+    as_crs <- .crs(x)
+    y <- .bbox_as_sf(bbox = y, as_crs = as_crs)
+    x <- .bbox_as_sf(bbox = x)
+    # Do intersection
+    if (!.intersects(x, y)) {
+        return(NULL)
+    }
+    geom <- sf::st_intersection(x, y)
+    bbox <- .bbox(geom)
+    # Return bbox
+    bbox
 }
