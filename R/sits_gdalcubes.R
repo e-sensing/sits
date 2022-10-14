@@ -183,6 +183,7 @@
             ymin = .data[["ymin"]],
             xmax = .data[["xmax"]],
             ymax = .data[["ymax"]],
+            crs = .data[["crs"]],
             href = .data[["path"]],
             datetime = as.character(.data[["date"]]),
             band = .data[["band"]],
@@ -207,6 +208,7 @@
 
     gc_data <- purrr::map(features[["features"]], function(feature) {
         feature <- feature %>%
+            dplyr::select(-.data[["crs"]]) %>%
             tidyr::nest(assets = c(.data[["href"]], .data[["band"]])) %>%
             tidyr::nest(properties = c(
                 .data[["datetime"]],
