@@ -140,21 +140,21 @@
 #'
 #' @family region objects API
 #' @keywords internal
-#' @noRd
 #' @name roi_api
+#' @noRd
 NULL
 
 # roi 'lonlat' fields
 .roi_lonlat_cols <- c("lon_min", "lon_max", "lat_min", "lat_max")
 
 #' @describeIn roi_api Tells which type of ROI is in \code{roi}
-#' parameter (One of \code{'sf'}, \code{'bbox'}, or \code{'lonlat'}).
-#' @noRd
+#'   parameter (One of \code{'sf'}, \code{'bbox'}, or \code{'lonlat'}).
 #' @returns \code{.roi_type()}: \code{character}.
+#' @noRd
 .roi_type <- function(roi) {
     if (inherits(roi, c("sf", "sfc"))) {
         "sf"
-    } else if (all(.bbox_cols %in% names(roi))) {
+    } else if (.has_bbox(roi)) {
         "bbox"
     } else if (all(.roi_lonlat_cols %in% names(roi))) {
         "lonlat"
