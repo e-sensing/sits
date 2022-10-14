@@ -1,7 +1,7 @@
-#' @title Functions to work with file info tibble
-#' @name file_info_functions
-#' @keywords internal
-#' @noRd
+#' File info API
+#'
+#' Set of functions to handling \code{file_info}.
+#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param cube    Input data cube.
