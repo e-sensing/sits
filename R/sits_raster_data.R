@@ -190,11 +190,7 @@
     )
 
     # get the values of the time series as matrix
-    values_band <- .cube_extract(
-        cube = tile,
-        band_cube = band,
-        xy = xy
-    )
+    values_band <- .tile_extract(tile = tile, band = band, xy = xy)
 
     # each row of the values matrix is a spatial point
     traj_lst <- as.list(unname(unlist(values_band)))
