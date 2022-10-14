@@ -155,7 +155,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # Create features as jobs
-    features_cube <- .cube_create_features(data)
+    features_cube <- .cube_split_features(data)
 
     # Process each feature in parallel
     features_band <- .jobs_map_parallel_dfr(features_cube, function(feature) {
@@ -172,7 +172,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
         return(output_feature)
     }, progress = progress)
     # Join output features as a cube and return it
-    .cube_merge_features(dplyr::bind_rows(list(features_cube, features_band)))
+    .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_band)))
 }
 #' @title Apply a function to one band of a time series
 #' @name .apply
