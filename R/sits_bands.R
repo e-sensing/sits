@@ -147,18 +147,18 @@ sits_bands.sits_model <- function(x) {
 #' }
 #'
 #' @seealso \link{band_accessors}
+#' @keywords internal
 #' @name band_api
+#' @noRd
 NULL
 
 #' @describeIn band_api Returns the name of cloud band.
-#' @keywords internal
 #' @noRd
 .band_cloud <- function() {
     "CLOUD"
 }
 
 #' @describeIn band_api Returns a well formatted band name for \code{eo_cube}.
-#' @keywords internal
 #' @noRd
 .band_eo <- function(band) {
     gsub("_", "-", toupper(band))
@@ -166,7 +166,6 @@ NULL
 
 #' @describeIn band_api Returns a well formatted band name for
 #'   \code{derived_cube}.
-#' @keywords internal
 #' @noRd
 .band_derived <- function(band) {
     gsub("_", "-", tolower(band))
