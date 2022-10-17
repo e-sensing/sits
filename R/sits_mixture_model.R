@@ -90,22 +90,66 @@
 #' }
 #'
 #' @export
-sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
-                               output_dir = getwd(), rmse_band = TRUE,
+sits_mixture_model <- function(data, endmembers, ...,
+                               rmse_band = TRUE,
+                               multicores = 2,
                                progress = TRUE) {
 
-    # precondition - endmembers
+    # Pre-conditions
+    data <- .conf_data_meta_type(data)
     .check_endmembers_parameter(endmembers)
-    # precondition - memsize
-    .check_memsize(memsize)
-    # precondition - multicores
+    .check_lgl(
+        x = rmse_band,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid 'rmse_band' parameter"
+    )
     .check_multicores(multicores)
-    # precondition - output dir
-    output_dir <- path.expand(output_dir)
+    .check_progress(progress)
+
+    UseMethod("sits_mixture_model", data)
+}
+
+sits_mixture_model.sits <- function(data, endmembers, ...,
+                                    rmse_band = TRUE,
+                                    multicores = 2,
+                                    progress = TRUE) {
+    # Pre-conditions
+    .check_samples_ts(data)
+    # Transform endmembers to tibble
+    em <- .endmembers_as_tbl(endmembers)
+    # Check endmember format
+    .check_endmembers_tbl(em)
+
+    # Get endmembers bands
+    bands <- setdiff(.sits_bands(data), .endmembers_fracs(em))
+    # The cube is filtered here in case some fraction
+    # is added as a band
+    data <- .sits_select_bands(samples = data, bands = bands)
+    # Pre-condition
+    .check_endmembers_bands(em = em, bands = .sits_bands(data))
+
+    # Scale the reference spectra
+    em <- .endmembers_scale(em = em, cube = data)
+    # Fractions to be produced
+    out_fracs <- .endmembers_fracs(em = em, include_rmse = rmse_band)
+
+}
+
+
+#' @export
+sits_mixture_model.raster_cube <- function(data,
+                                           endmembers, ...,
+                                           rmse_band = TRUE,
+                                           memsize = 1,
+                                           multicores = 2,
+                                           output_dir = getwd(),
+                                           progress = TRUE) {
+    # Pre-conditions
+    .check_is_raster_cube(data)
+    .check_memsize(memsize)
+    output_dir <- .file_path(output_dir = output_dir)
     .check_output_dir(output_dir)
-    # precondition - rmse_band
-    .check_lgl_type(rmse_band)
-    # precondition - progress
     .check_lgl_type(progress)
 
     # Transform endmembers to tibble
@@ -114,24 +158,22 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     .check_endmembers_tbl(em)
 
     # Get endmembers bands
-    bands <- setdiff(.cube_bands(cube), .endmembers_fracs(em))
+    bands <- setdiff(.cube_bands(data), .endmembers_fracs(em))
     # The cube is filtered here in case some fraction
     # is added as a band
-    cube <- .cube_filter_bands(cube = cube, bands = bands)
+    data <- .cube_filter_bands(cube = data, bands = bands)
     # Check if cube is regular
-    .check_is_raster_cube(cube)
-    .check_is_regular(cube)
+    .check_is_regular(data)
     # Pre-condition
-    .check_endmembers_bands(em = em, cube = cube)
-
-    # Scale the reference spectra
-    em <- .endmembers_scale(em = em, cube = cube)
+    .check_endmembers_bands(
+        em = em, bands = .cube_bands(data, add_cloud = FALSE)
+    )
     # Fractions to be produced
     out_fracs <- .endmembers_fracs(em = em, include_rmse = rmse_band)
 
     # Check memory and multicores
     # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     # npaths = input(bands) + output(fracs)
     job_memsize <- .jobs_memsize(
@@ -146,7 +188,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     # Update block parameter
     block <- .jobs_optimal_block(
         job_memsize = job_memsize, block = block,
-        image_size = .tile_size(.tile(cube)), memsize = memsize,
+        image_size = .tile_size(.tile(data)), memsize = memsize,
         multicores = multicores
     )
     # Prepare parallelization
@@ -156,7 +198,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     # Create mixture processing function
     mixture_fn <- .mixture_fn_nnls(em = em, rmse = rmse_band)
     # Create features as jobs
-    features_cube <- .cube_split_features(cube)
+    features_cube <- .cube_split_features(data)
     # Process each feature in parallel
     features_fracs <- .jobs_map_parallel_dfr(features_cube, function(feature) {
         # Process the data
