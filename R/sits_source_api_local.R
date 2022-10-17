@@ -139,8 +139,7 @@
 
     if (results_cube) {
         result_class <- .conf("sits_results_s3_class")[[bands]]
-        class(cube) <- c(result_class, "derived_cube", "raster_cube",
-                         "sits_cube", class(cube))
+        class(cube) <- c(result_class, "derived_cube", "raster_cube", class(cube))
     } else {
         class(cube) <- .cube_s3class(cube)
     }
@@ -238,11 +237,11 @@
             dplyr::filter(.data[["band"]] == !!band) %>%
             # select the relevant parts
             dplyr::select(
-                .data[["tile"]],
-                .data[["start_date"]],
-                .data[["end_date"]],
-                .data[["band"]],
-                .data[["path"]]
+                "tile",
+                "start_date",
+                "end_date",
+                "band",
+                "path"
             ) %>%
             # check the start date format
             dplyr::mutate(
@@ -270,10 +269,10 @@
             dplyr::mutate(path = paste(data_dir, img_files_filt, sep = "/")) %>%
             # select the relevant parts
             dplyr::select(
-                .data[["tile"]],
-                .data[["date"]],
-                .data[["band"]],
-                .data[["path"]]
+                "tile",
+                "date",
+                "band",
+                "path"
             ) %>%
             # check the date format
             dplyr::mutate(date = .timeline_format(.data[["date"]])) %>%
@@ -522,20 +521,19 @@
     # make a new file info for one tile
     file_info <- dplyr::select(
         items,
-        dplyr::all_of(c(
-            "fid",
-            "band",
-            "date",
-            "xmin",
-            "ymin",
-            "xmax",
-            "ymax",
-            "xres",
-            "yres",
-            "nrows",
-            "ncols",
-            "path"
-        ))
+        c("fid",
+          "band",
+          "date",
+          "xmin",
+          "ymin",
+          "xmax",
+          "ymax",
+          "xres",
+          "yres",
+          "nrows",
+          "ncols",
+          "path"
+        )
     )
 
     # create a tibble to store the metadata
@@ -589,21 +587,20 @@
     # make a new file info for one tile
     file_info <- dplyr::select(
         items,
-        dplyr::all_of(c(
-            "band",
-            "start_date",
-            "end_date",
-            "ncols",
-            "nrows",
-            "xres",
-            "yres",
-            "xmin",
-            "xmax",
-            "ymin",
-            "ymax",
-            "crs",
-            "path"
-        ))
+        c("band",
+          "start_date",
+          "end_date",
+          "ncols",
+          "nrows",
+          "xres",
+          "yres",
+          "xmin",
+          "xmax",
+          "ymin",
+          "ymax",
+          "crs",
+          "path"
+        )
     )
     # create a tibble to store the metadata
     cube_tile <- .cube_create(

@@ -7,8 +7,8 @@ test_that("EVI generation", {
                 collection = "sentinel-2-l2a",
                 tiles = "20LKP",
                 bands = c("B05", "B8A", "CLOUD"),
-                start_date = as.Date("2019-07-18"),
-                end_date = as.Date("2019-08-30")
+                start_date = "2019-07-18",
+                end_date = "2019-08-30"
             )
         },
         error = function(e) {
@@ -50,8 +50,8 @@ test_that("EVI generation", {
     start_date <- timeline[1]
     end_date <- timeline[length(timeline)]
 
-    expect_true(start_date == as.Date("2019-07-01"))
-    expect_true(end_date == as.Date("2019-08-01"))
+    expect_true(start_date == "2019-07-01")
+    expect_true(end_date == "2019-08-01")
 
     file_info_b05 <- .fi(gc_cube_new) %>% .fi_filter_bands(bands = "B05")
     b05_band_1 <- .raster_open_rast(file_info_b05$path[[1]])
@@ -77,8 +77,8 @@ test_that("EVI generation", {
     expect_equal(evi2_150, evi2_calc_150, tolerance = 0.001)
 
     bbox_cube <- sits_bbox(gc_cube_new, as_crs = "EPSG:4326")
-    lats <- runif(10, min = bbox_cube["ymin"], max = bbox_cube["ymax"])
-    longs <- runif(10, min = bbox_cube["xmin"], max = bbox_cube["xmax"])
+    lats <- runif(10, min = bbox_cube[["ymin"]], max = bbox_cube[["ymax"]])
+    longs <- runif(10, min = bbox_cube[["xmin"]], max = bbox_cube[["xmax"]])
 
     timeline <- sits_timeline(gc_cube_new)
     start_date <- timeline[1]

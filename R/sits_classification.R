@@ -154,7 +154,7 @@ sits_classify.raster_cube <- function(data,
                                       progress = TRUE) {
 
     # preconditions
-    .check_is_sits_cube(data)
+    .check_is_raster_cube(data)
     .check_is_regular(data)
     .check_memsize(memsize)
     .check_output_dir(output_dir)
@@ -166,7 +166,7 @@ sits_classify.raster_cube <- function(data,
     }
     # Temporal filter
     if (.has(start_date) || .has(end_date)) {
-        data <- .cube_filter_temporal(
+        data <- .cube_filter_interval(
             cube = data, start_date = start_date, end_date = end_date
         )
     }

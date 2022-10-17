@@ -174,7 +174,7 @@ sits_reduce_imbalance <- function(samples,
         classes_under <- samples %>%
             sits_labels_summary() %>%
             dplyr::filter(.data[["count"]] >= n_samples_under) %>%
-            dplyr::pull(.data[["label"]])
+            dplyr::pull("label")
     }
 
     # get classes to make oversample
@@ -183,7 +183,7 @@ sits_reduce_imbalance <- function(samples,
         classes_over <- samples %>%
             sits_labels_summary() %>%
             dplyr::filter(.data[["count"]] <= n_samples_over) %>%
-            dplyr::pull(.data[["label"]])
+            dplyr::pull("label")
     }
 
     new_samples <- .tibble()

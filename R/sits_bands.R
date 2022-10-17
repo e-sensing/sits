@@ -33,7 +33,7 @@ sits_bands.sits <- function(x) {
 }
 #' @rdname sits_bands
 #' @export
-sits_bands.sits_cube <- function(x) {
+sits_bands.raster_cube <- function(x) {
     bands_lst <- slider::slide(x, function(tile) {
         bands_tile <- .tile_bands(tile)
         return(sort(bands_tile))

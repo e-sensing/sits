@@ -124,7 +124,7 @@ sits_get_data <- function(cube,
                           progress = FALSE) {
 
     # Pre-conditions
-    .check_is_sits_cube(cube)
+    .check_is_raster_cube(cube)
     .check_is_regular(cube)
     .check_bands_in_cube(bands = bands, cube = cube)
     .check_multicores(multicores)
@@ -395,11 +395,9 @@ sits_get_data.data.frame <- function(cube,
                                      output_dir,
                                      progress) {
 
-    # Filter only tiles that intersects with samples
-    cube <- .cube_filter_spatial(
-        cube = cube,
-        roi = .point_as_sf(point = .point(x = samples, crs = crs))
-    )
+    # If samples CRS is not WGS84, transform to WGS84
+    if (!crs == 4326)
+        samples <- .proj_transform_samples(samples, crs = crs)
 
     # Pre-conditions
     if (is.null(bands)) {
@@ -528,7 +526,7 @@ sits_get_data.data.frame <- function(cube,
 
     ts_tbl <- samples_tiles_bands %>%
         dplyr::bind_rows() %>%
-        tidyr::unnest(.data[["time_series"]]) %>%
+        tidyr::unnest("time_series") %>%
         dplyr::group_by(
             .data[["longitude"]], .data[["latitude"]],
             .data[["start_date"]], .data[["end_date"]],
@@ -541,19 +539,20 @@ sits_get_data.data.frame <- function(cube,
     }
 
     ts_tbl <- ts_tbl %>%
-        dplyr::summarise(dplyr::across(bands, stats::na.omit)) %>%
+        dplyr::summarise(dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
-        tidyr::nest(time_series = !!c("Index", dplyr::all_of(bands))) %>%
+        tidyr::nest(time_series = !!c("Index", bands)) %>%
         dplyr::select(-c("tile", "#..id"))
 
 
     # get the first point that intersect more than one tile
     # eg sentinel 2 mgrs grid
     ts_tbl <- ts_tbl %>%
-        dplyr::group_by(.data[["longitude"]], .data[["latitude"]],
-                        .data[["start_date"]], .data[["end_date"]],
-                        .data[["label"]], .data[["cube"]]) %>%
+        dplyr::group_by(
+            .data[["longitude"]], .data[["latitude"]],
+            .data[["start_date"]], .data[["end_date"]],
+            .data[["label"]], .data[["cube"]]) %>%
         dplyr::slice_head(n = 1) %>%
         dplyr::ungroup()
 
@@ -722,7 +721,7 @@ sits_get_data.data.frame <- function(cube,
 
     ts_tbl <- samples_tiles_bands %>%
         dplyr::bind_rows() %>%
-        tidyr::unnest(.data[["predicted"]]) %>%
+        tidyr::unnest("predicted") %>%
         dplyr::group_by(
             .data[["longitude"]], .data[["latitude"]],
             .data[["start_date"]], .data[["end_date"]],
@@ -736,10 +735,10 @@ sits_get_data.data.frame <- function(cube,
     }
 
     ts_tbl <- ts_tbl %>%
-        dplyr::summarise(dplyr::across(bands, stats::na.omit)) %>%
+        dplyr::summarise(dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
         dplyr::arrange(.data[["from"]]) %>%
         dplyr::ungroup() %>%
-        tidyr::nest(predicted = !!c("from", "to", dplyr::all_of(bands))) %>%
+        tidyr::nest(predicted = !!c("from", "to", bands)) %>%
         dplyr::select(-c("tile", "#..id"))
 
     # get the first point that intersect more than one tile
@@ -830,7 +829,7 @@ sits_get_data.data.frame <- function(cube,
         dplyr::summarise(dplyr::across(!!columns_to_avg, mean, na.rm = TRUE),
             .groups = "drop"
         ) %>%
-        tidyr::nest("time_series" = c("Index", bands)) %>%
+        tidyr::nest("time_series" = c("Index", dplyr::all_of(bands))) %>%
         dplyr::select(!!colnames(data))
 
     class(data_avg) <- class(data)

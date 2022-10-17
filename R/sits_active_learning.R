@@ -270,7 +270,7 @@ sits_confidence_sampling <- function(probs_cube,
     incomplete_labels <- result_tb %>%
         dplyr::count(.data[["label"]]) %>%
         dplyr::filter(.data[["n"]] < !!n) %>%
-        dplyr::pull(.data[["label"]])
+        dplyr::pull("label")
 
     if (length(incomplete_labels) > 0)
         warning(sprintf(

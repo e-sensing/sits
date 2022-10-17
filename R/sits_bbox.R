@@ -42,17 +42,33 @@ sits_bbox.sits <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
 }
 #' @rdname sits_bbox
 #' @export
-sits_bbox.sits_cube <- function(data, ..., as_crs = NULL) {
+sits_bbox.raster_cube <- function(data, ..., as_crs = NULL) {
 
     # Pre-condition
-    .check_is_sits_cube(data)
+    .check_is_raster_cube(data)
 
     # Convert to bbox
     bbox <- .bbox(x = data, as_crs = as_crs)
 
     return(bbox)
 }
-
+#' @title Check if bboxs are equal
+#' @name .bbox_equal
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param bbox1          Bounding box for a region of interest.
+#' @param bbox2          Bounding box for a region of interest.
+#' @param tolerance      Tolerance (numerical value)
+#' @return               A logical value
+#'
+.bbox_equal <- function(bbox1, bbox2, tolerance = 0){
+    .is_eq(unlist(bbox1[.bbox_cols]), unlist(bbox2[.bbox_cols]),
+           tolerance = tolerance)
+}
+#'
+#'
 #' @title Intersection between a bounding box and a cube
 #' @name .bbox_intersect
 #' @keywords internal

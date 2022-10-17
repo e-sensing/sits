@@ -84,6 +84,22 @@ NULL
     list(ncols = .tile_ncols(tile), nrows = .tile_nrows(tile))
 }
 #
+.tile_xres <- function(tile) {
+    UseMethod(".tile_xres", tile)
+}
+#' @export
+.tile_xres.raster_cube <- function(tile) {
+    .xres(.fi(tile))
+}
+#
+.tile_yres <- function(tile) {
+    UseMethod(".tile_yres", tile)
+}
+#' @export
+.tile_yres.raster_cube <- function(tile) {
+    .yres(.fi(tile))
+}
+#
 .tile_labels <- function(tile) {
     UseMethod(".tile_labels", tile)
 }
@@ -821,7 +837,7 @@ NULL
 #' @export
 .tile_area_freq.class_cube <- function(tile) {
     # Open first raster
-    r_obj <- .raster_open_rast(.fi_path(.fi(tile)))
+    r_obj <- .raster_open_rast(.tile_path(tile))
     # Retrieve the frequency
     freq <- tibble::as_tibble(.raster_freq(r_obj))
     # Return frequencies
@@ -976,7 +992,7 @@ NULL
         stop("invalid time series value")
     }
     # Pack time series
-    value <- tidyr::nest(value, time_series = -.ts_cols)
+    value <- tidyr::nest(value, time_series = -dplyr::all_of(.ts_cols))
     x[["time_series"]] <- value[["time_series"]]
     # Return samples
     x
@@ -1146,7 +1162,7 @@ NULL
     })
     # Rearrange data to create predictors
     pred <- tidyr::pivot_wider(
-        data = pred, names_from = "index", values_from = bands,
+        data = pred, names_from = "index", values_from = dplyr::all_of(bands),
         names_prefix = if (length(bands) == 1) bands else "",
         names_sep = ""
     )

@@ -3,7 +3,7 @@
 \name{sits_bands}
 \alias{sits_bands}
 \alias{sits_bands.sits}
-\alias{sits_bands.sits_cube}
+\alias{sits_bands.raster_cube}
 \alias{sits_bands.patterns}
 \alias{sits_bands.sits_model}
 \title{Get the names of the bands}
@@ -12,7 +12,7 @@ sits_bands(x)
 
 \method{sits_bands}{sits}(x)
 
-\method{sits_bands}{sits_cube}(x)
+\method{sits_bands}{raster_cube}(x)
 
 \method{sits_bands}{patterns}(x)
 

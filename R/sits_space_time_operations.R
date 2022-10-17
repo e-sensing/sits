@@ -64,9 +64,9 @@
 #' @return A tibble with tranformed points.
 .proj_transform_samples <- function(samples, crs) {
 
-    .check_chr_within(
-        x = .conf("df_sample_columns"),
-        within = colnames(samples),
+    .check_chr_contains(
+        x = colnames(samples),
+        contains = .point_cols,
         msg = "data input is not valid"
     )
 

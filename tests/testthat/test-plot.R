@@ -50,12 +50,14 @@ test_that("Plot Time Series and Images", {
         )
     )
     p_probs <- plot(sinop_probs)
-    expect_equal(p_probs$adj, 0.5)
-    expect_equal(p_probs$lend, "round")
+    expect_equal(p_probs$tm_raster$palette, "YlGnBu")
+    expect_equal(length(p_probs$tm_raster$title), 4)
+    expect_equal(p_probs$tm_layout$legend.bg.color, "white")
 
-    p_probs <- plot(sinop_probs, labels = "Forest")
-    expect_equal(p_probs$adj, 0.5)
-    expect_equal(p_probs$lend, "round")
+    p_probs_f <- plot(sinop_probs, labels = "Forest")
+    expect_equal(p_probs$tm_raster$palette, "YlGnBu")
+    expect_equal(length(p_probs_f$tm_raster$title), 1)
+    expect_equal(p_probs_f$tm_layout$legend.bg.color, "white")
 
     sinop_uncert <- sits_uncertainty(sinop_probs,
         output_dir = tempdir()
@@ -63,9 +65,10 @@ test_that("Plot Time Series and Images", {
 
     p_uncert <- plot(sinop_uncert, palette = "Reds", rev = FALSE)
 
-    expect_equal(p_uncert$tm_shape$shp_name, "stars_obj")
     expect_equal(p_uncert$tm_raster$palette, "Reds")
-    expect_equal(p_uncert$tm_grid$grid.projection, 4326)
+    expect_equal(length(p_uncert$tm_raster$title), 1)
+    expect_equal(p_uncert$tm_layout$legend.bg.color, "white")
+
 
     sinop_labels <- sits_label_classification(sinop_probs,
         output_dir = tempdir()

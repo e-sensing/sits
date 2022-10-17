@@ -4,7 +4,7 @@
 \alias{sits_as_sf}
 \alias{sits_as_sf.sits}
 \alias{sits_as_sf.raster_cube}
-\title{Return a sits_tibble or sits_cube as an sf object.}
+\title{Return a sits_tibble or raster_cube as an sf object.}
 \usage{
 sits_as_sf(data, ..., as_crs = NULL)
 
@@ -17,13 +17,15 @@ sits_as_sf(data, ..., as_crs = NULL)
 
 \item{...}{Additional parameters.}
 
-\item{crs}{A coordinate reference system of samples.}
+\item{as_crs}{Output coordinate reference system.}
+
+\item{crs}{Input coordinate reference system.}
 }
 \value{
 An sf object of point or polygon geometry.
 }
 \description{
-Return a sits_tibble or sits_cube as an sf object.
+Return a sits_tibble or raster_cube as an sf object.
 }
 \examples{
 if (sits_run_examples()) {

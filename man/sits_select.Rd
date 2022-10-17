@@ -3,7 +3,7 @@
 \name{sits_select}
 \alias{sits_select}
 \alias{sits_select.sits}
-\alias{sits_select.sits_cube}
+\alias{sits_select.raster_cube}
 \alias{sits_select.patterns}
 \title{Filter bands on a data set (tibble or cube)}
 \usage{
@@ -11,7 +11,7 @@ sits_select(data, bands, ...)
 
 \method{sits_select}{sits}(data, bands, ...)
 
-\method{sits_select}{sits_cube}(data, bands, ..., tiles = NULL)
+\method{sits_select}{raster_cube}(data, bands, ..., tiles = NULL)
 
 \method{sits_select}{patterns}(data, bands, ...)
 }

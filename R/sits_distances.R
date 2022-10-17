@@ -27,20 +27,20 @@
             sample_id = seq_len(nrow(data))
         ) %>%
         tidyr::unnest("time_series") %>%
-        dplyr::select("sample_id", "label", !!bands) %>%
+        dplyr::select("sample_id", "label", dplyr::all_of(bands)) %>%
         dplyr::group_by(.data[["sample_id"]]) %>%
         dplyr::mutate(temp_index = seq_len(dplyr::n())) %>%
         dplyr::ungroup()
 
     if (length(bands) > 1) {
         distances_tbl <- tidyr::pivot_wider(distances_tbl,
-            names_from = .data[["temp_index"]],
+            names_from = "temp_index",
             values_from = !!bands,
             names_sep = ""
         )
     } else {
         distances_tbl <- tidyr::pivot_wider(distances_tbl,
-            names_from = .data[["temp_index"]],
+            names_from = "temp_index",
             values_from = !!bands,
             names_prefix = bands,
             names_sep = ""

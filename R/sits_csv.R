@@ -67,7 +67,7 @@ sits_to_csv <- function(data, file) {
     # select valid columns
     samples <- dplyr::select(
         samples,
-        dplyr::all_of(.conf("df_sample_columns"))
+        .conf("df_sample_columns")
     )
     # transform to date
     samples <- dplyr::mutate(samples,

@@ -55,7 +55,7 @@ sits_select.sits <- function(data, bands, ...) {
 #' @rdname sits_select
 #'
 #' @export
-sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
+sits_select.raster_cube <- function(data, bands, ..., tiles = NULL) {
 
     # filter tiles
     if (!is.null(tiles)) {

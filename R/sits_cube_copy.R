@@ -55,7 +55,7 @@ sits_cube_copy <- function(cube,
                            progress = TRUE) {
 
     # Pre-conditions
-    .check_is_sits_cube(cube)
+    .check_is_raster_cube(cube)
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
     }

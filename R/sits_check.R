@@ -1434,19 +1434,6 @@
         msg = "tibble has not been classified"
     )
 }
-#' @title Does the input data contain a sits cube?
-#' @name .check_is_sits_cube
-#' @param data a sits cube
-#' @return  No return value, called for side effects.
-#' @keywords internal
-#' @noRd
-.check_is_sits_cube <- function(data){
-    .check_that(
-        x = inherits(data, "sits_cube"),
-        local_msg = "data should be a sits cube",
-        msg = "invalid cube parameter"
-    )
-}
 #' @title Does the input data contain a raster cube?
 #' @name .check_is_raster_cube
 #' @param data a sits cube to be tested
@@ -1960,9 +1947,10 @@
     )
     ok <- slider::slide2_lgl(cube1, cube2,
                            function(tile_first, tile_cube){
-            return(.is_eq(unlist(.bbox(tile_first)),
-                          unlist(.bbox(tile_cube)),
-                          tolerance = tolerance)
+            return(.bbox_equal(
+                .bbox(tile_first),
+                .bbox(tile_cube),
+                tolerance = tolerance)
             )
     })
     .check_that(

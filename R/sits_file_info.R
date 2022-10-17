@@ -191,7 +191,7 @@ NULL
         miss_dates <- paste0("'", dates[!dates_in_fi], "'", collapse = ",")
         stop("date(s) ", miss_dates, " not found")
     }
-    fi[.fi_bands(fi) %in% dates, ]
+    fi[.fi_timeline(fi) %in% dates, ]
 }
 
 .fi_intersects <- function(fi, roi) {

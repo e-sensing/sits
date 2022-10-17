@@ -1,7 +1,7 @@
 # Internal configuration parameters - relevant only to sits developers
 # s3 classes known to sits
 sits_s3_classes :   ["sits", "patterns", "predicted", "sits_model",
-                    "sits_cube", "raster_cube", "probs_cube",
+                    "raster_cube", "probs_cube",
                     "uncertainty_cube", "class_cube",
                     "stac_cube", "bdc_cube", "aws_cube",
                     "usgs_cube", "deafrica_cube"]
@@ -38,8 +38,7 @@ results_parse_info_col : ["tile", "start_date", "end_date", "band"]
 
 # mandatory columns in data cube description
 sits_cube_cols :    ["source", "collection", "satellite", "sensor",
-"tile", "bands", "xmin", "xmax", "ymin", "ymax",
-"crs", "labels"]
+"tile", "xmin", "xmax", "ymin", "ymax", "crs", "file_info"]
 
 # mandatory columns in tibble description
 sits_tibble_cols :  ["longitude", "latitude", "start_date",

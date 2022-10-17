@@ -15,7 +15,7 @@ sits_regularize(
 )
 }
 \arguments{
-\item{cube}{\code{sits_cube} object whose observation
+\item{cube}{\code{raster_cube} object whose observation
 period and/or spatial resolution is not constant.}
 
 \item{period}{ISO8601-compliant time period for regular
@@ -36,7 +36,7 @@ used for parallel processing of input.}
 \item{progress}{show progress bar?}
 }
 \value{
-A \code{sits_cube} object with aggregated images.
+A \code{raster_cube} object with aggregated images.
 }
 \description{
 Produces regular data cubes for analysis-ready data (ARD)

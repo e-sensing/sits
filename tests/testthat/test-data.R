@@ -54,7 +54,8 @@ test_that("Reading a LAT/LONG from RASTER with crs parameter", {
     point_ndvi <- sits_get_data(
         cube = raster_cube,
         samples = samples,
-        crs = "+proj=aea +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs "
+        crs = "+proj=aea +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs ",
+        multicores = 1
     )
 
     expect_equal(names(point_ndvi)[1], "longitude")
@@ -190,25 +191,21 @@ test_that("Reading a SHP file from RASTER", {
     testthat::skip_if(purrr::is_null(raster_cube),
                       message = "LOCAL cube was not found"
     )
-
-    poly_lst <-  list(
-        list(
+    polygons_sf <- rbind(
+        sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(c(
             xmin = -55.62471702, xmax = -55.57293653,
-            ymin = -11.63300767, ymax = -11.60607152, crs = 4326
-        ),
-        list(
+            ymin = -11.63300767, ymax = -11.60607152), crs = 4326
+        ))),
+        sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(c(
             xmin = -55.29847023, xmax = -55.26194177,
-            ymin = -11.56743498, ymax = -11.55169416, crs = 4326
-        ),
-        list(
+            ymin = -11.56743498, ymax = -11.55169416), crs = 4326
+        ))),
+        sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(c(
             xmin = -55.55720906, xmax = -55.54030539,
-            ymin = -11.75144257, ymax = -11.74521358, crs = 4326
-        )
+            ymin = -11.75144257, ymax = -11.74521358), crs = 4326
+        )))
     )
-    polygons_lst <- lapply(poly_lst,
-                           function(x) do.call(.sits_bbox_to_sf, x)
-    )
-    polygons_sf <- do.call(rbind, polygons_lst)
+
     polygons_sf[["id"]] <- seq(1, 3)
     polygons_sf[["label"]] <- c("a", "b", "c")
     polygons_bbox <- sf::st_bbox(polygons_sf)
@@ -289,7 +286,7 @@ test_that("Reading a SHP file from RASTER", {
         expected = c("a", "b", "c")
     )
 
-    temp_shp_no_label <- dplyr::select(temp_shp, -.data[["label"]])
+    temp_shp_no_label <- dplyr::select(temp_shp, -"label")
     points_shp_no_label <- sits_get_data(raster_cube,
                                     samples = temp_shp_no_label,
                                     pol_avg = TRUE,
@@ -303,7 +300,7 @@ test_that("Reading a SHP file from RASTER", {
         expected = "NoClass"
     )
 
-    temp_shp_label_attr <- dplyr::rename(temp_shp, label_2 = .data[["label"]])
+    temp_shp_label_attr <- dplyr::rename(temp_shp, label_2 = "label")
     points_shp_label_attr <- sits_get_data(raster_cube,
                                            samples = temp_shp_label_attr,
                                            pol_avg = TRUE,

@@ -36,7 +36,7 @@
             .by_group = TRUE
         )
 
-        x <- dplyr::select(dplyr::ungroup(x), -.data[["interval"]])
+        x <- dplyr::select(dplyr::ungroup(x), -"interval")
 
         return(x)
     })
@@ -173,12 +173,11 @@
     crs_type <- .gc_detect_crs_type(.cube_crs(cube))
 
     file_info <- dplyr::select(
-        cube, .data[["file_info"]],
-        .data[["crs"]]
+        cube, "file_info", "crs"
     ) %>%
         tidyr::unnest(cols = c("file_info")) %>%
         dplyr::transmute(
-            fid = .data[["fid"]],
+            fid  = .data[["fid"]],
             xmin = .data[["xmin"]],
             ymin = .data[["ymin"]],
             xmax = .data[["xmax"]],
@@ -191,7 +190,7 @@
         )
 
     features <- dplyr::mutate(file_info, id = .data[["fid"]]) %>%
-        tidyr::nest(features = -.data[["fid"]])
+        tidyr::nest(features = -"fid")
 
     features <- slider::slide_dfr(features, function(feat) {
         bbox <- .bbox(feat$features[[1]][1, ], as_crs = "EPSG:4326")
@@ -208,22 +207,22 @@
 
     gc_data <- purrr::map(features[["features"]], function(feature) {
         feature <- feature %>%
-            dplyr::select(-.data[["crs"]]) %>%
-            tidyr::nest(assets = c(.data[["href"]], .data[["band"]])) %>%
+            dplyr::select(-"crs") %>%
+            tidyr::nest(assets = c("href", "band")) %>%
             tidyr::nest(properties = c(
-                .data[["datetime"]],
-                .data[[!!crs_type]]
+                "datetime",
+                !!crs_type
             )) %>%
             tidyr::nest(bbox = c(
-                .data[["xmin"]], .data[["ymin"]],
-                .data[["xmax"]], .data[["ymax"]]
+                "xmin", "ymin",
+                "xmax", "ymax"
             ))
 
         feature[["assets"]] <- purrr::map(feature[["assets"]], function(asset) {
             asset %>%
                 tidyr::pivot_wider(
-                    names_from = .data[["band"]],
-                    values_from = .data[["href"]]
+                    names_from = "band",
+                    values_from = "href"
                 ) %>%
                 purrr::map(
                     function(x) list(href = x, `eo:bands` = list(NULL))

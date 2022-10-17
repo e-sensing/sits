@@ -90,7 +90,7 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
         data1$time_series,
         data2$time_series,
         function(ts1, ts2) {
-            ts3 <- dplyr::bind_cols(ts1, dplyr::select(ts2, -.data[["Index"]]))
+            ts3 <- dplyr::bind_cols(ts1, dplyr::select(ts2, -"Index"))
             return(ts3)
         }
     )
@@ -102,8 +102,8 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 
     # pre-condition - check cube type
-    .check_is_sits_cube(data1)
-    .check_is_sits_cube(data2)
+    .check_is_raster_cube(data1)
+    .check_is_raster_cube(data2)
 
     .check_that(
         x = data1$satellite == data2$satellite,
@@ -115,7 +115,8 @@ sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     )
 
     .check_that(
-        all(.xres(data1) == .xres(data2)) && all(.yres(data1) == .yres(data2)),
+        all(.tile_xres(data1) == .tile_xres(data2))
+            && all(.tile_yres(data1) == .tile_yres(data2)),
         msg = "merge cubes requires same resolution"
     )
     .check_that(

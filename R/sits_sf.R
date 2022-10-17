@@ -1,13 +1,14 @@
-#' @title Return a sits_tibble or sits_cube as an sf object.
+#' @title Return a sits_tibble or raster_cube as an sf object.
 #' @name sits_as_sf
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
-#' @description Return a sits_tibble or sits_cube as an sf object.
+#' @description Return a sits_tibble or raster_cube as an sf object.
 #'
 #' @param data   A sits tibble or sits cube.
-#' @param crs    A coordinate reference system of samples.
+#' @param as_crs Output coordinate reference system.
 #' @param ...    Additional parameters.
+#' @param crs    Input coordinate reference system.
 #' @return       An sf object of point or polygon geometry.
 #' @examples
 #' if (sits_run_examples()) {

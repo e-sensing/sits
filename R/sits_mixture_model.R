@@ -119,7 +119,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     # is added as a band
     cube <- .cube_filter_bands(cube = cube, bands = bands)
     # Check if cube is regular
-    .check_is_sits_cube(cube)
+    .check_is_raster_cube(cube)
     .check_is_regular(cube)
     # Pre-condition
     .check_endmembers_bands(em = em, cube = cube)
@@ -298,7 +298,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
 
 .endmembers_scale <- function(em, cube) {
     bands <- .endmembers_bands(em)
-    em <- dplyr::mutate(em, dplyr::across(bands, function(values) {
+    em <- dplyr::mutate(em, dplyr::across(dplyr::all_of(bands), function(values) {
         band_conf <- .tile_band_conf(tile = cube, band = dplyr::cur_column())
         values * .scale(band_conf) + .offset(band_conf)
     })

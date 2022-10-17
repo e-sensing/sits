@@ -116,7 +116,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
                                    progress = TRUE) {
 
     # Check cube
-    .check_is_sits_cube(data)
+    .check_is_raster_cube(data)
     .check_is_regular(data)
     # Check window size
     .check_window_size(window_size)
@@ -203,7 +203,7 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
     x <- fn(x, ...)
     # pack
     x <- dplyr::ungroup(x)
-    x <- tidyr::nest(x, `..unnest_col` = -dplyr::any_of("#.."))
+    x <- tidyr::nest(x, `..unnest_col` = -"#..")
     # remove garbage
     x[["#.."]] <- NULL
     names(x) <- col

@@ -244,28 +244,28 @@ sits_som_clean_samples <- function(som_map,
 
     data <- som_map$data %>%
         dplyr::select(
-            .data[["longitude"]],
-            .data[["latitude"]],
-            .data[["start_date"]],
-            .data[["end_date"]],
-            .data[["label"]],
-            .data[["cube"]],
-            .data[["time_series"]],
-            .data[["id_sample"]],
-            .data[["id_neuron"]]
+            "longitude",
+            "latitude",
+            "start_date",
+            "end_date",
+            "label",
+            "cube",
+            "time_series",
+            "id_sample",
+            "id_neuron"
         ) %>%
         dplyr::inner_join(som_map$labelled_neurons,
                           by = c("id_neuron", "label" = "label_samples")
         ) %>%
         dplyr::mutate(
             eval = .detect_class_noise(
-                .data[["prior_prob"]],
-                .data[["post_prob"]]
+                "prior_prob",
+                "post_prob"
             )
         ) %>%
         dplyr::select(
-            -.data[["count"]],
-            -.data[["prior_prob"]]
+            -"count",
+            -"prior_prob"
         ) %>%
         dplyr::filter(.data[["eval"]] %in% keep)
 
@@ -303,9 +303,9 @@ sits_som_evaluate_cluster <- function(som_map) {
     # Get only id, label and neuron_label
     temp_data <- unique(dplyr::select(
         data,
-        .data[["id_sample"]],
-        .data[["label"]],
-        .data[["neuron_label"]]
+        "id_sample",
+        "label",
+        "neuron_label"
     ))
 
     # Get sample labels that was not assigned to a cluster

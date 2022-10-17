@@ -17,7 +17,7 @@
 #'  from satellite image collections with the gdalcubes library. Data, v. 4,
 #'  n. 3, p. 92, 2019. DOI: 10.3390/data4030092.
 #'
-#' @param cube       \code{sits_cube} object whose observation
+#' @param cube       \code{raster_cube} object whose observation
 #'                   period and/or spatial resolution is not constant.
 #' @param period     ISO8601-compliant time period for regular
 #'                   data cubes, with number and unit, where
@@ -51,7 +51,7 @@
 #'       The input (non-regular) ARD cube needs to include the cloud band for
 #'       the regularization to work.
 #'
-#' @return A \code{sits_cube} object with aggregated images.
+#' @return A \code{raster_cube} object with aggregated images.
 #'
 #' @examples
 #' if (sits_run_examples()) {

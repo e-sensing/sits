@@ -56,7 +56,7 @@
         cube <- tibble::add_column(cube, file_info = list(file_info))
     }
 
-    class(cube) <- unique(c("raster_cube", "sits_cube", class(cube)))
+    class(cube) <- unique(c("raster_cube", class(cube)))
 
     return(cube)
 }
@@ -176,8 +176,8 @@
         end_date   = end_date,
         ncols      = ncols_cube_class,
         nrows      = nrows_cube_class,
-        xres       = .xres(tile),
-        yres       = .yres(tile),
+        xres       = .tile_xres(tile),
+        yres       = .tile_yres(tile),
         xmin       = bbox[["xmin"]],
         xmax       = bbox[["xmax"]],
         ymin       = bbox[["ymin"]],
@@ -457,7 +457,7 @@ NULL
 #' @param ...  Provide additional class names.
 #' @returns  An updated data cube.
 .cube_set_class <- function(cube, ...) {
-    .set_class(cube, ..., c("sits_cube", "tbl_df", "tbl", "data.frame"))
+    .set_class(cube, ..., c("raster_cube", "tbl_df", "tbl", "data.frame"))
 }
 #' @title Get start date from each tile in a cube
 #' @noRd
@@ -613,17 +613,19 @@ NULL
 #' @param cube  A data cube.
 #' @param start_date,end_date  Dates of interval.
 #' @return  A filtered data cube.
-.cube_filter_temporal <- function(cube, start_date, end_date) {
-    UseMethod(".cube_filter_temporal", cube)
+.cube_filter_interval <- function(cube, start_date, end_date) {
+    UseMethod(".cube_filter_interval", cube)
 }
 
 #' @export
-.cube_filter_temporal.raster_cube <- function(cube, start_date, end_date) {
+.cube_filter_interval.raster_cube <- function(cube, start_date, end_date) {
     during <- .cube_during(cube, start_date, end_date)
     if (!any(during)) {
         stop("informed interval does not interesect cube")
     }
-    cube[during, ]
+    cube <- slider::slide_dfr(cube[during,], function(tile)
+        .tile_filter_interval(tile, start_date, end_date)
+    )
 }
 #' @title Filter cube based on a set of bands
 #' @noRd
@@ -705,6 +707,7 @@ NULL
 #' @param features  cube features
 #' @return merged data cube
 .cube_merge_tiles <- function(cube) {
+    class_orig <- class(cube)
     cube <- tidyr::unnest(cube, "file_info", names_sep = ".")
     cube <- dplyr::arrange(
         cube, .data[["file_info.date"]], .data[["file_info.band"]]
@@ -713,8 +716,8 @@ NULL
         cube, file_info = tidyr::starts_with("file_info"),
         .names_sep = "."
     )
-    # Set class features
-    cube <- .set_class(cube, class(cube))
+    # Set class features for the cube
+    class(cube) <- class_orig
     # Return cube
     cube
 }

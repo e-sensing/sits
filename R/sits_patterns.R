@@ -92,12 +92,12 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                         # with all values together
                         ts2 <- ts %>%
                             tidyr::pivot_longer(
-                                cols = -.data[["Index"]],
+                                cols = -"Index",
                                 names_to = "variable"
                             ) %>%
                             dplyr::select(
-                                .data[["Index"]],
-                                .data[["value"]]
+                                "Index",
+                                "value"
                             ) %>%
                             dplyr::transmute(
                                 x = as.numeric(.data[["Index"]]),

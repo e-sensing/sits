@@ -148,15 +148,15 @@ sits_reclassify.class_cube <- function(cube, mask, rules, memsize = 4,
     mask <- .cube_filter_bands(cube = mask, bands = "class")
     # Process each tile sequentially
     class_cube <- .cube_foreach_tile(cube, function(tile, mask) {
-        # Filter mask - temporal
-        mask <- .try({
-            .cube_filter_temporal(
-                cube = mask, start_date = .tile_start_date(tile),
-                end_date = .tile_end_date(tile)
-            )
-        },
-        .msg_error = "mask's interval does not intersect cube"
-        )
+        # # Filter mask - temporal
+        # mask <- .try({
+        #     .cube_filter_interval(
+        #         cube = mask, start_date = .tile_start_date(tile),
+        #         end_date = .tile_end_date(tile)
+        #     )
+        # },
+        # .msg_error = "mask's interval does not intersect cube"
+        # )
         # Filter mask - spatial
         mask <- .try({
             .cube_filter_spatial(cube = mask, roi = .bbox(tile))

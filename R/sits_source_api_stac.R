@@ -178,7 +178,7 @@
 
         # tile by tile
         data <- data %>%
-            tidyr::nest(items = dplyr::all_of(c("fid", "features")))
+            tidyr::nest(items = c("fid", "features"))
     } else {
 
         # item by item
@@ -352,7 +352,7 @@
 
     if (!is.na(review_date)) {
         data <- dplyr::filter(cube, .data[["date"]] == !!review_date) %>%
-            tidyr::nest(assets = -.data[["tile"]])
+            tidyr::nest(assets = -"tile")
 
         # test paths by open files...
         val <- .sits_parallel_map(seq_len(nrow(data)), function(i) {

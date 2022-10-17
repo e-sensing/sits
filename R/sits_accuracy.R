@@ -176,34 +176,34 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
             )
         )
 
-        # Filter the points inside the data cube
-        points_row <- dplyr::filter(
+        # Filter the points inside the tile
+        points_tile <- dplyr::filter(
             points,
-            .data[["X"]] >= row$xmin & .data[["X"]] <= row$xmax &
-                .data[["Y"]] >= row$ymin & .data[["Y"]] <= row$ymax
+            .data[["X"]] >= tile$xmin & .data[["X"]] <= tile$xmax &
+                .data[["Y"]] >= tile$ymin & .data[["Y"]] <= tile$ymax
         )
 
         # No points in the cube? Return an empty list
-        if (nrow(points_row) < 1) {
+        if (nrow(points_tile) < 1) {
             return(NULL)
         }
 
         # Convert the tibble to a matrix
-        xy <- matrix(c(points_row$X, points_row$Y),
-            nrow = nrow(points_row), ncol = 2
+        xy <- matrix(c(points_tile$X, points_tile$Y),
+            nrow = nrow(points_tile), ncol = 2
         )
         colnames(xy) <- c("X", "Y")
 
         # Extract values from cube
         values <- .tile_extract(
-            tile = row,
+            tile = tile,
             band = labelled_band,
             xy = xy
         )
         # Get the predicted values
         predicted <- labels_cube[unlist(values)]
         # Get reference classes
-        reference <- points_row$label
+        reference <- points_tile$label
         # Does the number of predicted and reference values match?
         .check_pred_ref_match(reference, predicted)
         # Create a tibble to store the results
@@ -234,7 +234,7 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
         # pixel area
         # convert the area to hectares
         # assumption: spatial resolution unit is meters
-        area <- freq$count * .xres(tile) * .yres(tile) / 10000
+        area <- freq$count * .tile_xres(tile) * .tile_yres(tile) / 10000
         # Include class names
         freq <- dplyr::mutate(freq,
                               area = area,

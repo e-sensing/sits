@@ -561,7 +561,9 @@ plot.uncertainty_cube <- function(
                 midpoint = NA) +
             tmap::tm_graticules()  +
             tmap::tm_layout(legend.title.size = 1.5,
-                            legend.text.size = 1.2)
+                            legend.text.size = 1.2,
+                            legend.bg.color = "white",
+                            legend.bg.alpha = 0.5)
     )
     return(p)
 }
@@ -1417,7 +1419,7 @@ plot.torch_model <- function(x, y, ...) {
     data_ts <- dplyr::bind_rows(row$time_series)
     # melt the data into long format
     melted_ts <- data_ts %>%
-        tidyr::pivot_longer(cols = -.data[["Index"]], names_to = "variable") %>%
+        tidyr::pivot_longer(cols = -"Index", names_to = "variable") %>%
         as.data.frame()
     # plot the data with ggplot
     g <- ggplot2::ggplot(melted_ts, ggplot2::aes(
@@ -1465,7 +1467,7 @@ plot.torch_model <- function(x, y, ...) {
         dplyr::bind_cols(data, .)
 
     # prepare tibble to ggplot (fortify)
-    ts1 <- tidyr::pivot_longer(data, -.data[["Index"]])
+    ts1 <- tidyr::pivot_longer(data, -"Index")
     g <- ggplot2::ggplot(data = ts1 %>%
         dplyr::filter(.data[["name"]] != "cld")) +
         ggplot2::geom_col(ggplot2::aes(
