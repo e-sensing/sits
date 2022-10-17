@@ -662,7 +662,11 @@ plot.uncertainty_cube <- function(
 
     rgb_st <- stars::read_stars(
         c(red_file, green_file, blue_file),
-        along = "band")
+        along = "band",
+        RasterIO = list(
+            "nBufXSize" = 1000,
+            "nBufYSize" = 1000
+        ))
 
     rgb_st <- stars::st_rgb(rgb_st[,,,1:3],
                             dimension = "band",
@@ -802,7 +806,7 @@ plot.class_cube <- function(x, y, ...,
                                      xmax = .raster_xmax(r_merge),
                                      ymin = .raster_ymin(r_merge),
                                      ymax = .raster_ymax(r_merge),
-                                     n_layers = 1,
+                                     nlayers = 1,
                                      crs  = .raster_crs(r_merge)
 
         )
