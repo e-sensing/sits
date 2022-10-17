@@ -18,7 +18,9 @@ sits_mosaic_cubes.class_cube <- function(cube,
                                          version = "v1",
                                          progress = TRUE) {
     # precondition - cube
+    # TODO: check_is_raster_cube
     .check_is_sits_cube(cube)
+    # TODO: check class cube
     # precondition - res
     .check_res(res)
     # precondition - output dir
@@ -26,6 +28,7 @@ sits_mosaic_cubes.class_cube <- function(cube,
     # precondition - multicores
     .check_multicores(multicores)
     # precondition - progress
+    # TODO: check_progress
     .check_lgl_type(progress)
     # Spatial filter
     if (!is.null(roi)) {
@@ -34,36 +37,29 @@ sits_mosaic_cubes.class_cube <- function(cube,
     }
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
-    # TODO: Change assets to tile, thus makes more sense tiles
-    # call that are done in code below
-    # Create assets as jobs
-    assets <- .cube_create_assets(cube)
-    # Process each tile sequentially
-    assets <- .jobs_map_parallel_dfr(assets, function(asset) {
-        local_asset <- .crop_asset(
-            asset = asset, res = res, roi = roi,
-            crs = crs, output_dir = output_dir
+    # Process each tile in parallel
+    cube <- .jobs_map_parallel_dfr(cube, function(tile) {
+        tile_cropped <- .crop_tile(
+            tile = tile, res = res, roi = roi,
+            crs = crs, version = version,
+            output_dir = output_dir
         )
-        # Return local tile
-        local_asset
+        # Return a cropped tile
+        tile_cropped
     }, progress = progress)
-    .cube_mosaic_assets(
-        assets = assets, crs = crs, multicores = multicores,
-        output_dir = output_dir, version = version)
+    .cube_mosaic_tiles(
+        cube = cube, crs = crs, multicores = multicores,
+        output_dir = output_dir, version = version
+    )
 }
 
-.transform_roi <- function(roi, crs) {
-    sf::st_transform(x = roi, crs = crs)
-}
-
-.write_roi <- function(roi, output_file) {
-    sf::st_write(obj = roi, dsn = output_file)
+.write_roi <- function(roi, output_file, quiet, ...) {
+    sf::st_write(obj = roi, dsn = output_file, quiet = quiet, ...)
     output_file
 }
 
-.cube_mosaic_assets <- function(assets, crs, multicores, output_dir, version) {
-    # Recreating cube structure
-    cube <- .cube_merge_assets(assets)
+
+.cube_mosaic_tiles <- function(cube, crs, multicores, output_dir, version) {
     # Generate a vrt file
     vrt_file <- tempfile(fileext = ".vrt")
     .gdal_buildvrt(
@@ -78,6 +74,7 @@ sits_mosaic_cubes.class_cube <- function(cube,
         output_dir = output_dir
     )
     # Create template block for mask
+    # TODO: add crs in template to export mosaic to desired crs
     .gdal_template_from_file(
         base_file = vrt_file,
         file = out_file,
@@ -89,12 +86,13 @@ sits_mosaic_cubes.class_cube <- function(cube,
     .gdal_merge_into(
         file = out_file,
         base_files = vrt_file,
-        multicores = 1
+        multicores = multicores
     )
     # TODO: set quiet to TRUE
-    # overviews
+    # Create COG overviews
     .gdal_addo(
-        base_file = out_file, method = "NEAREST", overviews = c(2, 4, 8, 16)
+        base_file = out_file, method = "NEAREST",
+        overviews = .conf("gdal_presets", "cog_overviews")
     )
     # Create tile based on template
     base_tile <- .tile_derived_from_file(
@@ -108,65 +106,75 @@ sits_mosaic_cubes.class_cube <- function(cube,
     return(base_tile)
 }
 
-.crop_asset <- function(asset, res, roi, crs, output_dir) {
+.crop_tile <- function(tile, res, roi, crs, version, output_dir) {
     # Get all paths and expand
-    file <- path.expand(.fi_paths(.fi(asset)))
+    # TODO: .tile_paths
+    file <- path.expand(.fi_paths(.fi(tile)))
     if (!is.null(roi)) {
-        roi_obj <- .transform_roi(roi = roi, crs = .cube_crs(asset))
-        bbox_obj <- .bbox_as_sf(.tile(asset), as_crs = .cube_crs(asset))
+        # Get roi and tile extent as sf
+        roi_obj <- .roi_as_sf(roi = roi, as_crs = .cube_crs(tile))
+        bbox_obj <- .bbox_as_sf(bbox = tile, as_crs = .cube_crs(tile))
+
         is_tile_contained <- sf::st_contains(
             x = roi_obj,
             y = bbox_obj,
             sparse = FALSE
         )
-        if (apply(is_tile_contained, 1, all)) {
-            return(asset)
+        if (all(c(is_tile_contained))) {
+            return(tile)
         }
-        # TODO: set quiet to TRUE
+        # Write roi in a temporary file
         roi <- .write_roi(
             roi = roi,
-            output_file = tempfile(fileext = ".shp")
+            output_file = tempfile(fileext = ".shp"),
+            quiet = TRUE
         )
     }
-    # Create a list of user parameters as gdal format
-    gdal_params <- list(
-        "-of" = "GTiff",
-        "-co" = .conf("gdal_presets", "image", "co"),
-        "-wo" = paste0("NUM_THREADS=", 2),
-        "-multi" = TRUE,
-        "-ot" = "Byte",
-        "-cutline" = roi
-    )
     # Create output file
-    out_file <- file.path(output_dir, .file_base(file))
+    out_file <- .file_crop_name(
+        tile = tile, band = .tile_bands(tile),
+        version = version, output_dir = output_dir
+    )
     # Resume feature
     if (.raster_is_valid(out_file)) {
         message("Recovery: file '", out_file, "' already exists.")
-        message("(If you want to produce a new image, please ",
-                "change 'output_dir' parameter)")
-        asset <- .tile_eo_from_files(
-            files = out_file, fid = .fi_fid(.fi(asset)),
-            bands = .fi_bands(.fi(asset)), date = .tile_start_date(asset),
-            base_tile = asset, update_bbox = TRUE
+        message("(If you want to produce a new cropped image, please ",
+                "change 'version' or 'output_dir' parameter)")
+        tile <- .tile_eo_from_files(
+            files = out_file, fid = .fi_fid(.fi(tile)),
+            bands = .fi_bands(.fi(tile)), date = .tile_start_date(tile),
+            base_tile = tile, update_bbox = TRUE
         )
-        return(asset)
+        return(tile)
     }
-    # crop asset
-    out_file <- .crop_fn(file, out_file, gdal_params)
+    # Crop tile image
+    out_file <- .gdal_crop_image(
+        file = file, out_file = out_file,
+        roi = roi, multicores = 1
+    )
+    # Delete temporary roi file
+    unlink(.file_path(.file_sans_ext(roi), ".*"))
     # Update asset metadata
     update_bbox <- if (is.null(roi) && is.null(res)) FALSE else TRUE
-    asset <- .tile_eo_from_files(
-        files = out_file, fid = .fi_fid(.fi(asset)),
-        bands = .fi_bands(.fi(asset)), date = .tile_start_date(asset),
-        base_tile = asset, update_bbox = update_bbox
+    tile <- .tile_eo_from_files(
+        files = out_file, fid = .fi_fid(.fi(tile)),
+        bands = .fi_bands(.fi(tile)), date = .tile_start_date(tile),
+        base_tile = tile, update_bbox = update_bbox
     )
-    asset
+    tile
 }
 
-.crop_fn <- function(file, out_file, gdal_params) {
-    gdal_params[c("src_dataset", "dst_dataset")] <- list(file, out_file)
+.gdal_crop_image <- function(file, out_file, roi, multicores) {
+    gdal_params <- list(
+        "-of" = .conf("gdal_presets", "image", "of"),
+        "-co" = .conf("gdal_presets", "image", "co"),
+        "-wo" = paste0("NUM_THREADS=", multicores),
+        "-multi" = TRUE,
+        "-cutline" = roi
+    )
     .gdal_warp(
-        file = out_file, base_files = file, params = gdal_params, quiet = TRUE
+        file = out_file, base_files = file,
+        params = gdal_params, quiet = TRUE
     )
     out_file
 }
