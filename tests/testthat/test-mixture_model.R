@@ -47,7 +47,7 @@ test_that("Mixture model tests", {
 
     frac_bands <- sits_bands(mm_rmse)
 
-    expect_true(all(frac_bands %in% c("FOREST", "LAND", "WATER", "RMSE")))
+    expect_true(all(c("FOREST", "LAND", "WATER", "RMSE") %in% frac_bands))
     expect_true("raster_cube" %in% class(mm_rmse))
     expect_true(all(sits_timeline(reg_cube) %in% sits_timeline(mm_rmse)))
     expect_true(all(reg_cube[["tiles"]] == mm_rmse[["tiles"]]))
@@ -55,7 +55,7 @@ test_that("Mixture model tests", {
 
     r_obj <- .raster_open_rast(mm_rmse$file_info[[1]]$path[[2]])
 
-    expect_true(.raster_nrows(r_obj) == .cube_size(reg_cube)[["nrows"]])
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(reg_cube))
 
     # Generate the mixture model
     mm <- sits_mixture_model(
@@ -69,7 +69,7 @@ test_that("Mixture model tests", {
 
     frac_bands <- sits_bands(mm)
 
-    expect_true(all(frac_bands %in% c("FOREST", "LAND", "WATER")))
+    expect_true(all(c("FOREST", "LAND", "WATER") %in% frac_bands))
     expect_true("raster_cube" %in% class(mm))
     expect_true(all(sits_timeline(reg_cube) %in% sits_timeline(mm)))
     expect_true(all(reg_cube[["tiles"]] == mm_rmse[["tiles"]]))
@@ -77,7 +77,7 @@ test_that("Mixture model tests", {
 
     r_obj <- .raster_open_rast(mm$file_info[[1]]$path[[2]])
 
-    expect_true(.raster_nrows(r_obj) == .cube_size(reg_cube)[["nrows"]])
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(reg_cube))
     unlink(list.files(tempdir(), full.names = TRUE))
 
 })

@@ -1,6 +1,7 @@
 #' @title Use time series values as distances for training patterns
 #' @name .sits_distances
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -26,20 +27,20 @@
             sample_id = seq_len(nrow(data))
         ) %>%
         tidyr::unnest("time_series") %>%
-        dplyr::select("sample_id", "label", !!bands) %>%
+        dplyr::select("sample_id", "label", dplyr::all_of(bands)) %>%
         dplyr::group_by(.data[["sample_id"]]) %>%
         dplyr::mutate(temp_index = seq_len(dplyr::n())) %>%
         dplyr::ungroup()
 
     if (length(bands) > 1) {
         distances_tbl <- tidyr::pivot_wider(distances_tbl,
-            names_from = .data[["temp_index"]],
+            names_from = "temp_index",
             values_from = !!bands,
             names_sep = ""
         )
     } else {
         distances_tbl <- tidyr::pivot_wider(distances_tbl,
-            names_from = .data[["temp_index"]],
+            names_from = "temp_index",
             values_from = !!bands,
             names_prefix = bands,
             names_sep = ""
@@ -54,8 +55,9 @@
 }
 
 #' @title Sample a percentage of a time series distance matrix
-#' @name .sits_distances_sample
+#' @name .distances_sample
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Takes a sits tibble with different labels and
@@ -70,7 +72,7 @@
 #' @param  frac            Percentage of samples to pick.
 #' @return                 Data.table with a fixed quantity of samples
 #'                         of informed labels and all other.
-.sits_distances_sample <- function(distances, frac) {
+.distances_sample <- function(distances, frac) {
     # compute sampling
     label <- NULL # to avoid setting global variable
     result <- distances[, .SD[sample(.N, round(frac * .N))], by = label]

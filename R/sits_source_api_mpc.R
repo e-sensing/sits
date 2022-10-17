@@ -1,4 +1,5 @@
 #' @keywords internal
+#' @noRd
 #' @export
 .source_collection_access_test.mpc_cube <- function(source,
                                                      collection,
@@ -65,6 +66,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 `.source_items_new.mpc_cube_sentinel-2-l2a` <- function(source,
                                                          collection,
@@ -136,6 +138,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 `.source_items_tile.mpc_cube_sentinel-2-l2a` <- function(source,
                                                           items, ...,
@@ -144,6 +147,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 `.source_items_new.mpc_cube_landsat-c2-l2` <- function(source,
                                                           collection,
@@ -193,6 +197,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 `.source_items_tile.mpc_cube_landsat-c2-l2` <- function(source,
                                                         items, ...,

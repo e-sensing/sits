@@ -22,5 +22,4 @@ isFALSE(sits_run_examples())
 sits_config(run_examples = TRUE)
 }
 
-
 }

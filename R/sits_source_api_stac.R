@@ -1,4 +1,5 @@
 #' @keywords internal
+#' @noRd
 #' @export
 .source_collection_access_test.stac_cube <- function(source, collection,
                                                      bands, ...,
@@ -60,12 +61,13 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_cube.stac_cube <- function(source,
                                    collection,
                                    bands,
                                    tiles,
-                                   roi_sf,
+                                   roi,
                                    start_date,
                                    end_date,
                                    platform,
@@ -78,7 +80,7 @@
     items_query <- .stac_create_items_query(
         source = source,
         collection = collection,
-        roi_sf = roi_sf,
+        roi = roi,
         start_date = start_date,
         end_date = end_date, ...
     )
@@ -120,6 +122,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_bands_select.stac_cube <- function(source,
                                                  items,
@@ -142,6 +145,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_cube.stac_cube <- function(source,
                                          items, ...,
@@ -167,9 +171,6 @@
         features = items[["features"]]
     )
 
-    # check documentation mode
-    progress <- .check_documentation(progress)
-
     if (.source_collection_metadata_search(
         source = source,
         collection = collection
@@ -177,7 +178,7 @@
 
         # tile by tile
         data <- data %>%
-            tidyr::nest(items = dplyr::all_of(c("fid", "features")))
+            tidyr::nest(items = c("fid", "features"))
     } else {
 
         # item by item
@@ -237,10 +238,8 @@
         )
         # check if metadata was retrieved
         if (is.null(asset_info)) {
-            warning(paste(
-                "cannot open files:\n",
-                paste(paths, collapse = ", ")
-            ), call. = FALSE)
+            warning("cannot open files:\n", paste(paths, collapse = ", "),
+                    call. = FALSE)
             return(NULL)
         }
         # generate file_info
@@ -306,10 +305,8 @@
                 )
                 # check if metadata was retrieved
                 if (is.null(asset_info)) {
-                    warning(paste(
-                        "cannot open files:\n",
-                        paste(paths, collapse = ", ")
-                    ), call. = FALSE)
+                    warning("cannot open files:\n",
+                            paste(paths, collapse = ", "), call. = FALSE)
                     return(NULL)
                 }
             }
@@ -344,14 +341,18 @@
     )
 
     # review known malformed paths
-    review_date <- .config_get(c(
-        "sources", source, "collections",
-        collection, "review_dates"
-    ), default = NA)
+    review_date <- .try(
+        .conf(
+            "sources", source,
+            "collections", collection,
+            "review_dates"
+        ),
+        .default = NA
+    )
 
     if (!is.na(review_date)) {
         data <- dplyr::filter(cube, .data[["date"]] == !!review_date) %>%
-            tidyr::nest(assets = -.data[["tile"]])
+            tidyr::nest(assets = -"tile")
 
         # test paths by open files...
         val <- .sits_parallel_map(seq_len(nrow(data)), function(i) {
@@ -414,6 +415,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_item_get_date.stac_cube <- function(source,
                                             item, ...,
@@ -424,6 +426,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_item_get_hrefs.stac_cube <- function(source,
                                              item, ...,
@@ -437,6 +440,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_item_get_cloud_cover.stac_cube <- function(source, ...,
                                                    item,
@@ -445,6 +449,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_item_get_bands.stac_cube <- function(source,
                                              item, ...,
@@ -453,7 +458,8 @@
 }
 
 #' @rdname source_cube
-#'
+#' @keywords internal
+#' @noRd
 #' @description \code{.source_tile_get_bbox()} retrieves the bounding
 #' box from items of a tile.
 #'
@@ -489,6 +495,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_fid.stac_cube <- function(source,
                                         items, ...,

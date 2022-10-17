@@ -48,10 +48,8 @@
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'     # select a set of samples
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a ResNet model
-#'     torch_model <- sits_train(samples_ndvi, sits_resnet(epochs = 20))
+#'     torch_model <- sits_train(samples_modis_ndvi, sits_resnet(epochs = 20))
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
@@ -95,7 +93,7 @@ sits_smooth <- function(cube, type = "bayes", ..., window_size = 5,
 
     # Check memory and multicores
     # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(cube))))
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
     # Check minimum memory needed to process one block
@@ -103,7 +101,7 @@ sits_smooth <- function(cube, type = "bayes", ..., window_size = 5,
         job_size = .block_size(block = block, overlap = overlap),
         # npaths = input(nlayers) + output(nlayers)
         npaths = length(.tile_labels(cube)) * 2,
-        nbytes = 8, proc_bloat = .config_processing_bloat()
+        nbytes = 8, proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
@@ -221,11 +219,11 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
             derived_class = "probs_cube", band = band
         )
         offset <- .offset(band_conf)
-        if (!is.null(offset) && offset != 0) {
+        if (.has(offset) && offset != 0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (!is.null(scale) && scale != 1) {
+        if (.has(scale) && scale != 1) {
             values <- values / scale
         }
         # Job crop block

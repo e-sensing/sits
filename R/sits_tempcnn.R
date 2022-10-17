@@ -59,10 +59,8 @@
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'     # select a set of samples
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a TempCNN model
-#'     torch_model <- sits_train(samples_ndvi, sits_tempcnn())
+#'     torch_model <- sits_train(samples_modis_ndvi, sits_tempcnn())
 #'     # plot the model
 #'     plot(torch_model)
 #'     # create a data cube from local files
@@ -197,7 +195,7 @@ sits_tempcnn <- function(samples = NULL,
         } else {
             # Split the data into training and validation data sets
             # Create partitions different splits of the input data
-            test_samples <- .sits_distances_sample(
+            test_samples <- .distances_sample(
                 distances = train_samples, frac = validation_split
             )
             # Remove the lines used for validation

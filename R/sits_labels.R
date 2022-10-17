@@ -18,7 +18,7 @@
 sits_labels <- function(data) {
 
     # get the meta-type (sits or cube)
-    data <- .config_data_meta_type(data)
+    data <- .conf_data_meta_type(data)
     UseMethod("sits_labels", data)
 }
 
@@ -34,7 +34,7 @@ sits_labels.sits <- function(data) {
 #' @rdname sits_labels
 #' @export
 #'
-sits_labels.sits_cube <- function(data) {
+sits_labels.raster_cube <- function(data) {
     return(data$labels[[1]])
 }
 #' @rdname sits_labels
@@ -82,7 +82,7 @@ sits_labels.sits_model <- function(data) {
     # set caller to show in errors
     .check_set_caller("sits_labels")
     # get the meta-type (sits or cube)
-    data <- .config_data_meta_type(data)
+    data <- .conf_data_meta_type(data)
     UseMethod("sits_labels<-", data)
 }
 

@@ -108,11 +108,8 @@ if (sits_run_examples()) {
         band = "NDVI",
         dates = timeline[[1]]
     )
-
-    samples_ndvi <- sits_select(samples_modis_4bands,
-        bands = c("NDVI")
-    )
-    rf_model <- sits_train(samples_ndvi, sits_rfor())
+    # train a model
+    rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
 
     modis_probs <- sits_classify(
         data = modis_cube,

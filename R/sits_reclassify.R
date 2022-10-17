@@ -110,13 +110,13 @@ sits_reclassify <- function(cube, mask, rules, memsize = 1, multicores = 2,
 
     # Check memory and multicores
     # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(cube))))
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
     # npaths = input(1) + output(1)
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
         npaths = 2,
-        nbytes = 8, proc_bloat = .config_processing_bloat()
+        nbytes = 8, proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
@@ -148,15 +148,6 @@ sits_reclassify.class_cube <- function(cube, mask, rules, memsize = 4,
     mask <- .cube_filter_bands(cube = mask, bands = "class")
     # Process each tile sequentially
     class_cube <- .cube_foreach_tile(cube, function(tile, mask) {
-        # Filter mask - temporal
-        mask <- .try({
-            .cube_filter_temporal(
-                cube = mask, start_date = .tile_start_date(tile),
-                end_date = .tile_end_date(tile)
-            )
-        },
-        .msg_error = "mask's interval does not intersect cube"
-        )
         # Filter mask - spatial
         mask <- .try({
             .cube_filter_spatial(cube = mask, roi = .bbox(tile))
@@ -233,7 +224,7 @@ sits_reclassify.class_cube <- function(cube, mask, rules, memsize = 4,
         # Copy values from mask cube into mask template
         .gdal_merge_into(
             file = mask_block_file,
-            base_files = .fi_paths(.cube_file_info(mask)), multicores = 1
+            base_files = .fi_paths(.fi(mask)), multicores = 1
         )
         # Build a new tile for mask based on template
         mask_tile <- .tile_class_from_file(
@@ -250,11 +241,11 @@ sits_reclassify.class_cube <- function(cube, mask, rules, memsize = 4,
         # Evaluate expressions
         values <- reclassify_fn(values = values, mask_values = mask_values)
         offset <- .offset(band_conf)
-        if (!is.null(offset) && offset != 0) {
+        if (.has(offset) && offset != 0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (!is.null(scale) && scale != 1) {
+        if (.has(scale) && scale != 1) {
             values <- values / scale
         }
         # Prepare and save results as raster

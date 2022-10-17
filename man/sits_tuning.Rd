@@ -64,7 +64,7 @@ Please refer to the sits documentation available in
 if (sits_run_examples()) {
     # find best learning rate parameters for TempCNN
     tuned <- sits_tuning(
-        samples_modis_4bands,
+        samples_modis_ndvi,
         ml_method = sits_tempcnn(),
         params = sits_tuning_hparams(
             optimizer = choice(

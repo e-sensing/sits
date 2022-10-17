@@ -1,236 +1,241 @@
-#' @title Functions to work with file info tibble
-#' @name file_info_functions
-#' @keywords internal
+#' @title File info API
+#' @noRd
+#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param cube    Input data cube.
-#' @param bands   Bands to be filtered
-#' @param dates   Dates to be filtered.
-#' @param fid     Feature id (fid) to be filtered.
+#' @description
+#' Set of functions for handling `file_info`.
 #'
-#' @return        Vector with requested information obtained in the file_info.
 NULL
 
-#' @rdname file_info_functions
-#'
-#' @return The file info for a cube with a single tile
-#'         filtered by bands if required.
-#'
-.file_info <- function(cube,
-                       bands = NULL,
-                       fid = NULL,
-                       start_date = NULL,
-                       end_date = NULL) {
+#' @title Get `file_info` from a given tile.
+#' @noRd
+#' @param tile  A tile.
+#' @returns A `file_info` tibble.
+.fi <- function(tile) {
+    tile[["file_info"]][[1]]
+}
 
-    # pre-condition - one tile at a time
-    .check_num(nrow(cube),
-        min = 1, max = 1, is_integer = TRUE,
-        msg = "process one tile at a time for file_info"
-    )
+#' @title Set `file_info` into a given tile.
+#' @noRd
+#' @param tile  A tile.
+#' @param value  A `file_info` to be set.
+#' @returns An updated tile tibble.
+`.fi<-` <- function(tile, value) {
+    tile <- .tile(tile)
+    tile[["file_info"]] <- list(value)
+    tile
+}
 
-    # get the file info associated with the tile
-    file_info <- cube[["file_info"]][[1]]
-
-    # check bands
-    if (!is.null(bands)) {
-        .check_cube_bands(cube, bands = bands)
-        file_info <- file_info[file_info[["band"]] %in% bands, ]
+.fi_type <- function(fi) {
+    if ("date" %in% names(fi)) {
+        "eo_cube"
+    } else if (all(c("start_date", "end_date") %in% names(fi))) {
+        "derived_cube"
+    } else {
+        stop("invalid file info")
     }
+}
 
-    # filter fid
-    if (!is.null(fid)) {
-        fids <- .file_info_fids(cube)
-        .check_chr_within(paste0(fid),
-            within = paste0(fids),
-            msg = "invalid fid value"
-        )
-        file_info <- file_info[file_info[["fid"]] == fid, ]
+.fi_switch <- function(fi, ...) {
+    switch(.fi_type(fi),
+           ...,
+           stop("invalid file_info type")
+    )
+}
+
+.fi_eo <- function(fid, band, date, ncols, nrows, xres, yres, xmin, xmax,
+                   ymin, ymax, path) {
+    # Create a new eo file_info
+    tibble::tibble(
+        fid = fid, band = .band_eo(band), date = date, ncols = ncols,
+        nrows = nrows, xres = xres, yres = yres, xmin = xmin, xmax = xmax,
+        ymin = ymin, ymax = ymax, path = path
+    )
+}
+
+.fi_eo_from_files <- function(files, fid, bands, date) {
+    .check_that(length(files) == length(bands))
+    files <- path.expand(files)
+    r_obj <- .raster_open_rast(files)
+    .fi_eo(
+        fid = fid[[1]],
+        band = bands,
+        date = date[[1]],
+        ncols = .raster_ncols(r_obj),
+        nrows = .raster_nrows(r_obj),
+        xres = .raster_xres(r_obj),
+        yres = .raster_yres(r_obj),
+        xmin = .raster_xmin(r_obj),
+        xmax = .raster_xmax(r_obj),
+        ymin = .raster_ymin(r_obj),
+        ymax = .raster_ymax(r_obj),
+        path = files
+    )
+}
+
+.fi_derived <- function(band, start_date, end_date, ncols, nrows, xres, yres,
+                        xmin, xmax, ymin, ymax, crs, path) {
+    # Create a new derived file_info
+    tibble::tibble(
+        band = .band_derived(band), start_date = start_date,
+        end_date = end_date, ncols = ncols, nrows = nrows,
+        xres = xres, yres = yres, xmin = xmin, xmax = xmax,
+        ymin = ymin, ymax = ymax, crs = crs, path = path
+    )
+}
+
+.fi_derived_from_file <- function(file, band, start_date, end_date) {
+    file <- path.expand(file)
+    r_obj <- .raster_open_rast(file)
+    .fi_derived(
+        band = band, start_date = start_date, end_date = end_date,
+        ncols = .raster_ncols(r_obj), nrows = .raster_nrows(r_obj),
+        xres = .raster_xres(r_obj), yres = .raster_yres(r_obj),
+        xmin = .raster_xmin(r_obj), xmax = .raster_xmax(r_obj),
+        ymin = .raster_ymin(r_obj), ymax = .raster_ymax(r_obj),
+        crs = .raster_crs(r_obj), path = file
+    )
+}
+
+.fi_fid <- function(fi) {
+    .as_chr(fi[["fid"]])
+}
+
+.fi_filter_fid <- function(fi, fid) {
+    .fi_switch(
+        fi = fi,
+        eo_cube = {
+            fid_in_fi <- fid %in% .fi_fid(fi)
+            if (!all(fid_in_fi)) {
+                miss_fid <- paste0("'", fid[!fid_in_fi], "'", collapse = ",")
+                stop("fid(s) ", miss_fid, " not found")
+            }
+            fi[.fi_fid(fi) %in% .as_chr(fid), ]
+        }
+    )
+}
+
+.fi_bands <- function(fi) {
+    .as_chr(fi[["band"]])
+}
+
+.fi_filter_bands <- function(fi, bands) {
+    bands_in_fi <- bands %in% .fi_bands(fi)
+    if (!all(bands_in_fi)) {
+        miss_bands <- paste0("'", bands[!bands_in_fi], "'", collapse = ",")
+        stop("band(s) ", miss_bands, " not found")
     }
+    fi[.fi_bands(fi) %in% bands, ]
+}
 
-    if (!is.null(start_date)) {
-        cube_start_date <- sort(.file_info_timeline(cube))[[1]]
+.fi_min_date <- function(fi) {
+    .fi_switch(
+        fi = fi,
+        eo_cube = min(.as_date(fi[["date"]])),
+        derived_cube = min(.as_date(fi[["start_date"]]))
+    )
+}
 
-        .check_that(start_date >= cube_start_date, msg = "invalid start date")
+.fi_max_date <- function(fi) {
+    .fi_switch(
+        fi = fi,
+        eo_cube = max(.as_date(fi[["date"]])),
+        derived_cube = max(.as_date(fi[["end_date"]]))
+    )
+}
 
-        file_info <- file_info[file_info[["date"]] >= start_date, ]
+.fi_timeline <- function(fi) {
+    .fi_switch(
+        fi = fi,
+        eo_cube = .as_date(fi[["date"]]),
+        derived_cube = .as_date(c(fi[["start_date"]], fi[["end_date"]]))
+    )
+}
+
+.fi_paths <- function(fi) {
+    .as_chr(fi[["path"]])
+}
+
+.fi_path <- function(fi) {
+    .as_chr(fi[["path"]][[1]])
+}
+
+.fi_as_sf <- function(fi) {
+    .bbox_as_sf(.bbox(fi))
+}
+
+.fi_during <- function(fi, start_date, end_date) {
+    .between(.fi_timeline(fi), start_date[[1]], end_date[[1]])
+}
+
+.fi_filter_interval <- function(fi, start_date, end_date) {
+    if (!.has(start_date)) {
+        start_date <- .fi_min_date(fi)
     }
-
-    if (!is.null(end_date)) {
-        cube_end_date <- sort(.file_info_timeline(cube),
-                              decreasing = TRUE)[[1]]
-        .check_that(end_date < cube_end_date, msg = "invalid end date")
-        file_info <- file_info[file_info[["date"]] < end_date, ]
+    if (!.has(end_date)) {
+        end_date <- .fi_max_date(fi)
     }
-
-    return(file_info)
+    dates_in_fi <- .fi_during(
+        fi = fi, start_date = start_date, end_date = end_date
+    )
+    if (!any(dates_in_fi)) {
+        stop("no dates found between interval ", start_date[[1]], end_date[[1]])
+    }
+    fi[dates_in_fi, ]
 }
 
-#' @rdname file_info_functions
-#'
-#' @return  Number of rows for a given tile.
-#'          Throws an error if rows are not equal.
-#'
-.file_info_nrows <- function(cube, bands = NULL) {
-    file_info <- .file_info(cube, bands = bands)
-    nrows <- unique(file_info[["nrows"]])
-
-    .check_int_parameter(length(nrows), min = 1, max = 1)
-    return(nrows)
-}
-#' @rdname file_info_functions
-#'
-#' @return   Number of cols for a given tile
-#'           Throws an error if cols are not equal
-.file_info_ncols <- function(cube, bands = NULL) {
-    file_info <- .file_info(cube, bands = bands)
-    ncols <- unique(file_info[["ncols"]])
-
-    .check_int_parameter(length(ncols), min = 1, max = 1)
-    return(ncols)
-}
-#' @rdname file_info_functions
-#'
-#' @return  A single path to a file
-#'          throws an error if there is more than one path.
-.file_info_path <- function(cube) {
-    file_info <- .file_info(cube)
-    path <- file_info[["path"]][[1]]
-    .check_chr_type(path, msg = "wrong path parameter in file_info")
-
-    return(path)
+.fi_filter_dates <- function(fi, dates) {
+    dates <- .as_date(dates)
+    dates_in_fi <- dates %in% .fi_timeline(fi)
+    if (!all(dates_in_fi)) {
+        miss_dates <- paste0("'", dates[!dates_in_fi], "'", collapse = ",")
+        stop("date(s) ", miss_dates, " not found")
+    }
+    fi[.fi_timeline(fi) %in% dates, ]
 }
 
-#' @rdname file_info_functions
-#'
-#' @return Paths to the cube bands
-#'
-.file_info_paths <- function(cube, bands = NULL) {
-    file_info <- .file_info(cube, bands = bands)
-
-    paths <- file_info[["path"]]
-    .check_chr_type(paths, msg = "wrong paths type in file_info")
-
-    return(paths)
+.fi_intersects <- function(fi, roi) {
+    .intersects(.fi_as_sf(fi), .roi_as_sf(roi))
 }
 
-#' @rdname file_info_functions
-#'
-#' @return The X resolution for a single tiled cube.
-#'         Throws an error if resolution is not unique.
-.file_info_xres <- function(cube, bands = NULL) {
-    file_info <- .file_info(cube, bands = bands)
-    xres <- unique(file_info[["xres"]])
-
-    .check_num(length(xres),
-        min = 1, is_integer = TRUE,
-        msg = "wrong xres in file_info"
-    )
-    return(xres)
+.fi_filter_spatial <- function(fi, roi) {
+    features_in_fi <- .fi_intersects(fi = fi, roi = roi)
+    if (!any(features_in_fi)) {
+        stop("no feature intersects informed roi")
+    }
+    fi[features_in_fi, ]
 }
-#' @rdname file_info_functions
-#'
-#' @return The Y resolution for a single tiled cube
-#'         Throws an error if resolution is not unique
-.file_info_yres <- function(cube, bands = NULL) {
-    file_info <- .file_info(cube, bands = bands)
-    yres <- unique(file_info[["yres"]])
 
-    .check_num(length(yres),
-        min = 1, is_integer = TRUE,
-        msg = "wrong yres in file_info"
-    )
-    return(yres)
-}
-#' @rdname file_info_functions
-#'
-#' @return the file ids for a single tile
-.file_info_fids <- function(cube) {
-    file_info <- .file_info(cube)
-    fids <- unique(file_info[["fid"]])
+.fi_read_block <- function(fi, band, block) {
+    band <- band[[1]]
+    # Stops if no band is found
+    fi <- .fi_filter_bands(fi = fi, bands = band)
+    files <- .fi_paths(fi)
 
-    .check_num(length(fids),
-        min = 1, is_integer = TRUE,
-        msg = "wrong fid in file_info"
-    )
-    return(fids)
-}
-#' @rdname file_info_functions
-#'
-#' @return the timeline  for a single tile
-.file_info_timeline <- function(cube) {
-    file_info <- .file_info(cube)
-    timeline <- unique(lubridate::as_date(file_info[["date"]]))
-
-    .check_num(length(timeline),
-        min = 1, is_integer = TRUE,
-        msg = "wrong timeline in file_info"
-    )
-    return(timeline)
-}
-#' @rdname file_info_functions
-#'
-#' @return start date for a single tile
-#'
-.file_info_start_date <- function(cube) {
-    .check_chr_contains(
-        x = class(cube),
-        contains = .config_get("sits_s3_classes_proc"),
-        discriminator = "any_of",
-        msg = paste0("Cube is not one of ", .config_get("sits_s3_classes_proc"))
+    #
+    # Log here
+    #
+    .sits_debug_log(
+        event = "start_block_data_read",
+        key = "band",
+        value = band
     )
 
-    file_info <- .file_info(cube)
 
-    .check_chr_within(
-        x = c("start_date", "end_date"),
-        within = colnames(file_info),
-        msg = "invalid file_info for cube"
+    # Read values from all files in file_info
+    values <- .raster_read_rast(files = files, block = block)
+
+
+    #
+    # Log here
+    #
+    .sits_debug_log(
+        event = "end_block_data_read",
+        key = "band",
+        value = band
     )
 
-    start_date <- unique(lubridate::as_date(file_info[["start_date"]]))
-    .check_num(length(start_date),
-        min = 1, max = 1,
-        msg = "wrong start_date parameter in file_info"
-    )
-    return(start_date)
-}
-#' @rdname file_info_functions
-#'
-#' @return end date for a single tile
-.file_info_end_date <- function(cube) {
-    .check_chr_contains(
-        x = class(cube),
-        contains = .config_get("sits_s3_classes_proc"),
-        discriminator = "any_of",
-        msg = paste0("Cube is not one of ", .config_get("sits_s3_classes_proc"))
-    )
-
-    file_info <- .file_info(cube)
-    .check_chr_within(
-        x = c("start_date", "end_date"),
-        within = colnames(file_info),
-        msg = "invalid file_info for cube"
-    )
-
-    end_date <- unique(lubridate::as_date(file_info[["end_date"]]))
-
-    .check_num(length(end_date),
-        min = 1, max = 1,
-        msg = "wrong end_date parameter in file_info"
-    )
-    return(end_date)
-}
-#' @rdname file_info_functions
-#'
-#' @return bands present in the cube
-.file_info_bands <- function(cube) {
-    file_info <- .file_info(cube)
-    bands <- unique(unlist(file_info[["band"]]))
-
-    .check_num(length(bands),
-        min = 1, is_integer = TRUE,
-        msg = "wrong bands parameter in file_info"
-    )
-
-    return(bands)
+    # Return values
+    values
 }

@@ -34,7 +34,7 @@ if (sits_run_examples()) {
     results <- list()
 
     # accuracy assessment lightTAE
-    acc_ltae <- sits_kfold_validate(samples_modis_4bands,
+    acc_ltae <- sits_kfold_validate(samples_modis_ndvi,
         folds = 5,
         multicores = 1,
         ml_method = sits_lighttae()

@@ -38,14 +38,12 @@
 #'         delim = "_",
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
-#'     # select a set of samples
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a random forest model
-#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
 #'     # classify a data cube using rfor model
 #'     probs_rfor_cube <- sits_classify(data = cube, ml_model = rfor_model)
 #'     # create an XGBoost model
-#'     xgb_model <- sits_train(samples_ndvi, sits_xgboost())
+#'     xgb_model <- sits_train(samples_modis_ndvi, sits_xgboost())
 #'     # classify a data cube using xgboost model
 #'     probs_xgb_cube <- sits_classify(data = cube, ml_model = xgb_model)
 #'     # create a list of predictions to be combined
@@ -97,7 +95,7 @@ sits_combine_predictions.average <- function(cubes,
 
     # get number of labels
     n_labels <- length(sits_labels(cubes[[1]]))
-    scale_factor <- .config_get("probs_cube_scale_factor")
+    scale_factor <- .conf("probs_cube_scale_factor")
     # average probability calculation
     .do_average <- function(chunk_lst) {
         data_lst <- purrr::map(chunk_lst, function(chunk){
@@ -139,19 +137,19 @@ sits_combine_predictions.average <- function(cubes,
         tile <- tile_lst[[1]]
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
-            cube       = tile,
+            tile       = tile,
             cube_class = "probs_cube",
             band_name  = "probs",
-            labels     = .cube_labels(tile),
-            start_date = .file_info_start_date(tile),
-            end_date   = .file_info_end_date(tile),
-            bbox       = .cube_tile_bbox(tile),
+            labels     = .tile_labels(tile),
+            start_date = .tile_start_date(tile),
+            end_date   = .tile_end_date(tile),
+            bbox       = .bbox(tile),
             output_dir = output_dir,
             version    = version
         )
 
         # prepare output filename
-        out_file <- .file_info_path(tile_new)
+        out_file <- .tile_path(tile_new)
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file)) {
@@ -168,20 +166,17 @@ sits_combine_predictions.average <- function(cubes,
             }
         }
 
-        # get cube size
-        size <- .cube_size(tile)
-
         # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
         blocks <- .smth_compute_blocks(
-            xsize = size[["ncols"]],
-            ysize = size[["nrows"]],
+            xsize = .tile_ncols(tile),
+            ysize = .tile_nrows(tile),
             block_y_size = block_size[["block_y_size"]],
             overlapping_y_size = 0
         )
 
 
         # open probability files
-        in_file_lst <- purrr::map(tile_lst, .file_info_path)
+        in_file_lst <- purrr::map(tile_lst, .tile_path)
 
         # process blocks in parallel
         block_files_lst <- .sits_parallel_map(blocks, function(block) {
@@ -191,16 +186,16 @@ sits_combine_predictions.average <- function(cubes,
                 b <- .raster_open_rast(in_file)
 
                 # crop adding overlaps
-                temp_chunk_file <- .create_chunk_file(
-                    output_dir = output_dir,
-                    pattern = "chunk_combine_",
-                    ext = ".tif"
+                temp_chunk_file <- .file_block_name(
+                    pattern = "chunk_combine_av_",
+                    block = block,
+                    output_dir = output_dir
                 )
                 chunk <- .raster_crop(
                     r_obj = b,
                     file = temp_chunk_file,
                     data_type = .raster_data_type(
-                        .config_get("probs_cube_data_type")
+                        .conf("probs_cube_data_type")
                     ),
                     overwrite = TRUE,
                     block = block
@@ -210,15 +205,15 @@ sits_combine_predictions.average <- function(cubes,
             # process it
             raster_out <- .do_average(chunk_lst = chunk_lst)
 
-            block_file <- .smth_filename(
-                tile = tile_new,
-                output_dir = output_dir,
-                block = block
+            block_file <- .file_block_name(
+                pattern = "chunk_combine_ave_out_",
+                block = block,
+                output_dir = output_dir
             )
             .raster_write_rast(
                 r_obj = raster_out,
                 file = block_file,
-                data_type = .config_get("probs_cube_data_type"),
+                data_type = .conf("probs_cube_data_type"),
                 overwrite    = TRUE
             )
             # Delete temp file
@@ -242,19 +237,19 @@ sits_combine_predictions.average <- function(cubes,
 
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
-            cube       = tile,
+            tile       = tile,
             cube_class = "probs_cube",
             band_name  = "probs",
-            labels     = .cube_labels(tile),
-            start_date = .file_info_start_date(tile),
-            end_date   = .file_info_end_date(tile),
-            bbox       = .cube_tile_bbox(tile),
+            labels     = .tile_labels(tile),
+            start_date = .tile_start_date(tile),
+            end_date   = .tile_end_date(tile),
+            bbox       = .bbox(tile),
             output_dir = output_dir,
             version    = version
         )
 
         # prepare output filename
-        out_file <- .file_info_path(tile_new)
+        out_file <- .tile_path(tile_new)
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file)) {
@@ -269,10 +264,10 @@ sits_combine_predictions.average <- function(cubes,
         # Merge final result
         .raster_merge_blocks(
             out_files = out_file,
-            base_file = .file_info_path(tile),
+            base_file = .tile_path(tile),
             block_files = block_files,
-            data_type = .config_get("probs_cube_data_type"),
-            missing_value = .config_get("probs_cube_missing_value"),
+            data_type = .conf("probs_cube_data_type"),
+            missing_value = .conf("probs_cube_missing_value"),
             multicores = 1
         )
 
@@ -291,13 +286,13 @@ sits_combine_predictions.average <- function(cubes,
 #'
 #' @export
 #'
-sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ...,
+sits_combine_predictions.uncertainty <- function(cubes,
+                                                 type = "uncertainty", ...,
                                                  uncert_cubes,
                                                  multicores = 2,
                                                  memsize = 4,
                                                  output_dir = getwd(),
                                                  version = "v1") {
-
     # check if probs cubes and uncert cubes are valid and match
     # is every cube a probs cube
     purrr::map(cubes, .check_is_probs_cube)
@@ -309,10 +304,9 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
     # check if probs and uncert cubes match
     .check_cubes_match(cubes[[1]], uncert_cubes[[1]])
 
-
     # get number of labels
     n_labels <- length(sits_labels(cubes[[1]]))
-    scale_factor <- .config_get("probs_cube_scale_factor")
+    scale_factor <- .conf("probs_cube_scale_factor")
     # average probability calculation
     .do_uncert <- function(prob_chunk_lst, unc_chunk_lst) {
         prob_lst <- purrr::map(prob_chunk_lst, function(chunk){
@@ -361,19 +355,19 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
         tile <- cubes[[1]][i,]
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
-            cube       = tile,
+            tile       = tile,
             cube_class = "probs_cube",
             band_name  = "probs",
-            labels     = .cube_labels(tile),
-            start_date = .file_info_start_date(tile),
-            end_date   = .file_info_end_date(tile),
-            bbox       = .cube_tile_bbox(tile),
+            labels     = .tile_labels(tile),
+            start_date = .tile_start_date(tile),
+            end_date   = .tile_end_date(tile),
+            bbox       = .bbox(tile),
             output_dir = output_dir,
             version    = version
         )
 
         # prepare output filename
-        out_file <- .file_info_path(tile_new)
+        out_file <- .tile_path(tile_new)
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file)) {
@@ -389,13 +383,11 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
                 return(NULL)
             }
         }
-        # get cube size
-        size <- .cube_size(tile)
 
         # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
         blocks <- .smth_compute_blocks(
-            xsize = size[["ncols"]],
-            ysize = size[["nrows"]],
+            xsize = .tile_ncols(tile),
+            ysize = .tile_nrows(tile),
             block_y_size = block_size[["block_y_size"]],
             overlapping_y_size = 0
         )
@@ -406,9 +398,9 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
             return(cube_unc[i,])
         })
         # open probability files
-        in_file_lst <- purrr::map(tile_lst, .file_info_path)
+        in_file_lst <- purrr::map(tile_lst, .tile_path)
         # open uncert files
-        in_file_unc_lst <- purrr::map(tile_unc_lst, .file_info_path)
+        in_file_unc_lst <- purrr::map(tile_unc_lst, .tile_path)
 
         # process blocks in parallel
         block_files_lst <- .sits_parallel_map(blocks, function(block) {
@@ -418,16 +410,16 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
                 b <- .raster_open_rast(in_file)
 
                 # crop adding overlaps
-                temp_chunk_file <- .create_chunk_file(
-                    output_dir = output_dir,
-                    pattern = "chunk_combine_",
-                    ext = ".tif"
+                temp_chunk_file <- .file_block_name(
+                    pattern = "chunk_combine_unc_",
+                    block = block,
+                    output_dir = output_dir
                 )
                 chunk <- .raster_crop(
                     r_obj = b,
                     file = temp_chunk_file,
                     data_type = .raster_data_type(
-                        .config_get("probs_cube_data_type")
+                        .conf("probs_cube_data_type")
                     ),
                     overwrite = TRUE,
                     block = block
@@ -439,16 +431,17 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
                 b <- .raster_open_rast(in_unc_file)
 
                 # crop adding overlaps
-                temp_chunk_file <- .create_chunk_file(
-                    output_dir = output_dir,
-                    pattern = "chunk_combine_unc_",
-                    ext = ".tif"
+
+                temp_chunk_file <- .file_block_name(
+                    pattern = "chunk_combine_unc_out_",
+                    block = block,
+                    output_dir = output_dir
                 )
                 chunk <- .raster_crop(
                     r_obj = b,
                     file = temp_chunk_file,
                     data_type = .raster_data_type(
-                        .config_get("probs_cube_data_type")
+                        .conf("probs_cube_data_type")
                     ),
                     overwrite = TRUE,
                     block = block
@@ -459,16 +452,16 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
             raster_out <- .do_uncert(prob_chunk_lst = prob_chunk_lst,
                                      unc_chunk_lst  = unc_chunk_lst)
 
-            block_file <- .smth_filename(
-                tile = tile_new,
-                output_dir = output_dir,
-                block = block
+            block_file <- .file_block_name(
+                pattern = "chunk_combine_no_over_",
+                block = block,
+                output_dir = output_dir
             )
             .raster_write_rast(
                 r_obj = raster_out,
                 file = block_file,
-                data_type = .config_get("probs_cube_data_type"),
-                gdal_options = .config_gtiff_default_options(),
+                data_type = .conf("probs_cube_data_type"),
+                gdal_options = .conf("gdal_creation_options"),
                 overwrite    = TRUE
             )
             # Delete temp file
@@ -493,19 +486,19 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
 
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
-            cube       = tile,
+            tile       = tile,
             cube_class = "probs_cube",
             band_name  = "probs",
-            labels     = .cube_labels(tile),
-            start_date = .file_info_start_date(tile),
-            end_date   = .file_info_end_date(tile),
-            bbox       = .cube_tile_bbox(tile),
+            labels     = .tile_labels(tile),
+            start_date = .tile_start_date(tile),
+            end_date   = .tile_end_date(tile),
+            bbox       = .bbox(tile),
             output_dir = output_dir,
             version    = version
         )
 
         # prepare output filename
-        out_file <- .file_info_path(tile_new)
+        out_file <- .tile_path(tile_new)
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file)) {
@@ -517,10 +510,10 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
         # Merge final result
         .raster_merge_blocks(
             out_files = out_file,
-            base_file = .file_info_path(tile),
+            base_file = .tile_path(tile),
             block_files = block_files,
-            data_type = .config_get("probs_cube_data_type"),
-            missing_value = .config_get("probs_cube_missing_value"),
+            data_type = .conf("probs_cube_data_type"),
+            missing_value = .conf("probs_cube_missing_value"),
             multicores = 1
         )
 
@@ -542,6 +535,7 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
 #' @title Estimate the number of blocks to run .sits_split_cluster
 #' @name .comb_estimate_block_size
 #' @keywords internal
+#' @noRd
 #'
 #' @param cubes        List of input data cube
 #' @param multicores   number of processes to split up the data
@@ -557,15 +551,11 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
                                       memsize,
                                       uncert = FALSE) {
 
-    # set caller to show in errors
-    .check_set_caller(".comb_estimate_block_size")
-
     cube <- cubes[[1]]
     n_comb <- length(cubes)
 
-    size <- .cube_size(cube[1, ])
     n_layers <- length(cube$labels[[1]])
-    bloat_mem <- .config_processing_bloat()
+    bloat_mem <- .conf("processing_bloat")
     n_bytes <- 8
 
     # include uncertainty cubes?
@@ -573,11 +563,11 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
         n_layers <- n_layers + n_comb
 
     # total memory needed in GB
-    image_size <- size[["ncols"]] * size[["nrows"]]
+    image_size <- .tile_ncols(cube) * .tile_nrows(cube)
     needed_memory <- n_comb * image_size * 1E-09 * n_layers * bloat_mem * n_bytes
 
     # minimum block size
-    min_block_x_size <- size["ncols"] # for now, only vertical blocking
+    min_block_x_size <- .tile_ncols(cube) # for now, only vertical blocking
     min_block_y_size <- 1
 
     # compute factors
@@ -607,7 +597,7 @@ sits_combine_predictions.uncertainty <- function(cubes, type = "uncertainty", ..
         block_x_size = floor(min_block_x_size),
         block_y_size = min(
             floor(blocking_factor / memory_factor / multicores),
-            size[["nrows"]]
+            .tile_nrows(cube)
         )
     )
 

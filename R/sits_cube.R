@@ -322,20 +322,20 @@ sits_cube.stac_cube <- function(source,
         tiles <- as.character(dots[["tile"]])
     }
 
-    # ensuring that duplicate tiles will not be propagated
-    if (!is.null(tiles)) {
+    # Ensures that only a spatial filter is informed
+    if (.has(roi) && .has(tiles)) {
+        stop("It is not possible to search with roi and tiles.",
+             "Please provide only roi or tiles.")
+    }
+
+    # Ensures that there are no duplicate tiles
+    if (.has(tiles)) {
         tiles <- unique(tiles)
     }
 
-    if (!is.null(roi) && !is.null(tiles)) {
-        stop(paste(
-            "It is not possible to search with roi and tiles.",
-            "Please provide only roi or tiles."
-        ))
-    }
-    # check if roi is provided correctly
-    if (!purrr::is_null(roi)) {
-        roi <- .sits_parse_roi_cube(roi)
+    # Converts provided roi to sf
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi)
     }
 
     # source is upper case
@@ -370,7 +370,7 @@ sits_cube.stac_cube <- function(source,
     }
 
     # Pre-condition - checks if the bands are supported by the collection
-    .config_check_bands(
+    .conf_check_bands(
         source = source,
         collection = collection,
         bands = bands
@@ -392,7 +392,7 @@ sits_cube.stac_cube <- function(source,
         collection = collection,
         bands = bands,
         tiles = tiles,
-        roi_sf = roi,
+        roi = roi,
         start_date = start_date,
         end_date = end_date,
         platform = platform,
@@ -420,8 +420,6 @@ sits_cube.local_cube <- function(source,
     # precondition - data directory must be provided
     .check_file(x = data_dir, msg = "'data_dir' parameter must be provided.")
 
-    # check documentation mode
-    progress <- .check_documentation(progress)
     # precondition - check source and collection
     .source_check(source = source)
     .source_collection_check(source = source, collection = collection)

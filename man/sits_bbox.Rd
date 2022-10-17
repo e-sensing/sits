@@ -3,34 +3,35 @@
 \name{sits_bbox}
 \alias{sits_bbox}
 \alias{sits_bbox.sits}
-\alias{sits_bbox.sits_cube}
+\alias{sits_bbox.raster_cube}
 \title{Get the bounding box of the data}
 \usage{
-sits_bbox(data, wgs84 = FALSE, ...)
+sits_bbox(data, ..., as_crs = NULL)
 
-\method{sits_bbox}{sits}(data, ...)
+\method{sits_bbox}{sits}(data, ..., crs = "EPSG:4326", as_crs = NULL)
 
-\method{sits_bbox}{sits_cube}(data, wgs84 = FALSE, ...)
+\method{sits_bbox}{raster_cube}(data, ..., as_crs = NULL)
 }
 \arguments{
-\item{data}{Valid sits tibble (time series or a cube).}
+\item{data}{\code{samples} data or \code{cube}.}
 
-\item{wgs84}{Reproject bbox to WGS84 (EPSG:4326)?}
+\item{...}{Additional parameters.}
 
-\item{...}{Additional parameters (not implemented).}
+\item{as_crs}{CRS to project the resulting \code{bbox}.}
+
+\item{crs}{CRS of the samples points.}
 }
 \value{
-Bounding box in WGS84 for time series or
-                 on the cube projection for a data cube
-                 unless wgs84 parameter is TRUE.
+A \code{bbox}.
 }
 \description{
 Obtain a vector of limits (either on lat/long for time series
               or in projection coordinates in the case of cubes)
 }
 \examples{
-bbox <- sits_bbox(samples_modis_4bands)
-
+if (sits_run_examples()) {
+sits_bbox(samples_modis_ndvi)
+}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

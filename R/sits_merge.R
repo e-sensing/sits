@@ -40,7 +40,7 @@ sits_merge <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     # set caller to show in errors
     .check_set_caller("sits_merge")
     # get the meta-type (sits or cube)
-    data1 <- .config_data_meta_type(data1)
+    data1 <- .conf_data_meta_type(data1)
     UseMethod("sits_merge", data1)
 }
 
@@ -79,8 +79,8 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
             local_msg = "duplicated band names",
             msg = "invalid band names"
         )
-        data1 <- .sits_rename_bands(data1, bands1)
-        data2 <- .sits_rename_bands(data2, bands2)
+        data1 <- .band_rename(data1, bands1)
+        data2 <- .band_rename(data2, bands2)
     }
     # prepare result
     result <- data1
@@ -90,7 +90,7 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
         data1$time_series,
         data2$time_series,
         function(ts1, ts2) {
-            ts3 <- dplyr::bind_cols(ts1, dplyr::select(ts2, -.data[["Index"]]))
+            ts3 <- dplyr::bind_cols(ts1, dplyr::select(ts2, -"Index"))
             return(ts3)
         }
     )
@@ -102,8 +102,8 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 
     # pre-condition - check cube type
-    .check_is_sits_cube(data1)
-    .check_is_sits_cube(data2)
+    .check_is_raster_cube(data1)
+    .check_is_raster_cube(data2)
 
     .check_that(
         x = data1$satellite == data2$satellite,
@@ -115,7 +115,8 @@ sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     )
 
     .check_that(
-        all(.cube_resolution(data1) == .cube_resolution(data2)),
+        all(.tile_xres(data1) == .tile_xres(data2))
+            && all(.tile_yres(data1) == .tile_yres(data2)),
         msg = "merge cubes requires same resolution"
     )
     .check_that(
@@ -155,12 +156,12 @@ sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
                 local_msg = "use suffix to avoid band duplication",
                 msg = "duplicated band names"
             )
-            x <- .sits_rename_bands(x, bands1)
-            y <- .sits_rename_bands(y, bands2)
+            x <- .band_rename(x, bands1)
+            y <- .band_rename(y, bands2)
         }
 
         x[["file_info"]][[1]] <- dplyr::arrange(
-            dplyr::bind_rows(.file_info(x), .file_info(y)),
+            dplyr::bind_rows(.fi(x), .fi(y)),
             .data[["date"]], .data[["band"]]
         )
 

@@ -16,7 +16,7 @@ sits_cube_copy(
 \arguments{
 \item{cube}{A sits cube}
 
-\item{roi}{A Region of interest. See details bellow.}
+\item{roi}{A Region of interest. See details below.}
 
 \item{res}{An integer value corresponds to the output
 spatial resolution of the images. Default is NULL.}

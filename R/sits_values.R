@@ -51,7 +51,7 @@ sits_values.cases_dates_bands <- function(data, bands = NULL, format) {
     # populates result
     values <- data$time_series %>%
         purrr::map(function(ts) {
-            data.matrix(dplyr::select(ts, dplyr::one_of(bands)))
+            data.matrix(dplyr::select(ts, dplyr::all_of(bands)))
         })
     return(values)
 }
@@ -66,7 +66,7 @@ sits_values.bands_cases_dates <- function(data, bands = NULL, format) {
             sample_id = seq_len(nrow(data))
         ) %>%
         tidyr::unnest("time_series") %>%
-        dplyr::select("sample_id", !!bands) %>%
+        dplyr::select("sample_id", dplyr::all_of(bands)) %>%
         dplyr::group_by(.data[["sample_id"]]) %>%
         dplyr::mutate(temp_index = seq_len(dplyr::n())) %>%
         dplyr::ungroup()
@@ -74,14 +74,14 @@ sits_values.bands_cases_dates <- function(data, bands = NULL, format) {
     if (length(bands) > 1) {
         distances_tbl <- tidyr::pivot_wider(
             distances_tbl,
-            names_from = .data[["temp_index"]],
+            names_from = "temp_index",
             values_from = !!bands,
             names_sep = ""
         )
     } else {
         distances_tbl <- tidyr::pivot_wider(
             distances_tbl,
-            names_from = .data[["temp_index"]],
+            names_from = "temp_index",
             values_from = !!bands,
             names_prefix = bands,
             names_sep = ""
@@ -105,7 +105,7 @@ sits_values.bands_dates_cases <- function(data, bands = NULL, format) {
     values <- bands %>% purrr::map(function(band) {
         data$time_series %>%
             purrr::map(function(ts) {
-                dplyr::select(ts, dplyr::one_of(band))
+                dplyr::select(ts, dplyr::all_of(band))
             }) %>%
             data.frame() %>%
             tibble::as_tibble() %>%

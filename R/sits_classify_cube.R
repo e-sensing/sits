@@ -1,6 +1,7 @@
 #' @title Classify a chunk of raster data  using multicores
 #' @name .classify_tile
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -23,10 +24,11 @@
 #' @param  impute_fn       Impute function to replace NA.
 #' @param  output_dir      Output directory.
 #' @param  version         Version of result.
-#' @param  verbose         print processing information?
+#' @param  verbose         Print processing information?
+#' @param  progress        Show progress bar?
 #' @return List of the classified raster layers.
 .classify_tile  <- function(tile, band, ml_model, roi, filter_fn, impute_fn,
-                            output_dir, version, verbose) {
+                            output_dir, version, verbose, progress) {
 
     # Output file
     out_file <- .file_derived_name(
@@ -118,11 +120,11 @@
             derived_class = "probs_cube", band = band
         )
         offset <- .offset(band_conf)
-        if (!is.null(offset) && offset != 0) {
+        if (.has(offset) && offset != 0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (!is.null(scale) && scale != 1) {
+        if (.has(scale) && scale != 1) {
             values <- values / scale
         }
 
@@ -159,7 +161,7 @@
         gc()
         # Returned block file
         block_file
-    })
+    }, progress = progress)
     # Merge blocks into a new probs_cube tile
     probs_tile <- .tile_probs_merge_blocks(
         file = out_file, band = band, labels = .ml_labels(ml_model),
@@ -183,6 +185,7 @@
 #' @title Read a block of values retrieved from a set of raster images
 #' @name  .classify_data_read
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -200,13 +203,8 @@
     cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
     # Read and preprocess values of each band
     values <- purrr::map_dfc(.ml_bands(ml_model), function(band) {
-        # Get band values
+        # Get band values (stops if band not found)
         values <- .tile_read_block(tile = tile, band = band, block = block)
-        # Check if there are values
-        .check_null(
-            x = values,
-            msg = paste0("invalid data read from band '", band, "'")
-        )
 
         #
         # Log here
@@ -237,7 +235,7 @@
         if (.has(stats)) {
             q02 <- .stats_0_q02(stats, band)
             q98 <- .stats_0_q98(stats, band)
-            if (!is.null(q02) && !is.null(q98)) {
+            if (.has(q02) && .has(q98)) {
                 # Use C_normalize_data_0 to process old version of normalization
                 values <- C_normalize_data_0(values, q02, q98)
             }

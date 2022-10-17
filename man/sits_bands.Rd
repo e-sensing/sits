@@ -3,7 +3,7 @@
 \name{sits_bands}
 \alias{sits_bands}
 \alias{sits_bands.sits}
-\alias{sits_bands.sits_cube}
+\alias{sits_bands.raster_cube}
 \alias{sits_bands.patterns}
 \alias{sits_bands.sits_model}
 \title{Get the names of the bands}
@@ -12,7 +12,7 @@ sits_bands(x)
 
 \method{sits_bands}{sits}(x)
 
-\method{sits_bands}{sits_cube}(x)
+\method{sits_bands}{raster_cube}(x)
 
 \method{sits_bands}{patterns}(x)
 
@@ -25,11 +25,11 @@ sits_bands(x)
 A vector with the names of the bands.
 }
 \description{
-Finds the names of the bands of
-              a set of time series or of a data cube
+Finds the names of the bands of a set of time series or of a data cube
 }
 \examples{
-bands <- sits_bands(samples_modis_4bands)
+bands <- sits_bands(point_mt_6bands)
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -41,7 +41,7 @@
 #'     results <- list()
 #'
 #'     # accuracy assessment lightTAE
-#'     acc_ltae <- sits_kfold_validate(samples_modis_4bands,
+#'     acc_ltae <- sits_kfold_validate(samples_modis_ndvi,
 #'         folds = 5,
 #'         ml_method = sits_lighttae()
 #'     )
@@ -51,7 +51,7 @@
 #'     results[[length(results) + 1]] <- acc_ltae
 #'
 #'     # Deep Learning - ResNet
-#'     acc_rn <- sits_kfold_validate(samples_modis_4bands,
+#'     acc_rn <- sits_kfold_validate(samples_modis_ndvi,
 #'         folds = 5,
 #'         ml_method = sits_resnet()
 #'     )
@@ -88,11 +88,8 @@ sits_kfold_validate <- function(samples,
     if (multicores > 1 && .Platform$OS.type == "windows" &&
         "optimizer" %in% ls(environment(ml_method))) {
         multicores <- 1
-        warning(
-            "sits_kfold_validate() works only with 1 core in Windows OS.",
-            call. = FALSE,
-            immediate. = TRUE
-        )
+        warning("sits_kfold_validate() works only with 1 core in Windows OS.",
+                call. = FALSE, immediate. = TRUE)
     }
 
     # Get labels from samples
@@ -114,7 +111,7 @@ sits_kfold_validate <- function(samples,
     on.exit(.sits_parallel_stop())
 
     # Create partitions different splits of the input data
-    samples <- .sits_create_folds(samples, folds = folds)
+    samples <- .create_folds(samples, folds = folds)
     # Do parallel process
     conf_lst <- .sits_parallel_map(seq_len(folds), function(k) {
         # Split data into training and test data sets
@@ -123,7 +120,7 @@ sits_kfold_validate <- function(samples,
         # Create a machine learning model
         ml_model <- sits_train(samples = data_train, ml_method = ml_method)
         # Convert samples time series in predictors and preprocess data
-        pred_test <- .sits_predictors(samples = data_test, ml_model = ml_model)
+        pred_test <- .predictors(samples = data_test, ml_model = ml_model)
         # Get predictors features to classify
         values <- .pred_features(pred_test)
         # Classify the test data
@@ -206,7 +203,7 @@ sits_validate <- function(samples,
     .check_samples_train(samples)
 
     if (is.null(samples_validation)) {
-        samples <- .sits_samples_split(
+        samples <- .tibble_samples_split(
             samples = samples,
             validation_split = validation_split
         )
@@ -217,9 +214,7 @@ sits_validate <- function(samples,
     # create a machine learning model
     ml_model <- sits_train(samples = samples, ml_method = ml_method)
     # Convert samples time series in predictors and preprocess data
-    predictors <- .sits_predictors(
-        samples = samples_validation, ml_model = ml_model
-    )
+    predictors <- .predictors(samples = samples_validation, ml_model = ml_model)
     # Get predictors features to classify
     values <- .pred_features(predictors)
     # Classify
@@ -237,7 +232,7 @@ sits_validate <- function(samples,
     .set_class(x = acc_obj, "sits_accuracy", class(acc_obj))
 }
 #' @title Create partitions of a data set
-#' @name  .sits_create_folds
+#' @name  .create_folds
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Alexandre Ywata, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -245,12 +240,13 @@ sits_validate <- function(samples,
 #' @description Split a sits tibble into k groups, based on the label.
 #'
 #' @keywords internal
+#' @noRd
 #' @param data   A sits tibble to be partitioned.
 #' @param folds  Number of folds
 #'
 #' @return A list of row position integers corresponding to the training data.
 #'
-.sits_create_folds <- function(data, folds = 5) {
+.create_folds <- function(data, folds = 5) {
     # verify if data exists
     # splits the data into k groups
     data$folds <- caret::createFolds(data$label,

@@ -93,8 +93,6 @@
 sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
                                output_dir = getwd(), rmse_band = TRUE,
                                progress = TRUE) {
-    # check documentation mode
-    progress <- .check_documentation(progress)
 
     # precondition - endmembers
     .check_endmembers_parameter(endmembers)
@@ -121,6 +119,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     # is added as a band
     cube <- .cube_filter_bands(cube = cube, bands = bands)
     # Check if cube is regular
+    .check_is_raster_cube(cube)
     .check_is_regular(cube)
     # Pre-condition
     .check_endmembers_bands(em = em, cube = cube)
@@ -132,13 +131,13 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
 
     # Check memory and multicores
     # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(cube))))
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
     # npaths = input(bands) + output(fracs)
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
         npaths = length(bands) + length(out_fracs),
-        nbytes = 8, proc_bloat = .config_processing_bloat()
+        nbytes = 8, proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
@@ -157,7 +156,7 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     # Create mixture processing function
     mixture_fn <- .mixture_fn_nnls(em = em, rmse = rmse_band)
     # Create features as jobs
-    features_cube <- .cube_create_features(cube)
+    features_cube <- .cube_split_features(cube)
     # Process each feature in parallel
     features_fracs <- .jobs_map_parallel_dfr(features_cube, function(feature) {
         # Process the data
@@ -167,9 +166,9 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
             out_fracs = out_fracs, output_dir = output_dir
         )
         return(output_feature)
-    })
+    }, progress = progress)
     # Join output features as a cube and return it
-    .cube_merge_features(dplyr::bind_rows(list(features_cube, features_fracs)))
+    .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_fracs)))
 }
 
 # ---- mixture functions ----
@@ -280,13 +279,8 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
     bands <- .endmembers_bands(em)
     # Read and preprocess values from each band
     values <- purrr::map_dfc(bands, function(band) {
-        # Get band values
+        # Get band values (stops if band not found)
         values <- .tile_read_block(tile = tile, band = band, block = block)
-        # Check if there are values
-        .check_null(
-            x = values,
-            msg = paste0("invalid data read from band '", band, "'")
-        )
         # Remove cloud masked pixels
         if (!is.null(cloud_mask)) {
             values[cloud_mask] <- NA
@@ -332,13 +326,10 @@ sits_mixture_model <- function(cube, endmembers, memsize = 1, multicores = 2,
 
 .endmembers_scale <- function(em, cube) {
     bands <- .endmembers_bands(em)
-    em <- dplyr::mutate(
-        em, dplyr::across(bands, function(x) {
-            band_conf <- .tile_band_conf(
-                tile = cube, band = dplyr::cur_column()
-            )
-            x * .scale(band_conf) + .offset(band_conf)
-        })
+    em <- dplyr::mutate(em, dplyr::across(dplyr::all_of(bands), function(values) {
+        band_conf <- .tile_band_conf(tile = cube, band = dplyr::cur_column())
+        values * .scale(band_conf) + .offset(band_conf)
+    })
     )
     # Return endmembers
     em

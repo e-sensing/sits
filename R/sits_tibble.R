@@ -1,21 +1,7 @@
-#' @title Get the time series for a row of a sits tibble
-#' @name sits_time_series
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Returns the time series associated to a row of the a sits tibble
-#'
-#' @param data     A sits tibble with one or more time series.
-#' @return A tibble in sits format with the time series.
-#' @examples
-#' sits_time_series(cerrado_2classes)
-#' @export
-sits_time_series <- function(data) {
-    return(data$time_series[[1]])
-}
-
 #' @title Create a sits tibble to store the time series information
-#' @name .sits_tibble
+#' @name .tibble
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function returns an empty sits tibble.
@@ -31,7 +17,7 @@ sits_time_series <- function(data) {
 #'
 #' @return A sits tibble.
 #'
-.sits_tibble <- function() {
+.tibble <- function() {
     sits <- tibble::tibble(
         longitude = double(),
         latitude = double(),
@@ -44,10 +30,93 @@ sits_time_series <- function(data) {
     class(sits) <- c("sits", class(sits))
     return(sits)
 }
+#' @title Create an empty tibble to store the results of predictions
+#' @name .tibble_prediction
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Create a tibble to store the results of predictions.
+#' @param  data             Tibble with the input data.
+#' @param  class_info       Tibble with the information on classification.
+#' @param  prediction       Matrix with the result of the classification
+#'                          (one class per column and one row per interval).
+#' @return                  Tibble storing the predictions.
+#'
+.tibble_prediction <- function(data, class_info, prediction) {
+
+    # this list is a global one and it is created based on the samples
+    ref_dates_lst <- class_info$ref_dates[[1]]
+    # retrieve the global timeline
+    timeline_global <- class_info$timeline[[1]]
+
+    # get the labels of the data
+    labels <- class_info$labels[[1]]
+    n_labels <- length(labels)
+    # create a named vector with integers match the class labels
+    int_labels <- c(1:n_labels)
+    names(int_labels) <- labels
+
+    # compute prediction vector
+    pred_labels <- names(int_labels[max.col(prediction)])
+
+    idx <- 1
+
+    data_pred <- slider::slide2_dfr(
+        data,
+        seq_len(nrow(data)),
+        function(row, row_n) {
+
+            # get the timeline of the row
+            timeline_row <- lubridate::as_date(row$time_series[[1]]$Index)
+
+            # the timeline of the row may differ from the global timeline
+            # when we are processing samples with different dates
+            if (timeline_row[1] != timeline_global[1]) {
+                # what are the reference dates to do the classification?
+                ref_dates_lst <- .timeline_match(
+                    timeline = timeline_row,
+                    ref_start_date = lubridate::as_date(row$start_date),
+                    ref_end_date = lubridate::as_date(row$end_date),
+                    num_samples = nrow(row$time_series[[1]])
+                )
+            }
+            idx_fst <- (row_n - 1)*(length(ref_dates_lst)) + 1
+            idx_lst <- idx_fst + length(ref_dates_lst) - 1
+            pred_row <- prediction[idx_fst:idx_lst,]
+            if (idx_lst == idx_fst)
+                pred_row <- matrix(
+                    pred_row,
+                    nrow = 1,
+                    dimnames = list(NULL, colnames(prediction)))
+            pred_row_lab <- pred_labels[idx_fst:idx_lst]
+
+            # store the classification results
+            pred_sample <- purrr::map2_dfr(
+                ref_dates_lst,
+                seq_len(length(ref_dates_lst)),
+                function(rd, idx) {
+                    probs_date <- rbind.data.frame(pred_row[idx, ])
+                    names(probs_date) <- names(pred_row[idx, ])
+                    pred_date <- tibble::tibble(
+                        from = as.Date(rd[1]),
+                        to = as.Date(rd[2]),
+                        class = pred_row_lab[idx]
+                    )
+                    pred_date <- dplyr::bind_cols(pred_date, probs_date)
+                })
+            row$predicted <- list(pred_sample)
+            return(row)
+        })
+
+    return(data_pred)
+}
 
 #' @title Aligns dates of time series to a reference date
-#' @name .sits_tibble_align_dates
+#' @name .tibble_align_dates
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Converts the time indexes of a set of sits
@@ -63,7 +132,7 @@ sits_time_series <- function(data) {
 #' @param  ref_dates     Dates to align the time series.
 #' @return               The converted sits tibble
 #'
-.sits_tibble_align_dates <- function(data, ref_dates) {
+.tibble_align_dates <- function(data, ref_dates) {
     # function to shift a time series in time
     shift_ts <- function(d, k) {
         dplyr::bind_rows(
@@ -113,8 +182,9 @@ sits_time_series <- function(data) {
 }
 #'
 #' @title Checks that the timeline of all time series of a data set are equal
-#' @name .sits_tibble_prune
+#' @name .tibble_prune
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function tests if all time series in a sits tibble
@@ -124,7 +194,7 @@ sits_time_series <- function(data) {
 #' @param  data  Either a sits tibble or a raster metadata.
 #' @return A pruned sits tibble.
 #'
-.sits_tibble_prune <- function(data) {
+.tibble_prune <- function(data) {
     # verify that tibble is correct
     .check_samples(data)
 
@@ -146,18 +216,19 @@ sits_time_series <- function(data) {
     }
 }
 #' @title Check that the requested bands exist in the samples
-#' @name .sits_tibble_bands_check
+#' @name .tibble_bands_check
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param samples       Time series with the samples
 #' @param bands         Requested bands of the data sample
 #' @return              Checked bands (cube bands if bands are NULL).
 #'
-.sits_tibble_bands_check <- function(samples, bands = NULL) {
+.tibble_bands_check <- function(samples, bands = NULL) {
 
     # set caller to show in errors
-    .check_set_caller(".sits_tibble_bands_check")
+    .check_set_caller(".tibble_bands_check")
     # check the bands are available
     sp_bands <- sits_bands(samples)
     if (purrr::is_null(bands)) {
@@ -172,116 +243,26 @@ sits_time_series <- function(data) {
     }
     return(bands)
 }
-#' @title Apply a function to one band of a time series
-#' @name .sits_fast_apply
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  data      Tibble.
-#' @param  col       Column where function should be applied
-#' @param  fn        Function to be applied.
-#' @return           Tibble where function has been applied.
-#'
-.sits_fast_apply <- function(data, col, fn, ...) {
 
-    # pre-condition
-    .check_chr_within(col,
-        within = names(data),
-        msg = "invalid column name"
-    )
-    # select data do unpack
-    x <- data[col]
-    # prepare to unpack
-    x[["#.."]] <- seq_len(nrow(data))
-    # unpack
-    x <- tidyr::unnest(x, cols = dplyr::all_of(col))
-    x <- dplyr::group_by(x, .data[["#.."]])
-    # apply user function
-    x <- fn(x, ...)
-    # pack
-    x <- dplyr::ungroup(x)
-    x <- tidyr::nest(x, `..unnest_col` = -dplyr::any_of("#.."))
-    # remove garbage
-    x[["#.."]] <- NULL
-    names(x) <- col
-    # prepare result
-    data[[col]] <- x[[col]]
-    return(data)
+#' @title Returns a time series
+#' @name  .tibble_time_series
+#' @noRd
+#' @param data  a tibble with time series
+#' @return  time series
+.tibble_time_series <- function(data) {
+    return(data$time_series[[1]])
 }
 
-#' @keywords internal
-.sits_rename_bands <- function(x, bands) {
-    UseMethod(".sits_rename_bands", x)
-}
-
-#' @export
-.sits_rename_bands.sits <- function(x, bands) {
-    data_bands <- sits_bands(x)
-
-    # pre-condition
-    .check_chr(bands,
-        allow_empty = FALSE, len_min = length(data_bands),
-        len_max = length(data_bands),
-        msg = "invalid 'bands' value"
-    )
-
-    .sits_fast_apply(x, col = "time_series", fn = function(x) {
-
-        # create a conversor
-        new_bands <- colnames(x)
-        names(new_bands) <- new_bands
-
-        # rename
-        new_bands[data_bands] <- toupper(bands)
-        colnames(x) <- unname(new_bands)
-
-        return(x)
-    })
-}
-
-#' @export
-.sits_rename_bands.raster_cube <- function(x, bands) {
-    data_bands <- sits_bands(x)
-    # pre-condition
-    .check_chr(bands,
-        allow_empty = FALSE,
-        len_min = length(data_bands),
-        len_max = length(data_bands),
-        msg = "invalid 'bands' value"
-    )
-    .sits_fast_apply(x, col = "file_info", fn = function(x) {
-        x <- tidyr::pivot_wider(x,
-            names_from = "band",
-            values_from = "path"
-        )
-
-        # create a conversor
-        new_bands <- colnames(x)
-        names(new_bands) <- new_bands
-
-        # rename
-        new_bands[data_bands] <- toupper(bands)
-        colnames(x) <- unname(new_bands)
-
-        x <- tidyr::pivot_longer(x,
-            cols = toupper(bands),
-            names_to = "band",
-            values_to = "path"
-        )
-
-        return(x)
-    })
-}
 #' @title Split a sits tibble
-#' @name .sits_samples_split
+#' @name .tibble_samples_split
 #' @keywords internal
-#'
+#' @noRd
 #' @description Add a column to sits tibble indicating if a sample is
 #' training sample or not.
 #'
 #' @param data  A sits tibble.
 #' @return Returns TRUE if data has data.
-.sits_samples_split <- function(samples, validation_split = 0.2) {
+.tibble_samples_split <- function(samples, validation_split = 0.2) {
     result <-
         samples %>%
         dplyr::group_by(.data[["label"]]) %>%

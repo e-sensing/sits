@@ -46,7 +46,7 @@
 #' if (sits_run_examples()) {
 #'     # find best learning rate parameters for TempCNN
 #'     tuned <- sits_tuning(
-#'         samples_modis_4bands,
+#'         samples_modis_ndvi,
 #'         ml_method = sits_tempcnn(),
 #'         params = sits_tuning_hparams(
 #'             optimizer = choice(
@@ -213,7 +213,7 @@ sits_tuning <- function(samples,
 #' if (sits_run_examples()) {
 #'     # find best learning rate parameters for TempCNN
 #'     tuned <- sits_tuning(
-#'         samples_modis_4bands,
+#'         samples_modis_ndvi,
 #'         ml_method = sits_tempcnn(),
 #'         params = sits_tuning_hparams(
 #'             optimizer = choice(
@@ -245,7 +245,7 @@ sits_tuning_hparams <- function(...) {
 #' to params definition returned by \code{sits_tuning_hparams}
 #'
 #' @keywords internal
-#'
+#' @noRd
 #' @return A list with evaluated random values
 #'
 .tuning_pick_random <- function(trial, params) {
@@ -294,12 +294,12 @@ sits_tuning_hparams <- function(...) {
 }
 
 #' @title Convert hyper-parameters list to a tibble
-#'
+#' @name .tuning_params_as_tibble
+#' @keywords internal
+#' @noRd
 #' @description
 #' Generate a tibble (one row per trial) with all model parameters
-#'
-#' @keywords internal
-#'
+#' @param  params   hyperparams from sits_tuning function
 #' @return A named list with provided parameters
 #'
 .tuning_params_as_tibble <- function(params) {

@@ -6,6 +6,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
+#' @noRd
 #' @description Defines a torch module for spatial encoding.
 #'
 #' This function is based on the paper by Vivien Garnot referenced below
@@ -71,28 +72,28 @@
             hidden_dims = layers_spatial_encoder
         )
     },
-    forward = function(input) {
+    forward = function(values) {
         # batch size is the first dimension of the input tensor
-        batch_size <- input$shape[[1]]
+        batch_size <- values$shape[[1]]
         # n_times is the second dimension
-        n_times <- input$shape[[2]]
+        n_times <- values$shape[[2]]
         # n_bands is the third dimension
-        n_bands <- input$shape[[3]]
+        n_bands <- values$shape[[3]]
         # reshape the input
         # from a 3D shape [batch_size, n_times, n_bands]
         # to a 2D shape [(batch_size * n_times), n_bands]
-        input <- input$view(c(batch_size * n_times, n_bands))
+        values <- values$view(c(batch_size * n_times, n_bands))
         # run the the 2D shape by a multi-layer perceptron
         # input is 2D shape [(batch_size * n_times), n_bands]
         dim_enc <-
             self$layers_spatial_encoder[[length(self$layers_spatial_encoder)]]
-        output <- self$spatial_encoder(input)
+        values <- self$spatial_encoder(values)
         # output is a 2D shape[(batch_size * n_times), dim_enc]
         # reshape the output
         # from a 2D shape [(batch_size * n_times), n_bands]
         # to a 3D shape [batch_size, n_times, dim_enc]
-        output <- output$view(c(batch_size, n_times, dim_enc))
-        return(output)
+        values <- values$view(c(batch_size, n_times, dim_enc))
+        return(values)
     }
 )
 #' @title Torch module for positional encoder
@@ -103,6 +104,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
+#' @noRd
 #' @description Defines a torch module for positional encoding, based on
 #' the concepts of Vaswani et al (2017) and Garnot et al ()
 #'

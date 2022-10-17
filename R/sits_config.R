@@ -76,7 +76,7 @@ sits_config <- function(run_tests = NULL,
     }
 
     # load the internal configuration file
-    config_internals_file <- .config_internals_file()
+    config_internals_file <- .conf_internals_file()
 
     # read the configuration parameters
     config_internals <- yaml::yaml.load_file(
@@ -85,10 +85,10 @@ sits_config <- function(run_tests = NULL,
     )
 
     # set options defined in sits config
-    do.call(.config_set_options, args = config_internals)
+    do.call(.conf_set_options, args = config_internals)
 
     # get and check the default configuration file path
-    yml_file <- .config_file()
+    yml_file <- .conf_file()
 
     # read the configuration parameters
     config <- yaml::yaml.load_file(
@@ -97,20 +97,20 @@ sits_config <- function(run_tests = NULL,
     )
 
     # set options defined in sits config
-    do.call(.config_set_options, args = config)
+    do.call(.conf_set_options, args = config)
     message(paste0("Using configuration file: ", yml_file))
 
     # load the color configuration file
-    color_yml_file <- .config_colors_file()
+    color_yml_file <- .conf_colors_file()
     message(paste("Color configurations found in", color_yml_file))
     config_colors <- yaml::yaml.load_file(
         input = color_yml_file,
         merge.precedence = "override"
     )
-    .config_set_options(colors = config_colors[["colors"]])
+    .conf_set_options(colors = config_colors[["colors"]])
 
     # try to find a valid user configuration file
-    user_yml_file <- .config_user_file()
+    user_yml_file <- .conf_user_file()
 
     if (file.exists(user_yml_file)) {
         message(paste("Additional configurations found in", user_yml_file))
@@ -125,7 +125,7 @@ sits_config <- function(run_tests = NULL,
 
         # set options defined by user (via YAML file)
         # modifying existing configuration
-        .config_set_options(
+        .conf_set_options(
             run_tests = config[["run_tests"]],
             run_examples = config[["run_examples"]],
             processing_bloat = config[["processing_bloat"]],
@@ -148,7 +148,7 @@ sits_config <- function(run_tests = NULL,
 
     # set options defined by user (via parameters)
     # modifying existing configuration
-    .config_set_options(
+    .conf_set_options(
         run_tests = run_tests,
         run_examples = run_examples,
         processing_bloat = processing_bloat,
@@ -160,7 +160,7 @@ sits_config <- function(run_tests = NULL,
         leaflet_comp_factor = leaflet_comp_factor
     )
 
-    message(paste0("Using raster package: ", .config_raster_pkg()))
+    message(paste0("Using raster package: ", .conf_raster_pkg()))
 
     return(invisible(sits_env$config))
 }
@@ -299,7 +299,7 @@ sits_list_collections <- function(source = NULL) {
     return(invisible(NULL))
 }
 
-.config_set_options <- function(run_tests = NULL,
+.conf_set_options <- function(run_tests = NULL,
                                 run_examples = NULL,
                                 processing_bloat = NULL,
                                 rstac_pagination_limit = NULL,
@@ -311,7 +311,7 @@ sits_list_collections <- function(source = NULL) {
                                 sources = NULL,
                                 colors = NULL, ...) {
     # set caller to show in errors
-    .check_set_caller(".config_set_options")
+    .check_set_caller(".conf_set_options")
 
     # initialize config
     if (!exists("config", envir = sits_env)) {
@@ -430,7 +430,7 @@ sits_list_collections <- function(source = NULL) {
             # check source
             source <- .check_error(
                 {
-                    do.call(.config_new_source, args = source)
+                    do.call(.conf_new_source, args = source)
                 },
                 msg = "invalid 'source' parameter"
             )
@@ -475,12 +475,13 @@ sits_list_collections <- function(source = NULL) {
     return(invisible(sits_env$config))
 }
 #' @title Return the default configuration file
-#' @name config_file
+#' @name .conf_file
 #' @keywords internal
+#' @noRd
 #' @return default configuration file
 #'
 #'
-.config_file <- function() {
+.conf_file <- function() {
 
     # load the default configuration file
     yml_file <- system.file("extdata", "config.yml", package = "sits")
@@ -492,10 +493,11 @@ sits_list_collections <- function(source = NULL) {
 }
 
 #' @title Return the internal configuration file (only for developers)
-#' @name config_internals_file
+#' @name .conf_internals_file
 #' @keywords internal
+#' @noRd
 #' @return default internal configuration file
-.config_internals_file <- function() {
+.conf_internals_file <- function() {
 
     # load the default configuration file
     yml_file <- system.file("extdata", "config_internals.yml", package = "sits")
@@ -506,10 +508,11 @@ sits_list_collections <- function(source = NULL) {
     return(yml_file)
 }
 #' @title Return the default configuration file for colors
-#' @name config_colors_file
+#' @name .conf_colors_file
 #' @keywords internal
+#' @noRd
 #' @return default color configuration file
-.config_colors_file <- function() {
+.conf_colors_file <- function() {
 
     # load the default configuration file
     yml_file <- system.file("extdata", "config_colors.yml", package = "sits")
@@ -521,10 +524,11 @@ sits_list_collections <- function(source = NULL) {
 }
 
 #' @title Return the user configuration file
-#' @name .config_user_file
+#' @name .conf_user_file
 #' @keywords internal
+#' @noRd
 #' @return user configuration file
-.config_user_file <- function() {
+.conf_user_file <- function() {
 
     # load the default configuration file
     yml_file <- Sys.getenv("SITS_CONFIG_USER_FILE")
@@ -543,50 +547,21 @@ sits_list_collections <- function(source = NULL) {
     return(yml_file)
 }
 
-#' @title Given a key, get config values
-#' @name .config_get
-#' @keywords internal
-#' @return config values associated to a key
-.config_get <- function(key, default = NULL) {
-    res <- tryCatch(
-        {
-            sits_env$config[[key]]
-        },
-        error = function(e) {
-            return(default)
-        }
-    )
-
-    # set default
-    if (is.null(res)) {
-        res <- default
-    }
-
-    # post-condition
-    .check_null(res,
-        msg = paste(
-            "key",
-            paste0("'", paste0(key, collapse = "$"), "'"),
-            "not found"
-        )
-    )
-
-    return(res)
-}
 #' @title Check band availability
-#' @name .config_check_bands
+#' @name .conf_check_bands
 #' @description Checks if the requested bands are available in the collection
 #'
 #' @keywords internal
+#' @noRd
 #' @param source        Data source
 #' @param collection    Collection to be searched in the data source.
 #' @param bands         Bands to be included.
 #'
 #' @return              Called for side effects.
-.config_check_bands <- function(source, collection, bands) {
+.conf_check_bands <- function(source, collection, bands) {
 
     # set caller to show in errors
-    .check_set_caller(".config_check_bands")
+    .check_set_caller(".conf_check_bands")
 
     sits_bands <- .source_bands(
         source = source,
@@ -611,45 +586,31 @@ sits_list_collections <- function(source = NULL) {
 
     return(invisible(NULL))
 }
-#' @title Check GEOTIFF creation options
-#' @name .config_gtiff_default_options
-#' @keywords internal
-#' @return  the creation options associated to GTIFF files
-.config_gtiff_default_options <- function() {
-    res <- .config_get(key = c("gdal_creation_options"))
-
-    # post-condition
-    .check_chr(res,
-        allow_empty = FALSE,
-        msg = "invalid 'gdal_creation_options' in config file"
-    )
-
-    return(res)
-}
 #' @title Check metatype associated to the data
-#' @name .config_data_meta_type
+#' @name .conf_data_meta_type
 #' @keywords internal
+#' @noRd
 #' @description associates a valid SITS class to the data
 #'
 #' @param  data    Time series or data cube.
 #'
 #' @return         The meta data type associated to a sits object.
-.config_data_meta_type <- function(data) {
+.conf_data_meta_type <- function(data) {
 
     # set caller to show in errors
-    .check_set_caller(".config_data_meta_type")
+    .check_set_caller(".conf_data_meta_type")
 
     # if the data is one of the classes recognized by sits
-    if (inherits(data, .config_get("sits_s3_classes"))) {
+    if (inherits(data, .conf("sits_s3_classes"))) {
         return(data)
     } else if (inherits(data, "tbl_df")) {
         # is this a data cube or a sits tibble?
-        if (all(.config_get("sits_cube_cols")
+        if (all(.conf("sits_cube_cols")
         %in% colnames(data))) {
             class(data) <- c("raster_cube", class(data))
 
             return(data)
-        } else if (all(.config_get("sits_tibble_cols") %in% colnames(data))) {
+        } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
             class(data) <- c("sits", class(data))
             return(data)
         }
@@ -660,27 +621,13 @@ sits_list_collections <- function(source = NULL) {
         msg = "invalid 'data' parameter"
     )
 }
-#' @title Get local file extensions
-#' @name .config_local_file_extension
-#' @keywords internal
-#' @return local file extensions known to sits
-.config_local_file_extensions <- function() {
-    res <- .config_get(key = c("local_file_extensions"))
-
-    # post-condition
-    .check_chr(res,
-        len_min = 1,
-        msg = "invalid 'file_extensions' in config file"
-    )
-
-    return(res)
-}
 #' @title Get names associated to a configuration key
-#' @name .config_names
+#' @name .conf_names
 #' @param key   key combination to access config information
 #' @keywords internal
+#' @noRd
 #' @return   names associated to the chosen access key
-.config_names <- function(key) {
+.conf_names <- function(key) {
     res <- tryCatch(
         {
             names(sits_env$config[[key]])
@@ -703,7 +650,7 @@ sits_list_collections <- function(source = NULL) {
     return(res)
 }
 #' @title Include a new source in the configuration
-#' @name .config_new_source
+#' @name .conf_new_source
 #' @description creates a new data source in the config file
 #' @param s3_class   s3 class associated to the source
 #' @param collections collections associated to the source
@@ -711,13 +658,14 @@ sits_list_collections <- function(source = NULL) {
 #' @param service     protocol associated to the source (e.g., "STAC")
 #' @param url         url associated to the endpoint of the service
 #' @keywords internal
+#' @noRd
 #' @return   list with the configuration associated to the new source
-.config_new_source <- function(s3_class,
+.conf_new_source <- function(s3_class,
                                collections, ...,
                                service = NULL,
                                url = NULL) {
     # set caller to show in errors
-    .check_set_caller(".config_new_source")
+    .check_set_caller(".conf_new_source")
 
     # pre-condition
     .check_chr(s3_class,
@@ -757,7 +705,7 @@ sits_list_collections <- function(source = NULL) {
 
         collection <- .check_error(
             {
-                do.call(.config_new_collection, args = collection)
+                do.call(.conf_new_collection, args = collection)
             },
             msg = "invalid 'collections' parameter"
         )
@@ -776,20 +724,21 @@ sits_list_collections <- function(source = NULL) {
     ), dots))
 }
 #' @title Include a new collection in the configuration
-#' @name .config_new_collection
+#' @name .conf_new_collection
 #' @description creates a new collection associated to a source
 #' @param bands       bands associated to the collection
 #' @param ...         other relevant parameters
 #' @param satellite   satellite associated to the collection
 #' @param sensor      sensor associated to the collection
 #' @keywords internal
+#' @noRd
 #' @return   list with the configuration associated to the new collection
-.config_new_collection <- function(bands, ...,
+.conf_new_collection <- function(bands, ...,
                                    satellite = NULL,
                                    sensor = NULL,
                                    metadata_search = NULL) {
     # set caller to show in errors
-    .check_set_caller(".config_new_collection")
+    .check_set_caller(".conf_new_collection")
 
     # check satellite
     .check_chr(satellite,
@@ -806,7 +755,7 @@ sits_list_collections <- function(source = NULL) {
     # check metadata_search
     if (!missing(metadata_search)) {
         .check_chr_within(metadata_search,
-            within = .config_metadata_search_strategies(),
+            within = .conf("metadata_search_strategies"),
             msg = "invalid 'metadata_search' value"
         )
     }
@@ -831,7 +780,7 @@ sits_list_collections <- function(source = NULL) {
 
         band <- .check_error(
             {
-                do.call(.config_new_band, args = band)
+                do.call(.conf_new_band, args = band)
             },
             msg = "invalid 'bands' parameter"
         )
@@ -852,7 +801,7 @@ sits_list_collections <- function(source = NULL) {
 
         cloud_band <- .check_error(
             {
-                do.call(.config_new_cloud_band, args = cloud_band)
+                do.call(.conf_new_cloud_band, args = cloud_band)
             },
             msg = "invalid 'bands' parameter"
         )
@@ -885,7 +834,7 @@ sits_list_collections <- function(source = NULL) {
     return(res)
 }
 #' @title Include a new band in the configuration
-#' @name .config_new_band
+#' @name .conf_new_band
 #' @description creates a description associated to a new band
 #' @param missing_value  missing value
 #' @param minimum_value  minimum value
@@ -896,8 +845,9 @@ sits_list_collections <- function(source = NULL) {
 #' @param resolution     spatial resolution (in meters)
 #' @param ...            other relevant parameters
 #' @keywords internal
+#' @noRd
 #' @return   list with the configuration associated to the new band
-.config_new_band <- function(missing_value,
+.conf_new_band <- function(missing_value,
                              minimum_value,
                              maximum_value,
                              scale_factor,
@@ -984,7 +934,7 @@ sits_list_collections <- function(source = NULL) {
     return(res)
 }
 #' @title Include a new cloud band in the configuration
-#' @name .config_new_cloud_band
+#' @name .conf_new_cloud_band
 #' @description creates a description associated to a new cloud band
 #' @param bit_mask       bit mask to describe clouds (if applicable)
 #' @param value          values of the cloud band
@@ -993,14 +943,15 @@ sits_list_collections <- function(source = NULL) {
 #' @param band_name      name of the band
 #' @param ...            other relevant parameters
 #' @keywords internal
+#' @noRd
 #' @return   list with the configuration associated to the new band
-.config_new_cloud_band <- function(bit_mask,
+.conf_new_cloud_band <- function(bit_mask,
                                    values,
                                    interp_values,
                                    resolution,
                                    band_name, ...) {
     # set caller to show in errors
-    .check_set_caller(".config_new_cloud_band")
+    .check_set_caller(".conf_new_cloud_band")
 
     # pre-condition
     .check_lgl(bit_mask,
@@ -1045,118 +996,15 @@ sits_list_collections <- function(source = NULL) {
     # return a cloud band object
     return(res)
 }
-#' @title Get colors associated to the labels
-#' @name .config_colors
-#' @param  labels  labels associated to the training classes
-#' @param  palette  palette from `grDevices::hcl.pals()`
-#'                  replaces default colors
-#'                  when labels are not included in the config palette
-#' @param  rev      revert the order of colors?
-#' @keywords internal
-#' @return colors required to display the labels
-.config_colors <- function(labels,
-                           palette = "Harmonic",
-                           rev = TRUE) {
 
-    # ensure labels are unique
-    labels <- unique(labels)
-    # get the names of the colors in the chosen palette
-    colors_palette <- unlist(.config_get(key = "colors"))
-    # if labels are included in the config palette, use them
-    if (all(labels %in% names(colors_palette))) {
-        colors <- colors_palette[labels]
-    } else {
-        labels_found <- labels[labels %in% names(colors_palette)]
-        if (length(labels_found) > round(length(labels) / 2)) {
-            warning("Some labels are not available in the chosen palette",
-                call. = FALSE
-            )
-            missing_labels <- unique(labels[!(labels %in% labels_found)])
-            warning(paste0("Consider adjusting labels: ", missing_labels),
-                call. = FALSE
-            )
-        } else {
-            warning("Most labels are not available in the chosen palette",
-                call. = FALSE
-            )
-        }
 
-        warning(paste0("Using hcl_color palette ", palette),
-            call. = FALSE
-        )
-
-        # get the number of labels
-        n_labels <- length(unique(labels))
-        # generate a set of hcl colors
-        colors <- grDevices::hcl.colors(
-            n = n_labels,
-            palette = palette,
-            alpha = 1,
-            rev = rev
-        )
-        names(colors) <- labels
-    }
-    # post-condition
-    .check_chr(colors,
-        len_min = length(labels),
-        len_max = length(labels),
-        is_named = TRUE,
-        msg = "invalid color values"
-    )
-
-    return(colors)
-}
-#' @title Retrieve the processing bloat
-#' @name .config_processing_bloat
-#' @keywords internal
-#' @return estimated processing bloat
-.config_processing_bloat <- function() {
-    res <- .config_get(key = c("processing_bloat"))
-
-    # post-condition
-    .check_num(res,
-        min = 1, len_min = 1, len_max = 1,
-        msg = "invalid 'processing_bloat' in config file"
-    )
-
-    return(res)
-}
-#' @title Retrieve the valid types of metadata search
-#' @name .config_metadata_search_strategies
-#' @keywords internal
-#' @return metadata search strategies used by sits.
-.config_metadata_search_strategies <- function() {
-    res <- .config_get(key = c("metadata_search_strategies"))
-
-    # post-condition
-    .check_chr(res,
-        len_min = 1,
-        msg = "invalid 'metadata_search_strategies' in config file"
-    )
-
-    return(res)
-}
-#' @title Retrieve the processing bloat
-#' @name .config_processing_bloat
-#' @keywords internal
-#' @return estimated processing bloat
-.config_processing_bloat <- function() {
-    res <- .config_get(key = c("processing_bloat"))
-
-    # post-condition
-    .check_num(res,
-        min = 1, len_min = 1, len_max = 1,
-        msg = "invalid 'processing_bloat' in config file"
-    )
-
-    return(res)
-}
 #' @title Retrieve the rstac pagination limit
-#' @name .config_rstac_limit
+#' @name .conf_rstac_limit
 #' @keywords internal
+#' @noRd
 #' @return pagination limit to rstac output
-.config_rstac_limit <- function() {
-    res <- .config_get(key = c("rstac_pagination_limit"))
+.conf_rstac_limit <- function() {
+    res <- .conf(key = c("rstac_pagination_limit"))
 
     # post-condition
     .check_num(res,
@@ -1168,12 +1016,13 @@ sits_list_collections <- function(source = NULL) {
 }
 
 #' @title Retrieve the raster package to be used
-#' @name .config_raster_pkg
+#' @name .conf_raster_pkg
 #' @keywords internal
+#' @noRd
 #' @return the raster package used to process raster data
 #'
-.config_raster_pkg <- function() {
-    res <- .config_get(key = c("raster_api_package"))
+.conf_raster_pkg <- function() {
+    res <- .conf(key = c("raster_api_package"))
 
     # post-condition
     .check_chr(res,
@@ -1188,4 +1037,248 @@ sits_list_collections <- function(source = NULL) {
     )
 
     return(res)
+}
+
+#' @title Basic access config functions
+#' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' These are basic functions to access config options.
+#'
+#' @param ... Set of \code{character} values representing a key to access
+#'   some hierarchical config entry.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#' .conf_exists("run_tests") # TRUE
+#' .conf("run_tests")
+#' .conf_exists("not_existing_entry") # FALSE
+#' }
+NULL
+
+#' @title Check if a key exists in config
+#' @noRd
+#' @param throw_error  Should an error be thrown if test fails?
+#' @returns  A logical value or an error if key not found and
+#'   `throw_error` is `TRUE`.
+.conf_exists <- function(..., throw_error = FALSE) {
+    key <- c(...)
+    exists <- !is.null(.try(sits_env[["config"]][[key]], .default = NULL))
+    if (!exists && throw_error) {
+        stop("key '", paste(key, collapse = "->"), "' not found in config")
+    }
+    # Return test
+    exists
+}
+#' @title Get a config value based on a key
+#' @noRd
+#' @returns A value in config or an error if key does not exists.
+.conf <- function(...) {
+    key <- c(...)
+    # Check for key existence and throws an error if it not exists
+    .conf_exists(key, throw_error = TRUE)
+    sits_env[["config"]][[c(key)]]
+}
+#' @title Config functions eo_cube
+#' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' These are syntactic sugar functions to easily access config options for
+#' bands of `eo_cube` cubes which is a S3 class representation
+#' for an Earth Observation cube. It is the primary data used to obtain a
+#' classification map.
+#
+#' The config entries of a `eo_cube` are located in
+#' `sources -> <SOURCE> -> collections -> <COLLECTION>` key.
+#' Values for source, collection, and band are uppercase.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#' # tests if 'BDC -> MOD13Q1-6 -> NDVI' key exists in config
+#' .conf_eo_band_exists(
+#'   source = "BDC",
+#'   collection = "MOD13Q1-6",
+#'   band = "NDVI"
+#' )
+#' # get configuration for band NDVI of 'BDC -> MOD13Q1-6' collection
+#' x <- .conf_eo_band(
+#'   source = "BDC",
+#'   collection = "MOD13Q1-6",
+#'   band = "NDVI"
+#' )
+#' }
+NULL
+
+#' @title Check if a band entry exists in config
+#' @noRd
+#' @param source  Data source.
+#' @param collection  Collection in the data source.
+#' @param band  Band name.
+#' @returns  A logical value or an error if `source` or `collections`
+#'   does not exists.
+.conf_eo_band_exists <- function(source, collection, band) {
+    # source, collection, and band are uppercase
+    source <- toupper(source)
+    collection <- toupper(collection)
+    band <- .band_eo(band)
+    # Check for source and collection and throws an error if it not exists
+    .conf_exists(
+        "sources", source, "collections", collection,
+        throw_error = TRUE
+    )
+    # Test for band and return
+    .conf_exists("sources", source, "collections", collection, "bands", band)
+}
+
+#' @title Get a config value for a band
+#' @noRd
+#' @param source  Data source.
+#' @param collection  Collection in the data source.
+#' @param band  Band name.
+#' @details
+#' If the band is not found, a default value will be returned from config.
+#' If neither source nor collection entries are found in configuration file,
+#' an error is thrown.
+#' @returns  A value in config.
+.conf_eo_band <- function(source, collection, band) {
+    # Format band name
+    band <- .band_eo(band)
+    # Return a default value if band does not exists in config
+    if (!.conf_eo_band_exists(source, collection, band)) {
+        return(.conf("default_values", "eo_cube"))
+    }
+    # Get band config value and return it
+    .conf("sources", source, "collections", collection, "bands", band)
+}
+
+#' @title Config functions for derived_cube
+#' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' These are syntactic sugar functions to easily access config options for
+#' bands of `derived_cube` cubes. `derived_cube`s are a S3 class
+#' representation of a cube generated by the classification workflow starting
+#' from an Earth Observation data cube.
+#'
+#' There are several classes of `derived_cube`:
+#' * probs_cube: multilayer probability cube produced by a
+#'   classification with the probabilities attributed to each class by a
+#'   model. The possible band names are 'probs', 'bayes', and
+#'   'bilat', acronyms for 'probability', 'Bayesian smoothing', and
+#'   'Bilateral smoothing'.
+#' * class_cube: labeled cube (classified map) produced by choosing
+#'   a label for each pixel. Its unique band name is 'class'.
+#' * uncertainty_cube: a cube produced to measure the uncertainty of
+#'   a classification for each pixel. The possible band names are
+#'   'least', 'entropy', and 'margin', acronyms for the method used to
+#'   produce the cube.
+#'
+#' Values for `derived_class` and band are lowercase. This was
+#' done to avoid conflicts with `eo_cube` band naming (uppercase).
+#' The config entries of a `derived_cube` are located in
+#' `derived_cube -> <derived_class>` key.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#' # get S3 class value that a derived_cube of class 'probs' must have
+#' .conf_derived_s3class("probs")
+#' }
+#'
+NULL
+
+#' @title Get the S3 class values of a `derived_cube`
+#' @noRd
+#' @param derived_class  A `derived_cube` class name.
+#' @return A S3 class.
+.conf_derived_s3class <- function(derived_class) {
+    # derived_class is lowercase
+    derived_class <- tolower(derived_class)
+    .conf("derived_cube", derived_class, "s3_class")
+}
+#' @title Get a band configuration of a `derived_cube`
+#' @noRd
+#' @param derived_class  A `derived_cube` class name.
+#' @param band  Band name of `derived_cube`.
+#' @return  A band configuration.
+.conf_derived_band <- function(derived_class, band) {
+    # Format band
+    band <- .band_derived(band)
+    # Derived_class is lowercase
+    derived_class <- tolower(derived_class)
+    .conf("derived_cube", derived_class, "bands", band)
+}
+
+
+#' @title Band configuration accessors
+#' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' These functions are read-only accessors of band_conf objects. A
+#' band_conf is an entry of band definition in config. It can be associated
+#' to an eo_cube or derived_cube
+#'
+NULL
+
+#' @title Get the data type from a band configuration
+#' @param conf  A band definition value from config.
+#' @return  Data type associated to the configuration
+.data_type <- function(conf) {
+    .as_chr(conf[["data_type"]][[1]])
+}
+#' @title Get the missing value from a band configuration
+#' @noRd
+#' @param conf  A band definition value from config.
+#' @return  Missing value associated to the band
+.miss_value <- function(conf) {
+    .as_dbl(conf[["missing_value"]][[1]])
+}
+#' @title Get the minimum value from a band configuration
+#' @noRd
+#' @param conf  A band definition value from config.
+#' @return  Minimum value associated to the band
+.min_value <- function(conf) {
+    .as_dbl(conf[["minimum_value"]][[1]])
+}
+#' @title Get the maximum value from a band configuration
+#' @noRd
+#' @param conf  A band definition value from config.
+#' @return  Maximum value associated to the band
+.max_value <- function(conf) {
+    .as_dbl(conf[["maximum_value"]][[1]])
+}
+#' @title Get the scale factor from a band configuration
+#' @noRd
+#' @param conf  A band definition value from config.
+#' @return  Scale factor associated to the band
+.scale <- function(conf) {
+    .as_dbl(conf[["scale_factor"]][[1]])
+}
+#' @title Get the offset value from a band configuration
+#' @noRd
+#' @param conf  A band definition value from config.
+#' @return  Offset value associated to the band
+.offset <- function(conf) {
+    .as_dbl(conf[["offset_value"]][[1]])
+}
+#' @title Get the cloud interpolation values from a band configuration
+#' @noRd
+#' @param conf  A band definition value from config.
+#' @return  Cloud interpolation values associated to the band
+.cloud_interp_values <- function(conf) {
+    .as_int(conf[["interp_values"]])
+}
+#' @title Get the bit mask flag from a band configuration
+#' @noRd
+#' @param conf  A band definition value from config.
+#' @return  Cloud bit mask values associated to the band.
+.cloud_bit_mask <- function(conf) {
+    .as_int(conf[["bit_mask"]][[1]])
 }

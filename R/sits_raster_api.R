@@ -1,5 +1,6 @@
 #' @title Supported raster packages
 #' @keywords internal
+#' @noRd
 #' @return   Names of raster packages supported by sits
 .raster_supported_packages <- function() {
     return(c("terra"))
@@ -8,11 +9,12 @@
 #' @title Check for raster package availability
 #' @name .raster_check_package
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @return name of the package.
 .raster_check_package <- function() {
-    pkg_class <- .config_raster_pkg()
+    pkg_class <- .conf_raster_pkg()
     class(pkg_class) <- pkg_class
 
     UseMethod(".raster_check_package", pkg_class)
@@ -21,6 +23,7 @@
 #' @title Check for block object consistency
 #' @name .raster_check_block
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @return  No value, called for side effects.
 .raster_check_block <- function(block) {
@@ -51,6 +54,7 @@
 #' @title Check for bbox object consistency
 #' @name .raster_check_bbox
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @return  No value, called for side effects.
 .raster_check_bbox <- function(bbox) {
@@ -75,6 +79,7 @@
 #' @title Convert internal data type to gdal data type
 #' @name .raster_gdal_datatype
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @return GDAL datatype associated to internal data type used by sits
@@ -102,6 +107,7 @@
 #' @title Match sits data types to GDAL data types
 #' @name .raster_gdal_datatypes
 #' @keywords internal
+#' @noRd
 #' @param sits_names a \code{logical} indicating whether the types are supported
 #'  by sits.
 #'
@@ -124,6 +130,7 @@
 #' @title Raster package internal data type representation
 #' @name .raster_data_type
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param data_type   sits internal raster data type.
@@ -134,7 +141,7 @@
     # check data type
     .check_chr_within(
         x = data_type,
-        within = .config_get("valid_raster_data_types"),
+        within = .conf("valid_raster_data_types"),
         msg = "invalid 'data_type' parameter"
     )
 
@@ -148,6 +155,7 @@
 #' @title Raster package internal resampling method
 #' @name .raster_resampling
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param method   sits internal raster resampling method.
@@ -158,7 +166,7 @@
     # check data type
     .check_chr_within(
         x = method,
-        within = .config_get("valid_raster_resampling"),
+        within = .conf("valid_raster_resampling"),
         msg = "invalid resampling 'method' parameter"
     )
 
@@ -172,6 +180,7 @@
 #' @title Raster package internal get values function
 #' @name .raster_get_values
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj   raster package object
@@ -190,6 +199,7 @@
 #' @title Raster package internal set values function
 #' @name .raster_set_values
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj   raster package object
@@ -204,10 +214,68 @@
 
     UseMethod(".raster_set_values", pkg_class)
 }
+#' @title Get top values of a raster.
+#'
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @description
+#' Get the top values of a raster as a point `sf` object. The values
+#' locations are guaranteed to be separated by a certain number of pixels.
+#'
+#' @param r_obj           A raster object.
+#' @param band            A numeric band index used to read bricks.
+#' @param n               Number of values to extract.
+#' @param sampling_window Window size to collect a point (in pixels).
+#'
+#' @return                A point `tibble` object.
+#'
+.raster_get_top_values <- function(r_obj,
+                                   band,
+                                   n,
+                                   sampling_window) {
+
+    # Pre-conditions have been checked in calling functions
+    # Get top values
+    samples_tb <- .raster_get_values(r_obj) %>%
+        max_sampling(
+            band = band - 1,
+            img_nrow = .raster_nrows(r_obj),
+            img_ncol = .raster_ncols(r_obj),
+            window_size = sampling_window
+        ) %>%
+        dplyr::slice_max(
+            .data[["value"]],
+            n = n,
+            with_ties = FALSE
+        )
+
+    # Get the values' positions.
+    result_tb <- r_obj %>%
+        terra::xyFromCell(
+            cell = samples_tb[["cell"]]
+        ) %>%
+        tibble::as_tibble() %>%
+        sf::st_as_sf(
+            coords = c("x", "y"),
+            crs = .raster_crs(r_obj),
+            dim = "XY",
+            remove = TRUE
+        ) %>%
+        sf::st_transform(crs = 4326) %>%
+        sf::st_coordinates() %>%
+        magrittr::set_colnames(
+            value = c("longitude", "latitude")
+        ) %>%
+        dplyr::bind_cols(samples_tb)
+
+    return(result_tb)
+}
 
 #' @title Raster package internal extract values function
 #' @name .raster_extract
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj   raster package object
@@ -226,6 +294,7 @@
 #' @title Raster package internal extract values function
 #' @name .raster_ext_as_sf
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj   raster package object
@@ -239,9 +308,9 @@
     UseMethod(".raster_ext_as_sf", pkg_class)
 }
 
-#' @title Raster package internal extract values function
-#' @name .raster_ext_as_sf
+#' @name .raster_file_blocksize
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj  raster package object
@@ -258,6 +327,7 @@
 #' @title Raster package internal object creation
 #' @name .raster_rast
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj    raster package object to be cloned
@@ -276,6 +346,7 @@
 #' @title Raster package internal open raster function
 #' @name .raster_open_rast
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param file    raster file to be opened
@@ -296,6 +367,7 @@
 #' @title Raster package internal write raster file function
 #' @name .raster_write_rast
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj         raster package object to be written
@@ -323,6 +395,7 @@
 #' @title Raster package internal create raster object function
 #' @name .raster_new_rast
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -355,6 +428,7 @@
 #' @title Raster package internal read raster file function
 #' @name .raster_read_rast
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param file    path to raster file(s) to be read
@@ -379,6 +453,7 @@
 #' @title Raster package internal crop raster function
 #' @name .raster_crop
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj         Raster package object to be written
@@ -419,6 +494,7 @@
 #' @title Raster package internal crop raster function
 #' @name .raster_crop_metadata
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj   raster package object to be written
@@ -461,6 +537,7 @@
 #' @title Raster package internal object properties
 #' @name .raster_properties
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj    raster package object
@@ -475,8 +552,9 @@
     UseMethod(".raster_nrows", pkg_class)
 }
 
-#' @name .raster_properties
+#' @name .raster_ncols
 #' @keywords internal
+#' @noRd
 .raster_ncols <- function(r_obj, ...) {
 
     # check package
@@ -485,8 +563,9 @@
     UseMethod(".raster_ncols", pkg_class)
 }
 
-#' @name .raster_properties
+#' @name .raster_nlayers
 #' @keywords internal
+#' @noRd
 .raster_nlayers <- function(r_obj, ...) {
 
     # check package
@@ -495,8 +574,9 @@
     UseMethod(".raster_nlayers", pkg_class)
 }
 
-#' @name .raster_properties
+#' @name .raster_xmax
 #' @keywords internal
+#' @noRd
 .raster_xmax <- function(r_obj, ...) {
 
     # check package
@@ -505,8 +585,9 @@
     UseMethod(".raster_xmax", pkg_class)
 }
 
-#' @name .raster_properties
+#' @name .raster_xmin
 #' @keywords internal
+#' @noRd
 .raster_xmin <- function(r_obj, ...) {
 
     # check package
@@ -515,8 +596,9 @@
     UseMethod(".raster_xmin", pkg_class)
 }
 
-#' @name .raster_properties
+#' @name .raster_ymax
 #' @keywords internal
+#' @noRd
 .raster_ymax <- function(r_obj, ...) {
 
     # check package
@@ -525,8 +607,9 @@
     UseMethod(".raster_ymax", pkg_class)
 }
 
-#' @name .raster_properties
+#' @name .raster_ymin
 #' @keywords internal
+#' @noRd
 .raster_ymin <- function(r_obj, ...) {
 
     # check package
@@ -535,8 +618,9 @@
     UseMethod(".raster_ymin", pkg_class)
 }
 
-#' @name .raster_properties
+#' @name .raster_xres
 #' @keywords internal
+#' @noRd
 .raster_xres <- function(r_obj, ...) {
 
     # check package
@@ -545,8 +629,9 @@
     UseMethod(".raster_xres", pkg_class)
 }
 
-#' @name .raster_properties
+#' @name .raster_yres
 #' @keywords internal
+#' @noRd
 .raster_yres <- function(r_obj, ...) {
 
     # check package
@@ -555,8 +640,9 @@
     UseMethod(".raster_yres", pkg_class)
 }
 
-#' @name .raster_properties
+#' @name .raster_crs
 #' @keywords internal
+#' @noRd
 .raster_crs <- function(r_obj, ...) {
 
     # check package
@@ -564,8 +650,9 @@
 
     UseMethod(".raster_crs", pkg_class)
 }
-#' @name .raster_properties
+#' @name .raster_sources
 #' @keywords internal
+#' @noRd
 .raster_sources <- function(r_obj, ...) {
 
     # check package
@@ -574,8 +661,9 @@
     UseMethod(".raster_sources", pkg_class)
 }
 
-#' @name .raster_properties
+#' @name .raster_bbox
 #' @keywords internal
+#' @noRd
 .raster_bbox <- function(r_obj, ...,
                          block = NULL) {
     if (is.null(block)) {
@@ -597,8 +685,9 @@
     return(bbox)
 }
 
-#' @name .raster_properties
+#' @name .raster_res
 #' @keywords internal
+#' @noRd
 .raster_res <- function(r_obj, ...) {
 
     # return a named resolution
@@ -610,8 +699,9 @@
     return(res)
 }
 
-#' @name .raster_properties
+#' @name .raster_size
 #' @keywords internal
+#' @noRd
 .raster_size <- function(r_obj, ...) {
 
     # return a named size
@@ -626,6 +716,7 @@
 #' @title Raster package internal frequency values function
 #' @name .raster_freq
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj    raster package object to count values
@@ -643,6 +734,7 @@
 #' @title Raster package internal frequency values function
 #' @name .raster_colrow
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj  raster package object
@@ -658,8 +750,9 @@
 }
 
 
-#' @name .raster_colrow
+#' @name .raster_row
 #' @keywords internal
+#' @noRd
 .raster_row <- function(r_obj, y) {
 
     # check package
@@ -671,6 +764,7 @@
 #' @title Determine the file params to write in the metadata
 #' @name .raster_params_file
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -723,7 +817,7 @@
         b = rep(1, nlayers),
         scale = c(0, 1, missing_value, missing_value),
         a_nodata = missing_value,
-        co = .config_gtiff_default_options(),
+        co = .conf("gdal_creation_options"),
         q = TRUE
     )
     # Delete auxiliary files
@@ -734,6 +828,7 @@
 #' @title Merge all input files into one raster file
 #' @name .raster_merge
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param out_files     Output raster files path.
@@ -823,7 +918,7 @@
                         multi = TRUE,
                         of = "GTiff",
                         q = TRUE,
-                        co = .config_gtiff_default_options(),
+                        co = .conf("gdal_creation_options"),
                         overwrite = FALSE
                     )
                 )
@@ -850,6 +945,7 @@
 #' @title Raster package internal open raster function
 #' @name .raster_missing_value
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param file    raster file to be opened

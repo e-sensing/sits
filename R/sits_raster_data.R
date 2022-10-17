@@ -1,6 +1,7 @@
 #' @title Extract a time series from raster
-#' @name .sits_raster_data_get_ts
+#' @name .raster_data_get_ts
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Retrieve a set of time series for a raster data cube.
@@ -13,17 +14,17 @@
 #' @param impute_fn         Imputation function for NA values
 #' @param output_dir        An output directory to save temporary time series.
 #' @return                  A sits tibble with the time series.
-.sits_raster_data_get_ts <- function(tile,
-                                     points,
-                                     bands,
-                                     xy,
-                                     cld_band = NULL,
-                                     impute_fn = sits_impute_linear(),
-                                     output_dir = output_dir) {
+.raster_data_get_ts <- function(tile,
+                                points,
+                                bands,
+                                xy,
+                                cld_band = NULL,
+                                impute_fn = sits_impute_linear(),
+                                output_dir = output_dir) {
 
 
     # set caller to show in errors
-    .check_set_caller(".sits_raster_data_get_ts")
+    .check_set_caller(".raster_data_get_ts")
 
     timeline <- sits_timeline(tile)
 
@@ -32,21 +33,21 @@
 
         # retrieve values that indicate clouds
         cld_index <- .source_cloud_interp_values(
-            source = .cube_source(cube = tile),
-            collection = .cube_collection(cube = tile)
+            source = .tile_source(tile),
+            collection = .tile_collection(tile)
         )
 
         # get the values of the time series
-        cld_values <- .cube_extract(
-            cube = tile,
-            band_cube = cld_band,
+        cld_values <- .tile_extract(
+            tile = tile,
+            band = cld_band,
             xy = xy
         )
 
         # get information about cloud bitmask
         if (.source_cloud_bit_mask(
-            source = .cube_source(cube = tile),
-            collection = .cube_collection(cube = tile)
+            source = .tile_source(tile),
+            collection = .tile_collection(tile)
         )) {
             cld_values <- as.matrix(cld_values)
             cld_rows <- nrow(cld_values)
@@ -61,22 +62,23 @@
     ts_bands <- purrr::map(bands, function(band) {
 
         # get the scale factors, max, min and missing values
-        missing_value <- .cube_band_missing_value(cube = tile, band = band)
-        minimum_value <- .cube_band_minimum_value(cube = tile, band = band)
-        maximum_value <- .cube_band_maximum_value(cube = tile, band = band)
-        scale_factor <- .cube_band_scale_factor(cube = tile, band = band)
-        offset_value <- .cube_band_offset_value(cube = tile, band = band)
+        band_params   <- .tile_band_conf(tile, band)
+        missing_value <- .miss_value(band_params)
+        minimum_value <- .min_value(band_params)
+        maximum_value <- .max_value(band_params)
+        scale_factor  <- .scale(band_params)
+        offset_value  <- .offset(band_params)
 
         # get the values of the time series as matrix
-        values_band <- .cube_extract(
-            cube = tile,
-            band_cube = band,
+        values_band <- .tile_extract(
+            tile = tile,
+            band = band,
             xy = xy
         )
 
         # each row of the values matrix is a spatial point
         ts_band_lst <- purrr::map(seq_len(nrow(values_band)), function(i) {
-            t_point <- .sits_timeline_during(
+            t_point <- .timeline_during(
                 timeline   = timeline,
                 start_date = lubridate::as_date(points$start_date[[i]]),
                 end_date   = lubridate::as_date(points$end_date[[i]])
@@ -145,8 +147,9 @@
 }
 
 #' @title Extract a time series from raster
-#' @name .sits_image_classified_get_ts
+#' @name .taster_class_get_ts
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Retrieve a set of time series for a raster data cube.
@@ -157,14 +160,14 @@
 #' @param xy                A matrix with longitude as X and latitude as Y.
 #' @param output_dir        An output directory to save temporary time series.
 #' @return                  A sits tibble with the time series.
-.sits_image_classified_get_ts <- function(tile,
+.raster_class_get_ts <- function(tile,
                                           points,
                                           band,
                                           xy,
                                           output_dir = output_dir) {
 
     # set caller to show in errors
-    .check_set_caller(".sits_image_classified_get_ts")
+    .check_set_caller(".raster_class_get_ts")
 
     # get timeline
     timeline <- sits_timeline(tile)
@@ -187,11 +190,7 @@
     )
 
     # get the values of the time series as matrix
-    values_band <- .cube_extract(
-        cube = tile,
-        band_cube = band,
-        xy = xy
-    )
+    values_band <- .tile_extract(tile = tile, band = band, xy = xy)
 
     # each row of the values matrix is a spatial point
     traj_lst <- as.list(unname(unlist(values_band)))

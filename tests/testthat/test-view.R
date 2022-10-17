@@ -25,10 +25,7 @@ test_that("View", {
     expect_true("leaflet" %in% class(v2))
     expect_true(grepl("EPSG3857", v2$x$options$crs$crsClass))
 
-    samples_ndvi <- sits_select(samples_modis_4bands,
-        bands = c("NDVI")
-    )
-    rf_model <- sits_train(samples_ndvi, sits_rfor())
+    rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
 
     modis_probs <- sits_classify(
         data = modis_cube,

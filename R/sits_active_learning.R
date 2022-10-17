@@ -54,8 +54,7 @@
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # build a random forest model
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
-#'     rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
+#'     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
 #'     # classify the cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
 #'     # create an uncertainty cube
@@ -82,17 +81,17 @@ sits_uncertainty_sampling <- function(uncert_cube,
 
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(uncert_cube, function(tile) {
-        path <- .file_info_path(tile)
+        path <-  .tile_path(tile)
         # Get a list of values of high uncertainty
         top_values <- .raster_open_rast(path) %>%
-            .sits_get_top_values(
+            .raster_get_top_values(
                 band = 1,
                 n = n,
                 sampling_window = sampling_window
             ) %>%
             dplyr::mutate(
                 value = .data[["value"]] *
-                    .config_get("probs_cube_scale_factor")
+                    .conf("probs_cube_scale_factor")
             ) %>%
             dplyr::filter(
                 .data[["value"]] >= min_uncert
@@ -102,8 +101,8 @@ sits_uncertainty_sampling <- function(uncert_cube,
             )) %>%
             tibble::as_tibble()
         # All the cube's uncertainty images have the same start & end dates.
-        top_values[["start_date"]] <- .file_info_start_date(tile)
-        top_values[["end_date"]] <- .file_info_end_date(tile)
+        top_values[["start_date"]] <- .tile_start_date(tile)
+        top_values[["end_date"]]   <- .tile_end_date(tile)
         top_values[["label"]] <- "NoClass"
 
         return(top_values)
@@ -126,8 +125,8 @@ sits_uncertainty_sampling <- function(uncert_cube,
 
     # Warn if it cannot suggest all required samples
     if (nrow(result_tb) < n)
-        warning(paste("Unable to suggest", n, "samples.",
-                      "Try a smaller sampling_window parameter."))
+        warning("unable to suggest ", n, " samples.\n",
+                "(try a smaller sampling_window parameter)", call. = FALSE)
 
     class(result_tb) <- c("sits_uncertainty", "sits", class(result_tb))
     return(result_tb)
@@ -189,8 +188,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # build a random forest model
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
-#'     rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
+#'     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
 #'     # classify the cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
 #'     # obtain a new set of samples for active learning
@@ -217,21 +215,21 @@ sits_confidence_sampling <- function(probs_cube,
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(probs_cube, function(tile) {
         # Open raster
-        r_obj <- .raster_open_rast(.file_info_path(tile))
+        r_obj <- .raster_open_rast(.tile_path(tile))
 
         # Get samples for each label
         purrr::map2_dfr(labels, seq_along(labels), function(lab, i) {
 
             # Get a list of values of high confidence & apply threshold
             top_values <- r_obj %>%
-                .sits_get_top_values(
+                .raster_get_top_values(
                     band = i,
                     n = n,
                     sampling_window = sampling_window
                 ) %>%
                 dplyr::mutate(
                     value = .data[["value"]] *
-                        .config_get("probs_cube_scale_factor")
+                        .conf("probs_cube_scale_factor")
                 ) %>%
                 dplyr::filter(
                     .data[["value"]] >= min_margin
@@ -243,8 +241,8 @@ sits_confidence_sampling <- function(probs_cube,
 
             # All the cube's uncertainty images have the same start &
             # end dates.
-            top_values[["start_date"]] <- .file_info_start_date(tile)
-            top_values[["end_date"]] <- .file_info_end_date(tile)
+            top_values[["start_date"]] <- .tile_start_date(tile)
+            top_values[["end_date"]]   <- .tile_end_date(tile)
             top_values[["label"]] <- lab
 
             return(top_values)
@@ -272,7 +270,7 @@ sits_confidence_sampling <- function(probs_cube,
     incomplete_labels <- result_tb %>%
         dplyr::count(.data[["label"]]) %>%
         dplyr::filter(.data[["n"]] < !!n) %>%
-        dplyr::pull(.data[["label"]])
+        dplyr::pull("label")
 
     if (length(incomplete_labels) > 0)
         warning(sprintf(
@@ -286,59 +284,3 @@ sits_confidence_sampling <- function(probs_cube,
     return(result_tb)
 }
 
-#' @title Get top values of a raster.
-#'
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#'
-#' @description
-#' Get the top values of a raster as a point `sf` object. The values
-#' locations are guaranteed to be separated by a certain number of pixels.
-#'
-#' @param r_obj           A raster object.
-#' @param band            A numeric band index used to read bricks.
-#' @param n               Number of values to extract.
-#' @param sampling_window Window size to collect a point (in pixels).
-#'
-#' @return                A point `tibble` object.
-#'
-.sits_get_top_values <- function(r_obj,
-                                 band,
-                                 n,
-                                 sampling_window) {
-
-    # Pre-conditions have been checked in calling functions
-    # Get top values
-    samples_tb <- terra::values(r_obj, mat = TRUE) %>%
-        max_sampling(
-            band = band - 1,
-            img_nrow = terra::nrow(r_obj),
-            img_ncol = terra::ncol(r_obj),
-            window_size = sampling_window
-        ) %>%
-        dplyr::slice_max(
-            .data[["value"]],
-            n = n,
-            with_ties = FALSE
-        )
-
-    # Get the values' positions.
-    result_tb <- r_obj %>%
-        terra::xyFromCell(
-            cell = samples_tb[["cell"]]
-        ) %>%
-        tibble::as_tibble() %>%
-        sf::st_as_sf(
-            coords = c("x", "y"),
-            crs = terra::crs(r_obj),
-            dim = "XY",
-            remove = TRUE
-        ) %>%
-        sf::st_transform(crs = 4326) %>%
-        sf::st_coordinates() %>%
-        magrittr::set_colnames(
-            value = c("longitude", "latitude")
-        ) %>%
-        dplyr::bind_cols(samples_tb)
-
-    return(result_tb)
-}

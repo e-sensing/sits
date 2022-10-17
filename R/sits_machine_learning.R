@@ -30,13 +30,12 @@
 #'     # Example of training a model for time series classification
 #'     # Retrieve the samples for Mato Grosso
 #'     # train a random forest model
-#'     rf_model <- sits_train(samples_modis_4bands,
+#'     rf_model <- sits_train(samples_modis_ndvi,
 #'                            ml_method = sits_rfor(mtry = 20))
-#'     # select the bands to classify the point
-#'     sample_bands <- sits_bands(samples_modis_4bands)
-#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
 #'     # classify the point
-#'     point_class <- sits_classify(point_4bands, rf_model)
+#'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#'     # classify the point
+#'     point_class <- sits_classify(point_ndvi, rf_model)
 #'     plot(point_class)
 #' }
 #' @export
@@ -52,7 +51,7 @@ sits_rfor <- function(samples = NULL, num_trees = 120, mtry = NULL, ...) {
         # Get labels (used later to ensure column order in result matrix)
         labels <- .sits_labels(samples)
         # Get predictors features
-        train_samples <- .sits_predictors(samples)
+        train_samples <- .predictors(samples)
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
 
@@ -147,12 +146,11 @@ sits_rfor <- function(samples = NULL, num_trees = 120, mtry = NULL, ...) {
 #'     # Example of training a model for time series classification
 #'     # Retrieve the samples for Mato Grosso
 #'     # train an SVM model
-#'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_svm)
-#'     # select the bands to classify the point
-#'     sample_bands <- sits_bands(samples_modis_4bands)
-#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
+#'     ml_model <- sits_train(samples_modis_ndvi, ml_method = sits_svm)
 #'     # classify the point
-#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#'     # classify the point
+#'     point_class <- sits_classify(point_ndvi, ml_model)
 #'     plot(point_class)
 #' }
 #' @export
@@ -177,7 +175,7 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
         #   classification.
         ml_stats <- .sits_stats(samples)
         # Get predictors features
-        train_samples <- .sits_predictors(samples)
+        train_samples <- .predictors(samples)
         # Normalize predictors
         train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
         # Post condition: is predictor data valid?
@@ -279,12 +277,11 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
 #'     # Example of training a model for time series classification
 #'     # Retrieve the samples for Mato Grosso
 #'     # train a xgboost model
-#'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_xgboost)
-#'     # select the bands to classify the point
-#'     sample_bands <- sits_bands(samples_modis_4bands)
-#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
+#'     ml_model <- sits_train(samples_modis_ndvi, ml_method = sits_xgboost)
 #'     # classify the point
-#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#'     # classify the point
+#'     point_class <- sits_classify(point_ndvi, ml_model)
 #'     plot(point_class)
 #' }
 #' @export
@@ -302,7 +299,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
         # Get labels (used later to ensure column order in result matrix)
         labels <- .sits_labels(samples)
         # Get predictors features
-        train_samples <- .sits_predictors(samples)
+        train_samples <- .predictors(samples)
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
         # Transform labels to integer code before train
@@ -379,13 +376,12 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
 #'     # Example of training a model for time series classification
 #'     # Retrieve the samples for Mato Grosso
 #'     # train an SVM model
-#'     ml_model <- sits_train(samples_modis_4bands,
+#'     ml_model <- sits_train(samples_modis_ndvi,
 #'         ml_method = sits_svm(formula = sits_formula_logref()))
-#'     # select the bands to classify the point
-#'     sample_bands <- sits_bands(samples_modis_4bands)
-#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
 #'     # classify the point
-#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#'     # classify the point
+#'     point_class <- sits_classify(point_ndvi, ml_model)
 #'     plot(point_class)
 #' }
 #' @export
@@ -448,13 +444,12 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #'     # Example of training a model for time series classification
 #'     # Retrieve the samples for Mato Grosso
 #'     # train an SVM model
-#'     ml_model <- sits_train(samples_modis_4bands,
+#'     ml_model <- sits_train(samples_modis_ndvi,
 #'         ml_method = sits_svm(formula = sits_formula_logref()))
-#'     # select the bands to classify the point
-#'     sample_bands <- sits_bands(samples_modis_4bands)
-#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
 #'     # classify the point
-#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#'     # classify the point
+#'     point_class <- sits_classify(point_ndvi, ml_model)
 #'     plot(point_class)
 #' }
 #' @export
@@ -499,6 +494,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #' @title Normalize the time series in the given sits_tibble
 #' @name .sits_ml_normalize_data
 #' @keywords internal
+#' @noRd
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description This function normalizes the time series using the mean and
@@ -573,6 +569,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #' @title Normalize the time series in the given sits_tibble
 #' @name .sits_ml_normalization_param
 #' @keywords internal
+#' @noRd
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description this function normalizes the time series using the mean and

@@ -34,7 +34,7 @@ sits_select <- function(data, bands, ...) {
     # set caller to show in errors
     .check_set_caller("sits_select")
     # get the meta-type (sits or cube)
-    data <- .config_data_meta_type(data)
+    data <- .conf_data_meta_type(data)
     UseMethod("sits_select", data)
 }
 
@@ -50,35 +50,37 @@ sits_select.sits <- function(data, bands, ...) {
         within = sits_bands(data),
         msg = "Invalid bands values"
     )
-    data <- .sits_filter_bands(data, bands)
+    data <- .sits_select_bands(samples = data, bands = bands)
     return(data)
 }
 
 #' @rdname sits_select
 #'
 #' @export
-sits_select.sits_cube <- function(data,
-                                  bands =  NULL, ...,
-                                  tiles = NULL,
-                                  start_date = NULL,
-                                  end_date = NULL) {
-    if (!is.null(tiles)) {
-        .check_chr_type(tiles)
-        data <- .cube_filter_tiles(cube = data, tiles = tiles)
-    }
-
+sits_select.raster_cube <- function(data,
+                                    bands =  NULL, ...,
+                                    start_date = NULL,
+                                    end_date = NULL,
+                                    tiles = NULL) {
+    # Pre-condition
+    .check_is_raster_cube(data)
+    # Filter bands
     if (!is.null(bands)) {
         .check_chr_type(bands)
         data <- .cube_filter_bands(cube = data, bands = bands)
     }
-
+    # Filter dates
     if (!is.null(start_date) || !is.null(end_date)) {
         .check_dates_parameter(c(start_date, end_date))
-        data <- .cube_filter_dates(
+        data <- .cube_filter_interval(
             cube = data, start_date = start_date, end_date = end_date
         )
     }
-
+    # Filter tiles
+    if (!is.null(tiles)) {
+        .check_chr_type(tiles)
+        data <- .cube_filter_tiles(cube = data, tiles = tiles)
+    }
     return(data)
 }
 

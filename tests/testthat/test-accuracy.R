@@ -20,17 +20,17 @@ test_that("conf_matrix -2 classes", {
 })
 test_that("conf_matrix - more than 2 classes", {
     set.seed(1234)
-    data(samples_modis_4bands)
-    train_data <- sits_sample(samples_modis_4bands, n = 50)
-    test_data <- sits_sample(samples_modis_4bands, n = 50)
+    data(samples_modis_ndvi)
+    train_data <- sits_sample(samples_modis_ndvi, n = 50)
+    test_data <- sits_sample(samples_modis_ndvi, n = 50)
     rfor_model <- sits_train(train_data, sits_rfor())
     points_class <- sits_classify(
         data = test_data,
         ml_model = rfor_model
     )
     invisible(capture.output(acc <- sits_accuracy(points_class)))
-    expect_true(acc$overall["Accuracy"] > 0.90)
-    expect_true(acc$overall["Kappa"] > 0.90)
+    expect_true(acc$overall["Accuracy"] > 0.70)
+    expect_true(acc$overall["Kappa"] > 0.70)
     p1 <- capture.output(acc)
     expect_true(grepl("Confusion Matrix", p1[1]))
     expect_true(grepl("Cerrado", p1[5]))
@@ -54,18 +54,16 @@ test_that("XLS", {
 
 test_that("K-fold validate", {
     set.seed(1234)
-    data("samples_modis_4bands")
-    samples <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
-    acc <- sits_kfold_validate(samples,
+    acc <- sits_kfold_validate(samples_modis_ndvi,
         folds = 2,
         ml_method = sits_rfor(num_trees = 100)
     )
 
-    expect_true(acc$overall["Accuracy"] > 0.90)
-    expect_true(acc$overall["Kappa"] > 0.90)
+    expect_true(acc$overall["Accuracy"] > 0.70)
+    expect_true(acc$overall["Kappa"] > 0.70)
 
     results <- list()
-    acc$name <- "modis_4bands"
+    acc$name <- "modis_ndvi"
     results[[length(results) + 1]] <- acc
     xls_file <- paste0(tempdir(), "/accuracy.xlsx")
     sits_to_xlsx(results, file = xls_file)
@@ -74,11 +72,7 @@ test_that("K-fold validate", {
 })
 test_that("Accuracy areas", {
     set.seed(1234)
-    samples_ndvi <- sits_select(samples_modis_4bands,
-        bands = c("NDVI")
-    )
-
-    rfor_model <- sits_train(samples_ndvi, sits_rfor())
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
@@ -99,8 +93,8 @@ test_that("Accuracy areas", {
 
 
     expect_true(all(file.exists(unlist(probs_cube$file_info[[1]]$path))))
-    tc_obj <- sits:::.raster_open_rast(probs_cube$file_info[[1]]$path[[1]])
-    expect_true(nrow(tc_obj) == sits:::.cube_size(probs_cube)[["nrows"]])
+    tc_obj <- .raster_open_rast(probs_cube$file_info[[1]]$path[[1]])
+    expect_true(nrow(tc_obj) == .tile_nrows(probs_cube))
 
     label_cube <- sits_label_classification(
         probs_cube,

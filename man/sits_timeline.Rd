@@ -17,7 +17,7 @@ This function returns the timeline for a given data set, either
              a set of time series, a data cube, or a trained model.
 }
 \examples{
-sits_timeline(samples_modis_4bands)
+sits_timeline(samples_modis_ndvi)
 
 }
 \author{

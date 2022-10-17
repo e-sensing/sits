@@ -34,7 +34,7 @@ sits_to_csv <- function(data, file) {
         msg = "file is not writable"
     )
 
-    csv_columns <- .config_get("df_sample_columns")
+    csv_columns <- .conf("df_sample_columns")
     # select the parts of the tibble to be saved
     csv <- dplyr::select(data, dplyr::all_of(csv_columns))
 
@@ -52,6 +52,7 @@ sits_to_csv <- function(data, file) {
 #' @name .sits_get_samples_from_csv
 #' @author Gilberto Camara
 #' @keywords internal
+#' @noRd
 #' @param csv_file        CSV that describes the data to be retrieved.
 #' @return                A tibble with information the samples to be retrieved
 #'
@@ -66,7 +67,7 @@ sits_to_csv <- function(data, file) {
     # select valid columns
     samples <- dplyr::select(
         samples,
-        dplyr::all_of(.config_get("df_sample_columns"))
+        .conf("df_sample_columns")
     )
     # transform to date
     samples <- dplyr::mutate(samples,

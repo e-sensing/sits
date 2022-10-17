@@ -21,10 +21,8 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'     # select a set of samples
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a random forest model
-#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
@@ -60,13 +58,13 @@ sits_label_classification <- function(cube, memsize = 4, multicores = 2,
 
     # Check memory and multicores
     # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.fi_path(.fi(cube))))
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
         # npaths = input(nlayers) + output(1)
         npaths = length(.tile_labels(cube)) + 1,
-        nbytes = 8, proc_bloat = .config_processing_bloat()
+        nbytes = 8, proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
@@ -147,11 +145,11 @@ sits_label_classification.probs_cube <- function(cube, memsize = 4,
             derived_class = "class_cube", band = band
         )
         offset <- .offset(band_conf)
-        if (!is.null(offset) && offset != 0) {
+        if (.has(offset) && offset != 0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (!is.null(scale) && scale != 1) {
+        if (.has(scale) && scale != 1) {
             values <- values / scale
         }
         # Prepare and save results as raster

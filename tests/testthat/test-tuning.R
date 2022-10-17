@@ -4,7 +4,7 @@ test_that("Tuning - random search", {
     torch::torch_manual_seed(1234)
 
     tuned <- sits_tuning(
-        samples_modis_4bands,
+        samples_modis_ndvi,
         ml_method = sits_tempcnn(epochs = 5),
         params = sits_tuning_hparams(
             optimizer = torch::optim_adam,

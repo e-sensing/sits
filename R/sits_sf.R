@@ -1,13 +1,14 @@
-#' @title Return a sits_tibble or sits_cube as an sf object.
+#' @title Return a sits_tibble or raster_cube as an sf object.
 #' @name sits_as_sf
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
-#' @description Return a sits_tibble or sits_cube as an sf object.
+#' @description Return a sits_tibble or raster_cube as an sf object.
 #'
 #' @param data   A sits tibble or sits cube.
-#' @param crs    A coordinate reference system of samples.
+#' @param as_crs Output coordinate reference system.
 #' @param ...    Additional parameters.
+#' @param crs    Input coordinate reference system.
 #' @return       An sf object of point or polygon geometry.
 #' @examples
 #' if (sits_run_examples()) {
@@ -26,79 +27,47 @@
 #'    sf_object <- sits_as_sf(cube)
 #'}
 #' @export
-sits_as_sf <- function(data, ..., crs) {
+sits_as_sf <- function(data, ..., as_crs = NULL) {
     UseMethod("sits_as_sf", data)
 }
 
 #' @export
 #' @rdname sits_as_sf
-sits_as_sf.sits <- function(data, ..., crs = 4326) {
+sits_as_sf.sits <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
+
+    # Pre-conditions
     .check_samples(data)
 
-    samples_sf <- sf::st_as_sf(data,
-        coords = c("longitude", "latitude"),
-        crs = crs,
-        remove = FALSE
-    )
-    return(samples_sf)
+    # Convert samples to sf
+    geom <- .point_as_sf(.point(data, crs = crs), as_crs = as_crs)
+
+    # Bind columns
+    data <- dplyr::bind_cols(geom, .discard(data, "time_series"))
+
+    return(data)
 }
 
 #' @export
 #' @rdname sits_as_sf
-sits_as_sf.raster_cube <- function(data, ...) {
-    data %>%
-        dplyr::mutate(extent_wgs84 = purrr::pmap(
-            dplyr::select(.,
-                .data[["xmin"]],
-                .data[["xmax"]],
-                .data[["ymin"]],
-                .data[["ymax"]],
-                .data[["crs"]]
-            ),
-            .sits_coords_to_bbox_wgs84
-        )) %>%
-        dplyr::mutate(sf_obj = purrr::map(
-            .data[["extent_wgs84"]],
-            function(x){
-                sf::st_sfc(
-                    sf::st_polygon(list(rbind(
-                        c(x["xmin"], x["ymin"]),
-                        c(x["xmin"], x["ymax"]),
-                        c(x["xmax"], x["ymax"]),
-                        c(x["xmax"], x["ymin"]),
-                        c(x["xmin"], x["ymin"])
-                   ))),
-                   crs = 4326
-               )
-           })
-        ) %>%
-        dplyr::select(
-            -.data[["xmin"]],
-            -.data[["xmax"]],
-            -.data[["ymin"]],
-            -.data[["ymax"]],
-            -.data[["crs"]],
-            -.data[["extent_wgs84"]]
-        ) %>%
-        dplyr::rowwise() %>%
-        dplyr::group_split() %>%
-        purrr::map(function(x){
-            sf::st_sf(
-                dplyr::select(x, -.data[["sf_obj"]]),
-                geom = magrittr::extract2(dplyr::pull(x, .data[["sf_obj"]]), 1)
-            ) %>%
-            tibble::as_tibble() %>%
-            sf::st_as_sf() %>%
-            return()
-        }) %>%
-        do.call(rbind, .) %>%
-        return()
+sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
+
+    # Pre-conditions
+    .check_is_raster_cube(data)
+
+    # Convert cube bbox to sf
+    geom <- .bbox_as_sf(.bbox_from_tbl(data), as_crs = as_crs)
+
+    # Bind columns
+    data <- dplyr::bind_cols(geom, .discard(data, "file_info"))
+
+    return(data)
 }
 
 #' @title Transform an sf object into a samples file
-#' @name .sits_get_samples_from_sf
+#' @name .sf_get_samples
 #' @author Gilberto Camara
 #' @keywords internal
+#' @noRd
 #' @param sf_object       sf object that describes the data to be retrieved.
 #' @param label           Default label for samples.
 #' @param label_attr      sf attribute that describes the label.
@@ -109,16 +78,16 @@ sits_as_sf.raster_cube <- function(data, ...) {
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
 #' @return                A tibble with information the samples to be retrieved.
 #'
-.sits_get_samples_from_sf <- function(sf_object,
-                                      label,
-                                      label_attr,
-                                      start_date,
-                                      end_date,
-                                      n_sam_pol,
-                                      pol_id) {
+.sf_get_samples <- function(sf_object,
+                            label,
+                            label_attr,
+                            start_date,
+                            end_date,
+                            n_sam_pol,
+                            pol_id) {
 
     # get the points to be read
-    samples <- .sits_sf_to_tibble(
+    samples <- .sf_to_tibble(
         sf_object   = sf_object,
         label_attr  = label_attr,
         label       = label,
@@ -135,26 +104,25 @@ sits_as_sf.raster_cube <- function(data, ...) {
 
     return(samples)
 }
-#' @title Obtain a tibble with lat/long points to be retrieved from an sf object
-#'
-#' @name .sits_sf_to_tibble
+#' @title Obtain a tibble with lat/long points from an sf object
+#' @name .sf_to_tibble
 #' @keywords internal
-#'
+#' @noRd
 #' @description reads a shapefile and retrieves a sits tibble
 #' containing a set of lat/long points for data retrieval
 #'
 #' @param sf_object       sf object .
-#' @param label_attr      Attribute in the sf object used as a polygon label.
+#' @param label_attr      Attribute in sf object used as a polygon label.
 #' @param label           Label to be assigned to points.
 #' @param n_sam_pol       Number of samples per polygon to be read
 #'                        (for POLYGON or MULTIPOLYGON shapes).
 #' @param  pol_id         ID attribute for polygons.
 #' @return                A sits tibble with points to to be read.
-.sits_sf_to_tibble <- function(sf_object,
-                               label_attr,
-                               label,
-                               n_sam_pol,
-                               pol_id) {
+.sf_to_tibble <- function(sf_object,
+                          label_attr,
+                          label,
+                          n_sam_pol,
+                          pol_id) {
 
     # get the geometry type
     geom_type <- sf::st_geometry_type(sf_object)[1]
@@ -164,13 +132,13 @@ sits_as_sf.raster_cube <- function(data, ...) {
 
     # get a tibble with points and labels
     if (geom_type == "POINT") {
-        points_tbl <- .sits_sf_point_to_tibble(
+        points_tbl <- .sf_point_to_tibble(
             sf_object,
             label_attr,
             label
         )
     } else {
-        points_tbl <- .sits_sf_polygon_to_tibble(
+        points_tbl <- .sf_polygon_to_tibble(
             sf_object,
             label_attr,
             label,
@@ -183,15 +151,15 @@ sits_as_sf.raster_cube <- function(data, ...) {
 }
 
 #' @title Obtain a tibble with latitude/longitude points from POINT geometry
-#' @name .sits_sf_point_to_tibble
+#' @name .sf_point_to_tibble
 #' @keywords internal
-#'
+#' @noRd
 #' @param sf_object       sf object.
 #' @param label_attr      Attribute used as a polygon label
 #' @param label           Label to be assigned if no attribute is provided
 #' @return  A tibble with latitude/longitude points.
 #'
-.sits_sf_point_to_tibble <- function(sf_object, label_attr, label) {
+.sf_point_to_tibble <- function(sf_object, label_attr, label) {
 
     # get the db file
     sf_df <- sf::st_drop_geometry(sf_object)
@@ -222,9 +190,9 @@ sits_as_sf.raster_cube <- function(data, ...) {
 }
 
 #' @title Obtain a tibble from POLYGON geometry
-#' @name .sits_sf_polygon_to_tibble
+#' @name .sf_polygon_to_tibble
 #' @keywords internal
-#'
+#' @noRd
 #' @param sf_object       sf object linked to a shapefile
 #' @param label_attr      Attribute in the shapefile used as a polygon label
 #' @param label           Label to be assigned to points
@@ -232,7 +200,7 @@ sits_as_sf.raster_cube <- function(data, ...) {
 #' @param pol_id          ID attribute for polygons shapefile.
 #' @return A tibble with latitude/longitude points from POLYGON geometry
 #'
-.sits_sf_polygon_to_tibble <- function(sf_object,
+.sf_polygon_to_tibble <- function(sf_object,
                                        label_attr,
                                        label,
                                        n_sam_pol,

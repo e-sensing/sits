@@ -61,17 +61,17 @@
     slider::slide_dfr(jobs, fn, ...)
 }
 
-.jobs_map_parallel <- function(jobs, fn, ..., progress = TRUE) {
+.jobs_map_parallel <- function(jobs, fn, ..., progress = FALSE) {
     jobs <- slider::slide(jobs, identity)
     .sits_parallel_map(jobs, fn, ..., progress = progress)
 }
 
-.jobs_map_parallel_chr <- function(jobs, fn, ..., progress = TRUE) {
+.jobs_map_parallel_chr <- function(jobs, fn, ..., progress = FALSE) {
     values_lst <- .jobs_map_parallel(jobs, fn, ..., progress = progress)
     vapply(values_lst, c, NA_character_)
 }
 
-.jobs_map_parallel_dfr <- function(jobs, fn, ..., progress = TRUE) {
+.jobs_map_parallel_dfr <- function(jobs, fn, ..., progress = FALSE) {
     values_lst <- .jobs_map_parallel(jobs, fn, ..., progress = progress)
     dplyr::bind_rows(values_lst)
 }

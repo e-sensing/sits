@@ -6,7 +6,14 @@
 \alias{sits_classify.raster_cube}
 \title{Classify time series or data cubes}
 \usage{
-sits_classify(data, ml_model, ...)
+sits_classify(
+  data,
+  ml_model,
+  ...,
+  filter_fn = NULL,
+  multicores = 2,
+  progress = TRUE
+)
 
 \method{sits_classify}{sits}(
   data,
@@ -14,7 +21,7 @@ sits_classify(data, ml_model, ...)
   ...,
   filter_fn = NULL,
   multicores = 2,
-  progress = FALSE
+  progress = TRUE
 )
 
 \method{sits_classify}{raster_cube}(
@@ -30,8 +37,8 @@ sits_classify(data, ml_model, ...)
   multicores = 2,
   output_dir = getwd(),
   version = "v1",
-  verbose = FALSE,
-  progress = FALSE
+  verbose = TRUE,
+  progress = TRUE
 )
 }
 \arguments{
@@ -112,10 +119,8 @@ Please refer to the sits documentation available in
 if (sits_run_examples()) {
     # Example of classification of a time series
     # Retrieve the samples for Mato Grosso
-    # select the NDVI band
-    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
     # train a random forest model
-    rf_model <- sits_train(samples_ndvi, ml_method = sits_rfor)
+    rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
 
     # classify the point
     point_ndvi <- sits_select(point_mt_6bands, bands = c("NDVI"))

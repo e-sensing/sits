@@ -1,12 +1,12 @@
 #' @title Informs if a spatial ROI intersects a data cube
-#' @name .sits_raster_sub_image_intersects
+#' @name .raster_sub_image_intersects
 #' @keywords internal
-
+#' @noRd
 #' @param  cube            data cube (one tile only).
 #' @param  roi             spatial region of interest
 #' @return                 does a spatial ROI intersect a data cube?
 #'
-.sits_raster_sub_image_intersects <- function(cube, roi) {
+.raster_sub_image_intersects <- function(cube, roi) {
 
     # pre-condition
     .check_num(nrow(cube),
@@ -21,7 +21,7 @@
     if (inherits(roi, "sf")) {
         # check for roi crs
         if (is.null(sf::st_crs(roi))) {
-            stop(".sits_raster_sub_image_intersects: invalid roi crs",
+            stop(".raster_sub_image_intersects: invalid roi crs",
                 call. = FALSE
             )
         }
@@ -51,22 +51,22 @@
     }
 
     # if the ROI is defined, calculate the bounding box
-    bbox_roi <- .sits_roi_bbox(roi, cube)
+    bbox_roi <- .roi_bbox(roi, cube)
 
     # calculate the intersection between the bbox of the ROI and the cube tile
-    bbox_in <- .sits_bbox_intersect(bbox_roi, cube)
+    bbox_in <- .bbox_intersect(bbox_roi, cube)
 
     return(!purrr::is_null(bbox_in))
 }
 #' @title Find the dimensions and location of a spatial ROI in a data cube
-#' @name .sits_raster_sub_image
+#' @name .raster_sub_image
 #' @keywords internal
-
+#' @noRd
 #' @param  tile            tile of data cube.
 #' @param  roi             spatial region of interest
 #' @return                 vector with information on the subimage
 #'
-.sits_raster_sub_image <- function(tile, roi) {
+.raster_sub_image <- function(tile, roi) {
 
     # pre-condition
     .check_num(nrow(tile),
@@ -75,52 +75,21 @@
     )
 
     # if the ROI is defined, calculate the bounding box
-    bbox_roi <- .sits_roi_bbox(roi, tile)
+    bbox_roi <- .roi_bbox(roi, tile)
 
     # calculate the intersection between the bbox of the ROI and the cube
-    bbox_in <- .sits_bbox_intersect(bbox_roi, tile)
+    bbox_in <- .bbox_intersect(bbox_roi, tile)
 
     # return the sub_image
-    sub_image <- .sits_raster_sub_image_from_bbox(bbox_in, tile)
-
-    return(sub_image)
-}
-#' @title Find the dimensions of the sub image without ROI
-#' @name .sits_raster_sub_image_default
-#' @keywords internal
-
-#' @param  tile            tile of data cube.
-#' @param  sf_region       spatial region of interest (sf_object)
-#' @return                 vector with information on the subimage
-.sits_raster_sub_image_default <- function(tile) {
-
-    # pre-condition
-    .check_num(nrow(tile),
-        min = 1, max = 1, is_integer = TRUE,
-        msg = "process one tile only"
-    )
-
-    # by default, the sub_image has the same dimension as the main cube
-    size <- .cube_size(tile)
-    bbox <- .cube_tile_bbox(tile)
-
-    sub_image <- c(
-        row = 1,
-        col = 1,
-        nrows = size[["nrows"]],
-        ncols = size[["ncols"]],
-        xmin = bbox[["xmin"]],
-        xmax = bbox[["xmax"]],
-        ymin = bbox[["ymin"]],
-        ymax = bbox[["ymax"]]
-    )
+    sub_image <- .raster_sub_image_from_bbox(bbox_in, tile)
 
     return(sub_image)
 }
 
 #' @title Extract a sub_image from a bounding box and a cube
-#' @name .sits_raster_sub_image_from_bbox
+#' @name .raster_sub_image_from_bbox
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param bbox           bounding box for a region of interest
@@ -128,7 +97,7 @@
 #' @return               sub_image with additional info on first row,
 #'                       first col, nrows, ncols
 #'
-.sits_raster_sub_image_from_bbox <- function(bbox, tile) {
+.raster_sub_image_from_bbox <- function(bbox, tile) {
 
     # pre-condition
     .check_num(nrow(tile),
@@ -167,14 +136,10 @@
         msg = "bbox value is outside the cube"
     )
 
-    # get ncols and nrows
-    # throw an error if size are not the same
-    size <- .cube_size(tile)
-
     # tile template
     r_obj <- .raster_new_rast(
-        nrows = size[["nrows"]],
-        ncols = size[["ncols"]],
+        nrows = .tile_nrows(tile),
+        ncols = .tile_ncols(tile),
         xmin = tile[["xmin"]],
         xmax = tile[["xmax"]],
         ymin = tile[["ymin"]],
@@ -208,11 +173,11 @@
         crs = tile[["crs"]]
     )
 
-    tolerance <- .config_get(key = c(
+    tolerance <- .conf(
         "sources", .cube_source(tile),
         "collections", .cube_collection(tile),
         "ext_tolerance"
-    ))
+    )
 
     # pre-conditions
     .check_num(si[["xmin"]],
@@ -249,8 +214,9 @@
 }
 
 #' @title Extract a sub_image from a valid block
-#' @name .sits_raster_sub_image_from_block
+#' @name .raster_sub_image_from_block
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param block      a valid block with (\code{col}, \code{row},
@@ -270,17 +236,17 @@
 #'
 #' @return sub_image with additional info on first row, first col, nrows,
 #' ncols, and crs.
-.sits_raster_sub_image_from_block <- function(block,
-                                              source,
-                                              collection,
-                                              tile = NULL, ...,
-                                              xmin = NULL,
-                                              xmax = NULL,
-                                              ymin = NULL,
-                                              ymax = NULL,
-                                              nrows = NULL,
-                                              ncols = NULL,
-                                              crs = NULL) {
+.raster_sub_image_from_block <- function(block,
+                                         source,
+                                         collection,
+                                         tile = NULL, ...,
+                                         xmin = NULL,
+                                         xmax = NULL,
+                                         ymin = NULL,
+                                         ymax = NULL,
+                                         nrows = NULL,
+                                         ncols = NULL,
+                                         crs = NULL) {
 
     size <- c(nrows = nrows, ncols = ncols)
 
@@ -288,12 +254,12 @@
     if (!is.null(tile)) {
 
         # pre-condition
-        .check_num(nrow(tile),
-                   min = 1, max = 1, is_integer = TRUE,
-                   msg = "process one tile only"
+        .check_num(
+            x = nrow(tile), min = 1, max = 1, is_integer = TRUE,
+            msg = "process one tile only"
         )
 
-        size <- .cube_size(tile)
+        size <- c(nrows = .tile_nrows(tile), ncols = .tile_ncols(tile))
         xmax <- tile[["xmax"]]
         xmin <- tile[["xmin"]]
         ymin <- tile[["ymin"]]
@@ -302,23 +268,27 @@
     }
 
     # pre-conditions
-    .check_num(block[["col"]],
+    .check_num(
+        x = block[["col"]],
         min = 1, max = size[["ncols"]],
         msg = "invalid 'col' of block parameter"
     )
 
-    .check_num(block[["ncols"]],
+    .check_num(
+        x = block[["ncols"]],
         min = 1,
         max = size[["ncols"]] - block[["col"]] + 1,
         msg = "invalid 'ncols' of block parameter"
     )
 
-    .check_num(block[["row"]],
+    .check_num(
+        x = block[["row"]],
         min = 1, max = size[["nrows"]],
         msg = "invalid 'row' of block parameter"
     )
 
-    .check_num(block[["nrows"]],
+    .check_num(
+        x = block[["nrows"]],
         min = 1,
         max = size[["nrows"]] - block[["row"]] + 1,
         msg = "invalid 'nrows' of block parameter"
@@ -362,39 +332,45 @@
         crs = crs
     )
 
-    tolerance <- .config_get(key = c(
+    tolerance <- .conf(
         "sources", source,
         "collections", collection,
         "ext_tolerance"
-    ))
+    )
 
     # pre-conditions
-    .check_num(si[["xmin"]],
+    .check_num(
+        x = si[["xmin"]],
         max = si[["xmax"]],
         msg = "invalid subimage value"
     )
 
-    .check_num(si[["ymin"]],
+    .check_num(
+        x = si[["ymin"]],
         max = si[["ymax"]],
         msg = "invalid subimage value"
     )
 
-    .check_num(si[["xmin"]],
+    .check_num(
+        x = si[["xmin"]],
         min = xmin, max = xmax,
         tolerance = tolerance, msg = "invalid subimage value"
     )
 
-    .check_num(si[["xmax"]],
+    .check_num(
+        x = si[["xmax"]],
         min = xmin, max = xmax,
         tolerance = tolerance, msg = "invalid subimage value"
     )
 
-    .check_num(si[["ymin"]],
+    .check_num(
+        x = si[["ymin"]],
         min = ymin, max = ymax,
         tolerance = tolerance, msg = "invalid subimage value"
     )
 
-    .check_num(si[["ymax"]],
+    .check_num(
+        x = si[["ymax"]],
         min = ymin, max = ymax,
         tolerance = tolerance, msg = "invalid subimage value"
     )

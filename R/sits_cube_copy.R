@@ -6,7 +6,7 @@
 #' bands.
 #'
 #' @param cube       A sits cube
-#' @param roi        A Region of interest. See details bellow.
+#' @param roi        A Region of interest. See details below.
 #' @param res        An integer value corresponds to the output
 #'                   spatial resolution of the images. Default is NULL.
 #' @param output_dir Output directory where images will be saved.
@@ -52,27 +52,26 @@ sits_cube_copy <- function(cube,
                            output_dir = getwd(),
                            multicores = 2,
                            progress = TRUE) {
-    # check documentation mode
-    progress <- .check_documentation(progress)
 
-    # precondition - cube
-    .check_is_sits_cube(cube)
-    # precondition - res
+    # Pre-conditions
+    .check_is_raster_cube(cube)
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi)
+    }
     .check_res(res)
-    # precondition - output dir
     output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
-    # precondition - multicores
     .check_multicores(multicores)
-    # precondition - progress
-    .check_lgl_type(progress)
+    .check_progress(progress)
+
     # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
+
     # Create assets as jobs
-    assets <- .cube_create_assets(cube)
+    cube_assets <- .cube_split_assets(cube)
     # Process each tile sequentially
-    assets <- .jobs_map_parallel_dfr(assets, function(asset) {
+    cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
         local_asset <- .download_asset(
             asset = asset, res = res, roi = roi, output_dir = output_dir,
             progress = progress
@@ -81,12 +80,12 @@ sits_cube_copy <- function(cube,
         local_asset
     }, progress = progress)
     # Join output assets as a cube and return it
-    .cube_merge_assets(assets)
+    .cube_merge_tiles(cube_assets)
 }
 
 .download_asset <- function(asset, res, roi, output_dir, progress) {
     # Get all paths and expand
-    file <- path.expand(.fi_paths(.fi(asset)))
+    file <- path.expand(.tile_path(asset))
     # Create a list of user parameters as gdal format
     gdal_params <- .gdal_format_params(asset = asset, roi = roi, res = res)
     # Create output file
@@ -122,20 +121,20 @@ sits_cube_copy <- function(cube,
 
 .gdal_format_params <- function(asset, roi, res) {
     gdal_params <- list()
-    if (!is.null(res)) {
+    if (.has(res)) {
         gdal_params[["-tr"]] <- list(xres = res, yres = res)
     }
-    if (!is.null(roi)) {
+    if (.has(roi)) {
         gdal_params[["-srcwin"]] <- .gdal_as_srcwin(asset = asset, roi = roi)
     }
-    gdal_params[c("-of", "-co")] <- list("GTiff",
-                                         .conf("gdal_presets", "image", "co"))
-
+    gdal_params[c("-of", "-co")] <- list(
+        "GTiff", .conf("gdal_presets", "image", "co")
+    )
     gdal_params
 }
 
 .gdal_as_srcwin <- function(asset, roi) {
-    block <- .sits_raster_sub_image(tile = asset, roi = roi)
+    block <- .raster_sub_image(tile = asset, roi = roi)
     list(xoff = block[["col"]] - 1,
          yoff = block[["row"]] - 1,
          xsize = block[["ncols"]],

@@ -51,17 +51,15 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # show accuracy for a set of samples
-#'     train_data <- sits_sample(samples_modis_4bands, n = 200)
-#'     test_data <- sits_sample(samples_modis_4bands, n = 200)
+#'     train_data <- sits_sample(samples_modis_ndvi, n = 200)
+#'     test_data <- sits_sample(samples_modis_ndvi, n = 200)
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     points_class <- sits_classify(test_data, rfor_model)
 #'     acc <- sits_accuracy(points_class)
 #'
 #'     # show accuracy for a data cube classification
-#'     # select a set of samples
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a random forest model
-#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
@@ -147,10 +145,10 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
 
     # Create a list of (predicted, reference) values
     # Consider all tiles of the data cube
-    pred_ref_lst <- slider::slide(data, function(row) {
+    pred_ref_lst <- slider::slide(data, function(tile) {
 
         # Find the labelled band
-        labelled_band <- sits_bands(row)
+        labelled_band <- .tile_bands(tile)
 
         # Is the labelled band unique?
         .check_length(
@@ -160,10 +158,10 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
         )
 
         # get xy in cube projection
-        xy_tb <- .sits_proj_from_latlong(
+        xy_tb <- .proj_from_latlong(
             longitude = csv_tb$longitude,
             latitude = csv_tb$latitude,
-            crs = .cube_crs(row)
+            crs = .crs(tile)
         )
 
         # join lat-long with XY values in a single tibble
@@ -178,34 +176,34 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
             )
         )
 
-        # Filter the points inside the data cube
-        points_row <- dplyr::filter(
+        # Filter the points inside the tile
+        points_tile <- dplyr::filter(
             points,
-            .data[["X"]] >= row$xmin & .data[["X"]] <= row$xmax &
-                .data[["Y"]] >= row$ymin & .data[["Y"]] <= row$ymax
+            .data[["X"]] >= tile$xmin & .data[["X"]] <= tile$xmax &
+                .data[["Y"]] >= tile$ymin & .data[["Y"]] <= tile$ymax
         )
 
         # No points in the cube? Return an empty list
-        if (nrow(points_row) < 1) {
+        if (nrow(points_tile) < 1) {
             return(NULL)
         }
 
         # Convert the tibble to a matrix
-        xy <- matrix(c(points_row$X, points_row$Y),
-            nrow = nrow(points_row), ncol = 2
+        xy <- matrix(c(points_tile$X, points_tile$Y),
+            nrow = nrow(points_tile), ncol = 2
         )
         colnames(xy) <- c("X", "Y")
 
         # Extract values from cube
-        values <- .cube_extract(
-            cube = row,
-            band_cube = labelled_band,
+        values <- .tile_extract(
+            tile = tile,
+            band = labelled_band,
             xy = xy
         )
         # Get the predicted values
         predicted <- labels_cube[unlist(values)]
         # Get reference classes
-        reference <- points_row$label
+        reference <- points_tile$label
         # Does the number of predicted and reference values match?
         .check_pred_ref_match(reference, predicted)
         # Create a tibble to store the results
@@ -232,12 +230,11 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
     freq_lst <- slider::slide(data, function(tile) {
 
         # Get the frequency count and value for each labelled image
-        freq <- .cube_area_freq(tile)
+        freq <- .tile_area_freq(tile)
         # pixel area
-        # get the resolution
-        res <- .cube_resolution(tile)
         # convert the area to hectares
-        area <- freq$count * prod(res) / 10000
+        # assumption: spatial resolution unit is meters
+        area <- freq$count * .tile_xres(tile) * .tile_yres(tile) / 10000
         # Include class names
         freq <- dplyr::mutate(freq,
                               area = area,
@@ -268,6 +265,7 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
 #' @title Obtains the predicted value of a reference set
 #' @name .sits_accuracy_pred_ref
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Obtains a tibble of predicted and reference values
@@ -293,6 +291,7 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
 #' @name .sits_accuracy_area_assess
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @keywords internal
+#' @noRd
 #' @param cube         Data cube.
 #' @param error_matrix Matrix given in sample counts.
 #'                     Columns represent the reference data and
