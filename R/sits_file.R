@@ -67,6 +67,14 @@
     )
 }
 
+.file_crop_name <- function(tile, band, version, output_dir) {
+    .file_path(
+        tile[["satellite"]], tile[["sensor"]], "MOSAIC",
+        .tile_start_date(tile), .tile_end_date(tile), band, "crop",
+        version, ext = "tif", output_dir = output_dir
+    )
+}
+
 .file_eo_name <- function(tile, band, date, output_dir) {
     .file_path(
         "cube", .tile_name(tile), band, date,
