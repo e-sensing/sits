@@ -21,7 +21,7 @@
 
 .tile_name(tile)
 
-.tile_name(tile, name) <- value
+.tile_name(tile) <- value
 
 .tile_ncols(tile)
 
@@ -58,7 +58,7 @@ metadata of a cube.
 
 \item \code{.tile_name()}: Get \code{'tile'} field of a \code{tile}.
 
-\item \code{.tile_name(tile, name) <- value}: Set \code{'labels'} field of a \code{tile}.
+\item \code{.tile_name(tile) <- value}: Set \code{'labels'} field of a \code{tile}.
 
 \item \code{.tile_ncols()}: Get number of image columns from \code{ncols}
 field (if it exists) or from first \code{ncols} in file_info.
