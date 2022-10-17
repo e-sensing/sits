@@ -5,6 +5,7 @@
 \alias{.tile_source}
 \alias{.tile_collection}
 \alias{.tile_name}
+\alias{.tile_name<-}
 \alias{.tile_ncols}
 \alias{.tile_nrows}
 \alias{.tile_size}
@@ -19,6 +20,8 @@
 .tile_collection(tile)
 
 .tile_name(tile)
+
+.tile_name(tile, name) <- value
 
 .tile_ncols(tile)
 
@@ -54,6 +57,8 @@ metadata of a cube.
 \item \code{.tile_collection()}: Get \code{'collection'} field of a \code{tile}.
 
 \item \code{.tile_name()}: Get \code{'tile'} field of a \code{tile}.
+
+\item \code{.tile_name(tile, name) <- value}: Set \code{'labels'} field of a \code{tile}.
 
 \item \code{.tile_ncols()}: Get number of image columns from \code{ncols}
 field (if it exists) or from first \code{ncols} in file_info.

@@ -2,6 +2,7 @@
 
 S3method(".tile_file_info<-",raster_cube)
 S3method(".tile_labels<-",raster_cube)
+S3method(".tile_name<-",raster_cube)
 S3method("sits_labels<-",class_cube)
 S3method("sits_labels<-",probs_cube)
 S3method("sits_labels<-",sits)
