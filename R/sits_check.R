@@ -1593,6 +1593,27 @@
     )
 }
 
+#' @title Does input data has time series?
+#' @name .check_samples_ts
+#' @param data a sits tibble
+#' @return  No return value, called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_ts <- function(data){
+    .check_samples(data)
+    .check_chr_contains(
+        x = colnames(data),
+        contains = "time_series",
+        msg = "invalid samples data"
+    )
+    # Get unnested time series
+    ts <- .sits_ts(data)
+    # check there is an Index column
+    .check_that(x = "Index" %in% colnames(ts))
+    # check there are no NA in distances
+    .check_that(x = !(anyNA(ts)), msg = "samples contain NA values")
+}
+
 #' @title Can the input data be used for training?
 #' @name .check_samples_train
 #' @param data a sits tibble
@@ -1608,12 +1629,7 @@
             !any(is.na(labels)),
         msg = "invalid labels in samples data"
     )
-    # Get unnested time series
-    ts <- .sits_ts(data)
-    # check there is an Index column
-    .check_that(x = "Index" %in% colnames(ts))
-    # check there are no NA in distances
-    .check_that(x = !(anyNA(ts)), msg = "samples contain NA values")
+    .check_samples_ts(data)
 }
 #' @title Is the samples_validation object valid?
 #' @name .check_samples_validation
@@ -2173,10 +2189,10 @@
         )
     )
 }
-.check_endmembers_bands <- function(em, cube) {
+.check_endmembers_bands <- function(em, bands) {
     .check_chr_within(
         x = .band_eo(.endmembers_bands(em)),
-        within = .cube_bands(cube, add_cloud = FALSE),
+        within = bands,
         msg = "invalid 'endmembers' columns"
     )
 }
