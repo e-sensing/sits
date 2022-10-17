@@ -8,7 +8,7 @@
 #' @param ... Additional parameters.
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' .as_int(1.234)
 #' .as_dbl(42L)
 #' x <- 1.234
@@ -126,7 +126,7 @@ NULL
 #'   (with error or not).
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' .try({
 #'   file <- tempfile("test.txt")
 #'   cat(letters, file = file)
@@ -215,7 +215,7 @@ NULL
 #' intersects \code{y} geometries.
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' x <- .bbox_as_sf(c(xmin=1, xmax=2, ymin=3, ymax=4, crs=4326))
 #' y <- .roi_as_sf(c(lon_min=1.5, lon_max=3, lat_min=3.5, lat_max=5))
 #' .intersects(x, y) # TRUE
@@ -257,7 +257,7 @@ NULL
 #' @param value Value to set on object field.
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' x <- c(xmax = "123")
 #' .xmax(x) # 123 as number
 #' x <- list(xmin = 1, xmax = 2, ymin = 3, ymax = 4)
@@ -360,7 +360,7 @@ NULL
 #' @param value Value to set on object field.
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' x <- c(row = 3.45)
 #' .row(x) # 3 as integer
 #' x <- list(col = 1, row = 2, ncols = 3)
@@ -437,7 +437,7 @@ NULL
 #' @param value Value to set on object field.
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' x <- c(nrows = 100, ymin = 1, ymax = 10)
 #' .yres(x) # 0.09
 #' }
@@ -469,7 +469,7 @@ NULL
 #'   \code{.conf_eo_band()} or \code{.conf_derived_band()}.
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' # Get configuration band
 #' x <- .conf_eo_band(
 #'   source = "BDC",
@@ -539,7 +539,7 @@ NULL
 #' @param band Band name.
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' .band_cloud() # 'CLOUD'
 #' # eo bands name are uppercase
 #' .band_eo("nDvI") # 'NDVI'
@@ -583,7 +583,7 @@ NULL
 #' \code{nrows}.
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' x <- list(a = 0, z = 0)
 #' .block(x) # NULL
 #' x <- list(a = 0, col = 1, row = 2, ncols = 3, nrows = 4, z = 0)
@@ -638,7 +638,7 @@ NULL
 #' CRS.
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' x <- list(a = 0, z = 0)
 #' .bbox(x) # NULL
 #' x <- list(
@@ -737,7 +737,7 @@ NULL
 #' be \code{'EPSG:4326'}.
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' x <- list(lon_min = 1, lon_max = 2, lat_min = 3, lat_max = 4)
 #' .roi_type(x) # lonlat
 #' .roi_as_sf(x)
@@ -820,7 +820,7 @@ NULL
 #' @param chunks A \code{chunk}.
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' chunks <- .chunks_create(
 #'   block = c(ncols = 512, nrows = 512),
 #'   overlap = 2,
@@ -975,7 +975,7 @@ NULL
 #' @param period A \code{character}.
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' .period_check("P16D") # valid
 #' .period_check("P1M10D") # error: invalid period format
 #' .period_val("P16D") # 16
@@ -1031,7 +1031,7 @@ NULL
 #' @param throw_error Should an error be thrown if test fails?
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' .conf_exists("run_tests") # TRUE
 #' .conf("run_tests")
 #' .conf_exists("not_existing_entry") # FALSE
@@ -1084,7 +1084,7 @@ NULL
 #' @param band Band name.
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' # tests if 'BDC -> MOD13Q1-6 -> NDVI' key exists in config
 #' .conf_eo_band_exists(
 #'   source = "BDC",
@@ -1176,7 +1176,7 @@ NULL
 #' @param band Band name.
 #'
 #' @examples
-#' if (sits_run_examples()) {
+#' \dontrun{
 #' # get S3 class value that a derived_cube of class 'probs' must have
 #' .conf_derived_s3class("probs")
 #' }
@@ -1206,6 +1206,16 @@ NULL
     derived_class <- tolower(derived_class)
     .conf("derived_cube", derived_class, "bands", band)
 }
+
+
+# .conf_exists("sources", "BDC", "collections", "MOD13Q1-6")
+# .conf_exists("sources", "BDC", "collections", "MOD13Q1-7")
+# .conf_eo_band("BDC", "MOD13Q1-6", "NIR", "missing_value")
+# .conf_eo_band("BDC", "MOD13Q1-6", "NBR", "missing_value")
+# .conf_derived_cube("probs_cube", "bands")
+# .conf_derived_cube("probs_cube", "NBR")
+# .conf_derived_cube_band("probs_cube", "probs", "missing_value")
+# .conf_derived_cube_band("probs_cube", "bayes", "missing_value")
 
 
 #---- fi API: ----
@@ -1478,6 +1488,18 @@ NULL
 #' @export
 .tile_name.raster_cube <- function(tile) {
     .as_chr(tile[["tile"]][[1]])
+}
+
+#' @describeIn tile_accessors Set \code{'labels'} field of a \code{tile}.
+`.tile_name<-` <- function(tile, name) {
+    UseMethod(".tile_name<-", tile)
+}
+
+#' @export
+`.tile_name<-.raster_cube` <- function(tile, name) {
+    tile <- .tile(tile)
+    tile[["tile"]] <- list(.as_chr(name))
+    tile
 }
 
 #' @describeIn tile_accessors Get number of image columns from \code{ncols}
@@ -2848,6 +2870,19 @@ NULL
     sf::gdal_utils(
         util = "warp", source = base_files, destination = file[[1]],
         options = .gdal_params(params), quiet = quiet
+    )
+}
+
+.gdal_buildvrt <- function(file, base_files, params, quiet) {
+    sf::gdal_utils(
+        util = "buildvrt", source = base_files, destination = file,
+        options = .gdal_params(params),  quiet = quiet
+    )
+}
+
+.gdal_addo <- function(base_file, method, overviews) {
+    sf::gdal_addo(
+        file = base_file, method = method, overviews = overviews
     )
 }
 
