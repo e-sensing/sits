@@ -186,6 +186,7 @@ NULL
 }
 
 .fi_filter_dates <- function(fi, dates) {
+    dates <- .as_date(dates)
     dates_in_fi <- dates %in% .fi_timeline(fi)
     if (!all(dates_in_fi)) {
         miss_dates <- paste0("'", dates[!dates_in_fi], "'", collapse = ",")

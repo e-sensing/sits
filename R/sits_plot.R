@@ -381,7 +381,7 @@ plot.raster_cube <- function(
         # get RGB files for the requested timeline
         red_file   <- .tile_path(tile, red, date)
         green_file <- .tile_path(tile, green, date)
-        blue_file  <- .tile_path(tile, green, date)
+        blue_file  <- .tile_path(tile, blue, date)
         # plot RGB
         p <- .plot_rgb(red_file, green_file, blue_file)
     }
@@ -672,7 +672,7 @@ plot.uncertainty_cube <- function(
                             stretch = TRUE)
 
     p <- tmap::tm_shape(rgb_st) +
-         tmap::tm_rgb(max.value = 10000) +
+         tmap::tm_raster() +
          tmap::tm_graticules() +
          tmap::tm_compass()
 

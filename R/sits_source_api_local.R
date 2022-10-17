@@ -521,7 +521,7 @@
     # make a new file info for one tile
     file_info <- dplyr::select(
         items,
-        c("fid",
+        dplyr::all_of(c("fid",
           "band",
           "date",
           "xmin",
@@ -533,7 +533,7 @@
           "nrows",
           "ncols",
           "path"
-        )
+        ))
     )
 
     # create a tibble to store the metadata
@@ -587,7 +587,7 @@
     # make a new file info for one tile
     file_info <- dplyr::select(
         items,
-        c("band",
+        dplyr::all_of(c("band",
           "start_date",
           "end_date",
           "ncols",
@@ -600,7 +600,7 @@
           "ymax",
           "crs",
           "path"
-        )
+        ))
     )
     # create a tibble to store the metadata
     cube_tile <- .cube_create(
