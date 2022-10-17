@@ -790,7 +790,8 @@ NULL
 #' @returns \code{.roi_as_sf()}: \code{sf}.
 .roi_as_sf <- function(roi, default_crs = NULL) {
     .roi_switch(
-        roi = roi, sf = roi,
+        roi = roi,
+        sf = sf::st_union(roi),
         bbox = .bbox_as_sf(roi, default_crs = default_crs),
         lonlat = .bbox_as_sf(list(
             xmin = roi[["lon_min"]], xmax = roi[["lon_max"]],
@@ -1491,14 +1492,14 @@ NULL
 }
 
 #' @describeIn tile_accessors Set \code{'labels'} field of a \code{tile}.
-`.tile_name<-` <- function(tile, name) {
+`.tile_name<-` <- function(tile, value) {
     UseMethod(".tile_name<-", tile)
 }
 
 #' @export
-`.tile_name<-.raster_cube` <- function(tile, name) {
+`.tile_name<-.raster_cube` <- function(tile, value) {
     tile <- .tile(tile)
-    tile[["tile"]] <- list(.as_chr(name))
+    tile[["tile"]] <- .as_chr(value)
     tile
 }
 
@@ -2849,7 +2850,9 @@ NULL
         stop("parameters should be named")
     }
     unlist(mapply(function(par, val) {
-        if (is.logical(val)) {
+        if (is.null(val)) {
+            NULL
+        } else if (is.logical(val)) {
             if (val) par else NULL
         } else if (is.list(val)) {
             c(par, unlist(val))
@@ -2887,7 +2890,7 @@ NULL
 }
 
 .gdal_template_from_file <- function(base_file, file, nlayers, miss_value,
-                                     data_type) {
+                                     data_type, as_crs = NULL) {
     # Convert to gdal data type
     data_type <- .gdal_data_type[[data_type]]
     # Output file
