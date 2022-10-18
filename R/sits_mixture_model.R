@@ -76,7 +76,7 @@
 #'           ~type, ~B02, ~B03, ~B04, ~B8A, ~B11, ~B12,
 #'        "forest",  200,  352,  189, 2800, 1340,  546,
 #'          "land",  400,  650,  700, 3600, 3500, 1800,
-#'         "water",  700, 1100, 1400,  850,   40,   26,
+#'         "water",  700, 1100, 1400,  850,   40,   26
 #'    )
 #'
 #'    # Generate the mixture model
@@ -110,6 +110,7 @@ sits_mixture_model <- function(data, endmembers, ...,
     UseMethod("sits_mixture_model", data)
 }
 
+#' @export
 sits_mixture_model.sits <- function(data, endmembers, ...,
                                     rmse_band = TRUE,
                                     multicores = 2,
@@ -122,20 +123,75 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
     .check_endmembers_tbl(em)
 
     # Get endmembers bands
-    bands <- setdiff(.sits_bands(data), .endmembers_fracs(em))
+    # TODO: check lines 126 e 127 its confused
+    # bands <- setdiff(.sits_bands(data), .endmembers_fracs(em))
+    bands <- setdiff(.sits_bands(data), .endmembers_bands(em))
+    bands <- .default(x = bands, default = .endmembers_bands(em))
     # The cube is filtered here in case some fraction
     # is added as a band
     data <- .sits_select_bands(samples = data, bands = bands)
     # Pre-condition
     .check_endmembers_bands(em = em, bands = .sits_bands(data))
 
-    # Scale the reference spectra
-    em <- .endmembers_scale(em = em, cube = data)
     # Fractions to be produced
     out_fracs <- .endmembers_fracs(em = em, include_rmse = rmse_band)
 
+    # Prepare parallelization
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop(), add = TRUE)
+    # Create mixture processing function
+    mixture_fn <- .mixture_fn_nnls(em = em, rmse = rmse_band)
+    # Create samples as jobs
+    samples_groups <- .samples_split_groups(data, multicores)
+    # Process each group of samples in parallel
+    samples_fracs <- .sits_parallel_map(samples_groups, function(samples) {
+        # Process the data
+        output_samples <- .mixture_samples(
+            samples = samples, em = em,
+            mixture_fn = mixture_fn, out_fracs = out_fracs
+        )
+        return(output_samples)
+    }, progress = progress)
+    # Join groups samples as a sits tibble and return it
+    .samples_merge_groups(samples_fracs)
 }
 
+.mixture_samples <- function(samples, em, mixture_fn, out_fracs) {
+    # Get samples time series
+    values <- .ts(samples)
+    # Apply the non-negative least squares solver
+    values <- mixture_fn(
+        values = .ts_values(ts = values, bands = .endmembers_bands(em))
+    )
+    # Rename columns fractions
+    colnames(values) <- out_fracs
+    # Merge samples and fractions values
+    samples_fracs <- .samples_merge_values(samples = samples, values = values)
+    # Return a sits tibble
+    samples_fracs
+}
+
+.samples_merge_values <- function(samples, values) {
+    values <- dplyr::bind_cols(.ts(samples), values)
+    values <- tidyr::nest(values, time_series = c(-"sample_id", -"label"))
+    samples[["time_series"]] <- values[["time_series"]]
+    samples
+}
+
+.samples_split_groups <- function(data, multicores) {
+    multicores <- if (multicores > nrow(data)) nrow(data) else multicores
+    data[["group"]] <- rep(
+        seq_len(multicores), each = ceiling(nrow(data) / multicores)
+    )[seq_len(nrow(data))]
+
+    dplyr::group_split(dplyr::group_by(data, .data[["group"]]), .keep = FALSE)
+}
+
+.samples_merge_groups <- function(samples_lst) {
+    samples <- dplyr::bind_rows(samples_lst)
+    class(samples) <- c("sits", class(samples))
+    samples
+}
 
 #' @export
 sits_mixture_model.raster_cube <- function(data,
