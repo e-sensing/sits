@@ -88,7 +88,7 @@ if (sits_run_examples()) {
           ~type, ~B02, ~B03, ~B04, ~B8A, ~B11, ~B12,
        "forest",  200,  352,  189, 2800, 1340,  546,
          "land",  400,  650,  700, 3600, 3500, 1800,
-        "water",  700, 1100, 1400,  850,   40,   26,
+        "water",  700, 1100, 1400,  850,   40,   26
    )
 
    # Generate the mixture model
