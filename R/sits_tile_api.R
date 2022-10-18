@@ -1020,6 +1020,15 @@ NULL
     ts
 }
 
+.ts_values <- function(ts, bands) {
+    # Check missing bands
+    miss_bands <- bands[!bands %in% .ts_bands(ts)]
+    if (.has(miss_bands)) {
+        stop("band(s) ", .collapse("'", miss_bands, "'"), " not found")
+    }
+    ts[bands]
+}
+
 #---- sits (samples) ----
 
 .sits_ts <- function(samples) {
