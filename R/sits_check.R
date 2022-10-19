@@ -1238,6 +1238,20 @@
     )
 }
 
+.check_lgl_parameter <- function(param, len_min = 1, len_max = 1,
+                                 allow_na = FALSE, allow_null = FALSE,
+                                 is_named = FALSE) {
+    .check_lgl(
+        x = param,
+        len_min = len_min,
+        len_max = len_max,
+        allow_na = allow_na,
+        allow_null = allow_null,
+        is_named = is_named
+    )
+}
+
+
 #' @title Check is dates parameter are valid
 #' @name .check_dates_parameter
 #' @param  param   parameter to be checked
