@@ -1020,7 +1020,9 @@ NULL
     ts
 }
 
-.ts_values <- function(ts, bands) {
+.ts_values <- function(ts, bands = NULL) {
+    # Get the time series of samples
+    bands <- .default(bands, .ts_bands(ts))
     # Check missing bands
     miss_bands <- bands[!bands %in% .ts_bands(ts)]
     if (.has(miss_bands)) {
