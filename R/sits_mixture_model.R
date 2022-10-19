@@ -5,7 +5,9 @@
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
 #' @author Rolf Simoes,     \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Alber Sanchez,   \email{alber.ipia@@inpe.br}
+
 #'
 #' @description Create a multiple endmember spectral mixture analyses fractions
 #' images. We use the non-negative least squares (NNLS) solver to calculate the
@@ -14,23 +16,26 @@
 #'
 #' @references \code{RStoolbox} package (https://github.com/bleutner/RStoolbox/)
 #'
-#' @param cube                A sits data cube.
-#' @param endmembers          Reference spectral endmembers.
-#'                            (see details below).
-#' @param memsize             Memory available for the mixture model (in GB).
-#' @param multicores          Number of cores to be used for generate the
-#'                            mixture model.
-#' @param output_dir          Directory for output images.
-#' @param rmse_band           A boolean indicating whether the error associated
-#'                            with the linear model should be generated.
-#'                            If true, a new band with errors for each pixel
-#'                            is generated using the root mean square
-#'                            measure (RMSE). Default is TRUE.
-#' @param progress            Show progress bar? Default is TRUE.
+#' @param data        A sits data cube or a sits tibble.
+#' @param endmembers  Reference spectral endmembers.
+#'                    (see details below).
+#' @param rmse_band   A boolean indicating whether the error associated
+#'                    with the linear model should be generated.
+#'                    If true, a new band with errors for each pixel
+#'                    is generated using the root mean square
+#'                    measure (RMSE). Default is TRUE.
+#' @param memsize     Memory available for the mixture model (in GB).
+#' @param multicores  Number of cores to be used for generate the
+#'                    mixture model.
+#' @param output_dir  Directory for output images.
+#' @param progress    Show progress bar? Default is TRUE.
 #'
-#' @return a sits cube with the fractions of each endmember.
-#'         The sum of all fractions is restricted to 1 (scaled from 0 to 10000),
-#'         corresponding to the abundance of the endmembers in the pixels.
+#' @return In case of a cube, a sits cube with the fractions of each endmember
+#'         will be returned. The sum of all fractions is restricted
+#'         to 1 (scaled from 0 to 10000), corresponding to the abundance of
+#'         the endmembers in the pixels.
+#'         In case of a tibble sits, the time series will be returned with the
+#'         values corresponding to each fraction.
 #'
 #' @details
 #'
@@ -38,13 +43,9 @@
 #' a shapefile. \code{endmembers} parameter must have the following columns:
 #' \code{type}, which defines the endmembers that will be
 #' created and the columns corresponding to the bands that will be used in the
-#' mixture model. See the \code{example} in this documentation for more details.
-#'
-#' If you want to generate cloud endmembers,
-#' it is useful to set the parameter \code{remove_outliers} to \code{FALSE}.
-#' Some image products have cloud values that exceed the limits set by the
-#' metadata, and therefore these values are removed if this option
-#' is \code{TRUE}.
+#' mixture model. The band values must follow the product scale.
+#' For example, in the case of sentinel-2 images the bands should be in the
+#' range 0 to 1. See the \code{example} in this documentation for more details.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -73,10 +74,10 @@
 #'
 #'    # Create the endmembers tibble
 #'    em <- tibble::tribble(
-#'           ~type, ~B02, ~B03, ~B04, ~B8A, ~B11, ~B12,
-#'        "forest",  200,  352,  189, 2800, 1340,  546,
-#'          "land",  400,  650,  700, 3600, 3500, 1800,
-#'         "water",  700, 1100, 1400,  850,   40,   26
+#'           ~type, ~B02, ~B03,   ~B04,  ~B8A,  ~B11,   ~B12,
+#'        "forest", 0.02, 0.0352, 0.0189, 0.28,  0.134, 0.0546,
+#'          "land", 0.04, 0.065,  0.07,   0.36,  0.35,  0.18,
+#'         "water", 0.07, 0.11,   0.14,   0.085, 0.004, 0.0026
 #'    )
 #'
 #'    # Generate the mixture model
@@ -94,19 +95,13 @@ sits_mixture_model <- function(data, endmembers, ...,
                                rmse_band = TRUE,
                                multicores = 2,
                                progress = TRUE) {
-
     # Pre-conditions
-    data <- .conf_data_meta_type(data)
     .check_endmembers_parameter(endmembers)
-    .check_lgl(
-        x = rmse_band,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'rmse_band' parameter"
-    )
+    .check_lgl_parameter(rmse_band)
     .check_multicores(multicores)
     .check_progress(progress)
 
+    data <- .conf_data_meta_type(data)
     UseMethod("sits_mixture_model", data)
 }
 
@@ -123,11 +118,8 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
     .check_endmembers_tbl(em)
 
     # Get endmembers bands
-    # TODO: check lines 126 e 127 its confused
-    # bands <- setdiff(.sits_bands(data), .endmembers_fracs(em))
-    bands <- setdiff(.sits_bands(data), .endmembers_bands(em))
-    bands <- .default(x = bands, default = .endmembers_bands(em))
-    # The cube is filtered here in case some fraction
+    bands <- setdiff(.sits_bands(data), .endmembers_fracs(em))
+    # The samples is filtered here in case some fraction
     # is added as a band
     data <- .sits_select_bands(samples = data, bands = bands)
     # Pre-condition
@@ -141,7 +133,7 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
     on.exit(.sits_parallel_stop(), add = TRUE)
     # Create mixture processing function
     mixture_fn <- .mixture_fn_nnls(em = em, rmse = rmse_band)
-    # Create samples as jobs
+    # Create groups of samples as jobs
     samples_groups <- .samples_split_groups(data, multicores)
     # Process each group of samples in parallel
     samples_fracs <- .sits_parallel_map(samples_groups, function(samples) {
@@ -156,46 +148,8 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
     .samples_merge_groups(samples_fracs)
 }
 
-.mixture_samples <- function(samples, em, mixture_fn, out_fracs) {
-    # Get samples time series
-    values <- .ts(samples)
-    # Apply the non-negative least squares solver
-    values <- mixture_fn(
-        values = .ts_values(ts = values, bands = .endmembers_bands(em))
-    )
-    # Rename columns fractions
-    colnames(values) <- out_fracs
-    # Merge samples and fractions values
-    samples_fracs <- .samples_merge_values(samples = samples, values = values)
-    # Return a sits tibble
-    samples_fracs
-}
-
-.samples_merge_values <- function(samples, values) {
-    values <- dplyr::bind_cols(.ts(samples), values)
-    values <- tidyr::nest(values, time_series = c(-"sample_id", -"label"))
-    samples[["time_series"]] <- values[["time_series"]]
-    samples
-}
-
-.samples_split_groups <- function(data, multicores) {
-    multicores <- if (multicores > nrow(data)) nrow(data) else multicores
-    data[["group"]] <- rep(
-        seq_len(multicores), each = ceiling(nrow(data) / multicores)
-    )[seq_len(nrow(data))]
-
-    dplyr::group_split(dplyr::group_by(data, .data[["group"]]), .keep = FALSE)
-}
-
-.samples_merge_groups <- function(samples_lst) {
-    samples <- dplyr::bind_rows(samples_lst)
-    class(samples) <- c("sits", class(samples))
-    samples
-}
-
 #' @export
-sits_mixture_model.raster_cube <- function(data,
-                                           endmembers, ...,
+sits_mixture_model.raster_cube <- function(data, endmembers, ...,
                                            rmse_band = TRUE,
                                            memsize = 1,
                                            multicores = 2,
@@ -204,7 +158,8 @@ sits_mixture_model.raster_cube <- function(data,
     # Pre-conditions
     .check_is_raster_cube(data)
     .check_memsize(memsize)
-    output_dir <- .file_path(output_dir = output_dir)
+    # output_dir <- file.path(output_dir = output_dir)
+    output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
     .check_lgl_type(progress)
 
@@ -270,8 +225,23 @@ sits_mixture_model.raster_cube <- function(data,
 }
 
 # ---- mixture functions ----
-.mixture_feature <- function(feature, block, em, mixture_fn, out_fracs,
-                             output_dir) {
+
+.mixture_samples <- function(samples, em, mixture_fn, out_fracs) {
+    # Get the time series of samples time series
+    values <- .ts(samples)
+    # Endmembers bands
+    em_bands <- .endmembers_bands(em)
+    # Apply the non-negative least squares solver
+    # the band parameter is used to ensure the order of bands
+    values <- mixture_fn(values = .ts_values(ts = values, bands = em_bands))
+    # Rename columns fractions
+    colnames(values) <- out_fracs
+    # Merge samples and fractions values
+    .samples_merge_fracs(samples = samples, values = values)
+}
+
+.mixture_feature <- function(feature, block, em,
+                             mixture_fn, out_fracs, output_dir) {
     # Output files
     out_files <- .file_eo_name(
         tile = feature, band = out_fracs,
@@ -422,17 +392,6 @@ sits_mixture_model.raster_cube <- function(data,
     dplyr::rename_with(em, toupper)
 }
 
-.endmembers_scale <- function(em, cube) {
-    bands <- .endmembers_bands(em)
-    em <- dplyr::mutate(em, dplyr::across(dplyr::all_of(bands), function(values) {
-        band_conf <- .tile_band_conf(tile = cube, band = dplyr::cur_column())
-        values * .scale(band_conf) + .offset(band_conf)
-    })
-    )
-    # Return endmembers
-    em
-}
-
 .endmembers_bands <- function(em) {
     setdiff(colnames(em), "TYPE")
 }
@@ -445,6 +404,39 @@ sits_mixture_model.raster_cube <- function(data,
 .endmembers_as_matrix <- function(em) {
     bands <- .endmembers_bands(em)
     as.matrix(em[, bands])
+}
+
+# ---- samples functions ----
+
+.samples_merge_fracs <- function(samples, values) {
+    # Bind samples time series and fractions columns
+    values <- dplyr::bind_cols(.ts(samples), values)
+    # Transform time series into a list of time instances
+    values <- tidyr::nest(values, time_series = c(-"sample_id", -"label"))
+    # Assign the fractions and bands time series to samples
+    samples[["time_series"]] <- values[["time_series"]]
+    # Return a sits tibble
+    samples
+}
+
+.samples_split_groups <- function(data, multicores) {
+    # Change multicores value in case multicores is greater than samples nrows
+    multicores <- if (multicores > nrow(data)) nrow(data) else multicores
+    # Create a new column to each group id
+    data[["group"]] <- rep(
+        seq_len(multicores), each = ceiling(nrow(data) / multicores)
+    )[seq_len(nrow(data))]
+    # Split each group by an id
+    dplyr::group_split(dplyr::group_by(data, .data[["group"]]), .keep = FALSE)
+}
+
+.samples_merge_groups <- function(samples_lst) {
+    # Binding the list items into a tibble
+    samples <- dplyr::bind_rows(samples_lst)
+    # add sits class to the tibble structure
+    class(samples) <- c("sits", class(samples))
+    # Return sits tibble
+    samples
 }
 
 # ---- mixture model functions ----
