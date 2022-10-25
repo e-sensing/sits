@@ -192,14 +192,12 @@ sits_classify.raster_cube <- function(data,
     if ("xgb_model" %in% .ml_class(ml_model)) {
         multicores <- 1
     }
-    # TODO: remove comment
-    # # Update block parameter
-    # block <- .jobs_optimal_block(
-    #     job_memsize = job_memsize, block = block,
-    #     image_size = .tile_size(.tile(data)), memsize = memsize,
-    #     multicores = multicores
-    # )
-
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_memsize = job_memsize, block = block,
+        image_size = .tile_size(.tile(data)), memsize = memsize,
+        multicores = multicores
+    )
     # Prepare parallel processing
     .sits_parallel_start(
         workers = multicores, log = verbose, output_dir = output_dir
