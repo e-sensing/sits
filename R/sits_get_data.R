@@ -107,10 +107,8 @@
 sits_get_data <- function(cube,
                           samples,
                           ...,
-                          start_date = as.Date(sits_timeline(cube)[1]),
-                          end_date = as.Date(
-                              sits_timeline(cube)[length(sits_timeline(cube))]
-                          ),
+                          start_date = NULL,
+                          end_date = NULL,
                           label = "NoClass",
                           bands = sits_bands(cube),
                           crs = 4326,
@@ -132,17 +130,31 @@ sits_get_data <- function(cube,
     .check_multicores(multicores)
     .check_output_dir(output_dir)
     .check_progress(progress)
-
-    samples <- .samples_as_tbl(
-        samples = samples, start_date = start_date,
-        end_date = end_date, label = label,
-        bands = bands, crs = crs, label_attr = label_attr,
-        n_sam_pol = n_sam_pol, pol_avg = pol_avg,
-        pol_id = pol_id
+    .check_that(
+        !(pol_avg && !.has(pol_id)),
+        msg = "invalid 'pol_id' parameter."
     )
+    # Get cube timeline and start_date and end_date parameters
+    tl <- .cube_timeline(cube)
+    start_date <- .default(start_date, as.Date(tl[1]))
+    end_date <- .default(end_date, as.Date(tl[length(tl)]))
+    # Transform samples to tibble format
+    samples <- .samples_as_tbl(
+        samples    = samples,
+        start_date = start_date,
+        end_date   = end_date,
+        label      = label,
+        bands      = bands,
+        crs        = crs,
+        label_attr = label_attr,
+        n_sam_pol  = n_sam_pol,
+        pol_avg    = pol_avg,
+        pol_id     = pol_id
+    )
+    # Check samples format
     .check_samples(samples)
-
-    data <- .sits_get_ts(
+    # Get time series
+    data <- .gd_get_ts(
         cube       = cube,
         samples    = samples,
         bands      = bands,
@@ -152,123 +164,214 @@ sits_get_data <- function(cube,
         output_dir = output_dir,
         progress   = progress
     )
-
-    if (.samples_is_polygon(data, pol_avg)) {
+    # Should the points in the polygons be summarized?
+    if (.is_samples_polygon(data, pol_avg)) {
         data <- .samples_avg_polygon(data)
     }
-
+    # Return extracted time series
     return(data)
 }
 
-.sits_get_ts <- function(cube,
-                         samples, ...,
-                         bands = NULL,
-                         crs,
-                         impute_fn,
-                         multicores,
-                         output_dir,
-                         progress) {
-
+.gd_get_ts <- function(cube,
+                       samples, ...,
+                       bands = NULL,
+                       crs,
+                       impute_fn,
+                       multicores,
+                       output_dir,
+                       progress) {
     # Dispatch
-    UseMethod(".sits_get_ts", cube)
+    UseMethod(".gd_get_ts", cube)
 }
 
-.sits_get_ts.raster_cube <- function(cube,
-                                     samples, ...,
-                                     bands,
-                                     crs = 4326,
-                                     impute_fn,
-                                     multicores,
-                                     output_dir,
-                                     progress) {
+.gd_get_ts.raster_cube <- function(cube,
+                                   samples, ...,
+                                   bands,
+                                   crs = 4326,
+                                   impute_fn,
+                                   multicores,
+                                   output_dir,
+                                   progress) {
     # Filter only tiles that intersects with samples
     cube <- .cube_filter_spatial(
         cube = cube,
         roi = .point_as_sf(point = .point(x = samples, crs = crs))
     )
+    # Filter only bands that are in cube
+    cube <- .cube_filter_bands(cube = cube, bands = bands)
     # Get cubes timeline
     tl <- .cube_timeline(cube)
-    # Pre-condition - check bands
-    if (!.has(bands)) {
-        bands <- .cube_bands(cube)
+    # Should the cloud band included in time series extraction?
+    include_cloud <- FALSE
+    if (.source_cloud() %in% bands) {
+        include_cloud <- TRUE
+        bands <- bands[bands != .source_cloud()]
     }
-    include_cloud <- if (.source_cloud() %in% bands) TRUE else FALSE
-    # Create samples jobs
-    tiles_bands <- .cube_split_tile_bands(
+    # Create crossing product between tiles and bands as jobs
+    tiles_bands <- .cube_split_tiles_bands(
         cube = cube, bands = bands, include_cloud = include_cloud
     )
-    # prepare parallelization
+    # Prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
+    # Start parallel processing
     samples_tiles_bands <- .jobs_map_parallel_dfr(tiles_bands, function(tile) {
+        # Create a temporary samples file name
         out_file <- .file_samples_name(samples, tile, output_dir)
-        if (.samples_is_valid(out_file)) {
+        # Verify if exists valid samples in local directory
+        if (.is_samples_valid(out_file)) {
             return(readRDS(out_file))
         }
-
+        # Filter samples that are in tile box
         samples <- .samples_filter_spatial(
             samples = samples, tile = tile, timeline = tl, crs = crs
         )
-        # Are there points to be retrieved from the cube?
-        if (.samples_is_empty(samples)) {
+        # Are there points to be retrieved from the tile?
+        if (.is_samples_empty(samples)) {
             return(NULL)
         }
-        samples_tbl <- .samples_format_get_data(
-            samples = samples, tile = tile, timeline = tl
+        # Format samples to sits format
+        samples_tbl <- .gd_samples_format(
+            samples = samples,
+            tile = tile,
+            timeline = tl
         )
         # Extract time series
         ts <- .raster_data_get_ts(
             tile = tile,
             samples = samples_tbl,
             crs = crs,
-            impute_fn = impute_fn,
-            output_dir = output_dir
+            impute_fn = impute_fn
         )
-
+        # Save the temporary sample
         saveRDS(ts, out_file)
-
+        # Return a tibble with extracted time series
         return(ts)
     }, progress = progress)
 
-    if (.samples_is_empty(samples_tiles_bands)) {
+    if (.is_samples_empty(samples_tiles_bands)) {
         message("No time series were retrieved.")
         return(samples_tiles_bands)
     }
-
-    # TODO: change func name
-    bands <- .cube_bands(cube, add_cloud = FALSE)
-    ts_tbl <- .gd_post_proc_rast(samples_tiles_bands, bands = bands)
-
+    # Join samples for each tile
+    ts_tbl <- .gd_join_samples(
+        ts_tbl = samples_tiles_bands,
+        cube   = cube,
+        bands  = bands
+    )
     # Recreate temporary hash values and delete them
     .gd_del_temphash(
         tiles_bands = tiles_bands, cube = cube,
         samples = samples, output_dir = output_dir
     )
-
-    # check if data has been retrieved
-    .sits_get_data_check(nrow(samples), nrow(ts_tbl))
+    # Check if data has been retrieved
+    .gd_ts_check(nrow(samples), nrow(ts_tbl))
 
     if (!inherits(ts_tbl, "sits")) {
         class(ts_tbl) <- c("sits", class(ts_tbl))
     }
+    # Return extracted time series
+    return(ts_tbl)
+}
 
+#' @name .gd_get_ts
+#' @keywords internal
+#' @noRd
+#' @export
+.gd_get_ts.class_cube <- function(cube,
+                                  samples, ...,
+                                  bands,
+                                  crs = 4326,
+                                  impute_fn,
+                                  multicores,
+                                  output_dir,
+                                  progress) {
+
+    # Filter only tiles that intersects with samples
+    cube <- .cube_filter_spatial(
+        cube = cube,
+        roi = .point_as_sf(point = .point(x = samples, crs = crs))
+    )
+    # Filter only bands that are in cube
+    cube <- .cube_filter_bands(cube = cube, bands = bands)
+    # Get cubes timeline
+    tl <- sits_timeline(cube)
+    # Create crossing product between tiles and bands as jobs
+    tiles_bands <- .cube_split_tiles_bands(
+        cube = cube, bands = bands, include_cloud = include_cloud
+    )
+    # Prepare parallelization
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop(), add = TRUE)
+    # Start parallel processing
+    samples_tiles_bands <- .jobs_map_parallel_dfr(tiles_bands, function(tile) {
+        # Create a temporary samples file name
+        out_file <- .file_samples_name(samples, tile, output_dir)
+        # Verify if exists valid samples in local directory
+        if (.is_samples_valid(out_file)) {
+            return(readRDS(out_file))
+        }
+        # Filter samples that are in tile box
+        samples <- .samples_filter_spatial(
+            samples = samples, tile = tile, timeline = tl, crs = crs
+        )
+        # Are there points to be retrieved from the tile?
+        if (.is_samples_empty(samples)) {
+            return(NULL)
+        }
+        # Format samples to sits format
+        samples_tbl <- .gd_samples_format(
+            samples = samples,
+            tile = tile,
+            timeline = tl
+        )
+        # Extract predicted classes
+        ts <- .raster_class_get_ts(
+            tile = tile,
+            points = samples_tbl,
+            crs = crs
+        )
+        # Save the temporary sample
+        saveRDS(ts, filename)
+        # Return a tibble with extracted time series
+        return(ts)
+    }, progress = progress)
+
+    # Join samples for each tile
+    ts_tbl <- .gd_join_samples(
+        ts_tbl = samples_tiles_bands,
+        cube   = cube,
+        bands  = bands
+    )
+    # Recreate temporary hash values and delete them
+    .gd_del_temphash(
+        tiles_bands = tiles_bands, cube = cube,
+        samples = samples, output_dir = output_dir
+    )
+    # Check if data has been retrieved
+    .gd_ts_check(nrow(samples), nrow(ts_tbl))
+    class(ts_tbl) <- unique(c("predicted", "sits", class(ts_tbl)))
+    # Return extracted time series
     return(ts_tbl)
 }
 
 .gd_del_temphash <- function(tiles_bands, cube, samples, output_dir) {
-    # recreate file names to delete them
-    # samples will be recycled for each hash_bundle
+    # Recreate file names to delete them
     temp_timeseries <- slider::slide_chr(tiles_bands, function(tile) {
         .file_samples_name(
             samples = samples, tile = tile, output_dir = output_dir
         )
     })
-    # delete temporary rds
+    # Delete temporary rds
     unlink(temp_timeseries)
     gc()
 }
 
-.gd_post_proc_rast <- function(ts_tbl, bands) {
+.gd_join_samples <- function(ts_tbl, cube, ...) {
+    UseMethod(".gd_join_samples", cube)
+}
+
+.gd_join_samples.raster_cube <- function(ts_tbl, cube, ..., bands) {
     ts_tbl <- ts_tbl %>%
         tidyr::unnest("time_series") %>%
         dplyr::group_by(
@@ -289,7 +392,7 @@ sits_get_data <- function(cube,
         tidyr::nest(time_series = !!c("Index", bands)) %>%
         dplyr::select(-c("tile", "#..id"))
 
-    # get the first point that intersect more than one tile
+    # Get the first point that intersect more than one tile
     # eg sentinel 2 mgrs grid
     ts_tbl <- ts_tbl %>%
         dplyr::group_by(
@@ -301,12 +404,155 @@ sits_get_data <- function(cube,
 
 }
 
+.gd_join_samples.class_cube <- function(ts_tbl, cube, ..., bands) {
+    ts_tbl <- ts_tbl %>%
+        tidyr::unnest("predicted") %>%
+        dplyr::group_by(
+            .data[["longitude"]], .data[["latitude"]],
+            .data[["start_date"]], .data[["end_date"]],
+            .data[["label"]], .data[["cube"]],
+            .data[["from"]], .data[["to"]], .data[["tile"]],
+            .data[["#..id"]]
+        )
+
+    if ("polygon_id" %in% colnames(ts_tbl)) {
+        ts_tbl <- dplyr::group_by(ts_tbl, .data[["polygon_id"]], .add = TRUE)
+    }
+
+    ts_tbl <- ts_tbl %>%
+        dplyr::summarise(dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
+        dplyr::arrange(.data[["from"]]) %>%
+        dplyr::ungroup() %>%
+        tidyr::nest(predicted = !!c("from", "to", bands)) %>%
+        dplyr::select(-c("tile", "#..id"))
+
+    # get the first point that intersect more than one tile
+    # eg sentinel 2 mgrs grid
+    ts_tbl <- ts_tbl %>%
+        dplyr::group_by(.data[["longitude"]], .data[["latitude"]],
+                        .data[["start_date"]], .data[["end_date"]],
+                        .data[["label"]], .data[["cube"]]) %>%
+        dplyr::slice_head(n = 1) %>%
+        dplyr::ungroup()
+
+}
+
+
+#' @title Check if all points have been retrieved
+#' @name .gd_ts_check
+#' @keywords internal
+#' @noRd
+#' @param n_rows_input     Number of rows in input.
+#' @param n_rows_output    Number of rows in output.
+#'
+#' @return No return value, called for side effects.
+#'
+.gd_ts_check <- function(n_rows_input, n_rows_output) {
+
+    # Have all input rows being read?
+    if (n_rows_output == 0) {
+        message("No points have been retrieved")
+        return(invisible(FALSE))
+    }
+
+    if (n_rows_output < n_rows_input) {
+        message("Some points could not be retrieved")
+    } else {
+        message("All points have been retrieved")
+    }
+}
+
+.gd_samples_format <- function(samples, tile, timeline) {
+    UseMethod(".gd_samples_format", tile)
+}
+
+.gd_samples_format.raster_cube <- function(samples, tile, timeline) {
+    # Build the sits tibble for the storing the points
+    slider::slide_dfr(samples, function(point) {
+        # Get the valid timeline
+        dates <- .timeline_during(
+            timeline   = timeline,
+            start_date = as.Date(point[["start_date"]]),
+            end_date   = as.Date(point[["end_date"]])
+        )
+        sample <- tibble::tibble(
+            longitude  = point[["longitude"]],
+            latitude   = point[["latitude"]],
+            start_date = dates[[1]],
+            end_date   = dates[[length(dates)]],
+            label      = point[["label"]],
+            cube       = tile[["collection"]],
+            polygon_id = point[["polygon_id"]]
+        )
+        # Store them in the sample tibble
+        sample$time_series <- list(tibble::tibble(Index = dates))
+        # Return valid row of time series
+        return(sample)
+    })
+}
+
+.gd_samples_format.class_cube <- function(samples, tile, timeline) {
+    # Build the sits tibble for the storing the points
+    samples_tbl <- slider::slide_dfr(samples, function(point) {
+        # Get the valid timeline
+        dates <- .timeline_during(
+            timeline   = timeline,
+            start_date = as.Date(point[["start_date"]]),
+            end_date   = as.Date(point[["end_date"]])
+        )
+        sample <- tibble::tibble(
+            longitude  = point[["longitude"]],
+            latitude   = point[["latitude"]],
+            start_date = dates[[1]],
+            end_date   = dates[[length(dates)]],
+            label      = point[["label"]],
+            cube       = tile[["collection"]],
+            polygon_id = point[["polygon_id"]]
+        )
+        # Store them in the sample tibble
+        sample$predicted <- list(tibble::tibble(
+            from = dates[[1]], to = dates[[2]])
+        )
+        # Return valid row of time series
+        return(sample)
+    })
+    return(samples_tbl)
+}
+
 .is_sf <- function(data) {
     inherits(data, "sf")
 }
 
 .is_sits_samples <- function(samples) {
     inherits(samples, "sits")
+}
+
+.is_samples_polygon <- function(samples, pol_avg) {
+    pol_avg && "polygon_id" %in% colnames(samples)
+}
+
+.is_samples_empty <- function(samples) {
+    nrow(samples) == 0
+}
+
+.is_samples_valid <- function(file) {
+    # resume processing in case of failure
+    if (!all(file.exists(file))) {
+        return(FALSE)
+    }
+    # try to open the file
+    r_obj <- .try({
+        readRDS(file)
+    },
+    .default = {
+        unlink(file)
+        NULL
+    })
+    # File is not valid
+    if (is.null(r_obj)) {
+        return(FALSE)
+    }
+    return(TRUE)
 }
 
 .samples_type <- function(samples) {
@@ -367,7 +613,7 @@ sits_get_data <- function(cube,
             start_date  = start_date,
             end_date    = end_date,
             n_shp_pol   = n_sam_pol,
-            shp_id      = pol_id
+            pol_id      = pol_id
         ),
         "sf" = .samples_from_sf(
             sf_object     = samples,
@@ -408,30 +654,6 @@ sits_get_data <- function(cube,
     digest::digest(list(samples, ...), algo = "md5")
 }
 
-.samples_is_polygon <- function(samples, pol_avg) {
-    pol_avg && "polygon_id" %in% colnames(samples)
-}
-
-.samples_is_valid <- function(file) {
-    # resume processing in case of failure
-    if (!all(file.exists(file))) {
-        return(FALSE)
-    }
-    # try to open the file
-    r_obj <- .try({
-        readRDS(file)
-    },
-    .default = {
-        unlink(file)
-        NULL
-    })
-    # File is not valid
-    if (is.null(r_obj)) {
-        return(FALSE)
-    }
-    return(TRUE)
-}
-
 .samples_filter_spatial <- function(samples, tile, timeline, crs) {
     # Add X and Y in samples tibble
     samples <- .samples_add_xy(
@@ -458,42 +680,12 @@ sits_get_data <- function(cube,
     )
 }
 
-.samples_is_empty <- function(samples) {
-    nrow(samples) == 0
-}
-
 .samples_add_xy <- function(samples, crs, as_crs) {
     # Get samples coordinates
     xy_sf <- .point(samples, crs = crs, as_crs = as_crs)
     xy_tb <- .point_coords(xy_sf)
     # Join lat-long with XY values in a single tibble
     dplyr::bind_cols(samples, xy_tb)
-}
-
-# build the sits tibble for the storing the points
-.samples_format_get_data <- function(samples, tile, timeline) {
-    slider::slide_dfr(samples, function(point) {
-
-        # get the valid timeline
-        dates <- .timeline_during(
-            timeline   = timeline,
-            start_date = as.Date(point[["start_date"]]),
-            end_date   = as.Date(point[["end_date"]])
-        )
-        sample <- tibble::tibble(
-            longitude  = point[["longitude"]],
-            latitude   = point[["latitude"]],
-            start_date = dates[[1]],
-            end_date   = dates[[length(dates)]],
-            label      = point[["label"]],
-            cube       = tile[["collection"]],
-            polygon_id = point[["polygon_id"]]
-        )
-        # store them in the sample tibble
-        sample$time_series <- list(tibble::tibble(Index = dates))
-        # return valid row of time series
-        return(sample)
-    })
 }
 
 #' @title Extracts the time series average by polygon.
@@ -508,7 +700,7 @@ sits_get_data <- function(cube,
 #' @return A sits tibble with the average of all points by each polygon.
 .samples_avg_polygon <- function(samples) {
 
-    if (.samples_is_empty(samples)) {
+    if (.is_samples_empty(samples)) {
         return(samples)
     }
     bands <- sits_bands(samples)
@@ -533,219 +725,4 @@ sits_get_data <- function(cube,
     class(data_avg) <- class(samples)
 
     return(data_avg)
-}
-
-#' @name .sits_get_ts
-#' @keywords internal
-#' @noRd
-#' @export
-.sits_get_ts.class_cube <- function(cube,
-                                    samples, ...,
-                                    bands,
-                                    crs = 4326,
-                                    impute_fn,
-                                    multicores,
-                                    output_dir,
-                                    progress) {
-
-    # Filter only tiles that intersects with samples
-    cube <- .cube_filter_spatial(
-        cube = cube,
-        roi = .point_as_sf(point = .point(x = samples, crs = crs))
-    )
-
-    # pre-condition - check bands
-    if (is.null(bands)) {
-        bands <- .cube_bands(cube)
-    }
-
-    .check_cube_bands(cube, bands = bands)
-
-    # get cubes timeline
-    tl <- sits_timeline(cube)
-
-    tiles_bands <- purrr::cross2(.cube_tiles(cube), bands)
-
-    # prepare parallelization
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop(), add = TRUE)
-
-    samples_tiles_bands <- .sits_parallel_map(tiles_bands, function(tile_band) {
-        tile_id <- tile_band[[1]]
-        band <- tile_band[[2]]
-
-        tile <- sits_select(cube, bands = band, tiles = tile_id)
-
-        hash_bundle <- digest::digest(list(tile, samples), algo = "md5")
-
-        filename <- .file_path(
-            "samples", hash_bundle,
-            ext = ".rds",
-            output_dir = output_dir
-        )
-
-        if (file.exists(filename)) {
-            tryCatch(
-                {
-                    # ensuring that the file is not corrupted
-                    timeseries <- readRDS(filename)
-
-                    return(timeseries)
-                },
-                error = function(e) {
-                    unlink(filename)
-                    gc()
-                }
-            )
-        }
-
-        # get XY
-        xy_tb <- .proj_from_latlong(
-            longitude = samples[["longitude"]],
-            latitude  = samples[["latitude"]],
-            crs       = .cube_crs(tile)
-        )
-        # join lat-long with XY values in a single tibble
-        samples <- dplyr::bind_cols(samples, xy_tb)
-        # filter the points inside the data cube space-time extent
-        samples <- dplyr::filter(
-            samples,
-            .data[["X"]] > tile$xmin & .data[["X"]] < tile$xmax &
-                .data[["Y"]] > tile$ymin & .data[["Y"]] < tile$ymax &
-                .data[["start_date"]] <= as.Date(tl[length(tl)]) &
-                .data[["end_date"]] >= as.Date(tl[1])
-        )
-        # are there points to be retrieved from the cube?
-        if (nrow(samples) == 0) {
-            return(NULL)
-        }
-        # create a matrix to extract the values
-        xy <- matrix(
-            c(samples[["X"]], samples[["Y"]]),
-            nrow = nrow(samples),
-            ncol = 2
-        )
-        colnames(xy) <- c("X", "Y")
-        # build the sits tibble for the storing the points
-        samples_tbl <- slider::slide_dfr(samples, function(point) {
-
-            # get the valid timeline
-            dates <- .timeline_during(
-                timeline   = tl,
-                start_date = as.Date(point[["start_date"]]),
-                end_date   = as.Date(point[["end_date"]])
-            )
-            sample <- tibble::tibble(
-                longitude  = point[["longitude"]],
-                latitude   = point[["latitude"]],
-                start_date = dates[[1]],
-                end_date   = dates[[length(dates)]],
-                label      = point[["label"]],
-                cube       = tile[["collection"]],
-                polygon_id = point[["polygon_id"]]
-            )
-            # store them in the sample tibble
-            sample$predicted <- list(tibble::tibble(
-                from = dates[[1]], to = dates[[2]])
-            )
-            # return valid row of time series
-            return(sample)
-        })
-        ts <- .raster_class_get_ts(
-            tile = tile,
-            points = samples_tbl,
-            band = "class",
-            xy = xy,
-            output_dir = output_dir
-        )
-
-        ts[["tile"]] <- tile_id
-        ts[["#..id"]] <- seq_len(nrow(ts))
-
-        saveRDS(ts, filename)
-
-        return(ts)
-    }, progress = progress)
-
-    ts_tbl <- samples_tiles_bands %>%
-        dplyr::bind_rows() %>%
-        tidyr::unnest("predicted") %>%
-        dplyr::group_by(
-            .data[["longitude"]], .data[["latitude"]],
-            .data[["start_date"]], .data[["end_date"]],
-            .data[["label"]], .data[["cube"]],
-            .data[["from"]], .data[["to"]], .data[["tile"]],
-            .data[["#..id"]]
-        )
-
-    if ("polygon_id" %in% colnames(ts_tbl)) {
-        ts_tbl <- dplyr::group_by(ts_tbl, .data[["polygon_id"]], .add = TRUE)
-    }
-
-    ts_tbl <- ts_tbl %>%
-        dplyr::summarise(dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
-        dplyr::arrange(.data[["from"]]) %>%
-        dplyr::ungroup() %>%
-        tidyr::nest(predicted = !!c("from", "to", bands)) %>%
-        dplyr::select(-c("tile", "#..id"))
-
-    # get the first point that intersect more than one tile
-    # eg sentinel 2 mgrs grid
-    ts_tbl <- ts_tbl %>%
-        dplyr::group_by(.data[["longitude"]], .data[["latitude"]],
-                        .data[["start_date"]], .data[["end_date"]],
-                        .data[["label"]], .data[["cube"]]) %>%
-        dplyr::slice_head(n = 1) %>%
-        dplyr::ungroup()
-
-    # recreate hash values
-    hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
-        tile_id <- tile_band[[1]]
-        band <- tile_band[[2]]
-        tile <- sits_select(cube, bands = band, tiles = tile_id)
-        digest::digest(list(tile, samples), algo = "md5")
-    })
-
-    # recreate file names to delete them
-    # samples will be recycled for each hash_bundle
-    temp_timeseries <- .file_path(
-        "samples", hash_bundle,
-        ext = "rds",
-        output_dir = output_dir
-    )
-
-    # delete temporary rds
-    unlink(temp_timeseries)
-    gc()
-
-    # check if data has been retrieved
-    .sits_get_data_check(nrow(samples), nrow(ts_tbl))
-
-    class(ts_tbl) <- unique(c("predicted", "sits", class(ts_tbl)))
-
-    return(ts_tbl)
-}
-
-#' @title Check if all points have been retrieved
-#' @name .sits_get_data_check
-#' @keywords internal
-#' @noRd
-#' @param n_rows_input     Number of rows in input.
-#' @param n_rows_output    Number of rows in output.
-#'
-#' @return No return value, called for side effects.
-#'
-.sits_get_data_check <- function(n_rows_input, n_rows_output) {
-
-    # Have all input rows being read?
-    if (n_rows_output == 0) {
-        message("No points have been retrieved")
-        return(invisible(FALSE))
-    }
-
-    if (n_rows_output < n_rows_input) {
-        message("Some points could not be retrieved")
-    } else {
-        message("All points have been retrieved")
-    }
 }
