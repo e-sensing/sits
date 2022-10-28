@@ -1263,12 +1263,6 @@
 #' @keywords internal
 .check_dates_parameter <- function(param, len_min = 1, len_max = 2^31 - 1,
                                    allow_null = TRUE) {
-    .check_chr(
-        x = param,
-        len_max = len_max,
-        len_min = len_min,
-        allow_null = allow_null
-    )
     # Standard regexp of RFC 3339
     pattern_rfc <- "^\\d{4}-\\d{2}-\\d{2}$"
     .check_that(
