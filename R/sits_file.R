@@ -73,7 +73,7 @@
 
 .file_crop_name <- function(tile, band, version, output_dir) {
     .file_path(
-        tile[["satellite"]], tile[["sensor"]], "MOSAIC",
+        tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
         .tile_start_date(tile), .tile_end_date(tile), band, "crop",
         version, ext = "tif", output_dir = output_dir
     )
@@ -84,4 +84,9 @@
         "cube", .tile_name(tile), band, date,
         ext = ".tif", output_dir = output_dir
     )
+}
+
+.file_samples_name <- function(samples, tile, output_dir) {
+    samples_hash <- .samples_create_hash(samples = samples, tile = tile)
+    .file_path("samples", samples_hash, ext = ".rds", output_dir = output_dir)
 }
