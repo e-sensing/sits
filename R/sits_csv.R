@@ -49,14 +49,14 @@ sits_to_csv <- function(data, file) {
     utils::write.csv(csv, file, row.names = FALSE, quote = FALSE)
 }
 #' @title Transform a shapefile into a samples file
-#' @name .sits_get_samples_from_csv
+#' @name .samples_from_csv
 #' @author Gilberto Camara
 #' @keywords internal
 #' @noRd
 #' @param csv_file        CSV that describes the data to be retrieved.
 #' @return                A tibble with information the samples to be retrieved
 #'
-.sits_get_samples_from_csv <- function(csv_file) {
+.samples_from_csv <- function(csv_file) {
 
     # read sample information from CSV file and put it in a tibble
     samples <- tibble::as_tibble(utils::read.csv(csv_file))

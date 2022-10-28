@@ -64,7 +64,7 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
 }
 
 #' @title Transform an sf object into a samples file
-#' @name .sf_get_samples
+#' @name .samples_from_sf
 #' @author Gilberto Camara
 #' @keywords internal
 #' @noRd
@@ -78,15 +78,14 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
 #' @return                A tibble with information the samples to be retrieved.
 #'
-.sf_get_samples <- function(sf_object,
-                            label,
-                            label_attr,
-                            start_date,
-                            end_date,
-                            n_sam_pol,
-                            pol_id) {
-
-    # get the points to be read
+.samples_from_sf <- function(sf_object,
+                             label,
+                             label_attr,
+                             start_date,
+                             end_date,
+                             n_sam_pol,
+                             pol_id) {
+    # Get the points to be read
     samples <- .sf_to_tibble(
         sf_object   = sf_object,
         label_attr  = label_attr,
@@ -94,11 +93,9 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
         n_sam_pol   = n_sam_pol,
         pol_id      = pol_id
     )
-
-    samples <- dplyr::mutate(samples,
-        start_date = as.Date(start_date),
-        end_date = as.Date(end_date)
-    )
+    # Add start_date and end_date parameters into tibble
+    samples[["start_date"]] <- as.Date(start_date)
+    samples[["end_date"]] <- as.Date(end_date)
 
     class(samples) <- c("sits", class(samples))
 
@@ -137,15 +134,15 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
             label_attr,
             label
         )
-    } else {
-        points_tbl <- .sf_polygon_to_tibble(
-            sf_object,
-            label_attr,
-            label,
-            n_sam_pol,
-            pol_id
-        )
+        return(points_tbl)
     }
+    points_tbl <- .sf_polygon_to_tibble(
+        sf_object,
+        label_attr,
+        label,
+        n_sam_pol,
+        pol_id
+    )
 
     return(points_tbl)
 }
@@ -201,10 +198,10 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
 #' @return A tibble with latitude/longitude points from POLYGON geometry
 #'
 .sf_polygon_to_tibble <- function(sf_object,
-                                       label_attr,
-                                       label,
-                                       n_sam_pol,
-                                       pol_id) {
+                                  label_attr,
+                                  label,
+                                  n_sam_pol,
+                                  pol_id) {
 
     # get the db file
     sf_df <- sf::st_drop_geometry(sf_object)
@@ -234,7 +231,7 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
                     unlist(sf_df[i, "label"], use.names = FALSE)
                 )
             } else if (!purrr::is_null(label_attr) &&
-                label_attr %in% colnames(sf_df)) {
+                       label_attr %in% colnames(sf_df)) {
                 label <- as.character(
                     unlist(sf_df[i, label_attr], use.names = FALSE)
                 )
