@@ -92,7 +92,9 @@ probs_cube_class        : ["probs_cube", "raster_cube", "sits_cube", "tbl_df",
 
 # GDAL GTiff presets
 gdal_presets         :
-    cog_overviews    : [2, 4, 8, 16]
+    cog              :
+        overviews    : [2, 4, 8, 16]
+        method       : "NEAREST"
     block            :
         of           : "GTiff"
         co           : ["COMPRESS=NONE", "BIGTIFF=NO"] # cannot be tiled!
