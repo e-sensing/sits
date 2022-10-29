@@ -149,12 +149,12 @@ sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
     multicores <- .jobs_max_multicores(
         job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
-    # Update block parameter
-    block <- .jobs_optimal_block(
-        job_memsize = job_memsize, block = block,
-        image_size = .tile_size(.tile(data)), memsize = memsize,
-        multicores = multicores
-    )
+    # # Update block parameter
+    # block <- .jobs_optimal_block(
+    #     job_memsize = job_memsize, block = block,
+    #     image_size = .tile_size(.tile(data)), memsize = memsize,
+    #     multicores = multicores
+    # )
     # Prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
