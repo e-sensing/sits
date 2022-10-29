@@ -17,19 +17,14 @@ sits_mosaic_cubes.class_cube <- function(cube,
                                          output_dir,
                                          version = "v1",
                                          progress = TRUE) {
-    # precondition - cube
-    # TODO: check_is_raster_cube
-    .check_is_sits_cube(cube)
-    # TODO: check class cube
-    # precondition - res
+    # Pre-conditions
+    .check_is_raster_cube(cube)
+    .check_cube_is_class_cube(cube)
     .check_res(res)
-    # precondition - output dir
     .check_output_dir(output_dir)
-    # precondition - multicores
     .check_multicores(multicores)
-    # precondition - progress
-    # TODO: check_progress
-    .check_lgl_type(progress)
+    .check_progress(progress)
+
     # Spatial filter
     if (!is.null(roi)) {
         roi <- .roi_as_sf(roi)
@@ -58,14 +53,14 @@ sits_mosaic_cubes.class_cube <- function(cube,
     output_file
 }
 
-
 .cube_mosaic_tiles <- function(cube, crs, multicores, output_dir, version) {
     # Generate a vrt file
     vrt_file <- tempfile(fileext = ".vrt")
     .gdal_buildvrt(
         file = vrt_file, base_files = sapply(cube$file_info, `[[`, "path"),
-        params = list("-allow_projection_difference" = TRUE), quiet = TRUE
+        quiet = TRUE
     )
+    file_paths <- .cube_foreach_tile(cube = cube, fn = .tile_paths)
     # Create mosaic file name
     base_tile <- .tile(cube)
     out_file <- .file_mosaic_name(
@@ -74,7 +69,6 @@ sits_mosaic_cubes.class_cube <- function(cube,
         output_dir = output_dir
     )
     # Create template block for mask
-    # TODO: add crs in template to export mosaic to desired crs
     .gdal_template_from_file(
         base_file = vrt_file,
         file = out_file,
@@ -82,17 +76,25 @@ sits_mosaic_cubes.class_cube <- function(cube,
         miss_value = 255,
         data_type = "INT1U"
     )
+    # .gdal_template_from_bbox(
+    #     file = out_file,
+    #     res = c(.tile_xres(base_tile), .tile_yres(base_tile)),
+    #     bbox = .bbox(cube),
+    #     miss_value = 255,
+    #     data_type = "INT1U"
+    # )
     # Copy values from mask cube into mask template
     .gdal_merge_into(
         file = out_file,
         base_files = vrt_file,
         multicores = multicores
     )
-    # TODO: set quiet to TRUE
     # Create COG overviews
+    conf_cog <- .conf("gdal_presets", "cog")
     .gdal_addo(
-        base_file = out_file, method = "NEAREST",
-        overviews = .conf("gdal_presets", "cog_overviews")
+        base_file = out_file,
+        method = conf_cog[["method"]],
+        overviews = conf_cog[["overviews"]]
     )
     # Create tile based on template
     base_tile <- .tile_derived_from_file(
@@ -108,29 +110,8 @@ sits_mosaic_cubes.class_cube <- function(cube,
 
 .crop_tile <- function(tile, res, roi, crs, version, output_dir) {
     # Get all paths and expand
-    # TODO: .tile_paths
-    file <- path.expand(.fi_paths(.fi(tile)))
-    if (!is.null(roi)) {
-        # Get roi and tile extent as sf
-        roi_obj <- .roi_as_sf(roi = roi, as_crs = .cube_crs(tile))
-        bbox_obj <- .bbox_as_sf(bbox = tile, as_crs = .cube_crs(tile))
-
-        is_tile_contained <- sf::st_contains(
-            x = roi_obj,
-            y = bbox_obj,
-            sparse = FALSE
-        )
-        if (all(c(is_tile_contained))) {
-            return(tile)
-        }
-        # Write roi in a temporary file
-        roi <- .write_roi(
-            roi = roi,
-            output_file = tempfile(fileext = ".shp"),
-            quiet = TRUE
-        )
-    }
-    # Create output file
+    file <- .tile_paths(tile)
+    # Create output file name
     out_file <- .file_crop_name(
         tile = tile, band = .tile_bands(tile),
         version = version, output_dir = output_dir
@@ -147,12 +128,52 @@ sits_mosaic_cubes.class_cube <- function(cube,
         )
         return(tile)
     }
+    fix_image_proj <- TRUE
+    if (fix_image_proj) {
+        out_file_fixed <- paste0(out_file, "_fixed.tif")
+        .gdal_fix_image(
+            file = file,
+            out_file = out_file_fixed,
+            crs = .crs(tile),
+            multicores = 1
+        )
+        file <- out_file_fixed
+    }
+    if (!is.null(roi)) {
+        # Get roi and tile extent as sf
+        roi_obj <- .roi_as_sf(roi = roi, as_crs = .cube_crs(tile))
+        bbox_obj <- .bbox_as_sf(bbox = .bbox(tile), as_crs = .cube_crs(tile))
+
+        is_tile_in_roi <- sf::st_contains(
+            x = roi_obj,
+            y = bbox_obj,
+            sparse = FALSE
+        )
+        if (all(c(is_tile_in_roi))) {
+            .gdal_rep_image(
+                file = file,
+                out_file = out_file,
+                crs = crs,
+                multicores = 1
+            )
+            tile <- .tile_class_from_file(
+                file = out_file, band = "class", base_tile = tile
+            )
+            return(tile)
+        }
+        # Write roi in a temporary file
+        roi <- .write_roi(
+            roi = roi,
+            output_file = tempfile(fileext = ".shp"),
+            quiet = TRUE
+        )
+    }
     # Crop tile image
     out_file <- .gdal_crop_image(
-        file = file, out_file = out_file,
-        roi = roi, multicores = 1
+        file = file, out_file = out_file, roi = roi, crs = crs, multicores = 1
     )
     # Delete temporary roi file
+    # TODO: improve this
     unlink(.file_path(.file_sans_ext(roi), ".*"))
     # Update asset metadata
     update_bbox <- if (is.null(roi) && is.null(res)) FALSE else TRUE
@@ -164,13 +185,86 @@ sits_mosaic_cubes.class_cube <- function(cube,
     tile
 }
 
-.gdal_crop_image <- function(file, out_file, roi, multicores) {
+.gdal_crop_image <- function(file, out_file, roi, crs, multicores) {
+
+    band_conf <- .conf_derived_band(
+        derived_class = "class_cube", band = "class"
+    )
     gdal_params <- list(
         "-of" = .conf("gdal_presets", "image", "of"),
         "-co" = .conf("gdal_presets", "image", "co"),
         "-wo" = paste0("NUM_THREADS=", multicores),
+        "-t_srs" = .as_crs(crs),
         "-multi" = TRUE,
-        "-cutline" = roi
+        "-cutline" = roi,
+        "-srcnodata" = .miss_value(band_conf),
+        "-overwrite" = TRUE
+    )
+    .gdal_warp(
+        file = out_file, base_files = file,
+        params = gdal_params, quiet = TRUE
+    )
+    out_file
+}
+
+.gdal_template_from_bbox <- function(file, res, bbox, miss_value, data_type) {
+    .gdal_translate(
+        file = file,
+        # GDAL does not allow raster creation, to bypass this limitation
+        # Let's base our raster creation by using a tiny template
+        # (647 Bytes)
+        base_file = system.file(
+            "extdata/raster/gdal/template.tif", package = "sits"
+        ),
+        params = list(
+            "-ot" = data_type,
+            "-of" = .conf("gdal_presets", "block", "of"),
+            "-b" = rep(1, 1),
+            #"-tr" = list(res, res),
+            #"-outsize" = list(.ncols(block), .nrows(block)),
+            "-scale" = list(0, 1, miss_value, miss_value),
+            "-a_srs" = .crs(bbox),
+            "-a_ullr" = list(
+                .xmin(bbox), .ymax(bbox), .xmax(bbox), .ymin(bbox)
+            ),
+            "-a_nodata" = miss_value,
+            "-co" = .conf("gdal_presets", "image", "co")
+        ),
+        quiet = TRUE
+    )
+}
+
+.gdal_rep_image <- function(file, out_file, crs, multicores) {
+    band_conf <- .conf_derived_band(
+        derived_class = "class_cube", band = "class"
+    )
+    gdal_params <- list(
+        "-of" = .conf("gdal_presets", "image", "of"),
+        "-co" = .conf("gdal_presets", "image", "co"),
+        "-wo" = paste0("NUM_THREADS=", multicores),
+        "-t_srs" = .as_crs(crs),
+        "-srcnodata" = .miss_value(band_conf),
+        "-overwrite" = TRUE
+    )
+    .gdal_warp(
+        file = out_file, base_files = file,
+        params = gdal_params, quiet = TRUE
+    )
+    out_file
+}
+
+.gdal_fix_image <- function(file, out_file, crs, multicores) {
+    band_conf <- .conf_derived_band(
+        derived_class = "class_cube", band = "class"
+    )
+    gdal_params <- list(
+        "-of" = .conf("gdal_presets", "image", "of"),
+        "-co" = .conf("gdal_presets", "image", "co"),
+        "-wo" = paste0("NUM_THREADS=", multicores),
+        "-t_srs" = .as_crs(crs),
+        "-tr" = list(10, 10),
+        "-tap" = TRUE,
+        "-srcnodata" = .miss_value(band_conf)
     )
     .gdal_warp(
         file = out_file, base_files = file,
