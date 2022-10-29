@@ -78,7 +78,6 @@ test_that("Mixture model tests", {
     r_obj <- .raster_open_rast(mm$file_info[[1]]$path[[2]])
 
     expect_true(.raster_nrows(r_obj) == .tile_nrows(reg_cube))
-    unlink(list.files(tempdir(), full.names = TRUE))
 
     samples <- tibble::tibble(
         longitude = c(-65.39246320, -65.21814581, -65.11511198),
@@ -99,7 +98,7 @@ test_that("Mixture model tests", {
         data = ts_bands,
         endmembers = em,
         multicores = 1,
-        rmse_band = FALSE
+        rmse_band = TRUE
     )
     ts_labels <- sits_labels(ts_em)
 
@@ -109,4 +108,13 @@ test_that("Mixture model tests", {
     }, logical(1))
 
     expect_true(all(frac_labels))
+
+    ts_em_bands <- sits_get_data(
+        cube = mm,
+        samples = samples,
+        multicores = 2,
+        output_dir = tempdir()
+    )
+    # TODO: check both time series cube and samples points
+    unlink(list.files(tempdir(), full.names = TRUE))
 })

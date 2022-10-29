@@ -54,8 +54,7 @@ test_that("Reading a LAT/LONG from RASTER with crs parameter", {
     point_ndvi <- sits_get_data(
         cube = raster_cube,
         samples = samples,
-        crs = "+proj=aea +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs ",
-        multicores = 1
+        crs = "+proj=aea +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs "
     )
 
     expect_equal(names(point_ndvi)[1], "longitude")
