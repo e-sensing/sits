@@ -199,6 +199,7 @@ NULL
     # Return path
     path
 }
+
 #' @title Get sorted unique bands from file_info.
 #' @name .tile_path
 #' @keywords internal
@@ -285,6 +286,22 @@ NULL
     tile <- .tile(tile)
     .fi(tile) <- .fi_filter_bands(fi = .fi(tile), bands = .band_derived(bands))
     tile
+}
+#'
+#' @title Get crs from tile
+#' @name .tile_crs
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#'
+#' @return character
+.tile_crs <- function(tile) {
+    UseMethod(".tile_crs", tile)
+}
+#' @export
+.tile_crs.raster_cube <- function(tile) {
+    tile <- .tile(tile)
+    .crs(tile)
 }
 #'
 #' @title Does tile \code{bbox} intersect \code{roi} parameter?
@@ -874,6 +891,10 @@ NULL
     values
 }
 
+.tile_contains_cloud <- function(tile) {
+    .source_cloud() %in% .tile_bands(tile)
+}
+
 #---- ml_model ----
 
 .ml_model <- function(ml_model) {
@@ -1287,16 +1308,18 @@ NULL
     )
 }
 
-.gdal_buildvrt <- function(file, base_files, params, quiet) {
+.gdal_buildvrt <- function(file, base_files, quiet) {
     sf::gdal_utils(
-        util = "buildvrt", source = base_files, destination = file,
-        options = .gdal_params(params),  quiet = quiet
+        util = "buildvrt", source = base_files,
+        destination = file, quiet = quiet
     )
 }
 
 .gdal_addo <- function(base_file, method, overviews) {
-    sf::gdal_addo(
-        file = base_file, method = method, overviews = overviews
+    suppressMessages(
+        sf::gdal_addo(
+            file = base_file, method = method, overviews = overviews
+        )
     )
 }
 
@@ -1315,7 +1338,7 @@ NULL
                 "-b" = rep(1, nlayers),
                 "-scale" = list(0, 1, miss_value, miss_value),
                 "-a_nodata" = miss_value,
-                "-co" = .conf("gdal_presets", "image", "co")
+                "-co" = .conf("gdal_presets", "image", "co"),
             ),
             quiet = TRUE
         )
