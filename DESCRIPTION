@@ -154,7 +154,6 @@ Collate:
     'sits_reclassify.R'
     'sits_raster_api.R'
     'sits_raster_api_terra.R'
-    'sits_raster_data.R'
     'sits_raster_sub_image.R'
     'sits_regularize.R'
     'sits_resnet.R'
