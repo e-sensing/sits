@@ -134,7 +134,9 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
     # Create mixture processing function
     mixture_fn <- .mixture_fn_nnls(em = em, rmse = rmse_band)
     # Create groups of samples as jobs
-    samples_groups <- .samples_split_groups(data, multicores)
+    samples_groups <- .samples_split_groups(
+        samples = data, multicores = multicores
+    )
     # Process each group of samples in parallel
     samples_fracs <- .sits_parallel_map(samples_groups, function(samples) {
         # Process the data
@@ -419,15 +421,15 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     samples
 }
 
-.samples_split_groups <- function(data, multicores) {
+.samples_split_groups <- function(samples, multicores) {
     # Change multicores value in case multicores is greater than samples nrows
-    multicores <- if (multicores > nrow(data)) nrow(data) else multicores
+    multicores <- if (multicores > nrow(samples)) nrow(samples) else multicores
     # Create a new column to each group id
-    data[["group"]] <- rep(
-        seq_len(multicores), each = ceiling(nrow(data) / multicores)
-    )[seq_len(nrow(data))]
+    samples[["group"]] <- rep(
+        seq_len(multicores), each = ceiling(nrow(samples) / multicores)
+    )[seq_len(nrow(samples))]
     # Split each group by an id
-    dplyr::group_split(dplyr::group_by(data, .data[["group"]]), .keep = FALSE)
+    dplyr::group_split(dplyr::group_by(samples, .data[["group"]]), .keep = FALSE)
 }
 
 .samples_merge_groups <- function(samples_lst) {
