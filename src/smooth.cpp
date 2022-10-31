@@ -53,14 +53,14 @@ arma::colvec nm_post_mean_x(const arma::colvec& x,
 
     return sigma * inv_sum_weights * mu0 + sigma0 * inv_sum_weights * x;
 }
-
 // [[Rcpp::export]]
 arma::mat bayes_smoother(const arma::mat& m,
                          const arma::uword m_nrow,
                          const arma::uword m_ncol,
                          const arma::mat& w,
                          const arma::mat& sigma,
-                         bool covar_sigma0) {
+                         bool covar_sigma0,
+                         const double neigh_fraction) {
 
     // initialize result matrix
     arma::mat res(arma::size(m), arma::fill::none);
@@ -85,11 +85,17 @@ arma::mat bayes_smoother(const arma::mat& m,
 
             if (neigh.n_rows == 0) continue;
 
+            // number of sorted values
+            arma::uword n_sort = neigh.n_rows * neigh_fraction;
+
+            // sort the neighborhood vector
+            neigh.data = arma::sort(neigh.data, "descend");
+
             // compute prior mean
-            mu0 = arma::mean(neigh.data.rows(0, neigh.n_rows - 1), 0).as_col();
+            mu0 = arma::mean(neigh.data.rows(0, n_sort), 0).as_col();
 
             // compute prior sigma
-            sigma0 = arma::cov(neigh.data.rows(0, neigh.n_rows - 1), 0);
+            sigma0 = arma::cov(neigh.data.rows(0, n_sort), 1);
 
             // prior sigma covariance
             if (!covar_sigma0) {
@@ -106,44 +112,7 @@ arma::mat bayes_smoother(const arma::mat& m,
                 nm_post_mean_x(m.row(j + i * m_ncol).as_col(),
                                sigma, mu0, sigma0).as_row();
         }
-    return res;
-}
-
-// [[Rcpp::export]]
-arma::mat kernel_smoother(const arma::mat& m,
-                          const arma::uword m_nrow,
-                          const arma::uword m_ncol,
-                          const arma::mat& w,
-                          const bool normalised) {
-
-    // initialize result matrix
-    arma::mat res(arma::size(m), arma::fill::none);
-    res.fill(arma::datum::nan);
-
-    // neighbourhood
-    neigh_t neigh(m, w);
-
-    // compute values for each pixel
-    for (arma::uword b = 0; b < m.n_cols; ++b)
-        for (arma::uword i = 0; i < m_nrow; ++i)
-            for (arma::uword j = 0; j < m_ncol; ++j) {
-
-                // fill neighbours values
-                neigh_vec(neigh, m, m_nrow, m_ncol, w, b, i, j);
-
-                if (neigh.n_rows == 0) continue;
-
-                // normalise weight values
-                if (normalised)
-                    neigh.weights = neigh.weights /
-                        arma::sum(neigh.weights.subvec(0, neigh.n_rows - 1));
-
-                // compute kernel neighbourhood weighted mean
-                res(j + i * m_ncol, b) = arma::as_scalar(
-                    neigh.weights.subvec(0, neigh.n_rows - 1).as_row() *
-                        neigh.data.col(b).subvec(0, neigh.n_rows - 1));
-            }
-    return res;
+        return res;
 }
 
 // [[Rcpp::export]]

@@ -642,7 +642,7 @@ plot.predicted <- function(x, y, ...,
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # plot NDVI band of the second date date of the data cube
-#'     plot(cube, band = "NDVI", date = sits_timeline(cube)[c(1:2)])
+#'     plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
 #' }
 #' @export
 plot.raster_cube <- function(
@@ -838,7 +838,7 @@ plot.uncertainty_cube <- function(
 #' @param  x               Object of class "class_cube".
 #' @param  y               Ignored.
 #' @param  ...             Further specifications for \link{plot}.
-#' @param  tiles           Tiles to be plotted.
+#' @param  tile            Tile to be plotted.
 #' @param  title           Title of the plot.
 #' @param  legend          Named vector that associates labels to colors.
 #' @param  palette         Alternative RColorBrewer palette
@@ -1029,7 +1029,7 @@ plot.class_cube <- function(x, y, ...,
         ))
 
     # rename stars object
-    stars_obj <- setNames(stars_obj, "class")
+    stars_obj <- stats::setNames(stars_obj, "class")
 
     # plot using tmap
     p <- suppressMessages(
@@ -1081,6 +1081,7 @@ plot.class_cube <- function(x, y, ...,
     if (rev)
         palette <- paste0("-",palette)
 
+
     # get all labels to be plotted
     labels <- sits_labels(tile)
     names(labels) <- c(1:length(labels))
@@ -1105,8 +1106,11 @@ plot.class_cube <- function(x, y, ...,
             "nBufYSize" = size["ysize"]
         )
     )
+    # get the band
+    band <- .tile_bands(tile)
+    band_conf <- .tile_band_conf(tile, band)
     # scale the data
-    probs_st <- probs_st * .conf("raster_cube_scale_factor")
+    probs_st <- probs_st * .scale(band_conf)
 
     # rename stars object dimensions to labels
     probs_st <- stars::st_set_dimensions(probs_st, "band",

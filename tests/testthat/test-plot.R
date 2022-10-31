@@ -45,7 +45,7 @@ test_that("Plot Time Series and Images", {
             sinop,
             ml_model = rfor_model,
             memsize = 2,
-            multicores = 1,
+            multicores = 4,
             output_dir = tempdir()
         )
     )
@@ -75,23 +75,11 @@ test_that("Plot Time Series and Images", {
     )
 
     p4 <- plot(sinop_labels, title = "Classified image")
-    expect_equal(p4$labels$title, "Classified image")
-    expect_equal(p4$layers[[1]]$geom_params$hjust, 0.5)
-    expect_true(p4$layers[[1]]$inherit.aes)
-
-    p5 <- plot(sinop_labels,
-        title = "Classified image",
-        legend = c(
-            "Cerrado" = "#B9E3B2",
-            "Forest" = "#68BE70",
-            "Pasture" = "#EEF8EB",
-            "Soy_Corn" = "#F17C1A"
-        )
-    )
-
-    expect_equal(p5$labels$title, "Classified image")
-    expect_equal(p5$layers[[1]]$geom_params$hjust, 0.5)
-    expect_true(p5$layers[[1]]$inherit.aes)
+    expect_equal(p4$tm_layout$legend.title.size, 1.2)
+    expect_equal(p4$tm_compass$compass.text.size, 0.8)
+    expect_equal(p4$tm_grid$grid.projection, 4326)
+    expect_equal(p4$tm_raster$n, 5)
+    expect_true(p4$tm_shape$check_shape)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_labels$file_info[[1]]$path))))

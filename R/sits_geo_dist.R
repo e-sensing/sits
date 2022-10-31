@@ -18,10 +18,10 @@
 #' https://doi.org/10.1038/s41467-022-29838-9
 #'
 #' @param samples A \code{samples} training data set.
-#' @param crs     CRS of the \code{samples} points.
 #' @param roi     A region of interest (ROI) used to extract random
 #'   predicted points.
 #' @param n       Maximum number of samples to consider.
+#' @param crs     CRS of the \code{samples}.
 #'
 #' @return A tibble with sample-to-sample and sample-to-prediction distances.
 #'
@@ -34,13 +34,14 @@
 #'     # convert to an sf object
 #'     mt_sf <- sf::read_sf(mt_shp)
 #'     # calculate sample-to-sample and sample-to-prediction distances
-#'     distances <- sits_geo_dist(samples_modis_ndvi, mt_sf)
+#'     distances <- sits_geo_dist(samples = samples_modis_ndvi,
+#'     roi = mt_sf)
 #'     # plot sample-to-sample and sample-to-prediction distances
 #'     plot(distances)
 #' }
 #' @export
 #'
-sits_geo_dist <- function(samples, crs = "EPSG:4326", roi, n = 1000) {
+sits_geo_dist <- function(samples, roi, n = 1000, crs = "EPSG:4326") {
 
     # Pre-conditions
     .check_samples(samples)
