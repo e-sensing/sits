@@ -127,6 +127,13 @@ derived_cube         :
                 <<: *int2u_0_10000
             bilat    :
                 <<: *int2u_0_10000
+            variance :
+                data_type    : "INT2U"
+                missing_value: 65535
+                minimum_value: 1
+                maximum_value: 10000
+                offset_value : 0
+                scale_factor : 0.01
     uncertainty_cube :
         s3_class     : [ "uncertainty_cube", "derived_cube", "raster_cube" ]
         bands        :

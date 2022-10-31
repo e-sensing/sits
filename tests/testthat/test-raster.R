@@ -18,7 +18,8 @@ test_that("One-year, single core classification", {
         ml_model = rfor_model,
         output_dir = tempdir(),
         memsize = 4,
-        multicores = 1
+        multicores = 1,
+        version = "test1"
     )
 
     # testing resume feature
@@ -28,7 +29,8 @@ test_that("One-year, single core classification", {
             ml_model = rfor_model,
             output_dir = tempdir(),
             memsize = 4,
-            multicores = 1
+            multicores = 1,
+            version = "test1"
         ) },
         regexp = "Recovery: "
     )
@@ -82,7 +84,8 @@ test_that("One-year, multicore classification", {
                     output_dir = tempdir(),
                     memsize = 4,
                     multicores = 2,
-                    verbose = TRUE
+                    verbose = TRUE,
+                    version = "test2"
                 )
             )
         },
@@ -104,7 +107,8 @@ test_that("One-year, multicore classification", {
                     output_dir = tempdir(),
                     memsize = 4,
                     multicores = 2,
-                    verbose = TRUE
+                    verbose = TRUE,
+                    version = "test2"
                 )
             )
         },
@@ -149,7 +153,8 @@ test_that("One-year, single core classification with filter", {
             filter_fn = sits_whittaker(),
             output_dir = tempdir(),
             memsize = 4,
-            multicores = 1
+            multicores = 1,
+            version = "test3"
         )
     )
 
@@ -181,7 +186,8 @@ test_that("One-year, multicore classification with Savitzky-Golay filter", {
                     filter = sits_sgolay(),
                     output_dir = tempdir(),
                     memsize = 4,
-                    multicores = 2
+                    multicores = 2,
+                    version = "test4"
                 )
             )
         },
@@ -233,7 +239,8 @@ test_that("One-year, multicore classification with Whittaker filter", {
                     filter = sits_whittaker(lambda = 3.0),
                     output_dir = tempdir(),
                     memsize = 4,
-                    multicores = 2
+                    multicores = 2,
+                    version = "test5"
                 )
             )
         },
@@ -281,7 +288,8 @@ test_that("One-year, multicore classification with MLP", {
                     ml_model = torch_model,
                     output_dir = tempdir(),
                     memsize = 8,
-                    multicores = 2
+                    multicores = 2,
+                    version = "test6"
                 )
             )
         },
@@ -329,7 +337,8 @@ test_that("One-year, multicore classification with TempCNN", {
                     ml_model = torch_model,
                     output_dir = tempdir(),
                     memsize = 8,
-                    multicores = 2
+                    multicores = 2,
+                    version = "test7"
                 )
             )
         },
@@ -377,7 +386,8 @@ test_that("One-year, multicore classification with ResNet", {
                     ml_model = torch_model,
                     output_dir = tempdir(),
                     memsize = 8,
-                    multicores = 2
+                    multicores = 2,
+                    version = "test8"
                 )
             )
         },
@@ -387,7 +397,7 @@ test_that("One-year, multicore classification with ResNet", {
     )
 
     if (purrr::is_null(sinop_2014_probs)) {
-        skip("Unable to allocated multicores")
+        skip("Unable to allocate multicores")
     }
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
@@ -425,7 +435,8 @@ test_that("One-year, multicore classification with TAE", {
                     ml_model = torch_model,
                     output_dir = tempdir(),
                     memsize = 8,
-                    multicores = 2
+                    multicores = 2,
+                    version = "test9"
                 )
             )
         },
@@ -473,7 +484,8 @@ test_that("One-year, multicore classification with LightTAE", {
                     ml_model = torch_model,
                     output_dir = tempdir(),
                     memsize = 8,
-                    multicores = 2
+                    multicores = 2,
+                    version = "test10"
                 )
             )
         },
@@ -548,7 +560,8 @@ test_that("One-year, multicores classification with cloud band", {
                     rf_model,
                     output_dir = tempdir(),
                     memsize = 4,
-                    multicores = 2
+                    multicores = 2,
+                    version = "test11"
                 )
             )
         },
@@ -592,7 +605,8 @@ test_that("One-year, multicore classification with post-processing", {
                     rfor_model,
                     output_dir = temp_dir,
                     memsize = 4,
-                    multicores = 1
+                    multicores = 2,
+                    version = "test12"
                 )
             )
         },
@@ -608,14 +622,16 @@ test_that("One-year, multicore classification with post-processing", {
 
     sinop_class <- sits_label_classification(
         sinop_probs,
-        output_dir = temp_dir
+        output_dir = temp_dir,
+        version = "test12"
     )
 
     # testing resume feature
     expect_message(
         object = { sits_label_classification(
             sinop_probs,
-            output_dir = temp_dir
+            output_dir = temp_dir,
+            version = "test12"
         ) },
         regexp = "Recovery"
     )
@@ -634,7 +650,9 @@ test_that("One-year, multicore classification with post-processing", {
     sinop_bayes <- sits_smooth(
         sinop_probs,
         output_dir = temp_dir,
-        multicores = 2
+        multicores = 2,
+        memsize = 4,
+        version = "test12"
     )
 
     # testing the recovery feature
@@ -642,7 +660,9 @@ test_that("One-year, multicore classification with post-processing", {
         object = { sits_smooth(
             sinop_probs,
             output_dir = temp_dir,
-            multicores = 2
+            multicores = 2,
+            memsize = 4,
+            version = "test12"
         ) },
         regexp = "Recovery"
     )
@@ -664,7 +684,9 @@ test_that("One-year, multicore classification with post-processing", {
         cube = sinop_probs,
         type = "bilateral",
         output_dir = temp_dir,
-        multicores = 1
+        multicores = 2,
+        memsize = 4,
+        version = "test12"
     )
 
     # testing the recovery feature
@@ -673,7 +695,9 @@ test_that("One-year, multicore classification with post-processing", {
             cube = sinop_probs,
             type = "bilateral",
             output_dir = temp_dir,
-            multicores = 1
+            multicores = 2,
+            memsize = 4,
+            version = "test12"
         ) },
         regexp = "Recovery"
     )
@@ -693,7 +717,9 @@ test_that("One-year, multicore classification with post-processing", {
         cube = sinop_bayes,
         type = "entropy",
         output_dir = temp_dir,
-        multicores = 1
+        multicores = 2,
+        memsize = 4,
+        version = "test12"
     )
 
     expect_true(all(file.exists(unlist(sinop_uncert$file_info[[1]]$path))))
@@ -708,7 +734,10 @@ test_that("One-year, multicore classification with post-processing", {
         collection = "MOD13Q1-6",
         bands = "entropy",
         labels = sits_labels(sinop_class),
-        data_dir = temp_dir
+        data_dir = temp_dir,
+        parse_info = c("X1", "X2", "tile",
+                       "start_date", "end_date",
+                       "band", "version")
     )
 
     timeline_orig <- sits_timeline(sinop)
