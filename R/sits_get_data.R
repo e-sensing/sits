@@ -557,7 +557,6 @@ sits_get_data <- function(cube,
 #' @return No return value, called for side effects.
 #'
 .gd_ts_check <- function(n_rows_input, n_rows_output) {
-
     # Have all input rows being read?
     if (n_rows_output == 0) {
         message("No points have been retrieved")
