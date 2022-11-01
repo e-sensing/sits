@@ -547,10 +547,12 @@ NULL
 #' @param overlap overlap between tiles
 #' @return set of chunks to be read from the file
 
-.tile_chunks_create <- function(tile, overlap) {
+.tile_chunks_create <- function(tile, overlap, block = NULL) {
     # Get block size
-    block <-
-        .raster_file_blocksize(.raster_open_rast(.tile_path(tile)))
+    block <- .default(
+        x = block,
+        default = .raster_file_blocksize(.raster_open_rast(.tile_path(tile)))
+    )
     # Compute chunks
     .chunks_create(
         block = block,
@@ -868,9 +870,9 @@ NULL
     if (nrow(values) != nrow(xy)) {
         stop("number of extracted points differ from requested points")
     }
-    return(values)
+    # Return values
+    values
 }
-
 
 #---- ml_model ----
 
@@ -1248,7 +1250,9 @@ NULL
         stop("parameters should be named")
     }
     unlist(mapply(function(par, val) {
-        if (is.logical(val)) {
+        if (is.null(val)) {
+            NULL
+        } else if (is.logical(val)) {
             if (val) par else NULL
         } else if (is.list(val)) {
             c(par, unlist(val))
@@ -1272,8 +1276,21 @@ NULL
     )
 }
 
+.gdal_buildvrt <- function(file, base_files, params, quiet) {
+    sf::gdal_utils(
+        util = "buildvrt", source = base_files, destination = file,
+        options = .gdal_params(params),  quiet = quiet
+    )
+}
+
+.gdal_addo <- function(base_file, method, overviews) {
+    sf::gdal_addo(
+        file = base_file, method = method, overviews = overviews
+    )
+}
+
 .gdal_template_from_file <- function(base_file, file, nlayers, miss_value,
-                                     data_type) {
+                                     data_type, as_crs = NULL) {
     # Convert to gdal data type
     data_type <- .gdal_data_type[[data_type]]
     # Output file

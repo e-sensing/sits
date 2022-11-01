@@ -5,27 +5,17 @@
 \title{Multiple endmember spectral mixture analysis}
 \usage{
 sits_mixture_model(
-  cube,
+  data,
   endmembers,
-  memsize = 1,
-  multicores = 2,
-  output_dir = getwd(),
+  ...,
   rmse_band = TRUE,
+  multicores = 2,
   progress = TRUE
 )
 }
 \arguments{
-\item{cube}{A sits data cube.}
-
 \item{endmembers}{Reference spectral endmembers.
 (see details below).}
-
-\item{memsize}{Memory available for the mixture model (in GB).}
-
-\item{multicores}{Number of cores to be used for generate the
-mixture model.}
-
-\item{output_dir}{Directory for output images.}
 
 \item{rmse_band}{A boolean indicating whether the error associated
 with the linear model should be generated.
@@ -33,7 +23,16 @@ If true, a new band with errors for each pixel
 is generated using the root mean square
 measure (RMSE). Default is TRUE.}
 
+\item{multicores}{Number of cores to be used for generate the
+mixture model.}
+
 \item{progress}{Show progress bar? Default is TRUE.}
+
+\item{cube}{A sits data cube.}
+
+\item{memsize}{Memory available for the mixture model (in GB).}
+
+\item{output_dir}{Directory for output images.}
 }
 \value{
 a sits cube with the fractions of each endmember.

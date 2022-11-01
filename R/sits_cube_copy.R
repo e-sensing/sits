@@ -8,8 +8,7 @@
 #' @param cube       A sits cube
 #' @param roi        A Region of interest. See details below.
 #' @param res        An integer value corresponds to the output
-#'                   spatial resolution of the images.
-#'                   Default is NULL.
+#'                   spatial resolution of the images. Default is NULL.
 #' @param output_dir Output directory where images will be saved.
 #' @param multicores Number of workers for parallel downloading.
 #' @param progress   Show progress bar?
@@ -123,28 +122,29 @@ sits_cube_copy <- function(cube,
 .gdal_format_params <- function(asset, roi, res) {
     gdal_params <- list()
     if (.has(res)) {
-        gdal_params[["tr"]] <- c(res, res)
+        gdal_params[["-tr"]] <- list(xres = res, yres = res)
     }
     if (.has(roi)) {
-        gdal_params[["srcwin"]] <- .gdal_as_srcwin(asset = asset, roi = roi)
+        gdal_params[["-srcwin"]] <- .gdal_as_srcwin(asset = asset, roi = roi)
     }
-    gdal_params[c("of", "co")] <- list("GTiff", .conf("gdal_creation_options"))
-
+    gdal_params[c("-of", "-co")] <- list(
+        "GTiff", .conf("gdal_presets", "image", "co")
+    )
     gdal_params
 }
 
 .gdal_as_srcwin <- function(asset, roi) {
     block <- .raster_sub_image(tile = asset, roi = roi)
-    c(xoff = block[["col"]] - 1,
-      yoff = block[["row"]] - 1,
-      xsize = block[["ncols"]],
-      ysize = block[["nrows"]]
+    list(xoff = block[["col"]] - 1,
+         yoff = block[["row"]] - 1,
+         xsize = block[["ncols"]],
+         ysize = block[["nrows"]]
     )
 }
 
 .download_controller <- function(out_file, gdal_params) {
     # gdal is used if the image needs to be cropped or resampled
-    if (any(c("srcwin", "tr") %in% names(gdal_params))) {
+    if (any(c("-srcwin", "-tr") %in% names(gdal_params))) {
         download_fn <- .download_gdal(out_file, gdal_params)
     } else {
         download_fn <- .download_base(out_file)
@@ -154,10 +154,9 @@ sits_cube_copy <- function(cube,
 
 .download_gdal <- function(out_file, gdal_params) {
     download_fn <- function(file) {
-        gdal_params[c("src_dataset", "dst_dataset")] <- list(file, out_file)
-        do.call(
-            what = gdalUtilities::gdal_translate,
-            args = gdal_params
+        .gdal_translate(
+            file = out_file, base_file = file,
+            params = gdal_params, quiet = TRUE
         )
         out_file
     }

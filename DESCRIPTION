@@ -145,6 +145,7 @@ Collate:
     'sits_merge.R'
     'sits_mixture_model.R'
     'sits_mlp.R'
+    'sits_mosaic_cubes.R'
     'sits_model_export.R'
     'sits_parallel.R'
     'sits_patterns.R'
