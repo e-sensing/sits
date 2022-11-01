@@ -19,8 +19,6 @@
 #' @param  type              Type of smoothing
 #' @param  ...               Parameters for specific functions
 #' @param  window_size       Size of the neighborhood.
-#' @param  neigh_fraction    Fraction of neighbors with highest probability
-#'                           to be used in Bayesian inference.
 #' @param  smoothness        Estimated variance of logit of class probabilities
 #'                           (Bayesian smoothing parameter). It can be either
 #'                           a matrix or a scalar.
@@ -126,7 +124,6 @@ sits_smooth <- function(cube,
 #' @export
 sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               window_size = 9,
-                              neigh_fraction = 0.5,
                               smoothness = 20,
                               covar = FALSE,
                               multicores = 2,
@@ -137,7 +134,6 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     # Create smooth function
     smooth_fn <- .smooth_fn_bayes(
         window_size = window_size,
-        neigh_fraction = neigh_fraction,
         smoothness = smoothness,
         covar = covar,
         nlabels = length(.tile_labels(cube))
@@ -269,21 +265,11 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
 #---- smooth functions ----
 
 .smooth_fn_bayes <- function(window_size,
-                             neigh_fraction,
                              smoothness,
                              covar,
                              nlabels) {
     # Check window size
     .check_window_size(window_size, min = 7)
-    # Check neigh_fraction
-    .check_num_parameter(neigh_fraction, min = 0, max = 1)
-    # check number of values
-    num_values <- window_size * window_size * neigh_fraction
-    .check_num(num_values, min = 30,
-               msg = paste0("Sample size too small \n",
-               "Please choose a larger window\n",
-               "or increase the neighborhood fraction")
-    )
     # Check covar
     .check_lgl_type(covar)
     # Prepare smoothness parameter
@@ -308,8 +294,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
             m_ncol = block[["ncols"]],
             w = window,
             sigma = smoothness,
-            covar_sigma0 = covar,
-            neigh_fraction = neigh_fraction
+            covar_sigma0 = covar
         )
         # Compute inverse logit
         values <- exp(values) / (exp(values) + 1)

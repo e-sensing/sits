@@ -33,13 +33,14 @@ void neigh_vec(neigh_t& n,
             if (m_i + i >= w_leg_i && m_j + j >= w_leg_j &&
                 m_i + i < w_leg_i + m_nrow &&
                 m_j + j < w_leg_j + m_ncol &&
-                arma::is_finite(m(m_j + m_i * m_ncol, 0))) {
+                arma::is_finite(m(m_j + m_i * m_ncol, 0)) &&
+                arma::is_finite(m((m_j + j - w_leg_j) + (m_i + i - w_leg_i) * m_ncol, m_b))) {
 
                 n.data(k, m_b) = m((m_j + j - w_leg_j) +
                     (m_i + i - w_leg_i) * m_ncol, m_b);
                 n.weights(k++) = w(i, j);
             }
-    n.n_rows = k;
+            n.n_rows = k;
 }
 
 arma::colvec nm_post_mean_x(const arma::colvec& x,
@@ -59,8 +60,7 @@ arma::mat bayes_smoother(const arma::mat& m,
                          const arma::uword m_ncol,
                          const arma::mat& w,
                          const arma::mat& sigma,
-                         bool covar_sigma0,
-                         const double neigh_fraction) {
+                         bool covar_sigma0) {
 
     // initialize result matrix
     arma::mat res(arma::size(m), arma::fill::none);
@@ -86,16 +86,18 @@ arma::mat bayes_smoother(const arma::mat& m,
             if (neigh.n_rows == 0) continue;
 
             // number of sorted values
-            arma::uword n_sort = neigh.n_rows * neigh_fraction;
+            arma::uword n_sort = w.n_cols * (w.n_cols / 2 + 1);
+            if (n_sort > neigh.n_rows) n_sort = neigh.n_rows;
 
             // sort the neighborhood vector
-            neigh.data = arma::sort(neigh.data, "descend");
+            neigh.data.rows(0, neigh.n_rows - 1) =
+                arma::sort(neigh.data.rows(0, neigh.n_rows - 1), "descend");
 
             // compute prior mean
-            mu0 = arma::mean(neigh.data.rows(0, n_sort), 0).as_col();
+            mu0 = arma::mean(neigh.data.rows(0, n_sort - 1), 0).as_col();
 
             // compute prior sigma
-            sigma0 = arma::cov(neigh.data.rows(0, n_sort), 1);
+            sigma0 = arma::cov(neigh.data.rows(0, n_sort - 1), 1);
 
             // prior sigma covariance
             if (!covar_sigma0) {
@@ -117,10 +119,10 @@ arma::mat bayes_smoother(const arma::mat& m,
 
 // [[Rcpp::export]]
 arma::mat bilateral_smoother(const arma::mat& m,
-                            const arma::uword m_nrow,
-                            const arma::uword m_ncol,
-                            const arma::mat& w,
-                            double tau) {
+                             const arma::uword m_nrow,
+                             const arma::uword m_ncol,
+                             const arma::mat& w,
+                             double tau) {
 
     // initialize result matrix
     arma::mat res(arma::size(m), arma::fill::none);
@@ -150,7 +152,7 @@ arma::mat bilateral_smoother(const arma::mat& m,
                 // compute kernel neighbourhood weighted mean
                 res(j + i * m_ncol, b) = arma::as_scalar(
                     bln_weight.subvec(0, neigh.n_rows - 1).as_row() *
-                    neigh.data.col(b).subvec(0, neigh.n_rows - 1));
+                        neigh.data.col(b).subvec(0, neigh.n_rows - 1));
             }
-    return res;
+            return res;
 }
