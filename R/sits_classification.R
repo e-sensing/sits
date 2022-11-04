@@ -152,7 +152,6 @@ sits_classify.raster_cube <- function(data,
                                       version = "v1",
                                       verbose = TRUE,
                                       progress = TRUE) {
-
     # preconditions
     .check_is_raster_cube(data)
     .check_is_regular(data)
