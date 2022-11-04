@@ -155,7 +155,7 @@ sits_get_data <- function(cube,
     # Check samples format
     .check_samples(samples)
     # Get time series
-    data <- .gd_get_ts(
+    data <- .gd_get_data(
         cube       = cube,
         samples    = samples,
         bands      = bands,
@@ -173,14 +173,14 @@ sits_get_data <- function(cube,
     return(data)
 }
 
-.gd_get_ts <- function(cube,
-                       samples, ...,
-                       bands = NULL,
-                       crs,
-                       impute_fn,
-                       multicores,
-                       output_dir,
-                       progress) {
+.gd_get_data <- function(cube,
+                         samples, ...,
+                         bands = NULL,
+                         crs,
+                         impute_fn,
+                         multicores,
+                         output_dir,
+                         progress) {
     # Filter only tiles that intersects with samples
     cube <- .cube_filter_spatial(
         cube = cube,
@@ -232,17 +232,17 @@ sits_get_data <- function(cube,
             if (are_samples_empty(samples)) {
                 return(NULL)
             }
-            # Extract time series
-            ts <- .gd_extract_data(
+            # Extract data
+            ext_data <- .gd_extract_data(
                 tile = tile,
                 samples = samples,
                 crs = crs,
                 impute_fn = impute_fn
             )
             # Save the temporary sample
-            saveRDS(ts, out_file)
+            saveRDS(ext_data, out_file)
             # Return a tibble with extracted time series
-            return(ts)
+            return(ext_data)
         })
     }, progress = progress)
 
@@ -251,8 +251,8 @@ sits_get_data <- function(cube,
         return(samples_tiles)
     }
     # Join samples for each tile
-    ts_tbl <- .gd_join_samples(
-        ts_tbl = samples_tiles,
+    ext_samples <- .gd_join_samples(
+        samples = samples_tiles,
         cube   = cube,
         bands  = bands
     )
@@ -262,23 +262,9 @@ sits_get_data <- function(cube,
         samples = samples, output_dir = output_dir
     )
     # Check if data has been retrieved
-    .gd_ts_check(nrow(samples), nrow(ts_tbl))
-    # Set samples class
-    ts_tbl <- .set_class(ts_tbl, c(.gd_class(cube), class(ts_tbl)))
-    # Return extracted time series
-    return(ts_tbl)
-}
-
-.gd_class <- function(cube) {
-    UseMethod(".gd_class", cube)
-}
-
-.gd_class.raster_cube <- function(cube) {
-    return("sits")
-}
-
-.gd_class.class_cube <- function(cube) {
-    return(c("predicted", "sits"))
+    .gd_ts_check(nrow(samples), nrow(ext_samples))
+    # Return extracted data
+    return(ext_samples)
 }
 
 #' @title Extract a time series from raster
@@ -420,7 +406,6 @@ sits_get_data <- function(cube,
     samples[["tile"]] <- .tile_name(tile)
     samples[["#..id"]] <- seq_len(nrow(samples))
 
-    class(samples) <- c("sits", class(samples))
     return(samples)
 }
 
@@ -461,7 +446,6 @@ sits_get_data <- function(cube,
     samples[["tile"]] <- .tile_name(tile)
     samples[["#..id"]] <- seq_len(nrow(samples))
 
-    class(samples) <- unique(c("predicted", "sits", class(samples)))
     return(samples)
 }
 
@@ -477,12 +461,12 @@ sits_get_data <- function(cube,
     gc()
 }
 
-.gd_join_samples <- function(ts_tbl, cube, ...) {
+.gd_join_samples <- function(samples, cube, ...) {
     UseMethod(".gd_join_samples", cube)
 }
 
-.gd_join_samples.raster_cube <- function(ts_tbl, cube, ..., bands) {
-    ts_tbl <- ts_tbl %>%
+.gd_join_samples.raster_cube <- function(samples, cube, ..., bands) {
+    samples <- samples %>%
         tidyr::unnest("time_series") %>%
         dplyr::group_by(
             .data[["longitude"]], .data[["latitude"]],
@@ -491,11 +475,11 @@ sits_get_data <- function(cube,
             .data[["Index"]], .data[["tile"]], .data[["#..id"]]
         )
 
-    if ("polygon_id" %in% colnames(ts_tbl)) {
-        ts_tbl <- dplyr::group_by(ts_tbl, .data[["polygon_id"]], .add = TRUE)
+    if ("polygon_id" %in% colnames(samples)) {
+        samples <- dplyr::group_by(samples, .data[["polygon_id"]], .add = TRUE)
     }
 
-    ts_tbl <- ts_tbl %>%
+    samples <- samples %>%
         dplyr::summarise(dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
@@ -504,7 +488,7 @@ sits_get_data <- function(cube,
 
     # Get the first point that intersect more than one tile
     # eg sentinel 2 mgrs grid
-    ts_tbl <- ts_tbl %>%
+    samples <- samples %>%
         dplyr::group_by(
             .data[["longitude"]], .data[["latitude"]],
             .data[["start_date"]], .data[["end_date"]],
@@ -512,10 +496,13 @@ sits_get_data <- function(cube,
         dplyr::slice_head(n = 1) %>%
         dplyr::ungroup()
 
+    samples <- .set_class(samples, "sits", class(samples))
+
+    return(samples)
 }
 
-.gd_join_samples.class_cube <- function(ts_tbl, cube, ..., bands) {
-    ts_tbl <- ts_tbl %>%
+.gd_join_samples.class_cube <- function(samples, cube, ..., bands) {
+    samples <- samples %>%
         tidyr::unnest("predicted") %>%
         dplyr::group_by(
             .data[["longitude"]], .data[["latitude"]],
@@ -525,11 +512,11 @@ sits_get_data <- function(cube,
             .data[["#..id"]]
         )
 
-    if ("polygon_id" %in% colnames(ts_tbl)) {
-        ts_tbl <- dplyr::group_by(ts_tbl, .data[["polygon_id"]], .add = TRUE)
+    if ("polygon_id" %in% colnames(samples)) {
+        samples <- dplyr::group_by(samples, .data[["polygon_id"]], .add = TRUE)
     }
 
-    ts_tbl <- ts_tbl %>%
+    samples <- samples %>%
         dplyr::summarise(dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
         dplyr::arrange(.data[["from"]]) %>%
         dplyr::ungroup() %>%
@@ -538,13 +525,14 @@ sits_get_data <- function(cube,
 
     # get the first point that intersect more than one tile
     # eg sentinel 2 mgrs grid
-    ts_tbl <- ts_tbl %>%
+    samples <- samples %>%
         dplyr::group_by(.data[["longitude"]], .data[["latitude"]],
                         .data[["start_date"]], .data[["end_date"]],
                         .data[["label"]], .data[["cube"]]) %>%
         dplyr::slice_head(n = 1) %>%
         dplyr::ungroup()
 
+    samples <- .set_class(samples, "predicted", "sits", class(samples))
 }
 
 #' @title Check if all points have been retrieved
