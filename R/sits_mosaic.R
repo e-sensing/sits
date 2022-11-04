@@ -70,8 +70,9 @@
 sits_mosaic <- function(cube,
                         crs,
                         roi = NULL,
-                        multicores,
-                        output_dir,
+                        multicores = 2,
+                        output_dir = getwd(),
+                        version = "v1",
                         progress = TRUE) {
     UseMethod("sits_mosaic", cube)
 }
