@@ -88,5 +88,7 @@
 
 .file_samples_name <- function(samples, tile, output_dir) {
     samples_hash <- .samples_create_hash(samples = samples, tile = tile)
-    .file_path("samples", samples_hash, ext = ".rds", output_dir = output_dir)
+    .file_path("samples", samples_hash, ext = ".rds",
+               output_dir =  file.path(output_dir, ".sits")
+    )
 }
