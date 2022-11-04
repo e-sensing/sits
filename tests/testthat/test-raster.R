@@ -38,7 +38,7 @@ test_that("One-year, single core classification", {
         "Pastagem", "Soja_Milho"
     )
     expect_true(all(sits_labels(sinop_probs) %in%
-        c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")))
+                        c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")))
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
 
@@ -622,7 +622,7 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
 
     expect_true(length(sits_timeline(sinop_class)) ==
-        length(sits_timeline(sinop_probs)))
+                    length(sits_timeline(sinop_probs)))
 
     r_obj <- .raster_open_rast(sinop_class$file_info[[1]]$path[[1]])
     max_lab <- max(.raster_get_values(r_obj))
@@ -649,7 +649,7 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
 
     expect_true(length(sits_timeline(sinop_bayes)) ==
-        length(sits_timeline(sinop_probs)))
+                    length(sits_timeline(sinop_probs)))
 
     r_bay <- .raster_open_rast(sinop_bayes$file_info[[1]]$path[[1]])
     expect_true(.raster_nrows(r_bay) == .tile_nrows(sinop_probs))
@@ -797,6 +797,62 @@ test_that("One-year, multicores processing reclassify", {
     )
 
     unlink(ro_mask$file_info[[1]]$path)
+})
+
+test_that("One-year, multicores mosaic", {
+    # create a random forest model
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "tile", "band", "date")
+    )
+    output_dir <- tempdir()
+    # classify a data cube
+    probs_cube <- sits_classify(
+        data = cube,
+        ml_model = rfor_model,
+        output_dir = output_dir
+    )
+    # smooth the probability cube using Bayesian statistics
+    bayes_cube <- sits_smooth(probs_cube, output_dir = output_dir)
+    # label the probability cube
+    label_cube <- sits_label_classification(bayes_cube, output_dir = output_dir)
+    # create roi
+    roi <- sf::st_sfc(
+        sf::st_polygon(
+            list(rbind(
+                c(-55.64768, -11.68649),
+                c(-55.69654, -11.66455),
+                c(-55.62973, -11.61519),
+                c(-55.64768, -11.68649)))), crs = 4326
+    )
+    # crop and mosaic classified image
+    mosaic_cube <- sits_mosaic(
+        cube = label_cube,
+        roi = roi,
+        crs = 4326,
+        output_dir = output_dir
+    )
+
+    expect_equal(mosaic_cube[["tile"]], "MOSAIC")
+    expect_equal(nrow(mosaic_cube), 1)
+    bbox_cube <- sits_bbox(mosaic_cube)
+    bbox_roi <- sf::st_bbox(roi)
+    expect_true(
+        bbox_cube[["xmin"]] < bbox_roi[["xmin"]] &&
+        bbox_cube[["xmax"]] > bbox_roi[["xmax"]] &&
+        bbox_cube[["ymin"]] < bbox_roi[["ymin"]] &&
+        bbox_cube[["ymax"]] > bbox_roi[["ymax"]]
+    )
+    unlink(probs_cube$file_info[[1]]$path)
+    unlink(bayes_cube$file_info[[1]]$path)
+    unlink(label_cube$file_info[[1]]$path)
+    unlink(mosaic_cube$file_info[[1]]$path)
 })
 
 test_that("Raster GDAL datatypes", {

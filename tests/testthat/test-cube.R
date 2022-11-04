@@ -354,8 +354,6 @@ test_that("Creating cubes from USGS", {
 })
 
 test_that("Creating Sentinel cubes from MPC", {
-
-
     s2_cube <- .try({
         sits_cube(
             source = "MPC",
