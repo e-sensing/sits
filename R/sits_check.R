@@ -1400,6 +1400,14 @@
         msg = "invalid output dir"
     )
 }
+.check_crs <- function(crs) {
+    crs <- suppressWarnings(.try(sf::st_crs(crs), .default = NA))
+    .check_that(
+        x = !is.na(crs),
+        local_msg = "the 'crs' must be a valid character or numeric value.",
+        msg = "invalid 'crs' parameter."
+    )
+}
 #' @title Check is version parameter is valid using reasonable defaults
 #' @name .check_version
 #' @keywords internal
