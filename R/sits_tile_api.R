@@ -49,6 +49,15 @@ NULL
 .tile_name <- function(tile) {
     UseMethod(".tile_name", tile)
 }
+`.tile_name<-` <- function(tile, value) {
+    UseMethod(".tile_name<-", tile)
+}
+#' @export
+`.tile_name<-.raster_cube` <- function(tile, value) {
+    tile <- .tile(tile)
+    tile[["tile"]] <- .as_chr(value)
+    tile
+}
 #
 .tile_name.raster_cube <- function(tile) {
     .as_chr(tile[["tile"]][[1]])
@@ -895,6 +904,18 @@ NULL
     .source_cloud() %in% .tile_bands(tile)
 }
 
+.tile_contains_roi <- function(tile, roi) {
+    # Transform roi and bbox to sf
+    roi_bbox  <- .roi_as_sf(roi = roi, as_crs = .tile_crs(tile))
+    tile_bbox <- .bbox_as_sf(bbox = .bbox(tile), as_crs = .tile_crs(tile))
+    # Verify if the roi contains tile bbox
+    sf::st_contains(
+        x = roi_bbox,
+        y = tile_bbox,
+        sparse = FALSE
+    )
+}
+
 #---- ml_model ----
 
 .ml_model <- function(ml_model) {
@@ -1315,16 +1336,19 @@ NULL
     )
 }
 
-.gdal_addo <- function(base_file, method, overviews) {
+.gdal_addo <- function(base_file) {
+    conf_cog <- .conf("gdal_presets", "cog")
     suppressMessages(
         sf::gdal_addo(
-            file = base_file, method = method, overviews = overviews
+            file = base_file,
+            method = conf_cog[["method"]],
+            overviews = conf_cog[["overviews"]]
         )
     )
 }
 
 .gdal_template_from_file <- function(base_file, file, nlayers, miss_value,
-                                     data_type, as_crs = NULL) {
+                                     data_type) {
     # Convert to gdal data type
     data_type <- .gdal_data_type[[data_type]]
     # Output file
@@ -1338,7 +1362,7 @@ NULL
                 "-b" = rep(1, nlayers),
                 "-scale" = list(0, 1, miss_value, miss_value),
                 "-a_nodata" = miss_value,
-                "-co" = .conf("gdal_presets", "image", "co"),
+                "-co" = .conf("gdal_presets", "image", "co")
             ),
             quiet = TRUE
         )
