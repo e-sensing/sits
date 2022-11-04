@@ -4,7 +4,15 @@
 \alias{sits_mosaic}
 \title{Mosaic classified cubes}
 \usage{
-sits_mosaic(cube, crs, roi = NULL, multicores, output_dir, progress = TRUE)
+sits_mosaic(
+  cube,
+  crs,
+  roi = NULL,
+  multicores = 2,
+  output_dir = getwd(),
+  version = "v1",
+  progress = TRUE
+)
 }
 \arguments{
 \item{cube}{A sits data cube.}
