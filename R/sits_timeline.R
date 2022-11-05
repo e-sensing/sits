@@ -362,7 +362,9 @@ sits_timeline.derived_cube <- function(data) {
         } else if (length(strsplit(dt, "-")[[1]]) == 2) {
             converted_date <- lubridate::fast_strptime(dt, "%Y-%m")
         } else {
-            converted_date <- lubridate::fast_strptime(dt, "%Y-%m-%d")
+            converted_date <- lubridate::fast_strptime(
+                dt, c("%Y-%m-%d", "%Y%m%d")
+            )
         }
         # transform to date object
         converted_date <- lubridate::as_date(converted_date)
