@@ -209,7 +209,7 @@ sits_mosaic.class_cube <- function(cube,
                 file = file,
                 out_file = out_file,
                 crs = .as_crs(.tile_crs(tile)),
-                as_crs = .as_crs(.mosaic_crs(tile)),
+                as_crs = .mosaic_crs(tile = tile, as_crs = crs),
                 multicores = 1
             )
             tile <- .tile_class_from_file(
@@ -228,7 +228,8 @@ sits_mosaic.class_cube <- function(cube,
     out_file <- .gdal_crop_image(
         file = file, out_file = out_file,
         roi = roi, crs = .as_crs(.tile_crs(tile)),
-        as_crs = .as_crs(.mosaic_crs(tile)), multicores = 1
+        as_crs = .mosaic_crs(tile = tile, as_crs = crs),
+        multicores = 1
     )
     # Delete temporary roi file
     .mosaic_del_roi(roi)
@@ -263,11 +264,11 @@ sits_mosaic.class_cube <- function(cube,
     switch(.mosaic_type(tile), ...)
 }
 
-.mosaic_crs <- function(tile) {
+.mosaic_crs <- function(tile, as_crs) {
     .mosaic_switch(
         tile,
-        "BDC" = "+proj=aea +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs ",
-        "RASTER" = .tile_crs(tile)
+        "BDC" = .as_crs("+proj=aea +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs "),
+        "RASTER" = .as_crs(as_crs)
     )
 }
 
