@@ -79,7 +79,7 @@ arma::mat bayes_smoother(const arma::mat& m,
     for (arma::uword i = 0; i < m_nrow; ++i)
         for (arma::uword j = 0; j < m_ncol; ++j) {
 
-            // fill neighbours values
+            // fill neighbor values
             for (arma::uword b = 0; b < m.n_cols; ++b)
                 neigh_vec(neigh, m, m_nrow, m_ncol, w, b, i, j);
 
@@ -87,9 +87,6 @@ arma::mat bayes_smoother(const arma::mat& m,
 
             // number of sorted values
             arma::uword n_sort = neigh.n_rows * neigh_fraction;
-
-            // sort the neighborhood vector
-            neigh.data = arma::sort(neigh.data, "descend");
 
             // compute prior mean
             mu0 = arma::mean(neigh.data.rows(0, n_sort), 0).as_col();

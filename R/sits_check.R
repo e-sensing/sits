@@ -1658,22 +1658,36 @@
 
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @name .check_smoothness
-#' @param smoothness a matrix or numeric value
+#' @param smoothness a vector with the same length as the number of labels
 #' @param nlabels    a numeric value
 #' @return  No return value, called for side effects.
 #' @keywords internal
 #' @noRd
 .check_smoothness <- function(smoothness, nlabels) {
     .check_that(
+        x = length(smoothness) == nlabels,
+        msg = paste(
+            "smoothness vector must have the same length as the number of labels"
+        )
+    )
+}
+#' @title Does the data contain the cols of sample data and is not empty?
+#' @name .check_smoothness_mat
+#' @param smoothness a matrix or numeric value
+#' @param nlabels    a numeric value
+#' @return  No return value, called for side effects.
+#' @keywords internal
+#' @noRd
+.check_smoothness_mat <- function(smoothness, nlabels) {
+    .check_that(
         x = (nrow(smoothness) == ncol(smoothness)) &&
             (ncol(smoothness) == nlabels),
         msg = paste(
-            "smoothness must be square matrix of",
+            "smoothness must be square matrix with",
             "the same length as the number of labels"
         )
     )
 }
-
 #' @title Check classification parameters
 #' @name .check_cube_model
 #' @keywords internal

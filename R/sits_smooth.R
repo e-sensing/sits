@@ -78,7 +78,7 @@
 sits_smooth <- function(cube,
                         type = "bayes",
                         ...,
-                        window_size = 9,
+                        window_size = 13,
                         memsize = 4,
                         multicores = 2,
                         output_dir = getwd(),
@@ -125,7 +125,7 @@ sits_smooth <- function(cube,
 #' @rdname sits_smooth
 #' @export
 sits_smooth.bayes <- function(cube, type = "bayes", ...,
-                              window_size = 9,
+                              window_size = 13,
                               neigh_fraction = 0.5,
                               smoothness = 20,
                               covar = FALSE,
@@ -291,7 +291,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
         smoothness <- diag(smoothness, nrow = nlabels, ncol = nlabels)
     }
     # Check smoothness
-    .check_smoothness(smoothness, nlabels)
+    .check_smoothness_mat(smoothness, nlabels)
     # Create a window
     window <- matrix(1, nrow = window_size, ncol = window_size)
 
@@ -305,7 +305,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
         values <- bayes_smoother(
             m = values,
             m_nrow = .nrows(block),
-            m_ncol = block[["ncols"]],
+            m_ncol = .ncols(block),
             w = window,
             sigma = smoothness,
             covar_sigma0 = covar,
@@ -321,7 +321,6 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
     # Return a closure
     smooth_fn
 }
-
 .smooth_fn_bilat <- function(window_size, sigma, tau) {
     # Check window size
     .check_window_size(window_size)
