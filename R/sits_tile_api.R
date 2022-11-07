@@ -232,6 +232,40 @@ NULL
     paths
 }
 
+#' @title Get unique satellite name from tile.
+#' @name .tile_satellite
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#'
+#' @return satellite name in the tile
+.tile_satellite <- function(tile) {
+    UseMethod(".tile_satellite", tile)
+}
+
+#' @export
+.tile_satellite.raster_cube <- function(tile) {
+    tile <- .tile(tile)
+    .as_chr(tile[["satellite"]])
+}
+
+#' @title Get unique sensor name from tile.
+#' @name .tile_sensor
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#'
+#' @return sensor name in the tile
+.tile_sensor <- function(tile) {
+    UseMethod(".tile_sensor", tile)
+}
+
+#' @export
+.tile_sensor.raster_cube <- function(tile) {
+    tile <- .tile(tile)
+    .as_chr(tile[["sensor"]])
+}
+
 #' @title Get sorted unique bands from file_info.
 #' @name .tile_bands
 #' @keywords internal
