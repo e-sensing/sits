@@ -12,7 +12,7 @@
 #' used to define how many tiles will be cropped simultaneously.
 #'
 #' @param cube        A sits data cube.
-#' @param crs         A target coordinate reference system of mosaic.
+#' @param crs         A target coordinate reference system of raster mosaic.
 #'                    The provided crs could be a character
 #'                    (e.g, "EPSG:4326" or a proj4string), or a
 #'                    a numeric with the EPSG code (e.g. 4326).
