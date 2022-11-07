@@ -30,8 +30,8 @@
 #'                        in "YYYY-MM-DD" format (optional).
 #' @param end_date        End of the interval for the time series in
 #'                        "YYYY-MM-DD" format (optional).
-#' @param label           Label to be assigned to the time series (optional).
 #' @param bands           Bands to be retrieved (optional).
+#' @param label           Label to be assigned to the time series (optional).
 #' @param crs             A coordinate reference system of samples.
 #'                        The provided crs could be a character
 #'                        (e.g, "EPSG:4326" or "WGS84" or a proj4string), or a
@@ -109,8 +109,8 @@ sits_get_data <- function(cube,
                           ...,
                           start_date = NULL,
                           end_date = NULL,
+                          bands = NULL,
                           label = "NoClass",
-                          bands = sits_bands(cube),
                           crs = 4326,
                           impute_fn = sits_impute_linear(),
                           label_attr = NULL,
@@ -123,6 +123,8 @@ sits_get_data <- function(cube,
     # Pre-conditions
     .check_is_raster_cube(cube)
     .check_is_regular(cube)
+    # Get default cube bands
+    bands <- .default(bands, sits_bands(cube))
     .check_bands_in_cube(bands = bands, cube = cube)
     .check_dates_parameter(c(start_date, end_date))
     .check_lgl_parameter(pol_avg)
@@ -184,7 +186,7 @@ sits_get_data <- function(cube,
     # Filter only tiles that intersects with samples
     cube <- .cube_filter_spatial(
         cube = cube,
-        roi = .point_as_sf(point = .point(x = samples, crs = crs))
+        roi = .bbox(.point_as_sf(point = .point(x = samples, crs = crs)))
     )
     # Filter only bands that are in cube
     cube <- .cube_filter_bands(cube = cube, bands = bands)
