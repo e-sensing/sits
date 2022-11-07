@@ -123,7 +123,7 @@ sits_mosaic.class_cube <- function(cube,
     .gdal_buildvrt(
         file = vrt_file, base_files = cube_files, quiet = TRUE
     )
-    # Create mosaic file name
+    # Get a template tile
     base_tile <- .tile(cube)
     # Update tile name
     .tile_name(base_tile) <- "MOSAIC"
@@ -206,8 +206,7 @@ sits_mosaic.class_cube <- function(cube,
         if (all(c(is_tile_in_roi))) {
             # Reproject tile for its crs
             .gdal_reproject_image(
-                file = file,
-                out_file = out_file,
+                file = file, out_file = out_file,
                 crs = .as_crs(.tile_crs(tile)),
                 as_crs = .mosaic_crs(tile = tile, as_crs = crs),
                 multicores = 1

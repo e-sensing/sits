@@ -10,8 +10,8 @@ sits_get_data(
   ...,
   start_date = NULL,
   end_date = NULL,
+  bands = NULL,
   label = "NoClass",
-  bands = sits_bands(cube),
   crs = 4326,
   impute_fn = sits_impute_linear(),
   label_attr = NULL,
@@ -36,9 +36,9 @@ in "YYYY-MM-DD" format (optional).}
 \item{end_date}{End of the interval for the time series in
 "YYYY-MM-DD" format (optional).}
 
-\item{label}{Label to be assigned to the time series (optional).}
-
 \item{bands}{Bands to be retrieved (optional).}
+
+\item{label}{Label to be assigned to the time series (optional).}
 
 \item{crs}{A coordinate reference system of samples.
 The provided crs could be a character
