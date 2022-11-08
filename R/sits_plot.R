@@ -1029,7 +1029,7 @@ plot.class_cube <- function(x, y, ...,
         ))
 
     # rename stars object
-    stars_obj <- stats::setNames(stars_obj, "class")
+    stars_obj <- stats::setNames(stars_obj, "labels")
 
     # plot using tmap
     p <- suppressMessages(
@@ -1038,7 +1038,9 @@ plot.class_cube <- function(x, y, ...,
                 style = "cat",
                 palette = colors,
                 labels = labels) +
-            tmap::tm_graticules()  +
+            tmap::tm_graticules(
+                labels.size = 0.8
+            )  +
             tmap::tm_compass() +
             tmap::tm_layout(
                 legend.title.size = 1.2,
