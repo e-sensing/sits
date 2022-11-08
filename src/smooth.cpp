@@ -85,23 +85,39 @@ arma::mat bayes_smoother(const arma::mat& m,
 
             if (neigh.n_rows == 0) continue;
 
-            // number of sorted values
-            arma::uword n_sort = neigh.n_rows * neigh_fraction;
+            if (neigh_fraction < 1.0 ) {
+                // sort the data
+                neigh.data.rows(0, neigh.n_rows - 1) = arma::sort(neigh.data.rows(0, neigh.n_rows - 1), "descend");
 
-            // compute prior mean
-            mu0 = arma::mean(neigh.data.rows(0, n_sort), 0).as_col();
+                // number of sorted values
+                arma::uword n_sort = neigh.n_rows * neigh_fraction;
 
-            // compute prior sigma
-            sigma0 = arma::cov(neigh.data.rows(0, n_sort), 1);
+                // compute prior mean
+                mu0 = arma::mean(neigh.data.rows(0, n_sort - 1), 0).as_col();
 
-            // prior sigma covariance
-            if (!covar_sigma0) {
+                // compute prior sigma
+                sigma0 = arma::cov(neigh.data.rows(0, n_sort - 1), 1);
 
                 // clear non main diagonal cells
                 sigma0.elem(arma::trimatu_ind(
                         arma::size(sigma0), 1)).fill(0.0);
                 sigma0.elem(arma::trimatl_ind(
                         arma::size(sigma0), -1)).fill(0.0);
+            }
+            else {
+                // compute prior mean
+                mu0 = arma::mean(neigh.data.rows(0, neigh.n_rows - 1), 0).as_col();
+
+                // compute prior sigma
+                sigma0 = arma::cov(neigh.data.rows(0, neigh.n_rows - 1), 1);
+
+                if (!covar_sigma0){
+                    // clear non main diagonal cells
+                    sigma0.elem(arma::trimatu_ind(
+                            arma::size(sigma0), 1)).fill(0.0);
+                    sigma0.elem(arma::trimatl_ind(
+                            arma::size(sigma0), -1)).fill(0.0);
+                }
             }
 
             // evaluate multivariate bayesian
