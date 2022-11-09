@@ -33,6 +33,7 @@
         if (!dir.exists(output_dir) && create_dir) {
             dir.create(output_dir, recursive = TRUE)
         }
+        filenames <- if (length(filenames) == 0) "" else filenames
         filenames <- file.path(output_dir, filenames)
     }
     filenames
@@ -90,6 +91,6 @@
 .file_samples_name <- function(samples, tile, output_dir) {
     samples_hash <- .samples_create_hash(samples = samples, tile = tile)
     .file_path("samples", samples_hash, ext = ".rds",
-               output_dir =  file.path(output_dir, ".sits"), create_dir = TRUE
+               output_dir = output_dir
     )
 }
