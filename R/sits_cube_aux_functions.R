@@ -666,6 +666,9 @@ NULL
         .fi_path(.fi(.tile(tile)))
     })
 }
+.cube_is_local <- function(cube) {
+    all(.file_is_local(.file_remove_vsi(.cube_paths(cube))))
+}
 #' @title Filter the cube using tile names
 #' @noRd
 #' @param cube  A data cube.
