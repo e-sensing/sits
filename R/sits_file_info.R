@@ -102,6 +102,10 @@ NULL
     .as_chr(fi[["fid"]])
 }
 
+.fi_cloud_cover <- function(fi) {
+    .as_dbl(fi[["cloud_cover"]])
+}
+
 .fi_filter_fid <- function(fi, fid) {
     .fi_switch(
         fi = fi,

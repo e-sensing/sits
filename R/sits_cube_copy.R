@@ -89,34 +89,59 @@ sits_cube_copy <- function(cube,
     # Create a list of user parameters as gdal format
     gdal_params <- .gdal_format_params(asset = asset, roi = roi, res = res)
     # Create output file
-    out_file <- file.path(output_dir, .file_base(file))
+    out_file <- .file_path(
+        .tile_satellite(asset), .tile_sensor(asset),
+        .tile_name(asset), .tile_bands(asset),
+        .tile_start_date(asset), output_dir = output_dir, ext = "tif"
+    )
     # Resume feature
     if (.raster_is_valid(out_file)) {
         # # Callback final tile classification
         # .callback(process = "tile_classification", event = "recovery",
         #           context = environment())
         message("Recovery: file '", out_file, "' already exists.")
-        message("(If you want to produce a new image, please ",
+        message("(If you want to download again, please ",
                 "change 'output_dir' parameter)")
-        asset <- .tile_eo_from_files(
-            files = out_file, fid = .fi_fid(.fi(asset)),
-            bands = .fi_bands(.fi(asset)), date = .tile_start_date(asset),
-            base_tile = asset, update_bbox = TRUE
+        asset <- .download_update_asset(
+            asset = asset, roi = roi, res = res, out_file = out_file
         )
         return(asset)
     }
     # Get a gdal or default download
-    download_fn <- .download_controller(out_file, gdal_params)
-    # Download file
-    out_file <- download_fn(file)
-    # Update asset metadata
-    update_bbox <- if (is.null(roi) && is.null(res)) FALSE else TRUE
-    asset <- .tile_eo_from_files(
-        files = out_file, fid = .fi_fid(.fi(asset)),
-        bands = .fi_bands(.fi(asset)), date = .tile_start_date(asset),
-        base_tile = asset, update_bbox = update_bbox
+    download_fn <- .download_controller(
+        out_file = out_file, gdal_params = gdal_params
     )
+    # Download file
+    download_fn(file)
+    # Update asset metadata
+    asset <- .download_update_asset(
+        asset = asset, roi = roi, res = res, out_file = out_file
+    )
+    # Return updated asset
     asset
+}
+
+.download_update_asset <- function(asset, roi, res, out_file) {
+    if (!is.null(roi) || !is.null(res)) {
+        # Open raster
+        r_obj <- .raster_open_rast(out_file)
+        # Update spatial bbox
+        .xmin(asset) <- .raster_xmin(r_obj)
+        .xmax(asset) <- .raster_xmax(r_obj)
+        .ymin(asset) <- .raster_ymin(r_obj)
+        .ymax(asset) <- .raster_ymax(r_obj)
+        .crs(asset) <- .raster_crs(r_obj)
+        asset[["file_info"]][[1]][["ncols"]] <- .raster_ncols(r_obj)
+        asset[["file_info"]][[1]][["nrows"]] <- .raster_nrows(r_obj)
+        asset[["file_info"]][[1]][["xres"]] <- .raster_xres(r_obj)
+        asset[["file_info"]][[1]][["yres"]] <- .raster_yres(r_obj)
+        asset[["file_info"]][[1]][["xmin"]] <- .raster_xmin(r_obj)
+        asset[["file_info"]][[1]][["xmax"]] <- .raster_xmax(r_obj)
+        asset[["file_info"]][[1]][["ymin"]] <- .raster_ymin(r_obj)
+        asset[["file_info"]][[1]][["ymax"]] <- .raster_ymax(r_obj)
+    }
+    asset[["file_info"]][[1]][["path"]] <- out_file
+    return(asset)
 }
 
 .gdal_format_params <- function(asset, roi, res) {

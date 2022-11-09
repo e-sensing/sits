@@ -75,7 +75,8 @@
     .file_path(
         tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
         .tile_start_date(tile), .tile_end_date(tile), band, "crop",
-        version, ext = "tif", output_dir = output_dir
+        version, ext = "tif", output_dir = file.path(output_dir, ".sits"),
+        create_dir = TRUE
     )
 }
 
@@ -89,6 +90,6 @@
 .file_samples_name <- function(samples, tile, output_dir) {
     samples_hash <- .samples_create_hash(samples = samples, tile = tile)
     .file_path("samples", samples_hash, ext = ".rds",
-               output_dir =  file.path(output_dir, ".sits")
+               output_dir =  file.path(output_dir, ".sits"), create_dir = TRUE
     )
 }

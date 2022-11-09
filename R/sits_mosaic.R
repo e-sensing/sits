@@ -174,7 +174,7 @@ sits_mosaic.class_cube <- function(cube,
         update_bbox = TRUE
     )
     # Delete cube files
-    unlink(cube_files)
+    unlink(c(cube_files, vrt_file))
     # Return cube
     return(base_tile)
 }
