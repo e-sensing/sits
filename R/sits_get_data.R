@@ -563,8 +563,6 @@ sits_get_data <- function(cube,
 }
 
 .gd_samples_format.raster_cube <- function(samples, cube) {
-    # # Get cube timeline
-    # timeline <- .cube_timeline(cube)
     # samples <- dplyr::mutate(samples, id = seq_len(nrow(samples)))
     # samples <- dplyr::group_by(samples, .data[["id"]])
     # samples <- dplyr::mutate(
@@ -589,6 +587,8 @@ sits_get_data <- function(cube,
     # samples <- dplyr::ungroup(samples)
     # samples <- dplyr::mutate(samples, -.data[["id"]])
     # samples
+    # Get cube timeline
+    timeline <- .cube_timeline(cube)
     # Build the sits tibble for the storing the points
     slider::slide_dfr(samples, function(point) {
         # Get the valid timeline
