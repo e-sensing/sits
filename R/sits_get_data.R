@@ -567,28 +567,52 @@ sits_get_data <- function(cube,
 .gd_samples_format.raster_cube <- function(samples, cube) {
     # Get cube timeline
     timeline <- .cube_timeline(cube)
-    # Build the sits tibble for the storing the points
-    slider::slide_dfr(samples, function(point) {
-        # Get the valid timeline
-        dates <- .timeline_during(
+    samples <- dplyr::mutate(samples, id = seq_len(nrow(samples)))
+    samples <- dplyr::group_by(samples, .data[["id"]])
+    samples <- dplyr::mutate(
+        samples,
+        start_date = min(.timeline_during(
             timeline   = timeline,
-            start_date = as.Date(point[["start_date"]]),
-            end_date   = as.Date(point[["end_date"]])
-        )
-        sample <- tibble::tibble(
-            longitude  = point[["longitude"]],
-            latitude   = point[["latitude"]],
-            start_date = dates[[1]],
-            end_date   = dates[[length(dates)]],
-            label      = point[["label"]],
-            cube       = .tile_collection(.tile(cube)),
-            polygon_id = point[["polygon_id"]]
-        )
-        # Store them in the sample tibble
-        sample$time_series <- list(tibble::tibble(Index = dates))
-        # Return valid row of time series
-        return(sample)
-    })
+            start_date = start_date,
+            end_date   = end_date)
+        ),
+        end_date = max(.timeline_during(
+            timeline   = timeline,
+            start_date = start_date,
+            end_date   = end_date)
+        ),
+        cube = .tile_collection(.tile(cube)),
+        time_series = list(tibble::tibble(Index = .timeline_during(
+            timeline   = timeline,
+            start_date = start_date,
+            end_date   = end_date)
+        ))
+    )
+    samples <- dplyr::ungroup(samples)
+    samples <- dplyr::mutate(samples, -.data[["id"]])
+    samples
+    # # Build the sits tibble for the storing the points
+    # slider::slide_dfr(samples, function(point) {
+    #     # Get the valid timeline
+    #     dates <- .timeline_during(
+    #         timeline   = timeline,
+    #         start_date = as.Date(point[["start_date"]]),
+    #         end_date   = as.Date(point[["end_date"]])
+    #     )
+    #     sample <- tibble::tibble(
+    #         longitude  = point[["longitude"]],
+    #         latitude   = point[["latitude"]],
+    #         start_date = dates[[1]],
+    #         end_date   = dates[[length(dates)]],
+    #         label      = point[["label"]],
+    #         cube       = .tile_collection(.tile(cube)),
+    #         polygon_id = point[["polygon_id"]]
+    #     )
+    #     # Store them in the sample tibble
+    #     sample$time_series <- list(tibble::tibble(Index = dates))
+    #     # Return valid row of time series
+    #     return(sample)
+    # })
 }
 
 .gd_samples_format.class_cube <- function(samples, cube) {
