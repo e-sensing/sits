@@ -188,6 +188,11 @@ sits_get_data <- function(cube,
         cube = cube,
         roi = .bbox(.point_as_sf(point = .point(x = samples, crs = crs)))
     )
+    # Add .sits in output_dir
+    output_dir <- .file_path(
+        output_dir = file.path(output_dir, ".sits"),
+        create_dir = TRUE
+    )
     # Filter only bands that are in cube
     cube <- .cube_filter_bands(cube = cube, bands = bands)
     # Format samples to sits format
@@ -216,36 +221,29 @@ sits_get_data <- function(cube,
         if (are_samples_valid(out_file)) {
             return(readRDS(out_file))
         }
-        # Split samples into groups
-        samples_groups <- .samples_split_groups(
-            samples = samples, multicores = multicores
+        # Add X and Y in samples tibble
+        samples <- .samples_add_xy(
+            samples = samples, crs = crs, as_crs = .tile_crs(tile)
         )
-        # Processing each time series groups
-        purrr::map_dfr(samples_groups, function(samples_group) {
-            # Add X and Y in samples tibble
-            samples <- .samples_add_xy(
-                samples = samples_group, crs = crs, as_crs = .tile_crs(tile)
-            )
-            # Filter samples that are in tile box
-            samples <- .samples_filter_spatial(
-                samples = samples, tile = tile, crs = crs
-            )
-            # Are there points to be retrieved from the tile?
-            if (are_samples_empty(samples)) {
-                return(NULL)
-            }
-            # Extract data
-            ext_data <- .gd_extract_data(
-                tile = tile,
-                samples = samples,
-                crs = crs,
-                impute_fn = impute_fn
-            )
-            # Save the temporary sample
-            saveRDS(ext_data, out_file)
-            # Return a tibble with extracted time series
-            return(ext_data)
-        })
+        # Filter samples that are in tile box
+        samples <- .samples_filter_spatial(
+            samples = samples, tile = tile, crs = crs
+        )
+        # Are there points to be retrieved from the tile?
+        if (are_samples_empty(samples)) {
+            return(NULL)
+        }
+        # Extract data
+        ext_data <- .gd_extract_data(
+            tile = tile,
+            samples = samples,
+            crs = crs,
+            impute_fn = impute_fn
+        )
+        # Save the temporary sample
+        saveRDS(ext_data, out_file)
+        # Return a tibble with extracted time series
+        return(ext_data)
     }, progress = progress)
 
     if (are_samples_empty(samples_tiles)) {
@@ -565,54 +563,54 @@ sits_get_data <- function(cube,
 }
 
 .gd_samples_format.raster_cube <- function(samples, cube) {
-    # Get cube timeline
-    timeline <- .cube_timeline(cube)
-    samples <- dplyr::mutate(samples, id = seq_len(nrow(samples)))
-    samples <- dplyr::group_by(samples, .data[["id"]])
-    samples <- dplyr::mutate(
-        samples,
-        start_date = min(.timeline_during(
-            timeline   = timeline,
-            start_date = start_date,
-            end_date   = end_date)
-        ),
-        end_date = max(.timeline_during(
-            timeline   = timeline,
-            start_date = start_date,
-            end_date   = end_date)
-        ),
-        cube = .tile_collection(.tile(cube)),
-        time_series = list(tibble::tibble(Index = .timeline_during(
-            timeline   = timeline,
-            start_date = start_date,
-            end_date   = end_date)
-        ))
-    )
-    samples <- dplyr::ungroup(samples)
-    samples <- dplyr::mutate(samples, -.data[["id"]])
-    samples
-    # # Build the sits tibble for the storing the points
-    # slider::slide_dfr(samples, function(point) {
-    #     # Get the valid timeline
-    #     dates <- .timeline_during(
+    # # Get cube timeline
+    # timeline <- .cube_timeline(cube)
+    # samples <- dplyr::mutate(samples, id = seq_len(nrow(samples)))
+    # samples <- dplyr::group_by(samples, .data[["id"]])
+    # samples <- dplyr::mutate(
+    #     samples,
+    #     start_date = min(.timeline_during(
     #         timeline   = timeline,
-    #         start_date = as.Date(point[["start_date"]]),
-    #         end_date   = as.Date(point[["end_date"]])
-    #     )
-    #     sample <- tibble::tibble(
-    #         longitude  = point[["longitude"]],
-    #         latitude   = point[["latitude"]],
-    #         start_date = dates[[1]],
-    #         end_date   = dates[[length(dates)]],
-    #         label      = point[["label"]],
-    #         cube       = .tile_collection(.tile(cube)),
-    #         polygon_id = point[["polygon_id"]]
-    #     )
-    #     # Store them in the sample tibble
-    #     sample$time_series <- list(tibble::tibble(Index = dates))
-    #     # Return valid row of time series
-    #     return(sample)
-    # })
+    #         start_date = start_date,
+    #         end_date   = end_date)
+    #     ),
+    #     end_date = max(.timeline_during(
+    #         timeline   = timeline,
+    #         start_date = start_date,
+    #         end_date   = end_date)
+    #     ),
+    #     cube = .tile_collection(.tile(cube)),
+    #     time_series = list(tibble::tibble(Index = .timeline_during(
+    #         timeline   = timeline,
+    #         start_date = start_date,
+    #         end_date   = end_date)
+    #     ))
+    # )
+    # samples <- dplyr::ungroup(samples)
+    # samples <- dplyr::mutate(samples, -.data[["id"]])
+    # samples
+    # Build the sits tibble for the storing the points
+    slider::slide_dfr(samples, function(point) {
+        # Get the valid timeline
+        dates <- .timeline_during(
+            timeline   = timeline,
+            start_date = as.Date(point[["start_date"]]),
+            end_date   = as.Date(point[["end_date"]])
+        )
+        sample <- tibble::tibble(
+            longitude  = point[["longitude"]],
+            latitude   = point[["latitude"]],
+            start_date = dates[[1]],
+            end_date   = dates[[length(dates)]],
+            label      = point[["label"]],
+            cube       = .tile_collection(.tile(cube)),
+            polygon_id = point[["polygon_id"]]
+        )
+        # Store them in the sample tibble
+        sample$time_series <- list(tibble::tibble(Index = dates))
+        # Return valid row of time series
+        return(sample)
+    })
 }
 
 .gd_samples_format.class_cube <- function(samples, cube) {
