@@ -24,7 +24,7 @@ test_that("Mixture model tests", {
                 lat_max = -10.36046639),
         res = 320,
         multicores = 12,
-        output_dir = "/home/sits/tmp_test/"
+        output_dir = tempdir()
     )
 
     # Create the endmembers tibble for cube
@@ -41,7 +41,7 @@ test_that("Mixture model tests", {
         endmembers = em,
         memsize = 28,
         multicores = 12,
-        output_dir = "/home/sits/tmp_test/",
+        output_dir = tempdir(),
         rmse_band = TRUE
     )
 
@@ -115,6 +115,10 @@ test_that("Mixture model tests", {
         multicores = 2,
         output_dir = tempdir()
     )
-    # TODO: check both time series cube and samples points
+    expect_equal(
+        dplyr::bind_rows(ts_em_bands$time_series)[,c("FOREST", "LAND", "WATER")],
+        dplyr::bind_rows(ts_em$time_series)[,c("FOREST", "LAND", "WATER")],
+        tolerance = 0.01
+    )
     unlink(list.files(tempdir(), full.names = TRUE))
 })
