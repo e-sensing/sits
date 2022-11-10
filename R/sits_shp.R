@@ -1,5 +1,5 @@
 #' @title Transform a shapefile into a samples file
-#' @name .samples_from_shp
+#' @name .shp_get_samples
 #' @author Gilberto Camara
 #' @keywords internal
 #' @noRd
@@ -13,13 +13,14 @@
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
 #' @return                A tibble with samples to be retrieved.
 #'
-.samples_from_shp <- function(shp_file,
-                              label,
-                              shp_attr,
-                              start_date,
-                              end_date,
-                              n_shp_pol,
-                              pol_id) {
+.shp_get_samples <- function(shp_file,
+                             label,
+                             shp_attr,
+                             start_date,
+                             end_date,
+                             n_shp_pol,
+                             shp_id) {
+
     # pre-condition - check the shape file and its attribute
     sf_shape <- .shp_check_validity(
         shp_file = shp_file,
@@ -32,7 +33,7 @@
         label_attr  = shp_attr,
         label       = label,
         n_sam_pol   = n_shp_pol,
-        pol_id      = pol_id
+        pol_id      = shp_id
     )
 
     samples <- dplyr::mutate(samples,
