@@ -18,6 +18,7 @@
 #' @param data        A sits data cube or a sits tibble.
 #' @param endmembers  Reference spectral endmembers.
 #'                    (see details below).
+#' @param  ...        Parameters for specific functions.
 #' @param rmse_band   A boolean indicating whether the error associated
 #'                    with the linear model should be generated.
 #'                    If true, a new band with errors for each pixel
@@ -104,6 +105,7 @@ sits_mixture_model <- function(data, endmembers, ...,
     UseMethod("sits_mixture_model", data)
 }
 
+#' @rdname sits_mixture_model
 #' @export
 sits_mixture_model.sits <- function(data, endmembers, ...,
                                     rmse_band = TRUE,
@@ -149,6 +151,7 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
     .samples_merge_groups(samples_fracs)
 }
 
+#' @rdname sits_mixture_model
 #' @export
 sits_mixture_model.raster_cube <- function(data, endmembers, ...,
                                            rmse_band = TRUE,
@@ -257,7 +260,7 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
                 paste0("'", out_fracs, "'", collapse = ", "),
                 " already exists.")
         message("(If you want to produce a new image, please ",
-                "change 'output_dir' or 'version' parameters)")
+                "change 'output_dir' parameters)")
         # Create tile based on template
         fracs_feature <- .tile_eo_from_files(
             files = out_files, fid = .fi_fid(.fi(feature)),

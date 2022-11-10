@@ -20,6 +20,8 @@
 #' @param multicores  Number of cores that will be used to
 #'                    crop the images in parallel.
 #' @param output_dir  Directory for output images.
+#' @param  version    Version of resulting image
+#'                    (in the case of multiple tests)
 #' @param progress    Show progress bar? Default is TRUE.
 #'
 #' @return a sits cube with only one tile.
