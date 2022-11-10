@@ -378,17 +378,3 @@ NULL
     # Return geom
     geom
 }
-
-.point_coords <- function(point) {
-    # Check for a valid points
-    .check_is_sf(point)
-    # Get coordinates from points
-    pts <- sf::st_coordinates(point)
-    colnames(pts) <- c("X", "Y")
-
-    pts
-}
-
-.check_is_sf <- function(x) {
-    .check_that(.is_sf(x))
-}
