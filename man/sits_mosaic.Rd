@@ -29,6 +29,9 @@ crop the images in parallel.}
 
 \item{output_dir}{Directory for output images.}
 
+\item{version}{Version of resulting image
+(in the case of multiple tests)}
+
 \item{progress}{Show progress bar? Default is TRUE.}
 }
 \value{

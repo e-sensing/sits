@@ -2,6 +2,8 @@
 % Please edit documentation in R/sits_mixture_model.R
 \name{sits_mixture_model}
 \alias{sits_mixture_model}
+\alias{sits_mixture_model.sits}
+\alias{sits_mixture_model.raster_cube}
 \title{Multiple endmember spectral mixture analysis}
 \usage{
 sits_mixture_model(
@@ -12,12 +14,34 @@ sits_mixture_model(
   multicores = 2,
   progress = TRUE
 )
+
+\method{sits_mixture_model}{sits}(
+  data,
+  endmembers,
+  ...,
+  rmse_band = TRUE,
+  multicores = 2,
+  progress = TRUE
+)
+
+\method{sits_mixture_model}{raster_cube}(
+  data,
+  endmembers,
+  ...,
+  rmse_band = TRUE,
+  memsize = 1,
+  multicores = 2,
+  output_dir = getwd(),
+  progress = TRUE
+)
 }
 \arguments{
 \item{data}{A sits data cube or a sits tibble.}
 
 \item{endmembers}{Reference spectral endmembers.
 (see details below).}
+
+\item{...}{Parameters for specific functions.}
 
 \item{rmse_band}{A boolean indicating whether the error associated
 with the linear model should be generated.

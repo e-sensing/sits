@@ -1,10 +1,10 @@
 # These are configuration parameters that can be set by users
 
 # run tests
-run_tests : false
+run_tests : true
 
 # run examples
-run_examples : false
+run_examples : true
 
 # estimated relative growth size of R memory relative to block size
 processing_bloat        : 5
