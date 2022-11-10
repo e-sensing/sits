@@ -334,8 +334,6 @@ test_that("Reading a SHP file from RASTER", {
 })
 
 test_that("Test reading shapefile from BDC", {
-
-
     # check "BDC_ACCESS_KEY" - mandatory one per user
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
 
