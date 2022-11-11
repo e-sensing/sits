@@ -33,7 +33,8 @@ void neigh_vec(neigh_t& n,
             if (m_i + i >= w_leg_i && m_j + j >= w_leg_j &&
                 m_i + i < w_leg_i + m_nrow &&
                 m_j + j < w_leg_j + m_ncol &&
-                arma::is_finite(m(m_j + m_i * m_ncol, 0))) {
+                arma::is_finite(m(m_j + m_i * m_ncol, 0)) &&
+                arma::is_finite(m((m_j + j - w_leg_j) + (m_i + i - w_leg_i) * m_ncol, m_b))) {
 
                 n.data(k, m_b) = m((m_j + j - w_leg_j) +
                     (m_i + i - w_leg_i) * m_ncol, m_b);
@@ -76,7 +77,7 @@ arma::mat bayes_smoother(const arma::mat& m,
     neigh_t neigh(m, w);
 
     // compute values for each pixel
-    for (arma::uword i = 0; i < m_nrow; ++i)
+    for (arma::uword i = 0; i < m_nrow; ++i) {
         for (arma::uword j = 0; j < m_ncol; ++j) {
 
             // fill neighbor values
@@ -125,7 +126,8 @@ arma::mat bayes_smoother(const arma::mat& m,
                 nm_post_mean_x(m.row(j + i * m_ncol).as_col(),
                                sigma, mu0, sigma0).as_row();
         }
-        return res;
+    }
+    return res;
 }
 
 // [[Rcpp::export]]
