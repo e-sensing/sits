@@ -11,18 +11,18 @@
 #' cropped in parallel and the multicores parameter can be
 #' used to define how many tiles will be cropped simultaneously.
 #'
-#' @param cube        A sits data cube.
-#' @param crs         A target coordinate reference system of raster mosaic.
-#'                    The provided crs could be a character
-#'                    (e.g, "EPSG:4326" or a proj4string), or a
-#'                    a numeric with the EPSG code (e.g. 4326).
-#' @param roi         Region of interest (see below).
-#' @param multicores  Number of cores that will be used to
-#'                    crop the images in parallel.
-#' @param output_dir  Directory for output images.
-#' @param  version    Version of resulting image
-#'                    (in the case of multiple tests)
-#' @param progress    Show progress bar? Default is TRUE.
+#' @param cube       A sits data cube.
+#' @param crs        A target coordinate reference system of raster mosaic.
+#'                   The provided crs could be a character
+#'                   (e.g, "EPSG:4326" or a proj4string), or a
+#'                   a numeric with the EPSG code (e.g. 4326).
+#' @param roi        Region of interest (see below).
+#' @param multicores Number of cores that will be used to
+#'                   crop the images in parallel.
+#' @param output_dir Directory for output images.
+#' @param  version   Version of resulting image
+#'                   (in the case of multiple tests)
+#' @param progress   Show progress bar? Default is TRUE.
 #'
 #' @return a sits cube with only one tile.
 #'
