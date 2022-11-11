@@ -23,7 +23,7 @@ test_that("Mixture model tests", {
                 lon_max = -65.07629670,
                 lat_max = -10.36046639),
         res = 320,
-        multicores = 12,
+        multicores = 2,
         output_dir = tempdir()
     )
 
