@@ -415,3 +415,91 @@ test_that("Reading metadata from CSV file", {
         "start_date", "end_date", "label"
     )))
 })
+
+test_that("Reading data from Classified data", {
+    # create a random forest model
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "tile", "band", "date")
+    )
+    output_dir <- tempdir()
+    # classify a data cube
+    probs_cube <- sits_classify(
+        data = cube,
+        ml_model = rfor_model,
+        output_dir = output_dir
+    )
+    # smooth the probability cube using Bayesian statistics
+    bayes_cube <- sits_smooth(probs_cube, output_dir = output_dir)
+    # label the probability cube
+    label_cube <- sits_label_classification(bayes_cube, output_dir = output_dir)
+
+    # Using CSV
+    csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
+                                   package = "sits"
+    )
+    points_poly <- sits_get_data(label_cube,
+                                 samples = csv_raster_file,
+                                 output_dir = tempdir()
+    )
+    expect_equal(
+        nrow(points_poly), nrow(read.csv(csv_raster_file))
+    )
+
+    expect_equal(
+        colnames(points_poly), c("longitude", "latitude",
+                                 "start_date", "end_date",
+                                 "label", "cube", "predicted")
+    )
+    # Using lat/long
+    samples <- tibble::tibble(longitude = -55.66738, latitude = -11.76990)
+
+    point_ndvi <- sits_get_data(label_cube, samples)
+    expect_equal(nrow(point_ndvi), 1)
+
+    expect_equal(
+        colnames(point_ndvi), c("longitude", "latitude",
+                                 "start_date", "end_date",
+                                 "label", "cube", "predicted")
+    )
+    # Using shp
+    polygons_sf <- rbind(
+        sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(c(
+            xmin = -55.62471702, xmax = -55.57293653,
+            ymin = -11.63300767, ymax = -11.60607152), crs = 4326
+        ))),
+        sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(c(
+            xmin = -55.29847023, xmax = -55.26194177,
+            ymin = -11.56743498, ymax = -11.55169416), crs = 4326
+        ))),
+        sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(c(
+            xmin = -55.55720906, xmax = -55.54030539,
+            ymin = -11.75144257, ymax = -11.74521358), crs = 4326
+        )))
+    )
+
+    polygons_sf[["id"]] <- seq(1, 3)
+    polygons_sf[["label"]] <- c("a", "b", "c")
+    polygons_bbox <- sf::st_bbox(polygons_sf)
+
+    points_poly <- sits_get_data(label_cube,
+                                 samples = polygons_sf,
+                                 output_dir = tempdir()
+    )
+    expect_equal(nrow(points_poly), 90)
+
+    expect_equal(
+        colnames(points_poly), c("longitude", "latitude",
+                                 "start_date", "end_date",
+                                 "label", "cube", "predicted")
+    )
+    unlink(probs_cube$file_info[[1]]$path)
+    unlink(bayes_cube$file_info[[1]]$path)
+    unlink(label_cube$file_info[[1]]$path)
+})
