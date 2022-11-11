@@ -127,6 +127,7 @@ sits_get_data <- function(cube,
     .check_is_raster_cube(cube)
     .check_is_regular(cube)
     .check_bands_in_cube(bands = bands, cube = cube)
+    .check_crs(crs)
     .check_multicores(multicores)
     .check_output_dir(output_dir)
     .check_progress(progress)
@@ -178,7 +179,7 @@ sits_get_data.shp <- function(cube,
                               label = "NoClass",
                               start_date = as.Date(sits_timeline(cube)[1]),
                               end_date = as.Date(sits_timeline(cube)
-                              [length(sits_timeline(cube))]),
+                                                 [length(sits_timeline(cube))]),
                               bands = sits_bands(cube),
                               impute_fn = sits_impute_linear(),
                               label_attr = NULL,
@@ -226,7 +227,7 @@ sits_get_data.sf <- function(cube,
                              bands = sits_bands(cube),
                              start_date = as.Date(sits_timeline(cube)[1]),
                              end_date = as.Date(sits_timeline(cube)
-                             [length(sits_timeline(cube))]),
+                                                [length(sits_timeline(cube))]),
                              impute_fn = sits_impute_linear(),
                              label = "NoClass",
                              label_attr = NULL,
@@ -592,13 +593,13 @@ sits_get_data.data.frame <- function(cube,
 #' @noRd
 #' @export
 .sits_get_ts.class_cube <- function(cube,
-                                          samples, ...,
-                                          bands,
-                                          crs = 4326,
-                                          impute_fn,
-                                          multicores,
-                                          output_dir,
-                                          progress) {
+                                    samples, ...,
+                                    bands,
+                                    crs = 4326,
+                                    impute_fn,
+                                    multicores,
+                                    output_dir,
+                                    progress) {
 
     # Filter only tiles that intersects with samples
     cube <- .cube_filter_spatial(
@@ -827,7 +828,7 @@ sits_get_data.data.frame <- function(cube,
             .data[["polygon_id"]]
         ) %>%
         dplyr::summarise(dplyr::across(!!columns_to_avg, mean, na.rm = TRUE),
-            .groups = "drop"
+                         .groups = "drop"
         ) %>%
         tidyr::nest("time_series" = c("Index", dplyr::all_of(bands))) %>%
         dplyr::select(!!colnames(data))

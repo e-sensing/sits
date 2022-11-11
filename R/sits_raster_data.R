@@ -52,7 +52,7 @@
             cld_values <- as.matrix(cld_values)
             cld_rows <- nrow(cld_values)
             cld_values <- matrix(bitwAnd(cld_values, sum(2^cld_index)),
-                nrow = cld_rows
+                                 nrow = cld_rows
             )
         }
     }
@@ -90,13 +90,13 @@
 
             # get only valid values for the timeline
             values_ts <- unlist(values_band[i, start_idx:end_idx],
-                use.names = FALSE
+                                use.names = FALSE
             )
 
             # include information from cloud band
             if (!purrr::is_null(cld_band)) {
                 cld_values <- unlist(cld_values[i, start_idx:end_idx],
-                    use.names = FALSE
+                                     use.names = FALSE
                 )
                 if (.source_cloud_bit_mask(
                     source = .cube_source(cube = tile),
@@ -161,10 +161,10 @@
 #' @param output_dir        An output directory to save temporary time series.
 #' @return                  A sits tibble with the time series.
 .raster_class_get_ts <- function(tile,
-                                          points,
-                                          band,
-                                          xy,
-                                          output_dir = output_dir) {
+                                 points,
+                                 band,
+                                 xy,
+                                 output_dir = output_dir) {
 
     # set caller to show in errors
     .check_set_caller(".raster_class_get_ts")

@@ -31,8 +31,8 @@ test_that("Downloading and cropping cubes from BDC", {
 
     # Comparing tiles
     expect_equal(nrow(cube), nrow(cube_local_roi))
-    bbox_tile <- sits_bbox(cube, TRUE)
-    bbox_crop <- sits_bbox(cube_local_roi, TRUE)
+    bbox_tile <- sits_bbox(cube)
+    bbox_crop <- sits_bbox(cube_local_roi)
     # Comparing bounding boxes
     expect_lt(bbox_tile[["xmin"]], bbox_crop[["xmin"]])
     expect_lt(bbox_tile[["ymin"]], bbox_crop[["ymin"]])
@@ -64,7 +64,7 @@ test_that("Downloading and cropping cubes from BDC", {
     # Comparing tiles
     expect_equal(nrow(cube), nrow(cube_local_roi_tr))
     # Comparing bounding boxes
-    bbox_roi_tr <- sits_bbox(cube_local_roi_tr, TRUE)
+    bbox_roi_tr <- sits_bbox(cube_local_roi_tr)
     expect_lt(bbox_tile[["xmin"]], bbox_roi_tr[["xmin"]])
     expect_lt(bbox_tile[["ymin"]], bbox_roi_tr[["ymin"]])
     expect_gt(bbox_tile[["xmax"]], bbox_roi_tr[["xmax"]])

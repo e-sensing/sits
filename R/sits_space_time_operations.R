@@ -11,8 +11,8 @@
 #' @param crs       Projection definition to be converted to.
 #' @return          Tibble with X and Y coordinates.
 .proj_from_latlong <- function(longitude,
-                                    latitude,
-                                    crs) {
+                               latitude,
+                               crs) {
     t <- tibble::tibble(long = longitude, lat = latitude) %>%
         sf::st_as_sf(coords = c("long", "lat"), crs = 4326) %>%
         sf::st_transform(crs = crs) %>%

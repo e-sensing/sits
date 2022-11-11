@@ -62,7 +62,6 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
 
     return(data)
 }
-
 #' @title Transform an sf object into a samples file
 #' @name .sf_get_samples
 #' @author Gilberto Camara
@@ -96,14 +95,15 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
     )
 
     samples <- dplyr::mutate(samples,
-        start_date = as.Date(start_date),
-        end_date = as.Date(end_date)
+                             start_date = as.Date(start_date),
+                             end_date = as.Date(end_date)
     )
 
     class(samples) <- c("sits", class(samples))
 
     return(samples)
 }
+
 #' @title Obtain a tibble with lat/long points from an sf object
 #' @name .sf_to_tibble
 #' @keywords internal
@@ -137,15 +137,15 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
             label_attr,
             label
         )
-    } else {
-        points_tbl <- .sf_polygon_to_tibble(
-            sf_object,
-            label_attr,
-            label,
-            n_sam_pol,
-            pol_id
-        )
+        return(points_tbl)
     }
+    points_tbl <- .sf_polygon_to_tibble(
+        sf_object,
+        label_attr,
+        label,
+        n_sam_pol,
+        pol_id
+    )
 
     return(points_tbl)
 }
@@ -201,10 +201,10 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
 #' @return A tibble with latitude/longitude points from POLYGON geometry
 #'
 .sf_polygon_to_tibble <- function(sf_object,
-                                       label_attr,
-                                       label,
-                                       n_sam_pol,
-                                       pol_id) {
+                                  label_attr,
+                                  label,
+                                  n_sam_pol,
+                                  pol_id) {
 
     # get the db file
     sf_df <- sf::st_drop_geometry(sf_object)
@@ -234,7 +234,7 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
                     unlist(sf_df[i, "label"], use.names = FALSE)
                 )
             } else if (!purrr::is_null(label_attr) &&
-                label_attr %in% colnames(sf_df)) {
+                       label_attr %in% colnames(sf_df)) {
                 label <- as.character(
                     unlist(sf_df[i, label_attr], use.names = FALSE)
                 )

@@ -70,6 +70,12 @@ sits_label_classification <- function(cube, memsize = 4, multicores = 2,
     multicores <- .jobs_max_multicores(
         job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_memsize = job_memsize, block = block,
+        image_size = .tile_size(.tile(cube)), memsize = memsize,
+        multicores = multicores
+    )
 
     # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = FALSE)

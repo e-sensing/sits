@@ -3,10 +3,12 @@
 #' @name sits_select
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param data         A sits tibble or data cube.
-#' @param bands        Character vector with the names of the bands.
-#' @param tiles        Character vector with the names of the tiles.
-#' @param ...          Additional parameters to be provided in the select
+#' @param data       A sits tibble or data cube.
+#' @param bands      Character vector with the names of the bands.
+#' @param start_date Character value with the start date band to be filtered.
+#' @param end_date   Character value with the end date band to be filtered.
+#' @param tiles      Character vector with the names of the tiles.
+#' @param ...        Additional parameters to be provided in the select
 #'  function.
 #'
 #' @description Filter only the selected bands from a tibble or a data cube.
@@ -55,16 +57,30 @@ sits_select.sits <- function(data, bands, ...) {
 #' @rdname sits_select
 #'
 #' @export
-sits_select.raster_cube <- function(data, bands, ..., tiles = NULL) {
-
-    # filter tiles
+sits_select.raster_cube <- function(data,
+                                    bands =  NULL, ...,
+                                    start_date = NULL,
+                                    end_date = NULL,
+                                    tiles = NULL) {
+    # Pre-condition
+    .check_is_raster_cube(data)
+    # Filter bands
+    if (!is.null(bands)) {
+        .check_chr_type(bands)
+        data <- .cube_filter_bands(cube = data, bands = bands)
+    }
+    # Filter dates
+    if (!is.null(start_date) || !is.null(end_date)) {
+        .check_dates_parameter(c(start_date, end_date))
+        data <- .cube_filter_interval(
+            cube = data, start_date = start_date, end_date = end_date
+        )
+    }
+    # Filter tiles
     if (!is.null(tiles)) {
+        .check_chr_type(tiles)
         data <- .cube_filter_tiles(cube = data, tiles = tiles)
     }
-
-    # filter bands
-    data <- .cube_filter_bands(cube = data, bands = bands)
-
     return(data)
 }
 

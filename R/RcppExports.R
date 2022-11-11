@@ -65,6 +65,14 @@ linear_interp_vec <- function(vec) {
     .Call(`_sits_linear_interp_vec`, vec)
 }
 
+batch_calc <- function(n_pixels, max_lines_per_batch) {
+    .Call(`_sits_batch_calc`, n_pixels, max_lines_per_batch)
+}
+
+C_nnls_solver_batch <- function(x, em, rmse, max_it = 400L, tol = 0.000001) {
+    .Call(`_sits_C_nnls_solver_batch`, x, em, rmse, max_it, tol)
+}
+
 C_nnls_solver <- function(x, em, rmse, max_it = 400L, tol = 0.000001) {
     .Call(`_sits_C_nnls_solver`, x, em, rmse, max_it, tol)
 }

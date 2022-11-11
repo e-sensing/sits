@@ -49,6 +49,15 @@ NULL
 .tile_name <- function(tile) {
     UseMethod(".tile_name", tile)
 }
+`.tile_name<-` <- function(tile, value) {
+    UseMethod(".tile_name<-", tile)
+}
+#' @export
+`.tile_name<-.raster_cube` <- function(tile, value) {
+    tile <- .tile(tile)
+    tile[["tile"]] <- .as_chr(value)
+    tile
+}
 #
 .tile_name.raster_cube <- function(tile) {
     .as_chr(tile[["tile"]][[1]])
@@ -199,6 +208,7 @@ NULL
     # Return path
     path
 }
+
 #' @title Get sorted unique bands from file_info.
 #' @name .tile_path
 #' @keywords internal
@@ -220,6 +230,40 @@ NULL
     paths <- .fi_paths(.fi(tile))
     # Return paths
     paths
+}
+
+#' @title Get unique satellite name from tile.
+#' @name .tile_satellite
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#'
+#' @return satellite name in the tile
+.tile_satellite <- function(tile) {
+    UseMethod(".tile_satellite", tile)
+}
+
+#' @export
+.tile_satellite.raster_cube <- function(tile) {
+    tile <- .tile(tile)
+    .as_chr(tile[["satellite"]])
+}
+
+#' @title Get unique sensor name from tile.
+#' @name .tile_sensor
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#'
+#' @return sensor name in the tile
+.tile_sensor <- function(tile) {
+    UseMethod(".tile_sensor", tile)
+}
+
+#' @export
+.tile_sensor.raster_cube <- function(tile) {
+    tile <- .tile(tile)
+    .as_chr(tile[["sensor"]])
 }
 
 #' @title Get sorted unique bands from file_info.
@@ -285,6 +329,22 @@ NULL
     tile <- .tile(tile)
     .fi(tile) <- .fi_filter_bands(fi = .fi(tile), bands = .band_derived(bands))
     tile
+}
+#'
+#' @title Get crs from tile
+#' @name .tile_crs
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#'
+#' @return character
+.tile_crs <- function(tile) {
+    UseMethod(".tile_crs", tile)
+}
+#' @export
+.tile_crs.raster_cube <- function(tile) {
+    tile <- .tile(tile)
+    .crs(tile)
 }
 #'
 #' @title Does tile \code{bbox} intersect \code{roi} parameter?
@@ -547,10 +607,12 @@ NULL
 #' @param overlap overlap between tiles
 #' @return set of chunks to be read from the file
 
-.tile_chunks_create <- function(tile, overlap) {
+.tile_chunks_create <- function(tile, overlap, block = NULL) {
     # Get block size
-    block <-
-        .raster_file_blocksize(.raster_open_rast(.tile_path(tile)))
+    block <- .default(
+        x = block,
+        default = .raster_file_blocksize(.raster_open_rast(.tile_path(tile)))
+    )
     # Compute chunks
     .chunks_create(
         block = block,
@@ -868,9 +930,25 @@ NULL
     if (nrow(values) != nrow(xy)) {
         stop("number of extracted points differ from requested points")
     }
-    return(values)
+    # Return values
+    values
 }
 
+.tile_contains_cloud <- function(tile) {
+    .source_cloud() %in% .tile_bands(tile)
+}
+
+.tile_contains_roi <- function(tile, roi) {
+    # Transform roi and bbox to sf
+    roi_bbox  <- .roi_as_sf(roi = roi, as_crs = .tile_crs(tile))
+    tile_bbox <- .bbox_as_sf(bbox = .bbox(tile), as_crs = .tile_crs(tile))
+    # Verify if the roi contains tile bbox
+    sf::st_contains(
+        x = roi_bbox,
+        y = tile_bbox,
+        sparse = FALSE
+    )
+}
 
 #---- ml_model ----
 
@@ -1016,6 +1094,17 @@ NULL
     ts <- ts[unique(c(.ts_cols, "Index", bands))]
     # Return time series
     ts
+}
+
+.ts_values <- function(ts, bands = NULL) {
+    # Get the time series of samples
+    bands <- .default(bands, .ts_bands(ts))
+    # Check missing bands
+    miss_bands <- bands[!bands %in% .ts_bands(ts)]
+    if (.has(miss_bands)) {
+        stop("band(s) ", .collapse("'", miss_bands, "'"), " not found")
+    }
+    ts[bands]
 }
 
 #---- sits (samples) ----
@@ -1248,7 +1337,9 @@ NULL
         stop("parameters should be named")
     }
     unlist(mapply(function(par, val) {
-        if (is.logical(val)) {
+        if (is.null(val)) {
+            NULL
+        } else if (is.logical(val)) {
             if (val) par else NULL
         } else if (is.list(val)) {
             c(par, unlist(val))
@@ -1269,6 +1360,24 @@ NULL
     sf::gdal_utils(
         util = "warp", source = base_files, destination = file[[1]],
         options = .gdal_params(params), quiet = quiet
+    )
+}
+
+.gdal_buildvrt <- function(file, base_files, quiet) {
+    sf::gdal_utils(
+        util = "buildvrt", source = base_files,
+        destination = file, quiet = quiet
+    )
+}
+
+.gdal_addo <- function(base_file) {
+    conf_cog <- .conf("gdal_presets", "cog")
+    suppressMessages(
+        sf::gdal_addo(
+            file = base_file,
+            method = conf_cog[["method"]],
+            overviews = conf_cog[["overviews"]]
+        )
     )
 }
 

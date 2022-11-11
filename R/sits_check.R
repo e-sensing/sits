@@ -1237,6 +1237,44 @@
         tolerance = tolerance
     )
 }
+
+.check_lgl_parameter <- function(param, len_min = 1, len_max = 1,
+                                 allow_na = FALSE, allow_null = FALSE,
+                                 is_named = FALSE) {
+    .check_lgl(
+        x = param,
+        len_min = len_min,
+        len_max = len_max,
+        allow_na = allow_na,
+        allow_null = allow_null,
+        is_named = is_named
+    )
+}
+
+
+#' @title Check is dates parameter are valid
+#' @name .check_dates_parameter
+#' @param  param   parameter to be checked
+#' @param  len_min minimum length of vector
+#' @param  len_max maximum length of vector
+#' @param  allow_null allow NULL?
+#'
+#' @return No return value, called for side effects.
+#' @keywords internal
+.check_dates_parameter <- function(param, len_min = 1, len_max = 2^31 - 1,
+                                   allow_null = TRUE) {
+    # Standard regexp of RFC 3339
+    pattern_rfc <- "^\\d{4}-\\d{2}-\\d{2}$"
+    .check_that(
+        x = all(grepl(pattern_rfc, param, perl = TRUE)),
+        msg = "invalid date format",
+        local_msg = paste(
+            "'start_date' and 'end_date' should follow",
+            "year-month-day format: YYYY-MM-DD"
+        )
+    )
+}
+
 #' @title Check is integer parameter is valid using reasonable defaults
 #' @name .check_int_parameter
 #' @param  x   parameter to be checked
@@ -1360,6 +1398,14 @@
     .check_file(
         x = output_dir,
         msg = "invalid output dir"
+    )
+}
+.check_crs <- function(crs) {
+    crs <- suppressWarnings(.try(sf::st_crs(crs), .default = NA))
+    .check_that(
+        x = !is.na(crs),
+        local_msg = "the 'crs' must be a valid character or numeric value.",
+        msg = "invalid 'crs' parameter."
     )
 }
 #' @title Check is version parameter is valid using reasonable defaults
@@ -1563,6 +1609,27 @@
     )
 }
 
+#' @title Does input data has time series?
+#' @name .check_samples_ts
+#' @param data a sits tibble
+#' @return  No return value, called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_ts <- function(data){
+    .check_samples(data)
+    .check_chr_contains(
+        x = colnames(data),
+        contains = "time_series",
+        msg = "invalid samples data"
+    )
+    # Get unnested time series
+    ts <- .sits_ts(data)
+    # check there is an Index column
+    .check_that(x = "Index" %in% colnames(ts))
+    # check there are no NA in distances
+    .check_that(x = !(anyNA(ts)), msg = "samples contain NA values")
+}
+
 #' @title Can the input data be used for training?
 #' @name .check_samples_train
 #' @param data a sits tibble
@@ -1578,12 +1645,7 @@
             !any(is.na(labels)),
         msg = "invalid labels in samples data"
     )
-    # Get unnested time series
-    ts <- .sits_ts(data)
-    # check there is an Index column
-    .check_that(x = "Index" %in% colnames(ts))
-    # check there are no NA in distances
-    .check_that(x = !(anyNA(ts)), msg = "samples contain NA values")
+    .check_samples_ts(data)
 }
 #' @title Is the samples_validation object valid?
 #' @name .check_samples_validation
@@ -2157,10 +2219,10 @@
         )
     )
 }
-.check_endmembers_bands <- function(em, cube) {
+.check_endmembers_bands <- function(em, bands) {
     .check_chr_within(
         x = .band_eo(.endmembers_bands(em)),
-        within = .cube_bands(cube, add_cloud = FALSE),
+        within = bands,
         msg = "invalid 'endmembers' columns"
     )
 }

@@ -652,6 +652,23 @@ NULL
 .cube_tiles.raster_cube <- function(cube) {
     .as_chr(cube[["tile"]])
 }
+
+#' @title Returns the cube paths
+#' @noRd
+#' @param cube  A data cube.
+#' @return  Character with cube paths.
+.cube_paths <- function(cube) {
+    UseMethod(".cube_paths", cube)
+}
+#' @export
+.cube_paths.raster_cube <- function(cube) {
+    slider::slide_chr(cube, function(tile) {
+        .fi_path(.fi(.tile(tile)))
+    })
+}
+.cube_is_local <- function(cube) {
+    all(.file_is_local(.file_remove_vsi(.cube_paths(cube))))
+}
 #' @title Filter the cube using tile names
 #' @noRd
 #' @param cube  A data cube.
@@ -681,6 +698,41 @@ NULL
         tile
     })
 }
+
+.cube_split_tiles_bands <- function(cube, bands, include_cloud = FALSE) {
+    bands <- if (include_cloud) bands[!bands %in% .source_cloud()] else bands
+    .cube_foreach_tile(cube, function(tile) {
+        features <- tile[, c("tile", "file_info")]
+        features <- tidyr::unnest(features, "file_info")
+        features <- dplyr::arrange(
+            features, .data[["date"]], .data[["fid"]], .data[["band"]]
+        )
+        feats_bands <- dplyr::filter(features, .data[["band"]] %in% !!bands)
+        feats_bands[["id"]] <- rep(
+            seq_along(bands), length(unique(features[["date"]]))
+        )
+        if (include_cloud) {
+            feats_cloud <- dplyr::filter(
+                features, .data[["band"]] == .source_cloud()
+            )
+            feats_cloud <- tidyr::uncount(feats_cloud, length(bands))
+            feats_cloud[["id"]] <- rep(
+                seq_along(bands), length(unique(features[["date"]]))
+            )
+            feats_bands <- dplyr::bind_rows(feats_bands, feats_cloud)
+            feats_bands <- dplyr::arrange(
+                feats_bands, .data[["date"]], .data[["fid"]], .data[["band"]]
+            )
+        }
+
+        features <- tidyr::nest(feats_bands, file_info = -c("tile", "id"))
+        # Replicate each tile so that we can copy file_info to cube
+        tile <- tile[rep(1, nrow(features)), ]
+        tile[["file_info"]] <- features[["file_info"]]
+        tile
+    })
+}
+
 #' @title create assets for a data cube by assigning a unique ID
 #' @noRd
 #' @param  cube  datacube
