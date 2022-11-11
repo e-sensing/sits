@@ -104,44 +104,6 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
     return(samples)
 }
 
-#' @title Transform an sf object into a samples file
-#' @name .samples_from_sf
-#' @author Gilberto Camara
-#' @keywords internal
-#' @noRd
-#' @param sf_object       sf object that describes the data to be retrieved.
-#' @param label           Default label for samples.
-#' @param label_attr      sf attribute that describes the label.
-#' @param start_date      Start date for the data set.
-#' @param end_date        End date for the data set.
-#' @param n_sam_pol       Number of samples per polygon to be read.
-#' @param pol_id          ID attribute for polygons shapefile.
-#'                        (for POLYGON or MULTIPOLYGON shapefile).
-#' @return                A tibble with information the samples to be retrieved.
-#'
-.samples_from_sf <- function(sf_object,
-                             label,
-                             label_attr,
-                             start_date,
-                             end_date,
-                             n_sam_pol,
-                             pol_id) {
-    # Get the points to be read
-    samples <- .sf_to_tibble(
-        sf_object   = sf_object,
-        label_attr  = label_attr,
-        label       = label,
-        n_sam_pol   = n_sam_pol,
-        pol_id      = pol_id
-    )
-    # Add start_date and end_date parameters into tibble
-    samples[["start_date"]] <- as.Date(start_date)
-    samples[["end_date"]] <- as.Date(end_date)
-
-    class(samples) <- c("sits", class(samples))
-
-    return(samples)
-}
 #' @title Obtain a tibble with lat/long points from an sf object
 #' @name .sf_to_tibble
 #' @keywords internal
