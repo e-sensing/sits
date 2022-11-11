@@ -63,6 +63,328 @@ plot.sits <- function(x, y, ...) {
     # return the plot
     return(invisible(p))
 }
+#' @title Plot all intervals of one time series for the same lat/long together
+#' @name .plot_allyears
+#' @keywords internal
+#' @noRd
+#' @description For each lat/long location in the data, join temporal
+#' instances of the same place together for plotting.
+#' @param data    One or more time series.
+#' @return        A plot object produced by the ggplot2 package
+#'                showing an individual time series.
+#'
+.plot_allyears <- function(data) {
+    locs <- dplyr::distinct(data, .data[["longitude"]], .data[["latitude"]])
+
+    plots <- purrr::pmap(
+        list(locs$longitude, locs$latitude),
+        function(long, lat) {
+            dplyr::filter(
+                data,
+                .data[["longitude"]] == long,
+                .data[["latitude"]] == lat
+            ) %>%
+                .plot_ggplot_series() %>%
+                graphics::plot()
+        }
+    )
+    return(invisible(plots[[1]]))
+}
+
+#' @title Plot a set of time series for the same spatiotemporal reference
+#'
+#' @name .plot_together
+#' @keywords internal
+#' @noRd
+#' @description Plots all time series for the same label together.
+#' This function is useful to find out the spread of the values of
+#' the time series for a given label.
+#'
+#' @param    data    A sits tibble with the list of time series to be plotted.
+#' @return           A set of plots produced by the ggplot2 package
+#'                   each containing all time series associated to one band
+#'                   and one label.
+.plot_together <- function(data) {
+    Index <- NULL # to avoid setting global variable
+    # create a data frame with the median, and 25% and 75% quantiles
+    create_iqr <- function(dt, band) {
+        V1 <- NULL # to avoid setting global variable
+
+        data.table::setnames(dt, band, "V1")
+        dt_med <- dt[, stats::median(V1), by = Index]
+        data.table::setnames(dt_med, "V1", "med")
+        dt_qt25 <- dt[, stats::quantile(V1, 0.25), by = Index]
+        data.table::setnames(dt_qt25, "V1", "qt25")
+        dt_qt75 <- dt[, stats::quantile(V1, 0.75), by = Index]
+        data.table::setnames(dt_qt75, "V1", "qt75")
+        dt_qts <- merge(dt_med, dt_qt25)
+        dt_qts <- merge(dt_qts, dt_qt75)
+        data.table::setnames(dt, "V1", band)
+        return(dt_qts)
+    }
+    # this function plots the values of all time series together (for one band)
+    plot_samples <- function(dt, dt_qts, band, label, number) {
+        # melt the data into long format (required for ggplot to work)
+        dt_melted <- data.table::melt(dt, id.vars = "Index")
+        # make the plot title
+        title <- paste("Samples (", number, ") for class ",
+                       label, " in band = ", band,
+                       sep = ""
+        )
+        # plot all data together
+        g <- .plot_ggplot_together(dt_melted, dt_qts, title)
+        p <- graphics::plot(g)
+        return(p)
+    }
+
+    # how many different labels are there?
+    labels <- sits_labels(data)
+
+    label_plots <- labels %>%
+        purrr::map(function(l) {
+            lb <- as.character(l)
+            # filter only those rows with the same label
+            data2 <- dplyr::filter(data, .data[["label"]] == lb)
+            # how many time series are to be plotted?
+            number <- nrow(data2)
+            # what are the band names?
+            bands <- sits_bands(data2)
+            # what are the reference dates?
+            ref_dates <- sits_timeline(data2)
+            # align all time series to the same dates
+            data2 <- .tibble_align_dates(data2, ref_dates)
+
+            band_plots <- bands %>%
+                purrr::map(function(band) {
+                    # select the band to be shown
+                    band_tb <- sits_select(data2, band)
+                    # create a list with all time series for this band
+                    dt_lst <- purrr::map(
+                        band_tb$time_series,
+                        function(ts) {
+                            data.table::data.table(ts)
+                        }
+                    )
+                    # set "Index" as the key for all data.tables in the list
+                    dt_lst <- purrr::map(
+                        dt_lst,
+                        function(dt) {
+                            data.table::setkey(dt, Index)
+                        }
+                    )
+                    # rename the columns of the data table prior to merging
+                    length_dt <- length(dt_lst)
+                    dt_lst <- purrr::map2(
+                        dt_lst, 1:length_dt,
+                        function(dt, i) {
+                            data.table::setnames(
+                                dt, band,
+                                paste0(band, ".", as.character(i))
+                            )
+                        }
+                    )
+                    # merge the list of data.tables into a single table
+                    dt <- Reduce(function(...) merge(..., all = TRUE), dt_lst)
+
+                    # create another data.table with all the rows together
+                    # (required to compute the median and quartile values)
+                    ts <- band_tb$time_series
+                    dt_byrows <- data.table::data.table(dplyr::bind_rows(ts))
+                    # compute the median and quartile values
+                    dt_qts <- create_iqr(dt_byrows, band)
+                    # plot the time series together
+                    # (highlighting the median and quartiles 25% and 75%)
+                    p <- plot_samples(dt, dt_qts, band, lb, number)
+                    return(p)
+                })
+            return(band_plots)
+        })
+    return(invisible(label_plots[[1]][[1]]))
+}
+
+#' @title Plot one time series using ggplot
+#'
+#' @name .plot_ggplot_series
+#' @keywords internal
+#' @noRd
+#' @description Plots a set of time series using ggplot. This function is used
+#' for showing the same lat/long location in a series of time steps.
+#'
+#' @param row         row of a sits tibble with the time series to be plotted.
+#' @return            A plot object produced by the ggplot2 package showing
+#'                    one time series.
+.plot_ggplot_series <- function(row) {
+    # Are there NAs in the data?
+    if (any(is.na(row$time_series[[1]]))) {
+        g <- .plot_ggplot_series_na(row)
+    } else {
+        g <- .plot_ggplot_series_no_na(row)
+    }
+    return(g)
+}
+#' @title Plot one time series using ggplot (no NAs present)
+#'
+#' @name .plot_ggplot_series_no_na
+#' @keywords internal
+#' @noRd
+#' @description Plots a set of time series using ggplot in the case the series
+#'              has no NA values.
+#'
+#' @param row         row of a sits tibble with the time series to be plotted.
+#' @return            A plot object produced by the ggplot2 package where the
+#'                    the time series has no NA values.
+#'
+.plot_ggplot_series_no_na <- function(row) {
+    # create the plot title
+    plot_title <- .plot_title(row$latitude, row$longitude, row$label)
+    #
+    colors <- grDevices::hcl.colors(
+        n = 20,
+        palette = "Harmonic",
+        alpha = 1,
+        rev = TRUE
+    )
+    # extract the time series
+    data_ts <- dplyr::bind_rows(row$time_series)
+    # melt the data into long format
+    melted_ts <- data_ts %>%
+        tidyr::pivot_longer(cols = -"Index", names_to = "variable") %>%
+        as.data.frame()
+    # plot the data with ggplot
+    g <- ggplot2::ggplot(melted_ts, ggplot2::aes(
+        x = .data[["Index"]],
+        y = .data[["value"]],
+        group = .data[["variable"]]
+    )) +
+        ggplot2::geom_line(ggplot2::aes(color = .data[["variable"]])) +
+        ggplot2::labs(title = plot_title) +
+        ggplot2::scale_fill_manual(palette = colors)
+    return(g)
+}
+#' @title Plot one time series with NAs using ggplot
+#'
+#' @name .plot_ggplot_series_na
+#' @keywords internal
+#' @noRd
+#' @description Plots a set of time series using ggplot, showing where NAs are.
+#'
+#' @param row         row of a sits tibble with the time series to be plotted.
+#' @return            A plot object produced by the ggplot2 package
+#'                    which shows the NA values of a time series.
+.plot_ggplot_series_na <- function(row) {
+
+    # verifies if tidyr package is installed
+    .check_require_packages("tidyr")
+
+    # define a function to replace the NAs for unique values
+    replace_na <- function(x) {
+        x[is.na(x)] <- -10000
+        x[x != -10000] <- NA
+        x[x == -10000] <- 1
+        return(x)
+    }
+    # create the plot title
+    plot_title <- .plot_title(row$latitude, row$longitude, row$label)
+
+    # include a new band in the data to show the NAs
+    data <- row$time_series[[1]]
+    data <- data %>%
+        dplyr::select_if(function(x) any(is.na(x))) %>%
+        .[, 1] %>%
+        `colnames<-`(., "X1") %>%
+        dplyr::transmute(cld = replace_na(.data[["X1"]])) %>%
+        dplyr::bind_cols(data, .)
+
+    # prepare tibble to ggplot (fortify)
+    ts1 <- tidyr::pivot_longer(data, -"Index")
+    g <- ggplot2::ggplot(data = ts1 %>%
+                             dplyr::filter(.data[["name"]] != "cld")) +
+        ggplot2::geom_col(ggplot2::aes(
+            x = .data[["Index"]],
+            y = .data[["value"]]
+        ),
+        fill = "sienna",
+        alpha = 0.3,
+        data = ts1 %>%
+            dplyr::filter(
+                .data[["name"]] == "cld",
+                !is.na(.data[["value"]])
+            )
+        ) +
+        ggplot2::geom_line(ggplot2::aes(
+            x = .data[["Index"]],
+            y = .data[["value"]],
+            color = .data[["name"]]
+        )) +
+        ggplot2::geom_point(ggplot2::aes(
+            x = .data[["Index"]],
+            y = .data[["value"]],
+            color = .data[["name"]]
+        )) +
+        ggplot2::labs(title = plot_title)
+
+    return(g)
+}
+
+#' @title Plot many time series together using ggplot
+#'
+#' @name .plot_ggplot_together
+#' @keywords internal
+#' @noRd
+#' @description Plots a set of  time series together.
+#'
+#' @param melted         tibble with the time series (already melted).
+#' @param means          means and std deviations of the time series.
+#' @param plot_title     title for the plot.
+#' @return               A plot object produced by the ggplot2 package
+#'                       each time series associated to one band
+#'                       and one label.
+#'
+.plot_ggplot_together <- function(melted, means, plot_title) {
+    g <- ggplot2::ggplot(data = melted, ggplot2::aes(
+        x = .data[["Index"]],
+        y = .data[["value"]],
+        group = .data[["variable"]]
+    )) +
+        ggplot2::geom_line(colour = "#819BB1", alpha = 0.5) +
+        ggplot2::labs(title = plot_title) +
+        ggplot2::geom_line(
+            data = means,
+            ggplot2::aes(x = .data[["Index"]], y = .data[["med"]]),
+            colour = "#B16240", size = 2, inherit.aes = FALSE
+        ) +
+        ggplot2::geom_line(
+            data = means,
+            ggplot2::aes(x = .data[["Index"]], y = .data[["qt25"]]),
+            colour = "#B19540", size = 1, inherit.aes = FALSE
+        ) +
+        ggplot2::geom_line(
+            data = means,
+            ggplot2::aes(x = .data[["Index"]], y = .data[["qt75"]]),
+            colour = "#B19540", size = 1, inherit.aes = FALSE
+        )
+    return(g)
+}
+
+#' @title Create a plot title to use with ggplot
+#' @name .plot_title
+#' @keywords internal
+#' @noRd
+#' @description Creates a plot title from row information.
+#'
+#' @param latitude   latitude of the location to be plotted.
+#' @param longitude  longitude of the location to be plotted.
+#' @param label      label of the location to be plotted.
+#' @return           title to be used in the plot.
+.plot_title <- function(latitude, longitude, label) {
+    title <- paste("location (",
+                   signif(latitude, digits = 4), ", ",
+                   signif(longitude, digits = 4), ") - ",
+                   label,
+                   sep = ""
+    )
+    return(title)
+}
 
 #' @title  Plot patterns that describe classes
 #' @name   plot.patterns
@@ -320,7 +642,7 @@ plot.predicted <- function(x, y, ...,
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # plot NDVI band of the second date date of the data cube
-#'     plot(cube, band = "NDVI", date = sits_timeline(cube)[c(1:2)])
+#'     plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
 #' }
 #' @export
 plot.raster_cube <- function(
@@ -356,7 +678,7 @@ plot.raster_cube <- function(
         can_repeat = FALSE,
         msg = "tile is not included in the cube"
     )
-    # only one tile at a time
+    # only one date at a time
     .check_that(length(date) == 1,
                 msg = "only one date per plot is allowed")
     # is this a valid date?
@@ -370,20 +692,15 @@ plot.raster_cube <- function(
     # Plot a B/W band as false color
     if (!purrr::is_null(band)) {
         .check_band_in_cube(band, tile)
-        # select the file to be plotted
-        bw_file <- .tile_path(tile, band, date)
         # plot the band as false color
-        p <- .plot_false_color(bw_file, band, palette, rev)
+        p <- .plot_false_color(tile, band, date, palette, rev)
     }
     # plot RGB image
     else {
         .check_bands_in_cube(c(red, green, blue), tile)
-        # get RGB files for the requested timeline
-        red_file   <- .tile_path(tile, red, date)
-        green_file <- .tile_path(tile, green, date)
-        blue_file  <- .tile_path(tile, blue, date)
+
         # plot RGB
-        p <- .plot_rgb(red_file, green_file, blue_file)
+        p <- .plot_rgb(tile, red, green, blue, date)
     }
     return(p)
 }
@@ -504,13 +821,90 @@ plot.uncertainty_cube <- function(
 
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile[[1]])
-
-    # read the files to plot
-    file <- .tile_path(tile)
+    band <- sits_bands(tile)
     # plot the data using tmap
-    p <- .plot_false_color(file, "Uncert", palette, rev)
+    p <- .plot_false_color(tile = tile,
+                           band = band,
+                           palette  = palette,
+                           rev = rev)
 
     return(p)
+}
+#' @title  Plot classified images
+#' @name   plot.class_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a classified raster using ggplot.
+#'
+#' @param  x               Object of class "class_cube".
+#' @param  y               Ignored.
+#' @param  ...             Further specifications for \link{plot}.
+#' @param  tile            Tile to be plotted.
+#' @param  title           Title of the plot.
+#' @param  legend          Named vector that associates labels to colors.
+#' @param  palette         Alternative RColorBrewer palette
+#'
+#' @return                 A  color map, where each pixel has the color
+#'                         associated to a label, as defined by the legend
+#'                         parameter.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # label cube with the most likely class
+#'     label_cube <- sits_label_classification(probs_cube)
+#'     # plot the resulting classified image
+#'     plot(label_cube)
+#' }
+#' @export
+#'
+plot.class_cube <- function(x, y, ...,
+                            tile = x$tile[[1]],
+                            title = "Classified Image",
+                            legend = NULL,
+                            palette = "Spectral") {
+    stopifnot(missing(y))
+    # set caller to show in errors
+    .check_set_caller("plot_class_cube")
+
+    # precondition - cube must be a labelled cube
+    cube <- x
+    .check_chr_within(
+        x = "class_cube",
+        within = class(cube),
+        discriminator = "any_of",
+        msg = "cube must be a classified image"
+    )
+
+    # precondition
+    if (purrr::is_null(tile)) {
+        tile <- cube$tile[[1]]
+    } else {
+        .check_chr_contains(
+            x = cube$tile,
+            contains = tile,
+            case_sensitive = FALSE,
+            discriminator = "all_of",
+            can_repeat = FALSE,
+            msg = "tiles are not included in the cube"
+        )
+    }
+    # select only one tile
+    tile <- .cube_filter_tiles(cube = cube, tiles = tile)
+
+    # plot class cube
+    .plot_class_image(tile, legend, palette)
 }
 #' @title  Plot a false color image
 #' @name   .plot_false_color
@@ -518,14 +912,15 @@ plot.uncertainty_cube <- function(
 #' @description plots a set of false color image
 #' @keywords internal
 #' @noRd
-#' @param  file          File to be plotted.
+#' @param  tile          Tile to be plotted.
 #' @param  band          Band to be plotted.
+#' @param  date          Date to be plotted.
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
 #'
 #' @return               A plot object
 #'
-.plot_false_color <- function(file, band, palette, rev){
+.plot_false_color <- function(tile, band, date = NULL, palette, rev){
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -546,8 +941,19 @@ plot.uncertainty_cube <- function(
     if (rev)
         palette <- paste0("-", palette)
 
+    # select the file to be plotted
+    bw_file <- .tile_path(tile, band, date)
+
+    # size of data to be read
+    size <- .plot_read_size(tile)
+
     # read file
-    stars_obj <- stars::read_stars(file)
+    stars_obj <- stars::read_stars(
+        bw_file,
+        RasterIO = list(
+            "nBufXSize" = size["xsize"],
+            "nBufYSize" = size["ysize"]
+        ))
 
     # rescale the stars object
     stars_obj <- stars_obj * .conf("raster_cube_scale_factor")
@@ -560,11 +966,89 @@ plot.uncertainty_cube <- function(
                 title = band,
                 midpoint = NA) +
             tmap::tm_graticules()  +
+            tmap::tm_compass() +
             tmap::tm_layout(legend.title.size = 1.5,
                             legend.text.size = 1.2,
                             legend.bg.color = "white",
                             legend.bg.alpha = 0.5)
     )
+    return(p)
+}
+#' @title  Plot a classified image
+#' @name   .plot_class_image
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a classified image
+#' @keywords internal
+#' @noRd
+#' @param  tile          Tile to be plotted.
+#' @param  legend        Legend for the classes
+#' @param  palette       A sequential RColorBrewer palette
+#'
+#' @return               A plot object
+#'
+.plot_class_image <- function(tile, legend, palette){
+
+    # verifies if stars package is installed
+    .check_require_packages("stars")
+    # verifies if tmap package is installed
+    .check_require_packages("tmap")
+
+    # deal with color palette
+    .check_chr_contains(
+        x = palette,
+        contains = .conf("sits_color_palettes"),
+        discriminator = "any_of",
+        msg = paste0("Color palette not supported"),
+        local_msg = paste("Palette should be one of ",
+                          paste0(.conf("sits_color_palettes"),
+                                 collapse = ", "))
+    )
+
+    # get the labels
+    labels <- sits_labels(tile)
+    # names(labels) <- seq_along(labels)
+    # obtain the colors
+    colors <- .view_get_colors(
+        labels = labels,
+        legend = legend,
+        palette = palette
+    )
+    # rename colors
+    names(colors) <- seq_along(labels)
+    # size of data to be read
+    size <- .plot_read_size(tile)
+    # select the image to be plotted
+    class_file <- .tile_path(tile)
+
+    # read file
+    stars_obj <- stars::read_stars(
+        class_file,
+        RasterIO = list(
+            "nBufXSize" = size["xsize"],
+            "nBufYSize" = size["ysize"]
+        ))
+
+    # rename stars object
+    stars_obj <- stats::setNames(stars_obj, "labels")
+
+    # plot using tmap
+    p <- suppressMessages(
+        tmap::tm_shape(stars_obj) +
+            tmap::tm_raster(
+                style = "cat",
+                palette = colors,
+                labels = labels) +
+            tmap::tm_graticules(
+                labels.size = 0.8
+            )  +
+            tmap::tm_compass() +
+            tmap::tm_layout(
+                legend.title.size = 1.2,
+                legend.text.size = 1.0,
+                legend.bg.color = "white",
+                legend.bg.alpha = 0.8)
+    )
+
     return(p)
 }
 #' @title  Plot probs
@@ -599,6 +1083,7 @@ plot.uncertainty_cube <- function(
     if (rev)
         palette <- paste0("-",palette)
 
+
     # get all labels to be plotted
     labels <- sits_labels(tile)
     names(labels) <- c(1:length(labels))
@@ -610,13 +1095,24 @@ plot.uncertainty_cube <- function(
         .check_that(all(labels_plot %in% labels),
                     msg = "labels not in cube")
 
+    # size of data to be read
+    size <- .plot_read_size(tile)
 
     # get the path
     probs_path <- .tile_path(tile)
     # read the file using stars
-    probs_st <- stars::read_stars(probs_path)
+    probs_st <- stars::read_stars(
+        probs_path,
+        RasterIO = list(
+            "nBufXSize" = size["xsize"],
+            "nBufYSize" = size["ysize"]
+        )
+    )
+    # get the band
+    band <- .tile_bands(tile)
+    band_conf <- .tile_band_conf(tile, band)
     # scale the data
-    probs_st <- probs_st * .conf("raster_cube_scale_factor")
+    probs_st <- probs_st * .scale(band_conf)
 
     # rename stars object dimensions to labels
     probs_st <- stars::st_set_dimensions(probs_st, "band",
@@ -647,30 +1143,43 @@ plot.uncertainty_cube <- function(
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
-#' @param  red_file      File with the band to be plotted in red
-#' @param  green_file    File with the band to be plotted in green
-#' @param  blue_file     File with the band to be plotted in blue
+#' @param  tile          Tile to be plotted
+#' @param  red           Band to be plotted in red
+#' @param  green         Band to be plotted in green
+#' @param  blue          Band to be plotted in blue
+#' @param  date          Date to be plotted
 #'
 #' @return               A plot object
 #'
-.plot_rgb <- function(red_file, green_file, blue_file) {
+.plot_rgb <- function(tile, red, green, blue, date) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
     .check_require_packages("tmap")
 
+    # get RGB files for the requested timeline
+    red_file   <- .tile_path(tile, red, date)
+    green_file <- .tile_path(tile, green, date)
+    blue_file  <- .tile_path(tile, blue, date)
+
+    # size of data to be read
+    size <- .plot_read_size(tile)
+    # read raster data as a stars object with separate RGB bands
     rgb_st <- stars::read_stars(
         c(red_file, green_file, blue_file),
         along = "band",
         RasterIO = list(
-            "nBufXSize" = 1000,
-            "nBufYSize" = 1000
+            "nBufXSize" = size["xsize"],
+            "nBufYSize" = size["ysize"]
         ))
+    # get the max values
+    band_params   <- .tile_band_conf(tile, red)
+    max_value <- .max_value(band_params)
 
     rgb_st <- stars::st_rgb(rgb_st[,,,1:3],
                             dimension = "band",
-                            maxColorValue = 10000,
+                            maxColorValue = max_value,
                             use_alpha = FALSE,
                             probs = c(0.05, 0.95),
                             stretch = TRUE)
@@ -682,185 +1191,42 @@ plot.uncertainty_cube <- function(
 
     return(p)
 }
-#' @title  Plot classified images
-#' @name   plot.class_cube
+#' @title  Return the cell size for the image to be reduced for plotting
+#' @name .plot_read_size
+#' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a classified raster using ggplot.
 #'
-#' @param  x               Object of class "class_cube".
-#' @param  y               Ignored.
-#' @param  ...             Further specifications for \link{plot}.
-#' @param  tiles           Tiles to be plotted.
-#' @param  title           Title of the plot.
-#' @param  legend          Named vector that associates labels to colors.
-#' @param  palette         Alternative palette that uses grDevices::hcl.pals().
-#' @param  rev             Invert the order of hcl palette?
+#' @param  tile       Tile to be plotted.
+#' @return            Cell size for x and y coordinates.
 #'
-#' @return                 A plot object produced by the ggplot2 package
-#'                         with a color maps, where each pixel has the color
-#'                         associated to a label, as defined by the legend
-#'                         parameter.
 #'
-#' @examples
-#' if (sits_run_examples()) {
-#'     # create a random forest model
-#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-#'     # create a data cube from local files
-#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#'     cube <- sits_cube(
-#'         source = "BDC",
-#'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_",
-#'         parse_info = c("X1", "tile", "band", "date")
-#'     )
-#'     # classify a data cube
-#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
-#'     # label cube with the most likely class
-#'     label_cube <- sits_label_classification(probs_cube)
-#'     # plot the resulting classified image
-#'     plot(label_cube)
-#' }
-#' @export
-#'
-plot.class_cube <- function(x, y, ...,
-                                  tiles = NULL,
-                                  title = "Classified Image",
-                                  legend = NULL,
-                                  palette = "Spectral",
-                                  rev = TRUE) {
-    stopifnot(missing(y))
-    # set caller to show in errors
-    .check_set_caller("plot_class_cube")
+.plot_read_size <- function(tile) {
 
-    # get other parameters
-    dots <- list(...)
+    # get the maximum number of bytes to be displayed
+    max_cells <- as.numeric(.conf("tmap_max_cells"))
+    max_raster <- c(plot = max_cells, view = max_cells)
+    # set the options for tmap
+    tmap::tmap_options(max.raster = max_raster)
+    # numbers of nrows and ncols
+    nrows <- .tile_nrows(tile)
+    ncols <- .tile_ncols(tile)
 
-    # precondition - cube must be a labelled cube
-    cube <- x
-    .check_chr_within(
-        x = "class_cube",
-        within = class(cube),
-        discriminator = "any_of",
-        msg = "cube must be a classified image"
-    )
-
-    # precondition - check palette
-    .check_chr_within(
-        x = palette,
-        within = grDevices::hcl.pals(),
-        discriminator = "any_of",
-        msg = "invalid color palette"
-    )
-    # deal with wrong parameter "tile"
-    if ("tile" %in% names(dots) && missing(tiles)) {
-        message("please use tiles instead of tile as parameter")
-        tiles <- dots[["tile"]]
-    }
-    # precondition
-    if (purrr::is_null(tiles)) {
-        tiles <- cube$tile[[1]]
+    # do we need to compress?
+    ratio <- max((nrows * ncols / max_cells), 1)
+    # only create local files if required
+    if (ratio > 1) {
+        new_nrows <- round(nrows / sqrt(ratio))
+        new_ncols <- round(ncols * (new_nrows / nrows))
     } else {
-        .check_chr_contains(
-            x = cube$tile,
-            contains = tiles,
-            case_sensitive = FALSE,
-            discriminator = "all_of",
-            can_repeat = FALSE,
-            msg = "tiles are not included in the cube"
-        )
+        new_nrows <- round(nrows)
+        new_ncols <- round(ncols)
     }
-    # select only one tile
-    cube <- .cube_filter_tiles(cube = cube, tiles = tiles)
-
-    r_objs <- slider::slide(cube, function(tile) {
-        # get the raster object
-        path <- .tile_path(tile)
-        r <- suppressWarnings(.raster_open_rast(path))
-        return(r)
-    })
-
-    # merge two or more raster objects
-    if (length(r_objs) == 1) {
-        r_merge <- r_objs[[1]]
-    } else {
-        raster_collection <- terra::sprc(r_objs)
-        r_merge <- terra::merge(raster_collection)
-    }
-    # compress the image
-    max_Mbytes <- .conf("plot_max_Mbytes")
-
-    # find out of image needs to be resampled
-    size <- .plot_resample_class(
-        .raster_nrows(r_merge),
-        .raster_ncols(r_merge),
-        max_Mbytes
-    )
-    # resample image
-    if (as.numeric(size[["ratio"]] > 1)) {
-        new_nrows <- as.integer(size[["nrows"]])
-        new_ncols <- as.integer(size[["ncols"]])
-        new_rast <- .raster_new_rast(nrows = new_nrows,
-                                     ncols = new_ncols,
-                                     xmin = .raster_xmin(r_merge),
-                                     xmax = .raster_xmax(r_merge),
-                                     ymin = .raster_ymin(r_merge),
-                                     ymax = .raster_ymax(r_merge),
-                                     nlayers = 1,
-                                     crs  = .raster_crs(r_merge)
-
-        )
-        r_merge <- terra::resample(r_merge, new_rast, method = "near")
-    }
-    # convert from raster to points
-    df <- terra::as.data.frame(r_merge, xy = TRUE)
-    # define the column names for the data frame
-    colnames(df) <- c("x", "y", "class")
-
-    # get the labels and how many there are
-    labels <- sits_labels(cube)
-    nclasses <- length(labels)
-    # create a mapping from classes to labels
-    names(labels) <- as.character(c(1:nclasses))
-
-    # if colors are not specified, get them from the configuration file
-    if (purrr::is_null(legend)) {
-        colors <- .colors_get(
-            labels = labels,
-            palette = palette,
-            rev = rev
-        )
-    } else {
-        .check_chr_within(
-            x = labels,
-            within = names(legend),
-            discriminator = "all_of",
-            msg = "some labels are missing from the legend"
-        )
-
-        colors <- legend[labels]
-    }
-    # set the names of the color vector
-    # names(colors) <- as.character(c(1:nclasses))
-    df[["class"]] <- labels[df[["class"]]]
-    classes <- sort(unique(df[["class"]]))
-    fill_colors <- unname(colors[classes])
-
-    # plot the data with ggplot
-    g <- ggplot2::ggplot(df, ggplot2::aes(.data[["x"]], .data[["y"]])) +
-        ggplot2::geom_raster(ggplot2::aes(fill = class)) +
-        ggplot2::labs(title = title) +
-        ggplot2::scale_fill_manual(
-            values = fill_colors,
-            labels = classes,
-            guide = ggplot2::guide_legend(
-                title = "Classes"
-            )
-        )
-
-    graphics::plot(g)
-    return(invisible(g))
+    return(c(
+        "xsize" = new_ncols, "ysize" = new_nrows
+    ))
 }
+
 #' @title  Plot Random Forest  model
 #' @name   plot.rfor_model
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -1238,328 +1604,7 @@ plot.torch_model <- function(x, y, ...) {
     return(p)
 }
 
-#' @title Plot all intervals of one time series for the same lat/long together
-#' @name .plot_allyears
-#' @keywords internal
-#' @noRd
-#' @description For each lat/long location in the data, join temporal
-#' instances of the same place together for plotting.
-#' @param data    One or more time series.
-#' @return        A plot object produced by the ggplot2 package
-#'                showing an individual time series.
-#'
-.plot_allyears <- function(data) {
-    locs <- dplyr::distinct(data, .data[["longitude"]], .data[["latitude"]])
 
-    plots <- purrr::pmap(
-        list(locs$longitude, locs$latitude),
-        function(long, lat) {
-            dplyr::filter(
-                data,
-                .data[["longitude"]] == long,
-                .data[["latitude"]] == lat
-            ) %>%
-                .plot_ggplot_series() %>%
-                graphics::plot()
-        }
-    )
-    return(invisible(plots[[1]]))
-}
-
-#' @title Plot a set of time series for the same spatiotemporal reference
-#'
-#' @name .plot_together
-#' @keywords internal
-#' @noRd
-#' @description Plots all time series for the same label together.
-#' This function is useful to find out the spread of the values of
-#' the time series for a given label.
-#'
-#' @param    data    A sits tibble with the list of time series to be plotted.
-#' @return           A set of plots produced by the ggplot2 package
-#'                   each containing all time series associated to one band
-#'                   and one label.
-.plot_together <- function(data) {
-    Index <- NULL # to avoid setting global variable
-    # create a data frame with the median, and 25% and 75% quantiles
-    create_iqr <- function(dt, band) {
-        V1 <- NULL # to avoid setting global variable
-
-        data.table::setnames(dt, band, "V1")
-        dt_med <- dt[, stats::median(V1), by = Index]
-        data.table::setnames(dt_med, "V1", "med")
-        dt_qt25 <- dt[, stats::quantile(V1, 0.25), by = Index]
-        data.table::setnames(dt_qt25, "V1", "qt25")
-        dt_qt75 <- dt[, stats::quantile(V1, 0.75), by = Index]
-        data.table::setnames(dt_qt75, "V1", "qt75")
-        dt_qts <- merge(dt_med, dt_qt25)
-        dt_qts <- merge(dt_qts, dt_qt75)
-        data.table::setnames(dt, "V1", band)
-        return(dt_qts)
-    }
-    # this function plots the values of all time series together (for one band)
-    plot_samples <- function(dt, dt_qts, band, label, number) {
-        # melt the data into long format (required for ggplot to work)
-        dt_melted <- data.table::melt(dt, id.vars = "Index")
-        # make the plot title
-        title <- paste("Samples (", number, ") for class ",
-            label, " in band = ", band,
-            sep = ""
-        )
-        # plot all data together
-        g <- .plot_ggplot_together(dt_melted, dt_qts, title)
-        p <- graphics::plot(g)
-        return(p)
-    }
-
-    # how many different labels are there?
-    labels <- sits_labels(data)
-
-    label_plots <- labels %>%
-        purrr::map(function(l) {
-            lb <- as.character(l)
-            # filter only those rows with the same label
-            data2 <- dplyr::filter(data, .data[["label"]] == lb)
-            # how many time series are to be plotted?
-            number <- nrow(data2)
-            # what are the band names?
-            bands <- sits_bands(data2)
-            # what are the reference dates?
-            ref_dates <- sits_timeline(data2)
-            # align all time series to the same dates
-            data2 <- .tibble_align_dates(data2, ref_dates)
-
-            band_plots <- bands %>%
-                purrr::map(function(band) {
-                    # select the band to be shown
-                    band_tb <- sits_select(data2, band)
-                    # create a list with all time series for this band
-                    dt_lst <- purrr::map(
-                        band_tb$time_series,
-                        function(ts) {
-                            data.table::data.table(ts)
-                        }
-                    )
-                    # set "Index" as the key for all data.tables in the list
-                    dt_lst <- purrr::map(
-                        dt_lst,
-                        function(dt) {
-                            data.table::setkey(dt, Index)
-                        }
-                    )
-                    # rename the columns of the data table prior to merging
-                    length_dt <- length(dt_lst)
-                    dt_lst <- purrr::map2(
-                        dt_lst, 1:length_dt,
-                        function(dt, i) {
-                            data.table::setnames(
-                                dt, band,
-                                paste0(band, ".", as.character(i))
-                            )
-                        }
-                    )
-                    # merge the list of data.tables into a single table
-                    dt <- Reduce(function(...) merge(..., all = TRUE), dt_lst)
-
-                    # create another data.table with all the rows together
-                    # (required to compute the median and quartile values)
-                    ts <- band_tb$time_series
-                    dt_byrows <- data.table::data.table(dplyr::bind_rows(ts))
-                    # compute the median and quartile values
-                    dt_qts <- create_iqr(dt_byrows, band)
-                    # plot the time series together
-                    # (highlighting the median and quartiles 25% and 75%)
-                    p <- plot_samples(dt, dt_qts, band, lb, number)
-                    return(p)
-                })
-            return(band_plots)
-        })
-    return(invisible(label_plots[[1]][[1]]))
-}
-
-#' @title Plot one time series using ggplot
-#'
-#' @name .plot_ggplot_series
-#' @keywords internal
-#' @noRd
-#' @description Plots a set of time series using ggplot. This function is used
-#' for showing the same lat/long location in a series of time steps.
-#'
-#' @param row         row of a sits tibble with the time series to be plotted.
-#' @return            A plot object produced by the ggplot2 package showing
-#'                    one time series.
-.plot_ggplot_series <- function(row) {
-    # Are there NAs in the data?
-    if (any(is.na(row$time_series[[1]]))) {
-        g <- .plot_ggplot_series_na(row)
-    } else {
-        g <- .plot_ggplot_series_no_na(row)
-    }
-    return(g)
-}
-#' @title Plot one time series using ggplot (no NAs present)
-#'
-#' @name .plot_ggplot_series_no_na
-#' @keywords internal
-#' @noRd
-#' @description Plots a set of time series using ggplot in the case the series
-#'              has no NA values.
-#'
-#' @param row         row of a sits tibble with the time series to be plotted.
-#' @return            A plot object produced by the ggplot2 package where the
-#'                    the time series has no NA values.
-#'
-.plot_ggplot_series_no_na <- function(row) {
-    # create the plot title
-    plot_title <- .plot_title(row$latitude, row$longitude, row$label)
-    #
-    colors <- grDevices::hcl.colors(
-        n = 20,
-        palette = "Harmonic",
-        alpha = 1,
-        rev = TRUE
-    )
-    # extract the time series
-    data_ts <- dplyr::bind_rows(row$time_series)
-    # melt the data into long format
-    melted_ts <- data_ts %>%
-        tidyr::pivot_longer(cols = -"Index", names_to = "variable") %>%
-        as.data.frame()
-    # plot the data with ggplot
-    g <- ggplot2::ggplot(melted_ts, ggplot2::aes(
-        x = .data[["Index"]],
-        y = .data[["value"]],
-        group = .data[["variable"]]
-    )) +
-        ggplot2::geom_line(ggplot2::aes(color = .data[["variable"]])) +
-        ggplot2::labs(title = plot_title) +
-        ggplot2::scale_fill_manual(palette = colors)
-    return(g)
-}
-#' @title Plot one time series with NAs using ggplot
-#'
-#' @name .plot_ggplot_series_na
-#' @keywords internal
-#' @noRd
-#' @description Plots a set of time series using ggplot, showing where NAs are.
-#'
-#' @param row         row of a sits tibble with the time series to be plotted.
-#' @return            A plot object produced by the ggplot2 package
-#'                    which shows the NA values of a time series.
-.plot_ggplot_series_na <- function(row) {
-
-    # verifies if tidyr package is installed
-    .check_require_packages("tidyr")
-
-    # define a function to replace the NAs for unique values
-    replace_na <- function(x) {
-        x[is.na(x)] <- -10000
-        x[x != -10000] <- NA
-        x[x == -10000] <- 1
-        return(x)
-    }
-    # create the plot title
-    plot_title <- .plot_title(row$latitude, row$longitude, row$label)
-
-    # include a new band in the data to show the NAs
-    data <- row$time_series[[1]]
-    data <- data %>%
-        dplyr::select_if(function(x) any(is.na(x))) %>%
-        .[, 1] %>%
-        `colnames<-`(., "X1") %>%
-        dplyr::transmute(cld = replace_na(.data[["X1"]])) %>%
-        dplyr::bind_cols(data, .)
-
-    # prepare tibble to ggplot (fortify)
-    ts1 <- tidyr::pivot_longer(data, -"Index")
-    g <- ggplot2::ggplot(data = ts1 %>%
-        dplyr::filter(.data[["name"]] != "cld")) +
-        ggplot2::geom_col(ggplot2::aes(
-            x = .data[["Index"]],
-            y = .data[["value"]]
-        ),
-        fill = "sienna",
-        alpha = 0.3,
-        data = ts1 %>%
-            dplyr::filter(
-                .data[["name"]] == "cld",
-                !is.na(.data[["value"]])
-            )
-        ) +
-        ggplot2::geom_line(ggplot2::aes(
-            x = .data[["Index"]],
-            y = .data[["value"]],
-            color = .data[["name"]]
-        )) +
-        ggplot2::geom_point(ggplot2::aes(
-            x = .data[["Index"]],
-            y = .data[["value"]],
-            color = .data[["name"]]
-        )) +
-        ggplot2::labs(title = plot_title)
-
-    return(g)
-}
-
-#' @title Plot many time series together using ggplot
-#'
-#' @name .plot_ggplot_together
-#' @keywords internal
-#' @noRd
-#' @description Plots a set of  time series together.
-#'
-#' @param melted         tibble with the time series (already melted).
-#' @param means          means and std deviations of the time series.
-#' @param plot_title     title for the plot.
-#' @return               A plot object produced by the ggplot2 package
-#'                       each time series associated to one band
-#'                       and one label.
-#'
-.plot_ggplot_together <- function(melted, means, plot_title) {
-    g <- ggplot2::ggplot(data = melted, ggplot2::aes(
-        x = .data[["Index"]],
-        y = .data[["value"]],
-        group = .data[["variable"]]
-    )) +
-        ggplot2::geom_line(colour = "#819BB1", alpha = 0.5) +
-        ggplot2::labs(title = plot_title) +
-        ggplot2::geom_line(
-            data = means,
-            ggplot2::aes(x = .data[["Index"]], y = .data[["med"]]),
-            colour = "#B16240", size = 2, inherit.aes = FALSE
-        ) +
-        ggplot2::geom_line(
-            data = means,
-            ggplot2::aes(x = .data[["Index"]], y = .data[["qt25"]]),
-            colour = "#B19540", size = 1, inherit.aes = FALSE
-        ) +
-        ggplot2::geom_line(
-            data = means,
-            ggplot2::aes(x = .data[["Index"]], y = .data[["qt75"]]),
-            colour = "#B19540", size = 1, inherit.aes = FALSE
-        )
-    return(g)
-}
-
-#' @title Create a plot title to use with ggplot
-#' @name .plot_title
-#' @keywords internal
-#' @noRd
-#' @description Creates a plot title from row information.
-#'
-#' @param latitude   latitude of the location to be plotted.
-#' @param longitude  longitude of the location to be plotted.
-#' @param label      label of the location to be plotted.
-#' @return           title to be used in the plot.
-.plot_title <- function(latitude, longitude, label) {
-    title <- paste("location (",
-        signif(latitude, digits = 4), ", ",
-        signif(longitude, digits = 4), ") - ",
-        label,
-        sep = ""
-    )
-    return(title)
-}
 
 #' @title Plot a dendrogram
 #' @name .plot_dendrogram
@@ -1640,35 +1685,6 @@ plot.torch_model <- function(x, y, ...) {
     )
     return(invisible(dend))
 }
-
-#' @title Calculate resample params for classified images
-#' @name .plot_resample_class
-#' @keywords internal
-#' @noRd
-#' @param nrows    number of rows in the input image
-#' @param ncols    number of cols in the input image
-#' @param max_Mbytes maximum number of MB per plot
-#' @return         ratio and new size of output plot
-.plot_resample_class <- function(nrows, ncols, max_Mbytes) {
-
-    # input size
-    in_size_Mbytes <- (nrows * ncols) / (1000 * 1000)
-    # do we need to compress?
-    ratio <- max((in_size_Mbytes / max_Mbytes), 1)
-
-    # only create local files if required
-    if (ratio > 1) {
-        new_nrows <- round(nrows / sqrt(ratio))
-        new_ncols <- round(ncols * (new_nrows / nrows))
-    } else {
-        new_nrows <- nrows
-        new_ncols <- ncols
-    }
-    return(c("ratio" = ratio, "nrows" = new_nrows, "ncols" = new_ncols))
-}
-
-
-
 
 #' @title Make a kernel density plot of samples distances.
 #'

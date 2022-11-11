@@ -8,11 +8,10 @@
   x,
   y,
   ...,
-  tiles = NULL,
+  tile = x$tile[[1]],
   title = "Classified Image",
   legend = NULL,
-  palette = "Spectral",
-  rev = TRUE
+  palette = "Spectral"
 )
 }
 \arguments{
@@ -22,19 +21,16 @@
 
 \item{...}{Further specifications for \link{plot}.}
 
-\item{tiles}{Tiles to be plotted.}
+\item{tile}{Tile to be plotted.}
 
 \item{title}{Title of the plot.}
 
 \item{legend}{Named vector that associates labels to colors.}
 
-\item{palette}{Alternative palette that uses grDevices::hcl.pals().}
-
-\item{rev}{Invert the order of hcl palette?}
+\item{palette}{Alternative RColorBrewer palette}
 }
 \value{
-A plot object produced by the ggplot2 package
-                        with a color maps, where each pixel has the color
+A  color map, where each pixel has the color
                         associated to a label, as defined by the legend
                         parameter.
 }

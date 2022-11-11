@@ -52,7 +52,7 @@ sits_uncertainty(
 
 \item{type}{Method to measure uncertainty. See details.}
 
-\item{window_size}{Size of neighborhood to calculate entropy.}
+\item{window_size}{Size of neighborhood to calculate uncertainty.}
 
 \item{memsize}{Maximum overall memory (in GB) to run the function.}
 

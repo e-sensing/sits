@@ -164,7 +164,6 @@ Collate:
     'sits_sf.R'
     'sits_shp.R'
     'sits_smooth.R'
-    'sits_smooth_aux_functions.R'
     'sits_som.R'
     'sits_source_api.R'
     'sits_source_api_aws.R'

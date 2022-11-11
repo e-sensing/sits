@@ -41,6 +41,18 @@ C_kernel_max <- function(x, ncols, nrows, band, window_size) {
     .Call(`_sits_C_kernel_max`, x, ncols, nrows, band, window_size)
 }
 
+C_kernel_bayes_mean <- function(x, ncols, nrows, window_size) {
+    .Call(`_sits_C_kernel_bayes_mean`, x, ncols, nrows, window_size)
+}
+
+C_kernel_bayes_var <- function(x, ncols, nrows, window_size) {
+    .Call(`_sits_C_kernel_bayes_var`, x, ncols, nrows, window_size)
+}
+
+C_bayes_posterior <- function(x, s, m, v) {
+    .Call(`_sits_C_bayes_posterior`, x, s, m, v)
+}
+
 C_label_max_prob <- function(x) {
     .Call(`_sits_C_label_max_prob`, x)
 }
@@ -77,12 +89,8 @@ max_sampling <- function(data, band, img_nrow, img_ncol, window_size) {
     .Call(`_sits_max_sampling`, data, band, img_nrow, img_ncol, window_size)
 }
 
-bayes_smoother <- function(m, m_nrow, m_ncol, w, sigma, covar_sigma0) {
-    .Call(`_sits_bayes_smoother`, m, m_nrow, m_ncol, w, sigma, covar_sigma0)
-}
-
-kernel_smoother <- function(m, m_nrow, m_ncol, w, normalised) {
-    .Call(`_sits_kernel_smoother`, m, m_nrow, m_ncol, w, normalised)
+bayes_smoother <- function(m, m_nrow, m_ncol, w, sigma, covar_sigma0, neigh_fraction) {
+    .Call(`_sits_bayes_smoother`, m, m_nrow, m_ncol, w, sigma, covar_sigma0, neigh_fraction)
 }
 
 bilateral_smoother <- function(m, m_nrow, m_ncol, w, tau) {
