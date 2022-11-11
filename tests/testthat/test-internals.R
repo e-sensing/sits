@@ -8,3 +8,8 @@ test_that("Period functions check", {
     expect_equal(object = .period_unit("P2M"), expected = "month")
     expect_equal(object = .period_unit("P1Y"), expected = "year")
 })
+
+test_that("Tests functions", {
+    expect_equal(class(sits_run_tests()), "logical")
+    expect_equal(class(sits_run_examples()), "logical")
+})

@@ -36,10 +36,18 @@ test_that("Combine predictions", {
     expect_equal(sits_labels(comb_probs_cube_avg), sits_labels(probs_xgb_cube))
     expect_equal(sits_bbox(comb_probs_cube_avg), sits_bbox(probs_xgb_cube))
     expect_equal(nrow(comb_probs_cube_avg), nrow(probs_xgb_cube))
+    # Resume feature
+    comb_probs_cube_avg <- sits_combine_predictions(
+        cubes = pred_cubes,
+        type = "average",
+        output_dir = tempdir(),
+        version = "comb_rfor_xgb_avg"
+    )
+
     # combine predictions
     comb_probs_cube_uncert <- sits_combine_predictions(
         cubes = pred_cubes,
-        type = "average",
+        type = "uncertainty",
         output_dir = tempdir(),
         version = "comb_rfor_xgb_uncert"
     )
