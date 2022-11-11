@@ -45,7 +45,7 @@ test_that("Plot Time Series and Images", {
             sinop,
             ml_model = rfor_model,
             memsize = 2,
-            multicores = 4,
+            multicores = 2,
             output_dir = tempdir()
         )
     )
