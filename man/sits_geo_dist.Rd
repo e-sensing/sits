@@ -4,17 +4,17 @@
 \alias{sits_geo_dist}
 \title{Compute the minimum distances among samples and prediction points.}
 \usage{
-sits_geo_dist(samples, crs = "EPSG:4326", roi, n = 1000)
+sits_geo_dist(samples, roi, n = 1000, crs = "EPSG:4326")
 }
 \arguments{
 \item{samples}{A \code{samples} training data set.}
-
-\item{crs}{CRS of the \code{samples} points.}
 
 \item{roi}{A region of interest (ROI) used to extract random
 predicted points.}
 
 \item{n}{Maximum number of samples to consider.}
+
+\item{crs}{CRS of the \code{samples}.}
 }
 \value{
 A tibble with sample-to-sample and sample-to-prediction distances.
@@ -32,7 +32,8 @@ if (sits_run_examples()) {
     # convert to an sf object
     mt_sf <- sf::read_sf(mt_shp)
     # calculate sample-to-sample and sample-to-prediction distances
-    distances <- sits_geo_dist(samples_modis_ndvi, mt_sf)
+    distances <- sits_geo_dist(samples = samples_modis_ndvi,
+    roi = mt_sf)
     # plot sample-to-sample and sample-to-prediction distances
     plot(distances)
 }

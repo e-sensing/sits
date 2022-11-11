@@ -61,7 +61,7 @@ if (sits_run_examples()) {
         parse_info = c("X1", "tile", "band", "date")
     )
     # plot NDVI band of the second date date of the data cube
-    plot(cube, band = "NDVI", date = sits_timeline(cube)[c(1:2)])
+    plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
 }
 }
 \author{
