@@ -461,7 +461,6 @@ sits_combine_predictions.uncertainty <- function(cubes,
                 r_obj = raster_out,
                 file = block_file,
                 data_type = .conf("probs_cube_data_type"),
-                gdal_options = .conf("gdal_creation_options"),
                 overwrite    = TRUE
             )
             # Delete temp file
