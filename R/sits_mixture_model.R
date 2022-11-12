@@ -82,7 +82,7 @@
 #'
 #'    # Generate the mixture model
 #'    mm <- sits_mixture_model(
-#'        cube = reg_cube,
+#'        data = reg_cube,
 #'        endmembers = em,
 #'        memsize = 4,
 #'        multicores = 2,
