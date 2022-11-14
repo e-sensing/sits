@@ -73,10 +73,6 @@ C_nnls_solver_batch <- function(x, em, rmse, max_it = 400L, tol = 0.000001) {
     .Call(`_sits_C_nnls_solver_batch`, x, em, rmse, max_it, tol)
 }
 
-C_nnls_solver <- function(x, em, rmse, max_it = 400L, tol = 0.000001) {
-    .Call(`_sits_C_nnls_solver`, x, em, rmse, max_it, tol)
-}
-
 C_normalize_data <- function(data, min, max) {
     .Call(`_sits_C_normalize_data`, data, min, max)
 }
