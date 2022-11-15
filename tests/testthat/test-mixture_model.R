@@ -39,8 +39,8 @@ test_that("Mixture model tests", {
     mm_rmse <- sits_mixture_model(
         data = reg_cube,
         endmembers = em,
-        memsize = 28,
-        multicores = 12,
+        memsize = 2,
+        multicores = 2,
         output_dir = tempdir(),
         rmse_band = TRUE
     )
