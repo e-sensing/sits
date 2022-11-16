@@ -440,4 +440,10 @@ colors:
     Burned_Area                 : "#FF4B4E"
     Cleared_Area                : "#DAAF61"
     Highly_Degraded             : "#C3D32F"
+    ClearCut_Burn               : "#FF4B4E"
+    ClearCut_BareSoil           : "#DAAF61"
+    ClearCut_Regeneration       : "#C3D32F"
+
+
+
 

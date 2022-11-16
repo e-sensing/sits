@@ -17,9 +17,9 @@ test_that("Plot Time Series and Images", {
     expect_equal(p2$guides$colour$title, "Bands")
     expect_equal(p2$theme$legend.position, "bottom")
 
-    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
+
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    rfor_model <- sits_train(samples_mt_ndvi, ml_method = sits_rfor())
+    rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
     point_class <- sits_classify(point_ndvi, rfor_model)
     p3 <- plot(point_class)
     expect_equal(p3[[1]]$labels$y, "Value")
@@ -31,68 +31,55 @@ test_that("Plot Time Series and Images", {
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
-    bbox <- sits_bbox(sinop)
-    size_x <- bbox[["xmax"]] - bbox[["xmin"]]
-    size_y <- bbox[["ymax"]] - bbox[["ymin"]]
 
 
-    r_obj <- plot(sinop, band = "NDVI")
-
-    expect_equal(terra::nlyr(r_obj), 3)
-    expect_equal(terra::ncol(r_obj), 254)
+    p <- plot(sinop, band = "NDVI", palette = "RdYlGn")
+    expect_equal(p$tm_shape$shp_name, "stars_obj")
+    expect_equal(p$tm_raster$palette, "RdYlGn")
+    expect_equal(p$tm_grid$grid.projection, 4326)
 
     sinop_probs <- suppressMessages(
         sits_classify(
             sinop,
             ml_model = rfor_model,
             memsize = 2,
-            multicores = 1,
+            multicores = 2,
             output_dir = tempdir()
         )
     )
     p_probs <- plot(sinop_probs)
-    expect_equal(p_probs$adj, 0.5)
-    expect_equal(p_probs$lend, "round")
+    expect_equal(p_probs$tm_raster$palette, "YlGnBu")
+    expect_equal(length(p_probs$tm_raster$title), 4)
+    expect_equal(p_probs$tm_layout$legend.bg.color, "white")
 
-    p_probs <- plot(sinop_probs, labels = "Forest")
-    expect_equal(p_probs$adj, 0.5)
-    expect_equal(p_probs$lend, "round")
+    p_probs_f <- plot(sinop_probs, labels = "Forest")
+    expect_equal(p_probs_f$tm_raster$palette, "YlGnBu")
+    expect_equal(length(p_probs_f$tm_raster$title), 1)
+    expect_equal(p_probs_f$tm_layout$legend.bg.color, "white")
 
     sinop_uncert <- sits_uncertainty(sinop_probs,
         output_dir = tempdir()
     )
 
-    p_uncert <- plot(sinop_uncert)
+    p_uncert <- plot(sinop_uncert, palette = "Reds", rev = FALSE)
 
-    expect_equal(p_uncert$adj, 0.5)
-    expect_equal(p_uncert$lend, "round")
+    expect_equal(p_uncert$tm_raster$palette, "Reds")
+    expect_equal(length(p_uncert$tm_raster$title), 1)
+    expect_equal(p_uncert$tm_layout$legend.bg.color, "white")
 
-    expect_equal(p_uncert$lty, "solid")
 
     sinop_labels <- sits_label_classification(sinop_probs,
         output_dir = tempdir()
     )
 
     p4 <- plot(sinop_labels, title = "Classified image")
-    expect_equal(p4$labels$title, "Classified image")
-    expect_equal(p4$layers[[1]]$geom_params$hjust, 0.5)
-    expect_true(p4$layers[[1]]$inherit.aes)
-
-    p5 <- plot(sinop_labels,
-        title = "Classified image",
-        legend = c(
-            "Cerrado" = "#B9E3B2",
-            "Forest" = "#68BE70",
-            "Pasture" = "#EEF8EB",
-            "Soy_Corn" = "#F17C1A"
-        )
-    )
-
-    expect_equal(p5$labels$title, "Classified image")
-    expect_equal(p5$layers[[1]]$geom_params$hjust, 0.5)
-    expect_true(p5$layers[[1]]$inherit.aes)
+    expect_equal(p4$tm_layout$legend.title.size, 1.2)
+    expect_equal(p4$tm_compass$compass.text.size, 0.8)
+    expect_equal(p4$tm_grid$grid.projection, 4326)
+    expect_equal(p4$tm_raster$n, 5)
+    expect_true(p4$tm_shape$check_shape)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_labels$file_info[[1]]$path))))
@@ -101,15 +88,15 @@ test_that("Plot Time Series and Images", {
 test_that("Dendrogram Plot", {
 
 
-    cluster_obj <- sits:::.sits_cluster_dendrogram(cerrado_2classes,
+    cluster_obj <- .sits_cluster_dendrogram(cerrado_2classes,
         bands = c("NDVI", "EVI")
     )
-    cut.vec <- sits:::.sits_cluster_dendro_bestcut(
+    cut.vec <- .sits_cluster_dendro_bestcut(
         cerrado_2classes,
         cluster_obj
     )
 
-    dend <- sits:::.sits_plot_dendrogram(
+    dend <- .plot_dendrogram(
         data = cerrado_2classes,
         cluster = cluster_obj,
         cutree_height = cut.vec["height"],
@@ -120,12 +107,8 @@ test_that("Dendrogram Plot", {
 
 test_that("Plot torch model", {
 
-
-    samples_ndvi <- sits_select(samples_modis_4bands,
-        bands = c("NDVI")
-    )
     model <- sits_train(
-        samples_ndvi,
+        samples_modis_ndvi,
         sits_mlp(
             layers = c(128, 128),
             dropout_rates = c(0.5, 0.4),

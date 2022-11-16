@@ -8,7 +8,7 @@ output: github_document
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-```{r, echo = FALSE}
+```{r, echo=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -50,7 +50,7 @@ torch::torch_manual_seed(1234)
 11. Evaluate classification accuracy using best practices.
 12. Improve results with active learning and self-supervised learning methods.
 
-```{r sits, echo = FALSE, out.width = "60%", out.height = "60%", fig.align="center", fig.cap="Conceptual view of data cubes (source: authors)"}
+```{r sits, echo=FALSE, out.width="60%", out.height="60%", fig.align="center", fig.cap="Conceptual view of data cubes (source: authors)"}
 knitr::include_graphics("inst/extdata/markdown/figures/sits_general_view.jpg")
 ```
 
@@ -78,13 +78,13 @@ The `sits` package relies on the geospatial packages `sf`, `stars`, `gdalcubes` 
 
 `sits` can be installed from CRAN: 
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 install.packages("sits")
 ```
 
 The development version is available on github.
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 devtools::install_github("e-sensing/sits", dependencies = TRUE)
 ```
 
@@ -113,7 +113,7 @@ Open data collections do not require payment of access fees. Except for those in
 
 The following code defines an irregular data cube of Sentinel-2/2A images available in the Microsoft Planetary Computer, using the open data collection `"SENTINEL-2-L2A"`.  The geographical area of the data cube is defined by the tiles `"20LKP"` and `"20LLKP"`, and the temporal extent by a start and end date.  Access to other cloud services works in similar ways. 
 
-```{r, echo = TRUE}
+```{r, echo=TRUE}
 s2_cube <- sits_cube(
     source = "MPC",
     collection = "SENTINEL-2-L2A",
@@ -127,14 +127,14 @@ s2_cube <- sits_cube(
 
 This cube is irregular. The timelines of tiles `"20LKP"` and `"20LLKP"` and the resolutions of the bands are different. Sentinel-2 bands `"B03"` and `"B08"` have 10-meters resolution, while band `"B11"` and the cloud band `"SCL"` have 20-meters resolution. Irregular collections need an additional processing step to be converted to regular data cubes, as described below.
 
-```{r dcconcept, echo = FALSE, out.width = "90%", out.height = "90%", fig.align="center", fig.cap="Conceptual view of data cubes (source: authors)"}
+```{r dcconcept, echo=FALSE, out.width="90%", out.height="90%", fig.align="center", fig.cap="Conceptual view of data cubes (source: authors)"}
 knitr::include_graphics("inst/extdata/markdown/figures/datacube_conception.jpg")
 ```
 
 After defining an irregular ARD image collection from a cloud service using `sits_cube()`, users should run `sits_regularize()` to build a regular data cube. This function uses the [gdalcubes R package](https://github.com/appelmar/gdalcubes), described in [Appel and Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92). 
 
 
-```{r, eval = FALSE, echo = TRUE}
+```{r, eval=FALSE, echo=TRUE}
 gc_cube <- sits_regularize(
     cube          = s2_cube,
     output_dir    = tempdir(),
@@ -146,7 +146,7 @@ gc_cube <- sits_regularize(
 The above command builds a regular data cube with all bands interpolated to 60 m spatial resolution and 15-days temporal resolution. Regular data cubes are the input to the `sits` functions for time series retrieval, building machine learning models, and classification of raster images and time series.
 
 The cube can be shown in a leaflet using `sits_view()`. 
-```{r, echo = TRUE, eval = FALSE}
+```{r, echo=TRUE, eval=FALSE}
 # View a color composite on a leaflet
 sits_view(s2_cube[1,], green = "B08", blue = "B03", red = "B04")
 ```
@@ -158,7 +158,7 @@ sits_view(s2_cube[1,], green = "B08", blue = "B03", red = "B04")
 
 `sits` has been designed to use satellite image time series to derive machine  learning models. After the data cube has been created, time series can be retrieved individually or by using CSV or SHP files, as in the following example. The example below uses a data cube in a local directory, whose images have been obtained from the `"MOD13Q1-6"` collection of the Brazil Data Cube.
 
-```{r, eval = TRUE, echo = TRUE} 
+```{r, eval=TRUE, echo=TRUE, cache=TRUE} 
 library(sits)
 # this data cube uses images from the Brazil Data Cube that have 
 # downloaded to a local directory
@@ -169,7 +169,7 @@ raster_cube <- sits_cube(
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
-    parse_info = c("X1", "X2", "tile", "band", "date"),
+    parse_info = c("X1", "tile", "band", "date"),
     progress = FALSE
 )
 # obtain a set of samples defined by a CSV file
@@ -183,17 +183,15 @@ points[1:3,]
 
 After a time series has been obtained, it is loaded in a tibble. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates. The first sample has been labelled "Pasture", at location (-55.65931, -11.76267), and is considered valid for the period (2013-09-14, 2014-08-29). To display the time series, use the `plot()` function. 
 
-```{r, eval = TRUE, echo = TRUE, fig.align="center", fig.height=2.7, fig.width=7, fig.cap="Plot of point at location (-55.65931, -11.76267) labelled as Pasture"} 
+```{r, eval = TRUE, echo = TRUE, fig.align="center", fig.height=2.7, fig.width=7, fig.cap="Plot of point at location (-55.65931, -11.76267) labelled as Pasture", cache = TRUE} 
 plot(points[1,])
 ```
 
 For a large number of samples, where the amount of individual plots would be substantial, the default visualization combines all samples together in a single temporal interval.
 
-```{r, fig.align="center", fig.height=3.5, fig.width=7, fig.cap="Samples for NDVI band for Cerrado class"}
-# select the "ndvi" band
-samples_ndvi <- sits_select(samples_modis_4bands, "NDVI")
+```{r, fig.align="center", fig.height=3.5, fig.width=7, fig.cap="Samples for NDVI band for Cerrado class", cache=TRUE}
 # select only the samples with the cerrado label
-samples_cerrado <- dplyr::filter(samples_ndvi, 
+samples_cerrado <- dplyr::filter(samples_modis_ndvi, 
                   label == "Cerrado")
 plot(samples_cerrado)
 ```
@@ -207,11 +205,11 @@ remove those that might have been wrongly labeled or that have low
 discriminatory power. Good samples lead to good classification maps.
 `sits` provides support for sample quality control using Self-organizing Maps (SOM). The process of clustering with SOM is done by `sits_som_map()`, which creates a self-organizing map and assesses the quality of the samples. 
 
-```{r, fig.align="center", fig.height=3.5, fig.width=7}
+```{r, fig.align="center", fig.height=3.5, fig.width=7, fig.cap="Samples analysis using SOM (grid 6x6)", cache=TRUE}
 # load the kohonen library
 library(kohonen)
 # create a SOM map from the samples
-som_map <- sits_som_map(samples_modis_4bands,
+som_map <- sits_som_map(samples_modis_ndvi,
                         grid_xdim = 6,
                         grid_ydim = 6)
 # plot the map
@@ -234,7 +232,7 @@ deal with data sets that are *noisy* and *non-homogeneous*. For data
 filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`) and Whittaker
 (`sits_whittaker()`) filters.  As an example, we show how to apply the Whittaker smoother to a 16-year NDVI time series. 
 
-```{r, fig.align="center", fig.height=3.5, fig.width=7, fig.cap="Whittaker filter of NDVI time series"}
+```{r, fig.align="center", fig.height=3.5, fig.width=7, fig.cap="Whittaker filter of NDVI time series", cache=TRUE}
 # apply Whitaker filter to a time series sample for the NDVI band from 2000 to 2016
 # merge with the original data
 # plot the original and the modified series
@@ -271,19 +269,14 @@ Brazilian state, using `sits_classify()`. The results can be shown in text
 format using the function `sits_show_prediction()` or graphically using
 `plot`.
 
-```{r, fig.align="center", fig.height=3.5, fig.width=7}
+```{r, fig.align="center", fig.height=3.5, fig.width=7, fig.cap="Classification of NDVI time series using TempCNN", cache=TRUE}
 # training data set
-data("samples_modis_4bands")
+data("samples_modis_ndvi")
 # point to be classified
 data("point_mt_6bands")
-# Select the NDVI and EVI bands 
-# Filter the band to reduce noise
 # Train a deep learning model
-tempcnn_model <- samples_modis_4bands %>% 
-    sits_select(bands = "NDVI") %>% 
-    sits_train(ml_method = sits_tempcnn()) 
-# Select NDVI and EVI bands of the  point to be classified
-# Filter the point 
+tempcnn_model <- sits_train(samples_modis_ndvi, ml_method = sits_tempcnn()) 
+# Select NDVI band of the  point to be classified
 # Classify using TempCNN model
 # Plot the result
 point_mt_6bands %>% 
@@ -296,7 +289,7 @@ The following example shows how to classify a data cube organized as a
 set of raster images. The result can also be visualized interactively 
 using `sits_view()`. 
 
-```{r, fig.align="center", fig.height=4.5, fig.width=9}
+```{r, fig.align="center", fig.height=4.5, fig.width=9, fig.cap="Land use and Land cover in Sinop, MT, Brazil in 2018", cache=TRUE}
 # Create a data cube to be classified
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -305,7 +298,7 @@ sinop <- sits_cube(
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
-    parse_info = c("X1", "X2", "tile", "band", "date"),
+    parse_info = c("X1", "tile", "band", "date"),
     progress = FALSE
 )
 # Classify the raster cube, generating a probability file

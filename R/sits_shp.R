@@ -1,7 +1,8 @@
 #' @title Transform a shapefile into a samples file
-#' @name .sits_get_samples_from_shp
+#' @name .shp_get_samples
 #' @author Gilberto Camara
 #' @keywords internal
+#' @noRd
 #' @param shp_file        Shapefile that describes the data to be retrieved.
 #' @param label           Default label for samples.
 #' @param shp_attr        Shapefile attribute that describes the label.
@@ -10,24 +11,24 @@
 #' @param .n_shp_pol      Number of samples per polygon to be read.
 #' @param .shp_id         ID attribute for polygons shapefile.
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
-#' @return                A tibble with information the samples to be retrieved.
+#' @return                A tibble with samples to be retrieved.
 #'
-.sits_get_samples_from_shp <- function(shp_file,
-                                       label,
-                                       shp_attr,
-                                       start_date,
-                                       end_date,
-                                       n_shp_pol,
-                                       shp_id) {
+.shp_get_samples <- function(shp_file,
+                             label,
+                             shp_attr,
+                             start_date,
+                             end_date,
+                             n_shp_pol,
+                             shp_id) {
 
     # pre-condition - check the shape file and its attribute
-    sf_shape <- .sits_shp_check_validity(
+    sf_shape <- .shp_check_validity(
         shp_file = shp_file,
         shp_attr = shp_attr,
         label = label
     )
     # get the points to be read
-    samples <- .sits_sf_to_tibble(
+    samples <- .sf_to_tibble(
         sf_object   = sf_shape,
         label_attr  = shp_attr,
         label       = label,
@@ -36,8 +37,8 @@
     )
 
     samples <- dplyr::mutate(samples,
-        start_date = as.Date(start_date),
-        end_date = as.Date(end_date)
+                             start_date = as.Date(start_date),
+                             end_date = as.Date(end_date)
     )
 
     class(samples) <- c("sits", class(samples))
@@ -46,18 +47,17 @@
 }
 
 #' @title Check the validity of the shape file and return an sf object
-#' @name .sits_shp_check_validity
+#' @name .shp_check_validity
 #' @keywords internal
+#' @noRd
 #'
-#' @param shp_file        SHP file which provides the boundaries of a region.
-#' @param shp_attr        attribute in the shapefile that contains the label
+#' @param shp_file        SHP file - boundaries of a region.
+#' @param shp_attr        attribute  that contains the label
 #' @param label           Label to be used instead of shp_attr
 #'
 #' @return A valid sf object of POINT or POLYGON geometry.
-.sits_shp_check_validity <- function(shp_file, shp_attr = NULL, label = NULL) {
+.shp_check_validity <- function(shp_file, shp_attr = NULL, label = NULL) {
 
-    # set caller to show in errors
-    .check_set_caller(".sits_shp_check_validity")
     # pre-condition - does the shapefile exist?
     .check_file(x = shp_file, msg = "shapefile does not exist")
     # read the shapefile
@@ -79,11 +79,11 @@
     # precondition - can the function deal with the geometry_type?
     .check_chr_within(
         x = as.character(geom_type),
-        within = .config_get("sf_geom_types_supported"),
+        within = .conf("sf_geom_types_supported"),
         discriminator = "one_of",
         msg = paste0(
             "only handles shapefiles of types",
-            .config_get("sf_geom_types_supported")
+            .conf("sf_geom_types_supported")
         )
     )
     # precondition - is the default label valid?

@@ -3,7 +3,7 @@
 \name{sits_labels}
 \alias{sits_labels}
 \alias{sits_labels.sits}
-\alias{sits_labels.sits_cube}
+\alias{sits_labels.raster_cube}
 \alias{sits_labels.patterns}
 \alias{sits_labels.sits_model}
 \title{Get labels associated to a data set}
@@ -12,7 +12,7 @@ sits_labels(data)
 
 \method{sits_labels}{sits}(data)
 
-\method{sits_labels}{sits_cube}(data)
+\method{sits_labels}{raster_cube}(data)
 
 \method{sits_labels}{patterns}(data)
 

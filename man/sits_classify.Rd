@@ -6,9 +6,23 @@
 \alias{sits_classify.raster_cube}
 \title{Classify time series or data cubes}
 \usage{
-sits_classify(data, ml_model, ...)
+sits_classify(
+  data,
+  ml_model,
+  ...,
+  filter_fn = NULL,
+  multicores = 2,
+  progress = TRUE
+)
 
-\method{sits_classify}{sits}(data, ml_model, ..., filter_fn = NULL, multicores = 2)
+\method{sits_classify}{sits}(
+  data,
+  ml_model,
+  ...,
+  filter_fn = NULL,
+  multicores = 2,
+  progress = TRUE
+)
 
 \method{sits_classify}{raster_cube}(
   data,
@@ -21,10 +35,10 @@ sits_classify(data, ml_model, ...)
   end_date = NULL,
   memsize = 8,
   multicores = 2,
-  output_dir = ".",
+  output_dir = getwd(),
   version = "v1",
-  verbose = FALSE,
-  progress = FALSE
+  verbose = TRUE,
+  progress = TRUE
 )
 }
 \arguments{
@@ -37,6 +51,8 @@ sits_classify(data, ml_model, ...)
 \item{filter_fn}{Smoothing filter to be applied (if desired).}
 
 \item{multicores}{Number of cores to be used for classification.}
+
+\item{progress}{Show progress bar?}
 
 \item{roi}{Region of interest (see below)}
 
@@ -54,8 +70,6 @@ sits_classify(data, ml_model, ...)
 classifications).}
 
 \item{verbose}{Print information about processing time?}
-
-\item{progress}{Show progress bar?}
 }
 \value{
 Predicted data (classified time series)
@@ -105,10 +119,8 @@ Please refer to the sits documentation available in
 if (sits_run_examples()) {
     # Example of classification of a time series
     # Retrieve the samples for Mato Grosso
-    # select the NDVI band
-    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
     # train a random forest model
-    rf_model <- sits_train(samples_ndvi, ml_method = sits_rfor)
+    rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
 
     # classify the point
     point_ndvi <- sits_select(point_mt_6bands, bands = c("NDVI"))
@@ -123,7 +135,7 @@ if (sits_run_examples()) {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
     # classify a data cube
     probs_cube <- sits_classify(data = cube, ml_model = rf_model)

@@ -18,7 +18,7 @@
 sits_labels <- function(data) {
 
     # get the meta-type (sits or cube)
-    data <- .config_data_meta_type(data)
+    data <- .conf_data_meta_type(data)
     UseMethod("sits_labels", data)
 }
 
@@ -28,14 +28,13 @@ sits_labels <- function(data) {
 sits_labels.sits <- function(data) {
 
     # pre-condition
-    .cube_check(data)
     return(sort(unique(data$label)))
 }
 
 #' @rdname sits_labels
 #' @export
 #'
-sits_labels.sits_cube <- function(data) {
+sits_labels.raster_cube <- function(data) {
     return(data$labels[[1]])
 }
 #' @rdname sits_labels
@@ -45,23 +44,13 @@ sits_labels.patterns <- function(data) {
     return(data$label)
 }
 #' @rdname sits_labels
-#' @export
 #'
+#' @export
 sits_labels.sits_model <- function(data) {
-
-    # set caller to show in errors
-    .check_set_caller("sits_labels.sits_model")
-    .check_that(
-        x = inherits(data, "function"),
-        msg = "invalid sits model"
-    )
-    .check_chr_within(
-        x = "samples",
-        within = ls(environment(data)),
-        discriminator = "any_of",
-        msg = "no samples found in the sits model"
-    )
-    return(sits_labels.sits(environment(data)$samples))
+    .check_is_sits_model(data)
+    # Get labels from ml_model
+    labels <- .ml_labels(data)
+    return(labels)
 }
 #' @title Change the labels of a set of time series
 #'
@@ -93,7 +82,7 @@ sits_labels.sits_model <- function(data) {
     # set caller to show in errors
     .check_set_caller("sits_labels")
     # get the meta-type (sits or cube)
-    data <- .config_data_meta_type(data)
+    data <- .conf_data_meta_type(data)
     UseMethod("sits_labels<-", data)
 }
 
@@ -104,24 +93,15 @@ sits_labels.sits_model <- function(data) {
 `sits_labels<-.sits` <- function(data, value) {
 
     # does the input data exist?
-    .sits_tibble_test(data)
+    .check_samples(data)
 
     labels <- sits_labels(data)
 
-    # check if value is an atomic vector
-    .check_chr_type(
-        x = value,
-        msg = "value must be a character vetor"
+    # check if value and labels match
+    .check_chr_parameter(value,
+                         len_max = length(labels),
+                         len_min = length(labels)
     )
-
-    # check if length is correct
-    .check_length(
-        x = labels,
-        len_max = length(value),
-        len_min = length(value),
-        msg = "informed labels have a different expected length"
-    )
-
     # check if there are no NA
     .check_that(
         x = all(!is.na(value)),
@@ -140,7 +120,7 @@ sits_labels.sits_model <- function(data) {
 }
 #' @name `sits_labels<-`
 #' @export
-#' @return    A probs or classified_image cube with modified labels.
+#' @return    A probs or class_cube cube with modified labels.
 #'
 `sits_labels<-.probs_cube` <- function(data, value) {
     # precondition
@@ -156,8 +136,26 @@ sits_labels.sits_model <- function(data) {
 }
 #' @export
 #'
-`sits_labels<-.classified_image` <- function(data, value) {
+`sits_labels<-.class_cube` <- function(data, value) {
     return(`sits_labels<-.probs_cube`(data, value))
+}
+
+#' @name `sits_labels<-`
+#' @export
+#' @return           A probs cube with modified labels.
+#'
+`sits_labels<-.class_cube` <- function(data, value) {
+    # precondition
+    n_labels <- length(sits_labels(data))
+    .check_chr(value,
+               len_min = n_labels,
+               msg = "not enough new labels to replace current ones"
+    )
+    rows <- slider::slide_dfr(data, function(row) {
+        row$labels <- list(value)
+        return(row)
+    })
+    return(rows)
 }
 
 #' @title Inform label distribution of a set of time series

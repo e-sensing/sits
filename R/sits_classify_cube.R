@@ -1,6 +1,7 @@
 #' @title Classify a chunk of raster data  using multicores
-#' @name .sits_classify_multicores
+#' @name .classify_tile
 #' @keywords internal
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -16,368 +17,246 @@
 #' in the classified images for each corresponding year.
 #'
 #' @param  tile            Single tile of a data cube.
+#' @param  band            Band to be produced.
 #' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
 #' @param  roi             Region of interest.
 #' @param  filter_fn       Smoothing filter function to be applied to the data.
 #' @param  impute_fn       Impute function to replace NA.
-#' @param  memsize         Memory available for classification (in GB).
-#' @param  multicores      Number of cores.
 #' @param  output_dir      Output directory.
 #' @param  version         Version of result.
-#' @param  verbose         print processing information?
+#' @param  verbose         Print processing information?
 #' @param  progress        Show progress bar?
 #' @return List of the classified raster layers.
-.sits_classify_multicores <- function(tile,
-                                      ml_model,
-                                      roi,
-                                      filter_fn,
-                                      impute_fn,
-                                      memsize,
-                                      multicores,
-                                      output_dir,
-                                      version,
-                                      verbose,
-                                      progress) {
+.classify_tile  <- function(tile, band, ml_model, roi, filter_fn, impute_fn,
+                            output_dir, version, verbose, progress) {
 
-    # set caller to show in errors
-    .check_set_caller(".sits_classify_multicores")
-
-    # check documentation mode
-    progress <- .check_documentation(progress)
-
-    # some models have parallel processing built in
-    if ("xgb_model" %in% class(ml_model)) {
-        multicores <- 1
-    }
-
-    # retrieve the samples from the model
-    samples <- .sits_ml_model_samples(ml_model)
-
-    # get samples labels
-    labels <- sits_labels(samples)
-
-    # precondition - are the samples empty?
-    .check_that(
-        x = nrow(samples) > 0,
-        msg = "original samples not saved"
+    # Output file
+    out_file <- .file_derived_name(
+        tile = tile, band = band, version = version, output_dir = output_dir
     )
-
-    # precondition - are the sample bands contained in the cube bands?
-    tile_bands <- sits_bands(tile)
-    bands <- sits_bands(samples)
-    .check_chr_within(
-        x = bands,
-        within = tile_bands,
-        msg = "some bands in samples are not in cube"
-    )
-
-    # retrieve the normalization stats from the model
-    stats <- environment(ml_model)$stats
-
-    # is there a region of interest?
-    if (purrr::is_null(roi)) {
-        sub_image <- .sits_raster_sub_image_default(tile)
-    } else {
-        sub_image <- .sits_raster_sub_image(tile = tile, roi = roi)
-    }
-
-    # divide the input data in blocks
-    blocks <- .sits_raster_blocks(
-        tile = tile,
-        ml_model = ml_model,
-        sub_image = sub_image,
-        memsize = memsize,
-        multicores = multicores
-    )
-
-    # get timeline
-    timeline <- sits_timeline(tile)
-
-    # create the metadata for the probability cube
-    probs_cube <- .cube_derived_create(
-        cube       = tile,
-        cube_class = "probs_cube",
-        band_name  = "probs",
-        labels     = labels,
-        start_date = timeline[[1]],
-        end_date   = timeline[[length(timeline)]],
-        bbox       = sub_image,
-        output_dir = output_dir,
-        version    = version
-    )
-
-    # resume feature
-    # if tile already exists, return probs_cube
-    out_file <- .file_info_path(probs_cube)
+    # Resume feature
     if (file.exists(out_file)) {
-
-        # checks if the local raster and cube have the exact equals bbox
-        # (the tolerance factor is considered)
-        if (.cube_is_equal_bbox(probs_cube)) {
-            message(paste0(
-                "Recovery mode: classified image file found in '",
-                dirname(out_file), "' directory. ",
-                "(If you want a new classifcation, please ",
-                "change the directory in the 'output_dir' or the ",
-                "value of 'version' parameter)"
-            ))
-            return(probs_cube)
-        }
+        # # Callback final tile classification
+        # .callback(process = "tile_classification", event = "recovery",
+        #           context = environment())
+        message("Recovery: tile '", tile[["tile"]], "' already exists.")
+        message("(If you want to produce a new image, please ",
+                "change 'output_dir' or 'version' parameters)")
+        probs_tile <- .tile_probs_from_file(
+            file = out_file, band = band, base_tile = tile,
+            labels = .ml_labels(ml_model), update_bbox = TRUE
+        )
+        return(probs_tile)
     }
-
-    # show initial time for classification
+    # # Callback final tile classification
+    # .callback(process = "tile_classification", event = "started",
+    #           context = environment())
+    # Show initial time for tile classification
     if (verbose) {
-        message(paste0(
-            "Using ", length(blocks),
-            " blocks of size (", blocks[[1]][["nrows"]],
-            " x ", blocks[[1]][["ncols"]], ")"
-        ))
-
-        start_time <- Sys.time()
-        message(paste0(
-            "Starting classification of '", tile$tile,
-            "' at ", start_time
-        ))
+        tile_start_time <- Sys.time()
+        message("Starting classification of tile '",
+                tile[["tile"]], "' at ", tile_start_time)
     }
+    # Create chunks as jobs
+    chunks <- .tile_chunks_create(tile = tile, overlap = 0)
+    # By default, update_bbox is FALSE
+    update_bbox <- FALSE
+    if (.has(roi)) {
+        # How many chunks there are in tile?
+        nchunks <- nrow(chunks)
+        # Intersecting chunks with ROI
+        chunks <- .chunks_filter_spatial(chunks = chunks, roi = roi)
+        # Should bbox of resulting tile be updated?
+        update_bbox <- nrow(chunks) != nchunks
+    }
+    # Process jobs in parallel
+    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
+        # Job block
+        block <- .block(chunk)
+        # Block file name
+        block_file <- .file_block_name(
+            pattern = .file_pattern(out_file), block = block,
+            output_dir = output_dir
+        )
+        # Resume processing in case of failure
+        if (.raster_is_valid(block_file)) {
+            return(block_file)
+        }
+        # Read and preprocess values
+        values <- .classify_data_read(
+            tile = tile, block = block, ml_model = ml_model,
+            impute_fn = impute_fn, filter_fn = filter_fn
+        )
+        # Used to check values (below)
+        input_pixels <- nrow(values)
 
-    # prepare parallelization
-    .sits_parallel_start(workers = multicores, log = verbose)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+        #
+        # Log here
+        #
+        .sits_debug_log(
+            event = "start_block_data_classification",
+            key = "model",
+            value = .ml_class(ml_model)
+        )
 
-    # log
-    .sits_debug_log(
-        output_dir = output_dir,
-        event = "start classification",
-        key = "blocks",
-        value = length(blocks)
+        # Apply the classification model to values
+        values <- ml_model(values)
+
+        # Are the results consistent with the data input?
+        .check_processed_values(values, input_pixels)
+
+
+        #
+        # Log here
+        #
+        .sits_debug_log(
+            event = "end_block_data_classification",
+            key = "model",
+            value = .ml_class(ml_model)
+        )
+
+        # Prepare probability to be saved
+        band_conf <- .conf_derived_band(
+            derived_class = "probs_cube", band = band
+        )
+        offset <- .offset(band_conf)
+        if (.has(offset) && offset != 0) {
+            values <- values - offset
+        }
+        scale <- .scale(band_conf)
+        if (.has(scale) && scale != 1) {
+            values <- values / scale
+        }
+
+
+        #
+        # Log here
+        #
+        .sits_debug_log(
+            event = "start_block_data_save",
+            key = "file",
+            value = block_file
+        )
+
+
+        # Prepare and save results as raster
+        .raster_write_block(
+            files = block_file, block = block, bbox = .bbox(chunk),
+            values = values, data_type = .data_type(band_conf),
+            missing_value = .miss_value(band_conf),
+            crop_block = NULL
+        )
+
+        #
+        # Log here
+        #
+        .sits_debug_log(
+            event = "end_block_data_save",
+            key = "file",
+            value = block_file
+        )
+
+
+        # Free memory
+        gc()
+        # Returned block file
+        block_file
+    }, progress = progress)
+    # Merge blocks into a new probs_cube tile
+    probs_tile <- .tile_probs_merge_blocks(
+        file = out_file, band = band, labels = .ml_labels(ml_model),
+        base_tile = tile, block_files = block_files,
+        multicores = .jobs_multicores(), update_bbox = update_bbox
     )
-
-    # for cubes that have a time limit to expire - mpc cubes only
+    # # Callback final tile classification
+    # .callback(event = "tile_classification", status = "end",
+    #           context = environment())
+    # show final time for classification
+    if (verbose) {
+        tile_end_time <- Sys.time()
+        message("Tile '", tile[["tile"]], "' finished at ", tile_end_time)
+        message("Elapsed time of ",
+                format(round(tile_end_time - tile_start_time, digits = 2)))
+        message("")
+    }
+    # Return probs tile
+    probs_tile
+}
+#' @title Read a block of values retrieved from a set of raster images
+#' @name  .classify_data_read
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  tile            Input tile to read data.
+#' @param  block           Bounding box in (col, row, ncols, nrows).
+#' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
+#' @param  filter_fn       Smoothing filter function to be applied to the data.
+#' @param  impute_fn       Impute function to replace NA.
+#' @return A matrix with values for classification.
+.classify_data_read <- function(tile, block, ml_model, impute_fn, filter_fn) {
+    # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
+    # Read and preprocess values of cloud
+    # Get cloud values (NULL if not exists)
+    cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
+    # Read and preprocess values of each band
+    values <- purrr::map_dfc(.ml_bands(ml_model), function(band) {
+        # Get band values (stops if band not found)
+        values <- .tile_read_block(tile = tile, band = band, block = block)
 
-    # read the blocks and compute the probabilities
-    filenames <- .sits_parallel_map(blocks, function(b) {
-
-        # for cubes that have a time limit to expire - mpc cubes only
-        tile <- .cube_token_generator(tile)
-
-        probs_cube_filename <- tools::file_path_sans_ext(
-            basename(.file_info_path(probs_cube))
-        )
-        # directory where probs blocks will be save
-        probs_cube_dir <- dirname(.file_info_path(probs_cube))
-
-        # define the file name of the raster file to be written
-        filename_block <- .create_filename(
-            filenames = c(
-                probs_cube_filename, "block",
-                b[["first_row"]], b[["nrows"]]
-            ),
-            ext = ".tif",
-            output_dir = probs_cube_dir
+        #
+        # Log here
+        #
+        .sits_debug_log(
+            event = "start_block_data_process",
+            key = "process",
+            value = "cloud-impute-filter"
         )
 
-        # resume processing in case of failure
-        if (file.exists(filename_block)) {
-            # try to open the file
-            r_obj <-
-                tryCatch(
-                    {
-                        .raster_open_rast(filename_block)
-                    },
-                    error = function(e) {
-                        return(NULL)
-                    }
-                )
-
-            # if file can be opened, check if the result is correct
-            # this file will not be processed again
-            if (!purrr::is_null(r_obj)) {
-
-                # Verify if the raster is corrupted
-                block_name <- tryCatch(
-                    {
-                        .raster_get_values(r_obj)
-                        return(filename_block)
-                    },
-                    error = function(e) {
-                        unlink(filename_block)
-                        # log
-                        .sits_debug_log(
-                            output_dir = output_dir,
-                            event = "deleting corrupt block",
-                            key = "block file",
-                            value = filename_block
-                        )
-
-                        return(NULL)
-                    }
-                )
-                if (!purrr::is_null(block_name)) {
-                    return(filename_block)
-                }
+        # Remove cloud masked pixels
+        if (.has(cloud_mask)) {
+            values[cloud_mask] <- NA
+        }
+        # Remove NA pixels
+        if (.has(impute_fn)) {
+            values <- impute_fn(values)
+        }
+        # Filter the time series
+        if (.has(filter_fn)) {
+            values <- filter_fn(values)
+        }
+        # Normalize values for old version model classifiers that
+        #   do not normalize values itself
+        # Models trained after version 1.2 do this automatically before
+        #   classification
+        stats <- .ml_stats_0(ml_model) # works for old models only!!
+        if (.has(stats)) {
+            q02 <- .stats_0_q02(stats, band)
+            q98 <- .stats_0_q98(stats, band)
+            if (.has(q02) && .has(q98)) {
+                # Use C_normalize_data_0 to process old version of normalization
+                values <- C_normalize_data_0(values, q02, q98)
             }
         }
 
-        # log
+        #
+        # Log here
+        #
         .sits_debug_log(
-            output_dir = output_dir,
-            event = "before preprocess block",
-            key = "block",
-            value = b
+            event = "end_block_data_process",
+            key = "band",
+            value = band
         )
 
-        # read the data
-        distances <- .sits_raster_data_read(
-            cube       = tile,
-            samples    = samples,
-            extent     = b,
-            stats      = stats,
-            filter_fn  = filter_fn,
-            impute_fn  = impute_fn
-        )
-        # log
-        .sits_debug_log(
-            output_dir = output_dir,
-            event = "before classification block"
-        )
-
-        # predict the classification values
-        pred_block <- ml_model(distances)
-        # log
-        .sits_debug_log(
-            output_dir = output_dir,
-            event = "classification block",
-            key = "ml_model",
-            value = class(ml_model)[[1]]
-        )
-
-        # are the results consistent with the data input?
-        .check_that(
-            x = nrow(pred_block) == nrow(distances),
-            msg = paste(
-                "number of rows of probability matrix is different",
-                "from number of input pixels"
-            )
-        )
-        # log
-        .sits_debug_log(
-            output_dir = output_dir,
-            event = "before save classified block"
-        )
-
-        # convert probabilities matrix to INT2U
-        scale_factor_save <- round(1 / .config_get("probs_cube_scale_factor"))
-        pred_block <- round(scale_factor_save * pred_block, digits = 0)
-
-        # compute block spatial parameters
-        params <- .cube_params_block(tile, b)
-
-        # create a new raster
-        r_obj <- .raster_new_rast(
-            nrows   = params[["nrows"]],
-            ncols   = params[["ncols"]],
-            xmin    = params[["xmin"]],
-            xmax    = params[["xmax"]],
-            ymin    = params[["ymin"]],
-            ymax    = params[["ymax"]],
-            nlayers = length(labels),
-            crs     = params[["crs"]]
-        )
-
-        # copy values
-        r_obj <- .raster_set_values(
-            r_obj = r_obj,
-            values = pred_block
-        )
-
-        # write the probabilities to a raster file
-        .raster_write_rast(
-            r_obj        = r_obj,
-            file         = filename_block,
-            format       = "GTiff",
-            data_type    = .config_get("probs_cube_data_type"),
-            gdal_options = .config_gtiff_default_options(),
-            overwrite    = TRUE
-        )
-        # log
-        .sits_debug_log(
-            output_dir = output_dir,
-            event = "save classified block"
-        )
-
-        # call garbage collector
-        gc()
-
-        return(filename_block)
-    }, progress = progress)
-
-    # put the filenames in a vector
-    filenames <- unlist(filenames)
-    # log
-    .sits_debug_log(
-        output_dir = output_dir,
-        event = "end classification"
-    )
-
-    # join predictions
-    out_file <- .file_info_path(probs_cube)
-    probs_cube_dt <- .config_get("probs_cube_data_type")
-    .raster_merge(
-        in_files = filenames,
-        out_file = out_file,
-        format = "GTiff",
-        gdal_datatype = .raster_gdal_datatype(probs_cube_dt),
-        gdal_options = .config_gtiff_default_options(),
-        overwrite = TRUE
-    )
-
-    # adjust nrows and ncols
-    r_obj <- .raster_open_rast(out_file)
-    file_info <- .file_info(probs_cube)
-    file_info$nrows <- nrow(r_obj)
-    file_info$ncols <- ncol(r_obj)
-    probs_cube$file_info[[1]] <- file_info
-
-    # log
-    .sits_debug_log(
-        output_dir = output_dir,
-        event = "merge"
-    )
-
-    # show final time for classification
-    if (verbose) {
-        end_time <- Sys.time()
-        message(paste("Classification finished at", end_time))
-        message(paste("Elapsed time of", end_time - start_time))
-    }
-    return(probs_cube)
-}
-#' @title Check classification parameters
-#' @name .sits_classify_check_params
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Verify that required parameters are correct.
-#'
-#' @param  cube            Tibble with information about a data cube.
-#' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
-#' @return Tests succeeded?
-.sits_classify_check_params <- function(cube, ml_model) {
-
-    # set caller to show in errors
-    .check_set_caller(".sits_classify_check_params")
-
-    # ensure metadata tibble exists
-    .check_that(
-        x = nrow(cube) > 0,
-        msg = "invalid metadata for the cube"
-    )
-
-    # ensure the machine learning model has been built
-    .check_null(
-        x = ml_model,
-        msg = "trained ML model not available"
-    )
-
-    return(invisible(TRUE))
+        # Return values
+        as.data.frame(values)
+    })
+    # Compose final values
+    values <- as.matrix(values)
+    # Set values features name
+    colnames(values) <- .ml_features_name(ml_model)
+    # Return values
+    values
 }

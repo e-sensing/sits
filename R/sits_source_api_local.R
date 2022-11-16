@@ -1,9 +1,11 @@
 #' @keywords internal
+#' @noRd
 .local_cube <- function(source,
                         collection,
                         data_dir,
                         parse_info,
                         delim,
+                        tiles,
                         bands,
                         labels,
                         start_date,
@@ -16,7 +18,7 @@
 
     # is this a cube with results?
     if (!purrr::is_null(bands) &&
-        all(bands %in% .config_get("sits_results_bands"))) {
+        all(bands %in% .conf("sits_results_bands"))) {
         results_cube <- TRUE
     } else {
         results_cube <- FALSE
@@ -31,16 +33,16 @@
     # is parse info NULL? use the default
     if (purrr::is_null(parse_info)) {
         if (results_cube) {
-            parse_info <- .config_get("results_parse_info_def")
+            parse_info <- .conf("results_parse_info_def")
         } else {
-            parse_info <- .config_get("local_parse_info_def")
+            parse_info <- .conf("local_parse_info_def")
         }
     }
     # precondition - does the parse info have band and date?
     if (results_cube) {
         .check_chr_contains(
             parse_info,
-            contains = .config_get("results_parse_info_col"),
+            contains = .conf("results_parse_info_col"),
             msg = paste(
                 "parse_info must include tile, start_date, end_date,",
                 "and band."
@@ -49,7 +51,7 @@
     } else {
         .check_chr_contains(
             parse_info,
-            contains = .config_get("local_parse_info_col"),
+            contains = .conf("local_parse_info_col"),
             msg = "parse_info must include tile, date, and band."
         )
     }
@@ -62,8 +64,6 @@
             bands <- toupper(bands)
         }
     }
-    # check documentation mode
-    progress <- .check_documentation(progress)
 
     # make query and retrieve items
     items <- .local_cube_items_new(
@@ -81,6 +81,13 @@
             source = source,
             collection = collection,
             bands = bands,
+            items = items
+        )
+    }
+    # filter tiles
+    if (!purrr::is_null(tiles)) {
+        items <- .local_cube_items_tiles_select(
+            tiles = tiles,
             items = items
         )
     }
@@ -131,8 +138,8 @@
     })
 
     if (results_cube) {
-        result_class <- .config_get("sits_results_s3_class")[[bands]]
-        class(cube) <- c(result_class, "raster_cube", class(cube))
+        result_class <- .conf("sits_results_s3_class")[[bands]]
+        class(cube) <- c(result_class, "derived_cube", "raster_cube", class(cube))
     } else {
         class(cube) <- .cube_s3class(cube)
     }
@@ -141,6 +148,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 .local_cube_items_new <- function(data_dir,
                                   parse_info,
                                   delim,
@@ -153,14 +161,14 @@
 
     # is this a cube with results?
     if (!purrr::is_null(bands) &&
-        bands[[1]] %in% .config_get("sits_results_bands")) {
+        bands[[1]] %in% .conf("sits_results_bands")) {
         results_cube <- TRUE
     } else {
         results_cube <- FALSE
     }
     # how many of those files are images?
     # retrieve the known file extensions
-    file_ext <- .config_local_file_extensions()
+    file_ext <- .conf("local_file_extensions")
 
     # list the files in the data directory
     img_files <- list.files(
@@ -229,19 +237,19 @@
             dplyr::filter(.data[["band"]] == !!band) %>%
             # select the relevant parts
             dplyr::select(
-                .data[["tile"]],
-                .data[["start_date"]],
-                .data[["end_date"]],
-                .data[["band"]],
-                .data[["path"]]
+                "tile",
+                "start_date",
+                "end_date",
+                "band",
+                "path"
             ) %>%
             # check the start date format
             dplyr::mutate(
-                start_date = .sits_timeline_format(.data[["start_date"]])
+                start_date = .timeline_format(.data[["start_date"]])
             ) %>%
             # check the end date format
             dplyr::mutate(
-                end_date = .sits_timeline_format(.data[["end_date"]])
+                end_date = .timeline_format(.data[["end_date"]])
             ) %>%
             # filter to remove duplicate combinations of file and band
             dplyr::distinct(
@@ -261,13 +269,13 @@
             dplyr::mutate(path = paste(data_dir, img_files_filt, sep = "/")) %>%
             # select the relevant parts
             dplyr::select(
-                .data[["tile"]],
-                .data[["date"]],
-                .data[["band"]],
-                .data[["path"]]
+                "tile",
+                "date",
+                "band",
+                "path"
             ) %>%
             # check the date format
-            dplyr::mutate(date = .sits_timeline_format(.data[["date"]])) %>%
+            dplyr::mutate(date = .timeline_format(.data[["date"]])) %>%
             # filter to remove duplicate combinations of file and band
             dplyr::distinct(
                 .data[["tile"]],
@@ -294,6 +302,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 .local_cube_items_bands_select <- function(source,
                                            collection,
                                            bands,
@@ -323,8 +332,28 @@
     }
     return(items)
 }
+#' @keywords internal
+#' @noRd
+.local_cube_items_tiles_select <- function(tiles,
+                                           items) {
+
+    # set caller to show in errors
+    .check_set_caller(".local_cube_items_tiles_select")
+
+    # filter tiles
+    # verify that the requested tiles exist
+    .check_chr_within(tiles,
+                      within = unique(items[["tile"]]),
+                      msg = "invalid 'tiles' value"
+    )
+    # select the requested bands
+    items <- dplyr::filter(items, .data[["tile"]] %in% !!tiles)
+
+    return(items)
+}
 
 #' @keywords internal
+#' @noRd
 .local_cube_file_info <- function(items,
                                   multicores,
                                   progress) {
@@ -379,13 +408,11 @@
 
     items <- purrr::map(results_lst, `[[`, "item")
     errors <- unlist(purrr::map(results_lst, `[[`, "error"))
-    if (length(errors) > 0)
-        warning(
-            paste("Cannot open file(s):",
-                  paste0("'", errors, "'", collapse = ", ")),
-            call. = FALSE,
-            immediate. = TRUE
-        )
+    if (length(errors) > 0) {
+        warning("cannot open file(s): ",
+                paste0("'", errors, "'", collapse = ", "),
+                call. = FALSE, immediate. = TRUE)
+    }
 
     items <- dplyr::bind_rows(items) %>%
         dplyr::arrange(.data[["date"]], .data[["fid"]], .data[["band"]])
@@ -394,6 +421,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 .local_results_cube_file_info <- function(items, multicores, progress) {
 
     # set caller to show in errors
@@ -448,13 +476,11 @@
 
     items_lst <- purrr::map(results_lst, `[[`, "item")
     errors <- unlist(purrr::map(results_lst, `[[`, "error"))
-    if (length(errors) > 0)
-        warning(
-            paste("Cannot open file(s):",
-                  paste0("'", errors, "'", collapse = ", ")),
-            call. = FALSE,
-            immediate. = TRUE
-        )
+    if (length(errors) > 0) {
+        warning("cannot open file(s):",
+                paste0("'", errors, "'", collapse = ", "),
+                call. = FALSE, immediate. = TRUE)
+    }
 
     items <- dplyr::bind_rows(items_lst)
 
@@ -462,6 +488,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 .local_cube_items_cube <- function(source,
                                    collection,
                                    items) {
@@ -494,19 +521,18 @@
     # make a new file info for one tile
     file_info <- dplyr::select(
         items,
-        dplyr::all_of(c(
-            "fid",
-            "band",
-            "date",
-            "xmin",
-            "ymin",
-            "xmax",
-            "ymax",
-            "xres",
-            "yres",
-            "nrows",
-            "ncols",
-            "path"
+        dplyr::all_of(c("fid",
+          "band",
+          "date",
+          "xmin",
+          "ymin",
+          "xmax",
+          "ymax",
+          "xres",
+          "yres",
+          "nrows",
+          "ncols",
+          "path"
         ))
     )
 
@@ -529,6 +555,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 .local_results_items_cube <- function(source,
                                       collection,
                                       items,
@@ -560,19 +587,19 @@
     # make a new file info for one tile
     file_info <- dplyr::select(
         items,
-        dplyr::all_of(c(
-            "band",
-            "start_date",
-            "end_date",
-            "xmin",
-            "ymin",
-            "xmax",
-            "ymax",
-            "xres",
-            "yres",
-            "nrows",
-            "ncols",
-            "path"
+        dplyr::all_of(c("band",
+          "start_date",
+          "end_date",
+          "ncols",
+          "nrows",
+          "xres",
+          "yres",
+          "xmin",
+          "xmax",
+          "ymin",
+          "ymax",
+          "crs",
+          "path"
         ))
     )
     # create a tibble to store the metadata
@@ -583,8 +610,8 @@
         sensor = .source_collection_sensor(source, collection),
         tile = tile,
         xmin = max(file_info[["xmin"]]),
-        ymin = max(file_info[["ymin"]]),
         xmax = min(file_info[["xmax"]]),
+        ymin = max(file_info[["ymin"]]),
         ymax = min(file_info[["ymax"]]),
         crs = crs,
         labels = labels,

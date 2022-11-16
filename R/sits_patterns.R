@@ -42,19 +42,20 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
     # verifies if mgcv package is installed
     .check_require_packages("mgcv")
 
+
     # function that is used to be called as a value from another function
     result_fun <- function(tb) {
         # does the input data exist?
-        .sits_tibble_test(tb)
+        .check_samples_train(tb)
         # find the bands of the data
         bds <- sits_bands(tb)
         # create a tibble to store the results
-        patterns <- .sits_tibble()
+        patterns <- .tibble()
         # what are the variables in the formula?
         vars <- all.vars(formula)
         # align all samples to the same time series intervals
         sample_dates <- lubridate::as_date(sits_timeline(tb))
-        tb <- .sits_tibble_align_dates(tb, sample_dates)
+        tb <- .tibble_align_dates(tb, sample_dates)
         # extract the start and and dates
         start_date <- lubridate::as_date(utils::head(sample_dates, n = 1))
         end_date <- lubridate::as_date(utils::tail(sample_dates, n = 1))
@@ -91,12 +92,12 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                         # with all values together
                         ts2 <- ts %>%
                             tidyr::pivot_longer(
-                                cols = -.data[["Index"]],
+                                cols = -"Index",
                                 names_to = "variable"
                             ) %>%
                             dplyr::select(
-                                .data[["Index"]],
-                                .data[["value"]]
+                                "Index",
+                                "value"
                             ) %>%
                             dplyr::transmute(
                                 x = as.numeric(.data[["Index"]]),

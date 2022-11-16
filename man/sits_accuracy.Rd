@@ -3,14 +3,14 @@
 \name{sits_accuracy}
 \alias{sits_accuracy}
 \alias{sits_accuracy.sits}
-\alias{sits_accuracy.classified_image}
+\alias{sits_accuracy.class_cube}
 \title{Assess classification accuracy (area-weighted method)}
 \usage{
 sits_accuracy(data, ...)
 
 \method{sits_accuracy}{sits}(data, ...)
 
-\method{sits_accuracy}{classified_image}(data, ..., validation_csv)
+\method{sits_accuracy}{class_cube}(data, ..., validation_csv)
 }
 \arguments{
 \item{data}{Either a data cube with classified images or
@@ -49,17 +49,15 @@ Please refer to the sits documentation available in
 \examples{
 if (sits_run_examples()) {
     # show accuracy for a set of samples
-    train_data <- sits_sample(samples_modis_4bands, n = 200)
-    test_data <- sits_sample(samples_modis_4bands, n = 200)
+    train_data <- sits_sample(samples_modis_ndvi, n = 200)
+    test_data <- sits_sample(samples_modis_ndvi, n = 200)
     rfor_model <- sits_train(train_data, sits_rfor())
     points_class <- sits_classify(test_data, rfor_model)
     acc <- sits_accuracy(points_class)
 
     # show accuracy for a data cube classification
-    # select a set of samples
-    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
     # create a random forest model
-    rfor_model <- sits_train(samples_ndvi, sits_rfor())
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
@@ -67,7 +65,7 @@ if (sits_run_examples()) {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
     # classify a data cube
     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)

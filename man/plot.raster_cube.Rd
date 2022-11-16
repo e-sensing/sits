@@ -12,7 +12,9 @@
   green = NULL,
   blue = NULL,
   tile = x$tile[[1]],
-  date = NULL
+  date = sits_timeline(x)[[1]],
+  palette = "RdYlGn",
+  rev = FALSE
 )
 }
 \arguments{
@@ -31,13 +33,21 @@
 \item{tile}{Tile to be plotted.}
 
 \item{date}{Date to be plotted.}
+
+\item{palette}{An RColorBrewer palette}
+
+\item{rev}{Reverse the color order in the palette?}
 }
 \value{
-A plot object produced by the terra package
-                      with an RGB or B/W image.
+A plot object with an RGB image
+                      or a B/W image on a color
+                      scale using the pallete
 }
 \description{
 Plot RGB raster cube
+}
+\note{
+To see which color palettes are supported, please run
 }
 \examples{
 if (sits_run_examples()) {
@@ -48,7 +58,7 @@ if (sits_run_examples()) {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
     # plot NDVI band of the second date date of the data cube
     plot(cube, band = "NDVI", date = sits_timeline(cube)[2])

@@ -46,7 +46,7 @@
 #' if (sits_run_examples()) {
 #'     # find best learning rate parameters for TempCNN
 #'     tuned <- sits_tuning(
-#'         samples_modis_4bands,
+#'         samples_modis_ndvi,
 #'         ml_method = sits_tempcnn(),
 #'         params = sits_tuning_hparams(
 #'             optimizer = choice(
@@ -86,22 +86,15 @@ sits_tuning <- function(samples,
     .check_set_caller("sits_tuning")
 
     # pre-conditions
-    # check samples parameter
-    .sits_tibble_test(samples)
+    # check samples
+    .check_samples_train(samples)
     # check samples_validation parameter if it is passed
     if (!purrr::is_null(samples_validation)) {
-        .sits_tibble_test(samples_validation)
+        .check_samples_train(samples_validation)
     }
     # check validation_split parameter if samples_validation is not passed
     if (purrr::is_null(samples_validation)) {
-        .check_num(
-            x = validation_split,
-            exclusive_min = 0,
-            max = 0.5,
-            len_min = 1,
-            len_max = 1,
-            msg = "invalid 'validation_split' parameter"
-        )
+        .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
     }
     # check 'ml_functions' parameter
     ml_function <- substitute(ml_method, env = environment())
@@ -127,19 +120,10 @@ sits_tuning <- function(samples,
     # update formals with provided parameters in params
     params <- utils::modifyList(params_default, params)
     # check trials
-    .check_num(
-        x = trials,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        is_integer = TRUE,
-        msg = "invalid 'trials' parameter"
-    )
+    .check_int_parameter(trials)
     # check 'multicores' parameter
-    .check_num(
-        x = multicores, min = 1, len_min = 1, len_max = 1, is_integer = TRUE,
-        msg = "invalid 'multicores' parameter"
-    )
+    .check_multicores(multicores)
+
     # generate random params
     params_lst <- purrr::map(
         seq_len(trials),
@@ -153,26 +137,25 @@ sits_tuning <- function(samples,
 
     # validate in parallel
     result_lst <- .sits_parallel_map(params_lst, function(params) {
-        # prepare parameters
+        # Prepare parameters
         params <- purrr::map(params, eval)
-
-        # prepare ml_method
+        # Prepare ml_method
         ml_method <- do.call(ml_function, args = params)
-
-        # do validation
+        # Do validation
         acc <- sits_validate(
             samples = samples,
             samples_validation = samples_validation,
             validation_split = validation_split,
             ml_method = ml_method
         )
-
+        # Prepare result
         result <- tibble::tibble(
             accuracy = acc[["overall"]][["Accuracy"]],
             kappa = acc[["overall"]][["Kappa"]],
             acc = list(acc)
         )
-
+        # Remove variable 'ml_method'
+        remove(ml_method)
         return(result)
     }, progress = progress, n_retries = 0)
 
@@ -230,7 +213,7 @@ sits_tuning <- function(samples,
 #' if (sits_run_examples()) {
 #'     # find best learning rate parameters for TempCNN
 #'     tuned <- sits_tuning(
-#'         samples_modis_4bands,
+#'         samples_modis_ndvi,
 #'         ml_method = sits_tempcnn(),
 #'         params = sits_tuning_hparams(
 #'             optimizer = choice(
@@ -262,7 +245,7 @@ sits_tuning_hparams <- function(...) {
 #' to params definition returned by \code{sits_tuning_hparams}
 #'
 #' @keywords internal
-#'
+#' @noRd
 #' @return A list with evaluated random values
 #'
 .tuning_pick_random <- function(trial, params) {
@@ -311,12 +294,12 @@ sits_tuning_hparams <- function(...) {
 }
 
 #' @title Convert hyper-parameters list to a tibble
-#'
+#' @name .tuning_params_as_tibble
+#' @keywords internal
+#' @noRd
 #' @description
 #' Generate a tibble (one row per trial) with all model parameters
-#'
-#' @keywords internal
-#'
+#' @param  params   hyperparams from sits_tuning function
 #' @return A named list with provided parameters
 #'
 .tuning_params_as_tibble <- function(params) {

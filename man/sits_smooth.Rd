@@ -4,20 +4,31 @@
 \alias{sits_smooth}
 \alias{sits_smooth.bayes}
 \alias{sits_smooth.bilateral}
+\alias{sits_smooth_variance}
 \title{Smooth probability cubes with spatial predictors}
 \usage{
-sits_smooth(cube, type = "bayes", ...)
+sits_smooth(
+  cube,
+  type = "bayes",
+  ...,
+  window_size = 13,
+  memsize = 4,
+  multicores = 2,
+  output_dir = getwd(),
+  version = "v1"
+)
 
 \method{sits_smooth}{bayes}(
   cube,
   type = "bayes",
   ...,
-  window_size = 5,
+  window_size = 9,
+  neigh_fraction = 0.5,
   smoothness = 20,
   covar = FALSE,
   multicores = 2,
   memsize = 4,
-  output_dir = ".",
+  output_dir = getwd(),
   version = "v1"
 )
 
@@ -30,7 +41,16 @@ sits_smooth(cube, type = "bayes", ...)
   tau = 0.1,
   multicores = 2,
   memsize = 4,
-  output_dir = ".",
+  output_dir = getwd(),
+  version = "v1"
+)
+
+sits_smooth_variance(
+  cube,
+  window_size = 5,
+  multicores = 2,
+  memsize = 4,
+  output_dir = getwd(),
   version = "v1"
 )
 }
@@ -41,7 +61,20 @@ sits_smooth(cube, type = "bayes", ...)
 
 \item{...}{Parameters for specific functions}
 
-\item{window_size}{Size of the neighbourhood.}
+\item{window_size}{Size of the neighborhood.}
+
+\item{memsize}{Maximum overall memory (in GB) to run the
+smoothing.}
+
+\item{multicores}{Number of cores to run the smoothing function}
+
+\item{output_dir}{Output directory for image files}
+
+\item{version}{Version of resulting image
+(in the case of multiple tests)}
+
+\item{neigh_fraction}{Fraction of neighbors with highest probability
+to be used in Bayesian inference.}
 
 \item{smoothness}{Estimated variance of logit of class probabilities
 (Bayesian smoothing parameter). It can be either
@@ -50,16 +83,6 @@ a matrix or a scalar.}
 \item{covar}{a logical argument indicating if a covariance
 matrix must be computed as the prior covariance
 for bayesian smoothing.}
-
-\item{multicores}{Number of cores to run the smoothing function}
-
-\item{memsize}{Maximum overall memory (in GB) to run the
-smoothing.}
-
-\item{output_dir}{Output directory for image files}
-
-\item{version}{Version of resulting image
-(in the case of multiple tests)}
 
 \item{sigma}{Standard deviation of the spatial Gaussian kernel
 (for bilateral smoothing)}
@@ -87,12 +110,8 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-    # select a set of samples
-    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
     # create a ResNet model
-    torch_model <- sits_train(samples_ndvi, sits_resnet())
-    # plot the model
-    plot(torch_model)
+    torch_model <- sits_train(samples_modis_ndvi, sits_resnet(epochs = 20))
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
@@ -100,7 +119,7 @@ if (sits_run_examples()) {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
     # classify a data cube
     probs_cube <- sits_classify(data = cube, ml_model = torch_model)

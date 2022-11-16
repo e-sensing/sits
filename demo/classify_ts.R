@@ -8,7 +8,7 @@ library(sits)
 # use a sample with the bands "ndvi", "evi", "nir", and "mir"
 # select a random forest model
 rfor_model <- sits_train(
-    samples   = samples_modis_4bands,
+    samples   = samples_modis_ndvi,
     ml_method = sits_rfor()
 )
 
@@ -18,7 +18,7 @@ data("point_mt_6bands")
 # select the bands "ndvi", "evi", "nir", and "mir"
 point.tb <- sits_select(
     data  = point_mt_6bands,
-    bands = c("NDVI", "EVI", "NIR", "MIR")
+    bands = c("NDVI")
 )
 
 # classify the point
@@ -28,4 +28,4 @@ class.tb <- sits_classify(
 )
 
 # plot the classification
-plot(class.tb, bands = c("NDVI", "EVI", "MIR"))
+plot(class.tb, bands = c("NDVI"))

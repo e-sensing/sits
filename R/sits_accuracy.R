@@ -51,17 +51,15 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # show accuracy for a set of samples
-#'     train_data <- sits_sample(samples_modis_4bands, n = 200)
-#'     test_data <- sits_sample(samples_modis_4bands, n = 200)
+#'     train_data <- sits_sample(samples_modis_ndvi, n = 200)
+#'     test_data <- sits_sample(samples_modis_ndvi, n = 200)
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     points_class <- sits_classify(test_data, rfor_model)
 #'     acc <- sits_accuracy(points_class)
 #'
 #'     # show accuracy for a data cube classification
-#'     # select a set of samples
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a random forest model
-#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
@@ -69,7 +67,7 @@
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir,
 #'         delim = "_",
-#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
@@ -97,22 +95,18 @@ sits_accuracy.sits <- function(data, ...) {
     .check_require_packages("caret")
 
     # Does the input data contain a set of predicted values?
-    .check_chr_contains(
-        x = names(data),
-        contains = "predicted",
-        msg = "input data without predicted values"
-    )
+    .check_predicted(data)
 
     # Recover predicted and reference vectors from input
     # Is the input the result of a sits_classify?
     if ("label" %in% names(data)) {
         pred_ref <- .sits_accuracy_pred_ref(data)
-        pred <- pred_ref$predicted
-        ref <- pred_ref$reference
+        pred <- pred_ref[["predicted"]]
+        ref <- pred_ref[["reference"]]
     } else {
         # is the input the result of the sits_kfold_validate?
-        pred <- data$predicted
-        ref <- data$reference
+        pred <- data[["predicted"]]
+        ref <- data[["reference"]]
     }
     # Create factor vectors for caret
     unique_ref <- unique(ref)
@@ -120,23 +114,20 @@ sits_accuracy.sits <- function(data, ...) {
     ref_fac <- factor(ref, levels = unique_ref)
 
     # Call caret package to the classification statistics
-    assess <- caret::confusionMatrix(pred_fac, ref_fac)
+    acc <- caret::confusionMatrix(pred_fac, ref_fac)
 
     # Assign class to result
-    class(assess) <- c("sits_assessment", class(assess))
+    class(acc) <- c("sits_accuracy", class(acc))
 
     # return caret confusion matrix
-    return(assess)
+    return(acc)
 }
 #' @rdname sits_accuracy
 #' @export
-sits_accuracy.classified_image <- function(data, ..., validation_csv) {
+sits_accuracy.class_cube <- function(data, ..., validation_csv) {
 
     # sits only accepts "csv" files
-    .check_file(
-        x = validation_csv,
-        extensions = "csv"
-    )
+    .check_file_csv(validation_csv)
 
     # Read sample information from CSV file and put it in a tibble
     csv_tb <- tibble::as_tibble(
@@ -147,21 +138,17 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     )
 
     # Precondition - check if CSV file is correct
-    .check_chr_contains(
-        x = colnames(csv_tb),
-        contains = c("longitude", "latitude", "label"),
-        msg = "invalid csv file"
-    )
+    .check_csv(csv_tb)
 
     # Find the labels of the cube
     labels_cube <- sits_labels(data)
 
     # Create a list of (predicted, reference) values
     # Consider all tiles of the data cube
-    pred_ref_lst <- slider::slide(data, function(row) {
+    pred_ref_lst <- slider::slide(data, function(tile) {
 
         # Find the labelled band
-        labelled_band <- sits_bands(row)
+        labelled_band <- .tile_bands(tile)
 
         # Is the labelled band unique?
         .check_length(
@@ -171,10 +158,10 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         )
 
         # get xy in cube projection
-        xy_tb <- .sits_proj_from_latlong(
+        xy_tb <- .proj_from_latlong(
             longitude = csv_tb$longitude,
             latitude = csv_tb$latitude,
-            crs = .cube_crs(row)
+            crs = .crs(tile)
         )
 
         # join lat-long with XY values in a single tibble
@@ -189,39 +176,36 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
             )
         )
 
-        # Filter the points inside the data cube
-        points_row <- dplyr::filter(
+        # Filter the points inside the tile
+        points_tile <- dplyr::filter(
             points,
-            .data[["X"]] >= row$xmin & .data[["X"]] <= row$xmax &
-                .data[["Y"]] >= row$ymin & .data[["Y"]] <= row$ymax
+            .data[["X"]] >= tile$xmin & .data[["X"]] <= tile$xmax &
+                .data[["Y"]] >= tile$ymin & .data[["Y"]] <= tile$ymax
         )
 
         # No points in the cube? Return an empty list
-        if (nrow(points_row) < 1) {
+        if (nrow(points_tile) < 1) {
             return(NULL)
         }
 
         # Convert the tibble to a matrix
-        xy <- matrix(c(points_row$X, points_row$Y),
-            nrow = nrow(points_row), ncol = 2
+        xy <- matrix(c(points_tile$X, points_tile$Y),
+            nrow = nrow(points_tile), ncol = 2
         )
         colnames(xy) <- c("X", "Y")
 
         # Extract values from cube
-        values <- .cube_extract(
-            cube = row,
-            band_cube = labelled_band,
+        values <- .tile_extract(
+            tile = tile,
+            band = labelled_band,
             xy = xy
         )
         # Get the predicted values
         predicted <- labels_cube[unlist(values)]
         # Get reference classes
-        reference <- points_row$label
+        reference <- points_tile$label
         # Does the number of predicted and reference values match?
-        .check_that(
-            x = length(reference) == length(predicted),
-            msg = "predicted and reference vector do not match"
-        )
+        .check_pred_ref_match(reference, predicted)
         # Create a tibble to store the results
         tb <- tibble::tibble(predicted = predicted, reference = reference)
         # Return the list
@@ -232,11 +216,11 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 
     # Create the error matrix
     error_matrix <- table(
-        factor(pred_ref$predicted,
+        factor(pred_ref[["predicted"]],
             levels = labels_cube,
             labels = labels_cube
         ),
-        factor(pred_ref$reference,
+        factor(pred_ref[["reference"]],
             levels = labels_cube,
             labels = labels_cube
         )
@@ -246,12 +230,11 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     freq_lst <- slider::slide(data, function(tile) {
 
         # Get the frequency count and value for each labelled image
-        freq <- .cube_area_freq(tile)
+        freq <- .tile_area_freq(tile)
         # pixel area
-        # get the resolution
-        res <- .cube_resolution(tile)
         # convert the area to hectares
-        area <- freq$count * prod(res) / 10000
+        # assumption: spatial resolution unit is meters
+        area <- freq$count * .tile_xres(tile) * .tile_yres(tile) / 10000
         # Include class names
         freq <- dplyr::mutate(freq,
                               area = area,
@@ -273,15 +256,16 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     area[is.na(area)] <- 0
 
     # Compute accuracy metrics
-    assess <- .sits_accuracy_area_assess(data, error_matrix, area)
+    acc_area <- .sits_accuracy_area_assess(data, error_matrix, area)
 
-    class(assess) <- c("sits_area_assessment", class(assess))
-    return(assess)
+    class(acc_area) <- c("sits_area_accuracy", class(acc_area))
+    return(acc_area)
 }
 
 #' @title Obtains the predicted value of a reference set
 #' @name .sits_accuracy_pred_ref
 #' @keywords internal
+#' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Obtains a tibble of predicted and reference values
@@ -296,13 +280,10 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 
     # retrieve the reference labels
     ref <- class$label
-    # does the input data contained valid reference labels?
-    .check_that(
-        x = !("NoClass" %in% (ref)),
-        msg = "input data without labels"
-    )
+    # does the input data contains valid reference labels?
+    .check_labels(ref)
     # build the tibble
-    pred_ref <- tibble::tibble("predicted" = pred, "reference" = ref)
+    pred_ref <- tibble::tibble(predicted = pred, reference = ref)
     return(pred_ref)
 }
 
@@ -310,6 +291,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 #' @name .sits_accuracy_area_assess
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @keywords internal
+#' @noRd
 #' @param cube         Data cube.
 #' @param error_matrix Matrix given in sample counts.
 #'                     Columns represent the reference data and
@@ -332,31 +314,10 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 
     # set caller to show in errors
     .check_set_caller(".sits_accuracy_area_assess")
-
-    .check_chr_contains(
-        x = class(cube),
-        contains = "classified_image"
-    )
-
-    if (any(dim(error_matrix) == 0)) {
-        stop("invalid dimensions in error matrix.", call. = FALSE)
-    }
-    if (length(unique(dim(error_matrix))) != 1) {
-        stop("The error matrix is not square.", call. = FALSE)
-    }
-    if (!all(colnames(error_matrix) == rownames(error_matrix))) {
-        stop("Labels mismatch in error matrix.", call. = FALSE)
-    }
-    if (unique(dim(error_matrix)) != length(area)) {
-        stop("Mismatch between error matrix and area vector.",
-            call. = FALSE
-        )
-    }
-    if (!all(names(area) %in% colnames(error_matrix))) {
-        stop("Label mismatch between error matrix and area vector.",
-            call. = FALSE
-        )
-    }
+    # check if cube has the right type
+    .check_cube_is_class_cube(cube)
+    # check error matrix
+    .check_error_matrix_area(error_matrix, area)
 
     # reorder the area based on the error matrix
     area <- area[colnames(error_matrix)]
@@ -417,7 +378,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 #' @description Adaptation of the caret::print.confusionMatrix method
 #'              for the more common usage in Earth Observation.
 #'
-#' @param x         Object of class \code{sits_assessment}.
+#' @param x         Object of class \code{sits_accuracy}.
 #' @param digits    Number of significant digits when printed.
 #' @return          No return value, called for side effects.
 #'
@@ -428,16 +389,15 @@ sits_accuracy_summary <- function(x,
 
     # set caller to show in errors
     .check_set_caller("sits_accuracy_summary")
+    # is data of class sits_accuracy
+    .check_is_sits_accuracy(x)
 
-    if ("sits_area_assessment" %in% class(x)) {
-        print.sits_area_assessment(x)
+    if ("sits_area_accuracy" %in% class(x)) {
+        print.sits_area_accuracy(x)
         return(invisible(TRUE))
     }
-    .check_that(
-        x = inherits(x, what = "sits_assessment"),
-        local_msg = "please run sits_accuracy() first",
-        msg = "input does not contain assessment information"
-    )
+    # is data of class sits_accuracy
+    .check_is_sits_accuracy(x)
     # round the data to the significant digits
     overall <- round(x$overall, digits = digits)
 
@@ -467,7 +427,7 @@ sits_accuracy_summary <- function(x,
     print(out, quote = FALSE)
 }
 #' @title Print the values of a confusion matrix
-#' @name print.sits_assessment
+#' @name print.sits_accuracy
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Adaptation of the caret::print.confusionMatrix method
@@ -480,7 +440,7 @@ sits_accuracy_summary <- function(x,
 #'
 #' @keywords internal
 #' @export
-print.sits_assessment <- function(x, ...,
+print.sits_accuracy <- function(x, ...,
                                   digits = max(3, getOption("digits") - 3)) {
     # rename confusion matrix names
     names(x) <- c("positive", "table", "overall", "by_class", "mode", "dots")
@@ -533,7 +493,7 @@ print.sits_assessment <- function(x, ...,
         measures <- t(x$by_class)
         rownames(measures) <- c(
             "Prod Acc (Sensitivity)", "Specificity",
-            "User Acc (Pos Pred Value)", "Neg Pred Value", "F1"
+            "User Acc (Pos Pred Value)", "Neg Pred Value", "F1 score"
         )
         print(measures, digits = digits)
     } else {
@@ -581,21 +541,21 @@ print.sits_assessment <- function(x, ...,
         print(out, quote = FALSE)
     }
 }
-#' @title Print the area assessment
-#' @name print.sits_area_assessment
+#' @title Print the area-weighted accuracy
+#' @name print.sits_area_accuracy
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Adaptation of the caret::print.confusionMatrix method
 #'              for the more common usage in Earth Observation.
 #'
-#' @param x         An object of class \code{sits_area_assessment}.
+#' @param x         An object of class \code{sits_area_accuracy}.
 #' @param \dots     Other parameters passed to the "print" function
 #' @param digits    Significant digits
 #' @return          No return value, called for side effects.
 #'
 #' @keywords internal
 #' @export
-print.sits_area_assessment <- function(x, ..., digits = 2) {
+print.sits_area_accuracy <- function(x, ..., digits = 2) {
 
     # round the data to the significant digits
     overall <- round(x$accuracy$overall, digits = digits)
@@ -606,7 +566,7 @@ print.sits_area_assessment <- function(x, ..., digits = 2) {
     acc_user <- round(x$accuracy$user, digits = digits)
     acc_prod <- round(x$accuracy$producer, digits = digits)
 
-    # Print assessment values
+    # Print accuracy values
     tb <- t(dplyr::bind_rows(acc_user, acc_prod))
     colnames(tb) <- c("User", "Producer")
 

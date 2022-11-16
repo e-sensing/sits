@@ -1,4 +1,5 @@
 #' @keywords internal
+#' @noRd
 #' @export
 .source_item_get_hrefs.bdc_cube <- function(source, ...,
                                             item,
@@ -13,6 +14,7 @@
     return(.stac_add_gdal_fs(href))
 }
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_new.bdc_cube <- function(source, ...,
                                        collection,
@@ -35,7 +37,7 @@
     )
     # if more than 2 times items pagination are found the progress bar
     # is displayed
-    progress <- rstac::items_matched(items_info) > 2 * .config_rstac_limit()
+    progress <- rstac::items_matched(items_info) > 2 * .conf("rstac_pagination_limit")
     # check documentation mode
     progress <- .check_documentation(progress)
     # fetching all the metadata
@@ -48,6 +50,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 .source_items_tile.bdc_cube <- function(source, ...,
                                         items,

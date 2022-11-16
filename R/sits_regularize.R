@@ -17,7 +17,7 @@
 #'  from satellite image collections with the gdalcubes library. Data, v. 4,
 #'  n. 3, p. 92, 2019. DOI: 10.3390/data4030092.
 #'
-#' @param cube       \code{sits_cube} object whose observation
+#' @param cube       \code{raster_cube} object whose observation
 #'                   period and/or spatial resolution is not constant.
 #' @param period     ISO8601-compliant time period for regular
 #'                   data cubes, with number and unit, where
@@ -29,7 +29,6 @@
 #' @param output_dir Valid directory for storing regularized images.
 #' @param multicores Number of cores used for regularization;
 #'                   used for parallel processing of input.
-#' @param memsize    Memory available for regularization (in GB).
 #' @param progress   show progress bar?
 #'
 #' @note
@@ -52,7 +51,7 @@
 #'       The input (non-regular) ARD cube needs to include the cloud band for
 #'       the regularization to work.
 #'
-#' @return A \code{sits_cube} object with aggregated images.
+#' @return A \code{raster_cube} object with aggregated images.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -76,8 +75,7 @@
 #'         output_dir = dir_images,
 #'         res = 60,
 #'         period = "P16D",
-#'         multicores = 2,
-#'         memsize = 16
+#'         multicores = 2
 #'     )
 #' }
 #'
@@ -88,8 +86,33 @@ sits_regularize <- function(cube,
                             roi = NULL,
                             output_dir,
                             multicores = 1,
-                            memsize = 4,
                             progress = TRUE) {
+
+    # Pre-conditions
+    .check_is_raster_cube(cube)
+    # Does cube contain cloud band?
+    .check_that(
+        .band_cloud() %in% .cube_bands(cube),
+        local_msg = "cube does not have cloud band",
+        msg = "invalid cube"
+    )
+    .period_check(period)
+    .check_num_parameter(res, exclusive_min = 0)
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi)
+    }
+    # Normalize path
+    output_dir <- .file_normalize(output_dir)
+    .check_output_dir(output_dir)
+    .check_multicores(multicores)
+    .check_progress(progress)
+    # Display warning message in case STAC cube
+    if (.cube_is_local(cube)) {
+        warning("Regularization works better when data store locally. ",
+                "Please, use 'sits_cube_copy()' to copy data locally ",
+                "before regularization", call. = FALSE)
+    }
+    # Regularize
     .gc_regularize(
         cube = cube,
         period = period,

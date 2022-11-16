@@ -25,7 +25,7 @@ sits_get_data(
   pol_avg = FALSE,
   pol_id = NULL,
   multicores = 2,
-  output_dir = ".",
+  output_dir = getwd(),
   progress = FALSE
 )
 
@@ -39,7 +39,7 @@ sits_get_data(
   crs = 4326,
   impute_fn = sits_impute_linear(),
   multicores = 2,
-  output_dir = ".",
+  output_dir = getwd(),
   progress = FALSE
 )
 
@@ -188,7 +188,7 @@ if (sits_run_examples()) {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
     samples <- tibble::tibble(longitude = -55.66738, latitude = -11.76990)
     point_ndvi <- sits_get_data(raster_cube, samples)

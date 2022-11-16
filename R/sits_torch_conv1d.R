@@ -6,6 +6,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
+#' @noRd
 #' @description Defines a torch conv1d module composed of:
 #' (a) 1d convolution; (b) batch normalization;
 #' (c) relu activation; (d) dropout;
@@ -51,6 +52,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
+#' @noRd
 #' @description Defines a torch conv1d module composed of:
 #' (a) 1d convolution; (b) batch normalization;
 #' (c) relu activation
@@ -93,6 +95,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
+#' @noRd
 #' @description Defines a torch conv1d module composed of:
 #' (a) 1d convolution; (b) batch normalization;
 #' (c) relu activation
@@ -135,6 +138,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
+#' @noRd
 #' @description Defines a torch conv1d module composed of:
 #' (a) 1d convolution; (b) batch normalization.
 #'

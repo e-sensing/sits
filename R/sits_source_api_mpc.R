@@ -1,11 +1,12 @@
 #' @keywords internal
+#' @noRd
 #' @export
 .source_collection_access_test.mpc_cube <- function(source,
-                                                     collection,
-                                                     bands, ...,
-                                                     start_date = NULL,
-                                                     end_date = NULL,
-                                                     dry_run = TRUE) {
+                                                    collection,
+                                                    bands, ...,
+                                                    start_date = NULL,
+                                                    end_date = NULL,
+                                                    dry_run = TRUE) {
     # require package
     .check_require_packages("rstac")
 
@@ -65,12 +66,13 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 `.source_items_new.mpc_cube_sentinel-2-l2a` <- function(source,
-                                                         collection,
-                                                         stac_query, ...,
-                                                         tiles = NULL,
-                                                         platform = NULL) {
+                                                        collection,
+                                                        stac_query, ...,
+                                                        tiles = NULL,
+                                                        platform = NULL) {
 
     # set caller to show in errors
     .check_set_caller(".source_items_new.mpc_cube_sentinel-2-l2a")
@@ -129,27 +131,29 @@
     # assign href
     items_info <- suppressWarnings(
         rstac::items_sign(items_info,
-            sign_fn = rstac::sign_planetary_computer()
+                          sign_fn = rstac::sign_planetary_computer()
         )
     )
     return(items_info)
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 `.source_items_tile.mpc_cube_sentinel-2-l2a` <- function(source,
-                                                          items, ...,
-                                                          collection = NULL) {
+                                                         items, ...,
+                                                         collection = NULL) {
     rstac::items_reap(items, field = c("properties", "s2:mgrs_tile"))
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 `.source_items_new.mpc_cube_landsat-c2-l2` <- function(source,
-                                                          collection,
-                                                          stac_query, ...,
-                                                          tiles = NULL,
-                                                          platform = NULL) {
+                                                       collection,
+                                                       stac_query, ...,
+                                                       tiles = NULL,
+                                                       platform = NULL) {
 
     # set caller to show in errors
     .check_set_caller(".source_items_new.mpc_cube_landsat-c2-l2")
@@ -193,6 +197,7 @@
 }
 
 #' @keywords internal
+#' @noRd
 #' @export
 `.source_items_tile.mpc_cube_landsat-c2-l2` <- function(source,
                                                         items, ...,

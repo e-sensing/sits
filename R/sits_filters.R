@@ -35,6 +35,7 @@ NULL
 #' vol. 57, pg. 202-213, 2107.
 #'
 #' @examples
+#' if (sits_run_examples()) {
 #' # Retrieve a time series with values of NDVI
 #' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'
@@ -45,7 +46,7 @@ NULL
 #'
 #' # Plot the two points to see the smoothing effect
 #' plot(point_ndvi)
-#'
+#' }
 #' @export
 sits_whittaker <- function(data = NULL, lambda = 0.5) {
     filter_fun <- function(data) {
@@ -99,6 +100,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' @param length        Filter length (must be odd).
 #'
 #' @examples
+#' if (sits_run_examples()) {
 #' # Retrieve a time series with values of NDVI
 #' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'
@@ -111,6 +113,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #'
 #' # Plot the two points to see the smoothing effect
 #' plot(point_ndvi)
+#' }
 #' @export
 sits_sgolay <- function(data = NULL, order = 3, length = 5) {
     # compute filter coefficients once
@@ -190,7 +193,7 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5) {
 #' values as y(k) = F(i,:) * x(k-i+1:k+n-i).
 #'
 #' @keywords internal
-#'
+#' @noRd
 #' @param p            Filter order (integer).
 #' @param n            Filter length (must be odd)
 #' @param m            Derivative to calculate (default = 0)
@@ -233,6 +236,7 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5) {
 #' @description Calculates the Moore-Penrose generalized inverse of a matrix X.
 #'
 #' @keywords internal
+#' @noRd
 #'
 #' @param mtx Matrix for which the Moore-Penrose inverse is required.
 #' @param tol A relative tolerance to detect zero singular values.

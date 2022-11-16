@@ -6,8 +6,8 @@ test_that("User functions", {
 
     # check config file
     expect_equal(
-        .check_file(.config_file()),
-        .config_file()
+        .check_file(.conf_file()),
+        .conf_file()
     )
 
     expect_true(
@@ -22,26 +22,6 @@ test_that("User functions", {
         "To provide additional configurations, create an YAML file"
     )
 
-    expect_equal(
-        .config_processing_bloat(),
-        5
-    )
-
-    expect_equal(
-        .config_rstac_limit(),
-        400
-    )
-
-    expect_equal(
-        .config_raster_pkg(),
-        "terra"
-    )
-
-    expect_equal(
-        .config_gtiff_default_options(),
-        c("COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES")
-    )
-
     # load default + user config
     expect_true(
         Sys.setenv(
@@ -53,8 +33,8 @@ test_that("User functions", {
     )
 
     expect_equal(
-        .check_file(.config_user_file()),
-        .config_user_file()
+        .check_file(.conf_user_file()),
+        .conf_user_file()
     )
 
     expect_message(
@@ -63,22 +43,22 @@ test_that("User functions", {
     )
 
     expect_equal(
-        .config_processing_bloat(),
+        .conf("processing_bloat"),
         5
     )
 
     expect_equal(
-        .config_rstac_limit(),
+        .conf("rstac_pagination_limit"),
         999
     )
 
     expect_equal(
-        .config_gtiff_default_options(),
+        .conf("gdal_creation_options"),
         c("COMPRESS=LZW", "BIGTIFF=YES")
     )
 
     expect_equal(
-        unname(.config_colors(labels = c(
+        unname(.colors_get(labels = c(
             "Cropland", "Deforestation",
             "Forest", "Grassland", "NonForest"
         ))),
@@ -100,29 +80,29 @@ test_that("User functions", {
     )
 
     expect_equal(
-        .config_processing_bloat(),
+        .conf("processing_bloat"),
         6
     )
 
     expect_equal(
-        .config_rstac_limit(),
+        .conf("rstac_pagination_limit"),
         500
     )
 
     expect_equal(
-        .config_raster_pkg(),
+        .conf("raster_api_package"),
         "terra"
     )
 
     expect_equal(
-        .config_gtiff_default_options(),
+        .conf("gdal_creation_options"),
         c("BIGTIFF=YES")
     )
 
 
     expect_output(
         object = sits_config_show(source = "BDC"),
-        regexp = "s3_class: bdc_cube, stac_cube, raster_cube"
+        regexp = "s3_class: bdc_cube, stac_cube, eo_cube, raster_cube"
     )
 
     expect_output(
@@ -132,12 +112,12 @@ test_that("User functions", {
 
 
     # add a new source, collection
-    .config_set_options(
-        sources = list(TEST = .config_new_source(
+    .conf_set_options(
+        sources = list(TEST = .conf_new_source(
             s3_class = c("bdc_cube", "stac_cube", "raster_cube"),
-            collections = list(TEST = .config_new_collection(
+            collections = list(TEST = .conf_new_collection(
                 bands = list(
-                    B2 = .config_new_band(
+                    B2 = .conf_new_band(
                         missing_value = 0,
                         minimum_value = 1,
                         maximum_value = 65455,
@@ -147,7 +127,7 @@ test_that("User functions", {
                         band_name     = "SR_B2",
                         resolution    = 30
                     ),
-                    CLOUD = .config_new_cloud_band(
+                    CLOUD = .conf_new_cloud_band(
                         bit_mask      = TRUE,
                         values        = list(),
                         interp_values = 1,
@@ -162,9 +142,9 @@ test_that("User functions", {
         ))
     )
 
-    expect_equal(
-        .source_url(source = "TEST"),
-        NA_character_
+    expect_error(
+        object = .source_url(source = "TEST"),
+        regexp = "key 'sources->TEST->url' not found in config"
     )
 
     expect_equal(
@@ -172,9 +152,8 @@ test_that("User functions", {
         "https://brazildatacube.dpi.inpe.br/stac/"
     )
 
-    expect_equal(
-        .source_service(source = "TEST"),
-        NA_character_
+    expect_error(
+        .source_service(source = "TEST")
     )
 
     expect_equal(
@@ -188,7 +167,7 @@ test_that("User functions", {
     )
     expect_equal(
         .source_s3class(source = "BDC"),
-        c("bdc_cube", "stac_cube", "raster_cube")
+        c("bdc_cube", "stac_cube", "eo_cube", "raster_cube")
     )
 
     expect_error(
@@ -226,7 +205,7 @@ test_that("User functions", {
         NULL
     )
     expect_equal(
-        sits:::.source_collection_tile_check(
+        .source_collection_tile_check(
             "MPC",
             "LANDSAT-8-C2-L2",
             "232067"
@@ -253,19 +232,14 @@ test_that("User functions", {
     )
 })
 
-test_that("Configs AWS", {
+test_that("Config AWS", {
     expect_error(
-        .config_get(key = c("zzz")),
+        .conf("zzz"),
         "key 'zzz' not found"
     )
 
-    expect_equal(
-        .config_get(key = c("zzz"), default = "aaa"),
-        "aaa"
-    )
-
     expect_error(
-        .config_names(key = c("zzz")),
+        .conf_names("zzz"),
         "invalid names for 'zzz' key"
     )
 
@@ -280,10 +254,10 @@ test_that("Configs AWS", {
     )
 
     expect_equal(
-        .config_get(key = c(
+        .conf(
             "sources", "AWS", "collections",
             "SENTINEL-S2-L2A", "access_vars"
-        )),
+        ),
         list(
             AWS_DEFAULT_REGION = "eu-central-1",
             AWS_S3_ENDPOINT = "s3.amazonaws.com",
@@ -358,7 +332,7 @@ test_that("Configs AWS", {
 
 test_that("Metatype", {
     expect_error(
-        sits:::.config_data_meta_type("abc"),
+        .conf_data_meta_type("abc"),
         "Data not recognized as a sits object"
     )
 })
@@ -367,62 +341,6 @@ test_that("List collections", {
     expect_output(
         object = sits_list_collections(),
         regexp = "(BDC)|(AWS)|(- MOD13Q1-6 (TERRA/MODIS))"
-    )
-})
-
-test_that("Config colors", {
-    labels1 <- c(
-        "Evergreen_Needleleaf_Forest",
-        "Forest",
-        "Floresta",
-        "Tropical Forest"
-    )
-
-    # get the warning message with call. parameter
-    warn1 <- tryCatch(
-        {
-            sits:::.config_colors(labels1)
-        },
-        warning = function(x) {
-            x
-        }
-    )
-
-    expect_s3_class(
-        object = warn1,
-        class = "simpleWarning"
-    )
-
-    expect_match(
-        object = warn1[["message"]],
-        regexp = "Some labels are not available in the chosen palette"
-    )
-
-    labels2 <- c(
-        "Evergreen_Needleleaf_Forest",
-        "Forest",
-        "Floresta Tropical",
-        "Floresta Amazonica",
-        "Tropical Forest"
-    )
-
-    warn2 <- tryCatch(
-        {
-            sits:::.config_colors(labels2)
-        },
-        warning = function(x) {
-            x
-        }
-    )
-
-    expect_s3_class(
-        object = warn2,
-        class = "simpleWarning"
-    )
-
-    expect_match(
-        object = warn2[["message"]],
-        regexp = "Most labels are not available in the chosen palette"
     )
 })
 

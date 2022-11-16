@@ -6,25 +6,23 @@
 #' @description Takes a set of classified raster layers with probabilities,
 #'              and label them based on the maximum probability for each pixel.
 #'
-#' @param  cube              Classified image data cube.
-#' @param  multicores        Number of workers to label the classification in
-#'                           parallel.
-#' @param  memsize           maximum overall memory (in GB) to label the
-#'                           classification.
-#' @param  output_dir        Output directory for classified files.
-#' @param  version           Version of resulting image
-#'                           (in the case of multiple runs).
-#' @return                   A data cube with an image with the classified map.
+#' @param  cube        Classified image data cube.
+#' @param  multicores  Number of workers to label the classification in
+#'                     parallel.
+#' @param  memsize     maximum overall memory (in GB) to label the
+#'                     classification.
+#' @param  output_dir  Output directory for classified files.
+#' @param  version     Version of resulting image
+#'                     (in the case of multiple runs).
+#' @return             A data cube with an image with the classified map.
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'     # select a set of samples
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a random forest model
-#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
@@ -32,7 +30,7 @@
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir,
 #'         delim = "_",
-#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
@@ -48,301 +46,153 @@
 #'     plot(label_cube)
 #' }
 #' @export
-sits_label_classification <- function(cube,
-                                      multicores = 2,
-                                      memsize = 4,
-                                      output_dir = ".",
-                                      version = "v1") {
+sits_label_classification <- function(cube, memsize = 4, multicores = 2,
+                                      output_dir = getwd(), version = "v1") {
 
-    # set caller to show in errors
-    .check_set_caller("sits_label_classification")
+    # Pre-conditions - Check parameters
+    .check_is_probs_cube(cube)
+    .check_memsize(memsize)
+    .check_multicores(multicores)
+    .check_output_dir(output_dir)
+    .check_version(version)
 
-    # precondition - check if cube has probability data
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "input is not probability cube"
+    # Check memory and multicores
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = .block_size(block = block, overlap = 0),
+        # npaths = input(nlayers) + output(1)
+        npaths = length(.tile_labels(cube)) + 1,
+        nbytes = 8, proc_bloat = .conf("processing_bloat")
     )
-    # precondition 2 - multicores
-    .check_num(
-        x = multicores,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        is_integer = TRUE,
-        msg = "invalid 'multicores' parameter"
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
-
-    # precondition - memory
-    .check_num(
-        x = memsize,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'memsize' parameter"
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_memsize = job_memsize, block = block,
+        image_size = .tile_size(.tile(cube)), memsize = memsize,
+        multicores = multicores
     )
 
-    # precondition 4 - output dir
-    .check_file(
-        x = output_dir,
-        msg = "invalid output dir"
-    )
-
-    # precondition 5 - version
-    .check_chr(
-        x = version,
-        len_min = 1,
-        msg = "invalid version"
-    )
-
-    # mapping function to be executed by workers cluster
-    .do_map <- function(chunk) {
-
-        # read raster
-        data <- .raster_get_values(r_obj = chunk)
-        # get layer of max probability
-        data <- label_max_prob(data)
-        # create cube labels
-        res <- .raster_rast(r_obj = chunk, nlayers = 1)
-        # copy values
-        res <- .raster_set_values(r_obj = res, values = data)
-        return(res)
-    }
-
-    # compute which block size is many tiles to be computed
-    block_size <- .label_estimate_block_size(
-        cube = cube,
-        multicores = multicores,
-        memsize = memsize
-    )
-
-    # start parallel processes
+    # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop())
+    on.exit(.sits_parallel_stop(), add = TRUE)
 
-    # process each brick layer (each time step) individually
-    blocks_tile_lst <- slider::slide(cube, function(tile) {
-
-        # create metadata for raster cube
-        tile_new <- .cube_derived_create(
-            cube       = tile,
-            cube_class = "classified_image",
-            band_name  = "class",
-            labels     = .cube_labels(tile),
-            start_date = .file_info_start_date(tile),
-            end_date   = .file_info_end_date(tile),
-            bbox       = .cube_tile_bbox(tile),
-            output_dir = output_dir,
-            version    = version
-        )
-
-        # prepare output filename
-        out_file <- .file_info_path(tile_new)
-
-        # if file exists skip it (resume feature)
-        if (file.exists(out_file)) {
-            if (.cube_is_equal_bbox(tile_new)) {
-                message(paste0(
-                    "Recovery mode: classified image file found in '",
-                    dirname(out_file), "' directory. ",
-                    "(If you want a new classified image, please ",
-                    "change the directory in the 'output_dir' or the ",
-                    "value of 'version' parameter)"
-                ))
-                return(NULL)
-            }
-        }
-
-        # get cube size
-        size <- .cube_size(tile)
-
-        # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
-        blocks <- .smth_compute_blocks(
-            xsize = size[["ncols"]],
-            ysize = size[["nrows"]],
-            block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = 0
-        )
-
-        # open probability file
-        in_file <- .file_info_path(tile)
-
-        # process blocks in parallel
-        block_files_lst <- .sits_parallel_map(blocks, function(block) {
-
-            # open brick
-            b <- .raster_open_rast(in_file)
-
-            # crop adding overlaps
-            temp_chunk_file <- .create_chunk_file(
-                output_dir = output_dir,
-                pattern = "chunk_class_",
-                ext = ".tif"
-            )
-            chunk <- .raster_crop(
-                r_obj = b,
-                file = temp_chunk_file,
-                format = "GTiff",
-                data_type = .raster_data_type(
-                    .config_get("probs_cube_data_type")
-                ),
-                gdal_options = .config_gtiff_default_options(),
-                overwrite = TRUE,
-                block = block
-            )
-            # Delete temp file
-            on.exit(unlink(temp_chunk_file), add = TRUE)
-
-            # process it
-            raster_out <- .do_map(chunk = chunk)
-            block_file <- .smth_filename(
-                tile = tile_new,
-                output_dir = output_dir,
-                block = block
-            )
-
-            # save chunk
-            .raster_write_rast(
-                r_obj = raster_out,
-                file = block_file,
-                format = "GTiff",
-                data_type = .raster_data_type(
-                    .config_get("class_cube_data_type")
-                ),
-                gdal_options = .config_gtiff_default_options(),
-                overwrite = TRUE
-            )
-
-            gc()
-            return(block_file)
-        })
-
-        block_files <- unlist(block_files_lst)
-
-        return(invisible(block_files))
-    })
-
-    # process each brick layer (each time step) individually
-    res_cube_lst <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
-
-        # get tile from cube
-        tile <- cube[i, ]
-
-        # create metadata for raster cube
-        tile_new <- .cube_derived_create(
-            cube       = tile,
-            cube_class = "classified_image",
-            band_name  = "class",
-            labels     = .cube_labels(tile),
-            start_date = .file_info_start_date(tile),
-            end_date   = .file_info_end_date(tile),
-            bbox       = .cube_tile_bbox(tile),
-            output_dir = output_dir,
-            version    = version
-        )
-
-        # prepare output filename
-        out_file <- .file_info_path(tile_new)
-
-        # if file exists skip it (resume feature)
-        if (file.exists(out_file)) {
-            return(tile_new)
-        }
-
-        tmp_blocks <- blocks_tile_lst[[i]]
-
-        # apply function to blocks
-        on.exit(unlink(tmp_blocks))
-
-        # merge to save final result
-        suppressWarnings(
-            .raster_merge(
-                in_files = tmp_blocks,
-                out_file = out_file,
-                format = "GTiff",
-                gdal_datatype =
-                    .raster_gdal_datatype(.config_get("class_cube_data_type")),
-                gdal_options =
-                    .config_gtiff_default_options(),
-                overwrite = TRUE
-            )
-        )
-
-        return(tile_new)
-    })
-
-    # bind rows
-    result_cube <- dplyr::bind_rows(res_cube_lst)
-
-    class(result_cube) <- unique(c("classified_image", class(result_cube)))
-
-    return(result_cube)
+    UseMethod("sits_label_classification", cube)
 }
 
-#' @title Estimate the number of blocks to run .sits_split_cluster in label cube
-#' @name .label_estimate_block_size
-#' @keywords internal
-#'
-#' @param cube         input data cube
-#' @param multicores   number of processes to split up the data
-#' @param memsize      maximum overall memory size (in GB)
-#'
-#' @return  returns a list with following information:
-#'             - multicores theoretical upper bound;
-#'             - block x_size (horizontal) and y_size (vertical)
-#'
-.label_estimate_block_size <- function(cube, multicores, memsize) {
-
-    # set caller to show in errors
-    .check_set_caller(".label_estimate_block_size")
-
-    # precondition 1 - check if cube has probability data
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "input is not probability cube"
-    )
-    size <- .cube_size(cube[1, ])
-    n_layers <- length(cube$labels[[1]])
-    bloat_mem <- .config_get(key = "processing_bloat")
-    n_bytes <- 8
-
-    # total memory needed to do all work in GB
-    image_size <- size[["ncols"]] * size[["nrows"]]
-    needed_memory <- image_size * 1E-09 * n_layers * bloat_mem * n_bytes
-
-    # minimum block size
-    min_block_x_size <- size["ncols"] # for now, only vertical blocking
-    min_block_y_size <- 1
-
-    # compute factors
-    memory_factor <- needed_memory / memsize
-
-    blocking_factor <- image_size / (min_block_x_size * min_block_y_size)
-
-    # stop if blocking factor is less than memory factor!
-    # reason: the provided memory is not enough to process the data by
-    # breaking it into small chunks
-    .check_that(
-        x = memory_factor <= blocking_factor,
-        msg = "provided memory not enough to run the job"
-    )
-
-    # update multicores to the maximum possible processes given the available
-    # memory and blocking factor
-    multicores <- min(floor(blocking_factor / memory_factor), multicores)
-
-    # compute blocking allocation that maximizes the
-    # block / (memory * multicores) ratio, i.e. maximize parallel processes
-    # and returns the following information:
-    # - multicores theoretical upper bound;
-    # - block x_size (horizontal) and y_size (vertical)
-    blocks <- list(
-        # theoretical max_multicores = floor(blocking_factor / memory_factor),
-        block_x_size = floor(min_block_x_size),
-        block_y_size = min(
-            floor(blocking_factor / memory_factor / multicores),
-            size[["nrows"]]
+#' @rdname sits_label_classification
+#' @export
+sits_label_classification.probs_cube <- function(cube, memsize = 4,
+                                                 multicores = 2,
+                                                 output_dir = getwd(),
+                                                 version = "v1") {
+    # Labeling parameters checked in label function
+    # Create label classification function
+    label_fn <- .label_fn_majority()
+    # Process each tile sequentially
+    class_cube <- .cube_foreach_tile(cube, function(tile) {
+        # Label the data
+        class_tile <- .label_tile(
+            tile = tile, band = "class", label_fn = label_fn,
+            output_dir = output_dir, version = version
         )
-    )
+        return(class_tile)
+    })
+    return(class_cube)
+}
 
-    return(blocks)
+#---- internal functions ----
+
+.label_tile  <- function(tile, band, label_fn, output_dir, version) {
+    # Output file
+    out_file <- .file_derived_name(
+        tile = tile, band = band, version = version, output_dir = output_dir
+    )
+    # Resume feature
+    if (file.exists(out_file)) {
+        # # Callback final tile classification
+        # .callback(process = "tile_classification", event = "recovery",
+        #           context = environment())
+        message("Recovery: tile '", tile[["tile"]], "' already exists.")
+        message("(If you want to produce a new image, please ",
+                "change 'output_dir' or 'version' parameters)")
+        class_tile <- .tile_class_from_file(
+            file = out_file, band = band, base_tile = tile
+        )
+        return(class_tile)
+    }
+    # Create chunks as jobs
+    chunks <- .tile_chunks_create(tile = tile, overlap = 0)
+    # Process jobs in parallel
+    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
+        # Get job block
+        block <- .block(chunk)
+        # Output file name
+        block_file <- .file_block_name(
+            pattern = .file_pattern(out_file), block = block,
+            output_dir = output_dir
+        )
+        # Resume processing in case of failure
+        if (.raster_is_valid(block_file)) {
+            return(block_file)
+        }
+        # Read and preprocess values
+        values <- .tile_read_block(
+            tile = tile, band = .tile_bands(tile), block = block
+        )
+        # Apply the labeling function to values
+        values <- label_fn(values)
+        # Prepare probability to be saved
+        band_conf <- .conf_derived_band(
+            derived_class = "class_cube", band = band
+        )
+        offset <- .offset(band_conf)
+        if (.has(offset) && offset != 0) {
+            values <- values - offset
+        }
+        scale <- .scale(band_conf)
+        if (.has(scale) && scale != 1) {
+            values <- values / scale
+        }
+        # Prepare and save results as raster
+        .raster_write_block(
+            files = block_file, block = block, bbox = .bbox(chunk),
+            values = values, data_type = .data_type(band_conf),
+            missing_value = .miss_value(band_conf),
+            crop_block = NULL
+        )
+        # Free memory
+        gc()
+        # Returned value
+        block_file
+    })
+    # Merge blocks into a new class_cube tile
+    class_tile <- .tile_class_merge_blocks(
+        file = out_file, band = band, labels = .tile_labels(tile),
+        base_tile = tile, block_files = block_files,
+        multicores = .jobs_multicores()
+    )
+    # Return class tile
+    class_tile
+}
+
+#---- label functions ----
+
+.label_fn_majority <- function() {
+
+    label_fn <- function(values) {
+        # Used to check values (below)
+        input_pixels <- nrow(values)
+        values <- C_label_max_prob(values)
+        # Are the results consistent with the data input?
+        .check_processed_values(values, input_pixels)
+        # Return values
+        values
+    }
+    # Return closure
+    label_fn
 }

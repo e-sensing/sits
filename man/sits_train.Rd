@@ -28,13 +28,14 @@ deep residual networks \code{\link[sits]{sits_resnet}} and
 self-attention encoders \code{\link[sits]{sits_lighttae}}
 }
 \examples{
+if (sits_run_examples()) {
 # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 # fit a training model (RFOR model)
-samples <- sits_select(samples_modis_4bands, bands = c("NDVI"))
-ml_model <- sits_train(samples, sits_rfor(num_trees = 50))
+ml_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 50))
 # get a point and classify the point with the ml_model
 point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 class <- sits_classify(point_ndvi, ml_model)
+}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

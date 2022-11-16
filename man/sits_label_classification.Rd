@@ -2,24 +2,33 @@
 % Please edit documentation in R/sits_label_classification.R
 \name{sits_label_classification}
 \alias{sits_label_classification}
+\alias{sits_label_classification.probs_cube}
 \title{Build a labelled image from a probability cube}
 \usage{
 sits_label_classification(
   cube,
-  multicores = 2,
   memsize = 4,
-  output_dir = ".",
+  multicores = 2,
+  output_dir = getwd(),
+  version = "v1"
+)
+
+\method{sits_label_classification}{probs_cube}(
+  cube,
+  memsize = 4,
+  multicores = 2,
+  output_dir = getwd(),
   version = "v1"
 )
 }
 \arguments{
 \item{cube}{Classified image data cube.}
 
-\item{multicores}{Number of workers to label the classification in
-parallel.}
-
 \item{memsize}{maximum overall memory (in GB) to label the
 classification.}
+
+\item{multicores}{Number of workers to label the classification in
+parallel.}
 
 \item{output_dir}{Output directory for classified files.}
 
@@ -39,10 +48,8 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-    # select a set of samples
-    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
     # create a random forest model
-    rfor_model <- sits_train(samples_ndvi, sits_rfor())
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
@@ -50,7 +57,7 @@ if (sits_run_examples()) {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
     # classify a data cube
     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)

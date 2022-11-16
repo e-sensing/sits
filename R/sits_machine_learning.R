@@ -30,87 +30,75 @@
 #'     # Example of training a model for time series classification
 #'     # Retrieve the samples for Mato Grosso
 #'     # train a random forest model
-#'     rf_model <- sits_train(samples_modis_4bands,
+#'     rf_model <- sits_train(samples_modis_ndvi,
 #'                            ml_method = sits_rfor(mtry = 20))
-#'     # select the bands to classify the point
-#'     sample_bands <- sits_bands(samples_modis_4bands)
-#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
 #'     # classify the point
-#'     point_class <- sits_classify(point_4bands, rf_model)
+#'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#'     # classify the point
+#'     point_class <- sits_classify(point_ndvi, rf_model)
 #'     plot(point_class)
 #' }
 #' @export
 #'
-sits_rfor <- function(samples = NULL,
-                      num_trees = 120,
-                      mtry = NULL, ...) {
+sits_rfor <- function(samples = NULL, num_trees = 120, mtry = NULL, ...) {
 
-    # function that returns `randomForest::randomForest` model
-    result_fun <- function(samples) {
-
-        # verifies if randomForest package is installed
+    # Function that trains a random forest model
+    train_fun <- function(samples) {
+        # Verifies if 'randomForest' package is installed
         .check_require_packages("randomForest")
+        # Checks 'num_trees'
+        .check_int_parameter(num_trees)
+        # Get labels (used later to ensure column order in result matrix)
+        labels <- .sits_labels(samples)
+        # Get predictors features
+        train_samples <- .predictors(samples)
+        # Post condition: is predictor data valid?
+        .check_predictors(pred = train_samples, samples = samples)
 
-        # get predictors features
-        train_samples <- .sits_distances(samples)
-
-        # check num_trees
-        .check_num(
-            x = num_trees,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE,
-            msg = "invalid 'num_trees' parameter"
-        )
-
-        # check mtry
-        # apply the same mtry default value of randomForest package
-        n_features <- ncol(train_samples) - 2
-        if (purrr::is_null(mtry))
+        # Apply the same 'mtry' default value of 'randomForest' package
+        if (purrr::is_null(mtry)) {
+            n_features <- ncol(train_samples) - 2
             mtry <- floor(sqrt(n_features))
-        .check_num(
-            x = mtry,
-            min = 1,
-            max = n_features,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE,
-            msg = "invalid 'mtry' parameter"
-        )
+            # Checks 'mtry'
+            .check_int_parameter(mtry, min = 1, max = n_features)
+        }
 
-        # call `randomForest::randomForest` method and return the trained model
-        reference <- train_samples[, reference]
-        result_rfor <- randomForest::randomForest(
-            x = train_samples[, 3:ncol(train_samples)],
-            y = as.factor(reference),
-            samples = NULL,
-            ntree = num_trees,
-            mtry = mtry,
-            nodesize = 1,
-            norm.votes = FALSE, ...,
+        # Train a random forest model
+        model <- randomForest::randomForest(
+            x = .pred_features(train_samples),
+            y = as.factor(.pred_references(train_samples)),
+            samples = NULL, ntree = num_trees, mtry = mtry,
+            nodesize = 1, localImp = TRUE, norm.votes = FALSE, ...,
             na.action = stats::na.fail
         )
 
-        # construct model predict enclosure function and returns
-        model_predict <- function(values) {
-
-            # verifies if ranger package is installed
+        # Function that predicts labels of input values
+        predict_fun <- function(values) {
+            # Verifies if ranger package is installed
             .check_require_packages("randomForest")
-
-            return(stats::predict(result_rfor,
-                newdata = values,
-                type = "prob"
-            ))
+            # Used to check values (below)
+            input_pixels <- nrow(values)
+            # Do classification
+            values <- stats::predict(
+                object = model, newdata = values, type = "prob"
+            )
+            # Are the results consistent with the data input?
+            .check_processed_values(values, input_pixels)
+            # Reorder matrix columns if needed
+            if (any(labels != colnames(values))) {
+                values <- values[, labels]
+            }
+            return(values)
         }
-        class(model_predict) <- c(
-            "rfor_model", "sits_model",
-            class(model_predict)
+        # Set model class
+        predict_fun <- .set_class(
+            predict_fun, "rfor_model", "sits_model", class(predict_fun)
         )
-        return(model_predict)
+        return(predict_fun)
     }
-
-    result <- .sits_factory_function(samples, result_fun)
+    # If samples is informed, train a model and return a predict function
+    # Otherwise give back a train function to train model further
+    result <- .sits_factory_function(samples, train_fun)
     return(result)
 }
 #' @title Train support vector machine models
@@ -158,81 +146,82 @@ sits_rfor <- function(samples = NULL,
 #'     # Example of training a model for time series classification
 #'     # Retrieve the samples for Mato Grosso
 #'     # train an SVM model
-#'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_svm)
-#'     # select the bands to classify the point
-#'     sample_bands <- sits_bands(samples_modis_4bands)
-#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
+#'     ml_model <- sits_train(samples_modis_ndvi, ml_method = sits_svm)
 #'     # classify the point
-#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#'     # classify the point
+#'     point_class <- sits_classify(point_ndvi, ml_model)
 #'     plot(point_class)
 #' }
 #' @export
 #'
 sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
-                     scale = FALSE, cachesize = 1000,
-                     kernel = "radial", degree = 3, coef0 = 0,
-                     cost = 10, tolerance = 0.001,
+                     scale = FALSE, cachesize = 1000, kernel = "radial",
+                     degree = 3, coef0 = 0, cost = 10, tolerance = 0.001,
                      epsilon = 0.1, cross = 10, ...) {
 
-    # function that returns e1071::svm model based on a sits sample tibble
-    result_fun <- function(samples) {
-
-        # verifies if e1071 package is installed
+    # Function that trains a support vector machine model
+    train_fun <- function(samples) {
+        # Verifies if e1071 package is installed
         .check_require_packages("e1071")
-
-        # data normalization
-        stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(
-            .sits_ml_normalize_data(samples, stats)
-        )
-
-        # The function must return a valid formula.
+        # Get labels (used later to ensure column order in result matrix)
+        labels <- .sits_labels(samples)
+        # Get normalized training samples
+        # Variable name changed 'stats' -> 'ml_stats' purposefully.
+        # Only models trained in versions prior to 1.2 has variable 'stats'.
+        # New models has ml_stats that are applied automatically (see below)
+        #   on input data before classification.
+        # sits still works with these models by normalizing data before
+        #   classification.
+        ml_stats <- .sits_stats(samples)
+        # Get predictors features
+        train_samples <- .predictors(samples)
+        # Normalize predictors
+        train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
+        # Post condition: is predictor data valid?
+        .check_predictors(pred = train_samples, samples = samples)
+        # Update formula parameter
         if (inherits(formula, "function")) {
             formula <- formula(train_samples)
         }
 
-        # call e1071::svm method and return the trained svm model
-        result_svm <- e1071::svm(
-            formula = formula, data = train_samples,
-            scale = scale, kernel = kernel,
-            degree = degree, cost = cost, coef0 = coef0,
-            cachesize = cachesize, tolerance = tolerance,
-            epsilon = epsilon, cross = cross,
-            probability = TRUE, ...,
-            na.action = stats::na.fail
+        # Train a svm model
+        model <- e1071::svm(
+            formula = formula, data = train_samples, scale = scale,
+            kernel = kernel, degree = degree, cost = cost, coef0 = coef0,
+            cachesize = cachesize, tolerance = tolerance, epsilon = epsilon,
+            cross = cross, probability = TRUE, ..., na.action = stats::na.fail
         )
 
-        # construct model predict closure function and returns
-        model_predict <- function(values) {
-
-            # verifies if e1071 package is installed
+        # Function that predicts labels of input values
+        predict_fun <- function(values) {
+            # Verifies if e1071 package is installed
             .check_require_packages("e1071")
-
-            # get the prediction
-            preds <- stats::predict(result_svm,
-                newdata = values,
-                probability = TRUE
+            # Used to check values (below)
+            input_pixels <- nrow(values)
+            # Performs data normalization
+            values <- .pred_normalize(pred = values, stats = ml_stats)
+            # Do classification
+            values <- stats::predict(
+                object = model, newdata = values, probability = TRUE
             )
-            # retrieve the predicted probabilities
-            prediction <- data.table::as.data.table(attr(
-                preds,
-                "probabilities"
-            ))
-            # reorder the matrix according to the column names
-            data.table::setcolorder(
-                prediction,
-                sort(colnames(prediction))
-            )
-
-            return(prediction)
+            # Get the predicted probabilities
+            values <- attr(values, "probabilities")
+            # Reorder matrix columns if needed
+            if (any(labels != colnames(values))) {
+                values <- values[, labels]
+            }
+            return(values)
         }
-        class(model_predict) <- c(
-            "svm_model", "sits_model",
-            class(model_predict)
+        # Set model class
+        predict_fun <- .set_class(
+            predict_fun, "svm_model", "sits_model", class(predict_fun)
         )
-        return(model_predict)
+        return(predict_fun)
     }
-    result <- .sits_factory_function(samples, result_fun)
+    # If samples is informed, train a model and return a predict function
+    # Otherwise give back a train function to train model further
+    result <- .sits_factory_function(samples, train_fun)
     return(result)
 }
 #' @title Train extreme gradient boosting models
@@ -288,108 +277,80 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
 #'     # Example of training a model for time series classification
 #'     # Retrieve the samples for Mato Grosso
 #'     # train a xgboost model
-#'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_xgboost)
-#'     # select the bands to classify the point
-#'     sample_bands <- sits_bands(samples_modis_4bands)
-#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
+#'     ml_model <- sits_train(samples_modis_ndvi, ml_method = sits_xgboost)
 #'     # classify the point
-#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#'     # classify the point
+#'     point_class <- sits_classify(point_ndvi, ml_model)
 #'     plot(point_class)
 #' }
 #' @export
 #'
-sits_xgboost <- function(samples = NULL,
-                         learning_rate = 0.15,
-                         min_split_loss = 1,
-                         max_depth = 5,
-                         min_child_weight = 1,
-                         max_delta_step = 1,
-                         subsample = 0.8,
-                         nfold = 5,
-                         nrounds = 100,
-                         early_stopping_rounds = 20,
-                         verbose = FALSE) {
+sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
+                         min_split_loss = 1, max_depth = 5,
+                         min_child_weight = 1, max_delta_step = 1,
+                         subsample = 0.8, nfold = 5, nrounds = 100,
+                         early_stopping_rounds = 20, verbose = FALSE) {
 
-    # set caller to show in errors
-    .check_set_caller("sits_xgboost")
-
-    # function that returns xgb model
-    result_fun <- function(samples) {
-
+    # Function that trains a xgb model
+    train_fun <- function(samples) {
         # verifies if xgboost package is installed
         .check_require_packages("xgboost")
-
-        # get the labels of the data
-        labels <- sits_labels(samples)
-        .check_length(
-            x = labels,
-            len_min = 1,
-            msg = "invalid number of labels"
-        )
-        n_labels <- length(labels)
-
-        # create a named vector with integers match the class labels
-        int_labels <- c(1:n_labels)
-        names(int_labels) <- labels
-
-        # get the training data
-        train_samples <- .sits_distances(samples)
-
-        # reference labels for each sample expressed as numerical values
-        references <- unname(int_labels[as.vector(train_samples$reference)]) - 1
-
-        # define the parameters of the model
+        # Get labels (used later to ensure column order in result matrix)
+        labels <- .sits_labels(samples)
+        # Get predictors features
+        train_samples <- .predictors(samples)
+        # Post condition: is predictor data valid?
+        .check_predictors(pred = train_samples, samples = samples)
+        # Transform labels to integer code before train
+        code_labels <- seq_along(labels)
+        names(code_labels) <- labels
+        # Reference labels for each sample expressed as numerical values
+        references <-
+            unname(code_labels[.pred_references(train_samples)]) - 1
+        # Define the parameters of the model
         params <- list(
-            booster = "gbtree",
-            objective = "multi:softprob",
-            eval_metric = "mlogloss",
-            eta = learning_rate,
-            gamma = min_split_loss,
-            max_depth = max_depth,
+            booster = "gbtree", objective = "multi:softprob",
+            eval_metric = "mlogloss", eta = learning_rate,
+            gamma = min_split_loss, max_depth = max_depth,
             min_child_weight = min_child_weight,
-            max_delta_step = max_delta_step,
-            subsample = subsample
+            max_delta_step = max_delta_step, subsample = subsample
         )
-
-        # define the model
-        model_xgb <- xgboost::xgboost(
-            data = as.matrix(train_samples[, -2:0]),
-            label = references,
-            num_class = length(labels),
-            params = params,
-            nrounds = nrounds,
-            verbose = FALSE
+        # Train a xgboost model
+        model <- xgboost::xgboost(
+            data = as.matrix(.pred_features(train_samples)),
+            label = references, num_class = length(labels), params = params,
+            nrounds = nrounds, verbose = FALSE
         )
+        # Get best ntreelimit
+        ntreelimit <- model$best_ntreelimit
 
-        ntreelimit <- model_xgb$best_ntreelimit
-
-        # construct model predict closure function and returns
-        model_predict <- function(values) {
-
-            # verifies if xgboost package is installed
+        # Function that predicts labels of input values
+        predict_fun <- function(values) {
+            # Verifies if xgboost package is installed
             .check_require_packages("xgboost")
-
-            # transform input  into a matrix (remove first two columns)
-            # retrieve the prediction probabilities
-            prediction <- data.table::as.data.table(
-                stats::predict(model_xgb, data.matrix(values[, -2:0]),
-                    ntreelimit = ntreelimit,
-                    reshape = TRUE
-                )
+            # Used to check values (below)
+            input_pixels <- nrow(values)
+            # Do classification
+            values <- stats::predict(
+                object = model, as.matrix(values), ntreelimit = ntreelimit,
+                reshape = TRUE
             )
-            # adjust the names of the columns of the probs
-            colnames(prediction) <- labels
-            # retrieve the prediction results
-            return(prediction)
+            # Are the results consistent with the data input?
+            .check_processed_values(values, input_pixels)
+            # Update the columns names to labels
+            colnames(values) <- labels
+            return(values)
         }
-        class(model_predict) <- c(
-            "xgb_model", "sits_model",
-            class(model_predict)
+        # Set model class
+        predict_fun <- .set_class(
+            predict_fun, "xgb_model", "sits_model", class(predict_fun)
         )
-        return(model_predict)
+        return(predict_fun)
     }
-
-    result <- .sits_factory_function(samples, result_fun)
+    # If samples is informed, train a model and return a predict function
+    # Otherwise give back a train function to train model further
+    result <- .sits_factory_function(samples, train_fun)
     return(result)
 }
 
@@ -415,13 +376,12 @@ sits_xgboost <- function(samples = NULL,
 #'     # Example of training a model for time series classification
 #'     # Retrieve the samples for Mato Grosso
 #'     # train an SVM model
-#'     ml_model <- sits_train(samples_modis_4bands,
+#'     ml_model <- sits_train(samples_modis_ndvi,
 #'         ml_method = sits_svm(formula = sits_formula_logref()))
-#'     # select the bands to classify the point
-#'     sample_bands <- sits_bands(samples_modis_4bands)
-#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
 #'     # classify the point
-#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#'     # classify the point
+#'     point_class <- sits_classify(point_ndvi, ml_model)
 #'     plot(point_class)
 #' }
 #' @export
@@ -454,7 +414,7 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 
         # compute formula result
         result_for <- stats::as.formula(paste0(
-            "factor(reference)~",
+            "factor(label)~",
             paste0(paste0("log(`", categories, "`)"),
                 collapse = "+"
             )
@@ -484,13 +444,12 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #'     # Example of training a model for time series classification
 #'     # Retrieve the samples for Mato Grosso
 #'     # train an SVM model
-#'     ml_model <- sits_train(samples_modis_4bands,
+#'     ml_model <- sits_train(samples_modis_ndvi,
 #'         ml_method = sits_svm(formula = sits_formula_logref()))
-#'     # select the bands to classify the point
-#'     sample_bands <- sits_bands(samples_modis_4bands)
-#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
 #'     # classify the point
-#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#'     # classify the point
+#'     point_class <- sits_classify(point_ndvi, ml_model)
 #'     plot(point_class)
 #' }
 #' @export
@@ -522,7 +481,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 
         # compute formula result
         result_for <- stats::as.formula(paste0(
-            "factor(reference)~",
+            "factor(label)~",
             paste0(paste0(categories,
                 collapse = "+"
             ))
@@ -535,6 +494,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #' @title Normalize the time series in the given sits_tibble
 #' @name .sits_ml_normalize_data
 #' @keywords internal
+#' @noRd
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description This function normalizes the time series using the mean and
@@ -549,9 +509,6 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 
     # set caller to show in errors
     .check_set_caller(".sits_ml_normalize_data")
-
-    # test if data is valid
-    .sits_tibble_test(data)
 
     # get the bands of the input data
     bands <- sits_bands(data)
@@ -584,7 +541,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
                         quant_2 <- as.numeric(stats[2, b, with = FALSE])
                         quant_98 <- as.numeric(stats[3, b, with = FALSE])
                         # call C++ for better performance
-                        m <- normalize_data(
+                        m <- C_normalize_data_0(
                             as.matrix(ts[, b]),
                             quant_2,
                             quant_98
@@ -609,39 +566,10 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     return(data)
 }
 
-#' @title Normalize the time series values in the case of a matrix
-#' @name .sits_ml_normalize_matrix
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description this function normalizes one band of the values read
-#' from a raster
-#'
-#' @param  data           Matrix of values.
-#' @param  stats          Statistics for normalization.
-#' @param  band           Band to be normalized.
-#' @return                A normalized matrix.
-.sits_ml_normalize_matrix <- function(data, stats, band) {
-    # select the 2% and 98% quantiles
-    # note the use of "..b" instead of ",b"
-    quant_2 <- as.numeric(stats[2, band, with = FALSE])
-    quant_98 <- as.numeric(stats[3, band, with = FALSE])
-
-    # auxiliary function to normalize a block of data
-    normalize_block <- function(chunk, quant_2, quant_98) {
-        # normalize a block of data
-        values_block <- normalize_data(chunk, quant_2, quant_98)
-        return(values_block)
-    }
-
-    data <- normalize_data(data, quant_2, quant_98)
-
-    return(data)
-}
-
 #' @title Normalize the time series in the given sits_tibble
 #' @name .sits_ml_normalization_param
 #' @keywords internal
+#' @noRd
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description this function normalizes the time series using the mean and
@@ -650,7 +578,6 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #' @param data     A sits tibble.
 #' @return A tibble with statistics for normalization of time series.
 .sits_ml_normalization_param <- function(data) {
-    .sits_tibble_test(data)
     Index <- NULL # to avoid setting global variable
 
     dt <- data.table::data.table(dplyr::bind_rows(data$time_series))
@@ -674,33 +601,4 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     )
 
     return(stats)
-}
-#' @title Get the samples from a ml_model
-#' @name .sits_ml_model_samples
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description this function get the samples from a ml_model object.
-#'
-#' @param ml_model     A trained model.
-#'
-#' @return A tibble with samples used to train a machine learning model.
-#'
-.sits_ml_model_samples <- function(ml_model) {
-
-    # pre-condition
-    .check_that(
-        x = inherits(ml_model, "function"),
-        local_msg = "value should be a function",
-        msg = "invalid 'ml_model' parameter"
-    )
-
-    # pre-condition
-    .check_chr_contains(
-        x = ls(environment(ml_model)),
-        contains = "samples",
-        msg = "invalid 'ml_model' function environment"
-    )
-
-    return(environment(ml_model)$samples)
 }

@@ -36,7 +36,7 @@ sits_sample <- function(data,
     .check_set_caller("sits_sample")
 
     # verify if data is valid
-    .sits_tibble_test(data)
+    .check_samples(data)
 
     # verify if either n or frac is informed
     .check_that(
@@ -121,9 +121,9 @@ sits_sample <- function(data,
 #' @examples
 #' if (sits_run_examples()) {
 #'     # print the labels summary for a sample set
-#'     sits_labels_summary(samples_modis_4bands)
+#'     sits_labels_summary(samples_modis_ndvi)
 #'     # reduce the sample imbalance
-#'     new_samples <- sits_reduce_imbalance(samples_modis_4bands,
+#'     new_samples <- sits_reduce_imbalance(samples_modis_ndvi,
 #'         n_samples_over = 200,
 #'         n_samples_under = 200,
 #'         multicores = 1
@@ -139,17 +139,10 @@ sits_reduce_imbalance <- function(samples,
 
     # set caller to show in errors
     .check_set_caller("sits_reduce_imbalance")
-    # pre-condition
-    .check_num(n_samples_over,
-        min = 1, len_min = 1, len_max = 1,
-        is_integer = TRUE, allow_null = TRUE,
-        msg = "invalid 'n_samples_over' parameter"
-    )
-    .check_num(n_samples_under,
-        min = 1, len_min = 1, len_max = 1,
-        is_integer = TRUE, allow_null = TRUE,
-        msg = "invalid 'n_samples_under' parameter"
-    )
+    # pre-conditions
+    .check_samples_train(samples)
+    .check_int_parameter(n_samples_over)
+    .check_int_parameter(n_samples_under)
 
     # check if number of required samples are correctly entered
     if (!purrr::is_null(n_samples_over) && !purrr::is_null(n_samples_under)) {
@@ -181,7 +174,7 @@ sits_reduce_imbalance <- function(samples,
         classes_under <- samples %>%
             sits_labels_summary() %>%
             dplyr::filter(.data[["count"]] >= n_samples_under) %>%
-            dplyr::pull(.data[["label"]])
+            dplyr::pull("label")
     }
 
     # get classes to make oversample
@@ -190,10 +183,10 @@ sits_reduce_imbalance <- function(samples,
         classes_over <- samples %>%
             sits_labels_summary() %>%
             dplyr::filter(.data[["count"]] <= n_samples_over) %>%
-            dplyr::pull(.data[["label"]])
+            dplyr::pull("label")
     }
 
-    new_samples <- .sits_tibble()
+    new_samples <- .tibble()
 
     if (length(classes_under) > 0) {
         .sits_parallel_start(workers = multicores, log = FALSE)
@@ -240,7 +233,7 @@ sits_reduce_imbalance <- function(samples,
                 dist_over <- .sits_oversample_smote(
                     data = dist_band,
                     cls = cls,
-                    cls_col = "reference",
+                    cls_col = "label",
                     m = n_samples_over
                 )
                 # put the oversampled data into a samples tibble
@@ -255,7 +248,7 @@ sits_reduce_imbalance <- function(samples,
                         latitude = lat,
                         start_date = as.Date(start_date),
                         end_date = as.Date(end_date),
-                        label = row[["reference"]],
+                        label = row[["label"]],
                         cube = cube,
                         time_series = list(time_series)
                     )
@@ -290,6 +283,8 @@ sits_reduce_imbalance <- function(samples,
 #' @title Oversample a dataset by SMOTE.
 #' @name .sits_oversample_smote
 #' @keywords internal
+#' @noRd
+#' @description
 #' Lifted from R package "scutr".
 #'
 #' @param data Dataset to be oversampled.
@@ -337,6 +332,7 @@ sits_reduce_imbalance <- function(samples,
 #' @title Oversample a dataset by SMOTE.
 #' @name .sits_smote
 #' @keywords internal
+#' @noRd
 #' @description
 #' Lifted from R package "smotefamily"
 #' to reduce number of dependencies in "sits".
@@ -355,8 +351,6 @@ sits_reduce_imbalance <- function(samples,
 #'   Journal of Artificial Intelligence Research. 16, 321-357.
 #' @return A list with the following values.
 #'
-
-
 .sits_smote <- function(data, target, K = 5, dup_size = 0) {
     ncD <- ncol(data) # The number of attributes
     n_target <- table(target)
@@ -433,7 +427,8 @@ sits_reduce_imbalance <- function(samples,
     return(knD[, 2:(n_clust + 1)])
 }
 .sits_n_dup_max <- function(size_input, size_P, size_N, dup_size = 0) {
-    # Size_P is the number of positive used for generating not actual size of P
+    # Size_P is the number of positive used
+    # for generating actual size of P
     if (is.vector(dup_size) && length(dup_size) > 1) {
         if (length(which(dup_size == 0)) > 0) {
             sizeM <- floor((2 * size_N - size_input) / size_P)

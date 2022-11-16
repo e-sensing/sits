@@ -25,7 +25,7 @@ sits_apply(data, ...)
 
 \item{...}{Named expressions to be evaluated (see details).}
 
-\item{window_size}{An even number representing the size of the
+\item{window_size}{An odd number representing the size of the
 sliding window of sits kernel functions
 used in expressions (for a list of supported
 kernel functions, please see details).}
@@ -75,8 +75,6 @@ generates an entire new matrix, which is returned as a new band
 to the cube. The kernel functions ignores any \code{NA} values
 inside the kernel window. Central pixel is \code{NA} just only
 all pixels in the window are \code{NA}.
-
-Kernel functions
 }
 \section{Summarizing kernel functions}{
 
@@ -93,12 +91,33 @@ Kernel functions
 }
 
 \examples{
+if (sits_run_examples()) {
 # Get a time series
 # Apply a normalization function
 
 point2 <-
     sits_select(point_mt_6bands, "NDVI") \%>\%
     sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
+
+# Example of generation texture band with variance
+# Create a data cube from local files
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+cube <- sits_cube(
+    source = "BDC",
+    collection = "MOD13Q1-6",
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "tile", "band", "date")
+)
+
+# Generate a texture images with variance in NDVI images
+cube_texture <- sits_apply(
+    data = cube,
+    NDVITEXTURE = w_var(NDVI),
+    window_size = 5,
+    output_dir = tempdir()
+)
+}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

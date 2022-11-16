@@ -18,7 +18,8 @@ sits_cube(source, collection, ..., data_dir = NULL)
   roi = NULL,
   start_date = NULL,
   end_date = NULL,
-  platform = NULL
+  platform = NULL,
+  progress = TRUE
 )
 
 \method{sits_cube}{local_cube}(
@@ -26,6 +27,7 @@ sits_cube(source, collection, ..., data_dir = NULL)
   collection,
   data_dir,
   ...,
+  tiles = NULL,
   bands = NULL,
   start_date = NULL,
   end_date = NULL,
@@ -63,6 +65,8 @@ images from the collection in the cube (optional).}
 \item{platform}{Optional parameter specifying the platform in case
 of collections that include more than one satellite.}
 
+\item{progress}{Show a progress bar?}
+
 \item{labels}{Labels associated to the classes (only for result cubes).}
 
 \item{parse_info}{Parsing information for local files.}
@@ -70,8 +74,6 @@ of collections that include more than one satellite.}
 \item{delim}{Delimiter for parsing local files.}
 
 \item{multicores}{Number of workers for parallel processing}
-
-\item{progress}{Show a progress bar?}
 }
 \value{
 A \code{tibble} describing the contents of a data cube.
@@ -288,7 +290,6 @@ if (sits_run_examples()) {
         start_date = "2019-01-01",
         end_date = "2019-10-28"
     )
-
 
     # -- Creating Sentinel cube from MPC"
     s2_cube <- sits_cube(

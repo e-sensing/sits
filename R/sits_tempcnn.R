@@ -59,10 +59,8 @@
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'     # select a set of samples
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a TempCNN model
-#'     torch_model <- sits_train(samples_ndvi, sits_tempcnn())
+#'     torch_model <- sits_train(samples_modis_ndvi, sits_tempcnn())
 #'     # plot the model
 #'     plot(torch_model)
 #'     # create a data cube from local files
@@ -72,7 +70,7 @@
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir,
 #'         delim = "_",
-#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = torch_model)
@@ -110,216 +108,125 @@ sits_tempcnn <- function(samples = NULL,
                          min_delta = 0.01,
                          verbose = FALSE) {
 
-    # set caller to show in errors
-    .check_set_caller("sits_tempcnn")
-
-    # function that returns torch model based on a sits sample data.table
-    result_fun <- function(samples) {
-
-        # verifies if torch and luz packages are installed
+    # Function that trains a torch model based on samples
+    train_fun <- function(samples) {
+        # Avoid add a global variable for 'self'
+        self <- NULL
+        # Verifies if 'torch' and 'luz' packages is installed
         .check_require_packages(c("torch", "luz"))
-
-        .sits_tibble_test(samples)
-
-        # preconditions
-        # check cnn_layers
-        .check_num(
-            x = cnn_layers,
-            min = 1,
-            len_min = 3,
-            len_max = 3,
-            is_integer = TRUE
+        # Pre-conditions:
+        .check_samples_train(samples)
+        .check_int_parameter(param = cnn_layers, len_max = 2^31 - 1)
+        .check_int_parameter(
+            param = cnn_kernels, len_min = length(cnn_layers),
+            len_max = length(cnn_layers)
         )
-        # check cnn_kernels
-        .check_num(
-            x = cnn_kernels,
-            min = 1,
-            len_min = 3,
-            len_max = 3,
-            is_integer = TRUE
+        .check_num_parameter(
+            param = cnn_dropout_rates, min = 0, max = 1,
+            len_min = length(cnn_layers), len_max = length(cnn_layers)
         )
-        # check cnn_dropout_rates
-        .check_length(
-            x = cnn_dropout_rates,
-            min = 0,
-            max = 1,
-            len_min = 3,
-            len_max = 3
+        .check_int_parameter(param = dense_layer_nodes, len_max = 1)
+        .check_num_parameter(
+            param = dense_layer_dropout_rate, min = 0, max = 1, len_max = 1
         )
-        # check dense_layer_nodes
-        .check_num(
-            x = dense_layer_nodes,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
-        # check dense_layer_dropout_rate
-        .check_num(
-            x = dense_layer_dropout_rate,
-            min = 0,
-            max = 1,
-            len_min = 1,
-            len_max = 1
-        )
-        # check lr_decay_epochs
-        .check_num(
-            x = lr_decay_epochs,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
-        # check lr_decay_rate
-        .check_num(
-            x = lr_decay_rate,
-            exclusive_min = 0,
-            max = 1,
-            len_min = 1,
-            len_max = 1
-        )
-        # check validation_split parameter if samples_validation is not passed
-        if (purrr::is_null(samples_validation)) {
-            .check_num(
-                x = validation_split,
-                exclusive_min = 0,
-                max = 0.5,
-                len_min = 1,
-                len_max = 1
+        .check_int_parameter(epochs)
+        .check_int_parameter(batch_size)
+        # Check validation_split parameter if samples_validation is not passed
+        if (is.null(samples_validation)) {
+            .check_num_parameter(
+                param = validation_split, exclusive_min = 0, max = 0.5
             )
         }
-        # check patience
-        .check_num(
-            x = patience,
-            min = 1,
-            len_min = 1,
-            len_max = 1,
-            is_integer = TRUE
-        )
-        # check min_delta
-        .check_num(
-            x = min_delta,
-            min = 0,
-            len_min = 1,
-            len_max = 1
-        )
-        # check verbose
-        .check_lgl(verbose)
-
-        # get parameters list and remove the 'param' parameter
+        # Check opt_hparams
+        # Get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
         if (!is.null(opt_hparams)) {
+            .check_lst(opt_hparams, msg = "invalid 'opt_hparams' parameter")
             .check_chr_within(
                 x = names(opt_hparams),
                 within = names(optim_params_function),
                 msg = "invalid hyperparameters provided in optimizer"
             )
             optim_params_function <- utils::modifyList(
-                optim_params_function,
-                opt_hparams
+                x = optim_params_function, val = opt_hparams
             )
         }
+        # Other pre-conditions:
+        .check_int_parameter(lr_decay_epochs)
+        .check_num_parameter(param = lr_decay_rate, exclusive_min = 0, max = 1)
+        .check_int_parameter(patience)
+        .check_num_parameter(param = min_delta, min = 0)
+        .check_lgl(verbose)
 
-        # get the timeline of the data
+        # Samples labels
+        labels <- .sits_labels(samples)
+        # Samples bands
+        bands <- .sits_bands(samples)
+        # Samples timeline
         timeline <- sits_timeline(samples)
-        # get the bands of the data
-        bands <- sits_bands(samples)
-        # get the labels of the data
-        labels <- sits_labels(samples)
 
-        # create a named vector with integers match the class labels
+        # Create numeric labels vector
+        code_labels <- seq_along(labels)
+        names(code_labels) <- labels
+
+        # Number of labels, bands, and number of samples (used below)
         n_labels <- length(labels)
-        int_labels <- c(1:n_labels)
-        names(int_labels) <- labels
+        n_bands <- length(bands)
+        n_times <- .sits_ntimes(samples)
 
-        # number of bands and number of samples
-        n_bands <- length(sits_bands(samples))
-        n_times <- nrow(sits_time_series(samples[1, ]))
-
-        # data normalization
+        # Data normalization
         stats <- .sits_ml_normalization_param(samples)
         train_samples <- .sits_distances(
-            .sits_ml_normalize_data(samples, stats)
+            .sits_ml_normalize_data(data = samples, stats = stats)
         )
-
-        # is the training data correct?
-        .check_chr_within(
-            x = "reference",
-            within = names(train_samples),
-            discriminator = "any_of",
-            msg = "input data does not contain distances"
-        )
-
+        # Post condition: is predictor data valid?
+        .check_predictors(pred = train_samples, samples = samples)
         if (!is.null(samples_validation)) {
-
-            # check if the labels matches with train data
-            .check_that(
-                all(sits_labels(samples_validation) %in% labels) &&
-                    all(labels %in% sits_labels(samples_validation))
+            .check_samples_validation(
+                samples_validation = samples_validation, labels = labels,
+                timeline = timeline, bands = bands
             )
-            # check if the timeline matches with train data
-            .check_that(
-                length(sits_timeline(samples_validation)) == length(timeline)
-            )
-            # check if the bands matches with train data
-            .check_that(
-                all(sits_bands(samples_validation) %in% bands) &&
-                    all(bands %in% sits_bands(samples_validation))
-            )
-
+            # Test samples are extracted from validation data
             test_samples <- .sits_distances(
-                .sits_ml_normalize_data(samples_validation, stats)
+                .sits_ml_normalize_data(
+                    data = samples_validation, stats = stats
+                )
             )
         } else {
-            # split the data into training and validation data sets
-            # create partitions different splits of the input data
-            test_samples <- .sits_distances_sample(
-                train_samples,
-                frac = validation_split
+            # Split the data into training and validation data sets
+            # Create partitions different splits of the input data
+            test_samples <- .distances_sample(
+                distances = train_samples, frac = validation_split
             )
-
-            # remove the lines used for validation
-            train_samples <- train_samples[!test_samples, on = "original_row"]
+            # Remove the lines used for validation
+            train_samples <- train_samples[!test_samples, on = "sample_id"]
         }
         n_samples_train <- nrow(train_samples)
         n_samples_test <- nrow(test_samples)
-
-        # shuffle the data
+        # Shuffle the data
         train_samples <- train_samples[sample(
-            nrow(train_samples),
-            nrow(train_samples)
+            nrow(train_samples), nrow(train_samples)
         ), ]
         test_samples <- test_samples[sample(
-            nrow(test_samples),
-            nrow(test_samples)
+            nrow(test_samples), nrow(test_samples)
         ), ]
-
-        # transform training data into a 3D tensor
-        # remove first two columns
-        # reshape the 2D matrix into a 3D array
+        # Organize data for model training
         train_x <- array(
             data = as.matrix(train_samples[, -2:0]),
             dim = c(n_samples_train, n_times, n_bands)
         )
-        # transform training reference to an integer vector
-        train_y <- unname(int_labels[as.vector(train_samples$reference)])
-
-        # transform test data into a 3D tensor
-        # remove first two columns
-        # reshape the 2D matrix into a 3D array
+        train_y <- unname(code_labels[.pred_references(train_samples)])
+        # Create the test data
         test_x <- array(
             data = as.matrix(test_samples[, -2:0]),
             dim = c(n_samples_test, n_times, n_bands)
         )
-        # transform test reference to an integer vector
-        test_y <- unname(int_labels[as.vector(test_samples$reference)])
-
-        # set random seed for torch
+        test_y <- unname(code_labels[.pred_references(test_samples)])
+        # Set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
-
-        # define main torch tempcnn module
-        tcnn_module <- torch::nn_module(
-            classname = "tcnn_module",
+        # Define the TempCNN architecture
+        tcnn_model <- torch::nn_module(
+            classname = "model_tcnn",
             initialize = function(n_bands,
                                   n_times,
                                   n_labels,
@@ -379,13 +286,12 @@ sits_tempcnn <- function(samples = NULL,
                     self$softmax()
             }
         )
-
+        # Set torch threads to 1
         torch::torch_set_num_threads(1)
-
-        # train the model using luz
+        # Train the model using luz
         torch_model <-
             luz::setup(
-                module = tcnn_module,
+                module = tcnn_model,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
                 optimizer = optimizer
@@ -423,69 +329,48 @@ sits_tempcnn <- function(samples = NULL,
                 dataloader_options = list(batch_size = batch_size),
                 verbose = verbose
             )
+        # Serialize model
+        serialized_model <- .torch_serialize_model(torch_model$model)
 
-        model_to_raw <- function(model) {
-            con <- rawConnection(raw(), open = "wr")
-            torch::torch_save(model, con)
-            on.exit(close(con), add = TRUE)
-            r <- rawConnectionValue(con)
-            return(r)
-        }
-
-        model_from_raw <- function(object) {
-            con <- rawConnection(object)
-            on.exit(close(con), add = TRUE)
-            module <- torch::torch_load(con)
-            return(module)
-        }
-        # serialize model
-        serialized_model <- model_to_raw(torch_model$model)
-
-        # construct model predict closure function and returns
-        model_predict <- function(values) {
-
-            # verifies if torch package is installed
-            if (!requireNamespace("torch", quietly = TRUE)) {
-                stop("Please install package torch", call. = FALSE)
-            }
+        # Function that predicts labels of input values
+        predict_fun <- function(values) {
+            # Verifies if torch package is installed
             .check_require_packages("torch")
-
-            # set torch threads to 1
-            # function does not work on MacOS
+            # Set torch threads to 1
+            # Note: function does not work on MacOS
             suppressWarnings(torch::torch_set_num_threads(1))
-
-            # restore model
-            torch_model$model <- model_from_raw(serialized_model)
-
-            # transform input (data.table) into a 3D tensor
-            # remove first two columns
-            # reshape the 2D matrix into a 3D array
+            # Unserialize model
+            torch_model$model <- .torch_unserialize_model(serialized_model)
+            # Used to check values (below)
+            input_pixels <- nrow(values)
+            # Transform input into a 3D tensor
+            # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
-            n_times <- nrow(sits_time_series(samples[1, ]))
-            n_bands <- length(sits_bands(samples))
-            values_x <- array(
-                data = as.matrix(values[, -2:0]),
-                dim = c(n_samples, n_times, n_bands)
+            n_times <- .sits_ntimes(samples)
+            n_bands <- length(bands)
+            values <- array(
+                data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
             )
-            # retrieve the prediction probabilities
-            predicted <- data.table::as.data.table(
-                torch::as_array(
-                    stats::predict(torch_model, values_x)
-                )
+            # Do classification
+            values <- torch::as_array(
+                stats::predict(object = torch_model, values)
             )
-            # adjust the names of the columns of the probs
-            colnames(predicted) <- labels
-
-            return(predicted)
+            # Are the results consistent with the data input?
+            .check_processed_values(
+                values = values, input_pixels = input_pixels
+            )
+            # Update the columns names to labels
+            colnames(values) <- labels
+            return(values)
         }
-
-        class(model_predict) <- c(
-            "torch_model", "sits_model",
-            class(model_predict)
+        # Set model class
+        predict_fun <- .set_class(
+            predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
-        return(model_predict)
+        return(predict_fun)
     }
-
-    result <- .sits_factory_function(samples, result_fun)
+    # If samples is informed, train a model and return a predict function
+    # Otherwise give back a train function to train model further
+    result <- .sits_factory_function(samples, train_fun)
     return(result)
 }

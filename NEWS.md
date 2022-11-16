@@ -1,5 +1,19 @@
 # SITS Release History
 
+# What's new in SITS version 1.2.0
+
+### New features in SITS version 1.2.0
+* `sits_get_data()` can be used to retrieve samples in classified cube
+*  Support for mixture models (`sits_mixture_model()`)
+*  Joining cubes in a mosaic (`sits_mosaic_cubes()`)
+*  Extract the trained ML model (`sits_model()`)
+*  Downloading and copying data cubes (`sits_cube_copy()`) 
+*  Combine prediction by average and entropy (`sits_combine_predictions()`)
+*  Significant performance improvement when working with COG files
+*  Allow plot of confusion matrix (`sits_plot`)
+*  Support for operations on CLOUD band in `sits_apply()`
+*  Bug fixes and internal re-engineering for better code maintenance
+
 # What's new in SITS version 1.1.0
 
 ### Hotfix version 1.1.0-8

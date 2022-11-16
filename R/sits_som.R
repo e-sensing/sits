@@ -50,15 +50,6 @@
 #' @param rlen           Number of iterations to produce the SOM.
 #' @param som_radius     Radius of SOM neighborhood.
 #' @param mode           Type of learning algorithm (default = "online").
-#' @param som_map        Object returned by \code{\link[sits]{sits_som_map}}.
-#' @param prior_threshold      Threshold of conditional probability
-#'                (frequency of samples assigned to the same SOM neuron).
-#' @param posterior_threshold       Threshold of posterior probability
-#'                              (influenced by the SOM neighborhood).
-#' @param keep      Which types of evaluation to be maintained in the data.
-#'
-#'
-#' @rdname sits_som
 #' @return
 #' \code{sits_som_map()} produces a list with three members:
 #' (1) the samples tibble, with one additional column indicating
@@ -78,7 +69,7 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a som map
-#'     som_map <- sits_som_map(samples_modis_4bands)
+#'     som_map <- sits_som_map(samples_modis_ndvi)
 #'     # plot the som map
 #'     plot(som_map)
 #'     # evaluate the som map and create clusters
@@ -106,7 +97,7 @@ sits_som_map <- function(data,
     .check_require_packages("kohonen")
 
     # does the input data exist?
-    .sits_tibble_test(data)
+    .check_samples_train(data)
     # is are there more neurons than samples?
     n_samples <- nrow(data)
     .check_that(
@@ -141,12 +132,12 @@ sits_som_map <- function(data,
     # add id of neuron that the sample was allocated
     data$id_neuron <- kohonen_obj$unit.classif
     # get labels and frequencies for the neuron
-    labelled_neurons <- .sits_som_label_neurons(
+    labelled_neurons <- .som_label_neurons(
         data,
         kohonen_obj
     )
     # bayesian inference to calculate the posterior prob
-    labelled_neurons <- .sits_som_bayes_estimate(
+    labelled_neurons <- .som_bayes_estimate(
         data,
         kohonen_obj,
         labelled_neurons,
@@ -196,7 +187,7 @@ sits_som_map <- function(data,
 
     # only paint neurons if number of labels is greater than one
     if (length(unique(labels_max)) > 1)
-        kohonen_obj <- .sits_som_paint_neurons(kohonen_obj)
+        kohonen_obj <- .som_paint_neurons(kohonen_obj)
 
     # return the som_map object
     som_map <-
@@ -209,14 +200,18 @@ sits_som_map <- function(data,
     return(som_map)
 }
 
-#' @rdname sits_som
-#' @return
-#' \code{sits_som_clean_samples()} produces
-#' a sits tibble with an two additional columns.The first indicates if
-#' each sample is clean, should be analyzed or
-#' should be removed. The second indicates
-#' the posterior probability of the sample
+#' @title Cleans the samples based on SOM map information
+#' @name sits_som_clean_samples
+#' @param som_map              Object returned by \code{\link[sits]{sits_som_map}}.
+#' @param prior_threshold      Threshold of conditional probability
+#'                (frequency of samples assigned to the same SOM neuron).
+#' @param posterior_threshold   Threshold of posterior probability
+#'                              (influenced by the SOM neighborhood).
+#' @param keep      Which types of evaluation to be maintained in the data.
 #'
+#' @return tibble with an two additional columns.
+#' The first indicates if each sample is clean, should be analyzed or
+#' should be removed. The second is the posterior probability of the sample.
 #' @export
 sits_som_clean_samples <- function(som_map,
                                    prior_threshold = 0.6,
@@ -232,7 +227,7 @@ sits_som_clean_samples <- function(som_map,
     }
     .check_chr_within(
         x = keep,
-        within = .config_get("som_outcomes"),
+        within = .conf("som_outcomes"),
         msg = "invalid keep parameter"
     )
     # function to detect of class noise
@@ -249,40 +244,43 @@ sits_som_clean_samples <- function(som_map,
 
     data <- som_map$data %>%
         dplyr::select(
-            .data[["longitude"]],
-            .data[["latitude"]],
-            .data[["start_date"]],
-            .data[["end_date"]],
-            .data[["label"]],
-            .data[["cube"]],
-            .data[["time_series"]],
-            .data[["id_sample"]],
-            .data[["id_neuron"]]
+            "longitude",
+            "latitude",
+            "start_date",
+            "end_date",
+            "label",
+            "cube",
+            "time_series",
+            "id_sample",
+            "id_neuron"
         ) %>%
         dplyr::inner_join(som_map$labelled_neurons,
                           by = c("id_neuron", "label" = "label_samples")
         ) %>%
         dplyr::mutate(
             eval = .detect_class_noise(
-                .data[["prior_prob"]],
-                .data[["post_prob"]]
+                "prior_prob",
+                "post_prob"
             )
         ) %>%
         dplyr::select(
-            -.data[["count"]],
-            -.data[["prior_prob"]]
+            -"count",
+            -"prior_prob"
         ) %>%
         dplyr::filter(.data[["eval"]] %in% keep)
 
     return(data)
 }
 
-#' @rdname sits_som
-#'
-#' @return
+#' @title Evaluate cluster
+#' @name sits_som_evaluate_cluster
+#' @description
 #' \code{sits_som_evaluate_cluster()} produces a tibble with the clusters
-#' found by the SOM map. For each cluster, ir provides the percentage
+#' found by the SOM map. For each cluster, it provides the percentage
 #' of classes inside it.
+#' @param som_map   A SOM map produced by the som_map() function
+#' @return A tibble stating the purity for each cluster
+#'
 #' @export
 sits_som_evaluate_cluster <- function(som_map) {
     # Sanity check
@@ -298,15 +296,16 @@ sits_som_evaluate_cluster <- function(som_map) {
         neuron_label = neuron_label
     )
 
-    # Agreegate in the sample dataset the label of each neuron
-    data <- som_map$data %>% dplyr::inner_join(id_neuron_label_tb)
+    # Aggregate in the sample dataset the label of each neuron
+    data <- som_map$data %>%
+        dplyr::inner_join(id_neuron_label_tb, by = c("id_neuron"))
 
     # Get only id, label and neuron_label
     temp_data <- unique(dplyr::select(
         data,
-        .data[["id_sample"]],
-        .data[["label"]],
-        .data[["neuron_label"]]
+        "id_sample",
+        "label",
+        "neuron_label"
     ))
 
     # Get sample labels that was not assigned to a cluster
@@ -361,8 +360,9 @@ sits_som_evaluate_cluster <- function(som_map) {
 
 
 #' @title Label neurons
-#' @name .sits_som_label_neurons
+#' @name .som_label_neurons
 #' @keywords internal
+#' @noRd
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description Compute the probability of a neuron belongs to a class.
@@ -374,7 +374,7 @@ sits_som_evaluate_cluster <- function(som_map) {
 #' @return Tibble with the probability of each neuron belongs to class
 #' and a majority label which is the neuron is labelled.
 #'
-.sits_som_label_neurons <- function(data, kohonen_obj) {
+.som_label_neurons <- function(data, kohonen_obj) {
     grid_size <- dim(kohonen_obj$grid$pts)[1]
 
     labels_lst <- seq_len(grid_size) %>%
@@ -409,8 +409,9 @@ sits_som_evaluate_cluster <- function(som_map) {
 }
 
 #' @title Probability of a sample belongs to a cluster using bayesian filter
-#' @name .sits_som_bayes_estimate
+#' @name .som_bayes_estimate
 #' @keywords internal
+#' @noRd
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
 #' @description          Computes the probability of a sample belongs
@@ -425,10 +426,10 @@ sits_som_evaluate_cluster <- function(som_map) {
 #'                         to a cluster based on the class of neuron
 #'                         and its neighborhood.
 
-.sits_som_bayes_estimate <- function(data,
-                                     kohonen_obj,
-                                     labelled_neurons,
-                                     som_radius) {
+.som_bayes_estimate <- function(data,
+                                kohonen_obj,
+                                labelled_neurons,
+                                som_radius) {
     # get the grid size
     grid_size <- dim(kohonen_obj$grid$pts)[1]
 
@@ -495,23 +496,25 @@ sits_som_evaluate_cluster <- function(som_map) {
 }
 
 #' @title Paint neurons
-#' @name .sits_som_paint_neurons
+#' @name .som_paint_neurons
 #' @keywords internal
+#' @noRd
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
-#' @description This function paints all neurons  of the last iteration of SOM
+#' @description This function paints all neurons
+#'              of the last iteration of SOM
 #'              in function sits_cluster_som
 #'
-#' @param kohonen_obj    Object kohonen, this object contains parameters of SOM
+#' @param kohonen_obj    Object kohonen
 #'                       provided by package Kohonen
 #' @return               kohonen_obj with a new parameter with the
 #'                       colour of the neuron.
 #'
-.sits_som_paint_neurons <- function(kohonen_obj) {
+.som_paint_neurons <- function(kohonen_obj) {
 
     # assign one color per unique label
 
-    colors <- .config_colors(
+    colors <- .colors_get(
         labels = kohonen_obj$neuron_label,
         palette = "Spectral",
         rev = TRUE

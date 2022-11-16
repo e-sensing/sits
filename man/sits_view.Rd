@@ -5,7 +5,7 @@
 \alias{sits_view.sits}
 \alias{sits_view.som_map}
 \alias{sits_view.raster_cube}
-\alias{sits_view.classified_image}
+\alias{sits_view.class_cube}
 \alias{sits_view.probs_cube}
 \alias{sits_view.default}
 \title{View data cubes and samples in leaflet}
@@ -38,7 +38,7 @@ sits_view(x, ...)
   palette = "default"
 )
 
-\method{sits_view}{classified_image}(x, ..., tiles = NULL, legend = NULL, palette = "default")
+\method{sits_view}{class_cube}(x, ..., tiles = NULL, legend = NULL, palette = "default")
 
 \method{sits_view}{probs_cube}(x, ...)
 
@@ -99,7 +99,7 @@ if (sits_run_examples()) {
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
     # get the timeline
     timeline <- sits_timeline(modis_cube)
@@ -108,11 +108,8 @@ if (sits_run_examples()) {
         band = "NDVI",
         dates = timeline[[1]]
     )
-
-    samples_ndvi <- sits_select(samples_modis_4bands,
-        bands = c("NDVI")
-    )
-    rf_model <- sits_train(samples_ndvi, sits_rfor())
+    # train a model
+    rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
 
     modis_probs <- sits_classify(
         data = modis_cube,

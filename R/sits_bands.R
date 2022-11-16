@@ -5,37 +5,37 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description  Finds the names of the bands of
-#'               a set of time series or of a data cube
+#' @description
+#' Finds the names of the bands of a set of time series or of a data cube
 #'
-#' @param x         Valid sits tibble (time series or a cube)
+#' @param x Valid sits tibble (time series or a cube)
 #'
-#' @return          A vector with the names of the bands.
+#' @returns
+#' A vector with the names of the bands.
+#'
 #' @examples
-#' bands <- sits_bands(samples_modis_4bands)
-#' @export
+#' bands <- sits_bands(point_mt_6bands)
 #'
+#' @export
 sits_bands <- function(x) {
 
     # Set caller to show in errors
     .check_set_caller("sits_bands")
     # Get the meta-type (sits or cube)
-    x <- .config_data_meta_type(x)
+    x <- .conf_data_meta_type(x)
     UseMethod("sits_bands", x)
 }
 
 #' @rdname sits_bands
 #' @export
-#'
 sits_bands.sits <- function(x) {
-    return(setdiff(names(sits_time_series(x)), "Index"))
+    return(setdiff(names(.tibble_time_series(x)), "Index"))
 }
 #' @rdname sits_bands
 #' @export
-#'
-sits_bands.sits_cube <- function(x) {
+sits_bands.raster_cube <- function(x) {
     bands_lst <- slider::slide(x, function(tile) {
-        bands_tile <- .file_info_bands(tile)
+        bands_tile <- .tile_bands(tile)
         return(sort(bands_tile))
     })
     bands <- unique(bands_lst)
@@ -48,19 +48,117 @@ sits_bands.sits_cube <- function(x) {
 
 #' @rdname sits_bands
 #' @export
-#'
 sits_bands.patterns <- function(x) {
     return(sits_bands.sits(x))
 }
-
 #' @rdname sits_bands
 #' @export
-#'
 sits_bands.sits_model <- function(x) {
-    .check_that(
-        x = inherits(x, "function"),
-        msg = "invalid sits model"
+    .check_is_sits_model(x)
+    bands <- .ml_bands(x)
+    return(bands)
+}
+#' @keywords internal
+#' @noRd
+.band_rename <- function(x, bands) {
+    UseMethod(".band_rename", x)
+}
+#' @export
+.band_rename.sits <- function(x, bands) {
+    data_bands <- sits_bands(x)
+
+    # pre-condition
+    .check_chr(bands,
+               allow_empty = FALSE, len_min = length(data_bands),
+               len_max = length(data_bands),
+               msg = "invalid 'bands' value"
     )
 
-    return(sits_bands(.sits_ml_model_samples(x)))
+    .apply(x, col = "time_series", fn = function(x) {
+
+        # create a conversor
+        new_bands <- colnames(x)
+        names(new_bands) <- new_bands
+
+        # rename
+        new_bands[data_bands] <- toupper(bands)
+        colnames(x) <- unname(new_bands)
+
+        return(x)
+    })
+}
+#' @export
+.band_rename.raster_cube <- function(x, bands) {
+    data_bands <- sits_bands(x)
+    # pre-condition
+    .check_chr(bands,
+               allow_empty = FALSE,
+               len_min = length(data_bands),
+               len_max = length(data_bands),
+               msg = "invalid 'bands' value"
+    )
+    .apply(x, col = "file_info", fn = function(x) {
+        x <- tidyr::pivot_wider(x,
+                                names_from = "band",
+                                values_from = "path"
+        )
+
+        # create a conversor
+        new_bands <- colnames(x)
+        names(new_bands) <- new_bands
+
+        # rename
+        new_bands[data_bands] <- toupper(bands)
+        colnames(x) <- unname(new_bands)
+
+        x <- tidyr::pivot_longer(x,
+                                 cols = toupper(bands),
+                                 names_to = "band",
+                                 values_to = "path"
+        )
+
+        return(x)
+    })
+}
+
+#' @noRd
+#' @title Band API
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' We use term band to refer either to spectral bands as index generated
+#' from images of actual sensor bands. To organize internal metadata and work
+#' properly there are some restrictions in band names. These functions aims
+#' to impose band name restrictions.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#' .band_cloud() # 'CLOUD'
+#' # eo bands name are uppercase
+#' .band_eo("nDvI") # 'NDVI'
+#' # derived bands name are lowercase
+#' .band_derived("PrObS") # 'probs'
+#' # bands name cannot have '_' (underscore)
+#' .band_eo("NDVI_2") # 'NDVI-2'
+#' }
+#'
+NULL
+
+#' @noRd
+#' @return cloud band name.
+.band_cloud <- function() {
+    "CLOUD"
+}
+#' @noRd
+#' @param band Band name.
+#' @return a well formatted band name for eo_cubes.
+.band_eo <- function(band) {
+    gsub("_", "-", toupper(band))
+}
+#' @noRd
+#' @param band Band name.
+#' @return a well formatted band name for derived cubes.
+.band_derived <- function(band) {
+    gsub("_", "-", tolower(band))
 }

@@ -69,10 +69,8 @@
 #' if (sits_run_examples()) {
 #'     # Example of classification of a time series
 #'     # Retrieve the samples for Mato Grosso
-#'     # select the NDVI band
-#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # train a random forest model
-#'     rf_model <- sits_train(samples_ndvi, ml_method = sits_rfor)
+#'     rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
 #'
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = c("NDVI"))
@@ -87,7 +85,7 @@
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir,
 #'         delim = "_",
-#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rf_model)
@@ -98,100 +96,51 @@
 #' }
 #'
 #' @export
-sits_classify <- function(data, ml_model, ...) {
+sits_classify <- function(data, ml_model, ...,
+                          filter_fn = NULL,
+                          multicores = 2,
+                          progress = TRUE) {
 
-    # set caller to show in errors
-    .check_set_caller("sits_classify")
+    # Pre-conditions
+    data <- .conf_data_meta_type(data)
+    .check_is_sits_model(ml_model)
+    .check_multicores(multicores)
+    .check_progress(progress)
 
-    # check data type
-    data <- .config_data_meta_type(data)
-
-    # dispatch
     UseMethod("sits_classify", data)
 }
 #' @rdname sits_classify
-#'
 #' @export
 sits_classify.sits <- function(data,
                                ml_model,
                                ...,
                                filter_fn = NULL,
-                               multicores = 2) {
+                               multicores = 2,
+                               progress = TRUE) {
 
-    # precondition: verify that the data is correct
-    .sits_tibble_test(data)
+    # Pre-conditions
+    .check_samples(data)
 
-    # precondition: ensure the machine learning model has been built
-    .check_null(
-        x = ml_model,
-        msg = "please provide a trained ML model"
-    )
-
-    # Apply filter
-    if (!purrr::is_null(filter_fn)) {
-        data <- .apply_across(data = data, fn = filter_fn)
+    # Update multicores: xgb model do its own parallelization
+    if (inherits(ml_model, "xgb_model")) {
+        multicores <- 1
     }
 
-    # precondition - are the samples valid?
-    samples <- .sits_ml_model_samples(ml_model)
-    .check_that(
-        x = nrow(samples) > 0,
-        msg = "missing original samples"
-    )
-    # check band order is the same
-    bands_samples <- sits_bands(samples)
-    bands_data <- sits_bands(data)
-    if (!all(bands_samples == bands_data))
-        data <- sits_select(data, sits_bands(samples))
-
-    # get normalization params
-    stats <- environment(ml_model)$stats
-    # has the training data been normalized?
-    if (!purrr::is_null(stats)) {
-        # yes, then normalize the input data
-        distances <- .sits_distances(.sits_ml_normalize_data(
-            data = data,
-            stats = stats
-        ))
-    } else {
-        # no, input data does not need to be normalized
-        distances <- .sits_distances(data)
-    }
-
-
-    # post condition: is distance data valid?
-    .check_that(
-        x = nrow(distances) > 0,
-        msg = "problem with normalization"
-    )
-
-    # calculate the breaks in the time for multi-year classification
-    class_info <- .sits_timeline_class_info(
-        data = data,
-        samples = samples
-    )
-
-    # retrieve the the predicted results
-    prediction <- .sits_distances_classify(
-        distances = distances,
-        class_info = class_info,
+    # Do classification
+    classified_ts <- .sits_classify_ts(
+        samples = data,
         ml_model = ml_model,
-        multicores = multicores
+        filter_fn = filter_fn,
+        multicores = multicores,
+        progress = progress
     )
 
-    # Store the result in the input data
-    data_pred <- .sits_tibble_prediction(
-        data = data,
-        class_info = class_info,
-        prediction = prediction
-    )
-    class(data_pred) <- c("predicted", class(data))
-    return(data_pred)
+    return(classified_ts)
 }
 #' @rdname sits_classify
-#'
 #' @export
-sits_classify.raster_cube <- function(data, ml_model, ...,
+sits_classify.raster_cube <- function(data,
+                                      ml_model, ...,
                                       roi = NULL,
                                       filter_fn = NULL,
                                       impute_fn = sits_impute_linear(),
@@ -199,108 +148,98 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                                       end_date = NULL,
                                       memsize = 8,
                                       multicores = 2,
-                                      output_dir = ".",
+                                      output_dir = getwd(),
                                       version = "v1",
-                                      verbose = FALSE,
-                                      progress = FALSE) {
+                                      verbose = TRUE,
+                                      progress = TRUE) {
+    # preconditions
+    .check_is_raster_cube(data)
+    .check_is_regular(data)
+    .check_memsize(memsize)
+    .check_output_dir(output_dir)
+    .check_version(version)
 
-    # precondition - checks if the cube and ml_model are valid
-    .sits_classify_check_params(data, ml_model)
-
-    # precondition - test if cube is regular
-    .check_that(
-        x = .cube_is_regular(data),
-        local_msg = "Please use sits_regularize()",
-        msg = "sits can only classify regular cubes"
-    )
-
-    # precondition - multicores
-    .check_num(
-        x = multicores,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        is_integer = TRUE,
-        msg = "invalid 'multicores' parameter"
-    )
-
-    # precondition - memory
-    .check_num(
-        x = memsize,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'memsize' parameter"
-    )
-
-    # precondition - output dir
-    .check_file(
-        x = output_dir,
-        msg = "invalid output dir"
-    )
-
-    # precondition - version
-    .check_chr(x = version, len_min = 1, msg = "invalid version")
-
-    # filter only intersecting tiles
-    intersects <- slider::slide_lgl(
-        data, .sits_raster_sub_image_intersects,
-        roi = roi
-    )
-
-    # retrieve only intersecting tiles
-    data <- data[intersects, ]
-
-    # retrieve the samples from the model
-    samples <- .sits_ml_model_samples(ml_model)
-
-    # deal with the case where the cube has multiple rows
-    probs_cube <- slider::slide_dfr(data, function(tile) {
-
-        # find out what is the row subset that is contained
-        # inside the start_date and end_date
-        if (!purrr::is_null(start_date) && !purrr::is_null(end_date)) {
-            old_timeline <- sits_timeline(tile)
-            new_timeline <- .sits_timeline_during(
-                old_timeline,
-                start_date,
-                end_date
-            )
-
-            # filter the cube by start and end dates
-            tile$file_info[[1]] <- dplyr::filter(
-                .file_info(tile),
-                .data[["date"]] >= new_timeline[1] &
-                    .data[["date"]] <= new_timeline[length(new_timeline)]
-            )
-        }
-
-        # check
-        samples_timeline_length <- length(sits_timeline(samples))
-        tiles_timeline_length <- length(sits_timeline(tile))
-
-        .check_that(
-            samples_timeline_length == tiles_timeline_length,
-            msg = "number of instances of samples and cube differ"
+    # Spatial filter
+    if (.has(roi)) {
+        data <- .cube_filter_spatial(cube = data, roi = .roi_as_sf(roi))
+    }
+    # Temporal filter
+    if (.has(start_date) || .has(end_date)) {
+        data <- .cube_filter_interval(
+            cube = data, start_date = start_date, end_date = end_date
         )
+    }
+    # Retrieve the samples from the model
+    samples <- .ml_samples(ml_model)
+    # Do the samples and tile match their timeline length?
+    .check_samples_tile_match(samples = samples, tile = data)
+    # Check memory and multicores
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
+    # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = .block_size(block = block, overlap = 0),
+        npaths = length(.tile_paths(data)) + length(.ml_labels(ml_model)),
+        nbytes = 8,
+        proc_bloat = .conf("processing_bloat")
+    )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+    )
+    # Update multicores parameter
+    if ("xgb_model" %in% .ml_class(ml_model)) {
+        multicores <- 1
+    }
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_memsize = job_memsize, block = block,
+        image_size = .tile_size(.tile(data)), memsize = memsize,
+        multicores = multicores
+    )
+    # Prepare parallel processing
+    .sits_parallel_start(
+        workers = multicores, log = verbose, output_dir = output_dir
+    )
+    on.exit(.sits_parallel_stop(), add = TRUE)
 
-        # classify the data
-        probs_row <- .sits_classify_multicores(
-            tile       = tile,
-            ml_model   = ml_model,
-            roi        = roi,
-            filter_fn  = filter_fn,
-            impute_fn  = impute_fn,
-            memsize    = memsize,
-            multicores = multicores,
+    # # Callback final tile classification
+    # .callback(process = "cube_classification", event = "started",
+    #           context = environment())
+    # Show block information
+    if (verbose) {
+        start_time <- Sys.time()
+        message("Using blocks of size (", .nrows(block),
+                " x ", .ncols(block), ")")
+    }
+    # Classification
+    # Process each tile sequentially
+    probs_cube <- .cube_foreach_tile(data, function(tile) {
+        # Classify the data
+        probs_tile <- .classify_tile(
+            tile = tile,
+            band = "probs",
+            ml_model = ml_model,
+            roi = roi,
+            filter_fn = filter_fn,
+            impute_fn = impute_fn,
             output_dir = output_dir,
-            version    = version,
-            verbose    = verbose,
-            progress   = progress
+            version = version,
+            verbose = verbose,
+            progress = progress
         )
-
-        return(probs_row)
+        return(probs_tile)
     })
-
+    # # Callback final tile classification
+    # .callback(event = "cube_classification", status = "end",
+    #           context = environment())
+    # Show block information
+    if (verbose) {
+        end_time <- Sys.time()
+        message("")
+        message("Classification finished at ", end_time)
+        message("Elapsed time of ",
+                format(round(end_time - start_time, digits = 2)))
+    }
     return(probs_cube)
 }

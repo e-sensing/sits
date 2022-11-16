@@ -4,26 +4,28 @@
 \alias{sits_as_sf}
 \alias{sits_as_sf.sits}
 \alias{sits_as_sf.raster_cube}
-\title{Return a sits_tibble or sits_cube as an sf object.}
+\title{Return a sits_tibble or raster_cube as an sf object.}
 \usage{
-sits_as_sf(data, ..., crs)
+sits_as_sf(data, ..., as_crs = NULL)
 
-\method{sits_as_sf}{sits}(data, ..., crs = 4326)
+\method{sits_as_sf}{sits}(data, ..., crs = "EPSG:4326", as_crs = NULL)
 
-\method{sits_as_sf}{raster_cube}(data, ...)
+\method{sits_as_sf}{raster_cube}(data, ..., as_crs = NULL)
 }
 \arguments{
 \item{data}{A sits tibble or sits cube.}
 
 \item{...}{Additional parameters.}
 
-\item{crs}{A coordinate reference system of samples.}
+\item{as_crs}{Output coordinate reference system.}
+
+\item{crs}{Input coordinate reference system.}
 }
 \value{
 An sf object of point or polygon geometry.
 }
 \description{
-Return a sits_tibble or sits_cube as an sf object.
+Return a sits_tibble or raster_cube as an sf object.
 }
 \examples{
 if (sits_run_examples()) {
@@ -37,9 +39,9 @@ if (sits_run_examples()) {
        collection = "MOD13Q1-6",
        data_dir = data_dir,
        delim = "_",
-       parse_info = c("X1", "X2", "tile", "band", "date")
+       parse_info = c("X1", "tile", "band", "date")
    )
-   sf_objet <- sits_as_sf(cube)
+   sf_object <- sits_as_sf(cube)
 }
 }
 \author{

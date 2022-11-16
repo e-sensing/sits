@@ -76,12 +76,11 @@ if (sits_run_examples()) {
     # Example of training a model for time series classification
     # Retrieve the samples for Mato Grosso
     # train a xgboost model
-    ml_model <- sits_train(samples_modis_4bands, ml_method = sits_xgboost)
-    # select the bands to classify the point
-    sample_bands <- sits_bands(samples_modis_4bands)
-    point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
+    ml_model <- sits_train(samples_modis_ndvi, ml_method = sits_xgboost)
     # classify the point
-    point_class <- sits_classify(point_4bands, ml_model)
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+    # classify the point
+    point_class <- sits_classify(point_ndvi, ml_model)
     plot(point_class)
 }
 }

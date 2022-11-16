@@ -35,7 +35,7 @@ required parameters:
  \item{torch ML model: } {see \code{\link{plot.torch_model}}}
  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
  \item{model uncertainty: } {see \code{\link{plot.uncertainty_cube}}}
- \item{classified image: }     {see \code{\link{plot.classified_image}}}
+ \item{classified image: }     {see \code{\link{plot.class_cube}}}
 }
 
 In the case of time series, the plot function produces different plots

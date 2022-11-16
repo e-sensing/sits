@@ -106,7 +106,7 @@ library(sits)
 #> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.1.0-6.
+#> Loaded sits v1.2.0.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 ```
@@ -117,7 +117,7 @@ library(sits)
 
 The `sits` package allows users to created data cubes from
 analysis-ready data (ARD) image collections available in cloud services.
-The collections accessible in `sits` 1.1.0.6 are:
+The collections accessible in `sits` 1.2.0 are:
 
 1.  Brazil Data Cube
     ([BDC](http://brazildatacube.org/en/home-page-2/#dataproducts)):
@@ -295,7 +295,7 @@ plot(som_map)
 #> Warning in par(opar): argument 1 does not name a graphical parameter
 ```
 
-<img src="man/figures/README-unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-11-1.png" title="Samples analysis using SOM (grid 6x6)" alt="Samples analysis using SOM (grid 6x6)" style="display: block; margin: auto;" />
 
 This function uses the [“kohonen” R
 package](https://www.jstatsoft.org/article/view/v087i07) to compute a
@@ -383,7 +383,7 @@ point_mt_6bands %>%
   plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-14-1.png" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-14-1.png" title="Classification of NDVI time series using TempCNN" alt="Classification of NDVI time series using TempCNN" style="display: block; margin: auto;" />
 
 The following example shows how to classify a data cube organized as a
 set of raster images. The result can also be visualized interactively
@@ -412,7 +412,7 @@ label_cube <- sits_label_classification(bayes_cube)
 plot(label_cube, title = "Land use and Land cover in Sinop, MT, Brazil in 2018")
 ```
 
-<img src="man/figures/README-unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-15-1.png" title="Land use and Land cover in Sinop, MT, Brazil in 2018" alt="Land use and Land cover in Sinop, MT, Brazil in 2018" style="display: block; margin: auto;" />
 
 ## Additional information
 

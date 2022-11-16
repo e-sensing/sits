@@ -8,14 +8,10 @@ test_that("Suggested samples have low confidence, high entropy", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
-    )
-    samples_ndvi <- sits_select(
-        sits::samples_modis_4bands,
-        bands = c("NDVI")
+        parse_info = c("X1", "tile", "band", "date")
     )
     set.seed(123)
-    rfor_model <- sits_train(samples_ndvi,
+    rfor_model <- sits_train(samples_modis_ndvi,
         ml_method = sits_xgboost(verbose = FALSE)
     )
     probs_cube <- sits_classify(
@@ -56,13 +52,9 @@ test_that("Increased samples have high confidence, low entropy", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "tile", "band", "date")
     )
-    samples_ndvi <- sits_select(
-        sits::samples_modis_4bands,
-        bands = c("NDVI")
-    )
-    rfor_model <- sits_train(samples_ndvi,
+    rfor_model <- sits_train(samples_modis_ndvi,
         ml_method = sits_rfor()
     )
     probs_cube <- sits_classify(

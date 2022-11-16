@@ -2,82 +2,122 @@
 % Please edit documentation in R/sits_mixture_model.R
 \name{sits_mixture_model}
 \alias{sits_mixture_model}
+\alias{sits_mixture_model.sits}
+\alias{sits_mixture_model.raster_cube}
 \title{Multiple endmember spectral mixture analysis}
 \usage{
 sits_mixture_model(
-  cube,
-  endmembers_spectra,
+  data,
+  endmembers,
+  ...,
+  rmse_band = TRUE,
+  multicores = 2,
+  progress = TRUE
+)
+
+\method{sits_mixture_model}{sits}(
+  data,
+  endmembers,
+  ...,
+  rmse_band = TRUE,
+  multicores = 2,
+  progress = TRUE
+)
+
+\method{sits_mixture_model}{raster_cube}(
+  data,
+  endmembers,
+  ...,
+  rmse_band = TRUE,
   memsize = 1,
   multicores = 2,
   output_dir = getwd(),
-  rmse_band = TRUE,
-  remove_outliers = TRUE,
   progress = TRUE
 )
 }
 \arguments{
-\item{cube}{A sits data cube.}
+\item{data}{A sits data cube or a sits tibble.}
 
-\item{endmembers_spectra}{Reference endmembers spectra in a tibble format.
+\item{endmembers}{Reference spectral endmembers.
 (see details below).}
 
-\item{memsize}{Memory available for mixture model (in GB).}
+\item{...}{Parameters for specific functions.}
+
+\item{rmse_band}{A boolean indicating whether the error associated
+with the linear model should be generated.
+If true, a new band with errors for each pixel
+is generated using the root mean square
+measure (RMSE). Default is TRUE.}
 
 \item{multicores}{Number of cores to be used for generate the
 mixture model.}
 
-\item{output_dir}{Directory for output file.}
-
-\item{rmse_band}{A boolean indicating whether the error associated
-with the linear model should be generated.
-If true, a new band with the errors for each pixel
-is generated using the root mean square
-measure (RMSE). Default is TRUE.}
-
-\item{remove_outliers}{A boolean indicating whether values larger and
-smaller than the limits in the image metadata, and
-missing values should be marked as NA. This
-parameter can be used when the cloud component is
-added to the mixture model. Default is TRUE.}
-
 \item{progress}{Show progress bar? Default is TRUE.}
+
+\item{memsize}{Memory available for the mixture model (in GB).}
+
+\item{output_dir}{Directory for output images.}
 }
 \value{
-a sits cube with the generated fractions.
+In case of a cube, a sits cube with the fractions of each endmember
+        will be returned. The sum of all fractions is restricted
+        to 1 (scaled from 0 to 10000), corresponding to the abundance of
+        the endmembers in the pixels.
+        In case of a tibble sits, the time series will be returned with the
+        values corresponding to each fraction.
 }
 \description{
 Create a multiple endmember spectral mixture analyses fractions
-images. To calculate the fraction of each endmember, the non-negative least
-squares (NNLS) solver is used. The NNLS implementation was made by Jakob
+images. We use the non-negative least squares (NNLS) solver to calculate the
+fractions of each endmember. The NNLS was implemented by Jakob
 Schwalb-Willmann in RStoolbox package (licensed as GPL>=3).
 }
-\note{
-The \code{endmembers_spectra} parameter should be a tibble, csv or
-a shapefile. \code{endmembers_spectra} must have the following columns:
+\details{
+The \code{endmembers} parameter should be a tibble, csv or
+a shapefile. \code{endmembers} parameter must have the following columns:
 \code{type}, which defines the endmembers that will be
 created and the columns corresponding to the bands that will be used in the
-mixture model.
+mixture model. The band values must follow the product scale.
+For example, in the case of sentinel-2 images the bands should be in the
+range 0 to 1. See the \code{example} in this documentation for more details.
 }
 \examples{
 if (sits_run_examples()) {
-   # --- Create a cube based on a local MODIS data
-   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-
-   modis_cube <- sits_cube(
-       source = "BDC",
-       collection = "MOD13Q1-6",
-       data_dir = data_dir,
-       delim = "_"
+   # Create a sentinel-2 cube
+   s2_cube <- sits_cube(
+       source = "AWS",
+       collection = "SENTINEL-S2-L2A-COGS",
+       tiles = "20LKP",
+       bands = c("B02", "B03", "B04", "B8A", "B11", "B12", "CLOUD"),
+       start_date = "2019-06-13",
+       end_date = "2019-06-30"
    )
 
-   endmembers_spectra <- tibble::tibble(
-       type = c("vegetation", "not-vegetation"),
-       NDVI = c(8500, 3400)
+   # Cube regularization for 16 days and 160 meters
+   reg_cube <- sits_regularize(
+       cube = s2_cube,
+       period = "P16D",
+       res = 160,
+       roi = c(lon_min = -65.54870165,
+               lat_min = -10.63479162,
+               lon_max = -65.07629670,
+               lat_max = -10.36046639),
+       multicores = 2,
+       output_dir = tempdir()
    )
 
-   mixture_cube <- sits_mixture_model(
-       cube = modis_cube,
-       endmembers_spectra = endmembers_spectra,
+   # Create the endmembers tibble
+   em <- tibble::tribble(
+          ~type, ~B02, ~B03,   ~B04,  ~B8A,  ~B11,   ~B12,
+       "forest", 0.02, 0.0352, 0.0189, 0.28,  0.134, 0.0546,
+         "land", 0.04, 0.065,  0.07,   0.36,  0.35,  0.18,
+        "water", 0.07, 0.11,   0.14,   0.085, 0.004, 0.0026
+   )
+
+   # Generate the mixture model
+   mm <- sits_mixture_model(
+       data = reg_cube,
+       endmembers = em,
        memsize = 4,
        multicores = 2,
        output_dir = tempdir()
@@ -95,5 +135,7 @@ Felipe Carlos,   \email{efelipecarlos@gmail.com}
 
 Rolf Simoes,     \email{rolf.simoes@inpe.br}
 
-Alber Sanchez, \email{alber.ipia@inpe.br}
+Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Alber Sanchez,   \email{alber.ipia@inpe.br}
 }
