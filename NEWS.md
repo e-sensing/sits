@@ -12,7 +12,7 @@
 *  Significant performance improvement when working with COG files
 *  Allow plot of confusion matrix (`sits_plot`)
 *  Support for operations on CLOUD band in `sits_apply()`
-*  Bug fixes and internal reengineering for better code maintenance
+*  Bug fixes and internal re-engineering for better code maintenance
 
 # What's new in SITS version 1.1.0
 

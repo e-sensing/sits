@@ -22,12 +22,14 @@
 #'                          to be passed to \code{\link[sits]{sits_classify}}
 #'
 #' @examples
+#' if (sits_run_examples()) {
 #' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 #' # fit a training model (RFOR model)
 #' ml_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 50))
 #' # get a point and classify the point with the ml_model
 #' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #' class <- sits_classify(point_ndvi, ml_model)
+#' }
 #' @export
 #'
 sits_train <- function(samples, ml_method = sits_svm()) {
