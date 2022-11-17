@@ -422,7 +422,7 @@ plot.patterns <- function(x, y, ...) {
         function(label, ts) {
             lb <- as.character(label)
             # extract the time series and convert
-            df <- data.frame(Time = ts$Index, ts[-1], Pattern = lb)
+            df <- tibble::tibble(Time = ts$Index, ts[-1], Pattern = lb)
             return(df)
         }
     )
@@ -1106,7 +1106,8 @@ plot.class_cube <- function(x, y, ...,
         RasterIO = list(
             "nBufXSize" = size["xsize"],
             "nBufYSize" = size["ysize"]
-        )
+        ),
+        proxy = FALSE
     )
     # get the band
     band <- .tile_bands(tile)
