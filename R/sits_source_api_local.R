@@ -185,7 +185,7 @@
     img_files_noext <- tools::file_path_sans_ext(img_files)
 
     # split the file names
-    img_files_lst <- strsplit(img_files_noext, split = delim)
+    img_files_lst <- strsplit(img_files_noext, split = delim, fixed = TRUE)
 
     are_img_files_ok <- purrr::map_lgl(img_files_lst, function(img_file) {
         if (length(img_file) == length(parse_info)) {
