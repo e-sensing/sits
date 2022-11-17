@@ -35,3 +35,10 @@ test_that("plot colors", {
     }, warning = function(x) x)
     expect_true(grepl(pattern = "some labels", x = msg_plot2))
 })
+
+test_that("colors_get", {
+    labels <- c("Forest", "Agriculture", "Pasture")
+    colors <- suppressWarnings(sits:::.colors_get(labels))
+    expect_length(colors, 3)
+    expect_equal(colors[["Forest"]], "#7DB0DDFF")
+})
