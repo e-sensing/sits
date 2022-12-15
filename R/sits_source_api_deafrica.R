@@ -19,6 +19,7 @@
 
     # making the request
     items_info <- rstac::post_request(q = stac_query, ...)
+    .check_stac_items(items_info)
     # if more than 2 times items pagination are found the progress bar
     # is displayed
     progress <- rstac::items_matched(items_info) > 2 * .conf("rstac_pagination_limit")

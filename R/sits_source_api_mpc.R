@@ -30,6 +30,8 @@
         }
     )
 
+    .check_stac_items(items)
+
     # signing the url with the mpc token
     items <- suppressWarnings(
         rstac::items_sign(items, sign_fn = rstac::sign_planetary_computer())
@@ -97,11 +99,7 @@
             )
             # making the request
             items_info <- rstac::post_request(q = stac_query, ...)
-            # check if matched items
-            .check_that(
-                x = rstac::items_length(items_info) > 0,
-                msg = "no items matched the query criteria."
-            )
+            .check_stac_items(items_info)
             # fetching all the metadata
             suppressWarnings(
                 rstac::items_fetch(items = items_info, progress = FALSE)
@@ -117,11 +115,7 @@
         )
     } else {
         items_info <- rstac::post_request(q = stac_query, ...)
-        # check if matched items
-        .check_that(
-            x = rstac::items_length(items_info) > 0,
-            msg = "no items matched the query criteria."
-        )
+        .check_stac_items(items_info)
         # fetching all the metadata
         items_info <- suppressWarnings(
             rstac::items_fetch(items = items_info, progress = FALSE)
@@ -159,7 +153,6 @@
     .check_set_caller(".source_items_new.mpc_cube_landsat-c2-l2")
 
     if (!is.null(platform)) {
-
         platform <- .stac_format_platform(
             source = source,
             collection = collection,
@@ -170,25 +163,19 @@
             q = stac_query, "platform" == platform
         )
     }
-    .check_that(is.null(tiles),
-                local_msg = "Error when retrieving Landsat collection",
-                msg = "Searching by tiles not allowed, use roi"
+    .check_that(
+        is.null(tiles),
+        local_msg = "Error when retrieving Landsat collection",
+        msg = "Searching by tiles not allowed, use roi"
     )
 
     # making the request based on ROI
     items <- rstac::post_request(q = stac_query, ...)
-
-    # checks if the collection returned zero items
-    .check_that(
-        x = !(rstac::items_length(items) == 0),
-        msg = "the provided search returned zero items."
-    )
+    .check_stac_items(items)
     # fetching all the metadata and updating to upper case instruments
     items <- suppressWarnings(
         rstac::items_fetch(items = items, progress = FALSE)
     )
-    # }
-
     # assign href
     items <- suppressWarnings(
         rstac::items_sign(items, sign_fn = rstac::sign_planetary_computer())
