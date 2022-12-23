@@ -2,6 +2,8 @@
 
 using namespace Rcpp;
 
+typedef double _kernel_fun(const Rcpp::NumericVector&);
+
 // compute outside indices of a vector as a mirror
 IntegerVector locus_mirror(int size, int leg) {
     IntegerVector res(size + 2 * leg);
@@ -15,8 +17,6 @@ IntegerVector locus_mirror(int size, int leg) {
     }
     return res;
 }
-
-typedef double _kernel_fun(const NumericVector&);
 
 // kernel functions
 inline double _median(const NumericVector& neigh) {
@@ -73,14 +73,13 @@ inline double _bayes_var(const NumericVector& neigh){
 
 
 
-NumericMatrix kernel_fun(const NumericMatrix& x, int ncols,
-                         int nrows, int band, int window_size,
-                         _kernel_fun _fun) {
+NumericVector kernel_fun(const NumericMatrix& x, int ncols, int nrows,
+                         int band, int window_size, _kernel_fun _fun) {
     // initialize result vectors
-    NumericMatrix res(x.nrow(), 1);
+    NumericVector res(x.nrow());
     NumericVector neigh(window_size * window_size);
     if (window_size < 1) {
-        res(_, 0) = x(_, band);
+        res = x(_, band);
         return res;
     }
     // compute window leg

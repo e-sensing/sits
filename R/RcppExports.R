@@ -85,8 +85,8 @@ max_sampling <- function(data, band, img_nrow, img_ncol, window_size) {
     .Call(`_sits_max_sampling`, data, band, img_nrow, img_ncol, window_size)
 }
 
-bayes_smoother <- function(m, m_nrow, m_ncol, w, sigma, covar_sigma0, neigh_fraction) {
-    .Call(`_sits_bayes_smoother`, m, m_nrow, m_ncol, w, sigma, covar_sigma0, neigh_fraction)
+bayes_smoother <- function(m, m_nrow, m_ncol, w, sigma, covar_sigma0) {
+    .Call(`_sits_bayes_smoother`, m, m_nrow, m_ncol, w, sigma, covar_sigma0)
 }
 
 bilateral_smoother <- function(m, m_nrow, m_ncol, w, tau) {
