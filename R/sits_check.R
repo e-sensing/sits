@@ -2251,3 +2251,11 @@
     return(progress)
 }
 
+.check_stac_items <- function(items) {
+    .check_that(
+        rstac::items_length(items) > 0,
+        local_msg = paste("please, check 'roi', 'start_date', 'end_date', and",
+                          "'tile' parameters"),
+        msg = "cube search criteria returned no items"
+    )
+}
