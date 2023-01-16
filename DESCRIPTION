@@ -99,12 +99,13 @@ Config/testthat/start-first: cube, raster, ml
 LinkingTo:
     Rcpp,
     RcppArmadillo
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Collate: 
     'api_band.R'
     'api_bbox.R'
     'api_block.R'
     'api_check.R'
+    'api_comp.R'
     'RcppExports.R'
     'data.R'
     'pipe.R'
@@ -120,7 +121,6 @@ Collate:
     'sits_classify_cube.R'
     'sits_colors.R'
     'sits_combine_predictions.R'
-    'sits_compare.R'
     'sits_config.R'
     'sits_csv.R'
     'sits_cube.R'
