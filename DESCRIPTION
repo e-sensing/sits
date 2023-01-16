@@ -122,6 +122,7 @@ Collate:
     'api_roi.R'
     'api_shp.R'
     'api_smooth.R'
+    'api_som.R'
     'api_utils.R'
     'RcppExports.R'
     'data.R'
