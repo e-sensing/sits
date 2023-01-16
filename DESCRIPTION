@@ -106,6 +106,7 @@ Collate:
     'api_block.R'
     'api_check.R'
     'api_comp.R'
+    'api_conf.R'
     'RcppExports.R'
     'data.R'
     'pipe.R'
