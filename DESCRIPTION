@@ -102,6 +102,7 @@ LinkingTo:
 RoxygenNote: 7.2.1
 Collate: 
     'api_band.R'
+    'api_bbox.R'
     'RcppExports.R'
     'data.R'
     'pipe.R'
