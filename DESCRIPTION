@@ -113,6 +113,7 @@ Collate:
     'api_file.R'
     'api_gdal.R'
     'api_gdalcubes.R'
+    'api_model.R'
     'api_jobs.R'
     'api_label_class.R'
     'api_period.R'
