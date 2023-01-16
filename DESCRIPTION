@@ -141,6 +141,7 @@ Collate:
     'api_tile.R'
     'api_torch.R'
     'api_tuning.R'
+    'api_uncertainty.R'
     'api_utils.R'
     'RcppExports.R'
     'data.R'
