@@ -101,6 +101,7 @@ LinkingTo:
     RcppArmadillo
 RoxygenNote: 7.2.1
 Collate: 
+    'api_band.R'
     'RcppExports.R'
     'data.R'
     'pipe.R'
