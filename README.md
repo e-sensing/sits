@@ -540,7 +540,7 @@ material support:
     
 6.  The Open-Earth-Monitor Cyberinfratructure project, which has received 
     funding from the European Union's Horizon Europe research and innovation programme 
-    under [grant agreement No. 101059548] {https://cordis.europa.eu/project/id/101059548}. 
+    under [grant agreement No. 101059548](https://cordis.europa.eu/project/id/101059548). 
 
 ## How to contribute
 
