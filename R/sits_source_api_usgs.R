@@ -66,6 +66,7 @@
         }
     )
 
+    .check_stac_items(items)
     items <- .source_items_bands_select(
         source = source,
         items = items,
@@ -180,7 +181,7 @@
 
     # making the request
     items <- rstac::post_request(q = stac_query, ...)
-
+    .check_stac_items(items)
     # filter only surface reflectance products
     items$features <- items$features[
         grepl("_SR$", rstac::items_reap(items, "id"))

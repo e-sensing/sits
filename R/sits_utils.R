@@ -51,7 +51,6 @@ sits_run_tests <- function() {
 #' # recover config state
 #' sits_config(run_examples = TRUE)
 #' }
-#'
 #' @export
 sits_run_examples <- function() {
     return(.try(

@@ -27,20 +27,20 @@ test_that("Mixture model tests", {
         output_dir = tempdir()
     )
 
-    # Create the endmembers tibble
+    # Create the endmembers tibble for cube
     em <- tibble::tribble(
-        ~type, ~B02, ~B03, ~B04, ~B8A, ~B11, ~B12,
-        "forest",  200,  352,  189, 2800, 1340,  546,
-        "land",  400,  650,  700, 3600, 3500, 1800,
-        "water",  700, 1100, 1400,  850,   40,   26,
+        ~type, ~B02, ~B03,   ~B04,  ~B8A,  ~B11,   ~B12,
+        "forest", 0.02, 0.0352, 0.0189, 0.28,  0.134, 0.0546,
+        "land", 0.04, 0.065,  0.07,   0.36,  0.35,  0.18,
+        "water", 0.07, 0.11,   0.14,   0.085, 0.004, 0.0026
     )
 
     # Generate the mixture model
     mm_rmse <- sits_mixture_model(
-        cube = reg_cube,
+        data = reg_cube,
         endmembers = em,
         memsize = 2,
-        multicores = 1,
+        multicores = 2,
         output_dir = tempdir(),
         rmse_band = TRUE
     )
@@ -59,7 +59,7 @@ test_that("Mixture model tests", {
 
     # Generate the mixture model
     mm <- sits_mixture_model(
-        cube = reg_cube,
+        data = reg_cube,
         endmembers = em,
         memsize = 2,
         multicores = 2,
@@ -78,6 +78,47 @@ test_that("Mixture model tests", {
     r_obj <- .raster_open_rast(mm$file_info[[1]]$path[[2]])
 
     expect_true(.raster_nrows(r_obj) == .tile_nrows(reg_cube))
-    unlink(list.files(tempdir(), full.names = TRUE))
 
+    samples <- tibble::tibble(
+        longitude = c(-65.39246320, -65.21814581, -65.11511198),
+        latitude = c(-10.38223059, -10.43160677, -10.50638970),
+        label = c("WATER", "LAND", "FOREST"),
+        start_date = "2019-07-03",
+        end_date = "2019-07-19"
+    )
+
+    ts_bands <- sits_get_data(
+        cube = reg_cube,
+        samples = samples,
+        multicores = 2,
+        output_dir = tempdir()
+    )
+
+    ts_em <- sits_mixture_model(
+        data = ts_bands,
+        endmembers = em,
+        multicores = 1,
+        rmse_band = TRUE
+    )
+    ts_labels <- sits_labels(ts_em)
+
+    frac_labels <- vapply(ts_labels, function(ts_label) {
+        ts_filt <- dplyr::filter(ts_em, .data[["label"]] == !!ts_label)
+        all(ts_filt[["time_series"]][[1]][[ts_label]] > 0.8)
+    }, logical(1))
+
+    expect_true(all(frac_labels))
+
+    ts_em_bands <- sits_get_data(
+        cube = mm,
+        samples = samples,
+        multicores = 2,
+        output_dir = tempdir()
+    )
+    expect_equal(
+        dplyr::bind_rows(ts_em_bands$time_series)[,c("FOREST", "LAND", "WATER")],
+        dplyr::bind_rows(ts_em$time_series)[,c("FOREST", "LAND", "WATER")],
+        tolerance = 0.01
+    )
+    unlink(list.files(tempdir(), full.names = TRUE))
 })

@@ -11,7 +11,14 @@ sits_select(data, bands, ...)
 
 \method{sits_select}{sits}(data, bands, ...)
 
-\method{sits_select}{raster_cube}(data, bands, ..., tiles = NULL)
+\method{sits_select}{raster_cube}(
+  data,
+  bands = NULL,
+  ...,
+  start_date = NULL,
+  end_date = NULL,
+  tiles = NULL
+)
 
 \method{sits_select}{patterns}(data, bands, ...)
 }
@@ -22,6 +29,10 @@ sits_select(data, bands, ...)
 
 \item{...}{Additional parameters to be provided in the select
 function.}
+
+\item{start_date}{Character value with the start date band to be filtered.}
+
+\item{end_date}{Character value with the end date band to be filtered.}
 
 \item{tiles}{Character vector with the names of the tiles.}
 }

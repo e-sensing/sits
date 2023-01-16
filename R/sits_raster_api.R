@@ -988,7 +988,7 @@
     # this file will not be processed again
     # Verify if the raster is corrupted
     .try({
-        .raster_get_values(r_obj)
+        r_obj[.raster_ncols(r_obj) * .raster_nrows(r_obj)]
         TRUE
     },
     .default = {

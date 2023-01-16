@@ -78,7 +78,7 @@
 sits_smooth <- function(cube,
                         type = "bayes",
                         ...,
-                        window_size = 9,
+                        window_size = 13,
                         memsize = 4,
                         multicores = 2,
                         output_dir = getwd(),
@@ -112,7 +112,12 @@ sits_smooth <- function(cube,
     multicores <- .jobs_max_multicores(
         job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
-
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_memsize = job_memsize, block = block,
+        image_size = .tile_size(.tile(cube)), memsize = memsize,
+        multicores = multicores
+    )
     # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
@@ -291,7 +296,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
         smoothness <- diag(smoothness, nrow = nlabels, ncol = nlabels)
     }
     # Check smoothness
-    .check_smoothness(smoothness, nlabels)
+    .check_smoothness_mat(smoothness, nlabels)
     # Create a window
     window <- matrix(1, nrow = window_size, ncol = window_size)
 
@@ -305,7 +310,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
         values <- bayes_smoother(
             m = values,
             m_nrow = .nrows(block),
-            m_ncol = block[["ncols"]],
+            m_ncol = .ncols(block),
             w = window,
             sigma = smoothness,
             covar_sigma0 = covar,
@@ -321,7 +326,6 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
     # Return a closure
     smooth_fn
 }
-
 .smooth_fn_bilat <- function(window_size, sigma, tau) {
     # Check window size
     .check_window_size(window_size)

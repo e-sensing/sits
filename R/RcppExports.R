@@ -41,6 +41,18 @@ C_kernel_max <- function(x, ncols, nrows, band, window_size) {
     .Call(`_sits_C_kernel_max`, x, ncols, nrows, band, window_size)
 }
 
+C_kernel_bayes_mean <- function(x, ncols, nrows, window_size) {
+    .Call(`_sits_C_kernel_bayes_mean`, x, ncols, nrows, window_size)
+}
+
+C_kernel_bayes_var <- function(x, ncols, nrows, window_size) {
+    .Call(`_sits_C_kernel_bayes_var`, x, ncols, nrows, window_size)
+}
+
+C_bayes_posterior <- function(x, s, m, v) {
+    .Call(`_sits_C_bayes_posterior`, x, s, m, v)
+}
+
 C_label_max_prob <- function(x) {
     .Call(`_sits_C_label_max_prob`, x)
 }
@@ -53,8 +65,12 @@ linear_interp_vec <- function(vec) {
     .Call(`_sits_linear_interp_vec`, vec)
 }
 
-C_nnls_solver <- function(x, em, rmse, max_it = 400L, tol = 0.000001) {
-    .Call(`_sits_C_nnls_solver`, x, em, rmse, max_it, tol)
+batch_calc <- function(n_pixels, max_lines_per_batch) {
+    .Call(`_sits_batch_calc`, n_pixels, max_lines_per_batch)
+}
+
+C_nnls_solver_batch <- function(x, em, rmse, max_it = 400L, tol = 0.000001) {
+    .Call(`_sits_C_nnls_solver_batch`, x, em, rmse, max_it, tol)
 }
 
 C_normalize_data <- function(data, min, max) {

@@ -243,7 +243,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
         output_dir = dir_images,
         res = 240,
         period = "P16D",
-        multicores = 1
+        multicores = 2
     )
 
     tile_bbox <- .bbox(.tile(rg_cube))
@@ -354,8 +354,6 @@ test_that("Creating cubes from USGS", {
 })
 
 test_that("Creating Sentinel cubes from MPC", {
-
-
     s2_cube <- .try({
         sits_cube(
             source = "MPC",

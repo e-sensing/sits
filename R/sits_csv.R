@@ -48,6 +48,7 @@ sits_to_csv <- function(data, file) {
     # write the CSV file
     utils::write.csv(csv, file, row.names = FALSE, quote = FALSE)
 }
+
 #' @title Transform a shapefile into a samples file
 #' @name .sits_get_samples_from_csv
 #' @author Gilberto Camara
@@ -71,8 +72,8 @@ sits_to_csv <- function(data, file) {
     )
     # transform to date
     samples <- dplyr::mutate(samples,
-        start_date = as.Date(.data[["start_date"]]),
-        end_date = as.Date(.data[["end_date"]])
+                             start_date = as.Date(.data[["start_date"]]),
+                             end_date = as.Date(.data[["end_date"]])
     )
 
     class(samples) <- c("sits", class(samples))

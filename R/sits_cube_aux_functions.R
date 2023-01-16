@@ -652,6 +652,23 @@ NULL
 .cube_tiles.raster_cube <- function(cube) {
     .as_chr(cube[["tile"]])
 }
+
+#' @title Returns the cube paths
+#' @noRd
+#' @param cube  A data cube.
+#' @return  Character with cube paths.
+.cube_paths <- function(cube) {
+    UseMethod(".cube_paths", cube)
+}
+#' @export
+.cube_paths.raster_cube <- function(cube) {
+    slider::slide_chr(cube, function(tile) {
+        .fi_path(.fi(.tile(tile)))
+    })
+}
+.cube_is_local <- function(cube) {
+    all(.file_is_local(.file_remove_vsi(.cube_paths(cube))))
+}
 #' @title Filter the cube using tile names
 #' @noRd
 #' @param cube  A data cube.
@@ -681,6 +698,7 @@ NULL
         tile
     })
 }
+
 #' @title create assets for a data cube by assigning a unique ID
 #' @noRd
 #' @param  cube  datacube

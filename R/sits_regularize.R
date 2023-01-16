@@ -106,7 +106,12 @@ sits_regularize <- function(cube,
     .check_output_dir(output_dir)
     .check_multicores(multicores)
     .check_progress(progress)
-
+    # Display warning message in case STAC cube
+    if (.cube_is_local(cube)) {
+        warning("Regularization works better when data store locally. ",
+                "Please, use 'sits_cube_copy()' to copy data locally ",
+                "before regularization", call. = FALSE)
+    }
     # Regularize
     .gc_regularize(
         cube = cube,

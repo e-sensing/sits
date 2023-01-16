@@ -363,19 +363,18 @@ NULL
 #' @returns \code{.point_as_sf()}: \code{sf}.
 #' @noRd
 .point_as_sf <- function(point, as_crs = NULL) {
-    #Check for valid point
+    # Check for valid point
     .check_point(point)
     # Convert to sf object and return it
-    purrr::pmap_dfr(point, function(longitude, latitude, crs) {
-        geom <- sf::st_sf(
-            geometry = sf::st_sfc(sf::st_point(c(longitude, latitude))),
-            crs = crs
-        )
-        # Project CRS
-        if (.has(as_crs)) {
-            geom <- sf::st_transform(geom, crs = as_crs)
-        }
-        # Return geom
-        geom
-    })
+    geom <- sf::st_as_sf(
+        x = point,
+        coords = c("longitude", "latitude"),
+        crs = .crs(point)
+    )
+    # Project CRS
+    if (.has(as_crs)) {
+        geom <- sf::st_transform(geom, crs = as_crs)
+    }
+    # Return geom
+    geom
 }

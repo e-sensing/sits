@@ -19,8 +19,7 @@ sits_cube_copy(
 \item{roi}{A Region of interest. See details below.}
 
 \item{res}{An integer value corresponds to the output
-spatial resolution of the images.
-Default is NULL.}
+spatial resolution of the images. Default is NULL.}
 
 \item{output_dir}{Output directory where images will be saved.}
 

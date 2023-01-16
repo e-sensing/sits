@@ -33,6 +33,7 @@
         if (!dir.exists(output_dir) && create_dir) {
             dir.create(output_dir, recursive = TRUE)
         }
+        filenames <- if (length(filenames) == 0) "" else filenames
         filenames <- file.path(output_dir, filenames)
     }
     filenames
@@ -60,6 +61,23 @@
         tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
         .tile_start_date(tile), .tile_end_date(tile), band, version,
         ext = "tif", output_dir = output_dir
+    )
+}
+
+.file_mosaic_name <- function(tile, band, version, output_dir) {
+    .file_path(
+        tile[["satellite"]], tile[["sensor"]], "MOSAIC",
+        .tile_start_date(tile), .tile_end_date(tile), band, version,
+        ext = "tif", output_dir = output_dir
+    )
+}
+
+.file_crop_name <- function(tile, band, version, output_dir) {
+    .file_path(
+        tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
+        .tile_start_date(tile), .tile_end_date(tile), band, "crop",
+        version, ext = "tif", output_dir = file.path(output_dir, ".sits"),
+        create_dir = TRUE
     )
 }
 

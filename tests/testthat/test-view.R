@@ -25,6 +25,16 @@ test_that("View", {
     expect_true("leaflet" %in% class(v2))
     expect_true(grepl("EPSG3857", v2$x$options$crs$crsClass))
 
+    # plot the data cube RGB
+    vrgb <- sits_view(modis_cube,
+                    red = "NDVI",
+                    green = "NDVI",
+                    blue = "NDVI",
+                    dates = timeline[[1]]
+    )
+    expect_true("leaflet" %in% class(vrgb))
+    expect_true(grepl("EPSG3857", vrgb$x$options$crs$crsClass))
+
     rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
 
     modis_probs <- sits_classify(
@@ -60,4 +70,17 @@ test_that("View", {
 
     expect_true(all(file.remove(unlist(modis_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(modis_label$file_info[[1]]$path))))
+})
+test_that("View SOM map", {
+    set.seed(2903)
+    som_map <- sits_som_map(
+        samples_modis_ndvi,
+        grid_xdim = 4,
+        grid_ydim = 4
+    )
+    v <- suppressMessages(sits_view(som_map, label = "Forest",
+                                    prob_min = 0))
+
+    expect_true(grepl("EPSG3857", v$x$options$crs$crsClass))
+    expect_equal(v$x$calls[[1]]$method, "addProviderTiles")
 })

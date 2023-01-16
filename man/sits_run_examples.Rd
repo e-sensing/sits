@@ -21,5 +21,4 @@ isFALSE(sits_run_examples())
 # recover config state
 sits_config(run_examples = TRUE)
 }
-
 }

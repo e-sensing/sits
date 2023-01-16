@@ -37,8 +37,8 @@
     )
 
     samples <- dplyr::mutate(samples,
-        start_date = as.Date(start_date),
-        end_date = as.Date(end_date)
+                             start_date = as.Date(start_date),
+                             end_date = as.Date(end_date)
     )
 
     class(samples) <- c("sits", class(samples))

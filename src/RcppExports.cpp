@@ -151,6 +151,48 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// C_kernel_bayes_mean
+NumericMatrix C_kernel_bayes_mean(const NumericMatrix& x, int ncols, int nrows, int window_size);
+RcppExport SEXP _sits_C_kernel_bayes_mean(SEXP xSEXP, SEXP ncolsSEXP, SEXP nrowsSEXP, SEXP window_sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type ncols(ncolsSEXP);
+    Rcpp::traits::input_parameter< int >::type nrows(nrowsSEXP);
+    Rcpp::traits::input_parameter< int >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_kernel_bayes_mean(x, ncols, nrows, window_size));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_kernel_bayes_var
+NumericMatrix C_kernel_bayes_var(const NumericMatrix& x, int ncols, int nrows, int window_size);
+RcppExport SEXP _sits_C_kernel_bayes_var(SEXP xSEXP, SEXP ncolsSEXP, SEXP nrowsSEXP, SEXP window_sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type ncols(ncolsSEXP);
+    Rcpp::traits::input_parameter< int >::type nrows(nrowsSEXP);
+    Rcpp::traits::input_parameter< int >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_kernel_bayes_var(x, ncols, nrows, window_size));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_bayes_posterior
+NumericMatrix C_bayes_posterior(const NumericMatrix& x, const NumericVector& s, const NumericMatrix& m, const NumericMatrix& v);
+RcppExport SEXP _sits_C_bayes_posterior(SEXP xSEXP, SEXP sSEXP, SEXP mSEXP, SEXP vSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type m(mSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type v(vSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_bayes_posterior(x, s, m, v));
+    return rcpp_result_gen;
+END_RCPP
+}
 // C_label_max_prob
 arma::colvec C_label_max_prob(const arma::mat& x);
 RcppExport SEXP _sits_C_label_max_prob(SEXP xSEXP) {
@@ -184,9 +226,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// C_nnls_solver
-arma::mat C_nnls_solver(const arma::mat& x, const arma::mat& em, const bool rmse, const int max_it, const float tol);
-RcppExport SEXP _sits_C_nnls_solver(SEXP xSEXP, SEXP emSEXP, SEXP rmseSEXP, SEXP max_itSEXP, SEXP tolSEXP) {
+// batch_calc
+arma::mat batch_calc(const int& n_pixels, const int& max_lines_per_batch);
+RcppExport SEXP _sits_batch_calc(SEXP n_pixelsSEXP, SEXP max_lines_per_batchSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const int& >::type n_pixels(n_pixelsSEXP);
+    Rcpp::traits::input_parameter< const int& >::type max_lines_per_batch(max_lines_per_batchSEXP);
+    rcpp_result_gen = Rcpp::wrap(batch_calc(n_pixels, max_lines_per_batch));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_nnls_solver_batch
+arma::mat C_nnls_solver_batch(const arma::mat& x, const arma::mat& em, const bool rmse, const int max_it, const float tol);
+RcppExport SEXP _sits_C_nnls_solver_batch(SEXP xSEXP, SEXP emSEXP, SEXP rmseSEXP, SEXP max_itSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -195,7 +249,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const bool >::type rmse(rmseSEXP);
     Rcpp::traits::input_parameter< const int >::type max_it(max_itSEXP);
     Rcpp::traits::input_parameter< const float >::type tol(tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_nnls_solver(x, em, rmse, max_it, tol));
+    rcpp_result_gen = Rcpp::wrap(C_nnls_solver_batch(x, em, rmse, max_it, tol));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -371,10 +425,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_kernel_var", (DL_FUNC) &_sits_C_kernel_var, 5},
     {"_sits_C_kernel_min", (DL_FUNC) &_sits_C_kernel_min, 5},
     {"_sits_C_kernel_max", (DL_FUNC) &_sits_C_kernel_max, 5},
+    {"_sits_C_kernel_bayes_mean", (DL_FUNC) &_sits_C_kernel_bayes_mean, 4},
+    {"_sits_C_kernel_bayes_var", (DL_FUNC) &_sits_C_kernel_bayes_var, 4},
+    {"_sits_C_bayes_posterior", (DL_FUNC) &_sits_C_bayes_posterior, 4},
     {"_sits_C_label_max_prob", (DL_FUNC) &_sits_C_label_max_prob, 1},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
-    {"_sits_C_nnls_solver", (DL_FUNC) &_sits_C_nnls_solver, 5},
+    {"_sits_batch_calc", (DL_FUNC) &_sits_batch_calc, 2},
+    {"_sits_C_nnls_solver_batch", (DL_FUNC) &_sits_C_nnls_solver_batch, 5},
     {"_sits_C_normalize_data", (DL_FUNC) &_sits_C_normalize_data, 3},
     {"_sits_C_normalize_data_0", (DL_FUNC) &_sits_C_normalize_data_0, 3},
     {"_sits_max_sampling", (DL_FUNC) &_sits_max_sampling, 5},

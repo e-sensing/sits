@@ -33,7 +33,8 @@ void neigh_vec(neigh_t& n,
             if (m_i + i >= w_leg_i && m_j + j >= w_leg_j &&
                 m_i + i < w_leg_i + m_nrow &&
                 m_j + j < w_leg_j + m_ncol &&
-                arma::is_finite(m(m_j + m_i * m_ncol, 0))) {
+                arma::is_finite(m(m_j + m_i * m_ncol, 0)) &&
+                arma::is_finite(m((m_j + j - w_leg_j) + (m_i + i - w_leg_i) * m_ncol, m_b))) {
 
                 n.data(k, m_b) = m((m_j + j - w_leg_j) +
                     (m_i + i - w_leg_i) * m_ncol, m_b);
@@ -76,29 +77,27 @@ arma::mat bayes_smoother(const arma::mat& m,
     neigh_t neigh(m, w);
 
     // compute values for each pixel
-    for (arma::uword i = 0; i < m_nrow; ++i)
+    for (arma::uword i = 0; i < m_nrow; ++i) {
         for (arma::uword j = 0; j < m_ncol; ++j) {
 
-            // fill neighbours values
+            // fill neighbor values
             for (arma::uword b = 0; b < m.n_cols; ++b)
                 neigh_vec(neigh, m, m_nrow, m_ncol, w, b, i, j);
 
             if (neigh.n_rows == 0) continue;
 
-            // number of sorted values
-            arma::uword n_sort = neigh.n_rows * neigh_fraction;
+            if (neigh_fraction < 1.0 ) {
+                // sort the data
+                neigh.data.rows(0, neigh.n_rows - 1) = arma::sort(neigh.data.rows(0, neigh.n_rows - 1), "descend");
 
-            // sort the neighborhood vector
-            neigh.data = arma::sort(neigh.data, "descend");
+                // number of sorted values
+                arma::uword n_sort = neigh.n_rows * neigh_fraction;
 
-            // compute prior mean
-            mu0 = arma::mean(neigh.data.rows(0, n_sort), 0).as_col();
+                // compute prior mean
+                mu0 = arma::mean(neigh.data.rows(0, n_sort - 1), 0).as_col();
 
-            // compute prior sigma
-            sigma0 = arma::cov(neigh.data.rows(0, n_sort), 1);
-
-            // prior sigma covariance
-            if (!covar_sigma0) {
+                // compute prior sigma
+                sigma0 = arma::cov(neigh.data.rows(0, n_sort - 1), 1);
 
                 // clear non main diagonal cells
                 sigma0.elem(arma::trimatu_ind(
@@ -106,13 +105,29 @@ arma::mat bayes_smoother(const arma::mat& m,
                 sigma0.elem(arma::trimatl_ind(
                         arma::size(sigma0), -1)).fill(0.0);
             }
+            else {
+                // compute prior mean
+                mu0 = arma::mean(neigh.data.rows(0, neigh.n_rows - 1), 0).as_col();
+
+                // compute prior sigma
+                sigma0 = arma::cov(neigh.data.rows(0, neigh.n_rows - 1), 1);
+
+                if (!covar_sigma0){
+                    // clear non main diagonal cells
+                    sigma0.elem(arma::trimatu_ind(
+                            arma::size(sigma0), 1)).fill(0.0);
+                    sigma0.elem(arma::trimatl_ind(
+                            arma::size(sigma0), -1)).fill(0.0);
+                }
+            }
 
             // evaluate multivariate bayesian
             res.row(j + i * m_ncol) =
                 nm_post_mean_x(m.row(j + i * m_ncol).as_col(),
                                sigma, mu0, sigma0).as_row();
         }
-        return res;
+    }
+    return res;
 }
 
 // [[Rcpp::export]]

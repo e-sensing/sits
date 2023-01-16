@@ -175,7 +175,8 @@ NULL
 #' @noRd
 .roi_as_sf <- function(roi, default_crs = NULL, as_crs = NULL) {
     roi <- .roi_switch(
-        roi = roi, sf = roi,
+        roi = roi,
+        sf = roi,
         bbox = .bbox_as_sf(.bbox(roi, default_crs = default_crs)),
         lonlat = .bbox_as_sf(list(
             xmin = roi[["lon_min"]], xmax = roi[["lon_max"]],
@@ -187,6 +188,8 @@ NULL
     if (.has(as_crs)) {
         roi <- sf::st_transform(roi, crs = as_crs)
     }
+    # Transform feature to multipolygons
+    roi <- if (.has(nrow(roi)) && nrow(roi) > 1) sf::st_union(roi) else roi
     # Return roi
     roi
 }

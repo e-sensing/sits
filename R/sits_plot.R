@@ -422,7 +422,7 @@ plot.patterns <- function(x, y, ...) {
         function(label, ts) {
             lb <- as.character(label)
             # extract the time series and convert
-            df <- data.frame(Time = ts$Index, ts[-1], Pattern = lb)
+            df <- tibble::tibble(Time = ts$Index, ts[-1], Pattern = lb)
             return(df)
         }
     )
@@ -1029,7 +1029,7 @@ plot.class_cube <- function(x, y, ...,
         ))
 
     # rename stars object
-    stars_obj <- stats::setNames(stars_obj, "class")
+    stars_obj <- stats::setNames(stars_obj, "labels")
 
     # plot using tmap
     p <- suppressMessages(
@@ -1038,7 +1038,9 @@ plot.class_cube <- function(x, y, ...,
                 style = "cat",
                 palette = colors,
                 labels = labels) +
-            tmap::tm_graticules()  +
+            tmap::tm_graticules(
+                labels.size = 0.8
+            )  +
             tmap::tm_compass() +
             tmap::tm_layout(
                 legend.title.size = 1.2,
@@ -1104,7 +1106,8 @@ plot.class_cube <- function(x, y, ...,
         RasterIO = list(
             "nBufXSize" = size["xsize"],
             "nBufYSize" = size["ysize"]
-        )
+        ),
+        proxy = FALSE
     )
     # get the band
     band <- .tile_bands(tile)

@@ -76,6 +76,9 @@ test_that("Random Forest", {
     expect_true(all(point_class$predicted[[1]]$class %in%
         sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
+
+    exported_rf <- sits_model_export(rfor_model)
+    expect_s3_class(object = exported_rf, class = "randomForest")
 })
 
 test_that("Random Forest - Whittaker", {
