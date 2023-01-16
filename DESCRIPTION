@@ -101,6 +101,7 @@ LinkingTo:
     RcppArmadillo
 RoxygenNote: 7.2.3
 Collate: 
+    'api_apply.R'
     'api_band.R'
     'api_bbox.R'
     'api_block.R'
