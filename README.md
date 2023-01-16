@@ -537,6 +537,9 @@ material support:
 
 5.  Microsoft Planetary Computer under the GEO-Microsoft Cloud Computer
     Grants Programme.
+    
+6. The European Commission contributed through the Horizon Europe program, 
+    with funding from the project ``Open Earth Monitor'' (project no. 101059548). 
 
 ## How to contribute
 
