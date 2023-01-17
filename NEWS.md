@@ -2,6 +2,9 @@
 
 # What's new in SITS version 1.2.0
 
+### Hotfix version 1.2.0-1
+* Fix `sits_som_clean_samples()` bug (issue #890)
+
 ### New features in SITS version 1.2.0
 * `sits_get_data()` can be used to retrieve samples in classified cube
 *  Support for mixture models (`sits_mixture_model()`)
