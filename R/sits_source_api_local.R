@@ -266,7 +266,8 @@
         items <- items %>%
             dplyr::mutate(band = toupper(.data[["band"]])) %>%
             # add path
-            dplyr::mutate(path = paste(data_dir, img_files_filt, sep = "/")) %>%
+            dplyr::mutate(
+                path = paste(!!data_dir, !!img_files_filt, sep = "/")) %>%
             # select the relevant parts
             dplyr::select(
                 "tile",
@@ -315,8 +316,8 @@
     items <- dplyr::mutate(
         items,
         band = .source_bands_to_sits(
-            source = source,
-            collection = collection,
+            source = !!source,
+            collection = !!collection,
             bands = .data[["band"]]
         )
     )
