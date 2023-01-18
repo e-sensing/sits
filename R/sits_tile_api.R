@@ -1269,7 +1269,7 @@ NULL
 
 `.pred_features<-` <- function(pred, value) {
     if (all(.pred_cols %in% names(pred))) {
-        pred[, -2:0] <- value
+        pred[, seq_len(ncol(pred) - 2) + 2] <- value
     } else {
         pred[,] <- value
     }
