@@ -81,13 +81,6 @@ if (sits_run_examples()) {
     )
     # make accuracy assessment
     as <- sits_accuracy(label_cube, validation = ground_truth)
-    # alternative: use a sits tibble
-    validation <- tibble::as_tibble(
-                utils::read.csv(
-                ground_truth,
-                stringsAsFactors = FALSE)
-    )
-    as2 <- sits_accuracy(label_cube, validation)
 }
 }
 \references{
