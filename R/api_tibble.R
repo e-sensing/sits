@@ -512,7 +512,7 @@
 
 `.pred_features<-` <- function(pred, value) {
     if (all(.pred_cols %in% names(pred))) {
-        pred[, -2:0] <- value
+        pred[, seq_len(ncol(pred) - 2) + 2] <- value
     } else {
         pred[,] <- value
     }
@@ -536,6 +536,11 @@
 .pred_create_partition <- function(pred, partitions) {
     pred[["part_id"]] <- .partitions(x = seq_len(nrow(pred)), n = partitions)
     tidyr::nest(pred, predictors = -"part_id")
+}
+
+.pred_sample <- function(pred, frac) {
+    pred <- dplyr::group_by(pred, .data[["label"]])
+    dplyr::slice_sample(pred, prop = frac)
 }
 
 # ---- Partitions ----
