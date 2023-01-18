@@ -2,6 +2,9 @@
 
 # What's new in SITS version 1.2.0
 
+### Hotfix version 1.2.0-2
+* Fix `tibble` subsetting bug (issue #893)
+
 ### Hotfix version 1.2.0-1
 * Fix `sits_som_clean_samples()` bug (issue #890)
 
