@@ -226,8 +226,7 @@ sits_reduce_imbalance <- function(samples,
                 dist_band <- samples %>%
                     sits_select(bands = band) %>%
                     dplyr::filter(.data[["label"]] == cls) %>%
-                    .sits_distances() %>%
-                    as.data.frame() %>%
+                    .predictors() %>%
                     .[-1]
                 # oversampling of band for the class
                 dist_over <- .sits_oversample_smote(
