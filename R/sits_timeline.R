@@ -358,7 +358,7 @@ sits_timeline.derived_cube <- function(data) {
     # check type of date interval
     converted_date <- purrr::map_dbl(date, function(dt) {
         if (length(strsplit(dt, "-")[[1]]) == 1) {
-            converted_date <- lubridate::fast_strptime(dt, "%Y")
+            converted_date <- lubridate::fast_strptime(dt, c("%Y%m%d", "%Y"))
         } else if (length(strsplit(dt, "-")[[1]]) == 2) {
             converted_date <- lubridate::fast_strptime(dt, "%Y-%m")
         } else {
