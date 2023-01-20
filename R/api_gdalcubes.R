@@ -708,7 +708,8 @@
     # do a cross product on tiles and bands
     tiles_bands_times <- unlist(slider::slide(cube, function(tile) {
         bands <- .cube_bands(tile, add_cloud = FALSE)
-        tidyr::expand_grid(.cube_tiles(tile), bands, timeline) %>%
+        tidyr::expand_grid(tile = .cube_tiles(tile), band = bands,
+                           time = timeline) %>%
             purrr::pmap(function(tile, band, time) {
                 return(list(tile, band, time))
             })
@@ -722,7 +723,8 @@
     # do a cross product on tiles and bands
     gc_tiles_bands_times <- unlist(slider::slide(local_cube, function(tile) {
         bands <- .cube_bands(tile, add_cloud = FALSE)
-        tidyr::expand_grid(.cube_tiles(tile), bands, timeline) %>%
+        tidyr::expand_grid(tile = .cube_tiles(tile), band = bands,
+                           time = timeline) %>%
             purrr::pmap(function(tile, band, time) {
                 return(list(tile, band, time))
             })
