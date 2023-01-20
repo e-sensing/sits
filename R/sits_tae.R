@@ -243,7 +243,6 @@ sits_tae <- function(samples = NULL,
                 return(x)
             }
         )
-        torch::torch_set_num_threads(1)
         # train the model using luz
         torch_model <-
             luz::setup(

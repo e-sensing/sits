@@ -287,8 +287,6 @@ sits_tempcnn <- function(samples = NULL,
                     self$softmax()
             }
         )
-        # Set torch threads to 1
-        torch::torch_set_num_threads(1)
         # Train the model using luz
         torch_model <-
             luz::setup(

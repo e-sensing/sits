@@ -266,8 +266,6 @@ sits_lighttae <- function(samples = NULL,
                 return(out)
             }
         )
-        # Set torch threads to 1
-        torch::torch_set_num_threads(1)
         # Train the model using luz
         torch_model <-
             luz::setup(

@@ -246,8 +246,6 @@ sits_mlp <- function(samples = NULL,
                 self$model(x)
             }
         )
-        # Set torch threads to 1
-        torch::torch_set_num_threads(1)
         # Train the model using luz
         torch_model <-
             luz::setup(

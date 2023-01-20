@@ -305,7 +305,6 @@ sits_resnet <- function(samples = NULL,
                     self$softmax()
             }
         )
-        torch::torch_set_num_threads(1)
         # train the model using luz
         torch_model <-
             luz::setup(

@@ -315,17 +315,17 @@ plot.sits <- function(x, y, ...) {
         ggplot2::geom_line(
             data = means,
             ggplot2::aes(x = .data[["Index"]], y = .data[["med"]]),
-            colour = "#B16240", size = 2, inherit.aes = FALSE
+            colour = "#B16240", linewidth = 2, inherit.aes = FALSE
         ) +
         ggplot2::geom_line(
             data = means,
             ggplot2::aes(x = .data[["Index"]], y = .data[["qt25"]]),
-            colour = "#B19540", size = 1, inherit.aes = FALSE
+            colour = "#B19540", linewidth = 1, inherit.aes = FALSE
         ) +
         ggplot2::geom_line(
             data = means,
             ggplot2::aes(x = .data[["Index"]], y = .data[["qt75"]]),
-            colour = "#B19540", size = 1, inherit.aes = FALSE
+            colour = "#B19540", linewidth = 1, inherit.aes = FALSE
         )
     return(g)
 }
@@ -394,10 +394,10 @@ plot.patterns <- function(x, y, ...) {
     plot.df <- tidyr::pivot_longer(plot.df, cols = sits_bands(x))
 
     # Plot temporal patterns
-    gp <- ggplot2::ggplot(plot.df, ggplot2::aes_string(
-        x = "Time",
-        y = "value",
-        colour = "name"
+    gp <- ggplot2::ggplot(plot.df, ggplot2::aes(
+        x      = .data[["Time"]],
+        y      = .data[["value"]],
+        colour = .data[["name"]]
     )) +
         ggplot2::geom_line() +
         ggplot2::facet_wrap(~Pattern) +
@@ -531,21 +531,21 @@ plot.predicted <- function(x, y, ...,
                 ) +
                 ggplot2::geom_polygon(
                     data = df_pol,
-                    ggplot2::aes_string(
-                        x = "Time",
-                        y = "value",
-                        group = "Group",
-                        fill = "Class"
+                    ggplot2::aes(
+                        x     = .data[["Time"]],
+                        y     = .data[["value"]],
+                        group = .data[["Group"]],
+                        fill  = .data[["Class"]]
                     ),
                     alpha = .7
                 ) +
                 ggplot2::scale_fill_manual(values = colors) +
                 ggplot2::geom_line(
                     data = df_x,
-                    ggplot2::aes_string(
-                        x = "Time",
-                        y = "value",
-                        colour = "variable"
+                    ggplot2::aes(
+                        x      = .data[["Time"]],
+                        y      = .data[["value"]],
+                        colour = .data[["variable"]]
                     )
                 ) +
                 ggplot2::scale_color_brewer(palette = "Set1") +
@@ -1704,7 +1704,7 @@ plot.geo_distances <- function(x, y, ...) {
             color = .data[["type"]],
             fill = .data[["type"]]
         ),
-        lwd = 1, alpha = 0.25
+        linewidth = 1, alpha = 0.25
         ) +
         ggplot2::scale_x_log10(labels = scales::label_number()) +
         ggplot2::xlab("Distance (km)") +

@@ -126,7 +126,7 @@ sits_tuning <- function(samples,
 
     # generate random params
     params_lst <- purrr::map(
-        seq_len(trials),
+        as.list(seq_len(trials)),
         .tuning_pick_random,
         params = params
     )

@@ -47,7 +47,7 @@
         return(val)
     }
 
-    params <- purrr::map(params, eval, envir = environment())
+    params <- purrr::map(as.list(params), eval, envir = environment())
 
     params[["samples"]] <- NULL
 

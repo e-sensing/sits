@@ -240,7 +240,9 @@ sits_get_data.sf <- function(cube,
 
     .check_that(
         !(pol_avg && purrr::is_null(pol_id)),
-        msg = "invalid 'pol_id' parameter."
+        msg = "Please provide an sf object with a column
+        with the id for each polygon and include
+        this column name in the pol_id parameter."
     )
 
     # check if sf object contains all the required columns

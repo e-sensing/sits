@@ -106,16 +106,21 @@ sits_smooth <- function(cube,
         job_size = .block_size(block = block, overlap = overlap),
         # npaths = input(nlayers) + output(nlayers)
         npaths = length(.tile_labels(cube)) * 2,
-        nbytes = 8, proc_bloat = .conf("processing_bloat")
+        nbytes = 8,
+        proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+        job_memsize = job_memsize,
+        memsize = memsize,
+        multicores = multicores
     )
     # Update block parameter
     block <- .jobs_optimal_block(
-        job_memsize = job_memsize, block = block,
-        image_size = .tile_size(.tile(cube)), memsize = memsize,
+        job_memsize = job_memsize,
+        block = block,
+        image_size = .tile_size(.tile(cube)),
+        memsize = memsize,
         multicores = multicores
     )
     # Prepare parallel processing

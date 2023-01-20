@@ -545,7 +545,7 @@ NULL
     }
     tidyr::pivot_wider(
         values,
-        id_cols = id_cols,
+        id_cols = dplyr::all_of(id_cols),
         names_from = "tile",
         values_from = "n"
     )
