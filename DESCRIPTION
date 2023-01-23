@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 1.2.0-2
+Version: 1.2.0-3
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara.inpe@gmail.com'),
@@ -99,7 +99,7 @@ Config/testthat/start-first: cube, raster, ml
 LinkingTo:
     Rcpp,
     RcppArmadillo
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Collate: 
     'RcppExports.R'
     'data.R'
