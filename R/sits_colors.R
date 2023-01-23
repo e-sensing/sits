@@ -106,7 +106,7 @@ sits_colors_show <- function(name, n_colors = 32){
                          rev = TRUE) {
 
     # ensure labels are unique
-    labels <- unique(labels)
+    # labels <- unique(labels)
     # get the names of the colors in the chosen palette
     colors_palette <- unlist(.conf(key = "colors"))
     # if labels are included in the config palette, use them
@@ -146,6 +146,7 @@ sits_colors_show <- function(name, n_colors = 32){
                len_min = length(labels),
                len_max = length(labels),
                is_named = TRUE,
+               has_unique_names = FALSE,
                msg = "invalid color values"
     )
 
