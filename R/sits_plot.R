@@ -951,9 +951,11 @@ plot.class_cube <- function(x, y, ...,
     stars_obj <- stars::read_stars(
         bw_file,
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
-        ))
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
+    )
 
     # rescale the stars object
     stars_obj <- stars_obj * .conf("raster_cube_scale_factor")
@@ -1024,9 +1026,11 @@ plot.class_cube <- function(x, y, ...,
     stars_obj <- stars::read_stars(
         class_file,
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
-        ))
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
+    )
 
     # rename stars object
     stars_obj <- stats::setNames(stars_obj, "labels")
@@ -1104,9 +1108,10 @@ plot.class_cube <- function(x, y, ...,
     probs_st <- stars::read_stars(
         probs_path,
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
-        )
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
     )
     # get the band
     band <- .tile_bands(tile)
@@ -1170,9 +1175,11 @@ plot.class_cube <- function(x, y, ...,
         c(red_file, green_file, blue_file),
         along = "band",
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
-        ))
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
+    )
     # get the max values
     band_params   <- .tile_band_conf(tile, red)
     max_value <- .max_value(band_params)
