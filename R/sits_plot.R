@@ -1133,6 +1133,7 @@ plot.class_cube <- function(x, y, ...,
     # read raster data as a stars object with separate RGB bands
     rgb_st <- stars::read_stars(
         c(red_file, green_file, blue_file),
+        proxy = FALSE,
         along = "band",
         RasterIO = list(
             "nBufXSize" = size["xsize"],
