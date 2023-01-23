@@ -2,6 +2,11 @@
 
 # What's new in SITS version 1.2.0
 
+### Hotfix version 1.2.0-3
+* Fix `stars` proxy bug (issue #902)
+* Fix `purrr` cross deprecation
+* Fix `ggplot2` aes_string deprecation
+
 ### Hotfix version 1.2.0-2
 * Fix `tibble` subsetting bug (issue #893)
 

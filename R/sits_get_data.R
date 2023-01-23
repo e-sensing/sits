@@ -418,7 +418,11 @@ sits_get_data.data.frame <- function(cube,
     # get cubes timeline
     tl <- sits_timeline(cube)
 
-    tiles_bands <- purrr::cross2(.cube_tiles(cube), bands)
+    tiles_bands <- tidyr::expand_grid(tile = .cube_tiles(cube),
+                                      band = bands) %>%
+        purrr::pmap(function(tile, band) {
+            return(list(tile, band))
+        })
 
     # prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
@@ -617,7 +621,11 @@ sits_get_data.data.frame <- function(cube,
     # get cubes timeline
     tl <- sits_timeline(cube)
 
-    tiles_bands <- purrr::cross2(.cube_tiles(cube), bands)
+    tiles_bands <- tidyr::expand_grid(tile = .cube_tiles(cube),
+                                      band = bands) %>%
+        purrr::pmap(function(tile, band) {
+            return(list(tile, band))
+        })
 
     # prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)

@@ -708,7 +708,11 @@
     # do a cross product on tiles and bands
     tiles_bands_times <- unlist(slider::slide(cube, function(tile) {
         bands <- .cube_bands(tile, add_cloud = FALSE)
-        purrr::cross3(.cube_tiles(tile), bands, timeline)
+        tidyr::expand_grid(tile = .cube_tiles(tile), band = bands,
+                           time = timeline) %>%
+            purrr::pmap(function(tile, band, time) {
+                return(list(tile, band, time))
+            })
     }), recursive = FALSE)
 
     # if regularized cube does not exist, return all tiles from original cube
@@ -719,7 +723,11 @@
     # do a cross product on tiles and bands
     gc_tiles_bands_times <- unlist(slider::slide(local_cube, function(tile) {
         bands <- .cube_bands(tile, add_cloud = FALSE)
-        purrr::cross3(.cube_tiles(tile), bands, timeline)
+        tidyr::expand_grid(tile = .cube_tiles(tile), band = bands,
+                           time = timeline) %>%
+            purrr::pmap(function(tile, band, time) {
+                return(list(tile, band, time))
+            })
     }), recursive = FALSE)
 
     # first, include tiles and bands that have not been processed
