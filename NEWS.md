@@ -2,6 +2,17 @@
 
 # What's new in SITS version 1.2.0
 
+### Hotfix version 1.2.0-3
+* Fix `stars` proxy bug (issue #902)
+* Fix `purrr` cross deprecation
+* Fix `ggplot2` aes_string deprecation
+
+### Hotfix version 1.2.0-2
+* Fix `tibble` subsetting bug (issue #893)
+
+### Hotfix version 1.2.0-1
+* Fix `sits_som_clean_samples()` bug (issue #890)
+
 ### New features in SITS version 1.2.0
 * `sits_get_data()` can be used to retrieve samples in classified cube
 *  Support for mixture models (`sits_mixture_model()`)

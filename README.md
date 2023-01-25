@@ -159,7 +159,6 @@ s2_cube <- sits_cube(
     end_date = as.Date("2019-06-30"),
     progress = FALSE
 )
-#>   |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
 ```
 
 This cube is irregular. The timelines of tiles `"20LKP"` and `"20LLKP"`
@@ -222,7 +221,7 @@ raster_cube <- sits_cube(
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
-    parse_info = c("X1", "X2", "tile", "band", "date"),
+    parse_info = c("X1", "tile", "band", "date"),
     progress = FALSE
 )
 # obtain a set of samples defined by a CSV file
@@ -261,10 +260,8 @@ would be substantial, the default visualization combines all samples
 together in a single temporal interval.
 
 ``` r
-# select the "ndvi" band
-samples_ndvi <- sits_select(samples_modis_4bands, "NDVI")
 # select only the samples with the cerrado label
-samples_cerrado <- dplyr::filter(samples_ndvi, 
+samples_cerrado <- dplyr::filter(samples_modis_ndvi, 
                   label == "Cerrado")
 plot(samples_cerrado)
 ```
@@ -287,7 +284,7 @@ quality of the samples.
 # load the kohonen library
 library(kohonen)
 # create a SOM map from the samples
-som_map <- sits_som_map(samples_modis_4bands,
+som_map <- sits_som_map(samples_modis_ndvi,
                         grid_xdim = 6,
                         grid_ydim = 6)
 # plot the map
@@ -364,23 +361,19 @@ the function `sits_show_prediction()` or graphically using `plot`.
 
 ``` r
 # training data set
-data("samples_modis_4bands")
+data("samples_modis_ndvi")
 # point to be classified
 data("point_mt_6bands")
-# Select the NDVI and EVI bands 
-# Filter the band to reduce noise
 # Train a deep learning model
-tempcnn_model <- samples_modis_4bands %>% 
-    sits_select(bands = "NDVI") %>% 
-    sits_train(ml_method = sits_tempcnn()) 
-# Select NDVI and EVI bands of the  point to be classified
-# Filter the point 
+tempcnn_model <- sits_train(samples_modis_ndvi, ml_method = sits_tempcnn()) 
+# Select NDVI band of the  point to be classified
 # Classify using TempCNN model
 # Plot the result
 point_mt_6bands %>% 
   sits_select(bands = "NDVI") %>% 
   sits_classify(tempcnn_model) %>% 
   plot()
+#>   |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
 ```
 
 <img src="man/figures/README-unnamed-chunk-14-1.png" title="Classification of NDVI time series using TempCNN" alt="Classification of NDVI time series using TempCNN" style="display: block; margin: auto;" />
@@ -398,12 +391,21 @@ sinop <- sits_cube(
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
-    parse_info = c("X1", "X2", "tile", "band", "date"),
+    parse_info = c("X1", "tile", "band", "date"),
     progress = FALSE
 )
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(sinop, ml_model = tempcnn_model)
+#> Using blocks of size (144 x 254)
+#> Starting classification of tile 'h12v10' at 2023-01-17 21:49:40
+#>   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
+#> Tile 'h12v10' finished at 2023-01-17 21:50:30
+#> Elapsed time of 49.46 secs
+#> 
+#> 
+#> Classification finished at 2023-01-17 21:50:30
+#> Elapsed time of 49.46 secs
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(probs_cube)
 # generate a thematic map
@@ -537,6 +539,11 @@ material support:
 
 5.  Microsoft Planetary Computer under the GEO-Microsoft Cloud Computer
     Grants Programme.
+
+6.  The Open-Earth-Monitor Cyberinfrastructure project, which has
+    received funding from the European Union’s Horizon Europe research
+    and innovation programme under [grant agreement
+    No. 101059548](https://cordis.europa.eu/project/id/101059548).
 
 ## How to contribute
 

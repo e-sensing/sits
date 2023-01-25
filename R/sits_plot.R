@@ -395,8 +395,8 @@ plot.patterns <- function(x, y, ...) {
 
     # Plot temporal patterns
     gp <- ggplot2::ggplot(plot.df, ggplot2::aes(
-        x      = .data[["Time"]],
-        y      = .data[["value"]],
+        x = .data[["Time"]],
+        y = .data[["value"]],
         colour = .data[["name"]]
     )) +
         ggplot2::geom_line() +
@@ -915,9 +915,11 @@ plot.class_cube <- function(x, y, ...,
     stars_obj <- stars::read_stars(
         bw_file,
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
-        ))
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
+    )
 
     # rescale the stars object
     stars_obj <- stars_obj * .conf("raster_cube_scale_factor")
@@ -988,9 +990,11 @@ plot.class_cube <- function(x, y, ...,
     stars_obj <- stars::read_stars(
         class_file,
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
-        ))
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
+    )
 
     # rename stars object
     stars_obj <- stats::setNames(stars_obj, "labels")
@@ -1068,8 +1072,8 @@ plot.class_cube <- function(x, y, ...,
     probs_st <- stars::read_stars(
         probs_path,
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
         ),
         proxy = FALSE
     )
@@ -1136,9 +1140,11 @@ plot.class_cube <- function(x, y, ...,
         proxy = FALSE,
         along = "band",
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
-        ))
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
+    )
     # get the max values
     band_params   <- .tile_band_conf(tile, red)
     max_value <- .max_value(band_params)
