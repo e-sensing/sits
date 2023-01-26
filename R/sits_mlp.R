@@ -271,6 +271,7 @@ sits_mlp <- function(samples = NULL,
                     patience = patience,
                     min_delta = min_delta
                 )),
+                accelerator = luz::accelerator(),
                 verbose = verbose
             )
         # Serialize model
