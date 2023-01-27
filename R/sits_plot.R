@@ -972,7 +972,7 @@ plot.class_cube <- function(x, y, ...,
 
     # get the labels
     labels <- sits_labels(tile)
-    # names(labels) <- seq_along(labels)
+    names(labels) <- seq_along(labels)
     # obtain the colors
     colors <- .view_get_colors(
         labels = labels,
@@ -980,6 +980,7 @@ plot.class_cube <- function(x, y, ...,
         palette = palette
     )
     # rename colors
+    colors <- colors[labels]
     names(colors) <- seq_along(labels)
     # size of data to be read
     size <- .plot_read_size(tile)

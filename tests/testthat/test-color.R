@@ -1,12 +1,7 @@
 test_that("sits colors", {
-    expect_true("Greens" %in% sits_color_names())
-    expect_error(sits_colors("Green"))
-    expect_length(sits_colors("Greens"), 32)
-})
-
-test_that("sits color show", {
-    expect_error(sits_colors_show("Green"))
-    expect_length(sits_colors_show("Greens"), 32)
+    g <- sits_colors()
+    expect_equal(g$labels$xmin, "x + 0.05")
+    expect_equal(g$labels$label, "name")
 })
 
 test_that("plot colors", {
@@ -18,8 +13,8 @@ test_that("plot colors", {
         parse_info = c("X1", "X2", "tile", "start_date", "end_date",
                        "band", "version"),
         bands = "class",
-        labels = c("ClearCut_Fire", "ClearCut_BareSoil",
-                   "ClearCut_Veg", "Forest")
+        labels = c("ClearCut_Burned", "ClearCut_BareSoil",
+                   "ClearCut_Vegetation", "Forest")
     )
     msg_plot1 <- tryCatch({
         plot(ro_class)
@@ -37,8 +32,8 @@ test_that("plot colors", {
 })
 
 test_that("colors_get", {
-    labels <- c("Forest", "Agriculture", "Pasture")
+    labels <- c("Forest", "Croplands", "Pasture")
     colors <- suppressWarnings(sits:::.colors_get(labels))
     expect_length(colors, 3)
-    expect_equal(colors[["Forest"]], "#7DB0DDFF")
+    expect_equal(colors[["Forest"]], "#1E8742")
 })
