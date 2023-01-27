@@ -353,10 +353,10 @@ sits_tempcnn <- function(samples = NULL,
             values <- array(
                 data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
             )
+            values <- stats::predict(object = torch_model, values)
+            values <- torch::torch_tensor(values, device = "cpu")
             # Do classification
-            values <- torch::as_array(
-                stats::predict(object = torch_model, values)
-            )
+            values <- torch::as_array(values)
             # Are the results consistent with the data input?
             .check_processed_values(
                 values = values, input_pixels = input_pixels

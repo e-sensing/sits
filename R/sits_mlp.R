@@ -210,7 +210,6 @@ sits_mlp <- function(samples = NULL,
         test_y <- unname(code_labels[.pred_references(test_samples)])
         # Set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
-        acc <- luz::accelerator()
 
         # Define the MLP architecture
         mlp_model <- torch::nn_module(
@@ -242,13 +241,11 @@ sits_mlp <- function(samples = NULL,
                 # create a sequential module that calls the layers in the same
                 # order.
                 self$model <- torch::nn_sequential(!!!tensors)
-                self$model <- acc$prepare(self$model)[[1]]
             },
             forward = function(x) {
                 self$model(x)
             }
         )
-
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -274,7 +271,6 @@ sits_mlp <- function(samples = NULL,
                     patience = patience,
                     min_delta = min_delta
                 )),
-                accelerator = acc,
                 verbose = verbose
             )
         # Serialize model
@@ -296,9 +292,9 @@ sits_mlp <- function(samples = NULL,
             # Transform input into matrix
             values <- as.matrix(values)
             # Do classification
-            values <- torch::as_array(
-                stats::predict(object = torch_model, values)
-            )
+            values <- stats::predict(object = torch_model, values)
+            values <- torch::torch_tensor(values, device = "cpu")
+            values <- torch::as_array(values)
             # Are the results consistent with the data input?
             .check_processed_values(
                 values = values, input_pixels = input_pixels
