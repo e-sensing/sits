@@ -42,14 +42,36 @@ sits_colors <- function() {
                   colour = "grey15",
                   hjust = 0.5,
                   vjust = 1,
-                  size = 10 / ggplot2::.pt)
+                  size = 9 / ggplot2::.pt)
 
     g + ggplot2::theme(
         panel.background = ggplot2::element_rect(fill = "#FFFFFF"))
 
     return(g)
 }
-
+#' @title Function to show color names in SITS
+#' @name sits_color_names
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Returns a color palette for plotting
+#'
+#' @return              A data.table with color names and HEX values
+#'
+#' @description         Shows the default SITS colors
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # show the names of the colors supported by SITS
+#'     sits_color_names()
+#' }
+#' @export
+#'
+sits_color_names <- function() {
+    colors <- .conf("colors")
+    colors_tb <- tibble::tibble(name = names(colors),
+                                hex = unname(unlist(colors))
+    )
+    return(colors_tb)
+}
 #' @title Get colors associated to the labels
 #' @name .colors_get
 #' @param  labels  labels associated to the training classes

@@ -26,15 +26,14 @@
 colors:
         # Natural Vegetation ------------------
         # Boreal Forest : color 17 of "Greens-18"
-        Evergreen_Needleleaf_Forest  : "#005723"
-        # Forest: color 14 of "Greens-18"
-        Forest                      : "#1E8742"
-        Evergreen_Broadleaf_Forests : "#1E8742"
-        Closed_Forests              : "#1E8742"
-        Dense_Forests               : "#1E8742"
+        Evergreen_Needleleaf_Forests : &enf "#005723"
+        # Forest: color 16 of "Greens-18"
+        Forest                      : &forest "#006A2B"
+        Evergreen_Broadleaf_Forests : &ebf    "#1E8742"
+"
         # Dense Woodlands and similar:  color 12 of "Greens-18"
-        Dense_Woodlands             : "#3BA558"
-        Woodlands                   : "#3BA558"
+
+        Woodlands                   : &woodlands "#3BA558"
         Dense_Tree_Savannas         : "#3BA558"
         Woody_Savannas              : "#3BA558"
         Open_Forests                : "#3BA558"
@@ -185,5 +184,11 @@ colors:
         ClearCut_Regeneration       : "#C3D32F"
         Non_Forest                  : "#B9608D"
 
-
+color_aliases:
+        Closed_Forests          : *forest
+        Closed_Forest           : *forest
+        Dense_Forests           : *forest
+        Dense_Forest            : *forest
+        Forests                 : *forest
+        Dense_Woodlands         : *woodlands
 
