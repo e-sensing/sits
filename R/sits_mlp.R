@@ -293,8 +293,10 @@ sits_mlp <- function(samples = NULL,
             values <- as.matrix(values)
             # Do classification
             values <- stats::predict(object = torch_model, values)
-            values <- torch::torch_tensor(values, device = "cpu")
-            values <- torch::as_array(values)
+            # Convert to tensor cpu to support GPU processing
+            values <- torch::as_array(
+                x = torch::torch_tensor(values, device = "cpu")
+            )
             # Are the results consistent with the data input?
             .check_processed_values(
                 values = values, input_pixels = input_pixels
