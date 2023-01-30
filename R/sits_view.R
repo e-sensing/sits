@@ -457,8 +457,8 @@ sits_view.raster_cube <- function(x, ...,
                 rgb_files,
                 along = "band",
                 RasterIO = list(
-                    "nBufXSize" = output_size["xsize"],
-                    "nBufYSize" = output_size["ysize"]
+                    "nBufXSize" = output_size[["xsize"]],
+                    "nBufYSize" = output_size[["ysize"]]
                 ),
                 proxy = FALSE
             )
@@ -517,9 +517,10 @@ sits_view.raster_cube <- function(x, ...,
                 .tile_path(tile),
                 RAT = labels,
                 RasterIO = list(
-                    "nBufXSize" = output_size["xsize"],
-                    "nBufYSize" = output_size["ysize"]
-                )
+                    "nBufXSize" = output_size[["xsize"]],
+                    "nBufYSize" = output_size[["ysize"]]
+                ),
+                proxy = FALSE
             )
         })
 
@@ -634,9 +635,10 @@ sits_view.class_cube <- function(x, ...,
             .tile_path(tile),
             RAT = labels,
             RasterIO = list(
-                "nBufXSize" = output_size["xsize"],
-                "nBufYSize" = output_size["ysize"]
-            )
+                "nBufXSize" = output_size[["xsize"]],
+                "nBufYSize" = output_size[["ysize"]]
+            ),
+            proxy = FALSE
         )
     })
 

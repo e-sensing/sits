@@ -273,6 +273,7 @@
 #' @noRd
 .check_names <- function(x, ...,
                          is_named = TRUE,
+                         is_unique = TRUE,
                          msg = NULL) {
 
     # make default message
@@ -293,12 +294,14 @@
             local_msg = "value should have names",
             msg = msg
         )
+        if (is_unique) {
+            .check_that(
+                length(names(x)) == length(unique(names(x))),
+                local_msg = "names should be unique",
+                msg = msg
+            )
+        }
 
-        .check_that(
-            length(names(x)) == length(unique(names(x))),
-            local_msg = "names should be unique",
-            msg = msg
-        )
     } else {
         .check_that(
             is.null(names(x)),
@@ -693,6 +696,7 @@
                        len_max = 2^31 - 1,
                        allow_null = FALSE,
                        is_named = FALSE,
+                       has_unique_names = TRUE,
                        regex = NULL,
                        msg = NULL) {
 
@@ -733,7 +737,10 @@
 
 
     # check names
-    .check_names(x, is_named = is_named, msg = msg)
+    .check_names(x,
+                 is_named = is_named,
+                 is_unique = has_unique_names,
+                 msg = msg)
 
     # check regular expression pattern
     if (!is.null(regex)) {

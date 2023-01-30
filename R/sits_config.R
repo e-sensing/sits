@@ -214,6 +214,8 @@ sits_config_show <- function(source = NULL,
         }
     } else if (colors) {
         config <- config[["colors"]]
+        colors_sort <- sort(names(config), index.return = TRUE)
+        config <- config[colors_sort$ix]
     } else {
         config <- lapply(config, function(x) {
             if (is.atomic(x)) {
@@ -222,7 +224,6 @@ sits_config_show <- function(source = NULL,
             list(names(x))
         })
     }
-
     config_txt <- yaml::as.yaml(config,
         indent = 4,
         handlers = list(

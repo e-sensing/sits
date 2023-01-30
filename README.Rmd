@@ -372,9 +372,11 @@ We acknowledge and thank the project funders that provided financial and materia
 
 4. International Climate Initiative of the Germany Federal Ministry for the Environment, Nature Conservation, Building and Nuclear Safety (IKI) under grant 17-III-084- Global-A-RESTORE+ (“RESTORE+: Addressing Landscape Restoration on Degraded Land in Indonesia and Brazil”). 
 
-5. Microsoft Planetary Computer under the GEO-Microsoft Cloud Computer Grants Programme. 
+5. Microsoft Planetary Computer under the GEO-Microsoft Cloud Computer Grants Programme.
 
-
+6.  The Open-Earth-Monitor Cyberinfratructure project, which has received 
+    funding from the European Union's Horizon Europe research and innovation programme 
+    under [grant agreement No. 101059548](https://cordis.europa.eu/project/id/101059548). 
 
 ## How to contribute
 

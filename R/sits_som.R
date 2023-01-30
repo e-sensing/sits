@@ -259,8 +259,8 @@ sits_som_clean_samples <- function(som_map,
         ) %>%
         dplyr::mutate(
             eval = .detect_class_noise(
-                "prior_prob",
-                "post_prob"
+                .data[["prior_prob"]],
+                .data[["post_prob"]]
             )
         ) %>%
         dplyr::select(

@@ -78,7 +78,7 @@
 sits_smooth <- function(cube,
                         type = "bayes",
                         ...,
-                        window_size = 13,
+                        window_size = 9,
                         memsize = 4,
                         multicores = 2,
                         output_dir = getwd(),

@@ -163,7 +163,7 @@
                 # shift the time series to match dates
                 if (idx != 1) ts <- shift_ts(ts, - (idx - 1))
                 # change the dates to the reference dates
-                ts1 <- dplyr::mutate(ts, Index = ref_dates)
+                ts1 <- dplyr::mutate(ts, Index = !!ref_dates)
                 # save the resulting row in the output tibble
                 row <- tibble::tibble(
                     longitude = long,
@@ -267,12 +267,10 @@
         samples %>%
         dplyr::group_by(.data[["label"]]) %>%
         dplyr::mutate(
-            train = sample(
-                c(
-                    rep(TRUE, round(dplyr::n() * (1 - validation_split))),
-                    rep(FALSE, round(dplyr::n() * validation_split))
-                )
-            )
+            train = sample(c(
+                rep(TRUE, round(dplyr::n() * (1 - !!validation_split))),
+                rep(FALSE, round(dplyr::n() * !!validation_split))
+            ))
         ) %>%
         dplyr::ungroup()
 

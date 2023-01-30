@@ -2,22 +2,22 @@
 % Please edit documentation in R/sits_colors.R
 \name{sits_color_names}
 \alias{sits_color_names}
-\title{Show names of SITS color palettes}
+\title{Function to show color names in SITS}
 \usage{
 sits_color_names()
 }
 \value{
-Names of available color palettes in SITS
+A data.table with color names and HEX values
 }
 \description{
-Returns the names of the palettes supported by SITS
+Returns a color palette for plotting
+
+Shows the default SITS colors
 }
 \examples{
 if (sits_run_examples()) {
     # show the names of the colors supported by SITS
     sits_color_names()
-    # show a color palette
-    sits_colors_show("Blues", n_colors = 16)
 }
 }
 \author{
