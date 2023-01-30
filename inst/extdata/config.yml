@@ -319,7 +319,7 @@ sources:
                         resolution    : 30
                         data_type     : "INT2U"
                 satellite   : "LANDSAT"
-                sensor      : "TM/ETM+/OLI"
+                sensor      : "TM-ETM-OLI"
                 platforms   :
                     LANDSAT-5: "landsat-5"
                     LANDSAT-7: "landsat-7"
@@ -1312,7 +1312,7 @@ sources:
                         resolution    : 30
                         data_type     : "INT2U"
                 satellite   : "LANDSAT"
-                sensor      : "TM/ETM+/OLI"
+                sensor      : "TM-ETM-OLI"
                 platforms   :
                     LANDSAT-5: "landsat-5"
                     LANDSAT-7: "landsat-7"
