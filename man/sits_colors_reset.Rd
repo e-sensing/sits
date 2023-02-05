@@ -7,7 +7,7 @@
 sits_colors_reset()
 }
 \value{
-The original sits color table
+No return, called for side effects
 }
 \description{
 Resets the color table

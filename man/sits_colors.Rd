@@ -7,7 +7,7 @@
 sits_colors()
 }
 \value{
-A data.table with color names and HEX values
+A tibble with color names and values
 }
 \description{
 Returns a color table
