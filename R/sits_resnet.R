@@ -368,10 +368,11 @@ sits_resnet <- function(samples = NULL,
                 data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
             )
             # Do classification
+            values <- stats::predict(object = torch_model, values)
+            # Convert to tensor cpu to support GPU processing
             values <- torch::as_array(
-                stats::predict(object = torch_model, values)
+                x = torch::torch_tensor(values, device = "cpu")
             )
-            # Are the results consistent with the data input?
             .check_processed_values(
                 values = values, input_pixels = input_pixels
             )

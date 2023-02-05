@@ -210,9 +210,9 @@ sits_mlp <- function(samples = NULL,
         test_y <- unname(code_labels[.pred_references(test_samples)])
         # Set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
+
         # Define the MLP architecture
         mlp_model <- torch::nn_module(
-            classname = "model_mlp",
             initialize = function(num_pred, layers, dropout_rates, y_dim) {
                 tensors <- list()
                 # input layer
@@ -292,8 +292,10 @@ sits_mlp <- function(samples = NULL,
             # Transform input into matrix
             values <- as.matrix(values)
             # Do classification
+            values <- stats::predict(object = torch_model, values)
+            # Convert to tensor cpu to support GPU processing
             values <- torch::as_array(
-                stats::predict(object = torch_model, values)
+                x = torch::torch_tensor(values, device = "cpu")
             )
             # Are the results consistent with the data input?
             .check_processed_values(
