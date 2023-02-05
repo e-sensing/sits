@@ -1,11 +1,9 @@
-#' @title Function to show colors in SITS
+#' @title Function to retrieve sits color table
 #' @name sits_colors
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Returns a color palette for plotting
+#' @description Returns a color table
+#' @return              A tibble with color names and values
 #'
-#' @return              A ggplot2 plot
-#'
-#' @description         Shows the default SITS colors
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -15,62 +13,49 @@
 #' @export
 #'
 sits_colors <- function() {
-    colors <- .conf("colors")
-    colors_tb <- tibble::tibble(name = names(colors),
-                                hex = unname(unlist(colors)),
-                                y = seq(0, length(colors) - 1) %% 25,
-                                x = seq(0, length(colors) - 1) %/% 25)
-
-    g <- ggplot2::ggplot() +
-        ggplot2::scale_x_continuous(name = "",
-                                    breaks = NULL,
-                                    expand = c(0, 0)) +
-        ggplot2::scale_y_continuous(name = "",
-                                    breaks = NULL,
-                                    expand = c(0, 0)) +
-        ggplot2::geom_rect(data = colors_tb,
-                  mapping = ggplot2::aes(xmin = x + 0.05,
-                                         xmax = x + 0.95,
-                                         ymin = y + 0.05,
-                                         ymax = y + 0.95),
-                  fill = colors_tb$hex
-        ) +
-        ggplot2::geom_text(data = colors_tb,
-                  mapping = ggplot2::aes(x = x + 0.5,
-                                         y = y + 0.70,
-                                         label = name),
-                  colour = "grey15",
-                  hjust = 0.5,
-                  vjust = 1,
-                  size = 9 / ggplot2::.pt)
-
-    g + ggplot2::theme(
-        panel.background = ggplot2::element_rect(fill = "#FFFFFF"))
-
-    return(g)
+    return(.conf_colors())
 }
-#' @title Function to show color names in SITS
-#' @name sits_color_names
+#' @title Function to show colors in SITS
+#' @name sits_colors_show
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Returns a color palette for plotting
-#'
-#' @return              A data.table with color names and HEX values
-#'
 #' @description         Shows the default SITS colors
+#'
+#' @return  no return, called for side effects
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'     # show the names of the colors supported by SITS
-#'     sits_color_names()
+#'     # show the colors supported by SITS
+#'     sits_colors_show()
 #' }
 #' @export
 #'
-sits_color_names <- function() {
-    colors <- .conf("colors")
-    colors_tb <- tibble::tibble(name = names(colors),
-                                hex = unname(unlist(colors))
-    )
-    return(colors_tb)
+sits_colors_show <- function() {
+    g <- .colors_show(sits_colors())
+    return(g)
+}
+
+#' @title Function to set sits color table
+#' @name sits_colors_set
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Sets a color table
+#' @param color_tb New color table
+#' @return      A modified sits color table
+#' @export
+#'
+sits_colors_set <- function(color_tb) {
+    .conf_set_color_table(color_tb)
+    return(invisible(color_tb))
+}
+#' @title Function to reset sits color table
+#' @name sits_colors_reset
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Resets the color table
+#' @return      No return, called for side effects
+#' @export
+#'
+sits_colors_reset <- function() {
+    .conf_load_color_table()
+    return(invisible(NULL))
 }
 #' @title Get colors associated to the labels
 #' @name .colors_get
@@ -88,27 +73,23 @@ sits_color_names <- function() {
 
     # ensure labels are unique
     labels <- unique(labels)
-    # get the names of the colors in the chosen palette
-    colors_palette <- unlist(.conf(key = "colors"))
+    # get the color table
+    color_tb <- .conf_colors()
     # if labels are included in the config palette, use them
-    if (all(labels %in% names(colors_palette))) {
-        colors <- colors_palette[labels]
+    if (all(labels %in% color_tb$name)) {
+        colors <- purrr::map_chr(labels, function(l){
+            col <- color_tb %>%
+                dplyr::filter(.data[["name"]] == l) %>%
+                dplyr::pull(color)
+            return(col)
+        })
+        names(colors) <- labels
     } else {
-        labels_found <- labels[labels %in% names(colors_palette)]
-        if (length(labels_found) > round(length(labels) / 2)) {
-            warning("some labels are not available in the chosen palette",
-                    call. = FALSE
-            )
-            missing_labels <- unique(labels[!(labels %in% labels_found)])
-            warning("consider adjusting labels: ",
+        labels_found <- labels[labels %in% color_tb$name]
+        missing_labels <- unique(labels[!(labels %in% labels_found)])
+        warning("labels missing in color table: ",
                     paste0(missing_labels, collapse = ", "),
                     call. = FALSE)
-        } else {
-            warning("most labels are not available in the chosen palette",
-                    call. = FALSE
-            )
-        }
-
         warning("using hcl_color palette ", palette, call. = FALSE)
 
         # get the number of labels
@@ -133,3 +114,46 @@ sits_color_names <- function() {
 
     return(colors)
 }
+#' @title Show color table
+#' @name .colors_show
+#' @keywords internal
+#' @noRd
+#' @param color_tb A SITS color table
+#' @return a gglot2 object
+.colors_show <- function(color_tb) {
+
+    n_colors <- nrow(color_tb)
+    n_rows_show <- n_colors %/% 3
+
+    color_tb <- tibble::add_column(color_tb,
+                                y = seq(0, n_colors - 1) %% n_rows_show,
+                                x = seq(0, n_colors - 1) %/% n_rows_show)
+    g <- ggplot2::ggplot() +
+         ggplot2::scale_x_continuous(name = "",
+                                    breaks = NULL,
+                                    expand = c(0, 0)) +
+         ggplot2::scale_y_continuous(name = "",
+                                    breaks = NULL,
+                                    expand = c(0, 0)) +
+         ggplot2::geom_rect(data = color_tb,
+                           mapping = ggplot2::aes(xmin = x + 0.05,
+                                                  xmax = x + 0.95,
+                                                  ymin = y + 0.05,
+                                                  ymax = y + 0.95),
+                           fill = color_tb$color
+        ) +
+        ggplot2::geom_text(data = color_tb,
+                           mapping = ggplot2::aes(x = x + 0.5,
+                                                  y = y + 0.70,
+                                                  label = name),
+                           colour = "grey15",
+                           hjust = 0.5,
+                           vjust = 1,
+                           size = 9 / ggplot2::.pt)
+
+    g + ggplot2::theme(
+        panel.background = ggplot2::element_rect(fill = "#FFFFFF"))
+
+    return(g)
+}
+

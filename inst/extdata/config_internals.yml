@@ -21,6 +21,8 @@ sits_color_palettes:    ["BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu
                         "YlGn", "YlGnBu", "YlOrRd", "YlOrBr", "OrRd",
                         "Blues", "Greens", "Oranges", "Reds", "Greys", "Purples"]
 
+sits_color_table_cols: ["name", "color"]
+
 # bands resulting from classification and post-classification
 sits_results_s3_class:
                     probs: "probs_cube"

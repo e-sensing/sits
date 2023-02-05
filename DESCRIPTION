@@ -44,7 +44,6 @@ LazyData: true
 Imports:
     magrittr,
     yaml,
-    data.table (>= 1.13),
     dplyr (>= 1.0.0),
     gdalUtilities,
     grDevices,
@@ -57,10 +56,10 @@ Imports:
     sf (>= 1.0),
     slider (>= 0.2.0),
     stats,
-    terra (>= 1.5-17),
+    terra (>= 1.6),
     tibble (>= 3.1),
     tidyr (>= 1.2.0),
-    torch (>= 0.7.0),
+    torch (>= 0.9.0),
     utils
 Suggests:
     caret,
@@ -78,21 +77,19 @@ Suggests:
     kohonen(>= 3.0.11),
     leafem (>= 0.2.0),
     leaflet (>= 2.1.1),
-    luz (>= 0.2.0),
+    luz (>= 0.3.0),
     methods,
     mgcv,
     openxlsx,
     randomForest,
     randomForestExplainer,
-    RColorBrewer,
     RcppArmadillo (>= 0.11),
     scales,
-    stars (>= 0.5),
+    stars (>= 0.6),
     testthat (>= 3.1.3),
-    tmap,
+    tmap (>= 3.3),
     torchopt(>= 0.1.2),
-    xgboost,
-    zoo
+    xgboost
 Config/testthat/edition: 3
 Config/testthat/parallel: false
 Config/testthat/start-first: cube, raster, ml
