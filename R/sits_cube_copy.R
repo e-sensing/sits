@@ -197,8 +197,8 @@ sits_cube_copy <- function(cube,
         if (.file_is_local(file)) {
             file <- .file_path("file://", file, sep = "")
         }
-        download.file(
-            url = file, destfile = out_file, quiet = TRUE, mode = "wb"
+        httr::GET(
+            url = file, httr::write_disk(path = out_file, overwrite = TRUE)
         )
         # Return file name
         out_file

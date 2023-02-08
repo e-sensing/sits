@@ -208,6 +208,22 @@
     return(dev_cube)
 }
 
+#' @title Get derived class of a cube
+#' @name .cube_derived_class
+#' @keywords internal
+#' @noRd
+#' @param cube A cube
+#'
+#' @return derived class
+.cube_derived_class <- function(cube) {
+    UseMethod(".cube_derived_class", cube)
+}
+
+#' @export
+.cube_derived_class.derived_cube <- function(cube) {
+    unique(slider::slide_chr(cube, .tile_derived_class))
+}
+
 #' @title Return the S3 class of the cube
 #' @name .cube_s3class
 #' @keywords internal
