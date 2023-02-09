@@ -29,7 +29,7 @@ ro_class <- sits_cube(
                    "band", "version"),
     bands = "class",
     labels = c("Water", "ClearCut_Burn", "ClearCut_BareSoil",
-               "ClearCut_Regeneration", "Forest", "Bare_Soil", "Wetlands")
+               "ClearCut_Veg", "Forest", "Bare_Soil", "Wetlands")
 )
 
 # Reclassify cube

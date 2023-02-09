@@ -979,9 +979,6 @@ plot.class_cube <- function(x, y, ...,
         legend = legend,
         palette = palette
     )
-    # rename colors
-    colors <- colors[labels]
-    names(colors) <- seq_along(labels)
     # size of data to be read
     size <- .plot_read_size(tile)
     # select the image to be plotted
@@ -1012,8 +1009,8 @@ plot.class_cube <- function(x, y, ...,
             )  +
             tmap::tm_compass() +
             tmap::tm_layout(
-                legend.title.size = 1.2,
-                legend.text.size = 1.0,
+                legend.title.size = 1.0,
+                legend.text.size = 0.8,
                 legend.bg.color = "white",
                 legend.bg.alpha = 0.8)
     )

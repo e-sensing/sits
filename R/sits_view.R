@@ -746,6 +746,7 @@ sits_view.default <- function(x, ...) {
             msg = "some labels are missing from the legend"
         )
         colors <- unname(legend[labels])
+        names(colors) <- seq_along(labels)
     }
     return(colors)
 }

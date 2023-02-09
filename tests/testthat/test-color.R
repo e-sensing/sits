@@ -18,7 +18,7 @@ test_that("plot colors", {
                        "band", "version"),
         bands = "class",
         labels = c("ClearCut_Burned", "ClearCut_BareSoil",
-                   "ClearCut_Vegetation", "Forest")
+                   "ClearCut_Veg", "Forest")
     )
     msg_plot1 <- tryCatch({
         plot(ro_class)

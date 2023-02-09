@@ -155,9 +155,9 @@ colors:
         ClearCut_Burn               : *burned_area
         # Based on "orange" palette of Flat Design Color Chart
         Cleared_Area                : &clear_cut_soil "#FDEBD0"
-        ClearCut_BareSoil           : *clear_cut_soil
+        ClearCut_Soil               : *clear_cut_soil
         Highly_Degraded             : &clear_cut_deg "#F8C471"
-        ClearCut_Regeneration       : *clear_cut_deg
+        ClearCut_Veg                : *clear_cut_deg
         # Based on "amethyst" palette from Flat Design Color Chart
         Mining                      : "#C39BD3"
         # Based on "silver" palette from Flat Design Color Chart
