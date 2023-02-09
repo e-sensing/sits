@@ -100,14 +100,8 @@ sits_config <- function(run_tests = NULL,
     do.call(.conf_set_options, args = config)
     message(paste0("Using configuration file: ", yml_file))
 
-    # load the color configuration file
-    color_yml_file <- .conf_colors_file()
-    message(paste("Color configurations found in", color_yml_file))
-    config_colors <- yaml::yaml.load_file(
-        input = color_yml_file,
-        merge.precedence = "override"
-    )
-    .conf_set_options(colors = config_colors[["colors"]])
+    # set the default color table
+    .conf_load_color_table()
 
     # try to find a valid user configuration file
     user_yml_file <- .conf_user_file()
@@ -118,26 +112,32 @@ sits_config <- function(run_tests = NULL,
             input = user_yml_file,
             merge.precedence = "override"
         )
-        config <- utils::modifyList(sits_env[["config"]],
-            config,
-            keep.null = FALSE
-        )
-
-        # set options defined by user (via YAML file)
-        # modifying existing configuration
-        .conf_set_options(
-            run_tests = config[["run_tests"]],
-            run_examples = config[["run_examples"]],
-            processing_bloat = config[["processing_bloat"]],
-            rstac_pagination_limit = config[["rstac_pagination_limit"]],
-            raster_api_package = config[["raster_api_package"]],
-            gdal_creation_options = config[["gdal_creation_options"]],
-            gdalcubes_chunk_size = config[["gdalcubes_chunk_size"]],
-            leaflet_max_megabytes = config[["leaflet_max_megabytes"]],
-            leaflet_comp_factor = config[["leaflet_comp_factor"]],
-            sources = config[["sources"]],
-            colors = config[["colors"]]
-        )
+        if (!purrr::is_null(config$colors)) {
+            user_colors <- config$colors
+            .conf_merge_colors(user_colors)
+            config$colors <- NULL
+        }
+        if (length(config) > 0 ) {
+            config <- utils::modifyList(sits_env[["config"]],
+                                        config,
+                                        keep.null = FALSE
+            )
+            # set options defined by user (via YAML file)
+            # modifying existing configuration
+            .conf_set_options(
+                run_tests = config[["run_tests"]],
+                run_examples = config[["run_examples"]],
+                processing_bloat = config[["processing_bloat"]],
+                rstac_pagination_limit = config[["rstac_pagination_limit"]],
+                raster_api_package = config[["raster_api_package"]],
+                gdal_creation_options = config[["gdal_creation_options"]],
+                gdalcubes_chunk_size = config[["gdalcubes_chunk_size"]],
+                leaflet_max_megabytes = config[["leaflet_max_megabytes"]],
+                leaflet_comp_factor = config[["leaflet_comp_factor"]],
+                sources = config[["sources"]],
+                colors = config[["colors"]]
+            )
+        }
     } else {
         message(paste(
             "To provide additional configurations, create an",
@@ -298,4 +298,88 @@ sits_list_collections <- function(source = NULL) {
         })
     })
     return(invisible(NULL))
+}
+#' @title Get color table
+#' @name .conf_load_color_table
+#' @description Loads the default color table
+#' @keywords internal
+#' @noRd
+#' @return NULL, called for side effects
+.conf_load_color_table <- function(){
+    # load the color configuration file
+    color_yml_file <- .conf_colors_file()
+    message(paste("Color configurations found in", color_yml_file))
+    config_colors <- yaml::yaml.load_file(
+        input = color_yml_file,
+        merge.precedence = "override"
+    )
+    config_colors <- config_colors$colors
+    base_names <- names(config_colors)
+    color_table <- purrr::map2_dfr(config_colors, base_names, function(cl, bn){
+        cc_tb <- tibble::tibble(name = names(cl),
+                                color = unlist(cl),
+                                group = bn)
+        return(cc_tb)
+    })
+    # set the color table
+    .conf_set_color_table(color_table)
+    return(invisible(NULL))
+}
+#' @title Set user color table
+#' @name .conf_set_color_table
+#' @description Loads a user color table
+#' @keywords internal
+#' @noRd
+#' @return NULL, called for side effects
+.conf_set_color_table <- function(color_tb) {
+    # pre condition - table contains name and hex code
+    .check_chr_contains(
+        x = colnames(color_tb),
+        contains = .conf("sits_color_table_cols"),
+        discriminator = "all_of",
+        msg = "invalid colour table - missing either name or hex columns"
+    )
+    # pre condition - table contains no duplicates
+    tbd <- dplyr::distinct(color_tb, name)
+    .check_that(nrow(tbd) == nrow(color_tb),
+                msg = "color table contains duplicate names")
+
+    # pre condition - valid hex codes?
+    .is_color <- function(x)
+    {
+        res <- try(col2rgb(x),silent = TRUE)
+        return(!"try-error" %in% class(res))
+    }
+    # check values one by one - to help user find wrong value
+    col_vls <- unname(color_tb$color)
+    purrr::map(col_vls, function(col) {
+        .check_that(.is_color(col),
+                    msg = paste0("invalid color code ", col, " in color table")
+        )
+    })
+    sits_env$color_table <- color_tb
+    return(invisible(NULL))
+}
+.conf_merge_colors <- function(user_colors) {
+    # get the current color table
+    color_table <- .conf_colors()
+    names_user_colors <- names(user_colors)
+    col_user_colors <- unname(user_colors)
+    for (i in seq_along(names_user_colors)) {
+        name <- names_user_colors[[i]]
+        col <- col_user_colors[[i]]
+        id <- which(color_table$name == name)
+        if (length(id) > 0)
+            color_table[id, "color"] <- col
+        else
+            color_table <- tibble::add_row(color_table,
+                                           name = name,
+                                           color = col,
+                                           group = "User")
+    }
+    .conf_set_color_table(color_table)
+    return(invisible(NULL))
+}
+.conf_colors <- function(){
+    return(sits_env$color_table)
 }

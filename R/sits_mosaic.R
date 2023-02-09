@@ -76,20 +76,12 @@ sits_mosaic <- function(cube,
                         output_dir = getwd(),
                         version = "v1",
                         progress = TRUE) {
-    UseMethod("sits_mosaic", cube)
-}
-
-#' @export
-sits_mosaic.class_cube <- function(cube,
-                                   crs,
-                                   roi = NULL,
-                                   multicores = 2,
-                                   output_dir = getwd(),
-                                   version = "v1",
-                                   progress = TRUE) {
     # Pre-conditions
     .check_is_raster_cube(cube)
-    .check_cube_is_class_cube(cube)
+    .check_that(
+        x = inherits(cube, c("class_cube", "uncertainty_cube")),
+        msg = "cube not supported in mosaic function"
+    )
     .check_crs(crs)
     .check_multicores(multicores)
     .check_output_dir(output_dir)
@@ -149,7 +141,7 @@ sits_mosaic.class_cube <- function(cube,
     }
     # Get band class configurations
     band_conf <- .conf_derived_band(
-        derived_class = "class_cube", band = "class"
+        derived_class = .cube_derived_class(cube), band = .cube_bands(cube)
     )
     # Generate raster mosaic
     .gdal_warp(
@@ -189,6 +181,10 @@ sits_mosaic.class_cube <- function(cube,
         tile = tile, band = .tile_bands(tile),
         version = version, output_dir = output_dir
     )
+    # Get band configs from tile
+    band_conf <- .conf_derived_band(
+        derived_class = .tile_derived_class(tile), band = .tile_bands(tile)
+    )
     # Resume feature
     if (.raster_is_valid(out_file)) {
         message("Recovery: file '", out_file, "' already exists.")
@@ -211,10 +207,10 @@ sits_mosaic.class_cube <- function(cube,
                 file = file, out_file = out_file,
                 crs = .as_crs(.tile_crs(tile)),
                 as_crs = .mosaic_crs(tile = tile, as_crs = crs),
-                multicores = 1
+                miss_value = .miss_value(band_conf), multicores = 1
             )
             tile <- .tile_class_from_file(
-                file = out_file, band = "class", base_tile = tile
+                file = out_file, band = .tile_bands(tile), base_tile = tile
             )
             return(tile)
         }
@@ -230,6 +226,7 @@ sits_mosaic.class_cube <- function(cube,
         file = file, out_file = out_file,
         roi = roi, crs = .as_crs(.tile_crs(tile)),
         as_crs = .mosaic_crs(tile = tile, as_crs = crs),
+        miss_value = .miss_value(band_conf),
         multicores = 1
     )
     # Delete temporary roi file
@@ -271,47 +268,6 @@ sits_mosaic.class_cube <- function(cube,
         "BDC" = .as_crs("+proj=aea +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs "),
         "RASTER" = .as_crs(as_crs)
     )
-}
-
-.gdal_crop_image <- function(file, out_file, roi, crs, as_crs, multicores) {
-    band_conf <- .conf_derived_band(
-        derived_class = "class_cube", band = "class"
-    )
-    gdal_params <- list(
-        "-of" = .conf("gdal_presets", "image", "of"),
-        "-co" = .conf("gdal_presets", "image", "co"),
-        "-wo" = paste0("NUM_THREADS=", multicores),
-        "-multi" = TRUE,
-        "-s_srs" = crs,
-        "-t_srs" = as_crs,
-        "-cutline" = roi,
-        "-srcnodata" = .miss_value(band_conf)
-    )
-    .gdal_warp(
-        file = out_file, base_files = file,
-        params = gdal_params, quiet = TRUE
-    )
-    out_file
-}
-
-.gdal_reproject_image <- function(file, out_file, crs, as_crs, multicores) {
-    band_conf <- .conf_derived_band(
-        derived_class = "class_cube", band = "class"
-    )
-    gdal_params <- list(
-        "-of" = .conf("gdal_presets", "image", "of"),
-        "-co" = .conf("gdal_presets", "image", "co"),
-        "-wo" = paste0("NUM_THREADS=", multicores),
-        "-multi" = TRUE,
-        "-s_srs" = crs,
-        "-t_srs" = as_crs,
-        "-srcnodata" = .miss_value(band_conf)
-    )
-    .gdal_warp(
-        file = out_file, base_files = file,
-        params = gdal_params, quiet = TRUE
-    )
-    out_file
 }
 
 .roi_write <- function(roi, output_file, quiet, ...) {

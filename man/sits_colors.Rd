@@ -2,17 +2,15 @@
 % Please edit documentation in R/sits_colors.R
 \name{sits_colors}
 \alias{sits_colors}
-\title{Function to show colors in SITS}
+\title{Function to retrieve sits color table}
 \usage{
 sits_colors()
 }
 \value{
-A ggplot2 plot
+A tibble with color names and values
 }
 \description{
-Returns a color palette for plotting
-
-Shows the default SITS colors
+Returns a color table
 }
 \examples{
 if (sits_run_examples()) {

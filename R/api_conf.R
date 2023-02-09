@@ -929,6 +929,7 @@ NULL
 
 #' @title Get the data type from a band configuration
 #' @param conf  A band definition value from config.
+#' @noRd
 #' @return  Data type associated to the configuration
 .data_type <- function(conf) {
     .as_chr(conf[["data_type"]][[1]])

@@ -2,193 +2,179 @@
 # Most classes of the "Brazilian Vegetation Manual" (IBGE,2001)
 # IPCC AFOLU, TerraClass project, IGBP Discover, Copernicus Global Land Cover
 
-# Basic palette for Amazonia and Cerrado natural veg is based on "Greens" palette expanded to 18 colors
-# colors_nat_18 <- grDevices::colorRampPalette(RColorBrewer::brewer.pal(9, "Greens"))(18)
-
-# Palette for Caatinga is based on "BuGn" palette expanded to 15 colors
-# colors_caatinga <- grDevices::colorRampPalette(RColorBrewer::brewer.pal(9,"BuGn"))(15)
-
-# Planted Forest (Silviculture) and Pasture are represented by shades of mixed "BuGn"
-# colors_mixed <- grDevices::colorRampPalette(RColorBrewer::brewer.pal(9, "BuGn"))(18)
-
-# Palette for temporary crops is ColorBrewer "YlOrBr" expanded to 18 colors
-# colors_agro <- grDevices::colorRampPalette(RColorBrewer::brewer.pal(9, "YlOrBr"))(18)
-
-# Palette for permanent crops is low end of ColorBrewer "Reds" expanded to 18 colors
-# colors_perm_agric <- grDevices::colorRampPalette(RColorBrewer::brewer.pal(9, "Reds"))(18)
-
-# Palette for deforestation and degradation is "RdPu" expanded to 18 colors
-# colors_def_deg <- grDevices::colorRampPalette(RColorBrewer::brewer.pal(9, "RdPu"))(18)
-
-# Palette for wetlands and similar is "YlGnBu" expanded to 18 colors
-# colors_water <- grDevices::colorRampPalette(RColorBrewer::brewer.pal(9, "YlGnBu"))(18)
+# Source https://htmlcolorcodes.com/color-chart/flat-design-color-chart/
 
 colors:
-        # Natural Vegetation ------------------
-        # Boreal Forest : color 17 of "Greens-18"
-        Evergreen_Needleleaf_Forests : &enf "#005723"
-        # Forest: color 16 of "Greens-18"
-        Forest                      : &forest "#006A2B"
-        Evergreen_Broadleaf_Forests : &ebf    "#1E8742"
-"
-        # Dense Woodlands and similar:  color 12 of "Greens-18"
+    Tropical_Forest:
+        # Based on "nephritis" palette of Flat Design Color Chart
+        Evergreen_Broadleaf_Forest  : &forest "#1E8449"
+        # Forest
+        Forest                      : *forest
+        Closed_Forest               : *forest
+        # Dense Woodlands and similar
+        Woodland                    : &woodlands "#27AE60"
+        Dense_Woodland              : *woodlands
+        Woody_Savanna               : *woodlands
+        Open_Forest                 : *woodlands
+        Cerradao                    : *woodlands
+        # Mixed Forest
+        Mixed_Forest                : *woodlands
+        Sparse_Forest               : *woodlands
 
-        Woodlands                   : &woodlands "#3BA558"
-        Dense_Tree_Savannas         : "#3BA558"
-        Woody_Savannas              : "#3BA558"
-        Open_Forests                : "#3BA558"
-        # Mixed Forest - color 10 of "Greens-18"
-        Mixed_Forests               : "#68BE70"
-        # Savanna and Cerrado:  color 9 of "Greens-18"
-        Savannas                    : "#7EC87E"
-        Sparse_Forests              : "#7EC87E"
-        Wooded_Grasslands           : "#7EC87E"
-        Wooded_Shrublands           : "#7EC87E"
-        Cerrado_Strictu_Sensu       : "#7EC87E"
-        Cerrado                     : "#7EC87E"
-        # Savana Parque and similar:  color 6 of "Greens-18"
-        Savanna_Parkland            : "#B9E3B2"
-        Campo_Cerrado               : "#B9E3B2"
-        Open_Cerrado                : "#B9E3B2"
-        Natural_Non_Forested        : "#B9E3B2"
-        Dense_Shrublands            : "#B9E3B2"
-        Closed_Shrublands           : "#B9E3B2"
-        Closed_Bushlands            : "#B9E3B2"
-        # Grasslands:  color 5 of "Greens-18"
-        Grasslands                  : "#CAEAC3"
-        Steppe                      : "#CAEAC3"
-        Dense_Herbaceous            : "#CAEAC3"
-        Herbaceous_Vegetation       : "#CAEAC3"
-        Natural_Herbaceous          : "#CAEAC3"
-        # Cerrado Rupestre and Rocky Savanna: color 4 of "Greens-18"
-        # Also Natural Non Vegetated
-        Rocky_Savanna               : "#E6F5E1"
-        Shrublands                  : "#E6F5E1"
-        Sparse_Shrublands           : "#E6F5E1"
-        Open_Shrublands             : "#E6F5E1"
-        # Barren or Sparsely Vegetated: color 2 of "Greens-18"
-        Barren                      : "#EEF8EB"
-        Sparsely_Vegetated          : "#EEF8EB"
-        Sparse_Herbaceous           : "#E6F5E1"
-        Bare_Sparse_Vegetation      : "#EEF8EB"
-        Bare_Soil                   : "#E57A22"
+    Savanna:
+        # Savanna and Cerrado
+        # Based on "emerald" palette of Flat Design Color Chart
+        Savanna                     : &savanna "#58D68D"
+        Wooded_Grassland            : *savanna
+        Cerrado_Strictu_Sensu       : *savanna
+        Cerrado                     : *savanna
+        Campo_Cerrado               : &campo_cerrado "#ABEBC6"
+        Savanna_Parkland            : *campo_cerrado
+        Open_Cerrado                : *campo_cerrado
 
-        # Savana Estépica (Caatinga) classes uses "BuGn-15"
-        # Savana Estepica Florestada : class 8 of "BuGn-15"
-        Deciduous_Needleleaf_Forests : "#66C2A4"
-        # Savana Estepica Arborizada : class 6 of "BuGn-15"
-        Caatinga                    : "#A0DACD"
-        Deciduous_Broadleaf_Forest  : "#66C2A4"
-        Deciduous_Forest            : "#66C2A4"
+    Deciduous_Tropical_Forests:
+        # Caatinga and decidous tropical forest
+        # Based on "green sea" palette of Flat Design Color Chart
+        Caatinga                    : &caatinga "#A2D9CE"
+        Deciduous_Forest            : *caatinga
 
-        # Mixed Classes - Secondary Vegetaton, Pasture and Silviculture
-        # Use a mixture of Green and Blue to indicate human action
-        # Secondary Vegetation : class 12 of "BuGn-18"
-        Secondary_Vegetation        : "#3BA76D"
-        # Silviculture and Planted Forest: color 9 of "BuGn-18"
-        Silviculture                : "#72C7AC"
-        Planted_Forests             : "#72C7AC"
-        # Pasture:  color 5 of "BuGn-18"
-        Pasture                     : "#CEEDE8"
+    Planted_Forest:
+        # Silviculture and Planted Forest
+        # Based on "green sea" palette of Flat Design Color Chart
+        Planted_Forest              : &planted_forest "#45B39D"
+        Silviculture                : *planted_forest
+        # Secondary Vegetation
+        # Based on "turqouise" palette from Flat Design Color Chart
+        Secondary_Vegetation        : "#48C9B0"
 
-        # Temporary Agricuture uses "YlOrBr-18" palette
-        # Cropland: color 10
-        Cropland                    : "#F98F24"
-        Croplands                   : "#F98F24"
-        Herbaceous_Croplands        : "#F98F24"
-        Broadleaf_Croplands         : "#F98F24"
-        Annual_Crop                 : "#F98F24"
-        Temporary_Crop              : "#F98F24"
+    Boreal_Temperate_Forests:
+        # Based on "turquoise" palette of Flat Design Color Chart
+        Evergreen_Needleleaf_Forest  : &enf "#1ABC9C"
+        Deciduous_Needleleaf_Forest  : &dnf "#76D7C4"
+        Deciduous_Broadleaf_Forest   : &dnf "#A3E4D7"
 
-        # Wheat uses color 1 of "YlOrBr-18"
-        Wheat                       : "#FFFFE5"
-        # Hay uses color 2 of "YlOrBr-18"
-        Hay                         : "#FFFBD1"
-        # Soy_Fallow uses color 4
-        Soy_Fallow                  : "#FEEEAA"
-        Soy                         : "#FEEEAA"
-        Soybeans                    : "#FEEEAA"
-        # Soy_Sunflower uses color 6
-        Soy_Sunflower               : "#FED879"
-        # Soy_Millet uses color 7
-        Soy_Millet                  : "#FEC95A"
-        # Soy_Sorghum uses color 7
-        Soy_Sorghum                 : "#FEC95A"
-        # Soy_Corn uses color 10
-        Soy_Corn                    : "#F98F24"
-        # Soy_Cotton uses color 12
-        Soy_Cotton                  : "#E66910"
-        # Cotton: color 13 of "YlOrBr-18"
-        Cotton                      : "#D75808"
-        Fallow_Cotton               : "#D75808"
-        Millet_Cotton               : "#D75808"
-        # Sorghum and Millet use color 14 of "YlOrBr-18"
-        Sorghum                     : "#C64902"
-        Millet                      : "#C64902"
-        # Corn uses color 15 of "YlOrBr-18"
-        Corn                        : "#AE3D03"
-        Maize                       : "#AE3D03"
-        # Beans uses color 17 of "YlOrBr-18"
-        Beans                       : "#7E2C05"
+    Grassland:
+        # Based on "sunflower" palette of Flat Design Color Chart
+        Grassland                   : &grassland "#F1C40F"
+        Steppe                      : *grassland
+        Natural_Herbaceous          : *grassland
+        # Pasture is a special case
+        # based on "green sea" palette of Flat Design Color Chart
+        Pasture                     : &pasture "#FCF3CF"
+        Dense_Herbaceous            : *pasture
+        Herbaceous_Vegetation       : *pasture
 
-        # Permanent Agriculture classes: low end of "Reds-18"
-        # Permanent Agriculture proper: color 8 of "Reds-18"
-        Permanent_Agriculture       : "#FB8666"
-        Perennial_Crop              : "#FB8666"
-        # Coffee uses color 8 of "YlOrBr-18"
-        Coffee                      : "#FB8666"
-        # Semi-perenial crops
-        # Sugarcane uses color 5 of "Reds-18"
-        Semi_Perenial_Crop          : "#FCBFA6"
-        Sugarcane                   : "#FCBFA6"
-        # Uncultivated
-        Uncultivated                : "#FEEBE1"
+    Shrubland:
+        # Based on "orange" palette of Flat Design Color Chart
+        Closed_Shrubland            : &closed_shrubland "#F39C12"
+        Wooded_Shrubland            : *closed_shrubland
+        Dense_Shrubland             : *closed_shrubland
+        Shrubland                   : &shrubland "#F8C471"
+        Open_Shrubland              : *shrubland
+        Sparse_Shrubland            : *shrubland
+        Rocky_Savanna               : *shrubland
 
-        # Deforestation, Degradation, Mining use "RdPu-18"
-        # Deforestation uses color 13 of "RdPu-18" palette
-        Deforestation               : "#C6B09D"
-        Deforestation_Mask          : "#C6B09D"
-        # Degradation uses color 9 of "RdPu-18" palette
-        Degradation                 : "#C88686"
-        # Mining uses color 5 of "RdPu-18" palette
-        Mining                      : "#FCC8C3"
+    Barren:
+        # Based on "orange" palette of Flat Design Color Chart
+        Barren                      : &barren "#FDEBD0"
+        Sparsely_Vegetated          : *barren
+        Bare_Soil                   : *barren
+        Natural_Non_Forested        : *barren
+        Nat_NonVeg                  : *barren
+        Natural_Non_Vegetated       : *barren
+        Dunes                       : "#FEF9E7"
 
-        # Water related classes use "YlGnBu-18"
-        # Mangue (Mangroves) use class 5
-        Mangrove                    : "#CBEAB3"
-        Woody_Wetlands              : "#CBEAB3"
-        # Wetlands: color 9 of "YlGnBu-18"
-        Wetlands                    : "#4FBBC1"
-        Permanent_Wetlands          : "#4FBBC1"
-        Herbaceous_Wetland          : "#4FBBC1"
-        # Water:  color 12 of the "YlGnBu-18"
-        Water                       : "#1D87BB"
+    Cropland:
+        # Based on "carrot" palette from Flat Design Color Chart
+        Cropland                    : &cropland "#F0B27A"
+        Temporary_Crop              : *cropland
+        Temporary_Agriculture       : *cropland
+        Agriculture_1_cycle         : *cropland
+        Cropland_1_cycle            : *cropland
+        Agriculture_2_cycle         : &ag_2_cycle "#EB984E"
+        Cropland_2_cycle            : *ag_2_cycle
+        Semi_Perennial_Crop         : &semi_perennial_crop "#E67E22"
+        # Sugarcane is semi perennial crop
+        Sugarcane                   : *semi_perennial_crop
+        Perennial_Crop              : &perennial_crop "#CA6F1E"
+        Perennial_Agriculture.      : *perennial_crop
+        Annual_Crop                 : *perennial_crop
+        # Coffee is perennial agriculture
+        Coffee                      : *perennial_crop
+
+        # Soybean and its variations
+        # Based on "orange" palette from Flat Design Color Chart
+        Soybeans                    : &soy "#FAD7A0"
+        Soy_Fallow                  : *soy
+        Soy                         : *soy
+        Soy_Sunflower               : "#F8C471"
+        Soy_Millet                  : &soy_millet "#F5B041"
+        Soy_Sorghum                 : *soy_millet
+        Soy_Corn                    : "#D68910"
+        Soy_Cotton                  : "#9C640C"
+
+        # Other crops
+        # Based on "pumpkin" palette from Flat Design Color Chart
+        # Cotton
+        Cotton                      : &cotton "#D35400"
+        Fallow_Cotton               : *cotton
+        Millet_Cotton               : *cotton
+        # Grains
+        Corn                        : &corn  "#DC7633"
+        Maize                       : *corn
+        Sorghum                     : &sorghum "#E59866"
+        Millet                      : *sorghum
+        Beans                       : "#EDBB99"
+        Wheat                       : "#F6DDCC"
+        # Based on "turquoise" palette of Flat Design Color Chart
+        Rice                        : "#FBEEE6"
+
+    Mosaic:
         # Mosaic classes use color 2 of "YlGn-9" Brewer palette
-        Forest_Cropland_Mosaic : "#F7FCB9"
+        Forest_Cropland_Mosaic     : "#F7FCB9"
+        Cropland_Natural_Vegetation: "#F7FCB9"
 
-        # Urban Areas use color 9 of the "RdGy-11" palette
-        Urban_Area                  : "#878787"
-        # Dunes and Snow: color 7 of the "PRGn-11"
-        Dunes                       : "#F7F7F7"
-        Snow                        : "#F7F7F7"
-        Permanent_Snow_and_Ice      : "#F7F7F7"
-        # No Class uses color 2 of the "Greys-9" palette
-        No_Class                    : "#F0F0F0"
-        Unclassified                : "#F0F0F0"
-        # PRODES Experiment
-        Burned_Area                 : "#FF4B4E"
-        Cleared_Area                : "#DAAF61"
-        Highly_Degraded             : "#C3D32F"
-        ClearCut_Burn               : "#FF4B4E"
-        ClearCut_BareSoil           : "#E57A22"
-        ClearCut_Regeneration       : "#C3D32F"
-        Non_Forest                  : "#B9608D"
+    Wetland:
+        # Based on "belize hole" palette from Flat Design Color Chart
+        Water                       : "#2980B9"
+        Wetland                     :  &wetlands "#7FB3D5"
+        Permanent_Wetland           :  *wetlands
+        # Based on "peter river" palette from Flat Design Color Chart
+        Mangrove                    : "#D4E6F1"
 
-color_aliases:
-        Closed_Forests          : *forest
-        Closed_Forest           : *forest
-        Dense_Forests           : *forest
-        Dense_Forest            : *forest
-        Forests                 : *forest
-        Dense_Woodlands         : *woodlands
+    Deforestation:
+
+        # Deforestation, Degradation, Mining
+        # Based on "pomegranate" palette from Flat Design Color Chart
+        Deforestation               : &deforestation "#D98880"
+        Deforestation_Mask          : *deforestation
+        Degradation                 : "#F2D7D5"
+        # PRODES
+        # Based on "Alizarin" palette from Flat Design Color Chart
+        Burned_Area                 : &burned_area "#EC7063"
+        ClearCut_Burn               : *burned_area
+        # Based on "orange" palette of Flat Design Color Chart
+        Cleared_Area                : &clear_cut_soil "#FDEBD0"
+        ClearCut_BareSoil           : *clear_cut_soil
+        Highly_Degraded             : &clear_cut_deg "#F8C471"
+        ClearCut_Regeneration       : *clear_cut_deg
+        # Based on "amethyst" palette from Flat Design Color Chart
+        Mining                      : "#C39BD3"
+        # Based on "silver" palette from Flat Design Color Chart
+        Non_Forest                  : "#BDC3C7"
+    Urban:
+        # Based on "wet asphalt" palette from Flat Design Color Chart
+        Urban_Area                  : "#85929E"
+
+    Snow_Ice:
+        # Based on "asbestos" palette from Flat Design Color Chart
+        Snow                        : &snow "#E5E8E8"
+        Permanent_Snow_and_Ice      : *snow
+
+    Others:
+        # No Class uses "silver" palette from Flat Design Color Chart
+        No_Class                    : &no_class "#F2F3F4"
+        Unclassified                : *no_class
+        # Cloud uses "cloud" palette from Flat Design Color Chart
+        Cloud                       : &cloud "#D0D3D4"
 

@@ -1,7 +1,11 @@
 test_that("sits colors", {
-    g <- sits_colors()
+    g <- sits_colors_show()
     expect_equal(g$labels$xmin, "x + 0.05")
     expect_equal(g$labels$label, "name")
+
+    color_tb <- sits_colors()
+    expect_equal(color_tb[1, ]$name, "Evergreen_Broadleaf_Forest")
+    expect_equal(unname(color_tb[1, ]$color), "#1E8449")
 })
 
 test_that("plot colors", {
@@ -21,19 +25,19 @@ test_that("plot colors", {
         NULL
     }, warning = function(x) x)
 
-    expect_true(grepl(pattern = "most labels", x = msg_plot1))
+    expect_true(grepl(pattern = "labels missing", x = msg_plot1))
     sits_labels(ro_class) <- c("ClearCut_Burn", "ClearCut_BareSoil",
-                               "Highly_Degraded", "FlorestA")
+                               "Highly_Degraded", "Forest")
     msg_plot2 <- tryCatch({
         plot(ro_class)
         NULL
     }, warning = function(x) x)
-    expect_true(grepl(pattern = "some labels", x = msg_plot2))
+    expect_true(purrr::is_null(msg_plot2))
 })
 
 test_that("colors_get", {
-    labels <- c("Forest", "Croplands", "Pasture")
+    labels <- c("Forest", "Cropland", "Pasture")
     colors <- suppressWarnings(sits:::.colors_get(labels))
     expect_length(colors, 3)
-    expect_equal(colors[["Forest"]], "#1E8742")
+    expect_equal(colors[["Forest"]], "#1E8449")
 })
