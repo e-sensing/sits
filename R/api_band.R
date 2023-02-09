@@ -72,3 +72,7 @@
 .band_derived <- function(band) {
     gsub("_", "-", tolower(band))
 }
+
+.band_samples <- function(band) {
+    gsub("_", "-", toupper(band))
+}
