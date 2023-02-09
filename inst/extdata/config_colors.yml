@@ -174,7 +174,7 @@ colors:
     Others:
         # No Class uses "silver" palette from Flat Design Color Chart
         No_Class                    : &no_class "#F2F3F4"
-        Unclassified                : *no_class
+        No_Samples                  : *no_class
         # Cloud uses "cloud" palette from Flat Design Color Chart
         Cloud                       : &cloud "#D0D3D4"
 

@@ -106,7 +106,6 @@ sits_colors_reset <- function() {
     # rename colors to fit the label order
     # and deal with duplicate labels
     colors <- colors[labels]
-    names(colors) <- seq_along(labels)
     # post-condition
     .check_chr(colors,
                len_min = length(labels),
