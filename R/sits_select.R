@@ -49,7 +49,7 @@ sits_select.sits <- function(data,
                              start_date = NULL,
                              end_date = NULL, ...) {
     # Pre-condition
-    .check_is_raster_cube(data)
+    .check_samples_ts(data)
     # Filter bands
     if (!is.null(bands)) {
         # bands names in SITS are uppercase
