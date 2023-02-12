@@ -501,7 +501,7 @@ sits_view.raster_cube <- function(x, ...,
         labels <- sits_labels(class_cube)
         names(labels) <- seq_along(labels)
         # obtain the colors
-        colors <- .view_get_colors(
+        colors <- .colors_get(
             labels = labels,
             legend = legend,
             palette = palette
@@ -605,7 +605,7 @@ sits_view.class_cube <- function(x, ...,
     labels <- sits_labels(cube)
     names(labels) <- seq_along(labels)
     # obtain the colors
-    colors <- .view_get_colors(
+    colors <- .colors_get(
         labels = labels,
         legend = legend,
         palette = palette
@@ -718,37 +718,6 @@ sits_view.probs_cube <- function(x, ...) {
 #'
 sits_view.default <- function(x, ...) {
     stop(paste0("sits_view not available for object of class ", class(x)[1]))
-}
-#' @title  Return the colors associated to the classified image
-#' @name .view_get_colors
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  labels        Labels of the classified cube.
-#' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Palette provided in the configuration file.
-#' @return               Colors for legend of classified image.
-#'
-#'
-.view_get_colors <- function(labels, legend, palette) {
-    # if colors are not specified, get them from the configuration file
-    if (purrr::is_null(legend)) {
-        colors <- .colors_get(
-            labels = labels,
-            palette = palette,
-            rev = TRUE
-        )
-    } else {
-        .check_chr_within(
-            x = labels,
-            within = names(legend),
-            msg = "some labels are missing from the legend"
-        )
-        colors <- unname(legend[labels])
-        names(colors) <- seq_along(labels)
-    }
-    return(colors)
 }
 #' @title  Return the cell size for the image to be resamples
 #' @name .view_resample_size
