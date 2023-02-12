@@ -112,7 +112,7 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
                                     multicores = 2,
                                     progress = TRUE) {
     # Pre-conditions
-    .check_samples_ts(data)
+    .check_samples_train(data)
     # Transform endmembers to tibble
     em <- .endmembers_as_tbl(endmembers)
     # Check endmember format

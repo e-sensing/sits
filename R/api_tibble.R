@@ -312,6 +312,7 @@
     }
     # Pack time series
     value <- tidyr::nest(value, time_series = -dplyr::all_of(.ts_cols))
+    x <- x[.ts_sample_id(value), ]
     x[["time_series"]] <- value[["time_series"]]
     # Return samples
     x
@@ -319,6 +320,10 @@
 
 .ts_index <- function(ts) {
     .as_date(ts[["Index"]])
+}
+
+.ts_sample_id <- function(ts) {
+    ts[["sample_id"]]
 }
 
 .ts_bands <- function(ts) {
@@ -333,6 +338,40 @@
     }
     # Select the same bands as in the first sample
     ts <- ts[unique(c(.ts_cols, "Index", bands))]
+    # Return time series
+    ts
+}
+
+.ts_start_date <- function(ts) {
+    # TODO: create a utility function instead. See .by() function
+    .as_date(unname(tapply(
+        as.character(.ts_index(ts)), .ts_sample_id(ts), min, simplify = FALSE
+    )))
+}
+
+.ts_min_date <- function(ts) {
+    min(.ts_index(ts))
+}
+
+.ts_end_date <- function(ts) {
+    .as_date(unname(tapply(
+        as.character(.ts_index(ts)), .ts_sample_id(ts), max, simplify = FALSE
+    )))
+}
+
+.ts_max_date <- function(ts) {
+    max(.ts_index(ts))
+}
+
+.ts_filter_interval <- function(ts, start_date, end_date) {
+    if (!.has(start_date)) {
+        start_date <- .ts_min_date(ts)
+    }
+    if (!.has(end_date)) {
+        end_date <- .ts_max_date(ts)
+    }
+    # Filter the interval period
+    ts <- ts[.ts_index(ts) >= start_date & .ts_index(ts) <= end_date, ]
     # Return time series
     ts
 }
@@ -368,9 +407,22 @@
     # Bands of the first sample governs whole samples data
     setdiff(names(.sits_ts(samples)), "Index")
 }
+
 .sits_select_bands <- function(samples, bands) {
     # Filter samples
     .ts(samples) <- .ts_select_bands(ts = .ts(samples), bands = bands)
+    # Return samples
+    samples
+}
+
+.sits_filter_interval <- function(samples, start_date, end_date) {
+    # Filter interval
+    .ts(samples) <- .ts_filter_interval(
+        ts = .ts(samples), start_date = start_date, end_date = end_date
+    )
+    # Update start_date and end_date columns with new values
+    samples[["start_date"]] <- .ts_start_date(.ts(samples))
+    samples[["end_date"]] <- .ts_end_date(.ts(samples))
     # Return samples
     samples
 }

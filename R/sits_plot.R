@@ -979,6 +979,7 @@ plot.class_cube <- function(x, y, ...,
         legend = legend,
         palette = palette
     )
+    names(colors) <- seq_along(labels)
     # size of data to be read
     size <- .plot_read_size(tile)
     # select the image to be plotted
