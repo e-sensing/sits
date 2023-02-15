@@ -169,12 +169,12 @@ colors:
     Snow_Ice:
         # Based on "asbestos" palette from Flat Design Color Chart
         Snow                        : &snow "#E5E8E8"
-        Permanent_Snow_and_Ice      : *snow
 
     Others:
         # No Class uses "silver" palette from Flat Design Color Chart
         No_Class                    : &no_class "#F2F3F4"
         No_Samples                  : *no_class
+        Unclassified                : *no_class
         # Cloud uses "cloud" palette from Flat Design Color Chart
         Cloud                       : &cloud "#D0D3D4"
 

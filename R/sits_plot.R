@@ -974,7 +974,7 @@ plot.class_cube <- function(x, y, ...,
     labels <- sits_labels(tile)
     names(labels) <- seq_along(labels)
     # obtain the colors
-    colors <- .view_get_colors(
+    colors <- .colors_get(
         labels = labels,
         legend = legend,
         palette = palette
@@ -999,6 +999,8 @@ plot.class_cube <- function(x, y, ...,
     stars_obj <- stats::setNames(stars_obj, "labels")
 
     # plot using tmap
+    # tmap requires numbers, not names
+    names(colors) <- seq_along(names(colors))
     p <- suppressMessages(
         tmap::tm_shape(stars_obj) +
             tmap::tm_raster(
@@ -1623,7 +1625,7 @@ plot.torch_model <- function(x, y, ...) {
         palette = palette,
         rev = TRUE
     )
-    colors_clust <- colors[data_labels]
+    colors_leg <- colors[unique(data_labels)]
 
     # set the visualization params for dendrogram
     dend <- dend %>%
@@ -1633,7 +1635,7 @@ plot.torch_model <- function(x, y, ...) {
         ) %>%
         dendextend::set(
             what = "branches_k_color",
-            value = colors_clust,
+            value = colors,
             k = length(data_labels)
         )
 
@@ -1650,7 +1652,7 @@ plot.torch_model <- function(x, y, ...) {
 
     # plot legend
     graphics::legend("topright",
-        fill = colors,
+        fill = colors_leg,
         legend = sits_labels(data)
     )
     return(invisible(dend))
