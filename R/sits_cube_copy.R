@@ -96,7 +96,7 @@ sits_cube_copy <- function(cube,
         .tile_start_date(asset), output_dir = output_dir, ext = "tif"
     )
     # Resume feature
-    if (.raster_is_valid(out_file)) {
+    if (.raster_is_valid(out_file, output_dir = output_dir)) {
         # # Callback final tile classification
         # .callback(process = "tile_classification", event = "recovery",
         #           context = environment())
