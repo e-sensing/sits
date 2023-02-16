@@ -967,10 +967,28 @@
     UseMethod(".raster_missing_value", pkg_class)
 }
 
-.raster_is_valid <- function(files) {
+.raster_is_valid <- function(files, output_dir = NULL) {
     # resume processing in case of failure
     if (!all(file.exists(files))) {
         return(FALSE)
+    }
+    # check if files were already checked before
+    checked_file <- NULL
+    checked <- character(0)
+    if (!is.null(output_dir)) {
+        checked_file <- .file_path(
+            ".checked",
+            ext = ".rds",
+            output_dir = file.path(output_dir, ".sits"),
+            create_dir = TRUE
+        )
+        if (file.exists(checked_file)) {
+            checked <- readRDS(checked_file)
+        }
+    }
+    files <- files[!files %in% checked]
+    if (length(files) == 0) {
+        return(TRUE)
     }
     # try to open the file
     r_obj <- .try({
@@ -987,7 +1005,7 @@
     # if file can be opened, check if the result is correct
     # this file will not be processed again
     # Verify if the raster is corrupted
-    .try({
+    check <- .try({
         r_obj[.raster_ncols(r_obj) * .raster_nrows(r_obj)]
         TRUE
     },
@@ -995,6 +1013,13 @@
         unlink(files)
         FALSE
     })
+    # Update checked files
+    if (!is.null(checked_file) && check) {
+        checked <- c(checked, files)
+        saveRDS(checked, checked_file)
+    }
+    # Return check
+    check
 }
 
 .raster_write_block <- function(files, block, bbox, values, data_type,
