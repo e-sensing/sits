@@ -755,3 +755,7 @@ NULL
     # Return cube
     cube
 }
+
+.cube_contains_cloud <- function(cube) {
+    slider::slide_lgl(cube, .tile_contains_cloud)
+}

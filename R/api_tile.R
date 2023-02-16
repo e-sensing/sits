@@ -935,7 +935,7 @@ NULL
 }
 
 .tile_contains_cloud <- function(tile) {
-    .source_cloud() %in% .tile_bands(tile)
+    .fi_contains_cloud(.fi(tile))
 }
 
 .tile_contains_roi <- function(tile, roi) {
