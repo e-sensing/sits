@@ -252,7 +252,7 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
         date = .tile_start_date(feature), output_dir = output_dir
     )
     # Resume feature
-    if (.raster_is_valid(out_files)) {
+    if (.raster_is_valid(out_files, output_dir = output_dir)) {
         # # Callback final tile classification
         # .callback(process = "mixtureModel", event = "recovery",
         #           context = environment())
