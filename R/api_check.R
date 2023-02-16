@@ -1633,8 +1633,11 @@
     ts <- .sits_ts(data)
     # check there is an Index column
     .check_that(x = "Index" %in% colnames(ts))
-    # check there are no NA in distances
-    .check_that(x = !(anyNA(ts)), msg = "samples contain NA values")
+    # check if all samples have the same bands
+    n_bands <- unique(lengths(data[["time_series"]]))
+    .check_that(length(n_bands) == 1,
+                local_msg = "samples with different bands",
+                msg = "inconsistent samples")
 }
 
 #' @title Can the input data be used for training?
@@ -1653,6 +1656,18 @@
         msg = "invalid labels in samples data"
     )
     .check_samples_ts(data)
+    # Get unnested time series
+    ts <- .ts(data)
+    # check there are no NA in distances
+    .check_that(x = !(anyNA(ts)), msg = "samples contain NA values")
+    # check samples timeline
+    n_times <- unique(unlist(tapply(
+        .ts_sample_id(ts), .ts_sample_id(ts), length, simplify = FALSE
+    ), use.names = FALSE))
+    .check_that(length(n_times) == 1,
+                local_msg = "samples contain timelines with different lengths",
+                msg = "inconsistent samples")
+
 }
 #' @title Is the samples_validation object valid?
 #' @name .check_samples_validation

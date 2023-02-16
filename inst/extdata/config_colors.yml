@@ -155,9 +155,9 @@ colors:
         ClearCut_Burn               : *burned_area
         # Based on "orange" palette of Flat Design Color Chart
         Cleared_Area                : &clear_cut_soil "#FDEBD0"
-        ClearCut_BareSoil           : *clear_cut_soil
+        ClearCut_Soil               : *clear_cut_soil
         Highly_Degraded             : &clear_cut_deg "#F8C471"
-        ClearCut_Regeneration       : *clear_cut_deg
+        ClearCut_Veg                : *clear_cut_deg
         # Based on "amethyst" palette from Flat Design Color Chart
         Mining                      : "#C39BD3"
         # Based on "silver" palette from Flat Design Color Chart
@@ -169,11 +169,11 @@ colors:
     Snow_Ice:
         # Based on "asbestos" palette from Flat Design Color Chart
         Snow                        : &snow "#E5E8E8"
-        Permanent_Snow_and_Ice      : *snow
 
     Others:
         # No Class uses "silver" palette from Flat Design Color Chart
         No_Class                    : &no_class "#F2F3F4"
+        No_Samples                  : *no_class
         Unclassified                : *no_class
         # Cloud uses "cloud" palette from Flat Design Color Chart
         Cloud                       : &cloud "#D0D3D4"

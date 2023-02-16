@@ -15,6 +15,29 @@
 sits_colors <- function() {
     return(.conf_colors())
 }
+#' @title Function to retrieve sits color value
+#' @name sits_color_value
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Returns a color value based on name
+#' @return              A color value used in sits
+#'
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # show the names of the colors supported by SITS
+#'     sits_color_value("Water")
+#' }
+#' @export
+#'
+sits_color_value <- function(name) {
+    col_tab <- dplyr::filter(.conf_colors(),
+                             .data[["name"]] == !!name)
+    .check_that(
+        nrow(col_tab) == 1,
+        msg = "Class name not available in default sits color table"
+    )
+    return(unnamed(col_tab$color))
+}
 #' @title Function to show colors in SITS
 #' @name sits_colors_show
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -68,41 +91,62 @@ sits_colors_reset <- function() {
 #' @noRd
 #' @return colors required to display the labels
 .colors_get <- function(labels,
-                         palette = "Harmonic",
-                         rev = TRUE) {
+                        palette = "Spectral",
+                        legend = NULL,
+                        rev = TRUE) {
 
-    # ensure labels are unique
-    labels <- unique(labels)
-    # get the color table
+    # Get the SITS Color table
     color_tb <- .conf_colors()
-    # if labels are included in the config palette, use them
-    if (all(labels %in% color_tb$name)) {
-        colors <- purrr::map_chr(labels, function(l){
-            col <- color_tb %>%
-                dplyr::filter(.data[["name"]] == l) %>%
-                dplyr::pull(color)
-            return(col)
-        })
-        names(colors) <- labels
-    } else {
-        labels_found <- labels[labels %in% color_tb$name]
-        missing_labels <- unique(labels[!(labels %in% labels_found)])
-        warning("labels missing in color table: ",
-                    paste0(missing_labels, collapse = ", "),
-                    call. = FALSE)
-        warning("using hcl_color palette ", palette, call. = FALSE)
+    # Try to find colors in the SITS color palette
+    names_tb <- dplyr::filter(color_tb, .data[["name"]] %in% labels)$name
+    # find the labels that exist in the color table
+    labels_exist <- labels[labels %in% names_tb]
+    # get the colors for the names that exist
+    colors <- purrr::map_chr(labels_exist, function(l){
+        col <- color_tb %>%
+            dplyr::filter(.data[["name"]] == l) %>%
+            dplyr::pull(color)
+        return(col)
+    })
+    # get the names of the colors that exist in the SITS color table
+    names(colors) <- labels_exist
 
-        # get the number of labels
-        n_labels <- length(labels)
-        # generate a set of hcl colors
-        colors <- grDevices::hcl.colors(
-            n = n_labels,
+    # if there is a legend?
+    if (!purrr::is_null(legend)) {
+        # what are the names in the legend that are in the labels?
+        labels_leg <- labels[labels %in% names(legend)]
+        # what are the color labels that are included in the legend?
+        colors_leg <- legend[labels_leg]
+        # join color names in the legend to those in default colors
+        colors <- c(
+            colors_leg,
+            colors[!names(colors) %in% names(colors_leg)]
+        )
+    }
+    # are there any colors missing?
+    if (!all(labels %in% names(colors))) {
+        missing <- labels[!labels %in% names(colors)]
+        warning("missing colors for labels ",
+                paste(missing, collapse = ", ")
+        )
+        warning("using palette ", palette, " for missing colors")
+        # grDevices does not work with one color missing
+
+        colors_pal <- grDevices::hcl.colors(
+            n = max(2, length(missing)),
             palette = palette,
             alpha = 1,
             rev = rev
         )
-        names(colors) <- labels
+        # if there is only one color, get it
+        colors_pal <- colors_pal[1:length(missing)]
+        names(colors_pal) <- missing
+        # put all colors together
+        colors <- c(colors, colors_pal)
     }
+    # rename colors to fit the label order
+    # and deal with duplicate labels
+    colors <- colors[labels]
     # post-condition
     .check_chr(colors,
                len_min = length(labels),

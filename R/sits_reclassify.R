@@ -63,7 +63,7 @@
 #'         parse_info = c("X1", "X2", "tile", "start_date", "end_date",
 #'                        "band", "version"),
 #'         bands = "class",
-#'         labels = c("ClearCut_Fire", "ClearCut_BareSoil",
+#'         labels = c("ClearCut_Burn", "ClearCut_Soil",
 #'                    "ClearCut_Veg", "Forest")
 #'     )
 #'
