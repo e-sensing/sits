@@ -679,7 +679,7 @@ NULL
 #' @export
 .cube_paths.raster_cube <- function(cube) {
     slider::slide_chr(cube, function(tile) {
-        .fi_path(.fi(.tile(tile)))
+        .fi_paths(.fi(.tile(tile)))
     })
 }
 .cube_is_local <- function(cube) {
