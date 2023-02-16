@@ -74,7 +74,7 @@
         if (!is.null(sync_fn)) {
             sync_fn(round)
         }
-        jobs <- slider::slide(round, identity)
+        round <- slider::slide(round, identity)
         .sits_parallel_map(round, fn, ..., progress = progress)
     }), recursive = FALSE)
 }
