@@ -113,7 +113,7 @@ sits_mosaic <- function(cube,
 .mosaic_merge_tiles <- function(cube, crs, multicores, output_dir, version) {
     # Generate a vrt file
     vrt_file <- tempfile(fileext = ".vrt")
-    cube_files <- .cube_paths(cube)
+    cube_files <- unlist(.cube_paths(cube))
     .gdal_buildvrt(
         file = vrt_file, base_files = cube_files, quiet = TRUE
     )

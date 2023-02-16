@@ -683,7 +683,7 @@ NULL
     })
 }
 .cube_is_local <- function(cube) {
-    all(.file_is_local(.file_remove_vsi(.cube_paths(cube))))
+    all(.file_is_local(.file_remove_vsi(unlist(.cube_paths(cube)))))
 }
 #' @title Filter the cube using tile names
 #' @noRd
