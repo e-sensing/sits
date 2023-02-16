@@ -91,11 +91,10 @@ sits_regularize <- function(cube,
     # Pre-conditions
     .check_is_raster_cube(cube)
     # Does cube contain cloud band?
-    .check_that(
-        .band_cloud() %in% .cube_bands(cube),
-        local_msg = "cube does not have cloud band",
-        msg = "invalid cube"
-    )
+    if (!all(.cube_contains_cloud(cube))) {
+        warning("Cloud band not found in provided cube. 'sits_regularize()' ",
+                "will just fill nodata values.", call. = FALSE)
+    }
     .period_check(period)
     .check_num_parameter(res, exclusive_min = 0)
     if (.has(roi)) {
