@@ -19,6 +19,7 @@
 #' @param  tile            Single tile of a data cube.
 #' @param  band            Band to be produced.
 #' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
+#' @param  block           Optimized block to be read into memory.
 #' @param  roi             Region of interest.
 #' @param  filter_fn       Smoothing filter function to be applied to the data.
 #' @param  impute_fn       Impute function to replace NA.
@@ -27,7 +28,7 @@
 #' @param  verbose         Print processing information?
 #' @param  progress        Show progress bar?
 #' @return List of the classified raster layers.
-.classify_tile  <- function(tile, band, ml_model, roi, filter_fn, impute_fn,
+.classify_tile  <- function(tile, band, ml_model, block, roi, filter_fn, impute_fn,
                             output_dir, version, verbose, progress) {
 
     # Output file
@@ -58,7 +59,7 @@
                 tile[["tile"]], "' at ", tile_start_time)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tile, overlap = 0)
+    chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
     # By default, update_bbox is FALSE
     update_bbox <- FALSE
     if (.has(roi)) {
