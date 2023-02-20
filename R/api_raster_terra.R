@@ -73,7 +73,7 @@
 #' @noRd
 #' @export
 .raster_file_blocksize.terra <- function(r_obj) {
-        block_size <- c(terra::fileBlocksize(r_obj))
+        block_size <- c(terra::fileBlocksize(r_obj[[1]]))
         names(block_size) <- c("nrows", "ncols")
 
         return(block_size)

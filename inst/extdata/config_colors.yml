@@ -168,7 +168,7 @@ colors:
 
     Snow_Ice:
         # Based on "asbestos" palette from Flat Design Color Chart
-        Snow                        : &snow "#E5E8E8"
+        Snow_Ice                    : &snow "#E5E8E8"
 
     Others:
         # No Class uses "silver" palette from Flat Design Color Chart
