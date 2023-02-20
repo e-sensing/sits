@@ -80,7 +80,8 @@ sits_smooth <- function(cube,
                         memsize = 4,
                         multicores = 2,
                         output_dir = getwd(),
-                        version = "v1") {
+                        version = "v1",
+                        progress = TRUE) {
 
     # Check if cube has probability data
     .check_is_probs_cube(cube)
@@ -139,7 +140,8 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               multicores = 2,
                               memsize = 4,
                               output_dir = getwd(),
-                              version = "v1") {
+                              version = "v1",
+                              progress = TRUE) {
     # Smooth parameters checked in smooth function creation
     # Create smooth function
     smooth_fn <- .smooth_fn_bayes(
@@ -160,7 +162,8 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             overlap = overlap,
             smooth_fn = smooth_fn,
             output_dir = output_dir,
-            version = version
+            version = version,
+            progress = progress
         )
         return(probs_tile)
     })
@@ -169,9 +172,14 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 #' @rdname sits_smooth
 #' @export
 sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
-                                  window_size = 5, sigma = 8, tau = 0.1,
-                                  multicores = 2, memsize = 4,
-                                  output_dir = getwd(), version = "v1") {
+                                  window_size = 5,
+                                  sigma = 8,
+                                  tau = 0.1,
+                                  multicores = 2,
+                                  memsize = 4,
+                                  output_dir = getwd(),
+                                  version = "v1",
+                                  progress = TRUE) {
     # Smooth parameters checked in smooth function creation
     # Create smooth function
     smooth_fn <- .smooth_fn_bilat(
@@ -184,8 +192,13 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
     probs_cube <- .cube_foreach_tile(cube, function(tile) {
         # Smooth the data
         probs_tile <- .smooth_tile(
-            tile = tile, band = "bilat", overlap = overlap,
-            smooth_fn = smooth_fn, output_dir = output_dir, version = version
+            tile = tile,
+            band = "bilat",
+            overlap = overlap,
+            smooth_fn = smooth_fn,
+            output_dir = output_dir,
+            version = version,
+            progress = progress
         )
         return(probs_tile)
     })
@@ -195,7 +208,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
 #---- internal functions ----
 
 .smooth_tile <- function(tile, band, overlap, smooth_fn, output_dir,
-                         version) {
+                         version, progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version,
@@ -261,7 +274,7 @@ sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
         gc()
         # Return block file
         block_file
-    })
+    }, progress = progress)
     # Merge blocks into a new probs_cube tile
     probs_tile <- .tile_probs_merge_blocks(
         file = out_file, band = band, labels = .tile_labels(tile),

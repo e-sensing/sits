@@ -6,7 +6,8 @@
                               overlap,
                               uncert_fn,
                               output_dir,
-                              version) {
+                              version,
+                              progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile,
@@ -82,7 +83,7 @@
         gc()
         # Return block file
         block_file
-    })
+    }, progress = progress)
     # Merge blocks into a new uncertainty_cube tile
     uncert_tile <- .tile_uncertainty_merge_blocks(
         file = out_file,

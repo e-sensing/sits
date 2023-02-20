@@ -46,8 +46,11 @@
 #'     plot(label_cube)
 #' }
 #' @export
-sits_label_classification <- function(cube, memsize = 4, multicores = 2,
-                                      output_dir = getwd(), version = "v1") {
+sits_label_classification <- function(cube, memsize = 4,
+                                      multicores = 2,
+                                      output_dir = getwd(),
+                                      version = "v1",
+                                      progress = TRUE) {
 
     # Pre-conditions - Check parameters
     .check_is_probs_cube(cube)
@@ -89,7 +92,8 @@ sits_label_classification <- function(cube, memsize = 4, multicores = 2,
 sits_label_classification.probs_cube <- function(cube, memsize = 4,
                                                  multicores = 2,
                                                  output_dir = getwd(),
-                                                 version = "v1") {
+                                                 version = "v1",
+                                                 progress = TRUE) {
     # Labeling parameters checked in label function
     # Create label classification function
     label_fn <- .label_fn_majority()
@@ -97,8 +101,12 @@ sits_label_classification.probs_cube <- function(cube, memsize = 4,
     class_cube <- .cube_foreach_tile(cube, function(tile) {
         # Label the data
         class_tile <- .label_tile(
-            tile = tile, band = "class", label_fn = label_fn,
-            output_dir = output_dir, version = version
+            tile = tile,
+            band = "class",
+            label_fn = label_fn,
+            output_dir = output_dir,
+            version = version,
+            progress = progress
         )
         return(class_tile)
     })

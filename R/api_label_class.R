@@ -1,7 +1,7 @@
 
 #---- internal functions ----
 
-.label_tile  <- function(tile, band, label_fn, output_dir, version) {
+.label_tile  <- function(tile, band, label_fn, output_dir, version, progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
@@ -63,7 +63,7 @@
         gc()
         # Returned value
         block_file
-    })
+    }, progress = progress)
     # Merge blocks into a new class_cube tile
     class_tile <- .tile_class_merge_blocks(
         file = out_file, band = band, labels = .tile_labels(tile),

@@ -62,7 +62,8 @@ sits_uncertainty <- function(cube,
                              memsize = 4,
                              multicores = 2,
                              output_dir = getwd(),
-                             version = "v1") {
+                             version = "v1",
+                             progress = TRUE) {
 
     # Check if cube has probability data
     .check_is_probs_cube(cube)
@@ -113,7 +114,8 @@ sits_uncertainty.least <- function(cube,
                                    memsize = 4,
                                    multicores = 2,
                                    output_dir = getwd(),
-                                   version = "v1") {
+                                   version = "v1",
+                                   progress = TRUE) {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
     uncert_fn <- .uncertainty_fn_least(window_size = window_size)
@@ -129,7 +131,8 @@ sits_uncertainty.least <- function(cube,
             overlap = overlap,
             uncert_fn = uncert_fn,
             output_dir = output_dir,
-            version = version
+            version = version,
+            progress = progress
         )
         return(uncert_tile)
     })
@@ -144,7 +147,8 @@ sits_uncertainty.entropy <- function(cube,
                                      memsize = 4,
                                      multicores = 2,
                                      output_dir = getwd(),
-                                     version = "v1") {
+                                     version = "v1",
+                                     progress = TRUE) {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
     uncert_fn <- .uncertainty_fn_entropy(window_size = window_size)
@@ -160,7 +164,8 @@ sits_uncertainty.entropy <- function(cube,
             overlap = overlap,
             uncert_fn = uncert_fn,
             output_dir = output_dir,
-            version = version
+            version = version,
+            progress = progress
         )
         return(uncert_tile)
     })
@@ -175,7 +180,8 @@ sits_uncertainty.margin <- function(cube,
                                     memsize = 4,
                                     multicores = 2,
                                     output_dir = getwd(),
-                                    version = "v1") {
+                                    version = "v1",
+                                    progress = TRUE) {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
     uncert_fn <- .uncertainty_fn_margin(window_size = window_size)
@@ -191,7 +197,8 @@ sits_uncertainty.margin <- function(cube,
             overlap = overlap,
             uncert_fn = uncert_fn,
             output_dir = output_dir,
-            version = version
+            version = version,
+            progress = progress
         )
         return(uncert_tile)
     })
