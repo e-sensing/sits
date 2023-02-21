@@ -4,6 +4,7 @@
                         collection,
                         data_dir,
                         parse_info,
+                        version,
                         delim,
                         tiles,
                         bands,
@@ -69,6 +70,7 @@
     items <- .local_cube_items_new(
         data_dir = data_dir,
         parse_info = parse_info,
+        version = version,
         delim = delim,
         start_date = start_date,
         end_date = end_date,
@@ -151,6 +153,7 @@
 #' @noRd
 .local_cube_items_new <- function(data_dir,
                                   parse_info,
+                                  version,
                                   delim,
                                   start_date,
                                   end_date,
@@ -235,6 +238,8 @@
             dplyr::mutate(path = paste(data_dir, img_files_filt, sep = "/")) %>%
             # filter by the band
             dplyr::filter(.data[["band"]] == !!band) %>%
+            # filter by the version
+            dplyr::filter(.data[["version"]] == !!version) %>%
             # select the relevant parts
             dplyr::select(
                 "tile",
