@@ -55,7 +55,7 @@ NULL
 #'   Returns \code{Date} or \code{NULL} if value is empty.
 #' @noRd
 .as_date <- function(x) {
-    .default(lubridate::as_date(unlist(x, recursive = FALSE)))
+    .default(lubridate::as_date(x))
 }
 
 #' @title Check if an input has a value or not. Any zero length
