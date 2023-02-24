@@ -344,9 +344,9 @@
 
 .ts_start_date <- function(ts) {
     # TODO: create a utility function instead. See .by() function
-    .as_date(unname(tapply(
+    .as_date(unlist(unname(tapply(
         as.character(.ts_index(ts)), .ts_sample_id(ts), min, simplify = FALSE
-    )))
+    ))))
 }
 
 .ts_min_date <- function(ts) {
@@ -354,9 +354,9 @@
 }
 
 .ts_end_date <- function(ts) {
-    .as_date(unname(tapply(
+    .as_date(unlist(unname(tapply(
         as.character(.ts_index(ts)), .ts_sample_id(ts), max, simplify = FALSE
-    )))
+    ))))
 }
 
 .ts_max_date <- function(ts) {
