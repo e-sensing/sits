@@ -172,6 +172,7 @@ sits_colors_reset <- function() {
     color_tb <- tibble::add_column(color_tb,
                                 y = seq(0, n_colors - 1) %% n_rows_show,
                                 x = seq(0, n_colors - 1) %/% n_rows_show)
+    y_size <- 1.2
     g <- ggplot2::ggplot() +
          ggplot2::scale_x_continuous(name = "",
                                     breaks = NULL,
@@ -183,12 +184,13 @@ sits_colors_reset <- function() {
                            mapping = ggplot2::aes(xmin = x + 0.05,
                                                   xmax = x + 0.95,
                                                   ymin = y + 0.05,
-                                                  ymax = y + 0.95),
+                                                  ymax = y + y_size,
+                                                  ),
                            fill = color_tb$color
         ) +
         ggplot2::geom_text(data = color_tb,
                            mapping = ggplot2::aes(x = x + 0.5,
-                                                  y = y + 0.70,
+                                                  y = y + 0.8,
                                                   label = name),
                            colour = "grey15",
                            hjust = 0.5,

@@ -55,7 +55,7 @@ colors:
 
     Grassland:
         # Based on "sunflower" palette of Flat Design Color Chart
-        Grassland                   : &grassland "#F1C40F"
+        Grassland                   : &grassland "#F7DC6F"
         Steppe                      : *grassland
         Natural_Herbaceous          : *grassland
         # Pasture is a special case
@@ -78,7 +78,6 @@ colors:
         # Based on "orange" palette of Flat Design Color Chart
         Barren                      : &barren "#FDEBD0"
         Sparsely_Vegetated          : *barren
-        Bare_Soil                   : *barren
         Natural_Non_Forested        : *barren
         Nat_NonVeg                  : *barren
         Natural_Non_Vegetated       : *barren
@@ -145,18 +144,20 @@ colors:
     Deforestation:
 
         # Deforestation, Degradation, Mining
-        # Based on "pomegranate" palette from Flat Design Color Chart
-        Deforestation               : &deforestation "#D98880"
+        # Based on "Alizarin" palette from Flat Design Color Chart
+        Deforestation               : &deforestation "#FDEDEC"
         Deforestation_Mask          : *deforestation
-        Degradation                 : "#F2D7D5"
+        Degradation                 : "#F5B7B1"
         # PRODES
         # Based on "Alizarin" palette from Flat Design Color Chart
         Burned_Area                 : &burned_area "#EC7063"
         ClearCut_Burn               : *burned_area
-        # Based on "orange" palette of Flat Design Color Chart
-        Cleared_Area                : &clear_cut_soil "#FDEBD0"
+        # Based on "sunflower" palette of Flat Design Color Chart
+        Cleared_Area                : &clear_cut_soil "#F1C40F"
         ClearCut_Soil               : *clear_cut_soil
-        Highly_Degraded             : &clear_cut_deg "#F8C471"
+        Bare_Soil                   : *clear_cut_soil
+        # Based on "nephritis" palette of Flat Design Color Chart
+        Highly_Degraded             : &clear_cut_deg "#D4EFDF"
         ClearCut_Veg                : *clear_cut_deg
         # Based on "amethyst" palette from Flat Design Color Chart
         Mining                      : "#C39BD3"
@@ -168,7 +169,7 @@ colors:
 
     Snow_Ice:
         # Based on "asbestos" palette from Flat Design Color Chart
-        Snow                        : &snow "#E5E8E8"
+        Snow_Ice                    : &snow "#E5E8E8"
 
     Others:
         # No Class uses "silver" palette from Flat Design Color Chart

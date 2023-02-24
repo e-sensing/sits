@@ -40,6 +40,7 @@
 #' @param data_dir     Local directory where images are stored
 #'                     (for local cubes).
 #' @param parse_info   Parsing information for local files.
+#' @param version      Version of the classified and/or labelled files.
 #' @param delim        Delimiter for parsing local files.
 #' @param labels       Labels associated to the classes (only for result cubes).
 #' @param multicores   Number of workers for parallel processing
@@ -412,6 +413,7 @@ sits_cube.local_cube <- function(source,
                                  end_date = NULL,
                                  labels = NULL,
                                  parse_info = NULL,
+                                 version = "v1",
                                  delim = "_",
                                  multicores = 2,
                                  progress = TRUE) {
@@ -438,6 +440,7 @@ sits_cube.local_cube <- function(source,
         collection = collection,
         data_dir = data_dir,
         parse_info = parse_info,
+        version = version,
         delim = delim,
         tiles = tiles,
         bands = bands,
