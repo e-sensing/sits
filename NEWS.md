@@ -2,6 +2,9 @@
 
 # What's new in SITS version 1.2.0
 
+### Hotfix version 1.2.0-4
+* Fix `.raster_file_blocksize.terra()` bug (issue #918)
+
 ### Hotfix version 1.2.0-3
 * Fix `stars` proxy bug (issue #902)
 * Fix `purrr` cross deprecation
