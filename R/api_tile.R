@@ -208,23 +208,13 @@ NULL
     # Return path
     path
 }
-
-#' @title Get sorted unique bands from file_info.
-#' @name .tile_path
-#' @keywords internal
-#' @noRd
-#' @param tile A tile.
-#' @param band Band name.
-#'
-#' @returns Paths to `file_info` assets
-.tile_paths <- function(tile, band = NULL) {
+.tile_paths <- function(tile, bands = NULL) {
     UseMethod(".tile_paths", tile)
 }
-
 #' @export
-.tile_paths.raster_cube <- function(tile, band = NULL) {
-    if (.has(band)) {
-        tile <- .tile_filter_bands(tile = tile, bands = band)
+.tile_paths.raster_cube <- function(tile, bands = NULL) {
+    if (.has(bands)) {
+        tile <- .tile_filter_bands(tile = tile, bands = bands)
     }
     # Get assets path
     paths <- .fi_paths(.fi(tile))
@@ -273,13 +263,14 @@ NULL
 #' @param tile A tile.
 #'
 #' @return names of bands in the tile
-.tile_bands <- function(tile) {
+.tile_bands <- function(tile, add_cloud = TRUE) {
     UseMethod(".tile_bands", tile)
 }
-
 #' @export
-.tile_bands.raster_cube <- function(tile) {
-    unique(.fi_bands(.fi(tile)))
+.tile_bands.raster_cube <- function(tile, add_cloud = TRUE) {
+    bands <- unique(.fi_bands(.fi(tile)))
+    if (add_cloud) return(bands)
+    setdiff(bands, .band_cloud())
 }
 #'
 #' @title Get a band definition from config.
@@ -343,8 +334,7 @@ NULL
 }
 #' @export
 .tile_crs.raster_cube <- function(tile) {
-    tile <- .tile(tile)
-    .crs(tile)
+    .crs(.tile(tile))
 }
 #'
 #' @title Does tile \code{bbox} intersect \code{roi} parameter?
@@ -923,7 +913,7 @@ NULL
 .tile_extract <- function(tile, band, xy) {
 
     # Create a stack object
-    r_obj <- .raster_open_rast(.tile_paths(tile = tile, band = band))
+    r_obj <- .raster_open_rast(.tile_paths(tile = tile, bands = band))
     # Extract the values
     values <- .raster_extract(r_obj, xy)
     # Is the data valid?
