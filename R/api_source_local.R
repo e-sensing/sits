@@ -226,8 +226,18 @@
             .name_repair = "universal"
         )
     )
+    # check if bands exist
+    .check_chr_contains(x = items$band,
+                        contains = bands,
+                        discriminator = "all_of",
+                        msg = "Wrong bands specification - please correct")
     # get the information on the required bands, dates and path
     if (results_cube) {
+        # check required version exists
+        .check_chr_within(x = version,
+                          within = items$version,
+                          discriminator = "any_of",
+                          msg = "Wrong version specification - please correct")
         # get only the first band
         band <- bands[[1]]
         # get the information on the required band, dates and path

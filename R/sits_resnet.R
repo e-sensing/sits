@@ -387,7 +387,7 @@ sits_resnet <- function(samples = NULL,
         return(predict_fun)
     }
     # If samples is informed, train a model and return a predict function
-    # Otherwise give back a train function to train model further
+    # Otherwise give back a train function to train the model later
     result <- .sits_factory_function(samples, train_fun)
     return(result)
 }

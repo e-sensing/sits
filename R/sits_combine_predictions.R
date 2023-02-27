@@ -111,7 +111,7 @@ sits_combine_predictions.average <- function(cubes,
 
     # average probability calculation
     .do_average <- function(values_lst, weights) {
-        values_out <- average_probs(values_lst, weights)
+        values_out <- weighted_probs(values_lst, weights)
         # return values
         return(values_out)
     }
@@ -216,7 +216,6 @@ sits_combine_predictions.average <- function(cubes,
 
         return(invisible(block_files))
     })
-    browser()
 
     # process each brick layer (each time step) individually
     result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
