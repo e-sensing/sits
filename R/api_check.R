@@ -2139,11 +2139,33 @@
                     msg = "cubes are not in a list")
     # check same size
     first <- cubes[[1]]
-    purrr::map(cubes, function(cube){
+    purrr::map(cubes, function(cube) {
         .check_cubes_match(first, cube)
     })
 }
-#' @title Check if errox matrix and area are correct
+
+#' @title Check if list of probs cubes have the same organization
+#' @name .check_probs_cube_lst
+#' @keywords internal
+#' @noRd
+#' @param  cubes         list of input data cubes
+#' @return No return value, called for side effects.
+.check_probs_cube_lst <- function(cubes) {
+    .check_that(length(cubes) >= 2,
+                local_msg = "length should be at least two",
+                msg = "invalid `cubes` parameter"
+    )
+    .check_lst_type(cubes, msg = "cubes are not in a list")
+    # is every cube a probs cube
+    purrr::map(cubes, .check_is_probs_cube)
+    # check same size
+    first <- cubes[[1]]
+    purrr::map(cubes, function(cube) {
+        .check_cubes_match(first, cube)
+    })
+}
+
+#' @title Check if errox matrix and area are cosrrect
 #' @name .check_error_matrix_area
 #' @param  error_matrix  Error matrix for classification
 #' @param  area  Area of each class
