@@ -1,7 +1,6 @@
-
 #---- internal functions ----
 
-.smooth_tile <- function(tile, band, overlap, smooth_fn, output_dir,
+.smooth_tile <- function(tile, band, block, overlap, smooth_fn, output_dir,
                          version) {
     # Output file
     out_file <- .file_derived_name(
@@ -23,7 +22,7 @@
         return(probs_tile)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tile, overlap = overlap)
+    chunks <- .tile_chunks_create(tile = tile, overlap = overlap, block = block)
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -77,6 +76,93 @@
     )
     # Return probs tile
     probs_tile
+}
+
+.smooth_use_method <- function(cube, type, block, window_size, memsize,
+                               multicores, output_dir, version, ...) {
+    smooth_fn <- switch(
+        type,
+        bayes = .smooth_bayes,
+        bilateral = .smooth_bilateral,
+        stop("Invalid `type` parameter (value should be one of 'bayes', ",
+             "'bilateral').")
+    )
+    smooth_fn(cube = cube,
+              block = block,
+              window_size = window_size,
+              memsize = memsize,
+              multicores = multicores,
+              output_dir = output_dir,
+              version = version, ...)
+}
+
+#---- smooth methods ----
+
+.smooth_bayes <- function(cube, block, ...,
+                          window_size = 9,
+                          neigh_fraction = 0.5,
+                          smoothness = 20,
+                          covar = FALSE,
+                          multicores = 2,
+                          memsize = 4,
+                          output_dir = getwd(),
+                          version = "v1") {
+    # Smooth parameters checked in smooth function creation
+    # Create smooth function
+    smooth_fn <- .smooth_fn_bayes(
+        window_size = window_size,
+        neigh_fraction = neigh_fraction,
+        smoothness = smoothness,
+        covar = covar,
+        nlabels = length(.tile_labels(cube))
+    )
+    # Overlapping pixels
+    overlap <- ceiling(window_size / 2) - 1
+    # Smoothing
+    # Process each tile sequentially
+    .cube_foreach_tile(cube, function(tile) {
+        # Smooth the data
+        .smooth_tile(
+            tile = tile,
+            band = "bayes",
+            block = block,
+            overlap = overlap,
+            smooth_fn = smooth_fn,
+            output_dir = output_dir,
+            version = version
+        )
+    })
+}
+
+.smooth_bilateral <- function(cube, block, ...,
+                              window_size = 5,
+                              sigma = 8,
+                              tau = 0.1,
+                              multicores = 2,
+                              memsize = 4,
+                              output_dir = getwd(),
+                              version = "v1") {
+    # Smooth parameters checked in smooth function creation
+    # Create smooth function
+    smooth_fn <- .smooth_fn_bilat(
+        window_size = window_size, sigma = sigma, tau = tau
+    )
+    # Overlapping pixels
+    overlap <- ceiling(window_size / 2) - 1
+    # Smoothing
+    # Process each tile sequentially
+    .cube_foreach_tile(cube, function(tile) {
+        # Smooth the data
+        .smooth_tile(
+            tile = tile,
+            band = "bilat",
+            block = block,
+            overlap = overlap,
+            smooth_fn = smooth_fn,
+            output_dir = output_dir,
+            version = version
+        )
+    })
 }
 
 #---- smooth functions ----
@@ -134,6 +220,7 @@
     # Return a closure
     smooth_fn
 }
+
 .smooth_fn_bilat <- function(window_size, sigma, tau) {
     # Check window size
     .check_window_size(window_size)
@@ -161,91 +248,6 @@
             m = values, m_nrow = .nrows(block), m_ncol = .ncols(block),
             w = window, tau = tau
         )
-        # Are the results consistent with the data input?
-        .check_processed_values(values, input_pixels)
-        # Return values
-        values
-    }
-    # Return a closure
-    smooth_fn
-}
-
-#' @rdname sits_smooth
-#' @export
-sits_smooth_variance <- function(cube,
-                                 window_size = 5,
-                                 multicores = 2,
-                                 memsize = 4,
-                                 output_dir = getwd(),
-                                 version = "v1") {
-
-    # Check if cube has probability data
-    .check_is_probs_cube(cube)
-    # Check memsize
-    .check_memsize(memsize)
-    # Check multicores
-    .check_multicores(multicores)
-    # Check memory and multicores
-    # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
-    # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = overlap),
-        # npaths = input(nlayers) + output(nlayers)
-        npaths = length(.tile_labels(cube)) * 2,
-        nbytes = 8,
-        proc_bloat = .conf("processing_bloat")
-    )
-    # Update multicores parameter
-    multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
-    )
-
-    # Prepare parallel processing
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop(), add = TRUE)
-
-    # Smooth parameters checked in smooth function creation
-    # Create smooth function
-    smooth_fn <- .smooth_fn_variance(window_size = window_size)
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
-    # Smoothing
-    # Process each tile sequentially
-    variance_cube <- .cube_foreach_tile(cube, function(tile) {
-        # Smooth the data
-        variance_tile <- .smooth_tile(
-            tile = tile,
-            band = "variance",
-            overlap = overlap,
-            smooth_fn = smooth_fn,
-            output_dir = output_dir,
-            version = version
-        )
-        return(variance_tile)
-    })
-    return(variance_cube)
-}
-.smooth_fn_variance <- function(window_size) {
-    # Check window size
-    .check_window_size(window_size)
-    # Define smooth function
-    smooth_fn <- function(values, block) {
-        # Check values length
-        input_pixels <- nrow(values)
-        # Compute logit
-        values <- log(values / (rowSums(values) - values))
-        # Process Bayesian
-        for (i in seq_len(ncol(values))) {
-            values[,i] <- C_kernel_var(
-                x = values,
-                ncols = .ncols(block),
-                nrows = .nrows(block),
-                band = i - 1,
-                window_size = window_size)
-        }
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         # Return values
