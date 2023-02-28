@@ -621,6 +621,7 @@ NULL
         image_bbox = .bbox(tile)
     )
 }
+
 #' @title read an EO tile from files
 #' @name .tile_eo_from_files
 #' @keywords internal
