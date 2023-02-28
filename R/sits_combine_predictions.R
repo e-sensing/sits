@@ -56,232 +56,65 @@
 #' }
 #' @export
 sits_combine_predictions <- function(cubes, type = "average", ...,
-                                     multicores = 2,
                                      memsize = 8,
-                                     output_dir = ".",
+                                     multicores = 2,
+                                     output_dir = getwd(),
                                      version = "v1") {
-    # set caller to show in errors
-    .check_set_caller("sits_combine_predictions")
-    # check required packages
-    .check_require_packages("parallel")
-    # precondition - multicores
-    .check_multicores(multicores)
-    # precondition - memsize
+    # check if list of probs cubes have the same organization
+    .check_probs_cube_lst(cubes)
+    # Check memsize
     .check_memsize(memsize)
-    # precondition - output dir
+    # Check multicores
+    .check_multicores(multicores)
+    # Check output dir
+    output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
-    # precondition - version
+    # Check version
     .check_version(version)
-    # define the class of the smoothing
-    class(type) <- c(type, class(type))
-    UseMethod("sits_combine_predictions", type)
-}
-#' @rdname sits_combine_predictions
-#'
-#' @export
-#'
-sits_combine_predictions.average <- function(cubes,
-                                             type = "average", ...,
-                                             weights = NULL,
-                                             multicores = 2,
-                                             memsize = 4,
-                                             output_dir = getwd(),
-                                             version = "v1") {
 
-
-    # is every cube a probs cube
-    purrr::map(cubes, .check_is_probs_cube)
-    # check if cubes match
-    .check_cube_list_match(cubes)
-
-    # get number of labels
-    n_labels <- length(sits_labels(cubes[[1]]))
-    # get weights
-    n_inputs <- length(cubes)
-    if (purrr::is_null(weights))
-        weights <- rep(1/n_inputs, n_inputs)
-    else {
-        .check_that(length(weights) == n_inputs,
-                    msg = "number of weights does not match number of inputs",
-        )
-        .check_that(sum(weights) == 1,
-                    msg = "weigths should add up to 1.0"
-        )
-    }
-
-    # average probability calculation
-    .do_average <- function(values_lst, weights) {
-        values_out <- weighted_probs(values_lst, weights)
-        # return values
-        return(values_out)
-    }
-
-    # compute which block size is many tiles to be computed
-    block_size <- .comb_estimate_block_size(
-        cubes  = cubes,
-        multicores = multicores,
-        memsize = memsize
+    # Check memory and multicores
+    # Get block size
+    base_cube <- cubes[[1]]
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(base_cube)))
+    # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = .block_size(block = block),
+        npaths = length(cubes) * nrow(base_cube) * length(sits_labels(base_cube)),
+        nbytes = 8,
+        proc_bloat = .conf("processing_bloat")
     )
-
-    # start parallel processes
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_memsize = job_memsize,
+        block = block,
+        image_size = .tile_size(.tile(base_cube)),
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop())
+    on.exit(.sits_parallel_stop(), add = TRUE)
 
-    # process each brick layer (each time step) individually
-    blocks_tile_lst <- slider::pslide(cubes, function(...) {
-        tile_lst <- list(...)
-        tile <- tile_lst[[1]]
-        # create metadata for raster cube based on the first cube
-        tile_new <- .cube_derived_create(
-            tile       = tile,
-            cube_class = "probs_cube",
-            band_name  = "probs",
-            labels     = .tile_labels(tile),
-            start_date = .tile_start_date(tile),
-            end_date   = .tile_end_date(tile),
-            bbox       = .bbox(tile),
-            output_dir = output_dir,
-            version    = version
-        )
-
-        # prepare output filename
-        out_file <- .tile_path(tile_new)
-
-        # if file exists skip it (resume feature)
-        if (file.exists(out_file)) {
-            warning(paste0(
-                "Recovery mode: probability image file found in '",
-                dirname(out_file), "' directory. ",
-                "(If you want a new probability image, please ",
-                "change the directory in the 'output_dir' or the ",
-                "value of 'version' parameter)"
-            ), immediate. = TRUE)
-            return(NULL)
-        }
-
-        # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
-        blocks <- .comb_compute_blocks(
-            xsize = .tile_ncols(tile),
-            ysize = .tile_nrows(tile),
-            block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = 0
-        )
-        # open probability files
-        in_file_lst <- purrr::map(tile_lst, .tile_path)
-
-        # create an r object that contains the entire input file
-        r_obj <- .raster_open_rast(in_file_lst[[1]])
-
-        # process blocks in parallel
-        block_files_lst <- .sits_parallel_map(blocks, function(block) {
-
-            # open block and read values
-            values_lst <- purrr::map(in_file_lst, function(in_file){
-                values <- .raster_read_rast(files = in_file, block = block)
-                return(values)
-            })
-            # process it
-            values_out <- .do_average(values_lst = values_lst,
-                                      weights = weights)
-
-            # create an empty raster with the coordinates that fit the block
-            crop_obj <- .raster_crop_metadata(r_obj, block = block)
-            # create a raster where the values will be saved
-            raster_out <- .raster_rast(
-                r_obj = crop_obj,
-                nlayers = n_labels
-            )
-            # copy values to raster
-            raster_out <- .raster_set_values(
-                r_obj = raster_out,
-                values = values_out
-            )
-            # set output block file name
-            block_file <- .file_block_name(
-                pattern = "chunk_combine_ave_out_",
-                block = block,
-                output_dir = output_dir
-            )
-            # write data to file
-            .raster_write_rast(
-                r_obj = raster_out,
-                file = block_file,
-                data_type = .conf("probs_cube_data_type"),
-                overwrite    = TRUE
-            )
-            return(block_file)
-        })
-
-        block_files <- unlist(block_files_lst)
-
-        return(invisible(block_files))
-    })
-
-    # process each brick layer (each time step) individually
-    result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
-
-        # get tile from cube
-        tile <- cubes[[1]][i, ]
-
-        # create metadata for raster cube
-        tile_new <- .cube_derived_create(
-            tile       = tile,
-            cube_class = "probs_cube",
-            band_name  = "probs",
-            labels     = .tile_labels(tile),
-            start_date = .tile_start_date(tile),
-            end_date   = .tile_end_date(tile),
-            bbox       = .bbox(tile),
-            output_dir = output_dir,
-            version    = version
-        )
-
-        # prepare output filename
-        out_file <- .tile_path(tile_new)
-
-        # if file exists skip it (resume feature)
-        if (file.exists(out_file)) {
-            return(tile_new)
-        }
-
-        block_files <- blocks_tile_lst[[i]]
-
-        # apply function to blocks
-        on.exit(unlink(block_files))
-
-        # Merge final result
-        .raster_merge_blocks(
-            out_files = out_file,
-            base_file = .tile_path(tile),
-            block_files = block_files,
-            data_type = .conf("probs_cube_data_type"),
-            missing_value = .conf("probs_cube_missing_value"),
-            multicores = 1
-        )
-
-        return(tile_new)
-    })
-
-    # bind rows
-    result_cube <- dplyr::bind_rows(result_cube)
-
-    class(result_cube) <- unique(c("probs_cube", class(cubes[[1]])))
-
-    return(result_cube)
+    .comb_use_method(cubes = cubes,
+                     block = block,
+                     memsize = memsize,
+                     multicores = multicores,
+                     output_dir = output_dir,
+                     version = version, ...)
 }
 
-
-#' @rdname sits_combine_predictions
-#'
-#' @export
-#'
-sits_combine_predictions.uncertainty <- function(cubes,
-                                                 type = "uncertainty", ...,
-                                                 uncert_cubes,
-                                                 multicores = 2,
-                                                 memsize = 4,
-                                                 output_dir = getwd(),
-                                                 version = "v1") {
+.comb_uncert <- function(cubes, ...,
+                         uncert_cubes,
+                         multicores = 2,
+                         memsize = 4,
+                         output_dir = getwd(),
+                         version = "v1") {
     # check if probs cubes and uncert cubes are valid and match
     # is every cube a probs cube
     purrr::map(cubes, .check_is_probs_cube)
@@ -472,116 +305,4 @@ sits_combine_predictions.uncertainty <- function(cubes,
     class(result_cube) <- unique(c("probs_cube", class(cubes[[1]])))
 
     return(result_cube)
-}
-
-
-#' @title Estimate the number of blocks to run .sits_split_cluster
-#' @name .comb_estimate_block_size
-#' @keywords internal
-#' @noRd
-#'
-#' @param cubes        List of input data cube
-#' @param multicores   number of processes to split up the data
-#' @param memsize      maximum overall memory size (in GB)
-#' @param uncert       include uncertainty cubes?
-#'
-#' @return  returns a list with following information:
-#'          multicores theoretical upper bound;
-#'          block x_size (horizontal) and y_size (vertical)
-#'
-.comb_estimate_block_size <- function(cubes,
-                                      multicores,
-                                      memsize,
-                                      uncert = FALSE) {
-
-    cube <- cubes[[1]]
-    n_comb <- length(cubes)
-
-    n_layers <- length(cube$labels[[1]])
-    bloat_mem <- .conf("processing_bloat")
-    n_bytes <- 8
-
-    # include uncertainty cubes?
-    if (uncert)
-        n_layers <- n_layers + n_comb
-
-    # total memory needed in GB
-    image_size <- .tile_ncols(cube) * .tile_nrows(cube)
-    needed_memory <- n_comb * image_size * 1E-09 * n_layers * bloat_mem * n_bytes
-
-    # minimum block size
-    min_block_x_size <- .tile_ncols(cube) # for now, only vertical blocking
-    min_block_y_size <- 1
-
-    # compute factors
-    memory_factor <- needed_memory / memsize
-
-    blocking_factor <- image_size / (min_block_x_size * min_block_y_size)
-
-    # stop if blocking factor is less than memory factor!
-    # reason: the provided memory is not enough to process the data by
-    # breaking it into small chunks
-    .check_that(
-        x = memory_factor <= blocking_factor,
-        msg = "provided memory not enough to run the job"
-    )
-
-    # update multicores to the maximum possible processes given the available
-    # memory and blocking factor
-    multicores <- min(floor(blocking_factor / memory_factor), multicores)
-
-    # compute blocking allocation that maximizes the
-    # block / (memory * multicores) ratio, i.e. maximize parallel processes
-    # and returns the following information:
-    # - multicores theoretical upper bound;
-    # - block x_size (horizontal) and y_size (vertical)
-    blocks <- list(
-        # theoretical max_multicores = floor(blocking_factor / memory_factor),
-        block_x_size = floor(min_block_x_size),
-        block_y_size = min(
-            floor(blocking_factor / memory_factor / multicores),
-            .tile_nrows(cube)
-        )
-    )
-
-    return(blocks)
-}
-
-#' @name .comb_compute_blocks
-#' @description Function to compute blocks grid
-#' @keywords internal
-#' @noRd
-#'
-#' @param xsize        X size of the image
-#' @param ysize        Y size of the image
-#' @param block_y_size Y size of the block
-#' @param overlapping_y_size   Size of the overlap
-#' @return  A list of blocks
-#'
-.comb_compute_blocks <- function(xsize,
-                                 ysize,
-                                 block_y_size,
-                                 overlapping_y_size) {
-    r1 <- seq(1, ysize - 1, by = block_y_size)
-    r2 <- c(r1[-1] - 1, ysize)
-    nr1 <- r2 - r1 + 1
-    ovr_r1 <- c(1, c(r1[-1] - overlapping_y_size))
-    ovr_r2 <- c(r2[-length(r2)] + overlapping_y_size, ysize)
-    ovr_nr1 <- ovr_r2 - ovr_r1 + 1
-
-    # define each block as a list element
-    blocks <- mapply(
-        list,
-        row = ovr_r1,
-        nrows = ovr_nr1,
-        col = 1,
-        ncols = xsize,
-        crop_row = r1 - ovr_r1 + 1,
-        crop_nrows = nr1,
-        crop_col = 1,
-        crop_ncols = xsize,
-        SIMPLIFY = FALSE
-    )
-
-    return(blocks)
 }
