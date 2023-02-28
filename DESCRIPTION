@@ -99,7 +99,7 @@ Config/testthat/start-first: cube, raster, ml
 LinkingTo:
     Rcpp,
     RcppArmadillo
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Collate: 
     'RcppExports.R'
     'data.R'
