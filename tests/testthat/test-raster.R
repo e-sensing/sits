@@ -860,17 +860,18 @@ test_that("One-year, multicores mosaic", {
                 c(-55.62973, -11.61519),
                 c(-55.64768, -11.68649)))), crs = 4326
     )
-    # crop and mosaic classified image
-    mosaic_cube <- sits_mosaic(
+    # crop and reproject classified image
+    mosaic_class <- sits_mosaic(
         cube = label_cube,
         roi = roi,
         crs = 4326,
-        output_dir = output_dir
+        output_dir = output_dir,
+        version = "v1"
     )
 
-    expect_equal(mosaic_cube[["tile"]], "MOSAIC")
-    expect_equal(nrow(mosaic_cube), 1)
-    bbox_cube <- sits_bbox(mosaic_cube)
+    expect_equal(mosaic_class[["tile"]], "MOSAIC")
+    expect_equal(nrow(mosaic_class), 1)
+    bbox_cube <- sits_bbox(mosaic_class)
     bbox_roi <- sf::st_bbox(roi)
     expect_true(
         bbox_cube[["xmin"]] < bbox_roi[["xmin"]] &&
@@ -878,10 +879,75 @@ test_that("One-year, multicores mosaic", {
         bbox_cube[["ymin"]] < bbox_roi[["ymin"]] &&
         bbox_cube[["ymax"]] > bbox_roi[["ymax"]]
     )
+
+    # resume feature
+    mosaic_class <- sits_mosaic(
+        cube = label_cube,
+        roi = roi,
+        crs = 4326,
+        output_dir = output_dir,
+        version = "v1"
+    )
+    expect_equal(mosaic_class[["tile"]], "MOSAIC")
+
+    # create new roi
+    roi2 <- sf::st_sfc(
+        sf::st_polygon(
+            list(rbind(
+                c(-55.91563676, -11.92443997),
+                c(-55.02414662, -11.92443997),
+                c(-55.02414662, -11.38658587),
+                c(-55.91563676, -11.38658587),
+                c(-55.91563676, -11.92443997)))), crs = 4326
+    )
+
+    # reproject classified image
+    mosaic_class2 <- sits_mosaic(
+        cube = label_cube,
+        roi = roi2,
+        crs = 4326,
+        output_dir = output_dir,
+        version = "v2"
+    )
+
+    expect_equal(mosaic_class2[["tile"]], "MOSAIC")
+    expect_equal(nrow(mosaic_class2), 1)
+    bbox_cube <- sits_bbox(mosaic_class2)
+    bbox_roi <- sf::st_bbox(roi2)
+    expect_true(
+        bbox_cube[["xmin"]] > bbox_roi[["xmin"]] &&
+            bbox_cube[["xmax"]] < bbox_roi[["xmax"]] &&
+            bbox_cube[["ymin"]] > bbox_roi[["ymin"]] &&
+            bbox_cube[["ymax"]] < bbox_roi[["ymax"]]
+    )
+
+    uncert_cube <- sits_uncertainty(probs_cube)
+    mosaic_uncert <- sits_mosaic(
+        cube = uncert_cube,
+        roi = roi,
+        crs = 4326,
+        output_dir = output_dir,
+        version = "v3"
+    )
+
+    expect_equal(mosaic_uncert[["tile"]], "MOSAIC")
+    expect_equal(nrow(mosaic_uncert), 1)
+    bbox_cube <- sits_bbox(mosaic_uncert)
+    bbox_roi <- sf::st_bbox(roi)
+    expect_true(
+        bbox_cube[["xmin"]] < bbox_roi[["xmin"]] &&
+            bbox_cube[["xmax"]] > bbox_roi[["xmax"]] &&
+            bbox_cube[["ymin"]] < bbox_roi[["ymin"]] &&
+            bbox_cube[["ymax"]] > bbox_roi[["ymax"]]
+    )
+
     unlink(probs_cube$file_info[[1]]$path)
     unlink(bayes_cube$file_info[[1]]$path)
     unlink(label_cube$file_info[[1]]$path)
-    unlink(mosaic_cube$file_info[[1]]$path)
+    unlink(mosaic_class$file_info[[1]]$path)
+    unlink(mosaic_class2$file_info[[1]]$path)
+    unlink(mosaic_uncert$file_info[[1]]$path)
+    unlink(uncert_cube$file_info[[1]]$path)
 })
 
 test_that("Raster GDAL datatypes", {

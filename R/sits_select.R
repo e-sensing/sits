@@ -5,8 +5,8 @@
 #'
 #' @param data       A sits tibble or data cube.
 #' @param bands      Character vector with the names of the bands.
-#' @param start_date Character value with the start date band to be filtered.
-#' @param end_date   Character value with the end date band to be filtered.
+#' @param start_date Character value with the start date to be filtered.
+#' @param end_date   Character value with the end date to be filtered.
 #' @param tiles      Character vector with the names of the tiles.
 #' @param ...        Additional parameters to be provided in the select
 #'  function.
@@ -29,7 +29,10 @@
 #'
 #' @export
 #'
-sits_select <- function(data, bands, ...) {
+sits_select <- function(data,
+                        bands = NULL,
+                        start_date = NULL,
+                        end_date = NULL, ...) {
 
     # set caller to show in errors
     .check_set_caller("sits_select")
@@ -41,16 +44,31 @@ sits_select <- function(data, bands, ...) {
 #' @rdname sits_select
 #'
 #' @export
-sits_select.sits <- function(data, bands, ...) {
+sits_select.sits <- function(data,
+                             bands = NULL,
+                             start_date = NULL,
+                             end_date = NULL, ...) {
+    # Pre-condition
+    .check_samples_ts(data)
+    # Filter bands
+    if (!is.null(bands)) {
+        # bands names in SITS are uppercase
+        bands <- .band_samples(bands)
+        # pre-condition
+        .check_chr_within(bands,
+                          within = sits_bands(data),
+                          msg = "Invalid bands values"
+        )
 
-    # bands names in SITS are uppercase
-    bands <- toupper(bands)
-    # pre-condition
-    .check_chr_within(bands,
-        within = sits_bands(data),
-        msg = "Invalid bands values"
-    )
-    data <- .sits_select_bands(samples = data, bands = bands)
+        data <- .sits_select_bands(data, bands = bands)
+    }
+    # Filter dates
+    if (!is.null(start_date) || !is.null(end_date)) {
+        .check_dates_parameter(c(start_date, end_date))
+        data <- .sits_filter_interval(
+            data, start_date = start_date, end_date = end_date
+        )
+    }
     return(data)
 }
 
@@ -58,9 +76,9 @@ sits_select.sits <- function(data, bands, ...) {
 #'
 #' @export
 sits_select.raster_cube <- function(data,
-                                    bands =  NULL, ...,
+                                    bands =  NULL,
                                     start_date = NULL,
-                                    end_date = NULL,
+                                    end_date = NULL, ...,
                                     tiles = NULL) {
     # Pre-condition
     .check_is_raster_cube(data)

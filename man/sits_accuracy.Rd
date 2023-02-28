@@ -10,7 +10,7 @@ sits_accuracy(data, ...)
 
 \method{sits_accuracy}{sits}(data, ...)
 
-\method{sits_accuracy}{class_cube}(data, ..., validation_csv)
+\method{sits_accuracy}{class_cube}(data, validation = NULL, ..., validation_csv = NULL)
 }
 \arguments{
 \item{data}{Either a data cube with classified images or
@@ -18,7 +18,10 @@ a set of time series}
 
 \item{\dots}{Specific parameters}
 
-\item{validation_csv}{A CSV file path with validation data}
+\item{validation}{Samples for validation (see below)
+Only required when data is a data cube.}
+
+\item{validation_csv}{CSV file with samples (deprecated)}
 }
 \value{
 A list of lists: The error_matrix, the class_areas, the unbiased
@@ -43,8 +46,9 @@ including Overall Accuracy, Kappa, User's Accuracy, Producer's Accuracy
 and error matrix (confusion matrix)
 }
 \note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
+The validation data needs to contain the following columns: "latitude",
+ "longitude", "start_date", "end_date", and "label". It can be either a
+ path to a CSV file, a sits tibble or a data frame.
 }
 \examples{
 if (sits_run_examples()) {
@@ -76,7 +80,7 @@ if (sits_run_examples()) {
         package = "sits"
     )
     # make accuracy assessment
-    as <- sits_accuracy(label_cube, validation_csv = ground_truth)
+    as <- sits_accuracy(label_cube, validation = ground_truth)
 }
 }
 \references{

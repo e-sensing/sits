@@ -208,6 +208,22 @@
     return(dev_cube)
 }
 
+#' @title Get derived class of a cube
+#' @name .cube_derived_class
+#' @keywords internal
+#' @noRd
+#' @param cube A cube
+#'
+#' @return derived class
+.cube_derived_class <- function(cube) {
+    UseMethod(".cube_derived_class", cube)
+}
+
+#' @export
+.cube_derived_class.derived_cube <- function(cube) {
+    unique(slider::slide_chr(cube, .tile_derived_class))
+}
+
 #' @title Return the S3 class of the cube
 #' @name .cube_s3class
 #' @keywords internal
@@ -545,7 +561,7 @@ NULL
     }
     tidyr::pivot_wider(
         values,
-        id_cols = id_cols,
+        id_cols = dplyr::all_of(id_cols),
         names_from = "tile",
         values_from = "n"
     )
@@ -692,40 +708,6 @@ NULL
         features <- tidyr::unnest(features, "file_info")
         features[["feature"]] <- features[["fid"]]
         features <- tidyr::nest(features, file_info = -c("tile", "feature"))
-        # Replicate each tile so that we can copy file_info to cube
-        tile <- tile[rep(1, nrow(features)), ]
-        tile[["file_info"]] <- features[["file_info"]]
-        tile
-    })
-}
-
-.cube_split_tiles_bands <- function(cube, bands, include_cloud = FALSE) {
-    bands <- if (include_cloud) bands[!bands %in% .source_cloud()] else bands
-    .cube_foreach_tile(cube, function(tile) {
-        features <- tile[, c("tile", "file_info")]
-        features <- tidyr::unnest(features, "file_info")
-        features <- dplyr::arrange(
-            features, .data[["date"]], .data[["fid"]], .data[["band"]]
-        )
-        feats_bands <- dplyr::filter(features, .data[["band"]] %in% !!bands)
-        feats_bands[["id"]] <- rep(
-            seq_along(bands), length(unique(features[["date"]]))
-        )
-        if (include_cloud) {
-            feats_cloud <- dplyr::filter(
-                features, .data[["band"]] == .source_cloud()
-            )
-            feats_cloud <- tidyr::uncount(feats_cloud, length(bands))
-            feats_cloud[["id"]] <- rep(
-                seq_along(bands), length(unique(features[["date"]]))
-            )
-            feats_bands <- dplyr::bind_rows(feats_bands, feats_cloud)
-            feats_bands <- dplyr::arrange(
-                feats_bands, .data[["date"]], .data[["fid"]], .data[["band"]]
-            )
-        }
-
-        features <- tidyr::nest(feats_bands, file_info = -c("tile", "id"))
         # Replicate each tile so that we can copy file_info to cube
         tile <- tile[rep(1, nrow(features)), ]
         tile[["file_info"]] <- features[["file_info"]]

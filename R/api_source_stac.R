@@ -32,6 +32,7 @@
             )
         }
     )
+    .check_stac_items(items)
     items <- .source_items_bands_select(
         source = source,
         items = items,

@@ -273,6 +273,7 @@
 #' @noRd
 .check_names <- function(x, ...,
                          is_named = TRUE,
+                         is_unique = TRUE,
                          msg = NULL) {
 
     # make default message
@@ -293,12 +294,14 @@
             local_msg = "value should have names",
             msg = msg
         )
+        if (is_unique) {
+            .check_that(
+                length(names(x)) == length(unique(names(x))),
+                local_msg = "names should be unique",
+                msg = msg
+            )
+        }
 
-        .check_that(
-            length(names(x)) == length(unique(names(x))),
-            local_msg = "names should be unique",
-            msg = msg
-        )
     } else {
         .check_that(
             is.null(names(x)),
@@ -693,6 +696,7 @@
                        len_max = 2^31 - 1,
                        allow_null = FALSE,
                        is_named = FALSE,
+                       has_unique_names = TRUE,
                        regex = NULL,
                        msg = NULL) {
 
@@ -733,7 +737,10 @@
 
 
     # check names
-    .check_names(x, is_named = is_named, msg = msg)
+    .check_names(x,
+                 is_named = is_named,
+                 is_unique = has_unique_names,
+                 msg = msg)
 
     # check regular expression pattern
     if (!is.null(regex)) {
@@ -1626,8 +1633,11 @@
     ts <- .sits_ts(data)
     # check there is an Index column
     .check_that(x = "Index" %in% colnames(ts))
-    # check there are no NA in distances
-    .check_that(x = !(anyNA(ts)), msg = "samples contain NA values")
+    # check if all samples have the same bands
+    n_bands <- unique(lengths(data[["time_series"]]))
+    .check_that(length(n_bands) == 1,
+                local_msg = "samples with different bands",
+                msg = "inconsistent samples")
 }
 
 #' @title Can the input data be used for training?
@@ -1646,6 +1656,18 @@
         msg = "invalid labels in samples data"
     )
     .check_samples_ts(data)
+    # Get unnested time series
+    ts <- .ts(data)
+    # check there are no NA in distances
+    .check_that(x = !(anyNA(ts)), msg = "samples contain NA values")
+    # check samples timeline
+    n_times <- unique(unlist(tapply(
+        .ts_sample_id(ts), .ts_sample_id(ts), length, simplify = FALSE
+    ), use.names = FALSE))
+    .check_that(length(n_times) == 1,
+                local_msg = "samples contain timelines with different lengths",
+                msg = "inconsistent samples")
+
 }
 #' @title Is the samples_validation object valid?
 #' @name .check_samples_validation
@@ -2251,3 +2273,11 @@
     return(progress)
 }
 
+.check_stac_items <- function(items) {
+    .check_that(
+        rstac::items_length(items) > 0,
+        local_msg = paste("please, check 'roi', 'start_date', 'end_date', and",
+                          "'tile' parameters"),
+        msg = "cube search criteria returned no items"
+    )
+}

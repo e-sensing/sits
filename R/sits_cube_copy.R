@@ -89,8 +89,9 @@ sits_cube_copy <- function(cube,
     # Create a list of user parameters as gdal format
     gdal_params <- .gdal_format_params(asset = asset, roi = roi, res = res)
     # Create output file
+
     out_file <- .file_path(
-        .tile_satellite(asset), .tile_sensor(asset),
+        .tile_satellite(asset), .remove_slash(.tile_sensor(asset)),
         .tile_name(asset), .tile_bands(asset),
         .tile_start_date(asset), output_dir = output_dir, ext = "tif"
     )
@@ -196,11 +197,15 @@ sits_cube_copy <- function(cube,
         if (.file_is_local(file)) {
             file <- .file_path("file://", file, sep = "")
         }
-        download.file(
-            url = file, destfile = out_file, quiet = TRUE, mode = "wb"
+        httr::GET(
+            url = file, httr::write_disk(path = out_file, overwrite = TRUE)
         )
         # Return file name
         out_file
     }
     donwload_fn
+}
+
+.remove_slash <- function(x) {
+    gsub(pattern = "/", replacement = "", x = x)
 }

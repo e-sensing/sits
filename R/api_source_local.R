@@ -4,6 +4,7 @@
                         collection,
                         data_dir,
                         parse_info,
+                        version,
                         delim,
                         tiles,
                         bands,
@@ -69,6 +70,7 @@
     items <- .local_cube_items_new(
         data_dir = data_dir,
         parse_info = parse_info,
+        version = version,
         delim = delim,
         start_date = start_date,
         end_date = end_date,
@@ -151,6 +153,7 @@
 #' @noRd
 .local_cube_items_new <- function(data_dir,
                                   parse_info,
+                                  version,
                                   delim,
                                   start_date,
                                   end_date,
@@ -185,7 +188,7 @@
     img_files_noext <- tools::file_path_sans_ext(img_files)
 
     # split the file names
-    img_files_lst <- strsplit(img_files_noext, split = delim)
+    img_files_lst <- strsplit(img_files_noext, split = delim, fixed = TRUE)
 
     are_img_files_ok <- purrr::map_lgl(img_files_lst, function(img_file) {
         if (length(img_file) == length(parse_info)) {
@@ -223,8 +226,18 @@
             .name_repair = "universal"
         )
     )
+    # check if bands exist
+    .check_chr_contains(x = items$band,
+                        contains = bands,
+                        discriminator = "all_of",
+                        msg = "Wrong bands specification - please correct")
     # get the information on the required bands, dates and path
     if (results_cube) {
+        # check required version exists
+        .check_chr_within(x = version,
+                          within = items$version,
+                          discriminator = "any_of",
+                          msg = "Wrong version specification - please correct")
         # get only the first band
         band <- bands[[1]]
         # get the information on the required band, dates and path
@@ -235,6 +248,8 @@
             dplyr::mutate(path = paste(data_dir, img_files_filt, sep = "/")) %>%
             # filter by the band
             dplyr::filter(.data[["band"]] == !!band) %>%
+            # filter by the version
+            dplyr::filter(.data[["version"]] == !!version) %>%
             # select the relevant parts
             dplyr::select(
                 "tile",

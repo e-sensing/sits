@@ -8,6 +8,7 @@
 #' @param  cubes             List of probability data cubes.
 #' @param  type              Method to measure uncertainty. See details.
 #' @param  ...               Parameters for specific functions.
+#' @param  weights           Weights for averaging
 #' @param  uncert_cubes      Uncertainty cubes to be used as local weights.
 #' @param  multicores        Number of cores to run the function.
 #' @param  memsize           Maximum overall memory (in GB) to run the
@@ -75,13 +76,13 @@ sits_combine_predictions <- function(cubes, type = "average", ...,
     class(type) <- c(type, class(type))
     UseMethod("sits_combine_predictions", type)
 }
-
 #' @rdname sits_combine_predictions
 #'
 #' @export
 #'
 sits_combine_predictions.average <- function(cubes,
                                              type = "average", ...,
+                                             weights = NULL,
                                              multicores = 2,
                                              memsize = 4,
                                              output_dir = getwd(),
@@ -95,29 +96,24 @@ sits_combine_predictions.average <- function(cubes,
 
     # get number of labels
     n_labels <- length(sits_labels(cubes[[1]]))
-    scale_factor <- .conf("probs_cube_scale_factor")
+    # get weights
+    n_inputs <- length(cubes)
+    if (purrr::is_null(weights))
+        weights <- rep(1/n_inputs, n_inputs)
+    else {
+        .check_that(length(weights) == n_inputs,
+                    msg = "number of weights does not match number of inputs",
+        )
+        .check_that(sum(weights) == 1,
+                    msg = "weigths should add up to 1.0"
+        )
+    }
+
     # average probability calculation
-    .do_average <- function(chunk_lst) {
-        data_lst <- purrr::map(chunk_lst, function(chunk){
-            # convert probabilities matrix to INT2U
-            values <- .raster_get_values(r_obj = chunk)
-            values <- scale_factor * values
-            return(values)
-        })
-        # process combination
-        ave_probs <- average_probs(data_lst)
-        # create cube
-        res <- .raster_rast(
-            r_obj = chunk_lst[[1]],
-            nlayers = n_labels
-        )
-        # copy values
-        scale_factor_save <- round(1./scale_factor)
-        res <- .raster_set_values(
-            r_obj = res,
-            values = round(ave_probs * scale_factor_save, digits = 0)
-        )
-        return(res)
+    .do_average <- function(values_lst, weights) {
+        values_out <- weighted_probs(values_lst, weights)
+        # return values
+        return(values_out)
     }
 
     # compute which block size is many tiles to be computed
@@ -135,7 +131,7 @@ sits_combine_predictions.average <- function(cubes,
     blocks_tile_lst <- slider::pslide(cubes, function(...) {
         tile_lst <- list(...)
         tile <- tile_lst[[1]]
-        # create metadata for raster cube
+        # create metadata for raster cube based on the first cube
         tile_new <- .cube_derived_create(
             tile       = tile,
             cube_class = "probs_cube",
@@ -153,17 +149,14 @@ sits_combine_predictions.average <- function(cubes,
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file)) {
-            if (all(.raster_bbox(.raster_open_rast(out_file))
-                    == sits_bbox(tile_new))) {
-                message(paste0(
-                    "Recovery mode: probability image file found in '",
-                    dirname(out_file), "' directory. ",
-                    "(If you want a new probability image, please ",
-                    "change the directory in the 'output_dir' or the ",
-                    "value of 'version' parameter)"
-                ))
-                return(NULL)
-            }
+            warning(paste0(
+                "Recovery mode: probability image file found in '",
+                dirname(out_file), "' directory. ",
+                "(If you want a new probability image, please ",
+                "change the directory in the 'output_dir' or the ",
+                "value of 'version' parameter)"
+            ), immediate. = TRUE)
+            return(NULL)
         }
 
         # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
@@ -173,53 +166,49 @@ sits_combine_predictions.average <- function(cubes,
             block_y_size = block_size[["block_y_size"]],
             overlapping_y_size = 0
         )
-
-
         # open probability files
         in_file_lst <- purrr::map(tile_lst, .tile_path)
+
+        # create an r object that contains the entire input file
+        r_obj <- .raster_open_rast(in_file_lst[[1]])
 
         # process blocks in parallel
         block_files_lst <- .sits_parallel_map(blocks, function(block) {
 
-            # open brick
-            chunk_lst <- purrr::map(in_file_lst, function(in_file){
-                b <- .raster_open_rast(in_file)
-
-                # crop adding overlaps
-                temp_chunk_file <- .file_block_name(
-                    pattern = "chunk_combine_av_",
-                    block = block,
-                    output_dir = output_dir
-                )
-                chunk <- .raster_crop(
-                    r_obj = b,
-                    file = temp_chunk_file,
-                    data_type = .raster_data_type(
-                        .conf("probs_cube_data_type")
-                    ),
-                    overwrite = TRUE,
-                    block = block
-                )
-                return(chunk)
+            # open block and read values
+            values_lst <- purrr::map(in_file_lst, function(in_file){
+                values <- .raster_read_rast(files = in_file, block = block)
+                return(values)
             })
             # process it
-            raster_out <- .do_average(chunk_lst = chunk_lst)
+            values_out <- .do_average(values_lst = values_lst,
+                                      weights = weights)
 
+            # create an empty raster with the coordinates that fit the block
+            crop_obj <- .raster_crop_metadata(r_obj, block = block)
+            # create a raster where the values will be saved
+            raster_out <- .raster_rast(
+                r_obj = crop_obj,
+                nlayers = n_labels
+            )
+            # copy values to raster
+            raster_out <- .raster_set_values(
+                r_obj = raster_out,
+                values = values_out
+            )
+            # set output block file name
             block_file <- .file_block_name(
                 pattern = "chunk_combine_ave_out_",
                 block = block,
                 output_dir = output_dir
             )
+            # write data to file
             .raster_write_rast(
                 r_obj = raster_out,
                 file = block_file,
                 data_type = .conf("probs_cube_data_type"),
                 overwrite    = TRUE
             )
-            # Delete temp file
-            purrr::map(chunk_lst, function(temp_chunk_file){
-                unlink(.raster_sources(temp_chunk_file))
-            })
             return(block_file)
         })
 
@@ -227,7 +216,6 @@ sits_combine_predictions.average <- function(cubes,
 
         return(invisible(block_files))
     })
-
 
     # process each brick layer (each time step) individually
     result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
@@ -282,6 +270,7 @@ sits_combine_predictions.average <- function(cubes,
     return(result_cube)
 }
 
+
 #' @rdname sits_combine_predictions
 #'
 #' @export
@@ -306,35 +295,11 @@ sits_combine_predictions.uncertainty <- function(cubes,
 
     # get number of labels
     n_labels <- length(sits_labels(cubes[[1]]))
-    scale_factor <- .conf("probs_cube_scale_factor")
     # average probability calculation
-    .do_uncert <- function(prob_chunk_lst, unc_chunk_lst) {
-        prob_lst <- purrr::map(prob_chunk_lst, function(chunk){
-            # convert probabilities matrix to INT2U
-            values <- .raster_get_values(r_obj = chunk)
-            values <- scale_factor * values
-            return(values)
-        })
-        unc_lst <- purrr::map(unc_chunk_lst, function(chunk){
-            # convert probabilities matrix to INT2U
-            values <- .raster_get_values(r_obj = chunk)
-            values <- scale_factor * values
-            return(values)
-        })
-        # process combination
-        ave_probs <- weighted_uncert_probs(prob_lst, unc_lst)
-        # create cube
-        res <- .raster_rast(
-            r_obj = prob_chunk_lst[[1]],
-            nlayers = n_labels
-        )
-        # copy values
-        scale_factor_save <- round(1./scale_factor)
-        res <- .raster_set_values(
-            r_obj = res,
-            values = round(ave_probs * scale_factor_save, digits = 0)
-        )
-        return(res)
+    .do_uncert <- function(prob_values_lst, unc_values_lst) {
+        values_out <- weighted_uncert_probs(prob_values_lst,
+                                           unc_values_lst)
+        return(values_out)
     }
 
     # compute which block size is many tiles to be computed
@@ -402,74 +367,53 @@ sits_combine_predictions.uncertainty <- function(cubes,
         # open uncert files
         in_file_unc_lst <- purrr::map(tile_unc_lst, .tile_path)
 
+        # create an r object that contains the entire input file
+        r_obj <- .raster_open_rast(in_file_lst[[1]])
+
         # process blocks in parallel
         block_files_lst <- .sits_parallel_map(blocks, function(block) {
 
             # open brick
-            prob_chunk_lst <- purrr::map(in_file_lst, function(in_file) {
-                b <- .raster_open_rast(in_file)
-
-                # crop adding overlaps
-                temp_chunk_file <- .file_block_name(
-                    pattern = "chunk_combine_unc_",
-                    block = block,
-                    output_dir = output_dir
-                )
-                chunk <- .raster_crop(
-                    r_obj = b,
-                    file = temp_chunk_file,
-                    data_type = .raster_data_type(
-                        .conf("probs_cube_data_type")
-                    ),
-                    overwrite = TRUE,
-                    block = block
-                )
-                return(chunk)
+            prob_values_lst <- purrr::map(in_file_lst, function(in_file) {
+                prob_values <- .raster_read_rast(files = in_file,
+                                                 block = block)
+                return(prob_values)
             })
-            unc_chunk_lst <- purrr::map(in_file_unc_lst, function(in_unc_file){
-
-                b <- .raster_open_rast(in_unc_file)
-
-                # crop adding overlaps
-
-                temp_chunk_file <- .file_block_name(
-                    pattern = "chunk_combine_unc_out_",
-                    block = block,
-                    output_dir = output_dir
-                )
-                chunk <- .raster_crop(
-                    r_obj = b,
-                    file = temp_chunk_file,
-                    data_type = .raster_data_type(
-                        .conf("probs_cube_data_type")
-                    ),
-                    overwrite = TRUE,
-                    block = block
-                )
-                return(chunk)
+            unc_values_lst <- purrr::map(in_file_unc_lst,
+                                         function(in_unc_file){
+                unc_values <- .raster_read_rast(files = in_unc_file,
+                                                block = block)
+                return(unc_values)
             })
             # process it
-            raster_out <- .do_uncert(prob_chunk_lst = prob_chunk_lst,
-                                     unc_chunk_lst  = unc_chunk_lst)
+            values_out <- .do_uncert(prob_values_lst = prob_values_lst,
+                                     unc_values_lst = unc_values_lst)
 
+            # create an empty raster with the coordinates that fit the block
+            crop_obj <- .raster_crop_metadata(r_obj, block = block)
+            # create a raster where the values will be saved
+            raster_out <- .raster_rast(
+                r_obj = crop_obj,
+                nlayers = n_labels
+            )
+            # copy values to raster
+            raster_out <- .raster_set_values(
+                r_obj = raster_out,
+                values = values_out
+            )
+            # set output block file name
             block_file <- .file_block_name(
-                pattern = "chunk_combine_no_over_",
+                pattern = "chunk_combine_unc_out_",
                 block = block,
                 output_dir = output_dir
             )
+            # write data to file
             .raster_write_rast(
                 r_obj = raster_out,
                 file = block_file,
                 data_type = .conf("probs_cube_data_type"),
                 overwrite    = TRUE
             )
-            # Delete temp file
-            purrr::map(prob_chunk_lst, function(temp_chunk_file){
-                unlink(.raster_sources(temp_chunk_file))
-            })
-            purrr::map(unc_chunk_lst, function(temp_chunk_file){
-                unlink(.raster_sources(temp_chunk_file))
-            })
             return(block_file)
         })
 

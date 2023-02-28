@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 1.2.0-2
+Version: 1.3.0
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara.inpe@gmail.com'),
@@ -44,7 +44,6 @@ LazyData: true
 Imports:
     magrittr,
     yaml,
-    data.table (>= 1.13),
     dplyr (>= 1.0.0),
     gdalUtilities,
     grDevices,
@@ -57,10 +56,10 @@ Imports:
     sf (>= 1.0),
     slider (>= 0.2.0),
     stats,
-    terra (>= 1.5-17),
+    terra (>= 1.7),
     tibble (>= 3.1),
     tidyr (>= 1.2.0),
-    torch (>= 0.7.0),
+    torch (>= 0.9.0),
     utils
 Suggests:
     caret,
@@ -78,21 +77,19 @@ Suggests:
     kohonen(>= 3.0.11),
     leafem (>= 0.2.0),
     leaflet (>= 2.1.1),
-    luz (>= 0.2.0),
+    luz (>= 0.3.0),
     methods,
     mgcv,
     openxlsx,
     randomForest,
     randomForestExplainer,
-    RColorBrewer,
     RcppArmadillo (>= 0.11),
     scales,
-    stars (>= 0.5),
+    stars (>= 0.6),
     testthat (>= 3.1.3),
-    tmap,
+    tmap (>= 3.3),
     torchopt(>= 0.1.2),
-    xgboost,
-    zoo
+    xgboost
 Config/testthat/edition: 3
 Config/testthat/parallel: false
 Config/testthat/start-first: cube, raster, ml
@@ -101,6 +98,49 @@ LinkingTo:
     RcppArmadillo
 RoxygenNote: 7.2.3
 Collate: 
+    'api_apply.R'
+    'api_band.R'
+    'api_bbox.R'
+    'api_block.R'
+    'api_check.R'
+    'api_comp.R'
+    'api_conf.R'
+    'api_cube.R'
+    'api_file_info.R'
+    'api_file.R'
+    'api_gdal.R'
+    'api_gdalcubes.R'
+    'api_model.R'
+    'api_jobs.R'
+    'api_label_class.R'
+    'api_period.R'
+    'api_point.R'
+    'api_raster.R'
+    'api_raster_terra.R'
+    'api_reclassify.R'
+    'api_roi.R'
+    'api_shp.R'
+    'api_smooth.R'
+    'api_som.R'
+    'api_source.R'
+    'api_source_aws.R'
+    'api_source_bdc.R'
+    'api_source_deafrica.R'
+    'api_source_local.R'
+    'api_source_mpc.R'
+    'api_source_sdc.R'
+    'api_source_stac.R'
+    'api_source_usgs.R'
+    'api_space_time_operations.R'
+    'api_stac.R'
+    'api_stats.R'
+    'api_tibble.R'
+    'api_tile.R'
+    'api_torch.R'
+    'api_torch_psetae.R'
+    'api_tuning.R'
+    'api_uncertainty.R'
+    'api_utils.R'
     'RcppExports.R'
     'data.R'
     'pipe.R'
@@ -110,34 +150,24 @@ Collate:
     'sits_active_learning.R'
     'sits_bands.R'
     'sits_bbox.R'
-    'sits_block.R'
     'sits_chunks.R'
     'sits_classification.R'
     'sits_classify_ts.R'
     'sits_classify_cube.R'
     'sits_colors.R'
     'sits_combine_predictions.R'
-    'sits_compare.R'
     'sits_config.R'
     'sits_csv.R'
     'sits_cube.R'
-    'sits_cube_aux_functions.R'
     'sits_cube_copy.R'
-    'sits_check.R'
     'sits_cluster.R'
     'sits_debug.R'
-    'sits_distances.R'
     'sits_dt_reference.R'
     'sits_factory.R'
-    'sits_file.R'
-    'sits_file_info.R'
     'sits_filters.R'
-    'sits_gdalcubes.R'
     'sits_geo_dist.R'
     'sits_get_data.R'
     'sits_imputation.R'
-    'sits_internals.R'
-    'sits_jobs.R'
     'sits_labels.R'
     'sits_label_classification.R'
     'sits_lighttae.R'
@@ -149,41 +179,19 @@ Collate:
     'sits_model_export.R'
     'sits_parallel.R'
     'sits_patterns.R'
-    'sits_period.R'
     'sits_plot.R'
     'sits_reclassify.R'
-    'sits_raster_api.R'
     'sits_raster_data.R'
-    'sits_raster_api_terra.R'
     'sits_raster_sub_image.R'
     'sits_regularize.R'
     'sits_resnet.R'
-    'sits_roi.R'
     'sits_sample_functions.R'
     'sits_select.R'
     'sits_sf.R'
-    'sits_shp.R'
     'sits_smooth.R'
     'sits_som.R'
-    'sits_source_api.R'
-    'sits_source_api_aws.R'
-    'sits_source_api_bdc.R'
-    'sits_source_api_deafrica.R'
-    'sits_source_api_local.R'
-    'sits_source_api_mpc.R'
-    'sits_source_api_sdc.R'
-    'sits_source_api_stac.R'
-    'sits_source_api_usgs.R'
-    'sits_space_time_operations.R'
-    'sits_stac.R'
     'sits_tae.R'
     'sits_tempcnn.R'
-    'sits_torch_conv1d.R'
-    'sits_torch_linear.R'
-    'sits_torch_spatial_encoder.R'
-    'sits_torch_temporal_attention_encoder.R'
-    'sits_tibble.R'
-    'sits_tile_api.R'
     'sits_timeline.R'
     'sits_train.R'
     'sits_tuning.R'

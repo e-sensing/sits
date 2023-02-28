@@ -30,7 +30,7 @@ NULL
         stop("invalid tolerance parameter")
     }
     # Compute result and return
-    all((y - x) > tolerance[[1]])
+    all(abs(y - x) > tolerance[[1]])
 }
 #' @title Compare if `x` is greater than `y` considering a tolerance
 #' @noRd
@@ -40,7 +40,7 @@ NULL
         stop("invalid tolerance parameter")
     }
     # Compute result and return
-    all((x - y) > tolerance[[1]])
+    all(abs(x - y) > tolerance[[1]])
 }
 #' @title Compare if `x` is an integer considering a tolerance
 #' @noRd

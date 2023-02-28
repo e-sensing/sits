@@ -36,7 +36,9 @@
 #' @param data             Either a data cube with classified images or
 #'                         a set of time series
 #' @param \dots            Specific parameters
-#' @param validation_csv   A CSV file path with validation data
+#' @param validation       Samples for validation (see below)
+#'                         Only required when data is a data cube.
+#' @param validation_csv   CSV file with samples (deprecated)
 #'
 #' @return
 #' A list of lists: The error_matrix, the class_areas, the unbiased
@@ -45,8 +47,9 @@
 #' A confusion matrix assessment produced by the caret package.
 #
 #' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' The validation data needs to contain the following columns: "latitude",
+#'  "longitude", "start_date", "end_date", and "label". It can be either a
+#'  path to a CSV file, a sits tibble or a data frame.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -78,7 +81,7 @@
 #'         package = "sits"
 #'     )
 #'     # make accuracy assessment
-#'     as <- sits_accuracy(label_cube, validation_csv = ground_truth)
+#'     as <- sits_accuracy(label_cube, validation = ground_truth)
 #' }
 #' @export
 sits_accuracy <- function(data, ...) {
@@ -122,23 +125,36 @@ sits_accuracy.sits <- function(data, ...) {
     # return caret confusion matrix
     return(acc)
 }
+#' @title Area-weighted post-classification accuracy for data cubes
 #' @rdname sits_accuracy
 #' @export
-sits_accuracy.class_cube <- function(data, ..., validation_csv) {
+sits_accuracy.class_cube <- function(data, validation = NULL, ...,
+                                     validation_csv = NULL) {
 
-    # sits only accepts "csv" files
-    .check_file_csv(validation_csv)
-
-    # Read sample information from CSV file and put it in a tibble
-    csv_tb <- tibble::as_tibble(
-        utils::read.csv(
-            validation_csv,
-            stringsAsFactors = FALSE
-        )
-    )
-
-    # Precondition - check if CSV file is correct
-    .check_csv(csv_tb)
+    if (!purrr::is_null(validation_csv)) {
+        warning("validation_csv parameter is deprecated since sits 1.3.
+                please use only validation")
+        validation <- validation_csv
+    }
+    .check_null(validation,
+                msg = "please provide a set of validation samples")
+    # generic function
+    # Is this a CSV file?
+    if (is.character(validation)) {
+        if (tolower(.file_ext(validation)) == "csv") {
+            # Read sample information from CSV file and put it in a tibble
+            validation <- tibble::as_tibble(
+                utils::read.csv(
+                    validation,
+                    stringsAsFactors = FALSE
+                )
+            )
+        }
+        else
+            stop("Invalid validation parameter for sits_accuracy")
+    }
+    # Precondition - check if validation samples are OK
+    .check_samples(validation)
 
     # Find the labels of the cube
     labels_cube <- sits_labels(data)
@@ -159,13 +175,13 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
 
         # get xy in cube projection
         xy_tb <- .proj_from_latlong(
-            longitude = csv_tb$longitude,
-            latitude = csv_tb$latitude,
+            longitude = validation$longitude,
+            latitude = validation$latitude,
             crs = .crs(tile)
         )
 
-        # join lat-long with XY values in a single tibble
-        points <- dplyr::bind_cols(csv_tb, xy_tb)
+        # join samples with XY values in a single tibble
+        points <- dplyr::bind_cols(validation, xy_tb)
 
         # are there points to be retrieved from the cube?
         .check_that(
@@ -213,6 +229,10 @@ sits_accuracy.class_cube <- function(data, ..., validation_csv) {
     })
     # Retrieve predicted and reference vectors for all rows of the cube
     pred_ref <- do.call(rbind, pred_ref_lst)
+    # is this data valid?
+    .check_null(pred_ref,
+                msg = "No validation samples inside data cube"
+    )
 
     # Create the error matrix
     error_matrix <- table(

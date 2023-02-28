@@ -33,6 +33,7 @@ sits_cube(source, collection, ..., data_dir = NULL)
   end_date = NULL,
   labels = NULL,
   parse_info = NULL,
+  version = "v1",
   delim = "_",
   multicores = 2,
   progress = TRUE
@@ -70,6 +71,8 @@ of collections that include more than one satellite.}
 \item{labels}{Labels associated to the classes (only for result cubes).}
 
 \item{parse_info}{Parsing information for local files.}
+
+\item{version}{Version of the classified and/or labelled files.}
 
 \item{delim}{Delimiter for parsing local files.}
 

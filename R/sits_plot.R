@@ -105,34 +105,24 @@ plot.sits <- function(x, y, ...) {
 #'                   each containing all time series associated to one band
 #'                   and one label.
 .plot_together <- function(data) {
-    Index <- NULL # to avoid setting global variable
     # create a data frame with the median, and 25% and 75% quantiles
-    create_iqr <- function(dt, band) {
-        V1 <- NULL # to avoid setting global variable
-
-        data.table::setnames(dt, band, "V1")
-        dt_med <- dt[, stats::median(V1), by = Index]
-        data.table::setnames(dt_med, "V1", "med")
-        dt_qt25 <- dt[, stats::quantile(V1, 0.25), by = Index]
-        data.table::setnames(dt_qt25, "V1", "qt25")
-        dt_qt75 <- dt[, stats::quantile(V1, 0.75), by = Index]
-        data.table::setnames(dt_qt75, "V1", "qt75")
-        dt_qts <- merge(dt_med, dt_qt25)
-        dt_qts <- merge(dt_qts, dt_qt75)
-        data.table::setnames(dt, "V1", band)
-        return(dt_qts)
+    create_iqr <- function(melted) {
+        qts <- melted %>%
+            dplyr::group_by(.data[["Index"]]) %>%
+            dplyr::summarise(med = median(.data[["value"]]),
+                             qt25 = quantile(.data[["value"]], 0.25),
+                             qt75 = quantile(.data[["value"]], 0.75))
+        return(qts)
     }
     # this function plots the values of all time series together (for one band)
-    plot_samples <- function(dt, dt_qts, band, label, number) {
-        # melt the data into long format (required for ggplot to work)
-        dt_melted <- data.table::melt(dt, id.vars = "Index")
+    plot_samples <- function(melted, qts, band, label, number) {
         # make the plot title
         title <- paste("Samples (", number, ") for class ",
                        label, " in band = ", band,
                        sep = ""
         )
         # plot all data together
-        g <- .plot_ggplot_together(dt_melted, dt_qts, title)
+        g <- .plot_ggplot_together(melted, qts, title)
         p <- graphics::plot(g)
         return(p)
     }
@@ -158,43 +148,17 @@ plot.sits <- function(x, y, ...) {
                 purrr::map(function(band) {
                     # select the band to be shown
                     band_tb <- sits_select(data2, band)
-                    # create a list with all time series for this band
-                    dt_lst <- purrr::map(
-                        band_tb$time_series,
-                        function(ts) {
-                            data.table::data.table(ts)
-                        }
-                    )
-                    # set "Index" as the key for all data.tables in the list
-                    dt_lst <- purrr::map(
-                        dt_lst,
-                        function(dt) {
-                            data.table::setkey(dt, Index)
-                        }
-                    )
-                    # rename the columns of the data table prior to merging
-                    length_dt <- length(dt_lst)
-                    dt_lst <- purrr::map2(
-                        dt_lst, 1:length_dt,
-                        function(dt, i) {
-                            data.table::setnames(
-                                dt, band,
-                                paste0(band, ".", as.character(i))
-                            )
-                        }
-                    )
-                    # merge the list of data.tables into a single table
-                    dt <- Reduce(function(...) merge(..., all = TRUE), dt_lst)
 
-                    # create another data.table with all the rows together
-                    # (required to compute the median and quartile values)
-                    ts <- band_tb$time_series
-                    dt_byrows <- data.table::data.table(dplyr::bind_rows(ts))
-                    # compute the median and quartile values
-                    dt_qts <- create_iqr(dt_byrows, band)
+                    melted <- band_tb %>%
+                        dplyr::select("time_series") %>%
+                        dplyr::mutate(variable = seq_len(dplyr::n())) %>%
+                        tidyr::unnest(cols = "time_series")
+                    names(melted) <- c("Index", "value", "variable")
+
+                    qts <- create_iqr(melted)
                     # plot the time series together
                     # (highlighting the median and quartiles 25% and 75%)
-                    p <- plot_samples(dt, dt_qts, band, lb, number)
+                    p <- plot_samples(melted, qts, band, lb, number)
                     return(p)
                 })
             return(band_plots)
@@ -351,17 +315,17 @@ plot.sits <- function(x, y, ...) {
         ggplot2::geom_line(
             data = means,
             ggplot2::aes(x = .data[["Index"]], y = .data[["med"]]),
-            colour = "#B16240", size = 2, inherit.aes = FALSE
+            colour = "#B16240", linewidth = 2, inherit.aes = FALSE
         ) +
         ggplot2::geom_line(
             data = means,
             ggplot2::aes(x = .data[["Index"]], y = .data[["qt25"]]),
-            colour = "#B19540", size = 1, inherit.aes = FALSE
+            colour = "#B19540", linewidth = 1, inherit.aes = FALSE
         ) +
         ggplot2::geom_line(
             data = means,
             ggplot2::aes(x = .data[["Index"]], y = .data[["qt75"]]),
-            colour = "#B19540", size = 1, inherit.aes = FALSE
+            colour = "#B19540", linewidth = 1, inherit.aes = FALSE
         )
     return(g)
 }
@@ -422,7 +386,7 @@ plot.patterns <- function(x, y, ...) {
         function(label, ts) {
             lb <- as.character(label)
             # extract the time series and convert
-            df <- data.frame(Time = ts$Index, ts[-1], Pattern = lb)
+            df <- tibble::tibble(Time = ts$Index, ts[-1], Pattern = lb)
             return(df)
         }
     )
@@ -430,10 +394,10 @@ plot.patterns <- function(x, y, ...) {
     plot.df <- tidyr::pivot_longer(plot.df, cols = sits_bands(x))
 
     # Plot temporal patterns
-    gp <- ggplot2::ggplot(plot.df, ggplot2::aes_string(
-        x = "Time",
-        y = "value",
-        colour = "name"
+    gp <- ggplot2::ggplot(plot.df, ggplot2::aes(
+        x = .data[["Time"]],
+        y = .data[["value"]],
+        colour = .data[["name"]]
     )) +
         ggplot2::geom_line() +
         ggplot2::facet_wrap(~Pattern) +
@@ -567,21 +531,21 @@ plot.predicted <- function(x, y, ...,
                 ) +
                 ggplot2::geom_polygon(
                     data = df_pol,
-                    ggplot2::aes_string(
-                        x = "Time",
-                        y = "value",
-                        group = "Group",
-                        fill = "Class"
+                    ggplot2::aes(
+                        x     = .data[["Time"]],
+                        y     = .data[["value"]],
+                        group = .data[["Group"]],
+                        fill  = .data[["Class"]]
                     ),
                     alpha = .7
                 ) +
                 ggplot2::scale_fill_manual(values = colors) +
                 ggplot2::geom_line(
                     data = df_x,
-                    ggplot2::aes_string(
-                        x = "Time",
-                        y = "value",
-                        colour = "variable"
+                    ggplot2::aes(
+                        x      = .data[["Time"]],
+                        y      = .data[["value"]],
+                        colour = .data[["variable"]]
                     )
                 ) +
                 ggplot2::scale_color_brewer(palette = "Set1") +
@@ -951,9 +915,11 @@ plot.class_cube <- function(x, y, ...,
     stars_obj <- stars::read_stars(
         bw_file,
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
-        ))
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
+    )
 
     # rescale the stars object
     stars_obj <- stars_obj * .conf("raster_cube_scale_factor")
@@ -1006,14 +972,13 @@ plot.class_cube <- function(x, y, ...,
 
     # get the labels
     labels <- sits_labels(tile)
-    # names(labels) <- seq_along(labels)
+    names(labels) <- seq_along(labels)
     # obtain the colors
-    colors <- .view_get_colors(
+    colors <- .colors_get(
         labels = labels,
         legend = legend,
         palette = palette
     )
-    # rename colors
     names(colors) <- seq_along(labels)
     # size of data to be read
     size <- .plot_read_size(tile)
@@ -1024,14 +989,18 @@ plot.class_cube <- function(x, y, ...,
     stars_obj <- stars::read_stars(
         class_file,
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
-        ))
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
+    )
 
     # rename stars object
     stars_obj <- stats::setNames(stars_obj, "labels")
 
     # plot using tmap
+    # tmap requires numbers, not names
+    names(colors) <- seq_along(names(colors))
     p <- suppressMessages(
         tmap::tm_shape(stars_obj) +
             tmap::tm_raster(
@@ -1043,8 +1012,8 @@ plot.class_cube <- function(x, y, ...,
             )  +
             tmap::tm_compass() +
             tmap::tm_layout(
-                legend.title.size = 1.2,
-                legend.text.size = 1.0,
+                legend.title.size = 1.0,
+                legend.text.size = 0.8,
                 legend.bg.color = "white",
                 legend.bg.alpha = 0.8)
     )
@@ -1104,9 +1073,10 @@ plot.class_cube <- function(x, y, ...,
     probs_st <- stars::read_stars(
         probs_path,
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
-        )
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
     )
     # get the band
     band <- .tile_bands(tile)
@@ -1170,9 +1140,11 @@ plot.class_cube <- function(x, y, ...,
         c(red_file, green_file, blue_file),
         along = "band",
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
-        ))
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
+    )
     # get the max values
     band_params   <- .tile_band_conf(tile, red)
     max_value <- .max_value(band_params)
@@ -1653,7 +1625,7 @@ plot.torch_model <- function(x, y, ...) {
         palette = palette,
         rev = TRUE
     )
-    colors_clust <- colors[data_labels]
+    colors_leg <- colors[unique(data_labels)]
 
     # set the visualization params for dendrogram
     dend <- dend %>%
@@ -1663,7 +1635,7 @@ plot.torch_model <- function(x, y, ...) {
         ) %>%
         dendextend::set(
             what = "branches_k_color",
-            value = colors_clust,
+            value = colors,
             k = length(data_labels)
         )
 
@@ -1680,7 +1652,7 @@ plot.torch_model <- function(x, y, ...) {
 
     # plot legend
     graphics::legend("topright",
-        fill = colors,
+        fill = colors_leg,
         legend = sits_labels(data)
     )
     return(invisible(dend))
@@ -1739,7 +1711,7 @@ plot.geo_distances <- function(x, y, ...) {
             color = .data[["type"]],
             fill = .data[["type"]]
         ),
-        lwd = 1, alpha = 0.25
+        linewidth = 1, alpha = 0.25
         ) +
         ggplot2::scale_x_log10(labels = scales::label_number()) +
         ggplot2::xlab("Distance (km)") +
