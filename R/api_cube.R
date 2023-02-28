@@ -582,6 +582,15 @@ NULL
 .cube_foreach_tile.raster_cube <- function(cube, fn, ...) {
     slider::slide_dfr(cube, fn, ...)
 }
+
+.cube_lst_foreach_tile <- function(cubes, fn, ...) {
+    UseMethod(".cube_lst_foreach_tile", cubes)
+}
+#' @export
+.cube_lst_foreach_tile.raster_cube <- function(cubes, fn, ...) {
+    slider::pslide_dfr(cubes, fn, ...)
+}
+
 #' @title What tiles intersect \code{roi} parameter?
 #' @noRd
 #' @param cube  A data cube.
