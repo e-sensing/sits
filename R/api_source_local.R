@@ -226,11 +226,13 @@
             .name_repair = "universal"
         )
     )
-    # check if bands exist
-    .check_chr_contains(x = items$band,
-                        contains = bands,
-                        discriminator = "all_of",
-                        msg = "Wrong bands specification - please correct")
+    if (!purrr::is_null(bands)) {
+        # check if bands exist
+        .check_chr_contains(x = items$band,
+                            contains = bands,
+                            discriminator = "all_of",
+                            msg = "Wrong bands specification - please correct")
+    }
     # get the information on the required bands, dates and path
     if (results_cube) {
         # check required version exists

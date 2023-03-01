@@ -75,7 +75,7 @@
         return(probs_tile)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tiles, overlap = 0, block = block)
+    chunks <- .tile_chunks_create(tile = base_tile, overlap = 0, block = block)
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block

@@ -2,12 +2,36 @@
 % Please edit documentation in R/sits_combine_predictions.R
 \name{sits_combine_predictions}
 \alias{sits_combine_predictions}
+\alias{sits_combine_predictions.average}
+\alias{sits_combine_predictions.uncertainty}
 \title{Estimate ensemble prediction based on list of probs cubes}
 \usage{
 sits_combine_predictions(
   cubes,
   type = "average",
   ...,
+  memsize = 8,
+  multicores = 2,
+  output_dir = getwd(),
+  version = "v1"
+)
+
+\method{sits_combine_predictions}{average}(
+  cubes,
+  type = "average",
+  ...,
+  weights = NULL,
+  memsize = 8,
+  multicores = 2,
+  output_dir = getwd(),
+  version = "v1"
+)
+
+\method{sits_combine_predictions}{uncertainty}(
+  cubes,
+  type = "uncertainty",
+  ...,
+  uncert_cubes,
   memsize = 8,
   multicores = 2,
   output_dir = getwd(),
@@ -63,13 +87,17 @@ if (sits_run_examples()) {
     # create a random forest model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
     # classify a data cube using rfor model
-    probs_rfor_cube <- sits_classify(data = cube, ml_model = rfor_model)
+    probs_rfor_cube <- sits_classify(
+        data = cube, ml_model = rfor_model, version = "rfor"
+    )
     # create an XGBoost model
-    xgb_model <- sits_train(samples_modis_ndvi, sits_xgboost())
-    # classify a data cube using xgboost model
-    probs_xgb_cube <- sits_classify(data = cube, ml_model = xgb_model)
+    tcnn_model <- sits_train(samples_modis_ndvi, sits_tempcnn())
+    # classify a data cube using tempcnn model
+    probs_tcnn_cube <- sits_classify(
+        data = cube, ml_model = tcnn_model, version = "tcnn"
+    )
     # create a list of predictions to be combined
-    pred_cubes <- list(probs_rfor_cube, probs_xgb_cube)
+    pred_cubes <- list(probs_rfor_cube, probs_tcnn_cube)
     # combine predictions
     comb_probs_cube <- sits_combine_predictions(cubes = pred_cubes)
     # plot the resulting combined prediction cube
