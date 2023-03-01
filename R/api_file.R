@@ -48,11 +48,17 @@
 }
 
 .file_block_name <- function(pattern, block, output_dir) {
-    # Get output_dir
     .file_path(
         pattern, "block", block[["row"]], block[["col"]],
         ext = "tif", output_dir = file.path(output_dir, ".sits"),
         create_dir = TRUE
+    )
+}
+
+.file_log_name <- function(output_dir) {
+    .file_path(
+        basename(tempdir()), ext = "log",
+        output_dir = file.path(output_dir, ".sits"), create_dir = TRUE
     )
 }
 
