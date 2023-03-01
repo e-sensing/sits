@@ -1403,7 +1403,7 @@
 #' @noRd
 .check_output_dir <- function(output_dir){
     .check_file(
-        x = output_dir,
+        x = .file_normalize(output_dir),
         msg = "invalid output dir"
     )
 }
@@ -1516,12 +1516,12 @@
     )
 }
 #' @title Check if cube is a uncert cube
-#' @name .check_cube_is_uncert_cube
+#' @name .check_is_uncert_cube
 #' @param cube a sits cube to be tested
 #' @return  No return value, called for side effects
 #' @keywords internal
 #' @noRd
-.check_cube_is_uncert_cube <- function(cube) {
+.check_is_uncert_cube <- function(cube) {
     .check_that(
         x = inherits(cube, "uncertainty_cube"),
         msg = "cube is not an uncertainty cube"
@@ -2121,8 +2121,8 @@
 #' @return No return value, called for side effects.
 .check_cubes_match <- function(cube1, cube2) {
     # check same size
-    .check_cubes_same_size(cube1, cube2)
     .check_cubes_same_tiles(cube1, cube2)
+    .check_cubes_same_size(cube1, cube2)
     .check_cubes_same_bbox(cube1, cube2)
     .check_cubes_same_timeline(cube1, cube2)
     .check_cubes_same_labels(cube1, cube2)
@@ -2161,6 +2161,27 @@
     # check same size
     first <- cubes[[1]]
     purrr::map(cubes, function(cube) {
+        .check_cubes_match(first, cube)
+    })
+}
+
+#' @title Check if list of uncertainty cubes have the same organization
+#' @name .check_uncert_cube_lst
+#' @keywords internal
+#' @noRd
+#' @param  uncert_cubes     list of input data cubes
+#' @return No return value, called for side effects.
+.check_uncert_cube_lst <- function(uncert_cubes) {
+    .check_that(length(uncert_cubes) >= 2,
+                local_msg = "length should be at least two",
+                msg = "invalid `uncert_cubes` parameter"
+    )
+    .check_lst_type(uncert_cubes, msg = "cubes are not in a list")
+    # is every cube a probs cube
+    purrr::map(uncert_cubes, .check_is_uncert_cube)
+    # check same size
+    first <- uncert_cubes[[1]]
+    purrr::map(uncert_cubes, function(cube) {
         .check_cubes_match(first, cube)
     })
 }

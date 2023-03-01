@@ -1,5 +1,59 @@
 #---- internal functions ----
-.comb_tiles <- function(tiles, band, block, comb_fn, output_dir, version) {
+.comb <- function(cubes,
+                  comb_fn,
+                  memsize,
+                  multicores,
+                  output_dir,
+                  version, ...) {
+    # Check memory and multicores
+    # Get block size
+    base_cube <- cubes[[1]]
+    block <- .raster_file_blocksize(
+        .raster_open_rast(.tile_path(base_cube))
+    )
+    # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = .block_size(block = block),
+        npaths = length(cubes) * nrow(base_cube) *
+            length(sits_labels(base_cube)),
+        nbytes = 8,
+        proc_bloat = .conf("processing_bloat")
+    )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_memsize = job_memsize,
+        block = block,
+        image_size = .tile_size(.tile(base_cube)),
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Prepare parallel processing
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop(), add = TRUE)
+
+    # Combining
+    # process each brick layer (each time step) individually
+    probs_cube <- .cube_lst_foreach_tile(cubes, function(...) {
+        probs_tile <- .comb_tiles(
+            tiles = list(...),
+            band = "probs",
+            comb_fn = comb_fn,
+            block = block,
+            output_dir = output_dir,
+            version = version
+        )
+        probs_tile
+    })
+    probs_cube
+}
+
+.comb_tiles <- function(tiles, band, comb_fn, block, output_dir, version) {
     base_tile <- tiles[[1]]
     # Output file
     out_file <- .file_derived_name(
@@ -76,64 +130,9 @@
     probs_tile
 }
 
-.comb_use_method <- function(cubes, type, block, memsize,
-                             multicores, output_dir, version, ...) {
-    comb_fn <- switch(
-        type,
-        average = .comb_average,
-        uncertainty = .comb_uncert,
-        "Invalid `type` parameter (value should be one of 'average', ",
-        "'uncertainty')."
-    )
-    comb_fn(cubes = cubes,
-            block = block,
-            memsize = memsize,
-            multicores = multicores,
-            output_dir = output_dir,
-            version = version, ...)
-}
-
-#---- combine methods ----
-
-.comb_average <- function(cubes, block, ...,
-                          weights = NULL,
-                          multicores = 2,
-                          memsize = 4,
-                          output_dir = getwd(),
-                          version = "v1") {
-    # Create combine function
-    average_fn <- .comb_fn_average(cubes = cubes, weights = weights)
-    # Combining
-    # process each brick layer (each time step) individually
-    .cube_lst_foreach_tile(cubes, function(...) {
-        .comb_tiles(
-            tiles = list(...),
-            band = "probs",
-            block = block,
-            comb_fn = average_fn,
-            output_dir = output_dir,
-            version = version
-        )
-    })
-}
-
 #---- combine functions ----
 
 .comb_fn_average <- function(cubes, weights) {
-    # Get number of labels
-    n_labels <- length(sits_labels(cubes[[1]]))
-    # Get weights
-    n_inputs <- length(cubes)
-    if (purrr::is_null(weights)) {
-        weights <- rep(1/n_inputs, n_inputs)
-    }
-    .check_that(
-        length(weights) == n_inputs,
-        msg = "number of weights does not match number of inputs",
-    )
-    .check_that(
-        sum(weights) == 1, msg = "weigths should add up to 1.0"
-    )
     # Average probability calculation
     comb_fn <- function(values) {
         # Check values length
@@ -143,7 +142,27 @@
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         .check_that(
-            ncol(values) == n_labels,
+            ncol(values) == length(sits_labels(cubes[[1]])),
+            msg = paste("number of columns of processed matrix is different",
+                        "from the number of cube labels")
+        )
+        # Return values
+        values
+    }
+    comb_fn
+}
+
+.comb_fn_uncertainty <- function(cubes, uncert_cubes) {
+    # Average probability calculation
+    comb_fn <- function(values) {
+        # Check values length
+        input_pixels <- nrow(values[[1]])
+        # Combine by average
+        values <- weighted_uncert_probs(values, uncert_cubes)
+        # Are the results consistent with the data input?
+        .check_processed_values(values, input_pixels)
+        .check_that(
+            ncol(values) == length(sits_labels(cubes[[1]])),
             msg = paste("number of columns of processed matrix is different",
                         "from the number of cube labels")
         )
