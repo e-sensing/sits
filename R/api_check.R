@@ -2121,8 +2121,8 @@
 #' @return No return value, called for side effects.
 .check_cubes_match <- function(cube1, cube2) {
     # check same size
-    .check_cubes_same_size(cube1, cube2)
     .check_cubes_same_tiles(cube1, cube2)
+    .check_cubes_same_size(cube1, cube2)
     .check_cubes_same_bbox(cube1, cube2)
     .check_cubes_same_timeline(cube1, cube2)
     .check_cubes_same_labels(cube1, cube2)
