@@ -2,37 +2,14 @@
 % Please edit documentation in R/sits_combine_predictions.R
 \name{sits_combine_predictions}
 \alias{sits_combine_predictions}
-\alias{sits_combine_predictions.average}
-\alias{sits_combine_predictions.uncertainty}
 \title{Estimate ensemble prediction based on list of probs cubes}
 \usage{
 sits_combine_predictions(
   cubes,
   type = "average",
   ...,
-  multicores = 2,
   memsize = 8,
-  output_dir = ".",
-  version = "v1"
-)
-
-\method{sits_combine_predictions}{average}(
-  cubes,
-  type = "average",
-  ...,
   multicores = 2,
-  memsize = 4,
-  output_dir = getwd(),
-  version = "v1"
-)
-
-\method{sits_combine_predictions}{uncertainty}(
-  cubes,
-  type = "uncertainty",
-  ...,
-  uncert_cubes,
-  multicores = 2,
-  memsize = 4,
   output_dir = getwd(),
   version = "v1"
 )
@@ -44,15 +21,17 @@ sits_combine_predictions(
 
 \item{...}{Parameters for specific functions.}
 
-\item{multicores}{Number of cores to run the function.}
-
 \item{memsize}{Maximum overall memory (in GB) to run the
 function.}
+
+\item{multicores}{Number of cores to run the function.}
 
 \item{output_dir}{Output directory for image files.}
 
 \item{version}{Version of resulting image.
 (in the case of multiple tests)}
+
+\item{weights}{Weights for averaging}
 
 \item{uncert_cubes}{Uncertainty cubes to be used as local weights.}
 }

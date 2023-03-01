@@ -103,6 +103,7 @@ Collate:
     'api_bbox.R'
     'api_block.R'
     'api_check.R'
+    'api_combine_predictions.R'
     'api_comp.R'
     'api_conf.R'
     'api_cube.R'
