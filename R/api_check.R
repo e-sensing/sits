@@ -2165,6 +2165,27 @@
     })
 }
 
+#' @title Check if list of uncertainty cubes have the same organization
+#' @name .check_uncert_cube_lst
+#' @keywords internal
+#' @noRd
+#' @param  uncert_cubes     list of input data cubes
+#' @return No return value, called for side effects.
+.check_uncert_cube_lst <- function(uncert_cubes) {
+    .check_that(length(uncert_cubes) >= 2,
+                local_msg = "length should be at least two",
+                msg = "invalid `uncert_cubes` parameter"
+    )
+    .check_lst_type(uncert_cubes, msg = "cubes are not in a list")
+    # is every cube a probs cube
+    purrr::map(uncert_cubes, .check_is_uncert_cube)
+    # check same size
+    first <- uncert_cubes[[1]]
+    purrr::map(uncert_cubes, function(cube) {
+        .check_cubes_match(first, cube)
+    })
+}
+
 #' @title Check if errox matrix and area are cosrrect
 #' @name .check_error_matrix_area
 #' @param  error_matrix  Error matrix for classification
