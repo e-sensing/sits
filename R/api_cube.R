@@ -587,7 +587,7 @@ NULL
     UseMethod(".cube_lst_foreach_tile", cubes)
 }
 #' @export
-.cube_lst_foreach_tile.raster_cube <- function(cubes, fn, ...) {
+.cube_lst_foreach_tile.list <- function(cubes, fn, ...) {
     slider::pslide_dfr(cubes, fn, ...)
 }
 
