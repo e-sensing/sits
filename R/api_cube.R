@@ -583,14 +583,6 @@ NULL
     slider::slide_dfr(cube, fn, ...)
 }
 
-.cube_lst_foreach_tile <- function(cubes, fn, ...) {
-    UseMethod(".cube_lst_foreach_tile", cubes)
-}
-#' @export
-.cube_lst_foreach_tile.list <- function(cubes, fn, ...) {
-    slider::pslide_dfr(cubes, fn, ...)
-}
-
 #' @title What tiles intersect \code{roi} parameter?
 #' @noRd
 #' @param cube  A data cube.
@@ -706,6 +698,7 @@ NULL
 .cube_filter_tiles.raster_cube <- function(cube, tiles) {
     cube[.cube_tiles(cube) %in% tiles, ]
 }
+
 #' @title Create internal cube features with ID
 #' @noRd
 #' @param cube  data cube
