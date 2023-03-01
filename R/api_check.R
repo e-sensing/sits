@@ -1403,7 +1403,7 @@
 #' @noRd
 .check_output_dir <- function(output_dir){
     .check_file(
-        x = output_dir,
+        x = .file_normalize(output_dir),
         msg = "invalid output dir"
     )
 }
