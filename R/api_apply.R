@@ -43,7 +43,7 @@
         date = .tile_start_date(feature), output_dir = output_dir
     )
     # Resume feature
-    if (.raster_is_valid(out_file)) {
+    if (.raster_is_valid(out_file, output_dir = output_dir)) {
         # # Callback final tile classification
         # .callback(process = "Apply", event = "recovery",
         #           context = environment())

@@ -113,7 +113,7 @@ sits_mosaic <- function(cube,
 .mosaic_merge_tiles <- function(cube, crs, multicores, output_dir, version) {
     # Generate a vrt file
     vrt_file <- tempfile(fileext = ".vrt")
-    cube_files <- .cube_paths(cube)
+    cube_files <- unlist(.cube_paths(cube))
     .gdal_buildvrt(
         file = vrt_file, base_files = cube_files, quiet = TRUE
     )
@@ -127,7 +127,7 @@ sits_mosaic <- function(cube,
         output_dir = output_dir
     )
     # Resume feature
-    if (.raster_is_valid(out_file)) {
+    if (.raster_is_valid(out_file, output_dir = output_dir)) {
         message("Recovery: file '", out_file, "' already exists.")
         message("(If you want to produce a new cropped image, please ",
                 "change 'version' or 'output_dir' parameter)")
@@ -186,7 +186,7 @@ sits_mosaic <- function(cube,
         derived_class = .tile_derived_class(tile), band = .tile_bands(tile)
     )
     # Resume feature
-    if (.raster_is_valid(out_file)) {
+    if (.raster_is_valid(out_file, output_dir = output_dir)) {
         message("Recovery: file '", out_file, "' already exists.")
         message("(If you want to produce a new cropped image, please ",
                 "change 'version' or 'output_dir' parameter)")

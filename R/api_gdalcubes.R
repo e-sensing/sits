@@ -31,11 +31,12 @@
             .add = TRUE
         )
 
-        x <- dplyr::arrange(
-            x, .data[["cloud_cover"]],
-            .by_group = TRUE
-        )
-
+        if ("cloud_cover" %in% names(x)) {
+            x <- dplyr::arrange(
+                x, .data[["cloud_cover"]],
+                .by_group = TRUE
+            )
+        }
         x <- dplyr::select(dplyr::ungroup(x), -"interval")
 
         return(x)
@@ -116,27 +117,29 @@
 #' @keywords internal
 #' @noRd
 #'
-#' @param cube  Data cube.
+#' @param tile  A cube tile.
 #'
 #' @return      \code{gdalcubes::image_mask} with information about mask band.
-.gc_create_cloud_mask <- function(cube) {
-
+.gc_create_cloud_mask <- function(tile) {
     # set caller to show in errors
     .check_set_caller(".gc_create_cloud_mask")
 
+    if (!.tile_contains_cloud(tile)) {
+        return(NULL)
+    }
     # create a image mask object
     mask_values <- gdalcubes::image_mask(
         band = .source_cloud(),
         values = .source_cloud_interp_values(
-            source = .cube_source(cube = cube),
-            collection = .cube_collection(cube = cube)
+            source = .cube_source(cube = tile),
+            collection = .cube_collection(cube = tile)
         )
     )
 
     # is this a bit mask cloud?
     if (.source_cloud_bit_mask(
-        source = .cube_source(cube = cube),
-        collection = .cube_collection(cube = cube)
+        source = .cube_source(cube = tile),
+        collection = .cube_collection(cube = tile)
     )) {
         mask_values <- list(
             band = .source_cloud(),
@@ -577,7 +580,7 @@
                 cube_view = cube_view,
                 path_db = path_db,
                 band = band,
-                mask_band = .gc_create_cloud_mask(cube = tile)
+                mask_band = .gc_create_cloud_mask(tile)
             )
 
             # files prefix

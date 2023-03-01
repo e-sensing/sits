@@ -243,3 +243,7 @@ NULL
     # Return values
     values
 }
+
+.fi_contains_cloud <- function(fi) {
+    .band_cloud() %in% .fi_bands(fi)
+}
