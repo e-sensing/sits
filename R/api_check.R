@@ -1516,12 +1516,12 @@
     )
 }
 #' @title Check if cube is a uncert cube
-#' @name .check_cube_is_uncert_cube
+#' @name .check_is_uncert_cube
 #' @param cube a sits cube to be tested
 #' @return  No return value, called for side effects
 #' @keywords internal
 #' @noRd
-.check_cube_is_uncert_cube <- function(cube) {
+.check_is_uncert_cube <- function(cube) {
     .check_that(
         x = inherits(cube, "uncertainty_cube"),
         msg = "cube is not an uncertainty cube"
