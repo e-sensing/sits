@@ -100,10 +100,11 @@ sits_combine_predictions.average <- function(cubes,
         sum(weights) == 1, msg = "weigths should add up to 1.0"
     )
     # Get combine function
-    comb_fn <- .comb_fn_average(cubes, weights)
+    comb_fn <- .comb_fn_average(cubes, weights = weights)
     # Call combine predictions
     probs_cube <- .comb(
-        cubes = cubes,
+        probs_cubes = cubes,
+        uncert_cubes = NULL,
         comb_fn = comb_fn,
         memsize = memsize,
         multicores = multicores,
@@ -131,10 +132,11 @@ sits_combine_predictions.uncertainty <- function(cubes,
     .check_uncert_cube_lst(uncert_cubes)
     .check_cubes_match(cubes[[1]], uncert_cubes[[1]])
     # Get combine function
-    comb_fn <- .comb_fn_uncertainty(cubes, uncert_cubes)
+    comb_fn <- .comb_fn_uncertainty(cubes)
     # Call combine predictions
     probs_cube <- .comb(
-        cubes = cubes,
+        probs_cubes = cubes,
+        uncert_cubes = uncert_cubes,
         comb_fn = comb_fn,
         memsize = memsize,
         multicores = multicores,

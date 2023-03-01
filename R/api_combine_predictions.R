@@ -1,5 +1,6 @@
 #---- internal functions ----
-.comb <- function(cubes,
+.comb <- function(probs_cubes,
+                  uncert_cubes,
                   comb_fn,
                   memsize,
                   multicores,
@@ -7,14 +8,14 @@
                   version, ...) {
     # Check memory and multicores
     # Get block size
-    base_cube <- cubes[[1]]
+    base_cube <- probs_cubes[[1]]
     block <- .raster_file_blocksize(
         .raster_open_rast(.tile_path(base_cube))
     )
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block),
-        npaths = length(cubes) * nrow(base_cube) *
+        npaths = length(probs_cubes) * nrow(base_cube) *
             length(sits_labels(base_cube)),
         nbytes = 8,
         proc_bloat = .conf("processing_bloat")
@@ -39,9 +40,10 @@
 
     # Combining
     # process each brick layer (each time step) individually
-    probs_cube <- .cube_lst_foreach_tile(cubes, function(...) {
+    probs_cube <- purrr::map_dfr(seq_len(nrow(base_cube)), function(i) {
         probs_tile <- .comb_tiles(
-            tiles = list(...),
+            probs_tiles = lapply(probs_cubes, .slice_dfr, i),
+            uncert_tiles = lapply(uncert_cubes, .slice_dfr, i),
             band = "probs",
             comb_fn = comb_fn,
             block = block,
@@ -53,8 +55,14 @@
     probs_cube
 }
 
-.comb_tiles <- function(tiles, band, comb_fn, block, output_dir, version) {
-    base_tile <- tiles[[1]]
+.comb_tiles <- function(probs_tiles,
+                        uncert_tiles,
+                        band,
+                        comb_fn,
+                        block,
+                        output_dir,
+                        version) {
+    base_tile <- probs_tiles[[1]]
     # Output file
     out_file <- .file_derived_name(
         tile = base_tile, band = band, version = version,
@@ -90,13 +98,23 @@
             return(block_file)
         }
         # Read and preprocess values
-        values <- lapply(tiles, function(tile) {
+        values <- lapply(probs_tiles, function(tile) {
             .tile_read_block(
                 tile = tile, band = .tile_bands(tile), block = block
             )
         })
+        # If an uncertainty cube has been passed, read it
+        uncert_values <- NULL
+        if (.has(uncert_tiles)) {
+            # Read and preprocess values
+            uncert_values <- lapply(uncert_tiles, function(tile) {
+                .tile_read_block(
+                    tile = tile, band = .tile_bands(tile), block = block
+                )
+            })
+        }
         # Apply the probability function to values
-        values <- comb_fn(values = values)
+        values <- comb_fn(values, uncert_values = uncert_values)
         # Prepare probability to be saved
         band_conf <- .conf_derived_band(
             derived_class = "probs_cube", band = band
@@ -134,7 +152,7 @@
 
 .comb_fn_average <- function(cubes, weights) {
     # Average probability calculation
-    comb_fn <- function(values) {
+    comb_fn <- function(values, uncert_values = NULL) {
         # Check values length
         input_pixels <- nrow(values[[1]])
         # Combine by average
@@ -152,13 +170,13 @@
     comb_fn
 }
 
-.comb_fn_uncertainty <- function(cubes, uncert_cubes) {
+.comb_fn_uncertainty <- function(cubes) {
     # Average probability calculation
-    comb_fn <- function(values) {
+    comb_fn <- function(values, uncert_values) {
         # Check values length
         input_pixels <- nrow(values[[1]])
         # Combine by average
-        values <- weighted_uncert_probs(values, uncert_cubes)
+        values <- weighted_uncert_probs(values, uncert_values)
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         .check_that(
