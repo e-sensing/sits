@@ -437,8 +437,6 @@ test_that("Reading data from Classified data", {
     )
     # smooth the probability cube using Bayesian statistics
     bayes_cube <- sits_smooth(probs_cube, output_dir = output_dir)
-    # smooth the probability cube using variace
-    var_cube <- sits_smooth_variance(probs_cube, output_dir = output_dir)
     # label the probability cube
     label_cube <- sits_label_classification(bayes_cube, output_dir = output_dir)
 
