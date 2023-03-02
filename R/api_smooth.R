@@ -130,6 +130,14 @@
         if (.has(scale) && scale != 1) {
             values <- values / scale
         }
+        min <- .min_value(band_conf)
+        if (.has(max)) {
+            values[values < min] <- min
+        }
+        max <- .max_value(band_conf)
+        if (.has(max)) {
+            values[values > max] <- max
+        }
         # Job crop block
         crop_block <- .block(.chunks_no_overlap(chunk))
         # Prepare and save results as raster
