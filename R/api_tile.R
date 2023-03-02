@@ -180,7 +180,14 @@ NULL
 }
 #' @export
 .tile_timeline.raster_cube <- function(tile) {
-    unique(.fi_timeline(.fi(tile)))
+    sort(unique(.fi_timeline(.fi(tile))))
+}
+.tile_is_complete <- function(tile) {
+    UseMethod(".tile_is_complete", tile)
+}
+#' @export
+.tile_is_complete.raster_cube <- function(tile) {
+    .fi_is_complete(.fi(tile))
 }
 #' @title Get sorted unique bands from file_info.
 #' @name .tile_path

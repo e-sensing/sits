@@ -234,6 +234,14 @@ NULL
 .cube_timeline.raster_cube <- function(cube) {
     .compact(slider::slide(cube, .tile_timeline))
 }
+.cube_is_complete <- function(cube) {
+    UseMethod(".cube_is_complete", cube)
+}
+#' @export
+.cube_is_complete.raster_cube <- function(cube) {
+    if (length(.cube_bands(cube)) > 1) return(FALSE)
+    all(slider::slide_lgl(cube, .tile_is_complete))
+}
 #' @title Find out how many images are in cube during a period
 #' @noRd
 #' @param cube  A data cube.
@@ -515,7 +523,7 @@ NULL
 #' @param cube  datacube
 #' @return logical
 .cube_is_regular <- function(cube) {
-    if (length(.cube_bands(cube)) != 1) {
+    if (!.cube_is_complete(cube)) {
         return(FALSE)
     }
     if (!.check_has_unique_bbox(cube)) {
