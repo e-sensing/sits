@@ -145,6 +145,14 @@
         if (.has(scale) && scale != 1) {
             values <- values / scale
         }
+        min <- .min_value(band_conf)
+        if (.has(max)) {
+            values[values < min] <- min
+        }
+        max <- .max_value(band_conf)
+        if (.has(max)) {
+            values[values > max] <- max
+        }
         # Prepare and save results as raster
         .raster_write_block(
             files = block_file,
