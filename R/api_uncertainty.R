@@ -1,15 +1,70 @@
 #---- internal functions ----
-.uncert <- function() {
+.uncert <- function(cube,
+                    uncert_fn,
+                    band,
+                    window_size,
+                    memsize,
+                    multicores,
+                    output_dir,
+                    version,
+                    progress) {
 
+    # Check memory and multicores
+    # Get block size
+    block_size <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    # Overlapping pixels
+    overlap <- ceiling(window_size / 2) - 1
+    # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = .block_size(block = block_size, overlap = overlap),
+        npaths = length(.tile_labels(cube)) + 1,
+        nbytes = 8,
+        proc_bloat = .conf("processing_bloat")
+    )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Update block parameter
+    block_size <- .jobs_optimal_block(
+        job_memsize = job_memsize,
+        block = block_size,
+        image_size = .tile_size(.tile(cube)),
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Prepare parallel processing
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop(), add = TRUE)
+
+    # Call the uncertainty method
+    # Process each tile sequentially
+    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
+        uncert_tile <- .uncert_tile(
+            tile = tile,
+            band = band,
+            uncert_fn = uncert_fn,
+            block_size = block_size,
+            overlap = overlap,
+            output_dir = output_dir,
+            version = version,
+            progress = progress
+        )
+        uncert_tile
+    })
+    uncert_cube
 }
 
 .uncert_tile <- function(tile,
-                              band,
-                              overlap,
-                              uncert_fn,
-                              output_dir,
-                              version,
-                              progress) {
+                         band,
+                         uncert_fn,
+                         block_size,
+                         overlap,
+                         output_dir,
+                         version,
+                         progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile,
@@ -33,14 +88,19 @@
         return(uncert_tile)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tile, overlap = overlap)
+    chunks <- .tile_chunks_create(
+        tile = tile,
+        overlap = overlap,
+        block = block_size
+    )
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
         block <- .block(chunk)
         # Block file name
         block_file <- .file_block_name(
-            pattern = .file_pattern(out_file), block = block,
+            pattern = .file_pattern(out_file),
+            block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure
