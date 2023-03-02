@@ -42,7 +42,6 @@
     # Call the smooth method
     # Process each tile sequentially
     probs_cube <- .cube_foreach_tile(cube, function(tile) {
-        # Smooth the data
         probs_tile <- .smooth_tile(
             tile = tile,
             band = band,
@@ -120,7 +119,8 @@
         values <- smooth_fn(values = values, block = block)
         # Prepare probability to be saved
         band_conf <- .conf_derived_band(
-            derived_class = "probs_cube", band = band
+            derived_class = "probs_cube",
+            band = band
         )
         offset <- .offset(band_conf)
         if (.has(offset) && offset != 0) {
