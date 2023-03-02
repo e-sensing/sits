@@ -60,7 +60,8 @@ arma::mat bayes_smoother(const arma::mat& m,
                          const arma::uword m_ncol,
                          const arma::mat& w,
                          const arma::mat& sigma,
-                         bool covar_sigma0) {
+                         bool covar_sigma0,
+                         const double neigh_fraction) {
 
     // initialize result matrix
     arma::mat res(arma::size(m), arma::fill::none);
@@ -85,22 +86,18 @@ arma::mat bayes_smoother(const arma::mat& m,
 
             if (neigh.n_rows == 0) continue;
 
-            // number of sorted values
-            arma::uword n_sort = w.n_cols * (w.n_cols / 2 + 1);
-            if (n_sort > neigh.n_rows) n_sort = neigh.n_rows;
+            if (neigh_fraction < 1.0 ) {
+                // sort the data
+                neigh.data.rows(0, neigh.n_rows - 1) = arma::sort(neigh.data.rows(0, neigh.n_rows - 1), "descend");
 
-            // sort the neighborhood vector
-            neigh.data.rows(0, neigh.n_rows - 1) =
-                arma::sort(neigh.data.rows(0, neigh.n_rows - 1), "descend");
+                // number of sorted values
+                arma::uword n_sort = neigh.n_rows * neigh_fraction;
 
-            // compute prior mean
-            mu0 = arma::mean(neigh.data.rows(0, n_sort - 1), 0).as_col();
+                // compute prior mean
+                mu0 = arma::mean(neigh.data.rows(0, n_sort - 1), 0).as_col();
 
-            // compute prior sigma
-            sigma0 = arma::cov(neigh.data.rows(0, n_sort - 1), 1);
-
-            // prior sigma covariance
-            if (!covar_sigma0) {
+                // compute prior sigma
+                sigma0 = arma::cov(neigh.data.rows(0, n_sort - 1), 1);
 
                 // clear non main diagonal cells
                 sigma0.elem(arma::trimatu_ind(
