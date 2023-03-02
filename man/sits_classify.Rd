@@ -37,7 +37,7 @@ sits_classify(
   multicores = 2,
   output_dir = getwd(),
   version = "v1",
-  verbose = TRUE,
+  verbose = FALSE,
   progress = TRUE
 )
 }

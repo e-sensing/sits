@@ -45,7 +45,8 @@
         value
     }
     # Output log file
-    log_file <- paste0(file.path(output_dir, basename(tempdir())), ".log")
+    log_file <- .file_log_name(output_dir)
+
     # Elapsed time
     elapsed_time <- NULL
     if (.has(sits_env$log_time)) {

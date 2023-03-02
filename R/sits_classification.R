@@ -150,7 +150,7 @@ sits_classify.raster_cube <- function(data,
                                       multicores = 2,
                                       output_dir = getwd(),
                                       version = "v1",
-                                      verbose = TRUE,
+                                      verbose = FALSE,
                                       progress = TRUE) {
     # preconditions
     .check_is_raster_cube(data)

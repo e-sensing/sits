@@ -308,6 +308,7 @@ NULL
 .cube_foreach_tile.raster_cube <- function(cube, fn, ...) {
     slider::slide_dfr(cube, fn, ...)
 }
+
 #' @title Asset iteration
 #' @noRd
 #' @param cube  A data cube.
@@ -326,6 +327,7 @@ NULL
     .cube_bands(irregular_cube)
     slider::slide_dfr(cube, fn, ...)
 }
+
 #' @title What tiles intersect \code{roi} parameter?
 #' @noRd
 #' @param cube  A data cube.
@@ -421,6 +423,11 @@ NULL
 .cube_paths.raster_cube <- function(cube, bands = NULL) {
     slider::slide(cube, .tile_paths, bands = bands)
 }
+.cube_paths.raster_cube <- function(cube) {
+    slider::slide(cube, function(tile) {
+        .fi_paths(.fi(.tile(tile)))
+    })
+}
 .cube_is_local <- function(cube) {
     UseMethod(".cube_is_local", cube)
 }
@@ -440,6 +447,7 @@ NULL
 .cube_filter_tiles.raster_cube <- function(cube, tiles) {
     cube[.cube_tiles(cube) %in% tiles, ]
 }
+
 #' @title Create internal cube features with ID
 #' @noRd
 #' @param cube  data cube
@@ -689,104 +697,4 @@ NULL
 #' @export
 .cube_is_token_expired.default <- function(cube) {
     return(FALSE)
-}
-
-# ---- to be removed ----
-#' @title Create a data cube derived from another
-#' @name .cube_derived_create
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Take a tibble containing metadata about a data cube
-#' containing time series and create a
-#' set of files to store the result of a classification or smoothing
-#'
-#' @param cube         input data cube
-#' @param cube_class   class to be attributed to created cube
-#' @param band_name    name of band in created cube
-#' @param labels       labels of derived cube
-#' @param start_date   start date of the cube interval
-#' @param end_date     end date of the cube interval
-#' @param bbox         bounding box of the ROI
-#' @param output_dir   prefix of the output files.
-#' @param version      version of the output files
-#'
-#' @return output data cube
-#'
-.cube_derived_create <- function(tile,
-                                 cube_class,
-                                 band_name,
-                                 labels,
-                                 start_date,
-                                 end_date,
-                                 bbox,
-                                 output_dir,
-                                 version) {
-
-    # set caller to show in errors
-    .check_set_caller(".cube_derived_create")
-
-    # only one tile at a time is processed
-    .check_has_one_tile(tile)
-
-    # output filename
-    file_name <- paste0(
-        tile[["satellite"]], "_",
-        tile[["sensor"]], "_",
-        tile[["tile"]], "_",
-        start_date, "_",
-        end_date, "_",
-        band_name, "_",
-        version, ".tif"
-    )
-
-    file_name <- file.path(output_dir, file_name)
-
-    if (!purrr::is_null(bbox)) {
-        sub_image <- .raster_sub_image(tile = tile, roi = bbox)
-        nrows_cube_class <- sub_image[["nrows"]]
-        ncols_cube_class <- sub_image[["ncols"]]
-    } else {
-        nrows_cube_class <- .tile_nrows(tile)
-        ncols_cube_class <- .tile_ncols(tile)
-    }
-
-    # set the file information
-    file_info <- tibble::tibble(
-        band       = band_name,
-        start_date = start_date,
-        end_date   = end_date,
-        ncols      = ncols_cube_class,
-        nrows      = nrows_cube_class,
-        xres       = .tile_xres(tile),
-        yres       = .tile_yres(tile),
-        xmin       = bbox[["xmin"]],
-        xmax       = bbox[["xmax"]],
-        ymin       = bbox[["ymin"]],
-        ymax       = bbox[["ymax"]],
-        crs        = tile[["crs"]],
-        path       = file_name
-    )
-
-    # set the metadata for the probability cube
-    dev_cube <- .cube_create(
-        source     = .tile_source(tile),
-        collection = .tile_collection(tile),
-        satellite  = tile[["satellite"]],
-        sensor     = tile[["sensor"]],
-        tile       = tile[["tile"]],
-        xmin       = bbox[["xmin"]],
-        xmax       = bbox[["xmax"]],
-        ymin       = bbox[["ymin"]],
-        ymax       = bbox[["ymax"]],
-        crs        = tile$crs,
-        labels     = labels,
-        file_info  = file_info
-    )
-
-    class(dev_cube) <- unique(c(cube_class, "derived_cube", "raster_cube",
-                                class(dev_cube)))
-
-    return(dev_cube)
 }

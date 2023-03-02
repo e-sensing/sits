@@ -36,22 +36,17 @@ test_that("Combine predictions", {
     expect_equal(sits_labels(comb_probs_cube_avg), sits_labels(probs_xgb_cube))
     expect_equal(sits_bbox(comb_probs_cube_avg), sits_bbox(probs_xgb_cube))
     expect_equal(nrow(comb_probs_cube_avg), nrow(probs_xgb_cube))
-    # Resume feature
-    comb_probs_cube_avg <- sits_combine_predictions(
-        cubes = pred_cubes,
-        type = "average",
-        output_dir = tempdir(),
-        version = "comb_rfor_xgb_avg"
-    )
 
     # combine predictions
     uncert_rfor <- sits_uncertainty(
         cube = probs_rfor_cube,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        version = "uncert-rfor"
     )
     uncert_xgboost <- sits_uncertainty(
         cube = probs_xgb_cube,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        version = "uncert-xgb"
     )
     uncert_cubes <- list(uncert_rfor, uncert_xgboost)
 
@@ -65,12 +60,4 @@ test_that("Combine predictions", {
     expect_equal(sits_labels(comb_probs_cube_uncert), sits_labels(probs_xgb_cube))
     expect_equal(sits_bbox(comb_probs_cube_uncert), sits_bbox(probs_xgb_cube))
     expect_equal(nrow(comb_probs_cube_uncert), nrow(probs_xgb_cube))
-    # Resume feature
-    comb_probs_cube_uncert <- sits_combine_predictions(
-        cubes = pred_cubes,
-        type = "uncertainty",
-        uncert_cubes = uncert_cubes,
-        output_dir = tempdir(),
-        version = "comb_rfor_xgb_uncert"
-    )
 })

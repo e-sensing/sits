@@ -7,7 +7,7 @@
 #'
 #' @description Takes a set of classified raster layers with probabilities,
 #'              whose metadata is]created by \code{\link[sits]{sits_cube}},
-#'              and applies a smoothing function. There are three options,
+#'              and applies a smoothing function. There are two options,
 #'              defined by the "type" parameter:
 #' \itemize{
 #'    \item{"bayes": }{Use a bayesian smoother}
@@ -126,83 +126,17 @@ sits_smooth <- function(cube,
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    # Define the class of the smoothing
-    class(type) <- c(type, class(type))
-    UseMethod("sits_smooth", type)
-}
-
-#' @rdname sits_smooth
-#' @export
-sits_smooth.bayes <- function(cube, type = "bayes", ...,
-                              window_size = 9,
-                              smoothness = 20,
-                              covar = FALSE,
-                              multicores = 2,
-                              memsize = 4,
-                              output_dir = getwd(),
-                              version = "v1",
-                              progress = TRUE) {
-    # Smooth parameters checked in smooth function creation
-    # Create smooth function
-    smooth_fn <- .smooth_fn_bayes(
+    # Call the smooth method
+    .smooth_use_method(
+        cube = cube,
+        type = type,
+        block = block,
         window_size = window_size,
-        smoothness = smoothness,
-        covar = covar,
-        nlabels = length(.tile_labels(cube))
+        memsize = memsize,
+        multicores = multicores,
+        output_dir = output_dir,
+        version = version, ...
     )
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
-    # Smoothing
-    # Process each tile sequentially
-    probs_cube <- .cube_foreach_tile(cube, function(tile) {
-        # Smooth the data
-        probs_tile <- .smooth_tile(
-            tile = tile,
-            band = "bayes",
-            overlap = overlap,
-            smooth_fn = smooth_fn,
-            output_dir = output_dir,
-            version = version,
-            progress = progress
-        )
-        return(probs_tile)
-    })
-    return(probs_cube)
-}
-#' @rdname sits_smooth
-#' @export
-sits_smooth.bilateral <- function(cube, type = "bilateral", ...,
-                                  window_size = 5,
-                                  sigma = 8,
-                                  tau = 0.1,
-                                  multicores = 2,
-                                  memsize = 4,
-                                  output_dir = getwd(),
-                                  version = "v1",
-                                  progress = TRUE) {
-    # Smooth parameters checked in smooth function creation
-    # Create smooth function
-    smooth_fn <- .smooth_fn_bilat(
-        window_size = window_size, sigma = sigma, tau = tau
-    )
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
-    # Smoothing
-    # Process each tile sequentially
-    probs_cube <- .cube_foreach_tile(cube, function(tile) {
-        # Smooth the data
-        probs_tile <- .smooth_tile(
-            tile = tile,
-            band = "bilat",
-            overlap = overlap,
-            smooth_fn = smooth_fn,
-            output_dir = output_dir,
-            version = version,
-            progress = progress
-        )
-        return(probs_tile)
-    })
-    return(probs_cube)
 }
 
 #---- internal functions ----
