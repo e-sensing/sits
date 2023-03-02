@@ -156,7 +156,7 @@ NULL
 .fi_timeline <- function(fi) {
     .fi_switch(
         fi = fi,
-        eo_cube = .as_date(fi[["date"]]),
+        eo_cube = sort(.as_date(fi[["date"]])),
         derived_cube = .as_date(c(fi[["start_date"]], fi[["end_date"]]))
     )
 }
