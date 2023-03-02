@@ -106,10 +106,12 @@ sits_combine_predictions.average <- function(cubes,
         probs_cubes = cubes,
         uncert_cubes = NULL,
         comb_fn = comb_fn,
+        band = "comb",
         memsize = memsize,
         multicores = multicores,
         output_dir = output_dir,
-        version = version, ...
+        version = version,
+        progress = FALSE, ...
     )
     return(probs_cube)
 }
