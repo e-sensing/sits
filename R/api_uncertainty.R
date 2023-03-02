@@ -1,7 +1,9 @@
-
 #---- internal functions ----
+.uncert <- function() {
 
-.uncertainty_tile <- function(tile,
+}
+
+.uncert_tile <- function(tile,
                               band,
                               overlap,
                               uncert_fn,
@@ -99,7 +101,7 @@
 
 #---- uncertainty functions ----
 
-.uncertainty_fn_least <- function(window_size) {
+.uncert_fn_least <- function(window_size) {
     # Check window size
     .check_window_size(window_size)
 
@@ -129,7 +131,7 @@
     uncert_fn
 }
 
-.uncertainty_fn_entropy <- function(window_size) {
+.uncert_fn_entropy <- function(window_size) {
     # Check window size
     .check_window_size(window_size)
 
@@ -155,7 +157,7 @@
     uncert_fn
 }
 
-.uncertainty_fn_margin <- function(window_size) {
+.uncert_fn_margin <- function(window_size) {
     # Check window size
     .check_window_size(window_size)
 

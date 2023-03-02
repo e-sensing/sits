@@ -118,14 +118,14 @@ sits_uncertainty.least <- function(cube,
                                    progress = TRUE) {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
-    uncert_fn <- .uncertainty_fn_least(window_size = window_size)
+    uncert_fn <- .uncert_fn_least(window_size = window_size)
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
     # Uncertainty
     # Process each tile sequentially
     uncert_cube <- .cube_foreach_tile(cube, function(tile) {
         # Compute uncertainty
-        uncert_tile <- .uncertainty_tile(
+        uncert_tile <- .uncert_tile(
             tile = tile,
             band = "least",
             overlap = overlap,
@@ -151,14 +151,14 @@ sits_uncertainty.entropy <- function(cube,
                                      progress = TRUE) {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
-    uncert_fn <- .uncertainty_fn_entropy(window_size = window_size)
+    uncert_fn <- .uncert_fn_entropy(window_size = window_size)
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
     # Uncertainty
     # Process each tile sequentially
     uncert_cube <- .cube_foreach_tile(cube, function(tile) {
         # Compute uncertainty
-        uncert_tile <- .uncertainty_tile(
+        uncert_tile <- .uncert_tile(
             tile = tile,
             band = "entropy",
             overlap = overlap,
@@ -184,14 +184,14 @@ sits_uncertainty.margin <- function(cube,
                                     progress = TRUE) {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
-    uncert_fn <- .uncertainty_fn_margin(window_size = window_size)
+    uncert_fn <- .uncert_fn_margin(window_size = window_size)
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
     # Uncertainty
     # Process each tile sequentially
     uncert_cube <- .cube_foreach_tile(cube, function(tile) {
         # Compute uncertainty
-        uncert_tile <- .uncertainty_tile(
+        uncert_tile <- .uncert_tile(
             tile = tile,
             band = "margin",
             overlap = overlap,
