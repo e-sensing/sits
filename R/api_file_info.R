@@ -13,7 +13,10 @@ NULL
 #' @param tile  A tile.
 #' @returns A `file_info` tibble.
 .fi <- function(tile) {
-    tile[["file_info"]][[1]]
+    fi <- tile[["file_info"]][[1]]
+    if (!.has(.crs(fi)))
+        .crs(fi) <- .crs(tile)
+    fi
 }
 
 #' @title Set `file_info` into a given tile.
@@ -45,12 +48,12 @@ NULL
 }
 
 .fi_eo <- function(fid, band, date, ncols, nrows, xres, yres, xmin, xmax,
-                   ymin, ymax, path) {
+                   ymin, ymax, crs, path) {
     # Create a new eo file_info
     tibble::tibble(
         fid = fid, band = .band_eo(band), date = date, ncols = ncols,
         nrows = nrows, xres = xres, yres = yres, xmin = xmin, xmax = xmax,
-        ymin = ymin, ymax = ymax, path = path
+        ymin = ymin, ymax = ymax, crs = crs, path = path
     )
 }
 
@@ -70,6 +73,7 @@ NULL
         xmax = .raster_xmax(r_obj),
         ymin = .raster_ymin(r_obj),
         ymax = .raster_ymax(r_obj),
+        crs = .raster_crs(r_obj),
         path = files
     )
 }
