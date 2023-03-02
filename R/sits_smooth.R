@@ -76,14 +76,12 @@
 #' }
 #' @export
 sits_smooth <- function(cube,
-                        type = "bayes",
-                        ...,
-                        window_size = 9,
+                        type = "bayes", ...,
+                        window_size = 13,
                         memsize = 4,
                         multicores = 2,
                         output_dir = getwd(),
-                        version = "v1",
-                        progress = TRUE) {
+                        version = "v1") {
 
     # Check if cube has probability data
     .check_is_probs_cube(cube)
