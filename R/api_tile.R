@@ -846,14 +846,14 @@ NULL
 }
 
 #' @title Create an "uncertainity" tile
-#' @name .tile_uncertainty_from_file
+#' @name .tile_uncert_from_file
 #' @keywords internal
 #' @noRd
 #' @param file file to be written
 #' @param band  band to be used in the tile
 #' @param base_tile  reference tile used in the operation (probs)
 #' @return a new uncertainty tile
-.tile_uncertainty_from_file <- function(file, band, base_tile) {
+.tile_uncert_from_file <- function(file, band, base_tile) {
     .tile_derived_from_file(
         file = file, band = band, base_tile = base_tile,
         derived_class = "uncertainty_cube", labels = .tile_labels(base_tile),

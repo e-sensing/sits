@@ -25,7 +25,7 @@
         message("Recovery: tile '", tile[["tile"]], "' already exists.")
         message("(If you want to produce a new image, please ",
                 "change 'output_dir' or 'version' parameters)")
-        uncert_tile <- .tile_uncertainty_from_file(
+        uncert_tile <- .tile_uncert_from_file(
             file = out_file,
             band = band,
             base_tile = tile
