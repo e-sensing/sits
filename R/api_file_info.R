@@ -251,3 +251,11 @@ NULL
 .fi_contains_cloud <- function(fi) {
     .band_cloud() %in% .fi_bands(fi)
 }
+
+.fi_is_complete <- function(fi) {
+    length(unique(.by(fi, col = "band", .fi_timeline))) <= 1
+}
+
+.fi_same_bbox <- function(fi, tolerance) {
+    all(slider::slide_lgl(fi, .bbox_equal, .bbox(fi), tolerance = tolerance))
+}
