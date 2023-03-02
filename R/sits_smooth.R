@@ -19,6 +19,8 @@
 #' @param  type              Type of smoothing
 #' @param  ...               Parameters for specific functions
 #' @param  window_size       Size of the neighborhood.
+#' @param  neigh_fraction    Fraction of neighbors with highest probability
+#'                           to be used in Bayesian inference.
 #' @param  smoothness        Estimated variance of logit of class probabilities
 #'                           (Bayesian smoothing parameter). It can be either
 #'                           a matrix or a scalar.
