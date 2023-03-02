@@ -127,7 +127,14 @@
         scale <- .scale(band_conf)
         if (.has(scale) && scale != 1) {
             values <- values / scale
-            values[values > 10000] <- 10000
+        }
+        min <- .min_value(band_conf)
+        if (.has(max)) {
+            values[values < min] <- min
+        }
+        max <- .max_value(band_conf)
+        if (.has(max)) {
+            values[values > max] <- max
         }
         # Job crop block
         crop_block <- .block(.chunks_no_overlap(chunk))
