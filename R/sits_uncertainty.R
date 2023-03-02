@@ -78,29 +78,6 @@ sits_uncertainty <- function(cube,
     # check version
     .check_version(version)
 
-    # Check memory and multicores
-    # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
-    # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = overlap),
-        npaths = length(.tile_labels(cube)) + 1,
-        nbytes = 8,
-        proc_bloat = .conf("processing_bloat")
-    )
-    # Update multicores parameter
-    multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize,
-        memsize = memsize,
-        multicores = multicores
-    )
-
-    # Prepare parallel processing
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop(), add = TRUE)
-
     # Define the class of the smoothing
     class(type) <- c(type, class(type))
     UseMethod("sits_uncertainty", type)
@@ -119,23 +96,17 @@ sits_uncertainty.least <- function(cube,
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
     uncert_fn <- .uncert_fn_least(window_size = window_size)
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
-    # Uncertainty
-    # Process each tile sequentially
-    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
-        # Compute uncertainty
-        uncert_tile <- .uncert_tile(
-            tile = tile,
-            band = "least",
-            overlap = overlap,
-            uncert_fn = uncert_fn,
-            output_dir = output_dir,
-            version = version,
-            progress = progress
-        )
-        return(uncert_tile)
-    })
+    uncert_cube <- .uncert(
+        cube = cube,
+        uncert_fn = uncert_fn,
+        band = "least",
+        window_size = window_size,
+        memsize = memsize,
+        multicores = multicores,
+        output_dir = output_dir,
+        version = version,
+        progress = progress
+    )
     return(uncert_cube)
 }
 
@@ -151,24 +122,18 @@ sits_uncertainty.entropy <- function(cube,
                                      progress = TRUE) {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
-    uncert_fn <- .uncert_fn_entropy(window_size = window_size)
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
-    # Uncertainty
-    # Process each tile sequentially
-    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
-        # Compute uncertainty
-        uncert_tile <- .uncert_tile(
-            tile = tile,
-            band = "entropy",
-            overlap = overlap,
-            uncert_fn = uncert_fn,
-            output_dir = output_dir,
-            version = version,
-            progress = progress
-        )
-        return(uncert_tile)
-    })
+    uncert_fn <- .uncert_fn_least(window_size = window_size)
+    uncert_cube <- .uncert(
+        cube = cube,
+        uncert_fn = uncert_fn,
+        band = "entropy",
+        window_size = window_size,
+        memsize = memsize,
+        multicores = multicores,
+        output_dir = output_dir,
+        version = version,
+        progress = progress
+    )
     return(uncert_cube)
 }
 
@@ -184,23 +149,17 @@ sits_uncertainty.margin <- function(cube,
                                     progress = TRUE) {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
-    uncert_fn <- .uncert_fn_margin(window_size = window_size)
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
-    # Uncertainty
-    # Process each tile sequentially
-    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
-        # Compute uncertainty
-        uncert_tile <- .uncert_tile(
-            tile = tile,
-            band = "margin",
-            overlap = overlap,
-            uncert_fn = uncert_fn,
-            output_dir = output_dir,
-            version = version,
-            progress = progress
-        )
-        return(uncert_tile)
-    })
+    uncert_fn <- .uncert_fn_least(window_size = window_size)
+    uncert_cube <- .uncert(
+        cube = cube,
+        uncert_fn = uncert_fn,
+        band = "margin",
+        window_size = window_size,
+        memsize = memsize,
+        multicores = multicores,
+        output_dir = output_dir,
+        version = version,
+        progress = progress
+    )
     return(uncert_cube)
 }

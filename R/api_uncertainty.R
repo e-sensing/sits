@@ -169,9 +169,6 @@
 #---- uncertainty functions ----
 
 .uncert_fn_least <- function(window_size) {
-    # Check window size
-    .check_window_size(window_size)
-
     # Define uncertainty function
     uncert_fn <- function(values, block) {
         # Used in check (below)
@@ -199,9 +196,6 @@
 }
 
 .uncert_fn_entropy <- function(window_size) {
-    # Check window size
-    .check_window_size(window_size)
-
     # Define uncertainty function
     uncert_fn <- function(values, block) {
         # Used in check (below)
@@ -225,9 +219,6 @@
 }
 
 .uncert_fn_margin <- function(window_size) {
-    # Check window size
-    .check_window_size(window_size)
-
     # Define uncertainty function
     uncert_fn <- function(values, block) {
         # Pocess least confidence
