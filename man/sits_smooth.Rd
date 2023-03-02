@@ -2,15 +2,44 @@
 % Please edit documentation in R/sits_smooth.R
 \name{sits_smooth}
 \alias{sits_smooth}
+\alias{sits_smooth.bayes}
+\alias{sits_smooth.bilateral}
 \title{Smooth probability cubes with spatial predictors}
 \usage{
 sits_smooth(
   cube,
   type = "bayes",
   ...,
-  window_size = 9,
+  window_size = 13,
   memsize = 4,
   multicores = 2,
+  output_dir = getwd(),
+  version = "v1"
+)
+
+\method{sits_smooth}{bayes}(
+  cube,
+  type = "bayes",
+  ...,
+  window_size = 9,
+  neigh_fraction = 0.5,
+  smoothness = 20,
+  covar = FALSE,
+  multicores = 2,
+  memsize = 4,
+  output_dir = getwd(),
+  version = "v1"
+)
+
+\method{sits_smooth}{bilateral}(
+  cube,
+  type = "bilateral",
+  ...,
+  window_size = 5,
+  sigma = 8,
+  tau = 0.1,
+  multicores = 2,
+  memsize = 4,
   output_dir = getwd(),
   version = "v1"
 )
@@ -57,7 +86,7 @@ A tibble with metadata about the output raster objects.
 \description{
 Takes a set of classified raster layers with probabilities,
              whose metadata is]created by \code{\link[sits]{sits_cube}},
-             and applies a smoothing function. There are two options,
+             and applies a smoothing function. There are three options,
              defined by the "type" parameter:
 \itemize{
    \item{"bayes": }{Use a bayesian smoother}
