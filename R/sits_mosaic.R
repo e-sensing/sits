@@ -141,7 +141,8 @@ sits_mosaic <- function(cube,
     }
     # Get band class configurations
     band_conf <- .conf_derived_band(
-        derived_class = .cube_derived_class(cube), band = .cube_bands(cube)
+        derived_class = .cube_derived_class(cube),
+        band = .cube_bands(cube)
     )
     # Generate raster mosaic
     .gdal_warp(

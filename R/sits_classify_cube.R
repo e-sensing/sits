@@ -113,7 +113,6 @@
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
 
-
         #
         # Log here
         #
@@ -149,8 +148,11 @@
 
         # Prepare and save results as raster
         .raster_write_block(
-            files = block_file, block = block, bbox = .bbox(chunk),
-            values = values, data_type = .data_type(band_conf),
+            files = block_file,
+            block = block,
+            bbox = .bbox(chunk),
+            values = values,
+            data_type = .data_type(band_conf),
             missing_value = .miss_value(band_conf),
             crop_block = NULL
         )
