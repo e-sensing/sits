@@ -150,7 +150,7 @@ sits_reclassify.class_cube <- function(cube, mask, rules, memsize = 4,
     class_cube <- .cube_foreach_tile(cube, function(tile, mask) {
         # Filter mask - spatial
         mask <- .try({
-            .cube_filter_spatial(cube = mask, roi = .bbox(tile))
+            .cube_filter_spatial(cube = mask, roi = .tile_bbox(tile))
         },
         .msg_error = "mask's roi does not intersect cube"
         )
