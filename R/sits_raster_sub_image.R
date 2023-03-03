@@ -14,14 +14,11 @@
         msg = "process one tile only"
     )
 
-    # if the ROI is defined, calculate the bounding box
-    bbox_roi <- .roi_bbox(roi, tile)
-
     # calculate the intersection between the bbox of the ROI and the cube
-    bbox_in <- .bbox_intersect(bbox_roi, tile)
+    roi <- .bbox_intersection(.tile_bbox(tile), roi)
 
     # return the sub_image
-    sub_image <- .raster_sub_image_from_bbox(bbox_in, tile)
+    sub_image <- .raster_sub_image_from_bbox(roi, tile)
 
     return(sub_image)
 }

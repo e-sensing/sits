@@ -78,7 +78,7 @@ test_that("Functions that work with ROI", {
     roi[["ymax"]] <- (roi[["ymax"]] - roi[["ymin"]]) / 2 + roi[["ymin"]]
 
     # retrieve the bounding box for this ROI
-    bbox_1 <- .roi_bbox(roi, cube)
+    bbox_1 <- .roi_as_sf(roi, as_crs = .cube_crs(cube))
 
     expect_true(length(.bbox_intersect(bbox_1, cube)) == 4)
 
@@ -93,14 +93,14 @@ test_that("Functions that work with ROI", {
         sf::st_as_sf(coords = c("longitude", "latitude"), crs = 4326)
 
     # read a bbox as an sf object
-    bbox_2 <- .roi_bbox(sf_obj, cube)
+    bbox_2 <- .roi_as_sf(sf_obj, as_crs = .cube_crs(cube))
     expect_true(length(.bbox_intersect(bbox_2, cube)) == 4)
 
     # extract the bounding box from a set of lat/long points
     sf_bbox <- sf::st_bbox(sf_obj)
     names(sf_bbox) <- c("lon_min", "lat_min", "lon_max", "lat_max")
     class(sf_bbox) <- c("vector")
-    bbox_3 <- .roi_bbox(sf_bbox, cube)
+    bbox_3 <- .roi_as_sf(sf_bbox, as_crs = .cube_crs(cube))
 
     expect_true(length(.bbox_intersect(bbox_3, cube)) == 4)
 })

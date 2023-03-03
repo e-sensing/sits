@@ -83,7 +83,7 @@
     # get bbox roi
     bbox_roi <- .tile_bbox(tile)
     if (!is.null(roi)) {
-        bbox_roi <- .roi_bbox(roi, tile)
+        roi <- .roi_as_sf(roi, as_crs = .tile_crs(tile))
     }
 
     # create a gdalcubes extent
