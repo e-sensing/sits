@@ -85,9 +85,16 @@
         }
         # Read and preprocess values
         values <- .classify_data_read(
-            tile = tile, block = block, ml_model = ml_model,
-            impute_fn = impute_fn, filter_fn = filter_fn
+            tile = tile,
+            block = block,
+            ml_model = ml_model,
+            impute_fn = impute_fn,
+            filter_fn = filter_fn
         )
+        # Get mask of NA pixels
+        na_mask <- mask_na(values)
+        # Fill with zeros remaining NA pixels
+        values <- fill_na(values)
         # Used to check values (below)
         input_pixels <- nrow(values)
 
@@ -220,6 +227,8 @@
         if (.has(cloud_mask)) {
             values[cloud_mask] <- NA
         }
+
+
         # Remove NA pixels
         if (.has(impute_fn)) {
             values <- impute_fn(values)
