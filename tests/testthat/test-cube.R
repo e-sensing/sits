@@ -115,9 +115,7 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
     expect_lt(bbox["ymin"], bbox_shp["ymin"])
     expect_gt(bbox["xmax"], bbox_shp["xmax"])
     expect_gt(bbox["ymax"], bbox_shp["ymax"])
-    intersects <- slider::slide_lgl(modis_cube, function(tile) {
-        .raster_sub_image_intersects(tile, sf_bla)
-    })
+    intersects <- .cube_intersects(modis_cube, sf_bla)
     expect_true(all(intersects))
 })
 
