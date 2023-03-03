@@ -226,6 +226,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// mask_na
+LogicalVector mask_na(const NumericMatrix& mtx);
+RcppExport SEXP _sits_mask_na(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(mask_na(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// fill_na
+NumericMatrix fill_na(NumericMatrix& mtx, double fill);
+RcppExport SEXP _sits_fill_na(SEXP mtxSEXP, SEXP fillSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type mtx(mtxSEXP);
+    Rcpp::traits::input_parameter< double >::type fill(fillSEXP);
+    rcpp_result_gen = Rcpp::wrap(fill_na(mtx, fill));
+    return rcpp_result_gen;
+END_RCPP
+}
 // batch_calc
 arma::mat batch_calc(const int& n_pixels, const int& max_lines_per_batch);
 RcppExport SEXP _sits_batch_calc(SEXP n_pixelsSEXP, SEXP max_lines_per_batchSEXP) {
@@ -295,8 +318,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // bayes_smoother
-arma::mat bayes_smoother(const arma::mat& m, const arma::uword m_nrow, const arma::uword m_ncol, const arma::mat& w, const arma::mat& sigma, bool covar_sigma0);
-RcppExport SEXP _sits_bayes_smoother(SEXP mSEXP, SEXP m_nrowSEXP, SEXP m_ncolSEXP, SEXP wSEXP, SEXP sigmaSEXP, SEXP covar_sigma0SEXP) {
+arma::mat bayes_smoother(const arma::mat& m, const arma::uword m_nrow, const arma::uword m_ncol, const arma::mat& w, const arma::mat& sigma, bool covar_sigma0, const double neigh_fraction);
+RcppExport SEXP _sits_bayes_smoother(SEXP mSEXP, SEXP m_nrowSEXP, SEXP m_ncolSEXP, SEXP wSEXP, SEXP sigmaSEXP, SEXP covar_sigma0SEXP, SEXP neigh_fractionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -306,7 +329,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type w(wSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
     Rcpp::traits::input_parameter< bool >::type covar_sigma0(covar_sigma0SEXP);
-    rcpp_result_gen = Rcpp::wrap(bayes_smoother(m, m_nrow, m_ncol, w, sigma, covar_sigma0));
+    Rcpp::traits::input_parameter< const double >::type neigh_fraction(neigh_fractionSEXP);
+    rcpp_result_gen = Rcpp::wrap(bayes_smoother(m, m_nrow, m_ncol, w, sigma, covar_sigma0, neigh_fraction));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -430,12 +454,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_label_max_prob", (DL_FUNC) &_sits_C_label_max_prob, 1},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
+    {"_sits_mask_na", (DL_FUNC) &_sits_mask_na, 1},
+    {"_sits_fill_na", (DL_FUNC) &_sits_fill_na, 2},
     {"_sits_batch_calc", (DL_FUNC) &_sits_batch_calc, 2},
     {"_sits_C_nnls_solver_batch", (DL_FUNC) &_sits_C_nnls_solver_batch, 5},
     {"_sits_C_normalize_data", (DL_FUNC) &_sits_C_normalize_data, 3},
     {"_sits_C_normalize_data_0", (DL_FUNC) &_sits_C_normalize_data_0, 3},
     {"_sits_max_sampling", (DL_FUNC) &_sits_max_sampling, 5},
-    {"_sits_bayes_smoother", (DL_FUNC) &_sits_bayes_smoother, 6},
+    {"_sits_bayes_smoother", (DL_FUNC) &_sits_bayes_smoother, 7},
     {"_sits_bilateral_smoother", (DL_FUNC) &_sits_bilateral_smoother, 5},
     {"_sits_smooth_sg", (DL_FUNC) &_sits_smooth_sg, 4},
     {"_sits_smooth_sg_mtx", (DL_FUNC) &_sits_smooth_sg_mtx, 4},

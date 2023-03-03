@@ -65,6 +65,14 @@ linear_interp_vec <- function(vec) {
     .Call(`_sits_linear_interp_vec`, vec)
 }
 
+mask_na <- function(mtx) {
+    .Call(`_sits_mask_na`, mtx)
+}
+
+fill_na <- function(mtx, fill) {
+    .Call(`_sits_fill_na`, mtx, fill)
+}
+
 batch_calc <- function(n_pixels, max_lines_per_batch) {
     .Call(`_sits_batch_calc`, n_pixels, max_lines_per_batch)
 }
@@ -85,8 +93,8 @@ max_sampling <- function(data, band, img_nrow, img_ncol, window_size) {
     .Call(`_sits_max_sampling`, data, band, img_nrow, img_ncol, window_size)
 }
 
-bayes_smoother <- function(m, m_nrow, m_ncol, w, sigma, covar_sigma0) {
-    .Call(`_sits_bayes_smoother`, m, m_nrow, m_ncol, w, sigma, covar_sigma0)
+bayes_smoother <- function(m, m_nrow, m_ncol, w, sigma, covar_sigma0, neigh_fraction) {
+    .Call(`_sits_bayes_smoother`, m, m_nrow, m_ncol, w, sigma, covar_sigma0, neigh_fraction)
 }
 
 bilateral_smoother <- function(m, m_nrow, m_ncol, w, tau) {

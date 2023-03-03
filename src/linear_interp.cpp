@@ -81,16 +81,32 @@ NumericMatrix linear_interp(NumericMatrix& mtx) {
         NumericVector vec = mtx(i, _);
         mtx(i, _) = na_linear_vector_interp(vec);
     }
-    // fix all NA values by filling with zeros
-    for (int i = 0; i < nrows; i++) {
-        if (NumericVector::is_na(mtx(i, 0))) {
-            mtx(i, _) = NumericVector(mtx.ncol()); // fill with zeros
-        }
-    }
     return mtx;
 }
 
 // [[Rcpp::export]]
 NumericVector linear_interp_vec(NumericVector& vec) {
     return na_linear_vector_interp(vec);
+}
+// [[Rcpp::export]]
+LogicalVector mask_na(const NumericMatrix& mtx) {
+    int nrows = mtx.nrow();
+    int ncols = mtx.ncol();
+    LogicalVector vec(nrows);
+    for (int i = 0; i < nrows; i++) {
+        vec(i) = any(is_na(mtx.row(i)));
+    }
+    return vec;
+}
+// [[Rcpp::export]]
+NumericMatrix fill_na(NumericMatrix& mtx, double fill) {
+    int nrows = mtx.nrow();
+    int ncols = mtx.ncol();
+    for (int i = 0; i < nrows; i++) {
+        if (any(is_na(mtx.row(i)))) {
+            for (int j = 0; j < ncols; j++)
+                mtx(i, j) = fill;
+        }
+    }
+    return mtx;
 }
