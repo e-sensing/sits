@@ -13,7 +13,10 @@ NULL
 #' @param tile  A tile.
 #' @returns A `file_info` tibble.
 .fi <- function(tile) {
-    tile[["file_info"]][[1]]
+    fi <- tile[["file_info"]][[1]]
+    if (!.has(.crs(fi)))
+        .crs(fi) <- .crs(tile)
+    fi
 }
 
 #' @title Set `file_info` into a given tile.
@@ -45,12 +48,12 @@ NULL
 }
 
 .fi_eo <- function(fid, band, date, ncols, nrows, xres, yres, xmin, xmax,
-                   ymin, ymax, path) {
+                   ymin, ymax, crs, path) {
     # Create a new eo file_info
     tibble::tibble(
         fid = fid, band = .band_eo(band), date = date, ncols = ncols,
         nrows = nrows, xres = xres, yres = yres, xmin = xmin, xmax = xmax,
-        ymin = ymin, ymax = ymax, path = path
+        ymin = ymin, ymax = ymax, crs = crs, path = path
     )
 }
 
@@ -70,6 +73,7 @@ NULL
         xmax = .raster_xmax(r_obj),
         ymin = .raster_ymin(r_obj),
         ymax = .raster_ymax(r_obj),
+        crs = .raster_crs(r_obj),
         path = files
     )
 }
@@ -152,7 +156,7 @@ NULL
 .fi_timeline <- function(fi) {
     .fi_switch(
         fi = fi,
-        eo_cube = .as_date(fi[["date"]]),
+        eo_cube = sort(.as_date(fi[["date"]])),
         derived_cube = .as_date(c(fi[["start_date"]], fi[["end_date"]]))
     )
 }
@@ -246,4 +250,12 @@ NULL
 
 .fi_contains_cloud <- function(fi) {
     .band_cloud() %in% .fi_bands(fi)
+}
+
+.fi_is_complete <- function(fi) {
+    length(unique(.by(fi, col = "band", .fi_timeline))) <= 1
+}
+
+.fi_same_bbox <- function(fi, tolerance) {
+    all(slider::slide_lgl(fi, .bbox_equal, .bbox(fi), tolerance = tolerance))
 }

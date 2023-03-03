@@ -1,12 +1,70 @@
-
 #---- internal functions ----
+.uncert <- function(cube,
+                    uncert_fn,
+                    band,
+                    window_size,
+                    memsize,
+                    multicores,
+                    output_dir,
+                    version,
+                    progress) {
 
-.uncertainty_tile <- function(tile,
-                              band,
-                              overlap,
-                              uncert_fn,
-                              output_dir,
-                              version) {
+    # Check memory and multicores
+    # Get block size
+    block_size <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    # Overlapping pixels
+    overlap <- ceiling(window_size / 2) - 1
+    # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = .block_size(block = block_size, overlap = overlap),
+        npaths = length(.tile_labels(cube)) + 1,
+        nbytes = 8,
+        proc_bloat = .conf("processing_bloat")
+    )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Update block parameter
+    block_size <- .jobs_optimal_block(
+        job_memsize = job_memsize,
+        block = block_size,
+        image_size = .tile_size(.tile(cube)),
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Prepare parallel processing
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop(), add = TRUE)
+
+    # Call the uncertainty method
+    # Process each tile sequentially
+    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
+        uncert_tile <- .uncert_tile(
+            tile = tile,
+            band = band,
+            uncert_fn = uncert_fn,
+            block_size = block_size,
+            overlap = overlap,
+            output_dir = output_dir,
+            version = version,
+            progress = progress
+        )
+        uncert_tile
+    })
+    uncert_cube
+}
+
+.uncert_tile <- function(tile,
+                         band,
+                         uncert_fn,
+                         block_size,
+                         overlap,
+                         output_dir,
+                         version,
+                         progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile,
@@ -22,7 +80,7 @@
         message("Recovery: tile '", tile[["tile"]], "' already exists.")
         message("(If you want to produce a new image, please ",
                 "change 'output_dir' or 'version' parameters)")
-        uncert_tile <- .tile_uncertainty_from_file(
+        uncert_tile <- .tile_uncert_from_file(
             file = out_file,
             band = band,
             base_tile = tile
@@ -30,14 +88,19 @@
         return(uncert_tile)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tile, overlap = overlap)
+    chunks <- .tile_chunks_create(
+        tile = tile,
+        overlap = overlap,
+        block = block_size
+    )
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
         block <- .block(chunk)
         # Block file name
         block_file <- .file_block_name(
-            pattern = .file_pattern(out_file), block = block,
+            pattern = .file_pattern(out_file),
+            block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure
@@ -64,7 +127,14 @@
         scale <- .scale(band_conf)
         if (.has(scale) && scale != 1) {
             values <- values / scale
-            values[values > 10000] <- 10000
+        }
+        min <- .min_value(band_conf)
+        if (.has(max)) {
+            values[values < min] <- min
+        }
+        max <- .max_value(band_conf)
+        if (.has(max)) {
+            values[values > max] <- max
         }
         # Job crop block
         crop_block <- .block(.chunks_no_overlap(chunk))
@@ -82,7 +152,7 @@
         gc()
         # Return block file
         block_file
-    })
+    }, progress = progress)
     # Merge blocks into a new uncertainty_cube tile
     uncert_tile <- .tile_uncertainty_merge_blocks(
         file = out_file,
@@ -98,10 +168,7 @@
 
 #---- uncertainty functions ----
 
-.uncertainty_fn_least <- function(window_size) {
-    # Check window size
-    .check_window_size(window_size)
-
+.uncert_fn_least <- function(window_size) {
     # Define uncertainty function
     uncert_fn <- function(values, block) {
         # Used in check (below)
@@ -128,10 +195,7 @@
     uncert_fn
 }
 
-.uncertainty_fn_entropy <- function(window_size) {
-    # Check window size
-    .check_window_size(window_size)
-
+.uncert_fn_entropy <- function(window_size) {
     # Define uncertainty function
     uncert_fn <- function(values, block) {
         # Used in check (below)
@@ -154,10 +218,7 @@
     uncert_fn
 }
 
-.uncertainty_fn_margin <- function(window_size) {
-    # Check window size
-    .check_window_size(window_size)
-
+.uncert_fn_margin <- function(window_size) {
     # Define uncertainty function
     uncert_fn <- function(values, block) {
         # Pocess least confidence

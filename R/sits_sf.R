@@ -55,10 +55,10 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
     .check_is_raster_cube(data)
 
     # Convert cube bbox to sf
-    geom <- .bbox_as_sf(.bbox_from_tbl(data), as_crs = as_crs)
+    data_sf <- .cube_as_sf(data, as_crs = as_crs)
 
     # Bind columns
-    data <- dplyr::bind_cols(geom, .discard(data, "file_info"))
+    data <- dplyr::bind_cols(data_sf, .discard(data, "file_info"))
 
     return(data)
 }

@@ -22,7 +22,9 @@ NULL
 }
 #' @export
 .tile.raster_cube <- function(cube) {
-    cube[1, ]
+    cube <- .cube(cube)
+    if (nrow(cube) >= 1) return(cube[1, ])
+    cube
 }
 
 #  Tile field accessors
@@ -33,7 +35,8 @@ NULL
 }
 #' @export
 .tile_source.raster_cube <- function(tile) {
-    .as_chr(tile[["source"]][[1]])
+    tile <- .tile(tile)
+    .as_chr(tile[["source"]])
 }
 #
 .tile_collection <- function(tile) {
@@ -42,7 +45,8 @@ NULL
 
 #' @export
 .tile_collection.raster_cube <- function(tile) {
-    .as_chr(tile[["collection"]][[1]])
+    tile <- .tile(tile)
+    .as_chr(tile[["collection"]])
 }
 
 #
@@ -60,7 +64,8 @@ NULL
 }
 #
 .tile_name.raster_cube <- function(tile) {
-    .as_chr(tile[["tile"]][[1]])
+    tile <- .tile(tile)
+    .as_chr(tile[["tile"]])
 }
 #
 .tile_ncols <- function(tile) {
@@ -68,10 +73,11 @@ NULL
 }
 #' @export
 .tile_ncols.raster_cube <- function(tile) {
+    tile <- .tile(tile)
     if ("ncols" %in% tile) {
-        return(.ncols(tile)[[1]])
+        return(.ncols(tile))
     }
-    .ncols(.fi(tile))[[1]]
+    .ncols(.fi(tile))
 }
 #
 .tile_nrows <- function(tile) {
@@ -79,10 +85,11 @@ NULL
 }
 #' @export
 .tile_nrows.raster_cube <- function(tile) {
+    tile <- .tile(tile)
     if ("nrows" %in% tile) {
-        return(.nrows(tile)[[1]])
+        return(.nrows(tile))
     }
-    .nrows(.fi(tile))[[1]]
+    .nrows(.fi(tile))
 }
 #
 .tile_size <- function(tile) {
@@ -98,6 +105,7 @@ NULL
 }
 #' @export
 .tile_xres.raster_cube <- function(tile) {
+    tile <- .tile(tile)
     .xres(.fi(tile))
 }
 #
@@ -106,6 +114,7 @@ NULL
 }
 #' @export
 .tile_yres.raster_cube <- function(tile) {
+    tile <- .tile(tile)
     .yres(.fi(tile))
 }
 #
@@ -114,7 +123,8 @@ NULL
 }
 #' @export
 .tile_labels.raster_cube <- function(tile) {
-    .as_chr(tile[["labels"]][[1]])
+    tile <- .tile(tile)
+    .as_chr(tile[["labels"]])
 }
 #
 `.tile_labels<-` <- function(tile, value) {
@@ -125,18 +135,6 @@ NULL
     tile <- .tile(tile)
     tile[["labels"]] <- list(.as_chr(value))
     tile
-}
-
-#' @title Convert tile \code{bbox} to a sf polygon object.
-#' @noRd
-#' @param tile A tile.
-#' @return sf object
-.tile_as_sf <- function(tile) {
-    UseMethod(".tile_as_sf", tile)
-}
-#' @export
-.tile_as_sf.raster_cube <- function(tile) {
-    .bbox_as_sf(.bbox(.tile(tile)))
 }
 
 #' @title Get first date from tile
@@ -151,6 +149,7 @@ NULL
 }
 #' @export
 .tile_start_date.raster_cube <- function(tile) {
+    tile <- .tile(tile)
     .fi_min_date(.fi(tile))
 }
 #'
@@ -166,6 +165,7 @@ NULL
 }
 #' @export
 .tile_end_date.raster_cube <- function(tile) {
+    tile <- .tile(tile)
     .fi_max_date(.fi(tile))
 }
 #' @title Get unique timeline from file_info.
@@ -180,7 +180,16 @@ NULL
 }
 #' @export
 .tile_timeline.raster_cube <- function(tile) {
-    unique(.fi_timeline(.fi(tile)))
+    tile <- .tile(tile)
+    sort(unique(.fi_timeline(.fi(tile))))
+}
+.tile_is_complete <- function(tile) {
+    UseMethod(".tile_is_complete", tile)
+}
+#' @export
+.tile_is_complete.raster_cube <- function(tile) {
+    tile <- .tile(tile)
+    .fi_is_complete(.fi(tile))
 }
 #' @title Get sorted unique bands from file_info.
 #' @name .tile_path
@@ -197,6 +206,7 @@ NULL
 
 #' @export
 .tile_path.raster_cube <- function(tile, band = NULL, date = NULL) {
+    tile <- .tile(tile)
     if (.has(band)) {
         tile <- .tile_filter_bands(tile = tile, bands = band[[1]])
     }
@@ -208,23 +218,14 @@ NULL
     # Return path
     path
 }
-
-#' @title Get sorted unique bands from file_info.
-#' @name .tile_path
-#' @keywords internal
-#' @noRd
-#' @param tile A tile.
-#' @param band Band name.
-#'
-#' @returns Paths to `file_info` assets
-.tile_paths <- function(tile, band = NULL) {
+.tile_paths <- function(tile, bands = NULL) {
     UseMethod(".tile_paths", tile)
 }
-
 #' @export
-.tile_paths.raster_cube <- function(tile, band = NULL) {
-    if (.has(band)) {
-        tile <- .tile_filter_bands(tile = tile, bands = band)
+.tile_paths.raster_cube <- function(tile, bands = NULL) {
+    tile <- .tile(tile)
+    if (.has(bands)) {
+        tile <- .tile_filter_bands(tile = tile, bands = bands)
     }
     # Get assets path
     paths <- .fi_paths(.fi(tile))
@@ -273,13 +274,15 @@ NULL
 #' @param tile A tile.
 #'
 #' @return names of bands in the tile
-.tile_bands <- function(tile) {
+.tile_bands <- function(tile, add_cloud = TRUE) {
     UseMethod(".tile_bands", tile)
 }
-
 #' @export
-.tile_bands.raster_cube <- function(tile) {
-    unique(.fi_bands(.fi(tile)))
+.tile_bands.raster_cube <- function(tile, add_cloud = TRUE) {
+    tile <- .tile(tile)
+    bands <- unique(.fi_bands(.fi(tile)))
+    if (add_cloud) return(bands)
+    setdiff(bands, .band_cloud())
 }
 #'
 #' @title Get a band definition from config.
@@ -346,6 +349,25 @@ NULL
     tile <- .tile(tile)
     .crs(tile)
 }
+.tile_bbox <- function(tile, as_crs = NULL) {
+    UseMethod(".tile_bbox", tile)
+}
+#' @export
+.tile_bbox.raster_cube <- function(tile, as_crs = NULL) {
+    tile <- .tile(tile)
+    .bbox(tile, as_crs = as_crs)
+}
+#' @title Convert tile \code{bbox} to a sf polygon object.
+#' @noRd
+#' @param tile A tile.
+#' @return sf object
+.tile_as_sf <- function(tile, as_crs = NULL) {
+    UseMethod(".tile_as_sf", tile)
+}
+#' @export
+.tile_as_sf.raster_cube <- function(tile, as_crs = NULL) {
+    .bbox_as_sf(.tile_bbox(tile), as_crs = as_crs)
+}
 #'
 #' @title Does tile \code{bbox} intersect \code{roi} parameter?
 #' @name .tile_intersects
@@ -360,7 +382,13 @@ NULL
 }
 #' @export
 .tile_intersects.raster_cube <- function(tile, roi) {
-    .intersects(x = .tile_as_sf(tile), y = .roi_as_sf(roi))
+    .intersects(.tile_as_sf(tile), .roi_as_sf(roi))
+}
+.tile_within <- function(tile, roi) {
+    UseMethod(".tile_within", tile)
+}
+.tile_within.raster_cube <- function(tile, roi) {
+    .within(.tile_as_sf(tile), .roi_as_sf(roi))
 }
 #' @title Filter file_info entries that intersect roi.
 #' @name .tile_filter_spatial
@@ -394,6 +422,7 @@ NULL
 }
 #' @export
 .tile_during.raster_cube <- function(tile, start_date, end_date) {
+    tile <- .tile(tile)
     any(.fi_during(
         fi = .fi(tile), start_date = start_date, end_date = end_date
     ))
@@ -470,6 +499,7 @@ NULL
 }
 #' @export
 .tile_read_block.eo_cube <- function(tile, band, block) {
+    tile <- .tile(tile)
     fi <- .fi(tile)
     # Stops if band is not found
     values <- .fi_read_block(fi = fi, band = .band_eo(band), block = block)
@@ -517,6 +547,7 @@ NULL
 }
 #' @export
 .tile_read_block.derived_cube <- function(tile, band, block) {
+    tile <- .tile(tile)
     fi <- .fi(tile)
     # Stops if band is not found
     values <- .fi_read_block(fi = fi, band = .band_derived(band), block = block)
@@ -618,7 +649,7 @@ NULL
         block = block,
         overlap = overlap,
         image_size = .tile_size(tile),
-        image_bbox = .bbox(tile)
+        image_bbox = .tile_bbox(tile)
     )
 }
 
@@ -635,6 +666,7 @@ NULL
 #' @return a base tile
 .tile_eo_from_files <- function(files, fid, bands, date, base_tile,
                                 update_bbox) {
+    base_tile <- .tile(base_tile)
     if (update_bbox) {
         # Open raster
         r_obj <- .raster_open_rast(files)
@@ -665,18 +697,25 @@ NULL
 #' @return an EO tile with merged blocks
 .tile_eo_merge_blocks <- function(files, bands, base_tile, block_files,
                                   multicores, update_bbox) {
+    base_tile <- .tile(base_tile)
     # Get conf band
     band_conf <- .tile_band_conf(tile = base_tile, band = bands)
     # Create a template raster based on the first image of the tile
     .raster_merge_blocks(
-        out_files = files, base_file = .tile_path(base_tile),
-        block_files = block_files, data_type = .data_type(band_conf),
-        missing_value = .miss_value(band_conf), multicores = multicores
+        out_files = files,
+        base_file = .tile_path(base_tile),
+        block_files = block_files,
+        data_type = .data_type(band_conf),
+        missing_value = .miss_value(band_conf),
+        multicores = multicores
     )
     # Create tile based on template
     tile <- .tile_eo_from_files(
-        files = files, fid = .fi_fid(.fi(base_tile)), bands = bands,
-        date = .fi_min_date(.fi(base_tile)), base_tile = base_tile,
+        files = files,
+        fid = .fi_fid(.fi(base_tile)),
+        bands = bands,
+        date = .fi_min_date(.fi(base_tile)),
+        base_tile = base_tile,
         update_bbox = update_bbox
     )
     # If all goes well, delete block files
@@ -697,6 +736,7 @@ NULL
 #' @return a new tile
 .tile_derived_from_file <- function(file, band, base_tile, derived_class,
                                     labels = NULL, update_bbox) {
+    base_tile <- .tile(base_tile)
     if (update_bbox) {
         # Open raster
         r_obj <- .raster_open_rast(file)
@@ -711,7 +751,9 @@ NULL
     .tile_labels(base_tile) <- labels
     # Update file_info
     .fi(base_tile) <- .fi_derived_from_file(
-        file = file, band = band, start_date = .tile_start_date(base_tile),
+        file = file,
+        band = band,
+        start_date = .tile_start_date(base_tile),
         end_date = .tile_end_date(base_tile)
     )
     # Set tile class and return tile
@@ -733,20 +775,30 @@ NULL
 .tile_derived_merge_blocks <- function(file, band, labels, base_tile,
                                        derived_class, block_files, multicores,
                                        update_bbox) {
+    base_tile <- .tile(base_tile)
     # Get conf band
-    band_conf <- .conf_derived_band(derived_class = derived_class, band = band)
+    band_conf <- .conf_derived_band(
+        derived_class = derived_class,
+        band = band
+    )
     # Set base tile
     base_file <- if (update_bbox) NULL else .tile_path(base_tile)
     # Create a template raster based on the first image of the tile
     .raster_merge_blocks(
-        out_files = file, base_file = base_file,
-        block_files = block_files, data_type = .data_type(band_conf),
-        missing_value = .miss_value(band_conf), multicores = multicores
+        out_files = file,
+        base_file = base_file,
+        block_files = block_files,
+        data_type = .data_type(band_conf),
+        missing_value = .miss_value(band_conf),
+        multicores = multicores
     )
     # Create tile based on template
     tile <- .tile_derived_from_file(
-        file = file, band = band, base_tile = base_tile,
-        derived_class = derived_class, labels = labels,
+        file = file,
+        band = band,
+        base_tile = base_tile,
+        derived_class = derived_class,
+        labels = labels,
         update_bbox = update_bbox
     )
     # If all goes well, delete block files
@@ -775,8 +827,11 @@ NULL
         msg = "invalid 'file' parameter"
     )
     .tile_derived_from_file(
-        file = file, band = band, base_tile = base_tile,
-        derived_class = "probs_cube", labels = labels,
+        file = file,
+        band = band,
+        base_tile = base_tile,
+        derived_class = "probs_cube",
+        labels = labels,
         update_bbox = update_bbox
     )
 }
@@ -804,9 +859,13 @@ NULL
     )
     # Create probs cube and return it
     .tile_derived_merge_blocks(
-        file = file, band = band, labels = labels,
-        base_tile = base_tile, derived_class = "probs_cube",
-        block_files = block_files, multicores = multicores,
+        file = file,
+        band = band,
+        labels = labels,
+        base_tile = base_tile,
+        derived_class = "probs_cube",
+        block_files = block_files,
+        multicores = multicores,
         update_bbox = update_bbox
     )
 }
@@ -821,8 +880,11 @@ NULL
 #' @return a new probs tile
 .tile_class_from_file <- function(file, band, base_tile) {
     .tile_derived_from_file(
-        file = file, band = band, base_tile = base_tile,
-        derived_class = "class_cube", labels = .tile_labels(base_tile),
+        file = file,
+        band = band,
+        base_tile = base_tile,
+        derived_class = "class_cube",
+        labels = .tile_labels(base_tile),
         update_bbox = FALSE
     )
 }
@@ -841,25 +903,32 @@ NULL
                                      block_files, multicores) {
     # Create class cube and return it
     .tile_derived_merge_blocks(
-        file = file, band = band, labels = labels,
-        base_tile = base_tile, derived_class = "class_cube",
-        block_files = block_files, multicores = multicores,
+        file = file,
+        band = band,
+        labels = labels,
+        base_tile = base_tile,
+        derived_class = "class_cube",
+        block_files = block_files,
+        multicores = multicores,
         update_bbox = FALSE
     )
 }
 
 #' @title Create an "uncertainity" tile
-#' @name .tile_uncertainty_from_file
+#' @name .tile_uncert_from_file
 #' @keywords internal
 #' @noRd
 #' @param file file to be written
 #' @param band  band to be used in the tile
 #' @param base_tile  reference tile used in the operation (probs)
 #' @return a new uncertainty tile
-.tile_uncertainty_from_file <- function(file, band, base_tile) {
+.tile_uncert_from_file <- function(file, band, base_tile) {
     .tile_derived_from_file(
-        file = file, band = band, base_tile = base_tile,
-        derived_class = "uncertainty_cube", labels = .tile_labels(base_tile),
+        file = file,
+        band = band,
+        base_tile = base_tile,
+        derived_class = "uncertainty_cube",
+        labels = .tile_labels(base_tile),
         update_bbox = FALSE
     )
 }
@@ -878,9 +947,13 @@ NULL
                                            block_files, multicores) {
     # Create uncertainty cube and return it
     .tile_derived_merge_blocks(
-        file = file, band = band, labels = labels,
-        base_tile = base_tile, derived_class = "uncertainty_cube",
-        block_files = block_files, multicores = multicores,
+        file = file,
+        band = band,
+        labels = labels,
+        base_tile = base_tile,
+        derived_class = "uncertainty_cube",
+        block_files = block_files,
+        multicores = multicores,
         update_bbox = FALSE
     )
 }
@@ -922,9 +995,8 @@ NULL
 #' @return Numeric matrix with raster values for each coordinate.
 #'
 .tile_extract <- function(tile, band, xy) {
-
     # Create a stack object
-    r_obj <- .raster_open_rast(.tile_paths(tile = tile, band = band))
+    r_obj <- .raster_open_rast(.tile_paths(tile = tile, bands = band))
     # Extract the values
     values <- .raster_extract(r_obj, xy)
     # Is the data valid?
@@ -936,17 +1008,6 @@ NULL
 }
 
 .tile_contains_cloud <- function(tile) {
+    tile <- .tile(tile)
     .fi_contains_cloud(.fi(tile))
-}
-
-.tile_contains_roi <- function(tile, roi) {
-    # Transform roi and bbox to sf
-    roi_bbox  <- .roi_as_sf(roi = roi, as_crs = .tile_crs(tile))
-    tile_bbox <- .bbox_as_sf(bbox = .bbox(tile), as_crs = .tile_crs(tile))
-    # Verify if the roi contains tile bbox
-    sf::st_contains(
-        x = roi_bbox,
-        y = tile_bbox,
-        sparse = FALSE
-    )
 }

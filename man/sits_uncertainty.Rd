@@ -14,7 +14,8 @@ sits_uncertainty(
   memsize = 4,
   multicores = 2,
   output_dir = getwd(),
-  version = "v1"
+  version = "v1",
+  progress = TRUE
 )
 
 \method{sits_uncertainty}{least}(
@@ -24,7 +25,8 @@ sits_uncertainty(
   memsize = 4,
   multicores = 2,
   output_dir = getwd(),
-  version = "v1"
+  version = "v1",
+  progress = TRUE
 )
 
 \method{sits_uncertainty}{entropy}(
@@ -34,7 +36,8 @@ sits_uncertainty(
   memsize = 4,
   multicores = 2,
   output_dir = getwd(),
-  version = "v1"
+  version = "v1",
+  progress = TRUE
 )
 
 \method{sits_uncertainty}{margin}(
@@ -44,7 +47,8 @@ sits_uncertainty(
   memsize = 4,
   multicores = 2,
   output_dir = getwd(),
-  version = "v1"
+  version = "v1",
+  progress = TRUE
 )
 }
 \arguments{

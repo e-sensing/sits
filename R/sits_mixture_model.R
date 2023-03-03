@@ -181,7 +181,8 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     .check_is_regular(data)
     # Pre-condition
     .check_endmembers_bands(
-        em = em, bands = .cube_bands(data, add_cloud = FALSE)
+        em = em,
+        bands = .cube_bands(data, add_cloud = FALSE)
     )
     # Fractions to be produced
     out_fracs <- .endmembers_fracs(em = em, include_rmse = rmse_band)

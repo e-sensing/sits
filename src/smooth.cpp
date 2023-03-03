@@ -40,7 +40,7 @@ void neigh_vec(neigh_t& n,
                     (m_i + i - w_leg_i) * m_ncol, m_b);
                 n.weights(k++) = w(i, j);
             }
-    n.n_rows = k;
+            n.n_rows = k;
 }
 
 arma::colvec nm_post_mean_x(const arma::colvec& x,
@@ -132,10 +132,10 @@ arma::mat bayes_smoother(const arma::mat& m,
 
 // [[Rcpp::export]]
 arma::mat bilateral_smoother(const arma::mat& m,
-                            const arma::uword m_nrow,
-                            const arma::uword m_ncol,
-                            const arma::mat& w,
-                            double tau) {
+                             const arma::uword m_nrow,
+                             const arma::uword m_ncol,
+                             const arma::mat& w,
+                             double tau) {
 
     // initialize result matrix
     arma::mat res(arma::size(m), arma::fill::none);
@@ -165,7 +165,7 @@ arma::mat bilateral_smoother(const arma::mat& m,
                 // compute kernel neighbourhood weighted mean
                 res(j + i * m_ncol, b) = arma::as_scalar(
                     bln_weight.subvec(0, neigh.n_rows - 1).as_row() *
-                    neigh.data.col(b).subvec(0, neigh.n_rows - 1));
+                        neigh.data.col(b).subvec(0, neigh.n_rows - 1));
             }
-    return res;
+            return res;
 }

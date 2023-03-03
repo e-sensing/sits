@@ -141,7 +141,8 @@ sits_mosaic <- function(cube,
     }
     # Get band class configurations
     band_conf <- .conf_derived_band(
-        derived_class = .cube_derived_class(cube), band = .cube_bands(cube)
+        derived_class = .cube_derived_class(cube),
+        band = .cube_bands(cube)
     )
     # Generate raster mosaic
     .gdal_warp(
@@ -200,8 +201,8 @@ sits_mosaic <- function(cube,
     # If the tile is fully contained in roi it's not necessary to crop it
     if (!is.null(roi)) {
         # Is tile contained in roi?
-        is_tile_in_roi <- .tile_contains_roi(tile, roi)
-        if (all(c(is_tile_in_roi))) {
+        is_within <- .tile_within(tile, roi)
+        if (is_within) {
             # Reproject tile for its crs
             .gdal_reproject_image(
                 file = file, out_file = out_file,
@@ -214,6 +215,7 @@ sits_mosaic <- function(cube,
             )
             return(tile)
         }
+        # TODO: include this operation inside gdal_crop_image()
         # Write roi in a temporary file
         roi <- .roi_write(
             roi = roi,

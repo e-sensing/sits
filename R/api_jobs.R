@@ -49,6 +49,11 @@
     length(sits_env[["cluster"]])
 }
 
+.jobs_split <- function(jobs) {
+    # TODO: split jobs by multicores (nrow(jobs) / muticores = #rounds)
+    list(jobs)
+}
+
 .jobs_map_sequential <- function(jobs, fn, ...) {
     slider::slide(jobs, fn, ...)
 }
@@ -61,9 +66,17 @@
     slider::slide_dfr(jobs, fn, ...)
 }
 
-.jobs_map_parallel <- function(jobs, fn, ..., progress = FALSE) {
-    jobs <- slider::slide(jobs, identity)
-    .sits_parallel_map(jobs, fn, ..., progress = progress)
+.jobs_map_parallel <- function(jobs, fn, ..., sync_fn = NULL,
+                               progress = FALSE) {
+    # Do split by rounds only if sync_fn is not NULL
+    rounds <- .jobs_split(jobs)
+    unlist(purrr::map(rounds, function(round) {
+        if (!is.null(sync_fn)) {
+            sync_fn(round)
+        }
+        round <- slider::slide(round, identity)
+        .sits_parallel_map(round, fn, ..., progress = progress)
+    }), recursive = FALSE)
 }
 
 .jobs_map_parallel_chr <- function(jobs, fn, ..., progress = FALSE) {

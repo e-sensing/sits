@@ -1,107 +1,25 @@
-#' @title Find the bounding box for a spatial ROI in a data cube
-#' @name .roi_bbox
-#' @keywords internal
-#' @noRd
-#' @param  cube            input data cube.
-#' @param  roi             spatial region of interest
-#' @return                 vector with information on the subimage
-.roi_bbox <- function(roi, cube) {
-
-    # set caller to show in errors
-    .check_set_caller(".roi_bbox")
-
-    if (!(inherits(roi, "sf"))) {
-        if (all(c("xmin", "xmax", "ymin", "ymax") %in% names(roi))) {
-            class(roi) <- c("xy", class(roi))
-        } else if (all(
-            c("lon_min", "lon_max", "lat_min", "lat_max") %in% names(roi)
-        )) {
-            class(roi) <- c("ll", class(roi))
-        }
-    }
-
-    .check_that(
-        x = inherits(roi, c("sf", "xy", "ll")),
-        msg = "invalid definition of ROI"
-    )
-
-    UseMethod(".roi_bbox", roi)
-}
-
-#' @title Find the bounding box for a spatial ROI defined as an sf object
-#' @name .roi_bbox.sf
-#' @keywords internal
-#' @noRd
-#' @param  roi             spatial region of interest
-#' @param  cube            input data cube.
-#' @return                 vector with information on the subimage
-#' @export
-.roi_bbox.sf <- function(roi, cube) {
-    bbox <- roi %>%
-        sf::st_transform(crs = .cube_crs(cube)) %>%
-        suppressWarnings() %>%
-        sf::st_bbox()
-
-    return(bbox)
-}
-#' @title Find the bounding box for a spatial ROI defined as a bounding box
-#' @name .roi_bbox.xy
-#' @keywords internal
-#' @noRd
-#' @param  cube            input data cube.
-#' @param  roi             spatial region of interest
-#' @return                 vector with information on the subimage
-#' @export
-.roi_bbox.xy <- function(roi, cube) {
-    return(roi)
-}
-#' @title Find the bounding box for a spatial ROI defined as a lat/lon box
-#' @name .roi_bbox.ll
-#' @keywords internal
-#' @noRd
-#' @param  cube            input data cube.
-#' @param  roi             spatial region of interest
-#' @return                 vector with information on the subimage
-#' @export
-.roi_bbox.ll <- function(roi, cube) {
-    # region of interest defined by two points
-    df <- data.frame(
-        lon = c(roi["lon_min"], roi["lon_max"], roi["lon_max"], roi["lon_min"]),
-        lat = c(roi["lat_min"], roi["lat_min"], roi["lat_max"], roi["lat_max"])
-    )
-
-    sf_region <- df %>%
-        sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
-        dplyr::summarise(geometry = sf::st_combine(.data[["geometry"]])) %>%
-        sf::st_cast("POLYGON")
-
-    bbox <- sf::st_bbox(
-        suppressWarnings(
-            sf::st_transform(sf_region, crs = .cube_crs(cube))
-        )
-    )
-}
 #' @title Convert a ROI defined as sf object to a geojson polygon geometry
 #' @name .roi_sf_to_geojson
 #' @keywords internal
 #' @noRd
-#' @param  roi_sf   region of interest as sf object
+#' @param  roi   region of interest as sf object
 #' @return a geojson polygon geometry
-.roi_sf_to_geojson <- function(roi_sf) {
+.roi_sf_to_geojson <- function(roi) {
 
     # pre-conditions
-    .check_that(nrow(roi_sf) == 1,
+    .check_that(nrow(roi) == 1,
         local_msg = "roi_sf should have only one row",
         msg = "invalid roi_sf value"
     )
     # verifies if geojsonsf and jsonlite packages are installed
     .check_require_packages(c("geojsonsf", "jsonlite"))
 
+    # reproject roi to WGS84
+    roi <- .roi_as_sf(roi, as_crs = "WGS84")
+
     # convert roi_sf to geojson
-    geojson <- roi_sf %>%
-        sf::st_convex_hull() %>%
-        sf::st_geometry() %>%
-        geojsonsf::sfc_geojson()
+    geojson <- sf::st_geometry(sf::st_convex_hull(roi))
+    geojson <- geojsonsf::sfc_geojson(geojson)
     geojson <- jsonlite::fromJSON(geojson)
 
     return(geojson)

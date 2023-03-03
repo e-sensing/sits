@@ -1335,33 +1335,6 @@
     )
 }
 
-#' @title Check if band is present in the cube
-#' @name .check_band_in_cube
-#' @param band name of the band
-#' @param cube data cube
-#' @return  No return value, called for side effects.
-#' @keywords internal
-#' @noRd
-.check_band_in_cube <- function(band, cube) {
-    .check_chr_within(band,
-                      within = .cube_bands(cube = cube, add_cloud = TRUE),
-                      discriminator = "one_of",
-                      case_sensitive = FALSE,
-                      msg = "invalid 'band' parameter"
-    )
-}
-#' @title Check bands are present in the cube
-#' @name .check_bands_in_cube
-#' @param bands names of the bands
-#' @param cube data cube
-#' @return  No return value, called for side effects.
-#' @keywords internal
-#' @noRd
-.check_bands_in_cube <- function(bands, cube) {
-    purrr::map(bands, function(band) {
-        .check_band_in_cube(band, cube)
-    })
-}
 #' @title Check is multicores parameter is valid using reasonable defaults
 #' @name .check_multicores
 #' @param  multicores   number of cores to be used
@@ -1825,23 +1798,6 @@
     )
 }
 
-#' @title Check if the bands of all tiles of the cube are the same
-#' @name .check_has_unique_bands
-#' @keywords internal
-#' @noRd
-#' @param  cube         input data cube
-#' @return  TRUE/FALSE
-.check_has_unique_bands <- function(cube) {
-    # check if all tiles have the same bands
-    bands <- slider::slide(cube, function(tile) {
-        return(.cube_bands(tile))
-    })
-    if (length(unique(bands)) != 1) {
-        return(FALSE)
-    } else {
-        return(TRUE)
-    }
-}
 #' @title Check if bboxes of all tiles of the cube are the same
 #' @name .check_has_unique_bbox
 #' @keywords internal
@@ -1907,30 +1863,6 @@
     } else {
         return(TRUE)
     }
-}
-
-#' @title Check if timelines all tiles of the cube are the same
-#' @name .check_has_unique_timeline
-#' @keywords internal
-#' @noRd
-#' @param  cube         input data cube
-#' @return TRUE/FALSE
-.check_has_unique_timeline <- function(cube) {
-    # get the bands
-    bands <- slider::slide(cube, function(tile) {
-        return(.cube_bands(tile))
-    })
-    # check if timelines are unique
-    timelines <- slider::slide(cube, function(tile) {
-        unique(purrr::map(unlist(unique(bands)), function(band) {
-            tile_band <- sits_select(tile, bands = band)
-            sits_timeline(tile_band)
-        }))
-    })
-
-    # function to test timelines
-    return(length(unique(timelines)) == 1 &&
-               any(purrr::map_dbl(timelines, length) == 1))
 }
 
 #' @title Check if file is a CSV
@@ -2046,8 +1978,8 @@
     ok <- slider::slide2_lgl(cube1, cube2,
                            function(tile_first, tile_cube){
             return(.bbox_equal(
-                .bbox(tile_first),
-                .bbox(tile_cube),
+                .tile_bbox(tile_first),
+                .tile_bbox(tile_cube),
                 tolerance = tolerance)
             )
     })

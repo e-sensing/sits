@@ -111,8 +111,11 @@ sits_apply.sits <- function(data, ...) {
 
 #' @rdname sits_apply
 #' @export
-sits_apply.raster_cube <- function(data, ..., window_size = 3, memsize = 1,
-                                   multicores = 2, output_dir = getwd(),
+sits_apply.raster_cube <- function(data, ...,
+                                   window_size = 3,
+                                   memsize = 1,
+                                   multicores = 2,
+                                   output_dir = getwd(),
                                    progress = TRUE) {
 
     # Check cube

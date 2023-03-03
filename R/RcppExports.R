@@ -65,6 +65,14 @@ linear_interp_vec <- function(vec) {
     .Call(`_sits_linear_interp_vec`, vec)
 }
 
+mask_na <- function(mtx) {
+    .Call(`_sits_mask_na`, mtx)
+}
+
+fill_na <- function(mtx, fill) {
+    .Call(`_sits_fill_na`, mtx, fill)
+}
+
 batch_calc <- function(n_pixels, max_lines_per_batch) {
     .Call(`_sits_batch_calc`, n_pixels, max_lines_per_batch)
 }

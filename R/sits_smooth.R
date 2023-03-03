@@ -76,9 +76,8 @@
 #' }
 #' @export
 sits_smooth <- function(cube,
-                        type = "bayes",
-                        ...,
-                        window_size = 9,
+                        type = "bayes", ...,
+                        window_size = 13,
                         memsize = 4,
                         multicores = 2,
                         output_dir = getwd(),
@@ -91,50 +90,106 @@ sits_smooth <- function(cube,
     # Check multicores
     .check_multicores(multicores)
     # Check output dir
-    output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
     # Check version
     .check_version(version)
 
-    # Check memory and multicores
-    # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
-    # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = overlap),
-        # npaths = input(nlayers) + output(nlayers)
-        npaths = length(.tile_labels(cube)) * 2,
-        nbytes = 8,
-        proc_bloat = .conf("processing_bloat")
+    # Define the class of the smoothing
+    class(type) <- c(type, class(type))
+    UseMethod("sits_smooth", type)
+}
+
+#' @rdname sits_smooth
+#' @export
+sits_smooth.bayes <- function(cube, type = "bayes", ...,
+                              window_size = 9,
+                              neigh_fraction = 0.5,
+                              smoothness = 20,
+                              covar = FALSE,
+                              multicores = 2,
+                              memsize = 4,
+                              output_dir = getwd(),
+                              version = "v1") {
+    # Check window size
+    .check_window_size(window_size, min = 7)
+    # Check neigh_fraction
+    .check_num_parameter(neigh_fraction, min = 0, max = 1)
+    # Prepare smoothness parameter
+    nlabels <- length(.tile_labels(cube))
+    if (!is.matrix(smoothness)) {
+        smoothness <- diag(smoothness, nrow = nlabels, ncol = nlabels)
+    }
+    # Check smoothness
+    .check_smoothness_mat(smoothness, nlabels = nlabels)
+    # Check covar
+    .check_lgl_type(covar)
+    # Create smooth function
+    smooth_fn <- .smooth_fn_bayes(
+        window_size = window_size,
+        neigh_fraction = neigh_fraction,
+        smoothness = smoothness,
+        covar = covar,
+        nlabels = nlabels
     )
-    # Update multicores parameter
-    multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize,
-        memsize = memsize,
-        multicores = multicores
-    )
-    # Update block parameter
-    block <- .jobs_optimal_block(
-        job_memsize = job_memsize,
-        block = block,
-        image_size = .tile_size(.tile(cube)),
-        memsize = memsize,
-        multicores = multicores
-    )
-    # Prepare parallel processing
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop(), add = TRUE)
-    # Call the smooth method
-    .smooth_use_method(
+    # Call smooth function
+    probs_cube <- .smooth(
         cube = cube,
-        type = type,
-        block = block,
+        smooth_fn = smooth_fn,
+        band = "bayes",
         window_size = window_size,
         memsize = memsize,
         multicores = multicores,
         output_dir = output_dir,
-        version = version, ...
+        version = version,
+        progress = FALSE, ...
     )
+    return(probs_cube)
+}
+#' @rdname sits_smooth
+#' @export
+sits_smooth.bilateral <- function(cube,
+                                  type = "bilateral", ...,
+                                  window_size = 5,
+                                  sigma = 8,
+                                  tau = 0.1,
+                                  multicores = 2,
+                                  memsize = 4,
+                                  output_dir = getwd(),
+                                  version = "v1") {
+    # Check window size
+    .check_window_size(window_size, min = 3)
+    # Check variance
+    .check_num_parameter(sigma, exclusive_min = 0)
+    # Check tau
+    .check_num_parameter(tau, exclusive_min = 0)
+    # Create smooth function
+    smooth_fn <- .smooth_fn_bilat(
+        window_size = window_size,
+        sigma = sigma,
+        tau = tau
+    )
+    # Call smooth function
+    probs_cube <- .smooth(
+        cube = cube,
+        smooth_fn = smooth_fn,
+        band = "bilat",
+        window_size = window_size,
+        memsize = memsize,
+        multicores = multicores,
+        output_dir = output_dir,
+        version = version,
+        progress = FALSE, ...
+    )
+    return(probs_cube)
+}
+
+sits_smooth.default <- function(cube,
+                                type = "default", ...,
+                                window_size = 13,
+                                memsize = 4,
+                                multicores = 2,
+                                output_dir = getwd(),
+                                version = "v1") {
+    stop("Invalid `type` parameter ",
+         "(value must be one of 'bayes', 'bilateral').")
 }
