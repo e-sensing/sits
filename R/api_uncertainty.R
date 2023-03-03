@@ -185,6 +185,7 @@
                 band = 0,
                 window_size = window_size
             )
+            values <- matrix(values, ncol = 1)
         }
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
@@ -208,6 +209,7 @@
                 x = values, ncols = .ncols(block), nrows = .nrows(block),
                 band = 0, window_size = window_size
             )
+            values <- matrix(values, ncol = 1)
         }
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
@@ -229,6 +231,7 @@
                 x = values, ncols = .ncols(block), nrows = .nrows(block),
                 band = 0, window_size = window_size
             )
+            values <- matrix(values, ncol = 1)
         }
         # Return data
         values
