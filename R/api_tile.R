@@ -695,18 +695,25 @@ NULL
 #' @return an EO tile with merged blocks
 .tile_eo_merge_blocks <- function(files, bands, base_tile, block_files,
                                   multicores, update_bbox) {
+    base_tile <- .tile(base_tile)
     # Get conf band
     band_conf <- .tile_band_conf(tile = base_tile, band = bands)
     # Create a template raster based on the first image of the tile
     .raster_merge_blocks(
-        out_files = files, base_file = .tile_path(base_tile),
-        block_files = block_files, data_type = .data_type(band_conf),
-        missing_value = .miss_value(band_conf), multicores = multicores
+        out_files = files,
+        base_file = .tile_path(base_tile),
+        block_files = block_files,
+        data_type = .data_type(band_conf),
+        missing_value = .miss_value(band_conf),
+        multicores = multicores
     )
     # Create tile based on template
     tile <- .tile_eo_from_files(
-        files = files, fid = .fi_fid(.fi(base_tile)), bands = bands,
-        date = .fi_min_date(.fi(base_tile)), base_tile = base_tile,
+        files = files,
+        fid = .fi_fid(.fi(base_tile)),
+        bands = bands,
+        date = .fi_min_date(.fi(base_tile)),
+        base_tile = base_tile,
         update_bbox = update_bbox
     )
     # If all goes well, delete block files
@@ -742,7 +749,9 @@ NULL
     .tile_labels(base_tile) <- labels
     # Update file_info
     .fi(base_tile) <- .fi_derived_from_file(
-        file = file, band = band, start_date = .tile_start_date(base_tile),
+        file = file,
+        band = band,
+        start_date = .tile_start_date(base_tile),
         end_date = .tile_end_date(base_tile)
     )
     # Set tile class and return tile
@@ -764,20 +773,30 @@ NULL
 .tile_derived_merge_blocks <- function(file, band, labels, base_tile,
                                        derived_class, block_files, multicores,
                                        update_bbox) {
+    base_tile <- .tile(base_tile)
     # Get conf band
-    band_conf <- .conf_derived_band(derived_class = derived_class, band = band)
+    band_conf <- .conf_derived_band(
+        derived_class = derived_class,
+        band = band
+    )
     # Set base tile
     base_file <- if (update_bbox) NULL else .tile_path(base_tile)
     # Create a template raster based on the first image of the tile
     .raster_merge_blocks(
-        out_files = file, base_file = base_file,
-        block_files = block_files, data_type = .data_type(band_conf),
-        missing_value = .miss_value(band_conf), multicores = multicores
+        out_files = file,
+        base_file = base_file,
+        block_files = block_files,
+        data_type = .data_type(band_conf),
+        missing_value = .miss_value(band_conf),
+        multicores = multicores
     )
     # Create tile based on template
     tile <- .tile_derived_from_file(
-        file = file, band = band, base_tile = base_tile,
-        derived_class = derived_class, labels = labels,
+        file = file,
+        band = band,
+        base_tile = base_tile,
+        derived_class = derived_class,
+        labels = labels,
         update_bbox = update_bbox
     )
     # If all goes well, delete block files
@@ -806,8 +825,11 @@ NULL
         msg = "invalid 'file' parameter"
     )
     .tile_derived_from_file(
-        file = file, band = band, base_tile = base_tile,
-        derived_class = "probs_cube", labels = labels,
+        file = file,
+        band = band,
+        base_tile = base_tile,
+        derived_class = "probs_cube",
+        labels = labels,
         update_bbox = update_bbox
     )
 }
@@ -835,9 +857,13 @@ NULL
     )
     # Create probs cube and return it
     .tile_derived_merge_blocks(
-        file = file, band = band, labels = labels,
-        base_tile = base_tile, derived_class = "probs_cube",
-        block_files = block_files, multicores = multicores,
+        file = file,
+        band = band,
+        labels = labels,
+        base_tile = base_tile,
+        derived_class = "probs_cube",
+        block_files = block_files,
+        multicores = multicores,
         update_bbox = update_bbox
     )
 }
@@ -852,8 +878,11 @@ NULL
 #' @return a new probs tile
 .tile_class_from_file <- function(file, band, base_tile) {
     .tile_derived_from_file(
-        file = file, band = band, base_tile = base_tile,
-        derived_class = "class_cube", labels = .tile_labels(base_tile),
+        file = file,
+        band = band,
+        base_tile = base_tile,
+        derived_class = "class_cube",
+        labels = .tile_labels(base_tile),
         update_bbox = FALSE
     )
 }
@@ -872,9 +901,13 @@ NULL
                                      block_files, multicores) {
     # Create class cube and return it
     .tile_derived_merge_blocks(
-        file = file, band = band, labels = labels,
-        base_tile = base_tile, derived_class = "class_cube",
-        block_files = block_files, multicores = multicores,
+        file = file,
+        band = band,
+        labels = labels,
+        base_tile = base_tile,
+        derived_class = "class_cube",
+        block_files = block_files,
+        multicores = multicores,
         update_bbox = FALSE
     )
 }
@@ -889,8 +922,11 @@ NULL
 #' @return a new uncertainty tile
 .tile_uncert_from_file <- function(file, band, base_tile) {
     .tile_derived_from_file(
-        file = file, band = band, base_tile = base_tile,
-        derived_class = "uncertainty_cube", labels = .tile_labels(base_tile),
+        file = file,
+        band = band,
+        base_tile = base_tile,
+        derived_class = "uncertainty_cube",
+        labels = .tile_labels(base_tile),
         update_bbox = FALSE
     )
 }
@@ -909,9 +945,13 @@ NULL
                                            block_files, multicores) {
     # Create uncertainty cube and return it
     .tile_derived_merge_blocks(
-        file = file, band = band, labels = labels,
-        base_tile = base_tile, derived_class = "uncertainty_cube",
-        block_files = block_files, multicores = multicores,
+        file = file,
+        band = band,
+        labels = labels,
+        base_tile = base_tile,
+        derived_class = "uncertainty_cube",
+        block_files = block_files,
+        multicores = multicores,
         update_bbox = FALSE
     )
 }
@@ -953,7 +993,6 @@ NULL
 #' @return Numeric matrix with raster values for each coordinate.
 #'
 .tile_extract <- function(tile, band, xy) {
-
     # Create a stack object
     r_obj <- .raster_open_rast(.tile_paths(tile = tile, bands = band))
     # Extract the values
