@@ -97,6 +97,10 @@ NULL
     value
 }
 
+.dissolve <- function(x) {
+    unique(unlist(x, recursive = FALSE, use.names = FALSE))
+}
+
 #' @title Handling error
 #' @noRd
 #'

@@ -102,12 +102,14 @@ NULL
 #' @param add_cloud  Include the cloud band?
 #'
 #' @return A \code{vector} with the cube bands.
-.cube_bands <- function(cube, add_cloud = TRUE) {
+.cube_bands <- function(cube, add_cloud = TRUE, dissolve = TRUE) {
     UseMethod(".cube_bands", cube)
 }
 #' @export
-.cube_bands.raster_cube <- function(cube, add_cloud = TRUE) {
-    .compact(slider::slide(cube, .tile_bands, add_cloud = add_cloud))
+.cube_bands.raster_cube <- function(cube, add_cloud = TRUE, dissolve = TRUE) {
+    bands <- .compact(slider::slide(cube, .tile_bands, add_cloud = add_cloud))
+    if (dissolve) return(.dissolve(bands))
+    bands
 }
 #' @title Return collection of a data cube
 #' @keywords internal
@@ -245,7 +247,7 @@ NULL
 }
 #' @export
 .cube_is_complete.raster_cube <- function(cube) {
-    if (length(.cube_bands(cube)) > 1) return(FALSE)
+    if (length(.cube_bands(cube, dissolve = FALSE)) > 1) return(FALSE)
     all(slider::slide_lgl(cube, .tile_is_complete))
 }
 #' @title Find out how many images are in cube during a period
