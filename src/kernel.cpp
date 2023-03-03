@@ -96,7 +96,7 @@ NumericVector kernel_fun(const NumericMatrix& x, int ncols, int nrows,
                     neigh(wi * window_size + wj) =
                         x(loci(wi + i) * ncols + locj(wj + j), band);
             // call specific function
-            res(i * ncols + j, 0) = _fun(neigh);
+            res(i * ncols + j) = _fun(neigh);
         }
     }
     return res;
