@@ -86,7 +86,7 @@ A tibble with metadata about the output raster objects.
 \description{
 Takes a set of classified raster layers with probabilities,
              whose metadata is]created by \code{\link[sits]{sits_cube}},
-             and applies a smoothing function. There are three options,
+             and applies a smoothing function. There are two options,
              defined by the "type" parameter:
 \itemize{
    \item{"bayes": }{Use a bayesian smoother}
