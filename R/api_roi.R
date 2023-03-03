@@ -2,23 +2,24 @@
 #' @name .roi_sf_to_geojson
 #' @keywords internal
 #' @noRd
-#' @param  roi_sf   region of interest as sf object
+#' @param  roi   region of interest as sf object
 #' @return a geojson polygon geometry
-.roi_sf_to_geojson <- function(roi_sf) {
+.roi_sf_to_geojson <- function(roi) {
 
     # pre-conditions
-    .check_that(nrow(roi_sf) == 1,
+    .check_that(nrow(roi) == 1,
         local_msg = "roi_sf should have only one row",
         msg = "invalid roi_sf value"
     )
     # verifies if geojsonsf and jsonlite packages are installed
     .check_require_packages(c("geojsonsf", "jsonlite"))
 
+    # reproject roi to WGS84
+    roi <- .roi_as_sf(roi, as_crs = "WGS84")
+
     # convert roi_sf to geojson
-    geojson <- roi_sf %>%
-        sf::st_convex_hull() %>%
-        sf::st_geometry() %>%
-        geojsonsf::sfc_geojson()
+    geojson <- sf::st_geometry(sf::st_convex_hull(roi))
+    geojson <- geojsonsf::sfc_geojson(geojson)
     geojson <- jsonlite::fromJSON(geojson)
 
     return(geojson)
