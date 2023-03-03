@@ -13,55 +13,6 @@
     .is_eq(unlist(bbox1[.bbox_cols]), unlist(bbox2[.bbox_cols]),
            tolerance = tolerance)
 }
-#'
-#'
-#' @title Intersection between a bounding box and a cube
-#' @name .bbox_intersect
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param bbox           Bounding box for a region of interest.
-#' @param cube           Data cube.
-#' @return               Vector the bounding box intersection.
-.bbox_intersect <- function(bbox, cube) {
-    bbox_out <- vector("double", length = 4)
-    names(bbox_out) <- c("xmin", "ymin", "xmax", "ymax")
-
-    if (bbox["xmin"] > cube$xmax |
-        bbox["ymin"] > cube$ymax |
-        bbox["xmax"] < cube$xmin |
-        bbox["ymax"] < cube$ymin) {
-        return(NULL)
-    }
-
-    if (bbox["xmin"] < cube$xmin) {
-        bbox_out["xmin"] <- cube$xmin
-    } else {
-        bbox_out["xmin"] <- bbox["xmin"]
-    }
-
-    if (bbox["ymin"] < cube$ymin) {
-        bbox_out["ymin"] <- cube$ymin
-    } else {
-        bbox_out["ymin"] <- bbox["ymin"]
-    }
-
-    if (bbox["xmax"] > cube$xmax) {
-        bbox_out["xmax"] <- cube$xmax
-    } else {
-        bbox_out["xmax"] <- bbox["xmax"]
-    }
-
-    if (bbox["ymax"] > cube$ymax) {
-        bbox_out["ymax"] <- cube$ymax
-    } else {
-        bbox_out["ymax"] <- bbox["ymax"]
-    }
-
-    return(bbox_out)
-}
-
 #' @title Bounding box API
 #' @noRd
 #'
