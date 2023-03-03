@@ -556,7 +556,7 @@ NULL
     if (!.check_has_unique_tile_size(cube)) {
         return(FALSE)
     }
-    if (length(.cube_timeline(cube)) != 1) {
+    if (length(.cube_timeline(cube)) > 1) {
         return(FALSE)
     }
     return(TRUE)
