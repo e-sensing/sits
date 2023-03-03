@@ -349,6 +349,7 @@ NULL
 .cube_as_sf <- function(cube, as_crs = NULL) {
     UseMethod(".cube_as_sf", cube)
 }
+#' @export
 .cube_as_sf.raster_cube <- function(cube, as_crs = NULL) {
     .bbox_as_sf(.cube_bbox(cube), as_crs = as_crs)
 }
