@@ -22,7 +22,9 @@ NULL
 }
 #' @export
 .tile.raster_cube <- function(cube) {
-    cube[1, ]
+    cube <- .cube(cube)
+    if (nrow(cube) >= 1) return(cube[1, ])
+    cube
 }
 
 #  Tile field accessors

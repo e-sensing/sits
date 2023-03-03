@@ -86,6 +86,12 @@ NULL
     .cube_set_class(cube)
 }
 
+
+.cube <- function(x) {
+    # TODO: check and assign a cube class
+    x
+}
+
 # ---- raster_cube ----
 
 #' @title Return bands of a data cube
