@@ -33,7 +33,8 @@ NULL
 }
 #' @export
 .tile_source.raster_cube <- function(tile) {
-    .as_chr(tile[["source"]][[1]])
+    tile <- .tile(tile)
+    .as_chr(tile[["source"]])
 }
 #
 .tile_collection <- function(tile) {
@@ -42,7 +43,8 @@ NULL
 
 #' @export
 .tile_collection.raster_cube <- function(tile) {
-    .as_chr(tile[["collection"]][[1]])
+    tile <- .tile(tile)
+    .as_chr(tile[["collection"]])
 }
 
 #
@@ -60,7 +62,8 @@ NULL
 }
 #
 .tile_name.raster_cube <- function(tile) {
-    .as_chr(tile[["tile"]][[1]])
+    tile <- .tile(tile)
+    .as_chr(tile[["tile"]])
 }
 #
 .tile_ncols <- function(tile) {
@@ -68,10 +71,11 @@ NULL
 }
 #' @export
 .tile_ncols.raster_cube <- function(tile) {
+    tile <- .tile(tile)
     if ("ncols" %in% tile) {
-        return(.ncols(tile)[[1]])
+        return(.ncols(tile))
     }
-    .ncols(.fi(tile))[[1]]
+    .ncols(.fi(tile))
 }
 #
 .tile_nrows <- function(tile) {
@@ -79,10 +83,11 @@ NULL
 }
 #' @export
 .tile_nrows.raster_cube <- function(tile) {
+    tile <- .tile(tile)
     if ("nrows" %in% tile) {
-        return(.nrows(tile)[[1]])
+        return(.nrows(tile))
     }
-    .nrows(.fi(tile))[[1]]
+    .nrows(.fi(tile))
 }
 #
 .tile_size <- function(tile) {
@@ -98,6 +103,7 @@ NULL
 }
 #' @export
 .tile_xres.raster_cube <- function(tile) {
+    tile <- .tile(tile)
     .xres(.fi(tile))
 }
 #
@@ -106,6 +112,7 @@ NULL
 }
 #' @export
 .tile_yres.raster_cube <- function(tile) {
+    tile <- .tile(tile)
     .yres(.fi(tile))
 }
 #
@@ -114,7 +121,8 @@ NULL
 }
 #' @export
 .tile_labels.raster_cube <- function(tile) {
-    .as_chr(tile[["labels"]][[1]])
+    tile <- .tile(tile)
+    .as_chr(tile[["labels"]])
 }
 #
 `.tile_labels<-` <- function(tile, value) {
@@ -139,6 +147,7 @@ NULL
 }
 #' @export
 .tile_start_date.raster_cube <- function(tile) {
+    tile <- .tile(tile)
     .fi_min_date(.fi(tile))
 }
 #'
@@ -154,6 +163,7 @@ NULL
 }
 #' @export
 .tile_end_date.raster_cube <- function(tile) {
+    tile <- .tile(tile)
     .fi_max_date(.fi(tile))
 }
 #' @title Get unique timeline from file_info.
@@ -168,6 +178,7 @@ NULL
 }
 #' @export
 .tile_timeline.raster_cube <- function(tile) {
+    tile <- .tile(tile)
     sort(unique(.fi_timeline(.fi(tile))))
 }
 .tile_is_complete <- function(tile) {
@@ -175,6 +186,7 @@ NULL
 }
 #' @export
 .tile_is_complete.raster_cube <- function(tile) {
+    tile <- .tile(tile)
     .fi_is_complete(.fi(tile))
 }
 #' @title Get sorted unique bands from file_info.
@@ -192,6 +204,7 @@ NULL
 
 #' @export
 .tile_path.raster_cube <- function(tile, band = NULL, date = NULL) {
+    tile <- .tile(tile)
     if (.has(band)) {
         tile <- .tile_filter_bands(tile = tile, bands = band[[1]])
     }
@@ -208,6 +221,7 @@ NULL
 }
 #' @export
 .tile_paths.raster_cube <- function(tile, bands = NULL) {
+    tile <- .tile(tile)
     if (.has(bands)) {
         tile <- .tile_filter_bands(tile = tile, bands = bands)
     }
@@ -263,6 +277,7 @@ NULL
 }
 #' @export
 .tile_bands.raster_cube <- function(tile, add_cloud = TRUE) {
+    tile <- .tile(tile)
     bands <- unique(.fi_bands(.fi(tile)))
     if (add_cloud) return(bands)
     setdiff(bands, .band_cloud())
@@ -405,6 +420,7 @@ NULL
 }
 #' @export
 .tile_during.raster_cube <- function(tile, start_date, end_date) {
+    tile <- .tile(tile)
     any(.fi_during(
         fi = .fi(tile), start_date = start_date, end_date = end_date
     ))
@@ -481,6 +497,7 @@ NULL
 }
 #' @export
 .tile_read_block.eo_cube <- function(tile, band, block) {
+    tile <- .tile(tile)
     fi <- .fi(tile)
     # Stops if band is not found
     values <- .fi_read_block(fi = fi, band = .band_eo(band), block = block)
@@ -528,6 +545,7 @@ NULL
 }
 #' @export
 .tile_read_block.derived_cube <- function(tile, band, block) {
+    tile <- .tile(tile)
     fi <- .fi(tile)
     # Stops if band is not found
     values <- .fi_read_block(fi = fi, band = .band_derived(band), block = block)
@@ -646,6 +664,7 @@ NULL
 #' @return a base tile
 .tile_eo_from_files <- function(files, fid, bands, date, base_tile,
                                 update_bbox) {
+    base_tile <- .tile(base_tile)
     if (update_bbox) {
         # Open raster
         r_obj <- .raster_open_rast(files)
@@ -708,6 +727,7 @@ NULL
 #' @return a new tile
 .tile_derived_from_file <- function(file, band, base_tile, derived_class,
                                     labels = NULL, update_bbox) {
+    base_tile <- .tile(base_tile)
     if (update_bbox) {
         # Open raster
         r_obj <- .raster_open_rast(file)

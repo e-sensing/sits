@@ -214,6 +214,7 @@ sits_mosaic <- function(cube,
             )
             return(tile)
         }
+        # TODO: include this operation inside gdal_crop_image()
         # Write roi in a temporary file
         roi <- .roi_write(
             roi = roi,
