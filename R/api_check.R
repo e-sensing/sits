@@ -1335,33 +1335,6 @@
     )
 }
 
-#' @title Check if band is present in the cube
-#' @name .check_band_in_cube
-#' @param band name of the band
-#' @param cube data cube
-#' @return  No return value, called for side effects.
-#' @keywords internal
-#' @noRd
-.check_band_in_cube <- function(band, cube) {
-    .check_chr_within(band,
-                      within = .cube_bands(cube = cube, add_cloud = TRUE),
-                      discriminator = "one_of",
-                      case_sensitive = FALSE,
-                      msg = "invalid 'band' parameter"
-    )
-}
-#' @title Check bands are present in the cube
-#' @name .check_bands_in_cube
-#' @param bands names of the bands
-#' @param cube data cube
-#' @return  No return value, called for side effects.
-#' @keywords internal
-#' @noRd
-.check_bands_in_cube <- function(bands, cube) {
-    purrr::map(bands, function(band) {
-        .check_band_in_cube(band, cube)
-    })
-}
 #' @title Check is multicores parameter is valid using reasonable defaults
 #' @name .check_multicores
 #' @param  multicores   number of cores to be used

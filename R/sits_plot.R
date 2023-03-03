@@ -655,13 +655,13 @@ plot.raster_cube <- function(
 
     # Plot a B/W band as false color
     if (!purrr::is_null(band)) {
-        .check_band_in_cube(band, tile)
+        .check_cube_bands(tile, bands = band)
         # plot the band as false color
         p <- .plot_false_color(tile, band, date, palette, rev)
     }
     # plot RGB image
     else {
-        .check_bands_in_cube(c(red, green, blue), tile)
+        .check_cube_bands(tile, bands = c(red, green, blue))
 
         # plot RGB
         p <- .plot_rgb(tile, red, green, blue, date)
