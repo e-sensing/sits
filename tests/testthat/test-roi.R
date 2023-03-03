@@ -78,9 +78,9 @@ test_that("Functions that work with ROI", {
     roi[["ymax"]] <- (roi[["ymax"]] - roi[["ymin"]]) / 2 + roi[["ymin"]]
 
     # retrieve the bounding box for this ROI
-    bbox_1 <- .roi_as_sf(roi, as_crs = .cube_crs(cube))
+    bbox_1 <- .bbox(roi, as_crs = .cube_crs(cube))
 
-    expect_true(length(.bbox_intersection(bbox_1, .cube_bbox(cube))) == 4)
+    expect_true(.is_bbox(.bbox_intersection(bbox_1, .cube_bbox(cube))))
 
     # read a set of lat long coordinates
     csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
@@ -93,16 +93,16 @@ test_that("Functions that work with ROI", {
         sf::st_as_sf(coords = c("longitude", "latitude"), crs = 4326)
 
     # read a bbox as an sf object
-    bbox_2 <- .roi_as_sf(sf_obj, as_crs = .cube_crs(cube))
-    expect_true(length(.bbox_intersection(bbox_2, .cube_bbox(cube))) == 4)
+    bbox_2 <- .bbox(sf_obj, as_crs = .cube_crs(cube))
+    expect_true(.is_bbox(.bbox_intersection(bbox_2, .cube_bbox(cube))))
 
     # extract the bounding box from a set of lat/long points
     sf_bbox <- sf::st_bbox(sf_obj)
     names(sf_bbox) <- c("lon_min", "lat_min", "lon_max", "lat_max")
-    class(sf_bbox) <- c("vector")
-    bbox_3 <- .roi_as_sf(sf_bbox, as_crs = .cube_crs(cube))
+    class(sf_bbox) <- c("numeric")
+    bbox_3 <- .bbox(.roi_as_sf(sf_bbox, as_crs = .cube_crs(cube)))
 
-    expect_true(length(.bbox_intersection(bbox_3, .cube_bbox(cube))) == 4)
+    expect_true(.is_bbox(.bbox_intersection(bbox_3, .cube_bbox(cube))))
 })
 
 test_that("Internal functions in ROI", {
