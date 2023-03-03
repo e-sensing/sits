@@ -200,8 +200,8 @@ sits_mosaic <- function(cube,
     # If the tile is fully contained in roi it's not necessary to crop it
     if (!is.null(roi)) {
         # Is tile contained in roi?
-        is_tile_in_roi <- .tile_contains_roi(tile, roi)
-        if (all(c(is_tile_in_roi))) {
+        is_within <- .tile_within(tile, roi)
+        if (is_within) {
             # Reproject tile for its crs
             .gdal_reproject_image(
                 file = file, out_file = out_file,

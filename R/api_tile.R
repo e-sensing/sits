@@ -127,18 +127,6 @@ NULL
     tile
 }
 
-#' @title Convert tile \code{bbox} to a sf polygon object.
-#' @noRd
-#' @param tile A tile.
-#' @return sf object
-.tile_as_sf <- function(tile) {
-    UseMethod(".tile_as_sf", tile)
-}
-#' @export
-.tile_as_sf.raster_cube <- function(tile) {
-    .bbox_as_sf(.bbox(.tile(tile)))
-}
-
 #' @title Get first date from tile
 #' @name .tile_start_date
 #' @keywords internal
@@ -341,7 +329,27 @@ NULL
 }
 #' @export
 .tile_crs.raster_cube <- function(tile) {
-    .crs(.tile(tile))
+    tile <- .tile(tile)
+    .crs(tile)
+}
+.tile_bbox <- function(tile, as_crs = NULL) {
+    UseMethod(".tile_bbox", tile)
+}
+#' @export
+.tile_bbox.raster_cube <- function(tile, as_crs = NULL) {
+    tile <- .tile(tile)
+    .bbox(tile, as_crs = as_crs)
+}
+#' @title Convert tile \code{bbox} to a sf polygon object.
+#' @noRd
+#' @param tile A tile.
+#' @return sf object
+.tile_as_sf <- function(tile, as_crs = NULL) {
+    UseMethod(".tile_as_sf", tile)
+}
+#' @export
+.tile_as_sf.raster_cube <- function(tile, as_crs = NULL) {
+    .bbox_as_sf(.tile_bbox(tile), as_crs = as_crs)
 }
 #'
 #' @title Does tile \code{bbox} intersect \code{roi} parameter?
@@ -357,7 +365,13 @@ NULL
 }
 #' @export
 .tile_intersects.raster_cube <- function(tile, roi) {
-    .intersects(x = .tile_as_sf(tile), y = .roi_as_sf(roi))
+    .intersects(.tile_as_sf(tile), .roi_as_sf(roi))
+}
+.tile_within <- function(tile, roi) {
+    UseMethod(".tile_within", tile)
+}
+.tile_within.raster_cube <- function(tile, roi) {
+    .within(.tile_as_sf(tile), .roi_as_sf(roi))
 }
 #' @title Filter file_info entries that intersect roi.
 #' @name .tile_filter_spatial
@@ -615,7 +629,7 @@ NULL
         block = block,
         overlap = overlap,
         image_size = .tile_size(tile),
-        image_bbox = .bbox(tile)
+        image_bbox = .tile_bbox(tile)
     )
 }
 
@@ -933,17 +947,6 @@ NULL
 }
 
 .tile_contains_cloud <- function(tile) {
+    tile <- .tile(tile)
     .fi_contains_cloud(.fi(tile))
-}
-
-.tile_contains_roi <- function(tile, roi) {
-    # Transform roi and bbox to sf
-    roi_bbox  <- .roi_as_sf(roi = roi, as_crs = .tile_crs(tile))
-    tile_bbox <- .bbox_as_sf(bbox = .bbox(tile), as_crs = .tile_crs(tile))
-    # Verify if the roi contains tile bbox
-    sf::st_contains(
-        x = roi_bbox,
-        y = tile_bbox,
-        sparse = FALSE
-    )
 }

@@ -2046,8 +2046,8 @@
     ok <- slider::slide2_lgl(cube1, cube2,
                            function(tile_first, tile_cube){
             return(.bbox_equal(
-                .bbox(tile_first),
-                .bbox(tile_cube),
+                .tile_bbox(tile_first),
+                .tile_bbox(tile_cube),
                 tolerance = tolerance)
             )
     })

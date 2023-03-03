@@ -293,6 +293,8 @@ NULL
     )
 }
 
+# ---- iteration ----
+
 #' @title Tile iteration
 #' @noRd
 #' @param cube  A data cube.
@@ -328,6 +330,20 @@ NULL
     slider::slide_dfr(cube, fn, ...)
 }
 
+# --- spatial ----
+.cube_bbox <- function(cube, as_crs = NULL) {
+    UseMethod(".cube_bbox", cube)
+}
+#' @export
+.cube_bbox.raster_cube <- function(cube, as_crs = NULL) {
+    .bbox(cube, by_feature = TRUE, as_crs = NULL)
+}
+.cube_as_sf <- function(cube, as_crs = NULL) {
+    UseMethod(".cube_as_sf", cube)
+}
+.cube_as_sf.raster_cube <- function(cube, as_crs = NULL) {
+    .bbox_as_sf(.cube_bbox(cube), as_crs = as_crs)
+}
 #' @title What tiles intersect \code{roi} parameter?
 #' @noRd
 #' @param cube  A data cube.

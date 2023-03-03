@@ -81,7 +81,7 @@
     .check_has_one_tile(tile)
 
     # get bbox roi
-    bbox_roi <- sits_bbox(tile)
+    bbox_roi <- .tile_bbox(tile)
     if (!is.null(roi)) {
         bbox_roi <- .roi_bbox(roi, tile)
     }
@@ -478,12 +478,7 @@
     .check_require_packages("gdalcubes")
 
     # filter only intersecting tiles
-    intersects <- slider::slide_lgl(
-        cube, .raster_sub_image_intersects, roi
-    )
-
-    # retrieve only intersecting tiles
-    cube <- cube[intersects, ]
+    cube <- .cube_filter_spatial(cube, roi = roi)
 
     # timeline of intersection
     timeline <- .gc_get_valid_timeline(cube, period = period)
