@@ -1,26 +1,17 @@
-citHeader("To cite SITS in publications use:")
-
-citEntry(entry = "Manual",
-         title        = "sits: Data Analysis and Machine Learning using Satellite Image Time Series",
-         author       = personList(as.person("Rolf Simoes"),
-                                   as.person("Gilberto Camara"),
-                                   as.person("Felipe Souza"),
-                                   as.person("Pedro Andrade"),
-                                   as.person("Lorena Santos"),
-                                   as.person("Karine Ferreira"),
-                                   as.person("Gilberto Queiroz"),
-                                   as.person("Alexandre Ywata de Carvalho"),
-                                   as.person("Victor Maus")
-                                   ),
-         organization = "INPE - Brazilian National Institute for Space Research",
-         address      = "Sao Jose dos Campos, Brazil",
-         year         = "2021",
-         url          = "https://github.com/e-sensing/sits",
-
-         textVersion  =
-             paste("Rolf Simoes, Gilberto Camara, Felipe Souza, Pedro Andrade,
-             Lorena Santos, Karine Ferreira, Gilberto Queiroz,
-             Alexandre Carvalho, Victor Maus (2021),",
-            "SITS: Data Analysis and Machine Learning using Satellite Image Time Series.",
-                   "URL https://github.com/e-sensing/sits.")
+bibentry(bibtype = "article",
+	title = "Satellite Image Time Series Analysis for Big Earth Observation Data",
+    author = c(person("Rolf", "Simoes"),
+               person("Gilberto", "Camara"),
+               person("Gilberto",  "Queiroz"),
+               person("Felipe", "Souza"),
+               person("Pedro", "Andrade"),
+               person("Lorena", "Santos"),
+               person("Alexandre", "Carvalho"),
+               person("Karine", "Ferreira")),
+    journal = "Remote Sensing",
+    year = "2021",
+	volume = "13",
+    number = "13",
+    pages = "2428",
+	doi = "10.3390/rs13132428"
 )

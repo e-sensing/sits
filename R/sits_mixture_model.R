@@ -450,7 +450,7 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     mixture_fn <- function(values) {
         # Check values length
         input_pixels <- nrow(values)
-        # Process bilateral smoother and return
+        # Process NNLS solver and return
         values <- C_nnls_solver_batch(
             x = as.matrix(values),
             em = em_mtx,

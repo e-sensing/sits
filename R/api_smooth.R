@@ -78,27 +78,11 @@
     probs_tile
 }
 
-.smooth_use_method <- function(cube, type, block, window_size, memsize,
-                               multicores, output_dir, version, ...) {
-    smooth_fn <- switch(
-        type,
-        bayes = .smooth_bayes,
-        bilateral = .smooth_bilateral,
-        stop("Invalid `type` parameter (value should be one of 'bayes', ",
-             "'bilateral').")
-    )
-    smooth_fn(cube = cube,
-              block = block,
-              window_size = window_size,
-              memsize = memsize,
-              multicores = multicores,
-              output_dir = output_dir,
-              version = version, ...)
-}
 
-#---- smooth methods ----
+#---- Bayesian smoothing ----
 
-.smooth_bayes <- function(cube, block, ...,
+.smooth_bayes <- function(cube,
+                          block,
                           window_size = 9,
                           neigh_fraction = 0.5,
                           smoothness = 20,
@@ -134,36 +118,6 @@
     })
 }
 
-.smooth_bilateral <- function(cube, block, ...,
-                              window_size = 5,
-                              sigma = 8,
-                              tau = 0.1,
-                              multicores = 2,
-                              memsize = 4,
-                              output_dir = getwd(),
-                              version = "v1") {
-    # Smooth parameters checked in smooth function creation
-    # Create smooth function
-    smooth_fn <- .smooth_fn_bilat(
-        window_size = window_size, sigma = sigma, tau = tau
-    )
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
-    # Smoothing
-    # Process each tile sequentially
-    .cube_foreach_tile(cube, function(tile) {
-        # Smooth the data
-        .smooth_tile(
-            tile = tile,
-            band = "bilat",
-            block = block,
-            overlap = overlap,
-            smooth_fn = smooth_fn,
-            output_dir = output_dir,
-            version = version
-        )
-    })
-}
 
 #---- smooth functions ----
 
@@ -212,42 +166,6 @@
         )
         # Compute inverse logit
         values <- exp(values) / (exp(values) + 1)
-        # Are the results consistent with the data input?
-        .check_processed_values(values, input_pixels)
-        # Return values
-        values
-    }
-    # Return a closure
-    smooth_fn
-}
-
-.smooth_fn_bilat <- function(window_size, sigma, tau) {
-    # Check window size
-    .check_window_size(window_size)
-    # Check variance
-    .check_num_parameter(sigma, exclusive_min = 0)
-    # Check tau
-    .check_num_parameter(tau, exclusive_min = 0)
-    # Create a Gaussian window
-    center <- ceiling(window_size / 2)
-    seq <- seq_len(window_size)
-    seq_h <- rep(seq, each = window_size)
-    seq_v <- rep(seq, window_size)
-    x <- stats::dnorm(
-        x = sqrt((seq_h - center)^2 + (seq_v - center)^2), sd = sigma
-    ) / stats::dnorm(0)
-    # Normalize and convert to matrix
-    window <- matrix(x / sum(x), nrow = window_size, byrow = TRUE)
-
-    # Define smooth function
-    smooth_fn <- function(values, block) {
-        # Check values length
-        input_pixels <- nrow(values)
-        # Process bilateral smoother and return
-        values <- bilateral_smoother(
-            m = values, m_nrow = .nrows(block), m_ncol = .ncols(block),
-            w = window, tau = tau
-        )
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         # Return values

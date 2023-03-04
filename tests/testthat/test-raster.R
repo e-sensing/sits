@@ -680,39 +680,6 @@ test_that("One-year, multicore classification with post-processing", {
     max_bay3 <- max(.raster_get_values(r_bay)[, 3], na.rm = TRUE)
     expect_true(max_bay3 <= 10000)
 
-    sinop_bil <- sits_smooth(
-        cube = sinop_probs,
-        type = "bilateral",
-        output_dir = temp_dir,
-        multicores = 2,
-        memsize = 4,
-        version = "test12"
-    )
-
-    # testing the recovery feature
-    expect_message(
-        object = { sits_smooth(
-            cube = sinop_probs,
-            type = "bilateral",
-            output_dir = temp_dir,
-            multicores = 2,
-            memsize = 4,
-            version = "test12"
-        ) },
-        regexp = "Recovery"
-    )
-
-    expect_true(all(file.exists(unlist(sinop_bil$file_info[[1]]$path))))
-
-    r_bil <- .raster_open_rast(sinop_bil$file_info[[1]]$path[[1]])
-    expect_true(.raster_nrows(r_bil) == .tile_nrows(sinop_probs))
-
-    max_bil2 <- max(.raster_get_values(r_bil)[, 2])
-    expect_true(max_bil2 <= 10000)
-
-    max_bil3 <- max(.raster_get_values(r_bil)[, 3])
-    expect_true(max_bil3 <= 10000)
-
     sinop_uncert <- sits_uncertainty(
         cube = sinop_bayes,
         type = "entropy",
@@ -757,7 +724,6 @@ test_that("One-year, multicore classification with post-processing", {
 
     expect_true(all(file.remove(unlist(sinop_class$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(sinop_bil$file_info[[1]]$path))))
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_uncert$file_info[[1]]$path))))

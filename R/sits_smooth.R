@@ -7,17 +7,10 @@
 #'
 #' @description Takes a set of classified raster layers with probabilities,
 #'              whose metadata is]created by \code{\link[sits]{sits_cube}},
-#'              and applies a smoothing function. There are two options,
-#'              defined by the "type" parameter:
-#' \itemize{
-#'    \item{"bayes": }{Use a bayesian smoother}
-#'    \item{"bilateral: }{Use a bilateral smoother}
+#'              and applies a Bayesian smoothing function.
 #'
-#' }
 #'
-#' @param  cube              Probability data cube
-#' @param  type              Type of smoothing
-#' @param  ...               Parameters for specific functions
+#' @param  cube              Probability data cube.
 #' @param  window_size       Size of the neighborhood.
 #' @param  neigh_fraction    Fraction of neighbors with highest probability
 #'                           to be used in Bayesian inference.
@@ -27,10 +20,6 @@
 #' @param  covar             a logical argument indicating if a covariance
 #'                           matrix must be computed as the prior covariance
 #'                           for bayesian smoothing.
-#' @param  sigma             Standard deviation of the spatial Gaussian kernel
-#'                           (for bilateral smoothing)
-#' @param  tau               Standard deviation of the class probs value
-#'                           (for bilateral smoothing)
 #' @param  multicores        Number of cores to run the smoothing function
 #' @param  memsize           Maximum overall memory (in GB) to run the
 #'                           smoothing.
@@ -38,12 +27,7 @@
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
 #'
-#' @return A tibble with metadata about the output raster objects.
-#'
-#' @references K. Schindler, "An Overview and Comparison of Smooth Labeling
-#'             Methods for Land-Cover Classification",
-#'             IEEE Transactions on Geoscience and Remote Sensing,
-#'             50 (11), 4534-4545, 2012 (for gaussian and bilateral smoothing)
+#' @return A data cube.
 #'
 #' @note
 #' Please refer to the sits documentation available in
@@ -76,9 +60,10 @@
 #' }
 #' @export
 sits_smooth <- function(cube,
-                        type = "bayes",
-                        ...,
                         window_size = 9,
+                        neigh_fraction = 0.5,
+                        smoothness = 20,
+                        covar = FALSE,
                         memsize = 4,
                         multicores = 2,
                         output_dir = getwd(),
@@ -126,15 +111,17 @@ sits_smooth <- function(cube,
     # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
-    # Call the smooth method
-    .smooth_use_method(
+    # Call the smoothing method
+    .smooth_bayes(
         cube = cube,
-        type = type,
         block = block,
         window_size = window_size,
-        memsize = memsize,
+        neigh_fraction = neigh_fraction,
+        smoothness = smoothness,
+        covar = covar,
         multicores = multicores,
+        memsize = memsize,
         output_dir = output_dir,
-        version = version, ...
+        version = version
     )
 }
