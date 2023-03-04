@@ -20,7 +20,8 @@ test_that("Suggested samples have low confidence, high entropy", {
         output_dir = tempdir(),
         memsize = 4, multicores = 2
     )
-    uncert_cube <- sits_uncertainty(probs_cube,
+    uncert_cube <- sits_uncertainty(
+        probs_cube,
         type = "least",
         output_dir = out_dir
     )
