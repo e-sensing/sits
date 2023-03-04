@@ -156,7 +156,7 @@ sits_reclassify.class_cube <- function(cube, mask, rules, memsize = 4,
         .msg_error = "mask's roi does not intersect cube"
         )
         # Get output labels
-        labels <- unique(c(.tile_labels(cube), names(rules)))
+        labels <- unique(c(.cube_labels(cube), names(rules)))
         # Classify the data
         class_tile <- .reclassify_tile(
             tile = tile, mask = mask, band = "class", labels = labels,

@@ -115,7 +115,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     # Check neigh_fraction
     .check_num_parameter(neigh_fraction, min = 0, max = 1)
     # Prepare smoothness parameter
-    nlabels <- length(.tile_labels(cube))
+    nlabels <- length(.cube_labels(cube))
     if (!is.matrix(smoothness)) {
         smoothness <- diag(smoothness, nrow = nlabels, ncol = nlabels)
     }

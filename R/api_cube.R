@@ -111,6 +111,14 @@ NULL
     if (dissolve) return(.dissolve(bands))
     bands
 }
+.cube_labels <- function(cube, dissolve = TRUE) {
+    UseMethod(".cube_labels", cube)
+}
+.cube_labels.raster_cube <- function(cube, dissolve = TRUE) {
+    labels <- .compact(slider::slide(cube, .tile_labels))
+    if (dissolve) return(.dissolve(labels))
+    labels
+}
 #' @title Return collection of a data cube
 #' @keywords internal
 #' @noRd
