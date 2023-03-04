@@ -324,26 +324,8 @@ NULL
     slider::slide_dfr(cube, fn, ...)
 }
 
-#' @title Asset iteration
-#' @noRd
-#' @param cube  A data cube.
-#' @param fn  A function that receives and return a cube of an
-#' asset (each band and date).
-#' @param ...  Additional arguments to be passed to `fn`.
-#' @details
-#' Iterates over each cube asset, passing them to function's first argument.
-#' @returns  A processed data cube.
-.cube_foreach_asset <- function(cube, fn, ...) {
-    UseMethod(".cube_foreach_tile", cube)
-}
-#' @export
-.cube_foreach_asset.raster_cube <- function(cube, fn, ...) {
-    .cube_timeline(irregular_cube)
-    .cube_bands(irregular_cube)
-    slider::slide_dfr(cube, fn, ...)
-}
+# ---- spatial ----
 
-# --- spatial ----
 .cube_bbox <- function(cube, as_crs = NULL) {
     UseMethod(".cube_bbox", cube)
 }
