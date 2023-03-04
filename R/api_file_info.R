@@ -59,7 +59,7 @@ NULL
 
 .fi_eo_from_files <- function(files, fid, bands, date) {
     .check_that(length(files) == length(bands))
-    files <- path.expand(files)
+    files <- .file_normalize(files)
     r_obj <- .raster_open_rast(files)
     .fi_eo(
         fid = fid[[1]],
@@ -90,7 +90,7 @@ NULL
 }
 
 .fi_derived_from_file <- function(file, band, start_date, end_date) {
-    file <- path.expand(file)
+    file <- .file_normalize(file)
     r_obj <- .raster_open_rast(file)
     .fi_derived(
         band = band, start_date = start_date, end_date = end_date,

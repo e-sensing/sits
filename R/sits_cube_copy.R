@@ -85,7 +85,7 @@ sits_cube_copy <- function(cube,
 
 .download_asset <- function(asset, res, roi, output_dir, progress) {
     # Get all paths and expand
-    file <- path.expand(.tile_path(asset))
+    file <- .file_normalize(.tile_path(asset))
     # Create a list of user parameters as gdal format
     gdal_params <- .gdal_format_params(asset = asset, roi = roi, res = res)
     # Create output file

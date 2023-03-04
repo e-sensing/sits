@@ -141,8 +141,9 @@ sits_reclassify.class_cube <- function(cube, mask, rules, memsize = 4,
     # Reclassify parameters checked in reclassify function
     # Create reclassification function
     reclassify_fn <- .reclassify_fn_expr(
-        rules = rules, labels_cube = .tile_labels(cube),
-        labels_mask = .tile_labels(mask)
+        rules = rules,
+        labels_cube = .cube_labels(cube),
+        labels_mask = .cube_labels(mask)
     )
     # Filter mask - bands
     mask <- .cube_filter_bands(cube = mask, bands = "class")

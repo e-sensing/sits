@@ -63,7 +63,7 @@ NULL
                          file_info = NULL) {
 
     # create a tibble to store the metadata (mandatory parameters)
-    cube <- tibble::tibble(
+    cube <- .common_size(
         source = source,
         collection = collection,
         satellite = satellite,
