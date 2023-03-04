@@ -118,7 +118,9 @@ sits_reclassify <- function(cube, mask, rules, memsize = 1, multicores = 2,
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+        job_memsize = job_memsize,
+        memsize = memsize,
+        multicores = multicores
     )
 
     # Prepare parallelization
@@ -157,8 +159,12 @@ sits_reclassify.class_cube <- function(cube, mask, rules, memsize = 4,
         labels <- unique(c(.cube_labels(cube), names(rules)))
         # Classify the data
         class_tile <- .reclassify_tile(
-            tile = tile, mask = mask, band = "class", labels = labels,
-            reclassify_fn = reclassify_fn, output_dir = output_dir,
+            tile = tile,
+            mask = mask,
+            band = "class",
+            labels = labels,
+            reclassify_fn = reclassify_fn,
+            output_dir = output_dir,
             version = version
         )
         return(class_tile)

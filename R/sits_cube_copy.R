@@ -72,7 +72,10 @@ sits_cube_copy <- function(cube,
     # Process each tile sequentially
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
         local_asset <- .download_asset(
-            asset = asset, res = res, roi = roi, output_dir = output_dir,
+            asset = asset,
+            res = res,
+            roi = roi,
+            output_dir = output_dir,
             progress = progress
         )
         # Return local tile
