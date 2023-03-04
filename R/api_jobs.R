@@ -20,9 +20,9 @@
 .jobs_optimal_block <- function(job_memsize, block, image_size, memsize,
                                 multicores) {
     # Memory per core
-    mpc <- floor(memsize / multicores)
+    mpc <- memsize / multicores
     # Blocks per core
-    bpc <- floor(mpc / job_memsize)
+    bpc <- max(1, floor(mpc / job_memsize))
     # Image horizontal blocks
     hb <- ceiling(image_size[["ncols"]] / block[["ncols"]])
     if (bpc < hb * 2) {
