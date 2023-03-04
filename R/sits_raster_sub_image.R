@@ -15,7 +15,7 @@
     )
 
     # calculate the intersection between the bbox of the ROI and the cube
-    roi <- .bbox_intersection(.tile_bbox(tile), roi)
+    roi <- .bbox_intersection(.tile_bbox(tile), .bbox(roi))
 
     # return the sub_image
     sub_image <- .raster_sub_image_from_bbox(roi, tile)
