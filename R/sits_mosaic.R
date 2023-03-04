@@ -89,89 +89,139 @@ sits_mosaic <- function(cube,
     .check_progress(progress)
 
     # Spatial filter
-    if (!is.null(roi)) {
+    if (.has(roi)) {
         roi <- .roi_as_sf(roi)
         cube <- .cube_filter_spatial(cube = cube, roi = roi)
     }
+
+    # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
+
     # Process each tile in parallel
     cube <- .jobs_map_parallel_dfr(cube, function(tile) {
         tile_cropped <- .mosaic_crop_tile(
-            tile = tile, crs = crs, roi = roi,
-            output_dir = output_dir, version = version
+            tile = tile,
+            crs = crs,
+            roi = roi,
+            output_dir = output_dir,
+            version = version
         )
         # Return a cropped tile
         tile_cropped
     }, progress = progress)
     .mosaic_merge_tiles(
-        cube = cube, crs = crs, multicores = multicores,
-        output_dir = output_dir, version = version
+        cube = cube,
+        crs = crs,
+        multicores = multicores,
+        output_dir = output_dir,
+        version = version
     )
 }
 
+.mosaic_split_band_date <- function(cube) {
+    data <- tidyr::unnest(
+        cube,
+        cols = "file_info",
+        names_sep = "."
+    )
+    data <- dplyr::mutate(
+        data,
+        job_date = .data[["file_info.date"]],
+        job_band = .data[["file_info.band"]]
+    )
+    data <- dplyr::group_by(
+        data,
+        .data[["job_date"]],
+        .data[["job_band"]]
+    )
+    data <- tidyr::nest(
+        data,
+        file_info = dplyr::starts_with("file_info"),
+        .names_sep = "."
+    )
+    data <- .cube_set_class(data)
+    data <- tidyr::nest(
+        data,
+        cube = -c("job_date", "job_band")
+    )
+    data
+}
+
 .mosaic_merge_tiles <- function(cube, crs, multicores, output_dir, version) {
-    # Generate a vrt file
-    vrt_file <- tempfile(fileext = ".vrt")
-    cube_files <- unlist(.cube_paths(cube))
-    .gdal_buildvrt(
-        file = vrt_file, base_files = cube_files, quiet = TRUE
-    )
-    # Get a template tile
-    base_tile <- .tile(cube)
-    # Update tile name
-    .tile_name(base_tile) <- "MOSAIC"
-    out_file <- .file_mosaic_name(
-        tile = base_tile, band = .band_derived(.tile_bands(base_tile)),
-        version = version,
-        output_dir = output_dir
-    )
-    # Resume feature
-    if (.raster_is_valid(out_file, output_dir = output_dir)) {
-        message("Recovery: file '", out_file, "' already exists.")
-        message("(If you want to produce a new cropped image, please ",
-                "change 'version' or 'output_dir' parameter)")
-        base_tile <- .tile_eo_from_files(
-            files = out_file, fid = .fi_fid(.fi(base_tile)),
-            bands = .fi_bands(.fi(base_tile)),
-            date = .tile_start_date(base_tile),
-            base_tile = base_tile, update_bbox = TRUE
+    # Create band date as jobs
+    band_date_cube <- .mosaic_split_band_date(cube)
+    # Process jobs in parallel
+    mosaic_cube <- .jobs_map_parallel_dfr(band_date_cube, function(job) {
+        cube <- job[["cube"]]
+
+        # Generate a vrt file
+        vrt_file <- tempfile(fileext = ".vrt")
+        cube_files <- unlist(.cube_paths(cube))
+        .gdal_buildvrt(
+            file = vrt_file, base_files = cube_files, quiet = TRUE
         )
+        # Get a template tile
+        base_tile <- .tile(cube)
+        # Update tile name
+        .tile_name(base_tile) <- "MOSAIC"
+        out_file <- .file_mosaic_name(
+            tile = base_tile,
+            band = .band_derived(.tile_bands(base_tile)),
+            version = version,
+            output_dir = output_dir
+        )
+        # Resume feature
+        if (.raster_is_valid(out_file, output_dir = output_dir)) {
+            message("Recovery: file '", out_file, "' already exists.")
+            message("(If you want to produce a new cropped image, please ",
+                    "change 'version' or 'output_dir' parameter)")
+            base_tile <- .tile_eo_from_files(
+                files = out_file,
+                fid = .fi_fid(.fi(base_tile)),
+                bands = .fi_bands(.fi(base_tile)),
+                date = .tile_start_date(base_tile),
+                base_tile = base_tile,
+                update_bbox = TRUE
+            )
+            return(base_tile)
+        }
+        # Get band class configurations
+        band_conf <- .conf_derived_band(
+            derived_class = .cube_derived_class(cube),
+            band = .cube_bands(cube)
+        )
+        # Generate raster mosaic
+        .gdal_warp(
+            file = out_file,
+            base_files = vrt_file,
+            params = list(
+                "-ot" = .gdal_data_type[[.data_type(band_conf)]],
+                "-of" = .conf("gdal_presets", "image", "of"),
+                "-co" = .conf("gdal_presets", "image", "co"),
+                "-t_srs" = .as_crs(crs),
+                "-wo" = paste0("NUM_THREADS=", multicores),
+                "-multi" = TRUE,
+                "-srcnodata" = .miss_value(band_conf)
+            ),
+            quiet = TRUE
+        )
+        # Create COG overviews
+        .gdal_addo(base_file = out_file)
+        # Create tile based on template
+        base_tile <- .tile_derived_from_file(
+            file = out_file, band = .tile_bands(base_tile),
+            base_tile = base_tile, derived_class = .tile_derived_class(base_tile),
+            labels = .tile_labels(base_tile),
+            update_bbox = TRUE
+        )
+        # Delete cube files
+        unlink(c(cube_files, vrt_file))
+        # Return cube
         return(base_tile)
-    }
-    # Get band class configurations
-    band_conf <- .conf_derived_band(
-        derived_class = .cube_derived_class(cube),
-        band = .cube_bands(cube)
-    )
-    # Generate raster mosaic
-    .gdal_warp(
-        file = out_file,
-        base_files = vrt_file,
-        params = list(
-            "-ot" = .gdal_data_type[[.data_type(band_conf)]],
-            "-of" = .conf("gdal_presets", "image", "of"),
-            "-co" = .conf("gdal_presets", "image", "co"),
-            "-t_srs" = .as_crs(crs),
-            "-wo" = paste0("NUM_THREADS=", multicores),
-            "-multi" = TRUE,
-            "-srcnodata" = .miss_value(band_conf)
-        ),
-        quiet = TRUE
-    )
-    # Create COG overviews
-    .gdal_addo(base_file = out_file)
-    # Create tile based on template
-    base_tile <- .tile_derived_from_file(
-        file = out_file, band = .tile_bands(base_tile),
-        base_tile = base_tile, derived_class = .tile_derived_class(base_tile),
-        labels = .tile_labels(base_tile),
-        update_bbox = TRUE
-    )
-    # Delete cube files
-    unlink(c(cube_files, vrt_file))
-    # Return cube
-    return(base_tile)
+    }, progress = progress)
+    # Join output assets as a cube and return it
+    .cube_merge_tiles(mosaic_cube)
 }
 
 .mosaic_crop_tile <- function(tile, crs, roi, output_dir, version) {
