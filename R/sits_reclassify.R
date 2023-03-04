@@ -103,8 +103,6 @@ sits_reclassify <- function(cube, mask, rules, memsize = 1, multicores = 2,
     .check_cube_is_class_cube(mask)
     .check_memsize(memsize)
     .check_multicores(multicores)
-    # Expand output_dir path
-    output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
     .check_version(version)
 

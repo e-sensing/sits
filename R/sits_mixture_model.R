@@ -162,8 +162,6 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     # Pre-conditions
     .check_is_raster_cube(data)
     .check_memsize(memsize)
-    # output_dir <- file.path(output_dir = output_dir)
-    output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
     .check_lgl_type(progress)
 

@@ -19,7 +19,6 @@
 #' @noRd
 NULL
 
-
 #' @title Sets the class of a data cube
 #' @noRd
 #' @param cube  A data cube.
@@ -91,8 +90,6 @@ NULL
     # TODO: check and assign a cube class
     x
 }
-
-# ---- raster_cube ----
 
 #' @title Return bands of a data cube
 #' @keywords internal
@@ -594,6 +591,7 @@ NULL
 .cube_derived_class.derived_cube <- function(cube) {
     unique(slider::slide_chr(cube, .tile_derived_class))
 }
+
 # ---- mpc_cube ----
 #' @title Generate token to cube
 #' @name .cube_token_generator

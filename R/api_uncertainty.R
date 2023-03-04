@@ -223,7 +223,7 @@
 .uncert_fn_margin <- function(window_size) {
     # Define uncertainty function
     uncert_fn <- function(values, block) {
-        # Pocess least confidence
+        # Process least confidence
         values <- C_margin_probs(values) # return a matrix[rows(data),1]
         # Process window
         if (window_size > 1) {
