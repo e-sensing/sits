@@ -41,8 +41,10 @@
     # Number of vertical segments
     v_nsegs <- ceiling(vb / lpc)
     # Number of vertical blocks
-    return(c(ncols = hb * block[["ncols"]],
-             nrows = ceiling(vb / v_nsegs) * block[["nrows"]]))
+    return(c(ncols = min(hb * block[["ncols"]], image_size[["ncols"]]),
+             nrows = min(ceiling(vb / v_nsegs) * block[["nrows"]],
+                         image_size[["nrows"]]))
+    )
 }
 
 .jobs_multicores <- function() {
