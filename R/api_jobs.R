@@ -1,4 +1,3 @@
-
 .jobs_memsize <- function(job_size, npaths, nbytes, proc_bloat) {
     # Memory needed per job
     job_size * npaths * nbytes * proc_bloat * 1e-09
