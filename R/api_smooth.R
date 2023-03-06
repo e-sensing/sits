@@ -17,7 +17,7 @@
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block_size, overlap = overlap),
-        npaths = length(.tile_labels(cube)) * 2,
+        npaths = length(.cube_labels(cube)) * 2,
         nbytes = 8,
         proc_bloat = .conf("processing_bloat")
     )

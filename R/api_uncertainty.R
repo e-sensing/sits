@@ -17,7 +17,7 @@
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block_size, overlap = overlap),
-        npaths = length(.tile_labels(cube)) + 1,
+        npaths = length(.cube_labels(cube)) + 1,
         nbytes = 8,
         proc_bloat = .conf("processing_bloat")
     )
@@ -223,7 +223,7 @@
 .uncert_fn_margin <- function(window_size) {
     # Define uncertainty function
     uncert_fn <- function(values, block) {
-        # Pocess least confidence
+        # Process least confidence
         values <- C_margin_probs(values) # return a matrix[rows(data),1]
         # Process window
         if (window_size > 1) {

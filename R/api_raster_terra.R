@@ -93,7 +93,7 @@
 #' @export
 .raster_open_rast.terra <- function(file, ...) {
     suppressWarnings(
-        terra::rast(x = path.expand(file), ...)
+        terra::rast(x = .file_normalize(file), ...)
     )
 }
 
@@ -434,7 +434,7 @@
 #' @export
 .raster_missing_value.terra <- function(file) {
 
-    gdal_info <- terra::describe(path.expand(file))
+    gdal_info <- terra::describe(.file_normalize(file))
     gdal_info <- gdal_info[grepl(pattern = "NoData Value=", x = gdal_info)]
 
     nodata_value <- gsub(pattern = ".*NoData Value=",

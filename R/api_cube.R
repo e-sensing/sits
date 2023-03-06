@@ -19,7 +19,6 @@
 #' @noRd
 NULL
 
-
 #' @title Sets the class of a data cube
 #' @noRd
 #' @param cube  A data cube.
@@ -63,7 +62,7 @@ NULL
                          file_info = NULL) {
 
     # create a tibble to store the metadata (mandatory parameters)
-    cube <- tibble::tibble(
+    cube <- .common_size(
         source = source,
         collection = collection,
         satellite = satellite,
@@ -92,8 +91,6 @@ NULL
     x
 }
 
-# ---- raster_cube ----
-
 #' @title Return bands of a data cube
 #' @keywords internal
 #' @noRd
@@ -110,6 +107,14 @@ NULL
     bands <- .compact(slider::slide(cube, .tile_bands, add_cloud = add_cloud))
     if (dissolve) return(.dissolve(bands))
     bands
+}
+.cube_labels <- function(cube, dissolve = TRUE) {
+    UseMethod(".cube_labels", cube)
+}
+.cube_labels.raster_cube <- function(cube, dissolve = TRUE) {
+    labels <- .compact(slider::slide(cube, .tile_labels))
+    if (dissolve) return(.dissolve(labels))
+    labels
 }
 #' @title Return collection of a data cube
 #' @keywords internal
@@ -319,26 +324,8 @@ NULL
     slider::slide_dfr(cube, fn, ...)
 }
 
-#' @title Asset iteration
-#' @noRd
-#' @param cube  A data cube.
-#' @param fn  A function that receives and return a cube of an
-#' asset (each band and date).
-#' @param ...  Additional arguments to be passed to `fn`.
-#' @details
-#' Iterates over each cube asset, passing them to function's first argument.
-#' @returns  A processed data cube.
-.cube_foreach_asset <- function(cube, fn, ...) {
-    UseMethod(".cube_foreach_tile", cube)
-}
-#' @export
-.cube_foreach_asset.raster_cube <- function(cube, fn, ...) {
-    .cube_timeline(irregular_cube)
-    .cube_bands(irregular_cube)
-    slider::slide_dfr(cube, fn, ...)
-}
+# ---- spatial ----
 
-# --- spatial ----
 .cube_bbox <- function(cube, as_crs = NULL) {
     UseMethod(".cube_bbox", cube)
 }
@@ -586,6 +573,7 @@ NULL
 .cube_derived_class.derived_cube <- function(cube) {
     unique(slider::slide_chr(cube, .tile_derived_class))
 }
+
 # ---- mpc_cube ----
 #' @title Generate token to cube
 #' @name .cube_token_generator

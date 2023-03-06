@@ -28,8 +28,17 @@
 #' @param  verbose         Print processing information?
 #' @param  progress        Show progress bar?
 #' @return List of the classified raster layers.
-.classify_tile  <- function(tile, band, ml_model, block, roi, filter_fn, impute_fn,
-                            output_dir, version, verbose, progress) {
+.classify_tile  <- function(tile,
+                            band,
+                            ml_model,
+                            block,
+                            roi,
+                            filter_fn,
+                            impute_fn,
+                            output_dir,
+                            version,
+                            verbose,
+                            progress) {
 
     # Output file
     out_file <- .file_derived_name(
@@ -66,7 +75,7 @@
         # How many chunks there are in tile?
         nchunks <- nrow(chunks)
         # Intersecting chunks with ROI
-        chunks <- .chunks_filter_spatial(chunks = chunks, roi = roi)
+        chunks <- .chunks_filter_spatial(chunks, roi = roi)
         # Should bbox of resulting tile be updated?
         update_bbox <- nrow(chunks) != nchunks
     }
@@ -76,7 +85,8 @@
         block <- .block(chunk)
         # Block file name
         block_file <- .file_block_name(
-            pattern = .file_pattern(out_file), block = block,
+            pattern = .file_pattern(out_file),
+            block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure

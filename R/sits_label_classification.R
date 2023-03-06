@@ -66,7 +66,7 @@ sits_label_classification <- function(cube, memsize = 4,
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
         # npaths = input(nlayers) + output(1)
-        npaths = length(.tile_labels(cube)) + 1,
+        npaths = length(.cube_labels(cube)) + 1,
         nbytes = 8, proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter

@@ -51,15 +51,25 @@ NULL
                    ymin, ymax, crs, path) {
     # Create a new eo file_info
     tibble::tibble(
-        fid = fid, band = .band_eo(band), date = date, ncols = ncols,
-        nrows = nrows, xres = xres, yres = yres, xmin = xmin, xmax = xmax,
-        ymin = ymin, ymax = ymax, crs = crs, path = path
+        fid = fid,
+        band = .band_eo(band),
+        date = date,
+        ncols = ncols,
+        nrows = nrows,
+        xres = xres,
+        yres = yres,
+        xmin = xmin,
+        xmax = xmax,
+        ymin = ymin,
+        ymax = ymax,
+        crs = crs,
+        path = path
     )
 }
 
 .fi_eo_from_files <- function(files, fid, bands, date) {
     .check_that(length(files) == length(bands))
-    files <- path.expand(files)
+    files <- .file_normalize(files)
     r_obj <- .raster_open_rast(files)
     .fi_eo(
         fid = fid[[1]],
@@ -82,23 +92,39 @@ NULL
                         xmin, xmax, ymin, ymax, crs, path) {
     # Create a new derived file_info
     tibble::tibble(
-        band = .band_derived(band), start_date = start_date,
-        end_date = end_date, ncols = ncols, nrows = nrows,
-        xres = xres, yres = yres, xmin = xmin, xmax = xmax,
-        ymin = ymin, ymax = ymax, crs = crs, path = path
+        band = .band_derived(band),
+        start_date = start_date,
+        end_date = end_date,
+        ncols = ncols,
+        nrows = nrows,
+        xres = xres,
+        yres = yres,
+        xmin = xmin,
+        xmax = xmax,
+        ymin = ymin,
+        ymax = ymax,
+        crs = crs,
+        path = path
     )
 }
 
 .fi_derived_from_file <- function(file, band, start_date, end_date) {
-    file <- path.expand(file)
+    file <- .file_normalize(file)
     r_obj <- .raster_open_rast(file)
     .fi_derived(
-        band = band, start_date = start_date, end_date = end_date,
-        ncols = .raster_ncols(r_obj), nrows = .raster_nrows(r_obj),
-        xres = .raster_xres(r_obj), yres = .raster_yres(r_obj),
-        xmin = .raster_xmin(r_obj), xmax = .raster_xmax(r_obj),
-        ymin = .raster_ymin(r_obj), ymax = .raster_ymax(r_obj),
-        crs = .raster_crs(r_obj), path = file
+        band = band,
+        start_date = start_date,
+        end_date = end_date,
+        ncols = .raster_ncols(r_obj),
+        nrows = .raster_nrows(r_obj),
+        xres = .raster_xres(r_obj),
+        yres = .raster_yres(r_obj),
+        xmin = .raster_xmin(r_obj),
+        xmax = .raster_xmax(r_obj),
+        ymin = .raster_ymin(r_obj),
+        ymax = .raster_ymax(r_obj),
+        crs = .raster_crs(r_obj),
+        path = file
     )
 }
 
