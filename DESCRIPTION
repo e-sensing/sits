@@ -163,7 +163,6 @@ Collate:
     'sits_cube_copy.R'
     'sits_cluster.R'
     'sits_debug.R'
-    'sits_dt_reference.R'
     'sits_factory.R'
     'sits_filters.R'
     'sits_geo_dist.R'

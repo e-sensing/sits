@@ -6,9 +6,10 @@
 \usage{
 sits_smooth(
   cube,
-  type = "bayes",
-  ...,
   window_size = 9,
+  neigh_fraction = 0.5,
+  smoothness = 20,
+  covar = FALSE,
   memsize = 4,
   multicores = 2,
   output_dir = getwd(),
@@ -16,23 +17,9 @@ sits_smooth(
 )
 }
 \arguments{
-\item{cube}{Probability data cube}
-
-\item{type}{Type of smoothing}
-
-\item{...}{Parameters for specific functions}
+\item{cube}{Probability data cube.}
 
 \item{window_size}{Size of the neighborhood.}
-
-\item{memsize}{Maximum overall memory (in GB) to run the
-smoothing.}
-
-\item{multicores}{Number of cores to run the smoothing function}
-
-\item{output_dir}{Output directory for image files}
-
-\item{version}{Version of resulting image
-(in the case of multiple tests)}
 
 \item{neigh_fraction}{Fraction of neighbors with highest probability
 to be used in Bayesian inference.}
@@ -45,25 +32,23 @@ a matrix or a scalar.}
 matrix must be computed as the prior covariance
 for bayesian smoothing.}
 
-\item{sigma}{Standard deviation of the spatial Gaussian kernel
-(for bilateral smoothing)}
+\item{memsize}{Maximum overall memory (in GB) to run the
+smoothing.}
 
-\item{tau}{Standard deviation of the class probs value
-(for bilateral smoothing)}
+\item{multicores}{Number of cores to run the smoothing function}
+
+\item{output_dir}{Output directory for image files}
+
+\item{version}{Version of resulting image
+(in the case of multiple tests)}
 }
 \value{
-A tibble with metadata about the output raster objects.
+A data cube.
 }
 \description{
 Takes a set of classified raster layers with probabilities,
              whose metadata is]created by \code{\link[sits]{sits_cube}},
-             and applies a smoothing function. There are two options,
-             defined by the "type" parameter:
-\itemize{
-   \item{"bayes": }{Use a bayesian smoother}
-   \item{"bilateral: }{Use a bilateral smoother}
-
-}
+             and applies a Bayesian smoothing function.
 }
 \note{
 Please refer to the sits documentation available in
@@ -95,12 +80,6 @@ if (sits_run_examples()) {
     # plot the labelled cube
     plot(label_cube)
 }
-}
-\references{
-K. Schindler, "An Overview and Comparison of Smooth Labeling
-            Methods for Land-Cover Classification",
-            IEEE Transactions on Geoscience and Remote Sensing,
-            50 (11), 4534-4545, 2012 (for gaussian and bilateral smoothing)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

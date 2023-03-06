@@ -153,8 +153,7 @@ parameter \code{parse_info} is specified differently:
 \itemize{
 \item{\code{band}: }{The band name is associated to the type of result. Use
   \code{"probs"}, for probability cubes produced by \code{sits_classify()};
-  \code{"bayes"}, or \code{"bilat"} (bilateral) according to
-  the function selected when using \code{sits_smooth()};
+  \code{"bayes"}, for smoothed probability cubes produced by \code{sits_smooth()};
   \code{"entropy"} when using \code{sits_uncertainty()}, or \code{"class"}
   for cubes produced by \code{sits_label_classification()}.}
 \item{\code{labels}: }{Labels associated to the classification results.}

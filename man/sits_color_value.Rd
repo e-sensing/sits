@@ -6,6 +6,9 @@
 \usage{
 sits_color_value(name)
 }
+\arguments{
+\item{name}{Name of color to obtain values}
+}
 \value{
 A color value used in sits
 }

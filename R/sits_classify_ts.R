@@ -11,7 +11,7 @@
 #' @param  filter_fn  Smoothing filter to be applied (if desired).
 #' @param  multicores number of threads to process the time series.
 #' @param  progress   Show progress bar?
-#' @return A data.table with the predicted labels.
+#' @return A tibble with the predicted labels.
 .sits_classify_ts <- function(samples,
                               ml_model,
                               filter_fn,

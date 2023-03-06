@@ -109,9 +109,10 @@ plot.sits <- function(x, y, ...) {
     create_iqr <- function(melted) {
         qts <- melted %>%
             dplyr::group_by(.data[["Index"]]) %>%
-            dplyr::summarise(med = median(.data[["value"]]),
-                             qt25 = quantile(.data[["value"]], 0.25),
-                             qt75 = quantile(.data[["value"]], 0.75))
+            dplyr::summarise(
+                med  = stats::median(.data[["value"]]),
+                qt25 = stats::quantile(.data[["value"]], 0.25),
+                qt75 = stats::quantile(.data[["value"]], 0.75))
         return(qts)
     }
     # this function plots the values of all time series together (for one band)
