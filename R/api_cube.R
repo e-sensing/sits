@@ -506,6 +506,22 @@ NULL
         tile
     })
 }
+#' @export
+.cube_split_assets.derived_cube <- function(cube) {
+    # Process for each tile and return a cube
+    .cube_foreach_tile(cube, function(tile) {
+        assets <- tile[, c("tile", "file_info")]
+        assets <- tidyr::unnest(assets, "file_info")
+        assets[["asset"]] <- assets[["band"]]
+        assets <- tidyr::nest(
+            assets, file_info = -c("tile", "asset")
+        )
+        # Replicate each tile so that we can copy file_info to cube
+        tile <- tile[rep(1, nrow(assets)), ]
+        tile[["file_info"]] <- assets[["file_info"]]
+        tile
+    })
+}
 #' @title Merge features into a data cube
 #' @noRd
 #' @param features  cube features
