@@ -27,14 +27,6 @@
         memsize = memsize,
         multicores = multicores
     )
-    # Update block parameter
-    block_size <- .jobs_optimal_block(
-        job_memsize = job_memsize,
-        block = block_size,
-        image_size = .tile_size(.tile(cube)),
-        memsize = memsize,
-        multicores = multicores
-    )
     # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
@@ -46,10 +38,11 @@
             tile = tile,
             band = band,
             smooth_fn = smooth_fn,
-            block_size = block_size,
             overlap = overlap,
             output_dir = output_dir,
             version = version,
+            memsize = memsize,
+            multicores = multicores,
             progress = progress
         )
         probs_tile
@@ -60,11 +53,13 @@
 .smooth_tile <- function(tile,
                          band,
                          smooth_fn,
-                         block_size,
                          overlap,
                          output_dir,
                          version,
+                         memsize,
+                         multicores,
                          progress) {
+
     # Output file
     out_file <- .file_derived_name(
         tile = tile,
@@ -89,6 +84,23 @@
         )
         return(probs_tile)
     }
+    # Get block size
+    block_size <- .raster_file_blocksize(.raster_open_rast(.tile_path(tile)))
+    # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = .block_size(block_size, overlap = overlap),
+        npaths = length(.tile_labels(tile)) * 2,
+        nbytes = 8,
+        proc_bloat = .conf("processing_bloat")
+    )
+    # Update block parameter
+    block_size <- .jobs_optimal_block(
+        job_memsize = job_memsize,
+        block = block_size,
+        image_size = .tile_size(.tile(tile)),
+        memsize = memsize,
+        multicores = multicores
+    )
     # Create chunks as jobs
     chunks <- .tile_chunks_create(
         tile = tile,
