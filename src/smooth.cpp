@@ -84,7 +84,7 @@ arma::mat bayes_smoother(const arma::mat& m,
             for (arma::uword b = 0; b < m.n_cols; ++b)
                 neigh_vec(neigh, m, m_nrow, m_ncol, w, b, i, j);
 
-            if (neigh.n_rows == 0) continue;
+            if (neigh.n_rows < 30) continue;
 
             if (neigh_fraction < 1.0 ) {
                 // sort the data
