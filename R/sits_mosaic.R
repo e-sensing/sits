@@ -93,29 +93,34 @@ sits_mosaic <- function(cube,
         roi <- .roi_as_sf(roi)
         cube <- .cube_filter_spatial(cube = cube, roi = roi)
     }
-
     # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    # Process each tile in parallel
-    cube <- .jobs_map_parallel_dfr(cube, function(tile) {
-        tile_cropped <- .mosaic_crop_tile(
-            tile = tile,
+    # Create assets as jobs
+    cube_assets <- .cube_split_assets(cube)
+    # Process each tile sequentially
+    cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
+        asset_cropped <- .mosaic_crop_tile(
+            tile = asset,
             crs = crs,
             roi = roi,
             output_dir = output_dir,
             version = version
         )
         # Return a cropped tile
-        tile_cropped
+        asset_cropped
     }, progress = progress)
+    # Join output assets as a cube and return it
+    cube <- .cube_merge_tiles(cube_assets)
+    # Mosaic tiles
     .mosaic_merge_tiles(
         cube = cube,
         crs = crs,
         multicores = multicores,
         output_dir = output_dir,
-        version = version
+        version = version,
+        progress = progress
     )
 }
 
@@ -140,7 +145,7 @@ sits_mosaic <- function(cube,
         file_info = dplyr::starts_with("file_info"),
         .names_sep = "."
     )
-    data <- .cube_set_class(data)
+    data <- .set_class(data, class(cube))
     data <- tidyr::nest(
         data,
         cube = -c("job_date", "job_band")
@@ -148,12 +153,17 @@ sits_mosaic <- function(cube,
     data
 }
 
-.mosaic_merge_tiles <- function(cube, crs, multicores, output_dir, version) {
+.mosaic_merge_tiles <- function(cube,
+                                crs,
+                                multicores,
+                                output_dir,
+                                version,
+                                progress) {
     # Create band date as jobs
     band_date_cube <- .mosaic_split_band_date(cube)
     # Process jobs in parallel
     mosaic_cube <- .jobs_map_parallel_dfr(band_date_cube, function(job) {
-        cube <- job[["cube"]]
+        cube <- job[["cube"]][[1]]
 
         # Generate a vrt file
         vrt_file <- tempfile(fileext = ".vrt")
