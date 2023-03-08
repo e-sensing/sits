@@ -78,10 +78,6 @@ sits_mosaic <- function(cube,
                         progress = TRUE) {
     # Pre-conditions
     .check_is_raster_cube(cube)
-    .check_that(
-        x = inherits(cube, c("class_cube", "uncertainty_cube")),
-        msg = "cube not supported in mosaic function"
-    )
     .check_crs(crs)
     .check_multicores(multicores)
     .check_output_dir(output_dir)
@@ -99,19 +95,19 @@ sits_mosaic <- function(cube,
 
     # Create assets as jobs
     cube_assets <- .cube_split_assets(cube)
-    # Process each tile sequentially
+    # Process each asset in parallel
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
-        asset_cropped <- .mosaic_crop_tile(
-            tile = asset,
+        asset_cropped <- .mosaic_crop_asset(
+            asset = asset,
             crs = crs,
             roi = roi,
             output_dir = output_dir,
             version = version
         )
-        # Return a cropped tile
+        # Return a cropped asset
         asset_cropped
     }, progress = progress)
-    # Join output assets as a cube and return it
+    # Join output assets as a cube
     cube <- .cube_merge_tiles(cube_assets)
     # Mosaic tiles
     .mosaic_merge_tiles(
@@ -164,20 +160,15 @@ sits_mosaic <- function(cube,
     # Process jobs in parallel
     mosaic_cube <- .jobs_map_parallel_dfr(band_date_cube, function(job) {
         cube <- job[["cube"]][[1]]
-
-        # Generate a vrt file
-        vrt_file <- tempfile(fileext = ".vrt")
+        # Get cube file paths
         cube_files <- unlist(.cube_paths(cube))
-        .gdal_buildvrt(
-            file = vrt_file, base_files = cube_files, quiet = TRUE
-        )
         # Get a template tile
         base_tile <- .tile(cube)
         # Update tile name
         .tile_name(base_tile) <- "MOSAIC"
         out_file <- .file_mosaic_name(
             tile = base_tile,
-            band = .band_derived(.tile_bands(base_tile)),
+            band = .tile_bands(base_tile),
             version = version,
             output_dir = output_dir
         )
@@ -186,25 +177,20 @@ sits_mosaic <- function(cube,
             message("Recovery: file '", out_file, "' already exists.")
             message("(If you want to produce a new cropped image, please ",
                     "change 'version' or 'output_dir' parameter)")
-            base_tile <- .tile_eo_from_files(
-                files = out_file,
-                fid = .fi_fid(.fi(base_tile)),
-                bands = .fi_bands(.fi(base_tile)),
-                date = .tile_start_date(base_tile),
-                base_tile = base_tile,
-                update_bbox = TRUE
+            base_tile <- .tile_from_file(
+                file = out_file, base_tile = base_tile,
+                band = .tile_bands(base_tile), update_bbox = TRUE,
+                labels = .tile_labels(base_tile)
             )
             return(base_tile)
         }
-        # Get band class configurations
-        band_conf <- .conf_derived_band(
-            derived_class = .cube_derived_class(cube),
-            band = .cube_bands(cube)
-        )
+        # Get band configs from base tile
+        band_conf <- .tile_band_conf(base_tile, band = .tile_bands(base_tile))
+
         # Generate raster mosaic
         .gdal_warp(
             file = out_file,
-            base_files = vrt_file,
+            base_files = cube_files,
             params = list(
                 "-ot" = .gdal_data_type[[.data_type(band_conf)]],
                 "-of" = .conf("gdal_presets", "image", "of"),
@@ -212,21 +198,20 @@ sits_mosaic <- function(cube,
                 "-t_srs" = .as_crs(crs),
                 "-wo" = paste0("NUM_THREADS=", multicores),
                 "-multi" = TRUE,
-                "-srcnodata" = .miss_value(band_conf)
+                "-srcnodata" = 255
             ),
             quiet = TRUE
         )
         # Create COG overviews
         .gdal_addo(base_file = out_file)
         # Create tile based on template
-        base_tile <- .tile_derived_from_file(
-            file = out_file, band = .tile_bands(base_tile),
-            base_tile = base_tile, derived_class = .tile_derived_class(base_tile),
-            labels = .tile_labels(base_tile),
-            update_bbox = TRUE
+        base_tile <- .tile_from_file(
+            file = out_file, base_tile = base_tile,
+            band = .tile_bands(base_tile), update_bbox = TRUE,
+            labels = .tile_labels(base_tile)
         )
         # Delete cube files
-        unlink(c(cube_files, vrt_file))
+        unlink(cube_files)
         # Return cube
         return(base_tile)
     }, progress = progress)
@@ -234,48 +219,59 @@ sits_mosaic <- function(cube,
     .cube_merge_tiles(mosaic_cube)
 }
 
-.mosaic_crop_tile <- function(tile, crs, roi, output_dir, version) {
-    # Get tile path
-    file <- .tile_path(tile)
+.mosaic_crop_asset <- function(asset, crs, roi, output_dir, version) {
+    # Get asset file path
+    file <- .tile_path(asset)
     # Create output file name
     out_file <- .file_crop_name(
-        tile = tile, band = .tile_bands(tile),
+        tile = asset, band = .tile_bands(asset),
         version = version, output_dir = output_dir
     )
     # Get band configs from tile
-    band_conf <- .conf_derived_band(
-        derived_class = .tile_derived_class(tile), band = .tile_bands(tile)
-    )
+    band_conf <- .tile_band_conf(asset, band = .tile_bands(asset))
+
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         message("Recovery: file '", out_file, "' already exists.")
         message("(If you want to produce a new cropped image, please ",
                 "change 'version' or 'output_dir' parameter)")
-        tile <- .tile_eo_from_files(
-            files = out_file, fid = .fi_fid(.fi(tile)),
-            bands = .fi_bands(.fi(tile)), date = .tile_start_date(tile),
-            base_tile = tile, update_bbox = TRUE
+        asset <- .tile_from_file(
+            file = out_file, base_tile = asset,
+            band = .tile_bands(asset), update_bbox = TRUE,
+            labels = .tile_labels(asset)
         )
-        return(tile)
+        return(asset)
     }
-    # If the tile is fully contained in roi it's not necessary to crop it
-    if (!is.null(roi)) {
-        # Is tile contained in roi?
-        is_within <- .tile_within(tile, roi)
+    # Scaling image to byte
+    .gdal_scale(
+        file = file,
+        out_file = out_file,
+        src_min = .min_value(band_conf),
+        src_max = .max_value(band_conf),
+        dst_min = 0,
+        dst_max = 254,
+        miss_value = 255,
+        data_type = "INT1U"
+    )
+    # If the asset is fully contained in roi it's not necessary to crop it
+    if (.has(roi)) {
+        # Is asset within in roi?
+        is_within <- .tile_within(asset, roi)
         if (is_within) {
             # Reproject tile for its crs
             .gdal_reproject_image(
-                file = file, out_file = out_file,
-                crs = .as_crs(.tile_crs(tile)),
-                as_crs = .mosaic_crs(tile = tile, as_crs = crs),
-                miss_value = .miss_value(band_conf), multicores = 1
+                file = out_file, out_file = out_file,
+                crs = .as_crs(.tile_crs(asset)),
+                as_crs = .mosaic_crs(tile = asset, as_crs = crs),
+                miss_value = 255, multicores = 1
             )
-            tile <- .tile_class_from_file(
-                file = out_file, band = .tile_bands(tile), base_tile = tile
+            asset <- .tile_from_file(
+                file = out_file, base_tile = asset,
+                band = .tile_bands(asset), update_bbox = FALSE,
+                labels = .tile_labels(asset)
             )
-            return(tile)
+            return(asset)
         }
-        # TODO: include this operation inside gdal_crop_image()
         # Write roi in a temporary file
         roi <- .roi_write(
             roi = roi,
@@ -283,24 +279,25 @@ sits_mosaic <- function(cube,
             quiet = TRUE
         )
     }
-    # Crop tile image
+    # Crop and reproject tile image
     out_file <- .gdal_crop_image(
-        file = file, out_file = out_file,
-        roi = roi, crs = .as_crs(.tile_crs(tile)),
-        as_crs = .mosaic_crs(tile = tile, as_crs = crs),
+        file = out_file,
+        out_file = out_file,
+        roi_file = roi,
+        as_crs = .mosaic_crs(tile = asset, as_crs = crs),
         miss_value = .miss_value(band_conf),
         multicores = 1
     )
     # Delete temporary roi file
     .mosaic_del_roi(roi)
     # Update asset metadata
-    update_bbox <- if (is.null(roi)) FALSE else TRUE
-    tile <- .tile_eo_from_files(
-        files = out_file, fid = .fi_fid(.fi(tile)),
-        bands = .fi_bands(.fi(tile)), date = .tile_start_date(tile),
-        base_tile = tile, update_bbox = update_bbox
+    update_bbox <- if (.has(roi)) TRUE else FALSE
+    asset <- .tile_from_file(
+        file = out_file, base_tile = asset,
+        band = .tile_bands(asset), update_bbox = update_bbox,
+        labels = .tile_labels(asset)
     )
-    tile
+    return(asset)
 }
 
 .mosaic_del_roi <- function(roi) {
@@ -330,9 +327,4 @@ sits_mosaic <- function(cube,
         "BDC" = .as_crs("+proj=aea +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs "),
         "RASTER" = .as_crs(as_crs)
     )
-}
-
-.roi_write <- function(roi, output_file, quiet, ...) {
-    sf::st_write(obj = roi, dsn = output_file, quiet = quiet, ...)
-    output_file
 }
