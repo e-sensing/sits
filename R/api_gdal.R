@@ -157,17 +157,20 @@
     file
 }
 
-.gdal_crop_image <- function(file, out_file, roi, crs, as_crs, miss_value,
-                             multicores) {
+.gdal_crop_image <- function(file,
+                             out_file,
+                             roi_file,
+                             as_crs = NULL,
+                             miss_value = NULL,
+                             multicores = 1) {
     gdal_params <- list(
         "-of" = .conf("gdal_presets", "image", "of"),
         "-co" = .conf("gdal_presets", "image", "co"),
         "-wo" = paste0("NUM_THREADS=", multicores),
         "-multi" = TRUE,
-        "-s_srs" = crs,
         "-t_srs" = as_crs,
-        "-cutline" = roi,
-        "-srcnodata" = miss_value
+        "-cutline" = roi_file,
+        "-dstnodata" = miss_value
     )
     .gdal_warp(
         file = out_file, base_files = file,
