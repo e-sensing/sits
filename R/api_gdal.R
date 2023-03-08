@@ -179,6 +179,28 @@
     out_file
 }
 
+.gdal_scale <- function(file,
+                        out_file,
+                        src_min,
+                        src_max,
+                        dst_min,
+                        dst_max,
+                        miss_value,
+                        data_type) {
+    .gdal_translate(
+        file = out_file,
+        base_file = file,
+        params = list(
+            "-ot" = .gdal_data_type[[data_type]],
+            "-of" = .conf("gdal_presets", "image", "of"),
+            "-scale" = list(src_min, src_max, dst_min, dst_max),
+            "-a_nodata" = miss_value,
+            "-co" = .conf("gdal_presets", "image", "co")
+        ),
+        quiet = TRUE
+    )
+}
+
 .gdal_reproject_image <- function(file, out_file, crs, as_crs, miss_value,
                                   multicores) {
     gdal_params <- list(
