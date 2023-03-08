@@ -810,6 +810,61 @@ NULL
         update_bbox = update_bbox
     )
 }
+#' @title Create a "variance" tile
+#' @name .tile_variance_from_file
+#' @keywords internal
+#' @noRd
+#' @param file file to be written
+#' @param band  band to be used in the tile
+#' @param base_tile  reference tile used in the operation
+#' @param labels labels associated to the tile
+#' @param update_bbox  should bbox be updated?
+#' @return a new variance tile
+.tile_variance_from_file <- function(file, band, base_tile, labels, update_bbox) {
+    # Open block file to be merged
+    r_obj <- .raster_open_rast(file)
+    # Check number of labels is correct
+    .check_that(
+        x = .raster_nlayers(r_obj) == length(labels),
+        local_msg = "number of image layers does not match labels",
+        msg = "invalid 'file' parameter"
+    )
+    .tile_derived_from_file(
+        file = file, band = band, base_tile = base_tile,
+        derived_class = "variance_cube", labels = labels,
+        update_bbox = update_bbox
+    )
+}
+#' @title Write values of a variance tile from a set of blocks
+#' @name .tile_variance_merge_blocks
+#' @keywords internal
+#' @noRd
+#' @param file file to be written
+#' @param band  band to be used in the tile
+#' @param labels labels associated to the tile
+#' @param base_tile  reference tile used in the operation
+#' @param block_files  files that host the blocks
+#' @param multicores  number of parallel processes
+#' @param update_bbox  should bbox be updated?
+#' @return a new variance tile with files written
+.tile_variance_merge_blocks <- function(file, band, labels, base_tile,
+                                     block_files, multicores, update_bbox) {
+    # Open first block file to be merged
+    r_obj <- .raster_open_rast(unlist(block_files)[[1]])
+    # Check number of labels is correct
+    .check_that(
+        x = .raster_nlayers(r_obj) == length(labels),
+        local_msg = "number of image layers does not match labels",
+        msg = "invalid 'file' parameter"
+    )
+    # Create probs cube and return it
+    .tile_derived_merge_blocks(
+        file = file, band = band, labels = labels,
+        base_tile = base_tile, derived_class = "variance_cube",
+        block_files = block_files, multicores = multicores,
+        update_bbox = update_bbox
+    )
+}
 
 #' @title Create a "class" tile
 #' @name .tile_class_from_file

@@ -129,8 +129,9 @@ derived_cube         :
                 scale_factor : 0.0001
             bayes    :
                 <<: *int2u_0_10000
-            bilat    :
-                <<: *int2u_0_10000
+    variance_cube       :
+        s3_class     : [ "variance_cube", "derived_cube", "raster_cube" ]
+        bands        :
             variance :
                 data_type    : "INT2U"
                 missing_value: 65535

@@ -1515,6 +1515,21 @@
         msg = "cube is not probability cube"
     )
 }
+#' @title Check if cube is a variance cube
+#' @name .check_is_variance_cube
+#' @param cube a sits cube to be tested
+#' @return  No return value, called for side effects.
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  cube         input data cube
+.check_is_variance_cube <- function(cube) {
+    .check_that(
+        x = inherits(cube, "variance_cube"),
+        msg = "cube is not variance cube"
+    )
+}
 #' @title Check if cube is a uncert cube
 #' @name .check_is_uncert_cube
 #' @param cube a sits cube to be tested
@@ -1742,33 +1757,17 @@
 
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @name .check_smoothness
-#' @param smoothness a vector with the same length as the number of labels
+#' @param smoothness a vector or numeric value
 #' @param nlabels    a numeric value
 #' @return  No return value, called for side effects.
 #' @keywords internal
 #' @noRd
 .check_smoothness <- function(smoothness, nlabels) {
     .check_that(
-        x = length(smoothness) == nlabels,
+        length(smoothness) == 1 || length(smoothness) == nlabels,
         msg = paste(
-            "smoothness vector must have the same length as the number of labels"
-        )
-    )
-}
-#' @title Does the data contain the cols of sample data and is not empty?
-#' @name .check_smoothness_mat
-#' @param smoothness a matrix or numeric value
-#' @param nlabels    a numeric value
-#' @return  No return value, called for side effects.
-#' @keywords internal
-#' @noRd
-.check_smoothness_mat <- function(smoothness, nlabels) {
-    .check_that(
-        x = (nrow(smoothness) == ncol(smoothness)) &&
-            (ncol(smoothness) == nlabels),
-        msg = paste(
-            "smoothness must be square matrix with",
-            "the same length as the number of labels"
+            "smoothness must be either one value or",
+            "a vector of length", nlabels
         )
     )
 }
