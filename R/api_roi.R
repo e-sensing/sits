@@ -111,3 +111,8 @@ NULL
     # Return roi
     roi
 }
+
+.roi_write <- function(roi, output_file, quiet, ...) {
+    sf::st_write(obj = roi, dsn = output_file, quiet = quiet, ...)
+    output_file
+}
