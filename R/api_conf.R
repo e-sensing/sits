@@ -914,7 +914,6 @@ NULL
     .conf("derived_cube", derived_class, "bands", band)
 }
 
-
 #' @title Band configuration accessors
 #' @noRd
 #'
