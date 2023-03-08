@@ -81,7 +81,7 @@
 .file_crop_name <- function(tile, band, version, output_dir) {
     .file_path(
         tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
-        .tile_start_date(tile), .tile_end_date(tile), band, "crop",
+        .tile_start_date(tile), band, "crop",
         version, ext = "tif", output_dir = file.path(output_dir, ".sits"),
         create_dir = TRUE
     )
