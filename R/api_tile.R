@@ -168,6 +168,22 @@ NULL
     tile <- .tile(tile)
     .fi_max_date(.fi(tile))
 }
+
+#' @title Get fid from tile
+#' @name .tile_fid
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#'
+#' @return date
+.tile_fid <- function(tile) {
+    UseMethod(".tile_fid", tile)
+}
+#' @export
+.tile_fid.raster_cube <- function(tile) {
+    tile <- .tile(tile)
+    .fi_fid(.fi(tile))
+}
 #' @title Get unique timeline from file_info.
 #' @name .tile_timeline
 #' @keywords internal
@@ -650,6 +666,36 @@ NULL
         overlap = overlap,
         image_size = .tile_size(tile),
         image_bbox = .tile_bbox(tile)
+    )
+}
+
+.tile_from_file <- function(file, base_tile, band, update_bbox, labels = NULL) {
+    UseMethod(".tile_from_file", base_tile)
+}
+
+#' @export
+.tile_from_file.eo_cube <- function(file, base_tile, band, update_bbox,
+                                    labels = NULL) {
+    .tile_eo_from_files(
+        files = file,
+        fid = .tile_fid(base_tile),
+        bands = band,
+        date = .tile_start_date(base_tile),
+        base_tile = base_tile,
+        update_bbox = update_bbox
+    )
+}
+
+#' @export
+.tile_from_file.derived_cube <- function(file, base_tile, band, update_bbox,
+                                         labels = NULL) {
+    .tile_derived_from_file(
+        file = file,
+        band = band,
+        base_tile = base_tile,
+        derived_class = .tile_derived_class(base_tile),
+        labels = labels,
+        update_bbox = update_bbox
     )
 }
 
