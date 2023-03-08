@@ -923,15 +923,16 @@ NULL
 #' @param file file to be written
 #' @param band  band to be used in the tile
 #' @param base_tile  reference tile used in the operation (probs)
+#' @param update_bbox  should bbox be updated?
 #' @return a new probs tile
-.tile_class_from_file <- function(file, band, base_tile) {
+.tile_class_from_file <- function(file, band, base_tile, update_bbox = FALSE) {
     .tile_derived_from_file(
         file = file,
         band = band,
         base_tile = base_tile,
         derived_class = "class_cube",
         labels = .tile_labels(base_tile),
-        update_bbox = FALSE
+        update_bbox = update_bbox
     )
 }
 #' @title Write values of a class tile from a set of blocks
@@ -967,15 +968,16 @@ NULL
 #' @param file file to be written
 #' @param band  band to be used in the tile
 #' @param base_tile  reference tile used in the operation (probs)
+#' @param update_bbox  should bbox be updated?
 #' @return a new uncertainty tile
-.tile_uncert_from_file <- function(file, band, base_tile) {
+.tile_uncert_from_file <- function(file, band, base_tile, update_bbox = FALSE) {
     .tile_derived_from_file(
         file = file,
         band = band,
         base_tile = base_tile,
         derived_class = "uncertainty_cube",
         labels = .tile_labels(base_tile),
-        update_bbox = FALSE
+        update_bbox = update_bbox
     )
 }
 #' @title Write values of a uncertainty tile from a set of blocks
