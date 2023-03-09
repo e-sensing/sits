@@ -89,12 +89,15 @@ sits_cube_copy <- function(cube,
     # Create a list of user parameters as gdal format
     gdal_params <- .gdal_format_params(asset = asset, roi = roi, res = res)
     # Create output file
-
-    out_file <- .file_path(
-        .tile_satellite(asset), .remove_slash(.tile_sensor(asset)),
-        .tile_name(asset), .tile_bands(asset),
-        .tile_start_date(asset), output_dir = output_dir, ext = "tif"
-    )
+    derived_cube <- inherits(asset, "derived_cube")
+    if (derived_cube)
+        out_file <- paste0(output_dir, "/", basename(file))
+    else
+        out_file <- .file_path(
+            .tile_satellite(asset), .remove_slash(.tile_sensor(asset)),
+            .tile_name(asset), .tile_bands(asset),
+            .tile_start_date(asset), output_dir = output_dir, ext = "tif"
+        )
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         # # Callback final tile classification
