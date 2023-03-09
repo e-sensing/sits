@@ -741,6 +741,7 @@ plot.probs_cube <- function(
 #' @param labels         Labels to plot (optional).
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
+#' @param type           Type of plot ("map" or "hist")
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
 #'
@@ -788,7 +789,9 @@ plot.variance_cube <- function(
 
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-
+    # check type
+    .check_that(type %in% c("map", "hist"),
+                msg = "plot type should be either map or hist")
     # plot the variance cube
     if (type == "map")
         p <- .plot_variance_map(tile, labels, palette, rev)

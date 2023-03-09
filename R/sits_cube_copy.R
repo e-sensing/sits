@@ -101,8 +101,8 @@ sits_cube_copy <- function(cube,
         # .callback(process = "tile_classification", event = "recovery",
         #           context = environment())
         message("Recovery: file '", out_file, "' already exists.")
-        message("(If you want to download again, please ",
-                "change 'output_dir' parameter)")
+        message("(If you want to get a new version, please ",
+                "change 'output_dir' parameter or delete the existing file)")
         asset <- .download_update_asset(
             asset = asset, roi = roi, res = res, out_file = out_file
         )
@@ -113,7 +113,7 @@ sits_cube_copy <- function(cube,
         out_file = out_file, gdal_params = gdal_params
     )
     # Download file
-    download_fn(file)
+    suppressWarnings(download_fn(file))
     # Update asset metadata
     asset <- .download_update_asset(
         asset = asset, roi = roi, res = res, out_file = out_file

@@ -727,8 +727,8 @@ NULL
     .cube_foreach_tile(cube, function(tile) {
         assets <- tile[, c("tile", "file_info")]
         assets <- tidyr::unnest(assets, "file_info")
-        assets[["feature"]] <- assets[["fid"]]
         assets[["asset"]] <- assets[["band"]]
+        assets[["feature"]] <- .default(assets[["fid"]], "1")
         assets <- tidyr::nest(
             assets, file_info = -c("tile", "feature", "asset")
         )
@@ -744,10 +744,14 @@ NULL
 #' @return merged data cube
 .cube_merge_tiles <- function(cube) {
     class_orig <- class(cube)
+    derived_cube <- inherits(cube, "derived_cube")
     cube <- tidyr::unnest(cube, "file_info", names_sep = ".")
-    cube <- dplyr::arrange(
-        cube, .data[["file_info.date"]], .data[["file_info.band"]]
-    )
+    if (!derived_cube)
+        cube <- dplyr::arrange(
+            cube,
+            .data[["file_info.date"]],
+            .data[["file_info.band"]]
+        )
     cube <- tidyr::nest(
         cube, file_info = tidyr::starts_with("file_info"),
         .names_sep = "."

@@ -26,6 +26,8 @@
 \item{palette}{RColorBrewer palette}
 
 \item{rev}{Reverse order of colors in palette?}
+
+\item{type}{Type of plot ("map" or "hist")}
 }
 \value{
 A plot containing probabilities associated
