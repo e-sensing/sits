@@ -14,8 +14,8 @@ NULL
 #' @returns A `file_info` tibble.
 .fi <- function(tile) {
     fi <- tile[["file_info"]][[1]]
-    if (!.has(.crs(fi)))
-        .crs(fi) <- .crs(tile)
+    # if (!.has(.crs(fi)))
+    #     .crs(fi) <- .crs(tile)
     fi
 }
 
@@ -48,7 +48,7 @@ NULL
 }
 
 .fi_eo <- function(fid, band, date, ncols, nrows, xres, yres, xmin, xmax,
-                   ymin, ymax, crs, path) {
+                   ymin, ymax, path) {
     # Create a new eo file_info
     tibble::tibble(
         fid = fid,
@@ -62,7 +62,6 @@ NULL
         xmax = xmax,
         ymin = ymin,
         ymax = ymax,
-        crs = crs,
         path = path
     )
 }
@@ -83,13 +82,12 @@ NULL
         xmax = .raster_xmax(r_obj),
         ymin = .raster_ymin(r_obj),
         ymax = .raster_ymax(r_obj),
-        crs = .raster_crs(r_obj),
         path = files
     )
 }
 
 .fi_derived <- function(band, start_date, end_date, ncols, nrows, xres, yres,
-                        xmin, xmax, ymin, ymax, crs, path) {
+                        xmin, xmax, ymin, ymax, path) {
     # Create a new derived file_info
     tibble::tibble(
         band = .band_derived(band),
@@ -103,7 +101,6 @@ NULL
         xmax = xmax,
         ymin = ymin,
         ymax = ymax,
-        crs = crs,
         path = path
     )
 }
@@ -123,7 +120,6 @@ NULL
         xmax = .raster_xmax(r_obj),
         ymin = .raster_ymin(r_obj),
         ymax = .raster_ymax(r_obj),
-        crs = .raster_crs(r_obj),
         path = file
     )
 }
