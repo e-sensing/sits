@@ -91,6 +91,7 @@
                     window_size,
                     neigh_fraction,
                     smoothness,
+                    min_samples,
                     multicores,
                     memsize,
                     output_dir,
@@ -100,7 +101,8 @@
     smooth_fn <- .smooth_fn_bayes(
         window_size = window_size,
         neigh_fraction = neigh_fraction,
-        smoothness = smoothness
+        smoothness = smoothness,
+        min_samples = min_samples
     )
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
@@ -123,14 +125,15 @@
 
 .smooth_fn_bayes <- function(window_size,
                              neigh_fraction,
-                             smoothness) {
+                             smoothness,
+                             min_samples) {
     # Check window size
     .check_window_size(window_size, min = 7)
     # Check neigh_fraction
     .check_num_parameter(neigh_fraction, min = 0, max = 1)
     # check number of values
     num_values <- window_size * window_size * neigh_fraction
-    .check_num(num_values, min = 30,
+    .check_num(num_values, min = min_samples,
                msg = paste0("Sample size too small \n",
                             "Please choose a larger window\n",
                             "or increase the neighborhood fraction")

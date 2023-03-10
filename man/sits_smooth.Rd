@@ -8,7 +8,8 @@ sits_smooth(
   cube,
   window_size = 9,
   neigh_fraction = 0.5,
-  smoothness = 20,
+  smoothness = 10,
+  min_samples = 25,
   memsize = 4,
   multicores = 2,
   output_dir = getwd(),
@@ -25,7 +26,10 @@ to be used in Bayesian inference.}
 
 \item{smoothness}{Estimated variance of logit of class probabilities
 (Bayesian smoothing parameter). It can be either
-a matrix or a scalar.}
+a vector or a scalar.}
+
+\item{min_samples}{Minimum number of samples to estimate normal
+probability distribution for Bayesian inference.}
 
 \item{memsize}{Maximum overall memory (in GB) to run the
 smoothing.}

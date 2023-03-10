@@ -16,7 +16,9 @@
 #'                           to be used in Bayesian inference.
 #' @param  smoothness        Estimated variance of logit of class probabilities
 #'                           (Bayesian smoothing parameter). It can be either
-#'                           a matrix or a scalar.
+#'                           a vector or a scalar.
+#' @param  min_samples       Minimum number of samples to estimate normal
+#'                           probability distribution for Bayesian inference.
 #' @param  multicores        Number of cores to run the smoothing function
 #' @param  memsize           Maximum overall memory (in GB) to run the
 #'                           smoothing.
@@ -59,7 +61,8 @@
 sits_smooth <- function(cube,
                         window_size = 9,
                         neigh_fraction = 0.5,
-                        smoothness = 20,
+                        smoothness = 10,
+                        min_samples = 25,
                         memsize = 4,
                         multicores = 2,
                         output_dir = getwd(),
@@ -119,6 +122,7 @@ sits_smooth <- function(cube,
         window_size = window_size,
         neigh_fraction = neigh_fraction,
         smoothness = smoothness,
+        min_samples = min_samples,
         multicores = multicores,
         memsize = memsize,
         output_dir = output_dir,
