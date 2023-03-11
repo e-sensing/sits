@@ -98,7 +98,6 @@ sits_config <- function(run_tests = NULL,
 
     # set options defined in sits config
     do.call(.conf_set_options, args = config)
-    message(paste0("Using configuration file: ", yml_file))
 
     # set the default color table
     .conf_load_color_table()
@@ -107,7 +106,6 @@ sits_config <- function(run_tests = NULL,
     user_yml_file <- .conf_user_file()
 
     if (file.exists(user_yml_file)) {
-        message(paste("Additional configurations found in", user_yml_file))
         config <- yaml::yaml.load_file(
             input = user_yml_file,
             merge.precedence = "override"
@@ -139,14 +137,7 @@ sits_config <- function(run_tests = NULL,
             )
         }
 
-    } else {
-        message(paste(
-            "To provide additional configurations, create an",
-            "YAML file and inform its path to environment variable",
-            "'SITS_CONFIG_USER_FILE'."
-        ))
     }
-
     # set options defined by user (via parameters)
     # modifying existing configuration
     .conf_set_options(

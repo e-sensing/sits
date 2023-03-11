@@ -1322,8 +1322,7 @@ plot.class_cube <- function(x, y, ...,
                                  fill  = "#69b3a2",
                                  color = "#e9ecef",
                                  alpha = 0.9) +
-         ggplot2::scale_x_continuous(limits = c(NA, 40)) +
-         ggplot2::scale_y_log10()
+         ggplot2::scale_x_continuous()
     p <- p + ggplot2::facet_wrap(facets = "labels")
 
     return(p)
