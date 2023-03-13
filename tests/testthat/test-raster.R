@@ -674,17 +674,17 @@ test_that("One-year, multicore classification with post-processing", {
     r_bay <- .raster_open_rast(sinop_bayes$file_info[[1]]$path[[1]])
     expect_true(.raster_nrows(r_bay) == .tile_nrows(sinop_probs))
 
-    max_bay2 <- max(.raster_get_values(r_bay)[, 2], na.rm = TRUE)
+    max_bay2 <- max(.raster_get_values(r_bay)[, 2])
     expect_true(max_bay2 <= 10000)
 
-    max_bay3 <- max(.raster_get_values(r_bay)[, 3], na.rm = TRUE)
+    max_bay3 <- max(.raster_get_values(r_bay)[, 3])
     expect_true(max_bay3 <= 10000)
 
     sinop_uncert <- sits_uncertainty(
         cube = sinop_bayes,
-        type = "entropy",
+        type = "margin",
         output_dir = temp_dir,
-        multicores = 2,
+        multicores = 1,
         memsize = 4,
         version = "test12"
     )

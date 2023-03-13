@@ -41,18 +41,6 @@ C_kernel_max <- function(x, ncols, nrows, band, window_size) {
     .Call(`_sits_C_kernel_max`, x, ncols, nrows, band, window_size)
 }
 
-C_kernel_bayes_mean <- function(x, ncols, nrows, window_size) {
-    .Call(`_sits_C_kernel_bayes_mean`, x, ncols, nrows, window_size)
-}
-
-C_kernel_bayes_var <- function(x, ncols, nrows, window_size) {
-    .Call(`_sits_C_kernel_bayes_var`, x, ncols, nrows, window_size)
-}
-
-C_bayes_posterior <- function(x, s, m, v) {
-    .Call(`_sits_C_bayes_posterior`, x, s, m, v)
-}
-
 C_label_max_prob <- function(x) {
     .Call(`_sits_C_label_max_prob`, x)
 }

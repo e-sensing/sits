@@ -237,18 +237,29 @@
 
     # Pre-conditions have been checked in calling functions
     # Get top values
-    samples_tb <- .raster_get_values(r_obj) %>%
-        max_sampling(
-            band = band - 1,
-            img_nrow = .raster_nrows(r_obj),
-            img_ncol = .raster_ncols(r_obj),
-            window_size = sampling_window
-        ) %>%
-        dplyr::slice_max(
-            .data[["value"]],
-            n = n,
-            with_ties = FALSE
-        )
+    # filter by median to avoid borders
+    # Process window
+    values <- .raster_get_values(r_obj)
+    values <- C_kernel_median(
+        x = values,
+        ncols = .ncols(block),
+        nrows = .nrows(block),
+        band = 0,
+        window_size = sampling_window
+    )
+    samples_tb <- max_sampling(
+        data = values,
+        band = band - 1,
+        img_nrow = .raster_nrows(r_obj),
+        img_ncol = .raster_ncols(r_obj),
+        window_size = sampling_window
+    )
+    samples_tb <- dplyr::slice_max(
+        samples_tb,
+        .data[["value"]],
+        n = n,
+        with_ties = FALSE
+    )
 
     # Get the values' positions.
     result_tb <- r_obj %>%

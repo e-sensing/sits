@@ -40,7 +40,6 @@ sits_uncertainty(
 \method{sits_uncertainty}{margin}(
   cube,
   type = "margin",
-  window_size = 5,
   memsize = 4,
   multicores = 2,
   output_dir = getwd(),
@@ -51,8 +50,6 @@ sits_uncertainty(
 \item{cube}{Probability data cube.}
 
 \item{type}{Method to measure uncertainty. See details.}
-
-\item{window_size}{Size of neighborhood to calculate uncertainty.}
 
 \item{memsize}{Maximum overall memory (in GB) to run the function.}
 

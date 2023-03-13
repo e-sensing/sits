@@ -8,7 +8,6 @@
 #'
 #' @param  cube         Probability data cube.
 #' @param  type         Method to measure uncertainty. See details.
-#' @param  window_size  Size of neighborhood to calculate uncertainty.
 #' @param  multicores   Number of cores to run the function.
 #' @param  memsize      Maximum overall memory (in GB) to run the function.
 #' @param  output_dir   Output directory for image files.
@@ -57,8 +56,7 @@
 #' }
 #' @export
 sits_uncertainty <- function(cube,
-                             type = "least",
-                             window_size = 5,
+                             type = "margin",
                              memsize = 4,
                              multicores = 2,
                              output_dir = getwd(),
@@ -66,8 +64,6 @@ sits_uncertainty <- function(cube,
 
     # Check if cube has probability data
     .check_is_probs_cube(cube)
-    # Check window size
-    .check_window_size(window_size)
     # Check memsize
     .check_memsize(memsize)
     # Check multicores
@@ -80,11 +76,9 @@ sits_uncertainty <- function(cube,
     # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = overlap),
+        job_size = .block_size(block = block, overlap = 0),
         npaths = length(.tile_labels(cube)) + 1,
         nbytes = 8,
         proc_bloat = .conf("processing_bloat")
@@ -109,16 +103,13 @@ sits_uncertainty <- function(cube,
 #' @export
 sits_uncertainty.least <- function(cube,
                                    type = "least",
-                                   window_size = 5,
                                    memsize = 4,
                                    multicores = 2,
                                    output_dir = getwd(),
                                    version = "v1") {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
-    uncert_fn <- .uncertainty_fn_least(window_size = window_size)
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
+    uncert_fn <- .uncertainty_fn_least()
     # Uncertainty
     # Process each tile sequentially
     uncert_cube <- .cube_foreach_tile(cube, function(tile) {
@@ -126,7 +117,6 @@ sits_uncertainty.least <- function(cube,
         uncert_tile <- .uncertainty_tile(
             tile = tile,
             band = "least",
-            overlap = overlap,
             uncert_fn = uncert_fn,
             output_dir = output_dir,
             version = version
@@ -140,16 +130,13 @@ sits_uncertainty.least <- function(cube,
 #' @export
 sits_uncertainty.entropy <- function(cube,
                                      type = "entropy",
-                                     window_size = 5,
                                      memsize = 4,
                                      multicores = 2,
                                      output_dir = getwd(),
                                      version = "v1") {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
-    uncert_fn <- .uncertainty_fn_entropy(window_size = window_size)
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
+    uncert_fn <- .uncertainty_fn_entropy()
     # Uncertainty
     # Process each tile sequentially
     uncert_cube <- .cube_foreach_tile(cube, function(tile) {
@@ -157,7 +144,6 @@ sits_uncertainty.entropy <- function(cube,
         uncert_tile <- .uncertainty_tile(
             tile = tile,
             band = "entropy",
-            overlap = overlap,
             uncert_fn = uncert_fn,
             output_dir = output_dir,
             version = version
@@ -171,16 +157,13 @@ sits_uncertainty.entropy <- function(cube,
 #' @export
 sits_uncertainty.margin <- function(cube,
                                     type = "margin",
-                                    window_size = 5,
                                     memsize = 4,
                                     multicores = 2,
                                     output_dir = getwd(),
                                     version = "v1") {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
-    uncert_fn <- .uncertainty_fn_margin(window_size = window_size)
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
+    uncert_fn <- .uncertainty_fn_margin()
     # Uncertainty
     # Process each tile sequentially
     uncert_cube <- .cube_foreach_tile(cube, function(tile) {
@@ -188,7 +171,6 @@ sits_uncertainty.margin <- function(cube,
         uncert_tile <- .uncertainty_tile(
             tile = tile,
             band = "margin",
-            overlap = overlap,
             uncert_fn = uncert_fn,
             output_dir = output_dir,
             version = version

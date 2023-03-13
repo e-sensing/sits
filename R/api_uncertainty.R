@@ -3,7 +3,6 @@
 
 .uncertainty_tile <- function(tile,
                               band,
-                              overlap,
                               uncert_fn,
                               output_dir,
                               version) {
@@ -30,7 +29,7 @@
         return(uncert_tile)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tile, overlap = overlap)
+    chunks <- .tile_chunks_create(tile = tile, overlap = 0)
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -51,7 +50,7 @@
             block = block
         )
         # Apply the labeling function to values
-        values <- uncert_fn(values = values, block = block)
+        values <- uncert_fn(values)
         # Prepare uncertainty to be saved
         band_conf <- .conf_derived_band(
             derived_class = "uncertainty_cube",
@@ -66,8 +65,6 @@
             values <- values / scale
             values[values > 10000] <- 10000
         }
-        # Job crop block
-        crop_block <- .block(.chunks_no_overlap(chunk))
         # Prepare and save results as raster
         .raster_write_block(
             files = block_file,
@@ -75,8 +72,7 @@
             bbox = .bbox(chunk),
             values = values,
             data_type = .data_type(band_conf),
-            missing_value = .miss_value(band_conf),
-            crop_block = crop_block
+            missing_value = .miss_value(band_conf)
         )
         # Free memory
         gc()
@@ -98,27 +94,14 @@
 
 #---- uncertainty functions ----
 
-.uncertainty_fn_least <- function(window_size) {
-    # Check window size
-    .check_window_size(window_size)
-
+.uncertainty_fn_least <- function() {
     # Define uncertainty function
-    uncert_fn <- function(values, block) {
+    uncert_fn <- function(values) {
         # Used in check (below)
         input_pixels <- nrow(values)
         # Process least confidence
         # return a matrix[rows(values),1]
         values <- C_least_probs(values)
-        # Process window
-        if (window_size > 1) {
-            values <- C_kernel_median(
-                x = values,
-                ncols = .ncols(block),
-                nrows = .nrows(block),
-                band = 0,
-                window_size = window_size
-            )
-        }
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         # Return data
@@ -128,23 +111,14 @@
     uncert_fn
 }
 
-.uncertainty_fn_entropy <- function(window_size) {
-    # Check window size
-    .check_window_size(window_size)
+.uncertainty_fn_entropy <- function() {
 
     # Define uncertainty function
-    uncert_fn <- function(values, block) {
+    uncert_fn <- function(values) {
         # Used in check (below)
         input_pixels <- nrow(values)
         # Process least confidence
         values <- C_entropy_probs(values) # return a matrix[rows(values),1]
-        # Process window
-        if (window_size > 1) {
-            values <- C_kernel_median(
-                x = values, ncols = .ncols(block), nrows = .nrows(block),
-                band = 0, window_size = window_size
-            )
-        }
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         # Return data
@@ -154,21 +128,15 @@
     uncert_fn
 }
 
-.uncertainty_fn_margin <- function(window_size) {
-    # Check window size
-    .check_window_size(window_size)
-
+.uncertainty_fn_margin <- function() {
     # Define uncertainty function
-    uncert_fn <- function(values, block) {
-        # Pocess least confidence
+    uncert_fn <- function(values) {
+        # Used in check (below)
+        input_pixels <- nrow(values)
+        # Process margin
         values <- C_margin_probs(values) # return a matrix[rows(data),1]
-        # Process window
-        if (window_size > 1) {
-            values <- C_kernel_median(
-                x = values, ncols = .ncols(block), nrows = .nrows(block),
-                band = 0, window_size = window_size
-            )
-        }
+        # Are the results consistent with the data input?
+        .check_processed_values(values, input_pixels)
         # Return data
         values
     }
