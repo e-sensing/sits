@@ -159,7 +159,9 @@ sits_cube_copy <- function(cube,
     gdal_params[c("-of", "-co")] <- list(
         "GTiff", .conf("gdal_presets", "image", "co")
     )
-    gdal_params
+    band_conf <- .tile_band_conf(asset, .tile_bands(asset))
+    gdal_params[["-a_nodata"]] <- .miss_value(band_conf)
+    return(gdal_params)
 }
 
 .gdal_as_srcwin <- function(asset, roi) {

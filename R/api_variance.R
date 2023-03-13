@@ -126,8 +126,8 @@
         # Process variance
         values <- bayes_var(
             m = values,
-            m_nrow = .ncols(block),
-            m_ncol = .nrows(block),
+            m_nrow = .nrows(block),
+            m_ncol = .ncols(block),
             w = window,
             neigh_fraction = neigh_fraction)
         # Are the results consistent with the data input?

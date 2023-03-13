@@ -52,7 +52,7 @@ if (sits_run_examples()) {
     # classify a data cube
     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
     # obtain a variance cube
-    var_cube = sits_smooth_variance(cube = cube)
+    var_cube <-  sits_variance(probs_cube)
     # plot the variance cube
     plot(var_cube)
 }

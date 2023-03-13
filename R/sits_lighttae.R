@@ -305,8 +305,7 @@ sits_lighttae <- function(samples = NULL,
         # Serialize model
         serialized_model <- .torch_serialize_model(torch_model$model)
 
-        attn_mask <- torch_model$model$temporal_encoder$attention_heads$attention$attention_mask
-        browser()
+        # attn_mask <- torch_model$model$temporal_encoder$attention_heads$attention$attention_mask
 
         # Function that predicts labels of input values
         predict_fun <- function(values) {

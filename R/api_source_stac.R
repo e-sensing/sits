@@ -149,8 +149,8 @@
 #' @noRd
 #' @export
 .source_items_cube.stac_cube <- function(source,
-                                         items, ...,
                                          collection = NULL,
+                                         items, ...,
                                          multicores = 2,
                                          progress) {
 
