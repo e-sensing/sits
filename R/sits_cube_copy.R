@@ -91,20 +91,23 @@ sits_cube_copy <- function(cube,
     # Create a list of user parameters as gdal format
     gdal_params <- .gdal_format_params(asset = asset, roi = roi, res = res)
     # Create output file
-
-    out_file <- .file_path(
-        .tile_satellite(asset), .remove_slash(.tile_sensor(asset)),
-        .tile_name(asset), .tile_bands(asset),
-        .tile_start_date(asset), output_dir = output_dir, ext = "tif"
-    )
+    derived_cube <- inherits(asset, "derived_cube")
+    if (derived_cube)
+        out_file <- paste0(output_dir, "/", basename(file))
+    else
+        out_file <- .file_path(
+            .tile_satellite(asset), .remove_slash(.tile_sensor(asset)),
+            .tile_name(asset), .tile_bands(asset),
+            .tile_start_date(asset), output_dir = output_dir, ext = "tif"
+        )
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         # # Callback final tile classification
         # .callback(process = "tile_classification", event = "recovery",
         #           context = environment())
         message("Recovery: file '", out_file, "' already exists.")
-        message("(If you want to download again, please ",
-                "change 'output_dir' parameter)")
+        message("(If you want to get a new version, please ",
+                "change 'output_dir' parameter or delete the existing file)")
         asset <- .download_update_asset(
             asset = asset, roi = roi, res = res, out_file = out_file
         )
@@ -115,7 +118,7 @@ sits_cube_copy <- function(cube,
         out_file = out_file, gdal_params = gdal_params
     )
     # Download file
-    download_fn(file)
+    suppressWarnings(download_fn(file))
     # Update asset metadata
     asset <- .download_update_asset(
         asset = asset, roi = roi, res = res, out_file = out_file
@@ -158,7 +161,9 @@ sits_cube_copy <- function(cube,
     gdal_params[c("-of", "-co")] <- list(
         "GTiff", .conf("gdal_presets", "image", "co")
     )
-    gdal_params
+    band_conf <- .tile_band_conf(asset, .tile_bands(asset))
+    gdal_params[["-a_nodata"]] <- .miss_value(band_conf)
+    return(gdal_params)
 }
 
 .gdal_as_srcwin <- function(asset, roi) {

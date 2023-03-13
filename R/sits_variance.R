@@ -1,24 +1,16 @@
-#' @title Smooth probability cubes with spatial predictors
-#'
-#' @name  sits_smooth
+#' @title Calculate the variance of a probability cube
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Takes a set of classified raster layers with probabilities,
-#'              whose metadata is]created by \code{\link[sits]{sits_cube}},
-#'              and applies a Bayesian smoothing function.
-#'
+#' @description Takes a probability cube and estimate the local variance
+#'              of the logit of the probability,
+#'              to support the choice of parameters for Bayesian smoothing.
 #'
 #' @param  cube              Probability data cube.
 #' @param  window_size       Size of the neighborhood.
 #' @param  neigh_fraction    Fraction of neighbors with highest probability
 #'                           to be used in Bayesian inference.
-#' @param  smoothness        Estimated variance of logit of class probabilities
-#'                           (Bayesian smoothing parameter). It can be either
-#'                           a vector or a scalar.
-#' @param  min_samples       Minimum number of samples to estimate normal
-#'                           probability distribution for Bayesian inference.
 #' @param  multicores        Number of cores to run the smoothing function
 #' @param  memsize           Maximum overall memory (in GB) to run the
 #'                           smoothing.
@@ -26,7 +18,7 @@
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
 #'
-#' @return A data cube.
+#' @return A variance data cube.
 #'
 #' @note
 #' Please refer to the sits documentation available in
@@ -34,7 +26,7 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a ResNet model
-#'     torch_model <- sits_train(samples_modis_ndvi, sits_resnet(epochs = 20))
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
@@ -45,28 +37,22 @@
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
-#'     probs_cube <- sits_classify(data = cube, ml_model = torch_model)
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
 #'     # plot the probability cube
 #'     plot(probs_cube)
 #'     # smooth the probability cube using Bayesian statistics
-#'     bayes_cube <- sits_smooth(probs_cube)
-#'     # plot the smoothed cube
-#'     plot(bayes_cube)
-#'     # label the probability cube
-#'     label_cube <- sits_label_classification(bayes_cube)
-#'     # plot the labelled cube
-#'     plot(label_cube)
+#'     var_cube <- sits_variance(probs_cube)
+#'     # plot the variance cube
+#'     plot(var_cube)
 #' }
 #' @export
-sits_smooth <- function(cube,
-                        window_size = 9,
-                        neigh_fraction = 0.5,
-                        smoothness = 10,
-                        min_samples = 25,
-                        memsize = 4,
-                        multicores = 2,
-                        output_dir = getwd(),
-                        version = "v1") {
+sits_variance <- function(cube,
+                          window_size = 9,
+                          neigh_fraction = 0.5,
+                          multicores = 2,
+                          memsize = 4,
+                          output_dir = getwd(),
+                          version = "v1") {
 
     # Check if cube has probability data
     .check_is_probs_cube(cube)
@@ -74,18 +60,6 @@ sits_smooth <- function(cube,
     .check_memsize(memsize)
     # Check multicores
     .check_multicores(multicores)
-    # Check output dir
-    output_dir <- path.expand(output_dir)
-    .check_output_dir(output_dir)
-    # Check version
-    .check_version(version)
-    # get nlabels
-    nlabels <- length(sits_labels(cube))
-    # Check smoothness
-    .check_smoothness(smoothness, nlabels)
-    # Prepare smoothness parameter
-    smoothness <- diag(smoothness, nrow = nlabels, ncol = nlabels)
-
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels
@@ -115,19 +89,16 @@ sits_smooth <- function(cube,
     # Prepare parallel processing
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
+
     # Call the smoothing method
-    .smooth(
+    .variance(
         cube = cube,
         block = block,
         window_size = window_size,
         neigh_fraction = neigh_fraction,
-        smoothness = smoothness,
-        min_samples = min_samples,
         multicores = multicores,
         memsize = memsize,
         output_dir = output_dir,
         version = version
     )
 }
-
-

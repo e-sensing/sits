@@ -10,7 +10,7 @@ sits_s3_classes :   ["sits", "patterns", "predicted", "sits_model",
 sits_s3_classes_proc :   ["probs_cube","uncertainty_cube", "class_cube"]
 
 # bands resulting from classification and post-classification
-sits_results_bands : ["probs", "bayes", "bilat", "comb", "uncert",
+sits_results_bands : ["probs", "bayes", "bilat", "gauss", "uncert",
                       "entropy", "class"]
 
 # color palettes available in sits
@@ -28,7 +28,7 @@ sits_results_s3_class:
                     probs: "probs_cube"
                     bayes: "probs_cube"
                     bilat: "probs_cube"
-                    comb: "probs_cube"
+                    gauss: "probs_cube"
                     uncert: "uncertainty_cube"
                     entropy: "uncertainty_cube"
                     class:  "class_cube"
@@ -129,10 +129,16 @@ derived_cube         :
                 scale_factor : 0.0001
             bayes    :
                 <<: *int2u_0_10000
-            bilat    :
-                <<: *int2u_0_10000
-            comb     :
-                <<: *int2u_0_10000
+    variance_cube       :
+        s3_class     : [ "variance_cube", "derived_cube", "raster_cube" ]
+        bands        :
+            variance :
+                data_type    : "INT2U"
+                missing_value: 65535
+                minimum_value: 1
+                maximum_value: 10000
+                offset_value : 0
+                scale_factor : 0.01
     uncertainty_cube :
         s3_class     : [ "uncertainty_cube", "derived_cube", "raster_cube" ]
         bands        :

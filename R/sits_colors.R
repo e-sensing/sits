@@ -18,6 +18,7 @@ sits_colors <- function() {
 #' @title Function to retrieve sits color value
 #' @name sits_color_value
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param name   Name of color to obtain values
 #' @description Returns a color value based on name
 #' @return              A color value used in sits
 #'
@@ -36,7 +37,7 @@ sits_color_value <- function(name) {
         nrow(col_tab) == 1,
         msg = "Class name not available in default sits color table"
     )
-    return(unnamed(col_tab$color))
+    return(unname(col_tab$color))
 }
 #' @title Function to show colors in SITS
 #' @name sits_colors_show
@@ -105,7 +106,7 @@ sits_colors_reset <- function() {
     colors <- purrr::map_chr(labels_exist, function(l){
         col <- color_tb %>%
             dplyr::filter(.data[["name"]] == l) %>%
-            dplyr::pull(color)
+            dplyr::pull(.data[["color"]])
         return(col)
     })
     # get the names of the colors that exist in the SITS color table
@@ -181,17 +182,19 @@ sits_colors_reset <- function() {
                                     breaks = NULL,
                                     expand = c(0, 0)) +
          ggplot2::geom_rect(data = color_tb,
-                           mapping = ggplot2::aes(xmin = x + 0.05,
-                                                  xmax = x + 0.95,
-                                                  ymin = y + 0.05,
-                                                  ymax = y + y_size,
-                                                  ),
+                           mapping = ggplot2::aes(
+                               xmin = .data[["x"]] + 0.05,
+                               xmax = .data[["x"]] + 0.95,
+                               ymin = .data[["y"]] + 0.05,
+                               ymax = .data[["y"]] + y_size
+                           ),
                            fill = color_tb$color
         ) +
         ggplot2::geom_text(data = color_tb,
-                           mapping = ggplot2::aes(x = x + 0.5,
-                                                  y = y + 0.8,
-                                                  label = name),
+                           mapping = ggplot2::aes(
+                               x = .data[["x"]] + 0.5,
+                               y = .data[["y"]] + 0.8,
+                               label = .data[["name"]]),
                            colour = "grey15",
                            hjust = 0.5,
                            vjust = 1,

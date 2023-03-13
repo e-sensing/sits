@@ -109,9 +109,10 @@ plot.sits <- function(x, y, ...) {
     create_iqr <- function(melted) {
         qts <- melted %>%
             dplyr::group_by(.data[["Index"]]) %>%
-            dplyr::summarise(med = median(.data[["value"]]),
-                             qt25 = quantile(.data[["value"]], 0.25),
-                             qt75 = quantile(.data[["value"]], 0.75))
+            dplyr::summarise(
+                med  = stats::median(.data[["value"]]),
+                qt25 = stats::quantile(.data[["value"]], 0.25),
+                qt75 = stats::quantile(.data[["value"]], 0.75))
         return(qts)
     }
     # this function plots the values of all time series together (for one band)
@@ -729,6 +730,76 @@ plot.probs_cube <- function(
 
     return(p)
 }
+#' @title  Plot variance cubes
+#' @name   plot.variance_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a probability cube using stars
+#'
+#' @param  x             Object of class "variance_cube".
+#' @param  ...           Further specifications for \link{plot}.
+#' @param tile           Tile to be plotted.
+#' @param labels         Labels to plot (optional).
+#' @param palette        RColorBrewer palette
+#' @param rev            Reverse order of colors in palette?
+#' @param type           Type of plot ("map" or "hist")
+#' @return               A plot containing probabilities associated
+#'                       to each class for each pixel.
+#'
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # obtain a variance cube
+#'     var_cube <-  sits_variance(probs_cube)
+#'     # plot the variance cube
+#'     plot(var_cube)
+#' }
+#'
+#' @export
+#'
+plot.variance_cube <- function(
+        x, ...,
+        tile  = x$tile[[1]],
+        labels = NULL,
+        palette = "YlGnBu",
+        rev = FALSE,
+        type = "map"
+) {
+    # precondition
+    .check_chr_contains(
+        x = x$tile,
+        contains = tile,
+        case_sensitive = FALSE,
+        discriminator = "one_of",
+        can_repeat = FALSE,
+        msg = "tile is not included in the cube"
+    )
+
+    # filter the cube
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
+    # check type
+    .check_that(type %in% c("map", "hist"),
+                msg = "plot type should be either map or hist")
+    # plot the variance cube
+    if (type == "map")
+        p <- .plot_variance_map(tile, labels, palette, rev)
+    else
+        p <- .plot_variance_hist(tile)
+
+    return(p)
+}
 
 #' @title  Plot uncertainty cubes
 #' @name   plot.uncertainty_cube
@@ -1107,7 +1178,155 @@ plot.class_cube <- function(x, y, ...,
 
     return(p)
 }
+#' @title  Plot variance map
+#' @name   .plot_variance_map
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param  tile          Variance cube to be plotted.
+#' @param  labels_plot   Labels to be plotted
+#' @param  palette       A sequential RColorBrewer palette
+#' @param  rev           Reverse the color palette?
+#'
+#' @return               A plot object
+#'
+.plot_variance_map <- function(tile, labels_plot, palette, rev){
 
+    # verifies if stars package is installed
+    .check_require_packages("stars")
+    # verifies if tmap package is installed
+    .check_require_packages("tmap")
+    # precondition - check color palette
+    .check_chr_contains(
+        x = palette,
+        contains = .conf("sits_color_palettes"),
+        discriminator = "any_of",
+        msg = paste0("Color palette not supported"),
+        local_msg = paste("Palette should be one of ",
+                          paste0(.conf("sits_color_palettes"),
+                                 collapse = ", "))
+    )
+    # revert the palette
+    if (rev)
+        palette <- paste0("-",palette)
+
+
+    # get all labels to be plotted
+    labels <- sits_labels(tile)
+    names(labels) <- c(1:length(labels))
+    # check the labels to be plotted
+    # if NULL, use all labels
+    if (purrr::is_null(labels_plot))
+        labels_plot <- labels
+    else
+        .check_that(all(labels_plot %in% labels),
+                    msg = "labels not in cube")
+
+    # size of data to be read
+    size <- .plot_read_size(tile)
+
+    # get the path
+    var_path <- .tile_path(tile)
+    # read the file using stars
+    var_st <- stars::read_stars(
+        var_path,
+        RasterIO = list(
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
+    )
+    # get the band
+    band <- .tile_bands(tile)
+    band_conf <- .tile_band_conf(tile, band)
+    # scale the data
+    var_st <- var_st * .scale(band_conf)
+
+    # rename stars object dimensions to labels
+    var_st <- stars::st_set_dimensions(var_st, "band",
+                                         values = labels)
+    # select stars bands to be plotted
+    bds <- as.numeric(names(labels[labels %in% labels_plot]))
+
+    p <- tmap::tm_shape(var_st[,,,bds]) +
+        tmap::tm_raster(style = "cont",
+                        palette = palette,
+                        midpoint = 0.5,
+                        title = labels[labels %in% labels_plot]) +
+        tmap::tm_facets(free.coords = TRUE) +
+        tmap::tm_compass() +
+        tmap::tm_layout(legend.show = TRUE,
+                        legend.outside = FALSE,
+                        legend.bg.color = "white",
+                        legend.bg.alpha = 0.5,
+                        legend.title.size = 1.5,
+                        legend.text.size = 1.2,
+                        outer.margins = 0)
+
+    return(p)
+}
+#' @title  Plot variance histogram
+#' @name   .plot_variance_hist
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param  tile          Variance cube to be plotted.
+#'
+#' @return               A plot object
+#'
+.plot_variance_hist <- function(tile){
+
+    # get all labels to be plotted
+    labels <- sits_labels(tile)
+    # get the path
+    var_path <- .tile_path(tile)
+    # get the bounding box as an sf object
+    sf_cube <- .bbox_as_sf(.bbox(tile))
+    # numbers of nrows and ncols
+    nrows <- .tile_nrows(tile)
+    ncols <- .tile_ncols(tile)
+    # sample the pixels
+    n_samples <- as.integer(nrows/10 * ncols/10)
+    points <- sf::st_sample(sf_cube, size = n_samples)
+    points <- sf::st_coordinates(points)
+    # get the r object
+    r_obj <- .raster_open_rast(var_path)
+    # read the file
+    values <- .raster_extract(r_obj, points)
+    # scale the data
+    band_conf <- .conf_derived_band(
+        derived_class = "variance_cube",
+        band = "variance"
+    )
+    scale <- .scale(band_conf)
+    if (.has(scale) && scale != 1) {
+        values <- values * scale
+    }
+    offset <- .offset(band_conf)
+    if (.has(offset) && offset != 0) {
+        values <- values + offset
+    }
+    # convert to tibble
+    values <- tibble::as_tibble(values)
+    # include label names
+    colnames(values) <- labels
+    # dissolve the data for plotting
+    values <- tidyr::pivot_longer(values,
+                                  cols = tidyr::everything(),
+                                  names_to = "labels",
+                                  values_to = "variance")
+    # Histogram with density plot
+    p <- ggplot2::ggplot(values,
+                         ggplot2::aes(x = .data[["variance"]])) +
+         ggplot2::geom_histogram(binwidth = 1,
+                                 fill  = "#69b3a2",
+                                 color = "#e9ecef",
+                                 alpha = 0.9) +
+         ggplot2::scale_x_continuous()
+    p <- p + ggplot2::facet_wrap(facets = "labels")
+
+    return(p)
+}
 #' @title  Plot a RGB image
 #' @name   .plot_rgb
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

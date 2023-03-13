@@ -98,7 +98,6 @@ sits_config <- function(run_tests = NULL,
 
     # set options defined in sits config
     do.call(.conf_set_options, args = config)
-    message(paste0("Using configuration file: ", yml_file))
 
     # set the default color table
     .conf_load_color_table()
@@ -107,7 +106,6 @@ sits_config <- function(run_tests = NULL,
     user_yml_file <- .conf_user_file()
 
     if (file.exists(user_yml_file)) {
-        message(paste("Additional configurations found in", user_yml_file))
         config <- yaml::yaml.load_file(
             input = user_yml_file,
             merge.precedence = "override"
@@ -138,14 +136,8 @@ sits_config <- function(run_tests = NULL,
                 colors = config[["colors"]]
             )
         }
-    } else {
-        message(paste(
-            "To provide additional configurations, create an",
-            "YAML file and inform its path to environment variable",
-            "'SITS_CONFIG_USER_FILE'."
-        ))
-    }
 
+    }
     # set options defined by user (via parameters)
     # modifying existing configuration
     .conf_set_options(
@@ -159,8 +151,6 @@ sits_config <- function(run_tests = NULL,
         leaflet_max_megabytes = leaflet_max_megabytes,
         leaflet_comp_factor = leaflet_comp_factor
     )
-
-    message(paste0("Using raster package: ", .conf_raster_pkg()))
 
     return(invisible(sits_env$config))
 }
@@ -308,7 +298,6 @@ sits_list_collections <- function(source = NULL) {
 .conf_load_color_table <- function(){
     # load the color configuration file
     color_yml_file <- .conf_colors_file()
-    message(paste("Color configurations found in", color_yml_file))
     config_colors <- yaml::yaml.load_file(
         input = color_yml_file,
         merge.precedence = "override"
@@ -340,23 +329,24 @@ sits_list_collections <- function(source = NULL) {
         msg = "invalid colour table - missing either name or hex columns"
     )
     # pre condition - table contains no duplicates
-    tbd <- dplyr::distinct(color_tb, name)
+    tbd <- dplyr::distinct(color_tb, .data[["name"]])
     .check_that(nrow(tbd) == nrow(color_tb),
                 msg = "color table contains duplicate names")
 
     # pre condition - valid hex codes?
-    .is_color <- function(x)
-    {
-        res <- try(col2rgb(x),silent = TRUE)
-        return(!"try-error" %in% class(res))
-    }
-    # check values one by one - to help user find wrong value
-    col_vls <- unname(color_tb$color)
-    purrr::map(col_vls, function(col) {
-        .check_that(.is_color(col),
-                    msg = paste0("invalid color code ", col, " in color table")
-        )
-    })
+    # .is_color <- function(x)
+    # {
+    #     res <- try(col2rgb(x),silent = TRUE)
+    #     return(!"try-error" %in% class(res))
+    # }
+    # # check values one by one - to help user find wrong value
+    # col_vls <- unname(color_tb$color)
+    # print(col_vls)
+    # purrr::map(col_vls, function(col) {
+    #     .check_that(.is_color(col),
+    #                 msg = paste0("invalid color code ", col, " in color table")
+    #     )
+    # })
     sits_env$color_table <- color_tb
     return(invisible(NULL))
 }
