@@ -545,6 +545,24 @@ NULL
     # Return cube
     cube
 }
+
+#' @export
+.cube_merge_tiles.derived_cube <- function(cube) {
+    class_orig <- class(cube)
+    cube <- tidyr::unnest(cube, "file_info", names_sep = ".")
+    cube <- dplyr::arrange(
+        cube, .data[["file_info.start_date"]], .data[["file_info.band"]]
+    )
+    cube <- tidyr::nest(
+        cube, file_info = tidyr::starts_with("file_info"),
+        .names_sep = "."
+    )
+    # Set class features for the cube
+    class(cube) <- class_orig
+    # Return cube
+    cube
+}
+
 .cube_contains_cloud <- function(cube) {
     UseMethod(".cube_contains_cloud", cube)
 }
