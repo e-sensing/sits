@@ -10,31 +10,34 @@
 #' In sits EO cubes, the mosaic will be generated for each band and date.
 #' It is recommended to filter the image with the less cloud cover to create
 #' a mosaic for the EO cubes.
-#' It is possible to provide a \code{roi} to cropping the mosaic.
-#' If the \code{roi} parameter is supplied, each tile will be
-#' cropped in parallel and the multicores parameter can be
-#' used to define how many tiles will be cropped simultaneously.
+#' It is possible to provide a \code{roi} to crop the mosaic.
 #'
 #' @param cube       A sits data cube.
 #' @param crs        A target coordinate reference system of raster mosaic.
-#'                   The provided crs could be a character
-#'                   (e.g, "EPSG:4326" or a proj4string), or a
-#'                   a numeric with the EPSG code (e.g. 4326).
+#'                   The provided crs could be a string
+#'                   (e.g, "EPSG:4326" or a proj4string), or
+#'                   an EPSG code number (e.g. 4326).
+#'                   Default is "EPSG:3857" - WGS 84 / Pseudo-Mercator.
 #' @param roi        Region of interest (see below).
 #' @param multicores Number of cores that will be used to
 #'                   crop the images in parallel.
 #' @param output_dir Directory for output images.
-#' @param  version   Version of resulting image
+#' @param version    Version of resulting image
 #'                   (in the case of multiple tests)
 #' @param progress   Show progress bar? Default is TRUE.
 #'
 #' @return a sits cube with only one tile.
 #'
 #' @note
-#'    The "roi" parameter defines a region of interest. It can be
-#'    an sf_object, a shapefile, or a bounding box vector with
-#'    named XY values ("xmin", "xmax", "ymin", "ymax") or
-#'    named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
+#'  The "roi" parameter defines a region of interest. It can be
+#'  an sf_object, a shapefile, or a bounding box vector with
+#'  named XY values ("xmin", "xmax", "ymin", "ymax") or
+#'  named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
+#'
+#'  The user should specify the crs of the mosaic since in many cases the
+#'  input images will be in different coordinate systems. For example,
+#'  when mosaicking Sentinel-2 images the inputs will be in general in
+#'  different UTM grid zones.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -62,19 +65,19 @@
 #'             c(-55.64768, -11.68649),
 #'             c(-55.69654, -11.66455),
 #'             c(-55.62973, -11.61519),
-#'             c(-55.64768, -11.68649)))), crs = 4326
+#'             c(-55.64768, -11.68649)))), crs = "EPSG:4326"
 #'     )
 #'     # crop and mosaic classified image
 #'     mosaic_cube <- sits_mosaic(
 #'              cube = label_cube,
 #'              roi = roi,
-#'              crs = 4326
+#'              crs = "EPSG:4326"
 #'     )
 #' }
 #'
 #' @export
 sits_mosaic <- function(cube,
-                        crs,
+                        crs = "EPSG:3857",
                         roi = NULL,
                         multicores = 2,
                         output_dir = getwd(),
