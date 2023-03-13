@@ -40,36 +40,6 @@ inline double _min(const NumericVector& neigh) {
 inline double _max(const NumericVector& neigh) {
     return max(na_omit(neigh));
 }
-inline double _bayes_mean(const NumericVector& neigh){
-    NumericVector n_neigh = clone(neigh);
-    NumericVector n_pos;
-    NumericVector n_neg;
-    for(NumericVector::iterator it = n_neigh.begin(); it != n_neigh.end(); ++it) {
-        if (*it >= 0)
-            n_pos.push_back(*it);
-        else
-            n_neg.push_back(*it);
-    }
-    if (n_pos.size() >= n_neg.size())
-        return mean(n_pos);
-    else
-        return mean(n_neg);
-}
-inline double _bayes_var(const NumericVector& neigh){
-    NumericVector n_neigh = clone(neigh);
-    NumericVector n_pos;
-    NumericVector n_neg;
-    for(NumericVector::iterator it = n_neigh.begin(); it != n_neigh.end(); ++it) {
-        if (*it >= 0)
-            n_pos.push_back(*it);
-        else
-            n_neg.push_back(*it);
-    }
-    if (n_pos.size() >= n_neg.size())
-        return var(n_pos);
-    else
-        return var(n_neg);
-}
 
 
 
@@ -136,42 +106,4 @@ NumericVector C_kernel_min(const NumericMatrix& x, int ncols,
 NumericVector C_kernel_max(const NumericMatrix& x, int ncols,
                            int nrows, int band, int window_size) {
     return kernel_fun(x, ncols, nrows, band, window_size, _max);
-}
-// [[Rcpp::export]]
-NumericMatrix C_kernel_bayes_mean(const NumericMatrix& x, int ncols,
-                             int nrows, int window_size){
-
-    NumericMatrix res(x.nrow(), x.ncol());
-
-    for (int band = 0; band < x.ncol(); band++){
-        res(_, band) = kernel_fun(x, ncols, nrows, band, window_size, _bayes_mean);
-    }
-    return res;
-}
-// [[Rcpp::export]]
-NumericMatrix C_kernel_bayes_var(const NumericMatrix& x, int ncols,
-                                  int nrows, int window_size){
-
-    NumericMatrix res(x.nrow(), x.ncol());
-
-    for (int band = 0; band < x.ncol(); band++){
-        res(_, band) = kernel_fun(x, ncols, nrows, band, window_size, _bayes_var);
-    }
-    return res;
-}
-// [[Rcpp::export]]
-NumericMatrix C_bayes_posterior(const NumericMatrix& x,
-                                const NumericVector& s,
-                                const NumericMatrix& m,
-                                const NumericMatrix& v){
-    NumericMatrix y(x);
-
-    for (int label = 0; label < x.ncol(); label++){
-        for (int pixel = 0; pixel < x.nrow(); pixel++){
-            double d = (s(label) + v(pixel, label));
-            y(pixel, label) = s(label)/d * m(pixel, label) +
-                v(pixel, label)/d * x(pixel, label);
-        }
-    }
-    return y;
 }

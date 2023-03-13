@@ -1002,7 +1002,9 @@ plot.class_cube <- function(x, y, ...,
                 palette = palette,
                 title = band,
                 midpoint = NA) +
-            tmap::tm_graticules()  +
+            tmap::tm_graticules(
+                labels.size = 0.7
+            )  +
             tmap::tm_compass() +
             tmap::tm_layout(legend.title.size = 1.5,
                             legend.text.size = 1.2,
@@ -1079,16 +1081,17 @@ plot.class_cube <- function(x, y, ...,
                 palette = colors,
                 labels = labels) +
             tmap::tm_graticules(
-                labels.size = 0.8
+                labels.size = 0.7
             )  +
             tmap::tm_compass() +
             tmap::tm_layout(
-                legend.title.size = 1.0,
-                legend.text.size = 0.8,
+                legend.show = TRUE,
+                legend.outside = FALSE,
+                legend.title.size = 1.4,
+                legend.text.size = 1.1,
                 legend.bg.color = "white",
-                legend.bg.alpha = 0.8)
+                legend.bg.alpha = 0.5)
     )
-
     return(p)
 }
 #' @title  Plot probs

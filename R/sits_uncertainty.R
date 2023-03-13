@@ -8,7 +8,6 @@
 #'
 #' @param  cube         Probability data cube.
 #' @param  type         Method to measure uncertainty. See details.
-#' @param  window_size  Size of neighborhood to calculate uncertainty.
 #' @param  multicores   Number of cores to run the function.
 #' @param  memsize      Maximum overall memory (in GB) to run the function.
 #' @param  output_dir   Output directory for image files.
@@ -57,18 +56,14 @@
 #' }
 #' @export
 sits_uncertainty <- function(cube,
-                             type = "least",
-                             window_size = 5,
+                             type = "margin",
                              memsize = 4,
                              multicores = 2,
                              output_dir = getwd(),
-                             version = "v1",
-                             progress = TRUE) {
+                             version = "v1") {
 
     # Check if cube has probability data
     .check_is_probs_cube(cube)
-    # Check window size
-    .check_window_size(window_size)
     # Check memsize
     .check_memsize(memsize)
     # Check multicores
@@ -77,6 +72,27 @@ sits_uncertainty <- function(cube,
     .check_output_dir(output_dir)
     # check version
     .check_version(version)
+
+    # Check memory and multicores
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = .block_size(block = block, overlap = 0),
+        npaths = length(.tile_labels(cube)) + 1,
+        nbytes = 8,
+        proc_bloat = .conf("processing_bloat")
+    )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
+
+    # Prepare parallel processing
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop(), add = TRUE)
 
     # Define the class of the smoothing
     class(type) <- c(type, class(type))
@@ -87,26 +103,26 @@ sits_uncertainty <- function(cube,
 #' @export
 sits_uncertainty.least <- function(cube,
                                    type = "least",
-                                   window_size = 5,
                                    memsize = 4,
                                    multicores = 2,
                                    output_dir = getwd(),
-                                   version = "v1",
-                                   progress = TRUE) {
+                                   version = "v1") {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
-    uncert_fn <- .uncert_fn_least(window_size = window_size)
-    uncert_cube <- .uncert(
-        cube = cube,
-        uncert_fn = uncert_fn,
-        band = "least",
-        window_size = window_size,
-        memsize = memsize,
-        multicores = multicores,
-        output_dir = output_dir,
-        version = version,
-        progress = progress
-    )
+    uncert_fn <- .uncertainty_fn_least()
+    # Uncertainty
+    # Process each tile sequentially
+    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
+        # Compute uncertainty
+        uncert_tile <- .uncertainty_tile(
+            tile = tile,
+            band = "least",
+            uncert_fn = uncert_fn,
+            output_dir = output_dir,
+            version = version
+        )
+        return(uncert_tile)
+    })
     return(uncert_cube)
 }
 
@@ -114,26 +130,26 @@ sits_uncertainty.least <- function(cube,
 #' @export
 sits_uncertainty.entropy <- function(cube,
                                      type = "entropy",
-                                     window_size = 5,
                                      memsize = 4,
                                      multicores = 2,
                                      output_dir = getwd(),
-                                     version = "v1",
-                                     progress = TRUE) {
+                                     version = "v1") {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
-    uncert_fn <- .uncert_fn_least(window_size = window_size)
-    uncert_cube <- .uncert(
-        cube = cube,
-        uncert_fn = uncert_fn,
-        band = "entropy",
-        window_size = window_size,
-        memsize = memsize,
-        multicores = multicores,
-        output_dir = output_dir,
-        version = version,
-        progress = progress
-    )
+    uncert_fn <- .uncertainty_fn_entropy()
+    # Uncertainty
+    # Process each tile sequentially
+    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
+        # Compute uncertainty
+        uncert_tile <- .uncertainty_tile(
+            tile = tile,
+            band = "entropy",
+            uncert_fn = uncert_fn,
+            output_dir = output_dir,
+            version = version
+        )
+        return(uncert_tile)
+    })
     return(uncert_cube)
 }
 
@@ -141,25 +157,25 @@ sits_uncertainty.entropy <- function(cube,
 #' @export
 sits_uncertainty.margin <- function(cube,
                                     type = "margin",
-                                    window_size = 5,
                                     memsize = 4,
                                     multicores = 2,
                                     output_dir = getwd(),
-                                    version = "v1",
-                                    progress = TRUE) {
+                                    version = "v1") {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
-    uncert_fn <- .uncert_fn_least(window_size = window_size)
-    uncert_cube <- .uncert(
-        cube = cube,
-        uncert_fn = uncert_fn,
-        band = "margin",
-        window_size = window_size,
-        memsize = memsize,
-        multicores = multicores,
-        output_dir = output_dir,
-        version = version,
-        progress = progress
-    )
+    uncert_fn <- .uncertainty_fn_margin()
+    # Uncertainty
+    # Process each tile sequentially
+    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
+        # Compute uncertainty
+        uncert_tile <- .uncertainty_tile(
+            tile = tile,
+            band = "margin",
+            uncert_fn = uncert_fn,
+            output_dir = output_dir,
+            version = version
+        )
+        return(uncert_tile)
+    })
     return(uncert_cube)
 }
