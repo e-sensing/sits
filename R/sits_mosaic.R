@@ -5,7 +5,11 @@
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Rolf Simoes,     \email{rolf.simoes@@inpe.br}
 #'
-#' @description Creates a mosaic of all tiles of a classified cube.
+#' @description Creates a mosaic of all tiles of a sits cube.
+#' Mosaics can be created from EO cubes and derived cubes.
+#' In sits EO cubes, the mosaic will be generated for each band and date.
+#' It is recommended to filter the image with the less cloud cover to create
+#' a mosaic for the EO cubes.
 #' It is possible to provide a \code{roi} to cropping the mosaic.
 #' If the \code{roi} parameter is supplied, each tile will be
 #' cropped in parallel and the multicores parameter can be

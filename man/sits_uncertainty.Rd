@@ -9,35 +9,29 @@
 \usage{
 sits_uncertainty(
   cube,
-  type = "least",
-  window_size = 5,
+  type = "margin",
   memsize = 4,
   multicores = 2,
   output_dir = getwd(),
-  version = "v1",
-  progress = TRUE
+  version = "v1"
 )
 
 \method{sits_uncertainty}{least}(
   cube,
   type = "least",
-  window_size = 5,
   memsize = 4,
   multicores = 2,
   output_dir = getwd(),
-  version = "v1",
-  progress = TRUE
+  version = "v1"
 )
 
 \method{sits_uncertainty}{entropy}(
   cube,
   type = "entropy",
-  window_size = 5,
   memsize = 4,
   multicores = 2,
   output_dir = getwd(),
-  version = "v1",
-  progress = TRUE
+  version = "v1"
 )
 
 \method{sits_uncertainty}{margin}(
@@ -46,8 +40,7 @@ sits_uncertainty(
   memsize = 4,
   multicores = 2,
   output_dir = getwd(),
-  version = "v1",
-  progress = TRUE
+  version = "v1"
 )
 }
 \arguments{
