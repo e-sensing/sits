@@ -74,7 +74,7 @@ Suggests:
     ggplot2,
     httr,
     jsonlite,
-    kohonen(>= 3.0.11),
+    kohonen (>= 3.0.11),
     leafem (>= 0.2.0),
     leaflet (>= 2.1.1),
     luz (>= 0.3.0),
@@ -88,8 +88,9 @@ Suggests:
     stars (>= 0.6),
     testthat (>= 3.1.3),
     tmap (>= 3.3),
-    torchopt(>= 0.1.2),
-    xgboost
+    torchopt (>= 0.1.2),
+    xgboost,
+    covr
 Config/testthat/edition: 3
 Config/testthat/parallel: false
 Config/testthat/start-first: cube, raster, ml

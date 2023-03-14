@@ -30,7 +30,7 @@ torch::torch_manual_seed(1234)
 [![Documentation](https://img.shields.io/badge/docs-online-blueviolet)](https://e-sensing.github.io/sitsbook/)
 [![Life cycle](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![Software License](https://img.shields.io/badge/license-GPL--2-green)](https://github.com/e-sensing/sits/blob/master/LICENSE)
-
+[![Codecov test coverage](https://codecov.io/gh/e-sensing/sits/branch/master/graph/badge.svg)](https://app.codecov.io/gh/e-sensing/sits?branch=master)
 <!-- badges: end -->
 
 ## Overview
