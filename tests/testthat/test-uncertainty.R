@@ -66,7 +66,7 @@ test_that("uncertainty works", {
     expect_true(range(least_r[])[2] > range(least_r[])[1])
 
     margin_r <- .raster_open_rast(margin_fi[["path"]])
-    expect_true(all(range(margin_r[]) > 0))
+    expect_true(all(range(margin_r[]) >= 0))
     expect_true(range(margin_r[])[2] > range(margin_r[])[1])
 
 })

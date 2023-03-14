@@ -140,7 +140,7 @@ sits_colors_reset <- function() {
             rev = rev
         )
         # if there is only one color, get it
-        colors_pal <- colors_pal[1:length(missing)]
+        colors_pal <- colors_pal[seq_len(length(missing))]
         names(colors_pal) <- missing
         # put all colors together
         colors <- c(colors, colors_pal)

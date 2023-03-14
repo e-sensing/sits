@@ -546,7 +546,8 @@ sits_get_data.data.frame <- function(cube,
     }
 
     ts_tbl <- ts_tbl %>%
-        dplyr::summarise(dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
+        dplyr::summarise(
+            dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
         tidyr::nest(time_series = !!c("Index", bands)) %>%
@@ -746,7 +747,8 @@ sits_get_data.data.frame <- function(cube,
     }
 
     ts_tbl <- ts_tbl %>%
-        dplyr::summarise(dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
+        dplyr::summarise(
+            dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
         dplyr::arrange(.data[["from"]]) %>%
         dplyr::ungroup() %>%
         tidyr::nest(predicted = !!c("from", "to", bands)) %>%

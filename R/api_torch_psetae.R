@@ -577,7 +577,8 @@
         attn <- attn / self$temperature
         # apply a software layer to the weighted query * keys product
         attn <- self$softmax(attn)
-        self$attention_mask <- attn$detach()
+        # Detach attention mask
+        # self$attention_mask <- attn$detach()
         # apply a dropout value to the attention tensor
         attn <- self$dropout(attn)
         # calculate the product attention * values

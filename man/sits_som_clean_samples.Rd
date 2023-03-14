@@ -12,7 +12,7 @@ sits_som_clean_samples(
 )
 }
 \arguments{
-\item{som_map}{Object returned by \code{\link[sits]{sits_som_map}}.}
+\item{som_map}{Returned by \code{\link[sits]{sits_som_map}}.}
 
 \item{prior_threshold}{Threshold of conditional probability
 (frequency of samples assigned to the same SOM neuron).}

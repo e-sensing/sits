@@ -54,7 +54,11 @@ test_that("Reading a LAT/LONG from RASTER with crs parameter", {
     point_ndvi <- sits_get_data(
         cube = raster_cube,
         samples = samples,
-        crs = "+proj=aea +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs "
+        crs = "+proj=aea
+        +lat_0=-12 +lon_0=-54
+        +lat_1=-2 +lat_2=-22
+        +x_0=5000000 +y_0=10000000
+        +ellps=GRS80 +units=m +no_defs "
     )
 
     expect_equal(names(point_ndvi)[1], "longitude")
@@ -145,7 +149,11 @@ test_that("Reading a CSV file from RASTER with crs parameter", {
     df_sf <- sits_as_sf(data = df_csv, crs = 4326)
     df_sf_reproj <- sf::st_transform(
         x = df_sf,
-        crs = "+proj=aea +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs "
+        crs = "+proj=aea
+        +lat_0=-12 +lon_0=-54
+        +lat_1=-2 +lat_2=-22
+        +x_0=5000000 +y_0=10000000
+        +ellps=GRS80 +units=m +no_defs "
     )
 
     df_sf_reproj[, c("longitude", "latitude")] <-
@@ -160,7 +168,11 @@ test_that("Reading a CSV file from RASTER with crs parameter", {
         raster_cube,
         samples = path_samples_repr,
         output_dir = tempdir(),
-        crs = "+proj=aea +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs "
+        crs = "+proj=aea
+        +lat_0=-12 +lon_0=-54
+        +lat_1=-2 +lat_2=-22
+        +x_0=5000000 +y_0=10000000
+        +ellps=GRS80 +units=m +no_defs "
     )
 
     expect_true("Forest" %in% sits_labels(points_df))

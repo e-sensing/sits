@@ -820,7 +820,11 @@ NULL
 #' @param labels labels associated to the tile
 #' @param update_bbox  should bbox be updated?
 #' @return a new variance tile
-.tile_variance_from_file <- function(file, band, base_tile, labels, update_bbox) {
+.tile_variance_from_file <- function(file,
+                                     band,
+                                     base_tile,
+                                     labels,
+                                     update_bbox) {
     # Open block file to be merged
     r_obj <- .raster_open_rast(file)
     # Check number of labels is correct

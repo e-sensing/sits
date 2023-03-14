@@ -47,7 +47,8 @@ sits_to_xlsx <- function(acc_lst, file, data = NULL) {
     # create a workbook to save the results
     workbook <- openxlsx::createWorkbook("accuracy")
     # eo_names of the accuracy assessment parameters
-    eo_n <- c("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)|(F1)")
+    eo_n <- c("(Sensitivity)|(Specificity)|
+              (Pos Pred Value)|(Neg Pred Value)|(F1)")
     # defined the number of sheets
     num_sheets <- length(acc_lst)
     .check_length(

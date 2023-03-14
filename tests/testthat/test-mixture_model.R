@@ -116,8 +116,10 @@ test_that("Mixture model tests", {
         output_dir = tempdir()
     )
     expect_equal(
-        dplyr::bind_rows(ts_em_bands$time_series)[,c("FOREST", "LAND", "WATER")],
-        dplyr::bind_rows(ts_em$time_series)[,c("FOREST", "LAND", "WATER")],
+        dplyr::bind_rows(
+            ts_em_bands$time_series)[,c("FOREST", "LAND", "WATER")],
+        dplyr::bind_rows(
+            ts_em$time_series)[,c("FOREST", "LAND", "WATER")],
         tolerance = 0.01
     )
     unlink(list.files(tempdir(), full.names = TRUE))
