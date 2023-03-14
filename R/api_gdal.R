@@ -162,8 +162,10 @@
                              roi_file,
                              as_crs = NULL,
                              miss_value = NULL,
+                             data_type,
                              multicores = 1) {
     gdal_params <- list(
+        "-ot" = .gdal_data_type[[data_type]],
         "-of" = .conf("gdal_presets", "image", "of"),
         "-co" = .conf("gdal_presets", "image", "co"),
         "-wo" = paste0("NUM_THREADS=", multicores),
@@ -202,8 +204,9 @@
 }
 
 .gdal_reproject_image <- function(file, out_file, crs, as_crs, miss_value,
-                                  multicores) {
+                                  data_type, multicores) {
     gdal_params <- list(
+        "-ot" = .gdal_data_type[[data_type]],
         "-of" = .conf("gdal_presets", "image", "of"),
         "-co" = .conf("gdal_presets", "image", "co"),
         "-wo" = paste0("NUM_THREADS=", multicores),
