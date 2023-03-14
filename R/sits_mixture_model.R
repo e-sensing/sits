@@ -162,8 +162,6 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     # Pre-conditions
     .check_is_raster_cube(data)
     .check_memsize(memsize)
-    # output_dir <- file.path(output_dir = output_dir)
-    output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
     .check_lgl_type(progress)
 
@@ -181,7 +179,8 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     .check_is_regular(data)
     # Pre-condition
     .check_endmembers_bands(
-        em = em, bands = .cube_bands(data, add_cloud = FALSE)
+        em = em,
+        bands = .cube_bands(data, add_cloud = FALSE)
     )
     # Fractions to be produced
     out_fracs <- .endmembers_fracs(em = em, include_rmse = rmse_band)
@@ -218,9 +217,12 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     features_fracs <- .jobs_map_parallel_dfr(features_cube, function(feature) {
         # Process the data
         output_feature <- .mixture_feature(
-            feature = feature, block = block,
-            em = em, mixture_fn = mixture_fn,
-            out_fracs = out_fracs, output_dir = output_dir
+            feature = feature,
+            block = block,
+            em = em,
+            mixture_fn = mixture_fn,
+            out_fracs = out_fracs,
+            output_dir = output_dir
         )
         return(output_feature)
     }, progress = progress)
@@ -263,9 +265,12 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
                 "change 'output_dir' parameters)")
         # Create tile based on template
         fracs_feature <- .tile_eo_from_files(
-            files = out_files, fid = .fi_fid(.fi(feature)),
-            bands = out_fracs, date = .tile_start_date(feature),
-            base_tile = feature, update_bbox = FALSE
+            files = out_files,
+            fid = .fi_fid(.fi(feature)),
+            bands = out_fracs,
+            date = .tile_start_date(feature),
+            base_tile = feature,
+            update_bbox = FALSE
         )
         return(fracs_feature)
     }
@@ -322,8 +327,11 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
             value = block_files
         )
         .raster_write_block(
-            files = block_files, block = block, bbox = .bbox(chunk),
-            values = values, data_type = .data_type(band_conf),
+            files = block_files,
+            block = block,
+            bbox = .bbox(chunk),
+            values = values,
+            data_type = .data_type(band_conf),
             missing_value = .miss_value(band_conf),
             crop_block = NULL
         )

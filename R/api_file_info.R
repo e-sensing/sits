@@ -13,7 +13,10 @@ NULL
 #' @param tile  A tile.
 #' @returns A `file_info` tibble.
 .fi <- function(tile) {
-    tile[["file_info"]][[1]]
+    fi <- tile[["file_info"]][[1]]
+    # if (!.has(.crs(fi)))
+    #     .crs(fi) <- .crs(tile)
+    fi
 }
 
 #' @title Set `file_info` into a given tile.
@@ -48,15 +51,24 @@ NULL
                    ymin, ymax, path) {
     # Create a new eo file_info
     tibble::tibble(
-        fid = fid, band = .band_eo(band), date = date, ncols = ncols,
-        nrows = nrows, xres = xres, yres = yres, xmin = xmin, xmax = xmax,
-        ymin = ymin, ymax = ymax, path = path
+        fid = fid,
+        band = .band_eo(band),
+        date = date,
+        ncols = ncols,
+        nrows = nrows,
+        xres = xres,
+        yres = yres,
+        xmin = xmin,
+        xmax = xmax,
+        ymin = ymin,
+        ymax = ymax,
+        path = path
     )
 }
 
 .fi_eo_from_files <- function(files, fid, bands, date) {
     .check_that(length(files) == length(bands))
-    files <- path.expand(files)
+    files <- .file_normalize(files)
     r_obj <- .raster_open_rast(files)
     .fi_eo(
         fid = fid[[1]],
@@ -75,26 +87,40 @@ NULL
 }
 
 .fi_derived <- function(band, start_date, end_date, ncols, nrows, xres, yres,
-                        xmin, xmax, ymin, ymax, crs, path) {
+                        xmin, xmax, ymin, ymax, path) {
     # Create a new derived file_info
     tibble::tibble(
-        band = .band_derived(band), start_date = start_date,
-        end_date = end_date, ncols = ncols, nrows = nrows,
-        xres = xres, yres = yres, xmin = xmin, xmax = xmax,
-        ymin = ymin, ymax = ymax, crs = crs, path = path
+        band = .band_derived(band),
+        start_date = start_date,
+        end_date = end_date,
+        ncols = ncols,
+        nrows = nrows,
+        xres = xres,
+        yres = yres,
+        xmin = xmin,
+        xmax = xmax,
+        ymin = ymin,
+        ymax = ymax,
+        path = path
     )
 }
 
 .fi_derived_from_file <- function(file, band, start_date, end_date) {
-    file <- path.expand(file)
+    file <- .file_normalize(file)
     r_obj <- .raster_open_rast(file)
     .fi_derived(
-        band = band, start_date = start_date, end_date = end_date,
-        ncols = .raster_ncols(r_obj), nrows = .raster_nrows(r_obj),
-        xres = .raster_xres(r_obj), yres = .raster_yres(r_obj),
-        xmin = .raster_xmin(r_obj), xmax = .raster_xmax(r_obj),
-        ymin = .raster_ymin(r_obj), ymax = .raster_ymax(r_obj),
-        crs = .raster_crs(r_obj), path = file
+        band = band,
+        start_date = start_date,
+        end_date = end_date,
+        ncols = .raster_ncols(r_obj),
+        nrows = .raster_nrows(r_obj),
+        xres = .raster_xres(r_obj),
+        yres = .raster_yres(r_obj),
+        xmin = .raster_xmin(r_obj),
+        xmax = .raster_xmax(r_obj),
+        ymin = .raster_ymin(r_obj),
+        ymax = .raster_ymax(r_obj),
+        path = file
     )
 }
 
@@ -152,7 +178,7 @@ NULL
 .fi_timeline <- function(fi) {
     .fi_switch(
         fi = fi,
-        eo_cube = .as_date(fi[["date"]]),
+        eo_cube = sort(.as_date(fi[["date"]])),
         derived_cube = .as_date(c(fi[["start_date"]], fi[["end_date"]]))
     )
 }
@@ -246,4 +272,12 @@ NULL
 
 .fi_contains_cloud <- function(fi) {
     .band_cloud() %in% .fi_bands(fi)
+}
+
+.fi_is_complete <- function(fi) {
+    length(unique(.by(fi, col = "band", .fi_timeline))) <= 1
+}
+
+.fi_same_bbox <- function(fi, tolerance) {
+    all(slider::slide_lgl(fi, .bbox_equal, .bbox(fi), tolerance = tolerance))
 }

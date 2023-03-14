@@ -13,55 +13,6 @@
     .is_eq(unlist(bbox1[.bbox_cols]), unlist(bbox2[.bbox_cols]),
            tolerance = tolerance)
 }
-#'
-#'
-#' @title Intersection between a bounding box and a cube
-#' @name .bbox_intersect
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param bbox           Bounding box for a region of interest.
-#' @param cube           Data cube.
-#' @return               Vector the bounding box intersection.
-.bbox_intersect <- function(bbox, cube) {
-    bbox_out <- vector("double", length = 4)
-    names(bbox_out) <- c("xmin", "ymin", "xmax", "ymax")
-
-    if (bbox["xmin"] > cube$xmax |
-        bbox["ymin"] > cube$ymax |
-        bbox["xmax"] < cube$xmin |
-        bbox["ymax"] < cube$ymin) {
-        return(NULL)
-    }
-
-    if (bbox["xmin"] < cube$xmin) {
-        bbox_out["xmin"] <- cube$xmin
-    } else {
-        bbox_out["xmin"] <- bbox["xmin"]
-    }
-
-    if (bbox["ymin"] < cube$ymin) {
-        bbox_out["ymin"] <- cube$ymin
-    } else {
-        bbox_out["ymin"] <- bbox["ymin"]
-    }
-
-    if (bbox["xmax"] > cube$xmax) {
-        bbox_out["xmax"] <- cube$xmax
-    } else {
-        bbox_out["xmax"] <- bbox["xmax"]
-    }
-
-    if (bbox["ymax"] > cube$ymax) {
-        bbox_out["ymax"] <- cube$ymax
-    } else {
-        bbox_out["ymax"] <- bbox["ymax"]
-    }
-
-    return(bbox_out)
-}
-
 #' @title Bounding box API
 #' @noRd
 #'
@@ -138,7 +89,7 @@ NULL
 #'   used? If `NULL`, default CRS will be 'EPSG:4326'.
 #' @param as_crs  A CRS to project bbox. Useful if bbox has multiples CRS.
 #' @returns A bbox from any given object.
-.bbox <- function(x, default_crs = NULL, as_crs = NULL) {
+.bbox <- function(x, default_crs = NULL, as_crs = NULL, by_feature = FALSE) {
     x <- .bbox_switch(
         x = x,
         sf = .bbox_from_sf(x),
@@ -147,7 +98,7 @@ NULL
     )
     # Convert to sf and get bbox
     geom <- .bbox_as_sf(bbox = x, as_crs = as_crs)
-    bbox <- .bbox_from_sf(geom)
+    bbox <- .bbox_from_sf(geom, by_feature = by_feature)
     # Update crs
     if (.has(as_crs)) {
         .crs(bbox) <- as_crs
@@ -158,8 +109,14 @@ NULL
 #' @title Extract a bbox from a sf object
 #' @noRd
 #' @returns A \code{bbox} from any given \code{sf}.
-.bbox_from_sf <- function(x) {
-    bbox <- tibble::as_tibble_row(c(sf::st_bbox(x)))
+.bbox_from_sf <- function(x, by_feature = FALSE) {
+    bbox <- if (by_feature) {
+        slider::slide_dfr(x, function(y) {
+            tibble::as_tibble_row(c(sf::st_bbox(y)))
+        })
+    } else {
+        tibble::as_tibble_row(c(sf::st_bbox(x)))
+    }
     bbox <- bbox[.bbox_cols]
     .crs(bbox) <- sf::st_crs(x)[["wkt"]]
     # Return bbox

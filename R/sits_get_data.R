@@ -126,7 +126,7 @@ sits_get_data <- function(cube,
     # Pre-conditions
     .check_is_raster_cube(cube)
     .check_is_regular(cube)
-    .check_bands_in_cube(bands = bands, cube = cube)
+    .check_cube_bands(cube, bands = bands)
     .check_crs(crs)
     .check_multicores(multicores)
     .check_output_dir(output_dir)
@@ -531,8 +531,18 @@ sits_get_data.data.frame <- function(cube,
         return(ts)
     }, progress = progress)
 
-    ts_tbl <- samples_tiles_bands %>%
-        dplyr::bind_rows() %>%
+    ts_tbl <- dplyr::bind_rows(samples_tiles_bands)
+
+    if (!.has_ts(ts_tbl)) {
+        warning(
+            "No time series were extracted. ",
+            "Check your samples and your input cube",
+            immediate. = TRUE, call. = FALSE
+        )
+        return(.tibble())
+    }
+
+    ts_tbl <- ts_tbl %>%
         tidyr::unnest("time_series") %>%
         dplyr::group_by(
             .data[["longitude"]], .data[["latitude"]],

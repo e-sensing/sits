@@ -103,8 +103,6 @@ sits_reclassify <- function(cube, mask, rules, memsize = 1, multicores = 2,
     .check_cube_is_class_cube(mask)
     .check_memsize(memsize)
     .check_multicores(multicores)
-    # Expand output_dir path
-    output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
     .check_version(version)
 
@@ -120,7 +118,9 @@ sits_reclassify <- function(cube, mask, rules, memsize = 1, multicores = 2,
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+        job_memsize = job_memsize,
+        memsize = memsize,
+        multicores = multicores
     )
 
     # Prepare parallelization
@@ -141,8 +141,9 @@ sits_reclassify.class_cube <- function(cube, mask, rules, memsize = 4,
     # Reclassify parameters checked in reclassify function
     # Create reclassification function
     reclassify_fn <- .reclassify_fn_expr(
-        rules = rules, labels_cube = .tile_labels(cube),
-        labels_mask = .tile_labels(mask)
+        rules = rules,
+        labels_cube = .cube_labels(cube),
+        labels_mask = .cube_labels(mask)
     )
     # Filter mask - bands
     mask <- .cube_filter_bands(cube = mask, bands = "class")
@@ -150,16 +151,20 @@ sits_reclassify.class_cube <- function(cube, mask, rules, memsize = 4,
     class_cube <- .cube_foreach_tile(cube, function(tile, mask) {
         # Filter mask - spatial
         mask <- .try({
-            .cube_filter_spatial(cube = mask, roi = .bbox(tile))
+            .cube_filter_spatial(cube = mask, roi = .tile_bbox(tile))
         },
         .msg_error = "mask's roi does not intersect cube"
         )
         # Get output labels
-        labels <- unique(c(.tile_labels(cube), names(rules)))
+        labels <- unique(c(.cube_labels(cube), names(rules)))
         # Classify the data
         class_tile <- .reclassify_tile(
-            tile = tile, mask = mask, band = "class", labels = labels,
-            reclassify_fn = reclassify_fn, output_dir = output_dir,
+            tile = tile,
+            mask = mask,
+            band = "class",
+            labels = labels,
+            reclassify_fn = reclassify_fn,
+            output_dir = output_dir,
             version = version
         )
         return(class_tile)

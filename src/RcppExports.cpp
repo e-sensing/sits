@@ -184,6 +184,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// mask_na
+LogicalVector mask_na(const NumericMatrix& mtx);
+RcppExport SEXP _sits_mask_na(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(mask_na(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// fill_na
+NumericMatrix fill_na(NumericMatrix& mtx, double fill);
+RcppExport SEXP _sits_fill_na(SEXP mtxSEXP, SEXP fillSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type mtx(mtxSEXP);
+    Rcpp::traits::input_parameter< double >::type fill(fillSEXP);
+    rcpp_result_gen = Rcpp::wrap(fill_na(mtx, fill));
+    return rcpp_result_gen;
+END_RCPP
+}
 // batch_calc
 arma::mat batch_calc(const int& n_pixels, const int& max_lines_per_batch);
 RcppExport SEXP _sits_batch_calc(SEXP n_pixelsSEXP, SEXP max_lines_per_batchSEXP) {
@@ -385,6 +408,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_label_max_prob", (DL_FUNC) &_sits_C_label_max_prob, 1},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
+    {"_sits_mask_na", (DL_FUNC) &_sits_mask_na, 1},
+    {"_sits_fill_na", (DL_FUNC) &_sits_fill_na, 2},
     {"_sits_batch_calc", (DL_FUNC) &_sits_batch_calc, 2},
     {"_sits_C_nnls_solver_batch", (DL_FUNC) &_sits_C_nnls_solver_batch, 5},
     {"_sits_C_normalize_data", (DL_FUNC) &_sits_C_normalize_data, 3},

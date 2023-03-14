@@ -265,6 +265,7 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
     freq <- do.call(rbind, freq_lst)
     # summarize the counts for each label
     freq <- freq %>%
+        dplyr::filter(!is.na(class)) %>%
         dplyr::group_by(class) %>%
         dplyr::summarise(area = sum(.data[["area"]]))
 

@@ -147,7 +147,7 @@
     # by default, roi is NULL
     roi_geojson <- NULL
     # obtain the bounding box and intersects parameters
-    if (!purrr::is_null(roi)) {
+    if (.has(roi)) {
         # convert to geojson
         roi_geojson <- .roi_sf_to_geojson(roi)
     }

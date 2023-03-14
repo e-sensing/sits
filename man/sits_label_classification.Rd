@@ -10,7 +10,8 @@ sits_label_classification(
   memsize = 4,
   multicores = 2,
   output_dir = getwd(),
-  version = "v1"
+  version = "v1",
+  progress = TRUE
 )
 
 \method{sits_label_classification}{probs_cube}(
@@ -18,7 +19,8 @@ sits_label_classification(
   memsize = 4,
   multicores = 2,
   output_dir = getwd(),
-  version = "v1"
+  version = "v1",
+  progress = TRUE
 )
 }
 \arguments{

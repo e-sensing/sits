@@ -146,7 +146,8 @@ NULL
 #' @param roi  Region of interest
 #' @returns  A tibble with filtered chunks
 .chunks_filter_spatial <- function(chunks, roi) {
-    chunks[.intersects(.bbox_as_sf(.bbox_from_tbl(chunks)), .roi_as_sf(roi)), ]
+    chunks_sf <- .bbox_as_sf(.bbox(chunks, by_feature = TRUE))
+    chunks[.intersects(chunks_sf, .roi_as_sf(roi)), ]
 }
 
 #' @title Chunk accessors

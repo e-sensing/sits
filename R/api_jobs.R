@@ -1,4 +1,3 @@
-
 .jobs_memsize <- function(job_size, npaths, nbytes, proc_bloat) {
     # Memory needed per job
     job_size * npaths * nbytes * proc_bloat * 1e-09
@@ -20,9 +19,9 @@
 .jobs_optimal_block <- function(job_memsize, block, image_size, memsize,
                                 multicores) {
     # Memory per core
-    mpc <- floor(memsize / multicores)
+    mpc <- memsize / multicores
     # Blocks per core
-    bpc <- floor(mpc / job_memsize)
+    bpc <- max(1, floor(mpc / job_memsize))
     # Image horizontal blocks
     hb <- ceiling(image_size[["ncols"]] / block[["ncols"]])
     if (bpc < hb * 2) {
@@ -41,12 +40,19 @@
     # Number of vertical segments
     v_nsegs <- ceiling(vb / lpc)
     # Number of vertical blocks
-    return(c(ncols = hb * block[["ncols"]],
-             nrows = ceiling(vb / v_nsegs) * block[["nrows"]]))
+    return(c(ncols = min(hb * block[["ncols"]], image_size[["ncols"]]),
+             nrows = min(ceiling(vb / v_nsegs) * block[["nrows"]],
+                         image_size[["nrows"]]))
+    )
 }
 
 .jobs_multicores <- function() {
     length(sits_env[["cluster"]])
+}
+
+.jobs_split <- function(jobs) {
+    # TODO: split jobs by multicores (nrow(jobs) / muticores = #rounds)
+    list(jobs)
 }
 
 .jobs_map_sequential <- function(jobs, fn, ...) {
@@ -61,9 +67,17 @@
     slider::slide_dfr(jobs, fn, ...)
 }
 
-.jobs_map_parallel <- function(jobs, fn, ..., progress = FALSE) {
-    jobs <- slider::slide(jobs, identity)
-    .sits_parallel_map(jobs, fn, ..., progress = progress)
+.jobs_map_parallel <- function(jobs, fn, ..., sync_fn = NULL,
+                               progress = FALSE) {
+    # Do split by rounds only if sync_fn is not NULL
+    rounds <- .jobs_split(jobs)
+    unlist(purrr::map(rounds, function(round) {
+        if (!is.null(sync_fn)) {
+            sync_fn(round)
+        }
+        round <- slider::slide(round, identity)
+        .sits_parallel_map(round, fn, ..., progress = progress)
+    }), recursive = FALSE)
 }
 
 .jobs_map_parallel_chr <- function(jobs, fn, ..., progress = FALSE) {

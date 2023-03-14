@@ -2,19 +2,21 @@
 .comb <- function(probs_cubes,
                   uncert_cubes,
                   comb_fn,
+                  band,
                   memsize,
                   multicores,
                   output_dir,
-                  version, ...) {
+                  version,
+                  progress, ...) {
     # Check memory and multicores
     # Get block size
     base_cube <- probs_cubes[[1]]
-    block <- .raster_file_blocksize(
+    block_size <- .raster_file_blocksize(
         .raster_open_rast(.tile_path(base_cube))
     )
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block),
+        job_size = .block_size(block = block_size),
         npaths = length(probs_cubes) * nrow(base_cube) *
             length(sits_labels(base_cube)),
         nbytes = 8,
@@ -27,9 +29,9 @@
         multicores = multicores
     )
     # Update block parameter
-    block <- .jobs_optimal_block(
+    block_size <- .jobs_optimal_block(
         job_memsize = job_memsize,
-        block = block,
+        block = block_size,
         image_size = .tile_size(.tile(base_cube)),
         memsize = memsize,
         multicores = multicores
@@ -38,17 +40,18 @@
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    # Combining
-    # process each brick layer (each time step) individually
+    # Call the combine method
+    # Process each tile sequentially
     probs_cube <- purrr::map_dfr(seq_len(nrow(base_cube)), function(i) {
         probs_tile <- .comb_tiles(
             probs_tiles = lapply(probs_cubes, .slice_dfr, i),
             uncert_tiles = lapply(uncert_cubes, .slice_dfr, i),
-            band = "probs",
+            band = band,
             comb_fn = comb_fn,
-            block = block,
+            block_size = block_size,
             output_dir = output_dir,
-            version = version
+            version = version,
+            progress = progress
         )
         probs_tile
     })
@@ -59,13 +62,16 @@
                         uncert_tiles,
                         band,
                         comb_fn,
-                        block,
+                        block_size,
                         output_dir,
-                        version) {
+                        version,
+                        progress) {
     base_tile <- probs_tiles[[1]]
     # Output file
     out_file <- .file_derived_name(
-        tile = base_tile, band = band, version = version,
+        tile = base_tile,
+        band = band,
+        version = version,
         output_dir = output_dir
     )
     # Resume feature
@@ -77,20 +83,28 @@
         message("(If you want to produce a new probability image, please ",
                 "change 'output_dir' or 'version' parameters)")
         probs_tile <- .tile_probs_from_file(
-            file = out_file, band = band, base_tile = base_tile,
-            labels = .tile_labels(base_tile), update_bbox = FALSE
+            file = out_file,
+            band = band,
+            base_tile = base_tile,
+            labels = .tile_labels(base_tile),
+            update_bbox = FALSE
         )
         return(probs_tile)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = base_tile, overlap = 0, block = block)
+    chunks <- .tile_chunks_create(
+        tile = base_tile,
+        overlap = 0,
+        block = block_size
+    )
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
         block <- .block(chunk)
         # Block file name
         block_file <- .file_block_name(
-            pattern = .file_pattern(out_file), block = block,
+            pattern = .file_pattern(out_file),
+            block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure
@@ -100,7 +114,9 @@
         # Read and preprocess values
         values <- lapply(probs_tiles, function(tile) {
             .tile_read_block(
-                tile = tile, band = .tile_bands(tile), block = block
+                tile = tile,
+                band = .tile_bands(tile),
+                block = block
             )
         })
         # If an uncertainty cube has been passed, read it
@@ -109,7 +125,9 @@
             # Read and preprocess values
             uncert_values <- lapply(uncert_tiles, function(tile) {
                 .tile_read_block(
-                    tile = tile, band = .tile_bands(tile), block = block
+                    tile = tile,
+                    band = .tile_bands(tile),
+                    block = block
                 )
             })
         }
@@ -127,22 +145,38 @@
         if (.has(scale) && scale != 1) {
             values <- values / scale
         }
+        min <- .min_value(band_conf)
+        if (.has(max)) {
+            values[values < min] <- min
+        }
+        max <- .max_value(band_conf)
+        if (.has(max)) {
+            values[values > max] <- max
+        }
         # Prepare and save results as raster
         .raster_write_block(
-            files = block_file, block = block, bbox = .bbox(chunk),
-            values = values, data_type = .data_type(band_conf),
-            missing_value = .miss_value(band_conf)
+            files = block_file,
+            block = block,
+            bbox = .bbox(chunk),
+            values = values,
+            data_type = .data_type(band_conf),
+            missing_value = .miss_value(band_conf),
+            crop_block = NULL
         )
         # Free memory
         gc()
         # Return block file
         block_file
-    })
+    }, progress = progress)
     # Merge blocks into a new probs_cube tile
     probs_tile <- .tile_probs_merge_blocks(
-        file = out_file, band = band, labels = .tile_labels(base_tile),
-        base_tile = base_tile, block_files = block_files,
-        multicores = .jobs_multicores(), update_bbox = FALSE
+        file = out_file,
+        band = band,
+        labels = .tile_labels(base_tile),
+        base_tile = base_tile,
+        block_files = block_files,
+        multicores = .jobs_multicores(),
+        update_bbox = FALSE
     )
     # Return probs tile
     probs_tile

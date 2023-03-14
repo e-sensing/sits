@@ -59,7 +59,6 @@ sits_cube_copy <- function(cube,
         roi <- .roi_as_sf(roi)
     }
     .check_res(res)
-    output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
     .check_multicores(multicores)
     .check_progress(progress)
@@ -73,7 +72,10 @@ sits_cube_copy <- function(cube,
     # Process each tile sequentially
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
         local_asset <- .download_asset(
-            asset = asset, res = res, roi = roi, output_dir = output_dir,
+            asset = asset,
+            res = res,
+            roi = roi,
+            output_dir = output_dir,
             progress = progress
         )
         # Return local tile
@@ -85,7 +87,7 @@ sits_cube_copy <- function(cube,
 
 .download_asset <- function(asset, res, roi, output_dir, progress) {
     # Get all paths and expand
-    file <- path.expand(.tile_path(asset))
+    file <- .file_normalize(.tile_path(asset))
     # Create a list of user parameters as gdal format
     gdal_params <- .gdal_format_params(asset = asset, roi = roi, res = res)
     # Create output file

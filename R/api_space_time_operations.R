@@ -83,6 +83,7 @@
 
     return(samples)
 }
+
 #' @title Spatial intersects
 #' @noRd
 #'
@@ -110,4 +111,32 @@
     as_crs <- sf::st_crs(x)
     y <- sf::st_transform(y, crs = as_crs)
     apply(sf::st_intersects(x, y, sparse = FALSE), 1, any)
+}
+#' @title Spatial within
+#' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' This function is based on sf::st_within(). It projects y
+#' to the CRS of x before compute within. For each geometry of x,
+#' returns TRUE if it is within any geometry of y,
+#' otherwise it returns FALSE.
+#'
+#' @param x,y sf geometries.
+#'
+#' @returns A vector indicating which geometries of x
+#' is within geometries of y.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#' x <- .bbox_as_sf(c(xmin=1, xmax=2, ymin=3, ymax=4, crs=4326))
+#' y <- .roi_as_sf(c(lon_min=0, lon_max=3, lat_min=2, lat_max=5))
+#' .within(x, y) # TRUE
+#' }
+#'
+.within <- function(x, y) {
+    as_crs <- sf::st_crs(x)
+    y <- sf::st_transform(y, crs = as_crs)
+    apply(sf::st_within(x, y, sparse = FALSE), 1, any)
 }

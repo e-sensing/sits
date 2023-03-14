@@ -81,9 +81,9 @@
     .check_has_one_tile(tile)
 
     # get bbox roi
-    bbox_roi <- sits_bbox(tile)
+    bbox_roi <- .tile_bbox(tile)
     if (!is.null(roi)) {
-        bbox_roi <- .roi_bbox(roi, tile)
+        roi <- .roi_as_sf(roi, as_crs = .tile_crs(tile))
     }
 
     # create a gdalcubes extent
@@ -478,12 +478,9 @@
     .check_require_packages("gdalcubes")
 
     # filter only intersecting tiles
-    intersects <- slider::slide_lgl(
-        cube, .raster_sub_image_intersects, roi
-    )
-
-    # retrieve only intersecting tiles
-    cube <- cube[intersects, ]
+    if (.has(roi)) {
+        cube <- .cube_filter_spatial(cube, roi = roi)
+    }
 
     # timeline of intersection
     timeline <- .gc_get_valid_timeline(cube, period = period)
@@ -494,9 +491,6 @@
         timeline = timeline,
         period = period
     )
-
-    # each process will start two threads
-    multicores <- max(1, round(multicores / 2))
 
     # start processes
     .sits_parallel_start(workers = multicores, log = FALSE)

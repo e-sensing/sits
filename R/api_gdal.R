@@ -157,17 +157,22 @@
     file
 }
 
-.gdal_crop_image <- function(file, out_file, roi, crs, as_crs, miss_value,
-                             multicores) {
+.gdal_crop_image <- function(file,
+                             out_file,
+                             roi_file,
+                             as_crs = NULL,
+                             miss_value = NULL,
+                             data_type,
+                             multicores = 1) {
     gdal_params <- list(
+        "-ot" = .gdal_data_type[[data_type]],
         "-of" = .conf("gdal_presets", "image", "of"),
         "-co" = .conf("gdal_presets", "image", "co"),
         "-wo" = paste0("NUM_THREADS=", multicores),
         "-multi" = TRUE,
-        "-s_srs" = crs,
         "-t_srs" = as_crs,
-        "-cutline" = roi,
-        "-srcnodata" = miss_value
+        "-cutline" = roi_file,
+        "-dstnodata" = miss_value
     )
     .gdal_warp(
         file = out_file, base_files = file,
@@ -176,9 +181,32 @@
     out_file
 }
 
+.gdal_scale <- function(file,
+                        out_file,
+                        src_min,
+                        src_max,
+                        dst_min,
+                        dst_max,
+                        miss_value,
+                        data_type) {
+    .gdal_translate(
+        file = out_file,
+        base_file = file,
+        params = list(
+            "-ot" = .gdal_data_type[[data_type]],
+            "-of" = .conf("gdal_presets", "image", "of"),
+            "-scale" = list(src_min, src_max, dst_min, dst_max),
+            "-a_nodata" = miss_value,
+            "-co" = .conf("gdal_presets", "image", "co")
+        ),
+        quiet = TRUE
+    )
+}
+
 .gdal_reproject_image <- function(file, out_file, crs, as_crs, miss_value,
-                                  multicores) {
+                                  data_type, multicores) {
     gdal_params <- list(
+        "-ot" = .gdal_data_type[[data_type]],
         "-of" = .conf("gdal_presets", "image", "of"),
         "-co" = .conf("gdal_presets", "image", "co"),
         "-wo" = paste0("NUM_THREADS=", multicores),
