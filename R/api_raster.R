@@ -242,8 +242,8 @@
     values <- .raster_get_values(r_obj)
     values <- C_kernel_median(
         x = values,
-        ncols = .ncols(block),
-        nrows = .nrows(block),
+        ncols = .raster_ncols(r_obj),
+        nrows = .raster_nrows(r_obj),
         band = 0,
         window_size = sampling_window
     )

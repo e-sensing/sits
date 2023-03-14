@@ -699,7 +699,7 @@ test_that("One-year, multicore classification with post-processing", {
     sinop_uncert_2 <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        bands = "entropy",
+        bands = "margin",
         version = "test12",
         labels = sits_labels(sinop_class),
         data_dir = temp_dir,
