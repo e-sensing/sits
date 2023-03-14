@@ -316,17 +316,17 @@ plot.sits <- function(x, y, ...) {
         ggplot2::geom_line(
             data = means,
             ggplot2::aes(x = .data[["Index"]], y = .data[["med"]]),
-            colour = "#B16240", size = 2, inherit.aes = FALSE
+            colour = "#B16240", linewidth = 2, inherit.aes = FALSE
         ) +
         ggplot2::geom_line(
             data = means,
             ggplot2::aes(x = .data[["Index"]], y = .data[["qt25"]]),
-            colour = "#B19540", size = 1, inherit.aes = FALSE
+            colour = "#B19540", linewidth = 1, inherit.aes = FALSE
         ) +
         ggplot2::geom_line(
             data = means,
             ggplot2::aes(x = .data[["Index"]], y = .data[["qt75"]]),
-            colour = "#B19540", size = 1, inherit.aes = FALSE
+            colour = "#B19540", linewidth = 1, inherit.aes = FALSE
         )
     return(g)
 }
@@ -1771,7 +1771,8 @@ plot.torch_model <- function(x, y, ...) {
         fill = .data[["data"]]
     ))
 
-    p <- p + ggplot2::geom_point(shape = 21, col = 1, na.rm = TRUE, size = 2) +
+    p <- p + ggplot2::geom_point(shape = 21, col = 1,
+                                 na.rm = TRUE, size = 2) +
         ggplot2::geom_smooth(
             formula = y ~ x,
             se      = FALSE,
@@ -1933,7 +1934,7 @@ plot.geo_distances <- function(x, y, ...) {
             color = .data[["type"]],
             fill = .data[["type"]]
         ),
-        size = 1, alpha = 0.25
+        linewidth = 1, alpha = 0.25
         ) +
         ggplot2::scale_x_log10(labels = scales::label_number()) +
         ggplot2::xlab("Distance (km)") +
