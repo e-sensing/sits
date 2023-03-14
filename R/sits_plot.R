@@ -1129,7 +1129,7 @@ plot.class_cube <- function(x, y, ...,
 
     # get all labels to be plotted
     labels <- sits_labels(tile)
-    names(labels) <- c(1:length(labels))
+    names(labels) <- seq_len(length(labels))
     # check the labels to be plotted
     # if NULL, use all labels
     if (purrr::is_null(labels_plot))
@@ -1216,7 +1216,7 @@ plot.class_cube <- function(x, y, ...,
 
     # get all labels to be plotted
     labels <- sits_labels(tile)
-    names(labels) <- c(1:length(labels))
+    names(labels) <- seq_len(length(labels))
     # check the labels to be plotted
     # if NULL, use all labels
     if (purrr::is_null(labels_plot))

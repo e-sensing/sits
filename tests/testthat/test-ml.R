@@ -83,8 +83,8 @@ test_that("Random Forest", {
 
 test_that("Random Forest - Whittaker", {
 
-    samples_mt_whit <- sits_filter(samples_modis_ndvi, filter = sits_whittaker())
-    rfor_model <- sits_train(samples_mt_whit, sits_rfor(num_trees = 200))
+    samples_whit <- sits_filter(samples_modis_ndvi, filter = sits_whittaker())
+    rfor_model <- sits_train(samples_whit, sits_rfor(num_trees = 200))
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_whit <- sits_filter(point_ndvi, filter = sits_whittaker())
     point_class <- sits_classify(

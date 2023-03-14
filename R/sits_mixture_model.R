@@ -439,7 +439,8 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
         seq_len(multicores), each = ceiling(nrow(samples) / multicores)
     )[seq_len(nrow(samples))]
     # Split each group by an id
-    dplyr::group_split(dplyr::group_by(samples, .data[["group"]]), .keep = FALSE)
+    dplyr::group_split(
+        dplyr::group_by(samples, .data[["group"]]), .keep = FALSE)
 }
 
 .samples_merge_groups <- function(samples_lst) {

@@ -202,7 +202,7 @@ sits_som_map <- function(data,
 
 #' @title Cleans the samples based on SOM map information
 #' @name sits_som_clean_samples
-#' @param som_map              Object returned by \code{\link[sits]{sits_som_map}}.
+#' @param som_map              Returned by \code{\link[sits]{sits_som_map}}.
 #' @param prior_threshold      Threshold of conditional probability
 #'                (frequency of samples assigned to the same SOM neuron).
 #' @param posterior_threshold   Threshold of posterior probability

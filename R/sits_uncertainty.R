@@ -57,8 +57,8 @@
 #' @export
 sits_uncertainty <- function(cube,
                              type = "margin",
-                             memsize = 4,
                              multicores = 2,
+                             memsize = 4,
                              output_dir = getwd(),
                              version = "v1") {
 
@@ -103,8 +103,8 @@ sits_uncertainty <- function(cube,
 #' @export
 sits_uncertainty.least <- function(cube,
                                    type = "least",
-                                   memsize = 4,
                                    multicores = 2,
+                                   memsize = 4,
                                    output_dir = getwd(),
                                    version = "v1") {
     # Uncertainty parameters checked in smooth function creation
@@ -130,8 +130,8 @@ sits_uncertainty.least <- function(cube,
 #' @export
 sits_uncertainty.entropy <- function(cube,
                                      type = "entropy",
-                                     memsize = 4,
                                      multicores = 2,
+                                     memsize = 4,
                                      output_dir = getwd(),
                                      version = "v1") {
     # Uncertainty parameters checked in smooth function creation
@@ -157,8 +157,8 @@ sits_uncertainty.entropy <- function(cube,
 #' @export
 sits_uncertainty.margin <- function(cube,
                                     type = "margin",
-                                    memsize = 4,
                                     multicores = 2,
+                                    memsize = 4,
                                     output_dir = getwd(),
                                     version = "v1") {
     # Uncertainty parameters checked in smooth function creation

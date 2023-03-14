@@ -10,8 +10,8 @@ sits_s3_classes :   ["sits", "patterns", "predicted", "sits_model",
 sits_s3_classes_proc :   ["probs_cube","uncertainty_cube", "class_cube"]
 
 # bands resulting from classification and post-classification
-sits_results_bands : ["probs", "bayes", "bilat", "gauss", "uncert",
-                      "entropy", "class"]
+sits_results_bands : ["probs", "bayes", "uncert", "entropy",
+                      "class", "least", "margin", "variance"]
 
 # color palettes available in sits
 sits_color_palettes:    ["BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu",

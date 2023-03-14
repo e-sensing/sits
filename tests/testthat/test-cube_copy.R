@@ -48,7 +48,8 @@ test_that("Downloading and cropping cubes from BDC", {
     # Comparing Y resolution
     expect_equal(cube[["file_info"]][[1]][["yres"]][[1]],
                  cube_local_roi[["file_info"]][[1]][["yres"]][[1]])
-    unlink(sapply(cube_local_roi[["file_info"]], `[[`, "path"))
+    files <- cube_local_roi$file_info[[1]]$path
+    unlink(files)
 
     cube_local_roi_tr <- sits_cube_copy(
         cube = cube,
@@ -79,7 +80,8 @@ test_that("Downloading and cropping cubes from BDC", {
     # Comparing Y resolution
     expect_lt(cube[["file_info"]][[1]][["yres"]][[1]],
               cube_local_roi_tr[["file_info"]][[1]][["yres"]][[1]])
-    unlink(sapply(cube_local_roi_tr[["file_info"]], `[[`, "path"))
+    files <- cube_local_roi_tr$file_info[[1]]$path
+    unlink(files)
 })
 
 test_that("Downloading entire images from local cubes", {
@@ -129,7 +131,8 @@ test_that("Downloading entire images from local cubes", {
     # Comparing Y resolution
     expect_equal(cube[["file_info"]][[1]][["yres"]][[1]],
                  cube_local[["file_info"]][[1]][["yres"]][[1]])
-    unlink(sapply(cube_local[["file_info"]], `[[`, "path"))
+    files <- cube_local$file_info[[1]]$path
+    unlink(files)
 
     cube_local_roi_tr <- sits_cube_copy(
         cube = cube,
@@ -160,5 +163,6 @@ test_that("Downloading entire images from local cubes", {
               cube_local_roi_tr[["file_info"]][[1]][["yres"]][[1]])
     expect_equal(cube_local_roi_tr[["file_info"]][[1]][["xres"]][[1]], 464)
     expect_equal(cube_local_roi_tr[["file_info"]][[1]][["yres"]][[1]], 464)
-    unlink(sapply(cube_local_roi_tr[["file_info"]], `[[`, "path"))
+    files <- cube_local_roi_tr$file_info[[1]]$path
+    unlink(files)
 })

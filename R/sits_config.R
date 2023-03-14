@@ -332,21 +332,6 @@ sits_list_collections <- function(source = NULL) {
     tbd <- dplyr::distinct(color_tb, .data[["name"]])
     .check_that(nrow(tbd) == nrow(color_tb),
                 msg = "color table contains duplicate names")
-
-    # pre condition - valid hex codes?
-    # .is_color <- function(x)
-    # {
-    #     res <- try(col2rgb(x),silent = TRUE)
-    #     return(!"try-error" %in% class(res))
-    # }
-    # # check values one by one - to help user find wrong value
-    # col_vls <- unname(color_tb$color)
-    # print(col_vls)
-    # purrr::map(col_vls, function(col) {
-    #     .check_that(.is_color(col),
-    #                 msg = paste0("invalid color code ", col, " in color table")
-    #     )
-    # })
     sits_env$color_table <- color_tb
     return(invisible(NULL))
 }

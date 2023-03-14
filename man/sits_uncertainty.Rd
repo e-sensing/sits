@@ -10,8 +10,8 @@
 sits_uncertainty(
   cube,
   type = "margin",
-  memsize = 4,
   multicores = 2,
+  memsize = 4,
   output_dir = getwd(),
   version = "v1"
 )
@@ -19,8 +19,8 @@ sits_uncertainty(
 \method{sits_uncertainty}{least}(
   cube,
   type = "least",
-  memsize = 4,
   multicores = 2,
+  memsize = 4,
   output_dir = getwd(),
   version = "v1"
 )
@@ -28,8 +28,8 @@ sits_uncertainty(
 \method{sits_uncertainty}{entropy}(
   cube,
   type = "entropy",
-  memsize = 4,
   multicores = 2,
+  memsize = 4,
   output_dir = getwd(),
   version = "v1"
 )
@@ -37,8 +37,8 @@ sits_uncertainty(
 \method{sits_uncertainty}{margin}(
   cube,
   type = "margin",
-  memsize = 4,
   multicores = 2,
+  memsize = 4,
   output_dir = getwd(),
   version = "v1"
 )
@@ -48,9 +48,9 @@ sits_uncertainty(
 
 \item{type}{Method to measure uncertainty. See details.}
 
-\item{memsize}{Maximum overall memory (in GB) to run the function.}
-
 \item{multicores}{Number of cores to run the function.}
+
+\item{memsize}{Maximum overall memory (in GB) to run the function.}
 
 \item{output_dir}{Output directory for image files.}
 

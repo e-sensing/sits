@@ -105,13 +105,9 @@ sits_sample <- function(data,
 #'
 #' @param  samples              Sample set to rebalance
 #' @param  n_samples_over       Number of samples to oversample
-#'                              for classes with samples less than this number
-#'                              (use n_samples_over = NULL to avoid
-#'                              oversampling).
+#'                              for classes with samples less than this number.
 #' @param  n_samples_under      Number of samples to undersample
-#'                              for classes with samples more than this number
-#'                              (use n_samples_over = NULL to avoid
-#'                              oversampling).
+#'                              for classes with samples more than this number.
 #' @param  multicores           Number of cores to process the data (default 2).
 #'
 #' @return A sits tibble with reduced sample imbalance.
@@ -145,17 +141,15 @@ sits_reduce_imbalance <- function(samples,
     .check_int_parameter(n_samples_under)
 
     # check if number of required samples are correctly entered
-    if (!purrr::is_null(n_samples_over) && !purrr::is_null(n_samples_under)) {
-        .check_that(
-            n_samples_under >= n_samples_over,
-            local_msg = paste0(
-                "number of samples to undersample for large ",
-                "classes should be higher or equal to number ",
-                "of samples to oversample for small classes"
-            ),
-            msg = "invalid 'n_samples_over' and 'n_samples_under' parameters"
-        )
-    }
+    .check_that(
+        n_samples_under >= n_samples_over,
+        local_msg = paste0(
+            "number of samples to undersample for large ",
+            "classes should be higher or equal to number ",
+            "of samples to oversample for small classes"
+        ),
+        msg = "invalid 'n_samples_over' and 'n_samples_under' parameters"
+    )
 
     bands <- sits_bands(samples)
     labels <- sits_labels(samples)
@@ -168,23 +162,19 @@ sits_reduce_imbalance <- function(samples,
     cube <- samples$cube[[1]]
     timeline <- sits_timeline(samples)
 
-    # get classes to make undersample
-    classes_under <- character()
-    if (!purrr::is_null(n_samples_under)) {
-        classes_under <- samples %>%
-            sits_labels_summary() %>%
-            dplyr::filter(.data[["count"]] >= n_samples_under) %>%
-            dplyr::pull("label")
-    }
+    # get classes to undersample
+    classes_under <- samples %>%
+        sits_labels_summary() %>%
+        dplyr::filter(.data[["count"]] >= n_samples_under) %>%
+        dplyr::pull("label")
 
-    # get classes to make oversample
-    classes_over <- character()
-    if (!purrr::is_null(n_samples_over)) {
-        classes_over <- samples %>%
-            sits_labels_summary() %>%
-            dplyr::filter(.data[["count"]] <= n_samples_over) %>%
-            dplyr::pull("label")
-    }
+
+    # get classes to oversample
+    classes_over <- samples %>%
+        sits_labels_summary() %>%
+        dplyr::filter(.data[["count"]] <= n_samples_over) %>%
+        dplyr::pull("label")
+
 
     new_samples <- .tibble()
 
