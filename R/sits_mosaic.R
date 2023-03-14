@@ -128,6 +128,11 @@ sits_mosaic <- function(cube,
 }
 
 .mosaic_split_band_date <- function(cube) {
+    UseMethod(".mosaic_split_band_date", cube)
+}
+
+#' @export
+.mosaic_split_band_date.raster_cube <- function(cube) {
     data <- tidyr::unnest(
         cube,
         cols = "file_info",
@@ -152,6 +157,38 @@ sits_mosaic <- function(cube,
     data <- tidyr::nest(
         data,
         cube = -c("job_date", "job_band")
+    )
+    data
+}
+
+#' @export
+.mosaic_split_band_date.derived_cube <- function(cube) {
+    data <- tidyr::unnest(
+        cube,
+        cols = "file_info",
+        names_sep = "."
+    )
+    data <- dplyr::mutate(
+        data,
+        job_start_date = .data[["file_info.start_date"]],
+        job_end_date = .data[["file_info.end_date"]],
+        job_band = .data[["file_info.band"]]
+    )
+    data <- dplyr::group_by(
+        data,
+        .data[["job_start_date"]],
+        .data[["job_end_date"]],
+        .data[["job_band"]]
+    )
+    data <- tidyr::nest(
+        data,
+        file_info = dplyr::starts_with("file_info"),
+        .names_sep = "."
+    )
+    data <- .set_class(data, class(cube))
+    data <- tidyr::nest(
+        data,
+        cube = -c("job_start_date", "job_end_date", "job_band")
     )
     data
 }
