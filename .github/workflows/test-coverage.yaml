@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-
+      SITS_RUN_TESTS: YES
 
     steps:
       - uses: actions/checkout@v3
