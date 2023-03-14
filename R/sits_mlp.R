@@ -193,7 +193,7 @@ sits_mlp <- function(samples = NULL,
             )
             # Remove the lines used for validation
             sel <- !train_samples$sample_id %in% test_samples$sample_id
-            train_samples <- train_samples[sel,]
+            train_samples <- train_samples[sel, ]
         }
         # Shuffle the data
         train_samples <- train_samples[sample(

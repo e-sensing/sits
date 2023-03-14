@@ -308,17 +308,10 @@ sits_som_evaluate_cluster <- function(som_map) {
         "neuron_label"
     ))
 
-    # Get sample labels that was not assigned to a cluster
-    no_cluster <- dplyr::setdiff(
-        temp_data$label,
-        temp_data$neuron_label
-    )
-
     confusion_matrix <- stats::addmargins(table(
         temp_data$label,
         temp_data$neuron_label
     ))
-
     # 	get dimensions (rows and col)
     # 	represents the original classes of samples
     dim_row <- dim(confusion_matrix)[1]

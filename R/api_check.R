@@ -1327,7 +1327,7 @@
 #' @return  No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_window_size <- function(window_size, min = 1, max = 2^32 - 1){
+.check_window_size <- function(window_size, min = 1, max = 2^32 - 1) {
     .check_int_parameter(window_size, min = min, max = max)
     .check_that(
         x = window_size %% 2 != 0,
@@ -1342,7 +1342,7 @@
 #' @return          No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_multicores <- function(multicores){
+.check_multicores <- function(multicores) {
     .check_num(
         x = multicores,
         min = 1,
@@ -1358,7 +1358,7 @@
 #' @return          No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_memsize <- function(memsize){
+.check_memsize <- function(memsize) {
     # precondition - memory
     .check_num(
         x = memsize,
@@ -1374,7 +1374,7 @@
 #' @return          No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_output_dir <- function(output_dir){
+.check_output_dir <- function(output_dir) {
     .check_file(
         x = .file_normalize(output_dir),
         msg = "invalid output dir"
@@ -1394,7 +1394,7 @@
 #' @noRd
 #' @param  version  version parameter
 #' @return          No return value, called for side effects.
-.check_version <- function(version){
+.check_version <- function(version) {
     .check_chr(
         x = version,
         len_min = 1,
@@ -1407,7 +1407,7 @@
 #' @noRd
 #' @param  progress progress parameter
 #' @return          No return value, called for side effects.
-.check_progress <- function(progress){
+.check_progress <- function(progress) {
     .check_lgl(
         x = progress,
         len_min = 1,
@@ -1421,7 +1421,7 @@
 #' @return          No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_expression <- function(list_expr){
+.check_expression <- function(list_expr) {
     .check_lst(list_expr,
                min_len = 1, max_len = 1,
                msg = "invalid expression value"
@@ -1448,7 +1448,7 @@
 #' @return  No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_predicted <- function(data){
+.check_predicted <- function(data) {
     .check_chr_contains(
         x = names(data),
         contains = "predicted",
@@ -1466,7 +1466,7 @@
 #' @return  No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_is_raster_cube <- function(data){
+.check_is_raster_cube <- function(data) {
     .check_that(
         x = inherits(data, "raster_cube"),
         local_msg = "data should be a raster cube",
@@ -1533,7 +1533,7 @@
 #' @return  No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_is_sits_tibble <- function(data){
+.check_is_sits_tibble <- function(data) {
     .check_that(
         x = inherits(data, "sits"),
         local_msg = "data should be a sits tibble",
@@ -1546,7 +1546,7 @@
 #' @return  No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_is_sits_accuracy <- function(data){
+.check_is_sits_accuracy <- function(data) {
     .check_that(
         x = inherits(data, what = "sits_accuracy"),
         local_msg = "please run sits_accuracy() first",
@@ -1559,7 +1559,7 @@
 #' @return  No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_is_sits_model <- function(model){
+.check_is_sits_model <- function(model) {
     .check_that(
         x = inherits(model, "function"),
         local_msg = "please, run sits_train() first",
@@ -1593,7 +1593,7 @@
 #' @return  No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_samples <- function(data){
+.check_samples <- function(data) {
     .check_that(
         x = all(.conf("df_sample_columns") %in% colnames(data)),
         msg = "invalid samples file"
@@ -1610,7 +1610,7 @@
 #' @return  No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_samples_ts <- function(data){
+.check_samples_ts <- function(data) {
     .check_samples(data)
     .check_chr_contains(
         x = colnames(data),
@@ -1634,7 +1634,7 @@
 #' @return  No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_samples_train <- function(data){
+.check_samples_train <- function(data) {
     .check_samples(data)
     # check that there is no NA in labels
     labels <- .sits_labels(data)
@@ -1669,7 +1669,7 @@
 .check_samples_validation <- function(samples_validation,
                                       labels,
                                       timeline,
-                                      bands){
+                                      bands) {
     # check if the validation samples are ok
     .check_samples(samples_validation)
     # check if the labels matches with train data
@@ -1694,7 +1694,7 @@
 #' @keywords internal
 #' @noRd
 #  Are the samples valid?
-.check_samples_cluster <- function(data){
+.check_samples_cluster <- function(data) {
     .check_samples(data)
     # is the input data the result of a cluster function?
     .check_chr_contains(
@@ -1710,7 +1710,7 @@
 #' @return  No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_predictors <- function(pred, samples){
+.check_predictors <- function(pred, samples) {
     cols <- .pred_cols # From predictors API
     .check_that(
         x = cols %in% colnames(pred),
@@ -1777,7 +1777,7 @@
 #' @return  No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_has_one_tile <- function(cube){
+.check_has_one_tile <- function(cube) {
     .check_that(
         x = nrow(cube) == 1,
         msg = "accepts only one tile at a time"
@@ -1871,7 +1871,7 @@
 #' @keywords internal
 #' @noRd
 #'
-.check_file_csv <- function(file){
+.check_file_csv <- function(file) {
     .check_file(
     x = file,
     extensions = "csv"
@@ -1884,7 +1884,7 @@
 #' @keywords internal
 #' @noRd
 #
-.check_csv <- function(csv){
+.check_csv <- function(csv) {
     # check if required col names are available
     .check_chr_contains(
         x = colnames(csv),
@@ -1900,7 +1900,7 @@
 #' @return No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_pred_ref_match <- function(reference, predicted){
+.check_pred_ref_match <- function(reference, predicted) {
     .check_that(
         x = length(reference) == length(predicted),
         msg = "predicted and reference vector do not match"
@@ -1913,7 +1913,7 @@
 #' @return No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_samples_tile_match <- function(samples, tile){
+.check_samples_tile_match <- function(samples, tile) {
     # do they have the same timelines?
     samples_timeline_length <- length(sits_timeline(samples))
     tiles_timeline_length <- length(sits_timeline(tile))
@@ -1936,7 +1936,7 @@
 #' @return No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_labels <- function(data){
+.check_labels <- function(data) {
     .check_that(
         x = !("NoClass" %in% (data)),
         msg = "input data without labels"
@@ -1975,7 +1975,7 @@
         "ext_tolerance"
     )
     ok <- slider::slide2_lgl(cube1, cube2,
-                           function(tile_first, tile_cube){
+                           function(tile_first, tile_cube) {
             return(.bbox_equal(
                 .tile_bbox(tile_first),
                 .tile_bbox(tile_cube),

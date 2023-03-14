@@ -14,6 +14,7 @@
 #' @param  output_dir  Output directory for classified files.
 #' @param  version     Version of resulting image
 #'                     (in the case of multiple runs).
+#' @param  progress    Show progress bar?
 #' @return             A data cube with an image with the classified map.
 #' @note
 #' Please refer to the sits documentation available in
@@ -65,7 +66,6 @@ sits_label_classification <- function(cube, memsize = 4,
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
-        # npaths = input(nlayers) + output(1)
         npaths = length(.cube_labels(cube)) + 1,
         nbytes = 8, proc_bloat = .conf("processing_bloat")
     )

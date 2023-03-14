@@ -31,8 +31,8 @@ sits_view(x, ...)
   red = NULL,
   green = NULL,
   blue = NULL,
-  tiles = NULL,
-  dates = NULL,
+  tiles = x$tile,
+  dates = sits_timeline(x[1, ])[1],
   class_cube = NULL,
   legend = NULL,
   palette = "default"
@@ -101,12 +101,9 @@ if (sits_run_examples()) {
         data_dir = data_dir,
         parse_info = c("X1", "tile", "band", "date")
     )
-    # get the timeline
-    timeline <- sits_timeline(modis_cube)
     # view the data cube
     sits_view(modis_cube,
-        band = "NDVI",
-        dates = timeline[[1]]
+        band = "NDVI"
     )
     # train a model
     rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -115,8 +112,6 @@ if (sits_run_examples()) {
         data = modis_cube,
         ml_model = rf_model,
         output_dir = tempdir(),
-        memsize = 4,
-        multicores = 1
     )
     modis_label <- sits_label_classification(modis_probs,
         output_dir = tempdir()

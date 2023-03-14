@@ -25,6 +25,7 @@
             lat_band = substring(tile, 3, 3),
             grid_square = substring(tile, 4, 5)
         )
+        return(tile_aws)
     })
 
     return(tiles_tbl)

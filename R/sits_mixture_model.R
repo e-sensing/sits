@@ -189,7 +189,6 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
-    # npaths = input(bands) + output(fracs)
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
         npaths = length(bands) + length(out_fracs),

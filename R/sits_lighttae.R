@@ -192,7 +192,7 @@ sits_lighttae <- function(samples = NULL,
             )
             # Remove the lines used for validation
             sel <- !train_samples$sample_id %in% test_samples$sample_id
-            train_samples <- train_samples[sel,]
+            train_samples <- train_samples[sel, ]
         }
         n_samples_train <- nrow(train_samples)
         n_samples_test <- nrow(test_samples)
@@ -309,7 +309,7 @@ sits_lighttae <- function(samples = NULL,
         # Get the encoder
         # encoder <- torch_model$model$temporal_encoder
         # Retrieve the attention mask from the encoder
-        # attn_mask <- encoder $attention_heads$attention$attention_mask
+        # attn_mask <- encoder$attention_heads$attention$attention_mask
 
         # Function that predicts labels of input values
         predict_fun <- function(values) {

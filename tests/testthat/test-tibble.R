@@ -67,7 +67,7 @@ test_that("Dates", {
         max(.ts_end_date(.ts(selected_samples3))), as.Date("2010-09-14")
     )
 
-    expect_error(object = {sits_select(
+    expect_error(object = { sits_select(
         samples_modis_ndvi, start_date = "2020-01-01", end_date = "2021-09-14"
     )
     })

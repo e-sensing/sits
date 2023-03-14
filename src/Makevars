@@ -1,16 +1,16 @@
 strippedLib: $(SHLIB)
 		if test -e "/usr/bin/strip" & test -e "/bin/uname" & [[ `uname` == "Linux" ]] ; then /usr/bin/strip --strip-debug $(SHLIB); fi
-		if test -e "/usr/bin/strip" & test -e "/usr/bin/uname"; then /usr/bin/strip -S $(SHLIB); fi
 .phony: strippedLib
 
 # suggestion by Dirk Eddelbuettel
-SHLIB_CXXLDFLAGS = -Wl,-S -shared -Os
-SHLIB_CXX11LDFLAGS = -Wl,-S -shared -Os
-SHLIB_CXX14LDFLAGS = -Wl,-S -shared -Os
-SHLIB_FCLDFLAGS = -Wl,-S -shared -Os
-SHLIB_LDFLAGS = -Wl,-S -shared -Os
+SHLIB_CXXLDFLAGS = -Wl,-S -shared
+SHLIB_CXX11LDFLAGS = -Wl,-S -shared
+SHLIB_CXX14LDFLAGS = -Wl,-S -shared
+SHLIB_FCLDFLAGS = -Wl,-S -shared
+SHLIB_LDFLAGS = -Wl,-S -shared
 
 ## Armadillo requires it
 # CXX_STD = CXX11
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
 PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+

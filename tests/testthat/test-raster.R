@@ -24,7 +24,7 @@ test_that("One-year, single core classification", {
 
     # testing resume feature
     expect_message(
-        object = {sits_classify(
+        object = { sits_classify(
             data = sinop,
             ml_model = rfor_model,
             output_dir = tempdir(),
@@ -628,7 +628,7 @@ test_that("One-year, multicore classification with post-processing", {
 
     # testing resume feature
     expect_message(
-        object = { sits_label_classification(
+        object = {sits_label_classification(
             sinop_probs,
             output_dir = temp_dir,
             version = "test12"
@@ -657,7 +657,7 @@ test_that("One-year, multicore classification with post-processing", {
 
     # testing the recovery feature
     expect_message(
-        object = { sits_smooth(
+        object = {sits_smooth(
             sinop_probs,
             output_dir = temp_dir,
             multicores = 2,

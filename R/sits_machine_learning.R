@@ -207,6 +207,8 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
             )
             # Get the predicted probabilities
             values <- attr(values, "probabilities")
+            # Are the results consistent with the data input?
+            .check_processed_values(values, input_pixels)
             # Reorder matrix columns if needed
             if (any(labels != colnames(values))) {
                 values <- values[, labels]

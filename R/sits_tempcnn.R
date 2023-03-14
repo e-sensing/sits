@@ -200,7 +200,7 @@ sits_tempcnn <- function(samples = NULL,
             )
             # Remove the lines used for validation
             sel <- !train_samples$sample_id %in% test_samples$sample_id
-            train_samples <- train_samples[sel,]
+            train_samples <- train_samples[sel, ]
         }
         n_samples_train <- nrow(train_samples)
         n_samples_test <- nrow(test_samples)

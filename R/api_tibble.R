@@ -61,16 +61,12 @@
     # compute prediction vector
     pred_labels <- names(int_labels[max.col(prediction)])
 
-    idx <- 1
-
     data_pred <- slider::slide2_dfr(
         data,
         seq_len(nrow(data)),
         function(row, row_n) {
-
             # get the timeline of the row
             timeline_row <- lubridate::as_date(row$time_series[[1]]$Index)
-
             # the timeline of the row may differ from the global timeline
             # when we are processing samples with different dates
             if (timeline_row[1] != timeline_global[1]) {
@@ -82,9 +78,9 @@
                     num_samples = nrow(row$time_series[[1]])
                 )
             }
-            idx_fst <- (row_n - 1)*(length(ref_dates_lst)) + 1
+            idx_fst <- (row_n - 1) * (length(ref_dates_lst)) + 1
             idx_lst <- idx_fst + length(ref_dates_lst) - 1
-            pred_row <- prediction[idx_fst:idx_lst,]
+            pred_row <- prediction[idx_fst:idx_lst, ]
             if (idx_lst == idx_fst)
                 pred_row <- matrix(
                     pred_row,
@@ -564,7 +560,7 @@
     if (all(.pred_cols %in% names(pred))) {
         pred[, seq_len(ncol(pred) - 2) + 2] <- value
     } else {
-        pred[,] <- value
+        pred[, ] <- value
     }
     pred
 }

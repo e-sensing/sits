@@ -59,4 +59,3 @@ sits_run_examples <- function() {
     )
     )
 }
-

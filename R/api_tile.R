@@ -400,9 +400,18 @@ NULL
 .tile_intersects.raster_cube <- function(tile, roi) {
     .intersects(.tile_as_sf(tile), .roi_as_sf(roi))
 }
+#' @title Is tile inside roi?
+#' @name .tile_within
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#' @param roi A region of interest (ROI).
+#'
+#' @return logical
 .tile_within <- function(tile, roi) {
     UseMethod(".tile_within", tile)
 }
+#' @export
 .tile_within.raster_cube <- function(tile, roi) {
     .within(.tile_as_sf(tile), .roi_as_sf(roi))
 }
@@ -1021,7 +1030,7 @@ NULL
 }
 
 #' @title Create an "uncertainity" tile
-#' @name .tile_uncert_from_file
+#' @name .tile_uncertainty_from_file
 #' @keywords internal
 #' @noRd
 #' @param file file to be written
@@ -1029,7 +1038,10 @@ NULL
 #' @param base_tile  reference tile used in the operation (probs)
 #' @param update_bbox  should bbox be updated?
 #' @return a new uncertainty tile
-.tile_uncert_from_file <- function(file, band, base_tile, update_bbox = FALSE) {
+.tile_uncertainty_from_file <- function(file,
+                                        band,
+                                        base_tile,
+                                        update_bbox = FALSE) {
     .tile_derived_from_file(
         file = file,
         band = band,

@@ -84,8 +84,6 @@ NULL
     }
     .cube_set_class(cube)
 }
-
-
 .cube <- function(x) {
     # TODO: check and assign a cube class
     x
@@ -331,7 +329,7 @@ NULL
 }
 #' @export
 .cube_bbox.raster_cube <- function(cube, as_crs = NULL) {
-    .bbox(cube, by_feature = TRUE, as_crs = NULL)
+    .bbox(cube, as_crs = NULL, by_feature = TRUE)
 }
 .cube_as_sf <- function(cube, as_crs = NULL) {
     UseMethod(".cube_as_sf", cube)
@@ -399,7 +397,7 @@ NULL
         any(during),
         msg = "informed interval does not interesect cube"
     )
-    .cube_foreach_tile(cube[during,], function(tile) {
+    .cube_foreach_tile(cube[during, ], function(tile) {
         .tile_filter_interval(tile, start_date, end_date)
     })
 }

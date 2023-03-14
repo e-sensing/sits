@@ -67,7 +67,6 @@ sits_variance <- function(cube,
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = overlap),
-        # npaths = input(nlayers) + output(nlayers)
         npaths = length(.tile_labels(cube)) * 2,
         nbytes = 8,
         proc_bloat = .conf("processing_bloat")

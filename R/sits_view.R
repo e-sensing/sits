@@ -293,7 +293,7 @@ sits_view.raster_cube <- function(x, ...,
                                   green = NULL,
                                   blue = NULL,
                                   tiles = x$tile,
-                                  dates = sits_timeline(x[1,])[1],
+                                  dates = sits_timeline(x[1, ])[1],
                                   class_cube = NULL,
                                   legend = NULL,
                                   palette = "default") {
@@ -350,7 +350,7 @@ sits_view.raster_cube <- function(x, ...,
 
     # check dates exist
     .check_that(
-        x = all(as.Date(dates) %in% sits_timeline(cube[1,])),
+        x = all(as.Date(dates) %in% sits_timeline(cube[1, ])),
         local_msg = "date is not in cube timeline",
         msg = "invalid dates parameter"
     )
@@ -390,7 +390,7 @@ sits_view.raster_cube <- function(x, ...,
         date <- as.Date(dates[[i]])
         for (row in seq_len(nrow(cube))) {
             # get tile
-            tile <- cube[row,]
+            tile <- cube[row, ]
             # check if date is inside the timeline
             tile_dates <- sits_timeline(tile)
             if (!date %in% tile_dates) {
@@ -472,6 +472,7 @@ sits_view.raster_cube <- function(x, ...,
                 ),
                 proxy = FALSE
             )
+            return(st_objs)
         })
 
         # keep the first object
@@ -547,9 +548,9 @@ sits_view.class_cube <- function(x, ...,
         )
         # select the tiles that will be shown
         cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
-    }
-    else
+    } else {
         cube <- x
+    }
 
     # get the labels
     labels <- sits_labels(cube)
@@ -560,17 +561,6 @@ sits_view.class_cube <- function(x, ...,
         legend = legend,
         palette = palette
     )
-    # find size of image to be merged
-    nrows_merge <- sum(slider::slide_dbl(cube, function(tile) {
-        # retrieve the file info for the tile
-        fi <- .fi(tile)
-        return(max(fi[["nrows"]]))
-    }))
-    ncols_merge <- sum(slider::slide_dbl(cube, function(tile) {
-        # retrieve the file info for the tile
-        fi <- .fi(tile)
-        return(max(fi[["ncols"]]))
-    }))
     # find out if resampling is required (for big images)
     output_size <- .view_resample_size(
         cube = cube,
@@ -588,6 +578,7 @@ sits_view.class_cube <- function(x, ...,
             ),
             proxy = FALSE
         )
+        return(st_obj)
     })
 
     # keep the first object

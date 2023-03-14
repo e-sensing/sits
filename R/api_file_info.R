@@ -14,8 +14,6 @@ NULL
 #' @returns A `file_info` tibble.
 .fi <- function(tile) {
     fi <- tile[["file_info"]][[1]]
-    # if (!.has(.crs(fi)))
-    #     .crs(fi) <- .crs(tile)
     fi
 }
 

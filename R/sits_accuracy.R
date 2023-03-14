@@ -149,9 +149,9 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
                     stringsAsFactors = FALSE
                 )
             )
-        }
-        else
+        } else {
             stop("Invalid validation parameter for sits_accuracy")
+        }
     }
     # Precondition - check if validation samples are OK
     .check_samples(validation)

@@ -9,7 +9,7 @@
 #' @param tolerance      Tolerance (numerical value)
 #' @return               A logical value
 #'
-.bbox_equal <- function(bbox1, bbox2, tolerance = 0){
+.bbox_equal <- function(bbox1, bbox2, tolerance = 0) {
     .is_eq(unlist(bbox1[.bbox_cols]), unlist(bbox2[.bbox_cols]),
            tolerance = tolerance)
 }

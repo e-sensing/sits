@@ -142,7 +142,6 @@ sits_apply.raster_cube <- function(data, ...,
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
     # Check minimum memory needed to process one block
-    # npaths = input(bands) + output(band)
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = overlap),
         npaths = length(in_bands) + 1,
@@ -152,12 +151,6 @@ sits_apply.raster_cube <- function(data, ...,
     multicores <- .jobs_max_multicores(
         job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
-    # # Update block parameter
-    # block <- .jobs_optimal_block(
-    #     job_memsize = job_memsize, block = block,
-    #     image_size = .tile_size(.tile(data)), memsize = memsize,
-    #     multicores = multicores
-    # )
     # Prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)

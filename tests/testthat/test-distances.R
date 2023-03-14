@@ -24,4 +24,3 @@ test_that("compute distances in time series for indices", {
         500
     )
 })
-

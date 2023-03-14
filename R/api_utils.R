@@ -249,7 +249,7 @@ NULL
         local_msg = paste("length must be 1 or", nrow(x)),
         msg = "invalid logical subscript"
     )
-    x[i,]
+    x[i, ]
 }
 
 #' @export
@@ -259,5 +259,5 @@ NULL
         local_msg = paste("indices must be less or equal than", nrow(x)),
         msg = "invalid numeric subscript"
     )
-    x[i,]
+    x[i, ]
 }

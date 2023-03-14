@@ -85,7 +85,7 @@ sits_to_xlsx <- function(acc_lst, file, data = NULL) {
         # obtain the per class accuracy assessment
         if (dim(cf_mat$table)[1] > 2) {
             # per class accuracy assessment
-            acc_bc <- t(cf_mat$byClass[, c(1:4,7)])
+            acc_bc <- t(cf_mat$byClass[, c(1:4, 7)])
             # remove prefix from confusion matrix table
             colnames(acc_bc) <- new_names
             row.names(acc_bc) <- c(

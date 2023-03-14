@@ -56,8 +56,8 @@ plot.sits <- function(x, y, ...) {
     # Are there more than 30 samples? Plot them together!
     if (nrow(x) > 30) {
         p <- .plot_together(x)
-    } # If no conditions are met, take "allyears" as the default
-    else {
+    }  else {
+        # otherwise, take "allyears" as the default
         p <- .plot_allyears(x)
     }
     # return the plot
@@ -514,6 +514,7 @@ plot.predicted <- function(x, y, ...,
                                           na.rm = TRUE
                         ), each = 2)
                     )
+                    return(df_p)
                 }
             )
 
@@ -659,11 +660,9 @@ plot.raster_cube <- function(
         .check_cube_bands(tile, bands = band)
         # plot the band as false color
         p <- .plot_false_color(tile, band, date, palette, rev)
-    }
-    # plot RGB image
-    else {
+    } else {
+        # plot RGB image
         .check_cube_bands(tile, bands = c(red, green, blue))
-
         # plot RGB
         p <- .plot_rgb(tile, red, green, blue, date)
     }
@@ -955,7 +954,7 @@ plot.class_cube <- function(x, y, ...,
 #'
 #' @return               A plot object
 #'
-.plot_false_color <- function(tile, band, date = NULL, palette, rev){
+.plot_false_color <- function(tile, band, date = NULL, palette, rev) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -1025,7 +1024,7 @@ plot.class_cube <- function(x, y, ...,
 #'
 #' @return               A plot object
 #'
-.plot_class_image <- function(tile, legend, palette){
+.plot_class_image <- function(tile, legend, palette) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -1106,7 +1105,7 @@ plot.class_cube <- function(x, y, ...,
 #'
 #' @return               A plot object
 #'
-.plot_probs <- function(tile, labels_plot, palette, rev){
+.plot_probs <- function(tile, labels_plot, palette, rev) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -1164,7 +1163,7 @@ plot.class_cube <- function(x, y, ...,
     # select stars bands to be plotted
     bds <- as.numeric(names(labels[labels %in% labels_plot]))
 
-    p <- tmap::tm_shape(probs_st[,,,bds]) +
+    p <- tmap::tm_shape(probs_st[, , , bds]) +
         tmap::tm_raster(style = "cont",
                         palette = palette,
                         midpoint = 0.5,
@@ -1193,7 +1192,7 @@ plot.class_cube <- function(x, y, ...,
 #'
 #' @return               A plot object
 #'
-.plot_variance_map <- function(tile, labels_plot, palette, rev){
+.plot_variance_map <- function(tile, labels_plot, palette, rev) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -1251,7 +1250,7 @@ plot.class_cube <- function(x, y, ...,
     # select stars bands to be plotted
     bds <- as.numeric(names(labels[labels %in% labels_plot]))
 
-    p <- tmap::tm_shape(var_st[,,,bds]) +
+    p <- tmap::tm_shape(var_st[, , , bds]) +
         tmap::tm_raster(style = "cont",
                         palette = palette,
                         midpoint = 0.5,
@@ -1277,7 +1276,7 @@ plot.class_cube <- function(x, y, ...,
 #'
 #' @return               A plot object
 #'
-.plot_variance_hist <- function(tile){
+.plot_variance_hist <- function(tile) {
 
     # get all labels to be plotted
     labels <- sits_labels(tile)
@@ -1289,7 +1288,7 @@ plot.class_cube <- function(x, y, ...,
     nrows <- .tile_nrows(tile)
     ncols <- .tile_ncols(tile)
     # sample the pixels
-    n_samples <- as.integer(nrows/10 * ncols/10)
+    n_samples <- as.integer(nrows / 10 * ncols / 10)
     points <- sf::st_sample(sf_cube, size = n_samples)
     points <- sf::st_coordinates(points)
     # get the r object
@@ -1371,7 +1370,7 @@ plot.class_cube <- function(x, y, ...,
     band_params   <- .tile_band_conf(tile, red)
     max_value <- .max_value(band_params)
 
-    rgb_st <- stars::st_rgb(rgb_st[,,,1:3],
+    rgb_st <- stars::st_rgb(rgb_st[, , , 1:3],
                             dimension = "band",
                             maxColorValue = max_value,
                             use_alpha = FALSE,
@@ -1446,7 +1445,7 @@ plot.class_cube <- function(x, y, ...,
 #' }
 #' @export
 #'
-plot.rfor_model <- function(x, y, ...){
+plot.rfor_model <- function(x, y, ...) {
     # verifies if randomForestExplainer package is installed
     .check_require_packages("randomForestExplainer")
     .check_is_sits_model(x)
@@ -1675,7 +1674,6 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
         pt.cex = 2,
         cex = 1,
         text.col = "black",
-        # horiz = T ,
         inset = c(0.0095, 0.05),
         xpd = TRUE,
         ncol = 1
@@ -1707,7 +1705,7 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #' }
 #' @export
 #'
-plot.xgb_model <- function(x, ..., n_trees = 3){
+plot.xgb_model <- function(x, ..., n_trees = 3) {
     # verifies if DiagrammeR package is installed
     .check_require_packages("DiagrammeR")
     .check_is_sits_model(x)

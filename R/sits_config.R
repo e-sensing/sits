@@ -115,7 +115,7 @@ sits_config <- function(run_tests = NULL,
             .conf_merge_colors(user_colors)
             config$colors <- NULL
         }
-        if (length(config) > 0 ) {
+        if (length(config) > 0) {
             config <- utils::modifyList(sits_env[["config"]],
                                         config,
                                         keep.null = FALSE
@@ -295,7 +295,7 @@ sits_list_collections <- function(source = NULL) {
 #' @keywords internal
 #' @noRd
 #' @return NULL, called for side effects
-.conf_load_color_table <- function(){
+.conf_load_color_table <- function() {
     # load the color configuration file
     color_yml_file <- .conf_colors_file()
     config_colors <- yaml::yaml.load_file(
@@ -304,7 +304,7 @@ sits_list_collections <- function(source = NULL) {
     )
     config_colors <- config_colors$colors
     base_names <- names(config_colors)
-    color_table <- purrr::map2_dfr(config_colors, base_names, function(cl, bn){
+    color_table <- purrr::map2_dfr(config_colors, base_names, function(cl, bn) {
         cc_tb <- tibble::tibble(name = names(cl),
                                 color = unlist(cl),
                                 group = bn)
@@ -355,6 +355,6 @@ sits_list_collections <- function(source = NULL) {
     .conf_set_color_table(color_table)
     return(invisible(NULL))
 }
-.conf_colors <- function(){
+.conf_colors <- function() {
     return(sits_env$color_table)
 }

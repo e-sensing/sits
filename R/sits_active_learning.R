@@ -283,4 +283,3 @@ sits_confidence_sampling <- function(probs_cube,
     class(result_tb) <- c("sits_confidence", "sits", class(result_tb))
     return(result_tb)
 }
-

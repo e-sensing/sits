@@ -36,6 +36,8 @@ parallel.}
 
 \item{version}{Version of resulting image
 (in the case of multiple runs).}
+
+\item{progress}{Show progress bar?}
 }
 \value{
 A data cube with an image with the classified map.
