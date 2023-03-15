@@ -849,9 +849,9 @@ sits_get_data.data.frame <- function(cube,
             .data[["cube"]],
             .data[["polygon_id"]]
         ) %>%
-        dplyr::summarise(dplyr::across(!!columns_to_avg, mean, na.rm = TRUE),
-                         .groups = "drop"
-        ) %>%
+        dplyr::summarise(dplyr::across(!!columns_to_avg, function(x) {
+            mean(x, na.rm = TRUE)
+        }), .groups = "drop") %>%
         tidyr::nest("time_series" = c("Index", dplyr::all_of(bands))) %>%
         dplyr::select(!!colnames(data))
 
