@@ -10,24 +10,11 @@ sits_run_tests()
 TRUE/FALSE
 }
 \description{
-This function informs if sits test should run.
-Useful to avoid running slow tests in CRAN environment.
-Behaviour controlled by environmental variable R_CONFIG_ACTIVE_TESTS
-}
-\examples{
-if (sits_run_examples()) {
-# recover config state
-config_tests <- sits_run_tests()
-# set active tests to FALSE
-sits_config(run_tests = FALSE)
-isFALSE(sits_run_tests())
-# recover config state
-# set active tests
-sits_config(run_tests = TRUE)
-# result should be true
-isTRUE(sits_run_tests())
-# restore previous state
-sits_config(run_tests = config_tests)
-}
-
+This function informs if sits examples should run.
+To run the examples, set "SITS_RUN_TESTS" environment
+variable to "YES" using
+Sys.setenv("SITS_RUN_TESTS" = "YES")
+To come back to the default behaviour, please unset
+the enviroment variable
+Sys.unsetenv("SITS_RUN_TESTS")
 }
