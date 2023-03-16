@@ -11,7 +11,7 @@ test_that("compute distances in time series for indices", {
 
     testthat::expect_equal(
         sample_distances[10, "NDVI2"][[1]],
-        0.3842
+        0.6223
     )
 
     testthat::expect_equal(

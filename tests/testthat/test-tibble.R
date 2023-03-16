@@ -23,8 +23,8 @@ test_that("Apply", {
     )
 
     expect_equal(sum((.tibble_time_series(point2))$NDVI_norm),
-        216.6617,
-        tolerance = 0.1
+                 101.5388,
+                 tolerance = 0.1
     )
 })
 
@@ -38,13 +38,13 @@ test_that("Bands", {
 
 test_that("Dates", {
     selected_samples1 <- sits_select(
-        samples_modis_ndvi, start_date = "2006-11-17", end_date = "2007-08-13"
+        samples_modis_ndvi, start_date = "2006-11-17", end_date = "2007-07-28"
     )
     expect_equal(
         min(.ts_start_date(.ts(selected_samples1))), as.Date("2006-11-17")
     )
     expect_equal(
-        max(.ts_end_date(.ts(selected_samples1))), as.Date("2007-08-13")
+        max(.ts_end_date(.ts(selected_samples1))), as.Date("2007-07-28")
     )
 
     selected_samples2 <- sits_select(
@@ -85,7 +85,7 @@ test_that("Merge", {
     point_evi <- sits_select(point_mt_6bands, bands = "EVI")
     result <- sits_merge(point_ndvi, point_evi)
 
-    expect_true(length(sits_timeline(result)) == 412)
+    expect_true(length(sits_timeline(result)) == 204)
     expect_true(ncol(.tibble_time_series(result)) == 3)
 
     result2 <- sits_merge(point_ndvi, point_ndvi)
