@@ -181,67 +181,7 @@ points <- sits_get_data(raster_cube, samples = csv_file)
 points[1:3,]
 ```
 
-After a time series has been obtained, it is loaded in a tibble. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates. The first sample has been labelled "Pasture", at location (-55.65931, -11.76267), and is considered valid for the period (2013-09-14, 2014-08-29). To display the time series, use the `plot()` function. 
-
-```{r, eval = TRUE, echo = TRUE, fig.align="center", fig.height=2.7, fig.width=7, fig.cap="Plot of point at location (-55.65931, -11.76267) labelled as Pasture", cache = TRUE} 
-plot(points[1,])
-```
-
-For a large number of samples, where the amount of individual plots would be substantial, the default visualization combines all samples together in a single temporal interval.
-
-```{r, fig.align="center", fig.height=3.5, fig.width=7, fig.cap="Samples for NDVI band for Cerrado class", cache=TRUE}
-# select only the samples with the cerrado label
-samples_cerrado <- dplyr::filter(samples_modis_ndvi, 
-                  label == "Cerrado")
-plot(samples_cerrado)
-```
-
-## Time Series Clustering and Filtering 
-
-### Clustering for sample quality control
-
-Clustering methods in `sits` improve the quality of the samples and to
-remove those that might have been wrongly labeled or that have low
-discriminatory power. Good samples lead to good classification maps.
-`sits` provides support for sample quality control using Self-organizing Maps (SOM). The process of clustering with SOM is done by `sits_som_map()`, which creates a self-organizing map and assesses the quality of the samples. 
-
-```{r, fig.align="center", fig.height=3.5, fig.width=7, fig.cap="Samples analysis using SOM (grid 6x6)", cache=TRUE}
-# load the kohonen library
-library(kohonen)
-# create a SOM map from the samples
-som_map <- sits_som_map(samples_modis_ndvi,
-                        grid_xdim = 6,
-                        grid_ydim = 6)
-# plot the map
-plot(som_map)
-```
-
-This function uses the ["kohonen" R package](https://www.jstatsoft.org/article/view/v087i07) to compute a SOM grid [7]. Each sample is assigned to a neuron, and neurons are placed in the grid based on similarity. Each neuron will be associated with a discrete probability distribution. Homogeneous neurons (those with a single class) are assumed to be composed of good quality samples. Heterogeneous neurons (those with two or more classes with significant probability) are likely to contain noisy samples. Noisy samples can then be identified and removed from the sample set using `sits_som_clean_samples()`. 
-
-```{r}
-# create a new sample set removing noisy points
-new_samples <- sits_som_clean_samples(som_map)
-```
-
-### Filtering
-
-Satellite image time series are contaminated by atmospheric influence
-and directional effects. To make the best use of available satellite
-data archives, methods for satellite image time series analysis need to
-deal with data sets that are *noisy* and *non-homogeneous*. For data
-filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`) and Whittaker
-(`sits_whittaker()`) filters.  As an example, we show how to apply the Whittaker smoother to a 16-year NDVI time series. 
-
-```{r, fig.align="center", fig.height=3.5, fig.width=7, fig.cap="Whittaker filter of NDVI time series", cache=TRUE}
-# apply Whitaker filter to a time series sample for the NDVI band from 2000 to 2016
-# merge with the original data
-# plot the original and the modified series
-point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-point_ndvi %>% 
-    sits_filter(sits_whittaker(lambda = 10)) %>% 
-    sits_merge(point_ndvi) %>% 
-    plot()
-```
+After a time series has been obtained, it is loaded in a tibble. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates. The first sample has been labelled "Pasture", at location (-55.65931, -11.76267), and is considered valid for the period (2013-09-14, 2014-08-29). 
 
 ## Time Series Classification 
 

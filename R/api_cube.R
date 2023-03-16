@@ -433,11 +433,6 @@ NULL
 .cube_paths.raster_cube <- function(cube, bands = NULL) {
     slider::slide(cube, .tile_paths, bands = bands)
 }
-.cube_paths.raster_cube <- function(cube) {
-    slider::slide(cube, function(tile) {
-        .fi_paths(.fi(.tile(tile)))
-    })
-}
 .cube_is_local <- function(cube) {
     UseMethod(".cube_is_local", cube)
 }

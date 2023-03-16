@@ -85,10 +85,10 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
     )
 
     shp_file <- system.file(
-        "extdata/shapefiles/brazilian_legal_amazon/brazilian_legal_amazon.shp",
+        "extdata/shapefiles/mato_grosso/mt.shp",
         package = "sits"
     )
-    sf_bla <- sf::read_sf(shp_file)
+    sf_mt <- sf::read_sf(shp_file)
 
     # create a raster cube file based on the information about the files
     modis_cube <- .try({
@@ -96,7 +96,7 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
             source = "BDC",
             collection = "MOD13Q1-6",
             bands = c("NDVI", "EVI"),
-            roi = sf_bla,
+            roi = sf_mt,
             start_date = "2018-09-01",
             end_date = "2019-08-29"
         )
@@ -109,13 +109,13 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
 
     expect_true(all(sits_bands(modis_cube) %in% c("NDVI", "EVI")))
     bbox <- sits_bbox(modis_cube, as_crs = "EPSG:4326")
-    bbox_shp <- sf::st_bbox(sf_bla)
+    bbox_shp <- sf::st_bbox(sf_mt)
 
     expect_lt(bbox["xmin"], bbox_shp["xmin"])
     expect_lt(bbox["ymin"], bbox_shp["ymin"])
     expect_gt(bbox["xmax"], bbox_shp["xmax"])
     expect_gt(bbox["ymax"], bbox_shp["ymax"])
-    intersects <- .cube_intersects(modis_cube, sf_bla)
+    intersects <- .cube_intersects(modis_cube, sf_mt)
     expect_true(all(intersects))
 })
 
