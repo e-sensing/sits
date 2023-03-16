@@ -187,17 +187,19 @@ NULL
     }
     # Convert to sf object and return it
     geom <- purrr::pmap_dfr(bbox, function(xmin, xmax, ymin, ymax, crs, ...) {
-        sf::st_sf(
+        geom_elem <- sf::st_sf(
             geometry = sf::st_sfc(sf::st_polygon(list(
                 rbind(c(xmin, ymax), c(xmax, ymax), c(xmax, ymin),
                       c(xmin, ymin), c(xmin, ymax))
             ))), crs = crs
         )
+        # Project CRS
+        if (!is.null(as_crs)) {
+            geom_elem <- sf::st_transform(geom_elem, crs = as_crs)
+        }
+        # Return geometry
+        geom_elem
     })
-    # Project CRS
-    if (!is.null(as_crs)) {
-        geom <- sf::st_transform(geom, crs = as_crs)
-    }
     # Return geom
     geom
 }

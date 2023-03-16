@@ -163,7 +163,8 @@
                              as_crs = NULL,
                              miss_value = NULL,
                              data_type,
-                             multicores = 1) {
+                             multicores = 1,
+                             overwrite = TRUE) {
     gdal_params <- list(
         "-ot" = .gdal_data_type[[data_type]],
         "-of" = .conf("gdal_presets", "image", "of"),
@@ -172,7 +173,8 @@
         "-multi" = TRUE,
         "-t_srs" = as_crs,
         "-cutline" = roi_file,
-        "-dstnodata" = miss_value
+        "-dstnodata" = miss_value,
+        "-overwrite" = overwrite
     )
     .gdal_warp(
         file = out_file, base_files = file,
@@ -204,7 +206,7 @@
 }
 
 .gdal_reproject_image <- function(file, out_file, crs, as_crs, miss_value,
-                                  data_type, multicores) {
+                                  data_type, multicores, overwrite = TRUE) {
     gdal_params <- list(
         "-ot" = .gdal_data_type[[data_type]],
         "-of" = .conf("gdal_presets", "image", "of"),
@@ -213,7 +215,8 @@
         "-multi" = TRUE,
         "-s_srs" = crs,
         "-t_srs" = as_crs,
-        "-srcnodata" = miss_value
+        "-srcnodata" = miss_value,
+        "-overwrite" = overwrite
     )
     .gdal_warp(
         file = out_file, base_files = file,
