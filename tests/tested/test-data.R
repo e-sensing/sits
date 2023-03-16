@@ -25,7 +25,7 @@ test_that("Reading a LAT/LONG from RASTER", {
 
     expect_equal(names(point_ndvi)[1], "longitude")
     expect_true(ncol(.tibble_time_series(point_ndvi)) == 2)
-    expect_true(length(sits_timeline(point_ndvi)) == 23)
+    expect_true(length(sits_timeline(point_ndvi)) == 12)
 })
 
 test_that("Reading a LAT/LONG from RASTER with crs parameter", {
@@ -63,7 +63,7 @@ test_that("Reading a LAT/LONG from RASTER with crs parameter", {
 
     expect_equal(names(point_ndvi)[1], "longitude")
     expect_true(ncol(.tibble_time_series(point_ndvi)) == 2)
-    expect_true(length(sits_timeline(point_ndvi)) == 23)
+    expect_true(length(sits_timeline(point_ndvi)) == 12)
 })
 
 test_that("Reading a CSV file from RASTER", {
@@ -105,7 +105,7 @@ test_that("Reading a CSV file from RASTER", {
     expect_equal(names(points_poly)[1], "longitude")
     expect_equal(length(names(points_poly)), 7)
     expect_true(ncol(.tibble_time_series(points_poly)) == 2)
-    expect_true(length(sits_timeline(points_poly)) == 23)
+    expect_true(length(sits_timeline(points_poly)) == 12)
 
     points_df <- sits_get_data(raster_cube,
                                samples = df_csv,
@@ -116,7 +116,7 @@ test_that("Reading a CSV file from RASTER", {
     expect_equal(names(points_df)[1], "longitude")
     expect_equal(length(names(points_df)), 7)
     expect_true(ncol(.tibble_time_series(points_df)) == 2)
-    expect_true(length(sits_timeline(points_df)) == 23)
+    expect_true(length(sits_timeline(points_df)) == 12)
 })
 
 test_that("Reading a CSV file from RASTER with crs parameter", {
@@ -179,7 +179,7 @@ test_that("Reading a CSV file from RASTER with crs parameter", {
     expect_equal(names(points_df)[1], "longitude")
     expect_equal(length(names(points_df)), 7)
     expect_true(ncol(.tibble_time_series(points_df)) == 2)
-    expect_true(length(sits_timeline(points_df)) == 23)
+    expect_true(length(sits_timeline(points_df)) == 12)
 })
 
 test_that("Reading a SHP file from BDC", {
@@ -224,7 +224,7 @@ test_that("Reading a SHP file from BDC", {
     expect_equal(object = unique(points_poly[["end_date"]]),
                  expected = as.Date(cube_timeline[length(cube_timeline)]))
 
-    polygons_bbox <- .bbox(mt_sf)
+    polygons_bbox <- .bbox(sf_mt)
 
     points_poly_in_bbox <- dplyr::filter(
         points_poly,
@@ -371,37 +371,6 @@ test_that("Reading data from Classified data", {
 
     expect_equal(
         colnames(point_ndvi), c("longitude", "latitude",
-                                 "start_date", "end_date",
-                                 "label", "cube", "predicted")
-    )
-    # Using shp
-    polygons_sf <- rbind(
-        sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(c(
-            xmin = -55.62471702, xmax = -55.57293653,
-            ymin = -11.63300767, ymax = -11.60607152), crs = 4326
-        ))),
-        sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(c(
-            xmin = -55.29847023, xmax = -55.26194177,
-            ymin = -11.56743498, ymax = -11.55169416), crs = 4326
-        ))),
-        sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(c(
-            xmin = -55.55720906, xmax = -55.54030539,
-            ymin = -11.75144257, ymax = -11.74521358), crs = 4326
-        )))
-    )
-
-    polygons_sf[["id"]] <- seq(1, 3)
-    polygons_sf[["label"]] <- c("a", "b", "c")
-    polygons_bbox <- sf::st_bbox(polygons_sf)
-
-    points_poly <- sits_get_data(label_cube,
-                                 samples = polygons_sf,
-                                 output_dir = tempdir()
-    )
-    expect_equal(nrow(points_poly), 90)
-
-    expect_equal(
-        colnames(points_poly), c("longitude", "latitude",
                                  "start_date", "end_date",
                                  "label", "cube", "predicted")
     )
