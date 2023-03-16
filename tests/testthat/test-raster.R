@@ -834,7 +834,8 @@ test_that("One-year, multicores mosaic", {
         roi = roi,
         crs = 4326,
         output_dir = output_dir,
-        version = "v1"
+        version = "v1",
+        multicores = 1
     )
 
     expect_equal(mosaic_class[["tile"]], "MOSAIC")
