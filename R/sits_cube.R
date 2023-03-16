@@ -219,33 +219,17 @@
 #'     # --- Access to AWS open data Sentinel 2/2A level 2 collection
 #'     s2_cube <- sits_cube(
 #'         source = "AWS",
-#'         collection = "sentinel-s2-l2a-cogs",
+#'         collection = "SENTINEL-S2-L2A-COGS",
 #'         tiles = c("20LKP", "20LLP"),
 #'         bands = c("B04", "B08", "B11"),
 #'         start_date = "2018-07-18",
 #'         end_date = "2019-07-23"
 #'     )
 #'
-#'     # --- Access to USGS Landsat cubes (requester pays)
-#'     # --- Need to provide AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
-#'     usgs_cube <- sits_cube(
-#'         source = "USGS",
-#'         collection = "landsat-c2l2-sr",
-#'         bands = c("GREEN", "CLOUD"),
-#'         roi = c(
-#'             "xmin" = -50.379,
-#'             "ymin" = -10.1573,
-#'             "xmax" = -50.410,
-#'             "ymax" = -10.1910
-#'         ),
-#'         start_date = "2019-01-01",
-#'         end_date = "2019-10-28"
-#'     )
-#'
 #'     # -- Creating Sentinel cube from MPC"
 #'     s2_cube <- sits_cube(
 #'         source = "MPC",
-#'         collection = "sentinel-2-l2a",
+#'         collection = "SENTINEL-2-L2A",
 #'         tiles = "20LKP",
 #'         bands = c("B05", "CLOUD"),
 #'         start_date = "2018-07-18",

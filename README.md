@@ -246,9 +246,9 @@ points[1:3,]
 #> # A tibble: 3 × 7
 #>   longitude latitude start_date end_date   label    cube      time_series      
 #>       <dbl>    <dbl> <date>     <date>     <chr>    <chr>     <list>           
-#> 1     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [23 × 2]>
-#> 2     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [23 × 2]>
-#> 3     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn MOD13Q1-6 <tibble [23 × 2]>
+#> 1     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [12 × 2]>
+#> 2     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [12 × 2]>
+#> 3     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn MOD13Q1-6 <tibble [12 × 2]>
 ```
 
 After a time series has been obtained, it is loaded in a tibble. The
@@ -329,16 +329,10 @@ sinop <- sits_cube(
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(sinop, ml_model = tempcnn_model)
-#> Recovery: tile 'h12v10' already exists.
-#> (If you want to produce a new image, please change 'output_dir' or 'version' parameters)
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(probs_cube)
-#> Recovery: tile 'h12v10' already exists.
-#> (If you want to produce a new image, please change 'output_dir' or 'version' parameters)
 # generate a thematic map
 label_cube <- sits_label_classification(bayes_cube)
-#> Recovery: tile 'h12v10' already exists.
-#> (If you want to produce a new image, please change 'output_dir' or 'version' parameters)
 # plot the the labelled cube
 plot(label_cube, title = "Land use and Land cover in Sinop, MT, Brazil in 2018")
 ```

@@ -67,7 +67,6 @@ plot(cbers_probs)
 # post process probabilities map with bayesian smoothing
 cbers_bayes <- sits_smooth(
     cube = cbers_probs,
-    type = "bayes",
     memsize = 16,
     multicores = 4,
     verbose = TRUE,

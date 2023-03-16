@@ -50,7 +50,6 @@ sinop_probs <- sits_classify(
 # smoothen with bayesian filter
 sinop_bayes <- sits_smooth(
     cube       = sinop_probs,
-    type       = "bayes",
     memsize    = 8,
     multicores = 2
 )
