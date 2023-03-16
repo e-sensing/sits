@@ -47,14 +47,15 @@
 }
 
 .gdal_addo <- function(base_file) {
-    conf_cog <- .conf("gdal_presets", "cog")
-    suppressMessages(
-        sf::gdal_addo(
-            file = base_file,
-            method = conf_cog[["method"]],
-            overviews = conf_cog[["overviews"]]
-        )
-    )
+    # conf_cog <- .conf("gdal_presets", "cog")
+    # suppressMessages(
+    #     sf::gdal_addo(
+    #         file = base_file,
+    #         method = conf_cog[["method"]],
+    #         overviews = conf_cog[["overviews"]],
+    #         options = c("GDAL_NUM_THREADS" = "2")
+    #     )
+    # )
 }
 
 .gdal_template_from_file <- function(base_file, file, nlayers, miss_value,
