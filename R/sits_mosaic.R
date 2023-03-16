@@ -309,7 +309,8 @@ sits_mosaic <- function(cube,
                 as_crs = .mosaic_crs(tile = asset, as_crs = crs),
                 miss_value = 255,
                 data_type = "INT1U",
-                multicores = 1
+                multicores = 1,
+                overwrite = TRUE
             )
             asset <- .tile_from_file(
                 file = out_file, base_tile = asset,
@@ -333,7 +334,8 @@ sits_mosaic <- function(cube,
         as_crs = .mosaic_crs(tile = asset, as_crs = crs),
         miss_value = .miss_value(band_conf),
         data_type = "INT1U",
-        multicores = 1
+        multicores = 1,
+        overwrite = TRUE
     )
     # Delete temporary roi file
     .mosaic_del_roi(roi)
