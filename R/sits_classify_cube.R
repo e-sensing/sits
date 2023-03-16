@@ -102,9 +102,9 @@
             filter_fn = filter_fn
         )
         # Get mask of NA pixels
-        na_mask <- mask_na(values)
+        na_mask <- C_mask_na(values)
         # Fill with zeros remaining NA pixels
-        values <- fill_na(values, 0)
+        values <- C_fill_na(values, 0)
         # Used to check values (below)
         input_pixels <- nrow(values)
 

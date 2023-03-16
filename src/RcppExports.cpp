@@ -184,26 +184,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// mask_na
-LogicalVector mask_na(const NumericMatrix& mtx);
-RcppExport SEXP _sits_mask_na(SEXP mtxSEXP) {
+// C_mask_na
+LogicalVector C_mask_na(const NumericMatrix& x);
+RcppExport SEXP _sits_C_mask_na(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type mtx(mtxSEXP);
-    rcpp_result_gen = Rcpp::wrap(mask_na(mtx));
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_mask_na(x));
     return rcpp_result_gen;
 END_RCPP
 }
-// fill_na
-NumericMatrix fill_na(NumericMatrix& mtx, double fill);
-RcppExport SEXP _sits_fill_na(SEXP mtxSEXP, SEXP fillSEXP) {
+// C_fill_na
+NumericMatrix C_fill_na(const NumericMatrix& x, double fill);
+RcppExport SEXP _sits_C_fill_na(SEXP xSEXP, SEXP fillSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix& >::type mtx(mtxSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
     Rcpp::traits::input_parameter< double >::type fill(fillSEXP);
-    rcpp_result_gen = Rcpp::wrap(fill_na(mtx, fill));
+    rcpp_result_gen = Rcpp::wrap(C_fill_na(x, fill));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -260,18 +260,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// max_sampling
-DataFrame max_sampling(const IntegerMatrix& data, const int band, const int img_nrow, const int img_ncol, const int window_size);
-RcppExport SEXP _sits_max_sampling(SEXP dataSEXP, SEXP bandSEXP, SEXP img_nrowSEXP, SEXP img_ncolSEXP, SEXP window_sizeSEXP) {
+// C_max_sampling
+DataFrame C_max_sampling(const NumericVector& x, int nrows, int ncols, int window_size);
+RcppExport SEXP _sits_C_max_sampling(SEXP xSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const int >::type band(bandSEXP);
-    Rcpp::traits::input_parameter< const int >::type img_nrow(img_nrowSEXP);
-    Rcpp::traits::input_parameter< const int >::type img_ncol(img_ncolSEXP);
-    Rcpp::traits::input_parameter< const int >::type window_size(window_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(max_sampling(data, band, img_nrow, img_ncol, window_size));
+    Rcpp::traits::input_parameter< const NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type nrows(nrowsSEXP);
+    Rcpp::traits::input_parameter< int >::type ncols(ncolsSEXP);
+    Rcpp::traits::input_parameter< int >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_max_sampling(x, nrows, ncols, window_size));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -408,13 +407,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_label_max_prob", (DL_FUNC) &_sits_C_label_max_prob, 1},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
-    {"_sits_mask_na", (DL_FUNC) &_sits_mask_na, 1},
-    {"_sits_fill_na", (DL_FUNC) &_sits_fill_na, 2},
+    {"_sits_C_mask_na", (DL_FUNC) &_sits_C_mask_na, 1},
+    {"_sits_C_fill_na", (DL_FUNC) &_sits_C_fill_na, 2},
     {"_sits_batch_calc", (DL_FUNC) &_sits_batch_calc, 2},
     {"_sits_C_nnls_solver_batch", (DL_FUNC) &_sits_C_nnls_solver_batch, 5},
     {"_sits_C_normalize_data", (DL_FUNC) &_sits_C_normalize_data, 3},
     {"_sits_C_normalize_data_0", (DL_FUNC) &_sits_C_normalize_data_0, 3},
-    {"_sits_max_sampling", (DL_FUNC) &_sits_max_sampling, 5},
+    {"_sits_C_max_sampling", (DL_FUNC) &_sits_C_max_sampling, 4},
     {"_sits_bayes_smoother", (DL_FUNC) &_sits_bayes_smoother, 6},
     {"_sits_bayes_var", (DL_FUNC) &_sits_bayes_var, 5},
     {"_sits_smooth_sg", (DL_FUNC) &_sits_smooth_sg, 4},

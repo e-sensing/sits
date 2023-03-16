@@ -456,8 +456,9 @@ sits_view.raster_cube <- function(x, ...,
             legend = legend,
             palette = palette
         )
+
+        # select the tiles that will be shown
         if (!purrr::is_null(tiles))
-            # select the tiles that will be shown
             class_cube <- dplyr::filter(class_cube, .data[["tile"]] %in% tiles)
 
         # create the stars objects that correspond to the tiles
@@ -472,7 +473,7 @@ sits_view.raster_cube <- function(x, ...,
                 ),
                 proxy = FALSE
             )
-            return(st_objs)
+            return(st_obj)
         })
 
         # keep the first object

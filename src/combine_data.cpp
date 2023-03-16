@@ -35,7 +35,7 @@ NumericMatrix average_probs(const List& data_lst) {
 NumericMatrix weighted_probs(const List& data_lst, const NumericVector& weights) {
 
     int n_classifiers = data_lst.length();
-    NumericMatrix mat    = data_lst[0];
+    NumericMatrix mat = data_lst[0];
     int nrows = mat.nrow();
     int ncols = mat.ncol();
 

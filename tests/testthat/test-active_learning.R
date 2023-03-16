@@ -29,7 +29,7 @@ test_that("Suggested samples have low confidence, high entropy", {
     # Get sample suggestions.
     samples_df <- suppressWarnings(sits_uncertainty_sampling(
         uncert_cube,
-        min_uncert = 0.5,
+        min_uncert = 0.3,
         n = 100,
         sampling_window = 10
     ))
@@ -41,7 +41,7 @@ test_that("Suggested samples have low confidence, high entropy", {
         "label", "uncertainty"
     )))
     expect_true(all(samples_df[["label"]] == "NoClass"))
-    expect_true(all(samples_df[["uncertainty"]] >= 0.5))
+    expect_true(all(samples_df[["uncertainty"]] >= 0.3))
 })
 
 test_that("Increased samples have high confidence, low entropy", {

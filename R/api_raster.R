@@ -247,11 +247,10 @@
         band = 0,
         window_size = sampling_window
     )
-    samples_tb <- max_sampling(
-        data = values,
-        band = band - 1,
-        img_nrow = .raster_nrows(r_obj),
-        img_ncol = .raster_ncols(r_obj),
+    samples_tb <- C_max_sampling(
+        x = values,
+        nrows = .raster_nrows(r_obj),
+        ncols = .raster_ncols(r_obj),
         window_size = sampling_window
     )
     samples_tb <- dplyr::slice_max(
