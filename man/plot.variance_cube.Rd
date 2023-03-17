@@ -50,9 +50,11 @@ if (sits_run_examples()) {
         parse_info = c("X1", "tile", "band", "date")
     )
     # classify a data cube
-    probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+    probs_cube <- sits_classify(
+        data = cube, ml_model = rfor_model, output_dir = tempdir()
+    )
     # obtain a variance cube
-    var_cube <-  sits_variance(probs_cube)
+    var_cube <-  sits_variance(probs_cube, output_dir = tempdir())
     # plot the variance cube
     plot(var_cube)
 }

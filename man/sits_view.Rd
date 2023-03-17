@@ -113,8 +113,8 @@ if (sits_run_examples()) {
         ml_model = rf_model,
         output_dir = tempdir(),
     )
-    modis_label <- sits_label_classification(modis_probs,
-        output_dir = tempdir()
+    modis_label <- sits_label_classification(
+        modis_probs, output_dir = tempdir()
     )
 
     sits_view(modis_label)

@@ -35,7 +35,9 @@
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
-#'     point_class <- sits_classify(point_ndvi, rf_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = rf_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
@@ -150,7 +152,9 @@ sits_rfor <- function(samples = NULL, num_trees = 120, mtry = NULL, ...) {
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
-#'     point_class <- sits_classify(point_ndvi, ml_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
@@ -283,7 +287,9 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
-#'     point_class <- sits_classify(point_ndvi, ml_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
@@ -383,7 +389,9 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
-#'     point_class <- sits_classify(point_ndvi, ml_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
@@ -451,7 +459,9 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
-#'     point_class <- sits_classify(point_ndvi, ml_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export

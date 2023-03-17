@@ -51,9 +51,13 @@ if (sits_run_examples()) {
         parse_info = c("X1", "tile", "band", "date")
     )
     # classify a data cube
-    probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+    probs_cube <- sits_classify(
+        data = cube, ml_model = rfor_model, output_dir = tempdir()
+    )
     # label cube with the most likely class
-    label_cube <- sits_label_classification(probs_cube)
+    label_cube <- sits_label_classification(
+        probs_cube, output_dir = tempdir()
+    )
     # plot the resulting classified image
     plot(label_cube)
 }

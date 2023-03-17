@@ -56,7 +56,9 @@ if (sits_run_examples()) {
     train_data <- sits_sample(samples_modis_ndvi, n = 200)
     test_data <- sits_sample(samples_modis_ndvi, n = 200)
     rfor_model <- sits_train(train_data, sits_rfor())
-    points_class <- sits_classify(test_data, rfor_model)
+    points_class <- sits_classify(
+        data = test_data, ml_model = rfor_model
+    )
     acc <- sits_accuracy(points_class)
 
     # show accuracy for a data cube classification
@@ -72,9 +74,13 @@ if (sits_run_examples()) {
         parse_info = c("X1", "tile", "band", "date")
     )
     # classify a data cube
-    probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+    probs_cube <- sits_classify(
+        data = cube, ml_model = rfor_model, output_dir = tempdir()
+    )
     # label the probability cube
-    label_cube <- sits_label_classification(probs_cube)
+    label_cube <- sits_label_classification(
+        probs_cube, output_dir = tempdir()
+    )
     # obtain the ground truth for accuracy assessment
     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
         package = "sits"

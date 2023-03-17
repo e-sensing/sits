@@ -46,7 +46,10 @@ if (sits_run_examples()) {
     results[[length(results) + 1]] <- acc_ltae
 
     # save to xlsx file
-    sits_to_xlsx(results, file = "./accuracy_mato_grosso_dl.xlsx")
+    sits_to_xlsx(
+        results,
+        file = tempfile("accuracy_mato_grosso_dl_", fileext = ".xlsx")
+    )
 }
 }
 \author{

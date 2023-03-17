@@ -71,11 +71,15 @@ if (sits_run_examples()) {
         parse_info = c("X1", "tile", "band", "date")
     )
     # classify a data cube
-    probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+    probs_cube <- sits_classify(
+        data = cube, ml_model = rfor_model, output_dir = tempdir()
+    )
     # smooth the probability cube using Bayesian statistics
-    bayes_cube <- sits_smooth(probs_cube)
+    bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
     # label the probability cube
-    label_cube <- sits_label_classification(bayes_cube)
+    label_cube <- sits_label_classification(
+        bayes_cube, output_dir = tempdir()
+    )
     # create roi
     roi <- sf::st_sfc(
         sf::st_polygon(
