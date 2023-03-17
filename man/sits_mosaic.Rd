@@ -91,9 +91,10 @@ if (sits_run_examples()) {
     )
     # crop and mosaic classified image
     mosaic_cube <- sits_mosaic(
-             cube = label_cube,
-             roi = roi,
-             crs = "EPSG:4326"
+        cube = label_cube,
+        roi = roi,
+        crs = "EPSG:4326",
+        output_dir = tempdir()
     )
 }
 

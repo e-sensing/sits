@@ -51,7 +51,8 @@
 #'                    "r2012", "r2013", "r2014", "r2015",
 #'                    "r2016", "r2017", "r2018", "d2019",
 #'                    "r2019", "d2020", "NoClass", "r2020",
-#'                    "Clouds2021", "d2021", "r2021")
+#'                    "Clouds2021", "d2021", "r2021"),
+#'         version = "v20220606"
 #'     )
 #'
 #'     # Open classification map
@@ -72,7 +73,7 @@
 #'         cube = ro_class,
 #'         mask = prodes2021,
 #'         rules = list(
-#'             "Old_Deforestation" = mask %in% c(
+#'             "Deforestation_Mask" = mask %in% c(
 #'                 "d2007", "d2008", "d2009",
 #'                 "d2010", "d2011", "d2012",
 #'                 "d2013", "d2014", "d2015",
@@ -83,14 +84,16 @@
 #'                 "d2019", "r2019", "d2020",
 #'                 "r2020", "r2021"
 #'             ),
-#'             "Water_Mask" = mask == "Water",
-#'             "NonForest_Mask" = mask %in% c("NonForest", "NonForest2")
+#'             "Water" = mask == "Water",
+#'             "NonForest" = mask %in% c("NonForest", "NonForest2")
 #'         ),
 #'         memsize = 4,
 #'         multicores = 2,
+#'         output_dir = tempdir(),
+#'         version = "v2"
 #'     )
 #'
-#'     plot(ro_mask, palette = "Geyser")
+#'     plot(ro_mask)
 #' }
 #' @rdname sits_reclassify
 #' @export
