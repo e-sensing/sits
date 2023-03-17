@@ -9,7 +9,7 @@ sits_label_classification(
   cube,
   memsize = 4,
   multicores = 2,
-  output_dir = getwd(),
+  output_dir,
   version = "v1",
   progress = TRUE
 )
@@ -18,7 +18,7 @@ sits_label_classification(
   cube,
   memsize = 4,
   multicores = 2,
-  output_dir = getwd(),
+  output_dir,
   version = "v1",
   progress = TRUE
 )

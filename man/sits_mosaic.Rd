@@ -9,7 +9,7 @@ sits_mosaic(
   crs = "EPSG:3857",
   roi = NULL,
   multicores = 2,
-  output_dir = getwd(),
+  output_dir,
   version = "v1",
   progress = TRUE
 )

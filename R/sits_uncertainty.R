@@ -59,7 +59,7 @@ sits_uncertainty <- function(cube,
                              type = "margin",
                              multicores = 2,
                              memsize = 4,
-                             output_dir = getwd(),
+                             output_dir,
                              version = "v1") {
 
     # Check if cube has probability data
@@ -105,7 +105,7 @@ sits_uncertainty.least <- function(cube,
                                    type = "least",
                                    multicores = 2,
                                    memsize = 4,
-                                   output_dir = getwd(),
+                                   output_dir,
                                    version = "v1") {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
@@ -132,7 +132,7 @@ sits_uncertainty.entropy <- function(cube,
                                      type = "entropy",
                                      multicores = 2,
                                      memsize = 4,
-                                     output_dir = getwd(),
+                                     output_dir,
                                      version = "v1") {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function
@@ -159,7 +159,7 @@ sits_uncertainty.margin <- function(cube,
                                     type = "margin",
                                     multicores = 2,
                                     memsize = 4,
-                                    output_dir = getwd(),
+                                    output_dir,
                                     version = "v1") {
     # Uncertainty parameters checked in smooth function creation
     # Create uncertainty function

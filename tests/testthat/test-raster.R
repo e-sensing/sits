@@ -603,7 +603,7 @@ test_that("One-year, multicore classification with post-processing", {
                 sits_classify(
                     sinop,
                     rfor_model,
-                    output_dir = temp_dir,
+                    output_dir = tempdir(),
                     memsize = 4,
                     multicores = 2,
                     version = "test12"
@@ -622,7 +622,7 @@ test_that("One-year, multicore classification with post-processing", {
 
     sinop_class <- sits_label_classification(
         sinop_probs,
-        output_dir = temp_dir,
+        output_dir = tempdir(),
         version = "test12"
     )
 
@@ -630,7 +630,7 @@ test_that("One-year, multicore classification with post-processing", {
     expect_message(
         object = {sits_label_classification(
             sinop_probs,
-            output_dir = temp_dir,
+            output_dir = tempdir(),
             version = "test12"
         ) },
         regexp = "Recovery"
@@ -649,7 +649,7 @@ test_that("One-year, multicore classification with post-processing", {
 
     sinop_bayes <- sits_smooth(
         sinop_probs,
-        output_dir = temp_dir,
+        output_dir = tempdir(),
         multicores = 2,
         memsize = 4,
         version = "test12"
@@ -659,7 +659,7 @@ test_that("One-year, multicore classification with post-processing", {
     expect_message(
         object = {sits_smooth(
             sinop_probs,
-            output_dir = temp_dir,
+            output_dir = tempdir(),
             multicores = 2,
             memsize = 4,
             version = "test12"
@@ -683,7 +683,7 @@ test_that("One-year, multicore classification with post-processing", {
     sinop_uncert <- sits_uncertainty(
         cube = sinop_bayes,
         type = "margin",
-        output_dir = temp_dir,
+        output_dir = tempdir(),
         multicores = 1,
         memsize = 4,
         version = "test12"
@@ -781,9 +781,9 @@ test_that("One-year, multicores processing reclassify", {
             "Water_Mask" = mask == "Water",
             "NonForest_Mask" = mask %in% c("NonForest", "NonForest2")
         ),
-        memsize = 1,
-        multicores = 1,
-        output_dir = getwd()
+        memsize = 4,
+        multicores = 2,
+        output_dir = tempdir()
     )
 
     expect_equal(

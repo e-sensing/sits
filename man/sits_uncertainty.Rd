@@ -12,7 +12,7 @@ sits_uncertainty(
   type = "margin",
   multicores = 2,
   memsize = 4,
-  output_dir = getwd(),
+  output_dir,
   version = "v1"
 )
 
@@ -21,7 +21,7 @@ sits_uncertainty(
   type = "least",
   multicores = 2,
   memsize = 4,
-  output_dir = getwd(),
+  output_dir,
   version = "v1"
 )
 
@@ -30,7 +30,7 @@ sits_uncertainty(
   type = "entropy",
   multicores = 2,
   memsize = 4,
-  output_dir = getwd(),
+  output_dir,
   version = "v1"
 )
 
@@ -39,7 +39,7 @@ sits_uncertainty(
   type = "margin",
   multicores = 2,
   memsize = 4,
-  output_dir = getwd(),
+  output_dir,
   version = "v1"
 )
 }

@@ -63,7 +63,7 @@ sits_combine_predictions <- function(cubes,
                                      type = "average", ...,
                                      memsize = 8,
                                      multicores = 2,
-                                     output_dir = getwd(),
+                                     output_dir,
                                      version = "v1") {
     # check if list of probs cubes have the same organization
     .check_probs_cube_lst(cubes)
@@ -87,7 +87,7 @@ sits_combine_predictions.average <- function(cubes,
                                              weights = NULL,
                                              memsize = 8,
                                              multicores = 2,
-                                             output_dir = getwd(),
+                                             output_dir,
                                              version = "v1") {
     # Get weights
     n_inputs <- length(cubes)
@@ -123,7 +123,7 @@ sits_combine_predictions.uncertainty <- function(cubes,
                                                  uncert_cubes,
                                                  memsize = 8,
                                                  multicores = 2,
-                                                 output_dir = getwd(),
+                                                 output_dir,
                                                  version = "v1") {
     # Check if list of probs cubes and uncert_cubes have the same organization
     .check_that(
@@ -154,7 +154,7 @@ sits_combine_predictions.default <- function(cubes,
                                              type = "default", ...,
                                              memsize = 8,
                                              multicores = 2,
-                                             output_dir = getwd(),
+                                             output_dir,
                                              version = "v1") {
     stop("Invalid `type` parameter ",
          "(value must be one of 'average', 'uncertainty').")

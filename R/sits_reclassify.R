@@ -86,17 +86,21 @@
 #'             "Water_Mask" = mask == "Water",
 #'             "NonForest_Mask" = mask %in% c("NonForest", "NonForest2")
 #'         ),
-#'         memsize = 1,
-#'         multicores = 1,
-#'         output_dir = getwd()
+#'         memsize = 4,
+#'         multicores = 2,
 #'     )
 #'
 #'     plot(ro_mask, palette = "Geyser")
 #' }
 #' @rdname sits_reclassify
 #' @export
-sits_reclassify <- function(cube, mask, rules, memsize = 1, multicores = 2,
-                            output_dir = getwd(), version = "v1") {
+sits_reclassify <- function(cube,
+                            mask,
+                            rules,
+                            memsize = 4,
+                            multicores = 2,
+                            output_dir,
+                            version = "v1") {
 
     # Pre-conditions - Check parameters
     .check_cube_is_class_cube(cube)
@@ -132,8 +136,12 @@ sits_reclassify <- function(cube, mask, rules, memsize = 1, multicores = 2,
 
 #' @rdname sits_reclassify
 #' @export
-sits_reclassify.class_cube <- function(cube, mask, rules, memsize = 4,
-                                       multicores = 2, output_dir = getwd(),
+sits_reclassify.class_cube <- function(cube,
+                                       mask,
+                                       rules,
+                                       memsize = 4,
+                                       multicores = 2,
+                                       output_dir,
                                        version = "v1") {
     # Capture expression
     rules <- as.list(substitute(rules, environment()))[-1]

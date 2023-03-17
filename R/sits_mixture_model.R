@@ -155,9 +155,9 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
 #' @export
 sits_mixture_model.raster_cube <- function(data, endmembers, ...,
                                            rmse_band = TRUE,
-                                           memsize = 1,
+                                           memsize = 4,
                                            multicores = 2,
-                                           output_dir = getwd(),
+                                           output_dir,
                                            progress = TRUE) {
     # Pre-conditions
     .check_is_raster_cube(data)

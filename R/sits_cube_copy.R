@@ -9,8 +9,8 @@
 #' @param roi        A Region of interest. See details below.
 #' @param res        An integer value corresponds to the output
 #'                   spatial resolution of the images. Default is NULL.
-#' @param output_dir Output directory where images will be saved.
 #' @param multicores Number of workers for parallel downloading.
+#' @param output_dir Output directory where images will be saved.
 #' @param progress   Show progress bar?
 #'
 #' @return a sits cube with updated metadata.
@@ -49,8 +49,8 @@
 sits_cube_copy <- function(cube,
                            roi = NULL,
                            res = NULL,
-                           output_dir = getwd(),
                            multicores = 2,
+                           output_dir,
                            progress = TRUE) {
 
     # Pre-conditions

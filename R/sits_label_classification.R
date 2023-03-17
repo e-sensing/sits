@@ -47,9 +47,10 @@
 #'     plot(label_cube)
 #' }
 #' @export
-sits_label_classification <- function(cube, memsize = 4,
+sits_label_classification <- function(cube,
+                                      memsize = 4,
                                       multicores = 2,
-                                      output_dir = getwd(),
+                                      output_dir,
                                       version = "v1",
                                       progress = TRUE) {
 
@@ -89,9 +90,10 @@ sits_label_classification <- function(cube, memsize = 4,
 
 #' @rdname sits_label_classification
 #' @export
-sits_label_classification.probs_cube <- function(cube, memsize = 4,
+sits_label_classification.probs_cube <- function(cube,
+                                                 memsize = 4,
                                                  multicores = 2,
-                                                 output_dir = getwd(),
+                                                 output_dir,
                                                  version = "v1",
                                                  progress = TRUE) {
     # Labeling parameters checked in label function

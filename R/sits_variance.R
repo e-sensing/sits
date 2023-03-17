@@ -51,7 +51,7 @@ sits_variance <- function(cube,
                           neigh_fraction = 0.5,
                           multicores = 2,
                           memsize = 4,
-                          output_dir = getwd(),
+                          output_dir,
                           version = "v1") {
 
     # Check if cube has probability data

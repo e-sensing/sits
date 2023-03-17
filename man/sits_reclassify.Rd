@@ -9,9 +9,9 @@ sits_reclassify(
   cube,
   mask,
   rules,
-  memsize = 1,
+  memsize = 4,
   multicores = 2,
-  output_dir = getwd(),
+  output_dir,
   version = "v1"
 )
 
@@ -21,7 +21,7 @@ sits_reclassify(
   rules,
   memsize = 4,
   multicores = 2,
-  output_dir = getwd(),
+  output_dir,
   version = "v1"
 )
 }
@@ -114,9 +114,8 @@ if (sits_run_examples()) {
             "Water_Mask" = mask == "Water",
             "NonForest_Mask" = mask \%in\% c("NonForest", "NonForest2")
         ),
-        memsize = 1,
-        multicores = 1,
-        output_dir = getwd()
+        memsize = 4,
+        multicores = 2,
     )
 
     plot(ro_mask, palette = "Geyser")

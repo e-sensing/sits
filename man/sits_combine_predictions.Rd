@@ -12,7 +12,7 @@ sits_combine_predictions(
   ...,
   memsize = 8,
   multicores = 2,
-  output_dir = getwd(),
+  output_dir,
   version = "v1"
 )
 
@@ -23,7 +23,7 @@ sits_combine_predictions(
   weights = NULL,
   memsize = 8,
   multicores = 2,
-  output_dir = getwd(),
+  output_dir,
   version = "v1"
 )
 
@@ -34,7 +34,7 @@ sits_combine_predictions(
   uncert_cubes,
   memsize = 8,
   multicores = 2,
-  output_dir = getwd(),
+  output_dir,
   version = "v1"
 )
 }

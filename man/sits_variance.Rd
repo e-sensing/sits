@@ -10,7 +10,7 @@ sits_variance(
   neigh_fraction = 0.5,
   multicores = 2,
   memsize = 4,
-  output_dir = getwd(),
+  output_dir,
   version = "v1"
 )
 }

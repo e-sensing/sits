@@ -65,7 +65,7 @@ sits_smooth <- function(cube,
                         min_samples = 25,
                         memsize = 4,
                         multicores = 2,
-                        output_dir = getwd(),
+                        output_dir,
                         version = "v1") {
 
     # Check if cube has probability data

@@ -148,7 +148,7 @@ sits_classify.raster_cube <- function(data,
                                       end_date = NULL,
                                       memsize = 8,
                                       multicores = 2,
-                                      output_dir = getwd(),
+                                      output_dir,
                                       version = "v1",
                                       verbose = FALSE,
                                       progress = TRUE) {

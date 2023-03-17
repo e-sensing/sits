@@ -80,7 +80,7 @@ sits_mosaic <- function(cube,
                         crs = "EPSG:3857",
                         roi = NULL,
                         multicores = 2,
-                        output_dir = getwd(),
+                        output_dir,
                         version = "v1",
                         progress = TRUE) {
     # Pre-conditions
@@ -120,8 +120,8 @@ sits_mosaic <- function(cube,
     .mosaic_merge_tiles(
         cube = cube,
         crs = crs,
-        multicores = multicores,
         output_dir = output_dir,
+        multicores = multicores,
         version = version,
         progress = progress
     )
@@ -195,8 +195,8 @@ sits_mosaic <- function(cube,
 
 .mosaic_merge_tiles <- function(cube,
                                 crs,
-                                multicores,
                                 output_dir,
+                                multicores,
                                 version,
                                 progress) {
     # Create band date as jobs

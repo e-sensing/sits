@@ -29,9 +29,9 @@ sits_mixture_model(
   endmembers,
   ...,
   rmse_band = TRUE,
-  memsize = 1,
+  memsize = 4,
   multicores = 2,
-  output_dir = getwd(),
+  output_dir,
   progress = TRUE
 )
 }
