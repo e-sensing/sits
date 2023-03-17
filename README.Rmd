@@ -245,7 +245,7 @@ sinop <- sits_cube(
 # Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(sinop, ml_model = tempcnn_model)
 # apply a bayesian smoothing to remove outliers
-bayes_cube <- sits_smooth(probs_cube)
+bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
 # generate a thematic map
 label_cube <- sits_label_classification(bayes_cube)
 # plot the the labelled cube

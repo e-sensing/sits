@@ -57,6 +57,7 @@ cbers_probs <- sits_classify(
     ml_model = rfor_model,
     memsize = 16,
     multicores = 4,
+    output_dir = tempdir(),
     verbose = TRUE,
     progress = TRUE
 )
@@ -69,6 +70,7 @@ cbers_bayes <- sits_smooth(
     cube = cbers_probs,
     memsize = 16,
     multicores = 4,
+    output_dir = tempdir(),
     verbose = TRUE,
     progress = TRUE
 )
@@ -79,7 +81,8 @@ plot(cbers_bayes)
 cbers_lbayes <- sits_label_classification(
     cube       = cbers_bayes,
     memsize    = 16,
-    multicores = 4
+    multicores = 4,
+    output_dir = tempdir()
 )
 
 # plot the labelled image

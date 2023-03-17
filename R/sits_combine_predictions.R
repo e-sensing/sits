@@ -43,18 +43,22 @@
 #'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
 #'     # classify a data cube using rfor model
 #'     probs_rfor_cube <- sits_classify(
-#'         data = cube, ml_model = rfor_model, version = "rfor"
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir(),
+#'         version = "rfor"
 #'     )
 #'     # create an XGBoost model
 #'     tcnn_model <- sits_train(samples_modis_ndvi, sits_tempcnn())
 #'     # classify a data cube using tempcnn model
 #'     probs_tcnn_cube <- sits_classify(
-#'         data = cube, ml_model = tcnn_model, version = "tcnn"
+#'         data = cube, ml_model = tcnn_model, output_dir = tempdir(),
+#'         version = "tcnn"
 #'     )
 #'     # create a list of predictions to be combined
 #'     pred_cubes <- list(probs_rfor_cube, probs_tcnn_cube)
 #'     # combine predictions
-#'     comb_probs_cube <- sits_combine_predictions(cubes = pred_cubes)
+#'     comb_probs_cube <- sits_combine_predictions(
+#'         pred_cubes, output_dir = tempdir()
+#'     )
 #'     # plot the resulting combined prediction cube
 #'     plot(comb_probs_cube)
 #' }

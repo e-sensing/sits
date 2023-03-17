@@ -890,7 +890,7 @@ test_that("One-year, multicores mosaic", {
             bbox_cube[["ymax"]] < bbox_roi[["ymax"]]
     )
 
-    uncert_cube <- sits_uncertainty(probs_cube)
+    uncert_cube <- sits_uncertainty(probs_cube, output_dir = output_dir)
     mosaic_uncert <- sits_mosaic(
         cube = uncert_cube,
         roi = roi,

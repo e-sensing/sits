@@ -437,7 +437,9 @@ plot.patterns <- function(x, y, ...) {
 #'     ml_model <- sits_train(samples_modis_ndvi, ml_method = sits_tempcnn)
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#'     point_class <- sits_classify(point_ndvi, ml_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
@@ -697,7 +699,9 @@ plot.raster_cube <- function(
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
-#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
 #'     # plot the resulting probability cube
 #'     plot(probs_cube)
 #' }
@@ -759,9 +763,11 @@ plot.probs_cube <- function(
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
-#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
 #'     # obtain a variance cube
-#'     var_cube <-  sits_variance(probs_cube)
+#'     var_cube <-  sits_variance(probs_cube, output_dir = tempdir())
 #'     # plot the variance cube
 #'     plot(var_cube)
 #' }
@@ -829,9 +835,11 @@ plot.variance_cube <- function(
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
-#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
 #'     # calculate uncertainty
-#'     uncert_cube <- sits_uncertainty(probs_cube)
+#'     uncert_cube <- sits_uncertainty(probs_cube, output_dir = tempdir())
 #'     # plot the resulting uncertainty cube
 #'     plot(uncert_cube)
 #' }
@@ -895,9 +903,13 @@ plot.uncertainty_cube <- function(
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
-#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
 #'     # label cube with the most likely class
-#'     label_cube <- sits_label_classification(probs_cube)
+#'     label_cube <- sits_label_classification(
+#'         probs_cube, output_dir = tempdir()
+#'     )
 #'     # plot the resulting classified image
 #'     plot(label_cube)
 #' }
@@ -1480,7 +1492,9 @@ plot.rfor_model <- function(x, y, ...) {
 #'     # compute a random forest model
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     # classify training points
-#'     points_class <- sits_classify(test_data, rfor_model)
+#'     points_class <- sits_classify(
+#'         data = test_data, ml_model = rfor_model
+#'     )
 #'     # calculate accuracy
 #'     acc <- sits_accuracy(points_class)
 #'     # plot accuracy
