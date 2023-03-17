@@ -11,16 +11,13 @@ Cubes
 
 [![CRAN
 status](https://www.r-pkg.org/badges/version/sits)](https://cran.r-project.org/package=sits)
-[![Build
-status](https://cloud.drone.io/api/badges/e-sensing/sits/status.svg)](https://cloud.drone.io/e-sensing/sits)
-[![codecov](https://codecov.io/gh/e-sensing/sits/branch/dev/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
+[![R-check-dev](https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml)
+[![Codecov](https://codecov.io/gh/e-sensing/sits/branch/dev/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
 [![Documentation](https://img.shields.io/badge/docs-online-blueviolet)](https://e-sensing.github.io/sitsbook/)
 [![Life
 cycle](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![Software
 License](https://img.shields.io/badge/license-GPL--2-green)](https://github.com/e-sensing/sits/blob/master/LICENSE)
-[![Codecov test
-coverage](https://codecov.io/gh/e-sensing/sits/branch/master/graph/badge.svg)](https://app.codecov.io/gh/e-sensing/sits?branch=master)
 <!-- badges: end -->
 
 ## Overview
@@ -155,13 +152,13 @@ similar ways.
 
 ``` r
 s2_cube <- sits_cube(
-    source = "MPC",
-    collection = "SENTINEL-2-L2A",
-    tiles = c("20LKP", "20LLP"),
-    bands = c("B03", "B08", "B11", "SCL"),
-    start_date = as.Date("2018-07-01"),
-    end_date = as.Date("2019-06-30"),
-    progress = FALSE
+  source = "MPC",
+  collection = "SENTINEL-2-L2A",
+  tiles = c("20LKP", "20LLP"),
+  bands = c("B03", "B08", "B11", "SCL"),
+  start_date = as.Date("2018-07-01"),
+  end_date = as.Date("2019-06-30"),
+  progress = FALSE
 )
 ```
 
@@ -189,11 +186,11 @@ Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92).
 
 ``` r
 gc_cube <- sits_regularize(
-    cube          = s2_cube,
-    output_dir    = tempdir(),
-    period        = "P15D",
-    res           = 60, 
-    multicores    = 4
+  cube          = s2_cube,
+  output_dir    = tempdir(),
+  period        = "P15D",
+  res           = 60,
+  multicores    = 4
 )
 ```
 
@@ -223,26 +220,27 @@ collection of the Brazil Data Cube.
 
 ``` r
 library(sits)
-# this data cube uses images from the Brazil Data Cube that have 
+# this data cube uses images from the Brazil Data Cube that have
 # downloaded to a local directory
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 # create a cube from downloaded files
 raster_cube <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6",
-    data_dir = data_dir,
-    delim = "_",
-    parse_info = c("X1", "tile", "band", "date"),
-    progress = FALSE
+  source = "BDC",
+  collection = "MOD13Q1-6",
+  data_dir = data_dir,
+  delim = "_",
+  parse_info = c("X1", "tile", "band", "date"),
+  progress = FALSE
 )
 # obtain a set of samples defined by a CSV file
 csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-                        package = "sits")
+  package = "sits"
+)
 # retrieve the time series associated with the samples from the data cube
 points <- sits_get_data(raster_cube, samples = csv_file)
 #> All points have been retrieved
 # show the time series
-points[1:3,]
+points[1:3, ]
 #> # A tibble: 3 × 7
 #>   longitude latitude start_date end_date   label    cube      time_series      
 #>       <dbl>    <dbl> <date>     <date>     <chr>    <chr>     <list>           
@@ -291,13 +289,16 @@ data("samples_modis_ndvi")
 # point to be classified
 data("point_mt_6bands")
 # Train a deep learning model
-tempcnn_model <- sits_train(samples_modis_ndvi, ml_method = sits_tempcnn()) 
+tempcnn_model <- sits_train(
+  samples = samples_modis_ndvi,
+  ml_method = sits_tempcnn()
+)
 # Select NDVI band of the  point to be classified
 # Classify using TempCNN model
 # Plot the result
-point_mt_6bands %>% 
-  sits_select(bands = "NDVI") %>% 
-  sits_classify(tempcnn_model) %>% 
+point_mt_6bands %>%
+  sits_select(bands = "NDVI") %>%
+  sits_classify(tempcnn_model) %>%
   plot()
 ```
 
@@ -319,22 +320,34 @@ using `sits_view()`.
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 sinop <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6",
-    data_dir = data_dir,
-    delim = "_",
-    parse_info = c("X1", "tile", "band", "date"),
-    progress = FALSE
+  source = "BDC",
+  collection = "MOD13Q1-6",
+  data_dir = data_dir,
+  delim = "_",
+  parse_info = c("X1", "tile", "band", "date"),
+  progress = FALSE
 )
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
-probs_cube <- sits_classify(sinop, ml_model = tempcnn_model)
+probs_cube <- sits_classify(
+  data = sinop,
+  ml_model = tempcnn_model,
+  output_dir = tempdir()
+)
 # apply a bayesian smoothing to remove outliers
-bayes_cube <- sits_smooth(probs_cube)
+bayes_cube <- sits_smooth(
+  cube = probs_cube,
+  output_dir = tempdir()
+)
 # generate a thematic map
-label_cube <- sits_label_classification(bayes_cube)
+label_cube <- sits_label_classification(
+  cube = bayes_cube,
+  output_dir = tempdir()
+)
 # plot the the labelled cube
-plot(label_cube, title = "Land use and Land cover in Sinop, MT, Brazil in 2018")
+plot(label_cube,
+  title = "Land use and Land cover in Sinop, MT, Brazil in 2018"
+)
 ```
 
 <div class="figure" style="text-align: center">

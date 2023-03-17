@@ -25,12 +25,11 @@ torch::torch_manual_seed(1234)
 
 <!-- [![Build Status](https://drone.dpi.inpe.br/api/badges/e-sensing/sits/status.svg)](https://drone.dpi.inpe.br/e-sensing/sits) -->
 [![CRAN status](https://www.r-pkg.org/badges/version/sits)](https://cran.r-project.org/package=sits)
-[![Build status](https://cloud.drone.io/api/badges/e-sensing/sits/status.svg)](https://cloud.drone.io/e-sensing/sits)
-[![codecov](https://codecov.io/gh/e-sensing/sits/branch/dev/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
+[![R-check-dev](https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml)
+[![Codecov](https://codecov.io/gh/e-sensing/sits/branch/dev/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
 [![Documentation](https://img.shields.io/badge/docs-online-blueviolet)](https://e-sensing.github.io/sitsbook/)
 [![Life cycle](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![Software License](https://img.shields.io/badge/license-GPL--2-green)](https://github.com/e-sensing/sits/blob/master/LICENSE)
-[![Codecov test coverage](https://codecov.io/gh/e-sensing/sits/branch/master/graph/badge.svg)](https://app.codecov.io/gh/e-sensing/sits?branch=master)
 <!-- badges: end -->
 
 ## Overview
@@ -113,7 +112,7 @@ Open data collections do not require payment of access fees. Except for those in
 
 The following code defines an irregular data cube of Sentinel-2/2A images available in the Microsoft Planetary Computer, using the open data collection `"SENTINEL-2-L2A"`.  The geographical area of the data cube is defined by the tiles `"20LKP"` and `"20LLKP"`, and the temporal extent by a start and end date.  Access to other cloud services works in similar ways. 
 
-```{r, echo=TRUE}
+```{r, tidy = "styler", echo=TRUE}
 s2_cube <- sits_cube(
     source = "MPC",
     collection = "SENTINEL-2-L2A",
@@ -134,7 +133,7 @@ knitr::include_graphics("inst/extdata/markdown/figures/datacube_conception.jpg")
 After defining an irregular ARD image collection from a cloud service using `sits_cube()`, users should run `sits_regularize()` to build a regular data cube. This function uses the [gdalcubes R package](https://github.com/appelmar/gdalcubes), described in [Appel and Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92). 
 
 
-```{r, eval=FALSE, echo=TRUE}
+```{r, tidy = "styler", eval=FALSE, echo=TRUE}
 gc_cube <- sits_regularize(
     cube          = s2_cube,
     output_dir    = tempdir(),
@@ -158,7 +157,7 @@ sits_view(s2_cube[1,], green = "B08", blue = "B03", red = "B04")
 
 `sits` has been designed to use satellite image time series to derive machine  learning models. After the data cube has been created, time series can be retrieved individually or by using CSV or SHP files, as in the following example. The example below uses a data cube in a local directory, whose images have been obtained from the `"MOD13Q1-6"` collection of the Brazil Data Cube.
 
-```{r, eval=TRUE, echo=TRUE, cache=TRUE} 
+```{r, tidy = "styler", eval=TRUE, echo=TRUE, cache=TRUE} 
 library(sits)
 # this data cube uses images from the Brazil Data Cube that have 
 # downloaded to a local directory
@@ -209,13 +208,16 @@ Brazilian state, using `sits_classify()`. The results can be shown in text
 format using the function `sits_show_prediction()` or graphically using
 `plot`.
 
-```{r, fig.align="center", fig.height=3.5, fig.width=7, fig.cap="Classification of NDVI time series using TempCNN", cache=TRUE}
+```{r, tidy = "styler", fig.align="center", fig.height=3.5, fig.width=7, fig.cap="Classification of NDVI time series using TempCNN", cache=TRUE}
 # training data set
 data("samples_modis_ndvi")
 # point to be classified
 data("point_mt_6bands")
 # Train a deep learning model
-tempcnn_model <- sits_train(samples_modis_ndvi, ml_method = sits_tempcnn()) 
+tempcnn_model <- sits_train(
+    samples = samples_modis_ndvi, 
+    ml_method = sits_tempcnn()
+) 
 # Select NDVI band of the  point to be classified
 # Classify using TempCNN model
 # Plot the result
@@ -229,7 +231,7 @@ The following example shows how to classify a data cube organized as a
 set of raster images. The result can also be visualized interactively 
 using `sits_view()`. 
 
-```{r, fig.align="center", fig.height=4.5, fig.width=9, fig.cap="Land use and Land cover in Sinop, MT, Brazil in 2018", cache=TRUE}
+```{r, tidy = "styler", fig.align="center", fig.height=4.5, fig.width=9, fig.cap="Land use and Land cover in Sinop, MT, Brazil in 2018", cache=TRUE}
 # Create a data cube to be classified
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -243,13 +245,24 @@ sinop <- sits_cube(
 )
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
-probs_cube <- sits_classify(sinop, ml_model = tempcnn_model)
+probs_cube <- sits_classify(
+    data = sinop, 
+    ml_model = tempcnn_model,
+    output_dir = tempdir()
+)
 # apply a bayesian smoothing to remove outliers
-bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
+bayes_cube <- sits_smooth(
+    cube = probs_cube, 
+    output_dir = tempdir()
+)
 # generate a thematic map
-label_cube <- sits_label_classification(bayes_cube)
+label_cube <- sits_label_classification(
+    cube = bayes_cube,
+    output_dir = tempdir()
+)
 # plot the the labelled cube
-plot(label_cube, title = "Land use and Land cover in Sinop, MT, Brazil in 2018")
+plot(label_cube, 
+     title = "Land use and Land cover in Sinop, MT, Brazil in 2018")
 ```
 
 
