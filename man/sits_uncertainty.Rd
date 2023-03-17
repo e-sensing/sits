@@ -9,7 +9,7 @@
 \usage{
 sits_uncertainty(
   cube,
-  type = "margin",
+  type = "entropy",
   multicores = 2,
   memsize = 4,
   output_dir,

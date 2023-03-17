@@ -58,7 +58,7 @@
 #' }
 #' @export
 sits_uncertainty <- function(cube,
-                             type = "margin",
+                             type = "entropy",
                              multicores = 2,
                              memsize = 4,
                              output_dir,
