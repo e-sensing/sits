@@ -41,7 +41,8 @@
 #'     results <- list()
 #'
 #'     # accuracy assessment lightTAE
-#'     acc_ltae <- sits_kfold_validate(samples_modis_ndvi,
+#'     acc_ltae <- sits_kfold_validate(
+#'         samples_modis_ndvi,
 #'         folds = 5,
 #'         ml_method = sits_lighttae()
 #'     )
@@ -50,16 +51,20 @@
 #'     # put the result in a list
 #'     results[[length(results) + 1]] <- acc_ltae
 #'
-#'     # Deep Learning - ResNet
-#'     acc_rn <- sits_kfold_validate(samples_modis_ndvi,
+#'     # Machine Learning - Random Forests
+#'     acc_rf <- sits_kfold_validate(
+#'         samples_modis_ndvi,
 #'         folds = 5,
-#'         ml_method = sits_resnet()
+#'         ml_method = sits_rfor()
 #'     )
-#'     acc_rn$name <- "ResNet"
+#'     acc_rf$name <- "RandomForests"
 #'     # put the result in a list
-#'     results[[length(results) + 1]] <- acc_rn
+#'     results[[length(results) + 1]] <- acc_rf
 #'     # save to xlsx file
-#'     sits_to_xlsx(results, file = "./accuracy_mato_grosso_dl.xlsx")
+#'     sits_to_xlsx(
+#'         results,
+#'         file = tempfile("accuracy_mato_grosso_dl_", fileext = ".xlsx")
+#'     )
 #' }
 #'
 #' @export

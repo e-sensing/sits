@@ -35,7 +35,9 @@
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
-#'     point_class <- sits_classify(point_ndvi, rf_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = rf_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
@@ -150,7 +152,9 @@ sits_rfor <- function(samples = NULL, num_trees = 120, mtry = NULL, ...) {
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
-#'     point_class <- sits_classify(point_ndvi, ml_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
@@ -207,6 +211,8 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
             )
             # Get the predicted probabilities
             values <- attr(values, "probabilities")
+            # Are the results consistent with the data input?
+            .check_processed_values(values, input_pixels)
             # Reorder matrix columns if needed
             if (any(labels != colnames(values))) {
                 values <- values[, labels]
@@ -281,7 +287,9 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
-#'     point_class <- sits_classify(point_ndvi, ml_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
@@ -381,7 +389,9 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
-#'     point_class <- sits_classify(point_ndvi, ml_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
@@ -449,7 +459,9 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
-#'     point_class <- sits_classify(point_ndvi, ml_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
@@ -564,41 +576,4 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 
     data$time_series <- norm_values
     return(data)
-}
-
-#' @title Normalize the time series in the given sits_tibble
-#' @name .sits_ml_normalization_param
-#' @keywords internal
-#' @noRd
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#'
-#' @description this function normalizes the time series using the mean and
-#' standard deviation of all the time series.
-#'
-#' @param data     A sits tibble.
-#' @return A tibble with statistics for normalization of time series.
-.sits_ml_normalization_param <- function(data) {
-    Index <- NULL # to avoid setting global variable
-
-    dt <- data.table::data.table(dplyr::bind_rows(data$time_series))
-    dt[, Index := NULL]
-
-    # compute statistics
-    dt_med <- dt[, lapply(.SD, stats::median, na.rm = TRUE)]
-    dt_quant_2 <- dt[, lapply(.SD, function(x) {
-        stats::quantile(x, 0.02,
-            na.rm = TRUE
-        )
-    })]
-    dt_quant_98 <- dt[, lapply(.SD, function(x) {
-        stats::quantile(x, 0.98,
-            na.rm = TRUE
-        )
-    })]
-    stats <- dplyr::bind_cols(
-        stats = c("med", "quant_2", "quant_98"),
-        dplyr::bind_rows(dt_med, dt_quant_2, dt_quant_98)
-    )
-
-    return(stats)
 }

@@ -251,6 +251,88 @@ sources:
                 open_data_token: true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
+            LANDSAT-2M-1    : &bdc_lc8_2m
+                bands       :
+                    COASTAL : &bdc_lc8_2m_band
+                        missing_value : 0
+                        minimum_value : 1
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "coastal"
+                        data_type     : "INT2U"
+                    BLUE    :
+                        <<: *bdc_lc8_2m_band
+                        band_name     : "blue"
+                    GREEN   :
+                        <<: *bdc_lc8_2m_band
+                        band_name     : "green"
+                    RED     :
+                        <<: *bdc_lc8_2m_band
+                        band_name     : "red"
+                    NIR08   :
+                        <<: *bdc_lc8_2m_band
+                        band_name     : "nir08"
+                    SWIR16  :
+                        <<: *bdc_lc8_2m_band
+                        band_name     : "swir16"
+                    SWIR22  :
+                        <<: *bdc_lc8_2m_band
+                        band_name     : "swir22"
+                    NDVI    : &bdc_lc8_2m_vi
+                        missing_value : -9999
+                        minimum_value : -10000
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "NDVI"
+                        data_type     : "INT2S"
+                    EVI     : &bdc_lc8_2m_vi
+                        <<: *bdc_lc8_2m_vi
+                        band_name     : "EVI"
+                    CLOUD   :
+                        bit_mask      : true
+                        band_name     : "qa_pixel"
+                        values        :
+                            0         : "Missing data"
+                            1         : "Dilated Cloud"
+                            2         : "High confidence cirrus"
+                            3         : "High confidence cloud"
+                            4         : "High confidence cloud shadow"
+                            5         : "High confidence snow cover"
+                            6         : "Clear"
+                            7         : "Water"
+                            8         : "Low/High confidence of cloud"
+                            9         : "Medium/High confidence of cloud"
+                            10        : "Low/High confidence of cloud shadow"
+                            11        : "Medium/High confidence of cloud shadow"
+                            12        : "Low/High confidence of snow"
+                            13        : "Medium/High confidence of snow"
+                            14        : "Low/High confidence of cirrus"
+                            15        : "Medium/High confidence of cirrus"
+                        interp_values : [0, 1, 2, 3, 4, 5, 9, 11, 13, 15]
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT2U"
+                satellite   : "LANDSAT"
+                sensor      : "TM-ETM-OLI"
+                platforms   :
+                    LANDSAT-5: "landsat-5"
+                    LANDSAT-7: "landsat-7"
+                    LANDSAT-8: "landsat-8"
+                    LANDSAT-9: "landsat-9"
+                collection_name: "LANDSAT-2M-1"
+                token_vars  :  ["BDC_ACCESS_KEY"]
+                gdalcubes_support: true
+                reg_type_format: "INT2S"
+                open_data   : true
+                open_data_token: true
+                metadata_search : "tile"
+                ext_tolerance: 0.01
             MOD13Q1-6       : &bdc_mod
                 bands       :
                     NDVI    : &bdc_modis_ndvi
@@ -1230,7 +1312,7 @@ sources:
                         resolution    : 30
                         data_type     : "INT2U"
                 satellite   : "LANDSAT"
-                sensor      : "TM/ETM+/OLI"
+                sensor      : "TM-ETM-OLI"
                 platforms   :
                     LANDSAT-5: "landsat-5"
                     LANDSAT-7: "landsat-7"

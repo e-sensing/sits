@@ -35,7 +35,9 @@ if (sits_run_examples()) {
     # compute a random forest model
     rfor_model <- sits_train(train_data, sits_rfor())
     # classify training points
-    points_class <- sits_classify(test_data, rfor_model)
+    points_class <- sits_classify(
+        data = test_data, ml_model = rfor_model
+    )
     # calculate accuracy
     acc <- sits_accuracy(points_class)
     # plot accuracy

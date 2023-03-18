@@ -45,8 +45,6 @@
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
 #' @param pol_avg         Summarize samples for each polygon?
 #' @param pol_id          ID attribute for polygons.
-#' @param output_dir      Directory where the time series will be saved as rds.
-#'                        Default is the current path.
 #' @param multicores      Number of threads to process the time series.
 #' @param progress        A logical value indicating if a progress bar
 #'                        should be shown. Default is \code{FALSE}.
@@ -120,16 +118,14 @@ sits_get_data <- function(cube,
                           pol_avg = FALSE,
                           pol_id = NULL,
                           multicores = 2,
-                          output_dir = getwd(),
                           progress = FALSE) {
 
     # Pre-conditions
     .check_is_raster_cube(cube)
     .check_is_regular(cube)
-    .check_bands_in_cube(bands = bands, cube = cube)
+    .check_cube_bands(cube, bands = bands)
     .check_crs(crs)
     .check_multicores(multicores)
-    .check_output_dir(output_dir)
     .check_progress(progress)
 
     if (is.character(samples)) {
@@ -154,7 +150,6 @@ sits_get_data.csv <- function(cube,
                               crs = 4326,
                               impute_fn = sits_impute_linear(),
                               multicores = 2,
-                              output_dir = getwd(),
                               progress = FALSE) {
 
     # Get samples
@@ -166,7 +161,6 @@ sits_get_data.csv <- function(cube,
         crs        = crs,
         impute_fn  = impute_fn,
         multicores = multicores,
-        output_dir = output_dir,
         progress   = progress
     )
     return(data)
@@ -187,7 +181,6 @@ sits_get_data.shp <- function(cube,
                               pol_avg = FALSE,
                               pol_id = NULL,
                               multicores = 2,
-                              output_dir = ".",
                               progress = FALSE) {
 
     # pre-condition - shapefile should have an id parameter
@@ -211,7 +204,6 @@ sits_get_data.shp <- function(cube,
         bands      = bands,
         impute_fn  = impute_fn,
         multicores = multicores,
-        output_dir = output_dir,
         progress   = progress
     )
     if (pol_avg && "polygon_id" %in% colnames(data)) {
@@ -235,12 +227,13 @@ sits_get_data.sf <- function(cube,
                              pol_avg = FALSE,
                              pol_id = NULL,
                              multicores = 2,
-                             output_dir = ".",
                              progress = FALSE) {
 
     .check_that(
         !(pol_avg && purrr::is_null(pol_id)),
-        msg = "invalid 'pol_id' parameter."
+        msg = "Please provide an sf object with a column
+        with the id for each polygon and include
+        this column name in the pol_id parameter."
     )
 
     # check if sf object contains all the required columns
@@ -260,7 +253,6 @@ sits_get_data.sf <- function(cube,
         bands      = bands,
         impute_fn  = impute_fn,
         multicores = multicores,
-        output_dir = output_dir,
         progress   = progress
     )
     if (pol_avg && "polygon_id" %in% colnames(data)) {
@@ -277,7 +269,6 @@ sits_get_data.sits <- function(cube,
                                bands = sits_bands(cube),
                                impute_fn = sits_impute_linear(),
                                multicores = 2,
-                               output_dir = ".",
                                progress = FALSE) {
     # check if samples contains all the required columns
 
@@ -288,7 +279,6 @@ sits_get_data.sits <- function(cube,
         bands      = bands,
         impute_fn  = impute_fn,
         multicores = multicores,
-        output_dir = output_dir,
         progress   = progress
     )
     return(data)
@@ -313,7 +303,6 @@ sits_get_data.data.frame <- function(cube,
                                      crs = 4326,
                                      impute_fn = sits_impute_linear(),
                                      multicores = 2,
-                                     output_dir = ".",
                                      progress = FALSE) {
 
 
@@ -343,7 +332,6 @@ sits_get_data.data.frame <- function(cube,
         crs        = crs,
         impute_fn  = impute_fn,
         multicores = multicores,
-        output_dir = output_dir,
         progress   = progress
     )
     return(data)
@@ -376,7 +364,6 @@ sits_get_data.data.frame <- function(cube,
                          bands = NULL,
                          impute_fn,
                          multicores,
-                         output_dir,
                          progress) {
 
     # Dispatch
@@ -393,7 +380,6 @@ sits_get_data.data.frame <- function(cube,
                                      crs = 4326,
                                      impute_fn,
                                      multicores,
-                                     output_dir,
                                      progress) {
 
     # If samples CRS is not WGS84, transform to WGS84
@@ -423,7 +409,10 @@ sits_get_data.data.frame <- function(cube,
         purrr::pmap(function(tile, band) {
             return(list(tile, band))
         })
-
+    # set output_dir
+    output_dir <- tempdir()
+    if (Sys.getenv("SITS_SAMPLES_CACHE_DIR") != "")
+        output_dir <- Sys.getenv("SITS_SAMPLES_CACHE_DIR")
     # prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
@@ -517,8 +506,7 @@ sits_get_data.data.frame <- function(cube,
             bands = band,
             xy = xy,
             cld_band = cld_band,
-            impute_fn = impute_fn,
-            output_dir = output_dir
+            impute_fn = impute_fn
         )
 
         ts[["tile"]] <- tile_id
@@ -529,8 +517,18 @@ sits_get_data.data.frame <- function(cube,
         return(ts)
     }, progress = progress)
 
-    ts_tbl <- samples_tiles_bands %>%
-        dplyr::bind_rows() %>%
+    ts_tbl <- dplyr::bind_rows(samples_tiles_bands)
+
+    if (!.has_ts(ts_tbl)) {
+        warning(
+            "No time series were extracted. ",
+            "Check your samples and your input cube",
+            immediate. = TRUE, call. = FALSE
+        )
+        return(.tibble())
+    }
+
+    ts_tbl <- ts_tbl %>%
         tidyr::unnest("time_series") %>%
         dplyr::group_by(
             .data[["longitude"]], .data[["latitude"]],
@@ -544,7 +542,8 @@ sits_get_data.data.frame <- function(cube,
     }
 
     ts_tbl <- ts_tbl %>%
-        dplyr::summarise(dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
+        dplyr::summarise(
+            dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
         tidyr::nest(time_series = !!c("Index", bands)) %>%
@@ -602,7 +601,6 @@ sits_get_data.data.frame <- function(cube,
                                     crs = 4326,
                                     impute_fn,
                                     multicores,
-                                    output_dir,
                                     progress) {
 
     # Filter only tiles that intersects with samples
@@ -626,7 +624,10 @@ sits_get_data.data.frame <- function(cube,
         purrr::pmap(function(tile, band) {
             return(list(tile, band))
         })
-
+    # set output_dir
+    output_dir <- tempdir()
+    if (Sys.getenv("SITS_SAMPLES_CACHE_DIR") != "")
+        output_dir <- Sys.getenv("SITS_SAMPLES_CACHE_DIR")
     # prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
@@ -716,8 +717,7 @@ sits_get_data.data.frame <- function(cube,
             tile = tile,
             points = samples_tbl,
             band = "class",
-            xy = xy,
-            output_dir = output_dir
+            xy = xy
         )
 
         ts[["tile"]] <- tile_id
@@ -744,7 +744,8 @@ sits_get_data.data.frame <- function(cube,
     }
 
     ts_tbl <- ts_tbl %>%
-        dplyr::summarise(dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
+        dplyr::summarise(
+            dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
         dplyr::arrange(.data[["from"]]) %>%
         dplyr::ungroup() %>%
         tidyr::nest(predicted = !!c("from", "to", bands)) %>%
@@ -835,9 +836,9 @@ sits_get_data.data.frame <- function(cube,
             .data[["cube"]],
             .data[["polygon_id"]]
         ) %>%
-        dplyr::summarise(dplyr::across(!!columns_to_avg, mean, na.rm = TRUE),
-                         .groups = "drop"
-        ) %>%
+        dplyr::summarise(dplyr::across(!!columns_to_avg, function(x) {
+            mean(x, na.rm = TRUE)
+        }), .groups = "drop") %>%
         tidyr::nest("time_series" = c("Index", dplyr::all_of(bands))) %>%
         dplyr::select(!!colnames(data))
 

@@ -33,6 +33,7 @@ sits_cube(source, collection, ..., data_dir = NULL)
   end_date = NULL,
   labels = NULL,
   parse_info = NULL,
+  version = "v1",
   delim = "_",
   multicores = 2,
   progress = TRUE
@@ -70,6 +71,8 @@ of collections that include more than one satellite.}
 \item{labels}{Labels associated to the classes (only for result cubes).}
 
 \item{parse_info}{Parsing information for local files.}
+
+\item{version}{Version of the classified and/or labelled files.}
 
 \item{delim}{Delimiter for parsing local files.}
 
@@ -150,8 +153,7 @@ parameter \code{parse_info} is specified differently:
 \itemize{
 \item{\code{band}: }{The band name is associated to the type of result. Use
   \code{"probs"}, for probability cubes produced by \code{sits_classify()};
-  \code{"bayes"}, or \code{"bilat"} (bilateral) according to
-  the function selected when using \code{sits_smooth()};
+  \code{"bayes"}, for smoothed cubes produced by \code{sits_smooth()};
   \code{"entropy"} when using \code{sits_uncertainty()}, or \code{"class"}
   for cubes produced by \code{sits_label_classification()}.}
 \item{\code{labels}: }{Labels associated to the classification results.}
@@ -268,33 +270,17 @@ if (sits_run_examples()) {
     # --- Access to AWS open data Sentinel 2/2A level 2 collection
     s2_cube <- sits_cube(
         source = "AWS",
-        collection = "sentinel-s2-l2a-cogs",
+        collection = "SENTINEL-S2-L2A-COGS",
         tiles = c("20LKP", "20LLP"),
         bands = c("B04", "B08", "B11"),
         start_date = "2018-07-18",
         end_date = "2019-07-23"
     )
 
-    # --- Access to USGS Landsat cubes (requester pays)
-    # --- Need to provide AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
-    usgs_cube <- sits_cube(
-        source = "USGS",
-        collection = "landsat-c2l2-sr",
-        bands = c("GREEN", "CLOUD"),
-        roi = c(
-            "xmin" = -50.379,
-            "ymin" = -10.1573,
-            "xmax" = -50.410,
-            "ymax" = -10.1910
-        ),
-        start_date = "2019-01-01",
-        end_date = "2019-10-28"
-    )
-
     # -- Creating Sentinel cube from MPC"
     s2_cube <- sits_cube(
         source = "MPC",
-        collection = "sentinel-2-l2a",
+        collection = "SENTINEL-2-L2A",
         tiles = "20LKP",
         bands = c("B05", "CLOUD"),
         start_date = "2018-07-18",

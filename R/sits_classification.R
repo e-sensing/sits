@@ -74,7 +74,9 @@
 #'
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = c("NDVI"))
-#'     point_class <- sits_classify(point_ndvi, rf_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = rf_model
+#'     )
 #'     plot(point_class)
 #'
 #'     # Example of classification of a data cube
@@ -88,9 +90,13 @@
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
-#'     probs_cube <- sits_classify(data = cube, ml_model = rf_model)
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rf_model, output_dir = tempdir()
+#'     )
 #'     # label the probability cube
-#'     label_cube <- sits_label_classification(probs_cube)
+#'     label_cube <- sits_label_classification(
+#'         probs_cube, output_dir = tempdir()
+#'     )
 #'     # plot the classified image
 #'     plot(label_cube)
 #' }
@@ -148,9 +154,9 @@ sits_classify.raster_cube <- function(data,
                                       end_date = NULL,
                                       memsize = 8,
                                       multicores = 2,
-                                      output_dir = getwd(),
+                                      output_dir,
                                       version = "v1",
-                                      verbose = TRUE,
+                                      verbose = FALSE,
                                       progress = TRUE) {
     # preconditions
     .check_is_raster_cube(data)
@@ -161,7 +167,8 @@ sits_classify.raster_cube <- function(data,
 
     # Spatial filter
     if (.has(roi)) {
-        data <- .cube_filter_spatial(cube = data, roi = .roi_as_sf(roi))
+        roi <- .roi_as_sf(roi)
+        data <- .cube_filter_spatial(cube = data, roi = roi)
     }
     # Temporal filter
     if (.has(start_date) || .has(end_date)) {
@@ -220,6 +227,7 @@ sits_classify.raster_cube <- function(data,
             tile = tile,
             band = "probs",
             ml_model = ml_model,
+            block = block,
             roi = roi,
             filter_fn = filter_fn,
             impute_fn = impute_fn,

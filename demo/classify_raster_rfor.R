@@ -29,7 +29,7 @@ rfor_model <- sits_train(samples_ndvi_evi,
 
 # Read ndvi and evi data from the sitsdata package
 # create a data cube to be classified
-# Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
+# Cube MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/sinop", package = "sitsdata")
 sinop <- sits_cube(
     source     = "BDC",
@@ -44,42 +44,47 @@ sinop_probs <- sits_classify(
     data       = sinop,
     ml_model   = rfor_model,
     memsize    = 8,
-    multicores = 2
+    multicores = 2,
+    output_dir = tempdir()
 )
 
 # smoothen with bayesian filter
 sinop_bayes <- sits_smooth(
     cube       = sinop_probs,
-    type       = "bayes",
     memsize    = 8,
-    multicores = 2
+    multicores = 2,
+    output_dir = tempdir()
 )
 # calculate uncertainty
 sinop_uncert <- sits_uncertainty(
     cube       = sinop_bayes,
     type       = "entropy",
     memsize    = 8,
-    multicores = 2
+    multicores = 2,
+    output_dir = tempdir()
 )
 # calculate uncertainty
 sinop_uncert_m <- sits_uncertainty(
     cube       = sinop_bayes,
     type       = "least",
     memsize    = 8,
-    multicores = 2
+    multicores = 2,
+    output_dir = tempdir()
 )
 # calculate uncertainty
 sinop_uncert_margin <- sits_uncertainty(
     cube       = sinop_bayes,
     type       = "margin",
     memsize    = 8,
-    multicores = 2
+    multicores = 2,
+    output_dir = tempdir()
 )
 # label the classified image
 sinop_label <- sits_label_classification(
     cube       = sinop_bayes,
     memsize    = 8,
-    multicores = 2
+    multicores = 2,
+    output_dir = tempdir()
 )
 
 # plot the smoothened image

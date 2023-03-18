@@ -24,7 +24,7 @@ test_that("One-year, single core classification", {
 
     # testing resume feature
     expect_message(
-        object = {sits_classify(
+        object = { sits_classify(
             data = sinop,
             ml_model = rfor_model,
             output_dir = tempdir(),
@@ -603,7 +603,7 @@ test_that("One-year, multicore classification with post-processing", {
                 sits_classify(
                     sinop,
                     rfor_model,
-                    output_dir = temp_dir,
+                    output_dir = tempdir(),
                     memsize = 4,
                     multicores = 2,
                     version = "test12"
@@ -622,15 +622,15 @@ test_that("One-year, multicore classification with post-processing", {
 
     sinop_class <- sits_label_classification(
         sinop_probs,
-        output_dir = temp_dir,
+        output_dir = tempdir(),
         version = "test12"
     )
 
     # testing resume feature
     expect_message(
-        object = { sits_label_classification(
+        object = {sits_label_classification(
             sinop_probs,
-            output_dir = temp_dir,
+            output_dir = tempdir(),
             version = "test12"
         ) },
         regexp = "Recovery"
@@ -649,7 +649,7 @@ test_that("One-year, multicore classification with post-processing", {
 
     sinop_bayes <- sits_smooth(
         sinop_probs,
-        output_dir = temp_dir,
+        output_dir = tempdir(),
         multicores = 2,
         memsize = 4,
         version = "test12"
@@ -657,9 +657,9 @@ test_that("One-year, multicore classification with post-processing", {
 
     # testing the recovery feature
     expect_message(
-        object = { sits_smooth(
+        object = {sits_smooth(
             sinop_probs,
-            output_dir = temp_dir,
+            output_dir = tempdir(),
             multicores = 2,
             memsize = 4,
             version = "test12"
@@ -674,50 +674,17 @@ test_that("One-year, multicore classification with post-processing", {
     r_bay <- .raster_open_rast(sinop_bayes$file_info[[1]]$path[[1]])
     expect_true(.raster_nrows(r_bay) == .tile_nrows(sinop_probs))
 
-    max_bay2 <- max(.raster_get_values(r_bay)[, 2], na.rm = TRUE)
+    max_bay2 <- max(.raster_get_values(r_bay)[, 2])
     expect_true(max_bay2 <= 10000)
 
-    max_bay3 <- max(.raster_get_values(r_bay)[, 3], na.rm = TRUE)
+    max_bay3 <- max(.raster_get_values(r_bay)[, 3])
     expect_true(max_bay3 <= 10000)
-
-    sinop_bil <- sits_smooth(
-        cube = sinop_probs,
-        type = "bilateral",
-        output_dir = temp_dir,
-        multicores = 2,
-        memsize = 4,
-        version = "test12"
-    )
-
-    # testing the recovery feature
-    expect_message(
-        object = { sits_smooth(
-            cube = sinop_probs,
-            type = "bilateral",
-            output_dir = temp_dir,
-            multicores = 2,
-            memsize = 4,
-            version = "test12"
-        ) },
-        regexp = "Recovery"
-    )
-
-    expect_true(all(file.exists(unlist(sinop_bil$file_info[[1]]$path))))
-
-    r_bil <- .raster_open_rast(sinop_bil$file_info[[1]]$path[[1]])
-    expect_true(.raster_nrows(r_bil) == .tile_nrows(sinop_probs))
-
-    max_bil2 <- max(.raster_get_values(r_bil)[, 2])
-    expect_true(max_bil2 <= 10000)
-
-    max_bil3 <- max(.raster_get_values(r_bil)[, 3])
-    expect_true(max_bil3 <= 10000)
 
     sinop_uncert <- sits_uncertainty(
         cube = sinop_bayes,
-        type = "entropy",
-        output_dir = temp_dir,
-        multicores = 2,
+        type = "margin",
+        output_dir = tempdir(),
+        multicores = 1,
         memsize = 4,
         version = "test12"
     )
@@ -732,7 +699,8 @@ test_that("One-year, multicore classification with post-processing", {
     sinop_uncert_2 <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        bands = "entropy",
+        bands = "margin",
+        version = "test12",
         labels = sits_labels(sinop_class),
         data_dir = temp_dir,
         parse_info = c("X1", "X2", "tile",
@@ -756,7 +724,6 @@ test_that("One-year, multicore classification with post-processing", {
 
     expect_true(all(file.remove(unlist(sinop_class$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(sinop_bil$file_info[[1]]$path))))
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_uncert$file_info[[1]]$path))))
@@ -772,6 +739,7 @@ test_that("One-year, multicores processing reclassify", {
         parse_info = c("X1", "X2", "tile", "start_date", "end_date",
                        "band", "version"),
         bands = "class",
+        version = "v20220606",
         labels = c("Forest", "Water", "NonForest",
                    "NonForest2", "NoClass", "d2007", "d2008",
                    "d2009", "d2010", "d2011", "d2012",
@@ -813,9 +781,9 @@ test_that("One-year, multicores processing reclassify", {
             "Water_Mask" = mask == "Water",
             "NonForest_Mask" = mask %in% c("NonForest", "NonForest2")
         ),
-        memsize = 1,
-        multicores = 1,
-        output_dir = getwd()
+        memsize = 4,
+        multicores = 2,
+        output_dir = tempdir()
     )
 
     expect_equal(
@@ -860,17 +828,19 @@ test_that("One-year, multicores mosaic", {
                 c(-55.62973, -11.61519),
                 c(-55.64768, -11.68649)))), crs = 4326
     )
-    # crop and mosaic classified image
-    mosaic_cube <- sits_mosaic(
+    # crop and reproject classified image
+    mosaic_class <- sits_mosaic(
         cube = label_cube,
         roi = roi,
         crs = 4326,
-        output_dir = output_dir
+        output_dir = output_dir,
+        version = "v1",
+        multicores = 1
     )
 
-    expect_equal(mosaic_cube[["tile"]], "MOSAIC")
-    expect_equal(nrow(mosaic_cube), 1)
-    bbox_cube <- sits_bbox(mosaic_cube)
+    expect_equal(mosaic_class[["tile"]], "MOSAIC")
+    expect_equal(nrow(mosaic_class), 1)
+    bbox_cube <- sits_bbox(mosaic_class)
     bbox_roi <- sf::st_bbox(roi)
     expect_true(
         bbox_cube[["xmin"]] < bbox_roi[["xmin"]] &&
@@ -878,10 +848,75 @@ test_that("One-year, multicores mosaic", {
         bbox_cube[["ymin"]] < bbox_roi[["ymin"]] &&
         bbox_cube[["ymax"]] > bbox_roi[["ymax"]]
     )
+
+    # resume feature
+    mosaic_class <- sits_mosaic(
+        cube = label_cube,
+        roi = roi,
+        crs = 4326,
+        output_dir = output_dir,
+        version = "v1"
+    )
+    expect_equal(mosaic_class[["tile"]], "MOSAIC")
+
+    # create new roi
+    roi2 <- sf::st_sfc(
+        sf::st_polygon(
+            list(rbind(
+                c(-55.91563676, -11.92443997),
+                c(-55.02414662, -11.92443997),
+                c(-55.02414662, -11.38658587),
+                c(-55.91563676, -11.38658587),
+                c(-55.91563676, -11.92443997)))), crs = 4326
+    )
+
+    # reproject classified image
+    mosaic_class2 <- sits_mosaic(
+        cube = label_cube,
+        roi = roi2,
+        crs = 4326,
+        output_dir = output_dir,
+        version = "v2"
+    )
+
+    expect_equal(mosaic_class2[["tile"]], "MOSAIC")
+    expect_equal(nrow(mosaic_class2), 1)
+    bbox_cube <- sits_bbox(mosaic_class2)
+    bbox_roi <- sf::st_bbox(roi2)
+    expect_true(
+        bbox_cube[["xmin"]] > bbox_roi[["xmin"]] &&
+            bbox_cube[["xmax"]] < bbox_roi[["xmax"]] &&
+            bbox_cube[["ymin"]] > bbox_roi[["ymin"]] &&
+            bbox_cube[["ymax"]] < bbox_roi[["ymax"]]
+    )
+
+    uncert_cube <- sits_uncertainty(probs_cube, output_dir = output_dir)
+    mosaic_uncert <- sits_mosaic(
+        cube = uncert_cube,
+        roi = roi,
+        crs = 4326,
+        output_dir = output_dir,
+        version = "v3"
+    )
+
+    expect_equal(mosaic_uncert[["tile"]], "MOSAIC")
+    expect_equal(nrow(mosaic_uncert), 1)
+    bbox_cube <- sits_bbox(mosaic_uncert)
+    bbox_roi <- sf::st_bbox(roi)
+    expect_true(
+        bbox_cube[["xmin"]] < bbox_roi[["xmin"]] &&
+            bbox_cube[["xmax"]] > bbox_roi[["xmax"]] &&
+            bbox_cube[["ymin"]] < bbox_roi[["ymin"]] &&
+            bbox_cube[["ymax"]] > bbox_roi[["ymax"]]
+    )
+
     unlink(probs_cube$file_info[[1]]$path)
     unlink(bayes_cube$file_info[[1]]$path)
     unlink(label_cube$file_info[[1]]$path)
-    unlink(mosaic_cube$file_info[[1]]$path)
+    unlink(mosaic_class$file_info[[1]]$path)
+    unlink(mosaic_class2$file_info[[1]]$path)
+    unlink(mosaic_uncert$file_info[[1]]$path)
+    unlink(uncert_cube$file_info[[1]]$path)
 })
 
 test_that("Raster GDAL datatypes", {

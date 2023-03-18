@@ -36,7 +36,9 @@ if (sits_run_examples()) {
     ml_model <- sits_train(samples_modis_ndvi, ml_method = sits_tempcnn)
     # classify the point
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(point_ndvi, ml_model)
+    point_class <- sits_classify(
+        data = point_ndvi, ml_model = ml_model
+    )
     plot(point_class)
 }
 }

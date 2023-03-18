@@ -11,15 +11,13 @@ Cubes
 
 [![CRAN
 status](https://www.r-pkg.org/badges/version/sits)](https://cran.r-project.org/package=sits)
-[![Build
-status](https://cloud.drone.io/api/badges/e-sensing/sits/status.svg)](https://cloud.drone.io/e-sensing/sits)
-[![codecov](https://codecov.io/gh/e-sensing/sits/branch/dev/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
+[![R-check-dev](https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml)
+[![Codecov](https://codecov.io/gh/e-sensing/sits/branch/dev/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
 [![Documentation](https://img.shields.io/badge/docs-online-blueviolet)](https://e-sensing.github.io/sitsbook/)
 [![Life
 cycle](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![Software
 License](https://img.shields.io/badge/license-GPL--2-green)](https://github.com/e-sensing/sits/blob/master/LICENSE)
-
 <!-- badges: end -->
 
 ## Overview
@@ -47,7 +45,14 @@ cubes. The basic workflow in `sits` is:
 12. Improve results with active learning and self-supervised learning
     methods.
 
-<img src="inst/extdata/markdown/figures/sits_general_view.jpg" title="Conceptual view of data cubes (source: authors)" alt="Conceptual view of data cubes (source: authors)" width="60%" height="60%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+
+<img src="inst/extdata/markdown/figures/sits_general_view.jpg" alt="Conceptual view of data cubes (source: authors)" width="60%" height="60%" />
+<p class="caption">
+Conceptual view of data cubes (source: authors)
+</p>
+
+</div>
 
 ## Documentation
 
@@ -101,12 +106,8 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 ``` r
 # load the sits library
 library(sits)
-#> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.2/sits/extdata/config.yml
-#> Color configurations found in /home/sits/R/x86_64-pc-linux-gnu-library/4.2/sits/extdata/config_colors.yml
-#> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
-#> Using raster package: terra
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.2.0.
+#> Loaded sits v1.3.0.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 ```
@@ -117,7 +118,7 @@ library(sits)
 
 The `sits` package allows users to created data cubes from
 analysis-ready data (ARD) image collections available in cloud services.
-The collections accessible in `sits` 1.2.0 are:
+The collections accessible in `sits` 1.3.0 are:
 
 1.  Brazil Data Cube
     ([BDC](http://brazildatacube.org/en/home-page-2/#dataproducts)):
@@ -151,13 +152,13 @@ similar ways.
 
 ``` r
 s2_cube <- sits_cube(
-    source = "MPC",
-    collection = "SENTINEL-2-L2A",
-    tiles = c("20LKP", "20LLP"),
-    bands = c("B03", "B08", "B11", "SCL"),
-    start_date = as.Date("2018-07-01"),
-    end_date = as.Date("2019-06-30"),
-    progress = FALSE
+  source = "MPC",
+  collection = "SENTINEL-2-L2A",
+  tiles = c("20LKP", "20LLP"),
+  bands = c("B03", "B08", "B11", "SCL"),
+  start_date = as.Date("2018-07-01"),
+  end_date = as.Date("2019-06-30"),
+  progress = FALSE
 )
 ```
 
@@ -168,7 +169,14 @@ band `"SCL"` have 20-meters resolution. Irregular collections need an
 additional processing step to be converted to regular data cubes, as
 described below.
 
-<img src="inst/extdata/markdown/figures/datacube_conception.jpg" title="Conceptual view of data cubes (source: authors)" alt="Conceptual view of data cubes (source: authors)" width="90%" height="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+
+<img src="inst/extdata/markdown/figures/datacube_conception.jpg" alt="Conceptual view of data cubes (source: authors)" width="90%" height="90%" />
+<p class="caption">
+Conceptual view of data cubes (source: authors)
+</p>
+
+</div>
 
 After defining an irregular ARD image collection from a cloud service
 using `sits_cube()`, users should run `sits_regularize()` to build a
@@ -178,11 +186,11 @@ Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92).
 
 ``` r
 gc_cube <- sits_regularize(
-    cube          = s2_cube,
-    output_dir    = tempdir(),
-    period        = "P15D",
-    res           = 60, 
-    multicores    = 4
+  cube          = s2_cube,
+  output_dir    = tempdir(),
+  period        = "P15D",
+  res           = 60,
+  multicores    = 4
 )
 ```
 
@@ -212,32 +220,33 @@ collection of the Brazil Data Cube.
 
 ``` r
 library(sits)
-# this data cube uses images from the Brazil Data Cube that have 
+# this data cube uses images from the Brazil Data Cube that have
 # downloaded to a local directory
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 # create a cube from downloaded files
 raster_cube <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6",
-    data_dir = data_dir,
-    delim = "_",
-    parse_info = c("X1", "tile", "band", "date"),
-    progress = FALSE
+  source = "BDC",
+  collection = "MOD13Q1-6",
+  data_dir = data_dir,
+  delim = "_",
+  parse_info = c("X1", "tile", "band", "date"),
+  progress = FALSE
 )
 # obtain a set of samples defined by a CSV file
 csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-                        package = "sits")
+  package = "sits"
+)
 # retrieve the time series associated with the samples from the data cube
 points <- sits_get_data(raster_cube, samples = csv_file)
 #> All points have been retrieved
 # show the time series
-points[1:3,]
+points[1:3, ]
 #> # A tibble: 3 × 7
 #>   longitude latitude start_date end_date   label    cube      time_series      
 #>       <dbl>    <dbl> <date>     <date>     <chr>    <chr>     <list>           
-#> 1     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [23 × 2]>
-#> 2     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [23 × 2]>
-#> 3     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn MOD13Q1-6 <tibble [23 × 2]>
+#> 1     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [12 × 2]>
+#> 2     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [12 × 2]>
+#> 3     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn MOD13Q1-6 <tibble [12 × 2]>
 ```
 
 After a time series has been obtained, it is loaded in a tibble. The
@@ -246,92 +255,7 @@ label assigned to the sample, and coverage from where the data has been
 extracted. The spatial location is given in longitude and latitude
 coordinates. The first sample has been labelled “Pasture”, at location
 (-55.65931, -11.76267), and is considered valid for the period
-(2013-09-14, 2014-08-29). To display the time series, use the `plot()`
-function.
-
-``` r
-plot(points[1,])
-```
-
-<img src="man/figures/README-unnamed-chunk-9-1.png" title="Plot of point at location (-55.65931, -11.76267) labelled as Pasture" alt="Plot of point at location (-55.65931, -11.76267) labelled as Pasture" style="display: block; margin: auto;" />
-
-For a large number of samples, where the amount of individual plots
-would be substantial, the default visualization combines all samples
-together in a single temporal interval.
-
-``` r
-# select only the samples with the cerrado label
-samples_cerrado <- dplyr::filter(samples_modis_ndvi, 
-                  label == "Cerrado")
-plot(samples_cerrado)
-```
-
-<img src="man/figures/README-unnamed-chunk-10-1.png" title="Samples for NDVI band for Cerrado class" alt="Samples for NDVI band for Cerrado class" style="display: block; margin: auto;" />
-
-## Time Series Clustering and Filtering
-
-### Clustering for sample quality control
-
-Clustering methods in `sits` improve the quality of the samples and to
-remove those that might have been wrongly labeled or that have low
-discriminatory power. Good samples lead to good classification maps.
-`sits` provides support for sample quality control using Self-organizing
-Maps (SOM). The process of clustering with SOM is done by
-`sits_som_map()`, which creates a self-organizing map and assesses the
-quality of the samples.
-
-``` r
-# load the kohonen library
-library(kohonen)
-# create a SOM map from the samples
-som_map <- sits_som_map(samples_modis_ndvi,
-                        grid_xdim = 6,
-                        grid_ydim = 6)
-# plot the map
-plot(som_map)
-#> Warning in par(opar): argument 1 does not name a graphical parameter
-```
-
-<img src="man/figures/README-unnamed-chunk-11-1.png" title="Samples analysis using SOM (grid 6x6)" alt="Samples analysis using SOM (grid 6x6)" style="display: block; margin: auto;" />
-
-This function uses the [“kohonen” R
-package](https://www.jstatsoft.org/article/view/v087i07) to compute a
-SOM grid \[7\]. Each sample is assigned to a neuron, and neurons are
-placed in the grid based on similarity. Each neuron will be associated
-with a discrete probability distribution. Homogeneous neurons (those
-with a single class) are assumed to be composed of good quality samples.
-Heterogeneous neurons (those with two or more classes with significant
-probability) are likely to contain noisy samples. Noisy samples can then
-be identified and removed from the sample set using
-`sits_som_clean_samples()`.
-
-``` r
-# create a new sample set removing noisy points
-new_samples <- sits_som_clean_samples(som_map)
-```
-
-### Filtering
-
-Satellite image time series are contaminated by atmospheric influence
-and directional effects. To make the best use of available satellite
-data archives, methods for satellite image time series analysis need to
-deal with data sets that are *noisy* and *non-homogeneous*. For data
-filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`) and
-Whittaker (`sits_whittaker()`) filters. As an example, we show how to
-apply the Whittaker smoother to a 16-year NDVI time series.
-
-``` r
-# apply Whitaker filter to a time series sample for the NDVI band from 2000 to 2016
-# merge with the original data
-# plot the original and the modified series
-point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-point_ndvi %>% 
-    sits_filter(sits_whittaker(lambda = 10)) %>% 
-    sits_merge(point_ndvi) %>% 
-    plot()
-```
-
-<img src="man/figures/README-unnamed-chunk-13-1.png" title="Whittaker filter of NDVI time series" alt="Whittaker filter of NDVI time series" style="display: block; margin: auto;" />
+(2013-09-14, 2014-08-29).
 
 ## Time Series Classification
 
@@ -341,15 +265,15 @@ point_ndvi %>%
 series as well as data cubes. The following machine learning methods are
 available in `sits`:
 
--   Support vector machines (`sits_svm()`)
--   Random forests (`sits_rfor()`)
--   Extreme gradient boosting (`sits_xgboost()`)
--   Multi-layer perceptrons (`sits_mlp()`)
--   Deep Residual Networks (`sits_resnet()`) (see ref. \[8\])
--   1D convolution neural networks (`sits_tempcnn()`) (see ref. \[9\])
--   Temporal self-attention encoder (`sits_tae()`) (see ref. \[10\])
--   Lightweight temporal attention encoder (`sits_lighttae()`) (see ref.
-    \[11\] and \[12\])
+- Support vector machines (`sits_svm()`)
+- Random forests (`sits_rfor()`)
+- Extreme gradient boosting (`sits_xgboost()`)
+- Multi-layer perceptrons (`sits_mlp()`)
+- Deep Residual Networks (`sits_resnet()`) (see ref. \[8\])
+- 1D convolution neural networks (`sits_tempcnn()`) (see ref. \[9\])
+- Temporal self-attention encoder (`sits_tae()`) (see ref. \[10\])
+- Lightweight temporal attention encoder (`sits_lighttae()`) (see ref.
+  \[11\] and \[12\])
 
 The following example illustrate how to train a dataset and classify an
 individual time series. First we use the `sits_train()` function with
@@ -365,18 +289,27 @@ data("samples_modis_ndvi")
 # point to be classified
 data("point_mt_6bands")
 # Train a deep learning model
-tempcnn_model <- sits_train(samples_modis_ndvi, ml_method = sits_tempcnn()) 
+tempcnn_model <- sits_train(
+  samples = samples_modis_ndvi,
+  ml_method = sits_tempcnn()
+)
 # Select NDVI band of the  point to be classified
 # Classify using TempCNN model
 # Plot the result
-point_mt_6bands %>% 
-  sits_select(bands = "NDVI") %>% 
-  sits_classify(tempcnn_model) %>% 
+point_mt_6bands %>%
+  sits_select(bands = "NDVI") %>%
+  sits_classify(tempcnn_model) %>%
   plot()
-#>   |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
 ```
 
-<img src="man/figures/README-unnamed-chunk-14-1.png" title="Classification of NDVI time series using TempCNN" alt="Classification of NDVI time series using TempCNN" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+
+<img src="man/figures/README-unnamed-chunk-9-1.png" alt="Classification of NDVI time series using TempCNN"  />
+<p class="caption">
+Classification of NDVI time series using TempCNN
+</p>
+
+</div>
 
 The following example shows how to classify a data cube organized as a
 set of raster images. The result can also be visualized interactively
@@ -387,34 +320,44 @@ using `sits_view()`.
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 sinop <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6",
-    data_dir = data_dir,
-    delim = "_",
-    parse_info = c("X1", "tile", "band", "date"),
-    progress = FALSE
+  source = "BDC",
+  collection = "MOD13Q1-6",
+  data_dir = data_dir,
+  delim = "_",
+  parse_info = c("X1", "tile", "band", "date"),
+  progress = FALSE
 )
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
-probs_cube <- sits_classify(sinop, ml_model = tempcnn_model)
-#> Using blocks of size (144 x 254)
-#> Starting classification of tile 'h12v10' at 2023-01-17 21:49:40
-#>   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
-#> Tile 'h12v10' finished at 2023-01-17 21:50:30
-#> Elapsed time of 49.46 secs
-#> 
-#> 
-#> Classification finished at 2023-01-17 21:50:30
-#> Elapsed time of 49.46 secs
+probs_cube <- sits_classify(
+  data = sinop,
+  ml_model = tempcnn_model,
+  output_dir = tempdir()
+)
 # apply a bayesian smoothing to remove outliers
-bayes_cube <- sits_smooth(probs_cube)
+bayes_cube <- sits_smooth(
+  cube = probs_cube,
+  output_dir = tempdir()
+)
 # generate a thematic map
-label_cube <- sits_label_classification(bayes_cube)
+label_cube <- sits_label_classification(
+  cube = bayes_cube,
+  output_dir = tempdir()
+)
 # plot the the labelled cube
-plot(label_cube, title = "Land use and Land cover in Sinop, MT, Brazil in 2018")
+plot(label_cube,
+  title = "Land use and Land cover in Sinop, MT, Brazil in 2018"
+)
 ```
 
-<img src="man/figures/README-unnamed-chunk-15-1.png" title="Land use and Land cover in Sinop, MT, Brazil in 2018" alt="Land use and Land cover in Sinop, MT, Brazil in 2018" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+
+<img src="man/figures/README-unnamed-chunk-10-1.png" alt="Land use and Land cover in Sinop, MT, Brazil in 2018"  />
+<p class="caption">
+Land use and Land cover in Sinop, MT, Brazil in 2018
+</p>
+
+</div>
 
 ## Additional information
 
@@ -428,73 +371,72 @@ series”](https://e-sensing.github.io/sitsbook/).
 
 If you use `sits`, please cite the following paper:
 
--   \[1\] Rolf Simoes, Gilberto Camara, Gilberto Queiroz, Felipe Souza,
-    Pedro R. Andrade, Lorena Santos, Alexandre Carvalho, and Karine
-    Ferreira. “Satellite Image Time Series Analysis for Big Earth
-    Observation Data”. Remote Sensing, 13: 2428, 2021.
-    <doi:10.3390/rs13132428>.
+- \[1\] Rolf Simoes, Gilberto Camara, Gilberto Queiroz, Felipe Souza,
+  Pedro R. Andrade, Lorena Santos, Alexandre Carvalho, and Karine
+  Ferreira. “Satellite Image Time Series Analysis for Big Earth
+  Observation Data”. Remote Sensing, 13: 2428, 2021.
+  <doi:10.3390/rs13132428>.
 
 Additionally, the sample quality control methods that use self-organized
 maps are described in the following reference:
 
--   \[2\] Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle
-    Picoli, Rolf Simoes, “Quality control and class noise reduction of
-    satellite image time series”. ISPRS Journal of Photogrammetry and
-    Remote Sensing, 177:75-88, 2021.
-    <doi:10.1016/j.isprsjprs.2021.04.014>.
+- \[2\] Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle
+  Picoli, Rolf Simoes, “Quality control and class noise reduction of
+  satellite image time series”. ISPRS Journal of Photogrammetry and
+  Remote Sensing, 177:75-88, 2021.
+  <doi:10.1016/j.isprsjprs.2021.04.014>.
 
 #### Papers that use sits to produce LUCC maps
 
--   \[3\] Rolf Simoes, Michelle Picoli, et al., “Land use and cover maps
-    for Mato Grosso State in Brazil from 2001 to 2017”. Sci Data
-    7(34), 2020. <doi:10.1038/s41597-020-0371-4>.
+- \[3\] Rolf Simoes, Michelle Picoli, et al., “Land use and cover maps
+  for Mato Grosso State in Brazil from 2001 to 2017”. Sci Data
+  7(34), 2020. <doi:10.1038/s41597-020-0371-4>.
 
--   \[4\] Michelle Picoli, Gilberto Camara, et al., “Big Earth
-    Observation Time Series Analysis for Monitoring Brazilian
-    Agriculture”. ISPRS Journal of Photogrammetry and Remote
-    Sensing, 2018. <doi:10.1016/j.isprsjprs.2018.08.007>.
+- \[4\] Michelle Picoli, Gilberto Camara, et al., “Big Earth Observation
+  Time Series Analysis for Monitoring Brazilian Agriculture”. ISPRS
+  Journal of Photogrammetry and Remote Sensing, 2018.
+  <doi:10.1016/j.isprsjprs.2018.08.007>.
 
--   \[5\] Karine Ferreira, Gilberto Queiroz et al., “Earth Observation
-    Data Cubes for Brazil: Requirements, Methodology and Products”.
-    Remote Sens. 12:4033, 2020. <doi:10.3390/rs12244033>.
+- \[5\] Karine Ferreira, Gilberto Queiroz et al., “Earth Observation
+  Data Cubes for Brazil: Requirements, Methodology and Products”. Remote
+  Sens. 12:4033, 2020. <doi:10.3390/rs12244033>.
 
 #### Papers that describe software used in sits
 
 We thank the authors of these papers for making their code available to
 be used in connection with sits.
 
--   \[6\] Marius Appel and Edzer Pebesma, “On-Demand Processing of Data
-    Cubes from Satellite Image Collections with the Gdalcubes Library.”
-    Data 4 (3): 1–16, 2020. <doi:10.3390/data4030092>.
+- \[6\] Marius Appel and Edzer Pebesma, “On-Demand Processing of Data
+  Cubes from Satellite Image Collections with the Gdalcubes Library.”
+  Data 4 (3): 1–16, 2020. <doi:10.3390/data4030092>.
 
--   \[7\] Ron Wehrens and Johannes Kruisselbrink, “Flexible
-    Self-Organising Maps in kohonen 3.0”. Journal of Statistical
-    Software, 87(7), 2018. <doi:10.18637/jss.v087.i07>.
+- \[7\] Ron Wehrens and Johannes Kruisselbrink, “Flexible
+  Self-Organising Maps in kohonen 3.0”. Journal of Statistical Software,
+  87(7), 2018. <doi:10.18637/jss.v087.i07>.
 
--   \[8\] Hassan Fawaz, Germain Forestier, Jonathan Weber, Lhassane
-    Idoumghar, and Pierre-Alain Muller, “Deep learning for time series
-    classification: a review”. Data Mining and Knowledge Discovery,
-    33(4): 917–963, 2019. \<arxiv:1809.04356\>.
+- \[8\] Hassan Fawaz, Germain Forestier, Jonathan Weber, Lhassane
+  Idoumghar, and Pierre-Alain Muller, “Deep learning for time series
+  classification: a review”. Data Mining and Knowledge Discovery, 33(4):
+  917–963, 2019. \<arxiv:1809.04356\>.
 
--   \[9\] Charlotte Pelletier, Geoffrey I. Webb, and Francois Petitjean.
-    “Temporal Convolutional Neural Network for the Classification of
-    Satellite Image Time Series.” Remote Sensing 11 (5), 2019.
-    <doi:10.3390/rs11050523>.
+- \[9\] Charlotte Pelletier, Geoffrey I. Webb, and Francois Petitjean.
+  “Temporal Convolutional Neural Network for the Classification of
+  Satellite Image Time Series.” Remote Sensing 11 (5), 2019.
+  <doi:10.3390/rs11050523>.
 
--   \[10\] Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine
-    Chehata, “Satellite Image Time Series Classification with Pixel-Set
-    Encoders and Temporal Self-Attention”, Conference on Computer Vision
-    and Pattern Recognition, 2020. \<doi:
-    10.1109/CVPR42600.2020.01234\>.
+- \[10\] Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine
+  Chehata, “Satellite Image Time Series Classification with Pixel-Set
+  Encoders and Temporal Self-Attention”, Conference on Computer Vision
+  and Pattern Recognition, 2020. \<doi: 10.1109/CVPR42600.2020.01234\>.
 
--   \[11\] Vivien Garnot, Loic Landrieu, “Lightweight Temporal
-    Self-Attention for Classifying Satellite Images Time Series”, 2020.
-    \<arXiv:2007.00586\>.
+- \[11\] Vivien Garnot, Loic Landrieu, “Lightweight Temporal
+  Self-Attention for Classifying Satellite Images Time Series”, 2020.
+  \<arXiv:2007.00586\>.
 
--   \[12\] Maja Schneider, Marco Körner, “\[Re\] Satellite Image Time
-    Series Classification with Pixel-Set Encoders and Temporal
-    Self-Attention.” ReScience C 7 (2), 2021.
-    <doi:10.5281/zenodo.4835356>.
+- \[12\] Maja Schneider, Marco Körner, “\[Re\] Satellite Image Time
+  Series Classification with Pixel-Set Encoders and Temporal
+  Self-Attention.” ReScience C 7 (2), 2021.
+  <doi:10.5281/zenodo.4835356>.
 
 #### R packages used in sits
 
@@ -540,7 +482,7 @@ material support:
 5.  Microsoft Planetary Computer under the GEO-Microsoft Cloud Computer
     Grants Programme.
 
-6.  The Open-Earth-Monitor Cyberinfrastructure project, which has
+6.  The Open-Earth-Monitor Cyberinfratructure project, which has
     received funding from the European Union’s Horizon Europe research
     and innovation programme under [grant agreement
     No. 101059548](https://cordis.europa.eu/project/id/101059548).

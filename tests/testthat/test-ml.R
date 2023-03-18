@@ -83,8 +83,8 @@ test_that("Random Forest", {
 
 test_that("Random Forest - Whittaker", {
 
-    samples_mt_whit <- sits_filter(samples_modis_ndvi, filter = sits_whittaker())
-    rfor_model <- sits_train(samples_mt_whit, sits_rfor(num_trees = 200))
+    samples_whit <- sits_filter(samples_modis_ndvi, filter = sits_whittaker())
+    rfor_model <- sits_train(samples_whit, sits_rfor(num_trees = 200))
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_whit <- sits_filter(point_ndvi, filter = sits_whittaker())
     point_class <- sits_classify(
@@ -232,39 +232,6 @@ test_that("PSETAE model", {
     expect_true(all(point_class$predicted[[1]]$class %in%
         sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
-})
-
-test_that("normalization former version", {
-    #
-    # Old (yet supported) normalization
-    #
-    stats <- .sits_ml_normalization_param(cerrado_2classes)
-
-    norm1 <- .sits_ml_normalize_data(
-        cerrado_2classes,
-        stats
-    )
-
-    stats1 <- .sits_ml_normalization_param(norm1)
-    expect_true(stats1[2, NDVI] < 0.1)
-    expect_true(stats1[3, NDVI] > 0.99)
-
-    norm2 <- .sits_ml_normalize_data(
-        cerrado_2classes,
-        stats
-    )
-
-    stats2 <- .sits_ml_normalization_param(norm2)
-
-    expect_equal(stats1[1, NDVI], stats2[1, NDVI], tolerance = 0.001)
-    expect_equal(stats1[2, NDVI], stats2[2, NDVI], tolerance = 0.001)
-
-    norm3 <- .sits_ml_normalize_data(cerrado_2classes, stats)
-
-    stats3 <- .sits_ml_normalization_param(norm3)
-
-    expect_equal(stats1[1, NDVI], stats3[1, NDVI], tolerance = 0.001)
-    expect_equal(stats1[2, NDVI], stats3[2, NDVI], tolerance = 0.001)
 })
 
 test_that("normalization new version", {

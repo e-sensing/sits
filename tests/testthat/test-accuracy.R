@@ -107,7 +107,7 @@ test_that("Accuracy areas", {
         package = "sits"
     )
     invisible(capture.output(as <- suppressWarnings(
-        sits_accuracy(label_cube, validation_csv = ground_truth)
+        sits_accuracy(label_cube, validation = ground_truth)
     )))
 
     expect_true(as.numeric(as$area_pixels["Forest"]) >
@@ -123,4 +123,19 @@ test_that("Accuracy areas", {
     expect_true(grepl("Overall Accuracy", p1[2]))
     expect_true(grepl("Cerrado", p1[6]))
     expect_true(grepl("Mapped Area", p1[11]))
+
+    # alternative: use a sits tibble
+    validation <- tibble::as_tibble(
+                  utils::read.csv(
+                  ground_truth,
+                  stringsAsFactors = FALSE)
+    )
+    as2 <- sits_accuracy(label_cube, validation)
+
+    expect_true(as.numeric(as2$area_pixels["Forest"]) >
+                           as2$area_pixels["Pasture"])
+    expect_equal(as.numeric(as2$accuracy$overall),
+                 expected = 0.75,
+                 tolerance = 0.5
+    )
 })

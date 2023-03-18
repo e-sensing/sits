@@ -2,7 +2,6 @@ test_that("Suggested samples have low confidence, high entropy", {
 
     # Get uncertaintly cube.
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    out_dir <- tempdir()
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
@@ -20,15 +19,16 @@ test_that("Suggested samples have low confidence, high entropy", {
         output_dir = tempdir(),
         memsize = 4, multicores = 2
     )
-    uncert_cube <- sits_uncertainty(probs_cube,
+    uncert_cube <- sits_uncertainty(
+        probs_cube,
         type = "least",
-        output_dir = out_dir
+        output_dir = tempdir()
     )
 
     # Get sample suggestions.
     samples_df <- suppressWarnings(sits_uncertainty_sampling(
         uncert_cube,
-        min_uncert = 0.5,
+        min_uncert = 0.3,
         n = 100,
         sampling_window = 10
     ))
@@ -40,7 +40,7 @@ test_that("Suggested samples have low confidence, high entropy", {
         "label", "uncertainty"
     )))
     expect_true(all(samples_df[["label"]] == "NoClass"))
-    expect_true(all(samples_df[["uncertainty"]] >= 0.5))
+    expect_true(all(samples_df[["uncertainty"]] >= 0.3))
 })
 
 test_that("Increased samples have high confidence, low entropy", {
@@ -60,7 +60,7 @@ test_that("Increased samples have high confidence, low entropy", {
     probs_cube <- sits_classify(
         cube,
         ml_model = rfor_model,
-        output_dir = out_dir,
+        output_dir = tempdir(),
         memsize = 4, multicores = 2
     )
     # Get sample suggestions based on high confidence

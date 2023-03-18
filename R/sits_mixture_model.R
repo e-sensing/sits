@@ -112,7 +112,7 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
                                     multicores = 2,
                                     progress = TRUE) {
     # Pre-conditions
-    .check_samples_ts(data)
+    .check_samples_train(data)
     # Transform endmembers to tibble
     em <- .endmembers_as_tbl(endmembers)
     # Check endmember format
@@ -155,15 +155,13 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
 #' @export
 sits_mixture_model.raster_cube <- function(data, endmembers, ...,
                                            rmse_band = TRUE,
-                                           memsize = 1,
+                                           memsize = 4,
                                            multicores = 2,
-                                           output_dir = getwd(),
+                                           output_dir,
                                            progress = TRUE) {
     # Pre-conditions
     .check_is_raster_cube(data)
     .check_memsize(memsize)
-    # output_dir <- file.path(output_dir = output_dir)
-    output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
     .check_lgl_type(progress)
 
@@ -181,7 +179,8 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     .check_is_regular(data)
     # Pre-condition
     .check_endmembers_bands(
-        em = em, bands = .cube_bands(data, add_cloud = FALSE)
+        em = em,
+        bands = .cube_bands(data, add_cloud = FALSE)
     )
     # Fractions to be produced
     out_fracs <- .endmembers_fracs(em = em, include_rmse = rmse_band)
@@ -190,7 +189,6 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
-    # npaths = input(bands) + output(fracs)
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
         npaths = length(bands) + length(out_fracs),
@@ -218,9 +216,12 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     features_fracs <- .jobs_map_parallel_dfr(features_cube, function(feature) {
         # Process the data
         output_feature <- .mixture_feature(
-            feature = feature, block = block,
-            em = em, mixture_fn = mixture_fn,
-            out_fracs = out_fracs, output_dir = output_dir
+            feature = feature,
+            block = block,
+            em = em,
+            mixture_fn = mixture_fn,
+            out_fracs = out_fracs,
+            output_dir = output_dir
         )
         return(output_feature)
     }, progress = progress)
@@ -252,7 +253,7 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
         date = .tile_start_date(feature), output_dir = output_dir
     )
     # Resume feature
-    if (.raster_is_valid(out_files)) {
+    if (.raster_is_valid(out_files, output_dir = output_dir)) {
         # # Callback final tile classification
         # .callback(process = "mixtureModel", event = "recovery",
         #           context = environment())
@@ -263,9 +264,12 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
                 "change 'output_dir' parameters)")
         # Create tile based on template
         fracs_feature <- .tile_eo_from_files(
-            files = out_files, fid = .fi_fid(.fi(feature)),
-            bands = out_fracs, date = .tile_start_date(feature),
-            base_tile = feature, update_bbox = FALSE
+            files = out_files,
+            fid = .fi_fid(.fi(feature)),
+            bands = out_fracs,
+            date = .tile_start_date(feature),
+            base_tile = feature,
+            update_bbox = FALSE
         )
         return(fracs_feature)
     }
@@ -322,8 +326,11 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
             value = block_files
         )
         .raster_write_block(
-            files = block_files, block = block, bbox = .bbox(chunk),
-            values = values, data_type = .data_type(band_conf),
+            files = block_files,
+            block = block,
+            bbox = .bbox(chunk),
+            values = values,
+            data_type = .data_type(band_conf),
             missing_value = .miss_value(band_conf),
             crop_block = NULL
         )
@@ -431,7 +438,8 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
         seq_len(multicores), each = ceiling(nrow(samples) / multicores)
     )[seq_len(nrow(samples))]
     # Split each group by an id
-    dplyr::group_split(dplyr::group_by(samples, .data[["group"]]), .keep = FALSE)
+    dplyr::group_split(
+        dplyr::group_by(samples, .data[["group"]]), .keep = FALSE)
 }
 
 .samples_merge_groups <- function(samples_lst) {
@@ -450,7 +458,7 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     mixture_fn <- function(values) {
         # Check values length
         input_pixels <- nrow(values)
-        # Process bilateral smoother and return
+        # Process NNLS solver and return
         values <- C_nnls_solver_batch(
             x = as.matrix(values),
             em = em_mtx,

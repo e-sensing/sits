@@ -22,7 +22,7 @@ test_that("Relabel", {
     expect_equal(sum(labels$prop), 1)
 })
 
-test_that("Relabel cubes",{
+test_that("Relabel cubes", {
     # Open classification map
     data_dir <- system.file("extdata/raster/classif", package = "sits")
     ro_class <- sits_cube(
@@ -40,4 +40,3 @@ test_that("Relabel cubes",{
     expect_true("Queimadas" %in% sits_labels(ro_class))
     expect_true("Floresta" %in% sits_labels(ro_class))
 })
-

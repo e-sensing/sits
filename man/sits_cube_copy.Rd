@@ -8,8 +8,8 @@ sits_cube_copy(
   cube,
   roi = NULL,
   res = NULL,
-  output_dir = getwd(),
   multicores = 2,
+  output_dir,
   progress = TRUE
 )
 }
@@ -21,9 +21,9 @@ sits_cube_copy(
 \item{res}{An integer value corresponds to the output
 spatial resolution of the images. Default is NULL.}
 
-\item{output_dir}{Output directory where images will be saved.}
-
 \item{multicores}{Number of workers for parallel downloading.}
+
+\item{output_dir}{Output directory where images will be saved.}
 
 \item{progress}{Show progress bar?}
 }

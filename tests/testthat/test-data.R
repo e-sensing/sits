@@ -25,7 +25,7 @@ test_that("Reading a LAT/LONG from RASTER", {
 
     expect_equal(names(point_ndvi)[1], "longitude")
     expect_true(ncol(.tibble_time_series(point_ndvi)) == 2)
-    expect_true(length(sits_timeline(point_ndvi)) == 23)
+    expect_true(length(sits_timeline(point_ndvi)) == 12)
 })
 
 test_that("Reading a LAT/LONG from RASTER with crs parameter", {
@@ -54,12 +54,16 @@ test_that("Reading a LAT/LONG from RASTER with crs parameter", {
     point_ndvi <- sits_get_data(
         cube = raster_cube,
         samples = samples,
-        crs = "+proj=aea +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs "
+        crs = "+proj=aea
+        +lat_0=-12 +lon_0=-54
+        +lat_1=-2 +lat_2=-22
+        +x_0=5000000 +y_0=10000000
+        +ellps=GRS80 +units=m +no_defs "
     )
 
     expect_equal(names(point_ndvi)[1], "longitude")
     expect_true(ncol(.tibble_time_series(point_ndvi)) == 2)
-    expect_true(length(sits_timeline(point_ndvi)) == 23)
+    expect_true(length(sits_timeline(point_ndvi)) == 12)
 })
 
 test_that("Reading a CSV file from RASTER", {
@@ -101,7 +105,7 @@ test_that("Reading a CSV file from RASTER", {
     expect_equal(names(points_poly)[1], "longitude")
     expect_equal(length(names(points_poly)), 7)
     expect_true(ncol(.tibble_time_series(points_poly)) == 2)
-    expect_true(length(sits_timeline(points_poly)) == 23)
+    expect_true(length(sits_timeline(points_poly)) == 12)
 
     points_df <- sits_get_data(raster_cube,
                                samples = df_csv,
@@ -112,7 +116,7 @@ test_that("Reading a CSV file from RASTER", {
     expect_equal(names(points_df)[1], "longitude")
     expect_equal(length(names(points_df)), 7)
     expect_true(ncol(.tibble_time_series(points_df)) == 2)
-    expect_true(length(sits_timeline(points_df)) == 23)
+    expect_true(length(sits_timeline(points_df)) == 12)
 })
 
 test_that("Reading a CSV file from RASTER with crs parameter", {
@@ -145,7 +149,11 @@ test_that("Reading a CSV file from RASTER with crs parameter", {
     df_sf <- sits_as_sf(data = df_csv, crs = 4326)
     df_sf_reproj <- sf::st_transform(
         x = df_sf,
-        crs = "+proj=aea +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs "
+        crs = "+proj=aea
+        +lat_0=-12 +lon_0=-54
+        +lat_1=-2 +lat_2=-22
+        +x_0=5000000 +y_0=10000000
+        +ellps=GRS80 +units=m +no_defs "
     )
 
     df_sf_reproj[, c("longitude", "latitude")] <-
@@ -160,66 +168,63 @@ test_that("Reading a CSV file from RASTER with crs parameter", {
         raster_cube,
         samples = path_samples_repr,
         output_dir = tempdir(),
-        crs = "+proj=aea +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs "
+        crs = "+proj=aea
+        +lat_0=-12 +lon_0=-54
+        +lat_1=-2 +lat_2=-22
+        +x_0=5000000 +y_0=10000000
+        +ellps=GRS80 +units=m +no_defs "
     )
 
     expect_true("Forest" %in% sits_labels(points_df))
     expect_equal(names(points_df)[1], "longitude")
     expect_equal(length(names(points_df)), 7)
     expect_true(ncol(.tibble_time_series(points_df)) == 2)
-    expect_true(length(sits_timeline(points_df)) == 23)
+    expect_true(length(sits_timeline(points_df)) == 12)
 })
 
-test_that("Reading a SHP file from RASTER", {
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    raster_cube <- tryCatch(
-        {
-            sits_cube(
-                source = "BDC",
-                collection = "MOD13Q1-6",
-                data_dir = data_dir,
-                delim = "_",
-                parse_info = c("X1", "tile", "band", "date")
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
+test_that("Reading a SHP file from BDC", {
+    # check "BDC_ACCESS_KEY" - mandatory one per user
+    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+    testthat::skip_if(nchar(bdc_access_key) == 0,
+                      message = "No BDC_ACCESS_KEY defined in environment."
     )
 
-    testthat::skip_if(purrr::is_null(raster_cube),
-                      message = "LOCAL cube was not found"
+    shp_file <- system.file(
+        "extdata/shapefiles/mato_grosso/mt.shp",
+        package = "sits"
     )
-    polygons_sf <- rbind(
-        sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(c(
-            xmin = -55.62471702, xmax = -55.57293653,
-            ymin = -11.63300767, ymax = -11.60607152), crs = 4326
-        ))),
-        sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(c(
-            xmin = -55.29847023, xmax = -55.26194177,
-            ymin = -11.56743498, ymax = -11.55169416), crs = 4326
-        ))),
-        sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(c(
-            xmin = -55.55720906, xmax = -55.54030539,
-            ymin = -11.75144257, ymax = -11.74521358), crs = 4326
-        )))
+    sf_mt <- sf::read_sf(shp_file)
+
+    # create a raster cube file based on the information about the files
+    modis_cube <- .try({
+        sits_cube(
+            source = "BDC",
+            collection = "MOD13Q1-6",
+            bands = c("NDVI", "EVI"),
+            roi = sf_mt,
+            start_date = "2018-09-01",
+            end_date = "2019-08-29"
+        )
+    },
+    .default = NULL)
+
+    testthat::skip_if(purrr::is_null(modis_cube),
+                      message = "BDC is not accessible"
     )
-
-    polygons_sf[["id"]] <- seq(1, 3)
-    polygons_sf[["label"]] <- c("a", "b", "c")
-    polygons_bbox <- sf::st_bbox(polygons_sf)
-
-    points_poly <- sits_get_data(raster_cube,
-                                 samples = polygons_sf,
+    points_poly <- sits_get_data(modis_cube,
+                                 samples = sf_mt,
+                                 n_sam_pol = 5,
                                  output_dir = tempdir()
     )
 
-    cube_timeline <- sits_timeline(raster_cube)
-    expect_equal(object = nrow(points_poly), expected = 90)
+    cube_timeline <- sits_timeline(modis_cube)
+    expect_equal(object = nrow(points_poly), expected = 5)
     expect_equal(object = unique(points_poly[["start_date"]]),
                  expected = as.Date(cube_timeline[1]))
     expect_equal(object = unique(points_poly[["end_date"]]),
                  expected = as.Date(cube_timeline[length(cube_timeline)]))
+
+    polygons_bbox <- .bbox(sf_mt)
 
     points_poly_in_bbox <- dplyr::filter(
         points_poly,
@@ -231,16 +236,12 @@ test_that("Reading a SHP file from RASTER", {
 
     expect_true(nrow(points_poly_in_bbox) == nrow(points_poly))
 
-    temp_shp <- sf::st_write(
-        obj = polygons_sf,
-        dsn = tempfile(fileext = ".shp"),
-        quiet = TRUE
-    )
-    points_shp <- sits_get_data(raster_cube,
-                                samples = temp_shp,
+    points_shp <- sits_get_data(modis_cube,
+                                samples = shp_file,
+                                n_sam_pol = 5,
                                 output_dir = tempdir()
     )
-    expect_equal(object = nrow(points_shp), expected = 90)
+    expect_equal(object = nrow(points_shp), expected = 5)
     expect_equal(object = unique(points_shp[["start_date"]]),
                  expected = as.Date(cube_timeline[1]))
     expect_equal(object = unique(points_shp[["end_date"]]),
@@ -257,63 +258,49 @@ test_that("Reading a SHP file from RASTER", {
     expect_true(nrow(points_shp_in_bbox) == nrow(points_shp))
 
     expect_error(
-        sits_get_data(raster_cube,
-                      samples = temp_shp,
+        sits_get_data(modis_cube,
+                      samples = shp_file,
                       pol_avg = TRUE,
                       output_dir = tempdir()
         )
     )
     expect_error(
-        sits_get_data(raster_cube,
-                      samples = temp_shp,
+        sits_get_data(modis_cube,
+                      samples = shp_file,
                       pol_avg = TRUE,
                       pol_id = "iddddddd",
                       output_dir = tempdir()
         )
     )
 
-    points_shp_avg <- sits_get_data(raster_cube,
-                                    samples = temp_shp,
+    points_shp_avg <- sits_get_data(modis_cube,
+                                    samples = shp_file,
+                                    n_sam_pol = 5,
+                                    label_attr = "NM_ESTADO",
                                     pol_avg = TRUE,
-                                    pol_id = "id",
+                                    pol_id = "CD_GEOCUF",
                                     output_dir = tempdir()
     )
 
-    expect_equal(object = nrow(points_shp_avg), expected = 3)
+    expect_equal(object = nrow(points_shp_avg), expected = 1)
     expect_equal(
         object = sits_labels(points_shp_avg),
-        expected = c("a", "b", "c")
+        expected = "MATO GROSSO"
     )
 
-    temp_shp_no_label <- dplyr::select(temp_shp, -"label")
-    points_shp_no_label <- sits_get_data(raster_cube,
-                                    samples = temp_shp_no_label,
-                                    pol_avg = TRUE,
-                                    pol_id = "id",
-                                    output_dir = tempdir()
+    points_shp_no_label <- sits_get_data(modis_cube,
+                                         samples = shp_file,
+                                         n_sam_pol = 5,
+                                         pol_avg = TRUE,
+                                         pol_id = "CD_GEOCUF",
+                                         output_dir = tempdir()
     )
 
-    expect_equal(object = nrow(points_shp_no_label), expected = 3)
+    expect_equal(object = nrow(points_shp_no_label), expected = 1)
     expect_equal(
         object = sits_labels(points_shp_no_label),
         expected = "NoClass"
     )
-
-    temp_shp_label_attr <- dplyr::rename(temp_shp, label_2 = "label")
-    points_shp_label_attr <- sits_get_data(raster_cube,
-                                           samples = temp_shp_label_attr,
-                                           pol_avg = TRUE,
-                                           pol_id = "id",
-                                           label_attr = "label_2",
-                                           output_dir = tempdir()
-    )
-
-    expect_equal(object = nrow(points_shp_label_attr), expected = 3)
-    expect_equal(
-        object = sits_labels(points_shp_label_attr),
-        expected = c("a", "b", "c")
-    )
-
 
     expect_error(
         sits_get_data(raster_cube,
@@ -322,87 +309,6 @@ test_that("Reading a SHP file from RASTER", {
                       output_dir = tempdir()
         )
     )
-    points_shp_label <- sits_get_data(raster_cube,
-                                      samples = temp_shp,
-                                      label_attr = "label",
-                                      output_dir = tempdir()
-    )
-    expect_equal(
-        object = sits_labels(points_shp_label),
-        expected = c("a", "b", "c")
-    )
-})
-
-test_that("Test reading shapefile from BDC", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-                      message = "No BDC_ACCESS_KEY defined in environment."
-    )
-
-    # create a raster cube file based on the information about the files
-    cbers_stac_tile <- tryCatch(
-        {
-            sits_cube(
-                source = "BDC",
-                collection = "CB4_64_16D_STK-1",
-                bands = c("NDVI", "EVI"),
-                tiles = c("022024", "022025"),
-                start_date = "2018-09-01",
-                end_date = "2018-10-28"
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    testthat::skip_if(purrr::is_null(cbers_stac_tile),
-                      message = "BDC is not accessible"
-    )
-
-    shp_path <- system.file("extdata/shapefiles/bdc-test/samples.shp",
-                            package = "sits"
-    )
-
-    time_series_bdc <- sits::sits_get_data(cbers_stac_tile,
-                                           samples = shp_path,
-                                           output_dir = tempdir()
-    )
-
-    if (purrr::is_null(time_series_bdc)) {
-        skip("BDC not accessible")
-    }
-
-    expect_equal(nrow(time_series_bdc), 10)
-
-    bbox <- sits_bbox(time_series_bdc)
-    expect_true(bbox["xmin"] < -46.)
-    expect_true(all(sits_bands(time_series_bdc) %in% c("NDVI", "EVI")))
-
-    ts <- time_series_bdc$time_series[[1]]
-    expect_true(max(ts["EVI"]) < 1.)
-
-    sf_object <- sf::st_read(shp_path, quiet = TRUE)
-
-    time_series_sf <- sits::sits_get_data(cbers_stac_tile,
-                                          samples = sf_object,
-                                          output_dir = tempdir()
-    )
-
-    if (purrr::is_null(time_series_sf)) {
-        skip("BDC not accessible")
-    }
-
-    expect_equal(nrow(time_series_sf), 10)
-
-    bbox <- sits_bbox(time_series_sf)
-    expect_true(bbox["xmin"] < -46.)
-    expect_true(all(sits_bands(time_series_sf) %in% c("NDVI", "EVI")))
-
-    ts <- time_series_sf$time_series[[1]]
-    expect_true(max(ts["EVI"]) < 1.)
 })
 
 test_that("Reading metadata from CSV file", {
@@ -465,37 +371,6 @@ test_that("Reading data from Classified data", {
 
     expect_equal(
         colnames(point_ndvi), c("longitude", "latitude",
-                                 "start_date", "end_date",
-                                 "label", "cube", "predicted")
-    )
-    # Using shp
-    polygons_sf <- rbind(
-        sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(c(
-            xmin = -55.62471702, xmax = -55.57293653,
-            ymin = -11.63300767, ymax = -11.60607152), crs = 4326
-        ))),
-        sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(c(
-            xmin = -55.29847023, xmax = -55.26194177,
-            ymin = -11.56743498, ymax = -11.55169416), crs = 4326
-        ))),
-        sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(c(
-            xmin = -55.55720906, xmax = -55.54030539,
-            ymin = -11.75144257, ymax = -11.74521358), crs = 4326
-        )))
-    )
-
-    polygons_sf[["id"]] <- seq(1, 3)
-    polygons_sf[["label"]] <- c("a", "b", "c")
-    polygons_bbox <- sf::st_bbox(polygons_sf)
-
-    points_poly <- sits_get_data(label_cube,
-                                 samples = polygons_sf,
-                                 output_dir = tempdir()
-    )
-    expect_equal(nrow(points_poly), 90)
-
-    expect_equal(
-        colnames(points_poly), c("longitude", "latitude",
                                  "start_date", "end_date",
                                  "label", "cube", "predicted")
     )

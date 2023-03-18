@@ -1,95 +1,85 @@
-#' @title Function to handle colors in SITS
+#' @title Function to retrieve sits color table
 #' @name sits_colors
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Returns a color palette for plotting
+#' @description Returns a color table
+#' @return              A tibble with color names and values
 #'
-#' @param  name          Name of sits color palette
-#' @param  n_colors      Number of colors to be displayed
-#' @return               A vector with valid R colors
-#'
-#' @description
-#' Implements support RColorBrewer and named sits palettes. Valid names are:
-#' "veg_index", "probs", "uncert", "soil", "forest", "water", "green",
-#' "BuGn", "BuPu", "GnBu", "PuBu", "PuBuGn", "PuRd", "YlGn", "YlGnBu", "YlOrRd",
-#' "YlOrBr", "OrRd", "Blues", "Greens", "Oranges", "Reds", "Greys", "Purples".
 #'
 #' @examples
 #' if (sits_run_examples()) {
 #'     # show the names of the colors supported by SITS
-#'     sits_color_names()
-#'     # show a color palette
-#'     sits_colors_show("Blues", n_colors = 16)
+#'     sits_colors()
 #' }
 #' @export
 #'
-sits_colors <- function(name, n_colors = 32) {
-    # check if Brewer palette exists
-    .check_require_packages("RColorBrewer")
-    .check_chr_contains(
-        x = name,
-        contains = .conf("sits_color_palettes"),
-        discriminator = "any_of",
-        msg = paste0("Color palette not supported"),
-        local_msg = paste("Palette should be one of ",
-                          paste0(.conf("sits_color_palettes"),
-                                             collapse = ", "))
-    )
-    colors <- (grDevices::colorRampPalette(
-        RColorBrewer::brewer.pal(9, name)))(n_colors)
+sits_colors <- function() {
+    return(.conf_colors())
 }
-#' @title Show names of SITS color palettes
-#' @name sits_color_names
+#' @title Function to retrieve sits color value
+#' @name sits_color_value
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Returns the names of the palettes supported by SITS
+#' @param name   Name of color to obtain values
+#' @description Returns a color value based on name
+#' @return              A color value used in sits
 #'
-#' @return               Names of available color palettes in SITS
+#'
 #' @examples
 #' if (sits_run_examples()) {
 #'     # show the names of the colors supported by SITS
-#'     sits_color_names()
-#'     # show a color palette
-#'     sits_colors_show("Blues", n_colors = 16)
+#'     sits_color_value("Water")
 #' }
 #' @export
-sits_color_names <- function(){
-    color_names <- .conf("sits_color_palettes")
-    return(color_names)
+#'
+sits_color_value <- function(name) {
+    col_tab <- dplyr::filter(.conf_colors(),
+                             .data[["name"]] == !!name)
+    .check_that(
+        nrow(col_tab) == 1,
+        msg = "Class name not available in default sits color table"
+    )
+    return(unname(col_tab$color))
 }
-#' @title Show one SITS color palette
+#' @title Function to show colors in SITS
 #' @name sits_colors_show
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Shows a barplot with the requested color palette
+#' @description         Shows the default SITS colors
 #'
-#' @param  name          Name of sits color palette
-#' @param  n_colors      Number of colors to be displayed
-#' @return               Called for side effects
+#' @return  no return, called for side effects
+#'
 #' @examples
 #' if (sits_run_examples()) {
-#'     # show the names of the colors supported by SITS
-#'     sits_color_names()
-#'     # show a color palette
-#'     sits_colors_show("Blues", n_colors = 16)
+#'     # show the colors supported by SITS
+#'     sits_colors_show()
 #' }
 #' @export
-sits_colors_show <- function(name, n_colors = 32){
+#'
+sits_colors_show <- function() {
+    g <- .colors_show(sits_colors())
+    return(g)
+}
 
-    .check_chr_contains(
-        x = name,
-        contains = .conf("sits_color_palettes"),
-        discriminator = "any_of",
-        msg = paste0("Color palette not supported"),
-        local_msg = paste("Palette should be one of ",
-                          paste0(.conf("sits_color_palettes"),
-                                             collapse = ", "))
-    )
-    colors <- sits_colors(name, n_colors)
-    graphics::barplot(height = rep(10, n_colors),
-            width = rep(2, n_colors),
-            col = colors,
-            axes = FALSE,
-            main = paste0("sits palette ", name),
-            names = c(1:n_colors)
-    )
+#' @title Function to set sits color table
+#' @name sits_colors_set
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Sets a color table
+#' @param color_tb New color table
+#' @return      A modified sits color table
+#' @export
+#'
+sits_colors_set <- function(color_tb) {
+    .conf_set_color_table(color_tb)
+    return(invisible(color_tb))
+}
+#' @title Function to reset sits color table
+#' @name sits_colors_reset
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Resets the color table
+#' @return      No return, called for side effects
+#' @export
+#'
+sits_colors_reset <- function() {
+    .conf_load_color_table()
+    return(invisible(NULL))
 }
 #' @title Get colors associated to the labels
 #' @name .colors_get
@@ -102,52 +92,116 @@ sits_colors_show <- function(name, n_colors = 32){
 #' @noRd
 #' @return colors required to display the labels
 .colors_get <- function(labels,
-                         palette = "Harmonic",
-                         rev = TRUE) {
+                        palette = "Spectral",
+                        legend = NULL,
+                        rev = TRUE) {
 
-    # ensure labels are unique
-    labels <- unique(labels)
-    # get the names of the colors in the chosen palette
-    colors_palette <- unlist(.conf(key = "colors"))
-    # if labels are included in the config palette, use them
-    if (all(labels %in% names(colors_palette))) {
-        colors <- colors_palette[labels]
-    } else {
-        labels_found <- labels[labels %in% names(colors_palette)]
-        if (length(labels_found) > round(length(labels) / 2)) {
-            warning("some labels are not available in the chosen palette",
-                    call. = FALSE
-            )
-            missing_labels <- unique(labels[!(labels %in% labels_found)])
-            warning("consider adjusting labels: ",
-                    paste0(missing_labels, collapse = ", "),
-                    call. = FALSE)
-        } else {
-            warning("most labels are not available in the chosen palette",
-                    call. = FALSE
-            )
-        }
+    # Get the SITS Color table
+    color_tb <- .conf_colors()
+    # Try to find colors in the SITS color palette
+    names_tb <- dplyr::filter(color_tb, .data[["name"]] %in% labels)$name
+    # find the labels that exist in the color table
+    labels_exist <- labels[labels %in% names_tb]
+    # get the colors for the names that exist
+    colors <- purrr::map_chr(labels_exist, function(l) {
+        col <- color_tb %>%
+            dplyr::filter(.data[["name"]] == l) %>%
+            dplyr::pull(.data[["color"]])
+        return(col)
+    })
+    # get the names of the colors that exist in the SITS color table
+    names(colors) <- labels_exist
 
-        warning("using hcl_color palette ", palette, call. = FALSE)
+    # if there is a legend?
+    if (!purrr::is_null(legend)) {
+        # what are the names in the legend that are in the labels?
+        labels_leg <- labels[labels %in% names(legend)]
+        # what are the color labels that are included in the legend?
+        colors_leg <- legend[labels_leg]
+        # join color names in the legend to those in default colors
+        colors <- c(
+            colors_leg,
+            colors[!names(colors) %in% names(colors_leg)]
+        )
+    }
+    # are there any colors missing?
+    if (!all(labels %in% names(colors))) {
+        missing <- labels[!labels %in% names(colors)]
+        warning("missing colors for labels ",
+                paste(missing, collapse = ", ")
+        )
+        warning("using palette ", palette, " for missing colors")
+        # grDevices does not work with one color missing
 
-        # get the number of labels
-        n_labels <- length(unique(labels))
-        # generate a set of hcl colors
-        colors <- grDevices::hcl.colors(
-            n = n_labels,
+        colors_pal <- grDevices::hcl.colors(
+            n = max(2, length(missing)),
             palette = palette,
             alpha = 1,
             rev = rev
         )
-        names(colors) <- labels
+        # if there is only one color, get it
+        colors_pal <- colors_pal[seq_len(length(missing))]
+        names(colors_pal) <- missing
+        # put all colors together
+        colors <- c(colors, colors_pal)
     }
+    # rename colors to fit the label order
+    # and deal with duplicate labels
+    colors <- colors[labels]
     # post-condition
     .check_chr(colors,
                len_min = length(labels),
                len_max = length(labels),
                is_named = TRUE,
+               has_unique_names = FALSE,
                msg = "invalid color values"
     )
 
     return(colors)
+}
+#' @title Show color table
+#' @name .colors_show
+#' @keywords internal
+#' @noRd
+#' @param color_tb A SITS color table
+#' @return a gglot2 object
+.colors_show <- function(color_tb) {
+
+    n_colors <- nrow(color_tb)
+    n_rows_show <- n_colors %/% 3
+
+    color_tb <- tibble::add_column(color_tb,
+                                y = seq(0, n_colors - 1) %% n_rows_show,
+                                x = seq(0, n_colors - 1) %/% n_rows_show)
+    y_size <- 1.2
+    g <- ggplot2::ggplot() +
+         ggplot2::scale_x_continuous(name = "",
+                                    breaks = NULL,
+                                    expand = c(0, 0)) +
+         ggplot2::scale_y_continuous(name = "",
+                                    breaks = NULL,
+                                    expand = c(0, 0)) +
+         ggplot2::geom_rect(data = color_tb,
+                           mapping = ggplot2::aes(
+                               xmin = .data[["x"]] + 0.05,
+                               xmax = .data[["x"]] + 0.95,
+                               ymin = .data[["y"]] + 0.05,
+                               ymax = .data[["y"]] + y_size
+                           ),
+                           fill = color_tb$color
+        ) +
+        ggplot2::geom_text(data = color_tb,
+                           mapping = ggplot2::aes(
+                               x = .data[["x"]] + 0.5,
+                               y = .data[["y"]] + 0.8,
+                               label = .data[["name"]]),
+                           colour = "grey15",
+                           hjust = 0.5,
+                           vjust = 1,
+                           size = 9 / ggplot2::.pt)
+
+    g + ggplot2::theme(
+        panel.background = ggplot2::element_rect(fill = "#FFFFFF"))
+
+    return(g)
 }

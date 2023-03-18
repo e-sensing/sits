@@ -2,32 +2,20 @@
 % Please edit documentation in R/sits_colors.R
 \name{sits_colors}
 \alias{sits_colors}
-\title{Function to handle colors in SITS}
+\title{Function to retrieve sits color table}
 \usage{
-sits_colors(name, n_colors = 32)
-}
-\arguments{
-\item{name}{Name of sits color palette}
-
-\item{n_colors}{Number of colors to be displayed}
+sits_colors()
 }
 \value{
-A vector with valid R colors
+A tibble with color names and values
 }
 \description{
-Returns a color palette for plotting
-
-Implements support RColorBrewer and named sits palettes. Valid names are:
-"veg_index", "probs", "uncert", "soil", "forest", "water", "green",
-"BuGn", "BuPu", "GnBu", "PuBu", "PuBuGn", "PuRd", "YlGn", "YlGnBu", "YlOrRd",
-"YlOrBr", "OrRd", "Blues", "Greens", "Oranges", "Reds", "Greys", "Purples".
+Returns a color table
 }
 \examples{
 if (sits_run_examples()) {
     # show the names of the colors supported by SITS
-    sits_color_names()
-    # show a color palette
-    sits_colors_show("Blues", n_colors = 16)
+    sits_colors()
 }
 }
 \author{

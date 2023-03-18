@@ -62,5 +62,5 @@ test_that("is greater than tests", {
 
     expect_true(.is_gt(1.5 - 1.4, 0.1, tolerance = 0))
 
-    expect_false(.is_gt(1.2 - 1.1, 0.1, tolerance = 0))
+    expect_false(.is_gt(1.2 - 1.1, 0.1, tolerance = 1e-8))
 })

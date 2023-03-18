@@ -56,12 +56,17 @@
 #'     # build a random forest model
 #'     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
 #'     # classify the cube
-#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
 #'     # create an uncertainty cube
-#'     uncert_cube <- sits_uncertainty(probs_cube)
+#'     uncert_cube <- sits_uncertainty(probs_cube,
+#'         type = "entropy",
+#'         output_dir = tempdir())
 #'     # obtain a new set of samples for active learning
 #'     # the samples are located in uncertain places
-#'     new_samples <- sits_uncertainty_sampling(uncert_cube)
+#'     new_samples <- sits_uncertainty_sampling(
+#'         uncert_cube, n = 10, min_uncert = 0.4)
 #' }
 #'
 #' @export
@@ -74,7 +79,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
     .check_set_caller("sits_uncertainty_sampling")
 
     # Pre-conditions
-    .check_cube_is_uncert_cube(uncert_cube)
+    .check_is_uncert_cube(uncert_cube)
     .check_int_parameter(n, min = 1, max = 10000)
     .check_num_parameter(min_uncert, min = 0.2, max = 1.0)
     .check_int_parameter(sampling_window, min = 10)
@@ -190,7 +195,9 @@ sits_uncertainty_sampling <- function(uncert_cube,
 #'     # build a random forest model
 #'     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
 #'     # classify the cube
-#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
 #'     # obtain a new set of samples for active learning
 #'     # the samples are located in uncertain places
 #'     new_samples <- sits_confidence_sampling(probs_cube)
@@ -283,4 +290,3 @@ sits_confidence_sampling <- function(probs_cube,
     class(result_tb) <- c("sits_confidence", "sits", class(result_tb))
     return(result_tb)
 }
-

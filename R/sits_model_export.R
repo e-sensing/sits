@@ -12,7 +12,7 @@
 #' @return An R object containing the model in the original format of
 #' machine learning or deep learning package.
 #' @export
-sits_model_export <- function(ml_model){
+sits_model_export <- function(ml_model) {
     .check_is_sits_model(ml_model)
     # Dispatch
     UseMethod("sits_model_export", ml_model)
@@ -20,7 +20,7 @@ sits_model_export <- function(ml_model){
 #' @rdname sits_model_export
 #'
 #' @export
-sits_model_export.sits_model <- function(ml_model){
+sits_model_export.sits_model <- function(ml_model) {
     .check_is_sits_model(ml_model)
     # Extract the result of the R RandomForest package
     model <- .ml_model(ml_model)
