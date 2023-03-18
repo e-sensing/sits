@@ -22,11 +22,6 @@
         return(unlist(val))
     }
 
-    randint <- function(min, max, n = 1) {
-        val <- as.integer((max - min) * stats::runif(n = n) + min)
-        return(val)
-    }
-
     normal <- function(mean = 0, sd = 1, n = 1) {
         val <- stats::rnorm(n = n, mean = mean, sd = sd)
         return(val)
@@ -50,6 +45,9 @@
     params <- purrr::map(as.list(params), eval, envir = environment())
 
     params[["samples"]] <- NULL
+
+    # fix error in params
+    params$opt_hparams$lr <- params$opt_hparams$lr[[1]]
 
     return(params)
 }
