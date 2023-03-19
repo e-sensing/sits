@@ -98,6 +98,7 @@ test_that("file_info functions for result cubes", {
 
     # tile properties
     expect_equal(.tile_bands(probs_cube), "probs")
+    unlink(probs_cube$file_info[[1]]$path)
 })
 
 test_that("file_info errors", {

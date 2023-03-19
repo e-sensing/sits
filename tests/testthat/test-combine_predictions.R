@@ -63,4 +63,11 @@ test_that("Combine predictions", {
                  sits_bbox(probs_xgb_cube))
     expect_equal(nrow(comb_probs_cube_uncert),
                  nrow(probs_xgb_cube))
+
+    unlink(probs_rfor_cube$file_info[[1]]$path)
+    unlink(probs_xgb_cube$file_info[[1]]$path)
+    unlink(uncert_rfor$file_info[[1]]$path)
+    unlink(uncert_xgboost$file_info[[1]]$path)
+    unlink(comb_probs_cube_avg$file_info[[1]]$path)
+    unlink(comb_probs_cube_uncert$file_info[[1]]$path)
 })

@@ -216,10 +216,12 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
         )
     },
     .default = NULL)
-
     testthat::skip_if(purrr::is_null(modis_cube),
                       message = "BDC is not accessible"
     )
+    # get the timeline
+    cube_timeline <- sits_timeline(modis_cube)
+
     # Retrieve points based on a POLYGON shapefile
     points_shp <- sits_get_data(modis_cube,
                                 samples = shp_file,
@@ -304,6 +306,7 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
     sf_cf <- sf::read_sf(shp_file)
 
     sf_roi <- sf::st_bbox(sf_cf)
+    sf_roi["crs"] <- 4326
 
     # create a raster cube file based on the information about the files
     modis_cube <- .try({

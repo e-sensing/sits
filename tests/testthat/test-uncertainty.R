@@ -69,4 +69,8 @@ test_that("uncertainty works", {
     expect_true(all(range(margin_r[]) >= 0))
     expect_true(range(margin_r[])[2] > range(margin_r[])[1])
 
+    expect_true(all(file.remove(unlist(probs_cube$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(entropy_cube$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(least_cube$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(margin_cube$file_info[[1]]$path))))
 })

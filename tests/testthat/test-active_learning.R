@@ -41,6 +41,9 @@ test_that("Suggested samples have low confidence, high entropy", {
     )))
     expect_true(all(samples_df[["label"]] == "NoClass"))
     expect_true(all(samples_df[["uncertainty"]] >= 0.3))
+
+    unlink(probs_cube$file_info[[1]]$path)
+    unlink(uncert_cube$file_info[[1]]$path)
 })
 
 test_that("Increased samples have high confidence, low entropy", {
@@ -84,4 +87,5 @@ test_that("Increased samples have high confidence, low entropy", {
         "start_date", "end_date",
         "label", "confidence"
     )))
+    unlink(probs_cube$file_info[[1]]$path)
 })

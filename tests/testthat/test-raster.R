@@ -958,7 +958,7 @@ test_that("Kernel functions", {
     cube_median <- sits_apply(
         data = cube,
         output_dir = tempdir(),
-        NDVI_TEXTURE = w_median(NDVI),
+        NDVI_MEDIAN = w_median(NDVI),
         window_size = 3,
         memsize = 4,
         multicores = 1
@@ -971,20 +971,24 @@ test_that("Kernel functions", {
     median_1 <- median(as.vector(v_obj[4:6,4:6]))
     median_2 <- v_obj_md[5,5]
 
+    expect_false(median_1 == median_2)
+
     cube_mean <- sits_apply(
         data = cube,
         output_dir = tempdir(),
-        NDVI_TEXTURE = w_mean(NDVI),
+        NDVI_MEAN = w_mean(NDVI),
         window_size = 3,
         memsize = 4,
         multicores = 2
     )
-    r_obj <- .raster_open_rast(cube_mean[1,]$file_info[[1]]$path[[1]])
+    r_obj <- .raster_open_rast(cube[1,]$file_info[[1]]$path[[1]])
     v_obj <- matrix(.raster_get_values(r_obj), nrow = 144)
     r_obj_m <- .raster_open_rast(cube_mean$file_info[[1]]$path[[2]])
     v_obj_m <- matrix(.raster_get_values(r_obj_m), nrow = 144)
 
-
+    mean_1 <- as.integer(mean(as.vector(v_obj[4:6,4:6])))
+    mean_2 <- v_obj_m[5,5]
+    expect_false(mean_1 == mean_2)
 })
 
 test_that("Raster GDAL datatypes", {
