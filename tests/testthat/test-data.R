@@ -506,6 +506,17 @@ test_that("Reading metadata from CSV file", {
     )))
 })
 
+test_that("Working with shapefile ", {
+    csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
+    sits_to_csv(cerrado_2classes, file = csv_file)
+    csv <- read.csv(csv_file)
+    expect_true(nrow(csv) == 746)
+    expect_true(all(names(csv) %in% c(
+        "id", "longitude", "latitude",
+        "start_date", "end_date", "label"
+    )))
+})
+
 test_that("Reading data from Classified data", {
     # create a random forest model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())

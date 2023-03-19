@@ -1,3 +1,59 @@
+test_that("List collections", {
+    col <- capture_output(sits_list_collections())
+    expect_true(grepl("SENTINEL", col))
+    expect_true(grepl("DEAFRICA", col))
+    expect_true(grepl("LANDSAT", col))
+    expect_true(grepl("BDC", col))
+})
+
+test_that("api_source", {
+    res_s2_b8a <- .source_bands_resolution(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        bands = "B8A"
+    )
+    expect_equal(res_s2_b8a[["B8A"]], 20)
+    res_l8_blue <- .source_bands_resolution(
+        source = "MPC",
+        collection = "LANDSAT-C2-L2",
+        bands = "BLUE"
+    )
+    expect_equal(res_l8_blue[["BLUE"]], 30)
+
+    vls_s2_cloud <- .source_cloud_values(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A"
+    )
+    expect_true(all(names(vls_s2_cloud) %in%
+                        as.character(seq(from = 0, to = 11))))
+    expect_equal(vls_s2_cloud[["0"]], "missing_data")
+    expect_equal(vls_s2_cloud[["11"]], "snow or ice")
+
+    open_mpc <- .source_collection_open_data(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A"
+    )
+    expect_true(open_mpc)
+    token_mpc <- .source_collection_open_data_token(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A"
+    )
+    expect_false(token_mpc)
+
+    open_bdc <- .source_collection_open_data(
+        source = "BDC",
+        collection = "S2-SEN2COR_10_16D_STK-1"
+    )
+    expect_true(open_bdc)
+
+    token_bdc <- .source_collection_open_data_token(
+        source = "BDC",
+        collection = "S2-SEN2COR_10_16D_STK-1"
+    )
+    expect_true(token_bdc)
+
+})
+
 test_that("Reading a raster cube", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
@@ -26,6 +82,17 @@ test_that("Reading a raster cube", {
     expect_true(params$nrows == 144)
     expect_true(params$ncols == 254)
     expect_true(params$xres >= 231.5)
+
+    timeline <- sits_timeline(raster_cube)
+
+    sub_cube <- sits_select(raster_cube,
+                            start_date = timeline[1],
+                            end_date = timeline[2])
+    expect_equal(length(sits_timeline(sub_cube)), 2)
+    params_2 <- .raster_params_file(sub_cube$file_info[[1]]$path)
+    expect_true(params_2$nrows == 144)
+    expect_true(params_2$ncols == 254)
+    expect_true(params_2$xres >= 231.5)
 })
 
 test_that("Creating cubes from BDC", {
@@ -72,6 +139,18 @@ test_that("Creating cubes from BDC", {
     r_obj <- .raster_open_rast(cbers_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(cbers_cube)
     expect_true(.raster_nrows(r_obj) == cube_nrows)
+
+    fi_1 <- cbers_cube$file_info[[1]]
+    cc <- .fi_cloud_cover(fi_1)
+    expect_equal(length(cc), nrow(fi_1))
+    expect_equal(cc[[1]], 0.00)
+
+    fi_2 <- .fi_filter_fid(fi_1,
+            fid = "CB4_64_16D_STK_v001_022024_2018-08-29_2018-09-13")
+    expect_equal(length(sits_bands(cbers_cube)), nrow(fi_2))
+
+    cc_2 <- .fi_cloud_cover(fi_2)
+    expect_true(all(cc_2 %in% c(0.00)))
 })
 
 test_that("Creating cubes from BDC - based on ROI with shapefile", {
