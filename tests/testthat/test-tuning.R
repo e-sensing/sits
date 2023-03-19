@@ -92,24 +92,6 @@ test_that("Tuning - random search", {
     expect_true(max(tuned_lnorm$accuracy) > 0.5)
     expect_true(max(tuned_lnorm$kappa) > 0.5)
 
-    tuned_lnorm <- sits_tuning(
-        samples_modis_ndvi,
-        ml_method = sits_tempcnn(),
-        params = sits_tuning_hparams(
-            epochs = 10,
-            optimizer = torch::optim_adam,
-            opt_hparams = list(
-                lr = lognormal(meanlog = -4.5, sdlog = 1, n = 2)
-            )
-        ),
-        trials = 2,
-        multicores = 1,
-        progress = FALSE
-    )
-
-    expect_true(max(tuned_lnorm$accuracy) > 0.5)
-    expect_true(max(tuned_lnorm$kappa) > 0.5)
-
     tuned_lunif <- sits_tuning(
         samples_modis_ndvi,
         ml_method = sits_tempcnn(),

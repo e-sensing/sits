@@ -16,7 +16,6 @@ test_that("One-year, single core classification", {
                                 output_dir = tempdir())
     # smooth the probability cube using Bayesian statistics
     var_cube <- sits_variance(probs_cube, output_dir = tempdir())
-    plot(var_cube)
 
     r_obj <- .raster_open_rast(var_cube$file_info[[1]]$path[[1]])
 
@@ -28,7 +27,9 @@ test_that("One-year, single core classification", {
 
     p <- plot(var_cube, labels = "Cerrado")
 
-    t <- p$tm_shape$shp$`TERRA_MODIS_h12v10_2013-09-14_2014-08-29_variance_v1.tif`
+    fn <- p$tm_shape$shp
+
+    t <- fn$`TERRA_MODIS_h12v10_2013-09-14_2014-08-29_variance_v1.tif`
     expect_true(max(t) <= 40)
     expect_true(min(t) >= 0)
 

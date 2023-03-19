@@ -157,8 +157,15 @@ test_that("One-year, single core classification with filter", {
             version = "test3"
         )
     )
+    r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
 
-    expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_probs))
+
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
+    expect_true(max_lyr2 <= 10000)
+
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    expect_true(max_lyr3 <= 10000)
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
 
@@ -828,15 +835,34 @@ test_that("One-year, multicores mosaic", {
                 c(-55.62973, -11.61519),
                 c(-55.64768, -11.68649)))), crs = 4326
     )
+    # crop and reproject original cube
+    suppressWarnings(mosaic_cube <- sits_mosaic(
+        cube = cube,
+        roi = roi,
+        output_dir = output_dir,
+        version = "v1",
+        multicores = 1
+    ))
+    expect_equal(mosaic_cube[["tile"]], "MOSAIC")
+    expect_equal(nrow(mosaic_cube), 1)
+    bbox_mos <- sits_bbox(mosaic_cube, as_crs = 4326)
+    bbox_roi <- sf::st_bbox(roi)
+    expect_true(
+        bbox_mos[["xmin"]] < bbox_roi[["xmin"]] &&
+            bbox_mos[["xmax"]] > bbox_roi[["xmax"]] &&
+            bbox_mos[["ymin"]] < bbox_roi[["ymin"]] &&
+            bbox_mos[["ymax"]] > bbox_roi[["ymax"]]
+    )
+
     # crop and reproject classified image
-    mosaic_class <- sits_mosaic(
+    suppressWarnings(mosaic_class <- sits_mosaic(
         cube = label_cube,
         roi = roi,
         crs = 4326,
         output_dir = output_dir,
         version = "v1",
         multicores = 1
-    )
+    ))
 
     expect_equal(mosaic_class[["tile"]], "MOSAIC")
     expect_equal(nrow(mosaic_class), 1)
@@ -913,10 +939,52 @@ test_that("One-year, multicores mosaic", {
     unlink(probs_cube$file_info[[1]]$path)
     unlink(bayes_cube$file_info[[1]]$path)
     unlink(label_cube$file_info[[1]]$path)
+    unlink(mosaic_cube$file_info[[1]]$path)
     unlink(mosaic_class$file_info[[1]]$path)
     unlink(mosaic_class2$file_info[[1]]$path)
     unlink(mosaic_uncert$file_info[[1]]$path)
     unlink(uncert_cube$file_info[[1]]$path)
+})
+test_that("Kernel functions", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "tile", "band", "date")
+    )
+
+    cube_median <- sits_apply(
+        data = cube,
+        output_dir = tempdir(),
+        NDVI_TEXTURE = w_median(NDVI),
+        window_size = 3,
+        memsize = 4,
+        multicores = 1
+    )
+    r_obj <- .raster_open_rast(cube$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(r_obj), ncol = 254)
+    r_obj_md <- .raster_open_rast(cube_median$file_info[[1]]$path[[2]])
+    v_obj_md <- matrix(.raster_get_values(r_obj_md), ncol = 254)
+
+    median_1 <- median(as.vector(v_obj[4:6,4:6]))
+    median_2 <- v_obj_md[5,5]
+
+    cube_mean <- sits_apply(
+        data = cube,
+        output_dir = tempdir(),
+        NDVI_TEXTURE = w_mean(NDVI),
+        window_size = 3,
+        memsize = 4,
+        multicores = 2
+    )
+    r_obj <- .raster_open_rast(cube_mean[1,]$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(r_obj), nrow = 144)
+    r_obj_m <- .raster_open_rast(cube_mean$file_info[[1]]$path[[2]])
+    v_obj_m <- matrix(.raster_get_values(r_obj_m), nrow = 144)
+
+
 })
 
 test_that("Raster GDAL datatypes", {

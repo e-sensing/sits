@@ -17,8 +17,18 @@ test_that("Plot Time Series and Images", {
     expect_equal(p2$guides$colour$title, "Bands")
     expect_equal(p2$theme$legend.position, "bottom")
 
+    p3 <- cerrado_2classes %>%
+        sits_patterns() %>%
+        sits_select(bands = "EVI") %>%
+        plot()
+    expect_equal(as.Date(p3$data$Time[1]), as.Date("2000-09-13"))
+    expect_equal(p3$data$Pattern[1], "Cerrado")
+    expect_equal(p3$data$name[1], "EVI")
+    expect_equal(p3$guides$colour$title, "Bands")
+
 
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+    set.seed(290356)
     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
     point_class <- sits_classify(point_ndvi, rfor_model)
     p3 <- plot(point_class)
@@ -33,12 +43,19 @@ test_that("Plot Time Series and Images", {
         data_dir = data_dir,
         parse_info = c("X1", "tile", "band", "date")
     )
-
-
     p <- plot(sinop, band = "NDVI", palette = "RdYlGn")
     expect_equal(p$tm_shape$shp_name, "stars_obj")
     expect_equal(p$tm_raster$palette, "RdYlGn")
     expect_equal(p$tm_grid$grid.projection, 4326)
+
+    p_rgb <- plot(sinop, red = "NDVI", green = "NDVI", blue = "NDVI")
+
+    expect_equal(p_rgb$tm_shape$shp_name, "rgb_st")
+    expect_equal(p_rgb$tm_grid$grid.projection, 4326)
+
+    col <- p_rgb$tm_shape$shp$`TERRA-MODIS_h12v10_NDVI_2013-09-14.jp2`
+    expect_equal(col[1,1], "#484848")
+    expect_equal(col[1,10], "#999999")
 
     sinop_probs <- suppressMessages(
         sits_classify(
@@ -84,6 +101,43 @@ test_that("Plot Time Series and Images", {
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_labels$file_info[[1]]$path))))
 })
+
+test_that("Plot Accuracy", {
+    # show accuracy for a set of samples
+    train_data <- sits_sample(samples_modis_ndvi, n = 200)
+    test_data <- sits_sample(samples_modis_ndvi, n = 200)
+    # compute a random forest model
+    rfor_model <- sits_train(train_data, sits_rfor())
+    # classify training points
+    points_class <- sits_classify(test_data, rfor_model)
+    # calculate accuracy
+    acc <- sits_accuracy(points_class)
+    # plot accuracy
+    p <- plot(acc)
+    expect_equal(p$labels$title, "Confusion matrix")
+    expect_equal(p$labels$x, "Class")
+    expect_equal(p$labels$y, "Agreement with reference")
+    expect_equal(p$theme$line$colour, "black")
+
+})
+
+test_that("Plot Models", {
+    set.seed(290356)
+    rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
+    p_model <- plot(rfor_model)
+    expect_true(all(p_model$data$variable %in% c("NDVI1", "NDVI2", "NDVI3",
+                                                 "NDVI4", "NDVI5", "NDVI6",
+                                                 "NDVI7", "NDVI8", "NDVI9",
+                                                 "NDVI10", "NDVI11", "NDVI12")))
+    expect_true(all(p_model$data$minimal_depth[1:2] %in% c(0,1)))
+
+    xgb_model <- sits_train(samples_modis_ndvi, ml_method = sits_xgboost())
+    p_xgb <- plot(xgb_model)
+    expect_equal(p_xgb$x$config$engine, "dot")
+    expect_false(p_xgb$sizingPolicy$browser$fill)
+    expect_false(p_xgb$sizingPolicy$browser$external)
+})
+
 
 test_that("Dendrogram Plot", {
 

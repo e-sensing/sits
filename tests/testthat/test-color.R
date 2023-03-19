@@ -6,6 +6,16 @@ test_that("sits colors", {
     color_tb <- sits_colors()
     expect_equal(color_tb[1, ]$name, "Evergreen_Broadleaf_Forest")
     expect_equal(unname(color_tb[1, ]$color), "#1E8449")
+
+    color_val <- sits_color_value("Evergreen_Broadleaf_Forest")
+    expect_equal(color_val, "#1E8449")
+
+    color_tb[1,]$name = "Tropical_Forest"
+    new_tb <- sits_colors_set(color_tb)
+    expect_equal(new_tb[1, ]$name, "Tropical_Forest")
+    sits_colors_reset()
+    old_tb <- sits_colors()
+    expect_equal(old_tb[1, ]$name, "Evergreen_Broadleaf_Forest")
 })
 
 test_that("plot colors", {
