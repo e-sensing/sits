@@ -234,6 +234,7 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
                  expected = as.Date(cube_timeline[length(cube_timeline)]))
 
     # test bounding box
+    polygons_bbox <- .bbox(sf_mt)
     points_shp_in_bbox <- dplyr::filter(
         points_shp,
         .data[["longitude"]] >= polygons_bbox[["xmin"]],
@@ -404,6 +405,7 @@ test_that("Retrieving points from BDC using sf objects", {
     sf_cf <- sf::read_sf(shp_file)
 
     sf_roi <- sf::st_bbox(sf_cf)
+    sf_roi["crs"] <- 4326
 
     # create a raster cube file based on the bbox of the sf object
     modis_cube <- .try({
