@@ -687,6 +687,24 @@ test_that("One-year, multicore classification with post-processing", {
     max_bay3 <- max(.raster_get_values(r_bay)[, 3])
     expect_true(max_bay3 <= 10000)
 
+    sinop_bayes_2 <- sits_smooth(
+        sinop_probs,
+        output_dir = tempdir(),
+        window_size = 9,
+        neigh_fraction = 1.0,
+        multicores = 2,
+        memsize = 4,
+        version = "test_v2"
+    )
+    r_bay_2 <- .raster_open_rast(sinop_bayes_2$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(r_bay_2) == .tile_nrows(sinop_probs))
+
+    max_bay2 <- max(.raster_get_values(r_bay_2)[, 2])
+    expect_true(max_bay2 <= 10000)
+
+    max_bay3 <- max(.raster_get_values(r_bay_2)[, 3])
+    expect_true(max_bay3 <= 10000)
+
     sinop_uncert <- sits_uncertainty(
         cube = sinop_bayes,
         type = "margin",
@@ -731,6 +749,7 @@ test_that("One-year, multicore classification with post-processing", {
 
     expect_true(all(file.remove(unlist(sinop_class$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(sinop_bayes_2$file_info[[1]]$path))))
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_uncert$file_info[[1]]$path))))
