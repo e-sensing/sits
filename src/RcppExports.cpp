@@ -11,17 +11,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// average_probs
-NumericMatrix average_probs(const List& data_lst);
-RcppExport SEXP _sits_average_probs(SEXP data_lstSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const List& >::type data_lst(data_lstSEXP);
-    rcpp_result_gen = Rcpp::wrap(average_probs(data_lst));
-    return rcpp_result_gen;
-END_RCPP
-}
 // weighted_probs
 NumericMatrix weighted_probs(const List& data_lst, const NumericVector& weights);
 RcppExport SEXP _sits_weighted_probs(SEXP data_lstSEXP, SEXP weightsSEXP) {
@@ -394,7 +383,6 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_sits_average_probs", (DL_FUNC) &_sits_average_probs, 1},
     {"_sits_weighted_probs", (DL_FUNC) &_sits_weighted_probs, 2},
     {"_sits_weighted_uncert_probs", (DL_FUNC) &_sits_weighted_uncert_probs, 2},
     {"_sits_C_kernel_median", (DL_FUNC) &_sits_C_kernel_median, 5},
