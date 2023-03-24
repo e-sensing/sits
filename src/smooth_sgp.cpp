@@ -69,7 +69,7 @@ arma::mat smooth_sg_mtx(const arma::mat& data,
     arma::mat result(data);
 
     for (int i = 0; i < nrows; i++){
-        result.row(i) = smooth_sg(data.row(i), f_res, p, n).as_row();
+        result.row(i) = smooth_sg(data.row(i).as_col(), f_res, p, n).as_row();
     }
     return(result);
 }

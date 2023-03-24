@@ -11,9 +11,13 @@ test_that("Combine predictions", {
     # create a random forest model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
     # classify a data cube using rfor model
+    output_dir <- paste0(tempdir(), "/comb")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
     probs_rfor_cube <- sits_classify(
         data = cube, ml_model = rfor_model,
-        output_dir = tempdir(),
+        output_dir = output_dir,
         version = "rfor"
     )
     # create an XGBoost model
@@ -21,7 +25,7 @@ test_that("Combine predictions", {
     # classify a data cube using xgboost model
     probs_xgb_cube <- sits_classify(
         data = cube, ml_model = xgb_model,
-        output_dir = tempdir(),
+        output_dir = output_dir,
         version = "xgb"
     )
     # create a list of predictions to be combined
@@ -30,22 +34,52 @@ test_that("Combine predictions", {
     comb_probs_cube_avg <- sits_combine_predictions(
         cubes = pred_cubes,
         type = "average",
-        output_dir = tempdir(),
+        output_dir = output_dir,
         version = "comb_rfor_xgb_avg"
     )
     expect_equal(sits_labels(comb_probs_cube_avg), sits_labels(probs_xgb_cube))
     expect_equal(sits_bbox(comb_probs_cube_avg), sits_bbox(probs_xgb_cube))
     expect_equal(nrow(comb_probs_cube_avg), nrow(probs_xgb_cube))
 
+    rfor_obj <- .raster_open_rast(.tile_path(probs_rfor_cube))
+    xgb_obj <- .raster_open_rast(.tile_path(probs_xgb_cube))
+    avg_obj <- .raster_open_rast(.tile_path(comb_probs_cube_avg))
+
+    vls_rfor <- terra::values(rfor_obj)
+    vls_xgb <- terra::values(xgb_obj)
+    vls_avg <- terra::values(avg_obj)
+
+    rfor <- as.vector(vls_rfor[1:10, 1])
+    xgb <- as.vector(vls_xgb[1:10, 1])
+    avg <- purrr::map2_int(rfor, xgb, function(r, x) {as.integer(mean(c(r,x)))})
+    avg2 <- as.vector(vls_avg[1:10, 1])
+
+    expect_true(all(avg == avg2))
+
+    # Recovery
+    # test Recovery
+    out <- capture_messages({
+        expect_message(
+            object = { sits_combine_predictions(
+                cubes = pred_cubes,
+                type = "average",
+                output_dir = output_dir,
+                version = "comb_rfor_xgb_avg"
+            )},
+            regexp = "Recovery"
+        )
+    })
+    expect_true(grepl("output_dir", out[1]))
+
     # combine predictions
     uncert_rfor <- sits_uncertainty(
         cube = probs_rfor_cube,
-        output_dir = tempdir(),
+        output_dir = output_dir,
         version = "uncert-rfor"
     )
     uncert_xgboost <- sits_uncertainty(
         cube = probs_xgb_cube,
-        output_dir = tempdir(),
+        output_dir = output_dir,
         version = "uncert-xgb"
     )
     uncert_cubes <- list(uncert_rfor, uncert_xgboost)
@@ -54,7 +88,7 @@ test_that("Combine predictions", {
         cubes = pred_cubes,
         type = "uncertainty",
         uncert_cubes = uncert_cubes,
-        output_dir = tempdir(),
+        output_dir = output_dir,
         version = "comb_rfor_xgb_uncert"
     )
     expect_equal(sits_labels(comb_probs_cube_uncert),

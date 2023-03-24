@@ -649,13 +649,12 @@ plot.raster_cube <- function(
     # only one date at a time
     .check_that(length(date) == 1,
                 msg = "only one date per plot is allowed")
-    # is this a valid date?
-    date <- as.Date(date)
-    .check_that(date %in% sits_timeline(x),
-                msg = "date is not contained in the cube timeline")
-
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
+    # is this a valid date?
+    date <- as.Date(date)
+    .check_that(date %in% sits_timeline(tile),
+                msg = "date is not contained in the cube timeline")
 
     # Plot a B/W band as false color
     if (!purrr::is_null(band)) {
@@ -1004,7 +1003,10 @@ plot.class_cube <- function(x, y, ...,
     )
 
     # rescale the stars object
-    stars_obj <- stars_obj * .conf("raster_cube_scale_factor")
+    band_conf <- .tile_band_conf(tile = tile, band = band)
+    scale <- .scale(band_conf)
+    offset <- .offset(band_conf)
+    stars_obj <- stars_obj * scale + offset
 
     p <- suppressMessages(
         tmap::tm_shape(stars_obj) +
@@ -1414,8 +1416,8 @@ plot.class_cube <- function(x, y, ...,
     # set the options for tmap
     tmap::tmap_options(max.raster = max_raster)
     # numbers of nrows and ncols
-    nrows <- .tile_nrows(tile)
-    ncols <- .tile_ncols(tile)
+    nrows <- max(.tile_nrows(tile))
+    ncols <- max(.tile_ncols(tile))
 
     # do we need to compress?
     ratio <- max((nrows * ncols / max_cells), 1)

@@ -12,13 +12,12 @@
 #'
 #' @param  cube              Probability data cube.
 #' @param  window_size       Size of the neighborhood.
-#' @param  neigh_fraction    Fraction of neighbors with highest probability
-#'                           to be used in Bayesian inference.
+#' @param  sd_fraction       Fraction of standard deviation of neighbor
+#'                           probabilities which will
+#'                           be used in Bayesian inference.
 #' @param  smoothness        Estimated variance of logit of class probabilities
 #'                           (Bayesian smoothing parameter). It can be either
 #'                           a vector or a scalar.
-#' @param  min_samples       Minimum number of samples to estimate normal
-#'                           probability distribution for Bayesian inference.
 #' @param  multicores        Number of cores to run the smoothing function
 #' @param  memsize           Maximum overall memory (in GB) to run the
 #'                           smoothing.
@@ -63,10 +62,9 @@
 #' }
 #' @export
 sits_smooth <- function(cube,
-                        window_size = 9,
-                        neigh_fraction = 0.5,
+                        window_size = 7,
+                        sd_fraction = 1.0,
                         smoothness = 10,
-                        min_samples = 25,
                         memsize = 4,
                         multicores = 2,
                         output_dir,
@@ -123,9 +121,8 @@ sits_smooth <- function(cube,
         cube = cube,
         block = block,
         window_size = window_size,
-        neigh_fraction = neigh_fraction,
+        sd_fraction = sd_fraction,
         smoothness = smoothness,
-        min_samples = min_samples,
         multicores = multicores,
         memsize = memsize,
         output_dir = output_dir,

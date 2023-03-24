@@ -13,20 +13,12 @@ C_kernel_median <- function(x, ncols, nrows, band, window_size) {
     .Call(`_sits_C_kernel_median`, x, ncols, nrows, band, window_size)
 }
 
-C_kernel_sum <- function(x, ncols, nrows, band, window_size) {
-    .Call(`_sits_C_kernel_sum`, x, ncols, nrows, band, window_size)
-}
-
 C_kernel_mean <- function(x, ncols, nrows, band, window_size) {
     .Call(`_sits_C_kernel_mean`, x, ncols, nrows, band, window_size)
 }
 
 C_kernel_sd <- function(x, ncols, nrows, band, window_size) {
     .Call(`_sits_C_kernel_sd`, x, ncols, nrows, band, window_size)
-}
-
-C_kernel_var <- function(x, ncols, nrows, band, window_size) {
-    .Call(`_sits_C_kernel_var`, x, ncols, nrows, band, window_size)
 }
 
 C_kernel_min <- function(x, ncols, nrows, band, window_size) {
@@ -77,8 +69,8 @@ C_max_sampling <- function(x, nrows, ncols, window_size) {
     .Call(`_sits_C_max_sampling`, x, nrows, ncols, window_size)
 }
 
-bayes_smoother <- function(m, m_nrow, m_ncol, w, sigma, neigh_fraction) {
-    .Call(`_sits_bayes_smoother`, m, m_nrow, m_ncol, w, sigma, neigh_fraction)
+bayes_smoother <- function(m, m_nrow, m_ncol, w, smoothness, sd_fraction) {
+    .Call(`_sits_bayes_smoother`, m, m_nrow, m_ncol, w, smoothness, sd_fraction)
 }
 
 bayes_var <- function(m, m_nrow, m_ncol, w, neigh_fraction) {

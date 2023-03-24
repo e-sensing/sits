@@ -42,6 +42,18 @@ test_that("One-year, single core classification", {
     expect_true(max(v) <= 50)
     expect_true(min(v) >= 0)
 
+    # test Recovery
+    out <- capture_messages({
+        expect_message(
+            object = { sits_variance(
+                cube = probs_cube,
+                output_dir = tempdir())
+                },
+            regexp = "Recovery"
+        )
+    })
+    expect_true(grepl("output_dir", out[1]))
+
     expect_true(all(file.remove(unlist(probs_cube$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(var_cube$file_info[[1]]$path))))
 })

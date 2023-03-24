@@ -531,7 +531,10 @@ test_that("Reading data from Classified data", {
         delim = "_",
         parse_info = c("X1", "tile", "band", "date")
     )
-    output_dir <- tempdir()
+    output_dir <- paste0(tempdir(), "/al_1")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
     # classify a data cube
     probs_cube <- sits_classify(
         data = cube,

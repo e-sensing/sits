@@ -141,6 +141,8 @@ test_that("Plot Models", {
 
 test_that("Dendrogram Plot", {
 
+    p <- capture.output(sits_cluster_dendro(cerrado_2classes))
+
 
     cluster_obj <- .sits_cluster_dendrogram(cerrado_2classes,
         bands = c("NDVI", "EVI")

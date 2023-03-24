@@ -59,8 +59,8 @@ arma::mat bayes_smoother(const arma::mat& m,
                          const arma::uword m_nrow,
                          const arma::uword m_ncol,
                          const arma::mat& w,
-                         const arma::mat& sigma,
-                         const double neigh_fraction) {
+                         const arma::mat& smoothness,
+                         const double sd_fraction) {
 
     // initialize result matrix
     arma::mat res(arma::size(m), arma::fill::none);
@@ -70,7 +70,7 @@ arma::mat bayes_smoother(const arma::mat& m,
     arma::colvec mu0(m.n_cols, arma::fill::zeros);
 
     // prior co-variance matrix (neighbourhood)
-    arma::mat sigma0(arma::size(sigma), arma::fill::zeros);
+    arma::mat sigma0(arma::size(smoothness), arma::fill::zeros);
 
     // neighbourhood
     neigh_t neigh(m, w);
@@ -78,51 +78,48 @@ arma::mat bayes_smoother(const arma::mat& m,
     // compute values for each pixel
     for (arma::uword i = 0; i < m_nrow; ++i) {
         for (arma::uword j = 0; j < m_ncol; ++j) {
-
             // fill neighbor values
             for (arma::uword b = 0; b < m.n_cols; ++b)
                 neigh_vec(neigh, m, m_nrow, m_ncol, w, b, i, j);
 
-            if (neigh.n_rows * neigh_fraction < 25) {
-                res.row(j + i * m_ncol) = m.row(j + i * m_ncol);
-                continue;
-            }
+            // get the logit distribution spread from the current pixel
+            arma::mat dist(neigh.data);
+            dist = neigh.data - m(i,j);
+            // get the standard deviation for the distribution
+            arma::rowvec sd_dist = arma::stddev(dist, 0, 0);
 
-            if (neigh_fraction < 1.0 ) {
-                // sort the data
-                neigh.data.rows(0, neigh.n_rows - 1) = arma::sort(neigh.data.rows(0, neigh.n_rows - 1), "descend");
-
-                // number of sorted values
-                arma::uword n_sort = neigh.n_rows * neigh_fraction;
-
-                // compute prior mean
-                mu0 = arma::mean(neigh.data.rows(0, n_sort - 1), 0).as_col();
-
-                // compute prior sigma
-                sigma0 = arma::cov(neigh.data.rows(0, n_sort - 1), 1);
-
-                // clear non main diagonal cells
-                sigma0.elem(arma::trimatu_ind(
-                        arma::size(sigma0), 1)).fill(0.0);
-                sigma0.elem(arma::trimatl_ind(
-                        arma::size(sigma0), -1)).fill(0.0);
-            }
-            else {
-                // compute prior mean
-                mu0 = arma::mean(neigh.data.rows(0, neigh.n_rows - 1), 0).as_col();
-                // compute prior sigma
-                sigma0 = arma::cov(neigh.data.rows(0, neigh.n_rows - 1), 1);
-                // clear non main diagonal cells
-                sigma0.elem(arma::trimatu_ind(
-                        arma::size(sigma0), 1)).fill(0.0);
-                sigma0.elem(arma::trimatl_ind(
-                        arma::size(sigma0), -1)).fill(0.0);
+            // for all classes
+            //arma::colvec prox(neigh.n_rows);
+            for (arma::uword k = 0; k < m.n_cols; ++k){
+                // find all values which are close to the current probs
+                // by default, take one SD at each direction
+                // this behaviour can be adjusted by sd_fraction
+                arma::rowvec prox(neigh.n_rows);
+                int n = 0;
+                for (arma::mat::col_iterator it = dist.begin_col(k);
+                     it != dist.end_col(k); ++it) {
+                    if (abs(*it) <= sd_dist(k)){
+                        prox(n) = (*it);
+                        ++n;
+                    }
+                }
+                prox.resize(n);
+                // sum back the value of the logit
+                prox = prox + m(j + i * m_nrow, k);
+                Rcout << "prox = " << prox << "\n";
+                // variance of all logits within an SD of current pixel prob
+                sigma0(k,k) = arma::var(prox, 0);
+                // mean of all logits within an SD of current pixel prob
+                mu0(k) = arma::mean(prox);
+                Rcout << "class = " << k << "  mean = " << mu0(k) << "  sigma0 = " << sigma0(k,k) << "\n";
+                Rcout << "prox size = " << prox.size() << "\n";
+                prox.reset();
             }
 
             // evaluate multivariate bayesian
             res.row(j + i * m_ncol) =
                 nm_post_mean_x(m.row(j + i * m_ncol).as_col(),
-                               sigma, mu0, sigma0).as_row();
+                               smoothness, mu0, sigma0).as_row();
         }
     }
     return res;

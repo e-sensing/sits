@@ -5,24 +5,27 @@ test_that("Suggested samples have low confidence, high entropy", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
     set.seed(123)
     rfor_model <- sits_train(samples_modis_ndvi,
         ml_method = sits_xgboost(verbose = FALSE)
     )
+    output_dir <- paste0(tempdir(), "/al_1")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
     probs_cube <- sits_classify(
         cube,
         ml_model = rfor_model,
-        output_dir = tempdir(),
-        memsize = 4, multicores = 2
+        output_dir = output_dir,
+        memsize = 4,
+        multicores = 2
     )
     uncert_cube <- sits_uncertainty(
         probs_cube,
         type = "least",
-        output_dir = tempdir()
+        output_dir = output_dir
     )
 
     # Get sample suggestions.
@@ -53,17 +56,19 @@ test_that("Increased samples have high confidence, low entropy", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
     rfor_model <- sits_train(samples_modis_ndvi,
         ml_method = sits_rfor()
     )
+    output_dir <- paste0(tempdir(), "/al_2")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
     probs_cube <- sits_classify(
         cube,
         ml_model = rfor_model,
-        output_dir = tempdir(),
+        output_dir = output_dir,
         memsize = 4, multicores = 2
     )
     # Get sample suggestions based on high confidence

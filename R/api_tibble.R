@@ -427,18 +427,6 @@
     sort(unique(samples[["label"]]), na.last = TRUE)
 }
 
-.sits_filter_labels <- function(samples, labels) {
-    # Check missing labels
-    miss_labels <- labels[!labels %in% .sits_labels(samples)]
-    if (.has(miss_labels)) {
-        stop("label(s) ", .collapse("'", miss_labels, "'"), " not found")
-    }
-    # Filter labels
-    samples <- samples[samples[["label"]] %in% labels, ]
-    # Return samples
-    samples
-}
-
 .sits_foreach_ts <- function(samples, fn, ...) {
     # Apply function to each time_series
     samples[["time_series"]] <- lapply(samples[["time_series"]], fn, ...)

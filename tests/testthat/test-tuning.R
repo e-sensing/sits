@@ -45,7 +45,7 @@ test_that("Tuning - random search", {
             epochs = 10,
             optimizer = torch::optim_adam,
             opt_hparams = list(
-                lr = uniform(min = 0.01, max = 0.02, n = 2)
+                lr = uniform(min = 0.01, max = 0.02)
             )
         ),
         trials = 2,
@@ -63,7 +63,7 @@ test_that("Tuning - random search", {
             epochs = 10,
             optimizer = torch::optim_adam,
             opt_hparams = list(
-                lr = normal(mean = 0.01, sd = 0.002, n = 2)
+                lr = normal(mean = 0.01, sd = 0.002)
             )
         ),
         trials = 2,
@@ -81,7 +81,7 @@ test_that("Tuning - random search", {
             epochs = 10,
             optimizer = torch::optim_adam,
             opt_hparams = list(
-                lr = lognormal(meanlog = -4.5, sdlog = 1, n = 2)
+                lr = lognormal(meanlog = -4.5, sdlog = 1)
             )
         ),
         trials = 2,
@@ -99,7 +99,7 @@ test_that("Tuning - random search", {
             epochs = 10,
             optimizer = torch::optim_adam,
             opt_hparams = list(
-                lr = loguniform(minlog = -5, maxlog = -4, n = 2)
+                lr = loguniform(minlog = -5, maxlog = -4)
             )
         ),
         trials = 2,

@@ -82,12 +82,15 @@ test_that("file_info functions for result cubes", {
         parse_info = c("X1", "tile", "band", "date"),
         multicores = 2
     )
-
+    output_dir <- paste0(tempdir(), "/fi")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
     # classify the data cube with xgb model
     probs_cube <- sits_classify(
         local_cube,
         xgb_model,
-        output_dir = tempdir(),
+        output_dir = output_dir,
         memsize = 4,
         multicores = 2
     )

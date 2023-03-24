@@ -503,7 +503,6 @@
                 source = .cube_source(cube),
                 collection = .cube_collection(cube),
                 data_dir = output_dir,
-                parse_info = c("X1", "tile", "band", "date"),
                 multicores = multicores,
                 progress = progress
             )
@@ -578,7 +577,11 @@
             )
 
             # files prefix
-            prefix <- paste("cube", .cube_tiles(tile), band, "", sep = "_")
+            prefix <- paste(tile[["satellite"]],
+                            tile[["sensor"]],
+                            .cube_tiles(tile),
+                            band, "",
+                            sep = "_")
 
             # check documentation mode
             progress <- .check_documentation(progress)
@@ -610,7 +613,6 @@
                     source = .cube_source(cube),
                     collection = .cube_collection(cube),
                     data_dir = output_dir,
-                    parse_info = c("X1", "tile", "band", "date"),
                     multicores = multicores,
                     progress = FALSE
                 )

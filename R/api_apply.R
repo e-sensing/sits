@@ -270,12 +270,6 @@
                 band = 0, window_size = window_size
             )
         },
-        w_sum = function(m) {
-            C_kernel_sum(
-                x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
-            )
-        },
         w_mean = function(m) {
             C_kernel_mean(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
@@ -284,12 +278,6 @@
         },
         w_sd = function(m) {
             C_kernel_sd(
-                x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
-            )
-        },
-        w_var = function(m) {
-            C_kernel_var(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
                 band = 0, window_size = window_size
             )

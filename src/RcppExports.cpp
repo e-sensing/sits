@@ -50,21 +50,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// C_kernel_sum
-NumericVector C_kernel_sum(const NumericMatrix& x, int ncols, int nrows, int band, int window_size);
-RcppExport SEXP _sits_C_kernel_sum(SEXP xSEXP, SEXP ncolsSEXP, SEXP nrowsSEXP, SEXP bandSEXP, SEXP window_sizeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< int >::type ncols(ncolsSEXP);
-    Rcpp::traits::input_parameter< int >::type nrows(nrowsSEXP);
-    Rcpp::traits::input_parameter< int >::type band(bandSEXP);
-    Rcpp::traits::input_parameter< int >::type window_size(window_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_kernel_sum(x, ncols, nrows, band, window_size));
-    return rcpp_result_gen;
-END_RCPP
-}
 // C_kernel_mean
 NumericVector C_kernel_mean(const NumericMatrix& x, int ncols, int nrows, int band, int window_size);
 RcppExport SEXP _sits_C_kernel_mean(SEXP xSEXP, SEXP ncolsSEXP, SEXP nrowsSEXP, SEXP bandSEXP, SEXP window_sizeSEXP) {
@@ -92,21 +77,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type band(bandSEXP);
     Rcpp::traits::input_parameter< int >::type window_size(window_sizeSEXP);
     rcpp_result_gen = Rcpp::wrap(C_kernel_sd(x, ncols, nrows, band, window_size));
-    return rcpp_result_gen;
-END_RCPP
-}
-// C_kernel_var
-NumericVector C_kernel_var(const NumericMatrix& x, int ncols, int nrows, int band, int window_size);
-RcppExport SEXP _sits_C_kernel_var(SEXP xSEXP, SEXP ncolsSEXP, SEXP nrowsSEXP, SEXP bandSEXP, SEXP window_sizeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< int >::type ncols(ncolsSEXP);
-    Rcpp::traits::input_parameter< int >::type nrows(nrowsSEXP);
-    Rcpp::traits::input_parameter< int >::type band(bandSEXP);
-    Rcpp::traits::input_parameter< int >::type window_size(window_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_kernel_var(x, ncols, nrows, band, window_size));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -264,8 +234,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // bayes_smoother
-arma::mat bayes_smoother(const arma::mat& m, const arma::uword m_nrow, const arma::uword m_ncol, const arma::mat& w, const arma::mat& sigma, const double neigh_fraction);
-RcppExport SEXP _sits_bayes_smoother(SEXP mSEXP, SEXP m_nrowSEXP, SEXP m_ncolSEXP, SEXP wSEXP, SEXP sigmaSEXP, SEXP neigh_fractionSEXP) {
+arma::mat bayes_smoother(const arma::mat& m, const arma::uword m_nrow, const arma::uword m_ncol, const arma::mat& w, const arma::mat& smoothness, const double sd_fraction);
+RcppExport SEXP _sits_bayes_smoother(SEXP mSEXP, SEXP m_nrowSEXP, SEXP m_ncolSEXP, SEXP wSEXP, SEXP smoothnessSEXP, SEXP sd_fractionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -273,9 +243,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::uword >::type m_nrow(m_nrowSEXP);
     Rcpp::traits::input_parameter< const arma::uword >::type m_ncol(m_ncolSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type w(wSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< const double >::type neigh_fraction(neigh_fractionSEXP);
-    rcpp_result_gen = Rcpp::wrap(bayes_smoother(m, m_nrow, m_ncol, w, sigma, neigh_fraction));
+    Rcpp::traits::input_parameter< const arma::mat& >::type smoothness(smoothnessSEXP);
+    Rcpp::traits::input_parameter< const double >::type sd_fraction(sd_fractionSEXP);
+    rcpp_result_gen = Rcpp::wrap(bayes_smoother(m, m_nrow, m_ncol, w, smoothness, sd_fraction));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -386,10 +356,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_weighted_probs", (DL_FUNC) &_sits_weighted_probs, 2},
     {"_sits_weighted_uncert_probs", (DL_FUNC) &_sits_weighted_uncert_probs, 2},
     {"_sits_C_kernel_median", (DL_FUNC) &_sits_C_kernel_median, 5},
-    {"_sits_C_kernel_sum", (DL_FUNC) &_sits_C_kernel_sum, 5},
     {"_sits_C_kernel_mean", (DL_FUNC) &_sits_C_kernel_mean, 5},
     {"_sits_C_kernel_sd", (DL_FUNC) &_sits_C_kernel_sd, 5},
-    {"_sits_C_kernel_var", (DL_FUNC) &_sits_C_kernel_var, 5},
     {"_sits_C_kernel_min", (DL_FUNC) &_sits_C_kernel_min, 5},
     {"_sits_C_kernel_max", (DL_FUNC) &_sits_C_kernel_max, 5},
     {"_sits_C_label_max_prob", (DL_FUNC) &_sits_C_label_max_prob, 1},
