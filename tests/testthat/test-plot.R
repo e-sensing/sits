@@ -40,8 +40,7 @@ test_that("Plot Time Series and Images", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
     p <- plot(sinop, band = "NDVI", palette = "RdYlGn")
     expect_equal(p$tm_shape$shp_name, "stars_obj")
@@ -53,9 +52,9 @@ test_that("Plot Time Series and Images", {
     expect_equal(p_rgb$tm_shape$shp_name, "rgb_st")
     expect_equal(p_rgb$tm_grid$grid.projection, 4326)
 
-    col <- p_rgb$tm_shape$shp$`TERRA-MODIS_h12v10_NDVI_2013-09-14.jp2`
-    expect_equal(col[1,1], "#484848")
-    expect_equal(col[1,10], "#999999")
+    col <- p_rgb$tm_shape$shp$`TERRA_MODIS_012010_NDVI_2013-09-14.jp2`
+    expect_equal(col[1,1], "#646464")
+    expect_equal(col[1,10], "#A9A9A9")
 
     sinop_probs <- suppressMessages(
         sits_classify(

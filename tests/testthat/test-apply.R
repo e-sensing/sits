@@ -30,13 +30,13 @@ test_that("EVI generation", {
         full.names = TRUE
     ))
 
-    gc_cube <- sits_regularize(
+    expect_warning({ gc_cube <- sits_regularize(
         cube        = s2_cube,
         output_dir  = dir_images,
         res         = 160,
         period      = "P1M",
         multicores  = 2
-    )
+    )})
 
     gc_cube_new <- sits_apply(gc_cube,
         EVI2 = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),
@@ -112,9 +112,7 @@ test_that("Kernel functions", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
 
     cube_median <- sits_apply(
@@ -219,8 +217,7 @@ test_that("Kernel functions", {
     max_2 <- v_obj_max[5,5]
     expect_true(max_1 == max_2)
 
-    tif_files <- grep("tif", list.files(tempdir()), value = TRUE)
+    tif_files <- grep("tif", list.files(tempdir(), full.names = TRUE), value = TRUE)
 
-    file.remove(tif_files)
-
+    success <- file.remove(tif_files)
 })

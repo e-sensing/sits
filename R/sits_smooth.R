@@ -12,9 +12,8 @@
 #'
 #' @param  cube              Probability data cube.
 #' @param  window_size       Size of the neighborhood.
-#' @param  sd_fraction       Fraction of standard deviation of neighbor
-#'                           probabilities which will
-#'                           be used in Bayesian inference.
+#' @param  neigh_fraction    Fraction of neighbors with high probabilities
+#'                           to be used in Bayesian inference.
 #' @param  smoothness        Estimated variance of logit of class probabilities
 #'                           (Bayesian smoothing parameter). It can be either
 #'                           a vector or a scalar.
@@ -63,7 +62,7 @@
 #' @export
 sits_smooth <- function(cube,
                         window_size = 7,
-                        sd_fraction = 1.0,
+                        neigh_fraction = 0.5,
                         smoothness = 10,
                         memsize = 4,
                         multicores = 2,
@@ -86,8 +85,9 @@ sits_smooth <- function(cube,
     # Check smoothness
     .check_smoothness(smoothness, nlabels)
     # Prepare smoothness parameter
-    smoothness <- diag(smoothness, nrow = nlabels, ncol = nlabels)
-
+    if (length(smoothness == 1)) {
+        smoothness <- rep(smoothness, nlabels)
+    }
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels
@@ -121,7 +121,7 @@ sits_smooth <- function(cube,
         cube = cube,
         block = block,
         window_size = window_size,
-        sd_fraction = sd_fraction,
+        neigh_fraction = neigh_fraction,
         smoothness = smoothness,
         multicores = multicores,
         memsize = memsize,

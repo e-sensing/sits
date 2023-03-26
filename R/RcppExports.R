@@ -69,12 +69,16 @@ C_max_sampling <- function(x, nrows, ncols, window_size) {
     .Call(`_sits_C_max_sampling`, x, nrows, ncols, window_size)
 }
 
-bayes_smoother <- function(m, m_nrow, m_ncol, w, smoothness, sd_fraction) {
-    .Call(`_sits_bayes_smoother`, m, m_nrow, m_ncol, w, smoothness, sd_fraction)
+bayes_smoother <- function(m, m_nrow, m_ncol, w, sigma, neigh_fraction) {
+    .Call(`_sits_bayes_smoother`, m, m_nrow, m_ncol, w, sigma, neigh_fraction)
 }
 
 bayes_var <- function(m, m_nrow, m_ncol, w, neigh_fraction) {
     .Call(`_sits_bayes_var`, m, m_nrow, m_ncol, w, neigh_fraction)
+}
+
+bayes_smoother_fraction <- function(logits, nrows, ncols, window_size, smoothness, neigh_fraction) {
+    .Call(`_sits_bayes_smoother_fraction`, logits, nrows, ncols, window_size, smoothness, neigh_fraction)
 }
 
 smooth_sg <- function(data, f_res, p, n) {

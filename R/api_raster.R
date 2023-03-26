@@ -209,12 +209,20 @@
         with_ties = FALSE
     )
 
-    # Get the values' positions.
-    result_tb <- r_obj %>%
+    tb <- r_obj %>%
         terra::xyFromCell(
             cell = samples_tb[["cell"]]
         ) %>%
-        tibble::as_tibble() %>%
+        tibble::as_tibble()
+    # find NA
+    na_rows <- which(is.na(tb))
+    # remove NA
+    if (length(na_rows) > 0 ) {
+        tb <- tb[-na_rows, ]
+        samples_tb <- samples_tb[-na_rows,]
+    }
+    # Get the values' positions.
+    result_tb <- tb %>%
         sf::st_as_sf(
             coords = c("x", "y"),
             crs = .raster_crs(r_obj),

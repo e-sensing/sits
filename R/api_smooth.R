@@ -89,7 +89,7 @@
 .smooth <- function(cube,
                     block,
                     window_size,
-                    sd_fraction,
+                    neigh_fraction,
                     smoothness,
                     multicores,
                     memsize,
@@ -99,7 +99,7 @@
     # Create smooth function
     smooth_fn <- .smooth_fn_bayes(
         window_size = window_size,
-        sd_fraction = sd_fraction,
+        neigh_fraction = neigh_fraction,
         smoothness = smoothness
     )
     # Overlapping pixels
@@ -122,14 +122,12 @@
 #---- smooth functions ----
 
 .smooth_fn_bayes <- function(window_size,
-                             sd_fraction,
+                             neigh_fraction,
                              smoothness) {
     # Check window size
     .check_window_size(window_size, min = 5)
     # Check neigh_fraction
-    .check_num_parameter(sd_fraction, exclusive_min = 0)
-    # Create a window
-    window <- matrix(1, nrow = window_size, ncol = window_size)
+    .check_num_parameter(neigh_fraction, exclusive_min = 0, max = 1)
 
     # Define smooth function
     smooth_fn <- function(values, block) {
@@ -138,13 +136,13 @@
         # Compute logit
         values <- log(values / (rowSums(values) - values))
         # Process Bayesian
-        values <- bayes_smoother(
-            m = values,
-            m_nrow = .nrows(block),
-            m_ncol = .ncols(block),
-            w = window,
+        values <- bayes_smoother_fraction(
+            logits = values,
+            nrows  = .nrows(block),
+            ncols  = .ncols(block),
+            window_size = window_size,
             smoothness = smoothness,
-            sd_fraction = sd_fraction
+            neigh_fraction = neigh_fraction
         )
         # Compute inverse logit
         values <- exp(values) / (exp(values) + 1)

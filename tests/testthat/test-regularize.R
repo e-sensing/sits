@@ -166,7 +166,7 @@ test_that("Regularizing local cubes extracted from BDC", {
         roi = local_bbox,
         start_date = start_date,
         end_date = end_date,
-        bands = c("NDVI"),
+        bands = c("NDVI", "CLOUD"),
         multicores = 2
     )
     expect_true(all(sits_bands(bdc_cube) %in% c("NDVI", "CLOUD")))
@@ -174,7 +174,7 @@ test_that("Regularizing local cubes extracted from BDC", {
     start_date_2 <- timeline_2[1]
     end_date_2 <- timeline_2[length(timeline_2)]
     expect_equal(start_date_2, start_date)
-    expect_equal(start_date, end_date)
+    expect_equal(end_date_2, end_date)
 
     output_dir <- paste0(tempdir(), "/images_bdc")
     if (!dir.exists(output_dir)) {
@@ -208,14 +208,13 @@ test_that("Regularizing local cubes extracted from BDC", {
     values_orig <- terra::values(r_obj_orig)
 
     number_na_orig <- length(which(is.na(values_orig)))
-    expect_equal(length(which(is.na(values_orig))), 0)
+    expect_equal(number_na_orig, 0)
 
     fi_reg <- .fi(local_reg_cube)
     r_obj_reg <- .raster_open_rast(fi_reg$path[[1]])
     values_reg <- terra::values(r_obj_reg)
-    expect_true(length(which(is.na(values_reg))) > 0)
-
-
+    number_na_reg <- length(which(is.na(values_reg)))
+    expect_false(number_na_reg == 0)
 })
 
 test_that("Regularizing local cubes without CLOUD BAND", {

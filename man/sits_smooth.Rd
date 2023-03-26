@@ -6,10 +6,9 @@
 \usage{
 sits_smooth(
   cube,
-  window_size = 9,
+  window_size = 7,
   neigh_fraction = 0.5,
   smoothness = 10,
-  min_samples = 25,
   memsize = 4,
   multicores = 2,
   output_dir,
@@ -21,15 +20,12 @@ sits_smooth(
 
 \item{window_size}{Size of the neighborhood.}
 
-\item{neigh_fraction}{Fraction of neighbors with highest probability
+\item{neigh_fraction}{Fraction of neighbors with high probabilities
 to be used in Bayesian inference.}
 
 \item{smoothness}{Estimated variance of logit of class probabilities
 (Bayesian smoothing parameter). It can be either
 a vector or a scalar.}
-
-\item{min_samples}{Minimum number of samples to estimate normal
-probability distribution for Bayesian inference.}
 
 \item{memsize}{Maximum overall memory (in GB) to run the
 smoothing.}

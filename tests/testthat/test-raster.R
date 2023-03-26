@@ -457,8 +457,7 @@ test_that("Classification with post-processing", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        data_dir = data_dir
     )
     output_dir <- paste0(tempdir(), "/bayes")
     if (!dir.exists(output_dir)) {

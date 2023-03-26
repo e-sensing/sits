@@ -57,21 +57,11 @@ test_that("api_source", {
 test_that("Reading a raster cube", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
-    raster_cube <- .try({
-        sits_cube(
+    raster_cube <- sits_cube(
             source = "BDC",
             collection = "MOD13Q1-6",
             data_dir = data_dir,
-            delim = "_",
-            parse_info = c("X1", "tile", "band", "date"),
             multicores = 2
-        )
-    },
-    .default = NULL
-    )
-
-    testthat::skip_if(purrr::is_null(raster_cube),
-        message = "LOCAL cube not found"
     )
 
     # get bands names

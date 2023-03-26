@@ -11,7 +11,7 @@ test_that("Suggested samples have low confidence, high entropy", {
     rfor_model <- sits_train(samples_modis_ndvi,
         ml_method = sits_xgboost(verbose = FALSE)
     )
-    output_dir <- paste0(tempdir(), "/al_1")
+    output_dir <- paste0(tempdir(), "/al")
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
