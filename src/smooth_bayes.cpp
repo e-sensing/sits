@@ -43,8 +43,9 @@ NumericVector bayes_smoother_fraction(const NumericMatrix& logits,
                     for (int wj = 0; wj < window_size; ++wj)
                         neigh(wi * window_size + wj) =
                             logits(loci(wi + i) * ncols + locj(wj + j), band);
-                // Sort the neighbor logit values
-                neigh.sort(true);
+                if (neigh_fraction < 1.0)
+                    // Sort the neighbor logit values
+                    neigh.sort(true);
                 // Create a vector to store the highest values
                 NumericVector high_values(neigh_high);
                 // copy the highest values to the new vector
@@ -53,12 +54,12 @@ NumericVector bayes_smoother_fraction(const NumericMatrix& logits,
                     it != neigh.begin() + neigh_high; ++it) {
                     high_values(nh++) = (*it);
                 }
-                // get the current value
-                double x0 = logits(i * ncols + j, band);
                 // get the estimates for prior
                 // normal with mean m0 and variance s0
                 double s0 = var(high_values);
                 double m0 = mean(high_values);
+                // get the current value
+                double x0 = logits(i * ncols + j, band);
                 // weight for Bayesian estimator
                 double w = s0/(s0 + smoothness(band));
                 // apply Bayesian smoother
