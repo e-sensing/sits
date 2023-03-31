@@ -620,7 +620,7 @@ plot.raster_cube <- function(
         green = NULL,
         blue = NULL,
         tile = x$tile[[1]],
-        date = sits_timeline(x)[[1]],
+        date = NULL,
         palette = "RdYlGn",
         rev = FALSE
 ) {
@@ -646,14 +646,16 @@ plot.raster_cube <- function(
         can_repeat = FALSE,
         msg = "tile is not included in the cube"
     )
+    # filter the tile to be processed
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
+    if (purrr::is_null(date))
+        date <- .tile_timeline(tile)[[1]]
     # only one date at a time
     .check_that(length(date) == 1,
                 msg = "only one date per plot is allowed")
-    # filter the tile to be processed
-    tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # is this a valid date?
     date <- as.Date(date)
-    .check_that(date %in% sits_timeline(tile),
+    .check_that(date %in% .tile_timeline(tile),
                 msg = "date is not contained in the cube timeline")
 
     # Plot a B/W band as false color

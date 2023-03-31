@@ -17,6 +17,7 @@
 #' @param  class_cube    Classified cube to be overlayed on top on image.
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file.
+#' @param  view_max_mb   Maximum size of leaflet to be visualized
 #' @param  label         Label from the SOM map to be shown.
 #' @param  prob_max      Maximum a posteriori probability for SOM neuron
 #'                       samples to be shown
@@ -293,9 +294,10 @@ sits_view.raster_cube <- function(x, ...,
                                   green = NULL,
                                   blue = NULL,
                                   tiles = x$tile,
-                                  dates = sits_timeline(x[1, ])[1],
+                                  dates = NULL,
                                   class_cube = NULL,
                                   legend = NULL,
+                                  view_max_mb = NULL,
                                   palette = "default") {
     # preconditions
     # Probs cube not supported
@@ -335,7 +337,7 @@ sits_view.raster_cube <- function(x, ...,
     # check bands are available
     .check_chr_within(
         bands,
-        within = sits_bands(x),
+        within = .cube_bands(x),
         discriminator = "any_of",
         msg = "invalid band"
     )
@@ -346,19 +348,37 @@ sits_view.raster_cube <- function(x, ...,
         msg = "requested tiles are not part of cube"
     )
     # filter the tiles to be processed
-    cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
+    cube <- .cube_filter_tiles(x, tiles)
+
+    # more than one tile? needs regular cube
+    if (nrow(cube) > 1)
+        .check_is_regular(cube)
+
+    # get the timeline
+    timeline <- .cube_timeline(cube)[[1]]
+
+    if (purrr::is_null(dates))
+        dates <- timeline[1]
 
     # check dates exist
     .check_that(
-        x = all(as.Date(dates) %in% sits_timeline(cube[1, ])),
+        x = all(as.Date(dates) %in% timeline),
         local_msg = "date is not in cube timeline",
         msg = "invalid dates parameter"
     )
-
+    # check the view_max_mb parameter
+    if (!purrr::is_null(view_max_mb)) {
+        .check_num(view_max_mb,
+                   is_integer = TRUE,
+                   min = 16,
+                   max = 512,
+                   msg = "view_max_mb should be btw 16MB and 512 MB")
+    }
     # find out if resampling is required (for big images)
     output_size <- .view_resample_size(
         cube = cube,
-        ndates = length(dates)
+        ndates = length(dates),
+        view_max_mb = view_max_mb
     )
     # create a leaflet and add providers
     leaf_map <- leaflet::leaflet() %>%
@@ -666,11 +686,12 @@ sits_view.default <- function(x, ...) {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  cube          Cube with tiles to be merged.
-#' @param  ndates         Number of dates to be viewed.
+#' @param  ndates        Number of dates to be viewed.
+#' @param  view_max_mb   Maximum size of leaflet to be visualized
 #' @return               Number of rows and cols to be visualized.
 #'
 #'
-.view_resample_size <- function(cube, ndates) {
+.view_resample_size <- function(cube, ndates, view_max_mb) {
 
     # number of tiles to be merged
     ntiles <- nrow(cube)
@@ -687,7 +708,11 @@ sits_view.default <- function(x, ...) {
     }))
 
     # get the maximum number of bytes to be displayed (total)
-    max_megabytes <- .conf("leaflet_max_megabytes")
+    if (purrr::is_null(view_max_mb))
+        max_megabytes <- .conf("leaflet_max_megabytes")
+    else
+        max_megabytes <- view_max_mb
+
     # get the compression factor
     comp <- .conf("leaflet_comp_factor")
 
