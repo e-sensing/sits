@@ -32,9 +32,10 @@ sits_view(x, ...)
   green = NULL,
   blue = NULL,
   tiles = x$tile,
-  dates = sits_timeline(x[1, ])[1],
+  dates = NULL,
   class_cube = NULL,
   legend = NULL,
+  view_max_mb = NULL,
   palette = "default"
 )
 
@@ -75,6 +76,8 @@ samples to be shown}
 \item{dates}{Dates to be plotted.}
 
 \item{class_cube}{Classified cube to be overlayed on top on image.}
+
+\item{view_max_mb}{Maximum size of leaflet to be visualized}
 }
 \value{
 A leaflet object containing either samples or
