@@ -6,9 +6,7 @@ test_that("One-year, single core classification", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
     # classify a data cube
     probs_cube <- sits_classify(data = cube,
@@ -29,7 +27,8 @@ test_that("One-year, single core classification", {
 
     fn <- p$tm_shape$shp
 
-    t <- fn$`TERRA_MODIS_h12v10_2013-09-14_2014-08-29_variance_v1.tif`
+
+    t <- fn$`TERRA_MODIS_012010_2013-09-14_2014-08-29_variance_v1.tif`
     expect_true(max(t) <= 50)
     expect_true(min(t) >= 0)
 
@@ -41,6 +40,18 @@ test_that("One-year, single core classification", {
     v <- p$data$variance
     expect_true(max(v) <= 50)
     expect_true(min(v) >= 0)
+
+    # test Recovery
+    out <- capture_messages({
+        expect_message(
+            object = { sits_variance(
+                cube = probs_cube,
+                output_dir = tempdir())
+                },
+            regexp = "Recovery"
+        )
+    })
+    expect_true(grepl("output_dir", out[1]))
 
     expect_true(all(file.remove(unlist(probs_cube$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(var_cube$file_info[[1]]$path))))

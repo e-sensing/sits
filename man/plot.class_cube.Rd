@@ -11,7 +11,8 @@
   tile = x$tile[[1]],
   title = "Classified Image",
   legend = NULL,
-  palette = "Spectral"
+  palette = "Spectral",
+  tmap_options = NULL
 )
 }
 \arguments{

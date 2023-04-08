@@ -148,9 +148,7 @@ test_that("samples_as_sf works (polygon)", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
     cube_sf <- sits_as_sf(cube)
 

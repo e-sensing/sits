@@ -2240,7 +2240,8 @@
 #' @noRd
 .check_documentation <- function(progress) {
     # if working on sits documentation mode, no progress bar
-    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true" ||
+        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
         progress <- FALSE
     }
 

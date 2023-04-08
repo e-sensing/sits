@@ -5,9 +5,7 @@ test_that("One-year, multicore classification with ROI", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
 
     bbox <- .bbox(sinop)
@@ -54,9 +52,7 @@ test_that("Bbox in WGS 84", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
 
     bbox <- sits_bbox(sinop, as_crs = "EPSG:4326")
@@ -68,9 +64,7 @@ test_that("Functions that work with ROI", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
     # create a roi
     roi <- sits_bbox(cube)
@@ -110,9 +104,7 @@ test_that("Internal functions in ROI", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
     # create a roi
     roi <- sits_bbox(cube)
@@ -141,6 +133,6 @@ test_that("Internal functions in ROI", {
     si <- .raster_sub_image_from_bbox(bb, cube)
     expect_equal(si[["col"]], 64)
     expect_equal(si[["row"]], 1)
-    expect_equal(si[["ncols"]], 191)
-    expect_equal(si[["nrows"]], 81)
+    expect_equal(si[["ncols"]], 192)
+    expect_equal(si[["nrows"]], 84)
 })

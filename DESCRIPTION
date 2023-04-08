@@ -54,7 +54,7 @@ Imports:
     purrr (>= 0.3.0),
     Rcpp,
     rstac (>= 0.9.2-2),
-    sf (>= 1.0),
+    sf (>= 1.0-12),
     slider (>= 0.2.0),
     stats,
     terra (>= 1.5-17),
@@ -94,7 +94,7 @@ Suggests:
     covr
 Config/testthat/edition: 3
 Config/testthat/parallel: false
-Config/testthat/start-first: cube, raster, ml
+Config/testthat/start-first: cube, raster, regularize, data, ml
 LinkingTo:
     Rcpp,
     RcppArmadillo

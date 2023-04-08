@@ -1,22 +1,9 @@
 test_that("Reading a LAT/LONG from RASTER", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    raster_cube <- tryCatch(
-        {
-            sits_cube(
-                source = "BDC",
-                collection = "MOD13Q1-6",
-                data_dir = data_dir,
-                delim = "_",
-                parse_info = c("X1", "tile", "band", "date")
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    testthat::skip_if(purrr::is_null(raster_cube),
-                      message = "LOCAL cube was not found"
+    raster_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
     )
 
     samples <- tibble::tibble(longitude = -55.66738, latitude = -11.76990)
@@ -30,24 +17,12 @@ test_that("Reading a LAT/LONG from RASTER", {
 
 test_that("Reading a LAT/LONG from RASTER with crs parameter", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    raster_cube <- tryCatch(
-        {
-            sits_cube(
-                source = "BDC",
-                collection = "MOD13Q1-6",
-                data_dir = data_dir,
-                delim = "_",
-                parse_info = c("X1", "tile", "band", "date")
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
+    raster_cube <-  sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
     )
 
-    testthat::skip_if(purrr::is_null(raster_cube),
-                      message = "LOCAL cube was not found"
-    )
 
     samples <- tibble::tibble(longitude = 4821005, latitude = 10025310)
 
@@ -68,23 +43,10 @@ test_that("Reading a LAT/LONG from RASTER with crs parameter", {
 
 test_that("Reading a CSV file from RASTER", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    raster_cube <- tryCatch(
-        {
-            sits_cube(
-                source = "BDC",
-                collection = "MOD13Q1-6",
-                data_dir = data_dir,
-                delim = "_",
-                parse_info = c("X1", "tile", "band", "date")
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    testthat::skip_if(purrr::is_null(raster_cube),
-                      message = "LOCAL cube was not found"
+    raster_cube <-  sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
     )
 
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
@@ -119,23 +81,10 @@ test_that("Reading a CSV file from RASTER", {
 
 test_that("Reading a CSV file from RASTER with crs parameter", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    raster_cube <- tryCatch(
-        {
-            sits_cube(
-                source = "BDC",
-                collection = "MOD13Q1-6",
-                data_dir = data_dir,
-                delim = "_",
-                parse_info = c("X1", "tile", "band", "date")
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    testthat::skip_if(purrr::is_null(raster_cube),
-                      message = "LOCAL cube was not found"
+    raster_cube <-  sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
     )
 
     df_csv <- utils::read.csv(
@@ -527,11 +476,12 @@ test_that("Reading data from Classified data", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
-    output_dir <- tempdir()
+    output_dir <- paste0(tempdir(), "/al_1")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
     # classify a data cube
     probs_cube <- sits_classify(
         data = cube,

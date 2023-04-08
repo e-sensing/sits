@@ -15,7 +15,7 @@ test_that("Mixture model tests", {
     unlink(list.files(path = tempdir(), pattern = "\\.tif$", full.names = TRUE))
 
     # Cube regularization for 16 days and 320 meters
-    reg_cube <- sits_regularize(
+    expect_warning({ reg_cube <- sits_regularize(
         cube = s2_cube,
         period = "P16D",
         roi = c(lon_min = -65.54870165,
@@ -25,7 +25,7 @@ test_that("Mixture model tests", {
         res = 320,
         multicores = 2,
         output_dir = tempdir()
-    )
+    )})
 
     # Create the endmembers tibble for cube
     em <- tibble::tribble(

@@ -69,7 +69,7 @@ sf_geom_types_supported : ["POINT", "POLYGON", "MULTIPOLYGON"]
 local_s3_class          : ["local_cube", "raster_cube"]
 local_file_extensions   : ["tiff", "tif", "jp2", "hdf", "vrt"]
 local_parse_info_col    : ["tile", "band", "date"]
-local_parse_info_def    : ["X1", "tile", "band", "date"]
+local_parse_info_def    : ["X1", "X2", "tile", "band", "date"]
 
 # default configuration for raster cubes
 raster_cube_scale_factor : 0.0001
