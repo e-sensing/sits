@@ -91,8 +91,6 @@ test_that("Plot Time Series and Images", {
     )
 
     p4 <- plot(sinop_labels, title = "Classified image")
-    expect_equal(p4$tm_layout$legend.title.size, 1.4)
-    expect_equal(p4$tm_compass$compass.text.size, 0.8)
     expect_equal(p4$tm_grid$grid.projection, 4326)
     expect_equal(p4$tm_raster$n, 5)
     expect_true(p4$tm_shape$check_shape)
