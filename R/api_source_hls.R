@@ -1,19 +1,15 @@
 #' @keywords internal
 #' @noRd
 #' @export
-.source_items_new.deafrica_cube <- function(source, ...,
-                                            collection,
-                                            stac_query,
-                                            tiles = NULL,
-                                            platform = NULL) {
-
-    # set caller to show in errors
-    .check_set_caller(".source_items_new.deafrica_cube")
+.source_items_new.hls_cube <- function(source, ...,
+                                       collection,
+                                       stac_query,
+                                       tiles = NULL) {
 
     if (!is.null(tiles)) {
-        stop(paste("DEAFRICA cubes do not support searching for tiles, use",
-            "'roi' parameter instead.",
-            call. = FALSE
+        stop(paste("HLS cubes do not support searching for tiles, use",
+                   "'roi' parameter instead.",
+                   call. = FALSE
         ))
     }
     # Convert roi to bbox
@@ -26,11 +22,10 @@
     .check_stac_items(items_info)
     # if more than 2 times items pagination are found the progress bar
     # is displayed
-    progress <- rstac::items_matched(items_info) >
-        2 * .conf("rstac_pagination_limit")
+    progress <- rstac::items_matched(items_info) > 2 *
+        .conf("rstac_pagination_limit")
     # check documentation mode
     progress <- .check_documentation(progress)
-
     # fetching all the metadata and updating to upper case instruments
     items_info <- rstac::items_fetch(items = items_info, progress = progress)
     # checks if the items returned any items
@@ -47,8 +42,10 @@
 #' @keywords internal
 #' @noRd
 #' @export
-.source_items_tile.deafrica_cube <- function(source, ...,
-                                             items,
-                                             collection = NULL) {
-    rstac::items_reap(items, field = c("properties", "odc:region_code"))
+.source_items_tile.hls_cube <- function(source, ...,
+                                        items,
+                                        collection = NULL) {
+
+    tiles <- strsplit(rstac::items_reap(items, field = "id"), "\\.")[[1]][[3]]
+    substr(tiles, 2, 6)
 }
