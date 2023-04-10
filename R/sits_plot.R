@@ -592,6 +592,13 @@ plot.predicted <- function(x, y, ...,
 #' @param  date          Date to be plotted.
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap_max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
@@ -620,9 +627,10 @@ plot.raster_cube <- function(
         green = NULL,
         blue = NULL,
         tile = x$tile[[1]],
-        date = sits_timeline(x)[[1]],
+        date = NULL,
         palette = "RdYlGn",
-        rev = FALSE
+        rev = FALSE,
+        tmap_options = NULL
 ) {
     # deal with bands
     .check_that(
@@ -646,26 +654,28 @@ plot.raster_cube <- function(
         can_repeat = FALSE,
         msg = "tile is not included in the cube"
     )
+    # filter the tile to be processed
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
+    if (purrr::is_null(date))
+        date <- .tile_timeline(tile)[[1]]
     # only one date at a time
     .check_that(length(date) == 1,
                 msg = "only one date per plot is allowed")
-    # filter the tile to be processed
-    tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # is this a valid date?
     date <- as.Date(date)
-    .check_that(date %in% sits_timeline(tile),
+    .check_that(date %in% .tile_timeline(tile),
                 msg = "date is not contained in the cube timeline")
 
     # Plot a B/W band as false color
     if (!purrr::is_null(band)) {
         .check_cube_bands(tile, bands = band)
         # plot the band as false color
-        p <- .plot_false_color(tile, band, date, palette, rev)
+        p <- .plot_false_color(tile, band, date, palette, rev, tmap_options)
     } else {
         # plot RGB image
         .check_cube_bands(tile, bands = c(red, green, blue))
         # plot RGB
-        p <- .plot_rgb(tile, red, green, blue, date)
+        p <- .plot_rgb(tile, red, green, blue, date, tmap_options)
     }
     return(p)
 }
@@ -680,6 +690,13 @@ plot.raster_cube <- function(
 #' @param labels         Labels to plot (optional).
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
+#' @param tmap_options   List with optional tmap parameters
+#'                       tmap_max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
 #'
@@ -712,7 +729,8 @@ plot.probs_cube <- function(
         tile  = x$tile[[1]],
         labels = NULL,
         palette = "YlGnBu",
-        rev = FALSE
+        rev = FALSE,
+        tmap_options = NULL
 ) {
     # precondition
     .check_chr_contains(
@@ -728,7 +746,7 @@ plot.probs_cube <- function(
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot the probs cube
-    p <- .plot_probs(tile, labels, palette, rev)
+    p <- .plot_probs(tile, labels, palette, rev, tmap_options)
 
     return(p)
 }
@@ -744,6 +762,13 @@ plot.probs_cube <- function(
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param type           Type of plot ("map" or "hist")
+#' @param tmap_options   List with optional tmap parameters
+#'                       tmap_max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
 #'
@@ -779,7 +804,8 @@ plot.variance_cube <- function(
         labels = NULL,
         palette = "YlGnBu",
         rev = FALSE,
-        type = "map"
+        type = "map",
+        tmap_options = NULL
 ) {
     # precondition
     .check_chr_contains(
@@ -798,7 +824,7 @@ plot.variance_cube <- function(
                 msg = "plot type should be either map or hist")
     # plot the variance cube
     if (type == "map")
-        p <- .plot_variance_map(tile, labels, palette, rev)
+        p <- .plot_variance_map(tile, labels, palette, rev, tmap_options)
     else
         p <- .plot_variance_hist(tile)
 
@@ -815,6 +841,13 @@ plot.variance_cube <- function(
 #' @param  tile         Tiles to be plotted.
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap_max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object produced by the stars package
 #'                       with a map showing the uncertainty associated
@@ -848,7 +881,8 @@ plot.uncertainty_cube <- function(
         x, ...,
         tile = x$tile[[1]],
         palette = "RdYlGn",
-        rev = TRUE
+        rev = TRUE,
+        tmap_options = NULL
 ) {
     # precondition
     .check_chr_contains(
@@ -867,7 +901,8 @@ plot.uncertainty_cube <- function(
     p <- .plot_false_color(tile = tile,
                            band = band,
                            palette  = palette,
-                           rev = rev)
+                           rev = rev,
+                           tmap_options = tmap_options)
 
     return(p)
 }
@@ -883,6 +918,13 @@ plot.uncertainty_cube <- function(
 #' @param  title           Title of the plot.
 #' @param  legend          Named vector that associates labels to colors.
 #' @param  palette         Alternative RColorBrewer palette
+#' @param  tmap_options    List with optional tmap parameters
+#'                         tmap_max_cells (default: 1e+06)
+#'                         tmap_graticules_labels_size (default: 0.7)
+#'                         tmap_legend_title_size (default: 1.5)
+#'                         tmap_legend_text_size (default: 1.2)
+#'                         tmap_legend_bg_color (default: "white")
+#'                         tmap_legend_bg_alpha (default: 0.5)
 #'
 #' @return                 A  color map, where each pixel has the color
 #'                         associated to a label, as defined by the legend
@@ -918,7 +960,8 @@ plot.class_cube <- function(x, y, ...,
                             tile = x$tile[[1]],
                             title = "Classified Image",
                             legend = NULL,
-                            palette = "Spectral") {
+                            palette = "Spectral",
+                            tmap_options = NULL) {
     stopifnot(missing(y))
     # set caller to show in errors
     .check_set_caller("plot_class_cube")
@@ -949,7 +992,10 @@ plot.class_cube <- function(x, y, ...,
     tile <- .cube_filter_tiles(cube = cube, tiles = tile)
 
     # plot class cube
-    .plot_class_image(tile, legend, palette)
+    .plot_class_image(tile = tile,
+                      legend = legend,
+                      palette = palette,
+                      tmap_options = tmap_options)
 }
 #' @title  Plot a false color image
 #' @name   .plot_false_color
@@ -962,10 +1008,21 @@ plot.class_cube <- function(x, y, ...,
 #' @param  date          Date to be plotted.
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object
 #'
-.plot_false_color <- function(tile, band, date = NULL, palette, rev) {
+.plot_false_color <- function(tile, band,
+                              date = NULL,
+                              palette,
+                              rev,
+                              tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -990,7 +1047,8 @@ plot.class_cube <- function(x, y, ...,
     bw_file <- .tile_path(tile, band, date)
 
     # size of data to be read
-    size <- .plot_read_size(tile)
+    size <- .plot_read_size(tile = tile,
+                            tmap_options = tmap_options)
 
     # read file
     stars_obj <- stars::read_stars(
@@ -1008,6 +1066,34 @@ plot.class_cube <- function(x, y, ...,
     offset <- .offset(band_conf)
     stars_obj <- stars_obj * scale + offset
 
+    # set the tmap options
+    labels_size <- as.numeric(.conf("tmap_graticules_labels_size"))
+    title_size  <- as.numeric(.conf("tmap_legend_title_size"))
+    text_size   <- as.numeric(.conf("tmap_legend_text_size"))
+    bg_color <- .conf("tmap_legend_bg_color")
+    bg_alpha <- as.numeric(.conf("tmap_legend_bg_alpha"))
+    # user specified tmap options
+    if (!purrr::is_null(tmap_options)){
+        # graticules label size
+        if (!purrr::is_null(tmap_options[["tmap_graticules_labels_size"]]))
+            labels_size <- as.numeric(
+                tmap_options[["tmap_graticules_labels_size"]])
+        # legend title size
+        if (!purrr::is_null(tmap_options[["tmap_legend_title_size"]]))
+            title_size <- as.numeric(
+                tmap_options[["tmap_legend_title_size"]])
+        # legend text size
+        if (!purrr::is_null(tmap_options[["tmap_legend_text_size"]]))
+            text_size <- as.numeric(
+                tmap_options[["tmap_legend_text_size"]])
+        # tmap legend bg color
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_color"]]))
+            bg_color <- tmap_options[["tmap_legend_bg_color"]]
+        # tmap legend bg alpha
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_alpha"]]))
+            bg_alpha <- as.numeric(tmap_options[["tmap_legend_bg_alpha"]])
+    }
+
     p <- suppressMessages(
         tmap::tm_shape(stars_obj) +
             tmap::tm_raster(
@@ -1016,13 +1102,13 @@ plot.class_cube <- function(x, y, ...,
                 title = band,
                 midpoint = NA) +
             tmap::tm_graticules(
-                labels.size = 0.7
+                labels.size = labels_size
             )  +
             tmap::tm_compass() +
-            tmap::tm_layout(legend.title.size = 1.5,
-                            legend.text.size = 1.2,
-                            legend.bg.color = "white",
-                            legend.bg.alpha = 0.5)
+            tmap::tm_layout(legend.title.size = title_size,
+                            legend.text.size = text_size,
+                            legend.bg.color = bg_color,
+                            legend.bg.alpha = bg_alpha)
     )
     return(p)
 }
@@ -1035,10 +1121,17 @@ plot.class_cube <- function(x, y, ...,
 #' @param  tile          Tile to be plotted.
 #' @param  legend        Legend for the classes
 #' @param  palette       A sequential RColorBrewer palette
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object
 #'
-.plot_class_image <- function(tile, legend, palette) {
+.plot_class_image <- function(tile, legend, palette, tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -1067,7 +1160,7 @@ plot.class_cube <- function(x, y, ...,
     )
     names(colors) <- seq_along(labels)
     # size of data to be read
-    size <- .plot_read_size(tile)
+    size <- .plot_read_size(tile = tile, tmap_options = tmap_options)
     # select the image to be plotted
     class_file <- .tile_path(tile)
 
@@ -1084,6 +1177,34 @@ plot.class_cube <- function(x, y, ...,
     # rename stars object
     stars_obj <- stats::setNames(stars_obj, "labels")
 
+    # set the tmap options
+    labels_size <- as.numeric(.conf("tmap_graticules_labels_size"))
+    title_size  <- as.numeric(.conf("tmap_legend_title_size"))
+    text_size   <- as.numeric(.conf("tmap_legend_text_size"))
+    bg_color <- .conf("tmap_legend_bg_color")
+    bg_alpha <- as.numeric(.conf("tmap_legend_bg_alpha"))
+    # user specified tmap options
+    if (!purrr::is_null(tmap_options)){
+        # graticules label size
+        if (!purrr::is_null(tmap_options[["tmap_graticules_labels_size"]]))
+            labels_size <- as.numeric(
+                tmap_options[["tmap_graticules_labels_size"]])
+        # legend title size
+        if (!purrr::is_null(tmap_options[["tmap_legend_title_size"]]))
+            title_size <- as.numeric(
+                tmap_options[["tmap_legend_title_size"]])
+        # legend text size
+        if (!purrr::is_null(tmap_options[["tmap_legend_text_size"]]))
+            text_size <- as.numeric(
+                tmap_options[["tmap_legend_text_size"]])
+        # tmap legend bg color
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_color"]]))
+            bg_color <- tmap_options[["tmap_legend_bg_color"]]
+        # tmap legend bg alpha
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_alpha"]]))
+            bg_alpha <- as.numeric(tmap_options[["tmap_legend_bg_alpha"]])
+    }
+
     # plot using tmap
     # tmap requires numbers, not names
     names(colors) <- seq_along(names(colors))
@@ -1094,16 +1215,16 @@ plot.class_cube <- function(x, y, ...,
                 palette = colors,
                 labels = labels) +
             tmap::tm_graticules(
-                labels.size = 0.7
+                labels.size = labels_size
             )  +
             tmap::tm_compass() +
             tmap::tm_layout(
                 legend.show = TRUE,
                 legend.outside = FALSE,
-                legend.title.size = 1.4,
-                legend.text.size = 1.1,
-                legend.bg.color = "white",
-                legend.bg.alpha = 0.5)
+                legend.title.size = title_size,
+                legend.text.size = text_size,
+                legend.bg.color = bg_color,
+                legend.bg.alpha = bg_alpha)
     )
     return(p)
 }
@@ -1116,10 +1237,17 @@ plot.class_cube <- function(x, y, ...,
 #' @param  labels_plot   Labels to be plotted
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object
 #'
-.plot_probs <- function(tile, labels_plot, palette, rev) {
+.plot_probs <- function(tile, labels_plot, palette, rev, tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -1152,7 +1280,8 @@ plot.class_cube <- function(x, y, ...,
                     msg = "labels not in cube")
 
     # size of data to be read
-    size <- .plot_read_size(tile)
+    size <- .plot_read_size(tile = tile,
+                            tmap_options = tmap_options)
 
     # get the path
     probs_path <- .tile_path(tile)
@@ -1177,6 +1306,34 @@ plot.class_cube <- function(x, y, ...,
     # select stars bands to be plotted
     bds <- as.numeric(names(labels[labels %in% labels_plot]))
 
+    # set the tmap options
+    labels_size <- as.numeric(.conf("tmap_graticules_labels_size"))
+    title_size  <- as.numeric(.conf("tmap_legend_title_size"))
+    text_size   <- as.numeric(.conf("tmap_legend_text_size"))
+    bg_color <- .conf("tmap_legend_bg_color")
+    bg_alpha <- as.numeric(.conf("tmap_legend_bg_alpha"))
+    # user specified tmap options
+    if (!purrr::is_null(tmap_options)){
+        # graticules label size
+        if (!purrr::is_null(tmap_options[["tmap_graticules_labels_size"]]))
+            labels_size <- as.numeric(
+                tmap_options[["tmap_graticules_labels_size"]])
+        # legend title size
+        if (!purrr::is_null(tmap_options[["tmap_legend_title_size"]]))
+            title_size <- as.numeric(
+                tmap_options[["tmap_legend_title_size"]])
+        # legend text size
+        if (!purrr::is_null(tmap_options[["tmap_legend_text_size"]]))
+            text_size <- as.numeric(
+                tmap_options[["tmap_legend_text_size"]])
+        # tmap legend bg color
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_color"]]))
+            bg_color <- tmap_options[["tmap_legend_bg_color"]]
+        # tmap legend bg alpha
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_alpha"]]))
+            bg_alpha <- as.numeric(tmap_options[["tmap_legend_bg_alpha"]])
+    }
+
     p <- tmap::tm_shape(probs_st[, , , bds]) +
         tmap::tm_raster(style = "cont",
                         palette = palette,
@@ -1186,10 +1343,10 @@ plot.class_cube <- function(x, y, ...,
         tmap::tm_compass() +
         tmap::tm_layout(legend.show = TRUE,
                         legend.outside = FALSE,
-                        legend.bg.color = "white",
-                        legend.bg.alpha = 0.5,
-                        legend.title.size = 1.5,
-                        legend.text.size = 1.2,
+                        legend.bg.color = bg_color,
+                        legend.bg.alpha = bg_alpha,
+                        legend.title.size = title_size,
+                        legend.text.size = text_size,
                         outer.margins = 0)
 
     return(p)
@@ -1203,10 +1360,18 @@ plot.class_cube <- function(x, y, ...,
 #' @param  labels_plot   Labels to be plotted
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object
 #'
-.plot_variance_map <- function(tile, labels_plot, palette, rev) {
+.plot_variance_map <- function(tile, labels_plot, palette, rev,
+                               tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -1239,7 +1404,8 @@ plot.class_cube <- function(x, y, ...,
                     msg = "labels not in cube")
 
     # size of data to be read
-    size <- .plot_read_size(tile)
+    size <- .plot_read_size(tile = tile,
+                            tmap_options = tmap_options)
 
     # get the path
     var_path <- .tile_path(tile)
@@ -1264,6 +1430,35 @@ plot.class_cube <- function(x, y, ...,
     # select stars bands to be plotted
     bds <- as.numeric(names(labels[labels %in% labels_plot]))
 
+    # set the tmap options
+    labels_size <- as.numeric(.conf("tmap_graticules_labels_size"))
+    title_size  <- as.numeric(.conf("tmap_legend_title_size"))
+    text_size   <- as.numeric(.conf("tmap_legend_text_size"))
+    bg_color    <- .conf("tmap_legend_bg_color")
+    bg_alpha    <- as.numeric(.conf("tmap_legend_bg_alpha"))
+
+    # user specified tmap options
+    if (!purrr::is_null(tmap_options)){
+        # graticules label size
+        if (!purrr::is_null(tmap_options[["tmap_graticules_labels_size"]]))
+            labels_size <- as.numeric(
+                tmap_options[["tmap_graticules_labels_size"]])
+        # legend title size
+        if (!purrr::is_null(tmap_options[["tmap_legend_title_size"]]))
+            title_size <- as.numeric(
+                tmap_options[["tmap_legend_title_size"]])
+        # legend text size
+        if (!purrr::is_null(tmap_options[["tmap_legend_text_size"]]))
+            text_size <- as.numeric(
+                tmap_options[["tmap_legend_text_size"]])
+        # tmap legend bg color
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_color"]]))
+            bg_color <- tmap_options[["tmap_legend_bg_color"]]
+        # tmap legend bg alpha
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_alpha"]]))
+            bg_alpha <- as.numeric(tmap_options[["tmap_legend_bg_alpha"]])
+    }
+
     p <- tmap::tm_shape(var_st[, , , bds]) +
         tmap::tm_raster(style = "cont",
                         palette = palette,
@@ -1273,10 +1468,10 @@ plot.class_cube <- function(x, y, ...,
         tmap::tm_compass() +
         tmap::tm_layout(legend.show = TRUE,
                         legend.outside = FALSE,
-                        legend.bg.color = "white",
-                        legend.bg.alpha = 0.5,
-                        legend.title.size = 1.5,
-                        legend.text.size = 1.2,
+                        legend.bg.color = bg_color,
+                        legend.bg.alpha = bg_alpha,
+                        legend.title.size = title_size,
+                        legend.text.size = text_size,
                         outer.margins = 0)
 
     return(p)
@@ -1302,7 +1497,7 @@ plot.class_cube <- function(x, y, ...,
     nrows <- .tile_nrows(tile)
     ncols <- .tile_ncols(tile)
     # sample the pixels
-    n_samples <- as.integer(nrows / 10 * ncols / 10)
+    n_samples <- as.integer(nrows / 5 * ncols / 5)
     points <- sf::st_sample(sf_cube, size = n_samples)
     points <- sf::st_coordinates(points)
     # get the r object
@@ -1353,10 +1548,17 @@ plot.class_cube <- function(x, y, ...,
 #' @param  green         Band to be plotted in green
 #' @param  blue          Band to be plotted in blue
 #' @param  date          Date to be plotted
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object
 #'
-.plot_rgb <- function(tile, red, green, blue, date) {
+.plot_rgb <- function(tile, red, green, blue, date, tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -1369,7 +1571,8 @@ plot.class_cube <- function(x, y, ...,
     blue_file  <- .tile_path(tile, blue, date)
 
     # size of data to be read
-    size <- .plot_read_size(tile)
+    size <- .plot_read_size(tile = tile,
+                            tmap_options = tmap_options)
     # read raster data as a stars object with separate RGB bands
     rgb_st <- stars::read_stars(
         c(red_file, green_file, blue_file),
@@ -1405,13 +1608,23 @@ plot.class_cube <- function(x, y, ...,
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  tile       Tile to be plotted.
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #' @return            Cell size for x and y coordinates.
 #'
 #'
-.plot_read_size <- function(tile) {
+.plot_read_size <- function(tile, tmap_options) {
 
     # get the maximum number of bytes to be displayed
-    max_cells <- as.numeric(.conf("tmap_max_cells"))
+    if (!purrr::is_null(tmap_options[["tmap_max_cells"]]))
+        max_cells <- tmap_options[["tmap_max_cells"]]
+    else
+        max_cells <- as.numeric(.conf("tmap_max_cells"))
     max_raster <- c(plot = max_cells, view = max_cells)
     # set the options for tmap
     tmap::tmap_options(max.raster = max_raster)

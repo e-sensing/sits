@@ -28,8 +28,15 @@ gdalcubes_options       : ["COMPRESS=LZW", "PREDICTOR=2",
 
 # maxbytes per plot (in MB)
 plot_max_Mbytes: 10
-# max_cells for tmap (in number of cells)
+# tmap max_cells (in number of cells)
 tmap_max_cells: 1e+06
+# tmap configuration parameters
+tmap_graticules_labels_size: 0.7
+tmap_legend_title_size: 1.5
+tmap_legend_text_size: 1.2
+tmap_legend_bg_color: "white"
+tmap_legend_bg_alpha: 0.5
+
 # maxbytes for leaflet (in MB)
 leaflet_max_megabytes : 64
 # estimated compression factor for leaflet

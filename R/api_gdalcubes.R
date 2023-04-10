@@ -81,10 +81,10 @@
     .check_has_one_tile(tile)
 
     # get bbox roi
-    bbox_roi <- .tile_bbox(tile)
-    if (!is.null(roi)) {
-        roi <- .roi_as_sf(roi, as_crs = .tile_crs(tile))
-    }
+    if (!is.null(roi))
+        bbox_roi <- .bbox(roi, as_crs = .tile_crs(tile))
+    else
+        bbox_roi <- .tile_bbox(tile)
 
     # create a gdalcubes extent
     extent <- list(

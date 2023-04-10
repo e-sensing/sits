@@ -12,9 +12,10 @@
   green = NULL,
   blue = NULL,
   tile = x$tile[[1]],
-  date = sits_timeline(x)[[1]],
+  date = NULL,
   palette = "RdYlGn",
-  rev = FALSE
+  rev = FALSE,
+  tmap_options = NULL
 )
 }
 \arguments{
@@ -37,6 +38,14 @@
 \item{palette}{An RColorBrewer palette}
 
 \item{rev}{Reverse the color order in the palette?}
+
+\item{tmap_options}{List with optional tmap parameters
+tmap_max_cells (default: 1e+06)
+tmap_graticules_labels_size (default: 0.7)
+tmap_legend_title_size (default: 1.5)
+tmap_legend_text_size (default: 1.2)
+tmap_legend_bg_color (default: "white")
+tmap_legend_bg_alpha (default: 0.5)}
 }
 \value{
 A plot object with an RGB image
