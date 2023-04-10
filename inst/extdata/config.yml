@@ -12,7 +12,7 @@ processing_bloat_smooth : 8
 
 
 # number of items returned by stac service
-rstac_pagination_limit  : 400
+rstac_pagination_limit  : 100
 
 # default raster package
 raster_api_package      : "terra"
@@ -1091,7 +1091,7 @@ sources:
                         band_name     : "swir2"
                     CLOUD   :
                         bit_mask      : false
-                        band_name     : "slc"
+                        band_name     : "scl"
                         values        :
                             0         : "missing_data"
                             1         : "defective pixel"
@@ -1405,6 +1405,140 @@ sources:
                     SENTINEL-2A: "Sentinel-2A"
                     SENTINEL-2B: "Sentinel-2B"
                 collection_name: "sentinel-2-l2a"
+                open_data: true
+                open_data_token: false
+                metadata_search : "tile"
+                ext_tolerance: 0
+    HLS                     :
+        s3_class            : ["hls_cube", "stac_cube", "eo_cube",
+                               "raster_cube"]
+        service             : "STAC"
+        rstac_version       : "1.0.0"
+        url                 : "https://cmr.earthdata.nasa.gov/stac/LPCLOUD"
+        collections         :
+            HLSS30          :
+                bands       :
+                    B01     : &hls_s2_30m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution   :  30
+                        band_name     : "B01"
+                        data_type    : "INT2S"
+                    B02     : &deafrica_msi_10m
+                        <<: *hls_s2_30m
+                        band_name     : "B02"
+                    B03     :
+                        <<: *hls_s2_30m
+                        band_name     : "B03"
+                    B04     :
+                        <<: *hls_s2_30m
+                        band_name     : "B04"
+                    B05     :
+                        <<: *hls_s2_30m
+                        band_name     : "B05"
+                    B06     :
+                        <<: *hls_s2_30m
+                        band_name     : "B06"
+                    B07     :
+                        <<: *hls_s2_30m
+                        band_name     : "B07"
+                    B08     :
+                        <<: *hls_s2_30m
+                        band_name     : "B08"
+                    B8A     :
+                        <<: *hls_s2_30m
+                        band_name     : "B8A"
+                    B09     :
+                        <<: *hls_s2_30m
+                        band_name     : "B09"
+                    B11     :
+                        <<: *hls_s2_30m
+                        band_name     : "B11"
+                    B12     :
+                        <<: *hls_s2_30m
+                        band_name     : "B12"
+                    CLOUD   :
+                        bit_mask      : true
+                        band_name     : "Fmask"
+                        values        :
+                            0         : "Cirrus"
+                            1         : "Cloud"
+                            2         : "Adjacent to cloud/shadow"
+                            3         : "Cloud shadow"
+                            4         : "Snow/ice"
+                            5         : "Water"
+                            6         : "Aerosol level (low)"
+                            7         : "Aerosol level (moderate or high)"
+                        interp_values : [1, 2, 3, 4, 7]
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT1U"
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
+                collection_name: "hlss30.v2.0"
+                access_vars :
+                    GDAL_HTTP_UNSAFESSL: "YES"
+                    GDAL_HTTP_COOKIEFILE: ".rcookies"
+                    GDAL_HTTP_COOKIEJAR: ".rcookies"
+                open_data: true
+                open_data_token: false
+                metadata_search : "tile"
+                ext_tolerance: 0
+            HLSL30          :
+                bands       :
+                    B01     : &hls_l8_30m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    : 30
+                        band_name     : "B01"
+                        data_type     : "INT2S"
+                    B02     :
+                        <<: *hls_l8_30m
+                        band_name     : "B02"
+                    B03     :
+                        <<: *hls_l8_30m
+                        band_name     : "B03"
+                    B04     :
+                        <<: *hls_l8_30m
+                        band_name     : "B04"
+                    B05     :
+                        <<: *hls_l8_30m
+                        band_name     : "B05"
+                    B06     :
+                        <<: *hls_l8_30m
+                        band_name     : "B06"
+                    B07     :
+                        <<: *hls_l8_30m
+                        band_name     : "B07"
+                    CLOUD   :
+                        bit_mask      : true
+                        band_name     : "Fmask"
+                        values        :
+                            0         : "Cirrus"
+                            1         : "Cloud"
+                            2         : "Adjacent to cloud/shadow"
+                            3         : "Cloud shadow"
+                            4         : "Snow/ice"
+                            5         : "Water"
+                            6         : "Aerosol level (low)"
+                            7         : "Aerosol level (moderate or high)"
+                        interp_values : [1, 2, 3, 4, 7]
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT1U"
+                satellite   : "LANDSAT-8"
+                sensor      : "OLI"
+                collection_name: "hlsl30.v2.0"
+                access_vars :
+                    GDAL_HTTP_UNSAFESSL: "YES"
+                    GDAL_HTTP_COOKIEFILE: ".rcookies"
+                    GDAL_HTTP_COOKIEJAR: ".rcookies"
                 open_data: true
                 open_data_token: false
                 metadata_search : "tile"
