@@ -211,6 +211,7 @@ sits_get_data.shp <- function(cube,
     }
     return(data)
 }
+
 #' @rdname sits_get_data
 #' @export
 sits_get_data.sf <- function(cube,
@@ -233,18 +234,18 @@ sits_get_data.sf <- function(cube,
         !(pol_avg && purrr::is_null(pol_id)),
         msg = "Please provide an sf object with a column
         with the id for each polygon and include
-        this column name in the pol_id parameter."
+        this column name in the 'pol_id' parameter."
     )
 
     # check if sf object contains all the required columns
     samples <- .sf_get_samples(
-        sf_object     = samples,
-        label         = label,
-        label_attr    = label_attr,
-        start_date    = start_date,
-        end_date      = end_date,
-        n_sam_pol     = n_sam_pol,
-        pol_id        = pol_id
+        sf_object  = samples,
+        label      = label,
+        label_attr = label_attr,
+        start_date = start_date,
+        end_date   = end_date,
+        n_sam_pol  = n_sam_pol,
+        pol_id     = pol_id
     )
 
     data <- .sits_get_ts(
