@@ -614,13 +614,13 @@ NULL
 #' @param  ...  additional parameters for httr package
 #'
 #' @return A sits cube
-.cube_token_generator <- function(cube, ...) {
+.cube_token_generator <- function(cube) {
     UseMethod(".cube_token_generator", cube)
 }
 
 
 #' @export
-.cube_token_generator.mpc_cube <- function(cube, ...) {
+.cube_token_generator.mpc_cube <- function(cube) {
     file_info <- cube[["file_info"]][[1]]
     fi_paths <- file_info[["path"]]
 
@@ -644,10 +644,19 @@ NULL
 
     n_tries <- .conf("cube_token_generator_n_tries")
     sleep_time <- .conf("cube_token_generator_sleep_time")
+
+    access_key <- Sys.getenv("MPC_TOKEN")
+    if (!nzchar(access_key)) {
+        access_key <- NULL
+    }
     while (is.null(res_content) && n_tries > 0) {
         res_content <- tryCatch(
             {
-                res <- httr::stop_for_status(httr::GET(url, ...))
+                res <- httr::GET(
+                    url = url,
+                    httr::add_headers("Ocp-Apim-Subscription-Key" = access_key)
+                )
+                res <- httr::stop_for_status(res)
                 httr::content(res, encoding = "UTF-8")
             },
             error = function(e) {
@@ -695,7 +704,7 @@ NULL
     return(cube)
 }
 #' @export
-.cube_token_generator.default <- function(cube, ...) {
+.cube_token_generator.default <- function(cube) {
     return(cube)
 }
 

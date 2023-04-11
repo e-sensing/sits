@@ -470,7 +470,7 @@
                            roi,
                            output_dir,
                            multicores = 1,
-                           progress = TRUE, ...) {
+                           progress = TRUE) {
 
     # set caller to show in errors
     .check_set_caller(".gc_regularize")
@@ -526,7 +526,7 @@
     while (!finished) {
 
         # for cubes that have a time limit to expire - mpc cubes only
-        cube <- .cube_token_generator(cube, ...)
+        cube <- .cube_token_generator(cube)
 
         # process bands and tiles in parallel
         .sits_parallel_map(jobs, function(job) {
