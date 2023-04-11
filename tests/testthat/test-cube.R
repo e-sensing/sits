@@ -426,17 +426,11 @@ test_that("Creating Harmonized Landsat Sentinel cubes from HLS", {
     roi <- c(lon_min = -48.28579, lat_min = -16.05026,
              lon_max = -47.30839, lat_max = -15.50026)
 
-    shp_file <- system.file(
-        "extdata/shapefiles/mato_grosso/mt.shp",
-        package = "sits"
-    )
-    sf_mt <- sf::read_sf(shp_file)
-
     hls_cube_s2 <- .try({
         sits_cube(
             source = "HLS",
             collection = "HLSS30",
-            roi = sf_mt,
+            roi = roi,
             bands = c("B04", "CLOUD"),
             start_date = as.Date("2019-05-01"),
             end_date = as.Date("2019-09-01")
