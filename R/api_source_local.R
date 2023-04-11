@@ -24,13 +24,22 @@
     } else {
         results_cube <- FALSE
     }
+
     # results cube should have only one band
     if (results_cube) {
         .check_that(
             length(bands) == 1,
             msg = "results cube should have only one band"
         )
+        # is label parameter was provided in labelled cubes?
+        if (bands %in% c("probs", "bayes", "class")) {
+            .check_chr(
+                labels, len_min = 1,
+                msg = "'labels' parameter should be provided."
+            )
+        }
     }
+
     # is parse info NULL? use the default
     if (purrr::is_null(parse_info)) {
         if (results_cube) {
