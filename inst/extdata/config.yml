@@ -1485,7 +1485,7 @@ sources:
                         data_type     : "INT1U"
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
-                collection_name: "hlss30.v2.0"
+                collection_name: "HLSS30.v2.0"
                 access_vars :
                     GDAL_HTTP_UNSAFESSL: "YES"
                     GDAL_HTTP_COOKIEFILE: ".rcookies"

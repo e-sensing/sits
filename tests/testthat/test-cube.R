@@ -422,6 +422,67 @@ test_that("Creating Sentinel cubes from MPC with ROI", {
     )
 })
 
+test_that("Creating Harmonized Landsat Sentinel cubes from HLS", {
+    roi <- c(lon_min = -48.28579, lat_min = -16.05026,
+             lon_max = -47.30839, lat_max = -15.50026)
+
+    shp_file <- system.file(
+        "extdata/shapefiles/mato_grosso/mt.shp",
+        package = "sits"
+    )
+    sf_mt <- sf::read_sf(shp_file)
+
+    hls_cube_s2 <- .try({
+        sits_cube(
+            source = "HLS",
+            collection = "HLSS30",
+            roi = sf_mt,
+            bands = c("B04", "CLOUD"),
+            start_date = as.Date("2019-05-01"),
+            end_date = as.Date("2019-09-01")
+        )
+    },
+    .default = NULL
+    )
+
+    testthat::skip_if(
+        purrr::is_null(hls_cube_s2),
+        "HLSS30 collection is not accessible"
+    )
+
+    expect_true(all(sits_bands(hls_cube_l8) %in% c("B04", "CLOUD")))
+    expect_equal(hls_cube_l8$satellite, "SENTINEL-2")
+    expect_equal(hls_cube_s2$tile, "23LKC")
+    expect_true(all(.fi(hls_cube_s2)$xres == 30))
+    expect_true(all(.fi(hls_cube_s2)$yres == 30))
+
+    hls_cube_l8 <- .try({
+        sits_cube(
+            source = "HLS",
+            collection = "HLSL30",
+            roi = roi,
+            bands = c("B04", "CLOUD"),
+            start_date = as.Date("2019-05-01"),
+            end_date = as.Date("2019-09-01")
+        )
+    },
+    .default = NULL
+    )
+
+    testthat::skip_if(
+        purrr::is_null(hls_cube_l8),
+        "HLSL30 collection is not accessible"
+    )
+
+    expect_true(all(sits_bands(hls_cube_l8) %in% c("B04", "CLOUD")))
+    expect_equal(hls_cube_l8$satellite, "LANDSAT-8")
+    expect_equal(hls_cube_l8$tile, "23LKC")
+    expect_true(all(.fi(hls_cube_l8)$xres == 30))
+    expect_true(all(.fi(hls_cube_l8)$yres == 30))
+})
+
+
+
 
 
 test_that("Creating a raster stack cube with BDC band names", {
