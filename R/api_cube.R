@@ -648,7 +648,7 @@ NULL
         res_content <- tryCatch(
             {
                 res <- httr::stop_for_status(httr::GET(url, ...))
-                print(httr::content(res, encoding = "UTF-8"))
+                httr::content(res, encoding = "UTF-8")
             },
             error = function(e) {
                 return(NULL)
