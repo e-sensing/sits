@@ -39,7 +39,14 @@ sits_view(x, ...)
   palette = "default"
 )
 
-\method{sits_view}{class_cube}(x, ..., tiles = NULL, legend = NULL, palette = "default")
+\method{sits_view}{class_cube}(
+  x,
+  ...,
+  tiles = NULL,
+  legend = NULL,
+  palette = "default",
+  view_max_mb = NULL
+)
 
 \method{sits_view}{probs_cube}(x, ...)
 
