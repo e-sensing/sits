@@ -552,9 +552,10 @@ sits_view.raster_cube <- function(x, ...,
 #' @export
 #'
 sits_view.class_cube <- function(x, ...,
-                                       tiles = NULL,
-                                       legend = NULL,
-                                       palette = "default") {
+                                 tiles = NULL,
+                                 legend = NULL,
+                                 palette = "default",
+                                 view_max_mb = NULL) {
     # preconditions
     .check_require_packages("leaflet")
 
@@ -585,7 +586,8 @@ sits_view.class_cube <- function(x, ...,
     # find out if resampling is required (for big images)
     output_size <- .view_resample_size(
         cube = cube,
-        ndates = 1
+        ndates = 1,
+        view_max_mb = view_max_mb
     )
     # create the stars objects that correspond to the tiles
     st_objs <- slider::slide(cube, function(tile) {

@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 1.3.0
+Version: 1.3.1
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara.inpe@gmail.com'),
@@ -129,6 +129,7 @@ Collate:
     'api_source_aws.R'
     'api_source_bdc.R'
     'api_source_deafrica.R'
+    'api_source_hls.R'
     'api_source_local.R'
     'api_source_mpc.R'
     'api_source_sdc.R'

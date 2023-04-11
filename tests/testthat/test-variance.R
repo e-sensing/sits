@@ -29,7 +29,7 @@ test_that("One-year, single core classification", {
 
 
     t <- fn$`TERRA_MODIS_012010_2013-09-14_2014-08-29_variance_v1.tif`
-    expect_true(max(t) <= 50)
+    expect_true(max(t) <= 100)
     expect_true(min(t) >= 0)
 
     expect_true(p$tm_raster$style == "cont")
@@ -38,7 +38,7 @@ test_that("One-year, single core classification", {
     expect_true(all(p$data_labels %in% c("Cerrado", "Forest",
                                          "Pasture", "Soy_Corn")))
     v <- p$data$variance
-    expect_true(max(v) <= 50)
+    expect_true(max(v) <= 100)
     expect_true(min(v) >= 0)
 
     # test Recovery
