@@ -34,7 +34,9 @@
 
     # signing the url with the mpc token
     items <- suppressWarnings(
-        rstac::items_sign(items, sign_fn = rstac::sign_planetary_computer())
+        rstac::items_sign(
+            items, sign_fn = rstac::sign_planetary_computer(...)
+        )
     )
 
     items <- .source_items_bands_select(
@@ -124,8 +126,8 @@
 
     # assign href
     items_info <- suppressWarnings(
-        rstac::items_sign(items_info,
-                          sign_fn = rstac::sign_planetary_computer()
+        rstac::items_sign(
+            items_info, sign_fn = rstac::sign_planetary_computer(...)
         )
     )
     return(items_info)
@@ -178,7 +180,9 @@
     )
     # assign href
     items <- suppressWarnings(
-        rstac::items_sign(items, sign_fn = rstac::sign_planetary_computer())
+        rstac::items_sign(
+            items, sign_fn = rstac::sign_planetary_computer(...)
+        )
     )
     return(items)
 }

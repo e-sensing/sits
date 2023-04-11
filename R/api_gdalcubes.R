@@ -461,6 +461,7 @@
 #' @param roi        A named \code{numeric} vector with a region of interest.
 #' @param multicores Number of cores used for regularization.
 #' @param progress   Show progress bar?
+#' @param ...        Additional parameters for httr package.
 #'
 #' @return             Data cube with aggregated images.
 .gc_regularize <- function(cube,
@@ -469,7 +470,7 @@
                            roi,
                            output_dir,
                            multicores = 1,
-                           progress = TRUE) {
+                           progress = TRUE, ...) {
 
     # set caller to show in errors
     .check_set_caller(".gc_regularize")
@@ -525,7 +526,7 @@
     while (!finished) {
 
         # for cubes that have a time limit to expire - mpc cubes only
-        cube <- .cube_token_generator(cube)
+        cube <- .cube_token_generator(cube, ...)
 
         # process bands and tiles in parallel
         .sits_parallel_map(jobs, function(job) {

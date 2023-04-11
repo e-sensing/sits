@@ -30,6 +30,7 @@
 #'                   used for parallel processing of input.
 #' @param output_dir Valid directory for storing regularized images.
 #' @param progress   show progress bar?
+#' @param ...        Additional parameters for httr package.
 #'
 #' @note
 #' Please refer to the sits documentation available in
@@ -81,7 +82,7 @@ sits_regularize <- function(cube,
                             roi = NULL,
                             multicores = 2,
                             output_dir,
-                            progress = TRUE) {
+                            progress = TRUE, ...) {
 
     # Pre-conditions
     .check_is_raster_cube(cube)
@@ -115,6 +116,6 @@ sits_regularize <- function(cube,
         roi = roi,
         output_dir = output_dir,
         multicores = multicores,
-        progress = progress
+        progress = progress, ...
     )
 }
