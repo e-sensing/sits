@@ -11,7 +11,8 @@ sits_regularize(
   roi = NULL,
   multicores = 2,
   output_dir,
-  progress = TRUE
+  progress = TRUE,
+  ...
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ used for parallel processing of input.}
 \item{output_dir}{Valid directory for storing regularized images.}
 
 \item{progress}{show progress bar?}
+
+\item{...}{Additional parameters for httr package.}
 }
 \value{
 A \code{raster_cube} object with aggregated images.
