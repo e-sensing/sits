@@ -46,6 +46,7 @@
                                         items,
                                         collection = NULL) {
 
-    tiles <- strsplit(rstac::items_reap(items, field = "id"), "\\.")[[1]][[3]]
+    tiles <- strsplit(rstac::items_reap(items, field = "id"), "\\.")
+    tiles <- purrr::map_chr(tiles, function(x) x[[3]])
     substr(tiles, 2, 6)
 }
