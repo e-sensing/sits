@@ -78,9 +78,9 @@
 sits_regularize <- function(cube,
                             period,
                             res,
+                            output_dir,
                             roi = NULL,
                             multicores = 2,
-                            output_dir,
                             progress = TRUE) {
 
     # Pre-conditions

@@ -401,7 +401,6 @@ sits_cube.local_cube <- function(source,
                                  multicores = 2,
                                  progress = TRUE) {
 
-
     # precondition - data directory must be provided
     .check_file(x = data_dir, msg = "'data_dir' parameter must be provided.")
 

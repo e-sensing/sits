@@ -461,6 +461,7 @@
 #' @param roi        A named \code{numeric} vector with a region of interest.
 #' @param multicores Number of cores used for regularization.
 #' @param progress   Show progress bar?
+#' @param ...        Additional parameters for httr package.
 #'
 #' @return             Data cube with aggregated images.
 .gc_regularize <- function(cube,

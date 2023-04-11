@@ -243,6 +243,7 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
         )
     )
 })
+
 test_that("Retrieving points from BDC using POINT shapefiles", {
     # check "BDC_ACCESS_KEY" - mandatory one per user
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
@@ -297,6 +298,7 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
     )
 
 })
+
 test_that("Retrieving points from BDC using sits tibble", {
     # check "BDC_ACCESS_KEY" - mandatory one per user
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")

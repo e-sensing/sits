@@ -8,9 +8,9 @@ sits_regularize(
   cube,
   period,
   res,
+  output_dir,
   roi = NULL,
   multicores = 2,
-  output_dir,
   progress = TRUE
 )
 }
@@ -25,13 +25,13 @@ data cubes, with number and unit, where
 
 \item{res}{Spatial resolution of regularized images (in meters).}
 
+\item{output_dir}{Valid directory for storing regularized images.}
+
 \item{roi}{A named \code{numeric} vector with a region of interest.
 See more above.}
 
 \item{multicores}{Number of cores used for regularization;
 used for parallel processing of input.}
-
-\item{output_dir}{Valid directory for storing regularized images.}
 
 \item{progress}{show progress bar?}
 }
