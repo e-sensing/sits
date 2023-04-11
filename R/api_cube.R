@@ -611,15 +611,16 @@ NULL
 #' @keywords internal
 #' @noRd
 #' @param  cube input data cube
+#' @param  ...  additional parameters for httr package
 #'
 #' @return A sits cube
-.cube_token_generator <- function(cube) {
+.cube_token_generator <- function(cube, ...) {
     UseMethod(".cube_token_generator", cube)
 }
 
 
 #' @export
-.cube_token_generator.mpc_cube <- function(cube) {
+.cube_token_generator.mpc_cube <- function(cube, ...) {
     file_info <- cube[["file_info"]][[1]]
     fi_paths <- file_info[["path"]]
 
@@ -646,8 +647,8 @@ NULL
     while (is.null(res_content) && n_tries > 0) {
         res_content <- tryCatch(
             {
-                res <- httr::stop_for_status(httr::GET(url))
-                httr::content(res, encoding = "UTF-8")
+                res <- httr::stop_for_status(httr::GET(url, ...))
+                print(httr::content(res, encoding = "UTF-8"))
             },
             error = function(e) {
                 return(NULL)
@@ -694,7 +695,7 @@ NULL
     return(cube)
 }
 #' @export
-.cube_token_generator.default <- function(cube) {
+.cube_token_generator.default <- function(cube, ...) {
     return(cube)
 }
 
@@ -728,7 +729,7 @@ NULL
     if ("token_expires" %in% colnames(file_info)) {
         difftime_token <- difftime(
             time1 = file_info[["token_expires"]][[1]],
-            time2 = as.POSIXlt(Sys.time(), tz = "UTC"),
+            time2 = as.POSIXct(format(Sys.time(), tz = "UTC", usetz = TRUE)),
             units = "mins"
         )
 
