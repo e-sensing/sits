@@ -1425,46 +1425,46 @@ sources:
         collections         :
             HLSS30          :
                 bands       :
-                    B01     : &hls_s2_30m
+                    COASTAL-AEROSOL: &hls_s2_30m
                         missing_value : -9999
                         minimum_value : 0
                         maximum_value : 10000
                         scale_factor  : 0.0001
                         offset_value  : 0
-                        resolution   :  30
+                        resolution    :  30
                         band_name     : "B01"
-                        data_type    : "INT2S"
-                    B02     : &deafrica_msi_10m
+                        data_type     : "INT2S"
+                    BLUE    :
                         <<: *hls_s2_30m
                         band_name     : "B02"
-                    B03     :
+                    GREEN   :
                         <<: *hls_s2_30m
                         band_name     : "B03"
-                    B04     :
+                    RED     :
                         <<: *hls_s2_30m
                         band_name     : "B04"
-                    B05     :
+                    RED-EDGE-1:
                         <<: *hls_s2_30m
                         band_name     : "B05"
-                    B06     :
+                    RED-EDGE-2:
                         <<: *hls_s2_30m
                         band_name     : "B06"
-                    B07     :
+                    RED-EDGE-3:
                         <<: *hls_s2_30m
                         band_name     : "B07"
-                    B08     :
+                    NIR-BROAD:
                         <<: *hls_s2_30m
                         band_name     : "B08"
-                    B8A     :
+                    NIR-NARROW:
                         <<: *hls_s2_30m
                         band_name     : "B8A"
-                    B09     :
+                    WATER-VAPOR:
                         <<: *hls_s2_30m
                         band_name     : "B09"
-                    B11     :
+                    SWIR-1  :
                         <<: *hls_s2_30m
                         band_name     : "B11"
-                    B12     :
+                    SWIR-2  :
                         <<: *hls_s2_30m
                         band_name     : "B12"
                     CLOUD   :
@@ -1496,7 +1496,7 @@ sources:
                 ext_tolerance: 0
             HLSL30          :
                 bands       :
-                    B01     : &hls_l8_30m
+                    COASTAL-AEROSOL: &hls_l8_30m
                         missing_value : -9999
                         minimum_value : 0
                         maximum_value : 10000
@@ -1505,22 +1505,22 @@ sources:
                         resolution    : 30
                         band_name     : "B01"
                         data_type     : "INT2S"
-                    B02     :
+                    BLUE    :
                         <<: *hls_l8_30m
                         band_name     : "B02"
-                    B03     :
+                    GREEN   :
                         <<: *hls_l8_30m
                         band_name     : "B03"
-                    B04     :
+                    RED     :
                         <<: *hls_l8_30m
                         band_name     : "B04"
-                    B05     :
+                    NIR-NARROW:
                         <<: *hls_l8_30m
                         band_name     : "B05"
-                    B06     :
+                    SWIR-1  :
                         <<: *hls_l8_30m
                         band_name     : "B06"
-                    B07     :
+                    SWIR-2  :
                         <<: *hls_l8_30m
                         band_name     : "B07"
                     CLOUD   :

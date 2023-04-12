@@ -99,74 +99,30 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 #' @rdname sits_merge
 #' @export
 #'
-sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
-
+sits_merge.raster_cube <- function(data1, data2, ...) {
     # pre-condition - check cube type
     .check_is_raster_cube(data1)
     .check_is_raster_cube(data2)
-
-    .check_that(
-        x = data1$satellite == data2$satellite,
-        msg = "cubes from different satellites"
-    )
-    .check_that(
-        x = data1$sensor == data2$sensor,
-        msg = "cubes from different sensors"
-    )
-
-    .check_that(
-        all(.tile_xres(data1) == .tile_xres(data2))
-            && all(.tile_yres(data1) == .tile_yres(data2)),
-        msg = "merge cubes requires same resolution"
-    )
-    .check_that(
-        length(.cube_tiles(data1)) == length(.cube_tiles(data2)),
-        msg = "merge cubes requires same number of tiles"
-    )
-
-    # para manter a pariedade
+    # aligning tiles
     data1 <- dplyr::arrange(data1, .data[["tile"]])
     data2 <- dplyr::arrange(data2, .data[["tile"]])
     .check_that(
         x = all(.cube_tiles(data1) == .cube_tiles(data2)),
         msg = "merge cubes requires same tiles"
     )
-
-    data1 <- slider::slide2_dfr(data1, data2, function(x, y) {
-        .check_that(
-            x = all(sits_timeline(x) == sits_timeline(y)),
-            msg = "merge cubes requires same timeline"
-        )
-        # are the names of the bands different?
-        bands1 <- sits_bands(x)
-        bands2 <- sits_bands(y)
-
-        coincidences1 <- bands1 %in% bands2
-        coincidences2 <- bands2 %in% bands1
-        if (any(coincidences1) || any(coincidences2)) {
-            bands1[coincidences1] <- paste0(bands1[coincidences1], suffix[[1]])
-            bands2[coincidences2] <- paste0(bands2[coincidences2], suffix[[2]])
-            .check_that(
-                !any(bands1 %in% bands2),
-                local_msg = "use suffix to avoid band duplication",
-                msg = "duplicated band names"
-            )
-            .check_that(
-                !any(bands2 %in% bands1),
-                local_msg = "use suffix to avoid band duplication",
-                msg = "duplicated band names"
-            )
-            x <- .band_rename(x, bands1)
-            y <- .band_rename(y, bands2)
+    if (inherits(data1, "hls_cube") && inherits(data2, "hls_cube")) {
+        if (.cube_collection(data1) == "HLSS30" ||
+            .cube_collection(data2) == "HLSS30") {
+            data1$collection <- "HLSS30"
         }
-
-        x[["file_info"]][[1]] <- dplyr::arrange(
+    }
+    data1 <- slider::slide2_dfr(data1, data2, function(x, y) {
+        .fi(x) <- dplyr::arrange(
             dplyr::bind_rows(.fi(x), .fi(y)),
-            .data[["date"]], .data[["band"]]
+            .data[["date"]], .data[["band"]], .data[["fid"]]
         )
 
         return(x)
     })
-
     return(data1)
 }
