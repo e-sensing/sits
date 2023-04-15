@@ -121,6 +121,8 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
             dplyr::bind_rows(.fi(x), .fi(y)),
             .data[["date"]], .data[["band"]], .data[["fid"]]
         )
+        # remove duplicates
+        .fi(x) <- dplyr::distinct(.fi(x), .data[["band"]], .data[["date"]], .keep_all = TRUE)
 
         return(x)
     })

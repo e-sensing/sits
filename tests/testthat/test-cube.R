@@ -431,9 +431,9 @@ test_that("Creating Harmonized Landsat Sentinel cubes from HLS", {
             source = "HLS",
             collection = "HLSS30",
             roi = roi,
-            bands = c("B04", "CLOUD"),
-            start_date = as.Date("2019-05-01"),
-            end_date = as.Date("2019-09-01")
+            bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+            start_date = as.Date("2020-05-01"),
+            end_date = as.Date("2020-09-01")
         )
     },
     .default = NULL
@@ -444,9 +444,9 @@ test_that("Creating Harmonized Landsat Sentinel cubes from HLS", {
         "HLSS30 collection is not accessible"
     )
 
-    expect_true(all(sits_bands(hls_cube_l8) %in% c("B04", "CLOUD")))
-    expect_equal(hls_cube_l8$satellite, "SENTINEL-2")
-    expect_equal(hls_cube_s2$tile, "23LKC")
+    expect_true(all(sits_bands(hls_cube_s2) %in% c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_s2$satellite == "SENTINEL-2"))
+    expect_true(all(hls_cube_s2$tile %in% c("23LKC", "22LHH", "22LGH")))
     expect_true(all(.fi(hls_cube_s2)$xres == 30))
     expect_true(all(.fi(hls_cube_s2)$yres == 30))
 
@@ -455,9 +455,9 @@ test_that("Creating Harmonized Landsat Sentinel cubes from HLS", {
             source = "HLS",
             collection = "HLSL30",
             roi = roi,
-            bands = c("B04", "CLOUD"),
-            start_date = as.Date("2019-05-01"),
-            end_date = as.Date("2019-09-01")
+            bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+            start_date = as.Date("2020-05-01"),
+            end_date = as.Date("2020-09-01")
         )
     },
     .default = NULL
@@ -468,11 +468,19 @@ test_that("Creating Harmonized Landsat Sentinel cubes from HLS", {
         "HLSL30 collection is not accessible"
     )
 
-    expect_true(all(sits_bands(hls_cube_l8) %in% c("B04", "CLOUD")))
-    expect_equal(hls_cube_l8$satellite, "LANDSAT-8")
-    expect_equal(hls_cube_l8$tile, "23LKC")
+    expect_true(all(sits_bands(hls_cube_l8) %in% c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_l8$satellite == "LANDSAT-8"))
+    expect_true(all(hls_cube_l8$tile %in% c("23LKC", "22LHH", "22LGH")))
     expect_true(all(.fi(hls_cube_l8)$xres == 30))
     expect_true(all(.fi(hls_cube_l8)$yres == 30))
+
+    hls_cube_merge <- sits_merge(hls_cube_s2, hls_cube_l8)
+
+    merge_23LKC <- dplyr::filter(hls_cube_merge, tile == "23LKC")
+    s2_23LKC <- dplyr::filter(hls_cube_s2, tile == "23LKC")
+    l8_23LKC <- dplyr::filter(hls_cube_l8, tile == "23LKC")
+    expect_true(all(sits_timeline(merge_23LKC) %in%
+                        c(sits_timeline(l8_23LKC), sits_timeline(s2_23LKC))))
 })
 
 
