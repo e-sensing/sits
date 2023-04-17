@@ -7,16 +7,16 @@
 \alias{sits_select.patterns}
 \title{Filter bands on a data set (tibble or cube)}
 \usage{
-sits_select(data, bands, ...)
+sits_select(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
 
-\method{sits_select}{sits}(data, bands, ...)
+\method{sits_select}{sits}(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
 
 \method{sits_select}{raster_cube}(
   data,
   bands = NULL,
-  ...,
   start_date = NULL,
   end_date = NULL,
+  ...,
   tiles = NULL
 )
 
@@ -27,12 +27,12 @@ sits_select(data, bands, ...)
 
 \item{bands}{Character vector with the names of the bands.}
 
+\item{start_date}{Character value with the start date to be filtered.}
+
+\item{end_date}{Character value with the end date to be filtered.}
+
 \item{...}{Additional parameters to be provided in the select
 function.}
-
-\item{start_date}{Character value with the start date band to be filtered.}
-
-\item{end_date}{Character value with the end date band to be filtered.}
 
 \item{tiles}{Character vector with the names of the tiles.}
 }

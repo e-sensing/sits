@@ -4,7 +4,14 @@
 \alias{plot.uncertainty_cube}
 \title{Plot uncertainty cubes}
 \usage{
-\method{plot}{uncertainty_cube}(x, ..., tile = x$tile[[1]], palette = "RdYlGn", rev = TRUE)
+\method{plot}{uncertainty_cube}(
+  x,
+  ...,
+  tile = x$tile[[1]],
+  palette = "RdYlGn",
+  rev = TRUE,
+  tmap_options = NULL
+)
 }
 \arguments{
 \item{x}{Object of class "probs_image".}
@@ -16,6 +23,14 @@
 \item{palette}{An RColorBrewer palette}
 
 \item{rev}{Reverse the color order in the palette?}
+
+\item{tmap_options}{List with optional tmap parameters
+tmap_max_cells (default: 1e+06)
+tmap_graticules_labels_size (default: 0.7)
+tmap_legend_title_size (default: 1.5)
+tmap_legend_text_size (default: 1.2)
+tmap_legend_bg_color (default: "white")
+tmap_legend_bg_alpha (default: 0.5)}
 }
 \value{
 A plot object produced by the stars package
@@ -39,9 +54,11 @@ if (sits_run_examples()) {
         parse_info = c("X1", "tile", "band", "date")
     )
     # classify a data cube
-    probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+    probs_cube <- sits_classify(
+        data = cube, ml_model = rfor_model, output_dir = tempdir()
+    )
     # calculate uncertainty
-    uncert_cube <- sits_uncertainty(probs_cube)
+    uncert_cube <- sits_uncertainty(probs_cube, output_dir = tempdir())
     # plot the resulting uncertainty cube
     plot(uncert_cube)
 }

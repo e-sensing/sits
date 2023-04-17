@@ -5,9 +5,7 @@ test_that("One-year, multicore classification with ROI", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
 
     bbox <- .bbox(sinop)
@@ -54,9 +52,7 @@ test_that("Bbox in WGS 84", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
 
     bbox <- sits_bbox(sinop, as_crs = "EPSG:4326")
@@ -68,9 +64,7 @@ test_that("Functions that work with ROI", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
     # create a roi
     roi <- sits_bbox(cube)
@@ -78,9 +72,9 @@ test_that("Functions that work with ROI", {
     roi[["ymax"]] <- (roi[["ymax"]] - roi[["ymin"]]) / 2 + roi[["ymin"]]
 
     # retrieve the bounding box for this ROI
-    bbox_1 <- .roi_bbox(roi, cube)
+    bbox_1 <- .bbox(roi, as_crs = .cube_crs(cube))
 
-    expect_true(length(.bbox_intersect(bbox_1, cube)) == 4)
+    expect_true(.is_bbox(.bbox_intersection(bbox_1, .cube_bbox(cube))))
 
     # read a set of lat long coordinates
     csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
@@ -93,16 +87,16 @@ test_that("Functions that work with ROI", {
         sf::st_as_sf(coords = c("longitude", "latitude"), crs = 4326)
 
     # read a bbox as an sf object
-    bbox_2 <- .roi_bbox(sf_obj, cube)
-    expect_true(length(.bbox_intersect(bbox_2, cube)) == 4)
+    bbox_2 <- .bbox(sf_obj, as_crs = .cube_crs(cube))
+    expect_true(.is_bbox(.bbox_intersection(bbox_2, .cube_bbox(cube))))
 
     # extract the bounding box from a set of lat/long points
     sf_bbox <- sf::st_bbox(sf_obj)
     names(sf_bbox) <- c("lon_min", "lat_min", "lon_max", "lat_max")
-    class(sf_bbox) <- c("vector")
-    bbox_3 <- .roi_bbox(sf_bbox, cube)
+    class(sf_bbox) <- c("numeric")
+    bbox_3 <- .bbox(.roi_as_sf(sf_bbox, as_crs = .cube_crs(cube)))
 
-    expect_true(length(.bbox_intersect(bbox_3, cube)) == 4)
+    expect_true(.is_bbox(.bbox_intersection(bbox_3, .cube_bbox(cube))))
 })
 
 test_that("Internal functions in ROI", {
@@ -110,9 +104,7 @@ test_that("Internal functions in ROI", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
     # create a roi
     roi <- sits_bbox(cube)
@@ -141,6 +133,6 @@ test_that("Internal functions in ROI", {
     si <- .raster_sub_image_from_bbox(bb, cube)
     expect_equal(si[["col"]], 64)
     expect_equal(si[["row"]], 1)
-    expect_equal(si[["ncols"]], 191)
-    expect_equal(si[["nrows"]], 81)
+    expect_equal(si[["ncols"]], 192)
+    expect_equal(si[["nrows"]], 84)
 })

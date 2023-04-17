@@ -29,7 +29,7 @@ dl_model <- sits_train(
 )
 
 # create a data cube to be classified
-# Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
+# Cube MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/sinop", package = "sitsdata")
 sinop <- sits_cube(
     source = "BDC",
@@ -51,7 +51,6 @@ sinop_probs <- sits_classify(
 # smoothen with bayesian filter
 sinop_bayes <- sits_smooth(
     cube       = sinop_probs,
-    type       = "bayes",
     output_dir = tempdir()
 )
 

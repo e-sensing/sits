@@ -2,27 +2,20 @@
 % Please edit documentation in R/sits_colors.R
 \name{sits_colors_show}
 \alias{sits_colors_show}
-\title{Show one SITS color palette}
+\title{Function to show colors in SITS}
 \usage{
-sits_colors_show(name, n_colors = 32)
-}
-\arguments{
-\item{name}{Name of sits color palette}
-
-\item{n_colors}{Number of colors to be displayed}
+sits_colors_show()
 }
 \value{
-Called for side effects
+no return, called for side effects
 }
 \description{
-Shows a barplot with the requested color palette
+Shows the default SITS colors
 }
 \examples{
 if (sits_run_examples()) {
-    # show the names of the colors supported by SITS
-    sits_color_names()
-    # show a color palette
-    sits_colors_show("Blues", n_colors = 16)
+    # show the colors supported by SITS
+    sits_colors_show()
 }
 }
 \author{

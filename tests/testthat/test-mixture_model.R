@@ -11,11 +11,11 @@ test_that("Mixture model tests", {
     )
 
     # Delete files before check
-    unlink(list.files(path = tempdir(), pattern = "\\.jp2$", full.names = T))
-    unlink(list.files(path = tempdir(), pattern = "\\.tif$", full.names = T))
+    unlink(list.files(path = tempdir(), pattern = "\\.jp2$", full.names = TRUE))
+    unlink(list.files(path = tempdir(), pattern = "\\.tif$", full.names = TRUE))
 
     # Cube regularization for 16 days and 320 meters
-    reg_cube <- sits_regularize(
+    expect_warning({ reg_cube <- sits_regularize(
         cube = s2_cube,
         period = "P16D",
         roi = c(lon_min = -65.54870165,
@@ -25,7 +25,7 @@ test_that("Mixture model tests", {
         res = 320,
         multicores = 2,
         output_dir = tempdir()
-    )
+    )})
 
     # Create the endmembers tibble for cube
     em <- tibble::tribble(
@@ -116,8 +116,10 @@ test_that("Mixture model tests", {
         output_dir = tempdir()
     )
     expect_equal(
-        dplyr::bind_rows(ts_em_bands$time_series)[,c("FOREST", "LAND", "WATER")],
-        dplyr::bind_rows(ts_em$time_series)[,c("FOREST", "LAND", "WATER")],
+        dplyr::bind_rows(
+            ts_em_bands$time_series)[, c("FOREST", "LAND", "WATER")],
+        dplyr::bind_rows(
+            ts_em$time_series)[, c("FOREST", "LAND", "WATER")],
         tolerance = 0.01
     )
     unlink(list.files(tempdir(), full.names = TRUE))

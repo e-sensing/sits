@@ -10,8 +10,8 @@ sits_s3_classes :   ["sits", "patterns", "predicted", "sits_model",
 sits_s3_classes_proc :   ["probs_cube","uncertainty_cube", "class_cube"]
 
 # bands resulting from classification and post-classification
-sits_results_bands : ["probs", "bayes", "bilat", "gauss", "uncert",
-                      "entropy", "class"]
+sits_results_bands : ["probs", "bayes", "uncert", "entropy",
+                      "class", "least", "margin", "variance"]
 
 # color palettes available in sits
 sits_color_palettes:    ["BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu",
@@ -20,6 +20,8 @@ sits_color_palettes:    ["BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu
                         "BuGn", "BuPu", "GnBu", "PuBu", "PuBuGn", "PuRd", "RdPu",
                         "YlGn", "YlGnBu", "YlOrRd", "YlOrBr", "OrRd",
                         "Blues", "Greens", "Oranges", "Reds", "Greys", "Purples"]
+
+sits_color_table_cols: ["name", "color"]
 
 # bands resulting from classification and post-classification
 sits_results_s3_class:
@@ -67,7 +69,7 @@ sf_geom_types_supported : ["POINT", "POLYGON", "MULTIPOLYGON"]
 local_s3_class          : ["local_cube", "raster_cube"]
 local_file_extensions   : ["tiff", "tif", "jp2", "hdf", "vrt"]
 local_parse_info_col    : ["tile", "band", "date"]
-local_parse_info_def    : ["X1", "tile", "band", "date"]
+local_parse_info_def    : ["X1", "X2", "tile", "band", "date"]
 
 # default configuration for raster cubes
 raster_cube_scale_factor : 0.0001
@@ -127,8 +129,9 @@ derived_cube         :
                 scale_factor : 0.0001
             bayes    :
                 <<: *int2u_0_10000
-            bilat    :
-                <<: *int2u_0_10000
+    variance_cube       :
+        s3_class     : [ "variance_cube", "derived_cube", "raster_cube" ]
+        bands        :
             variance :
                 data_type    : "INT2U"
                 missing_value: 65535

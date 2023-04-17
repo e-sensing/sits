@@ -2,66 +2,30 @@
 % Please edit documentation in R/sits_smooth.R
 \name{sits_smooth}
 \alias{sits_smooth}
-\alias{sits_smooth.bayes}
-\alias{sits_smooth.bilateral}
-\alias{sits_smooth_variance}
 \title{Smooth probability cubes with spatial predictors}
 \usage{
 sits_smooth(
   cube,
-  type = "bayes",
-  ...,
-  window_size = 13,
-  memsize = 4,
-  multicores = 2,
-  output_dir = getwd(),
-  version = "v1"
-)
-
-\method{sits_smooth}{bayes}(
-  cube,
-  type = "bayes",
-  ...,
-  window_size = 9,
+  window_size = 7,
   neigh_fraction = 0.5,
-  smoothness = 20,
-  covar = FALSE,
-  multicores = 2,
+  smoothness = 10,
   memsize = 4,
-  output_dir = getwd(),
-  version = "v1"
-)
-
-\method{sits_smooth}{bilateral}(
-  cube,
-  type = "bilateral",
-  ...,
-  window_size = 5,
-  sigma = 8,
-  tau = 0.1,
   multicores = 2,
-  memsize = 4,
-  output_dir = getwd(),
-  version = "v1"
-)
-
-sits_smooth_variance(
-  cube,
-  window_size = 5,
-  multicores = 2,
-  memsize = 4,
-  output_dir = getwd(),
+  output_dir,
   version = "v1"
 )
 }
 \arguments{
-\item{cube}{Probability data cube}
-
-\item{type}{Type of smoothing}
-
-\item{...}{Parameters for specific functions}
+\item{cube}{Probability data cube.}
 
 \item{window_size}{Size of the neighborhood.}
+
+\item{neigh_fraction}{Fraction of neighbors with high probabilities
+to be used in Bayesian inference.}
+
+\item{smoothness}{Estimated variance of logit of class probabilities
+(Bayesian smoothing parameter). It can be either
+a vector or a scalar.}
 
 \item{memsize}{Maximum overall memory (in GB) to run the
 smoothing.}
@@ -72,37 +36,14 @@ smoothing.}
 
 \item{version}{Version of resulting image
 (in the case of multiple tests)}
-
-\item{neigh_fraction}{Fraction of neighbors with highest probability
-to be used in Bayesian inference.}
-
-\item{smoothness}{Estimated variance of logit of class probabilities
-(Bayesian smoothing parameter). It can be either
-a matrix or a scalar.}
-
-\item{covar}{a logical argument indicating if a covariance
-matrix must be computed as the prior covariance
-for bayesian smoothing.}
-
-\item{sigma}{Standard deviation of the spatial Gaussian kernel
-(for bilateral smoothing)}
-
-\item{tau}{Standard deviation of the class probs value
-(for bilateral smoothing)}
 }
 \value{
-A tibble with metadata about the output raster objects.
+A data cube.
 }
 \description{
 Takes a set of classified raster layers with probabilities,
              whose metadata is]created by \code{\link[sits]{sits_cube}},
-             and applies a smoothing function. There are three options,
-             defined by the "type" parameter:
-\itemize{
-   \item{"bayes": }{Use a bayesian smoother}
-   \item{"bilateral: }{Use a bilateral smoother}
-
-}
+             and applies a Bayesian smoothing function.
 }
 \note{
 Please refer to the sits documentation available in
@@ -122,24 +63,22 @@ if (sits_run_examples()) {
         parse_info = c("X1", "tile", "band", "date")
     )
     # classify a data cube
-    probs_cube <- sits_classify(data = cube, ml_model = torch_model)
+    probs_cube <- sits_classify(
+        data = cube, ml_model = torch_model, output_dir = tempdir()
+    )
     # plot the probability cube
     plot(probs_cube)
     # smooth the probability cube using Bayesian statistics
-    bayes_cube <- sits_smooth(probs_cube)
+    bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
     # plot the smoothed cube
     plot(bayes_cube)
     # label the probability cube
-    label_cube <- sits_label_classification(bayes_cube)
+    label_cube <- sits_label_classification(
+        bayes_cube, output_dir = tempdir()
+    )
     # plot the labelled cube
     plot(label_cube)
 }
-}
-\references{
-K. Schindler, "An Overview and Comparison of Smooth Labeling
-            Methods for Land-Cover Classification",
-            IEEE Transactions on Geoscience and Remote Sensing,
-            50 (11), 4534-4545, 2012 (for gaussian and bilateral smoothing)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

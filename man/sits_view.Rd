@@ -31,14 +31,22 @@ sits_view(x, ...)
   red = NULL,
   green = NULL,
   blue = NULL,
-  tiles = NULL,
+  tiles = x$tile,
   dates = NULL,
   class_cube = NULL,
   legend = NULL,
+  view_max_mb = NULL,
   palette = "default"
 )
 
-\method{sits_view}{class_cube}(x, ..., tiles = NULL, legend = NULL, palette = "default")
+\method{sits_view}{class_cube}(
+  x,
+  ...,
+  tiles = NULL,
+  legend = NULL,
+  palette = "default",
+  view_max_mb = NULL
+)
 
 \method{sits_view}{probs_cube}(x, ...)
 
@@ -75,6 +83,8 @@ samples to be shown}
 \item{dates}{Dates to be plotted.}
 
 \item{class_cube}{Classified cube to be overlayed on top on image.}
+
+\item{view_max_mb}{Maximum size of leaflet to be visualized}
 }
 \value{
 A leaflet object containing either samples or
@@ -101,12 +111,9 @@ if (sits_run_examples()) {
         data_dir = data_dir,
         parse_info = c("X1", "tile", "band", "date")
     )
-    # get the timeline
-    timeline <- sits_timeline(modis_cube)
     # view the data cube
     sits_view(modis_cube,
-        band = "NDVI",
-        dates = timeline[[1]]
+        band = "NDVI"
     )
     # train a model
     rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -115,11 +122,9 @@ if (sits_run_examples()) {
         data = modis_cube,
         ml_model = rf_model,
         output_dir = tempdir(),
-        memsize = 4,
-        multicores = 1
     )
-    modis_label <- sits_label_classification(modis_probs,
-        output_dir = tempdir()
+    modis_label <- sits_label_classification(
+        modis_probs, output_dir = tempdir()
     )
 
     sits_view(modis_label)

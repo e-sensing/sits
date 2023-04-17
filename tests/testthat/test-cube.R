@@ -1,21 +1,67 @@
+test_that("List collections", {
+    col <- capture_output(sits_list_collections())
+    expect_true(grepl("SENTINEL", col))
+    expect_true(grepl("DEAFRICA", col))
+    expect_true(grepl("LANDSAT", col))
+    expect_true(grepl("BDC", col))
+})
+
+test_that("api_source", {
+    res_s2_b8a <- .source_bands_resolution(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        bands = "B8A"
+    )
+    expect_equal(res_s2_b8a[["B8A"]], 20)
+    res_l8_blue <- .source_bands_resolution(
+        source = "MPC",
+        collection = "LANDSAT-C2-L2",
+        bands = "BLUE"
+    )
+    expect_equal(res_l8_blue[["BLUE"]], 30)
+
+    vls_s2_cloud <- .source_cloud_values(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A"
+    )
+    expect_true(all(names(vls_s2_cloud) %in%
+                        as.character(seq(from = 0, to = 11))))
+    expect_equal(vls_s2_cloud[["0"]], "missing_data")
+    expect_equal(vls_s2_cloud[["11"]], "snow or ice")
+
+    open_mpc <- .source_collection_open_data(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A"
+    )
+    expect_true(open_mpc)
+    token_mpc <- .source_collection_open_data_token(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A"
+    )
+    expect_false(token_mpc)
+
+    open_bdc <- .source_collection_open_data(
+        source = "BDC",
+        collection = "S2-SEN2COR_10_16D_STK-1"
+    )
+    expect_true(open_bdc)
+
+    token_bdc <- .source_collection_open_data_token(
+        source = "BDC",
+        collection = "S2-SEN2COR_10_16D_STK-1"
+    )
+    expect_true(token_bdc)
+
+})
+
 test_that("Reading a raster cube", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
-    raster_cube <- .try({
-        sits_cube(
+    raster_cube <- sits_cube(
             source = "BDC",
             collection = "MOD13Q1-6",
             data_dir = data_dir,
-            delim = "_",
-            parse_info = c("X1", "tile", "band", "date"),
             multicores = 2
-        )
-    },
-    .default = NULL
-    )
-
-    testthat::skip_if(purrr::is_null(raster_cube),
-        message = "LOCAL cube not found"
     )
 
     # get bands names
@@ -23,9 +69,20 @@ test_that("Reading a raster cube", {
     expect_true(all(bands %in% c("NDVI", "EVI")))
 
     params <- .raster_params_file(raster_cube$file_info[[1]]$path)
-    expect_true(params$nrows == 144)
-    expect_true(params$ncols == 254)
+    expect_true(params$nrows == 147)
+    expect_true(params$ncols == 255)
     expect_true(params$xres >= 231.5)
+
+    timeline <- sits_timeline(raster_cube)
+
+    sub_cube <- sits_select(raster_cube,
+                            start_date = timeline[1],
+                            end_date = timeline[2])
+    expect_equal(length(sits_timeline(sub_cube)), 2)
+    params_2 <- .raster_params_file(sub_cube$file_info[[1]]$path)
+    expect_true(params_2$nrows == 147)
+    expect_true(params_2$ncols == 255)
+    expect_true(params_2$xres >= 231.5)
 })
 
 test_that("Creating cubes from BDC", {
@@ -62,7 +119,7 @@ test_that("Creating cubes from BDC", {
     expect_true(all(sits_bands(cbers_cube) %in%
         c("NDVI", "EVI", "B13", "B14", "B15", "B16", "CLOUD")))
     bbox <- sits_bbox(cbers_cube)
-    int_bbox <- .bbox_intersection(bbox, .bbox(.tile(cbers_cube)))
+    int_bbox <- .bbox_intersection(bbox, .tile_bbox(cbers_cube))
     expect_true(all(int_bbox == sits_bbox(.tile(cbers_cube))))
 
     timeline <- sits_timeline(cbers_cube)
@@ -72,6 +129,18 @@ test_that("Creating cubes from BDC", {
     r_obj <- .raster_open_rast(cbers_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(cbers_cube)
     expect_true(.raster_nrows(r_obj) == cube_nrows)
+
+    fi_1 <- cbers_cube$file_info[[1]]
+    cc <- .fi_cloud_cover(fi_1)
+    expect_equal(length(cc), nrow(fi_1))
+    expect_equal(cc[[1]], 0.00)
+
+    fi_2 <- .fi_filter_fid(fi_1,
+            fid = "CB4_64_16D_STK_v001_022024_2018-08-29_2018-09-13")
+    expect_equal(length(sits_bands(cbers_cube)), nrow(fi_2))
+
+    cc_2 <- .fi_cloud_cover(fi_2)
+    expect_true(all(cc_2 %in% c(0.00)))
 })
 
 test_that("Creating cubes from BDC - based on ROI with shapefile", {
@@ -85,10 +154,10 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
     )
 
     shp_file <- system.file(
-        "extdata/shapefiles/brazilian_legal_amazon/brazilian_legal_amazon.shp",
+        "extdata/shapefiles/mato_grosso/mt.shp",
         package = "sits"
     )
-    sf_bla <- sf::read_sf(shp_file)
+    sf_mt <- sf::read_sf(shp_file)
 
     # create a raster cube file based on the information about the files
     modis_cube <- .try({
@@ -96,10 +165,10 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
             source = "BDC",
             collection = "MOD13Q1-6",
             bands = c("NDVI", "EVI"),
-            roi = sf_bla,
+            roi = sf_mt,
             start_date = "2018-09-01",
             end_date = "2019-08-29"
-            )
+        )
     },
     .default = NULL)
 
@@ -109,15 +178,13 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
 
     expect_true(all(sits_bands(modis_cube) %in% c("NDVI", "EVI")))
     bbox <- sits_bbox(modis_cube, as_crs = "EPSG:4326")
-    bbox_shp <- sf::st_bbox(sf_bla)
+    bbox_shp <- sf::st_bbox(sf_mt)
 
     expect_lt(bbox["xmin"], bbox_shp["xmin"])
     expect_lt(bbox["ymin"], bbox_shp["ymin"])
     expect_gt(bbox["xmax"], bbox_shp["xmax"])
     expect_gt(bbox["ymax"], bbox_shp["ymax"])
-    intersects <- slider::slide_lgl(modis_cube, function(tile) {
-        .raster_sub_image_intersects(tile, sf_bla)
-    })
+    intersects <- .cube_intersects(modis_cube, sf_mt)
     expect_true(all(intersects))
 })
 
@@ -211,70 +278,7 @@ test_that("Creating cubes from DEA - error using tiles", {
     )
 })
 
-test_that("Regularizing cubes from AWS, and extracting samples from them", {
-    s2_cube_open <- .try({
-        sits_cube(
-            source = "AWS",
-            collection = "SENTINEL-S2-L2A-COGS",
-            tiles = c("20LKP", "20LLP"),
-            bands = c("B8A", "SCL"),
-            start_date = "2018-10-01",
-            end_date = "2018-11-01",
-            multicores = 1
-        )
-    },
-    .default = NULL
-    )
 
-    testthat::skip_if(
-        purrr::is_null(s2_cube_open),
-        "AWS is not accessible"
-    )
-    expect_false(.cube_is_regular(s2_cube_open))
-    expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
-
-    dir_images <- paste0(tempdir(), "/images2/")
-    if (!dir.exists(dir_images)) {
-        suppressWarnings(dir.create(dir_images))
-    }
-
-    rg_cube <- sits_regularize(
-        cube = .tile(s2_cube_open),
-        output_dir = dir_images,
-        res = 240,
-        period = "P16D",
-        multicores = 2
-    )
-
-    tile_bbox <- .bbox(.tile(rg_cube))
-
-    expect_equal(.tile_nrows(rg_cube), 458)
-    expect_equal(.tile_ncols(rg_cube), 458)
-    expect_equal(tile_bbox$xmax, 309780, tolerance = 1e-1)
-    expect_equal(tile_bbox$xmin, 199980, tolerance = 1e-1)
-
-    tile_fileinfo <- .fi(rg_cube)
-
-    expect_equal(nrow(tile_fileinfo), 2)
-
-    csv_file <- system.file("extdata/samples/samples_amazonia.csv",
-        package = "sits"
-    )
-
-    # read sample information from CSV file and put it in a tibble
-    samples <- tibble::as_tibble(utils::read.csv(csv_file))
-
-    ts <- sits_get_data(
-        cube = rg_cube,
-        samples = samples,
-        output_dir = dir_images
-    )
-
-    vls <- unlist(sits_values(ts))
-    expect_true(all(vls > 0 & vls < 1.))
-    expect_equal(sits_bands(ts), sits_bands(rg_cube))
-    expect_equal(sits_timeline(ts), sits_timeline(rg_cube))
-})
 
 test_that("Creating cubes from USGS", {
     # check "AWS_ACCESS_KEY_ID" - mandatory one per user
@@ -418,83 +422,70 @@ test_that("Creating Sentinel cubes from MPC with ROI", {
     )
 })
 
-test_that("Creating Landsat cubes from MPC", {
+test_that("Creating Harmonized Landsat Sentinel cubes from HLS", {
+    roi <- c(lon_min = -48.28579, lat_min = -16.05026,
+             lon_max = -47.30839, lat_max = -15.50026)
 
-    bbox <- c(xmin = -48.28579, ymin = -16.05026,
-              xmax = -47.30839, ymax = -15.50026,
-              crs = 4326)
-
-    landsat_cube <- .try({
+    hls_cube_s2 <- .try({
         sits_cube(
-            source = "MPC",
-            collection = "LANDSAT-C2-L2",
-            roi = bbox,
-            bands = c("NIR08", "CLOUD"),
-            start_date = as.Date("2008-07-18"),
-            end_date = as.Date("2008-10-23")
+            source = "HLS",
+            collection = "HLSS30",
+            roi = roi,
+            bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+            start_date = as.Date("2020-05-01"),
+            end_date = as.Date("2020-09-01")
         )
     },
     .default = NULL
     )
 
-    testthat::skip_if(purrr::is_null(landsat_cube), "MPC is not accessible")
-
-    expect_true(all(sits_bands(landsat_cube) %in% c("NIR08", "CLOUD")))
-    expect_false(.cube_is_regular(landsat_cube))
-    expect_true(any(grepl("LT05", landsat_cube$file_info[[1]]$fid)))
-    expect_true(any(grepl("LE07", landsat_cube$file_info[[1]]$fid)))
-
-    r <- .raster_open_rast(.tile_path(landsat_cube))
-
-    expect_equal(landsat_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
-    expect_equal(landsat_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
-
-    output_dir <- paste0(tempdir(), "/images")
-    if (!dir.exists(output_dir)) {
-        dir.create(output_dir)
-    }
-
-    rg_landsat <- sits_regularize(
-        cube        = landsat_cube,
-        output_dir  = output_dir,
-        res         = 240,
-        period      = "P30D",
-        multicores  = 4
+    testthat::skip_if(
+        purrr::is_null(hls_cube_s2),
+        "HLSS30 collection is not accessible"
     )
 
-    expect_equal(.tile_nrows(.tile(rg_landsat)), 856)
-    expect_equal(.tile_ncols(.tile(rg_landsat)), 967)
+    expect_true(all(sits_bands(hls_cube_s2) %in% c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_s2$satellite == "SENTINEL-2"))
+    expect_true(all(hls_cube_s2$tile %in% c("23LKC", "22LHH", "22LGH")))
+    expect_true(all(.fi(hls_cube_s2)$xres == 30))
+    expect_true(all(.fi(hls_cube_s2)$yres == 30))
 
-    expect_true(.cube_is_regular(rg_landsat))
-
-    l5_cube <- .try({
+    hls_cube_l8 <- .try({
         sits_cube(
-            source = "MPC",
-            collection = "LANDSAT-C2-L2",
-            platform = "LANDSAT-5",
-            roi = bbox,
-            bands = c("NIR08", "CLOUD"),
-            start_date = as.Date("2008-07-18"),
-            end_date = as.Date("2008-10-23")
+            source = "HLS",
+            collection = "HLSL30",
+            roi = roi,
+            bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+            start_date = as.Date("2020-05-01"),
+            end_date = as.Date("2020-09-01")
         )
     },
     .default = NULL
     )
 
-    expect_true(any(grepl("LT05", l5_cube$file_info[[1]]$fid)))
-    expect_false(any(grepl("LE07", l5_cube$file_info[[1]]$fid)))
-
-    expect_error(
-        sits_cube(
-            source = "MPC",
-            collection = "LANDSAT-C2-L2",
-            bands = c("NIR08", "CLOUD"),
-            tiles = "220071",
-            start_date = "2019-01-01",
-            end_date = "2019-10-28"
-        )
+    testthat::skip_if(
+        purrr::is_null(hls_cube_l8),
+        "HLSL30 collection is not accessible"
     )
+
+    expect_true(all(sits_bands(hls_cube_l8) %in% c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_l8$satellite == "LANDSAT-8"))
+    expect_true(all(hls_cube_l8$tile %in% c("23LKC", "22LHH", "22LGH")))
+    expect_true(all(.fi(hls_cube_l8)$xres == 30))
+    expect_true(all(.fi(hls_cube_l8)$yres == 30))
+
+    hls_cube_merge <- sits_merge(hls_cube_s2, hls_cube_l8)
+
+    merge_23LKC <- dplyr::filter(hls_cube_merge, tile == "23LKC")
+    s2_23LKC <- dplyr::filter(hls_cube_s2, tile == "23LKC")
+    l8_23LKC <- dplyr::filter(hls_cube_l8, tile == "23LKC")
+    expect_true(all(sits_timeline(merge_23LKC) %in%
+                        c(sits_timeline(l8_23LKC), sits_timeline(s2_23LKC))))
 })
+
+
+
+
 
 test_that("Creating a raster stack cube with BDC band names", {
     # Create a raster cube based on CBERS data

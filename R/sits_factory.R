@@ -25,8 +25,8 @@
     # function to be called as a parameter of other functions
     if (purrr::is_null(data)) {
         result <- fun
-    } # ...otherwise compute the result on the input data
-    else {
+    } else {
+        # ...otherwise compute the result on the input data
         result <- fun(data)
     }
     return(result)

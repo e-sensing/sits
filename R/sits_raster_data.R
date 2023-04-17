@@ -12,15 +12,13 @@
 #' @param xy                A matrix with longitude as X and latitude as Y.
 #' @param cld_band          Cloud band (if available)
 #' @param impute_fn         Imputation function for NA values
-#' @param output_dir        An output directory to save temporary time series.
 #' @return                  A sits tibble with the time series.
 .raster_data_get_ts <- function(tile,
                                 points,
                                 bands,
                                 xy,
                                 cld_band = NULL,
-                                impute_fn = sits_impute_linear(),
-                                output_dir = output_dir) {
+                                impute_fn = sits_impute_linear()) {
 
 
     # set caller to show in errors
@@ -147,7 +145,7 @@
 }
 
 #' @title Extract a time series from raster
-#' @name .taster_class_get_ts
+#' @name .raster_class_get_ts
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -158,13 +156,11 @@
 #' @param points            tibble with points
 #' @param band              Band to be retrieved.
 #' @param xy                A matrix with longitude as X and latitude as Y.
-#' @param output_dir        An output directory to save temporary time series.
 #' @return                  A sits tibble with the time series.
 .raster_class_get_ts <- function(tile,
                                  points,
                                  band,
-                                 xy,
-                                 output_dir = output_dir) {
+                                 xy) {
 
     # set caller to show in errors
     .check_set_caller(".raster_class_get_ts")

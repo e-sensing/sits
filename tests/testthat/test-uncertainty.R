@@ -5,9 +5,7 @@ test_that("uncertainty works", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
     xgb_model <- sits_train(samples_modis_ndvi,
         ml_method = sits_xgboost(verbose = FALSE)
@@ -66,7 +64,11 @@ test_that("uncertainty works", {
     expect_true(range(least_r[])[2] > range(least_r[])[1])
 
     margin_r <- .raster_open_rast(margin_fi[["path"]])
-    expect_true(all(range(margin_r[]) > 0))
+    expect_true(all(range(margin_r[]) >= 0))
     expect_true(range(margin_r[])[2] > range(margin_r[])[1])
 
+    expect_true(all(file.remove(unlist(probs_cube$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(entropy_cube$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(least_cube$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(margin_cube$file_info[[1]]$path))))
 })

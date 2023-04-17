@@ -16,16 +16,16 @@ rfor_model <- sits_train(
 data("point_mt_6bands")
 
 # select the bands "ndvi", "evi", "nir", and "mir"
-point.tb <- sits_select(
+point_tb <- sits_select(
     data  = point_mt_6bands,
     bands = c("NDVI")
 )
 
 # classify the point
-class.tb <- sits_classify(
-    data     = point.tb,
+class_tb <- sits_classify(
+    data     = point_tb,
     ml_model = rfor_model
 )
 
 # plot the classification
-plot(class.tb, bands = c("NDVI"))
+plot(class_tb, bands = c("NDVI"))

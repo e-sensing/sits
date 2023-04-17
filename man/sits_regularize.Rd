@@ -8,9 +8,9 @@ sits_regularize(
   cube,
   period,
   res,
-  roi = NULL,
   output_dir,
-  multicores = 1,
+  roi = NULL,
+  multicores = 2,
   progress = TRUE
 )
 }
@@ -25,10 +25,10 @@ data cubes, with number and unit, where
 
 \item{res}{Spatial resolution of regularized images (in meters).}
 
+\item{output_dir}{Valid directory for storing regularized images.}
+
 \item{roi}{A named \code{numeric} vector with a region of interest.
 See more above.}
-
-\item{output_dir}{Valid directory for storing regularized images.}
 
 \item{multicores}{Number of cores used for regularization;
 used for parallel processing of input.}
@@ -81,15 +81,10 @@ if (sits_run_examples()) {
         start_date = "2018-10-01",
         end_date = "2018-11-01"
     )
-    # create a directory to store the regularized images
-    dir_images <- paste0(".", "/images_regcube/")
-    if (!dir.exists(dir_images)) {
-        dir.create(dir_images)
-    }
     # regularize the cube
     rg_cube <- sits_regularize(
         cube = s2_cube_open,
-        output_dir = dir_images,
+        output_dir = tempdir(),
         res = 60,
         period = "P16D",
         multicores = 2

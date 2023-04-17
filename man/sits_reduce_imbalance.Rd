@@ -15,14 +15,10 @@ sits_reduce_imbalance(
 \item{samples}{Sample set to rebalance}
 
 \item{n_samples_over}{Number of samples to oversample
-for classes with samples less than this number
-(use n_samples_over = NULL to avoid
-oversampling).}
+for classes with samples less than this number.}
 
 \item{n_samples_under}{Number of samples to undersample
-for classes with samples more than this number
-(use n_samples_over = NULL to avoid
-oversampling).}
+for classes with samples more than this number.}
 
 \item{multicores}{Number of cores to process the data (default 2).}
 }

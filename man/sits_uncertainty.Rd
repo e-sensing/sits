@@ -9,41 +9,37 @@
 \usage{
 sits_uncertainty(
   cube,
-  type = "least",
-  window_size = 5,
-  memsize = 4,
+  type = "entropy",
   multicores = 2,
-  output_dir = getwd(),
+  memsize = 4,
+  output_dir,
   version = "v1"
 )
 
 \method{sits_uncertainty}{least}(
   cube,
   type = "least",
-  window_size = 5,
-  memsize = 4,
   multicores = 2,
-  output_dir = getwd(),
+  memsize = 4,
+  output_dir,
   version = "v1"
 )
 
 \method{sits_uncertainty}{entropy}(
   cube,
   type = "entropy",
-  window_size = 5,
-  memsize = 4,
   multicores = 2,
-  output_dir = getwd(),
+  memsize = 4,
+  output_dir,
   version = "v1"
 )
 
 \method{sits_uncertainty}{margin}(
   cube,
   type = "margin",
-  window_size = 5,
-  memsize = 4,
   multicores = 2,
-  output_dir = getwd(),
+  memsize = 4,
+  output_dir,
   version = "v1"
 )
 }
@@ -52,11 +48,9 @@ sits_uncertainty(
 
 \item{type}{Method to measure uncertainty. See details.}
 
-\item{window_size}{Size of neighborhood to calculate uncertainty.}
+\item{multicores}{Number of cores to run the function.}
 
 \item{memsize}{Maximum overall memory (in GB) to run the function.}
-
-\item{multicores}{Number of cores to run the function.}
 
 \item{output_dir}{Output directory for image files.}
 
@@ -96,9 +90,11 @@ if (sits_run_examples()) {
         parse_info = c("X1", "tile", "band", "date")
     )
     # classify a data cube
-    probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+    probs_cube <- sits_classify(
+        data = cube, ml_model = rfor_model, output_dir = tempdir()
+    )
     # calculate uncertainty
-    uncert_cube <- sits_uncertainty(probs_cube)
+    uncert_cube <- sits_uncertainty(probs_cube, output_dir = tempdir())
     # plot the resulting uncertainty cube
     plot(uncert_cube)
 }

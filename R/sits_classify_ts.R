@@ -11,7 +11,7 @@
 #' @param  filter_fn  Smoothing filter to be applied (if desired).
 #' @param  multicores number of threads to process the time series.
 #' @param  progress   Show progress bar?
-#' @return A data.table with the predicted labels.
+#' @return A tibble with the predicted labels.
 .sits_classify_ts <- function(samples,
                               ml_model,
                               filter_fn,
@@ -92,7 +92,9 @@
 #'     ml_model <- sits_train(samples_modis_ndvi, ml_method = sits_tempcnn)
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#'     point_class <- sits_classify(point_ndvi, ml_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #'     sits_show_prediction(point_class)
 #' }
 #'

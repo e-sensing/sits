@@ -55,10 +55,10 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
     .check_is_raster_cube(data)
 
     # Convert cube bbox to sf
-    geom <- .bbox_as_sf(.bbox_from_tbl(data), as_crs = as_crs)
+    data_sf <- .cube_as_sf(data, as_crs = as_crs)
 
     # Bind columns
-    data <- dplyr::bind_cols(geom, .discard(data, "file_info"))
+    data <- dplyr::bind_cols(data_sf, .discard(data, "file_info"))
 
     return(data)
 }
@@ -84,19 +84,31 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
                             end_date,
                             n_sam_pol,
                             pol_id) {
-
-    # get the points to be read
-    samples <- .sf_to_tibble(
-        sf_object   = sf_object,
-        label_attr  = label_attr,
-        label       = label,
-        n_sam_pol   = n_sam_pol,
-        pol_id      = pol_id
+    # Pre-condition - is the sf object has geometries?
+    .check_that(
+        x = nrow(sf_object) > 0,
+        msg = "sf object has no geometries"
     )
-
-    samples <- dplyr::mutate(samples,
-                             start_date = as.Date(start_date),
-                             end_date = as.Date(end_date)
+    # Precondition - can the function deal with the geometry_type?
+    .check_chr_within(
+        x = as.character(sf::st_geometry_type(sf_object)[1]),
+        within = .conf("sf_geom_types_supported"),
+        discriminator = "one_of",
+        msg = paste0(
+            "Only handles with geometry types: ", paste(
+                .conf("sf_geom_types_supported"), collapse = ", "
+            )
+        )
+    )
+    # Get the points to be read
+    samples <- .sf_to_tibble(
+        sf_object  = sf_object,
+        label_attr = label_attr,
+        label      = label,
+        n_sam_pol  = n_sam_pol,
+        pol_id     = pol_id,
+        start_date = start_date,
+        end_date   = end_date
     )
 
     class(samples) <- c("sits", class(samples))
@@ -111,40 +123,61 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
 #' @description reads a shapefile and retrieves a sits tibble
 #' containing a set of lat/long points for data retrieval
 #'
-#' @param sf_object       sf object .
-#' @param label_attr      Attribute in sf object used as a polygon label.
-#' @param label           Label to be assigned to points.
-#' @param n_sam_pol       Number of samples per polygon to be read
-#'                        (for POLYGON or MULTIPOLYGON shapes).
-#' @param  pol_id         ID attribute for polygons.
-#' @return                A sits tibble with points to to be read.
+#' @param sf_object  sf object .
+#' @param label_attr Attribute in sf object used as a polygon label.
+#' @param label      Label to be assigned to points.
+#' @param n_sam_pol  Number of samples per polygon to be read
+#'                   (for POLYGON or MULTIPOLYGON shapes).
+#' @param  pol_id    ID attribute for polygons.
+#' @param start_date Start of the interval for the time series
+#'                   in "YYYY-MM-DD" format (optional).
+#' @param end_date   End of the interval for the time series in
+#'                   "YYYY-MM-DD" format (optional).
+#' @return  A sits tibble with points to to be read.
 .sf_to_tibble <- function(sf_object,
                           label_attr,
                           label,
                           n_sam_pol,
-                          pol_id) {
+                          pol_id,
+                          start_date,
+                          end_date) {
+    # Get the geometry type
+    geom_type <- as.character(sf::st_geometry_type(sf_object)[1])
 
-    # get the geometry type
-    geom_type <- sf::st_geometry_type(sf_object)[1]
-
-    # if the sf object is not in planar coordinates, convert it
+    # Remove empty geometries if exists
+    are_empty_geoms <- sf::st_is_empty(sf_object)
+    if (any(are_empty_geoms)) {
+        warning(
+            "Some empty geometries were removed.",
+            immediate. = TRUE, call. = FALSE
+        )
+        sf_object <- sf_object[!are_empty_geoms, ]
+    }
+    # If the sf object is not in planar coordinates, convert it
     sf_object <- suppressWarnings(sf::st_transform(sf_object, crs = 4326))
 
-    # get a tibble with points and labels
-    if (geom_type == "POINT") {
-        points_tbl <- .sf_point_to_tibble(
-            sf_object,
-            label_attr,
-            label
+    # Get a tibble with points and labels
+    points_tbl <- switch(
+        geom_type,
+        "POINT" = .sf_point_to_tibble(
+            sf_object  = sf_object,
+            label_attr = label_attr,
+            label      = label
+        ),
+        "POLYGON" = , "MULTIPOLYGON" = .sf_polygon_to_tibble(
+            sf_object  = sf_object,
+            label_attr = label_attr,
+            label      = label,
+            n_sam_pol  = n_sam_pol,
+            pol_id     = pol_id
         )
-        return(points_tbl)
-    }
-    points_tbl <- .sf_polygon_to_tibble(
-        sf_object,
-        label_attr,
-        label,
-        n_sam_pol,
-        pol_id
+    )
+
+    # Transform to type Date
+    points_tbl <- dplyr::mutate(
+        points_tbl,
+        start_date = as.Date(start_date),
+        end_date = as.Date(end_date)
     )
 
     return(points_tbl)

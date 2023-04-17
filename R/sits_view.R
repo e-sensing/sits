@@ -17,12 +17,12 @@
 #' @param  class_cube    Classified cube to be overlayed on top on image.
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file.
+#' @param  view_max_mb   Maximum size of leaflet to be visualized
 #' @param  label         Label from the SOM map to be shown.
 #' @param  prob_max      Maximum a posteriori probability for SOM neuron
 #'                       samples to be shown
 #' @param  prob_min      Minimum a posteriori probability for SOM neuron
 #'                       samples to be shown
-#'
 #'
 #' @return               A leaflet object containing either samples or
 #'                       data cubes embedded in a global map that can
@@ -43,12 +43,9 @@
 #'         data_dir = data_dir,
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
-#'     # get the timeline
-#'     timeline <- sits_timeline(modis_cube)
 #'     # view the data cube
 #'     sits_view(modis_cube,
-#'         band = "NDVI",
-#'         dates = timeline[[1]]
+#'         band = "NDVI"
 #'     )
 #'     # train a model
 #'     rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -57,11 +54,9 @@
 #'         data = modis_cube,
 #'         ml_model = rf_model,
 #'         output_dir = tempdir(),
-#'         memsize = 4,
-#'         multicores = 1
 #'     )
-#'     modis_label <- sits_label_classification(modis_probs,
-#'         output_dir = tempdir()
+#'     modis_label <- sits_label_classification(
+#'         modis_probs, output_dir = tempdir()
 #'     )
 #'
 #'     sits_view(modis_label)
@@ -298,48 +293,34 @@ sits_view.raster_cube <- function(x, ...,
                                   red = NULL,
                                   green = NULL,
                                   blue = NULL,
-                                  tiles = NULL,
+                                  tiles = x$tile,
                                   dates = NULL,
                                   class_cube = NULL,
                                   legend = NULL,
+                                  view_max_mb = NULL,
                                   palette = "default") {
     # preconditions
-    # get other parameters
-    dots <- list(...)
     # Probs cube not supported
     .check_that(!inherits(x, "probs_cube"),
         local_msg = paste0("sits_view not available for probability cube")
     )
-    # # Remote files not working in Windows (bug in stars)
-    # .check_that(
-    #     !(.Platform$OS.type == "windows" &&
-    #         grepl("^/vsi", .file_info_path(x[1, ]))),
-    #     msg = "sits_view not working in Windows OS for remote files"
-    # )
-
     # verifies if leafem and leaflet packages are installed
     .check_require_packages(c("leafem", "leaflet"))
-    # pre-condition for band
+    # pre-condition for bands
     .check_that(
         !(purrr::is_null(band)) ||
             (!(purrr::is_null(red)) &&
-                !(purrr::is_null(green)) &&
-                !(purrr::is_null(blue))
+                 !(purrr::is_null(green)) &&
+                 !(purrr::is_null(blue))
             ),
         local_msg = paste0(
             "either 'band' parameter or 'red', 'green', and",
             "'blue' parameters should be informed"
         )
     )
-
-    # check if rgb bands were informed
+    # grayscale or RGB?
     if (!purrr::is_null(band)) {
-        .check_chr_within(
-            band,
-            within = sits_bands(x),
-            discriminator = "any_of",
-            msg = "invalid band"
-        )
+        bands <- band
         # plot as grayscale
         red <- band
         green <- band
@@ -348,67 +329,56 @@ sits_view.raster_cube <- function(x, ...,
         g_index <- 1
         b_index <- 1
     } else {
-        .check_chr_within(
-            c(red, green, blue),
-            within = sits_bands(x),
-            discriminator = "all_of",
-            msg = "invalid RGB bands selection"
-        )
+        bands <- c(red, green, blue)
         r_index <- 1
         g_index <- 2
         b_index <- 3
     }
-    # deal with parameter "date"
-    if ("date" %in% names(dots) && missing(dates)) {
-        message("please use dates instead of date as parameter")
-        dates <- as.Date(dots[["date"]])
-    }
-    # deal with wrong parameter "tile"
-    if ("tile" %in% names(dots) && missing(tiles)) {
-        message("please use tiles instead of tile as parameter")
-        tiles <- dots[["tile"]]
-    }
-    # if tiles are not informed, show all
-    if (!purrr::is_null(tiles)) {
-        # try to find tiles in the list of tiles of the cube
-        .check_chr_within(
-            tiles,
-            x$tile,
-            msg = "requested tiles are not part of cube"
-        )
-        # filter the tiles to be processed
-        cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
-    }
-    else
-        cube <- x
+    # check bands are available
+    .check_chr_within(
+        bands,
+        within = .cube_bands(x),
+        discriminator = "any_of",
+        msg = "invalid band"
+    )
+    # try to find tiles in the list of tiles of the cube
+    .check_chr_within(
+        tiles,
+        x$tile,
+        msg = "requested tiles are not part of cube"
+    )
+    # filter the tiles to be processed
+    cube <- .cube_filter_tiles(x, tiles)
 
-    # if dates are not informed, show the first possible date
+    # more than one tile? needs regular cube
+    if (nrow(cube) > 1)
+        .check_is_regular(cube)
+
+    # get the timeline
+    timeline <- .cube_timeline(cube)[[1]]
+
     if (purrr::is_null(dates))
-        dates <- sits_timeline(cube[1,])[1]
+        dates <- timeline[1]
+
     # check dates exist
     .check_that(
-        x = all(as.Date(dates) %in% sits_timeline(cube[1,])),
+        x = all(as.Date(dates) %in% timeline),
         local_msg = "date is not in cube timeline",
         msg = "invalid dates parameter"
     )
-
-    nrows_merge <- sum(slider::slide_dbl(cube, function(tile) {
-        # retrieve the file info for the tile
-        fi <- .fi(tile)
-        return(max(fi[["nrows"]]))
-    }))
-    ncols_merge <- sum(slider::slide_dbl(cube, function(tile) {
-        # retrieve the file info for the tile
-        fi <- .fi(tile)
-        return(max(fi[["ncols"]]))
-    }))
-
+    # check the view_max_mb parameter
+    if (!purrr::is_null(view_max_mb)) {
+        .check_num(view_max_mb,
+                   is_integer = TRUE,
+                   min = 16,
+                   max = 512,
+                   msg = "view_max_mb should be btw 16MB and 512 MB")
+    }
     # find out if resampling is required (for big images)
     output_size <- .view_resample_size(
-        nrows = nrows_merge,
-        ncols = ncols_merge,
+        cube = cube,
         ndates = length(dates),
-        ntiles = nrow(cube)
+        view_max_mb = view_max_mb
     )
     # create a leaflet and add providers
     leaf_map <- leaflet::leaflet() %>%
@@ -440,7 +410,7 @@ sits_view.raster_cube <- function(x, ...,
         date <- as.Date(dates[[i]])
         for (row in seq_len(nrow(cube))) {
             # get tile
-            tile <- cube[row,]
+            tile <- cube[row, ]
             # check if date is inside the timeline
             tile_dates <- sits_timeline(tile)
             if (!date %in% tile_dates) {
@@ -457,8 +427,8 @@ sits_view.raster_cube <- function(x, ...,
                 rgb_files,
                 along = "band",
                 RasterIO = list(
-                    "nBufXSize" = output_size["xsize"],
-                    "nBufYSize" = output_size["ysize"]
+                    "nBufXSize" = output_size[["xsize"]],
+                    "nBufYSize" = output_size[["ysize"]]
                 ),
                 proxy = FALSE
             )
@@ -501,13 +471,14 @@ sits_view.raster_cube <- function(x, ...,
         labels <- sits_labels(class_cube)
         names(labels) <- seq_along(labels)
         # obtain the colors
-        colors <- .view_get_colors(
+        colors <- .colors_get(
             labels = labels,
             legend = legend,
             palette = palette
         )
+
+        # select the tiles that will be shown
         if (!purrr::is_null(tiles))
-            # select the tiles that will be shown
             class_cube <- dplyr::filter(class_cube, .data[["tile"]] %in% tiles)
 
         # create the stars objects that correspond to the tiles
@@ -517,10 +488,12 @@ sits_view.raster_cube <- function(x, ...,
                 .tile_path(tile),
                 RAT = labels,
                 RasterIO = list(
-                    "nBufXSize" = output_size["xsize"],
-                    "nBufYSize" = output_size["ysize"]
-                )
+                    "nBufXSize" = output_size[["xsize"]],
+                    "nBufYSize" = output_size[["ysize"]]
+                ),
+                proxy = FALSE
             )
+            return(st_obj)
         })
 
         # keep the first object
@@ -579,9 +552,10 @@ sits_view.raster_cube <- function(x, ...,
 #' @export
 #'
 sits_view.class_cube <- function(x, ...,
-                                       tiles = NULL,
-                                       legend = NULL,
-                                       palette = "default") {
+                                 tiles = NULL,
+                                 legend = NULL,
+                                 palette = "default",
+                                 view_max_mb = NULL) {
     # preconditions
     .check_require_packages("leaflet")
 
@@ -596,36 +570,24 @@ sits_view.class_cube <- function(x, ...,
         )
         # select the tiles that will be shown
         cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
-    }
-    else
+    } else {
         cube <- x
+    }
 
     # get the labels
     labels <- sits_labels(cube)
     names(labels) <- seq_along(labels)
     # obtain the colors
-    colors <- .view_get_colors(
+    colors <- .colors_get(
         labels = labels,
         legend = legend,
         palette = palette
     )
-    # find size of image to be merged
-    nrows_merge <- sum(slider::slide_dbl(cube, function(tile) {
-        # retrieve the file info for the tile
-        fi <- .fi(tile)
-        return(max(fi[["nrows"]]))
-    }))
-    ncols_merge <- sum(slider::slide_dbl(cube, function(tile) {
-        # retrieve the file info for the tile
-        fi <- .fi(tile)
-        return(max(fi[["ncols"]]))
-    }))
     # find out if resampling is required (for big images)
     output_size <- .view_resample_size(
-        nrows = nrows_merge,
-        ncols = ncols_merge,
+        cube = cube,
         ndates = 1,
-        ntiles = nrow(cube)
+        view_max_mb = view_max_mb
     )
     # create the stars objects that correspond to the tiles
     st_objs <- slider::slide(cube, function(tile) {
@@ -634,10 +596,12 @@ sits_view.class_cube <- function(x, ...,
             .tile_path(tile),
             RAT = labels,
             RasterIO = list(
-                "nBufXSize" = output_size["xsize"],
-                "nBufYSize" = output_size["ysize"]
-            )
+                "nBufXSize" = output_size[["xsize"]],
+                "nBufYSize" = output_size[["ysize"]]
+            ),
+            proxy = FALSE
         )
+        return(st_obj)
     })
 
     # keep the first object
@@ -717,53 +681,40 @@ sits_view.probs_cube <- function(x, ...) {
 sits_view.default <- function(x, ...) {
     stop(paste0("sits_view not available for object of class ", class(x)[1]))
 }
-#' @title  Return the colors associated to the classified image
-#' @name .view_get_colors
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  labels        Labels of the classified cube.
-#' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Palette provided in the configuration file.
-#' @return               Colors for legend of classified image.
-#'
-#'
-.view_get_colors <- function(labels, legend, palette) {
-    # if colors are not specified, get them from the configuration file
-    if (purrr::is_null(legend)) {
-        colors <- .colors_get(
-            labels = labels,
-            palette = palette,
-            rev = TRUE
-        )
-    } else {
-        .check_chr_within(
-            x = labels,
-            within = names(legend),
-            msg = "some labels are missing from the legend"
-        )
-        colors <- unname(legend[labels])
-    }
-    return(colors)
-}
-#' @title  Return the cell size for the image to be resamples
+#' @title  Return the size of the imaged to be resamples for visulization
 #' @name .view_resample_size
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  nrows         Number of rows in the input image.
-#' @param  ncols         Number of cols in the input image.
-#' @param  ndates        Number of dates to show
-#' @param  ntiles        Number of tiles in the input image.
-#' @return               Cell size for x and y coordinates.
+#' @param  cube          Cube with tiles to be merged.
+#' @param  ndates        Number of dates to be viewed.
+#' @param  view_max_mb   Maximum size of leaflet to be visualized
+#' @return               Number of rows and cols to be visualized.
 #'
 #'
-.view_resample_size <- function(nrows, ncols, ndates, ntiles) {
+.view_resample_size <- function(cube, ndates, view_max_mb) {
+
+    # number of tiles to be merged
+    ntiles <- nrow(cube)
+    # estimate nrows and ncols to be merged
+    nrows <- sum(slider::slide_dbl(cube, function(tile) {
+        # retrieve the file info for the tile
+        fi <- .fi(tile)
+        return(max(fi[["nrows"]]))
+    }))
+    ncols <- sum(slider::slide_dbl(cube, function(tile) {
+        # retrieve the file info for the tile
+        fi <- .fi(tile)
+        return(max(fi[["ncols"]]))
+    }))
 
     # get the maximum number of bytes to be displayed (total)
-    max_megabytes <- .conf("leaflet_max_megabytes")
+    if (purrr::is_null(view_max_mb))
+        max_megabytes <- .conf("leaflet_max_megabytes")
+    else
+        max_megabytes <- view_max_mb
+
     # get the compression factor
     comp <- .conf("leaflet_comp_factor")
 

@@ -28,7 +28,9 @@
 #' ml_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 50))
 #' # get a point and classify the point with the ml_model
 #' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' class <- sits_classify(point_ndvi, ml_model)
+#' class <- sits_classify(
+#'     data = point_ndvi, ml_model = ml_model
+#' )
 #' }
 #' @export
 #'

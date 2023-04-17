@@ -79,15 +79,19 @@
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
-#'     probs_cube <- sits_classify(data = cube, ml_model = torch_model)
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = torch_model, output_dir = tempdir()
+#'     )
 #'     # plot the probability cube
 #'     plot(probs_cube)
 #'     # smooth the probability cube using Bayesian statistics
-#'     bayes_cube <- sits_smooth(probs_cube)
+#'     bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
 #'     # plot the smoothed cube
 #'     plot(bayes_cube)
 #'     # label the probability cube
-#'     label_cube <- sits_label_classification(bayes_cube)
+#'     label_cube <- sits_label_classification(
+#'         bayes_cube, output_dir = tempdir()
+#'     )
 #'     # plot the labelled cube
 #'     plot(label_cube)
 #' }
@@ -168,31 +172,32 @@ sits_mlp <- function(samples = NULL,
         names(code_labels) <- labels
 
         # Data normalization
-        stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(
-            .sits_ml_normalize_data(data = samples, stats = stats)
-        )
+        ml_stats <- .sits_stats(samples)
+        train_samples <- .predictors(samples)
+        train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
+
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
+
         if (!is.null(samples_validation)) {
             .check_samples_validation(
                 samples_validation = samples_validation, labels = labels,
                 timeline = timeline, bands = bands
             )
             # Test samples are extracted from validation data
-            test_samples <- .sits_distances(
-                .sits_ml_normalize_data(
-                    data = samples_validation, stats = stats
-                )
+            test_samples <- .predictors(samples)
+            test_samples <- .pred_normalize(
+                pred = test_samples, stats = ml_stats
             )
         } else {
             # Split the data into training and validation data sets
             # Create partitions different splits of the input data
-            test_samples <- .distances_sample(
-                distances = train_samples, frac = validation_split
+            test_samples <- .pred_sample(
+                pred = train_samples, frac = validation_split
             )
             # Remove the lines used for validation
-            train_samples <- train_samples[!test_samples, on = "sample_id"]
+            sel <- !train_samples$sample_id %in% test_samples$sample_id
+            train_samples <- train_samples[sel, ]
         }
         # Shuffle the data
         train_samples <- train_samples[sample(
@@ -202,16 +207,16 @@ sits_mlp <- function(samples = NULL,
             nrow(test_samples), nrow(test_samples)
         ), ]
         # Organize data for model training
-        train_x <- data.matrix(train_samples[, -2:0])
+        train_x <- as.matrix(.pred_features(train_samples))
         train_y <- unname(code_labels[.pred_references(train_samples)])
         # Create the test data
-        test_x <- data.matrix(test_samples[, -2:0])
+        test_x <- as.matrix(.pred_features(test_samples))
         test_y <- unname(code_labels[.pred_references(test_samples)])
         # Set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
+
         # Define the MLP architecture
         mlp_model <- torch::nn_module(
-            classname = "model_mlp",
             initialize = function(num_pred, layers, dropout_rates, y_dim) {
                 tensors <- list()
                 # input layer
@@ -245,8 +250,6 @@ sits_mlp <- function(samples = NULL,
                 self$model(x)
             }
         )
-        # Set torch threads to 1
-        torch::torch_set_num_threads(1)
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -288,11 +291,15 @@ sits_mlp <- function(samples = NULL,
             torch_model$model <- .torch_unserialize_model(serialized_model)
             # Used to check values (below)
             input_pixels <- nrow(values)
+            # Performs data normalization
+            values <- .pred_normalize(pred = values, stats = ml_stats)
             # Transform input into matrix
             values <- as.matrix(values)
             # Do classification
+            values <- stats::predict(object = torch_model, values)
+            # Convert to tensor cpu to support GPU processing
             values <- torch::as_array(
-                stats::predict(object = torch_model, values)
+                x = torch::torch_tensor(values, device = "cpu")
             )
             # Are the results consistent with the data input?
             .check_processed_values(

@@ -12,7 +12,7 @@
 #' @param samples    Time series with the training samples.
 #' @param num_trees  Number of trees to grow. This should not be set to too
 #'   small a number, to ensure that every input row gets predicted
-#'   at least a few times (default: 120).
+#'   at least a few times (default: 100).
 #' @param mtry       Number of variables randomly sampled as candidates at
 #'   each split (default: NULL - use default value of
 #'   \code{randomForest::randomForest()} function, i.e.
@@ -35,12 +35,14 @@
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
-#'     point_class <- sits_classify(point_ndvi, rf_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = rf_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
 #'
-sits_rfor <- function(samples = NULL, num_trees = 120, mtry = NULL, ...) {
+sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
 
     # Function that trains a random forest model
     train_fun <- function(samples) {
@@ -150,7 +152,9 @@ sits_rfor <- function(samples = NULL, num_trees = 120, mtry = NULL, ...) {
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
-#'     point_class <- sits_classify(point_ndvi, ml_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
@@ -207,6 +211,8 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
             )
             # Get the predicted probabilities
             values <- attr(values, "probabilities")
+            # Are the results consistent with the data input?
+            .check_processed_values(values, input_pixels)
             # Reorder matrix columns if needed
             if (any(labels != colnames(values))) {
                 values <- values[, labels]
@@ -281,7 +287,9 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
-#'     point_class <- sits_classify(point_ndvi, ml_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
@@ -381,7 +389,9 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
-#'     point_class <- sits_classify(point_ndvi, ml_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
@@ -449,7 +459,9 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
-#'     point_class <- sits_classify(point_ndvi, ml_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
@@ -489,116 +501,4 @@ sits_formula_linear <- function(predictors_index = -2:0) {
         return(result_for)
     }
     return(result_fun)
-}
-
-#' @title Normalize the time series in the given sits_tibble
-#' @name .sits_ml_normalize_data
-#' @keywords internal
-#' @noRd
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#'
-#' @description This function normalizes the time series using the mean and
-#' standard deviation of all the time series.
-#'
-#' @param data     Time series.
-#' @param stats    Statistics for normalization.
-#'
-#' @return         Normalized time series.
-#'
-.sits_ml_normalize_data <- function(data, stats) {
-
-    # set caller to show in errors
-    .check_set_caller(".sits_ml_normalize_data")
-
-    # get the bands of the input data
-    bands <- sits_bands(data)
-
-    # check that input bands are included in the statistics already calculated
-    .check_chr_within(
-        x = sort(bands),
-        within = sort(colnames(stats[, -1])),
-        msg = paste0(
-            "data bands (",
-            paste(bands, collapse = ", "),
-            ") do not match model bands (",
-            paste(colnames(stats[, -1]),
-                collapse = ", "
-            ), ")"
-        )
-    )
-
-    # extract the values of the time series to a list of tibbles
-    values <- data$time_series
-
-    # normalise values of time series
-    normalize_chunk <- function(chunk) {
-        norm_chunk <- chunk %>%
-            purrr::map(function(ts) {
-                norm <- bands %>%
-                    purrr::map(function(b) {
-                        # retrieve values from data table
-                        # note the use of "..b" instead of ",b"
-                        quant_2 <- as.numeric(stats[2, b, with = FALSE])
-                        quant_98 <- as.numeric(stats[3, b, with = FALSE])
-                        # call C++ for better performance
-                        m <- C_normalize_data_0(
-                            as.matrix(ts[, b]),
-                            quant_2,
-                            quant_98
-                        )
-                        # give a name to the matrix column because
-                        # tibble does not like matrices without names
-                        colnames(m) <- b
-                        val <- tibble::as_tibble(m, .name_repair = "unique")
-                        return(val)
-                    })
-                ts_tb <- dplyr::bind_cols(norm)
-                ts_tb <- dplyr::bind_cols(list(ts[, 1], ts_tb))
-                colnames(ts_tb) <- colnames(ts)
-                return(ts_tb)
-            })
-        return(norm_chunk)
-    }
-
-    norm_values <- normalize_chunk(values)
-
-    data$time_series <- norm_values
-    return(data)
-}
-
-#' @title Normalize the time series in the given sits_tibble
-#' @name .sits_ml_normalization_param
-#' @keywords internal
-#' @noRd
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#'
-#' @description this function normalizes the time series using the mean and
-#' standard deviation of all the time series.
-#'
-#' @param data     A sits tibble.
-#' @return A tibble with statistics for normalization of time series.
-.sits_ml_normalization_param <- function(data) {
-    Index <- NULL # to avoid setting global variable
-
-    dt <- data.table::data.table(dplyr::bind_rows(data$time_series))
-    dt[, Index := NULL]
-
-    # compute statistics
-    dt_med <- dt[, lapply(.SD, stats::median, na.rm = TRUE)]
-    dt_quant_2 <- dt[, lapply(.SD, function(x) {
-        stats::quantile(x, 0.02,
-            na.rm = TRUE
-        )
-    })]
-    dt_quant_98 <- dt[, lapply(.SD, function(x) {
-        stats::quantile(x, 0.98,
-            na.rm = TRUE
-        )
-    })]
-    stats <- dplyr::bind_cols(
-        stats = c("med", "quant_2", "quant_98"),
-        dplyr::bind_rows(dt_med, dt_quant_2, dt_quant_98)
-    )
-
-    return(stats)
 }

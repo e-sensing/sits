@@ -5,8 +5,9 @@
         sprintf(
             "Loaded sits v%s.
         See ?sits for help, citation(\"sits\") for use in publication.
-        See demo(package = \"sits\") for examples.",
-            utils::packageDescription("sits")$Version
+        Documentation avaliable in %s.",
+            utils::packageDescription("sits")$Version,
+            "https://e-sensing.github.io/sitsbook/"
         )
     )
 }
@@ -24,8 +25,7 @@ sits_env$model_formula <- "log"
 # Include the following global variables in the sits package
 utils::globalVariables(c(
     ".", # magrittr
-    ".x", # dplyr
-    ":=", ".SD", ".SDcols", ".N", # data.table
+    ".x", ":=", # dplyr
     "self", "ctx", "super", "private", # torch
     "uniform", "choice", "randint",
     "normal", "lognormal", "loguniform" # sits_tuning_random

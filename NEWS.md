@@ -1,6 +1,28 @@
 # SITS Release History
 
+# What's new in SITS version 1.3.0
+
+### New features in SITS version 1.3.0
+* Remove NOTES and WARNINGS pointed out by CRAN
+* New `sits_mosaic()` function for improving visualization of large data sets
+* Add support to cubes with no cloud coverage information in `sits_regularize()`
+* Improve `sits_cube_copy()` for downloading data from the internet
+* Tested and validated GPU support for deep learning models in `sits`
+* Added multithread support for deep learning models in `sits_train()`
+* Improve `sits_combine_predictions()`
+* Remove dependencies on `data.table` package
+* Organize and clean internal APIs 
+* General bug fixes 
+
 # What's new in SITS version 1.2.0
+
+### Hotfix version 1.2.0-4
+* Fix `.raster_file_blocksize.terra()` bug (issue #918)
+
+### Hotfix version 1.2.0-3
+* Fix `stars` proxy bug (issue #902)
+* Fix `purrr` cross deprecation
+* Fix `ggplot2` aes_string deprecation
 
 ### Hotfix version 1.2.0-2
 * Fix `tibble` subsetting bug (issue #893)

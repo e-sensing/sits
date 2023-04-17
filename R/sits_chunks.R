@@ -43,10 +43,10 @@ NULL
 #' @returns  A tibble with chunks.
 .chunks_create <- function(block, overlap, image_size, image_bbox) {
     # Generate all starting block points (col, row)
-    chunks <- purrr::cross_df(list(
+    chunks <- tidyr::expand_grid(
         col = seq(1, .ncols(image_size), .ncols(block)),
         row = seq(1, .nrows(image_size), .nrows(block))
-    ))
+    )
     # Adjust col and row to do overlap
     chunks[["col"]] <- .as_int(pmax(1, .col(chunks) - overlap))
     chunks[["row"]] <- .as_int(pmax(1, .row(chunks) - overlap))
@@ -146,7 +146,8 @@ NULL
 #' @param roi  Region of interest
 #' @returns  A tibble with filtered chunks
 .chunks_filter_spatial <- function(chunks, roi) {
-    chunks[.intersects(.bbox_as_sf(.bbox_from_tbl(chunks)), .roi_as_sf(roi)), ]
+    chunks_sf <- .bbox_as_sf(.bbox(chunks, by_feature = TRUE))
+    chunks[.intersects(chunks_sf, .roi_as_sf(roi)), ]
 }
 
 #' @title Chunk accessors

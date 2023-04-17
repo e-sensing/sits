@@ -25,7 +25,6 @@ sits_get_data(
   pol_avg = FALSE,
   pol_id = NULL,
   multicores = 2,
-  output_dir = getwd(),
   progress = FALSE
 )
 
@@ -39,7 +38,6 @@ sits_get_data(
   crs = 4326,
   impute_fn = sits_impute_linear(),
   multicores = 2,
-  output_dir = getwd(),
   progress = FALSE
 )
 
@@ -57,7 +55,6 @@ sits_get_data(
   pol_avg = FALSE,
   pol_id = NULL,
   multicores = 2,
-  output_dir = ".",
   progress = FALSE
 )
 
@@ -75,7 +72,6 @@ sits_get_data(
   pol_avg = FALSE,
   pol_id = NULL,
   multicores = 2,
-  output_dir = ".",
   progress = FALSE
 )
 
@@ -86,7 +82,6 @@ sits_get_data(
   bands = sits_bands(cube),
   impute_fn = sits_impute_linear(),
   multicores = 2,
-  output_dir = ".",
   progress = FALSE
 )
 
@@ -101,7 +96,6 @@ sits_get_data(
   crs = 4326,
   impute_fn = sits_impute_linear(),
   multicores = 2,
-  output_dir = ".",
   progress = FALSE
 )
 }
@@ -142,9 +136,6 @@ as a polygon label.}
 \item{pol_id}{ID attribute for polygons.}
 
 \item{multicores}{Number of threads to process the time series.}
-
-\item{output_dir}{Directory where the time series will be saved as rds.
-Default is the current path.}
 
 \item{progress}{A logical value indicating if a progress bar
 should be shown. Default is \code{FALSE}.}

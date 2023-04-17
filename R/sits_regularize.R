@@ -26,9 +26,9 @@
 #' @param res        Spatial resolution of regularized images (in meters).
 #' @param roi        A named \code{numeric} vector with a region of interest.
 #'                   See more above.
-#' @param output_dir Valid directory for storing regularized images.
 #' @param multicores Number of cores used for regularization;
 #'                   used for parallel processing of input.
+#' @param output_dir Valid directory for storing regularized images.
 #' @param progress   show progress bar?
 #'
 #' @note
@@ -64,15 +64,10 @@
 #'         start_date = "2018-10-01",
 #'         end_date = "2018-11-01"
 #'     )
-#'     # create a directory to store the regularized images
-#'     dir_images <- paste0(".", "/images_regcube/")
-#'     if (!dir.exists(dir_images)) {
-#'         dir.create(dir_images)
-#'     }
 #'     # regularize the cube
 #'     rg_cube <- sits_regularize(
 #'         cube = s2_cube_open,
-#'         output_dir = dir_images,
+#'         output_dir = tempdir(),
 #'         res = 60,
 #'         period = "P16D",
 #'         multicores = 2
@@ -83,19 +78,19 @@
 sits_regularize <- function(cube,
                             period,
                             res,
-                            roi = NULL,
                             output_dir,
-                            multicores = 1,
+                            roi = NULL,
+                            multicores = 2,
                             progress = TRUE) {
 
     # Pre-conditions
     .check_is_raster_cube(cube)
     # Does cube contain cloud band?
-    .check_that(
-        .band_cloud() %in% .cube_bands(cube),
-        local_msg = "cube does not have cloud band",
-        msg = "invalid cube"
-    )
+    if (!all(.cube_contains_cloud(cube))) {
+        warning("Cloud band not found in provided cube. 'sits_regularize()' ",
+                "will just fill nodata values.", call. = FALSE,
+                immediate. = TRUE)
+    }
     .period_check(period)
     .check_num_parameter(res, exclusive_min = 0)
     if (.has(roi)) {
@@ -107,10 +102,10 @@ sits_regularize <- function(cube,
     .check_multicores(multicores)
     .check_progress(progress)
     # Display warning message in case STAC cube
-    if (.cube_is_local(cube)) {
+    if (!.cube_is_local(cube)) {
         warning("Regularization works better when data store locally. ",
                 "Please, use 'sits_cube_copy()' to copy data locally ",
-                "before regularization", call. = FALSE)
+                "before regularization", call. = FALSE, immediate. = TRUE)
     }
     # Regularize
     .gc_regularize(

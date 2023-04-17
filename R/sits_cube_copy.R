@@ -9,8 +9,8 @@
 #' @param roi        A Region of interest. See details below.
 #' @param res        An integer value corresponds to the output
 #'                   spatial resolution of the images. Default is NULL.
-#' @param output_dir Output directory where images will be saved.
 #' @param multicores Number of workers for parallel downloading.
+#' @param output_dir Output directory where images will be saved.
 #' @param progress   Show progress bar?
 #'
 #' @return a sits cube with updated metadata.
@@ -49,9 +49,9 @@
 sits_cube_copy <- function(cube,
                            roi = NULL,
                            res = NULL,
-                           output_dir = getwd(),
                            multicores = 2,
-                           progress = TRUE) {
+                           output_dir,
+                           progress = TRUE) {e
 
     # Pre-conditions
     .check_is_raster_cube(cube)
@@ -75,7 +75,10 @@ sits_cube_copy <- function(cube,
     # Process each tile sequentially
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
         local_asset <- .download_asset(
-            asset = asset, res = res, roi = roi, output_dir = output_dir,
+            asset = asset,
+            res = res,
+            roi = roi,
+            output_dir = output_dir,
             progress = progress
         )
         # Return local tile
@@ -87,23 +90,27 @@ sits_cube_copy <- function(cube,
 
 .download_asset <- function(asset, res, roi, output_dir, progress) {
     # Get all paths and expand
-    file <- path.expand(.tile_path(asset))
+    file <- .file_normalize(.tile_path(asset))
     # Create a list of user parameters as gdal format
     gdal_params <- .gdal_format_params(asset = asset, roi = roi, res = res)
     # Create output file
-    out_file <- .file_path(
-        .tile_satellite(asset), .tile_sensor(asset),
-        .tile_name(asset), .tile_bands(asset),
-        .tile_start_date(asset), output_dir = output_dir, ext = "tif"
-    )
+    derived_cube <- inherits(asset, "derived_cube")
+    if (derived_cube)
+        out_file <- paste0(output_dir, "/", basename(file))
+    else
+        out_file <- .file_path(
+            .tile_satellite(asset), .remove_slash(.tile_sensor(asset)),
+            .tile_name(asset), .tile_bands(asset),
+            .tile_start_date(asset), output_dir = output_dir, ext = "tif"
+        )
     # Resume feature
-    if (.raster_is_valid(out_file)) {
+    if (.raster_is_valid(out_file, output_dir = output_dir)) {
         # # Callback final tile classification
         # .callback(process = "tile_classification", event = "recovery",
         #           context = environment())
         message("Recovery: file '", out_file, "' already exists.")
-        message("(If you want to download again, please ",
-                "change 'output_dir' parameter)")
+        message("(If you want to get a new version, please ",
+                "change 'output_dir' parameter or delete the existing file)")
         asset <- .download_update_asset(
             asset = asset, roi = roi, res = res, out_file = out_file
         )
@@ -114,7 +121,7 @@ sits_cube_copy <- function(cube,
         out_file = out_file, gdal_params = gdal_params
     )
     # Download file
-    download_fn(file)
+    suppressWarnings(download_fn(file))
     # Update asset metadata
     asset <- .download_update_asset(
         asset = asset, roi = roi, res = res, out_file = out_file
@@ -157,7 +164,9 @@ sits_cube_copy <- function(cube,
     gdal_params[c("-of", "-co")] <- list(
         "GTiff", .conf("gdal_presets", "image", "co")
     )
-    gdal_params
+    band_conf <- .tile_band_conf(asset, .tile_bands(asset))
+    gdal_params[["-a_nodata"]] <- .miss_value(band_conf)
+    return(gdal_params)
 }
 
 .gdal_as_srcwin <- function(asset, roi) {
@@ -198,11 +207,15 @@ sits_cube_copy <- function(cube,
         if (.file_is_local(file)) {
             file <- .file_path("file://", file, sep = "")
         }
-        download.file(
-            url = file, destfile = out_file, quiet = TRUE, mode = "wb"
+        httr::GET(
+            url = file, httr::write_disk(path = out_file, overwrite = TRUE)
         )
         # Return file name
         out_file
     }
     donwload_fn
+}
+
+.remove_slash <- function(x) {
+    gsub(pattern = "/", replacement = "", x = x)
 }

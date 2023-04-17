@@ -56,8 +56,8 @@ plot.sits <- function(x, y, ...) {
     # Are there more than 30 samples? Plot them together!
     if (nrow(x) > 30) {
         p <- .plot_together(x)
-    } # If no conditions are met, take "allyears" as the default
-    else {
+    }  else {
+        # otherwise, take "allyears" as the default
         p <- .plot_allyears(x)
     }
     # return the plot
@@ -105,34 +105,25 @@ plot.sits <- function(x, y, ...) {
 #'                   each containing all time series associated to one band
 #'                   and one label.
 .plot_together <- function(data) {
-    Index <- NULL # to avoid setting global variable
     # create a data frame with the median, and 25% and 75% quantiles
-    create_iqr <- function(dt, band) {
-        V1 <- NULL # to avoid setting global variable
-
-        data.table::setnames(dt, band, "V1")
-        dt_med <- dt[, stats::median(V1), by = Index]
-        data.table::setnames(dt_med, "V1", "med")
-        dt_qt25 <- dt[, stats::quantile(V1, 0.25), by = Index]
-        data.table::setnames(dt_qt25, "V1", "qt25")
-        dt_qt75 <- dt[, stats::quantile(V1, 0.75), by = Index]
-        data.table::setnames(dt_qt75, "V1", "qt75")
-        dt_qts <- merge(dt_med, dt_qt25)
-        dt_qts <- merge(dt_qts, dt_qt75)
-        data.table::setnames(dt, "V1", band)
-        return(dt_qts)
+    create_iqr <- function(melted) {
+        qts <- melted %>%
+            dplyr::group_by(.data[["Index"]]) %>%
+            dplyr::summarise(
+                med  = stats::median(.data[["value"]]),
+                qt25 = stats::quantile(.data[["value"]], 0.25),
+                qt75 = stats::quantile(.data[["value"]], 0.75))
+        return(qts)
     }
     # this function plots the values of all time series together (for one band)
-    plot_samples <- function(dt, dt_qts, band, label, number) {
-        # melt the data into long format (required for ggplot to work)
-        dt_melted <- data.table::melt(dt, id.vars = "Index")
+    plot_samples <- function(melted, qts, band, label, number) {
         # make the plot title
         title <- paste("Samples (", number, ") for class ",
                        label, " in band = ", band,
                        sep = ""
         )
         # plot all data together
-        g <- .plot_ggplot_together(dt_melted, dt_qts, title)
+        g <- .plot_ggplot_together(melted, qts, title)
         p <- graphics::plot(g)
         return(p)
     }
@@ -158,43 +149,17 @@ plot.sits <- function(x, y, ...) {
                 purrr::map(function(band) {
                     # select the band to be shown
                     band_tb <- sits_select(data2, band)
-                    # create a list with all time series for this band
-                    dt_lst <- purrr::map(
-                        band_tb$time_series,
-                        function(ts) {
-                            data.table::data.table(ts)
-                        }
-                    )
-                    # set "Index" as the key for all data.tables in the list
-                    dt_lst <- purrr::map(
-                        dt_lst,
-                        function(dt) {
-                            data.table::setkey(dt, Index)
-                        }
-                    )
-                    # rename the columns of the data table prior to merging
-                    length_dt <- length(dt_lst)
-                    dt_lst <- purrr::map2(
-                        dt_lst, 1:length_dt,
-                        function(dt, i) {
-                            data.table::setnames(
-                                dt, band,
-                                paste0(band, ".", as.character(i))
-                            )
-                        }
-                    )
-                    # merge the list of data.tables into a single table
-                    dt <- Reduce(function(...) merge(..., all = TRUE), dt_lst)
 
-                    # create another data.table with all the rows together
-                    # (required to compute the median and quartile values)
-                    ts <- band_tb$time_series
-                    dt_byrows <- data.table::data.table(dplyr::bind_rows(ts))
-                    # compute the median and quartile values
-                    dt_qts <- create_iqr(dt_byrows, band)
+                    melted <- band_tb %>%
+                        dplyr::select("time_series") %>%
+                        dplyr::mutate(variable = seq_len(dplyr::n())) %>%
+                        tidyr::unnest(cols = "time_series")
+                    names(melted) <- c("Index", "value", "variable")
+
+                    qts <- create_iqr(melted)
                     # plot the time series together
                     # (highlighting the median and quartiles 25% and 75%)
-                    p <- plot_samples(dt, dt_qts, band, lb, number)
+                    p <- plot_samples(melted, qts, band, lb, number)
                     return(p)
                 })
             return(band_plots)
@@ -351,17 +316,17 @@ plot.sits <- function(x, y, ...) {
         ggplot2::geom_line(
             data = means,
             ggplot2::aes(x = .data[["Index"]], y = .data[["med"]]),
-            colour = "#B16240", size = 2, inherit.aes = FALSE
+            colour = "#B16240", linewidth = 2, inherit.aes = FALSE
         ) +
         ggplot2::geom_line(
             data = means,
             ggplot2::aes(x = .data[["Index"]], y = .data[["qt25"]]),
-            colour = "#B19540", size = 1, inherit.aes = FALSE
+            colour = "#B19540", linewidth = 1, inherit.aes = FALSE
         ) +
         ggplot2::geom_line(
             data = means,
             ggplot2::aes(x = .data[["Index"]], y = .data[["qt75"]]),
-            colour = "#B19540", size = 1, inherit.aes = FALSE
+            colour = "#B19540", linewidth = 1, inherit.aes = FALSE
         )
     return(g)
 }
@@ -422,7 +387,7 @@ plot.patterns <- function(x, y, ...) {
         function(label, ts) {
             lb <- as.character(label)
             # extract the time series and convert
-            df <- data.frame(Time = ts$Index, ts[-1], Pattern = lb)
+            df <- tibble::tibble(Time = ts$Index, ts[-1], Pattern = lb)
             return(df)
         }
     )
@@ -430,10 +395,10 @@ plot.patterns <- function(x, y, ...) {
     plot.df <- tidyr::pivot_longer(plot.df, cols = sits_bands(x))
 
     # Plot temporal patterns
-    gp <- ggplot2::ggplot(plot.df, ggplot2::aes_string(
-        x = "Time",
-        y = "value",
-        colour = "name"
+    gp <- ggplot2::ggplot(plot.df, ggplot2::aes(
+        x = .data[["Time"]],
+        y = .data[["value"]],
+        colour = .data[["name"]]
     )) +
         ggplot2::geom_line() +
         ggplot2::facet_wrap(~Pattern) +
@@ -472,7 +437,9 @@ plot.patterns <- function(x, y, ...) {
 #'     ml_model <- sits_train(samples_modis_ndvi, ml_method = sits_tempcnn)
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#'     point_class <- sits_classify(point_ndvi, ml_model)
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #'     plot(point_class)
 #' }
 #' @export
@@ -549,6 +516,7 @@ plot.predicted <- function(x, y, ...,
                                           na.rm = TRUE
                         ), each = 2)
                     )
+                    return(df_p)
                 }
             )
 
@@ -567,21 +535,21 @@ plot.predicted <- function(x, y, ...,
                 ) +
                 ggplot2::geom_polygon(
                     data = df_pol,
-                    ggplot2::aes_string(
-                        x = "Time",
-                        y = "value",
-                        group = "Group",
-                        fill = "Class"
+                    ggplot2::aes(
+                        x     = .data[["Time"]],
+                        y     = .data[["value"]],
+                        group = .data[["Group"]],
+                        fill  = .data[["Class"]]
                     ),
                     alpha = .7
                 ) +
                 ggplot2::scale_fill_manual(values = colors) +
                 ggplot2::geom_line(
                     data = df_x,
-                    ggplot2::aes_string(
-                        x = "Time",
-                        y = "value",
-                        colour = "variable"
+                    ggplot2::aes(
+                        x      = .data[["Time"]],
+                        y      = .data[["value"]],
+                        colour = .data[["variable"]]
                     )
                 ) +
                 ggplot2::scale_color_brewer(palette = "Set1") +
@@ -624,6 +592,13 @@ plot.predicted <- function(x, y, ...,
 #' @param  date          Date to be plotted.
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap_max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
@@ -652,9 +627,10 @@ plot.raster_cube <- function(
         green = NULL,
         blue = NULL,
         tile = x$tile[[1]],
-        date = sits_timeline(x)[[1]],
+        date = NULL,
         palette = "RdYlGn",
-        rev = FALSE
+        rev = FALSE,
+        tmap_options = NULL
 ) {
     # deal with bands
     .check_that(
@@ -678,29 +654,28 @@ plot.raster_cube <- function(
         can_repeat = FALSE,
         msg = "tile is not included in the cube"
     )
+    # filter the tile to be processed
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
+    if (purrr::is_null(date))
+        date <- .tile_timeline(tile)[[1]]
     # only one date at a time
     .check_that(length(date) == 1,
                 msg = "only one date per plot is allowed")
     # is this a valid date?
     date <- as.Date(date)
-    .check_that(date %in% sits_timeline(x),
+    .check_that(date %in% .tile_timeline(tile),
                 msg = "date is not contained in the cube timeline")
-
-    # filter the tile to be processed
-    tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # Plot a B/W band as false color
     if (!purrr::is_null(band)) {
-        .check_band_in_cube(band, tile)
+        .check_cube_bands(tile, bands = band)
         # plot the band as false color
-        p <- .plot_false_color(tile, band, date, palette, rev)
-    }
-    # plot RGB image
-    else {
-        .check_bands_in_cube(c(red, green, blue), tile)
-
+        p <- .plot_false_color(tile, band, date, palette, rev, tmap_options)
+    } else {
+        # plot RGB image
+        .check_cube_bands(tile, bands = c(red, green, blue))
         # plot RGB
-        p <- .plot_rgb(tile, red, green, blue, date)
+        p <- .plot_rgb(tile, red, green, blue, date, tmap_options)
     }
     return(p)
 }
@@ -715,6 +690,13 @@ plot.raster_cube <- function(
 #' @param labels         Labels to plot (optional).
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
+#' @param tmap_options   List with optional tmap parameters
+#'                       tmap_max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
 #'
@@ -733,7 +715,9 @@ plot.raster_cube <- function(
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
-#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
 #'     # plot the resulting probability cube
 #'     plot(probs_cube)
 #' }
@@ -745,7 +729,8 @@ plot.probs_cube <- function(
         tile  = x$tile[[1]],
         labels = NULL,
         palette = "YlGnBu",
-        rev = FALSE
+        rev = FALSE,
+        tmap_options = NULL
 ) {
     # precondition
     .check_chr_contains(
@@ -761,7 +746,87 @@ plot.probs_cube <- function(
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot the probs cube
-    p <- .plot_probs(tile, labels, palette, rev)
+    p <- .plot_probs(tile, labels, palette, rev, tmap_options)
+
+    return(p)
+}
+#' @title  Plot variance cubes
+#' @name   plot.variance_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a probability cube using stars
+#'
+#' @param  x             Object of class "variance_cube".
+#' @param  ...           Further specifications for \link{plot}.
+#' @param tile           Tile to be plotted.
+#' @param labels         Labels to plot (optional).
+#' @param palette        RColorBrewer palette
+#' @param rev            Reverse order of colors in palette?
+#' @param type           Type of plot ("map" or "hist")
+#' @param tmap_options   List with optional tmap parameters
+#'                       tmap_max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
+#' @return               A plot containing probabilities associated
+#'                       to each class for each pixel.
+#'
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
+#'     # obtain a variance cube
+#'     var_cube <-  sits_variance(probs_cube, output_dir = tempdir())
+#'     # plot the variance cube
+#'     plot(var_cube)
+#' }
+#'
+#' @export
+#'
+plot.variance_cube <- function(
+        x, ...,
+        tile  = x$tile[[1]],
+        labels = NULL,
+        palette = "YlGnBu",
+        rev = FALSE,
+        type = "map",
+        tmap_options = NULL
+) {
+    # precondition
+    .check_chr_contains(
+        x = x$tile,
+        contains = tile,
+        case_sensitive = FALSE,
+        discriminator = "one_of",
+        can_repeat = FALSE,
+        msg = "tile is not included in the cube"
+    )
+
+    # filter the cube
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
+    # check type
+    .check_that(type %in% c("map", "hist"),
+                msg = "plot type should be either map or hist")
+    # plot the variance cube
+    if (type == "map")
+        p <- .plot_variance_map(tile, labels, palette, rev, tmap_options)
+    else
+        p <- .plot_variance_hist(tile)
 
     return(p)
 }
@@ -776,6 +841,13 @@ plot.probs_cube <- function(
 #' @param  tile         Tiles to be plotted.
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap_max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object produced by the stars package
 #'                       with a map showing the uncertainty associated
@@ -795,9 +867,11 @@ plot.probs_cube <- function(
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
-#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
 #'     # calculate uncertainty
-#'     uncert_cube <- sits_uncertainty(probs_cube)
+#'     uncert_cube <- sits_uncertainty(probs_cube, output_dir = tempdir())
 #'     # plot the resulting uncertainty cube
 #'     plot(uncert_cube)
 #' }
@@ -807,7 +881,8 @@ plot.uncertainty_cube <- function(
         x, ...,
         tile = x$tile[[1]],
         palette = "RdYlGn",
-        rev = TRUE
+        rev = TRUE,
+        tmap_options = NULL
 ) {
     # precondition
     .check_chr_contains(
@@ -826,7 +901,8 @@ plot.uncertainty_cube <- function(
     p <- .plot_false_color(tile = tile,
                            band = band,
                            palette  = palette,
-                           rev = rev)
+                           rev = rev,
+                           tmap_options = tmap_options)
 
     return(p)
 }
@@ -842,6 +918,13 @@ plot.uncertainty_cube <- function(
 #' @param  title           Title of the plot.
 #' @param  legend          Named vector that associates labels to colors.
 #' @param  palette         Alternative RColorBrewer palette
+#' @param  tmap_options    List with optional tmap parameters
+#'                         tmap_max_cells (default: 1e+06)
+#'                         tmap_graticules_labels_size (default: 0.7)
+#'                         tmap_legend_title_size (default: 1.5)
+#'                         tmap_legend_text_size (default: 1.2)
+#'                         tmap_legend_bg_color (default: "white")
+#'                         tmap_legend_bg_alpha (default: 0.5)
 #'
 #' @return                 A  color map, where each pixel has the color
 #'                         associated to a label, as defined by the legend
@@ -861,9 +944,13 @@ plot.uncertainty_cube <- function(
 #'         parse_info = c("X1", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
-#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
 #'     # label cube with the most likely class
-#'     label_cube <- sits_label_classification(probs_cube)
+#'     label_cube <- sits_label_classification(
+#'         probs_cube, output_dir = tempdir()
+#'     )
 #'     # plot the resulting classified image
 #'     plot(label_cube)
 #' }
@@ -873,7 +960,8 @@ plot.class_cube <- function(x, y, ...,
                             tile = x$tile[[1]],
                             title = "Classified Image",
                             legend = NULL,
-                            palette = "Spectral") {
+                            palette = "Spectral",
+                            tmap_options = NULL) {
     stopifnot(missing(y))
     # set caller to show in errors
     .check_set_caller("plot_class_cube")
@@ -904,7 +992,10 @@ plot.class_cube <- function(x, y, ...,
     tile <- .cube_filter_tiles(cube = cube, tiles = tile)
 
     # plot class cube
-    .plot_class_image(tile, legend, palette)
+    .plot_class_image(tile = tile,
+                      legend = legend,
+                      palette = palette,
+                      tmap_options = tmap_options)
 }
 #' @title  Plot a false color image
 #' @name   .plot_false_color
@@ -917,10 +1008,21 @@ plot.class_cube <- function(x, y, ...,
 #' @param  date          Date to be plotted.
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object
 #'
-.plot_false_color <- function(tile, band, date = NULL, palette, rev){
+.plot_false_color <- function(tile, band,
+                              date = NULL,
+                              palette,
+                              rev,
+                              tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -945,18 +1047,52 @@ plot.class_cube <- function(x, y, ...,
     bw_file <- .tile_path(tile, band, date)
 
     # size of data to be read
-    size <- .plot_read_size(tile)
+    size <- .plot_read_size(tile = tile,
+                            tmap_options = tmap_options)
 
     # read file
     stars_obj <- stars::read_stars(
         bw_file,
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
-        ))
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
+    )
 
     # rescale the stars object
-    stars_obj <- stars_obj * .conf("raster_cube_scale_factor")
+    band_conf <- .tile_band_conf(tile = tile, band = band)
+    scale <- .scale(band_conf)
+    offset <- .offset(band_conf)
+    stars_obj <- stars_obj * scale + offset
+
+    # set the tmap options
+    labels_size <- as.numeric(.conf("tmap_graticules_labels_size"))
+    title_size  <- as.numeric(.conf("tmap_legend_title_size"))
+    text_size   <- as.numeric(.conf("tmap_legend_text_size"))
+    bg_color <- .conf("tmap_legend_bg_color")
+    bg_alpha <- as.numeric(.conf("tmap_legend_bg_alpha"))
+    # user specified tmap options
+    if (!purrr::is_null(tmap_options)){
+        # graticules label size
+        if (!purrr::is_null(tmap_options[["tmap_graticules_labels_size"]]))
+            labels_size <- as.numeric(
+                tmap_options[["tmap_graticules_labels_size"]])
+        # legend title size
+        if (!purrr::is_null(tmap_options[["tmap_legend_title_size"]]))
+            title_size <- as.numeric(
+                tmap_options[["tmap_legend_title_size"]])
+        # legend text size
+        if (!purrr::is_null(tmap_options[["tmap_legend_text_size"]]))
+            text_size <- as.numeric(
+                tmap_options[["tmap_legend_text_size"]])
+        # tmap legend bg color
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_color"]]))
+            bg_color <- tmap_options[["tmap_legend_bg_color"]]
+        # tmap legend bg alpha
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_alpha"]]))
+            bg_alpha <- as.numeric(tmap_options[["tmap_legend_bg_alpha"]])
+    }
 
     p <- suppressMessages(
         tmap::tm_shape(stars_obj) +
@@ -965,12 +1101,14 @@ plot.class_cube <- function(x, y, ...,
                 palette = palette,
                 title = band,
                 midpoint = NA) +
-            tmap::tm_graticules()  +
+            tmap::tm_graticules(
+                labels.size = labels_size
+            )  +
             tmap::tm_compass() +
-            tmap::tm_layout(legend.title.size = 1.5,
-                            legend.text.size = 1.2,
-                            legend.bg.color = "white",
-                            legend.bg.alpha = 0.5)
+            tmap::tm_layout(legend.title.size = title_size,
+                            legend.text.size = text_size,
+                            legend.bg.color = bg_color,
+                            legend.bg.alpha = bg_alpha)
     )
     return(p)
 }
@@ -983,10 +1121,17 @@ plot.class_cube <- function(x, y, ...,
 #' @param  tile          Tile to be plotted.
 #' @param  legend        Legend for the classes
 #' @param  palette       A sequential RColorBrewer palette
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object
 #'
-.plot_class_image <- function(tile, legend, palette){
+.plot_class_image <- function(tile, legend, palette, tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -1006,17 +1151,16 @@ plot.class_cube <- function(x, y, ...,
 
     # get the labels
     labels <- sits_labels(tile)
-    # names(labels) <- seq_along(labels)
+    names(labels) <- seq_along(labels)
     # obtain the colors
-    colors <- .view_get_colors(
+    colors <- .colors_get(
         labels = labels,
         legend = legend,
         palette = palette
     )
-    # rename colors
     names(colors) <- seq_along(labels)
     # size of data to be read
-    size <- .plot_read_size(tile)
+    size <- .plot_read_size(tile = tile, tmap_options = tmap_options)
     # select the image to be plotted
     class_file <- .tile_path(tile)
 
@@ -1024,14 +1168,46 @@ plot.class_cube <- function(x, y, ...,
     stars_obj <- stars::read_stars(
         class_file,
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
-        ))
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
+    )
 
     # rename stars object
     stars_obj <- stats::setNames(stars_obj, "labels")
 
+    # set the tmap options
+    labels_size <- as.numeric(.conf("tmap_graticules_labels_size"))
+    title_size  <- as.numeric(.conf("tmap_legend_title_size"))
+    text_size   <- as.numeric(.conf("tmap_legend_text_size"))
+    bg_color <- .conf("tmap_legend_bg_color")
+    bg_alpha <- as.numeric(.conf("tmap_legend_bg_alpha"))
+    # user specified tmap options
+    if (!purrr::is_null(tmap_options)){
+        # graticules label size
+        if (!purrr::is_null(tmap_options[["tmap_graticules_labels_size"]]))
+            labels_size <- as.numeric(
+                tmap_options[["tmap_graticules_labels_size"]])
+        # legend title size
+        if (!purrr::is_null(tmap_options[["tmap_legend_title_size"]]))
+            title_size <- as.numeric(
+                tmap_options[["tmap_legend_title_size"]])
+        # legend text size
+        if (!purrr::is_null(tmap_options[["tmap_legend_text_size"]]))
+            text_size <- as.numeric(
+                tmap_options[["tmap_legend_text_size"]])
+        # tmap legend bg color
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_color"]]))
+            bg_color <- tmap_options[["tmap_legend_bg_color"]]
+        # tmap legend bg alpha
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_alpha"]]))
+            bg_alpha <- as.numeric(tmap_options[["tmap_legend_bg_alpha"]])
+    }
+
     # plot using tmap
+    # tmap requires numbers, not names
+    names(colors) <- seq_along(names(colors))
     p <- suppressMessages(
         tmap::tm_shape(stars_obj) +
             tmap::tm_raster(
@@ -1039,16 +1215,17 @@ plot.class_cube <- function(x, y, ...,
                 palette = colors,
                 labels = labels) +
             tmap::tm_graticules(
-                labels.size = 0.8
+                labels.size = labels_size
             )  +
             tmap::tm_compass() +
             tmap::tm_layout(
-                legend.title.size = 1.2,
-                legend.text.size = 1.0,
-                legend.bg.color = "white",
-                legend.bg.alpha = 0.8)
+                legend.show = TRUE,
+                legend.outside = FALSE,
+                legend.title.size = title_size,
+                legend.text.size = text_size,
+                legend.bg.color = bg_color,
+                legend.bg.alpha = bg_alpha)
     )
-
     return(p)
 }
 #' @title  Plot probs
@@ -1060,10 +1237,17 @@ plot.class_cube <- function(x, y, ...,
 #' @param  labels_plot   Labels to be plotted
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object
 #'
-.plot_probs <- function(tile, labels_plot, palette, rev){
+.plot_probs <- function(tile, labels_plot, palette, rev, tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -1086,7 +1270,7 @@ plot.class_cube <- function(x, y, ...,
 
     # get all labels to be plotted
     labels <- sits_labels(tile)
-    names(labels) <- c(1:length(labels))
+    names(labels) <- seq_len(length(labels))
     # check the labels to be plotted
     # if NULL, use all labels
     if (purrr::is_null(labels_plot))
@@ -1096,7 +1280,8 @@ plot.class_cube <- function(x, y, ...,
                     msg = "labels not in cube")
 
     # size of data to be read
-    size <- .plot_read_size(tile)
+    size <- .plot_read_size(tile = tile,
+                            tmap_options = tmap_options)
 
     # get the path
     probs_path <- .tile_path(tile)
@@ -1104,9 +1289,10 @@ plot.class_cube <- function(x, y, ...,
     probs_st <- stars::read_stars(
         probs_path,
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
-        )
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
     )
     # get the band
     band <- .tile_bands(tile)
@@ -1120,7 +1306,35 @@ plot.class_cube <- function(x, y, ...,
     # select stars bands to be plotted
     bds <- as.numeric(names(labels[labels %in% labels_plot]))
 
-    p <- tmap::tm_shape(probs_st[,,,bds]) +
+    # set the tmap options
+    labels_size <- as.numeric(.conf("tmap_graticules_labels_size"))
+    title_size  <- as.numeric(.conf("tmap_legend_title_size"))
+    text_size   <- as.numeric(.conf("tmap_legend_text_size"))
+    bg_color <- .conf("tmap_legend_bg_color")
+    bg_alpha <- as.numeric(.conf("tmap_legend_bg_alpha"))
+    # user specified tmap options
+    if (!purrr::is_null(tmap_options)){
+        # graticules label size
+        if (!purrr::is_null(tmap_options[["tmap_graticules_labels_size"]]))
+            labels_size <- as.numeric(
+                tmap_options[["tmap_graticules_labels_size"]])
+        # legend title size
+        if (!purrr::is_null(tmap_options[["tmap_legend_title_size"]]))
+            title_size <- as.numeric(
+                tmap_options[["tmap_legend_title_size"]])
+        # legend text size
+        if (!purrr::is_null(tmap_options[["tmap_legend_text_size"]]))
+            text_size <- as.numeric(
+                tmap_options[["tmap_legend_text_size"]])
+        # tmap legend bg color
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_color"]]))
+            bg_color <- tmap_options[["tmap_legend_bg_color"]]
+        # tmap legend bg alpha
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_alpha"]]))
+            bg_alpha <- as.numeric(tmap_options[["tmap_legend_bg_alpha"]])
+    }
+
+    p <- tmap::tm_shape(probs_st[, , , bds]) +
         tmap::tm_raster(style = "cont",
                         palette = palette,
                         midpoint = 0.5,
@@ -1129,15 +1343,201 @@ plot.class_cube <- function(x, y, ...,
         tmap::tm_compass() +
         tmap::tm_layout(legend.show = TRUE,
                         legend.outside = FALSE,
-                        legend.bg.color = "white",
-                        legend.bg.alpha = 0.5,
-                        legend.title.size = 1.5,
-                        legend.text.size = 1.2,
+                        legend.bg.color = bg_color,
+                        legend.bg.alpha = bg_alpha,
+                        legend.title.size = title_size,
+                        legend.text.size = text_size,
                         outer.margins = 0)
 
     return(p)
 }
+#' @title  Plot variance map
+#' @name   .plot_variance_map
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param  tile          Variance cube to be plotted.
+#' @param  labels_plot   Labels to be plotted
+#' @param  palette       A sequential RColorBrewer palette
+#' @param  rev           Reverse the color palette?
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
+#'
+#' @return               A plot object
+#'
+.plot_variance_map <- function(tile, labels_plot, palette, rev,
+                               tmap_options) {
 
+    # verifies if stars package is installed
+    .check_require_packages("stars")
+    # verifies if tmap package is installed
+    .check_require_packages("tmap")
+    # precondition - check color palette
+    .check_chr_contains(
+        x = palette,
+        contains = .conf("sits_color_palettes"),
+        discriminator = "any_of",
+        msg = paste0("Color palette not supported"),
+        local_msg = paste("Palette should be one of ",
+                          paste0(.conf("sits_color_palettes"),
+                                 collapse = ", "))
+    )
+    # revert the palette
+    if (rev)
+        palette <- paste0("-",palette)
+
+
+    # get all labels to be plotted
+    labels <- sits_labels(tile)
+    names(labels) <- seq_len(length(labels))
+    # check the labels to be plotted
+    # if NULL, use all labels
+    if (purrr::is_null(labels_plot))
+        labels_plot <- labels
+    else
+        .check_that(all(labels_plot %in% labels),
+                    msg = "labels not in cube")
+
+    # size of data to be read
+    size <- .plot_read_size(tile = tile,
+                            tmap_options = tmap_options)
+
+    # get the path
+    var_path <- .tile_path(tile)
+    # read the file using stars
+    var_st <- stars::read_stars(
+        var_path,
+        RasterIO = list(
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
+    )
+    # get the band
+    band <- .tile_bands(tile)
+    band_conf <- .tile_band_conf(tile, band)
+    # scale the data
+    var_st <- var_st * .scale(band_conf)
+
+    # rename stars object dimensions to labels
+    var_st <- stars::st_set_dimensions(var_st, "band",
+                                         values = labels)
+    # select stars bands to be plotted
+    bds <- as.numeric(names(labels[labels %in% labels_plot]))
+
+    # set the tmap options
+    labels_size <- as.numeric(.conf("tmap_graticules_labels_size"))
+    title_size  <- as.numeric(.conf("tmap_legend_title_size"))
+    text_size   <- as.numeric(.conf("tmap_legend_text_size"))
+    bg_color    <- .conf("tmap_legend_bg_color")
+    bg_alpha    <- as.numeric(.conf("tmap_legend_bg_alpha"))
+
+    # user specified tmap options
+    if (!purrr::is_null(tmap_options)){
+        # graticules label size
+        if (!purrr::is_null(tmap_options[["tmap_graticules_labels_size"]]))
+            labels_size <- as.numeric(
+                tmap_options[["tmap_graticules_labels_size"]])
+        # legend title size
+        if (!purrr::is_null(tmap_options[["tmap_legend_title_size"]]))
+            title_size <- as.numeric(
+                tmap_options[["tmap_legend_title_size"]])
+        # legend text size
+        if (!purrr::is_null(tmap_options[["tmap_legend_text_size"]]))
+            text_size <- as.numeric(
+                tmap_options[["tmap_legend_text_size"]])
+        # tmap legend bg color
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_color"]]))
+            bg_color <- tmap_options[["tmap_legend_bg_color"]]
+        # tmap legend bg alpha
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_alpha"]]))
+            bg_alpha <- as.numeric(tmap_options[["tmap_legend_bg_alpha"]])
+    }
+
+    p <- tmap::tm_shape(var_st[, , , bds]) +
+        tmap::tm_raster(style = "cont",
+                        palette = palette,
+                        midpoint = 0.5,
+                        title = labels[labels %in% labels_plot]) +
+        tmap::tm_facets(free.coords = TRUE) +
+        tmap::tm_compass() +
+        tmap::tm_layout(legend.show = TRUE,
+                        legend.outside = FALSE,
+                        legend.bg.color = bg_color,
+                        legend.bg.alpha = bg_alpha,
+                        legend.title.size = title_size,
+                        legend.text.size = text_size,
+                        outer.margins = 0)
+
+    return(p)
+}
+#' @title  Plot variance histogram
+#' @name   .plot_variance_hist
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param  tile          Variance cube to be plotted.
+#'
+#' @return               A plot object
+#'
+.plot_variance_hist <- function(tile) {
+
+    # get all labels to be plotted
+    labels <- sits_labels(tile)
+    # get the path
+    var_path <- .tile_path(tile)
+    # get the bounding box as an sf object
+    sf_cube <- .bbox_as_sf(.bbox(tile))
+    # numbers of nrows and ncols
+    nrows <- .tile_nrows(tile)
+    ncols <- .tile_ncols(tile)
+    # sample the pixels
+    n_samples <- as.integer(nrows / 5 * ncols / 5)
+    points <- sf::st_sample(sf_cube, size = n_samples)
+    points <- sf::st_coordinates(points)
+    # get the r object
+    r_obj <- .raster_open_rast(var_path)
+    # read the file
+    values <- .raster_extract(r_obj, points)
+    # scale the data
+    band_conf <- .conf_derived_band(
+        derived_class = "variance_cube",
+        band = "variance"
+    )
+    scale <- .scale(band_conf)
+    if (.has(scale) && scale != 1) {
+        values <- values * scale
+    }
+    offset <- .offset(band_conf)
+    if (.has(offset) && offset != 0) {
+        values <- values + offset
+    }
+    # convert to tibble
+    values <- tibble::as_tibble(values)
+    # include label names
+    colnames(values) <- labels
+    # dissolve the data for plotting
+    values <- tidyr::pivot_longer(values,
+                                  cols = tidyr::everything(),
+                                  names_to = "labels",
+                                  values_to = "variance")
+    # Histogram with density plot
+    p <- ggplot2::ggplot(values,
+                         ggplot2::aes(x = .data[["variance"]])) +
+         ggplot2::geom_histogram(binwidth = 1,
+                                 fill  = "#69b3a2",
+                                 color = "#e9ecef",
+                                 alpha = 0.9) +
+         ggplot2::scale_x_continuous()
+    p <- p + ggplot2::facet_wrap(facets = "labels")
+
+    return(p)
+}
 #' @title  Plot a RGB image
 #' @name   .plot_rgb
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -1148,10 +1548,17 @@ plot.class_cube <- function(x, y, ...,
 #' @param  green         Band to be plotted in green
 #' @param  blue          Band to be plotted in blue
 #' @param  date          Date to be plotted
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object
 #'
-.plot_rgb <- function(tile, red, green, blue, date) {
+.plot_rgb <- function(tile, red, green, blue, date, tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -1164,20 +1571,23 @@ plot.class_cube <- function(x, y, ...,
     blue_file  <- .tile_path(tile, blue, date)
 
     # size of data to be read
-    size <- .plot_read_size(tile)
+    size <- .plot_read_size(tile = tile,
+                            tmap_options = tmap_options)
     # read raster data as a stars object with separate RGB bands
     rgb_st <- stars::read_stars(
         c(red_file, green_file, blue_file),
         along = "band",
         RasterIO = list(
-            "nBufXSize" = size["xsize"],
-            "nBufYSize" = size["ysize"]
-        ))
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
+    )
     # get the max values
     band_params   <- .tile_band_conf(tile, red)
     max_value <- .max_value(band_params)
 
-    rgb_st <- stars::st_rgb(rgb_st[,,,1:3],
+    rgb_st <- stars::st_rgb(rgb_st[, , , 1:3],
                             dimension = "band",
                             maxColorValue = max_value,
                             use_alpha = FALSE,
@@ -1198,19 +1608,29 @@ plot.class_cube <- function(x, y, ...,
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  tile       Tile to be plotted.
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
 #' @return            Cell size for x and y coordinates.
 #'
 #'
-.plot_read_size <- function(tile) {
+.plot_read_size <- function(tile, tmap_options) {
 
     # get the maximum number of bytes to be displayed
-    max_cells <- as.numeric(.conf("tmap_max_cells"))
+    if (!purrr::is_null(tmap_options[["tmap_max_cells"]]))
+        max_cells <- tmap_options[["tmap_max_cells"]]
+    else
+        max_cells <- as.numeric(.conf("tmap_max_cells"))
     max_raster <- c(plot = max_cells, view = max_cells)
     # set the options for tmap
     tmap::tmap_options(max.raster = max_raster)
     # numbers of nrows and ncols
-    nrows <- .tile_nrows(tile)
-    ncols <- .tile_ncols(tile)
+    nrows <- max(.tile_nrows(tile))
+    ncols <- max(.tile_ncols(tile))
 
     # do we need to compress?
     ratio <- max((nrows * ncols / max_cells), 1)
@@ -1252,7 +1672,7 @@ plot.class_cube <- function(x, y, ...,
 #' }
 #' @export
 #'
-plot.rfor_model <- function(x, y, ...){
+plot.rfor_model <- function(x, y, ...) {
     # verifies if randomForestExplainer package is installed
     .check_require_packages("randomForestExplainer")
     .check_is_sits_model(x)
@@ -1287,7 +1707,9 @@ plot.rfor_model <- function(x, y, ...){
 #'     # compute a random forest model
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     # classify training points
-#'     points_class <- sits_classify(test_data, rfor_model)
+#'     points_class <- sits_classify(
+#'         data = test_data, ml_model = rfor_model
+#'     )
 #'     # calculate accuracy
 #'     acc <- sits_accuracy(points_class)
 #'     # plot accuracy
@@ -1481,7 +1903,6 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
         pt.cex = 2,
         cex = 1,
         text.col = "black",
-        # horiz = T ,
         inset = c(0.0095, 0.05),
         xpd = TRUE,
         ncol = 1
@@ -1513,7 +1934,7 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #' }
 #' @export
 #'
-plot.xgb_model <- function(x, ..., n_trees = 3){
+plot.xgb_model <- function(x, ..., n_trees = 3) {
     # verifies if DiagrammeR package is installed
     .check_require_packages("DiagrammeR")
     .check_is_sits_model(x)
@@ -1577,7 +1998,8 @@ plot.torch_model <- function(x, y, ...) {
         fill = .data[["data"]]
     ))
 
-    p <- p + ggplot2::geom_point(shape = 21, col = 1, na.rm = TRUE, size = 2) +
+    p <- p + ggplot2::geom_point(shape = 21, col = 1,
+                                 na.rm = TRUE, size = 2) +
         ggplot2::geom_smooth(
             formula = y ~ x,
             se      = FALSE,
@@ -1653,7 +2075,7 @@ plot.torch_model <- function(x, y, ...) {
         palette = palette,
         rev = TRUE
     )
-    colors_clust <- colors[data_labels]
+    colors_leg <- colors[unique(data_labels)]
 
     # set the visualization params for dendrogram
     dend <- dend %>%
@@ -1663,7 +2085,7 @@ plot.torch_model <- function(x, y, ...) {
         ) %>%
         dendextend::set(
             what = "branches_k_color",
-            value = colors_clust,
+            value = colors,
             k = length(data_labels)
         )
 
@@ -1680,7 +2102,7 @@ plot.torch_model <- function(x, y, ...) {
 
     # plot legend
     graphics::legend("topright",
-        fill = colors,
+        fill = colors_leg,
         legend = sits_labels(data)
     )
     return(invisible(dend))
@@ -1739,7 +2161,7 @@ plot.geo_distances <- function(x, y, ...) {
             color = .data[["type"]],
             fill = .data[["type"]]
         ),
-        lwd = 1, alpha = 0.25
+        linewidth = 1, alpha = 0.25
         ) +
         ggplot2::scale_x_log10(labels = scales::label_number()) +
         ggplot2::xlab("Distance (km)") +
