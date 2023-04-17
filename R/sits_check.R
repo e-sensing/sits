@@ -1394,12 +1394,19 @@
 #' @return          No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_output_dir <- function(output_dir){
-    .check_file(
-        x = output_dir,
-        msg = "invalid output dir"
+.check_output_dir <- function(output_dir) {
+    switch(
+        class(output_dir)[[1]],
+        character = .check_file(
+            x = output_dir,
+            msg = "invalid output dir"
+        ),
+        storage_endpoint = , blob_endpoint = .check_null(
+            unlist(output_dir[c("key", "token", "sas")])
+        )
     )
 }
+
 .check_crs <- function(crs) {
     crs <- suppressWarnings(.try(sf::st_crs(crs), .default = NA))
     .check_that(
