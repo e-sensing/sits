@@ -888,18 +888,16 @@
         return(FALSE)
     }
     # check if files were already checked before
-    checked_file <- NULL
-    checked <- character(0)
+    checked_files <- NULL
+    checked <- logical(0)
     if (!is.null(output_dir)) {
-        checked_file <- .file_path(
-            ".checked",
-            ext = ".rds",
+        checked_files <- .file_path(
+            ".check", .file_sans_ext(files),
+            ext = ".txt",
             output_dir = file.path(output_dir, ".sits"),
             create_dir = TRUE
         )
-        if (file.exists(checked_file)) {
-            checked <- readRDS(checked_file)
-        }
+        checked <- file.exists(checked_files)
     }
     files <- files[!files %in% checked]
     if (length(files) == 0) {
@@ -929,9 +927,9 @@
         FALSE
     })
     # Update checked files
-    if (!is.null(checked_file) && check) {
-        checked <- c(checked, files)
-        saveRDS(checked, checked_file)
+    checked_files <- checked_files[!checked]
+    if (.has(checked_files) && check) {
+        for (file in checked_files) cat(file = file)
     }
     # Return check
     check
