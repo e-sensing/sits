@@ -404,9 +404,18 @@ sits_cube.local_cube <- function(source,
     # precondition - data directory must be provided
     .check_file(x = data_dir, msg = "'data_dir' parameter must be provided.")
 
-    # precondition - check source and collection
-    .source_check(source = source)
-    .source_collection_check(source = source, collection = collection)
+    # precondition - check source and collection for eo_cubes only
+    # is this a cube with results?
+    if (!purrr::is_null(bands) &&
+        all(bands %in% .conf("sits_results_bands"))) {
+        results_cube <- TRUE
+    } else {
+        results_cube <- FALSE
+    }
+    if (!results_cube) {
+        .source_check(source = source)
+        .source_collection_check(source = source, collection = collection)
+    }
 
     dots <- list(...)
 

@@ -12,6 +12,7 @@
   palette = "YlGnBu",
   rev = FALSE,
   type = "map",
+  sample_hist = 0.05,
   tmap_options = NULL
 )
 }
@@ -29,6 +30,8 @@
 \item{rev}{Reverse order of colors in palette?}
 
 \item{type}{Type of plot ("map" or "hist")}
+
+\item{sample_hist}{Percentage of image to be sampled to obtain histogram}
 
 \item{tmap_options}{List with optional tmap parameters
 tmap_max_cells (default: 1e+06)

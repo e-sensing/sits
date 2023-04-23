@@ -194,6 +194,7 @@ Collate:
     'sits_sf.R'
     'sits_smooth.R'
     'sits_som.R'
+    'sits_summary.R'
     'sits_tae.R'
     'sits_tempcnn.R'
     'sits_timeline.R'

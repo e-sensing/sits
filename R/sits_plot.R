@@ -762,6 +762,7 @@ plot.probs_cube <- function(
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param type           Type of plot ("map" or "hist")
+#' @param sample_hist    Percentage of image to be sampled to obtain histogram
 #' @param tmap_options   List with optional tmap parameters
 #'                       tmap_max_cells (default: 1e+06)
 #'                       tmap_graticules_labels_size (default: 0.7)
@@ -805,6 +806,7 @@ plot.variance_cube <- function(
         palette = "YlGnBu",
         rev = FALSE,
         type = "map",
+        sample_hist = 0.05,
         tmap_options = NULL
 ) {
     # precondition
@@ -816,6 +818,13 @@ plot.variance_cube <- function(
         can_repeat = FALSE,
         msg = "tile is not included in the cube"
     )
+    # check percentage
+    .check_num(
+        sample_hist,
+        min = 0.01,
+        max = 1,
+        msg = "Sample percentage for histogram should be between 0.01 and 1"
+    )
 
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
@@ -826,7 +835,7 @@ plot.variance_cube <- function(
     if (type == "map")
         p <- .plot_variance_map(tile, labels, palette, rev, tmap_options)
     else
-        p <- .plot_variance_hist(tile)
+        p <- .plot_variance_hist(tile, sample_hist)
 
     return(p)
 }
@@ -1481,11 +1490,12 @@ plot.class_cube <- function(x, y, ...,
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
-#' @param  tile          Variance cube to be plotted.
+#' @param  tile          Variance cube to be plotted
+#' @param sample_hist    Percentage of image to be sampled to obtain histogram
 #'
 #' @return               A plot object
 #'
-.plot_variance_hist <- function(tile) {
+.plot_variance_hist <- function(tile, sample_hist) {
 
     # get all labels to be plotted
     labels <- sits_labels(tile)
@@ -1497,7 +1507,7 @@ plot.class_cube <- function(x, y, ...,
     nrows <- .tile_nrows(tile)
     ncols <- .tile_ncols(tile)
     # sample the pixels
-    n_samples <- as.integer(nrows / 5 * ncols / 5)
+    n_samples <- as.integer(nrows * ncols * sample_hist)
     points <- sf::st_sample(sf_cube, size = n_samples)
     points <- sf::st_coordinates(points)
     # get the r object
