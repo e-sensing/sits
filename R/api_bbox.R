@@ -295,3 +295,11 @@ NULL
     x[["crs"]] <- .as_crs(value)
     x
 }
+
+.crs_wkt_to_proj4 <- function(wkt_crs){
+    # Convert WKT to sf CRS object
+    crs_sf <- sf::st_crs(wkt_crs)
+    # Convert sf CRS object to PROJ4 string
+    proj4string <- crs_sf$proj4string
+    return(proj4string)
+}

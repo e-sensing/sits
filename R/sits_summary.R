@@ -86,7 +86,7 @@ summary.raster_cube <- function(
             .ymin(tile), ", ",
             .ymax(tile),
             "  (xmin, xmax, ymin, ymax)\n", sep = "" )
-        cat("coord ref   : ", terra:::.name_or_proj4(r), "\n")
+        cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
     }
     # get the a sample of the values
     values <- r %>%
@@ -116,6 +116,7 @@ summary.raster_cube <- function(
 #' type of input.
 #' @param  object    Object of class "probs_cube"
 #' @param ...        Further specifications for \link{summary}.
+#' @param  tile        Tile to be summarized
 #' @param  only_stats  Show only the statistics? (TRUE/FALSE)
 #' @param  sample_size Number of sample used to build statistics
 #'
@@ -172,7 +173,7 @@ summary.probs_cube <- function(
             .ymin(tile), ", ",
             .ymax(tile),
             "  (xmin, xmax, ymin, ymax)\n", sep = "" )
-        cat("coord ref   : ", terra:::.name_or_proj4(r), "\n")
+        cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
     }
     # get the a sample of the values
     values <- r %>%
@@ -194,6 +195,7 @@ summary.probs_cube <- function(
 #' type of input.
 #' @param  object    Object of class "probs_cube"
 #' @param ...        Further specifications for \link{summary}.
+#' @param  tile        Tile to be summarized
 #' @param  only_stats  Show only the statistics? (TRUE/FALSE)
 #' @param  sample_size Number of sample used to build statistics
 #'
@@ -250,7 +252,7 @@ summary.variance_cube <- function(
             .ymin(tile), ", ",
             .ymax(tile),
             "  (xmin, xmax, ymin, ymax)\n", sep = "" )
-        cat("coord ref   : ", terra:::.name_or_proj4(r), "\n")
+        cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
     }
     # get the a sample of the values
     values <- r %>%
@@ -272,6 +274,7 @@ summary.variance_cube <- function(
 #' type of input.
 #' @param  object    Object of class "class_cube"
 #' @param ...        Further specifications for \link{summary}.
+#' @param  tile        Tile to be summarized
 #' @param  only_stats  Show only the statistics? (TRUE/FALSE)
 #' @param  sample_size Number of sample used to build statistics
 #'
@@ -329,7 +332,7 @@ summary.class_cube <- function(
             .ymin(tile), ", ",
             .ymax(tile),
             "  (xmin, xmax, ymin, ymax)\n", sep = "" )
-        cat("coord ref   : ", terra:::.name_or_proj4(r), "\n")
+        cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
     }
     # get the a sample of the values
     class_areas <- r %>%

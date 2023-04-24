@@ -654,6 +654,19 @@ plot.raster_cube <- function(
         can_repeat = FALSE,
         msg = "tile is not included in the cube"
     )
+    # deal with color palette
+    .check_chr_contains(
+        x = palette,
+        contains = .conf("sits_color_palettes"),
+        discriminator = "any_of",
+        msg = paste0("Color palette not supported"),
+        local_msg = paste("Palette should be one of ",
+                          paste0(.conf("sits_color_palettes"),
+                                 collapse = ", "))
+    )
+    # reverse the color palette?
+    if (rev)
+        palette <- paste0("-", palette)
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     if (purrr::is_null(date))
@@ -670,7 +683,7 @@ plot.raster_cube <- function(
     if (!purrr::is_null(band)) {
         .check_cube_bands(tile, bands = band)
         # plot the band as false color
-        p <- .plot_false_color(tile, band, date, palette, rev, tmap_options)
+        p <- .plot_false_color(tile, band, date, palette, tmap_options)
     } else {
         # plot RGB image
         .check_cube_bands(tile, bands = c(red, green, blue))
@@ -741,12 +754,33 @@ plot.probs_cube <- function(
         can_repeat = FALSE,
         msg = "tile is not included in the cube"
     )
+    # check labels
+    if (purrr::is_null(labels)) {
+        labels <- sits_labels(x)
+    }
+    else {
+        .check_that(all(labels %in% sits_labels(x)),
+                    msg = "labels not in cube")
+    }
+    # precondition - check color palette
+    .check_chr_contains(
+        x = palette,
+        contains = .conf("sits_color_palettes"),
+        discriminator = "any_of",
+        msg = paste0("Color palette not supported"),
+        local_msg = paste("Palette should be one of ",
+                          paste0(.conf("sits_color_palettes"),
+                                 collapse = ", "))
+    )
+    # revert the palette
+    if (rev)
+        palette <- paste0("-",palette)
 
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot the probs cube
-    p <- .plot_probs(tile, labels, palette, rev, tmap_options)
+    p <- .plot_probs(tile, labels, palette, tmap_options)
 
     return(p)
 }
@@ -762,6 +796,7 @@ plot.probs_cube <- function(
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param type           Type of plot ("map" or "hist")
+#' @param percentile     Minimum percentile of variance to be plotted
 #' @param sample_hist    Percentage of image to be sampled to obtain histogram
 #' @param tmap_options   List with optional tmap parameters
 #'                       tmap_max_cells (default: 1e+06)
@@ -806,7 +841,8 @@ plot.variance_cube <- function(
         palette = "YlGnBu",
         rev = FALSE,
         type = "map",
-        sample_hist = 0.05,
+        percentile = 0.9,
+        sample_size = 100000,
         tmap_options = NULL
 ) {
     # precondition
@@ -818,25 +854,62 @@ plot.variance_cube <- function(
         can_repeat = FALSE,
         msg = "tile is not included in the cube"
     )
+    # check sample_size
+    .check_num(
+        sample_size,
+        min = 10000,
+        max = 1000000,
+        msg = "Sample size for histogram should be between 10^4 and 10^7"
+    )
     # check percentage
     .check_num(
-        sample_hist,
-        min = 0.01,
+        percentile,
+        min = 0,
         max = 1,
-        msg = "Sample percentage for histogram should be between 0.01 and 1"
+        msg = "Sample size for histogram should be between 0 and 1"
     )
-
-    # filter the cube
-    tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # check type
     .check_that(type %in% c("map", "hist"),
                 msg = "plot type should be either map or hist")
+    # check palette
+    .check_chr_contains(
+        x = palette,
+        contains = .conf("sits_color_palettes"),
+        discriminator = "any_of",
+        msg = paste0("Color palette not supported"),
+        local_msg = paste("Palette should be one of ",
+                          paste0(.conf("sits_color_palettes"),
+                                 collapse = ", "))
+    )
+    # revert the palette
+    if (rev)
+        palette <- paste0("-",palette)
+    # check labels
+    if (purrr::is_null(labels)) {
+        labels <- sits_labels(x)
+    }
+    else {
+        .check_that(all(labels %in% sits_labels(x)),
+                    msg = "labels not in cube")
+    }
+    # filter the cube
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
+
     # plot the variance cube
     if (type == "map")
-        p <- .plot_variance_map(tile, labels, palette, rev, tmap_options)
+        p <- .plot_variance_map(
+            tile = tile,
+            labels = labels,
+            palette = palette,
+            percentile = percentile,
+            tmap_options = tmap_options
+        )
     else
-        p <- .plot_variance_hist(tile, sample_hist)
-
+        p <- .plot_variance_hist(
+            tile = tile,
+            percentile = percentile,
+            sample_size = sample_size
+        )
     return(p)
 }
 
@@ -902,6 +975,19 @@ plot.uncertainty_cube <- function(
         can_repeat = FALSE,
         msg = "tile is not included in the cube"
     )
+    # deal with color palette
+    .check_chr_contains(
+        x = palette,
+        contains = .conf("sits_color_palettes"),
+        discriminator = "any_of",
+        msg = paste0("Color palette not supported"),
+        local_msg = paste("Palette should be one of ",
+                          paste0(.conf("sits_color_palettes"),
+                                 collapse = ", "))
+    )
+    # reverse the color palette?
+    if (rev)
+        palette <- paste0("-", palette)
 
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile[[1]])
@@ -910,7 +996,6 @@ plot.uncertainty_cube <- function(
     p <- .plot_false_color(tile = tile,
                            band = band,
                            palette  = palette,
-                           rev = rev,
                            tmap_options = tmap_options)
 
     return(p)
@@ -983,7 +1068,16 @@ plot.class_cube <- function(x, y, ...,
         discriminator = "any_of",
         msg = "cube must be a classified image"
     )
-
+    # deal with color palette
+    .check_chr_contains(
+        x = palette,
+        contains = .conf("sits_color_palettes"),
+        discriminator = "any_of",
+        msg = paste0("Color palette not supported"),
+        local_msg = paste("Palette should be one of ",
+                          paste0(.conf("sits_color_palettes"),
+                                 collapse = ", "))
+    )
     # precondition
     if (purrr::is_null(tile)) {
         tile <- cube$tile[[1]]
@@ -1015,8 +1109,7 @@ plot.class_cube <- function(x, y, ...,
 #' @param  tile          Tile to be plotted.
 #' @param  band          Band to be plotted.
 #' @param  date          Date to be plotted.
-#' @param  palette       A sequential RColorBrewer palette
-#' @param  rev           Reverse the color palette?
+#' @param  palette       A sequential RColorBrewer palette?
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap max_cells (default: 1e+06)
 #'                       tmap_graticules_labels_size (default: 0.7)
@@ -1027,30 +1120,16 @@ plot.class_cube <- function(x, y, ...,
 #'
 #' @return               A plot object
 #'
-.plot_false_color <- function(tile, band,
+.plot_false_color <- function(tile,
+                              band,
                               date = NULL,
                               palette,
-                              rev,
                               tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
     .check_require_packages("tmap")
-
-    # deal with color palette
-    .check_chr_contains(
-        x = palette,
-        contains = .conf("sits_color_palettes"),
-        discriminator = "any_of",
-        msg = paste0("Color palette not supported"),
-        local_msg = paste("Palette should be one of ",
-                          paste0(.conf("sits_color_palettes"),
-                                 collapse = ", "))
-    )
-    # reverse the color palette?
-    if (rev)
-        palette <- paste0("-", palette)
 
     # select the file to be plotted
     bw_file <- .tile_path(tile, band, date)
@@ -1082,7 +1161,7 @@ plot.class_cube <- function(x, y, ...,
     bg_color <- .conf("tmap_legend_bg_color")
     bg_alpha <- as.numeric(.conf("tmap_legend_bg_alpha"))
     # user specified tmap options
-    if (!purrr::is_null(tmap_options)){
+    if (!purrr::is_null(tmap_options)) {
         # graticules label size
         if (!purrr::is_null(tmap_options[["tmap_graticules_labels_size"]]))
             labels_size <- as.numeric(
@@ -1147,17 +1226,6 @@ plot.class_cube <- function(x, y, ...,
     # verifies if tmap package is installed
     .check_require_packages("tmap")
 
-    # deal with color palette
-    .check_chr_contains(
-        x = palette,
-        contains = .conf("sits_color_palettes"),
-        discriminator = "any_of",
-        msg = paste0("Color palette not supported"),
-        local_msg = paste("Palette should be one of ",
-                          paste0(.conf("sits_color_palettes"),
-                                 collapse = ", "))
-    )
-
     # get the labels
     labels <- sits_labels(tile)
     names(labels) <- seq_along(labels)
@@ -1193,7 +1261,7 @@ plot.class_cube <- function(x, y, ...,
     bg_color <- .conf("tmap_legend_bg_color")
     bg_alpha <- as.numeric(.conf("tmap_legend_bg_alpha"))
     # user specified tmap options
-    if (!purrr::is_null(tmap_options)){
+    if (!purrr::is_null(tmap_options)) {
         # graticules label size
         if (!purrr::is_null(tmap_options[["tmap_graticules_labels_size"]]))
             labels_size <- as.numeric(
@@ -1243,9 +1311,8 @@ plot.class_cube <- function(x, y, ...,
 #' @keywords internal
 #' @noRd
 #' @param  tile          Probs cube to be plotted.
-#' @param  labels_plot   Labels to be plotted
+#' @param  labels        Labels to be plotted
 #' @param  palette       A sequential RColorBrewer palette
-#' @param  rev           Reverse the color palette?
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap max_cells (default: 1e+06)
 #'                       tmap_graticules_labels_size (default: 0.7)
@@ -1256,42 +1323,15 @@ plot.class_cube <- function(x, y, ...,
 #'
 #' @return               A plot object
 #'
-.plot_probs <- function(tile, labels_plot, palette, rev, tmap_options) {
+.plot_probs <- function(tile, labels, palette, tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
     .check_require_packages("tmap")
-    # precondition - check color palette
-    .check_chr_contains(
-        x = palette,
-        contains = .conf("sits_color_palettes"),
-        discriminator = "any_of",
-        msg = paste0("Color palette not supported"),
-        local_msg = paste("Palette should be one of ",
-                          paste0(.conf("sits_color_palettes"),
-                                 collapse = ", "))
-    )
-    # revert the palette
-    if (rev)
-        palette <- paste0("-",palette)
-
-
-    # get all labels to be plotted
-    labels <- sits_labels(tile)
-    names(labels) <- seq_len(length(labels))
-    # check the labels to be plotted
-    # if NULL, use all labels
-    if (purrr::is_null(labels_plot))
-        labels_plot <- labels
-    else
-        .check_that(all(labels_plot %in% labels),
-                    msg = "labels not in cube")
-
     # size of data to be read
     size <- .plot_read_size(tile = tile,
                             tmap_options = tmap_options)
-
     # get the path
     probs_path <- .tile_path(tile)
     # read the file using stars
@@ -1309,11 +1349,13 @@ plot.class_cube <- function(x, y, ...,
     # scale the data
     probs_st <- probs_st * .scale(band_conf)
 
+    all_labels <- sits_labels(tile)
+    names(all_labels) <- seq_len(length(all_labels))
     # rename stars object dimensions to labels
     probs_st <- stars::st_set_dimensions(probs_st, "band",
-                                         values = labels)
+                                         values = all_labels)
     # select stars bands to be plotted
-    bds <- as.numeric(names(labels[labels %in% labels_plot]))
+    bds <- as.numeric(names(all_labels[all_labels %in% labels]))
 
     # set the tmap options
     labels_size <- as.numeric(.conf("tmap_graticules_labels_size"))
@@ -1347,7 +1389,7 @@ plot.class_cube <- function(x, y, ...,
         tmap::tm_raster(style = "cont",
                         palette = palette,
                         midpoint = 0.5,
-                        title = labels[labels %in% labels_plot]) +
+                        title = all_labels[all_labels %in% labels]) +
         tmap::tm_facets(free.coords = TRUE) +
         tmap::tm_compass() +
         tmap::tm_layout(legend.show = TRUE,
@@ -1366,8 +1408,9 @@ plot.class_cube <- function(x, y, ...,
 #' @keywords internal
 #' @noRd
 #' @param  tile          Variance cube to be plotted.
-#' @param  labels_plot   Labels to be plotted
+#' @param  labels.       Labels to be plotted
 #' @param  palette       A sequential RColorBrewer palette
+#' @param  percentile    Minimum percentile of variance to be plotted
 #' @param  rev           Reverse the color palette?
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap max_cells (default: 1e+06)
@@ -1379,43 +1422,19 @@ plot.class_cube <- function(x, y, ...,
 #'
 #' @return               A plot object
 #'
-.plot_variance_map <- function(tile, labels_plot, palette, rev,
+.plot_variance_map <- function(tile,
+                               labels,
+                               palette,
+                               percentile,
                                tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
     .check_require_packages("tmap")
-    # precondition - check color palette
-    .check_chr_contains(
-        x = palette,
-        contains = .conf("sits_color_palettes"),
-        discriminator = "any_of",
-        msg = paste0("Color palette not supported"),
-        local_msg = paste("Palette should be one of ",
-                          paste0(.conf("sits_color_palettes"),
-                                 collapse = ", "))
-    )
-    # revert the palette
-    if (rev)
-        palette <- paste0("-",palette)
-
-
-    # get all labels to be plotted
-    labels <- sits_labels(tile)
-    names(labels) <- seq_len(length(labels))
-    # check the labels to be plotted
-    # if NULL, use all labels
-    if (purrr::is_null(labels_plot))
-        labels_plot <- labels
-    else
-        .check_that(all(labels_plot %in% labels),
-                    msg = "labels not in cube")
-
     # size of data to be read
     size <- .plot_read_size(tile = tile,
                             tmap_options = tmap_options)
-
     # get the path
     var_path <- .tile_path(tile)
     # read the file using stars
@@ -1432,12 +1451,15 @@ plot.class_cube <- function(x, y, ...,
     band_conf <- .tile_band_conf(tile, band)
     # scale the data
     var_st <- var_st * .scale(band_conf)
+    # filter the data
+    all_labels <- sits_labels(tile)
+    names(all_labels) <- seq_len(length(all_labels))
 
     # rename stars object dimensions to labels
     var_st <- stars::st_set_dimensions(var_st, "band",
-                                         values = labels)
+                                       values = all_labels)
     # select stars bands to be plotted
-    bds <- as.numeric(names(labels[labels %in% labels_plot]))
+    bds <- as.numeric(names(all_labels[all_labels %in% labels]))
 
     # set the tmap options
     labels_size <- as.numeric(.conf("tmap_graticules_labels_size"))
@@ -1447,7 +1469,7 @@ plot.class_cube <- function(x, y, ...,
     bg_alpha    <- as.numeric(.conf("tmap_legend_bg_alpha"))
 
     # user specified tmap options
-    if (!purrr::is_null(tmap_options)){
+    if (!purrr::is_null(tmap_options)) {
         # graticules label size
         if (!purrr::is_null(tmap_options[["tmap_graticules_labels_size"]]))
             labels_size <- as.numeric(
@@ -1472,7 +1494,7 @@ plot.class_cube <- function(x, y, ...,
         tmap::tm_raster(style = "cont",
                         palette = palette,
                         midpoint = 0.5,
-                        title = labels[labels %in% labels_plot]) +
+                        title = all_labels[all_labels %in% labels]) +
         tmap::tm_facets(free.coords = TRUE) +
         tmap::tm_compass() +
         tmap::tm_layout(legend.show = TRUE,
@@ -1491,30 +1513,23 @@ plot.class_cube <- function(x, y, ...,
 #' @keywords internal
 #' @noRd
 #' @param  tile          Variance cube to be plotted
-#' @param sample_hist    Percentage of image to be sampled to obtain histogram
+#' @param percentile     Minimum percentile of variance to be plotted
+#' @param sample_size    Number of points to be sampled to obtain histogram
 #'
 #' @return               A plot object
 #'
-.plot_variance_hist <- function(tile, sample_hist) {
+.plot_variance_hist <- function(tile, percentile, sample_size) {
 
     # get all labels to be plotted
     labels <- sits_labels(tile)
     # get the path
     var_path <- .tile_path(tile)
-    # get the bounding box as an sf object
-    sf_cube <- .bbox_as_sf(.bbox(tile))
-    # numbers of nrows and ncols
-    nrows <- .tile_nrows(tile)
-    ncols <- .tile_ncols(tile)
-    # sample the pixels
-    n_samples <- as.integer(nrows * ncols * sample_hist)
-    points <- sf::st_sample(sf_cube, size = n_samples)
-    points <- sf::st_coordinates(points)
-    # get the r object
-    r_obj <- .raster_open_rast(var_path)
-    # read the file
-    values <- .raster_extract(r_obj, points)
-    # scale the data
+    # read the raster
+    r <- terra::rast(var_path)
+    # get the a sample of the values
+    values <- r %>%
+        terra::spatSample(size = sample_size, na.rm = TRUE)
+    # get scale and offset
     band_conf <- .conf_derived_band(
         derived_class = "variance_cube",
         band = "variance"
@@ -1523,10 +1538,13 @@ plot.class_cube <- function(x, y, ...,
     if (.has(scale) && scale != 1) {
         values <- values * scale
     }
-    offset <- .offset(band_conf)
-    if (.has(offset) && offset != 0) {
-        values <- values + offset
-    }
+    values[] <- lapply(
+        colnames(values), function(x) {
+            vls <- values[[x]]
+            quant <- quantile(vls, percentile)
+            vls <- vls[vls > quant]
+            return(vls)
+        })
     # convert to tibble
     values <- tibble::as_tibble(values)
     # include label names

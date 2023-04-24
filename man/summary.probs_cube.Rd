@@ -17,6 +17,8 @@
 
 \item{...}{Further specifications for \link{summary}.}
 
+\item{tile}{Tile to be summarized}
+
 \item{only_stats}{Show only the statistics? (TRUE/FALSE)}
 
 \item{sample_size}{Number of sample used to build statistics}
