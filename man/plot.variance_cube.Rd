@@ -34,6 +34,8 @@
 
 \item{percentile}{Minimum percentile of variance to be plotted}
 
+\item{sample_size}{Number of samples to calculate histogram}
+
 \item{tmap_options}{List with optional tmap parameters
 tmap_max_cells (default: 1e+06)
 tmap_graticules_labels_size (default: 0.7)
@@ -41,8 +43,6 @@ tmap_legend_title_size (default: 1.5)
 tmap_legend_text_size (default: 1.2)
 tmap_legend_bg_color (default: "white")
 tmap_legend_bg_alpha (default: 0.5)}
-
-\item{sample_hist}{Percentage of image to be sampled to obtain histogram}
 }
 \value{
 A plot containing probabilities associated

@@ -797,7 +797,7 @@ plot.probs_cube <- function(
 #' @param rev            Reverse order of colors in palette?
 #' @param type           Type of plot ("map" or "hist")
 #' @param percentile     Minimum percentile of variance to be plotted
-#' @param sample_hist    Percentage of image to be sampled to obtain histogram
+#' @param sample_size    Number of samples to calculate histogram
 #' @param tmap_options   List with optional tmap parameters
 #'                       tmap_max_cells (default: 1e+06)
 #'                       tmap_graticules_labels_size (default: 0.7)
@@ -1411,7 +1411,6 @@ plot.class_cube <- function(x, y, ...,
 #' @param  labels.       Labels to be plotted
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  percentile    Minimum percentile of variance to be plotted
-#' @param  rev           Reverse the color palette?
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap max_cells (default: 1e+06)
 #'                       tmap_graticules_labels_size (default: 0.7)
@@ -1541,7 +1540,7 @@ plot.class_cube <- function(x, y, ...,
     values[] <- lapply(
         colnames(values), function(x) {
             vls <- values[[x]]
-            quant <- quantile(vls, percentile)
+            quant <- stats::quantile(vls, percentile)
             vls <- vls[vls > quant]
             return(vls)
         })
