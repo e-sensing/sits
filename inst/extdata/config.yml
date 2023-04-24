@@ -1416,6 +1416,30 @@ sources:
                 open_data_token: false
                 metadata_search : "tile"
                 ext_tolerance: 0
+            SENTINEL-1-GRD  : &mspc_msi
+                bands       :
+                    VV      : &mspc_grd_10m
+                        missing_value : 0
+                        minimum_value : 1
+                        maximum_value : 65534
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    :  10
+                        band_name     : "VV"
+                        data_type     : "INT2U"
+                    VH     :
+                        <<: *mspc_grd_10m
+                        band_name     : "VH"
+                satellite   : "SENTINEL-1"
+                sensor      : "GRD"
+                platforms   :
+                    SENTINEL-2A: "Sentinel-1A"
+                    SENTINEL-2B: "Sentinel-1B"
+                collection_name: "sentinel-1-grd"
+                open_data: true
+                open_data_token: false
+                metadata_search : "feature"
+                ext_tolerance: 0
     HLS                     :
         s3_class            : ["hls_cube", "stac_cube", "eo_cube",
                                "raster_cube"]
