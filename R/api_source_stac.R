@@ -195,7 +195,7 @@
     }
 
     # prepare parallel requests
-    .sits_parallel_start(workers = multicores, log = FALSE)
+    .sits_parallel_start(workers = 1, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # do parallel requests
@@ -321,7 +321,7 @@
                     band = bands,
                     asset_info = asset_info,
                     path = paths,
-                    cloud_cover = cloud_cover
+                    cloud_cover = NA
                 ),
                 cols = c("band", "asset_info", "path", "cloud_cover")
             )
