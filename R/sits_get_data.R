@@ -543,7 +543,7 @@ sits_get_data.data.frame <- function(cube,
     }
 
     ts_tbl <- ts_tbl %>%
-        dplyr::summarise(
+        dplyr::reframe(
             dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
