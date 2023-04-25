@@ -12,7 +12,7 @@
   palette = "YlGnBu",
   rev = FALSE,
   type = "map",
-  percentile = 0.9,
+  percentile = 0.75,
   sample_size = 1e+05,
   tmap_options = NULL
 )
@@ -49,7 +49,10 @@ A plot containing probabilities associated
                       to each class for each pixel.
 }
 \description{
-plots a probability cube using stars
+Plots a variance cube. By default, only plots
+             the values in the 3rd quartile, which are the ones
+             most relevant for analysis of the spatial distribution
+             of variance for each class.
 }
 \examples{
 if (sits_run_examples()) {

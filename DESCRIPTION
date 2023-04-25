@@ -117,6 +117,8 @@ Collate:
     'api_jobs.R'
     'api_label_class.R'
     'api_period.R'
+    'api_plot_time_series.R'
+    'api_plot_raster.R'
     'api_point.R'
     'api_raster.R'
     'api_raster_terra.R'

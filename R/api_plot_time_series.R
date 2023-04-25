@@ -1,0 +1,366 @@
+#' @title Plot all intervals of one time series for the same lat/long together
+#' @name .plot_allyears
+#' @keywords internal
+#' @noRd
+#' @description For each lat/long location in the data, join temporal
+#' instances of the same place together for plotting.
+#' @param data    One or more time series.
+#' @return        A plot object produced by the ggplot2 package
+#'                showing an individual time series.
+#'
+.plot_allyears <- function(data) {
+    locs <- dplyr::distinct(data, .data[["longitude"]], .data[["latitude"]])
+
+    plots <- purrr::pmap(
+        list(locs$longitude, locs$latitude),
+        function(long, lat) {
+            dplyr::filter(
+                data,
+                .data[["longitude"]] == long,
+                .data[["latitude"]] == lat
+            ) %>%
+                .plot_ggplot_series() %>%
+                graphics::plot()
+        }
+    )
+    return(invisible(plots[[1]]))
+}
+
+#' @title Plot a set of time series for the same spatiotemporal reference
+#'
+#' @name .plot_together
+#' @keywords internal
+#' @noRd
+#' @description Plots all time series for the same label together.
+#' This function is useful to find out the spread of the values of
+#' the time series for a given label.
+#'
+#' @param    data    A sits tibble with the list of time series to be plotted.
+#' @return           A set of plots produced by the ggplot2 package
+#'                   each containing all time series associated to one band
+#'                   and one label.
+.plot_together <- function(data) {
+    # create a data frame with the median, and 25% and 75% quantiles
+    create_iqr <- function(melted) {
+        qts <- melted %>%
+            dplyr::group_by(.data[["Index"]]) %>%
+            dplyr::summarise(
+                med  = stats::median(.data[["value"]]),
+                qt25 = stats::quantile(.data[["value"]], 0.25),
+                qt75 = stats::quantile(.data[["value"]], 0.75))
+        return(qts)
+    }
+    # this function plots the values of all time series together (for one band)
+    plot_samples <- function(melted, qts, band, label, number) {
+        # make the plot title
+        title <- paste("Samples (", number, ") for class ",
+                       label, " in band = ", band,
+                       sep = ""
+        )
+        # plot all data together
+        g <- .plot_ggplot_together(melted, qts, title)
+        p <- graphics::plot(g)
+        return(p)
+    }
+
+    # how many different labels are there?
+    labels <- sits_labels(data)
+
+    label_plots <- labels %>%
+        purrr::map(function(l) {
+            lb <- as.character(l)
+            # filter only those rows with the same label
+            data2 <- dplyr::filter(data, .data[["label"]] == lb)
+            # how many time series are to be plotted?
+            number <- nrow(data2)
+            # what are the band names?
+            bands <- sits_bands(data2)
+            # what are the reference dates?
+            ref_dates <- sits_timeline(data2)
+            # align all time series to the same dates
+            data2 <- .tibble_align_dates(data2, ref_dates)
+
+            band_plots <- bands %>%
+                purrr::map(function(band) {
+                    # select the band to be shown
+                    band_tb <- sits_select(data2, band)
+
+                    melted <- band_tb %>%
+                        dplyr::select("time_series") %>%
+                        dplyr::mutate(variable = seq_len(dplyr::n())) %>%
+                        tidyr::unnest(cols = "time_series")
+                    names(melted) <- c("Index", "value", "variable")
+
+                    qts <- create_iqr(melted)
+                    # plot the time series together
+                    # (highlighting the median and quartiles 25% and 75%)
+                    p <- plot_samples(melted, qts, band, lb, number)
+                    return(p)
+                })
+            return(band_plots)
+        })
+    return(invisible(label_plots[[1]][[1]]))
+}
+
+#' @title Plot one time series using ggplot
+#'
+#' @name .plot_ggplot_series
+#' @keywords internal
+#' @noRd
+#' @description Plots a set of time series using ggplot. This function is used
+#' for showing the same lat/long location in a series of time steps.
+#'
+#' @param row         row of a sits tibble with the time series to be plotted.
+#' @return            A plot object produced by the ggplot2 package showing
+#'                    one time series.
+.plot_ggplot_series <- function(row) {
+    # Are there NAs in the data?
+    if (any(is.na(row$time_series[[1]]))) {
+        g <- .plot_ggplot_series_na(row)
+    } else {
+        g <- .plot_ggplot_series_no_na(row)
+    }
+    return(g)
+}
+#' @title Plot one time series using ggplot (no NAs present)
+#'
+#' @name .plot_ggplot_series_no_na
+#' @keywords internal
+#' @noRd
+#' @description Plots a set of time series using ggplot in the case the series
+#'              has no NA values.
+#'
+#' @param row         row of a sits tibble with the time series to be plotted.
+#' @return            A plot object produced by the ggplot2 package where the
+#'                    the time series has no NA values.
+#'
+.plot_ggplot_series_no_na <- function(row) {
+    # create the plot title
+    plot_title <- .plot_title(row$latitude, row$longitude, row$label)
+    #
+    colors <- grDevices::hcl.colors(
+        n = 20,
+        palette = "Harmonic",
+        alpha = 1,
+        rev = TRUE
+    )
+    # extract the time series
+    data_ts <- dplyr::bind_rows(row$time_series)
+    # melt the data into long format
+    melted_ts <- data_ts %>%
+        tidyr::pivot_longer(cols = -"Index", names_to = "variable") %>%
+        as.data.frame()
+    # plot the data with ggplot
+    g <- ggplot2::ggplot(melted_ts, ggplot2::aes(
+        x = .data[["Index"]],
+        y = .data[["value"]],
+        group = .data[["variable"]]
+    )) +
+        ggplot2::geom_line(ggplot2::aes(color = .data[["variable"]])) +
+        ggplot2::labs(title = plot_title) +
+        ggplot2::scale_fill_manual(palette = colors)
+    return(g)
+}
+#' @title Plot one time series with NAs using ggplot
+#'
+#' @name .plot_ggplot_series_na
+#' @keywords internal
+#' @noRd
+#' @description Plots a set of time series using ggplot, showing where NAs are.
+#'
+#' @param row         row of a sits tibble with the time series to be plotted.
+#' @return            A plot object produced by the ggplot2 package
+#'                    which shows the NA values of a time series.
+.plot_ggplot_series_na <- function(row) {
+
+    # verifies if tidyr package is installed
+    .check_require_packages("tidyr")
+
+    # define a function to replace the NAs for unique values
+    replace_na <- function(x) {
+        x[is.na(x)] <- -10000
+        x[x != -10000] <- NA
+        x[x == -10000] <- 1
+        return(x)
+    }
+    # create the plot title
+    plot_title <- .plot_title(row$latitude, row$longitude, row$label)
+
+    # include a new band in the data to show the NAs
+    data <- row$time_series[[1]]
+    data <- data %>%
+        dplyr::select_if(function(x) any(is.na(x))) %>%
+        .[, 1] %>%
+        `colnames<-`(., "X1") %>%
+        dplyr::transmute(cld = replace_na(.data[["X1"]])) %>%
+        dplyr::bind_cols(data, .)
+
+    # prepare tibble to ggplot (fortify)
+    ts1 <- tidyr::pivot_longer(data, -"Index")
+    g <- ggplot2::ggplot(data = ts1 %>%
+                             dplyr::filter(.data[["name"]] != "cld")) +
+        ggplot2::geom_col(ggplot2::aes(
+            x = .data[["Index"]],
+            y = .data[["value"]]
+        ),
+        fill = "sienna",
+        alpha = 0.3,
+        data = ts1 %>%
+            dplyr::filter(
+                .data[["name"]] == "cld",
+                !is.na(.data[["value"]])
+            )
+        ) +
+        ggplot2::geom_line(ggplot2::aes(
+            x = .data[["Index"]],
+            y = .data[["value"]],
+            color = .data[["name"]]
+        )) +
+        ggplot2::geom_point(ggplot2::aes(
+            x = .data[["Index"]],
+            y = .data[["value"]],
+            color = .data[["name"]]
+        )) +
+        ggplot2::labs(title = plot_title)
+
+    return(g)
+}
+
+#' @title Plot many time series together using ggplot
+#'
+#' @name .plot_ggplot_together
+#' @keywords internal
+#' @noRd
+#' @description Plots a set of  time series together.
+#'
+#' @param melted         tibble with the time series (already melted).
+#' @param means          means and std deviations of the time series.
+#' @param plot_title     title for the plot.
+#' @return               A plot object produced by the ggplot2 package
+#'                       each time series associated to one band
+#'                       and one label.
+#'
+.plot_ggplot_together <- function(melted, means, plot_title) {
+    g <- ggplot2::ggplot(data = melted, ggplot2::aes(
+        x = .data[["Index"]],
+        y = .data[["value"]],
+        group = .data[["variable"]]
+    )) +
+        ggplot2::geom_line(colour = "#819BB1", alpha = 0.5) +
+        ggplot2::labs(title = plot_title) +
+        ggplot2::geom_line(
+            data = means,
+            ggplot2::aes(x = .data[["Index"]], y = .data[["med"]]),
+            colour = "#B16240", linewidth = 2, inherit.aes = FALSE
+        ) +
+        ggplot2::geom_line(
+            data = means,
+            ggplot2::aes(x = .data[["Index"]], y = .data[["qt25"]]),
+            colour = "#B19540", linewidth = 1, inherit.aes = FALSE
+        ) +
+        ggplot2::geom_line(
+            data = means,
+            ggplot2::aes(x = .data[["Index"]], y = .data[["qt75"]]),
+            colour = "#B19540", linewidth = 1, inherit.aes = FALSE
+        )
+    return(g)
+}
+
+#' @title Create a plot title to use with ggplot
+#' @name .plot_title
+#' @keywords internal
+#' @noRd
+#' @description Creates a plot title from row information.
+#'
+#' @param latitude   latitude of the location to be plotted.
+#' @param longitude  longitude of the location to be plotted.
+#' @param label      label of the location to be plotted.
+#' @return           title to be used in the plot.
+.plot_title <- function(latitude, longitude, label) {
+    title <- paste("location (",
+                   signif(latitude, digits = 4), ", ",
+                   signif(longitude, digits = 4), ") - ",
+                   label,
+                   sep = ""
+    )
+    return(title)
+}
+#' @title Plot a dendrogram
+#' @name .plot_dendrogram
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Plot a dendrogram
+#'
+#' @param data          sits tibble with data used to extract the dendrogram.
+#' @param cluster       cluster object produced by `sits_cluster` function.
+#' @param cutree_height dashed horizontal line to be drawn
+#'                      indicating the height of dendrogram cutting.
+#' @param palette       hcl color palette.
+#'
+#' @return              The dendrogram object.
+.plot_dendrogram <- function(data,
+                             cluster,
+                             cutree_height,
+                             palette) {
+
+    # set caller to show in errors
+    .check_set_caller(".plot_dendrogram")
+
+    # verifies if dendextend and methods packages is installed
+    .check_require_packages(
+        c("dendextend", "methods"),
+        msg = "please install package(s)"
+    )
+
+    # ensures that a cluster object  exists
+    .check_null(
+        x = cluster,
+        msg = "no valid cluster object available"
+    )
+    # get data labels
+    data_labels <- data$label
+
+    # extract the dendrogram object
+    hclust_cl <- methods::S3Part(cluster, strictS3 = TRUE)
+    dend <- hclust_cl %>% stats::as.dendrogram()
+
+    # colors vector
+    colors <- .colors_get(
+        labels = data_labels,
+        palette = palette,
+        rev = TRUE
+    )
+    colors_leg <- colors[unique(data_labels)]
+
+    # set the visualization params for dendrogram
+    dend <- dend %>%
+        dendextend::set(
+            what = "labels",
+            value = character(length = length(data_labels))
+        ) %>%
+        dendextend::set(
+            what = "branches_k_color",
+            value = colors,
+            k = length(data_labels)
+        )
+
+    p <- graphics::plot(dend,
+                        ylab = paste(
+                            tools::file_path_sans_ext(cluster@method),
+                            "linkage distance"
+                        )
+    )
+    # plot cutree line
+    if (!purrr::is_null(cutree_height)) {
+        graphics::abline(h = cutree_height, lty = 2)
+    }
+
+    # plot legend
+    graphics::legend("topright",
+                     fill = colors_leg,
+                     legend = sits_labels(data)
+    )
+    return(invisible(dend))
+}

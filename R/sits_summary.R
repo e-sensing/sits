@@ -1,3 +1,28 @@
+#' @title  Summarize sits
+#' @method summary sits
+#' @name summary.sits
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description This is a generic function. Parameters depend on the specific
+#' type of input.
+#'
+#' @param  object      Object of classes "sits".
+#' @param  ...         Further specifications for \link{summary}.
+#'
+#' @return A summary of the sits tibble.
+#'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' if (sits_run_examples()) {
+#'      summary(samples_modis_ndvi)
+#' }
+#'
+#' @export
+summary.sits <- function(object, ...){
+    sits_labels_summary(object)
+}
+
 #' @title  Summarize data cubes
 #' @method summary raster_cube
 #' @name summary.raster_cube
