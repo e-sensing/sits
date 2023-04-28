@@ -26,6 +26,13 @@ test_that("Plot Time Series and Images", {
     expect_equal(p3$data$name[1], "EVI")
     expect_equal(p3$guides$colour$title, "Bands")
 
+    p4 <- cerrado_2classes %>%
+        sits_patterns() %>%
+        plot(bands = "NDVI")
+    expect_equal(as.Date(p4$data$Time[1]), as.Date("2000-09-13"))
+    expect_equal(p4$data$Pattern[1], "Cerrado")
+    expect_equal(p4$data$name[1], "NDVI")
+    expect_equal(p4$guides$colour$title, "Bands")
 
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     set.seed(290356)
@@ -134,7 +141,6 @@ test_that("Plot Models", {
     expect_false(p_xgb$sizingPolicy$browser$fill)
     expect_false(p_xgb$sizingPolicy$browser$external)
 })
-
 
 test_that("Dendrogram Plot", {
 
