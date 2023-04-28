@@ -18,7 +18,6 @@
 #'
 #' @export
 sits_bands <- function(x) {
-
     # Set caller to show in errors
     .check_set_caller("sits_bands")
     # Get the meta-type (sits or cube)
