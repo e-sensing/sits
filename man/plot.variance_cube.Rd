@@ -12,8 +12,6 @@
   palette = "YlGnBu",
   rev = FALSE,
   type = "map",
-  percentile = 0.75,
-  sample_size = 1e+05,
   tmap_options = NULL
 )
 }
@@ -32,10 +30,6 @@
 
 \item{type}{Type of plot ("map" or "hist")}
 
-\item{percentile}{Minimum percentile of variance to be plotted}
-
-\item{sample_size}{Number of samples to calculate histogram}
-
 \item{tmap_options}{List with optional tmap parameters
 tmap_max_cells (default: 1e+06)
 tmap_graticules_labels_size (default: 0.7)
@@ -49,10 +43,7 @@ A plot containing probabilities associated
                       to each class for each pixel.
 }
 \description{
-Plots a variance cube. By default, only plots
-             the values in the 3rd quartile, which are the ones
-             most relevant for analysis of the spatial distribution
-             of variance for each class.
+plots a probability cube using stars
 }
 \examples{
 if (sits_run_examples()) {
