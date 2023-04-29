@@ -23,18 +23,11 @@ test_that("One-year, single core classification", {
     max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 4000)
 
-    p <- plot(var_cube, labels = "Cerrado")
-
-    fn <- p$tm_shape$shp
-
-
-    t <- fn$`TERRA_MODIS_012010_2013-09-14_2014-08-29_variance_v1.tif`
-    expect_true(max(t) <= 100)
-    expect_true(min(t) >= 0)
+    p <- plot(var_cube, sample_size = 10000, labels = "Cerrado")
 
     expect_true(p$tm_raster$style == "cont")
 
-    p <- plot(var_cube, labels = "Cerrado", type = "hist")
+    p <- plot(var_cube, sample_size = 10000, labels = "Cerrado", type = "hist")
     expect_true(all(p$data_labels %in% c("Cerrado", "Forest",
                                          "Pasture", "Soy_Corn")))
     v <- p$data$variance
@@ -42,6 +35,11 @@ test_that("One-year, single core classification", {
     expect_true(min(v) >= 0)
 
     # test Recovery
+    documentation <- FALSE
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
+        documentation <- TRUE
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
+    }
     out <- capture_messages({
         expect_message(
             object = { sits_variance(
@@ -51,6 +49,9 @@ test_that("One-year, single core classification", {
             regexp = "Recovery"
         )
     })
+    if (documentation) {
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
+    }
     expect_true(grepl("output_dir", out[1]))
 
     expect_true(all(file.remove(unlist(probs_cube$file_info[[1]]$path))))

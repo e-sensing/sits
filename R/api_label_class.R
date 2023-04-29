@@ -8,12 +8,11 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        # # Callback final tile classification
-        # .callback(process = "tile_classification", event = "recovery",
-        #           context = environment())
-        message("Recovery: tile '", tile[["tile"]], "' already exists.")
-        message("(If you want to produce a new image, please ",
-                "change 'output_dir' or 'version' parameters)")
+        if (.check_messages()) {
+            message("Recovery: tile '", tile[["tile"]], "' already exists.")
+            message("(If you want to produce a new image, please ",
+                    "change 'output_dir' or 'version' parameters)")
+        }
         class_tile <- .tile_class_from_file(
             file = out_file, band = band, base_tile = tile
         )

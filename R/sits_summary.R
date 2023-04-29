@@ -129,8 +129,6 @@ summary.raster_cube <- function(
     # change names
     colnames(sum) <- bands
     # print statistics
-    d <- as.character(lubridate::as_date(date))
-    cat("Statistics for tile ", tile$tile, " date ", d, "\n")
     sum
 }
 #' @title  Summarize data cubes
@@ -209,7 +207,6 @@ summary.probs_cube <- function(
     offset <- .offset(band_conf)
     sum <- summary(values*scale + offset)
     colnames(sum) <- sits_labels(tile)
-    cat("Statistics for tile ", tile$tile, "\n")
     sum
 }
 #' @title  Summarize data cubes
@@ -288,7 +285,6 @@ summary.variance_cube <- function(
     offset <- .offset(band_conf)
     sum <- summary(values*scale + offset)
     colnames(sum) <- sits_labels(tile)
-    cat("Statistics for tile ", tile$tile, "\n")
     sum
 }
 #' @title  Summarize data cubes
@@ -364,7 +360,6 @@ summary.class_cube <- function(
         terra::expanse(unit = "km", byValue = TRUE)
     # create a tibble
     areas <-  class_areas[,3]
-    # get t
-    cat("Class Areas for tile ", tile$tile, "\n")
+    # get the result
     data.frame(class = sits_labels(tile), area_km2  = signif(areas, 4))
 }

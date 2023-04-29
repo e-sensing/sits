@@ -2247,6 +2247,20 @@
 
     return(progress)
 }
+#' @title Checks if messages should be displayed
+#' @name .check_messages
+#' @return TRUE/FALSE
+#' @keywords internal
+#' @noRd
+.check_messages <- function() {
+    # if working on sits documentation mode, no progress bar
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true" ||
+        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
+        return(FALSE)
+    }
+    else
+        return(TRUE)
+}
 
 .check_stac_items <- function(items) {
     .check_that(

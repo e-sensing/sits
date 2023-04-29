@@ -254,14 +254,13 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     )
     # Resume feature
     if (.raster_is_valid(out_files, output_dir = output_dir)) {
-        # # Callback final tile classification
-        # .callback(process = "mixtureModel", event = "recovery",
-        #           context = environment())
-        message("Recovery: fractions ",
-                paste0("'", out_fracs, "'", collapse = ", "),
-                " already exists.")
-        message("(If you want to produce a new image, please ",
-                "change 'output_dir' parameters)")
+        if (.check_messages()) {
+            message("Recovery: fractions ",
+                    paste0("'", out_fracs, "'", collapse = ", "),
+                    " already exists.")
+            message("(If you want to produce a new image, please ",
+                    "change 'output_dir' parameters)")
+        }
         # Create tile based on template
         fracs_feature <- .tile_eo_from_files(
             files = out_files,

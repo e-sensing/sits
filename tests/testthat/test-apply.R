@@ -132,7 +132,11 @@ test_that("Kernel functions", {
     median_2 <- v_obj_md[21,21]
 
     expect_true(median_1 == median_2)
-
+    documentation <- FALSE
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
+        documentation <- TRUE
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
+    }
     # Recovery
     out <- capture_messages({
         expect_message({
@@ -147,6 +151,9 @@ test_that("Kernel functions", {
         regexp = "Recovery"
         )
     })
+    if (documentation) {
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
+    }
     expect_true(grepl("output_dir", out[1]))
     expect_true(grepl("Recovery", out[2]))
     cube_mean <- sits_apply(

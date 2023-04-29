@@ -22,6 +22,11 @@ test_that("Single core classification with rfor", {
     )
 
     # testing resume feature
+    documentation <- FALSE
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
+        documentation <- TRUE
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
+    }
     out <- capture_messages({
         expect_message(
         object = { sits_classify(
@@ -34,6 +39,9 @@ test_that("Single core classification with rfor", {
         regexp = "Recovery: "
         )
     })
+    if (documentation) {
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
+    }
     expect_true(grepl("output_dir", out[1]))
 
     sits_labels(sinop_probs) <- c(
@@ -476,7 +484,11 @@ test_that("Classification with post-processing", {
         sinop_probs,
         output_dir = output_dir,
     )
-
+    documentation <- FALSE
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
+        documentation <- TRUE
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
+    }
     # testing resume feature
     out <- capture_messages({
         expect_message(
@@ -487,6 +499,9 @@ test_that("Classification with post-processing", {
         regexp = "Recovery"
         )
     })
+    if (documentation) {
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
+    }
     expect_true(grepl("output_dir", out[1]))
 
     expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
@@ -506,7 +521,11 @@ test_that("Classification with post-processing", {
         memsize = 4,
         multicores = 2
     )
-
+    documentation <- FALSE
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
+        documentation <- TRUE
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
+    }
     # testing the recovery feature
     out <- capture_messages({
         expect_message(
@@ -519,6 +538,9 @@ test_that("Classification with post-processing", {
         regexp = "Recovery"
         )
     })
+    if (documentation) {
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
+    }
     expect_true(grepl("output_dir", out[1]))
 
     expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))

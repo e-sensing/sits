@@ -223,9 +223,11 @@ sits_mosaic <- function(cube,
         )
         # Resume feature
         if (.raster_is_valid(out_file, output_dir = output_dir)) {
-            message("Recovery: file '", out_file, "' already exists.")
-            message("(If you want to produce a new cropped image, please ",
-                    "change 'version' or 'output_dir' parameter)")
+            if (.check_messages()) {
+                message("Recovery: file '", out_file, "' already exists.")
+                message("(If you want to produce a new cropped image, please ",
+                        "change 'version' or 'output_dir' parameter)")
+            }
             base_tile <- .tile_from_file(
                 file = out_file, base_tile = base_tile,
                 band = .tile_bands(base_tile), update_bbox = TRUE,
@@ -278,9 +280,11 @@ sits_mosaic <- function(cube,
     )
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
-        message("Recovery: file '", out_file, "' already exists.")
-        message("(If you want to produce a new cropped image, please ",
-                "change 'version' or 'output_dir' parameter)")
+        if (.check_messages()) {
+            message("Recovery: file '", out_file, "' already exists.")
+            message("(If you want to produce a new cropped image, please ",
+                    "change 'version' or 'output_dir' parameter)")
+        }
         asset <- .tile_from_file(
             file = out_file, base_tile = asset,
             band = .tile_bands(asset), update_bbox = TRUE,
