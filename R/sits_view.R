@@ -18,11 +18,7 @@
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file.
 #' @param  view_max_mb   Maximum size of leaflet to be visualized
-#' @param  label         Label from the SOM map to be shown.
-#' @param  prob_max      Maximum a posteriori probability for SOM neuron
-#'                       samples to be shown
-#' @param  prob_min      Minimum a posteriori probability for SOM neuron
-#'                       samples to be shown
+#' @param  id_neurons    Neurons from the SOM map to be shown.
 #'
 #' @return               A leaflet object containing either samples or
 #'                       data cubes embedded in a global map that can
@@ -175,115 +171,23 @@ sits_view.sits <- function(x, ...,
 #' @export
 #'
 sits_view.som_map <- function(x, ...,
-                              label,
-                              prob_max = 1.0,
-                              prob_min = 0.7,
+                              id_neurons,
                               legend = NULL,
                               palette = "Harmonic") {
 
-    # view the samples
+    # check id_neuron
+    .check_int_parameter(
+        id_neurons,
+        min = 1,
+        max = max(unique(x$labelled_neurons$id_neuron)),
+        len_min = 1,
+        len_max = length(unique(x$labelled_neurons$id_neuron))
+    )
     # first select unique locations
-    samples <- dplyr::distinct(
-        x$data,
-        .data[["longitude"]],
-        .data[["latitude"]],
-        .data[["label"]]
+    samples <- dplyr::filter(
+        x$data, .data[["id_neuron"]] %in% !!id_neurons
     )
-    # convert tibble to sf
-    samples <- sf::st_as_sf(
-        samples[c("longitude", "latitude", "label")],
-        coords = c("longitude", "latitude"),
-        crs = 4326
-    )
-    # get the bounding box
-    samples_bbox <- sf::st_bbox(samples)
-    # get the labels
-    labels <- sits_labels(samples)
-
-    # if colors are not specified, get them from the configuration file
-    if (purrr::is_null(legend)) {
-        colors <- .colors_get(
-            labels = labels,
-            palette = palette,
-            rev = TRUE
-        )
-    } else {
-        .check_chr_within(
-            x = labels,
-            within = names(legend),
-            msg = "some labels are missing from the legend"
-        )
-        colors <- unname(legend[labels])
-    }
-    # create a pallete of colors
-    factpal <- leaflet::colorFactor(
-        palette = colors,
-        domain = labels
-    )
-
-    # use the neuron tibble with id neuron and samples per neuron
-    # group neurons by neuron_id, best classes
-    # filter by label, prior and posterior probability
-    neurons_best <- x$labelled_neurons %>%
-        dplyr::group_by(.data[["id_neuron"]]) %>%
-        dplyr::slice_max(.data[["count"]], with_ties = FALSE) %>%
-        dplyr::filter(.data[["label_samples"]] == label,
-                      .data[["post_prob"]] <= prob_max,
-                      .data[["post_prob"]] >= prob_min)
-
-    # use the sits tibble with time series and cols: id_sample and id_neuron
-    # filter by id_neuron
-    samples_label <-  x$data %>%
-        dplyr::inner_join(neurons_best, by = c("id_neuron" = "id_neuron"))
-
-    # create an interative map
-    leaf_map <- leaflet::leaflet() %>%
-        leaflet::addProviderTiles(
-            map = .,
-            provider = leaflet::providers$Esri.WorldImagery,
-            group = "ESRI"
-        ) %>%
-        leaflet::addProviderTiles(
-            map = .,
-            provider = leaflet::providers$GeoportailFrance.orthos,
-            group = "GeoPortalFrance"
-        ) %>%
-        leaflet::addProviderTiles(
-            map = .,
-            provider = leaflet::providers$OpenStreetMap,
-            group = "OSM"
-        ) %>%
-        leafem::addMouseCoordinates(map = .) %>%
-        leaflet::flyToBounds(
-            map = .,
-            lng1 = samples_bbox[["xmin"]],
-            lat1 = samples_bbox[["ymin"]],
-            lng2 = samples_bbox[["xmax"]],
-            lat2 = samples_bbox[["ymax"]]
-        ) %>%
-        leaflet::addCircleMarkers(
-            map = .,
-            data = samples_label,
-            popup = ~as.character(post_prob),
-            color = ~factpal(label),
-            radius = 4,
-            stroke = FALSE,
-            fillOpacity = 1,
-            group = "Samples"
-        ) %>%
-        leaflet::addLayersControl(
-            map = .,
-            baseGroups = c("ESRI", "GeoPortalFrance", "OSM"),
-            overlayGroups = c("Samples"),
-            options = leaflet::layersControlOptions(collapsed = FALSE)
-        ) %>%
-        leaflet::addLegend("topright",
-                           pal     = factpal,
-                           values  = samples$label,
-                           title   = "Training Samples",
-                           opacity = 1
-        )
-    return(leaf_map)
+    sits_view(samples)
 }
 #' @rdname   sits_view
 #'

@@ -14,15 +14,7 @@ sits_view(x, ...)
 
 \method{sits_view}{sits}(x, ..., legend = NULL, palette = "Harmonic")
 
-\method{sits_view}{som_map}(
-  x,
-  ...,
-  label,
-  prob_max = 1,
-  prob_min = 0.7,
-  legend = NULL,
-  palette = "Harmonic"
-)
+\method{sits_view}{som_map}(x, ..., id_neurons, legend = NULL, palette = "Harmonic")
 
 \method{sits_view}{raster_cube}(
   x,
@@ -62,13 +54,7 @@ sits_view(x, ...)
 
 \item{palette}{Palette provided in the configuration file.}
 
-\item{label}{Label from the SOM map to be shown.}
-
-\item{prob_max}{Maximum a posteriori probability for SOM neuron
-samples to be shown}
-
-\item{prob_min}{Minimum a posteriori probability for SOM neuron
-samples to be shown}
+\item{id_neurons}{Neurons from the SOM map to be shown.}
 
 \item{band}{For plotting grey images.}
 
