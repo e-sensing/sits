@@ -24,7 +24,7 @@ summary.sits <- function(object, ...){
 }
 
 #' @title  Summarize accuracy matrix for training data
-#' @method summary "sits_accuracy"
+#' @method summary sits_accuracy
 #' @name summary.sits_accuracy
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description This is a generic function. Parameters depend on the specific
@@ -61,7 +61,7 @@ summary.sits_accuracy <- function(object, ...){
     sits_accuracy_summary(object)
 }
 #' @title  Summarize accuracy matrix for area data
-#' @method summary "sits_area_accuracy"
+#' @method summary sits_area_accuracy
 #' @name summary.sits_area_accuracy
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description This is a generic function. Parameters depend on the specific

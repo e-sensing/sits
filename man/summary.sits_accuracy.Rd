@@ -4,7 +4,7 @@
 \alias{summary.sits_accuracy}
 \title{Summarize accuracy matrix for training data}
 \usage{
-\method{summary}{"sits_accuracy"}(object, ...)
+\method{summary}{sits_accuracy}(object, ...)
 }
 \arguments{
 \item{object}{Object of classe "sits_accuracy".}

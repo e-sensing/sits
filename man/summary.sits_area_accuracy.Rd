@@ -4,7 +4,7 @@
 \alias{summary.sits_area_accuracy}
 \title{Summarize accuracy matrix for area data}
 \usage{
-\method{summary}{"sits_area_accuracy"}(object, ...)
+\method{summary}{sits_area_accuracy}(object, ...)
 }
 \arguments{
 \item{object}{Object of classe "sits_accuracy".}
@@ -31,6 +31,8 @@ if (sits_run_examples()) {
         collection = "MOD13Q1-6",
         data_dir = data_dir
     )
+    # create a random forest model
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
     # classify a data cube
     probs_cube <- sits_classify(
         data = cube, ml_model = rfor_model, output_dir = tempdir()
