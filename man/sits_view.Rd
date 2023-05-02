@@ -3,8 +3,10 @@
 \name{sits_view}
 \alias{sits_view}
 \alias{sits_view.sits}
+\alias{sits_view.data.frame}
 \alias{sits_view.som_map}
 \alias{sits_view.raster_cube}
+\alias{sits_view.uncertainty_cube}
 \alias{sits_view.class_cube}
 \alias{sits_view.probs_cube}
 \alias{sits_view.default}
@@ -13,6 +15,8 @@
 sits_view(x, ...)
 
 \method{sits_view}{sits}(x, ..., legend = NULL, palette = "Harmonic")
+
+\method{sits_view}{data.frame}(x, ..., legend = NULL, palette = "Harmonic")
 
 \method{sits_view}{som_map}(x, ..., id_neurons, legend = NULL, palette = "Harmonic")
 
@@ -28,7 +32,17 @@ sits_view(x, ...)
   class_cube = NULL,
   legend = NULL,
   view_max_mb = NULL,
-  palette = "default"
+  palette = "RdYlGn"
+)
+
+\method{sits_view}{uncertainty_cube}(
+  x,
+  ...,
+  tiles = x$tile,
+  class_cube = NULL,
+  legend = NULL,
+  view_max_mb = NULL,
+  palette = "Blues"
 )
 
 \method{sits_view}{class_cube}(
@@ -40,12 +54,20 @@ sits_view(x, ...)
   view_max_mb = NULL
 )
 
-\method{sits_view}{probs_cube}(x, ...)
+\method{sits_view}{probs_cube}(
+  x,
+  ...,
+  tiles = x$tile,
+  class_cube = NULL,
+  legend = NULL,
+  view_max_mb = NULL,
+  palette = "YlGnBu"
+)
 
 \method{sits_view}{default}(x, ...)
 }
 \arguments{
-\item{x}{Object of class "sits",
+\item{x}{Object of class "sits", "data.frame", "som_map",
 "raster_cube" or "classified image".}
 
 \item{...}{Further specifications for \link{sits_view}.}
@@ -94,8 +116,7 @@ if (sits_run_examples()) {
     modis_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
     # view the data cube
     sits_view(modis_cube,
@@ -107,10 +128,11 @@ if (sits_run_examples()) {
     modis_probs <- sits_classify(
         data = modis_cube,
         ml_model = rf_model,
-        output_dir = tempdir(),
+        output_dir = tempdir()
     )
     modis_label <- sits_label_classification(
-        modis_probs, output_dir = tempdir()
+        modis_probs,
+        output_dir = tempdir()
     )
 
     sits_view(modis_label)
@@ -120,6 +142,11 @@ if (sits_run_examples()) {
         class_cube = modis_label,
         dates = sits_timeline(modis_cube)[[1]]
     )
+    modis_uncert <- sits_uncertainty(
+        cube = modis_probs,
+        output_dir = tempdir()
+    )
+    sits_view(modis_uncert)
 }
 }
 \author{

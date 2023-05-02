@@ -13,7 +13,7 @@
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
+#' @examples
 #' if (sits_run_examples()) {
 #'      summary(samples_modis_ndvi)
 #' }
@@ -23,6 +23,90 @@ summary.sits <- function(object, ...){
     sits_labels_summary(object)
 }
 
+#' @title  Summarize accuracy matrix for training data
+#' @method summary "sits_accuracy"
+#' @name summary.sits_accuracy
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description This is a generic function. Parameters depend on the specific
+#' type of input.
+#'
+#' @param  object      Object of classe "sits_accuracy".
+#' @param  ...         Further specifications for \link{summary}.
+#'
+#' @return A summary of the sample accuracy
+#'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_run_examples()) {
+#'     data(cerrado_2classes)
+#'     # split training and test data
+#'     train_data <- sits_sample(cerrado_2classes, n = 200)
+#'     test_data <- sits_sample(cerrado_2classes, n = 200)
+#'     # train a random forest model
+#'     rfor_model <- sits_train(train_data, sits_rfor())
+#'     # classify test data
+#'     points_class <- sits_classify(
+#'          data = test_data,
+#'          ml_model = rfor_model
+#'      )
+#'     # measure accuracy
+#'     acc <- sits_accuracy(points_class)
+#'     summary(acc)
+#' }
+#'
+#' @export
+summary.sits_accuracy <- function(object, ...){
+    sits_accuracy_summary(object)
+}
+#' @title  Summarize accuracy matrix for area data
+#' @method summary "sits_area_accuracy"
+#' @name summary.sits_area_accuracy
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description This is a generic function. Parameters depend on the specific
+#' type of input.
+#'
+#' @param  object      Object of classe "sits_accuracy".
+#' @param  ...         Further specifications for \link{summary}.
+#'
+#' @return A summary of the sample accuracy
+#'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir
+#'     )
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
+#'     # label the probability cube
+#'     label_cube <- sits_label_classification(
+#'         probs_cube, output_dir = tempdir()
+#'     )
+#'     # obtain the ground truth for accuracy assessment
+#'     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
+#'         package = "sits"
+#'     )
+#'     # make accuracy assessment
+#'     as <- sits_accuracy(label_cube, validation = ground_truth)
+#'     summary(as)
+#' }
+#'
+#' @export
+summary.sits_area_accuracy <- function(object, ...){
+    print.sits_area_accuracy(object)
+}
 #' @title  Summarize data cubes
 #' @method summary raster_cube
 #' @name summary.raster_cube

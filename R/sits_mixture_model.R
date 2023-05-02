@@ -74,7 +74,7 @@
 #'
 #'    # Create the endmembers tibble
 #'    em <- tibble::tribble(
-#'           ~type, ~B02, ~B03,   ~B04,  ~B8A,  ~B11,   ~B12,
+#'           ~class, ~B02, ~B03,   ~B04,  ~B8A,  ~B11,   ~B12,
 #'        "forest", 0.02, 0.0352, 0.0189, 0.28,  0.134, 0.0546,
 #'          "land", 0.04, 0.065,  0.07,   0.36,  0.35,  0.18,
 #'         "water", 0.07, 0.11,   0.14,   0.085, 0.004, 0.0026
@@ -403,12 +403,16 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
 }
 
 .endmembers_bands <- function(em) {
-    setdiff(colnames(em), "TYPE")
+    # endmembers tribble can be type or class
+    type_class <- colnames(em)[[1]]
+    setdiff(colnames(em), type_class)
 }
 
 .endmembers_fracs <- function(em, include_rmse = FALSE) {
-    if (!include_rmse) return(toupper(em[["TYPE"]]))
-    toupper(c(em[["TYPE"]], "RMSE"))
+    # endmembers tribble can be type or class
+    type_class <- toupper(colnames(em)[[1]])
+    if (!include_rmse) return(toupper(em[[type_class]]))
+    toupper(c(em[[type_class]], "RMSE"))
 }
 
 .endmembers_as_matrix <- function(em) {

@@ -2198,7 +2198,8 @@
     # Pre-condition
     .check_chr_contains(
         x = colnames(em),
-        contains = "TYPE",
+        contains = c("TYPE", "CLASS"),
+        discriminator = "any_of",
         msg = "Invalid 'endmembers' parameter"
     )
     # Pre-condition
