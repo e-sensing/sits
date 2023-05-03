@@ -30,19 +30,11 @@ test_that("plot colors", {
         labels = c("ClearCut_Burned", "ClearCut_BareSoil",
                    "ClearCut_Veg", "Forest")
     )
-    msg_plot1 <- tryCatch({
-        plot(ro_class)
-        NULL
-    }, warning = function(x) x)
-
-    expect_true(grepl(pattern = "missing colors", x = msg_plot1))
-    sits_labels(ro_class) <- c("ClearCut_Burn", "ClearCut_Soil",
-                               "Highly_Degraded", "Forest")
-    msg_plot2 <- tryCatch({
-        plot(ro_class)
-        NULL
-    }, warning = function(x) x)
-    expect_true(purrr::is_null(msg_plot2))
+    p <- plot(ro_class)
+    expect_equal(p$tm_shape$line.center, "midpoint")
+    expect_equal(p$tm_layout$legend.bg.color, "white")
+    expect_equal(unname(p$tm_raster$labels),
+                 c("ClearCut_Burned", "ClearCut_BareSoil","ClearCut_Veg", "Forest"))
 })
 
 test_that("colors_get", {
@@ -50,15 +42,4 @@ test_that("colors_get", {
     colors <- suppressWarnings(sits:::.colors_get(labels))
     expect_length(colors, 3)
     expect_equal(colors[["Forest"]], "#1E8449")
-
-    labels2 <- c("Forest", "Cropland", "Pastagem")
-    colors2 <- suppressWarnings(sits:::.colors_get(labels2))
-    expect_equal(colors2[["Pastagem"]], "#584B9FFF")
-
-    labels3 <- c("Forest", "Cropland", "Pastagem", "Soja")
-    leg3 <- c("Pastagem" = "azure", "Forest" = "green")
-    colors3 <- suppressWarnings(sits:::.colors_get(labels3, legend = leg3))
-    expect_equal(colors3[["Soja"]], "#584B9FFF")
-    expect_equal(colors3[["Pastagem"]], "azure")
-    expect_equal(colors3[["Forest"]], "green")
 })

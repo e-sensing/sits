@@ -136,8 +136,10 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
                                      validation_csv = NULL) {
 
     if (!purrr::is_null(validation_csv)) {
-        warning("validation_csv parameter is deprecated since sits 1.3.
-                please use only validation")
+        if (.check_warnings())
+            warning("validation_csv parameter is deprecated since sits 1.3.
+                please use only validation"
+            )
         validation <- validation_csv
     }
     .check_null(validation,

@@ -14,6 +14,12 @@ test_that("Mixture model tests", {
     unlink(list.files(path = tempdir(), pattern = "\\.jp2$", full.names = TRUE))
     unlink(list.files(path = tempdir(), pattern = "\\.tif$", full.names = TRUE))
 
+
+    documentation <- FALSE
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
+        documentation <- TRUE
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
+    }
     # Cube regularization for 16 days and 320 meters
     expect_warning({ reg_cube <- sits_regularize(
         cube = s2_cube,
@@ -26,6 +32,8 @@ test_that("Mixture model tests", {
         multicores = 2,
         output_dir = tempdir()
     )})
+    if (documentation)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
 
     # Create the endmembers tibble for cube
     em <- tibble::tribble(

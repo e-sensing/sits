@@ -29,7 +29,11 @@ test_that("EVI generation", {
         pattern = "\\.tif$",
         full.names = TRUE
     ))
-
+    documentation <- FALSE
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
+        documentation <- TRUE
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
+    }
     expect_warning({ gc_cube <- sits_regularize(
         cube        = s2_cube,
         output_dir  = dir_images,
@@ -38,6 +42,8 @@ test_that("EVI generation", {
         multicores  = 2
     )})
 
+    if (documentation)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
     gc_cube_new <- sits_apply(gc_cube,
         EVI2 = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),
         multicores = 2,

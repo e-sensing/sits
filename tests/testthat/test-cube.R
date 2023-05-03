@@ -406,6 +406,11 @@ test_that("Creating Sentinel cubes from MPC with ROI", {
 
     expect_true(all(sits_bands(s2_cube) %in% c("B05", "CLOUD")))
     expect_equal(nrow(s2_cube), 3)
+    documentation <- FALSE
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
+        documentation <- TRUE
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
+    }
     expect_warning(
         object = sits_bbox(s2_cube),
         regexp = "object has multiples CRS values"
@@ -420,6 +425,8 @@ test_that("Creating Sentinel cubes from MPC with ROI", {
         object = sits_timeline(s2_cube),
         regexp = "cube is not regular, returning all timelines"
     )
+    if (documentation)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
 })
 
 test_that("Creating Harmonized Landsat Sentinel cubes from HLS", {
