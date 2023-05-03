@@ -300,6 +300,31 @@ NULL
     if (add_cloud) return(bands)
     setdiff(bands, .band_cloud())
 }
+
+#' @title Set bands in tile file_info.
+#' @rdname .tile_bands
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#'
+#' @return tile with renamed bands
+`.tile_bands<-` <- function(tile, value) {
+    UseMethod(".tile_bands<-", tile)
+}
+#' @export
+`.tile_bands<-.raster_cube` <- function(tile, value) {
+    tile <- .tile(tile)
+    bands <- .tile_bands(tile)
+    .check_that(
+        length(bands) == length(value),
+        local_msg = paste0("bands must have length ", length(bands)),
+        msg = "invalid band list"
+    )
+    rename <- value
+    names(rename) <- bands
+    .fi(tile) <- .fi_rename_bands(.fi(tile), rename = rename)
+    tile
+}
 #'
 #' @title Get a band definition from config.
 #' @name .tile_band_conf
