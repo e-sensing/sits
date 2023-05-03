@@ -57,6 +57,7 @@ if (sits_run_examples()) {
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir
+    )
     # build a random forest model
     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
     # classify the cube
