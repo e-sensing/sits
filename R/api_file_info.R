@@ -148,6 +148,16 @@ NULL
     .as_chr(fi[["band"]])
 }
 
+.fi_rename_bands <- function(fi, rename) {
+    .check_chr_within(
+        .fi_bands(fi),
+        within = names(rename),
+        msg = "invalid renaming parameter"
+    )
+    fi[["band"]] <- unname(rename[.fi_bands(fi)])
+    fi
+}
+
 .fi_filter_bands <- function(fi, bands) {
     bands_in_fi <- bands %in% .fi_bands(fi)
     if (!all(bands_in_fi)) {
