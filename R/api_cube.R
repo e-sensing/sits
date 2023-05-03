@@ -528,6 +528,7 @@ NULL
     derived_cube <- inherits(cube, "derived_cube")
     cube <- tidyr::unnest(cube, "file_info", names_sep = ".")
     if (!derived_cube)
+        cube <- dplyr::distinct(cube)
         cube <- dplyr::arrange(
             cube,
             .data[["file_info.date"]],
