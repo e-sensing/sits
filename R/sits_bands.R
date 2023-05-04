@@ -9,6 +9,7 @@
 #' Finds the names of the bands of a set of time series or of a data cube
 #'
 #' @param x Valid sits tibble (time series or a cube)
+#' @param value New value for the bands
 #'
 #' @returns
 #' A vector with the names of the bands.

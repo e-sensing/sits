@@ -29,6 +29,8 @@ sits_bands(x) <- value
 }
 \arguments{
 \item{x}{Valid sits tibble (time series or a cube)}
+
+\item{value}{New value for the bands}
 }
 \value{
 A vector with the names of the bands.
@@ -38,6 +40,8 @@ Finds the names of the bands of a set of time series or of a data cube
 }
 \examples{
 bands <- sits_bands(point_mt_6bands)
+bands[[5]] <- "EVI2"
+sits_bands(point_mt_6bands) <- bands
 
 }
 \author{
