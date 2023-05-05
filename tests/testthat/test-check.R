@@ -599,9 +599,16 @@ test_that("Checks", {
     )
 
     # .check_warn
+    documentation <- FALSE
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
+        documentation <- TRUE
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
+    }
     expect_warning(
         .check_warn(.check_that(FALSE))
     )
+    if (documentation)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
     expect_equal(
         .check_warn(.check_num(123)),
         123

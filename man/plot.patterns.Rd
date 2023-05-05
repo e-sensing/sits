@@ -4,7 +4,7 @@
 \alias{plot.patterns}
 \title{Plot patterns that describe classes}
 \usage{
-\method{plot}{patterns}(x, y, ...)
+\method{plot}{patterns}(x, y, ..., bands = NULL)
 }
 \arguments{
 \item{x}{Object of class "patterns".}
@@ -12,6 +12,8 @@
 \item{y}{Ignored.}
 
 \item{...}{Further specifications for \link{plot}.}
+
+\item{bands}{Bands to be viewed (optional).}
 }
 \value{
 A plot object produced by ggplot2

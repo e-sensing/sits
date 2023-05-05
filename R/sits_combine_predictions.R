@@ -35,9 +35,7 @@
 #'     cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_",
-#'         parse_info = c("X1", "tile", "band", "date")
+#'         data_dir = data_dir
 #'     )
 #'     # create a random forest model
 #'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())

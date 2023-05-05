@@ -76,12 +76,11 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        # # Callback final tile classification
-        # .callback(process = "tile_classification", event = "recovery",
-        #           context = environment())
-        message("Recovery: tile '", base_tile[["tile"]], "' already exists.")
-        message("(If you want to produce a new probability image, please ",
-                "change 'output_dir' or 'version' parameters)")
+        if (.check_messages()) {
+            message("Recovery: tile '", base_tile[["tile"]], "' already exists.")
+            message("(If you want to produce a new probability image, please ",
+                    "change 'output_dir' or 'version' parameters)")
+        }
         probs_tile <- .tile_probs_from_file(
             file = out_file,
             band = band,

@@ -70,9 +70,7 @@
 #'     cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_",
-#'         parse_info = c("X1", "tile", "band", "date")
+#'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(
@@ -138,8 +136,10 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
                                      validation_csv = NULL) {
 
     if (!purrr::is_null(validation_csv)) {
-        warning("validation_csv parameter is deprecated since sits 1.3.
-                please use only validation")
+        if (.check_warnings())
+            warning("validation_csv parameter is deprecated since sits 1.3.
+                please use only validation"
+            )
         validation <- validation_csv
     }
     .check_null(validation,
@@ -416,8 +416,6 @@ sits_accuracy_summary <- function(x,
 
     # set caller to show in errors
     .check_set_caller("sits_accuracy_summary")
-    # is data of class sits_accuracy
-    .check_is_sits_accuracy(x)
 
     if ("sits_area_accuracy" %in% class(x)) {
         print.sits_area_accuracy(x)

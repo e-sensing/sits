@@ -127,12 +127,13 @@ sits_colors_reset <- function() {
     # are there any colors missing?
     if (!all(labels %in% names(colors))) {
         missing <- labels[!labels %in% names(colors)]
-        warning("missing colors for labels ",
-                paste(missing, collapse = ", ")
-        )
-        warning("using palette ", palette, " for missing colors")
-        # grDevices does not work with one color missing
-
+        if (.check_warnings()) {
+            warning("missing colors for labels ",
+                    paste(missing, collapse = ", ")
+            )
+            warning("using palette ", palette, " for missing colors")
+            # grDevices does not work with one color missing
+        }
         colors_pal <- grDevices::hcl.colors(
             n = max(2, length(missing)),
             palette = palette,

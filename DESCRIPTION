@@ -70,6 +70,7 @@ Suggests:
     digest,
     e1071,
     FNN,
+    future,
     gdalcubes (>= 0.6.0),
     geojsonsf,
     ggplot2,
@@ -87,6 +88,7 @@ Suggests:
     RcppArmadillo (>= 0.11),
     scales,
     stars (>= 0.6),
+    supercells,
     testthat (>= 3.1.3),
     tmap (>= 3.3),
     torchopt (>= 0.1.2),
@@ -192,6 +194,7 @@ Collate:
     'sits_regularize.R'
     'sits_resnet.R'
     'sits_sample_functions.R'
+    'sits_segmentation.R'
     'sits_select.R'
     'sits_sf.R'
     'sits_smooth.R'

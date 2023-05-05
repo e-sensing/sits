@@ -64,9 +64,7 @@
 #'     raster_cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_",
-#'         parse_info = c("X1", "tile", "band", "date")
+#'         data_dir = data_dir
 #'     )
 #'     samples <- tibble::tibble(longitude = -55.66738, latitude = -11.76990)
 #'     point_ndvi <- sits_get_data(raster_cube, samples)

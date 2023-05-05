@@ -6,6 +6,9 @@
 \alias{sits_bands.raster_cube}
 \alias{sits_bands.patterns}
 \alias{sits_bands.sits_model}
+\alias{sits_bands<-}
+\alias{sits_bands<-.sits}
+\alias{sits_bands<-.raster_cube}
 \title{Get the names of the bands}
 \usage{
 sits_bands(x)
@@ -17,9 +20,17 @@ sits_bands(x)
 \method{sits_bands}{patterns}(x)
 
 \method{sits_bands}{sits_model}(x)
+
+sits_bands(x) <- value
+
+\method{sits_bands}{sits}(x) <- value
+
+\method{sits_bands}{raster_cube}(x) <- value
 }
 \arguments{
 \item{x}{Valid sits tibble (time series or a cube)}
+
+\item{value}{New value for the bands}
 }
 \value{
 A vector with the names of the bands.
@@ -29,6 +40,8 @@ Finds the names of the bands of a set of time series or of a data cube
 }
 \examples{
 bands <- sits_bands(point_mt_6bands)
+bands[[5]] <- "EVI2"
+sits_bands(point_mt_6bands) <- bands
 
 }
 \author{

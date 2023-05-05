@@ -53,7 +53,8 @@ sits_timeline.raster_cube <- function(data) {
     if (length(timeline_unique) == 1) {
         return(timeline_unique[[1]])
     } else {
-        warning("cube is not regular, returning all timelines", call. = FALSE)
+        if (.check_warnings())
+            warning("cube is not regular, returning all timelines", call. = FALSE)
         return(timelines.lst)
     }
 }

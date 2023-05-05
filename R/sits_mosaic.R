@@ -48,9 +48,7 @@
 #'     cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_",
-#'         parse_info = c("X1", "tile", "band", "date")
+#'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(
@@ -223,9 +221,11 @@ sits_mosaic <- function(cube,
         )
         # Resume feature
         if (.raster_is_valid(out_file, output_dir = output_dir)) {
-            message("Recovery: file '", out_file, "' already exists.")
-            message("(If you want to produce a new cropped image, please ",
-                    "change 'version' or 'output_dir' parameter)")
+            if (.check_messages()) {
+                message("Recovery: file '", out_file, "' already exists.")
+                message("(If you want to produce a new cropped image, please ",
+                        "change 'version' or 'output_dir' parameter)")
+            }
             base_tile <- .tile_from_file(
                 file = out_file, base_tile = base_tile,
                 band = .tile_bands(base_tile), update_bbox = TRUE,
@@ -278,9 +278,11 @@ sits_mosaic <- function(cube,
     )
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
-        message("Recovery: file '", out_file, "' already exists.")
-        message("(If you want to produce a new cropped image, please ",
-                "change 'version' or 'output_dir' parameter)")
+        if (.check_messages()) {
+            message("Recovery: file '", out_file, "' already exists.")
+            message("(If you want to produce a new cropped image, please ",
+                    "change 'version' or 'output_dir' parameter)")
+        }
         asset <- .tile_from_file(
             file = out_file, base_tile = asset,
             band = .tile_bands(asset), update_bbox = TRUE,
