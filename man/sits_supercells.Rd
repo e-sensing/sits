@@ -63,12 +63,13 @@ if (sits_run_examples()) {
         collection = "MOD13Q1-6",
         data_dir = data_dir
     )
-    date <- sits_timeline(cube)[1]
-    segments <- sits_segment(
+    # segment the image
+    segments <- sits_supercells(
         cube = cube,
+        tile = "012010",
         bands = "NDVI",
         date = sits_timeline(cube)[1],
-        step = 20
+        step = 10
     )
 }
 }

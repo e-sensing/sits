@@ -601,6 +601,8 @@ plot.predicted <- function(x, y, ...,
 #' @param  blue          Band for blue color.
 #' @param  tile          Tile to be plotted.
 #' @param  date          Date to be plotted.
+#' @param  segments      List with segments to be shown (one per tile)
+#' @param  seg_color     Color to use for segment borders
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  tmap_options  List with optional tmap parameters
@@ -637,6 +639,8 @@ plot.raster_cube <- function(
         blue = NULL,
         tile = x$tile[[1]],
         date = NULL,
+        segments = NULL,
+        seg_color = "lightgoldenrod",
         palette = "RdYlGn",
         rev = FALSE,
         tmap_options = NULL
@@ -683,6 +687,7 @@ plot.raster_cube <- function(
             tile = tile,
             band = band,
             date = date,
+            segments = segments,
             palette = palette,
             rev = rev,
             tmap_options = tmap_options
@@ -691,7 +696,15 @@ plot.raster_cube <- function(
         # plot RGB image
         .check_cube_bands(tile, bands = c(red, green, blue))
         # plot RGB
-        p <- .plot_rgb(tile, red, green, blue, date, tmap_options)
+        p <- .plot_rgb(
+            tile = tile,
+            red = red,
+            green = green,
+            blue = blue,
+            date = date,
+            segments = segments,
+            seg_color = seg_color,
+            tmap_options = tmap_options)
     }
     return(p)
 }
@@ -1014,6 +1027,8 @@ plot.class_cube <- function(x, y, ...,
 #' @param  tile          Tile to be plotted.
 #' @param  band          Band to be plotted.
 #' @param  date          Date to be plotted.
+#' @param  segments      List with segments to be shown (one per tile)
+#' @param  seg_color     Color to use for segment borders
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
 #' @param  tmap_options  List with optional tmap parameters
@@ -1026,8 +1041,11 @@ plot.class_cube <- function(x, y, ...,
 #'
 #' @return               A plot object
 #'
-.plot_false_color <- function(tile, band,
-                              date = NULL,
+.plot_false_color <- function(tile,
+                              band,
+                              date,
+                              segments,
+                              seg_color,
                               palette,
                               rev,
                               tmap_options) {
@@ -1081,7 +1099,7 @@ plot.class_cube <- function(x, y, ...,
     bg_color <- .conf("tmap_legend_bg_color")
     bg_alpha <- as.numeric(.conf("tmap_legend_bg_alpha"))
     # user specified tmap options
-    if (!purrr::is_null(tmap_options)){
+    if (!purrr::is_null(tmap_options)) {
         # graticules label size
         if (!purrr::is_null(tmap_options[["tmap_graticules_labels_size"]]))
             labels_size <- as.numeric(
@@ -1118,6 +1136,19 @@ plot.class_cube <- function(x, y, ...,
                             legend.bg.color = bg_color,
                             legend.bg.alpha = bg_alpha)
     )
+    # include segments
+    if (!purrr::is_null(segments)) {
+        tile_name <- tile$tile
+        .check_chr_within(
+            x = tile_name,
+            within = names(segments),
+            msg = "there are no segments for this tile"
+        )
+        # retrieve the segments for this tile
+        sf_seg <- segments[[tile_name]]
+        p <- p + tmap::tm_shape(sf_seg) +
+            tmap::tm_borders(col = seg_color, lwd = 0.2)
+    }
     return(p)
 }
 #' @title  Plot a classified image
@@ -1556,6 +1587,8 @@ plot.class_cube <- function(x, y, ...,
 #' @param  green         Band to be plotted in green
 #' @param  blue          Band to be plotted in blue
 #' @param  date          Date to be plotted
+#' @param  segments      List with segments to be shown (one per tile)
+#' @param  seg_color     Color to use for segment borders
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap max_cells (default: 1e+06)
 #'                       tmap_graticules_labels_size (default: 0.7)
@@ -1566,7 +1599,8 @@ plot.class_cube <- function(x, y, ...,
 #'
 #' @return               A plot object
 #'
-.plot_rgb <- function(tile, red, green, blue, date, tmap_options) {
+.plot_rgb <- function(tile, red, green, blue, date,
+                      segments, seg_color, tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -1606,6 +1640,20 @@ plot.class_cube <- function(x, y, ...,
          tmap::tm_raster() +
          tmap::tm_graticules() +
          tmap::tm_compass()
+
+    # include segments
+    if (!purrr::is_null(segments)) {
+        tile_name <- tile$tile
+        .check_chr_within(
+            x = tile_name,
+            within = names(segments),
+            msg = "there are no segments for this tile"
+        )
+        # retrieve the segments for this tile
+        sf_seg <- segments[[tile_name]]
+        p <- p + tmap::tm_shape(sf_seg) +
+            tmap::tm_borders(col = seg_color, lwd = 0.2)
+    }
 
     return(p)
 }
