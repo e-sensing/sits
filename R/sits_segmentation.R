@@ -133,9 +133,11 @@ sits_supercells <- function(
             chunks = chunks,
             future = future
         )
+        class(cells_sf) <- c("segments", class(cells_sf))
         return(cells_sf)
     })
     # returns a named list
     names(cells_tile) <- tiles
+    class(cells_tile) <- c("segments", class(cells_tile))
     return(cells_tile)
 }
