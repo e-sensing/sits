@@ -215,13 +215,12 @@
     values <- values * scale_factor + offset_value
 
      # get the time series as a list
-    values_ts <- as.list(as.data.frame(values))
+    # values_ts <- as.list(as.data.frame(values))
 
     # # now we have to transpose the data
-    # ts_samples <- ts_bands %>%
-    #     purrr::set_names(bands) %>%
-    #     purrr::transpose() %>%
-    #     purrr::map(tibble::as_tibble)
+    ts_samples <- values %>%
+        purrr::transpose() %>%
+        purrr::map(tibble::as_tibble)
     #
     #
     # points$time_series <- purrr::map2(
