@@ -45,6 +45,7 @@
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
 #' @param pol_avg         Summarize samples for each polygon?
 #' @param pol_id          ID attribute for polygons.
+#' @param aggreg_fn       Aggregation function to compute a summary of each segments
 #' @param multicores      Number of threads to process the time series.
 #' @param progress        A logical value indicating if a progress bar
 #'                        should be shown. Default is \code{FALSE}.
@@ -335,6 +336,30 @@ sits_get_data.data.frame <- function(cube,
     )
     return(data)
 }
+#' @rdname sits_get_data
+#' @export
+sits_get_data.segments <- function(
+        cube,
+        samples,
+        ...,
+        bands = sits_bands(cube),
+        impute_fn = sits_impute_linear(),
+        aggreg_fn = "median",
+        multicores = 2,
+        progress = FALSE) {
+
+
+    data <- .supercells_get_data(
+        cube = cube,
+        supercells = samples,
+        bands = bands,
+        impute_fn  = impute_fn,
+        aggreg_fn = aggreg_fn,
+        multicores = multicores,
+        progress = progress
+    )
+    return(data)
+}
 #' @title Dispatch function to get time series from data cubes and cloud
 #' services
 #' @name .sits_get_ts
@@ -472,8 +497,6 @@ sits_get_data.data.frame <- function(cube,
             ncol = 2
         )
         colnames(xy) <- c("X", "Y")
-
-
         # build the sits tibble for the storing the points
         samples_tbl <- slider::slide_dfr(samples, function(point) {
 

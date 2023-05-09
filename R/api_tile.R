@@ -1150,6 +1150,34 @@ NULL
     # Return values
     values
 }
+#' @title Given a tile and a band, return a set of values for segments
+#' @name .tile_extract_segments
+#' @noRd
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Given a data cube, retrieve the time series of XY locations
+#'
+#' @param tile        Metadata about a data cube (one tile)
+#' @param band        Name of the band to the retrieved
+#' @param seg_pols    Segments as polygons
+#' @param aggreg_fn   Aggregation function for joining polygon values
+#'
+#' @return Data.frame with aggregated values per polygon.
+#'
+.tile_extract_segments <- function(tile, band, seg_pols, aggreg_fn) {
+    # Create a stack object
+    r_obj <- .raster_open_rast(.tile_paths(tile = tile, bands = band))
+    # Convert to SpatVectors
+    class(seg_pols) <- c("sf", class(seg_pols))
+    vec <- terra::vect(seg_pols)
+    # Extract the values
+    values <- terra::extract(x = r_obj, y = vec, fun = aggreg_fn)
+    # remove the id
+    values <- values[-1]
+    # Return values
+    return(values)
+}
 
 .tile_contains_cloud <- function(tile) {
     tile <- .tile(tile)
