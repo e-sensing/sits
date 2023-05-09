@@ -133,7 +133,7 @@ sits_supercells <- function(
             chunks = chunks,
             future = future
         )
-        class(cells_sf) <- c("segments", class(cells_sf))
+        class(cells_sf) <- c("supercells", class(cells_sf))
         return(cells_sf)
     })
     # returns a named list

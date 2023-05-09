@@ -8,6 +8,7 @@
 \alias{sits_get_data.sf}
 \alias{sits_get_data.sits}
 \alias{sits_get_data.data.frame}
+\alias{sits_get_data.segments}
 \title{Get time series from data cubes and cloud services}
 \usage{
 sits_get_data(
@@ -98,6 +99,17 @@ sits_get_data(
   multicores = 2,
   progress = FALSE
 )
+
+\method{sits_get_data}{segments}(
+  cube,
+  samples,
+  ...,
+  bands = sits_bands(cube),
+  impute_fn = sits_impute_linear(),
+  aggreg_fn = "median",
+  multicores = 2,
+  progress = FALSE
+)
 }
 \arguments{
 \item{cube}{Data cube from where data is to be retrieved.}
@@ -139,6 +151,8 @@ as a polygon label.}
 
 \item{progress}{A logical value indicating if a progress bar
 should be shown. Default is \code{FALSE}.}
+
+\item{aggreg_fn}{Aggregation function to compute a summary of each segments}
 }
 \value{
 A tibble with the metadata and data for each time series

@@ -692,6 +692,7 @@ plot.raster_cube <- function(
             band = band,
             date = date,
             segments = segments,
+            seg_color = seg_color,
             palette = palette,
             rev = rev,
             tmap_options = tmap_options
