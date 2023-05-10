@@ -6,7 +6,7 @@
 \usage{
 sits_supercells(
   cube,
-  tiles = cube[1, "tile"],
+  tiles = NULL,
   bands,
   date,
   step = 50,
@@ -27,7 +27,8 @@ sits_supercells(
 
 \item{date}{Date to select the image to be segmented}
 
-\item{step}{Distance (in number of cells) between initial supercells' centers.}
+\item{step}{Distance (in number of cells) between initial
+supercells' centers.}
 
 \item{compactness}{A compactness value. Larger values cause clusters to
 be more compact/even (square).}
@@ -36,11 +37,11 @@ be more compact/even (square).}
 
 \item{minarea}{Specifies the minimal size of a supercell (in cells).}
 
-\item{chunks}{Should the input (x) be split into chunks before deriving
-supercells? Either FALSE,
+\item{chunks}{Should the input (x) be split into chunks before
+deriving supercells? Either FALSE,
 TRUE (default - only large input objects are split),
-or a numeric value (representing the side length of the chunk
-in the number of cells).}
+or a numeric value (representing the side length
+of the chunk in the number of cells).}
 
 \item{future}{Should the future package be used for parallelization
 of the calculations?}
@@ -48,9 +49,10 @@ of the calculations?}
 \item{multicores}{Number of cores for parallel processing}
 }
 \description{
-Apply a segmentation on a data cube based on the "supercells" package. This is an
-adaptation and extention to remote sensing data of the SLIC superpixels
-algorithm proposed by Achanta et al. (2012). See references for more details.
+Apply a segmentation on a data cube based on the "supercells" package.
+This is an adaptation and extension to remote sensing data of the
+SLIC superpixels algorithm proposed by Achanta et al. (2012).
+See references for more details.
 }
 \examples{
 # example code
@@ -75,14 +77,14 @@ if (sits_run_examples()) {
 }
 \references{
 Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi,
-                     Pascal Fua, and Sabine Süsstrunk. 2012. “SLIC Superpixels Compared
-                     to State-of-the-Art Superpixel Methods.” IEEE Transactions on
-                     Pattern Analysis and Machine Intelligence 34 (11): 2274–82.
+        Pascal Fua, and Sabine Süsstrunk. 2012. “SLIC Superpixels Compared
+        to State-of-the-Art Superpixel Methods.” IEEE Transactions on
+        Pattern Analysis and Machine Intelligence 34 (11): 2274–82.
 
-                     Nowosad, Jakub, and Tomasz F. Stepinski. 2022. “Extended SLIC
-                     Superpixels Algorithm for Applications to Non-Imagery Geospatial
-                     Rasters.” International Journal of Applied Earth Observation
-                     and Geoinformation 112 (August): 102935.
+        Nowosad, Jakub, and Tomasz F. Stepinski. 2022. “Extended SLIC
+        Superpixels Algorithm for Applications to Non-Imagery Geospatial
+        Rasters.” International Journal of Applied Earth Observation
+        and Geoinformation 112 (August): 102935.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

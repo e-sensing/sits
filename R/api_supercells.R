@@ -21,10 +21,10 @@
         multicores,
         progress
 ){
-    # set start and end dates
-    dates <- .cube_timeline(cube)[[1]]
-    start_date <- dates[1]
-    end_date   <- dates[[length(dates)]]
+    # get start and end dates
+    start_date <- .cube_start_date(cube)
+    end_date   <- .cube_end_date(cube)
+
     # combine tiles and bands for parallel processing
     tiles_bands <- tidyr::expand_grid(tile = .cube_tiles(cube),
                                       band = bands) %>%
@@ -33,8 +33,9 @@
         })
     # set output_dir
     output_dir <- tempdir()
-    if (Sys.getenv("SITS_SAMPLES_CACHE_DIR") != "")
+    if (nzchar(Sys.getenv("SITS_SAMPLES_CACHE_DIR"))) {
         output_dir <- Sys.getenv("SITS_SAMPLES_CACHE_DIR")
+    }
     # prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
@@ -82,7 +83,7 @@
                 polygon_id = seg[["supercells"]]
             )
             # store them in the sample tibble
-            sample$time_series <- list(tibble::tibble(Index = dates))
+            sample$time_series <- list(tibble::tibble(Index = .tile_timeline(tile)))
             # return valid row of time series
             return(sample)
         })
@@ -90,6 +91,7 @@
         ts <- .supercells_get_ts(
             tile = tile,
             band = band,
+            samples_tbl = samples_tbl,
             segs_tile = segs_tile,
             impute_fn  = impute_fn,
             aggreg_fn = aggreg_fn
@@ -134,7 +136,6 @@
         dplyr::ungroup() %>%
         tidyr::nest(time_series = !!c("Index", bands)) %>%
         dplyr::select(-c("tile", "#..id"))
-
 
     # get the first point that intersect more than one tile
     # eg sentinel 2 mgrs grid
@@ -183,13 +184,15 @@
 #'
 #' @param tile        Tile of regular data cube
 #' @param band        Band to extract time series
+#' @param samples_tbl Samples tibble
 #' @param segs_tile   Polygons produced by sits_supercells for the tile
-#' @param impute_fn  Imputation function for NA values.
+#' @param impute_fn   Imputation function for NA values.
 #' @param aggreg_fn   Aggregation function to compute a summary of each segment
 #'
 .supercells_get_ts <- function(
         tile,
         band,
+        samples_tbl,
         segs_tile,
         impute_fn,
         aggreg_fn
@@ -213,21 +216,19 @@
     }
     # correct the values using the scale factor
     values <- values * scale_factor + offset_value
-
-     # get the time series as a list
-    # values_ts <- as.list(as.data.frame(values))
-
-    # # now we have to transpose the data
-    ts_samples <- values %>%
-        purrr::transpose() %>%
-        purrr::map(tibble::as_tibble)
-    #
-    #
-    # points$time_series <- purrr::map2(
-    #     points$time_series,
-    #     ts_samples,
-    #     dplyr::bind_cols
-    # )
-
-    return(values_ts)
+    # now we have to transpose the data
+    values <- purrr::map(seq_len(nrow(values)), function(i) {
+        dfr <- as.data.frame(unname(t(values[i,])))
+        names(dfr) <- band
+        tibble::as_tibble(dfr)
+    })
+    # join each time series with samples tbl
+    samples_tbl$time_series <- purrr::map2(
+        samples_tbl$time_series,
+        values,
+        dplyr::bind_cols
+    )
+    # set sits class
+    class(samples_tbl) <- c("sits", class(samples_tbl))
+    return(samples_tbl)
 }

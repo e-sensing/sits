@@ -7,38 +7,40 @@
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description
-#' Apply a segmentation on a data cube based on the "supercells" package. This is an
-#' adaptation and extention to remote sensing data of the SLIC superpixels
-#' algorithm proposed by Achanta et al. (2012). See references for more details.
+#' Apply a segmentation on a data cube based on the "supercells" package.
+#' This is an adaptation and extension to remote sensing data of the
+#' SLIC superpixels algorithm proposed by Achanta et al. (2012).
+#' See references for more details.
 #'
 #' @param cube          Regular data cube
 #' @param tiles         Tiles to be segmented
 #' @param bands         Bands to include in the segmentation
 #' @param date          Date to select the image to be segmented
-#' @param step          Distance (in number of cells) between initial supercells' centers.
+#' @param step          Distance (in number of cells) between initial
+#'                      supercells' centers.
 #' @param compactness   A compactness value. Larger values cause clusters to
 #'                      be more compact/even (square).
 #' @param iter          Number of iterations to create the output.
 #' @param minarea       Specifies the minimal size of a supercell (in cells).
-#' @param chunks        Should the input (x) be split into chunks before deriving
-#'                      supercells? Either FALSE,
+#' @param chunks        Should the input (x) be split into chunks before
+#'                      deriving supercells? Either FALSE,
 #'                      TRUE (default - only large input objects are split),
-#'                      or a numeric value (representing the side length of the chunk
-#'                      in the number of cells).
+#'                      or a numeric value (representing the side length
+#'                      of the chunk in the number of cells).
 #' @param future        Should the future package be used for parallelization
 #'                      of the calculations?
 #' @param multicores    Number of cores for parallel processing
 #'
 #' @references
-#'                      Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi,
-#'                      Pascal Fua, and Sabine Süsstrunk. 2012. “SLIC Superpixels Compared
-#'                      to State-of-the-Art Superpixel Methods.” IEEE Transactions on
-#'                      Pattern Analysis and Machine Intelligence 34 (11): 2274–82.
+#'         Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi,
+#'         Pascal Fua, and Sabine Süsstrunk. 2012. “SLIC Superpixels Compared
+#'         to State-of-the-Art Superpixel Methods.” IEEE Transactions on
+#'         Pattern Analysis and Machine Intelligence 34 (11): 2274–82.
 #'
-#'                      Nowosad, Jakub, and Tomasz F. Stepinski. 2022. “Extended SLIC
-#'                      Superpixels Algorithm for Applications to Non-Imagery Geospatial
-#'                      Rasters.” International Journal of Applied Earth Observation
-#'                      and Geoinformation 112 (August): 102935.
+#'         Nowosad, Jakub, and Tomasz F. Stepinski. 2022. “Extended SLIC
+#'         Superpixels Algorithm for Applications to Non-Imagery Geospatial
+#'         Rasters.” International Journal of Applied Earth Observation
+#'         and Geoinformation 112 (August): 102935.
 #'
 #' @examples
 #' # example code
@@ -63,7 +65,7 @@
 #' @export
 sits_supercells <- function(
         cube,
-        tiles = cube[1, "tile"],
+        tiles = NULL,
         bands,
         date,
         step = 50,
@@ -80,8 +82,12 @@ sits_supercells <- function(
     # cube is regular
     .check_is_regular(cube)
     # tile belongs to the cube
-    .check_chr_within(tiles, .cube_tiles(cube),
-                      msg = "tiles not available in the cube")
+    tiles <- .default(tiles, .cube_tiles(cube))
+    .check_chr_within(
+        x = tiles,
+        within = .cube_tiles(cube),
+        msg = "tiles not available in the cube"
+    )
     # bands are OK
     .check_chr_within(bands, .cube_bands(cube),
                       msg = "bands not available in the cube")
@@ -107,7 +113,7 @@ sits_supercells <- function(
     # get the tile
     tile_rows <- .cube_filter_tiles(cube, tiles)
 
-    cells_tile <- slider::slide(tile_rows, function(row){
+    cells_tile <- slider::slide(tile_rows, function(row) {
         # filter tile by band and date
         row <- row %>%
             .tile_filter_bands(bands) %>%

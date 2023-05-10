@@ -5,14 +5,17 @@
 \alias{plot.sits}
 \title{Plot time series}
 \usage{
-\method{plot}{sits}(x, y, ...)
+\method{plot}{sits}(x, y, ..., together = FALSE)
 }
 \arguments{
-\item{x}{Object of class "sits"}
+\item{x}{Object of class "sits".}
 
 \item{y}{Ignored.}
 
 \item{...}{Further specifications for \link{plot}.}
+
+\item{together}{A logical value indicating whether the samples should be
+plotted together.}
 }
 \value{
 A series of plot objects produced by ggplot2 showing all
@@ -44,10 +47,11 @@ based on the input data:
  \item{"all years": }{Plot all samples from the same location together}
  \item{"together": }{Plot all samples of the same band and label together}
 }
-The plot.sits function makes an educated guess of what plot is required,
-based on the input data. If the input data has less than 30 samples, it
-will default to "all years". If there are more than 30 samples,
-it will default to "together".
+The plot function makes an educated guess of what plot is required
+based on the input data. If the input data has less than 30 samples or
+the \code{together} parameter is FALSE, it will plot only one randomly
+chosen sample. If the \code{together} parameter is set to TRUE or
+there are more than 30 samples, it will plot all samples.
 }
 \note{
 Please refer to the sits documentation available in

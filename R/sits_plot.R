@@ -26,14 +26,17 @@
 #'  \item{"all years": }{Plot all samples from the same location together}
 #'  \item{"together": }{Plot all samples of the same band and label together}
 #' }
-#' The plot.sits function makes an educated guess of what plot is required,
-#' based on the input data. If the input data has less than 30 samples, it
-#' will default to "all years". If there are more than 30 samples,
-#' it will default to "together".
+#' The plot function makes an educated guess of what plot is required
+#' based on the input data. If the input data has less than 30 samples or
+#' the \code{together} parameter is FALSE, it will plot only one randomly
+#' chosen sample. If the \code{together} parameter is set to TRUE or
+#' there are more than 30 samples, it will plot all samples.
 #'
-#' @param  x    Object of class "sits"
-#' @param  y    Ignored.
-#' @param ...   Further specifications for \link{plot}.
+#' @param x        Object of class "sits".
+#' @param y        Ignored.
+#' @param together A logical value indicating whether the samples should be
+#'  plotted together.
+#' @param ...      Further specifications for \link{plot}.
 #'
 #' @return A series of plot objects produced by ggplot2 showing all
 #'   time series associated to each combination of band and label,
@@ -49,12 +52,13 @@
 #' }
 #'
 #' @export
-#'
-plot.sits <- function(x, y, ...) {
+plot.sits <- function(x, y, ..., together = FALSE) {
     stopifnot(missing(y))
+    # default value is set to empty char in case null
+    .check_lgl_parameter(together)
 
     # Are there more than 30 samples? Plot them together!
-    if (nrow(x) > 30) {
+    if (together || nrow(x) > 30) {
         p <- .plot_together(x)
     }  else {
         # otherwise, take "allyears" as the default
