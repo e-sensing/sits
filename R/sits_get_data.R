@@ -336,6 +336,7 @@ sits_get_data.data.frame <- function(cube,
     )
     return(data)
 }
+
 #' @rdname sits_get_data
 #' @export
 sits_get_data.segments <- function(
@@ -348,7 +349,6 @@ sits_get_data.segments <- function(
         multicores = 2,
         progress = FALSE) {
 
-
     data <- .supercells_get_data(
         cube = cube,
         supercells = samples,
@@ -360,6 +360,7 @@ sits_get_data.segments <- function(
     )
     return(data)
 }
+
 #' @title Dispatch function to get time series from data cubes and cloud
 #' services
 #' @name .sits_get_ts
@@ -456,11 +457,9 @@ sits_get_data.segments <- function(
         )
 
         if (file.exists(filename)) {
-            tryCatch(
-                {
+            tryCatch({
                     # ensuring that the file is not corrupted
                     timeseries <- readRDS(filename)
-
                     return(timeseries)
                 },
                 error = function(e) {
