@@ -27,14 +27,14 @@ test_that("plot colors", {
         parse_info = c("X1", "X2", "tile", "start_date", "end_date",
                        "band", "version"),
         bands = "class",
-        labels = c("ClearCut_Burned", "ClearCut_BareSoil",
+        labels = c("ClearCut_Burn", "ClearCut_Soil",
                    "ClearCut_Veg", "Forest")
     )
     p <- plot(ro_class)
     expect_equal(p$tm_shape$line.center, "midpoint")
     expect_equal(p$tm_layout$legend.bg.color, "white")
     expect_equal(unname(p$tm_raster$labels),
-                 c("ClearCut_Burned", "ClearCut_BareSoil","ClearCut_Veg", "Forest"))
+                 c("ClearCut_Burn", "ClearCut_Soil","ClearCut_Veg", "Forest"))
 })
 
 test_that("colors_get", {

@@ -29,11 +29,7 @@ test_that("EVI generation", {
         pattern = "\\.tif$",
         full.names = TRUE
     ))
-    documentation <- FALSE
-    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
-        documentation <- TRUE
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
-    }
+
     expect_warning({ gc_cube <- sits_regularize(
         cube        = s2_cube,
         output_dir  = dir_images,
@@ -42,8 +38,6 @@ test_that("EVI generation", {
         multicores  = 2
     )})
 
-    if (documentation)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
     gc_cube_new <- sits_apply(gc_cube,
         EVI2 = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),
         multicores = 2,
@@ -138,11 +132,6 @@ test_that("Kernel functions", {
     median_2 <- v_obj_md[21,21]
 
     expect_true(median_1 == median_2)
-    documentation <- FALSE
-    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
-        documentation <- TRUE
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
-    }
     # Recovery
     out <- capture_messages({
         expect_message({
@@ -157,9 +146,6 @@ test_that("Kernel functions", {
         regexp = "Recovery"
         )
     })
-    if (documentation) {
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
-    }
     expect_true(grepl("output_dir", out[1]))
     expect_true(grepl("Recovery", out[2]))
     cube_mean <- sits_apply(

@@ -928,6 +928,7 @@ plot.uncertainty_cube <- function(
     # plot the data using tmap
     p <- .plot_false_color(tile = tile,
                            band = band,
+                           date = NULL,
                            palette  = palette,
                            rev = rev,
                            tmap_options = tmap_options)
@@ -1049,8 +1050,8 @@ plot.class_cube <- function(x, y, ...,
 .plot_false_color <- function(tile,
                               band,
                               date,
-                              segments,
-                              seg_color,
+                              segments = NULL,
+                              seg_color = NULL,
                               palette,
                               rev,
                               tmap_options) {
@@ -1604,8 +1605,14 @@ plot.class_cube <- function(x, y, ...,
 #'
 #' @return               A plot object
 #'
-.plot_rgb <- function(tile, red, green, blue, date,
-                      segments, seg_color, tmap_options) {
+.plot_rgb <- function(tile,
+                      red,
+                      green,
+                      blue,
+                      date,
+                      segments = NULL,
+                      seg_color = NULL,
+                      tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")

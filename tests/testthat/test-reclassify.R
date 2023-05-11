@@ -76,11 +76,6 @@ test_that("One-year, multicores processing reclassify", {
     # ro_class is "Old_Deforestation"
     expect_equal(vls_ro_mask[2000], 5)
 
-    documentation <- FALSE
-    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
-        documentation <- TRUE
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
-    }
     out <- capture_messages({
         expect_message(
             object = { sits_reclassify(
@@ -108,9 +103,6 @@ test_that("One-year, multicores processing reclassify", {
             regexp = "Recovery: "
         )
     })
-    if (documentation) {
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
-    }
     expect_true(grepl("output_dir", out[1]))
 
     unlink(ro_mask$file_info[[1]]$path)

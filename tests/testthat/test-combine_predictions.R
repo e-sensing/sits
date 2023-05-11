@@ -56,11 +56,6 @@ test_that("Combine predictions", {
 
     # Recovery
     # test Recovery
-    documentation <- FALSE
-    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
-        documentation <- TRUE
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
-    }
     out <- capture_messages({
         expect_message(
             object = { sits_combine_predictions(
@@ -72,9 +67,6 @@ test_that("Combine predictions", {
             regexp = "Recovery"
         )
     })
-    if (documentation) {
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
-    }
     expect_true(grepl("output_dir", out[1]))
 
     # combine predictions

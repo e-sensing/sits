@@ -24,11 +24,6 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     if (!dir.exists(dir_images)) {
         suppressWarnings(dir.create(dir_images))
     }
-    documentation <- FALSE
-    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
-        documentation <- TRUE
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
-    }
     expect_warning({
         rg_cube <- sits_regularize(
         cube = .tile(s2_cube_open),
@@ -67,8 +62,6 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     expect_true(all(vls > 0 & vls < 1.))
     expect_equal(sits_bands(ts), sits_bands(rg_cube))
     expect_equal(sits_timeline(ts), sits_timeline(rg_cube))
-    if (documentation)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
 })
 
 test_that("Creating Landsat cubes from MPC", {
@@ -106,11 +99,6 @@ test_that("Creating Landsat cubes from MPC", {
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
-    documentation <- FALSE
-    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
-        documentation <- TRUE
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
-    }
     expect_warning({
         rg_landsat <- sits_regularize(
         cube        = landsat_cube,
@@ -120,8 +108,6 @@ test_that("Creating Landsat cubes from MPC", {
         multicores  = 1
         )
     })
-    if (documentation)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
 
     expect_equal(.tile_nrows(.tile(rg_landsat)), 856)
     expect_equal(.tile_ncols(.tile(rg_landsat)), 967)
@@ -242,11 +228,6 @@ test_that("Regularizing local cubes without CLOUD BAND", {
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
-    documentation <- FALSE
-    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
-        documentation <- TRUE
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = "false")
-    }
     # regularize local cube
     expect_warning({
         local_reg_cube <- sits_regularize(
@@ -256,8 +237,6 @@ test_that("Regularizing local cubes without CLOUD BAND", {
         output_dir = output_dir
         )
     })
-    if (documentation)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = "true")
     tl_orig <- sits_timeline(local_cube)
     tl_reg <- sits_timeline(local_reg_cube)
 
