@@ -189,6 +189,7 @@ Collate:
     'sits_parallel.R'
     'sits_patterns.R'
     'sits_plot.R'
+    'sits_predictors.R'
     'sits_reclassify.R'
     'sits_raster_data.R'
     'sits_raster_sub_image.R'
