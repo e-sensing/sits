@@ -22,8 +22,6 @@ inst/doc
 doc
 Meta
 *.bkp
-Makevars
-Makevars.*
 .sits/
 *.gcda
 *.gcno
