@@ -22,13 +22,6 @@
 #'                      be more compact/even (square).
 #' @param iter          Number of iterations to create the output.
 #' @param minarea       Specifies the minimal size of a supercell (in cells).
-#' @param chunks        Should the input (x) be split into chunks before
-#'                      deriving supercells? Either FALSE,
-#'                      TRUE (default - only large input objects are split),
-#'                      or a numeric value (representing the side length
-#'                      of the chunk in the number of cells).
-#' @param future        Should the future package be used for parallelization
-#'                      of the calculations?
 #' @param multicores    Number of cores for parallel processing
 #'
 #' @references
@@ -72,9 +65,7 @@ sits_supercells <- function(
         compactness = 1,
         iter = 10,
         minarea = 30,
-        chunks = TRUE,
-        future = FALSE,
-        multicores = 4
+        multicores = 1
 ){
     # check package availability
     .check_require_packages(c("supercells", "future"))
@@ -104,10 +95,10 @@ sits_supercells <- function(
     .check_int_parameter(minarea, min = 10, max = 100)
     # chunks
     .check_lgl_parameter(chunks)
-    # future
-    .check_lgl_parameter(future)
     # multicores
     .check_int_parameter(multicores, min = 1, max = 1000)
+    # set multicores to 1
+    multicores <- 1
 
     # obtain the image files to perform the segmentation
     # get the tile
@@ -125,10 +116,6 @@ sits_supercells <- function(
         })
         # obtain the SpatRaster (terra) object
         rast <- terra::rast(files)
-        # prepare the future plan
-        if (future)
-            future::plan(strategy = "future::multisession",
-                         workers = multicores)
 
         # segment the terra object
         cells_sf <- supercells::supercells(
@@ -136,8 +123,9 @@ sits_supercells <- function(
             compactness = compactness,
             step = step,
             iter = iter,
-            chunks = chunks,
-            future = future
+            minarea = minarea,
+            chunks = FALSE,
+            future = FALSE
         )
         class(cells_sf) <- c("supercells", class(cells_sf))
         return(cells_sf)

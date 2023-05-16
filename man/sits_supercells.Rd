@@ -13,9 +13,7 @@ sits_supercells(
   compactness = 1,
   iter = 10,
   minarea = 30,
-  chunks = TRUE,
-  future = FALSE,
-  multicores = 4
+  multicores = 1
 )
 }
 \arguments{
@@ -36,15 +34,6 @@ be more compact/even (square).}
 \item{iter}{Number of iterations to create the output.}
 
 \item{minarea}{Specifies the minimal size of a supercell (in cells).}
-
-\item{chunks}{Should the input (x) be split into chunks before
-deriving supercells? Either FALSE,
-TRUE (default - only large input objects are split),
-or a numeric value (representing the side length
-of the chunk in the number of cells).}
-
-\item{future}{Should the future package be used for parallelization
-of the calculations?}
 
 \item{multicores}{Number of cores for parallel processing}
 }

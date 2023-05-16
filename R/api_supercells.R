@@ -21,6 +21,8 @@
         multicores,
         progress
 ){
+    # set multicores to 1
+    multicores <- 1
     # get start and end dates
     start_date <- .cube_start_date(cube)
     end_date   <- .cube_end_date(cube)
@@ -37,6 +39,7 @@
         output_dir <- Sys.getenv("SITS_SAMPLES_CACHE_DIR")
     }
     # prepare parallelization
+    multicores <- min(multicores, length(tiles_bands))
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
@@ -47,26 +50,26 @@
         tile <- sits_select(cube, bands = band, tiles = tile_id)
         # select supercells for the tile
         segs_tile <- supercells[[tile_id]]
-        # create hash for combination of tile and samples
-        hash_bundle <- digest::digest(list(tile, supercells), algo = "md5")
-        # create a file with a hash code
-        filename <- .file_path(
-            "samples", hash_bundle,
-            ext = ".rds",
-            output_dir = output_dir
-        )
-        # test if file exists
-        if (file.exists(filename)) {
-            tryCatch({
-                # ensure that the file is not corrupted
-                timeseries <- readRDS(filename)
-                return(timeseries)
-            },
-            error = function(e) {
-                unlink(filename)
-                gc()
-            })
-        }
+        # # create hash for combination of tile and samples
+        # hash_bundle <- digest::digest(list(tile, supercells), algo = "md5")
+        # # create a file with a hash code
+        # filename <- .file_path(
+        #     "samples", hash_bundle,
+        #     ext = ".rds",
+        #     output_dir = output_dir
+        # )
+        # # test if file exists
+        # if (file.exists(filename)) {
+        #     tryCatch({
+        #         # ensure that the file is not corrupted
+        #         timeseries <- readRDS(filename)
+        #         return(timeseries)
+        #     },
+        #     error = function(e) {
+        #         unlink(filename)
+        #         gc()
+        #     })
+        # }
         # build the sits tibble for the storing the points
         samples_tbl <- slider::slide_dfr(segs_tile, function(seg) {
             # convert XY to lat long
@@ -100,7 +103,7 @@
         ts[["tile"]] <- tile_id
         ts[["#..id"]] <- seq_len(nrow(ts))
 
-        saveRDS(ts, filename)
+        # saveRDS(ts, filename)
 
         return(ts)
     }, progress = progress)

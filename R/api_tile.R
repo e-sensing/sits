@@ -1169,10 +1169,10 @@ NULL
     # Create a stack object
     r_obj <- .raster_open_rast(.tile_paths(tile = tile, bands = band))
     # Convert to SpatVectors
-    class(seg_pols) <- c("sf", class(seg_pols))
+    # class(seg_pols) <- c("sf", class(seg_pols))
     vec <- terra::vect(seg_pols)
     # Extract the values
-    values <- terra::extract(x = r_obj, y = vec, fun = aggreg_fn)
+    values <- terra::extract(x = r_obj, y = vec, fun = aggreg_fn, na.rm = TRUE)
     # remove the id
     values <- values[-1]
     # Return values

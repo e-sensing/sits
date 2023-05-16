@@ -1571,14 +1571,6 @@
         msg = "invalid sits model"
     )
     .check_that(
-        x = any(c("model", "torch_model",
-                  # Old models
-                  "result_rfor", "result_svm", "model_xgb") %in%
-                    ls(environment(model))),
-        local_msg = "please, run sits_train() first",
-        msg = "invalid sits model"
-    )
-    .check_that(
         x = "samples" %in% ls(environment(model)),
         local_msg = "please, run sits_train() first",
         msg = "invalid sits model"

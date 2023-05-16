@@ -106,8 +106,8 @@ sits_get_data(
   ...,
   bands = sits_bands(cube),
   impute_fn = sits_impute_linear(),
-  aggreg_fn = "median",
-  multicores = 2,
+  aggreg_fn = mean,
+  multicores = 1,
   progress = FALSE
 )
 }

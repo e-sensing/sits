@@ -24,6 +24,7 @@
 #' @export
 sits_predictors <- function(samples) {
     pred <- .predictors(samples)
+    return(pred)
 }
 
 #' @title  Obtain numerical values of predictors for time series samples
@@ -51,6 +52,7 @@ sits_predictors <- function(samples) {
 #' @export
 sits_pred_features <- function(pred){
     features <- .pred_features(pred)
+    return(features)
 }
 #' @title  Obtain categorical id and labels of predictors for time series samples
 #' @name sits_pred_reference
@@ -73,8 +75,10 @@ sits_pred_features <- function(pred){
 #' if (sits_run_examples()) {
 #'      summary(samples_modis_ndvi)
 #' }
+#' @export
 sits_pred_references <- function(pred){
     ref <- .pred_references(pred)
+    return(ref)
 }
 #' @title  Normalize predictor values
 #' @name sits_pred_normalize
@@ -96,8 +100,10 @@ sits_pred_references <- function(pred){
 #' if (sits_run_examples()) {
 #'      summary(samples_modis_ndvi)
 #' }
+#' @export
 sits_pred_normalize <- function(pred, stats) {
     pred <- .pred_normalize(pred, stats)
+    return(pred)
 }
 #' @title  Obtain a fraction of the predictors data frame
 #' @name sits_pred_sample
@@ -120,6 +126,7 @@ sits_pred_normalize <- function(pred, stats) {
 #' if (sits_run_examples()) {
 #'      summary(samples_modis_ndvi)
 #' }
+#' @export
 sits_pred_sample <- function(pred, frac){
     sample <- .pred_sample(pred, frac)
 }
@@ -146,6 +153,8 @@ sits_pred_sample <- function(pred, frac){
 #' if (sits_run_examples()) {
 #'      summary(samples_modis_ndvi)
 #' }
+#' @export
 sits_stats <- function(samples){
     stats <- .sits_stats(samples)
+    return(stats)
 }
