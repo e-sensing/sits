@@ -204,7 +204,12 @@ NULL
 }
 
 .fi_during <- function(fi, start_date, end_date) {
-    .between(.fi_timeline(fi), start_date[[1]], end_date[[1]])
+    fi_tl <- .fi_timeline(fi)
+    .fi_switch(
+        fi = fi,
+        eo_cube = .between(fi_tl, start_date[[1]], end_date[[1]]),
+        derived_cube = all(.between(fi_tl, start_date[[1]], end_date[[1]]))
+    )
 }
 
 .fi_filter_interval <- function(fi, start_date, end_date) {
