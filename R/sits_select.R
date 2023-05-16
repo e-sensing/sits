@@ -90,6 +90,9 @@ sits_select.raster_cube <- function(data,
     # Filter dates
     if (!is.null(start_date) || !is.null(end_date)) {
         .check_dates_parameter(c(start_date, end_date))
+        start_date <- .default(start_date, .cube_start_date(data))
+        end_date <- .default(end_date, .cube_end_date(data))
+
         data <- .cube_filter_interval(
             cube = data, start_date = start_date, end_date = end_date
         )
