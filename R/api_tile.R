@@ -1168,13 +1168,17 @@ NULL
 .tile_extract_segments <- function(tile, band, seg_pols, aggreg_fn) {
     # Create a stack object
     r_obj <- .raster_open_rast(.tile_paths(tile = tile, bands = band))
+    n_names <- length(names(r_obj))
+    names(r_obj) <- c(1:n_names)
     # Convert to SpatVectors
     class(seg_pols) <- c("sf", class(seg_pols))
-    vec <- terra::vect(seg_pols)
+    # vec <- terra::vect(seg_pols)
     # Extract the values
-    values <- terra::extract(x = r_obj, y = vec, fun = aggreg_fn, na.rm = TRUE)
-    # remove the id
-    values <- values[-1]
+    values <- as.matrix(exactextractr::exact_extract(
+        x = r_obj,
+        y = seg_pols,
+        fun = aggreg_fn
+    ))
     # Return values
     return(values)
 }

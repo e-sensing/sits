@@ -8,7 +8,7 @@
 #' @param supercells polygons produced by sits_supercells
 #' @param bands      bands used in time series
 #' @param impute_fn  Imputation function for NA values.
-#' @param aggreg_fn  Aggregation function to compute a summary of each segments
+#' @param aggreg_fn  Function to compute a summary of each segment
 #' @param multicores Number of cores to use for processing
 #' @param progress   Show progress bar?
 #'
@@ -21,8 +21,8 @@
         multicores,
         progress
 ){
-    # set multicores to 1
-    multicores <- 1
+    # verify if exactextractr is installed
+    .check_require_packages("exactextractr")
     # get start and end dates
     start_date <- .cube_start_date(cube)
     end_date   <- .cube_end_date(cube)
@@ -71,9 +71,9 @@
             })
         }
         # build the sits tibble for the storing the points
-        samples_tbl <- slider::slide_dfr(segs_tile, function(seg) {
+        samples_tbl <- purrr::map2_dfr(segs_tile$x, segs_tile$y, function(x, y) {
             # convert XY to lat long
-            lat_long <- .proj_to_latlong(seg$x, seg$y, .crs(cube))
+            lat_long <- .proj_to_latlong(x, y, .crs(cube))
 
             # create metadata for the polygons
             sample <- tibble::tibble(
@@ -83,13 +83,14 @@
                 end_date   = end_date,
                 label      = "NoClass",
                 cube       = tile[["collection"]],
-                polygon_id = seg[["supercells"]]
             )
             # store them in the sample tibble
             sample$time_series <- list(tibble::tibble(Index = .tile_timeline(tile)))
             # return valid row of time series
             return(sample)
         })
+        samples_tbl$polygon_id <- c(1:nrow(samples_tbl))
+
         # extract time series per tile and band
         ts <- .supercells_get_ts(
             tile = tile,
@@ -219,18 +220,17 @@
     }
     # correct the values using the scale factor
     values <- values * scale_factor + offset_value
-    # now we have to transpose the data
-    values <- purrr::map(seq_len(nrow(values)), function(i) {
-        dfr <- as.data.frame(unname(t(values[i,])))
-        names(dfr) <- band
-        tibble::as_tibble(dfr)
+    # join new time series with previous values
+    samples_tbl <- slider::slide2_dfr(
+        samples_tbl, seq_len(nrow(samples_tbl)),
+        function(sample, i){
+            old_ts <- sample$time_series[[1]]
+            new_ts <- tibble::tibble(ts = values[i,])
+            new_ts <- dplyr::bind_cols(old_ts, new_ts)
+            colnames(new_ts) <- c(colnames(old_ts), band)
+            sample$time_series[[1]] <- new_ts
+            return(sample)
     })
-    # join each time series with samples tbl
-    samples_tbl$time_series <- purrr::map2(
-        samples_tbl$time_series,
-        values,
-        dplyr::bind_cols
-    )
     # set sits class
     class(samples_tbl) <- c("sits", class(samples_tbl))
     return(samples_tbl)

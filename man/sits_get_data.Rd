@@ -106,7 +106,7 @@ sits_get_data(
   ...,
   bands = sits_bands(cube),
   impute_fn = sits_impute_linear(),
-  aggreg_fn = mean,
+  aggreg_fn = "mean",
   multicores = 1,
   progress = FALSE
 )
@@ -152,7 +152,7 @@ as a polygon label.}
 \item{progress}{A logical value indicating if a progress bar
 should be shown. Default is \code{FALSE}.}
 
-\item{aggreg_fn}{Aggregation function to compute a summary of each segments}
+\item{aggreg_fn}{Function to compute a summary of each segment}
 }
 \value{
 A tibble with the metadata and data for each time series

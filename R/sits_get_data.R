@@ -45,7 +45,7 @@
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
 #' @param pol_avg         Summarize samples for each polygon?
 #' @param pol_id          ID attribute for polygons.
-#' @param aggreg_fn       Aggregation function to compute a summary of each segments
+#' @param aggreg_fn       Function to compute a summary of each segment
 #' @param multicores      Number of threads to process the time series.
 #' @param progress        A logical value indicating if a progress bar
 #'                        should be shown. Default is \code{FALSE}.
@@ -345,7 +345,7 @@ sits_get_data.segments <- function(
         ...,
         bands = sits_bands(cube),
         impute_fn = sits_impute_linear(),
-        aggreg_fn = mean,
+        aggreg_fn = "mean",
         multicores = 1,
         progress = FALSE) {
 
