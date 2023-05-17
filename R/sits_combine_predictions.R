@@ -151,13 +151,3 @@ sits_combine_predictions.uncertainty <- function(cubes,
     )
     return(probs_cube)
 }
-
-sits_combine_predictions.default <- function(cubes,
-                                             type = "default", ...,
-                                             memsize = 8,
-                                             multicores = 2,
-                                             output_dir,
-                                             version = "v1") {
-    stop("Invalid `type` parameter ",
-         "(value must be one of 'average', 'uncertainty').")
-}

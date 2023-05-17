@@ -93,8 +93,6 @@ sits_supercells <- function(
     .check_int_parameter(iter, min = 10, max = 100)
     # minarea is OK
     .check_int_parameter(minarea, min = 10, max = 100)
-    # chunks
-    .check_lgl_parameter(chunks)
     # multicores
     .check_int_parameter(multicores, min = 1, max = 1000)
     # set multicores to 1
