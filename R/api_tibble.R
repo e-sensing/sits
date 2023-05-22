@@ -72,9 +72,9 @@
             if (timeline_row[1] != timeline_global[1]) {
                 # what are the reference dates to do the classification?
                 ref_dates_lst <- .timeline_match(
-                    timeline = timeline_row,
-                    ref_start_date = lubridate::as_date(row$start_date),
-                    ref_end_date = lubridate::as_date(row$end_date),
+                    timeline_data = timeline_row,
+                    model_start_date = lubridate::as_date(row$start_date),
+                    model_end_date = lubridate::as_date(row$end_date),
                     num_samples = nrow(row$time_series[[1]])
                 )
             }
@@ -522,10 +522,11 @@
     # Create predictors...
     pred <- pred[c(.pred_cols, bands)]
     # Add sequence 'index' column grouped by 'sample_id'
-    pred <- .by_dfr(data = pred, col = "sample_id", fn = function(x) {
-        x[["index"]] <- seq_len(nrow(x))
-        x
-    })
+    pred <- pred %>%
+        dplyr::select("sample_id", "label", dplyr::all_of(bands)) %>%
+        dplyr::group_by(.data[["sample_id"]]) %>%
+        dplyr::mutate(index = seq_len(dplyr::n())) %>%
+        dplyr::ungroup()
     # Rearrange data to create predictors
     pred <- tidyr::pivot_wider(
         data = pred, names_from = "index", values_from = dplyr::all_of(bands),

@@ -133,3 +133,29 @@ sits_supercells <- function(
     class(cells_tile) <- c("segments", class(cells_tile))
     return(cells_tile)
 }
+#' @title Return segments from a classified set of time series
+#' @name sits_join_segments
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @description Return a sits_tibble or raster_cube as an sf object.
+#'
+#' @param data     A sits tibble with predicted values
+#' @param segments Output coordinate reference system.
+#' @return         An sf object of polygon geometry with an additional class attribute
+#' @export
+#'
+sits_join_segments <- function(data, segments){
+    .check_that(
+        x = inherits(data, "predicted"),
+        msg = "input data should be a set of classified time series"
+    )
+    .check_that(
+        x = inherits(segments, "segments"),
+        msg = "invalid segments input"
+    )
+    data_id <- data %>%
+        tidyr::unnest(cols = "predicted") %>%
+        dplyr::select(dplyr::all_of(c("polygon_id", "class")))
+    sf_seg <- segments[[1]] %>%
+        dplyr::left_join(data_id, by = c("supercells" = "polygon_id"))
+}

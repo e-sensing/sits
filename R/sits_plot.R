@@ -591,6 +591,142 @@ plot.predicted <- function(x, y, ...,
     )
     return(invisible(p))
 }
+#' @title  Plot Segments
+#' @name plot.segments
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Plot RGB raster cube
+#'
+#' @param  x             Object of class "segments".
+#' @param  ...           Further specifications for \link{plot}.
+#' @param  seg_color     Color to use for segment borders
+#' @param  palette       An RColorBrewer palette
+#' @param  rev           Reverse the color order in the palette?
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap_max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
+#'
+#' @return               A plot object with an RGB image
+#'                       or a B/W image on a color
+#'                       scale using the pallete
+#'
+#' @note To see which color palettes are supported, please run
+#' @examples
+#' if (sits_run_examples()) {
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'
+#' cube <- sits_cube(
+#'     source = "BDC",
+#'     collection = "MOD13Q1-6",
+#'     data_dir = data_dir
+#' )
+#'
+#' # segment the image
+#' segments <- sits_supercells(
+#'     cube = cube,
+#'     tile = "012010",
+#'     bands = "NDVI",
+#'     date = sits_timeline(cube)[1],
+#'     step = 10
+#' )
+#' # create a classification model
+#' rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#' # get the average value per segment
+#' samples_seg <- sits_get_data(
+#'     cube = cube,
+#'     samples = segments
+#' )
+#' # classify the segments
+#' seg_class <- sits_classify(
+#'     data = samples_seg,
+#'     ml_model = rfor_model
+#' )
+#' # add a column to the segments by class
+#' sf_seg <- sits_join_segments(
+#'     data = seg_class,
+#'     segments = segments
+#' )
+#' }
+#' @export
+plot.segments <- function(
+        x, ...,
+        tile = NULL,
+        seg_color = "lightgoldenrod",
+        palette = "RdYlGn",
+        rev = FALSE,
+        tmap_options = NULL
+) {
+    if (purrr::is_null(tile)) {
+        tile <- 1
+    }
+    # retrieve the segments for this tile
+    sf_seg <- segments[[tile]]
+    # check that segments have been classified
+    .check_that("class" %in% colnames(sf_seg),
+                msg = "segments have not been classified")
+
+    # get the labels
+    labels <- unique(dplyr::select(sf_seg, .data[["class"]]))
+    names(labels) <- seq_along(labels)
+    # obtain the colors
+    colors <- .colors_get(
+        labels = labels,
+        legend = legend,
+        palette = palette
+    )
+
+    # set the tmap options
+    labels_size <- as.numeric(.conf("tmap_graticules_labels_size"))
+    title_size  <- as.numeric(.conf("tmap_legend_title_size"))
+    text_size   <- as.numeric(.conf("tmap_legend_text_size"))
+    bg_color <- .conf("tmap_legend_bg_color")
+    bg_alpha <- as.numeric(.conf("tmap_legend_bg_alpha"))
+    # user specified tmap options
+    if (!purrr::is_null(tmap_options)) {
+        # graticules label size
+        if (!purrr::is_null(tmap_options[["tmap_graticules_labels_size"]]))
+            labels_size <- as.numeric(
+                tmap_options[["tmap_graticules_labels_size"]])
+        # legend title size
+        if (!purrr::is_null(tmap_options[["tmap_legend_title_size"]]))
+            title_size <- as.numeric(
+                tmap_options[["tmap_legend_title_size"]])
+        # legend text size
+        if (!purrr::is_null(tmap_options[["tmap_legend_text_size"]]))
+            text_size <- as.numeric(
+                tmap_options[["tmap_legend_text_size"]])
+        # tmap legend bg color
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_color"]]))
+            bg_color <- tmap_options[["tmap_legend_bg_color"]]
+        # tmap legend bg alpha
+        if (!purrr::is_null(tmap_options[["tmap_legend_bg_alpha"]]))
+            bg_alpha <- as.numeric(tmap_options[["tmap_legend_bg_alpha"]])
+    }
+
+    # plot using tmap
+    # tmap requires numbers, not names
+    names(colors) <- seq_along(names(colors))
+    p <- tmap::tm_shape(sf_seg) +
+        tmap::tm_raster() +
+        tmap::tm_graticules(
+            labels.size = labels_size
+        )  +
+        tmap::tm_compass() +
+        tmap::tm_layout(
+            legend.show = TRUE,
+            legend.outside = FALSE,
+            legend.title.size = title_size,
+            legend.text.size = text_size,
+            legend.bg.color = bg_color,
+            legend.bg.alpha = bg_alpha) +
+        tmap::tm_borders(col = seg_color, lwd = 0.2)
+
+    return(p)
+}
 #' @title  Plot RGB data cubes
 #' @name plot.raster_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

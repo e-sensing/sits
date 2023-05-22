@@ -198,51 +198,67 @@ sits_timeline.derived_cube <- function(data) {
 #'              should be aligned to that of the reference data set.
 #'              This function aligns these data sets.
 #'
-#' @param timeline              Timeline of input observations (vector).
-#' @param ref_start_date        Reference for starting the classification.
-#' @param ref_end_date          Reference for ending the classification.
+#' @param timeline_data         Timeline of input to be classified.
+#' @param model_start_date      Model start date
+#' @param model_end_date        Model end date.
 #' @param num_samples           Number of samples.
 #'
 #' @return A list of breaks that will be applied to the input data set.
 #'
-.timeline_match <- function(timeline,
-                            ref_start_date,
-                            ref_end_date,
+.timeline_match <- function(timeline_data,
+                            model_start_date,
+                            model_end_date,
                             num_samples) {
 
 
     # set caller to show in errors
     .check_set_caller(".timeline_match")
 
-    # make sure the timelines is a valid set of dates
-    timeline <- lubridate::as_date(timeline)
-    # define the input start and end dates
-    input_start_date <- timeline[1]
-    # what is the expected start and end dates based on the patterns?
-    ref_st_mday <- as.character(lubridate::mday(ref_start_date))
-    ref_st_month <- as.character(lubridate::month(ref_start_date))
-    year_st_date <- as.character(lubridate::year(input_start_date))
-    est_start_date <- lubridate::as_date(paste0(
-        year_st_date, "-",
-        ref_st_month, "-",
-        ref_st_mday
-    ))
+    # make sure the timeline is a valid set of dates
+    timeline_data <- lubridate::as_date(timeline_data)
+    # define the input start date
+    input_start_date <- timeline_data[1]
 
-    # find the actual starting date by searching the timeline
-    idx_start_date <- which.min(abs(est_start_date - timeline))
-    start_date <- timeline[idx_start_date]
+    # create a list  the subset dates to break the input data set
+    subset_dates <- list()
+
+    # # take easy case first
+    # if (num_samples == length(timeline_data)) {
+    #     start_date <- timeline_data[1]
+    #     end_date <- timeline_data[num_samples]
+    #     subset_dates[[length(subset_dates) + 1 ]] <- c(start_date, end_date)
+    #     return(subset_dates)
+    # }
+    # consider now the case where timeline is greater
+    # than number of samples in the model
+    if (timeline_data[1] < model_start_date) {
+        # what is the expected start and end dates based on the patterns?
+        ref_st_mday <- as.character(lubridate::mday(model_start_date))
+        ref_st_month <- as.character(lubridate::month(model_start_date))
+        year_st_date <- as.character(lubridate::year(input_start_date))
+        est_start_date <- lubridate::as_date(paste0(
+            year_st_date, "-",
+            ref_st_month, "-",
+            ref_st_mday
+        ))
+        # find the actual starting date by searching the timeline
+        idx_start_date <- which.min(abs(est_start_date - timeline_data))
+    }
+    else {
+        # find the actual starting date by searching the timeline
+        idx_start_date <- which.min(abs(model_start_date - timeline_data))
+    }
+
+    # take the start date of the input to be classified
+    start_date <- timeline_data[idx_start_date]
     # is the start date a valid one?
     .check_that(
-        x = .timeline_valid_date(start_date, timeline),
+        x = .timeline_valid_date(start_date, timeline_data),
         msg = "start date in not inside timeline"
     )
-
-    # obtain the subset dates to break the input data set
-    # adjust the dates to match the timeline
-    subset_dates <- list()
     # what is the expected end date of the classification?
     idx_end_date <- idx_start_date + (num_samples - 1)
-    end_date <- timeline[idx_end_date]
+    end_date <- timeline_data[idx_end_date]
     # is the start date a valid one?
     .check_that(
         x = !(is.na(end_date)),
@@ -260,15 +276,15 @@ sits_timeline.derived_cube <- function(data) {
 
         # estimate the next start and end dates
         idx_start_date <- idx_end_date + 1
-        start_date <- timeline[idx_start_date]
+        start_date <- timeline_data[idx_start_date]
         idx_end_date <- idx_start_date + num_samples - 1
         # estimate
-        end_date <- timeline[idx_end_date]
+        end_date <- timeline_data[idx_end_date]
     }
     # is the end date a valid one?
     end_date <- subset_dates[[length(subset_dates)]][2]
     .check_that(
-        x = .timeline_valid_date(end_date, timeline),
+        x = .timeline_valid_date(end_date, timeline_data),
         msg = "end_date not inside timeline"
     )
     return(subset_dates)
