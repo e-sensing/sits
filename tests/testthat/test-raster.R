@@ -1,39 +1,40 @@
-test_that("One-year, single core classification", {
+test_that("Single core classification with rfor", {
     rfor_model <- sits_train(
         samples_modis_ndvi,
         sits_rfor(num_trees = 30)
     )
-
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        bands = "NDVI",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
+    output_dir <- paste0(tempdir(), "/single_rfor")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
     sinop_probs <- sits_classify(
         data = sinop,
         ml_model = rfor_model,
-        output_dir = tempdir(),
+        output_dir = output_dir,
         memsize = 4,
-        multicores = 1,
-        version = "test1"
+        multicores = 1
     )
 
     # testing resume feature
-    expect_message(
+    out <- capture_messages({
+        expect_message(
         object = { sits_classify(
             data = sinop,
             ml_model = rfor_model,
-            output_dir = tempdir(),
+            output_dir = output_dir,
             memsize = 4,
-            multicores = 1,
-            version = "test1"
+            multicores = 2
         ) },
         regexp = "Recovery: "
-    )
+        )
+    })
+    expect_true(grepl("output_dir", out[1]))
 
     sits_labels(sinop_probs) <- c(
         "Cerrado", "Floresta",
@@ -46,20 +47,16 @@ test_that("One-year, single core classification", {
 
     expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_probs))
 
-    max_lyr1 <- max(.raster_get_values(r_obj)[, 1], na.rm = TRUE)
+    max_lyr1 <- max(.raster_get_values(r_obj)[, 1])
     expect_true(max_lyr1 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
 
-test_that("One-year, multicore classification", {
-
-    timeline_samples <- sits_timeline(samples_modis_ndvi)
-    start_date <- timeline_samples[1]
-    end_date <- timeline_samples[length(timeline_samples)]
+test_that("Classification with SVM", {
 
     svm_model <- sits_train(samples_modis_ndvi, sits_svm())
 
@@ -67,70 +64,68 @@ test_that("One-year, multicore classification", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        bands = "NDVI",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
-
-    sinop_probs <- tryCatch(
-        {
-            suppressMessages(
-                sits_classify(
-                    data = sinop,
-                    ml_model = svm_model,
-                    start_date = start_date,
-                    end_date = end_date,
-                    output_dir = tempdir(),
-                    memsize = 4,
-                    multicores = 2,
-                    verbose = TRUE,
-                    version = "test2"
-                )
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-    if (purrr::is_null(sinop_probs)) {
-        skip("Unable to allocate multicores")
+    output_dir <- paste0(tempdir(), "/svm")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
     }
-    sinop_probs <- tryCatch(
-        {
-            suppressMessages(
-                sits_classify(
-                    data = sinop,
-                    ml_model = svm_model,
-                    start_date = start_date,
-                    end_date = end_date,
-                    output_dir = tempdir(),
-                    memsize = 4,
-                    multicores = 2,
-                    verbose = TRUE,
-                    version = "test2"
-                )
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
 
+    sinop_probs <- sits_classify(
+        data = sinop,
+        ml_model = svm_model,
+        output_dir = output_dir,
+        memsize = 4,
+        multicores = 2
+    )
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
     expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_probs))
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    expect_true(max_lyr3 <= 10000)
+
+    expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
+})
+test_that("Classification with XGBoost", {
+
+    xgb_model <- sits_train(samples_modis_ndvi, sits_xgboost())
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    sinop <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
+    )
+    output_dir <- paste0(tempdir(), "/xgb")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
+
+    sinop_probs <- sits_classify(
+        data = sinop,
+        ml_model = xgb_model,
+        output_dir = output_dir,
+        memsize = 4,
+        multicores = 2
+    )
+    expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
+    r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_probs))
+
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    expect_true(max_lyr2 <= 10000)
+
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
 
-test_that("One-year, single core classification with filter", {
+test_that("Classification with SVM and Whittaker filter", {
 
     samples_filt <- sits_filter(samples_modis_ndvi, filter = sits_whittaker())
 
@@ -140,29 +135,34 @@ test_that("One-year, single core classification with filter", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        bands = "NDVI",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
 
-    sinop_probs <- suppressMessages(
-        sits_classify(
-            data = sinop,
-            ml_model = svm_model,
-            filter_fn = sits_whittaker(),
-            output_dir = tempdir(),
-            memsize = 4,
-            multicores = 1,
-            version = "test3"
-        )
+    output_dir <- paste0(tempdir(), "/svm_whit")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
+    sinop_probs <- sits_classify(
+        data = sinop,
+        ml_model = svm_model,
+        filter_fn = sits_whittaker(),
+        output_dir = output_dir,
+        memsize = 4,
+        multicores = 2
     )
+    r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
 
-    expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_probs))
+
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    expect_true(max_lyr2 <= 10000)
+
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    expect_true(max_lyr3 <= 10000)
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
 
-test_that("One-year, multicore classification with Savitzky-Golay filter", {
+test_that("Classification with RFOR and Savitzky-Golay filter", {
 
     samples_filt <- sits_apply(samples_modis_ndvi, NDVI = sits_sgolay(NDVI))
 
@@ -172,86 +172,21 @@ test_that("One-year, multicore classification with Savitzky-Golay filter", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
-
-    sinop_2014_probs <- tryCatch(
-        {
-            suppressMessages(
-                sits_classify(
-                    data = sinop,
-                    ml_model = rfor_model,
-                    filter = sits_sgolay(),
-                    output_dir = tempdir(),
-                    memsize = 4,
-                    multicores = 2,
-                    version = "test4"
-                )
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    if (purrr::is_null(sinop_2014_probs)) {
-        skip("Unable to allocate multicores")
+    output_dir <- paste0(tempdir(), "/rfor_sg")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
     }
-    expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
-
-    r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
-
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
-
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
-    expect_true(max_lyr2 <= 10000)
-
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
-    expect_true(max_lyr3 <= 10000)
-
-    expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
-})
-
-test_that("One-year, multicore classification with Whittaker filter", {
-
-    samples_filt <- sits_apply(samples_modis_ndvi,
-                               NDVI = sits_whittaker(NDVI, lambda = 0.5))
-
-    xgb_model <- sits_train(samples_filt, sits_xgboost())
-
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    sinop <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+    sinop_2014_probs <- sits_classify(
+        data = sinop,
+        ml_model = rfor_model,
+        filter_fn = sits_sgolay(),
+        output_dir = output_dir,
+        memsize = 4,
+        multicores = 2
     )
 
-    sinop_2014_probs <- tryCatch(
-        {
-            suppressMessages(
-                sits_classify(
-                    data = sinop,
-                    ml_model = xgb_model,
-                    filter = sits_whittaker(lambda = 3.0),
-                    output_dir = tempdir(),
-                    memsize = 4,
-                    multicores = 2,
-                    version = "test5"
-                )
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    if (purrr::is_null(sinop_2014_probs)) {
-        skip("Unable to allocated multicores")
-    }
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
     r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
@@ -267,7 +202,7 @@ test_that("One-year, multicore classification with Whittaker filter", {
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
 
-test_that("One-year, multicore classification with MLP", {
+test_that("Classification with MLP", {
 
     torch_model <- sits_train(samples_modis_ndvi, sits_mlp(epochs = 20))
 
@@ -275,48 +210,36 @@ test_that("One-year, multicore classification with MLP", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
-
-    sinop_2014_probs <- tryCatch(
-        {
-            suppressMessages(
-                sits_classify(
-                    data = sinop,
-                    ml_model = torch_model,
-                    output_dir = tempdir(),
-                    memsize = 8,
-                    multicores = 2,
-                    version = "test6"
-                )
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    if (purrr::is_null(sinop_2014_probs)) {
-        skip("Unable to allocate multicores")
+    output_dir <- paste0(tempdir(), "/mlp")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
     }
+
+    sinop_2014_probs <- sits_classify(
+        data = sinop,
+        ml_model = torch_model,
+        output_dir = output_dir,
+        memsize = 8,
+        multicores = 2
+    )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
     r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
     expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
 
-test_that("One-year, multicore classification with TempCNN", {
+test_that("Classification with TempCNN", {
 
     torch_model <- sits_train(samples_modis_ndvi, sits_tempcnn(epochs = 20))
 
@@ -324,48 +247,36 @@ test_that("One-year, multicore classification with TempCNN", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
-
-    sinop_2014_probs <- tryCatch(
-        {
-            suppressMessages(
-                sits_classify(
-                    data = sinop,
-                    ml_model = torch_model,
-                    output_dir = tempdir(),
-                    memsize = 8,
-                    multicores = 2,
-                    version = "test7"
-                )
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    if (purrr::is_null(sinop_2014_probs)) {
-        skip("Unable to allocate multicores")
+    output_dir <- paste0(tempdir(), "/tcnn")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
     }
+
+    sinop_2014_probs <- sits_classify(
+        data = sinop,
+        ml_model = torch_model,
+        output_dir = output_dir,
+        memsize = 8,
+        multicores = 2
+    )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
     r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
     expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
 
-test_that("One-year, multicore classification with ResNet", {
+test_that("Classification with ResNet", {
 
     torch_model <- sits_train(samples_modis_ndvi, sits_resnet(epochs = 20))
 
@@ -373,48 +284,35 @@ test_that("One-year, multicore classification with ResNet", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
-
-    sinop_2014_probs <- tryCatch(
-        {
-            suppressMessages(
-                sits_classify(
-                    data = sinop,
-                    ml_model = torch_model,
-                    output_dir = tempdir(),
-                    memsize = 8,
-                    multicores = 2,
-                    version = "test8"
-                )
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    if (purrr::is_null(sinop_2014_probs)) {
-        skip("Unable to allocate multicores")
+    output_dir <- paste0(tempdir(), "/rnet")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
     }
+    sinop_2014_probs <- sits_classify(
+        data = sinop,
+        ml_model = torch_model,
+        output_dir = output_dir,
+        memsize = 8,
+        multicores = 2
+    )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
     r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
     expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
 
-test_that("One-year, multicore classification with TAE", {
+test_that("Classification with TAE", {
 
     torch_model <- sits_train(samples_modis_ndvi, sits_tae(epochs = 20))
 
@@ -422,32 +320,19 @@ test_that("One-year, multicore classification with TAE", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
-
-    sinop_2014_probs <- tryCatch(
-        {
-            suppressMessages(
-                sits_classify(
-                    data = sinop,
-                    ml_model = torch_model,
-                    output_dir = tempdir(),
-                    memsize = 8,
-                    multicores = 2,
-                    version = "test9"
-                )
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    if (purrr::is_null(sinop_2014_probs)) {
-        skip("Unable to allocate multicores")
+    output_dir <- paste0(tempdir(), "/tae")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
     }
+    sinop_2014_probs <-  sits_classify(
+        data = sinop,
+        ml_model = torch_model,
+        output_dir = output_dir,
+        memsize = 8,
+        multicores = 2
+    )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
     r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
@@ -463,7 +348,7 @@ test_that("One-year, multicore classification with TAE", {
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
 
-test_that("One-year, multicore classification with LightTAE", {
+test_that("Classification with LightTAE", {
 
     torch_model <- sits_train(samples_modis_ndvi, sits_lighttae(epochs = 20))
 
@@ -471,32 +356,20 @@ test_that("One-year, multicore classification with LightTAE", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
-
-    sinop_2014_probs <- tryCatch(
-        {
-            suppressMessages(
-                sits_classify(
-                    data = sinop,
-                    ml_model = torch_model,
-                    output_dir = tempdir(),
-                    memsize = 8,
-                    multicores = 2,
-                    version = "test10"
-                )
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    if (purrr::is_null(sinop_2014_probs)) {
-        skip("Unable to allocated multicores")
+    output_dir <- paste0(tempdir(), "/ltae")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
     }
+
+    sinop_2014_probs <- sits_classify(
+        data = sinop,
+        ml_model = torch_model,
+        output_dir = output_dir,
+        memsize = 8,
+        multicores = 2
+    )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
     r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
@@ -512,7 +385,7 @@ test_that("One-year, multicore classification with LightTAE", {
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
 
-test_that("One-year, multicores classification with cloud band", {
+test_that("Classification with cloud band", {
 
     csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
                             package = "sits")
@@ -520,14 +393,15 @@ test_that("One-year, multicores classification with cloud band", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
-
+    output_dir <- paste0(tempdir(), "/cloud")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
     cloud_cube <- sits_apply(
         data = cube,
-        output_dir = tempdir(),
+        output_dir = output_dir,
         CLOUD = ifelse(NDVI <= 0.2, 0.0002, 0.0001),
         memsize = 4,
         multicores = 2
@@ -535,7 +409,7 @@ test_that("One-year, multicores classification with cloud band", {
 
     kern_cube <- sits_apply(
         data = cube,
-        output_dir = tempdir(),
+        output_dir = output_dir,
         NDVI_TEXTURE = w_sd(NDVI),
         window_size = 3,
         memsize = 4,
@@ -552,120 +426,99 @@ test_that("One-year, multicores classification with cloud band", {
 
     rf_model <- sits_train(samples_ndvi, ml_method = sits_rfor)
 
-    probs_cube <- tryCatch(
-        {
-            suppressMessages(
-                sits_classify(
-                    cube_merged,
-                    rf_model,
-                    output_dir = tempdir(),
-                    memsize = 4,
-                    multicores = 2,
-                    version = "test11"
-                )
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
+    sinop_2014_probs <- sits_classify(
+        data = cube_merged,
+        ml_model = rf_model,
+        output_dir = output_dir,
+        memsize = 4,
+        multicores = 2
     )
+    expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
-    if (purrr::is_null(probs_cube)) {
-        skip("Unable to allocate multicores")
-    }
+    r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(all(file.exists(unlist(probs_cube$file_info[[1]]$path))))
+    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
+
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    expect_true(max_lyr2 <= 10000)
+
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    expect_true(max_lyr3 <= 10000)
+
+    expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
 
-test_that("One-year, multicore classification with post-processing", {
+test_that("Classification with post-processing", {
 
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir
     )
-
-    temp_dir <- tempdir()
-
-    unlink(
-        list.files(temp_dir,
-                   pattern = ".*probs.*.tif$",
-                   full.names = TRUE
-        )
-    )
-
-    sinop_probs <- tryCatch(
-        {
-            suppressMessages(
-                sits_classify(
-                    sinop,
-                    rfor_model,
-                    output_dir = tempdir(),
-                    memsize = 4,
-                    multicores = 2,
-                    version = "test12"
-                )
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    if (purrr::is_null(sinop_probs)) {
-        skip("Unable to allocate multicores")
+    output_dir <- paste0(tempdir(), "/bayes")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
     }
-    expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
 
+    sinop_probs <- sits_classify(
+        data = sinop,
+        ml_model = rfor_model,
+        output_dir = output_dir,
+        memsize = 4,
+        multicores = 1
+    )
+    expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     sinop_class <- sits_label_classification(
         sinop_probs,
-        output_dir = tempdir(),
-        version = "test12"
+        output_dir = output_dir,
     )
-
     # testing resume feature
-    expect_message(
+    out <- capture_messages({
+        expect_message(
         object = {sits_label_classification(
             sinop_probs,
-            output_dir = tempdir(),
-            version = "test12"
+            output_dir = output_dir
         ) },
         regexp = "Recovery"
-    )
-    expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
+        )
+    })
+    expect_true(grepl("output_dir", out[1]))
 
+    expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
     expect_true(length(sits_timeline(sinop_class)) ==
                     length(sits_timeline(sinop_probs)))
 
     r_obj <- .raster_open_rast(sinop_class$file_info[[1]]$path[[1]])
     max_lab <- max(.raster_get_values(r_obj))
     min_lab <- min(.raster_get_values(r_obj))
-    expect_true(max_lab <= 9)
-    expect_true(min_lab >= 1)
+    expect_true(max_lab == 4)
+    expect_true(min_lab == 1)
 
 
     sinop_bayes <- sits_smooth(
         sinop_probs,
-        output_dir = tempdir(),
-        multicores = 2,
+        output_dir = output_dir,
         memsize = 4,
-        version = "test12"
+        multicores = 2
     )
-
     # testing the recovery feature
-    expect_message(
+    out <- capture_messages({
+        expect_message(
         object = {sits_smooth(
             sinop_probs,
-            output_dir = tempdir(),
+            output_dir = output_dir,
             multicores = 2,
-            memsize = 4,
-            version = "test12"
+            memsize = 4
         ) },
         regexp = "Recovery"
-    )
+        )
+    })
+    expect_true(grepl("output_dir", out[1]))
+
     expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
 
     expect_true(length(sits_timeline(sinop_bayes)) ==
@@ -678,15 +531,33 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(max_bay2 <= 10000)
 
     max_bay3 <- max(.raster_get_values(r_bay)[, 3])
+
+    expect_true(max_bay3 <= 10000)
+
+    sinop_bayes_2 <- sits_smooth(
+        sinop_probs,
+        output_dir = output_dir,
+        window_size = 7,
+        neigh_fraction = 1.0,
+        multicores = 2,
+        memsize = 4,
+        version = "test_v2"
+    )
+    r_bay_2 <- .raster_open_rast(sinop_bayes_2$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(r_bay_2) == .tile_nrows(sinop_probs))
+
+    max_bay2 <- max(.raster_get_values(r_bay_2)[, 2])
+    expect_true(max_bay2 <= 10000)
+
+    max_bay3 <- max(.raster_get_values(r_bay_2)[, 3])
     expect_true(max_bay3 <= 10000)
 
     sinop_uncert <- sits_uncertainty(
         cube = sinop_bayes,
         type = "margin",
-        output_dir = tempdir(),
-        multicores = 1,
+        output_dir = output_dir,
         memsize = 4,
-        version = "test12"
+        multicores = 2
     )
 
     expect_true(all(file.exists(unlist(sinop_uncert$file_info[[1]]$path))))
@@ -700,9 +571,9 @@ test_that("One-year, multicore classification with post-processing", {
         source = "BDC",
         collection = "MOD13Q1-6",
         bands = "margin",
-        version = "test12",
+        version = "v1",
         labels = sits_labels(sinop_class),
-        data_dir = temp_dir,
+        data_dir = output_dir,
         parse_info = c("X1", "X2", "tile",
                        "start_date", "end_date",
                        "band", "version")
@@ -724,201 +595,12 @@ test_that("One-year, multicore classification with post-processing", {
 
     expect_true(all(file.remove(unlist(sinop_class$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(sinop_bayes_2$file_info[[1]]$path))))
+
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_uncert$file_info[[1]]$path))))
 })
-
-test_that("One-year, multicores processing reclassify", {
-    # Open mask map
-    data_dir <- system.file("extdata/raster/prodes", package = "sits")
-    prodes2021 <- sits_cube(
-        source = "USGS",
-        collection = "LANDSAT-C2L2-SR",
-        data_dir = data_dir,
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
-        bands = "class",
-        version = "v20220606",
-        labels = c("Forest", "Water", "NonForest",
-                   "NonForest2", "NoClass", "d2007", "d2008",
-                   "d2009", "d2010", "d2011", "d2012",
-                   "d2013", "d2014", "d2015", "d2016",
-                   "d2017", "d2018", "r2010", "r2011",
-                   "r2012", "r2013", "r2014", "r2015",
-                   "r2016", "r2017", "r2018", "d2019",
-                   "r2019", "d2020", "NoClass", "r2020",
-                   "Clouds2021", "d2021", "r2021")
-    )
-    # Open classification map
-    data_dir <- system.file("extdata/raster/classif", package = "sits")
-    ro_class <- sits_cube(
-        source = "MPC",
-        collection = "SENTINEL-2-L2A",
-        data_dir = data_dir,
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
-        bands = "class",
-        labels = c("ClearCut_Fire", "ClearCut_BareSoil",
-                   "ClearCut_Veg", "Forest")
-    )
-    # Reclassify cube
-    ro_mask <- sits_reclassify(
-        cube = ro_class,
-        mask = prodes2021,
-        rules = list(
-            "Old_Deforestation" = mask %in% c(
-                "d2007", "d2008", "d2009",
-                "d2010", "d2011", "d2012",
-                "d2013", "d2014", "d2015",
-                "d2016", "d2017", "d2018",
-                "r2010", "r2011", "r2012",
-                "r2013", "r2014", "r2015",
-                "r2016", "r2017", "r2018",
-                "d2019", "r2019", "d2020",
-                "r2020", "r2021"
-            ),
-            "Water_Mask" = mask == "Water",
-            "NonForest_Mask" = mask %in% c("NonForest", "NonForest2")
-        ),
-        memsize = 4,
-        multicores = 2,
-        output_dir = tempdir()
-    )
-
-    expect_equal(
-        sits_labels(ro_mask),
-        c("ClearCut_Fire", "ClearCut_BareSoil",
-          "ClearCut_Veg", "Forest", "Old_Deforestation",
-          "Water_Mask", "NonForest_Mask")
-    )
-
-    unlink(ro_mask$file_info[[1]]$path)
-})
-
-test_that("One-year, multicores mosaic", {
-    # create a random forest model
-    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-    # create a data cube from local files
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    cube <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
-    )
-    output_dir <- tempdir()
-    # classify a data cube
-    probs_cube <- sits_classify(
-        data = cube,
-        ml_model = rfor_model,
-        output_dir = output_dir
-    )
-    # smooth the probability cube using Bayesian statistics
-    bayes_cube <- sits_smooth(probs_cube, output_dir = output_dir)
-    # label the probability cube
-    label_cube <- sits_label_classification(bayes_cube, output_dir = output_dir)
-    # create roi
-    roi <- sf::st_sfc(
-        sf::st_polygon(
-            list(rbind(
-                c(-55.64768, -11.68649),
-                c(-55.69654, -11.66455),
-                c(-55.62973, -11.61519),
-                c(-55.64768, -11.68649)))), crs = 4326
-    )
-    # crop and reproject classified image
-    mosaic_class <- sits_mosaic(
-        cube = label_cube,
-        roi = roi,
-        crs = 4326,
-        output_dir = output_dir,
-        version = "v1",
-        multicores = 1
-    )
-
-    expect_equal(mosaic_class[["tile"]], "MOSAIC")
-    expect_equal(nrow(mosaic_class), 1)
-    bbox_cube <- sits_bbox(mosaic_class)
-    bbox_roi <- sf::st_bbox(roi)
-    expect_true(
-        bbox_cube[["xmin"]] < bbox_roi[["xmin"]] &&
-        bbox_cube[["xmax"]] > bbox_roi[["xmax"]] &&
-        bbox_cube[["ymin"]] < bbox_roi[["ymin"]] &&
-        bbox_cube[["ymax"]] > bbox_roi[["ymax"]]
-    )
-
-    # resume feature
-    mosaic_class <- sits_mosaic(
-        cube = label_cube,
-        roi = roi,
-        crs = 4326,
-        output_dir = output_dir,
-        version = "v1"
-    )
-    expect_equal(mosaic_class[["tile"]], "MOSAIC")
-
-    # create new roi
-    roi2 <- sf::st_sfc(
-        sf::st_polygon(
-            list(rbind(
-                c(-55.91563676, -11.92443997),
-                c(-55.02414662, -11.92443997),
-                c(-55.02414662, -11.38658587),
-                c(-55.91563676, -11.38658587),
-                c(-55.91563676, -11.92443997)))), crs = 4326
-    )
-
-    # reproject classified image
-    mosaic_class2 <- sits_mosaic(
-        cube = label_cube,
-        roi = roi2,
-        crs = 4326,
-        output_dir = output_dir,
-        version = "v2"
-    )
-
-    expect_equal(mosaic_class2[["tile"]], "MOSAIC")
-    expect_equal(nrow(mosaic_class2), 1)
-    bbox_cube <- sits_bbox(mosaic_class2)
-    bbox_roi <- sf::st_bbox(roi2)
-    expect_true(
-        bbox_cube[["xmin"]] > bbox_roi[["xmin"]] &&
-            bbox_cube[["xmax"]] < bbox_roi[["xmax"]] &&
-            bbox_cube[["ymin"]] > bbox_roi[["ymin"]] &&
-            bbox_cube[["ymax"]] < bbox_roi[["ymax"]]
-    )
-
-    uncert_cube <- sits_uncertainty(probs_cube, output_dir = output_dir)
-    mosaic_uncert <- sits_mosaic(
-        cube = uncert_cube,
-        roi = roi,
-        crs = 4326,
-        output_dir = output_dir,
-        version = "v3"
-    )
-
-    expect_equal(mosaic_uncert[["tile"]], "MOSAIC")
-    expect_equal(nrow(mosaic_uncert), 1)
-    bbox_cube <- sits_bbox(mosaic_uncert)
-    bbox_roi <- sf::st_bbox(roi)
-    expect_true(
-        bbox_cube[["xmin"]] < bbox_roi[["xmin"]] &&
-            bbox_cube[["xmax"]] > bbox_roi[["xmax"]] &&
-            bbox_cube[["ymin"]] < bbox_roi[["ymin"]] &&
-            bbox_cube[["ymax"]] > bbox_roi[["ymax"]]
-    )
-
-    unlink(probs_cube$file_info[[1]]$path)
-    unlink(bayes_cube$file_info[[1]]$path)
-    unlink(label_cube$file_info[[1]]$path)
-    unlink(mosaic_class$file_info[[1]]$path)
-    unlink(mosaic_class2$file_info[[1]]$path)
-    unlink(mosaic_uncert$file_info[[1]]$path)
-    unlink(uncert_cube$file_info[[1]]$path)
-})
-
 test_that("Raster GDAL datatypes", {
     gdal_type <- .raster_gdal_datatype("INT2U")
     expect_equal(gdal_type, "UInt16")

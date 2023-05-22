@@ -48,9 +48,7 @@
 #'     cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_",
-#'         parse_info = c("X1", "tile", "band", "date")
+#'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(
@@ -223,9 +221,11 @@ sits_mosaic <- function(cube,
         )
         # Resume feature
         if (.raster_is_valid(out_file, output_dir = output_dir)) {
-            message("Recovery: file '", out_file, "' already exists.")
-            message("(If you want to produce a new cropped image, please ",
-                    "change 'version' or 'output_dir' parameter)")
+            if (.check_messages()) {
+                message("Recovery: file '", out_file, "' already exists.")
+                message("(If you want to produce a new cropped image, please ",
+                        "change 'version' or 'output_dir' parameter)")
+            }
             base_tile <- .tile_from_file(
                 file = out_file, base_tile = base_tile,
                 band = .tile_bands(base_tile), update_bbox = TRUE,
@@ -241,7 +241,7 @@ sits_mosaic <- function(cube,
             file = out_file,
             base_files = cube_files,
             params = list(
-                "-ot" = .gdal_data_type[[.data_type(band_conf)]],
+                "-ot" = .gdal_data_type[["INT1U"]],
                 "-of" = .conf("gdal_presets", "image", "of"),
                 "-co" = .conf("gdal_presets", "image", "co"),
                 "-t_srs" = .as_crs(crs),
@@ -276,14 +276,13 @@ sits_mosaic <- function(cube,
         tile = asset, band = .tile_bands(asset),
         version = version, output_dir = output_dir
     )
-    # Get band configs from tile
-    band_conf <- .tile_band_conf(asset, band = .tile_bands(asset))
-
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
-        message("Recovery: file '", out_file, "' already exists.")
-        message("(If you want to produce a new cropped image, please ",
-                "change 'version' or 'output_dir' parameter)")
+        if (.check_messages()) {
+            message("Recovery: file '", out_file, "' already exists.")
+            message("(If you want to produce a new cropped image, please ",
+                    "change 'version' or 'output_dir' parameter)")
+        }
         asset <- .tile_from_file(
             file = out_file, base_tile = asset,
             band = .tile_bands(asset), update_bbox = TRUE,
@@ -291,6 +290,8 @@ sits_mosaic <- function(cube,
         )
         return(asset)
     }
+    # Get band configs from tile
+    band_conf <- .tile_band_conf(asset, band = .tile_bands(asset))
     # Scaling image to byte
     .gdal_scale(
         file = file,
@@ -337,7 +338,7 @@ sits_mosaic <- function(cube,
         out_file = out_file,
         roi_file = roi,
         as_crs = .mosaic_crs(tile = asset, as_crs = crs),
-        miss_value = .miss_value(band_conf),
+        miss_value = 255,
         data_type = "INT1U",
         multicores = 1,
         overwrite = TRUE

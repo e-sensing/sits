@@ -9,8 +9,8 @@ struct _neigh {
     arma::uword n_rows;
     _neigh(const arma::mat& m, const arma::mat& w):
         data(w.n_elem, m.n_cols, arma::fill::zeros),
-        weights(w.n_elem, arma::fill::zeros),
-        n_rows(0) {}
+    weights(w.n_elem, arma::fill::zeros),
+    n_rows(0) {}
 };
 
 typedef _neigh neigh_t;
@@ -37,7 +37,7 @@ void neigh_vec(neigh_t& n,
                 arma::is_finite(m((m_j + j - w_leg_j) + (m_i + i - w_leg_i) * m_ncol, m_b))) {
 
                 n.data(k, m_b) = m((m_j + j - w_leg_j) +
-                    (m_i + i - w_leg_i) * m_ncol, m_b);
+                                       (m_i + i - w_leg_i) * m_ncol, m_b);
                 n.weights(k++) = w(i, j);
             }
     n.n_rows = k;
@@ -90,7 +90,8 @@ arma::mat bayes_smoother(const arma::mat& m,
 
             if (neigh_fraction < 1.0 ) {
                 // sort the data
-                neigh.data.rows(0, neigh.n_rows - 1) = arma::sort(neigh.data.rows(0, neigh.n_rows - 1), "descend");
+                neigh.data.rows(0, neigh.n_rows - 1) =
+                    arma::sort(neigh.data.rows(0, neigh.n_rows - 1), "descend");
 
                 // number of sorted values
                 arma::uword n_sort = neigh.n_rows * neigh_fraction;
@@ -103,9 +104,9 @@ arma::mat bayes_smoother(const arma::mat& m,
 
                 // clear non main diagonal cells
                 sigma0.elem(arma::trimatu_ind(
-                        arma::size(sigma0), 1)).fill(0.0);
+                    arma::size(sigma0), 1)).fill(0.0);
                 sigma0.elem(arma::trimatl_ind(
-                        arma::size(sigma0), -1)).fill(0.0);
+                    arma::size(sigma0), -1)).fill(0.0);
             }
             else {
                 // compute prior mean
@@ -114,9 +115,9 @@ arma::mat bayes_smoother(const arma::mat& m,
                 sigma0 = arma::cov(neigh.data.rows(0, neigh.n_rows - 1), 1);
                 // clear non main diagonal cells
                 sigma0.elem(arma::trimatu_ind(
-                        arma::size(sigma0), 1)).fill(0.0);
+                    arma::size(sigma0), 1)).fill(0.0);
                 sigma0.elem(arma::trimatl_ind(
-                        arma::size(sigma0), -1)).fill(0.0);
+                    arma::size(sigma0), -1)).fill(0.0);
             }
 
             // evaluate multivariate bayesian
@@ -156,7 +157,8 @@ arma::mat bayes_var(const arma::mat& m,
 
             if (neigh_fraction < 1.0 ) {
                 // sort the data
-                neigh.data.rows(0, neigh.n_rows - 1) = arma::sort(neigh.data.rows(0, neigh.n_rows - 1), "descend");
+                neigh.data.rows(0, neigh.n_rows - 1) =
+                    arma::sort(neigh.data.rows(0, neigh.n_rows - 1), "descend");
 
                 // number of sorted values
                 arma::uword n_sort = neigh.n_rows * neigh_fraction;

@@ -126,57 +126,6 @@
     ))
 }
 
-
-#' @title Raster package internal data type representation
-#' @name .raster_data_type
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param data_type   sits internal raster data type.
-#'
-#' @return  internal data type used by raster package
-.raster_data_type <- function(data_type) {
-
-    # check data type
-    .check_chr_within(
-        x = data_type,
-        within = .conf("valid_raster_data_types"),
-        msg = "invalid 'data_type' parameter"
-    )
-
-    # check package
-    pkg_class <- .raster_check_package()
-
-    # call function
-    UseMethod(".raster_data_type", pkg_class)
-}
-
-#' @title Raster package internal resampling method
-#' @name .raster_resampling
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param method   sits internal raster resampling method.
-#'
-#' @return resampling method (if valid)
-.raster_resampling <- function(method) {
-
-    # check data type
-    .check_chr_within(
-        x = method,
-        within = .conf("valid_raster_resampling"),
-        msg = "invalid resampling 'method' parameter"
-    )
-
-    # check package
-    pkg_class <- .raster_check_package()
-
-    # call function
-    UseMethod(".raster_resampling", pkg_class)
-}
-
 #' @title Raster package internal get values function
 #' @name .raster_get_values
 #' @keywords internal
@@ -260,12 +209,20 @@
         with_ties = FALSE
     )
 
-    # Get the values' positions.
-    result_tb <- r_obj %>%
+    tb <- r_obj %>%
         terra::xyFromCell(
             cell = samples_tb[["cell"]]
         ) %>%
-        tibble::as_tibble() %>%
+        tibble::as_tibble()
+    # find NA
+    na_rows <- which(is.na(tb))
+    # remove NA
+    if (length(na_rows) > 0 ) {
+        tb <- tb[-na_rows, ]
+        samples_tb <- samples_tb[-na_rows,]
+    }
+    # Get the values' positions.
+    result_tb <- tb %>%
         sf::st_as_sf(
             coords = c("x", "y"),
             crs = .raster_crs(r_obj),
@@ -299,23 +256,6 @@
     pkg_class <- .raster_check_package()
 
     UseMethod(".raster_extract", pkg_class)
-}
-
-#' @title Raster package internal extract values function
-#' @name .raster_ext_as_sf
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param r_obj   raster package object
-#'
-#' @return An object with raster extent.
-.raster_ext_as_sf <- function(r_obj) {
-
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_ext_as_sf", pkg_class)
 }
 
 #' @name .raster_file_blocksize
@@ -660,16 +600,6 @@
 
     UseMethod(".raster_crs", pkg_class)
 }
-#' @name .raster_sources
-#' @keywords internal
-#' @noRd
-.raster_sources <- function(r_obj, ...) {
-
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_sources", pkg_class)
-}
 
 #' @name .raster_bbox
 #' @keywords internal
@@ -952,49 +882,22 @@
     return(r_obj)
 }
 
-#' @title Raster package internal open raster function
-#' @name .raster_missing_value
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param file    raster file to be opened
-#'
-#' @return a numeric with no data value
-.raster_missing_value <- function(file) {
-    # set caller to show in errors
-    .check_set_caller(".raster_missing_value")
-
-    # check for file length == 1
-    .check_that(
-        length(file) == 1,
-        msg = "more than one file were informed"
-    )
-
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_missing_value", pkg_class)
-}
-
 .raster_is_valid <- function(files, output_dir = NULL) {
     # resume processing in case of failure
     if (!all(file.exists(files))) {
         return(FALSE)
     }
     # check if files were already checked before
-    checked_file <- NULL
-    checked <- character(0)
+    checked_files <- NULL
+    checked <- logical(0)
     if (!is.null(output_dir)) {
-        checked_file <- .file_path(
-            ".checked",
-            ext = ".rds",
+        checked_files <- .file_path(
+            ".check", .file_sans_ext(files),
+            ext = ".txt",
             output_dir = file.path(output_dir, ".sits"),
             create_dir = TRUE
         )
-        if (file.exists(checked_file)) {
-            checked <- readRDS(checked_file)
-        }
+        checked <- file.exists(checked_files)
     }
     files <- files[!files %in% checked]
     if (length(files) == 0) {
@@ -1024,9 +927,9 @@
         FALSE
     })
     # Update checked files
-    if (!is.null(checked_file) && check) {
-        checked <- c(checked, files)
-        saveRDS(checked, checked_file)
+    checked_files <- checked_files[!checked]
+    if (.has(checked_files) && check) {
+        for (file in checked_files) cat(file = file)
     }
     # Return check
     check

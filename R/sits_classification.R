@@ -85,9 +85,7 @@
 #'     cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_",
-#'         parse_info = c("X1", "tile", "band", "date")
+#'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(
@@ -176,6 +174,10 @@ sits_classify.raster_cube <- function(data,
             cube = data, start_date = start_date, end_date = end_date
         )
     }
+    if (!purrr::is_null(filter_fn))
+        .check_that(is.function(filter_fn),
+                    local_msg = "Please use sits_whittaker() or sits_sgolay()",
+                    msg = "Invalid filter_fn parameter")
     # Retrieve the samples from the model
     samples <- .ml_samples(ml_model)
     # Do the samples and tile match their timeline length?

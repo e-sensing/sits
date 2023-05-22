@@ -1,33 +1,6 @@
 #include <Rcpp.h>
 #include <stdio.h>
 using namespace Rcpp;
-
-// This function calculates the average of probs cubs
-
-// [[Rcpp::export]]
-
-NumericMatrix average_probs(const List& data_lst) {
-
-    int n_classifiers = data_lst.length();
-    NumericMatrix mat    = data_lst[0];
-    int nrows = mat.nrow();
-    int ncols = mat.ncol();
-
-    NumericMatrix new_data(nrows, ncols);
-
-    for (int c = 0; c < n_classifiers; c++){
-        NumericMatrix mat1 = data_lst[c];
-        for (int i = 0; i < nrows; i++)
-            for (int j = 0; j < ncols; j++)
-                new_data(i,j) = new_data(i,j) + mat1(i,j);
-    }
-    for (int i = 0; i < nrows; i++)
-        for (int j = 0; j < ncols; j++)
-            new_data(i,j) = new_data(i,j)/n_classifiers;
-
-    return new_data;
-}
-
 // This function calculates the weighted average of probs cubs
 
 // [[Rcpp::export]]

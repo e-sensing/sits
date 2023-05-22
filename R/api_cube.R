@@ -528,6 +528,7 @@ NULL
     derived_cube <- inherits(cube, "derived_cube")
     cube <- tidyr::unnest(cube, "file_info", names_sep = ".")
     if (!derived_cube)
+        cube <- dplyr::distinct(cube)
         cube <- dplyr::arrange(
             cube,
             .data[["file_info.date"]],
@@ -611,6 +612,7 @@ NULL
 #' @keywords internal
 #' @noRd
 #' @param  cube input data cube
+#' @param  ...  additional parameters for httr package
 #'
 #' @return A sits cube
 .cube_token_generator <- function(cube) {
@@ -643,10 +645,19 @@ NULL
 
     n_tries <- .conf("cube_token_generator_n_tries")
     sleep_time <- .conf("cube_token_generator_sleep_time")
+
+    access_key <- Sys.getenv("MPC_TOKEN")
+    if (!nzchar(access_key)) {
+        access_key <- NULL
+    }
     while (is.null(res_content) && n_tries > 0) {
         res_content <- tryCatch(
             {
-                res <- httr::stop_for_status(httr::GET(url))
+                res <- httr::GET(
+                    url = url,
+                    httr::add_headers("Ocp-Apim-Subscription-Key" = access_key)
+                )
+                res <- httr::stop_for_status(res)
                 httr::content(res, encoding = "UTF-8")
             },
             error = function(e) {
@@ -728,7 +739,7 @@ NULL
     if ("token_expires" %in% colnames(file_info)) {
         difftime_token <- difftime(
             time1 = file_info[["token_expires"]][[1]],
-            time2 = as.POSIXlt(Sys.time(), tz = "UTC"),
+            time2 = as.POSIXct(format(Sys.time(), tz = "UTC", usetz = TRUE)),
             units = "mins"
         )
 

@@ -22,17 +22,11 @@ IntegerVector locus_mirror(int size, int leg) {
 inline double _median(const NumericVector& neigh) {
     return median(neigh, true);
 }
-inline double _sum(const NumericVector& neigh) {
-    return sum(na_omit(neigh));
-}
 inline double _mean(const NumericVector& neigh) {
     return mean(na_omit(neigh));
 }
 inline double _sd(const NumericVector& neigh) {
     return sd(na_omit(neigh));
-}
-inline double _var(const NumericVector& neigh) {
-    return var(na_omit(neigh));
 }
 inline double _min(const NumericVector& neigh) {
     return min(na_omit(neigh));
@@ -40,7 +34,6 @@ inline double _min(const NumericVector& neigh) {
 inline double _max(const NumericVector& neigh) {
     return max(na_omit(neigh));
 }
-
 
 
 NumericVector kernel_fun(const NumericMatrix& x, int ncols, int nrows,
@@ -71,16 +64,10 @@ NumericVector kernel_fun(const NumericMatrix& x, int ncols, int nrows,
     }
     return res;
 }
-
 // [[Rcpp::export]]
 NumericVector C_kernel_median(const NumericMatrix& x, int ncols,
                               int nrows, int band, int window_size) {
     return kernel_fun(x, ncols, nrows, band, window_size, _median);
-}
-// [[Rcpp::export]]
-NumericVector C_kernel_sum(const NumericMatrix& x, int ncols,
-                           int nrows, int band, int window_size) {
-    return kernel_fun(x, ncols, nrows, band, window_size, _sum);
 }
 // [[Rcpp::export]]
 NumericVector C_kernel_mean(const NumericMatrix& x, int ncols,
@@ -91,11 +78,6 @@ NumericVector C_kernel_mean(const NumericMatrix& x, int ncols,
 NumericVector C_kernel_sd(const NumericMatrix& x, int ncols,
                           int nrows, int band, int window_size) {
     return kernel_fun(x, ncols, nrows, band, window_size, _sd);
-}
-// [[Rcpp::export]]
-NumericVector C_kernel_var(const NumericMatrix& x, int ncols,
-                           int nrows, int band, int window_size) {
-    return kernel_fun(x, ncols, nrows, band, window_size, _var);
 }
 // [[Rcpp::export]]
 NumericVector C_kernel_min(const NumericMatrix& x, int ncols,

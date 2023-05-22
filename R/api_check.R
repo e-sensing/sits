@@ -1571,14 +1571,6 @@
         msg = "invalid sits model"
     )
     .check_that(
-        x = any(c("model", "torch_model",
-                  # Old models
-                  "result_rfor", "result_svm", "model_xgb") %in%
-                    ls(environment(model))),
-        local_msg = "please, run sits_train() first",
-        msg = "invalid sits model"
-    )
-    .check_that(
         x = "samples" %in% ls(environment(model)),
         local_msg = "please, run sits_train() first",
         msg = "invalid sits model"
@@ -2198,7 +2190,8 @@
     # Pre-condition
     .check_chr_contains(
         x = colnames(em),
-        contains = "TYPE",
+        contains = c("TYPE", "CLASS"),
+        discriminator = "any_of",
         msg = "Invalid 'endmembers' parameter"
     )
     # Pre-condition
@@ -2240,13 +2233,42 @@
 #' @noRd
 .check_documentation <- function(progress) {
     # if working on sits documentation mode, no progress bar
-    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true" ||
+        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
         progress <- FALSE
     }
 
     return(progress)
 }
+#' @title Checks if messages should be displayed
+#' @name .check_messages
+#' @return TRUE/FALSE
+#' @keywords internal
+#' @noRd
+.check_messages <- function() {
+    # if working on sits documentation mode, no progress bar
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true" ||
+        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
+        return(FALSE)
+    }
+    else
+        return(TRUE)
+}
 
+#' @title Checks if warnings should be displayed
+#' @name .check_warnings
+#' @return TRUE/FALSE
+#' @keywords internal
+#' @noRd
+.check_warnings <- function() {
+    # if working on sits documentation mode, no progress bar
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true" ||
+        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
+        return(FALSE)
+    }
+    else
+        return(TRUE)
+}
 .check_stac_items <- function(items) {
     .check_that(
         rstac::items_length(items) > 0,

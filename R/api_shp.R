@@ -21,24 +21,21 @@
                              n_shp_pol,
                              shp_id) {
 
-    # pre-condition - check the shape file and its attribute
+    # Pre-condition - check the shape file and its attribute
     sf_shape <- .shp_check_validity(
         shp_file = shp_file,
         shp_attr = shp_attr,
         label = label
     )
-    # get the points to be read
+    # Get the points to be read
     samples <- .sf_to_tibble(
-        sf_object   = sf_shape,
-        label_attr  = shp_attr,
-        label       = label,
-        n_sam_pol   = n_shp_pol,
-        pol_id      = shp_id
-    )
-
-    samples <- dplyr::mutate(samples,
-                             start_date = as.Date(start_date),
-                             end_date = as.Date(end_date)
+        sf_object  = sf_shape,
+        label_attr = shp_attr,
+        label      = label,
+        n_sam_pol  = n_shp_pol,
+        pol_id     = shp_id,
+        start_date = start_date,
+        end_date   = end_date
     )
 
     class(samples) <- c("sits", class(samples))
@@ -82,8 +79,9 @@
         within = .conf("sf_geom_types_supported"),
         discriminator = "one_of",
         msg = paste0(
-            "only handles shapefiles of types",
-            .conf("sf_geom_types_supported")
+            "Only handles with geometry types: ", paste(
+                .conf("sf_geom_types_supported"), collapse = ", "
+            )
         )
     )
     # precondition - is the default label valid?

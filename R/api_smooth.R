@@ -14,12 +14,11 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        # # Callback final tile classification
-        # .callback(process = "tile_classification", event = "recovery",
-        #           context = environment())
-        message("Recovery: tile '", tile[["tile"]], "' already exists.")
-        message("(If you want to produce a new image, please ",
-                "change 'output_dir' or 'version' parameters)")
+        if (.check_messages()) {
+            message("Recovery: tile '", tile[["tile"]], "' already exists.")
+            message("(If you want to produce a new image, please ",
+                    "change 'output_dir' or 'version' parameters)")
+        }
         probs_tile <- .tile_probs_from_file(
             file = out_file, band = band, base_tile = tile,
             labels = .tile_labels(tile), update_bbox = FALSE
@@ -91,7 +90,6 @@
                     window_size,
                     neigh_fraction,
                     smoothness,
-                    min_samples,
                     multicores,
                     memsize,
                     output_dir,
@@ -101,8 +99,7 @@
     smooth_fn <- .smooth_fn_bayes(
         window_size = window_size,
         neigh_fraction = neigh_fraction,
-        smoothness = smoothness,
-        min_samples = min_samples
+        smoothness = smoothness
     )
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
@@ -125,21 +122,11 @@
 
 .smooth_fn_bayes <- function(window_size,
                              neigh_fraction,
-                             smoothness,
-                             min_samples) {
+                             smoothness) {
     # Check window size
-    .check_window_size(window_size, min = 7)
+    .check_window_size(window_size, min = 5)
     # Check neigh_fraction
-    .check_num_parameter(neigh_fraction, min = 0, max = 1)
-    # check number of values
-    num_values <- window_size * window_size * neigh_fraction
-    .check_num(num_values, min = min_samples,
-               msg = paste0("Sample size too small \n",
-                            "Please choose a larger window\n",
-                            "or increase the neighborhood fraction")
-    )
-    # Create a window
-    window <- matrix(1, nrow = window_size, ncol = window_size)
+    .check_num_parameter(neigh_fraction, exclusive_min = 0, max = 1)
 
     # Define smooth function
     smooth_fn <- function(values, block) {
@@ -148,12 +135,12 @@
         # Compute logit
         values <- log(values / (rowSums(values) - values))
         # Process Bayesian
-        values <- bayes_smoother(
-            m = values,
-            m_nrow = .nrows(block),
-            m_ncol = .ncols(block),
-            w = window,
-            sigma = smoothness,
+        values <- bayes_smoother_fraction(
+            logits = values,
+            nrows  = .nrows(block),
+            ncols  = .ncols(block),
+            window_size = window_size,
+            smoothness = smoothness,
             neigh_fraction = neigh_fraction
         )
         # Compute inverse logit

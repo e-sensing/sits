@@ -81,10 +81,10 @@
     .check_has_one_tile(tile)
 
     # get bbox roi
-    bbox_roi <- .tile_bbox(tile)
-    if (!is.null(roi)) {
-        roi <- .roi_as_sf(roi, as_crs = .tile_crs(tile))
-    }
+    if (!is.null(roi))
+        bbox_roi <- .bbox(roi, as_crs = .tile_crs(tile))
+    else
+        bbox_roi <- .tile_bbox(tile)
 
     # create a gdalcubes extent
     extent <- list(
@@ -461,6 +461,7 @@
 #' @param roi        A named \code{numeric} vector with a region of interest.
 #' @param multicores Number of cores used for regularization.
 #' @param progress   Show progress bar?
+#' @param ...        Additional parameters for httr package.
 #'
 #' @return             Data cube with aggregated images.
 .gc_regularize <- function(cube,
@@ -503,7 +504,6 @@
                 source = .cube_source(cube),
                 collection = .cube_collection(cube),
                 data_dir = output_dir,
-                parse_info = c("X1", "tile", "band", "date"),
                 multicores = multicores,
                 progress = progress
             )
@@ -578,7 +578,11 @@
             )
 
             # files prefix
-            prefix <- paste("cube", .cube_tiles(tile), band, "", sep = "_")
+            prefix <- paste(tile[["satellite"]],
+                            tile[["sensor"]],
+                            .cube_tiles(tile),
+                            band, "",
+                            sep = "_")
 
             # check documentation mode
             progress <- .check_documentation(progress)
@@ -610,7 +614,6 @@
                     source = .cube_source(cube),
                     collection = .cube_collection(cube),
                     data_dir = output_dir,
-                    parse_info = c("X1", "tile", "band", "date"),
                     multicores = multicores,
                     progress = FALSE
                 )

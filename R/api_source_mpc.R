@@ -33,8 +33,16 @@
     .check_stac_items(items)
 
     # signing the url with the mpc token
+    access_key <- Sys.getenv("MPC_TOKEN")
+    if (!nzchar(access_key)) {
+        access_key <- NULL
+    }
     items <- suppressWarnings(
-        rstac::items_sign(items, sign_fn = rstac::sign_planetary_computer())
+        rstac::items_sign(
+            items, sign_fn = rstac::sign_planetary_computer(
+                httr::add_headers("Ocp-Apim-Subscription-Key" = access_key)
+            )
+        )
     )
 
     items <- .source_items_bands_select(
@@ -123,9 +131,15 @@
     }
 
     # assign href
+    access_key <- Sys.getenv("MPC_TOKEN")
+    if (!nzchar(access_key)) {
+        access_key <- NULL
+    }
     items_info <- suppressWarnings(
-        rstac::items_sign(items_info,
-                          sign_fn = rstac::sign_planetary_computer()
+        rstac::items_sign(
+            items_info, sign_fn = rstac::sign_planetary_computer(
+                httr::add_headers("Ocp-Apim-Subscription-Key" = access_key)
+            )
         )
     )
     return(items_info)
@@ -177,8 +191,16 @@
         rstac::items_fetch(items = items, progress = FALSE)
     )
     # assign href
+    access_key <- Sys.getenv("MPC_TOKEN")
+    if (!nzchar(access_key)) {
+        access_key <- NULL
+    }
     items <- suppressWarnings(
-        rstac::items_sign(items, sign_fn = rstac::sign_planetary_computer())
+        rstac::items_sign(
+            items, sign_fn = rstac::sign_planetary_computer(
+                httr::add_headers("Ocp-Apim-Subscription-Key" = access_key)
+            )
+        )
     )
     return(items)
 }

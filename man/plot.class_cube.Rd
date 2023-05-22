@@ -11,7 +11,8 @@
   tile = x$tile[[1]],
   title = "Classified Image",
   legend = NULL,
-  palette = "Spectral"
+  palette = "Spectral",
+  tmap_options = NULL
 )
 }
 \arguments{
@@ -28,6 +29,14 @@
 \item{legend}{Named vector that associates labels to colors.}
 
 \item{palette}{Alternative RColorBrewer palette}
+
+\item{tmap_options}{List with optional tmap parameters
+tmap_max_cells (default: 1e+06)
+tmap_graticules_labels_size (default: 0.7)
+tmap_legend_title_size (default: 1.5)
+tmap_legend_text_size (default: 1.2)
+tmap_legend_bg_color (default: "white")
+tmap_legend_bg_alpha (default: 0.5)}
 }
 \value{
 A  color map, where each pixel has the color
@@ -46,9 +55,7 @@ if (sits_run_examples()) {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
     # classify a data cube
     probs_cube <- sits_classify(

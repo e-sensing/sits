@@ -10,39 +10,34 @@
 #' @return A list with evaluated random values
 #'
 .tuning_pick_random <- function(trial, params) {
-    uniform <- function(min = 0, max = 1, n = 1) {
-        val <- stats::runif(n = n, min = min, max = max)
+    uniform <- function(min = 0, max = 1) {
+        val <- stats::runif(n = 1, min = min, max = max)
         return(val)
     }
 
-    choice <- function(..., replace = TRUE, n = 1) {
+    choice <- function(..., replace = TRUE) {
         options <- as.list(substitute(list(...), environment()))[-1]
-        val <- sample(x = options, replace = replace, size = n)
+        val <- sample(x = options, replace = replace, size = 1)
         if (length(val) == 1) val <- val[[1]]
         return(unlist(val))
     }
 
-    randint <- function(min, max, n = 1) {
-        val <- as.integer((max - min) * stats::runif(n = n) + min)
+    normal <- function(mean = 0, sd = 1) {
+        val <- stats::rnorm(n = 1, mean = mean, sd = sd)
         return(val)
     }
 
-    normal <- function(mean = 0, sd = 1, n = 1) {
-        val <- stats::rnorm(n = n, mean = mean, sd = sd)
+    lognormal <- function(meanlog = 0, sdlog = 1) {
+        val <- stats::rlnorm(n = 1, meanlog = meanlog, sdlog = sdlog)
         return(val)
     }
 
-    lognormal <- function(meanlog = 0, sdlog = 1, n = 1) {
-        val <- stats::rlnorm(n = n, meanlog = meanlog, sdlog = sdlog)
+    loguniform <- function(minlog = 0, maxlog = 1) {
+        val <- exp((maxlog - minlog) * stats::runif(n = 1) + minlog)
         return(val)
     }
 
-    loguniform <- function(minlog = 0, maxlog = 1, n = 1) {
-        val <- exp((maxlog - minlog) * stats::runif(n = n) + minlog)
-        return(val)
-    }
-
-    beta <- function(shape1, shape2, n = 1) {
+    beta <- function(shape1, shape2) {
         val <- stats::rbeta(n = 1, shape1 = shape1, shape2 = shape2)
         return(val)
     }

@@ -39,54 +39,16 @@
     )
 }
 
-.gdal_buildvrt <- function(file, base_files, quiet) {
-    sf::gdal_utils(
-        util = "buildvrt", source = base_files,
-        destination = file, quiet = quiet
-    )
-}
-
 .gdal_addo <- function(base_file) {
-    # conf_cog <- .conf("gdal_presets", "cog")
-    # suppressMessages(
-    #     sf::gdal_addo(
-    #         file = base_file,
-    #         method = conf_cog[["method"]],
-    #         overviews = conf_cog[["overviews"]],
-    #         options = c("GDAL_NUM_THREADS" = "2")
-    #     )
-    # )
-}
-
-.gdal_template_from_file <- function(base_file, file, nlayers, miss_value,
-                                     data_type) {
-    # Convert to gdal data type
-    data_type <- .gdal_data_type[[data_type]]
-    # Output file
-    file <- .try({
-        .gdal_translate(
-            file = file,
-            base_file = base_file,
-            params = list(
-                "-ot" = data_type,
-                "-of" = .conf("gdal_presets", "image", "of"),
-                "-b" = rep(1, nlayers),
-                "-scale" = list(0, 1, miss_value, miss_value),
-                "-a_nodata" = miss_value,
-                "-co" = .conf("gdal_presets", "image", "co")
-            ),
-            quiet = TRUE
+    conf_cog <- .conf("gdal_presets", "cog")
+    suppressMessages(
+        sf::gdal_addo(
+            file = base_file,
+            method = conf_cog[["method"]],
+            overviews = conf_cog[["overviews"]],
+            options = c("GDAL_NUM_THREADS" = "2")
         )
-    },
-    .rollback = {
-        unlink(file)
-    },
-    .finally = {
-        # Delete auxiliary files
-        unlink(paste0(file, ".aux.xml"))
-    })
-    # Return file
-    file
+    )
 }
 
 .gdal_template_block <- function(block, bbox, file, nlayers, miss_value,

@@ -87,24 +87,11 @@ test_that("Downloading and cropping cubes from BDC", {
 test_that("Downloading entire images from local cubes", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
-    cube <- tryCatch(
-        {
-            sits_cube(
+    cube <- sits_cube(
                 source = "BDC",
                 collection = "MOD13Q1-6",
                 data_dir = data_dir,
-                delim = "_",
-                parse_info = c("X1", "tile", "band", "date"),
                 multicores = 2
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    testthat::skip_if(purrr::is_null(cube),
-                      message = "LOCAL cube not found"
     )
 
     cube_local <- sits_cube_copy(

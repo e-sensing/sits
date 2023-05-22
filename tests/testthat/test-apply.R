@@ -30,13 +30,13 @@ test_that("EVI generation", {
         full.names = TRUE
     ))
 
-    gc_cube <- sits_regularize(
+    expect_warning({ gc_cube <- sits_regularize(
         cube        = s2_cube,
         output_dir  = dir_images,
         res         = 160,
         period      = "P1M",
         multicores  = 2
-    )
+    )})
 
     gc_cube_new <- sits_apply(gc_cube,
         EVI2 = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),
@@ -105,4 +105,118 @@ test_that("EVI generation", {
     values_evi2 <- .tibble_time_series(evi_tibble_2)$EVI2
     values_evi2_new <- .tibble_time_series(evi_tibble_2)$EVI2_NEW
     expect_equal(values_evi2, values_evi2_new, tolerance = 0.001)
+})
+
+test_that("Kernel functions", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
+    )
+
+    cube_median <- sits_apply(
+        data = cube,
+        output_dir = tempdir(),
+        NDVI_MEDIAN = w_median(NDVI),
+        window_size = 3,
+        memsize = 4,
+        multicores = 1
+    )
+    r_obj <- .raster_open_rast(cube$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(r_obj), ncol = 255, byrow = TRUE)
+    r_obj_md <- .raster_open_rast(cube_median$file_info[[1]]$path[[2]])
+    v_obj_md <- matrix(.raster_get_values(r_obj_md), ncol = 255, byrow = TRUE)
+
+    median_1 <- median(as.vector(v_obj[20:22,20:22]))
+    median_2 <- v_obj_md[21,21]
+
+    expect_true(median_1 == median_2)
+    # Recovery
+    out <- capture_messages({
+        expect_message({
+        cube_median <- sits_apply(
+            data = cube,
+            output_dir = tempdir(),
+            NDVI_MEDIAN = w_median(NDVI),
+            window_size = 3,
+            memsize = 4,
+            multicores = 1
+        )},
+        regexp = "Recovery"
+        )
+    })
+    expect_true(grepl("output_dir", out[1]))
+    expect_true(grepl("Recovery", out[2]))
+    cube_mean <- sits_apply(
+        data = cube,
+        output_dir = tempdir(),
+        NDVI_MEAN = w_mean(NDVI),
+        window_size = 3,
+        memsize = 4,
+        multicores = 2
+    )
+    r_obj <- .raster_open_rast(cube[1,]$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(r_obj), ncol = 255, byrow = TRUE)
+    r_obj_m <- .raster_open_rast(cube_mean$file_info[[1]]$path[[2]])
+    v_obj_m <- matrix(.raster_get_values(r_obj_m), ncol = 255, byrow = TRUE)
+
+    mean_1 <- as.integer(mean(as.vector(v_obj[4:6,4:6])))
+    mean_2 <- v_obj_m[5,5]
+    expect_true(mean_1 == mean_2)
+
+    cube_sd <- sits_apply(
+        data = cube,
+        output_dir = tempdir(),
+        NDVI_SD = w_sd(NDVI),
+        window_size = 3,
+        memsize = 4,
+        multicores = 2
+    )
+    r_obj <- .raster_open_rast(cube[1,]$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(r_obj), ncol = 255, byrow = TRUE)
+    r_obj_sd <- .raster_open_rast(cube_sd$file_info[[1]]$path[[2]])
+    v_obj_sd <- matrix(.raster_get_values(r_obj_sd), ncol = 255, byrow = TRUE)
+
+    sd_1 <- as.integer(sd(as.vector(v_obj[4:6,4:6])))
+    sd_2 <- v_obj_sd[5,5]
+    expect_true(sd_1 == sd_2)
+
+    cube_min <- sits_apply(
+        data = cube,
+        output_dir = tempdir(),
+        NDVI_MIN = w_min(NDVI),
+        window_size = 3,
+        memsize = 4,
+        multicores = 2
+    )
+    r_obj <- .raster_open_rast(cube[1,]$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(r_obj), ncol = 255, byrow = TRUE)
+    r_obj_min <- .raster_open_rast(cube_min$file_info[[1]]$path[[2]])
+    v_obj_min <- matrix(.raster_get_values(r_obj_min), ncol = 255, byrow = TRUE)
+
+    min_1 <- min(as.vector(v_obj[4:6,4:6]))
+    min_2 <- v_obj_min[5,5]
+    expect_true(min_1 == min_2)
+
+    cube_max <- sits_apply(
+        data = cube,
+        output_dir = tempdir(),
+        NDVI_MAX = w_max(NDVI),
+        window_size = 3,
+        memsize = 4,
+        multicores = 2
+    )
+    r_obj <- .raster_open_rast(cube[1,]$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(r_obj), ncol = 255, byrow = TRUE)
+    r_obj_max <- .raster_open_rast(cube_max$file_info[[1]]$path[[2]])
+    v_obj_max <- matrix(.raster_get_values(r_obj_max), ncol = 255, byrow = TRUE)
+
+    max_1 <- max(as.vector(v_obj[4:6,4:6]))
+    max_2 <- v_obj_max[5,5]
+    expect_true(max_1 == max_2)
+
+    tif_files <- grep("tif", list.files(tempdir(), full.names = TRUE), value = TRUE)
+
+    success <- file.remove(tif_files)
 })

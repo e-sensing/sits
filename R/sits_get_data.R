@@ -45,6 +45,7 @@
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
 #' @param pol_avg         Summarize samples for each polygon?
 #' @param pol_id          ID attribute for polygons.
+#' @param aggreg_fn       Function to compute a summary of each segment
 #' @param multicores      Number of threads to process the time series.
 #' @param progress        A logical value indicating if a progress bar
 #'                        should be shown. Default is \code{FALSE}.
@@ -64,9 +65,7 @@
 #'     raster_cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_",
-#'         parse_info = c("X1", "tile", "band", "date")
+#'         data_dir = data_dir
 #'     )
 #'     samples <- tibble::tibble(longitude = -55.66738, latitude = -11.76990)
 #'     point_ndvi <- sits_get_data(raster_cube, samples)
@@ -211,6 +210,7 @@ sits_get_data.shp <- function(cube,
     }
     return(data)
 }
+
 #' @rdname sits_get_data
 #' @export
 sits_get_data.sf <- function(cube,
@@ -233,18 +233,18 @@ sits_get_data.sf <- function(cube,
         !(pol_avg && purrr::is_null(pol_id)),
         msg = "Please provide an sf object with a column
         with the id for each polygon and include
-        this column name in the pol_id parameter."
+        this column name in the 'pol_id' parameter."
     )
 
     # check if sf object contains all the required columns
     samples <- .sf_get_samples(
-        sf_object     = samples,
-        label         = label,
-        label_attr    = label_attr,
-        start_date    = start_date,
-        end_date      = end_date,
-        n_sam_pol     = n_sam_pol,
-        pol_id        = pol_id
+        sf_object  = samples,
+        label      = label,
+        label_attr = label_attr,
+        start_date = start_date,
+        end_date   = end_date,
+        n_sam_pol  = n_sam_pol,
+        pol_id     = pol_id
     )
 
     data <- .sits_get_ts(
@@ -336,6 +336,31 @@ sits_get_data.data.frame <- function(cube,
     )
     return(data)
 }
+
+#' @rdname sits_get_data
+#' @export
+sits_get_data.segments <- function(
+        cube,
+        samples,
+        ...,
+        bands = sits_bands(cube),
+        impute_fn = sits_impute_linear(),
+        aggreg_fn = "mean",
+        multicores = 1,
+        progress = FALSE) {
+
+    data <- .supercells_get_data(
+        cube = cube,
+        supercells = samples,
+        bands = bands,
+        impute_fn  = impute_fn,
+        aggreg_fn = aggreg_fn,
+        multicores = multicores,
+        progress = progress
+    )
+    return(data)
+}
+
 #' @title Dispatch function to get time series from data cubes and cloud
 #' services
 #' @name .sits_get_ts
@@ -432,11 +457,9 @@ sits_get_data.data.frame <- function(cube,
         )
 
         if (file.exists(filename)) {
-            tryCatch(
-                {
+            tryCatch({
                     # ensuring that the file is not corrupted
                     timeseries <- readRDS(filename)
-
                     return(timeseries)
                 },
                 error = function(e) {
@@ -473,8 +496,6 @@ sits_get_data.data.frame <- function(cube,
             ncol = 2
         )
         colnames(xy) <- c("X", "Y")
-
-
         # build the sits tibble for the storing the points
         samples_tbl <- slider::slide_dfr(samples, function(point) {
 
@@ -542,7 +563,7 @@ sits_get_data.data.frame <- function(cube,
     }
 
     ts_tbl <- ts_tbl %>%
-        dplyr::summarise(
+        dplyr::reframe(
             dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%

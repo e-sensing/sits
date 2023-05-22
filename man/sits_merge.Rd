@@ -10,7 +10,7 @@ sits_merge(data1, data2, ..., suffix = c(".1", ".2"))
 
 \method{sits_merge}{sits}(data1, data2, ..., suffix = c(".1", ".2"))
 
-\method{sits_merge}{raster_cube}(data1, data2, ..., suffix = c(".1", ".2"))
+\method{sits_merge}{raster_cube}(data1, data2, ...)
 }
 \arguments{
 \item{data1}{Time series or cube to be merged.}
