@@ -1371,7 +1371,7 @@
 #' @title Check is output_dir parameter is valid using reasonable defaults
 #' @name .check_output_dir
 #' @param  output_dir  name of output directory
-#' @return          No return value, called for side effects.
+#' @return No return value, called for side effects.
 #' @keywords internal
 #' @noRd
 .check_output_dir <- function(output_dir) {
@@ -1380,6 +1380,7 @@
         msg = "invalid output dir"
     )
 }
+
 .check_crs <- function(crs) {
     crs <- suppressWarnings(.try(sf::st_crs(crs), .default = NA))
     .check_that(
