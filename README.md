@@ -205,7 +205,7 @@ The cube can be shown in a leaflet using `sits_view()`.
 
 ``` r
 # View a color composite on a leaflet
-sits_view(s2_cube[1,], green = "B08", blue = "B03", red = "B04")
+sits_view(s2_cube[1,], green = "B08", blue = "B03", red = "B11")
 ```
 
 ## Working with Time Series in `sits`
