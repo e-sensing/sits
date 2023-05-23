@@ -51,7 +51,7 @@ sits_cube_copy <- function(cube,
                            res = NULL,
                            multicores = 2,
                            output_dir,
-                           progress = TRUE) {e
+                           progress = TRUE) {
 
     # Pre-conditions
     .check_is_raster_cube(cube)

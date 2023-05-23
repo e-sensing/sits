@@ -1371,19 +1371,13 @@
 #' @title Check is output_dir parameter is valid using reasonable defaults
 #' @name .check_output_dir
 #' @param  output_dir  name of output directory
-#' @return          No return value, called for side effects.
+#' @return No return value, called for side effects.
 #' @keywords internal
 #' @noRd
 .check_output_dir <- function(output_dir) {
-    switch(
-        class(output_dir)[[1]],
-        character = .check_file(
-            x = output_dir,
-            msg = "invalid output dir"
-        ),
-        storage_endpoint = , blob_endpoint = .check_null(
-            unlist(output_dir[c("key", "token", "sas")])
-        )
+    .check_file(
+        x = .file_normalize(output_dir),
+        msg = "invalid output dir"
     )
 }
 
