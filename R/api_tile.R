@@ -300,6 +300,31 @@ NULL
     if (add_cloud) return(bands)
     setdiff(bands, .band_cloud())
 }
+
+#' @title Set bands in tile file_info.
+#' @rdname .tile_bands
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#'
+#' @return tile with renamed bands
+`.tile_bands<-` <- function(tile, value) {
+    UseMethod(".tile_bands<-", tile)
+}
+#' @export
+`.tile_bands<-.raster_cube` <- function(tile, value) {
+    tile <- .tile(tile)
+    bands <- .tile_bands(tile)
+    .check_that(
+        length(bands) == length(value),
+        local_msg = paste0("bands must have length ", length(bands)),
+        msg = "invalid band list"
+    )
+    rename <- value
+    names(rename) <- bands
+    .fi(tile) <- .fi_rename_bands(.fi(tile), rename = rename)
+    tile
+}
 #'
 #' @title Get a band definition from config.
 #' @name .tile_band_conf
@@ -1124,6 +1149,38 @@ NULL
     }
     # Return values
     values
+}
+#' @title Given a tile and a band, return a set of values for segments
+#' @name .tile_extract_segments
+#' @noRd
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Given a data cube, retrieve the time series of XY locations
+#'
+#' @param tile        Metadata about a data cube (one tile)
+#' @param band        Name of the band to the retrieved
+#' @param seg_pols    Segments as polygons
+#' @param aggreg_fn   Aggregation function for joining polygon values
+#'
+#' @return Data.frame with aggregated values per polygon.
+#'
+.tile_extract_segments <- function(tile, band, seg_pols, aggreg_fn) {
+    # Create a stack object
+    r_obj <- .raster_open_rast(.tile_paths(tile = tile, bands = band))
+    n_names <- length(names(r_obj))
+    names(r_obj) <- c(1:n_names)
+    # Convert to SpatVectors
+    class(seg_pols) <- c("sf", class(seg_pols))
+    # vec <- terra::vect(seg_pols)
+    # Extract the values
+    values <- as.matrix(exactextractr::exact_extract(
+        x = r_obj,
+        y = seg_pols,
+        fun = aggreg_fn
+    ))
+    # Return values
+    return(values)
 }
 
 .tile_contains_cloud <- function(tile) {

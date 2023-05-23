@@ -120,7 +120,7 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
 #' This function is a front-end to the "svm" method in the "e1071" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param samples             Time series with the training samples.
+#' @param samples          Time series with the training samples.
 #' @param formula          Symbolic description of the model to be fit.
 #'                         (default: sits_formula_linear).
 #' @param scale            Logical vector indicating the variables to be scaled.

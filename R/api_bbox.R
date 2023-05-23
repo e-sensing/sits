@@ -136,7 +136,8 @@ NULL
         crs <- .crs(x)
     } else {
         crs <- .default(default_crs, default = {
-            warning("object has no crs, assuming 'EPSG:4326'", call. = FALSE)
+            if (.check_warnings())
+                warning("object has no crs, assuming 'EPSG:4326'", call. = FALSE)
             "EPSG:4326"
         })
     }
@@ -180,9 +181,11 @@ NULL
     .check_bbox(bbox)
     # Check if there are multiple CRS in bbox
     if (length(.crs(bbox)) > 1 && is.null(as_crs)) {
-        warning("object has multiples CRS values, reprojecting to ",
+        if (.check_warnings())
+            warning("object has multiples CRS values, reprojecting to ",
                 "'EPSG:4326'\n", "(use 'as_crs' to reproject to a ",
-                "different CRS)", call. = FALSE)
+                "different CRS)", call. = FALSE
+            )
         as_crs <- "EPSG:4326"
     }
     # Convert to sf object and return it
@@ -294,4 +297,12 @@ NULL
 `.crs<-` <- function(x, value) {
     x[["crs"]] <- .as_crs(value)
     x
+}
+
+.crs_wkt_to_proj4 <- function(wkt_crs){
+    # Convert WKT to sf CRS object
+    crs_sf <- sf::st_crs(wkt_crs)
+    # Convert sf CRS object to PROJ4 string
+    proj4string <- crs_sf$proj4string
+    return(proj4string)
 }

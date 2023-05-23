@@ -7,7 +7,7 @@ sits_s3_classes :   ["sits", "patterns", "predicted", "sits_model",
                     "usgs_cube", "deafrica_cube"]
 
 # s3 classes resulting from classification and post-classification
-sits_s3_classes_proc :   ["probs_cube","uncertainty_cube", "class_cube"]
+sits_s3_classes_proc :   ["probs_cube","uncertainty_cube", "class_cube", "variance_cube"]
 
 # bands resulting from classification and post-classification
 sits_results_bands : ["probs", "bayes", "uncert", "entropy",
@@ -27,10 +27,9 @@ sits_color_table_cols: ["name", "color"]
 sits_results_s3_class:
                     probs: "probs_cube"
                     bayes: "probs_cube"
-                    bilat: "probs_cube"
-                    gauss: "probs_cube"
                     uncert: "uncertainty_cube"
                     entropy: "uncertainty_cube"
+                    variance: "variance_cube"
                     class:  "class_cube"
 
 # parsing info contents for results cube

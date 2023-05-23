@@ -26,14 +26,17 @@
 #'  \item{"all years": }{Plot all samples from the same location together}
 #'  \item{"together": }{Plot all samples of the same band and label together}
 #' }
-#' The plot.sits function makes an educated guess of what plot is required,
-#' based on the input data. If the input data has less than 30 samples, it
-#' will default to "all years". If there are more than 30 samples,
-#' it will default to "together".
+#' The plot function makes an educated guess of what plot is required
+#' based on the input data. If the input data has less than 30 samples or
+#' the \code{together} parameter is FALSE, it will plot only one randomly
+#' chosen sample. If the \code{together} parameter is set to TRUE or
+#' there are more than 30 samples, it will plot all samples.
 #'
-#' @param  x    Object of class "sits"
-#' @param  y    Ignored.
-#' @param ...   Further specifications for \link{plot}.
+#' @param x        Object of class "sits".
+#' @param y        Ignored.
+#' @param together A logical value indicating whether the samples should be
+#'  plotted together.
+#' @param ...      Further specifications for \link{plot}.
 #'
 #' @return A series of plot objects produced by ggplot2 showing all
 #'   time series associated to each combination of band and label,
@@ -49,12 +52,13 @@
 #' }
 #'
 #' @export
-#'
-plot.sits <- function(x, y, ...) {
+plot.sits <- function(x, y, ..., together = FALSE) {
     stopifnot(missing(y))
+    # default value is set to empty char in case null
+    .check_lgl_parameter(together)
 
     # Are there more than 30 samples? Plot them together!
-    if (nrow(x) > 30) {
+    if (together || nrow(x) > 30) {
         p <- .plot_together(x)
     }  else {
         # otherwise, take "allyears" as the default
@@ -362,6 +366,7 @@ plot.sits <- function(x, y, ...) {
 #' @param  x             Object of class "patterns".
 #' @param  y             Ignored.
 #' @param  ...           Further specifications for \link{plot}.
+#' @param  bands         Bands to be viewed (optional).
 #' @return               A plot object produced by ggplot2
 #'                       with one average pattern per label.
 #'
@@ -376,11 +381,21 @@ plot.sits <- function(x, y, ...) {
 #' }
 #' @export
 #'
-plot.patterns <- function(x, y, ...) {
+plot.patterns <- function(x, y, ..., bands = NULL) {
     stopifnot(missing(y))
     # verifies if scales package is installed
     .check_require_packages("scales")
 
+    patterns_bands <- .ts_bands(.ts(x))
+    bands <- .default(bands, patterns_bands)
+
+    .check_chr_within(
+        x = bands,
+        within = patterns_bands,
+        msg = "Invalid 'bands' parameter"
+    )
+
+    .ts(x) <- .ts_select_bands(.ts(x), bands)
     # put the time series in the data frame
     plot.df <- purrr::pmap_dfr(
         list(x$label, x$time_series),
@@ -590,6 +605,8 @@ plot.predicted <- function(x, y, ...,
 #' @param  blue          Band for blue color.
 #' @param  tile          Tile to be plotted.
 #' @param  date          Date to be plotted.
+#' @param  segments      List with segments to be shown (one per tile)
+#' @param  seg_color     Color to use for segment borders
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  tmap_options  List with optional tmap parameters
@@ -612,9 +629,7 @@ plot.predicted <- function(x, y, ...,
 #'     cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_",
-#'         parse_info = c("X1", "tile", "band", "date")
+#'         data_dir = data_dir
 #'     )
 #'     # plot NDVI band of the second date date of the data cube
 #'     plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
@@ -628,6 +643,8 @@ plot.raster_cube <- function(
         blue = NULL,
         tile = x$tile[[1]],
         date = NULL,
+        segments = NULL,
+        seg_color = "lightgoldenrod",
         palette = "RdYlGn",
         rev = FALSE,
         tmap_options = NULL
@@ -670,12 +687,29 @@ plot.raster_cube <- function(
     if (!purrr::is_null(band)) {
         .check_cube_bands(tile, bands = band)
         # plot the band as false color
-        p <- .plot_false_color(tile, band, date, palette, rev, tmap_options)
+        p <- .plot_false_color(
+            tile = tile,
+            band = band,
+            date = date,
+            segments = segments,
+            seg_color = seg_color,
+            palette = palette,
+            rev = rev,
+            tmap_options = tmap_options
+        )
     } else {
         # plot RGB image
         .check_cube_bands(tile, bands = c(red, green, blue))
         # plot RGB
-        p <- .plot_rgb(tile, red, green, blue, date, tmap_options)
+        p <- .plot_rgb(
+            tile = tile,
+            red = red,
+            green = green,
+            blue = blue,
+            date = date,
+            segments = segments,
+            seg_color = seg_color,
+            tmap_options = tmap_options)
     }
     return(p)
 }
@@ -710,9 +744,7 @@ plot.raster_cube <- function(
 #'     cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_",
-#'         parse_info = c("X1", "tile", "band", "date")
+#'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(
@@ -782,9 +814,7 @@ plot.probs_cube <- function(
 #'     cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_",
-#'         parse_info = c("X1", "tile", "band", "date")
+#'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(
@@ -862,9 +892,7 @@ plot.variance_cube <- function(
 #'     cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_",
-#'         parse_info = c("X1", "tile", "band", "date")
+#'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(
@@ -900,6 +928,7 @@ plot.uncertainty_cube <- function(
     # plot the data using tmap
     p <- .plot_false_color(tile = tile,
                            band = band,
+                           date = NULL,
                            palette  = palette,
                            rev = rev,
                            tmap_options = tmap_options)
@@ -939,9 +968,7 @@ plot.uncertainty_cube <- function(
 #'     cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_",
-#'         parse_info = c("X1", "tile", "band", "date")
+#'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(
@@ -1006,6 +1033,8 @@ plot.class_cube <- function(x, y, ...,
 #' @param  tile          Tile to be plotted.
 #' @param  band          Band to be plotted.
 #' @param  date          Date to be plotted.
+#' @param  segments      List with segments to be shown (one per tile)
+#' @param  seg_color     Color to use for segment borders
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
 #' @param  tmap_options  List with optional tmap parameters
@@ -1018,8 +1047,11 @@ plot.class_cube <- function(x, y, ...,
 #'
 #' @return               A plot object
 #'
-.plot_false_color <- function(tile, band,
-                              date = NULL,
+.plot_false_color <- function(tile,
+                              band,
+                              date,
+                              segments = NULL,
+                              seg_color = NULL,
                               palette,
                               rev,
                               tmap_options) {
@@ -1073,7 +1105,7 @@ plot.class_cube <- function(x, y, ...,
     bg_color <- .conf("tmap_legend_bg_color")
     bg_alpha <- as.numeric(.conf("tmap_legend_bg_alpha"))
     # user specified tmap options
-    if (!purrr::is_null(tmap_options)){
+    if (!purrr::is_null(tmap_options)) {
         # graticules label size
         if (!purrr::is_null(tmap_options[["tmap_graticules_labels_size"]]))
             labels_size <- as.numeric(
@@ -1110,6 +1142,19 @@ plot.class_cube <- function(x, y, ...,
                             legend.bg.color = bg_color,
                             legend.bg.alpha = bg_alpha)
     )
+    # include segments
+    if (!purrr::is_null(segments)) {
+        tile_name <- tile$tile
+        .check_chr_within(
+            x = tile_name,
+            within = names(segments),
+            msg = "there are no segments for this tile"
+        )
+        # retrieve the segments for this tile
+        sf_seg <- segments[[tile_name]]
+        p <- p + tmap::tm_shape(sf_seg) +
+            tmap::tm_borders(col = seg_color, lwd = 0.2)
+    }
     return(p)
 }
 #' @title  Plot a classified image
@@ -1548,6 +1593,8 @@ plot.class_cube <- function(x, y, ...,
 #' @param  green         Band to be plotted in green
 #' @param  blue          Band to be plotted in blue
 #' @param  date          Date to be plotted
+#' @param  segments      List with segments to be shown (one per tile)
+#' @param  seg_color     Color to use for segment borders
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap max_cells (default: 1e+06)
 #'                       tmap_graticules_labels_size (default: 0.7)
@@ -1558,7 +1605,14 @@ plot.class_cube <- function(x, y, ...,
 #'
 #' @return               A plot object
 #'
-.plot_rgb <- function(tile, red, green, blue, date, tmap_options) {
+.plot_rgb <- function(tile,
+                      red,
+                      green,
+                      blue,
+                      date,
+                      segments = NULL,
+                      seg_color = NULL,
+                      tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -1598,6 +1652,20 @@ plot.class_cube <- function(x, y, ...,
          tmap::tm_raster() +
          tmap::tm_graticules() +
          tmap::tm_compass()
+
+    # include segments
+    if (!purrr::is_null(segments)) {
+        tile_name <- tile$tile
+        .check_chr_within(
+            x = tile_name,
+            within = names(segments),
+            msg = "there are no segments for this tile"
+        )
+        # retrieve the segments for this tile
+        sf_seg <- segments[[tile_name]]
+        p <- p + tmap::tm_shape(sf_seg) +
+            tmap::tm_borders(col = seg_color, lwd = 0.2)
+    }
 
     return(p)
 }
@@ -1718,8 +1786,7 @@ plot.rfor_model <- function(x, y, ...) {
 #' }
 #' @export
 #'
-plot.sits_accuracy <- function(x, y, ...,
-                                      title = "Confusion matrix") {
+plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
     stopifnot(missing(y))
     data <- x
     if (!inherits(data, "sits_accuracy")) {
@@ -2044,9 +2111,9 @@ plot.torch_model <- function(x, y, ...) {
 #'
 #' @return              The dendrogram object.
 .plot_dendrogram <- function(data,
-                                  cluster,
-                                  cutree_height,
-                                  palette) {
+                             cluster,
+                             cutree_height,
+                             palette) {
 
     # set caller to show in errors
     .check_set_caller(".plot_dendrogram")

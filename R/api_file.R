@@ -89,7 +89,8 @@
 
 .file_eo_name <- function(tile, band, date, output_dir) {
     .file_path(
-        "cube", .tile_name(tile), band, date,
+        tile[["satellite"]], tile[["sensor"]],
+        .tile_name(tile), band, date,
         ext = ".tif", output_dir = output_dir
     )
 }

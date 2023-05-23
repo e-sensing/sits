@@ -13,6 +13,8 @@
   blue = NULL,
   tile = x$tile[[1]],
   date = NULL,
+  segments = NULL,
+  seg_color = "lightgoldenrod",
   palette = "RdYlGn",
   rev = FALSE,
   tmap_options = NULL
@@ -34,6 +36,10 @@
 \item{tile}{Tile to be plotted.}
 
 \item{date}{Date to be plotted.}
+
+\item{segments}{List with segments to be shown (one per tile)}
+
+\item{seg_color}{Color to use for segment borders}
 
 \item{palette}{An RColorBrewer palette}
 
@@ -65,9 +71,7 @@ if (sits_run_examples()) {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        data_dir = data_dir
     )
     # plot NDVI band of the second date date of the data cube
     plot(cube, band = "NDVI", date = sits_timeline(cube)[2])

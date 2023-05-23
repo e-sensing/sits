@@ -476,7 +476,6 @@ test_that("Classification with post-processing", {
         sinop_probs,
         output_dir = output_dir,
     )
-
     # testing resume feature
     out <- capture_messages({
         expect_message(
@@ -506,7 +505,6 @@ test_that("Classification with post-processing", {
         memsize = 4,
         multicores = 2
     )
-
     # testing the recovery feature
     out <- capture_messages({
         expect_message(
@@ -533,6 +531,7 @@ test_that("Classification with post-processing", {
     expect_true(max_bay2 <= 10000)
 
     max_bay3 <- max(.raster_get_values(r_bay)[, 3])
+
     expect_true(max_bay3 <= 10000)
 
     sinop_bayes_2 <- sits_smooth(

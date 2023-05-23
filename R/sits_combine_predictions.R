@@ -35,9 +35,7 @@
 #'     cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_",
-#'         parse_info = c("X1", "tile", "band", "date")
+#'         data_dir = data_dir
 #'     )
 #'     # create a random forest model
 #'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -152,14 +150,4 @@ sits_combine_predictions.uncertainty <- function(cubes,
         progress = FALSE, ...
     )
     return(probs_cube)
-}
-
-sits_combine_predictions.default <- function(cubes,
-                                             type = "default", ...,
-                                             memsize = 8,
-                                             multicores = 2,
-                                             output_dir,
-                                             version = "v1") {
-    stop("Invalid `type` parameter ",
-         "(value must be one of 'average', 'uncertainty').")
 }

@@ -24,7 +24,6 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     if (!dir.exists(dir_images)) {
         suppressWarnings(dir.create(dir_images))
     }
-
     expect_warning({
         rg_cube <- sits_regularize(
         cube = .tile(s2_cube_open),
@@ -100,7 +99,6 @@ test_that("Creating Landsat cubes from MPC", {
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
-
     expect_warning({
         rg_landsat <- sits_regularize(
         cube        = landsat_cube,

@@ -87,9 +87,11 @@ sits_regularize <- function(cube,
     .check_is_raster_cube(cube)
     # Does cube contain cloud band?
     if (!all(.cube_contains_cloud(cube))) {
-        warning("Cloud band not found in provided cube. 'sits_regularize()' ",
-                "will just fill nodata values.", call. = FALSE,
-                immediate. = TRUE)
+        if (.check_warnings())
+            warning("Cloud band not found in provided cube. 'sits_regularize()' ",
+                    "will just fill nodata values.", call. = FALSE,
+                    immediate. = TRUE
+            )
     }
     .period_check(period)
     .check_num_parameter(res, exclusive_min = 0)
@@ -103,9 +105,11 @@ sits_regularize <- function(cube,
     .check_progress(progress)
     # Display warning message in case STAC cube
     if (!.cube_is_local(cube)) {
-        warning("Regularization works better when data store locally. ",
-                "Please, use 'sits_cube_copy()' to copy data locally ",
-                "before regularization", call. = FALSE, immediate. = TRUE)
+        if (.check_warnings()) {
+            warning("Regularization works better when data store locally. ",
+                    "Please, use 'sits_cube_copy()' to copy data locally ",
+                    "before regularization", call. = FALSE, immediate. = TRUE)
+        }
     }
     # Regularize
     .gc_regularize(

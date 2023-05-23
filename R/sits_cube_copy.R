@@ -105,12 +105,11 @@ sits_cube_copy <- function(cube,
         )
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
-        # # Callback final tile classification
-        # .callback(process = "tile_classification", event = "recovery",
-        #           context = environment())
-        message("Recovery: file '", out_file, "' already exists.")
-        message("(If you want to get a new version, please ",
-                "change 'output_dir' parameter or delete the existing file)")
+        if (.check_messages()) {
+            message("Recovery: file '", out_file, "' already exists.")
+            message("(If you want to get a new version, please ",
+                    "change 'output_dir' parameter or delete the existing file)")
+        }
         asset <- .download_update_asset(
             asset = asset, roi = roi, res = res, out_file = out_file
         )

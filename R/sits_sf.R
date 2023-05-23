@@ -20,9 +20,7 @@
 #'    cube <- sits_cube(
 #'        source = "BDC",
 #'        collection = "MOD13Q1-6",
-#'        data_dir = data_dir,
-#'        delim = "_",
-#'        parse_info = c("X1", "tile", "band", "date")
+#'        data_dir = data_dir
 #'    )
 #'    sf_object <- sits_as_sf(cube)
 #'}
@@ -147,10 +145,11 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
     # Remove empty geometries if exists
     are_empty_geoms <- sf::st_is_empty(sf_object)
     if (any(are_empty_geoms)) {
-        warning(
-            "Some empty geometries were removed.",
-            immediate. = TRUE, call. = FALSE
-        )
+        if (.check_warnings())
+            warning(
+                "Some empty geometries were removed.",
+                immediate. = TRUE, call. = FALSE
+            )
         sf_object <- sf_object[!are_empty_geoms, ]
     }
     # If the sf object is not in planar coordinates, convert it

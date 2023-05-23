@@ -132,7 +132,6 @@ test_that("Kernel functions", {
     median_2 <- v_obj_md[21,21]
 
     expect_true(median_1 == median_2)
-
     # Recovery
     out <- capture_messages({
         expect_message({
