@@ -182,7 +182,6 @@
     # how many of those files are images?
     # retrieve the known file extensions
     file_ext <- .conf("local_file_extensions")
-
     # list the files in the data directory
     img_files <- list.files(
         path = data_dir,

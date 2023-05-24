@@ -403,7 +403,8 @@ sits_cube.local_cube <- function(source,
 
     # precondition - data directory must be provided
     .check_file(x = data_dir, msg = "'data_dir' parameter must be provided.")
-
+    # expanding the shortened paths since gdal functions do not work with them
+    data_dir <- path.expand(data_dir)
     # precondition - check source and collection for eo_cubes only
     # is this a cube with results?
     if (!purrr::is_null(bands) &&

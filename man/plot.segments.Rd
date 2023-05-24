@@ -18,6 +18,8 @@
 
 \item{...}{Further specifications for \link{plot}.}
 
+\item{tile}{Tile to be plotted.}
+
 \item{legend}{Named vector that associates labels to colors.}
 
 \item{palette}{Alternative RColorBrewer palette}

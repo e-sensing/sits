@@ -599,6 +599,7 @@ plot.predicted <- function(x, y, ...,
 #'
 #' @param  x             Object of class "segments".
 #' @param  ...           Further specifications for \link{plot}.
+#' @param  tile           Tile to be plotted.
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Alternative RColorBrewer palette
 #' @param  tmap_options  List with optional tmap parameters
