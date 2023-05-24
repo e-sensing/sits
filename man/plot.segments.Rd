@@ -75,7 +75,10 @@ seg_class <- sits_classify(
     ml_model = rfor_model
 )
 # add a column to the segments by class
-
+sf_seg <- sits_join_segments(
+    data = seg_class,
+    segments = segments
+)
 }
 }
 \author{
