@@ -19,6 +19,8 @@
 
 \item{...}{Further specifications for \link{plot}.}
 
+\item{tile}{Tile to be plotted.}
+
 \item{seg_color}{Color to use for segment borders}
 
 \item{palette}{An RColorBrewer palette}
