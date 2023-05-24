@@ -8,9 +8,8 @@
   x,
   ...,
   tile = NULL,
-  seg_color = "lightgoldenrod",
-  palette = "RdYlGn",
-  rev = FALSE,
+  legend = NULL,
+  palette = "Spectral",
   tmap_options = NULL
 )
 }
@@ -19,11 +18,9 @@
 
 \item{...}{Further specifications for \link{plot}.}
 
-\item{seg_color}{Color to use for segment borders}
+\item{legend}{Named vector that associates labels to colors.}
 
-\item{palette}{An RColorBrewer palette}
-
-\item{rev}{Reverse the color order in the palette?}
+\item{palette}{Alternative RColorBrewer palette}
 
 \item{tmap_options}{List with optional tmap parameters
 tmap_max_cells (default: 1e+06)
@@ -55,12 +52,12 @@ cube <- sits_cube(
 )
 
 # segment the image
-segments <- sits_supercells(
+segments <- sits_segment(
     cube = cube,
     tile = "012010",
     bands = "NDVI",
     date = sits_timeline(cube)[1],
-    step = 10
+    seg_fn = sits_slic(step = 10)
 )
 # create a classification model
 rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -75,7 +72,11 @@ seg_class <- sits_classify(
     ml_model = rfor_model
 )
 # add a column to the segments by class
-
+sf_seg <- sits_join_segments(
+    data = seg_class,
+    segments = segments
+)
+plot(sf_seg)
 }
 }
 \author{

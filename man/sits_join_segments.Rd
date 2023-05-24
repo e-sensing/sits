@@ -12,7 +12,9 @@ sits_join_segments(data, segments)
 \item{segments}{Output coordinate reference system.}
 }
 \value{
-An sf object of polygon geometry with an additional class attribute
+An list of sf objects of polygon geometry
+                with an additional class attribute
+                organized by tile
 }
 \description{
 Return a sits_tibble or raster_cube as an sf object.

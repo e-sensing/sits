@@ -1,23 +1,25 @@
 #' @title Extract set of time series from supercells
 #'
-#' @name .supercells_get_data
+#' @name .segments_get_data
 #' @noRd
 #' @description     Using the segments as polygons, get all time series
 #'
 #' @param cube       regular data cube
-#' @param supercells polygons produced by sits_supercells
+#' @param segments   polygons produced by sits_segments
 #' @param bands      bands used in time series
 #' @param impute_fn  Imputation function for NA values.
 #' @param aggreg_fn  Function to compute a summary of each segment
+#' @param pol_id     ID attribute for polygons.
 #' @param multicores Number of cores to use for processing
 #' @param progress   Show progress bar?
 #'
-.supercells_get_data <- function(
+.segments_get_data <- function(
         cube,
-        supercells,
+        segments,
         bands,
         impute_fn,
         aggreg_fn,
+        pol_id,
         multicores,
         progress
 ){
@@ -49,9 +51,9 @@
         # select a band for a tile
         tile <- sits_select(cube, bands = band, tiles = tile_id)
         # select supercells for the tile
-        segs_tile <- supercells[[tile_id]]
+        segs_tile <- segments[[tile_id]]
         # create hash for combination of tile and samples
-        hash_bundle <- digest::digest(list(tile, supercells), algo = "md5")
+        hash_bundle <- digest::digest(list(tile, segments), algo = "md5")
         # create a file with a hash code
         filename <- .file_path(
             "samples", hash_bundle,
@@ -71,7 +73,8 @@
             })
         }
         # build the sits tibble for the storing the points
-        samples_tbl <- purrr::map2_dfr(segs_tile$x, segs_tile$y, function(x, y) {
+        samples_tbl <- purrr::pmap_dfr(list(segs_tile$x, segs_tile$y, segs_tile[[pol_id]]),
+                                       function(x, y, pid) {
             # convert XY to lat long
             lat_long <- .proj_to_latlong(x, y, .crs(cube))
 
@@ -83,16 +86,16 @@
                 end_date   = end_date,
                 label      = "NoClass",
                 cube       = tile[["collection"]],
+                polygon_id = pid
             )
             # store them in the sample tibble
             sample$time_series <- list(tibble::tibble(Index = .tile_timeline(tile)))
             # return valid row of time series
             return(sample)
         })
-        samples_tbl$polygon_id <- c(1:nrow(samples_tbl))
 
         # extract time series per tile and band
-        ts <- .supercells_get_ts(
+        ts <- .segments_get_ts(
             tile = tile,
             band = band,
             samples_tbl = samples_tbl,
@@ -139,7 +142,7 @@
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
         tidyr::nest(time_series = !!c("Index", bands)) %>%
-        dplyr::select(-c("tile", "#..id"))
+        dplyr::select(-c("#..id"))
 
     # get the first point that intersect more than one tile
     # eg sentinel 2 mgrs grid
@@ -156,7 +159,7 @@
         tile_id <- tile_band[[1]]
         band <- tile_band[[2]]
         tile <- sits_select(cube, bands = band, tiles = tile_id)
-        digest::digest(list(tile, supercells), algo = "md5")
+        digest::digest(list(tile, segments), algo = "md5")
     })
 
     # recreate file names to delete them
@@ -180,9 +183,9 @@
 
     return(ts_tbl)
 }
-#' @title Extract time series from supercells by tile and band
+#' @title Extract time series from segments by tile and band
 #'
-#' @name .supercells_get_ts
+#' @name .segments_get_ts
 #' @noRd
 #' @description     Using the segments as polygons
 #'
@@ -193,7 +196,7 @@
 #' @param impute_fn   Imputation function for NA values.
 #' @param aggreg_fn   Aggregation function to compute a summary of each segment
 #'
-.supercells_get_ts <- function(
+.segments_get_ts <- function(
         tile,
         band,
         samples_tbl,

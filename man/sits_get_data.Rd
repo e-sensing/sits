@@ -107,6 +107,7 @@ sits_get_data(
   bands = sits_bands(cube),
   impute_fn = sits_impute_linear(),
   aggreg_fn = "mean",
+  pol_id = "supercells",
   multicores = 1,
   progress = FALSE
 )

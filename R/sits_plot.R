@@ -599,9 +599,8 @@ plot.predicted <- function(x, y, ...,
 #'
 #' @param  x             Object of class "segments".
 #' @param  ...           Further specifications for \link{plot}.
-#' @param  seg_color     Color to use for segment borders
-#' @param  palette       An RColorBrewer palette
-#' @param  rev           Reverse the color order in the palette?
+#' @param  legend        Named vector that associates labels to colors.
+#' @param  palette       Alternative RColorBrewer palette
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap_max_cells (default: 1e+06)
 #'                       tmap_graticules_labels_size (default: 0.7)
@@ -626,12 +625,12 @@ plot.predicted <- function(x, y, ...,
 #' )
 #'
 #' # segment the image
-#' segments <- sits_supercells(
+#' segments <- sits_segment(
 #'     cube = cube,
 #'     tile = "012010",
 #'     bands = "NDVI",
 #'     date = sits_timeline(cube)[1],
-#'     step = 10
+#'     seg_fn = sits_slic(step = 10)
 #' )
 #' # create a classification model
 #' rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -650,27 +649,31 @@ plot.predicted <- function(x, y, ...,
 #'     data = seg_class,
 #'     segments = segments
 #' )
+#' plot(sf_seg)
 #' }
 #' @export
 plot.segments <- function(
         x, ...,
         tile = NULL,
-        seg_color = "lightgoldenrod",
-        palette = "RdYlGn",
-        rev = FALSE,
+        legend = NULL,
+        palette = "Spectral",
         tmap_options = NULL
 ) {
     if (purrr::is_null(tile)) {
-        tile <- 1
+        tile <- names(x)[1]
     }
+    .check_chr_parameter(tile)
     # retrieve the segments for this tile
-    sf_seg <- segments[[tile]]
+    sf_seg <- x[[tile]]
     # check that segments have been classified
     .check_that("class" %in% colnames(sf_seg),
                 msg = "segments have not been classified")
-
     # get the labels
-    labels <- unique(dplyr::select(sf_seg, .data[["class"]]))
+    labels <- sf_seg %>%
+        sf::st_drop_geometry() %>%
+        dplyr::select("class") %>%
+        dplyr::distinct() %>%
+        dplyr::pull()
     names(labels) <- seq_along(labels)
     # obtain the colors
     colors <- .colors_get(
@@ -708,10 +711,18 @@ plot.segments <- function(
     }
 
     # plot using tmap
-    # tmap requires numbers, not names
-    names(colors) <- seq_along(names(colors))
+    names(colors) <- labels
+
+    # join sf geometries
+    #
+    sf_seg <- sf_seg %>%
+        dplyr::group_by(.data[["class"]]) %>%
+        dplyr::summarise()
     p <- tmap::tm_shape(sf_seg) +
-        tmap::tm_raster() +
+        tmap::tm_fill(
+            col = "class",
+            palette = colors
+        ) +
         tmap::tm_graticules(
             labels.size = labels_size
         )  +
@@ -723,7 +734,7 @@ plot.segments <- function(
             legend.text.size = text_size,
             legend.bg.color = bg_color,
             legend.bg.alpha = bg_alpha) +
-        tmap::tm_borders(col = seg_color, lwd = 0.2)
+        tmap::tm_borders(lwd = 0.2)
 
     return(p)
 }

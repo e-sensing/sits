@@ -31,6 +31,7 @@ sits_view(x, ...)
   dates = NULL,
   class_cube = NULL,
   legend = NULL,
+  segments = NULL,
   view_max_mb = NULL,
   palette = "RdYlGn"
 )

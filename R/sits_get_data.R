@@ -346,15 +346,17 @@ sits_get_data.segments <- function(
         bands = sits_bands(cube),
         impute_fn = sits_impute_linear(),
         aggreg_fn = "mean",
+        pol_id = "supercells",
         multicores = 1,
         progress = FALSE) {
 
-    data <- .supercells_get_data(
+    data <- .segments_get_data(
         cube = cube,
-        supercells = samples,
+        segments = samples,
         bands = bands,
         impute_fn  = impute_fn,
         aggreg_fn = aggreg_fn,
+        pol_id = pol_id,
         multicores = multicores,
         progress = progress
     )

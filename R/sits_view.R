@@ -163,6 +163,7 @@ sits_view.raster_cube <- function(x, ...,
                                   dates = NULL,
                                   class_cube = NULL,
                                   legend = NULL,
+                                  segments = NULL,
                                   view_max_mb = NULL,
                                   palette = "RdYlGn") {
     # preconditions
@@ -414,6 +415,7 @@ sits_view.raster_cube <- function(x, ...,
         overlay_grps <- c(overlay_grps, "classification")
     }
 
+
     # add layers control to leafmap
     leaf_map <- leaf_map %>%
         leaflet::addLayersControl(
@@ -641,6 +643,72 @@ sits_view.raster_cube <- function(x, ...,
             )
         # define overlay groups
         overlay_grps <- c(overlay_grps, "classification")
+    }
+    if (!purrr::is_null(segments)) {
+        # check that segments are valid
+        .check_that(
+            x = inherits(segments, c("segments")),
+            msg = "segments to be overlayed are invalid"
+        )
+        # how many tiles are there in the segments
+        tile_names <- names(segments)
+        for (tile_name in tile_names) {
+            # retrieve the segments for this tile
+            sf_seg <- segments[[tile_name]]
+            # transform the segments
+            sf_seg <- sf::st_transform(sf_seg,
+                crs = sf::st_crs("EPSG:4326")
+            )
+            # have the segments been classified?
+            if ("class" %in% colnames(sf_seg)) {
+                # get the labels
+                lab_seg <- sf_seg %>%
+                    sf::st_drop_geometry() %>%
+                    dplyr::select("class") %>%
+                    dplyr::distinct() %>%
+                    dplyr::pull()
+                names(lab_seg) <- seq_along(lab_seg)
+                # obtain the colors
+                col_seg <- .colors_get(
+                    labels = lab_seg,
+                    legend = legend,
+                    palette = palette
+                )
+                # create a color palette
+                fact_pal <- leaflet::colorFactor(
+                    palette = col_seg,
+                    domain = lab_seg
+                )
+                # add a new leafmap to show polygons of segments
+                leafmap <- leafem::addFeatures(
+                    leaf_map,
+                    data = sf_seg,
+                    fill = TRUE,
+                    fillColor = colors,
+                    fillOpacity = 0.7
+                ) %>%
+                    leaflet::addLegend(
+                        "topright",
+                        pal     = fact_pal,
+                        values  = lab_seg,
+                        title   = "Classes",
+                        opacity = 1
+                    )
+                # define overlay groups
+                overlay_grps <- c(overlay_grps, "class segments")
+            }
+            else {
+                leaf_map <- leafem::addFeatures(
+                    leaf_map,
+                    data = sf_seg,
+                    fill = TRUE,
+                    color = "lightgoldenrod",
+                    weight = 5
+                )
+                # define overlay groups
+                overlay_grps <- c(overlay_grps, "segments")
+            }
+        }
     }
 
     # add layers control to leafmap
