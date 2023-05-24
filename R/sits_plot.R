@@ -602,6 +602,7 @@ plot.predicted <- function(x, y, ...,
 #' @param  seg_color     Color to use for segment borders
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
+#' @param  tile           Tile to be plotted.
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap_max_cells (default: 1e+06)
 #'                       tmap_graticules_labels_size (default: 0.7)

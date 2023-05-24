@@ -19,6 +19,8 @@
 
 \item{...}{Further specifications for \link{plot}.}
 
+\item{tile}{Tile to be plotted.}
+
 \item{seg_color}{Color to use for segment borders}
 
 \item{palette}{An RColorBrewer palette}
@@ -75,7 +77,10 @@ seg_class <- sits_classify(
     ml_model = rfor_model
 )
 # add a column to the segments by class
-
+sf_seg <- sits_join_segments(
+    data = seg_class,
+    segments = segments
+)
 }
 }
 \author{
