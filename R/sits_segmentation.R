@@ -65,7 +65,6 @@ sits_segment <- function(cube, tiles, bands, date, seg_fn, ...){
 #' See references for more details.
 #'
 #' @param tile          Tile, bands, date to be segmented
-#' @param ...           Other params to be passed to segmentation
 #' @param step          Distance (in number of cells) between initial
 #'                      supercells' centers.
 #' @param compactness   A compactness value. Larger values cause clusters to

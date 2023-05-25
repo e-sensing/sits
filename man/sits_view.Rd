@@ -94,6 +94,8 @@ sits_view(x, ...)
 
 \item{class_cube}{Classified cube to be overlayed on top on image.}
 
+\item{segments}{Segment list obtained by \link{sits_segmentation}}
+
 \item{view_max_mb}{Maximum size of leaflet to be visualized}
 }
 \value{
@@ -164,9 +166,7 @@ if (sits_run_examples()) {
     # view image and segments
     sits_view (
         modis_cube,
-        red = "NDVI",
-        green = "NDVI",
-        blue = "NDVI",
+        band = "NDVI",
         segments = segments
     )
     # view image, classified image and segments
@@ -175,6 +175,13 @@ if (sits_run_examples()) {
         red = "NDVI",
         green = "NDVI",
         blue = "NDVI",
+        class_cube = modis_label,
+        segments = segments
+    )
+    # view B/W image, classified image and segments
+    sits_view (
+        modis_cube,
+        band = "NDVI",
         class_cube = modis_label,
         segments = segments
     )
@@ -197,9 +204,7 @@ if (sits_run_examples()) {
     # view image and classified segments
     sits_view (
         modis_cube,
-        red = "NDVI",
-        green = "NDVI",
-        blue = "NDVI",
+        band = "NDVI",
         segments = segments
     )
     # view image, classified image and segments

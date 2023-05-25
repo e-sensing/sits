@@ -27,8 +27,6 @@ be more compact/even (square).}
 \item{minarea}{Specifies the minimal size of a supercell (in cells).}
 
 \item{multicores}{Number of cores for parallel processing}
-
-\item{...}{Other params to be passed to segmentation}
 }
 \description{
 Apply a segmentation on a data cube based on the "supercells" package.
