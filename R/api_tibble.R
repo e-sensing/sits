@@ -30,8 +30,48 @@
     class(sits) <- c("sits", class(sits))
     return(sits)
 }
+
+
 #' @title Create an empty tibble to store the results of predictions
 #' @name .tibble_prediction
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @description Create a tibble to store the results of predictions.
+#' @param  data             Tibble with the input data.
+#' @param  prediction       Matrix with the result of the classification
+#'                          (one class per column and one row per interval).
+#' @return                  Tibble storing the predictions.
+#'
+.tibble_prediction <- function(data, prediction) {
+    # get the labels of the data
+    labels <- names(prediction)
+    n_labels <- length(labels)
+    # create a named vector with integers match the class labels
+    int_labels <- c(1:n_labels)
+    names(int_labels) <- labels
+
+    # compute prediction vector
+    pred_labels <- names(int_labels[max.col(prediction)])
+
+    pred_date <- tibble::tibble(
+        from = as.Date(unique(data[["start_date"]])),
+        to = as.Date(unique(data[["end_date"]])),
+        class = pred_labels
+    )
+    pred_tbl <- dplyr::bind_cols(pred_date, prediction)
+    pred_tbl <- slider::slide(pred_tbl, identity)
+
+    data[["predicted"]] <- pred_tbl
+
+    data
+}
+
+#' @title Create an empty tibble to store the results of predictions
+#' @name .tibble_prediction_multiyear
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -44,7 +84,7 @@
 #'                          (one class per column and one row per interval).
 #' @return                  Tibble storing the predictions.
 #'
-.tibble_prediction <- function(data, class_info, prediction) {
+.tibble_prediction_multiyear <- function(data, class_info, prediction) {
 
     # this list is a global one and it is created based on the samples
     ref_dates_lst <- class_info$ref_dates[[1]]
