@@ -41,14 +41,17 @@
     )
 
     # Split long time series of samples in a set of small time series
-    splitted <- .sits_split(
-        samples = samples, split_intervals = class_info[["dates_index"]][[1]]
-    )
-
-    # Convert samples time series in predictors and preprocess data
-    pred <- .predictors(samples = splitted, ml_model = ml_model)
-    # Post condition: is predictor data valid?
-    .check_predictors(pred, splitted)
+    if (length(class_info[["dates_index"]][[1]]) > 1) {
+        splitted <- .sits_split(
+            samples = samples, split_intervals = class_info[["dates_index"]][[1]]
+        )
+        pred <- .predictors(samples = splitted, ml_model = ml_model)
+        # Post condition: is predictor data valid?
+        .check_predictors(pred, splitted)
+    } else {
+        # Convert samples time series in predictors and preprocess data
+        pred <- .predictors(samples = samples, ml_model = ml_model)
+    }
 
     # Divide samples predictors in chunks to parallel processing
     parts <- .pred_create_partition(pred = pred, partitions = multicores)
@@ -61,15 +64,23 @@
         # Classify
         values <- ml_model(values)
         # Return classification
-        tibble::as_tibble(values)
+        values <- tibble::tibble(data.frame(values))
+        values
     }, progress = progress)
 
     # Store the result in the input data
-    prediction <- .tibble_prediction(
-        data = samples,
-        class_info = class_info,
-        prediction = prediction
-    )
+    if (length(class_info[["dates_index"]][[1]]) > 1) {
+        prediction <- .tibble_prediction_multiyear(
+            data = samples,
+            class_info = class_info,
+            prediction = prediction
+        )
+    } else {
+        prediction <- .tibble_prediction(
+            data = samples,
+            prediction = prediction
+        )
+    }
     # Set result class and return it
     .set_class(x = prediction, "predicted", class(samples))
 }
