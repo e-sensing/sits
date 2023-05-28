@@ -9,7 +9,7 @@ sits_pred_normalize(pred, stats)
 \arguments{
 \item{pred}{X-Y predictors: a data.table with one row per sample.}
 
-\item{stats}{The output of the "sits_stats" function applied to the samples.}
+\item{stats}{Output of the "sits_stats()" applied to the samples.}
 }
 \value{
 A normalized set of predictor values
@@ -26,7 +26,9 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-     summary(samples_modis_ndvi)
+     stats <- sits_stats(samples_modis_ndvi)
+     pred <- sits_predictors(samples_modis_ndvi)
+     pred_norm <- sits_pred_normalize(pred, stats)
 }
 }
 \author{

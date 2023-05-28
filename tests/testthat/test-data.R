@@ -3,12 +3,13 @@ test_that("Reading a LAT/LONG from RASTER", {
     raster_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
 
     samples <- tibble::tibble(longitude = -55.66738, latitude = -11.76990)
 
-    point_ndvi <- sits_get_data(raster_cube, samples)
+    point_ndvi <- sits_get_data(raster_cube, samples, progress = FALSE)
 
     expect_equal(names(point_ndvi)[1], "longitude")
     expect_true(ncol(.tibble_time_series(point_ndvi)) == 2)
@@ -20,7 +21,8 @@ test_that("Reading a LAT/LONG from RASTER with crs parameter", {
     raster_cube <-  sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
 
 
@@ -33,7 +35,8 @@ test_that("Reading a LAT/LONG from RASTER with crs parameter", {
         +lat_0=-12 +lon_0=-54
         +lat_1=-2 +lat_2=-22
         +x_0=5000000 +y_0=10000000
-        +ellps=GRS80 +units=m +no_defs "
+        +ellps=GRS80 +units=m +no_defs ",
+        progress = FALSE
     )
 
     expect_equal(names(point_ndvi)[1], "longitude")
@@ -46,14 +49,17 @@ test_that("Reading a CSV file from RASTER", {
     raster_cube <-  sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
 
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
                                    package = "sits"
     )
-    points_poly <- sits_get_data(raster_cube,
-                                 samples = csv_raster_file
+    points_poly <- sits_get_data(
+        raster_cube,
+        samples = csv_raster_file,
+        progress = FALSE
     )
 
     df_csv <- utils::read.csv(
@@ -68,8 +74,10 @@ test_that("Reading a CSV file from RASTER", {
     expect_true(ncol(.tibble_time_series(points_poly)) == 2)
     expect_true(length(sits_timeline(points_poly)) == 12)
 
-    points_df <- sits_get_data(raster_cube,
-                               samples = df_csv
+    points_df <- sits_get_data(
+        raster_cube,
+        samples = df_csv,
+        progress = FALSE
     )
 
     expect_true("Forest" %in% sits_labels(points_df))
@@ -84,7 +92,8 @@ test_that("Reading a CSV file from RASTER with crs parameter", {
     raster_cube <-  sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
 
     df_csv <- utils::read.csv(
@@ -118,7 +127,8 @@ test_that("Reading a CSV file from RASTER with crs parameter", {
         +lat_0=-12 +lon_0=-54
         +lat_1=-2 +lat_2=-22
         +x_0=5000000 +y_0=10000000
-        +ellps=GRS80 +units=m +no_defs "
+        +ellps=GRS80 +units=m +no_defs ",
+        progress = FALSE
     )
 
     expect_true("Forest" %in% sits_labels(points_df))
@@ -136,7 +146,8 @@ test_that("Reading a CSV file from RASTER with crs parameter", {
         +lat_0=-12 +lon_0=-54
         +lat_1=-2 +lat_2=-22
         +x_0=5000000 +y_0=10000000
-        +ellps=GRS80 +units=m +no_defs "
+        +ellps=GRS80 +units=m +no_defs ",
+        progress = FALSE
     )
 })
 
@@ -161,7 +172,8 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
             bands = c("NDVI", "EVI"),
             roi = sf_mt,
             start_date = "2018-09-01",
-            end_date = "2019-08-29"
+            end_date = "2019-08-29",
+            progress = FALSE
         )
     },
     .default = NULL)
@@ -172,9 +184,11 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     cube_timeline <- sits_timeline(modis_cube)
 
     # Retrieve points based on a POLYGON shapefile
-    points_shp <- sits_get_data(modis_cube,
-                                samples = shp_file,
-                                n_sam_pol = 5
+    points_shp <- sits_get_data(
+        modis_cube,
+        samples = shp_file,
+        n_sam_pol = 5,
+        progress = FALSE
     )
     expect_equal(object = nrow(points_shp), expected = 5)
     expect_equal(object = unique(points_shp[["start_date"]]),
@@ -197,7 +211,8 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     expect_error(
         sits_get_data(modis_cube,
                       samples = shp_file,
-                      pol_avg = TRUE
+                      pol_avg = TRUE,
+                      progress = FALSE
         )
     )
     # test for errors in get_data syntax
@@ -205,7 +220,8 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
         sits_get_data(modis_cube,
                       samples = shp_file,
                       pol_avg = TRUE,
-                      pol_id = "iddddddd"
+                      pol_id = "iddddddd",
+                      progress = FALSE
         )
     )
     # retrieve labelled points from BDC cube
@@ -214,7 +230,8 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
                                     n_sam_pol = 5,
                                     label_attr = "NM_ESTADO",
                                     pol_avg = TRUE,
-                                    pol_id = "CD_GEOCUF"
+                                    pol_id = "CD_GEOCUF",
+                                    progress = FALSE
     )
 
     expect_equal(object = nrow(points_shp_avg), expected = 1)
@@ -227,7 +244,8 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
                                          samples = shp_file,
                                          n_sam_pol = 5,
                                          pol_avg = TRUE,
-                                         pol_id = "CD_GEOCUF"
+                                         pol_id = "CD_GEOCUF",
+                                         progress = FALSE
     )
 
     expect_equal(object = nrow(points_shp_no_label), expected = 1)
@@ -239,7 +257,8 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     expect_error(
         sits_get_data(raster_cube,
                       samples = temp_shp,
-                      label_attr = "labelddddsssaaa"
+                      label_attr = "labelddddsssaaa",
+                      progress = FALSE
         )
     )
 })
@@ -267,7 +286,8 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
             bands = c("NDVI", "EVI"),
             roi = sf_roi,
             start_date = "2018-09-01",
-            end_date = "2019-08-29"
+            end_date = "2019-08-29",
+            progress = FALSE
         )
     },
     .default = NULL)
@@ -275,10 +295,11 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
                       message = "BDC is not accessible"
     )
     tf <- paste0(tempdir(), "/cerrado_forested.shp")
-    sf::st_write(sf_cf[1:5,], dsn = tf)
+    sf::st_write(sf_cf[1:5, ], dsn = tf, quiet = TRUE)
     points_cf <- sits_get_data(modis_cube,
                                samples = tf,
-                               label = "Woodland"
+                               label = "Woodland",
+                               progress = FALSE
     )
     cube_timeline <- sits_timeline(modis_cube)
     expect_equal(object = nrow(points_cf), expected = 5)
@@ -314,7 +335,8 @@ test_that("Retrieving points from BDC using sits tibble", {
             bands = c("NDVI", "EVI"),
             roi = cube_bbox,
             start_date = "2018-09-01",
-            end_date = "2019-08-29"
+            end_date = "2019-08-29",
+            progress = FALSE
         )
     },
     .default = NULL)
@@ -329,11 +351,12 @@ test_that("Retrieving points from BDC using sits tibble", {
         .data[["latitude"]],
         .data[["label"]]
     )
-    input_tb <- cerrado_pts[1:5,]
-    input_tb$start_date = as.Date("2018-09-01")
-    input_tb$end_date = as.Date("2019-08-29")
+    input_tb <- cerrado_pts[1:5, ]
+    input_tb$start_date <- as.Date("2018-09-01")
+    input_tb$end_date <- as.Date("2019-08-29")
     points_tb <- sits_get_data(modis_cube,
-                               samples = input_tb
+                               samples = input_tb,
+                               progress = FALSE
     )
     cube_timeline <- sits_timeline(modis_cube)
     expect_equal(object = nrow(points_tb), expected = 5)
@@ -366,7 +389,8 @@ test_that("Retrieving points from BDC using sf objects", {
             bands = c("NDVI", "EVI"),
             roi = sf_roi,
             start_date = "2018-09-01",
-            end_date = "2019-08-29"
+            end_date = "2019-08-29",
+            progress = FALSE
         )
     },
     .default = NULL)
@@ -376,7 +400,8 @@ test_that("Retrieving points from BDC using sf objects", {
     )
     points_cf <- sits_get_data(modis_cube,
                                samples = sf_cf[1:5, ],
-                               label = "Woodland"
+                               label = "Woodland",
+                               progress = FALSE
     )
 
     cube_timeline <- sits_timeline(modis_cube)
@@ -413,7 +438,8 @@ test_that("Retrieving points from BDC using sf objects", {
             bands = c("NDVI", "EVI"),
             roi = sf_mt,
             start_date = "2018-09-01",
-            end_date = "2019-08-29"
+            end_date = "2019-08-29",
+            progress = FALSE
         )
     },
     .default = NULL)
@@ -424,7 +450,8 @@ test_that("Retrieving points from BDC using sf objects", {
     # obtain a set of points based on an SF POLYGOn geometry
     points_poly <- sits_get_data(modis_cube,
                                  samples = sf_mt,
-                                 n_sam_pol = 5
+                                 n_sam_pol = 5,
+                                 progress = FALSE
     )
 
     cube_timeline <- sits_timeline(modis_cube)
@@ -478,7 +505,8 @@ test_that("Reading data from Classified data", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/al_1")
     if (!dir.exists(output_dir)) {
@@ -488,19 +516,24 @@ test_that("Reading data from Classified data", {
     probs_cube <- sits_classify(
         data = cube,
         ml_model = rfor_model,
-        output_dir = output_dir
+        output_dir = output_dir,
+        progress = FALSE
     )
     # smooth the probability cube using Bayesian statistics
     bayes_cube <- sits_smooth(probs_cube, output_dir = output_dir)
     # label the probability cube
-    label_cube <- sits_label_classification(bayes_cube, output_dir = output_dir)
+    label_cube <- sits_label_classification(
+        bayes_cube,
+        output_dir = output_dir,
+        progress = FALSE)
 
     # Using CSV
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
                                    package = "sits"
     )
     points_poly <- sits_get_data(label_cube,
-                                 samples = csv_raster_file
+                                 samples = csv_raster_file,
+                                 progress = FALSE
     )
     expect_equal(
         nrow(points_poly), nrow(read.csv(csv_raster_file))

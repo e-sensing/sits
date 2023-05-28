@@ -257,7 +257,7 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
         )
     }
 
-    points.tb <- seq_len(nrow(sf_object)) %>%
+    points_tab <- seq_len(nrow(sf_object)) %>%
         purrr::map_dfr(function(i) {
             # retrieve the class from the shape attribute
 
@@ -278,7 +278,7 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
             # obtain a set of samples based on polygons
             points <- list(sf::st_sample(sf_object[i, ], size = n_sam_pol))
             # get one time series per sample
-            pts.tb <- points %>%
+            pts_tab <- points %>%
                 purrr::pmap_dfr(function(p) {
                     pll <- sf::st_geometry(p)[[1]]
                     row <- tibble::tibble(
@@ -297,7 +297,7 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
 
                     return(row)
                 })
-            return(pts.tb)
+            return(pts_tab)
         })
-    return(points.tb)
+    return(points_tab)
 }

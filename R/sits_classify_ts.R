@@ -43,7 +43,8 @@
     # Split long time series of samples in a set of small time series
     if (length(class_info[["dates_index"]][[1]]) > 1) {
         splitted <- .sits_split(
-            samples = samples, split_intervals = class_info[["dates_index"]][[1]]
+            samples = samples,
+            split_intervals = class_info[["dates_index"]][[1]]
         )
         pred <- .predictors(samples = splitted, ml_model = ml_model)
         # Post condition: is predictor data valid?

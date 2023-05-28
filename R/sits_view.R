@@ -288,7 +288,7 @@ sits_view.raster_cube <- function(x, ...,
                               legend,
                               palette,
                               segments,
-                              view_max_mb){
+                              view_max_mb) {
     # check bands are available
     .check_chr_within(
         band,
@@ -546,9 +546,8 @@ sits_view.raster_cube <- function(x, ...,
                 }
                 # define overlay groups
                 overlay_grps <- c(overlay_grps, "class segments")
-            }
-            # segments without class
-            else {
+            } else {
+                # segments without class
                 leaf_map <- leafem::addFeatures(
                     leaf_map,
                     data = sf_seg,
@@ -585,7 +584,7 @@ sits_view.raster_cube <- function(x, ...,
                             legend,
                             palette,
                             segments,
-                            view_max_mb){
+                            view_max_mb) {
     # check bands are available
     .check_chr_within(
         bands,
@@ -856,8 +855,7 @@ sits_view.raster_cube <- function(x, ...,
                 }
                 # define overlay groups
                 overlay_grps <- c(overlay_grps, "class segments")
-            }
-            else {
+            } else {
                 leaf_map <- leafem::addFeatures(
                     leaf_map,
                     data = sf_seg,
@@ -1238,8 +1236,7 @@ sits_view.class_cube <- function(x, ...,
                 )
                 # define overlay groups
                 overlay_grps <- c(overlay_grps, "class segments")
-            }
-            else {
+            } else {
                 leaf_map <- leafem::addFeatures(
                     leaf_map,
                     data = sf_seg,
@@ -1541,7 +1538,7 @@ sits_view.default <- function(x, ...) {
 #' @return               A leaflet object containing either samples or
 #'                       data cubes embedded in a global map that can
 #'                       be visualized directly in an RStudio viewer.
-.view_samples <- function(samples, legend, palette){
+.view_samples <- function(samples, legend, palette) {
 
     # first select unique locations
     samples <- dplyr::distinct(

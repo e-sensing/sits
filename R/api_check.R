@@ -2248,9 +2248,8 @@
 .check_messages <- function() {
     # if working on sits documentation mode, no progress bar
     if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true" ||
-        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
+        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE")
         return(FALSE)
-    }
     else
         return(TRUE)
 }
@@ -2263,16 +2262,16 @@
 .check_warnings <- function() {
     # if working on sits documentation mode, no progress bar
     if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true" ||
-        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
+        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE")
         return(FALSE)
-    }
     else
         return(TRUE)
 }
 .check_stac_items <- function(items) {
     .check_that(
         rstac::items_length(items) > 0,
-        local_msg = paste("please, check 'roi', 'start_date', 'end_date', and",
+        local_msg = paste("please, check 'roi',
+                          'start_date', 'end_date', and",
                           "'tile' parameters"),
         msg = "cube search criteria returned no items"
     )

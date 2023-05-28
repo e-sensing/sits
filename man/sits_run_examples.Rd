@@ -18,3 +18,14 @@ To come back to the default behaviour, please unset
 the enviroment variable
 Sys.unsetenv("SITS_RUN_EXAMPLES")
 }
+\examples{
+if (sits_run_examples()){
+    message("use devtools::run_examples() to run the examples")
+}
+else{
+    message("Set the environmental variable "SITS_RUN_EXAMPLES" to "YES"
+    to run the examples")
+}
+
+
+}

@@ -18,3 +18,13 @@ To come back to the default behaviour, please unset
 the enviroment variable
 Sys.unsetenv("SITS_RUN_TESTS")
 }
+\examples{
+#' if (sits_run_tests()){
+    message("use devtools::run_tests()")
+}
+else{
+    message("Set the environmental variable "SITS_RUN_TESTS" to "YES"
+    to run the tests or use devtools::run_tests()")
+}
+
+}

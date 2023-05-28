@@ -114,7 +114,7 @@ sits_apply.raster_cube <- function(data, ...,
                                    memsize = 1,
                                    multicores = 2,
                                    output_dir,
-                                   progress = TRUE) {
+                                   progress = FALSE) {
 
     # Check cube
     .check_is_raster_cube(data)

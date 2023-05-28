@@ -604,7 +604,8 @@ sits_get_data.segments <- function(
     gc()
 
     # check if data has been retrieved
-    .sits_get_data_check(nrow(samples), nrow(ts_tbl))
+    if (progress)
+        .sits_get_data_check(nrow(samples), nrow(ts_tbl))
 
     if (!inherits(ts_tbl, "sits")) {
         class(ts_tbl) <- c("sits", class(ts_tbl))
@@ -804,7 +805,8 @@ sits_get_data.segments <- function(
     gc()
 
     # check if data has been retrieved
-    .sits_get_data_check(nrow(samples), nrow(ts_tbl))
+    if (progress)
+        .sits_get_data_check(nrow(samples), nrow(ts_tbl))
 
     class(ts_tbl) <- unique(c("predicted", "sits", class(ts_tbl)))
 

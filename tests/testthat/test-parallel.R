@@ -7,7 +7,8 @@ test_that("One-year, multi-core classification in parallel", {
                 tiles = c("038047"),
                 bands = c("NDVI", "EVI"),
                 start_date = "2018-07-12",
-                end_date = "2019-07-28"
+                end_date = "2019-07-28",
+                progress = FALSE
             )
         },
         error = function(e) {

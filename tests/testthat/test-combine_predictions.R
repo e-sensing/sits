@@ -4,7 +4,8 @@ test_that("Combine predictions", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     # create a random forest model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -16,7 +17,8 @@ test_that("Combine predictions", {
     probs_rfor_cube <- sits_classify(
         data = cube, ml_model = rfor_model,
         output_dir = output_dir,
-        version = "rfor"
+        version = "rfor",
+        progress = FALSE
     )
     # create an XGBoost model
     xgb_model <- sits_train(samples_modis_ndvi, sits_xgboost())
@@ -24,7 +26,8 @@ test_that("Combine predictions", {
     probs_xgb_cube <- sits_classify(
         data = cube, ml_model = xgb_model,
         output_dir = output_dir,
-        version = "xgb"
+        version = "xgb",
+        progress = FALSE
     )
     # create a list of predictions to be combined
     pred_cubes <- list(probs_rfor_cube, probs_xgb_cube)
@@ -49,7 +52,9 @@ test_that("Combine predictions", {
 
     rfor <- as.vector(vls_rfor[1:10, 1])
     xgb <- as.vector(vls_xgb[1:10, 1])
-    avg <- purrr::map2_int(rfor, xgb, function(r, x) {as.integer(mean(c(r,x)))})
+    avg <- purrr::map2_int(rfor, xgb, function(r, x) {
+        as.integer(mean(c(r, x)))
+    })
     avg2 <- as.vector(vls_avg[1:10, 1])
 
     expect_true(all(abs(avg - avg2)) < 3)
@@ -58,12 +63,13 @@ test_that("Combine predictions", {
     # test Recovery
     out <- capture_messages({
         expect_message(
-            object = { sits_combine_predictions(
-                cubes = pred_cubes,
-                type = "average",
-                output_dir = output_dir,
-                version = "comb_rfor_xgb_avg"
-            )},
+            object = {
+                sits_combine_predictions(
+                    cubes = pred_cubes,
+                    type = "average",
+                    output_dir = output_dir,
+                    version = "comb_rfor_xgb_avg"
+                )},
             regexp = "Recovery"
         )
     })

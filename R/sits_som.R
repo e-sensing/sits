@@ -212,6 +212,21 @@ sits_som_map <- function(data,
 #' @return tibble with an two additional columns.
 #' The first indicates if each sample is clean, should be analyzed or
 #' should be removed. The second is the posterior probability of the sample.
+#'
+#' @examples
+#' #' if (sits_run_examples()) {
+#'     # create a som map
+#'     som_map <- sits_som_map(samples_modis_ndvi)
+#'     # plot the som map
+#'     plot(som_map)
+#'     # evaluate the som map and create clusters
+#'     clusters_som <- sits_som_evaluate_cluster(som_map)
+#'     # plot the cluster evaluation
+#'     plot(clusters_som)
+#'     # clean the samples
+#'     new_samples <- sits_som_clean_samples(som_map)
+#' }
+#'
 #' @export
 sits_som_clean_samples <- function(som_map,
                                    prior_threshold = 0.6,
@@ -281,6 +296,19 @@ sits_som_clean_samples <- function(som_map,
 #' @param som_map   A SOM map produced by the som_map() function
 #' @return A tibble stating the purity for each cluster
 #'
+#' @examples
+#' #' if (sits_run_examples()) {
+#'     # create a som map
+#'     som_map <- sits_som_map(samples_modis_ndvi)
+#'     # plot the som map
+#'     plot(som_map)
+#'     # evaluate the som map and create clusters
+#'     clusters_som <- sits_som_evaluate_cluster(som_map)
+#'     # plot the cluster evaluation
+#'     plot(clusters_som)
+#'     # clean the samples
+#'     new_samples <- sits_som_clean_samples(som_map)
+#' }
 #' @export
 sits_som_evaluate_cluster <- function(som_map) {
     # Sanity check

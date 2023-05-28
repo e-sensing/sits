@@ -105,7 +105,9 @@ sits_cube_copy <- function(cube,
         if (.check_messages()) {
             message("Recovery: file '", out_file, "' already exists.")
             message("(If you want to get a new version, please ",
-                    "change 'output_dir' parameter or delete the existing file)")
+                    "change 'output_dir' parameter
+                    or delete the existing file)"
+            )
         }
         asset <- .download_update_asset(
             asset = asset, roi = roi, res = res, out_file = out_file

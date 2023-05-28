@@ -292,19 +292,6 @@ sits_cube.stac_cube <- function(source,
                                 end_date = NULL,
                                 platform = NULL,
                                 progress = TRUE) {
-    dots <- list(...)
-
-    # deal with wrong parameter "band"
-    if ("band" %in% names(dots) && missing(bands)) {
-        message("please use bands instead of band as parameter")
-        bands <- as.character(dots[["band"]])
-    }
-
-    # deal with wrong parameter "tile"
-    if ("tile" %in% names(dots) && missing(tiles)) {
-        message("please use tiles instead of tile as parameter")
-        tiles <- as.character(dots[["tile"]])
-    }
 
     # Ensures that only a spatial filter is informed
     if (.has(roi) && .has(tiles)) {

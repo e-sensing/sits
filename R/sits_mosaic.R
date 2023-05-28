@@ -233,8 +233,6 @@ sits_mosaic <- function(cube,
             )
             return(base_tile)
         }
-        # Get band configs from base tile
-        band_conf <- .tile_band_conf(base_tile, band = .tile_bands(base_tile))
 
         # Generate raster mosaic
         .gdal_warp(

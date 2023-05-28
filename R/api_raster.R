@@ -217,9 +217,9 @@
     # find NA
     na_rows <- which(is.na(tb))
     # remove NA
-    if (length(na_rows) > 0 ) {
+    if (length(na_rows) > 0) {
         tb <- tb[-na_rows, ]
-        samples_tb <- samples_tb[-na_rows,]
+        samples_tb <- samples_tb[-na_rows, ]
     }
     # Get the values' positions.
     result_tb <- tb %>%

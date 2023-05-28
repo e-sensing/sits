@@ -22,7 +22,7 @@
         pol_id,
         multicores,
         progress
-){
+) {
     # verify if exactextractr is installed
     .check_require_packages("exactextractr")
     # get start and end dates
@@ -73,26 +73,29 @@
             })
         }
         # build the sits tibble for the storing the points
-        samples_tbl <- purrr::pmap_dfr(list(segs_tile$x, segs_tile$y, segs_tile[[pol_id]]),
-                                       function(x, y, pid) {
+        samples_tbl <- purrr::pmap_dfr(
+            list(segs_tile$x, segs_tile$y, segs_tile[[pol_id]]),
+            function(x, y, pid) {
             # convert XY to lat long
-            lat_long <- .proj_to_latlong(x, y, .crs(cube))
+                lat_long <- .proj_to_latlong(x, y, .crs(cube))
 
-            # create metadata for the polygons
-            sample <- tibble::tibble(
-                longitude  = lat_long[1, "longitude"],
-                latitude   = lat_long[1, "latitude"],
-                start_date = start_date,
-                end_date   = end_date,
-                label      = "NoClass",
-                cube       = tile[["collection"]],
-                polygon_id = pid
-            )
-            # store them in the sample tibble
-            sample$time_series <- list(tibble::tibble(Index = .tile_timeline(tile)))
-            # return valid row of time series
-            return(sample)
-        })
+                # create metadata for the polygons
+                sample <- tibble::tibble(
+                    longitude  = lat_long[1, "longitude"],
+                    latitude   = lat_long[1, "latitude"],
+                    start_date = start_date,
+                    end_date   = end_date,
+                    label      = "NoClass",
+                    cube       = tile[["collection"]],
+                    polygon_id = pid
+                )
+                # store them in the sample tibble
+                sample$time_series <- list(
+                    tibble::tibble(Index = .tile_timeline(tile))
+                )
+                # return valid row of time series
+                return(sample)
+            })
 
         # extract time series per tile and band
         ts <- .segments_get_ts(
@@ -106,8 +109,6 @@
 
         ts[["tile"]] <- tile_id
         ts[["#..id"]] <- seq_len(nrow(ts))
-
-        # saveRDS(ts, filename)
 
         return(ts)
     }, progress = progress)
@@ -174,9 +175,6 @@
     unlink(temp_timeseries)
     gc()
 
-    # check if data has been retrieved
-    # .sits_get_data_check(nrow(samples), nrow(ts_tbl))
-
     if (!inherits(ts_tbl, "sits")) {
         class(ts_tbl) <- c("sits", class(ts_tbl))
     }
@@ -203,7 +201,7 @@
         segs_tile,
         impute_fn,
         aggreg_fn
-){
+) {
     # get the scale factors, max, min and missing values
     band_params   <- .tile_band_conf(tile, band)
     missing_value <- .miss_value(band_params)
@@ -226,9 +224,9 @@
     # join new time series with previous values
     samples_tbl <- slider::slide2_dfr(
         samples_tbl, seq_len(nrow(samples_tbl)),
-        function(sample, i){
+        function(sample, i) {
             old_ts <- sample$time_series[[1]]
-            new_ts <- tibble::tibble(ts = values[i,])
+            new_ts <- tibble::tibble(ts = values[i, ])
             new_ts <- dplyr::bind_cols(old_ts, new_ts)
             colnames(new_ts) <- c(colnames(old_ts), band)
             sample$time_series[[1]] <- new_ts

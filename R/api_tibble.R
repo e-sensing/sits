@@ -58,8 +58,8 @@
     pred_labels <- names(int_labels[max.col(prediction)])
 
     pred_date <- tibble::tibble(
-        from = as.Date(unique(data[["start_date"]])),
-        to = as.Date(unique(data[["end_date"]])),
+        from = as.Date(data[["start_date"]]),
+        to = as.Date(data[["end_date"]]),
         class = pred_labels
     )
     pred_tbl <- dplyr::bind_cols(pred_date, prediction)
@@ -86,8 +86,6 @@
 #'
 .tibble_prediction_multiyear <- function(data, class_info, prediction) {
 
-    # this list is a global one and it is created based on the samples
-    ref_dates_lst <- class_info$ref_dates[[1]]
     # retrieve the global timeline
     timeline_global <- class_info$timeline[[1]]
 
@@ -117,6 +115,9 @@
                     model_end_date = lubridate::as_date(row$end_date),
                     num_samples = nrow(row$time_series[[1]])
                 )
+            } else {
+                # simplest case - timelines match
+                ref_dates_lst <- class_info$ref_dates[[1]]
             }
             idx_fst <- (row_n - 1) * (length(ref_dates_lst)) + 1
             idx_lst <- idx_fst + length(ref_dates_lst) - 1

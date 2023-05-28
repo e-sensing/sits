@@ -54,7 +54,9 @@ sits_timeline.raster_cube <- function(data) {
         return(timeline_unique[[1]])
     } else {
         if (.check_warnings())
-            warning("cube is not regular, returning all timelines", call. = FALSE)
+            warning("cube is not regular, returning all timelines",
+                    call. = FALSE
+            )
         return(timelines.lst)
     }
 }
@@ -221,16 +223,9 @@ sits_timeline.derived_cube <- function(data) {
 
     # create a list  the subset dates to break the input data set
     subset_dates <- list()
-
-    # # take easy case first
-    # if (num_samples == length(timeline_data)) {
-    #     start_date <- timeline_data[1]
-    #     end_date <- timeline_data[num_samples]
-    #     subset_dates[[length(subset_dates) + 1 ]] <- c(start_date, end_date)
-    #     return(subset_dates)
-    # }
-    # consider now the case where timeline is greater
-    # than number of samples in the model
+    # consider two cases:
+    # (1) start date of data is before start date model
+    # (2) start date of data is the same or after start date of model
     if (timeline_data[1] < model_start_date) {
         # what is the expected start and end dates based on the patterns?
         ref_st_mday <- as.character(lubridate::mday(model_start_date))
@@ -243,8 +238,7 @@ sits_timeline.derived_cube <- function(data) {
         ))
         # find the actual starting date by searching the timeline
         idx_start_date <- which.min(abs(est_start_date - timeline_data))
-    }
-    else {
+    } else {
         # find the actual starting date by searching the timeline
         idx_start_date <- which.min(abs(model_start_date - timeline_data))
     }

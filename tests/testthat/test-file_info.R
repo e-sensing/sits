@@ -7,7 +7,8 @@ test_that("file_info functions", {
                 bands = c("NDVI", "EVI"),
                 tiles = c("022024", "022025"),
                 start_date = "2018-09-01",
-                end_date = "2018-10-28"
+                end_date = "2018-10-28",
+                progress = FALSE
             )
         },
         error = function(e) {
@@ -78,7 +79,8 @@ test_that("file_info functions for result cubes", {
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/fi")
     if (!dir.exists(output_dir)) {
@@ -90,7 +92,8 @@ test_that("file_info functions for result cubes", {
         xgb_model,
         output_dir = output_dir,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
 
     # tile resolutions
@@ -109,7 +112,8 @@ test_that("file_info errors", {
         bands = c("B01", "B02", "CLOUD"),
         tiles = c("20LKP", "20LLP"),
         start_date = "2018-09-01",
-        end_date = "2018-10-01"
+        end_date = "2018-10-01",
+        progress = FALSE
     )
 
     # file info

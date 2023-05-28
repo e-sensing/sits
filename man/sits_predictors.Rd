@@ -25,7 +25,7 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-     summary(samples_modis_ndvi)
+     pred <- sits_predictors(samples_modis_ndvi)
 }
 
 }

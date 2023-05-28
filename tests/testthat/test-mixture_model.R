@@ -7,7 +7,8 @@ test_that("Mixture model tests", {
         tiles = "20LKP",
         bands = c("B02", "B03", "B04", "B8A", "B11", "B12", "CLOUD"),
         start_date = "2019-07-01",
-        end_date = "2019-07-30"
+        end_date = "2019-07-30",
+        progress = FALSE
     )
 
     # Delete files before check
@@ -15,17 +16,20 @@ test_that("Mixture model tests", {
     unlink(list.files(path = tempdir(), pattern = "\\.tif$", full.names = TRUE))
 
     # Cube regularization for 16 days and 320 meters
-    expect_warning({ reg_cube <- sits_regularize(
-        cube = s2_cube,
-        period = "P16D",
-        roi = c(lon_min = -65.54870165,
-                lat_min = -10.63479162,
-                lon_max = -65.07629670,
-                lat_max = -10.36046639),
-        res = 320,
-        multicores = 2,
-        output_dir = tempdir()
-    )})
+    expect_warning({
+        reg_cube <- sits_regularize(
+            cube = s2_cube,
+            period = "P16D",
+            roi = c(lon_min = -65.54870165,
+                    lat_min = -10.63479162,
+                    lon_max = -65.07629670,
+                    lat_max = -10.36046639),
+            res = 320,
+            multicores = 2,
+            output_dir = tempdir(),
+            progress = FALSE
+        )
+    })
 
     # Create the endmembers tibble for cube
     em <- tibble::tribble(
@@ -42,7 +46,8 @@ test_that("Mixture model tests", {
         memsize = 2,
         multicores = 2,
         output_dir = tempdir(),
-        rmse_band = TRUE
+        rmse_band = TRUE,
+        progress = FALSE
     )
 
     frac_bands <- sits_bands(mm_rmse)
@@ -72,7 +77,8 @@ test_that("Mixture model tests", {
         memsize = 2,
         multicores = 2,
         output_dir = tempdir(),
-        rmse_band = TRUE
+        rmse_band = TRUE,
+        progress = FALSE
     )
 
     frac_bands <- sits_bands(mm_rmse_c)
@@ -106,7 +112,8 @@ test_that("Mixture model tests", {
         data = ts_bands,
         endmembers = em,
         multicores = 1,
-        rmse_band = TRUE
+        rmse_band = TRUE,
+        progress = FALSE
     )
     ts_labels <- sits_labels(ts_em)
 

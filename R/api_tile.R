@@ -1172,7 +1172,6 @@ NULL
     names(r_obj) <- c(1:n_names)
     # Convert to SpatVectors
     class(seg_pols) <- c("sf", class(seg_pols))
-    # vec <- terra::vect(seg_pols)
     # Extract the values
     values <- as.matrix(exactextractr::exact_extract(
         x = r_obj,

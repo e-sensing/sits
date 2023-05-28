@@ -7,7 +7,8 @@ test_that("Downloading and cropping cubes from BDC", {
                 tiles = c("022024", "022025"),
                 bands = c("B15", "CLOUD"),
                 start_date = "2018-01-01",
-                end_date = "2018-01-12"
+                end_date = "2018-01-12",
+                progress = FALSE
             )
         },
         error = function(e) {
@@ -26,7 +27,8 @@ test_that("Downloading and cropping cubes from BDC", {
                 lat_min = -14.95411527,
                 lon_max = -41.74745556,
                 lat_max = -14.65950650),
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
 
     # Comparing tiles
@@ -59,7 +61,8 @@ test_that("Downloading and cropping cubes from BDC", {
                 lat_min = -14.95411527,
                 lon_max = -41.74745556,
                 lat_max = -14.65950650),
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
 
     # Comparing tiles
@@ -91,12 +94,14 @@ test_that("Downloading entire images from local cubes", {
                 source = "BDC",
                 collection = "MOD13Q1-6",
                 data_dir = data_dir,
-                multicores = 2
+                multicores = 2,
+                progress = FALSE
     )
 
     cube_local <- sits_cube_copy(
         cube = cube,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        progress = FALSE
     )
 
     # Comparing tiles
@@ -129,7 +134,8 @@ test_that("Downloading entire images from local cubes", {
                 lon_max = -55.60154307,
                 lat_max = -11.60790603),
         res = 464,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
 
     # Comparing bounding boxes

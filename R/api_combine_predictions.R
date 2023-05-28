@@ -77,7 +77,8 @@
     # Resume feature
     if (file.exists(out_file)) {
         if (.check_messages()) {
-            message("Recovery: tile '", base_tile[["tile"]], "' already exists.")
+            message("Recovery: tile '", base_tile[["tile"]],
+                    "' already exists.")
             message("(If you want to produce a new probability image, please ",
                     "change 'output_dir' or 'version' parameters)")
         }

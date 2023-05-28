@@ -47,7 +47,8 @@ test_that("Plot Time Series and Images", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     p <- plot(sinop, band = "NDVI", palette = "RdYlGn")
     expect_equal(p$tm_shape$shp_name, "stars_obj")
@@ -60,8 +61,8 @@ test_that("Plot Time Series and Images", {
     expect_equal(p_rgb$tm_grid$grid.projection, 4326)
 
     col <- p_rgb$tm_shape$shp$`TERRA_MODIS_012010_NDVI_2013-09-14.jp2`
-    expect_equal(col[1,1], "#646464")
-    expect_equal(col[1,10], "#A9A9A9")
+    expect_equal(col[1, 1], "#646464")
+    expect_equal(col[1, 10], "#A9A9A9")
 
     sinop_probs <- suppressMessages(
         sits_classify(
@@ -93,8 +94,10 @@ test_that("Plot Time Series and Images", {
     expect_equal(p_uncert$tm_layout$legend.bg.color, "white")
 
 
-    sinop_labels <- sits_label_classification(sinop_probs,
-        output_dir = tempdir()
+    sinop_labels <- sits_label_classification(
+        sinop_probs,
+        output_dir = tempdir(),
+        progress = FALSE
     )
 
     p4 <- plot(sinop_labels, title = "Classified image")
@@ -133,7 +136,7 @@ test_that("Plot Models", {
                                                  "NDVI4", "NDVI5", "NDVI6",
                                                  "NDVI7", "NDVI8", "NDVI9",
                                                  "NDVI10", "NDVI11", "NDVI12")))
-    expect_true(all(p_model$data$minimal_depth[1:2] %in% c(0,1)))
+    expect_true(all(p_model$data$minimal_depth[1:2] %in% c(0, 1)))
 
     xgb_model <- sits_train(samples_modis_ndvi, ml_method = sits_xgboost())
     p_xgb <- plot(xgb_model)

@@ -5,7 +5,8 @@ test_that("Classify with random forest - single core and multicore", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     class_ndvi <- sits_classify(
         data = point_ndvi,
-        ml_model = rfor_model
+        ml_model = rfor_model,
+        progress = FALSE
     )
 
     expect_true(nrow(class_ndvi$predicted[[1]]) == 17)
@@ -15,7 +16,8 @@ test_that("Classify with random forest - single core and multicore", {
     class_ndvi <- sits_classify(
         data = point_ndvi,
         ml_model = rfor_model,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
 
     expect_true(nrow(class_ndvi$predicted[[1]]) == 17)
@@ -29,14 +31,16 @@ test_that("Classify a set of time series with svm + filter", {
     # single core
     samples_filt <- sits_apply(cerrado_2classes,
                                NDVI = sits_sgolay(NDVI),
-                               EVI = sits_sgolay(EVI))
+                               EVI = sits_sgolay(EVI),
+    )
 
     svm_model <- sits_train(samples_filt, sits_svm())
 
     class1 <- sits_classify(cerrado_2classes,
         ml_model = svm_model,
         filter_fn = sits_sgolay(),
-        multicores = 2
+        multicores = 2,
+        progress = FALSE,
     )
 
     expect_true(class1$predicted[[1]]$class %in%

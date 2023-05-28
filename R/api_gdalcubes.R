@@ -238,10 +238,12 @@
         feature
     })
 
-    ic_cube <- gdalcubes::stac_image_collection(
-        s = gc_data,
-        out_file = path_db,
-        url_fun = identity
+    ic_cube <- suppressMessages(
+        gdalcubes::stac_image_collection(
+            s = gc_data,
+            out_file = path_db,
+            url_fun = identity
+        )
     )
 
     return(ic_cube)
@@ -289,20 +291,26 @@
     .check_set_caller(".gc_create_raster_cube")
 
     # open db in each process
-    img_col <- gdalcubes::image_collection(path = path_db)
+    img_col <- suppressMessages(
+        gdalcubes::image_collection(path = path_db)
+    )
 
     # create a gdalcubes::raster_cube object
-    raster_cube <- gdalcubes::raster_cube(
-        image_collection = img_col,
-        view = cube_view,
-        mask = mask_band,
-        chunking = .conf("gdalcubes_chunk_size")
+    raster_cube <- suppressMessages(
+        gdalcubes::raster_cube(
+            image_collection = img_col,
+            view = cube_view,
+            mask = mask_band,
+            chunking = .conf("gdalcubes_chunk_size")
+        )
     )
 
     # filter band of raster_cube
-    raster_cube <- gdalcubes::select_bands(
-        cube = raster_cube,
-        bands = band
+    raster_cube <- suppressMessages(
+        gdalcubes::select_bands(
+            cube = raster_cube,
+            bands = band
+        )
     )
 
     return(raster_cube)
@@ -417,16 +425,17 @@
     cog_overview <- .conf("gdalcubes_cog_resample_overview")
 
     # write the aggregated cubes
-    img_paths <- gdalcubes::write_tif(
-        x = raster_cube,
-        dir = output_dir,
-        prefix = files_prefix,
-        creation_options = gdalcubes_co,
-        pack = pack,
-        COG = generate_cog,
-        rsmpl_overview = cog_overview, ...
+    img_paths <- suppressMessages(
+        gdalcubes::write_tif(
+            x = raster_cube,
+            dir = output_dir,
+            prefix = files_prefix,
+            creation_options = gdalcubes_co,
+            pack = pack,
+            COG = generate_cog,
+            rsmpl_overview = cog_overview, ...
+        )
     )
-
     # post-condition
     .check_length(img_paths,
                   len_min = 1,
@@ -470,7 +479,7 @@
                            roi,
                            output_dir,
                            multicores = 1,
-                           progress = TRUE) {
+                           progress = progress) {
 
     # set caller to show in errors
     .check_set_caller(".gc_regularize")
@@ -587,8 +596,12 @@
             # check documentation mode
             progress <- .check_documentation(progress)
 
+            # gdalcubes log file
+            gdalcubes_log_file <- paste0(tempdir(), "/gdalcubes.log")
             # setting threads to process
             gdalcubes::gdalcubes_options(parallel = 2,
+                                         debug = FALSE,
+                                         log_file = gdalcubes_log_file,
                                          show_progress = progress)
 
             # create of the aggregate cubes

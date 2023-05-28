@@ -19,7 +19,7 @@
 #' }
 #'
 #' @export
-summary.sits <- function(object, ...){
+summary.sits <- function(object, ...) {
     sits_labels_summary(object)
 }
 
@@ -57,7 +57,7 @@ summary.sits <- function(object, ...){
 #' }
 #'
 #' @export
-summary.sits_accuracy <- function(object, ...){
+summary.sits_accuracy <- function(object, ...) {
     sits_accuracy_summary(object)
 }
 #' @title  Summarize accuracy matrix for area data
@@ -104,7 +104,7 @@ summary.sits_accuracy <- function(object, ...){
 #' }
 #'
 #' @export
-summary.sits_area_accuracy <- function(object, ...){
+summary.sits_area_accuracy <- function(object, ...) {
     print.sits_area_accuracy(object)
 }
 #' @title  Summarize data cubes
@@ -126,7 +126,7 @@ summary.sits_area_accuracy <- function(object, ...){
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
+#' @examples
 #' if (sits_run_examples()) {
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -145,7 +145,7 @@ summary.raster_cube <- function(
         date = NULL,
         only_stats = FALSE,
         sample_size = 100000
-){
+) {
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?
@@ -185,16 +185,16 @@ summary.raster_cube <- function(
         cat("class       : ", class(tile)[1], "\n")
         cat("dimensions  : ",
             .tile_nrows(tile), ", ",
-            .tile_ncols(tile), "  (nrow, ncol)\n", sep = "" )
+            .tile_ncols(tile), "  (nrow, ncol)\n", sep = "")
         cat("resolution  : ",
             .tile_xres(tile), ", ",
-            .tile_yres(tile), "  (x, y)\n", sep = "" )
+            .tile_yres(tile), "  (x, y)\n", sep = "")
         cat("extent      : ",
             .xmin(tile), ", ",
             .xmax(tile), ", ",
             .ymin(tile), ", ",
             .ymax(tile),
-            "  (xmin, xmax, ymin, ymax)\n", sep = "" )
+            "  (xmin, xmax, ymin, ymax)\n", sep = "")
         cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
     }
     # get the a sample of the values
@@ -209,7 +209,7 @@ summary.raster_cube <- function(
     offset <- .offset(band_conf)
     # rescale values
     # get summary
-    sum <- summary(values*scale + offset)
+    sum <- summary(values * scale + offset)
     # change names
     colnames(sum) <- bands
     # print statistics
@@ -232,13 +232,31 @@ summary.raster_cube <- function(
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir
+#'     )
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
+#'     summary(probs_cube)
+#' }
+#'
 #' @export
 summary.probs_cube <- function(
        object, ...,
        tile = object$tile[[1]],
        only_stats = FALSE,
        sample_size = 100000
-){
+) {
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?
@@ -270,16 +288,16 @@ summary.probs_cube <- function(
         cat("class       : ", class(tile)[1], "\n")
         cat("dimensions  : ",
             .tile_nrows(tile), ", ",
-            .tile_ncols(tile), "  (nrow, ncol)\n", sep = "" )
+            .tile_ncols(tile), "  (nrow, ncol)\n", sep = "")
         cat("resolution  : ",
             .tile_xres(tile), ", ",
-            .tile_yres(tile), "  (x, y)\n", sep = "" )
+            .tile_yres(tile), "  (x, y)\n", sep = "")
         cat("extent      : ",
             .xmin(tile), ", ",
             .xmax(tile), ", ",
             .ymin(tile), ", ",
             .ymax(tile),
-            "  (xmin, xmax, ymin, ymax)\n", sep = "" )
+            "  (xmin, xmax, ymin, ymax)\n", sep = "")
         cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
     }
     # get the a sample of the values
@@ -289,7 +307,7 @@ summary.probs_cube <- function(
     band_conf <- .tile_band_conf(tile, band)
     scale <- .scale(band_conf)
     offset <- .offset(band_conf)
-    sum <- summary(values*scale + offset)
+    sum <- summary(values * scale + offset)
     colnames(sum) <- sits_labels(tile)
     sum
 }
@@ -310,13 +328,35 @@ summary.probs_cube <- function(
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir
+#'     )
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
+#'     # get the variance cube
+#'     variance_cube <- sits_variance(
+#'         probs_cube, output_dir = tempdir()
+#'     )
+#'     summary(variance_cube)
+#' }
+#'
 #' @export
 summary.variance_cube <- function(
         object, ...,
         tile = object$tile[[1]],
         only_stats = FALSE,
         sample_size = 100000
-){
+) {
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?
@@ -348,16 +388,16 @@ summary.variance_cube <- function(
         cat("class       : ", class(tile)[1], "\n")
         cat("dimensions  : ",
             .tile_nrows(tile), ", ",
-            .tile_ncols(tile), "  (nrow, ncol)\n", sep = "" )
+            .tile_ncols(tile), "  (nrow, ncol)\n", sep = "")
         cat("resolution  : ",
             .tile_xres(tile), ", ",
-            .tile_yres(tile), "  (x, y)\n", sep = "" )
+            .tile_yres(tile), "  (x, y)\n", sep = "")
         cat("extent      : ",
             .xmin(tile), ", ",
             .xmax(tile), ", ",
             .ymin(tile), ", ",
             .ymax(tile),
-            "  (xmin, xmax, ymin, ymax)\n", sep = "" )
+            "  (xmin, xmax, ymin, ymax)\n", sep = "")
         cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
     }
     # get the a sample of the values
@@ -367,7 +407,7 @@ summary.variance_cube <- function(
     band_conf <- .tile_band_conf(tile, band)
     scale <- .scale(band_conf)
     offset <- .offset(band_conf)
-    sum <- summary(values*scale + offset)
+    sum <- summary(values * scale + offset)
     colnames(sum) <- sits_labels(tile)
     sum
 }
@@ -388,6 +428,27 @@ summary.variance_cube <- function(
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir
+#'     )
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
+#'     # label the probability cube
+#'     label_cube <- sits_label_classification(
+#'         probs_cube, output_dir = tempdir()
+#'     )
+#'     summary(label_cube)
+#' }
 #' @export
 #'
 summary.class_cube <- function(
@@ -395,7 +456,7 @@ summary.class_cube <- function(
         tile = object$tile[[1]],
         only_stats = FALSE,
         sample_size = 100000
-){
+) {
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?
@@ -427,23 +488,23 @@ summary.class_cube <- function(
         cat("class       : ", class(tile)[1], "\n")
         cat("dimensions  : ",
             .tile_nrows(tile), ", ",
-            .tile_ncols(tile), "  (nrow, ncol)\n", sep = "" )
+            .tile_ncols(tile), "  (nrow, ncol)\n", sep = "")
         cat("resolution  : ",
             .tile_xres(tile), ", ",
-            .tile_yres(tile), "  (x, y)\n", sep = "" )
+            .tile_yres(tile), "  (x, y)\n", sep = "")
         cat("extent      : ",
             .xmin(tile), ", ",
             .xmax(tile), ", ",
             .ymin(tile), ", ",
             .ymax(tile),
-            "  (xmin, xmax, ymin, ymax)\n", sep = "" )
+            "  (xmin, xmax, ymin, ymax)\n", sep = "")
         cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
     }
     # get the a sample of the values
     class_areas <- r %>%
         terra::expanse(unit = "km", byValue = TRUE)
     # create a tibble
-    areas <-  class_areas[,3]
+    areas <-  class_areas[, 3]
     # get the result
     data.frame(class = sits_labels(tile), area_km2  = signif(areas, 4))
 }

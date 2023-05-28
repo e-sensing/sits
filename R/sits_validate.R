@@ -94,8 +94,10 @@ sits_kfold_validate <- function(samples,
         "optimizer" %in% ls(environment(ml_method))) {
         multicores <- 1
         if (.check_warnings())
-            warning("sits_kfold_validate() works only with 1 core in Windows OS.",
-                call. = FALSE, immediate. = TRUE
+            warning("sits_kfold_validate() works
+                    only with 1 core in Windows OS.",
+                call. = FALSE,
+                immediate. = TRUE
             )
     }
 

@@ -13,6 +13,14 @@
 #' the enviroment variable
 #' Sys.unsetenv("SITS_RUN_TESTS")
 #' @return TRUE/FALSE
+#' @examples
+#' #' if (sits_run_tests()){
+#'     message("use devtools::run_tests()")
+#' }
+#' else{
+#'     message("Set the environmental variable "SITS_RUN_TESTS" to "YES"
+#'     to run the tests or use devtools::run_tests()")
+#' }
 #'
 #' @export
 sits_run_tests <- function() {
@@ -33,6 +41,16 @@ sits_run_tests <- function() {
 #' Sys.unsetenv("SITS_RUN_EXAMPLES")
 #'
 #' @return A logical value
+#' @examples
+#' if (sits_run_examples()){
+#'     message("use devtools::run_examples() to run the examples")
+#' }
+#' else{
+#'     message("Set the environmental variable "SITS_RUN_EXAMPLES" to "YES"
+#'     to run the examples")
+#' }
+#'
+#'
 #' @export
 sits_run_examples <- function() {
     return(!Sys.getenv("SITS_RUN_EXAMPLES") %in% c("", "NO", "FALSE", "OFF"))
