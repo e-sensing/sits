@@ -29,10 +29,10 @@
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
+#'     # view samples
 #'     sits_view(cerrado_2classes)
-#'
+#'.    # create a local data cube
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#'
 #'     modis_cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
@@ -44,29 +44,94 @@
 #'     )
 #'     # train a model
 #'     rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
-#'
+#'.    # classify the cube
 #'     modis_probs <- sits_classify(
 #'         data = modis_cube,
 #'         ml_model = rf_model,
 #'         output_dir = tempdir()
 #'     )
+#'     # generate a map
 #'     modis_label <- sits_label_classification(
 #'         modis_probs,
 #'         output_dir = tempdir()
 #'     )
-#'
+#'.    # view the classified map
 #'     sits_view(modis_label)
-#'
+#'.    # view the classified map with the B/W image
 #'     sits_view(modis_cube,
 #'         band = "NDVI",
 #'         class_cube = modis_label,
 #'         dates = sits_timeline(modis_cube)[[1]]
 #'     )
+#'     # create an uncertainty cube
 #'     modis_uncert <- sits_uncertainty(
 #'         cube = modis_probs,
 #'         output_dir = tempdir()
 #'     )
+#'     # view the uncertainty cube
 #'     sits_view(modis_uncert)
+#'
+#'     # segment the image
+#'     segments <- sits_segment(
+#'         cube = modis_cube,
+#'         tile = "012010",
+#'         bands = "NDVI",
+#'         date = sits_timeline(modis_cube)[1],
+#'         seg_fn = sits_slic(step = 10)
+#'     )
+#'     # view image and segments
+#'     sits_view (
+#'         modis_cube,
+#'         band = "NDVI",
+#'         segments = segments
+#'     )
+#'     # view image, classified image and segments
+#'     sits_view (
+#'         modis_cube,
+#'         red = "NDVI",
+#'         green = "NDVI",
+#'         blue = "NDVI",
+#'         class_cube = modis_label,
+#'         segments = segments
+#'     )
+#'     # view B/W image, classified image and segments
+#'     sits_view (
+#'         modis_cube,
+#'         band = "NDVI",
+#'         class_cube = modis_label,
+#'         segments = segments
+#'     )
+#'     # get the average value per segment
+#'     samples_seg <- sits_get_data(
+#'         cube = modis_cube,
+#'         samples = segments
+#'     )
+#'     # classify the segments
+#'     seg_class <- sits_classify(
+#'         data = samples_seg,
+#'         ml_model = rf_model
+#'     )
+#'
+#'     # add a column to the segments by class
+#'     segments <- sits_join_segments(
+#'         data = seg_class,
+#'         segments = segments
+#'     )
+#'     # view image and classified segments
+#'     sits_view (
+#'         modis_cube,
+#'         band = "NDVI",
+#'         segments = segments
+#'     )
+#'     # view image, classified image and segments
+#'     sits_view (
+#'         modis_cube,
+#'         red = "NDVI",
+#'         green = "NDVI",
+#'         blue = "NDVI",
+#'         class_cube = modis_label,
+#'         segments = segments
+#'     )
 #' }
 #' @export
 sits_view <- function(x, ...) {
@@ -163,9 +228,9 @@ sits_view.raster_cube <- function(x, ...,
                                   dates = NULL,
                                   class_cube = NULL,
                                   legend = NULL,
+                                  palette = "RdYlGn",
                                   segments = NULL,
-                                  view_max_mb = NULL,
-                                  palette = "RdYlGn") {
+                                  view_max_mb = NULL) {
     # preconditions
     # Probs cube not supported
     .check_that(!inherits(x, "probs_cube"),
@@ -195,6 +260,7 @@ sits_view.raster_cube <- function(x, ...,
             band = band,
             legend = legend,
             palette = palette,
+            segments = segments,
             view_max_mb = view_max_mb
         )
     } else {
@@ -207,6 +273,7 @@ sits_view.raster_cube <- function(x, ...,
             bands = bands,
             legend = legend,
             palette = palette,
+            segments = segments,
             view_max_mb = view_max_mb
         )
     }
@@ -219,6 +286,7 @@ sits_view.raster_cube <- function(x, ...,
                               band,
                               legend,
                               palette,
+                              segments,
                               view_max_mb){
     # check bands are available
     .check_chr_within(
@@ -414,7 +482,87 @@ sits_view.raster_cube <- function(x, ...,
         # define overlay groups
         overlay_grps <- c(overlay_grps, "classification")
     }
+    # plot segments if they exist
+    if (!purrr::is_null(segments)) {
+        # check that segments are valid
+        .check_that(
+            x = inherits(segments, c("segments")),
+            msg = "segments to be overlayed are invalid"
+        )
+        # how many tiles are there in the segments
+        tile_names <- names(segments)
+        for (tile_name in tile_names) {
+            # retrieve the segments for this tile
+            sf_seg <- segments[[tile_name]]
+            # transform the segments
+            sf_seg <- sf::st_transform(sf_seg,
+                                       crs = sf::st_crs("EPSG:4326")
+            )
+            # have the segments been classified?
+            if ("class" %in% colnames(sf_seg)) {
+                # dissolve sf_seg
+                sf_seg <- sf_seg %>%
+                    dplyr::group_by(.data[["class"]]) %>%
+                    dplyr::summarise()
 
+                labels_seg <- sf_seg %>%
+                    sf::st_drop_geometry() %>%
+                    dplyr::select("class") %>%
+                    dplyr::pull()
+                names(labels_seg) <- seq_along(labels_seg)
+                # obtain the colors
+                colors <- .colors_get(
+                    labels = labels_seg,
+                    legend = legend,
+                    palette = palette
+                )
+                # create a color palette
+                fact_pal <- leaflet::colorFactor(
+                    palette = colors,
+                    domain = labels_seg
+                )
+                # add a new leafmap to show polygons of segments
+                leaf_map <- leafem::addFeatures(
+                    leaf_map,
+                    data = sf_seg,
+                    label = labels_seg,
+                    color = "white",
+                    opacity = 1,
+                    fillColor = unname(colors),
+                    fillOpacity = 0.6,
+                    weight = 1,
+                    group = "class segments"
+                )
+                if (purrr::is_null(class_cube)) {
+                    leaf_map <- leaf_map %>%
+                        leaflet::addLegend(
+                            "topright",
+                            pal     = fact_pal,
+                            values  = labels_seg,
+                            title   = "Classes",
+                            opacity = 0.6
+                        )
+                }
+                # define overlay groups
+                overlay_grps <- c(overlay_grps, "class segments")
+            }
+            # segments without class
+            else {
+                leaf_map <- leafem::addFeatures(
+                    leaf_map,
+                    data = sf_seg,
+                    fillColor = "grey",
+                    color = "white",
+                    opacity = 1,
+                    fillOpacity = 0.6,
+                    weight = 1,
+                    group = "segments",
+                )
+                # define overlay groups
+                overlay_grps <- c(overlay_grps, "segments")
+            }
+        }
+    }
 
     # add layers control to leafmap
     leaf_map <- leaf_map %>%
@@ -435,6 +583,7 @@ sits_view.raster_cube <- function(x, ...,
                             bands,
                             legend,
                             palette,
+                            segments,
                             view_max_mb){
     # check bands are available
     .check_chr_within(
@@ -661,39 +810,49 @@ sits_view.raster_cube <- function(x, ...,
             )
             # have the segments been classified?
             if ("class" %in% colnames(sf_seg)) {
-                # get the labels
-                lab_seg <- sf_seg %>%
+                # dissolve sf_seg
+                sf_seg <- sf_seg %>%
+                    dplyr::group_by(.data[["class"]]) %>%
+                    dplyr::summarise()
+
+                labels_seg <- sf_seg %>%
                     sf::st_drop_geometry() %>%
                     dplyr::select("class") %>%
-                    dplyr::distinct() %>%
                     dplyr::pull()
-                names(lab_seg) <- seq_along(lab_seg)
+                names(labels_seg) <- seq_along(labels_seg)
                 # obtain the colors
-                col_seg <- .colors_get(
-                    labels = lab_seg,
+                colors <- .colors_get(
+                    labels = labels_seg,
                     legend = legend,
                     palette = palette
                 )
                 # create a color palette
                 fact_pal <- leaflet::colorFactor(
-                    palette = col_seg,
-                    domain = lab_seg
+                    palette = colors,
+                    domain = labels_seg
                 )
                 # add a new leafmap to show polygons of segments
-                leafmap <- leafem::addFeatures(
+                leaf_map <- leafem::addFeatures(
                     leaf_map,
                     data = sf_seg,
-                    fill = TRUE,
-                    fillColor = colors,
-                    fillOpacity = 0.7
-                ) %>%
-                    leaflet::addLegend(
-                        "topright",
-                        pal     = fact_pal,
-                        values  = lab_seg,
-                        title   = "Classes",
-                        opacity = 1
-                    )
+                    label = labels_seg,
+                    color = "white",
+                    opacity = 1,
+                    fillColor = unname(colors),
+                    fillOpacity = 0.6,
+                    weight = 1,
+                    group = "class segments"
+                )
+                if (purrr::is_null(class_cube)) {
+                    leaf_map <- leaf_map %>%
+                        leaflet::addLegend(
+                            "topright",
+                            pal     = fact_pal,
+                            values  = labels_seg,
+                            title   = "Classes",
+                            opacity = 0.6
+                        )
+                }
                 # define overlay groups
                 overlay_grps <- c(overlay_grps, "class segments")
             }
@@ -701,9 +860,12 @@ sits_view.raster_cube <- function(x, ...,
                 leaf_map <- leafem::addFeatures(
                     leaf_map,
                     data = sf_seg,
-                    fill = TRUE,
-                    color = "lightgoldenrod",
-                    weight = 5
+                    fillColor = "grey",
+                    color = "white",
+                    opacity = 1,
+                    fillOpacity = 0.6,
+                    weight = 1,
+                    group = "segments",
                 )
                 # define overlay groups
                 overlay_grps <- c(overlay_grps, "segments")
@@ -923,6 +1085,7 @@ sits_view.class_cube <- function(x, ...,
                                  tiles = NULL,
                                  legend = NULL,
                                  palette = "default",
+                                 segments = NULL,
                                  view_max_mb = NULL) {
     # preconditions
     .check_require_packages("leaflet")
@@ -1017,8 +1180,82 @@ sits_view.class_cube <- function(x, ...,
             group = "classification",
             project = FALSE,
             maxBytes = output_size["leaflet_maxbytes"]
-        ) %>%
-        # add the the layers control
+        )
+    # define overlay groups
+    overlay_grps <- "classification"
+
+    # add segments if they exist
+    if (!purrr::is_null(segments)) {
+        # check that segments are valid
+        .check_that(
+            x = inherits(segments, c("segments")),
+            msg = "segments to be overlayed are invalid"
+        )
+        # how many tiles are there in the segments
+        tile_names <- names(segments)
+        for (tile_name in tile_names) {
+            # retrieve the segments for this tile
+            sf_seg <- segments[[tile_name]]
+            # transform the segments
+            sf_seg <- sf::st_transform(sf_seg,
+                                       crs = sf::st_crs("EPSG:4326")
+            )
+            # have the segments been classified?
+            if ("class" %in% colnames(sf_seg)) {
+                # dissolve sf_seg
+                sf_seg <- sf_seg %>%
+                    dplyr::group_by(.data[["class"]]) %>%
+                    dplyr::summarise()
+
+                labels_seg <- sf_seg %>%
+                    sf::st_drop_geometry() %>%
+                    dplyr::select("class") %>%
+                    dplyr::pull()
+                names(labels_seg) <- seq_along(labels_seg)
+                # obtain the colors
+                colors <- .colors_get(
+                    labels = labels_seg,
+                    legend = legend,
+                    palette = palette
+                )
+                # create a color palette
+                fact_pal <- leaflet::colorFactor(
+                    palette = colors,
+                    domain = labels_seg
+                )
+                # add a new leafmap to show polygons of segments
+                leaf_map <- leafem::addFeatures(
+                    leaf_map,
+                    data = sf_seg,
+                    label = labels_seg,
+                    color = "white",
+                    opacity = 1,
+                    fillColor = unname(colors),
+                    fillOpacity = 0.6,
+                    weight = 1,
+                    group = "class segments"
+                )
+                # define overlay groups
+                overlay_grps <- c(overlay_grps, "class segments")
+            }
+            else {
+                leaf_map <- leafem::addFeatures(
+                    leaf_map,
+                    data = sf_seg,
+                    fillColor = "grey",
+                    color = "white",
+                    opacity = 1,
+                    fillOpacity = 0.6,
+                    weight = 1,
+                    group = "segments",
+                )
+                # define overlay groups
+                overlay_grps <- c(overlay_grps, "segments")
+            }
+        }
+    }
+    # add the the layers control
+    leaf_map <- leaf_map %>%
         leaflet::addLayersControl(
             map = .,
             baseGroups = c("ESRI", "GeoPortalFrance", "OSM"),
@@ -1391,4 +1628,3 @@ sits_view.default <- function(x, ...) {
         )
     return(leaf_map)
 }
-

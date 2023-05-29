@@ -31,9 +31,9 @@ sits_view(x, ...)
   dates = NULL,
   class_cube = NULL,
   legend = NULL,
+  palette = "RdYlGn",
   segments = NULL,
-  view_max_mb = NULL,
-  palette = "RdYlGn"
+  view_max_mb = NULL
 )
 
 \method{sits_view}{uncertainty_cube}(
@@ -52,6 +52,7 @@ sits_view(x, ...)
   tiles = NULL,
   legend = NULL,
   palette = "default",
+  segments = NULL,
   view_max_mb = NULL
 )
 
@@ -110,10 +111,10 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
+    # view samples
     sits_view(cerrado_2classes)
-
+.    # create a local data cube
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-
     modis_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
@@ -125,29 +126,91 @@ if (sits_run_examples()) {
     )
     # train a model
     rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
-
+.    # classify the cube
     modis_probs <- sits_classify(
         data = modis_cube,
         ml_model = rf_model,
         output_dir = tempdir()
     )
+    # generate a map
     modis_label <- sits_label_classification(
         modis_probs,
         output_dir = tempdir()
     )
-
+.    # view the classified map
     sits_view(modis_label)
-
+.    # view the classified map with the B/W image
     sits_view(modis_cube,
         band = "NDVI",
         class_cube = modis_label,
         dates = sits_timeline(modis_cube)[[1]]
     )
+    # create an uncertainty cube
     modis_uncert <- sits_uncertainty(
         cube = modis_probs,
         output_dir = tempdir()
     )
+    # view the uncertainty cube
     sits_view(modis_uncert)
+
+    # segment the image
+    segments <- sits_segment(
+        cube = modis_cube,
+        tile = "012010",
+        bands = "NDVI",
+        date = sits_timeline(modis_cube)[1],
+        seg_fn = sits_slic(step = 10)
+    )
+    # view image and segments
+    sits_view (
+        modis_cube,
+        red = "NDVI",
+        green = "NDVI",
+        blue = "NDVI",
+        segments = segments
+    )
+    # view image, classified image and segments
+    sits_view (
+        modis_cube,
+        red = "NDVI",
+        green = "NDVI",
+        blue = "NDVI",
+        class_cube = modis_label,
+        segments = segments
+    )
+    # get the average value per segment
+    samples_seg <- sits_get_data(
+        cube = modis_cube,
+        samples = segments
+    )
+    # classify the segments
+    seg_class <- sits_classify(
+        data = samples_seg,
+        ml_model = rf_model
+    )
+
+    # add a column to the segments by class
+    segments <- sits_join_segments(
+        data = seg_class,
+        segments = segments
+    )
+    # view image and classified segments
+    sits_view (
+        modis_cube,
+        red = "NDVI",
+        green = "NDVI",
+        blue = "NDVI",
+        segments = segments
+    )
+    # view image, classified image and segments
+    sits_view (
+        modis_cube,
+        red = "NDVI",
+        green = "NDVI",
+        blue = "NDVI",
+        class_cube = modis_label,
+        segments = segments
+    )
 }
 }
 \author{
