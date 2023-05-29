@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      BDC_ACCESS_KEY: ${{ secrets.BDC_ACCESS_KEY }}
       SITS_RUN_TESTS: YES
       TORCH_INSTALL: 1
 
