@@ -367,8 +367,8 @@ plot.sits <- function(x, y, ..., together = FALSE) {
 #' @param  y             Ignored.
 #' @param  ...           Further specifications for \link{plot}.
 #' @param  bands         Bands to be viewed (optional).
-#' @param  year_grid     Plot a grid of panels with labels representing
-#'                       columns and years representing rows. Default is FALSE.
+#' @param  year_grid     Plot a grid of panels using labels as columns and
+#'                       years as rows. Default is FALSE.
 #' @return               A plot object produced by ggplot2
 #'                       with one average pattern per label.
 #'
