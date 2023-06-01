@@ -5,7 +5,8 @@ test_that("uncertainty works", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     xgb_model <- sits_train(samples_modis_ndvi,
         ml_method = sits_xgboost(verbose = FALSE)
@@ -14,7 +15,8 @@ test_that("uncertainty works", {
         cube,
         ml_model = xgb_model,
         output_dir = tempdir(),
-        memsize = 4, multicores = 2
+        memsize = 4, multicores = 2,
+        progress = FALSE
     )
 
     entropy_cube <- sits_uncertainty(

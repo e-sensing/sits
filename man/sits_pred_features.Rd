@@ -10,7 +10,7 @@ sits_pred_features(pred)
 \item{pred}{X-Y predictors: a data.table with one row per sample.}
 }
 \value{
-The Y predictors for the sample: a data.frame with one row per sample.
+The Y predictors for the sample: data.frame with one row per sample.
 }
 \description{
 Predictors are X-Y values required for machine learning
@@ -26,7 +26,8 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-     summary(samples_modis_ndvi)
+     pred <- sits_predictors(samples_modis_ndvi)
+     features <- sits_pred_features(pred)
 }
 
 }

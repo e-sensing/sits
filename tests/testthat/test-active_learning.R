@@ -5,7 +5,8 @@ test_that("Suggested samples have low confidence, high entropy", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     set.seed(123)
     rfor_model <- sits_train(samples_modis_ndvi,
@@ -20,7 +21,8 @@ test_that("Suggested samples have low confidence, high entropy", {
         ml_model = rfor_model,
         output_dir = output_dir,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     uncert_cube <- sits_uncertainty(
         probs_cube,
@@ -56,7 +58,8 @@ test_that("Increased samples have high confidence, low entropy", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     rfor_model <- sits_train(samples_modis_ndvi,
         ml_method = sits_rfor()
@@ -69,7 +72,8 @@ test_that("Increased samples have high confidence, low entropy", {
         cube,
         ml_model = rfor_model,
         output_dir = output_dir,
-        memsize = 4, multicores = 2
+        memsize = 4, multicores = 2,
+        progress = FALSE
     )
     # Get sample suggestions based on high confidence
     samples_df <- suppressWarnings(

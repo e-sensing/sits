@@ -137,7 +137,8 @@ NULL
     } else {
         crs <- .default(default_crs, default = {
             if (.check_warnings())
-                warning("object has no crs, assuming 'EPSG:4326'", call. = FALSE)
+                warning("object has no crs, assuming 'EPSG:4326'",
+                        call. = FALSE)
             "EPSG:4326"
         })
     }
@@ -299,7 +300,7 @@ NULL
     x
 }
 
-.crs_wkt_to_proj4 <- function(wkt_crs){
+.crs_wkt_to_proj4 <- function(wkt_crs) {
     # Convert WKT to sf CRS object
     crs_sf <- sf::st_crs(wkt_crs)
     # Convert sf CRS object to PROJ4 string

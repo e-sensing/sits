@@ -20,11 +20,52 @@ sits_segment(cube, tiles, bands, date, seg_fn, ...)
 
 \item{...}{Other params to be passed to segmentation function}
 }
+\value{
+A list of segments (one per tile)
+}
 \description{
 Apply a segmentation on a data cube based on the "supercells" package.
 This is an adaptation and extension to remote sensing data of the
 SLIC superpixels algorithm proposed by Achanta et al. (2012).
 See references for more details.
+}
+\examples{
+if (sits_run_examples()) {
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+# create a data cube
+cube <- sits_cube(
+    source = "BDC",
+    collection = "MOD13Q1-6",
+    data_dir = data_dir
+)
+
+# segment the image
+segments <- sits_segment(
+    cube = cube,
+    tile = "012010",
+    bands = "NDVI",
+    date = sits_timeline(cube)[1],
+    seg_fn = sits_slic(step = 10)
+)
+# create a classification model
+rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+# get the average value per segment
+samples_seg <- sits_get_data(
+    cube = cube,
+    samples = segments
+)
+# classify the segments
+seg_class <- sits_classify(
+    data = samples_seg,
+    ml_model = rfor_model
+)
+# add a column to the segments by class
+sf_seg <- sits_join_segments(
+    data = seg_class,
+    segments = segments
+)
+}
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

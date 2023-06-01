@@ -10,7 +10,7 @@ test_that("sits colors", {
     color_val <- sits_color_value("Evergreen_Broadleaf_Forest")
     expect_equal(color_val, "#1E8449")
 
-    color_tb[1,]$name = "Tropical_Forest"
+    color_tb[1, ]$name <- "Tropical_Forest"
     new_tb <- sits_colors_set(color_tb)
     expect_equal(new_tb[1, ]$name, "Tropical_Forest")
     sits_colors_reset()
@@ -28,13 +28,14 @@ test_that("plot colors", {
                        "band", "version"),
         bands = "class",
         labels = c("ClearCut_Burn", "ClearCut_Soil",
-                   "ClearCut_Veg", "Forest")
+                   "ClearCut_Veg", "Forest"),
+        progress = FALSE
     )
     p <- plot(ro_class)
     expect_equal(p$tm_shape$line.center, "midpoint")
     expect_equal(p$tm_layout$legend.bg.color, "white")
     expect_equal(unname(p$tm_raster$labels),
-                 c("ClearCut_Burn", "ClearCut_Soil","ClearCut_Veg", "Forest"))
+                 c("ClearCut_Burn", "ClearCut_Soil", "ClearCut_Veg", "Forest"))
 })
 
 test_that("colors_get", {
@@ -42,4 +43,26 @@ test_that("colors_get", {
     colors <- suppressWarnings(sits:::.colors_get(labels))
     expect_length(colors, 3)
     expect_equal(colors[["Forest"]], "#1E8449")
+})
+
+test_that("legend", {
+    def_legend <- c(
+        "Forest" = "forestgreen", "Cerrado" = "lightgreen",
+        "Pasture" = "bisque2", "SoyCorn" = "sienna")
+
+    labels <- c("Forest", "Cerrado", "Pasture", "SoyCorn")
+
+    colors <- suppressWarnings(sits:::.colors_get(labels, legend = def_legend))
+    expect_true(all(names(colors) %in% labels))
+
+    def_legend_2 <- c(
+        "Forest" = "forestgreen", "Cerrado" = "lightgreen",
+        "Pasture" = "bisque2")
+
+    expect_warning({
+        expect_warning({
+            sits:::.colors_get(labels, legend = def_legend_2)
+        })
+    })
+
 })

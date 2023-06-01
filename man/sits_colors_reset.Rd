@@ -12,6 +12,12 @@ No return, called for side effects
 \description{
 Resets the color table
 }
+\examples{
+if (sits_run_examples()) {
+    # reset the default colors supported by SITS
+    sits_colors_reset()
+}
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

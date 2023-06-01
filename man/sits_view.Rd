@@ -42,8 +42,9 @@ sits_view(x, ...)
   tiles = x$tile,
   class_cube = NULL,
   legend = NULL,
-  view_max_mb = NULL,
-  palette = "Blues"
+  palette = "Blues",
+  segments = NULL,
+  view_max_mb = NULL
 )
 
 \method{sits_view}{class_cube}(
@@ -94,6 +95,8 @@ sits_view(x, ...)
 
 \item{class_cube}{Classified cube to be overlayed on top on image.}
 
+\item{segments}{Segment list obtained by \link{sits_segmentation}}
+
 \item{view_max_mb}{Maximum size of leaflet to be visualized}
 }
 \value{
@@ -132,6 +135,8 @@ if (sits_run_examples()) {
         ml_model = rf_model,
         output_dir = tempdir()
     )
+    # view the probs
+    sits_view(modis_probs)
     # generate a map
     modis_label <- sits_label_classification(
         modis_probs,
@@ -142,6 +147,12 @@ if (sits_run_examples()) {
 .    # view the classified map with the B/W image
     sits_view(modis_cube,
         band = "NDVI",
+        class_cube = modis_label,
+        dates = sits_timeline(modis_cube)[[1]]
+    )
+    # view the classified map with the RGB image
+    sits_view(modis_cube,
+        red = "NDVI", green = "NDVI", blue = "NDVI",
         class_cube = modis_label,
         dates = sits_timeline(modis_cube)[[1]]
     )
@@ -159,14 +170,12 @@ if (sits_run_examples()) {
         tile = "012010",
         bands = "NDVI",
         date = sits_timeline(modis_cube)[1],
-        seg_fn = sits_slic(step = 10)
+        seg_fn = sits_slic(step = 20)
     )
     # view image and segments
     sits_view (
         modis_cube,
-        red = "NDVI",
-        green = "NDVI",
-        blue = "NDVI",
+        band = "NDVI",
         segments = segments
     )
     # view image, classified image and segments
@@ -178,15 +187,24 @@ if (sits_run_examples()) {
         class_cube = modis_label,
         segments = segments
     )
+    # view B/W image, classified image and segments
+    sits_view (
+        modis_cube,
+        band = "NDVI",
+        class_cube = modis_label,
+        segments = segments
+    )
     # get the average value per segment
     samples_seg <- sits_get_data(
         cube = modis_cube,
         samples = segments
     )
+    # train a model
+    tcnn_model <- sits_train(samples_modis_ndvi, sits_tempcnn())
     # classify the segments
     seg_class <- sits_classify(
         data = samples_seg,
-        ml_model = rf_model
+        ml_model = tcnn_model
     )
 
     # add a column to the segments by class
@@ -197,9 +215,7 @@ if (sits_run_examples()) {
     # view image and classified segments
     sits_view (
         modis_cube,
-        red = "NDVI",
-        green = "NDVI",
-        blue = "NDVI",
+        band = "NDVI",
         segments = segments
     )
     # view image, classified image and segments

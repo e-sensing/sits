@@ -132,7 +132,7 @@ sits_tuning <- function(samples,
     )
 
     # start processes
-    .sits_parallel_start(workers = multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores)
     on.exit(.sits_parallel_stop())
 
     # validate in parallel

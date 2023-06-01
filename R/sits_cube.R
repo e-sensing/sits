@@ -192,9 +192,9 @@
 #'     # create a raster cube file based on the information in the BDC
 #'     cbers_tile <- sits_cube(
 #'         source = "BDC",
-#'         collection = "CB4_64_16D_STK-1",
+#'         collection = "CB4-16D-2",
 #'         bands = c("NDVI", "EVI"),
-#'         tiles = "022024",
+#'         tiles = "007004",
 #'         start_date = "2018-09-01",
 #'         end_date = "2019-08-28"
 #'     )
@@ -257,8 +257,7 @@
 #'     modis_cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_"
+#'         data_dir = data_dir
 #'     )
 #' }
 #'
@@ -292,19 +291,6 @@ sits_cube.stac_cube <- function(source,
                                 end_date = NULL,
                                 platform = NULL,
                                 progress = TRUE) {
-    dots <- list(...)
-
-    # deal with wrong parameter "band"
-    if ("band" %in% names(dots) && missing(bands)) {
-        message("please use bands instead of band as parameter")
-        bands <- as.character(dots[["band"]])
-    }
-
-    # deal with wrong parameter "tile"
-    if ("tile" %in% names(dots) && missing(tiles)) {
-        message("please use tiles instead of tile as parameter")
-        tiles <- as.character(dots[["tile"]])
-    }
 
     # Ensures that only a spatial filter is informed
     if (.has(roi) && .has(tiles)) {

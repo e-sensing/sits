@@ -1,11 +1,5 @@
 # These are configuration parameters that can be set by users
 
-# run tests
-run_tests : false
-
-# run examples
-run_examples : false
-
 # estimated relative growth size of R memory relative to block size
 processing_bloat        : 5
 processing_bloat_smooth : 8
@@ -99,9 +93,9 @@ sources:
                 open_data_token : true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
-            CB4_64_16D_STK-1:
+            CB4-16D-2:
                 <<: *bdc_cb4
-                collection_name: "CB4_64_16D_STK-1"
+                collection_name: "CB4-16D-2"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 gdalcubes_support: true
@@ -109,7 +103,7 @@ sources:
                 open_data_token : true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
-            CB4MUX_20-1     : &bdc_cb4_mux
+            CB4MUX-2M-1     : &bdc_cb4_mux
                 bands       :
                     NDVI    : &bdc_mux_ndvi
                         missing_value : -9999
@@ -153,37 +147,10 @@ sources:
                         data_type     : "INT1U"
                 satellite   : "CBERS-4"
                 sensor      : "MUX"
-                collection_name: "CB4MUX_20-1"
+                collection_name: "CB4MUX-2M-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token : true
-                metadata_search : "tile"
-                ext_tolerance: 0.01
-            CB4_20_1M_STK-1 : &bdc_cb4_mux_stk
-                bands:
-                    NDVI    : *bdc_mux_ndvi
-                    EVI     :
-                        <<: *bdc_mux_ndvi
-                        band_name     : "EVI"
-                    B5      : *bdc_mux_b5
-                    B6      :
-                        <<: *bdc_mux_b5
-                        band_name     : "BAND6"
-                    B7      :
-                        <<: *bdc_mux_b5
-                        band_name     : "BAND7"
-                    B8      :
-                        <<: *bdc_mux_b5
-                        band_name     : "BAND8"
-                    CLOUD   :
-                        <<: *bdc_mux_cloud
-                        band_name     : "MASK"
-                satellite   : "CBERS-4"
-                sensor      : "MUX"
-                collection_name: "CB4_20_1M_STK-1"
-                token_vars  :  ["BDC_ACCESS_KEY"]
-                open_data   : true
-                open_data_token: true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
             LC8_30-1        : &bdc_lc8

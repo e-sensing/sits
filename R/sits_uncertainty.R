@@ -91,7 +91,7 @@ sits_uncertainty <- function(cube,
     )
 
     # Prepare parallel processing
-    .sits_parallel_start(workers = multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # Define the class of the smoothing

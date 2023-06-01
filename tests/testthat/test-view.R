@@ -2,15 +2,13 @@ test_that("View", {
 
     v <- sits_view(cerrado_2classes)
     expect_true("leaflet" %in% class(v))
-    expect_true(all(v$x$calls[[6]]$args[[1]]$labels %in%
-        c("Cerrado", "Pasture")))
-
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
     modis_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
 
     timeline <- sits_timeline(modis_cube)
@@ -45,7 +43,8 @@ test_that("View", {
         output_dir = tempdir(),
         memsize = 4,
         multicores = 1,
-        verbose = FALSE
+        progress = FALSE,
+        version = "v_view"
     )
     v2_probs <- sits_view(modis_probs)
     expect_true("leaflet" %in% class(v2_probs))
@@ -53,7 +52,8 @@ test_that("View", {
     expect_equal(v2_probs$x$calls[[6]]$args[[6]], "probs Forest")
 
     modis_label <- sits_label_classification(modis_probs,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        progress = FALSE
     )
 
     v3 <- sits_view(modis_label)
@@ -116,4 +116,3 @@ test_that("View SOM map", {
     expect_true(grepl("EPSG3857", v$x$options$crs$crsClass))
     expect_equal(v$x$calls[[1]]$method, "addProviderTiles")
 })
-

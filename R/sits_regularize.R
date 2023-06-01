@@ -88,8 +88,10 @@ sits_regularize <- function(cube,
     # Does cube contain cloud band?
     if (!all(.cube_contains_cloud(cube))) {
         if (.check_warnings())
-            warning("Cloud band not found in provided cube. 'sits_regularize()' ",
-                    "will just fill nodata values.", call. = FALSE,
+            warning("Cloud band not found in provided cube.
+                    'sits_regularize()' ",
+                    "will just fill nodata values.",
+                    call. = FALSE,
                     immediate. = TRUE
             )
     }

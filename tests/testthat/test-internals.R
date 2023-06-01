@@ -23,7 +23,8 @@ test_that("Timeline tests", {
                 tiles = "20LKP",
                 bands = c("B05", "B8A", "CLOUD"),
                 start_date = "2019-07-18",
-                end_date = "2019-08-30"
+                end_date = "2019-08-30",
+                progress = FALSE
             )
         },
         error = function(e) {

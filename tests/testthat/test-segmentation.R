@@ -5,7 +5,8 @@ test_that("Segmentation", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     # segment the image
     segments <- sits_supercells(
@@ -26,7 +27,8 @@ test_that("Segmentation", {
         cube = cube,
         samples = segments
     )
-    expect_true(all(samples$polygon_id %in% c(1:nrow(samples))))
+    nrows <- nrow(samples)
+    expect_true(all(samples$polygon_id %in% c(1:nrows)))
     expect_equal(nrow(samples$time_series[[1]]), 12)
     # test sits_segments
     segments2 <- sits_segment(
@@ -54,7 +56,8 @@ test_that("Segmentation", {
     # classify the segments
     seg_class <- sits_classify(
         data = samples,
-        ml_model = rfor_model
+        ml_model = rfor_model,
+        progress = FALSE
     )
     # add a column to the segments by class
     sf_seg <- sits_join_segments(
@@ -63,8 +66,8 @@ test_that("Segmentation", {
     )
     sf_obj <- sf_seg[[1]]
     plot(sf_obj["class"])
-    sf_obj <- sf_obj |>
-        dplyr::group_by(class) |>
+    sf_obj <- sf_obj %>%
+        dplyr::group_by(class) %>%
         dplyr::summarise()
     plot(sf_obj["class"])
 })

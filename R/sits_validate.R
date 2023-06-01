@@ -94,8 +94,10 @@ sits_kfold_validate <- function(samples,
         "optimizer" %in% ls(environment(ml_method))) {
         multicores <- 1
         if (.check_warnings())
-            warning("sits_kfold_validate() works only with 1 core in Windows OS.",
-                call. = FALSE, immediate. = TRUE
+            warning("sits_kfold_validate() works
+                    only with 1 core in Windows OS.",
+                call. = FALSE,
+                immediate. = TRUE
             )
     }
 
@@ -114,7 +116,7 @@ sits_kfold_validate <- function(samples,
     # start parallel process
     multicores <- min(multicores, folds)
 
-    .sits_parallel_start(workers = multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores)
     on.exit(.sits_parallel_stop())
 
     # Create partitions different splits of the input data

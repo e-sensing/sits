@@ -84,7 +84,7 @@ sits_label_classification <- function(cube,
     )
 
     # Prepare parallel processing
-    .sits_parallel_start(workers = multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     UseMethod("sits_label_classification", cube)

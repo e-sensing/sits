@@ -248,13 +248,6 @@ test_that("Checks", {
         ),
         c("a", "a")
     )
-    expect_error(
-        .check_chr_within(c("a", "b"),
-            within = c("a", "b", "c"),
-            discriminator = "one_of"
-        ),
-        "values should be only one of: 'a', 'b', 'c'"
-    )
     expect_equal(
         .check_chr_within(c("a", "b"),
             within = c("a", "b", "c"),

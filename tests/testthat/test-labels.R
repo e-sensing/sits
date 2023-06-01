@@ -33,7 +33,8 @@ test_that("Relabel cubes", {
                        "band", "version"),
         bands = "class",
         labels = c("ClearCut_Fire", "ClearCut_BareSoil",
-                   "ClearCut_Veg", "Forest")
+                   "ClearCut_Veg", "Forest"),
+        progress = FALSE
     )
     sits_labels(ro_class) <- c("Queimadas", "Solo Exposto",
                                "Vegetacao", "Floresta")

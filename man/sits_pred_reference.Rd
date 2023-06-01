@@ -3,7 +3,7 @@
 \name{sits_pred_reference}
 \alias{sits_pred_reference}
 \alias{sits_pred_references}
-\title{Obtain categorical id and labels of predictors for time series samples}
+\title{Obtain categorical id and predictor labels for time series samples}
 \usage{
 sits_pred_references(pred)
 }
@@ -27,7 +27,8 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-     summary(samples_modis_ndvi)
+     pred <- sits_predictors(samples_modis_ndvi)
+     ref  <- sits_pred_references(pred)
 }
 }
 \author{

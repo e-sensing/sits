@@ -56,11 +56,14 @@ there are more than 30 samples, it will plot all samples.
 \note{
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
+}
+\examples{
 
 if (sits_run_examples()) {
 # plot sets of time series
 plot(cerrado_2classes)
 }
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

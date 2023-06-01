@@ -6,12 +6,15 @@ test_that("One-year, single core classification", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     # classify a data cube
     probs_cube <- sits_classify(data = cube,
                                 ml_model = rfor_model,
-                                output_dir = tempdir())
+                                output_dir = tempdir(),
+                                version = "var1",
+                                progress = FALSE)
     # smooth the probability cube using Bayesian statistics
     var_cube <- sits_variance(probs_cube, output_dir = tempdir())
 
@@ -37,10 +40,11 @@ test_that("One-year, single core classification", {
     # test Recovery
     out <- capture_messages({
         expect_message(
-            object = { sits_variance(
-                cube = probs_cube,
-                output_dir = tempdir())
-                },
+            object = {
+                sits_variance(
+                    cube = probs_cube,
+                    output_dir = tempdir())
+            },
             regexp = "Recovery"
         )
     })

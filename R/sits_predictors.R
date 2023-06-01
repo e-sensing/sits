@@ -18,7 +18,7 @@
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'      summary(samples_modis_ndvi)
+#'      pred <- sits_predictors(samples_modis_ndvi)
 #' }
 #'
 #' @export
@@ -39,22 +39,23 @@ sits_predictors <- function(samples) {
 #'
 #' @param  pred    X-Y predictors: a data.table with one row per sample.
 #'
-#' @return The Y predictors for the sample: a data.frame with one row per sample.
+#' @return The Y predictors for the sample: data.frame with one row per sample.
 #'
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'      summary(samples_modis_ndvi)
+#'      pred <- sits_predictors(samples_modis_ndvi)
+#'      features <- sits_pred_features(pred)
 #' }
 #'
 #' @export
-sits_pred_features <- function(pred){
+sits_pred_features <- function(pred) {
     features <- .pred_features(pred)
     return(features)
 }
-#' @title  Obtain categorical id and labels of predictors for time series samples
+#' @title  Obtain categorical id and predictor labels for time series samples
 #' @name sits_pred_reference
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Predictors are X-Y values required for machine learning
@@ -73,10 +74,11 @@ sits_pred_features <- function(pred){
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'      summary(samples_modis_ndvi)
+#'      pred <- sits_predictors(samples_modis_ndvi)
+#'      ref  <- sits_pred_references(pred)
 #' }
 #' @export
-sits_pred_references <- function(pred){
+sits_pred_references <- function(pred) {
     ref <- .pred_references(pred)
     return(ref)
 }
@@ -89,7 +91,7 @@ sits_pred_references <- function(pred){
 #' for each sample have been obtained by the "sits_stats" function.
 #'
 #' @param  pred    X-Y predictors: a data.table with one row per sample.
-#' @param  stats   The output of the "sits_stats" function applied to the samples.
+#' @param  stats   Output of the "sits_stats()" applied to the samples.
 #'
 #' @return A normalized set of predictor values
 #'
@@ -98,7 +100,9 @@ sits_pred_references <- function(pred){
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'      summary(samples_modis_ndvi)
+#'      stats <- sits_stats(samples_modis_ndvi)
+#'      pred <- sits_predictors(samples_modis_ndvi)
+#'      pred_norm <- sits_pred_normalize(pred, stats)
 #' }
 #' @export
 sits_pred_normalize <- function(pred, stats) {
@@ -124,11 +128,13 @@ sits_pred_normalize <- function(pred, stats) {
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'      summary(samples_modis_ndvi)
+#'      pred <- sits_predictors(samples_modis_ndvi)
+#'      pred_frac <- sits_pred_sample(pred, frac = 0.5)
 #' }
 #' @export
-sits_pred_sample <- function(pred, frac){
+sits_pred_sample <- function(pred, frac) {
     sample <- .pred_sample(pred, frac)
+    return(sample)
 }
 #' @title  Obtain statistics for all sample bands
 #' @name sits_stats
@@ -151,10 +157,10 @@ sits_pred_sample <- function(pred, frac){
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'      summary(samples_modis_ndvi)
+#'      stats <- sits_stats(samples_modis_ndvi)
 #' }
 #' @export
-sits_stats <- function(samples){
+sits_stats <- function(samples) {
     stats <- .sits_stats(samples)
     return(stats)
 }

@@ -40,6 +40,9 @@ be more compact/even (square).}
 
 \item{multicores}{Number of cores for parallel processing}
 }
+\value{
+Set of segments for a single tile
+}
 \description{
 Apply a segmentation on a data cube based on the "supercells" package.
 This is an adaptation and extension to remote sensing data of the

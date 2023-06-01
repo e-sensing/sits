@@ -6,7 +6,8 @@ test_that("One-year, multicores mosaic", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/mosaic")
     if (!dir.exists(output_dir)) {
@@ -16,12 +17,16 @@ test_that("One-year, multicores mosaic", {
     probs_cube <- sits_classify(
         data = cube,
         ml_model = rfor_model,
-        output_dir = output_dir
+        output_dir = output_dir,
+        progress = FALSE
     )
     # smooth the probability cube using Bayesian statistics
     bayes_cube <- sits_smooth(probs_cube, output_dir = output_dir)
     # label the probability cube
-    label_cube <- sits_label_classification(bayes_cube, output_dir = output_dir)
+    label_cube <- sits_label_classification(
+        bayes_cube,
+        output_dir = output_dir,
+        progress = FALSE)
     # create roi
     roi <- sf::st_sfc(
         sf::st_polygon(
@@ -32,13 +37,16 @@ test_that("One-year, multicores mosaic", {
                 c(-55.64768, -11.68649)))), crs = 4326
     )
     # crop and reproject original cube
-    suppressWarnings({mosaic_cube <- sits_mosaic(
-        cube = cube,
-        roi = roi,
-        output_dir = output_dir,
-        version = "v1",
-        multicores = 1
-    )})
+    suppressWarnings({
+        mosaic_cube <- sits_mosaic(
+            cube = cube,
+            roi = roi,
+            output_dir = output_dir,
+            version = "v1",
+            multicores = 1,
+            progress = FALSE
+        )
+    })
     expect_equal(mosaic_cube[["tile"]], "MOSAIC")
     expect_equal(nrow(mosaic_cube), 1)
     bbox_mos <- sits_bbox(mosaic_cube, as_crs = 4326)
@@ -51,14 +59,17 @@ test_that("One-year, multicores mosaic", {
     )
 
     # crop and reproject classified image
-    suppressWarnings({mosaic_class <- sits_mosaic(
-        cube = label_cube,
-        roi = roi,
-        crs = 4326,
-        output_dir = output_dir,
-        version = "v1",
-        multicores = 1
-    )})
+    suppressWarnings({
+        mosaic_class <- sits_mosaic(
+            cube = label_cube,
+            roi = roi,
+            crs = 4326,
+            output_dir = output_dir,
+            version = "v1",
+            multicores = 1,
+            progress = FALSE
+        )
+    })
 
     expect_equal(mosaic_class[["tile"]], "MOSAIC")
     expect_equal(nrow(mosaic_class), 1)
@@ -77,7 +88,8 @@ test_that("One-year, multicores mosaic", {
         roi = roi,
         crs = 4326,
         output_dir = output_dir,
-        version = "v1"
+        version = "v1",
+        progress = FALSE
     )
     expect_equal(mosaic_class[["tile"]], "MOSAIC")
 
@@ -98,7 +110,8 @@ test_that("One-year, multicores mosaic", {
         roi = roi2,
         crs = 4326,
         output_dir = output_dir,
-        version = "v2"
+        version = "v2",
+        progress = FALSE
     )
 
     expect_equal(mosaic_class2[["tile"]], "MOSAIC")
@@ -118,7 +131,8 @@ test_that("One-year, multicores mosaic", {
         roi = roi,
         crs = 4326,
         output_dir = output_dir,
-        version = "v3"
+        version = "v3",
+        progress = FALSE
     )
 
     expect_equal(mosaic_uncert[["tile"]], "MOSAIC")

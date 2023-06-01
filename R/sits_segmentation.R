@@ -19,6 +19,44 @@
 #' @param seg_fn        Function to apply the segmentation
 #' @param ...           Other params to be passed to segmentation function
 #'
+#' @return              A list of segments (one per tile)
+#' @examples
+#' if (sits_run_examples()) {
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' # create a data cube
+#' cube <- sits_cube(
+#'     source = "BDC",
+#'     collection = "MOD13Q1-6",
+#'     data_dir = data_dir
+#' )
+#'
+#' # segment the image
+#' segments <- sits_segment(
+#'     cube = cube,
+#'     tile = "012010",
+#'     bands = "NDVI",
+#'     date = sits_timeline(cube)[1],
+#'     seg_fn = sits_slic(step = 10)
+#' )
+#' # create a classification model
+#' rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#' # get the average value per segment
+#' samples_seg <- sits_get_data(
+#'     cube = cube,
+#'     samples = segments
+#' )
+#' # classify the segments
+#' seg_class <- sits_classify(
+#'     data = samples_seg,
+#'     ml_model = rfor_model
+#' )
+#' # add a column to the segments by class
+#' sf_seg <- sits_join_segments(
+#'     data = seg_class,
+#'     segments = segments
+#' )
+#' }
+#'
 #' @export
 sits_segment <- function(cube, tiles, bands, date, seg_fn, ...) {
     # segment each tile
@@ -38,7 +76,7 @@ sits_segment <- function(cube, tiles, bands, date, seg_fn, ...) {
     .check_that(as.Date(date) %in% .cube_timeline(cube)[[1]],
                 msg = "date not available in the cube")
 
-    segments <- purrr::map(tiles, function(tile){
+    segments <- purrr::map(tiles, function(tile) {
         tile_seg <- .cube_filter_tiles(cube, tile) %>%
             .cube_filter_bands(bands) %>%
             .cube_filter_interval(start_date = date, end_date = date)
@@ -64,7 +102,6 @@ sits_segment <- function(cube, tiles, bands, date, seg_fn, ...) {
 #' See references for more details.
 #'
 #' @param tile          Tile, bands, date to be segmented
-#' @param ...           Other params to be passed to segmentation
 #' @param step          Distance (in number of cells) between initial
 #'                      supercells' centers.
 #' @param compactness   A compactness value. Larger values cause clusters to
@@ -72,6 +109,8 @@ sits_segment <- function(cube, tiles, bands, date, seg_fn, ...) {
 #' @param iter          Number of iterations to create the output.
 #' @param minarea       Specifies the minimal size of a supercell (in cells).
 #' @param multicores    Number of cores for parallel processing
+#'
+#' @return              Set of segments for a single tile
 #'
 #' @references
 #'         Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi,
@@ -85,24 +124,40 @@ sits_segment <- function(cube, tiles, bands, date, seg_fn, ...) {
 #'         and Geoinformation 112 (August): 102935.
 #'
 #' @examples
-#' # example code
 #' if (sits_run_examples()) {
-#'     # Example of classification of a data cube
-#'     # create a data cube from local files
-#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#'     cube <- sits_cube(
-#'         source = "BDC",
-#'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir
-#'     )
-#'     # segment the image
-#'     segments <- sits_supercells(
-#'         cube = cube,
-#'         tile = "012010",
-#'         bands = "NDVI",
-#'         date = sits_timeline(cube)[1],
-#'         step = 10
-#'     )
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' # create a data cube
+#' cube <- sits_cube(
+#'     source = "BDC",
+#'     collection = "MOD13Q1-6",
+#'     data_dir = data_dir
+#' )
+#'
+#' # segment the image
+#' segments <- sits_segment(
+#'     cube = cube,
+#'     tile = "012010",
+#'     bands = "NDVI",
+#'     date = sits_timeline(cube)[1],
+#'     seg_fn = sits_slic(step = 10)
+#' )
+#' # create a classification model
+#' rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#' # get the average value per segment
+#' samples_seg <- sits_get_data(
+#'     cube = cube,
+#'     samples = segments
+#' )
+#' # classify the segments
+#' seg_class <- sits_classify(
+#'     data = samples_seg,
+#'     ml_model = rfor_model
+#' )
+#' # add a column to the segments by class
+#' sf_seg <- sits_join_segments(
+#'     data = seg_class,
+#'     segments = segments
+#' )
 #' }
 #' @export
 sits_slic <- function(
@@ -112,7 +167,7 @@ sits_slic <- function(
         iter = 10,
         minarea = 30,
         multicores = 1
-){
+) {
     seg_fun <- function(tile) {
         # step is OK
         .check_int_parameter(step, min = 1, max = 500)
@@ -176,6 +231,8 @@ sits_slic <- function(
 #' @param minarea       Specifies the minimal size of a supercell (in cells).
 #' @param multicores    Number of cores for parallel processing
 #'
+#' @return              Set of segments for a single tile
+#'
 #' @references
 #'         Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi,
 #'         Pascal Fua, and Sabine Süsstrunk. 2012. “SLIC Superpixels Compared
@@ -219,7 +276,7 @@ sits_supercells <- function(
         iter = 10,
         minarea = 30,
         multicores = 1
-){
+) {
     # check package availability
     .check_require_packages(c("supercells", "future"))
     # check input parameters
@@ -261,7 +318,7 @@ sits_supercells <- function(
             .tile_filter_bands(bands) %>%
             .tile_filter_dates(date)
         # get the paths of required image files
-        files <- purrr::map_chr(bands, function(band){
+        files <- purrr::map_chr(bands, function(band) {
             file <- .tile_path(row, band, date)
             return(file)
         })
@@ -289,7 +346,6 @@ sits_supercells <- function(
 #' @title Return segments from a classified set of time series
 #' @name sits_join_segments
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#'
 #' @description Return a sits_tibble or raster_cube as an sf object.
 #'
 #' @param data     A sits tibble with predicted values
@@ -298,8 +354,45 @@ sits_supercells <- function(
 #'                 with an additional class attribute
 #'                 organized by tile
 #' @export
+#' @examples
+#' if (sits_run_examples()) {
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' # create a data cube
+#' cube <- sits_cube(
+#'     source = "BDC",
+#'     collection = "MOD13Q1-6",
+#'     data_dir = data_dir
+#' )
 #'
-sits_join_segments <- function(data, segments){
+#' # segment the image
+#' segments <- sits_segment(
+#'     cube = cube,
+#'     tile = "012010",
+#'     bands = "NDVI",
+#'     date = sits_timeline(cube)[1],
+#'     seg_fn = sits_slic(step = 10)
+#' )
+#' # create a classification model
+#' rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#' # get the average value per segment
+#' samples_seg <- sits_get_data(
+#'     cube = cube,
+#'     samples = segments
+#' )
+#' # classify the segments
+#' seg_class <- sits_classify(
+#'     data = samples_seg,
+#'     ml_model = rfor_model
+#' )
+#' # add a column to the segments by class
+#' sf_seg <- sits_join_segments(
+#'     data = seg_class,
+#'     segments = segments
+#' )
+#' }
+#'
+#'
+sits_join_segments <- function(data, segments) {
     .check_that(
         x = inherits(data, "predicted"),
         msg = "input data should be a set of classified time series"
@@ -311,7 +404,7 @@ sits_join_segments <- function(data, segments){
     data_id <- data %>%
         tidyr::unnest(cols = "predicted") %>%
         dplyr::select(dplyr::all_of(c("polygon_id", "class")))
-    segments_tile <- purrr::map(segments, function(seg){
+    segments_tile <- purrr::map(segments, function(seg) {
         dplyr::left_join(seg, data_id, by = c("supercells" = "polygon_id"))
     })
     names(segments_tile) <- names(segments)

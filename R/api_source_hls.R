@@ -13,8 +13,8 @@
         ))
     }
     # Convert roi to bbox
-    lon <- stac_query$params$intersects$coordinates[,,1]
-    lat <- stac_query$params$intersects$coordinates[,,2]
+    lon <- stac_query$params$intersects$coordinates[, , 1]
+    lat <- stac_query$params$intersects$coordinates[, , 2]
     stac_query$params$intersects <- NULL
     stac_query$params$bbox <- c(min(lon), min(lat), max(lon), max(lat))
     # making the request

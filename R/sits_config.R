@@ -24,16 +24,11 @@
 #' in each cloud service supported by sits. Users can select to get information
 #' only for a single service by using the \code{source} parameter.
 #'
-#' @param run_tests              Should tests be run?
-#' @param run_examples           Should examples be run?
 #' @param processing_bloat       Estimated growth size of R memory relative
 #'                               to block size.
 #' @param rstac_pagination_limit Limit of number of items returned by STAC.
-#' @param raster_api_package     Supported raster handling package.
 #' @param gdal_creation_options  GDAL creation options for GeoTiff.
 #' @param gdalcubes_chunk_size   Chunk size to be used by gdalcubes
-#' @param leaflet_max_megabytes  Max image size of an image for leaflet (in MB)
-#' @param leaflet_comp_factor    Compression factor for leaflet RGB display.
 #' @param reset                  Should current configuration options be cleaned
 #'                               before loading config files? Default is
 #'                               \code{FALSE}.
@@ -59,15 +54,10 @@ NULL
 #' @examples
 #' current_config <- sits_config()
 #' @export
-sits_config <- function(run_tests = NULL,
-                        run_examples = NULL,
-                        processing_bloat = NULL,
+sits_config <- function(processing_bloat = NULL,
                         rstac_pagination_limit = NULL,
-                        raster_api_package = NULL,
                         gdal_creation_options = NULL,
                         gdalcubes_chunk_size = NULL,
-                        leaflet_max_megabytes = NULL,
-                        leaflet_comp_factor = NULL,
                         reset = FALSE) {
 
     # clear current configuration
@@ -102,54 +92,16 @@ sits_config <- function(run_tests = NULL,
     # set the default color table
     .conf_load_color_table()
 
-    # try to find a valid user configuration file
-    user_yml_file <- .conf_user_file()
+    # set the use options
+    .conf_set_user_file()
 
-    if (file.exists(user_yml_file)) {
-        config <- yaml::yaml.load_file(
-            input = user_yml_file,
-            merge.precedence = "override"
-        )
-        if (!purrr::is_null(config$colors)) {
-            user_colors <- config$colors
-            .conf_merge_colors(user_colors)
-            config$colors <- NULL
-        }
-        if (length(config) > 0) {
-            config <- utils::modifyList(sits_env[["config"]],
-                                        config,
-                                        keep.null = FALSE
-            )
-            # set options defined by user (via YAML file)
-            # modifying existing configuration
-            .conf_set_options(
-                run_tests = config[["run_tests"]],
-                run_examples = config[["run_examples"]],
-                processing_bloat = config[["processing_bloat"]],
-                rstac_pagination_limit = config[["rstac_pagination_limit"]],
-                raster_api_package = config[["raster_api_package"]],
-                gdal_creation_options = config[["gdal_creation_options"]],
-                gdalcubes_chunk_size = config[["gdalcubes_chunk_size"]],
-                leaflet_max_megabytes = config[["leaflet_max_megabytes"]],
-                leaflet_comp_factor = config[["leaflet_comp_factor"]],
-                sources = config[["sources"]],
-                colors = config[["colors"]]
-            )
-        }
-
-    }
     # set options defined by user (via parameters)
     # modifying existing configuration
     .conf_set_options(
-        run_tests = run_tests,
-        run_examples = run_examples,
         processing_bloat = processing_bloat,
         rstac_pagination_limit = rstac_pagination_limit,
-        raster_api_package = raster_api_package,
         gdal_creation_options = gdal_creation_options,
-        gdalcubes_chunk_size = gdalcubes_chunk_size,
-        leaflet_max_megabytes = leaflet_max_megabytes,
-        leaflet_comp_factor = leaflet_comp_factor
+        gdalcubes_chunk_size = gdalcubes_chunk_size
     )
 
     return(invisible(sits_env$config))

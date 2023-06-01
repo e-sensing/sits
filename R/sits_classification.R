@@ -207,14 +207,9 @@ sits_classify.raster_cube <- function(data,
         multicores = multicores
     )
     # Prepare parallel processing
-    .sits_parallel_start(
-        workers = multicores, log = verbose, output_dir = output_dir
-    )
+    .sits_parallel_start(workers = multicores, log = verbose,
+                         output_dir = output_dir)
     on.exit(.sits_parallel_stop(), add = TRUE)
-
-    # # Callback final tile classification
-    # .callback(process = "cube_classification", event = "started",
-    #           context = environment())
     # Show block information
     if (verbose) {
         start_time <- Sys.time()
@@ -240,9 +235,6 @@ sits_classify.raster_cube <- function(data,
         )
         return(probs_tile)
     })
-    # # Callback final tile classification
-    # .callback(event = "cube_classification", status = "end",
-    #           context = environment())
     # Show block information
     if (verbose) {
         end_time <- Sys.time()

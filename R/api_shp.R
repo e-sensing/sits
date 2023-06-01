@@ -11,7 +11,7 @@
 #' @param .n_shp_pol      Number of samples per polygon to be read.
 #' @param .shp_id         ID attribute for polygons shapefile.
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
-#' @return                A tibble with samples to be retrieved.
+#' @return                A sits tibble with samples to be retrieved.
 #'
 .shp_get_samples <- function(shp_file,
                              label,
@@ -22,7 +22,7 @@
                              shp_id) {
 
     # Pre-condition - check the shape file and its attribute
-    sf_shape <- .shp_check_validity(
+    sf_shape <- .shp_transform_to_sf(
         shp_file = shp_file,
         shp_attr = shp_attr,
         label = label
@@ -44,7 +44,7 @@
 }
 
 #' @title Check the validity of the shape file and return an sf object
-#' @name .shp_check_validity
+#' @name .shp_transform_to_sf
 #' @keywords internal
 #' @noRd
 #'
@@ -53,7 +53,7 @@
 #' @param label           Label to be used instead of shp_attr
 #'
 #' @return A valid sf object of POINT or POLYGON geometry.
-.shp_check_validity <- function(shp_file, shp_attr = NULL, label = NULL) {
+.shp_transform_to_sf <- function(shp_file, shp_attr = NULL, label = NULL) {
 
     # pre-condition - does the shapefile exist?
     .check_file(x = shp_file, msg = "shapefile does not exist")

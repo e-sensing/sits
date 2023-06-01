@@ -100,7 +100,7 @@ sits_mosaic <- function(cube,
         cube <- .cube_filter_spatial(cube = cube, roi = roi)
     }
     # Prepare parallel processing
-    .sits_parallel_start(workers = multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # Create assets as jobs
@@ -233,8 +233,6 @@ sits_mosaic <- function(cube,
             )
             return(base_tile)
         }
-        # Get band configs from base tile
-        band_conf <- .tile_band_conf(base_tile, band = .tile_bands(base_tile))
 
         # Generate raster mosaic
         .gdal_warp(

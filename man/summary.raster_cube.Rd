@@ -36,7 +36,8 @@ type of input.
 \note{
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
-
+}
+\examples{
 if (sits_run_examples()) {
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -47,6 +48,7 @@ if (sits_run_examples()) {
     )
 summary(cube)
 }
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

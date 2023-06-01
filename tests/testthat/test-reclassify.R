@@ -17,7 +17,8 @@ test_that("One-year, multicores processing reclassify", {
                    "r2012", "r2013", "r2014", "r2015",
                    "r2016", "r2017", "r2018", "d2019",
                    "r2019", "d2020", "NoClass", "r2020",
-                   "Clouds2021", "d2021", "r2021")
+                   "Clouds2021", "d2021", "r2021"),
+        progress = FALSE
     )
     # Open classification map
     data_dir <- system.file("extdata/raster/classif", package = "sits")
@@ -29,7 +30,8 @@ test_that("One-year, multicores processing reclassify", {
                        "band", "version"),
         bands = "class",
         labels = c("ClearCut_Fire", "ClearCut_BareSoil",
-                   "ClearCut_Veg", "Forest")
+                   "ClearCut_Veg", "Forest"),
+        progress = FALSE
     )
     # Reclassify cube
     ro_mask <- sits_reclassify(
@@ -78,28 +80,29 @@ test_that("One-year, multicores processing reclassify", {
 
     out <- capture_messages({
         expect_message(
-            object = { sits_reclassify(
-                cube = ro_class,
-                mask = prodes2021,
-                rules = list(
-                    "Old_Deforestation" = mask %in% c(
-                        "d2007", "d2008", "d2009",
-                        "d2010", "d2011", "d2012",
-                        "d2013", "d2014", "d2015",
-                        "d2016", "d2017", "d2018",
-                        "r2010", "r2011", "r2012",
-                        "r2013", "r2014", "r2015",
-                        "r2016", "r2017", "r2018",
-                        "d2019", "r2019", "d2020",
-                        "r2020", "r2021"
+            object = {
+                sits_reclassify(
+                    cube = ro_class,
+                    mask = prodes2021,
+                    rules = list(
+                        "Old_Deforestation" = mask %in% c(
+                            "d2007", "d2008", "d2009",
+                            "d2010", "d2011", "d2012",
+                            "d2013", "d2014", "d2015",
+                            "d2016", "d2017", "d2018",
+                            "r2010", "r2011", "r2012",
+                            "r2013", "r2014", "r2015",
+                            "r2016", "r2017", "r2018",
+                            "d2019", "r2019", "d2020",
+                            "r2020", "r2021"
+                        ),
+                        "Water_Mask" = mask == "Water",
+                        "NonForest_Mask" = mask %in% c("NonForest", "NonForest2")
                     ),
-                    "Water_Mask" = mask == "Water",
-                    "NonForest_Mask" = mask %in% c("NonForest", "NonForest2")
-                ),
-                memsize = 4,
-                multicores = 2,
-                output_dir = tempdir()
-            )},
+                    memsize = 4,
+                    multicores = 2,
+                    output_dir = tempdir()
+                )},
             regexp = "Recovery: "
         )
     })

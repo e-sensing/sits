@@ -130,7 +130,7 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
     out_fracs <- .endmembers_fracs(em = em, include_rmse = rmse_band)
 
     # Prepare parallelization
-    .sits_parallel_start(workers = multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores)
     on.exit(.sits_parallel_stop(), add = TRUE)
     # Create mixture processing function
     mixture_fn <- .mixture_fn_nnls(em = em, rmse = rmse_band)
@@ -205,8 +205,7 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
         multicores = multicores
     )
     # Prepare parallelization
-    .sits_parallel_start(workers = multicores, log = TRUE,
-                         output_dir = output_dir)
+    .sits_parallel_start(workers = multicores, output_dir = output_dir)
     on.exit(.sits_parallel_stop(), add = TRUE)
     # Create mixture processing function
     mixture_fn <- .mixture_fn_nnls(em = em, rmse = rmse_band)
@@ -254,13 +253,8 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     )
     # Resume feature
     if (.raster_is_valid(out_files, output_dir = output_dir)) {
-        if (.check_messages()) {
-            message("Recovery: fractions ",
-                    paste0("'", out_fracs, "'", collapse = ", "),
-                    " already exists.")
-            message("(If you want to produce a new image, please ",
-                    "change 'output_dir' parameters)")
-        }
+        .check_recovery(out_fracs)
+
         # Create tile based on template
         fracs_feature <- .tile_eo_from_files(
             files = out_files,
@@ -280,34 +274,18 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     block_files <- .jobs_map_sequential(chunks, function(chunk) {
         # Get job block
         block <- .block(chunk)
-        .sits_debug_log(
-            event = "block_size",
-            key = "list",
-            value = block
-        )
         # Block file name for each fraction
         block_files <- .file_block_name(
             pattern = .file_pattern(out_files), block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (.raster_is_valid(block_files)) {
+        if (.raster_is_valid(block_files))
             return(block_files)
-        }
         # Read bands data
         values <- .mixture_data_read(tile = feature, block = block, em = em)
-        .sits_debug_log(
-            event = "start_nnls_solver",
-            key = "dim_values",
-            value = dim(values)
-        )
         # Apply the non-negative least squares solver
         values <- mixture_fn(values = as.matrix(values))
-        .sits_debug_log(
-            event = "end_nnls_solver",
-            key = "dim_values",
-            value = dim(values)
-        )
         # Prepare fractions to be saved
         band_conf <- .tile_band_conf(tile = feature, band = out_fracs)
         offset <- .offset(band_conf)
@@ -319,11 +297,6 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
             values <- values / scale
         }
         # Prepare and save results as raster
-        .sits_debug_log(
-            event = "write_block",
-            key = "files",
-            value = block_files
-        )
         .raster_write_block(
             files = block_files,
             block = block,
@@ -335,7 +308,7 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
         )
         # Free memory
         gc()
-        # Returned block files for each fraction
+        # Return block files for each fraction
         block_files
     })
     # Merge blocks into a new eo_cube tile feature
