@@ -44,16 +44,8 @@
     )
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
-        # # Callback final tile classification
-        # .callback(process = "Apply", event = "recovery",
-        #           context = environment())
-        if (.check_messages()) {
-            message("Recovery: band ",
-                    paste0("'", out_band, "'", collapse = ", "),
-                    " already exists.")
-            message("(If you want to produce a new image, please ",
-                    "change 'output_dir' or 'version' parameters)")
-        }
+        # recovery message
+        .check_recovery(out_file)
 
         # Create tile based on template
         feature <- .tile_eo_from_files(

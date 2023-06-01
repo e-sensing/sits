@@ -95,6 +95,3 @@ test_that("summary sits area accuracy",{
     expect_true(grepl("Mapped", sum_as[11]))
     expect_true(grepl("Cerrado", sum_as[13]))
 })
-test_that("summary sits area accuracy",{
-
-})

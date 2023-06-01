@@ -42,7 +42,7 @@
     }
     # prepare parallelization
     multicores <- min(multicores, length(tiles_bands))
-    .sits_parallel_start(workers = multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     samples_tiles_bands <- .sits_parallel_map(tiles_bands, function(tile_band) {

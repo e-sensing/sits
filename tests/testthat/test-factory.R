@@ -40,7 +40,10 @@ test_that("test factory", {
     mlr_model <- sits_train(samples_modis_ndvi, sits_mlr)
     # classify a point
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(point_ndvi, mlr_model, multicores = 1)
+    point_class <- sits_classify(point_ndvi,
+                                 mlr_model,
+                                 multicores = 1,
+                                 progress = FALSE)
 
     expect_true(inherits(mlr_model, "function"))
     expect_true(all(unique(point_class$predicted[[1]]$class)

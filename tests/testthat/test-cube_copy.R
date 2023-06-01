@@ -1,10 +1,10 @@
 test_that("Downloading and cropping cubes from BDC", {
-    cube <- tryCatch(
+    cbers_cube <- tryCatch(
         {
             sits_cube(
                 source = "BDC",
-                collection = "CB4_64_16D_STK-1",
-                tiles = c("022024", "022025"),
+                collection = "CB4-16D-2",
+                tiles = c("007004", "007005"),
                 bands = c("B15", "CLOUD"),
                 start_date = "2018-01-01",
                 end_date = "2018-01-12",
@@ -16,24 +16,27 @@ test_that("Downloading and cropping cubes from BDC", {
         }
     )
     testthat::skip_if(
-        purrr::is_null(cube),
+        purrr::is_null(cbers_cube),
         "BDC is not accessible"
     )
 
+
+    roi_xy <- c(xmin = 5800000,
+                xmax = 5900000,
+                ymin = 9600000,
+                ymax = 9700000)
+
     cube_local_roi <- sits_cube_copy(
-        cube = cube,
+        cube = cbers_cube,
         output_dir = tempdir(),
-        roi = c(lon_min = -42.28469009,
-                lat_min = -14.95411527,
-                lon_max = -41.74745556,
-                lat_max = -14.65950650),
-        multicores = 2,
+        roi = roi_xy,
+        multicores = 1,
         progress = FALSE
     )
 
     # Comparing tiles
-    expect_equal(nrow(cube), nrow(cube_local_roi))
-    bbox_tile <- sits_bbox(cube)
+    expect_true(nrow(cbers_cube) >= nrow(cube_local_roi))
+    bbox_tile <- sits_bbox(cbers_cube)
     bbox_crop <- sits_bbox(cube_local_roi)
     # Comparing bounding boxes
     expect_lt(bbox_tile[["xmin"]], bbox_crop[["xmin"]])
@@ -41,32 +44,64 @@ test_that("Downloading and cropping cubes from BDC", {
     expect_gt(bbox_tile[["xmax"]], bbox_crop[["xmax"]])
     expect_gt(bbox_tile[["ymax"]], bbox_crop[["ymax"]])
     # Comparing classes
-    expect_equal(class(cube), class(cube_local_roi))
+    expect_equal(class(cbers_cube), class(cube_local_roi))
     # Comparing timelines
-    expect_equal(sits_timeline(cube), sits_timeline(cube_local_roi))
+    expect_equal(sits_timeline(cbers_cube), sits_timeline(cube_local_roi))
     # Comparing X resolution
-    expect_equal(cube[["file_info"]][[1]][["xres"]][[1]],
+    expect_equal(cbers_cube[["file_info"]][[1]][["xres"]][[1]],
                  cube_local_roi[["file_info"]][[1]][["xres"]][[1]])
     # Comparing Y resolution
-    expect_equal(cube[["file_info"]][[1]][["yres"]][[1]],
+    expect_equal(cbers_cube[["file_info"]][[1]][["yres"]][[1]],
                  cube_local_roi[["file_info"]][[1]][["yres"]][[1]])
     files <- cube_local_roi$file_info[[1]]$path
     unlink(files)
 
+    roi_ll <- .roi_as_sf(roi_xy,
+                         default_crs = cbers_cube$crs[[1]],
+                         as_crs = 4326)
+
+    cube_local_roi_ll <- sits_cube_copy(
+        cube = cbers_cube,
+        output_dir = tempdir(),
+        roi = roi_ll,
+        multicores = 1,
+        progress = FALSE
+    )
+    # Comparing tiles
+    expect_true(nrow(cbers_cube) >= nrow(cube_local_roi_ll))
+    bbox_tile <- sits_bbox(cbers_cube)
+    bbox_crop <- sits_bbox(cube_local_roi_ll)
+    # Comparing bounding boxes
+    expect_lt(bbox_tile[["xmin"]], bbox_crop[["xmin"]])
+    expect_lt(bbox_tile[["ymin"]], bbox_crop[["ymin"]])
+    expect_gt(bbox_tile[["xmax"]], bbox_crop[["xmax"]])
+    expect_gt(bbox_tile[["ymax"]], bbox_crop[["ymax"]])
+    # Comparing classes
+    expect_equal(class(cbers_cube), class(cube_local_roi_ll))
+    # Comparing timelines
+    expect_equal(sits_timeline(cbers_cube), sits_timeline(cube_local_roi_ll))
+    # Comparing X resolution
+    expect_equal(cbers_cube[["file_info"]][[1]][["xres"]][[1]],
+                 cube_local_roi_ll[["file_info"]][[1]][["xres"]][[1]])
+    # Comparing Y resolution
+    expect_equal(cbers_cube[["file_info"]][[1]][["yres"]][[1]],
+                 cube_local_roi_ll[["file_info"]][[1]][["yres"]][[1]])
+    files <- cube_local_roi_ll$file_info[[1]]$path
+    unlink(files)
+
+    roi_ll_bbox <- .bbox(roi_ll)[1:4]
+
     cube_local_roi_tr <- sits_cube_copy(
-        cube = cube,
+        cube = cbers_cube,
         output_dir = tempdir(),
         res = 128,
-        roi = c(lon_min = -42.28469009,
-                lat_min = -14.95411527,
-                lon_max = -41.74745556,
-                lat_max = -14.65950650),
+        roi = roi_ll_bbox,
         multicores = 2,
         progress = FALSE
     )
 
     # Comparing tiles
-    expect_equal(nrow(cube), nrow(cube_local_roi_tr))
+    expect_true(nrow(cbers_cube) >= nrow(cube_local_roi_tr))
     # Comparing bounding boxes
     bbox_roi_tr <- sits_bbox(cube_local_roi_tr)
     expect_lt(bbox_tile[["xmin"]], bbox_roi_tr[["xmin"]])
@@ -74,14 +109,14 @@ test_that("Downloading and cropping cubes from BDC", {
     expect_gt(bbox_tile[["xmax"]], bbox_roi_tr[["xmax"]])
     expect_gt(bbox_tile[["ymax"]], bbox_roi_tr[["ymax"]])
     # Comparing classes
-    expect_equal(class(cube), class(cube_local_roi_tr))
+    expect_equal(class(cbers_cube), class(cube_local_roi_tr))
     # Comparing timelines
-    expect_equal(sits_timeline(cube), sits_timeline(cube_local_roi_tr))
+    expect_equal(sits_timeline(cbers_cube), sits_timeline(cube_local_roi_tr))
     # Comparing X resolution
-    expect_lt(cube[["file_info"]][[1]][["xres"]][[1]],
+    expect_lt(cbers_cube[["file_info"]][[1]][["xres"]][[1]],
               cube_local_roi_tr[["file_info"]][[1]][["xres"]][[1]])
     # Comparing Y resolution
-    expect_lt(cube[["file_info"]][[1]][["yres"]][[1]],
+    expect_lt(cbers_cube[["file_info"]][[1]][["yres"]][[1]],
               cube_local_roi_tr[["file_info"]][[1]][["yres"]][[1]])
     files <- cube_local_roi_tr$file_info[[1]]$path
     unlink(files)

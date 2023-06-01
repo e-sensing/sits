@@ -47,7 +47,7 @@
 #' @param output_dir output_dir where to save logs.
 #' @return No value, called for side effect.
 #'
-.sits_parallel_start <- function(workers, log, output_dir = NULL) {
+.sits_parallel_start <- function(workers, log = FALSE, output_dir = NULL) {
     .sits_debug(flag = log, output_dir = output_dir)
     if (!.sits_parallel_is_open() ||
         length(sits_env[["cluster"]]) != workers) {

@@ -26,8 +26,8 @@
 #'   # Creating a sits cube from BDC
 #'   bdc_cube <- sits_cube(
 #'       source = "BDC",
-#'       collection = "CB4_64_16D_STK-1",
-#'       tiles = c("022024", "022025"),
+#'       collection = "CB4-16D-2",
+#'       tiles = c("007004", "007005"),
 #'       bands = c("B15", "CLOUD"),
 #'       start_date = "2018-01-01",
 #'       end_date = "2018-01-12"
@@ -56,7 +56,7 @@ sits_cube_copy <- function(cube,
     # Pre-conditions
     .check_is_raster_cube(cube)
     if (.has(roi)) {
-        roi <- .roi_as_sf(roi)
+        sf_roi <- .roi_as_sf(roi, default_crs = cube$crs[[1]])
     }
     .check_res(res)
     .check_output_dir(output_dir)
@@ -64,17 +64,21 @@ sits_cube_copy <- function(cube,
     .check_progress(progress)
 
     # Prepare parallel processing
-    .sits_parallel_start(workers = multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # Create assets as jobs
     cube_assets <- .cube_split_assets(cube)
     # Process each tile sequentially
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
+        # if there is a ROI which does not intersect asset, do nothing
+        if (.has(sf_roi) && !(.cube_intersects(asset, sf_roi)))
+           return(NULL)
+        # download asset
         local_asset <- .download_asset(
             asset = asset,
             res = res,
-            roi = roi,
+            sf_roi = sf_roi,
             output_dir = output_dir,
             progress = progress
         )
@@ -85,11 +89,11 @@ sits_cube_copy <- function(cube,
     .cube_merge_tiles(cube_assets)
 }
 
-.download_asset <- function(asset, res, roi, output_dir, progress) {
+.download_asset <- function(asset, res, sf_roi, output_dir, progress) {
     # Get all paths and expand
     file <- .file_normalize(.tile_path(asset))
     # Create a list of user parameters as gdal format
-    gdal_params <- .gdal_format_params(asset = asset, roi = roi, res = res)
+    gdal_params <- .gdal_format_params(asset = asset, sf_roi = sf_roi, res = res)
     # Create output file
     derived_cube <- inherits(asset, "derived_cube")
     if (derived_cube)
@@ -110,7 +114,7 @@ sits_cube_copy <- function(cube,
             )
         }
         asset <- .download_update_asset(
-            asset = asset, roi = roi, res = res, out_file = out_file
+            asset = asset, roi = sf_roi, res = res, out_file = out_file
         )
         return(asset)
     }
@@ -122,7 +126,7 @@ sits_cube_copy <- function(cube,
     suppressWarnings(download_fn(file))
     # Update asset metadata
     asset <- .download_update_asset(
-        asset = asset, roi = roi, res = res, out_file = out_file
+        asset = asset, roi = sf_roi, res = res, out_file = out_file
     )
     # Return updated asset
     asset
@@ -151,13 +155,14 @@ sits_cube_copy <- function(cube,
     return(asset)
 }
 
-.gdal_format_params <- function(asset, roi, res) {
+.gdal_format_params <- function(asset, sf_roi, res) {
     gdal_params <- list()
     if (.has(res)) {
         gdal_params[["-tr"]] <- list(xres = res, yres = res)
     }
-    if (.has(roi)) {
-        gdal_params[["-srcwin"]] <- .gdal_as_srcwin(asset = asset, roi = roi)
+    if (.has(sf_roi)) {
+        gdal_params[["-srcwin"]] <- .gdal_as_srcwin(asset = asset,
+                                                    sf_roi = sf_roi)
     }
     gdal_params[c("-of", "-co")] <- list(
         "GTiff", .conf("gdal_presets", "image", "co")
@@ -167,8 +172,8 @@ sits_cube_copy <- function(cube,
     return(gdal_params)
 }
 
-.gdal_as_srcwin <- function(asset, roi) {
-    block <- .raster_sub_image(tile = asset, roi = roi)
+.gdal_as_srcwin <- function(asset, sf_roi) {
+    block <- .raster_sub_image(tile = asset, sf_roi = sf_roi)
     list(xoff = block[["col"]] - 1,
          yoff = block[["row"]] - 1,
          xsize = block[["ncols"]],

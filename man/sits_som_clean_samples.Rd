@@ -31,7 +31,7 @@ should be removed. The second is the posterior probability of the sample.
 Cleans the samples based on SOM map information
 }
 \examples{
-#' if (sits_run_examples()) {
+if (sits_run_examples()) {
     # create a som map
     som_map <- sits_som_map(samples_modis_ndvi)
     # plot the som map

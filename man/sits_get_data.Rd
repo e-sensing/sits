@@ -26,7 +26,7 @@ sits_get_data(
   pol_avg = FALSE,
   pol_id = NULL,
   multicores = 2,
-  progress = FALSE
+  progress = TRUE
 )
 
 \method{sits_get_data}{default}(cube, samples, ...)
@@ -129,13 +129,6 @@ in "YYYY-MM-DD" format (optional).}
 
 \item{bands}{Bands to be retrieved (optional).}
 
-\item{crs}{A coordinate reference system of samples.
-The provided crs could be a character
-(e.g, "EPSG:4326" or "WGS84" or a proj4string), or a
-a numeric with the EPSG code (e.g. 4326).
-This parameter only works for 'csv' or data.frame'
-samples. Default is 4326.}
-
 \item{impute_fn}{Imputation function for NA values.}
 
 \item{label_attr}{Attribute in the shapefile or sf object to be used
@@ -210,9 +203,9 @@ if (sits_run_examples()) {
         # create a data cube from the BDC
         bdc_cube <- sits_cube(
             source = "BDC",
-            collection = "CB4_64_16D_STK-1",
+            collection = "CB4-16D-2",
             bands = c("NDVI", "EVI"),
-            tiles = c("022024", "022025"),
+            tiles = c("007004", "007005"),
             start_date = "2018-09-01",
             end_date = "2018-10-28"
         )

@@ -1186,3 +1186,39 @@ NULL
     tile <- .tile(tile)
     .fi_contains_cloud(.fi(tile))
 }
+#' @title Measure classification time start
+#' @name .tile_classif_start
+#' @keywords internal
+#' @noRd
+#' @param tile input tile
+#' @param verbose     TRUE/FALSE
+#'
+#' @return start time for classification
+#'
+.tile_classif_start <- function(tile, verbose) {
+    start_time <- Sys.time()
+    if (verbose)
+        message("Starting classification of tile '",
+                tile[["tile"]], "' at ", start_time)
+    return(start_time)
+}
+#' @title Measure classification time
+#' @name .tile_classif_end
+#' @keywords internal
+#' @noRd
+#' @param tile input tile
+#' @param start_time  starting time for classification
+#' @param verbose     TRUE/FALSE
+#'
+#' @return end time for classification
+#'
+.tile_classif_end <- function(tile, start_time, verbose) {
+    if (verbose) {
+        end_time <- Sys.time()
+        message("Tile '", tile[["tile"]], "' finished at ", end_time)
+        message("Elapsed time of ",
+                format(round(end_time - start_time, digits = 2)))
+        message("")
+    }
+    return(end_time)
+}

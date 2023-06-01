@@ -47,8 +47,8 @@ if (sits_run_examples()) {
   # Creating a sits cube from BDC
   bdc_cube <- sits_cube(
       source = "BDC",
-      collection = "CB4_64_16D_STK-1",
-      tiles = c("022024", "022025"),
+      collection = "CB4-16D-2",
+      tiles = c("007004", "007005"),
       bands = c("B15", "CLOUD"),
       start_date = "2018-01-01",
       end_date = "2018-01-12"

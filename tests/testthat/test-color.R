@@ -60,7 +60,7 @@ test_that("legend", {
         "Pasture" = "bisque2")
 
     expect_warning({
-        expect_warning( {
+        expect_warning({
             sits:::.colors_get(labels, legend = def_legend_2)
         })
     })

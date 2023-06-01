@@ -5,21 +5,17 @@
 #' @name sits_run_tests
 #'
 #' @description
-#' This function informs if sits examples should run.
-#' To run the examples, set "SITS_RUN_TESTS" environment
-#' variable to "YES" using
+#' To run the tests, set "SITS_RUN_TESTS" environment to "YES" using
 #' Sys.setenv("SITS_RUN_TESTS" = "YES")
-#' To come back to the default behaviour, please unset
-#' the enviroment variable
-#' Sys.unsetenv("SITS_RUN_TESTS")
+#' To come back to the default behaviour, please set
+#' Sys.setenv("SITS_RUN_TESTS" = "NO")
 #' @return TRUE/FALSE
 #' @examples
-#' #' if (sits_run_tests()){
-#'     message("use devtools::run_tests()")
-#' }
-#' else{
-#'     message("Set the environmental variable "SITS_RUN_TESTS" to "YES"
-#'     to run the tests or use devtools::run_tests()")
+#' if (sits_run_tests()){
+#'     message("Tests will be run")
+#' } else{
+#'     message(paste("Set the environmental variable SITS_RUN_TESTS to YES",
+#'     "to run the tests or use devtools::run_tests()"))
 #' }
 #'
 #' @export
@@ -33,21 +29,18 @@ sits_run_tests <- function() {
 #'
 #' @description
 #' This function informs if sits examples should run.
-#' To run the examples, set "SITS_RUN_EXAMPLES" environment
-#' variable to "YES" using
+#' To run the examples, set "SITS_RUN_EXAMPLES" to "YES" using
 #' Sys.setenv("SITS_RUN_EXAMPLES" = "YES")
-#' To come back to the default behaviour, please unset
-#' the enviroment variable
-#' Sys.unsetenv("SITS_RUN_EXAMPLES")
+#' To come back to the default behaviour, please set
+#' Sys.setenv("SITS_RUN_EXAMPLES" = "NO")
 #'
 #' @return A logical value
 #' @examples
 #' if (sits_run_examples()){
 #'     message("use devtools::run_examples() to run the examples")
-#' }
-#' else{
-#'     message("Set the environmental variable "SITS_RUN_EXAMPLES" to "YES"
-#'     to run the examples")
+#' } else{
+#'     message(paste0("Set the envvar SITS_RUN_EXAMPLES to YES",
+#'     "to run the examples"))
 #' }
 #'
 #'

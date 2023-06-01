@@ -42,8 +42,9 @@ sits_view(x, ...)
   tiles = x$tile,
   class_cube = NULL,
   legend = NULL,
-  view_max_mb = NULL,
-  palette = "Blues"
+  palette = "Blues",
+  segments = NULL,
+  view_max_mb = NULL
 )
 
 \method{sits_view}{class_cube}(
@@ -134,6 +135,8 @@ if (sits_run_examples()) {
         ml_model = rf_model,
         output_dir = tempdir()
     )
+    # view the probs
+    sits_view(modis_probs)
     # generate a map
     modis_label <- sits_label_classification(
         modis_probs,
@@ -144,6 +147,12 @@ if (sits_run_examples()) {
 .    # view the classified map with the B/W image
     sits_view(modis_cube,
         band = "NDVI",
+        class_cube = modis_label,
+        dates = sits_timeline(modis_cube)[[1]]
+    )
+    # view the classified map with the RGB image
+    sits_view(modis_cube,
+        red = "NDVI", green = "NDVI", blue = "NDVI",
         class_cube = modis_label,
         dates = sits_timeline(modis_cube)[[1]]
     )
@@ -161,7 +170,7 @@ if (sits_run_examples()) {
         tile = "012010",
         bands = "NDVI",
         date = sits_timeline(modis_cube)[1],
-        seg_fn = sits_slic(step = 10)
+        seg_fn = sits_slic(step = 20)
     )
     # view image and segments
     sits_view (
@@ -190,10 +199,12 @@ if (sits_run_examples()) {
         cube = modis_cube,
         samples = segments
     )
+    # train a model
+    tcnn_model <- sits_train(samples_modis_ndvi, sits_tempcnn())
     # classify the segments
     seg_class <- sits_classify(
         data = samples_seg,
-        ml_model = rf_model
+        ml_model = tcnn_model
     )
 
     # add a column to the segments by class

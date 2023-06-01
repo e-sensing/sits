@@ -99,8 +99,8 @@ test_that("Creating cubes from BDC", {
     # create a raster cube file based on the information about the file
     cbers_cube <- sits_cube(
         source = "BDC",
-        collection = "CB4_64_16D_STK-1",
-        tiles = c("022024", "022023"),
+        collection = "CB4-16D-2",
+        tiles = c("007004", "007005"),
         start_date = "2018-09-01",
         end_date = "2019-08-29",
         progress = FALSE
@@ -130,7 +130,7 @@ test_that("Creating cubes from BDC", {
     expect_equal(cc[[1]], 0.00)
 
     fi_2 <- .fi_filter_fid(fi_1,
-            fid = "CB4_64_16D_STK_v001_022024_2018-08-29_2018-09-13")
+            fid = "CB4-16D_V2_007004_20180829")
     expect_equal(length(sits_bands(cbers_cube)), nrow(fi_2))
 
     cc_2 <- .fi_cloud_cover(fi_2)
@@ -399,36 +399,4 @@ test_that("Creating Harmonized Landsat Sentinel cubes from HLS", {
     expect_true(all(sits_timeline(merge_23LKC) %in%
                         c(sits_timeline(l8_23LKC), sits_timeline(s2_23LKC))))
 
-})
-
-
-
-
-
-test_that("Creating a raster stack cube with BDC band names", {
-    # Create a raster cube based on CBERS data
-    data_dir <- system.file("extdata/raster/bdc", package = "sits")
-
-    # create a raster cube file based on the information about the files
-    cbers_cube_bdc <- .try({
-        sits_cube(
-            source = "BDC",
-            collection = "CB4_64-1",
-            data_dir = data_dir,
-            parse_info = c(
-                "X1", "X2", "X3", "X4", "X5", "tile",
-                "date", "X6", "band"
-            ),
-            multicores = 2,
-            progress = FALSE
-        )
-    },
-    .default = NULL
-    )
-
-    testthat::skip_if(purrr::is_null(cbers_cube_bdc),
-        message = "LOCAL cube not found"
-    )
-
-    expect_true(all(sits_bands(cbers_cube_bdc) %in% "B16"))
 })

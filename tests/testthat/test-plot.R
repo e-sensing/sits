@@ -37,7 +37,7 @@ test_that("Plot Time Series and Images", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     set.seed(290356)
     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
-    point_class <- sits_classify(point_ndvi, rfor_model)
+    point_class <- sits_classify(point_ndvi, rfor_model, progress = FALSE)
     p3 <- plot(point_class)
     expect_equal(p3[[1]]$labels$y, "Value")
     expect_equal(p3[[1]]$labels$x, "Time")
@@ -70,7 +70,8 @@ test_that("Plot Time Series and Images", {
             ml_model = rfor_model,
             memsize = 2,
             multicores = 2,
-            output_dir = tempdir()
+            output_dir = tempdir(),
+            progress = FALSE
         )
     )
     p_probs <- plot(sinop_probs)
@@ -116,7 +117,7 @@ test_that("Plot Accuracy", {
     # compute a random forest model
     rfor_model <- sits_train(train_data, sits_rfor())
     # classify training points
-    points_class <- sits_classify(test_data, rfor_model)
+    points_class <- sits_classify(test_data, rfor_model, progress = FALSE)
     # calculate accuracy
     acc <- sits_accuracy(points_class)
     # plot accuracy
@@ -147,9 +148,6 @@ test_that("Plot Models", {
 
 test_that("Dendrogram Plot", {
 
-    p <- capture.output(sits_cluster_dendro(cerrado_2classes))
-
-
     cluster_obj <- .sits_cluster_dendrogram(cerrado_2classes,
         bands = c("NDVI", "EVI")
     )
@@ -158,11 +156,13 @@ test_that("Dendrogram Plot", {
         cluster_obj
     )
 
-    dend <- .plot_dendrogram(
-        data = cerrado_2classes,
-        cluster = cluster_obj,
-        cutree_height = cut.vec["height"],
-        palette = "RdYlGn"
+    dend <- suppressMessages(
+        .plot_dendrogram(
+            data = cerrado_2classes,
+            cluster = cluster_obj,
+            cutree_height = cut.vec["height"],
+            palette = "RdYlGn"
+        )
     )
     expect_equal(class(dend), "dendrogram")
 })

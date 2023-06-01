@@ -19,7 +19,7 @@
                               progress) {
 
     # Start parallel workers
-    .sits_parallel_start(workers = multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # Get bands from model

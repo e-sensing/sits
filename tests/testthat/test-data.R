@@ -16,34 +16,6 @@ test_that("Reading a LAT/LONG from RASTER", {
     expect_true(length(sits_timeline(point_ndvi)) == 12)
 })
 
-test_that("Reading a LAT/LONG from RASTER with crs parameter", {
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    raster_cube <-  sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        progress = FALSE
-    )
-
-
-    samples <- tibble::tibble(longitude = 4821005, latitude = 10025310)
-
-    point_ndvi <- sits_get_data(
-        cube = raster_cube,
-        samples = samples,
-        crs = "+proj=aea
-        +lat_0=-12 +lon_0=-54
-        +lat_1=-2 +lat_2=-22
-        +x_0=5000000 +y_0=10000000
-        +ellps=GRS80 +units=m +no_defs ",
-        progress = FALSE
-    )
-
-    expect_equal(names(point_ndvi)[1], "longitude")
-    expect_true(ncol(.tibble_time_series(point_ndvi)) == 2)
-    expect_true(length(sits_timeline(point_ndvi)) == 12)
-})
-
 test_that("Reading a CSV file from RASTER", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <-  sits_cube(
@@ -85,70 +57,6 @@ test_that("Reading a CSV file from RASTER", {
     expect_equal(length(names(points_df)), 7)
     expect_true(ncol(.tibble_time_series(points_df)) == 2)
     expect_true(length(sits_timeline(points_df)) == 12)
-})
-
-test_that("Reading a CSV file from RASTER with crs parameter", {
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    raster_cube <-  sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        progress = FALSE
-    )
-
-    df_csv <- utils::read.csv(
-        system.file("extdata/samples/samples_sinop_crop.csv", package = "sits"),
-        stringsAsFactors = FALSE
-    )
-
-    class(df_csv) <- c("sits", class(df_csv))
-    df_sf <- sits_as_sf(data = df_csv, crs = 4326)
-    df_sf_reproj <- sf::st_transform(
-        x = df_sf,
-        crs = "+proj=aea
-        +lat_0=-12 +lon_0=-54
-        +lat_1=-2 +lat_2=-22
-        +x_0=5000000 +y_0=10000000
-        +ellps=GRS80 +units=m +no_defs "
-    )
-
-    df_sf_reproj[, c("longitude", "latitude")] <-
-        sf::st_coordinates(df_sf_reproj)
-    path_samples_repr <- tempfile(fileext = ".csv")
-    utils::write.csv(
-        x = sf::st_drop_geometry(df_sf_reproj),
-        file = path_samples_repr
-    )
-
-    points_df <- sits_get_data(
-        raster_cube,
-        samples = path_samples_repr,
-        crs = "+proj=aea
-        +lat_0=-12 +lon_0=-54
-        +lat_1=-2 +lat_2=-22
-        +x_0=5000000 +y_0=10000000
-        +ellps=GRS80 +units=m +no_defs ",
-        progress = FALSE
-    )
-
-    expect_true("Forest" %in% sits_labels(points_df))
-    expect_equal(names(points_df)[1], "longitude")
-    expect_equal(length(names(points_df)), 7)
-    expect_true(ncol(.tibble_time_series(points_df)) == 2)
-    expect_true(length(sits_timeline(points_df)) == 12)
-
-    # read the data as SF
-
-    points_df_sf <- sits_get_data(
-        raster_cube,
-        samples = path_samples_repr,
-        crs = "+proj=aea
-        +lat_0=-12 +lon_0=-54
-        +lat_1=-2 +lat_2=-22
-        +x_0=5000000 +y_0=10000000
-        +ellps=GRS80 +units=m +no_defs ",
-        progress = FALSE
-    )
 })
 
 test_that("Retrieving points from BDC using POLYGON shapefiles", {
@@ -295,7 +203,7 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
                       message = "BDC is not accessible"
     )
     tf <- paste0(tempdir(), "/cerrado_forested.shp")
-    sf::st_write(sf_cf[1:5, ], dsn = tf, quiet = TRUE)
+    sf::st_write(sf_cf[1:5, ], dsn = tf, quiet = TRUE, append = FALSE)
     points_cf <- sits_get_data(modis_cube,
                                samples = tf,
                                label = "Woodland",

@@ -17,7 +17,7 @@
 #'
 #' Please see the chapter "Technical Annex" in the sits book for details.
 #'
-#' @param samples   Tibble with time series samples.
+#' @param data      Input data.
 #' @param fun       Function that performs calculation on the input data.
 #' @return          A closure that encapsulates the function applied to data.
 #'

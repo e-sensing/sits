@@ -179,7 +179,7 @@ sits_reduce_imbalance <- function(samples,
     new_samples <- .tibble()
 
     if (length(classes_under) > 0) {
-        .sits_parallel_start(workers = multicores, log = FALSE)
+        .sits_parallel_start(workers = multicores)
         on.exit(.sits_parallel_stop())
 
         samples_under_new <- .sits_parallel_map(classes_under, function(cls) {
@@ -207,7 +207,7 @@ sits_reduce_imbalance <- function(samples,
     }
 
     if (length(classes_over) > 0) {
-        .sits_parallel_start(workers = multicores, log = FALSE)
+        .sits_parallel_start(workers = multicores)
         on.exit(.sits_parallel_stop())
 
         samples_over_new <- .sits_parallel_map(classes_over, function(cls) {

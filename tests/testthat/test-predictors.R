@@ -1,4 +1,4 @@
-test_that("predictors",{
+test_that("predictors", {
 
     pred <- sits_predictors(samples_modis_ndvi)
     expect_equal(nrow(pred), nrow(samples_modis_ndvi))

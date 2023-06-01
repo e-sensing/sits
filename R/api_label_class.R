@@ -8,11 +8,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        if (.check_messages()) {
-            message("Recovery: tile '", tile[["tile"]], "' already exists.")
-            message("(If you want to produce a new image, please ",
-                    "change 'output_dir' or 'version' parameters)")
-        }
+        .check_recovery(tile[["tile"]])
         class_tile <- .tile_class_from_file(
             file = out_file, band = band, base_tile = tile
         )

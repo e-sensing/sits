@@ -31,7 +31,7 @@ test_that("EVI generation", {
         full.names = TRUE
     ))
 
-    expect_warning( {
+    expect_warning({
         gc_cube <- sits_regularize(
             cube        = s2_cube,
             output_dir  = dir_images,

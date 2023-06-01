@@ -3,10 +3,10 @@
 #' @keywords internal
 #' @noRd
 #' @param  tile            tile of data cube.
-#' @param  roi             spatial region of interest
+#' @param  sf_roi          sf object with spatial region of interest
 #' @return                 vector with information on the subimage
 #'
-.raster_sub_image <- function(tile, roi) {
+.raster_sub_image <- function(tile, sf_roi) {
 
     # pre-condition
     .check_num(nrow(tile),
@@ -15,11 +15,19 @@
     )
 
     # calculate the intersection between the bbox of the ROI and the cube
-    roi <- .bbox_intersection(.tile_bbox(tile), .bbox(roi))
+    # transform the tile bbox to sf
+    sf_tile <- .bbox_as_sf(.tile_bbox(tile))
+    if (.tile_crs(tile) != sf::st_crs(sf_roi))
+        sf_roi <- sf::st_transform(sf_roi, crs = .tile_crs(tile))
+    geom <- sf::st_intersection(sf_tile, sf_roi)
+    # check geometry is valid
+    .check_that(x = !purrr::is_null(geom),
+                msg = "error in intersection between cube and roi")
 
+    # get bbox of subimage
+    sub_image_bbox <- .bbox(geom)
     # return the sub_image
-    sub_image <- .raster_sub_image_from_bbox(roi, tile)
-
+    sub_image <- .raster_sub_image_from_bbox(sub_image_bbox, tile)
     return(sub_image)
 }
 

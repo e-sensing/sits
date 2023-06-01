@@ -42,7 +42,8 @@ test_that("One-year, multi-core classification in parallel", {
         roi = roi,
         memsize = 8,
         multicores = 2,
-        output_dir = dir_images
+        output_dir = dir_images,
+        progress = FALSE
     )
 
 

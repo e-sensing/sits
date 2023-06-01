@@ -83,6 +83,7 @@ Suggests:
     luz (>= 0.3.0),
     methods,
     mgcv,
+    nnet,
     openxlsx,
     randomForest,
     randomForestExplainer,
@@ -112,6 +113,7 @@ Collate:
     'api_comp.R'
     'api_conf.R'
     'api_cube.R'
+    'api_data.R'
     'api_file_info.R'
     'api_file.R'
     'api_gdal.R'
@@ -152,6 +154,7 @@ Collate:
     'api_uncertainty.R'
     'api_utils.R'
     'api_variance.R'
+    'api_view.R'
     'RcppExports.R'
     'data.R'
     'pipe.R'

@@ -128,14 +128,15 @@
         return(NULL)
     }
     # create a image mask object
-    mask_values <- gdalcubes::image_mask(
-        band = .source_cloud(),
-        values = .source_cloud_interp_values(
-            source = .cube_source(cube = tile),
-            collection = .cube_collection(cube = tile)
+    mask_values <- suppressMessages(
+        gdalcubes::image_mask(
+            band = .source_cloud(),
+            values = .source_cloud_interp_values(
+                source = .cube_source(cube = tile),
+                collection = .cube_collection(cube = tile)
+            )
         )
     )
-
     # is this a bit mask cloud?
     if (.source_cloud_bit_mask(
         source = .cube_source(cube = tile),
@@ -503,7 +504,7 @@
     )
 
     # start processes
-    .sits_parallel_start(workers = multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores)
     on.exit(.sits_parallel_stop())
 
     # does a local cube exist
@@ -681,7 +682,7 @@
 
             # remove cache
             .sits_parallel_stop()
-            .sits_parallel_start(workers = multicores, log = FALSE)
+            .sits_parallel_start(workers = multicores)
         }
     }
 

@@ -116,7 +116,7 @@ sits_kfold_validate <- function(samples,
     # start parallel process
     multicores <- min(multicores, folds)
 
-    .sits_parallel_start(workers = multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores)
     on.exit(.sits_parallel_stop())
 
     # Create partitions different splits of the input data

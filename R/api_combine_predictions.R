@@ -37,7 +37,7 @@
         multicores = multicores
     )
     # Prepare parallel processing
-    .sits_parallel_start(workers = multicores, log = FALSE)
+    .sits_parallel_start(workers = multicores)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # Call the combine method
@@ -76,12 +76,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        if (.check_messages()) {
-            message("Recovery: tile '", base_tile[["tile"]],
-                    "' already exists.")
-            message("(If you want to produce a new probability image, please ",
-                    "change 'output_dir' or 'version' parameters)")
-        }
+        .check_recovery(out_file)
         probs_tile <- .tile_probs_from_file(
             file = out_file,
             band = band,
@@ -138,21 +133,19 @@
             derived_class = "probs_cube", band = band
         )
         offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
+        if (offset != 0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
+        if (scale != 1) {
             values <- values / scale
         }
         min <- .min_value(band_conf)
-        if (.has(max)) {
-            values[values < min] <- min
-        }
         max <- .max_value(band_conf)
-        if (.has(max)) {
-            values[values > max] <- max
-        }
+        # check minimum and maximum values
+        values[values < min] <- min
+        values[values > max] <- max
+
         # Prepare and save results as raster
         .raster_write_block(
             files = block_file,

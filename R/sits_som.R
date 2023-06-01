@@ -214,7 +214,7 @@ sits_som_map <- function(data,
 #' should be removed. The second is the posterior probability of the sample.
 #'
 #' @examples
-#' #' if (sits_run_examples()) {
+#' if (sits_run_examples()) {
 #'     # create a som map
 #'     som_map <- sits_som_map(samples_modis_ndvi)
 #'     # plot the som map
@@ -297,7 +297,7 @@ sits_som_clean_samples <- function(som_map,
 #' @return A tibble stating the purity for each cluster
 #'
 #' @examples
-#' #' if (sits_run_examples()) {
+#' if (sits_run_examples()) {
 #'     # create a som map
 #'     som_map <- sits_som_map(samples_modis_ndvi)
 #'     # plot the som map

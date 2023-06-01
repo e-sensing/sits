@@ -2,9 +2,6 @@ test_that("View", {
 
     v <- sits_view(cerrado_2classes)
     expect_true("leaflet" %in% class(v))
-    expect_true(all(v$x$calls[[6]]$args[[1]]$labels %in%
-        c("Cerrado", "Pasture")))
-
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
     modis_cube <- sits_cube(

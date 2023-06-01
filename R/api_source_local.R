@@ -16,64 +16,14 @@
 
     # set caller to show in errors
     .check_set_caller(".local_cube")
-
     # is this a cube with results?
-    if (!purrr::is_null(bands) &&
-        all(bands %in% .conf("sits_results_bands"))) {
-        results_cube <- TRUE
-    } else {
-        results_cube <- FALSE
-    }
+    results_cube <- .check_cube_is_results_cube(bands, labels)
 
-    # results cube should have only one band
-    if (results_cube) {
-        .check_that(
-            length(bands) == 1,
-            msg = "results cube should have only one band"
-        )
-        # is label parameter was provided in labelled cubes?
-        if (bands %in% c("probs", "bayes", "class")) {
-            .check_chr(
-                labels, len_min = 1,
-                msg = "'labels' parameter should be provided."
-            )
-        }
-    }
-
-    # is parse info NULL? use the default
-    if (purrr::is_null(parse_info)) {
-        if (results_cube) {
-            parse_info <- .conf("results_parse_info_def")
-        } else {
-            parse_info <- .conf("local_parse_info_def")
-        }
-    }
-    # precondition - does the parse info have band and date?
-    if (results_cube) {
-        .check_chr_contains(
-            parse_info,
-            contains = .conf("results_parse_info_col"),
-            msg = paste(
-                "parse_info must include tile, start_date, end_date,",
-                "and band."
-            )
-        )
-    } else {
-        .check_chr_contains(
-            parse_info,
-            contains = .conf("local_parse_info_col"),
-            msg = "parse_info must include tile, date, and band."
-        )
-    }
+    # set the correct parse_info
+    parse_info <- .conf_parse_info(parse_info, results_cube)
 
     # bands in upper case for raw cubes, lower case for results cubes
-    if (!purrr::is_null(bands)) {
-        if (results_cube) {
-            bands <- tolower(bands)
-        } else {
-            bands <- toupper(bands)
-        }
-    }
+    bands <- .band_set_case(bands, results_cube)
 
     # make query and retrieve items
     items <- .local_cube_items_new(
@@ -396,7 +346,7 @@
         dplyr::ungroup()
     # prepare parallel requests
     if (is.null(sits_env[["cluster"]])) {
-        .sits_parallel_start(workers = multicores, log = FALSE)
+        .sits_parallel_start(workers = multicores)
         on.exit(.sits_parallel_stop(), add = TRUE)
     }
     # do parallel requests
@@ -461,7 +411,7 @@
 
     # prepare parallel requests
     if (is.null(sits_env[["cluster"]])) {
-        .sits_parallel_start(workers = multicores, log = FALSE)
+        .sits_parallel_start(workers = multicores)
         on.exit(.sits_parallel_stop(), add = TRUE)
     }
     # do parallel requests

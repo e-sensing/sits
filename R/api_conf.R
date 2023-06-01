@@ -1,13 +1,8 @@
 
-.conf_set_options <- function(run_tests = NULL,
-                              run_examples = NULL,
-                              processing_bloat = NULL,
+.conf_set_options <- function(processing_bloat = NULL,
                               rstac_pagination_limit = NULL,
-                              raster_api_package = NULL,
                               gdal_creation_options = NULL,
                               gdalcubes_chunk_size = NULL,
-                              leaflet_max_megabytes = NULL,
-                              leaflet_comp_factor = NULL,
                               sources = NULL,
                               colors = NULL, ...) {
     # set caller to show in errors
@@ -16,24 +11,6 @@
     # initialize config
     if (!exists("config", envir = sits_env)) {
         sits_env$config <- list()
-    }
-
-    # run tests?
-    if (!is.null(run_tests)) {
-        .check_lgl(run_tests,
-                   len_min = 1, len_max = 1,
-                   msg = "invalid 'run_tests' parameter"
-        )
-        sits_env$config[["run_tests"]] <- run_tests
-    }
-
-    # run examples?
-    if (!is.null(run_examples)) {
-        .check_lgl(run_examples,
-                   len_min = 1, len_max = 1,
-                   msg = "invalid 'run_examples' parameter"
-        )
-        sits_env$config[["run_examples"]] <- run_examples
     }
 
     # process processing_bloat
@@ -54,20 +31,6 @@
         sits_env$config[["rstac_pagination_limit"]] <- rstac_pagination_limit
     }
 
-    # process raster_api_package
-    if (!is.null(raster_api_package)) {
-        .check_chr(raster_api_package,
-                   len_min = 1, len_max = 1,
-                   msg = "invalid 'raster_api_package' parameter"
-        )
-        .check_chr_within(raster_api_package,
-                          within = .raster_supported_packages(),
-                          discriminator = "one_of",
-                          msg = "invalid 'raster_api_package' parameter"
-        )
-        sits_env$config[["raster_api_package"]] <- raster_api_package
-    }
-
     # process gdal_creation_options
     if (!is.null(gdal_creation_options)) {
         .check_chr(gdal_creation_options,
@@ -86,24 +49,6 @@
                    msg = "invalid gdalcubes chunk size"
         )
         sits_env$config[["gdalcubes_chunk_size"]] <- gdalcubes_chunk_size
-    }
-    if (!is.null(leaflet_max_megabytes)) {
-        .check_num(leaflet_max_megabytes,
-                   min = 16,
-                   max = 128,
-                   is_named = FALSE,
-                   msg = "invalid leaflet max megabytes"
-        )
-        sits_env$config[["leaflet_max_megabytes"]] <- leaflet_max_megabytes
-    }
-    if (!is.null(leaflet_comp_factor)) {
-        .check_num(leaflet_comp_factor,
-                   min = 0.20,
-                   max = 1.00,
-                   is_named = FALSE,
-                   msg = "invalid leaflet_comp_factor"
-        )
-        sits_env$config[["leaflet_comp_factor"]] <- leaflet_comp_factor
     }
     # process sources
     if (!is.null(sources)) {
@@ -245,6 +190,40 @@
     }
 
     return(yml_file)
+}
+
+.conf_set_user_file <- function() {
+    # try to find a valid user configuration file
+    user_yml_file <- .conf_user_file()
+
+    if (file.exists(user_yml_file)) {
+        config <- yaml::yaml.load_file(
+            input = user_yml_file,
+            merge.precedence = "override"
+        )
+        if (!purrr::is_null(config$colors)) {
+            user_colors <- config$colors
+            .conf_merge_colors(user_colors)
+            config$colors <- NULL
+        }
+        if (length(config) > 0) {
+            config <- utils::modifyList(sits_env[["config"]],
+                                        config,
+                                        keep.null = FALSE
+            )
+            # set options defined by user (via YAML file)
+            # modifying existing configuration
+            .conf_set_options(
+                processing_bloat = config[["processing_bloat"]],
+                rstac_pagination_limit = config[["rstac_pagination_limit"]],
+                gdal_creation_options = config[["gdal_creation_options"]],
+                gdalcubes_chunk_size = config[["gdalcubes_chunk_size"]],
+                sources = config[["sources"]],
+                colors = config[["colors"]]
+            )
+        }
+
+    }
 }
 
 #' @title Check band availability
@@ -981,4 +960,31 @@ NULL
 #' @return  Cloud bit mask values associated to the band.
 .cloud_bit_mask <- function(conf) {
     .as_int(conf[["bit_mask"]][[1]])
+}
+.conf_parse_info <- function(parse_info, results_cube) {
+    # is parse info NULL? use the default
+    if (purrr::is_null(parse_info)) {
+        if (results_cube)
+            parse_info <- .conf("results_parse_info_def")
+        else
+            parse_info <- .conf("local_parse_info_def")
+    }
+
+    # precondition - does the parse info have band and date?
+    if (results_cube) {
+        .check_chr_contains(
+            parse_info,
+            contains = .conf("results_parse_info_col"),
+            msg = paste(
+                "parse_info must include tile, start_date, end_date,",
+                "and band."
+            )
+        )
+    } else {
+        .check_chr_contains(
+            parse_info,
+            contains = .conf("local_parse_info_col"),
+            msg = "parse_info must include tile, date, and band."
+        )
+    }
 }

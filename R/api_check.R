@@ -857,25 +857,8 @@
         len_min = 1,
         msg = "invalid 'within' parameter"
     )
-
-    # allowed discriminators and its print values
-    discriminators <- c(
-        one_of = "be only one of",
-        any_of = "be at least one of",
-        all_of = "be",
-        none_of = "be none of",
-        exactly = "be exactly"
-    )
-
-    if (length(discriminator) != 1 ||
-        !discriminator %in% names(discriminators)) {
-        stop(paste(
-            ".check_chr_within: discriminator should be one of",
-            "'one_of', 'any_of', 'all_of', 'none_of', or 'exactly'."
-        ),
-        call. = TRUE
-        )
-    }
+    # check parameters
+    .check_discriminator(discriminator)
 
     # check type
     .check_chr_type(x, msg = msg)
@@ -896,20 +879,13 @@
     within <- unique(within)
 
     # transform inputs to verify without case sensitive
-    original_within <- within
     if (!case_sensitive) {
         x <- tolower(x)
         within <- tolower(within)
     }
 
     # prepare local message
-    local_msg <- sprintf(
-        "values should %s: %s",
-        discriminators[[discriminator]],
-        paste0("'", original_within, "'",
-            collapse = ", "
-        )
-    )
+    local_msg <- "invalid discriminator"
 
     # check discriminator
     if (discriminator == "one_of") {
@@ -970,24 +946,8 @@
         msg = "invalid 'contains' parameter"
     )
 
-    # allowed discriminators and its print values
-    discriminators <- c(
-        one_of = "contain only one of",
-        any_of = "contain at least one of",
-        all_of = "contain",
-        none_of = "not contain any of",
-        exactly = "be exactly"
-    )
-
-    if (length(discriminator) != 1 ||
-        !discriminator %in% names(discriminators)) {
-        stop(paste(
-            ".check_chr_contains: discriminator should be one of",
-            "'one_of', 'any_of', or 'all_of'."
-        ),
-        call. = TRUE
-        )
-    }
+    # check discriminators
+    .check_discriminator(discriminator)
 
     # check type
     .check_chr_type(x, msg = msg)
@@ -1007,19 +967,14 @@
     x <- unique(x)
     contains <- unique(contains)
 
-    # transform inputs to verify without case sensitive
-    original_contains <- contains
+    # transform inputs to lower case
     if (!case_sensitive) {
         x <- tolower(x)
         contains <- tolower(contains)
     }
 
     # prepare local message
-    local_msg <- sprintf(
-        "value should %s: %s",
-        discriminators[[discriminator]],
-        paste0("'", original_contains, "'", collapse = ", ")
-    )
+    local_msg <- "invalid discriminator"
 
     # check discriminator
     if (discriminator == "one_of") {
@@ -1526,6 +1481,36 @@
         x = inherits(cube, "class_cube"),
         msg = "cube is not classified image"
     )
+}
+#' @title Check if cube is a results cube
+#' @name .check_cube_is_results_cube
+#' @param bands bands of the cube
+#' @param labels labels of the cube
+#' @return  TRUE/FALSE
+#' @keywords internal
+#' @noRd
+.check_cube_is_results_cube <- function(bands, labels) {
+    if (!purrr::is_null(bands) &&
+        all(bands %in% .conf("sits_results_bands"))) {
+        results_cube <- TRUE
+    } else {
+        results_cube <- FALSE
+    }
+    # results cube should have only one band
+    if (results_cube) {
+        .check_that(
+            length(bands) == 1,
+            msg = "results cube should have only one band"
+        )
+        # is label parameter was provided in labelled cubes?
+        if (bands %in% c("probs", "bayes", "class")) {
+            .check_chr(
+                labels, len_min = 1,
+                msg = "'labels' parameter should be provided."
+            )
+        }
+    }
+    return(results_cube)
 }
 #' @title Does the input data contain a sits tibble?
 #' @name .check_is_sits_tibble
@@ -2275,4 +2260,88 @@
                           "'tile' parameters"),
         msg = "cube search criteria returned no items"
     )
+}
+#' @title Checks recovery
+#' @name .check_recovery
+#' @param data     existing data
+#' @return called for side effects
+#' @keywords internal
+#' @noRd
+.check_recovery <- function(data) {
+    if (.check_messages()) {
+        message("Recovery: data ",
+                paste0("'", data, "'", collapse = ", "),
+                " already exists.")
+        message("(If you want to produce a new image, please ",
+                "change 'output_dir' or 'version' parameters)")
+    }
+    return(invisible(NULL))
+}
+#' @title Checks discriminators
+#' @name .check_discriminator
+#' @param discriminator     discriminator for within and contains
+#' @return called for side effects
+#' @keywords internal
+#' @noRd
+.check_discriminator <- function(discriminator) {
+    # allowed discriminators and its print values
+    discriminators <- c(
+        one_of = "be only one of",
+        any_of = "be at least one of",
+        all_of = "be",
+        none_of = "be none of",
+        exactly = "be exactly"
+    )
+
+    if (length(discriminator) != 1 ||
+        !discriminator %in% names(discriminators)) {
+        stop(paste(
+            ".check_chr_within: discriminator should be one of",
+            "'one_of', 'any_of', 'all_of', 'none_of', or 'exactly'."
+        ),
+        call. = TRUE
+        )
+    }
+    return(invisible(NULL))
+}
+#' @title Checks view bands
+#' @name .check_view_bands
+#' @param cube      Data cube
+#' @param band      B/W band for view
+#' @param red       Red band for view
+#' @param green     Green band for view
+#' @param blue      Blue band for view
+#' @return called for side effects
+#' @keywords internal
+#' @noRd
+.check_view_bands <- function(cube, band, red, green, blue) {
+    .check_that(
+        !(purrr::is_null(band)) ||
+            (!(purrr::is_null(red)) &&
+                 !(purrr::is_null(green)) &&
+                 !(purrr::is_null(blue))
+            ),
+        local_msg = paste0(
+            "either 'band' parameter or 'red', 'green', and",
+            "'blue' parameters should be informed"
+        )
+    )
+    if (!purrr::is_null(band)) {
+        # check band is available
+        .check_chr_within(
+            band,
+            within = .cube_bands(cube),
+            discriminator = "any_of",
+            msg = "invalid BW band"
+        )
+    } else {
+        bands <- c(red, green, blue)
+        # check bands are available
+        .check_chr_within(
+            bands,
+            within = .cube_bands(cube),
+            discriminator = "all_of",
+            msg = "invalid RGB bands"
+        )
+    }
 }

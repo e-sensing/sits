@@ -36,7 +36,8 @@ test_that("Combine predictions", {
         cubes = pred_cubes,
         type = "average",
         output_dir = output_dir,
-        version = "comb_rfor_xgb_avg"
+        version = "comb_rfor_xgb_avg",
+        multicores = 1
     )
     expect_equal(sits_labels(comb_probs_cube_avg), sits_labels(probs_xgb_cube))
     expect_equal(sits_bbox(comb_probs_cube_avg), sits_bbox(probs_xgb_cube))

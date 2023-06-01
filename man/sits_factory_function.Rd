@@ -7,9 +7,9 @@
 sits_factory_function(data, fun)
 }
 \arguments{
-\item{fun}{Function that performs calculation on the input data.}
+\item{data}{Input data.}
 
-\item{samples}{Tibble with time series samples.}
+\item{fun}{Function that performs calculation on the input data.}
 }
 \value{
 A closure that encapsulates the function applied to data.

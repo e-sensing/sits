@@ -21,6 +21,7 @@
 ^\.swp
 ^codemeta.json
 LICENSE
-
+.lintr
 ^\.github$
 ^codecov\.yml$
+.rcookies

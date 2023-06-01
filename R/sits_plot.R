@@ -495,7 +495,7 @@ plot.segments <- function(
 #'         data_dir = data_dir
 #'     )
 #'     # plot NDVI band of the second date date of the data cube
-#'     plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
+#'     plot(cube, band = "NDVI", date = sits_timeline(cube)[1])
 #' }
 #' @export
 plot.raster_cube <- function(

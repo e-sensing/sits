@@ -8,15 +8,10 @@
 \title{Configure parameters for sits package}
 \usage{
 sits_config(
-  run_tests = NULL,
-  run_examples = NULL,
   processing_bloat = NULL,
   rstac_pagination_limit = NULL,
-  raster_api_package = NULL,
   gdal_creation_options = NULL,
   gdalcubes_chunk_size = NULL,
-  leaflet_max_megabytes = NULL,
-  leaflet_comp_factor = NULL,
   reset = FALSE
 )
 
@@ -25,24 +20,14 @@ sits_config_show(source = NULL, collection = NULL, colors = FALSE)
 sits_list_collections(source = NULL)
 }
 \arguments{
-\item{run_tests}{Should tests be run?}
-
-\item{run_examples}{Should examples be run?}
-
 \item{processing_bloat}{Estimated growth size of R memory relative
 to block size.}
 
 \item{rstac_pagination_limit}{Limit of number of items returned by STAC.}
 
-\item{raster_api_package}{Supported raster handling package.}
-
 \item{gdal_creation_options}{GDAL creation options for GeoTiff.}
 
 \item{gdalcubes_chunk_size}{Chunk size to be used by gdalcubes}
-
-\item{leaflet_max_megabytes}{Max image size of an image for leaflet (in MB)}
-
-\item{leaflet_comp_factor}{Compression factor for leaflet RGB display.}
 
 \item{reset}{Should current configuration options be cleaned
 before loading config files? Default is

@@ -33,7 +33,7 @@ us_nlcd <- us_nlcd \%>\%
  # Load the color table into `sits`
  sits_colors_set(us_nlcd)
 
- Show the new color table used by sits
+ # Show the new color table used by sits
  sits_colors_show()
 }
 }

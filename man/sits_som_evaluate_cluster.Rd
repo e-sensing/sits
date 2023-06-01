@@ -18,7 +18,7 @@ found by the SOM map. For each cluster, it provides the percentage
 of classes inside it.
 }
 \examples{
-#' if (sits_run_examples()) {
+if (sits_run_examples()) {
     # create a som map
     som_map <- sits_som_map(samples_modis_ndvi)
     # plot the som map

@@ -193,7 +193,7 @@
                 legend.bg.color = tmap_params[["bg_color"]],
                 legend.bg.alpha = tmap_params[["bg_alpha"]],
                 legend.title.size = tmap_params[["title_size"]],
-                legend.text.size = tmap_params[["text_size"]],)
+                legend.text.size = tmap_params[["text_size"]], )
     )
     return(p)
 }
@@ -606,7 +606,7 @@
 #'                       tmap_legend_bg_alpha (default: 0.5)
 #' @return            Updated tmap params.
 #'
-.plot_tmap_params <- function(tmap_options){
+.plot_tmap_params <- function(tmap_options) {
 
     # set the tmap options
     labels_size <- as.numeric(.conf("tmap_graticules_labels_size"))
