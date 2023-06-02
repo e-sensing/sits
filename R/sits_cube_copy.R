@@ -58,6 +58,8 @@ sits_cube_copy <- function(cube,
     if (.has(roi)) {
         sf_roi <- .roi_as_sf(roi, default_crs = cube$crs[[1]])
     }
+    else
+        sf_roi <- NULL
     .check_res(res)
     .check_output_dir(output_dir)
     .check_multicores(multicores)
@@ -72,8 +74,13 @@ sits_cube_copy <- function(cube,
     # Process each tile sequentially
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
         # if there is a ROI which does not intersect asset, do nothing
-        if (.has(sf_roi) && !(.cube_intersects(asset, sf_roi)))
-           return(NULL)
+        if (.has(roi)) {
+            sf_asset <- .roi_as_sf(.bbox(asset), default_crs = asset$crs[[1]])
+            sf_roi <- .roi_as_sf(sf_roi, default_crs = asset$crs[[1]])
+            g1 <- sf::st_intersects(sf_asset, sf_roi, sparse = TRUE)
+            if (lengths(g1) == 0)
+                return(NULL)
+        }
         # download asset
         local_asset <- .download_asset(
             asset = asset,
@@ -85,7 +92,6 @@ sits_cube_copy <- function(cube,
         # Return local tile
         local_asset
     }, progress = progress)
-    # Join output assets as a cube and return it
     .cube_merge_tiles(cube_assets)
 }
 
