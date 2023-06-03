@@ -22,7 +22,7 @@ test_that("View", {
 
     expect_true("leaflet" %in% class(v2))
     expect_true(grepl("EPSG3857", v2$x$options$crs$crsClass))
-    expect_equal(v2$x$calls[[6]]$args[[2]], "012010 NDVI 2013-09-14")
+    expect_equal(v2$x$calls[[6]]$args[[2]], "012010 2013-09-14")
 
     # plot the data cube RGB
     vrgb <- sits_view(modis_cube,

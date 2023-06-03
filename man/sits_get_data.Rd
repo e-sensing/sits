@@ -129,6 +129,8 @@ in "YYYY-MM-DD" format (optional).}
 
 \item{bands}{Bands to be retrieved (optional).}
 
+\item{crs}{Default crs for the samples}
+
 \item{impute_fn}{Imputation function for NA values.}
 
 \item{label_attr}{Attribute in the shapefile or sf object to be used

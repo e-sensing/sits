@@ -32,6 +32,7 @@
 #'                        "YYYY-MM-DD" format (optional).
 #' @param label           Label to be assigned to the time series (optional).
 #' @param bands           Bands to be retrieved (optional).
+#' @param crs             Default crs for the samples
 #' @param impute_fn       Imputation function for NA values.
 #' @param label_attr      Attribute in the shapefile or sf object to be used
 #'                        as a polygon label.

@@ -181,20 +181,7 @@ sits_view.data.frame <- function(x, ...,
                            legend = NULL,
                            palette = "Harmonic") {
 
-    # precondition
-    .check_require_packages("leaflet")
-
-    # check samples contains the expected columns
-    .check_chr_contains(
-        colnames(x),
-        contains = c("longitude", "latitude", "label"),
-        discriminator = "all_of",
-        msg = "Missing lat/long and label - please correct")
-
-    leaf_map <- .view_samples(
-        samples = x,
-        legend = legend,
-        palette = palette)
+    leaf_map <- sits_view.sits(x, legend, palette)
 
     return(leaf_map)
 }
@@ -251,33 +238,21 @@ sits_view.raster_cube <- function(x, ...,
     # pre-condition for bands
     .check_view_bands(x, band, red, green, blue)
     # grayscale or RGB?
-    if (!purrr::is_null(band)) {
-        leaf_map <- .view_false_color(
-            cube = x,
-            class_cube = class_cube,
-            tiles = tiles,
-            dates = dates,
-            band = band,
-            legend = legend,
-            palette = palette,
-            segments = segments,
-            view_max_mb = view_max_mb
-        )
-    } else {
-        leaf_map <- .view_rgb_image(
-            cube = x,
-            class_cube = class_cube,
-            tiles = tiles,
-            dates = dates,
-            red = red,
-            green = green,
-            blue = blue,
-            legend = legend,
-            palette = palette,
-            segments = segments,
-            view_max_mb = view_max_mb
-        )
-    }
+    leaf_map <- .view_image(
+        cube = x,
+        class_cube = class_cube,
+        tiles = tiles,
+        dates = dates,
+        band = band,
+        red = red,
+        green = green,
+        blue = blue,
+        legend = legend,
+        palette = palette,
+        segments = segments,
+        view_max_mb = view_max_mb
+    )
+
     return(leaf_map)
 }
 #' @rdname   sits_view

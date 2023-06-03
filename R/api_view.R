@@ -1,5 +1,5 @@
-#' @title  Include leaflet to view BW image
-#' @name .view_false_color
+#' @title  Include leaflet to view images (BW or RGB)
+#' @name .view_image
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -9,6 +9,9 @@
 #' @param  tiles         Tiles to be plotted (in case of a multi-tile cube).
 #' @param  dates         Dates to be plotted.
 #' @param  band          For plotting grey images.
+#' @param  red           Band for red color.
+#' @param  green         Band for green color.
+#' @param  blue          Band for blue color.
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file.
 #' @param  segments      Segment list obtained by \link{sits_segmentation}
@@ -16,15 +19,18 @@
 #'
 #' @return               A leaflet object.
 #'
-.view_false_color <- function(cube,
-                              class_cube,
-                              tiles,
-                              dates,
-                              band,
-                              legend,
-                              palette,
-                              segments,
-                              view_max_mb) {
+.view_image <- function(cube,
+                        class_cube,
+                        tiles,
+                        dates,
+                        band = NULL,
+                        red = NULL,
+                        green = NULL,
+                        blue = NULL,
+                        legend,
+                        palette,
+                        segments,
+                        view_max_mb) {
     # filter the tiles to be processed
     cube <- .view_filter_tiles(cube, tiles)
     # get the dates
@@ -42,14 +48,26 @@
     # get names of basic maps
     base_maps <- .view_get_base_maps(leaf_map)
     # add B/W band, class cube, and segments
-    leaf_map <- leaf_map |>
+    if (!purrr::is_null(band))
+        leaf_map <- leaf_map |>
         .view_bw_band(
             cube = cube,
             band = band,
             dates = dates,
             output_size = output_size,
-            palette = palette) |>
-        # include class cube if available
+            palette = palette)
+    else
+        # create a leaflet for RGB bands
+        leaf_map <- leaf_map |>
+        .view_rgb_bands(
+            cube = cube,
+            red = red,
+            green = green,
+            blue = blue,
+            dates = dates,
+            output_size = output_size)
+    # include class cube if available
+    leaf_map <- leaf_map |>
         .view_class_cube(
             class_cube = class_cube,
             tiles = tiles,

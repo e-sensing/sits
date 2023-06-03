@@ -226,9 +226,10 @@ sits_list_collections <- function(source = NULL) {
             cat("\n")
             if (.source_collection_open_data(source = s, collection = c)) {
                 cat("- opendata collection ")
-                if (.source_collection_open_data_token(
+                if (.source_collection_open_data(
                     source = s,
-                    collection = c
+                    collection = c,
+                    token = TRUE
                 )) {
                     cat("(requires access token)")
                 }

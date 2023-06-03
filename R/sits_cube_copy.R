@@ -75,8 +75,9 @@ sits_cube_copy <- function(cube,
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
         # if there is a ROI which does not intersect asset, do nothing
         if (.has(roi)) {
-            sf_asset <- .roi_as_sf(.bbox(asset), default_crs = asset$crs[[1]])
-            sf_roi <- .roi_as_sf(sf_roi, default_crs = asset$crs[[1]])
+            sf_asset <- .bbox_as_sf(.tile_bbox(asset))
+            if (sf::st_crs(sf_asset) != sf::st_crs(sf_roi))
+                sf_roi <- sf::st_transform(sf_roi, crs = .tile_crs(asset))
             g1 <- sf::st_intersects(sf_asset, sf_roi, sparse = TRUE)
             if (lengths(g1) == 0)
                 return(NULL)
@@ -99,7 +100,9 @@ sits_cube_copy <- function(cube,
     # Get all paths and expand
     file <- .file_normalize(.tile_path(asset))
     # Create a list of user parameters as gdal format
-    gdal_params <- .gdal_format_params(asset = asset, sf_roi = sf_roi, res = res)
+    gdal_params <- .gdal_format_params(asset = asset,
+                                       sf_roi = sf_roi,
+                                       res = res)
     # Create output file
     derived_cube <- inherits(asset, "derived_cube")
     if (derived_cube)

@@ -51,9 +51,13 @@
             message("(If you want to produce a new image, please ",
                     "change 'output_dir' or 'version' parameters)")
         }
-        probs_tile <- .tile_probs_from_file(
-            file = out_file, band = band, base_tile = tile,
-            labels = .ml_labels(ml_model), update_bbox = TRUE
+        probs_tile <- .tile_derived_from_file(
+            file = out_file,
+            band = band,
+            base_tile = tile,
+            labels = .ml_labels(ml_model),
+            derived_class = "probs_cube",
+            update_bbox = TRUE
         )
         return(probs_tile)
     }
@@ -184,10 +188,15 @@
         block_file
     }, progress = progress)
     # Merge blocks into a new probs_cube tile
-    probs_tile <- .tile_probs_merge_blocks(
-        file = out_file, band = band, labels = .ml_labels(ml_model),
-        base_tile = tile, block_files = block_files,
-        multicores = .jobs_multicores(), update_bbox = update_bbox
+    probs_tile <- .tile_derived_merge_blocks(
+        file = out_file,
+        band = band,
+        labels = .ml_labels(ml_model),
+        base_tile = tile,
+        block_files = block_files,
+        derived_class = "probs_cube",
+        multicores = .jobs_multicores(),
+        update_bbox = update_bbox
     )
     # # Callback final tile classification
     # .callback(event = "tile_classification", status = "end",

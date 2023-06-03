@@ -514,6 +514,7 @@ NULL
 #' @param tiles      Tile names
 #' @param start_date Start date.
 #' @param end_date   End date.
+#' @param token      Requires token (TRUE/FALSE)
 #'
 #' @return
 #' The values returned by each function are described as follows.
@@ -661,12 +662,14 @@ NULL
 #' @rdname .source_collection
 #' @noRd
 #' @description \code{.source_collection_open_data()} informs if a
-#' collection is open data or not.
+#' collection is open data or not. If token is TRUE, informs if a
+#' collection requires a token to access.
 #'
 #' @return \code{.source_collection_open_data()} returns a \code{logical}.
 #'
 .source_collection_open_data <- function(source,
-                                         collection) {
+                                         collection,
+                                         token = FALSE) {
 
     # source is upper case
     source <- toupper(source)
@@ -677,14 +680,24 @@ NULL
         source = source,
         collection = collection
     )
-    res <- .try(
-        .conf(
-            "sources", source,
-            "collections", collection,
-            "open_data"
-        ), .default = FALSE
-    )
-
+    if (token) {
+        res <- .try(
+            .conf(
+                "sources", source,
+                "collections", collection,
+                "open_data_token"
+            ),
+            .default = FALSE
+        )
+    } else {
+        res <- .try(
+            .conf(
+                "sources", source,
+                "collections", collection,
+                "open_data"
+            ), .default = FALSE
+        )
+    }
     # post-condition
     .check_lgl(res,
         len_min = 1, len_max = 1,
@@ -692,41 +705,6 @@ NULL
     )
     return(res)
 }
-#' @rdname .source_collection
-#' @noRd
-#' @description \code{.source_collection_open_data_token()} informs if a
-#' collection requires a token to access.
-#'
-#' @return \code{.source_collection_open_data_token()} returns a \code{logical}.
-#'
-.source_collection_open_data_token <- function(source,
-                                               collection) {
-
-    # source is upper case
-    source <- toupper(source)
-    # collection is upper case
-    collection <- toupper(collection)
-    # pre-condition
-    .source_collection_check(
-        source = source,
-        collection = collection
-    )
-    res <- .try(
-        .conf(
-        "sources", source,
-        "collections", collection,
-        "open_data_token"
-        ),
-        .default = FALSE
-    )
-    # post-condition
-    .check_lgl(res,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'open_data_token' value"
-    )
-    return(res)
-}
-
 #' @rdname .source_collection
 #' @noRd
 #' @description \code{.source_collection_token_check()} checks if a collection

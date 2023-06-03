@@ -717,7 +717,7 @@ plot.variance_cube <- function(
                 msg = "plot type should be either map or hist")
     # plot the variance cube
     if (type == "map")
-        p <- .plot_variance_map(tile, labels, palette, rev, tmap_options)
+        p <- .plot_probs(tile, labels, palette, rev, tmap_options)
     else
         p <- .plot_variance_hist(tile)
 

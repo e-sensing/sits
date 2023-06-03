@@ -58,7 +58,8 @@
 #' }
 #'
 #' @export
-sits_segment <- function(cube, tiles, bands, date, seg_fn, ...) {
+sits_segment <- function(cube, tiles = NULL,
+                         bands = NULL, date = NULL, seg_fn, ...) {
     # segment each tile
     # cube is regular
     .check_is_regular(cube)
@@ -70,9 +71,12 @@ sits_segment <- function(cube, tiles, bands, date, seg_fn, ...) {
         msg = "tiles not available in the cube"
     )
     # bands are OK
+    bands <- .default(bands, .cube_bands(cube))
     .check_chr_within(bands, .cube_bands(cube),
                       msg = "bands not available in the cube")
     # date is ok
+    #
+    date <- .default(date, .cube_timeline(cube)[[1]][[1]])
     .check_that(as.Date(date) %in% .cube_timeline(cube)[[1]],
                 msg = "date not available in the cube")
 

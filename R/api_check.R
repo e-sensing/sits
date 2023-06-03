@@ -228,18 +228,12 @@
                         msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
-
+    msg <- .check_default_message(x, msg)
     .check_that(
         !is.null(x),
         local_msg = "value cannot be NULL",
         msg = msg
     )
-
     return(invisible(x))
 }
 
@@ -249,12 +243,7 @@
 .check_na <- function(x, ..., allow_na = FALSE, msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
-
+    msg <- .check_default_message(x, msg)
     if (!allow_na) {
         .check_that(
             !any(is.na(x)),
@@ -262,12 +251,8 @@
             msg = msg
         )
     }
-
     return(invisible(x))
 }
-
-
-
 #' @rdname check_functions
 #' @keywords internal
 #' @noRd
@@ -277,17 +262,12 @@
                          msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # cannot test zero length arguments
     if (length(x) == 0) {
         return(invisible(x))
     }
-
     if (is_named) {
         .check_that(
             !is.null(names(x)) && !any(is.na(names(x))),
@@ -301,7 +281,6 @@
                 msg = msg
             )
         }
-
     } else {
         .check_that(
             is.null(names(x)),
@@ -309,7 +288,6 @@
             msg = msg
         )
     }
-
     return(invisible(x))
 }
 
@@ -322,11 +300,7 @@
                           msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # pre-condition
     .check_num_type(
@@ -386,18 +360,12 @@
                             msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
-
+    msg <- .check_default_message(x, msg)
     .check_that(
         is.logical(x),
         local_msg = "value is not logical",
         msg = msg
     )
-
     return(invisible(x))
 }
 
@@ -409,11 +377,7 @@
                             msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     .check_that(
         is.numeric(x),
@@ -446,18 +410,12 @@
                             msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
-
+    msg <- .check_default_message(x, msg)
     .check_that(
         is.character(x),
         local_msg = "value is not character type",
         msg = msg
     )
-
     return(invisible(x))
 }
 
@@ -468,18 +426,13 @@
                             msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     .check_that(
         is.list(x),
         local_msg = "value is not a list",
         msg = msg
     )
-
     return(invisible(x))
 }
 
@@ -529,31 +482,22 @@
                        msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # check for NULL and exit if it is allowed
     if (allow_null && is.null(x)) {
         return(invisible(x))
     }
-
     # check NULL
     .check_null(x, msg = msg)
-
     # check type
     .check_lgl_type(x, msg = msg)
-
     # check length
     .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
-
     # check NA
     if (!allow_na) {
         .check_na(x, msg = msg)
     }
-
     # check names
     .check_names(x, is_named = is_named, msg = msg)
 
@@ -578,32 +522,22 @@
                        msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # check for NULL and exit if it is allowed
     if (allow_null && is.null(x)) {
         return(invisible(x))
     }
-
     # check NULL
     .check_null(x, msg = msg)
-
     # check type
     .check_num_type(x, is_integer = is_integer, msg = msg)
-
     # check length
     .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
-
     # check NA
     .check_na(x, allow_na = allow_na, msg = msg)
-
     # check names
     .check_names(x, is_named = is_named, msg = msg)
-
     # check range
     .check_num_min_max(
         x = x,
@@ -614,7 +548,6 @@
         tolerance = tolerance,
         msg = msg
     )
-
     return(invisible(x))
 }
 
@@ -627,11 +560,7 @@
                                msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # pre-condition
     .check_num_type(min, msg = "invalid 'min' parameter")
@@ -670,7 +599,6 @@
         local_msg = paste0("value should be <= ", max),
         msg = msg
     )
-
     # exclusive_min and exclusive_max checks
     .check_that(
         all(x > exclusive_min),
@@ -682,7 +610,6 @@
         local_msg = paste0("value should be < ", exclusive_max),
         msg = msg
     )
-
     return(invisible(result))
 }
 
@@ -701,31 +628,22 @@
                        msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # check for null and exit if it is allowed
     if (allow_null && is.null(x)) {
         return(invisible(x))
     }
-
     # check NULL
     .check_null(x, msg = msg)
-
     # check type
     .check_chr_type(x, msg = msg)
-
     # check length
     .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
-
     # check NA
     if (!allow_na) {
         .check_na(x, msg = msg)
     }
-
     # check empty
     if (!allow_empty) {
         .check_that(
@@ -734,14 +652,11 @@
             msg = msg
         )
     }
-
-
     # check names
     .check_names(x,
                  is_named = is_named,
                  is_unique = has_unique_names,
                  msg = msg)
-
     # check regular expression pattern
     if (!is.null(regex)) {
         .check_that(
@@ -750,7 +665,6 @@
             msg = msg
         )
     }
-
     return(invisible(x))
 }
 
@@ -766,34 +680,24 @@
                        msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # check for null and exit if it is allowed
     if (allow_null && is.null(x)) {
         return(invisible(x))
     }
-
     # check NULL
     .check_null(x, msg = msg)
-
     # check type
     .check_lst_type(x, msg = msg)
-
     # check length
     .check_length(x, len_min = min_len, len_max = max_len, msg = msg)
-
     # check names
     .check_names(x, is_named = is_named, msg = msg)
-
     # check using function
     if (!is.null(fn_check)) {
         .check_apply(x, fn_check = fn_check, msg = msg, ...)
     }
-
     return(invisible(x))
 }
 
@@ -846,11 +750,7 @@
                               msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # pre-condition
     .check_chr(within,
@@ -859,10 +759,8 @@
     )
     # check parameters
     .check_discriminator(discriminator)
-
     # check type
     .check_chr_type(x, msg = msg)
-
     # check for repeated values
     if (!can_repeat) {
         .check_that(
@@ -871,22 +769,17 @@
             msg = msg
         )
     }
-
     result <- x
-
     # simplify
     x <- unique(x)
     within <- unique(within)
-
     # transform inputs to verify without case sensitive
     if (!case_sensitive) {
         x <- tolower(x)
         within <- tolower(within)
     }
-
     # prepare local message
-    local_msg <- "invalid discriminator"
-
+    local_msg <- "invalid condition"
     # check discriminator
     if (discriminator == "one_of") {
         .check_that(
@@ -934,11 +827,7 @@
                                 msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # pre-condition
     .check_chr(contains,
@@ -1030,11 +919,7 @@
                         msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # file extension
     ext_file <- function(x) {
@@ -1093,16 +978,10 @@
                            msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' environment variable")
-    }
+    msg <- .check_default_message(x, msg)
 
     .check_null(x, msg = msg)
-
     .check_chr_type(x, msg = msg)
-
     if (length(x) > 0) {
         .check_apply(
             x,
@@ -1119,7 +998,6 @@
     } else {
         .check_that(x = nzchar(Sys.getenv(x)), msg = msg)
     }
-
     return(invisible(x))
 }
 
@@ -2344,4 +2222,13 @@
             msg = "invalid RGB bands"
         )
     }
+}
+.check_default_message <- function(x, msg = NULL){
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
+    return(msg)
 }

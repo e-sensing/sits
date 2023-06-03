@@ -34,9 +34,10 @@ test_that("api_source", {
         collection = "SENTINEL-2-L2A"
     )
     expect_true(open_mpc)
-    token_mpc <- .source_collection_open_data_token(
+    token_mpc <- .source_collection_open_data(
         source = "MPC",
-        collection = "SENTINEL-2-L2A"
+        collection = "SENTINEL-2-L2A",
+        token = TRUE
     )
     expect_false(token_mpc)
 
@@ -46,9 +47,10 @@ test_that("api_source", {
     )
     expect_true(open_bdc)
 
-    token_bdc <- .source_collection_open_data_token(
+    token_bdc <- .source_collection_open_data(
         source = "BDC",
-        collection = "S2-SEN2COR_10_16D_STK-1"
+        collection = "S2-SEN2COR_10_16D_STK-1",
+        token = TRUE
     )
     expect_true(token_bdc)
 

@@ -5,7 +5,7 @@
 \alias{sits_segment}
 \title{Segment an image}
 \usage{
-sits_segment(cube, tiles, bands, date, seg_fn, ...)
+sits_segment(cube, tiles = NULL, bands = NULL, date = NULL, seg_fn, ...)
 }
 \arguments{
 \item{cube}{Regular data cube}
