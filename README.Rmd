@@ -168,7 +168,7 @@ raster_cube <- sits_cube(
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
-    parse_info = c("X1", "tile", "band", "date"),
+    parse_info = c("X1", "X2", "tile", "band", "date"),
     progress = FALSE
 )
 # obtain a set of samples defined by a CSV file
@@ -240,7 +240,7 @@ sinop <- sits_cube(
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
-    parse_info = c("X1", "tile", "band", "date"),
+    parse_info = c("X1", "X2", "tile", "band", "date"),
     progress = FALSE
 )
 # Classify the raster cube, generating a probability file
