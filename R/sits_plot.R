@@ -367,6 +367,8 @@ plot.sits <- function(x, y, ..., together = FALSE) {
 #' @param  y             Ignored.
 #' @param  ...           Further specifications for \link{plot}.
 #' @param  bands         Bands to be viewed (optional).
+#' @param  year_grid     Plot a grid of panels using labels as columns and
+#'                       years as rows. Default is FALSE.
 #' @return               A plot object produced by ggplot2
 #'                       with one average pattern per label.
 #'
@@ -381,7 +383,7 @@ plot.sits <- function(x, y, ..., together = FALSE) {
 #' }
 #' @export
 #'
-plot.patterns <- function(x, y, ..., bands = NULL) {
+plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
     stopifnot(missing(y))
     # verifies if scales package is installed
     .check_require_packages("scales")
@@ -409,14 +411,25 @@ plot.patterns <- function(x, y, ..., bands = NULL) {
 
     plot.df <- tidyr::pivot_longer(plot.df, cols = sits_bands(x))
 
+    if(year_grid)
+        plot.df <- plot.df %>%
+            dplyr::mutate(year = format(Time, format="%Y")) %>%
+            dplyr::mutate(Time = as.Date(format(Time, format="2000-%m-%d")))
+
     # Plot temporal patterns
     gp <- ggplot2::ggplot(plot.df, ggplot2::aes(
         x = .data[["Time"]],
         y = .data[["value"]],
         colour = .data[["name"]]
     )) +
-        ggplot2::geom_line() +
-        ggplot2::facet_wrap(~Pattern) +
+        ggplot2::geom_line()
+
+    if(year_grid)
+        gp <- gp + ggplot2::facet_grid(year ~ Pattern)
+    else
+        gp <- gp + ggplot2::facet_wrap(~Pattern)
+
+    gp <- gp +
         ggplot2::theme(legend.position = "bottom") +
         ggplot2::scale_x_date(labels = scales::date_format("%b")) +
         ggplot2::guides(colour = ggplot2::guide_legend(title = "Bands")) +
