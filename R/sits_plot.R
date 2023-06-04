@@ -1339,7 +1339,7 @@ plot.geo_distances <- function(x, y, ...) {
 #' @description Plot a dendrogram
 #'
 #' @param x             sits tibble with cluster indexes.
-#' @param  ...           Further specifications for \link{plot}.
+#' @param ...           Further specifications for \link{plot}.
 #' @param cluster       cluster object produced by `sits_cluster` function.
 #' @param cutree_height dashed horizontal line to be drawn
 #'                      indicating the height of dendrogram cutting.

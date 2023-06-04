@@ -9,6 +9,8 @@
 \arguments{
 \item{x}{sits tibble with cluster indexes.}
 
+\item{...}{Further specifications for \link{plot}.}
+
 \item{cluster}{cluster object produced by `sits_cluster` function.}
 
 \item{cutree_height}{dashed horizontal line to be drawn
