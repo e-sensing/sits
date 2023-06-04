@@ -149,38 +149,3 @@ NULL
     chunks_sf <- .bbox_as_sf(.bbox(chunks, by_feature = TRUE))
     chunks[.intersects(chunks_sf, .roi_as_sf(roi)), ]
 }
-
-#' @title Chunk accessors
-#' @noRd
-#'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description
-#' These functions are read-only accessors of chunk fields
-#' `.xres()` and `.yres()` computes, respectively, horizontal and vertial
-#' spatial resolution from chunks. The values are computed as:
-#' * xres = (xmax - xmin) / ncols
-#' * yres = (ymax - ymin) / nrows
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#' x <- c(nrows = 100, ymin = 1, ymax = 10)
-#' .yres(x) # 0.09
-#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#' modis_cube <- sits_cube(
-#'   source = "BDC",
-#'   collection = "MOD13Q1-6",
-#'   data_dir = data_dir,
-#'   delim = "_"
-#' )
-#' .xres(.fi(modis_cube))
-#' .yres(.fi(modis_cube))
-#' }
-NULL
-
-.xres <- function(x) {
-    (.xmax(x) - .xmin(x)) / .ncols(x)
-}
-.yres <- function(x) {
-    (.ymax(x) - .ymin(x)) / .nrows(x)
-}

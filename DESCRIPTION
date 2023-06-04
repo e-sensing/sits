@@ -104,6 +104,7 @@ LinkingTo:
     RcppArmadillo
 RoxygenNote: 7.2.3
 Collate: 
+    'api_accessors.R'
     'api_accuracy.R'
     'api_apply.R'
     'api_band.R'

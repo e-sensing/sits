@@ -1797,6 +1797,14 @@
         msg = "input data without labels"
     )
 }
+#' @title Check if an object is a bbox
+#' @noRd
+#' @returns Throws an error if an object is not a bbox.
+.check_bbox <- function(x) {
+    if (!setequal(names(x), c(.bbox_cols, "crs"))) {
+        stop("object is not a valid bbox")
+    }
+}
 #' @title Check if bands are part of a data cube
 #' @name .check_cube_bands
 #' @param cube          Data cube
