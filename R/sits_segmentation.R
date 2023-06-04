@@ -208,7 +208,7 @@ sits_slic <- function(
     }
     # If samples is informed, train a model and return a predict function
         # Otherwise give back a train function to train model further
-        result <- .sits_factory_function(tile, seg_fun)
+        result <- .factory_function(tile, seg_fun)
     return(result)
 }
 

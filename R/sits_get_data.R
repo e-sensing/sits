@@ -201,7 +201,7 @@ sits_get_data.shp <- function(cube,
         progress   = progress
     )
     if (pol_avg && "polygon_id" %in% colnames(data)) {
-        data <- .sits_avg_polygon(data = data)
+        data <- .data_avg_polygon(data = data)
     }
     return(data)
 }
@@ -251,7 +251,7 @@ sits_get_data.sf <- function(cube,
         progress   = progress
     )
     if (pol_avg && "polygon_id" %in% colnames(data)) {
-        data <- .sits_avg_polygon(data = data)
+        data <- .data_avg_polygon(data = data)
     }
 
     return(data)

@@ -159,9 +159,9 @@ sits_mlp <- function(samples = NULL,
         .check_lgl(verbose)
 
         # Samples labels
-        labels <- sits_labels(samples)
+        labels <- .samples_labels(samples)
         # Samples bands
-        bands <- .sits_bands(samples)
+        bands <- .samples_bands(samples)
         # Samples timeline
         timeline <- sits_timeline(samples)
 
@@ -170,7 +170,7 @@ sits_mlp <- function(samples = NULL,
         names(code_labels) <- labels
 
         # Data normalization
-        ml_stats <- .sits_stats(samples)
+        ml_stats <- .samples_stats(samples)
         train_samples <- .predictors(samples)
         train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
 
@@ -315,6 +315,6 @@ sits_mlp <- function(samples = NULL,
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .sits_factory_function(samples, train_fun)
+    result <- .factory_function(samples, train_fun)
     return(result)
 }

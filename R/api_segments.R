@@ -42,10 +42,10 @@
     }
     # prepare parallelization
     multicores <- min(multicores, length(tiles_bands))
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
-    samples_tiles_bands <- .sits_parallel_map(tiles_bands, function(tile_band) {
+    samples_tiles_bands <- .parallel_map(tiles_bands, function(tile_band) {
         tile_id <- tile_band[[1]]
         band <- tile_band[[2]]
         # select a band for a tile

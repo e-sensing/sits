@@ -102,7 +102,7 @@ sits_kfold_validate <- function(samples,
     }
 
     # Get labels from samples
-    labels <- .sits_labels(samples)
+    labels <- .samples_labels(samples)
     # Create numeric labels vector
     code_labels <- seq_along(labels)
     names(code_labels) <- labels
@@ -116,13 +116,13 @@ sits_kfold_validate <- function(samples,
     # start parallel process
     multicores <- min(multicores, folds)
 
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop())
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop())
 
     # Create partitions different splits of the input data
-    samples <- .create_folds(samples, folds = folds)
+    samples <- .samples_create_folds(samples, folds = folds)
     # Do parallel process
-    conf_lst <- .sits_parallel_map(seq_len(folds), function(k) {
+    conf_lst <- .parallel_map(seq_len(folds), function(k) {
         # Split data into training and test data sets
         data_train <- samples[samples$folds != k, ]
         data_test <- samples[samples$folds == k, ]
@@ -229,7 +229,7 @@ sits_validate <- function(samples,
     # Classify
     values <- ml_model(values)
     # Get the labels of the data
-    labels <- .sits_labels(samples)
+    labels <- .samples_labels(samples)
     # Extract classified labels (majority probability)
     predicted_labels <- labels[C_label_max_prob(as.matrix(values))]
     # Call caret to provide assessment
@@ -239,28 +239,4 @@ sits_validate <- function(samples,
     acc_obj <- caret::confusionMatrix(predicted, reference)
     # Set result class and return it
     .set_class(x = acc_obj, "sits_accuracy", class(acc_obj))
-}
-#' @title Create partitions of a data set
-#' @name  .create_folds
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Alexandre Ywata, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Split a sits tibble into k groups, based on the label.
-#'
-#' @keywords internal
-#' @noRd
-#' @param data   A sits tibble to be partitioned.
-#' @param folds  Number of folds
-#'
-#' @return A list of row position integers corresponding to the training data.
-#'
-.create_folds <- function(data, folds = 5) {
-    # verify if data exists
-    # splits the data into k groups
-    data$folds <- caret::createFolds(data$label,
-        k = folds,
-        returnTrain = FALSE, list = FALSE
-    )
-    return(data)
 }

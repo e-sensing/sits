@@ -150,8 +150,8 @@ sits_apply.raster_cube <- function(data, ...,
         job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
     # Prepare parallelization
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
     # Create features as jobs
     features_cube <- .cube_split_features(data)

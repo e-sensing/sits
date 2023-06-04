@@ -69,27 +69,3 @@ sits_geo_dist <- function(samples, roi, n = 1000, crs = "EPSG:4326") {
 
     return(dist_tb)
 }
-
-#' @title Find the closest points.
-#'
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#' @keywords internal
-#' @noRd
-#' @description
-#' For each point in x, find the closest point in y (and their distance).
-#'
-#' @param x An `sf` object (points).
-#' @param y An `sf` object (points).
-#'
-#' @return  A data.frame with the columns from (row number in a), b
-#' (row number in b), and distance (in meters).
-.find_closest <- function(x, y = x) {
-    dist_xy <- sf::st_distance(x, y)
-    class(dist_xy) <- setdiff(class(dist_xy), "units")
-    attr(dist_xy, "units") <- NULL
-
-    dist_xy[dist_xy == 0] <- Inf
-    min_dist <- apply(dist_xy, MARGIN = 1, FUN = min)
-    dist_df <- tibble::tibble(distance = min_dist)
-    return(dist_df)
-}

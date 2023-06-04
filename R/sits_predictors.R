@@ -161,6 +161,6 @@ sits_pred_sample <- function(pred, frac) {
 #' }
 #' @export
 sits_stats <- function(samples) {
-    stats <- .sits_stats(samples)
+    stats <- .samples_stats(samples)
     return(stats)
 }

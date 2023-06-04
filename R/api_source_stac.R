@@ -195,11 +195,11 @@
     }
 
     # prepare parallel requests
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
     # do parallel requests
-    tiles <- .sits_parallel_map(seq_len(nrow(data)), function(i) {
+    tiles <- .parallel_map(seq_len(nrow(data)), function(i) {
 
         # get tile name
         tile <- data[["tile"]][[i]]
@@ -356,7 +356,7 @@
             tidyr::nest(assets = -"tile")
 
         # test paths by open files...
-        val <- .sits_parallel_map(seq_len(nrow(data)), function(i) {
+        val <- .parallel_map(seq_len(nrow(data)), function(i) {
             tryCatch(
                 {
                     lapply(data$assets[[i]]$path, .raster_open_rast)

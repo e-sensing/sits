@@ -130,8 +130,8 @@ sits_reclassify <- function(cube,
     )
 
     # Prepare parallelization
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
     UseMethod("sits_reclassify", cube)
 }

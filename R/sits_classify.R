@@ -131,7 +131,7 @@ sits_classify.sits <- function(data,
     }
 
     # Do classification
-    classified_ts <- .sits_classify_ts(
+    classified_ts <- .classify_ts(
         samples = data,
         ml_model = ml_model,
         filter_fn = filter_fn,
@@ -207,9 +207,9 @@ sits_classify.raster_cube <- function(data,
         multicores = multicores
     )
     # Prepare parallel processing
-    .sits_parallel_start(workers = multicores, log = verbose,
+    .parallel_start(workers = multicores, log = verbose,
                          output_dir = output_dir)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    on.exit(.parallel_stop(), add = TRUE)
     # Show block information
     if (verbose) {
         start_time <- Sys.time()

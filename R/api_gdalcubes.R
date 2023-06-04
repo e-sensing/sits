@@ -504,8 +504,8 @@
     )
 
     # start processes
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop())
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop())
 
     # does a local cube exist
     local_cube <- tryCatch(
@@ -539,7 +539,7 @@
         cube <- .cube_token_generator(cube)
 
         # process bands and tiles in parallel
-        .sits_parallel_map(jobs, function(job) {
+        .parallel_map(jobs, function(job) {
 
             # get parameters from each job
             tile_name <- job[[1]]
@@ -681,8 +681,8 @@
             ))
 
             # remove cache
-            .sits_parallel_stop()
-            .sits_parallel_start(workers = multicores)
+            .parallel_stop()
+            .parallel_start(workers = multicores)
         }
     }
 

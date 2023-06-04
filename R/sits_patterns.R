@@ -143,6 +143,6 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
         return(patterns)
     }
 
-    result <- .sits_factory_function(data, result_fun)
+    result <- .factory_function(data, result_fun)
     return(result)
 }

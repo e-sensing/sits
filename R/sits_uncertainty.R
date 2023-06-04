@@ -91,8 +91,8 @@ sits_uncertainty <- function(cube,
     )
 
     # Prepare parallel processing
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
     # Define the class of the smoothing
     class(type) <- c(type, class(type))
@@ -109,7 +109,7 @@ sits_uncertainty.least <- function(cube,
                                    version = "v1") {
 
     # Compute uncertainty
-    uncert_cube <- .uncertainty_cube(
+    uncert_cube <- .cube_uncertainty(
         cube = cube,
         band = "least",
         uncert_fn = .uncertainty_fn_least(),
@@ -128,7 +128,7 @@ sits_uncertainty.entropy <- function(cube,
                                      output_dir,
                                      version = "v1") {
     # Compute uncertainty
-    uncert_cube <- .uncertainty_cube(
+    uncert_cube <- .cube_uncertainty(
         cube = cube,
         band = "entropy",
         uncert_fn = .uncertainty_fn_entropy(),
@@ -147,7 +147,7 @@ sits_uncertainty.margin <- function(cube,
                                     output_dir,
                                     version = "v1") {
     # Create uncertainty cube
-    uncert_cube <- .uncertainty_cube(
+    uncert_cube <- .cube_uncertainty(
         cube = cube,
         band = "margin",
         uncert_fn = .uncertainty_fn_margin(),
@@ -156,23 +156,4 @@ sits_uncertainty.margin <- function(cube,
     )
     return(uncert_cube)
 }
-.uncertainty_cube <- function(cube,
-                              band,
-                              uncert_fn,
-                              output_dir,
-                              version){
-    # Uncertainty
-    # Process each tile sequentially
-    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
-        # Compute uncertainty
-        uncert_tile <- .uncertainty_tile(
-            tile = tile,
-            band = band,
-            uncert_fn = uncert_fn,
-            output_dir = output_dir,
-            version = version
-        )
-        return(uncert_tile)
-    })
-    return(uncert_cube)
-}
+

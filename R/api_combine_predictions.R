@@ -37,8 +37,8 @@
         multicores = multicores
     )
     # Prepare parallel processing
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
     # Call the combine method
     # Process each tile sequentially

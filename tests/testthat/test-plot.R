@@ -148,21 +148,21 @@ test_that("Plot Models", {
 
 test_that("Dendrogram Plot", {
 
-    cluster_obj <- .sits_cluster_dendrogram(cerrado_2classes,
+    samples <- sits_cluster_dendro(cerrado_2classes,
+        bands = c("NDVI", "EVI"),
+        .plot = FALSE
+    )
+    cluster <- .cluster_dendrogram(
+        samples = samples,
         bands = c("NDVI", "EVI")
     )
-    cut.vec <- .sits_cluster_dendro_bestcut(
-        cerrado_2classes,
-        cluster_obj
-    )
 
-    dend <- suppressMessages(
-        .plot_dendrogram(
-            data = cerrado_2classes,
-            cluster = cluster_obj,
-            cutree_height = cut.vec["height"],
+    best_cut <- .cluster_dendro_bestcut(samples, cluster)
+
+    dend <- plot(samples,
+            cluster = cluster,
+            cutree_height = best_cut["height"],
             palette = "RdYlGn"
-        )
     )
     expect_equal(class(dend), "dendrogram")
 })

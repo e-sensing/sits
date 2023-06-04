@@ -153,9 +153,9 @@ sits_lighttae <- function(samples = NULL,
         .check_lgl(verbose)
 
         # Samples labels
-        labels <- .sits_labels(samples)
+        labels <- .samples_labels(samples)
         # Samples bands
-        bands <- .sits_bands(samples)
+        bands <- .samples_bands(samples)
         # Samples timeline
         timeline <- sits_timeline(samples)
 
@@ -166,10 +166,10 @@ sits_lighttae <- function(samples = NULL,
         # Number of labels, bands, and number of samples (used below)
         n_labels <- length(labels)
         n_bands <- length(bands)
-        n_times <- .sits_ntimes(samples)
+        n_times <- .samples_ntimes(samples)
 
         # Data normalization
-        ml_stats <- .sits_stats(samples)
+        ml_stats <- .samples_stats(samples)
         train_samples <- .predictors(samples)
         train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
 
@@ -327,7 +327,7 @@ sits_lighttae <- function(samples = NULL,
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
-            n_times <- .sits_ntimes(samples)
+            n_times <- .samples_ntimes(samples)
             n_bands <- length(bands)
             # Performs data normalization
             values <- .pred_normalize(pred = values, stats = ml_stats)
@@ -356,6 +356,6 @@ sits_lighttae <- function(samples = NULL,
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .sits_factory_function(samples, train_fun)
+    result <- .factory_function(samples, train_fun)
     return(result)
 }

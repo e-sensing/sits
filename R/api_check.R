@@ -1473,7 +1473,7 @@
         msg = "invalid samples data"
     )
     # Get unnested time series
-    ts <- .sits_ts(data)
+    ts <- .samples_ts(data)
     # check there is an Index column
     .check_that(x = "Index" %in% colnames(ts))
     # check if all samples have the same bands
@@ -1492,7 +1492,7 @@
 .check_samples_train <- function(data) {
     .check_samples(data)
     # check that there is no NA in labels
-    labels <- .sits_labels(data)
+    labels <- .samples_labels(data)
     .check_that(
         x = !("NoClass" %in% labels) && !("" %in% labels) &&
             !any(is.na(labels)),
@@ -2231,4 +2231,38 @@
         msg <- paste0("invalid '", x_expr, "' parameter")
     }
     return(msg)
+}
+#' @title Checks local items
+#' @name .check_local_items
+#' @param items      Items with information on local cube
+#' @return called for side effects
+#' @keywords internal
+#' @noRd
+.check_local_items <- function(items) {
+    # pre-condition
+    .check_length(
+        unique(items[["tile"]]),
+        len_min = 1,
+        msg = "invalid number of tiles"
+    )
+
+    # get crs from file_info
+    crs <- unique(items[["crs"]])
+
+    # check crs
+    .check_length(
+        crs,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid crs value"
+    )
+    # get tile from file_info
+    tile <- unique(items[["tile"]])
+    # check tile
+    .check_length(
+        tile,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid tile value"
+    )
 }

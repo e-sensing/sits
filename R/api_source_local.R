@@ -346,11 +346,11 @@
         dplyr::ungroup()
     # prepare parallel requests
     if (is.null(sits_env[["cluster"]])) {
-        .sits_parallel_start(workers = multicores)
-        on.exit(.sits_parallel_stop(), add = TRUE)
+        .parallel_start(workers = multicores)
+        on.exit(.parallel_stop(), add = TRUE)
     }
     # do parallel requests
-    results_lst <- .sits_parallel_map(unique(items[["fid"]]), function(i) {
+    results_lst <- .parallel_map(unique(items[["fid"]]), function(i) {
         # filter by feature
         item <- dplyr::filter(items, .data[["fid"]] == !!i)
         # open band rasters and get assets info
@@ -411,11 +411,11 @@
 
     # prepare parallel requests
     if (is.null(sits_env[["cluster"]])) {
-        .sits_parallel_start(workers = multicores)
-        on.exit(.sits_parallel_stop(), add = TRUE)
+        .parallel_start(workers = multicores)
+        on.exit(.parallel_stop(), add = TRUE)
     }
     # do parallel requests
-    results_lst <- .sits_parallel_map(seq_len(nrow(items)), function(i) {
+    results_lst <- .parallel_map(seq_len(nrow(items)), function(i) {
 
         item <- items[i, ]
         # open band rasters and get assets info
@@ -470,31 +470,11 @@
                                    collection,
                                    items) {
     # pre-condition
-    .check_length(
-        unique(items[["tile"]]),
-        len_min = 1,
-        msg = "invalid number of tiles"
-    )
-
+    .check_local_items(items)
     # get crs from file_info
     crs <- unique(items[["crs"]])
-
-    # check crs
-    .check_length(
-        crs,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid crs value"
-    )
     # get tile from file_info
     tile <- unique(items[["tile"]])
-    # check tile
-    .check_length(
-        tile,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid tile value"
-    )
     # make a new file info for one tile
     file_info <- dplyr::select(
         items,
@@ -538,29 +518,11 @@
                                       items,
                                       labels) {
     # pre-condition
-    .check_length(
-        unique(items[["tile"]]),
-        len_min = 1,
-        msg = "invalid number of tiles"
-    )
+    .check_local_items(items)
     # get crs from file_info
     crs <- unique(items[["crs"]])
-    # check crs
-    .check_length(
-        crs,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid crs value"
-    )
     # get tile from file_info
     tile <- unique(items[["tile"]])
-    # check tile
-    .check_length(
-        tile,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid tile value"
-    )
     # make a new file info for one tile
     file_info <- dplyr::select(
         items,

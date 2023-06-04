@@ -132,11 +132,11 @@ sits_tuning <- function(samples,
     )
 
     # start processes
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop())
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop())
 
     # validate in parallel
-    result_lst <- .sits_parallel_map(params_lst, function(params) {
+    result_lst <- .parallel_map(params_lst, function(params) {
         # Prepare parameters
         params <- purrr::map(params, eval)
         # Prepare ml_method

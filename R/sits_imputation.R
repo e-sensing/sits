@@ -39,7 +39,7 @@ sits_impute_linear <- function(data = NULL) {
         }
     }
 
-    result <- .sits_factory_function(data, impute_fun)
+    result <- .factory_function(data, impute_fun)
 
     return(result)
 }

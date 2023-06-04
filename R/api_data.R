@@ -71,10 +71,10 @@
     if (Sys.getenv("SITS_SAMPLES_CACHE_DIR") != "")
         output_dir <- Sys.getenv("SITS_SAMPLES_CACHE_DIR")
     # prepare parallelization
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
-    samples_tiles_bands <- .sits_parallel_map(
+    samples_tiles_bands <- .parallel_map(
         tiles_bands,
         function(tile_band) {
             tile_id <- tile_band[[1]]
@@ -155,7 +155,7 @@
             })
 
             # extract time series
-            ts <- .raster_data_get_ts(
+            ts <- .ts_get_raster_data(
                 tile = tile,
                 points = samples_tbl,
                 bands = band,
@@ -235,7 +235,7 @@
 
     # check if data has been retrieved
     if (progress)
-        .sits_get_data_check(nrow(samples), nrow(ts_tbl))
+        .data_check(nrow(samples), nrow(ts_tbl))
 
     if (!inherits(ts_tbl, "sits")) {
         class(ts_tbl) <- c("sits", class(ts_tbl))
@@ -283,10 +283,10 @@
     if (Sys.getenv("SITS_SAMPLES_CACHE_DIR") != "")
         output_dir <- Sys.getenv("SITS_SAMPLES_CACHE_DIR")
     # prepare parallelization
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
-    samples_tiles_bands <- .sits_parallel_map(
+    samples_tiles_bands <- .parallel_map(
         tiles_bands,
         function(tile_band) {
 
@@ -366,7 +366,7 @@
                 # return valid row of time series
                 return(sample)
             })
-            ts <- .raster_class_get_ts(
+            ts <- .ts_get_raster_class(
                 tile = tile,
                 points = samples_tbl,
                 band = "class",
@@ -435,7 +435,7 @@
 
     # check if data has been retrieved
     if (progress)
-        .sits_get_data_check(nrow(samples), nrow(ts_tbl))
+        .data_check(nrow(samples), nrow(ts_tbl))
 
     class(ts_tbl) <- unique(c("predicted", "sits", class(ts_tbl)))
 
@@ -443,7 +443,7 @@
 }
 
 #' @title Check if all points have been retrieved
-#' @name .sits_get_data_check
+#' @name .data_check
 #' @keywords internal
 #' @noRd
 #' @param n_rows_input     Number of rows in input.
@@ -451,7 +451,7 @@
 #'
 #' @return No return value, called for side effects.
 #'
-.sits_get_data_check <- function(n_rows_input, n_rows_output) {
+.data_check <- function(n_rows_input, n_rows_output) {
 
     # Have all input rows being read?
     if (n_rows_output == 0) {
@@ -467,7 +467,7 @@
 }
 
 #' @title Extracts the time series average by polygon.
-#' @name .sits_avg_polygon
+#' @name .data_avg_polygon
 #' @keywords internal
 #' @noRd
 #' @description This function extracts the average of the automatically
@@ -476,7 +476,7 @@
 #' @param data A sits tibble with points time series.
 #'
 #' @return A sits tibble with the average of all points by each polygon.
-.sits_avg_polygon <- function(data) {
+.data_avg_polygon <- function(data) {
     bands <- sits_bands(data)
     columns_to_avg <- c(bands, "latitude", "longitude")
 

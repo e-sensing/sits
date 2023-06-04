@@ -1332,28 +1332,26 @@ plot.geo_distances <- function(x, y, ...) {
 
 
 
-#' @title Plot a dendrogram
-#' @name .plot_dendrogram
-#' @keywords internal
-#' @noRd
+#' @title Plot a dendrogram cluster
+#' @name plot.sits_cluster
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Plot a dendrogram
 #'
-#' @param data          sits tibble with data used to extract the dendrogram.
+#' @param x             sits tibble with cluster indexes.
+#' @param  ...           Further specifications for \link{plot}.
 #' @param cluster       cluster object produced by `sits_cluster` function.
 #' @param cutree_height dashed horizontal line to be drawn
 #'                      indicating the height of dendrogram cutting.
 #' @param palette       hcl color palette.
 #'
 #' @return              The dendrogram object.
-.plot_dendrogram <- function(data,
-                             cluster,
-                             cutree_height,
-                             palette) {
+#' @export
+plot.sits_cluster <- function(x, ...,
+                              cluster,
+                              cutree_height,
+                              palette) {
 
-    # set caller to show in errors
-    .check_set_caller(".plot_dendrogram")
 
     # verifies if dendextend and methods packages is installed
     .check_require_packages(
@@ -1367,7 +1365,7 @@ plot.geo_distances <- function(x, y, ...) {
         msg = "no valid cluster object available"
     )
     # get data labels
-    data_labels <- data$label
+    data_labels <- x$label
 
     # extract the dendrogram object
     hclust_cl <- methods::S3Part(cluster, strictS3 = TRUE)
@@ -1407,7 +1405,7 @@ plot.geo_distances <- function(x, y, ...) {
     # plot legend
     graphics::legend("topright",
         fill = colors_leg,
-        legend = sits_labels(data)
+        legend = sits_labels(x)
     )
     return(invisible(dend))
 }

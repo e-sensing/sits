@@ -556,7 +556,7 @@ NULL
     #
     # Log here
     #
-    .sits_debug_log(
+    .debug_log(
         event = "start_block_data_process",
         key = "band",
         value = band
@@ -587,7 +587,7 @@ NULL
     #
     # Log here
     #
-    .sits_debug_log(
+    .debug_log(
         event = "end_block_data_process",
         key = "band",
         value = band
@@ -651,7 +651,7 @@ NULL
     #
     # Log here
     #
-    .sits_debug_log(
+    .debug_log(
         event = "start_block_data_process",
         key = "cloud_mask",
         value = "cloud_mask"
@@ -672,7 +672,7 @@ NULL
     #
     # Log here
     #
-    .sits_debug_log(
+    .debug_log(
         event = "end_block_data_process",
         key = "cloud_bit_mask",
         value = is_bit_mask
