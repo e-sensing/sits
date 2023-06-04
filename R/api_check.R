@@ -2031,6 +2031,16 @@
 .check_empty_char <- function(x, msg, ...) {
     .check_that(all(nzchar(x)), msg = msg, ...)
 }
+#' @title Checks if the tibble/data.frame is empty
+#' @name .check_empty_data_frame
+#' @param x a data frame
+#' @return No return value, called for side effects.
+#' @keywords internal
+#' @noRd
+.check_empty_data_frame <- function(x, msg, ...) {
+    .check_that(nrow(x) > 0, msg = msg, ...)
+}
+
 .check_endmembers_parameter <- function(x) {
     .check_that(
         x = inherits(x, c("data.frame", "character")),

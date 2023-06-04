@@ -28,33 +28,33 @@
 #' # Include a new machine learning function (multiple linear regression)
 #' # function that returns mlr model based on a sits sample tibble
 #'
-#' sits_mlr <- function(samples = NULL, formula = sits_formula_linear(),
+#'     sits_mlr <- function(samples = NULL, formula = sits_formula_linear(),
 #'                     n_weights = 20000, maxit = 2000) {
 #'
-#'    train_fun <- function(samples) {
-#'         # Data normalization
-#'         ml_stats <- sits_stats(samples)
-#'         train_samples <- sits_predictors(samples)
-#'        train_samples <- sits_pred_normalize(
-#'            pred = train_samples,
-#'             stats = ml_stats
-#'         )
-#'        formula <- formula(pred[, -1])
-#'        # call method and return the trained model
-#'        result_mlr <- nnet::multinom(
-#'            formula = formula,
-#'            data = train_samples,
-#'            maxit = maxit,
-#'            MaxNWts = n_weights,
-#'            trace = FALSE,
-#'            na.action = stats::na.fail
-#'         )
+#'         train_fun <- function(samples) {
+#'             # Data normalization
+#'             ml_stats <- sits_stats(samples)
+#'             train_samples <- sits_predictors(samples)
+#'             train_samples <- sits_pred_normalize(
+#'                 pred = train_samples,
+#'                 stats = ml_stats
+#'             )
+#'             formula <- formula(train_samples[, -1])
+#'             # call method and return the trained model
+#'             result_mlr <- nnet::multinom(
+#'                 formula = formula,
+#'                 data = train_samples,
+#'                 maxit = maxit,
+#'                 MaxNWts = n_weights,
+#'                 trace = FALSE,
+#'                 na.action = stats::na.fail
+#'             )
 #'
-#'        # construct model predict closure function and returns
-#'        predict_fun <- function(values) {
-#'            # retrieve the prediction (values and probs)
-#'            prediction <- tibble::as_tibble(
-#'               stats::predict(result_mlr, newdata = values, type = "probs")
+#'           # construct model predict closure function and returns
+#'           predict_fun <- function(values) {
+#'               # retrieve the prediction (values and probs)
+#'               prediction <- tibble::as_tibble(
+#'                   stats::predict(result_mlr, newdata = values, type = "probs")
 #'               )
 #'               return(prediction)
 #'            }
@@ -69,6 +69,7 @@
 #'     # classify a point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     point_class <- sits_classify(point_ndvi, mlr_model, multicores = 1)
+#'     plot(point_class)
 #' }
 #' @export
 sits_factory_function <- function(data, fun) {
