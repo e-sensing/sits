@@ -413,8 +413,8 @@ plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
 
     if(year_grid)
         plot.df <- plot.df %>%
-            dplyr::mutate(year = format(Time, format="%Y")) %>%
-            dplyr::mutate(Time = as.Date(format(Time, format="2000-%m-%d")))
+            dplyr::mutate(year = format(.data[["Time"]], format = "%Y")) %>%
+            dplyr::mutate(Time = as.Date(format(.data[["Time"]], format = "2000-%m-%d")))
 
     # Plot temporal patterns
     gp <- ggplot2::ggplot(plot.df, ggplot2::aes(
