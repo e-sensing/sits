@@ -21,8 +21,8 @@
     labels_exist <- labels[labels %in% names_tb]
     # get the colors for the names that exist
     colors <- purrr::map_chr(labels_exist, function(l) {
-        col <- color_tb %>%
-            dplyr::filter(.data[["name"]] == l) %>%
+        col <- color_tb |>
+            dplyr::filter(.data[["name"]] == l) |>
             dplyr::pull(.data[["color"]])
         return(col)
     })

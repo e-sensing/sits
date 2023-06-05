@@ -183,6 +183,8 @@ sits_labels_summary <- function(data) {
 #'
 sits_labels_summary.sits <- function(data) {
 
+    warning("This function is deprecated. Please use summary()")
+
     # get frequency table
     data_labels <- table(data$label)
 

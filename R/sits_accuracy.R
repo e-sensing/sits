@@ -270,9 +270,9 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
     # Get a tibble by binding the row (duplicated labels with different counts)
     freq <- do.call(rbind, freq_lst)
     # summarize the counts for each label
-    freq <- freq %>%
-        dplyr::filter(!is.na(class)) %>%
-        dplyr::group_by(class) %>%
+    freq <- freq |>
+        dplyr::filter(!is.na(class)) |>
+        dplyr::group_by(class) |>
         dplyr::summarise(area = sum(.data[["area"]]))
 
     # Area is taken as the sum of pixels

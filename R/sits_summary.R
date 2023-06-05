@@ -20,7 +20,16 @@
 #'
 #' @export
 summary.sits <- function(object, ...) {
-    sits_labels_summary(object)
+    # get frequency table
+    data_labels <- table(object$label)
+
+    # compose tibble containing labels, count and relative frequency columns
+    result <- tibble::as_tibble(list(
+        label = names(data_labels),
+        count = as.integer(data_labels),
+        prop = as.numeric(prop.table(data_labels))
+    ))
+    return(result)
 }
 
 #' @title  Summarize accuracy matrix for training data
@@ -173,8 +182,8 @@ summary.raster_cube <- function(
     # read the files with terra
     r <- terra::rast(files)
     # get the a sample of the values
-    values <- r %>%
-        terra::spatSample(size = sample_size, na.rm = TRUE) %>%
+    values <- r |>
+        terra::spatSample(size = sample_size, na.rm = TRUE) |>
         tibble::as_tibble()
     # set names as the band names
     bands <- bands[bands != "CLOUD"]
@@ -345,7 +354,7 @@ summary.class_cube <- function(
     # read the files with terra
     r <- terra::rast(files)
     # get the a sample of the values
-    class_areas <- r %>%
+    class_areas <- r |>
         terra::expanse(unit = "km", byValue = TRUE)
     # create a tibble
     areas <-  class_areas[, 3]

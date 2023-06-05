@@ -1,13 +1,13 @@
 #' @title Extract set of time series from supercells
 #'
 #' @name .segments_get_data
+#' @keywords internal
 #' @noRd
 #' @description     Using the segments as polygons, get all time series
 #'
 #' @param cube       regular data cube
 #' @param segments   polygons produced by sits_segments
 #' @param bands      bands used in time series
-#' @param impute_fn  Imputation function for NA values.
 #' @param aggreg_fn  Function to compute a summary of each segment
 #' @param pol_id     ID attribute for polygons.
 #' @param multicores Number of cores to use for processing
@@ -17,7 +17,6 @@
         cube,
         segments,
         bands,
-        impute_fn,
         aggreg_fn,
         pol_id,
         multicores,
@@ -31,7 +30,7 @@
 
     # combine tiles and bands for parallel processing
     tiles_bands <- tidyr::expand_grid(tile = .cube_tiles(cube),
-                                      band = bands) %>%
+                                      band = bands) |>
         purrr::pmap(function(tile, band) {
             return(list(tile, band))
         })
@@ -103,7 +102,6 @@
             band = band,
             samples_tbl = samples_tbl,
             segs_tile = segs_tile,
-            impute_fn  = impute_fn,
             aggreg_fn = aggreg_fn
         )
 
@@ -124,8 +122,8 @@
         return(.tibble())
     }
 
-    ts_tbl <- ts_tbl %>%
-        tidyr::unnest("time_series") %>%
+    ts_tbl <- ts_tbl |>
+        tidyr::unnest("time_series") |>
         dplyr::group_by(
             .data[["longitude"]], .data[["latitude"]],
             .data[["start_date"]], .data[["end_date"]],
@@ -137,22 +135,22 @@
         ts_tbl <- dplyr::group_by(ts_tbl, .data[["polygon_id"]], .add = TRUE)
     }
 
-    ts_tbl <- ts_tbl %>%
+    ts_tbl <- ts_tbl |>
         dplyr::reframe(
-            dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
-        dplyr::arrange(.data[["Index"]]) %>%
-        dplyr::ungroup() %>%
-        tidyr::nest(time_series = !!c("Index", bands)) %>%
+            dplyr::across(dplyr::all_of(bands), stats::na.omit)) |>
+        dplyr::arrange(.data[["Index"]]) |>
+        dplyr::ungroup() |>
+        tidyr::nest(time_series = !!c("Index", bands)) |>
         dplyr::select(-c("#..id"))
 
     # get the first point that intersect more than one tile
     # eg sentinel 2 mgrs grid
-    ts_tbl <- ts_tbl %>%
+    ts_tbl <- ts_tbl |>
         dplyr::group_by(
             .data[["longitude"]], .data[["latitude"]],
             .data[["start_date"]], .data[["end_date"]],
-            .data[["label"]], .data[["cube"]]) %>%
-        dplyr::slice_head(n = 1) %>%
+            .data[["label"]], .data[["cube"]]) |>
+        dplyr::slice_head(n = 1) |>
         dplyr::ungroup()
 
     # recreate hash values
@@ -191,7 +189,6 @@
 #' @param band        Band to extract time series
 #' @param samples_tbl Samples tibble
 #' @param segs_tile   Polygons produced by sits_supercells for the tile
-#' @param impute_fn   Imputation function for NA values.
 #' @param aggreg_fn   Aggregation function to compute a summary of each segment
 #'
 .segments_get_ts <- function(
@@ -199,7 +196,6 @@
         band,
         samples_tbl,
         segs_tile,
-        impute_fn,
         aggreg_fn
 ) {
     # get the scale factors, max, min and missing values
@@ -215,6 +211,8 @@
     values[values == missing_value] <- NA
     values[values < minimum_value] <- NA
     values[values > maximum_value] <- NA
+    # use linear imputation
+    impute_fn = .impute_linear()
     # are there NA values? interpolate them
     if (any(is.na(values))) {
         values <- impute_fn(values)

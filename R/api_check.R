@@ -1390,19 +1390,6 @@
     }
     return(results_cube)
 }
-#' @title Does the input data contain a sits tibble?
-#' @name .check_is_sits_tibble
-#' @param data a sits tibble
-#' @return  No return value, called for side effects.
-#' @keywords internal
-#' @noRd
-.check_is_sits_tibble <- function(data) {
-    .check_that(
-        x = inherits(data, "sits"),
-        local_msg = "data should be a sits tibble",
-        msg = "invalid samples parameter"
-    )
-}
 #' @title Does the input data contain a sits accuracy object?
 #' @name .check_is_sits_accuracy
 #' @param data a sits accuracy object
@@ -1599,33 +1586,6 @@
         )
     )
 }
-#' @title Check classification parameters
-#' @name .check_cube_model
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Verify that required parameters are correct.
-#'
-#' @param  cube            Tibble with information about a data cube.
-#' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
-#' @return No value called for side effects
-.check_cube_model <- function(cube, ml_model) {
-
-    # ensure metadata tibble exists
-    .check_that(
-        x = nrow(cube) > 0,
-        msg = "invalid metadata for the cube"
-    )
-
-    # ensure the machine learning model has been built
-    .check_null(
-        x = ml_model,
-        msg = "trained ML model not available"
-    )
-    # precondition - test is model is valid
-    .check_is_sits_model(ml_model)
-}
-
 #' @title Check if cube has only one tile
 #' @name .check_has_one_tile
 #' @param  cube         input data cube
@@ -1638,7 +1598,6 @@
         msg = "accepts only one tile at a time"
     )
 }
-
 #' @title Check that cube is regular
 #' @name .check_is_regular
 #' @keywords internal
@@ -1717,20 +1676,6 @@
     } else {
         return(TRUE)
     }
-}
-
-#' @title Check if file is a CSV
-#' @name .check_file_csv
-#' @param file filename
-#' @return No return value, called for side effects.
-#' @keywords internal
-#' @noRd
-#'
-.check_file_csv <- function(file) {
-    .check_file(
-    x = file,
-    extensions = "csv"
-    )
 }
 #' @title Check if CSV data is correct
 #' @name .check_csv

@@ -275,15 +275,15 @@ sits_lighttae <- function(samples = NULL,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
                 optimizer = optimizer
-            ) %>%
+            ) |>
             luz::set_hparams(
                 n_bands  = n_bands,
                 n_labels = n_labels,
                 timeline = timeline
-            ) %>%
+            ) |>
             luz::set_opt_hparams(
                 !!!optim_params_function
-            ) %>%
+            ) |>
             luz::fit(
                 data = list(train_x, train_y),
                 epochs = epochs,

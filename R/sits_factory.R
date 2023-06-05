@@ -54,7 +54,9 @@
 #'           predict_fun <- function(values) {
 #'               # retrieve the prediction (values and probs)
 #'               prediction <- tibble::as_tibble(
-#'                   stats::predict(result_mlr, newdata = values, type = "probs")
+#'                   stats::predict(result_mlr,
+#'                   newdata = values,
+#'                   type = "probs")
 #'               )
 #'               return(prediction)
 #'            }

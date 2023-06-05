@@ -84,10 +84,10 @@ test_that("Functions that work with ROI", {
     csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
         package = "sits"
     )
-    sf_obj <- csv_file %>%
-        read.csv(stringsAsFactors = FALSE) %>%
-        tibble::as_tibble() %>%
-        dplyr::select(longitude, latitude) %>%
+    sf_obj <- csv_file |>
+        read.csv(stringsAsFactors = FALSE) |>
+        tibble::as_tibble() |>
+        dplyr::select(longitude, latitude) |>
         sf::st_as_sf(coords = c("longitude", "latitude"), crs = 4326)
 
     # read a bbox as an sf object

@@ -1,6 +1,5 @@
 #' @title Configure parameters for sits package
-#' @name sits_configuration
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @name sits_config
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description These functions load and show sits configurations.
@@ -13,28 +12,16 @@
 #' the user provided configuration file. The final configuration is
 #' obtained by overriding the options by the values provided in
 #' \code{processing_bloat}, \code{rstac_pagination_limit},
-#' \code{raster_api_package}, and \code{gdal_creation_options} parameters.
-#'
-#' \code{sits_config_show()} prints the current sits
-#' configuration options. To show specific configuration options for
-#' a source, a collection, or a palette, users can inform the corresponding
-#' keys to \code{source}, \code{collection}, and \code{palette} parameters.
-#'
-#' \code{sits_list_collections()} prints the collections available
-#' in each cloud service supported by sits. Users can select to get information
-#' only for a single service by using the \code{source} parameter.
+#' \code{gdal_creation_options} and \code{gdalcubes_chunk_size}
 #'
 #' @param processing_bloat       Estimated growth size of R memory relative
 #'                               to block size.
 #' @param rstac_pagination_limit Limit of number of items returned by STAC.
 #' @param gdal_creation_options  GDAL creation options for GeoTiff.
 #' @param gdalcubes_chunk_size   Chunk size to be used by gdalcubes
-#' @param reset                  Should current configuration options be cleaned
-#'                               before loading config files? Default is
-#'                               \code{FALSE}.
-#' @param source                 Data source to be shown in detail.
-#' @param collection             Collection key entry to be shown in detail.
-#' @param colors                 Show colors?
+#' @param reset                  Should current configuration options be
+#'                               cleaned before loading config files?
+#'                               Default is \code{FALSE}.
 #'
 #' @details
 #' Users can provide additional configuration files, by specifying the
@@ -43,13 +30,8 @@
 #'
 #' To see the key entries and contents of the current configuration values,
 #' use \code{sits_config_show()}.
-NULL
-
-#' @rdname sits_configuration
 #'
-#' @return
-#' \code{sits_config()} returns a \code{list} containing the final
-#' configuration options.
+#' @return A list containing the current configuration options.
 #'
 #' @examples
 #' current_config <- sits_config()
@@ -107,7 +89,17 @@ sits_config <- function(processing_bloat = NULL,
     return(invisible(sits_env$config))
 }
 
-#' @rdname sits_configuration
+#' @title Show current sits configuration
+#' @name sits_config_show
+#' @param source                 Data source to be shown in detail.
+#' @param collection             Collection key entry to be shown in detail.
+#' @param colors                 Show colors?
+#'
+#' @description
+#' Prints the current sits configuration options.
+#' To show specific configuration options for
+#' a source, a collection, or a palette, users can inform the corresponding
+#' keys to \code{source}, \code{collection}, and \code{colors} parameters.
 #'
 #' @return A \code{list} containing the respective
 #' configuration printed in the console.
@@ -190,9 +182,17 @@ sits_config_show <- function(source = NULL,
     return(invisible(config))
 }
 
-#' @rdname sits_configuration
+#' @title List the cloud collections supported by sits
+#' @name sits_list_collections
+#' @param source    Data source to be shown in detail.
+#' @description
+#' Prints the collections available
+#' in each cloud service supported by sits.
+#' Users can select to get information
+#' only for a single service by using the \code{source} parameter.
 #'
-#' @return Prints collections available in each cloud service supported by sits.
+#' @return Prints collections available in
+#'         each cloud service supported by sits.
 #'
 #' @export
 sits_list_collections <- function(source = NULL) {

@@ -22,7 +22,6 @@
 #' @param  block           Optimized block to be read into memory.
 #' @param  roi             Region of interest.
 #' @param  filter_fn       Smoothing filter function to be applied to the data.
-#' @param  impute_fn       Impute function to replace NA.
 #' @param  output_dir      Output directory.
 #' @param  version         Version of result.
 #' @param  verbose         Print processing information?
@@ -34,7 +33,6 @@
                             block,
                             roi,
                             filter_fn,
-                            impute_fn,
                             output_dir,
                             version,
                             verbose,
@@ -101,7 +99,6 @@
             tile = tile,
             block = block,
             ml_model = ml_model,
-            impute_fn = impute_fn,
             filter_fn = filter_fn
         )
         # Get mask of NA pixels
@@ -223,9 +220,8 @@
 #' @param  block           Bounding box in (col, row, ncols, nrows).
 #' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
 #' @param  filter_fn       Smoothing filter function to be applied to the data.
-#' @param  impute_fn       Impute function to replace NA.
 #' @return A matrix with values for classification.
-.classify_data_read <- function(tile, block, ml_model, impute_fn, filter_fn) {
+.classify_data_read <- function(tile, block, ml_model, filter_fn) {
     # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
     # Read and preprocess values of cloud
@@ -235,24 +231,20 @@
     values <- purrr::map_dfc(.ml_bands(ml_model), function(band) {
         # Get band values (stops if band not found)
         values <- .tile_read_block(tile = tile, band = band, block = block)
-
-        #
-        # Log here
-        #
+        # Log
         .debug_log(
             event = "start_block_data_process",
             key = "process",
             value = "cloud-impute-filter"
         )
-
         # Remove cloud masked pixels
         if (.has(cloud_mask)) {
             values[cloud_mask] <- NA
         }
-
-
-        # Remove NA pixels
-        if (.has(impute_fn)) {
+        # use linear imputation
+        impute_fn = .impute_linear()
+        # are there NA values? interpolate them
+        if (any(is.na(values))) {
             values <- impute_fn(values)
         }
         # Filter the time series

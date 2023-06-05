@@ -235,7 +235,7 @@
     # verify that tibble is correct
     .check_samples(data)
 
-    n_samples <- data$time_series %>%
+    n_samples <- data$time_series |>
         purrr::map_int(function(t) {
             nrow(t)
         })
@@ -301,14 +301,14 @@
 #' @return Returns TRUE if data has data.
 .tibble_samples_split <- function(samples, validation_split = 0.2) {
     result <-
-        samples %>%
-        dplyr::group_by(.data[["label"]]) %>%
+        samples |>
+        dplyr::group_by(.data[["label"]]) |>
         dplyr::mutate(
             train = sample(c(
                 rep(TRUE, round(dplyr::n() * (1 - !!validation_split))),
                 rep(FALSE, round(dplyr::n() * !!validation_split))
             ))
-        ) %>%
+        ) |>
         dplyr::ungroup()
 
     return(result)

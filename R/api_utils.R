@@ -211,11 +211,6 @@ NULL
     }
     unname(c(by(data, data[[col]], fn, ...)))
 }
-
-.by_dfr <- function(data, col, fn, ...) {
-    .rbind(.by(data, col, fn, ...))
-}
-
 .between <- function(x, min, max) {
     min <= x & x <= max
 }

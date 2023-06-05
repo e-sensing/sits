@@ -18,8 +18,8 @@
                 data,
                 .data[["longitude"]] == long,
                 .data[["latitude"]] == lat
-            ) %>%
-                .plot_ggplot_series() %>%
+            ) |>
+                .plot_ggplot_series() |>
                 graphics::plot()
         }
     )
@@ -42,8 +42,8 @@
 .plot_together <- function(data) {
     # create a data frame with the median, and 25% and 75% quantiles
     create_iqr <- function(melted) {
-        qts <- melted %>%
-            dplyr::group_by(.data[["Index"]]) %>%
+        qts <- melted |>
+            dplyr::group_by(.data[["Index"]]) |>
             dplyr::summarise(
                 med  = stats::median(.data[["value"]]),
                 qt25 = stats::quantile(.data[["value"]], 0.25),
@@ -66,7 +66,7 @@
     # how many different labels are there?
     labels <- sits_labels(data)
 
-    label_plots <- labels %>%
+    label_plots <- labels |>
         purrr::map(function(l) {
             lb <- as.character(l)
             # filter only those rows with the same label
@@ -80,14 +80,14 @@
             # align all time series to the same dates
             data2 <- .tibble_align_dates(data2, ref_dates)
 
-            band_plots <- bands %>%
+            band_plots <- bands |>
                 purrr::map(function(band) {
                     # select the band to be shown
                     band_tb <- sits_select(data2, band)
 
-                    melted <- band_tb %>%
-                        dplyr::select("time_series") %>%
-                        dplyr::mutate(variable = seq_len(dplyr::n())) %>%
+                    melted <- band_tb |>
+                        dplyr::select("time_series") |>
+                        dplyr::mutate(variable = seq_len(dplyr::n())) |>
                         tidyr::unnest(cols = "time_series")
                     names(melted) <- c("Index", "value", "variable")
 
@@ -147,8 +147,8 @@
     # extract the time series
     data_ts <- dplyr::bind_rows(row$time_series)
     # melt the data into long format
-    melted_ts <- data_ts %>%
-        tidyr::pivot_longer(cols = -"Index", names_to = "variable") %>%
+    melted_ts <- data_ts |>
+        tidyr::pivot_longer(cols = -"Index", names_to = "variable") |>
         as.data.frame()
     # plot the data with ggplot
     g <- ggplot2::ggplot(melted_ts, ggplot2::aes(
@@ -188,16 +188,15 @@
 
     # include a new band in the data to show the NAs
     data <- row$time_series[[1]]
-    data <- data %>%
-        dplyr::select_if(function(x) any(is.na(x))) %>%
-        .[, 1] %>%
-        `colnames<-`(., "X1") %>%
-        dplyr::transmute(cld = replace_na(.data[["X1"]])) %>%
-        dplyr::bind_cols(data, .)
+    data_x1 <- dplyr::select_if(data, function(x) any(is.na(x)))
+    data_x1 <- data_x1[, 1]
+    colnames(data_x1) <- "X1"
+    data_x1 <- dplyr::transmute(data_x1, cld = replace_na(.data[["X1"]]))
+    data <- dplyr::bind_cols(data, data_x1)
 
     # prepare tibble to ggplot (fortify)
     ts1 <- tidyr::pivot_longer(data, -"Index")
-    g <- ggplot2::ggplot(data = ts1 %>%
+    g <- ggplot2::ggplot(data = ts1 |>
                              dplyr::filter(.data[["name"]] != "cld")) +
         ggplot2::geom_col(ggplot2::aes(
             x = .data[["Index"]],
@@ -205,7 +204,7 @@
         ),
         fill = "sienna",
         alpha = 0.3,
-        data = ts1 %>%
+        data = ts1 |>
             dplyr::filter(
                 .data[["name"]] == "cld",
                 !is.na(.data[["value"]])

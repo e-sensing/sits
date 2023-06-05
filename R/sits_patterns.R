@@ -69,7 +69,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
         labels <- dplyr::distinct(tb, .data[["label"]])$label
 
         # traverse labels
-        patterns <- labels %>%
+        patterns <- labels |>
             purrr::map_dfr(function(lb) {
                 # filter only those rows with the same label
                 label_rows <- dplyr::filter(tb, .data[["label"]] == lb)
@@ -82,7 +82,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                 index <- tibble::tibble(Index = lubridate::as_date(pred_time))
 
                 # calculate the fit for each band
-                fit_bands <- bds %>%
+                fit_bands <- bds |>
                     purrr::map(function(bd) {
                         # retrieve the time series for each band
                         label_b <- sits_select(label_rows, bd)
@@ -90,15 +90,15 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
 
                         # melt the time series for each band into a long table
                         # with all values together
-                        ts2 <- ts %>%
+                        ts2 <- ts |>
                             tidyr::pivot_longer(
                                 cols = -"Index",
                                 names_to = "variable"
-                            ) %>%
+                            ) |>
                             dplyr::select(
                                 "Index",
                                 "value"
-                            ) %>%
+                            ) |>
                             dplyr::transmute(
                                 x = as.numeric(.data[["Index"]]),
                                 y = .data[["value"]]

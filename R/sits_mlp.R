@@ -255,16 +255,16 @@ sits_mlp <- function(samples = NULL,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
                 optimizer = optimizer
-            ) %>%
+            ) |>
             luz::set_hparams(
                 num_pred = ncol(train_x),
                 layers = layers,
                 dropout_rates = dropout_rates,
                 y_dim = length(code_labels)
-            ) %>%
+            ) |>
             luz::set_opt_hparams(
                 !!!optim_params_function
-            ) %>%
+            ) |>
             luz::fit(
                 data = list(train_x, train_y),
                 epochs = epochs,

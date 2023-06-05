@@ -20,7 +20,6 @@ sits_get_data(
   label = "NoClass",
   bands = sits_bands(cube),
   crs = 4326,
-  impute_fn = sits_impute_linear(),
   label_attr = NULL,
   n_sam_pol = 30,
   pol_avg = FALSE,
@@ -37,7 +36,6 @@ sits_get_data(
   ...,
   bands = sits_bands(cube),
   crs = 4326,
-  impute_fn = sits_impute_linear(),
   multicores = 2,
   progress = FALSE
 )
@@ -50,7 +48,6 @@ sits_get_data(
   start_date = as.Date(sits_timeline(cube)[1]),
   end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
   bands = sits_bands(cube),
-  impute_fn = sits_impute_linear(),
   label_attr = NULL,
   n_sam_pol = 30,
   pol_avg = FALSE,
@@ -66,7 +63,6 @@ sits_get_data(
   bands = sits_bands(cube),
   start_date = as.Date(sits_timeline(cube)[1]),
   end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
-  impute_fn = sits_impute_linear(),
   label = "NoClass",
   label_attr = NULL,
   n_sam_pol = 30,
@@ -81,7 +77,6 @@ sits_get_data(
   samples,
   ...,
   bands = sits_bands(cube),
-  impute_fn = sits_impute_linear(),
   multicores = 2,
   progress = FALSE
 )
@@ -95,7 +90,6 @@ sits_get_data(
   label = "NoClass",
   bands = sits_bands(cube),
   crs = 4326,
-  impute_fn = sits_impute_linear(),
   multicores = 2,
   progress = FALSE
 )
@@ -105,7 +99,6 @@ sits_get_data(
   samples,
   ...,
   bands = sits_bands(cube),
-  impute_fn = sits_impute_linear(),
   aggreg_fn = "mean",
   pol_id = "supercells",
   multicores = 1,
@@ -130,8 +123,6 @@ in "YYYY-MM-DD" format (optional).}
 \item{bands}{Bands to be retrieved (optional).}
 
 \item{crs}{Default crs for the samples}
-
-\item{impute_fn}{Imputation function for NA values.}
 
 \item{label_attr}{Attribute in the shapefile or sf object to be used
 as a polygon label.}

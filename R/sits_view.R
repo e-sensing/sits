@@ -17,7 +17,7 @@
 #' @param  class_cube    Classified cube to be overlayed on top on image.
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file.
-#' @param  segments      Segment list obtained by \link{sits_segmentation}
+#' @param  segments      Segment list obtained by \link{sits_segment}
 #' @param  view_max_mb   Maximum size of leaflet to be visualized
 #' @param  id_neurons    Neurons from the SOM map to be shown.
 #'

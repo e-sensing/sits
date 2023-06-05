@@ -119,14 +119,12 @@
 #' @param bands             Bands to be retrieved.
 #' @param xy                A matrix with longitude as X and latitude as Y.
 #' @param cld_band          Cloud band (if available)
-#' @param impute_fn         Imputation function for NA values
 #' @return                  A sits tibble with the time series.
 .ts_get_raster_data <- function(tile,
                                 points,
                                 bands,
                                 xy,
-                                cld_band = NULL,
-                                impute_fn = sits_impute_linear()) {
+                                cld_band = NULL) {
 
 
     # set caller to show in errors
@@ -219,6 +217,8 @@
             values_ts[values_ts < minimum_value] <- NA
             values_ts[values_ts > maximum_value] <- NA
 
+            # use linear imputation
+            impute_fn = .impute_linear()
             # are there NA values? interpolate them
             if (any(is.na(values_ts))) {
                 values_ts <- impute_fn(values_ts)
@@ -236,9 +236,9 @@
     })
 
     # now we have to transpose the data
-    ts_samples <- ts_bands %>%
-        purrr::set_names(bands) %>%
-        purrr::transpose() %>%
+    ts_samples <- ts_bands |>
+        purrr::set_names(bands) |>
+        purrr::transpose() |>
         purrr::map(tibble::as_tibble)
 
 
@@ -310,7 +310,7 @@
     )
 
     # now we have to transpose the data
-    traj_samples <- traj_lst %>%
+    traj_samples <- traj_lst |>
         purrr::map(function(x) tibble::tibble(class = labels[x]))
 
     points$predicted <- purrr::map2(

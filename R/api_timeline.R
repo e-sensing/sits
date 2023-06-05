@@ -231,7 +231,7 @@
 #'                      to the timelines.
 #'
 .timeline_match_indexes <- function(timeline, ref_dates) {
-    dates_index <- ref_dates %>%
+    dates_index <- ref_dates |>
         purrr::map(function(date_pair) {
             start_index <- which(timeline == date_pair[1])
             end_index <- which(timeline == date_pair[2])

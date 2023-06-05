@@ -66,8 +66,8 @@ test_that("Segmentation", {
     )
     sf_obj <- sf_seg[[1]]
     plot(sf_obj["class"])
-    sf_obj <- sf_obj %>%
-        dplyr::group_by(class) %>%
+    sf_obj <- sf_obj |>
+        dplyr::group_by(class) |>
         dplyr::summarise()
     plot(sf_obj["class"])
 })

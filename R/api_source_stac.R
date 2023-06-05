@@ -176,14 +176,13 @@
         source = source,
         collection = collection
     ) == "tile") {
-
         # tile by tile
-        data <- data %>%
+        data <- data |>
             tidyr::nest(items = c("fid", "features"))
     } else {
 
         # item by item
-        data <- data %>%
+        data <- data |>
             dplyr::transmute(
                 tile = .data[["tile"]],
                 items = purrr::map2(
@@ -352,7 +351,7 @@
     )
 
     if (!is.na(review_date)) {
-        data <- dplyr::filter(cube, .data[["date"]] == !!review_date) %>%
+        data <- dplyr::filter(cube, .data[["date"]] == !!review_date) |>
             tidyr::nest(assets = -"tile")
 
         # test paths by open files...
@@ -377,8 +376,8 @@
     }
 
     # prepare cube
-    cube <- cube %>%
-        tidyr::nest(file_info = -dplyr::matches(c("tile", "crs"))) %>%
+    cube <- cube |>
+        tidyr::nest(file_info = -dplyr::matches(c("tile", "crs"))) |>
         slider::slide_dfr(function(tile) {
 
             # get file_info

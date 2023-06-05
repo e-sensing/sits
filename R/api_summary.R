@@ -40,7 +40,7 @@
     # read the files with terra
     r <- terra::rast(files)
     # get the a sample of the values
-    values <- r %>%
+    values <- r |>
         terra::spatSample(size = sample_size, na.rm = TRUE)
     # scale the values
     band_conf <- .tile_band_conf(tile, band)

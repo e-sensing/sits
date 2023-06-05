@@ -1,38 +1,42 @@
-#' @title Filter time series and data cubes
+#' @title Filter time series with smoothing filter
+#' @name sits_filter
+#' @param data          Time series or matrix.
+#' @param filter        Filter function to be applied.
 #'
-#' @name sits_filters
+#' @description
+#'  Applies a filter to all bands, using a filter function
+#'  such as `sits_whittaker()` or `sits_sgolay()`.
+#'
+#' @export
+sits_filter <- function(data, filter = sits_whittaker()) {
+    result <- filter(data)
+
+    return(result)
+}
+#' @title Filter time series with whittaker filter
+#' @name sits_whittaker
 #'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description
-#' Filtering functions should be used with `sits_filter()`.
-#' The following filtering functions is supported by `sits`:
-#'
-#' @param data          Time series or matrix.
-#' @return              Filtered time series
-#'
-#' @seealso \link[sits]{sits_apply}
-NULL
-
-
-
-#' @rdname sits_filters
-#'
-#' @description
-#' `sits_whittaker()`: The algorithm searches for an optimal warping polynomial.
+#' The algorithm searches for an optimal warping polynomial.
 #' The degree of smoothing depends on smoothing factor lambda
 #' (usually from 0.5 to 10.0). Use lambda = 0.5 for very slight smoothing
 #' and lambda = 5.0 for strong smoothing.
 #'
-#' @param lambda       Smoothing factor to be applied (default 0.5).
+#' @param data          Time series or matrix.
+#' @param lambda        Smoothing factor to be applied (default 0.5).
+#' @return              Filtered time series
 #'
 #' @references Francesco Vuolo, Wai-Tim Ng, Clement Atzberger,
 #' "Smoothing and gap-filling of high resolution multi-spectral time series:
 #' Example of Landsat data",
 #' Int Journal of Applied Earth Observation and Geoinformation,
 #' vol. 57, pg. 202-213, 2107.
+#'
+#' @seealso \link[sits]{sits_apply}
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -70,34 +74,27 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
     return(result)
 }
 
-#' @rdname sits_filters
+#' @title Filter time series with Savitzky-Golay filter
+#' @name sits_sgolay
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description
-#' `sits_filter()`: applies a filter to all bands.
-#'
-#' @param filter   a filter function such as `sits_whittaker()` or
-#' `sits_sgolay()`.
-#'
-#' @export
-sits_filter <- function(data, filter = sits_whittaker()) {
-    result <- filter(data)
-
-    return(result)
-}
-#' @rdname sits_filters
-#'
-#' @description
-#' `sits_sgolay()`: An optimal polynomial for warping a time series.
+#' An optimal polynomial for warping a time series.
 #' The degree of smoothing depends on the filter order (usually 3.0).
 #' The order of the polynomial uses the parameter `order` (default = 3),
 #' the size of the temporal window uses the parameter `length` (default = 5).
 #'
-#' @references A. Savitzky, M. Golay, "Smoothing and Differentiation of Data by
-#' Simplified Least Squares Procedures".
-#' Analytical Chemistry, 36 (8): 1627–39, 1964.
-#'
+#' @param data          Time series or matrix.
 #' @param order         Filter order (integer).
 #' @param length        Filter length (must be odd).
+#' @return              Filtered time series
+#'
+#' @references A. Savitzky, M. Golay, "Smoothing and Differentiation
+#' of Data by Simplified Least Squares Procedures".
+#' Analytical Chemistry, 36 (8): 1627–39, 1964.
 #'
 #' @examples
 #' if (sits_run_examples()) {

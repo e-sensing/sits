@@ -298,12 +298,12 @@ sits_resnet <- function(samples = NULL,
             },
             forward = function(x) {
                 x <- torch::torch_transpose(x, 2, 3)
-                x <- x %>%
-                    self$res_block1() %>%
-                    self$res_block2() %>%
-                    self$res_block3() %>%
-                    self$gap() %>%
-                    self$flatten() %>%
+                x <- x |>
+                    self$res_block1() |>
+                    self$res_block2() |>
+                    self$res_block3() |>
+                    self$gap() |>
+                    self$flatten() |>
                     self$softmax()
             }
         )
@@ -314,17 +314,17 @@ sits_resnet <- function(samples = NULL,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
                 optimizer = optimizer
-            ) %>%
+            ) |>
             luz::set_hparams(
                 n_bands  = n_bands,
                 n_times  = n_times,
                 n_labels = n_labels,
                 blocks   = blocks,
                 kernels  = kernels
-            ) %>%
+            ) |>
             luz::set_opt_hparams(
                 !!!optim_params_function
-            ) %>%
+            ) |>
             luz::fit(
                 data = list(train_x, train_y),
                 epochs = epochs,

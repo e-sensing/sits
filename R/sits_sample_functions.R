@@ -163,16 +163,16 @@ sits_reduce_imbalance <- function(samples,
     timeline <- sits_timeline(samples)
 
     # get classes to undersample
-    classes_under <- samples %>%
-        sits_labels_summary() %>%
-        dplyr::filter(.data[["count"]] >= n_samples_under) %>%
+    classes_under <- samples |>
+        sits_labels_summary() |>
+        dplyr::filter(.data[["count"]] >= n_samples_under) |>
         dplyr::pull("label")
 
 
     # get classes to oversample
-    classes_over <- samples %>%
-        sits_labels_summary() %>%
-        dplyr::filter(.data[["count"]] <= n_samples_over) %>%
+    classes_over <- samples |>
+        sits_labels_summary() |>
+        dplyr::filter(.data[["count"]] <= n_samples_over) |>
         dplyr::pull("label")
 
 
@@ -193,9 +193,9 @@ sits_reduce_imbalance <- function(samples,
                 rlen = 50
             )
 
-            samples_under <- som_map$data %>%
-                dplyr::group_by(.data[["id_neuron"]]) %>%
-                dplyr::slice_sample(n = 4, replace = TRUE) %>%
+            samples_under <- som_map$data |>
+                dplyr::group_by(.data[["id_neuron"]]) |>
+                dplyr::slice_sample(n = 4, replace = TRUE) |>
                 dplyr::ungroup()
 
             return(samples_under)
@@ -213,11 +213,11 @@ sits_reduce_imbalance <- function(samples,
         samples_over_new <- .parallel_map(classes_over, function(cls) {
             samples_bands <- purrr::map(bands, function(band) {
                 # selection of band
-                dist_band <- samples %>%
-                    sits_select(bands = band) %>%
-                    dplyr::filter(.data[["label"]] == cls) %>%
-                    .predictors() %>%
-                    .[-1]
+                dist_band <- samples |>
+                    sits_select(bands = band) |>
+                    dplyr::filter(.data[["label"]] == cls) |>
+                    .predictors()
+                dist_band <- dist_band[-1]
                 # oversampling of band for the class
                 dist_over <- .smote_oversample(
                     data = dist_band,

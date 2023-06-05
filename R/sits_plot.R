@@ -385,10 +385,10 @@ plot.segments <- function(
     .check_that("class" %in% colnames(sf_seg),
                 msg = "segments have not been classified")
     # get the labels
-    labels <- sf_seg %>%
-        sf::st_drop_geometry() %>%
-        dplyr::select("class") %>%
-        dplyr::distinct() %>%
+    labels <- sf_seg |>
+        sf::st_drop_geometry() |>
+        dplyr::select("class") |>
+        dplyr::distinct() |>
         dplyr::pull()
     names(labels) <- seq_along(labels)
     # obtain the colors
@@ -431,8 +431,8 @@ plot.segments <- function(
 
     # join sf geometries
     #
-    sf_seg <- sf_seg %>%
-        dplyr::group_by(.data[["class"]]) %>%
+    sf_seg <- sf_seg |>
+        dplyr::group_by(.data[["class"]]) |>
         dplyr::summarise()
     p <- tmap::tm_shape(sf_seg) +
         tmap::tm_fill(
@@ -1227,8 +1227,8 @@ plot.torch_model <- function(x, y, ...) {
     metrics_dfr <- purrr::map_dfr(names(metrics_lst), function(name) {
         met <- metrics_lst[[name]]
 
-        purrr::map_dfr(met, tibble::as_tibble_row) %>%
-            dplyr::mutate(epoch = seq_len(dplyr::n()), data = name) %>%
+        purrr::map_dfr(met, tibble::as_tibble_row) |>
+            dplyr::mutate(epoch = seq_len(dplyr::n()), data = name) |>
             tidyr::pivot_longer(cols = 1:2, names_to = "metric")
     })
 
@@ -1313,8 +1313,8 @@ plot.geo_distances <- function(x, y, ...) {
     )
 
     density_plot <-
-        distances %>%
-        dplyr::mutate(distance = .data[["distance"]] / 1000) %>%
+        distances |>
+        dplyr::mutate(distance = .data[["distance"]] / 1000) |>
         ggplot2::ggplot(ggplot2::aes(x = .data[["distance"]])) +
         ggplot2::geom_density(ggplot2::aes(
             color = .data[["type"]],
@@ -1369,7 +1369,7 @@ plot.sits_cluster <- function(x, ...,
 
     # extract the dendrogram object
     hclust_cl <- methods::S3Part(cluster, strictS3 = TRUE)
-    dend <- hclust_cl %>% stats::as.dendrogram()
+    dend <- hclust_cl |>  stats::as.dendrogram()
 
     # colors vector
     colors <- .colors_get(
@@ -1380,11 +1380,11 @@ plot.sits_cluster <- function(x, ...,
     colors_leg <- colors[unique(data_labels)]
 
     # set the visualization params for dendrogram
-    dend <- dend %>%
+    dend <- dend |>
         dendextend::set(
             what = "labels",
             value = character(length = length(data_labels))
-        ) %>%
+        ) |>
         dendextend::set(
             what = "branches_k_color",
             value = colors,

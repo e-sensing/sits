@@ -30,7 +30,6 @@ sits_classify(
   ...,
   roi = NULL,
   filter_fn = NULL,
-  impute_fn = sits_impute_linear(),
   start_date = NULL,
   end_date = NULL,
   memsize = 8,
@@ -55,8 +54,6 @@ sits_classify(
 \item{progress}{Show progress bar?}
 
 \item{roi}{Region of interest (see below)}
-
-\item{impute_fn}{Impute function to replace NA.}
 
 \item{start_date}{Start date for the classification.}
 
@@ -101,10 +98,6 @@ The "roi" parameter defines a region of interest. It can be
    Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
    (see \code{\link[sits]{sits_whittaker}}).
 
-   The "impute_fn" function is used to remove invalid or cloudy pixels
-   from time series. The default is a linear interpolator, available
-   in \code{\link[sits]{sits_impute_linear}}. Users can add their custom
-   functions.
 
    The "memsize" and "multicores" parameters are used for multiprocessing.
    The "multicores" parameter defines the number of cores used for

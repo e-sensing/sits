@@ -41,10 +41,10 @@
     # Create predictors...
     pred <- pred[c(.pred_cols, bands)]
     # Add sequence 'index' column grouped by 'sample_id'
-    pred <- pred %>%
-        dplyr::select("sample_id", "label", dplyr::all_of(bands)) %>%
-        dplyr::group_by(.data[["sample_id"]]) %>%
-        dplyr::mutate(index = seq_len(dplyr::n())) %>%
+    pred <- pred |>
+        dplyr::select("sample_id", "label", dplyr::all_of(bands)) |>
+        dplyr::group_by(.data[["sample_id"]]) |>
+        dplyr::mutate(index = seq_len(dplyr::n())) |>
         dplyr::ungroup()
     # Rearrange data to create predictors
     pred <- tidyr::pivot_wider(

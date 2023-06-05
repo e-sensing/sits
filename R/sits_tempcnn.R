@@ -279,13 +279,13 @@ sits_tempcnn <- function(samples = NULL,
             },
             forward = function(x) {
                 # input is 3D n_samples x n_times x n_bands
-                x <- x %>%
-                    torch::torch_transpose(2, 3) %>%
-                    self$conv_bn_relu1() %>%
-                    self$conv_bn_relu2() %>%
-                    self$conv_bn_relu3() %>%
-                    self$flatten() %>%
-                    self$dense() %>%
+                x <- x |>
+                    torch::torch_transpose(2, 3) |>
+                    self$conv_bn_relu1() |>
+                    self$conv_bn_relu2() |>
+                    self$conv_bn_relu3() |>
+                    self$flatten() |>
+                    self$dense() |>
                     self$softmax()
             }
         )
@@ -296,10 +296,10 @@ sits_tempcnn <- function(samples = NULL,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
                 optimizer = optimizer
-            ) %>%
+            ) |>
             luz::set_opt_hparams(
                 !!!optim_params_function
-            ) %>%
+            ) |>
             luz::set_hparams(
                 n_bands = n_bands,
                 n_times = n_times,
@@ -309,7 +309,7 @@ sits_tempcnn <- function(samples = NULL,
                 dropout_rates = cnn_dropout_rates,
                 dense_layer_nodes = dense_layer_nodes,
                 dense_layer_dropout_rate = dense_layer_dropout_rate
-            ) %>%
+            ) |>
             luz::fit(
                 data = list(train_x, train_y),
                 epochs = epochs,

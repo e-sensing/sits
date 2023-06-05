@@ -13,10 +13,10 @@
 .proj_from_latlong <- function(longitude,
                                latitude,
                                crs) {
-    t <- tibble::tibble(long = longitude, lat = latitude) %>%
-        sf::st_as_sf(coords = c("long", "lat"), crs = 4326) %>%
-        sf::st_transform(crs = crs) %>%
-        sf::st_coordinates() %>%
+    t <- tibble::tibble(long = longitude, lat = latitude) |>
+        sf::st_as_sf(coords = c("long", "lat"), crs = 4326) |>
+        sf::st_transform(crs = crs) |>
+        sf::st_coordinates() |>
         tibble::as_tibble()
 
     colnames(t) <- c("X", "Y")
@@ -36,9 +36,9 @@
 #' @param crs Projection definition to be converted from.
 #' @return Matrix with latlong coordinates.
 .proj_to_latlong <- function(x, y, crs) {
-    ll <- tibble::tibble(xc = x, yc = y) %>%
-        sf::st_as_sf(coords = c("xc", "yc"), crs = crs) %>%
-        sf::st_transform(crs = "EPSG:4326") %>%
+    ll <- tibble::tibble(xc = x, yc = y) |>
+        sf::st_as_sf(coords = c("xc", "yc"), crs = crs) |>
+        sf::st_transform(crs = "EPSG:4326") |>
         sf::st_coordinates()
 
     colnames(ll) <- c("longitude", "latitude")

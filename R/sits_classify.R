@@ -26,7 +26,6 @@
 #' @param  ...               Other parameters for specific functions.
 #' @param  roi               Region of interest (see below)
 #' @param  filter_fn         Smoothing filter to be applied (if desired).
-#' @param  impute_fn         Impute function to replace NA.
 #' @param  start_date        Start date for the classification.
 #' @param  end_date          End date for the classification.
 #' @param  memsize           Memory available for classification (in GB).
@@ -51,10 +50,6 @@
 #'    Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
 #'    (see \code{\link[sits]{sits_whittaker}}).
 #'
-#'    The "impute_fn" function is used to remove invalid or cloudy pixels
-#'    from time series. The default is a linear interpolator, available
-#'    in \code{\link[sits]{sits_impute_linear}}. Users can add their custom
-#'    functions.
 #'
 #'    The "memsize" and "multicores" parameters are used for multiprocessing.
 #'    The "multicores" parameter defines the number of cores used for
@@ -147,7 +142,6 @@ sits_classify.raster_cube <- function(data,
                                       ml_model, ...,
                                       roi = NULL,
                                       filter_fn = NULL,
-                                      impute_fn = sits_impute_linear(),
                                       start_date = NULL,
                                       end_date = NULL,
                                       memsize = 8,
@@ -227,7 +221,6 @@ sits_classify.raster_cube <- function(data,
             block = block,
             roi = roi,
             filter_fn = filter_fn,
-            impute_fn = impute_fn,
             output_dir = output_dir,
             version = version,
             verbose = verbose,

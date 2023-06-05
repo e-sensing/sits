@@ -36,14 +36,13 @@ Description: An end-to-end toolkit for land use and land cover classification
     Minimum recommended requirements: 16 GB RAM and 4 CPU dual-core.
 Encoding: UTF-8
 Language: en-US
-Depends: R (>= 4.0.0)
+Depends: R (>= 4.1.0)
 URL: https://github.com/e-sensing/sits/, https://e-sensing.github.io/sitsbook/
 BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2
 ByteCompile: true
 LazyData: true
 Imports:
-    magrittr,
     yaml,
     dplyr (>= 1.0.0),
     gdalUtilities,
@@ -53,7 +52,7 @@ Imports:
     parallel (>= 4.0.5),
     purrr (>= 0.3.0),
     Rcpp,
-    rstac (>= 0.9.2-2),
+    rstac (>= 0.9.2-3),
     sf (>= 1.0-12),
     slider (>= 0.2.0),
     stats,
@@ -129,10 +128,11 @@ Collate:
     'api_file.R'
     'api_gdal.R'
     'api_gdalcubes.R'
-    'api_ml_model.R'
+    'api_imputation.R'
     'api_jobs.R'
     'api_label_class.R'
     'api_mixture_model.R'
+    'api_ml_model.R'
     'api_mosaic.R'
     'api_parallel.R'
     'api_period.R'
@@ -180,7 +180,6 @@ Collate:
     'api_view.R'
     'RcppExports.R'
     'data.R'
-    'pipe.R'
     'sits-package.R'
     'sits_apply.R'
     'sits_accuracy.R'
@@ -199,7 +198,6 @@ Collate:
     'sits_filters.R'
     'sits_geo_dist.R'
     'sits_get_data.R'
-    'sits_imputation.R'
     'sits_labels.R'
     'sits_label_classification.R'
     'sits_lighttae.R'
