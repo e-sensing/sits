@@ -4,7 +4,7 @@
 \alias{plot.patterns}
 \title{Plot patterns that describe classes}
 \usage{
-\method{plot}{patterns}(x, y, ..., bands = NULL)
+\method{plot}{patterns}(x, y, ..., bands = NULL, year_grid = FALSE)
 }
 \arguments{
 \item{x}{Object of class "patterns".}
@@ -14,6 +14,9 @@
 \item{...}{Further specifications for \link{plot}.}
 
 \item{bands}{Bands to be viewed (optional).}
+
+\item{year_grid}{Plot a grid of panels using labels as columns and
+years as rows. Default is FALSE.}
 }
 \value{
 A plot object produced by ggplot2
