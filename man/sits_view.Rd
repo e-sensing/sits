@@ -14,11 +14,11 @@
 \usage{
 sits_view(x, ...)
 
-\method{sits_view}{sits}(x, ..., legend = NULL, palette = "Harmonic")
+\method{sits_view}{sits}(x, ..., legend = NULL, color_palette = "Harmonic")
 
-\method{sits_view}{data.frame}(x, ..., legend = NULL, palette = "Harmonic")
+\method{sits_view}{data.frame}(x, ..., legend = NULL, color_palette = "Harmonic")
 
-\method{sits_view}{som_map}(x, ..., id_neurons, legend = NULL, palette = "Harmonic")
+\method{sits_view}{som_map}(x, ..., id_neurons, legend = NULL, color_palette = "Harmonic")
 
 \method{sits_view}{raster_cube}(
   x,
@@ -31,7 +31,7 @@ sits_view(x, ...)
   dates = NULL,
   class_cube = NULL,
   legend = NULL,
-  palette = "RdYlGn",
+  color_palette = "RdYlGn",
   segments = NULL,
   view_max_mb = NULL
 )
@@ -42,7 +42,7 @@ sits_view(x, ...)
   tiles = x$tile,
   class_cube = NULL,
   legend = NULL,
-  palette = "Blues",
+  color_palette = "Blues",
   segments = NULL,
   view_max_mb = NULL
 )
@@ -52,7 +52,7 @@ sits_view(x, ...)
   ...,
   tiles = NULL,
   legend = NULL,
-  palette = "default",
+  color_palette = "Spectral",
   segments = NULL,
   view_max_mb = NULL
 )
@@ -64,7 +64,7 @@ sits_view(x, ...)
   class_cube = NULL,
   legend = NULL,
   view_max_mb = NULL,
-  palette = "YlGnBu"
+  color_palette = "YlGnBu"
 )
 
 \method{sits_view}{default}(x, ...)
@@ -77,7 +77,7 @@ sits_view(x, ...)
 
 \item{legend}{Named vector that associates labels to colors.}
 
-\item{palette}{Palette provided in the configuration file.}
+\item{color_palette}{Palette provided in the configuration file.}
 
 \item{id_neurons}{Neurons from the SOM map to be shown.}
 
