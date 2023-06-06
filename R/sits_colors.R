@@ -112,7 +112,7 @@ sits_colors_reset <- function() {
 #' @title Get colors associated to the labels
 #' @name .colors_get
 #' @param  labels  labels associated to the training classes
-#' @param  palette  palette from `grDevices::hcl.pals()`
+#' @param  color_palette palette from `grDevices::hcl.pals()`
 #'                  replaces default colors
 #'                  when labels are not included in the config palette
 #' @param  rev      revert the order of colors?
@@ -120,9 +120,9 @@ sits_colors_reset <- function() {
 #' @noRd
 #' @return colors required to display the labels
 .colors_get <- function(labels,
-                        palette = "Spectral",
-                        legend = NULL,
-                        rev = TRUE) {
+                        legend,
+                        color_palette,
+                        rev) {
 
     # Get the SITS Color table
     color_tb <- .conf_colors()
@@ -132,8 +132,8 @@ sits_colors_reset <- function() {
     labels_exist <- labels[labels %in% names_tb]
     # get the colors for the names that exist
     colors <- purrr::map_chr(labels_exist, function(l) {
-        col <- color_tb %>%
-            dplyr::filter(.data[["name"]] == l) %>%
+        col <- color_tb |>
+            dplyr::filter(.data[["name"]] == l) |>
             dplyr::pull(.data[["color"]])
         return(col)
     })
@@ -159,12 +159,12 @@ sits_colors_reset <- function() {
             warning("missing colors for labels ",
                     paste(missing, collapse = ", ")
             )
-            warning("using palette ", palette, " for missing colors")
+            warning("using palette ", color_palette, " for missing colors")
             # grDevices does not work with one color missing
         }
         colors_pal <- grDevices::hcl.colors(
             n = max(2, length(missing)),
-            palette = palette,
+            palette = color_palette,
             alpha = 1,
             rev = rev
         )

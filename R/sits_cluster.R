@@ -29,7 +29,7 @@
 #'                        Can be any `hclust` method (see `hclust`).
 #'                        Default is 'ward.D2'.
 #' @param k               Desired number of clusters (overrides default value)
-#' @param palette         Color palette as per `grDevices::hcl.pals()` function.
+#' @param color_palette   Color palette as per `grDevices::hcl.pals()` function.
 #' @param .plot           Plot the dendrogram?
 #' @param  ...            Additional parameters to be passed
 #'                        to dtwclust::tsclust() function.
@@ -50,7 +50,7 @@ sits_cluster_dendro <- function(samples = NULL,
                                 dist_method = "dtw_basic",
                                 linkage = "ward.D2",
                                 k = NULL,
-                                palette = "RdYlGn",
+                                color_palette = "RdYlGn",
                                 .plot = TRUE, ...) {
     # needs package dtwclust
     .check_require_packages("dtwclust")
@@ -101,7 +101,7 @@ sits_cluster_dendro <- function(samples = NULL,
             data = samples,
             cluster = cluster,
             cutree_height = best_cut["height"],
-            palette = palette
+            color_palette = color_palette
         )
     }
 

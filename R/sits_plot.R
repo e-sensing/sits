@@ -152,7 +152,7 @@ plot.patterns <- function(x, y, ..., bands = NULL) {
 #' @param  y             Ignored.
 #' @param  ...           Further specifications for \link{plot}.
 #' @param  bands         Bands for visualization.
-#' @param  palette       HCL palette used for visualization
+#' @param  color_palette HCL palette used for visualization
 #'                       in case classes are not in the default sits palette.
 #' @return               A plot object produced by ggplot2
 #'                       showing the time series and its label.
@@ -176,7 +176,7 @@ plot.patterns <- function(x, y, ..., bands = NULL) {
 #'
 plot.predicted <- function(x, y, ...,
                            bands = "NDVI",
-                           palette = "Harmonic") {
+                           color_palette = "Harmonic") {
     stopifnot(missing(y))
     # verifies if scales package is installed
     .check_require_packages("scales")
@@ -192,7 +192,8 @@ plot.predicted <- function(x, y, ...,
     labels <- unique(x$predicted[[1]]$class)
     colors <- .colors_get(
         labels = labels,
-        palette = palette,
+        legend = NULL,
+        color_palette = color_palette,
         rev = FALSE
     )
 
@@ -316,7 +317,7 @@ plot.predicted <- function(x, y, ...,
 #' @param  ...           Further specifications for \link{plot}.
 #' @param  tile           Tile to be plotted.
 #' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Alternative RColorBrewer palette
+#' @param  color_palette Alternative RColorBrewer palette
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap_max_cells (default: 1e+06)
 #'                       tmap_graticules_labels_size (default: 0.7)
@@ -372,7 +373,7 @@ plot.segments <- function(
         x, ...,
         tile = NULL,
         legend = NULL,
-        palette = "Spectral",
+        color_palette = "Spectral",
         tmap_options = NULL
 ) {
     if (purrr::is_null(tile)) {
@@ -395,7 +396,8 @@ plot.segments <- function(
     colors <- .colors_get(
         labels = labels,
         legend = legend,
-        palette = palette
+        color_palette = color_palette,
+        rev = TRUE
     )
 
     # set the tmap options
@@ -470,7 +472,7 @@ plot.segments <- function(
 #' @param  date          Date to be plotted.
 #' @param  segments      List with segments to be shown (one per tile)
 #' @param  seg_color     Color to use for segment borders
-#' @param  palette       An RColorBrewer palette
+#' @param  color_palette An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap_max_cells (default: 1e+06)
@@ -508,7 +510,7 @@ plot.raster_cube <- function(
         date = NULL,
         segments = NULL,
         seg_color = "lightgoldenrod",
-        palette = "RdYlGn",
+        color_palette = "RdYlGn",
         rev = FALSE,
         tmap_options = NULL
 ) {
@@ -556,7 +558,7 @@ plot.raster_cube <- function(
             date = date,
             segments = segments,
             seg_color = seg_color,
-            palette = palette,
+            color_palette = color_palette,
             rev = rev,
             tmap_options = tmap_options
         )
@@ -585,7 +587,7 @@ plot.raster_cube <- function(
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tile           Tile to be plotted.
 #' @param labels         Labels to plot (optional).
-#' @param palette        RColorBrewer palette
+#' @param color_palette  RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param tmap_options   List with optional tmap parameters
 #'                       tmap_max_cells (default: 1e+06)
@@ -623,7 +625,7 @@ plot.probs_cube <- function(
         x, ...,
         tile  = x$tile[[1]],
         labels = NULL,
-        palette = "YlGnBu",
+        color_palette = "YlGnBu",
         rev = FALSE,
         tmap_options = NULL
 ) {
@@ -641,7 +643,7 @@ plot.probs_cube <- function(
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot the probs cube
-    p <- .plot_probs(tile, labels, palette, rev, tmap_options)
+    p <- .plot_probs(tile, labels, color_palette, rev, tmap_options)
 
     return(p)
 }
@@ -654,7 +656,7 @@ plot.probs_cube <- function(
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tile           Tile to be plotted.
 #' @param labels         Labels to plot (optional).
-#' @param palette        RColorBrewer palette
+#' @param color_palette  RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param type           Type of plot ("map" or "hist")
 #' @param tmap_options   List with optional tmap parameters
@@ -695,7 +697,7 @@ plot.variance_cube <- function(
         x, ...,
         tile  = x$tile[[1]],
         labels = NULL,
-        palette = "YlGnBu",
+        color_palette = "YlGnBu",
         rev = FALSE,
         type = "map",
         tmap_options = NULL
@@ -717,7 +719,7 @@ plot.variance_cube <- function(
                 msg = "plot type should be either map or hist")
     # plot the variance cube
     if (type == "map")
-        p <- .plot_variance_map(tile, labels, palette, rev, tmap_options)
+        p <- .plot_variance_map(tile, labels, color_palette, rev, tmap_options)
     else
         p <- .plot_variance_hist(tile)
 
@@ -732,7 +734,7 @@ plot.variance_cube <- function(
 #' @param  x             Object of class "probs_image".
 #' @param  ...           Further specifications for \link{plot}.
 #' @param  tile         Tiles to be plotted.
-#' @param  palette       An RColorBrewer palette
+#' @param  color_palette An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap_max_cells (default: 1e+06)
@@ -771,7 +773,7 @@ plot.variance_cube <- function(
 plot.uncertainty_cube <- function(
         x, ...,
         tile = x$tile[[1]],
-        palette = "RdYlGn",
+        color_palette = "RdYlGn",
         rev = TRUE,
         tmap_options = NULL
 ) {
@@ -792,7 +794,7 @@ plot.uncertainty_cube <- function(
     p <- .plot_false_color(tile = tile,
                            band = band,
                            date = NULL,
-                           palette  = palette,
+                           color_palette  = color_palette,
                            rev = rev,
                            tmap_options = tmap_options)
 
@@ -809,7 +811,7 @@ plot.uncertainty_cube <- function(
 #' @param  tile            Tile to be plotted.
 #' @param  title           Title of the plot.
 #' @param  legend          Named vector that associates labels to colors.
-#' @param  palette         Alternative RColorBrewer palette
+#' @param  color_palette   Alternative RColorBrewer palette
 #' @param  tmap_options    List with optional tmap parameters
 #'                         tmap_max_cells (default: 1e+06)
 #'                         tmap_graticules_labels_size (default: 0.7)
@@ -850,7 +852,7 @@ plot.class_cube <- function(x, y, ...,
                             tile = x$tile[[1]],
                             title = "Classified Image",
                             legend = NULL,
-                            palette = "Spectral",
+                            color_palette = "Spectral",
                             tmap_options = NULL) {
     stopifnot(missing(y))
     # set caller to show in errors
@@ -884,7 +886,7 @@ plot.class_cube <- function(x, y, ...,
     # plot class cube
     .plot_class_image(tile = tile,
                       legend = legend,
-                      palette = palette,
+                      color_palette = color_palette,
                       tmap_options = tmap_options)
 }
 
@@ -973,7 +975,8 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
     labels <- colnames(x$table)
     colors <- .colors_get(
         labels = labels,
-        palette = "Spectral",
+        legend = NULL,
+        color_palette = "Spectral",
         rev = TRUE
     )
 
@@ -1054,7 +1057,8 @@ plot.som_evaluate_cluster <- function(x, y, ...,
     labels <- unique(data$class)
     colors <- .colors_get(
         labels = labels,
-        palette = "Spectral",
+        legend = NULL,
+        color_palette = "Spectral",
         rev = TRUE
     )
 
@@ -1344,13 +1348,13 @@ plot.geo_distances <- function(x, y, ...) {
 #' @param cluster       cluster object produced by `sits_cluster` function.
 #' @param cutree_height dashed horizontal line to be drawn
 #'                      indicating the height of dendrogram cutting.
-#' @param palette       hcl color palette.
+#' @param color_palette hcl color palette.
 #'
 #' @return              The dendrogram object.
 .plot_dendrogram <- function(data,
                              cluster,
                              cutree_height,
-                             palette) {
+                             color_palette) {
 
     # set caller to show in errors
     .check_set_caller(".plot_dendrogram")
@@ -1376,7 +1380,8 @@ plot.geo_distances <- function(x, y, ...) {
     # colors vector
     colors <- .colors_get(
         labels = data_labels,
-        palette = palette,
+        legend = NULL,
+        color_palette = color_palette,
         rev = TRUE
     )
     colors_leg <- colors[unique(data_labels)]

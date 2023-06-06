@@ -75,27 +75,22 @@
     cube <- purrr::map_dfr(tiles, function(tile) {
         # filter tile
         items_tile <- dplyr::filter(items, .data[["tile"]] == !!tile)
-        # make a new cube tile
+        # create result cube
         if (results_cube) {
-            if (purrr::is_null(labels)) {
-                labels <- NA
-            }
-
             tile_cube <- .local_results_items_cube(
                 source = source,
                 collection = collection,
                 items = items_tile,
                 labels = labels
             )
-        } else {
-            tile_cube <- .local_cube_items_cube(
-                source = source,
-                collection = collection,
-                items = items_tile
-            )
+            return(tile_cube)
         }
-
-        return(tile_cube)
+        # create EO cube
+        .local_cube_items_cube(
+            source = source,
+            collection = collection,
+            items = items_tile
+        )
     })
 
     if (results_cube) {

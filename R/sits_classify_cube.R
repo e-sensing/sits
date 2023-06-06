@@ -53,7 +53,7 @@
         }
         probs_tile <- .tile_probs_from_file(
             file = out_file, band = band, base_tile = tile,
-            labels = .ml_labels(ml_model), update_bbox = TRUE
+            labels = .ml_labels_code(ml_model), update_bbox = TRUE
         )
         return(probs_tile)
     }
@@ -185,7 +185,7 @@
     }, progress = progress)
     # Merge blocks into a new probs_cube tile
     probs_tile <- .tile_probs_merge_blocks(
-        file = out_file, band = band, labels = .ml_labels(ml_model),
+        file = out_file, band = band, labels = .ml_labels_code(ml_model),
         base_tile = tile, block_files = block_files,
         multicores = .jobs_multicores(), update_bbox = update_bbox
     )
