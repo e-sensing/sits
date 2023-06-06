@@ -692,6 +692,7 @@
 .check_chr <- function(x, ...,
                        allow_na = FALSE,
                        allow_empty = TRUE,
+                       allow_duplicate = TRUE,
                        len_min = 0,
                        len_max = 2^31 - 1,
                        allow_null = FALSE,
@@ -735,6 +736,14 @@
         )
     }
 
+    # check duplicate
+    if (!allow_duplicate) {
+        .check_that(
+            all(!duplicated(x)),
+            local_msg = "values must be unique",
+            msg = msg
+        )
+    }
 
     # check names
     .check_names(x,
