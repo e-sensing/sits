@@ -16,7 +16,7 @@
 #' @param  tiles         Tiles to be plotted (in case of a multi-tile cube).
 #' @param  class_cube    Classified cube to be overlayed on top on image.
 #' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Palette provided in the configuration file.
+#' @param  color_palette Palette provided in the configuration file.
 #' @param  segments      Segment list obtained by \link{sits_segmentation}
 #' @param  view_max_mb   Maximum size of leaflet to be visualized
 #' @param  id_neurons    Neurons from the SOM map to be shown.
@@ -156,7 +156,7 @@ sits_view <- function(x, ...) {
 #' @export
 sits_view.sits <- function(x, ...,
                            legend = NULL,
-                           palette = "Harmonic") {
+                           color_palette = "Harmonic") {
 
     # precondition
     .check_require_packages("leaflet")
@@ -170,7 +170,7 @@ sits_view.sits <- function(x, ...,
     leaf_map <- .view_samples(
         samples = x,
         legend = legend,
-        palette = palette)
+        color_palette = color_palette)
 
     return(leaf_map)
 }
@@ -178,8 +178,8 @@ sits_view.sits <- function(x, ...,
 #'
 #' @export
 sits_view.data.frame <- function(x, ...,
-                           legend = NULL,
-                           palette = "Harmonic") {
+                                 legend = NULL,
+                                 color_palette = "Harmonic") {
 
     # precondition
     .check_require_packages("leaflet")
@@ -194,7 +194,7 @@ sits_view.data.frame <- function(x, ...,
     leaf_map <- .view_samples(
         samples = x,
         legend = legend,
-        palette = palette)
+        color_palette = color_palette)
 
     return(leaf_map)
 }
@@ -205,7 +205,7 @@ sits_view.data.frame <- function(x, ...,
 sits_view.som_map <- function(x, ...,
                               id_neurons,
                               legend = NULL,
-                              palette = "Harmonic") {
+                              color_palette = "Harmonic") {
 
     # check id_neuron
     .check_int_parameter(
@@ -222,7 +222,7 @@ sits_view.som_map <- function(x, ...,
     leaf_map <- .view_samples(
         samples = samples,
         legend = legend,
-        palette = palette)
+        color_palette = color_palette)
 
     return(leaf_map)
 }
@@ -238,13 +238,13 @@ sits_view.raster_cube <- function(x, ...,
                                   dates = NULL,
                                   class_cube = NULL,
                                   legend = NULL,
-                                  palette = "RdYlGn",
+                                  color_palette = "RdYlGn",
                                   segments = NULL,
                                   view_max_mb = NULL) {
     # preconditions
     # Probs cube not supported
     .check_that(!inherits(x, "probs_cube"),
-        local_msg = paste0("sits_view not available for probability cube")
+                local_msg = paste0("sits_view not available for probability cube")
     )
     # verifies if leafem and leaflet packages are installed
     .check_require_packages(c("leafem", "leaflet"))
@@ -259,7 +259,7 @@ sits_view.raster_cube <- function(x, ...,
             dates = dates,
             band = band,
             legend = legend,
-            palette = palette,
+            color_palette = color_palette,
             segments = segments,
             view_max_mb = view_max_mb
         )
@@ -273,7 +273,7 @@ sits_view.raster_cube <- function(x, ...,
             green = green,
             blue = blue,
             legend = legend,
-            palette = palette,
+            color_palette = color_palette,
             segments = segments,
             view_max_mb = view_max_mb
         )
@@ -287,7 +287,7 @@ sits_view.uncertainty_cube <- function(x, ...,
                                        tiles = x$tile,
                                        class_cube = NULL,
                                        legend = NULL,
-                                       palette = "Blues",
+                                       color_palette = "Blues",
                                        segments = NULL,
                                        view_max_mb = NULL) {
     # preconditions
@@ -331,7 +331,7 @@ sits_view.uncertainty_cube <- function(x, ...,
             band_file = band_file,
             tile = tile,
             band = .cube_bands(cube),
-            palette = palette,
+            color_palette = color_palette,
             output_size = output_size
         )
     }
@@ -341,7 +341,7 @@ sits_view.uncertainty_cube <- function(x, ...,
         class_cube = class_cube,
         tiles = tiles,
         legend = legend,
-        palette = palette,
+        color_palette = color_palette,
         output_size = output_size
     )
     # add overlay groups
@@ -356,12 +356,12 @@ sits_view.uncertainty_cube <- function(x, ...,
             overlayGroups = overlay_groups,
             options = leaflet::layersControlOptions(collapsed = FALSE)
         ) |>
-    # add legend to leaf_map
+        # add legend to leaf_map
         .view_add_legend(
             class_cube = class_cube,
             segments = segments,
             legend = legend,
-            palette = palette
+            color_palette = color_palette
         )
     return(leaf_map)
 }
@@ -374,7 +374,7 @@ sits_view.uncertainty_cube <- function(x, ...,
 sits_view.class_cube <- function(x, ...,
                                  tiles = NULL,
                                  legend = NULL,
-                                 palette = "default",
+                                 color_palette = "Spectral",
                                  segments = NULL,
                                  view_max_mb = NULL) {
     # preconditions
@@ -409,16 +409,18 @@ sits_view.class_cube <- function(x, ...,
             class_cube = cube,
             tiles = tiles,
             legend = legend,
-            palette = palette,
+            color_palette = color_palette,
             output_size = output_size) |>
-    # add segments
+        # add segments
         .view_segments(
             segments = segments,
             legend = legend,
-            palette = palette) |>
-    # add legend
+            color_palette = color_palette) |>
+        # add legend
         .view_add_legend(
             class_cube = cube,
+            legend = legend,
+            color_palette = color_palette,
             segments = segments)
 
     # add overlay groups
@@ -444,7 +446,7 @@ sits_view.probs_cube <- function(x, ...,
                                  class_cube = NULL,
                                  legend = NULL,
                                  view_max_mb = NULL,
-                                 palette = "YlGnBu") {
+                                 color_palette = "YlGnBu") {
     # preconditions
     # verifies if leafem and leaflet packages are installed
     .check_require_packages(c("leafem", "leaflet"))
@@ -501,7 +503,7 @@ sits_view.probs_cube <- function(x, ...,
                 leaf_map,
                 x = st_obj_new,
                 band = ind,
-                colors = palette,
+                colors = color_palette,
                 project = FALSE,
                 group = paste("probs", labels[[ind]]),
                 maxBytes = output_size["leaflet_maxbytes"]
@@ -514,7 +516,7 @@ sits_view.probs_cube <- function(x, ...,
             class_cube = class_cube,
             tiles = tiles,
             legend = legend,
-            palette = palette,
+            color_palette = color_palette,
             output_size = output_size) |>
         # add legend
         .view_add_legend(class_cube = cube)
