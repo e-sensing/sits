@@ -40,7 +40,9 @@ test_that("plot colors", {
 
 test_that("colors_get", {
     labels <- c("Forest", "Cropland", "Pasture")
-    colors <- suppressWarnings(sits:::.colors_get(labels))
+    colors <- suppressWarnings(sits:::.colors_get(labels, legend = NULL,
+                                                  color_palette = "Spectral",
+                                                  rev = TRUE))
     expect_length(colors, 3)
     expect_equal(colors[["Forest"]], "#1E8449")
 })
@@ -52,7 +54,9 @@ test_that("legend", {
 
     labels <- c("Forest", "Cerrado", "Pasture", "SoyCorn")
 
-    colors <- suppressWarnings(sits:::.colors_get(labels, legend = def_legend))
+    colors <- suppressWarnings(sits:::.colors_get(labels, legend = def_legend,
+                                                  color_palette = "Spectral",
+                                                  rev = TRUE))
     expect_true(all(names(colors) %in% labels))
 
     def_legend_2 <- c(
@@ -61,7 +65,8 @@ test_that("legend", {
 
     expect_warning({
         expect_warning({
-            sits:::.colors_get(labels, legend = def_legend_2)
+            sits:::.colors_get(labels, legend = def_legend_2,
+                               color_palette = "Spectral", rev = TRUE)
         })
     })
 

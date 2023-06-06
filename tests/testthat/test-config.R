@@ -46,7 +46,7 @@ test_that("User functions", {
         unname(.colors_get(labels = c(
             "Cropland", "Deforestation",
             "Forest", "Grassland", "NonForest"
-        ))),
+        ), legend = NULL, color_palette = "Spectral", rev = TRUE)),
         c(
             "khaki", "sienna", "darkgreen", "lightgreen",
             "lightsteelblue1"

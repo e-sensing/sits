@@ -50,7 +50,7 @@ test_that("Plot Time Series and Images", {
         data_dir = data_dir,
         progress = FALSE
     )
-    p <- plot(sinop, band = "NDVI", palette = "RdYlGn")
+    p <- plot(sinop, band = "NDVI", color_palette = "RdYlGn")
     expect_equal(p$tm_shape$shp_name, "stars_obj")
     expect_equal(p$tm_raster$palette, "RdYlGn")
     expect_equal(p$tm_grid$grid.projection, 4326)
@@ -88,7 +88,7 @@ test_that("Plot Time Series and Images", {
         output_dir = tempdir()
     )
 
-    p_uncert <- plot(sinop_uncert, palette = "Reds", rev = FALSE)
+    p_uncert <- plot(sinop_uncert, color_palette = "Reds", rev = FALSE)
 
     expect_equal(p_uncert$tm_raster$palette, "Reds")
     expect_equal(length(p_uncert$tm_raster$title), 1)
@@ -161,7 +161,7 @@ test_that("Dendrogram Plot", {
             data = cerrado_2classes,
             cluster = cluster_obj,
             cutree_height = cut.vec["height"],
-            palette = "RdYlGn"
+            color_palette = "RdYlGn"
         )
     )
     expect_equal(class(dend), "dendrogram")
