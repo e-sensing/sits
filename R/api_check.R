@@ -1515,8 +1515,20 @@
         if (bands %in% c("probs", "bayes", "class")) {
             .check_chr(
                 labels, len_min = 1,
-                msg = "'labels' parameter should be provided."
+                allow_duplicate = FALSE,
+                is_named = TRUE,
+                msg = "'labels' parameter should be provided"
             )
+
+            if (!.has(names(labels))) {
+                warning(
+                    paste("'labels' parameter should be named. Each label",
+                          "needs to be associated with the number,",
+                          "which is used to represent it in the image file."),
+                    call. = FALSE
+                )
+                names(labels) <- seq_along(labels)
+            }
         }
     }
     return(results_cube)
