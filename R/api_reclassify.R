@@ -104,7 +104,12 @@
         stop("rules should be named")
     }
     # Get output labels
-    labels <- unique(c(labels_cube, names(rules)))
+    labels_rule <- setdiff(names(rules), labels_cube)
+    names(labels_rule) <- max(.as_int(names(labels_cube))) +
+        seq_along(labels_rule)
+    labels <- c(labels_cube, labels_rule)
+    labels_code <- .as_int(names(labels))
+
     # Define reclassify function
     reclassify_fn <- function(values, mask_values) {
         # Check compatibility
@@ -113,10 +118,14 @@
         }
         # Used to check values (below)
         input_pixels <- nrow(values)
+        # Convert to character vector
+        values <- .as_chr(values)
+        mask_values <- .as_chr(mask_values)
         # New evaluation environment
         env <- list2env(list(
             # Read values and convert to character
-            cube = labels_cube[values], mask = labels_mask[mask_values]
+            cube = unname(labels_cube[values]),
+            mask = unname(labels_mask[mask_values])
         ))
         # Get values as character
         values <- env[["cube"]]
@@ -133,7 +142,8 @@
             values[result] <- label
         }
         # Get values as numeric
-        values <- matrix(data = match(values, labels), nrow = input_pixels)
+        values <- matrix(data = labels_code[match(values, labels)],
+                         nrow = input_pixels)
         # Mask NA values
         values[is.na(env[["mask"]])] <- NA
         # Are the results consistent with the data input?
