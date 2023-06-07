@@ -35,7 +35,7 @@ sits_labels.sits <- function(data) {
 #' @export
 #'
 sits_labels.raster_cube <- function(data) {
-    return(data$labels[[1]])
+    return(.dissolve(data$labels[[1]]))
 }
 #' @rdname sits_labels
 #' @export

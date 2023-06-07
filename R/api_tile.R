@@ -124,7 +124,7 @@ NULL
 #' @export
 .tile_labels.raster_cube <- function(tile) {
     tile <- .tile(tile)
-    .as_chr(tile[["labels"]][[1]])
+    tile[["labels"]][[1]]
 }
 #
 `.tile_labels<-` <- function(tile, value) {
@@ -133,7 +133,7 @@ NULL
 #' @export
 `.tile_labels<-.raster_cube` <- function(tile, value) {
     tile <- .tile(tile)
-    tile[["labels"]] <- list(.as_chr(value))
+    tile[["labels"]] <- list(value)
     tile
 }
 

@@ -205,13 +205,10 @@ sits_slic <- function(
         .check_int_parameter(multicores, min = 1, max = 1000)
         # set multicores to 1
         multicores <- 1
-
         # obtain the image files to perform the segmentation
-
         files <- .tile_paths(tile)
         # obtain the SpatRaster (terra) object
         rast <- terra::rast(files)
-
         # segment the terra object
         cells_sf <- supercells::supercells(
             x = rast,

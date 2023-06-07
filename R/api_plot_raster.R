@@ -9,7 +9,7 @@
 #' @param  date          Date to be plotted.
 #' @param  segments      List with segments to be shown (one per tile)
 #' @param  seg_color     Color to use for segment borders
-#' @param  palette       A sequential RColorBrewer palette
+#' @param  color_palette A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap max_cells (default: 1e+06)
@@ -26,7 +26,7 @@
                               date,
                               segments = NULL,
                               seg_color = NULL,
-                              palette,
+                              color_palette,
                               rev,
                               tmap_options) {
 
@@ -37,7 +37,7 @@
 
     # deal with color palette
     .check_chr_contains(
-        x = palette,
+        x = color_palette,
         contains = .conf("sits_color_palettes"),
         discriminator = "any_of",
         msg = paste0("Color palette not supported"),
@@ -47,7 +47,7 @@
     )
     # reverse the color palette?
     if (rev)
-        palette <- paste0("-", palette)
+        color_palette <- paste0("-", color_palette)
 
     # select the file to be plotted
     bw_file <- .tile_path(tile, band, date)
@@ -78,7 +78,7 @@
         tmap::tm_shape(stars_obj) +
             tmap::tm_raster(
                 style = "cont",
-                palette = palette,
+                palette = color_palette,
                 title = band,
                 midpoint = NA) +
             tmap::tm_graticules(
@@ -114,7 +114,7 @@
 #' @noRd
 #' @param  tile          Tile to be plotted.
 #' @param  legend        Legend for the classes
-#' @param  palette       A sequential RColorBrewer palette
+#' @param  color_palette A sequential RColorBrewer palette
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap max_cells (default: 1e+06)
 #'                       tmap_graticules_labels_size (default: 0.7)
@@ -125,7 +125,7 @@
 #'
 #' @return               A plot object
 #'
-.plot_class_image <- function(tile, legend, palette, tmap_options) {
+.plot_class_image <- function(tile, legend, color_palette, tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -134,7 +134,7 @@
 
     # deal with color palette
     .check_chr_contains(
-        x = palette,
+        x = color_palette,
         contains = .conf("sits_color_palettes"),
         discriminator = "any_of",
         msg = paste0("Color palette not supported"),
@@ -150,7 +150,8 @@
     colors <- .colors_get(
         labels = labels,
         legend = legend,
-        palette = palette
+        color_palette = color_palette,
+        rev = TRUE
     )
     names(colors) <- seq_along(labels)
     # size of data to be read
@@ -204,7 +205,7 @@
 #' @noRd
 #' @param  tile          Probs cube to be plotted.
 #' @param  labels_plot   Labels to be plotted
-#' @param  palette       A sequential RColorBrewer palette
+#' @param  color_palette A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap max_cells (default: 1e+06)
@@ -216,7 +217,7 @@
 #'
 #' @return               A plot object
 #'
-.plot_probs <- function(tile, labels_plot, palette, rev, tmap_options) {
+.plot_probs <- function(tile, labels_plot, color_palette, rev, tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -224,7 +225,7 @@
     .check_require_packages("tmap")
     # precondition - check color palette
     .check_chr_contains(
-        x = palette,
+        x = color_palette,
         contains = .conf("sits_color_palettes"),
         discriminator = "any_of",
         msg = paste0("Color palette not supported"),
@@ -234,7 +235,7 @@
     )
     # revert the palette
     if (rev)
-        palette <- paste0("-", palette)
+        color_palette <- paste0("-", color_palette)
 
 
     # get all labels to be plotted
@@ -280,7 +281,7 @@
 
     p <- tmap::tm_shape(probs_st[, , , bds]) +
         tmap::tm_raster(style = "cont",
-                        palette = palette,
+                        palette = color_palette,
                         midpoint = 0.5,
                         title = labels[labels %in% labels_plot]) +
         tmap::tm_facets(free.coords = TRUE) +

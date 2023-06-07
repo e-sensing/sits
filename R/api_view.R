@@ -13,7 +13,7 @@
 #' @param  green         Band for green color.
 #' @param  blue          Band for blue color.
 #' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Palette provided in the configuration file.
+#' @param  color_palette Palette provided in the configuration file.
 #' @param  segments      Segment list obtained by \link{sits_segmentation}
 #' @param  view_max_mb   Maximum size of leaflet to be visualized
 #'
@@ -28,7 +28,7 @@
                         green = NULL,
                         blue = NULL,
                         legend,
-                        palette,
+                        color_palette,
                         segments,
                         view_max_mb) {
     # filter the tiles to be processed
@@ -55,7 +55,7 @@
             band = band,
             dates = dates,
             output_size = output_size,
-            palette = palette)
+            color_palette = color_palette)
     else
         # create a leaflet for RGB bands
         leaf_map <- leaf_map |>
@@ -72,13 +72,13 @@
             class_cube = class_cube,
             tiles = tiles,
             legend = legend,
-            palette = palette,
+            color_palette = color_palette,
             output_size = output_size) |>
         # include segments, if available
         .view_segments(
             segments = segments,
             legend = legend,
-            palette = palette
+            color_palette = color_palette
         )
     # get overlay groups
     overlay_groups <- .view_add_overlay_grps(
@@ -98,7 +98,7 @@
         .view_add_legend(
             class_cube = class_cube,
             segments = segments,
-            palette = palette
+            color_palette = color_palette
         )
     return(leaf_map)
 }
@@ -117,7 +117,7 @@
 #' @param  green         Band for green color.
 #' @param  blue          Band for blue color.
 #' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Palette provided in the configuration file.
+#' @param  color_palette Palette provided in the configuration file.
 #' @param  segments      Segment list obtained by \link{sits_segmentation}
 #' @param  view_max_mb   Maximum size of leaflet to be visualized
 .view_rgb_image <- function(cube,
@@ -128,7 +128,7 @@
                             green,
                             blue,
                             legend,
-                            palette,
+                            color_palette,
                             segments,
                             view_max_mb) {
 
@@ -162,13 +162,13 @@
             class_cube = class_cube,
             tiles = tiles,
             legend = legend,
-            palette = palette,
+            color_palette = color_palette,
             output_size = output_size) |>
         # include segments, if available
         .view_segments(
             segments = segments,
             legend = legend,
-            palette = palette)
+            color_palette = color_palette)
     # get overlay groups
     overlay_groups <- .view_add_overlay_grps(
         cube = cube,
@@ -246,10 +246,10 @@
 #' @param  samples       Data.frame with columns "longitude", "latitude"
 #'                       and "label"
 #' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Palette provided in the configuration file.
+#' @param  color_palette Palette provided in the configuration file.
 #' @return               A leaflet object
 #'
-.view_samples <- function(samples, legend, palette) {
+.view_samples <- function(samples, legend, color_palette) {
 
     # first select unique locations
     samples <- dplyr::distinct(
@@ -273,7 +273,8 @@
     if (purrr::is_null(legend)) {
         colors <- .colors_get(
             labels = labels,
-            palette = palette,
+            legend = NULL,
+            color_palette = color_palette,
             rev = TRUE
         )
     } else {
@@ -381,14 +382,14 @@
 #' @param  leafmap       Leaflet map
 #' @param  segments      Segment list obtained by \link{sits_segmentation}
 #' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Palette provided in the configuration file.
+#' @param  color_palette Palette provided in the configuration file.
 #'
 #' @return               A leaflet object
 #
 .view_segments <- function(leaf_map,
                            segments,
                            legend,
-                           palette) {
+                           color_palette) {
     # if there are no segments, return
     if (purrr::is_null(segments)) {
         return(leaf_map)
@@ -425,7 +426,8 @@
                 colors <- .colors_get(
                     labels = labels_seg,
                     legend = legend,
-                    palette = palette
+                    color_palette = color_palette,
+                    rev = TRUE
                 )
                 # add a new leafmap to show polygons of segments
                 leaf_map <- leafem::addFeatures(
@@ -465,7 +467,7 @@
 #' @param  cube          Data cube
 #' @param  band          Band to be shown
 #' @param  dates         Dates to be plotted
-#' @param  palette       Palette to show false colors
+#' @param  color_palette Palette to show false colors
 #' @param  output_size   Controls size of leaflet to be visualized
 #' @return               A leaflet object
 #
@@ -473,7 +475,7 @@
                           cube,
                           band,
                           dates,
-                          palette,
+                          color_palette,
                           output_size) {
     # obtain the raster objects for the dates chosen
     for (i in seq_along(dates)) {
@@ -496,7 +498,7 @@
                 tile = tile,
                 band = band,
                 date = date,
-                palette = palette,
+                color_palette = color_palette,
                 output_size = output_size)
         }
     }
@@ -584,14 +586,14 @@
 #' @param  class_cube    Classified cube to be overlayed on top on image
 #' @param  tiles         Tiles to be plotted (in case of a multi-tile cube).
 #' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Palette provided as alternative legend.
+#' @param  color_palette Palette provided as alternative legend.
 #' @param  output_size   Controls size of leaflet to be visualized
 #'
 .view_class_cube <- function(leaf_map,
                              class_cube,
                              tiles,
                              legend,
-                             palette,
+                             color_palette,
                              output_size) {
     # should we overlay a classified image?
     if (!purrr::is_null(class_cube)) {
@@ -601,13 +603,13 @@
             msg = "classified cube to be overlayed is invalid"
         )
         # get the labels
-        labels <- sits_labels(class_cube)
-        names(labels) <- seq_along(labels)
+        labels <- unlist(.cube_labels(class_cube, dissolve = FALSE))
         # obtain the colors
         colors <- .colors_get(
             labels = labels,
             legend = legend,
-            palette = palette
+            color_palette = color_palette,
+            rev = TRUE
         )
         # select the tiles that will be shown
         if (!purrr::is_null(tiles))
@@ -660,7 +662,7 @@
                                   tile,
                                   band,
                                   date = NULL,
-                                  palette,
+                                  color_palette,
                                   output_size) {
     # create a stars object
     st_obj <- stars::read_stars(
@@ -686,7 +688,7 @@
         leaf_map,
         x = st_obj_new,
         band = 1,
-        colors = palette,
+        colors = color_palette,
         project = FALSE,
         group = group,
         maxBytes = output_size["leaflet_maxbytes"]
@@ -756,7 +758,7 @@
 #' @param  class_cube    Classified cube
 #' @param  segments      Segments
 #' @param  legend        Class legend
-#' @param  palette       Color palette
+#' @param  color_palette Color palette
 #' @return               Leaflet map with legend
 #'
 #'
@@ -764,14 +766,14 @@
                              class_cube = NULL,
                              legend = NULL,
                              segments = NULL,
-                             palette = NULL) {
+                             color_palette = NULL) {
 
     # initialize labels
     labels <- NULL
     # if class_cube exists, get fact_pal
     if (!purrr::is_null(class_cube)) {
         # get the labels
-        labels <- sits_labels(class_cube)
+        labels <- unlist(.cube_labels(class_cube, dissolve = FALSE))
     } else {
         # get fact_pal from the segments
         if (!purrr::is_null(segments)) {
@@ -792,12 +794,13 @@
     }
     # are there any labels to the shown in the legend?
     if (!purrr::is_null(labels)) {
-        names(labels) <- seq_along(labels)
         # obtain the colors
+        labels <- sort(unname(labels))
         colors <- .colors_get(
             labels = labels,
             legend = legend,
-            palette = palette
+            color_palette = color_palette,
+            rev = TRUE
         )
         # create a palette of colors
         fact_pal <- leaflet::colorFactor(
@@ -812,7 +815,6 @@
             title   = "Classes",
             opacity = 1
         )
-
     }
     return(leaf_map)
 }

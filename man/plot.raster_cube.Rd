@@ -15,7 +15,7 @@
   date = NULL,
   segments = NULL,
   seg_color = "lightgoldenrod",
-  palette = "RdYlGn",
+  color_palette = "RdYlGn",
   rev = FALSE,
   tmap_options = NULL
 )
@@ -41,7 +41,7 @@
 
 \item{seg_color}{Color to use for segment borders}
 
-\item{palette}{An RColorBrewer palette}
+\item{color_palette}{An RColorBrewer palette}
 
 \item{rev}{Reverse the color order in the palette?}
 

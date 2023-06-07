@@ -4,7 +4,7 @@
 \alias{plot.predicted}
 \title{Plot time series predictions}
 \usage{
-\method{plot}{predicted}(x, y, ..., bands = "NDVI", palette = "Harmonic")
+\method{plot}{predicted}(x, y, ..., bands = "NDVI", color_palette = "Harmonic")
 }
 \arguments{
 \item{x}{Object of class "predicted".}
@@ -15,7 +15,7 @@
 
 \item{bands}{Bands for visualization.}
 
-\item{palette}{HCL palette used for visualization
+\item{color_palette}{HCL palette used for visualization
 in case classes are not in the default sits palette.}
 }
 \value{

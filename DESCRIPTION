@@ -222,6 +222,7 @@ Collate:
     'sits_summary.R'
     'sits_tae.R'
     'sits_tempcnn.R'
+    'sits_temporal_segmentation.R'
     'sits_timeline.R'
     'sits_train.R'
     'sits_tuning.R'
