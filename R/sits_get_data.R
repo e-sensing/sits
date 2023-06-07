@@ -32,7 +32,7 @@
 #'                        "YYYY-MM-DD" format (optional).
 #' @param label           Label to be assigned to the time series (optional).
 #' @param bands           Bands to be retrieved (optional).
-#' @param impute_fn       Imputation function for NA values.
+#' @param crs             Default crs for the samples
 #' @param label_attr      Attribute in the shapefile or sf object to be used
 #'                        as a polygon label.
 #' @param n_sam_pol       Number of samples per polygon to be read
@@ -105,7 +105,6 @@ sits_get_data <- function(cube,
                           label = "NoClass",
                           bands = sits_bands(cube),
                           crs = 4326,
-                          impute_fn = sits_impute_linear(),
                           label_attr = NULL,
                           n_sam_pol = 30,
                           pol_avg = FALSE,
@@ -141,7 +140,6 @@ sits_get_data.csv <- function(cube,
                               ...,
                               bands = sits_bands(cube),
                               crs = 4326,
-                              impute_fn = sits_impute_linear(),
                               multicores = 2,
                               progress = FALSE) {
 
@@ -152,7 +150,6 @@ sits_get_data.csv <- function(cube,
         samples    = samples,
         bands      = bands,
         crs        = crs,
-        impute_fn  = impute_fn,
         multicores = multicores,
         progress   = progress
     )
@@ -168,7 +165,6 @@ sits_get_data.shp <- function(cube,
                               end_date = as.Date(sits_timeline(cube)
                                                  [length(sits_timeline(cube))]),
                               bands = sits_bands(cube),
-                              impute_fn = sits_impute_linear(),
                               label_attr = NULL,
                               n_sam_pol = 30,
                               pol_avg = FALSE,
@@ -195,12 +191,11 @@ sits_get_data.shp <- function(cube,
         cube       = cube,
         samples    = samples,
         bands      = bands,
-        impute_fn  = impute_fn,
         multicores = multicores,
         progress   = progress
     )
     if (pol_avg && "polygon_id" %in% colnames(data)) {
-        data <- .sits_avg_polygon(data = data)
+        data <- .data_avg_polygon(data = data)
     }
     return(data)
 }
@@ -214,7 +209,6 @@ sits_get_data.sf <- function(cube,
                              start_date = as.Date(sits_timeline(cube)[1]),
                              end_date = as.Date(sits_timeline(cube)
                                                 [length(sits_timeline(cube))]),
-                             impute_fn = sits_impute_linear(),
                              label = "NoClass",
                              label_attr = NULL,
                              n_sam_pol = 30,
@@ -245,12 +239,11 @@ sits_get_data.sf <- function(cube,
         cube       = cube,
         samples    = samples,
         bands      = bands,
-        impute_fn  = impute_fn,
         multicores = multicores,
         progress   = progress
     )
     if (pol_avg && "polygon_id" %in% colnames(data)) {
-        data <- .sits_avg_polygon(data = data)
+        data <- .data_avg_polygon(data = data)
     }
 
     return(data)
@@ -261,7 +254,6 @@ sits_get_data.sits <- function(cube,
                                samples,
                                ...,
                                bands = sits_bands(cube),
-                               impute_fn = sits_impute_linear(),
                                multicores = 2,
                                progress = FALSE) {
     # check if samples contains all the required columns
@@ -271,7 +263,6 @@ sits_get_data.sits <- function(cube,
         cube       = cube,
         samples    = samples,
         bands      = bands,
-        impute_fn  = impute_fn,
         multicores = multicores,
         progress   = progress
     )
@@ -295,7 +286,6 @@ sits_get_data.data.frame <- function(cube,
                                      label = "NoClass",
                                      bands = sits_bands(cube),
                                      crs = 4326,
-                                     impute_fn = sits_impute_linear(),
                                      multicores = 2,
                                      progress = FALSE) {
 
@@ -324,7 +314,6 @@ sits_get_data.data.frame <- function(cube,
         samples    = samples,
         bands      = bands,
         crs        = crs,
-        impute_fn  = impute_fn,
         multicores = multicores,
         progress   = progress
     )
@@ -338,7 +327,6 @@ sits_get_data.segments <- function(
         samples,
         ...,
         bands = sits_bands(cube),
-        impute_fn = sits_impute_linear(),
         aggreg_fn = "mean",
         pol_id = "supercells",
         multicores = 1,
@@ -348,7 +336,6 @@ sits_get_data.segments <- function(
         cube = cube,
         segments = samples,
         bands = bands,
-        impute_fn  = impute_fn,
         aggreg_fn = aggreg_fn,
         pol_id = pol_id,
         multicores = multicores,

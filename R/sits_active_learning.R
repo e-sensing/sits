@@ -86,22 +86,22 @@ sits_uncertainty_sampling <- function(uncert_cube,
     samples_tb <- slider::slide_dfr(uncert_cube, function(tile) {
         path <-  .tile_path(tile)
         # Get a list of values of high uncertainty
-        top_values <- .raster_open_rast(path) %>%
+        top_values <- .raster_open_rast(path) |>
             .raster_get_top_values(
                 band = 1,
                 n = n,
                 sampling_window = sampling_window
-            ) %>%
+            ) |>
             dplyr::mutate(
                 value = .data[["value"]] *
                     .conf("probs_cube_scale_factor")
-            ) %>%
+            ) |>
             dplyr::filter(
                 .data[["value"]] >= min_uncert
-            ) %>%
+            ) |>
             dplyr::select(dplyr::matches(
                 c("longitude", "latitude", "value")
-            )) %>%
+            )) |>
             tibble::as_tibble()
         # All the cube's uncertainty images have the same start & end dates.
         top_values[["start_date"]] <- .tile_start_date(tile)
@@ -112,11 +112,11 @@ sits_uncertainty_sampling <- function(uncert_cube,
     })
 
     # Slice result samples
-    result_tb <- samples_tb %>%
+    result_tb <- samples_tb |>
         dplyr::slice_max(
             order_by = .data[["value"]], n = n,
             with_ties = FALSE
-        ) %>%
+        ) |>
         dplyr::transmute(
             longitude = .data[["longitude"]],
             latitude = .data[["latitude"]],
@@ -224,22 +224,22 @@ sits_confidence_sampling <- function(probs_cube,
         purrr::map2_dfr(labels, seq_along(labels), function(lab, i) {
 
             # Get a list of values of high confidence & apply threshold
-            top_values <- r_obj %>%
+            top_values <- r_obj |>
                 .raster_get_top_values(
                     band = i,
                     n = n,
                     sampling_window = sampling_window
-                ) %>%
+                ) |>
                 dplyr::mutate(
                     value = .data[["value"]] *
                         .conf("probs_cube_scale_factor")
-                ) %>%
+                ) |>
                 dplyr::filter(
                     .data[["value"]] >= min_margin
-                ) %>%
+                ) |>
                 dplyr::select(dplyr::matches(
                     c("longitude", "latitude", "value")
-                )) %>%
+                )) |>
                 tibble::as_tibble()
 
             # All the cube's uncertainty images have the same start &
@@ -253,13 +253,13 @@ sits_confidence_sampling <- function(probs_cube,
     })
 
     # Slice result samples
-    result_tb <- samples_tb %>%
-        dplyr::group_by(.data[["label"]]) %>%
+    result_tb <- samples_tb |>
+        dplyr::group_by(.data[["label"]]) |>
         dplyr::slice_max(
             order_by = .data[["value"]], n = n,
             with_ties = FALSE
-        ) %>%
-        dplyr::ungroup() %>%
+        ) |>
+        dplyr::ungroup() |>
         dplyr::transmute(
             longitude = .data[["longitude"]],
             latitude = .data[["latitude"]],
@@ -270,9 +270,9 @@ sits_confidence_sampling <- function(probs_cube,
         )
 
     # Warn if it cannot suggest all required samples
-    incomplete_labels <- result_tb %>%
-        dplyr::count(.data[["label"]]) %>%
-        dplyr::filter(.data[["n"]] < !!n) %>%
+    incomplete_labels <- result_tb |>
+        dplyr::count(.data[["label"]]) |>
+        dplyr::filter(.data[["n"]] < !!n) |>
         dplyr::pull("label")
 
     if (length(incomplete_labels) > 0)

@@ -7,9 +7,7 @@
 #' are categorical ("label_id" and "label"). The other columns are
 #' the values of each band and time, organized first by band and then by time.
 #'
-#'
 #' @param  samples     Time series in sits format
-#'
 #'
 #' @return The predictors for the sample: a data.frame with one row per sample.
 #'
@@ -161,6 +159,6 @@ sits_pred_sample <- function(pred, frac) {
 #' }
 #' @export
 sits_stats <- function(samples) {
-    stats <- .sits_stats(samples)
+    stats <- .samples_stats(samples)
     return(stats)
 }

@@ -130,7 +130,7 @@ test_that("Prune", {
 test_that("Select", {
 
     expect_equal(length(sits_bands(samples_modis_ndvi)), 1)
-    samples_pasture <- samples_modis_ndvi %>% dplyr::filter(label == "Pasture")
+    samples_pasture <- samples_modis_ndvi |>  dplyr::filter(label == "Pasture")
     expect_equal(dim(samples_pasture)[1], 344)
 })
 

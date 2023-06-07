@@ -259,7 +259,7 @@ NULL
     #
     # Log here
     #
-    .sits_debug_log(
+    .debug_log(
         event = "start_block_data_read",
         key = "band",
         value = band
@@ -273,7 +273,7 @@ NULL
     #
     # Log here
     #
-    .sits_debug_log(
+    .debug_log(
         event = "end_block_data_read",
         key = "band",
         value = band

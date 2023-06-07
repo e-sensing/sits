@@ -9,7 +9,8 @@ sits_join_segments(data, segments)
 \arguments{
 \item{data}{A sits tibble with predicted values}
 
-\item{segments}{Output coordinate reference system.}
+\item{segments}{A list of "sf" segments with polygon geometry
+organized by tile.}
 }
 \value{
 An list of sf objects of polygon geometry
@@ -17,7 +18,13 @@ An list of sf objects of polygon geometry
                 organized by tile
 }
 \description{
-Return a sits_tibble or raster_cube as an sf object.
+The \code{\link{sits_segment}} function produces
+a list of "sf" segments. These segments are used to obtain a set
+of time series (one per segment) using
+\code{\link{sits_get_data}}. The time series can then be classified
+using \code{\link{sits_classify}}. The next step is to add the result
+of time series classification to the "sf" segments file. This action
+is performed by this function.
 }
 \examples{
 if (sits_run_examples()) {
@@ -55,8 +62,6 @@ sf_seg <- sits_join_segments(
     segments = segments
 )
 }
-
-
 }
 \author{
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}

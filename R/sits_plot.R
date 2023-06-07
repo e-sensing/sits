@@ -386,10 +386,10 @@ plot.segments <- function(
     .check_that("class" %in% colnames(sf_seg),
                 msg = "segments have not been classified")
     # get the labels
-    labels <- sf_seg %>%
-        sf::st_drop_geometry() %>%
-        dplyr::select("class") %>%
-        dplyr::distinct() %>%
+    labels <- sf_seg |>
+        sf::st_drop_geometry() |>
+        dplyr::select("class") |>
+        dplyr::distinct() |>
         dplyr::pull()
     names(labels) <- seq_along(labels)
     # obtain the colors
@@ -433,8 +433,8 @@ plot.segments <- function(
 
     # join sf geometries
     #
-    sf_seg <- sf_seg %>%
-        dplyr::group_by(.data[["class"]]) %>%
+    sf_seg <- sf_seg |>
+        dplyr::group_by(.data[["class"]]) |>
         dplyr::summarise()
     p <- tmap::tm_shape(sf_seg) +
         tmap::tm_fill(
@@ -719,7 +719,7 @@ plot.variance_cube <- function(
                 msg = "plot type should be either map or hist")
     # plot the variance cube
     if (type == "map")
-        p <- .plot_variance_map(tile, labels, color_palette, rev, tmap_options)
+        p <- .plot_probs(tile, labels, palette, rev, tmap_options)
     else
         p <- .plot_variance_hist(tile)
 
@@ -1231,8 +1231,8 @@ plot.torch_model <- function(x, y, ...) {
     metrics_dfr <- purrr::map_dfr(names(metrics_lst), function(name) {
         met <- metrics_lst[[name]]
 
-        purrr::map_dfr(met, tibble::as_tibble_row) %>%
-            dplyr::mutate(epoch = seq_len(dplyr::n()), data = name) %>%
+        purrr::map_dfr(met, tibble::as_tibble_row) |>
+            dplyr::mutate(epoch = seq_len(dplyr::n()), data = name) |>
             tidyr::pivot_longer(cols = 1:2, names_to = "metric")
     })
 
@@ -1317,8 +1317,8 @@ plot.geo_distances <- function(x, y, ...) {
     )
 
     density_plot <-
-        distances %>%
-        dplyr::mutate(distance = .data[["distance"]] / 1000) %>%
+        distances |>
+        dplyr::mutate(distance = .data[["distance"]] / 1000) |>
         ggplot2::ggplot(ggplot2::aes(x = .data[["distance"]])) +
         ggplot2::geom_density(ggplot2::aes(
             color = .data[["type"]],
@@ -1334,31 +1334,25 @@ plot.geo_distances <- function(x, y, ...) {
     return(density_plot)
 }
 
-
-
-#' @title Plot a dendrogram
-#' @name .plot_dendrogram
-#' @keywords internal
-#' @noRd
+#' @title Plot a dendrogram cluster
+#' @name plot.sits_cluster
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Plot a dendrogram
 #'
-#' @param data          sits tibble with data used to extract the dendrogram.
+#' @param x             sits tibble with cluster indexes.
+#' @param ...           Further specifications for \link{plot}.
 #' @param cluster       cluster object produced by `sits_cluster` function.
 #' @param cutree_height dashed horizontal line to be drawn
 #'                      indicating the height of dendrogram cutting.
 #' @param color_palette hcl color palette.
 #'
 #' @return              The dendrogram object.
-.plot_dendrogram <- function(data,
-                             cluster,
-                             cutree_height,
-                             color_palette) {
-
-    # set caller to show in errors
-    .check_set_caller(".plot_dendrogram")
-
+#' @export
+plot.sits_cluster <- function(x, ...,
+                              cluster,
+                              cutree_height,
+                              palette) {
     # verifies if dendextend and methods packages is installed
     .check_require_packages(
         c("dendextend", "methods"),
@@ -1371,11 +1365,11 @@ plot.geo_distances <- function(x, y, ...) {
         msg = "no valid cluster object available"
     )
     # get data labels
-    data_labels <- data$label
+    data_labels <- x$label
 
     # extract the dendrogram object
     hclust_cl <- methods::S3Part(cluster, strictS3 = TRUE)
-    dend <- hclust_cl %>% stats::as.dendrogram()
+    dend <- hclust_cl |>  stats::as.dendrogram()
 
     # colors vector
     colors <- .colors_get(
@@ -1387,11 +1381,11 @@ plot.geo_distances <- function(x, y, ...) {
     colors_leg <- colors[unique(data_labels)]
 
     # set the visualization params for dendrogram
-    dend <- dend %>%
+    dend <- dend |>
         dendextend::set(
             what = "labels",
             value = character(length = length(data_labels))
-        ) %>%
+        ) |>
         dendextend::set(
             what = "branches_k_color",
             value = colors,
@@ -1412,7 +1406,7 @@ plot.geo_distances <- function(x, y, ...) {
     # plot legend
     graphics::legend("topright",
         fill = colors_leg,
-        legend = sits_labels(data)
+        legend = sits_labels(x)
     )
     return(invisible(dend))
 }

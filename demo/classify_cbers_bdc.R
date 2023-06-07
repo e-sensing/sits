@@ -70,9 +70,7 @@ cbers_bayes <- sits_smooth(
     cube = cbers_probs,
     memsize = 16,
     multicores = 4,
-    output_dir = tempdir(),
-    verbose = TRUE,
-    progress = TRUE
+    output_dir = tempdir()
 )
 # plot the classification result after smoothing
 plot(cbers_bayes)

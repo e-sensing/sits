@@ -115,8 +115,12 @@
     })
     # Merge blocks into a new class_cube tile
     band_tile <- .tile_eo_merge_blocks(
-        files = out_file, bands = out_band, base_tile = feature,
-        block_files = block_files, multicores = 1, update_bbox = FALSE
+        files = out_file,
+        bands = out_band,
+        base_tile = feature,
+        block_files = block_files,
+        multicores = 1,
+        update_bbox = FALSE
     )
     # Return a feature tile
     band_tile

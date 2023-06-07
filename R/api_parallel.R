@@ -1,13 +1,13 @@
 
 #' @title Stop all workers of the sits cluster
-#' @name .sits_parallel_stop
+#' @name .parallel_stop
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @return No value, called for side effect.
 #'
-.sits_parallel_stop <- function() {
-    if (.sits_parallel_is_open()) {
+.parallel_stop <- function() {
+    if (.parallel_is_open()) {
         tryCatch(
             {
                 parallel::stopCluster(sits_env[["cluster"]])
@@ -20,13 +20,13 @@
 }
 
 #' @title Check if sits clusters are open or not
-#' @name .sits_parallel_is_open
+#' @name .parallel_is_open
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @return No value, called for side effect.
 #'
-.sits_parallel_is_open <- function() {
+.parallel_is_open <- function() {
     tryCatch(
         {
             !is.null(sits_env[["cluster"]]) &&
@@ -37,7 +37,7 @@
 }
 
 #' @title Start a new sits cluster for parallel processing
-#' @name .sits_parallel_start
+#' @name .parallel_start
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -47,11 +47,11 @@
 #' @param output_dir output_dir where to save logs.
 #' @return No value, called for side effect.
 #'
-.sits_parallel_start <- function(workers, log = FALSE, output_dir = NULL) {
-    .sits_debug(flag = log, output_dir = output_dir)
-    if (!.sits_parallel_is_open() ||
+.parallel_start <- function(workers, log = FALSE, output_dir = NULL) {
+    .debug(flag = log, output_dir = output_dir)
+    if (!.parallel_is_open() ||
         length(sits_env[["cluster"]]) != workers) {
-        .sits_parallel_stop()
+        .parallel_stop()
 
         if (workers > 1) {
             sits_env[["cluster"]] <- parallel::makePSOCKcluster(workers)
@@ -81,14 +81,14 @@
             # export debug flag
             parallel::clusterEvalQ(
                 cl = sits_env[["cluster"]],
-                expr = sits:::.sits_debug(flag = log, output_dir = output_dir)
+                expr = sits:::.debug(flag = log, output_dir = output_dir)
             )
         }
     }
 }
 
 #' @title Recreates a cluster worker
-#' @name .sits_parallel_reset_node
+#' @name .parallel_reset_node
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -96,7 +96,7 @@
 #' @param worker_id   id of the cluster work to be recreated
 #' @return No value, called for side effect.
 #'
-.sits_parallel_reset_node <- function(worker_id) {
+.parallel_reset_node <- function(worker_id) {
 
     # stop node
     tryCatch({
@@ -109,7 +109,7 @@
     sits_env[["cluster"]][[worker_id]] <- parallel::makePSOCKcluster(1)[[1]]
 }
 
-#' @name .sits_parallel_recv_one_data
+#' @name .parallel_recv_one_data
 #' @keywords internal
 #' @noRd
 #'
@@ -128,7 +128,7 @@
 #' @param fn    a function to be applied to each list element
 #' @param ...   additional arguments to fn function
 #' @return      List with IDs of workers and their values
-.sits_parallel_recv_one_data <- function() {
+.parallel_recv_one_data <- function() {
 
     # fault tolerant version of parallel:::recvOneData
     cl <- sits_env[["cluster"]]
@@ -158,7 +158,7 @@
                     "will be attempted at the end of the process"
                 ))
                 # reset node
-                .sits_parallel_reset_node(worker_id)
+                .parallel_reset_node(worker_id)
 
                 return(list(
                     node = worker_id,
@@ -176,23 +176,23 @@
     return(list(node = worker_id, value = value))
 }
 
-#' @name .sits_parallel_recv_one_result
+#' @name .parallel_recv_one_result
 #' @keywords internal
 #' @noRd
 #' @return      List with values and nodes
-.sits_parallel_recv_one_result <- function() {
+.parallel_recv_one_result <- function() {
 
     # fault tolerant version of parallel:::recvOneData
-    v <- .sits_parallel_recv_one_data()
+    v <- .parallel_recv_one_data()
 
     return(list(value = v$value$value, node = v$node, tag = v$value$tag))
 }
 
-#' @rdname .sits_parallel_cluster_apply
+#' @rdname .parallel_cluster_apply
 #' @keywords internal
 #' @noRd
 #' @return      No value, called for side effect.
-.sits_parallel_cluster_apply <- function(x, fn, ..., pb = NULL) {
+.parallel_cluster_apply <- function(x, fn, ..., pb = NULL) {
 
     # fault tolerant version of parallel::clusterApplyLB
     cl <- sits_env[["cluster"]]
@@ -223,7 +223,7 @@
         # retrieve results and start jobs
         for (i in seq_len(n)) {
             # fault tolerant version of parallel:::recvOneResult
-            d <- .sits_parallel_recv_one_result()
+            d <- .parallel_recv_one_result()
             # next job
             j <- i + min(n, p)
             if (j <= n) {
@@ -251,7 +251,7 @@
 }
 
 #' @title Maps a function to a given list in parallel or sequential processing
-#' @name .sits_parallel_map
+#' @name .parallel_map
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -265,7 +265,7 @@
 #' @return               List with the function results in the same order
 #'                       as the input list
 #'
-.sits_parallel_map <- function(x, fn, ..., progress = FALSE,
+.parallel_map <- function(x, fn, ..., progress = FALSE,
                                n_retries = 3, sleep = 0) {
 
     # check documentation mode
@@ -298,7 +298,7 @@
     }
 
     # parallel processing
-    values <- .sits_parallel_cluster_apply(x, fn, ..., pb = pb)
+    values <- .parallel_cluster_apply(x, fn, ..., pb = pb)
 
     # check for faults
     retry <- vapply(values, inherits, logical(1), "retry")
@@ -310,7 +310,7 @@
             # seconds to wait before try again
             Sys.sleep(sleep)
             # retry for faulted values
-            values[retry] <- .sits_parallel_cluster_apply(
+            values[retry] <- .parallel_cluster_apply(
                 x[retry], fn, ...,
                 pb = pb
             )

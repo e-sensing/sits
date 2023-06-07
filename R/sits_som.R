@@ -144,7 +144,7 @@ sits_som_map <- function(data,
         som_radius
     )
     # get the list of labels for maximum a priori probability
-    lab_max <- seq(1:(grid_xdim * grid_ydim)) %>%
+    lab_max <- seq(1:(grid_xdim * grid_ydim)) |>
         purrr::map(function(neuron_id) {
             labels_neuron <- dplyr::filter(
                 labelled_neurons,
@@ -257,7 +257,7 @@ sits_som_clean_samples <- function(som_map,
         )
     }
 
-    data <- som_map$data %>%
+    data <- som_map$data |>
         dplyr::select(
             "longitude",
             "latitude",
@@ -268,20 +268,20 @@ sits_som_clean_samples <- function(som_map,
             "time_series",
             "id_sample",
             "id_neuron"
-        ) %>%
+        ) |>
         dplyr::inner_join(som_map$labelled_neurons,
                           by = c("id_neuron", "label" = "label_samples")
-        ) %>%
+        ) |>
         dplyr::mutate(
             eval = .detect_class_noise(
                 .data[["prior_prob"]],
                 .data[["post_prob"]]
             )
-        ) %>%
+        ) |>
         dplyr::select(
             -"count",
             -"prior_prob"
-        ) %>%
+        ) |>
         dplyr::filter(.data[["eval"]] %in% keep)
 
     return(data)
@@ -325,7 +325,7 @@ sits_som_evaluate_cluster <- function(som_map) {
     )
 
     # Aggregate in the sample dataset the label of each neuron
-    data <- som_map$data %>%
+    data <- som_map$data |>
         dplyr::inner_join(id_neuron_label_tb, by = c("id_neuron"))
 
     # Get only id, label and neuron_label
@@ -347,7 +347,7 @@ sits_som_evaluate_cluster <- function(som_map) {
     # represents clusters
     dim_col <- dim(confusion_matrix)[2]
 
-    cluster_purity_lst <- seq_len(dim_col - 1) %>%
+    cluster_purity_lst <- seq_len(dim_col - 1) |>
         purrr::map(function(d) {
             current_col <- confusion_matrix[1:dim_row - 1, d]
             current_col_total <- confusion_matrix[dim_row, d]

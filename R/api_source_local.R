@@ -197,15 +197,15 @@
         # get only the first band
         band <- bands[[1]]
         # get the information on the required band, dates and path
-        items <- items %>%
+        items <- items |>
             # bands are case insensitive (converted to lower case)
-            dplyr::mutate(band = tolower(.data[["band"]])) %>%
+            dplyr::mutate(band = tolower(.data[["band"]])) |>
             # add path
-            dplyr::mutate(path = paste(data_dir, img_files_filt, sep = "/")) %>%
+            dplyr::mutate(path = paste(data_dir, img_files_filt, sep = "/")) |>
             # filter by the band
-            dplyr::filter(.data[["band"]] == !!band) %>%
+            dplyr::filter(.data[["band"]] == !!band) |>
             # filter by the version
-            dplyr::filter(.data[["version"]] == !!version) %>%
+            dplyr::filter(.data[["version"]] == !!version) |>
             # select the relevant parts
             dplyr::select(
                 "tile",
@@ -213,15 +213,15 @@
                 "end_date",
                 "band",
                 "path"
-            ) %>%
+            ) |>
             # check the start date format
             dplyr::mutate(
                 start_date = .timeline_format(.data[["start_date"]])
-            ) %>%
+            ) |>
             # check the end date format
             dplyr::mutate(
                 end_date = .timeline_format(.data[["end_date"]])
-            ) %>%
+            ) |>
             # filter to remove duplicate combinations of file and band
             dplyr::distinct(
                 .data[["tile"]],
@@ -229,32 +229,32 @@
                 .data[["end_date"]],
                 .data[["band"]],
                 .keep_all = TRUE
-            ) %>%
+            ) |>
             # order by dates
             dplyr::arrange(.data[["start_date"]])
     } else {
         # bands are case insensitive (converted to upper case)
-        items <- items %>%
-            dplyr::mutate(band = toupper(.data[["band"]])) %>%
+        items <- items |>
+            dplyr::mutate(band = toupper(.data[["band"]])) |>
             # add path
             dplyr::mutate(
-                path = paste(!!data_dir, !!img_files_filt, sep = "/")) %>%
+                path = paste(!!data_dir, !!img_files_filt, sep = "/")) |>
             # select the relevant parts
             dplyr::select(
                 "tile",
                 "date",
                 "band",
                 "path"
-            ) %>%
+            ) |>
             # check the date format
-            dplyr::mutate(date = .timeline_format(.data[["date"]])) %>%
+            dplyr::mutate(date = .timeline_format(.data[["date"]])) |>
             # filter to remove duplicate combinations of file and band
             dplyr::distinct(
                 .data[["tile"]],
                 .data[["date"]],
                 .data[["band"]],
                 .keep_all = TRUE
-            ) %>%
+            ) |>
             # order by dates
             dplyr::arrange(.data[["date"]], .data[["band"]])
 
@@ -336,16 +336,16 @@
         msg = "invalid 'items' parameter"
     )
     # add feature id (fid)
-    items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) %>%
-        dplyr::mutate(fid = paste0(dplyr::cur_group_id())) %>%
+    items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) |>
+        dplyr::mutate(fid = paste0(dplyr::cur_group_id())) |>
         dplyr::ungroup()
     # prepare parallel requests
     if (is.null(sits_env[["cluster"]])) {
-        .sits_parallel_start(workers = multicores)
-        on.exit(.sits_parallel_stop(), add = TRUE)
+        .parallel_start(workers = multicores)
+        on.exit(.parallel_stop(), add = TRUE)
     }
     # do parallel requests
-    results_lst <- .sits_parallel_map(unique(items[["fid"]]), function(i) {
+    results_lst <- .parallel_map(unique(items[["fid"]]), function(i) {
         # filter by feature
         item <- dplyr::filter(items, .data[["fid"]] == !!i)
         # open band rasters and get assets info
@@ -386,7 +386,7 @@
                 call. = FALSE, immediate. = TRUE)
     }
 
-    items <- dplyr::bind_rows(items) %>%
+    items <- dplyr::bind_rows(items) |>
         dplyr::arrange(.data[["date"]], .data[["fid"]], .data[["band"]])
 
     return(items)
@@ -406,11 +406,11 @@
 
     # prepare parallel requests
     if (is.null(sits_env[["cluster"]])) {
-        .sits_parallel_start(workers = multicores)
-        on.exit(.sits_parallel_stop(), add = TRUE)
+        .parallel_start(workers = multicores)
+        on.exit(.parallel_stop(), add = TRUE)
     }
     # do parallel requests
-    results_lst <- .sits_parallel_map(seq_len(nrow(items)), function(i) {
+    results_lst <- .parallel_map(seq_len(nrow(items)), function(i) {
 
         item <- items[i, ]
         # open band rasters and get assets info
@@ -465,31 +465,11 @@
                                    collection,
                                    items) {
     # pre-condition
-    .check_length(
-        unique(items[["tile"]]),
-        len_min = 1,
-        msg = "invalid number of tiles"
-    )
-
+    .check_local_items(items)
     # get crs from file_info
     crs <- unique(items[["crs"]])
-
-    # check crs
-    .check_length(
-        crs,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid crs value"
-    )
     # get tile from file_info
     tile <- unique(items[["tile"]])
-    # check tile
-    .check_length(
-        tile,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid tile value"
-    )
     # make a new file info for one tile
     file_info <- dplyr::select(
         items,
@@ -533,29 +513,11 @@
                                       items,
                                       labels) {
     # pre-condition
-    .check_length(
-        unique(items[["tile"]]),
-        len_min = 1,
-        msg = "invalid number of tiles"
-    )
+    .check_local_items(items)
     # get crs from file_info
     crs <- unique(items[["crs"]])
-    # check crs
-    .check_length(
-        crs,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid crs value"
-    )
     # get tile from file_info
     tile <- unique(items[["tile"]])
-    # check tile
-    .check_length(
-        tile,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid tile value"
-    )
     # make a new file info for one tile
     file_info <- dplyr::select(
         items,

@@ -10,8 +10,12 @@
     # Resume feature
     if (file.exists(out_file)) {
         .check_recovery(tile[["tile"]])
-        class_tile <- .tile_class_from_file(
-            file = out_file, band = band, base_tile = tile
+        class_tile <- .tile_derived_from_file(
+            file = out_file,
+            band = band,
+            base_tile = tile,
+            derived_class = "class_cube",
+            update_bbox = FALSE
         )
         return(class_tile)
     }
@@ -54,8 +58,12 @@
             base_files = .fi_paths(.fi(mask)), multicores = 1
         )
         # Build a new tile for mask based on template
-        mask_tile <- .tile_class_from_file(
-            file = mask_block_file, band = "class", .tile(mask)
+        mask_tile <- .tile_derived_from_file(
+            file = mask_block_file,
+            band = "class",
+            base_tile = .tile(mask),
+            derived_class = "class_cube",
+            update_bbox = FALSE
         )
         # Read and preprocess values
         values <- .tile_read_block(
@@ -90,9 +98,15 @@
         block_file
     })
     # Merge blocks into a new class_cube tile
-    class_tile <- .tile_class_merge_blocks(
-        file = out_file, band = band, labels = labels, base_tile = tile,
-        block_files = block_files, multicores = .jobs_multicores()
+    class_tile <- .tile_derived_merge_blocks(
+        file = out_file,
+        band = band,
+        labels = labels,
+        base_tile = tile,
+        block_files = block_files,
+        derived_class = "class_cube",
+        multicores = .jobs_multicores(),
+        update_bbox = FALSE
     )
     # Return class tile
     class_tile

@@ -95,7 +95,7 @@ sits_view(x, ...)
 
 \item{class_cube}{Classified cube to be overlayed on top on image.}
 
-\item{segments}{Segment list obtained by \link{sits_segmentation}}
+\item{segments}{Segment list obtained by \link{sits_segment}}
 
 \item{view_max_mb}{Maximum size of leaflet to be visualized}
 }

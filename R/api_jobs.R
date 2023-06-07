@@ -76,7 +76,7 @@
             sync_fn(round)
         }
         round <- slider::slide(round, identity)
-        .sits_parallel_map(round, fn, ..., progress = progress)
+        .parallel_map(round, fn, ..., progress = progress)
     }), recursive = FALSE)
 }
 

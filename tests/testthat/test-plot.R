@@ -17,17 +17,17 @@ test_that("Plot Time Series and Images", {
     expect_equal(p2$guides$colour$title, "Bands")
     expect_equal(p2$theme$legend.position, "bottom")
 
-    p3 <- cerrado_2classes %>%
-        sits_patterns() %>%
-        sits_select(bands = "EVI") %>%
+    p3 <- cerrado_2classes |>
+        sits_patterns() |>
+        sits_select(bands = "EVI") |>
         plot()
     expect_equal(as.Date(p3$data$Time[1]), as.Date("2000-09-13"))
     expect_equal(p3$data$Pattern[1], "Cerrado")
     expect_equal(p3$data$name[1], "EVI")
     expect_equal(p3$guides$colour$title, "Bands")
 
-    p4 <- cerrado_2classes %>%
-        sits_patterns() %>%
+    p4 <- cerrado_2classes |>
+        sits_patterns() |>
         plot(bands = "NDVI")
     expect_equal(as.Date(p4$data$Time[1]), as.Date("2000-09-13"))
     expect_equal(p4$data$Pattern[1], "Cerrado")
@@ -148,21 +148,21 @@ test_that("Plot Models", {
 
 test_that("Dendrogram Plot", {
 
-    cluster_obj <- .sits_cluster_dendrogram(cerrado_2classes,
+    samples <- sits_cluster_dendro(cerrado_2classes,
+        bands = c("NDVI", "EVI"),
+        .plot = FALSE
+    )
+    cluster <- .cluster_dendrogram(
+        samples = samples,
         bands = c("NDVI", "EVI")
     )
-    cut.vec <- .sits_cluster_dendro_bestcut(
-        cerrado_2classes,
-        cluster_obj
-    )
 
-    dend <- suppressMessages(
-        .plot_dendrogram(
-            data = cerrado_2classes,
-            cluster = cluster_obj,
-            cutree_height = cut.vec["height"],
-            color_palette = "RdYlGn"
-        )
+    best_cut <- .cluster_dendro_bestcut(samples, cluster)
+
+    dend <- plot(samples,
+                 cluster = cluster,
+                 cutree_height = best_cut["height"],
+                 color_palette = "RdYlGn"
     )
     expect_equal(class(dend), "dendrogram")
 })
@@ -185,8 +185,8 @@ test_that("Plot torch model", {
 })
 
 test_that("Plot series with NA", {
-    cerrado_ndvi <- cerrado_2classes %>%
-        sits_select(bands = "NDVI") %>%
+    cerrado_ndvi <- cerrado_2classes |>
+        sits_select(bands = "NDVI") |>
         dplyr::filter(label == "Cerrado")
     cerrado_ndvi_1 <- cerrado_ndvi[1, ]
     ts <- cerrado_ndvi_1$time_series[[1]]
@@ -199,8 +199,6 @@ test_that("Plot series with NA", {
 })
 
 test_that("SOM map plot", {
-
-
     set.seed(1234)
     som_map <-
         suppressWarnings(sits_som_map(

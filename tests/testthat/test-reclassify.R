@@ -97,7 +97,8 @@ test_that("One-year, multicores processing reclassify", {
                             "r2020", "r2021"
                         ),
                         "Water_Mask" = mask == "Water",
-                        "NonForest_Mask" = mask %in% c("NonForest", "NonForest2")
+                        "NonForest_Mask" = mask %in%
+                            c("NonForest", "NonForest2")
                     ),
                     memsize = 4,
                     multicores = 2,

@@ -277,13 +277,6 @@ test_that("Checks", {
         c("a", "b", "c")
     )
     expect_error(
-        .check_chr_within(c("a", "b", "c"),
-            within = c("a", "b"),
-            discriminator = "exactly"
-        ),
-        "values should be exactly"
-    )
-    expect_error(
         .check_chr_within(c("a", "b", "b", "c"),
             within = c("a", "b", "c"),
             discriminator = "true_of"

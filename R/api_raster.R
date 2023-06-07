@@ -209,10 +209,10 @@
         with_ties = FALSE
     )
 
-    tb <- r_obj %>%
+    tb <- r_obj |>
         terra::xyFromCell(
             cell = samples_tb[["cell"]]
-        ) %>%
+        ) |>
         tibble::as_tibble()
     # find NA
     na_rows <- which(is.na(tb))
@@ -222,18 +222,18 @@
         samples_tb <- samples_tb[-na_rows, ]
     }
     # Get the values' positions.
-    result_tb <- tb %>%
+    result_tb <- tb |>
         sf::st_as_sf(
             coords = c("x", "y"),
             crs = .raster_crs(r_obj),
             dim = "XY",
             remove = TRUE
-        ) %>%
-        sf::st_transform(crs = 4326) %>%
-        sf::st_coordinates() %>%
-        magrittr::set_colnames(
-            value = c("longitude", "latitude")
-        ) %>%
+        ) |>
+        sf::st_transform(crs = 4326) |>
+        sf::st_coordinates()
+
+    colnames(result_tb) <- c("longitude", "latitude")
+    result_tb <- result_tb |>
         dplyr::bind_cols(samples_tb)
 
     return(result_tb)

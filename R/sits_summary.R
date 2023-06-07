@@ -20,7 +20,16 @@
 #'
 #' @export
 summary.sits <- function(object, ...) {
-    sits_labels_summary(object)
+    # get frequency table
+    data_labels <- table(object$label)
+
+    # compose tibble containing labels, count and relative frequency columns
+    result <- tibble::as_tibble(list(
+        label = names(data_labels),
+        count = as.integer(data_labels),
+        prop = as.numeric(prop.table(data_labels))
+    ))
+    return(result)
 }
 
 #' @title  Summarize accuracy matrix for training data
@@ -146,24 +155,13 @@ summary.raster_cube <- function(
         only_stats = FALSE,
         sample_size = 100000
 ) {
-    # only one tile at a time
-    .check_chr_parameter(tile)
-    # is tile inside the cube?
-    .check_chr_contains(
-        x = object$tile,
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = "tile is not included in the cube"
-    )
     # filter the tile to be processed
-    tile <- .cube_filter_tiles(cube = object, tiles = tile)
+    tile <- .summary_check_tile(object, tile)
     if (purrr::is_null(date))
         date <- .tile_timeline(tile)[[1]]
     # only one date at a time
     .check_that(length(date) == 1,
-                msg = "only one date per plot is allowed")
+                msg = "only one date per summary is allowed")
     # is this a valid date?
     date <- as.Date(date)
     .check_that(date %in% .tile_timeline(tile),
@@ -178,28 +176,14 @@ summary.raster_cube <- function(
     # extract the file paths
     files <- .tile_paths(tile)
 
+    # print the base information (if requested)
+    if (!only_stats)
+        .summary_tile_information(tile)
     # read the files with terra
     r <- terra::rast(files)
-    # print the base information (if requested)
-    if (!only_stats) {
-        cat("class       : ", class(tile)[1], "\n")
-        cat("dimensions  : ",
-            .tile_nrows(tile), ", ",
-            .tile_ncols(tile), "  (nrow, ncol)\n", sep = "")
-        cat("resolution  : ",
-            .tile_xres(tile), ", ",
-            .tile_yres(tile), "  (x, y)\n", sep = "")
-        cat("extent      : ",
-            .xmin(tile), ", ",
-            .xmax(tile), ", ",
-            .ymin(tile), ", ",
-            .ymax(tile),
-            "  (xmin, xmax, ymin, ymax)\n", sep = "")
-        cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
-    }
     # get the a sample of the values
-    values <- r %>%
-        terra::spatSample(size = sample_size, na.rm = TRUE) %>%
+    values <- r |>
+        terra::spatSample(size = sample_size, na.rm = TRUE) |>
         tibble::as_tibble()
     # set names as the band names
     bands <- bands[bands != "CLOUD"]
@@ -257,59 +241,7 @@ summary.probs_cube <- function(
        only_stats = FALSE,
        sample_size = 100000
 ) {
-    # only one tile at a time
-    .check_chr_parameter(tile)
-    # is tile inside the cube?
-    .check_chr_contains(
-        x = object$tile,
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = "tile is not included in the cube"
-    )
-    # filter the tile to be processed
-    tile <- .cube_filter_tiles(cube = object, tiles = tile)
-    # get the bands
-    band <- sits_bands(tile)
-    .check_num(
-        x = length(band),
-        min = 1,
-        max = 1,
-        is_integer = TRUE,
-        msg = "invalid cube - more than one probs band")
-    # extract the file paths
-    files <- .tile_paths(tile)
-
-    # read the files with terra
-    r <- terra::rast(files)
-    # print the base information (if requested)
-    if (!only_stats) {
-        cat("class       : ", class(tile)[1], "\n")
-        cat("dimensions  : ",
-            .tile_nrows(tile), ", ",
-            .tile_ncols(tile), "  (nrow, ncol)\n", sep = "")
-        cat("resolution  : ",
-            .tile_xres(tile), ", ",
-            .tile_yres(tile), "  (x, y)\n", sep = "")
-        cat("extent      : ",
-            .xmin(tile), ", ",
-            .xmax(tile), ", ",
-            .ymin(tile), ", ",
-            .ymax(tile),
-            "  (xmin, xmax, ymin, ymax)\n", sep = "")
-        cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
-    }
-    # get the a sample of the values
-    values <- r %>%
-        terra::spatSample(size = sample_size, na.rm = TRUE)
-    # scale the values
-    band_conf <- .tile_band_conf(tile, band)
-    scale <- .scale(band_conf)
-    offset <- .offset(band_conf)
-    sum <- summary(values * scale + offset)
-    colnames(sum) <- sits_labels(tile)
-    sum
+    .summary_derived_cube(object, tile, only_stats, sample_size)
 }
 #' @title  Summarize data cubes
 #' @method summary variance_cube
@@ -355,61 +287,8 @@ summary.variance_cube <- function(
         object, ...,
         tile = object$tile[[1]],
         only_stats = FALSE,
-        sample_size = 100000
-) {
-    # only one tile at a time
-    .check_chr_parameter(tile)
-    # is tile inside the cube?
-    .check_chr_contains(
-        x = object$tile,
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = "tile is not included in the cube"
-    )
-    # filter the tile to be processed
-    tile <- .cube_filter_tiles(cube = object, tiles = tile)
-    # get the bands
-    band <- sits_bands(tile)
-    .check_num(
-        x = length(band),
-        min = 1,
-        max = 1,
-        is_integer = TRUE,
-        msg = "invalid cube - more than one probs band")
-    # extract the file paths
-    files <- .tile_paths(tile)
-
-    # read the files with terra
-    r <- terra::rast(files)
-    # print the base information (if requested)
-    if (!only_stats) {
-        cat("class       : ", class(tile)[1], "\n")
-        cat("dimensions  : ",
-            .tile_nrows(tile), ", ",
-            .tile_ncols(tile), "  (nrow, ncol)\n", sep = "")
-        cat("resolution  : ",
-            .tile_xres(tile), ", ",
-            .tile_yres(tile), "  (x, y)\n", sep = "")
-        cat("extent      : ",
-            .xmin(tile), ", ",
-            .xmax(tile), ", ",
-            .ymin(tile), ", ",
-            .ymax(tile),
-            "  (xmin, xmax, ymin, ymax)\n", sep = "")
-        cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
-    }
-    # get the a sample of the values
-    values <- r %>%
-        terra::spatSample(size = sample_size, na.rm = TRUE)
-    # scale the values
-    band_conf <- .tile_band_conf(tile, band)
-    scale <- .scale(band_conf)
-    offset <- .offset(band_conf)
-    sum <- summary(values * scale + offset)
-    colnames(sum) <- sits_labels(tile)
-    sum
+        sample_size = 100000) {
+    .summary_derived_cube(object, tile, only_stats, sample_size)
 }
 #' @title  Summarize data cubes
 #' @method summary class_cube
@@ -455,21 +334,9 @@ summary.class_cube <- function(
         object, ...,
         tile = object$tile[[1]],
         only_stats = FALSE,
-        sample_size = 100000
-) {
-    # only one tile at a time
-    .check_chr_parameter(tile)
-    # is tile inside the cube?
-    .check_chr_contains(
-        x = object$tile,
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = "tile is not included in the cube"
-    )
-    # filter the tile to be processed
-    tile <- .cube_filter_tiles(cube = object, tiles = tile)
+        sample_size = 100000) {
+    # check tile
+    tile <- .summary_check_tile(object, tile)
     # get the bands
     band <- sits_bands(tile)
     .check_num(
@@ -481,27 +348,13 @@ summary.class_cube <- function(
     # extract the file paths
     files <- .tile_paths(tile)
 
+    # print the base information (if requested)
+    if (!only_stats)
+        .summary_tile_information(tile)
     # read the files with terra
     r <- terra::rast(files)
-    # print the base information (if requested)
-    if (!only_stats) {
-        cat("class       : ", class(tile)[1], "\n")
-        cat("dimensions  : ",
-            .tile_nrows(tile), ", ",
-            .tile_ncols(tile), "  (nrow, ncol)\n", sep = "")
-        cat("resolution  : ",
-            .tile_xres(tile), ", ",
-            .tile_yres(tile), "  (x, y)\n", sep = "")
-        cat("extent      : ",
-            .xmin(tile), ", ",
-            .xmax(tile), ", ",
-            .ymin(tile), ", ",
-            .ymax(tile),
-            "  (xmin, xmax, ymin, ymax)\n", sep = "")
-        cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
-    }
     # get the a sample of the values
-    class_areas <- r %>%
+    class_areas <- r |>
         terra::expanse(unit = "km", byValue = TRUE)
     # create a tibble
     areas <-  class_areas[, 3]

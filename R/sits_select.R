@@ -60,12 +60,12 @@ sits_select.sits <- function(data,
                           msg = "Invalid bands values"
         )
 
-        data <- .sits_select_bands(data, bands = bands)
+        data <- .samples_select_bands(data, bands = bands)
     }
     # Filter dates
     if (!is.null(start_date) || !is.null(end_date)) {
         .check_dates_parameter(c(start_date, end_date))
-        data <- .sits_filter_interval(
+        data <- .samples_filter_interval(
             data, start_date = start_date, end_date = end_date
         )
     }

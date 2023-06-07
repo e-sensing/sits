@@ -228,18 +228,12 @@
                         msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
-
+    msg <- .check_default_message(x, msg)
     .check_that(
         !is.null(x),
         local_msg = "value cannot be NULL",
         msg = msg
     )
-
     return(invisible(x))
 }
 
@@ -249,12 +243,7 @@
 .check_na <- function(x, ..., allow_na = FALSE, msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
-
+    msg <- .check_default_message(x, msg)
     if (!allow_na) {
         .check_that(
             !any(is.na(x)),
@@ -262,12 +251,8 @@
             msg = msg
         )
     }
-
     return(invisible(x))
 }
-
-
-
 #' @rdname check_functions
 #' @keywords internal
 #' @noRd
@@ -277,17 +262,12 @@
                          msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # cannot test zero length arguments
     if (length(x) == 0) {
         return(invisible(x))
     }
-
     if (is_named) {
         .check_that(
             !is.null(names(x)) && !any(is.na(names(x))),
@@ -301,7 +281,6 @@
                 msg = msg
             )
         }
-
     } else {
         .check_that(
             is.null(names(x)),
@@ -309,7 +288,6 @@
             msg = msg
         )
     }
-
     return(invisible(x))
 }
 
@@ -322,11 +300,7 @@
                           msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # pre-condition
     .check_num_type(
@@ -386,18 +360,12 @@
                             msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
-
+    msg <- .check_default_message(x, msg)
     .check_that(
         is.logical(x),
         local_msg = "value is not logical",
         msg = msg
     )
-
     return(invisible(x))
 }
 
@@ -409,11 +377,7 @@
                             msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     .check_that(
         is.numeric(x),
@@ -446,18 +410,12 @@
                             msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
-
+    msg <- .check_default_message(x, msg)
     .check_that(
         is.character(x),
         local_msg = "value is not character type",
         msg = msg
     )
-
     return(invisible(x))
 }
 
@@ -468,18 +426,13 @@
                             msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     .check_that(
         is.list(x),
         local_msg = "value is not a list",
         msg = msg
     )
-
     return(invisible(x))
 }
 
@@ -529,31 +482,22 @@
                        msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # check for NULL and exit if it is allowed
     if (allow_null && is.null(x)) {
         return(invisible(x))
     }
-
     # check NULL
     .check_null(x, msg = msg)
-
     # check type
     .check_lgl_type(x, msg = msg)
-
     # check length
     .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
-
     # check NA
     if (!allow_na) {
         .check_na(x, msg = msg)
     }
-
     # check names
     .check_names(x, is_named = is_named, msg = msg)
 
@@ -578,32 +522,22 @@
                        msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # check for NULL and exit if it is allowed
     if (allow_null && is.null(x)) {
         return(invisible(x))
     }
-
     # check NULL
     .check_null(x, msg = msg)
-
     # check type
     .check_num_type(x, is_integer = is_integer, msg = msg)
-
     # check length
     .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
-
     # check NA
     .check_na(x, allow_na = allow_na, msg = msg)
-
     # check names
     .check_names(x, is_named = is_named, msg = msg)
-
     # check range
     .check_num_min_max(
         x = x,
@@ -614,7 +548,6 @@
         tolerance = tolerance,
         msg = msg
     )
-
     return(invisible(x))
 }
 
@@ -627,11 +560,7 @@
                                msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # pre-condition
     .check_num_type(min, msg = "invalid 'min' parameter")
@@ -670,7 +599,6 @@
         local_msg = paste0("value should be <= ", max),
         msg = msg
     )
-
     # exclusive_min and exclusive_max checks
     .check_that(
         all(x > exclusive_min),
@@ -682,7 +610,6 @@
         local_msg = paste0("value should be < ", exclusive_max),
         msg = msg
     )
-
     return(invisible(result))
 }
 
@@ -702,31 +629,22 @@
                        msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # check for null and exit if it is allowed
     if (allow_null && is.null(x)) {
         return(invisible(x))
     }
-
     # check NULL
     .check_null(x, msg = msg)
-
     # check type
     .check_chr_type(x, msg = msg)
-
     # check length
     .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
-
     # check NA
     if (!allow_na) {
         .check_na(x, msg = msg)
     }
-
     # check empty
     if (!allow_empty) {
         .check_that(
@@ -750,7 +668,6 @@
                  is_named = is_named,
                  is_unique = has_unique_names,
                  msg = msg)
-
     # check regular expression pattern
     if (!is.null(regex)) {
         .check_that(
@@ -759,7 +676,6 @@
             msg = msg
         )
     }
-
     return(invisible(x))
 }
 
@@ -775,34 +691,24 @@
                        msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # check for null and exit if it is allowed
     if (allow_null && is.null(x)) {
         return(invisible(x))
     }
-
     # check NULL
     .check_null(x, msg = msg)
-
     # check type
     .check_lst_type(x, msg = msg)
-
     # check length
     .check_length(x, len_min = min_len, len_max = max_len, msg = msg)
-
     # check names
     .check_names(x, is_named = is_named, msg = msg)
-
     # check using function
     if (!is.null(fn_check)) {
         .check_apply(x, fn_check = fn_check, msg = msg, ...)
     }
-
     return(invisible(x))
 }
 
@@ -855,23 +761,17 @@
                               msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # pre-condition
     .check_chr(within,
-        len_min = 1,
-        msg = "invalid 'within' parameter"
+               len_min = 1,
+               msg = "invalid 'within' parameter"
     )
     # check parameters
     .check_discriminator(discriminator)
-
     # check type
     .check_chr_type(x, msg = msg)
-
     # check for repeated values
     if (!can_repeat) {
         .check_that(
@@ -880,22 +780,17 @@
             msg = msg
         )
     }
-
     result <- x
-
     # simplify
     x <- unique(x)
     within <- unique(within)
-
     # transform inputs to verify without case sensitive
     if (!case_sensitive) {
         x <- tolower(x)
         within <- tolower(within)
     }
-
     # prepare local message
-    local_msg <- "invalid discriminator"
-
+    local_msg <- "invalid condition"
     # check discriminator
     if (discriminator == "one_of") {
         .check_that(
@@ -943,16 +838,12 @@
                                 msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # pre-condition
     .check_chr(contains,
-        len_min = 1,
-        msg = "invalid 'contains' parameter"
+               len_min = 1,
+               msg = "invalid 'contains' parameter"
     )
 
     # check discriminators
@@ -1039,11 +930,7 @@
                         msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
+    msg <- .check_default_message(x, msg)
 
     # file extension
     ext_file <- function(x) {
@@ -1056,16 +943,16 @@
 
     # check parameter
     .check_chr(x,
-        allow_empty = FALSE, len_min = 1,
-        allow_null = FALSE, msg = msg
+               allow_empty = FALSE, len_min = 1,
+               allow_null = FALSE, msg = msg
     )
 
     # check extension
     if (!is.null(extensions)) {
         .check_chr_within(ext_file(x),
-            within = extensions,
-            case_sensitive = FALSE,
-            msg = "invalid file extension"
+                          within = extensions,
+                          case_sensitive = FALSE,
+                          msg = "invalid file extension"
         )
     }
 
@@ -1076,7 +963,7 @@
         local_msg = paste(
             "file does not exist:",
             paste0("'", x[!existing_files], "'",
-                collapse = ", "
+                   collapse = ", "
             )
         ),
         msg = msg
@@ -1102,16 +989,10 @@
                            msg = NULL) {
 
     # make default message
-    if (purrr::is_null(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' environment variable")
-    }
+    msg <- .check_default_message(x, msg)
 
     .check_null(x, msg = msg)
-
     .check_chr_type(x, msg = msg)
-
     if (length(x) > 0) {
         .check_apply(
             x,
@@ -1128,7 +1009,6 @@
     } else {
         .check_that(x = nzchar(Sys.getenv(x)), msg = msg)
     }
-
     return(invisible(x))
 }
 
@@ -1533,19 +1413,6 @@
     }
     return(results_cube)
 }
-#' @title Does the input data contain a sits tibble?
-#' @name .check_is_sits_tibble
-#' @param data a sits tibble
-#' @return  No return value, called for side effects.
-#' @keywords internal
-#' @noRd
-.check_is_sits_tibble <- function(data) {
-    .check_that(
-        x = inherits(data, "sits"),
-        local_msg = "data should be a sits tibble",
-        msg = "invalid samples parameter"
-    )
-}
 #' @title Does the input data contain a sits accuracy object?
 #' @name .check_is_sits_accuracy
 #' @param data a sits accuracy object
@@ -1616,7 +1483,7 @@
         msg = "invalid samples data"
     )
     # Get unnested time series
-    ts <- .sits_ts(data)
+    ts <- .samples_ts(data)
     # check there is an Index column
     .check_that(x = "Index" %in% colnames(ts))
     # check if all samples have the same bands
@@ -1635,7 +1502,7 @@
 .check_samples_train <- function(data) {
     .check_samples(data)
     # check that there is no NA in labels
-    labels <- .sits_labels(data)
+    labels <- .samples_labels(data)
     .check_that(
         x = !("NoClass" %in% labels) && !("" %in% labels) &&
             !any(is.na(labels)),
@@ -1742,33 +1609,6 @@
         )
     )
 }
-#' @title Check classification parameters
-#' @name .check_cube_model
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Verify that required parameters are correct.
-#'
-#' @param  cube            Tibble with information about a data cube.
-#' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
-#' @return No value called for side effects
-.check_cube_model <- function(cube, ml_model) {
-
-    # ensure metadata tibble exists
-    .check_that(
-        x = nrow(cube) > 0,
-        msg = "invalid metadata for the cube"
-    )
-
-    # ensure the machine learning model has been built
-    .check_null(
-        x = ml_model,
-        msg = "trained ML model not available"
-    )
-    # precondition - test is model is valid
-    .check_is_sits_model(ml_model)
-}
-
 #' @title Check if cube has only one tile
 #' @name .check_has_one_tile
 #' @param  cube         input data cube
@@ -1781,7 +1621,6 @@
         msg = "accepts only one tile at a time"
     )
 }
-
 #' @title Check that cube is regular
 #' @name .check_is_regular
 #' @keywords internal
@@ -1861,20 +1700,6 @@
         return(TRUE)
     }
 }
-
-#' @title Check if file is a CSV
-#' @name .check_file_csv
-#' @param file filename
-#' @return No return value, called for side effects.
-#' @keywords internal
-#' @noRd
-#'
-.check_file_csv <- function(file) {
-    .check_file(
-    x = file,
-    extensions = "csv"
-    )
-}
 #' @title Check if CSV data is correct
 #' @name .check_csv
 #' @param csv  data frame extracted from CSV file
@@ -1940,6 +1765,14 @@
         msg = "input data without labels"
     )
 }
+#' @title Check if an object is a bbox
+#' @noRd
+#' @returns Throws an error if an object is not a bbox.
+.check_bbox <- function(x) {
+    if (!setequal(names(x), c(.bbox_cols, "crs"))) {
+        stop("object is not a valid bbox")
+    }
+}
 #' @title Check if bands are part of a data cube
 #' @name .check_cube_bands
 #' @param cube          Data cube
@@ -1973,13 +1806,13 @@
         "ext_tolerance"
     )
     ok <- slider::slide2_lgl(cube1, cube2,
-                           function(tile_first, tile_cube) {
-            return(.bbox_equal(
-                .tile_bbox(tile_first),
-                .tile_bbox(tile_cube),
-                tolerance = tolerance)
-            )
-    })
+                             function(tile_first, tile_cube) {
+                                 return(.bbox_equal(
+                                     .tile_bbox(tile_first),
+                                     .tile_bbox(tile_cube),
+                                     tolerance = tolerance)
+                                 )
+                             })
     .check_that(
         x = all(ok),
         msg = "cubes do not have the same bounding box"
@@ -2174,6 +2007,16 @@
 .check_empty_char <- function(x, msg, ...) {
     .check_that(all(nzchar(x)), msg = msg, ...)
 }
+#' @title Checks if the tibble/data.frame is empty
+#' @name .check_empty_data_frame
+#' @param x a data frame
+#' @return No return value, called for side effects.
+#' @keywords internal
+#' @noRd
+.check_empty_data_frame <- function(x, msg, ...) {
+    .check_that(nrow(x) > 0, msg = msg, ...)
+}
+
 .check_endmembers_parameter <- function(x) {
     .check_that(
         x = inherits(x, c("data.frame", "character")),
@@ -2365,4 +2208,47 @@
             msg = "invalid RGB bands"
         )
     }
+}
+.check_default_message <- function(x, msg = NULL){
+    # make default message
+    if (purrr::is_null(msg)) {
+        # get x as expression
+        x_expr <- deparse(substitute(x, environment()))
+        msg <- paste0("invalid '", x_expr, "' parameter")
+    }
+    return(msg)
+}
+#' @title Checks local items
+#' @name .check_local_items
+#' @param items      Items with information on local cube
+#' @return called for side effects
+#' @keywords internal
+#' @noRd
+.check_local_items <- function(items) {
+    # pre-condition
+    .check_length(
+        unique(items[["tile"]]),
+        len_min = 1,
+        msg = "invalid number of tiles"
+    )
+
+    # get crs from file_info
+    crs <- unique(items[["crs"]])
+
+    # check crs
+    .check_length(
+        crs,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid crs value"
+    )
+    # get tile from file_info
+    tile <- unique(items[["tile"]])
+    # check tile
+    .check_length(
+        tile,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid tile value"
+    )
 }

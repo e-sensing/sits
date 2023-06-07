@@ -112,4 +112,6 @@ test_that("Tuning - random search", {
     expect_true(max(tuned_lunif$accuracy) > 0.5)
     expect_true(max(tuned_lunif$kappa) > 0.5)
 
+    Sys.unsetenv("OMP_NUM_THREADS")
+
 })

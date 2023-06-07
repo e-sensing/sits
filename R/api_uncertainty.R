@@ -17,10 +17,11 @@
     if (file.exists(out_file)) {
         .check_recovery(tile[["tile"]])
 
-        uncert_tile <- .tile_uncertainty_from_file(
+        uncert_tile <- .tile_derived_from_file(
             file = out_file,
             band = band,
-            base_tile = tile
+            base_tile = tile,
+            derived_class = "uncertainty_cube"
         )
         return(uncert_tile)
     }
@@ -76,13 +77,15 @@
         block_file
     })
     # Merge blocks into a new uncertainty_cube tile
-    uncert_tile <- .tile_uncertainty_merge_blocks(
+    uncert_tile <- .tile_derived_merge_blocks(
         file = out_file,
         band = band,
         labels = .tile_labels(tile),
         base_tile = tile,
         block_files = block_files,
-        multicores = .jobs_multicores()
+        derived_class = "uncertainty_cube",
+        multicores = .jobs_multicores(),
+        update_bbox = FALSE
     )
     # Return uncertainty tile
     uncert_tile

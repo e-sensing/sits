@@ -51,7 +51,7 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
         # Checks 'num_trees'
         .check_int_parameter(num_trees)
         # Get labels (used later to ensure column order in result matrix)
-        labels <- .sits_labels(samples)
+        labels <- .samples_labels(samples)
         # Get predictors features
         train_samples <- .predictors(samples)
         # Post condition: is predictor data valid?
@@ -100,7 +100,7 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .sits_factory_function(samples, train_fun)
+    result <- .factory_function(samples, train_fun)
     return(result)
 }
 #' @title Train support vector machine models
@@ -169,7 +169,7 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
         # Verifies if e1071 package is installed
         .check_require_packages("e1071")
         # Get labels (used later to ensure column order in result matrix)
-        labels <- .sits_labels(samples)
+        labels <- .samples_labels(samples)
         # Get normalized training samples
         # Variable name changed 'stats' -> 'ml_stats' purposefully.
         # Only models trained in versions prior to 1.2 has variable 'stats'.
@@ -177,7 +177,7 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
         #   on input data before classification.
         # sits still works with these models by normalizing data before
         #   classification.
-        ml_stats <- .sits_stats(samples)
+        ml_stats <- .samples_stats(samples)
         # Get predictors features
         train_samples <- .predictors(samples)
         # Normalize predictors
@@ -227,7 +227,7 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .sits_factory_function(samples, train_fun)
+    result <- .factory_function(samples, train_fun)
     return(result)
 }
 #' @title Train extreme gradient boosting models
@@ -305,7 +305,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
         # verifies if xgboost package is installed
         .check_require_packages("xgboost")
         # Get labels (used later to ensure column order in result matrix)
-        labels <- .sits_labels(samples)
+        labels <- .samples_labels(samples)
         # Get predictors features
         train_samples <- .predictors(samples)
         # Post condition: is predictor data valid?
@@ -358,7 +358,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .sits_factory_function(samples, train_fun)
+    result <- .factory_function(samples, train_fun)
     return(result)
 }
 

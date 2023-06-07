@@ -49,7 +49,7 @@ sits_values.cases_dates_bands <- function(data, bands = NULL, format) {
         bands <- sits_bands(data)
     }
     # populates result
-    values <- data$time_series %>%
+    values <- data$time_series |>
         purrr::map(function(ts) {
             data.matrix(dplyr::select(ts, dplyr::all_of(bands)))
         })
@@ -61,14 +61,14 @@ sits_values.bands_cases_dates <- function(data, bands = NULL, format) {
         bands <- sits_bands(data)
     }
 
-    distances_tbl <- data %>%
+    distances_tbl <- data |>
         dplyr::mutate(
             sample_id = seq_len(nrow(!!data))
-        ) %>%
-        tidyr::unnest("time_series") %>%
-        dplyr::select("sample_id", dplyr::all_of(bands)) %>%
-        dplyr::group_by(.data[["sample_id"]]) %>%
-        dplyr::mutate(temp_index = seq_len(dplyr::n())) %>%
+        ) |>
+        tidyr::unnest("time_series") |>
+        dplyr::select("sample_id", dplyr::all_of(bands)) |>
+        dplyr::group_by(.data[["sample_id"]]) |>
+        dplyr::mutate(temp_index = seq_len(dplyr::n())) |>
         dplyr::ungroup()
 
     if (length(bands) > 1) {
@@ -102,13 +102,13 @@ sits_values.bands_dates_cases <- function(data, bands = NULL, format) {
     if (purrr::is_null(bands)) {
         bands <- sits_bands(data)
     }
-    values <- bands %>% purrr::map(function(band) {
-        data$time_series %>%
+    values <- bands |> purrr::map(function(band) {
+        data$time_series |>
             purrr::map(function(ts) {
                 dplyr::select(ts, dplyr::all_of(band))
-            }) %>%
-            data.frame() %>%
-            tibble::as_tibble() %>%
+            }) |>
+            data.frame() |>
+            tibble::as_tibble() |>
             as.matrix()
     })
 

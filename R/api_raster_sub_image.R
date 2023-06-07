@@ -17,13 +17,9 @@
     # calculate the intersection between the bbox of the ROI and the cube
     # transform the tile bbox to sf
     sf_tile <- .bbox_as_sf(.tile_bbox(tile))
-    if (.tile_crs(tile) != sf::st_crs(sf_roi))
+    if (sf::st_crs(sf_tile) != sf::st_crs(sf_roi))
         sf_roi <- sf::st_transform(sf_roi, crs = .tile_crs(tile))
     geom <- sf::st_intersection(sf_tile, sf_roi)
-    # check geometry is valid
-    .check_that(x = !purrr::is_null(geom),
-                msg = "error in intersection between cube and roi")
-
     # get bbox of subimage
     sub_image_bbox <- .bbox(geom)
     # return the sub_image

@@ -1,5 +1,5 @@
 test_that("Labels", {
-    labels <- sits_labels_summary(samples_modis_ndvi)
+    labels <- summary(samples_modis_ndvi)
     expect_true("Cerrado" %in% sits_labels(samples_modis_ndvi))
     expect_equal(sum(labels$count), 1218)
     expect_equal(labels$label[1], "Cerrado")
@@ -14,7 +14,7 @@ test_that("Relabel", {
 
     sits_labels(new_data) <- c("Cerrado", "Forest", "Pasture", "Cropland")
 
-    labels <- sits_labels_summary(new_data)
+    labels <- summary(new_data)
 
     expect_true("Cropland" %in% sits_labels(new_data))
     expect_equal(length(labels$label), 4)
@@ -43,7 +43,7 @@ test_that("Relabel cubes", {
 })
 
 test_that("Models and patters", {
-    lab <- sits_patterns(cerrado_2classes) %>%
+    lab <- sits_patterns(cerrado_2classes) |>
         sits_labels()
     expect_true(all(lab %in% c("Cerrado", "Pasture")))
 

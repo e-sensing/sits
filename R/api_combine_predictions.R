@@ -37,8 +37,8 @@
         multicores = multicores
     )
     # Prepare parallel processing
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
     # Call the combine method
     # Process each tile sequentially
@@ -77,11 +77,12 @@
     # Resume feature
     if (file.exists(out_file)) {
         .check_recovery(out_file)
-        probs_tile <- .tile_probs_from_file(
+        probs_tile <- .tile_derived_from_file(
             file = out_file,
             band = band,
             base_tile = base_tile,
             labels = .tile_labels(base_tile),
+            derived_class = "probs_cube",
             update_bbox = FALSE
         )
         return(probs_tile)
@@ -162,12 +163,13 @@
         block_file
     }, progress = progress)
     # Merge blocks into a new probs_cube tile
-    probs_tile <- .tile_probs_merge_blocks(
+    probs_tile <- .tile_derived_merge_blocks(
         file = out_file,
         band = band,
         labels = .tile_labels(base_tile),
         base_tile = base_tile,
         block_files = block_files,
+        derived_class = "probs_cube",
         multicores = .jobs_multicores(),
         update_bbox = FALSE
     )

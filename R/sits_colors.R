@@ -15,30 +15,6 @@
 sits_colors <- function() {
     return(.conf_colors())
 }
-#' @title Function to retrieve sits color value
-#' @name sits_color_value
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param name   Name of color to obtain values
-#' @description Returns a color value based on name
-#' @return              A color value used in sits
-#'
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#'     # show the names of the colors supported by SITS
-#'     sits_color_value("Water")
-#' }
-#' @export
-#'
-sits_color_value <- function(name) {
-    col_tab <- dplyr::filter(.conf_colors(),
-                             .data[["name"]] == !!name)
-    .check_that(
-        nrow(col_tab) == 1,
-        msg = "Class name not available in default sits color table"
-    )
-    return(unname(col_tab$color))
-}
 #' @title Function to show colors in SITS
 #' @name sits_colors_show
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -69,15 +45,15 @@ sits_colors_show <- function() {
 #' if (sits_run_examples()) {
 #' # Define a color table based on the Anderson Land Classification System
 #' us_nlcd <- tibble::tibble(name = character(), color = character())
-#' us_nlcd <- us_nlcd %>%
-#'      tibble::add_row(name = "Urban Built Up", color =  "#85929E") %>%
-#'      tibble::add_row(name = "Agricultural Land", color = "#F0B27A") %>%
-#'      tibble::add_row(name = "Rangeland", color = "#F1C40F") %>%
-#'      tibble::add_row(name = "Forest Land", color = "#27AE60") %>%
-#'      tibble::add_row(name = "Water", color = "#2980B9") %>%
-#'      tibble::add_row(name = "Wetland", color = "#D4E6F1") %>%
-#'      tibble::add_row(name = "Barren Land", color = "#FDEBD0") %>%
-#'      tibble::add_row(name = "Tundra", color = "#EBDEF0") %>%
+#' us_nlcd <- us_nlcd |>
+#'      tibble::add_row(name = "Urban Built Up", color =  "#85929E") |>
+#'      tibble::add_row(name = "Agricultural Land", color = "#F0B27A") |>
+#'      tibble::add_row(name = "Rangeland", color = "#F1C40F") |>
+#'      tibble::add_row(name = "Forest Land", color = "#27AE60") |>
+#'      tibble::add_row(name = "Water", color = "#2980B9") |>
+#'      tibble::add_row(name = "Wetland", color = "#D4E6F1") |>
+#'      tibble::add_row(name = "Barren Land", color = "#FDEBD0") |>
+#'      tibble::add_row(name = "Tundra", color = "#EBDEF0") |>
 #'      tibble::add_row(name = "Snow and Ice", color = "#F7F9F9")
 #'
 #'  # Load the color table into `sits`

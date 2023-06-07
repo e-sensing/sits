@@ -58,10 +58,10 @@ if (sits_run_examples()) {
   cube_local <- sits_cube_copy(
       cube = bdc_cube,
       output_dir = tempdir(),
-      roi = c(lon_min = -42.28469009,
-              lat_min = -14.95411527,
-              lon_max = -41.74745556,
-              lat_max = -14.65950650),
+      roi = c(lon_min = -46.5,
+              lat_min = -45.5,
+              lon_max = -15.5,
+              lat_max = -14.6),
       multicores = 2
   )
 }

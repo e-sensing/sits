@@ -19,8 +19,6 @@ test_that("Downloading and cropping cubes from BDC", {
         purrr::is_null(cbers_cube),
         "BDC is not accessible"
     )
-
-
     roi_xy <- c(xmin = 5800000,
                 xmax = 5900000,
                 ymin = 9600000,
@@ -89,14 +87,21 @@ test_that("Downloading and cropping cubes from BDC", {
     files <- cube_local_roi_ll$file_info[[1]]$path
     unlink(files)
 
-    roi_ll_bbox <- .bbox(roi_ll)[1:4]
+    bbox_ll <- .bbox(roi_ll)
+
+    roi_ll_bbox <- c(
+        "lon_min" = bbox_ll[["xmin"]],
+        "lon_max" = bbox_ll[["xmax"]],
+        "lat_min" = bbox_ll[["ymin"]],
+        "lat_max" = bbox_ll[["ymax"]]
+    )
 
     cube_local_roi_tr <- sits_cube_copy(
         cube = cbers_cube,
         output_dir = tempdir(),
         res = 128,
         roi = roi_ll_bbox,
-        multicores = 2,
+        multicores = 1,
         progress = FALSE
     )
 

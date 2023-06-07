@@ -605,7 +605,27 @@ NULL
 .cube_derived_class.derived_cube <- function(cube) {
     unique(slider::slide_chr(cube, .tile_derived_class))
 }
+# Uncertainty
+.cube_uncertainty <- function(cube,
+                              band,
+                              uncert_fn,
+                              output_dir,
+                              version){
 
+    # Process each tile sequentially
+    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
+        # Compute uncertainty
+        uncert_tile <- .uncertainty_tile(
+            tile = tile,
+            band = band,
+            uncert_fn = uncert_fn,
+            output_dir = output_dir,
+            version = version
+        )
+        return(uncert_tile)
+    })
+    return(uncert_cube)
+}
 # ---- mpc_cube ----
 #' @title Generate token to cube
 #' @name .cube_token_generator

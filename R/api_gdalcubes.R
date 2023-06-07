@@ -178,8 +178,8 @@
 
     file_info <- dplyr::select(
         cube, "file_info", "crs"
-    ) %>%
-        tidyr::unnest(cols = c("file_info")) %>%
+    ) |>
+        tidyr::unnest(cols = c("file_info")) |>
         dplyr::transmute(
             fid  = .data[["fid"]],
             xmin = .data[["xmin"]],
@@ -193,7 +193,7 @@
             !!crs_type := gsub("^EPSG:", "", .data[["crs"]])
         )
 
-    features <- dplyr::mutate(file_info, id = .data[["fid"]]) %>%
+    features <- dplyr::mutate(file_info, id = .data[["fid"]]) |>
         tidyr::nest(features = -"fid")
 
     features <- slider::slide_dfr(features, function(feat) {
@@ -210,24 +210,24 @@
     })
 
     gc_data <- purrr::map(features[["features"]], function(feature) {
-        feature <- feature %>%
-            dplyr::select(-"crs") %>%
-            tidyr::nest(assets = c("href", "band")) %>%
+        feature <- feature |>
+            dplyr::select(-"crs") |>
+            tidyr::nest(assets = c("href", "band")) |>
             tidyr::nest(properties = c(
                 "datetime",
                 !!crs_type
-            )) %>%
+            )) |>
             tidyr::nest(bbox = c(
                 "xmin", "ymin",
                 "xmax", "ymax"
             ))
 
         feature[["assets"]] <- purrr::map(feature[["assets"]], function(asset) {
-            asset %>%
+            asset |>
                 tidyr::pivot_wider(
                     names_from = "band",
                     values_from = "href"
-                ) %>%
+                ) |>
                 purrr::map(
                     function(x) list(href = x, `eo:bands` = list(NULL))
                 )
@@ -504,8 +504,8 @@
     )
 
     # start processes
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop())
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop())
 
     # does a local cube exist
     local_cube <- tryCatch(
@@ -539,7 +539,7 @@
         cube <- .cube_token_generator(cube)
 
         # process bands and tiles in parallel
-        .sits_parallel_map(jobs, function(job) {
+        .parallel_map(jobs, function(job) {
 
             # get parameters from each job
             tile_name <- job[[1]]
@@ -681,8 +681,8 @@
             ))
 
             # remove cache
-            .sits_parallel_stop()
-            .sits_parallel_start(workers = multicores)
+            .parallel_stop()
+            .parallel_start(workers = multicores)
         }
     }
 
@@ -723,7 +723,7 @@
     tiles_bands_times <- unlist(slider::slide(cube, function(tile) {
         bands <- .cube_bands(tile, add_cloud = FALSE)
         tidyr::expand_grid(tile = .cube_tiles(tile), band = bands,
-                           time = timeline) %>%
+                           time = timeline) |>
             purrr::pmap(function(tile, band, time) {
                 return(list(tile, band, time))
             })
@@ -738,7 +738,7 @@
     gc_tiles_bands_times <- unlist(slider::slide(local_cube, function(tile) {
         bands <- .cube_bands(tile, add_cloud = FALSE)
         tidyr::expand_grid(tile = .cube_tiles(tile), band = bands,
-                           time = timeline) %>%
+                           time = timeline) |>
             purrr::pmap(function(tile, band, time) {
                 return(list(tile, band, time))
             })

@@ -145,9 +145,9 @@ sits_tae <- function(samples = NULL,
         .check_lgl(verbose)
 
         # Samples labels
-        labels <- .sits_labels(samples)
+        labels <- .samples_labels(samples)
         # Samples bands
-        bands <- .sits_bands(samples)
+        bands <- .samples_bands(samples)
         # Samples timeline
         timeline <- sits_timeline(samples)
 
@@ -158,10 +158,10 @@ sits_tae <- function(samples = NULL,
         # Number of labels, bands, and number of samples (used below)
         n_labels <- length(labels)
         n_bands <- length(bands)
-        n_times <- .sits_ntimes(samples)
+        n_times <- .samples_ntimes(samples)
 
         # Data normalization
-        ml_stats <- .sits_stats(samples)
+        ml_stats <- .samples_stats(samples)
         train_samples <- .predictors(samples)
         train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
 
@@ -237,10 +237,10 @@ sits_tae <- function(samples = NULL,
                 self$softmax <- torch::nn_softmax(dim = -1)
             },
             forward = function(x) {
-                x <- x %>%
-                    self$spatial_encoder() %>%
-                    self$temporal_attention_encoder() %>%
-                    self$decoder() %>%
+                x <- x |>
+                    self$spatial_encoder() |>
+                    self$temporal_attention_encoder() |>
+                    self$decoder() |>
                     self$softmax()
                 return(x)
             }
@@ -252,15 +252,15 @@ sits_tae <- function(samples = NULL,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
                 optimizer = optimizer
-            ) %>%
+            ) |>
             luz::set_hparams(
                 n_bands  = n_bands,
                 n_labels = n_labels,
                 timeline = timeline
-            ) %>%
+            ) |>
             luz::set_opt_hparams(
                 !!!optim_params_function
-            ) %>%
+            ) |>
             luz::fit(
                 data = list(train_x, train_y),
                 epochs = epochs,
@@ -298,7 +298,7 @@ sits_tae <- function(samples = NULL,
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
-            n_times <- .sits_ntimes(samples)
+            n_times <- .samples_ntimes(samples)
             n_bands <- length(bands)
             # Performs data normalization
             values <- .pred_normalize(pred = values, stats = ml_stats)
@@ -327,6 +327,6 @@ sits_tae <- function(samples = NULL,
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .sits_factory_function(samples, train_fun)
+    result <- .factory_function(samples, train_fun)
     return(result)
 }

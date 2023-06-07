@@ -13,7 +13,6 @@
 #'                        This parameter only works for 'csv' or data.frame'
 #'                        samples. Default is 4326.
 #' @param bands           Bands to be retrieved (optional).
-#' @param impute_fn       Imputation function for NA values.
 #' @param multicores      Number of threads to process the time series.
 #' @param progress        A logical value indicating if a progress bar
 #'                        should be shown. Default is \code{FALSE}.
@@ -24,7 +23,6 @@
 .data_get_ts <- function(cube,
                          samples, ...,
                          bands = NULL,
-                         impute_fn,
                          multicores,
                          progress) {
 
@@ -39,7 +37,6 @@
 .data_get_ts.raster_cube <- function(cube,
                                      samples, ...,
                                      bands,
-                                     impute_fn,
                                      multicores,
                                      progress) {
 
@@ -62,7 +59,7 @@
     tl <- sits_timeline(cube)
 
     tiles_bands <- tidyr::expand_grid(tile = .cube_tiles(cube),
-                                      band = bands) %>%
+                                      band = bands) |>
         purrr::pmap(function(tile, band) {
             return(list(tile, band))
         })
@@ -71,10 +68,10 @@
     if (Sys.getenv("SITS_SAMPLES_CACHE_DIR") != "")
         output_dir <- Sys.getenv("SITS_SAMPLES_CACHE_DIR")
     # prepare parallelization
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
-    samples_tiles_bands <- .sits_parallel_map(
+    samples_tiles_bands <- .parallel_map(
         tiles_bands,
         function(tile_band) {
             tile_id <- tile_band[[1]]
@@ -155,13 +152,12 @@
             })
 
             # extract time series
-            ts <- .raster_data_get_ts(
+            ts <- .ts_get_raster_data(
                 tile = tile,
                 points = samples_tbl,
                 bands = band,
                 xy = xy,
-                cld_band = cld_band,
-                impute_fn = impute_fn
+                cld_band = cld_band
             )
             ts[["tile"]] <- tile_id
             ts[["#..id"]] <- seq_len(nrow(ts))
@@ -181,8 +177,8 @@
         return(.tibble())
     }
 
-    ts_tbl <- ts_tbl %>%
-        tidyr::unnest("time_series") %>%
+    ts_tbl <- ts_tbl |>
+        tidyr::unnest("time_series") |>
         dplyr::group_by(
             .data[["longitude"]], .data[["latitude"]],
             .data[["start_date"]], .data[["end_date"]],
@@ -235,7 +231,7 @@
 
     # check if data has been retrieved
     if (progress)
-        .sits_get_data_check(nrow(samples), nrow(ts_tbl))
+        .data_check(nrow(samples), nrow(ts_tbl))
 
     if (!inherits(ts_tbl, "sits")) {
         class(ts_tbl) <- c("sits", class(ts_tbl))
@@ -253,7 +249,6 @@
                                     samples, ...,
                                     bands,
                                     crs = 4326,
-                                    impute_fn,
                                     multicores,
                                     progress) {
 
@@ -274,7 +269,7 @@
     tl <- sits_timeline(cube)
     # create tile-band pairs for parallelization
     tiles_bands <- tidyr::expand_grid(tile = .cube_tiles(cube),
-                                      band = bands) %>%
+                                      band = bands) |>
         purrr::pmap(function(tile, band) {
             return(list(tile, band))
         })
@@ -283,10 +278,10 @@
     if (Sys.getenv("SITS_SAMPLES_CACHE_DIR") != "")
         output_dir <- Sys.getenv("SITS_SAMPLES_CACHE_DIR")
     # prepare parallelization
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
-    samples_tiles_bands <- .sits_parallel_map(
+    samples_tiles_bands <- .parallel_map(
         tiles_bands,
         function(tile_band) {
 
@@ -366,7 +361,7 @@
                 # return valid row of time series
                 return(sample)
             })
-            ts <- .raster_class_get_ts(
+            ts <- .ts_get_raster_class(
                 tile = tile,
                 points = samples_tbl,
                 band = "class",
@@ -381,9 +376,9 @@
             return(ts)
         }, progress = progress)
 
-    ts_tbl <- samples_tiles_bands %>%
-        dplyr::bind_rows() %>%
-        tidyr::unnest("predicted") %>%
+    ts_tbl <- samples_tiles_bands |>
+        dplyr::bind_rows() |>
+        tidyr::unnest("predicted") |>
         dplyr::group_by(
             .data[["longitude"]], .data[["latitude"]],
             .data[["start_date"]], .data[["end_date"]],
@@ -396,21 +391,21 @@
         ts_tbl <- dplyr::group_by(ts_tbl, .data[["polygon_id"]], .add = TRUE)
     }
 
-    ts_tbl <- ts_tbl %>%
+    ts_tbl <- ts_tbl |>
         dplyr::summarise(
-            dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
-        dplyr::arrange(.data[["from"]]) %>%
-        dplyr::ungroup() %>%
-        tidyr::nest(predicted = !!c("from", "to", bands)) %>%
+            dplyr::across(dplyr::all_of(bands), stats::na.omit)) |>
+        dplyr::arrange(.data[["from"]]) |>
+        dplyr::ungroup() |>
+        tidyr::nest(predicted = !!c("from", "to", bands)) |>
         dplyr::select(-c("tile", "#..id"))
 
     # get the first point that intersect more than one tile
     # eg sentinel 2 mgrs grid
-    ts_tbl <- ts_tbl %>%
+    ts_tbl <- ts_tbl |>
         dplyr::group_by(.data[["longitude"]], .data[["latitude"]],
                         .data[["start_date"]], .data[["end_date"]],
-                        .data[["label"]], .data[["cube"]]) %>%
-        dplyr::slice_head(n = 1) %>%
+                        .data[["label"]], .data[["cube"]]) |>
+        dplyr::slice_head(n = 1) |>
         dplyr::ungroup()
 
     # recreate hash values
@@ -435,7 +430,7 @@
 
     # check if data has been retrieved
     if (progress)
-        .sits_get_data_check(nrow(samples), nrow(ts_tbl))
+        .data_check(nrow(samples), nrow(ts_tbl))
 
     class(ts_tbl) <- unique(c("predicted", "sits", class(ts_tbl)))
 
@@ -443,7 +438,7 @@
 }
 
 #' @title Check if all points have been retrieved
-#' @name .sits_get_data_check
+#' @name .data_check
 #' @keywords internal
 #' @noRd
 #' @param n_rows_input     Number of rows in input.
@@ -451,7 +446,7 @@
 #'
 #' @return No return value, called for side effects.
 #'
-.sits_get_data_check <- function(n_rows_input, n_rows_output) {
+.data_check <- function(n_rows_input, n_rows_output) {
 
     # Have all input rows being read?
     if (n_rows_output == 0) {
@@ -467,7 +462,7 @@
 }
 
 #' @title Extracts the time series average by polygon.
-#' @name .sits_avg_polygon
+#' @name .data_avg_polygon
 #' @keywords internal
 #' @noRd
 #' @description This function extracts the average of the automatically
@@ -476,12 +471,12 @@
 #' @param data A sits tibble with points time series.
 #'
 #' @return A sits tibble with the average of all points by each polygon.
-.sits_avg_polygon <- function(data) {
+.data_avg_polygon <- function(data) {
     bands <- sits_bands(data)
     columns_to_avg <- c(bands, "latitude", "longitude")
 
-    data_avg <- data %>%
-        tidyr::unnest(cols = "time_series") %>%
+    data_avg <- data |>
+        tidyr::unnest(cols = "time_series") |>
         dplyr::group_by(
             .data[["Index"]],
             .data[["start_date"]],
@@ -489,11 +484,11 @@
             .data[["label"]],
             .data[["cube"]],
             .data[["polygon_id"]]
-        ) %>%
+        ) |>
         dplyr::summarise(dplyr::across(!!columns_to_avg, function(x) {
             mean(x, na.rm = TRUE)
-        }), .groups = "drop") %>%
-        tidyr::nest("time_series" = c("Index", dplyr::all_of(bands))) %>%
+        }), .groups = "drop") |>
+        tidyr::nest("time_series" = c("Index", dplyr::all_of(bands))) |>
         dplyr::select(!!colnames(data))
 
     class(data_avg) <- class(data)
