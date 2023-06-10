@@ -1,5 +1,4 @@
 sits_temporal_segment <- function(data, ...,
-                                  impute_fn = sits_impute_linear(),
                                   memsize = 8,
                                   multicores = 2,
                                   verbose = FALSE,
@@ -30,8 +29,8 @@ sits_temporal_segment <- function(data, ...,
         multicores = multicores
     )
     # Prepare parallel processing
-    .sits_parallel_start(workers = multicores)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
     # Show block information
     if (verbose) {
         start_time <- Sys.time()
@@ -45,7 +44,6 @@ sits_temporal_segment <- function(data, ...,
         probs_tile <- .segment_tile(
             tile = tile,
             block = block,
-            impute_fn = impute_fn,
             verbose = verbose,
             progress = progress
         )
@@ -64,7 +62,6 @@ sits_temporal_segment <- function(data, ...,
 
 .segment_tile  <- function(tile,
                            block,
-                           impute_fn,
                            verbose,
                            progress) {
 
@@ -94,7 +91,8 @@ sits_temporal_segment <- function(data, ...,
             if (.has(cloud_mask)) {
                 values[cloud_mask] <- NA
             }
-
+            # use linear imputation
+            impute_fn = .impute_linear()
             # Remove NA pixels
             if (.has(impute_fn)) {
                 values <- impute_fn(values)

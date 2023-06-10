@@ -16,7 +16,7 @@
 \item{cutree_height}{dashed horizontal line to be drawn
 indicating the height of dendrogram cutting.}
 
-\item{palette}{hcl color palette.}
+\item{color_palette}{hcl color palette.}
 }
 \value{
 The dendrogram object.
