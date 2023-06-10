@@ -43,7 +43,7 @@ sources:
         service             : "STAC"
         url                 : "https://brazildatacube.dpi.inpe.br/stac/"
         collections         :
-            CB4_64-1        : &bdc_cb4
+            CBERS-WFI-16D   : &bdc_cb4_awfi
                 bands       :
                     NDVI    : &bdc_awfi_ndvi
                         missing_value : -9999
@@ -86,24 +86,52 @@ sources:
                         resolution   :  64
                         data_type     : "INT1U"
                 satellite   : "CBERS-4"
-                sensor      : "AWFI"
-                collection_name: "CB4_64-1"
-                token_vars  :  ["BDC_ACCESS_KEY"]
-                open_data   : true
-                open_data_token : true
-                metadata_search : "tile"
-                ext_tolerance: 0.01
-            CB4-16D-2:
-                <<: *bdc_cb4
+                sensor      : "WFI"
                 collection_name: "CB4-16D-2"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
-                gdalcubes_support: true
-                reg_type_format: "INT2S"
                 open_data_token : true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
-            CB4MUX-2M-1     : &bdc_cb4_mux
+            CBERS-WFI-8D    :
+                bands       :
+                    NDVI    :
+                        <<: *bdc_awfi_ndvi
+                        band_name     : "NDVI"
+                    EVI     :
+                        <<: *bdc_awfi_ndvi
+                        band_name     : "EVI"
+                    B13     :
+                        <<: *bdc_awfi_b13
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution   :  64
+                        band_name     : "BAND13"
+                        data_type     : "INT2S"
+                    B14     :
+                        <<: *bdc_awfi_b13
+                        band_name     : "BAND14"
+                    B15     :
+                        <<: *bdc_awfi_b13
+                        band_name     : "BAND15"
+                    B16     :
+                        <<: *bdc_awfi_b13
+                        band_name     : "BAND16"
+                    CLOUD   :
+                        <<: *bdc_awfi_cloud
+                        band_name     : "CMASK"
+                satellite   : "CBERS-4"
+                sensor      : "WFI"
+                collection_name: "CBERS-WFI_64_8D_LCF-1"
+                token_vars  :  ["BDC_ACCESS_KEY"]
+                open_data   : true
+                open_data_token : true
+                metadata_search : "tile"
+                ext_tolerance: 0.01
+            CBERS-MUX-2M    : &bdc_cb4_mux
                 bands       :
                     NDVI    : &bdc_mux_ndvi
                         missing_value : -9999
@@ -117,7 +145,7 @@ sources:
                     EVI     :
                         <<: *bdc_mux_ndvi
                         band_name      : "EVI"
-                    B5      : &bdc_mux_b5
+                    B05      : &bdc_mux_b5
                         missing_value : -9999
                         minimum_value : 0
                         maximum_value : 10000
@@ -126,13 +154,13 @@ sources:
                         resolution    :  20
                         band_name     : "BAND5"
                         data_type     : "INT2S"
-                    B6      :
+                    B06      :
                         <<: *bdc_mux_b5
                         band_name     : "BAND6"
-                    B7      :
+                    B07      :
                         <<: *bdc_mux_b5
                         band_name     : "BAND7"
-                    B8      :
+                    B08      :
                         <<: *bdc_mux_b5
                         band_name     : "BAND8"
                     CLOUD   : &bdc_mux_cloud
@@ -147,13 +175,13 @@ sources:
                         data_type     : "INT1U"
                 satellite   : "CBERS-4"
                 sensor      : "MUX"
-                collection_name: "CB4MUX-2M-1"
+                collection_name: "CB4MUX_2M-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token : true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
-            LC8_30-1        : &bdc_lc8
+            LANDSAT-OLI-16D : &bdc_lc8
                 bands       :
                     NDVI    : &bdc_oli_ndvi
                         missing_value : -9999
@@ -167,7 +195,7 @@ sources:
                     EVI     :
                         <<: *bdc_oli_ndvi
                         band_name     : "EVI"
-                    B1      : &bdc_oli_band1
+                    COASTAL      : &bdc_oli_band1
                         missing_value : -9999
                         minimum_value : 0
                         maximum_value : 10000
@@ -176,22 +204,22 @@ sources:
                         resolution    : 30
                         band_name     : "band1"
                         data_type     : "INT2S"
-                    B2      :
+                    BLUE      :
                         <<: *bdc_oli_band1
                         band_name     : "band2"
-                    B3      :
+                    GREEN     :
                         <<: *bdc_oli_band1
                         band_name     : "band3"
-                    B4      :
+                    RED     :
                         <<: *bdc_oli_band1
                         band_name     : "band4"
-                    B5      :
+                    NIR08      :
                         <<: *bdc_oli_band1
                         band_name     : "band5"
-                    B6      :
+                    SWIR16      :
                         <<: *bdc_oli_band1
                         band_name     : "band6"
-                    B7      :
+                    SWIR22      :
                         <<: *bdc_oli_band1
                         band_name     : "band7"
                     CLOUD   : &bdc_oli_cloud
@@ -209,23 +237,13 @@ sources:
                         data_type     : "INT1U"
                 satellite   : "LANDSAT-8"
                 sensor      : "OLI"
-                collection_name: "LC8_30-1"
-                token_vars  :  ["BDC_ACCESS_KEY"]
-                open_data   : true
-                open_data_token: true
-                metadata_search : "tile"
-                ext_tolerance: 0.01
-            LC8_30_16D_STK-1:
-                <<: *bdc_lc8
                 collection_name: "LC8_30_16D_STK-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
-                gdalcubes_support: true
-                reg_type_format: "INT2S"
                 open_data   : true
                 open_data_token: true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
-            LANDSAT-2M-1    : &bdc_lc8_2m
+            LANDSAT-2M      :
                 bands       :
                     COASTAL : &bdc_lc8_2m_band
                         missing_value : 0
@@ -265,7 +283,7 @@ sources:
                         resolution    : 30
                         band_name     : "NDVI"
                         data_type     : "INT2S"
-                    EVI     : &bdc_lc8_2m_vi
+                    EVI     :
                         <<: *bdc_lc8_2m_vi
                         band_name     : "EVI"
                     CLOUD   :
@@ -368,9 +386,9 @@ sources:
                 open_data_token: true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
-            S2-SEN2COR_10_16D_STK-1: &bdc_s2_sen2cor
+            SENTINEL-2-16D  : &bdc_s2
                 bands       :
-                    NDVI    : &bdc_sen2cor_msi_ndvi
+                    NDVI    : &bdc_msi_ndvi
                         missing_value : -9999
                         minimum_value : -10000
                         maximum_value : 10000
@@ -380,95 +398,12 @@ sources:
                         band_name     : "NDVI"
                         data_type     : "INT2S"
                     EVI     :
-                        <<: *bdc_sen2cor_msi_ndvi
-                        band_name     : "EVI"
-                    B01     : &bdc_sen2cor_msi_band1
-                        missing_value : -9999
-                        minimum_value : 0
-                        maximum_value : 10000
-                        scale_factor  : 0.0001
-                        offset_value  : 0
-                        resolution    :  10
-                        band_name     : "B01"
-                        data_type     : "INT2S"
-                    B02     :
-                        <<: *bdc_sen2cor_msi_band1
-                        band_name     : "B02"
-                    B03     :
-                        <<: *bdc_sen2cor_msi_band1
-                        band_name     : "B03"
-                    B04     :
-                        <<: *bdc_sen2cor_msi_band1
-                        band_name     : "B04"
-                    B05     :
-                        <<: *bdc_sen2cor_msi_band1
-                        band_name     : "B05"
-                    B06     :
-                        <<: *bdc_sen2cor_msi_band1
-                        band_name     : "B06"
-                    B07     :
-                        <<: *bdc_sen2cor_msi_band1
-                        band_name     : "B07"
-                    B08     :
-                        <<: *bdc_sen2cor_msi_band1
-                        band_name     : "B08"
-                    B8A     :
-                        <<: *bdc_sen2cor_msi_band1
-                        band_name     : "B8A"
-                    B09     :
-                        <<: *bdc_sen2cor_msi_band1
-                        band_name     : "B09"
-                    B11     :
-                        <<: *bdc_sen2cor_msi_band1
-                        band_name     : "B11"
-                    B12     :
-                        <<: *bdc_sen2cor_msi_band1
-                        band_name     : "B12"
-                    CLOUD   :
-                        bit_mask     : false
-                        band_name    : "SCL"
-                        values       :
-                            0        : "missing_data"
-                            1        : "defective pixel"
-                            2        : "shadows"
-                            3        : "cloud shadows"
-                            4        : "vegetation"
-                            5        : "non-vegetated"
-                            6        : "water"
-                            7        : "unclassified"
-                            8        : "cloud medium"
-                            9        : "cloud high"
-                            10       : "thin cirrus"
-                            11       : "snow or ice"
-                        interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
-                        resolution   :  10
-                        data_type    : "INT1U"
-                satellite   : "SENTINEL-2"
-                sensor      : "MSI"
-                collection_name: "S2-SEN2COR_10_16D_STK-1"
-                token_vars  :  ["BDC_ACCESS_KEY"]
-                open_data   : true
-                open_data_token: true
-                metadata_search : "tile"
-                ext_tolerance: 0.01
-            S2-16D-2        : &bdc_s2_sen2cor_2
-                bands       :
-                    NDVI    : &bdc_sen2cor_msi_ndvi_2
-                        missing_value : -9999
-                        minimum_value : -10000
-                        maximum_value : 10000
-                        scale_factor  : 0.0001
-                        offset_value  : 0
-                        resolution    : 10
-                        band_name     : "NDVI"
-                        data_type     : "INT2S"
-                    EVI     :
-                        <<: *bdc_sen2cor_msi_ndvi_2
+                        <<: *bdc_msi_ndvi
                         band_name     : "EVI"
                     NBR     :
-                        <<: *bdc_sen2cor_msi_ndvi_2
+                        <<: *bdc_msi_ndvi
                         band_name     : "NBR"
-                    B01     : &bdc_sen2cor_msi_band1_2
+                    B01     : &bdc_msi_band1
                         missing_value : -9999
                         minimum_value : 0
                         maximum_value : 10000
@@ -478,37 +413,37 @@ sources:
                         band_name     : "B01"
                         data_type     : "INT2S"
                     B02     :
-                        <<: *bdc_sen2cor_msi_band1_2
+                        <<: *bdc_msi_band1
                         band_name     : "B02"
                     B03     :
-                        <<: *bdc_sen2cor_msi_band1_2
+                        <<: *bdc_msi_band1
                         band_name     : "B03"
                     B04     :
-                        <<: *bdc_sen2cor_msi_band1_2
+                        <<: *bdc_msi_band1
                         band_name     : "B04"
                     B05     :
-                        <<: *bdc_sen2cor_msi_band1_2
+                        <<: *bdc_msi_band1
                         band_name     : "B05"
                     B06     :
-                        <<: *bdc_sen2cor_msi_band1_2
+                        <<: *bdc_msi_band1
                         band_name     : "B06"
                     B07     :
-                        <<: *bdc_sen2cor_msi_band1_2
+                        <<: *bdc_msi_band1
                         band_name     : "B07"
                     B08     :
-                        <<: *bdc_sen2cor_msi_band1_2
+                        <<: *bdc_msi_band1
                         band_name     : "B08"
                     B8A     :
-                        <<: *bdc_sen2cor_msi_band1_2
+                        <<: *bdc_msi_band1
                         band_name     : "B8A"
                     B09     :
-                        <<: *bdc_sen2cor_msi_band1_2
+                        <<: *bdc_msi_band1
                         band_name     : "B09"
                     B11     :
-                        <<: *bdc_sen2cor_msi_band1_2
+                        <<: *bdc_msi_band1
                         band_name     : "B11"
                     B12     :
-                        <<: *bdc_sen2cor_msi_band1_2
+                        <<: *bdc_msi_band1
                         band_name     : "B12"
                     CLOUD   :
                         bit_mask     : false
@@ -537,77 +472,13 @@ sources:
                 open_data_token: true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
-            LANDSAT-MOZ_30_1M_STK-1: &bdc_lc8
-                bands       :
-                    NDVI    : &bdc_oli_ndvi
-                        missing_value : -9999
-                        minimum_value : -10000
-                        maximum_value : 10000
-                        scale_factor  : 0.0001
-                        offset_value  : 0
-                        resolution    :  30
-                        band_name     : "NDVI"
-                        data_type     : "INT2S"
-                    EVI     :
-                        <<: *bdc_oli_ndvi
-                        band_name     : "EVI"
-                    B2      : &bdc_moz_band2
-                        missing_value : -9999
-                        minimum_value : 0
-                        maximum_value : 10000
-                        scale_factor  : 0.0001
-                        offset_value  : 0
-                        resolution    : 30
-                        band_name     : "SR_B2"
-                        data_type     : "INT2S"
-                    B3      :
-                        <<: *bdc_oli_band1
-                        band_name     : "SR_B3"
-                    B4      :
-                        <<: *bdc_oli_band1
-                        band_name     : "SR_B4"
-                    B5      :
-                        <<: *bdc_oli_band1
-                        band_name     : "SR_B5"
-                    B6      :
-                        <<: *bdc_oli_band1
-                        band_name     : "SR_B6"
-                    B7      :
-                        <<: *bdc_oli_band1
-                        band_name     : "SR_B7"
-                    CLOUD   : &bdc_oli_cloud
-                        bit_mask      : true
-                        band_name     : "QA_PIXEL"
-                        values        :
-                            0         : "missing_data"
-                            1         : "Dilated Cloud"
-                            2         : "High confidence cirrus"
-                            4         : "High confidence cloud shadow"
-                            5         : "High confidence snow cover"
-                            6         : "Clear"
-                            7         : "Water"
-                            9         : "High confidence of cloud"
-                            11        : "High confidence of cloud shadow"
-                            13        : "High confidence of snow"
-                            15        : "High confidence of cirrus"
-                        interp_values : [0, 1, 2, 4, 5, 9, 11, 13, 15]
-                        resolution    : 30
-                        data_type     : "INT2U"
-                satellite   : "LANDSAT-8"
-                sensor      : "OLI"
-                collection_name: "LANDSAT-MOZ_30_1M_STK-1"
-                token_vars  :  ["BDC_ACCESS_KEY"]
-                open_data   : true
-                open_data_token: true
-                metadata_search : "tile"
-                ext_tolerance: 0.01
     AWS                     :
         s3_class            : ["aws_cube", "stac_cube", "eo_cube",
                                "raster_cube"]
         service             : "STAC"
-        url                 : "https://earth-search.aws.element84.com/v0/"
+        url                 : "https://earth-search.aws.element84.com/v1/"
         collections         :
-            SENTINEL-S2-L2A :
+            SENTINEL-2-L2A :
                 bands       :
                     B01     : &aws_msi_60m
                         missing_value: -9999
@@ -616,7 +487,7 @@ sources:
                         scale_factor : 0.0001
                         offset_value : 0
                         resolution  :  60
-                        band_name    : "B01"
+                        band_name    : "coastal"
                         data_type     : "INT2S"
                     B02     : &aws_msi_10m
                         missing_value: -9999
@@ -625,14 +496,14 @@ sources:
                         scale_factor : 0.0001
                         offset_value : 0
                         resolution  :  10
-                        band_name    : "B02"
+                        band_name    : "blue"
                         data_type     : "INT2S"
                     B03     :
                         <<: *aws_msi_10m
-                        band_name    : "B03"
+                        band_name    : "green"
                     B04     :
                         <<: *aws_msi_10m
-                        band_name    : "B04"
+                        band_name    : "red"
                     B05     : &aws_msi_20m
                         missing_value: -9999
                         minimum_value: 0
@@ -640,32 +511,32 @@ sources:
                         scale_factor : 0.0001
                         offset_value : 0
                         resolution  :  20
-                        band_name    : "B05"
+                        band_name    : "rededge1"
                         data_type     : "INT2S"
                     B06     :
                         <<: *aws_msi_20m
-                        band_name    : "B06"
+                        band_name    : "rededge2"
                     B07     :
                         <<: *aws_msi_20m
-                        band_name    : "B07"
+                        band_name    : "rededge3"
                     B08     :
                         <<: *aws_msi_10m
                         band_name    : "B08"
                     B8A     :
                         <<: *aws_msi_20m
-                        band_name    : "B8A"
+                        band_name    : "nir08"
                     B09     :
                         <<: *aws_msi_60m
-                        band_name    : "B09"
+                        band_name    : "nir09"
                     B11     :
                         <<: *aws_msi_20m
-                        band_name    : "B11"
+                        band_name    : "swir16"
                     B12     :
                         <<: *aws_msi_20m
-                        band_name    : "B12"
+                        band_name    : "swir22"
                     CLOUD   :
                         bit_mask     : false
-                        band_name    : "SCL"
+                        band_name    : "scl"
                         values       :
                             0        : "missing_data"
                             1        : "defective pixel"
@@ -687,88 +558,14 @@ sources:
                 platforms   :
                     SENTINEL-2A: "sentinel-2a"
                     SENTINEL-2B: "sentinel-2b"
-                collection_name: "sentinel-s2-l2a"
-                token_vars  :  ["AWS_ACCESS_KEY_ID","AWS_SECRET_ACCESS_KEY"]
+                collection_name: "sentinel-2-l2a"
                 access_vars :
-                    AWS_DEFAULT_REGION   : "eu-central-1"
-                    AWS_S3_ENDPOINT      : "s3.amazonaws.com"
-                    AWS_REQUEST_PAYER    : "requester"
-                    AWS_NO_SIGN_REQUEST  : false
-                open_data   : false
-                metadata_search : "tile"
-                ext_tolerance: 0
-            SENTINEL-S2-L1C :
-                bands       :
-                    B01     : &aws_msi_l1c_60m
-                        missing_value: -9999
-                        minimum_value: 0
-                        maximum_value: 10000
-                        scale_factor : 0.0001
-                        offset_value : 0
-                        resolution  :  60
-                        band_name    : "B01"
-                        data_type     : "INT2S"
-                    B02     : &aws_msi_l1c_10m
-                        missing_value: -9999
-                        minimum_value: 0
-                        maximum_value: 10000
-                        scale_factor : 0.0001
-                        offset_value : 0
-                        resolution  :  10
-                        band_name    : "B02"
-                        data_type     : "INT2S"
-                    B03     :
-                        <<: *aws_msi_l1c_10m
-                        band_name    : "B03"
-                    B04     :
-                        <<: *aws_msi_l1c_10m
-                        band_name    : "B04"
-                    B05     : &aws_msi_l1c_20m
-                        missing_value: -9999
-                        minimum_value: 0
-                        maximum_value: 10000
-                        scale_factor : 0.0001
-                        offset_value : 0
-                        resolution  :  20
-                        band_name    : "B05"
-                        data_type     : "INT2S"
-                    B06     :
-                        <<: *aws_msi_l1c_20m
-                        band_name    : "B06"
-                    B07     :
-                        <<: *aws_msi_l1c_20m
-                        band_name    : "B07"
-                    B08     :
-                        <<: *aws_msi_l1c_10m
-                        band_name    : "B08"
-                    B8A     :
-                        <<: *aws_msi_l1c_20m
-                        band_name    : "B8A"
-                    B09     :
-                        <<: *aws_msi_l1c_60m
-                        band_name    : "B09"
-                    B10     :
-                        <<: *aws_msi_l1c_60m
-                        band_name    : "B10"
-                    B11     :
-                        <<: *aws_msi_l1c_20m
-                        band_name    : "B11"
-                    B12     :
-                        <<: *aws_msi_l1c_20m
-                        band_name    : "B12"
-                satellite   : "SENTINEL-2"
-                sensor      : "MSI"
-                platforms   :
-                    SENTINEL-2A: "sentinel-2a"
-                    SENTINEL-2B: "sentinel-2b"
-                collection_name: "sentinel-s2-l1c"
-                token_vars  :  ["AWS_ACCESS_KEY_ID","AWS_SECRET_ACCESS_KEY"]
-                access_vars :
-                    AWS_DEFAULT_REGION   : "eu-central-1"
-                    AWS_S3_ENDPOINT      : "s3.amazonaws.com"
-                    AWS_REQUEST_PAYER    : "requester"
-                    AWS_NO_SIGN_REQUEST  : false
-                open_data   : false
+                   AWS_DEFAULT_REGION   : "eu-central-1"
+                   AWS_S3_ENDPOINT      : "s3.amazonaws.com"
+                   AWS_REQUEST_PAYER    : "requester"
+                   AWS_NO_SIGN_REQUEST  : true
+                open_data   : true
+                open_data_token: false
                 metadata_search : "tile"
                 ext_tolerance: 0
             SENTINEL-S2-L2A-COGS :
@@ -780,7 +577,7 @@ sources:
                         scale_factor : 0.0001
                         offset_value : 0
                         resolution   : 60
-                        band_name    : "B01"
+                        band_name    : "coastal"
                         data_type    : "INT2S"
                     B02     : &aws_cog_msi_10m
                         missing_value: -9999
@@ -789,14 +586,14 @@ sources:
                         scale_factor : 0.0001
                         offset_value : 0
                         resolution  :  10
-                        band_name    : "B02"
+                        band_name    : "blue"
                         data_type    : "INT2S"
                     B03     :
                         <<: *aws_cog_msi_10m
-                        band_name    : "B03"
+                        band_name    : "green"
                     B04     :
                         <<: *aws_cog_msi_10m
-                        band_name    : "B04"
+                        band_name    : "red"
                     B05     : &aws_cog_msi_20m
                         missing_value: -9999
                         minimum_value: 0
@@ -804,29 +601,29 @@ sources:
                         scale_factor : 0.0001
                         offset_value : 0
                         resolution  :  20
-                        band_name    : "B05"
+                        band_name    : "rededge1"
                         data_type    : "INT2S"
                     B06     :
                         <<: *aws_cog_msi_20m
-                        band_name    : "B06"
+                        band_name    : "rededge2"
                     B07     :
                         <<: *aws_cog_msi_20m
-                        band_name    : "B07"
+                        band_name    : "rededge3"
                     B08     :
                         <<: *aws_cog_msi_10m
                         band_name    : "B08"
                     B8A     :
                         <<: *aws_cog_msi_20m
-                        band_name    : "B8A"
+                        band_name    : "nir08"
                     B09     :
                         <<: *aws_cog_msi_60m
-                        band_name    : "B09"
+                        band_name    : "nir09"
                     B11     :
                         <<: *aws_cog_msi_20m
-                        band_name    : "B11"
+                        band_name    : "swir16"
                     B12     :
                         <<: *aws_cog_msi_20m
-                        band_name    : "B12"
+                        band_name    : "swir22"
                     CLOUD   :
                         bit_mask     : false
                         band_name    : "SCL"
@@ -851,7 +648,7 @@ sources:
                 platforms   :
                     SENTINEL-2A: "sentinel-2a"
                     SENTINEL-2B: "sentinel-2b"
-                collection_name: "sentinel-s2-l2a-cogs"
+                collection_name: "sentinel-2-l2a"
                 access_vars :
                     AWS_DEFAULT_REGION   : "us-west-1"
                     AWS_S3_ENDPOINT      : "s3.amazonaws.com"

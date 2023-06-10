@@ -402,3 +402,57 @@ test_that("Creating Harmonized Landsat Sentinel cubes from HLS", {
                         c(sits_timeline(l8_23LKC), sits_timeline(s2_23LKC))))
 
 })
+test_that("Creating Sentinel cubes from AWS", {
+    s2_cube <- .try({
+        sits_cube(
+            source = "AWS",
+            collection = "SENTINEL-2-L2A",
+            tiles = "20LKP",
+            bands = c("B05", "CLOUD"),
+            start_date = as.Date("2018-07-18"),
+            end_date = as.Date("2018-08-23"),
+            progress = FALSE
+        )
+    },
+    .default = NULL
+    )
+
+    testthat::skip_if(
+        purrr::is_null(s2_cube),
+        "AWS is not accessible"
+    )
+
+    expect_true(all(sits_bands(s2_cube) %in% c("B05", "CLOUD")))
+
+    r <- .raster_open_rast(.tile_path(s2_cube))
+
+    expect_equal(s2_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
+    expect_equal(s2_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
+
+    s2_cube_aws1 <- .try({
+        sits_cube(
+            source = "AWS",
+            collection = "SENTINEL-S2-L2A-COGS",
+            tiles = "20LKP",
+            bands = c("B05"),
+            start_date = "2023-04-01",
+            end_date = "2023-04-20",
+            progress = FALSE
+        )
+    },
+    .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(s2_cube_aws1),
+        "AWS is not accessible"
+    )
+
+    expect_true(all(sits_bands(s2_cube_aws1) %in% c("B05", "CLOUD")))
+
+    r <- .raster_open_rast(.tile_path(s2_cube_aws1))
+
+    expect_equal(s2_cube_aws1$xmax[[1]], .raster_xmax(r), tolerance = 1)
+    expect_equal(s2_cube_aws1$xmin[[1]], .raster_xmin(r), tolerance = 1)
+
+})
+

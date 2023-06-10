@@ -345,6 +345,11 @@ sits_cube.stac_cube <- function(source,
         collection = collection,
         bands = bands
     )
+    # AWS requires datetime format
+    if (.has(start_date) && source == "AWS")
+        start_date <- paste0(start_date,"T00:00:00Z")
+    if (.has(end_date) && source == "AWS")
+        end_date <- paste0(end_date,"T00:00:00Z")
 
     # dry run to verify if service is running
     .source_collection_access_test(

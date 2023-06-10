@@ -4,7 +4,7 @@
 \alias{sits_segment}
 \title{Segment an image}
 \usage{
-sits_segment(cube, tiles = NULL, bands = NULL, date = NULL, seg_fn, ...)
+sits_segment(cube, tiles = NULL, bands = NULL, dates = NULL, seg_fn, ...)
 }
 \arguments{
 \item{cube}{Regular data cube}
@@ -13,7 +13,7 @@ sits_segment(cube, tiles = NULL, bands = NULL, date = NULL, seg_fn, ...)
 
 \item{bands}{Bands to include in the segmentation}
 
-\item{date}{Date to select the image to be segmented}
+\item{dates}{Dates to consider to be segmented}
 
 \item{seg_fn}{Function to apply the segmentation}
 
@@ -63,7 +63,7 @@ segments <- sits_segment(
     cube = cube,
     tile = "012010",
     bands = "NDVI",
-    date = sits_timeline(cube)[1],
+    dates = sits_timeline(cube)[1],
     seg_fn = sits_slic(step = 10)
 )
 # create a classification model

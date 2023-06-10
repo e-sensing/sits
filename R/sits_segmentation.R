@@ -34,7 +34,7 @@
 #' @param cube          Regular data cube
 #' @param tiles         Tiles to be segmented
 #' @param bands         Bands to include in the segmentation
-#' @param date          Date to select the image to be segmented
+#' @param dates         Dates to consider to be segmented
 #' @param seg_fn        Function to apply the segmentation
 #' @param ...           Other params to be passed to segmentation function
 #'
@@ -56,7 +56,7 @@
 #'     cube = cube,
 #'     tile = "012010",
 #'     bands = "NDVI",
-#'     date = sits_timeline(cube)[1],
+#'     dates = sits_timeline(cube)[1],
 #'     seg_fn = sits_slic(step = 10)
 #' )
 #' # create a classification model
@@ -80,7 +80,7 @@
 #'
 #' @export
 sits_segment <- function(cube, tiles = NULL,
-                         bands = NULL, date = NULL, seg_fn, ...) {
+                         bands = NULL, dates = NULL, seg_fn, ...) {
     # is the cube regular?
     .check_is_regular(cube)
     # does tile belong to the cube?
@@ -96,9 +96,9 @@ sits_segment <- function(cube, tiles = NULL,
                       msg = "bands not available in the cube")
     # Is date OK?
     #
-    date <- .default(date, .cube_timeline(cube)[[1]][[1]])
-    .check_that(as.Date(date) %in% .cube_timeline(cube)[[1]],
-                msg = "date not available in the cube")
+    dates <- .default(dates, .cube_timeline(cube)[[1]][[1]])
+    .check_that(all(as.Date(dates) %in% .cube_timeline(cube)[[1]]),
+                msg = "dates not available in the cube")
 
     segments <- purrr::map(tiles, function(tile) {
         tile_seg <- .cube_filter_tiles(cube, tile) |>
