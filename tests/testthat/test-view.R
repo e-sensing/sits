@@ -17,7 +17,7 @@ test_that("View", {
     v2 <- sits_view(modis_cube,
         band = "NDVI",
         dates = timeline[[1]],
-        palette = "RdYlGn"
+        color_palette = "RdYlGn"
     )
 
     expect_true("leaflet" %in% class(v2))

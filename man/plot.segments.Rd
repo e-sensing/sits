@@ -9,7 +9,7 @@
   ...,
   tile = NULL,
   legend = NULL,
-  palette = "Spectral",
+  color_palette = "Spectral",
   tmap_options = NULL
 )
 }
@@ -22,7 +22,7 @@
 
 \item{legend}{Named vector that associates labels to colors.}
 
-\item{palette}{Alternative RColorBrewer palette}
+\item{color_palette}{Alternative RColorBrewer palette}
 
 \item{tmap_options}{List with optional tmap parameters
 tmap_max_cells (default: 1e+06)

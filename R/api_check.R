@@ -619,6 +619,7 @@
 .check_chr <- function(x, ...,
                        allow_na = FALSE,
                        allow_empty = TRUE,
+                       allow_duplicate = TRUE,
                        len_min = 0,
                        len_max = 2^31 - 1,
                        allow_null = FALSE,
@@ -652,6 +653,16 @@
             msg = msg
         )
     }
+
+    # check duplicate
+    if (!allow_duplicate) {
+        .check_that(
+            all(!duplicated(x)),
+            local_msg = "values must be unique",
+            msg = msg
+        )
+    }
+
     # check names
     .check_names(x,
                  is_named = is_named,
@@ -754,8 +765,8 @@
 
     # pre-condition
     .check_chr(within,
-        len_min = 1,
-        msg = "invalid 'within' parameter"
+               len_min = 1,
+               msg = "invalid 'within' parameter"
     )
     # check parameters
     .check_discriminator(discriminator)
@@ -831,8 +842,8 @@
 
     # pre-condition
     .check_chr(contains,
-        len_min = 1,
-        msg = "invalid 'contains' parameter"
+               len_min = 1,
+               msg = "invalid 'contains' parameter"
     )
 
     # check discriminators
@@ -932,16 +943,16 @@
 
     # check parameter
     .check_chr(x,
-        allow_empty = FALSE, len_min = 1,
-        allow_null = FALSE, msg = msg
+               allow_empty = FALSE, len_min = 1,
+               allow_null = FALSE, msg = msg
     )
 
     # check extension
     if (!is.null(extensions)) {
         .check_chr_within(ext_file(x),
-            within = extensions,
-            case_sensitive = FALSE,
-            msg = "invalid file extension"
+                          within = extensions,
+                          case_sensitive = FALSE,
+                          msg = "invalid file extension"
         )
     }
 
@@ -952,7 +963,7 @@
         local_msg = paste(
             "file does not exist:",
             paste0("'", x[!existing_files], "'",
-                collapse = ", "
+                   collapse = ", "
             )
         ),
         msg = msg
@@ -1384,8 +1395,20 @@
         if (bands %in% c("probs", "bayes", "class")) {
             .check_chr(
                 labels, len_min = 1,
-                msg = "'labels' parameter should be provided."
+                allow_duplicate = FALSE,
+                is_named = TRUE,
+                msg = "'labels' parameter should be provided"
             )
+
+            if (!.has(names(labels))) {
+                warning(
+                    paste("'labels' parameter should be named. Each label",
+                          "needs to be associated with the number,",
+                          "which is used to represent it in the image file."),
+                    call. = FALSE
+                )
+                names(labels) <- seq_along(labels)
+            }
         }
     }
     return(results_cube)
@@ -1783,13 +1806,13 @@
         "ext_tolerance"
     )
     ok <- slider::slide2_lgl(cube1, cube2,
-                           function(tile_first, tile_cube) {
-            return(.bbox_equal(
-                .tile_bbox(tile_first),
-                .tile_bbox(tile_cube),
-                tolerance = tolerance)
-            )
-    })
+                             function(tile_first, tile_cube) {
+                                 return(.bbox_equal(
+                                     .tile_bbox(tile_first),
+                                     .tile_bbox(tile_cube),
+                                     tolerance = tolerance)
+                                 )
+                             })
     .check_that(
         x = all(ok),
         msg = "cubes do not have the same bounding box"

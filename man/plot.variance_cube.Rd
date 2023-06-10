@@ -9,7 +9,7 @@
   ...,
   tile = x$tile[[1]],
   labels = NULL,
-  palette = "YlGnBu",
+  color_palette = "YlGnBu",
   rev = FALSE,
   type = "map",
   tmap_options = NULL
@@ -24,7 +24,7 @@
 
 \item{labels}{Labels to plot (optional).}
 
-\item{palette}{RColorBrewer palette}
+\item{color_palette}{RColorBrewer palette}
 
 \item{rev}{Reverse order of colors in palette?}
 
