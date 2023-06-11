@@ -1,5 +1,3 @@
-
-
 #' @keywords internal
 #' @noRd
 #' @export
@@ -54,6 +52,65 @@
 
     return(items_info)
 }
+
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_new.aws_cube_landsat-c2-l2` <- function(source,
+                                                       collection,
+                                                       stac_query, ...,
+                                                       tiles = NULL,
+                                                       platform = NULL) {
+
+    if (!is.null(platform)) {
+        platform <- .stac_format_platform(
+            source = source,
+            collection = collection,
+            platform = platform
+        )
+
+        stac_query <- rstac::ext_query(
+            q = stac_query, "platform" == platform
+        )
+    }
+    # if specified, a filter per tile is added to the query
+    if (!is.null(tiles)) {
+        # format tile parameter provided by users
+        sep_tile <- .usgs_format_tiles(tiles)
+        # add filter by wrs path and row
+        stac_query <- rstac::ext_query(
+            q = stac_query,
+            "landsat:wrs_path" %in% sep_tile$wrs_path,
+            "landsat:wrs_row" %in% sep_tile$wrs_row
+        )
+    }
+    # making the request based on ROI
+    items <- rstac::post_request(q = stac_query, ...)
+    .check_stac_items(items)
+    # fetching all the metadata and updating to upper case instruments
+    items <- suppressWarnings(
+        rstac::items_fetch(items = items, progress = FALSE)
+    )
+    return(items)
+}
+
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_tile.aws_cube_landsat-c2-l2` <- function(source,
+                                                        items, ...,
+                                                        collection = NULL) {
+
+    # store tile info in items object
+    items$features <- purrr::map(items$features, function(feature) {
+        feature$properties$tile <- c(feature$properties[["landsat:wrs_path"]],
+                                     feature$properties[["landsat:wrs_row"]])
+        feature
+    })
+
+    rstac::items_reap(items, field = c("properties", "tile"))
+}
+
 
 #' @keywords internal
 #' @noRd

@@ -611,7 +611,7 @@ sources:
                         band_name    : "rededge3"
                     B08     :
                         <<: *aws_cog_msi_10m
-                        band_name    : "B08"
+                        band_name    : "nir"
                     B8A     :
                         <<: *aws_cog_msi_20m
                         band_name    : "nir08"
@@ -657,6 +657,74 @@ sources:
                 open_data_token: false
                 metadata_search: "tile"
                 review_dates: ["2020-08-16"]
+                ext_tolerance: 0
+            LANDSAT-C2-L2   : &aws_oli
+                bands       :
+                    BLUE : &aws_oli_30m
+                        missing_value : 0
+                        minimum_value : 7273
+                        maximum_value : 43636
+                        scale_factor  : 0.0000275
+                        offset_value  : -0.2
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "blue"
+                        data_type     : "INT2U"
+                    GREEN   :
+                        <<: *aws_oli_30m
+                        band_name     : "green"
+                    RED     :
+                        <<: *aws_oli_30m
+                        band_name     : "red"
+                    NIR08   :
+                        <<: *aws_oli_30m
+                        band_name     : "nir08"
+                    SWIR16  :
+                        <<: *aws_oli_30m
+                        band_name     : "swir16"
+                    SWIR22  :
+                        <<: *aws_oli_30m
+                        band_name     : "swir22"
+                    CLOUD   :
+                        bit_mask      : true
+                        band_name     : "qa_pixel"
+                        values        :
+                            0         : "Missing data"
+                            1         : "Dilated Cloud"
+                            2         : "High confidence cirrus"
+                            3         : "High confidence cloud"
+                            4         : "High confidence cloud shadow"
+                            5         : "High confidence snow cover"
+                            6         : "Clear"
+                            7         : "Water"
+                            8         : "Low/High confidence of cloud"
+                            9         : "Medium/High confidence of cloud"
+                            10        : "Low/High confidence of cloud shadow"
+                            11        : "Medium/High confidence of cloud shadow"
+                            12        : "Low/High confidence of snow"
+                            13        : "Medium/High confidence of snow"
+                            14        : "Low/High confidence of cirrus"
+                            15        : "Medium/High confidence of cirrus"
+                        interp_values : [0, 1, 2, 3, 4, 5, 9, 11, 13, 15]
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT2U"
+                satellite   : "LANDSAT"
+                sensor      : "TM-ETM-OLI"
+                platforms   :
+                    LANDSAT-5: "landsat-5"
+                    LANDSAT-7: "landsat-7"
+                    LANDSAT-8: "landsat-8"
+                    LANDSAT-9: "landsat-9"
+                collection_name: "landsat-c2-l2"
+                access_vars :
+                   AWS_DEFAULT_REGION   : "eu-central-1"
+                   AWS_S3_ENDPOINT      : "s3.amazonaws.com"
+                   AWS_REQUEST_PAYER    : "requester"
+                   AWS_NO_SIGN_REQUEST  : true
+                open_data   : true
+                open_data_token: false
+                metadata_search : "feature"
                 ext_tolerance: 0
     DEAFRICA                :
         s3_class            : ["deafrica_cube", "stac_cube", "eo_cube",

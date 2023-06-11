@@ -192,7 +192,6 @@
                 )
             )
     }
-    multicores = 1
     # prepare parallel requests
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
