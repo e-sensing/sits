@@ -719,7 +719,7 @@ plot.variance_cube <- function(
                 msg = "plot type should be either map or hist")
     # plot the variance cube
     if (type == "map")
-        p <- .plot_probs(tile, labels, palette, rev, tmap_options)
+        p <- .plot_probs(tile, labels, color_palette, rev, tmap_options)
     else
         p <- .plot_variance_hist(tile)
 
@@ -1352,7 +1352,7 @@ plot.geo_distances <- function(x, y, ...) {
 plot.sits_cluster <- function(x, ...,
                               cluster,
                               cutree_height,
-                              palette) {
+                              color_palette) {
     # verifies if dendextend and methods packages is installed
     .check_require_packages(
         c("dendextend", "methods"),

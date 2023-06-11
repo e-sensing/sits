@@ -4,7 +4,7 @@
 \alias{plot.sits_cluster}
 \title{Plot a dendrogram cluster}
 \usage{
-\method{plot}{sits_cluster}(x, ..., cluster, cutree_height, palette)
+\method{plot}{sits_cluster}(x, ..., cluster, cutree_height, color_palette)
 }
 \arguments{
 \item{x}{sits tibble with cluster indexes.}

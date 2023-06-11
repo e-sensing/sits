@@ -604,6 +604,8 @@
         )
         # get the labels
         labels <- unlist(.cube_labels(class_cube, dissolve = FALSE))
+        if (purrr::is_null(names(labels)))
+            names(labels) <- seq_along(labels)
         # obtain the colors
         colors <- .colors_get(
             labels = labels,

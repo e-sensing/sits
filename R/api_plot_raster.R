@@ -144,8 +144,7 @@
     )
 
     # get the labels
-    labels <- sits_labels(tile)
-    names(labels) <- seq_along(labels)
+    labels <- unlist(.cube_labels(tile, dissolve = FALSE))
     # obtain the colors
     colors <- .colors_get(
         labels = labels,
@@ -153,7 +152,7 @@
         color_palette = color_palette,
         rev = TRUE
     )
-    names(colors) <- seq_along(labels)
+    names(colors) <- names(labels)
     # size of data to be read
     size <- .plot_read_size(tile = tile, tmap_options = tmap_options)
     # select the image to be plotted
@@ -176,8 +175,6 @@
     tmap_params <- .plot_tmap_params(tmap_options)
 
     # plot using tmap
-    # tmap requires numbers, not names
-    names(colors) <- seq_along(names(colors))
     p <- suppressMessages(
         tmap::tm_shape(stars_obj) +
             tmap::tm_raster(
@@ -217,7 +214,11 @@
 #'
 #' @return               A plot object
 #'
-.plot_probs <- function(tile, labels_plot, color_palette, rev, tmap_options) {
+.plot_probs <- function(tile,
+                        labels_plot,
+                        color_palette,
+                        rev,
+                        tmap_options) {
 
     # verifies if stars package is installed
     .check_require_packages("stars")

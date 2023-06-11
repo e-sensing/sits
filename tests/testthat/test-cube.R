@@ -101,7 +101,7 @@ test_that("Creating cubes from BDC", {
     # create a raster cube file based on the information about the file
     cbers_cube <- sits_cube(
         source = "BDC",
-        collection = "CB4-16D-2",
+        collection = "CBERS-WFI-16D",
         tiles = c("007004", "007005"),
         start_date = "2018-09-01",
         end_date = "2019-08-29",
