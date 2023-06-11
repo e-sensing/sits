@@ -32,8 +32,8 @@ test_that("Relabel cubes", {
         parse_info = c("X1", "X2", "tile", "start_date", "end_date",
                        "band", "version"),
         bands = "class",
-        labels = c("ClearCut_Fire", "ClearCut_BareSoil",
-                   "ClearCut_Veg", "Forest"),
+        labels = c("1" = "ClearCut_Fire", "2" = "ClearCut_BareSoil",
+                   "3" = "ClearCut_Veg", "4" = "Forest"),
         progress = FALSE
     )
     sits_labels(ro_class) <- c("Queimadas", "Solo Exposto",
