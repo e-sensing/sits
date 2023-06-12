@@ -86,7 +86,7 @@ if (sits_run_examples()) {
    # Create a sentinel-2 cube
    s2_cube <- sits_cube(
        source = "AWS",
-       collection = "SENTINEL-S2-L2A-COGS",
+       collection = "SENTINEL-2-L2A",
        tiles = "20LKP",
        bands = c("B02", "B03", "B04", "B8A", "B11", "B12", "CLOUD"),
        start_date = "2019-06-13",

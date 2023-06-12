@@ -35,7 +35,7 @@ sits_labels.sits <- function(data) {
 #' @export
 #'
 sits_labels.raster_cube <- function(data) {
-    return(.dissolve(data$labels[[1]]))
+    return(data$labels[[1]])
 }
 #' @rdname sits_labels
 #' @export
@@ -119,9 +119,8 @@ sits_labels.sits_model <- function(data) {
     return(data)
 }
 #' @name `sits_labels<-`
-#' @export
 #' @return    A probs or class_cube cube with modified labels.
-#'
+#' @export
 `sits_labels<-.probs_cube` <- function(data, value) {
     # precondition
     .check_chr(
@@ -134,23 +133,20 @@ sits_labels.sits_model <- function(data) {
     data[["labels"]] <- list(value)
     return(data)
 }
-#' @export
-#'
-`sits_labels<-.class_cube` <- function(data, value) {
-    return(`sits_labels<-.probs_cube`(data, value))
-}
-
 #' @name `sits_labels<-`
 #' @export
-#' @return           A probs cube with modified labels.
+#' @return           A class cube with modified labels.
 #'
 `sits_labels<-.class_cube` <- function(data, value) {
     # precondition
-    n_labels <- length(sits_labels(data))
+    n_labels_data <- length(sits_labels(data))
+    labels_data <- sits_labels(data)
     .check_chr(value,
-               len_min = n_labels,
+               len_min = n_labels_data,
                msg = "not enough new labels to replace current ones"
     )
+    if (purrr::is_null(names(value)))
+        names(value) <- names(labels_data)
     rows <- slider::slide_dfr(data, function(row) {
         row$labels <- list(value)
         return(row)

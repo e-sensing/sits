@@ -3,7 +3,7 @@ test_that("file_info functions", {
         {
             sits_cube(
                 source = "BDC",
-                collection = "CB4-16D-2",
+                collection = "CBERS-WFI-16D",
                 bands = c("NDVI", "EVI"),
                 tiles = c("007004", "007005"),
                 start_date = "2018-09-01",
@@ -108,7 +108,7 @@ test_that("file_info functions for result cubes", {
 test_that("file_info errors", {
     s2_cube <- sits_cube(
         source = "AWS",
-        collection = "SENTINEL-S2-L2A-COGS",
+        collection = "SENTINEL-2-L2A",
         bands = c("B01", "B02", "CLOUD"),
         tiles = c("20LKP", "20LLP"),
         start_date = "2018-09-01",

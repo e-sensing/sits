@@ -93,6 +93,7 @@ sources:
                 open_data_token : true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
+                grid_system : "BDC-Large V2"
             CBERS-WFI-8D    :
                 bands       :
                     NDVI    :
@@ -123,7 +124,7 @@ sources:
                     CLOUD   :
                         <<: *bdc_awfi_cloud
                         band_name     : "CMASK"
-                satellite   : "CBERS-4"
+                satellite   : "CBERS-4-4A"
                 sensor      : "WFI"
                 collection_name: "CBERS-WFI_64_8D_LCF-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
@@ -131,6 +132,7 @@ sources:
                 open_data_token : true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
+                grid_system : "BDC-Large V2"
             CBERS-MUX-2M    : &bdc_cb4_mux
                 bands       :
                     NDVI    : &bdc_mux_ndvi
@@ -181,6 +183,7 @@ sources:
                 open_data_token : true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
+                grid_system : "BDC-Medium V2"
             LANDSAT-OLI-16D : &bdc_lc8
                 bands       :
                     NDVI    : &bdc_oli_ndvi
@@ -243,6 +246,7 @@ sources:
                 open_data_token: true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
+                grid_system : "BDC-Medium V1"
             LANDSAT-2M      :
                 bands       :
                     COASTAL : &bdc_lc8_2m_band
@@ -323,8 +327,9 @@ sources:
                 reg_type_format: "INT2S"
                 open_data   : true
                 open_data_token: true
-                metadata_search : "tile"
+                metadata_search : "feature"
                 ext_tolerance: 0.01
+                grid_system : "BDC-Medium V2"
             MOD13Q1-6       : &bdc_mod
                 bands       :
                     NDVI    : &bdc_modis_ndvi
@@ -377,6 +382,7 @@ sources:
                 open_data_token: true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
+                grid_system  : "STG"
             MYD13Q1-6       :
                 <<: *bdc_mod
                 satellite   : "AQUA"
@@ -386,6 +392,7 @@ sources:
                 open_data_token: true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
+                grid_system  : "STG"
             SENTINEL-2-16D  : &bdc_s2
                 bands       :
                     NDVI    : &bdc_msi_ndvi
@@ -472,6 +479,7 @@ sources:
                 open_data_token: true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
+                grid_system  : "BDC-Small V2"
     AWS                     :
         s3_class            : ["aws_cube", "stac_cube", "eo_cube",
                                "raster_cube"]
@@ -568,6 +576,7 @@ sources:
                 open_data_token: false
                 metadata_search : "tile"
                 ext_tolerance: 0
+                grid_system  : "MGRS"
             SENTINEL-S2-L2A-COGS :
                 bands       :
                     B01     : &aws_cog_msi_60m
@@ -658,6 +667,7 @@ sources:
                 metadata_search: "tile"
                 review_dates: ["2020-08-16"]
                 ext_tolerance: 0
+                grid_system  : "MGRS"
             LANDSAT-C2-L2   : &aws_oli
                 bands       :
                     BLUE : &aws_oli_30m
@@ -718,14 +728,15 @@ sources:
                     LANDSAT-9: "landsat-9"
                 collection_name: "landsat-c2-l2"
                 access_vars :
-                   AWS_DEFAULT_REGION   : "eu-central-1"
+                   AWS_DEFAULT_REGION   : "us-west-2"
                    AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                    AWS_REQUEST_PAYER    : "requester"
-                   AWS_NO_SIGN_REQUEST  : true
-                open_data   : true
+                   AWS_NO_SIGN_REQUEST  : false
+                open_data   : false
                 open_data_token: false
                 metadata_search : "feature"
                 ext_tolerance: 0
+                grid_system  : "WRS-2"
     DEAFRICA                :
         s3_class            : ["deafrica_cube", "stac_cube", "eo_cube",
                                "raster_cube"]
@@ -818,6 +829,7 @@ sources:
                 open_data_token: false
                 metadata_search : "tile"
                 ext_tolerance: 0
+                grid_system  : "MGRS"
             LS8_SR          : &deafrica_l8
                 bands       :
                     B01     : &deafrica_oli_30m
@@ -878,6 +890,7 @@ sources:
                 open_data_token: false
                 metadata_search : "feature"
                 ext_tolerance: 0
+                grid_system  : "WRS-2"
     SDC                     :
         s3_class            : ["sdc_cube", "stac_cube", "eo_cube",
                                "raster_cube"]
@@ -954,6 +967,7 @@ sources:
                 open_data_token: false
                 metadata_search : "feature"
                 ext_tolerance: 0
+                grid_system  : "MGRS"
             LS8_LASRC_SWISS : &swiss_l8
                 bands       :
                     B01     : &swiss_oli_30m
@@ -1015,6 +1029,7 @@ sources:
                 open_data_token: false
                 metadata_search : "feature"
                 ext_tolerance: 0
+                grid_system  : "WRS-2"
     USGS                    :
         s3_class            : ["usgs_cube", "stac_cube", "eo_cube",
                                "raster_cube"]
@@ -1091,6 +1106,7 @@ sources:
                 tile_required: false
                 metadata_search : "feature"
                 ext_tolerance: 0
+                grid_system  : "WRS-2"
     MPC                     :
         s3_class            : ["mpc_cube", "stac_cube", "eo_cube",
                                "raster_cube"]
@@ -1163,6 +1179,7 @@ sources:
                 tile_required: false
                 metadata_search : "feature"
                 ext_tolerance: 0
+                grid_system  : "WRS-2"
             SENTINEL-2-L2A  : &mspc_msi
                 bands       :
                     B01     : &mspc_msi_60m
@@ -1248,6 +1265,7 @@ sources:
                 open_data_token: false
                 metadata_search : "tile"
                 ext_tolerance: 0
+                grid_system  : "MGRS"
     HLS                     :
         s3_class            : ["hls_cube", "stac_cube", "eo_cube",
                                "raster_cube"]
@@ -1326,6 +1344,7 @@ sources:
                 open_data_token: false
                 metadata_search : "tile"
                 ext_tolerance: 0
+                grid_system  : "MGRS"
             HLSL30          :
                 bands       :
                     COASTAL-AEROSOL: &hls_l8_30m
@@ -1382,3 +1401,4 @@ sources:
                 open_data_token: false
                 metadata_search : "tile"
                 ext_tolerance: 0
+                grid_system  : "MGRS"

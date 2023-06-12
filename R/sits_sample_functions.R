@@ -117,7 +117,7 @@ sits_sample <- function(data,
 #' @examples
 #' if (sits_run_examples()) {
 #'     # print the labels summary for a sample set
-#'     sits_labels_summary(samples_modis_ndvi)
+#'     summary(samples_modis_ndvi)
 #'     # reduce the sample imbalance
 #'     new_samples <- sits_reduce_imbalance(samples_modis_ndvi,
 #'         n_samples_over = 200,
@@ -125,7 +125,7 @@ sits_sample <- function(data,
 #'         multicores = 1
 #'     )
 #'     # print the labels summary for the rebalanced set
-#'     sits_labels_summary(new_samples)
+#'     summary(new_samples)
 #' }
 #' @export
 sits_reduce_imbalance <- function(samples,
@@ -164,14 +164,14 @@ sits_reduce_imbalance <- function(samples,
 
     # get classes to undersample
     classes_under <- samples |>
-        sits_labels_summary() |>
+        summary() |>
         dplyr::filter(.data[["count"]] >= n_samples_under) |>
         dplyr::pull("label")
 
 
     # get classes to oversample
     classes_over <- samples |>
-        sits_labels_summary() |>
+        summary() |>
         dplyr::filter(.data[["count"]] <= n_samples_over) |>
         dplyr::pull("label")
 

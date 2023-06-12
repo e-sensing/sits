@@ -58,7 +58,7 @@
 #'     # define a non-regular Sentinel-2 cube in AWS
 #'     s2_cube_open <- sits_cube(
 #'         source = "AWS",
-#'         collection = "SENTINEL-S2-L2A-COGS",
+#'         collection = "SENTINEL-2-L2A",
 #'         tiles = c("20LKP", "20LLP"),
 #'         bands = c("B8A", "SCL"),
 #'         start_date = "2018-10-01",

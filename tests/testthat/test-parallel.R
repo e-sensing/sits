@@ -3,7 +3,7 @@ test_that("One-year, multi-core classification in parallel", {
         {
             sits_cube(
                 source = "BDC",
-                collection = "LC8_30_16D_STK-1",
+                collection = "LANDSAT-OLI-16D",
                 tiles = c("038047"),
                 bands = c("NDVI", "EVI"),
                 start_date = "2018-07-12",

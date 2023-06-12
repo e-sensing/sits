@@ -103,8 +103,9 @@
 
     # store tile info in items object
     items$features <- purrr::map(items$features, function(feature) {
-        feature$properties$tile <- c(feature$properties[["landsat:wrs_path"]],
-                                     feature$properties[["landsat:wrs_row"]])
+        feature$properties$tile <- paste0(feature$properties[["landsat:wrs_path"]],
+                                     feature$properties[["landsat:wrs_row"]],
+                                     collapse = "")
         feature
     })
 

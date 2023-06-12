@@ -52,7 +52,7 @@
 #' To create cubes from cloud providers, users need to inform:
 #' \itemize{
 #' \item{\code{source}: }{One of \code{"AWS"}, \code{"BDC"}, \code{"DEAFRICA"},
-#' \code{"MPC"}, \code{"USGS"}.}
+#' \code{"MPC"}, \code{"USGS"}, \code{"SDC"} and \code{"HLS"}}.
 #' \item{\code{collection}: }{Use \code{sits_list_collections()} to see which
 #'   collections are supported.}
 #' \item{\code{tiles}: }{A set of tiles defined according to the collection
@@ -115,7 +115,7 @@
 #'
 #'
 #' @note In MPC, sits can access are two open data collections:
-#' \code{"SENTINEL-S2-L2A"} for Sentinel-2/2A images, and
+#' \code{"SENTINEL-2-L2A"} for Sentinel-2/2A images, and
 #' \code{"LANDSAT-C2-L2"} for the Landsat-4/5/7/8/9 collection.
 #' (requester-pays) and \code{"SENTINEL-S2-L2A-COGS"} (open data).
 #'
@@ -134,8 +134,7 @@
 #'
 #' @note In AWS, there are two types of collections: open data and
 #' requester-pays. Currently, \code{sits} supports collection
-#' \code{"SENTINEL-S2-L2A"}
-#' (requester-pays) and \code{"SENTINEL-S2-L2A-COGS"} (open data).
+#' \code{"SENTINEL-2-L2A"} (open data) and LANDSAT-C2-L2 (requester-pays).
 #' There is no need to provide AWS credentials to access open data
 #' collections. For requester-pays data, users need to provide their
 #' access codes as environment variables, as follows:
@@ -151,9 +150,9 @@
 #' \code{"B06"}, \code{"B07"}, \code{"B8A"}, \code{"B11"}, and \code{"B12"}.
 #' Bands \code{"B01"} and \code{"B09"} are available at 60m resolution.
 #'
-#' @note For DEAFRICA, sits currently works with collection \code{"S2_L2A"}
-#' (open data). This collection is the same as AWS collection
-#' \code{"SENTINEL-S2-L2A-COGS"}, and is located in Africa
+#' @note For DEAFRICA, sits currently works with collections \code{"S2_L2A"}
+#' for Sentinel-2 level 2A and \code{"LS8_SR"} for Landsat-8 ARD collection.
+#' (open data). These collections are located in Africa
 #' (Capetown) for faster access to African users. No payment for access
 #' is required.
 #'
@@ -297,7 +296,11 @@ sits_cube.stac_cube <- function(source,
         stop("It is not possible to search with roi and tiles.",
              "Please provide only roi or tiles.")
     }
-
+    # Ensures that a spatial filter is informed
+    if (!.has(roi) && !.has(tiles)) {
+        stop("No spatial search criteria.",
+             "Please provide only roi or tiles.")
+    }
     # Ensures that there are no duplicate tiles
     if (.has(tiles)) {
         tiles <- unique(tiles)
@@ -307,50 +310,43 @@ sits_cube.stac_cube <- function(source,
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
     }
-
-    # source is upper case
-    source <- toupper(source)
-
-    # collection is upper case
-    collection <- toupper(collection)
-
-    # pre-condition - check if source and collection exist
-    .source_collection_check(
-        source = source,
-        collection = collection
-    )
-
-    # Does the collection need a token for access?
-    .source_collection_token_check(
-        source = source,
-        collection = collection
-    )
-
-    # Does the collection need environmental variables for access?
-    .source_collection_access_vars_set(
-        source = source,
-        collection = collection
-    )
-
-    if (is.null(bands)) {
-        bands <- .source_bands(
-            source = source,
-            collection = collection
-        )
-    }
-
-    # Pre-condition - checks if the bands are supported by the collection
-    .conf_check_bands(
-        source = source,
-        collection = collection,
-        bands = bands
-    )
     # AWS requires datetime format
     if (.has(start_date) && source == "AWS")
         start_date <- paste0(start_date,"T00:00:00Z")
     if (.has(end_date) && source == "AWS")
         end_date <- paste0(end_date,"T00:00:00Z")
 
+    # source is upper case
+    source <- toupper(source)
+    # collection is upper case
+    collection <- toupper(collection)
+    # pre-condition - check if source and collection exist
+    .source_collection_check(
+        source = source,
+        collection = collection
+    )
+    # Does the collection need a token for access?
+    .source_collection_token_check(
+        source = source,
+        collection = collection
+    )
+    # Does the collection need environmental variables for access?
+    .source_collection_access_vars_set(
+        source = source,
+        collection = collection
+    )
+    if (is.null(bands)) {
+        bands <- .source_bands(
+            source = source,
+            collection = collection
+        )
+    }
+    # Pre-condition - checks if the bands are supported by the collection
+    .conf_check_bands(
+        source = source,
+        collection = collection,
+        bands = bands
+    )
     # dry run to verify if service is running
     .source_collection_access_test(
         source = source,
@@ -360,7 +356,6 @@ sits_cube.stac_cube <- function(source,
         start_date = start_date,
         end_date = end_date
     )
-
     # builds a sits data cube
     .source_cube(
         source = source,
@@ -374,7 +369,6 @@ sits_cube.stac_cube <- function(source,
         progress = progress, ...
     )
 }
-
 #' @rdname sits_cube
 #'
 #' @export
@@ -408,15 +402,12 @@ sits_cube.local_cube <- function(source,
         .source_check(source = source)
         .source_collection_check(source = source, collection = collection)
     }
-
     dots <- list(...)
-
     # deal with wrong parameter "band" in dots
     if ("band" %in% names(dots) && missing(bands)) {
         message("please, use 'bands' instead of 'band' as parameter")
         bands <- as.character(dots[["band"]])
     }
-
     # builds a sits data cube
     cube <- .local_cube(
         source = source,
@@ -435,7 +426,6 @@ sits_cube.local_cube <- function(source,
     )
     return(cube)
 }
-
 #' @export
 sits_cube.default <- function(source, collection, ..., data_dir = NULL) {
     stop("sits_cube: source not found.")

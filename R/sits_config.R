@@ -219,7 +219,8 @@ sits_list_collections <- function(source = NULL) {
             cat(paste0("- ", c))
             cat(paste0(
                 " (", .source_collection_satellite(s, c),
-                "/", .source_collection_sensor(s, c), ")\n"
+                "/", .source_collection_sensor(s, c), ")\n",
+                "- grid system: ", .source_collection_grid_system(s,c), "\n"
             ))
             cat("- bands: ")
             cat(.source_bands(s, c))

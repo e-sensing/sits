@@ -969,6 +969,25 @@ NULL
     )
     return(res)
 }
+#' @rdname .source_cube
+#' @noRd
+#' @description \code{.source_collection_grid_system()} retrieves the
+#' cartographical grid system for the collection.
+#'
+#' @return \code{character}
+#'
+.source_collection_grid_system <- function(source, collection) {
+    res <- .conf(
+        "sources", source,
+        "collections", collection,
+        "grid_system"
+    )
+    .check_chr(res,
+               allow_null = TRUE,
+               msg = "invalid 'grid_system' value"
+    )
+    return(res)
+}
 
 #' @rdname .source_cube
 #' @noRd

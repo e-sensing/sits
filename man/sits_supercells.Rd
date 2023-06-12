@@ -5,11 +5,7 @@
 \title{Segment an image using supercells}
 \usage{
 sits_supercells(
-  cube,
-  tiles = NULL,
-  bands,
-  date,
-  ...,
+  tile = NULL,
   step = 50,
   compactness = 1,
   iter = 10,
@@ -18,15 +14,7 @@ sits_supercells(
 )
 }
 \arguments{
-\item{cube}{Regular data cube}
-
-\item{tiles}{Tiles to be segmented}
-
-\item{bands}{Bands to include in the segmentation}
-
-\item{date}{Date to select the image to be segmented}
-
-\item{...}{Other params to be passed to segmentation}
+\item{tile}{Tile, bands, date to be segmented}
 
 \item{step}{Distance (in number of cells) between initial
 supercells' centers.}
@@ -50,24 +38,40 @@ SLIC superpixels algorithm proposed by Achanta et al. (2012).
 See references for more details.
 }
 \examples{
-# example code
 if (sits_run_examples()) {
-    # Example of classification of a data cube
-    # create a data cube from local files
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    cube <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir
-    )
-    # segment the image
-    segments <- sits_supercells(
-        cube = cube,
-        tile = "012010",
-        bands = "NDVI",
-        date = sits_timeline(cube)[1],
-        step = 10
-    )
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+# create a data cube
+cube <- sits_cube(
+    source = "BDC",
+    collection = "MOD13Q1-6",
+    data_dir = data_dir
+)
+
+# segment the image
+segments <- sits_segment(
+    cube = cube,
+    tile = "012010",
+    bands = "NDVI",
+    date = sits_timeline(cube)[1],
+    seg_fn = sits_supercells(step = 10)
+)
+# create a classification model
+rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+# get the average value per segment
+samples_seg <- sits_get_data(
+    cube = cube,
+    samples = segments
+)
+# classify the segments
+seg_class <- sits_classify(
+    data = samples_seg,
+    ml_model = rfor_model
+)
+# add a column to the segments by class
+sf_seg <- sits_join_segments(
+    data = seg_class,
+    segments = segments
+)
 }
 }
 \references{

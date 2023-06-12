@@ -10,16 +10,16 @@ test_that("Relabel", {
 
     # copy result
     new_data <- samples_modis_ndvi
-    sits_labels(new_data) #  [1] "Cerrado"  "Forest"   "Pasture"  "Soy_Corn"
+    sits_labels(new_data)
 
     sits_labels(new_data) <- c("Cerrado", "Forest", "Pasture", "Cropland")
 
-    labels <- summary(new_data)
+    sum <- summary(new_data)
 
     expect_true("Cropland" %in% sits_labels(new_data))
-    expect_equal(length(labels$label), 4)
-    expect_equal(labels$label[1], "Cerrado")
-    expect_equal(sum(labels$prop), 1)
+    expect_equal(length(sum$label), 4)
+    expect_equal(sum$label[1], "Cerrado")
+    expect_equal(sum(sum$prop), 1)
 })
 
 test_that("Relabel cubes", {

@@ -53,7 +53,7 @@
             file = out_file,
             band = band,
             base_tile = tile,
-            labels = .ml_labels(ml_model),
+            labels = .ml_labels_code(ml_model),
             derived_class = "probs_cube",
             update_bbox = TRUE
         )
@@ -188,7 +188,7 @@
     probs_tile <- .tile_derived_merge_blocks(
         file = out_file,
         band = band,
-        labels = .ml_labels(ml_model),
+        labels = .ml_labels_code(ml_model),
         base_tile = tile,
         block_files = block_files,
         derived_class = "probs_cube",

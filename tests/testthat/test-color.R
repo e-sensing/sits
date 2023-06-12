@@ -24,7 +24,7 @@ test_that("plot colors", {
         parse_info = c("X1", "X2", "tile", "start_date", "end_date",
                        "band", "version"),
         bands = "class",
-        labels = c("1" = "ClearCut_Fire", "2" = "ClearCut_BareSoil",
+        labels = c("1" = "ClearCut_Burn", "2" = "ClearCut_Soil",
                    "3" = "ClearCut_Veg", "4" = "Forest"),
         progress = FALSE
     )

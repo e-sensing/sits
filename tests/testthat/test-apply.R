@@ -4,7 +4,7 @@ test_that("EVI generation", {
         {
             sits_cube(
                 source = "MPC",
-                collection = "sentinel-2-l2a",
+                collection = "SENTINEL-2-L2A",
                 tiles = "20LKP",
                 bands = c("B05", "B8A", "CLOUD"),
                 start_date = "2019-07-18",
@@ -31,16 +31,15 @@ test_that("EVI generation", {
         full.names = TRUE
     ))
 
-    expect_warning({
-        gc_cube <- sits_regularize(
+
+    gc_cube <- sits_regularize(
             cube        = s2_cube,
             output_dir  = dir_images,
             res         = 160,
             period      = "P1M",
             multicores  = 2,
             progress = FALSE
-        )
-    })
+    )
 
     gc_cube_new <- sits_apply(gc_cube,
         EVI2 = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),

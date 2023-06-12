@@ -39,7 +39,7 @@ Please refer to the sits documentation available in
 \examples{
 if (sits_run_examples()) {
     # print the labels summary for a sample set
-    sits_labels_summary(samples_modis_ndvi)
+    summary(samples_modis_ndvi)
     # reduce the sample imbalance
     new_samples <- sits_reduce_imbalance(samples_modis_ndvi,
         n_samples_over = 200,
@@ -47,7 +47,7 @@ if (sits_run_examples()) {
         multicores = 1
     )
     # print the labels summary for the rebalanced set
-    sits_labels_summary(new_samples)
+    summary(new_samples)
 }
 }
 \references{

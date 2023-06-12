@@ -8,13 +8,13 @@ test_that("Segmentation", {
         data_dir = data_dir,
         progress = FALSE
     )
-    # segment the image
-    segments <- sits_supercells(
+    # test sits_segments
+    segments <- sits_segment(
         cube = cube,
         tile = "012010",
         bands = "NDVI",
         date = sits_timeline(cube)[1],
-        step = 10
+        seg_fn = sits_supercells(step = 20)
     )
     sf_seg <- segments[[1]]
 
@@ -26,28 +26,6 @@ test_that("Segmentation", {
     samples <- sits_get_data(
         cube = cube,
         samples = segments
-    )
-    nrows <- nrow(samples)
-    expect_true(all(samples$polygon_id %in% c(1:nrows)))
-    expect_equal(nrow(samples$time_series[[1]]), 12)
-    # test sits_segments
-    segments2 <- sits_segment(
-        cube = cube,
-        tile = "012010",
-        bands = "NDVI",
-        date = sits_timeline(cube)[1],
-        seg_fn = sits_slic(step = 10)
-    )
-    sf_seg2 <- segments2[[1]]
-
-    bbox <- sits_bbox(cube)
-    expect_true(all(sf_seg2$x > bbox[["xmin"]]))
-    expect_true(all(sf_seg2$x < bbox[["xmax"]]))
-    expect_true(all(sf_seg2$y > bbox[["ymin"]]))
-    expect_true(all(sf_seg2$y < bbox[["ymax"]]))
-    samples <- sits_get_data(
-        cube = cube,
-        samples = segments2
     )
     expect_equal(nrow(samples$time_series[[1]]), 12)
 

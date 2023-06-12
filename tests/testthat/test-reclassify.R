@@ -31,8 +31,8 @@ test_that("One-year, multicores processing reclassify", {
         parse_info = c("X1", "X2", "tile", "start_date", "end_date",
                        "band", "version"),
         bands = "class",
-        labels = c("ClearCut_Fire", "ClearCut_BareSoil",
-                   "ClearCut_Veg", "Forest"),
+        labels = c("1" = "ClearCut_Fire", "2" = "ClearCut_Soil",
+                   "3" = "ClearCut_Veg", "4" = "Forest"),
         progress = FALSE
     )
     # Reclassify cube
@@ -61,7 +61,7 @@ test_that("One-year, multicores processing reclassify", {
 
     expect_equal(
         sits_labels(ro_mask),
-        c("ClearCut_Fire", "ClearCut_BareSoil",
+        c("ClearCut_Fire", "ClearCut_Soil",
           "ClearCut_Veg", "Forest", "Old_Deforestation",
           "Water_Mask", "NonForest_Mask")
     )
