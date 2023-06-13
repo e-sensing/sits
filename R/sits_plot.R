@@ -126,9 +126,9 @@ plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
 
     plot.df <- tidyr::pivot_longer(plot.df, cols = sits_bands(x))
 
-    if(year_grid)
-        plot.df <- plot.df %>%
-            dplyr::mutate(year = format(.data[["Time"]], format = "%Y")) %>%
+    if (year_grid)
+        plot.df <- plot.df |>
+            dplyr::mutate(year = format(.data[["Time"]], format = "%Y")) |>
             dplyr::mutate(Time = as.Date(format(.data[["Time"]], format = "2000-%m-%d")))
 
     # Plot temporal patterns
@@ -139,7 +139,7 @@ plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
     )) +
         ggplot2::geom_line()
 
-    if(year_grid)
+    if (year_grid)
         gp <- gp + ggplot2::facet_grid(year ~ Pattern)
     else
         gp <- gp + ggplot2::facet_wrap(~Pattern)
