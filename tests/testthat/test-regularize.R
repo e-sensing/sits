@@ -164,17 +164,24 @@ test_that("Regularizing local cubes extracted from BDC", {
     start_date <- timeline[1]
     end_date <- timeline[length(timeline)]
 
-    # create a BDC cube with the same roi as the local cube
-    bdc_cube <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        roi = local_bbox,
-        start_date = start_date,
-        end_date = end_date,
-        bands = c("NDVI", "CLOUD"),
-        multicores = 2,
-        progress = FALSE
+    # create a raster cube file based on the information about the files
+    bdc_cube <- .try({
+        sits_cube(
+            source = "BDC",
+            collection = "MOD13Q1-6",
+            roi = local_bbox,
+            start_date = start_date,
+            end_date = end_date,
+            bands = c("NDVI", "CLOUD"),
+            multicores = 2
+        )
+    },
+    .default = NULL
     )
+    testthat::skip_if(purrr::is_null(bdc_cube),
+                      message = "BDC is not accessible"
+    )
+
     expect_true(all(sits_bands(bdc_cube) %in% c("NDVI", "CLOUD")))
     timeline_2 <- sits_timeline(bdc_cube)
     start_date_2 <- timeline_2[1]

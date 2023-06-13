@@ -61,6 +61,9 @@ sits_cube_copy <- function(cube,
     else
         sf_roi <- NULL
     .check_res(res)
+    if (inherits(output_dir, "character")) {
+        output_dir <- path.expand(output_dir)
+    }
     .check_output_dir(output_dir)
     .check_multicores(multicores)
     .check_progress(progress)
