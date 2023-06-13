@@ -58,7 +58,6 @@
 #' \item{\code{w_mean()}: returns the mean of the neighborhood's values.}
 #' \item{\code{w_sd()}: returns the standard deviation of the neighborhood's
 #'   values.}
-#' \item{\code{w_var()}: returns the variance of the neighborhood's values.}
 #' \item{\code{w_min()}: returns the minimum of the neighborhood's values.}
 #' \item{\code{w_max()}: returns the maximum of the neighborhood's values.}
 #' }
@@ -73,7 +72,7 @@
 #' # Apply a normalization function
 #'
 #' point2 <-
-#'     sits_select(point_mt_6bands, "NDVI") %>%
+#'     sits_select(point_mt_6bands, "NDVI") |>
 #'     sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
 #'
 #' # Example of generation texture band with variance
@@ -88,7 +87,7 @@
 #' # Generate a texture images with variance in NDVI images
 #' cube_texture <- sits_apply(
 #'     data = cube,
-#'     NDVITEXTURE = w_var(NDVI),
+#'     NDVITEXTURE = w_median(NDVI),
 #'     window_size = 5,
 #'     output_dir = tempdir()
 #' )
@@ -114,7 +113,7 @@ sits_apply.raster_cube <- function(data, ...,
                                    memsize = 1,
                                    multicores = 2,
                                    output_dir,
-                                   progress = TRUE) {
+                                   progress = FALSE) {
 
     # Check cube
     .check_is_raster_cube(data)
@@ -150,8 +149,8 @@ sits_apply.raster_cube <- function(data, ...,
         job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
     # Prepare parallelization
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
     # Create features as jobs
     features_cube <- .cube_split_features(data)

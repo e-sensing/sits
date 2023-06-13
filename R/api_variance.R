@@ -12,14 +12,15 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        if (.check_messages()) {
-            message("Recovery: tile '", tile[["tile"]], "' already exists.")
-            message("(If you want to produce a new image, please ",
-                    "change 'output_dir' or 'version' parameters)")
-        }
-        var_tile <- .tile_variance_from_file(
-            file = out_file, band = band, base_tile = tile,
-            labels = .tile_labels(tile), update_bbox = FALSE
+        .check_recovery(tile[["tile"]])
+
+        var_tile <- .tile_derived_from_file(
+            file = out_file,
+            band = band,
+            base_tile = tile,
+            labels = .tile_labels(tile),
+            derived_class = "variance_cube",
+            update_bbox = FALSE
         )
         return(var_tile)
     }
@@ -71,10 +72,15 @@
         block_file
     })
     # Merge blocks into a new var_cube tile
-    var_tile <- .tile_variance_merge_blocks(
-        file = out_file, band = band, labels = .tile_labels(tile),
-        base_tile = tile, block_files = block_files,
-        multicores = .jobs_multicores(), update_bbox = FALSE
+    var_tile <- .tile_derived_merge_blocks(
+        file = out_file,
+        band = band,
+        labels = .tile_labels(tile),
+        base_tile = tile,
+        block_files = block_files,
+        derived_class = "variance_cube",
+        multicores = .jobs_multicores(),
+        update_bbox = FALSE
     )
     # Return var tile
     var_tile

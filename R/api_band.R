@@ -76,3 +76,14 @@
 .band_samples <- function(band) {
     gsub("_", "-", toupper(band))
 }
+
+.band_set_case <- function(bands, results_cube) {
+    if (!purrr::is_null(bands)) {
+        if (results_cube) {
+            bands <- tolower(bands)
+        } else {
+            bands <- toupper(bands)
+        }
+    }
+    return(bands)
+}

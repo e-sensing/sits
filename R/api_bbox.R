@@ -55,14 +55,6 @@ NULL
 .is_bbox <- function(x) {
     setequal(names(x), c(.bbox_cols, "crs"))
 }
-#' @title Check if an object is a bbox
-#' @noRd
-#' @returns Throws an error if an object is not a bbox.
-.check_bbox <- function(x) {
-    if (!.is_bbox(x)) {
-        stop("object is not a valid bbox")
-    }
-}
 #' @title Get the type of object containing a bbox
 #' @noRd
 #' @returns A bbox type (One of 'sf', 'tbl', or 'point').
@@ -137,7 +129,8 @@ NULL
     } else {
         crs <- .default(default_crs, default = {
             if (.check_warnings())
-                warning("object has no crs, assuming 'EPSG:4326'", call. = FALSE)
+                warning("object has no crs, assuming 'EPSG:4326'",
+                        call. = FALSE)
             "EPSG:4326"
         })
     }
@@ -228,78 +221,7 @@ NULL
     bbox
 }
 
-#' @title Bounding box accessors
-#' @noRd
-#'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description
-#' These functions are accessors of bbox fields of a vector.
-#' Getters functions returns the respective field values with the expected
-#' data type. Setters functions convert value to expected data type and
-#' store it in respective fields on a given object. If value has no length
-#' and the vector is not atomic, it is removed from the object.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#' x <- c(xmax = "123")
-#' .xmax(x) # 123 as number
-#' x <- list(xmin = 1, xmax = 2, ymin = 3, ymax = 4)
-#' .crs(x) <- 4326
-#' x # with 'crs' field
-#' .as_crs(3857) # EPSG:3857
-#' }
-NULL
-
-.xmin <- function(x) {
-    .as_dbl(.compact(x[["xmin"]]))
-}
-`.xmin<-` <- function(x, value) {
-    x[["xmin"]] <- .as_dbl(value)
-    x
-}
-.xmax <- function(x) {
-    .as_dbl(.compact(x[["xmax"]]))
-}
-`.xmax<-` <- function(x, value) {
-    x[["xmax"]] <- .as_dbl(value)
-    x
-}
-.ymin <- function(x) {
-    .as_dbl(.compact(x[["ymin"]]))
-}
-`.ymin<-` <- function(x, value) {
-    x[["ymin"]] <- .as_dbl(value)
-    x
-}
-.ymax <- function(x) {
-    .as_dbl(.compact(x[["ymax"]]))
-}
-`.ymax<-` <- function(x, value) {
-    x[["ymax"]] <- .as_dbl(value)
-    x
-}
-.as_crs <- function(x) {
-    if (.has(x)) {
-        if (is.character(x))
-            .compact(x)
-        else if (is.numeric(x))
-            paste0("EPSG:", .compact(x))
-        else if (is.na(x))
-            NA_character_
-        else
-            stop("invalid crs value")
-    }
-}
-.crs <- function(x) {
-    .as_crs(x[["crs"]])
-}
-`.crs<-` <- function(x, value) {
-    x[["crs"]] <- .as_crs(value)
-    x
-}
-
-.crs_wkt_to_proj4 <- function(wkt_crs){
+.crs_wkt_to_proj4 <- function(wkt_crs) {
     # Convert WKT to sf CRS object
     crs_sf <- sf::st_crs(wkt_crs)
     # Convert sf CRS object to PROJ4 string

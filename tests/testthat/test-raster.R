@@ -7,7 +7,8 @@ test_that("Single core classification with rfor", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/single_rfor")
     if (!dir.exists(output_dir)) {
@@ -18,19 +19,22 @@ test_that("Single core classification with rfor", {
         ml_model = rfor_model,
         output_dir = output_dir,
         memsize = 4,
-        multicores = 1
+        multicores = 1,
+        progress = FALSE
     )
 
     # testing resume feature
     out <- capture_messages({
         expect_message(
-        object = { sits_classify(
-            data = sinop,
-            ml_model = rfor_model,
-            output_dir = output_dir,
-            memsize = 4,
-            multicores = 2
-        ) },
+        object = {
+            sits_classify(
+                data = sinop,
+                ml_model = rfor_model,
+                output_dir = output_dir,
+                memsize = 4,
+                multicores = 2,
+                progress = TRUE
+            )},
         regexp = "Recovery: "
         )
     })
@@ -64,7 +68,8 @@ test_that("Classification with SVM", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/svm")
     if (!dir.exists(output_dir)) {
@@ -76,7 +81,8 @@ test_that("Classification with SVM", {
         ml_model = svm_model,
         output_dir = output_dir,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
@@ -98,7 +104,8 @@ test_that("Classification with XGBoost", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/xgb")
     if (!dir.exists(output_dir)) {
@@ -110,7 +117,8 @@ test_that("Classification with XGBoost", {
         ml_model = xgb_model,
         output_dir = output_dir,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
@@ -135,7 +143,8 @@ test_that("Classification with SVM and Whittaker filter", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
 
     output_dir <- paste0(tempdir(), "/svm_whit")
@@ -148,7 +157,8 @@ test_that("Classification with SVM and Whittaker filter", {
         filter_fn = sits_whittaker(),
         output_dir = output_dir,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
 
@@ -172,7 +182,8 @@ test_that("Classification with RFOR and Savitzky-Golay filter", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/rfor_sg")
     if (!dir.exists(output_dir)) {
@@ -184,7 +195,8 @@ test_that("Classification with RFOR and Savitzky-Golay filter", {
         filter_fn = sits_sgolay(),
         output_dir = output_dir,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
 
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
@@ -210,7 +222,8 @@ test_that("Classification with MLP", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/mlp")
     if (!dir.exists(output_dir)) {
@@ -222,7 +235,8 @@ test_that("Classification with MLP", {
         ml_model = torch_model,
         output_dir = output_dir,
         memsize = 8,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
@@ -247,7 +261,8 @@ test_that("Classification with TempCNN", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/tcnn")
     if (!dir.exists(output_dir)) {
@@ -259,7 +274,8 @@ test_that("Classification with TempCNN", {
         ml_model = torch_model,
         output_dir = output_dir,
         memsize = 8,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
@@ -284,7 +300,8 @@ test_that("Classification with ResNet", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/rnet")
     if (!dir.exists(output_dir)) {
@@ -295,7 +312,8 @@ test_that("Classification with ResNet", {
         ml_model = torch_model,
         output_dir = output_dir,
         memsize = 8,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
@@ -320,7 +338,8 @@ test_that("Classification with TAE", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/tae")
     if (!dir.exists(output_dir)) {
@@ -331,7 +350,8 @@ test_that("Classification with TAE", {
         ml_model = torch_model,
         output_dir = output_dir,
         memsize = 8,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
@@ -356,7 +376,8 @@ test_that("Classification with LightTAE", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/ltae")
     if (!dir.exists(output_dir)) {
@@ -368,7 +389,8 @@ test_that("Classification with LightTAE", {
         ml_model = torch_model,
         output_dir = output_dir,
         memsize = 8,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
@@ -393,7 +415,8 @@ test_that("Classification with cloud band", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/cloud")
     if (!dir.exists(output_dir)) {
@@ -421,7 +444,8 @@ test_that("Classification with cloud band", {
     samples_ndvi <- sits_get_data(
         cube = cube_merged,
         samples = csv_file,
-        multicores = 1
+        multicores = 1,
+        progress = FALSE
     )
 
     rf_model <- sits_train(samples_ndvi, ml_method = sits_rfor)
@@ -431,7 +455,8 @@ test_that("Classification with cloud band", {
         ml_model = rf_model,
         output_dir = output_dir,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
@@ -457,7 +482,8 @@ test_that("Classification with post-processing", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/bayes")
     if (!dir.exists(output_dir)) {
@@ -469,19 +495,22 @@ test_that("Classification with post-processing", {
         ml_model = rfor_model,
         output_dir = output_dir,
         memsize = 4,
-        multicores = 1
+        multicores = 1,
+        progress = FALSE
     )
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     sinop_class <- sits_label_classification(
         sinop_probs,
         output_dir = output_dir,
+        progress = FALSE
     )
     # testing resume feature
     out <- capture_messages({
         expect_message(
         object = {sits_label_classification(
             sinop_probs,
-            output_dir = output_dir
+            output_dir = output_dir,
+            progress = FALSE
         ) },
         regexp = "Recovery"
         )
@@ -508,12 +537,13 @@ test_that("Classification with post-processing", {
     # testing the recovery feature
     out <- capture_messages({
         expect_message(
-        object = {sits_smooth(
-            sinop_probs,
-            output_dir = output_dir,
-            multicores = 2,
-            memsize = 4
-        ) },
+        object = {
+            sits_smooth(
+                sinop_probs,
+                output_dir = output_dir,
+                multicores = 2,
+                memsize = 4
+            )},
         regexp = "Recovery"
         )
     })
@@ -576,7 +606,8 @@ test_that("Classification with post-processing", {
         data_dir = output_dir,
         parse_info = c("X1", "X2", "tile",
                        "start_date", "end_date",
-                       "band", "version")
+                       "band", "version"),
+        progress = FALSE
     )
 
     timeline_orig <- sits_timeline(sinop)

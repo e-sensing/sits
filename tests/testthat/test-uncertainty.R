@@ -1,11 +1,12 @@
 test_that("uncertainty works", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    out_dir <- tempdir()
+
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     xgb_model <- sits_train(samples_modis_ndvi,
         ml_method = sits_xgboost(verbose = FALSE)
@@ -14,23 +15,29 @@ test_that("uncertainty works", {
         cube,
         ml_model = xgb_model,
         output_dir = tempdir(),
-        memsize = 4, multicores = 2
+        memsize = 4,
+        multicores = 2,
+        version = "xgb",
+        progress = FALSE
     )
 
     entropy_cube <- sits_uncertainty(
         probs_cube,
         type = "entropy",
-        output_dir = out_dir
+        output_dir = tempdir(),
+        version = "xgb_entropy"
     )
     least_cube <- sits_uncertainty(
         probs_cube,
         type = "least",
-        output_dir = out_dir
+        output_dir = tempdir(),
+        version = "xgb_least"
     )
     margin_cube <- sits_uncertainty(
         probs_cube,
         type = "margin",
-        output_dir = out_dir
+        output_dir = tempdir(),
+        version = "xgb_margin"
     )
 
     e_cnames <- c("source", "collection", "satellite", "sensor", "tile",

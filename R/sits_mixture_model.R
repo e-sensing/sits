@@ -52,13 +52,15 @@
 #'    # Create a sentinel-2 cube
 #'    s2_cube <- sits_cube(
 #'        source = "AWS",
-#'        collection = "SENTINEL-S2-L2A-COGS",
+#'        collection = "SENTINEL-2-L2A",
 #'        tiles = "20LKP",
 #'        bands = c("B02", "B03", "B04", "B8A", "B11", "B12", "CLOUD"),
 #'        start_date = "2019-06-13",
 #'        end_date = "2019-06-30"
 #'    )
-#'
+#'    # create a directory to store the regularized file
+#'    reg_dir <- paste0(tempdir(), "/mix_model")
+#'    dir.create(reg_dir)
 #'    # Cube regularization for 16 days and 160 meters
 #'    reg_cube <- sits_regularize(
 #'        cube = s2_cube,
@@ -69,7 +71,7 @@
 #'                lon_max = -65.07629670,
 #'                lat_max = -10.36046639),
 #'        multicores = 2,
-#'        output_dir = tempdir()
+#'        output_dir = reg_dir
 #'    )
 #'
 #'    # Create the endmembers tibble
@@ -119,19 +121,19 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
     .check_endmembers_tbl(em)
 
     # Get endmembers bands
-    bands <- setdiff(.sits_bands(data), .endmembers_fracs(em))
+    bands <- setdiff(.samples_bands(data), .endmembers_fracs(em))
     # The samples is filtered here in case some fraction
     # is added as a band
-    data <- .sits_select_bands(samples = data, bands = bands)
+    data <- .samples_select_bands(samples = data, bands = bands)
     # Pre-condition
-    .check_endmembers_bands(em = em, bands = .sits_bands(data))
+    .check_endmembers_bands(em = em, bands = .samples_bands(data))
 
     # Fractions to be produced
     out_fracs <- .endmembers_fracs(em = em, include_rmse = rmse_band)
 
     # Prepare parallelization
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
     # Create mixture processing function
     mixture_fn <- .mixture_fn_nnls(em = em, rmse = rmse_band)
     # Create groups of samples as jobs
@@ -139,7 +141,7 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
         samples = data, multicores = multicores
     )
     # Process each group of samples in parallel
-    samples_fracs <- .sits_parallel_map(samples_groups, function(samples) {
+    samples_fracs <- .parallel_map(samples_groups, function(samples) {
         # Process the data
         output_samples <- .mixture_samples(
             samples = samples, em = em,
@@ -205,9 +207,8 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
         multicores = multicores
     )
     # Prepare parallelization
-    .sits_parallel_start(workers = multicores, log = TRUE,
-                         output_dir = output_dir)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores, output_dir = output_dir)
+    on.exit(.parallel_stop(), add = TRUE)
     # Create mixture processing function
     mixture_fn <- .mixture_fn_nnls(em = em, rmse = rmse_band)
     # Create features as jobs
@@ -229,249 +230,4 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_fracs)))
 }
 
-# ---- mixture functions ----
 
-.mixture_samples <- function(samples, em, mixture_fn, out_fracs) {
-    # Get the time series of samples time series
-    values <- .ts(samples)
-    # Endmembers bands
-    em_bands <- .endmembers_bands(em)
-    # Apply the non-negative least squares solver
-    # the band parameter is used to ensure the order of bands
-    values <- mixture_fn(values = .ts_values(ts = values, bands = em_bands))
-    # Rename columns fractions
-    colnames(values) <- out_fracs
-    # Merge samples and fractions values
-    .samples_merge_fracs(samples = samples, values = values)
-}
-
-.mixture_feature <- function(feature, block, em,
-                             mixture_fn, out_fracs, output_dir) {
-    # Output files
-    out_files <- .file_eo_name(
-        tile = feature, band = out_fracs,
-        date = .tile_start_date(feature), output_dir = output_dir
-    )
-    # Resume feature
-    if (.raster_is_valid(out_files, output_dir = output_dir)) {
-        if (.check_messages()) {
-            message("Recovery: fractions ",
-                    paste0("'", out_fracs, "'", collapse = ", "),
-                    " already exists.")
-            message("(If you want to produce a new image, please ",
-                    "change 'output_dir' parameters)")
-        }
-        # Create tile based on template
-        fracs_feature <- .tile_eo_from_files(
-            files = out_files,
-            fid = .fi_fid(.fi(feature)),
-            bands = out_fracs,
-            date = .tile_start_date(feature),
-            base_tile = feature,
-            update_bbox = FALSE
-        )
-        return(fracs_feature)
-    }
-    # Remove remaining incomplete fractions files
-    unlink(out_files)
-    # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = feature, overlap = 0, block = block)
-    # Process jobs sequentially
-    block_files <- .jobs_map_sequential(chunks, function(chunk) {
-        # Get job block
-        block <- .block(chunk)
-        .sits_debug_log(
-            event = "block_size",
-            key = "list",
-            value = block
-        )
-        # Block file name for each fraction
-        block_files <- .file_block_name(
-            pattern = .file_pattern(out_files), block = block,
-            output_dir = output_dir
-        )
-        # Resume processing in case of failure
-        if (.raster_is_valid(block_files)) {
-            return(block_files)
-        }
-        # Read bands data
-        values <- .mixture_data_read(tile = feature, block = block, em = em)
-        .sits_debug_log(
-            event = "start_nnls_solver",
-            key = "dim_values",
-            value = dim(values)
-        )
-        # Apply the non-negative least squares solver
-        values <- mixture_fn(values = as.matrix(values))
-        .sits_debug_log(
-            event = "end_nnls_solver",
-            key = "dim_values",
-            value = dim(values)
-        )
-        # Prepare fractions to be saved
-        band_conf <- .tile_band_conf(tile = feature, band = out_fracs)
-        offset <- .offset(band_conf)
-        if (!is.null(offset) && offset != 0) {
-            values <- values - offset
-        }
-        scale <- .scale(band_conf)
-        if (!is.null(scale) && scale != 1) {
-            values <- values / scale
-        }
-        # Prepare and save results as raster
-        .sits_debug_log(
-            event = "write_block",
-            key = "files",
-            value = block_files
-        )
-        .raster_write_block(
-            files = block_files,
-            block = block,
-            bbox = .bbox(chunk),
-            values = values,
-            data_type = .data_type(band_conf),
-            missing_value = .miss_value(band_conf),
-            crop_block = NULL
-        )
-        # Free memory
-        gc()
-        # Returned block files for each fraction
-        block_files
-    })
-    # Merge blocks into a new eo_cube tile feature
-    fracs_feature <- .tile_eo_merge_blocks(
-        files = out_files, bands = out_fracs, base_tile = feature,
-        block_files = block_files, multicores = 1, update_bbox = FALSE
-    )
-    # Return a eo_cube tile feature
-    fracs_feature
-}
-
-.mixture_data_read <- function(tile, block, em) {
-    # for cubes that have a time limit to expire - mpc cubes only
-    tile <- .cube_token_generator(tile)
-    # Read and preprocess values from cloud
-    # Get cloud values (NULL if not exists)
-    cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
-    # Get endmembers bands
-    bands <- .endmembers_bands(em)
-    # Read and preprocess values from each band
-    values <- purrr::map_dfc(bands, function(band) {
-        # Get band values (stops if band not found)
-        values <- .tile_read_block(tile = tile, band = band, block = block)
-        # Remove cloud masked pixels
-        if (!is.null(cloud_mask)) {
-            values[cloud_mask] <- NA
-        }
-        # Return values
-        as.data.frame(values)
-    })
-    # Return values
-    values
-}
-
-# ---- endmembers functions ----
-
-.endmembers_type <- function(em) {
-    if (is.data.frame(em)) {
-        "tbl_df"
-    } else if (is.character(em)) {
-        ext <- tolower(.file_ext(em))
-        if (ext %in% c("csv", "shp")) {
-            ext
-        } else {
-            stop("not supported extension '", ext, "'")
-        }
-    } else {
-        stop("invalid 'endmembers' parameter type")
-    }
-}
-
-.endmembers_switch <- function(em, ...) {
-    switch(.endmembers_type(em), ...)
-}
-
-.endmembers_as_tbl <- function(em) {
-    em <- .endmembers_switch(
-        em,
-        "tbl_df" = em,
-        "csv" = utils::read.csv(em),
-        "shp" = sf::st_read(em)
-    )
-    # Ensure that all columns are in uppercase
-    dplyr::rename_with(em, toupper)
-}
-
-.endmembers_bands <- function(em) {
-    # endmembers tribble can be type or class
-    type_class <- colnames(em)[[1]]
-    setdiff(colnames(em), type_class)
-}
-
-.endmembers_fracs <- function(em, include_rmse = FALSE) {
-    # endmembers tribble can be type or class
-    type_class <- toupper(colnames(em)[[1]])
-    if (!include_rmse) return(toupper(em[[type_class]]))
-    toupper(c(em[[type_class]], "RMSE"))
-}
-
-.endmembers_as_matrix <- function(em) {
-    bands <- .endmembers_bands(em)
-    as.matrix(em[, bands])
-}
-
-# ---- samples functions ----
-
-.samples_merge_fracs <- function(samples, values) {
-    # Bind samples time series and fractions columns
-    values <- dplyr::bind_cols(.ts(samples), values)
-    # Transform time series into a list of time instances
-    values <- tidyr::nest(values, time_series = c(-"sample_id", -"label"))
-    # Assign the fractions and bands time series to samples
-    samples[["time_series"]] <- values[["time_series"]]
-    # Return a sits tibble
-    samples
-}
-
-.samples_split_groups <- function(samples, multicores) {
-    # Change multicores value in case multicores is greater than samples nrows
-    multicores <- if (multicores > nrow(samples)) nrow(samples) else multicores
-    # Create a new column to each group id
-    samples[["group"]] <- rep(
-        seq_len(multicores), each = ceiling(nrow(samples) / multicores)
-    )[seq_len(nrow(samples))]
-    # Split each group by an id
-    dplyr::group_split(
-        dplyr::group_by(samples, .data[["group"]]), .keep = FALSE)
-}
-
-.samples_merge_groups <- function(samples_lst) {
-    # Binding the list items into a tibble
-    samples <- dplyr::bind_rows(samples_lst)
-    # add sits class to the tibble structure
-    class(samples) <- c("sits", class(samples))
-    # Return sits tibble
-    samples
-}
-
-# ---- mixture model functions ----
-
-.mixture_fn_nnls <- function(em, rmse) {
-    em_mtx <- .endmembers_as_matrix(em)
-    mixture_fn <- function(values) {
-        # Check values length
-        input_pixels <- nrow(values)
-        # Process NNLS solver and return
-        values <- C_nnls_solver_batch(
-            x = as.matrix(values),
-            em = em_mtx,
-            rmse = rmse
-        )
-        # Are the results consistent with the data input?
-        .check_processed_values(values, input_pixels)
-        # Return values
-        values
-    }
-    # Return a closure
-    mixture_fn
-}

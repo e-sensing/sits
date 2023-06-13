@@ -1,26 +1,27 @@
 #' @title Extract set of time series from supercells
 #'
-#' @name .supercells_get_data
+#' @name .segments_get_data
+#' @keywords internal
 #' @noRd
 #' @description     Using the segments as polygons, get all time series
 #'
 #' @param cube       regular data cube
-#' @param supercells polygons produced by sits_supercells
+#' @param segments   polygons produced by sits_segments
 #' @param bands      bands used in time series
-#' @param impute_fn  Imputation function for NA values.
 #' @param aggreg_fn  Function to compute a summary of each segment
+#' @param pol_id     ID attribute for polygons.
 #' @param multicores Number of cores to use for processing
 #' @param progress   Show progress bar?
 #'
-.supercells_get_data <- function(
+.segments_get_data <- function(
         cube,
-        supercells,
+        segments,
         bands,
-        impute_fn,
         aggreg_fn,
+        pol_id,
         multicores,
         progress
-){
+) {
     # verify if exactextractr is installed
     .check_require_packages("exactextractr")
     # get start and end dates
@@ -29,7 +30,7 @@
 
     # combine tiles and bands for parallel processing
     tiles_bands <- tidyr::expand_grid(tile = .cube_tiles(cube),
-                                      band = bands) %>%
+                                      band = bands) |>
         purrr::pmap(function(tile, band) {
             return(list(tile, band))
         })
@@ -40,18 +41,18 @@
     }
     # prepare parallelization
     multicores <- min(multicores, length(tiles_bands))
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
-    samples_tiles_bands <- .sits_parallel_map(tiles_bands, function(tile_band) {
+    samples_tiles_bands <- .parallel_map(tiles_bands, function(tile_band) {
         tile_id <- tile_band[[1]]
         band <- tile_band[[2]]
         # select a band for a tile
         tile <- sits_select(cube, bands = band, tiles = tile_id)
         # select supercells for the tile
-        segs_tile <- supercells[[tile_id]]
+        segs_tile <- segments[[tile_id]]
         # create hash for combination of tile and samples
-        hash_bundle <- digest::digest(list(tile, supercells), algo = "md5")
+        hash_bundle <- digest::digest(list(tile, segments), algo = "md5")
         # create a file with a hash code
         filename <- .file_path(
             "samples", hash_bundle,
@@ -71,40 +72,41 @@
             })
         }
         # build the sits tibble for the storing the points
-        samples_tbl <- purrr::map2_dfr(segs_tile$x, segs_tile$y, function(x, y) {
+        samples_tbl <- purrr::pmap_dfr(
+            list(segs_tile$x, segs_tile$y, segs_tile[[pol_id]]),
+            function(x, y, pid) {
             # convert XY to lat long
-            lat_long <- .proj_to_latlong(x, y, .crs(cube))
+                lat_long <- .proj_to_latlong(x, y, .crs(cube))
 
-            # create metadata for the polygons
-            sample <- tibble::tibble(
-                longitude  = lat_long[1, "longitude"],
-                latitude   = lat_long[1, "latitude"],
-                start_date = start_date,
-                end_date   = end_date,
-                label      = "NoClass",
-                cube       = tile[["collection"]],
-            )
-            # store them in the sample tibble
-            sample$time_series <- list(tibble::tibble(Index = .tile_timeline(tile)))
-            # return valid row of time series
-            return(sample)
-        })
-        samples_tbl$polygon_id <- c(1:nrow(samples_tbl))
+                # create metadata for the polygons
+                sample <- tibble::tibble(
+                    longitude  = lat_long[1, "longitude"],
+                    latitude   = lat_long[1, "latitude"],
+                    start_date = start_date,
+                    end_date   = end_date,
+                    label      = "NoClass",
+                    cube       = tile[["collection"]],
+                    polygon_id = pid
+                )
+                # store them in the sample tibble
+                sample$time_series <- list(
+                    tibble::tibble(Index = .tile_timeline(tile))
+                )
+                # return valid row of time series
+                return(sample)
+            })
 
         # extract time series per tile and band
-        ts <- .supercells_get_ts(
+        ts <- .segments_get_ts(
             tile = tile,
             band = band,
             samples_tbl = samples_tbl,
             segs_tile = segs_tile,
-            impute_fn  = impute_fn,
             aggreg_fn = aggreg_fn
         )
 
         ts[["tile"]] <- tile_id
         ts[["#..id"]] <- seq_len(nrow(ts))
-
-        # saveRDS(ts, filename)
 
         return(ts)
     }, progress = progress)
@@ -120,8 +122,8 @@
         return(.tibble())
     }
 
-    ts_tbl <- ts_tbl %>%
-        tidyr::unnest("time_series") %>%
+    ts_tbl <- ts_tbl |>
+        tidyr::unnest("time_series") |>
         dplyr::group_by(
             .data[["longitude"]], .data[["latitude"]],
             .data[["start_date"]], .data[["end_date"]],
@@ -133,22 +135,22 @@
         ts_tbl <- dplyr::group_by(ts_tbl, .data[["polygon_id"]], .add = TRUE)
     }
 
-    ts_tbl <- ts_tbl %>%
+    ts_tbl <- ts_tbl |>
         dplyr::reframe(
-            dplyr::across(dplyr::all_of(bands), stats::na.omit)) %>%
-        dplyr::arrange(.data[["Index"]]) %>%
-        dplyr::ungroup() %>%
-        tidyr::nest(time_series = !!c("Index", bands)) %>%
-        dplyr::select(-c("tile", "#..id"))
+            dplyr::across(dplyr::all_of(bands), stats::na.omit)) |>
+        dplyr::arrange(.data[["Index"]]) |>
+        dplyr::ungroup() |>
+        tidyr::nest(time_series = !!c("Index", bands)) |>
+        dplyr::select(-c("#..id"))
 
     # get the first point that intersect more than one tile
     # eg sentinel 2 mgrs grid
-    ts_tbl <- ts_tbl %>%
+    ts_tbl <- ts_tbl |>
         dplyr::group_by(
             .data[["longitude"]], .data[["latitude"]],
             .data[["start_date"]], .data[["end_date"]],
-            .data[["label"]], .data[["cube"]]) %>%
-        dplyr::slice_head(n = 1) %>%
+            .data[["label"]], .data[["cube"]]) |>
+        dplyr::slice_head(n = 1) |>
         dplyr::ungroup()
 
     # recreate hash values
@@ -156,7 +158,7 @@
         tile_id <- tile_band[[1]]
         band <- tile_band[[2]]
         tile <- sits_select(cube, bands = band, tiles = tile_id)
-        digest::digest(list(tile, supercells), algo = "md5")
+        digest::digest(list(tile, segments), algo = "md5")
     })
 
     # recreate file names to delete them
@@ -171,18 +173,15 @@
     unlink(temp_timeseries)
     gc()
 
-    # check if data has been retrieved
-    # .sits_get_data_check(nrow(samples), nrow(ts_tbl))
-
     if (!inherits(ts_tbl, "sits")) {
         class(ts_tbl) <- c("sits", class(ts_tbl))
     }
 
     return(ts_tbl)
 }
-#' @title Extract time series from supercells by tile and band
+#' @title Extract time series from segments by tile and band
 #'
-#' @name .supercells_get_ts
+#' @name .segments_get_ts
 #' @noRd
 #' @description     Using the segments as polygons
 #'
@@ -190,17 +189,15 @@
 #' @param band        Band to extract time series
 #' @param samples_tbl Samples tibble
 #' @param segs_tile   Polygons produced by sits_supercells for the tile
-#' @param impute_fn   Imputation function for NA values.
 #' @param aggreg_fn   Aggregation function to compute a summary of each segment
 #'
-.supercells_get_ts <- function(
+.segments_get_ts <- function(
         tile,
         band,
         samples_tbl,
         segs_tile,
-        impute_fn,
         aggreg_fn
-){
+) {
     # get the scale factors, max, min and missing values
     band_params   <- .tile_band_conf(tile, band)
     missing_value <- .miss_value(band_params)
@@ -214,6 +211,8 @@
     values[values == missing_value] <- NA
     values[values < minimum_value] <- NA
     values[values > maximum_value] <- NA
+    # use linear imputation
+    impute_fn = .impute_linear()
     # are there NA values? interpolate them
     if (any(is.na(values))) {
         values <- impute_fn(values)
@@ -223,9 +222,9 @@
     # join new time series with previous values
     samples_tbl <- slider::slide2_dfr(
         samples_tbl, seq_len(nrow(samples_tbl)),
-        function(sample, i){
+        function(sample, i) {
             old_ts <- sample$time_series[[1]]
-            new_ts <- tibble::tibble(ts = values[i,])
+            new_ts <- tibble::tibble(ts = values[i, ])
             new_ts <- dplyr::bind_cols(old_ts, new_ts)
             colnames(new_ts) <- c(colnames(old_ts), band)
             sample$time_series[[1]] <- new_ts

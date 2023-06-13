@@ -104,7 +104,7 @@ Data cubes can also be created using local files (see details).
 To create cubes from cloud providers, users need to inform:
 \itemize{
 \item{\code{source}: }{One of \code{"AWS"}, \code{"BDC"}, \code{"DEAFRICA"},
-\code{"MPC"}, \code{"USGS"}.}
+\code{"MPC"}, \code{"USGS"}, \code{"SDC"} and \code{"HLS"}}.
 \item{\code{collection}: }{Use \code{sits_list_collections()} to see which
   collections are supported.}
 \item{\code{tiles}: }{A set of tiles defined according to the collection
@@ -167,7 +167,7 @@ parameter \code{parse_info} is specified differently:
 }
 \note{
 In MPC, sits can access are two open data collections:
-\code{"SENTINEL-S2-L2A"} for Sentinel-2/2A images, and
+\code{"SENTINEL-2-L2A"} for Sentinel-2/2A images, and
 \code{"LANDSAT-C2-L2"} for the Landsat-4/5/7/8/9 collection.
 (requester-pays) and \code{"SENTINEL-S2-L2A-COGS"} (open data).
 
@@ -186,8 +186,7 @@ and \code{"SWIR22"}. The \code{"CLOUD"} band is also available.
 
 In AWS, there are two types of collections: open data and
 requester-pays. Currently, \code{sits} supports collection
-\code{"SENTINEL-S2-L2A"}
-(requester-pays) and \code{"SENTINEL-S2-L2A-COGS"} (open data).
+\code{"SENTINEL-2-L2A"} (open data) and LANDSAT-C2-L2 (requester-pays).
 There is no need to provide AWS credentials to access open data
 collections. For requester-pays data, users need to provide their
 access codes as environment variables, as follows:
@@ -203,9 +202,9 @@ resolution. The AWS bands in 10m resolution are \code{"B02"}, \code{"B03"},
 \code{"B06"}, \code{"B07"}, \code{"B8A"}, \code{"B11"}, and \code{"B12"}.
 Bands \code{"B01"} and \code{"B09"} are available at 60m resolution.
 
-For DEAFRICA, sits currently works with collection \code{"S2_L2A"}
-(open data). This collection is the same as AWS collection
-\code{"SENTINEL-S2-L2A-COGS"}, and is located in Africa
+For DEAFRICA, sits currently works with collections \code{"S2_L2A"}
+for Sentinel-2 level 2A and \code{"LS8_SR"} for Landsat-8 ARD collection.
+(open data). These collections are located in Africa
 (Capetown) for faster access to African users. No payment for access
 is required.
 
@@ -243,9 +242,9 @@ if (sits_run_examples()) {
     # create a raster cube file based on the information in the BDC
     cbers_tile <- sits_cube(
         source = "BDC",
-        collection = "CB4_64_16D_STK-1",
+        collection = "CB4-16D-2",
         bands = c("NDVI", "EVI"),
-        tiles = "022024",
+        tiles = "007004",
         start_date = "2018-09-01",
         end_date = "2019-08-28"
     )
@@ -308,8 +307,7 @@ if (sits_run_examples()) {
     modis_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_"
+        data_dir = data_dir
     )
 }
 

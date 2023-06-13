@@ -12,9 +12,17 @@
                    call. = FALSE
         ))
     }
+    # NASA EarthData requires a login/password combination
+    netrc_path <- "~/.netrc"
+    if (.Platform$OS.type == "windows")
+        netrc_path <- "%HOME%\\_netrc"
+    if (!file.exists(netrc_path))
+            warning(paste("could not find .netrc file", "\n",
+                          "Have you configured your access to NASA EarthData?"))
+
     # Convert roi to bbox
-    lon <- stac_query$params$intersects$coordinates[,,1]
-    lat <- stac_query$params$intersects$coordinates[,,2]
+    lon <- stac_query$params$intersects$coordinates[, , 1]
+    lat <- stac_query$params$intersects$coordinates[, , 2]
     stac_query$params$intersects <- NULL
     stac_query$params$bbox <- c(min(lon), min(lat), max(lon), max(lat))
     # making the request

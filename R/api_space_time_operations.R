@@ -13,10 +13,10 @@
 .proj_from_latlong <- function(longitude,
                                latitude,
                                crs) {
-    t <- tibble::tibble(long = longitude, lat = latitude) %>%
-        sf::st_as_sf(coords = c("long", "lat"), crs = 4326) %>%
-        sf::st_transform(crs = crs) %>%
-        sf::st_coordinates() %>%
+    t <- tibble::tibble(long = longitude, lat = latitude) |>
+        sf::st_as_sf(coords = c("long", "lat"), crs = 4326) |>
+        sf::st_transform(crs = crs) |>
+        sf::st_coordinates() |>
         tibble::as_tibble()
 
     colnames(t) <- c("X", "Y")
@@ -36,9 +36,9 @@
 #' @param crs Projection definition to be converted from.
 #' @return Matrix with latlong coordinates.
 .proj_to_latlong <- function(x, y, crs) {
-    ll <- tibble::tibble(xc = x, yc = y) %>%
-        sf::st_as_sf(coords = c("xc", "yc"), crs = crs) %>%
-        sf::st_transform(crs = "EPSG:4326") %>%
+    ll <- tibble::tibble(xc = x, yc = y) |>
+        sf::st_as_sf(coords = c("xc", "yc"), crs = crs) |>
+        sf::st_transform(crs = "EPSG:4326") |>
         sf::st_coordinates()
 
     colnames(ll) <- c("longitude", "latitude")
@@ -139,4 +139,27 @@
     as_crs <- sf::st_crs(x)
     y <- sf::st_transform(y, crs = as_crs)
     apply(sf::st_within(x, y, sparse = FALSE), 1, any)
+}
+#' @title Find the closest points.
+#'
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @description
+#' For each point in x, find the closest point in y (and their distance).
+#'
+#' @param x An `sf` object (points).
+#' @param y An `sf` object (points).
+#'
+#' @return  A data.frame with the columns from (row number in a), b
+#' (row number in b), and distance (in meters).
+.find_closest <- function(x, y = x) {
+    dist_xy <- sf::st_distance(x, y)
+    class(dist_xy) <- setdiff(class(dist_xy), "units")
+    attr(dist_xy, "units") <- NULL
+
+    dist_xy[dist_xy == 0] <- Inf
+    min_dist <- apply(dist_xy, MARGIN = 1, FUN = min)
+    dist_df <- tibble::tibble(distance = min_dist)
+    return(dist_df)
 }

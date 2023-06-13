@@ -17,17 +17,17 @@ test_that("Plot Time Series and Images", {
     expect_equal(p2$guides$colour$title, "Bands")
     expect_equal(p2$theme$legend.position, "bottom")
 
-    p3 <- cerrado_2classes %>%
-        sits_patterns() %>%
-        sits_select(bands = "EVI") %>%
+    p3 <- cerrado_2classes |>
+        sits_patterns() |>
+        sits_select(bands = "EVI") |>
         plot()
     expect_equal(as.Date(p3$data$Time[1]), as.Date("2000-09-13"))
     expect_equal(p3$data$Pattern[1], "Cerrado")
     expect_equal(p3$data$name[1], "EVI")
     expect_equal(p3$guides$colour$title, "Bands")
 
-    p4 <- cerrado_2classes %>%
-        sits_patterns() %>%
+    p4 <- cerrado_2classes |>
+        sits_patterns() |>
         plot(bands = "NDVI")
     expect_equal(as.Date(p4$data$Time[1]), as.Date("2000-09-13"))
     expect_equal(p4$data$Pattern[1], "Cerrado")
@@ -37,7 +37,7 @@ test_that("Plot Time Series and Images", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     set.seed(290356)
     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
-    point_class <- sits_classify(point_ndvi, rfor_model)
+    point_class <- sits_classify(point_ndvi, rfor_model, progress = FALSE)
     p3 <- plot(point_class)
     expect_equal(p3[[1]]$labels$y, "Value")
     expect_equal(p3[[1]]$labels$x, "Time")
@@ -47,9 +47,10 @@ test_that("Plot Time Series and Images", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
-    p <- plot(sinop, band = "NDVI", palette = "RdYlGn")
+    p <- plot(sinop, band = "NDVI", color_palette = "RdYlGn")
     expect_equal(p$tm_shape$shp_name, "stars_obj")
     expect_equal(p$tm_raster$palette, "RdYlGn")
     expect_equal(p$tm_grid$grid.projection, 4326)
@@ -60,8 +61,8 @@ test_that("Plot Time Series and Images", {
     expect_equal(p_rgb$tm_grid$grid.projection, 4326)
 
     col <- p_rgb$tm_shape$shp$`TERRA_MODIS_012010_NDVI_2013-09-14.jp2`
-    expect_equal(col[1,1], "#646464")
-    expect_equal(col[1,10], "#A9A9A9")
+    expect_equal(col[1, 1], "#646464")
+    expect_equal(col[1, 10], "#A9A9A9")
 
     sinop_probs <- suppressMessages(
         sits_classify(
@@ -69,7 +70,8 @@ test_that("Plot Time Series and Images", {
             ml_model = rfor_model,
             memsize = 2,
             multicores = 2,
-            output_dir = tempdir()
+            output_dir = tempdir(),
+            progress = FALSE
         )
     )
     p_probs <- plot(sinop_probs)
@@ -86,15 +88,17 @@ test_that("Plot Time Series and Images", {
         output_dir = tempdir()
     )
 
-    p_uncert <- plot(sinop_uncert, palette = "Reds", rev = FALSE)
+    p_uncert <- plot(sinop_uncert, color_palette = "Reds", rev = FALSE)
 
     expect_equal(p_uncert$tm_raster$palette, "Reds")
     expect_equal(length(p_uncert$tm_raster$title), 1)
     expect_equal(p_uncert$tm_layout$legend.bg.color, "white")
 
 
-    sinop_labels <- sits_label_classification(sinop_probs,
-        output_dir = tempdir()
+    sinop_labels <- sits_label_classification(
+        sinop_probs,
+        output_dir = tempdir(),
+        progress = FALSE
     )
 
     p4 <- plot(sinop_labels, title = "Classified image")
@@ -113,7 +117,7 @@ test_that("Plot Accuracy", {
     # compute a random forest model
     rfor_model <- sits_train(train_data, sits_rfor())
     # classify training points
-    points_class <- sits_classify(test_data, rfor_model)
+    points_class <- sits_classify(test_data, rfor_model, progress = FALSE)
     # calculate accuracy
     acc <- sits_accuracy(points_class)
     # plot accuracy
@@ -133,7 +137,7 @@ test_that("Plot Models", {
                                                  "NDVI4", "NDVI5", "NDVI6",
                                                  "NDVI7", "NDVI8", "NDVI9",
                                                  "NDVI10", "NDVI11", "NDVI12")))
-    expect_true(all(p_model$data$minimal_depth[1:2] %in% c(0,1)))
+    expect_true(all(p_model$data$minimal_depth[1:2] %in% c(0, 1)))
 
     xgb_model <- sits_train(samples_modis_ndvi, ml_method = sits_xgboost())
     p_xgb <- plot(xgb_model)
@@ -144,22 +148,21 @@ test_that("Plot Models", {
 
 test_that("Dendrogram Plot", {
 
-    p <- capture.output(sits_cluster_dendro(cerrado_2classes))
-
-
-    cluster_obj <- .sits_cluster_dendrogram(cerrado_2classes,
+    samples <- sits_cluster_dendro(cerrado_2classes,
+        bands = c("NDVI", "EVI"),
+        .plot = FALSE
+    )
+    cluster <- .cluster_dendrogram(
+        samples = samples,
         bands = c("NDVI", "EVI")
     )
-    cut.vec <- .sits_cluster_dendro_bestcut(
-        cerrado_2classes,
-        cluster_obj
-    )
 
-    dend <- .plot_dendrogram(
-        data = cerrado_2classes,
-        cluster = cluster_obj,
-        cutree_height = cut.vec["height"],
-        palette = "RdYlGn"
+    best_cut <- .cluster_dendro_bestcut(samples, cluster)
+
+    dend <- plot(samples,
+                 cluster = cluster,
+                 cutree_height = best_cut["height"],
+                 color_palette = "RdYlGn"
     )
     expect_equal(class(dend), "dendrogram")
 })
@@ -182,8 +185,8 @@ test_that("Plot torch model", {
 })
 
 test_that("Plot series with NA", {
-    cerrado_ndvi <- cerrado_2classes %>%
-        sits_select(bands = "NDVI") %>%
+    cerrado_ndvi <- cerrado_2classes |>
+        sits_select(bands = "NDVI") |>
         dplyr::filter(label == "Cerrado")
     cerrado_ndvi_1 <- cerrado_ndvi[1, ]
     ts <- cerrado_ndvi_1$time_series[[1]]
@@ -196,8 +199,6 @@ test_that("Plot series with NA", {
 })
 
 test_that("SOM map plot", {
-
-
     set.seed(1234)
     som_map <-
         suppressWarnings(sits_som_map(

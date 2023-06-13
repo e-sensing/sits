@@ -1,5 +1,113 @@
+#---- time_series ----
+
+.ts_cols <- c("sample_id", "label")
+
+.is_ts <- function(x) {
+    "Index" %in% names(x) && is.data.frame(x)
+}
+
+.has_ts <- function(x) {
+    "time_series" %in% names(x) && .is_ts(x[["time_series"]][[1]])
+}
+
+.ts <- function(x) {
+    # Check time_series column
+    if (!.has_ts(x)) {
+        stop("time_series not found")
+    }
+    # Add sample_id column
+    x[["sample_id"]] <- seq_along(x[["time_series"]])
+    # Extract time_series from column
+    ts <- tidyr::unnest(
+        data = x[c(.ts_cols, "time_series")],
+        cols = "time_series"
+    )
+    # Return time series
+    ts
+}
+
+`.ts<-` <- function(x, value) {
+    if (!.is_ts(value)) {
+        stop("invalid time series value")
+    }
+    # Pack time series
+    value <- tidyr::nest(value, time_series = -dplyr::all_of(.ts_cols))
+    x <- x[.ts_sample_id(value), ]
+    x[["time_series"]] <- value[["time_series"]]
+    # Return samples
+    x
+}
+
+.ts_index <- function(ts) {
+    .as_date(ts[["Index"]])
+}
+
+.ts_sample_id <- function(ts) {
+    ts[["sample_id"]]
+}
+
+.ts_bands <- function(ts) {
+    setdiff(colnames(ts), c(.ts_cols, "Index"))
+}
+
+.ts_select_bands <- function(ts, bands) {
+    # Check missing bands
+    miss_bands <- bands[!bands %in% .ts_bands(ts)]
+    if (.has(miss_bands)) {
+        stop("band(s) ", .collapse("'", miss_bands, "'"), " not found")
+    }
+    # Select the same bands as in the first sample
+    ts <- ts[unique(c(.ts_cols, "Index", bands))]
+    # Return time series
+    ts
+}
+
+.ts_start_date <- function(ts) {
+    # TODO: create a utility function instead. See .by() function
+    .as_date(unlist(unname(tapply(
+        as.character(.ts_index(ts)), .ts_sample_id(ts), min, simplify = FALSE
+    ))))
+}
+
+.ts_min_date <- function(ts) {
+    min(.ts_index(ts))
+}
+
+.ts_end_date <- function(ts) {
+    .as_date(unlist(unname(tapply(
+        as.character(.ts_index(ts)), .ts_sample_id(ts), max, simplify = FALSE
+    ))))
+}
+
+.ts_max_date <- function(ts) {
+    max(.ts_index(ts))
+}
+
+.ts_filter_interval <- function(ts, start_date, end_date) {
+    if (!.has(start_date)) {
+        start_date <- .ts_min_date(ts)
+    }
+    if (!.has(end_date)) {
+        end_date <- .ts_max_date(ts)
+    }
+    # Filter the interval period
+    ts <- ts[.ts_index(ts) >= start_date & .ts_index(ts) <= end_date, ]
+    # Return time series
+    ts
+}
+
+.ts_values <- function(ts, bands = NULL) {
+    # Get the time series of samples
+    bands <- .default(bands, .ts_bands(ts))
+    # Check missing bands
+    miss_bands <- bands[!bands %in% .ts_bands(ts)]
+    if (.has(miss_bands)) {
+        stop("band(s) ", .collapse("'", miss_bands, "'"), " not found")
+    }
+    ts[bands]
+}
 #' @title Extract a time series from raster
-#' @name .raster_data_get_ts
+#' @name .ts_get_raster_data
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -11,14 +119,12 @@
 #' @param bands             Bands to be retrieved.
 #' @param xy                A matrix with longitude as X and latitude as Y.
 #' @param cld_band          Cloud band (if available)
-#' @param impute_fn         Imputation function for NA values
 #' @return                  A sits tibble with the time series.
-.raster_data_get_ts <- function(tile,
+.ts_get_raster_data <- function(tile,
                                 points,
                                 bands,
                                 xy,
-                                cld_band = NULL,
-                                impute_fn = sits_impute_linear()) {
+                                cld_band = NULL) {
 
 
     # set caller to show in errors
@@ -111,6 +217,8 @@
             values_ts[values_ts < minimum_value] <- NA
             values_ts[values_ts > maximum_value] <- NA
 
+            # use linear imputation
+            impute_fn = .impute_linear()
             # are there NA values? interpolate them
             if (any(is.na(values_ts))) {
                 values_ts <- impute_fn(values_ts)
@@ -128,9 +236,9 @@
     })
 
     # now we have to transpose the data
-    ts_samples <- ts_bands %>%
-        purrr::set_names(bands) %>%
-        purrr::transpose() %>%
+    ts_samples <- ts_bands |>
+        purrr::set_names(bands) |>
+        purrr::transpose() |>
         purrr::map(tibble::as_tibble)
 
 
@@ -145,7 +253,7 @@
 }
 
 #' @title Extract a time series from raster
-#' @name .raster_class_get_ts
+#' @name .ts_get_raster_class
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -157,7 +265,7 @@
 #' @param band              Band to be retrieved.
 #' @param xy                A matrix with longitude as X and latitude as Y.
 #' @return                  A sits tibble with the time series.
-.raster_class_get_ts <- function(tile,
+.ts_get_raster_class <- function(tile,
                                  points,
                                  band,
                                  xy) {
@@ -202,7 +310,7 @@
     )
 
     # now we have to transpose the data
-    traj_samples <- traj_lst %>%
+    traj_samples <- traj_lst |>
         purrr::map(function(x) tibble::tibble(class = labels[x]))
 
     points$predicted <- purrr::map2(

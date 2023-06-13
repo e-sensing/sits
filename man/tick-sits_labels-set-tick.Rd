@@ -30,7 +30,7 @@ A sits tibble with modified labels.
 
 A probs or class_cube cube with modified labels.
 
-A probs cube with modified labels.
+A class cube with modified labels.
 }
 \description{
 Given a sits tibble with a set of labels, renames the labels

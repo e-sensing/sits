@@ -10,11 +10,17 @@ sits_run_tests()
 TRUE/FALSE
 }
 \description{
-This function informs if sits examples should run.
-To run the examples, set "SITS_RUN_TESTS" environment
-variable to "YES" using
+To run the tests, set "SITS_RUN_TESTS" environment to "YES" using
 Sys.setenv("SITS_RUN_TESTS" = "YES")
-To come back to the default behaviour, please unset
-the enviroment variable
-Sys.unsetenv("SITS_RUN_TESTS")
+To come back to the default behaviour, please set
+Sys.setenv("SITS_RUN_TESTS" = "NO")
+}
+\examples{
+if (sits_run_tests()){
+    message("Tests will be run")
+} else{
+    message(paste("Set the environmental variable SITS_RUN_TESTS to YES",
+    "to run the tests or use devtools::run_tests()"))
+}
+
 }

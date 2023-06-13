@@ -124,7 +124,7 @@ NULL
 #' @export
 .tile_labels.raster_cube <- function(tile) {
     tile <- .tile(tile)
-    .as_chr(tile[["labels"]][[1]])
+    tile[["labels"]][[1]]
 }
 #
 `.tile_labels<-` <- function(tile, value) {
@@ -133,7 +133,7 @@ NULL
 #' @export
 `.tile_labels<-.raster_cube` <- function(tile, value) {
     tile <- .tile(tile)
-    tile[["labels"]] <- list(.as_chr(value))
+    tile[["labels"]] <- list(value)
     tile
 }
 
@@ -556,7 +556,7 @@ NULL
     #
     # Log here
     #
-    .sits_debug_log(
+    .debug_log(
         event = "start_block_data_process",
         key = "band",
         value = band
@@ -587,7 +587,7 @@ NULL
     #
     # Log here
     #
-    .sits_debug_log(
+    .debug_log(
         event = "end_block_data_process",
         key = "band",
         value = band
@@ -651,7 +651,7 @@ NULL
     #
     # Log here
     #
-    .sits_debug_log(
+    .debug_log(
         event = "start_block_data_process",
         key = "cloud_mask",
         value = "cloud_mask"
@@ -672,7 +672,7 @@ NULL
     #
     # Log here
     #
-    .sits_debug_log(
+    .debug_log(
         event = "end_block_data_process",
         key = "cloud_bit_mask",
         value = is_bit_mask
@@ -815,7 +815,19 @@ NULL
 #' @param update_bbox  should bbox be updated?
 #' @return a new tile
 .tile_derived_from_file <- function(file, band, base_tile, derived_class,
-                                    labels = NULL, update_bbox) {
+                                    labels = NULL, update_bbox = FALSE) {
+
+    if (derived_class %in% c("probs_cube", "variance_cube")) {
+        # Open first block file to be merged
+        r_obj <- .raster_open_rast(file)
+        # Check number of labels is correct
+        .check_that(
+            x = .raster_nlayers(r_obj) == length(labels),
+            local_msg = "number of image layers does not match labels",
+            msg = "invalid 'file' parameter"
+        )
+    }
+
     base_tile <- .tile(base_tile)
     if (update_bbox) {
         # Open raster
@@ -854,7 +866,17 @@ NULL
 #' @return a new tile with files written
 .tile_derived_merge_blocks <- function(file, band, labels, base_tile,
                                        derived_class, block_files, multicores,
-                                       update_bbox) {
+                                       update_bbox = FALSE) {
+    if (derived_class %in% c("probs_cube", "variance_cube")) {
+        # Open first block file to be merged
+        r_obj <- .raster_open_rast(unlist(block_files)[[1]])
+        # Check number of labels is correct
+        .check_that(
+            x = .raster_nlayers(r_obj) == length(labels),
+            local_msg = "number of image layers does not match labels",
+            msg = "invalid 'file' parameter"
+        )
+    }
     base_tile <- .tile(base_tile)
     # Get conf band
     band_conf <- .conf_derived_band(
@@ -885,221 +907,6 @@ NULL
     unlink(block_files)
     # Return derived tile
     tile
-}
-
-#' @title Create a "probs" tile
-#' @name .tile_probs_from_file
-#' @keywords internal
-#' @noRd
-#' @param file file to be written
-#' @param band  band to be used in the tile
-#' @param base_tile  reference tile used in the operation
-#' @param labels labels associated to the tile
-#' @param update_bbox  should bbox be updated?
-#' @return a new probs tile
-.tile_probs_from_file <- function(file, band, base_tile, labels, update_bbox) {
-    # Open block file to be merged
-    r_obj <- .raster_open_rast(file)
-    # Check number of labels is correct
-    .check_that(
-        x = .raster_nlayers(r_obj) == length(labels),
-        local_msg = "number of image layers does not match labels",
-        msg = "invalid 'file' parameter"
-    )
-    .tile_derived_from_file(
-        file = file,
-        band = band,
-        base_tile = base_tile,
-        derived_class = "probs_cube",
-        labels = labels,
-        update_bbox = update_bbox
-    )
-}
-#' @title Write values of a probs tile from a set of blocks
-#' @name .tile_probs_merge_blocks
-#' @keywords internal
-#' @noRd
-#' @param file file to be written
-#' @param band  band to be used in the tile
-#' @param labels labels associated to the tile
-#' @param base_tile  reference tile used in the operation
-#' @param block_files  files that host the blocks
-#' @param multicores  number of parallel processes
-#' @param update_bbox  should bbox be updated?
-#' @return a new probs tile with files written
-.tile_probs_merge_blocks <- function(file, band, labels, base_tile,
-                                     block_files, multicores, update_bbox) {
-    # Open first block file to be merged
-    r_obj <- .raster_open_rast(unlist(block_files)[[1]])
-    # Check number of labels is correct
-    .check_that(
-        x = .raster_nlayers(r_obj) == length(labels),
-        local_msg = "number of image layers does not match labels",
-        msg = "invalid 'file' parameter"
-    )
-    # Create probs cube and return it
-    .tile_derived_merge_blocks(
-        file = file,
-        band = band,
-        labels = labels,
-        base_tile = base_tile,
-        derived_class = "probs_cube",
-        block_files = block_files,
-        multicores = multicores,
-        update_bbox = update_bbox
-    )
-}
-#' @title Create a "variance" tile
-#' @name .tile_variance_from_file
-#' @keywords internal
-#' @noRd
-#' @param file file to be written
-#' @param band  band to be used in the tile
-#' @param base_tile  reference tile used in the operation
-#' @param labels labels associated to the tile
-#' @param update_bbox  should bbox be updated?
-#' @return a new variance tile
-.tile_variance_from_file <- function(file,
-                                     band,
-                                     base_tile,
-                                     labels,
-                                     update_bbox) {
-    # Open block file to be merged
-    r_obj <- .raster_open_rast(file)
-    # Check number of labels is correct
-    .check_that(
-        x = .raster_nlayers(r_obj) == length(labels),
-        local_msg = "number of image layers does not match labels",
-        msg = "invalid 'file' parameter"
-    )
-    .tile_derived_from_file(
-        file = file, band = band, base_tile = base_tile,
-        derived_class = "variance_cube", labels = labels,
-        update_bbox = update_bbox
-    )
-}
-#' @title Write values of a variance tile from a set of blocks
-#' @name .tile_variance_merge_blocks
-#' @keywords internal
-#' @noRd
-#' @param file file to be written
-#' @param band  band to be used in the tile
-#' @param labels labels associated to the tile
-#' @param base_tile  reference tile used in the operation
-#' @param block_files  files that host the blocks
-#' @param multicores  number of parallel processes
-#' @param update_bbox  should bbox be updated?
-#' @return a new variance tile with files written
-.tile_variance_merge_blocks <- function(file, band, labels, base_tile,
-                                     block_files, multicores, update_bbox) {
-    # Open first block file to be merged
-    r_obj <- .raster_open_rast(unlist(block_files)[[1]])
-    # Check number of labels is correct
-    .check_that(
-        x = .raster_nlayers(r_obj) == length(labels),
-        local_msg = "number of image layers does not match labels",
-        msg = "invalid 'file' parameter"
-    )
-    # Create probs cube and return it
-    .tile_derived_merge_blocks(
-        file = file, band = band, labels = labels,
-        base_tile = base_tile, derived_class = "variance_cube",
-        block_files = block_files, multicores = multicores,
-        update_bbox = update_bbox
-    )
-}
-
-#' @title Create a "class" tile
-#' @name .tile_class_from_file
-#' @keywords internal
-#' @noRd
-#' @param file file to be written
-#' @param band  band to be used in the tile
-#' @param base_tile  reference tile used in the operation (probs)
-#' @param update_bbox  should bbox be updated?
-#' @return a new probs tile
-.tile_class_from_file <- function(file, band, base_tile, update_bbox = FALSE) {
-    .tile_derived_from_file(
-        file = file,
-        band = band,
-        base_tile = base_tile,
-        derived_class = "class_cube",
-        labels = .tile_labels(base_tile),
-        update_bbox = update_bbox
-    )
-}
-#' @title Write values of a class tile from a set of blocks
-#' @name .tile_class_merge_blocks
-#' @keywords internal
-#' @noRd
-#' @param file file to be written
-#' @param band  band to be used in the tile
-#' @param labels labels associated to the tile
-#' @param base_tile  reference tile used in the operation
-#' @param block_files  files that host the blocks
-#' @param multicores  number of parallel processes
-#' @return a new class tile with files written
-.tile_class_merge_blocks <- function(file, band, labels, base_tile,
-                                     block_files, multicores) {
-    # Create class cube and return it
-    .tile_derived_merge_blocks(
-        file = file,
-        band = band,
-        labels = labels,
-        base_tile = base_tile,
-        derived_class = "class_cube",
-        block_files = block_files,
-        multicores = multicores,
-        update_bbox = FALSE
-    )
-}
-
-#' @title Create an "uncertainity" tile
-#' @name .tile_uncertainty_from_file
-#' @keywords internal
-#' @noRd
-#' @param file file to be written
-#' @param band  band to be used in the tile
-#' @param base_tile  reference tile used in the operation (probs)
-#' @param update_bbox  should bbox be updated?
-#' @return a new uncertainty tile
-.tile_uncertainty_from_file <- function(file,
-                                        band,
-                                        base_tile,
-                                        update_bbox = FALSE) {
-    .tile_derived_from_file(
-        file = file,
-        band = band,
-        base_tile = base_tile,
-        derived_class = "uncertainty_cube",
-        labels = .tile_labels(base_tile),
-        update_bbox = update_bbox
-    )
-}
-#' @title Write values of a uncertainty tile from a set of blocks
-#' @name .tile_uncertainty_merge_blocks
-#' @keywords internal
-#' @noRd
-#' @param file file to be written
-#' @param band  band to be used in the tile
-#' @param labels labels associated to the tile
-#' @param base_tile  reference tile used in the operation
-#' @param block_files  files that host the blocks
-#' @param multicores  number of parallel processes
-#' @return a new uncertainty tile with files written
-.tile_uncertainty_merge_blocks <- function(file, band, labels, base_tile,
-                                           block_files, multicores) {
-    # Create uncertainty cube and return it
-    .tile_derived_merge_blocks(
-        file = file,
-        band = band,
-        labels = labels,
-        base_tile = base_tile,
-        derived_class = "uncertainty_cube",
-        block_files = block_files,
-        multicores = multicores,
-        update_bbox = FALSE
-    )
 }
 
 #' @title Given a labelled cube, return the band information
@@ -1172,7 +979,6 @@ NULL
     names(r_obj) <- c(1:n_names)
     # Convert to SpatVectors
     class(seg_pols) <- c("sf", class(seg_pols))
-    # vec <- terra::vect(seg_pols)
     # Extract the values
     values <- as.matrix(exactextractr::exact_extract(
         x = r_obj,
@@ -1186,4 +992,40 @@ NULL
 .tile_contains_cloud <- function(tile) {
     tile <- .tile(tile)
     .fi_contains_cloud(.fi(tile))
+}
+#' @title Measure classification time start
+#' @name .tile_classif_start
+#' @keywords internal
+#' @noRd
+#' @param tile input tile
+#' @param verbose     TRUE/FALSE
+#'
+#' @return start time for classification
+#'
+.tile_classif_start <- function(tile, verbose) {
+    start_time <- Sys.time()
+    if (verbose)
+        message("Starting classification of tile '",
+                tile[["tile"]], "' at ", start_time)
+    return(start_time)
+}
+#' @title Measure classification time
+#' @name .tile_classif_end
+#' @keywords internal
+#' @noRd
+#' @param tile input tile
+#' @param start_time  starting time for classification
+#' @param verbose     TRUE/FALSE
+#'
+#' @return end time for classification
+#'
+.tile_classif_end <- function(tile, start_time, verbose) {
+    if (verbose) {
+        end_time <- Sys.time()
+        message("Tile '", tile[["tile"]], "' finished at ", end_time)
+        message("Elapsed time of ",
+                format(round(end_time - start_time, digits = 2)))
+        message("")
+    }
+    return(end_time)
 }

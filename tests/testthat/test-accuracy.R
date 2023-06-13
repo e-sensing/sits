@@ -6,7 +6,8 @@ test_that("conf_matrix -2 classes", {
     rfor_model <- sits_train(train_data, sits_rfor(verbose = FALSE))
     points_class <- sits_classify(
         data = test_data,
-        ml_model = rfor_model
+        ml_model = rfor_model,
+        progress = FALSE
     )
     invisible(capture.output(acc <- sits_accuracy(points_class)))
     expect_true(acc$overall["Accuracy"] > 0.90)
@@ -26,7 +27,8 @@ test_that("conf_matrix - more than 2 classes", {
     rfor_model <- sits_train(train_data, sits_rfor())
     points_class <- sits_classify(
         data = test_data,
-        ml_model = rfor_model
+        ml_model = rfor_model,
+        progress = FALSE
     )
     invisible(capture.output(acc <- sits_accuracy(points_class)))
     expect_true(acc$overall["Accuracy"] > 0.70)
@@ -47,7 +49,7 @@ test_that("XLS", {
     acc$name <- "cerrado_2classes"
     results[[length(results) + 1]] <- acc
     xls_file <- paste0(tempdir(), "/accuracy.xlsx")
-    sits_to_xlsx(results, file = xls_file)
+    suppressMessages(sits_to_xlsx(results, file = xls_file))
 
     expect_true(file.remove(xls_file))
 })
@@ -66,7 +68,7 @@ test_that("K-fold validate", {
     acc$name <- "modis_ndvi"
     results[[length(results) + 1]] <- acc
     xls_file <- paste0(tempdir(), "/accuracy.xlsx")
-    sits_to_xlsx(results, file = xls_file)
+    suppressMessages(sits_to_xlsx(results, file = xls_file))
 
     expect_true(file.remove(xls_file))
 })
@@ -78,15 +80,16 @@ test_that("Accuracy areas", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
-
     probs_cube <- sits_classify(
         data = cube,
         ml_model = rfor_model,
         output_dir = tempdir(),
         memsize = 4,
-        multicores = 1
+        multicores = 1,
+        progress = FALSE
     )
 
 
@@ -98,7 +101,8 @@ test_that("Accuracy areas", {
         probs_cube,
         memsize = 4,
         multicores = 1,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        progress = FALSE
     )
 
     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",

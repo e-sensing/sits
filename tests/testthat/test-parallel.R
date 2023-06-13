@@ -3,11 +3,12 @@ test_that("One-year, multi-core classification in parallel", {
         {
             sits_cube(
                 source = "BDC",
-                collection = "LC8_30_16D_STK-1",
+                collection = "LANDSAT-OLI-16D",
                 tiles = c("038047"),
                 bands = c("NDVI", "EVI"),
                 start_date = "2018-07-12",
-                end_date = "2019-07-28"
+                end_date = "2019-07-28",
+                progress = FALSE
             )
         },
         error = function(e) {
@@ -41,7 +42,8 @@ test_that("One-year, multi-core classification in parallel", {
         roi = roi,
         memsize = 8,
         multicores = 2,
-        output_dir = dir_images
+        output_dir = dir_images,
+        progress = FALSE
     )
 
 

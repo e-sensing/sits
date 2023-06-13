@@ -16,64 +16,14 @@
 
     # set caller to show in errors
     .check_set_caller(".local_cube")
-
     # is this a cube with results?
-    if (!purrr::is_null(bands) &&
-        all(bands %in% .conf("sits_results_bands"))) {
-        results_cube <- TRUE
-    } else {
-        results_cube <- FALSE
-    }
+    results_cube <- .check_cube_is_results_cube(bands, labels)
 
-    # results cube should have only one band
-    if (results_cube) {
-        .check_that(
-            length(bands) == 1,
-            msg = "results cube should have only one band"
-        )
-        # is label parameter was provided in labelled cubes?
-        if (bands %in% c("probs", "bayes", "class")) {
-            .check_chr(
-                labels, len_min = 1,
-                msg = "'labels' parameter should be provided."
-            )
-        }
-    }
-
-    # is parse info NULL? use the default
-    if (purrr::is_null(parse_info)) {
-        if (results_cube) {
-            parse_info <- .conf("results_parse_info_def")
-        } else {
-            parse_info <- .conf("local_parse_info_def")
-        }
-    }
-    # precondition - does the parse info have band and date?
-    if (results_cube) {
-        .check_chr_contains(
-            parse_info,
-            contains = .conf("results_parse_info_col"),
-            msg = paste(
-                "parse_info must include tile, start_date, end_date,",
-                "and band."
-            )
-        )
-    } else {
-        .check_chr_contains(
-            parse_info,
-            contains = .conf("local_parse_info_col"),
-            msg = "parse_info must include tile, date, and band."
-        )
-    }
+    # set the correct parse_info
+    parse_info <- .conf_parse_info(parse_info, results_cube)
 
     # bands in upper case for raw cubes, lower case for results cubes
-    if (!purrr::is_null(bands)) {
-        if (results_cube) {
-            bands <- tolower(bands)
-        } else {
-            bands <- toupper(bands)
-        }
-    }
+    bands <- .band_set_case(bands, results_cube)
 
     # make query and retrieve items
     items <- .local_cube_items_new(
@@ -125,27 +75,22 @@
     cube <- purrr::map_dfr(tiles, function(tile) {
         # filter tile
         items_tile <- dplyr::filter(items, .data[["tile"]] == !!tile)
-        # make a new cube tile
+        # create result cube
         if (results_cube) {
-            if (purrr::is_null(labels)) {
-                labels <- NA
-            }
-
             tile_cube <- .local_results_items_cube(
                 source = source,
                 collection = collection,
                 items = items_tile,
                 labels = labels
             )
-        } else {
-            tile_cube <- .local_cube_items_cube(
-                source = source,
-                collection = collection,
-                items = items_tile
-            )
+            return(tile_cube)
         }
-
-        return(tile_cube)
+        # create EO cube
+        .local_cube_items_cube(
+            source = source,
+            collection = collection,
+            items = items_tile
+        )
     })
 
     if (results_cube) {
@@ -182,7 +127,6 @@
     # how many of those files are images?
     # retrieve the known file extensions
     file_ext <- .conf("local_file_extensions")
-
     # list the files in the data directory
     img_files <- list.files(
         path = data_dir,
@@ -253,15 +197,15 @@
         # get only the first band
         band <- bands[[1]]
         # get the information on the required band, dates and path
-        items <- items %>%
+        items <- items |>
             # bands are case insensitive (converted to lower case)
-            dplyr::mutate(band = tolower(.data[["band"]])) %>%
+            dplyr::mutate(band = tolower(.data[["band"]])) |>
             # add path
-            dplyr::mutate(path = paste(data_dir, img_files_filt, sep = "/")) %>%
+            dplyr::mutate(path = paste(data_dir, img_files_filt, sep = "/")) |>
             # filter by the band
-            dplyr::filter(.data[["band"]] == !!band) %>%
+            dplyr::filter(.data[["band"]] == !!band) |>
             # filter by the version
-            dplyr::filter(.data[["version"]] == !!version) %>%
+            dplyr::filter(.data[["version"]] == !!version) |>
             # select the relevant parts
             dplyr::select(
                 "tile",
@@ -269,15 +213,15 @@
                 "end_date",
                 "band",
                 "path"
-            ) %>%
+            ) |>
             # check the start date format
             dplyr::mutate(
                 start_date = .timeline_format(.data[["start_date"]])
-            ) %>%
+            ) |>
             # check the end date format
             dplyr::mutate(
                 end_date = .timeline_format(.data[["end_date"]])
-            ) %>%
+            ) |>
             # filter to remove duplicate combinations of file and band
             dplyr::distinct(
                 .data[["tile"]],
@@ -285,32 +229,32 @@
                 .data[["end_date"]],
                 .data[["band"]],
                 .keep_all = TRUE
-            ) %>%
+            ) |>
             # order by dates
             dplyr::arrange(.data[["start_date"]])
     } else {
         # bands are case insensitive (converted to upper case)
-        items <- items %>%
-            dplyr::mutate(band = toupper(.data[["band"]])) %>%
+        items <- items |>
+            dplyr::mutate(band = toupper(.data[["band"]])) |>
             # add path
             dplyr::mutate(
-                path = paste(!!data_dir, !!img_files_filt, sep = "/")) %>%
+                path = paste(!!data_dir, !!img_files_filt, sep = "/")) |>
             # select the relevant parts
             dplyr::select(
                 "tile",
                 "date",
                 "band",
                 "path"
-            ) %>%
+            ) |>
             # check the date format
-            dplyr::mutate(date = .timeline_format(.data[["date"]])) %>%
+            dplyr::mutate(date = .timeline_format(.data[["date"]])) |>
             # filter to remove duplicate combinations of file and band
             dplyr::distinct(
                 .data[["tile"]],
                 .data[["date"]],
                 .data[["band"]],
                 .keep_all = TRUE
-            ) %>%
+            ) |>
             # order by dates
             dplyr::arrange(.data[["date"]], .data[["band"]])
 
@@ -392,16 +336,16 @@
         msg = "invalid 'items' parameter"
     )
     # add feature id (fid)
-    items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) %>%
-        dplyr::mutate(fid = paste0(dplyr::cur_group_id())) %>%
+    items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) |>
+        dplyr::mutate(fid = paste0(dplyr::cur_group_id())) |>
         dplyr::ungroup()
     # prepare parallel requests
     if (is.null(sits_env[["cluster"]])) {
-        .sits_parallel_start(workers = multicores, log = FALSE)
-        on.exit(.sits_parallel_stop(), add = TRUE)
+        .parallel_start(workers = multicores)
+        on.exit(.parallel_stop(), add = TRUE)
     }
     # do parallel requests
-    results_lst <- .sits_parallel_map(unique(items[["fid"]]), function(i) {
+    results_lst <- .parallel_map(unique(items[["fid"]]), function(i) {
         # filter by feature
         item <- dplyr::filter(items, .data[["fid"]] == !!i)
         # open band rasters and get assets info
@@ -442,7 +386,7 @@
                 call. = FALSE, immediate. = TRUE)
     }
 
-    items <- dplyr::bind_rows(items) %>%
+    items <- dplyr::bind_rows(items) |>
         dplyr::arrange(.data[["date"]], .data[["fid"]], .data[["band"]])
 
     return(items)
@@ -462,11 +406,11 @@
 
     # prepare parallel requests
     if (is.null(sits_env[["cluster"]])) {
-        .sits_parallel_start(workers = multicores, log = FALSE)
-        on.exit(.sits_parallel_stop(), add = TRUE)
+        .parallel_start(workers = multicores)
+        on.exit(.parallel_stop(), add = TRUE)
     }
     # do parallel requests
-    results_lst <- .sits_parallel_map(seq_len(nrow(items)), function(i) {
+    results_lst <- .parallel_map(seq_len(nrow(items)), function(i) {
 
         item <- items[i, ]
         # open band rasters and get assets info
@@ -521,31 +465,11 @@
                                    collection,
                                    items) {
     # pre-condition
-    .check_length(
-        unique(items[["tile"]]),
-        len_min = 1,
-        msg = "invalid number of tiles"
-    )
-
+    .check_local_items(items)
     # get crs from file_info
     crs <- unique(items[["crs"]])
-
-    # check crs
-    .check_length(
-        crs,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid crs value"
-    )
     # get tile from file_info
     tile <- unique(items[["tile"]])
-    # check tile
-    .check_length(
-        tile,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid tile value"
-    )
     # make a new file info for one tile
     file_info <- dplyr::select(
         items,
@@ -589,29 +513,11 @@
                                       items,
                                       labels) {
     # pre-condition
-    .check_length(
-        unique(items[["tile"]]),
-        len_min = 1,
-        msg = "invalid number of tiles"
-    )
+    .check_local_items(items)
     # get crs from file_info
     crs <- unique(items[["crs"]])
-    # check crs
-    .check_length(
-        crs,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid crs value"
-    )
     # get tile from file_info
     tile <- unique(items[["tile"]])
-    # check tile
-    .check_length(
-        tile,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid tile value"
-    )
     # make a new file info for one tile
     file_info <- dplyr::select(
         items,

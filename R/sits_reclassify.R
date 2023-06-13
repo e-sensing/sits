@@ -43,15 +43,16 @@
 #'         parse_info = c("X1", "X2", "tile", "start_date", "end_date",
 #'                        "band", "version"),
 #'         bands = "class",
-#'         labels = c("Forest", "Water", "NonForest",
-#'                    "NonForest2", "NoClass", "d2007", "d2008",
-#'                    "d2009", "d2010", "d2011", "d2012",
-#'                    "d2013", "d2014", "d2015", "d2016",
-#'                    "d2017", "d2018", "r2010", "r2011",
-#'                    "r2012", "r2013", "r2014", "r2015",
-#'                    "r2016", "r2017", "r2018", "d2019",
-#'                    "r2019", "d2020", "NoClass", "r2020",
-#'                    "Clouds2021", "d2021", "r2021"),
+#'         labels = c(
+#'             "1" = "Forest", "2" = "Water", "3" = "NonForest",
+#'             "4" = "NonForest2", "6" = "d2007", "7" = "d2008",
+#'             "8" = "d2009",  "9" = "d2010",  "10" = "d2011", "11" = "d2012",
+#'             "12" = "d2013", "13" = "d2014", "14" = "d2015", "15" = "d2016",
+#'             "16" = "d2017", "17" = "d2018", "18" = "r2010", "19" = "r2011",
+#'             "20" = "r2012", "21" = "r2013", "22" = "r2014", "23" = "r2015",
+#'             "24" = "r2016", "25" = "r2017", "26" = "r2018", "27" = "d2019",
+#'             "28" = "r2019", "29" = "d2020", "31" = "r2020",
+#'             "32" = "Clouds2021", "33" = "d2021", "34" = "r2021"),
 #'         version = "v20220606"
 #'     )
 #'
@@ -64,8 +65,8 @@
 #'         parse_info = c("X1", "X2", "tile", "start_date", "end_date",
 #'                        "band", "version"),
 #'         bands = "class",
-#'         labels = c("ClearCut_Burn", "ClearCut_Soil",
-#'                    "ClearCut_Veg", "Forest")
+#'         labels = c("1" = "ClearCut_Burn", "2" = "ClearCut_Soil",
+#'                    "3" = "ClearCut_Veg",  "4" = "Forest")
 #'     )
 #'
 #'     # Reclassify cube
@@ -117,7 +118,6 @@ sits_reclassify <- function(cube,
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
-    # npaths = input(1) + output(1)
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
         npaths = 2,
@@ -131,8 +131,8 @@ sits_reclassify <- function(cube,
     )
 
     # Prepare parallelization
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
     UseMethod("sits_reclassify", cube)
 }
@@ -153,8 +153,8 @@ sits_reclassify.class_cube <- function(cube,
     # Create reclassification function
     reclassify_fn <- .reclassify_fn_expr(
         rules = rules,
-        labels_cube = .cube_labels(cube),
-        labels_mask = .cube_labels(mask)
+        labels_cube = unlist(.cube_labels(cube, dissolve = FALSE)),
+        labels_mask = unlist(.cube_labels(mask, dissolve = FALSE))
     )
     # Filter mask - bands
     mask <- .cube_filter_bands(cube = mask, bands = "class")

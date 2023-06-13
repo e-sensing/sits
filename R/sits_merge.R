@@ -119,10 +119,17 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
     data1 <- slider::slide2_dfr(data1, data2, function(x, y) {
         .fi(x) <- dplyr::arrange(
             dplyr::bind_rows(.fi(x), .fi(y)),
-            .data[["date"]], .data[["band"]], .data[["fid"]]
+            .data[["date"]],
+            .data[["band"]],
+            .data[["fid"]]
         )
         # remove duplicates
-        .fi(x) <- dplyr::distinct(.fi(x), .data[["band"]], .data[["date"]], .keep_all = TRUE)
+        .fi(x) <- dplyr::distinct(
+            .fi(x),
+            .data[["band"]],
+            .data[["date"]],
+            .keep_all = TRUE
+        )
 
         return(x)
     })

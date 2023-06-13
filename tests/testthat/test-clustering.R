@@ -9,12 +9,12 @@ test_that("Creating a dendrogram and clustering the results", {
         )
     )
 
-    dendro <- .sits_cluster_dendrogram(cerrado_2classes,
+    dendro <- .cluster_dendrogram(cerrado_2classes,
         bands = c("NDVI", "EVI")
     )
     expect_true(dendro@distmat[1, 2] > 3.0)
 
-    vec <- .sits_cluster_dendro_bestcut(cerrado_2classes, dendro)
+    vec <- .cluster_dendro_bestcut(cerrado_2classes, dendro)
 
     expect_true(vec["k"] == 6 && vec["height"] > 20.0)
 
@@ -27,7 +27,7 @@ test_that("Creating a dendrogram and clustering the results", {
     clusters_new <- dplyr::filter(clusters, cluster != 3)
     clean <- sits_cluster_clean(clusters_new)
 
-    result <- .sits_cluster_validity(clusters)
+    result <- .cluster_validity(clusters)
     expect_true(result["ARI"] > 0.30 && result["VI"] > 0.50)
 
     expect_true(all(unique(clean$cluster) %in%

@@ -5,7 +5,8 @@ test_that("One-year, multicore classification with ROI", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
 
     bbox <- .bbox(sinop)
@@ -19,7 +20,8 @@ test_that("One-year, multicore classification with ROI", {
             output_dir = tempdir(),
             roi = bbox,
             memsize = 4,
-            multicores = 2
+            multicores = 2,
+            progress = FALSE
         )
     },
     .default = NULL
@@ -52,7 +54,8 @@ test_that("Bbox in WGS 84", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
 
     bbox <- sits_bbox(sinop, as_crs = "EPSG:4326")
@@ -64,7 +67,8 @@ test_that("Functions that work with ROI", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     # create a roi
     roi <- sits_bbox(cube)
@@ -80,10 +84,10 @@ test_that("Functions that work with ROI", {
     csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
         package = "sits"
     )
-    sf_obj <- csv_file %>%
-        read.csv(stringsAsFactors = FALSE) %>%
-        tibble::as_tibble() %>%
-        dplyr::select(longitude, latitude) %>%
+    sf_obj <- csv_file |>
+        read.csv(stringsAsFactors = FALSE) |>
+        tibble::as_tibble() |>
+        dplyr::select(longitude, latitude) |>
         sf::st_as_sf(coords = c("longitude", "latitude"), crs = 4326)
 
     # read a bbox as an sf object
@@ -104,7 +108,8 @@ test_that("Internal functions in ROI", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     # create a roi
     roi <- sits_bbox(cube)

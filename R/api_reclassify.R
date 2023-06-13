@@ -9,13 +9,13 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        if (.check_messages()) {
-            message("Recovery: tile '", tile[["tile"]], "' already exists.")
-            message("(If you want to produce a new image, please ",
-                    "change 'output_dir' or 'version' parameters)")
-        }
-        class_tile <- .tile_class_from_file(
-            file = out_file, band = band, base_tile = tile
+        .check_recovery(tile[["tile"]])
+        class_tile <- .tile_derived_from_file(
+            file = out_file,
+            band = band,
+            base_tile = tile,
+            derived_class = "class_cube",
+            update_bbox = FALSE
         )
         return(class_tile)
     }
@@ -58,8 +58,12 @@
             base_files = .fi_paths(.fi(mask)), multicores = 1
         )
         # Build a new tile for mask based on template
-        mask_tile <- .tile_class_from_file(
-            file = mask_block_file, band = "class", .tile(mask)
+        mask_tile <- .tile_derived_from_file(
+            file = mask_block_file,
+            band = "class",
+            base_tile = .tile(mask),
+            derived_class = "class_cube",
+            update_bbox = FALSE
         )
         # Read and preprocess values
         values <- .tile_read_block(
@@ -94,9 +98,15 @@
         block_file
     })
     # Merge blocks into a new class_cube tile
-    class_tile <- .tile_class_merge_blocks(
-        file = out_file, band = band, labels = labels, base_tile = tile,
-        block_files = block_files, multicores = .jobs_multicores()
+    class_tile <- .tile_derived_merge_blocks(
+        file = out_file,
+        band = band,
+        labels = labels,
+        base_tile = tile,
+        block_files = block_files,
+        derived_class = "class_cube",
+        multicores = .jobs_multicores(),
+        update_bbox = FALSE
     )
     # Return class tile
     class_tile
@@ -108,7 +118,12 @@
         stop("rules should be named")
     }
     # Get output labels
-    labels <- unique(c(labels_cube, names(rules)))
+    labels_rule <- setdiff(names(rules), labels_cube)
+    names(labels_rule) <- max(.as_int(names(labels_cube))) +
+        seq_along(labels_rule)
+    labels <- c(labels_cube, labels_rule)
+    labels_code <- .as_int(names(labels))
+
     # Define reclassify function
     reclassify_fn <- function(values, mask_values) {
         # Check compatibility
@@ -117,10 +132,14 @@
         }
         # Used to check values (below)
         input_pixels <- nrow(values)
+        # Convert to character vector
+        values <- .as_chr(values)
+        mask_values <- .as_chr(mask_values)
         # New evaluation environment
         env <- list2env(list(
             # Read values and convert to character
-            cube = labels_cube[values], mask = labels_mask[mask_values]
+            cube = unname(labels_cube[values]),
+            mask = unname(labels_mask[mask_values])
         ))
         # Get values as character
         values <- env[["cube"]]
@@ -137,7 +156,8 @@
             values[result] <- label
         }
         # Get values as numeric
-        values <- matrix(data = match(values, labels), nrow = input_pixels)
+        values <- matrix(data = labels_code[match(values, labels)],
+                         nrow = input_pixels)
         # Mask NA values
         values[is.na(env[["mask"]])] <- NA
         # Are the results consistent with the data input?

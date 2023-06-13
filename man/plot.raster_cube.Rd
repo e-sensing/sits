@@ -15,7 +15,7 @@
   date = NULL,
   segments = NULL,
   seg_color = "lightgoldenrod",
-  palette = "RdYlGn",
+  color_palette = "RdYlGn",
   rev = FALSE,
   tmap_options = NULL
 )
@@ -41,7 +41,7 @@
 
 \item{seg_color}{Color to use for segment borders}
 
-\item{palette}{An RColorBrewer palette}
+\item{color_palette}{An RColorBrewer palette}
 
 \item{rev}{Reverse the color order in the palette?}
 
@@ -74,7 +74,7 @@ if (sits_run_examples()) {
         data_dir = data_dir
     )
     # plot NDVI band of the second date date of the data cube
-    plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
+    plot(cube, band = "NDVI", date = sits_timeline(cube)[1])
 }
 }
 \author{

@@ -161,9 +161,9 @@ sits_tempcnn <- function(samples = NULL,
         .check_lgl(verbose)
 
         # Samples labels
-        labels <- .sits_labels(samples)
+        labels <- .samples_labels(samples)
         # Samples bands
-        bands <- .sits_bands(samples)
+        bands <- .samples_bands(samples)
         # Samples timeline
         timeline <- sits_timeline(samples)
 
@@ -174,10 +174,10 @@ sits_tempcnn <- function(samples = NULL,
         # Number of labels, bands, and number of samples (used below)
         n_labels <- length(labels)
         n_bands <- length(bands)
-        n_times <- .sits_ntimes(samples)
+        n_times <- .samples_ntimes(samples)
 
         # Data normalization
-        ml_stats <- .sits_stats(samples)
+        ml_stats <- .samples_stats(samples)
         train_samples <- .predictors(samples)
         train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
 
@@ -279,13 +279,13 @@ sits_tempcnn <- function(samples = NULL,
             },
             forward = function(x) {
                 # input is 3D n_samples x n_times x n_bands
-                x <- x %>%
-                    torch::torch_transpose(2, 3) %>%
-                    self$conv_bn_relu1() %>%
-                    self$conv_bn_relu2() %>%
-                    self$conv_bn_relu3() %>%
-                    self$flatten() %>%
-                    self$dense() %>%
+                x <- x |>
+                    torch::torch_transpose(2, 3) |>
+                    self$conv_bn_relu1() |>
+                    self$conv_bn_relu2() |>
+                    self$conv_bn_relu3() |>
+                    self$flatten() |>
+                    self$dense() |>
                     self$softmax()
             }
         )
@@ -296,10 +296,10 @@ sits_tempcnn <- function(samples = NULL,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
                 optimizer = optimizer
-            ) %>%
+            ) |>
             luz::set_opt_hparams(
                 !!!optim_params_function
-            ) %>%
+            ) |>
             luz::set_hparams(
                 n_bands = n_bands,
                 n_times = n_times,
@@ -309,7 +309,7 @@ sits_tempcnn <- function(samples = NULL,
                 dropout_rates = cnn_dropout_rates,
                 dense_layer_nodes = dense_layer_nodes,
                 dense_layer_dropout_rate = dense_layer_dropout_rate
-            ) %>%
+            ) |>
             luz::fit(
                 data = list(train_x, train_y),
                 epochs = epochs,
@@ -347,7 +347,7 @@ sits_tempcnn <- function(samples = NULL,
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
-            n_times <- .sits_ntimes(samples)
+            n_times <- .samples_ntimes(samples)
             n_bands <- length(bands)
             # Performs data normalization
             values <- .pred_normalize(pred = values, stats = ml_stats)
@@ -377,6 +377,6 @@ sits_tempcnn <- function(samples = NULL,
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .sits_factory_function(samples, train_fun)
+    result <- .factory_function(samples, train_fun)
     return(result)
 }

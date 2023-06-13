@@ -37,8 +37,8 @@
         multicores = multicores
     )
     # Prepare parallel processing
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
     # Call the combine method
     # Process each tile sequentially
@@ -76,16 +76,13 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        if (.check_messages()) {
-            message("Recovery: tile '", base_tile[["tile"]], "' already exists.")
-            message("(If you want to produce a new probability image, please ",
-                    "change 'output_dir' or 'version' parameters)")
-        }
-        probs_tile <- .tile_probs_from_file(
+        .check_recovery(out_file)
+        probs_tile <- .tile_derived_from_file(
             file = out_file,
             band = band,
             base_tile = base_tile,
             labels = .tile_labels(base_tile),
+            derived_class = "probs_cube",
             update_bbox = FALSE
         )
         return(probs_tile)
@@ -137,21 +134,19 @@
             derived_class = "probs_cube", band = band
         )
         offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
+        if (offset != 0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
+        if (scale != 1) {
             values <- values / scale
         }
         min <- .min_value(band_conf)
-        if (.has(max)) {
-            values[values < min] <- min
-        }
         max <- .max_value(band_conf)
-        if (.has(max)) {
-            values[values > max] <- max
-        }
+        # check minimum and maximum values
+        values[values < min] <- min
+        values[values > max] <- max
+
         # Prepare and save results as raster
         .raster_write_block(
             files = block_file,
@@ -168,12 +163,13 @@
         block_file
     }, progress = progress)
     # Merge blocks into a new probs_cube tile
-    probs_tile <- .tile_probs_merge_blocks(
+    probs_tile <- .tile_derived_merge_blocks(
         file = out_file,
         band = band,
         labels = .tile_labels(base_tile),
         base_tile = base_tile,
         block_files = block_files,
+        derived_class = "probs_cube",
         multicores = .jobs_multicores(),
         update_bbox = FALSE
     )

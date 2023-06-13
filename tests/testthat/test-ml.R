@@ -12,7 +12,8 @@ test_that("SVM  - Formula logref", {
     point_class <- sits_classify(
         data = point_ndvi,
         ml_model = svm_model,
-        multicores = 1
+        multicores = 1,
+        progress = FALSE
     )
 
     expect_true(sits_labels(point_class) == "NoClass")
@@ -32,15 +33,17 @@ test_that("SVM  - Formula logref - difference", {
             cost = 10
         )
     )
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_class <- sits_classify(
-        data = cerrado_2classes[1:100, ],
+        data = point_ndvi,
         ml_model = svm_model,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
         sits_labels(samples_modis_ndvi)))
-    expect_true(nrow(sits_show_prediction(point_class)) == 100)
+    expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
 test_that("SVM - Formula linear", {
@@ -56,7 +59,8 @@ test_that("SVM - Formula linear", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_class <- sits_classify(
         data = point_ndvi,
-        ml_model = svm_model
+        ml_model = svm_model,
+        progress = FALSE
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
@@ -71,7 +75,8 @@ test_that("Random Forest", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_class <- sits_classify(
         data = point_ndvi,
-        ml_model = rfor_model
+        ml_model = rfor_model,
+        progress = FALSE
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
@@ -90,7 +95,8 @@ test_that("Random Forest - Whittaker", {
     point_whit <- sits_filter(point_ndvi, filter = sits_whittaker())
     point_class <- sits_classify(
         data = point_whit,
-        ml_model = rfor_model
+        ml_model = rfor_model,
+        progress = FALSE
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
@@ -106,7 +112,8 @@ test_that("Random Forest - SGolay", {
     point_sg <- sits_filter(point_ndvi, filter = sits_sgolay())
     point_class <- sits_classify(
         data = point_sg,
-        ml_model = rfor_model
+        ml_model = rfor_model,
+        progress = FALSE
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
@@ -126,7 +133,8 @@ test_that("XGBoost", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_class <- sits_classify(
         data = point_ndvi,
-        ml_model = model
+        ml_model = model,
+        progress = FALSE
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
@@ -147,7 +155,8 @@ test_that("DL-MLP", {
 
     point_class <- sits_classify(
         data = point_ndvi,
-        ml_model = model
+        ml_model = model,
+        progress = FALSE
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
@@ -182,7 +191,8 @@ test_that("ResNet", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_class <- sits_classify(
         data = point_ndvi,
-        ml_model = model
+        ml_model = model,
+        progress = FALSE
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
@@ -201,7 +211,8 @@ test_that("TempCNN model", {
     point_class <-
         sits_classify(
             data = point_ndvi,
-            ml_model = model
+            ml_model = model,
+            progress = FALSE
         )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
@@ -218,7 +229,8 @@ test_that("LightTAE model", {
     point_class <-
         sits_classify(
             data = point_ndvi,
-            ml_model = model
+            ml_model = model,
+            progress = FALSE
         )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
@@ -236,7 +248,8 @@ test_that("PSETAE model", {
     point_class <-
         sits_classify(
             data = point_ndvi,
-            ml_model = model
+            ml_model = model,
+            progress = FALSE
         )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
@@ -248,7 +261,7 @@ test_that("normalization new version", {
     #
     # New normalization
     #
-    stats <- .sits_stats(cerrado_2classes)
+    stats <- .samples_stats(cerrado_2classes)
 
     # In new version only predictors can be normalized
     preds <- .predictors(cerrado_2classes)

@@ -58,7 +58,7 @@
 #'     # define a non-regular Sentinel-2 cube in AWS
 #'     s2_cube_open <- sits_cube(
 #'         source = "AWS",
-#'         collection = "SENTINEL-S2-L2A-COGS",
+#'         collection = "SENTINEL-2-L2A",
 #'         tiles = c("20LKP", "20LLP"),
 #'         bands = c("B8A", "SCL"),
 #'         start_date = "2018-10-01",
@@ -88,8 +88,10 @@ sits_regularize <- function(cube,
     # Does cube contain cloud band?
     if (!all(.cube_contains_cloud(cube))) {
         if (.check_warnings())
-            warning("Cloud band not found in provided cube. 'sits_regularize()' ",
-                    "will just fill nodata values.", call. = FALSE,
+            warning("Cloud band not found in provided cube.
+                    'sits_regularize()' ",
+                    "will just fill nodata values.",
+                    call. = FALSE,
                     immediate. = TRUE
             )
     }

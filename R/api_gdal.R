@@ -25,6 +25,32 @@
     }, names(params), unname(params), USE.NAMES = FALSE))
 }
 
+.gdal_format_params <- function(asset, sf_roi, res) {
+    gdal_params <- list()
+    if (.has(res)) {
+        gdal_params[["-tr"]] <- list(xres = res, yres = res)
+    }
+    if (.has(sf_roi)) {
+        gdal_params[["-srcwin"]] <- .gdal_as_srcwin(asset = asset,
+                                                    sf_roi = sf_roi)
+    }
+    gdal_params[c("-of", "-co")] <- list(
+        "GTiff", .conf("gdal_presets", "image", "co")
+    )
+    band_conf <- .tile_band_conf(asset, .tile_bands(asset))
+    gdal_params[["-a_nodata"]] <- .miss_value(band_conf)
+    return(gdal_params)
+}
+
+.gdal_as_srcwin <- function(asset, sf_roi) {
+    block <- .raster_sub_image(tile = asset, sf_roi = sf_roi)
+    list(xoff = block[["col"]] - 1,
+         yoff = block[["row"]] - 1,
+         xsize = block[["ncols"]],
+         ysize = block[["nrows"]]
+    )
+}
+
 .gdal_translate <- function(file, base_file, params, quiet) {
     sf::gdal_utils(
         util = "translate", source = base_file[[1]], destination = file[[1]],

@@ -46,7 +46,7 @@ test_that("User functions", {
         unname(.colors_get(labels = c(
             "Cropland", "Deforestation",
             "Forest", "Grassland", "NonForest"
-        ))),
+        ), legend = NULL, color_palette = "Spectral", rev = TRUE)),
         c(
             "khaki", "sienna", "darkgreen", "lightgreen",
             "lightsteelblue1"
@@ -57,7 +57,6 @@ test_that("User functions", {
     sits_config(
         processing_bloat = 6,
         rstac_pagination_limit = 500,
-        raster_api_package = "terra",
         gdal_creation_options = c("BIGTIFF=YES")
     )
     expect_equal(
@@ -71,11 +70,6 @@ test_that("User functions", {
     )
 
     expect_equal(
-        .conf("raster_api_package"),
-        "terra"
-    )
-
-    expect_equal(
         .conf("gdal_creation_options"),
         c("BIGTIFF=YES")
     )
@@ -84,11 +78,6 @@ test_that("User functions", {
     expect_output(
         object = sits_config_show(source = "BDC"),
         regexp = "s3_class: bdc_cube, stac_cube, eo_cube, raster_cube"
-    )
-
-    expect_output(
-        object = sits_config_show(source = "BDC", collection = "CB4_64-1"),
-        regexp = "bands:"
     )
 
 

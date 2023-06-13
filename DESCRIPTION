@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 1.4.0
+Version: 1.4.1
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara.inpe@gmail.com'),
@@ -36,14 +36,13 @@ Description: An end-to-end toolkit for land use and land cover classification
     Minimum recommended requirements: 16 GB RAM and 4 CPU dual-core.
 Encoding: UTF-8
 Language: en-US
-Depends: R (>= 4.0.0)
+Depends: R (>= 4.1.0)
 URL: https://github.com/e-sensing/sits/, https://e-sensing.github.io/sitsbook/
 BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2
 ByteCompile: true
 LazyData: true
 Imports:
-    magrittr,
     yaml,
     dplyr (>= 1.0.0),
     gdalUtilities,
@@ -53,7 +52,7 @@ Imports:
     parallel (>= 4.0.5),
     purrr (>= 0.3.0),
     Rcpp,
-    rstac (>= 0.9.2-2),
+    rstac (>= 0.9.2-3),
     sf (>= 1.0-12),
     slider (>= 0.2.0),
     stats,
@@ -83,6 +82,7 @@ Suggests:
     luz (>= 0.3.0),
     methods,
     mgcv,
+    nnet,
     openxlsx,
     randomForest,
     randomForestExplainer,
@@ -103,32 +103,55 @@ LinkingTo:
     RcppArmadillo
 RoxygenNote: 7.2.3
 Collate: 
+    'api_accessors.R'
+    'api_accuracy.R'
     'api_apply.R'
     'api_band.R'
     'api_bbox.R'
     'api_block.R'
     'api_check.R'
+    'api_chunks.R'
+    'api_classify.R'
+    'api_cluster.R'
+    'api_colors.R'
     'api_combine_predictions.R'
     'api_comp.R'
     'api_conf.R'
+    'api_csv.R'
     'api_cube.R'
+    'api_data.R'
+    'api_debug.R'
+    'api_download.R'
+    'api_expressions.R'
+    'api_factory.R'
     'api_file_info.R'
     'api_file.R'
     'api_gdal.R'
     'api_gdalcubes.R'
-    'api_model.R'
+    'api_imputation.R'
     'api_jobs.R'
     'api_label_class.R'
+    'api_mixture_model.R'
+    'api_ml_model.R'
+    'api_mosaic.R'
+    'api_parallel.R'
     'api_period.R'
     'api_plot_time_series.R'
     'api_plot_raster.R'
     'api_point.R'
+    'api_predictors.R'
     'api_raster.R'
+    'api_raster_sub_image.R'
     'api_raster_terra.R'
     'api_reclassify.R'
     'api_roi.R'
+    'api_samples.R'
+    'api_segments.R'
+    'api_sf.R'
     'api_shp.R'
+    'api_signal.R'
     'api_smooth.R'
+    'api_smote.R'
     'api_som.R'
     'api_source.R'
     'api_source_aws.R'
@@ -141,30 +164,29 @@ Collate:
     'api_source_stac.R'
     'api_source_usgs.R'
     'api_space_time_operations.R'
-    'api_supercells.R'
     'api_stac.R'
     'api_stats.R'
+    'api_summary.R'
     'api_tibble.R'
     'api_tile.R'
+    'api_timeline.R'
     'api_torch.R'
     'api_torch_psetae.R'
+    'api_ts.R'
     'api_tuning.R'
     'api_uncertainty.R'
     'api_utils.R'
     'api_variance.R'
+    'api_view.R'
     'RcppExports.R'
     'data.R'
-    'pipe.R'
     'sits-package.R'
     'sits_apply.R'
     'sits_accuracy.R'
     'sits_active_learning.R'
     'sits_bands.R'
     'sits_bbox.R'
-    'sits_chunks.R'
-    'sits_classification.R'
-    'sits_classify_ts.R'
-    'sits_classify_cube.R'
+    'sits_classify.R'
     'sits_colors.R'
     'sits_combine_predictions.R'
     'sits_config.R'
@@ -172,12 +194,10 @@ Collate:
     'sits_cube.R'
     'sits_cube_copy.R'
     'sits_cluster.R'
-    'sits_debug.R'
     'sits_factory.R'
     'sits_filters.R'
     'sits_geo_dist.R'
     'sits_get_data.R'
-    'sits_imputation.R'
     'sits_labels.R'
     'sits_label_classification.R'
     'sits_lighttae.R'
@@ -187,13 +207,10 @@ Collate:
     'sits_mlp.R'
     'sits_mosaic.R'
     'sits_model_export.R'
-    'sits_parallel.R'
     'sits_patterns.R'
     'sits_plot.R'
     'sits_predictors.R'
     'sits_reclassify.R'
-    'sits_raster_data.R'
-    'sits_raster_sub_image.R'
     'sits_regularize.R'
     'sits_resnet.R'
     'sits_sample_functions.R'
@@ -205,6 +222,7 @@ Collate:
     'sits_summary.R'
     'sits_tae.R'
     'sits_tempcnn.R'
+    'sits_temporal_segmentation.R'
     'sits_timeline.R'
     'sits_train.R'
     'sits_tuning.R'

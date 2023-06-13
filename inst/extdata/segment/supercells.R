@@ -7,7 +7,7 @@ data_dir <- "~/sitsbook/tempdir/chp5"
 
 s2_cube <- sits_cube(
     source = "AWS",
-    collection = "SENTINEL-S2-L2A-COGS",
+    collection = "SENTINEL-2-L2A",
     bands = c(
         "B02", "B03", "B04",
         "B05", "B06", "B07",

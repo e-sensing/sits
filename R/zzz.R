@@ -24,7 +24,6 @@ sits_env$model_formula <- "log"
 
 # Include the following global variables in the sits package
 utils::globalVariables(c(
-    ".", # magrittr
     ".x", ":=", # dplyr
     "self", "ctx", "super", "private", # torch
     "uniform", "choice", "randint",

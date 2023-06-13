@@ -34,6 +34,27 @@ test_that("Bands", {
 
     expect_equal(length(bands), 1)
     expect_equal(bands[1], "NDVI")
+
+    sits_bands(samples_modis_ndvi) <- "EVI"
+    new_bands <- sits_bands(samples_modis_ndvi)
+    expect_equal(new_bands[1], "EVI")
+    sits_bands(samples_modis_ndvi) <- "NDVI"
+    bands <- sits_bands(samples_modis_ndvi)
+    expect_equal(bands[1], "NDVI")
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    sits_bands(cube) <- "EVI"
+    new_bands <- sits_bands(cube)
+    expect_equal(new_bands[1], "EVI")
+    sits_bands(cube) <- "NDVI"
+    bands <- sits_bands(cube)
+    expect_equal(bands[1], "NDVI")
 })
 
 test_that("Dates", {
@@ -67,9 +88,12 @@ test_that("Dates", {
         max(.ts_end_date(.ts(selected_samples3))), as.Date("2010-09-14")
     )
 
-    expect_error(object = { sits_select(
-        samples_modis_ndvi, start_date = "2020-01-01", end_date = "2021-09-14"
-    )
+    expect_error(object = {
+        sits_select(
+            samples_modis_ndvi,
+            start_date = "2020-01-01",
+            end_date = "2021-09-14"
+        )
     })
 })
 
@@ -106,7 +130,7 @@ test_that("Prune", {
 test_that("Select", {
 
     expect_equal(length(sits_bands(samples_modis_ndvi)), 1)
-    samples_pasture <- samples_modis_ndvi %>% dplyr::filter(label == "Pasture")
+    samples_pasture <- samples_modis_ndvi |>  dplyr::filter(label == "Pasture")
     expect_equal(dim(samples_pasture)[1], 344)
 })
 
@@ -148,7 +172,8 @@ test_that("samples_as_sf works (polygon)", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     cube_sf <- sits_as_sf(cube)
 

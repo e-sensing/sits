@@ -1,6 +1,12 @@
 # SITS Release History
 
-# What's new in SITS version 1.4.0
+# What's new in SITS version 1.4
+
+### New features in SITS version 1.4.1
+* Updated access to collections in Brazil Data Cube, HLS, and AWS
+* Corrected errors in labelling of classified cubes
+* Created a factory of functions for segmentation
+
 
 ### New features in SITS version 1.4.0
 * New function for image segementation based on `supercells` package
@@ -11,7 +17,7 @@
 * General big fixes
 
 
-# What's new in SITS version 1.3.0
+# What's new in SITS version 1.3
 
 ### New features in SITS version 1.3.0
 * Remove NOTES and WARNINGS pointed out by CRAN

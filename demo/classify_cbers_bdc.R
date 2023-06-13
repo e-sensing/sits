@@ -38,9 +38,9 @@ end_date <- timeline_samples[length(timeline_samples)]
 # define a CBERS data cube using the Brazil Data Cube
 cbers_cube <- sits_cube(
     source     = "BDC",
-    collection = "CB4_64_16D_STK-1",
+    collection = "CB4-16D-2",
     bands      = bands,
-    tiles      = "022024",
+    tiles      = "007004",
     start_date = start_date,
     end_date   = end_date
 )
@@ -70,9 +70,7 @@ cbers_bayes <- sits_smooth(
     cube = cbers_probs,
     memsize = 16,
     multicores = 4,
-    output_dir = tempdir(),
-    verbose = TRUE,
-    progress = TRUE
+    output_dir = tempdir()
 )
 # plot the classification result after smoothing
 plot(cbers_bayes)

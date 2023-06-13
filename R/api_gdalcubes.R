@@ -128,14 +128,15 @@
         return(NULL)
     }
     # create a image mask object
-    mask_values <- gdalcubes::image_mask(
-        band = .source_cloud(),
-        values = .source_cloud_interp_values(
-            source = .cube_source(cube = tile),
-            collection = .cube_collection(cube = tile)
+    mask_values <- suppressMessages(
+        gdalcubes::image_mask(
+            band = .source_cloud(),
+            values = .source_cloud_interp_values(
+                source = .cube_source(cube = tile),
+                collection = .cube_collection(cube = tile)
+            )
         )
     )
-
     # is this a bit mask cloud?
     if (.source_cloud_bit_mask(
         source = .cube_source(cube = tile),
@@ -177,8 +178,8 @@
 
     file_info <- dplyr::select(
         cube, "file_info", "crs"
-    ) %>%
-        tidyr::unnest(cols = c("file_info")) %>%
+    ) |>
+        tidyr::unnest(cols = c("file_info")) |>
         dplyr::transmute(
             fid  = .data[["fid"]],
             xmin = .data[["xmin"]],
@@ -192,7 +193,7 @@
             !!crs_type := gsub("^EPSG:", "", .data[["crs"]])
         )
 
-    features <- dplyr::mutate(file_info, id = .data[["fid"]]) %>%
+    features <- dplyr::mutate(file_info, id = .data[["fid"]]) |>
         tidyr::nest(features = -"fid")
 
     features <- slider::slide_dfr(features, function(feat) {
@@ -209,24 +210,24 @@
     })
 
     gc_data <- purrr::map(features[["features"]], function(feature) {
-        feature <- feature %>%
-            dplyr::select(-"crs") %>%
-            tidyr::nest(assets = c("href", "band")) %>%
+        feature <- feature |>
+            dplyr::select(-"crs") |>
+            tidyr::nest(assets = c("href", "band")) |>
             tidyr::nest(properties = c(
                 "datetime",
                 !!crs_type
-            )) %>%
+            )) |>
             tidyr::nest(bbox = c(
                 "xmin", "ymin",
                 "xmax", "ymax"
             ))
 
         feature[["assets"]] <- purrr::map(feature[["assets"]], function(asset) {
-            asset %>%
+            asset |>
                 tidyr::pivot_wider(
                     names_from = "band",
                     values_from = "href"
-                ) %>%
+                ) |>
                 purrr::map(
                     function(x) list(href = x, `eo:bands` = list(NULL))
                 )
@@ -238,10 +239,12 @@
         feature
     })
 
-    ic_cube <- gdalcubes::stac_image_collection(
-        s = gc_data,
-        out_file = path_db,
-        url_fun = identity
+    ic_cube <- suppressMessages(
+        gdalcubes::stac_image_collection(
+            s = gc_data,
+            out_file = path_db,
+            url_fun = identity
+        )
     )
 
     return(ic_cube)
@@ -289,20 +292,26 @@
     .check_set_caller(".gc_create_raster_cube")
 
     # open db in each process
-    img_col <- gdalcubes::image_collection(path = path_db)
+    img_col <- suppressMessages(
+        gdalcubes::image_collection(path = path_db)
+    )
 
     # create a gdalcubes::raster_cube object
-    raster_cube <- gdalcubes::raster_cube(
-        image_collection = img_col,
-        view = cube_view,
-        mask = mask_band,
-        chunking = .conf("gdalcubes_chunk_size")
+    raster_cube <- suppressMessages(
+        gdalcubes::raster_cube(
+            image_collection = img_col,
+            view = cube_view,
+            mask = mask_band,
+            chunking = .conf("gdalcubes_chunk_size")
+        )
     )
 
     # filter band of raster_cube
-    raster_cube <- gdalcubes::select_bands(
-        cube = raster_cube,
-        bands = band
+    raster_cube <- suppressMessages(
+        gdalcubes::select_bands(
+            cube = raster_cube,
+            bands = band
+        )
     )
 
     return(raster_cube)
@@ -417,16 +426,17 @@
     cog_overview <- .conf("gdalcubes_cog_resample_overview")
 
     # write the aggregated cubes
-    img_paths <- gdalcubes::write_tif(
-        x = raster_cube,
-        dir = output_dir,
-        prefix = files_prefix,
-        creation_options = gdalcubes_co,
-        pack = pack,
-        COG = generate_cog,
-        rsmpl_overview = cog_overview, ...
+    img_paths <- suppressMessages(
+        gdalcubes::write_tif(
+            x = raster_cube,
+            dir = output_dir,
+            prefix = files_prefix,
+            creation_options = gdalcubes_co,
+            pack = pack,
+            COG = generate_cog,
+            rsmpl_overview = cog_overview, ...
+        )
     )
-
     # post-condition
     .check_length(img_paths,
                   len_min = 1,
@@ -470,7 +480,7 @@
                            roi,
                            output_dir,
                            multicores = 1,
-                           progress = TRUE) {
+                           progress = progress) {
 
     # set caller to show in errors
     .check_set_caller(".gc_regularize")
@@ -494,8 +504,8 @@
     )
 
     # start processes
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop())
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop())
 
     # does a local cube exist
     local_cube <- tryCatch(
@@ -529,7 +539,7 @@
         cube <- .cube_token_generator(cube)
 
         # process bands and tiles in parallel
-        .sits_parallel_map(jobs, function(job) {
+        .parallel_map(jobs, function(job) {
 
             # get parameters from each job
             tile_name <- job[[1]]
@@ -587,8 +597,12 @@
             # check documentation mode
             progress <- .check_documentation(progress)
 
+            # gdalcubes log file
+            gdalcubes_log_file <- paste0(tempdir(), "/gdalcubes.log")
             # setting threads to process
             gdalcubes::gdalcubes_options(parallel = 2,
+                                         debug = FALSE,
+                                         log_file = gdalcubes_log_file,
                                          show_progress = progress)
 
             # create of the aggregate cubes
@@ -667,8 +681,8 @@
             ))
 
             # remove cache
-            .sits_parallel_stop()
-            .sits_parallel_start(workers = multicores, log = FALSE)
+            .parallel_stop()
+            .parallel_start(workers = multicores)
         }
     }
 
@@ -709,7 +723,7 @@
     tiles_bands_times <- unlist(slider::slide(cube, function(tile) {
         bands <- .cube_bands(tile, add_cloud = FALSE)
         tidyr::expand_grid(tile = .cube_tiles(tile), band = bands,
-                           time = timeline) %>%
+                           time = timeline) |>
             purrr::pmap(function(tile, band, time) {
                 return(list(tile, band, time))
             })
@@ -724,7 +738,7 @@
     gc_tiles_bands_times <- unlist(slider::slide(local_cube, function(tile) {
         bands <- .cube_bands(tile, add_cloud = FALSE)
         tidyr::expand_grid(tile = .cube_tiles(tile), band = bands,
-                           time = timeline) %>%
+                           time = timeline) |>
             purrr::pmap(function(tile, band, time) {
                 return(list(tile, band, time))
             })

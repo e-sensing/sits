@@ -21,6 +21,15 @@ Given a trained machine learning or deep learning model,
 exports the model as an object for further exploration outside the
 "sits" package
 }
+\examples{
+if (sits_run_examples()) {
+    # create a classification model
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+    # export the model
+    rfor_object <- sits_model_export(rfor_model)
+}
+
+}
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 

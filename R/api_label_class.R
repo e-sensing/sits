@@ -8,13 +8,14 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        if (.check_messages()) {
-            message("Recovery: tile '", tile[["tile"]], "' already exists.")
-            message("(If you want to produce a new image, please ",
-                    "change 'output_dir' or 'version' parameters)")
-        }
-        class_tile <- .tile_class_from_file(
-            file = out_file, band = band, base_tile = tile
+        .check_recovery(tile[["tile"]])
+        class_tile <- .tile_derived_from_file(
+            file = out_file,
+            band = band,
+            base_tile = tile,
+            derived_class = "class_cube",
+            labels = .tile_labels(tile),
+            update_bbox = FALSE
         )
         return(class_tile)
     }
@@ -64,10 +65,15 @@
         block_file
     }, progress = progress)
     # Merge blocks into a new class_cube tile
-    class_tile <- .tile_class_merge_blocks(
-        file = out_file, band = band, labels = .tile_labels(tile),
-        base_tile = tile, block_files = block_files,
-        multicores = .jobs_multicores()
+    class_tile <- .tile_derived_merge_blocks(
+        file = out_file,
+        band = band,
+        labels = .tile_labels(tile),
+        base_tile = tile,
+        block_files = block_files,
+        derived_class = "class_cube",
+        multicores = .jobs_multicores(),
+        update_bbox = FALSE
     )
     # Return class tile
     class_tile

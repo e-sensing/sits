@@ -28,7 +28,7 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-     summary(samples_modis_ndvi)
+     stats <- sits_stats(samples_modis_ndvi)
 }
 }
 \author{

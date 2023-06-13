@@ -17,7 +17,7 @@ sits_apply(data, ...)
   memsize = 1,
   multicores = 2,
   output_dir,
-  progress = TRUE
+  progress = FALSE
 )
 }
 \arguments{
@@ -84,7 +84,6 @@ all pixels in the window are \code{NA}.
 \item{\code{w_mean()}: returns the mean of the neighborhood's values.}
 \item{\code{w_sd()}: returns the standard deviation of the neighborhood's
   values.}
-\item{\code{w_var()}: returns the variance of the neighborhood's values.}
 \item{\code{w_min()}: returns the minimum of the neighborhood's values.}
 \item{\code{w_max()}: returns the maximum of the neighborhood's values.}
 }
@@ -96,7 +95,7 @@ if (sits_run_examples()) {
 # Apply a normalization function
 
 point2 <-
-    sits_select(point_mt_6bands, "NDVI") \%>\%
+    sits_select(point_mt_6bands, "NDVI") |>
     sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
 
 # Example of generation texture band with variance
@@ -111,7 +110,7 @@ cube <- sits_cube(
 # Generate a texture images with variance in NDVI images
 cube_texture <- sits_apply(
     data = cube,
-    NDVITEXTURE = w_var(NDVI),
+    NDVITEXTURE = w_median(NDVI),
     window_size = 5,
     output_dir = tempdir()
 )

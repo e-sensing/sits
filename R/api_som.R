@@ -18,7 +18,7 @@
 .som_label_neurons <- function(data, kohonen_obj) {
     grid_size <- dim(kohonen_obj$grid$pts)[1]
 
-    labels_lst <- seq_len(grid_size) %>%
+    labels_lst <- seq_len(grid_size) |>
         purrr::map(function(i) {
             # Get the id of samples that were allocated in neuron i
             neuron_i <- dplyr::filter(data, .data[["id_neuron"]] == i)$id_sample
@@ -74,7 +74,7 @@
     # get the grid size
     grid_size <- dim(kohonen_obj$grid$pts)[1]
 
-    post_probs_lst <- seq_len(grid_size) %>%
+    post_probs_lst <- seq_len(grid_size) |>
         purrr::map(function(neuron_id) {
             # get a list of neighbors of each neuron
             neighbours <-
@@ -86,7 +86,7 @@
                     )
                 )
             # get information on the samples that are mapped to the neuron
-            data_neuron_i <- labelled_neurons %>%
+            data_neuron_i <- labelled_neurons |>
                 dplyr::filter(.data[["id_neuron"]] == neuron_id)
             if ((data_neuron_i$label_samples[1]) == "Noclass") {
                 return(NULL)
@@ -157,7 +157,8 @@
 
     colors <- .colors_get(
         labels = kohonen_obj$neuron_label,
-        palette = "Spectral",
+        legend = NULL,
+        color_palette = "Spectral",
         rev = TRUE
     )
 

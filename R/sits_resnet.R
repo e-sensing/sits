@@ -179,10 +179,10 @@ sits_resnet <- function(samples = NULL,
         # Number of labels, bands, and number of samples (used below)
         n_labels <- length(labels)
         n_bands <- length(bands)
-        n_times <- .sits_ntimes(samples)
+        n_times <- .samples_ntimes(samples)
 
         # Data normalization
-        ml_stats <- .sits_stats(samples)
+        ml_stats <- .samples_stats(samples)
         train_samples <- .predictors(samples)
         train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
 
@@ -298,12 +298,12 @@ sits_resnet <- function(samples = NULL,
             },
             forward = function(x) {
                 x <- torch::torch_transpose(x, 2, 3)
-                x <- x %>%
-                    self$res_block1() %>%
-                    self$res_block2() %>%
-                    self$res_block3() %>%
-                    self$gap() %>%
-                    self$flatten() %>%
+                x <- x |>
+                    self$res_block1() |>
+                    self$res_block2() |>
+                    self$res_block3() |>
+                    self$gap() |>
+                    self$flatten() |>
                     self$softmax()
             }
         )
@@ -314,17 +314,17 @@ sits_resnet <- function(samples = NULL,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
                 optimizer = optimizer
-            ) %>%
+            ) |>
             luz::set_hparams(
                 n_bands  = n_bands,
                 n_times  = n_times,
                 n_labels = n_labels,
                 blocks   = blocks,
                 kernels  = kernels
-            ) %>%
+            ) |>
             luz::set_opt_hparams(
                 !!!optim_params_function
-            ) %>%
+            ) |>
             luz::fit(
                 data = list(train_x, train_y),
                 epochs = epochs,
@@ -362,7 +362,7 @@ sits_resnet <- function(samples = NULL,
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
-            n_times <- .sits_ntimes(samples)
+            n_times <- .samples_ntimes(samples)
             n_bands <- length(bands)
             # Performs data normalization
             values <- .pred_normalize(pred = values, stats = ml_stats)
@@ -390,6 +390,6 @@ sits_resnet <- function(samples = NULL,
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train the model later
-    result <- .sits_factory_function(samples, train_fun)
+    result <- .factory_function(samples, train_fun)
     return(result)
 }

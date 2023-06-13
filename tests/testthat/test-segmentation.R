@@ -5,15 +5,16 @@ test_that("Segmentation", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
-    # segment the image
-    segments <- sits_supercells(
+    # test sits_segments
+    segments <- sits_segment(
         cube = cube,
         tile = "012010",
         bands = "NDVI",
         date = sits_timeline(cube)[1],
-        step = 10
+        seg_fn = sits_supercells(step = 20)
     )
     sf_seg <- segments[[1]]
 
@@ -27,4 +28,24 @@ test_that("Segmentation", {
         samples = segments
     )
     expect_equal(nrow(samples$time_series[[1]]), 12)
+
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+    # get the average value per segment
+    # classify the segments
+    seg_class <- sits_classify(
+        data = samples,
+        ml_model = rfor_model,
+        progress = FALSE
+    )
+    # add a column to the segments by class
+    sf_seg <- sits_join_segments(
+        data = seg_class,
+        segments = segments
+    )
+    sf_obj <- sf_seg[[1]]
+    plot(sf_obj["class"])
+    sf_obj <- sf_obj |>
+        dplyr::group_by(class) |>
+        dplyr::summarise()
+    plot(sf_obj["class"])
 })

@@ -35,9 +35,15 @@
 }
 
 .ml_bands <- function(ml_model) {
-    .sits_bands(.ml_samples(ml_model))
+    .samples_bands(.ml_samples(ml_model))
 }
 
 .ml_labels <- function(ml_model) {
-    .sits_labels(.ml_samples(ml_model))
+    .samples_labels(.ml_samples(ml_model))
+}
+
+.ml_labels_code <- function(ml_model) {
+    labels <- .ml_labels(ml_model)
+    names(labels) <- seq_along(labels)
+    labels
 }

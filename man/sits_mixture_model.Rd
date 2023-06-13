@@ -86,13 +86,15 @@ if (sits_run_examples()) {
    # Create a sentinel-2 cube
    s2_cube <- sits_cube(
        source = "AWS",
-       collection = "SENTINEL-S2-L2A-COGS",
+       collection = "SENTINEL-2-L2A",
        tiles = "20LKP",
        bands = c("B02", "B03", "B04", "B8A", "B11", "B12", "CLOUD"),
        start_date = "2019-06-13",
        end_date = "2019-06-30"
    )
-
+   # create a directory to store the regularized file
+   reg_dir <- paste0(tempdir(), "/mix_model")
+   dir.create(reg_dir)
    # Cube regularization for 16 days and 160 meters
    reg_cube <- sits_regularize(
        cube = s2_cube,
@@ -103,7 +105,7 @@ if (sits_run_examples()) {
                lon_max = -65.07629670,
                lat_max = -10.36046639),
        multicores = 2,
-       output_dir = tempdir()
+       output_dir = reg_dir
    )
 
    # Create the endmembers tibble

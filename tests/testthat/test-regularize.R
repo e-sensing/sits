@@ -2,12 +2,13 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     s2_cube_open <- .try({
         sits_cube(
             source = "AWS",
-            collection = "SENTINEL-S2-L2A-COGS",
+            collection = "SENTINEL-2-L2A",
             tiles = c("20LKP", "20LLP"),
-            bands = c("B8A", "SCL"),
+            bands = c("B8A", "CLOUD"),
             start_date = "2018-10-01",
             end_date = "2018-11-01",
-            multicores = 1
+            multicores = 1,
+            progress = FALSE
         )
     },
     .default = NULL
@@ -30,7 +31,8 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
         output_dir = dir_images,
         res = 240,
         period = "P16D",
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
         )
     })
 
@@ -77,7 +79,8 @@ test_that("Creating Landsat cubes from MPC", {
             roi = bbox,
             bands = c("NIR08", "CLOUD"),
             start_date = as.Date("2008-07-18"),
-            end_date = as.Date("2008-10-23")
+            end_date = as.Date("2008-10-23"),
+            progress = FALSE
         )
     },
     .default = NULL
@@ -105,7 +108,8 @@ test_that("Creating Landsat cubes from MPC", {
         output_dir  = output_dir,
         res         = 240,
         period      = "P30D",
-        multicores  = 1
+        multicores  = 1,
+        progress = FALSE
         )
     })
 
@@ -122,7 +126,8 @@ test_that("Creating Landsat cubes from MPC", {
             roi = bbox,
             bands = c("NIR08", "CLOUD"),
             start_date = as.Date("2008-07-18"),
-            end_date = as.Date("2008-10-23")
+            end_date = as.Date("2008-10-23"),
+            progress = FALSE
         )
     },
     .default = NULL
@@ -138,7 +143,8 @@ test_that("Creating Landsat cubes from MPC", {
             bands = c("NIR08", "CLOUD"),
             tiles = "220071",
             start_date = "2019-01-01",
-            end_date = "2019-10-28"
+            end_date = "2019-10-28",
+            progress = FALSE
         )
     )
 })
@@ -150,14 +156,14 @@ test_that("Regularizing local cubes extracted from BDC", {
             source = "BDC",
             collection = "MOD13Q1-6",
             data_dir = data_dir,
-            multicores = 2
+            multicores = 2,
+            progress = FALSE
     )
     local_bbox <- sits_bbox(local_cube)
     timeline <- sits_timeline(local_cube)
     start_date <- timeline[1]
     end_date <- timeline[length(timeline)]
 
-    # create a BDC cube with the same roi as the local cube
     # create a raster cube file based on the information about the files
     bdc_cube <- .try({
         sits_cube(
@@ -191,7 +197,8 @@ test_that("Regularizing local cubes extracted from BDC", {
     local_cube_2 <- sits_cube_copy(
         cube = bdc_cube,
         roi = local_bbox,
-        output_dir = output_dir
+        output_dir = output_dir,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/images_bdc_2")
     if (!dir.exists(output_dir)) {
@@ -202,7 +209,8 @@ test_that("Regularizing local cubes extracted from BDC", {
         cube = local_cube_2,
         period = "P1M",
         res = 250,
-        output_dir = output_dir
+        output_dir = output_dir,
+        progress = FALSE
     )
     timeline_local_reg <- sits_timeline(local_reg_cube)
     expect_equal(as.Date(timeline_local_reg[1]), as.Date("2013-09-01"))
@@ -231,7 +239,8 @@ test_that("Regularizing local cubes without CLOUD BAND", {
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/images_bdc_no_cloud")
     if (!dir.exists(output_dir)) {
@@ -243,7 +252,8 @@ test_that("Regularizing local cubes without CLOUD BAND", {
         cube = local_cube,
         period = "P2M",
         res = 500,
-        output_dir = output_dir
+        output_dir = output_dir,
+        progress = FALSE
         )
     })
     tl_orig <- sits_timeline(local_cube)

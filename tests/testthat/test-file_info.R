@@ -3,11 +3,12 @@ test_that("file_info functions", {
         {
             sits_cube(
                 source = "BDC",
-                collection = "CB4_64_16D_STK-1",
+                collection = "CBERS-WFI-16D",
                 bands = c("NDVI", "EVI"),
-                tiles = c("022024", "022025"),
+                tiles = c("007004", "007005"),
                 start_date = "2018-09-01",
-                end_date = "2018-10-28"
+                end_date = "2018-10-28",
+                progress = FALSE
             )
         },
         error = function(e) {
@@ -24,16 +25,16 @@ test_that("file_info functions", {
     expect_equal(.fi(cbers_cube), cbers_cube[["file_info"]][[1]])
 
     # tile size
-    expect_equal(.tile_nrows(cbers_cube), 6865)
-    expect_equal(.tile_ncols(cbers_cube), 10504)
+    expect_equal(.tile_nrows(cbers_cube), 6600)
+    expect_equal(.tile_ncols(cbers_cube), 6600)
 
     # tile paths
     expect_length(.tile_path(cbers_cube), 1)
     expect_length(.tile_paths(cbers_cube), 8)
 
     # tile resolutions
-    expect_equal(.tile_xres(cbers_cube), 63.99735, tolerance = 10e-6)
-    expect_equal(.tile_yres(cbers_cube), 64.00234, tolerance = 10e-6)
+    expect_equal(.tile_xres(cbers_cube), 64.000, tolerance = 10e-3)
+    expect_equal(.tile_yres(cbers_cube), 64.00, tolerance = 10e-3)
 
     # tile properties
     expect_length(.tile_timeline(cbers_cube), 4)
@@ -41,7 +42,7 @@ test_that("file_info functions", {
 
     # tile filters
     tile_fid <- dplyr::filter(.fi(cbers_cube),
-        fid == "CB4_64_16D_STK_v001_022024_2018-09-14_2018-09-29"
+        fid == "CB4-16D_V2_007004_20180829"
     )
 
     expect_s3_class(tile_fid, "tbl_df")
@@ -78,7 +79,8 @@ test_that("file_info functions for result cubes", {
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     output_dir <- paste0(tempdir(), "/fi")
     if (!dir.exists(output_dir)) {
@@ -90,7 +92,8 @@ test_that("file_info functions for result cubes", {
         xgb_model,
         output_dir = output_dir,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
 
     # tile resolutions
@@ -105,11 +108,12 @@ test_that("file_info functions for result cubes", {
 test_that("file_info errors", {
     s2_cube <- sits_cube(
         source = "AWS",
-        collection = "SENTINEL-S2-L2A-COGS",
+        collection = "SENTINEL-2-L2A",
         bands = c("B01", "B02", "CLOUD"),
         tiles = c("20LKP", "20LLP"),
         start_date = "2018-09-01",
-        end_date = "2018-10-01"
+        end_date = "2018-10-01",
+        progress = FALSE
     )
 
     # file info
