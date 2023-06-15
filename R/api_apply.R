@@ -1,4 +1,3 @@
-
 #' @title Apply a function to one band of a time series
 #' @name .apply
 #' @keywords internal
