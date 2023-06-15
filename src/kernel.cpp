@@ -34,6 +34,9 @@ inline double _min(const NumericVector& neigh) {
 inline double _max(const NumericVector& neigh) {
     return max(na_omit(neigh));
 }
+inline double _var(const NumericVector& neigh) {
+    return var(na_omit(neigh));
+}
 
 
 NumericVector kernel_fun(const NumericMatrix& x, int ncols, int nrows,
@@ -88,4 +91,9 @@ NumericVector C_kernel_min(const NumericMatrix& x, int ncols,
 NumericVector C_kernel_max(const NumericMatrix& x, int ncols,
                            int nrows, int band, int window_size) {
     return kernel_fun(x, ncols, nrows, band, window_size, _max);
+}
+// [[Rcpp::export]]
+NumericVector C_kernel_var(const NumericMatrix& x, int ncols,
+                           int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _var);
 }
