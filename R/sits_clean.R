@@ -4,7 +4,8 @@ sits_clean <- function(cube,
                        memsize,
                        multicores,
                        output_dir,
-                       version) {
+                       version,
+                       progress) {
     # Check cube
     .check_cube_is_class_cube(cube)
     # Check window size
@@ -17,12 +18,7 @@ sits_clean <- function(cube,
     .check_output_dir(output_dir)
     # Check version
     .check_version(version)
-
-    # Get output band expression
-    expr <- .apply_capture_expression(...)
-    out_band <- names(expr)
-    # Get all input bands in cube data
-    in_bands <- .apply_input_bands(cube, expr = expr)
+    # Check fn function
 
     # Check memory and multicores
     # Get block size
@@ -32,7 +28,7 @@ sits_clean <- function(cube,
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = overlap),
-        npaths = length(in_bands) + 1,
+        npaths = 1,
         nbytes = 8, proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter
@@ -44,23 +40,30 @@ sits_clean <- function(cube,
     on.exit(.parallel_stop(), add = TRUE)
 
     # Create features as jobs
-    features_cube <- .cube_split_features(cube)
+    assets_cube <- .cube_split_assets(cube)
 
     # Process each feature in parallel
-    features_band <- .jobs_map_parallel_dfr(features_cube, function(feature) {
+    features_band <- .jobs_map_parallel_dfr(assets_cube, function(asset) {
         # Process the data
-        output_feature <- .apply_feature(
-            feature = feature,
+        output_asset <- .clean_asset(
+            asset = asset,
             block = block,
-            expr = expr,
+            clean_fn = clean_fn,
             window_size = window_size,
-            out_band = out_band,
-            in_bands = in_bands,
             overlap = overlap,
             output_dir = output_dir
         )
-        return(output_feature)
+        return(output_asset)
     }, progress = progress)
     # Join output features as a cube and return it
-    .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_band)))
+    .cube_merge_tiles(dplyr::bind_rows(list(assets_cube, features_band)))
+}
+
+.clean_asset <- function(asset,
+                         block,
+                         clean_fn,
+                         window_size,
+                         overlap,
+                         output_dir) {
+
 }
