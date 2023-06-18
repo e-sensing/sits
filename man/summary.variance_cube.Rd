@@ -4,13 +4,7 @@
 \alias{summary.variance_cube}
 \title{Summarize data cubes}
 \usage{
-\method{summary}{variance_cube}(
-  object,
-  ...,
-  tile = object$tile[[1]],
-  only_stats = FALSE,
-  sample_size = 1e+05
-)
+\method{summary}{variance_cube}(object, ..., tile = object$tile[[1]], only_stats = FALSE)
 }
 \arguments{
 \item{object}{Object of class "probs_cube"}

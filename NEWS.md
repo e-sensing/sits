@@ -9,7 +9,7 @@
 
 
 ### New features in SITS version 1.4.0
-* New function for image segementation based on `supercells` package
+* New function for image segmentation based on `supercells` package
 * New version of `sits_get_data()` to extract average values of time series based on segments
 * Support for Harmonized Landsat Sentinel (HLS) collections from NASA
 * Support for probability cubes and uncertainty cubes in `sits_view()`

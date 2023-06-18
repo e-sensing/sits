@@ -137,6 +137,17 @@ sits_segment <- function(cube, tiles = NULL,
 #'                      supercells' centers.
 #' @param compactness   A compactness value. Larger values cause clusters to
 #'                      be more compact/even (square).
+#' @param dist_fun      Distance function. Currently implemented: "euclidean",
+#'                      "jsd", "dtw", and any distance function from the
+#'                      \code{philentropy} package.
+#'                      See \code{philentropy::getDistMethods()}.
+#'                      Default: "euclidean"
+#' @param avg_fun       Averaging function to calculate the values
+#'                      of the supercells' centers.
+#'                      Accepts any fitting R function
+#'                      (e.g., base::mean() or stats::median())
+#'                      or one of internally implemented "mean" and "median".
+#'                      Default: "mean"
 #' @param iter          Number of iterations to create the output.
 #' @param minarea       Specifies the minimal size of a supercell (in cells).
 #' @param multicores    Number of cores for parallel processing
@@ -195,10 +206,11 @@ sits_supercells <- function(
         tile = NULL,
         step = 50,
         compactness = 1,
+        dist_fun = "euclidean",
+        avg_fun = "mean",
         iter = 10,
         minarea = 30,
-        multicores = 1
-) {
+        multicores = 1) {
     seg_fun <- function(tile) {
         # step is OK?
         .check_int_parameter(step, min = 1, max = 500)
@@ -221,6 +233,8 @@ sits_supercells <- function(
             x = rast,
             compactness = compactness,
             step = step,
+            dist_fun = dist_fun,
+            avg_fun = avg_fun,
             iter = iter,
             minarea = minarea,
             chunks = FALSE,
