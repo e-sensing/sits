@@ -18,9 +18,10 @@
 }
 .summary_derived_cube <- function(object,
                                   tile = object$tile[[1]],
-                                  only_stats = FALSE,
-                                  sample_size = 100000) {
+                                  only_stats = FALSE) {
 
+    # get sample size
+    sample_size <- .conf("summary_sample_size")
     # filter the tile to be processed
     tile <- .summary_check_tile(object, tile)
     # get the bands

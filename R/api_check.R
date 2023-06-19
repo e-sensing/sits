@@ -1392,15 +1392,22 @@
             length(bands) == 1,
             msg = "results cube should have only one band"
         )
+
         # is label parameter was provided in labelled cubes?
-        if (bands %in% c("probs", "bayes", "class")) {
+        if (bands %in% c("probs", "bayes")) {
             .check_chr(
                 labels, len_min = 1,
                 allow_duplicate = FALSE,
-                is_named = TRUE,
+                is_named = FALSE,
                 msg = "'labels' parameter should be provided"
             )
-
+        }
+        # labels should be named in class cubes?
+        if (bands %in% c("class")) {
+            .check_length(
+                labels, len_min = 2,
+                msg = "'labels' parameter should be provided"
+            )
             if (!.has(names(labels))) {
                 warning(
                     paste("'labels' parameter should be named. Each label",

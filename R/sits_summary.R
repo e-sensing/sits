@@ -238,10 +238,9 @@ summary.raster_cube <- function(
 summary.probs_cube <- function(
        object, ...,
        tile = object$tile[[1]],
-       only_stats = FALSE,
-       sample_size = 100000
-) {
-    .summary_derived_cube(object, tile, only_stats, sample_size)
+       only_stats = FALSE) {
+
+    .summary_derived_cube(object, tile, only_stats)
 }
 #' @title  Summarize data cubes
 #' @method summary variance_cube
@@ -286,9 +285,8 @@ summary.probs_cube <- function(
 summary.variance_cube <- function(
         object, ...,
         tile = object$tile[[1]],
-        only_stats = FALSE,
-        sample_size = 100000) {
-    .summary_derived_cube(object, tile, only_stats, sample_size)
+        only_stats = FALSE) {
+    .summary_derived_cube(object, tile, only_stats)
 }
 #' @title  Summarize data cubes
 #' @method summary class_cube
@@ -300,7 +298,6 @@ summary.variance_cube <- function(
 #' @param ...        Further specifications for \link{summary}.
 #' @param  tile        Tile to be summarized
 #' @param  only_stats  Show only the statistics? (TRUE/FALSE)
-#' @param  sample_size Number of sample used to build statistics
 #'
 #' @return A summary of a classified cube
 #' @note

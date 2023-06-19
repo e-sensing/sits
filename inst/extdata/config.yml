@@ -35,6 +35,8 @@ tmap_legend_bg_alpha: 0.5
 leaflet_max_megabytes : 64
 # estimated compression factor for leaflet
 leaflet_comp_factor : 0.50
+# sample size
+summary_sample_size : 10000
 
 sources:
     BDC                     :
