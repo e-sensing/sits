@@ -112,6 +112,7 @@ Collate:
     'api_check.R'
     'api_chunks.R'
     'api_classify.R'
+    'api_clean.R'
     'api_cluster.R'
     'api_colors.R'
     'api_combine_predictions.R'
