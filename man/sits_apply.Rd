@@ -86,6 +86,8 @@ all pixels in the window are \code{NA}.
   values.}
 \item{\code{w_min()}: returns the minimum of the neighborhood's values.}
 \item{\code{w_max()}: returns the maximum of the neighborhood's values.}
+\item{\code{w_var()}: returns the variance of the neighborhood's values.}
+\item{\code{w_modal()}: returns the modal of the neighborhood's values.}
 }
 }
 
