@@ -33,6 +33,10 @@ C_kernel_var <- function(x, ncols, nrows, band, window_size) {
     .Call(`_sits_C_kernel_var`, x, ncols, nrows, band, window_size)
 }
 
+C_kernel_modal <- function(x, ncols, nrows, band, window_size) {
+    .Call(`_sits_C_kernel_modal`, x, ncols, nrows, band, window_size)
+}
+
 C_label_max_prob <- function(x) {
     .Call(`_sits_C_label_max_prob`, x)
 }
