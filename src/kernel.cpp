@@ -37,7 +37,20 @@ inline double _max(const NumericVector& neigh) {
 inline double _var(const NumericVector& neigh) {
     return var(na_omit(neigh));
 }
-
+// This function was implemented by Robert Hijmans in the
+// terra  package (GPL>=3) and adapted by Felipe Carvalho.
+// The source code can be found in
+// https://github.com/rspatial/terra/blob/bcce14dd1778a36a43e2a211704feb8128f2c953/src/vecmath.h
+inline double _modal(const NumericVector& neigh) {
+    std::map<double, size_t> count;
+    for(int i=0; i<neigh.size(); i++) {
+        if (!std::isnan(neigh[i])) count[neigh[i]]++;
+    }
+    std::map<double, size_t>::iterator mode =
+        std::max_element(count.begin(), count.end(),[] (const std::pair<double, size_t>& a,
+                                     const std::pair<double, size_t>& b)->bool{ return a.second < b.second; } );
+    return mode->first;
+}
 
 NumericVector kernel_fun(const NumericMatrix& x, int ncols, int nrows,
                          int band, int window_size, _kernel_fun _fun) {
@@ -96,4 +109,9 @@ NumericVector C_kernel_max(const NumericMatrix& x, int ncols,
 NumericVector C_kernel_var(const NumericMatrix& x, int ncols,
                            int nrows, int band, int window_size) {
     return kernel_fun(x, ncols, nrows, band, window_size, _var);
+}
+// [[Rcpp::export]]
+NumericVector C_kernel_modal(const NumericMatrix& x, int ncols,
+                           int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _modal);
 }
