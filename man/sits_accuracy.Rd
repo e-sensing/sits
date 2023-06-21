@@ -77,7 +77,8 @@ if (sits_run_examples()) {
     )
     # label the probability cube
     label_cube <- sits_label_classification(
-        probs_cube, output_dir = tempdir()
+        probs_cube,
+        output_dir = tempdir()
     )
     # obtain the ground truth for accuracy assessment
     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",

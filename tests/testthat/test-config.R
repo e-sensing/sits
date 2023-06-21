@@ -1,7 +1,6 @@
 # save variable value
 user_file <- Sys.getenv("SITS_CONFIG_USER_FILE")
 test_that("User functions", {
-
     # check config file
     expect_equal(
         .check_file(.conf_file()),
@@ -46,7 +45,7 @@ test_that("User functions", {
         unname(.colors_get(labels = c(
             "Cropland", "Deforestation",
             "Forest", "Grassland", "NonForest"
-        ), legend = NULL, color_palette = "Spectral", rev = TRUE)),
+        ), legend = NULL, palette = "Spectral", rev = TRUE)),
         c(
             "khaki", "sienna", "darkgreen", "lightgreen",
             "lightsteelblue1"

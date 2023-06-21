@@ -63,11 +63,14 @@ if (sits_run_examples()) {
     # create an uncertainty cube
     uncert_cube <- sits_uncertainty(probs_cube,
         type = "entropy",
-        output_dir = tempdir())
+        output_dir = tempdir()
+    )
     # obtain a new set of samples for active learning
     # the samples are located in uncertain places
     new_samples <- sits_uncertainty_sampling(
-        uncert_cube, n = 10, min_uncert = 0.4)
+        uncert_cube,
+        n = 10, min_uncert = 0.4
+    )
 }
 
 }

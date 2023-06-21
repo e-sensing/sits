@@ -30,7 +30,7 @@ Obtain a vector of limits (either on lat/long for time series
 }
 \examples{
 if (sits_run_examples()) {
-sits_bbox(samples_modis_ndvi)
+    sits_bbox(samples_modis_ndvi)
 }
 }
 \author{

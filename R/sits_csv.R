@@ -22,7 +22,6 @@
 #' @export
 #'
 sits_to_csv <- function(data, file) {
-
     # set caller to show in errors
     .check_set_caller("sits_metadata_to_csv")
 

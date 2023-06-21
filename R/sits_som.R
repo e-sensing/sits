@@ -33,7 +33,6 @@
 #' The user can define which tagged samples will be returned using the "keep"
 #' parameter, with the following options: "clean", "analyze", "remove".
 #'
-#'
 #' @references
 #' Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle Picoli,
 #' Rolf Simoes, “Quality control and class noise reduction of satellite
@@ -62,10 +61,6 @@
 #' (b) the posterior probability that this class belongs to a cluster,
 #' using data for the neighbours on the SOM map.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a som map
@@ -89,13 +84,10 @@ sits_som_map <- function(data,
                          distance = "euclidean",
                          som_radius = 2,
                          mode = "online") {
-
     # set caller to show in errors
     .check_set_caller("sits_som_map")
-
     # verifies if kohonen package is installed
     .check_require_packages("kohonen")
-
     # does the input data exist?
     .check_samples_train(data)
     # is are there more neurons than samples?
@@ -126,7 +118,6 @@ sits_som_map <- function(data,
             normalizeDataLayers = TRUE,
             mode = mode
         )
-
     # put id in samples
     data$id_sample <- seq_len(nrow(data))
     # add id of neuron that the sample was allocated
@@ -150,16 +141,12 @@ sits_som_map <- function(data,
                 labelled_neurons,
                 .data[["id_neuron"]] == neuron_id
             )
-
             # Get the maximum value of the prior probability
             max_prob_index <- which.max(labels_neuron$prior_prob)
             prob_max <- labels_neuron[max_prob_index, ]$prior_prob
-
             # How many elements there are with the maximumn value?
             number_of_label_max <- which(labels_neuron$prior_prob == prob_max)
             label_max_final <- which.max(labels_neuron$prior_prob)
-
-
             # if more than one sample has been mapped AND their max are the
             # same, then a posteriori probability is considered
             if (length(number_of_label_max) > 1) {
@@ -177,18 +164,15 @@ sits_som_map <- function(data,
             } else {
                 label_max_final <- which.max(labels_neuron$prior_prob)
             }
-
             return(labels_neuron[label_max_final, ]$label_samples)
         })
     labels_max <- unlist(lab_max)
-
     # prepare a color assignment to the SOM map
     kohonen_obj$neuron_label <- labels_max
-
     # only paint neurons if number of labels is greater than one
-    if (length(unique(labels_max)) > 1)
+    if (length(unique(labels_max)) > 1) {
         kohonen_obj <- .som_paint_neurons(kohonen_obj)
-
+    }
     # return the som_map object
     som_map <-
         list(
@@ -204,7 +188,8 @@ sits_som_map <- function(data,
 #' @name sits_som_clean_samples
 #' @param som_map              Returned by \code{\link[sits]{sits_som_map}}.
 #' @param prior_threshold      Threshold of conditional probability
-#'                (frequency of samples assigned to the same SOM neuron).
+#'                             (frequency of samples assigned to the
+#'                              same SOM neuron).
 #' @param posterior_threshold   Threshold of posterior probability
 #'                              (influenced by the SOM neighborhood).
 #' @param keep      Which types of evaluation to be maintained in the data.
@@ -232,7 +217,6 @@ sits_som_clean_samples <- function(som_map,
                                    prior_threshold = 0.6,
                                    posterior_threshold = 0.6,
                                    keep = c("clean", "analyze")) {
-
     # set caller to show in errors
     .check_set_caller("sits_som_clean_samples")
     # Sanity check
@@ -256,7 +240,7 @@ sits_som_clean_samples <- function(som_map,
             )
         )
     }
-
+    # extract tibble from SOM map
     data <- som_map$data |>
         dplyr::select(
             "longitude",
@@ -270,7 +254,7 @@ sits_som_clean_samples <- function(som_map,
             "id_neuron"
         ) |>
         dplyr::inner_join(som_map$labelled_neurons,
-                          by = c("id_neuron", "label" = "label_samples")
+            by = c("id_neuron", "label" = "label_samples")
         ) |>
         dplyr::mutate(
             eval = .detect_class_noise(
@@ -283,7 +267,6 @@ sits_som_clean_samples <- function(som_map,
             -"prior_prob"
         ) |>
         dplyr::filter(.data[["eval"]] %in% keep)
-
     return(data)
 }
 
@@ -316,18 +299,15 @@ sits_som_evaluate_cluster <- function(som_map) {
         message("wrong input data; please run sits_som_map first")
         return(invisible(NULL))
     }
-
     # Get neuron labels
     neuron_label <- som_map$som_properties$neuron_label
     id_neuron_label_tb <- tibble::tibble(
         id_neuron = seq_along(neuron_label),
         neuron_label = neuron_label
     )
-
     # Aggregate in the sample dataset the label of each neuron
     data <- som_map$data |>
         dplyr::inner_join(id_neuron_label_tb, by = c("id_neuron"))
-
     # Get only id, label and neuron_label
     temp_data <- unique(dplyr::select(
         data,
@@ -335,23 +315,22 @@ sits_som_evaluate_cluster <- function(som_map) {
         "label",
         "neuron_label"
     ))
-
+    # get confusion matrix
     confusion_matrix <- stats::addmargins(table(
         temp_data$label,
         temp_data$neuron_label
     ))
-    # 	get dimensions (rows and col)
-    # 	represents the original classes of samples
+    # get dimensions (rows and col)
+    # rows =  original classes of samples
     dim_row <- dim(confusion_matrix)[1]
-
-    # represents clusters
+    #  cols =  clusters
     dim_col <- dim(confusion_matrix)[2]
-
+    # estimate the purity index per cluster
     cluster_purity_lst <- seq_len(dim_col - 1) |>
         purrr::map(function(d) {
             current_col <- confusion_matrix[1:dim_row - 1, d]
             current_col_total <- confusion_matrix[dim_row, d]
-
+            # get mixture percentage per cluster
             mixture_percentage <- as.numeric(
                 (current_col / current_col_total) * 100
             )
@@ -367,10 +346,8 @@ sits_som_evaluate_cluster <- function(som_map) {
                 current_class_ambiguity,
                 .data[["mixture_percentage"]] > 0
             )
-
             return(current_class_ambiguity)
         })
-
     purity_by_cluster <- do.call(rbind, cluster_purity_lst)
     class(purity_by_cluster) <- c(
         "som_evaluate_cluster",

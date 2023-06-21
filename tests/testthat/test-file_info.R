@@ -41,7 +41,8 @@ test_that("file_info functions", {
     expect_equal(.tile_bands(cbers_cube), c("EVI", "NDVI"))
 
     # tile filters
-    tile_fid <- dplyr::filter(.fi(cbers_cube),
+    tile_fid <- dplyr::filter(
+        .fi(cbers_cube),
         fid == "CB4-16D_V2_007004_20180829"
     )
 
@@ -64,8 +65,6 @@ test_that("file_info functions", {
 })
 
 test_that("file_info functions for result cubes", {
-
-
     # build an extreme gradient boosting model
     xgb_model <- sits_train(
         samples_modis_ndvi,

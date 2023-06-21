@@ -209,7 +209,8 @@ if (sits_run_examples()) {
         # get samples from the BDC based on the shapefile
         time_series_bdc <- sits_get_data(
             cube = bdc_cube,
-            samples = shp_file)
+            samples = shp_file
+        )
     }
 }
 

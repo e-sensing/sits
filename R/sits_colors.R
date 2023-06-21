@@ -43,24 +43,24 @@ sits_colors_show <- function() {
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' # Define a color table based on the Anderson Land Classification System
-#' us_nlcd <- tibble::tibble(name = character(), color = character())
-#' us_nlcd <- us_nlcd |>
-#'      tibble::add_row(name = "Urban Built Up", color =  "#85929E") |>
-#'      tibble::add_row(name = "Agricultural Land", color = "#F0B27A") |>
-#'      tibble::add_row(name = "Rangeland", color = "#F1C40F") |>
-#'      tibble::add_row(name = "Forest Land", color = "#27AE60") |>
-#'      tibble::add_row(name = "Water", color = "#2980B9") |>
-#'      tibble::add_row(name = "Wetland", color = "#D4E6F1") |>
-#'      tibble::add_row(name = "Barren Land", color = "#FDEBD0") |>
-#'      tibble::add_row(name = "Tundra", color = "#EBDEF0") |>
-#'      tibble::add_row(name = "Snow and Ice", color = "#F7F9F9")
+#'     # Define a color table based on the Anderson Land Classification System
+#'     us_nlcd <- tibble::tibble(name = character(), color = character())
+#'     us_nlcd <- us_nlcd |>
+#'         tibble::add_row(name = "Urban Built Up", color = "#85929E") |>
+#'         tibble::add_row(name = "Agricultural Land", color = "#F0B27A") |>
+#'         tibble::add_row(name = "Rangeland", color = "#F1C40F") |>
+#'         tibble::add_row(name = "Forest Land", color = "#27AE60") |>
+#'         tibble::add_row(name = "Water", color = "#2980B9") |>
+#'         tibble::add_row(name = "Wetland", color = "#D4E6F1") |>
+#'         tibble::add_row(name = "Barren Land", color = "#FDEBD0") |>
+#'         tibble::add_row(name = "Tundra", color = "#EBDEF0") |>
+#'         tibble::add_row(name = "Snow and Ice", color = "#F7F9F9")
 #'
-#'  # Load the color table into `sits`
-#'  sits_colors_set(us_nlcd)
+#'     # Load the color table into `sits`
+#'     sits_colors_set(us_nlcd)
 #'
-#'  # Show the new color table used by sits
-#'  sits_colors_show()
+#'     # Show the new color table used by sits
+#'     sits_colors_show()
 #' }
 #' @export
 #'
@@ -88,7 +88,7 @@ sits_colors_reset <- function() {
 #' @title Get colors associated to the labels
 #' @name .colors_get
 #' @param  labels  labels associated to the training classes
-#' @param  color_palette palette from `grDevices::hcl.pals()`
+#' @param  palette palette from `grDevices::hcl.pals()`
 #'                  replaces default colors
 #'                  when labels are not included in the config palette
 #' @param  rev      revert the order of colors?
@@ -97,9 +97,8 @@ sits_colors_reset <- function() {
 #' @return colors required to display the labels
 .colors_get <- function(labels,
                         legend,
-                        color_palette,
+                        palette,
                         rev) {
-
     # Get the SITS Color table
     color_tb <- .conf_colors()
     # Try to find colors in the SITS color palette
@@ -132,15 +131,16 @@ sits_colors_reset <- function() {
     if (!all(labels %in% names(colors))) {
         missing <- labels[!labels %in% names(colors)]
         if (.check_warnings()) {
-            warning("missing colors for labels ",
-                    paste(missing, collapse = ", ")
+            warning(
+                "missing colors for labels ",
+                paste(missing, collapse = ", ")
             )
-            warning("using palette ", color_palette, " for missing colors")
+            warning("using palette ", palette, " for missing colors")
             # grDevices does not work with one color missing
         }
         colors_pal <- grDevices::hcl.colors(
             n = max(2, length(missing)),
-            palette = color_palette,
+            palette = palette,
             alpha = 1,
             rev = rev
         )
@@ -155,11 +155,11 @@ sits_colors_reset <- function() {
     colors <- colors[labels]
     # post-condition
     .check_chr(colors,
-               len_min = length(labels),
-               len_max = length(labels),
-               is_named = TRUE,
-               has_unique_names = FALSE,
-               msg = "invalid color values"
+        len_min = length(labels),
+        len_max = length(labels),
+        is_named = TRUE,
+        has_unique_names = FALSE,
+        msg = "invalid color values"
     )
 
     return(colors)
@@ -171,42 +171,51 @@ sits_colors_reset <- function() {
 #' @param color_tb A SITS color table
 #' @return a gglot2 object
 .colors_show <- function(color_tb) {
-
     n_colors <- nrow(color_tb)
     n_rows_show <- n_colors %/% 3
 
     color_tb <- tibble::add_column(color_tb,
-                                y = seq(0, n_colors - 1) %% n_rows_show,
-                                x = seq(0, n_colors - 1) %/% n_rows_show)
+        y = seq(0, n_colors - 1) %% n_rows_show,
+        x = seq(0, n_colors - 1) %/% n_rows_show
+    )
     y_size <- 1.2
     g <- ggplot2::ggplot() +
-         ggplot2::scale_x_continuous(name = "",
-                                    breaks = NULL,
-                                    expand = c(0, 0)) +
-         ggplot2::scale_y_continuous(name = "",
-                                    breaks = NULL,
-                                    expand = c(0, 0)) +
-         ggplot2::geom_rect(data = color_tb,
-                           mapping = ggplot2::aes(
-                               xmin = .data[["x"]] + 0.05,
-                               xmax = .data[["x"]] + 0.95,
-                               ymin = .data[["y"]] + 0.05,
-                               ymax = .data[["y"]] + y_size
-                           ),
-                           fill = color_tb$color
+        ggplot2::scale_x_continuous(
+            name = "",
+            breaks = NULL,
+            expand = c(0, 0)
         ) +
-        ggplot2::geom_text(data = color_tb,
-                           mapping = ggplot2::aes(
-                               x = .data[["x"]] + 0.5,
-                               y = .data[["y"]] + 0.8,
-                               label = .data[["name"]]),
-                           colour = "grey15",
-                           hjust = 0.5,
-                           vjust = 1,
-                           size = 9 / ggplot2::.pt)
+        ggplot2::scale_y_continuous(
+            name = "",
+            breaks = NULL,
+            expand = c(0, 0)
+        ) +
+        ggplot2::geom_rect(
+            data = color_tb,
+            mapping = ggplot2::aes(
+                xmin = .data[["x"]] + 0.05,
+                xmax = .data[["x"]] + 0.95,
+                ymin = .data[["y"]] + 0.05,
+                ymax = .data[["y"]] + y_size
+            ),
+            fill = color_tb$color
+        ) +
+        ggplot2::geom_text(
+            data = color_tb,
+            mapping = ggplot2::aes(
+                x = .data[["x"]] + 0.5,
+                y = .data[["y"]] + 0.8,
+                label = .data[["name"]]
+            ),
+            colour = "grey15",
+            hjust = 0.5,
+            vjust = 1,
+            size = 9 / ggplot2::.pt
+        )
 
     g + ggplot2::theme(
-        panel.background = ggplot2::element_rect(fill = "#FFFFFF"))
+        panel.background = ggplot2::element_rect(fill = "#FFFFFF")
+    )
 
     return(g)
 }

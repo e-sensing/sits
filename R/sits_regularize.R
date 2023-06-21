@@ -9,7 +9,6 @@
 #' images may not cover the entire time, and time intervals are not regular.
 #' For this reason, subsets of these collection need to be converted to
 #' regular data cubes before further processing and data analysis.
-#'
 #' This function requires users to include the cloud band in their ARD-based
 #' data cubes.
 #'
@@ -32,24 +31,21 @@
 #' @param progress   show progress bar?
 #'
 #' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'      The "roi" parameter defines a region of interest. It can be
+#'      an sf_object, a shapefile, or a bounding box vector with
+#'      named XY values ("xmin", "xmax", "ymin", "ymax") or
+#'      named lat/long values ("lat_min", "lat_max", "long_min", "long_max").
+#'      The \code{sits_regularize} function will crop the images that contain the
+#'      roi region.
 #' @note
-#'    The "roi" parameter defines a region of interest. It can be
-#'    an sf_object, a shapefile, or a bounding box vector with
-#'    named XY values ("xmin", "xmax", "ymin", "ymax") or
-#'    named lat/long values ("lat_min", "lat_max", "long_min", "long_max").
-#'    The \code{sits_regularize} function will crop the images that contain the
-#'    roi region.
+#'      The aggregation method used in \code{sits_regularize}
+#'      sorts the images based on cloud cover, where images with the fewest
+#'      clouds at the top of the stack. Once
+#'      the stack of images is sorted, the method uses the first valid value to
+#'      create the temporal aggregation.
 #' @note
-#'       The aggregation method used in \code{sits_regularize}
-#'       sorts the images based on cloud cover, where images with the fewest
-#'       clouds at the top of the stack. Once
-#'       the stack of images is sorted, the method uses the first valid value to
-#'       create the temporal aggregation.
-#' @note
-#'       The input (non-regular) ARD cube needs to include the cloud band for
-#'       the regularization to work.
+#'      The input (non-regular) ARD cube needs to include the cloud band for
+#'      the regularization to work.
 #'
 #' @return A \code{raster_cube} object with aggregated images.
 #'
@@ -82,18 +78,18 @@ sits_regularize <- function(cube,
                             roi = NULL,
                             multicores = 2,
                             progress = TRUE) {
-
     # Pre-conditions
     .check_is_raster_cube(cube)
     # Does cube contain cloud band?
     if (!all(.cube_contains_cloud(cube))) {
-        if (.check_warnings())
+        if (.check_warnings()) {
             warning("Cloud band not found in provided cube.
                     'sits_regularize()' ",
-                    "will just fill nodata values.",
-                    call. = FALSE,
-                    immediate. = TRUE
+                "will just fill nodata values.",
+                call. = FALSE,
+                immediate. = TRUE
             )
+        }
     }
     .period_check(period)
     .check_num_parameter(res, exclusive_min = 0)
@@ -109,8 +105,10 @@ sits_regularize <- function(cube,
     if (!.cube_is_local(cube)) {
         if (.check_warnings()) {
             warning("Regularization works better when data store locally. ",
-                    "Please, use 'sits_cube_copy()' to copy data locally ",
-                    "before regularization", call. = FALSE, immediate. = TRUE)
+                "Please, use 'sits_cube_copy()' to copy data locally ",
+                "before regularization",
+                call. = FALSE, immediate. = TRUE
+            )
         }
     }
     # Regularize

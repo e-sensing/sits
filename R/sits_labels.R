@@ -1,6 +1,5 @@
 #' @title Get labels associated to a data set
 #' @name sits_labels
-#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Finds labels in a sits tibble or data cube
 #'
@@ -16,7 +15,6 @@
 #' @export
 #'
 sits_labels <- function(data) {
-
     # get the meta-type (sits or cube)
     data <- .conf_data_meta_type(data)
     UseMethod("sits_labels", data)
@@ -26,11 +24,9 @@ sits_labels <- function(data) {
 #' @export
 #'
 sits_labels.sits <- function(data) {
-
     # pre-condition
     return(sort(unique(data$label)))
 }
-
 #' @rdname sits_labels
 #' @export
 #'
@@ -71,27 +67,23 @@ sits_labels.sits_model <- function(data) {
 #' # show original samples ("Cerrado" and "Pasture")
 #' sits_labels(cerrado_2classes)
 #' # rename label samples to "Savanna" and "Grasslands"
-#' sits_labels(cerrado_2classes) <-  c("Savanna", "Grasslands")
+#' sits_labels(cerrado_2classes) <- c("Savanna", "Grasslands")
 #' # see the change
 #' sits_labels(cerrado_2classes)
-#'
 #' @export
 #'
 `sits_labels<-` <- function(data, value) {
-
     # set caller to show in errors
     .check_set_caller("sits_labels")
     # get the meta-type (sits or cube)
     data <- .conf_data_meta_type(data)
     UseMethod("sits_labels<-", data)
 }
-
 #' @name `sits_labels<-`
 #' @export
 #' @return           A sits tibble with modified labels.
 #'
 `sits_labels<-.sits` <- function(data, value) {
-
     # does the input data exist?
     .check_samples(data)
 
@@ -99,8 +91,8 @@ sits_labels.sits_model <- function(data) {
 
     # check if value and labels match
     .check_chr_parameter(value,
-                         len_max = length(labels),
-                         len_min = length(labels)
+        len_max = length(labels),
+        len_min = length(labels)
     )
     # check if there are no NA
     .check_that(
@@ -142,11 +134,12 @@ sits_labels.sits_model <- function(data) {
     n_labels_data <- length(sits_labels(data))
     labels_data <- sits_labels(data)
     .check_chr(value,
-               len_min = n_labels_data,
-               msg = "not enough new labels to replace current ones"
+        len_min = n_labels_data,
+        msg = "not enough new labels to replace current ones"
     )
-    if (purrr::is_null(names(value)))
+    if (purrr::is_null(names(value))) {
         names(value) <- names(labels_data)
+    }
     rows <- slider::slide_dfr(data, function(row) {
         row$labels <- list(value)
         return(row)
@@ -178,7 +171,6 @@ sits_labels_summary <- function(data) {
 #' @export
 #'
 sits_labels_summary.sits <- function(data) {
-
     warning("This function is deprecated. Please use summary()")
 
     # get frequency table

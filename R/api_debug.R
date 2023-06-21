@@ -17,11 +17,11 @@
 #' The log file name will be the same as the base name of the current
 #' session's temporary directory.
 #'
-#' @param flag  A logical value to set the debug flag
-#' @param event  The name of the event to be logged
-#' @param key  A key describing the value.
-#' @param value  Any value to be logged. The value will be converted
-#'   to string and escaped.
+#' @param flag     A logical value to set the debug flag
+#' @param event    The name of the event to be logged
+#' @param key      A key describing the value.
+#' @param value    Any value to be logged. The value will be converted
+#'                 to string and escaped.
 #' @return  A logical value with current debug flag
 .debug_log <- function(event = "", key = "", value = "") {
     # If debug flag is FALSE, then exit
@@ -46,7 +46,6 @@
     }
     # Output log file
     log_file <- .file_log_name(output_dir)
-
     # Elapsed time
     elapsed_time <- NULL
     if (.has(sits_env$log_time)) {
@@ -64,8 +63,8 @@
         cat(paste0(paste(
             "date_time", "pid", "event", "elapsed_time",
             "mem_used", "max_mem_used", "key", "value",
-            sep = ", "), "\n"
-        ), file = log_file, append = TRUE)
+            sep = ", "
+        ), "\n"), file = log_file, append = TRUE)
     } else {
         # Memory information
         mem <- gc()
@@ -74,9 +73,8 @@
     cat(paste0(paste(
         esc(time), Sys.getpid(), esc(event[[1]]), elapsed_time,
         sum(mem[, 2]), sum(mem[, 6]), esc(key[[1]]), esc(list(value)),
-        sep = ", "), "\n"
-    ), file = log_file, append = TRUE)
-
+        sep = ", "
+    ), "\n"), file = log_file, append = TRUE)
     return(invisible(NULL))
 }
 

@@ -5,21 +5,25 @@ test_that("One-year, multicores processing reclassify", {
         source = "USGS",
         collection = "LANDSAT-C2L2-SR",
         data_dir = data_dir,
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
+        parse_info = c(
+            "X1", "X2", "tile", "start_date", "end_date",
+            "band", "version"
+        ),
         bands = "class",
         version = "v20220606",
-        labels = c("1" = "Forest", "2" = "Water", "3" = "NonForest",
-                   "4" = "NonForest2", "6" = "d2007", "7" = "d2008",
-                   "8" = "d2009", "9" = "d2010", "10" = "d2011",
-                   "11" = "d2012", "12" = "d2013", "13" = "d2014",
-                   "14" = "d2015", "15" = "d2016", "16" = "d2017",
-                   "17" = "d2018", "18" = "r2010", "19" = "r2011",
-                   "20" = "r2012", "21" = "r2013", "22" = "r2014",
-                   "23" = "r2015", "24" = "r2016", "25" = "r2017",
-                   "26" = "r2018", "27" = "d2019", "28" = "r2019",
-                   "29" = "d2020", "31" = "r2020", "32" = "Clouds2021",
-                   "33" = "d2021", "34" = "r2021"),
+        labels = c(
+            "1" = "Forest", "2" = "Water", "3" = "NonForest",
+            "4" = "NonForest2", "6" = "d2007", "7" = "d2008",
+            "8" = "d2009", "9" = "d2010", "10" = "d2011",
+            "11" = "d2012", "12" = "d2013", "13" = "d2014",
+            "14" = "d2015", "15" = "d2016", "16" = "d2017",
+            "17" = "d2018", "18" = "r2010", "19" = "r2011",
+            "20" = "r2012", "21" = "r2013", "22" = "r2014",
+            "23" = "r2015", "24" = "r2016", "25" = "r2017",
+            "26" = "r2018", "27" = "d2019", "28" = "r2019",
+            "29" = "d2020", "31" = "r2020", "32" = "Clouds2021",
+            "33" = "d2021", "34" = "r2021"
+        ),
         progress = FALSE
     )
     # Open classification map
@@ -28,11 +32,15 @@ test_that("One-year, multicores processing reclassify", {
         source = "MPC",
         collection = "SENTINEL-2-L2A",
         data_dir = data_dir,
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
+        parse_info = c(
+            "X1", "X2", "tile", "start_date", "end_date",
+            "band", "version"
+        ),
         bands = "class",
-        labels = c("1" = "ClearCut_Fire", "2" = "ClearCut_Soil",
-                   "3" = "ClearCut_Veg", "4" = "Forest"),
+        labels = c(
+            "1" = "ClearCut_Fire", "2" = "ClearCut_Soil",
+            "3" = "ClearCut_Veg", "4" = "Forest"
+        ),
         progress = FALSE
     )
     # Reclassify cube
@@ -61,9 +69,11 @@ test_that("One-year, multicores processing reclassify", {
 
     expect_equal(
         sits_labels(ro_mask),
-        c("ClearCut_Fire", "ClearCut_Soil",
-          "ClearCut_Veg", "Forest", "Old_Deforestation",
-          "Water_Mask", "NonForest_Mask")
+        c(
+            "ClearCut_Fire", "ClearCut_Soil",
+            "ClearCut_Veg", "Forest", "Old_Deforestation",
+            "Water_Mask", "NonForest_Mask"
+        )
     )
     ro_class_obj <- .raster_open_rast(.tile_path(ro_class))
     prodes2021_obj <- .raster_open_rast(.tile_path(prodes2021))
@@ -105,7 +115,8 @@ test_that("One-year, multicores processing reclassify", {
                     memsize = 4,
                     multicores = 2,
                     output_dir = tempdir()
-                )},
+                )
+            },
             regexp = "Recovery: "
         )
     })

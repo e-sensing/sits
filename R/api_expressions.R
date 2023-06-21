@@ -9,7 +9,6 @@
         character()
     }
 }
-
 .expr_calls <- function(expr) {
     if (is.call(expr)) {
         unique(c(

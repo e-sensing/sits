@@ -13,18 +13,19 @@ test_that("One-year, multicore classification with ROI", {
     bbox[["xmax"]] <- (bbox[["xmax"]] - bbox[["xmin"]]) / 2 + bbox[["xmin"]]
     bbox[["ymax"]] <- (bbox[["ymax"]] - bbox[["ymin"]]) / 2 + bbox[["ymin"]]
 
-    sinop_probs <- .try({
-        sits_classify(
-            data = sinop,
-            ml_model = rfor_model,
-            output_dir = tempdir(),
-            roi = bbox,
-            memsize = 4,
-            multicores = 2,
-            progress = FALSE
-        )
-    },
-    .default = NULL
+    sinop_probs <- .try(
+        {
+            sits_classify(
+                data = sinop,
+                ml_model = rfor_model,
+                output_dir = tempdir(),
+                roi = bbox,
+                memsize = 4,
+                multicores = 2,
+                progress = FALSE
+            )
+        },
+        .default = NULL
     )
 
     if (purrr::is_null(sinop_probs)) {

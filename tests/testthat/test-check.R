@@ -1,5 +1,4 @@
 test_that("Caller", {
-
     # .check_set_caller, .check_identify_caller
     .check_set_caller("zzz")
     expect_equal(

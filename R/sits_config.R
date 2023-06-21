@@ -41,7 +41,6 @@ sits_config <- function(processing_bloat = NULL,
                         gdal_creation_options = NULL,
                         gdalcubes_chunk_size = NULL,
                         reset = FALSE) {
-
     # clear current configuration
     if (reset && !is.null(sits_env$config)) {
         sits_env$config <- list()
@@ -196,7 +195,6 @@ sits_config_show <- function(source = NULL,
 #'
 #' @export
 sits_list_collections <- function(source = NULL) {
-
     # get sources available
     sources <- .sources()
 
@@ -220,7 +218,7 @@ sits_list_collections <- function(source = NULL) {
             cat(paste0(
                 " (", .source_collection_satellite(s, c),
                 "/", .source_collection_sensor(s, c), ")\n",
-                "- grid system: ", .source_collection_grid_system(s,c), "\n"
+                "- grid system: ", .source_collection_grid_system(s, c), "\n"
             ))
             cat("- bands: ")
             cat(.source_bands(s, c))
@@ -243,4 +241,3 @@ sits_list_collections <- function(source = NULL) {
     })
     return(invisible(NULL))
 }
-

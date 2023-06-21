@@ -1,5 +1,3 @@
-
-
 #' @title Label neurons
 #' @name .som_label_neurons
 #' @keywords internal
@@ -152,13 +150,12 @@
 #'                       colour of the neuron.
 #'
 .som_paint_neurons <- function(kohonen_obj) {
-
     # assign one color per unique label
 
     colors <- .colors_get(
         labels = kohonen_obj$neuron_label,
         legend = NULL,
-        color_palette = "Spectral",
+        palette = "Spectral",
         rev = TRUE
     )
 

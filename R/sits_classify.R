@@ -88,7 +88,8 @@
 #'     )
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
-#'         probs_cube, output_dir = tempdir()
+#'         probs_cube,
+#'         output_dir = tempdir()
 #'     )
 #'     # plot the classified image
 #'     plot(label_cube)
@@ -99,7 +100,6 @@ sits_classify <- function(data, ml_model, ...,
                           filter_fn = NULL,
                           multicores = 2,
                           progress = TRUE) {
-
     # Pre-conditions
     data <- .conf_data_meta_type(data)
     .check_is_sits_model(ml_model)
@@ -116,7 +116,6 @@ sits_classify.sits <- function(data,
                                filter_fn = NULL,
                                multicores = 2,
                                progress = TRUE) {
-
     # Pre-conditions
     .check_samples(data)
 
@@ -168,10 +167,12 @@ sits_classify.raster_cube <- function(data,
             cube = data, start_date = start_date, end_date = end_date
         )
     }
-    if (!purrr::is_null(filter_fn))
+    if (!purrr::is_null(filter_fn)) {
         .check_that(is.function(filter_fn),
-                    local_msg = "Please use sits_whittaker() or sits_sgolay()",
-                    msg = "Invalid filter_fn parameter")
+            local_msg = "Please use sits_whittaker() or sits_sgolay()",
+            msg = "Invalid filter_fn parameter"
+        )
+    }
     # Retrieve the samples from the model
     samples <- .ml_samples(ml_model)
     # Do the samples and tile match their timeline length?
@@ -201,14 +202,18 @@ sits_classify.raster_cube <- function(data,
         multicores = multicores
     )
     # Prepare parallel processing
-    .parallel_start(workers = multicores, log = verbose,
-                         output_dir = output_dir)
+    .parallel_start(
+        workers = multicores, log = verbose,
+        output_dir = output_dir
+    )
     on.exit(.parallel_stop(), add = TRUE)
     # Show block information
     if (verbose) {
         start_time <- Sys.time()
-        message("Using blocks of size (", .nrows(block),
-                " x ", .ncols(block), ")")
+        message(
+            "Using blocks of size (", .nrows(block),
+            " x ", .ncols(block), ")"
+        )
     }
     # Classification
     # Process each tile sequentially
@@ -233,8 +238,10 @@ sits_classify.raster_cube <- function(data,
         end_time <- Sys.time()
         message("")
         message("Classification finished at ", end_time)
-        message("Elapsed time of ",
-                format(round(end_time - start_time, digits = 2)))
+        message(
+            "Elapsed time of ",
+            format(round(end_time - start_time, digits = 2))
+        )
     }
     return(probs_cube)
 }

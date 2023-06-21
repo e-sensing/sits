@@ -39,7 +39,6 @@
     # Prepare parallel processing
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
-
     # Call the combine method
     # Process each tile sequentially
     probs_cube <- purrr::map_dfr(seq_len(nrow(base_cube)), function(i) {
@@ -57,7 +56,6 @@
     })
     probs_cube
 }
-
 .comb_tiles <- function(probs_tiles,
                         uncert_tiles,
                         band,
@@ -146,7 +144,6 @@
         # check minimum and maximum values
         values[values < min] <- min
         values[values > max] <- max
-
         # Prepare and save results as raster
         .raster_write_block(
             files = block_file,
@@ -176,9 +173,7 @@
     # Return probs tile
     probs_tile
 }
-
 #---- combine functions ----
-
 .comb_fn_average <- function(cubes, weights) {
     # Average probability calculation
     comb_fn <- function(values, uncert_values = NULL) {
@@ -190,15 +185,16 @@
         .check_processed_values(values, input_pixels)
         .check_that(
             ncol(values) == length(sits_labels(cubes[[1]])),
-            msg = paste("number of columns of processed matrix is different",
-                        "from the number of cube labels")
+            msg = paste(
+                "number of columns of processed matrix is different",
+                "from the number of cube labels"
+            )
         )
         # Return values
         values
     }
     comb_fn
 }
-
 .comb_fn_uncertainty <- function(cubes) {
     # Average probability calculation
     comb_fn <- function(values, uncert_values) {
@@ -210,8 +206,10 @@
         .check_processed_values(values, input_pixels)
         .check_that(
             ncol(values) == length(sits_labels(cubes[[1]])),
-            msg = paste("number of columns of processed matrix is different",
-                        "from the number of cube labels")
+            msg = paste(
+                "number of columns of processed matrix is different",
+                "from the number of cube labels"
+            )
         )
         # Return values
         values

@@ -1,7 +1,6 @@
-
 #---- internal functions ----
 
-.label_tile  <- function(tile, band, label_fn, output_dir, version, progress) {
+.label_tile <- function(tile, band, label_fn, output_dir, version, progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
@@ -82,7 +81,6 @@
 #---- label functions ----
 
 .label_fn_majority <- function() {
-
     label_fn <- function(values) {
         # Used to check values (below)
         input_pixels <- nrow(values)

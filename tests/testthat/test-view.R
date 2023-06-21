@@ -1,5 +1,4 @@
 test_that("View", {
-
     v <- sits_view(cerrado_2classes)
     expect_true("leaflet" %in% class(v))
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -17,7 +16,7 @@ test_that("View", {
     v2 <- sits_view(modis_cube,
         band = "NDVI",
         dates = timeline[[1]],
-        color_palette = "RdYlGn"
+        palette = "RdYlGn"
     )
 
     expect_true("leaflet" %in% class(v2))
@@ -26,10 +25,10 @@ test_that("View", {
 
     # plot the data cube RGB
     vrgb <- sits_view(modis_cube,
-                    red = "NDVI",
-                    green = "NDVI",
-                    blue = "NDVI",
-                    dates = timeline[[1]]
+        red = "NDVI",
+        green = "NDVI",
+        blue = "NDVI",
+        dates = timeline[[1]]
     )
     expect_true("leaflet" %in% class(vrgb))
     expect_true(grepl("EPSG3857", vrgb$x$options$crs$crsClass))
@@ -77,11 +76,11 @@ test_that("View", {
     expect_equal(v4$x$calls[[1]]$method, "addProviderTiles")
 
     v4rgb <- sits_view(modis_cube,
-                       red = "NDVI",
-                       green = "NDVI",
-                       blue = "NDVI",
-                       dates = timeline[[1]],
-                       class_cube = modis_label
+        red = "NDVI",
+        green = "NDVI",
+        blue = "NDVI",
+        dates = timeline[[1]],
+        class_cube = modis_label
     )
 
     expect_true(grepl("EPSG3857", v4rgb$x$options$crs$crsClass))

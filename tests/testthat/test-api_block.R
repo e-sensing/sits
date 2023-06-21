@@ -1,5 +1,4 @@
 test_that("API block", {
-
     x <- list(a = 0, z = 0)
     y <- .block(x)
     expect_null(y)
@@ -25,7 +24,4 @@ test_that("API block", {
     expect_equal(s2, 56)
 
     expect_equal(.col(z), 1)
-
-
-
 })

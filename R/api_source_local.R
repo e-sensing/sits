@@ -13,7 +13,6 @@
                         end_date,
                         multicores,
                         progress, ...) {
-
     # set caller to show in errors
     .check_set_caller(".local_cube")
     # is this a cube with results?
@@ -95,8 +94,10 @@
 
     if (results_cube) {
         result_class <- .conf("sits_results_s3_class")[[bands]]
-        class(cube) <- c(result_class, "derived_cube",
-                         "raster_cube", class(cube))
+        class(cube) <- c(
+            result_class, "derived_cube",
+            "raster_cube", class(cube)
+        )
     } else {
         class(cube) <- .cube_s3class(cube)
     }
@@ -113,7 +114,6 @@
                                   start_date,
                                   end_date,
                                   bands) {
-
     # set caller to show in errors
     .check_set_caller(".local_cube_items_new")
 
@@ -182,18 +182,22 @@
     )
     if (!purrr::is_null(bands)) {
         # check if bands exist
-        .check_chr_contains(x = items$band,
-                            contains = bands,
-                            discriminator = "all_of",
-                            msg = "Wrong bands specification - please correct")
+        .check_chr_contains(
+            x = items$band,
+            contains = bands,
+            discriminator = "all_of",
+            msg = "Wrong bands specification - please correct"
+        )
     }
     # get the information on the required bands, dates and path
     if (results_cube) {
         # check required version exists
-        .check_chr_within(x = version,
-                          within = items$version,
-                          discriminator = "any_of",
-                          msg = "Wrong version specification - please correct")
+        .check_chr_within(
+            x = version,
+            within = items$version,
+            discriminator = "any_of",
+            msg = "Wrong version specification - please correct"
+        )
         # get only the first band
         band <- bands[[1]]
         # get the information on the required band, dates and path
@@ -238,7 +242,8 @@
             dplyr::mutate(band = toupper(.data[["band"]])) |>
             # add path
             dplyr::mutate(
-                path = paste(!!data_dir, !!img_files_filt, sep = "/")) |>
+                path = paste(!!data_dir, !!img_files_filt, sep = "/")
+            ) |>
             # select the relevant parts
             dplyr::select(
                 "tile",
@@ -279,7 +284,6 @@
                                            collection,
                                            bands,
                                            items) {
-
     # set caller to show in errors
     .check_set_caller(".local_cube_items_bands_select")
 
@@ -308,15 +312,14 @@
 #' @noRd
 .local_cube_items_tiles_select <- function(tiles,
                                            items) {
-
     # set caller to show in errors
     .check_set_caller(".local_cube_items_tiles_select")
 
     # filter tiles
     # verify that the requested tiles exist
     .check_chr_within(tiles,
-                      within = unique(items[["tile"]]),
-                      msg = "invalid 'tiles' value"
+        within = unique(items[["tile"]]),
+        msg = "invalid 'tiles' value"
     )
     # select the requested bands
     items <- dplyr::filter(items, .data[["tile"]] %in% !!tiles)
@@ -382,8 +385,9 @@
     errors <- unlist(purrr::map(results_lst, `[[`, "error"))
     if (length(errors) > 0) {
         warning("cannot open file(s): ",
-                paste0("'", errors, "'", collapse = ", "),
-                call. = FALSE, immediate. = TRUE)
+            paste0("'", errors, "'", collapse = ", "),
+            call. = FALSE, immediate. = TRUE
+        )
     }
 
     items <- dplyr::bind_rows(items) |>
@@ -395,7 +399,6 @@
 #' @keywords internal
 #' @noRd
 .local_results_cube_file_info <- function(items, multicores, progress) {
-
     # set caller to show in errors
     .check_set_caller(".local_results_cube_file_info")
 
@@ -411,15 +414,14 @@
     }
     # do parallel requests
     results_lst <- .parallel_map(seq_len(nrow(items)), function(i) {
-
         item <- items[i, ]
         # open band rasters and get assets info
         assets_info <- purrr::map(item[["path"]], function(path) {
             tryCatch(
                 {
                     asset <- .raster_open_rast(path)
-                    res  <- .raster_res(asset)
-                    crs  <- .raster_crs(asset)
+                    res <- .raster_res(asset)
+                    crs <- .raster_crs(asset)
                     bbox <- .raster_bbox(asset)
                     size <- .raster_size(asset)
 
@@ -450,8 +452,9 @@
     errors <- unlist(purrr::map(results_lst, `[[`, "error"))
     if (length(errors) > 0) {
         warning("cannot open file(s):",
-                paste0("'", errors, "'", collapse = ", "),
-                call. = FALSE, immediate. = TRUE)
+            paste0("'", errors, "'", collapse = ", "),
+            call. = FALSE, immediate. = TRUE
+        )
     }
 
     items <- dplyr::bind_rows(items_lst)
@@ -473,18 +476,19 @@
     # make a new file info for one tile
     file_info <- dplyr::select(
         items,
-        dplyr::all_of(c("fid",
-          "band",
-          "date",
-          "xmin",
-          "ymin",
-          "xmax",
-          "ymax",
-          "xres",
-          "yres",
-          "nrows",
-          "ncols",
-          "path"
+        dplyr::all_of(c(
+            "fid",
+            "band",
+            "date",
+            "xmin",
+            "ymin",
+            "xmax",
+            "ymax",
+            "xres",
+            "yres",
+            "nrows",
+            "ncols",
+            "path"
         ))
     )
 
@@ -521,19 +525,20 @@
     # make a new file info for one tile
     file_info <- dplyr::select(
         items,
-        dplyr::all_of(c("band",
-          "start_date",
-          "end_date",
-          "ncols",
-          "nrows",
-          "xres",
-          "yres",
-          "xmin",
-          "xmax",
-          "ymin",
-          "ymax",
-          "crs",
-          "path"
+        dplyr::all_of(c(
+            "band",
+            "start_date",
+            "end_date",
+            "ncols",
+            "nrows",
+            "xres",
+            "yres",
+            "xmin",
+            "xmax",
+            "ymin",
+            "ymax",
+            "crs",
+            "path"
         ))
     )
     # create a tibble to store the metadata

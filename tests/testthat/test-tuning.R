@@ -1,5 +1,4 @@
 test_that("Tuning - random search", {
-
     Sys.setenv("OMP_NUM_THREADS" = 1)
 
     set.seed(123)
@@ -113,5 +112,4 @@ test_that("Tuning - random search", {
     expect_true(max(tuned_lunif$kappa) > 0.5)
 
     Sys.unsetenv("OMP_NUM_THREADS")
-
 })

@@ -26,8 +26,8 @@
     }
     # perform SMOTE
     smoteret <- .smote_apply(data[, -col_ind],
-                             data[, col_ind],
-                             dup_size = dup_size
+        data[, col_ind],
+        dup_size = dup_size
     )
     # rbind the original observations and sufficient samples of the synthetic
     # ones

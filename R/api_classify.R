@@ -27,17 +27,16 @@
 #' @param  verbose         Print processing information?
 #' @param  progress        Show progress bar?
 #' @return List of the classified raster layers.
-.classify_tile  <- function(tile,
-                            band,
-                            ml_model,
-                            block,
-                            roi,
-                            filter_fn,
-                            output_dir,
-                            version,
-                            verbose,
-                            progress) {
-
+.classify_tile <- function(tile,
+                           band,
+                           ml_model,
+                           block,
+                           roi,
+                           filter_fn,
+                           output_dir,
+                           version,
+                           verbose,
+                           progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
@@ -46,8 +45,10 @@
     if (file.exists(out_file)) {
         if (.check_messages()) {
             message("Recovery: tile '", tile[["tile"]], "' already exists.")
-            message("(If you want to produce a new image, please ",
-                    "change 'output_dir' or 'version' parameters)")
+            message(
+                "(If you want to produce a new image, please ",
+                "change 'output_dir' or 'version' parameters)"
+            )
         }
         probs_tile <- .tile_derived_from_file(
             file = out_file,
@@ -59,14 +60,13 @@
         )
         return(probs_tile)
     }
-    # # Callback final tile classification
-    # .callback(process = "tile_classification", event = "started",
-    #           context = environment())
     # Show initial time for tile classification
     if (verbose) {
         tile_start_time <- Sys.time()
-        message("Starting classification of tile '",
-                tile[["tile"]], "' at ", tile_start_time)
+        message(
+            "Starting classification of tile '",
+            tile[["tile"]], "' at ", tile_start_time
+        )
     }
     # Create chunks as jobs
     chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
@@ -107,31 +107,22 @@
         values <- C_fill_na(values, 0)
         # Used to check values (below)
         input_pixels <- nrow(values)
-
-        #
         # Log here
-        #
         .debug_log(
             event = "start_block_data_classification",
             key = "model",
             value = .ml_class(ml_model)
         )
-
         # Apply the classification model to values
         values <- ml_model(values)
-
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
-
-        #
-        # Log here
-        #
+        # Log
         .debug_log(
             event = "end_block_data_classification",
             key = "model",
             value = .ml_class(ml_model)
         )
-
         # Prepare probability to be saved
         band_conf <- .conf_derived_band(
             derived_class = "probs_cube", band = band
@@ -144,20 +135,14 @@
         if (.has(scale) && scale != 1) {
             values <- values / scale
         }
-
         # Mask NA pixels
         values[na_mask, ] <- NA
-
-        #
-        # Log here
-        #
+        # Log
         .debug_log(
             event = "start_block_data_save",
             key = "file",
             value = block_file
         )
-
-
         # Prepare and save results as raster
         .raster_write_block(
             files = block_file,
@@ -168,17 +153,12 @@
             missing_value = .miss_value(band_conf),
             crop_block = NULL
         )
-
-        #
-        # Log here
-        #
+        # Log
         .debug_log(
             event = "end_block_data_save",
             key = "file",
             value = block_file
         )
-
-
         # Free memory
         gc()
         # Returned block file
@@ -195,15 +175,14 @@
         multicores = .jobs_multicores(),
         update_bbox = update_bbox
     )
-    # # Callback final tile classification
-    # .callback(event = "tile_classification", status = "end",
-    #           context = environment())
     # show final time for classification
     if (verbose) {
         tile_end_time <- Sys.time()
         message("Tile '", tile[["tile"]], "' finished at ", tile_end_time)
-        message("Elapsed time of ",
-                format(round(tile_end_time - tile_start_time, digits = 2)))
+        message(
+            "Elapsed time of ",
+            format(round(tile_end_time - tile_start_time, digits = 2))
+        )
         message("")
     }
     # Return probs tile
@@ -242,7 +221,7 @@
             values[cloud_mask] <- NA
         }
         # use linear imputation
-        impute_fn = .impute_linear()
+        impute_fn <- .impute_linear()
         # are there NA values? interpolate them
         if (any(is.na(values))) {
             values <- impute_fn(values)
@@ -264,16 +243,12 @@
                 values <- C_normalize_data_0(values, q02, q98)
             }
         }
-
-        #
-        # Log here
-        #
+        # Log
         .debug_log(
             event = "end_block_data_process",
             key = "band",
             value = band
         )
-
         # Return values
         as.data.frame(values)
     })
@@ -303,29 +278,23 @@
                          filter_fn,
                          multicores,
                          progress) {
-
     # Start parallel workers
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
-
     # Get bands from model
     bands <- .ml_bands(ml_model)
-
     # Update samples bands order
     if (any(bands != .samples_bands(samples))) {
         samples <- .samples_select_bands(samples = samples, bands = bands)
     }
-
     # Apply time series filter
     if (.has(filter_fn)) {
         samples <- .apply_across(data = samples, fn = filter_fn)
     }
-
     # Compute the breaks in time for multiyear classification
     class_info <- .timeline_class_info(
         data = samples, samples = .ml_samples(ml_model)
     )
-
     # Split long time series of samples in a set of small time series
     if (length(class_info[["dates_index"]][[1]]) > 1) {
         splitted <- .samples_split(
@@ -339,7 +308,6 @@
         # Convert samples time series in predictors and preprocess data
         pred <- .predictors(samples = samples, ml_model = ml_model)
     }
-
     # Divide samples predictors in chunks to parallel processing
     parts <- .pred_create_partition(pred = pred, partitions = multicores)
     # Do parallel process
@@ -354,7 +322,6 @@
         values <- tibble::tibble(data.frame(values))
         values
     }, progress = progress)
-
     # Store the result in the input data
     if (length(class_info[["dates_index"]][[1]]) > 1) {
         prediction <- .tibble_prediction_multiyear(

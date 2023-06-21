@@ -26,16 +26,17 @@ test_that("Single core classification with rfor", {
     # testing resume feature
     out <- capture_messages({
         expect_message(
-        object = {
-            sits_classify(
-                data = sinop,
-                ml_model = rfor_model,
-                output_dir = output_dir,
-                memsize = 4,
-                multicores = 2,
-                progress = TRUE
-            )},
-        regexp = "Recovery: "
+            object = {
+                sits_classify(
+                    data = sinop,
+                    ml_model = rfor_model,
+                    output_dir = output_dir,
+                    memsize = 4,
+                    multicores = 2,
+                    progress = TRUE
+                )
+            },
+            regexp = "Recovery: "
         )
     })
     expect_true(grepl("output_dir", out[1]))
@@ -45,7 +46,7 @@ test_that("Single core classification with rfor", {
         "Pastagem", "Soja_Milho"
     )
     expect_true(all(sits_labels(sinop_probs) %in%
-                        c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")))
+        c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")))
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
 
@@ -61,7 +62,6 @@ test_that("Single core classification with rfor", {
 })
 
 test_that("Classification with SVM", {
-
     svm_model <- sits_train(samples_modis_ndvi, sits_svm())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -97,7 +97,6 @@ test_that("Classification with SVM", {
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
 test_that("Classification with XGBoost", {
-
     xgb_model <- sits_train(samples_modis_ndvi, sits_xgboost())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -134,7 +133,6 @@ test_that("Classification with XGBoost", {
 })
 
 test_that("Classification with SVM and Whittaker filter", {
-
     samples_filt <- sits_filter(samples_modis_ndvi, filter = sits_whittaker())
 
     svm_model <- sits_train(samples_filt, sits_svm())
@@ -173,7 +171,6 @@ test_that("Classification with SVM and Whittaker filter", {
 })
 
 test_that("Classification with RFOR and Savitzky-Golay filter", {
-
     samples_filt <- sits_apply(samples_modis_ndvi, NDVI = sits_sgolay(NDVI))
 
     rfor_model <- sits_train(samples_filt, sits_rfor())
@@ -215,7 +212,6 @@ test_that("Classification with RFOR and Savitzky-Golay filter", {
 })
 
 test_that("Classification with MLP", {
-
     torch_model <- sits_train(samples_modis_ndvi, sits_mlp(epochs = 20))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -254,7 +250,6 @@ test_that("Classification with MLP", {
 })
 
 test_that("Classification with TempCNN", {
-
     torch_model <- sits_train(samples_modis_ndvi, sits_tempcnn(epochs = 20))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -293,7 +288,6 @@ test_that("Classification with TempCNN", {
 })
 
 test_that("Classification with ResNet", {
-
     torch_model <- sits_train(samples_modis_ndvi, sits_resnet(epochs = 20))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -331,7 +325,6 @@ test_that("Classification with ResNet", {
 })
 
 test_that("Classification with TAE", {
-
     torch_model <- sits_train(samples_modis_ndvi, sits_tae(epochs = 20))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -345,7 +338,7 @@ test_that("Classification with TAE", {
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
-    sinop_2014_probs <-  sits_classify(
+    sinop_2014_probs <- sits_classify(
         data = sinop,
         ml_model = torch_model,
         output_dir = output_dir,
@@ -369,7 +362,6 @@ test_that("Classification with TAE", {
 })
 
 test_that("Classification with LightTAE", {
-
     torch_model <- sits_train(samples_modis_ndvi, sits_lighttae(epochs = 20))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -408,9 +400,9 @@ test_that("Classification with LightTAE", {
 })
 
 test_that("Classification with cloud band", {
-
     csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-                            package = "sits")
+        package = "sits"
+    )
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
@@ -474,7 +466,6 @@ test_that("Classification with cloud band", {
 })
 
 test_that("Classification with post-processing", {
-
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -507,19 +498,21 @@ test_that("Classification with post-processing", {
     # testing resume feature
     out <- capture_messages({
         expect_message(
-        object = {sits_label_classification(
-            sinop_probs,
-            output_dir = output_dir,
-            progress = FALSE
-        ) },
-        regexp = "Recovery"
+            object = {
+                sits_label_classification(
+                    sinop_probs,
+                    output_dir = output_dir,
+                    progress = FALSE
+                )
+            },
+            regexp = "Recovery"
         )
     })
     expect_true(grepl("output_dir", out[1]))
 
     expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
     expect_true(length(sits_timeline(sinop_class)) ==
-                    length(sits_timeline(sinop_probs)))
+        length(sits_timeline(sinop_probs)))
 
     r_obj <- .raster_open_rast(sinop_class$file_info[[1]]$path[[1]])
     max_lab <- max(.raster_get_values(r_obj))
@@ -537,14 +530,15 @@ test_that("Classification with post-processing", {
     # testing the recovery feature
     out <- capture_messages({
         expect_message(
-        object = {
-            sits_smooth(
-                sinop_probs,
-                output_dir = output_dir,
-                multicores = 2,
-                memsize = 4
-            )},
-        regexp = "Recovery"
+            object = {
+                sits_smooth(
+                    sinop_probs,
+                    output_dir = output_dir,
+                    multicores = 2,
+                    memsize = 4
+                )
+            },
+            regexp = "Recovery"
         )
     })
     expect_true(grepl("output_dir", out[1]))
@@ -552,7 +546,7 @@ test_that("Classification with post-processing", {
     expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
 
     expect_true(length(sits_timeline(sinop_bayes)) ==
-                    length(sits_timeline(sinop_probs)))
+        length(sits_timeline(sinop_probs)))
 
     r_bay <- .raster_open_rast(sinop_bayes$file_info[[1]]$path[[1]])
     expect_true(.raster_nrows(r_bay) == .tile_nrows(sinop_probs))
@@ -604,9 +598,11 @@ test_that("Classification with post-processing", {
         version = "v1",
         labels = sits_labels(sinop_class),
         data_dir = output_dir,
-        parse_info = c("X1", "X2", "tile",
-                       "start_date", "end_date",
-                       "band", "version"),
+        parse_info = c(
+            "X1", "X2", "tile",
+            "start_date", "end_date",
+            "band", "version"
+        ),
         progress = FALSE
     )
 

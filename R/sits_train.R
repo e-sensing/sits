@@ -23,19 +23,18 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
-#' # fit a training model (RFOR model)
-#' ml_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 50))
-#' # get a point and classify the point with the ml_model
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' class <- sits_classify(
-#'     data = point_ndvi, ml_model = ml_model
-#' )
+#'     # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
+#'     # fit a training model (RFOR model)
+#'     ml_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 50))
+#'     # get a point and classify the point with the ml_model
+#'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#'     class <- sits_classify(
+#'         data = point_ndvi, ml_model = ml_model
+#'     )
 #' }
 #' @export
 #'
 sits_train <- function(samples, ml_method = sits_svm()) {
-
     # set caller to show in errors
     .check_set_caller("sits_train")
     # check if samples are valid
@@ -46,7 +45,7 @@ sits_train <- function(samples, ml_method = sits_svm()) {
         x = inherits(ml_method, "function"),
         msg = "ml_method is not a valid function"
     )
-
+    # are the timelines OK?
     .check_that(
         x = .timeline_check(samples) == TRUE,
         msg = paste0(
@@ -54,10 +53,8 @@ sits_train <- function(samples, ml_method = sits_svm()) {
             "Use .tibble_prune or sits_fix_timeline"
         )
     )
-
     # compute the training method by the given data
     result <- ml_method(samples)
-
     # return a valid machine learning method
     return(result)
 }

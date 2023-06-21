@@ -28,21 +28,16 @@
 #' @param  ...           Any additional parameters.
 #' @return               Time series with patterns.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'    patterns <- sits_patterns(cerrado_2classes)
-#'    plot(patterns)
-#'}
+#'     patterns <- sits_patterns(cerrado_2classes)
+#'     plot(patterns)
+#' }
 #'
 #' @export
 sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
     # verifies if mgcv package is installed
     .check_require_packages("mgcv")
-
-
     # function that is used to be called as a value from another function
     result_fun <- function(tb) {
         # does the input data exist?
@@ -67,27 +62,23 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
         )
         # how many different labels are there?
         labels <- dplyr::distinct(tb, .data[["label"]])$label
-
         # traverse labels
         patterns <- labels |>
             purrr::map_dfr(function(lb) {
                 # filter only those rows with the same label
                 label_rows <- dplyr::filter(tb, .data[["label"]] == lb)
-
                 # create a data frame to store the time instances
                 time <- data.frame(as.numeric(pred_time))
                 # name the time as the second variable of the formula
                 names(time) <- vars[2]
                 # store the time series associated to the pattern
                 index <- tibble::tibble(Index = lubridate::as_date(pred_time))
-
                 # calculate the fit for each band
                 fit_bands <- bds |>
                     purrr::map(function(bd) {
                         # retrieve the time series for each band
                         label_b <- sits_select(label_rows, bd)
                         ts <- dplyr::bind_rows(label_b$time_series)
-
                         # melt the time series for each band into a long table
                         # with all values together
                         ts2 <- ts |>
@@ -103,30 +94,25 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                                 x = as.numeric(.data[["Index"]]),
                                 y = .data[["value"]]
                             )
-
                         # calculate the best fit for the data set
                         fit <- mgcv::gam(data = ts2, formula = formula)
-
                         # Takes a fitted gam object and produces predictions
                         # in the sequence of prediction times
                         pred_values <- mgcv::predict.gam(fit, newdata = time)
-
                         # include the predicted values for the band
                         patt_b <- tibble::tibble(b = pred_values)
-
                         # rename the column to match the band names
                         names(patt_b)[names(patt_b) == "b"] <- bd
                         # return the tibble column to the list
                         return(patt_b)
                     }) # for each band
-
+                # join the estimates for each bands
                 res_label <- dplyr::bind_cols(fit_bands)
+                # Add the temporal index
                 res_label <- dplyr::bind_cols(index, res_label)
-
                 # put the pattern in a list to store in a sits tibble
                 ts <- tibble::lst()
                 ts[[1]] <- res_label
-
                 # add the pattern to the results tibble
                 row <- tibble::tibble(
                     longitude = 0.0,
@@ -142,7 +128,6 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
         class(patterns) <- c("patterns", class(patterns))
         return(patterns)
     }
-
     result <- .factory_function(data, result_fun)
     return(result)
 }

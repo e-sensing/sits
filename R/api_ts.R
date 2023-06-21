@@ -65,7 +65,8 @@
 .ts_start_date <- function(ts) {
     # TODO: create a utility function instead. See .by() function
     .as_date(unlist(unname(tapply(
-        as.character(.ts_index(ts)), .ts_sample_id(ts), min, simplify = FALSE
+        as.character(.ts_index(ts)), .ts_sample_id(ts), min,
+        simplify = FALSE
     ))))
 }
 
@@ -75,7 +76,8 @@
 
 .ts_end_date <- function(ts) {
     .as_date(unlist(unname(tapply(
-        as.character(.ts_index(ts)), .ts_sample_id(ts), max, simplify = FALSE
+        as.character(.ts_index(ts)), .ts_sample_id(ts), max,
+        simplify = FALSE
     ))))
 }
 
@@ -125,8 +127,6 @@
                                 bands,
                                 xy,
                                 cld_band = NULL) {
-
-
     # set caller to show in errors
     .check_set_caller(".raster_data_get_ts")
 
@@ -134,7 +134,6 @@
 
     # retrieve values for the cloud band (if available)
     if (!purrr::is_null(cld_band)) {
-
         # retrieve values that indicate clouds
         cld_index <- .source_cloud_interp_values(
             source = .tile_source(tile),
@@ -156,7 +155,7 @@
             cld_values <- as.matrix(cld_values)
             cld_rows <- nrow(cld_values)
             cld_values <- matrix(bitwAnd(cld_values, sum(2^cld_index)),
-                                 nrow = cld_rows
+                nrow = cld_rows
             )
         }
     }
@@ -164,14 +163,13 @@
     # Retrieve values on a band by band basis
     # using parallel processing
     ts_bands <- purrr::map(bands, function(band) {
-
         # get the scale factors, max, min and missing values
-        band_params   <- .tile_band_conf(tile, band)
+        band_params <- .tile_band_conf(tile, band)
         missing_value <- .miss_value(band_params)
         minimum_value <- .min_value(band_params)
         maximum_value <- .max_value(band_params)
-        scale_factor  <- .scale(band_params)
-        offset_value  <- .offset(band_params)
+        scale_factor <- .scale(band_params)
+        offset_value <- .offset(band_params)
 
         # get the values of the time series as matrix
         values_band <- .tile_extract(
@@ -194,13 +192,13 @@
 
             # get only valid values for the timeline
             values_ts <- unlist(values_band[i, start_idx:end_idx],
-                                use.names = FALSE
+                use.names = FALSE
             )
 
             # include information from cloud band
             if (!purrr::is_null(cld_band)) {
                 cld_values <- unlist(cld_values[i, start_idx:end_idx],
-                                     use.names = FALSE
+                    use.names = FALSE
                 )
                 if (.source_cloud_bit_mask(
                     source = .cube_source(cube = tile),
@@ -218,7 +216,7 @@
             values_ts[values_ts > maximum_value] <- NA
 
             # use linear imputation
-            impute_fn = .impute_linear()
+            impute_fn <- .impute_linear()
             # are there NA values? interpolate them
             if (any(is.na(values_ts))) {
                 values_ts <- impute_fn(values_ts)
@@ -269,7 +267,6 @@
                                  points,
                                  band,
                                  xy) {
-
     # set caller to show in errors
     .check_set_caller(".raster_class_get_ts")
 

@@ -2,7 +2,6 @@
 #' @noRd
 #' @export
 .raster_check_package.terra <- function() {
-
     # package namespace
     pkg_name <- "terra"
 
@@ -18,7 +17,6 @@
 #' @noRd
 #' @export
 .raster_get_values.terra <- function(r_obj, ...) {
-
     # read values and close connection
     terra::readStart(x = r_obj)
     res <- terra::readValues(x = r_obj, mat = TRUE, ...)
@@ -47,10 +45,10 @@
 #' @noRd
 #' @export
 .raster_file_blocksize.terra <- function(r_obj) {
-        block_size <- c(terra::fileBlocksize(r_obj[[1]]))
-        names(block_size) <- c("nrows", "ncols")
+    block_size <- c(terra::fileBlocksize(r_obj[[1]]))
+    names(block_size) <- c("nrows", "ncols")
 
-        return(block_size)
+    return(block_size)
 }
 
 #' @keywords internal
@@ -79,7 +77,6 @@
                                      data_type,
                                      overwrite, ...,
                                      missing_value = NA) {
-
     # set caller to show in errors
     .check_set_caller(".raster_write_rast.terra")
 
@@ -119,7 +116,6 @@
                                    crs, ...,
                                    xres = NULL,
                                    yres = NULL) {
-
     # prepare resolution
     resolution <- c(xres, yres)
 
@@ -127,7 +123,6 @@
     if (is.numeric(crs)) crs <- paste0("EPSG:", crs)
 
     if (is.null(resolution)) {
-
         # create a raster object
         r_obj <- suppressWarnings(
             terra::rast(
@@ -142,7 +137,6 @@
             )
         )
     } else {
-
         # create a raster object
         r_obj <- suppressWarnings(
             terra::rast(
@@ -164,13 +158,11 @@
 #' @noRd
 #' @export
 .raster_read_rast.terra <- function(files, ..., block = NULL) {
-
     # create raster objects
     r_obj <- .raster_open_rast.terra(file = path.expand(files), ...)
 
     # start read
     if (purrr::is_null(block)) {
-
         # read values
         terra::readStart(r_obj)
         values <- terra::readValues(
@@ -180,7 +172,6 @@
         # close file descriptor
         terra::readStop(r_obj)
     } else {
-
         # read values
         terra::readStart(r_obj)
         values <- terra::readValues(
@@ -255,10 +246,8 @@
 .raster_crop_metadata.terra <- function(r_obj, ...,
                                         block = NULL,
                                         bbox = NULL) {
-
     # obtain coordinates from columns and rows
     if (!is.null(block)) {
-
         # get extent
         xmin <- terra::xFromCol(
             object = r_obj,

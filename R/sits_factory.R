@@ -24,13 +24,11 @@
 #' @examples
 #' # example code
 #' if (sits_run_examples()) {
-#'
-#' # Include a new machine learning function (multiple linear regression)
-#' # function that returns mlr model based on a sits sample tibble
+#'     # Include a new machine learning function (multiple linear regression)
+#'     # function that returns mlr model based on a sits sample tibble
 #'
 #'     sits_mlr <- function(samples = NULL, formula = sits_formula_linear(),
-#'                     n_weights = 20000, maxit = 2000) {
-#'
+#'                          n_weights = 20000, maxit = 2000) {
 #'         train_fun <- function(samples) {
 #'             # Data normalization
 #'             ml_stats <- sits_stats(samples)
@@ -50,18 +48,19 @@
 #'                 na.action = stats::na.fail
 #'             )
 #'
-#'           # construct model predict closure function and returns
-#'           predict_fun <- function(values) {
-#'               # retrieve the prediction (values and probs)
-#'               prediction <- tibble::as_tibble(
-#'                   stats::predict(result_mlr,
-#'                   newdata = values,
-#'                   type = "probs")
-#'               )
-#'               return(prediction)
-#'            }
-#'            class(predict_fun) <- c("sits_model", class(predict_fun))
-#'            return(predict_fun)
+#'             # construct model predict closure function and returns
+#'             predict_fun <- function(values) {
+#'                 # retrieve the prediction (values and probs)
+#'                 prediction <- tibble::as_tibble(
+#'                     stats::predict(result_mlr,
+#'                         newdata = values,
+#'                         type = "probs"
+#'                     )
+#'                 )
+#'                 return(prediction)
+#'             }
+#'             class(predict_fun) <- c("sits_model", class(predict_fun))
+#'             return(predict_fun)
 #'         }
 #'         result <- sits_factory_function(samples, train_fun)
 #'         return(result)

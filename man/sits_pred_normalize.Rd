@@ -26,9 +26,9 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-     stats <- sits_stats(samples_modis_ndvi)
-     pred <- sits_predictors(samples_modis_ndvi)
-     pred_norm <- sits_pred_normalize(pred, stats)
+    stats <- sits_stats(samples_modis_ndvi)
+    pred <- sits_predictors(samples_modis_ndvi)
+    pred_norm <- sits_pred_normalize(pred, stats)
 }
 }
 \author{

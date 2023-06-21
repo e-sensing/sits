@@ -4,7 +4,7 @@
 \alias{plot.sits_cluster}
 \title{Plot a dendrogram cluster}
 \usage{
-\method{plot}{sits_cluster}(x, ..., cluster, cutree_height, color_palette)
+\method{plot}{sits_cluster}(x, ..., cluster, cutree_height, palette)
 }
 \arguments{
 \item{x}{sits tibble with cluster indexes.}
@@ -16,7 +16,7 @@
 \item{cutree_height}{dashed horizontal line to be drawn
 indicating the height of dendrogram cutting.}
 
-\item{color_palette}{hcl color palette.}
+\item{palette}{HCL color palette.}
 }
 \value{
 The dendrogram object.

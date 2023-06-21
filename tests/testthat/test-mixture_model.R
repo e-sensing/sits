@@ -1,5 +1,4 @@
 test_that("Mixture model tests", {
-
     # Create a sentinel-2 cube
     s2_cube <- sits_cube(
         source = "AWS",
@@ -20,10 +19,12 @@ test_that("Mixture model tests", {
         reg_cube <- sits_regularize(
             cube = s2_cube,
             period = "P16D",
-            roi = c(lon_min = -65.54870165,
-                    lat_min = -10.63479162,
-                    lon_max = -65.07629670,
-                    lat_max = -10.36046639),
+            roi = c(
+                lon_min = -65.54870165,
+                lat_min = -10.63479162,
+                lon_max = -65.07629670,
+                lat_max = -10.36046639
+            ),
             res = 320,
             multicores = 2,
             output_dir = tempdir(),
@@ -33,10 +34,10 @@ test_that("Mixture model tests", {
 
     # Create the endmembers tibble for cube
     em <- tibble::tribble(
-        ~type, ~B02, ~B03,   ~B04,  ~B8A,  ~B11,   ~B12,
-        "forest", 0.02, 0.0352, 0.0189, 0.28,  0.134, 0.0546,
-        "land", 0.04, 0.065,  0.07,   0.36,  0.35,  0.18,
-        "water", 0.07, 0.11,   0.14,   0.085, 0.004, 0.0026
+        ~type, ~B02, ~B03, ~B04, ~B8A, ~B11, ~B12,
+        "forest", 0.02, 0.0352, 0.0189, 0.28, 0.134, 0.0546,
+        "land", 0.04, 0.065, 0.07, 0.36, 0.35, 0.18,
+        "water", 0.07, 0.11, 0.14, 0.085, 0.004, 0.0026
     )
 
     # Generate the mixture model
@@ -64,10 +65,10 @@ test_that("Mixture model tests", {
 
     # Create the endmembers tibble for cube
     emc <- tibble::tribble(
-        ~class, ~B02, ~B03,   ~B04,  ~B8A,  ~B11,   ~B12,
-        "forest", 0.02, 0.0352, 0.0189, 0.28,  0.134, 0.0546,
-        "land", 0.04, 0.065,  0.07,   0.36,  0.35,  0.18,
-        "water", 0.07, 0.11,   0.14,   0.085, 0.004, 0.0026
+        ~class, ~B02, ~B03, ~B04, ~B8A, ~B11, ~B12,
+        "forest", 0.02, 0.0352, 0.0189, 0.28, 0.134, 0.0546,
+        "land", 0.04, 0.065, 0.07, 0.36, 0.35, 0.18,
+        "water", 0.07, 0.11, 0.14, 0.085, 0.004, 0.0026
     )
 
     # Generate the mixture model
@@ -132,9 +133,11 @@ test_that("Mixture model tests", {
     )
     expect_equal(
         dplyr::bind_rows(
-            ts_em_bands$time_series)[, c("FOREST", "LAND", "WATER")],
+            ts_em_bands$time_series
+        )[, c("FOREST", "LAND", "WATER")],
         dplyr::bind_rows(
-            ts_em$time_series)[, c("FOREST", "LAND", "WATER")],
+            ts_em$time_series
+        )[, c("FOREST", "LAND", "WATER")],
         tolerance = 0.01
     )
     unlink(list.files(tempdir(), full.names = TRUE))

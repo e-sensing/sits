@@ -65,7 +65,6 @@
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
-#'
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a lightTAE model
@@ -91,7 +90,8 @@
 #'     plot(bayes_cube)
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
-#'         bayes_cube, output_dir = tempdir()
+#'         bayes_cube,
+#'         output_dir = tempdir()
 #'     )
 #'     # plot the labelled cube
 #'     plot(label_cube)
@@ -113,7 +113,6 @@ sits_lighttae <- function(samples = NULL,
                           patience = 20,
                           min_delta = 0.01,
                           verbose = FALSE) {
-
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # Avoid add a global variable for 'self'
@@ -175,7 +174,7 @@ sits_lighttae <- function(samples = NULL,
 
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
-
+        # Are there additional samples for validation?
         if (!is.null(samples_validation)) {
             .check_samples_validation(
                 samples_validation = samples_validation, labels = labels,

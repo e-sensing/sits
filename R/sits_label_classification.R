@@ -43,7 +43,8 @@
 #'     plot(bayes_cube)
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
-#'         bayes_cube, output_dir = tempdir()
+#'         bayes_cube,
+#'         output_dir = tempdir()
 #'     )
 #'     # plot the labelled cube
 #'     plot(label_cube)
@@ -55,7 +56,6 @@ sits_label_classification <- function(cube,
                                       output_dir,
                                       version = "v1",
                                       progress = TRUE) {
-
     # Pre-conditions - Check parameters
     .check_is_probs_cube(cube)
     .check_memsize(memsize)
@@ -63,7 +63,6 @@ sits_label_classification <- function(cube,
     .check_output_dir(output_dir)
     .check_version(version)
 
-    # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
@@ -82,14 +81,13 @@ sits_label_classification <- function(cube,
         image_size = .tile_size(.tile(cube)), memsize = memsize,
         multicores = multicores
     )
-
     # Prepare parallel processing
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
-
+    # Dispatch
     UseMethod("sits_label_classification", cube)
 }
-
+#'
 #' @rdname sits_label_classification
 #' @export
 sits_label_classification.probs_cube <- function(cube,
@@ -98,7 +96,6 @@ sits_label_classification.probs_cube <- function(cube,
                                                  output_dir,
                                                  version = "v1",
                                                  progress = TRUE) {
-    # Labeling parameters checked in label function
     # Create label classification function
     label_fn <- .label_fn_majority()
     # Process each tile sequentially

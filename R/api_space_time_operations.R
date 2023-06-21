@@ -63,7 +63,6 @@
 #'
 #' @return A tibble with tranformed points.
 .proj_transform_samples <- function(samples, crs) {
-
     .check_chr_contains(
         x = colnames(samples),
         contains = .point_cols,
@@ -102,9 +101,9 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' x <- .bbox_as_sf(c(xmin=1, xmax=2, ymin=3, ymax=4, crs=4326))
-#' y <- .roi_as_sf(c(lon_min=1.5, lon_max=3, lat_min=3.5, lat_max=5))
-#' .intersects(x, y) # TRUE
+#'     x <- .bbox_as_sf(c(xmin = 1, xmax = 2, ymin = 3, ymax = 4, crs = 4326))
+#'     y <- .roi_as_sf(c(lon_min = 1.5, lon_max = 3, lat_min = 3.5, lat_max = 5))
+#'     .intersects(x, y) # TRUE
 #' }
 #'
 .intersects <- function(x, y) {
@@ -130,9 +129,9 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' x <- .bbox_as_sf(c(xmin=1, xmax=2, ymin=3, ymax=4, crs=4326))
-#' y <- .roi_as_sf(c(lon_min=0, lon_max=3, lat_min=2, lat_max=5))
-#' .within(x, y) # TRUE
+#'     x <- .bbox_as_sf(c(xmin = 1, xmax = 2, ymin = 3, ymax = 4, crs = 4326))
+#'     y <- .roi_as_sf(c(lon_min = 0, lon_max = 3, lat_min = 2, lat_max = 5))
+#'     .within(x, y) # TRUE
 #' }
 #'
 .within <- function(x, y) {

@@ -1,4 +1,3 @@
-
 #' @title Get random hyper-parameter
 #'
 #' @description

@@ -15,22 +15,22 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' chunks <- .chunks_create(
-#'   block = c(ncols = 512, nrows = 512),
-#'   overlap = 2,
-#'   image_size = c(ncols = 4000, nrows = 4000),
-#'   image_bbox = c(xmin = 1, xmax = 2, ymin = 3, ymax = 4, crs = 4326)
-#' )
-#' # remove overlaps from chunks
-#' cropped <- .chunks_no_overlap(chunks)
-#' # removing overlaps from a non overlapped chunks produces identical bbox
-#' identical(.bbox(cropped), .bbox(.chunks_no_overlap(cropped)))
-#' # blocks from 'cropped' can be used to remove any overlap from rasters
-#' # produced from 'chunks'.
-#' .chunks_filter_spatial(
-#'   chunks = chunks,
-#'   roi = c(lon_min = 1.3, lon_max = 1.7, lat_min = 3.3, lat_max = 3.7)
-#' )
+#'     chunks <- .chunks_create(
+#'         block = c(ncols = 512, nrows = 512),
+#'         overlap = 2,
+#'         image_size = c(ncols = 4000, nrows = 4000),
+#'         image_bbox = c(xmin = 1, xmax = 2, ymin = 3, ymax = 4, crs = 4326)
+#'     )
+#'     # remove overlaps from chunks
+#'     cropped <- .chunks_no_overlap(chunks)
+#'     # removing overlaps from a non overlapped chunks produces identical bbox
+#'     identical(.bbox(cropped), .bbox(.chunks_no_overlap(cropped)))
+#'     # blocks from 'cropped' can be used to remove any overlap from rasters
+#'     # produced from 'chunks'.
+#'     .chunks_filter_spatial(
+#'         chunks = chunks,
+#'         roi = c(lon_min = 1.3, lon_max = 1.7, lat_min = 3.3, lat_max = 3.7)
+#'     )
 #' }
 NULL
 
@@ -53,10 +53,10 @@ NULL
     # Adjust ncols and nrows to do overlap
     chunks[["ncols"]] <-
         .as_int(pmin(.ncols(image_size), .col(chunks) + .ncols(block) +
-                         overlap - 1) - .col(chunks) + 1)
+            overlap - 1) - .col(chunks) + 1)
     chunks[["nrows"]] <-
         .as_int(pmin(.nrows(image_size), .row(chunks) + .nrows(block) +
-                         overlap - 1) - .row(chunks) + 1)
+            overlap - 1) - .row(chunks) + 1)
     # Chunk of entire image
     entire_image <- c(image_size, image_bbox)
     # Prepare a raster as template to crop bbox

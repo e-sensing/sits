@@ -23,7 +23,9 @@ NULL
 #' @export
 .tile.raster_cube <- function(cube) {
     cube <- .cube(cube)
-    if (nrow(cube) >= 1) return(cube[1, ])
+    if (nrow(cube) >= 1) {
+        return(cube[1, ])
+    }
     cube
 }
 
@@ -297,7 +299,9 @@ NULL
 .tile_bands.raster_cube <- function(tile, add_cloud = TRUE) {
     tile <- .tile(tile)
     bands <- unique(.fi_bands(.fi(tile)))
-    if (add_cloud) return(bands)
+    if (add_cloud) {
+        return(bands)
+    }
     setdiff(bands, .band_cloud())
 }
 
@@ -666,7 +670,7 @@ NULL
         values <- values %in% interp_values
     } else {
         values <- matrix(bitwAnd(values, sum(2^interp_values)) > 0,
-                         nrow = length(values)
+            nrow = length(values)
         )
     }
     #
@@ -816,7 +820,6 @@ NULL
 #' @return a new tile
 .tile_derived_from_file <- function(file, band, base_tile, derived_class,
                                     labels = NULL, update_bbox = FALSE) {
-
     if (derived_class %in% c("probs_cube", "variance_cube")) {
         # Open first block file to be merged
         r_obj <- .raster_open_rast(file)
@@ -918,7 +921,6 @@ NULL
 #' @keywords internal
 #' @noRd
 .tile_area_freq <- function(tile) {
-
     UseMethod(".tile_area_freq", tile)
 }
 #' @export
@@ -1004,9 +1006,12 @@ NULL
 #'
 .tile_classif_start <- function(tile, verbose) {
     start_time <- Sys.time()
-    if (verbose)
-        message("Starting classification of tile '",
-                tile[["tile"]], "' at ", start_time)
+    if (verbose) {
+        message(
+            "Starting classification of tile '",
+            tile[["tile"]], "' at ", start_time
+        )
+    }
     return(start_time)
 }
 #' @title Measure classification time
@@ -1023,8 +1028,10 @@ NULL
     if (verbose) {
         end_time <- Sys.time()
         message("Tile '", tile[["tile"]], "' finished at ", end_time)
-        message("Elapsed time of ",
-                format(round(end_time - start_time, digits = 2)))
+        message(
+            "Elapsed time of ",
+            format(round(end_time - start_time, digits = 2))
+        )
         message("")
     }
     return(end_time)

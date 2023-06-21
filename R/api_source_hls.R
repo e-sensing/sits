@@ -5,20 +5,23 @@
                                        collection,
                                        stac_query,
                                        tiles = NULL) {
-
     if (!is.null(tiles)) {
         stop(paste("HLS cubes do not support searching for tiles, use",
-                   "'roi' parameter instead.",
-                   call. = FALSE
+            "'roi' parameter instead.",
+            call. = FALSE
         ))
     }
     # NASA EarthData requires a login/password combination
     netrc_path <- "~/.netrc"
-    if (.Platform$OS.type == "windows")
+    if (.Platform$OS.type == "windows") {
         netrc_path <- "%HOME%\\_netrc"
-    if (!file.exists(netrc_path))
-            warning(paste("could not find .netrc file", "\n",
-                          "Have you configured your access to NASA EarthData?"))
+    }
+    if (!file.exists(netrc_path)) {
+        warning(paste(
+            "could not find .netrc file", "\n",
+            "Have you configured your access to NASA EarthData?"
+        ))
+    }
 
     # Convert roi to bbox
     lon <- stac_query$params$intersects$coordinates[, , 1]
@@ -53,7 +56,6 @@
 .source_items_tile.hls_cube <- function(source, ...,
                                         items,
                                         collection = NULL) {
-
     tiles <- strsplit(rstac::items_reap(items, field = "id"), "\\.")
     tiles <- purrr::map_chr(tiles, function(x) x[[3]])
     substr(tiles, 2, 6)

@@ -11,19 +11,18 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' x <- list(a = 0, z = 0)
-#' .block(x) # NULL
-#' x <- list(a = 0, col = 1, row = 2, ncols = 3, nrows = 4, z = 0)
-#' .block(x)
-#' .block_size(x, 0)
-#' .block_size(x, 2)
+#'     x <- list(a = 0, z = 0)
+#'     .block(x) # NULL
+#'     x <- list(a = 0, col = 1, row = 2, ncols = 3, nrows = 4, z = 0)
+#'     .block(x)
+#'     .block_size(x, 0)
+#'     .block_size(x, 2)
 #' }
 #'
 NULL
 
 # block fields
 .block_cols <- c("col", "row", "ncols", "nrows")
-
 #' @title Check if an object contains a block
 #' @noRd
 #' @returns A logical indicating if an object contains a block.

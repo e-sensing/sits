@@ -34,8 +34,10 @@ sits_temporal_segment <- function(data, ...,
     # Show block information
     if (verbose) {
         start_time <- Sys.time()
-        message("Using blocks of size (", .nrows(block),
-                " x ", .ncols(block), ")")
+        message(
+            "Using blocks of size (", .nrows(block),
+            " x ", .ncols(block), ")"
+        )
     }
     # Classification
     # Process each tile sequentially
@@ -54,25 +56,28 @@ sits_temporal_segment <- function(data, ...,
         end_time <- Sys.time()
         message("")
         message("Classification finished at ", end_time)
-        message("Elapsed time of ",
-                format(round(end_time - start_time, digits = 2)))
+        message(
+            "Elapsed time of ",
+            format(round(end_time - start_time, digits = 2))
+        )
     }
     return(probs_cube)
 }
 
-.segment_tile  <- function(tile,
-                           block,
-                           verbose,
-                           progress) {
-
+.segment_tile <- function(tile,
+                          block,
+                          verbose,
+                          progress) {
     # # Callback final tile classification
     # .callback(process = "tile_classification", event = "started",
     #           context = environment())
     # Show initial time for tile classification
     if (verbose) {
         tile_start_time <- Sys.time()
-        message("Starting classification of tile '",
-                tile[["tile"]], "' at ", tile_start_time)
+        message(
+            "Starting classification of tile '",
+            tile[["tile"]], "' at ", tile_start_time
+        )
     }
     # Create chunks as jobs
     chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
@@ -80,7 +85,7 @@ sits_temporal_segment <- function(data, ...,
     .jobs_map_parallel(chunks, function(chunk) {
         # Job block
         block <- .block(chunk)
-       # Read cloud band
+        # Read cloud band
         cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
         # Read and preprocess values
         values <- purrr::map_dfc(.tile_bands(tile), function(band) {
@@ -92,7 +97,7 @@ sits_temporal_segment <- function(data, ...,
                 values[cloud_mask] <- NA
             }
             # use linear imputation
-            impute_fn = .impute_linear()
+            impute_fn <- .impute_linear()
             # Remove NA pixels
             if (.has(impute_fn)) {
                 values <- impute_fn(values)

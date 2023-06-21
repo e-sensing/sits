@@ -26,7 +26,8 @@ if (sits_run_examples()) {
     # Retrieve the samples for Mato Grosso
     # train an SVM model
     ml_model <- sits_train(samples_modis_ndvi,
-        ml_method = sits_svm(formula = sits_formula_logref()))
+        ml_method = sits_svm(formula = sits_formula_logref())
+    )
     # classify the point
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     # classify the point

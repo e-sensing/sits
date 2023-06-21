@@ -50,8 +50,9 @@
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (.raster_is_valid(block_files))
+        if (.raster_is_valid(block_files)) {
             return(block_files)
+        }
         # Read bands data
         values <- .mixture_data_read(tile = feature, block = block, em = em)
         # Apply the non-negative least squares solver
@@ -153,7 +154,9 @@
 }
 
 .endmembers_switch <- function(em, ...) {
-    switch(.endmembers_type(em), ...)
+    switch(.endmembers_type(em),
+        ...
+    )
 }
 
 .endmembers_as_tbl <- function(em) {
@@ -176,7 +179,9 @@
 .endmembers_fracs <- function(em, include_rmse = FALSE) {
     # endmembers tribble can be type or class
     type_class <- toupper(colnames(em)[[1]])
-    if (!include_rmse) return(toupper(em[[type_class]]))
+    if (!include_rmse) {
+        return(toupper(em[[type_class]]))
+    }
     toupper(c(em[[type_class]], "RMSE"))
 }
 
@@ -184,6 +189,3 @@
     bands <- .endmembers_bands(em)
     as.matrix(em[, bands])
 }
-
-
-

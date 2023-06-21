@@ -70,7 +70,8 @@ test_that("Combine predictions", {
                     type = "average",
                     output_dir = output_dir,
                     version = "comb_rfor_xgb_avg"
-                )},
+                )
+            },
             regexp = "Recovery"
         )
     })
@@ -96,12 +97,18 @@ test_that("Combine predictions", {
         output_dir = output_dir,
         version = "comb_rfor_xgb_uncert"
     )
-    expect_equal(sits_labels(comb_probs_cube_uncert),
-                 sits_labels(probs_xgb_cube))
-    expect_equal(sits_bbox(comb_probs_cube_uncert),
-                 sits_bbox(probs_xgb_cube))
-    expect_equal(nrow(comb_probs_cube_uncert),
-                 nrow(probs_xgb_cube))
+    expect_equal(
+        sits_labels(comb_probs_cube_uncert),
+        sits_labels(probs_xgb_cube)
+    )
+    expect_equal(
+        sits_bbox(comb_probs_cube_uncert),
+        sits_bbox(probs_xgb_cube)
+    )
+    expect_equal(
+        nrow(comb_probs_cube_uncert),
+        nrow(probs_xgb_cube)
+    )
 
     unlink(probs_rfor_cube$file_info[[1]]$path)
     unlink(probs_xgb_cube$file_info[[1]]$path)

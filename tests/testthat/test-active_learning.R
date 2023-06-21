@@ -1,5 +1,4 @@
 test_that("Suggested samples have low confidence, high entropy", {
-
     # Get uncertaintly cube.
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(

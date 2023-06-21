@@ -9,7 +9,7 @@
   ...,
   tile = NULL,
   legend = NULL,
-  color_palette = "Spectral",
+  palette = "Spectral",
   tmap_options = NULL
 )
 }
@@ -22,7 +22,7 @@
 
 \item{legend}{Named vector that associates labels to colors.}
 
-\item{color_palette}{Alternative RColorBrewer palette}
+\item{palette}{Alternative RColorBrewer palette}
 
 \item{tmap_options}{List with optional tmap parameters
 tmap_max_cells (default: 1e+06)
@@ -45,40 +45,38 @@ To see which color palettes are supported, please run
 }
 \examples{
 if (sits_run_examples()) {
-data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-
-cube <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6",
-    data_dir = data_dir
-)
-
-# segment the image
-segments <- sits_segment(
-    cube = cube,
-    tile = "012010",
-    bands = "NDVI",
-    date = sits_timeline(cube)[1],
-    seg_fn = sits_slic(step = 10)
-)
-# create a classification model
-rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-# get the average value per segment
-samples_seg <- sits_get_data(
-    cube = cube,
-    samples = segments
-)
-# classify the segments
-seg_class <- sits_classify(
-    data = samples_seg,
-    ml_model = rfor_model
-)
-# add a column to the segments by class
-sf_seg <- sits_join_segments(
-    data = seg_class,
-    segments = segments
-)
-plot(sf_seg)
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
+    )
+    # segment the image
+    segments <- sits_segment(
+        cube = cube,
+        tile = "012010",
+        bands = "NDVI",
+        date = sits_timeline(cube)[1],
+        seg_fn = sits_supercells(step = 20)
+    )
+    # create a classification model
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+    # get the average value per segment
+    samples_seg <- sits_get_data(
+        cube = cube,
+        samples = segments
+    )
+    # classify the segments
+    seg_class <- sits_classify(
+        data = samples_seg,
+        ml_model = rfor_model
+    )
+    # add a column to the segments by class
+    sf_seg <- sits_join_segments(
+        data = seg_class,
+        segments = segments
+    )
+    plot(sf_seg)
 }
 }
 \author{

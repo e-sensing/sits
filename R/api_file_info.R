@@ -1,13 +1,11 @@
 #' @title File info API
 #' @noRd
-#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description
 #' Set of functions for handling `file_info`.
 #'
 NULL
-
 #' @title Get `file_info` from a given tile.
 #' @noRd
 #' @param tile  A tile.
@@ -16,7 +14,6 @@ NULL
     fi <- tile[["file_info"]][[1]]
     fi
 }
-
 #' @title Set `file_info` into a given tile.
 #' @noRd
 #' @param tile  A tile.
@@ -27,7 +24,6 @@ NULL
     tile[["file_info"]] <- list(value)
     tile
 }
-
 .fi_type <- function(fi) {
     if ("date" %in% names(fi)) {
         "eo_cube"
@@ -37,14 +33,12 @@ NULL
         stop("invalid file info")
     }
 }
-
 .fi_switch <- function(fi, ...) {
     switch(.fi_type(fi),
-           ...,
-           stop("invalid file_info type")
+        ...,
+        stop("invalid file_info type")
     )
 }
-
 .fi_eo <- function(fid, band, date, ncols, nrows, xres, yres, xmin, xmax,
                    ymin, ymax, path) {
     # Create a new eo file_info
@@ -63,7 +57,6 @@ NULL
         path = path
     )
 }
-
 .fi_eo_from_files <- function(files, fid, bands, date) {
     .check_that(length(files) == length(bands))
     files <- .file_normalize(files)
@@ -83,7 +76,6 @@ NULL
         path = files
     )
 }
-
 .fi_derived <- function(band, start_date, end_date, ncols, nrows, xres, yres,
                         xmin, xmax, ymin, ymax, path) {
     # Create a new derived file_info
@@ -102,7 +94,6 @@ NULL
         path = path
     )
 }
-
 .fi_derived_from_file <- function(file, band, start_date, end_date) {
     file <- .file_normalize(file)
     r_obj <- .raster_open_rast(file)
@@ -121,15 +112,12 @@ NULL
         path = file
     )
 }
-
 .fi_fid <- function(fi) {
     .as_chr(fi[["fid"]])
 }
-
 .fi_cloud_cover <- function(fi) {
     .as_dbl(fi[["cloud_cover"]])
 }
-
 .fi_filter_fid <- function(fi, fid) {
     .fi_switch(
         fi = fi,
@@ -143,11 +131,9 @@ NULL
         }
     )
 }
-
 .fi_bands <- function(fi) {
     .as_chr(fi[["band"]])
 }
-
 .fi_rename_bands <- function(fi, rename) {
     .check_chr_within(
         .fi_bands(fi),
@@ -157,7 +143,6 @@ NULL
     fi[["band"]] <- unname(rename[.fi_bands(fi)])
     fi
 }
-
 .fi_filter_bands <- function(fi, bands) {
     bands_in_fi <- bands %in% .fi_bands(fi)
     if (!all(bands_in_fi)) {
@@ -166,7 +151,6 @@ NULL
     }
     fi[.fi_bands(fi) %in% bands, ]
 }
-
 .fi_min_date <- function(fi) {
     .fi_switch(
         fi = fi,
@@ -174,7 +158,6 @@ NULL
         derived_cube = min(.as_date(fi[["start_date"]]))
     )
 }
-
 .fi_max_date <- function(fi) {
     .fi_switch(
         fi = fi,
@@ -182,7 +165,6 @@ NULL
         derived_cube = max(.as_date(fi[["end_date"]]))
     )
 }
-
 .fi_timeline <- function(fi) {
     .fi_switch(
         fi = fi,
@@ -190,7 +172,6 @@ NULL
         derived_cube = .as_date(c(fi[["start_date"]], fi[["end_date"]]))
     )
 }
-
 .fi_paths <- function(fi) {
     .as_chr(fi[["path"]])
 }
@@ -198,20 +179,17 @@ NULL
 .fi_path <- function(fi) {
     .as_chr(fi[["path"]][[1]])
 }
-
 .fi_as_sf <- function(fi) {
     .bbox_as_sf(.bbox(fi))
 }
-
 .fi_during <- function(fi, start_date, end_date) {
     fi_tl <- .fi_timeline(fi)
-   .fi_switch(
+    .fi_switch(
         fi = fi,
         eo_cube = .between(fi_tl, start_date[[1]], end_date[[1]]),
         derived_cube = all(.between(fi_tl, start_date[[1]], end_date[[1]]))
     )
 }
-
 .fi_filter_interval <- function(fi, start_date, end_date) {
     if (!.has(start_date)) {
         start_date <- .fi_min_date(fi)
@@ -227,7 +205,6 @@ NULL
     }
     fi[dates_in_fi, ]
 }
-
 .fi_filter_dates <- function(fi, dates) {
     dates <- .as_date(dates)
     dates_in_fi <- dates %in% .fi_timeline(fi)
@@ -237,11 +214,9 @@ NULL
     }
     fi[.fi_timeline(fi) %in% dates, ]
 }
-
 .fi_intersects <- function(fi, roi) {
     .intersects(.fi_as_sf(fi), .roi_as_sf(roi))
 }
-
 .fi_filter_spatial <- function(fi, roi) {
     features_in_fi <- .fi_intersects(fi = fi, roi = roi)
     if (!any(features_in_fi)) {
@@ -249,40 +224,28 @@ NULL
     }
     fi[features_in_fi, ]
 }
-
 .fi_read_block <- function(fi, band, block) {
     band <- band[[1]]
     # Stops if no band is found
     fi <- .fi_filter_bands(fi = fi, bands = band)
     files <- .fi_paths(fi)
-
-    #
     # Log here
-    #
     .debug_log(
         event = "start_block_data_read",
         key = "band",
         value = band
     )
-
-
     # Read values from all files in file_info
     values <- .raster_read_rast(files = files, block = block)
-
-
-    #
     # Log here
-    #
     .debug_log(
         event = "end_block_data_read",
         key = "band",
         value = band
     )
-
     # Return values
     values
 }
-
 .fi_contains_cloud <- function(fi) {
     .band_cloud() %in% .fi_bands(fi)
 }

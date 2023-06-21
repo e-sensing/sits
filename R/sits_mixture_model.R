@@ -49,47 +49,49 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'    # Create a sentinel-2 cube
-#'    s2_cube <- sits_cube(
-#'        source = "AWS",
-#'        collection = "SENTINEL-2-L2A",
-#'        tiles = "20LKP",
-#'        bands = c("B02", "B03", "B04", "B8A", "B11", "B12", "CLOUD"),
-#'        start_date = "2019-06-13",
-#'        end_date = "2019-06-30"
-#'    )
-#'    # create a directory to store the regularized file
-#'    reg_dir <- paste0(tempdir(), "/mix_model")
-#'    dir.create(reg_dir)
-#'    # Cube regularization for 16 days and 160 meters
-#'    reg_cube <- sits_regularize(
-#'        cube = s2_cube,
-#'        period = "P16D",
-#'        res = 160,
-#'        roi = c(lon_min = -65.54870165,
-#'                lat_min = -10.63479162,
-#'                lon_max = -65.07629670,
-#'                lat_max = -10.36046639),
-#'        multicores = 2,
-#'        output_dir = reg_dir
-#'    )
+#'     # Create a sentinel-2 cube
+#'     s2_cube <- sits_cube(
+#'         source = "AWS",
+#'         collection = "SENTINEL-2-L2A",
+#'         tiles = "20LKP",
+#'         bands = c("B02", "B03", "B04", "B8A", "B11", "B12", "CLOUD"),
+#'         start_date = "2019-06-13",
+#'         end_date = "2019-06-30"
+#'     )
+#'     # create a directory to store the regularized file
+#'     reg_dir <- paste0(tempdir(), "/mix_model")
+#'     dir.create(reg_dir)
+#'     # Cube regularization for 16 days and 160 meters
+#'     reg_cube <- sits_regularize(
+#'         cube = s2_cube,
+#'         period = "P16D",
+#'         res = 160,
+#'         roi = c(
+#'             lon_min = -65.54870165,
+#'             lat_min = -10.63479162,
+#'             lon_max = -65.07629670,
+#'             lat_max = -10.36046639
+#'         ),
+#'         multicores = 2,
+#'         output_dir = reg_dir
+#'     )
 #'
-#'    # Create the endmembers tibble
-#'    em <- tibble::tribble(
-#'           ~class, ~B02, ~B03,   ~B04,  ~B8A,  ~B11,   ~B12,
-#'        "forest", 0.02, 0.0352, 0.0189, 0.28,  0.134, 0.0546,
-#'          "land", 0.04, 0.065,  0.07,   0.36,  0.35,  0.18,
-#'         "water", 0.07, 0.11,   0.14,   0.085, 0.004, 0.0026
-#'    )
+#'     # Create the endmembers tibble
+#'     em <- tibble::tribble(
+#'         ~class, ~B02, ~B03, ~B04, ~B8A, ~B11, ~B12,
+#'         "forest", 0.02, 0.0352, 0.0189, 0.28, 0.134, 0.0546,
+#'         "land", 0.04, 0.065, 0.07, 0.36, 0.35, 0.18,
+#'         "water", 0.07, 0.11, 0.14, 0.085, 0.004, 0.0026
+#'     )
 #'
-#'    # Generate the mixture model
-#'    mm <- sits_mixture_model(
-#'        data = reg_cube,
-#'        endmembers = em,
-#'        memsize = 4,
-#'        multicores = 2,
-#'        output_dir = tempdir()
-#'    )
+#'     # Generate the mixture model
+#'     mm <- sits_mixture_model(
+#'         data = reg_cube,
+#'         endmembers = em,
+#'         memsize = 4,
+#'         multicores = 2,
+#'         output_dir = tempdir()
+#'     )
 #' }
 #'
 #' @export
@@ -102,7 +104,6 @@ sits_mixture_model <- function(data, endmembers, ...,
     .check_lgl_parameter(rmse_band)
     .check_multicores(multicores)
     .check_progress(progress)
-
     data <- .conf_data_meta_type(data)
     UseMethod("sits_mixture_model", data)
 }
@@ -119,7 +120,6 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
     em <- .endmembers_as_tbl(endmembers)
     # Check endmember format
     .check_endmembers_tbl(em)
-
     # Get endmembers bands
     bands <- setdiff(.samples_bands(data), .endmembers_fracs(em))
     # The samples is filtered here in case some fraction
@@ -127,10 +127,8 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
     data <- .samples_select_bands(samples = data, bands = bands)
     # Pre-condition
     .check_endmembers_bands(em = em, bands = .samples_bands(data))
-
     # Fractions to be produced
     out_fracs <- .endmembers_fracs(em = em, include_rmse = rmse_band)
-
     # Prepare parallelization
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
@@ -166,12 +164,10 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     .check_memsize(memsize)
     .check_output_dir(output_dir)
     .check_lgl_type(progress)
-
     # Transform endmembers to tibble
     em <- .endmembers_as_tbl(endmembers)
     # Check endmember format
     .check_endmembers_tbl(em)
-
     # Get endmembers bands
     bands <- setdiff(.cube_bands(data), .endmembers_fracs(em))
     # The cube is filtered here in case some fraction
@@ -186,8 +182,6 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     )
     # Fractions to be produced
     out_fracs <- .endmembers_fracs(em = em, include_rmse = rmse_band)
-
-    # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
@@ -229,5 +223,3 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     # Join output features as a cube and return it
     .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_fracs)))
 }
-
-

@@ -231,7 +231,6 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-
     # --- Access to the Brazil Data Cube
     # Provide your BDC credentials as environment variables
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")

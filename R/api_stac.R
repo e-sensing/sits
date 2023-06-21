@@ -9,7 +9,6 @@
 #'
 #' @return a \code{STACItemcollection} object with selected items by bands.
 .stac_select_bands <- function(items, bands_source, bands_sits) {
-
     # verify if the mapped band in on item assets
     .check_chr_within(
         x = bands_source,
@@ -66,7 +65,7 @@
 #' @return      a \code{character} formatted as parameter to STAC requisition.
 .stac_format_platform <- function(source, collection, platform) {
     platforms <- .conf(
-        "sources", source, "collections",  collection, "platforms"
+        "sources", source, "collections", collection, "platforms"
     )
 
     platform_source <- platforms[platform]
@@ -134,7 +133,6 @@
                                      start_date = NULL,
                                      end_date = NULL,
                                      limit = NULL) {
-
     # get collection original name
     collection <- .source_collection_name(
         source = source,

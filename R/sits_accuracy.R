@@ -78,7 +78,8 @@
 #'     )
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
-#'         probs_cube, output_dir = tempdir()
+#'         probs_cube,
+#'         output_dir = tempdir()
 #'     )
 #'     # obtain the ground truth for accuracy assessment
 #'     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
@@ -94,7 +95,6 @@ sits_accuracy <- function(data, ...) {
 #' @rdname sits_accuracy
 #' @export
 sits_accuracy.sits <- function(data, ...) {
-
     # Set caller to show in errors
     .check_set_caller("sits_accuracy.sits")
 
@@ -134,16 +134,16 @@ sits_accuracy.sits <- function(data, ...) {
 #' @export
 sits_accuracy.class_cube <- function(data, validation = NULL, ...,
                                      validation_csv = NULL) {
-
     if (!purrr::is_null(validation_csv)) {
-        if (.check_warnings())
+        if (.check_warnings()) {
             warning("validation_csv parameter is deprecated since sits 1.3.
-                please use only validation"
-            )
+                please use only validation")
+        }
         validation <- validation_csv
     }
     .check_null(validation,
-                msg = "please provide a set of validation samples")
+        msg = "please provide a set of validation samples"
+    )
     # generic function
     # Is this a CSV file?
     if (is.character(validation)) {
@@ -168,7 +168,6 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
     # Create a list of (predicted, reference) values
     # Consider all tiles of the data cube
     pred_ref_lst <- slider::slide(data, function(tile) {
-
         # Find the labelled band
         labelled_band <- .tile_bands(tile)
 
@@ -237,7 +236,7 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
     pred_ref <- do.call(rbind, pred_ref_lst)
     # is this data valid?
     .check_null(pred_ref,
-                msg = "No validation samples inside data cube"
+        msg = "No validation samples inside data cube"
     )
 
     # Create the error matrix
@@ -254,7 +253,6 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
 
     # Get area for each class for each row of the cube
     freq_lst <- slider::slide(data, function(tile) {
-
         # Get the frequency count and value for each labelled image
         freq <- .tile_area_freq(tile)
         # pixel area
@@ -263,8 +261,9 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
         area <- freq$count * .tile_xres(tile) * .tile_yres(tile) / 10000
         # Include class names
         freq <- dplyr::mutate(freq,
-                              area = area,
-                              class = labels_cube[freq$value])
+            area = area,
+            class = labels_cube[freq$value]
+        )
         return(freq)
     })
     # Get a tibble by binding the row (duplicated labels with different counts)
@@ -305,7 +304,6 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
 #' @export
 sits_accuracy_summary <- function(x,
                                   digits = max(3, getOption("digits") - 3)) {
-
     # set caller to show in errors
     .check_set_caller("sits_accuracy_summary")
 
@@ -358,7 +356,7 @@ sits_accuracy_summary <- function(x,
 #' @keywords internal
 #' @export
 print.sits_accuracy <- function(x, ...,
-                                  digits = max(3, getOption("digits") - 3)) {
+                                digits = max(3, getOption("digits") - 3)) {
     # rename confusion matrix names
     names(x) <- c("positive", "table", "overall", "by_class", "mode", "dots")
     cat("Confusion Matrix and Statistics\n\n")
@@ -473,7 +471,6 @@ print.sits_accuracy <- function(x, ...,
 #' @keywords internal
 #' @export
 print.sits_area_accuracy <- function(x, ..., digits = 2) {
-
     # round the data to the significant digits
     overall <- round(x$accuracy$overall, digits = digits)
 

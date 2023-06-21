@@ -32,7 +32,8 @@
         discriminator = "one_of",
         msg = paste0(
             "Only handles with geometry types: ", paste(
-                .conf("sf_geom_types_supported"), collapse = ", "
+                .conf("sf_geom_types_supported"),
+                collapse = ", "
             )
         )
     )
@@ -83,25 +84,26 @@
     # Remove empty geometries if exists
     are_empty_geoms <- sf::st_is_empty(sf_object)
     if (any(are_empty_geoms)) {
-        if (.check_warnings())
+        if (.check_warnings()) {
             warning(
                 "Some empty geometries were removed.",
                 immediate. = TRUE, call. = FALSE
             )
+        }
         sf_object <- sf_object[!are_empty_geoms, ]
     }
     # If the sf object is not in planar coordinates, convert it
     sf_object <- suppressWarnings(sf::st_transform(sf_object, crs = 4326))
 
     # Get a tibble with points and labels
-    points_tbl <- switch(
-        geom_type,
+    points_tbl <- switch(geom_type,
         "POINT" = .sf_point_to_tibble(
             sf_object  = sf_object,
             label_attr = label_attr,
             label      = label
         ),
-        "POLYGON" = , "MULTIPOLYGON" = .sf_polygon_to_tibble(
+        "POLYGON" = ,
+        "MULTIPOLYGON" = .sf_polygon_to_tibble(
             sf_object  = sf_object,
             label_attr = label_attr,
             label      = label,
@@ -130,7 +132,6 @@
 #' @return  A tibble with latitude/longitude points.
 #'
 .sf_point_to_tibble <- function(sf_object, label_attr, label) {
-
     # get the db file
     sf_df <- sf::st_drop_geometry(sf_object)
 
@@ -175,7 +176,6 @@
                                   label,
                                   n_sam_pol,
                                   pol_id) {
-
     # get the db file
     sf_df <- sf::st_drop_geometry(sf_object)
 
@@ -204,7 +204,7 @@
                     unlist(sf_df[i, "label"], use.names = FALSE)
                 )
             } else if (!purrr::is_null(label_attr) &&
-                       label_attr %in% colnames(sf_df)) {
+                label_attr %in% colnames(sf_df)) {
                 label <- as.character(
                     unlist(sf_df[i, label_attr], use.names = FALSE)
                 )

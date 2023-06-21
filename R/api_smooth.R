@@ -142,8 +142,8 @@
         # Process Bayesian
         values <- bayes_smoother_fraction(
             logits = values,
-            nrows  = .nrows(block),
-            ncols  = .ncols(block),
+            nrows = .nrows(block),
+            ncols = .ncols(block),
             window_size = window_size,
             smoothness = smoothness,
             neigh_fraction = neigh_fraction

@@ -128,16 +128,17 @@ test_that("Accuracy areas", {
 
     # alternative: use a sits tibble
     validation <- tibble::as_tibble(
-                  utils::read.csv(
-                  ground_truth,
-                  stringsAsFactors = FALSE)
+        utils::read.csv(
+            ground_truth,
+            stringsAsFactors = FALSE
+        )
     )
     as2 <- sits_accuracy(label_cube, validation)
 
     expect_true(as.numeric(as2$area_pixels["Forest"]) >
-                           as2$area_pixels["Pasture"])
+        as2$area_pixels["Pasture"])
     expect_equal(as.numeric(as2$accuracy$overall),
-                 expected = 0.75,
-                 tolerance = 0.5
+        expected = 0.75,
+        tolerance = 0.5
     )
 })

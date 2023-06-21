@@ -6,7 +6,6 @@
                                        stac_query, ...,
                                        tiles = NULL,
                                        platform = NULL) {
-
     # set caller to show in errors
     .check_set_caller(".source_items_new.aws_cube")
 
@@ -61,7 +60,6 @@
                                                        stac_query, ...,
                                                        tiles = NULL,
                                                        platform = NULL) {
-
     if (!is.null(platform)) {
         platform <- .stac_format_platform(
             source = source,
@@ -100,12 +98,12 @@
 `.source_items_tile.aws_cube_landsat-c2-l2` <- function(source,
                                                         items, ...,
                                                         collection = NULL) {
-
     # store tile info in items object
     items$features <- purrr::map(items$features, function(feature) {
         feature$properties$tile <- paste0(feature$properties[["landsat:wrs_path"]],
-                                     feature$properties[["landsat:wrs_row"]],
-                                     collapse = "")
+            feature$properties[["landsat:wrs_row"]],
+            collapse = ""
+        )
         feature
     })
 
@@ -119,11 +117,10 @@
 .source_items_tile.aws_cube <- function(source,
                                         items, ...,
                                         collection = NULL) {
-
     # store tile info in items object
     items$features <- purrr::map(items$features, function(feature) {
         feature$properties$tile <- feature$properties[["grid:code"]]
-        feature$properties$tile <- gsub("MGRS-","",feature$properties$tile)
+        feature$properties$tile <- gsub("MGRS-", "", feature$properties$tile)
         feature
     })
 

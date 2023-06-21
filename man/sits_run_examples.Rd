@@ -17,12 +17,12 @@ To come back to the default behaviour, please set
 Sys.setenv("SITS_RUN_EXAMPLES" = "NO")
 }
 \examples{
-if (sits_run_examples()){
+if (sits_run_examples()) {
     message("use devtools::run_examples() to run the examples")
-} else{
-    message(paste0("Set the envvar SITS_RUN_EXAMPLES to YES",
-    "to run the examples"))
+} else {
+    message(paste0(
+        "Set the envvar SITS_RUN_EXAMPLES to YES",
+        "to run the examples"
+    ))
 }
-
-
 }

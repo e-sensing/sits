@@ -1,5 +1,4 @@
 test_that("uncertainty works", {
-
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
     cube <- sits_cube(
@@ -40,27 +39,35 @@ test_that("uncertainty works", {
         version = "xgb_margin"
     )
 
-    e_cnames <- c("source", "collection", "satellite", "sensor", "tile",
-                  "xmin", "xmax", "ymin", "ymax", "crs", "labels", "file_info")
+    e_cnames <- c(
+        "source", "collection", "satellite", "sensor", "tile",
+        "xmin", "xmax", "ymin", "ymax", "crs", "labels", "file_info"
+    )
 
     expect_true(all(colnames(entropy_cube %in% e_cnames)))
     expect_true(all(colnames(least_cube %in% e_cnames)))
     expect_true(all(colnames(margin_cube %in% e_cnames)))
-    expect_true(all(dim(entropy_cube) == dim(least_cube),
-                    dim(entropy_cube) == dim(margin_cube)))
+    expect_true(all(
+        dim(entropy_cube) == dim(least_cube),
+        dim(entropy_cube) == dim(margin_cube)
+    ))
 
     entropy_fi <- entropy_cube[["file_info"]][[1]]
-    least_fi   <- least_cube[["file_info"]][[1]]
-    margin_fi  <- margin_cube[["file_info"]][[1]]
+    least_fi <- least_cube[["file_info"]][[1]]
+    margin_fi <- margin_cube[["file_info"]][[1]]
 
-    e_cnames <- c("band", "start_date", "end_date", "xmin", "ymin", "xmax",
-                  "ymax", "xres", "yres", "nrows", "ncols", "path")
+    e_cnames <- c(
+        "band", "start_date", "end_date", "xmin", "ymin", "xmax",
+        "ymax", "xres", "yres", "nrows", "ncols", "path"
+    )
 
     expect_true(all(colnames(entropy_fi %in% e_cnames)))
     expect_true(all(colnames(least_fi %in% e_cnames)))
     expect_true(all(colnames(margin_fi %in% e_cnames)))
-    expect_true(all(dim(entropy_fi) == dim(least_fi),
-                    dim(entropy_fi) == dim(margin_fi)))
+    expect_true(all(
+        dim(entropy_fi) == dim(least_fi),
+        dim(entropy_fi) == dim(margin_fi)
+    ))
 
     entropy_r <- .raster_open_rast(entropy_fi[["path"]])
     expect_true(all(range(entropy_r[]) > 0))

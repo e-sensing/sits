@@ -11,7 +11,8 @@
 #'
 .bbox_equal <- function(bbox1, bbox2, tolerance = 0) {
     .is_eq(unlist(bbox1[.bbox_cols]), unlist(bbox2[.bbox_cols]),
-           tolerance = tolerance)
+        tolerance = tolerance
+    )
 }
 #' @title Bounding box API
 #' @noRd
@@ -29,18 +30,17 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' x <- list(a = 0, z = 0)
-#' .bbox(x) # NULL
-#' x <- list(
-#'   a = 0, xmin = 1:3, xmax = 2:4, ymin = 3:5, ymax = 4:6,
-#'   crs = 4326, z = 0
-#' )
-#' .bbox(x)
-#' .bbox_as_sf(x) # 3 features
-#' .bbox_as_sf(x, as_crs = "EPSG:3857")
+#'     x <- list(a = 0, z = 0)
+#'     .bbox(x) # NULL
+#'     x <- list(
+#'         a = 0, xmin = 1:3, xmax = 2:4, ymin = 3:5, ymax = 4:6,
+#'         crs = 4326, z = 0
+#'     )
+#'     .bbox(x)
+#'     .bbox_as_sf(x) # 3 features
+#'     .bbox_as_sf(x, as_crs = "EPSG:3857")
 #' }
 NULL
-
 # bbox fields
 .bbox_cols <- c("xmin", "xmax", "ymin", "ymax")
 #' @title Check if an object contains a bbox
@@ -73,7 +73,9 @@ NULL
 #' @noRd
 #' @returns One of the arguments passed in `...` according to a bbox type.
 .bbox_switch <- function(x, ...) {
-    switch(.bbox_type(x), ...)
+    switch(.bbox_type(x),
+        ...
+    )
 }
 #' @title Extract a bbox
 #' @noRd
@@ -128,9 +130,11 @@ NULL
         crs <- .crs(x)
     } else {
         crs <- .default(default_crs, default = {
-            if (.check_warnings())
+            if (.check_warnings()) {
                 warning("object has no crs, assuming 'EPSG:4326'",
-                        call. = FALSE)
+                    call. = FALSE
+                )
+            }
             "EPSG:4326"
         })
     }
@@ -174,19 +178,23 @@ NULL
     .check_bbox(bbox)
     # Check if there are multiple CRS in bbox
     if (length(.crs(bbox)) > 1 && is.null(as_crs)) {
-        if (.check_warnings())
+        if (.check_warnings()) {
             warning("object has multiples CRS values, reprojecting to ",
                 "'EPSG:4326'\n", "(use 'as_crs' to reproject to a ",
-                "different CRS)", call. = FALSE
+                "different CRS)",
+                call. = FALSE
             )
+        }
         as_crs <- "EPSG:4326"
     }
     # Convert to sf object and return it
     geom <- purrr::pmap_dfr(bbox, function(xmin, xmax, ymin, ymax, crs, ...) {
         geom_elem <- sf::st_sf(
             geometry = sf::st_sfc(sf::st_polygon(list(
-                rbind(c(xmin, ymax), c(xmax, ymax), c(xmax, ymin),
-                      c(xmin, ymin), c(xmin, ymax))
+                rbind(
+                    c(xmin, ymax), c(xmax, ymax), c(xmax, ymin),
+                    c(xmin, ymin), c(xmin, ymax)
+                )
             ))), crs = crs
         )
         # Project CRS
@@ -220,7 +228,6 @@ NULL
     # Return bbox
     bbox
 }
-
 .crs_wkt_to_proj4 <- function(wkt_crs) {
     # Convert WKT to sf CRS object
     crs_sf <- sf::st_crs(wkt_crs)

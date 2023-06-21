@@ -46,29 +46,25 @@ Bands may have different resolutions,
 images may not cover the entire time, and time intervals are not regular.
 For this reason, subsets of these collection need to be converted to
 regular data cubes before further processing and data analysis.
-
 This function requires users to include the cloud band in their ARD-based
 data cubes.
 }
 \note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-
 The "roi" parameter defines a region of interest. It can be
-   an sf_object, a shapefile, or a bounding box vector with
-   named XY values ("xmin", "xmax", "ymin", "ymax") or
-   named lat/long values ("lat_min", "lat_max", "long_min", "long_max").
-   The \code{sits_regularize} function will crop the images that contain the
-   roi region.
+     an sf_object, a shapefile, or a bounding box vector with
+     named XY values ("xmin", "xmax", "ymin", "ymax") or
+     named lat/long values ("lat_min", "lat_max", "long_min", "long_max").
+     The \code{sits_regularize} function will crop the images that contain the
+     roi region.
 
 The aggregation method used in \code{sits_regularize}
-      sorts the images based on cloud cover, where images with the fewest
-      clouds at the top of the stack. Once
-      the stack of images is sorted, the method uses the first valid value to
-      create the temporal aggregation.
+     sorts the images based on cloud cover, where images with the fewest
+     clouds at the top of the stack. Once
+     the stack of images is sorted, the method uses the first valid value to
+     create the temporal aggregation.
 
 The input (non-regular) ARD cube needs to include the cloud band for
-      the regularization to work.
+     the regularization to work.
 }
 \examples{
 if (sits_run_examples()) {
