@@ -1372,6 +1372,18 @@
         msg = "cube is not classified image"
     )
 }
+#' @title Check if cube is a probability
+#' @name .check_cube_is_probs_cube
+#' @param cube a sits cube to be tested
+#' @return  No return value, called for side effects
+#' @keywords internal
+#' @noRd
+.check_cube_is_probs_cube <- function(cube) {
+    .check_that(
+        x = inherits(cube, "probs_cube"),
+        msg = "cube is not probs image"
+    )
+}
 #' @title Check if cube is a results cube
 #' @name .check_cube_is_results_cube
 #' @param bands bands of the cube
