@@ -72,13 +72,13 @@ sits_clean <- function(cube,
     # Get input band
     band <- .cube_bands(cube)
 
-    # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    # image size
+    image_size <- .raster_size(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = overlap),
+        job_size = .block_size(block = image_size, overlap = overlap),
         npaths = 1, nbytes = 8,
         proc_bloat = .conf("processing_bloat")
     )
@@ -98,7 +98,7 @@ sits_clean <- function(cube,
         # Process the data
         output_asset <- .clean_asset(
             asset = asset,
-            block = block,
+            block = image_size,
             band = band,
             window_size = window_size,
             overlap = overlap,
