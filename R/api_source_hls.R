@@ -17,7 +17,7 @@
         netrc_path <- "%HOME%\\_netrc"
     }
     if (!file.exists(netrc_path)) {
-        warning(paste(
+        stop(paste(
             "could not find .netrc file", "\n",
             "Have you configured your access to NASA EarthData?"
         ))

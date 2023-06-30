@@ -197,11 +197,6 @@ NULL
         }
     )
 }
-
-.rbind <- function(x) {
-    do.call(rbind, args = x)
-}
-
 .discard <- function(data, cols) {
     cols <- which(names(data) %in% cols)
     if (.has(cols)) {
@@ -243,16 +238,6 @@ NULL
 
 .slice_dfr <- function(x, i) {
     UseMethod(".slice_dfr", i)
-}
-
-#' @export
-.slice_dfr.logical <- function(x, i) {
-    .check_that(
-        length(i) == nrow(x) || length(i) == 1,
-        local_msg = paste("length must be 1 or", nrow(x)),
-        msg = "invalid logical subscript"
-    )
-    x[i, ]
 }
 
 #' @export

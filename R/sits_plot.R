@@ -1367,6 +1367,13 @@ plot.geo_distances <- function(x, y, ...) {
 #' @param palette       HCL color palette.
 #'
 #' @return              The dendrogram object.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'      samples <- sits_cluster_dendro(cerrado_2classes,
+#'                 bands = c("NDVI", "EVI"))
+#' }
+#'
 #' @export
 plot.sits_cluster <- function(x, ...,
                               cluster,

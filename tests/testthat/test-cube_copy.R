@@ -33,7 +33,16 @@ test_that("Downloading and cropping cubes from BDC", {
         multicores = 1,
         progress = FALSE
     )
-
+    msg <- capture_messages(
+        sits_cube_copy(
+            cube = cbers_cube,
+            output_dir = tempdir(),
+            roi = roi_xy,
+            multicores = 1,
+            progress = FALSE
+        )
+    )
+    expect_true(grepl("Recovery", msg[1]))
     # Comparing tiles
     expect_true(nrow(cbers_cube) >= nrow(cube_local_roi))
     bbox_tile <- sits_bbox(cbers_cube)

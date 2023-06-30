@@ -35,8 +35,8 @@
 #'      an sf_object, a shapefile, or a bounding box vector with
 #'      named XY values ("xmin", "xmax", "ymin", "ymax") or
 #'      named lat/long values ("lat_min", "lat_max", "long_min", "long_max").
-#'      The \code{sits_regularize} function will crop the images that contain the
-#'      roi region.
+#'      \code{sits_regularize()} function will crop the images
+#'      that contain the region of interest().
 #' @note
 #'      The aggregation method used in \code{sits_regularize}
 #'      sorts the images based on cloud cover, where images with the fewest

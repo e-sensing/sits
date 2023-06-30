@@ -2,6 +2,9 @@ test_that("sits summary", {
     sum <- summary(samples_modis_ndvi)
     expect_equal(sum$label, c("Cerrado", "Forest", "Pasture", "Soy_Corn"))
     expect_equal(sum$count, c(379, 131, 344, 364))
+    sum1 <- suppressWarnings(sits_labels_summary(samples_modis_ndvi))
+    expect_equal(sum1$label, c("Cerrado", "Forest", "Pasture", "Soy_Corn"))
+    expect_equal(sum1$count, c(379, 131, 344, 364))
 })
 test_that("summary sits accuracy", {
     data(cerrado_2classes)

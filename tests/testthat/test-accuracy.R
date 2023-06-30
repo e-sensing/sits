@@ -38,6 +38,23 @@ test_that("conf_matrix - more than 2 classes", {
     expect_true(grepl("Cerrado", p1[5]))
     expect_true(grepl("Kappa", p1[15]))
 })
+test_that("samples_validation", {
+    set.seed(1234)
+    samples <- samples_modis_ndvi
+    samples$id <- seq_len(nrow(samples))
+    train_data <- sits_sample(samples, frac = .8)
+    # Remove the lines used for validation
+    sel <- !samples$id %in% train_data$id
+    val_samples <- samples[sel, ]
+    expect_true(
+        .check_samples_validation(
+            samples_validation = val_samples,
+            labels = sits_labels(samples),
+            timeline = sits_timeline(samples),
+            bands = sits_bands(samples)
+        )
+    )
+})
 test_that("XLS", {
     set.seed(1234)
     data(cerrado_2classes)

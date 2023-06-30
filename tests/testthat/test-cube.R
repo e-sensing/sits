@@ -4,6 +4,9 @@ test_that("List collections", {
     expect_true(grepl("DEAFRICA", col))
     expect_true(grepl("LANDSAT", col))
     expect_true(grepl("BDC", col))
+    col_bdc <- capture_output(sits_list_collections(source = "BDC"))
+    expect_true(grepl("CBERS-WFI-16D", col_bdc))
+    expect_true(grepl("CBERS-WFI-8D", col_bdc))
 })
 test_that("api_source", {
     res_s2_b8a <- .source_bands_resolution(
@@ -478,6 +481,25 @@ test_that("Creating Sentinel cubes from MPC", {
     r_obj <- .raster_open_rast(s2_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(s2_cube)
     expect_true(.raster_nrows(r_obj) == cube_nrows)
+
+    s2_cube_s2a <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-2-L2A",
+                tiles = "20LKP",
+                bands = c("B05", "CLOUD"),
+                start_date = as.Date("2018-07-18"),
+                end_date = as.Date("2018-08-23"),
+                progress = FALSE,
+                platform = "SENTINEL-2A"
+            )
+        },
+        .default = NULL
+    )
+    n_images_1 <- nrow(s2_cube$file_info[[1]])
+    n_images_2 <- nrow(s2_cube_s2a$file_info[[1]])
+    expect_true(n_images_2 < n_images_1)
 })
 test_that("Creating Sentinel cubes from MPC with ROI", {
     roi <- c(
@@ -603,6 +625,47 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
     l8_23LKC <- dplyr::filter(hls_cube_l8, tile == "23LKC")
     expect_true(all(sits_timeline(merge_23LKC) %in%
         c(sits_timeline(l8_23LKC), sits_timeline(s2_23LKC))))
+
+    expect_error(
+        .try({
+            sits_cube(
+                source = "HLS",
+                collection = "HLSS30",
+                tile = "20LKP",
+                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+                start_date = as.Date("2020-05-01"),
+                end_date = as.Date("2020-09-01"),
+                progress = FALSE
+            )
+        }, .rollback = {})
+    )
+    expect_error(
+        .try({
+            sits_cube(
+                source = "HLS",
+                collection = "HLSS30",
+                tile = "20LKP",
+                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+                start_date = as.Date("2020-05-01"),
+                end_date = as.Date("2020-09-01"),
+                progress = FALSE
+            )
+        }, .msg_error = "error")
+    )
+    netrc_file <- "~/.netrc"
+    file.rename(netrc_file, "~/.netrc_save")
+    expect_error(
+        sits_cube(
+            source = "HLS",
+            collection = "HLSS30",
+            roi = roi,
+            bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+            start_date = as.Date("2020-05-01"),
+            end_date = as.Date("2020-09-01"),
+            progress = FALSE
+        )
+    )
+    expect_true(file.rename("~/.netrc_save", "~/.netrc"))
 })
 test_that("Creating Sentinel cubes from AWS", {
     s2_cube <- .try(
@@ -627,17 +690,86 @@ test_that("Creating Sentinel cubes from AWS", {
     r <- .raster_open_rast(.tile_path(s2_cube))
     expect_equal(s2_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(s2_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
+
+    s2_cube_s2a <- .try(
+        {
+            sits_cube(
+                source = "AWS",
+                collection = "SENTINEL-2-L2A",
+                tiles = "20LKP",
+                bands = c("B05", "CLOUD"),
+                start_date = as.Date("2018-07-18"),
+                end_date = as.Date("2018-08-23"),
+                progress = FALSE,
+                platform = "SENTINEL-2A"
+            )
+        },
+        .default = NULL
+    )
+    n_images_1 <- nrow(s2_cube$file_info[[1]])
+    n_images_2 <- nrow(s2_cube_s2a$file_info[[1]])
+    expect_true(n_images_2 < n_images_1)
 })
 test_that("Creating LANDSAT cubes from AWS with ROI", {
     roi <- c(
-        lon_min = -48.28579, lat_min = -16.05026,
-        lon_max = -47.30839, lat_max = -15.50026
+        lon_min = -47.50, lat_min = -15.80,
+        lon_max = -47.30, lat_max = -15.50026
     )
     l8_cube_aws <- .try(
         {
             sits_cube(
                 source = "AWS",
                 collection = "LANDSAT-C2-L2",
+                roi = roi,
+                bands = c("NIR08", "CLOUD"),
+                start_date = as.Date("2022-07-18"),
+                end_date = as.Date("2022-08-23"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(purrr::is_null(l8_cube_aws), "AWS is not accessible")
+    expect_true(all(sits_bands(l8_cube_aws) %in% c("NIR08", "CLOUD")))
+    expect_equal(nrow(l8_cube_aws), 1)
+    bbox_cube <- sits_bbox(l8_cube_aws, as_crs = "EPSG:4326")
+    bbox_cube_1 <- sits_bbox(.tile(l8_cube_aws), as_crs = "EPSG:4326")
+    expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
+    expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
+    r_obj <- .raster_open_rast(l8_cube_aws$file_info[[1]]$path[1])
+    tile_nrows <- .tile_nrows(l8_cube_aws)[[1]]
+    expect_true(.raster_nrows(r_obj) == tile_nrows)
+
+    l8_cube_aws_l8 <- .try(
+        {
+            sits_cube(
+                source = "AWS",
+                collection = "LANDSAT-C2-L2",
+                roi = roi,
+                bands = c("NIR08", "CLOUD"),
+                start_date = as.Date("2022-07-18"),
+                end_date = as.Date("2022-08-23"),
+                progress = FALSE,
+                platform = "LANDSAT-8"
+            )
+        },
+        .default = NULL
+    )
+    num_files_1 <- nrow(l8_cube_aws$file_info[[1]])
+    num_files_2 <- nrow(l8_cube_aws_l8$file_info[[1]])
+    expect_true(num_files_2 < num_files_1)
+})
+
+test_that("Creating LANDSAT cubes from USGS with ROI", {
+    roi <- c(
+        lon_min = -48.28579, lat_min = -16.05026,
+        lon_max = -47.30839, lat_max = -15.50026
+    )
+    l8_cube_usgs <- .try(
+        {
+            sits_cube(
+                source = "USGS",
+                collection = "LANDSAT-C2L2-SR",
                 roi = roi,
                 bands = c("NIR08", "CLOUD"),
                 start_date = as.Date("2018-07-18"),
@@ -647,14 +779,35 @@ test_that("Creating LANDSAT cubes from AWS with ROI", {
         },
         .default = NULL
     )
-    testthat::skip_if(purrr::is_null(l8_cube_aws), "AWS is not accessible")
-    expect_true(all(sits_bands(l8_cube_aws) %in% c("NIR08", "CLOUD")))
-    expect_equal(nrow(l8_cube_aws), 2)
-    bbox_cube <- sits_bbox(l8_cube_aws, as_crs = "EPSG:4326")
-    bbox_cube_1 <- sits_bbox(.tile(l8_cube_aws), as_crs = "EPSG:4326")
+    testthat::skip_if(purrr::is_null(l8_cube_usgs), "USGS is not accessible")
+    expect_true(all(sits_bands(l8_cube_usgs) %in% c("NIR08", "CLOUD")))
+    expect_equal(nrow(l8_cube_usgs), 2)
+    bbox_cube <- sits_bbox(l8_cube_usgs, as_crs = "EPSG:4326")
+    bbox_cube_1 <- sits_bbox(.tile(l8_cube_usgs), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(l8_cube_aws$file_info[[1]]$path[1])
-    tile_nrows <- .tile_nrows(l8_cube_aws)[[1]]
+    r_obj <- .raster_open_rast(l8_cube_usgs$file_info[[1]]$path[1])
+    tile_nrows <- .tile_nrows(l8_cube_usgs)[[1]]
     expect_true(.raster_nrows(r_obj) == tile_nrows)
+})
+test_that("Access to SwissDataCube",{
+    roi <- c(
+        lon_min = 7.54, lat_min = 46.73,
+        lon_max = 7.65, lat_max = 46.77
+    )
+    s2_cube_sdc <- .try(
+        {
+            sits_cube(
+                source = "SDC",
+                collection = "S2_L2A_10M_SWISS",
+                roi = roi,
+                bands = c("B08"),
+                start_date = as.Date("2018-07-18"),
+                end_date = as.Date("2018-08-23"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(purrr::is_null(s2_cube_sdc), "SDC is not accessible")
 })

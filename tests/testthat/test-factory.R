@@ -48,4 +48,7 @@ test_that("test factory", {
     expect_true(all(unique(point_class$predicted[[1]]$class)
     %in% sits_labels(samples_modis_ndvi)))
     expect_equal(nrow(point_class$predicted[[1]]), 17)
+
+    ml_function <- sits_factory_function(data = NULL, sits_mlr)
+    expect_true(inherits(ml_function, "function"))
 })

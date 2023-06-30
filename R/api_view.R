@@ -106,97 +106,6 @@
         )
     return(leaf_map)
 }
-
-#' @title  Include leaflet to view RGB image
-#' @name .view_rgb_image
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  cube          Cube to be plotted
-#' @param  class_cube    Classified cube to be overlayed on top on image
-#' @param  tiles         Tiles to be plotted (in case of a multi-tile cube).
-#' @param  dates         Dates to be plotted.
-#' @param  red           Band for red color.
-#' @param  green         Band for green color.
-#' @param  blue          Band for blue color.
-#' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Palette provided in the configuration file.
-#' @param  segments      Segment list obtained by \link{sits_segmentation}
-#' @param  view_max_mb   Maximum size of leaflet to be visualized
-.view_rgb_image <- function(cube,
-                            class_cube,
-                            tiles,
-                            dates,
-                            red,
-                            green,
-                            blue,
-                            legend,
-                            palette,
-                            segments,
-                            view_max_mb) {
-    # filter the tiles
-    cube <- .view_filter_tiles(cube, tiles)
-    # set the dates
-    dates <- .view_set_dates(cube, dates)
-    # check the view_max_mb parameter
-    view_max_mb <- .view_set_max_mb(view_max_mb)
-    # find out if resampling is required (for big images)
-    output_size <- .view_resample_size(
-        cube = cube,
-        ndates = length(dates),
-        view_max_mb = view_max_mb
-    )
-    # create a leaflet and add providers
-    leaf_map <- .view_add_basic_maps()
-    # get names of basic maps
-    base_maps <- .view_get_base_maps(leaf_map)
-    # create a leaflet for RGB bands
-    leaf_map <- leaf_map |>
-        .view_rgb_bands(
-            cube = cube,
-            red = red,
-            green = green,
-            blue = blue,
-            dates = dates,
-            output_size = output_size
-        ) |>
-        # include class cube if available
-        .view_class_cube(
-            class_cube = class_cube,
-            tiles = tiles,
-            legend = legend,
-            palette = palette,
-            output_size = output_size
-        ) |>
-        # include segments, if available
-        .view_segments(
-            segments = segments,
-            legend = legend,
-            palette = palette
-        )
-    # get overlay groups
-    overlay_groups <- .view_add_overlay_grps(
-        cube = cube,
-        dates = dates,
-        class_cube = class_cube,
-        segments = segments
-    )
-    # add layers control
-    leaf_map <- leaf_map |>
-        leaflet::addLayersControl(
-            baseGroups = base_maps,
-            overlayGroups = overlay_groups,
-            options = leaflet::layersControlOptions(collapsed = FALSE)
-        ) |>
-        # add legend
-        .view_add_legend(
-            class_cube = class_cube,
-            segments = segments
-        )
-
-    return(leaf_map)
-}
 #' @title  Return the size of the imaged to be resamples for visulization
 #' @name .view_resample_size
 #' @keywords internal
@@ -512,8 +421,8 @@
     }
     return(leaf_map)
 }
-#' @title  Include leaflet to view RGB band
-#' @name .view_rgb_band
+#' @title  Include leaflet to view RGB bands
+#' @name .view_rgb_bands
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

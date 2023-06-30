@@ -1345,7 +1345,7 @@
                 labels,
                 len_min = 1,
                 allow_duplicate = FALSE,
-                is_named = FALSE,
+                is_named = TRUE,
                 msg = "'labels' parameter should be provided"
             )
         }
@@ -1354,19 +1354,9 @@
             .check_length(
                 labels,
                 len_min = 2,
-                msg = "'labels' parameter should be provided"
+                is_named = TRUE,
+                msg = "'labels' parameter should be provided and be named"
             )
-            if (!.has(names(labels))) {
-                warning(
-                    paste(
-                        "'labels' parameter should be named. Each label",
-                        "needs to be associated with the number,",
-                        "which is used to represent it in the image file."
-                    ),
-                    call. = FALSE
-                )
-                names(labels) <- seq_along(labels)
-            }
         }
     }
     return(results_cube)
@@ -1720,6 +1710,28 @@
         msg = "input data without labels"
     )
 }
+#' @title Does the class cube contain enough labels?
+#' @name  .check_labels_class_cube
+#' @param  cube class cube
+#' @return No return value, called for side effects.
+#' @keywords internal
+#' @noRd
+.check_labels_class_cube <- function(cube) {
+    # select the files for the classified cube
+    files <- unlist(.cube_paths(cube))
+    # open the first file
+    r <- .raster_open_rast(files)
+    # get the frequency table
+    freq <- .raster_freq(r)
+    # get the classes as numerical values
+    classes_num <- as.character(freq$value)
+    labels_num <- names(sits_labels(cube))
+    # do the labels and raster numbers match?
+    .check_that(
+        x = all(classes_num %in% labels_num),
+        msg = "Labels do not match number of classes in cube"
+    )
+}
 #' @title Check if an object is a bbox
 #' @noRd
 #' @returns Throws an error if an object is not a bbox.
@@ -1841,22 +1853,6 @@
     .check_cubes_same_bbox(cube1, cube2)
     .check_cubes_same_timeline(cube1, cube2)
     .check_cubes_same_labels(cube1, cube2)
-}
-#' @title Check if cubes have the same organization
-#' @name .check_cube_list_match
-#' @keywords internal
-#' @noRd
-#' @param  cubes         list of input data cubes
-#' @return No return value, called for side effects.
-.check_cube_list_match <- function(cubes) {
-    .check_lst_type(cubes,
-        msg = "cubes are not in a list"
-    )
-    # check same size
-    first <- cubes[[1]]
-    purrr::map(cubes, function(cube) {
-        .check_cubes_match(first, cube)
-    })
 }
 #' @title Check if list of probs cubes have the same organization
 #' @name .check_probs_cube_lst

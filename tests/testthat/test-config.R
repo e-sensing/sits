@@ -73,13 +73,14 @@ test_that("User functions", {
         c("BIGTIFF=YES")
     )
 
-
     expect_output(
         object = sits_config_show(source = "BDC"),
         regexp = "s3_class: bdc_cube, stac_cube, eo_cube, raster_cube"
     )
-
-
+    expect_output(
+        object = sits_config_show(source = "BDC", collection = "CBERS-WFI-16D"),
+        regexp = "bands"
+    )
     # add a new source, collection
     .conf_set_options(
         sources = list(TEST = .conf_new_source(

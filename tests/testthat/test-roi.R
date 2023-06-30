@@ -13,6 +13,12 @@ test_that("One-year, multicore classification with ROI", {
     bbox[["xmax"]] <- (bbox[["xmax"]] - bbox[["xmin"]]) / 2 + bbox[["xmin"]]
     bbox[["ymax"]] <- (bbox[["ymax"]] - bbox[["ymin"]]) / 2 + bbox[["ymin"]]
 
+    expect_error(.bbox_type(sinop$crs))
+    expect_warning(.bbox_from_tbl(samples_modis_ndvi))
+
+
+    bbox_samples <- sits_bbox(samples_modis_ndvi)
+
     sinop_probs <- .try(
         {
             sits_classify(
@@ -61,6 +67,29 @@ test_that("Bbox in WGS 84", {
 
     bbox <- sits_bbox(sinop, as_crs = "EPSG:4326")
     expect_true(all(names(bbox) %in% c("xmin", "ymin", "xmax", "ymax", "crs")))
+})
+
+test_that("bbox as sf",{
+    # create a raster cube
+    s2_cube_s2a <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-2-L2A",
+                tiles = c("20LKP","21LTF"),
+                bands = c("B05"),
+                start_date = as.Date("2018-07-18"),
+                end_date = as.Date("2018-08-23"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(purrr::is_null(s2_cube_s2a),
+                      message = "BDC is not accessible"
+    )
+    expect_warning(sits_bbox(s2_cube_s2a))
+
 })
 
 test_that("Functions that work with ROI", {

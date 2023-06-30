@@ -101,6 +101,10 @@
     } else {
         class(cube) <- .cube_s3class(cube)
     }
+    # check if labels match in the case of class cube
+    if (inherits(cube, "class_cube")) {
+        .check_labels_class_cube(cube)
+    }
 
     return(cube)
 }

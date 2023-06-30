@@ -30,8 +30,7 @@ test_that("Reading a CSV file from RASTER", {
     )
     points_poly <- sits_get_data(
         raster_cube,
-        samples = csv_raster_file,
-        progress = FALSE
+        samples = csv_raster_file
     )
 
     df_csv <- utils::read.csv(

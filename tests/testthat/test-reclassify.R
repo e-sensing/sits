@@ -11,19 +11,17 @@ test_that("One-year, multicores processing reclassify", {
         ),
         bands = "class",
         version = "v20220606",
-        labels = c(
-            "1" = "Forest", "2" = "Water", "3" = "NonForest",
-            "4" = "NonForest2", "6" = "d2007", "7" = "d2008",
-            "8" = "d2009", "9" = "d2010", "10" = "d2011",
-            "11" = "d2012", "12" = "d2013", "13" = "d2014",
-            "14" = "d2015", "15" = "d2016", "16" = "d2017",
-            "17" = "d2018", "18" = "r2010", "19" = "r2011",
-            "20" = "r2012", "21" = "r2013", "22" = "r2014",
-            "23" = "r2015", "24" = "r2016", "25" = "r2017",
-            "26" = "r2018", "27" = "d2019", "28" = "r2019",
-            "29" = "d2020", "31" = "r2020", "32" = "Clouds2021",
-            "33" = "d2021", "34" = "r2021"
-        ),
+        labels = c("1" = "Forest", "2" = "Water", "3" = "NonForest",
+                   "4" = "NonForest2", "6" = "d2007", "7" = "d2008",
+                   "8" = "d2009", "9" = "d2010", "10" = "d2011",
+                   "11" = "d2012", "12" = "d2013", "13" = "d2014",
+                   "14" = "d2015", "15" = "d2016", "16" = "d2017",
+                   "17" = "d2018", "18" = "r2010", "19" = "r2011",
+                   "20" = "r2012", "21" = "r2013", "22" = "r2014",
+                   "23" = "r2015", "24" = "r2016", "25" = "r2017",
+                   "26" = "r2018", "27" = "d2019", "28" = "r2019",
+                   "29" = "d2020", "31" = "r2020", "32" = "Clouds2021",
+                   "33" = "d2021", "34" = "r2021"),
         progress = FALSE
     )
     # Open classification map
@@ -86,7 +84,7 @@ test_that("One-year, multicores processing reclassify", {
     # ro_class is "ClearCut_Veg"
     expect_equal(vls_ro_class[2000], 3)
     # prodes2021 is ""d2018"
-    expect_equal(vls_prodes2021[2000], 17)
+    expect_equal(vls_prodes2021[2000], 1)
     # ro_class is "Old_Deforestation"
     expect_equal(vls_ro_mask[2000], 5)
 

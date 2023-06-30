@@ -282,6 +282,12 @@ test_that("Checks", {
         ),
         ".check_chr_within: discriminator should be one of"
     )
+    expect_error(
+        .check_chr_within(c("a", "b"),
+                          within = c("a", "b", "c"),
+                          discriminator = "exactly"
+        )
+    )
     # .check_chr_contains
     expect_error(
         .check_chr_contains(character(0),
@@ -296,7 +302,18 @@ test_that("Checks", {
             discriminator = "one_of"
         )
     )
-
+    expect_error(
+        .check_chr_contains(c("a", "b", "c"),
+                            contains = c("a", "b"),
+                            discriminator = "none_of"
+        )
+    )
+    expect_error(
+        .check_chr_contains(c("a", "b", "c"),
+                            contains = c("a", "b"),
+                            discriminator = "exactly"
+        )
+    )
     expect_equal(
         .check_chr_contains(c("a", "b", "c"),
             contains = c("a", "b"),
@@ -530,7 +547,9 @@ test_that("Checks", {
     expect_error(
         .check_chr(c("example.com"), regex = "^[^ \"]+://[^ \"]+$")
     )
-
+    expect_error(
+        .check_empty_char("")
+    )
     # .check_lst
     expect_equal(
         .check_lst(list()),
@@ -591,4 +610,7 @@ test_that("Checks", {
         .check_warn(.check_num(123)),
         123
     )
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
+    expect_false(.check_warnings())
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
 })

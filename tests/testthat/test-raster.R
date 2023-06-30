@@ -10,6 +10,8 @@ test_that("Single core classification with rfor", {
         data_dir = data_dir,
         progress = FALSE
     )
+    expect_error(.check_bbox(sinop))
+
     output_dir <- paste0(tempdir(), "/single_rfor")
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
@@ -22,6 +24,9 @@ test_that("Single core classification with rfor", {
         multicores = 1,
         progress = FALSE
     )
+    bands_p <- sits_bands(sinop_probs)
+    labels_p <- sits_labels(sinop_probs)
+    expect_true(.check_cube_is_results_cube(bands_p, labels_p))
 
     # testing resume feature
     out <- capture_messages({
@@ -186,14 +191,19 @@ test_that("Classification with RFOR and Savitzky-Golay filter", {
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
+    start_date <- sits_timeline(sinop)[1]
+    end_date <- sits_timeline(sinop)[length(sits_timeline(sinop))]
     sinop_2014_probs <- sits_classify(
         data = sinop,
         ml_model = rfor_model,
         filter_fn = sits_sgolay(),
+        start_date = start_date,
+        end_date = end_date,
         output_dir = output_dir,
         memsize = 4,
         multicores = 2,
-        progress = FALSE
+        progress = TRUE,
+        verbose = TRUE
     )
 
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))

@@ -392,6 +392,12 @@ sits_cube.local_cube <- function(source,
     .check_file(x = data_dir, msg = "'data_dir' parameter must be provided.")
     # expanding the shortened paths since gdal functions do not work with them
     data_dir <- path.expand(data_dir)
+    # deal with wrong parameter "band" in dots
+    dots <- list(...)
+    if ("band" %in% names(dots) && missing(bands)) {
+        message("please, use 'bands' instead of 'band' as parameter")
+        bands <- as.character(dots[["band"]])
+    }
     # precondition - check source and collection for eo_cubes only
     # is this a cube with results?
     if (!purrr::is_null(bands) &&
@@ -403,12 +409,6 @@ sits_cube.local_cube <- function(source,
     if (!results_cube) {
         .source_check(source = source)
         .source_collection_check(source = source, collection = collection)
-    }
-    dots <- list(...)
-    # deal with wrong parameter "band" in dots
-    if ("band" %in% names(dots) && missing(bands)) {
-        message("please, use 'bands' instead of 'band' as parameter")
-        bands <- as.character(dots[["band"]])
     }
     # builds a sits data cube
     cube <- .local_cube(
