@@ -143,7 +143,7 @@
         "tbl_df"
     } else if (is.character(em)) {
         ext <- tolower(.file_ext(em))
-        if (ext %in% c("csv", "shp")) {
+        if (ext %in% c("csv")) {
             ext
         } else {
             stop("not supported extension '", ext, "'")
@@ -163,8 +163,7 @@
     em <- .endmembers_switch(
         em,
         "tbl_df" = em,
-        "csv" = utils::read.csv(em),
-        "shp" = sf::st_read(em)
+        "csv" = utils::read.csv(em)
     )
     # Ensure that all columns are in uppercase
     dplyr::rename_with(em, toupper)

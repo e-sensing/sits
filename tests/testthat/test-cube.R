@@ -456,6 +456,8 @@ test_that("Creating cubes from DEA - error using tiles", {
     )
 })
 test_that("Creating Sentinel cubes from MPC", {
+    mpc_token <- Sys.getenv("MPC_TOKEN")
+    Sys.setenv("MPC_TOKEN" = "")
     s2_cube <- .try(
         {
             sits_cube(
@@ -474,6 +476,7 @@ test_that("Creating Sentinel cubes from MPC", {
         purrr::is_null(s2_cube),
         "MPC is not accessible"
     )
+    Sys.setenv("MPC_TOKEN" = mpc_token)
     expect_true(all(sits_bands(s2_cube) %in% c("B05", "CLOUD")))
     r <- .raster_open_rast(.tile_path(s2_cube))
     expect_equal(s2_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
@@ -536,6 +539,8 @@ test_that("Creating LANDSAT cubes from MPC with ROI", {
         lon_min = -48.28579, lat_min = -16.05026,
         lon_max = -47.30839, lat_max = -15.50026
     )
+    mpc_token <- Sys.getenv("MPC_TOKEN")
+    Sys.setenv("MPC_TOKEN" = "")
     l8_cube_mpc <- .try(
         {
             sits_cube(
@@ -551,6 +556,8 @@ test_that("Creating LANDSAT cubes from MPC with ROI", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(l8_cube_mpc), "MPC is not accessible")
+    Sys.setenv("MPC_TOKEN" = mpc_token)
+
     expect_true(all(sits_bands(l8_cube_mpc) %in% c("NIR08", "CLOUD")))
     expect_equal(nrow(l8_cube_mpc), 2)
     bbox_cube <- sits_bbox(l8_cube_mpc, as_crs = "EPSG:4326")
@@ -627,7 +634,6 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
         c(sits_timeline(l8_23LKC), sits_timeline(s2_23LKC))))
 
     expect_error(
-        .try({
             sits_cube(
                 source = "HLS",
                 collection = "HLSS30",
@@ -637,20 +643,6 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
                 end_date = as.Date("2020-09-01"),
                 progress = FALSE
             )
-        }, .rollback = {})
-    )
-    expect_error(
-        .try({
-            sits_cube(
-                source = "HLS",
-                collection = "HLSS30",
-                tile = "20LKP",
-                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
-                start_date = as.Date("2020-05-01"),
-                end_date = as.Date("2020-09-01"),
-                progress = FALSE
-            )
-        }, .msg_error = "error")
     )
     netrc_file <- "~/.netrc"
     file.rename(netrc_file, "~/.netrc_save")
@@ -673,7 +665,7 @@ test_that("Creating Sentinel cubes from AWS", {
             sits_cube(
                 source = "AWS",
                 collection = "SENTINEL-2-L2A",
-                tiles = "20LKP",
+                tiles = c("20LKP", "20LLP"),
                 bands = c("B05", "CLOUD"),
                 start_date = as.Date("2018-07-18"),
                 end_date = as.Date("2018-08-23"),
@@ -690,6 +682,23 @@ test_that("Creating Sentinel cubes from AWS", {
     r <- .raster_open_rast(.tile_path(s2_cube))
     expect_equal(s2_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(s2_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
+
+    v_s2 <- sits_view(
+        x = s2_cube,
+        band = "B05",
+        dates = "2018-07-19",
+        palette = "Greens"
+    )
+    expect_true(grepl("EPSG3857", v_s2$x$options$crs$crsClass))
+    expect_equal(v_s2$x$calls[[1]]$method, "addProviderTiles")
+    v_s2rgb <- sits_view(
+        x = s2_cube,
+        red = "B05",
+        green = "B05",
+        blue = "B05",
+        dates = "2018-07-19"
+    )
+
 
     s2_cube_s2a <- .try(
         {
@@ -811,3 +820,36 @@ test_that("Access to SwissDataCube",{
     )
     testthat::skip_if(purrr::is_null(s2_cube_sdc), "SDC is not accessible")
 })
+test_that("testing STAC error",{
+    mpc_url <- sits_env$config$sources$MPC$url
+    sits_env$config$sources$MPC$url <- "https://planetarycomputer.microsoft.com/api/stac/v100"
+    expect_error(
+        sits_cube(
+            source = "MPC",
+            collection = "SENTINEL-2-L2A",
+            tiles = "20LKP",
+            bands = c("B05"),
+            start_date = as.Date("2020-07-18"),
+            end_date = as.Date("2020-08-23"),
+            progress = FALSE
+        )
+    )
+    sits_env$config$sources$MPC$url <- mpc_url
+
+    aws_url <- sits_env$config$sources$AWS$url
+    sits_env$config$sources$AWS$url <- "https://earth-search.aws.element84.com/v100/"
+    expect_error(
+        sits_cube(
+            source = "AWS",
+            collection = "SENTINEL-2-L2A",
+            tiles = "20LKP",
+            bands = c("B05"),
+            start_date = as.Date("2020-07-18"),
+            end_date = as.Date("2020-08-23"),
+            progress = FALSE
+        )
+    )
+    sits_env$config$sources$AWS$url <- aws_url
+
+})
+

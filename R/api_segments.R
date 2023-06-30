@@ -113,17 +113,8 @@
 
         return(ts)
     }, progress = progress)
-
+    # join rows to get time series tibble
     ts_tbl <- dplyr::bind_rows(samples_tiles_bands)
-
-    if (!.has_ts(ts_tbl)) {
-        warning(
-            "No time series were extracted. ",
-            "Check your samples and your input cube",
-            immediate. = TRUE, call. = FALSE
-        )
-        return(.tibble())
-    }
 
     ts_tbl <- ts_tbl |>
         tidyr::unnest("time_series") |>

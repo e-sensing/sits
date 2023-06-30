@@ -42,9 +42,3 @@ NULL
     # Compute result and return
     all(abs(x - y) > tolerance[[1]])
 }
-#' @title Compare if `x` is an integer considering a tolerance
-#' @noRd
-#' @returns A logical value
-.is_int <- function(x, tolerance = 0) {
-    .is_eq(x, round(x), tolerance = tolerance)
-}

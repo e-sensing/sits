@@ -14,5 +14,9 @@ test_that("debug", {
                                       "max_mem_used", "key", "value" )))
     expect_equal(log_csv[1,"value"], " start")
     expect_equal(log_csv[2,"value"], " end")
+    sits_env[["debug_flag"]] <- NULL
+    flag <- .debug()
+    expect_false(flag)
     .debug(flag = FALSE)
+
 })

@@ -57,24 +57,17 @@ test_that("Mixture model tests", {
     expect_true("raster_cube" %in% class(mm_rmse))
     expect_true(all(sits_timeline(reg_cube) %in% sits_timeline(mm_rmse)))
     expect_true(all(reg_cube[["tiles"]] == mm_rmse[["tiles"]]))
-    expect_true(all(file.exists(unlist(mm_rmse$file_info[[1]]$path))))
 
     r_obj <- .raster_open_rast(mm_rmse$file_info[[1]]$path[[2]])
-
     expect_true(.raster_nrows(r_obj) == .tile_nrows(reg_cube))
 
-    # Create the endmembers tibble for cube
-    emc <- tibble::tribble(
-        ~class, ~B02, ~B03, ~B04, ~B8A, ~B11, ~B12,
-        "forest", 0.02, 0.0352, 0.0189, 0.28, 0.134, 0.0546,
-        "land", 0.04, 0.065, 0.07, 0.36, 0.35, 0.18,
-        "water", 0.07, 0.11, 0.14, 0.085, 0.004, 0.0026
-    )
+    write.csv(em, file = paste0(tempdir(),"/mmodel.csv"),  row.names = FALSE)
+    csv_file <- paste0(tempdir(),"/mmodel.csv")
 
-    # Generate the mixture model
-    mm_rmse_c <- sits_mixture_model(
+    # Read endmembers from CSV
+    mm_rmse_csv <- sits_mixture_model(
         data = reg_cube,
-        endmembers = emc,
+        endmembers = csv_file,
         memsize = 2,
         multicores = 2,
         output_dir = tempdir(),
@@ -82,15 +75,15 @@ test_that("Mixture model tests", {
         progress = FALSE
     )
 
-    frac_bands <- sits_bands(mm_rmse_c)
+    frac_bands <- sits_bands(mm_rmse_csv)
 
     expect_true(all(c("FOREST", "LAND", "WATER") %in% frac_bands))
-    expect_true("raster_cube" %in% class(mm_rmse_c))
-    expect_true(all(sits_timeline(reg_cube) %in% sits_timeline(mm_rmse_c)))
-    expect_true(all(reg_cube[["tiles"]] == mm_rmse_c[["tiles"]]))
-    expect_true(all(file.exists(unlist(mm_rmse_c$file_info[[1]]$path))))
+    expect_true("raster_cube" %in% class(mm_rmse_csv))
+    expect_true(all(sits_timeline(reg_cube) %in% sits_timeline(mm_rmse_csv)))
+    expect_true(all(reg_cube[["tiles"]] == mm_rmse_csv[["tiles"]]))
+    expect_true(all(file.exists(unlist(mm_rmse_csv$file_info[[1]]$path))))
 
-    r_obj <- .raster_open_rast(mm_rmse_c$file_info[[1]]$path[[2]])
+    r_obj <- .raster_open_rast(mm_rmse_csv$file_info[[1]]$path[[2]])
 
     expect_true(.raster_nrows(r_obj) == .tile_nrows(reg_cube))
 
@@ -126,7 +119,7 @@ test_that("Mixture model tests", {
     expect_true(all(frac_labels))
 
     ts_em_bands <- sits_get_data(
-        cube = mm_rmse_c,
+        cube = mm_rmse_csv,
         samples = samples,
         multicores = 2,
         output_dir = tempdir()

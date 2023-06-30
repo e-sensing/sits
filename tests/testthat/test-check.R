@@ -612,5 +612,8 @@ test_that("Checks", {
     )
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
     expect_false(.check_warnings())
+    expect_false(.check_documentation(progress = TRUE))
+    expect_false(.check_messages())
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+
 })

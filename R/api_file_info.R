@@ -34,10 +34,7 @@ NULL
     }
 }
 .fi_switch <- function(fi, ...) {
-    switch(.fi_type(fi),
-        ...,
-        stop("invalid file_info type")
-    )
+    switch(.fi_type(fi), ...)
 }
 .fi_eo <- function(fid, band, date, ncols, nrows, xres, yres, xmin, xmax,
                    ymin, ymax, path) {
@@ -175,12 +172,8 @@ NULL
 .fi_paths <- function(fi) {
     .as_chr(fi[["path"]])
 }
-
 .fi_path <- function(fi) {
     .as_chr(fi[["path"]][[1]])
-}
-.fi_as_sf <- function(fi) {
-    .bbox_as_sf(.bbox(fi))
 }
 .fi_during <- function(fi, start_date, end_date) {
     fi_tl <- .fi_timeline(fi)
@@ -214,16 +207,6 @@ NULL
     }
     fi[.fi_timeline(fi) %in% dates, ]
 }
-.fi_intersects <- function(fi, roi) {
-    .intersects(.fi_as_sf(fi), .roi_as_sf(roi))
-}
-.fi_filter_spatial <- function(fi, roi) {
-    features_in_fi <- .fi_intersects(fi = fi, roi = roi)
-    if (!any(features_in_fi)) {
-        stop("no feature intersects informed roi")
-    }
-    fi[features_in_fi, ]
-}
 .fi_read_block <- function(fi, band, block) {
     band <- band[[1]]
     # Stops if no band is found
@@ -252,8 +235,4 @@ NULL
 
 .fi_is_complete <- function(fi) {
     length(unique(.by(fi, col = "band", .fi_timeline))) <= 1
-}
-
-.fi_same_bbox <- function(fi, tolerance) {
-    all(slider::slide_lgl(fi, .bbox_equal, .bbox(fi), tolerance = tolerance))
 }

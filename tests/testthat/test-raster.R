@@ -642,3 +642,37 @@ test_that("Raster GDAL datatypes", {
     gdal_type <- .raster_gdal_datatype("INT2U")
     expect_equal(gdal_type, "UInt16")
 })
+
+test_that("Raster terra interface", {
+    r_obj <- .raster_new_rast.terra(
+        nrows = 766,
+        ncols = 1307,
+        xmin = 534780,
+        ymin = 9025580,
+        xmax = 560920,
+        ymax = 9040900,
+        nlayers = 1,
+        crs = 3270
+    )
+    expect_equal(nrow(r_obj), 766)
+    expect_equal(ncol(r_obj), 1307)
+    expect_equal(terra::xmin(r_obj), 534780)
+
+    r_obj_1 <- .raster_new_rast.terra(
+        nrows = 766,
+        ncols = 1307,
+        xmin = 534780,
+        ymin = 9025580,
+        xmax = 560920,
+        ymax = 9040900,
+        nlayers = 1,
+        crs = 3270,
+        xres = 20,
+        yres = 20
+    )
+    expect_equal(nrow(r_obj_1), 766)
+    expect_equal(ncol(r_obj_1), 1307)
+    expect_equal(terra::xmin(r_obj_1), 534780)
+
+})
+

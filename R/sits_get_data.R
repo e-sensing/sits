@@ -322,6 +322,14 @@ sits_get_data.segments <- function(cube,
                                    pol_id = "supercells",
                                    multicores = 1,
                                    progress = FALSE) {
+    # precondition
+    tiles_seg <- names(samples)
+    .check_chr_within(
+        x = tiles_seg,
+        within = cube$tile,
+        discriminator = "all_of",
+        msg = "segment tiles do not match cube tiles"
+    )
     # extract time series from a cube from a set of segments
     data <- .segments_get_data(
         cube = cube,

@@ -444,23 +444,6 @@ NULL
 .tile_within.raster_cube <- function(tile, roi) {
     .within(.tile_as_sf(tile), .roi_as_sf(roi))
 }
-#' @title Filter file_info entries that intersect roi.
-#' @name .tile_filter_spatial
-#' @keywords internal
-#' @noRd
-#' @param tile A tile.
-#' @param roi A region of interest (ROI).
-#'
-#' @return tile
-.tile_filter_spatial <- function(tile, roi) {
-    UseMethod(".tile_filter_spatial", tile)
-}
-#' @export
-.tile_filter_spatial.raster_cube <- function(tile, roi) {
-    tile <- .tile(tile)
-    .fi(tile) <- .fi_filter_spatial(fi = .fi(tile), roi = roi)
-    tile
-}
 #'
 #' @title Is any date of tile's timeline between 'start_date'
 #' and 'end_date'?

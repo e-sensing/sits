@@ -18,4 +18,8 @@ test_that("API point", {
 
     sf_p <- .point_as_sf(p)
     expect_true(sf::st_geometry_type(sf_p) == "POINT")
+
+    expect_error(.check_point("a"))
+    expect_error(.point())
+    point <- .point(x, as_crs = "EPSG:3426")
 })

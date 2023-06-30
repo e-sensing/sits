@@ -78,8 +78,6 @@
                           pol_id,
                           start_date,
                           end_date) {
-    # Get the geometry type
-    geom_type <- as.character(sf::st_geometry_type(sf_object)[1])
 
     # Remove empty geometries if exists
     are_empty_geoms <- sf::st_is_empty(sf_object)
@@ -95,6 +93,8 @@
     # If the sf object is not in planar coordinates, convert it
     sf_object <- suppressWarnings(sf::st_transform(sf_object, crs = 4326))
 
+    # Get the geometry type
+    geom_type <- as.character(sf::st_geometry_type(sf_object)[1])
     # Get a tibble with points and labels
     points_tbl <- switch(geom_type,
         "POINT" = .sf_point_to_tibble(

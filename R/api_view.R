@@ -277,14 +277,16 @@
 .view_set_max_mb <- function(view_max_mb) {
     # get the maximum number of bytes to be displayed (total)
     if (purrr::is_null(view_max_mb)) {
-        view_max_mb <- .conf("leaflet_max_megabytes")
+        view_max_mb <- .conf("leaflet_megabytes")
     } else {
         .check_num(
             x = view_max_mb,
             is_integer = TRUE,
-            min = 16,
-            max = 512,
-            msg = "view_max_mb should be btw 16MB and 512 MB"
+            min = .conf("leaflet_min_megabytes"),
+            max = .conf("leaflet_max_megabytes"),
+            msg = paste("view_max_mb should be btw ",
+                        .conf("leaflet_min_megabytes"), "MB and ",
+                        .conf("leaflet_max_megabytes"), "MB")
         )
     }
     return(view_max_mb)
@@ -637,13 +639,6 @@
     if (purrr::is_null(dates)) {
         dates <- timeline[1]
     }
-
-    # check dates exist
-    .check_that(
-        x = all(as.Date(dates) %in% timeline),
-        local_msg = "date is not in cube timeline",
-        msg = "invalid dates parameter"
-    )
     return(dates)
 }
 #' @title  Select the tiles to be visualised
@@ -666,12 +661,6 @@
     )
     # filter the tiles to be processed
     cube <- .cube_filter_tiles(cube, tiles)
-
-    # more than one tile? needs regular cube
-    if (nrow(cube) > 1) {
-        .check_is_regular(cube)
-    }
-
     return(cube)
 }
 #' @title  Add a legend to the leafmap

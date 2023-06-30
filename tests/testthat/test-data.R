@@ -14,6 +14,11 @@ test_that("Reading a LAT/LONG from RASTER", {
     expect_equal(names(point_ndvi)[1], "longitude")
     expect_true(ncol(.tibble_time_series(point_ndvi)) == 2)
     expect_true(length(sits_timeline(point_ndvi)) == 12)
+
+    samples2 <- tibble::tibble(longitude = -55.66738, latitude = 11.76990)
+    expect_warning(
+        sits_get_data(raster_cube, samples2, progress = FALSE)
+    )
 })
 
 test_that("Reading a CSV file from RASTER", {
@@ -22,7 +27,7 @@ test_that("Reading a CSV file from RASTER", {
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
-        progress = FALSE
+        progress = TRUE
     )
 
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
@@ -470,7 +475,7 @@ test_that("Reading data from Classified data", {
     )
     points_poly <- sits_get_data(label_cube,
         samples = csv_raster_file,
-        progress = FALSE
+        progress = TRUE
     )
     expect_equal(
         nrow(points_poly), nrow(read.csv(csv_raster_file))

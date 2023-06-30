@@ -55,6 +55,14 @@ test_that("file_info functions", {
     expect_s3_class(tile_fid, "tbl_df")
     expect_equal(nrow(tile_fid), 3)
 
+    # test errors
+    fi <- .fi(cbers_cube)
+    expect_error(.fi_filter_fid(fi, fid = "CB4-16D-V222"))
+    expect_error(.fi_filter_bands(fi, bands = "NBR"))
+    expect_warning(sf <- .fi_as_sf(fi))
+    bbox_sf <- sf::st_bbox(sf)
+    expect_equal(bbox_sf[["xmin"]], 5580800)
+
     cube_sliced_date <- .cube_filter_interval(
         cbers_cube,
         start_date = "2018-08-29",
@@ -71,6 +79,14 @@ test_that("file_info functions", {
 
     expect_error(.fi_type(1))
     expect_error(.fi_switch(1))
+    fi2 <- .fi_filter_interval(fi, start_date = NULL, end_date = NULL)
+    expect_equal(nrow(fi), nrow(fi2))
+    expect_error(.fi_filter_interval(fi,
+                                     start_date = "2019-09-01",
+                                     end_date = "2019-10-28"))
+    expect_error(.fi_filter_dates(fi, dates = c("2019-09-01", "2019-10-28")))
+    roi <- sits_bbox(cbers_cube, as_crs = "EPSG:4326")
+    expect_true(.fi_intersects(fi, roi))
 })
 
 test_that("file_info functions for result cubes", {

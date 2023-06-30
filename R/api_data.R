@@ -22,7 +22,7 @@
 #'
 .data_get_ts <- function(cube,
                          samples, ...,
-                         bands = NULL,
+                         bands,
                          multicores,
                          progress) {
     # Dispatch
@@ -37,10 +37,7 @@
                                      bands,
                                      multicores,
                                      progress) {
-    # Pre-conditions
-    if (is.null(bands)) {
-        bands <- .cube_bands(cube)
-    }
+    # Pre-condition
     .check_cube_bands(cube, bands = bands)
     # Is the cloud band available?
     cld_band <- .source_cloud()
