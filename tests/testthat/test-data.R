@@ -50,6 +50,8 @@ test_that("Reading a CSV file from RASTER", {
     expect_true(ncol(.tibble_time_series(points_poly)) == 2)
     expect_true(length(sits_timeline(points_poly)) == 12)
 
+    Sys.setenv("SITS_SAMPLES_CACHE_DIR" = tempdir())
+
     points_df <- sits_get_data(
         raster_cube,
         samples = df_csv,

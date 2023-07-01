@@ -24,4 +24,6 @@ test_that("Creating clustering using Self-organizing Maps", {
 
     expect_true(cluster_purity[1, ]$mixture_percentage > 60)
     expect_true(cluster_purity[2, ]$mixture_percentage < 40)
+    expect_error(sits_som_clean_samples(samples_modis_ndvi))
+    expect_error(sits_som_evaluate_samples(samples_modis_ndvi))
 })

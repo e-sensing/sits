@@ -275,3 +275,6 @@ test_that("normalization new version", {
     #   abs(max(values)) and 1.0 (inclusive)
     expect_true(abs(max(values)) < max(values_norm) && max(values_norm) <= 1.0)
 })
+test_that("ML errors", {
+    expect_error(.ml_model("a"))
+})

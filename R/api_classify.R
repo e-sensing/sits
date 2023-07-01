@@ -61,13 +61,7 @@
         return(probs_tile)
     }
     # Show initial time for tile classification
-    if (verbose) {
-        tile_start_time <- Sys.time()
-        message(
-            "Starting classification of tile '",
-            tile[["tile"]], "' at ", tile_start_time
-        )
-    }
+    tile_start_time <- .tile_classif_start(tile, verbose)
     # Create chunks as jobs
     chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
     # By default, update_bbox is FALSE
@@ -176,15 +170,7 @@
         update_bbox = update_bbox
     )
     # show final time for classification
-    if (verbose) {
-        tile_end_time <- Sys.time()
-        message("Tile '", tile[["tile"]], "' finished at ", tile_end_time)
-        message(
-            "Elapsed time of ",
-            format(round(tile_end_time - tile_start_time, digits = 2))
-        )
-        message("")
-    }
+    .tile_classif_end(tile, tile_start_time, verbose)
     # Return probs tile
     probs_tile
 }

@@ -8,7 +8,8 @@ test_that("Single core classification with rfor", {
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
-        progress = FALSE
+        progress = TRUE,
+        verbose = TRUE
     )
     expect_error(.check_bbox(sinop))
 
@@ -674,5 +675,18 @@ test_that("Raster terra interface", {
     expect_equal(ncol(r_obj_1), 1307)
     expect_equal(terra::xmin(r_obj_1), 534780)
 
-})
+    block <- c("col" = 1, "row" = 1, "ncols" = 100, "nrows" = 100)
+    bbox <- .raster_bbox(r_obj, block = block)
+    expect_equal(bbox[["xmin"]], 534780)
+    expect_equal(bbox[["ymin"]], 9038900)
+    expect_equal(bbox[["xmax"]], 536780)
+    expect_equal(bbox[["ymax"]], 9040900)
+
+    prodes_dir <- system.file("extdata/raster/prodes", package = "sits")
+    prodes_file <- list.files(prodes_dir)
+    r_clone <- .raster_clone(paste0(prodes_dir,"/",prodes_file), nlayers = 1)
+    r_prodes <- .raster_open_rast(paste0(prodes_dir,"/",prodes_file))
+    expect_equal(nrow(r_clone), nrow(r_prodes))
+    expect_equal(ncol(r_clone), ncol(r_prodes))
+ })
 

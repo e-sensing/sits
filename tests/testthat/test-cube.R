@@ -62,6 +62,10 @@ test_that("Reading a raster cube", {
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
+        tiles = "012010",
+        bands = "NDVI",
+        start_date = "2013-09-14",
+        end_date = "2014-08-29",
         multicores = 2,
         progress = FALSE
     )
@@ -568,6 +572,19 @@ test_that("Creating LANDSAT cubes from MPC with ROI", {
     tile_nrows <- .tile_nrows(l8_cube_mpc)[[1]]
     expect_true(.raster_nrows(r_obj) == tile_nrows)
 })
+test_that("Creating LANDSAT cubes from MPC with WRS", {
+    expect_error(
+        sits_cube(
+                source = "MPC",
+                collection = "LANDSAT-C2-L2",
+                tiles = "223067",
+                bands = c("NIR08", "CLOUD"),
+                start_date = as.Date("2018-07-18"),
+                end_date = as.Date("2018-08-23"),
+                progress = FALSE
+            )
+    )
+})
 test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
     roi <- c(
         lon_min = -48.28579, lat_min = -16.05026,
@@ -637,7 +654,7 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
             sits_cube(
                 source = "HLS",
                 collection = "HLSS30",
-                tile = "20LKP",
+                tiles = "20LKP",
                 bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
                 start_date = as.Date("2020-05-01"),
                 end_date = as.Date("2020-09-01"),
@@ -769,6 +786,29 @@ test_that("Creating LANDSAT cubes from AWS with ROI", {
     expect_true(num_files_2 < num_files_1)
 })
 
+test_that("Creating LANDSAT cubes from AWS with WRS", {
+    l8_cube_aws_wrs <- .try(
+        {
+            sits_cube(
+                source = "AWS",
+                collection = "LANDSAT-C2-L2",
+                tiles = "223067",
+                bands = c("NIR08", "CLOUD"),
+                start_date = as.Date("2022-07-18"),
+                end_date = as.Date("2022-08-23"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(purrr::is_null(l8_cube_aws_wrs), "AWS is not accessible")
+    expect_true(all(sits_bands(l8_cube_aws_wrs) %in% c("NIR08", "CLOUD")))
+    expect_equal(nrow(l8_cube_aws_wrs), 1)
+    r_obj <- .raster_open_rast(l8_cube_aws_wrs$file_info[[1]]$path[1])
+    tile_nrows <- .tile_nrows(l8_cube_aws_wrs)[[1]]
+    expect_true(.raster_nrows(r_obj) == tile_nrows)
+})
+
 test_that("Creating LANDSAT cubes from USGS with ROI", {
     roi <- c(
         lon_min = -48.28579, lat_min = -16.05026,
@@ -797,6 +837,29 @@ test_that("Creating LANDSAT cubes from USGS with ROI", {
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
     r_obj <- .raster_open_rast(l8_cube_usgs$file_info[[1]]$path[1])
     tile_nrows <- .tile_nrows(l8_cube_usgs)[[1]]
+    expect_true(.raster_nrows(r_obj) == tile_nrows)
+})
+test_that("Creating LANDSAT cubes from USGS with WRS", {
+    l8_cube_223067 <- .try(
+        {
+            sits_cube(
+                source = "USGS",
+                collection = "LANDSAT-C2L2-SR",
+                tiles = "223067",
+                bands = c("NIR08"),
+                start_date = as.Date("2018-07-18"),
+                end_date = as.Date("2018-08-23"),
+                platform = "LANDSAT-8",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(purrr::is_null(l8_cube_223067), "USGS is not accessible")
+    expect_true(all(sits_bands(l8_cube_223067) %in% c("NIR08")))
+    expect_equal(nrow(l8_cube_223067), 1)
+    r_obj <- .raster_open_rast(l8_cube_223067$file_info[[1]]$path[1])
+    tile_nrows <- .tile_nrows(l8_cube_223067)[[1]]
     expect_true(.raster_nrows(r_obj) == tile_nrows)
 })
 test_that("Access to SwissDataCube",{
@@ -849,7 +912,28 @@ test_that("testing STAC error",{
             progress = FALSE
         )
     )
+
     sits_env$config$sources$AWS$url <- aws_url
+
+    usgs_url <- sits_env$config$sources$USGS$url
+
+    sits_env$config$sources$USGS$url <- "https://landsatlook.usgs.gov/stac-server/v100"
+    roi <- c(
+        lon_min = -48.28579, lat_min = -16.05026,
+        lon_max = -47.30839, lat_max = -15.50026
+    )
+    expect_error(
+        sits_cube(
+            source = "USGS",
+            collection = "LANDSAT-C2L2-SR",
+            roi = roi,
+            bands = c("NIR08"),
+            start_date = as.Date("2018-07-01"),
+            end_date = as.Date("2018-07-30"),
+            progress = FALSE
+        )
+    )
+    sits_env$config$sources$USGS$url <- usgs_url
 
 })
 

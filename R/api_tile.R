@@ -23,10 +23,7 @@ NULL
 #' @export
 .tile.raster_cube <- function(cube) {
     cube <- .cube(cube)
-    if (nrow(cube) >= 1) {
-        return(cube[1, ])
-    }
-    cube
+    cube[1,]
 }
 
 #  Tile field accessors
@@ -76,9 +73,6 @@ NULL
 #' @export
 .tile_ncols.raster_cube <- function(tile) {
     tile <- .tile(tile)
-    if ("ncols" %in% tile) {
-        return(.ncols(tile))
-    }
     .ncols(.fi(tile))
 }
 #
@@ -88,9 +82,6 @@ NULL
 #' @export
 .tile_nrows.raster_cube <- function(tile) {
     tile <- .tile(tile)
-    if ("nrows" %in% tile) {
-        return(.nrows(tile))
-    }
     .nrows(.fi(tile))
 }
 #
@@ -1017,5 +1008,5 @@ NULL
         )
         message("")
     }
-    return(end_time)
+    return(invisible(end_time))
 }

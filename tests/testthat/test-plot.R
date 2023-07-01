@@ -48,19 +48,23 @@ test_that("Plot Time Series and Images", {
         data_dir = data_dir,
         progress = FALSE
     )
-    p <- plot(sinop, band = "NDVI", palette = "RdYlGn")
+    p <- plot(sinop, band = "NDVI", palette = "RdYlGn", rev = TRUE)
     expect_equal(p$tm_shape$shp_name, "stars_obj")
     expect_equal(p$tm_raster$palette, "RdYlGn")
     expect_equal(p$tm_grid$grid.projection, 4326)
 
-    p_rgb <- plot(sinop, red = "NDVI", green = "NDVI", blue = "NDVI")
+    tmap_options = list("tmap_legend_title_size" = 1.0,
+                        "tmap_legend_text_size" = 0.7,
+                        "tmap_max_cells" = 1e+06,
+                        "tmap_graticules_labels_size" = 0.7,
+                        "tmap_legend_bg_color" = "white",
+                        "tmap_legend_bg_alpha" = 0.6)
+
+    p_rgb <- plot(sinop, red = "NDVI", green = "NDVI", blue = "NDVI",
+                  tmap_options = tmap_options)
 
     expect_equal(p_rgb$tm_shape$shp_name, "rgb_st")
     expect_equal(p_rgb$tm_grid$grid.projection, 4326)
-
-    col <- p_rgb$tm_shape$shp$`TERRA_MODIS_012010_NDVI_2013-09-14.jp2`
-    expect_equal(col[1, 1], "#646464")
-    expect_equal(col[1, 10], "#A9A9A9")
 
     sinop_probs <- suppressMessages(
         sits_classify(

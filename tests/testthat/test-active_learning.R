@@ -83,6 +83,14 @@ test_that("Increased samples have high confidence, low entropy", {
             sampling_window = 10
         )
     )
+    expect_warning(
+        sits_confidence_sampling(
+            probs_cube = probs_cube,
+            n = 60,
+            min_margin = 0.5,
+            sampling_window = 10
+        )
+    )
     labels <- sits_labels(probs_cube)
 
     samples_count <- dplyr::count(samples_df, .data[["label"]])

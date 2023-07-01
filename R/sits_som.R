@@ -221,8 +221,7 @@ sits_som_clean_samples <- function(som_map,
     .check_set_caller("sits_som_clean_samples")
     # Sanity check
     if (!inherits(som_map, "som_map")) {
-        message("wrong input data; please run sits_som_map first")
-        return(invisible(NULL))
+        stop("wrong input data; please run sits_som_map first")
     }
     .check_chr_within(
         x = keep,
@@ -296,8 +295,7 @@ sits_som_clean_samples <- function(som_map,
 sits_som_evaluate_cluster <- function(som_map) {
     # Sanity check
     if (!inherits(som_map, "som_map")) {
-        message("wrong input data; please run sits_som_map first")
-        return(invisible(NULL))
+        stop("wrong input data; please run sits_som_map first")
     }
     # Get neuron labels
     neuron_label <- som_map$som_properties$neuron_label
