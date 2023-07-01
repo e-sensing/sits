@@ -31,13 +31,15 @@ test_that("EVI generation", {
     ))
 
 
-    gc_cube <- sits_regularize(
-        cube = s2_cube,
-        output_dir = dir_images,
-        res = 160,
-        period = "P1M",
-        multicores = 2,
-        progress = FALSE
+    expect_warning(
+        gc_cube <- sits_regularize(
+            cube = s2_cube,
+            output_dir = dir_images,
+            res = 160,
+            period = "P1M",
+            multicores = 2,
+            progress = FALSE
+        )
     )
 
     gc_cube_new <- sits_apply(gc_cube,

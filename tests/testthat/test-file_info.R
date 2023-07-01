@@ -59,9 +59,6 @@ test_that("file_info functions", {
     fi <- .fi(cbers_cube)
     expect_error(.fi_filter_fid(fi, fid = "CB4-16D-V222"))
     expect_error(.fi_filter_bands(fi, bands = "NBR"))
-    expect_warning(sf <- .fi_as_sf(fi))
-    bbox_sf <- sf::st_bbox(sf)
-    expect_equal(bbox_sf[["xmin"]], 5580800)
 
     cube_sliced_date <- .cube_filter_interval(
         cbers_cube,

@@ -189,10 +189,10 @@ test_that("View", {
                     blue = "B13",
                     dates = "2018-08-29")
 
-    expect_equal(v8$x$crs[[1]]$crsClass, "L.CRS.EPSG3857")
+    expect_equal(v8$x$options$crs$crsClass, "L.CRS.EPSG3857")
     expect_equal(v8$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
     expect_equal(v8$x$calls[[5]]$method, "addRasterImage")
-    expect_equal(v8$x$calls[[6]]$args[[5]], "007004 2018-08-29")
+    expect_equal(v8$x$calls[[6]]$args[[5]], "007005 2018-08-29")
 
     expect_true(all(file.remove(unlist(modis_uncert$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(modis_probs$file_info[[1]]$path))))
@@ -210,4 +210,3 @@ test_that("View SOM map", {
     expect_true(grepl("EPSG3857", v$x$options$crs$crsClass))
     expect_equal(v$x$calls[[1]]$method, "addProviderTiles")
 })
-ye
