@@ -700,6 +700,15 @@ test_that("Creating Sentinel cubes from AWS", {
     expect_equal(s2_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(s2_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
 
+    sum_cube <- capture.output(summary(s2_cube))
+
+    expect_true(grepl("class", sum_cube[1]))
+    expect_true(grepl("dimensions", sum_cube[2]))
+    expect_true(grepl("resolution", sum_cube[3]))
+    expect_true(grepl("extent", sum_cube[4]))
+    expect_true(grepl("coord", sum_cube[5]))
+    expect_true(grepl("Min", sum_cube[7]))
+
     v_s2 <- sits_view(
         x = s2_cube,
         band = "B05",
@@ -934,6 +943,42 @@ test_that("testing STAC error",{
         )
     )
     sits_env$config$sources$USGS$url <- usgs_url
+
+    expect_error(
+        sits_cube(
+            source = "USGS",
+            collection = "LANDSAT-C2L2-SR",
+            tiles = "ABC000",
+            bands = c("NIR08"),
+            start_date = as.Date("2018-07-01"),
+            end_date = as.Date("2018-07-30"),
+            progress = FALSE
+        )
+    )
+    expect_error(
+        sits_cube(
+            source = "USGS",
+            collection = "LANDSAT-C2L2-SR",
+            tiles = "ABC000",
+            bands = c("NIR08"),
+            start_date = as.Date("2018-07-01"),
+            end_date = as.Date("2018-07-30"),
+            progress = FALSE
+        )
+    )
+    expect_error(
+        sits_cube(
+            source = "AWS",
+            collection = "SENTINEL-2-L2A",
+            bands = c("B05", "CLOUD"),
+            start_date = as.Date("2018-07-18"),
+            end_date = as.Date("2018-08-23"),
+            progress = FALSE,
+            platform = "SENTINEL-2A"
+        )
+    )
+
+
 
 })
 
