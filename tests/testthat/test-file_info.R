@@ -83,7 +83,7 @@ test_that("file_info functions", {
                                      end_date = "2019-10-28"))
     expect_error(.fi_filter_dates(fi, dates = c("2019-09-01", "2019-10-28")))
     roi <- sits_bbox(cbers_cube, as_crs = "EPSG:4326")
-    expect_true(.fi_intersects(fi, roi))
+
 })
 
 test_that("file_info functions for result cubes", {

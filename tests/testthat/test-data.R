@@ -63,6 +63,7 @@ test_that("Reading a CSV file from RASTER", {
     expect_equal(length(names(points_df)), 7)
     expect_true(ncol(.tibble_time_series(points_df)) == 2)
     expect_true(length(sits_timeline(points_df)) == 12)
+    Sys.unsetenv("SITS_SAMPLES_CACHE_DIR")
 })
 
 test_that("Retrieving points from BDC using POLYGON shapefiles", {

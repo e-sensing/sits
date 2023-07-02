@@ -50,7 +50,7 @@ test_that("Plot Time Series and Images", {
     )
     p <- plot(sinop, band = "NDVI", palette = "RdYlGn", rev = TRUE)
     expect_equal(p$tm_shape$shp_name, "stars_obj")
-    expect_equal(p$tm_raster$palette, "RdYlGn")
+    expect_equal(p$tm_raster$palette, "-RdYlGn")
     expect_equal(p$tm_grid$grid.projection, 4326)
 
     tmap_options = list("tmap_legend_title_size" = 1.0,

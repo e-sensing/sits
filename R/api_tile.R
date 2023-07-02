@@ -999,8 +999,8 @@ NULL
 #' @return end time for classification
 #'
 .tile_classif_end <- function(tile, start_time, verbose) {
+    end_time <- Sys.time()
     if (verbose) {
-        end_time <- Sys.time()
         message("Tile '", tile[["tile"]], "' finished at ", end_time)
         message(
             "Elapsed time of ",
