@@ -1,4 +1,3 @@
-
 #---- internal functions ----
 
 .uncertainty_tile <- function(tile,
@@ -111,7 +110,6 @@
 }
 
 .uncertainty_fn_entropy <- function() {
-
     # Define uncertainty function
     uncert_fn <- function(values) {
         # Used in check (below)

@@ -1,4 +1,3 @@
-
 #---- internal functions ----
 
 .reclassify_tile <- function(tile, mask, band, labels, reclassify_fn,
@@ -156,8 +155,10 @@
             values[result] <- label
         }
         # Get values as numeric
-        values <- matrix(data = labels_code[match(values, labels)],
-                         nrow = input_pixels)
+        values <- matrix(
+            data = labels_code[match(values, labels)],
+            nrow = input_pixels
+        )
         # Mask NA values
         values[is.na(env[["mask"]])] <- NA
         # Are the results consistent with the data input?

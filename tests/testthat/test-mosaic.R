@@ -26,7 +26,8 @@ test_that("One-year, multicores mosaic", {
     label_cube <- sits_label_classification(
         bayes_cube,
         output_dir = output_dir,
-        progress = FALSE)
+        progress = FALSE
+    )
     # create roi
     roi <- sf::st_sfc(
         sf::st_polygon(
@@ -34,7 +35,10 @@ test_that("One-year, multicores mosaic", {
                 c(-55.64768, -11.68649),
                 c(-55.69654, -11.66455),
                 c(-55.62973, -11.61519),
-                c(-55.64768, -11.68649)))), crs = 4326
+                c(-55.64768, -11.68649)
+            ))
+        ),
+        crs = 4326
     )
     # crop and reproject original cube
     suppressWarnings({
@@ -101,7 +105,10 @@ test_that("One-year, multicores mosaic", {
                 c(-55.02414662, -11.92443997),
                 c(-55.02414662, -11.38658587),
                 c(-55.91563676, -11.38658587),
-                c(-55.91563676, -11.92443997)))), crs = 4326
+                c(-55.91563676, -11.92443997)
+            ))
+        ),
+        crs = 4326
     )
 
     # reproject classified image

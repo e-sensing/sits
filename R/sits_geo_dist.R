@@ -34,32 +34,31 @@
 #'     # convert to an sf object
 #'     mt_sf <- sf::read_sf(mt_shp)
 #'     # calculate sample-to-sample and sample-to-prediction distances
-#'     distances <- sits_geo_dist(samples = samples_modis_ndvi,
-#'     roi = mt_sf)
+#'     distances <- sits_geo_dist(
+#'         samples = samples_modis_ndvi,
+#'         roi = mt_sf
+#'     )
 #'     # plot sample-to-sample and sample-to-prediction distances
 #'     plot(distances)
 #' }
 #' @export
 #'
 sits_geo_dist <- function(samples, roi, n = 1000, crs = "EPSG:4326") {
-
     # Pre-conditions
     .check_samples(samples)
     if (.has(roi)) {
         roi <- .roi_as_sf(roi = roi, as_crs = "EPSG:4326")
     }
-
     # TODO: change to samples API
     samples <- samples[sample(seq_len(nrow(samples)), min(n, nrow(samples))), ]
-
     # Convert training samples to points
     samples_sf <- .point_as_sf(
-        .point(x = samples, crs = crs), as_crs = "EPSG:4326"
+        .point(x = samples, crs = crs),
+        as_crs = "EPSG:4326"
     )
-
     # Get random points from roi
     pred_sf <- sf::st_sample(x = roi, size = n)
-
+    # calculate distances (sample to sample and sample to prediction)
     dist_ss <- .find_closest(samples_sf)
     dist_sp <- .find_closest(samples_sf, pred_sf)
     dist_ss <- dplyr::mutate(dist_ss, type = "sample-to-sample")

@@ -10,13 +10,17 @@ test_that("One-year, single core classification", {
         progress = FALSE
     )
     # classify a data cube
-    probs_cube <- sits_classify(data = cube,
-                                ml_model = rfor_model,
-                                output_dir = tempdir(),
-                                version = "var1",
-                                progress = FALSE)
+    probs_cube <- sits_classify(
+        data = cube,
+        ml_model = rfor_model,
+        output_dir = tempdir(),
+        version = "var1",
+        progress = FALSE
+    )
     # smooth the probability cube using Bayesian statistics
     var_cube <- sits_variance(probs_cube, output_dir = tempdir())
+    # check is variance cube
+    expect_true(.check_is_variance_cube(var_cube))
 
     r_obj <- .raster_open_rast(var_cube$file_info[[1]]$path[[1]])
 
@@ -31,8 +35,10 @@ test_that("One-year, single core classification", {
     expect_true(p$tm_raster$style == "cont")
 
     p <- plot(var_cube, sample_size = 10000, labels = "Cerrado", type = "hist")
-    expect_true(all(p$data_labels %in% c("Cerrado", "Forest",
-                                         "Pasture", "Soy_Corn")))
+    expect_true(all(p$data_labels %in% c(
+        "Cerrado", "Forest",
+        "Pasture", "Soy_Corn"
+    )))
     v <- p$data$variance
     expect_true(max(v) <= 100)
     expect_true(min(v) >= 0)
@@ -43,7 +49,8 @@ test_that("One-year, single core classification", {
             object = {
                 sits_variance(
                     cube = probs_cube,
-                    output_dir = tempdir())
+                    output_dir = tempdir()
+                )
             },
             regexp = "Recovery"
         )

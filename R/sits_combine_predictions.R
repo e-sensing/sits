@@ -55,7 +55,8 @@
 #'     pred_cubes <- list(probs_rfor_cube, probs_tcnn_cube)
 #'     # combine predictions
 #'     comb_probs_cube <- sits_combine_predictions(
-#'         pred_cubes, output_dir = tempdir()
+#'         pred_cubes,
+#'         output_dir = tempdir()
 #'     )
 #'     # plot the resulting combined prediction cube
 #'     plot(comb_probs_cube)
@@ -99,7 +100,8 @@ sits_combine_predictions.average <- function(cubes,
         msg = "number of weights does not match number of inputs",
     )
     .check_that(
-        sum(weights) == 1, msg = "weigths should add up to 1.0"
+        sum(weights) == 1,
+        msg = "weigths should add up to 1.0"
     )
     # Get combine function
     comb_fn <- .comb_fn_average(cubes, weights = weights)

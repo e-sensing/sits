@@ -32,9 +32,13 @@ tmap_legend_bg_color: "white"
 tmap_legend_bg_alpha: 0.5
 
 # maxbytes for leaflet (in MB)
-leaflet_max_megabytes : 64
+leaflet_megabytes : 64
+leaflet_min_megabytes : 16
+leaflet_max_megabytes : 512
 # estimated compression factor for leaflet
 leaflet_comp_factor : 0.50
+# sample size
+summary_sample_size : 10000
 
 sources:
     BDC                     :

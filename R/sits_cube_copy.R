@@ -23,26 +23,28 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'   # Creating a sits cube from BDC
-#'   bdc_cube <- sits_cube(
-#'       source = "BDC",
-#'       collection = "CB4-16D-2",
-#'       tiles = c("007004", "007005"),
-#'       bands = c("B15", "CLOUD"),
-#'       start_date = "2018-01-01",
-#'       end_date = "2018-01-12"
-#'   )
+#'     # Creating a sits cube from BDC
+#'     bdc_cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "CB4-16D-2",
+#'         tiles = c("007004", "007005"),
+#'         bands = c("B15", "CLOUD"),
+#'         start_date = "2018-01-01",
+#'         end_date = "2018-01-12"
+#'     )
 #'
-#'   # Downloading images to a temporary directory
-#'   cube_local <- sits_cube_copy(
-#'       cube = bdc_cube,
-#'       output_dir = tempdir(),
-#'       roi = c(lon_min = -46.5,
-#'               lat_min = -45.5,
-#'               lon_max = -15.5,
-#'               lat_max = -14.6),
-#'       multicores = 2
-#'   )
+#'     # Downloading images to a temporary directory
+#'     cube_local <- sits_cube_copy(
+#'         cube = bdc_cube,
+#'         output_dir = tempdir(),
+#'         roi = c(
+#'             lon_min = -46.5,
+#'             lat_min = -45.5,
+#'             lon_max = -15.5,
+#'             lat_max = -14.6
+#'         ),
+#'         multicores = 2
+#'     )
 #' }
 #'
 #' @export
@@ -52,14 +54,13 @@ sits_cube_copy <- function(cube,
                            multicores = 2,
                            output_dir,
                            progress = TRUE) {
-
     # Pre-conditions
     .check_is_raster_cube(cube)
     if (.has(roi)) {
         sf_roi <- .roi_as_sf(roi, default_crs = cube$crs[[1]])
-    }
-    else
+    } else {
         sf_roi <- NULL
+    }
     .check_res(res)
     if (inherits(output_dir, "character")) {
         output_dir <- path.expand(output_dir)
@@ -79,11 +80,13 @@ sits_cube_copy <- function(cube,
         # if there is a ROI which does not intersect asset, do nothing
         if (.has(roi)) {
             sf_asset <- .bbox_as_sf(.tile_bbox(asset))
-            if (sf::st_crs(sf_asset) != sf::st_crs(sf_roi))
+            if (sf::st_crs(sf_asset) != sf::st_crs(sf_roi)) {
                 sf_roi <- sf::st_transform(sf_roi, crs = .tile_crs(asset))
+            }
             g1 <- sf::st_intersects(sf_asset, sf_roi, sparse = TRUE)
-            if (lengths(g1) == 0)
+            if (lengths(g1) == 0) {
                 return(NULL)
+            }
         }
         # download asset
         local_asset <- .download_asset(
@@ -97,8 +100,7 @@ sits_cube_copy <- function(cube,
         local_asset
     }, progress = progress)
     .check_empty_data_frame(cube_assets,
-                msg = "no intersection between roi and cube")
+        msg = "no intersection between roi and cube"
+    )
     .cube_merge_tiles(cube_assets)
 }
-
-

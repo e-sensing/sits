@@ -11,7 +11,7 @@
   tile = x$tile[[1]],
   title = "Classified Image",
   legend = NULL,
-  color_palette = "Spectral",
+  palette = "Spectral",
   tmap_options = NULL
 )
 }
@@ -28,7 +28,7 @@
 
 \item{legend}{Named vector that associates labels to colors.}
 
-\item{color_palette}{Alternative RColorBrewer palette}
+\item{palette}{Alternative RColorBrewer palette}
 
 \item{tmap_options}{List with optional tmap parameters
 tmap_max_cells (default: 1e+06)
@@ -63,7 +63,8 @@ if (sits_run_examples()) {
     )
     # label cube with the most likely class
     label_cube <- sits_label_classification(
-        probs_cube, output_dir = tempdir()
+        probs_cube,
+        output_dir = tempdir()
     )
     # plot the resulting classified image
     plot(label_cube)

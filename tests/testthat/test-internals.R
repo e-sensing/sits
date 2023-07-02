@@ -1,5 +1,4 @@
 test_that("Period functions check", {
-
     expect_error(.period_check("P16"))
     expect_equal(object = .period_val("P16D"), expected = 16)
     expect_equal(object = .period_val("P2M"), expected = 2)

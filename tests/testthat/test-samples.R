@@ -1,5 +1,4 @@
 test_that("Sample", {
-
     data(cerrado_2classes)
 
     data <- sits_sample(cerrado_2classes, n = 10)

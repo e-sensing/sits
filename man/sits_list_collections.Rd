@@ -19,3 +19,9 @@ in each cloud service supported by sits.
 Users can select to get information
 only for a single service by using the \code{source} parameter.
 }
+\examples{
+if (sits_run_examples()) {
+    # show the names of the colors supported by SITS
+    sits_list_collections()
+}
+}

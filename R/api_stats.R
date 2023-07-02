@@ -1,4 +1,3 @@
-
 #---- stats ----
 
 #' @title Supports former version of stats

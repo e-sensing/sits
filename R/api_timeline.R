@@ -27,7 +27,6 @@
 #' @return A tibble with the classification information.
 #'
 .timeline_class_info <- function(data, samples) {
-
     # find the timeline
     timeline <- sits_timeline(data)
     # precondition is the timeline correct?
@@ -88,7 +87,6 @@
 #' @return Is this is valid starting date?
 #'
 .timeline_valid_date <- function(date, timeline) {
-
     # is the date inside the timeline?
     if (date %within% lubridate::interval(
         timeline[1],
@@ -107,7 +105,7 @@
     }
     # what is the difference in days between the last two days of the timeline?
     timeline_diff <- as.integer(timeline[length(timeline)] -
-                                    timeline[length(timeline) - 1])
+        timeline[length(timeline) - 1])
 
     # if the difference in days in the timeline is smaller than the difference
     # between the reference date and the last date of the timeline, then
@@ -139,8 +137,6 @@
                             model_start_date,
                             model_end_date,
                             num_samples) {
-
-
     # set caller to show in errors
     .check_set_caller(".timeline_match")
 
@@ -257,7 +253,6 @@
 .timeline_during <- function(timeline,
                              start_date = NULL,
                              end_date = NULL) {
-
     # set caller to show in errors
     .check_set_caller(".sits_timeline_during")
     # obtain the start and end indexes
@@ -286,7 +281,6 @@
 #' @return date class vector
 #'
 .timeline_format <- function(date) {
-
     # set caller to show in errors
     .check_set_caller(".timeline_format")
     .check_length(

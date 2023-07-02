@@ -50,8 +50,9 @@
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (.raster_is_valid(block_files))
+        if (.raster_is_valid(block_files)) {
             return(block_files)
+        }
         # Read bands data
         values <- .mixture_data_read(tile = feature, block = block, em = em)
         # Apply the non-negative least squares solver
@@ -142,7 +143,7 @@
         "tbl_df"
     } else if (is.character(em)) {
         ext <- tolower(.file_ext(em))
-        if (ext %in% c("csv", "shp")) {
+        if (ext %in% c("csv")) {
             ext
         } else {
             stop("not supported extension '", ext, "'")
@@ -153,15 +154,16 @@
 }
 
 .endmembers_switch <- function(em, ...) {
-    switch(.endmembers_type(em), ...)
+    switch(.endmembers_type(em),
+        ...
+    )
 }
 
 .endmembers_as_tbl <- function(em) {
     em <- .endmembers_switch(
         em,
         "tbl_df" = em,
-        "csv" = utils::read.csv(em),
-        "shp" = sf::st_read(em)
+        "csv" = utils::read.csv(em)
     )
     # Ensure that all columns are in uppercase
     dplyr::rename_with(em, toupper)
@@ -176,7 +178,9 @@
 .endmembers_fracs <- function(em, include_rmse = FALSE) {
     # endmembers tribble can be type or class
     type_class <- toupper(colnames(em)[[1]])
-    if (!include_rmse) return(toupper(em[[type_class]]))
+    if (!include_rmse) {
+        return(toupper(em[[type_class]]))
+    }
     toupper(c(em[[type_class]], "RMSE"))
 }
 
@@ -184,6 +188,3 @@
     bands <- .endmembers_bands(em)
     as.matrix(em[, bands])
 }
-
-
-

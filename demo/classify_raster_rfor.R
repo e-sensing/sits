@@ -4,11 +4,12 @@
 
 # load the sitsdata library
 if (!requireNamespace("sitsdata", quietly = TRUE)) {
-    stop(paste0(
-        "Please install package sitsdata\n",
-        "Please call devtools::install_github('e-sensing/sitsdata')"
-    ),
-    call. = FALSE
+    stop(
+        paste0(
+            "Please install package sitsdata\n",
+            "Please call devtools::install_github('e-sensing/sitsdata')"
+        ),
+        call. = FALSE
     )
 }
 

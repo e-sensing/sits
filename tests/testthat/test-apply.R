@@ -1,5 +1,4 @@
 test_that("EVI generation", {
-
     s2_cube <- tryCatch(
         {
             sits_cube(
@@ -32,13 +31,15 @@ test_that("EVI generation", {
     ))
 
 
-    gc_cube <- sits_regularize(
-            cube        = s2_cube,
-            output_dir  = dir_images,
-            res         = 160,
-            period      = "P1M",
-            multicores  = 2,
+    expect_warning(
+        gc_cube <- sits_regularize(
+            cube = s2_cube,
+            output_dir = dir_images,
+            res = 160,
+            period = "P1M",
+            multicores = 2,
             progress = FALSE
+        )
     )
 
     gc_cube_new <- sits_apply(gc_cube,
@@ -56,13 +57,13 @@ test_that("EVI generation", {
     expect_true(start_date == "2019-07-01")
     expect_true(end_date == "2019-08-01")
 
-    file_info_b05 <- .fi(gc_cube_new) |>  .fi_filter_bands(bands = "B05")
+    file_info_b05 <- .fi(gc_cube_new) |> .fi_filter_bands(bands = "B05")
     b05_band_1 <- .raster_open_rast(file_info_b05$path[[1]])
 
-    file_info_b8a <- .fi(gc_cube_new) |>  .fi_filter_bands(bands = "B8A")
+    file_info_b8a <- .fi(gc_cube_new) |> .fi_filter_bands(bands = "B8A")
     b8a_band_1 <- .raster_open_rast(file_info_b8a$path[[1]])
 
-    file_info_evi2 <- .fi(gc_cube_new) |>  .fi_filter_bands(bands = "EVI2")
+    file_info_evi2 <- .fi(gc_cube_new) |> .fi_filter_bands(bands = "EVI2")
     evi2_band_1 <- .raster_open_rast(file_info_evi2$path[[1]])
 
     b05_100 <- as.numeric(b05_band_1[100] / 10000)
@@ -138,16 +139,18 @@ test_that("Kernel functions", {
     expect_true(median_1 == median_2)
     # Recovery
     out <- capture_messages({
-        expect_message({
-        cube_median <- sits_apply(
-            data = cube,
-            output_dir = tempdir(),
-            NDVI_MEDIAN = w_median(NDVI),
-            window_size = 3,
-            memsize = 4,
-            multicores = 1
-        )},
-        regexp = "Recovery"
+        expect_message(
+            {
+                cube_median <- sits_apply(
+                    data = cube,
+                    output_dir = tempdir(),
+                    NDVI_MEDIAN = w_median(NDVI),
+                    window_size = 3,
+                    memsize = 4,
+                    multicores = 1
+                )
+            },
+            regexp = "Recovery"
         )
     })
     expect_true(grepl("output_dir", out[1]))
@@ -221,8 +224,8 @@ test_that("Kernel functions", {
     expect_true(max_1 == max_2)
 
     tif_files <- grep("tif",
-                      list.files(tempdir(), full.names = TRUE),
-                      value = TRUE
+        list.files(tempdir(), full.names = TRUE),
+        value = TRUE
     )
 
     success <- file.remove(tif_files)

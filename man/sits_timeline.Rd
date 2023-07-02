@@ -18,7 +18,6 @@ This function returns the timeline for a given data set, either
 }
 \examples{
 sits_timeline(samples_modis_ndvi)
-
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -23,7 +23,6 @@
 #' @param fun       Function that performs calculation on the input data.
 #' @return          A closure that encapsulates the function applied to data.
 #'
-
 .factory_function <- function(data, fun) {
     # if no data is given, we prepare a
     # function to be called as a parameter of other functions

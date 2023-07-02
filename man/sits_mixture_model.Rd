@@ -83,47 +83,49 @@ range 0 to 1. See the \code{example} in this documentation for more details.
 }
 \examples{
 if (sits_run_examples()) {
-   # Create a sentinel-2 cube
-   s2_cube <- sits_cube(
-       source = "AWS",
-       collection = "SENTINEL-2-L2A",
-       tiles = "20LKP",
-       bands = c("B02", "B03", "B04", "B8A", "B11", "B12", "CLOUD"),
-       start_date = "2019-06-13",
-       end_date = "2019-06-30"
-   )
-   # create a directory to store the regularized file
-   reg_dir <- paste0(tempdir(), "/mix_model")
-   dir.create(reg_dir)
-   # Cube regularization for 16 days and 160 meters
-   reg_cube <- sits_regularize(
-       cube = s2_cube,
-       period = "P16D",
-       res = 160,
-       roi = c(lon_min = -65.54870165,
-               lat_min = -10.63479162,
-               lon_max = -65.07629670,
-               lat_max = -10.36046639),
-       multicores = 2,
-       output_dir = reg_dir
-   )
+    # Create a sentinel-2 cube
+    s2_cube <- sits_cube(
+        source = "AWS",
+        collection = "SENTINEL-2-L2A",
+        tiles = "20LKP",
+        bands = c("B02", "B03", "B04", "B8A", "B11", "B12", "CLOUD"),
+        start_date = "2019-06-13",
+        end_date = "2019-06-30"
+    )
+    # create a directory to store the regularized file
+    reg_dir <- paste0(tempdir(), "/mix_model")
+    dir.create(reg_dir)
+    # Cube regularization for 16 days and 160 meters
+    reg_cube <- sits_regularize(
+        cube = s2_cube,
+        period = "P16D",
+        res = 160,
+        roi = c(
+            lon_min = -65.54870165,
+            lat_min = -10.63479162,
+            lon_max = -65.07629670,
+            lat_max = -10.36046639
+        ),
+        multicores = 2,
+        output_dir = reg_dir
+    )
 
-   # Create the endmembers tibble
-   em <- tibble::tribble(
-          ~class, ~B02, ~B03,   ~B04,  ~B8A,  ~B11,   ~B12,
-       "forest", 0.02, 0.0352, 0.0189, 0.28,  0.134, 0.0546,
-         "land", 0.04, 0.065,  0.07,   0.36,  0.35,  0.18,
-        "water", 0.07, 0.11,   0.14,   0.085, 0.004, 0.0026
-   )
+    # Create the endmembers tibble
+    em <- tibble::tribble(
+        ~class, ~B02, ~B03, ~B04, ~B8A, ~B11, ~B12,
+        "forest", 0.02, 0.0352, 0.0189, 0.28, 0.134, 0.0546,
+        "land", 0.04, 0.065, 0.07, 0.36, 0.35, 0.18,
+        "water", 0.07, 0.11, 0.14, 0.085, 0.004, 0.0026
+    )
 
-   # Generate the mixture model
-   mm <- sits_mixture_model(
-       data = reg_cube,
-       endmembers = em,
-       memsize = 4,
-       multicores = 2,
-       output_dir = tempdir()
-   )
+    # Generate the mixture model
+    mm <- sits_mixture_model(
+        data = reg_cube,
+        endmembers = em,
+        memsize = 4,
+        multicores = 2,
+        output_dir = tempdir()
+    )
 }
 
 }

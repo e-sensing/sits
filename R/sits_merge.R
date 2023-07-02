@@ -36,7 +36,6 @@
 #' @export
 #'
 sits_merge <- function(data1, data2, ..., suffix = c(".1", ".2")) {
-
     # set caller to show in errors
     .check_set_caller("sits_merge")
     # get the meta-type (sits or cube)
@@ -47,21 +46,17 @@ sits_merge <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 #' @rdname sits_merge
 #' @export
 sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
-
     # precondition - data sets are not empty
     .check_that(
         x = nrow(data1) > 0 & nrow(data2) > 0,
         msg = "invalid input data"
     )
-
     # verify if data1.tb and data2.tb has the same number of rows
     .check_that(
         x = nrow(data1) == nrow(data2),
         msg = "cannot merge tibbles of different sizes"
     )
-
     # are the names of the bands different?
-    # if they are not
     bands1 <- sits_bands(data1)
     bands2 <- sits_bands(data2)
     coincidences1 <- bands1 %in% bands2
@@ -84,7 +79,6 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     }
     # prepare result
     result <- data1
-
     # merge time series
     result$time_series <- purrr::map2(
         data1$time_series,

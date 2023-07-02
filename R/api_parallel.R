@@ -1,4 +1,3 @@
-
 #' @title Stop all workers of the sits cluster
 #' @name .parallel_stop
 #' @keywords internal
@@ -97,7 +96,6 @@
 #' @return No value, called for side effect.
 #'
 .parallel_reset_node <- function(worker_id) {
-
     # stop node
     tryCatch({
         if (isOpen(sits_env[["cluster"]][[worker_id]]$con)) {
@@ -129,7 +127,6 @@
 #' @param ...   additional arguments to fn function
 #' @return      List with IDs of workers and their values
 .parallel_recv_one_data <- function() {
-
     # fault tolerant version of parallel:::recvOneData
     cl <- sits_env[["cluster"]]
 
@@ -150,7 +147,6 @@
             unserialize(socklist[[worker_id]])
         },
         error = function(e) {
-
             # catch only errors in connection
             if (grepl("error reading from connection", e$message)) {
                 message(paste(
@@ -181,7 +177,6 @@
 #' @noRd
 #' @return      List with values and nodes
 .parallel_recv_one_result <- function() {
-
     # fault tolerant version of parallel:::recvOneData
     v <- .parallel_recv_one_data()
 
@@ -193,7 +188,6 @@
 #' @noRd
 #' @return      No value, called for side effect.
 .parallel_cluster_apply <- function(x, fn, ..., pb = NULL) {
-
     # fault tolerant version of parallel::clusterApplyLB
     cl <- sits_env[["cluster"]]
     # number of jobs
@@ -266,8 +260,7 @@
 #'                       as the input list
 #'
 .parallel_map <- function(x, fn, ..., progress = FALSE,
-                               n_retries = 3, sleep = 0) {
-
+                          n_retries = 3, sleep = 0) {
     # check documentation mode
     progress <- .check_documentation(progress)
     # create progress bar

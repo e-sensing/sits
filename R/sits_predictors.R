@@ -11,12 +11,9 @@
 #'
 #' @return The predictors for the sample: a data.frame with one row per sample.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'      pred <- sits_predictors(samples_modis_ndvi)
+#'     pred <- sits_predictors(samples_modis_ndvi)
 #' }
 #'
 #' @export
@@ -44,10 +41,9 @@ sits_predictors <- function(samples) {
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'      pred <- sits_predictors(samples_modis_ndvi)
-#'      features <- sits_pred_features(pred)
+#'     pred <- sits_predictors(samples_modis_ndvi)
+#'     features <- sits_pred_features(pred)
 #' }
-#'
 #' @export
 sits_pred_features <- function(pred) {
     features <- .pred_features(pred)
@@ -67,13 +63,10 @@ sits_pred_features <- function(pred) {
 #'
 #' @return The label associated to each training sample.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'      pred <- sits_predictors(samples_modis_ndvi)
-#'      ref  <- sits_pred_references(pred)
+#'     pred <- sits_predictors(samples_modis_ndvi)
+#'     ref <- sits_pred_references(pred)
 #' }
 #' @export
 sits_pred_references <- function(pred) {
@@ -98,9 +91,9 @@ sits_pred_references <- function(pred) {
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'      stats <- sits_stats(samples_modis_ndvi)
-#'      pred <- sits_predictors(samples_modis_ndvi)
-#'      pred_norm <- sits_pred_normalize(pred, stats)
+#'     stats <- sits_stats(samples_modis_ndvi)
+#'     pred <- sits_predictors(samples_modis_ndvi)
+#'     pred_norm <- sits_pred_normalize(pred, stats)
 #' }
 #' @export
 sits_pred_normalize <- function(pred, stats) {
@@ -126,8 +119,8 @@ sits_pred_normalize <- function(pred, stats) {
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'      pred <- sits_predictors(samples_modis_ndvi)
-#'      pred_frac <- sits_pred_sample(pred, frac = 0.5)
+#'     pred <- sits_predictors(samples_modis_ndvi)
+#'     pred_frac <- sits_pred_sample(pred, frac = 0.5)
 #' }
 #' @export
 sits_pred_sample <- function(pred, frac) {
@@ -155,7 +148,7 @@ sits_pred_sample <- function(pred, frac) {
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'      stats <- sits_stats(samples_modis_ndvi)
+#'     stats <- sits_stats(samples_modis_ndvi)
 #' }
 #' @export
 sits_stats <- function(samples) {

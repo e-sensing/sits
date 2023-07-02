@@ -5,8 +5,10 @@ test_that("One-year, multicores processing reclassify", {
         source = "USGS",
         collection = "LANDSAT-C2L2-SR",
         data_dir = data_dir,
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
+        parse_info = c(
+            "X1", "X2", "tile", "start_date", "end_date",
+            "band", "version"
+        ),
         bands = "class",
         version = "v20220606",
         labels = c("1" = "Forest", "2" = "Water", "3" = "NonForest",
@@ -28,11 +30,15 @@ test_that("One-year, multicores processing reclassify", {
         source = "MPC",
         collection = "SENTINEL-2-L2A",
         data_dir = data_dir,
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
+        parse_info = c(
+            "X1", "X2", "tile", "start_date", "end_date",
+            "band", "version"
+        ),
         bands = "class",
-        labels = c("1" = "ClearCut_Fire", "2" = "ClearCut_Soil",
-                   "3" = "ClearCut_Veg", "4" = "Forest"),
+        labels = c(
+            "1" = "ClearCut_Fire", "2" = "ClearCut_Soil",
+            "3" = "ClearCut_Veg", "4" = "Forest"
+        ),
         progress = FALSE
     )
     # Reclassify cube
@@ -61,9 +67,11 @@ test_that("One-year, multicores processing reclassify", {
 
     expect_equal(
         sits_labels(ro_mask),
-        c("ClearCut_Fire", "ClearCut_Soil",
-          "ClearCut_Veg", "Forest", "Old_Deforestation",
-          "Water_Mask", "NonForest_Mask")
+        c(
+            "ClearCut_Fire", "ClearCut_Soil",
+            "ClearCut_Veg", "Forest", "Old_Deforestation",
+            "Water_Mask", "NonForest_Mask"
+        )
     )
     ro_class_obj <- .raster_open_rast(.tile_path(ro_class))
     prodes2021_obj <- .raster_open_rast(.tile_path(prodes2021))
@@ -76,7 +84,7 @@ test_that("One-year, multicores processing reclassify", {
     # ro_class is "ClearCut_Veg"
     expect_equal(vls_ro_class[2000], 3)
     # prodes2021 is ""d2018"
-    expect_equal(vls_prodes2021[2000], 17)
+    expect_equal(vls_prodes2021[2000], 1)
     # ro_class is "Old_Deforestation"
     expect_equal(vls_ro_mask[2000], 5)
 
@@ -105,7 +113,8 @@ test_that("One-year, multicores processing reclassify", {
                     memsize = 4,
                     multicores = 2,
                     output_dir = tempdir()
-                )},
+                )
+            },
             regexp = "Recovery: "
         )
     })

@@ -11,21 +11,21 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' .as_int(1.234)
-#' .as_dbl(42L)
-#' x <- 1.234
-#' .as_int(x) == x # x is not integer
-#' x <- 42.0
-#' .as_int(x) == x # x is an integer
-#' .as_chr(x)
-#' .as_date(list("2020-01-01", "2022-12-01"))
-#' .has(list()) # FALSE
-#' .has(NULL) # FALSE
-#' .has(c()) # FALSE
-#' .has(FALSE) # TRUE
-#' .set_class(list(), "new_class")
-#' .compact(c(1, 2, 3)) # 1 2 3
-#' .compact(c(1, 1, 1)) # 1
+#'     .as_int(1.234)
+#'     .as_dbl(42L)
+#'     x <- 1.234
+#'     .as_int(x) == x # x is not integer
+#'     x <- 42.0
+#'     .as_int(x) == x # x is an integer
+#'     .as_chr(x)
+#'     .as_date(list("2020-01-01", "2022-12-01"))
+#'     .has(list()) # FALSE
+#'     .has(NULL) # FALSE
+#'     .has(c()) # FALSE
+#'     .has(FALSE) # TRUE
+#'     .set_class(list(), "new_class")
+#'     .compact(c(1, 2, 3)) # 1 2 3
+#'     .compact(c(1, 1, 1)) # 1
 #' }
 #'
 NULL
@@ -72,7 +72,9 @@ NULL
 #'   Returns \code{logical}.
 #' @noRd
 .has_name <- function(x) {
-    if (.has(names(x))) return(names(x) != "")
+    if (.has(names(x))) {
+        return(names(x) != "")
+    }
     rep(FALSE, length(x))
 }
 
@@ -136,28 +138,32 @@ NULL
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' .try({
-#'   file <- tempfile("test.txt")
-#'   cat(letters, file = file)
-#'   cat(letters[["a"]], file = file, append = TRUE) # error!
-#' },
-#' .rollback = {
-#'   unlink(file) # delete file before error is thrown
-#' })
+#'     .try(
+#'         {
+#'             file <- tempfile("test.txt")
+#'             cat(letters, file = file)
+#'             cat(letters[["a"]], file = file, append = TRUE) # error!
+#'         },
+#'         .rollback = {
+#'             unlink(file) # delete file before error is thrown
+#'         }
+#'     )
 #'
-#' value <- .try({
-#'   addr <- url("http://example.com/")
-#'   open(addr)
-#'   readLines(addr)
-#'   "You have access to the internet!" # don't use return()!
-#' },
-#' .default = {
-#'   "You do not have access to the internet!" # bypass any error!
-#' },
-#' .finally = {
-#'   close(addr) # close connection before exit (with error or not)
-#' })
-#' print(value)
+#'     value <- .try(
+#'         {
+#'             addr <- url("http://example.com/")
+#'             open(addr)
+#'             readLines(addr)
+#'             "You have access to the internet!" # don't use return()!
+#'         },
+#'         .default = {
+#'             "You do not have access to the internet!" # bypass any error!
+#'         },
+#'         .finally = {
+#'             close(addr) # close connection before exit (with error or not)
+#'         }
+#'     )
+#'     print(value)
 #' }
 #'
 #' @returns Last expression evaluated in \code{expr}, if no error occurs.
@@ -191,11 +197,6 @@ NULL
         }
     )
 }
-
-.rbind <- function(x) {
-    do.call(rbind, args = x)
-}
-
 .discard <- function(data, cols) {
     cols <- which(names(data) %in% cols)
     if (.has(cols)) {
@@ -225,7 +226,9 @@ NULL
 }
 
 .default <- function(x, default = NULL) {
-    if (.has(x)) return(x)
+    if (.has(x)) {
+        return(x)
+    }
     default
 }
 
@@ -235,16 +238,6 @@ NULL
 
 .slice_dfr <- function(x, i) {
     UseMethod(".slice_dfr", i)
-}
-
-#' @export
-.slice_dfr.logical <- function(x, i) {
-    .check_that(
-        length(i) == nrow(x) || length(i) == 1,
-        local_msg = paste("length must be 1 or", nrow(x)),
-        msg = "invalid logical subscript"
-    )
-    x[i, ]
 }
 
 #' @export

@@ -1,5 +1,4 @@
 #' @title Reclassify a classified cube
-#'
 #' @name sits_reclassify
 #'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -40,19 +39,22 @@
 #'         source = "USGS",
 #'         collection = "LANDSAT-C2L2-SR",
 #'         data_dir = data_dir,
-#'         parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-#'                        "band", "version"),
+#'         parse_info = c(
+#'             "X1", "X2", "tile", "start_date", "end_date",
+#'             "band", "version"
+#'         ),
 #'         bands = "class",
 #'         labels = c(
 #'             "1" = "Forest", "2" = "Water", "3" = "NonForest",
 #'             "4" = "NonForest2", "6" = "d2007", "7" = "d2008",
-#'             "8" = "d2009",  "9" = "d2010",  "10" = "d2011", "11" = "d2012",
+#'             "8" = "d2009", "9" = "d2010", "10" = "d2011", "11" = "d2012",
 #'             "12" = "d2013", "13" = "d2014", "14" = "d2015", "15" = "d2016",
 #'             "16" = "d2017", "17" = "d2018", "18" = "r2010", "19" = "r2011",
 #'             "20" = "r2012", "21" = "r2013", "22" = "r2014", "23" = "r2015",
 #'             "24" = "r2016", "25" = "r2017", "26" = "r2018", "27" = "d2019",
 #'             "28" = "r2019", "29" = "d2020", "31" = "r2020",
-#'             "32" = "Clouds2021", "33" = "d2021", "34" = "r2021"),
+#'             "32" = "Clouds2021", "33" = "d2021", "34" = "r2021"
+#'         ),
 #'         version = "v20220606"
 #'     )
 #'
@@ -62,11 +64,15 @@
 #'         source = "MPC",
 #'         collection = "SENTINEL-2-L2A",
 #'         data_dir = data_dir,
-#'         parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-#'                        "band", "version"),
+#'         parse_info = c(
+#'             "X1", "X2", "tile", "start_date", "end_date",
+#'             "band", "version"
+#'         ),
 #'         bands = "class",
-#'         labels = c("1" = "ClearCut_Burn", "2" = "ClearCut_Soil",
-#'                    "3" = "ClearCut_Veg",  "4" = "Forest")
+#'         labels = c(
+#'             "1" = "ClearCut_Burn", "2" = "ClearCut_Soil",
+#'             "3" = "ClearCut_Veg", "4" = "Forest"
+#'         )
 #'     )
 #'
 #'     # Reclassify cube
@@ -105,7 +111,6 @@ sits_reclassify <- function(cube,
                             multicores = 2,
                             output_dir,
                             version = "v1") {
-
     # Pre-conditions - Check parameters
     .check_cube_is_class_cube(cube)
     .check_cube_is_class_cube(mask)
@@ -113,8 +118,6 @@ sits_reclassify <- function(cube,
     .check_multicores(multicores)
     .check_output_dir(output_dir)
     .check_version(version)
-
-    # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
@@ -129,7 +132,6 @@ sits_reclassify <- function(cube,
         memsize = memsize,
         multicores = multicores
     )
-
     # Prepare parallelization
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
@@ -148,7 +150,6 @@ sits_reclassify.class_cube <- function(cube,
                                        version = "v1") {
     # Capture expression
     rules <- as.list(substitute(rules, environment()))[-1]
-
     # Reclassify parameters checked in reclassify function
     # Create reclassification function
     reclassify_fn <- .reclassify_fn_expr(
@@ -161,10 +162,11 @@ sits_reclassify.class_cube <- function(cube,
     # Process each tile sequentially
     class_cube <- .cube_foreach_tile(cube, function(tile, mask) {
         # Filter mask - spatial
-        mask <- .try({
-            .cube_filter_spatial(cube = mask, roi = .tile_bbox(tile))
-        },
-        .msg_error = "mask's roi does not intersect cube"
+        mask <- .try(
+            {
+                .cube_filter_spatial(cube = mask, roi = .tile_bbox(tile))
+            },
+            .msg_error = "mask roi does not intersect cube"
         )
         # Get output labels
         labels <- unique(c(.cube_labels(cube), names(rules)))

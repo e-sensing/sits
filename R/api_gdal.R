@@ -1,4 +1,3 @@
-
 # ---- gdal API ----
 
 .gdal_data_type <- c(
@@ -31,8 +30,10 @@
         gdal_params[["-tr"]] <- list(xres = res, yres = res)
     }
     if (.has(sf_roi)) {
-        gdal_params[["-srcwin"]] <- .gdal_as_srcwin(asset = asset,
-                                                    sf_roi = sf_roi)
+        gdal_params[["-srcwin"]] <- .gdal_as_srcwin(
+            asset = asset,
+            sf_roi = sf_roi
+        )
     }
     gdal_params[c("-of", "-co")] <- list(
         "GTiff", .conf("gdal_presets", "image", "co")
@@ -44,10 +45,11 @@
 
 .gdal_as_srcwin <- function(asset, sf_roi) {
     block <- .raster_sub_image(tile = asset, sf_roi = sf_roi)
-    list(xoff = block[["col"]] - 1,
-         yoff = block[["row"]] - 1,
-         xsize = block[["ncols"]],
-         ysize = block[["nrows"]]
+    list(
+        xoff = block[["col"]] - 1,
+        yoff = block[["row"]] - 1,
+        xsize = block[["ncols"]],
+        ysize = block[["nrows"]]
     )
 }
 
@@ -84,64 +86,69 @@
     # Convert to gdal data type
     data_type <- .gdal_data_type[[data_type]]
     # Output file
-    file <- .try({
-        .gdal_translate(
-            file = file,
-            # GDAL does not allow raster creation, to bypass this limitation
-            # Let's base our raster creation by using a tiny template
-            # (647 Bytes)
-            base_file = system.file(
-                "extdata/raster/gdal/template.tif", package = "sits"
-            ),
-            params = list(
-                "-ot" = data_type,
-                "-of" = .conf("gdal_presets", "block", "of"),
-                "-b" = rep(1, nlayers),
-                "-outsize" = list(.ncols(block), .nrows(block)),
-                "-scale" = list(0, 1, miss_value, miss_value),
-                "-a_srs" = .crs(bbox),
-                "-a_ullr" = list(
-                    .xmin(bbox), .ymax(bbox), .xmax(bbox), .ymin(bbox)
+    file <- .try(
+        {
+            .gdal_translate(
+                file = file,
+                # GDAL does not allow raster creation, to bypass this limitation
+                # Let's base our raster creation by using a tiny template
+                # (647 Bytes)
+                base_file = system.file(
+                    "extdata/raster/gdal/template.tif",
+                    package = "sits"
                 ),
-                "-a_nodata" = miss_value,
-                "-co" = .conf("gdal_presets", "block", "co")
-            ),
-            quiet = TRUE
-        )
-    },
-    .rollback = {
-        unlink(file)
-    },
-    .finally = {
-        # Delete auxiliary files
-        unlink(paste0(file, ".aux.xml"))
-    })
+                params = list(
+                    "-ot" = data_type,
+                    "-of" = .conf("gdal_presets", "block", "of"),
+                    "-b" = rep(1, nlayers),
+                    "-outsize" = list(.ncols(block), .nrows(block)),
+                    "-scale" = list(0, 1, miss_value, miss_value),
+                    "-a_srs" = .crs(bbox),
+                    "-a_ullr" = list(
+                        .xmin(bbox), .ymax(bbox), .xmax(bbox), .ymin(bbox)
+                    ),
+                    "-a_nodata" = miss_value,
+                    "-co" = .conf("gdal_presets", "block", "co")
+                ),
+                quiet = TRUE
+            )
+        },
+        .rollback = {
+            unlink(file)
+        },
+        .finally = {
+            # Delete auxiliary files
+            unlink(paste0(file, ".aux.xml"))
+        }
+    )
     # Return file
     file
 }
 
 .gdal_merge_into <- function(file, base_files, multicores) {
     # Merge src_files
-    file <- .try({
-        .gdal_warp(
-            file = file,
-            base_files = base_files,
-            params = list(
-                "-wo" = paste0("NUM_THREADS=", multicores),
-                "-multi" = TRUE,
-                "-q" = TRUE,
-                "-overwrite" = FALSE
-            ),
-            quiet = TRUE
-        )
-    },
-    .rollback = {
-        unlink(file)
-    },
-    .finally = {
-        # Delete auxiliary files
-        unlink(paste0(file, ".aux.xml"))
-    })
+    file <- .try(
+        {
+            .gdal_warp(
+                file = file,
+                base_files = base_files,
+                params = list(
+                    "-wo" = paste0("NUM_THREADS=", multicores),
+                    "-multi" = TRUE,
+                    "-q" = TRUE,
+                    "-overwrite" = FALSE
+                ),
+                quiet = TRUE
+            )
+        },
+        .rollback = {
+            unlink(file)
+        },
+        .finally = {
+            # Delete auxiliary files
+            unlink(paste0(file, ".aux.xml"))
+        }
+    )
     # Return file
     file
 }

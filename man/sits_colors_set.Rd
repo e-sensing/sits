@@ -17,24 +17,24 @@ Sets a color table
 }
 \examples{
 if (sits_run_examples()) {
-# Define a color table based on the Anderson Land Classification System
-us_nlcd <- tibble::tibble(name = character(), color = character())
-us_nlcd <- us_nlcd |>
-     tibble::add_row(name = "Urban Built Up", color =  "#85929E") |>
-     tibble::add_row(name = "Agricultural Land", color = "#F0B27A") |>
-     tibble::add_row(name = "Rangeland", color = "#F1C40F") |>
-     tibble::add_row(name = "Forest Land", color = "#27AE60") |>
-     tibble::add_row(name = "Water", color = "#2980B9") |>
-     tibble::add_row(name = "Wetland", color = "#D4E6F1") |>
-     tibble::add_row(name = "Barren Land", color = "#FDEBD0") |>
-     tibble::add_row(name = "Tundra", color = "#EBDEF0") |>
-     tibble::add_row(name = "Snow and Ice", color = "#F7F9F9")
+    # Define a color table based on the Anderson Land Classification System
+    us_nlcd <- tibble::tibble(name = character(), color = character())
+    us_nlcd <- us_nlcd |>
+        tibble::add_row(name = "Urban Built Up", color = "#85929E") |>
+        tibble::add_row(name = "Agricultural Land", color = "#F0B27A") |>
+        tibble::add_row(name = "Rangeland", color = "#F1C40F") |>
+        tibble::add_row(name = "Forest Land", color = "#27AE60") |>
+        tibble::add_row(name = "Water", color = "#2980B9") |>
+        tibble::add_row(name = "Wetland", color = "#D4E6F1") |>
+        tibble::add_row(name = "Barren Land", color = "#FDEBD0") |>
+        tibble::add_row(name = "Tundra", color = "#EBDEF0") |>
+        tibble::add_row(name = "Snow and Ice", color = "#F7F9F9")
 
- # Load the color table into `sits`
- sits_colors_set(us_nlcd)
+    # Load the color table into `sits`
+    sits_colors_set(us_nlcd)
 
- # Show the new color table used by sits
- sits_colors_show()
+    # Show the new color table used by sits
+    sits_colors_show()
 }
 }
 \author{

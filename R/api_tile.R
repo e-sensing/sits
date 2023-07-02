@@ -23,8 +23,7 @@ NULL
 #' @export
 .tile.raster_cube <- function(cube) {
     cube <- .cube(cube)
-    if (nrow(cube) >= 1) return(cube[1, ])
-    cube
+    cube[1,]
 }
 
 #  Tile field accessors
@@ -74,9 +73,6 @@ NULL
 #' @export
 .tile_ncols.raster_cube <- function(tile) {
     tile <- .tile(tile)
-    if ("ncols" %in% tile) {
-        return(.ncols(tile))
-    }
     .ncols(.fi(tile))
 }
 #
@@ -86,9 +82,6 @@ NULL
 #' @export
 .tile_nrows.raster_cube <- function(tile) {
     tile <- .tile(tile)
-    if ("nrows" %in% tile) {
-        return(.nrows(tile))
-    }
     .nrows(.fi(tile))
 }
 #
@@ -297,7 +290,9 @@ NULL
 .tile_bands.raster_cube <- function(tile, add_cloud = TRUE) {
     tile <- .tile(tile)
     bands <- unique(.fi_bands(.fi(tile)))
-    if (add_cloud) return(bands)
+    if (add_cloud) {
+        return(bands)
+    }
     setdiff(bands, .band_cloud())
 }
 
@@ -439,23 +434,6 @@ NULL
 #' @export
 .tile_within.raster_cube <- function(tile, roi) {
     .within(.tile_as_sf(tile), .roi_as_sf(roi))
-}
-#' @title Filter file_info entries that intersect roi.
-#' @name .tile_filter_spatial
-#' @keywords internal
-#' @noRd
-#' @param tile A tile.
-#' @param roi A region of interest (ROI).
-#'
-#' @return tile
-.tile_filter_spatial <- function(tile, roi) {
-    UseMethod(".tile_filter_spatial", tile)
-}
-#' @export
-.tile_filter_spatial.raster_cube <- function(tile, roi) {
-    tile <- .tile(tile)
-    .fi(tile) <- .fi_filter_spatial(fi = .fi(tile), roi = roi)
-    tile
 }
 #'
 #' @title Is any date of tile's timeline between 'start_date'
@@ -666,7 +644,7 @@ NULL
         values <- values %in% interp_values
     } else {
         values <- matrix(bitwAnd(values, sum(2^interp_values)) > 0,
-                         nrow = length(values)
+            nrow = length(values)
         )
     }
     #
@@ -816,7 +794,6 @@ NULL
 #' @return a new tile
 .tile_derived_from_file <- function(file, band, base_tile, derived_class,
                                     labels = NULL, update_bbox = FALSE) {
-
     if (derived_class %in% c("probs_cube", "variance_cube")) {
         # Open first block file to be merged
         r_obj <- .raster_open_rast(file)
@@ -918,7 +895,6 @@ NULL
 #' @keywords internal
 #' @noRd
 .tile_area_freq <- function(tile) {
-
     UseMethod(".tile_area_freq", tile)
 }
 #' @export
@@ -1004,9 +980,12 @@ NULL
 #'
 .tile_classif_start <- function(tile, verbose) {
     start_time <- Sys.time()
-    if (verbose)
-        message("Starting classification of tile '",
-                tile[["tile"]], "' at ", start_time)
+    if (verbose) {
+        message(
+            "Starting classification of tile '",
+            tile[["tile"]], "' at ", start_time
+        )
+    }
     return(start_time)
 }
 #' @title Measure classification time
@@ -1020,12 +999,14 @@ NULL
 #' @return end time for classification
 #'
 .tile_classif_end <- function(tile, start_time, verbose) {
+    end_time <- Sys.time()
     if (verbose) {
-        end_time <- Sys.time()
         message("Tile '", tile[["tile"]], "' finished at ", end_time)
-        message("Elapsed time of ",
-                format(round(end_time - start_time, digits = 2)))
+        message(
+            "Elapsed time of ",
+            format(round(end_time - start_time, digits = 2))
+        )
         message("")
     }
-    return(end_time)
+    return(invisible(end_time))
 }

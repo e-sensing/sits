@@ -42,7 +42,6 @@ if (sits_run_examples()) {
     acc <- sits_accuracy(points_class)
     # plot accuracy
     plot(acc)
-
 }
 }
 \author{

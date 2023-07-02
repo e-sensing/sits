@@ -44,26 +44,28 @@ The \code{roi} parameter defines a region of interest. It can be
 }
 \examples{
 if (sits_run_examples()) {
-  # Creating a sits cube from BDC
-  bdc_cube <- sits_cube(
-      source = "BDC",
-      collection = "CB4-16D-2",
-      tiles = c("007004", "007005"),
-      bands = c("B15", "CLOUD"),
-      start_date = "2018-01-01",
-      end_date = "2018-01-12"
-  )
+    # Creating a sits cube from BDC
+    bdc_cube <- sits_cube(
+        source = "BDC",
+        collection = "CB4-16D-2",
+        tiles = c("007004", "007005"),
+        bands = c("B15", "CLOUD"),
+        start_date = "2018-01-01",
+        end_date = "2018-01-12"
+    )
 
-  # Downloading images to a temporary directory
-  cube_local <- sits_cube_copy(
-      cube = bdc_cube,
-      output_dir = tempdir(),
-      roi = c(lon_min = -46.5,
-              lat_min = -45.5,
-              lon_max = -15.5,
-              lat_max = -14.6),
-      multicores = 2
-  )
+    # Downloading images to a temporary directory
+    cube_local <- sits_cube_copy(
+        cube = bdc_cube,
+        output_dir = tempdir(),
+        roi = c(
+            lon_min = -46.5,
+            lat_min = -45.5,
+            lon_max = -15.5,
+            lat_max = -14.6
+        ),
+        multicores = 2
+    )
 }
 
 }

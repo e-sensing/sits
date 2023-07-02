@@ -18,10 +18,6 @@ A summary of the sample accuracy
 This is a generic function. Parameters depend on the specific
 type of input.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
 if (sits_run_examples()) {
     data(cerrado_2classes)
@@ -32,9 +28,9 @@ if (sits_run_examples()) {
     rfor_model <- sits_train(train_data, sits_rfor())
     # classify test data
     points_class <- sits_classify(
-         data = test_data,
-         ml_model = rfor_model
-     )
+        data = test_data,
+        ml_model = rfor_model
+    )
     # measure accuracy
     acc <- sits_accuracy(points_class)
     summary(acc)

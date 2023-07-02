@@ -19,16 +19,12 @@
 #' @return          A vector with four validity indices.
 #'
 .cluster_validity <- function(samples) {
-
     # set caller to show in errors
     .check_set_caller(".cluster_validity")
-
     # verifies if dtwclust package is installed
     .check_require_packages("dtwclust")
-
     # is the input data the result of a cluster function?
     .check_samples_cluster(samples)
-
     # compute CVIs and return
     result <- dtwclust::cvi(
         a = factor(samples$cluster),
@@ -38,7 +34,6 @@
     )
     return(result)
 }
-
 #' @title Compute a dendrogram using hierarchical clustering
 #' @name .cluster_dendrogram
 #' @keywords internal
@@ -77,10 +72,8 @@
                                 linkage = "ward.D2", ...) {
     # verifies if dtwclust package is installed
     .check_require_packages("dtwclust")
-
     # get the values of the time series
     values <- sits_values(samples, bands, format = "cases_dates_bands")
-
     # call dtwclust and get the resulting dendrogram
     dendro <- dtwclust::tsclust(
         values,
@@ -90,11 +83,9 @@
         control = dtwclust::hierarchical_control(method = linkage),
         ...
     )
-
     # return the dendrogram
     return(dendro)
 }
-
 #' @title Compute validity indexes to a range of cut height
 #' @name .sits_cluster_dendro_bestcut
 #' @keywords internal
@@ -116,7 +107,6 @@
 #'                         and its respective height.
 #'
 .cluster_dendro_bestcut <- function(samples, dendro) {
-
     # compute range
     k_range <- seq(2, max(length(dendro$height) - 1, 2))
 
@@ -140,7 +130,6 @@
     best_cut <- structure(c(k_result, h_result), .Names = c("k", "height"))
     return(best_cut)
 }
-
 .cluster_rand_index <- function(x, correct = TRUE) {
     if (length(dim(x)) != 2) {
         stop("Argument x needs to be a 2-dimensional table.")

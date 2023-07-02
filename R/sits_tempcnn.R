@@ -1,4 +1,3 @@
-
 #' @title Train temporal convolutional neural network models
 #' @name sits_tempcnn
 #'
@@ -82,7 +81,8 @@
 #'     plot(bayes_cube)
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
-#'         bayes_cube, output_dir = tempdir()
+#'         bayes_cube,
+#'         output_dir = tempdir()
 #'     )
 #'     # plot the labelled cube
 #'     plot(label_cube)
@@ -109,7 +109,6 @@ sits_tempcnn <- function(samples = NULL,
                          patience = 20,
                          min_delta = 0.01,
                          verbose = FALSE) {
-
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # Avoid add a global variable for 'self'
@@ -159,31 +158,26 @@ sits_tempcnn <- function(samples = NULL,
         .check_int_parameter(patience)
         .check_num_parameter(param = min_delta, min = 0)
         .check_lgl(verbose)
-
         # Samples labels
         labels <- .samples_labels(samples)
         # Samples bands
         bands <- .samples_bands(samples)
         # Samples timeline
         timeline <- sits_timeline(samples)
-
         # Create numeric labels vector
         code_labels <- seq_along(labels)
         names(code_labels) <- labels
-
         # Number of labels, bands, and number of samples (used below)
         n_labels <- length(labels)
         n_bands <- length(bands)
         n_times <- .samples_ntimes(samples)
-
         # Data normalization
         ml_stats <- .samples_stats(samples)
         train_samples <- .predictors(samples)
         train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
-
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
-
+        # Are there validation samples?
         if (!is.null(samples_validation)) {
             .check_samples_validation(
                 samples_validation = samples_validation, labels = labels,

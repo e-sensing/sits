@@ -7,7 +7,6 @@
 #' @return          Attributes of wrs path and row.
 #'
 .usgs_format_tiles <- function(tiles) {
-
     # regex pattern of wrs_path and wrs_row
     pattern_l8 <- "[0-9]{6}"
 
@@ -36,7 +35,6 @@
 .source_collection_access_test.usgs_cube <- function(source, ...,
                                                      collection,
                                                      bands) {
-
     # require package
     .check_require_packages("rstac")
 
@@ -117,7 +115,6 @@
                                         stac_query, ...,
                                         tiles = NULL,
                                         platform = NULL) {
-
     # set caller to show in errors
     .check_set_caller(".source_items_new.usgs_cube")
 
@@ -147,7 +144,7 @@
     } else {
         platform <- unlist(unname(
             .conf(
-            "sources", source, "collections",  collection, "platforms"
+                "sources", source, "collections", collection, "platforms"
             )
         ))
 
@@ -167,7 +164,6 @@
 
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles)) {
-
         # format tile parameter provided by users
         sep_tile <- .usgs_format_tiles(tiles)
 
@@ -214,7 +210,6 @@
 .source_items_tile.usgs_cube <- function(source,
                                          items, ...,
                                          collection = NULL) {
-
     # store tile info in items object
     items$features <- purrr::map(items$features, function(feature) {
         feature$properties$tile <- paste0(

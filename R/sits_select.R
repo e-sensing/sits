@@ -1,5 +1,4 @@
 #' @title Filter bands on a data set (tibble or cube)
-#'
 #' @name sits_select
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -9,7 +8,7 @@
 #' @param end_date   Character value with the end date to be filtered.
 #' @param tiles      Character vector with the names of the tiles.
 #' @param ...        Additional parameters to be provided in the select
-#'  function.
+#'                   function.
 #'
 #' @description Filter only the selected bands from a tibble or a data cube.
 #'
@@ -28,19 +27,16 @@
 #' sits_bands(data)
 #'
 #' @export
-#'
 sits_select <- function(data,
                         bands = NULL,
                         start_date = NULL,
                         end_date = NULL, ...) {
-
     # set caller to show in errors
     .check_set_caller("sits_select")
     # get the meta-type (sits or cube)
     data <- .conf_data_meta_type(data)
     UseMethod("sits_select", data)
 }
-
 #' @rdname sits_select
 #'
 #' @export
@@ -56,17 +52,17 @@ sits_select.sits <- function(data,
         bands <- .band_samples(bands)
         # pre-condition
         .check_chr_within(bands,
-                          within = sits_bands(data),
-                          msg = "Invalid bands values"
+            within = sits_bands(data),
+            msg = "Invalid bands values"
         )
-
         data <- .samples_select_bands(data, bands = bands)
     }
     # Filter dates
     if (!is.null(start_date) || !is.null(end_date)) {
         .check_dates_parameter(c(start_date, end_date))
         data <- .samples_filter_interval(
-            data, start_date = start_date, end_date = end_date
+            data,
+            start_date = start_date, end_date = end_date
         )
     }
     return(data)
@@ -76,7 +72,7 @@ sits_select.sits <- function(data,
 #'
 #' @export
 sits_select.raster_cube <- function(data,
-                                    bands =  NULL,
+                                    bands = NULL,
                                     start_date = NULL,
                                     end_date = NULL, ...,
                                     tiles = NULL) {
@@ -104,7 +100,6 @@ sits_select.raster_cube <- function(data,
     }
     return(data)
 }
-
 #' @rdname sits_select
 #'
 #' @export

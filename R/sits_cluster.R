@@ -29,7 +29,7 @@
 #'                        Can be any `hclust` method (see `hclust`).
 #'                        Default is 'ward.D2'.
 #' @param k               Desired number of clusters (overrides default value)
-#' @param color_palette   Color palette as per `grDevices::hcl.pals()` function.
+#' @param palette         Color palette as per `grDevices::hcl.pals()` function.
 #' @param .plot           Plot the dendrogram?
 #' @param  ...            Additional parameters to be passed
 #'                        to dtwclust::tsclust() function.
@@ -49,7 +49,7 @@ sits_cluster_dendro <- function(samples = NULL,
                                 dist_method = "dtw_basic",
                                 linkage = "ward.D2",
                                 k = NULL,
-                                color_palette = "RdYlGn",
+                                palette = "RdYlGn",
                                 .plot = TRUE, ...) {
     # needs package dtwclust
     .check_require_packages("dtwclust")
@@ -98,10 +98,11 @@ sits_cluster_dendro <- function(samples = NULL,
     # plot the dendrogram
     message("Plotting dendrogram...")
     if (.plot) {
-        plot(x = samples,
+        plot(
+            x = samples,
             cluster = cluster,
             cutree_height = best_cut["height"],
-            color_palette = color_palette
+            palette = palette
         )
     }
 
@@ -126,7 +127,6 @@ sits_cluster_dendro <- function(samples = NULL,
 #' }
 #' @export
 sits_cluster_frequency <- function(samples) {
-
     # set caller to show in errors
     .check_set_caller("sits_cluster_frequency")
 
@@ -168,7 +168,6 @@ sits_cluster_frequency <- function(samples) {
 #' }
 #' @export
 sits_cluster_clean <- function(samples) {
-
     # set caller to show in errors
     .check_set_caller("sits_cluster_clean")
 

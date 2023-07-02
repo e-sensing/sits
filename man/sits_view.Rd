@@ -14,11 +14,11 @@
 \usage{
 sits_view(x, ...)
 
-\method{sits_view}{sits}(x, ..., legend = NULL, color_palette = "Harmonic")
+\method{sits_view}{sits}(x, ..., legend = NULL, palette = "Harmonic")
 
-\method{sits_view}{data.frame}(x, ..., legend = NULL, color_palette = "Harmonic")
+\method{sits_view}{data.frame}(x, ..., legend = NULL, palette = "Harmonic")
 
-\method{sits_view}{som_map}(x, ..., id_neurons, legend = NULL, color_palette = "Harmonic")
+\method{sits_view}{som_map}(x, ..., id_neurons, legend = NULL, palette = "Harmonic")
 
 \method{sits_view}{raster_cube}(
   x,
@@ -31,7 +31,7 @@ sits_view(x, ...)
   dates = NULL,
   class_cube = NULL,
   legend = NULL,
-  color_palette = "RdYlGn",
+  palette = "RdYlGn",
   segments = NULL,
   view_max_mb = NULL
 )
@@ -42,7 +42,7 @@ sits_view(x, ...)
   tiles = x$tile,
   class_cube = NULL,
   legend = NULL,
-  color_palette = "Blues",
+  palette = "Blues",
   segments = NULL,
   view_max_mb = NULL
 )
@@ -52,7 +52,7 @@ sits_view(x, ...)
   ...,
   tiles = NULL,
   legend = NULL,
-  color_palette = "Spectral",
+  palette = "Spectral",
   segments = NULL,
   view_max_mb = NULL
 )
@@ -64,7 +64,7 @@ sits_view(x, ...)
   class_cube = NULL,
   legend = NULL,
   view_max_mb = NULL,
-  color_palette = "YlGnBu"
+  palette = "YlGnBu"
 )
 
 \method{sits_view}{default}(x, ...)
@@ -77,7 +77,8 @@ sits_view(x, ...)
 
 \item{legend}{Named vector that associates labels to colors.}
 
-\item{color_palette}{Palette provided in the configuration file.}
+\item{palette}{Color palette (if colors not in legend nor
+in sits default colors)}
 
 \item{id_neurons}{Neurons from the SOM map to be shown.}
 
@@ -116,7 +117,7 @@ Please refer to the sits documentation available in
 if (sits_run_examples()) {
     # view samples
     sits_view(cerrado_2classes)
-.    # create a local data cube
+    . # create a local data cube
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     modis_cube <- sits_cube(
         source = "BDC",
@@ -129,7 +130,7 @@ if (sits_run_examples()) {
     )
     # train a model
     rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
-.    # classify the cube
+    . # classify the cube
     modis_probs <- sits_classify(
         data = modis_cube,
         ml_model = rf_model,
@@ -142,9 +143,9 @@ if (sits_run_examples()) {
         modis_probs,
         output_dir = tempdir()
     )
-.    # view the classified map
+    . # view the classified map
     sits_view(modis_label)
-.    # view the classified map with the B/W image
+    . # view the classified map with the B/W image
     sits_view(modis_cube,
         band = "NDVI",
         class_cube = modis_label,
@@ -173,13 +174,13 @@ if (sits_run_examples()) {
         seg_fn = sits_slic(step = 20)
     )
     # view image and segments
-    sits_view (
+    sits_view(
         modis_cube,
         band = "NDVI",
         segments = segments
     )
     # view image, classified image and segments
-    sits_view (
+    sits_view(
         modis_cube,
         red = "NDVI",
         green = "NDVI",
@@ -188,7 +189,7 @@ if (sits_run_examples()) {
         segments = segments
     )
     # view B/W image, classified image and segments
-    sits_view (
+    sits_view(
         modis_cube,
         band = "NDVI",
         class_cube = modis_label,
@@ -213,13 +214,13 @@ if (sits_run_examples()) {
         segments = segments
     )
     # view image and classified segments
-    sits_view (
+    sits_view(
         modis_cube,
         band = "NDVI",
         segments = segments
     )
     # view image, classified image and segments
-    sits_view (
+    sits_view(
         modis_cube,
         red = "NDVI",
         green = "NDVI",

@@ -39,7 +39,6 @@
 #'     # for the Mato Grosso state in Brasil
 #'     # create a list to store the results
 #'     results <- list()
-#'
 #'     # accuracy assessment lightTAE
 #'     acc_ltae <- sits_kfold_validate(
 #'         samples_modis_ndvi,
@@ -72,53 +71,44 @@ sits_kfold_validate <- function(samples,
                                 folds = 5,
                                 ml_method = sits_rfor(),
                                 multicores = 2) {
-
     # set caller to show in errors
     .check_set_caller("sits_kfold_validate")
-
     # require package
     .check_require_packages("caret")
-
     # pre-condition
     .check_that(
         inherits(ml_method, "function"),
         local_msg = "ml_method is not a valid sits method",
         msg = "invalid ml_method parameter"
     )
-
     # pre-condition
     .check_multicores(multicores)
-
     # For now, torch models does not support multicores in Windows
     if (multicores > 1 && .Platform$OS.type == "windows" &&
         "optimizer" %in% ls(environment(ml_method))) {
         multicores <- 1
-        if (.check_warnings())
+        if (.check_warnings()) {
             warning("sits_kfold_validate() works
                     only with 1 core in Windows OS.",
                 call. = FALSE,
                 immediate. = TRUE
             )
+        }
     }
-
     # Get labels from samples
     labels <- .samples_labels(samples)
     # Create numeric labels vector
     code_labels <- seq_along(labels)
     names(code_labels) <- labels
-
     # Is the data labelled?
     .check_that(
         x = !("NoClass" %in% labels),
         msg = "requires labelled set of time series"
     )
-
     # start parallel process
     multicores <- min(multicores, folds)
-
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop())
-
     # Create partitions different splits of the input data
     samples <- .samples_create_folds(samples, folds = folds)
     # Do parallel process
@@ -140,20 +130,15 @@ sits_kfold_validate <- function(samples,
         remove(ml_model)
         return(list(pred = values, ref = .pred_references(pred_test)))
     }, n_retries = 0, progress = FALSE)
-
+    # create predicted and reference vectors
     pred <- unlist(lapply(conf_lst, function(x) x$pred))
     ref <- unlist(lapply(conf_lst, function(x) x$ref))
-
-    # call caret to provide assessment
     unique_ref <- unique(ref)
     pred_fac <- factor(pred, levels = unique_ref)
     ref_fac <- factor(ref, levels = unique_ref)
-
     # call caret package to the classification statistics
     acc <- caret::confusionMatrix(pred_fac, ref_fac)
-
     class(acc) <- c("sits_accuracy", class(acc))
-
     return(acc)
 }
 #' @title Validate time series samples
@@ -186,31 +171,27 @@ sits_kfold_validate <- function(samples,
 #'         validation assessment.
 #'
 #' @examples
-#' if (sits_run_examples()){
-#'    conf_matrix <- sits_validate(cerrado_2classes)
+#' if (sits_run_examples()) {
+#'     conf_matrix <- sits_validate(cerrado_2classes)
 #' }
 #' @export
 sits_validate <- function(samples,
                           samples_validation = NULL,
                           validation_split = 0.2,
                           ml_method = sits_rfor()) {
-
     # set caller to show in errors
     .check_set_caller("sits_validate")
-
     # require package
     .check_require_packages("caret")
-
     # pre-condition
     .check_that(
         inherits(ml_method, "function"),
         local_msg = "ml_method is not a valid sits method",
         msg = "invalid ml_method parameter"
     )
-
     # is the data labelled?
     .check_samples_train(samples)
-
+    # Are there samples for validation?
     if (is.null(samples_validation)) {
         samples <- .tibble_samples_split(
             samples = samples,
@@ -219,7 +200,6 @@ sits_validate <- function(samples,
         samples_validation <- dplyr::filter(samples, !.data[["train"]])
         samples <- dplyr::filter(samples, .data[["train"]])
     }
-
     # create a machine learning model
     ml_model <- sits_train(samples = samples, ml_method = ml_method)
     # Convert samples time series in predictors and preprocess data

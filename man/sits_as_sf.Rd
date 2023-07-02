@@ -29,17 +29,17 @@ Return a sits_tibble or raster_cube as an sf object.
 }
 \examples{
 if (sits_run_examples()) {
-   # convert sits tibble to an sf object (point)
-   sf_object <- sits_as_sf(cerrado_2classes)
+    # convert sits tibble to an sf object (point)
+    sf_object <- sits_as_sf(cerrado_2classes)
 
-   # convert sits cube to an sf object (polygon)
-   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-   cube <- sits_cube(
-       source = "BDC",
-       collection = "MOD13Q1-6",
-       data_dir = data_dir
-   )
-   sf_object <- sits_as_sf(cube)
+    # convert sits cube to an sf object (polygon)
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
+    )
+    sf_object <- sits_as_sf(cube)
 }
 }
 \author{

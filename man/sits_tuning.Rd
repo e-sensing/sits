@@ -56,10 +56,6 @@ best hyper-parameters in a list.
 hyper-parameters passed to \code{params} parameter should be passed
 by calling \code{sits_tuning_hparams()} function.
 }
-\note{
-Please refer to the sits documentation available in
-  <https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
 if (sits_run_examples()) {
     # find best learning rate parameters for TempCNN
@@ -89,4 +85,7 @@ if (sits_run_examples()) {
 James Bergstra, Yoshua Bengio,
  "Random Search for Hyper-Parameter Optimization".
  Journal of Machine Learning Research. 13: 281–305, 2012.
+}
+\author{
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

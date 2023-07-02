@@ -1,10 +1,12 @@
 test_that("sits summary", {
-
     sum <- summary(samples_modis_ndvi)
     expect_equal(sum$label, c("Cerrado", "Forest", "Pasture", "Soy_Corn"))
     expect_equal(sum$count, c(379, 131, 344, 364))
+    sum1 <- suppressWarnings(sits_labels_summary(samples_modis_ndvi))
+    expect_equal(sum1$label, c("Cerrado", "Forest", "Pasture", "Soy_Corn"))
+    expect_equal(sum1$count, c(379, 131, 344, 364))
 })
-test_that("summary sits accuracy",{
+test_that("summary sits accuracy", {
     data(cerrado_2classes)
     # split training and test data
     train_data <- sits_sample(cerrado_2classes, n = 200)
@@ -22,9 +24,8 @@ test_that("summary sits accuracy",{
     sum <- capture.output(summary(acc))
     expect_true(grepl("Accuracy", sum[2]))
     expect_true(grepl("Kappa", sum[4]))
-
 })
-test_that("summary sits area accuracy",{
+test_that("summary sits area accuracy", {
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
@@ -60,7 +61,8 @@ test_that("summary sits area accuracy",{
 
     # get the variance cube
     variance_cube <- sits_variance(
-        probs_cube, output_dir = tempdir()
+        probs_cube,
+        output_dir = tempdir()
     )
     sum_var <- capture.output(suppressWarnings(summary(variance_cube)))
     expect_true(grepl("class", sum_var[1]))
@@ -86,7 +88,7 @@ test_that("summary sits area accuracy",{
 
     # obtain the ground truth for accuracy assessment
     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
-                                package = "sits"
+        package = "sits"
     )
     # make accuracy assessment
     as <- sits_accuracy(label_cube, validation = ground_truth)

@@ -53,7 +53,6 @@ sits_variance <- function(cube,
                           memsize = 4,
                           output_dir,
                           version = "v1") {
-
     # Check if cube has probability data
     .check_is_probs_cube(cube)
     # Check memsize
@@ -88,8 +87,7 @@ sits_variance <- function(cube,
     # Prepare parallel processing
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
-
-    # Call the smoothing method
+    # Call the variance method
     .variance(
         cube = cube,
         block = block,

@@ -17,11 +17,10 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' sits_bbox(samples_modis_ndvi)
+#'     sits_bbox(samples_modis_ndvi)
 #' }
 #' @export
 sits_bbox <- function(data, ..., as_crs = NULL) {
-
     # Get the meta-type (sits or cube)
     data <- .conf_data_meta_type(data)
 
@@ -31,7 +30,6 @@ sits_bbox <- function(data, ..., as_crs = NULL) {
 #' @rdname sits_bbox
 #' @export
 sits_bbox.sits <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
-
     # Pre-conditions
     .check_samples(data)
 
@@ -43,7 +41,6 @@ sits_bbox.sits <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
 #' @rdname sits_bbox
 #' @export
 sits_bbox.raster_cube <- function(data, ..., as_crs = NULL) {
-
     # Pre-condition
     .check_is_raster_cube(data)
 

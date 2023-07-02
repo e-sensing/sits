@@ -65,4 +65,7 @@ test_that("One-year, multi-core classification in parallel", {
     min_lyr3 <- min(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
     expect_true(min_lyr3 >= 0)
     unlink(l8_probs$file_info[[1]]$path)
+
+    expect_error(.parallel_reset_node(1))
+
 })

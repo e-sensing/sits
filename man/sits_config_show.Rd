@@ -4,14 +4,12 @@
 \alias{sits_config_show}
 \title{Show current sits configuration}
 \usage{
-sits_config_show(source = NULL, collection = NULL, colors = FALSE)
+sits_config_show(source = NULL, collection = NULL)
 }
 \arguments{
 \item{source}{Data source to be shown in detail.}
 
 \item{collection}{Collection key entry to be shown in detail.}
-
-\item{colors}{Show colors?}
 }
 \value{
 A \code{list} containing the respective

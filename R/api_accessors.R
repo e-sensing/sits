@@ -12,14 +12,13 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' x <- c(xmax = "123")
-#' .xmax(x) # 123 as number
-#' x <- list(xmin = 1, xmax = 2, ymin = 3, ymax = 4)
-#' .crs(x) <- 4326
-#' x # with 'crs' field
-#' .as_crs(3857) # EPSG:3857
+#'     x <- c(xmax = "123")
+#'     .xmax(x) # 123 as number
+#'     x <- list(xmin = 1, xmax = 2, ymin = 3, ymax = 4)
+#'     .crs(x) <- 4326
+#'     x # with 'crs' field
+#'     .as_crs(3857) # EPSG:3857
 #' }
-
 .xmin <- function(x) {
     .as_dbl(.compact(x[["xmin"]]))
 }
@@ -50,14 +49,15 @@
 }
 .as_crs <- function(x) {
     if (.has(x)) {
-        if (is.character(x))
+        if (is.character(x)) {
             .compact(x)
-        else if (is.numeric(x))
+        } else if (is.numeric(x)) {
             paste0("EPSG:", .compact(x))
-        else if (is.na(x))
+        } else if (is.na(x)) {
             NA_character_
-        else
+        } else {
             stop("invalid crs value")
+        }
     }
 }
 .crs <- function(x) {
@@ -81,17 +81,17 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' x <- c(nrows = 100, ymin = 1, ymax = 10)
-#' .yres(x) # 0.09
-#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#' modis_cube <- sits_cube(
-#'   source = "BDC",
-#'   collection = "MOD13Q1-6",
-#'   data_dir = data_dir,
-#'   delim = "_"
-#' )
-#' .xres(.fi(modis_cube))
-#' .yres(.fi(modis_cube))
+#'     x <- c(nrows = 100, ymin = 1, ymax = 10)
+#'     .yres(x) # 0.09
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     modis_cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_"
+#'     )
+#'     .xres(.fi(modis_cube))
+#'     .yres(.fi(modis_cube))
 #' }
 NULL
 
@@ -116,10 +116,10 @@ NULL
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' x <- list(nrows = 123)
-#' .nrows(x)
-#' .ncols(x) <- 234
-#' x
+#'     x <- list(nrows = 123)
+#'     .nrows(x)
+#'     .ncols(x) <- 234
+#'     x
 #' }
 NULL
 

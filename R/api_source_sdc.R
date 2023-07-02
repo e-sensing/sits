@@ -5,14 +5,13 @@
                                        collection,
                                        stac_query,
                                        tiles = NULL) {
-
     # set caller to show in errors
     .check_set_caller(".source_items_new.sdc_cube")
 
     if (!is.null(tiles)) {
         stop(paste("SDC cubes do not support searching for tiles, use",
-                   "'roi' parameter instead.",
-                   call. = FALSE
+            "'roi' parameter instead.",
+            call. = FALSE
         ))
     }
 
@@ -52,10 +51,13 @@
 .source_items_tile.sdc_cube <- function(source, ...,
                                         items,
                                         collection = NULL) {
-    gsub(pattern = "_",
-         replacement = "-",
-         x = rstac::items_reap(items,
-                               field = c("properties", "cubedash:region_code")))
+    gsub(
+        pattern = "_",
+        replacement = "-",
+        x = rstac::items_reap(items,
+            field = c("properties", "cubedash:region_code")
+        )
+    )
 }
 
 

@@ -39,7 +39,8 @@
     }
     items <- suppressWarnings(
         rstac::items_sign(
-            items, sign_fn = rstac::sign_planetary_computer(
+            items,
+            sign_fn = rstac::sign_planetary_computer(
                 httr::add_headers("Ocp-Apim-Subscription-Key" = access_key)
             )
         )
@@ -83,7 +84,6 @@
                                                         stac_query, ...,
                                                         tiles = NULL,
                                                         platform = NULL) {
-
     # set caller to show in errors
     .check_set_caller(".source_items_new.mpc_cube_sentinel-2-l2a")
 
@@ -137,7 +137,8 @@
     }
     items_info <- suppressWarnings(
         rstac::items_sign(
-            items_info, sign_fn = rstac::sign_planetary_computer(
+            items_info,
+            sign_fn = rstac::sign_planetary_computer(
                 httr::add_headers("Ocp-Apim-Subscription-Key" = access_key)
             )
         )
@@ -162,7 +163,6 @@
                                                        stac_query, ...,
                                                        tiles = NULL,
                                                        platform = NULL) {
-
     # set caller to show in errors
     .check_set_caller(".source_items_new.mpc_cube_landsat-c2-l2")
 
@@ -197,7 +197,8 @@
     }
     items <- suppressWarnings(
         rstac::items_sign(
-            items, sign_fn = rstac::sign_planetary_computer(
+            items,
+            sign_fn = rstac::sign_planetary_computer(
                 httr::add_headers("Ocp-Apim-Subscription-Key" = access_key)
             )
         )
@@ -211,7 +212,6 @@
 `.source_items_tile.mpc_cube_landsat-c2-l2` <- function(source,
                                                         items, ...,
                                                         collection = NULL) {
-
     # store tile info in items object
     items$features <- purrr::map(items$features, function(feature) {
         feature$properties$tile <- paste0(

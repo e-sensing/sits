@@ -72,10 +72,6 @@ entropy, 'least' is the difference between 100% and most confident
 prediction, and 'margin' is the difference between the two most confident
 predictions.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
 if (sits_run_examples()) {
     # create a random forest model

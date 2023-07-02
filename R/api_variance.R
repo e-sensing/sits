@@ -98,7 +98,8 @@
     # Create smooth function
     smooth_fn <- .variance_fn(
         window_size = window_size,
-        neigh_fraction = neigh_fraction)
+        neigh_fraction = neigh_fraction
+    )
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
     # Smoothing
@@ -134,7 +135,8 @@
             m_nrow = .nrows(block),
             m_ncol = .ncols(block),
             w = window,
-            neigh_fraction = neigh_fraction)
+            neigh_fraction = neigh_fraction
+        )
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         # Return values
