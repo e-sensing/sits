@@ -894,7 +894,8 @@ test_that("Access to SwissDataCube",{
 })
 test_that("testing STAC error",{
     mpc_url <- sits_env$config$sources$MPC$url
-    sits_env$config$sources$MPC$url <- "https://planetarycomputer.microsoft.com/api/stac/v100"
+    sits_env$config$sources$MPC$url <-
+        "https://planetarycomputer.microsoft.com/api/stac/v100"
     expect_error(
         sits_cube(
             source = "MPC",
@@ -909,7 +910,8 @@ test_that("testing STAC error",{
     sits_env$config$sources$MPC$url <- mpc_url
 
     aws_url <- sits_env$config$sources$AWS$url
-    sits_env$config$sources$AWS$url <- "https://earth-search.aws.element84.com/v100/"
+    sits_env$config$sources$AWS$url <-
+        "https://earth-search.aws.element84.com/v100/"
     expect_error(
         sits_cube(
             source = "AWS",
@@ -926,7 +928,8 @@ test_that("testing STAC error",{
 
     usgs_url <- sits_env$config$sources$USGS$url
 
-    sits_env$config$sources$USGS$url <- "https://landsatlook.usgs.gov/stac-server/v100"
+    sits_env$config$sources$USGS$url <-
+        "https://landsatlook.usgs.gov/stac-server/v100"
     roi <- c(
         lon_min = -48.28579, lat_min = -16.05026,
         lon_max = -47.30839, lat_max = -15.50026
