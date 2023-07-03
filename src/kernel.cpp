@@ -42,13 +42,20 @@ inline double _var(const NumericVector& neigh) {
 // The source code can be found in
 // https://github.com/rspatial/terra/blob/bcce14dd1778a36a43e2a211704feb8128f2c953/src/vecmath.h
 inline double _modal(const NumericVector& neigh) {
+
     std::map<double, size_t> count;
-    for(int i=0; i<neigh.size(); i++) {
-        if (!std::isnan(neigh[i])) count[neigh[i]]++;
+    for(size_t i=0; i<neigh.size(); i++) {
+        if (std::isnan(neigh[i])) {
+            return NAN;
+        } else {
+            count[neigh[i]]++;
+        }
     }
+
     std::map<double, size_t>::iterator mode =
         std::max_element(count.begin(), count.end(),[] (const std::pair<double, size_t>& a,
                                      const std::pair<double, size_t>& b)->bool{ return a.second < b.second; } );
+
     return mode->first;
 }
 
