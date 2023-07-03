@@ -145,8 +145,8 @@
             values <- values / scale
         }
 
-        # Mask NA pixels
-        values[na_mask, ] <- NA
+        # Mask NA pixels as zero
+        values[na_mask, ] <- 0
 
         #
         # Log here
