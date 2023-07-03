@@ -143,10 +143,11 @@
         scale <- .scale(band_conf)
         if (.has(scale) && scale != 1) {
             values <- values / scale
+            probs_fractions  <- probs_fractions / scale
         }
 
-        # Mask NA pixels as zero
-        values[na_mask, ] <- 0
+        # Mask NA pixels with same probabilities for all classes
+        values[na_mask, ] <- probs_fractions
 
         #
         # Log here
