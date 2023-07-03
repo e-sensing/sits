@@ -94,7 +94,7 @@ sits_clean <- function(cube,
     assets_cube <- .cube_split_assets(cube)
 
     # Process each feature in parallel
-    assets_band <- .jobs_map_parallel_dfr(assets_cube, function(asset) {
+    assets_band <- .jobs_map_sequential_dfr(assets_cube, function(asset) {
         # Process the data
         output_asset <- .clean_asset(
             asset = asset,
@@ -106,7 +106,7 @@ sits_clean <- function(cube,
             version = version
         )
         return(output_asset)
-    }, progress = progress)
+    })
     # Join output assets and return it
     .cube_merge_tiles(assets_band)
 }

@@ -30,7 +30,7 @@
         tile = asset, overlap = overlap, block = block
     )
     # Process jobs sequentially
-    block_files <- .jobs_map_sequential(chunks, function(chunk) {
+    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Get job block
         block <- .block(chunk)
         # Block file name for each fraction
