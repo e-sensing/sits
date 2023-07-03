@@ -198,7 +198,6 @@ Collate:
     'sits_cluster.R'
     'sits_factory.R'
     'sits_filters.R'
-    'sits_fill.R'
     'sits_geo_dist.R'
     'sits_get_data.R'
     'sits_labels.R'

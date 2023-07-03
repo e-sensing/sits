@@ -80,6 +80,8 @@
         # Should bbox of resulting tile be updated?
         update_bbox <- nrow(chunks) != nchunks
     }
+    # Compute fractions probability
+    probs_fractions <- 1/length(.ml_labels(ml_model))
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -143,10 +145,11 @@
         scale <- .scale(band_conf)
         if (.has(scale) && scale != 1) {
             values <- values / scale
+            probs_fractions  <- probs_fractions / scale
         }
 
-        # Mask NA pixels
-        values[na_mask, ] <- NA
+        # Mask NA pixels with same probabilities for all classes
+        values[na_mask, ] <- probs_fractions
 
         #
         # Log here
