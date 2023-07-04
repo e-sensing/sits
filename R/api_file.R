@@ -59,6 +59,16 @@
         ext = "tif", output_dir = output_dir
     )
 }
+
+.file_clean_name <- function(tile, band, version, output_dir) {
+    .file_path(
+        tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
+        .tile_start_date(tile), .tile_end_date(tile),
+        paste(band, "clean", sep = "-"), version,
+        ext = "tif", output_dir = output_dir
+    )
+}
+
 .file_mosaic_name <- function(tile, band, version, output_dir) {
     .file_path(
         tile[["satellite"]], tile[["sensor"]], "MOSAIC",

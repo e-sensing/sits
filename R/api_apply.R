@@ -286,6 +286,18 @@
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
                 band = 0, window_size = window_size
             )
+        },
+        w_var = function(m) {
+            C_kernel_var(
+                x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
+                band = 0, window_size = window_size
+            )
+        },
+        w_modal = function(m) {
+            C_kernel_modal(
+                x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
+                band = 0, window_size = window_size
+            )
         }
     ), parent = parent.env(environment()), hash = TRUE)
 

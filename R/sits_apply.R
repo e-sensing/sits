@@ -60,8 +60,9 @@
 #'   values.}
 #' \item{\code{w_min()}: returns the minimum of the neighborhood's values.}
 #' \item{\code{w_max()}: returns the maximum of the neighborhood's values.}
+#' \item{\code{w_var()}: returns the variance of the neighborhood's values.}
+#' \item{\code{w_modal()}: returns the modal of the neighborhood's values.}
 #' }
-#'
 #'
 #' @return A sits tibble or a sits cube with new bands, produced
 #'         according to the requested expression.
