@@ -171,3 +171,7 @@ test_that("Internal functions in ROI", {
     expect_equal(si[["ncols"]], 192)
     expect_equal(si[["nrows"]], 84)
 })
+test_that("CRS errors", {
+    expect_error(.as_crs(TRUE))
+    expect_equal(.as_crs(NA), NA_character_)
+})

@@ -53,7 +53,7 @@ test_that("Plot Time Series and Images", {
     expect_equal(p$tm_raster$palette, "-RdYlGn")
     expect_equal(p$tm_grid$grid.projection, 4326)
 
-    tmap_options = list("tmap_legend_title_size" = 1.0,
+    tmap_options <- list("tmap_legend_title_size" = 1.0,
                         "tmap_legend_text_size" = 0.7,
                         "tmap_max_cells" = 1e+06,
                         "tmap_graticules_labels_size" = 0.7,
