@@ -1279,11 +1279,11 @@ sources:
                         scale_factor  : 0.0001
                         offset_value  : 0
                         resolution    :  10
-                        band_name     : "VV"
+                        band_name     : "vv"
                         data_type     : "INT2U"
                     VH     :
                         <<: *mspc_grd_10m
-                        band_name     : "VH"
+                        band_name     : "vh"
                 satellite   : "SENTINEL-1"
                 sensor      : "GRD"
                 platforms   :

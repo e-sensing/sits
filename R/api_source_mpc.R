@@ -79,6 +79,101 @@
 #' @keywords internal
 #' @noRd
 #' @export
+`.source_collection_access_test.mpc_cube_sentinel-1-grd` <- function(
+        source,
+        collection,
+        bands, ...,
+        start_date = NULL,
+        end_date = NULL,
+        dry_run = TRUE) {
+
+    # require package
+    .check_require_packages("rstac")
+
+    stac_query <- .stac_create_items_query(
+        source = source,
+        collection = collection,
+        roi = list(
+            "xmin" = -50.379,
+            "ymin" = -10.1573,
+            "xmax" = -50.410,
+            "ymax" = -10.1910,
+            "crs"  = "EPSG:4386"
+        ),
+        start_date = start_date,
+        end_date = end_date,
+        limit = 1
+    )
+
+    stac_query <- rstac::ext_filter(
+        stac_query,
+        `sar:frequency_band` == "C" &&
+            `sar:instrument_mode` == "IW" &&
+            `sat:orbit_state` == "descending"
+    )
+
+    # assert that service is online
+    tryCatch(
+        {
+            items <- rstac::post_request(stac_query, ...)
+        },
+        error = function(e) {
+            stop(paste(
+                ".source_collection_access_test.stac_cube: service is",
+                "unreachable\n", e$message
+            ), call. = FALSE)
+        }
+    )
+
+    .check_stac_items(items)
+
+    # signing the url with the mpc token
+    access_key <- Sys.getenv("MPC_TOKEN")
+    if (!nzchar(access_key)) {
+        access_key <- NULL
+    }
+    items <- suppressWarnings(
+        rstac::items_sign(
+            items,
+            sign_fn = rstac::sign_planetary_computer(
+                httr::add_headers("Ocp-Apim-Subscription-Key" = access_key)
+            )
+        )
+    )
+
+    items <- .source_items_bands_select(
+        source = source,
+        items = items,
+        bands = bands[[1]],
+        collection = collection, ...
+    )
+
+    href <- .source_item_get_hrefs(
+        source = source,
+        item = items$feature[[1]],
+        collection = collection, ...
+    )
+
+    # assert that token and/or href is valid
+    if (dry_run) {
+        tryCatch(
+            {
+                .raster_open_rast(href)
+            },
+            error = function(e) {
+                stop(paste(
+                    ".source_collection_access_test.stac_cube: cannot",
+                    "open url\n", href, "\n", e$message
+                ), call. = FALSE)
+            }
+        )
+    }
+    return(invisible(NULL))
+}
+
+#' @keywords internal
+#' @noRd
+#' @export
 `.source_items_new.mpc_cube_sentinel-1-grd` <- function(source,
                                                         collection,
                                                         stac_query, ...,

@@ -533,7 +533,7 @@ NULL
 #' @rdname .source_collection
 #' @noRd
 .source_collection_access_test <- function(source, collection, ...) {
-    source <- .source_new(source)
+    source <- .source_new(source, collection = collection)
 
     UseMethod(".source_collection_access_test", source)
 }
