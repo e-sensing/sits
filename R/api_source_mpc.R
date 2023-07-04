@@ -79,6 +79,75 @@
 #' @keywords internal
 #' @noRd
 #' @export
+`.source_items_new.mpc_cube_sentinel-1-grd` <- function(source,
+                                                        collection,
+                                                        stac_query, ...,
+                                                        tiles = NULL) {
+
+    # set caller to show in errors
+    .check_set_caller(".source_items_new.mpc_cube_sentinel-1-grd")
+
+    stac_query <- rstac::ext_filter(
+        stac_query,
+        `sar:frequency_band` == "C" &&
+        `sar:instrument_mode` == "IW"
+    )
+
+    # mpc does not support %in% operator, so we have to
+    if (!is.null(tiles)) {
+        items_list <- lapply(tiles, function(tile) {
+            # making the request
+            items_info <- rstac::post_request(q = stac_query, ...)
+            .check_stac_items(items_info)
+            # fetching all the metadata
+            suppressWarnings(
+                rstac::items_fetch(items = items_info, progress = FALSE)
+            )
+        })
+
+        # getting the first item info
+        items_info <- items_list[[1]]
+        # joining the items
+        items_info$features <- do.call(
+            c,
+            args = lapply(items_list, `[[`, "features")
+        )
+    } else {
+        items_info <- rstac::post_request(q = stac_query, ...)
+        .check_stac_items(items_info)
+        # fetching all the metadata
+        items_info <- suppressWarnings(
+            rstac::items_fetch(items = items_info, progress = FALSE)
+        )
+    }
+
+    # assign href
+    access_key <- Sys.getenv("MPC_TOKEN")
+    if (!nzchar(access_key)) {
+        access_key <- NULL
+    }
+    items_info <- suppressWarnings(
+        rstac::items_sign(
+            items_info, sign_fn = rstac::sign_planetary_computer(
+                httr::add_headers("Ocp-Apim-Subscription-Key" = access_key)
+            )
+        )
+    )
+    return(items_info)
+}
+
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_tile.mpc_cube_sentinel-1-grd` <- function(source,
+                                                         items, ...,
+                                                         collection = NULL) {
+    rep("20LKP", rstac::items_length(items))
+}
+
+#' @keywords internal
+#' @noRd
+#' @export
 `.source_items_new.mpc_cube_sentinel-2-l2a` <- function(source,
                                                         collection,
                                                         stac_query, ...,
