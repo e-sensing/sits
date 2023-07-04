@@ -45,10 +45,6 @@ Takes a set of classified raster layers with probabilities,
              whose metadata is]created by \code{\link[sits]{sits_cube}},
              and applies a Bayesian smoothing function.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
 if (sits_run_examples()) {
     # create a ResNet model
@@ -72,7 +68,8 @@ if (sits_run_examples()) {
     plot(bayes_cube)
     # label the probability cube
     label_cube <- sits_label_classification(
-        bayes_cube, output_dir = tempdir()
+        bayes_cube,
+        output_dir = tempdir()
     )
     # plot the labelled cube
     plot(label_cube)

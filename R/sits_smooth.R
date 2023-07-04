@@ -26,9 +26,6 @@
 #'
 #' @return A data cube.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a ResNet model
@@ -52,7 +49,8 @@
 #'     plot(bayes_cube)
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
-#'         bayes_cube, output_dir = tempdir()
+#'         bayes_cube,
+#'         output_dir = tempdir()
 #'     )
 #'     # plot the labelled cube
 #'     plot(label_cube)
@@ -66,7 +64,6 @@ sits_smooth <- function(cube,
                         multicores = 2,
                         output_dir,
                         version = "v1") {
-
     # Check if cube has probability data
     .check_is_probs_cube(cube)
     # Check memsize

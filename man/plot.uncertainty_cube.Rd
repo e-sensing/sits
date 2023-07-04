@@ -8,7 +8,7 @@
   x,
   ...,
   tile = x$tile[[1]],
-  color_palette = "RdYlGn",
+  palette = "RdYlGn",
   rev = TRUE,
   tmap_options = NULL
 )
@@ -20,7 +20,7 @@
 
 \item{tile}{Tiles to be plotted.}
 
-\item{color_palette}{An RColorBrewer palette}
+\item{palette}{An RColorBrewer palette}
 
 \item{rev}{Reverse the color order in the palette?}
 

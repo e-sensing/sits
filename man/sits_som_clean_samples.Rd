@@ -15,7 +15,8 @@ sits_som_clean_samples(
 \item{som_map}{Returned by \code{\link[sits]{sits_som_map}}.}
 
 \item{prior_threshold}{Threshold of conditional probability
-(frequency of samples assigned to the same SOM neuron).}
+(frequency of samples assigned to the
+ same SOM neuron).}
 
 \item{posterior_threshold}{Threshold of posterior probability
 (influenced by the SOM neighborhood).}

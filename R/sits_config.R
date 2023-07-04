@@ -41,7 +41,6 @@ sits_config <- function(processing_bloat = NULL,
                         gdal_creation_options = NULL,
                         gdalcubes_chunk_size = NULL,
                         reset = FALSE) {
-
     # clear current configuration
     if (reset && !is.null(sits_env$config)) {
         sits_env$config <- list()
@@ -93,7 +92,6 @@ sits_config <- function(processing_bloat = NULL,
 #' @name sits_config_show
 #' @param source                 Data source to be shown in detail.
 #' @param collection             Collection key entry to be shown in detail.
-#' @param colors                 Show colors?
 #'
 #' @description
 #' Prints the current sits configuration options.
@@ -107,8 +105,7 @@ sits_config <- function(processing_bloat = NULL,
 #' sits_config_show()
 #' @export
 sits_config_show <- function(source = NULL,
-                             collection = NULL,
-                             colors = FALSE) {
+                             collection = NULL) {
     config <- sits_env$config
 
     if (!is.null(source)) {
@@ -146,10 +143,6 @@ sits_config_show <- function(source = NULL,
                 list(names(x))
             })
         }
-    } else if (colors) {
-        config <- config[["colors"]]
-        colors_sort <- sort(names(config), index.return = TRUE)
-        config <- config[colors_sort$ix]
     } else {
         config <- lapply(config, function(x) {
             if (is.atomic(x)) {
@@ -193,10 +186,13 @@ sits_config_show <- function(source = NULL,
 #'
 #' @return Prints collections available in
 #'         each cloud service supported by sits.
-#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # show the names of the colors supported by SITS
+#'     sits_list_collections()
+#' }
 #' @export
 sits_list_collections <- function(source = NULL) {
-
     # get sources available
     sources <- .sources()
 
@@ -220,7 +216,7 @@ sits_list_collections <- function(source = NULL) {
             cat(paste0(
                 " (", .source_collection_satellite(s, c),
                 "/", .source_collection_sensor(s, c), ")\n",
-                "- grid system: ", .source_collection_grid_system(s,c), "\n"
+                "- grid system: ", .source_collection_grid_system(s, c), "\n"
             ))
             cat("- bands: ")
             cat(.source_bands(s, c))
@@ -243,4 +239,3 @@ sits_list_collections <- function(source = NULL) {
     })
     return(invisible(NULL))
 }
-

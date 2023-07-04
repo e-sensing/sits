@@ -18,13 +18,9 @@ A summary of the sits tibble.
 This is a generic function. Parameters depend on the specific
 type of input.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
 if (sits_run_examples()) {
-     summary(samples_modis_ndvi)
+    summary(samples_modis_ndvi)
 }
 
 }

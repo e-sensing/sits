@@ -11,12 +11,12 @@
 #'
 #' @param samples    Time series with the training samples.
 #' @param num_trees  Number of trees to grow. This should not be set to too
-#'   small a number, to ensure that every input row gets predicted
-#'   at least a few times (default: 100).
+#'                   small a number, to ensure that every input
+#'                   row gets predicted at least a few times (default: 100).
 #' @param mtry       Number of variables randomly sampled as candidates at
-#'   each split (default: NULL - use default value of
-#'   \code{randomForest::randomForest()} function, i.e.
-#'   \code{floor(sqrt(features))}).
+#'                   each split (default: NULL - use default value of
+#'                   \code{randomForest::randomForest()} function, i.e.
+#'                   \code{floor(sqrt(features))}).
 #' @param ...        Other parameters to be passed
 #'                   to `randomForest::randomForest` function.
 #' @return           Model fitted to input data
@@ -31,7 +31,8 @@
 #'     # Retrieve the samples for Mato Grosso
 #'     # train a random forest model
 #'     rf_model <- sits_train(samples_modis_ndvi,
-#'                            ml_method = sits_rfor(mtry = 20))
+#'         ml_method = sits_rfor(mtry = 20)
+#'     )
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
@@ -43,7 +44,6 @@
 #' @export
 #'
 sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
-
     # Function that trains a random forest model
     train_fun <- function(samples) {
         # Verifies if 'randomForest' package is installed
@@ -57,14 +57,13 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
 
-        # Apply the same 'mtry' default value of 'randomForest' package
+        # Apply the 'mtry' default value of 'randomForest' package
         if (purrr::is_null(mtry)) {
             n_features <- ncol(train_samples) - 2
             mtry <- floor(sqrt(n_features))
             # Checks 'mtry'
             .check_int_parameter(mtry, min = 1, max = n_features)
         }
-
         # Train a random forest model
         model <- randomForest::randomForest(
             x = .pred_features(train_samples),
@@ -73,10 +72,9 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
             nodesize = 1, localImp = TRUE, norm.votes = FALSE, ...,
             na.action = stats::na.fail
         )
-
-        # Function that predicts labels of input values
+        # Function that predicts results
         predict_fun <- function(values) {
-            # Verifies if ranger package is installed
+            # Verifies if randomForest package is installed
             .check_require_packages("randomForest")
             # Used to check values (below)
             input_pixels <- nrow(values)
@@ -105,7 +103,6 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
 }
 #' @title Train support vector machine models
 #' @name sits_svm
-#'
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -163,7 +160,6 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
                      scale = FALSE, cachesize = 1000, kernel = "radial",
                      degree = 3, coef0 = 0, cost = 10, tolerance = 0.001,
                      epsilon = 0.1, cross = 10, ...) {
-
     # Function that trains a support vector machine model
     train_fun <- function(samples) {
         # Verifies if e1071 package is installed
@@ -171,12 +167,6 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
         # Get labels (used later to ensure column order in result matrix)
         labels <- .samples_labels(samples)
         # Get normalized training samples
-        # Variable name changed 'stats' -> 'ml_stats' purposefully.
-        # Only models trained in versions prior to 1.2 has variable 'stats'.
-        # New models has ml_stats that are applied automatically (see below)
-        #   on input data before classification.
-        # sits still works with these models by normalizing data before
-        #   classification.
         ml_stats <- .samples_stats(samples)
         # Get predictors features
         train_samples <- .predictors(samples)
@@ -188,15 +178,13 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
         if (inherits(formula, "function")) {
             formula <- formula(train_samples)
         }
-
-        # Train a svm model
+        # Train an svm model
         model <- e1071::svm(
             formula = formula, data = train_samples, scale = scale,
             kernel = kernel, degree = degree, cost = cost, coef0 = coef0,
             cachesize = cachesize, tolerance = tolerance, epsilon = epsilon,
             cross = cross, probability = TRUE, ..., na.action = stats::na.fail
         )
-
         # Function that predicts labels of input values
         predict_fun <- function(values) {
             # Verifies if e1071 package is installed
@@ -232,7 +220,6 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
 }
 #' @title Train extreme gradient boosting models
 #' @name sits_xgboost
-#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -299,7 +286,6 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
                          min_child_weight = 1, max_delta_step = 1,
                          subsample = 0.8, nfold = 5, nrounds = 100,
                          early_stopping_rounds = 20, verbose = FALSE) {
-
     # Function that trains a xgb model
     train_fun <- function(samples) {
         # verifies if xgboost package is installed
@@ -332,7 +318,6 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
         )
         # Get best ntreelimit
         ntreelimit <- model$best_ntreelimit
-
         # Function that predicts labels of input values
         predict_fun <- function(values) {
             # Verifies if xgboost package is installed
@@ -385,7 +370,8 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
 #'     # Retrieve the samples for Mato Grosso
 #'     # train an SVM model
 #'     ml_model <- sits_train(samples_modis_ndvi,
-#'         ml_method = sits_svm(formula = sits_formula_logref()))
+#'         ml_method = sits_svm(formula = sits_formula_logref())
+#'     )
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
@@ -397,7 +383,6 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
 #' @export
 #'
 sits_formula_logref <- function(predictors_index = -2:0) {
-
     # set caller to show in errors
     .check_set_caller("sits_formula_logref")
 
@@ -455,7 +440,8 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #'     # Retrieve the samples for Mato Grosso
 #'     # train an SVM model
 #'     ml_model <- sits_train(samples_modis_ndvi,
-#'         ml_method = sits_svm(formula = sits_formula_logref()))
+#'         ml_method = sits_svm(formula = sits_formula_logref())
+#'     )
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'     # classify the point
@@ -467,7 +453,6 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #' @export
 #'
 sits_formula_linear <- function(predictors_index = -2:0) {
-
     # set caller to show in errors
     .check_set_caller("sits_formula_linear")
 

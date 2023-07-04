@@ -7,7 +7,6 @@ test_that("Labels", {
 })
 
 test_that("Relabel", {
-
     # copy result
     new_data <- samples_modis_ndvi
     sits_labels(new_data)
@@ -29,15 +28,21 @@ test_that("Relabel cubes", {
         source = "MPC",
         collection = "SENTINEL-2-L2A",
         data_dir = data_dir,
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
+        parse_info = c(
+            "X1", "X2", "tile", "start_date", "end_date",
+            "band", "version"
+        ),
         bands = "class",
-        labels = c("1" = "ClearCut_Fire", "2" = "ClearCut_BareSoil",
-                   "3" = "ClearCut_Veg", "4" = "Forest"),
+        labels = c(
+            "1" = "ClearCut_Fire", "2" = "ClearCut_BareSoil",
+            "3" = "ClearCut_Veg", "4" = "Forest"
+        ),
         progress = FALSE
     )
-    sits_labels(ro_class) <- c("Queimadas", "Solo Exposto",
-                               "Vegetacao", "Floresta")
+    sits_labels(ro_class) <- c(
+        "Queimadas", "Solo Exposto",
+        "Vegetacao", "Floresta"
+    )
     expect_true("Queimadas" %in% sits_labels(ro_class))
     expect_true("Floresta" %in% sits_labels(ro_class))
 })

@@ -60,11 +60,14 @@
 #'     # create an uncertainty cube
 #'     uncert_cube <- sits_uncertainty(probs_cube,
 #'         type = "entropy",
-#'         output_dir = tempdir())
+#'         output_dir = tempdir()
+#'     )
 #'     # obtain a new set of samples for active learning
 #'     # the samples are located in uncertain places
 #'     new_samples <- sits_uncertainty_sampling(
-#'         uncert_cube, n = 10, min_uncert = 0.4)
+#'         uncert_cube,
+#'         n = 10, min_uncert = 0.4
+#'     )
 #' }
 #'
 #' @export
@@ -73,7 +76,6 @@ sits_uncertainty_sampling <- function(uncert_cube,
                                       n = 100,
                                       min_uncert = 0.4,
                                       sampling_window = 10) {
-
     .check_set_caller("sits_uncertainty_sampling")
 
     # Pre-conditions
@@ -84,7 +86,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
 
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(uncert_cube, function(tile) {
-        path <-  .tile_path(tile)
+        path <- .tile_path(tile)
         # Get a list of values of high uncertainty
         top_values <- .raster_open_rast(path) |>
             .raster_get_top_values(
@@ -105,7 +107,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
             tibble::as_tibble()
         # All the cube's uncertainty images have the same start & end dates.
         top_values[["start_date"]] <- .tile_start_date(tile)
-        top_values[["end_date"]]   <- .tile_end_date(tile)
+        top_values[["end_date"]] <- .tile_end_date(tile)
         top_values[["label"]] <- "NoClass"
 
         return(top_values)
@@ -127,9 +129,12 @@ sits_uncertainty_sampling <- function(uncert_cube,
         )
 
     # Warn if it cannot suggest all required samples
-    if (nrow(result_tb) < n)
+    if (nrow(result_tb) < n) {
         warning("unable to suggest ", n, " samples.\n",
-                "(try a smaller sampling_window parameter)", call. = FALSE)
+            "(try a smaller sampling_window parameter)",
+            call. = FALSE
+        )
+    }
 
     class(result_tb) <- c("sits_uncertainty", "sits", class(result_tb))
     return(result_tb)
@@ -203,7 +208,6 @@ sits_confidence_sampling <- function(probs_cube,
                                      n = 20,
                                      min_margin = .90,
                                      sampling_window = 10) {
-
     .check_set_caller("sits_confidence_sampling")
 
     # Pre-conditions
@@ -222,7 +226,6 @@ sits_confidence_sampling <- function(probs_cube,
 
         # Get samples for each label
         purrr::map2_dfr(labels, seq_along(labels), function(lab, i) {
-
             # Get a list of values of high confidence & apply threshold
             top_values <- r_obj |>
                 .raster_get_top_values(
@@ -245,7 +248,7 @@ sits_confidence_sampling <- function(probs_cube,
             # All the cube's uncertainty images have the same start &
             # end dates.
             top_values[["start_date"]] <- .tile_start_date(tile)
-            top_values[["end_date"]]   <- .tile_end_date(tile)
+            top_values[["end_date"]] <- .tile_end_date(tile)
             top_values[["label"]] <- lab
 
             return(top_values)
@@ -275,13 +278,16 @@ sits_confidence_sampling <- function(probs_cube,
         dplyr::filter(.data[["n"]] < !!n) |>
         dplyr::pull("label")
 
-    if (length(incomplete_labels) > 0)
+    if (length(incomplete_labels) > 0) {
         warning(sprintf(
-            paste("Unable to suggest %s samples for label(s) %s.",
-                  "Try a smaller sampling_window or a",
-                  "smaller min_margin parameter."),
+            paste(
+                "Unable to suggest %s samples for label(s) %s.",
+                "Try a smaller sampling_window or a",
+                "smaller min_margin parameter."
+            ),
             n, paste0("'", incomplete_labels, "'", collapse = ", ")
         ), call. = FALSE)
+    }
 
     class(result_tb) <- c("sits_confidence", "sits", class(result_tb))
     return(result_tb)

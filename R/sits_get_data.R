@@ -90,7 +90,8 @@
 #'         # get samples from the BDC based on the shapefile
 #'         time_series_bdc <- sits_get_data(
 #'             cube = bdc_cube,
-#'             samples = shp_file)
+#'             samples = shp_file
+#'         )
 #'     }
 #' }
 #'
@@ -111,7 +112,6 @@ sits_get_data <- function(cube,
                           pol_id = NULL,
                           multicores = 2,
                           progress = TRUE) {
-
     # Pre-conditions
     .check_is_raster_cube(cube)
     .check_is_regular(cube)
@@ -123,7 +123,6 @@ sits_get_data <- function(cube,
     if (is.character(samples)) {
         class(samples) <- c(.file_ext(samples), class(samples))
     }
-
     UseMethod("sits_get_data", samples)
 }
 #' @rdname sits_get_data
@@ -142,7 +141,6 @@ sits_get_data.csv <- function(cube,
                               crs = 4326,
                               multicores = 2,
                               progress = FALSE) {
-
     # Get samples
     samples <- .csv_get_samples(samples)
     data <- .data_get_ts(
@@ -163,7 +161,7 @@ sits_get_data.shp <- function(cube,
                               label = "NoClass",
                               start_date = as.Date(sits_timeline(cube)[1]),
                               end_date = as.Date(sits_timeline(cube)
-                                                 [length(sits_timeline(cube))]),
+                              [length(sits_timeline(cube))]),
                               bands = sits_bands(cube),
                               label_attr = NULL,
                               n_sam_pol = 30,
@@ -171,13 +169,12 @@ sits_get_data.shp <- function(cube,
                               pol_id = NULL,
                               multicores = 2,
                               progress = FALSE) {
-
     # pre-condition - shapefile should have an id parameter
     .check_that(
         !(pol_avg && purrr::is_null(pol_id)),
         msg = "invalid 'pol_id' parameter."
     )
-
+    # extract a data frame from shapefile
     samples <- .shp_get_samples(
         shp_file    = samples,
         label       = label,
@@ -187,6 +184,7 @@ sits_get_data.shp <- function(cube,
         n_shp_pol   = n_sam_pol,
         shp_id      = pol_id
     )
+    # extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
         samples    = samples,
@@ -208,7 +206,7 @@ sits_get_data.sf <- function(cube,
                              bands = sits_bands(cube),
                              start_date = as.Date(sits_timeline(cube)[1]),
                              end_date = as.Date(sits_timeline(cube)
-                                                [length(sits_timeline(cube))]),
+                             [length(sits_timeline(cube))]),
                              label = "NoClass",
                              label_attr = NULL,
                              n_sam_pol = 30,
@@ -216,15 +214,13 @@ sits_get_data.sf <- function(cube,
                              pol_id = NULL,
                              multicores = 2,
                              progress = FALSE) {
-
     .check_that(
         !(pol_avg && purrr::is_null(pol_id)),
         msg = "Please provide an sf object with a column
         with the id for each polygon and include
         this column name in the 'pol_id' parameter."
     )
-
-    # check if sf object contains all the required columns
+    # extract a samples data.frame from sf object
     samples <- .sf_get_samples(
         sf_object  = samples,
         label      = label,
@@ -234,7 +230,7 @@ sits_get_data.sf <- function(cube,
         n_sam_pol  = n_sam_pol,
         pol_id     = pol_id
     )
-
+    # extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
         samples    = samples,
@@ -242,10 +238,10 @@ sits_get_data.sf <- function(cube,
         multicores = multicores,
         progress   = progress
     )
+    # Do we want an average value per polygon?
     if (pol_avg && "polygon_id" %in% colnames(data)) {
         data <- .data_avg_polygon(data = data)
     }
-
     return(data)
 }
 #' @rdname sits_get_data
@@ -256,9 +252,7 @@ sits_get_data.sits <- function(cube,
                                bands = sits_bands(cube),
                                multicores = 2,
                                progress = FALSE) {
-    # check if samples contains all the required columns
-
-
+    # extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
         samples    = samples,
@@ -288,8 +282,6 @@ sits_get_data.data.frame <- function(cube,
                                      crs = 4326,
                                      multicores = 2,
                                      progress = FALSE) {
-
-
     # check if samples contains all the required columns
     .check_chr_contains(
         x = colnames(samples),
@@ -308,7 +300,7 @@ sits_get_data.data.frame <- function(cube,
         samples$end_date <- end_date
     }
     class(samples) <- c("sits", class(samples))
-
+    # extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
         samples    = samples,
@@ -322,16 +314,23 @@ sits_get_data.data.frame <- function(cube,
 
 #' @rdname sits_get_data
 #' @export
-sits_get_data.segments <- function(
-        cube,
-        samples,
-        ...,
-        bands = sits_bands(cube),
-        aggreg_fn = "mean",
-        pol_id = "supercells",
-        multicores = 1,
-        progress = FALSE) {
-
+sits_get_data.segments <- function(cube,
+                                   samples,
+                                   ...,
+                                   bands = sits_bands(cube),
+                                   aggreg_fn = "mean",
+                                   pol_id = "supercells",
+                                   multicores = 1,
+                                   progress = FALSE) {
+    # precondition
+    tiles_seg <- names(samples)
+    .check_chr_within(
+        x = tiles_seg,
+        within = cube$tile,
+        discriminator = "all_of",
+        msg = "segment tiles do not match cube tiles"
+    )
+    # extract time series from a cube from a set of segments
     data <- .segments_get_data(
         cube = cube,
         segments = samples,

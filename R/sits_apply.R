@@ -69,29 +69,29 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' # Get a time series
-#' # Apply a normalization function
+#'     # Get a time series
+#'     # Apply a normalization function
 #'
-#' point2 <-
-#'     sits_select(point_mt_6bands, "NDVI") |>
-#'     sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
+#'     point2 <-
+#'         sits_select(point_mt_6bands, "NDVI") |>
+#'         sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
 #'
-#' # Example of generation texture band with variance
-#' # Create a data cube from local files
-#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#' cube <- sits_cube(
-#'     source = "BDC",
-#'     collection = "MOD13Q1-6",
-#'     data_dir = data_dir
-#' )
+#'     # Example of generation texture band with variance
+#'     # Create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir
+#'     )
 #'
-#' # Generate a texture images with variance in NDVI images
-#' cube_texture <- sits_apply(
-#'     data = cube,
-#'     NDVITEXTURE = w_median(NDVI),
-#'     window_size = 5,
-#'     output_dir = tempdir()
-#' )
+#'     # Generate a texture images with variance in NDVI images
+#'     cube_texture <- sits_apply(
+#'         data = cube,
+#'         NDVITEXTURE = w_median(NDVI),
+#'         window_size = 5,
+#'         output_dir = tempdir()
+#'     )
 #' }
 #' @rdname sits_apply
 #' @export
@@ -115,7 +115,6 @@ sits_apply.raster_cube <- function(data, ...,
                                    multicores = 2,
                                    output_dir,
                                    progress = FALSE) {
-
     # Check cube
     .check_is_raster_cube(data)
     .check_is_regular(data)

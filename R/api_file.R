@@ -1,24 +1,18 @@
-
 .file_base <- function(file) {
     gsub("[?].*$", "", gsub("^.*/", "", file))
 }
-
 .file_sans_ext <- function(file) {
     gsub("(.*)\\..+$", "\\1", .file_base(file))
 }
-
 .file_ext <- function(file) {
     gsub(".*\\.(.+)$", "\\1", .file_base(file))
 }
-
 .file_pattern <- function(file, suffix = "") {
     paste0(.file_sans_ext(.file_base(file)), suffix)
 }
-
 .file_normalize <- function(file) {
     path.expand(file)
 }
-
 .file_path <- function(..., ext = NULL, output_dir = NULL,
                        create_dir = FALSE, sep = "_") {
     filenames <- paste(..., sep = sep)
@@ -38,15 +32,12 @@
     }
     filenames
 }
-
 .file_is_local <- function(file) {
     all(!grepl(pattern = "^(http[s]?|s3)://", x = file))
 }
-
 .file_remove_vsi <- function(file) {
     gsub(pattern = "^(/vsicurl/|/vsis3/|/vsigs/)", replacement = "", x = file)
 }
-
 .file_block_name <- function(pattern, block, output_dir) {
     .file_path(
         pattern, "block", block[["row"]], block[["col"]],
@@ -54,14 +45,13 @@
         create_dir = TRUE
     )
 }
-
 .file_log_name <- function(output_dir) {
     .file_path(
-        basename(tempdir()), ext = "log",
+        basename(tempdir()),
+        ext = "log",
         output_dir = file.path(output_dir, ".sits"), create_dir = TRUE
     )
 }
-
 .file_derived_name <- function(tile, band, version, output_dir) {
     .file_path(
         tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
@@ -86,16 +76,15 @@
         ext = "tif", output_dir = output_dir
     )
 }
-
 .file_crop_name <- function(tile, band, version, output_dir) {
     .file_path(
         tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
         .tile_start_date(tile), band, "crop",
-        version, ext = "tif", output_dir = file.path(output_dir, ".sits"),
+        version,
+        ext = "tif", output_dir = file.path(output_dir, ".sits"),
         create_dir = TRUE
     )
 }
-
 .file_eo_name <- function(tile, band, date, output_dir) {
     .file_path(
         tile[["satellite"]], tile[["sensor"]],

@@ -1,5 +1,4 @@
 test_that("Align dates", {
-
     timeline <- sits_timeline(point_mt_6bands)
     start_date <- lubridate::as_date("2001-08-01")
     end_date <- lubridate::as_date("2002-07-31")
@@ -23,13 +22,12 @@ test_that("Apply", {
     )
 
     expect_equal(sum((.tibble_time_series(point2))$NDVI_norm),
-                 101.5388,
-                 tolerance = 0.1
+        101.5388,
+        tolerance = 0.1
     )
 })
 
 test_that("Bands", {
-
     bands <- sits_bands(samples_modis_ndvi)
 
     expect_equal(length(bands), 1)
@@ -59,7 +57,8 @@ test_that("Bands", {
 
 test_that("Dates", {
     selected_samples1 <- sits_select(
-        samples_modis_ndvi, start_date = "2006-11-17", end_date = "2007-07-28"
+        samples_modis_ndvi,
+        start_date = "2006-11-17", end_date = "2007-07-28"
     )
     expect_equal(
         min(.ts_start_date(.ts(selected_samples1))), as.Date("2006-11-17")
@@ -69,7 +68,8 @@ test_that("Dates", {
     )
 
     selected_samples2 <- sits_select(
-        samples_modis_ndvi, start_date = "2006-11-17"
+        samples_modis_ndvi,
+        start_date = "2006-11-17"
     )
     expect_equal(
         min(.ts_start_date(.ts(selected_samples2))), as.Date("2006-11-17")
@@ -79,7 +79,8 @@ test_that("Dates", {
     )
 
     selected_samples3 <- sits_select(
-        samples_modis_ndvi, end_date = "2010-09-14"
+        samples_modis_ndvi,
+        end_date = "2010-09-14"
     )
     expect_equal(
         min(.ts_start_date(.ts(selected_samples3))), as.Date("2000-09-13")
@@ -128,9 +129,8 @@ test_that("Prune", {
 })
 
 test_that("Select", {
-
     expect_equal(length(sits_bands(samples_modis_ndvi)), 1)
-    samples_pasture <- samples_modis_ndvi |>  dplyr::filter(label == "Pasture")
+    samples_pasture <- samples_modis_ndvi |> dplyr::filter(label == "Pasture")
     expect_equal(dim(samples_pasture)[1], 344)
 })
 
@@ -182,4 +182,11 @@ test_that("samples_as_sf works (polygon)", {
         as.character(unique(sf::st_geometry_type(cube_sf))),
         "POLYGON"
     )
+})
+
+test_that("ts errors", {
+    point <- point_mt_6bands[,1:5]
+    expect_error(.ts(point))
+    expect_error({.ts(point) <- 2.0})
+    expect_error(.ts_values(point_mt_6bands, bands = "B08"))
 })

@@ -97,7 +97,8 @@
 #'     plot(bayes_cube)
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
-#'         bayes_cube, output_dir = tempdir()
+#'         bayes_cube,
+#'         output_dir = tempdir()
 #'     )
 #'     # plot the labelled cube
 #'     plot(label_cube)
@@ -121,7 +122,6 @@ sits_resnet <- function(samples = NULL,
                         patience = 20,
                         min_delta = 0.01,
                         verbose = FALSE) {
-
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # Avoid add a global variable for 'self'

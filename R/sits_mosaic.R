@@ -1,5 +1,4 @@
 #' @title Mosaic classified cubes
-#'
 #' @name sits_mosaic
 #'
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
@@ -58,16 +57,20 @@
 #'     bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
-#'         bayes_cube, output_dir = tempdir()
+#'         bayes_cube,
+#'         output_dir = tempdir()
 #'     )
 #'     # create roi
 #'     roi <- sf::st_sfc(
 #'         sf::st_polygon(
-#'           list(rbind(
-#'             c(-55.64768, -11.68649),
-#'             c(-55.69654, -11.66455),
-#'             c(-55.62973, -11.61519),
-#'             c(-55.64768, -11.68649)))), crs = "EPSG:4326"
+#'             list(rbind(
+#'                 c(-55.64768, -11.68649),
+#'                 c(-55.69654, -11.66455),
+#'                 c(-55.62973, -11.61519),
+#'                 c(-55.64768, -11.68649)
+#'             ))
+#'         ),
+#'         crs = "EPSG:4326"
 #'     )
 #'     # crop and mosaic classified image
 #'     mosaic_cube <- sits_mosaic(
@@ -102,7 +105,6 @@ sits_mosaic <- function(cube,
     # Prepare parallel processing
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
-
     # Create assets as jobs
     cube_assets <- .cube_split_assets(cube)
     # Process each asset in parallel

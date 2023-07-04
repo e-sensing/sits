@@ -5,7 +5,7 @@ test_that("Creating a dendrogram and clustering the results", {
         sits_cluster_dendro(
             cerrado_2classes,
             bands = c("NDVI", "EVI"),
-            .plot = FALSE
+            .plot = TRUE
         )
     )
 

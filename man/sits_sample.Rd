@@ -33,11 +33,11 @@ Takes a sits tibble with different labels and
 # Retrieve a set of time series with 2 classes
 data(cerrado_2classes)
 # Print the labels of the resulting tibble
-sits_labels(cerrado_2classes)
+summary(cerrado_2classes)
 # Samples the data set
-data <- sits_sample(cerrado_2classes, n = 10)
+data <- sits_sample(cerrado_2classes, n = 100)
 # Print the labels of the resulting tibble
-sits_labels(data)
+summary(data)
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

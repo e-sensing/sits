@@ -1,6 +1,7 @@
 #' @title Tuning machine learning models hyper-parameters
 #' @name sits_tuning
 #'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description
 #' Machine learning models use stochastic gradient descent (SGD) techniques to
 #' find optimal solutions. To perform SGD, models use optimization
@@ -38,10 +39,6 @@
 #' A tibble containing all parameters used to train on each trial
 #'   ordered by accuracy
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#'   <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
 #' @examples
 #' if (sits_run_examples()) {
 #'     # find best learning rate parameters for TempCNN
@@ -67,7 +64,6 @@
 #' }
 #'
 #' @export
-#'
 sits_tuning <- function(samples,
                         samples_validation = NULL,
                         validation_split = 0.2,
@@ -81,10 +77,8 @@ sits_tuning <- function(samples,
                         trials = 30,
                         multicores = 2,
                         progress = FALSE) {
-
     # set caller to show in errors
     .check_set_caller("sits_tuning")
-
     # pre-conditions
     # check samples
     .check_samples_train(samples)
@@ -123,18 +117,15 @@ sits_tuning <- function(samples,
     .check_int_parameter(trials)
     # check 'multicores' parameter
     .check_multicores(multicores)
-
     # generate random params
     params_lst <- purrr::map(
         as.list(seq_len(trials)),
         .tuning_pick_random,
         params = params
     )
-
     # start processes
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop())
-
     # validate in parallel
     result_lst <- .parallel_map(params_lst, function(params) {
         # Prepare parameters
@@ -169,10 +160,8 @@ sits_tuning <- function(samples,
     tuning_tb <- dplyr::arrange(tuning_tb, dplyr::desc(.data[["accuracy"]]))
     # prepare result class
     class(tuning_tb) <- c("sits_tuned", class(tuning_tb))
-
     return(tuning_tb)
 }
-
 #' @title Tuning machine learning models hyper-parameters
 #' @name sits_tuning_hparams
 #'

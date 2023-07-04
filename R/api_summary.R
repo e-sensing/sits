@@ -3,23 +3,27 @@
     cat("class       : ", class(tile)[1], "\n")
     cat("dimensions  : ",
         .tile_nrows(tile), ", ",
-        .tile_ncols(tile), "  (nrow, ncol)\n", sep = "")
+        .tile_ncols(tile), "  (nrow, ncol)\n",
+        sep = ""
+    )
     cat("resolution  : ",
         .tile_xres(tile), ", ",
-        .tile_yres(tile), "  (x, y)\n", sep = "")
+        .tile_yres(tile), "  (x, y)\n",
+        sep = ""
+    )
     cat("extent      : ",
         .xmin(tile), ", ",
         .xmax(tile), ", ",
         .ymin(tile), ", ",
         .ymax(tile),
-        "  (xmin, xmax, ymin, ymax)\n", sep = "")
+        "  (xmin, xmax, ymin, ymax)\n",
+        sep = ""
+    )
     cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
     return(invisible(NULL))
 }
 .summary_derived_cube <- function(object,
-                                  tile = object$tile[[1]],
-                                  only_stats = FALSE) {
-
+                                  tile = object$tile[[1]]) {
     # get sample size
     sample_size <- .conf("summary_sample_size")
     # filter the tile to be processed
@@ -31,13 +35,13 @@
         min = 1,
         max = 1,
         is_integer = TRUE,
-        msg = "invalid cube - more than one probs band")
+        msg = "invalid cube - more than one probs band"
+    )
     # extract the file paths
     files <- .tile_paths(tile)
 
     # print the base information (if requested)
-    if (!only_stats)
-        .summary_tile_information(tile)
+    .summary_tile_information(tile)
     # read the files with terra
     r <- terra::rast(files)
     # get the a sample of the values

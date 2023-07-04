@@ -26,10 +26,9 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-     pred <- sits_predictors(samples_modis_ndvi)
-     features <- sits_pred_features(pred)
+    pred <- sits_predictors(samples_modis_ndvi)
+    features <- sits_pred_features(pred)
 }
-
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

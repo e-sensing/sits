@@ -180,7 +180,6 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'
 #'     # --- Access to the Brazil Data Cube
 #'     # Provide your BDC credentials as environment variables
 #'     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
@@ -263,7 +262,6 @@
 #' @export
 #'
 sits_cube <- function(source, collection, ..., data_dir = NULL) {
-
     # set caller to show in errors
     .check_set_caller("sits_cube")
 
@@ -290,16 +288,19 @@ sits_cube.stac_cube <- function(source,
                                 end_date = NULL,
                                 platform = NULL,
                                 progress = TRUE) {
-
     # Ensures that only a spatial filter is informed
     if (.has(roi) && .has(tiles)) {
-        stop("It is not possible to search with roi and tiles.",
-             "Please provide only roi or tiles.")
+        stop(
+            "It is not possible to search with roi and tiles.",
+            "Please provide only roi or tiles."
+        )
     }
     # Ensures that a spatial filter is informed
     if (!.has(roi) && !.has(tiles)) {
-        stop("No spatial search criteria.",
-             "Please provide only roi or tiles.")
+        stop(
+            "No spatial search criteria.",
+            "Please provide only roi or tiles."
+        )
     }
     # Ensures that there are no duplicate tiles
     if (.has(tiles)) {
@@ -311,10 +312,12 @@ sits_cube.stac_cube <- function(source,
         roi <- .roi_as_sf(roi)
     }
     # AWS requires datetime format
-    if (.has(start_date) && source == "AWS")
-        start_date <- paste0(start_date,"T00:00:00Z")
-    if (.has(end_date) && source == "AWS")
-        end_date <- paste0(end_date,"T00:00:00Z")
+    if (.has(start_date) && source == "AWS") {
+        start_date <- paste0(start_date, "T00:00:00Z")
+    }
+    if (.has(end_date) && source == "AWS") {
+        end_date <- paste0(end_date, "T00:00:00Z")
+    }
 
     # source is upper case
     source <- toupper(source)
@@ -385,11 +388,16 @@ sits_cube.local_cube <- function(source,
                                  delim = "_",
                                  multicores = 2,
                                  progress = TRUE) {
-
     # precondition - data directory must be provided
     .check_file(x = data_dir, msg = "'data_dir' parameter must be provided.")
     # expanding the shortened paths since gdal functions do not work with them
     data_dir <- path.expand(data_dir)
+    # deal with wrong parameter "band" in dots
+    dots <- list(...)
+    if ("band" %in% names(dots) && missing(bands)) {
+        message("please, use 'bands' instead of 'band' as parameter")
+        bands <- as.character(dots[["band"]])
+    }
     # precondition - check source and collection for eo_cubes only
     # is this a cube with results?
     if (!purrr::is_null(bands) &&
@@ -401,12 +409,6 @@ sits_cube.local_cube <- function(source,
     if (!results_cube) {
         .source_check(source = source)
         .source_collection_check(source = source, collection = collection)
-    }
-    dots <- list(...)
-    # deal with wrong parameter "band" in dots
-    if ("band" %in% names(dots) && missing(bands)) {
-        message("please, use 'bands' instead of 'band' as parameter")
-        bands <- as.character(dots[["band"]])
     }
     # builds a sits data cube
     cube <- .local_cube(

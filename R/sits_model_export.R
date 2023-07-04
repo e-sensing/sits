@@ -1,14 +1,13 @@
 #' @title Export classification models
 #' @name sits_model_export
-#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Given a trained machine learning or deep learning model,
 #' exports the model as an object for further exploration outside the
 #' "sits" package
 #'
 #' @param ml_model A trained machine learning model
+#'
 #' @return An R object containing the model in the original format of
 #' machine learning or deep learning package.
 #' @examples

@@ -1,4 +1,3 @@
-
 .torch_serialize_model <- function(model) {
     # Open raw connection
     con <- rawConnection(raw(), open = "wr")

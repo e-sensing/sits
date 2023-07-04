@@ -7,7 +7,6 @@
 #' @return                 vector with information on the subimage
 #'
 .raster_sub_image <- function(tile, sf_roi) {
-
     # pre-condition
     .check_num(nrow(tile),
         min = 1, max = 1, is_integer = TRUE,
@@ -17,8 +16,9 @@
     # calculate the intersection between the bbox of the ROI and the cube
     # transform the tile bbox to sf
     sf_tile <- .bbox_as_sf(.tile_bbox(tile))
-    if (sf::st_crs(sf_tile) != sf::st_crs(sf_roi))
+    if (sf::st_crs(sf_tile) != sf::st_crs(sf_roi)) {
         sf_roi <- sf::st_transform(sf_roi, crs = .tile_crs(tile))
+    }
     geom <- sf::st_intersection(sf_tile, sf_roi)
     # get bbox of subimage
     sub_image_bbox <- .bbox(geom)
@@ -39,7 +39,6 @@
 #'                       first col, nrows, ncols
 #'
 .raster_sub_image_from_bbox <- function(bbox, tile) {
-
     # pre-condition
     .check_num(nrow(tile),
         min = 1, max = 1, is_integer = TRUE,

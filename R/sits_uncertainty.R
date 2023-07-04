@@ -30,10 +30,6 @@
 #' Active learning and annotation for human-centered AI. Simon and Schuster,
 #' 2021.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a random forest model
@@ -61,7 +57,6 @@ sits_uncertainty <- function(cube,
                              memsize = 4,
                              output_dir,
                              version = "v1") {
-
     # Check if cube has probability data
     .check_is_probs_cube(cube)
     # Check memsize
@@ -89,11 +84,9 @@ sits_uncertainty <- function(cube,
         memsize = memsize,
         multicores = multicores
     )
-
     # Prepare parallel processing
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
-
     # Define the class of the smoothing
     class(type) <- c(type, class(type))
     UseMethod("sits_uncertainty", type)
@@ -107,7 +100,6 @@ sits_uncertainty.least <- function(cube,
                                    memsize = 4,
                                    output_dir,
                                    version = "v1") {
-
     # Compute uncertainty
     uncert_cube <- .cube_uncertainty(
         cube = cube,
@@ -118,7 +110,6 @@ sits_uncertainty.least <- function(cube,
     )
     return(uncert_cube)
 }
-
 #' @rdname sits_uncertainty
 #' @export
 sits_uncertainty.entropy <- function(cube,
@@ -156,4 +147,3 @@ sits_uncertainty.margin <- function(cube,
     )
     return(uncert_cube)
 }
-

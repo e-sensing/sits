@@ -1,6 +1,7 @@
 test_that("Segmentation", {
     # Example of classification of a data cube
     # create a data cube from local files
+    set.seed(29031956)
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
@@ -16,16 +17,25 @@ test_that("Segmentation", {
         date = sits_timeline(cube)[1],
         seg_fn = sits_supercells(step = 20)
     )
-    sf_seg <- segments[[1]]
+    hash_bundle <- digest::digest(list(cube, segments), algo = "md5")
+    filename <- .file_path(
+        "samples", hash_bundle,
+        ext = ".rds",
+        output_dir = tempdir()
+    )
+    file.create(filename)
 
+    sf_seg <- segments[[1]]
     bbox <- sits_bbox(cube)
     expect_true(all(sf_seg$x > bbox[["xmin"]]))
     expect_true(all(sf_seg$x < bbox[["xmax"]]))
     expect_true(all(sf_seg$y > bbox[["ymin"]]))
     expect_true(all(sf_seg$y < bbox[["ymax"]]))
+
     samples <- sits_get_data(
         cube = cube,
-        samples = segments
+        samples = segments,
+        multicores = 1
     )
     expect_equal(nrow(samples$time_series[[1]]), 12)
 
@@ -48,4 +58,13 @@ test_that("Segmentation", {
         dplyr::group_by(class) |>
         dplyr::summarise()
     plot(sf_obj["class"])
+
+    names(segments) <- "02010"
+    expect_error(
+        samples <- sits_get_data(
+            cube = cube,
+            samples = segments,
+            multicores = 1
+        )
+    )
 })

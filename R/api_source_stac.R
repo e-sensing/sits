@@ -73,7 +73,6 @@
                                    end_date,
                                    platform,
                                    progress, ...) {
-
     # set caller to show in errors
     .check_set_caller(".source_cube.stac_cube")
 
@@ -153,7 +152,6 @@
                                          items, ...,
                                          multicores = 2,
                                          progress) {
-
     # set caller to show in errors
     .check_set_caller(".source_items_cube.stac_cube")
 
@@ -180,7 +178,6 @@
         data <- data |>
             tidyr::nest(items = c("fid", "features"))
     } else {
-
         # item by item
         data <- data |>
             dplyr::transmute(
@@ -198,7 +195,6 @@
 
     # do parallel requests
     tiles <- .parallel_map(seq_len(nrow(data)), function(i) {
-
         # get tile name
         tile <- data[["tile"]][[i]]
         # get fids
@@ -238,7 +234,8 @@
         # check if metadata was retrieved
         if (is.null(asset_info)) {
             warning("cannot open files:\n", paste(paths, collapse = ", "),
-                    call. = FALSE)
+                call. = FALSE
+            )
             return(NULL)
         }
         # generate file_info
@@ -305,7 +302,9 @@
                 # check if metadata was retrieved
                 if (is.null(asset_info)) {
                     warning("cannot open files:\n",
-                            paste(paths, collapse = ", "), call. = FALSE)
+                        paste(paths, collapse = ", "),
+                        call. = FALSE
+                    )
                     return(NULL)
                 }
             }
@@ -378,7 +377,6 @@
     cube <- cube |>
         tidyr::nest(file_info = -dplyr::matches(c("tile", "crs"))) |>
         slider::slide_dfr(function(tile) {
-
             # get file_info
             file_info <- tile[["file_info"]][[1]]
             # arrange file_info

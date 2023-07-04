@@ -2,9 +2,6 @@
 #' @name sits_mlp
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Felipe Souza, \email{lipecaso@@gmail.com}
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description Use a multi-layer perceptron algorithm to classify data.
 #' This function uses the R "torch" and "luz" packages.
@@ -39,10 +36,9 @@
 #'
 #'
 #' @note
-#' The parameters for the MLP have been chosen based on the work by
-#' Wang et al. 2017
-#' that takes multilayer perceptrons as the baseline for time series
-#' classifications:
+#' The default parameters for the MLP have been chosen based on the work by
+#' Wang et al. 2017 that takes multilayer perceptrons as the baseline
+#' for time series classifications:
 #' (a) Three layers with 512 neurons each, specified by the parameter `layers`;
 #' (b) dropout rates of 10%, 20%, and 30% for the layers;
 #' (c) the "optimizer_adam" as optimizer (default value);
@@ -53,16 +49,12 @@
 #' will be randomly set side for validation.
 #' (g) The "relu" activation function.
 #'
-#' #' @references
-#'
+#' @references
 #' Zhiguang Wang, Weizhong Yan, and Tim Oates,
 #' "Time series classification from scratch with deep neural networks:
 #'  A strong baseline",
 #'  2017 international joint conference on neural networks (IJCNN).
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create an MLP model
@@ -88,7 +80,8 @@
 #'     plot(bayes_cube)
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
-#'         bayes_cube, output_dir = tempdir()
+#'         bayes_cube,
+#'         output_dir = tempdir()
 #'     )
 #'     # plot the labelled cube
 #'     plot(label_cube)
@@ -111,7 +104,6 @@ sits_mlp <- function(samples = NULL,
                      patience = 20,
                      min_delta = 0.01,
                      verbose = FALSE) {
-
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # Avoid add a global variable for 'self'
@@ -157,26 +149,22 @@ sits_mlp <- function(samples = NULL,
         .check_int_parameter(patience)
         .check_num_parameter(param = min_delta, min = 0)
         .check_lgl(verbose)
-
         # Samples labels
         labels <- .samples_labels(samples)
         # Samples bands
         bands <- .samples_bands(samples)
         # Samples timeline
         timeline <- sits_timeline(samples)
-
         # Create numeric labels vector
         code_labels <- seq_along(labels)
         names(code_labels) <- labels
-
         # Data normalization
         ml_stats <- .samples_stats(samples)
         train_samples <- .predictors(samples)
         train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
-
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
-
+        # Are there samples for validation?
         if (!is.null(samples_validation)) {
             .check_samples_validation(
                 samples_validation = samples_validation, labels = labels,

@@ -14,8 +14,8 @@
 
 \item{...}{Further specifications for \link{plot}.}
 
-\item{together}{A logical value indicating whether the samples should be
-plotted together.}
+\item{together}{A logical value indicating whether
+the samples should be plotted together.}
 }
 \value{
 A series of plot objects produced by ggplot2 showing all
@@ -40,7 +40,6 @@ required parameters:
  \item{model uncertainty: } {see \code{\link{plot.uncertainty_cube}}}
  \item{classified image: }     {see \code{\link{plot.class_cube}}}
 }
-
 In the case of time series, the plot function produces different plots
 based on the input data:
 \itemize{
@@ -53,15 +52,10 @@ the \code{together} parameter is FALSE, it will plot only one randomly
 chosen sample. If the \code{together} parameter is set to TRUE or
 there are more than 30 samples, it will plot all samples.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
-
 if (sits_run_examples()) {
-# plot sets of time series
-plot(cerrado_2classes)
+    # plot sets of time series
+    plot(cerrado_2classes)
 }
 
 }

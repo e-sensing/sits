@@ -91,8 +91,10 @@
         if (.raster_is_valid(out_file, output_dir = output_dir)) {
             if (.check_messages()) {
                 message("Recovery: file '", out_file, "' already exists.")
-                message("(If you want to produce a new cropped image, please ",
-                        "change 'version' or 'output_dir' parameter)")
+                message(
+                    "(If you want to produce a new cropped image, please ",
+                    "change 'version' or 'output_dir' parameter)"
+                )
             }
             base_tile <- .tile_from_file(
                 file = out_file, base_tile = base_tile,
@@ -146,8 +148,10 @@
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         if (.check_messages()) {
             message("Recovery: file '", out_file, "' already exists.")
-            message("(If you want to produce a new cropped image, please ",
-                    "change 'version' or 'output_dir' parameter)")
+            message(
+                "(If you want to produce a new cropped image, please ",
+                "change 'version' or 'output_dir' parameter)"
+            )
         }
         asset <- .tile_from_file(
             file = out_file, base_tile = asset,
@@ -239,7 +243,9 @@
 }
 
 .mosaic_switch <- function(tile, ...) {
-    switch(.mosaic_type(tile), ...)
+    switch(.mosaic_type(tile),
+        ...
+    )
 }
 
 .mosaic_crs <- function(tile, as_crs) {

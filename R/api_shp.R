@@ -20,7 +20,6 @@
                              end_date,
                              n_shp_pol,
                              shp_id) {
-
     # Pre-condition - check the shape file and its attribute
     sf_shape <- .shp_transform_to_sf(
         shp_file = shp_file,
@@ -54,7 +53,6 @@
 #'
 #' @return A valid sf object of POINT or POLYGON geometry.
 .shp_transform_to_sf <- function(shp_file, shp_attr = NULL, label = NULL) {
-
     # pre-condition - does the shapefile exist?
     .check_file(x = shp_file, msg = "shapefile does not exist")
     # read the shapefile
@@ -80,7 +78,8 @@
         discriminator = "one_of",
         msg = paste0(
             "Only handles with geometry types: ", paste(
-                .conf("sf_geom_types_supported"), collapse = ", "
+                .conf("sf_geom_types_supported"),
+                collapse = ", "
             )
         )
     )

@@ -1,4 +1,3 @@
-
 #' @title Points accessors
 #' @noRd
 #'
@@ -19,11 +18,11 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' x <- c(longitude = "123")
-#' .lon(x) # 123 as number
-#' x <- list(longitude = 1:10)
-#' .lat(x) <- 11:20
-#' x # with 'longitude' and 'latitude' fields
+#'     x <- c(longitude = "123")
+#'     .lon(x) # 123 as number
+#'     x <- list(longitude = 1:10)
+#'     .lat(x) <- 11:20
+#'     x # with 'longitude' and 'latitude' fields
 #' }
 #'
 NULL
@@ -73,12 +72,12 @@ NULL
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' x <- list(a = 0, z = 0)
-#' .point(x) # NULL
-#' x <- list(a = 0, longitude = 1:3, b = 2:4, latitude = 2, z = 0)
-#' .point(x)
-#' .point_as_sf(x) # 3 features
-#' .point_as_sf(x, as_crs = "EPSG:3857") # reprojected features
+#'     x <- list(a = 0, z = 0)
+#'     .point(x) # NULL
+#'     x <- list(a = 0, longitude = 1:3, b = 2:4, latitude = 2, z = 0)
+#'     .point(x)
+#'     .point_as_sf(x) # 3 features
+#'     .point_as_sf(x, as_crs = "EPSG:3857") # reprojected features
 #' }
 NULL
 

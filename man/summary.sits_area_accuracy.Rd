@@ -18,10 +18,6 @@ A summary of the sample accuracy
 This is a generic function. Parameters depend on the specific
 type of input.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
 if (sits_run_examples()) {
     # create a data cube from local files
@@ -39,7 +35,8 @@ if (sits_run_examples()) {
     )
     # label the probability cube
     label_cube <- sits_label_classification(
-        probs_cube, output_dir = tempdir()
+        probs_cube,
+        output_dir = tempdir()
     )
     # obtain the ground truth for accuracy assessment
     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",

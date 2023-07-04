@@ -29,8 +29,10 @@
         # Number of segments to process whole line
         h_nsegs <- ceiling(hb / bpc)
         # Number of horizontal blocks
-        return(c(ncols = ceiling(hb / h_nsegs) * block[["ncols"]],
-                 nrows = block[["nrows"]]))
+        return(c(
+            ncols = ceiling(hb / h_nsegs) * block[["ncols"]],
+            nrows = block[["nrows"]]
+        ))
     }
     # 2nd optimization - area level
     # Lines per core
@@ -40,10 +42,13 @@
     # Number of vertical segments
     v_nsegs <- ceiling(vb / lpc)
     # Number of vertical blocks
-    return(c(ncols = min(hb * block[["ncols"]], image_size[["ncols"]]),
-             nrows = min(ceiling(vb / v_nsegs) * block[["nrows"]],
-                         image_size[["nrows"]]))
-    )
+    return(c(
+        ncols = min(hb * block[["ncols"]], image_size[["ncols"]]),
+        nrows = min(
+            ceiling(vb / v_nsegs) * block[["nrows"]],
+            image_size[["nrows"]]
+        )
+    ))
 }
 
 .jobs_multicores <- function() {

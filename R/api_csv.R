@@ -7,13 +7,10 @@
 #' @return                A tibble with information the samples to be retrieved
 #'
 .csv_get_samples <- function(csv_file) {
-
     # read sample information from CSV file and put it in a tibble
     samples <- tibble::as_tibble(utils::read.csv(csv_file))
-
     # pre-condition - check if CSV file is correct
     .check_csv(samples)
-
     # select valid columns
     samples <- dplyr::select(
         samples,
@@ -21,11 +18,9 @@
     )
     # transform to date
     samples <- dplyr::mutate(samples,
-                             start_date = as.Date(.data[["start_date"]]),
-                             end_date = as.Date(.data[["end_date"]])
+        start_date = as.Date(.data[["start_date"]]),
+        end_date = as.Date(.data[["end_date"]])
     )
-
     class(samples) <- c("sits", class(samples))
-
     return(samples)
 }

@@ -136,7 +136,8 @@ if (sits_run_examples()) {
     )
     # label the probability cube
     label_cube <- sits_label_classification(
-        probs_cube, output_dir = tempdir()
+        probs_cube,
+        output_dir = tempdir()
     )
     # plot the classified image
     plot(label_cube)

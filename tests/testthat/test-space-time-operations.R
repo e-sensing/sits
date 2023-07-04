@@ -13,10 +13,25 @@ test_that("Time Series Dates", {
     times <- sits_timeline(cerrado_2classes)
     expect_true(length(times) == 23)
 })
+test_that("Timeline format", {
+    expect_equal(.timeline_format(date = "2000-10-30"), as.Date("2000-10-30"))
+    expect_equal(.timeline_format(date = "2000-10"), as.Date("2000-10-01"))
+    expect_equal(.timeline_format(date = "2000"), as.Date("2000-01-01"))
+    expect_equal(.timeline_format(date = "20001030"), as.Date("2000-10-30"))
+})
 test_that("Timeline date", {
-    timeline <- sits_timeline(cerrado_2classes)
-    expect_true(.timeline_valid_date(
-        as.Date("2000-09-12"),
-        timeline
-    ))
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    raster_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        multicores = 2,
+        progress = FALSE
+    )
+    timeline <- sits_timeline(raster_cube)
+    expect_false(.timeline_valid_date(as.Date("2000-09-12"), timeline))
+    expect_true(.timeline_valid_date(as.Date("2013-09-12"), timeline))
+    expect_true(.timeline_valid_date(as.Date("2014-09-12"), timeline))
+    expect_equal(timeline, .timeline_during(timeline))
+
 })

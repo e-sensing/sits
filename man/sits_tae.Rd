@@ -69,10 +69,6 @@ https://github.com/maja601/RC2020-psetae.
 
 If you use this method, please cite Garnot's and Schneider's work.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
 if (sits_run_examples()) {
     # create a TAE model
@@ -98,7 +94,8 @@ if (sits_run_examples()) {
     plot(bayes_cube)
     # label the probability cube
     label_cube <- sits_label_classification(
-        bayes_cube, output_dir = tempdir()
+        bayes_cube,
+        output_dir = tempdir()
     )
     # plot the labelled cube
     plot(label_cube)

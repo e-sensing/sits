@@ -27,8 +27,8 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-     pred <- sits_predictors(samples_modis_ndvi)
-     pred_frac <- sits_pred_sample(pred, frac = 0.5)
+    pred <- sits_predictors(samples_modis_ndvi)
+    pred_frac <- sits_pred_sample(pred, frac = 0.5)
 }
 }
 \author{

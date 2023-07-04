@@ -1,5 +1,4 @@
 test_that("Suggested samples have low confidence, high entropy", {
-
     # Get uncertaintly cube.
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
@@ -80,6 +79,14 @@ test_that("Increased samples have high confidence, low entropy", {
         sits_confidence_sampling(
             probs_cube = probs_cube,
             n = 20,
+            min_margin = 0.5,
+            sampling_window = 10
+        )
+    )
+    expect_warning(
+        sits_confidence_sampling(
+            probs_cube = probs_cube,
+            n = 60,
             min_margin = 0.5,
             sampling_window = 10
         )

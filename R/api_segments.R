@@ -13,24 +13,24 @@
 #' @param multicores Number of cores to use for processing
 #' @param progress   Show progress bar?
 #'
-.segments_get_data <- function(
-        cube,
-        segments,
-        bands,
-        aggreg_fn,
-        pol_id,
-        multicores,
-        progress
-) {
+.segments_get_data <- function(cube,
+                               segments,
+                               bands,
+                               aggreg_fn,
+                               pol_id,
+                               multicores,
+                               progress) {
     # verify if exactextractr is installed
     .check_require_packages("exactextractr")
     # get start and end dates
     start_date <- .cube_start_date(cube)
-    end_date   <- .cube_end_date(cube)
+    end_date <- .cube_end_date(cube)
 
     # combine tiles and bands for parallel processing
-    tiles_bands <- tidyr::expand_grid(tile = .cube_tiles(cube),
-                                      band = bands) |>
+    tiles_bands <- tidyr::expand_grid(
+        tile = .cube_tiles(cube),
+        band = bands
+    ) |>
         purrr::pmap(function(tile, band) {
             return(list(tile, band))
         })
@@ -61,21 +61,23 @@
         )
         # test if file exists
         if (file.exists(filename)) {
-            tryCatch({
-                # ensure that the file is not corrupted
-                timeseries <- readRDS(filename)
-                return(timeseries)
-            },
-            error = function(e) {
-                unlink(filename)
-                gc()
-            })
+            tryCatch(
+                {
+                    # ensure that the file is not corrupted
+                    timeseries <- readRDS(filename)
+                    return(timeseries)
+                },
+                error = function(e) {
+                    unlink(filename)
+                    gc()
+                }
+            )
         }
         # build the sits tibble for the storing the points
         samples_tbl <- purrr::pmap_dfr(
             list(segs_tile$x, segs_tile$y, segs_tile[[pol_id]]),
             function(x, y, pid) {
-            # convert XY to lat long
+                # convert XY to lat long
                 lat_long <- .proj_to_latlong(x, y, .crs(cube))
 
                 # create metadata for the polygons
@@ -94,7 +96,8 @@
                 )
                 # return valid row of time series
                 return(sample)
-            })
+            }
+        )
 
         # extract time series per tile and band
         ts <- .segments_get_ts(
@@ -110,17 +113,8 @@
 
         return(ts)
     }, progress = progress)
-
+    # join rows to get time series tibble
     ts_tbl <- dplyr::bind_rows(samples_tiles_bands)
-
-    if (!.has_ts(ts_tbl)) {
-        warning(
-            "No time series were extracted. ",
-            "Check your samples and your input cube",
-            immediate. = TRUE, call. = FALSE
-        )
-        return(.tibble())
-    }
 
     ts_tbl <- ts_tbl |>
         tidyr::unnest("time_series") |>
@@ -137,7 +131,8 @@
 
     ts_tbl <- ts_tbl |>
         dplyr::reframe(
-            dplyr::across(dplyr::all_of(bands), stats::na.omit)) |>
+            dplyr::across(dplyr::all_of(bands), stats::na.omit)
+        ) |>
         dplyr::arrange(.data[["Index"]]) |>
         dplyr::ungroup() |>
         tidyr::nest(time_series = !!c("Index", bands)) |>
@@ -149,7 +144,8 @@
         dplyr::group_by(
             .data[["longitude"]], .data[["latitude"]],
             .data[["start_date"]], .data[["end_date"]],
-            .data[["label"]], .data[["cube"]]) |>
+            .data[["label"]], .data[["cube"]]
+        ) |>
         dplyr::slice_head(n = 1) |>
         dplyr::ungroup()
 
@@ -191,20 +187,18 @@
 #' @param segs_tile   Polygons produced by sits_supercells for the tile
 #' @param aggreg_fn   Aggregation function to compute a summary of each segment
 #'
-.segments_get_ts <- function(
-        tile,
-        band,
-        samples_tbl,
-        segs_tile,
-        aggreg_fn
-) {
+.segments_get_ts <- function(tile,
+                             band,
+                             samples_tbl,
+                             segs_tile,
+                             aggreg_fn) {
     # get the scale factors, max, min and missing values
-    band_params   <- .tile_band_conf(tile, band)
+    band_params <- .tile_band_conf(tile, band)
     missing_value <- .miss_value(band_params)
     minimum_value <- .min_value(band_params)
     maximum_value <- .max_value(band_params)
-    scale_factor  <- .scale(band_params)
-    offset_value  <- .offset(band_params)
+    scale_factor <- .scale(band_params)
+    offset_value <- .offset(band_params)
     # extract the values
     values <- .tile_extract_segments(tile, band, segs_tile, aggreg_fn)
     # adjust maximum and minimum values
@@ -212,7 +206,7 @@
     values[values < minimum_value] <- NA
     values[values > maximum_value] <- NA
     # use linear imputation
-    impute_fn = .impute_linear()
+    impute_fn <- .impute_linear()
     # are there NA values? interpolate them
     if (any(is.na(values))) {
         values <- impute_fn(values)
@@ -229,7 +223,8 @@
             colnames(new_ts) <- c(colnames(old_ts), band)
             sample$time_series[[1]] <- new_ts
             return(sample)
-    })
+        }
+    )
     # set sits class
     class(samples_tbl) <- c("sits", class(samples_tbl))
     return(samples_tbl)

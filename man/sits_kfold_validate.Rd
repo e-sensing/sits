@@ -54,7 +54,6 @@ if (sits_run_examples()) {
     # for the Mato Grosso state in Brasil
     # create a list to store the results
     results <- list()
-
     # accuracy assessment lightTAE
     acc_ltae <- sits_kfold_validate(
         samples_modis_ndvi,

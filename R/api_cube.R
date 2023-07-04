@@ -60,7 +60,6 @@ NULL
                          crs,
                          labels = NULL,
                          file_info = NULL) {
-
     # create a tibble to store the metadata (mandatory parameters)
     cube <- .common_size(
         source = source,
@@ -85,7 +84,7 @@ NULL
     .cube_set_class(cube)
 }
 .cube <- function(x) {
-    # TODO: check and assign a cube class
+    # return the cube
     x
 }
 
@@ -103,15 +102,27 @@ NULL
 #' @export
 .cube_bands.raster_cube <- function(cube, add_cloud = TRUE, dissolve = TRUE) {
     bands <- .compact(slider::slide(cube, .tile_bands, add_cloud = add_cloud))
-    if (dissolve) return(.dissolve(bands))
+    if (dissolve) {
+        return(.dissolve(bands))
+    }
     bands
 }
+#' @title Return labels of a data cube
+#' @keywords internal
+#' @noRd
+#' @name .cube_labels
+#' @param cube       Data cube
+#' @param dissolve   Combine repeated labels?
+#'
+#' @return A \code{vector} with the cube bands.
 .cube_labels <- function(cube, dissolve = TRUE) {
     UseMethod(".cube_labels", cube)
 }
 .cube_labels.raster_cube <- function(cube, dissolve = TRUE) {
     labels <- .compact(slider::slide(cube, .tile_labels))
-    if (dissolve) return(.dissolve(labels))
+    if (dissolve) {
+        return(.dissolve(labels))
+    }
     labels
 }
 #' @title Return collection of a data cube
@@ -237,7 +248,7 @@ NULL
 #' @details
 #' Returns a unique timeline if there are a unique value. If there are at
 #' least two different timelines, all timelines will be returned in a list.
-#' @return A vector of dates.
+#' @return A vector or list of dates.
 .cube_timeline <- function(cube) {
     UseMethod(".cube_timeline", cube)
 }
@@ -245,12 +256,20 @@ NULL
 .cube_timeline.raster_cube <- function(cube) {
     .compact(slider::slide(cube, .tile_timeline))
 }
+#' @title Check if cube is complete
+#' @noRd
+#' @param cube  A cube.
+#' @return      TRUE/FALSE
+#' @details
+#' Return
 .cube_is_complete <- function(cube) {
     UseMethod(".cube_is_complete", cube)
 }
 #' @export
 .cube_is_complete.raster_cube <- function(cube) {
-    if (length(.cube_bands(cube, dissolve = FALSE)) > 1) return(FALSE)
+    if (length(.cube_bands(cube, dissolve = FALSE)) > 1) {
+        return(FALSE)
+    }
     all(slider::slide_lgl(cube, .tile_is_complete))
 }
 #' @title Find out how many images are in cube during a period
@@ -272,13 +291,17 @@ NULL
     if (!.has(origin)) {
         origin <- .cube_start_date(cube)
     }
+    # get tiles and dates
     values <- .cube_foreach_tile(cube, function(tile) {
         tibble::tibble(
             tile = tile[["tile"]], dates = .tile_timeline(!!tile)
         )
     })
+    # filter for starting date
     values <- dplyr::filter(values, !!origin <= .data[["dates"]])
+    # organize by dates
     values <- dplyr::arrange(values, .data[["dates"]])
+    # join tile/dates per period
     values <- slider::slide_period_dfr(
         values, values[["dates"]], .period_unit(period),
         function(x) {
@@ -303,9 +326,7 @@ NULL
         values_from = "n"
     )
 }
-
 # ---- iteration ----
-
 #' @title Tile iteration
 #' @noRd
 #' @param cube  A data cube.
@@ -321,9 +342,7 @@ NULL
 .cube_foreach_tile.raster_cube <- function(cube, fn, ...) {
     slider::slide_dfr(cube, fn, ...)
 }
-
 # ---- spatial ----
-
 .cube_bbox <- function(cube, as_crs = NULL) {
     UseMethod(".cube_bbox", cube)
 }
@@ -378,7 +397,8 @@ NULL
 #' @export
 .cube_during.raster_cube <- function(cube, start_date, end_date) {
     .compact(slider::slide_lgl(
-        cube, .tile_during, start_date = start_date, end_date = end_date
+        cube, .tile_during,
+        start_date = start_date, end_date = end_date
     ))
 }
 #' @title Filter tiles inside a temporal interval
@@ -389,7 +409,6 @@ NULL
 .cube_filter_interval <- function(cube, start_date, end_date) {
     UseMethod(".cube_filter_interval", cube)
 }
-
 #' @export
 .cube_filter_interval.raster_cube <- function(cube, start_date, end_date) {
     during <- .cube_during(cube, start_date, end_date)
@@ -426,6 +445,10 @@ NULL
 .cube_tiles.raster_cube <- function(cube) {
     .as_chr(cube[["tile"]])
 }
+#' @title Returns the paths of a data cube
+#' @noRd
+#' @param cube  A data cube.
+#' @return  Paths of images in the cube
 .cube_paths <- function(cube, bands = NULL) {
     UseMethod(".cube_paths", cube)
 }
@@ -452,7 +475,6 @@ NULL
 .cube_filter_tiles.raster_cube <- function(cube, tiles) {
     cube[.cube_tiles(cube) %in% tiles, ]
 }
-
 #' @title Create internal cube features with ID
 #' @noRd
 #' @param cube  data cube
@@ -491,7 +513,8 @@ NULL
         assets[["asset"]] <- assets[["band"]]
         assets[["feature"]] <- .default(assets[["fid"]], "1")
         assets <- tidyr::nest(
-            assets, file_info = -c("tile", "feature", "asset")
+            assets,
+            file_info = -c("tile", "feature", "asset")
         )
         # Replicate each tile so that we can copy file_info to cube
         tile <- tile[rep(1, nrow(assets)), ]
@@ -507,7 +530,8 @@ NULL
         assets <- tidyr::unnest(assets, "file_info")
         assets[["asset"]] <- assets[["band"]]
         assets <- tidyr::nest(
-            assets, file_info = -c("tile", "asset")
+            assets,
+            file_info = -c("tile", "asset")
         )
         # Replicate each tile so that we can copy file_info to cube
         tile <- tile[rep(1, nrow(assets)), ]
@@ -527,15 +551,17 @@ NULL
     class_orig <- class(cube)
     derived_cube <- inherits(cube, "derived_cube")
     cube <- tidyr::unnest(cube, "file_info", names_sep = ".")
-    if (!derived_cube)
+    if (!derived_cube) {
         cube <- dplyr::distinct(cube)
-        cube <- dplyr::arrange(
-            cube,
-            .data[["file_info.date"]],
-            .data[["file_info.band"]]
-        )
+    }
+    cube <- dplyr::arrange(
+        cube,
+        .data[["file_info.date"]],
+        .data[["file_info.band"]]
+    )
     cube <- tidyr::nest(
-        cube, file_info = tidyr::starts_with("file_info"),
+        cube,
+        file_info = tidyr::starts_with("file_info"),
         .names_sep = "."
     )
     # Set class features for the cube
@@ -543,7 +569,6 @@ NULL
     # Return cube
     cube
 }
-
 #' @export
 .cube_merge_tiles.derived_cube <- function(cube) {
     class_orig <- class(cube)
@@ -552,7 +577,8 @@ NULL
         cube, .data[["file_info.start_date"]], .data[["file_info.band"]]
     )
     cube <- tidyr::nest(
-        cube, file_info = tidyr::starts_with("file_info"),
+        cube,
+        file_info = tidyr::starts_with("file_info"),
         .names_sep = "."
     )
     # Set class features for the cube
@@ -560,7 +586,6 @@ NULL
     # Return cube
     cube
 }
-
 .cube_contains_cloud <- function(cube) {
     UseMethod(".cube_contains_cloud", cube)
 }
@@ -600,7 +625,6 @@ NULL
 .cube_derived_class <- function(cube) {
     UseMethod(".cube_derived_class", cube)
 }
-
 #' @export
 .cube_derived_class.derived_cube <- function(cube) {
     unique(slider::slide_chr(cube, .tile_derived_class))
@@ -610,8 +634,7 @@ NULL
                               band,
                               uncert_fn,
                               output_dir,
-                              version){
-
+                              version) {
     # Process each tile sequentially
     uncert_cube <- .cube_foreach_tile(cube, function(tile) {
         # Compute uncertainty
@@ -638,8 +661,6 @@ NULL
 .cube_token_generator <- function(cube) {
     UseMethod(".cube_token_generator", cube)
 }
-
-
 #' @export
 .cube_token_generator.mpc_cube <- function(cube) {
     file_info <- cube[["file_info"]][[1]]
@@ -657,15 +678,11 @@ NULL
         !.cube_is_token_expired(cube)) {
         return(cube)
     }
-
     token_endpoint <- .conf("sources", .cube_source(cube), "token_url")
     url <- paste0(token_endpoint, "/", tolower(.cube_collection(cube)))
-
     res_content <- NULL
-
     n_tries <- .conf("cube_token_generator_n_tries")
     sleep_time <- .conf("cube_token_generator_sleep_time")
-
     access_key <- Sys.getenv("MPC_TOKEN")
     if (!nzchar(access_key)) {
         access_key <- NULL
@@ -690,38 +707,30 @@ NULL
         }
         n_tries <- n_tries - 1
     }
-
     .check_that(
         !is.null(res_content),
         msg = "invalid mpc token."
     )
-
     token_parsed <- httr::parse_url(paste0("?", res_content[["token"]]))
     file_info[["path"]] <- purrr::map_chr(seq_along(fi_paths), function(i) {
         path <- fi_paths[[i]]
-
         if (are_local_paths[[i]]) {
             return(path)
         }
-
         url_parsed <- httr::parse_url(path)
         url_parsed[["query"]] <- utils::modifyList(
             url_parsed[["query"]],
             token_parsed[["query"]]
         )
-
         # remove the additional chars added by httr
         new_path <- gsub("^://", "", httr::build_url(url_parsed))
         new_path
     })
-
     file_info[["token_expires"]] <- strptime(
         x = res_content[["msft:expiry"]],
         format = "%Y-%m-%dT%H:%M:%SZ"
     )
-
     cube[["file_info"]][[1]] <- file_info
-
     return(cube)
 }
 #' @export
@@ -737,10 +746,8 @@ NULL
 #'
 #' @return a boolean value.
 .cube_is_token_expired <- function(cube) {
-
     UseMethod(".cube_is_token_expired", cube)
 }
-
 #' @export
 .cube_is_token_expired.mpc_cube <- function(cube) {
     file_info <- cube[["file_info"]][[1]]
@@ -749,13 +756,11 @@ NULL
     min_remaining_time <- .conf(
         "cube_token_generator_min_remaining_time"
     )
-
     are_local_paths <- !grepl(pattern = "^/vsi", x = fi_paths)
     # ignore in case of regularized and local cubes
     if (all(are_local_paths)) {
         return(FALSE)
     }
-
     if ("token_expires" %in% colnames(file_info)) {
         difftime_token <- difftime(
             time1 = file_info[["token_expires"]][[1]],
@@ -765,10 +770,8 @@ NULL
 
         return(difftime_token < min_remaining_time)
     }
-
     return(FALSE)
 }
-
 #' @export
 .cube_is_token_expired.default <- function(cube) {
     return(FALSE)

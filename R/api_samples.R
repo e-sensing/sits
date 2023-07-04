@@ -16,11 +16,14 @@
     multicores <- if (multicores > nrow(samples)) nrow(samples) else multicores
     # Create a new column to each group id
     samples[["group"]] <- rep(
-        seq_len(multicores), each = ceiling(nrow(samples) / multicores)
+        seq_len(multicores),
+        each = ceiling(nrow(samples) / multicores)
     )[seq_len(nrow(samples))]
     # Split each group by an id
     dplyr::group_split(
-        dplyr::group_by(samples, .data[["group"]]), .keep = FALSE)
+        dplyr::group_by(samples, .data[["group"]]),
+        .keep = FALSE
+    )
 }
 
 .samples_merge_groups <- function(samples_lst) {
@@ -51,8 +54,8 @@
     # verify if data exists
     # splits the data into k groups
     data$folds <- caret::createFolds(data$label,
-                                     k = folds,
-                                     returnTrain = FALSE, list = FALSE
+        k = folds,
+        returnTrain = FALSE, list = FALSE
     )
     return(data)
 }

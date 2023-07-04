@@ -81,7 +81,6 @@ NULL
 #' @return service name or
 #' \code{NA} if no service is associated with a given source.
 .source_service <- function(source) {
-
     # source is upper case
     source <- toupper(source)
     # pre-condition
@@ -127,7 +126,6 @@ NULL
 #' @description get the URL associated with a source.
 #' @return a valid URL or  \code{NA}
 .source_url <- function(source) {
-
     # source is upper case
     source <- toupper(source)
     # pre-condition
@@ -181,7 +179,6 @@ NULL
                           collection, ...,
                           fn_filter = NULL,
                           add_cloud = TRUE) {
-
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -199,9 +196,10 @@ NULL
     # filter the data?
     if (!is.null(fn_filter)) {
         select <- vapply(bands, function(band) {
-            fn_filter(.conf("sources", source,
-                            "collections", collection,
-                            "bands", band
+            fn_filter(.conf(
+                "sources", source,
+                "collections", collection,
+                "bands", band
             ))
         }, logical(1))
         bands <- bands[select]
@@ -230,7 +228,6 @@ NULL
                                fn_filter = NULL,
                                add_cloud = TRUE,
                                default = NULL) {
-
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -256,10 +253,11 @@ NULL
     # always returns a list!
     result <- lapply(bands, function(band) {
         .try(
-            .conf("sources", source,
-                  "collections", collection,
-                  "bands", band,
-                  key
+            .conf(
+                "sources", source,
+                "collections", collection,
+                "bands", band,
+                key
             ),
             .default = default
         )
@@ -349,7 +347,6 @@ NULL
 .source_bands_to_sits <- function(source,
                                   collection,
                                   bands) {
-
     # bands name are upper case
     bands <- toupper(bands)
     # bands sits
@@ -384,7 +381,6 @@ NULL
 #' @return \code{.source_bands_to_source()} returns a \code{character} vector
 #' with all converted bands name.
 .source_bands_to_source <- function(source, collection, bands) {
-
     # bands are upper case
     bands <- toupper(bands)
     # bands sits
@@ -454,7 +450,6 @@ NULL
 #' all values/or bits description of a cloud band.
 .source_cloud_values <- function(source,
                                  collection) {
-
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -482,7 +477,6 @@ NULL
 #' @return \code{.source_cloud_interp_values()} returns a \code{numeric}
 #' vector with all values/or bits to be interpolated if found in the cloud band.
 .source_cloud_interp_values <- function(source, collection) {
-
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -527,7 +521,6 @@ NULL
 #' @return \code{.source_collections()} returns a \code{character} vector
 #' with all collection names of a given source.
 .source_collections <- function(source, ...) {
-
     # source is upper case
     source <- toupper(source)
     # check source
@@ -554,16 +547,16 @@ NULL
 #' no error occurs.
 .source_collection_access_vars_set <- function(source,
                                                collection) {
-
     # source is upper case
     source <- toupper(source)
     # collection is upper case
     collection <- toupper(collection)
     # get access variables for this source/collection
     vars <- .try(
-        .conf("sources", source,
-              "collections", collection,
-              "access_vars"
+        .conf(
+            "sources", source,
+            "collections", collection,
+            "access_vars"
         ),
         .default = list()
     )
@@ -587,7 +580,6 @@ NULL
 #' no error occurs.
 .source_collection_check <- function(source,
                                      collection) {
-
     # check collection
     .check_chr(collection,
         len_min = 1, len_max = 1,
@@ -608,12 +600,12 @@ NULL
 #' @return \code{.source_collection_metadata_search()} returns a character
 #' value with the metadata search strategy.
 .source_collection_metadata_search <- function(source, collection) {
-
     # try to find the gdalcubes configuration
     metadata_search <- .try(
-        .conf("sources", source,
-              "collections", collection,
-              "metadata_search"
+        .conf(
+            "sources", source,
+            "collections", collection,
+            "metadata_search"
         ),
         .default = NA
     )
@@ -636,7 +628,6 @@ NULL
 #'
 .source_collection_name <- function(source,
                                     collection) {
-
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -670,7 +661,6 @@ NULL
 .source_collection_open_data <- function(source,
                                          collection,
                                          token = FALSE) {
-
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -695,7 +685,8 @@ NULL
                 "sources", source,
                 "collections", collection,
                 "open_data"
-            ), .default = FALSE
+            ),
+            .default = FALSE
         )
     }
     # post-condition
@@ -983,8 +974,8 @@ NULL
         "grid_system"
     )
     .check_chr(res,
-               allow_null = TRUE,
-               msg = "invalid 'grid_system' value"
+        allow_null = TRUE,
+        msg = "invalid 'grid_system' value"
     )
     return(res)
 }

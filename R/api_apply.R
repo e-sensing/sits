@@ -11,8 +11,8 @@
 .apply <- function(data, col, fn, ...) {
     # pre-condition
     .check_chr_within(col,
-                      within = names(data),
-                      msg = "invalid column name"
+        within = names(data),
+        msg = "invalid column name"
     )
     # select data do unpack
     x <- data[col]
@@ -33,7 +33,6 @@
     data[[col]] <- x[[col]]
     return(data)
 }
-
 .apply_feature <- function(feature, block, window_size, expr,
                            out_band, in_bands, overlap, output_dir) {
     # Output file
@@ -159,7 +158,6 @@
 #' @return      A sits tibble with all processed bands.
 #'
 .apply_across <- function(data, fn, ...) {
-
     # Pre-conditions
     .check_samples(data)
 
@@ -173,7 +171,6 @@
 
     return(result)
 }
-
 #' @title Captures a band expression
 #'
 #' @name .apply_capture_expression
@@ -187,8 +184,9 @@
 .apply_capture_expression <- function(...) {
     # Capture dots as a list of quoted expressions
     list_expr <- lapply(substitute(list(...), env = environment()),
-                        unlist,
-                        recursive = FALSE)[-1]
+        unlist,
+        recursive = FALSE
+    )[-1]
 
     # Check bands names from expression
     .check_expression(list_expr)
@@ -199,7 +197,6 @@
 
     return(list_expr)
 }
-
 #' @title Finds out all existing bands in an expression
 #'
 #' @name .apply_input_bands
@@ -213,7 +210,6 @@
 #'                   that are missing from the cube.
 #'
 .apply_input_bands <- function(cube, expr) {
-
     # Get all required bands in expression
     expr_bands <- toupper(.apply_get_all_names(expr[[1]]))
 
@@ -231,12 +227,13 @@
         x = all(found_bands),
         local_msg = "use 'sits_bands()' to check available bands",
         msg = paste("band(s)", paste0("'", expr_bands[!found_bands],
-                                      "'", collapse = ", "), "not found")
+            "'",
+            collapse = ", "
+        ), "not found")
     )
 
     return(bands)
 }
-
 #' @title Returns all names in an expression
 #'
 #' @name .apply_get_all_names
@@ -255,9 +252,7 @@
         character()
     }
 }
-
 .kern_functions <- function(window_size, img_nrow, img_ncol) {
-
     # Pre-conditions
     .check_window_size(window_size, max = min(img_nrow, img_ncol) - 1)
 
