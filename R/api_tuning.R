@@ -32,8 +32,9 @@
     }
 
     loguniform <- function(minlog = 0, maxlog = 1) {
-        val <- exp((maxlog - minlog) * stats::runif(n = 1) + minlog)
-        return(val)
+        base <- exp(1)
+        return(exp(runif(1, log(min(c(minlog, maxlog)), base),
+                         log(max(c(minlog, maxlog)), base))))
     }
 
     beta <- function(shape1, shape2) {
