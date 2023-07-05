@@ -144,13 +144,13 @@ sits_segment <- function(cube,
 #'                      "jsd", "dtw", and any distance function from the
 #'                      \code{philentropy} package.
 #'                      See \code{philentropy::getDistMethods()}.
-#'                      Default: "euclidean"
+#'                      Default: "dtw"
 #' @param avg_fun       Averaging function to calculate the values
 #'                      of the supercells' centers.
 #'                      Accepts any fitting R function
 #'                      (e.g., base::mean() or stats::median())
 #'                      or one of internally implemented "mean" and "median".
-#'                      Default: "mean"
+#'                      Default: "median"
 #' @param iter          Number of iterations to create the output.
 #' @param minarea       Specifies the minimal size of a supercell (in cells).
 #' @param multicores    Number of cores for parallel processing

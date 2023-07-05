@@ -8,8 +8,8 @@ sits_supercells(
   tile = NULL,
   step = 50,
   compactness = 1,
-  dist_fun = "euclidean",
-  avg_fun = "mean",
+  dist_fun = "dtw",
+  avg_fun = "median",
   iter = 10,
   minarea = 30,
   multicores = 1
@@ -28,14 +28,14 @@ be more compact/even (square).}
 "jsd", "dtw", and any distance function from the
 \code{philentropy} package.
 See \code{philentropy::getDistMethods()}.
-Default: "euclidean"}
+Default: "dtw"}
 
 \item{avg_fun}{Averaging function to calculate the values
 of the supercells' centers.
 Accepts any fitting R function
 (e.g., base::mean() or stats::median())
 or one of internally implemented "mean" and "median".
-Default: "mean"}
+Default: "median"}
 
 \item{iter}{Number of iterations to create the output.}
 
