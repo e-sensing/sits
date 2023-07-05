@@ -320,6 +320,7 @@ sits_get_data.segments <- function(cube,
                                    bands = sits_bands(cube),
                                    aggreg_fn = "mean",
                                    pol_id = "supercells",
+                                   n_sam_pol = NULL,
                                    multicores = 1,
                                    progress = FALSE) {
     # precondition
@@ -330,15 +331,33 @@ sits_get_data.segments <- function(cube,
         discriminator = "all_of",
         msg = "segment tiles do not match cube tiles"
     )
-    # extract time series from a cube from a set of segments
-    data <- .segments_get_data(
-        cube = cube,
-        segments = samples,
-        bands = bands,
-        aggreg_fn = aggreg_fn,
-        pol_id = pol_id,
-        multicores = multicores,
-        progress = progress
+    .check_that(
+        x = !(purrr::is_null(aggreg_fn) && purrr::is_null(n_sam_pol)),
+        msg = "either aggreg_fun or n_sam_pol must not be both NULL"
     )
+    # extract time series from a cube from a set of segments
+    # case 1 - one point per polygon with an aggregation function
+    if (purrr::is_null(n_sam_pol)) {
+        data <- .segments_get_summary(
+            cube = cube,
+            segments = samples,
+            bands = bands,
+            aggreg_fn = aggreg_fn,
+            pol_id = pol_id,
+            multicores = multicores,
+            progress = progress
+        )
+    } else {
+        data <- .segments_get_data(
+            cube = cube,
+            segments = samples,
+            bands = bands,
+            pol_id = pol_id,
+            n_sam_pol = n_sam_pol,
+            multicores = multicores,
+            progress = progress
+        )
+    }
+
     return(data)
 }

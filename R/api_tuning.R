@@ -33,7 +33,7 @@
 
     loguniform <- function(minlog = 0, maxlog = 1) {
         base <- exp(1)
-        return(exp(runif(1, log(min(c(minlog, maxlog)), base),
+        return(exp(stats::runif(1, log(min(c(minlog, maxlog)), base),
                          log(max(c(minlog, maxlog)), base))))
     }
 

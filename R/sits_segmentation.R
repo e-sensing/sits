@@ -61,7 +61,8 @@
 #'     # get the average value per segment
 #'     samples_seg <- sits_get_data(
 #'         cube = cube,
-#'         samples = segments
+#'         samples = segments,
+#'         n_sam_pol = 10
 #'     )
 #'     # classify the segments
 #'     seg_class <- sits_classify(
@@ -207,8 +208,8 @@ sits_segment <- function(cube,
 sits_supercells <- function(tile = NULL,
                             step = 50,
                             compactness = 1,
-                            dist_fun = "euclidean",
-                            avg_fun = "mean",
+                            dist_fun = "dtw",
+                            avg_fun = "median",
                             iter = 10,
                             minarea = 30,
                             multicores = 1) {

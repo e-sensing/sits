@@ -105,7 +105,8 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
         modis_cube,
         samples = shp_file,
         n_sam_pol = 5,
-        progress = FALSE
+        progress = FALSE,
+        multicores = 1
     )
     expect_equal(object = nrow(points_shp), expected = 5)
     expect_equal(

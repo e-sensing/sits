@@ -1,6 +1,6 @@
 #' @title Extract set of time series from supercells
 #'
-#' @name .segments_get_data
+#' @name .segments_get_summary
 #' @keywords internal
 #' @noRd
 #' @description     Using the segments as polygons, get all time series
@@ -13,13 +13,13 @@
 #' @param multicores Number of cores to use for processing
 #' @param progress   Show progress bar?
 #'
-.segments_get_data <- function(cube,
-                               segments,
-                               bands,
-                               aggreg_fn,
-                               pol_id,
-                               multicores,
-                               progress) {
+.segments_get_summary <- function(cube,
+                                  segments,
+                                  bands,
+                                  aggreg_fn,
+                                  pol_id,
+                                  multicores,
+                                  progress) {
     # verify if exactextractr is installed
     .check_require_packages("exactextractr")
     # get start and end dates
@@ -174,6 +174,52 @@
     }
 
     return(ts_tbl)
+}
+#' @title Extract many time series from each segment
+#'
+#' @name .segments_get_data
+#' @keywords internal
+#' @noRd
+#' @description     Using the segments as polygons, get all time series
+#'
+#' @param cube       regular data cube
+#' @param segments   polygons produced by sits_segments
+#' @param bands      bands used in time series
+#' @param pol_id     ID attribute for polygons.
+#' @param n_sam_pol  Number of samples per polygon to be read.
+#' @param multicores Number of cores to use for processing
+#' @param progress   Show progress bar?
+#'
+.segments_get_data <- function(cube,
+                               segments,
+                               bands,
+                               pol_id,
+                               n_sam_pol,
+                               multicores,
+                               progress) {
+    # extract a samples data.frame from sf object
+    samples <- slider::slide_dfr(cube, function(tile) {
+        samples_tile  <- .sf_get_samples(
+            sf_object  = segments[[.tile_name(tile)]],
+            label      = "NoClass",
+            label_attr = NULL,
+            start_date = as.Date(sits_timeline(cube)[1]),
+            end_date   = as.Date(sits_timeline(cube)
+                                 [length(sits_timeline(cube))]),
+            n_sam_pol  = n_sam_pol,
+            pol_id     = pol_id
+        )
+        return(samples_tile)
+    })
+
+    # extract time series from a cube given a data.frame
+    data <- .data_get_ts(
+        cube       = cube,
+        samples    = samples,
+        bands      = bands,
+        multicores = multicores,
+        progress   = progress
+    )
 }
 #' @title Extract time series from segments by tile and band
 #'

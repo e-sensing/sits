@@ -101,6 +101,7 @@ sits_get_data(
   bands = sits_bands(cube),
   aggreg_fn = "mean",
   pol_id = "supercells",
+  n_sam_pol = NULL,
   multicores = 1,
   progress = FALSE
 )
