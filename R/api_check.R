@@ -1732,11 +1732,15 @@
     # select the files for the classified cube
     files <- unlist(.cube_paths(cube))
     # open the first file
-    r <- .raster_open_rast(files)
-    # get the frequency table
-    freq <- .raster_freq(r)
-    # get the classes as numerical values
-    classes_num <- as.character(freq$value)
+    classes_list <- purrr::map(files, function(file){
+        r <- .raster_open_rast(file)
+        # get the frequency table
+        freq <- .raster_freq(r)
+        # get the classes as numerical values
+        classes_tile <- as.character(freq$value)
+        return(classes_tile)
+    })
+    classes_num <- unique(unlist(classes_list))
     labels_num <- names(sits_labels(cube))
     # do the labels and raster numbers match?
     .check_that(
