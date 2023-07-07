@@ -190,7 +190,7 @@
 #'     # create a raster cube file based on the information in the BDC
 #'     cbers_tile <- sits_cube(
 #'         source = "BDC",
-#'         collection = "CB4-16D-2",
+#'         collection = "CBERS-WFI-16D",
 #'         bands = c("NDVI", "EVI"),
 #'         tiles = "007004",
 #'         start_date = "2018-09-01",
@@ -202,7 +202,7 @@
 #'     # DEAFRICA does not support definition of tiles
 #'     cube_dea <- sits_cube(
 #'         source = "DEAFRICA",
-#'         collection = "s2_l2a",
+#'         collection = "S2_L2A",
 #'         bands = c("B04", "B08"),
 #'         roi = c(
 #'             "lat_min" = 17.379,
@@ -217,7 +217,7 @@
 #'     # --- Access to AWS open data Sentinel 2/2A level 2 collection
 #'     s2_cube <- sits_cube(
 #'         source = "AWS",
-#'         collection = "SENTINEL-S2-L2A-COGS",
+#'         collection = "SENTINEL-2-L2A",
 #'         tiles = c("20LKP", "20LLP"),
 #'         bands = c("B04", "B08", "B11"),
 #'         start_date = "2018-07-18",

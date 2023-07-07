@@ -316,8 +316,18 @@ sits_join_segments <- function(data, segments) {
     )
     # select polygon_id and class for the time series tibble
     data_id <- data |>
+        dplyr::select("polygon_id", "predicted") |>
         tidyr::unnest(cols = "predicted") |>
-        dplyr::select(dplyr::all_of(c("polygon_id", "class")))
+        dplyr::group_by(.data[["polygon_id"]])
+
+    labels <- setdiff(colnames(data_id), c("polygon_id", "from", "to", "class"))
+
+    data_id <- data_id |>
+        dplyr::summarise(dplyr::across(.cols = labels, sum)) |>
+        dplyr::rowwise() |>
+        dplyr::mutate(class = labels[which.max(dplyr::c_across(labels))]) |>
+        dplyr::mutate(polygon_id = as.numeric(polygon_id))
+
     # join the data_id tibble with the segments (sf objects)
     segments_tile <- purrr::map(segments, function(seg) {
         dplyr::left_join(seg, data_id, by = c("supercells" = "polygon_id"))

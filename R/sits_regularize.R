@@ -56,7 +56,7 @@
 #'         source = "AWS",
 #'         collection = "SENTINEL-2-L2A",
 #'         tiles = c("20LKP", "20LLP"),
-#'         bands = c("B8A", "SCL"),
+#'         bands = c("B8A", "CLOUD"),
 #'         start_date = "2018-10-01",
 #'         end_date = "2018-11-01"
 #'     )

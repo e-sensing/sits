@@ -77,7 +77,7 @@
 #'         # create a data cube from the BDC
 #'         bdc_cube <- sits_cube(
 #'             source = "BDC",
-#'             collection = "CB4-16D-2",
+#'             collection = "CBERS-WFI-16D",
 #'             bands = c("NDVI", "EVI"),
 #'             tiles = c("007004", "007005"),
 #'             start_date = "2018-09-01",
