@@ -283,7 +283,7 @@ sits_supercells <- function(tile = NULL,
 #'         tile = "012010",
 #'         bands = "NDVI",
 #'         date = sits_timeline(cube)[1],
-#'         seg_fn = sits_slic(step = 10)
+#'         seg_fn = sits_supercells(step = 10)
 #'     )
 #'     # create a classification model
 #'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())

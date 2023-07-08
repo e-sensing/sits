@@ -19,15 +19,47 @@
 #'     x # with 'crs' field
 #'     .as_crs(3857) # EPSG:3857
 #' }
+#' @title .xmin
+#' @description Returns the smallest X coordinate of a raster data structure
+#'              (e.g, data cube, tile, chunk)
+#'              If there many rasters inside a cube, return the overall min
+#' @noRd
+#' @param x    A raster data structure.
+#' @returns    Smallest X coord
 .xmin <- function(x) {
     .as_dbl(.compact(x[["xmin"]]))
 }
+#' @title `.xmin<-`
+#' @description Assigns the smallest X coordinate of a raster data structure
+#'              (e.g, data cube, tile, chunk)
+#' @noRd
+#' @param x     A raster data structure.
+#' @param value A value
+#' @returns     New smallest X coord
 `.xmin<-` <- function(x, value) {
     x[["xmin"]] <- .as_dbl(value)
     x
 }
+#' @title .xmax
+#' @description Returns the largest X coordinate of a raster data structure
+#'              (e.g, data cube, tile, chunk)
+#'              If there many rasters inside a cube, return the overall min
+#' @noRd
+#' @param x    A raster data structure.
+#' @returns    Largest X coord
 .xmax <- function(x) {
     .as_dbl(.compact(x[["xmax"]]))
+}
+#' @title `.xmax<-`
+#' @description Assigns the smallest X coordinate of a raster data structure
+#'              (e.g, data cube, tile, chunk)
+#' @noRd
+#' @param x     A raster data structure.
+#' @param value A value
+#' @returns     New smallest X coord
+`.xmin<-` <- function(x, value) {
+    x[["xmin"]] <- .as_dbl(value)
+    x
 }
 `.xmax<-` <- function(x, value) {
     x[["xmax"]] <- .as_dbl(value)

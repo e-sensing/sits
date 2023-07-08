@@ -533,7 +533,7 @@ sources:
                         band_name    : "rededge3"
                     B08     :
                         <<: *aws_msi_10m
-                        band_name    : "B08"
+                        band_name    : "nir"
                     B8A     :
                         <<: *aws_msi_20m
                         band_name    : "nir08"
