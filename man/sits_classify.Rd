@@ -25,11 +25,8 @@ sits_classify(
 )
 
 \method{sits_classify}{raster_cube}(
-  data,
-  ml_model,
-  ...,
+  cube,
   roi = NULL,
-  filter_fn = NULL,
   start_date = NULL,
   end_date = NULL,
   memsize = 8,

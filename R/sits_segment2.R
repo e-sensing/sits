@@ -80,7 +80,6 @@ sits_classify.raster_cube <- function(cube,
     return(segs_cube)
 }
 
-
 .segment_tile <- function(tile,
                           band,
                           seg_fn,
@@ -380,4 +379,3 @@ sits_supercells_temp <- function(data = NULL,
            verbose = verbose)
     }
 }
-
