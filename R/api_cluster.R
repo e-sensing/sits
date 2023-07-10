@@ -87,7 +87,7 @@
     return(dendro)
 }
 #' @title Compute validity indexes to a range of cut height
-#' @name .sits_cluster_dendro_bestcut
+#' @name .cluster_dendro_bestcut
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -130,6 +130,12 @@
     best_cut <- structure(c(k_result, h_result), .Names = c("k", "height"))
     return(best_cut)
 }
+#' @title Compute Rand index for cluster table
+#' @name .cluster_rand_index
+#' @noRd
+#' @param x a cluster produced by dtwclust::tsclust
+#' @param correct use best calculation
+#' @return Rand index for cluster
 .cluster_rand_index <- function(x, correct = TRUE) {
     if (length(dim(x)) != 2) {
         stop("Argument x needs to be a 2-dimensional table.")

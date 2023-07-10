@@ -1008,3 +1008,22 @@ NULL
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_cube", source)
 }
+#' @rdname source_cube
+#' @noRd
+#' @description Configure access.
+#' @param source  Data source
+#' @param collection Image collection
+#' @return No return, called for side effects
+.source_configure_access <- function(source, collection = NULL) {
+    source <- .source_new(source = source)
+    UseMethod(".source_configure_access", source)
+}
+#' @title Adjusts date-time if required by source
+#' @noRd
+#' @param source  Data source
+#' @param date    Date to be adjusted
+#' @return Adjusted date
+.source_adjust_date <- function(source, date) {
+    source <- .source_new(source = source)
+    UseMethod(".source_adjust_date", source)
+}

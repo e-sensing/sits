@@ -1,5 +1,18 @@
+#' @title Test access to STAC collection
 #' @keywords internal
 #' @noRd
+#' @description
+#' These functions provide an API to handle/retrieve data from source's
+#' collections.
+#'
+#' @param source     Data source.
+#' @param collection Image collection.
+#' @param bands      Band names
+#' @param ...        Other parameters to be passed for specific types.
+#' @param start_date Start date.
+#' @param end_date   End date.
+#' @param dry_run    TRUE/FALSE
+#' @return           Called for side effects
 #' @export
 .source_collection_access_test.stac_cube <- function(source, collection,
                                                      bands, ...,
@@ -60,9 +73,29 @@
     }
     return(invisible(NULL))
 }
-
+#' @title Function to instantiate a new cube from a source
 #' @keywords internal
 #' @noRd
+#' @description
+#' These functions provide an API to instantiate a new cube object and
+#' access/retrieve information from services or local files to fill
+#' cube attributes.
+#'
+#' A cube is formed by images (items) organized in tiles. To create a sits
+#' cube object (a \code{tibble}), a set of functions are called in order
+#' to retrieve metadata.
+#'
+#' @param source     Data source.
+#' @param collection Image collection.
+#' @param bands      Bands to be selected in the collection.
+#' @param tiles      A set of tiles in the collections reference system
+#' @param roi        Region of interest
+#' @param start_date Start date.
+#' @param end_date   End date.
+#' @param platform   Satellite platform
+#' @param progress   Show a progress bar?
+#' @param ...        Additional parameters.
+#' @return           New data cube
 #' @export
 .source_cube.stac_cube <- function(source,
                                    collection,
@@ -120,9 +153,16 @@
     class(cube) <- .cube_s3class(cube)
     return(cube)
 }
-
+#' @title Select bands from a STAC item
 #' @keywords internal
 #' @noRd
+#'
+#' @param source     Data source
+#' @param items      STAC items
+#' @param bands      Bands to be selected in the collection.
+#' @param collection Image collection
+#' @param ...        Additional parameters.
+#' @return List of STAC items
 #' @export
 .source_items_bands_select.stac_cube <- function(source,
                                                  items,
@@ -143,9 +183,16 @@
     )
     return(items)
 }
-
+#' @title Create a new data cube based on STAC item
 #' @keywords internal
 #' @noRd
+#' @param source     Data source
+#' @param collection Image collection
+#' @param items      STAC items
+#' @param ...        Additional parameters.
+#' @param multicores Number of cores
+#' @param progress   Show progress bar?
+#' @return A data cube
 #' @export
 .source_items_cube.stac_cube <- function(source,
                                          collection = NULL,
@@ -410,9 +457,14 @@
         })
     return(cube)
 }
-
+#' @title Get date from STAC item
 #' @keywords internal
 #' @noRd
+#' @param source     Data source
+#' @param item       STAC item
+#' @param ...        Additional parameters.
+#' @param collection Image collection
+#' @return List of dates
 #' @export
 .source_item_get_date.stac_cube <- function(source,
                                             item, ...,
@@ -421,9 +473,14 @@
         lubridate::as_date(item[[c("properties", "datetime")]])
     )
 }
-
+#' @title Get href from STAC item
 #' @keywords internal
 #' @noRd
+#' @param source     Data source
+#' @param item       STAC item
+#' @param ...        Additional parameters.
+#' @param collection Image collection
+#' @return HTTP references
 #' @export
 .source_item_get_hrefs.stac_cube <- function(source,
                                              item, ...,
@@ -435,34 +492,43 @@
     hrefs <- .stac_add_gdal_fs(hrefs)
     return(hrefs)
 }
-
+#' @title Get cloud cover from STAC item
 #' @keywords internal
 #' @noRd
+#' @param source     Data source
+#' @param ...        Additional parameters.
+#' @param item       STAC item
+#' @param collection Image collection
+#' @return Cloud cover value
 #' @export
 .source_item_get_cloud_cover.stac_cube <- function(source, ...,
                                                    item,
                                                    collection = NULL) {
     item[["properties"]][["eo:cloud_cover"]]
 }
-
+#' @title Get bands from STAC item
 #' @keywords internal
 #' @noRd
+#' @param source     Data source
+#' @param item       STAC item
+#' @param ...        Additional parameters.
+#' @param collection Image collection
+#' @return Band names
 #' @export
 .source_item_get_bands.stac_cube <- function(source,
                                              item, ...,
                                              collection = NULL) {
     names(item[["assets"]])
 }
-
-#' @rdname source_cube
+#' @title Get bbox from file info
 #' @keywords internal
 #' @noRd
-#' @description \code{.source_tile_get_bbox()} retrieves the bounding
-#' box from items of a tile.
-#'
-#' @return \code{.source_tile_get_bbox()} returns a \code{list}
-#' vector with 4 elements (xmin, ymin, xmax, ymax).
-#'
+#' @param source     Data source
+#' @param file_info  File info
+#' @param ...        Additional parameters.
+#' @param collection Image collection
+#' @return vector (xmin, ymin, xmax, ymax).
+#' @export
 .source_tile_get_bbox.stac_cube <- function(source,
                                             file_info, ...,
                                             collection = NULL) {
@@ -490,9 +556,14 @@
     bbox <- c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
     return(bbox)
 }
-
+#' @title Get file ID from STAC item
 #' @keywords internal
 #' @noRd
+#' @param source     Data source
+#' @param item       STAC item
+#' @param ...        Additional parameters.
+#' @param collection Image collection
+#' @return File IDs
 #' @export
 .source_items_fid.stac_cube <- function(source,
                                         items, ...,
@@ -503,6 +574,21 @@
         len_min = length(fid), len_max = length(fid),
         msg = "invalid feature id value"
     )
-
     return(fid)
+}
+#' @noRd
+#' @title Configure access.
+#' @param source  Data source
+#' @param collection Image collection
+#' @return No return, called for side effects
+.source_configure_access.stac_cube <- function(source, collection) {
+    return(invisible(TRUE))
+}
+#' @title Adjusts date-time if required by source
+#' @noRd
+#' @param source  Data source
+#' @param date    Date to be adjusted
+#' @return Adjusted date
+.source_adjust_date.stac_cube <- function(source, date) {
+    return(date)
 }

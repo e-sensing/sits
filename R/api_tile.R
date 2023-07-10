@@ -23,7 +23,7 @@ NULL
 #' @export
 .tile.raster_cube <- function(cube) {
     cube <- .cube(cube)
-    cube[1,]
+    cube[1, ]
 }
 
 #  Tile field accessors

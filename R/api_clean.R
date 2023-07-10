@@ -1,3 +1,20 @@
+#' @title Cleans a subset of a image on block model
+#' @name .clean_asset
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @noRd
+#' @description
+#' Applies a modal function to clean up possible noisy pixels keeping
+#' the most frequently values within the neighborhood.
+#' In a tie, the first value of the vector is considered.
+#'
+#' @param asset       Subset of a data cube
+#' @param block       Image block to be cleaned
+#' @param band        Band to be processed
+#' @param window_size Size of local neighborhood
+#' @param overlap     Overlap between blocks
+#' @param output_dir  Directory where files will be saved.
+#' @param version     Version of the output file.
+#' @return            Cleaned tile-band-block asset
 .clean_asset <- function(asset,
                          block,
                          band,
@@ -35,7 +52,8 @@
         block <- .block(chunk)
         # Block file name for each fraction
         block_files <- .file_block_name(
-            pattern = .file_pattern(out_file), block = block,
+            pattern = .file_pattern(out_file),
+            block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure
@@ -84,7 +102,14 @@
     # Return a asset
     band_tile
 }
-
+#' @title Read data for cleaning operation
+#' @name .clean_data_read
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @noRd
+#' @param tile        Tile of a data cube
+#' @param band        Band to be processed
+#' @param block       Image block to be processed
+#' @return            Values for tile-band-block combination
 .clean_data_read <- function(tile, block, band) {
     # Get band values
     values <- .tile_read_block(tile = tile, band = band, block = block)

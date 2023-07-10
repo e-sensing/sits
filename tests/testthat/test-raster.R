@@ -745,9 +745,8 @@ test_that("Raster terra interface", {
 
     prodes_dir <- system.file("extdata/raster/prodes", package = "sits")
     prodes_file <- list.files(prodes_dir)
-    r_clone <- .raster_clone(paste0(prodes_dir,"/",prodes_file), nlayers = 1)
-    r_prodes <- .raster_open_rast(paste0(prodes_dir,"/",prodes_file))
+    r_clone <- .raster_clone(paste0(prodes_dir, "/" ,prodes_file), nlayers = 1)
+    r_prodes <- .raster_open_rast(paste0(prodes_dir, "/", prodes_file))
     expect_equal(nrow(r_clone), nrow(r_prodes))
     expect_equal(ncol(r_clone), ncol(r_prodes))
- })
-
+})

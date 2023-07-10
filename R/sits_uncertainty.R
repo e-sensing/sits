@@ -101,7 +101,7 @@ sits_uncertainty.least <- function(cube,
                                    output_dir,
                                    version = "v1") {
     # Compute uncertainty
-    uncert_cube <- .cube_uncertainty(
+    uncert_cube <- .uncertainty_cube(
         cube = cube,
         band = "least",
         uncert_fn = .uncertainty_fn_least(),
@@ -119,7 +119,7 @@ sits_uncertainty.entropy <- function(cube,
                                      output_dir,
                                      version = "v1") {
     # Compute uncertainty
-    uncert_cube <- .cube_uncertainty(
+    uncert_cube <- .uncertainty_cube(
         cube = cube,
         band = "entropy",
         uncert_fn = .uncertainty_fn_entropy(),
@@ -138,7 +138,7 @@ sits_uncertainty.margin <- function(cube,
                                     output_dir,
                                     version = "v1") {
     # Create uncertainty cube
-    uncert_cube <- .cube_uncertainty(
+    uncert_cube <- .uncertainty_cube(
         cube = cube,
         band = "margin",
         uncert_fn = .uncertainty_fn_margin(),

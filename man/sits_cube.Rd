@@ -232,11 +232,6 @@ Please refer to the sits documentation available in
 \examples{
 if (sits_run_examples()) {
     # --- Access to the Brazil Data Cube
-    # Provide your BDC credentials as environment variables
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    if (nchar(bdc_access_key) == 0) {
-        stop("No BDC_ACCESS_KEY defined in environment.")
-    }
 
     # create a raster cube file based on the information in the BDC
     cbers_tile <- sits_cube(

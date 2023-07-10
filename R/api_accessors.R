@@ -19,7 +19,8 @@
 #'     x # with 'crs' field
 #'     .as_crs(3857) # EPSG:3857
 #' }
-#' @title .xmin
+#' @title Returns the smallest X coordinate
+#' @name .xmin
 #' @description Returns the smallest X coordinate of a raster data structure
 #'              (e.g, data cube, tile, chunk)
 #'              If there many rasters inside a cube, return the overall min
@@ -29,7 +30,8 @@
 .xmin <- function(x) {
     .as_dbl(.compact(x[["xmin"]]))
 }
-#' @title `.xmin<-`
+#' @title Assigns the smallest X coordinate
+#' @name `.xmin<-`
 #' @description Assigns the smallest X coordinate of a raster data structure
 #'              (e.g, data cube, tile, chunk)
 #' @noRd
@@ -40,7 +42,8 @@
     x[["xmin"]] <- .as_dbl(value)
     x
 }
-#' @title .xmax
+#' @title Returns the largest X coordinate
+#' @name .xmax
 #' @description Returns the largest X coordinate of a raster data structure
 #'              (e.g, data cube, tile, chunk)
 #'              If there many rasters inside a cube, return the overall min
@@ -50,35 +53,70 @@
 .xmax <- function(x) {
     .as_dbl(.compact(x[["xmax"]]))
 }
-#' @title `.xmax<-`
-#' @description Assigns the smallest X coordinate of a raster data structure
+#' @title Assigns the largest X coordinate
+#' @name `.xmax<-`
+#' @description Assigns the largest X coordinate of a raster data structure
 #'              (e.g, data cube, tile, chunk)
 #' @noRd
 #' @param x     A raster data structure.
 #' @param value A value
 #' @returns     New smallest X coord
-`.xmin<-` <- function(x, value) {
-    x[["xmin"]] <- .as_dbl(value)
-    x
-}
 `.xmax<-` <- function(x, value) {
     x[["xmax"]] <- .as_dbl(value)
     x
 }
+#' @title Returns the smallest Y coordinate
+#' @name .ymin
+#' @description Returns the smallest Y coordinate of a raster data structure
+#'              (e.g, data cube, tile, chunk)
+#'              If there many rasters inside a cube, return the overall min
+#' @noRd
+#' @param x    A raster data structure.
+#' @returns    Smallest Y coord
 .ymin <- function(x) {
     .as_dbl(.compact(x[["ymin"]]))
 }
+#' @title Assigns the smallest Y coordinate
+#' @name `.ymin<-`
+#' @description Assigns the smallest Y coordinate of a raster data structure
+#'              (e.g, data cube, tile, chunk)
+#' @noRd
+#' @param x     A raster data structure.
+#' @param value A value
+#' @returns     New smallest Y coord
 `.ymin<-` <- function(x, value) {
     x[["ymin"]] <- .as_dbl(value)
     x
 }
+#' @title Returns the largest Y coordinate
+#' @name .ymax
+#' @description Returns the largest Y coordinate of a raster data structure
+#'              (e.g, data cube, tile, chunk)
+#'              If there many rasters inside a cube, return the overall min
+#' @noRd
+#' @param x    A raster data structure.
+#' @returns    Largest Y coord
 .ymax <- function(x) {
     .as_dbl(.compact(x[["ymax"]]))
 }
+#' @title Assigns the largest Y coordinate
+#' @name `.ymax<-`
+#' @description Assigns the largest Y coordinate of a raster data structure
+#'              (e.g, data cube, tile, chunk)
+#' @noRd
+#' @param x     A raster data structure.
+#' @param value A value
+#' @returns     New smallest Y coord
 `.ymax<-` <- function(x, value) {
     x[["ymax"]] <- .as_dbl(value)
     x
 }
+#' @title Transform value to valid CRS
+#' @name .as_crs
+#' @description Given an input, tries to transform it to a valid CRS
+#' @noRd
+#' @param x     input value
+#' @returns     Valid CRS
 .as_crs <- function(x) {
     if (.has(x)) {
         if (is.character(x)) {
@@ -92,9 +130,24 @@
         }
     }
 }
+#' @title Return CRS from a spatial data structure
+#' @name .crs
+#' @description Given an spatial data structure,
+#'              tries to obtain a valid CRS
+#' @noRd
+#' @param x     Raster data structure
+#' @returns     Valid CRS
 .crs <- function(x) {
     .as_crs(x[["crs"]])
 }
+#' @title Assigns CRS from a spatial data structure
+#' @name `.crs<-`
+#' @description Given an spatial data structure and a valid CRS,
+#'              assign the CRS to the structure
+#' @noRd
+#' @param x        Raster data structure
+#' @param value    Valid CRS
+#' @returns        Updated CRS to the raster data structure
 `.crs<-` <- function(x, value) {
     x[["crs"]] <- .as_crs(value)
     x
@@ -125,61 +178,23 @@
 #'     .xres(.fi(modis_cube))
 #'     .yres(.fi(modis_cube))
 #' }
-NULL
-
+#' @title Returns the horizontal resolution
+#' @name .xres
+#' @description Returns the horizontal resolution of a raster data structure
+#'              (e.g, data cube, tile, chunk)
+#' @noRd
+#' @param x    A raster data structure.
+#' @returns    Horizontal resolution
 .xres <- function(x) {
     (.xmax(x) - .xmin(x)) / .ncols(x)
 }
+#' @title Returns the vertical resolution
+#' @name .yres
+#' @description Returns the vectical resolution of a raster data structure
+#'              (e.g, data cube, tile, chunk)
+#' @noRd
+#' @param x    A raster data structure.
+#' @returns    Vertical resolution
 .yres <- function(x) {
     (.ymax(x) - .ymin(x)) / .nrows(x)
-}
-
-#' @title Block accessors
-#' @noRd
-#'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description
-#' These functions are accessors of block fields in a vector.
-#' Getters functions returns the respective field values with the expected
-#' data type. Setters functions convert value to expected data type and
-#' store it in respective fields on a given object. If value has no length
-#' and the vector is not atomic, it is removed from the object.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#'     x <- list(nrows = 123)
-#'     .nrows(x)
-#'     .ncols(x) <- 234
-#'     x
-#' }
-NULL
-
-.col <- function(x) {
-    .as_int(.compact(x[["col"]]))
-}
-`.col<-` <- function(x, value) {
-    x[["col"]] <- .as_int(value)
-    x
-}
-.row <- function(x) {
-    .as_int(.compact(x[["row"]]))
-}
-`.row<-` <- function(x, value) {
-    x[["row"]] <- .as_int(value)
-    x
-}
-.ncols <- function(x) {
-    .as_int(.compact(x[["ncols"]]))
-}
-`.ncols<-` <- function(x, value) {
-    x[["ncols"]] <- .as_int(value)
-    x
-}
-.nrows <- function(x) {
-    .as_int(.compact(x[["nrows"]]))
-}
-`.nrows<-` <- function(x, value) {
-    x[["nrows"]] <- .as_int(value)
-    x
 }

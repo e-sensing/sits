@@ -1,13 +1,11 @@
-#' @title Cleans a classified map using a windowed mode
+#' @title Cleans a classified map using a local window
 #'
 #' @name sits_clean
 #'
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description
-#' Applies a windowed mode function to clean up possible noisy pixels keeping
+#' Applies a modal function to clean up possible noisy pixels keeping
 #' the most frequently values within the neighborhood.
 #' In a tie, the first value of the vector is considered.
 #'

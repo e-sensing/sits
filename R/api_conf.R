@@ -1,3 +1,16 @@
+#' @title Set configuration parameters
+#' @name .conf_set_options
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param processing_bloat       Estimated growth size of R memory relative
+#'                               to block size.
+#' @param rstac_pagination_limit Limit of number of items returned by STAC.
+#' @param gdal_creation_options  GDAL creation options for GeoTiff.
+#' @param gdalcubes_chunk_size   Chunk size to be used by gdalcubes
+#' @param sources                Data sources
+#' @param colors                 Color values
+#' @param ...                    Other configuration params
 .conf_set_options <- function(processing_bloat = NULL,
                               rstac_pagination_limit = NULL,
                               gdal_creation_options = NULL,
@@ -123,7 +136,6 @@
 #' @noRd
 #' @return default configuration file
 #'
-#'
 .conf_file <- function() {
     # load the default configuration file
     yml_file <- system.file("extdata", "config.yml", package = "sits")
@@ -239,6 +251,12 @@
     .conf_set_color_table(color_table)
     return(invisible(NULL))
 }
+#' @title Return the default color table
+#' @name .conf_colors
+#' @keywords internal
+#' @noRd
+#' @return default color table
+#'
 .conf_colors <- function() {
     return(sits_env$color_table)
 }
@@ -264,7 +282,11 @@
 
     return(yml_file)
 }
-
+#' @title Load the user configuration file
+#' @name .conf_set_user_file
+#' @keywords internal
+#' @noRd
+#' @return user configuration file
 .conf_set_user_file <- function() {
     # try to find a valid user configuration file
     user_yml_file <- .conf_user_file()
@@ -297,7 +319,6 @@
         }
     }
 }
-
 #' @title Check band availability
 #' @name .conf_check_bands
 #' @description Checks if the requested bands are available in the collection
@@ -1017,6 +1038,11 @@ NULL
 .cloud_bit_mask <- function(conf) {
     .as_int(conf[["bit_mask"]][[1]])
 }
+#' @title Get the default parse info for local files  flag
+#' @noRd
+#' @param parse_info  Parse information set by user
+#' @param results_cube Is this a results cube?
+#' @return  Valid parse_info information
 .conf_parse_info <- function(parse_info, results_cube) {
     # is parse info NULL? use the default
     if (purrr::is_null(parse_info)) {
@@ -1044,4 +1070,5 @@ NULL
             msg = "parse_info must include tile, date, and band."
         )
     }
+    return(parse_info)
 }

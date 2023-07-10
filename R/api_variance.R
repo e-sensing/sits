@@ -32,7 +32,8 @@
         block <- .block(chunk)
         # Block file name
         block_file <- .file_block_name(
-            pattern = .file_pattern(out_file), block = block,
+            pattern = .file_pattern(out_file),
+            block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure

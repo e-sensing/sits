@@ -185,8 +185,10 @@ test_that("samples_as_sf works (polygon)", {
 })
 
 test_that("ts errors", {
-    point <- point_mt_6bands[,1:5]
+    point <- point_mt_6bands[, 1:5]
     expect_error(.ts(point))
-    expect_error({.ts(point) <- 2.0})
+    expect_error({
+        .ts(point) <- 2.0
+    })
     expect_error(.ts_values(point_mt_6bands, bands = "B08"))
 })

@@ -67,11 +67,6 @@ test_that("Reading a CSV file from RASTER", {
 })
 
 test_that("Retrieving points from BDC using POLYGON shapefiles", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-        message = "No BDC_ACCESS_KEY defined in environment."
-    )
     # read the shape file for Mato Grosso
     shp_file <- system.file(
         "extdata/shapefiles/mato_grosso/mt.shp",
@@ -186,11 +181,6 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
 })
 
 test_that("Retrieving points from BDC using POINT shapefiles", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-        message = "No BDC_ACCESS_KEY defined in environment."
-    )
     shp_file <- system.file(
         "extdata/shapefiles/cerrado/cerrado_forested.shp",
         package = "sits"
@@ -248,11 +238,6 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
 })
 
 test_that("Retrieving points from BDC using sits tibble", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-        message = "No BDC_ACCESS_KEY defined in environment."
-    )
     cube_bbox <- sits_bbox(cerrado_2classes)
     # create a raster cube file based on the bbox of the sits tibble
     modis_cube <- .try(
@@ -300,11 +285,6 @@ test_that("Retrieving points from BDC using sits tibble", {
 })
 
 test_that("Retrieving points from BDC using sf objects", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-        message = "No BDC_ACCESS_KEY defined in environment."
-    )
     shp_file <- system.file(
         "extdata/shapefiles/cerrado/cerrado_forested.shp",
         package = "sits"

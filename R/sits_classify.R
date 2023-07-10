@@ -197,7 +197,8 @@ sits_classify.raster_cube <- function(data,
     }
     # Update block parameter
     block <- .jobs_optimal_block(
-        job_memsize = job_memsize, block = block,
+        job_memsize = job_memsize,
+        block = block,
         image_size = .tile_size(.tile(data)), memsize = memsize,
         multicores = multicores
     )

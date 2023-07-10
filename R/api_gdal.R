@@ -5,7 +5,10 @@
     "INT4U" = "UInt32", "INT4S" = "Int32", "FLT4S" = "Float32",
     "FLT8S" = "Float64"
 )
-
+#' @title Get GDAL parameters
+#' @noRd
+#' @param params   Params used to describe GDAL file
+#' @returns        Cleaned GDAL parameters
 .gdal_params <- function(params) {
     # Check if parameters are named
     if (!all(.has_name(params))) {
@@ -23,7 +26,12 @@
         }
     }, names(params), unname(params), USE.NAMES = FALSE))
 }
-
+#' @title Format GDAL parameters
+#' @noRd
+#' @param asset  File to be accessed (with path)
+#' @param sf_roi Region of interest (sf object)
+#' @param res    Spatial resolution
+#' @returns      Formatted GDAL parameters
 .gdal_format_params <- function(asset, sf_roi, res) {
     gdal_params <- list()
     if (.has(res)) {
@@ -42,7 +50,11 @@
     gdal_params[["-a_nodata"]] <- .miss_value(band_conf)
     return(gdal_params)
 }
-
+#' @title Format GDAL block parameters for data access
+#' @noRd
+#' @param asset  File to be accessed (with path)
+#' @param sf_roi Region of interest (sf object)
+#' @returns      Formatted GDAL block parameters for data access
 .gdal_as_srcwin <- function(asset, sf_roi) {
     block <- .raster_sub_image(tile = asset, sf_roi = sf_roi)
     list(
@@ -52,21 +64,36 @@
         ysize = block[["nrows"]]
     )
 }
-
+#' @title Run gdal_translate
+#' @noRd
+#' @param file        File to be created (with path)
+#' @param base_file   File to be copied from (with path)
+#' @param param       GDAL parameters
+#' @param quiet       TRUE/FALSE
+#' @returns           Called for side effects
 .gdal_translate <- function(file, base_file, params, quiet) {
     sf::gdal_utils(
         util = "translate", source = base_file[[1]], destination = file[[1]],
         options = .gdal_params(params), quiet = quiet
     )
 }
-
+#' @title Run gdal_warp
+#' @noRd
+#' @param file        File to be created (with path)
+#' @param base_files  Files to be copied from (with path)
+#' @param param       GDAL parameters
+#' @param quiet       TRUE/FALSE
+#' @returns           Called for side effects
 .gdal_warp <- function(file, base_files, params, quiet) {
     sf::gdal_utils(
         util = "warp", source = base_files, destination = file[[1]],
         options = .gdal_params(params), quiet = quiet
     )
 }
-
+#' @title Run gdal_addo
+#' @noRd
+#' @param base_file   Base file to be processed
+#' @returns           Called for side effects
 .gdal_addo <- function(base_file) {
     conf_cog <- .conf("gdal_presets", "cog")
     suppressMessages(
@@ -78,7 +105,15 @@
         )
     )
 }
-
+#' @title Run gdal_translate from a block to a file
+#' @noRd
+#' @param block        Block with
+#' @param bbox         Bounding box for file
+#' @param file         Files to be written to (with path)
+#' @param nlayers      Number of layers in GDAL file
+#' @param miss_value   Missing value
+#' @param data_type.   GDAL data type
+#' @returns            Name of file that was written to
 .gdal_template_block <- function(block, bbox, file, nlayers, miss_value,
                                  data_type) {
     # Get first file
@@ -124,7 +159,12 @@
     # Return file
     file
 }
-
+#' @title Merge files into a single file
+#' @noRd
+#' @param file         Files to be written to (with path)
+#' @param base_files   Files to be copied from (with path)
+#' @param multicores   Number of cores to be used in parallel
+#' @returns            Name of file that was written to
 .gdal_merge_into <- function(file, base_files, multicores) {
     # Merge src_files
     file <- .try(
@@ -152,7 +192,16 @@
     # Return file
     file
 }
-
+#' @title Crop an image and save to file
+#' @noRd
+#' @param file         Input file (with path)
+#' @param out_file     Output files (with path)
+#' @param as_crs       Output CRS (if different from input)
+#' @param miss_value   Missing value
+#' @param data_type    GDAL data type
+#' @param multicores   Number of cores to be used in parallel
+#' @param overwrite    TRUE/FALSE
+#' @returns            Called for side effects
 .gdal_crop_image <- function(file,
                              out_file,
                              roi_file,
@@ -178,7 +227,17 @@
     )
     out_file
 }
-
+#' @title Rescale image values and save to file
+#' @noRd
+#' @param file         Input file (with path)
+#' @param out_file     Output files (with path)
+#' @param src_min      Minimum value in source image
+#' @param src_max      Maximum value in source image
+#' @param dst_min      Minimum value in destination image
+#' @param dst_max      Maximum value in destination image
+#' @param miss_value   Missing value
+#' @param data_type    GDAL data type
+#' @returns            Called for side effects
 .gdal_scale <- function(file,
                         out_file,
                         src_min,
@@ -200,7 +259,17 @@
         quiet = TRUE
     )
 }
-
+#' @title Change the projection of an image and save to file
+#' @noRd
+#' @param file         Input file (with path)
+#' @param out_file     Output files (with path)
+#' @param crs          Input CRS
+#' @param as_crs       Output CRS
+#' @param miss_value   Missing value
+#' @param data_type    GDAL data type
+#' @param multicores   Number of cores to be used in parallel
+#' @param overwrite    TRUE/FALSE
+#' @returns            Output file
 .gdal_reproject_image <- function(file, out_file, crs, as_crs, miss_value,
                                   data_type, multicores, overwrite = TRUE) {
     gdal_params <- list(

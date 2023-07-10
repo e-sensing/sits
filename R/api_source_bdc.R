@@ -1,3 +1,9 @@
+#' @title Retrieves the paths or URLs of each file bands of an item for BDC
+#' @param source     Name of the STAC provider.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param item       \code{STACItemcollection} object from rstac package.
+#' @param collection Collection to be searched in the data source.
+#' @return Returns paths to each image band of an item.
 #' @keywords internal
 #' @noRd
 #' @export
@@ -13,8 +19,20 @@
     # add gdal vsi in href urls
     return(.stac_add_gdal_fs(href))
 }
+#' @title Create an items object in a BDC cube
 #' @keywords internal
 #' @noRd
+#' @description \code{.source_items_new()} this function is called to create
+#' an items object. In case of Web services, this function is responsible for
+#' making the Web requests to the server.
+#' @param source     Name of the STAC provider.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param collection Collection to be searched in the data source.
+#' @param stac_query Query that follows the STAC protocol
+#' @param tiles      Selected tiles (optional)
+#' @param platform   Satellite platform (optional).
+#' @return An object referring the images of a sits cube.
+#'
 #' @export
 .source_items_new.bdc_cube <- function(source, ...,
                                        collection,
@@ -44,7 +62,12 @@
 
     return(items_info)
 }
-
+#' @title Organizes items by tiles for BDC collections
+#' @param source     Name of the STAC provider.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
 #' @keywords internal
 #' @noRd
 #' @export
@@ -52,4 +75,15 @@
                                         items,
                                         collection = NULL) {
     rstac::items_reap(items, field = c("properties", "bdc:tiles"))
+}
+#' @noRd
+#' @title Configure access.
+#' @param source  Data source
+#' @param collection Image collection
+#' @return No return, called for side effects
+.source_configure_access.bdc_cube <- function(source, collection = NULL) {
+    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+    if (nchar(bdc_access_key) == 0)
+        Sys.setenv("BDC_ACCESS_KEY" = .conf("BDC_ACCESS_KEY"))
+    return(invisible(TRUE))
 }

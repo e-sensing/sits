@@ -437,8 +437,6 @@
 #' @param block   a valid block with (\code{col}, \code{row},
 #'                \code{ncols}, \code{nrows}).
 #' @param bbox    numeric vector with (xmin, xmax, ymin, ymax).
-#' @param bbox    numeric vector with (\code{xmin}, \code{xmax},
-#'                \code{ymin}, \code{ymax}).
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @note block starts at (1, 1)
@@ -643,27 +641,30 @@
     UseMethod(".raster_freq", pkg_class)
 }
 
-#' @title Raster package internal frequency values function
-#' @name .raster_colrow
+#' @title Return col value given an X coordinate
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj  raster package object
-#' @param x,y    coordinates (either x or y) in raster projection
+#' @param x      X coordinate in raster projection
 #'
-#' @return integer with column or row
+#' @return integer with column
 .raster_col <- function(r_obj, x) {
     # check package
     pkg_class <- .raster_check_package()
 
     UseMethod(".raster_col", pkg_class)
 }
-
-
-#' @name .raster_row
+#' @title Return row value given an Y coordinate
 #' @keywords internal
 #' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj  raster object
+#' @param y      Y coordinate in raster projection
+#'
+#' @return integer with row number
 .raster_row <- function(r_obj, y) {
     # check package
     pkg_class <- .raster_check_package()

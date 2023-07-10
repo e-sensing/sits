@@ -1732,7 +1732,7 @@
     # select the files for the classified cube
     files <- unlist(.cube_paths(cube))
     # open the first file
-    classes_list <- purrr::map(files, function(file){
+    classes_list <- purrr::map(files, function(file) {
         r <- .raster_open_rast(file)
         # get the frequency table
         freq <- .raster_freq(r)
@@ -1754,6 +1754,29 @@
 .check_bbox <- function(x) {
     if (!setequal(names(x), c(.bbox_cols, "crs"))) {
         stop("object is not a valid bbox")
+    }
+}
+#' @title Check if roi or tiles are provided
+#' @name .check_roi_tiles
+#' @param roi           Region of interest
+#' @param tiles         Tiles to be included in cube
+#' @return No return value, called for side effects.
+#' @keywords internal
+#' @noRd
+.check_roi_tiles <- function(roi, tiles) {
+    # Ensures that only a spatial filter is informed
+    if (.has(roi) && .has(tiles)) {
+        stop(
+            "It is not possible to search with roi and tiles.",
+            "Please provide only roi or tiles."
+        )
+    }
+    # Ensures that a spatial filter is informed
+    if (!.has(roi) && !.has(tiles)) {
+        stop(
+            "No spatial search criteria.",
+            "Please provide roi or tiles."
+        )
     }
 }
 #' @title Check if bands are part of a data cube

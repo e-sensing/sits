@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_clean.R
 \name{sits_clean}
 \alias{sits_clean}
-\title{Cleans a classified map using a windowed mode}
+\title{Cleans a classified map using a local window}
 \usage{
 sits_clean(
   cube,
@@ -34,7 +34,7 @@ sliding window of the modal function.}
 A data cube with an classified map cleaned.
 }
 \description{
-Applies a windowed mode function to clean up possible noisy pixels keeping
+Applies a modal function to clean up possible noisy pixels keeping
 the most frequently values within the neighborhood.
 In a tie, the first value of the vector is considered.
 }
@@ -65,8 +65,4 @@ clean_cube <- sits_clean(
 }
 \author{
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
-
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
-Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

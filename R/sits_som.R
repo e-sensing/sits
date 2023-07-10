@@ -319,9 +319,9 @@ sits_som_evaluate_cluster <- function(som_map) {
         temp_data$neuron_label
     ))
     # get dimensions (rows and col)
-    # rows =  original classes of samples
+    # rows are  original classes of samples
     dim_row <- dim(confusion_matrix)[1]
-    #  cols =  clusters
+    #  cols are  clusters
     dim_col <- dim(confusion_matrix)[2]
     # estimate the purity index per cluster
     cluster_purity_lst <- seq_len(dim_col - 1) |>

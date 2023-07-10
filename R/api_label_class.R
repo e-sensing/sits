@@ -1,5 +1,12 @@
-#---- internal functions ----
-
+#' @title Build a classified map from a tile
+#' @noRd
+#' @param tile     Tile of data cube
+#' @param band     Spectral band
+#' @param label_fn Function to be used for labelling
+#' @param output_dir Directory where file will be saved
+#' @param version  Version name
+#' @param progress Show progress bar?
+#' @returns        File path for derived file
 .label_tile <- function(tile, band, label_fn, output_dir, version, progress) {
     # Output file
     out_file <- .file_derived_name(
@@ -26,7 +33,8 @@
         block <- .block(chunk)
         # Output file name
         block_file <- .file_block_name(
-            pattern = .file_pattern(out_file), block = block,
+            pattern = .file_pattern(out_file),
+            block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure
@@ -79,7 +87,9 @@
 }
 
 #---- label functions ----
-
+#' @title Build a classified map from probs cube based on maximal probability
+#' @noRd
+#' @returns       Function to be used to labelling
 .label_fn_majority <- function() {
     label_fn <- function(values) {
         # Used to check values (below)

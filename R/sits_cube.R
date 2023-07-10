@@ -181,11 +181,6 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # --- Access to the Brazil Data Cube
-#'     # Provide your BDC credentials as environment variables
-#'     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-#'     if (nchar(bdc_access_key) == 0) {
-#'         stop("No BDC_ACCESS_KEY defined in environment.")
-#'     }
 #'
 #'     # create a raster cube file based on the information in the BDC
 #'     cbers_tile <- sits_cube(
@@ -288,37 +283,22 @@ sits_cube.stac_cube <- function(source,
                                 end_date = NULL,
                                 platform = NULL,
                                 progress = TRUE) {
-    # Ensures that only a spatial filter is informed
-    if (.has(roi) && .has(tiles)) {
-        stop(
-            "It is not possible to search with roi and tiles.",
-            "Please provide only roi or tiles."
-        )
-    }
-    # Ensures that a spatial filter is informed
-    if (!.has(roi) && !.has(tiles)) {
-        stop(
-            "No spatial search criteria.",
-            "Please provide only roi or tiles."
-        )
-    }
+
+    # Check for ROI and tiles
+    .check_roi_tiles(roi, tiles)
     # Ensures that there are no duplicate tiles
     if (.has(tiles)) {
         tiles <- unique(tiles)
     }
-
     # Converts provided roi to sf
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
     }
     # AWS requires datetime format
-    if (.has(start_date) && source == "AWS") {
-        start_date <- paste0(start_date, "T00:00:00Z")
-    }
-    if (.has(end_date) && source == "AWS") {
-        end_date <- paste0(end_date, "T00:00:00Z")
-    }
-
+    start_date <- .source_adjust_date(source, start_date)
+    end_date   <- .source_adjust_date(source, end_date)
+    # Configure access if necessary
+    .source_configure_access(source, collection)
     # source is upper case
     source <- toupper(source)
     # collection is upper case

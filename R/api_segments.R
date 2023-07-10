@@ -220,6 +220,7 @@
         multicores = multicores,
         progress   = progress
     )
+    return(data)
 }
 #' @title Extract time series from segments by tile and band
 #'

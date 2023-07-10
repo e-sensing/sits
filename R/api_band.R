@@ -1,6 +1,18 @@
+#' @title Rename bands (S3 Generic function)
+#' @name .band_rename
+#' @noRd
+#' @param x sits object (time series or cube)
+#' @param bands new bands for the object
+#' @return updated sits object
 .band_rename <- function(x, bands) {
     UseMethod(".band_rename", x)
 }
+#' @title Rename bands for sits tibble (S3 Generic function)
+#' @name .band_rename.sits
+#' @noRd
+#' @param x sits object (time series)
+#' @param bands new bands for the object
+#' @return updated sits object
 #' @export
 .band_rename.sits <- function(x, bands) {
     data_bands <- sits_bands(x)
@@ -22,6 +34,12 @@
         return(x)
     })
 }
+#' @title Rename bands for data cube (S3 Generic function)
+#' @name .band_rename.raster_cube
+#' @noRd
+#' @param x sits object (cube)
+#' @param bands new bands for the object
+#' @return updated sits object
 #' @export
 .band_rename.raster_cube <- function(x, bands) {
     data_bands <- sits_bands(x)
@@ -55,18 +73,50 @@
         return(x)
     })
 }
+#' @title Return cloud band
+#' @name .band_could
+#' @noRd
+#' @return name used in SITS for cloud band
+#' @export
 .band_cloud <- function() {
     "CLOUD"
 }
+#' @title Convert band names in case of eo_cubes (non-processed)
+#' @name .band_eo
+#' @noRd
+#' @param band band name (may be lower or upper case)
+#' @return band name in upper case
+#' @export
 .band_eo <- function(band) {
     gsub("_", "-", toupper(band))
 }
+#' @title Convert band names for derived cubes
+#' @name .band_derived
+#' @noRd
+#' @param band band name (may be lower or upper case)
+#' @return band name in lower case
+#' @export
 .band_derived <- function(band) {
     gsub("_", "-", tolower(band))
 }
+#' @title Convert band names for time series
+#' @name .band_samples
+#' @noRd
+#' @param band band name (may be lower or upper case)
+#' @return band name in upper case
+#' @export
 .band_samples <- function(band) {
     gsub("_", "-", toupper(band))
 }
+#' @title Convert band names for data cube
+#' @name .band_samples
+#' @description non-processed cubes (eo_cubes) use upper case
+#'              processed cubes (results_cubes) use lower case
+#' @noRd
+#' @param band band name (may be lower or upper case)
+#' @param results_cube Is this a results cube?
+#' @return band name in case required by SITS
+#' @export
 .band_set_case <- function(bands, results_cube) {
     if (!purrr::is_null(bands)) {
         if (results_cube) {

@@ -323,10 +323,11 @@ sits_join_segments <- function(data, segments) {
     labels <- setdiff(colnames(data_id), c("polygon_id", "from", "to", "class"))
 
     data_id <- data_id |>
-        dplyr::summarise(dplyr::across(.cols = labels, sum)) |>
+        dplyr::summarise(dplyr::across(.cols = dplyr::all_of(labels), sum)) |>
         dplyr::rowwise() |>
-        dplyr::mutate(class = labels[which.max(dplyr::c_across(labels))]) |>
-        dplyr::mutate(polygon_id = as.numeric(polygon_id))
+        dplyr::mutate(class = labels[which.max(
+            dplyr::c_across(dplyr::all_of(labels)))]) |>
+        dplyr::mutate(polygon_id = as.numeric(.data[["polygon_id"]]))
 
     # join the data_id tibble with the segments (sf objects)
     segments_tile <- purrr::map(segments, function(seg) {
