@@ -6,49 +6,49 @@
 #'
 #' @keywords internal
 #' @noRd
-#' @return A list with evaluated random values
+#' @param trial current trial
+#' @param params Hyperparameters
+#' @return A list with random values for the hyperparameters
 #'
 .tuning_pick_random <- function(trial, params) {
+    # uniform distribution
     uniform <- function(min = 0, max = 1) {
         val <- stats::runif(n = 1, min = min, max = max)
         return(val)
     }
-
+    # random choice
     choice <- function(..., replace = TRUE) {
         options <- as.list(substitute(list(...), environment()))[-1]
         val <- sample(x = options, replace = replace, size = 1)
         if (length(val) == 1) val <- val[[1]]
         return(unlist(val))
     }
-
+    # normal distribution
     normal <- function(mean = 0, sd = 1) {
         val <- stats::rnorm(n = 1, mean = mean, sd = sd)
         return(val)
     }
-
+    # lognormal distribution
     lognormal <- function(meanlog = 0, sdlog = 1) {
         val <- stats::rlnorm(n = 1, meanlog = meanlog, sdlog = sdlog)
         return(val)
     }
-
+    # loguniform distribution
     loguniform <- function(minlog = 0, maxlog = 1) {
         base <- exp(1)
         return(exp(stats::runif(1, log(min(c(minlog, maxlog)), base),
                          log(max(c(minlog, maxlog)), base))))
     }
-
+    # beta distribution
     beta <- function(shape1, shape2) {
         val <- stats::rbeta(n = 1, shape1 = shape1, shape2 = shape2)
         return(val)
     }
-
+    # get
     params <- purrr::map(as.list(params), eval, envir = environment())
-
     params[["samples"]] <- NULL
-
     return(params)
 }
-
 #' @title Convert hyper-parameters list to a tibble
 #' @name .tuning_params_as_tibble
 #' @keywords internal

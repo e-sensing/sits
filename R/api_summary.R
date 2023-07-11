@@ -1,3 +1,7 @@
+#' @title Summary of a tile of a cube
+#' @noRd
+#' @param tile A \code{tile}.
+#' @return No return, called for side effects
 .summary_tile_information <- function(tile) {
     # print the basic tile information
     cat("class       : ", class(tile)[1], "\n")
@@ -22,6 +26,11 @@
     cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
     return(invisible(NULL))
 }
+#' @title Summary of a derived cube
+#' @noRd
+#' @param object data cube
+#' @param tile A \code{tile}.
+#' @return Summary of a derived cube
 .summary_derived_cube <- function(object,
                                   tile = object$tile[[1]]) {
     # get sample size
@@ -53,8 +62,13 @@
     offset <- .offset(band_conf)
     sum <- summary(values * scale + offset)
     colnames(sum) <- sits_labels(tile)
-    sum
+    return(sum)
 }
+#' @title Check in tile is available
+#' @noRd
+#' @param object data cube
+#' @param tile A \code{tile}.
+#' @return Tile if available, else report error
 .summary_check_tile <- function(object, tile) {
     # only one tile at a time
     .check_chr_parameter(tile)
