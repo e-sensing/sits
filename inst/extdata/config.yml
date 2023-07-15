@@ -12,6 +12,9 @@ rstac_pagination_limit  : 100
 # default raster package
 raster_api_package      : "terra"
 
+# default vector package
+vector_api_package      : "sf"
+
 # GDAL GTiff default creation options
 gdal_creation_options   : [ "COMPRESS=LZW", "PREDICTOR=2",
                             "BIGTIFF=YES", "TILED=YES",
