@@ -2,6 +2,7 @@
 
 # estimated relative growth size of R memory relative to block size
 processing_bloat        : 5
+processing_bloat_seg    : 2
 processing_bloat_smooth : 8
 
 
