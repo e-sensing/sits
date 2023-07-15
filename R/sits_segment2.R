@@ -92,7 +92,7 @@ sits_segment <- function(cube,
                 "change 'output_dir' or 'version' parameters)"
             )
         }
-        seg_tile <- .tile_derived_from_file(
+        seg_tile <- .tile_derived_from_segment(
             file = out_file,
             band = band,
             base_tile = tile,
