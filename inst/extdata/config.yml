@@ -2,6 +2,7 @@
 
 # estimated relative growth size of R memory relative to block size
 processing_bloat        : 5
+processing_bloat_seg    : 2
 processing_bloat_smooth : 8
 
 
@@ -10,6 +11,9 @@ rstac_pagination_limit  : 100
 
 # default raster package
 raster_api_package      : "terra"
+
+# default vector package
+vector_api_package      : "sf"
 
 # GDAL GTiff default creation options
 gdal_creation_options   : [ "COMPRESS=LZW", "PREDICTOR=2",

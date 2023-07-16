@@ -4,18 +4,29 @@
 \alias{sits_segment}
 \title{Segment an image}
 \usage{
-sits_segment(cube, tiles = NULL, bands = NULL, dates = NULL, seg_fn, ...)
+sits_segment(
+  cube,
+  seg_fn = sits_supercells_temp(),
+  roi = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  memsize = 8,
+  multicores = 2,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
 }
 \arguments{
 \item{cube}{Regular data cube}
+
+\item{seg_fn}{Function to apply the segmentation}
 
 \item{tiles}{Tiles to be segmented}
 
 \item{bands}{Bands to include in the segmentation}
 
 \item{dates}{Dates to consider to be segmented}
-
-\item{seg_fn}{Function to apply the segmentation}
 
 \item{...}{Other params to be passed to segmentation function}
 }

@@ -1,19 +1,18 @@
-sits_classify.raster_cube <- function(cube,
-                                      roi = NULL,
-                                      start_date = NULL,
-                                      end_date = NULL,
-                                      memsize = 8,
-                                      multicores = 2,
-                                      output_dir,
-                                      version = "v1",
-                                      verbose = FALSE,
-                                      progress = TRUE) {
-    # preconditions
+sits_segment <- function(cube,
+                         seg_fn = sits_supercells_temp(),
+                         roi = NULL,
+                         start_date = NULL,
+                         end_date = NULL,
+                         memsize = 8,
+                         multicores = 2,
+                         output_dir,
+                         version = "v1",
+                         progress = TRUE) {
+    # Preconditions
     .check_is_raster_cube(cube)
     .check_is_regular(cube)
     .check_memsize(memsize)
     .check_output_dir(output_dir)
-    .check_version(version)
 
     # Spatial filter
     if (.has(roi)) {
@@ -26,6 +25,9 @@ sits_classify.raster_cube <- function(cube,
             cube = cube, start_date = start_date, end_date = end_date
         )
     }
+    start_date <- .default(start_date, .cube_start_date(cube))
+    end_date <- .default(end_date, .cube_end_date(cube))
+
     # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
@@ -34,7 +36,7 @@ sits_classify.raster_cube <- function(cube,
         job_size = .block_size(block = block, overlap = 0),
         npaths = length(.tile_paths(cube)),
         nbytes = 8,
-        proc_bloat = .conf("processing_bloat")
+        proc_bloat = .conf("processing_bloat_seg")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
@@ -47,32 +49,20 @@ sits_classify.raster_cube <- function(cube,
         multicores = multicores
     )
     # Prepare parallel processing
-    .parallel_start(
-        workers = multicores, log = verbose,
-        output_dir = output_dir
-    )
+    .parallel_start(workers = multicores, output_dir = output_dir)
     on.exit(.parallel_stop(), add = TRUE)
-    # Show block information
-    if (verbose) {
-        start_time <- Sys.time()
-        message(
-            "Using blocks of size (", .nrows(block),
-            " x ", .ncols(block), ")"
-        )
-    }
-    # Classification
+    # Segmentation
     # Process each tile sequentially
     segs_cube <- .cube_foreach_tile(cube, function(tile) {
         # Segment the data
         segs_tile <- .segment_tile(
             tile = tile,
-            band = "segment",
             seg_fn = seg_fn,
+            band = "segment",
             block = block,
             roi = roi,
             output_dir = output_dir,
             version = version,
-            verbose = verbose,
             progress = progress
         )
         return(segs_tile)
@@ -81,40 +71,37 @@ sits_classify.raster_cube <- function(cube,
 }
 
 .segment_tile <- function(tile,
-                          band,
                           seg_fn,
+                          band,
                           block,
                           roi,
                           output_dir,
                           version,
-                          verbose,
                           progress) {
     # Output file
     out_file <- .file_derived_name(
-        tile = tile, band = band, version = version, output_dir = output_dir
+        tile = tile, band = band, version = version,
+        output_dir = output_dir, ext = "gpkg"
     )
     # Resume feature
     if (file.exists(out_file)) {
         if (.check_messages()) {
             message("Recovery: tile '", tile[["tile"]], "' already exists.")
             message(
-                "(If you want to produce a new image, please ",
+                "(If you want to produce a new segmentation, please ",
                 "change 'output_dir' or 'version' parameters)"
             )
         }
-        # TODO: adicionar recovery a partir de um shapefile
-        seg_tile <- .tile_derived_from_file(
+        seg_tile <- .tile_derived_from_segment(
             file = out_file,
             band = band,
             base_tile = tile,
-            labels = .ml_labels_code(ml_model),
-            derived_class = "probs_cube",
+            derived_class = "segs_cube",
             update_bbox = TRUE
         )
         return(seg_tile)
     }
-    # Show initial time for tile classification
-    tile_start_time <- .tile_classif_start(tile, verbose)
+
     # Create chunks as jobs
     chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
     # By default, update_bbox is FALSE
@@ -127,22 +114,21 @@ sits_classify.raster_cube <- function(cube,
         # Should bbox of resulting tile be updated?
         update_bbox <- nrow(chunks) != nchunks
     }
-    # Compute fractions probability
-    probs_fractions <- 1/length(.ml_labels(ml_model))
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
         block <- .block(chunk)
+        bbox <- .bbox(chunk)
         # Block file name
-        pattern_name <- paste0(.file_pattern(out_file), "_segments")
+        hash_bundle <- digest::digest(list(block, seg_fn), algo = "md5")
         block_file <- .file_block_name(
-            pattern = pattern_name,
+            pattern = paste0(hash_bundle, "_segment"),
             block = block,
-            output_dir = output_dir
+            output_dir = output_dir,
+            ext = "gpkg"
         )
         # Resume processing in case of failure
-        # TODO: criar uma função com o nome .vector_is_valid
-        if (.raster_is_valid(block_file)) {
+        if (.segment_is_valid(block_file)) {
             return(block_file)
         }
         # Read and preprocess values
@@ -153,82 +139,77 @@ sits_classify.raster_cube <- function(cube,
         values <- C_fill_na(values, 0)
         # Used to check values (below)
         input_pixels <- nrow(values)
-        # Log here
-        .debug_log(
-            event = "start_block_data_segmentation",
-            key = "segment"
-        )
-        # Apply the classification model to values
-        values <- seg_fn(values)
-        # Are the results consistent with the data input?
-        .check_processed_values(values, input_pixels)
-        # Log
-        .debug_log(
-            event = "end_block_data_segmentation",
-            key = "segment"
-        )
-        # Prepare probability to be saved
-        band_conf <- .conf_derived_band(
-            derived_class = "segs_cube", band = band
-        )
-
-        #
-        # Log here
-        #
-        .debug_log(
-            event = "start_block_data_save",
-            key = "file",
-            value = block_file
-        )
-        # Prepare and save results as raster
-        .segment_write_block(
-            files = block_file,
-            block = block,
-            bbox = .bbox(chunk),
-            values = values,
-            data_type = .data_type(band_conf),
-            missing_value = .miss_value(band_conf),
-            crop_block = NULL
-        )
-        # Log
-        .debug_log(
-            event = "end_block_data_save",
-            key = "file",
-            value = block_file
-        )
+        # Apply segment function
+        values <- seg_fn(values, block, bbox)
+        # Prepare and save results as vector
+        .segment_write_block(file = block_file, values = values)
         # Free memory
         gc()
         # Returned block file
         block_file
     }, progress = progress)
-    # Merge blocks into a new probs_cube tile
-    seg_tile <- .tile_derived_merge_blocks(
-        file = out_file,
-        band = band,
-        labels = .ml_labels_code(ml_model),
-        base_tile = tile,
-        block_files = block_files,
-        derived_class = "probs_cube",
-        multicores = .jobs_multicores(),
-        update_bbox = update_bbox
+    # Merge blocks into a new segs_cube tile
+    seg_tile <- .tile_segment_merge_blocks(
+        block_files = block_files, base_tile = tile, band = "segment",
+        derived_class = "seg_cube",
+        out_file = out_file, update_bbox = update_bbox
     )
-    # show final time for classification
-    .tile_classif_end(tile, tile_start_time, verbose)
-    # Return probs tile
+    # Delete segments blocks
+    unlink(block_files)
+    # Return segments tile
     seg_tile
 }
 
-#' @title Read a block of values retrieved from a set of raster images
-#' @name  .classify_data_read
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#'
-#' @param  tile            Input tile to read data.
-#' @param  block           Bounding box in (col, row, ncols, nrows).
-#' @return A matrix with values for classification.
+.tile_segment_merge_blocks <- function(block_files, base_tile, band, derived_class,
+                                       out_file, update_bbox = FALSE) {
+    base_tile <- .tile(base_tile)
+    # Get conf band
+    band_conf <- .conf_derived_band(
+        derived_class = derived_class,
+        band = band
+    )
+    # Set base tile
+    base_file <- if (update_bbox) NULL else .tile_path(base_tile)
+    # Create a template raster based on the first image of the tile
+    vec_segments <- purrr::map_dfr(block_files, sf::st_read)
+    sf::st_write(obj = vec_segments, dsn = out_file)
+
+    # Create tile based on template
+    tile <- .segments_derived_from_file(
+        file = file,
+        band = band,
+        base_tile = base_tile,
+        derived_class = derived_class,
+        update_bbox = update_bbox
+    )
+    # If all goes well, delete block files
+    unlink(block_files)
+    # Return derived tile
+    tile
+}
+
+.segment_is_valid <- function(file) {
+    # resume processing in case of failure
+    if (!all(file.exists(file))) {
+        return(FALSE)
+    }
+    # try to open the file
+    s_obj <- .try(
+        {
+            sf::st_read(file)
+        },
+        .default = {
+            unlink(file)
+            NULL
+        }
+    )
+    # File is not valid
+    if (is.null(s_obj)) {
+        return(FALSE)
+    }
+    return(TRUE)
+}
+
 .segment_data_read <- function(tile, block) {
     # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
@@ -241,12 +222,6 @@ sits_classify.raster_cube <- function(cube,
     values <- purrr::map_dfc(tile_bands, function(band) {
         # Get band values (stops if band not found)
         values <- .tile_read_block(tile = tile, band = band, block = block)
-        # Log
-        .debug_log(
-            event = "start_block_data_process",
-            key = "process",
-            value = "cloud-impute-filter"
-        )
         # Remove cloud masked pixels
         if (.has(cloud_mask)) {
             values[cloud_mask] <- NA
@@ -257,12 +232,6 @@ sits_classify.raster_cube <- function(cube,
         if (any(is.na(values))) {
             values <- impute_fn(values)
         }
-        # Log
-        .debug_log(
-            event = "end_block_data_process",
-            key = "band",
-            value = band
-        )
         # Return values
         as.data.frame(values)
     })
@@ -284,71 +253,9 @@ sits_classify.raster_cube <- function(cube,
     ))
 }
 
-.segment_write_block <- function(files, block, bbox, values, data_type,
-                                 missing_value) {
-    # to support old models convert values to matrix
-    values <- as.matrix(values)
-    nlayers <- ncol(values)
-    if (length(files) > 1) {
-        if (length(files) != ncol(values)) {
-            stop("number of output files does not match number of layers")
-        }
-        # Write each layer in a separate file
-        nlayers <- 1
-    }
-    for (i in seq_along(files)) {
-        # Get i-th file
-        file <- files[[i]]
-        # Get layers to be saved
-        cols <- if (length(files) > 1) i else seq_len(nlayers)
-        # Create a new raster
-        r_obj <- .raster_new_rast(
-            nrows = block[["nrows"]], ncols = block[["ncols"]],
-            xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
-            ymin = bbox[["ymin"]], ymax = bbox[["ymax"]],
-            nlayers = nlayers, crs = bbox[["crs"]]
-        )
-        # Copy values
-        r_obj <- .raster_set_values(
-            r_obj = r_obj,
-            values = values[, cols]
-        )
-
-        .raster_write_segments(
-            r_obj = r_obj, file = file
-        )
-
-    }
-    # Return file path
-    files
-}
-
-.raster_write_segments <- function(r_obj, file) {
-
-    slic_sf <- sf::st_as_sf(terra::as.polygons(r_obj, dissolve = TRUE))
-    # TODO: entender essas linhas
-    # if (nrow(slic_sf) > 0) {
-    #     empty_centers = slic[[2]][,1] != 0 | slic[[2]][,2] != 0
-    #     slic_sf = cbind(slic_sf, stats::na.omit(slic[[2]][empty_centers, ]))
-    #     names(slic_sf) = c("supercells", "x", "y", "geometry")
-    #     slic_sf[["supercells"]] = slic_sf[["supercells"]] + 1
-    #     slic_sf[["x"]] = as.vector(ext_x)[[1]] + (slic_sf[["x"]] * terra::res(x)[[1]]) + (terra::res(x)[[1]]/2)
-    #     slic_sf[["y"]] = as.vector(ext_x)[[4]] - (slic_sf[["y"]] * terra::res(x)[[2]]) - (terra::res(x)[[1]]/2)
-    #     colnames(slic[[3]]) = names(x)
-    #     slic_sf = cbind(slic_sf, stats::na.omit(slic[[3]][empty_centers, , drop = FALSE]))
-    #     slic_sf = suppressWarnings(sf::st_collection_extract(slic_sf, "POLYGON"))
-    # }
-    suppressWarnings(
-        sf::st_write(slic_sf, file)
-    )
-
-    # was the file written correctly?
-    .check_file(
-        x = file,
-        msg = "unable to write raster object"
-    )
-
-    return(invisible(NULL))
+.segment_write_block <- function(file, values) {
+    sf::st_write(obj = values, dsn = file)
+    file
 }
 
 sits_supercells_temp <- function(data = NULL,
@@ -358,8 +265,14 @@ sits_supercells_temp <- function(data = NULL,
                                  avg_fun = "mean",
                                  iter = 10,
                                  minarea = 30) {
-    function(data) {
-        mat <- dim(data)[1:2]
+    function(data, block, bbox) {
+        r_obj <- .raster_new_rast(
+            nrows = block[["nrows"]], ncols = block[["ncols"]],
+            xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
+            ymin = bbox[["ymin"]], ymax = bbox[["ymax"]],
+            nlayers = ncol(data), crs = bbox[["crs"]]
+        )
+        mat <- c(.raster_nrows(r_obj), .raster_ncols(r_obj))
         mode(mat) <- "integer"
         new_centers = matrix(c(0L, 0L), ncol = 2)
         avg_fun_name <- avg_fun; avg_fun_fun = function() ""
@@ -372,10 +285,74 @@ sits_supercells_temp <- function(data = NULL,
                   envir = asNamespace("supercells"),
                   inherits = FALSE
         )
-        fn(mat = mat, vals = data, step = step, nc = compactness, con = clean,
-           centers = centers, type = dist_type, type_fun = dist_fun,
-           avg_fun_fun = avg_fun_fun, avg_fun_name = avg_fun_name,
-           iter = iter, lims = minarea, input_centers = new_centers,
-           verbose = verbose)
+        slic <- fn(mat = mat, vals = data, step = step, nc = compactness, con = clean,
+                   centers = centers, type = dist_type, type_fun = dist_fun,
+                   avg_fun_fun = avg_fun_fun, avg_fun_name = avg_fun_name,
+                   iter = iter, lims = minarea, input_centers = new_centers,
+                   verbose = verbose
+        )
+        ext_x <- terra::ext(r_obj)
+        slic_sf <- terra::rast(slic[[1]])
+        terra::NAflag(slic_sf) <- -1
+        terra::crs(slic_sf) <- terra::crs(r_obj)
+        terra::ext(slic_sf) <- ext_x
+        slic_sf <- sf::st_as_sf(terra::as.polygons(slic_sf, dissolve = TRUE))
+        if (nrow(slic_sf) > 0) {
+            empty_centers = slic[[2]][,1] != 0 | slic[[2]][,2] != 0
+            slic_sf = cbind(slic_sf, stats::na.omit(slic[[2]][empty_centers, ]))
+            names(slic_sf) = c("supercells", "x", "y", "geometry")
+            slic_sf[["supercells"]] = slic_sf[["supercells"]] + 1
+            slic_sf[["x"]] = as.vector(ext_x)[[1]] + (slic_sf[["x"]] * terra::res(r_obj)[[1]]) + (terra::res(r_obj)[[1]]/2)
+            slic_sf[["y"]] = as.vector(ext_x)[[4]] - (slic_sf[["y"]] * terra::res(r_obj)[[2]]) - (terra::res(r_obj)[[1]]/2)
+            colnames(slic[[3]]) = names(r_obj)
+            slic_sf = cbind(slic_sf, stats::na.omit(slic[[3]][empty_centers, , drop = FALSE]))
+            slic_sf = suppressWarnings(sf::st_collection_extract(slic_sf, "POLYGON"))
+            return(slic_sf)
+        }
+        return(slic_sf)
     }
+}
+
+.segments_derived_from_file <- function(file, band, base_tile, derived_class,
+                                        update_bbox = FALSE) {
+    v_obj <- .raster_open_rast(file)
+    base_tile <- .tile(base_tile)
+    bbox <- sf::st_bbox(v_obj)
+    if (update_bbox) {
+        # Update spatial bbox
+        .xmin(base_tile) <- bbox[["xmin"]]
+        .xmax(base_tile) <- bbox[["xmax"]]
+        .ymin(base_tile) <- bbox[["ymin"]]
+        .ymax(base_tile) <- bbox[["ymax"]]
+        .crs(base_tile) <- sf::st_crs(v_obj)
+    }
+    # Update file_info
+    .fi(base_tile) <- .fi_derived_from_file(
+        file = file,
+        band = band,
+        start_date = .tile_start_date(base_tile),
+        end_date = .tile_end_date(base_tile)
+    )
+    # Set tile class and return tile
+    .cube_set_class(base_tile, .conf_derived_s3class(derived_class))
+}
+
+.fi_segment_from_file <- function(file, band, start_date, end_date) {
+    file <- .file_normalize(file)
+    r_obj <- sf::st_read(file)
+    bbox <- sf::st_bbox(r_obj)
+    .fi_derived(
+        band = band,
+        start_date = start_date,
+        end_date = end_date,
+        ncols = NA,
+        nrows = NA,
+        xres = NA,
+        yres = NA,
+        xmin = bbox[["xmin"]],
+        xmax = bbox[["xmax"]],
+        ymin = bbox[["ymin"]],
+        ymax = bbox[["ymax"]],
+        path = file
+    )
 }

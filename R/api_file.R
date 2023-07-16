@@ -38,10 +38,10 @@
 .file_remove_vsi <- function(file) {
     gsub(pattern = "^(/vsicurl/|/vsis3/|/vsigs/)", replacement = "", x = file)
 }
-.file_block_name <- function(pattern, block, output_dir) {
+.file_block_name <- function(pattern, block, output_dir, ext = "tif") {
     .file_path(
         pattern, "block", block[["row"]], block[["col"]],
-        ext = "tif", output_dir = file.path(output_dir, ".sits"),
+        ext = ext, output_dir = file.path(output_dir, ".sits"),
         create_dir = TRUE
     )
 }
@@ -52,11 +52,11 @@
         output_dir = file.path(output_dir, ".sits"), create_dir = TRUE
     )
 }
-.file_derived_name <- function(tile, band, version, output_dir) {
+.file_derived_name <- function(tile, band, version, output_dir, ext = "tif") {
     .file_path(
         tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
         .tile_start_date(tile), .tile_end_date(tile), band, version,
-        ext = "tif", output_dir = output_dir
+        ext = ext, output_dir = output_dir
     )
 }
 
