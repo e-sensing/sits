@@ -157,10 +157,10 @@ derived_cube         :
                 maximum_value: 254
                 offset_value : 0
                 scale_factor : 1
-    segs_cube       :
+    segs_cube        :
         s3_class     : [ "segs_cube", "derived_cube", "raster_cube" ]
         bands        :
-            class    :
+            segments :
                 data_type    : "INT2U"
                 missing_value: 65535
                 minimum_value: 1
