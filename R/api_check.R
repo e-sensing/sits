@@ -2174,6 +2174,22 @@
         )
     }
 }
+
+#' @title Check if the provided object is a vector
+#' @name .check_vector
+#' @param v_obj  a sf, sfc or sfg object
+#' @return No return value, called for side effects.
+#' @keywords internal
+#' @noRd
+.check_vector <- function(csv) {
+    .check_chr_contains(
+        x = class(csv),
+        contains = c("sf", "sfc", "sfg"),
+        discriminator = "one_of",
+        msg = "invalid vector object"
+    )
+}
+
 .check_default_message <- function(x, msg = NULL) {
     # make default message
     if (purrr::is_null(msg)) {
