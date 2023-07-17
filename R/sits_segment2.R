@@ -92,7 +92,7 @@ sits_segment <- function(cube,
                 "change 'output_dir' or 'version' parameters)"
             )
         }
-        seg_tile <- .tile_derived_from_segment(
+        seg_tile <- .segments_derived_from_file(
             file = out_file,
             band = band,
             base_tile = tile,
@@ -141,8 +141,10 @@ sits_segment <- function(cube,
         input_pixels <- nrow(values)
         # Apply segment function
         values <- seg_fn(values, block, bbox)
+        # Check if the result values is a vector object
+        .check_vector(values)
         # Prepare and save results as vector
-        .segment_write_block(file = block_file, values = values)
+        .vector_write_vec(v_obj = values, file = block_file)
         # Free memory
         gc()
         # Returned block file
@@ -150,9 +152,12 @@ sits_segment <- function(cube,
     }, progress = progress)
     # Merge blocks into a new segs_cube tile
     seg_tile <- .tile_segment_merge_blocks(
-        block_files = block_files, base_tile = tile, band = "segment",
-        derived_class = "seg_cube",
-        out_file = out_file, update_bbox = update_bbox
+        block_files = block_files,
+        base_tile = tile,
+        band = "segments",
+        derived_class = "segs_cube",
+        out_file = out_file,
+        update_bbox = update_bbox
     )
     # Delete segments blocks
     unlink(block_files)
@@ -170,10 +175,10 @@ sits_segment <- function(cube,
     )
     # Set base tile
     base_file <- if (update_bbox) NULL else .tile_path(base_tile)
-    # Create a template raster based on the first image of the tile
-    vec_segments <- purrr::map_dfr(block_files, sf::st_read)
-    sf::st_write(obj = vec_segments, dsn = out_file)
-
+    # Read all blocks file
+    vec_segments <- purrr::map_dfr(block_files, .vector_read_vec.sf)
+    # Write all segments
+    .vector_write_vec(v_obj = vec_segments, file = out_file)
     # Create tile based on template
     tile <- .segments_derived_from_file(
         file = file,
@@ -253,82 +258,75 @@ sits_segment <- function(cube,
     ))
 }
 
-.segment_write_block <- function(file, values) {
-    sf::st_write(obj = values, dsn = file)
-    file
-}
-
 sits_supercells_temp <- function(data = NULL,
                                  step = 50,
                                  compactness = 1,
                                  dist_fun = "euclidean",
                                  avg_fun = "mean",
                                  iter = 10,
-                                 minarea = 30) {
+                                 minarea = 30,
+                                 verbose = FALSE) {
     function(data, block, bbox) {
-        r_obj <- .raster_new_rast(
+        # Create a template rast
+        v_obj <- .raster_new_rast(
             nrows = block[["nrows"]], ncols = block[["ncols"]],
             xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
             ymin = bbox[["ymin"]], ymax = bbox[["ymax"]],
-            nlayers = ncol(data), crs = bbox[["crs"]]
+            nlayers = 1, crs = bbox[["crs"]]
         )
-        mat <- c(.raster_nrows(r_obj), .raster_ncols(r_obj))
-        mode(mat) <- "integer"
-        new_centers = matrix(c(0L, 0L), ncol = 2)
-        avg_fun_name <- avg_fun; avg_fun_fun = function() ""
-        dist_type <- dist_fun; dist_fun = function() ""
-        centers <- TRUE
-        verbose <- 0
-        clean <- TRUE
-        transform <-  NULL
+        # Get raster dimensions
+        mat <- as.integer(c(.raster_nrows(v_obj), .raster_ncols(v_obj)))
+        # Get caller function and call it
         fn <- get("run_slic",
                   envir = asNamespace("supercells"),
                   inherits = FALSE
         )
-        slic <- fn(mat = mat, vals = data, step = step, nc = compactness, con = clean,
-                   centers = centers, type = dist_type, type_fun = dist_fun,
-                   avg_fun_fun = avg_fun_fun, avg_fun_name = avg_fun_name,
-                   iter = iter, lims = minarea, input_centers = new_centers,
-                   verbose = verbose
+        slic <- fn(
+            mat = mat, vals = data, step = step, nc = compactness,
+            con = TRUE, centers = TRUE, type = dist_fun,
+            type_fun = function() "", avg_fun_fun = function() "",
+            avg_fun_name = avg_fun, iter = iter, lims = minarea,
+            input_centers = matrix(c(0L, 0L), ncol = 2),
+            verbose = as.integer(verbose)
         )
-        ext_x <- terra::ext(r_obj)
-        slic_sf <- terra::rast(slic[[1]])
-        terra::NAflag(slic_sf) <- -1
-        terra::crs(slic_sf) <- terra::crs(r_obj)
-        terra::ext(slic_sf) <- ext_x
-        slic_sf <- sf::st_as_sf(terra::as.polygons(slic_sf, dissolve = TRUE))
-        if (nrow(slic_sf) > 0) {
-            empty_centers = slic[[2]][,1] != 0 | slic[[2]][,2] != 0
-            slic_sf = cbind(slic_sf, stats::na.omit(slic[[2]][empty_centers, ]))
-            names(slic_sf) = c("supercells", "x", "y", "geometry")
-            slic_sf[["supercells"]] = slic_sf[["supercells"]] + 1
-            slic_sf[["x"]] = as.vector(ext_x)[[1]] + (slic_sf[["x"]] * terra::res(r_obj)[[1]]) + (terra::res(r_obj)[[1]]/2)
-            slic_sf[["y"]] = as.vector(ext_x)[[4]] - (slic_sf[["y"]] * terra::res(r_obj)[[2]]) - (terra::res(r_obj)[[1]]/2)
-            colnames(slic[[3]]) = names(r_obj)
-            slic_sf = cbind(slic_sf, stats::na.omit(slic[[3]][empty_centers, , drop = FALSE]))
-            slic_sf = suppressWarnings(sf::st_collection_extract(slic_sf, "POLYGON"))
-            return(slic_sf)
+        # Set values and NA value in template raster
+        v_obj <- .raster_set_values(v_obj, slic[[1]])
+        v_obj <- .raster_set_na(v_obj, -1)
+        # Polygonize raster and convert to sf object
+        v_obj <- .raster_polygonize(v_obj, dissolve = TRUE)
+        v_obj <- sf::st_as_sf(v_obj)
+        if (nrow(v_obj) == 0) {
+            return(v_obj)
         }
-        return(slic_sf)
+        # Add an ID for each segments
+        names(v_obj) <- c("supercells", "geometry")
+        v_obj[["supercells"]] <- v_obj[["supercells"]] + 1
+        # Get only polygons segments
+        v_obj <- suppressWarnings(
+            sf::st_collection_extract(v_obj, "POLYGON")
+        )
+        # Return the segment object
+        return(v_obj)
     }
 }
 
 .segments_derived_from_file <- function(file, band, base_tile, derived_class,
                                         update_bbox = FALSE) {
-    v_obj <- .raster_open_rast(file)
+    v_obj <- .vector_open_vec(file)
     base_tile <- .tile(base_tile)
-    bbox <- sf::st_bbox(v_obj)
+    bbox <- .vector_bbox(v_obj)
     if (update_bbox) {
         # Update spatial bbox
         .xmin(base_tile) <- bbox[["xmin"]]
         .xmax(base_tile) <- bbox[["xmax"]]
         .ymin(base_tile) <- bbox[["ymin"]]
         .ymax(base_tile) <- bbox[["ymax"]]
-        .crs(base_tile) <- sf::st_crs(v_obj)
+        .crs(base_tile) <- .vector_crs(v_obj, wkt = TRUE)
     }
     # Update file_info
-    .fi(base_tile) <- .fi_derived_from_file(
+    .fi(base_tile) <- .fi_segment_from_file(
         file = file,
+        base_tile = base_tile,
         band = band,
         start_date = .tile_start_date(base_tile),
         end_date = .tile_end_date(base_tile)
@@ -337,18 +335,18 @@ sits_supercells_temp <- function(data = NULL,
     .cube_set_class(base_tile, .conf_derived_s3class(derived_class))
 }
 
-.fi_segment_from_file <- function(file, band, start_date, end_date) {
+.fi_segment_from_file <- function(file, base_tile, band, start_date, end_date) {
     file <- .file_normalize(file)
-    r_obj <- sf::st_read(file)
-    bbox <- sf::st_bbox(r_obj)
+    v_obj <- .vector_open_vec(file)
+    bbox <- .vector_bbox(v_obj)
     .fi_derived(
         band = band,
         start_date = start_date,
         end_date = end_date,
-        ncols = NA,
-        nrows = NA,
-        xres = NA,
-        yres = NA,
+        ncols = .tile_ncols(base_tile),
+        nrows = .tile_nrows(base_tile),
+        xres = .tile_xres(base_tile),
+        yres = .tile_yres(base_tile),
         xmin = bbox[["xmin"]],
         xmax = bbox[["xmax"]],
         ymin = bbox[["ymin"]],
