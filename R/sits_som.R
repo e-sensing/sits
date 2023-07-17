@@ -100,7 +100,7 @@ sits_som_map <- function(data,
         )
     )
     # get the time series
-    time_series <- sits_values(data, format = "bands_cases_dates")
+    time_series <- .values_ts(data, format = "bands_cases_dates")
     # create the kohonen map
     kohonen_obj <-
         kohonen::supersom(

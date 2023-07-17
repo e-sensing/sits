@@ -66,7 +66,7 @@ sits_cube_copy <- function(cube,
         output_dir <- path.expand(output_dir)
     }
     .check_output_dir(output_dir)
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
 
     # Prepare parallel processing

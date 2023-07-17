@@ -128,7 +128,9 @@
 #' @return                Predictors data.frame sampled
 .pred_sample <- function(pred, frac) {
     pred <- dplyr::group_by(pred, .data[["label"]])
-    dplyr::slice_sample(pred, prop = frac)
+    frac <- dplyr::slice_sample(pred, prop = frac) |>
+        dplyr::ungroup()
+    return(frac)
 }
 # ---- Partitions ----
 #' @title Get predictors of a given partition

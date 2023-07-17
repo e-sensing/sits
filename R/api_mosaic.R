@@ -266,6 +266,7 @@
     file_name <- .file_sans_ext(roi)
     shp_exts <- c(".shp", ".shx", ".dbf", ".prj")
     unlink(paste0(file.path(dir_name, file_name), shp_exts))
+    return(invisible(roi))
 }
 #' @title Get type of mosaic
 #' @keywords internal

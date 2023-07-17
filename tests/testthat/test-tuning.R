@@ -15,7 +15,7 @@ test_that("Tuning - random search", {
             )
         ),
         trials = 2,
-        multicores = 2,
+        multicores = 1,
         progress = FALSE
     )
     expect_true(max(tuned_choice$accuracy) > 0.5)

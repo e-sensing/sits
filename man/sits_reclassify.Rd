@@ -3,6 +3,8 @@
 \name{sits_reclassify}
 \alias{sits_reclassify}
 \alias{sits_reclassify.class_cube}
+\alias{sits_reclassify.tbl_df}
+\alias{sits_reclassify.default}
 \title{Reclassify a classified cube}
 \usage{
 sits_reclassify(
@@ -24,25 +26,32 @@ sits_reclassify(
   output_dir,
   version = "v1"
 )
+
+\method{sits_reclassify}{tbl_df}(cube, ...)
+
+\method{sits_reclassify}{default}(cube, ...)
 }
 \arguments{
-\item{cube}{Classified image cube to be reclassified.}
+\item{cube}{Image cube to be reclassified (class = "class_cube")}
 
-\item{mask}{Classified image cube with additional information
-to be used in expressions.}
+\item{mask}{Image cube with additional information
+to be used in expressions (class = "class_cube").}
 
-\item{rules}{Named expressions to be evaluated (see details).}
+\item{rules}{List with expressions to be evaluated (see details).}
 
-\item{memsize}{Memory available for classification (in GB).}
+\item{memsize}{Memory available for classification in GB
+(integer, min = 1, max = 16384).}
 
-\item{multicores}{Number of cores to be used for classification.}
+\item{multicores}{Number of cores to be used for classification
+(integer, min = 1, max = 2048).}
 
-\item{output_dir}{Directory where files will be saved.}
+\item{output_dir}{Directory where files will be saved
+(character vector of length 1 with valid location).}
 
-\item{version}{Version of resulting image (in the case of multiple runs).}
+\item{version}{Version of resulting image (character).}
 }
 \value{
-A classified image cube.
+An object of class "class_cube" (reclassified cube).
 }
 \description{
 Apply a set of named expressions to reclassify a classified image.
@@ -125,7 +134,8 @@ ro_mask <- sits_reclassify(
     ),
     memsize = 4,
     multicores = 2,
-    output_dir = tempdir()
+    output_dir = tempdir(),
+    version = "ex_reclassify"
 )
 }
 }

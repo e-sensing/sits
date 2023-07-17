@@ -9,14 +9,17 @@
 #' The expressions should use character values to refer to labels in
 #' logical expressions.
 #'
-#' @param cube       Classified image cube to be reclassified.
-#' @param mask       Classified image cube with additional information
-#'                   to be used in expressions.
-#' @param rules      Named expressions to be evaluated (see details).
-#' @param memsize    Memory available for classification (in GB).
-#' @param multicores Number of cores to be used for classification.
-#' @param output_dir Directory where files will be saved.
-#' @param version    Version of resulting image (in the case of multiple runs).
+#' @param cube        Image cube to be reclassified (class = "class_cube")
+#' @param mask        Image cube with additional information
+#'                    to be used in expressions (class = "class_cube").
+#' @param rules       List with expressions to be evaluated (see details).
+#' @param memsize     Memory available for classification in GB
+#'                    (integer, min = 1, max = 16384).
+#' @param multicores  Number of cores to be used for classification
+#'                    (integer, min = 1, max = 2048).
+#' @param output_dir  Directory where files will be saved
+#'                    (character vector of length 1 with valid location).
+#' @param version    Version of resulting image (character).
 #'
 #' @details
 #' \code{sits_reclassify()} allow any valid R expression to compute
@@ -29,7 +32,7 @@
 #' evaluated sequentially and resulting values are assigned to
 #' output cube. Last expressions has precedence over first ones.
 #'
-#' @return A classified image cube.
+#' @return An object of class "class_cube" (reclassified cube).
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -96,7 +99,8 @@
 #'     ),
 #'     memsize = 4,
 #'     multicores = 2,
-#'     output_dir = tempdir()
+#'     output_dir = tempdir(),
+#'     version = "ex_reclassify"
 #' )
 #' }
 #' @rdname sits_reclassify
@@ -109,12 +113,28 @@ sits_reclassify <- function(cube,
                             output_dir,
                             version = "v1") {
     # Pre-conditions - Check parameters
-    .check_cube_is_class_cube(cube)
-    .check_cube_is_class_cube(mask)
-    .check_memsize(memsize)
-    .check_multicores(multicores)
+    .check_valid(cube)
+    .check_valid(mask)
+    .check_memsize(memsize, min = 1, max = 16384)
+    .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
     .check_version(version)
+
+    UseMethod("sits_reclassify", cube)
+}
+
+#' @rdname sits_reclassify
+#' @export
+sits_reclassify.class_cube <- function(cube,
+                                       mask,
+                                       rules,
+                                       memsize = 4,
+                                       multicores = 2,
+                                       output_dir,
+                                       version = "v1") {
+
+    # check mask is a class cube
+    .check_cube_is_class_cube(mask)
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
@@ -132,19 +152,6 @@ sits_reclassify <- function(cube,
     # Prepare parallelization
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
-
-    UseMethod("sits_reclassify", cube)
-}
-
-#' @rdname sits_reclassify
-#' @export
-sits_reclassify.class_cube <- function(cube,
-                                       mask,
-                                       rules,
-                                       memsize = 4,
-                                       multicores = 2,
-                                       output_dir,
-                                       version = "v1") {
     # Capture expression
     rules <- as.list(substitute(rules, environment()))[-1]
     # Reclassify parameters checked in reclassify function
@@ -179,5 +186,24 @@ sits_reclassify.class_cube <- function(cube,
         )
         return(class_tile)
     }, mask = mask)
+    class(class_cube) <- c("class_cube", class(class_cube))
     return(class_cube)
+}
+#' @rdname sits_reclassify
+#' @export
+sits_reclassify.tbl_df <- function(cube, ...){
+    if (all(sits_bands(cube) == "class"))
+            class(cube) <- c("class_cube", class(cube))
+    else
+        stop("Input should be a classified cube")
+    class_cube <- sits_reclassify(cube, ...)
+    return(class_cube)
+}
+#' @rdname sits_reclassify
+#' @export
+sits_reclassify.default <- function(cube, ...){
+    cube <- tibble::as_tibble(cube)
+    class_cube <- sits_reclassify(cube, ...)
+    return(class_cube)
+
 }

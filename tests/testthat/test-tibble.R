@@ -141,7 +141,7 @@ test_that("Sample", {
 })
 
 test_that("Values", {
-    values <- sits_values(cerrado_2classes[1:2, ], format = "bands_dates_cases")
+    values <- .values_ts(cerrado_2classes[1:2, ], format = "bands_dates_cases")
 
     expect_equal(names(values), sits_bands(cerrado_2classes))
 

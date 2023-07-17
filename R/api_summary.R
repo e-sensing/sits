@@ -1,7 +1,7 @@
 #' @title Summary of a tile of a cube
 #' @noRd
 #' @param tile A \code{tile}.
-#' @return No return, called for side effects
+#' @return Called for side effects
 .summary_tile_information <- function(tile) {
     # print the basic tile information
     cat("class       : ", class(tile)[1], "\n")
@@ -24,7 +24,7 @@
         sep = ""
     )
     cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
-    return(invisible(NULL))
+    return(invisible(tile))
 }
 #' @title Summary of a derived cube
 #' @noRd

@@ -7,13 +7,16 @@
 sits_sample(data, n = NULL, frac = NULL, oversample = TRUE)
 }
 \arguments{
-\item{data}{Input sits tibble.}
+\item{data}{Sits time series tibble.}
 
-\item{n}{Number of samples to pick from each group of data.}
+\item{n}{Integer: number of samples to select
+(range: 1 to nrow(data)).}
 
-\item{frac}{Percentage of samples to pick from each group of data.}
+\item{frac}{Numeric: Percentage of samples to extract
+(range: 0.0 to 2.0)}
 
-\item{oversample}{Oversample classes with small number of samples?}
+\item{oversample}{Logical: oversample classes with small number of samples?
+(TRUE/FALSE)}
 }
 \value{
 A sits tibble with a fixed quantity of samples.
@@ -35,9 +38,13 @@ data(cerrado_2classes)
 # Print the labels of the resulting tibble
 summary(cerrado_2classes)
 # Samples the data set
-data <- sits_sample(cerrado_2classes, n = 100)
-# Print the labels of the resulting tibble
-summary(data)
+data_100 <- sits_sample(cerrado_2classes, n = 100)
+# Print the labels
+summary(data_100)
+# Sample by fraction
+data_02 <- sits_sample(cerrado_2classes, frac = 0.2)
+# Print the labels
+summary(data_02)
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

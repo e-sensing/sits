@@ -67,6 +67,8 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
             purrr::map_dfr(function(lb) {
                 # filter only those rows with the same label
                 label_rows <- dplyr::filter(tb, .data[["label"]] == lb)
+                # make sure label_rows is of class sits
+                class(label_rows) <- c("sits", class(label_rows))
                 # create a data frame to store the time instances
                 time <- data.frame(as.numeric(pred_time))
                 # name the time as the second variable of the formula

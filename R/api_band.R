@@ -12,7 +12,7 @@
 #' @noRd
 #' @param x sits object (time series)
 #' @param bands new bands for the object
-#' @return updated sits object
+#' @return Updated sits object
 #' @export
 .band_rename.sits <- function(x, bands) {
     data_bands <- sits_bands(x)
@@ -77,7 +77,6 @@
 #' @name .band_could
 #' @noRd
 #' @return name used in SITS for cloud band
-#' @export
 .band_cloud <- function() {
     "CLOUD"
 }
@@ -86,7 +85,6 @@
 #' @noRd
 #' @param band band name (may be lower or upper case)
 #' @return band name in upper case
-#' @export
 .band_eo <- function(band) {
     gsub("_", "-", toupper(band))
 }
@@ -95,7 +93,6 @@
 #' @noRd
 #' @param band band name (may be lower or upper case)
 #' @return band name in lower case
-#' @export
 .band_derived <- function(band) {
     gsub("_", "-", tolower(band))
 }
@@ -104,7 +101,6 @@
 #' @noRd
 #' @param band band name (may be lower or upper case)
 #' @return band name in upper case
-#' @export
 .band_samples <- function(band) {
     gsub("_", "-", toupper(band))
 }
@@ -116,7 +112,6 @@
 #' @param band band name (may be lower or upper case)
 #' @param results_cube Is this a results cube?
 #' @return band name in case required by SITS
-#' @export
 .band_set_case <- function(bands, results_cube) {
     if (!purrr::is_null(bands)) {
         if (results_cube) {

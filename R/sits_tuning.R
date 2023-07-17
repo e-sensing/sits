@@ -116,7 +116,7 @@ sits_tuning <- function(samples,
     # check trials
     .check_int_parameter(trials)
     # check 'multicores' parameter
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     # generate random params
     params_lst <- purrr::map(
         as.list(seq_len(trials)),

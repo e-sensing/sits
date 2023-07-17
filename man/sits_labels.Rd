@@ -6,6 +6,9 @@
 \alias{sits_labels.raster_cube}
 \alias{sits_labels.patterns}
 \alias{sits_labels.sits_model}
+\alias{sits_labels.tbl_df}
+\alias{sits_labels.default}
+\alias{sits_labels<-.tbl_df}
 \title{Get labels associated to a data set}
 \usage{
 sits_labels(data)
@@ -17,13 +20,19 @@ sits_labels(data)
 \method{sits_labels}{patterns}(data)
 
 \method{sits_labels}{sits_model}(data)
+
+\method{sits_labels}{tbl_df}(data)
+
+\method{sits_labels}{default}(data)
+
+\method{sits_labels}{tbl_df}(data) <- value
 }
 \arguments{
-\item{data}{Time series or a cube.}
+\item{data}{Data.frame containing time series or a data cube.}
 }
 \value{
 The labels associated to a set of time series or to
-                 a data cube.
+                 a data cube (character vector).
 }
 \description{
 Finds labels in a sits tibble or data cube

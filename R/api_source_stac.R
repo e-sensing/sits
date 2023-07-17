@@ -21,7 +21,7 @@
                                                      dry_run = FALSE) {
     # require package
     .check_require_packages("rstac")
-
+    # create a query
     items_query <- .stac_create_items_query(
         source = source,
         collection = collection,
@@ -29,7 +29,6 @@
         end_date = end_date,
         limit = 1
     )
-
     # assert that service is online
     tryCatch(
         {
@@ -71,7 +70,7 @@
             }
         )
     }
-    return(invisible(NULL))
+    return(invisible(source))
 }
 #' @title Function to instantiate a new cube from a source
 #' @keywords internal
@@ -582,7 +581,7 @@
 #' @param collection Image collection
 #' @return No return, called for side effects
 .source_configure_access.stac_cube <- function(source, collection) {
-    return(invisible(TRUE))
+    return(invisible(source))
 }
 #' @title Adjusts date-time if required by source
 #' @noRd

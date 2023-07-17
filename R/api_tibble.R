@@ -218,6 +218,7 @@
             return(row)
         }
     )
+    class(data) <- c("sits", class(data))
     return(data)
 }
 #'

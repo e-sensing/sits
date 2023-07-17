@@ -9,16 +9,18 @@
 #' the most frequently values within the neighborhood.
 #' In a tie, the first value of the vector is considered.
 #'
-#' @param cube        A classified data cube
-#' @param window_size An odd number representing the size of the
-#'                    sliding window of the modal function.
-#' @param memsize     Memory available for classification (in GB).
-#' @param multicores  Number of cores to be used for classification.
-#' @param output_dir  Directory where files will be saved.
-#' @param version     Version of the output file.
-#' @param progress    Show progress bar?
+#' @param cube        Classified data cube (tibble of class "class_cube")
+#' @param window_size An odd integer  representing the size of the
+#'                    sliding window of the modal function (min = 1, max = 15)
+#' @param memsize     Memory available for classification in GB
+#'                    (integer, min = 1, max = 16384).
+#' @param multicores  Number of cores to be used for classification
+#'                    (integer, min = 1, max = 2048).
+#' @param output_dir  Valid directory for output file.
+#' @param version     Version of the output file (character vector of length 1)
+#' @param progress    Show progress bar (logical)?
 #'
-#' @return A data cube with an classified map cleaned.
+#' @return A data cube with an classified map (class = "class_cube").
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -40,7 +42,13 @@
 #' )
 #' # apply a mode function in the labelled cube
 #' clean_cube <- sits_clean(
-#'     label_cube, window_size = 5,  output_dir = tempdir()
+#'     cube = label_cube,
+#'     window_size = 5,
+#'     memsize = 8,
+#'     multicores = 2,
+#'     output_dir = tempdir(),
+#'     version = "ex_clean",
+#'     progress = TRUE
 #' )
 #' }
 #'
@@ -53,13 +61,14 @@ sits_clean <- function(cube,
                        version = "v1",
                        progress = TRUE) {
     # Check cube
-    .check_cube_is_class_cube(cube)
+    .check_na(cube)
+    .check_null(cube)
     # Check window size
-    .check_window_size(window_size)
+    .check_window_size(window_size, min = 1, max = 15)
     # Check memsize
-    .check_memsize(memsize)
+    .check_memsize(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     # Check output_dir
     .check_output_dir(output_dir)
     # Check version
@@ -67,9 +76,20 @@ sits_clean <- function(cube,
     # Check progress
     .check_progress(progress)
 
+    UseMethod("sits_clean", cube)
+}
+#' @rdname sits_clean
+#' @export
+sits_clean.class_cube <- function(cube,
+                                  window_size,
+                                  memsize,
+                                  multicores,
+                                  output_dir,
+                                  version,
+                                  progress) {
+
     # Get input band
     band <- .cube_bands(cube)
-
     # image size
     image_size <- .raster_size(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels
@@ -106,5 +126,25 @@ sits_clean <- function(cube,
         return(output_asset)
     })
     # Join output assets and return it
-    .cube_merge_tiles(assets_band)
+    clean_cube <- .cube_merge_tiles(assets_band)
+    class(clean_cube) <- c("class_cube", class(clean_cube))
+    return(clean_cube)
+}
+#' @rdname sits_clean
+#' @export
+sits_clean.tbl_df <- function(cube, ...){
+    if (all(.conf("sits_cube_cols") %in% colnames(cube)) &&
+        all(sits_bands(cube) %in% "class")) {
+        class(cube) <- c("class_cube", class(cube))
+    } else
+        stop("Input should be a classified cube")
+    clean_cube <- sits_clean(cube, ...)
+    return(clean_cube)
+}
+#' @rdname sits_clean
+#' @export
+sits_clean.default <- function(cube,...){
+    cube <- tibble::as_tibble(cube)
+    clean_cube <- sits_clean(cube, ...)
+    return(clean_cube)
 }

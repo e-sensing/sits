@@ -67,7 +67,7 @@
 #' @param ...        Other parameters to be passed for specific types.
 #' @param items      \code{STACItemcollection} object from rstac package.
 #' @param collection Collection to be searched in the data source.
-#' @return A list of items.
+#' @return A list of STAC items.
 #' @keywords internal
 #' @noRd
 #' @export
@@ -80,10 +80,10 @@
 #' @title Configure access.
 #' @param source  Data source
 #' @param collection Image collection
-#' @return No return, called for side effects
+#' @return Called for side effects
 .source_configure_access.bdc_cube <- function(source, collection = NULL) {
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
     if (nchar(bdc_access_key) == 0)
         Sys.setenv("BDC_ACCESS_KEY" = .conf("BDC_ACCESS_KEY"))
-    return(invisible(TRUE))
+    return(invisible(source))
 }

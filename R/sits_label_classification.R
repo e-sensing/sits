@@ -58,8 +58,8 @@ sits_label_classification <- function(cube,
                                       progress = TRUE) {
     # Pre-conditions - Check parameters
     .check_is_probs_cube(cube)
-    .check_memsize(memsize)
-    .check_multicores(multicores)
+    .check_memsize(memsize, min = 1, max = 16384)
+    .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
     .check_version(version)
 

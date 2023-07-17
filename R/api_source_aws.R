@@ -171,7 +171,7 @@
 #' @title Configure access.
 #' @param source  Data source
 #' @param collection Image collection
-#' @return No return, called for side effects
+#' @return Called for side effects
 .source_configure_access.aws_cube <- function(source, collection) {
     if (.conf("sources", "AWS", "collections", collection, "open_data")
               == "false") {
@@ -184,5 +184,5 @@
                       "please put it on an enviromental variable")
             )
     }
-    return(invisible(TRUE))
+    return(invisible(source))
 }

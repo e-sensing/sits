@@ -28,7 +28,8 @@
     # process processing_bloat
     if (!is.null(processing_bloat)) {
         .check_num(processing_bloat,
-            min = 1, len_min = 1, len_max = 1,
+            min = 1, len_min = 1, len_max = 1, max = 10,
+            is_integer = TRUE,
             msg = "invalid 'processing_bloat' parameter"
         )
         sits_env$config[["processing_bloat"]] <- processing_bloat
@@ -37,7 +38,8 @@
     # process rstac_pagination_limit
     if (!is.null(rstac_pagination_limit)) {
         .check_num(rstac_pagination_limit,
-            min = 1, len_min = 1, len_max = 1,
+            min = 1, len_min = 1, len_max = 1, max = 500,
+            is_integer = TRUE,
             msg = "invalid 'rstac_pagination_limit' parameter"
         )
         sits_env$config[["rstac_pagination_limit"]] <- rstac_pagination_limit
@@ -199,14 +201,14 @@
     })
     # set the color table
     .conf_set_color_table(color_table)
-    return(invisible(NULL))
+    return(invisible(color_table))
 }
 #' @title Set user color table
 #' @name .conf_set_color_table
 #' @description Loads a user color table
 #' @keywords internal
 #' @noRd
-#' @return NULL, called for side effects
+#' @return Called for side effects
 .conf_set_color_table <- function(color_tb) {
     # pre condition - table contains name and hex code
     .check_chr_contains(
@@ -221,7 +223,7 @@
         msg = "color table contains duplicate names"
     )
     sits_env$color_table <- color_tb
-    return(invisible(NULL))
+    return(invisible(color_tb))
 }
 #' @title Merge user colors with default colors
 #' @name .conf_merge_colors
@@ -249,7 +251,7 @@
         }
     }
     .conf_set_color_table(color_table)
-    return(invisible(NULL))
+    return(invisible(color_table))
 }
 #' @title Return the default color table
 #' @name .conf_colors
@@ -262,12 +264,17 @@
 }
 #' @title Return the user configuration file
 #' @name .conf_user_file
+#' @param config_user_file  Configuration file provided by user
 #' @keywords internal
 #' @noRd
 #' @return user configuration file
-.conf_user_file <- function() {
-    # load the default configuration file
-    yml_file <- Sys.getenv("SITS_CONFIG_USER_FILE")
+.conf_user_file <- function(config_user_file = NULL) {
+    # check if user file is provided
+    # otherwise, load the default user configuration file
+    if (!purrr::is_null(config_user_file))
+        yml_file <- config_user_file
+    else
+        yml_file <- Sys.getenv("SITS_CONFIG_USER_FILE")
     # check if the file exists
     if (nchar(yml_file) > 0) {
         .check_warn(
@@ -279,17 +286,17 @@
             )
         )
     }
-
     return(yml_file)
 }
 #' @title Load the user configuration file
 #' @name .conf_set_user_file
+#' @param config_user_file  Configuration file provided by user
 #' @keywords internal
 #' @noRd
 #' @return user configuration file
-.conf_set_user_file <- function() {
+.conf_set_user_file <- function(config_user_file) {
     # try to find a valid user configuration file
-    user_yml_file <- .conf_user_file()
+    user_yml_file <- .conf_user_file(config_user_file)
 
     if (file.exists(user_yml_file)) {
         config <- yaml::yaml.load_file(
@@ -342,7 +349,6 @@
         source = source,
         collection = collection
     )
-
     .check_chr_within(
         x = bands,
         within = c(sits_bands, source_bands),
@@ -351,45 +357,7 @@
             "the provided bands."
         )
     )
-
-    # remove bands with equal names, like NDVI, EVI...
-    source_bands <- source_bands[!source_bands %in% sits_bands]
-
-    return(invisible(NULL))
-}
-#' @title Check metatype associated to the data
-#' @name .conf_data_meta_type
-#' @keywords internal
-#' @noRd
-#' @description associates a valid SITS class to the data
-#'
-#' @param  data    Time series or data cube.
-#'
-#' @return         The meta data type associated to a sits object.
-.conf_data_meta_type <- function(data) {
-    # set caller to show in errors
-    .check_set_caller(".conf_data_meta_type")
-
-    # if the data is one of the classes recognized by sits
-    if (inherits(data, .conf("sits_s3_classes"))) {
-        return(data)
-    } else if (inherits(data, "tbl_df")) {
-        # is this a data cube or a sits tibble?
-        if (all(.conf("sits_cube_cols")
-        %in% colnames(data))) {
-            class(data) <- c("raster_cube", class(data))
-
-            return(data)
-        } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
-            class(data) <- c("sits", class(data))
-            return(data)
-        }
-    }
-
-    .check_that(FALSE,
-        local_msg = "Data not recognized as a sits object",
-        msg = "invalid 'data' parameter"
-    )
+    return(invisible(bands))
 }
 #' @title Get names associated to a configuration key
 #' @name .conf_names
@@ -406,7 +374,6 @@
             return(NULL)
         }
     )
-
     # post-condition
     .check_chr(res,
         allow_empty = FALSE,

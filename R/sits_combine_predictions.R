@@ -71,9 +71,9 @@ sits_combine_predictions <- function(cubes,
     # check if list of probs cubes have the same organization
     .check_probs_cube_lst(cubes)
     # Check memsize
-    .check_memsize(memsize)
+    .check_memsize(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     # Check output dir
     .check_output_dir(output_dir)
     # Check version
@@ -152,4 +152,9 @@ sits_combine_predictions.uncertainty <- function(cubes,
         progress = FALSE, ...
     )
     return(probs_cube)
+}
+#' @rdname sits_uncertainty
+#' @export
+sits_combine_predictions.default <- function(cube, type, ...) {
+    stop("Invalid method for combining predictions")
 }

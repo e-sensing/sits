@@ -36,13 +36,8 @@
 #' @export
 #'
 sits_merge <- function(data1, data2, ..., suffix = c(".1", ".2")) {
-    # set caller to show in errors
-    .check_set_caller("sits_merge")
-    # get the meta-type (sits or cube)
-    data1 <- .conf_data_meta_type(data1)
     UseMethod("sits_merge", data1)
 }
-
 #' @rdname sits_merge
 #' @export
 sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
@@ -51,7 +46,9 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
         x = nrow(data1) > 0 & nrow(data2) > 0,
         msg = "invalid input data"
     )
-    # verify if data1.tb and data2.tb has the same number of rows
+    # check that data2 is a sits tibble
+    .check_samples_ts(data2)
+    # verify if data1 and data2 have the same number of rows
     .check_that(
         x = nrow(data1) == nrow(data2),
         msg = "cannot merge tibbles of different sizes"
@@ -127,5 +124,24 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
 
         return(x)
     })
+    return(data1)
+}
+#' @rdname sits_merge
+#' @export
+sits_merge.tbl_df <- function(data1, data2, ...) {
+    if (all(.conf("sits_cube_cols") %in% colnames(data1))) {
+        class(data) <- c("raster_cube", class(data1))
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data1))) {
+        class(data1) <- c("sits", class(data1))
+    } else
+    data1 <- sits_merge(data1, data2, ...)
+    return(data1)
+}
+#' @rdname sits_merge
+#' @export
+sits_merge.default <- function(data1, data2, ...){
+    data1 <- tibble::as_tibble(data1)
+    data2 <- tibble::as_tibble(data2)
+    data1 <- sits_merge(data1, data2, ...)
     return(data1)
 }

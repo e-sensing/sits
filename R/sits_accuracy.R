@@ -90,6 +90,8 @@
 #' }
 #' @export
 sits_accuracy <- function(data, ...) {
+    .check_na(data)
+    .check_null(data)
     UseMethod("sits_accuracy", data)
 }
 #' @rdname sits_accuracy
@@ -298,7 +300,7 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
 #'
 #' @param x         Object of class \code{sits_accuracy}.
 #' @param digits    Number of significant digits when printed.
-#' @return          No return value, called for side effects.
+#' @return          Called for side effects.
 #'
 #' @keywords internal
 #' @export
@@ -322,12 +324,10 @@ sits_accuracy_summary <- function(x,
         ), ")",
         sep = ""
     )
-
     overall_text <- c(
         paste(overall["Accuracy"]), accuracy_ci,
         paste(overall["Kappa"])
     )
-
     overall_names <- c("Accuracy", "95% CI", "Kappa")
 
     cat("Overall Statistics")
@@ -340,6 +340,7 @@ sits_accuracy_summary <- function(x,
     rownames(out) <- rep("", nrow(out))
 
     print(out, quote = FALSE)
+    return(invisible(x))
 }
 #' @title Print the values of a confusion matrix
 #' @name print.sits_accuracy
@@ -351,7 +352,7 @@ sits_accuracy_summary <- function(x,
 #' @param x         Object of class \code{confusionMatrix}.
 #' @param \dots     Other parameters passed to the "print" function.
 #' @param digits    Number of significant digits when printed.
-#' @return          No return value, called for side effects.
+#' @return          Called for side effects.
 #'
 #' @keywords internal
 #' @export
@@ -455,6 +456,7 @@ print.sits_accuracy <- function(x, ...,
 
         print(out, quote = FALSE)
     }
+    return(invisible(x))
 }
 #' @title Print the area-weighted accuracy
 #' @name print.sits_area_accuracy
@@ -466,7 +468,7 @@ print.sits_accuracy <- function(x, ...,
 #' @param x         An object of class \code{sits_area_accuracy}.
 #' @param \dots     Other parameters passed to the "print" function
 #' @param digits    Significant digits
-#' @return          No return value, called for side effects.
+#' @return          Called for side effects.
 #'
 #' @keywords internal
 #' @export
@@ -501,4 +503,5 @@ print.sits_area_accuracy <- function(x, ..., digits = 2) {
 
     cat("\nMapped Area x Estimated Area (ha)\n")
     print(tb1)
+    return(invisible(x))
 }

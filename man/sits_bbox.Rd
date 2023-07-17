@@ -4,6 +4,8 @@
 \alias{sits_bbox}
 \alias{sits_bbox.sits}
 \alias{sits_bbox.raster_cube}
+\alias{sits_bbox.tbl_df}
+\alias{sits_bbox.default}
 \title{Get the bounding box of the data}
 \usage{
 sits_bbox(data, ..., as_crs = NULL)
@@ -11,6 +13,10 @@ sits_bbox(data, ..., as_crs = NULL)
 \method{sits_bbox}{sits}(data, ..., crs = "EPSG:4326", as_crs = NULL)
 
 \method{sits_bbox}{raster_cube}(data, ..., as_crs = NULL)
+
+\method{sits_bbox}{tbl_df}(x)
+
+\method{sits_bbox}{default}(x, ...)
 }
 \arguments{
 \item{data}{\code{samples} data or \code{cube}.}
@@ -30,7 +36,16 @@ Obtain a vector of limits (either on lat/long for time series
 }
 \examples{
 if (sits_run_examples()) {
+    # get the bbox of a set of samples
     sits_bbox(samples_modis_ndvi)
+    # get the bbox of a cube in WGS84
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
+    )
+    sits_bbox(cube, as_crs = "EPSG:4326")
 }
 }
 \author{

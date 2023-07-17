@@ -86,7 +86,7 @@
             }
         )
     }
-    return(invisible(NULL))
+    return(invisible(source))
 }
 #' @title Create an items object in an MPC Sentinel-2 collection
 #' @keywords internal

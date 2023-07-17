@@ -7,12 +7,13 @@
 sits_pred_normalize(pred, stats)
 }
 \arguments{
-\item{pred}{X-Y predictors: a data.table with one row per sample.}
+\item{pred}{X-Y predictors: a data.frame with one row per sample.}
 
-\item{stats}{Output of the "sits_stats()" applied to the samples.}
+\item{stats}{List of numeric values with two elements
+(temporal values of Q02 and Q98).}
 }
 \value{
-A normalized set of predictor values
+A data.frame with normalized predictor values
 }
 \description{
 Most machine learning algorithms require data to be

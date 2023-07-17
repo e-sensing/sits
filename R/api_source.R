@@ -1013,7 +1013,7 @@ NULL
 #' @description Configure access.
 #' @param source  Data source
 #' @param collection Image collection
-#' @return No return, called for side effects
+#' @return Called for side effects
 .source_configure_access <- function(source, collection = NULL) {
     source <- .source_new(source = source)
     UseMethod(".source_configure_access", source)

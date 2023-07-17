@@ -112,7 +112,7 @@ sits_get_data <- function(cube,
     .check_is_regular(cube)
     .check_cube_bands(cube, bands = bands)
     .check_crs(crs)
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
 
     if (is.character(samples)) {

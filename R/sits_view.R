@@ -288,7 +288,7 @@ sits_view.uncertainty_cube <- function(x, ...,
     )
     # create a leaflet and add providers
     leaf_map <- .view_add_basic_maps()
-    # get names of basic maps
+    # get names of base maps
     base_maps <- .view_get_base_maps(leaf_map)
     # obtain the raster objects for the dates chosen
     for (row in seq_len(nrow(cube))) {

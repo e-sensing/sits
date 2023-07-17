@@ -459,7 +459,8 @@ test_that("Reading data from Classified data", {
     )
     points_poly <- sits_get_data(label_cube,
         samples = csv_raster_file,
-        progress = TRUE
+        progress = TRUE,
+        multicores = 1
     )
     expect_equal(
         nrow(points_poly), nrow(read.csv(csv_raster_file))

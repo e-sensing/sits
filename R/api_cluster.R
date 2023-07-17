@@ -73,7 +73,7 @@
     # verifies if dtwclust package is installed
     .check_require_packages("dtwclust")
     # get the values of the time series
-    values <- sits_values(samples, bands, format = "cases_dates_bands")
+    values <- .values_ts(samples, bands, format = "cases_dates_bands")
     # call dtwclust and get the resulting dendrogram
     dendro <- dtwclust::tsclust(
         values,

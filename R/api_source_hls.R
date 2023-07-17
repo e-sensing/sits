@@ -79,7 +79,7 @@
 #' @title Configure access.
 #' @param source  Data source
 #' @param collection Image collection
-#' @return No return, called for side effects
+#' @return Called for side effects
 .source_configure_access.hls_cube <- function(source, collection = NULL) {
     netrc_file <- "~/.netrc"
     if (.Platform$OS.type == "windows")
@@ -94,5 +94,5 @@
             stop(paste("Missing HLS access configuration.",
                        "Please see instructions in Chapter 4 of on-line book"))
     }
-    return(invisible(TRUE))
+    return(invisible(source))
 }

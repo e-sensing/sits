@@ -7,7 +7,7 @@
 sits_pred_features(pred)
 }
 \arguments{
-\item{pred}{X-Y predictors: a data.table with one row per sample.}
+\item{pred}{X-Y predictors: a data.frame with one row per sample.}
 }
 \value{
 The Y predictors for the sample: data.frame with one row per sample.

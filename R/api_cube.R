@@ -593,6 +593,70 @@ NULL
 .cube_contains_cloud.raster_cube <- function(cube) {
     .compact(slider::slide_lgl(cube, .tile_contains_cloud))
 }
+#' @title Check if bboxes of all tiles of the cube are the same
+#' @name .cube_has_unique_bbox
+#' @keywords internal
+#' @noRd
+#' @param  cube         input data cube
+#' @return TRUE/FALSE
+.cube_has_unique_bbox <- function(cube) {
+    tolerance <- .conf(
+        "sources", .cube_source(cube),
+        "collections", .cube_collection(cube),
+        "ext_tolerance"
+    )
+
+    # check if the resolutions are unique
+    equal_bbox <- slider::slide_lgl(cube, function(tile) {
+        file_info <- .fi(tile)
+
+        test <-
+            (.is_eq(max(file_info[["xmax"]]),
+                    min(file_info[["xmax"]]),
+                    tolerance = tolerance
+            ) &&
+                .is_eq(max(file_info[["xmin"]]),
+                       min(file_info[["xmin"]]),
+                       tolerance = tolerance
+                ) &&
+                .is_eq(max(file_info[["ymin"]]),
+                       min(file_info[["ymin"]]),
+                       tolerance = tolerance
+                ) &&
+                .is_eq(max(file_info[["ymax"]]),
+                       min(file_info[["ymax"]]),
+                       tolerance = tolerance
+                ))
+
+        return(test)
+    })
+    if (!all(equal_bbox)) {
+        return(FALSE)
+    } else {
+        return(TRUE)
+    }
+}
+#' @title Check if sizes of all tiles of the cube are the same
+#' @name .cube_has_unique_tile_size
+#' @keywords internal
+#' @noRd
+#' @param  cube         input data cube
+#' @return TRUE/FALSE
+.cube_has_unique_tile_size <- function(cube) {
+    # check if the sizes of all tiles are the same
+    test_cube_size <- slider::slide_lgl(cube, function(tile) {
+        if (length(unique(.tile_nrows(tile))) > 1 ||
+            length(unique(.tile_ncols(tile))) > 1) {
+            return(FALSE)
+        }
+        return(TRUE)
+    })
+    if (!all(test_cube_size)) {
+        return(FALSE)
+    } else {
+        return(TRUE)
+    }
+}
 #' @title Verify if cube is regular
 #' @name .cube_is_regular
 #' @keywords internal
@@ -603,10 +667,10 @@ NULL
     if (!.cube_is_complete(cube)) {
         return(FALSE)
     }
-    if (!.check_has_unique_bbox(cube)) {
+    if (!.cube_has_unique_bbox(cube)) {
         return(FALSE)
     }
-    if (!.check_has_unique_tile_size(cube)) {
+    if (!.cube_has_unique_tile_size(cube)) {
         return(FALSE)
     }
     if (length(.cube_timeline(cube)) > 1) {

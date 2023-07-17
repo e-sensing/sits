@@ -93,7 +93,7 @@
             ), call. = FALSE)
         }
     )
-    return(invisible(NULL))
+    return(invisible(source))
 }
 #' @title Retrieves the paths or URLs of each file bands of an item for BDC
 #' @param source     Name of the STAC provider.
@@ -247,7 +247,7 @@
 #' @title Configure access.
 #' @param source  Data source
 #' @param collection Image collection
-#' @return No return, called for side effects
+#' @return Called for side effects
 .source_configure_access.usgs_cube <- function(source, collection = NULL) {
     aws_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
     if (nchar(aws_access_key) == 0)
@@ -257,5 +257,5 @@
                   "If you have this key",
                   "please put it on an enviromental variable")
         )
-    return(invisible(TRUE))
+    return(invisible(source))
 }

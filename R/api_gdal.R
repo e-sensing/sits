@@ -76,6 +76,7 @@
         util = "translate", source = base_file[[1]], destination = file[[1]],
         options = .gdal_params(params), quiet = quiet
     )
+    return(invisible(file))
 }
 #' @title Run gdal_warp
 #' @noRd
@@ -89,6 +90,7 @@
         util = "warp", source = base_files, destination = file[[1]],
         options = .gdal_params(params), quiet = quiet
     )
+    return(invisible(file))
 }
 #' @title Run gdal_addo
 #' @noRd
@@ -104,6 +106,7 @@
             options = c("GDAL_NUM_THREADS" = "2")
         )
     )
+    return(invisible(file))
 }
 #' @title Run gdal_translate from a block to a file
 #' @noRd
@@ -157,7 +160,7 @@
         }
     )
     # Return file
-    file
+    return(file)
 }
 #' @title Merge files into a single file
 #' @noRd
@@ -190,7 +193,7 @@
         }
     )
     # Return file
-    file
+    return(file)
 }
 #' @title Crop an image and save to file
 #' @noRd
@@ -225,7 +228,7 @@
         file = out_file, base_files = file,
         params = gdal_params, quiet = TRUE
     )
-    out_file
+    return(invisible(out_file))
 }
 #' @title Rescale image values and save to file
 #' @noRd
@@ -258,6 +261,7 @@
         ),
         quiet = TRUE
     )
+    return(invisible(file))
 }
 #' @title Change the projection of an image and save to file
 #' @noRd
@@ -287,5 +291,5 @@
         file = out_file, base_files = file,
         params = gdal_params, quiet = TRUE
     )
-    out_file
+    return(invisible(out_file))
 }

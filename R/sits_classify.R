@@ -21,20 +21,23 @@
 #'  }
 #'
 #'
-#' @param  data              Data cube.
+#' @param  data              Data cube (tibble)
 #' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}.
 #' @param  ...               Other parameters for specific functions.
 #' @param  roi               Region of interest (see below)
 #' @param  filter_fn         Smoothing filter to be applied (if desired).
-#' @param  start_date        Start date for the classification.
-#' @param  end_date          End date for the classification.
-#' @param  memsize           Memory available for classification (in GB).
-#' @param  multicores        Number of cores to be used for classification.
-#' @param  output_dir        Directory for output file.
-#' @param  version           Version of the output (for multiple
-#'                           classifications).
-#' @param  verbose           Print information about processing time?
-#' @param  progress          Show progress bar?
+#' @param  start_date        Start date for the classification
+#'                           (YYYY-MM-DD format).
+#' @param  end_date          End date for the classification
+#'                           (YYYY-MM-DD format).
+#' @param  memsize           Memory available for classification in GB
+#'                           (integer, min = 1, max = 16384).
+#' @param  multicores        Number of cores to be used for classification
+#'                           (integer, min = 1, max = 2048).
+#' @param  output_dir        Valid directory for output file.
+#' @param  version           Version of the output (character vector).
+#' @param  verbose           Logical: print information about processing time?
+#' @param  progress          Logical: Show progress bar?
 #'
 #' @return                   Predicted data (classified time series)
 #'                           or a data cube with probabilities for each class.
@@ -84,12 +87,16 @@
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(
-#'         data = cube, ml_model = rf_model, output_dir = tempdir()
+#'         data = cube,
+#'         ml_model = rf_model,
+#'         output_dir = tempdir(),
+#'         version = "ex_classify"
 #'     )
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
 #'         probs_cube,
-#'         output_dir = tempdir()
+#'         output_dir = tempdir(),
+#'         version = "ex_classify"
 #'     )
 #'     # plot the classified image
 #'     plot(label_cube)
@@ -101,9 +108,8 @@ sits_classify <- function(data, ml_model, ...,
                           multicores = 2,
                           progress = TRUE) {
     # Pre-conditions
-    data <- .conf_data_meta_type(data)
     .check_is_sits_model(ml_model)
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
 
     UseMethod("sits_classify", data)
@@ -152,7 +158,7 @@ sits_classify.raster_cube <- function(data,
     # preconditions
     .check_is_raster_cube(data)
     .check_is_regular(data)
-    .check_memsize(memsize)
+    .check_memsize(memsize, min = 1, max = 16384)
     .check_output_dir(output_dir)
     .check_version(version)
 
@@ -244,5 +250,24 @@ sits_classify.raster_cube <- function(data,
             format(round(end_time - start_time, digits = 2))
         )
     }
+    return(probs_cube)
+}
+#' @rdname sits_classify
+#' @export
+sits_classify.tbl_df <- function(data, ml_model, ...) {
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        class(data) <- c("raster_cube", class(data))
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else
+        stop("Input should be a sits tibble or a data cube")
+    probs_cube <- sits_classify(data, ml_model, ...)
+    return(probs_cube)
+}
+#' @rdname sits_classify
+#' @export
+sits_classify.default <- function(data, ml_model, ...) {
+    data <- tibble::as_tibble(data)
+    probs_cube <- sits_classify(data, ml_model, ...)
     return(probs_cube)
 }

@@ -99,7 +99,7 @@ sits_regularize <- function(cube,
     # Normalize path
     output_dir <- .file_normalize(output_dir)
     .check_output_dir(output_dir)
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
     # Display warning message in case STAC cube
     if (!.cube_is_local(cube)) {

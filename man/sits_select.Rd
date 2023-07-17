@@ -23,13 +23,13 @@ sits_select(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
 \method{sits_select}{patterns}(data, bands, ...)
 }
 \arguments{
-\item{data}{A sits tibble or data cube.}
+\item{data}{Sits tibble or data cube.}
 
 \item{bands}{Character vector with the names of the bands.}
 
-\item{start_date}{Character value with the start date to be filtered.}
+\item{start_date}{Date in YYYY-MM-DD format: start date to be filtered.}
 
-\item{end_date}{Character value with the end date to be filtered.}
+\item{end_date}{Date in YYYY-MM-DD format: end date to be filtered.}
 
 \item{...}{Additional parameters to be provided in the select
 function.}
@@ -37,8 +37,7 @@ function.}
 \item{tiles}{Character vector with the names of the tiles.}
 }
 \value{
-For sits tibble, returns a sits tibble with the selected bands.
-For data cube, a data cube with the selected bands.
+Data.frame with a filtered sits tibble or data cube.
 }
 \description{
 Filter only the selected bands from a tibble or a data cube.
@@ -52,6 +51,10 @@ sits_bands(cerrado_2classes)
 data <- sits_select(cerrado_2classes, bands = c("NDVI"))
 # Print the labels of the resulting tibble
 sits_bands(data)
+# select start and end date
+point_2010 <- sits_select(point_mt_6bands,
+              start_date = "2010-01-01",
+              end_date = "2010-12-31")
 
 }
 \author{

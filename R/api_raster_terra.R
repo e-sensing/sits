@@ -125,7 +125,7 @@
         x = file,
         msg = "unable to write raster object"
     )
-    return(invisible(NULL))
+    return(invisible(r_obj))
 }
 #' @title Create raster object
 #' @keywords internal
@@ -144,6 +144,7 @@
 #' @param ...           additional parameters to be passed to raster package
 #' @param xres          X resolution
 #' @param yres          Y resolution
+#' @return              R object created by terra package
 #' @export
 .raster_new_rast.terra <- function(nrows,
                                    ncols,
@@ -190,7 +191,7 @@
     }
     return(r_obj)
 }
-#' @title Rad raster file
+#' @title Read raster file
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}

@@ -2,6 +2,9 @@
 % Please edit documentation in R/sits_clean.R
 \name{sits_clean}
 \alias{sits_clean}
+\alias{sits_clean.class_cube}
+\alias{sits_clean.tbl_df}
+\alias{sits_clean.default}
 \title{Cleans a classified map using a local window}
 \usage{
 sits_clean(
@@ -13,25 +16,41 @@ sits_clean(
   version = "v1",
   progress = TRUE
 )
+
+\method{sits_clean}{class_cube}(
+  cube,
+  window_size,
+  memsize,
+  multicores,
+  output_dir,
+  version,
+  progress
+)
+
+\method{sits_clean}{tbl_df}(cube, ...)
+
+\method{sits_clean}{default}(cube, ...)
 }
 \arguments{
-\item{cube}{A classified data cube}
+\item{cube}{Classified data cube (tibble of class "class_cube")}
 
-\item{window_size}{An odd number representing the size of the
-sliding window of the modal function.}
+\item{window_size}{An odd integer  representing the size of the
+sliding window of the modal function (min = 1, max = 15)}
 
-\item{memsize}{Memory available for classification (in GB).}
+\item{memsize}{Memory available for classification in GB
+(integer, min = 1, max = 16384).}
 
-\item{multicores}{Number of cores to be used for classification.}
+\item{multicores}{Number of cores to be used for classification
+(integer, min = 1, max = 2048).}
 
-\item{output_dir}{Directory where files will be saved.}
+\item{output_dir}{Valid directory for output file.}
 
-\item{version}{Version of the output file.}
+\item{version}{Version of the output file (character vector of length 1)}
 
-\item{progress}{Show progress bar?}
+\item{progress}{Show progress bar (logical)?}
 }
 \value{
-A data cube with an classified map cleaned.
+A data cube with an classified map (class = "class_cube").
 }
 \description{
 Applies a modal function to clean up possible noisy pixels keeping
@@ -58,7 +77,13 @@ label_cube <- sits_label_classification(
 )
 # apply a mode function in the labelled cube
 clean_cube <- sits_clean(
-    label_cube, window_size = 5,  output_dir = tempdir()
+    cube = label_cube,
+    window_size = 5,
+    memsize = 8,
+    multicores = 2,
+    output_dir = tempdir(),
+    version = "ex_clean",
+    progress = TRUE
 )
 }
 
