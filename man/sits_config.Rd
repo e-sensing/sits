@@ -10,7 +10,7 @@ sits_config(config_user_file = NULL)
 \item{config_user_file}{path to YAML user configuration file}
 }
 \value{
-No return value, called for side effects
+Called for side effects
 }
 \description{
 These functions load and show sits configurations.
@@ -32,7 +32,8 @@ To see the key entries and contents of the current configuration values,
 use \code{sits_config_show()}.
 }
 \examples{
-yaml_user_file <- system.file("extdata/config_user_example.yml", package = "sits"))
+yaml_user_file <- system.file("extdata/config_user_example.yml",
+                  package = "sits")
 sits_config(config_user_file = yaml_user_file)
 }
 \author{

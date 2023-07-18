@@ -4,6 +4,7 @@
 \alias{sits_combine_predictions}
 \alias{sits_combine_predictions.average}
 \alias{sits_combine_predictions.uncertainty}
+\alias{sits_combine_predictions.default}
 \title{Estimate ensemble prediction based on list of probs cubes}
 \usage{
 sits_combine_predictions(
@@ -36,6 +37,16 @@ sits_combine_predictions(
   multicores = 2,
   output_dir,
   version = "v1"
+)
+
+\method{sits_combine_predictions}{default}(
+  cubes,
+  type,
+  ...,
+  memsize,
+  multicores,
+  output_dir,
+  version
 )
 }
 \arguments{

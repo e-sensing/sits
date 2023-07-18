@@ -281,7 +281,7 @@
         samples <- .samples_select_bands(samples = samples, bands = bands)
     }
     # Apply time series filter
-    if (.has(filter_fn)) {
+    if (!is.na(filter_fn) && !purrr::is_null(filter_fn)) {
         samples <- .apply_across(data = samples, fn = filter_fn)
     }
     # Compute the breaks in time for multiyear classification

@@ -82,11 +82,11 @@ sits_clean <- function(cube,
 #' @export
 sits_clean.class_cube <- function(cube,
                                   window_size,
-                                  memsize,
-                                  multicores,
+                                  memsize = 4,
+                                  multicores = 2,
                                   output_dir,
-                                  version,
-                                  progress) {
+                                  version = "v1",
+                                  progress = TRUE) {
 
     # Get input band
     band <- .cube_bands(cube)
@@ -132,19 +132,31 @@ sits_clean.class_cube <- function(cube,
 }
 #' @rdname sits_clean
 #' @export
-sits_clean.tbl_df <- function(cube, ...){
+sits_clean.tbl_df <- function(cube, window_size,
+                              memsize = 4,
+                              multicores = 2,
+                              output_dir,
+                              version = "v1",
+                              progress = TRUE) {
     if (all(.conf("sits_cube_cols") %in% colnames(cube)) &&
         all(sits_bands(cube) %in% "class")) {
         class(cube) <- c("class_cube", class(cube))
     } else
         stop("Input should be a classified cube")
-    clean_cube <- sits_clean(cube, ...)
+    clean_cube <- sits_clean(cube, window_size, memsize, multicores,
+                             output_dir, version, progress)
     return(clean_cube)
 }
 #' @rdname sits_clean
 #' @export
-sits_clean.default <- function(cube,...){
+sits_clean.default <- function(cube, window_size,
+                               memsize = 4,
+                               multicores = 2,
+                               output_dir,
+                               version = "v1",
+                               progress = TRUE) {
     cube <- tibble::as_tibble(cube)
-    clean_cube <- sits_clean(cube, ...)
+    clean_cube <- sits_clean(cube, window_size, memsize, multicores,
+                             output_dir, version, progress)
     return(clean_cube)
 }

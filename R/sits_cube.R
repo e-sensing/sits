@@ -230,16 +230,14 @@
 #'     )
 #'
 #'     # -- Creating Landsat cube from MPC"
+#'     roi <- c("lon_min" = -50.410, "lon_max" = -50.379,
+#'              "lat_min" = -10.1910 , "lat_min" = -10.1573,
+#'               )
 #'     mpc_cube <- sits_cube(
 #'         source = "MPC",
 #'         collection = "LANDSAT-C2-L2",
 #'         bands = c("BLUE", "RED", "CLOUD"),
-#'         roi = c(
-#'             "xmin" = -50.379,
-#'             "ymin" = -10.1573,
-#'             "xmax" = -50.410,
-#'             "ymax" = -10.1910
-#'         ),
+#'         roi = roi,
 #'         start_date = "2005-01-01",
 #'         end_date = "2006-10-28"
 #'     )
@@ -256,26 +254,25 @@
 #'
 #' @export
 #'
-sits_cube <- function(source, collection, ..., data_dir = NULL) {
+sits_cube <- function(source, collection, ...) {
     # set caller to show in errors
     .check_set_caller("sits_cube")
-
-    if (purrr::is_null(data_dir)) {
-        source <- .source_new(source = source, collection = collection)
-    } else {
+    # capture elipsis
+    dots <- list(...)
+    # if "data_dir" parameters is provided, assumes local cube
+    if ("data_dir" %in% names(dots)) {
         source <- .source_new(source = source, is_local = TRUE)
+    } else {
+        source <- .source_new(source = source, collection = collection)
     }
-
     # Dispatch
     UseMethod("sits_cube", source)
 }
-
 #' @rdname sits_cube
 #'
 #' @export
 sits_cube.stac_cube <- function(source,
                                 collection, ...,
-                                data_dir = NULL,
                                 bands = NULL,
                                 tiles = NULL,
                                 roi = NULL,
@@ -356,8 +353,8 @@ sits_cube.stac_cube <- function(source,
 #'
 #' @export
 sits_cube.local_cube <- function(source,
-                                 collection,
-                                 data_dir, ...,
+                                 collection, ...,
+                                 data_dir,
                                  tiles = NULL,
                                  bands = NULL,
                                  start_date = NULL,
@@ -409,6 +406,6 @@ sits_cube.local_cube <- function(source,
     return(cube)
 }
 #' @export
-sits_cube.default <- function(source, collection, ..., data_dir = NULL) {
+sits_cube.default <- function(source, collection, ...) {
     stop("sits_cube: source not found.")
 }

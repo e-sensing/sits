@@ -4,7 +4,7 @@
 \alias{sits_accuracy_summary}
 \title{Print accuracy summary}
 \usage{
-sits_accuracy_summary(x, digits = max(3, getOption("digits") - 3))
+sits_accuracy_summary(x, digits = NULL)
 }
 \arguments{
 \item{x}{Object of class \code{sits_accuracy}.}

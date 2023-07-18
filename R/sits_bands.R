@@ -61,7 +61,6 @@ sits_bands.raster_cube <- function(x) {
     )
     return(unlist(bands))
 }
-
 #' @rdname sits_bands
 #' @export
 sits_bands.patterns <- function(x) {
@@ -137,7 +136,7 @@ sits_bands.default <- function(x) {
 `sits_bands<-.tbl_df` <- function(x, value) {
     if (all(.conf("sits_cube_cols") %in% colnames(x))) {
         class(x) <- c("raster_cube", class(x))
-    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(x))) {
         class(x) <- c("sits", class(x))
     } else
         stop("Input should be a sits tibble, data cube, patterns, or model")
@@ -147,5 +146,6 @@ sits_bands.default <- function(x) {
 #' @rdname sits_bands
 #' @export
 `sits_bands<-.default` <- function(x, value) {
-    stop("Input should be a sits tibble, data cube, patterns, or model")
+    x <- tibble::as_tibble(x)
+    sits_bands(x) <- value
 }

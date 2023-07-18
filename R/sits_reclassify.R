@@ -125,13 +125,8 @@ sits_reclassify <- function(cube,
 
 #' @rdname sits_reclassify
 #' @export
-sits_reclassify.class_cube <- function(cube,
-                                       mask,
-                                       rules,
-                                       memsize = 4,
-                                       multicores = 2,
-                                       output_dir,
-                                       version = "v1") {
+sits_reclassify.class_cube <- function(cube, mask, rules, memsize,
+                                       multicores, output_dir, version = "v1") {
 
     # check mask is a class cube
     .check_cube_is_class_cube(mask)
@@ -191,19 +186,23 @@ sits_reclassify.class_cube <- function(cube,
 }
 #' @rdname sits_reclassify
 #' @export
-sits_reclassify.tbl_df <- function(cube, ...){
+sits_reclassify.tbl_df <- function(cube, mask, rules, memsize,
+                                   multicores, output_dir, version = "v1"){
     if (all(sits_bands(cube) == "class"))
             class(cube) <- c("class_cube", class(cube))
     else
         stop("Input should be a classified cube")
-    class_cube <- sits_reclassify(cube, ...)
+    class_cube <- sits_reclassify(cube, mask, rules, memsize,
+                                  multicores, output_dir, version)
     return(class_cube)
 }
 #' @rdname sits_reclassify
 #' @export
-sits_reclassify.default <- function(cube, ...){
+sits_reclassify.default <- function(cube, mask, rules, memsize,
+                                    multicores, output_dir, version = "v1"){
     cube <- tibble::as_tibble(cube)
-    class_cube <- sits_reclassify(cube, ...)
+    class_cube <- sits_reclassify(cube, mask, rules, memsize,
+                                  multicores, output_dir, version)
     return(class_cube)
 
 }

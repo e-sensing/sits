@@ -29,6 +29,10 @@ sits_labels(data)
 }
 \arguments{
 \item{data}{Data.frame containing time series or a data cube.}
+
+\item{value}{A character vector used to convert labels. Labels will
+be renamed to the respective value positioned at the
+labels order returned by \code{\link{sits_labels}}.}
 }
 \value{
 The labels associated to a set of time series or to

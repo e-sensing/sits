@@ -8,7 +8,7 @@
 \alias{sits_merge.default}
 \title{Merge two data sets (time series or cubes)}
 \usage{
-sits_merge(data1, data2, ..., suffix = c(".1", ".2"))
+sits_merge(data1, data2, ...)
 
 \method{sits_merge}{sits}(data1, data2, ..., suffix = c(".1", ".2"))
 

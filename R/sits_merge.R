@@ -35,7 +35,7 @@
 #' }
 #' @export
 #'
-sits_merge <- function(data1, data2, ..., suffix = c(".1", ".2")) {
+sits_merge <- function(data1, data2, ...) {
     UseMethod("sits_merge", data1)
 }
 #' @rdname sits_merge

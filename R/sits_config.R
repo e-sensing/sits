@@ -22,10 +22,11 @@
 #' To see the key entries and contents of the current configuration values,
 #' use \code{sits_config_show()}.
 #'
-#' @return No return value, called for side effects
+#' @return Called for side effects
 #'
 #' @examples
-#' yaml_user_file <- system.file("extdata/config_user_example.yml", package = "sits"))
+#' yaml_user_file <- system.file("extdata/config_user_example.yml",
+#'                   package = "sits")
 #' sits_config(config_user_file = yaml_user_file)
 #' @export
 sits_config <- function(config_user_file = NULL) {

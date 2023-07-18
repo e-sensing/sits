@@ -37,26 +37,6 @@ sits_select <- function(data,
     .check_set_caller("sits_select")
     # check data
     .check_valid(data)
-    if (!is.null(bands)) {
-        # check bands parameter
-        .check_chr(bands,
-                   allow_na = FALSE,
-                   allow_empty = TRUE,
-                   allow_duplicate = FALSE,
-                   len_min = 1,
-                   len_max = length(sits_bands(data)),
-                   msg = "Invalid bands parameter")
-        # pre-condition
-        .check_chr_within(bands,
-                          within = sits_bands(data),
-                          msg = "Invalid bands values"
-        )
-    }
-    # check validity of start and end dates
-    if (!is.null(start_date))
-        .check_date_parameter(start_date)
-    if (!is.null(end_date))
-        .check_date_parameter(end_date)
     # get the meta-type (sits or cube)
     UseMethod("sits_select", data)
 }
@@ -70,21 +50,27 @@ sits_select.sits <- function(data,
     # Pre-condition
     .check_samples_ts(data)
     # Filter bands
-    if (!is.null(bands)) {
-        # bands names in SITS are uppercase
-        bands <- .band_samples(bands)
-        data <- .samples_select_bands(data, bands = bands)
-    }
+    bands <- .default(bands, .band_samples(.ts_bands(.ts(data))))
+    # check bands parameter
+    .check_chr(bands,
+               allow_empty = FALSE,
+               allow_duplicate = FALSE,
+               len_min = 1,
+               len_max = length(sits_bands(data)),
+               msg = "Invalid bands parameter")
+
+    # select bands from the time series
+    data <- .samples_select_bands(data, bands = bands)
     # Filter dates
-    if (!is.null(start_date) || !is.null(end_date)) {
-        data <- .samples_filter_interval(
-            data,
-            start_date = start_date, end_date = end_date
-        )
-    }
+    start_date <- .default(start_date, .ts_min_date(.ts(data)))
+    end_date   <- .default(end_date,   .ts_max_date(.ts(data)))
+    data <- .samples_filter_interval(
+        data,
+        start_date = start_date,
+        end_date = end_date
+    )
     return(data)
 }
-
 #' @rdname sits_select
 #'
 #' @export
@@ -96,25 +82,29 @@ sits_select.raster_cube <- function(data,
     # Pre-condition
     .check_is_raster_cube(data)
     # Filter bands
-    if (!is.null(bands)) {
-        # bands names in SITS are uppercase
-        bands <- .band_samples(bands)
-        data <- .cube_filter_bands(cube = data, bands = bands)
-    }
-    # Filter dates
-    if (!is.null(start_date) || !is.null(end_date)) {
-        start_date <- .default(start_date, .cube_start_date(data))
-        end_date <- .default(end_date, .cube_end_date(data))
+    bands <- .default(bands, .band_samples(sits_bands(data)))
+    # check bands parameter
+    .check_chr(bands,
+               allow_empty = FALSE,
+               allow_duplicate = FALSE,
+               len_min = 1,
+               len_max = length(sits_bands(data)),
+               msg = "Invalid bands parameter")
 
-        data <- .cube_filter_interval(
-            cube = data, start_date = start_date, end_date = end_date
-        )
-    }
+    # filter the selected bands
+    data <- .cube_filter_bands(cube = data, bands = bands)
+
+    # Filter dates
+    start_date <- .default(start_date, .cube_start_date(data))
+    end_date <- .default(end_date, .cube_end_date(data))
+
+    data <- .cube_filter_interval(
+        cube = data, start_date = start_date, end_date = end_date
+    )
     # Filter tiles
-    if (!is.null(tiles)) {
-        .check_chr_type(tiles)
-        data <- .cube_filter_tiles(cube = data, tiles = tiles)
-    }
+    tiles <- .default(tiles, .cube_tiles(data))
+    .check_chr_type(tiles)
+    data <- .cube_filter_tiles(cube = data, tiles = tiles)
     return(data)
 }
 #' @rdname sits_select
@@ -123,7 +113,7 @@ sits_select.raster_cube <- function(data,
 sits_select.patterns <- function(data, bands, ...) {
     return(sits_select.sits(data, bands))
 }
-#' @rdname sits_bands
+#' @rdname sits_select
 #' @export
 sits_select.tbl_df <- function(data, ...) {
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
@@ -135,7 +125,7 @@ sits_select.tbl_df <- function(data, ...) {
     data <- sits_select(data, ...)
     return(data)
 }
-#' @rdname sits_bands
+#' @rdname sits_select
 #' @export
 sits_select.default <- function(data, ...){
     data <- tibble::as_tibble(data)

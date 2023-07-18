@@ -1334,9 +1334,7 @@
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  cube         input data cube
 .check_is_variance_cube <- function(cube) {
     .check_that(
         x = inherits(cube, "variance_cube"),

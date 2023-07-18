@@ -21,15 +21,31 @@ sits_reclassify(
   cube,
   mask,
   rules,
-  memsize = 4,
-  multicores = 2,
+  memsize,
+  multicores,
   output_dir,
   version = "v1"
 )
 
-\method{sits_reclassify}{tbl_df}(cube, ...)
+\method{sits_reclassify}{tbl_df}(
+  cube,
+  mask,
+  rules,
+  memsize,
+  multicores,
+  output_dir,
+  version = "v1"
+)
 
-\method{sits_reclassify}{default}(cube, ...)
+\method{sits_reclassify}{default}(
+  cube,
+  mask,
+  rules,
+  memsize,
+  multicores,
+  output_dir,
+  version = "v1"
+)
 }
 \arguments{
 \item{cube}{Image cube to be reclassified (class = "class_cube")}

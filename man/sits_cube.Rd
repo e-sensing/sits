@@ -6,13 +6,12 @@
 \alias{sits_cube.local_cube}
 \title{Create data cubes from image collections}
 \usage{
-sits_cube(source, collection, ..., data_dir = NULL)
+sits_cube(source, collection, ...)
 
 \method{sits_cube}{stac_cube}(
   source,
   collection,
   ...,
-  data_dir = NULL,
   bands = NULL,
   tiles = NULL,
   roi = NULL,
@@ -25,8 +24,8 @@ sits_cube(source, collection, ..., data_dir = NULL)
 \method{sits_cube}{local_cube}(
   source,
   collection,
-  data_dir,
   ...,
+  data_dir,
   tiles = NULL,
   bands = NULL,
   start_date = NULL,
@@ -48,9 +47,6 @@ the supported collections, use \code{\link{sits_list_collections}()}).}
 
 \item{...}{Other parameters to be passed for specific types.}
 
-\item{data_dir}{Local directory where images are stored
-(for local cubes).}
-
 \item{bands}{Spectral bands and indices to be included
 in the cube (optional).}
 
@@ -67,6 +63,9 @@ images from the collection in the cube (optional).}
 of collections that include more than one satellite.}
 
 \item{progress}{Show a progress bar?}
+
+\item{data_dir}{Local directory where images are stored
+(for local cubes).}
 
 \item{labels}{Labels associated to the classes (only for result cubes).}
 
@@ -281,16 +280,14 @@ if (sits_run_examples()) {
     )
 
     # -- Creating Landsat cube from MPC"
+    roi <- c("lon_min" = -50.410, "lon_max" = -50.379,
+             "lat_min" = -10.1910 , "lat_min" = -10.1573,
+              )
     mpc_cube <- sits_cube(
         source = "MPC",
         collection = "LANDSAT-C2-L2",
         bands = c("BLUE", "RED", "CLOUD"),
-        roi = c(
-            "xmin" = -50.379,
-            "ymin" = -10.1573,
-            "xmax" = -50.410,
-            "ymax" = -10.1910
-        ),
+        roi = roi,
         start_date = "2005-01-01",
         end_date = "2006-10-28"
     )

@@ -37,8 +37,7 @@
 #'                         a set of time series
 #' @param \dots            Specific parameters
 #' @param validation       Samples for validation (see below)
-#'                         Only required when data is a data cube.
-#' @param validation_csv   CSV file with samples (deprecated)
+#'                         Only required when data is a class cube.
 #'
 #' @return
 #' A list of lists: The error_matrix, the class_areas, the unbiased
@@ -90,8 +89,7 @@
 #' }
 #' @export
 sits_accuracy <- function(data, ...) {
-    .check_na(data)
-    .check_null(data)
+    .check_valid(data)
     UseMethod("sits_accuracy", data)
 }
 #' @rdname sits_accuracy
@@ -99,13 +97,10 @@ sits_accuracy <- function(data, ...) {
 sits_accuracy.sits <- function(data, ...) {
     # Set caller to show in errors
     .check_set_caller("sits_accuracy.sits")
-
     # Require package
     .check_require_packages("caret")
-
     # Does the input data contain a set of predicted values?
     .check_predicted(data)
-
     # Recover predicted and reference vectors from input
     # Is the input the result of a sits_classify?
     if ("label" %in% names(data)) {
@@ -127,25 +122,13 @@ sits_accuracy.sits <- function(data, ...) {
 
     # Assign class to result
     class(acc) <- c("sits_accuracy", class(acc))
-
     # return caret confusion matrix
     return(acc)
 }
 #' @title Area-weighted post-classification accuracy for data cubes
 #' @rdname sits_accuracy
 #' @export
-sits_accuracy.class_cube <- function(data, validation = NULL, ...,
-                                     validation_csv = NULL) {
-    if (!purrr::is_null(validation_csv)) {
-        if (.check_warnings()) {
-            warning("validation_csv parameter is deprecated since sits 1.3.
-                please use only validation")
-        }
-        validation <- validation_csv
-    }
-    .check_null(validation,
-        msg = "please provide a set of validation samples"
-    )
+sits_accuracy.class_cube <- function(data, ..., validation) {
     # generic function
     # Is this a CSV file?
     if (is.character(validation)) {
@@ -304,10 +287,11 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
 #'
 #' @keywords internal
 #' @export
-sits_accuracy_summary <- function(x,
-                                  digits = max(3, getOption("digits") - 3)) {
+sits_accuracy_summary <- function(x, digits = NULL) {
     # set caller to show in errors
     .check_set_caller("sits_accuracy_summary")
+    # default value for digits
+    digits <- .default(digits, max(3, getOption("digits") - 3))
 
     if ("sits_area_accuracy" %in% class(x)) {
         print.sits_area_accuracy(x)
@@ -356,8 +340,9 @@ sits_accuracy_summary <- function(x,
 #'
 #' @keywords internal
 #' @export
-print.sits_accuracy <- function(x, ...,
-                                digits = max(3, getOption("digits") - 3)) {
+print.sits_accuracy <- function(x, ..., digits = NULL) {
+    # default value for digits
+    digits <- .default(digits, max(3, getOption("digits") - 3))
     # rename confusion matrix names
     names(x) <- c("positive", "table", "overall", "by_class", "mode", "dots")
     cat("Confusion Matrix and Statistics\n\n")

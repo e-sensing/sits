@@ -18,7 +18,7 @@ sits_timeline <- function(data) {
 #' @export
 #'
 sits_timeline.sits <- function(data) {
-    return(data$time_series[[1]]$Index)
+    return(as.Date(data$time_series[[1]]$Index))
 }
 #' @rdname sits_timeline
 #' @export
@@ -26,7 +26,7 @@ sits_timeline.sits <- function(data) {
 sits_timeline.sits_model <- function(data) {
     .check_is_sits_model(data)
     samples <- .ml_samples(data)
-    return(samples$time_series[[1]]$Index)
+    return(as.Date(samples$time_series[[1]]$Index))
 }
 #' @rdname sits_timeline
 #' @export

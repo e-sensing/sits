@@ -153,8 +153,12 @@ sits_combine_predictions.uncertainty <- function(cubes,
     )
     return(probs_cube)
 }
-#' @rdname sits_uncertainty
+#' @rdname sits_combine_predictions
 #' @export
-sits_combine_predictions.default <- function(cube, type, ...) {
+sits_combine_predictions.default <- function(cubes, type, ...,
+                                             memsize,
+                                             multicores,
+                                             output_dir,
+                                             version) {
     stop("Invalid method for combining predictions")
 }

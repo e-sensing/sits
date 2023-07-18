@@ -20,16 +20,32 @@ sits_clean(
 \method{sits_clean}{class_cube}(
   cube,
   window_size,
-  memsize,
-  multicores,
+  memsize = 4,
+  multicores = 2,
   output_dir,
-  version,
-  progress
+  version = "v1",
+  progress = TRUE
 )
 
-\method{sits_clean}{tbl_df}(cube, ...)
+\method{sits_clean}{tbl_df}(
+  cube,
+  window_size,
+  memsize = 4,
+  multicores = 2,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
 
-\method{sits_clean}{default}(cube, ...)
+\method{sits_clean}{default}(
+  cube,
+  window_size,
+  memsize = 4,
+  multicores = 2,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
 }
 \arguments{
 \item{cube}{Classified data cube (tibble of class "class_cube")}

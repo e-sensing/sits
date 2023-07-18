@@ -11,7 +11,6 @@
 #' @param data   \code{samples} data or \code{cube}.
 #' @param crs    CRS of the samples points.
 #' @param as_crs CRS to project the resulting \code{bbox}.
-#' @param ...    Additional parameters.
 #'
 #' @return A \code{bbox}.
 #'
@@ -29,12 +28,12 @@
 #'     sits_bbox(cube, as_crs = "EPSG:4326")
 #' }
 #' @export
-sits_bbox <- function(data, ..., as_crs = NULL) {
+sits_bbox <- function(data, crs = "EPSG:4326", as_crs = NULL) {
     UseMethod("sits_bbox", data)
 }
 #' @rdname sits_bbox
 #' @export
-sits_bbox.sits <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
+sits_bbox.sits <- function(data, crs = "EPSG:4326", as_crs = NULL) {
     # Pre-conditions
     .check_samples(data)
     # Convert to bbox
@@ -43,7 +42,7 @@ sits_bbox.sits <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
 }
 #' @rdname sits_bbox
 #' @export
-sits_bbox.raster_cube <- function(data, ..., as_crs = NULL) {
+sits_bbox.raster_cube <- function(data, crs = "EPSG:4326", as_crs = NULL) {
     # Pre-condition
     .check_is_raster_cube(data)
     # Convert to bbox
@@ -52,20 +51,20 @@ sits_bbox.raster_cube <- function(data, ..., as_crs = NULL) {
 }
 #' @rdname sits_bbox
 #' @export
-sits_bbox.tbl_df <- function(x) {
-    if (all(.conf("sits_cube_cols") %in% colnames(x))) {
-        class(x) <- c("raster_cube", class(x))
-    } else if (all(.conf("sits_tibble_cols") %in% colnames(x))) {
-        class(x) <- c("sits", class(x))
+sits_bbox.tbl_df <- function(data, crs = "EPSG:4326", as_crs = NULL) {
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        class(data) <- c("raster_cube", class(data))
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
     } else
         stop("Input should be a sits tibble or a data cube")
-    x <- sits_bbox(x)
-    return(x)
+    data <- sits_bbox(data, crs, as_crs)
+    return(data)
 }
 #' @rdname sits_bbox
 #' @export
-sits_bbox.default <- function(x, ...){
-    x <- tibble::as_tibble(x)
-    bbox <- sits_bbox(x)
+sits_bbox.default <- function(data, crs = "EPSG:4326", as_crs = NULL) {
+    data <- tibble::as_tibble(data)
+    bbox <- sits_bbox(data, crs, as_crs)
     return(bbox)
 }

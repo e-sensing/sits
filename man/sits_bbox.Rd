@@ -8,24 +8,22 @@
 \alias{sits_bbox.default}
 \title{Get the bounding box of the data}
 \usage{
-sits_bbox(data, ..., as_crs = NULL)
+sits_bbox(data, crs = "EPSG:4326", as_crs = NULL)
 
-\method{sits_bbox}{sits}(data, ..., crs = "EPSG:4326", as_crs = NULL)
+\method{sits_bbox}{sits}(data, crs = "EPSG:4326", as_crs = NULL)
 
-\method{sits_bbox}{raster_cube}(data, ..., as_crs = NULL)
+\method{sits_bbox}{raster_cube}(data, crs = "EPSG:4326", as_crs = NULL)
 
-\method{sits_bbox}{tbl_df}(x)
+\method{sits_bbox}{tbl_df}(data, crs = "EPSG:4326", as_crs = NULL)
 
-\method{sits_bbox}{default}(x, ...)
+\method{sits_bbox}{default}(data, crs = "EPSG:4326", as_crs = NULL)
 }
 \arguments{
 \item{data}{\code{samples} data or \code{cube}.}
 
-\item{...}{Additional parameters.}
+\item{crs}{CRS of the samples points.}
 
 \item{as_crs}{CRS to project the resulting \code{bbox}.}
-
-\item{crs}{CRS of the samples points.}
 }
 \value{
 A \code{bbox}.

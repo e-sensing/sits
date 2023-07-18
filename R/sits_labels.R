@@ -4,6 +4,9 @@
 #' @description  Finds labels in a sits tibble or data cube
 #'
 #' @param data      Data.frame containing time series or a data cube.
+#' @param value     A character vector used to convert labels. Labels will
+#'                   be renamed to the respective value positioned at the
+#'                   labels order returned by \code{\link{sits_labels}}.
 #' @return          The labels associated to a set of time series or to
 #'                  a data cube (character vector).
 #'
@@ -97,9 +100,7 @@ sits_labels.default <- function(data) {
 `sits_labels<-.sits` <- function(data, value) {
     # does the input data exist?
     .check_samples(data)
-
     labels <- sits_labels(data)
-
     # check if value and labels match
     .check_chr_parameter(value,
         len_max = length(labels),
@@ -110,13 +111,11 @@ sits_labels.default <- function(data) {
         x = all(!is.na(value)),
         msg = "invalid values to replace labels"
     )
-
     # check if there are empty strings
     .check_that(
         x = any(trimws(value) != ""),
         msg = "invalid values to replace labels"
     )
-
     names(value) <- labels
     data$label <- value[data$label]
     return(data)

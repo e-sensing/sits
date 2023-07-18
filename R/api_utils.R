@@ -64,7 +64,7 @@ NULL
 #'   Returns \code{logical}.
 #' @noRd
 .has <- function(x) {
-    length(x) > 0
+    length(x) > 0 && !any(is.na(x))
 }
 
 #' @title Check if an input has names or not. If there is
@@ -254,7 +254,7 @@ NULL
 #' @param default     Default value
 #' @returns Default value if x is NULL
 .default <- function(x, default = NULL) {
-    if (.has(x)) {
+    if (!all(is.na(x)) && .has(x)) {
         return(x)
     }
     default

@@ -113,12 +113,14 @@ test_that("One-year, multicores processing reclassify", {
                     ),
                     memsize = 4,
                     multicores = 2,
-                    output_dir = tempdir()
+                    output_dir = tempdir(),
+                    version = "reclass"
                 )
             },
             regexp = "Recovery: "
         )
     })
+
     expect_true(grepl("output_dir", out[1]))
 
     unlink(ro_mask$file_info[[1]]$path)

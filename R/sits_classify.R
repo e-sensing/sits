@@ -124,12 +124,10 @@ sits_classify.sits <- function(data,
                                progress = TRUE) {
     # Pre-conditions
     .check_samples(data)
-
     # Update multicores: xgb model do its own parallelization
     if (inherits(ml_model, "xgb_model")) {
         multicores <- 1
     }
-
     # Do classification
     classified_ts <- .classify_ts(
         samples = data,
@@ -138,7 +136,6 @@ sits_classify.sits <- function(data,
         multicores = multicores,
         progress = progress
     )
-
     return(classified_ts)
 }
 #' @rdname sits_classify

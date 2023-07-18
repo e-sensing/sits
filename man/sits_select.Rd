@@ -5,6 +5,8 @@
 \alias{sits_select.sits}
 \alias{sits_select.raster_cube}
 \alias{sits_select.patterns}
+\alias{sits_select.tbl_df}
+\alias{sits_select.default}
 \title{Filter bands on a data set (tibble or cube)}
 \usage{
 sits_select(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
@@ -21,6 +23,10 @@ sits_select(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
 )
 
 \method{sits_select}{patterns}(data, bands, ...)
+
+\method{sits_select}{tbl_df}(data, ...)
+
+\method{sits_select}{default}(data, ...)
 }
 \arguments{
 \item{data}{Sits tibble or data cube.}

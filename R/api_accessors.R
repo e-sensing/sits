@@ -123,11 +123,9 @@
             .compact(x)
         } else if (is.numeric(x)) {
             paste0("EPSG:", .compact(x))
-        } else if (is.na(x)) {
-            NA_character_
-        } else {
-            stop("invalid crs value")
         }
+    } else {
+            stop("invalid crs value")
     }
 }
 #' @title Return CRS from a spatial data structure
