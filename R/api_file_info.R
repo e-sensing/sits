@@ -91,6 +91,7 @@ NULL
         path = path
     )
 }
+
 .fi_derived_from_file <- function(file, band, start_date, end_date) {
     file <- .file_normalize(file)
     r_obj <- .raster_open_rast(file)
@@ -109,6 +110,27 @@ NULL
         path = file
     )
 }
+
+.fi_segment_from_file <- function(file, base_tile, band, start_date, end_date) {
+    file <- .file_normalize(file)
+    v_obj <- .vector_open_vec(file)
+    bbox <- .vector_bbox(v_obj)
+    .fi_derived(
+        band = band,
+        start_date = start_date,
+        end_date = end_date,
+        ncols = .tile_ncols(base_tile),
+        nrows = .tile_nrows(base_tile),
+        xres = .tile_xres(base_tile),
+        yres = .tile_yres(base_tile),
+        xmin = bbox[["xmin"]],
+        xmax = bbox[["xmax"]],
+        ymin = bbox[["ymin"]],
+        ymax = bbox[["ymax"]],
+        path = file
+    )
+}
+
 .fi_fid <- function(fi) {
     .as_chr(fi[["fid"]])
 }
