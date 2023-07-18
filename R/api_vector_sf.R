@@ -13,16 +13,16 @@
     return(invisible(pkg_name))
 }
 
-.vector_open_vec.sf <- function(file, ...) {
-    sf::st_read(dsn = file, ...)
+.vector_open_vec.sf <- function(file, ..., quiet = TRUE) {
+    sf::st_read(dsn = file, quiet = quiet, ...)
 }
 
-.vector_read_vec.sf <- function(file, ...) {
-    sf::read_sf(dsn = file, ...)
+.vector_read_vec.sf <- function(file, ..., quiet = TRUE) {
+    sf::read_sf(dsn = file, quiet = quiet, ...)
 }
 
-.vector_write_vec <- function(v_obj, file, ...) {
-    sf::st_write(obj = v_obj, dsn = file, ...)
+.vector_write_vec <- function(v_obj, file, ..., quiet = TRUE) {
+    sf::st_write(obj = v_obj, dsn = file, quiet = quiet, ...)
 }
 
 .vector_bbox.sf <- function(v_obj, ...) {
