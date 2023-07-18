@@ -56,6 +56,16 @@
     pred
 }
 
+.pred_features_name <- function(bands, timeline) {
+    n <- length(timeline)
+    c(vapply(
+        X = bands,
+        FUN = function(band) paste0(band, seq_len(n)),
+        FUN.VALUE = character(n),
+        USE.NAMES = FALSE
+    ))
+}
+
 .pred_features <- function(pred) {
     if (all(.pred_cols %in% names(pred))) {
         pred[, -2:0]
