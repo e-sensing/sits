@@ -333,7 +333,7 @@
     # try to open the file
     s_obj <- .try(
         {
-            sf::st_read(file)
+            .vector_read_vec(file)
         },
         .default = {
             unlink(file)

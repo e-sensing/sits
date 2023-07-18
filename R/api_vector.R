@@ -38,7 +38,7 @@
     # check package
     pkg_class <- .vector_check_package()
 
-    UseMethod(".raster_write_rast", pkg_class)
+    UseMethod(".vector_write_vec", pkg_class)
 }
 
 #' @title Raster package internal create raster object function
@@ -51,7 +51,7 @@
 #' @param ...           additional parameters to be passed to raster package
 #'
 #' @return               A vector object.
-.vector_new_vec <- function( ...) {
+.vector_new_vec <- function(...) {
     # check package
     pkg_class <- .vector_check_package()
 

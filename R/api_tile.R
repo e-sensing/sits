@@ -841,7 +841,7 @@ NULL
 #' @return a new tile
 .tile_segments_from_file <- function(file, band, base_tile, derived_class,
                                      update_bbox = FALSE) {
-    v_obj <- .vector_open_vec(file)
+    v_obj <- .vector_read_vec(file)
     base_tile <- .tile(base_tile)
     bbox <- .vector_bbox(v_obj)
     if (update_bbox) {
