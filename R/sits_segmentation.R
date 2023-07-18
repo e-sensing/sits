@@ -249,6 +249,68 @@ sits_supercells <- function(tile = NULL,
     result <- .factory_function(tile, seg_fun)
     return(result)
 }
+
+sits_supercells_temp <- function(data = NULL,
+                                 step = 50,
+                                 compactness = 1,
+                                 dist_fun = "euclidean",
+                                 avg_fun = "mean",
+                                 iter = 10,
+                                 minarea = 30,
+                                 verbose = FALSE) {
+    # step is OK?
+    .check_int_parameter(step, min = 1, max = 500)
+    # compactness is OK?
+    .check_int_parameter(compactness, min = 1, max = 50)
+    # iter is OK?
+    .check_int_parameter(iter, min = 10, max = 100)
+    # minarea is OK?
+    .check_int_parameter(minarea, min = 10, max = 100)
+    function(data, block, bbox) {
+        # Create a template rast
+        v_obj <- .raster_new_rast(
+            nrows = block[["nrows"]], ncols = block[["ncols"]],
+            xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
+            ymin = bbox[["ymin"]], ymax = bbox[["ymax"]],
+            nlayers = 1, crs = bbox[["crs"]]
+        )
+        # Get raster dimensions
+        mat <- as.integer(c(.raster_nrows(v_obj), .raster_ncols(v_obj)))
+        # Get caller function and call it
+        fn <- get("run_slic",
+                  envir = asNamespace("supercells"),
+                  inherits = FALSE
+        )
+        slic <- fn(
+            mat = mat, vals = data, step = step, nc = compactness,
+            con = TRUE, centers = TRUE, type = dist_fun,
+            type_fun = function() "", avg_fun_fun = function() "",
+            avg_fun_name = avg_fun, iter = iter, lims = minarea,
+            input_centers = matrix(c(0L, 0L), ncol = 2),
+            verbose = as.integer(verbose)
+        )
+        # Set values and NA value in template raster
+        v_obj <- .raster_set_values(v_obj, slic[[1]])
+        v_obj <- .raster_set_na(v_obj, -1)
+        # Polygonize raster and convert to sf object
+        v_obj <- .raster_polygonize(v_obj, dissolve = TRUE)
+        v_obj <- sf::st_as_sf(v_obj)
+        if (nrow(v_obj) == 0) {
+            return(v_obj)
+        }
+        # Add an ID for each segments
+        names(v_obj) <- c("supercells", "geometry")
+        v_obj[["supercells"]] <- v_obj[["supercells"]] + 1
+        # Get only polygons segments
+        v_obj <- suppressWarnings(
+            sf::st_collection_extract(v_obj, "POLYGON")
+        )
+        # Return the segment object
+        return(v_obj)
+    }
+}
+
+
 #' @title Return segments from a classified set of time series
 #' @name sits_join_segments
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
