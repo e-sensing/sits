@@ -175,6 +175,7 @@
 
     return(ts_tbl)
 }
+
 #' @title Extract time series from segments by tile and band
 #'
 #' @name .segments_get_ts

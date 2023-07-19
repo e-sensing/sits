@@ -268,14 +268,16 @@ sits_supercells_temp <- function(data = NULL,
     .check_int_parameter(minarea, min = 10, max = 100)
     function(data, block, bbox) {
         # Create a template rast
-        v_obj <- .raster_new_rast(
+        v_temp <- .raster_new_rast(
             nrows = block[["nrows"]], ncols = block[["ncols"]],
             xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
             ymin = bbox[["ymin"]], ymax = bbox[["ymax"]],
             nlayers = 1, crs = bbox[["crs"]]
         )
         # Get raster dimensions
-        mat <- as.integer(c(.raster_nrows(v_obj), .raster_ncols(v_obj)))
+        mat <- as.integer(
+            c(.raster_nrows(v_temp), .raster_ncols(v_temp))
+        )
         # Get caller function and call it
         fn <- get("run_slic",
                   envir = asNamespace("supercells"),
@@ -290,7 +292,7 @@ sits_supercells_temp <- function(data = NULL,
             verbose = as.integer(verbose)
         )
         # Set values and NA value in template raster
-        v_obj <- .raster_set_values(v_obj, slic[[1]])
+        v_obj <- .raster_set_values(v_temp, slic[[1]])
         v_obj <- .raster_set_na(v_obj, -1)
         # Polygonize raster and convert to sf object
         v_obj <- .raster_polygonize(v_obj, dissolve = TRUE)
@@ -298,9 +300,19 @@ sits_supercells_temp <- function(data = NULL,
         if (nrow(v_obj) == 0) {
             return(v_obj)
         }
-        # Add an ID for each segments
-        names(v_obj) <- c("supercells", "geometry")
-        v_obj[["supercells"]] <- v_obj[["supercells"]] + 1
+        # Get valid centers
+        valid_centers <- slic[[2]][,1] != 0 | slic[[2]][,2] != 0
+        # Bind valid centers with segments table
+        v_obj <- cbind(v_obj, stats::na.omit(slic[[2]][valid_centers, ]))
+        # Rename columns
+        names(v_obj) <- c("supercells", "x", "y", "geometry")
+        # Get the extent of template raster
+        v_ext <- .raster_bbox(v_temp)
+        # Calculate pixel position by rows and cols
+        xres <- (v_obj[["x"]] * .raster_xres(v_temp)) + (.raster_xres(v_temp)/2)
+        yres <- (v_obj[["y"]] * .raster_yres(v_temp)) - (.raster_yres(v_temp)/2)
+        v_obj[["x"]] <- as.vector(v_ext)[[1]] + xres
+        v_obj[["y"]] <- as.vector(v_ext)[[4]] - yres
         # Get only polygons segments
         v_obj <- suppressWarnings(
             sf::st_collection_extract(v_obj, "POLYGON")
