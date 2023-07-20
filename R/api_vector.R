@@ -20,21 +20,21 @@
     UseMethod(".vector_check_package", pkg_class)
 }
 
-.vector_open_vec <- function(file, ...) {
+.vector_open_vec <- function(file_path, ...) {
     # check package
     pkg_class <- .vector_check_package()
 
     UseMethod(".vector_open_vec", pkg_class)
 }
 
-.vector_read_vec <- function(file, ...) {
+.vector_read_vec <- function(file_path, ...) {
     # check package
     pkg_class <- .vector_check_package()
 
     UseMethod(".vector_read_vec", pkg_class)
 }
 
-.vector_write_vec <- function(v_obj, file, ...) {
+.vector_write_vec <- function(v_obj, file_path, ...) {
     # check package
     pkg_class <- .vector_check_package()
 
