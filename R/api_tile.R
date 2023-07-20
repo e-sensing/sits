@@ -841,7 +841,7 @@ NULL
 #' @return a new tile
 .tile_segments_from_file <- function(file, band, base_tile, derived_class,
                                      update_bbox = FALSE) {
-    v_obj <- .vector_read_vec(file)
+    v_obj <- .vector_read_vec(file_path = file)
     base_tile <- .tile(base_tile)
     bbox <- .vector_bbox(v_obj)
     if (update_bbox) {
@@ -941,10 +941,10 @@ NULL
     # Define an unique ID
     vec_segments[["pol_id"]] <- seq_len(nrow(vec_segments))
     # Write all segments
-    .vector_write_vec(v_obj = vec_segments, file = out_file)
+    .vector_write_vec(v_obj = vec_segments, file_path = out_file)
     # Create tile based on template
     tile <- .tile_segments_from_file(
-        file = file,
+        file = out_file,
         band = band,
         base_tile = base_tile,
         derived_class = derived_class,

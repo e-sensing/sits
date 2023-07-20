@@ -113,7 +113,7 @@ NULL
 
 .fi_segment_from_file <- function(file, base_tile, band, start_date, end_date) {
     file <- .file_normalize(file)
-    v_obj <- .vector_read_vec(file)
+    v_obj <- .vector_read_vec(file_path = file)
     bbox <- .vector_bbox(v_obj)
     .fi_derived(
         band = band,
