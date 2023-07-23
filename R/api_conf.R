@@ -962,6 +962,16 @@ NULL
     derived_class <- tolower(derived_class)
     .conf("derived_cube", derived_class, "s3_class")
 }
+#' @title Get the S3 class values of a `vector_cube`
+#' @noRd
+#' @param vector_class  A `vector_cube` class name.
+#' @return A S3 class.
+.conf_vector_s3class <- function(vector_class) {
+    # derived_class is lowercase
+    vector_class <- tolower(vector_class)
+    .conf("vector_cube", vector_class, "s3_class")
+}
+
 #' @title Get a band configuration of a `derived_cube`
 #' @noRd
 #' @param derived_class  A `derived_cube` class name.

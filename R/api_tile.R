@@ -836,10 +836,10 @@ NULL
 #' @param file  file to be merged
 #' @param band  band to be used in the tile
 #' @param base_tile  reference tile used in the operation
-#' @param derived_class class of the derived tile
+#' @param vector_class class of the vector tile
 #' @param update_bbox  should bbox be updated?
 #' @return a new tile
-.tile_segments_from_file <- function(file, band, base_tile, derived_class,
+.tile_segments_from_file <- function(file, band, base_tile, vector_class,
                                      update_bbox = FALSE) {
     v_obj <- .vector_read_vec(file_path = file)
     base_tile <- .tile(base_tile)
@@ -861,7 +861,7 @@ NULL
         end_date = .tile_end_date(base_tile)
     )
     # Set tile class and return tile
-    .cube_set_class(base_tile, .conf_derived_s3class(derived_class))
+    .cube_set_class(base_tile, .conf_vector_s3class(vector_class))
 }
 
 #' @title Write values of a derived tile from a set of blocks

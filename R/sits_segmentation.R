@@ -92,12 +92,12 @@ sits_segment <- function(cube,
     # Are bands OK?
     bands <- .default(bands, .cube_bands(cube))
     .check_chr_within(bands, .cube_bands(cube),
-        msg = "bands not available in the cube"
+                      msg = "bands not available in the cube"
     )
     # Is date OK?
     dates <- .default(dates, .cube_timeline(cube)[[1]][[1]])
     .check_that(all(as.Date(dates) %in% .cube_timeline(cube)[[1]]),
-        msg = "dates not available in the cube"
+                msg = "dates not available in the cube"
     )
     # get start and end date
     start_date <- as.Date(dates[[1]])
@@ -250,14 +250,14 @@ sits_supercells <- function(tile = NULL,
     return(result)
 }
 
-sits_supercells_temp <- function(data = NULL,
-                                 step = 50,
-                                 compactness = 1,
-                                 dist_fun = "euclidean",
-                                 avg_fun = "mean",
-                                 iter = 10,
-                                 minarea = 30,
-                                 verbose = FALSE) {
+sits_slic <- function(data = NULL,
+                      step = 50,
+                      compactness = 1,
+                      dist_fun = "euclidean",
+                      avg_fun = "mean",
+                      iter = 10,
+                      minarea = 30,
+                      verbose = FALSE) {
     # step is OK?
     .check_int_parameter(step, min = 1, max = 500)
     # compactness is OK?
@@ -296,6 +296,7 @@ sits_supercells_temp <- function(data = NULL,
         v_obj <- .raster_set_na(v_obj, -1)
         # Polygonize raster and convert to sf object
         v_obj <- .raster_polygonize(v_obj, dissolve = TRUE)
+        # TODO: use vector API
         v_obj <- sf::st_as_sf(v_obj)
         if (nrow(v_obj) == 0) {
             return(v_obj)

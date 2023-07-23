@@ -257,7 +257,7 @@
             file = out_file,
             band = band,
             base_tile = tile,
-            derived_class = "segs_cube",
+            vector_class = "segs_cube",
             update_bbox = TRUE
         )
         return(seg_tile)
@@ -283,7 +283,7 @@
         # Block file name
         hash_bundle <- digest::digest(list(block, seg_fn), algo = "md5")
         block_file <- .file_block_name(
-            pattern = paste0(hash_bundle, "_segment"),
+            pattern = paste0(hash_bundle, "_segments"),
             block = block,
             output_dir = output_dir,
             ext = "gpkg"
@@ -316,7 +316,7 @@
         block_files = block_files,
         base_tile = tile,
         band = "segments",
-        derived_class = "segs_cube",
+        vector_class = "segs_cube",
         out_file = out_file,
         update_bbox = update_bbox
     )
