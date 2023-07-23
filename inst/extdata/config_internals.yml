@@ -157,16 +157,13 @@ derived_cube         :
                 maximum_value: 254
                 offset_value : 0
                 scale_factor : 1
+
+# Vector cube definitions
+vector_cube          :
     segs_cube        :
-        s3_class     : [ "segs_cube", "derived_cube", "raster_cube" ]
+        s3_class     : [ "segs_cube", "vector_cube"]
         bands        :
             segments :
-                data_type    : "INT2U"
-                missing_value: 65535
-                minimum_value: 1
-                maximum_value: 65534
-                offset_value : 0
-                scale_factor : 1
 
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"
