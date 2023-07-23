@@ -305,7 +305,7 @@
         # Check if the result values is a vector object
         .check_vector(values)
         # Prepare and save results as vector
-        .vector_write_vec(v_obj = values, file = block_file)
+        .vector_write_vec(v_obj = values, file_path = block_file)
         # Free memory
         gc()
         # Returned block file
