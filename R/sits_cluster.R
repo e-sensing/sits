@@ -44,7 +44,7 @@
 #' }
 #'
 #' @export
-sits_cluster_dendro <- function(samples = NULL,
+sits_cluster_dendro <- function(samples,
                                 bands = NULL,
                                 dist_method = "dtw_basic",
                                 linkage = "ward.D2",
@@ -57,6 +57,7 @@ sits_cluster_dendro <- function(samples = NULL,
     .check_samples_train(samples)
 
     # bands in sits are uppercase
+    bands <- .default(bands, sits_bands(samples))
     bands <- .tibble_bands_check(samples, bands)
 
     # calculate the dendrogram object
@@ -76,23 +77,21 @@ sits_cluster_dendro <- function(samples = NULL,
         "best height for cutting the dendrogram = ",
         best_cut["height"]
     ))
-
     # cut the tree (user-defined value overrides default)
     message("cutting the tree...")
-    if (!purrr::is_null(k)) {
-        if (k != best_cut["k"]) {
-            message(paste0("Caveat: desired number of clusters (", k, ")
+    k <- .default(k, best_cut["k"])
+    if (k != best_cut["k"]) {
+        message(paste0("Caveat: desired number of clusters (", k, ")
                             overrides best value"))
-            best_cut["k"] <- k
-            best_cut["height"] <-
-                c(0, cluster$height)[length(cluster$height) - k + 2]
-        }
+        best_cut["k"] <- k
+        best_cut["height"] <-
+            c(0, cluster$height)[length(cluster$height) - k + 2]
     }
     samples$cluster <- stats::cutree(
-        cluster, best_cut["k"],
+        cluster,
+        best_cut["k"],
         best_cut["height"]
     )
-
     # change the class
     class(samples) <- c("sits_cluster", class(samples))
     # plot the dendrogram
@@ -109,7 +108,6 @@ sits_cluster_dendro <- function(samples = NULL,
     message("result is a tibble with cluster indexes...")
     return(samples)
 }
-
 #'
 #' @title Show label frequency in each cluster produced by dendrogram analysis
 #' @name sits_cluster_frequency

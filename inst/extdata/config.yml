@@ -39,6 +39,9 @@ leaflet_max_megabytes : 512
 leaflet_comp_factor : 0.50
 # sample size
 summary_sample_size : 10000
+# BDC access key
+BDC_ACCESS_KEY: "gsLxTlcbO7tu7tMEOVWKD6YkJDhlNz7iwkRN2XZf55"
+HLS_ACCESS_URL: "machine.urs.earthdata.nasa.gov"
 
 sources:
     BDC                     :
@@ -533,7 +536,7 @@ sources:
                         band_name    : "rededge3"
                     B08     :
                         <<: *aws_msi_10m
-                        band_name    : "B08"
+                        band_name    : "nir"
                     B8A     :
                         <<: *aws_msi_20m
                         band_name    : "nir08"

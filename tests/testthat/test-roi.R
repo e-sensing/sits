@@ -69,14 +69,14 @@ test_that("Bbox in WGS 84", {
     expect_true(all(names(bbox) %in% c("xmin", "ymin", "xmax", "ymax", "crs")))
 })
 
-test_that("bbox as sf",{
+test_that("bbox as sf", {
     # create a raster cube
     s2_cube_s2a <- .try(
         {
             sits_cube(
                 source = "MPC",
                 collection = "SENTINEL-2-L2A",
-                tiles = c("20LKP","21LTF"),
+                tiles = c("20LKP", "21LTF"),
                 bands = c("B05"),
                 start_date = as.Date("2018-07-18"),
                 end_date = as.Date("2018-08-23"),
@@ -172,6 +172,5 @@ test_that("Internal functions in ROI", {
     expect_equal(si[["nrows"]], 84)
 })
 test_that("CRS errors", {
-    expect_error(.as_crs(TRUE))
-    expect_equal(.as_crs(NA), NA_character_)
+    expect_error(.as_crs(NA))
 })

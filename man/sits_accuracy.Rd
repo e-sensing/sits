@@ -10,7 +10,7 @@ sits_accuracy(data, ...)
 
 \method{sits_accuracy}{sits}(data, ...)
 
-\method{sits_accuracy}{class_cube}(data, validation = NULL, ..., validation_csv = NULL)
+\method{sits_accuracy}{class_cube}(data, ..., validation)
 }
 \arguments{
 \item{data}{Either a data cube with classified images or
@@ -20,8 +20,6 @@ a set of time series}
 
 \item{validation}{Samples for validation (see below)
 Only required when data is a data cube.}
-
-\item{validation_csv}{CSV file with samples (deprecated)}
 }
 \value{
 A list of lists: The error_matrix, the class_areas, the unbiased

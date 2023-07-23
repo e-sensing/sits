@@ -61,7 +61,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
         output_dir = dir_images
     )
 
-    vls <- unlist(sits_values(ts))
+    vls <- unlist(.values_ts(ts))
     expect_true(all(vls > 0 & vls < 1.))
     expect_equal(sits_bands(ts), sits_bands(rg_cube))
     expect_equal(sits_timeline(ts), sits_timeline(rg_cube))

@@ -15,14 +15,3 @@ Sys.setenv("SITS_RUN_TESTS" = "YES")
 To come back to the default behaviour, please set
 Sys.setenv("SITS_RUN_TESTS" = "NO")
 }
-\examples{
-if (sits_run_tests()) {
-    message("Tests will be run")
-} else {
-    message(paste(
-        "Set the environmental variable SITS_RUN_TESTS to YES",
-        "to run the tests or use devtools::run_tests()"
-    ))
-}
-
-}

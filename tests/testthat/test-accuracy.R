@@ -46,14 +46,14 @@ test_that("samples_validation", {
     # Remove the lines used for validation
     sel <- !samples$id %in% train_data$id
     val_samples <- samples[sel, ]
-    expect_true(
+    samples_val <-
         .check_samples_validation(
             samples_validation = val_samples,
             labels = sits_labels(samples),
             timeline = sits_timeline(samples),
             bands = sits_bands(samples)
         )
-    )
+    expect_true(nrow(samples_val) == nrow(val_samples))
 })
 test_that("XLS", {
     set.seed(1234)
@@ -144,13 +144,13 @@ test_that("Accuracy areas", {
     expect_true(grepl("Mapped Area", p1[11]))
 
     # alternative: use a sits tibble
-    validation <- tibble::as_tibble(
+    samples_csv <- tibble::as_tibble(
         utils::read.csv(
             ground_truth,
             stringsAsFactors = FALSE
         )
     )
-    as2 <- sits_accuracy(label_cube, validation)
+    as2 <- sits_accuracy(label_cube, validation = samples_csv)
 
     expect_true(as.numeric(as2$area_pixels["Forest"]) >
         as2$area_pixels["Pasture"])

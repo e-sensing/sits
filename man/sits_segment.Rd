@@ -70,7 +70,8 @@ if (sits_run_examples()) {
     # get the average value per segment
     samples_seg <- sits_get_data(
         cube = cube,
-        samples = segments
+        samples = segments,
+        n_sam_pol = 10
     )
     # classify the segments
     seg_class <- sits_classify(

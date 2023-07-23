@@ -1,5 +1,18 @@
+#' @title Test access to collection in MPC
 #' @keywords internal
 #' @noRd
+#' @description
+#' These functions provide an API to handle/retrieve data from source's
+#' collections.
+#'
+#' @param source     Data source.
+#' @param collection Image collection.
+#' @param bands      Band names
+#' @param ...        Other parameters to be passed for specific types.
+#' @param start_date Start date.
+#' @param end_date   End date.
+#' @param dry_run    TRUE/FALSE
+#' @return           Called for side effects
 #' @export
 .source_collection_access_test.mpc_cube <- function(source,
                                                     collection,
@@ -73,11 +86,21 @@
             }
         )
     }
-    return(invisible(NULL))
+    return(invisible(source))
 }
-
+#' @title Create an items object in an MPC Sentinel-2 collection
 #' @keywords internal
 #' @noRd
+#' @description \code{.source_items_new()} this function is called to create
+#' an items object. In case of Web services, this function is responsible for
+#' making the Web requests to the server.
+#' @param source     Name of the STAC provider.
+#' @param collection Collection to be searched in the data source.
+#' @param stac_query Query that follows the STAC protocol
+#' @param ...        Other parameters to be passed for specific types.
+#' @param tiles      Selected tiles (optional)
+#' @param platform   Satellite platform (optional).
+#' @return An object referring the images of a sits cube.
 #' @export
 `.source_items_new.mpc_cube_sentinel-2-l2a` <- function(source,
                                                         collection,
@@ -145,7 +168,12 @@
     )
     return(items_info)
 }
-
+#' @title Organizes items for MPC Sentinel-2 collections
+#' @param source     Name of the STAC provider.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
 #' @keywords internal
 #' @noRd
 #' @export
@@ -154,9 +182,19 @@
                                                          collection = NULL) {
     rstac::items_reap(items, field = c("properties", "s2:mgrs_tile"))
 }
-
+#' @title Create an items object in MPC Landsat collection
 #' @keywords internal
 #' @noRd
+#' @description \code{.source_items_new()} this function is called to create
+#' an items object. In case of Web services, this function is responsible for
+#' making the Web requests to the server.
+#' @param source     Name of the STAC provider.
+#' @param collection Collection to be searched in the data source.
+#' @param stac_query Query that follows the STAC protocol
+#' @param ...        Other parameters to be passed for specific types.
+#' @param tiles      Selected tiles (optional)
+#' @param platform   Satellite platform (optional).
+#' @return An object referring the images of a sits cube.
 #' @export
 `.source_items_new.mpc_cube_landsat-c2-l2` <- function(source,
                                                        collection,
@@ -205,7 +243,12 @@
     )
     return(items)
 }
-
+#' @title Organizes items for MPC Landsat collections
+#' @param source     Name of the STAC provider.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
 #' @keywords internal
 #' @noRd
 #' @export

@@ -15,7 +15,7 @@ test_that("Tuning - random search", {
             )
         ),
         trials = 2,
-        multicores = 2,
+        multicores = 1,
         progress = FALSE
     )
     expect_true(max(tuned_choice$accuracy) > 0.5)
@@ -100,7 +100,7 @@ test_that("Tuning - random search", {
             epochs = 10,
             optimizer = torch::optim_adam,
             opt_hparams = list(
-                lr = loguniform(minlog = -5, maxlog = -4)
+                lr = loguniform(10^-2, 10^-4)
             )
         ),
         trials = 2,

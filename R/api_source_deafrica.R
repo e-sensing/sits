@@ -1,5 +1,16 @@
+#' @title Create an items object in an DEAfrica cube
 #' @keywords internal
 #' @noRd
+#' @description \code{.source_items_new()} this function is called to create
+#' an items object. In case of Web services, this function is responsible for
+#' making the Web requests to the server.
+#' @param source     Name of the STAC provider.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param collection Collection to be searched in the data source.
+#' @param stac_query Query that follows the STAC protocol
+#' @param tiles      Selected tiles (optional)
+#' @param platform   Satellite platform (optional).
+#' @return An object referring the images of a sits cube.
 #' @export
 .source_items_new.deafrica_cube <- function(source, ...,
                                             collection,
@@ -42,7 +53,12 @@
     )
     return(items_info)
 }
-
+#' @title Organizes items by tiles for DEAfrica collections
+#' @param source     Name of the STAC provider.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
 #' @keywords internal
 #' @noRd
 #' @export

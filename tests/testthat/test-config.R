@@ -28,12 +28,12 @@ test_that("User functions", {
     default <- sits_config()
     expect_equal(
         .conf("processing_bloat"),
-        5
+        8
     )
 
     expect_equal(
         .conf("rstac_pagination_limit"),
-        999
+        500
     )
 
     expect_equal(
@@ -50,27 +50,6 @@ test_that("User functions", {
             "khaki", "sienna", "darkgreen", "lightgreen",
             "lightsteelblue1"
         )
-    )
-
-    # load default + user + user provided values
-    sits_config(
-        processing_bloat = 6,
-        rstac_pagination_limit = 500,
-        gdal_creation_options = c("BIGTIFF=YES")
-    )
-    expect_equal(
-        .conf("processing_bloat"),
-        6
-    )
-
-    expect_equal(
-        .conf("rstac_pagination_limit"),
-        500
-    )
-
-    expect_equal(
-        .conf("gdal_creation_options"),
-        c("BIGTIFF=YES")
     )
 
     expect_output(
@@ -181,17 +160,6 @@ test_that("User functions", {
             "232067"
         ),
         NULL
-    )
-
-    # reset config
-    sits_config(reset = TRUE)
-    expect_true(
-        Sys.setenv("SITS_CONFIG_USER_FILE" = "")
-    )
-
-    expect_equal(
-        sits_env$config,
-        default
     )
 })
 

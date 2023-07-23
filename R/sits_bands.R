@@ -15,16 +15,30 @@
 #' A vector with the names of the bands.
 #'
 #' @examples
-#' bands <- sits_bands(point_mt_6bands)
-#' bands[[5]] <- "EVI2"
-#' sits_bands(point_mt_6bands) <- bands
-#'
+#' if (sits_run_examples()) {
+#'     # Create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir
+#'     )
+#'     # Get the bands from a daya cube
+#'     bands <- sits_bands(cube)
+#'     # Get the bands from a sits tibble
+#'     bands <- sits_bands(samples_modis_ndvi)
+#'     # Get the bands from patterns
+#'     bands <- sits_bands(sits_patterns(samples_modis_ndvi))
+#'     # Get the bands from ML model
+#'     rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     bands <- sits_bands(rf_model)
+#'     # Set the bands for a SITS time series
+#'     sits_bands(samples_modis_ndvi) <- "NDVI2"
+#'     # Set the bands for a SITS cube
+#'     sits_bands(cube) <- "NDVI2"
+#'}
 #' @export
 sits_bands <- function(x) {
-    # Set caller to show in errors
-    .check_set_caller("sits_bands")
-    # Get the meta-type (sits or cube)
-    x <- .conf_data_meta_type(x)
     UseMethod("sits_bands", x)
 }
 
@@ -47,7 +61,6 @@ sits_bands.raster_cube <- function(x) {
     )
     return(unlist(bands))
 }
-
 #' @rdname sits_bands
 #' @export
 sits_bands.patterns <- function(x) {
@@ -60,12 +73,31 @@ sits_bands.sits_model <- function(x) {
     bands <- .ml_bands(x)
     return(bands)
 }
+#' @rdname sits_bands
+#' @export
+sits_bands.tbl_df <- function(x) {
+    if (all(.conf("sits_cube_cols") %in% colnames(x))) {
+        class(x) <- c("raster_cube", class(x))
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(x))) {
+        class(x) <- c("sits", class(x))
+    } else
+        stop("Input should be a sits tibble, data cube, patterns, or model")
+    bands <- sits_bands(x)
+    return(bands)
+}
+#' @rdname sits_bands
+#' @export
+sits_bands.default <- function(x) {
+    x <- tibble::as_tibble(x)
+    bands <- sits_bands(x)
+    return(bands)
+}
 
 #' @rdname sits_bands
 #' @export
 `sits_bands<-` <- function(x, value) {
-    # Get the meta-type (sits or cube)
-    x <- .conf_data_meta_type(x)
+    .check_chr(value, len_min = 1)
+    value <- toupper(value)
     UseMethod("sits_bands<-", x)
 }
 
@@ -98,4 +130,22 @@ sits_bands.sits_model <- function(x) {
         tile
     })
     return(x)
+}
+#' @rdname sits_bands
+#' @export
+`sits_bands<-.tbl_df` <- function(x, value) {
+    if (all(.conf("sits_cube_cols") %in% colnames(x))) {
+        class(x) <- c("raster_cube", class(x))
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(x))) {
+        class(x) <- c("sits", class(x))
+    } else
+        stop("Input should be a sits tibble, data cube, patterns, or model")
+    sits_bands(x) <- value
+    return(x)
+}
+#' @rdname sits_bands
+#' @export
+`sits_bands<-.default` <- function(x, value) {
+    x <- tibble::as_tibble(x)
+    sits_bands(x) <- value
 }

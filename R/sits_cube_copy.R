@@ -26,7 +26,7 @@
 #'     # Creating a sits cube from BDC
 #'     bdc_cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "CB4-16D-2",
+#'         collection = "CBERS-WFI-16D",
 #'         tiles = c("007004", "007005"),
 #'         bands = c("B15", "CLOUD"),
 #'         start_date = "2018-01-01",
@@ -66,7 +66,7 @@ sits_cube_copy <- function(cube,
         output_dir <- path.expand(output_dir)
     }
     .check_output_dir(output_dir)
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
 
     # Prepare parallel processing
