@@ -6,7 +6,7 @@
 \usage{
 sits_segment(
   cube,
-  seg_fn = sits_supercells_temp(),
+  seg_fn = sits_slic(),
   roi = NULL,
   start_date = NULL,
   end_date = NULL,
