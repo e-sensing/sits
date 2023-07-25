@@ -4,6 +4,8 @@
 \alias{sits_classify}
 \alias{sits_classify.sits}
 \alias{sits_classify.raster_cube}
+\alias{sits_classify.tbl_df}
+\alias{sits_classify.default}
 \title{Classify time series or data cubes}
 \usage{
 sits_classify(
@@ -39,9 +41,13 @@ sits_classify(
   verbose = FALSE,
   progress = TRUE
 )
+
+\method{sits_classify}{tbl_df}(data, ml_model, ...)
+
+\method{sits_classify}{default}(data, ml_model, ...)
 }
 \arguments{
-\item{data}{Data cube.}
+\item{data}{Data cube (tibble)}
 
 \item{ml_model}{R model trained by \code{\link[sits]{sits_train}}.}
 
@@ -49,24 +55,27 @@ sits_classify(
 
 \item{filter_fn}{Smoothing filter to be applied (if desired).}
 
-\item{multicores}{Number of cores to be used for classification.}
+\item{multicores}{Number of cores to be used for classification
+(integer, min = 1, max = 2048).}
 
-\item{progress}{Show progress bar?}
+\item{progress}{Logical: Show progress bar?}
 
 \item{roi}{Region of interest (see below)}
 
-\item{start_date}{Start date for the classification.}
+\item{start_date}{Start date for the classification
+(YYYY-MM-DD format).}
 
-\item{end_date}{End date for the classification.}
+\item{end_date}{End date for the classification
+(YYYY-MM-DD format).}
 
-\item{memsize}{Memory available for classification (in GB).}
+\item{memsize}{Memory available for classification in GB
+(integer, min = 1, max = 16384).}
 
-\item{output_dir}{Directory for output file.}
+\item{output_dir}{Valid directory for output file.}
 
-\item{version}{Version of the output (for multiple
-classifications).}
+\item{version}{Version of the output (character vector).}
 
-\item{verbose}{Print information about processing time?}
+\item{verbose}{Logical: print information about processing time?}
 }
 \value{
 Predicted data (classified time series)
@@ -132,12 +141,16 @@ if (sits_run_examples()) {
     )
     # classify a data cube
     probs_cube <- sits_classify(
-        data = cube, ml_model = rf_model, output_dir = tempdir()
+        data = cube,
+        ml_model = rf_model,
+        output_dir = tempdir(),
+        version = "ex_classify"
     )
     # label the probability cube
     label_cube <- sits_label_classification(
         probs_cube,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        version = "ex_classify"
     )
     # plot the classified image
     plot(label_cube)

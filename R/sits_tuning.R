@@ -47,10 +47,10 @@
 #'         ml_method = sits_tempcnn(),
 #'         params = sits_tuning_hparams(
 #'             optimizer = choice(
-#'                 torchopt::optim_adamw
+#'                 torch::optim_adamw
 #'             ),
 #'             opt_hparams = list(
-#'                 lr = beta(0.3, 5)
+#'                 lr = loguniform(10^-2, 10^-4)
 #'             )
 #'         ),
 #'         trials = 4,
@@ -116,7 +116,7 @@ sits_tuning <- function(samples,
     # check trials
     .check_int_parameter(trials)
     # check 'multicores' parameter
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     # generate random params
     params_lst <- purrr::map(
         as.list(seq_len(trials)),

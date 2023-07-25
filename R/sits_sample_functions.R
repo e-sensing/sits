@@ -12,10 +12,13 @@
 #'              that label will be sampled with replacement. Also,
 #'              if frac > 1 , all sampling will be done with replacement.
 #'
-#' @param  data       Input sits tibble.
-#' @param  n          Number of samples to pick from each group of data.
-#' @param  frac       Percentage of samples to pick from each group of data.
-#' @param  oversample Oversample classes with small number of samples?
+#' @param  data       Sits time series tibble.
+#' @param  n          Integer: number of samples to select
+#'                    (range: 1 to nrow(data)).
+#' @param  frac       Numeric: Percentage of samples to extract
+#'                    (range: 0.0 to 2.0)
+#' @param  oversample Logical: oversample classes with small number of samples?
+#'                    (TRUE/FALSE)
 #' @return            A sits tibble with a fixed quantity of samples.
 #' @examples
 #' # Retrieve a set of time series with 2 classes
@@ -23,9 +26,13 @@
 #' # Print the labels of the resulting tibble
 #' summary(cerrado_2classes)
 #' # Samples the data set
-#' data <- sits_sample(cerrado_2classes, n = 100)
-#' # Print the labels of the resulting tibble
-#' summary(data)
+#' data_100 <- sits_sample(cerrado_2classes, n = 100)
+#' # Print the labels
+#' summary(data_100)
+#' # Sample by fraction
+#' data_02 <- sits_sample(cerrado_2classes, frac = 0.2)
+#' # Print the labels
+#' summary(data_02)
 #' @export
 sits_sample <- function(data,
                         n = NULL,
@@ -34,13 +41,22 @@ sits_sample <- function(data,
     # set caller to show in errors
     .check_set_caller("sits_sample")
     # verify if data is valid
-    .check_samples(data)
+    .check_samples_ts(data)
     # verify if either n or frac is informed
     .check_that(
         x = !(purrr::is_null(n) & purrr::is_null(frac)),
         local_msg = "neither 'n' or 'frac' parameters were informed",
         msg = "invalid sample parameters"
     )
+    # check oversample
+    .check_lgl_parameter(oversample, msg = "invalid oversample parameter")
+    # check n and frac parameters
+    if (!purrr::is_null(n))
+        .check_int_parameter(n, min = 1, max = nrow(data),
+                   msg = "invalid n parameter")
+    if (!purrr::is_null(frac))
+        .check_num_parameter(frac, min = 0.0, max = 2.0,
+                   msg = "invalid frac parameter")
     # group the data by label
     groups <- by(data, data[["label"]], list)
     # for each group of samples, obtain the required subset

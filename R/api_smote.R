@@ -86,10 +86,9 @@
     N_class <- target[target != names(which.min(n_target))]
     # The number of positive instances
     sizeP <- nrow(P_set)
-    # The number of negative instances
-    sizeN <- nrow(N_set)
+    # Get k nearest neighbors
     knear <- .smote_knearest(P_set, P_set, K)
-    sum_dup <- .smote_n_dup_max(sizeP + sizeN, sizeP, sizeN, dup_size)
+    sum_dup <- dup_size
     syn_dat <- NULL
     for (i in 1:sizeP) {
         if (is.matrix(knear)) {
@@ -131,7 +130,13 @@
 
     return(D_result)
 }
-
+#' @title Find K nearest neighbors
+#' @keywords internal
+#' @noRd
+#' @param D  Query data matrix
+#' @param P  Input data matrix
+#' @param n_clust maximum number of nearest neighbors to search
+#' @return Index matrix of K nearest neighbor for each instance
 .smote_knearest <- function(D, P, n_clust) {
     .check_require_packages("FNN")
 
@@ -143,7 +148,4 @@
         knD[i, 1] <- 0
     }
     return(knD[, 2:(n_clust + 1)])
-}
-.smote_n_dup_max <- function(size_input, size_P, size_N, dup_size = 0){
-    return(dup_size)
 }

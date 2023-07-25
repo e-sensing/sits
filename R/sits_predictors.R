@@ -7,7 +7,7 @@
 #' are categorical ("label_id" and "label"). The other columns are
 #' the values of each band and time, organized first by band and then by time.
 #'
-#' @param  samples     Time series in sits format
+#' @param  samples     Data.frame with time series in sits format
 #'
 #' @return The predictors for the sample: a data.frame with one row per sample.
 #'
@@ -18,6 +18,8 @@
 #'
 #' @export
 sits_predictors <- function(samples) {
+    .check_valid(samples)
+    .check_samples_ts(samples)
     pred <- .predictors(samples)
     return(pred)
 }
@@ -32,7 +34,7 @@ sits_predictors <- function(samples) {
 #' the values of each band and time, organized first by band and then by time.
 #' This function returns the numeric values associated to each sample.
 #'
-#' @param  pred    X-Y predictors: a data.table with one row per sample.
+#' @param  pred    X-Y predictors: a data.frame with one row per sample.
 #'
 #' @return The Y predictors for the sample: data.frame with one row per sample.
 #'
@@ -59,9 +61,9 @@ sits_pred_features <- function(pred) {
 #' the values of each band and time, organized first by band and then by time.
 #' This function returns the numeric values associated to each sample.
 #'
-#' @param  pred    X-Y predictors: a data.table with one row per sample.
+#' @param  pred    X-Y predictors: a data.frame with one row per sample.
 #'
-#' @return The label associated to each training sample.
+#' @return A character vector with labels associated to training samples.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -81,10 +83,11 @@ sits_pred_references <- function(pred) {
 #' To normalize the predictors, it is required that the statistics per band
 #' for each sample have been obtained by the "sits_stats" function.
 #'
-#' @param  pred    X-Y predictors: a data.table with one row per sample.
-#' @param  stats   Output of the "sits_stats()" applied to the samples.
+#' @param  pred    X-Y predictors: a data.frame with one row per sample.
+#' @param  stats   List of numeric values with two elements
+#'                 (temporal values of Q02 and Q98).
 #'
-#' @return A normalized set of predictor values
+#' @return A data.frame with normalized predictor values
 #'
 #' @note
 #' Please refer to the sits documentation available in
@@ -97,6 +100,8 @@ sits_pred_references <- function(pred) {
 #' }
 #' @export
 sits_pred_normalize <- function(pred, stats) {
+    .check_valid(pred)
+    .check_valid(stats)
     pred <- .pred_normalize(pred, stats)
     return(pred)
 }
@@ -109,10 +114,10 @@ sits_pred_normalize <- function(pred, stats) {
 #' This function extracts a fraction of the predictors to serve as test values
 #' for the deep learning algorithm.
 #'
-#' @param  pred    X-Y predictors: a data.table with one row per sample.
-#' @param  frac   Fraction of the X-Y predictors to be extracted
+#' @param  pred    X-Y predictors: a data.frame with one row per sample.
+#' @param  frac    Fraction of the X-Y predictors to be extracted
 #'
-#' @return A fraction of the X-Y predictors.
+#' @return A data.frame with the chosen fraction of the X-Y predictors.
 #'
 #' @note
 #' Please refer to the sits documentation available in

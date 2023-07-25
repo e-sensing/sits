@@ -141,7 +141,7 @@ test_that("Sample", {
 })
 
 test_that("Values", {
-    values <- sits_values(cerrado_2classes[1:2, ], format = "bands_dates_cases")
+    values <- .values_ts(cerrado_2classes[1:2, ], format = "bands_dates_cases")
 
     expect_equal(names(values), sits_bands(cerrado_2classes))
 
@@ -185,8 +185,10 @@ test_that("samples_as_sf works (polygon)", {
 })
 
 test_that("ts errors", {
-    point <- point_mt_6bands[,1:5]
+    point <- point_mt_6bands[, 1:5]
     expect_error(.ts(point))
-    expect_error({.ts(point) <- 2.0})
+    expect_error({
+        .ts(point) <- 2.0
+    })
     expect_error(.ts_values(point_mt_6bands, bands = "B08"))
 })

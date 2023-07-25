@@ -228,6 +228,11 @@ NULL
     # Return bbox
     bbox
 }
+#' @title Convert WKT projection name no PROJ4 name
+#' @name .crs_wkt_to_proj4
+#' @noRd
+#' @param wkt_crs  CRS in WKT name
+#' @returns  CRS in PROJ4 name
 .crs_wkt_to_proj4 <- function(wkt_crs) {
     # Convert WKT to sf CRS object
     crs_sf <- sf::st_crs(wkt_crs)

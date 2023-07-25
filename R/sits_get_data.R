@@ -71,28 +71,23 @@
 #'     points <- sits_get_data(cube = raster_cube, samples = csv_file)
 #'
 #'     # reading a shapefile from BDC (Brazil Data Cube)
-#'     # needs a BDC access key that can be obtained
-#'     # for free by registering in the BDC website
-#'     if (nchar(Sys.getenv("BDC_ACCESS_KEY")) > 0) {
-#'         # create a data cube from the BDC
-#'         bdc_cube <- sits_cube(
+#'     bdc_cube <- sits_cube(
 #'             source = "BDC",
-#'             collection = "CB4-16D-2",
+#'             collection = "CBERS-WFI-16D",
 #'             bands = c("NDVI", "EVI"),
 #'             tiles = c("007004", "007005"),
 #'             start_date = "2018-09-01",
 #'             end_date = "2018-10-28"
-#'         )
-#'         # define a shapefile to be read from the cube
-#'         shp_file <- system.file("extdata/shapefiles/bdc-test/samples.shp",
+#'     )
+#'     # define a shapefile to be read from the cube
+#'     shp_file <- system.file("extdata/shapefiles/bdc-test/samples.shp",
 #'             package = "sits"
-#'         )
-#'         # get samples from the BDC based on the shapefile
-#'         time_series_bdc <- sits_get_data(
-#'             cube = bdc_cube,
-#'             samples = shp_file
-#'         )
-#'     }
+#'     )
+#'     # get samples from the BDC based on the shapefile
+#'     time_series_bdc <- sits_get_data(
+#'         cube = bdc_cube,
+#'         samples = shp_file
+#'     )
 #' }
 #'
 #' @export
@@ -117,7 +112,7 @@ sits_get_data <- function(cube,
     .check_is_regular(cube)
     .check_cube_bands(cube, bands = bands)
     .check_crs(crs)
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
 
     if (is.character(samples)) {
@@ -320,6 +315,7 @@ sits_get_data.segments <- function(cube,
                                    bands = sits_bands(cube),
                                    aggreg_fn = "mean",
                                    pol_id = "supercells",
+                                   n_sam_pol = NULL,
                                    multicores = 1,
                                    progress = FALSE) {
     # precondition
@@ -330,15 +326,33 @@ sits_get_data.segments <- function(cube,
         discriminator = "all_of",
         msg = "segment tiles do not match cube tiles"
     )
-    # extract time series from a cube from a set of segments
-    data <- .segments_get_data(
-        cube = cube,
-        segments = samples,
-        bands = bands,
-        aggreg_fn = aggreg_fn,
-        pol_id = pol_id,
-        multicores = multicores,
-        progress = progress
+    .check_that(
+        x = !(purrr::is_null(aggreg_fn) && purrr::is_null(n_sam_pol)),
+        msg = "either aggreg_fun or n_sam_pol must not be both NULL"
     )
+    # extract time series from a cube from a set of segments
+    # case 1 - one point per polygon with an aggregation function
+    if (purrr::is_null(n_sam_pol)) {
+        data <- .segments_get_summary(
+            cube = cube,
+            segments = samples,
+            bands = bands,
+            aggreg_fn = aggreg_fn,
+            pol_id = pol_id,
+            multicores = multicores,
+            progress = progress
+        )
+    } else {
+        data <- .segments_get_data(
+            cube = cube,
+            segments = samples,
+            bands = bands,
+            pol_id = pol_id,
+            n_sam_pol = n_sam_pol,
+            multicores = multicores,
+            progress = progress
+        )
+    }
+
     return(data)
 }

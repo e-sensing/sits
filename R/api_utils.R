@@ -64,7 +64,7 @@ NULL
 #'   Returns \code{logical}.
 #' @noRd
 .has <- function(x) {
-    length(x) > 0
+    length(x) > 0 && !any(is.na(x))
 }
 
 #' @title Check if an input has names or not. If there is
@@ -109,7 +109,7 @@ NULL
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description
-#' This is a fancy implementation of \code{tryCatch()}. It
+#' This is a implementation of \code{tryCatch()}. It
 #' has a shorter name and provide a easy functionality of rolling back
 #' (run an expression in case of error, but not avoiding it),
 #' of default value (run expression in case of error bypassing it).
@@ -197,6 +197,11 @@ NULL
         }
     )
 }
+#' @title Discards cols in data
+#' @noRd
+#' @param data  Data.frame or matrix
+#' @param cols  Column names to be discarded
+#' @returns Data without cols
 .discard <- function(data, cols) {
     cols <- which(names(data) %in% cols)
     if (.has(cols)) {
@@ -205,41 +210,69 @@ NULL
     # Return data
     data
 }
-
+#' @title Apply function in data column
+#' @noRd
+#' @param data  Data.frame or matrix
+#' @param col   Column names to be used for function
+#' @param fn    Function to be applied
+#' @param ...   Generic entries
+#' @returns Data with function applied
 .by <- function(data, col, fn, ...) {
     if (!col %in% names(data)) {
         stop("invalid 'col' parameter: '", col, "' not found in data columns")
     }
     unname(c(by(data, data[[col]], fn, ...)))
 }
+#' @title Check value is between max and min
+#' @noRd
+#' @param x     Value
+#' @param min   Minimum reference value
+#' @param max   Maximum reference value
+#' @returns TRUE/FALSE
 .between <- function(x, min, max) {
     min <= x & x <= max
 }
-
+#' @title Calculate partitions in vector
+#' @noRd
+#' @param x     Data vector
+#' @param n     Number of partitions
+#' @returns Vector with indexes for partitions
 .partitions <- function(x, n) {
     n <- max(1, min(length(x), n))
     .as_int(round(seq.int(from = 1, to = n, length.out = length(x))))
 }
-
+#' @title Collapse
+#' @noRd
+#' @param ...   Generic entries (character vectors)
+#' @returns Single character vectors
 .collapse <- function(...) {
     paste0(..., collapse = ", ")
 }
-
+#' @title Return default value
+#' @noRd
+#' @param x     R object
+#' @param default     Default value
+#' @returns Default value if x is NULL
 .default <- function(x, default = NULL) {
-    if (.has(x)) {
+    if (!all(is.na(x)) && .has(x)) {
         return(x)
     }
     default
 }
-
+#' @title Create a tibble from a vector
+#' @noRd
+#' @param ...   Generic entries
+#' @returns Default value if x is NULL
 .common_size <- function(...) {
     tibble::tibble(...)
 }
-
+#' @title Get i-th element of data.frame x
+#' @noRd
+#' @param x     Data.frame
+#' @param i     Row index
 .slice_dfr <- function(x, i) {
     UseMethod(".slice_dfr", i)
 }
-
 #' @export
 .slice_dfr.numeric <- function(x, i) {
     .check_that(

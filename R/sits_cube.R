@@ -181,16 +181,11 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # --- Access to the Brazil Data Cube
-#'     # Provide your BDC credentials as environment variables
-#'     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-#'     if (nchar(bdc_access_key) == 0) {
-#'         stop("No BDC_ACCESS_KEY defined in environment.")
-#'     }
 #'
 #'     # create a raster cube file based on the information in the BDC
 #'     cbers_tile <- sits_cube(
 #'         source = "BDC",
-#'         collection = "CB4-16D-2",
+#'         collection = "CBERS-WFI-16D",
 #'         bands = c("NDVI", "EVI"),
 #'         tiles = "007004",
 #'         start_date = "2018-09-01",
@@ -202,7 +197,7 @@
 #'     # DEAFRICA does not support definition of tiles
 #'     cube_dea <- sits_cube(
 #'         source = "DEAFRICA",
-#'         collection = "s2_l2a",
+#'         collection = "S2_L2A",
 #'         bands = c("B04", "B08"),
 #'         roi = c(
 #'             "lat_min" = 17.379,
@@ -217,7 +212,7 @@
 #'     # --- Access to AWS open data Sentinel 2/2A level 2 collection
 #'     s2_cube <- sits_cube(
 #'         source = "AWS",
-#'         collection = "SENTINEL-S2-L2A-COGS",
+#'         collection = "SENTINEL-2-L2A",
 #'         tiles = c("20LKP", "20LLP"),
 #'         bands = c("B04", "B08", "B11"),
 #'         start_date = "2018-07-18",
@@ -235,16 +230,14 @@
 #'     )
 #'
 #'     # -- Creating Landsat cube from MPC"
+#'     roi <- c("lon_min" = -50.410, "lon_max" = -50.379,
+#'              "lat_min" = -10.1910 , "lat_min" = -10.1573,
+#'               )
 #'     mpc_cube <- sits_cube(
 #'         source = "MPC",
 #'         collection = "LANDSAT-C2-L2",
 #'         bands = c("BLUE", "RED", "CLOUD"),
-#'         roi = c(
-#'             "xmin" = -50.379,
-#'             "ymin" = -10.1573,
-#'             "xmax" = -50.410,
-#'             "ymax" = -10.1910
-#'         ),
+#'         roi = roi,
 #'         start_date = "2005-01-01",
 #'         end_date = "2006-10-28"
 #'     )
@@ -261,26 +254,25 @@
 #'
 #' @export
 #'
-sits_cube <- function(source, collection, ..., data_dir = NULL) {
+sits_cube <- function(source, collection, ...) {
     # set caller to show in errors
     .check_set_caller("sits_cube")
-
-    if (purrr::is_null(data_dir)) {
-        source <- .source_new(source = source, collection = collection)
-    } else {
+    # capture elipsis
+    dots <- list(...)
+    # if "data_dir" parameters is provided, assumes local cube
+    if ("data_dir" %in% names(dots)) {
         source <- .source_new(source = source, is_local = TRUE)
+    } else {
+        source <- .source_new(source = source, collection = collection)
     }
-
     # Dispatch
     UseMethod("sits_cube", source)
 }
-
 #' @rdname sits_cube
 #'
 #' @export
 sits_cube.stac_cube <- function(source,
                                 collection, ...,
-                                data_dir = NULL,
                                 bands = NULL,
                                 tiles = NULL,
                                 roi = NULL,
@@ -288,37 +280,22 @@ sits_cube.stac_cube <- function(source,
                                 end_date = NULL,
                                 platform = NULL,
                                 progress = TRUE) {
-    # Ensures that only a spatial filter is informed
-    if (.has(roi) && .has(tiles)) {
-        stop(
-            "It is not possible to search with roi and tiles.",
-            "Please provide only roi or tiles."
-        )
-    }
-    # Ensures that a spatial filter is informed
-    if (!.has(roi) && !.has(tiles)) {
-        stop(
-            "No spatial search criteria.",
-            "Please provide only roi or tiles."
-        )
-    }
+
+    # Check for ROI and tiles
+    .check_roi_tiles(roi, tiles)
     # Ensures that there are no duplicate tiles
     if (.has(tiles)) {
         tiles <- unique(tiles)
     }
-
     # Converts provided roi to sf
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
     }
     # AWS requires datetime format
-    if (.has(start_date) && source == "AWS") {
-        start_date <- paste0(start_date, "T00:00:00Z")
-    }
-    if (.has(end_date) && source == "AWS") {
-        end_date <- paste0(end_date, "T00:00:00Z")
-    }
-
+    start_date <- .source_adjust_date(source, start_date)
+    end_date   <- .source_adjust_date(source, end_date)
+    # Configure access if necessary
+    .source_configure_access(source, collection)
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -376,8 +353,8 @@ sits_cube.stac_cube <- function(source,
 #'
 #' @export
 sits_cube.local_cube <- function(source,
-                                 collection,
-                                 data_dir, ...,
+                                 collection, ...,
+                                 data_dir,
                                  tiles = NULL,
                                  bands = NULL,
                                  start_date = NULL,
@@ -429,6 +406,6 @@ sits_cube.local_cube <- function(source,
     return(cube)
 }
 #' @export
-sits_cube.default <- function(source, collection, ..., data_dir = NULL) {
+sits_cube.default <- function(source, collection, ...) {
     stop("sits_cube: source not found.")
 }

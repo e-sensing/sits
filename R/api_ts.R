@@ -2,14 +2,30 @@
 
 .ts_cols <- c("sample_id", "label")
 
+#' @title Check if data is a time series
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param x       R object
+#' @return TRUE/FALSE
 .is_ts <- function(x) {
     "Index" %in% names(x) && is.data.frame(x)
 }
-
+#' @title Check if data includes a time series
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param x       R object
+#' @return TRUE/FALSE
 .has_ts <- function(x) {
     "time_series" %in% names(x) && .is_ts(x[["time_series"]][[1]])
 }
-
+#' @title Return the time series for a SITS tibble
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param x       R object
+#' @return time series
 .ts <- function(x) {
     # Check time_series column
     if (!.has_ts(x)) {
@@ -25,7 +41,13 @@
     # Return time series
     ts
 }
-
+#' @title Assigns a new time series for a SITS tibble
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param x       R object
+#' @param value   New time series
+#' @return new R object with time series
 `.ts<-` <- function(x, value) {
     if (!.is_ts(value)) {
         stop("invalid time series value")
@@ -37,19 +59,40 @@
     # Return samples
     x
 }
-
+#' @title Return the index of a time series
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param ts      Time series
+#' @return temporal index
 .ts_index <- function(ts) {
     .as_date(ts[["Index"]])
 }
-
+#' @title Return the sample id of a time series
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param ts      Time series
+#' @return sample id
 .ts_sample_id <- function(ts) {
     ts[["sample_id"]]
 }
-
+#' @title Return the bands of a time series
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param ts      Time series
+#' @return bands
 .ts_bands <- function(ts) {
     setdiff(colnames(ts), c(.ts_cols, "Index"))
 }
-
+#' @title Select the bands of a time series
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param ts      Time series
+#' @param bands   Desired bands
+#' @return time series with bands
 .ts_select_bands <- function(ts, bands) {
     # Check missing bands
     miss_bands <- bands[!bands %in% .ts_bands(ts)]
@@ -61,30 +104,56 @@
     # Return time series
     ts
 }
-
+#' @title Start date of a time series
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param ts      Time series
+#' @return start date
 .ts_start_date <- function(ts) {
-    # TODO: create a utility function instead. See .by() function
     .as_date(unlist(unname(tapply(
         as.character(.ts_index(ts)), .ts_sample_id(ts), min,
         simplify = FALSE
     ))))
 }
-
+#' @title Minimum date of a time series
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param ts      Time series
+#' @return start date
 .ts_min_date <- function(ts) {
     min(.ts_index(ts))
 }
-
+#' @title End date of a time series
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param ts      Time series
+#' @return end date
 .ts_end_date <- function(ts) {
     .as_date(unlist(unname(tapply(
         as.character(.ts_index(ts)), .ts_sample_id(ts), max,
         simplify = FALSE
     ))))
 }
-
+#' @title Minimum date of a time series
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param ts      Time series
+#' @return end date
 .ts_max_date <- function(ts) {
     max(.ts_index(ts))
 }
-
+#' @title Filter time series by interval
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param ts            Time series
+#' @param start_date    Start date
+#' @param end_date      End date
+#' @return time series filtered by interval
 .ts_filter_interval <- function(ts, start_date, end_date) {
     if (!.has(start_date)) {
         start_date <- .ts_min_date(ts)
@@ -97,7 +166,13 @@
     # Return time series
     ts
 }
-
+#' @title Values of a time series
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param ts      Time series
+#' @param bands   Bands to extract values
+#' @return values
 .ts_values <- function(ts, bands = NULL) {
     # Get the time series of samples
     bands <- .default(bands, .ts_bands(ts))
@@ -139,14 +214,12 @@
             source = .tile_source(tile),
             collection = .tile_collection(tile)
         )
-
         # get the values of the time series
         cld_values <- .tile_extract(
             tile = tile,
             band = cld_band,
             xy = xy
         )
-
         # get information about cloud bitmask
         if (.source_cloud_bit_mask(
             source = .tile_source(tile),
@@ -159,7 +232,6 @@
             )
         }
     }
-
     # Retrieve values on a band by band basis
     # using parallel processing
     ts_bands <- purrr::map(bands, function(band) {
@@ -177,7 +249,6 @@
             band = band,
             xy = xy
         )
-
         # each row of the values matrix is a spatial point
         ts_band_lst <- purrr::map(seq_len(nrow(values_band)), function(i) {
             t_point <- .timeline_during(
@@ -185,16 +256,13 @@
                 start_date = lubridate::as_date(points$start_date[[i]]),
                 end_date   = lubridate::as_date(points$end_date[[i]])
             )
-
             # select the valid dates in the timeline
             start_idx <- which(timeline == t_point[[1]])
             end_idx <- which(timeline == t_point[[length(t_point)]])
-
             # get only valid values for the timeline
             values_ts <- unlist(values_band[i, start_idx:end_idx],
                 use.names = FALSE
             )
-
             # include information from cloud band
             if (!purrr::is_null(cld_band)) {
                 cld_values <- unlist(cld_values[i, start_idx:end_idx],
@@ -209,47 +277,39 @@
                     values_ts[cld_values %in% cld_index] <- NA
                 }
             }
-
             # adjust maximum and minimum values
             values_ts[values_ts == missing_value] <- NA
             values_ts[values_ts < minimum_value] <- NA
             values_ts[values_ts > maximum_value] <- NA
-
             # use linear imputation
             impute_fn <- .impute_linear()
             # are there NA values? interpolate them
             if (any(is.na(values_ts))) {
                 values_ts <- impute_fn(values_ts)
             }
-
             # correct the values using the scale factor
             values_ts <- values_ts * scale_factor + offset_value
-
             # return the values of one band for point xy
             return(values_ts)
         })
-
         # return the values of all points xy for one band
         return(ts_band_lst)
     })
-
     # now we have to transpose the data
     ts_samples <- ts_bands |>
         purrr::set_names(bands) |>
         purrr::transpose() |>
         purrr::map(tibble::as_tibble)
-
-
+    # include the time series in the XY points
     points$time_series <- purrr::map2(
         points$time_series,
         ts_samples,
         dplyr::bind_cols
     )
-
+    # set class of time series
     class(points) <- c("sits", class(points))
     return(points)
 }
-
 #' @title Extract a time series from raster
 #' @name .ts_get_raster_class
 #' @keywords internal
@@ -269,10 +329,8 @@
                                  xy) {
     # set caller to show in errors
     .check_set_caller(".raster_class_get_ts")
-
     # get timeline
     timeline <- sits_timeline(tile)
-
     # check timeline
     .check_length(
         x = timeline,
@@ -280,22 +338,17 @@
         len_max = 2,
         msg = "invalid classified timeline"
     )
-
     # get tile labels
     labels <- sits_labels(tile)
-
     # check for labels
     .check_null(
         x = labels,
         msg = "tiles should have labels field defined"
     )
-
     # get the values of the time series as matrix
     values_band <- .tile_extract(tile = tile, band = band, xy = xy)
-
     # each row of the values matrix is a spatial point
     traj_lst <- as.list(unname(unlist(values_band)))
-
     # check if all values fits the labels
     max_label_index <- max(unlist(traj_lst))
     .check_that(
@@ -305,17 +358,16 @@
         ),
         msg = "pixel values do not correspond to any label"
     )
-
     # now we have to transpose the data
     traj_samples <- traj_lst |>
         purrr::map(function(x) tibble::tibble(class = labels[x]))
-
+    # include the time series in the XY points
     points$predicted <- purrr::map2(
         points$predicted,
         traj_samples,
         dplyr::bind_cols
     )
-
+    # set class of time series
     class(points) <- unique(c("predicted", "sits", class(points)))
     return(points)
 }

@@ -4,7 +4,7 @@
 \alias{sits_accuracy_summary}
 \title{Print accuracy summary}
 \usage{
-sits_accuracy_summary(x, digits = max(3, getOption("digits") - 3))
+sits_accuracy_summary(x, digits = NULL)
 }
 \arguments{
 \item{x}{Object of class \code{sits_accuracy}.}
@@ -12,7 +12,7 @@ sits_accuracy_summary(x, digits = max(3, getOption("digits") - 3))
 \item{digits}{Number of significant digits when printed.}
 }
 \value{
-No return value, called for side effects.
+Called for side effects.
 }
 \description{
 Adaptation of the caret::print.confusionMatrix method

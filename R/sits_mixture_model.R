@@ -102,12 +102,10 @@ sits_mixture_model <- function(data, endmembers, ...,
     # Pre-conditions
     .check_endmembers_parameter(endmembers)
     .check_lgl_parameter(rmse_band)
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
-    data <- .conf_data_meta_type(data)
     UseMethod("sits_mixture_model", data)
 }
-
 #' @rdname sits_mixture_model
 #' @export
 sits_mixture_model.sits <- function(data, endmembers, ...,
@@ -148,7 +146,9 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
         return(output_samples)
     }, progress = progress)
     # Join groups samples as a sits tibble and return it
-    .samples_merge_groups(samples_fracs)
+    ts <- .samples_merge_groups(samples_fracs)
+    class(ts) <- c("sits", class(ts))
+    return(ts)
 }
 
 #' @rdname sits_mixture_model
@@ -161,7 +161,7 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
                                            progress = TRUE) {
     # Pre-conditions
     .check_is_raster_cube(data)
-    .check_memsize(memsize)
+    .check_memsize(memsize, min = 1, max = 16384)
     .check_output_dir(output_dir)
     .check_lgl_type(progress)
     # Transform endmembers to tibble
@@ -196,7 +196,8 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     )
     # Update block parameter
     block <- .jobs_optimal_block(
-        job_memsize = job_memsize, block = block,
+        job_memsize = job_memsize,
+        block = block,
         image_size = .tile_size(.tile(data)), memsize = memsize,
         multicores = multicores
     )
@@ -221,5 +222,29 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
         return(output_feature)
     }, progress = progress)
     # Join output features as a cube and return it
-    .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_fracs)))
+    cube <- .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_fracs)))
+    # Join groups samples as a sits tibble and return it
+    class(cube) <- c("raster_cube", class(cube))
+    return(cube)
+}
+#' @rdname sits_mixture_model
+#' @export
+sits_mixture_model.tbl_df <- function(data, endmembers, ...) {
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        class(data) <- c("raster_cube", class(data))
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else
+        stop("Input should be a sits tibble or data cube")
+    res <- sits_mixture_model(data, endmembers, ...)
+    return(res)
+}
+#' @rdname sits_mixture_model
+#' @export
+sits_mixture_model.default <- function(data, endmembers, ...){
+    # try to convert to tbl_df
+    data <- tibble::as_tibble(data)
+    # dispatch to tbl_df
+    res <- sits_mixture_model(data, endmembers, ...)
+    return(res)
 }

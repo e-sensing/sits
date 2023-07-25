@@ -14,7 +14,7 @@
 \item{digits}{Significant digits}
 }
 \value{
-No return value, called for side effects.
+Called for side effects.
 }
 \description{
 Adaptation of the caret::print.confusionMatrix method

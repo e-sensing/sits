@@ -7,12 +7,12 @@
 sits_to_csv(data, file)
 }
 \arguments{
-\item{data}{Time series.}
+\item{data}{Sits time series.}
 
-\item{file}{Name of the exported CSV file.}
+\item{file}{Full path of the exported CSV file (character).}
 }
 \value{
-No return value, called for side effects.
+Called for side effects.
 }
 \description{
 Converts metadata from a sits tibble to a CSV file.

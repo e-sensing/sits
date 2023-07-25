@@ -10,7 +10,7 @@ test_that("sf", {
     sf_object$end_date <- "2021-12-31"
 
     # empty a geometry
-    sf_object[1,6] <- NA
+    sf_object[1, 6] <- NA
 
     expect_warning(
         .sf_to_tibble(

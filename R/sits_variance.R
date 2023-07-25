@@ -56,9 +56,9 @@ sits_variance <- function(cube,
     # Check if cube has probability data
     .check_is_probs_cube(cube)
     # Check memsize
-    .check_memsize(memsize)
+    .check_memsize(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels

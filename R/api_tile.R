@@ -23,12 +23,13 @@ NULL
 #' @export
 .tile.raster_cube <- function(cube) {
     cube <- .cube(cube)
-    cube[1,]
+    cube[1, ]
 }
 
-#  Tile field accessors
-#  These functions enable access components of tiles. A
-#
+#' @title Get source cloud provider for a tile
+#' @noRd
+#' @param tile A tile.
+#' @return Source cloud provider
 .tile_source <- function(tile) {
     UseMethod(".tile_source", tile)
 }
@@ -37,18 +38,22 @@ NULL
     tile <- .tile(tile)
     .as_chr(tile[["source"]])
 }
-#
+#' @title Get image collection for a tile
+#' @noRd
+#' @param tile A tile.
+#' @return Image collection
 .tile_collection <- function(tile) {
     UseMethod(".tile_collection", tile)
 }
-
 #' @export
 .tile_collection.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .as_chr(tile[["collection"]])
 }
-
-#
+#' @title Get/Set tile name
+#' @noRd
+#' @param tile A tile.
+#' @return Name of the tile
 .tile_name <- function(tile) {
     UseMethod(".tile_name", tile)
 }
@@ -66,7 +71,10 @@ NULL
     tile <- .tile(tile)
     .as_chr(tile[["tile"]])
 }
-#
+#' @title Get tile number of columns
+#' @noRd
+#' @param tile A tile.
+#' @return Number of columns
 .tile_ncols <- function(tile) {
     UseMethod(".tile_ncols", tile)
 }
@@ -75,7 +83,10 @@ NULL
     tile <- .tile(tile)
     .ncols(.fi(tile))
 }
-#
+#' @title Get tile number of rows
+#' @noRd
+#' @param tile A tile.
+#' @return Number of rows
 .tile_nrows <- function(tile) {
     UseMethod(".tile_nrows", tile)
 }
@@ -84,7 +95,10 @@ NULL
     tile <- .tile(tile)
     .nrows(.fi(tile))
 }
-#
+#' @title Get tile size
+#' @noRd
+#' @param tile A tile.
+#' @return Size (list of nrows x ncols)
 .tile_size <- function(tile) {
     UseMethod(".tile_size", tile)
 }
@@ -92,7 +106,10 @@ NULL
 .tile_size.raster_cube <- function(tile) {
     list(ncols = .tile_ncols(tile), nrows = .tile_nrows(tile))
 }
-#
+#' @title Get X resolution
+#' @noRd
+#' @param tile A tile.
+#' @return x resolution
 .tile_xres <- function(tile) {
     UseMethod(".tile_xres", tile)
 }
@@ -101,7 +118,10 @@ NULL
     tile <- .tile(tile)
     .xres(.fi(tile))
 }
-#
+#' @title Get Y resolution
+#' @noRd
+#' @param tile A tile.
+#' @return y resolution
 .tile_yres <- function(tile) {
     UseMethod(".tile_yres", tile)
 }
@@ -110,7 +130,10 @@ NULL
     tile <- .tile(tile)
     .yres(.fi(tile))
 }
-#
+#' @title Get/Set labels
+#' @noRd
+#' @param tile A tile.
+#' @return vector of labels
 .tile_labels <- function(tile) {
     UseMethod(".tile_labels", tile)
 }
@@ -167,8 +190,7 @@ NULL
 #' @keywords internal
 #' @noRd
 #' @param tile A tile.
-#'
-#' @return date
+#' @return file ID
 .tile_fid <- function(tile) {
     UseMethod(".tile_fid", tile)
 }
@@ -182,7 +204,6 @@ NULL
 #' @keywords internal
 #' @noRd
 #' @param tile A tile.
-#'
 #' @return a timeline
 .tile_timeline <- function(tile) {
     UseMethod(".tile_timeline", tile)
@@ -192,6 +213,12 @@ NULL
     tile <- .tile(tile)
     sort(unique(.fi_timeline(.fi(tile))))
 }
+#' @title Check if tile is complete
+#' @name .tile_is_complete
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#' @return TRUE/FALSE
 .tile_is_complete <- function(tile) {
     UseMethod(".tile_is_complete", tile)
 }
@@ -200,19 +227,17 @@ NULL
     tile <- .tile(tile)
     .fi_is_complete(.fi(tile))
 }
-#' @title Get sorted unique bands from file_info.
+#' @title Get path of first asset from file_info.
 #' @name .tile_path
 #' @keywords internal
 #' @noRd
 #' @param tile A tile.
 #' @param band A band in the tile
 #' @param date A date in the tile
-#'
 #' @return Path of first asset in `file_info`
 .tile_path <- function(tile, band = NULL, date = NULL) {
     UseMethod(".tile_path", tile)
 }
-
 #' @export
 .tile_path.raster_cube <- function(tile, band = NULL, date = NULL) {
     tile <- .tile(tile)
@@ -227,6 +252,13 @@ NULL
     # Return path
     path
 }
+#' @title Get all file paths from file_info.
+#' @name .tile_paths
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#' @param bands Required bands
+#' @return Paths of assets in `file_info` filtered by bands
 .tile_paths <- function(tile, bands = NULL) {
     UseMethod(".tile_paths", tile)
 }
@@ -239,15 +271,13 @@ NULL
     # Get assets path
     paths <- .fi_paths(.fi(tile))
     # Return paths
-    paths
+    return(paths)
 }
-
 #' @title Get unique satellite name from tile.
 #' @name .tile_satellite
 #' @keywords internal
 #' @noRd
 #' @param tile A tile.
-#'
 #' @return satellite name in the tile
 .tile_satellite <- function(tile) {
     UseMethod(".tile_satellite", tile)
@@ -258,7 +288,6 @@ NULL
     tile <- .tile(tile)
     .as_chr(tile[["satellite"]])
 }
-
 #' @title Get unique sensor name from tile.
 #' @name .tile_sensor
 #' @keywords internal
@@ -269,19 +298,16 @@ NULL
 .tile_sensor <- function(tile) {
     UseMethod(".tile_sensor", tile)
 }
-
 #' @export
 .tile_sensor.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .as_chr(tile[["sensor"]])
 }
-
 #' @title Get sorted unique bands from file_info.
 #' @name .tile_bands
 #' @keywords internal
 #' @noRd
 #' @param tile A tile.
-#'
 #' @return names of bands in the tile
 .tile_bands <- function(tile, add_cloud = TRUE) {
     UseMethod(".tile_bands", tile)
@@ -295,7 +321,6 @@ NULL
     }
     setdiff(bands, .band_cloud())
 }
-
 #' @title Set bands in tile file_info.
 #' @rdname .tile_bands
 #' @keywords internal
@@ -607,13 +632,12 @@ NULL
 }
 #'
 #' @title Read and preprocess a block of cloud values from
-#' file_info rasters.
+#'        file_info rasters.
 #' @name .tile_cloud_read_block
 #' @keywords internal
 #' @noRd
 #' @param tile A tile.
 #' @param block A block list with (col, row, ncols, nrows).
-#'
 #' @return set of values of a band of a tile in a block
 .tile_cloud_read_block <- function(tile, block) {
     UseMethod(".tile_cloud_read_block", tile)
@@ -664,8 +688,8 @@ NULL
 #' @noRd
 #' @param tile tile to be processed
 #' @param overlap overlap between tiles
+#' @param block   Current block
 #' @return set of chunks to be read from the file
-
 .tile_chunks_create <- function(tile, overlap, block = NULL) {
     # Get block size
     block <- .default(
@@ -680,11 +704,18 @@ NULL
         image_bbox = .tile_bbox(tile)
     )
 }
-
+#' @title Get tile from file
+#' @keywords internal
+#' @noRd
+#' @param file  Raster file
+#' @param base_tile  reference tile used in the operation
+#' @param band Spectral band
+#' @param update_bbox  should bbox be updated?
+#' @param labels Labels for classified cube
+#' @return set of values of a band of a tile in a block
 .tile_from_file <- function(file, base_tile, band, update_bbox, labels = NULL) {
     UseMethod(".tile_from_file", base_tile)
 }
-
 #' @export
 .tile_from_file.eo_cube <- function(file, base_tile, band, update_bbox,
                                     labels = NULL) {
@@ -697,7 +728,6 @@ NULL
         update_bbox = update_bbox
     )
 }
-
 #' @export
 .tile_from_file.derived_cube <- function(file, base_tile, band, update_bbox,
                                          labels = NULL) {
@@ -710,7 +740,6 @@ NULL
         update_bbox = update_bbox
     )
 }
-
 #' @title read an EO tile from files
 #' @name .tile_eo_from_files
 #' @keywords internal
@@ -964,7 +993,11 @@ NULL
     # Return values
     return(values)
 }
-
+#' @title Check if tile contains cloud band
+#' @keywords internal
+#' @noRd
+#' @param tile input tile
+#' @return TRUE/FALSE
 .tile_contains_cloud <- function(tile) {
     tile <- .tile(tile)
     .fi_contains_cloud(.fi(tile))
@@ -975,7 +1008,6 @@ NULL
 #' @noRd
 #' @param tile input tile
 #' @param verbose     TRUE/FALSE
-#'
 #' @return start time for classification
 #'
 .tile_classif_start <- function(tile, verbose) {

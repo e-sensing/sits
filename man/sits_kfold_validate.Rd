@@ -55,25 +55,15 @@ if (sits_run_examples()) {
     # create a list to store the results
     results <- list()
     # accuracy assessment lightTAE
-    acc_ltae <- sits_kfold_validate(
-        samples_modis_ndvi,
-        folds = 5,
-        ml_method = sits_lighttae()
-    )
-    # use a name
-    acc_ltae$name <- "LightTAE"
-    # put the result in a list
-    results[[length(results) + 1]] <- acc_ltae
-
-    # Machine Learning - Random Forests
-    acc_rf <- sits_kfold_validate(
+    acc_rfor <- sits_kfold_validate(
         samples_modis_ndvi,
         folds = 5,
         ml_method = sits_rfor()
     )
-    acc_rf$name <- "RandomForests"
+    # use a name
+    acc_rfor$name <- "Rfor"
     # put the result in a list
-    results[[length(results) + 1]] <- acc_rf
+    results[[length(results) + 1]] <- acc_rfor
     # save to xlsx file
     sits_to_xlsx(
         results,
