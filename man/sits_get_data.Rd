@@ -101,6 +101,7 @@ sits_get_data(
   bands = sits_bands(cube),
   aggreg_fn = "mean",
   pol_id = "supercells",
+  n_sam_pol = NULL,
   multicores = 1,
   progress = FALSE
 )
@@ -190,28 +191,23 @@ if (sits_run_examples()) {
     points <- sits_get_data(cube = raster_cube, samples = csv_file)
 
     # reading a shapefile from BDC (Brazil Data Cube)
-    # needs a BDC access key that can be obtained
-    # for free by registering in the BDC website
-    if (nchar(Sys.getenv("BDC_ACCESS_KEY")) > 0) {
-        # create a data cube from the BDC
-        bdc_cube <- sits_cube(
+    bdc_cube <- sits_cube(
             source = "BDC",
-            collection = "CB4-16D-2",
+            collection = "CBERS-WFI-16D",
             bands = c("NDVI", "EVI"),
             tiles = c("007004", "007005"),
             start_date = "2018-09-01",
             end_date = "2018-10-28"
-        )
-        # define a shapefile to be read from the cube
-        shp_file <- system.file("extdata/shapefiles/bdc-test/samples.shp",
+    )
+    # define a shapefile to be read from the cube
+    shp_file <- system.file("extdata/shapefiles/bdc-test/samples.shp",
             package = "sits"
-        )
-        # get samples from the BDC based on the shapefile
-        time_series_bdc <- sits_get_data(
-            cube = bdc_cube,
-            samples = shp_file
-        )
-    }
+    )
+    # get samples from the BDC based on the shapefile
+    time_series_bdc <- sits_get_data(
+        cube = bdc_cube,
+        samples = shp_file
+    )
 }
 
 }

@@ -47,7 +47,7 @@ test_that("Relabel cubes", {
     expect_true("Floresta" %in% sits_labels(ro_class))
 })
 
-test_that("Models and patters", {
+test_that("Models and patterns", {
     lab <- sits_patterns(cerrado_2classes) |>
         sits_labels()
     expect_true(all(lab %in% c("Cerrado", "Pasture")))

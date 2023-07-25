@@ -40,25 +40,15 @@
 #'     # create a list to store the results
 #'     results <- list()
 #'     # accuracy assessment lightTAE
-#'     acc_ltae <- sits_kfold_validate(
-#'         samples_modis_ndvi,
-#'         folds = 5,
-#'         ml_method = sits_lighttae()
-#'     )
-#'     # use a name
-#'     acc_ltae$name <- "LightTAE"
-#'     # put the result in a list
-#'     results[[length(results) + 1]] <- acc_ltae
-#'
-#'     # Machine Learning - Random Forests
-#'     acc_rf <- sits_kfold_validate(
+#'     acc_rfor <- sits_kfold_validate(
 #'         samples_modis_ndvi,
 #'         folds = 5,
 #'         ml_method = sits_rfor()
 #'     )
-#'     acc_rf$name <- "RandomForests"
+#'     # use a name
+#'     acc_rfor$name <- "Rfor"
 #'     # put the result in a list
-#'     results[[length(results) + 1]] <- acc_rf
+#'     results[[length(results) + 1]] <- acc_rfor
 #'     # save to xlsx file
 #'     sits_to_xlsx(
 #'         results,
@@ -82,7 +72,7 @@ sits_kfold_validate <- function(samples,
         msg = "invalid ml_method parameter"
     )
     # pre-condition
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     # For now, torch models does not support multicores in Windows
     if (multicores > 1 && .Platform$OS.type == "windows" &&
         "optimizer" %in% ls(environment(ml_method))) {
@@ -161,18 +151,31 @@ sits_kfold_validate <- function(samples,
 #'
 #' This function returns the confusion matrix, and Kappa values.
 #'
-#' @param samples            Time series set to be validated.
-#' @param samples_validation Time series set used for validation.
+#' @param samples            Time series to be validated (data.frame).
+#' @param samples_validation Optional: Time series used for validation
+#'                           (data.frame)
 #' @param validation_split   Percent of original time series set to be used
-#'                           for validation (if samples_validation is NULL)
-#' @param ml_method          Machine learning method.
+#'                           for validation if samples_validation is NULL
+#'                           (numeric).
+#' @param ml_method          Machine learning method (function)
 #'
 #' @return A \code{caret::confusionMatrix} object to be used for
 #'         validation assessment.
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'     conf_matrix <- sits_validate(cerrado_2classes)
+#'     samples <- sits_sample(cerrado_2classes, frac = 0.5)
+#'     samples_validation <- sits_sample(cerrado_2classes, frac = 0.5)
+#'     conf_matrix_1 <- sits_validate(
+#'                             samples = cerrado_2classes,
+#'                             validation_split = 0.2,
+#'                             ml_method = sits_rfor()
+#'                        )
+#'    conf_matrix_2 <- sits_validate(
+#'                             samples = samples,
+#'                             samples_validation = samples_validation,
+#'                             ml_method = sits_rfor()
+#'                        )
 #' }
 #' @export
 sits_validate <- function(samples,
@@ -183,14 +186,20 @@ sits_validate <- function(samples,
     .check_set_caller("sits_validate")
     # require package
     .check_require_packages("caret")
-    # pre-condition
+    # check samples
+    .check_samples_train(samples)
+    # check validation
+    if (!is.null(samples_validation)) {
+        .check_samples_train(samples_validation)
+    }
+    # check validation split
+    .check_num(validation_split, min = 0, max = 1, len_min = 1, len_max = 1)
+    # pre-condition for ml_method
     .check_that(
         inherits(ml_method, "function"),
         local_msg = "ml_method is not a valid sits method",
         msg = "invalid ml_method parameter"
     )
-    # is the data labelled?
-    .check_samples_train(samples)
     # Are there samples for validation?
     if (is.null(samples_validation)) {
         samples <- .tibble_samples_split(

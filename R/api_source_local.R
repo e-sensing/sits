@@ -1,5 +1,25 @@
+#' @title Create data cubes using local files
 #' @keywords internal
 #' @noRd
+#' @param source       Data source (one of \code{"AWS"}, \code{"BDC"},
+#' \code{"DEAFRICA"}, \code{"MPC"}, \code{"USGS"}).
+#' @param collection   Image collection in data source (To find out
+#'  the supported collections, use \code{\link{sits_list_collections}()}).
+#' @param data_dir     Local directory where images are stored.
+#' @param parse_info   Parsing information for local files.
+#' @param version      Version id for local files.
+#' @param delim        Delimiter for parsing local files.
+#' @param tiles        Tiles from the collection to be included in
+#'                     the cube (see details below).
+#' @param bands        Spectral bands and indices to be included
+#'                     in the cube (optional).
+#' @param labels       Labels associated to the classes (only for result cubes)
+#' @param start_date,end_date Initial and final dates to include
+#'                     images from the collection in the cube (optional).
+#' @param multicores   Number of workers for parallel processing
+#' @param progress     Show a progress bar?
+#' @param ...          Other parameters to be passed for specific types.
+#' @return A \code{tibble} describing the contents of a local data cube.
 .local_cube <- function(source,
                         collection,
                         data_dir,
@@ -109,8 +129,18 @@
     return(cube)
 }
 
+#' @title Return items for local data cube
 #' @keywords internal
 #' @noRd
+#' @param data_dir     Local directory where images are stored.
+#' @param parse_info   Parsing information for local files.
+#' @param version      Version id for local files.
+#' @param delim        Delimiter for parsing local files.
+#' @param start_date,end_date Initial and final dates to include
+#'                     images from the collection in the cube (optional).
+#' @param bands        Spectral bands and indices to be included
+#'                     in the cube (optional).
+#' @return A list of items describing the contents of a local data cube.
 .local_cube_items_new <- function(data_dir,
                                   parse_info,
                                   version,
@@ -282,8 +312,17 @@
     return(items)
 }
 
+#' @title Select items by bands
 #' @keywords internal
 #' @noRd
+#' @param source       Data source (one of \code{"AWS"}, \code{"BDC"},
+#' \code{"DEAFRICA"}, \code{"MPC"}, \code{"USGS"}).
+#' @param collection   Image collection in data source (To find out
+#'  the supported collections, use \code{\link{sits_list_collections}()}).
+#' @param bands        Spectral bands and indices to be included
+#'                     in the cube (optional).
+#' @param items        Items retrieved by \code{local_cube_items_new}.
+#' @return  Items selected for the chosen bands
 .local_cube_items_bands_select <- function(source,
                                            collection,
                                            bands,
@@ -312,8 +351,12 @@
     }
     return(items)
 }
+#' @title Select items by tiles
 #' @keywords internal
 #' @noRd
+#' @param tiles        Tiles in data cube.
+#' @param items        Items retrieved by \code{local_cube_items_new}.
+#' @return  Items selected for the chosen tiles
 .local_cube_items_tiles_select <- function(tiles,
                                            items) {
     # set caller to show in errors
@@ -325,14 +368,18 @@
         within = unique(items[["tile"]]),
         msg = "invalid 'tiles' value"
     )
-    # select the requested bands
+    # select the requested tiles
     items <- dplyr::filter(items, .data[["tile"]] %in% !!tiles)
-
     return(items)
 }
 
+#' @title Build local cube file_info
 #' @keywords internal
 #' @noRd
+#' @param tiles        Tiles in data cube.
+#' @param multicores   Number of workers for parallel processing
+#' @param progress     Show a progress bar?
+#' @return  Items with file info information
 .local_cube_file_info <- function(items,
                                   multicores,
                                   progress) {
@@ -393,15 +440,18 @@
             call. = FALSE, immediate. = TRUE
         )
     }
-
     items <- dplyr::bind_rows(items) |>
         dplyr::arrange(.data[["date"]], .data[["fid"]], .data[["band"]])
-
     return(items)
 }
 
+#' @title Build local cube file_info for results cubes
 #' @keywords internal
 #' @noRd
+#' @param tiles        Tiles in data cube.
+#' @param multicores   Number of workers for parallel processing
+#' @param progress     Show a progress bar?
+#' @return  Items with file info information
 .local_results_cube_file_info <- function(items, multicores, progress) {
     # set caller to show in errors
     .check_set_caller(".local_results_cube_file_info")
@@ -460,14 +510,20 @@
             call. = FALSE, immediate. = TRUE
         )
     }
-
     items <- dplyr::bind_rows(items_lst)
-
     return(items)
 }
 
+#' @title Build data cube tibble
 #' @keywords internal
 #' @noRd
+#' @param source       Data source (one of \code{"AWS"}, \code{"BDC"},
+#' \code{"DEAFRICA"}, \code{"MPC"}, \code{"USGS"}).
+#' @param collection   Image collection in data source (To find out
+#'  the supported collections, use \code{\link{sits_list_collections}()}).
+#' @param items        Items retrieved by \code{local_cube_items_new} and
+#'                     filtered by bands and tile
+#' @return  Data cube tibble
 .local_cube_items_cube <- function(source,
                                    collection,
                                    items) {
@@ -510,12 +566,20 @@
         crs = crs,
         file_info = file_info
     )
-
     return(cube_tile)
 }
 
+#' @title Build data cube tibble for results cube
 #' @keywords internal
 #' @noRd
+#' @param source       Data source (one of \code{"AWS"}, \code{"BDC"},
+#' \code{"DEAFRICA"}, \code{"MPC"}, \code{"USGS"}).
+#' @param collection   Image collection in data source (To find out
+#'  the supported collections, use \code{\link{sits_list_collections}()}).
+#' @param items        Items retrieved by \code{local_cube_items_new} and
+#'                     filtered by bands and tile
+#' @param labels       Labels associated to the classes (only for result cubes)
+#' @return  Data cube tibble
 .local_results_items_cube <- function(source,
                                       collection,
                                       items,

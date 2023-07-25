@@ -1117,7 +1117,7 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #'                    "mapping" for the number of samples allocated in a neuron.
 #' @param  band       What band will be plotted.
 #'
-#' @return            No return value, called for side effects.
+#' @return            Called for side effects.
 #'
 #'
 #' @note
@@ -1167,6 +1167,7 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
         xpd = TRUE,
         ncol = 1
     )
+    return(invisible(x))
 }
 #' @title  Plot XGB model
 #' @name   plot.xgb_model

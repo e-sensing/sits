@@ -10,7 +10,7 @@ sits_labels_summary(data)
 \method{sits_labels_summary}{sits}(data)
 }
 \arguments{
-\item{data}{Valid sits tibble}
+\item{data}{Data.frame - Valid sits tibble}
 }
 \value{
 A tibble with the frequency of each label.

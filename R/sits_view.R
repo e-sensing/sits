@@ -33,7 +33,7 @@
 #' if (sits_run_examples()) {
 #'     # view samples
 #'     sits_view(cerrado_2classes)
-#'     . # create a local data cube
+#'     # create a local data cube
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     modis_cube <- sits_cube(
 #'         source = "BDC",
@@ -46,7 +46,7 @@
 #'     )
 #'     # train a model
 #'     rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
-#'     . # classify the cube
+#'     # classify the cube
 #'     modis_probs <- sits_classify(
 #'         data = modis_cube,
 #'         ml_model = rf_model,
@@ -59,9 +59,9 @@
 #'         modis_probs,
 #'         output_dir = tempdir()
 #'     )
-#'     . # view the classified map
+#'     # view the classified map
 #'     sits_view(modis_label)
-#'     . # view the classified map with the B/W image
+#'     # view the classified map with the B/W image
 #'     sits_view(modis_cube,
 #'         band = "NDVI",
 #'         class_cube = modis_label,
@@ -87,7 +87,7 @@
 #'         tile = "012010",
 #'         bands = "NDVI",
 #'         date = sits_timeline(modis_cube)[1],
-#'         seg_fn = sits_slic(step = 20)
+#'         seg_fn = sits_supercells(step = 20)
 #'     )
 #'     # view image and segments
 #'     sits_view(
@@ -288,7 +288,7 @@ sits_view.uncertainty_cube <- function(x, ...,
     )
     # create a leaflet and add providers
     leaf_map <- .view_add_basic_maps()
-    # get names of basic maps
+    # get names of base maps
     base_maps <- .view_get_base_maps(leaf_map)
     # obtain the raster objects for the dates chosen
     for (row in seq_len(nrow(cube))) {

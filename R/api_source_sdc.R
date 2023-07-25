@@ -1,5 +1,15 @@
+#' @title Create an items object in SDC
 #' @keywords internal
 #' @noRd
+#' @description \code{.source_items_new()} this function is called to create
+#' an items object. In case of Web services, this function is responsible for
+#' making the Web requests to the server.
+#' @param source     Name of the STAC provider.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param collection Collection to be searched in the data source.
+#' @param stac_query Query that follows the STAC protocol
+#' @param tiles      Selected tiles (optional)
+#' @return An object referring the images of a sits cube.
 #' @export
 .source_items_new.sdc_cube <- function(source, ...,
                                        collection,
@@ -36,7 +46,18 @@
     )
     return(items_info)
 }
-
+#' @title Get cloud cover information in SDC
+#' @keywords internal
+#' @noRd
+#' @description \code{.source_items_new()} this function is called to create
+#' an items object. In case of Web services, this function is responsible for
+#' making the Web requests to the server.
+#' @param source     Name of the STAC provider.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param item      \code{STACItemcollection} object from rstac package.
+#' @param collection Collection to be searched in the data source.
+#' @return NA (SDC does not support cloud cover information)
+#' @export
 #' @keywords internal
 #' @export
 .source_item_get_cloud_cover.sdc_cube <- function(source, ...,
@@ -44,7 +65,12 @@
                                                   collection = NULL) {
     return(NA)
 }
-
+#' @title Organizes items by tiles for SDC  collections
+#' @param source     Name of the STAC provider.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
 #' @keywords internal
 #' @noRd
 #' @export
@@ -59,8 +85,12 @@
         )
     )
 }
-
-
+#' @title Retrieves the paths or URLs of each file bands of an item for SDC
+#' @param source     Name of the STAC provider.
+#' @param item       \code{STACItemcollection} object from rstac package.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param collection Collection to be searched in the data source.
+#' @return Returns paths to STAC item.
 #' @keywords internal
 #' @noRd
 #' @export

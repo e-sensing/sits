@@ -6,13 +6,12 @@
 \alias{sits_cube.local_cube}
 \title{Create data cubes from image collections}
 \usage{
-sits_cube(source, collection, ..., data_dir = NULL)
+sits_cube(source, collection, ...)
 
 \method{sits_cube}{stac_cube}(
   source,
   collection,
   ...,
-  data_dir = NULL,
   bands = NULL,
   tiles = NULL,
   roi = NULL,
@@ -25,8 +24,8 @@ sits_cube(source, collection, ..., data_dir = NULL)
 \method{sits_cube}{local_cube}(
   source,
   collection,
-  data_dir,
   ...,
+  data_dir,
   tiles = NULL,
   bands = NULL,
   start_date = NULL,
@@ -48,9 +47,6 @@ the supported collections, use \code{\link{sits_list_collections}()}).}
 
 \item{...}{Other parameters to be passed for specific types.}
 
-\item{data_dir}{Local directory where images are stored
-(for local cubes).}
-
 \item{bands}{Spectral bands and indices to be included
 in the cube (optional).}
 
@@ -67,6 +63,9 @@ images from the collection in the cube (optional).}
 of collections that include more than one satellite.}
 
 \item{progress}{Show a progress bar?}
+
+\item{data_dir}{Local directory where images are stored
+(for local cubes).}
 
 \item{labels}{Labels associated to the classes (only for result cubes).}
 
@@ -232,16 +231,11 @@ Please refer to the sits documentation available in
 \examples{
 if (sits_run_examples()) {
     # --- Access to the Brazil Data Cube
-    # Provide your BDC credentials as environment variables
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    if (nchar(bdc_access_key) == 0) {
-        stop("No BDC_ACCESS_KEY defined in environment.")
-    }
 
     # create a raster cube file based on the information in the BDC
     cbers_tile <- sits_cube(
         source = "BDC",
-        collection = "CB4-16D-2",
+        collection = "CBERS-WFI-16D",
         bands = c("NDVI", "EVI"),
         tiles = "007004",
         start_date = "2018-09-01",
@@ -253,7 +247,7 @@ if (sits_run_examples()) {
     # DEAFRICA does not support definition of tiles
     cube_dea <- sits_cube(
         source = "DEAFRICA",
-        collection = "s2_l2a",
+        collection = "S2_L2A",
         bands = c("B04", "B08"),
         roi = c(
             "lat_min" = 17.379,
@@ -268,7 +262,7 @@ if (sits_run_examples()) {
     # --- Access to AWS open data Sentinel 2/2A level 2 collection
     s2_cube <- sits_cube(
         source = "AWS",
-        collection = "SENTINEL-S2-L2A-COGS",
+        collection = "SENTINEL-2-L2A",
         tiles = c("20LKP", "20LLP"),
         bands = c("B04", "B08", "B11"),
         start_date = "2018-07-18",
@@ -286,16 +280,14 @@ if (sits_run_examples()) {
     )
 
     # -- Creating Landsat cube from MPC"
+    roi <- c("lon_min" = -50.410, "lon_max" = -50.379,
+             "lat_min" = -10.1910 , "lat_min" = -10.1573,
+              )
     mpc_cube <- sits_cube(
         source = "MPC",
         collection = "LANDSAT-C2-L2",
         bands = c("BLUE", "RED", "CLOUD"),
-        roi = c(
-            "xmin" = -50.379,
-            "ymin" = -10.1573,
-            "xmax" = -50.410,
-            "ymax" = -10.1910
-        ),
+        roi = roi,
         start_date = "2005-01-01",
         end_date = "2006-10-28"
     )

@@ -60,8 +60,9 @@
 #'   values.}
 #' \item{\code{w_min()}: returns the minimum of the neighborhood's values.}
 #' \item{\code{w_max()}: returns the maximum of the neighborhood's values.}
+#' \item{\code{w_var()}: returns the variance of the neighborhood's values.}
+#' \item{\code{w_modal()}: returns the modal of the neighborhood's values.}
 #' }
-#'
 #'
 #' @return A sits tibble or a sits cube with new bands, produced
 #'         according to the requested expression.
@@ -95,12 +96,15 @@
 #' @rdname sits_apply
 #' @export
 sits_apply <- function(data, ...) {
+    .check_na(data)
+    .check_null(data)
     UseMethod("sits_apply", data)
 }
 
 #' @rdname sits_apply
 #' @export
 sits_apply.sits <- function(data, ...) {
+    .check_samples(data)
     .check_set_caller("sits_apply.sits")
 
     .apply(data, col = "time_series", fn = dplyr::mutate, ...)
@@ -120,9 +124,9 @@ sits_apply.raster_cube <- function(data, ...,
     # Check window size
     .check_window_size(window_size)
     # Check memsize
-    .check_memsize(memsize)
+    .check_memsize(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     # Check output_dir
     .check_output_dir(output_dir)
 

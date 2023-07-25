@@ -1,5 +1,16 @@
+#' @title Create an items object in an AWS cube
 #' @keywords internal
 #' @noRd
+#' @description \code{.source_items_new()} this function is called to create
+#' an items object. In case of Web services, this function is responsible for
+#' making the Web requests to the server.
+#' @param source     Name of the STAC provider.
+#' @param collection Collection to be searched in the data source.
+#' @param stac_query Query that follows the STAC protocol
+#' @param ...        Other parameters to be passed for specific types.
+#' @param tiles      Selected tiles (optional)
+#' @param platform   Satellite platform (optional).
+#' @return An object referring the images of a sits cube.
 #' @export
 .source_items_new.aws_cube <- function(source,
                                        collection,
@@ -51,9 +62,18 @@
 
     return(items_info)
 }
-
+#' @title Create an items object in an AWS cube collection LANDSAT
 #' @keywords internal
 #' @noRd
+#' @description \code{.source_items_new()} this function is called to create
+#' an items object.
+#' @param source     Name of the STAC provider.
+#' @param collection Collection to be searched in the data source.
+#' @param stac_query Query that follows the STAC protocol
+#' @param ...        Other parameters to be passed for specific types.
+#' @param tiles      Selected tiles (optional)
+#' @param platform   Satellite platform (optional).
+#' @return An object referring the images of a sits cube.
 #' @export
 `.source_items_new.aws_cube_landsat-c2-l2` <- function(source,
                                                        collection,
@@ -92,6 +112,12 @@
     return(items)
 }
 
+#' @title Organizes items by tiles for AWS LANDSAT collection
+#' @param source     Name of the STAC provider.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
 #' @keywords internal
 #' @noRd
 #' @export
@@ -107,11 +133,15 @@
         )
         feature
     })
-
     rstac::items_reap(items, field = c("properties", "tile"))
 }
 
-
+#' @title Organizes items by tiles for AWS collections
+#' @param source     Name of the STAC provider.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
 #' @keywords internal
 #' @noRd
 #' @export
@@ -126,4 +156,33 @@
     })
 
     rstac::items_reap(items, field = c("properties", "tile"))
+}
+#' @title Adjusts date-time if required by source
+#' @noRd
+#' @param source  Data source
+#' @param date    Date to be adjusted
+#' @return Adjusted date
+.source_adjust_date.aws_cube <- function(source, date) {
+    if (.has(date))
+        date <- paste0(date, "T00:00:00Z")
+    return(date)
+}
+#' @noRd
+#' @title Configure access.
+#' @param source  Data source
+#' @param collection Image collection
+#' @return Called for side effects
+.source_configure_access.aws_cube <- function(source, collection) {
+    if (.conf("sources", "AWS", "collections", collection, "open_data")
+              == "false") {
+        aws_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
+        if (nchar(aws_access_key) == 0)
+            stop(
+                paste("You need a valid AWS_SECRET_ACCESS_KEY",
+                      "to access this collection.",
+                      "If you have this key",
+                      "please put it on an enviromental variable")
+            )
+    }
+    return(invisible(source))
 }

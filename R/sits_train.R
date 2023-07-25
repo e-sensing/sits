@@ -23,8 +23,8 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'     # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
-#'     # fit a training model (RFOR model)
+#'     # Retrieve the set of samples for Mato Grosso
+#'     # fit a training model (rfor model)
 #'     ml_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 50))
 #'     # get a point and classify the point with the ml_model
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")

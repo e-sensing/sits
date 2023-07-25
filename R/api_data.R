@@ -439,6 +439,7 @@
     } else {
         message("All points have been retrieved")
     }
+    return(invisible(n_rows_input))
 }
 
 #' @title Extracts the time series average by polygon.

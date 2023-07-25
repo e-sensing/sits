@@ -5,7 +5,7 @@
 \title{Find clusters in time series samples}
 \usage{
 sits_cluster_dendro(
-  samples = NULL,
+  samples,
   bands = NULL,
   dist_method = "dtw_basic",
   linkage = "ward.D2",

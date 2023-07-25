@@ -8,10 +8,10 @@
 sits_pred_references(pred)
 }
 \arguments{
-\item{pred}{X-Y predictors: a data.table with one row per sample.}
+\item{pred}{X-Y predictors: a data.frame with one row per sample.}
 }
 \value{
-The label associated to each training sample.
+A character vector with labels associated to training samples.
 }
 \description{
 Predictors are X-Y values required for machine learning

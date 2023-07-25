@@ -56,7 +56,7 @@
 #'         source = "AWS",
 #'         collection = "SENTINEL-2-L2A",
 #'         tiles = c("20LKP", "20LLP"),
-#'         bands = c("B8A", "SCL"),
+#'         bands = c("B8A", "CLOUD"),
 #'         start_date = "2018-10-01",
 #'         end_date = "2018-11-01"
 #'     )
@@ -99,7 +99,7 @@ sits_regularize <- function(cube,
     # Normalize path
     output_dir <- .file_normalize(output_dir)
     .check_output_dir(output_dir)
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
     # Display warning message in case STAC cube
     if (!.cube_is_local(cube)) {

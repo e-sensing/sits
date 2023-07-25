@@ -779,6 +779,15 @@
 
     return(overlay_groups)
 }
+#' @title  Add base maps to leaflet map
+#' @name .view_get_base_maps
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  leaf_map      Leaflet
+#' @return               Base maps used in leaflet map
+#'
 .view_get_base_maps <- function(leaf_map) {
     base_maps <- purrr::map_chr(leaf_map$x$calls, function(c) {
         return(c$args[[3]])
