@@ -145,6 +145,7 @@ Collate:
     'api_raster_terra.R'
     'api_reclassify.R'
     'api_roi.R'
+    'api_s2tile.R'
     'api_samples.R'
     'api_segments.R'
     'api_sf.R'

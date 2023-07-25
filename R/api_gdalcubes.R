@@ -6,11 +6,18 @@
 #' @param cube       Data cube.
 #' @param timeline   Timeline of regularized cube
 #' @param period     Period of interval to aggregate images
-#'
+#' @param roi        Optional. Used only for Sentinel-1 cube.
 #' @param ...        Additional parameters.
 #'
 #' @return           Data cube with the images arranged by cloud.
 .gc_arrange_images <- function(cube, timeline, period, ...) {
+    UseMethod(".gc_arrange_images", cube)
+}
+
+#' @keywords internal
+#' @noRd
+#' @export
+.gc_arrange_images.raster_cube <- function(cube, timeline, period, ...) {
     # include the end of last interval
     timeline <- c(
         timeline,
@@ -39,6 +46,28 @@
         x <- dplyr::select(dplyr::ungroup(x), -"interval")
 
         return(x)
+    })
+
+    return(cube)
+}
+
+#' @keywords internal
+#' @noRd
+#' @export
+`.gc_arrange_images.mpc_cube_sentinel-1-grd` <- function(cube,
+                                                         timeline,
+                                                         period,
+                                                         roi,
+                                                         ...) {
+    # include the end of last interval
+    timeline <- c(
+        timeline,
+        timeline[[length(timeline)]] %m+% lubridate::period(period)
+    )
+
+    # create tiles according to Sentinel-2 MGRS
+    cube <- .apply(cube, "file_info", function(x) {
+
     })
 
     return(cube)
@@ -493,7 +522,8 @@
     cube <- .gc_arrange_images(
         cube = cube,
         timeline = timeline,
-        period = period
+        period = period,
+        roi = roi
     )
 
     # start processes

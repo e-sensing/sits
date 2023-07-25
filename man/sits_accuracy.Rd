@@ -19,7 +19,7 @@ a set of time series}
 \item{\dots}{Specific parameters}
 
 \item{validation}{Samples for validation (see below)
-Only required when data is a data cube.}
+Only required when data is a class cube.}
 }
 \value{
 A list of lists: The error_matrix, the class_areas, the unbiased
