@@ -178,6 +178,7 @@ Collate:
     'api_utils.R'
     'api_variance.R'
     'api_vector.R'
+    'api_vector_info.R'
     'api_vector_sf.R'
     'api_view.R'
     'RcppExports.R'
