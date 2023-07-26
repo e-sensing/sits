@@ -853,7 +853,7 @@ NULL
         .crs(base_tile) <- .vector_crs(v_obj, wkt = TRUE)
     }
     # Update file_info
-    .fi(base_tile) <- .fi_segment_from_file(
+    .vi(base_tile) <- .vi_segment_from_file(
         file = file,
         base_tile = base_tile,
         band = band,
@@ -861,7 +861,8 @@ NULL
         end_date = .tile_end_date(base_tile)
     )
     # Set tile class and return tile
-    .vector_set_class(base_tile, .conf_vector_s3class(vector_class))
+    seg_classes <- c(.conf_vector_s3class(vector_class), class(base_tile))
+    .cube_set_class(base_tile, seg_classes)
 }
 
 #' @title Write values of a derived tile from a set of blocks
