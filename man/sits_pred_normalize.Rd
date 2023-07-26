@@ -9,8 +9,8 @@ sits_pred_normalize(pred, stats)
 \arguments{
 \item{pred}{X-Y predictors: a data.frame with one row per sample.}
 
-\item{stats}{List of numeric values with two elements
-(temporal values of Q02 and Q98).}
+\item{stats}{Values of time series for Q02 and Q98 of the data
+(list of numeric values with two elements)}
 }
 \value{
 A data.frame with normalized predictor values

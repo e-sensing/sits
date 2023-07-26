@@ -105,16 +105,15 @@
     gsub("_", "-", toupper(band))
 }
 #' @title Convert band names for data cube
-#' @name .band_samples
+#' @name .band_set_case
 #' @description non-processed cubes (eo_cubes) use upper case
 #'              processed cubes (results_cubes) use lower case
 #' @noRd
-#' @param band band name (may be lower or upper case)
-#' @param results_cube Is this a results cube?
-#' @return band name in case required by SITS
-.band_set_case <- function(bands, results_cube) {
+#' @param bands band names (may be lower or upper case)
+#' @return band names in case required by SITS
+.band_set_case <- function(bands) {
     if (!purrr::is_null(bands)) {
-        if (results_cube) {
+        if (all(tolower(bands) %in% .conf("sits_results_bands"))) {
             bands <- tolower(bands)
         } else {
             bands <- toupper(bands)

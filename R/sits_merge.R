@@ -13,13 +13,16 @@
 #' To merge data cubes, they should share the same sensor, resolution,
 #' bounding box, timeline, and have different bands.
 #'
-#' @param data1      Time series or cube to be merged.
-#' @param data2      Time series or cube to be merged.
+#' @param data1      Time series (tibble of class "sits")
+#'                   or data cube (tibble of class "raster_cube") .
+#' @param data2      Time series (tibble of class "sits")
+#'                   or data cube (tibble of class "raster_cube") .
 #' @param ...        Additional parameters
 #' @param suffix     If there are duplicate bands in data1 and data2
-#'                   these suffixes will be added.
-#'
-#' @return merged data sets
+#'                   these suffixes will be added
+#'                   (character vector).
+#' @return merged data sets (tibble of class "sits" or
+#'         tibble of class "raster_cube")
 #' @examples
 #' if (sits_run_examples()) {
 #'     # Retrieve a time series with values of NDVI
@@ -46,7 +49,8 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
         x = nrow(data1) > 0 & nrow(data2) > 0,
         msg = "invalid input data"
     )
-    # check that data2 is a sits tibble
+    # check that data2 and data1 are sits tibble
+    .check_samples_ts(data1)
     .check_samples_ts(data2)
     # verify if data1 and data2 have the same number of rows
     .check_that(
@@ -128,20 +132,6 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
 }
 #' @rdname sits_merge
 #' @export
-sits_merge.tbl_df <- function(data1, data2, ...) {
-    if (all(.conf("sits_cube_cols") %in% colnames(data1))) {
-        class(data) <- c("raster_cube", class(data1))
-    } else if (all(.conf("sits_tibble_cols") %in% colnames(data1))) {
-        class(data1) <- c("sits", class(data1))
-    } else
-    data1 <- sits_merge(data1, data2, ...)
-    return(data1)
-}
-#' @rdname sits_merge
-#' @export
 sits_merge.default <- function(data1, data2, ...){
-    data1 <- tibble::as_tibble(data1)
-    data2 <- tibble::as_tibble(data2)
-    data1 <- sits_merge(data1, data2, ...)
-    return(data1)
+    stop("Input should be objects of class sits or class raster_cube")
 }

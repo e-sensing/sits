@@ -73,16 +73,16 @@
 #' @export
 #'
 sits_uncertainty_sampling <- function(uncert_cube,
-                                      n = 100,
+                                      n = 100L,
                                       min_uncert = 0.4,
-                                      sampling_window = 10) {
+                                      sampling_window = 10L) {
     .check_set_caller("sits_uncertainty_sampling")
 
     # Pre-conditions
     .check_is_uncert_cube(uncert_cube)
     .check_int_parameter(n, min = 1, max = 10000)
     .check_num_parameter(min_uncert, min = 0.2, max = 1.0)
-    .check_int_parameter(sampling_window, min = 10)
+    .check_int_parameter(sampling_window, min = 10L)
 
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(uncert_cube, function(tile) {
@@ -205,9 +205,9 @@ sits_uncertainty_sampling <- function(uncert_cube,
 #' }
 #' @export
 sits_confidence_sampling <- function(probs_cube,
-                                     n = 20,
+                                     n = 20L,
                                      min_margin = .90,
-                                     sampling_window = 10) {
+                                     sampling_window = 10L) {
     .check_set_caller("sits_confidence_sampling")
 
     # Pre-conditions

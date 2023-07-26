@@ -7,14 +7,12 @@
 sits_cluster_clean(samples)
 }
 \arguments{
-\item{samples}{Tibble with input set of time series with additional
+\item{samples}{Tibble with set of time series with additional
 cluster information produced
-by \code{sits::sits_cluster_dendro()}.}
+by \code{sits::sits_cluster_dendro()} (class "sits")}
 }
 \value{
-Tibble with time series where clusters have been
-                       cleaned of labels that were in a minority at each
-                       cluster.
+Tibble with time series (class "sits")
 }
 \description{
 Takes a tibble with time series

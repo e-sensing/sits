@@ -104,7 +104,7 @@ sits_apply <- function(data, ...) {
 #' @rdname sits_apply
 #' @export
 sits_apply.sits <- function(data, ...) {
-    .check_samples(data)
+    data <- .check_samples(data)
     .check_set_caller("sits_apply.sits")
 
     .apply(data, col = "time_series", fn = dplyr::mutate, ...)
@@ -113,9 +113,9 @@ sits_apply.sits <- function(data, ...) {
 #' @rdname sits_apply
 #' @export
 sits_apply.raster_cube <- function(data, ...,
-                                   window_size = 3,
-                                   memsize = 1,
-                                   multicores = 2,
+                                   window_size = 3L,
+                                   memsize = 4L,
+                                   multicores = 2L,
                                    output_dir,
                                    progress = FALSE) {
     # Check cube
@@ -175,4 +175,27 @@ sits_apply.raster_cube <- function(data, ...,
     }, progress = progress)
     # Join output features as a cube and return it
     .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_band)))
+}
+#' @rdname sits_apply
+#' @export
+sits_apply.derived_cube <- function(data,...) {
+    stop("Input data should be a non-classified cube")
+}
+#' @rdname sits_apply
+#' @export
+sits_apply.tbl_df <- function(data,...) {
+    data <- tibble::as_tibble(data)
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        data <- .cube_find_class(data)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else
+        stop("Input should be a sits tibble or a data cube")
+    acc <- sits_apply(data, ...)
+    return(acc)
+}
+#' @rdname sits_apply
+#' @export
+sits_apply.default <- function(data, ...) {
+    stop("Input should be a sits tibble or a data cube")
 }

@@ -177,7 +177,7 @@
 #'
 .apply_across <- function(data, fn, ...) {
     # Pre-conditions
-    .check_samples(data)
+    data <- .check_samples(data)
 
     result <-
         .apply(data, col = "time_series", fn = function(x, ...) {

@@ -11,7 +11,6 @@
 \alias{sits_bands<-}
 \alias{sits_bands<-.sits}
 \alias{sits_bands<-.raster_cube}
-\alias{sits_bands<-.tbl_df}
 \alias{sits_bands<-.default}
 \title{Get the names of the bands}
 \usage{
@@ -34,8 +33,6 @@ sits_bands(x) <- value
 \method{sits_bands}{sits}(x) <- value
 
 \method{sits_bands}{raster_cube}(x) <- value
-
-\method{sits_bands}{tbl_df}(x) <- value
 
 \method{sits_bands}{default}(x) <- value
 }

@@ -11,8 +11,8 @@ sits_combine_predictions(
   cubes,
   type = "average",
   ...,
-  memsize = 8,
-  multicores = 2,
+  memsize = 8L,
+  multicores = 2L,
   output_dir,
   version = "v1"
 )
@@ -22,8 +22,8 @@ sits_combine_predictions(
   type = "average",
   ...,
   weights = NULL,
-  memsize = 8,
-  multicores = 2,
+  memsize = 8L,
+  multicores = 2L,
   output_dir,
   version = "v1"
 )
@@ -33,45 +33,42 @@ sits_combine_predictions(
   type = "uncertainty",
   ...,
   uncert_cubes,
-  memsize = 8,
-  multicores = 2,
+  memsize = 8L,
+  multicores = 2L,
   output_dir,
   version = "v1"
 )
 
-\method{sits_combine_predictions}{default}(
-  cubes,
-  type,
-  ...,
-  memsize,
-  multicores,
-  output_dir,
-  version
-)
+\method{sits_combine_predictions}{default}(cubes, type, ...)
 }
 \arguments{
-\item{cubes}{List of probability data cubes.}
+\item{cubes}{List of probability data cubes (class "probs_cube")}
 
-\item{type}{Method to measure uncertainty. See details.}
+\item{type}{Method to measure uncertainty. One of "average" or
+"uncertainty"}
 
 \item{...}{Parameters for specific functions.}
 
-\item{memsize}{Maximum overall memory (in GB) to run the
-function.}
+\item{memsize}{Memory available for classification in GB
+(integer, min = 1, max = 16384).}
 
-\item{multicores}{Number of cores to run the function.}
+\item{multicores}{Number of cores to be used for classification
+(integer, min = 1, max = 2048).}
 
-\item{output_dir}{Output directory for image files.}
+\item{output_dir}{Valid directory for output file.
+(character vector of length 1).}
 
-\item{version}{Version of resulting image.
-(in the case of multiple tests)}
+\item{version}{Version of the output
+(character vector of length 1).}
 
-\item{weights}{Weights for averaging}
+\item{weights}{Weights for averaging (numeric vector).}
 
-\item{uncert_cubes}{Uncertainty cubes to be used as local weights.}
+\item{uncert_cubes}{Uncertainty cubes to be used as local weights when
+type = "uncertainty" is selected
+(list of tibbles with class "uncertainty_cube")}
 }
 \value{
-A combined probability cube
+A combined probability cube (tibble of class "probs_cube").
 }
 \description{
 Calculate an ensemble predictor based a list of probability
@@ -101,14 +98,14 @@ if (sits_run_examples()) {
         version = "rfor"
     )
     # create an XGBoost model
-    tcnn_model <- sits_train(samples_modis_ndvi, sits_tempcnn())
-    # classify a data cube using tempcnn model
-    probs_tcnn_cube <- sits_classify(
-        data = cube, ml_model = tcnn_model, output_dir = tempdir(),
-        version = "tcnn"
+    svm_model <- sits_train(samples_modis_ndvi, sits_svm())
+    # classify a data cube using SVM model
+    probs_svm_cube <- sits_classify(
+        data = cube, ml_model = svm_model, output_dir = tempdir(),
+        version = "svm"
     )
     # create a list of predictions to be combined
-    pred_cubes <- list(probs_rfor_cube, probs_tcnn_cube)
+    pred_cubes <- list(probs_rfor_cube, probs_svm_cube)
     # combine predictions
     comb_probs_cube <- sits_combine_predictions(
         pred_cubes,

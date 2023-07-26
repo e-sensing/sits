@@ -25,7 +25,7 @@ sits_timeline(data)
 \method{sits_timeline}{default}(data)
 }
 \arguments{
-\item{data}{Sits time series or a data cube.}
+\item{data}{Tibble of class "sits" or class "raster_cube"}
 }
 \value{
 Vector of class Date with timeline of samples or data cube.

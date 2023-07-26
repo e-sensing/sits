@@ -5,21 +5,21 @@
 #' the images and a resolution (\code{res}) to resample the
 #' bands.
 #'
-#' @param cube       A sits cube
-#' @param roi        A Region of interest. See details below.
+#' @param cube       A data cube (class "raster_cube")
+#' @param roi        Region of interest.
+#'                   Either an sf_object, a shapefile,
+#'                   or a bounding box vector with
+#'                   named XY values ("xmin", "xmax", "ymin", "ymax") or
+#'                   named lat/long values
+#'                   ("lon_min", "lat_min", "lon_max", "lat_max").
 #' @param res        An integer value corresponds to the output
 #'                   spatial resolution of the images. Default is NULL.
-#' @param multicores Number of workers for parallel downloading.
+#' @param multicores Number of cores for parallel downloading
+#'                   (integer, min = 1, max = 2048).
 #' @param output_dir Output directory where images will be saved.
-#' @param progress   Show progress bar?
-#'
-#' @return a sits cube with updated metadata.
-#'
-#' @note
-#'    The \code{roi} parameter defines a region of interest. It can be
-#'    an sf_object, a shapefile, or a bounding box vector with
-#'    named XY values ("xmin", "xmax", "ymin", "ymax") or
-#'    named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
+#'                   (character vector of length 1).
+#' @param progress   Logical: show progress bar?
+#' @return Copy of input data cube (class "raster cube").
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -32,7 +32,6 @@
 #'         start_date = "2018-01-01",
 #'         end_date = "2018-01-12"
 #'     )
-#'
 #'     # Downloading images to a temporary directory
 #'     cube_local <- sits_cube_copy(
 #'         cube = bdc_cube,
@@ -43,7 +42,8 @@
 #'             lon_max = -15.5,
 #'             lat_max = -14.6
 #'         ),
-#'         multicores = 2
+#'         multicores = 2L,
+#'         res = 250,
 #'     )
 #' }
 #'
@@ -51,11 +51,12 @@
 sits_cube_copy <- function(cube,
                            roi = NULL,
                            res = NULL,
-                           multicores = 2,
+                           multicores = 2L,
                            output_dir,
                            progress = TRUE) {
     # Pre-conditions
     .check_is_raster_cube(cube)
+    .check_cube_files(cube)
     if (.has(roi)) {
         sf_roi <- .roi_as_sf(roi, default_crs = cube$crs[[1]])
     } else {

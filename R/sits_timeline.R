@@ -5,7 +5,7 @@
 #' @description This function returns the timeline for a given data set, either
 #'              a set of time series, a data cube, or a trained model.
 #'
-#' @param  data  Sits time series or a data cube.
+#' @param  data  Tibble of class "sits" or class "raster_cube"
 #' @return       Vector of class Date with timeline of samples or data cube.
 #'
 #' @examples
@@ -62,20 +62,19 @@ sits_timeline.derived_cube <- function(data) {
 #' @rdname sits_timeline
 #' @export
 sits_timeline.tbl_df <- function(data) {
+    data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
-        class(data) <- c("raster_cube", class(data))
+        data <- .cube_find_class(data)
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
     } else
         stop("Input should be a sits tibble or a data cube")
-    timeline <- sits_timeline(data)
-    return(timeline)
+    data <- sits_timeline(data)
+    return(data)
 }
 #' @rdname sits_timeline
 #' @export
 #'
 sits_timeline.default <- function(data) {
-    data <- tibble::as_tibble(data)
-    timeline <- sits_timeline(data)
-    return(timeline)
+    stop("input should be an object of class cube or class sits")
 }

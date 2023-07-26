@@ -69,7 +69,8 @@ test_that("Dates", {
 
     selected_samples2 <- sits_select(
         samples_modis_ndvi,
-        start_date = "2006-11-17"
+        start_date = "2006-11-17",
+        end_date = "2016-08-28"
     )
     expect_equal(
         min(.ts_start_date(.ts(selected_samples2))), as.Date("2006-11-17")
@@ -80,6 +81,7 @@ test_that("Dates", {
 
     selected_samples3 <- sits_select(
         samples_modis_ndvi,
+        start_date = "2000-09-13",
         end_date = "2010-09-14"
     )
     expect_equal(
@@ -135,9 +137,9 @@ test_that("Select", {
 })
 
 test_that("Sample", {
-    data <- sits_sample(cerrado_2classes, n = 10)
+    data <- sits_sample(cerrado_2classes, frac = 0.2)
     expect_equal(sits_labels(cerrado_2classes), sits_labels(data))
-    expect_equal(dim(data)[1], 20)
+    expect_equal(dim(data)[1], 149)
 })
 
 test_that("Values", {

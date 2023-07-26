@@ -22,25 +22,34 @@
 #'
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
-#' @param samples         Tibble with input set of time series.
-#' @param bands           Bands to be used in the clustering.
-#' @param dist_method     Distance method.
-#' @param linkage         Agglomeration method.
-#'                        Can be any `hclust` method (see `hclust`).
-#'                        Default is 'ward.D2'.
+#' @param samples         Tibble with input set of time series (class "sits").
+#' @param bands           Bands to be used in the clustering
+#'                        (character vector)
+#' @param dist_method     One of the supported distances (single char vector)
+#'                        "dtw": DTW with a Sakoe-Chiba constraint.
+#'                        "dtw2": DTW with L2 norm and Sakoe-Chiba constraint.
+#'                        "dtw_basic": A faster DTW with less functionality.
+#'                        "lbk": Keogh's lower bound for DTW.
+#'                        "lbi": Lemire's lower bound for DTW.
+#' @param linkage         Agglomeration method to be used (single char vector)
+#'                        One of "ward.D", "ward.D2", "single", "complete",
+#'                        "average", "mcquitty", "median" or "centroid".
 #' @param k               Desired number of clusters (overrides default value)
 #' @param palette         Color palette as per `grDevices::hcl.pals()` function.
-#' @param .plot           Plot the dendrogram?
 #' @param  ...            Additional parameters to be passed
 #'                        to dtwclust::tsclust() function.
-#' @return                Tibble with added "cluster" column.
+#' @return                Tibble with "cluster" column (class "sits_cluster").
 #'
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
+#'     # default
 #'     clusters <- sits_cluster_dendro(cerrado_2classes)
+#'     # with parameters
+#'     clusters <- sits_cluster_dendro(cerrado_2classes,
+#'                 bands = "NDVI", k = 5)
 #' }
 #'
 #' @export
@@ -49,19 +58,42 @@ sits_cluster_dendro <- function(samples,
                                 dist_method = "dtw_basic",
                                 linkage = "ward.D2",
                                 k = NULL,
-                                palette = "RdYlGn",
-                                .plot = TRUE, ...) {
+                                palette = "RdYlGn") {
     # needs package dtwclust
     .check_require_packages("dtwclust")
     # verify if data is OK
     .check_samples_train(samples)
-
     # bands in sits are uppercase
     bands <- .default(bands, sits_bands(samples))
     bands <- .tibble_bands_check(samples, bands)
-
+    # check k (number of clusters)
+    if (!purrr::is_null(k)) {
+        .check_num_parameter(k, min = 2,  max = 200)
+    }
+    # check distance method
+    .check_that(
+        dist_method %in% .conf("dendro_dist_method"),
+        msg = "Invalid distance method for dendrogram calculation"
+    )
+    # check linkage
+    .check_that(
+        linkage %in% .conf("dendro_linkage"),
+        msg = "Invalid linkage method for dendrogram calculation"
+    )
+    # check palette
+    .check_palette(palette)
+     UseMethod("sits_cluster_dendro", samples)
+}
+#' @rdname sits_cluster_dendro
+#' @export
+sits_cluster_dendro.sits <- function(samples,
+                                     bands = NULL,
+                                     dist_method = "dtw_basic",
+                                     linkage = "ward.D2",
+                                     k = NULL,
+                                     palette = "RdYlGn",
+                                     ...) {
     # calculate the dendrogram object
-    message("calculating dendrogram...")
     cluster <- .cluster_dendrogram(
         samples = samples,
         bands = bands,
@@ -70,7 +102,6 @@ sits_cluster_dendro <- function(samples,
     )
 
     # find the best cut for the dendrogram
-    message("finding the best cut...")
     best_cut <- .cluster_dendro_bestcut(samples, cluster)
     message(paste0("best number of clusters = ", best_cut["k"]))
     message(paste0(
@@ -78,7 +109,6 @@ sits_cluster_dendro <- function(samples,
         best_cut["height"]
     ))
     # cut the tree (user-defined value overrides default)
-    message("cutting the tree...")
     k <- .default(k, best_cut["k"])
     if (k != best_cut["k"]) {
         message(paste0("Caveat: desired number of clusters (", k, ")
@@ -95,18 +125,29 @@ sits_cluster_dendro <- function(samples,
     # change the class
     class(samples) <- c("sits_cluster", class(samples))
     # plot the dendrogram
-    message("Plotting dendrogram...")
-    if (.plot) {
-        plot(
-            x = samples,
-            cluster = cluster,
-            cutree_height = best_cut["height"],
-            palette = palette
-        )
-    }
-
-    message("result is a tibble with cluster indexes...")
+    plot(
+        x = samples,
+        cluster = cluster,
+        cutree_height = best_cut["height"],
+        palette = palette
+    )
     return(samples)
+}
+#' @rdname sits_cluster_dendro
+#' @export
+sits_cluster_dendro.tbl_df <- function(samples, ...) {
+    samples <- tibble::as_tibble(samples)
+    if (all(.conf("sits_tibble_cols") %in% colnames(samples))) {
+        class(samples) <- c("sits", class(samples))
+    } else
+        stop("Input should be a sits tibble")
+    samples <- sits_cluster_dendro(samples, ...)
+    return(samples)
+}
+#' @rdname sits_cluster_dendro
+#' @export
+sits_cluster_dendro.default <- function(samples, ...) {
+    stop("Input samples should be of class sits")
 }
 #'
 #' @title Show label frequency in each cluster produced by dendrogram analysis
@@ -130,10 +171,8 @@ sits_cluster_frequency <- function(samples) {
 
     # is the input data the result of a cluster function?
     .check_samples_cluster(samples)
-
     # compute frequency table (matrix)
     result <- table(samples$label, samples$cluster)
-
     # compute total row and col
     result <- stats::addmargins(result,
         FUN = list(Total = sum),
@@ -149,12 +188,10 @@ sits_cluster_frequency <- function(samples) {
 #' that has an additional `cluster` produced by \code{sits_cluster_dendro()}
 #' and removes labels that are minority in each cluster.
 #'
-#' @param samples         Tibble with input set of time series with additional
+#' @param samples         Tibble with set of time series with additional
 #'                        cluster information produced
-#'                        by \code{sits::sits_cluster_dendro()}.
-#' @return                Tibble with time series where clusters have been
-#'                        cleaned of labels that were in a minority at each
-#'                        cluster.
+#'                        by \code{sits::sits_cluster_dendro()} (class "sits")
+#' @return                Tibble with time series (class "sits")
 #' @examples
 #' if (sits_run_examples()) {
 #'     clusters <- sits_cluster_dendro(cerrado_2classes)
@@ -168,10 +205,8 @@ sits_cluster_frequency <- function(samples) {
 sits_cluster_clean <- function(samples) {
     # set caller to show in errors
     .check_set_caller("sits_cluster_clean")
-
     # is the input data the result of a cluster function?
     .check_samples_cluster(samples)
-
     # compute frequency table (matrix)
     result <- table(samples$label, samples$cluster)
     # list of number of clusters
@@ -180,7 +215,6 @@ sits_cluster_clean <- function(samples) {
     lbs <- unique(samples$label)
     # for each cluster, get the label with the maximum number of samples
     lbs_max <- lbs[as.vector(apply(result, 2, which.max))]
-
     # compute the resulting table
     clean_clusters <- purrr::map2_dfr(
         lbs_max, num_cls,

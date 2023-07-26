@@ -1,6 +1,6 @@
 #' @title Filter time series with smoothing filter
 #' @name sits_filter
-#' @param data          Time series or matrix.
+#' @param data          Time series (tibble of class "sits") or matrix.
 #' @param filter        Filter function to be applied.
 #' @return              Filtered time series
 #'

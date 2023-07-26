@@ -12,14 +12,14 @@ sits_validate(
 )
 }
 \arguments{
-\item{samples}{Time series to be validated (data.frame).}
+\item{samples}{Time series to be validated (class "sits").}
 
 \item{samples_validation}{Optional: Time series used for validation
-(data.frame)}
+(class "sits")}
 
 \item{validation_split}{Percent of original time series set to be used
 for validation if samples_validation is NULL
-(numeric).}
+(numeric value).}
 
 \item{ml_method}{Machine learning method (function)}
 }
@@ -47,15 +47,15 @@ if (sits_run_examples()) {
     samples <- sits_sample(cerrado_2classes, frac = 0.5)
     samples_validation <- sits_sample(cerrado_2classes, frac = 0.5)
     conf_matrix_1 <- sits_validate(
-                            samples = cerrado_2classes,
-                            validation_split = 0.2,
-                            ml_method = sits_rfor()
-                       )
+         samples = samples,
+         samples_validation = samples_validation,
+         ml_method = sits_rfor()
+   )
    conf_matrix_2 <- sits_validate(
-                            samples = samples,
-                            samples_validation = samples_validation,
-                            ml_method = sits_rfor()
-                       )
+         samples = cerrado_2classes,
+         validation_split = 0.2,
+         ml_method = sits_rfor()
+   )
 }
 }
 \author{

@@ -13,6 +13,11 @@ sits_s3_classes_proc :   ["probs_cube","uncertainty_cube", "class_cube", "varian
 sits_results_bands : ["probs", "bayes", "uncert", "entropy",
                       "class", "least", "margin", "variance"]
 
+# bands resulting from classification and smoothing
+sits_probs_bands : ["probs", "bayes"]
+# bands resulting from uncertainty
+sits_uncert_bands : ["uncert", "entropy", "least", "margin"]
+
 # color palettes available in sits
 sits_color_palettes:    ["BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu",
                         "RdYlGn", "Spectral", "Accent", "Dark2", "Paired",
@@ -43,8 +48,7 @@ sits_cube_cols :    ["source", "collection", "satellite", "sensor",
 
 # mandatory columns in tibble description
 sits_tibble_cols :  ["longitude", "latitude", "start_date",
-"end_date", "label", "cube",
-"time_series"]
+"end_date", "label", "cube", "time_series"]
 
 # mandatory columns in predicted time series classification
 ts_predicted_cols:  ["from", "to", "class"]
@@ -190,3 +194,8 @@ gdalcubes_chunk_size: [1, 2048, 2048]
 gdalcubes_type_format: "int16"
 gdalcubes_cog_generate: true
 gdalcubes_cog_resample_overview: "bilinear"
+
+# dendrogram parameters
+dendro_dist_method: ["dtw", "dtw2", "dtw_basic", "lbk", "lbi"]
+dendro_linkage: ["ward.D", "ward.D2", "single", "complete",
+                 "average", "mcquitty", "median", "centroid"]

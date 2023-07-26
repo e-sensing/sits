@@ -33,20 +33,8 @@
     .check_require_packages("stars")
     # verifies if tmap package is installed
     .check_require_packages("tmap")
-
     # deal with color palette
-    .check_chr_contains(
-        x = palette,
-        contains = .conf("sits_color_palettes"),
-        discriminator = "any_of",
-        msg = paste0("Color palette not supported"),
-        local_msg = paste(
-            "Palette should be one of ",
-            paste0(.conf("sits_color_palettes"),
-                collapse = ", "
-            )
-        )
-    )
+    .check_palette(palette)
     # reverse the color palette?
     if (rev) {
         palette <- paste0("-", palette)
@@ -139,19 +127,7 @@
     .check_require_packages("tmap")
 
     # deal with color palette
-    .check_chr_contains(
-        x = palette,
-        contains = .conf("sits_color_palettes"),
-        discriminator = "any_of",
-        msg = paste0("Color palette not supported"),
-        local_msg = paste(
-            "Palette should be one of ",
-            paste0(.conf("sits_color_palettes"),
-                collapse = ", "
-            )
-        )
-    )
-
+    .check_palette(palette)
     # get the labels
     labels <- unlist(.cube_labels(tile, dissolve = FALSE))
     # obtain the colors
@@ -235,24 +211,11 @@
     # verifies if tmap package is installed
     .check_require_packages("tmap")
     # precondition - check color palette
-    .check_chr_contains(
-        x = palette,
-        contains = .conf("sits_color_palettes"),
-        discriminator = "any_of",
-        msg = paste0("Color palette not supported"),
-        local_msg = paste(
-            "Palette should be one of ",
-            paste0(.conf("sits_color_palettes"),
-                collapse = ", "
-            )
-        )
-    )
+    .check_palette(palette)
     # revert the palette
     if (rev) {
         palette <- paste0("-", palette)
     }
-
-
     # get all labels to be plotted
     labels <- sits_labels(tile)
     names(labels) <- seq_len(length(labels))
@@ -265,13 +228,11 @@
             msg = "labels not in cube"
         )
     }
-
     # size of data to be read
     size <- .plot_read_size(
         tile = tile,
         tmap_options = tmap_options
     )
-
     # get the path
     probs_path <- .tile_path(tile)
     # read the file using stars

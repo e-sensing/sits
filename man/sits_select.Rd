@@ -22,14 +22,14 @@ sits_select(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
   tiles = NULL
 )
 
-\method{sits_select}{patterns}(data, bands, ...)
+\method{sits_select}{patterns}(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
 
 \method{sits_select}{tbl_df}(data, ...)
 
 \method{sits_select}{default}(data, ...)
 }
 \arguments{
-\item{data}{Sits tibble or data cube.}
+\item{data}{Tibble (class "sits" or class "raster_cube").}
 
 \item{bands}{Character vector with the names of the bands.}
 
@@ -37,16 +37,16 @@ sits_select(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
 
 \item{end_date}{Date in YYYY-MM-DD format: end date to be filtered.}
 
-\item{...}{Additional parameters to be provided in the select
-function.}
+\item{...}{Additional parameters to be provided}
 
 \item{tiles}{Character vector with the names of the tiles.}
 }
 \value{
-Data.frame with a filtered sits tibble or data cube.
+Tibble of class "sits" or class "raster_cube".
 }
 \description{
-Filter only the selected bands from a tibble or a data cube.
+Filter only the selected bands and dates
+                  from a set of time series or froam a data cube.
 }
 \examples{
 # Retrieve a set of time series with 2 classes
@@ -59,8 +59,8 @@ data <- sits_select(cerrado_2classes, bands = c("NDVI"))
 sits_bands(data)
 # select start and end date
 point_2010 <- sits_select(point_mt_6bands,
-              start_date = "2010-01-01",
-              end_date = "2010-12-31")
+              start_date = "2000-01-01",
+              end_date = "2030-12-31")
 
 }
 \author{
