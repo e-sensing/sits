@@ -87,3 +87,7 @@
 
     UseMethod(".vector_reproject", pkg_class)
 }
+
+.vector_set_class <- function(vector, ...) {
+    .set_class(vector, ..., c("tbl_df", "tbl", "data.frame"))
+}

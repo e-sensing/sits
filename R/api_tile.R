@@ -861,7 +861,7 @@ NULL
         end_date = .tile_end_date(base_tile)
     )
     # Set tile class and return tile
-    .cube_set_class(base_tile, .conf_vector_s3class(vector_class))
+    .vector_set_class(base_tile, .conf_vector_s3class(vector_class))
 }
 
 #' @title Write values of a derived tile from a set of blocks
@@ -933,7 +933,7 @@ NULL
 #' @param out_file output file name
 #' @param update_bbox  should bbox be updated?
 #' @return a new tile with files written
-.tile_segment_merge_blocks <- function(block_files, base_tile, band, derived_class,
+.tile_segment_merge_blocks <- function(block_files, base_tile, band, vector_class,
                                        out_file, update_bbox = FALSE) {
     base_tile <- .tile(base_tile)
     # Read all blocks file
@@ -947,7 +947,7 @@ NULL
         file = out_file,
         band = band,
         base_tile = base_tile,
-        derived_class = derived_class,
+        vector_class = vector_class,
         update_bbox = update_bbox
     )
     # If all goes well, delete block files
