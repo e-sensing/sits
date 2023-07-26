@@ -24,6 +24,7 @@ NULL
     tile[["file_info"]] <- list(value)
     tile
 }
+
 .fi_type <- function(fi) {
     if ("date" %in% names(fi)) {
         "eo_cube"
@@ -107,26 +108,6 @@ NULL
         xmax = .raster_xmax(r_obj),
         ymin = .raster_ymin(r_obj),
         ymax = .raster_ymax(r_obj),
-        path = file
-    )
-}
-
-.fi_segment_from_file <- function(file, base_tile, band, start_date, end_date) {
-    file <- .file_normalize(file)
-    v_obj <- .vector_read_vec(file_path = file)
-    bbox <- .vector_bbox(v_obj)
-    .fi_derived(
-        band = band,
-        start_date = start_date,
-        end_date = end_date,
-        ncols = .tile_ncols(base_tile),
-        nrows = .tile_nrows(base_tile),
-        xres = .tile_xres(base_tile),
-        yres = .tile_yres(base_tile),
-        xmin = bbox[["xmin"]],
-        xmax = bbox[["xmax"]],
-        ymin = bbox[["ymin"]],
-        ymax = bbox[["ymax"]],
         path = file
     )
 }
