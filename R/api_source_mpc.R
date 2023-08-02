@@ -193,7 +193,42 @@
     }
     return(invisible(NULL))
 }
+#' @title Get bbox from file info
+#' @keywords internal
+#' @noRd
+#' @param source     Data source
+#' @param file_info  File info
+#' @param ...        Additional parameters.
+#' @param collection Image collection
+#' @return vector (xmin, ymin, xmax, ymax).
+#' @export
+`.source_tile_get_bbox.mpc_cube_sentinel-1-grd` <- function(source,
+                                                            file_info, ...,
+                                                            collection = NULL) {
+    .check_set_caller(".source_tile_get_bbox.mpc_cube_sentinel-1-grd")
 
+    # pre-condition
+    .check_num(nrow(file_info), min = 1, msg = "invalid 'file_info' value")
+
+    # get bbox based on file_info
+    xmin <- min(file_info[["xmin"]])
+    ymin <- min(file_info[["ymin"]])
+    xmax <- max(file_info[["xmax"]])
+    ymax <- max(file_info[["ymax"]])
+
+    # post-condition
+    .check_that(xmin < xmax,
+                local_msg = "xmin is greater than xmax",
+                msg = "invalid bbox value"
+    )
+    .check_that(ymin < ymax,
+                local_msg = "ymin is greater than ymax",
+                msg = "invalid bbox value"
+    )
+    # create a bbox
+    bbox <- c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
+    return(bbox)
+}
 #' @keywords internal
 #' @noRd
 #' @export

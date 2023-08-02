@@ -138,6 +138,49 @@ sits_regularize.raster_cube <- function(cube,
 }
 #' @rdname sits_regularize
 #' @export
+`sits_regularize.mpc_cube_sentinel-1-grd` <- function(cube,
+                                                      period,
+                                                      res,
+                                                      output_dir,
+                                                      roi = NULL,
+                                                      multicores = 2L,
+                                                      progress = TRUE) {
+    # Preconditions
+    .check_cube_files(cube)
+    .period_check(period)
+    .check_num_parameter(res, exclusive_min = 0)
+    output_dir <- .file_normalize(output_dir)
+    .check_output_dir(output_dir)
+    .check_multicores(multicores, min = 1, max = 2048)
+    .check_progress(progress)
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi)
+    }
+    # Display warning message in case STAC cube
+    if (!.cube_is_local(cube)) {
+        if (.check_warnings()) {
+            warning("Regularization works better when data store locally. ",
+                    "Please, use 'sits_cube_copy()' to copy data locally ",
+                    "before regularization",
+                    call. = FALSE, immediate. = TRUE
+            )
+        }
+    }
+    # Normalize path
+    output_dir <- .file_normalize(output_dir)
+    # Regularize
+    .gc_regularize(
+        cube = cube,
+        period = period,
+        res = res,
+        roi = roi,
+        output_dir = output_dir,
+        multicores = multicores,
+        progress = progress
+    )
+}
+#' @rdname sits_regularize
+#' @export
 sits_regularize.derived_cube <- function(cube,
                                          period,
                                          res,

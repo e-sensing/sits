@@ -59,18 +59,57 @@
                                                          period,
                                                          roi,
                                                          ...) {
+    # dummy local variables to avoid warnings from tidyverse syntax
+    source <- collection <- satellite <- sensor <- NULL
+    tile_id <- xmin <- xmax <- ymin <- ymax <- epsg <- NULL
+
+    # pre-requisites
+    .check_that(nrow(cube) == 1,
+                local_msg = "cube must have one row",
+                msg = "invalid sentinel-1 cube")
+
     # include the end of last interval
     timeline <- c(
         timeline,
         timeline[[length(timeline)]] %m+% lubridate::period(period)
     )
 
-    # create tiles according to Sentinel-2 MGRS
-    cube <- .apply(cube, "file_info", function(x) {
+    # generate Sentinel-2 tiles and intersects it with doi
+    tiles <- .s2tile_open()
+    if (.has(roi)) {
+        tiles <- tiles[.intersects(tiles, .roi_as_sf(roi)), ]
+    }
 
-    })
+    # prepare a sf object representing the bbox of each image in file_info
+    fi_bbox <- .bbox_as_sf(.bbox(
+        x = cube$file_info[[1]],
+        default_crs = cube$crs,
+        by_feature = TRUE
+    ))
 
-    return(cube)
+    # create a new cube according to Sentinel-2 MGRS
+    cube_class <- .cube_s3class(cube)
+    cube <- tiles |>
+        dplyr::rowwise() |>
+        dplyr::group_map(~{
+            file_info <- cube$file_info[[1]][.intersects({{fi_bbox}}, .x), ]
+            .cube_create(
+                source = cube$source,
+                collection = cube$collection,
+                satellite = cube$satellite,
+                sensor = cube$sensor,
+                tile = .x$tile_id,
+                xmin = .x$xmin,
+                xmax = .x$xmax,
+                ymin = .x$ymin,
+                ymax = .x$ymax,
+                crs = paste0("EPSG:", .x$epsg),
+                file_info = file_info
+            )
+        }) |>
+        dplyr::bind_rows()
+
+    .cube_set_class(cube, cube_class)
 }
 
 #' @title Create a cube_view object
