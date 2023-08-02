@@ -96,7 +96,8 @@ sits_mosaic <- function(cube,
     .check_output_dir(output_dir)
     .check_version(version)
     .check_progress(progress)
-
+    # version is case-insensitive in sits
+    version <- tolower(version)
     # Spatial filter
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)

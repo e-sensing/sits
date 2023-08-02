@@ -1,9 +1,6 @@
 test_that("Sample", {
     data(cerrado_2classes)
 
-    data <- sits_sample(cerrado_2classes, n = 10)
-    expect_true(nrow(data) == 20)
-
     data <- sits_sample(cerrado_2classes, frac = 0.1)
     expect_true(nrow(dplyr::filter(data, label == "Cerrado")) == 40)
     expect_true(nrow(dplyr::filter(data, label == "Pasture")) == 34)

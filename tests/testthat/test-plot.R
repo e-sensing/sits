@@ -149,8 +149,8 @@ test_that("Plot Time Series and Images", {
 
 test_that("Plot Accuracy", {
     # show accuracy for a set of samples
-    train_data <- sits_sample(samples_modis_ndvi, n = 200)
-    test_data <- sits_sample(samples_modis_ndvi, n = 200)
+    train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
+    test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
     # compute a random forest model
     rfor_model <- sits_train(train_data, sits_rfor())
     # classify training points
@@ -186,9 +186,7 @@ test_that("Plot Models", {
 
 test_that("Dendrogram Plot", {
     samples <- sits_cluster_dendro(cerrado_2classes,
-        bands = c("NDVI", "EVI"),
-        .plot = FALSE
-    )
+        bands = c("NDVI", "EVI"))
     cluster <- .cluster_dendrogram(
         samples = samples,
         bands = c("NDVI", "EVI")

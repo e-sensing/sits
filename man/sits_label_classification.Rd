@@ -3,12 +3,17 @@
 \name{sits_label_classification}
 \alias{sits_label_classification}
 \alias{sits_label_classification.probs_cube}
+\alias{sits_label_classification.raster_cube}
+\alias{sits_label_classification.derived_cube}
+\alias{sits_label_classification.tbl_df}
+\alias{sits_label_classification.default}
 \title{Build a labelled image from a probability cube}
 \usage{
 sits_label_classification(
   cube,
-  memsize = 4,
-  multicores = 2,
+  ...,
+  memsize = 4L,
+  multicores = 2L,
   output_dir,
   version = "v1",
   progress = TRUE
@@ -16,15 +21,26 @@ sits_label_classification(
 
 \method{sits_label_classification}{probs_cube}(
   cube,
-  memsize = 4,
-  multicores = 2,
+  ...,
+  memsize = 4L,
+  multicores = 2L,
   output_dir,
   version = "v1",
   progress = TRUE
 )
+
+\method{sits_label_classification}{raster_cube}(cube, ...)
+
+\method{sits_label_classification}{derived_cube}(cube, ...)
+
+\method{sits_label_classification}{tbl_df}(cube, ...)
+
+\method{sits_label_classification}{default}(cube, ...)
 }
 \arguments{
 \item{cube}{Classified image data cube.}
+
+\item{...}{Other parameters for specific functions.}
 
 \item{memsize}{maximum overall memory (in GB) to label the
 classification.}

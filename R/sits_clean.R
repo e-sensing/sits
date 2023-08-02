@@ -9,18 +9,20 @@
 #' the most frequently values within the neighborhood.
 #' In a tie, the first value of the vector is considered.
 #'
-#' @param cube        Classified data cube (tibble of class "class_cube")
+#' @param cube        Classified data cube (tibble of class "class_cube").
 #' @param window_size An odd integer  representing the size of the
-#'                    sliding window of the modal function (min = 1, max = 15)
+#'                    sliding window of the modal function (min = 1, max = 15).
 #' @param memsize     Memory available for classification in GB
 #'                    (integer, min = 1, max = 16384).
 #' @param multicores  Number of cores to be used for classification
 #'                    (integer, min = 1, max = 2048).
 #' @param output_dir  Valid directory for output file.
-#' @param version     Version of the output file (character vector of length 1)
-#' @param progress    Show progress bar (logical)?
+#'                    (character vector of length 1).
+#' @param version     Version of the output file
+#'                    (character vector of length 1)
+#' @param progress    Logical: Show progress bar?
 #'
-#' @return A data cube with an classified map (class = "class_cube").
+#' @return A tibble with an classified map (class = "class_cube").
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -34,35 +36,46 @@
 #' )
 #' # classify a data cube
 #' probs_cube <- sits_classify(
-#'     data = cube, ml_model = rf_model, output_dir = tempdir()
+#'     data = cube,
+#'     ml_model = rf_model,
+#'     output_dir = tempdir(),
+#'     version = "ex_clean"
 #' )
 #' # label the probability cube
 #' label_cube <- sits_label_classification(
-#'     probs_cube, output_dir = tempdir()
+#'     probs_cube,
+#'     output_dir = tempdir(),
+#'     version = "ex_clean"
 #' )
 #' # apply a mode function in the labelled cube
 #' clean_cube <- sits_clean(
 #'     cube = label_cube,
 #'     window_size = 5,
-#'     memsize = 8,
+#'     memsize = 4,
 #'     multicores = 2,
 #'     output_dir = tempdir(),
 #'     version = "ex_clean",
-#'     progress = TRUE
+#'     progress = FALSE
 #' )
 #' }
 #'
 #' @export
-sits_clean <- function(cube,
-                       window_size,
-                       memsize = 4,
-                       multicores = 2,
-                       output_dir,
-                       version = "v1",
+sits_clean <- function(cube, window_size = 5L, memsize = 4L,
+                       multicores = 2L, output_dir, version = "v1",
                        progress = TRUE) {
-    # Check cube
-    .check_na(cube)
-    .check_null(cube)
+    # Precondition
+    # Check the cube is valid
+    .check_valid(cube)
+    UseMethod("sits_clean", cube)
+}
+#' @rdname sits_clean
+#' @export
+sits_clean.class_cube <- function(cube, window_size = 5L, memsize = 4L,
+                                  multicores = 2L, output_dir, version = "v1",
+                                  progress = TRUE) {
+    # Preconditions
+    # Check cube has files
+    .check_cube_files(cube)
     # Check window size
     .check_window_size(window_size, min = 1, max = 15)
     # Check memsize
@@ -73,20 +86,10 @@ sits_clean <- function(cube,
     .check_output_dir(output_dir)
     # Check version
     .check_version(version)
+    # version is case-insensitive in sits
+    version <- tolower(version)
     # Check progress
     .check_progress(progress)
-
-    UseMethod("sits_clean", cube)
-}
-#' @rdname sits_clean
-#' @export
-sits_clean.class_cube <- function(cube,
-                                  window_size,
-                                  memsize = 4,
-                                  multicores = 2,
-                                  output_dir,
-                                  version = "v1",
-                                  progress = TRUE) {
 
     # Get input band
     band <- .cube_bands(cube)
@@ -132,31 +135,38 @@ sits_clean.class_cube <- function(cube,
 }
 #' @rdname sits_clean
 #' @export
-sits_clean.tbl_df <- function(cube, window_size,
-                              memsize = 4,
-                              multicores = 2,
-                              output_dir,
-                              version = "v1",
+sits_clean.raster_cube <- function(cube, window_size = 5L, memsize = 4L,
+                                   multicores = 2L, output_dir, version = "v1",
+                                   progress = TRUE) {
+    stop("Input should be a classified cube")
+    return(cube)
+}
+#' @rdname sits_clean
+#' @export
+sits_clean.derived_cube <- function(cube, window_size = 5L, memsize = 4L,
+                                    multicores = 2L, output_dir, version = "v1",
+                                    progress = TRUE) {
+    stop("Input should be a classified cube")
+    return(cube)
+}
+#' @rdname sits_clean
+#' @export
+sits_clean.tbl_df <- function(cube, window_size = 5L, memsize = 4L,
+                              multicores = 2L, output_dir, version = "v1",
                               progress = TRUE) {
-    if (all(.conf("sits_cube_cols") %in% colnames(cube)) &&
-        all(sits_bands(cube) %in% "class")) {
-        class(cube) <- c("class_cube", class(cube))
+    cube <- tibble::as_tibble(cube)
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
+        cube <- .cube_find_class(cube)
     } else
         stop("Input should be a classified cube")
     clean_cube <- sits_clean(cube, window_size, memsize, multicores,
-                             output_dir, version, progress)
+                       output_dir, version, progress)
     return(clean_cube)
 }
 #' @rdname sits_clean
 #' @export
-sits_clean.default <- function(cube, window_size,
-                               memsize = 4,
-                               multicores = 2,
-                               output_dir,
-                               version = "v1",
+sits_clean.default <- function(cube, window_size = 5L, memsize = 4L,
+                               multicores = 2L, output_dir, version = "v1",
                                progress = TRUE) {
-    cube <- tibble::as_tibble(cube)
-    clean_cube <- sits_clean(cube, window_size, memsize, multicores,
-                             output_dir, version, progress)
-    return(clean_cube)
+    stop("Input should be a classified cube")
 }

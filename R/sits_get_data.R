@@ -24,27 +24,38 @@
 #' }
 #
 #' @param cube            Data cube from where data is to be retrieved.
-#' @param samples         Samples location (sits, sf, or data.frame).
+#'                        (tibble of class "raster_cube").
+#' @param samples         Location of the samples to be retrieved.
+#'                        Either a tibble of class "sits", an "sf" object,
+#'                        the name of a shapefile or csv file, or
+#'                        a data.frame with columns "longitude" and "latitude".
 #' @param ...             Specific parameters for specific cases.
-#' @param start_date      Start of the interval for the time series
-#'                        in "YYYY-MM-DD" format (optional).
-#' @param end_date        End of the interval for the time series in
-#'                        "YYYY-MM-DD" format (optional).
-#' @param label           Label to be assigned to the time series (optional).
-#' @param bands           Bands to be retrieved (optional).
+#' @param start_date      Start of the interval for the time series - optional
+#'                        (Date in "YYYY-MM-DD" format).
+#' @param end_date        End of the interval for the time series - optional
+#'                        (Date in "YYYY-MM-DD" format).
+#' @param label           Label to be assigned to the time series (optional)
+#'                        (character vector of length 1).
+#' @param bands           Bands to be retrieved - optional
+#'                        (character vector).
 #' @param crs             Default crs for the samples
+#'                        (character vector of length 1).
 #' @param label_attr      Attribute in the shapefile or sf object to be used
 #'                        as a polygon label.
+#'                        (character vector of length 1).
 #' @param n_sam_pol       Number of samples per polygon to be read
-#'                        (for POLYGON or MULTIPOLYGON shapefile).
-#' @param pol_avg         Summarize samples for each polygon?
-#' @param pol_id          ID attribute for polygons.
+#'                        for POLYGON or MULTIPOLYGON shapefiles or sf objects
+#'                        (single integer).
+#' @param pol_avg         Logical: summarize samples for each polygon?
+#' @param pol_id          ID attribute for polygons
+#'                        (character vector of length 1)
 #' @param aggreg_fn       Function to compute a summary of each segment
-#' @param multicores      Number of threads to process the time series.
-#' @param progress        A logical value indicating if a progress bar
-#'                        should be shown. Default is \code{FALSE}.
+#'                        (object of class "function").
+#' @param multicores      Number of threads to process the time series
+#'                        (integer, with min = 1 and max = 2048).
+#' @param progress        Logical: show progress bar?
 #'
-#' @return A tibble with the metadata and data for each time series
+#' @return A tibble of class "sits" with set of time series
 #' <longitude, latitude, start_date, end_date, label, cube, time_series>.
 #'
 #' @note
@@ -100,21 +111,21 @@ sits_get_data <- function(cube,
                           ),
                           label = "NoClass",
                           bands = sits_bands(cube),
-                          crs = 4326,
+                          crs = 4326L,
                           label_attr = NULL,
-                          n_sam_pol = 30,
+                          n_sam_pol = 30L,
                           pol_avg = FALSE,
                           pol_id = NULL,
-                          multicores = 2,
+                          multicores = 2L,
                           progress = TRUE) {
     # Pre-conditions
     .check_is_raster_cube(cube)
     .check_is_regular(cube)
+    .check_cube_files(cube)
     .check_cube_bands(cube, bands = bands)
     .check_crs(crs)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
-
     if (is.character(samples)) {
         class(samples) <- c(.file_ext(samples), class(samples))
     }
@@ -133,7 +144,7 @@ sits_get_data.csv <- function(cube,
                               samples,
                               ...,
                               bands = sits_bands(cube),
-                              crs = 4326,
+                              crs = 4326L,
                               multicores = 2,
                               progress = FALSE) {
     # Get samples

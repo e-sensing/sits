@@ -229,22 +229,25 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
 }
 #' @rdname sits_mixture_model
 #' @export
+sits_mixture_model.derived_cube <- function(data, endmembers, ...) {
+    stop("Input should not be a cube that has been classified")
+    return(data)
+}
+#' @rdname sits_mixture_model
+#' @export
 sits_mixture_model.tbl_df <- function(data, endmembers, ...) {
+    data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
-        class(data) <- c("raster_cube", class(data))
+        data <- .cube_find_class(data)
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
     } else
-        stop("Input should be a sits tibble or data cube")
-    res <- sits_mixture_model(data, endmembers, ...)
-    return(res)
+        stop("Input should be a sits tibble or a data cube")
+    data <- sits_mixture_model(data, endmembers, ...)
+    return(data)
 }
 #' @rdname sits_mixture_model
 #' @export
 sits_mixture_model.default <- function(data, endmembers, ...){
-    # try to convert to tbl_df
-    data <- tibble::as_tibble(data)
-    # dispatch to tbl_df
-    res <- sits_mixture_model(data, endmembers, ...)
-    return(res)
+    stop("Input should be an object of class cube or class sits")
 }

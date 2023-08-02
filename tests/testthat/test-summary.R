@@ -9,8 +9,8 @@ test_that("sits summary", {
 test_that("summary sits accuracy", {
     data(cerrado_2classes)
     # split training and test data
-    train_data <- sits_sample(cerrado_2classes, n = 200)
-    test_data <- sits_sample(cerrado_2classes, n = 200)
+    train_data <- sits_sample(cerrado_2classes, frac = 0.5)
+    test_data  <- sits_sample(cerrado_2classes, frac = 0.5)
     # train a random forest model
     rfor_model <- sits_train(train_data, sits_rfor())
     # classify test data

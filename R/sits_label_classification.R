@@ -7,6 +7,7 @@
 #'              and label them based on the maximum probability for each pixel.
 #'
 #' @param  cube        Classified image data cube.
+#' @param  ...         Other parameters for specific functions.
 #' @param  multicores  Number of workers to label the classification in
 #'                     parallel.
 #' @param  memsize     maximum overall memory (in GB) to label the
@@ -50,18 +51,32 @@
 #'     plot(label_cube)
 #' }
 #' @export
-sits_label_classification <- function(cube,
-                                      memsize = 4,
-                                      multicores = 2,
+sits_label_classification <- function(cube, ...,
+                                      memsize = 4L,
+                                      multicores = 2L,
                                       output_dir,
                                       version = "v1",
                                       progress = TRUE) {
+    # Dispatch
+    UseMethod("sits_label_classification", cube)
+}
+#'
+#' @rdname sits_label_classification
+#' @export
+sits_label_classification.probs_cube <- function(cube, ...,
+                                                 memsize = 4L,
+                                                 multicores = 2L,
+                                                 output_dir,
+                                                 version = "v1",
+                                                 progress = TRUE) {
     # Pre-conditions - Check parameters
-    .check_is_probs_cube(cube)
+    .check_cube_files(cube)
     .check_memsize(memsize, min = 1, max = 16384)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
     .check_version(version)
+    # version is case-insensitive in sits
+    version <- tolower(version)
 
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
@@ -85,18 +100,6 @@ sits_label_classification <- function(cube,
     # Prepare parallel processing
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
-    # Dispatch
-    UseMethod("sits_label_classification", cube)
-}
-#'
-#' @rdname sits_label_classification
-#' @export
-sits_label_classification.probs_cube <- function(cube,
-                                                 memsize = 4,
-                                                 multicores = 2,
-                                                 output_dir,
-                                                 version = "v1",
-                                                 progress = TRUE) {
     # Create label classification function
     label_fn <- .label_fn_majority()
     # Process each tile sequentially
@@ -114,3 +117,32 @@ sits_label_classification.probs_cube <- function(cube,
     })
     return(class_cube)
 }
+#' @rdname sits_label_classification
+#' @export
+sits_label_classification.raster_cube <- function(cube, ...) {
+    stop("Input should be a classified cube")
+    return(cube)
+}
+#' @rdname sits_label_classification
+#' @export
+sits_label_classification.derived_cube <- function(cube, ...) {
+    stop("Input should be a classified cube")
+    return(cube)
+}
+#' @rdname sits_label_classification
+#' @export
+sits_label_classification.tbl_df <- function(cube, ...){
+    cube <- tibble::as_tibble(cube)
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
+        cube <- .cube_find_class(cube)
+    } else
+        stop("Input should be a classified cube")
+    class_cube <- sits_label_classification(cube, ...)
+    return(class_cube)
+}
+#' @rdname sits_label_classification
+#' @export
+sits_label_classification.default <- function(cube, ...) {
+    stop("Input should be a classified cube")
+}
+

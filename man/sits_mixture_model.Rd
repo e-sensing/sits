@@ -4,6 +4,7 @@
 \alias{sits_mixture_model}
 \alias{sits_mixture_model.sits}
 \alias{sits_mixture_model.raster_cube}
+\alias{sits_mixture_model.derived_cube}
 \alias{sits_mixture_model.tbl_df}
 \alias{sits_mixture_model.default}
 \title{Multiple endmember spectral mixture analysis}
@@ -36,6 +37,8 @@ sits_mixture_model(
   output_dir,
   progress = TRUE
 )
+
+\method{sits_mixture_model}{derived_cube}(data, endmembers, ...)
 
 \method{sits_mixture_model}{tbl_df}(data, endmembers, ...)
 

@@ -575,9 +575,8 @@ sources:
                     SENTINEL-2B: "sentinel-2b"
                 collection_name: "sentinel-2-l2a"
                 access_vars :
-                   AWS_DEFAULT_REGION   : "eu-central-1"
+                   AWS_DEFAULT_REGION   : "us-west-2"
                    AWS_S3_ENDPOINT      : "s3.amazonaws.com"
-                   AWS_REQUEST_PAYER    : "requester"
                    AWS_NO_SIGN_REQUEST  : true
                 open_data   : true
                 open_data_token: false

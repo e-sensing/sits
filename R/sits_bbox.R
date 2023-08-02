@@ -8,8 +8,8 @@
 #' @description  Obtain a vector of limits (either on lat/long for time series
 #'               or in projection coordinates in the case of cubes)
 #'
-#' @param data   \code{samples} data or \code{cube}.
-#' @param crs    CRS of the samples points.
+#' @param data   samples (class "sits") or \code{cube}.
+#' @param crs    CRS of the samples points (single char)
 #' @param as_crs CRS to project the resulting \code{bbox}.
 #'
 #' @return A \code{bbox}.
@@ -35,7 +35,7 @@ sits_bbox <- function(data, crs = "EPSG:4326", as_crs = NULL) {
 #' @export
 sits_bbox.sits <- function(data, crs = "EPSG:4326", as_crs = NULL) {
     # Pre-conditions
-    .check_samples(data)
+    data <- .check_samples(data)
     # Convert to bbox
     bbox <- .bbox(.point(x = data, crs = crs, as_crs = as_crs))
     return(bbox)
@@ -52,19 +52,18 @@ sits_bbox.raster_cube <- function(data, crs = "EPSG:4326", as_crs = NULL) {
 #' @rdname sits_bbox
 #' @export
 sits_bbox.tbl_df <- function(data, crs = "EPSG:4326", as_crs = NULL) {
+    data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
-        class(data) <- c("raster_cube", class(data))
+        data <- .cube_find_class(data)
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
     } else
         stop("Input should be a sits tibble or a data cube")
-    data <- sits_bbox(data, crs, as_crs)
-    return(data)
+    bbox <- sits_bbox(data, crs, as_crs)
+    return(bbox)
 }
 #' @rdname sits_bbox
 #' @export
 sits_bbox.default <- function(data, crs = "EPSG:4326", as_crs = NULL) {
-    data <- tibble::as_tibble(data)
-    bbox <- sits_bbox(data, crs, as_crs)
-    return(bbox)
+    stop("Input should be of class sits or class raster_cube")
 }

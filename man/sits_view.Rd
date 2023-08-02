@@ -201,11 +201,11 @@ if (sits_run_examples()) {
         samples = segments
     )
     # train a model
-    tcnn_model <- sits_train(samples_modis_ndvi, sits_tempcnn())
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
     # classify the segments
     seg_class <- sits_classify(
         data = samples_seg,
-        ml_model = tcnn_model
+        ml_model = rfor_model
     )
 
     # add a column to the segments by class

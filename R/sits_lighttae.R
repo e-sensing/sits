@@ -36,13 +36,16 @@
 #' ReScience C 7 (2), 2021.
 #' DOI: 10.5281/zenodo.4835356
 #'
-#' @param samples            Time series with the training samples.
-#' @param samples_validation Time series with the validation samples. if the
-#'                           \code{samples_validation} parameter is provided,
-#'                           the \code{validation_split}
-#'                           parameter is ignored.
-#' @param epochs             Number of iterations to train the model.
-#' @param batch_size         Number of samples per gradient update.
+#' @param samples            Time series with the training samples
+#'                           (tibble of class "sits").
+#' @param samples_validation Time series with the validation samples
+#'                           (tibble of class "sits").
+#'                           If \code{samples_validation} parameter is provided,
+#'                           \code{validation_split} is ignored.
+#' @param epochs             Number of iterations to train the model
+#'                           (integer, min = 1, max = 20000).
+#' @param batch_size         Number of samples per gradient update
+#'                           (integer, min = 16L, max = 2048L)
 #' @param validation_split   Fraction of training data
 #'                           to be used as validation data.
 #' @param optimizer          Optimizer function to be used.
@@ -99,18 +102,18 @@
 #' @export
 sits_lighttae <- function(samples = NULL,
                           samples_validation = NULL,
-                          epochs = 150,
-                          batch_size = 128,
+                          epochs = 150L,
+                          batch_size = 128L,
                           validation_split = 0.2,
-                          optimizer = torchopt::optim_adamw,
+                          optimizer = torch::optim_adamw,
                           opt_hparams = list(
                               lr = 0.005,
                               eps = 1e-08,
                               weight_decay = 1e-06
                           ),
-                          lr_decay_epochs = 50,
-                          lr_decay_rate = 1,
-                          patience = 20,
+                          lr_decay_epochs = 50L,
+                          lr_decay_rate = 1.0,
+                          patience = 20L,
                           min_delta = 0.01,
                           verbose = FALSE) {
     # Function that trains a torch model based on samples
@@ -121,8 +124,8 @@ sits_lighttae <- function(samples = NULL,
         .check_require_packages(c("torch", "luz"))
         # Pre-conditions:
         .check_samples_train(samples)
-        .check_int_parameter(epochs)
-        .check_int_parameter(batch_size)
+        .check_int_parameter(epochs, min = 1L, max = 20000L)
+        .check_int_parameter(batch_size, min = 16L, max = 2048L)
         .check_null(optimizer, msg = "invalid 'optimizer' parameter")
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
@@ -146,9 +149,9 @@ sits_lighttae <- function(samples = NULL,
         }
         # Other pre-conditions:
         .check_int_parameter(lr_decay_epochs)
-        .check_num_parameter(param = lr_decay_rate, exclusive_min = 0, max = 1)
+        .check_num_parameter(lr_decay_rate, exclusive_min = 0, max = 1)
         .check_int_parameter(patience)
-        .check_num_parameter(param = min_delta, min = 0)
+        .check_num_parameter(min_delta, min = 0)
         .check_lgl(verbose)
 
         # Samples labels

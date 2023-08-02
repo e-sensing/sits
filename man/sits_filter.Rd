@@ -7,7 +7,7 @@
 sits_filter(data, filter = sits_whittaker())
 }
 \arguments{
-\item{data}{Time series or matrix.}
+\item{data}{Time series (tibble of class "sits") or matrix.}
 
 \item{filter}{Filter function to be applied.}
 }

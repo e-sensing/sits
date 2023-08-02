@@ -2,9 +2,53 @@
 % Please edit documentation in R/sits_regularize.R
 \name{sits_regularize}
 \alias{sits_regularize}
+\alias{sits_regularize.raster_cube}
+\alias{sits_regularize.derived_cube}
+\alias{sits_regularize.tbl_df}
+\alias{sits_regularize.default}
 \title{Build a regular data cube from an irregular one}
 \usage{
 sits_regularize(
+  cube,
+  period,
+  res,
+  output_dir,
+  roi = NULL,
+  multicores = 2L,
+  progress = TRUE
+)
+
+\method{sits_regularize}{raster_cube}(
+  cube,
+  period,
+  res,
+  output_dir,
+  roi = NULL,
+  multicores = 2L,
+  progress = TRUE
+)
+
+\method{sits_regularize}{derived_cube}(
+  cube,
+  period,
+  res,
+  output_dir,
+  roi = NULL,
+  multicores = 2,
+  progress = TRUE
+)
+
+\method{sits_regularize}{tbl_df}(
+  cube,
+  period,
+  res,
+  output_dir,
+  roi = NULL,
+  multicores = 2,
+  progress = TRUE
+)
+
+\method{sits_regularize}{default}(
   cube,
   period,
   res,
@@ -31,7 +75,7 @@ data cubes, with number and unit, where
 See more above.}
 
 \item{multicores}{Number of cores used for regularization;
-used for parallel processing of input.}
+used for parallel processing of input (integer)}
 
 \item{progress}{show progress bar?}
 }
@@ -80,10 +124,10 @@ if (sits_run_examples()) {
     # regularize the cube
     rg_cube <- sits_regularize(
         cube = s2_cube_open,
-        output_dir = tempdir(),
-        res = 60,
         period = "P16D",
-        multicores = 2
+        res = 60,
+        multicores = 2,
+        output_dir = tempdir()
     )
 }
 
