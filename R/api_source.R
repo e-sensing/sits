@@ -69,7 +69,7 @@ NULL
     class(source) <- unique(c(classes, class(source)))
 
     if (!is.null(collection)) {
-        classes <- c(paste(classes, tolower(collection), sep = "_"), classes)
+        classes <- paste(classes[[1]], tolower(collection), sep = "_")
         class(source) <- unique(c(classes, class(source)))
     }
     return(source)
