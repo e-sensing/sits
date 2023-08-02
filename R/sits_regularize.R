@@ -26,7 +26,7 @@
 #' @param roi        A named \code{numeric} vector with a region of interest.
 #'                   See more above.
 #' @param multicores Number of cores used for regularization;
-#'                   used for parallel processing of input.
+#'                   used for parallel processing of input (integer)
 #' @param output_dir Valid directory for storing regularized images.
 #' @param progress   show progress bar?
 #'
@@ -63,10 +63,10 @@
 #'     # regularize the cube
 #'     rg_cube <- sits_regularize(
 #'         cube = s2_cube_open,
-#'         output_dir = tempdir(),
-#'         res = 60,
 #'         period = "P16D",
-#'         multicores = 2
+#'         res = 60,
+#'         multicores = 2,
+#'         output_dir = tempdir()
 #'     )
 #' }
 #'
@@ -76,41 +76,55 @@ sits_regularize <- function(cube,
                             res,
                             output_dir,
                             roi = NULL,
-                            multicores = 2,
+                            multicores = 2L,
                             progress = TRUE) {
     # Pre-conditions
-    .check_is_raster_cube(cube)
+    .check_valid(cube)
+    UseMethod("sits_regularize", cube)
+}
+#' @rdname sits_regularize
+#' @export
+sits_regularize.raster_cube <- function(cube,
+                                        period,
+                                        res,
+                                        output_dir,
+                                        roi = NULL,
+                                        multicores = 2L,
+                                        progress = TRUE) {
+    # Preconditions
+    .check_cube_files(cube)
+    .period_check(period)
+    .check_num_parameter(res, exclusive_min = 0)
+    output_dir <- .file_normalize(output_dir)
+    .check_output_dir(output_dir)
+    .check_multicores(multicores, min = 1, max = 2048)
+    .check_progress(progress)
     # Does cube contain cloud band?
     if (!all(.cube_contains_cloud(cube))) {
         if (.check_warnings()) {
             warning("Cloud band not found in provided cube.
                     'sits_regularize()' ",
-                "will just fill nodata values.",
-                call. = FALSE,
-                immediate. = TRUE
+                    "will just fill nodata values.",
+                    call. = FALSE,
+                    immediate. = TRUE
             )
         }
     }
-    .period_check(period)
-    .check_num_parameter(res, exclusive_min = 0)
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
     }
-    # Normalize path
-    output_dir <- .file_normalize(output_dir)
-    .check_output_dir(output_dir)
-    .check_multicores(multicores, min = 1, max = 2048)
-    .check_progress(progress)
     # Display warning message in case STAC cube
     if (!.cube_is_local(cube)) {
         if (.check_warnings()) {
             warning("Regularization works better when data store locally. ",
-                "Please, use 'sits_cube_copy()' to copy data locally ",
-                "before regularization",
-                call. = FALSE, immediate. = TRUE
+                    "Please, use 'sits_cube_copy()' to copy data locally ",
+                    "before regularization",
+                    call. = FALSE, immediate. = TRUE
             )
         }
     }
+    # Normalize path
+    output_dir <- .file_normalize(output_dir)
     # Regularize
     .gc_regularize(
         cube = cube,
@@ -121,4 +135,45 @@ sits_regularize <- function(cube,
         multicores = multicores,
         progress = progress
     )
+}
+#' @rdname sits_regularize
+#' @export
+sits_regularize.derived_cube <- function(cube,
+                                         period,
+                                         res,
+                                         output_dir,
+                                         roi = NULL,
+                                         multicores = 2,
+                                         progress = TRUE) {
+    stop("sits_regularize only works with non-processed cubes")
+}
+#' @rdname sits_regularize
+#' @export
+sits_regularize.tbl_df <- function(
+        cube,
+        period,
+        res,
+        output_dir,
+        roi = NULL,
+        multicores = 2,
+        progress = TRUE) {
+    cube <- tibble::as_tibble(cube)
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
+        cube <- .cube_find_class(cube)
+    } else
+        stop("Input should be a data cube")
+    cube <- sits_regularize(cube, period, res, output_dir, roi,
+                            multicores, progress)
+    return(cube)
+}
+#' @rdname sits_regularize
+#' @export
+sits_regularize.default <- function(cube,
+                                    period,
+                                    res,
+                                    output_dir,
+                                    roi = NULL,
+                                    multicores = 2,
+                                    progress = TRUE) {
+    stop("Input should be object of class raster cube")
 }

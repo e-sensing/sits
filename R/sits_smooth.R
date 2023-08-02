@@ -9,27 +9,30 @@
 #'              whose metadata is]created by \code{\link[sits]{sits_cube}},
 #'              and applies a Bayesian smoothing function.
 #'
-#'
 #' @param  cube              Probability data cube.
-#' @param  window_size       Size of the neighborhood.
+#' @param  window_size       Size of the neighborhood
+#'                           (integer, min = 3, max = 21)
 #' @param  neigh_fraction    Fraction of neighbors with high probabilities
 #'                           to be used in Bayesian inference.
+#'                           (numeric, min = 0.1, max = 1.0)
 #' @param  smoothness        Estimated variance of logit of class probabilities
-#'                           (Bayesian smoothing parameter). It can be either
-#'                           a vector or a scalar.
-#' @param  multicores        Number of cores to run the smoothing function
-#' @param  memsize           Maximum overall memory (in GB) to run the
-#'                           smoothing.
-#' @param  output_dir        Output directory for image files
-#' @param  version           Version of resulting image
-#'                           (in the case of multiple tests)
+#'                           (Bayesian smoothing parameter)
+#'                           (integer vector or scalar, min = 1, max = 200).
+#' @param  memsize           Memory available for classification in GB
+#'                           (integer, min = 1, max = 16384).
+#' @param  multicores        Number of cores to be used for classification
+#'                           (integer, min = 1, max = 2048).
+#' @param  output_dir        Valid directory for output file.
+#'                           (character vector of length 1).
+#' @param  version           Version of the output
+#'                           (character vector of length 1).
 #'
 #' @return A data cube.
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'     # create a ResNet model
-#'     torch_model <- sits_train(samples_modis_ndvi, sits_resnet(epochs = 20))
+#'     # create am xgboost model
+#'     xgb_model <- sits_train(samples_modis_ndvi, sits_xgboost())
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
@@ -39,7 +42,7 @@
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(
-#'         data = cube, ml_model = torch_model, output_dir = tempdir()
+#'         data = cube, ml_model = xgb_model, output_dir = tempdir()
 #'     )
 #'     # plot the probability cube
 #'     plot(probs_cube)
@@ -56,16 +59,15 @@
 #'     plot(label_cube)
 #' }
 #' @export
-sits_smooth <- function(cube,
-                        window_size = 7,
-                        neigh_fraction = 0.5,
-                        smoothness = 10,
-                        memsize = 4,
-                        multicores = 2,
-                        output_dir,
-                        version = "v1") {
+sits_smooth <- function(cube, window_size = 7L, neigh_fraction = 0.5,
+        smoothness = 10L, memsize = 4L, multicores = 2L,
+        output_dir, version = "v1") {
     # Check if cube has probability data
-    .check_is_probs_cube(cube)
+    .check_cube_files(cube)
+    # check window size
+    .check_window_size(window_size, min = 3, max = 33)
+    # check neighborhood fraction
+    .check_num_parameter(neigh_fraction, min = 0., max = 1.0)
     # Check memsize
     .check_memsize(memsize, min = 1, max = 16384)
     # Check multicores
@@ -79,6 +81,22 @@ sits_smooth <- function(cube,
     nlabels <- length(sits_labels(cube))
     # Check smoothness
     .check_smoothness(smoothness, nlabels)
+    # Prepare smoothness parameter
+    if (length(smoothness == 1)) {
+        smoothness <- rep(smoothness, nlabels)
+    }
+    UseMethod("sits_smooth", cube)
+}
+#' @rdname sits_smooth
+#' @export
+sits_smooth.probs_cube <- function(cube, window_size = 7L, neigh_fraction = 0.5,
+                                   smoothness = 10L,
+                                   memsize = 4L, multicores = 2L,
+                                   output_dir, version = "v1") {
+    # version is case-insensitive in sits
+    version <- tolower(version)
+    # get nlabels
+    nlabels <- length(sits_labels(cube))
     # Prepare smoothness parameter
     if (length(smoothness == 1)) {
         smoothness <- rep(smoothness, nlabels)
@@ -123,4 +141,48 @@ sits_smooth <- function(cube,
         output_dir = output_dir,
         version = version
     )
+}
+#' @rdname sits_smooth
+#' @export
+sits_smooth.raster_cube <- function(cube, window_size = 7L,
+                                    neigh_fraction = 0.5, smoothness = 10L,
+                                    memsize = 4L, multicores = 2L,
+                                    output_dir, version = "v1") {
+    stop("Input should be a probability cube")
+}
+#' @rdname sits_smooth
+#' @export
+sits_smooth.derived_cube <- function(cube, window_size = 7L,
+                                     neigh_fraction = 0.5, smoothness = 10L,
+                                     memsize = 4L, multicores = 2L,
+                                     output_dir, version = "v1") {
+    stop("Input should be a probability cube")
+}
+#' @rdname sits_smooth
+#' @export
+sits_smooth.tbl_df <- function(
+        cube,
+        window_size = 7L,
+        neigh_fraction = 0.5,
+        smoothness = 10L,
+        memsize = 4L,
+        multicores = 2L,
+        output_dir,
+        version = "v1") {
+    cube <- tibble::as_tibble(cube)
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
+        cube <- .cube_find_class(cube)
+    } else
+        stop("Input should be a data cube")
+    cube <- sits_smooth(cube, window_size, neigh_fraction, smoothness,
+                          memsize, multicores, output_dir, version)
+    return(cube)
+}
+#' @rdname sits_smooth
+#' @export
+sits_smooth.default <- function(cube, window_size = 7L,
+                                neigh_fraction = 0.5, smoothness = 10L,
+                                memsize = 4L, multicores = 2L,
+                                output_dir, version = "v1") {
+    stop("Input should be a probability cube")
 }

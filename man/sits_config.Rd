@@ -7,7 +7,8 @@
 sits_config(config_user_file = NULL)
 }
 \arguments{
-\item{config_user_file}{path to YAML user configuration file}
+\item{config_user_file}{YAML user configuration file
+(character vector of a file with "yml" extension)}
 }
 \value{
 Called for side effects

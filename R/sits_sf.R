@@ -33,7 +33,7 @@ sits_as_sf <- function(data, ..., as_crs = NULL) {
 #' @rdname sits_as_sf
 sits_as_sf.sits <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
     # Pre-conditions
-    .check_samples(data)
+    data <- .check_samples(data)
     # Convert samples to sf
     geom <- .point_as_sf(.point(data, crs = crs), as_crs = as_crs)
     # Bind columns

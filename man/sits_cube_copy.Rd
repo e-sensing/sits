@@ -8,39 +8,40 @@ sits_cube_copy(
   cube,
   roi = NULL,
   res = NULL,
-  multicores = 2,
+  multicores = 2L,
   output_dir,
   progress = TRUE
 )
 }
 \arguments{
-\item{cube}{A sits cube}
+\item{cube}{A data cube (class "raster_cube")}
 
-\item{roi}{A Region of interest. See details below.}
+\item{roi}{Region of interest.
+Either an sf_object, a shapefile,
+or a bounding box vector with
+named XY values ("xmin", "xmax", "ymin", "ymax") or
+named lat/long values
+("lon_min", "lat_min", "lon_max", "lat_max").}
 
 \item{res}{An integer value corresponds to the output
 spatial resolution of the images. Default is NULL.}
 
-\item{multicores}{Number of workers for parallel downloading.}
+\item{multicores}{Number of cores for parallel downloading
+(integer, min = 1, max = 2048).}
 
-\item{output_dir}{Output directory where images will be saved.}
+\item{output_dir}{Output directory where images will be saved.
+(character vector of length 1).}
 
-\item{progress}{Show progress bar?}
+\item{progress}{Logical: show progress bar?}
 }
 \value{
-a sits cube with updated metadata.
+Copy of input data cube (class "raster cube").
 }
 \description{
 This function downloads the images of a cube in parallel.
 A region of interest (\code{roi}) can be provided to crop
 the images and a resolution (\code{res}) to resample the
 bands.
-}
-\note{
-The \code{roi} parameter defines a region of interest. It can be
-   an sf_object, a shapefile, or a bounding box vector with
-   named XY values ("xmin", "xmax", "ymin", "ymax") or
-   named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
 }
 \examples{
 if (sits_run_examples()) {
@@ -53,7 +54,6 @@ if (sits_run_examples()) {
         start_date = "2018-01-01",
         end_date = "2018-01-12"
     )
-
     # Downloading images to a temporary directory
     cube_local <- sits_cube_copy(
         cube = bdc_cube,
@@ -64,7 +64,8 @@ if (sits_run_examples()) {
             lon_max = -15.5,
             lat_max = -14.6
         ),
-        multicores = 2
+        multicores = 2L,
+        res = 250,
     )
 }
 

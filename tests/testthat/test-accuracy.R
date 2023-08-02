@@ -1,8 +1,8 @@
 test_that("conf_matrix -2 classes", {
     data(cerrado_2classes)
     set.seed(1234)
-    train_data <- sits_sample(cerrado_2classes, n = 200)
-    test_data <- sits_sample(cerrado_2classes, n = 200)
+    train_data <- sits_sample(cerrado_2classes, frac = 0.5)
+    test_data  <- sits_sample(cerrado_2classes, frac = 0.5)
     rfor_model <- sits_train(train_data, sits_rfor(verbose = FALSE))
     points_class <- sits_classify(
         data = test_data,
@@ -22,8 +22,8 @@ test_that("conf_matrix -2 classes", {
 test_that("conf_matrix - more than 2 classes", {
     set.seed(1234)
     data(samples_modis_ndvi)
-    train_data <- sits_sample(samples_modis_ndvi, n = 50)
-    test_data <- sits_sample(samples_modis_ndvi, n = 50)
+    train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
+    test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
     rfor_model <- sits_train(train_data, sits_rfor())
     points_class <- sits_classify(
         data = test_data,
@@ -42,7 +42,7 @@ test_that("samples_validation", {
     set.seed(1234)
     samples <- samples_modis_ndvi
     samples$id <- seq_len(nrow(samples))
-    train_data <- sits_sample(samples, frac = .8)
+    train_data <- sits_sample(samples, frac = 0.8)
     # Remove the lines used for validation
     sel <- !samples$id %in% train_data$id
     val_samples <- samples[sel, ]

@@ -9,10 +9,12 @@
 #' This function is a front-end to the "randomForest" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param samples    Time series with the training samples.
+#' @param samples    Time series with the training samples
+#'                   (tibble of class "sits").
 #' @param num_trees  Number of trees to grow. This should not be set to too
 #'                   small a number, to ensure that every input
-#'                   row gets predicted at least a few times (default: 100).
+#'                   row gets predicted at least a few times (default: 100)
+#'                   (integer, min = 50, max = 150).
 #' @param mtry       Number of variables randomly sampled as candidates at
 #'                   each split (default: NULL - use default value of
 #'                   \code{randomForest::randomForest()} function, i.e.

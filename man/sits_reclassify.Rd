@@ -11,8 +11,8 @@ sits_reclassify(
   cube,
   mask,
   rules,
-  memsize = 4,
-  multicores = 2,
+  memsize = 4L,
+  multicores = 2L,
   output_dir,
   version = "v1"
 )
@@ -21,8 +21,8 @@ sits_reclassify(
   cube,
   mask,
   rules,
-  memsize,
-  multicores,
+  memsize = 4L,
+  multicores = 2L,
   output_dir,
   version = "v1"
 )
@@ -53,7 +53,7 @@ sits_reclassify(
 \item{mask}{Image cube with additional information
 to be used in expressions (class = "class_cube").}
 
-\item{rules}{List with expressions to be evaluated (see details).}
+\item{rules}{Expressions to be evaluated (named list).}
 
 \item{memsize}{Memory available for classification in GB
 (integer, min = 1, max = 16384).}
@@ -154,6 +154,7 @@ ro_mask <- sits_reclassify(
     version = "ex_reclassify"
 )
 }
+
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

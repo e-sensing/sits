@@ -4,6 +4,7 @@
 \alias{sits_classify}
 \alias{sits_classify.sits}
 \alias{sits_classify.raster_cube}
+\alias{sits_classify.derived_cube}
 \alias{sits_classify.tbl_df}
 \alias{sits_classify.default}
 \title{Classify time series or data cubes}
@@ -13,7 +14,7 @@ sits_classify(
   ml_model,
   ...,
   filter_fn = NULL,
-  multicores = 2,
+  multicores = 2L,
   progress = TRUE
 )
 
@@ -22,7 +23,7 @@ sits_classify(
   ml_model,
   ...,
   filter_fn = NULL,
-  multicores = 2,
+  multicores = 2L,
   progress = TRUE
 )
 
@@ -34,52 +35,64 @@ sits_classify(
   filter_fn = NULL,
   start_date = NULL,
   end_date = NULL,
-  memsize = 8,
-  multicores = 2,
+  memsize = 8L,
+  multicores = 2L,
   output_dir,
   version = "v1",
   verbose = FALSE,
   progress = TRUE
 )
 
+\method{sits_classify}{derived_cube}(data, ml_model, ...)
+
 \method{sits_classify}{tbl_df}(data, ml_model, ...)
 
 \method{sits_classify}{default}(data, ml_model, ...)
 }
 \arguments{
-\item{data}{Data cube (tibble)}
+\item{data}{Data cube (tibble of class "raster_cube")}
 
-\item{ml_model}{R model trained by \code{\link[sits]{sits_train}}.}
+\item{ml_model}{R model trained by \code{\link[sits]{sits_train}}
+(closure of class "sits_model")}
 
 \item{...}{Other parameters for specific functions.}
 
-\item{filter_fn}{Smoothing filter to be applied (if desired).}
+\item{filter_fn}{Smoothing filter to be applied - optional
+(clousure containing object of class "function").}
 
 \item{multicores}{Number of cores to be used for classification
 (integer, min = 1, max = 2048).}
 
 \item{progress}{Logical: Show progress bar?}
 
-\item{roi}{Region of interest (see below)}
+\item{roi}{Region of interest (either an sf object, shapefile,
+or a numeric vector with named XY values
+("xmin", "xmax", "ymin", "ymax") or
+named lat/long values
+("lon_min", "lat_min", "lon_max", "lat_max").}
 
 \item{start_date}{Start date for the classification
-(YYYY-MM-DD format).}
+(Date in YYYY-MM-DD format).}
 
 \item{end_date}{End date for the classification
-(YYYY-MM-DD format).}
+(Date im YYYY-MM-DD format).}
 
 \item{memsize}{Memory available for classification in GB
 (integer, min = 1, max = 16384).}
 
-\item{output_dir}{Valid directory for output file.}
+\item{output_dir}{Valid directory for output file.
+(character vector of length 1).}
 
-\item{version}{Version of the output (character vector).}
+\item{version}{Version of the output
+(character vector of length 1).}
 
 \item{verbose}{Logical: print information about processing time?}
 }
 \value{
-Predicted data (classified time series)
-                          or a data cube with probabilities for each class.
+Time series with predicted labels for
+                          each point (tibble of class "sits")
+                          or a data cube with probabilities for each class
+                          (tibble of class "probs_cube").
 }
 \description{
 This function classifies a set of time series or data cube given
@@ -106,7 +119,6 @@ The "roi" parameter defines a region of interest. It can be
    time series for reducing noise. Currently, options include
    Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
    (see \code{\link[sits]{sits_whittaker}}).
-
 
    The "memsize" and "multicores" parameters are used for multiprocessing.
    The "multicores" parameter defines the number of cores used for

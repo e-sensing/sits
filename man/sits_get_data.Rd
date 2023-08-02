@@ -19,12 +19,12 @@ sits_get_data(
   end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
   label = "NoClass",
   bands = sits_bands(cube),
-  crs = 4326,
+  crs = 4326L,
   label_attr = NULL,
-  n_sam_pol = 30,
+  n_sam_pol = 30L,
   pol_avg = FALSE,
   pol_id = NULL,
-  multicores = 2,
+  multicores = 2L,
   progress = TRUE
 )
 
@@ -35,7 +35,7 @@ sits_get_data(
   samples,
   ...,
   bands = sits_bands(cube),
-  crs = 4326,
+  crs = 4326L,
   multicores = 2,
   progress = FALSE
 )
@@ -107,43 +107,54 @@ sits_get_data(
 )
 }
 \arguments{
-\item{cube}{Data cube from where data is to be retrieved.}
+\item{cube}{Data cube from where data is to be retrieved.
+(tibble of class "raster_cube").}
 
-\item{samples}{Samples location (sits, sf, or data.frame).}
+\item{samples}{Location of the samples to be retrieved.
+Either a tibble of class "sits", an "sf" object,
+the name of a shapefile or csv file, or
+a data.frame with columns "longitude" and "latitude".}
 
 \item{...}{Specific parameters for specific cases.}
 
-\item{start_date}{Start of the interval for the time series
-in "YYYY-MM-DD" format (optional).}
+\item{start_date}{Start of the interval for the time series - optional
+(Date in "YYYY-MM-DD" format).}
 
-\item{end_date}{End of the interval for the time series in
-"YYYY-MM-DD" format (optional).}
+\item{end_date}{End of the interval for the time series - optional
+(Date in "YYYY-MM-DD" format).}
 
-\item{label}{Label to be assigned to the time series (optional).}
+\item{label}{Label to be assigned to the time series (optional)
+(character vector of length 1).}
 
-\item{bands}{Bands to be retrieved (optional).}
+\item{bands}{Bands to be retrieved - optional
+(character vector).}
 
-\item{crs}{Default crs for the samples}
+\item{crs}{Default crs for the samples
+(character vector of length 1).}
 
 \item{label_attr}{Attribute in the shapefile or sf object to be used
-as a polygon label.}
+as a polygon label.
+(character vector of length 1).}
 
 \item{n_sam_pol}{Number of samples per polygon to be read
-(for POLYGON or MULTIPOLYGON shapefile).}
+for POLYGON or MULTIPOLYGON shapefiles or sf objects
+(single integer).}
 
-\item{pol_avg}{Summarize samples for each polygon?}
+\item{pol_avg}{Logical: summarize samples for each polygon?}
 
-\item{pol_id}{ID attribute for polygons.}
+\item{pol_id}{ID attribute for polygons
+(character vector of length 1)}
 
-\item{multicores}{Number of threads to process the time series.}
+\item{multicores}{Number of threads to process the time series
+(integer, with min = 1 and max = 2048).}
 
-\item{progress}{A logical value indicating if a progress bar
-should be shown. Default is \code{FALSE}.}
+\item{progress}{Logical: show progress bar?}
 
-\item{aggreg_fn}{Function to compute a summary of each segment}
+\item{aggreg_fn}{Function to compute a summary of each segment
+(object of class "function").}
 }
 \value{
-A tibble with the metadata and data for each time series
+A tibble of class "sits" with set of time series
 <longitude, latitude, start_date, end_date, label, cube, time_series>.
 }
 \description{

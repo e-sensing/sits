@@ -262,20 +262,16 @@
 .conf_colors <- function() {
     return(sits_env$color_table)
 }
-#' @title Return the user configuration file
-#' @name .conf_user_file
-#' @param config_user_file  Configuration file provided by user
+#' @title Return the user configuration set in enviromental variable
+#' @name .conf_user_env_var
 #' @keywords internal
 #' @noRd
-#' @return user configuration file
-.conf_user_file <- function(config_user_file = NULL) {
-    # check if user file is provided
-    # otherwise, load the default user configuration file
-    if (!purrr::is_null(config_user_file))
-        yml_file <- config_user_file
-    else
-        yml_file <- Sys.getenv("SITS_CONFIG_USER_FILE")
-    # check if the file exists
+#' @return YAML user configuration
+.conf_user_env_var <- function() {
+    # load the default user configuration file
+    yml_file <- Sys.getenv("SITS_CONFIG_USER_FILE")
+    yaml_user_config <- NULL
+    # check if the file exists when env var is set
     if (nchar(yml_file) > 0) {
         .check_warn(
             .check_file(yml_file,
@@ -285,8 +281,21 @@
                 )
             )
         )
+        # if the YAML file exists, try to load it
+        tryCatch({
+            yaml_user_config <- yaml::yaml.load_file(
+                    input = yml_file,
+                    merge.precedence = "override"
+            )},
+            error = function(e) {
+                warning(msg = paste(
+                    "invalid configuration file informed in",
+                    "SITS_CONFIG_USER_FILE"), call. = TRUE)
+            }
+        )
     }
-    return(yml_file)
+    # returns the user configuration, otherwise null
+    return(yaml_user_config)
 }
 #' @title Load the user configuration file
 #' @name .conf_set_user_file
@@ -294,34 +303,43 @@
 #' @keywords internal
 #' @noRd
 #' @return user configuration file
-.conf_set_user_file <- function(config_user_file) {
+.conf_set_user_file <- function(config_user_file = NULL) {
     # try to find a valid user configuration file
-    user_yml_file <- .conf_user_file(config_user_file)
-
-    if (file.exists(user_yml_file)) {
-        config <- yaml::yaml.load_file(
-            input = user_yml_file,
-            merge.precedence = "override"
+    # check config user file is valid
+    if (!purrr::is_null(config_user_file) && !is.na(config_user_file)) {
+        user_config <- tryCatch(
+            yaml::yaml.load_file(config_user_file, error.label = "",
+                                 readLines.warn = FALSE),
+            error = function(e) {
+                stop("invalid user configuration file", call. = TRUE)
+            }
         )
-        if (!purrr::is_null(config$colors)) {
-            user_colors <- config$colors
+    } else {
+        user_config <- .conf_user_env_var()
+    }
+    if (!purrr::is_null(user_config)) {
+        if (!purrr::is_null(user_config$colors)) {
+            user_colors <- user_config$colors
             .conf_merge_colors(user_colors)
-            config$colors <- NULL
+            user_config$colors <- NULL
         }
-        if (length(config) > 0) {
-            config <- utils::modifyList(sits_env[["config"]],
-                config,
+        if (length(user_config) > 0) {
+            user_config <- utils::modifyList(sits_env[["config"]],
+                user_config,
                 keep.null = FALSE
             )
             # set options defined by user (via YAML file)
             # modifying existing configuration
             .conf_set_options(
-                processing_bloat = config[["processing_bloat"]],
-                rstac_pagination_limit = config[["rstac_pagination_limit"]],
-                gdal_creation_options = config[["gdal_creation_options"]],
-                gdalcubes_chunk_size = config[["gdalcubes_chunk_size"]],
-                sources = config[["sources"]],
-                colors = config[["colors"]]
+                processing_bloat = user_config[["processing_bloat"]],
+                rstac_pagination_limit =
+                    user_config[["rstac_pagination_limit"]],
+                gdal_creation_options =
+                    user_config[["gdal_creation_options"]],
+                gdalcubes_chunk_size =
+                    user_config[["gdalcubes_chunk_size"]],
+                sources = user_config[["sources"]],
+                colors = user_config[["colors"]]
             )
         }
     }

@@ -7,7 +7,7 @@
 #' are categorical ("label_id" and "label"). The other columns are
 #' the values of each band and time, organized first by band and then by time.
 #'
-#' @param  samples     Data.frame with time series in sits format
+#' @param  samples     Time series in sits format (tibble of class "sits")
 #'
 #' @return The predictors for the sample: a data.frame with one row per sample.
 #'
@@ -19,7 +19,7 @@
 #' @export
 sits_predictors <- function(samples) {
     .check_valid(samples)
-    .check_samples_ts(samples)
+    samples <- .check_samples_ts(samples)
     pred <- .predictors(samples)
     return(pred)
 }
@@ -84,8 +84,8 @@ sits_pred_references <- function(pred) {
 #' for each sample have been obtained by the "sits_stats" function.
 #'
 #' @param  pred    X-Y predictors: a data.frame with one row per sample.
-#' @param  stats   List of numeric values with two elements
-#'                 (temporal values of Q02 and Q98).
+#' @param  stats   Values of time series for Q02 and Q98 of the data
+#'                 (list of numeric values with two elements)
 #'
 #' @return A data.frame with normalized predictor values
 #'
