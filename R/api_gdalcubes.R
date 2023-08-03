@@ -60,8 +60,7 @@
                                                          roi,
                                                          ...) {
     # dummy local variables to avoid warnings from tidyverse syntax
-    source <- collection <- satellite <- sensor <- NULL
-    tile_id <- xmin <- xmax <- ymin <- ymax <- epsg <- NULL
+    .x <- NULL
 
     # pre-requisites
     .check_that(nrow(cube) == 1,
@@ -75,10 +74,8 @@
     )
 
     # generate Sentinel-2 tiles and intersects it with doi
-    tiles <- .s2tile_open()
-    if (.has(roi)) {
-        tiles <- tiles[.intersects(tiles, .roi_as_sf(roi)), ]
-    }
+    tiles <- .s2tile_open(roi)
+    tiles <- tiles[.intersects(tiles, .roi_as_sf(roi)), ]
 
     # prepare a sf object representing the bbox of each image in file_info
     fi_bbox <- .bbox_as_sf(.bbox(
@@ -92,12 +89,12 @@
     cube <- tiles |>
         dplyr::rowwise() |>
         dplyr::group_map(~{
-            file_info <- cube$file_info[[1]][.intersects({{fi_bbox}}, .x), ]
+            file_info <- .fi(cube)[.intersects({{fi_bbox}}, .x), ]
             .cube_create(
-                source = cube$source,
-                collection = cube$collection,
-                satellite = cube$satellite,
-                sensor = cube$sensor,
+                source = .tile_source(cube),
+                collection = .tile_collection(cube),
+                satellite = .tile_satellite(cube),
+                sensor = .tile_sensor(cube),
                 tile = .x$tile_id,
                 xmin = .x$xmin,
                 xmax = .x$xmax,
@@ -239,13 +236,19 @@
         unlink(path_db)
     }
 
-    # can be "proj:epsg" or "proj:wkt2"
-    crs_type <- .gc_detect_crs_type(.cube_crs(cube))
+    # use crs from tile if there is no crs in file_info
+    if ("crs" %in% names(.fi(cube))) {
+        file_info <- dplyr::select(cube, "file_info") |>
+            tidyr::unnest(cols = c("file_info"))
+    } else {
+        file_info <- dplyr::select(cube, "file_info", "crs") |>
+            tidyr::unnest(cols = c("file_info"))
+    }
 
-    file_info <- dplyr::select(
-        cube, "file_info", "crs"
-    ) |>
-        tidyr::unnest(cols = c("file_info")) |>
+    # can be "proj:epsg" or "proj:wkt2"
+    crs_type <- .gc_detect_crs_type(file_info$crs[[1]])
+
+    file_info <- file_info |>
         dplyr::transmute(
             fid = .data[["fid"]],
             xmin = .data[["xmin"]],

@@ -3,18 +3,46 @@
 #' @keywords internal
 #' @noRd
 #' @return a simple feature containing all Sentinel-2 tiles
-.s2tile_open <- function() {
+.s2tile_open <- function(roi) {
     # define dummy local variables to stop warnings
     epsg <- xmin <- ymin <- xmax <- ymax <- NULL
 
     # open ext_data tiles.rds file
     s2_file <- system.file("extdata/s2-tiles/tiles.rds", package = "sits")
-    s2_tb2 <- readRDS(s2_file)
+    s2_tb <- readRDS(s2_file)
+
+    # create a sf of points
+    points_sf <-
+        unique(s2_tb$epsg) |>
+        purrr::map_dfr(function(epsg) {
+            tiles <- s2_tb |>
+                dplyr::filter(epsg == {{epsg}})
+
+            sfc <- matrix(c(tiles$xmin, tiles$ymin), ncol = 2) |>
+                sf::st_multipoint(dim = "XY") |>
+                sf::st_sfc(crs = epsg) |>
+                sf::st_transform(crs = 4326)
+
+            sf::st_sf(geom = sfc)
+        }) |>
+        sf::st_cast("POINT")
+
+    # change roi to 1.5 degree to west and south
+    roi <- .roi_as_sf(roi) |>
+        .bbox() |>
+        dplyr::mutate(
+            xmin = xmin - 1.5,
+            ymax = ymax - 1.5
+        ) |>
+        .bbox_as_sf()
+
+    # filter points
+    s2_tb <- s2_tb[.intersects(points_sf, roi), ]
 
     # creates a list of simple features
-    s2_sf_lst <- unique(s2_tb2$epsg) |>
+    s2_sf_lst <- unique(s2_tb$epsg) |>
         purrr::map(function(x) {
-            dplyr::filter(s2_tb2, epsg == x) |>
+            dplyr::filter(s2_tb, epsg == x) |>
                 dplyr::mutate(
                     xmax = xmin + 109800,
                     ymax = ymin + 109800

@@ -153,9 +153,8 @@ sits_regularize.raster_cube <- function(cube,
     .check_output_dir(output_dir)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
-    if (.has(roi)) {
-        roi <- .roi_as_sf(roi)
-    }
+    .check_null(roi, msg = "invalid roi parameter")
+    roi <- .roi_as_sf(roi)
     # Display warning message in case STAC cube
     if (!.cube_is_local(cube)) {
         if (.check_warnings()) {

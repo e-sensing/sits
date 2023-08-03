@@ -421,7 +421,9 @@
 
     # prepare cube
     cube <- cube |>
-        tidyr::nest(file_info = -dplyr::matches(c("tile", "crs"))) |>
+        dplyr::mutate(crs2 = .data[["crs"]]) |>
+        tidyr::nest(file_info = -dplyr::matches(c("tile", "crs2"))) |>
+        dplyr::rename(crs = .data[["crs2"]]) |>
         slider::slide_dfr(function(tile) {
             # get file_info
             file_info <- tile[["file_info"]][[1]]
