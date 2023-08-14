@@ -97,7 +97,7 @@
 #'
 #' @export
 sits_get_data <- function(cube,
-                          samples,
+                          samples = NULL,
                           ...,
                           start_date = as.Date(sits_timeline(cube)[1]),
                           end_date = as.Date(
@@ -161,7 +161,7 @@ sits_get_data.shp <- function(cube,
                               label = "NoClass",
                               start_date = as.Date(sits_timeline(cube)[1]),
                               end_date = as.Date(sits_timeline(cube)
-                              [length(sits_timeline(cube))]),
+                                                 [length(sits_timeline(cube))]),
                               bands = sits_bands(cube),
                               label_attr = NULL,
                               n_sam_pol = 30,
@@ -206,7 +206,7 @@ sits_get_data.sf <- function(cube,
                              bands = sits_bands(cube),
                              start_date = as.Date(sits_timeline(cube)[1]),
                              end_date = as.Date(sits_timeline(cube)
-                             [length(sits_timeline(cube))]),
+                                                [length(sits_timeline(cube))]),
                              label = "NoClass",
                              label_attr = NULL,
                              n_sam_pol = 30,
@@ -314,14 +314,14 @@ sits_get_data.data.frame <- function(cube,
 
 #' @rdname sits_get_data
 #' @export
-sits_get_data.segments <- function(cube,
-                                   samples,
-                                   ...,
-                                   bands = sits_bands(cube),
-                                   aggreg_fn = "mean",
-                                   pol_id = "supercells",
-                                   multicores = 1,
-                                   progress = FALSE) {
+sits_get_data.segs_cube <- function(cube,
+                                    samples = NULL,
+                                    ...,
+                                    bands = sits_bands(cube),
+                                    aggreg_fn = "mean",
+                                    pol_id = "pol_id",
+                                    multicores = 1,
+                                    progress = FALSE) {
     # precondition
     tiles_seg <- names(samples)
     .check_chr_within(
@@ -333,7 +333,6 @@ sits_get_data.segments <- function(cube,
     # extract time series from a cube from a set of segments
     data <- .segments_get_data(
         cube = cube,
-        segments = samples,
         bands = bands,
         aggreg_fn = aggreg_fn,
         pol_id = pol_id,

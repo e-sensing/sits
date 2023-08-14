@@ -6,7 +6,6 @@
 #' @description     Using the segments as polygons, get all time series
 #'
 #' @param cube       regular data cube
-#' @param segments   polygons produced by sits_segments
 #' @param bands      bands used in time series
 #' @param aggreg_fn  Function to compute a summary of each segment
 #' @param pol_id     ID attribute for polygons.
@@ -14,7 +13,6 @@
 #' @param progress   Show progress bar?
 #'
 .segments_get_data <- function(cube,
-                               segments,
                                bands,
                                aggreg_fn,
                                pol_id,
@@ -49,10 +47,10 @@
         band <- tile_band[[2]]
         # select a band for a tile
         tile <- sits_select(cube, bands = band, tiles = tile_id)
-        # select supercells for the tile
-        segs_tile <- segments[[tile_id]]
+        # select tile segments
+        segs_tile <- .segment_read_vec(tile)
         # create hash for combination of tile and samples
-        hash_bundle <- digest::digest(list(tile, segments), algo = "md5")
+        hash_bundle <- digest::digest(list(tile, segs_tile), algo = "md5")
         # create a file with a hash code
         filename <- .file_path(
             "samples", hash_bundle,
@@ -379,4 +377,17 @@
     colnames(values) <- .pred_features_name(tile_bands, .tile_timeline(tile))
     # Return values
     values
+}
+
+.segment_path <- function(cube) {
+    slider::slide_chr(cube, function(tile) {
+        tile[["vector_info"]][[1]][["path"]]
+    })
+}
+
+.segment_read_vec <- function(cube) {
+    tile <- .tile(cube)
+    vector_seg <- .vector_read_vec(.segment_path(tile))
+
+    return(vector_seg)
 }

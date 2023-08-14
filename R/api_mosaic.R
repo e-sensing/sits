@@ -128,7 +128,7 @@
             labels = .tile_labels(base_tile)
         )
         # Delete cube files
-        unlink(cube_files)
+        #unlink(cube_files)
         # Return cube
         return(base_tile)
     }, progress = progress)
