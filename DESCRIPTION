@@ -219,7 +219,6 @@ Collate:
     'sits_resnet.R'
     'sits_sample_functions.R'
     'sits_segmentation.R'
-    'sits_segment2.R'
     'sits_select.R'
     'sits_sf.R'
     'sits_smooth.R'
