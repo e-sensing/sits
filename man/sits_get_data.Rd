@@ -8,12 +8,12 @@
 \alias{sits_get_data.sf}
 \alias{sits_get_data.sits}
 \alias{sits_get_data.data.frame}
-\alias{sits_get_data.segments}
+\alias{sits_get_data.segs_cube}
 \title{Get time series from data cubes and cloud services}
 \usage{
 sits_get_data(
   cube,
-  samples,
+  samples = NULL,
   ...,
   start_date = as.Date(sits_timeline(cube)[1]),
   end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
@@ -94,13 +94,13 @@ sits_get_data(
   progress = FALSE
 )
 
-\method{sits_get_data}{segments}(
+\method{sits_get_data}{segs_cube}(
   cube,
-  samples,
+  samples = NULL,
   ...,
   bands = sits_bands(cube),
   aggreg_fn = "mean",
-  pol_id = "supercells",
+  pol_id = "pol_id",
   multicores = 1,
   progress = FALSE
 )

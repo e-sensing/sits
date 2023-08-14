@@ -22,24 +22,30 @@ sits_segment(
 
 \item{seg_fn}{Function to apply the segmentation}
 
-\item{tiles}{Tiles to be segmented}
+\item{roi}{Region of interest (see below)}
 
-\item{bands}{Bands to include in the segmentation}
+\item{start_date}{Start date for the segmentation}
 
-\item{dates}{Dates to consider to be segmented}
+\item{end_date}{End date for the segmentation.}
 
-\item{...}{Other params to be passed to segmentation function}
+\item{memsize}{Memory available for classification (in GB).}
+
+\item{multicores}{Number of cores to be used for classification.}
+
+\item{output_dir}{Directory for output file.}
+
+\item{version}{Version of the output (for multiple
+segmentations).}
+
+\item{progress}{Show progress bar?}
 }
 \value{
-A list of "sf" objects, indexed by tile.
-                     Each "sf" object contains the polygons that define
-                     the segments.
+A tibble of class 'segs_cube' representing the
+segmentation.
 }
 \description{
-Apply a spatial segmentation on a data cube based on a user defined
-segmentation function. The user defines the tiles of
-the cube to be segmented and informs the bands and the date to
-be used. The function applies the segmentation algorithm
+Apply a spatial-temporal segmentation on a data cube based on a user defined
+segmentation function. The function applies the segmentation algorithm
 "seg_fn" to each tile.
 
 Segmentation uses the following steps:
@@ -59,6 +65,12 @@ Segmentation uses the following steps:
        Use the functions available in \code{sf} for further analysis.}
  }
 }
+\note{
+The "roi" parameter defines a region of interest. It can be
+   an sf_object, a shapefile, or a bounding box vector with
+   named XY values ("xmin", "xmax", "ymin", "ymax") or
+   named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
+}
 \examples{
 if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -71,10 +83,7 @@ if (sits_run_examples()) {
     # segment the image
     segments <- sits_segment(
         cube = cube,
-        tile = "012010",
-        bands = "NDVI",
-        dates = sits_timeline(cube)[1],
-        seg_fn = sits_supercells(step = 20)
+        output_dir = tempdir()
     )
     # create a classification model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())

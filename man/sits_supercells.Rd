@@ -2,21 +2,22 @@
 % Please edit documentation in R/sits_segmentation.R
 \name{sits_supercells}
 \alias{sits_supercells}
+\alias{sits_slic}
 \title{Segment an image using supercells}
 \usage{
-sits_supercells(
-  tile = NULL,
+sits_slic(
+  data = NULL,
   step = 50,
   compactness = 1,
   dist_fun = "euclidean",
   avg_fun = "mean",
   iter = 10,
   minarea = 30,
-  multicores = 1
+  verbose = FALSE
 )
 }
 \arguments{
-\item{tile}{Tile, bands, date to be segmented}
+\item{data}{A matrix with time series.}
 
 \item{step}{Distance (in number of cells) between initial
 supercells' centers.}
@@ -41,7 +42,7 @@ Default: "mean"}
 
 \item{minarea}{Specifies the minimal size of a supercell (in cells).}
 
-\item{multicores}{Number of cores for parallel processing}
+\item{verbose}{Show the progress bar?}
 }
 \value{
 Set of segments for a single tile

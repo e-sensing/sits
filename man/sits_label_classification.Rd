@@ -7,6 +7,8 @@
 \usage{
 sits_label_classification(
   cube,
+  clean = TRUE,
+  window_size = 3L,
   memsize = 4,
   multicores = 2,
   output_dir,
