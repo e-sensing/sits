@@ -1,5 +1,5 @@
 #' @title Cleans a subset of a image on block model
-#' @name .clean_asset
+#' @name .clean_tile
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @noRd
 #' @description
@@ -15,16 +15,16 @@
 #' @param output_dir  Directory where files will be saved.
 #' @param version     Version of the output file.
 #' @return            Cleaned tile-band-block asset
-.clean_asset <- function(asset,
-                         block,
-                         band,
-                         window_size,
-                         overlap,
-                         output_dir,
-                         version) {
+.clean_tile <- function(tile,
+                        block,
+                        band,
+                        window_size,
+                        overlap,
+                        output_dir,
+                        version) {
     # Output file
     out_file <- .file_clean_name(
-        tile = asset, band = band,
+        tile = tile, band = band,
         version = version, output_dir = output_dir
     )
     # Resume asset
@@ -32,19 +32,19 @@
         # recovery message
         .check_recovery(out_file)
         # Create tile based on template
-        asset <- .tile_derived_from_file(
+        tile <- .tile_derived_from_file(
             file = out_file, band = band,
-            base_tile = asset, derived_class = .tile_derived_class(asset),
-            labels = .tile_labels(asset),
+            base_tile = tile, derived_class = .tile_derived_class(tile),
+            labels = .tile_labels(tile),
             update_bbox = FALSE
         )
-        return(asset)
+        return(tile)
     }
     # Remove remaining incomplete files
     unlink(out_file)
     # Create chunks as jobs
     chunks <- .tile_chunks_create(
-        tile = asset, overlap = overlap, block = block
+        tile = tile, overlap = overlap, block = block
     )
     # Process jobs sequentially
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
@@ -62,7 +62,7 @@
         }
         # Read bands data
         values <- .clean_data_read(
-            tile = asset, block = block, band = band
+            tile = tile, block = block, band = band
         )
         # Apply kernel modal
         values <- C_kernel_modal(
@@ -73,7 +73,7 @@
             window_size = window_size
         )
         # Prepare fractions to be saved
-        band_conf <- .tile_band_conf(tile = asset, band = band)
+        band_conf <- .tile_band_conf(tile = tile, band = band)
         # Job crop block
         crop_block <- .block(.chunks_no_overlap(chunk))
         # Prepare and save results as raster
@@ -92,9 +92,9 @@
     band_tile <- .tile_derived_merge_blocks(
         file = out_file,
         band = band,
-        labels = .tile_labels(asset),
-        base_tile = asset,
-        derived_class = .tile_derived_class(asset),
+        labels = .tile_labels(tile),
+        base_tile = tile,
+        derived_class = .tile_derived_class(tile),
         block_files = block_files,
         multicores = 1,
         update_bbox = FALSE

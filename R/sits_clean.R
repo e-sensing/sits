@@ -133,6 +133,7 @@ sits_clean.class_cube <- function(cube, window_size = 5L, memsize = 4L,
     class(clean_cube) <- c("class_cube", class(clean_cube))
     return(clean_cube)
 }
+
 #' @rdname sits_clean
 #' @export
 sits_clean.raster_cube <- function(cube, window_size = 5L, memsize = 4L,
