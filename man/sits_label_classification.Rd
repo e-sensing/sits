@@ -12,6 +12,8 @@
 sits_label_classification(
   cube,
   ...,
+  clean = TRUE,
+  window_size = 3L,
   memsize = 4L,
   multicores = 2L,
   output_dir,
@@ -22,6 +24,8 @@ sits_label_classification(
 \method{sits_label_classification}{probs_cube}(
   cube,
   ...,
+  clean = TRUE,
+  window_size = 3L,
   memsize = 4L,
   multicores = 2L,
   output_dir,
@@ -41,6 +45,13 @@ sits_label_classification(
 \item{cube}{Classified image data cube.}
 
 \item{...}{Other parameters for specific functions.}
+
+\item{clean}{A logical value to apply a modal function to clean up
+possible noisy pixels keeping the most frequently
+values within the neighborhood. Default is TRUE.}
+
+\item{window_size}{An odd integer representing the size of the
+sliding window of the modal function (min = 1, max = 15).}
 
 \item{memsize}{maximum overall memory (in GB) to label the
 classification.}
