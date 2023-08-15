@@ -2,17 +2,27 @@
 % Please edit documentation in R/sits_csv.R
 \name{sits_to_csv}
 \alias{sits_to_csv}
+\alias{sits_to_csv.sits}
+\alias{sits_to_csv.tbl_df}
+\alias{sits_to_csv.default}
 \title{Export a sits tibble metadata to the CSV format}
 \usage{
 sits_to_csv(data, file)
+
+\method{sits_to_csv}{sits}(data, file)
+
+\method{sits_to_csv}{tbl_df}(data, file)
+
+\method{sits_to_csv}{default}(data, file)
 }
 \arguments{
-\item{data}{Time series.}
+\item{data}{Time series (tibble of class "sits").}
 
-\item{file}{Name of the exported CSV file.}
+\item{file}{Full path of the exported CSV file
+(valid file name with extension ".csv").}
 }
 \value{
-No return value, called for side effects.
+Called for side effects
 }
 \description{
 Converts metadata from a sits tibble to a CSV file.

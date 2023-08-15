@@ -7,7 +7,7 @@
 sits_predictors(samples)
 }
 \arguments{
-\item{samples}{Time series in sits format}
+\item{samples}{Time series in sits format (tibble of class "sits")}
 }
 \value{
 The predictors for the sample: a data.frame with one row per sample.

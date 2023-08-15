@@ -1,7 +1,5 @@
-processing_bloat        : 5
-
-rstac_pagination_limit  : 999
-
+processing_bloat        : 8
+rstac_pagination_limit  : 100
 gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 
 colors:

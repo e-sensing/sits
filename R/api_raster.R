@@ -29,25 +29,23 @@
 .raster_check_block <- function(block) {
     # set caller to show in errors
     .check_set_caller(".raster_check_block")
-
     # precondition 1
     .check_chr_contains(
         x = names(block),
         contains = c("row", "nrows", "col", "ncols"),
         msg = "invalid 'block' parameter"
     )
-
     # precondition 2
     .check_that(
         x = block[["row"]] > 0 && block[["col"]] > 0,
         msg = "invalid block"
     )
-
     # precondition 3
     .check_that(
         x = block[["nrows"]] > 0 && block[["ncols"]] > 0,
         msg = "invalid block"
     )
+    return(invisible(block))
 }
 
 #' @title Check for bbox object consistency
@@ -59,21 +57,19 @@
 .raster_check_bbox <- function(bbox) {
     # set caller to show in errors
     .check_set_caller(".raster_check_bbox")
-
     # precondition 1
     .check_chr_contains(
         x = names(bbox),
         contains = c("xmin", "xmax", "ymin", "ymax"),
         msg = "invalid 'bbox' parameter"
     )
-
     # precondition 2
     .check_that(
         x = bbox[["ymin"]] < bbox[["ymax"]],
         msg = "invalid 'bbox' parameter"
     )
+    return(invisible(bbox))
 }
-
 #' @title Convert internal data type to gdal data type
 #' @name .raster_gdal_datatype
 #' @keywords internal
@@ -85,19 +81,16 @@
     # GDAL data types
     gdal_data_types <- .raster_gdal_datatypes(sits_names = FALSE)
     names(gdal_data_types) <- .raster_gdal_datatypes(sits_names = TRUE)
-
     # check data_type type
     .check_chr(data_type,
         len_min = 1, len_max = 1,
         msg = "invalid 'data_type' parameter"
     )
-
     .check_chr_within(data_type,
         within = .raster_gdal_datatypes(sits_names = TRUE),
         discriminator = "one_of",
         msg = "invalid 'data_type' parameter"
     )
-
     # convert
     return(gdal_data_types[[data_type]])
 }
@@ -346,7 +339,6 @@
                                missing_value = NA) {
     # check package
     pkg_class <- .raster_check_package()
-
     UseMethod(".raster_write_rast", pkg_class)
 }
 
@@ -456,8 +448,6 @@
 #' @param block   a valid block with (\code{col}, \code{row},
 #'                \code{ncols}, \code{nrows}).
 #' @param bbox    numeric vector with (xmin, xmax, ymin, ymax).
-#' @param bbox    numeric vector with (\code{xmin}, \code{xmax},
-#'                \code{ymin}, \code{ymax}).
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @note block starts at (1, 1)
@@ -662,27 +652,30 @@
     UseMethod(".raster_freq", pkg_class)
 }
 
-#' @title Raster package internal frequency values function
-#' @name .raster_colrow
+#' @title Return col value given an X coordinate
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj  raster package object
-#' @param x,y    coordinates (either x or y) in raster projection
+#' @param x      X coordinate in raster projection
 #'
-#' @return integer with column or row
+#' @return integer with column
 .raster_col <- function(r_obj, x) {
     # check package
     pkg_class <- .raster_check_package()
 
     UseMethod(".raster_col", pkg_class)
 }
-
-
-#' @name .raster_row
+#' @title Return row value given an Y coordinate
 #' @keywords internal
 #' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj  raster object
+#' @param y      Y coordinate in raster projection
+#'
+#' @return integer with row number
 .raster_row <- function(r_obj, y) {
     # check package
     pkg_class <- .raster_check_package()
@@ -874,9 +867,8 @@
             )
         }
     }
-    return(out_files)
+    return(invisible(out_files))
 }
-
 .raster_clone <- function(file, nlayers = NULL) {
     r_obj <- .raster_open_rast(file = file)
 
@@ -887,7 +879,6 @@
 
     return(r_obj)
 }
-
 .raster_is_valid <- function(files, output_dir = NULL) {
     # resume processing in case of failure
     if (!all(file.exists(files))) {

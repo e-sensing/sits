@@ -10,42 +10,27 @@
 #'
 #' \code{sits_config()} loads the default configuration file and
 #' the user provided configuration file. The final configuration is
-#' obtained by overriding the options by the values provided in
-#' \code{processing_bloat}, \code{rstac_pagination_limit},
-#' \code{gdal_creation_options} and \code{gdalcubes_chunk_size}
+#' obtained by overriding the options by the values provided by the user.
 #'
-#' @param processing_bloat       Estimated growth size of R memory relative
-#'                               to block size.
-#' @param rstac_pagination_limit Limit of number of items returned by STAC.
-#' @param gdal_creation_options  GDAL creation options for GeoTiff.
-#' @param gdalcubes_chunk_size   Chunk size to be used by gdalcubes
-#' @param reset                  Should current configuration options be
-#'                               cleaned before loading config files?
-#'                               Default is \code{FALSE}.
+#' @param config_user_file    YAML user configuration file
+#'                            (character vector of a file with "yml" extension)
 #'
 #' @details
 #' Users can provide additional configuration files, by specifying the
 #' location of their file in the environmental variable
-#' \code{SITS_CONFIG_USER_FILE}.
+#' \code{SITS_CONFIG_USER_FILE} or as parameter to this function.
 #'
 #' To see the key entries and contents of the current configuration values,
 #' use \code{sits_config_show()}.
 #'
-#' @return A list containing the current configuration options.
+#' @return Called for side effects
 #'
 #' @examples
-#' current_config <- sits_config()
+#' yaml_user_file <- system.file("extdata/config_user_example.yml",
+#'                   package = "sits")
+#' sits_config(config_user_file = yaml_user_file)
 #' @export
-sits_config <- function(processing_bloat = NULL,
-                        rstac_pagination_limit = NULL,
-                        gdal_creation_options = NULL,
-                        gdalcubes_chunk_size = NULL,
-                        reset = FALSE) {
-    # clear current configuration
-    if (reset && !is.null(sits_env$config)) {
-        sits_env$config <- list()
-    }
-
+sits_config <- function(config_user_file = NULL) {
     # load the internal configuration file
     config_internals_file <- .conf_internals_file()
 
@@ -54,86 +39,73 @@ sits_config <- function(processing_bloat = NULL,
         input = config_internals_file,
         merge.precedence = "override"
     )
-
     # set options defined in sits config
     do.call(.conf_set_options, args = config_internals)
-
     # get and check the default configuration file path
     yml_file <- .conf_file()
-
     # read the configuration parameters
     config <- yaml::yaml.load_file(
         input = yml_file,
         merge.precedence = "override"
     )
-
     # set options defined in sits config
     do.call(.conf_set_options, args = config)
 
     # set the default color table
     .conf_load_color_table()
-
-    # set the use options
-    .conf_set_user_file()
-
-    # set options defined by user (via parameters)
-    # modifying existing configuration
-    .conf_set_options(
-        processing_bloat = processing_bloat,
-        rstac_pagination_limit = rstac_pagination_limit,
-        gdal_creation_options = gdal_creation_options,
-        gdalcubes_chunk_size = gdalcubes_chunk_size
-    )
-
+    # set the user options
+    .conf_set_user_file(config_user_file)
+    # return configuration
     return(invisible(sits_env$config))
 }
-
 #' @title Show current sits configuration
 #' @name sits_config_show
-#' @param source                 Data source to be shown in detail.
-#' @param collection             Collection key entry to be shown in detail.
+#' @param source                 Data source (character vector).
+#' @param collection             Collection (character vector).
 #'
 #' @description
 #' Prints the current sits configuration options.
 #' To show specific configuration options for
 #' a source, a collection, or a palette, users can inform the corresponding
-#' keys to \code{source}, \code{collection}, and \code{colors} parameters.
+#' keys to \code{source} and \code{collection}.
 #'
-#' @return A \code{list} containing the respective
-#' configuration printed in the console.
+#' @return No return value, called for side effects.
 #' @examples
-#' sits_config_show()
+#' sits_config_show(source = "BDC")
+#' sits_config_show(source = "BDC", collection = "CBERS-WFI-16D")
 #' @export
 sits_config_show <- function(source = NULL,
                              collection = NULL) {
     config <- sits_env$config
 
     if (!is.null(source)) {
+        # check source value
         .check_chr(source,
             allow_empty = FALSE,
             len_min = 1,
             len_max = 1
         )
-
+        # check source is available
+        source <- toupper(source)
         .check_chr_within(source,
             within = .sources(),
             discriminator = "one_of"
         )
-
+        # get the configuration values associated to the source
         config <- config[[c("sources", source)]]
-
+        # check collection value
         if (!is.null(collection)) {
             .check_chr(collection,
                 allow_empty = FALSE,
                 len_min = 1,
                 len_max = 1
             )
-
+            # check collection is available
+            collection <- toupper(collection)
             .check_chr_within(collection,
                 within = .source_collections(source = source),
                 discriminator = "one_of"
             )
-
             config <- config[[c("collections", collection)]]
         } else {
             config <- lapply(config, function(x) {

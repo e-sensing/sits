@@ -90,11 +90,6 @@ test_that("Reading a raster cube", {
     expect_true(params_2$xres >= 231.5)
 })
 test_that("Creating cubes from BDC - CBERS-WFI-16D", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-        message = "No BDC_ACCESS_KEY defined in environment."
-    )
     tiles <- c("007004", "007005")
     start_date <- "2021-09-01"
     end_date <- "2021-09-30"
@@ -113,9 +108,6 @@ test_that("Creating cubes from BDC - CBERS-WFI-16D", {
         },
         .default = NULL
     )
-    testthat::skip_if(purrr::is_null(cbers_cube_16d),
-        message = "BDC is not accessible"
-    )
     # test bands and bbox
     expect_true(all(sits_bands(cbers_cube_16d) %in% bands))
     bbox <- sits_bbox(cbers_cube_16d)
@@ -131,11 +123,6 @@ test_that("Creating cubes from BDC - CBERS-WFI-16D", {
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
 test_that("Creating cubes from BDC - CBERS-WFI-8D", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-        message = "No BDC_ACCESS_KEY defined in environment."
-    )
     tiles <- c("007004", "007005")
     start_date <- "2022-05-01"
     end_date <- "2022-08-29"
@@ -171,11 +158,6 @@ test_that("Creating cubes from BDC - CBERS-WFI-8D", {
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
 test_that("Creating cubes from BDC - based on ROI with shapefile", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-        message = "No BDC_ACCESS_KEY defined in environment."
-    )
     shp_file <- system.file(
         "extdata/shapefiles/mato_grosso/mt.shp",
         package = "sits"
@@ -210,12 +192,6 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
     expect_true(all(intersects))
 })
 test_that("Creating cubes from BDC - invalid roi", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-        message = "No BDC_ACCESS_KEY defined in environment."
-    )
     expect_error(
         object = sits_cube(
             source = "BDC",
@@ -246,11 +222,6 @@ test_that("Creating cubes from BDC - invalid roi", {
     )
 })
 test_that("Creating cubes from BDC - LANDSAT per tile", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-        message = "No BDC_ACCESS_KEY defined in environment."
-    )
     tile <- "038046"
     start_date <- "2021-05-01"
     end_date <- "2021-09-30"
@@ -286,11 +257,6 @@ test_that("Creating cubes from BDC - LANDSAT per tile", {
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
 test_that("Creating cubes from BDC - LANDSAT per roi", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-        message = "No BDC_ACCESS_KEY defined in environment."
-    )
     roi <- c(
         lon_min = -53.9311, lat_min = -13.2697,
         lon_max = -53.0595, lat_max = -12.6704
@@ -331,11 +297,6 @@ test_that("Creating cubes from BDC - LANDSAT per roi", {
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
 test_that("Creating cubes from BDC - SENTINEL-2 - roi", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-        message = "No BDC_ACCESS_KEY defined in environment."
-    )
     roi <- c(
         lon_min = -53.9311, lat_min = -13.2697,
         lon_max = -53.0595, lat_max = -12.6704
@@ -375,11 +336,6 @@ test_that("Creating cubes from BDC - SENTINEL-2 - roi", {
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
 test_that("Creating cubes from BDC - SENTINEL-2 - tile", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-        message = "No BDC_ACCESS_KEY defined in environment."
-    )
     start_date <- "2021-05-01"
     end_date <- "2021-09-30"
     bands <- c("NDVI", "EVI")
@@ -675,6 +631,9 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
         )
     )
     expect_true(file.rename("~/.netrc_save", "~/.netrc"))
+    if (file.exists("./.rcookies"))
+        unlink("./.rcookies")
+
 })
 test_that("Creating Sentinel cubes from AWS", {
     s2_cube <- .try(
@@ -871,7 +830,7 @@ test_that("Creating LANDSAT cubes from USGS with WRS", {
     tile_nrows <- .tile_nrows(l8_cube_223067)[[1]]
     expect_true(.raster_nrows(r_obj) == tile_nrows)
 })
-test_that("Access to SwissDataCube",{
+test_that("Access to SwissDataCube", {
     roi <- c(
         lon_min = 7.54, lat_min = 46.73,
         lon_max = 7.65, lat_max = 46.77
@@ -892,7 +851,7 @@ test_that("Access to SwissDataCube",{
     )
     testthat::skip_if(purrr::is_null(s2_cube_sdc), "SDC is not accessible")
 })
-test_that("testing STAC error",{
+test_that("testing STAC error", {
     mpc_url <- sits_env$config$sources$MPC$url
     sits_env$config$sources$MPC$url <-
         "https://planetarycomputer.microsoft.com/api/stac/v100"
@@ -980,8 +939,4 @@ test_that("testing STAC error",{
             platform = "SENTINEL-2A"
         )
     )
-
-
-
 })
-

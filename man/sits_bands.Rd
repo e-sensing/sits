@@ -6,9 +6,12 @@
 \alias{sits_bands.raster_cube}
 \alias{sits_bands.patterns}
 \alias{sits_bands.sits_model}
+\alias{sits_bands.tbl_df}
+\alias{sits_bands.default}
 \alias{sits_bands<-}
 \alias{sits_bands<-.sits}
 \alias{sits_bands<-.raster_cube}
+\alias{sits_bands<-.default}
 \title{Get the names of the bands}
 \usage{
 sits_bands(x)
@@ -21,11 +24,17 @@ sits_bands(x)
 
 \method{sits_bands}{sits_model}(x)
 
+\method{sits_bands}{tbl_df}(x)
+
+\method{sits_bands}{default}(x)
+
 sits_bands(x) <- value
 
 \method{sits_bands}{sits}(x) <- value
 
 \method{sits_bands}{raster_cube}(x) <- value
+
+\method{sits_bands}{default}(x) <- value
 }
 \arguments{
 \item{x}{Valid sits tibble (time series or a cube)}
@@ -39,10 +48,28 @@ A vector with the names of the bands.
 Finds the names of the bands of a set of time series or of a data cube
 }
 \examples{
-bands <- sits_bands(point_mt_6bands)
-bands[[5]] <- "EVI2"
-sits_bands(point_mt_6bands) <- bands
-
+if (sits_run_examples()) {
+    # Create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
+    )
+    # Get the bands from a daya cube
+    bands <- sits_bands(cube)
+    # Get the bands from a sits tibble
+    bands <- sits_bands(samples_modis_ndvi)
+    # Get the bands from patterns
+    bands <- sits_bands(sits_patterns(samples_modis_ndvi))
+    # Get the bands from ML model
+    rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
+    bands <- sits_bands(rf_model)
+    # Set the bands for a SITS time series
+    sits_bands(samples_modis_ndvi) <- "NDVI2"
+    # Set the bands for a SITS cube
+    sits_bands(cube) <- "NDVI2"
+}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

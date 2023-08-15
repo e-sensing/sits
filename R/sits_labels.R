@@ -3,23 +3,44 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Finds labels in a sits tibble or data cube
 #'
-#' @param data      Time series or a cube.
-#' @return          The labels associated to a set of time series or to
-#'                  a data cube.
+#' @param data      Time series (tibble of class "sits"),
+#'                  patterns (tibble of class "patterns"),
+#'                  data cube (tibble of class "raster_cube"), or
+#'                  model (closure of class "sits_model").
+#' @param value     A character vector used to convert labels. Labels will
+#'                   be renamed to the respective value positioned at the
+#'                   labels order returned by \code{\link{sits_labels}}.
+#' @return          The labels of the input data (character vector).
 #'
 #' @examples
-#' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
-#' data(cerrado_2classes)
-#' # print the labels
-#' sits_labels(cerrado_2classes)
+#' if (sits_run_examples()) {
+#'     # get the labels for a time series set
+#'     labels_ts <- sits_labels(samples_modis_ndvi)
+#'     # get labels for a set of patterns
+#'     labels_pat <- sits_labels(sits_patterns(samples_modis_ndvi))
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     # get lables for the model
+#'     labels_mod <- sits_labels(rfor_model)
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
+#'     # get the labels for a probs cube
+#'     labels_probs <- sits_labels(probs_cube)
+#' }
 #' @export
 #'
 sits_labels <- function(data) {
-    # get the meta-type (sits or cube)
-    data <- .conf_data_meta_type(data)
     UseMethod("sits_labels", data)
 }
-
 #' @rdname sits_labels
 #' @export
 #'
@@ -30,8 +51,16 @@ sits_labels.sits <- function(data) {
 #' @rdname sits_labels
 #' @export
 #'
-sits_labels.raster_cube <- function(data) {
+sits_labels.derived_cube <- function(data) {
     return(data$labels[[1]])
+}
+#' @rdname sits_labels
+#' @export
+#'
+sits_labels.raster_cube <- function(data) {
+    stop(paste0("Input should be a set of time series",
+         " or probs, class or variance cube"))
+    return(invisible(data))
 }
 #' @rdname sits_labels
 #' @export
@@ -40,7 +69,6 @@ sits_labels.patterns <- function(data) {
     return(data$label)
 }
 #' @rdname sits_labels
-#'
 #' @export
 sits_labels.sits_model <- function(data) {
     .check_is_sits_model(data)
@@ -48,10 +76,26 @@ sits_labels.sits_model <- function(data) {
     labels <- .ml_labels(data)
     return(labels)
 }
+#' @rdname sits_labels
+#' @export
+sits_labels.tbl_df <- function(data) {
+    data <- tibble::as_tibble(data)
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        data <- .cube_find_class(data)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else
+        stop("Input should be a sits tibble or a data cube")
+    data <- sits_labels(data)
+    return(data)
+}
+#' @rdname sits_labels
+#' @export
+sits_labels.default <- function(data) {
+    stop("input should be an object of class cube or class sits")
+}
 #' @title Change the labels of a set of time series
-#'
 #' @name `sits_labels<-`
-#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Given a sits tibble with a set of labels, renames the labels
@@ -62,7 +106,7 @@ sits_labels.sits_model <- function(data) {
 #'                   be renamed to the respective value positioned at the
 #'                   labels order returned by \code{\link{sits_labels}}.
 #'
-#' @return           A sits tibble with modified labels.
+#' @return           A sits tibble or data cube with modified labels.
 #' @examples
 #' # show original samples ("Cerrado" and "Pasture")
 #' sits_labels(cerrado_2classes)
@@ -71,24 +115,20 @@ sits_labels.sits_model <- function(data) {
 #' # see the change
 #' sits_labels(cerrado_2classes)
 #' @export
-#'
 `sits_labels<-` <- function(data, value) {
-    # set caller to show in errors
-    .check_set_caller("sits_labels")
+    # check for NA and NULL
+    .check_na(data)
+    .check_null(data)
     # get the meta-type (sits or cube)
-    data <- .conf_data_meta_type(data)
     UseMethod("sits_labels<-", data)
 }
 #' @name `sits_labels<-`
 #' @export
-#' @return           A sits tibble with modified labels.
 #'
 `sits_labels<-.sits` <- function(data, value) {
     # does the input data exist?
-    .check_samples(data)
-
+    data <- .check_samples(data)
     labels <- sits_labels(data)
-
     # check if value and labels match
     .check_chr_parameter(value,
         len_max = length(labels),
@@ -99,13 +139,11 @@ sits_labels.sits_model <- function(data) {
         x = all(!is.na(value)),
         msg = "invalid values to replace labels"
     )
-
     # check if there are empty strings
     .check_that(
         x = any(trimws(value) != ""),
         msg = "invalid values to replace labels"
     )
-
     names(value) <- labels
     data$label <- value[data$label]
     return(data)
@@ -127,7 +165,6 @@ sits_labels.sits_model <- function(data) {
 }
 #' @name `sits_labels<-`
 #' @export
-#' @return           A class cube with modified labels.
 #'
 `sits_labels<-.class_cube` <- function(data, value) {
     # precondition
@@ -146,13 +183,32 @@ sits_labels.sits_model <- function(data) {
     })
     return(rows)
 }
-
+#' @name sits_labels
+#' @export
+`sits_labels<-.tbl_df` <- function(data, value) {
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        class(data) <- c("raster_cube", class(data))
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else
+        stop("Input should be a sits tibble, data cube, patterns, or model")
+    sits_labels(data) <- value
+    return(data)
+}
+#' @name `sits_labels<-`
+#' @export
+#'
+`sits_labels<-.default` <- function(data, value) {
+    data <- tibble::as_tibble(data)
+    sits_labels(data) <- value
+    return(data)
+}
 #' @title Inform label distribution of a set of time series
 #' @name sits_labels_summary
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Describes labels in a sits tibble
 #'
-#' @param data      Valid sits tibble
+#' @param data      Data.frame - Valid sits tibble
 #'
 #' @return A tibble with the frequency of each label.
 #'

@@ -4,8 +4,7 @@ test_that("Creating a dendrogram and clustering the results", {
     clusters <- suppressMessages(
         sits_cluster_dendro(
             cerrado_2classes,
-            bands = c("NDVI", "EVI"),
-            .plot = TRUE
+            bands = c("NDVI", "EVI")
         )
     )
 
@@ -34,17 +33,4 @@ test_that("Creating a dendrogram and clustering the results", {
         unique(clusters_new$cluster)))
     expect_true(sits_cluster_frequency(clusters_new)[3, 1] >
         sits_cluster_frequency(clean)[3, 1])
-})
-
-test_that("Creating a dendrogram with a fixed k value", {
-    library(dtwclust)
-    data(cerrado_2classes)
-    clusters <- suppressMessages(
-        sits_cluster_dendro(
-            cerrado_2classes,
-            k = 12,
-            .plot = FALSE
-        )
-    )
-    expect_true(length(unique(clusters$cluster)) == 12)
 })

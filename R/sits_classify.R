@@ -21,23 +21,36 @@
 #'  }
 #'
 #'
-#' @param  data              Data cube.
-#' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}.
+#' @param  data              Data cube (tibble of class "raster_cube")
+#' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}
+#'                           (closure of class "sits_model")
 #' @param  ...               Other parameters for specific functions.
-#' @param  roi               Region of interest (see below)
-#' @param  filter_fn         Smoothing filter to be applied (if desired).
-#' @param  start_date        Start date for the classification.
-#' @param  end_date          End date for the classification.
-#' @param  memsize           Memory available for classification (in GB).
-#' @param  multicores        Number of cores to be used for classification.
-#' @param  output_dir        Directory for output file.
-#' @param  version           Version of the output (for multiple
-#'                           classifications).
-#' @param  verbose           Print information about processing time?
-#' @param  progress          Show progress bar?
+#' @param  roi               Region of interest (either an sf object, shapefile,
+#'                           or a numeric vector with named XY values
+#'                           ("xmin", "xmax", "ymin", "ymax") or
+#'                           named lat/long values
+#'                           ("lon_min", "lat_min", "lon_max", "lat_max").
+#' @param  filter_fn         Smoothing filter to be applied - optional
+#'                           (clousure containing object of class "function").
+#' @param  start_date        Start date for the classification
+#'                           (Date in YYYY-MM-DD format).
+#' @param  end_date          End date for the classification
+#'                           (Date im YYYY-MM-DD format).
+#' @param  memsize           Memory available for classification in GB
+#'                           (integer, min = 1, max = 16384).
+#' @param  multicores        Number of cores to be used for classification
+#'                           (integer, min = 1, max = 2048).
+#' @param  output_dir        Valid directory for output file.
+#'                           (character vector of length 1).
+#' @param  version           Version of the output
+#'                           (character vector of length 1).
+#' @param  verbose           Logical: print information about processing time?
+#' @param  progress          Logical: Show progress bar?
 #'
-#' @return                   Predicted data (classified time series)
-#'                           or a data cube with probabilities for each class.
+#' @return                   Time series with predicted labels for
+#'                           each point (tibble of class "sits")
+#'                           or a data cube with probabilities for each class
+#'                           (tibble of class "probs_cube").
 #'
 #' @note
 #'    The "roi" parameter defines a region of interest. It can be
@@ -49,7 +62,6 @@
 #'    time series for reducing noise. Currently, options include
 #'    Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
 #'    (see \code{\link[sits]{sits_whittaker}}).
-#'
 #'
 #'    The "memsize" and "multicores" parameters are used for multiprocessing.
 #'    The "multicores" parameter defines the number of cores used for
@@ -84,12 +96,16 @@
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(
-#'         data = cube, ml_model = rf_model, output_dir = tempdir()
+#'         data = cube,
+#'         ml_model = rf_model,
+#'         output_dir = tempdir(),
+#'         version = "ex_classify"
 #'     )
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
 #'         probs_cube,
-#'         output_dir = tempdir()
+#'         output_dir = tempdir(),
+#'         version = "ex_classify"
 #'     )
 #'     # plot the classified image
 #'     plot(label_cube)
@@ -98,13 +114,8 @@
 #' @export
 sits_classify <- function(data, ml_model, ...,
                           filter_fn = NULL,
-                          multicores = 2,
+                          multicores = 2L,
                           progress = TRUE) {
-    # Pre-conditions
-    data <- .conf_data_meta_type(data)
-    .check_is_sits_model(ml_model)
-    .check_multicores(multicores)
-    .check_progress(progress)
 
     UseMethod("sits_classify", data)
 }
@@ -114,16 +125,17 @@ sits_classify.sits <- function(data,
                                ml_model,
                                ...,
                                filter_fn = NULL,
-                               multicores = 2,
+                               multicores = 2L,
                                progress = TRUE) {
     # Pre-conditions
-    .check_samples(data)
-
+    data <- .check_samples_ts(data)
+    .check_is_sits_model(ml_model)
+    .check_multicores(multicores, min = 1, max = 2048)
+    .check_progress(progress)
     # Update multicores: xgb model do its own parallelization
     if (inherits(ml_model, "xgb_model")) {
         multicores <- 1
     }
-
     # Do classification
     classified_ts <- .classify_ts(
         samples = data,
@@ -132,7 +144,6 @@ sits_classify.sits <- function(data,
         multicores = multicores,
         progress = progress
     )
-
     return(classified_ts)
 }
 #' @rdname sits_classify
@@ -143,8 +154,8 @@ sits_classify.raster_cube <- function(data,
                                       filter_fn = NULL,
                                       start_date = NULL,
                                       end_date = NULL,
-                                      memsize = 8,
-                                      multicores = 2,
+                                      memsize = 8L,
+                                      multicores = 2L,
                                       output_dir,
                                       version = "v1",
                                       verbose = FALSE,
@@ -152,9 +163,15 @@ sits_classify.raster_cube <- function(data,
     # preconditions
     .check_is_raster_cube(data)
     .check_is_regular(data)
-    .check_memsize(memsize)
+    .check_is_sits_model(ml_model)
+    .check_memsize(memsize, min = 1, max = 16384)
+    .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
     .check_version(version)
+    .check_progress(progress)
+
+    # version is case-insensitive in sits
+    version <- tolower(version)
 
     # Spatial filter
     if (.has(roi)) {
@@ -197,7 +214,8 @@ sits_classify.raster_cube <- function(data,
     }
     # Update block parameter
     block <- .jobs_optimal_block(
-        job_memsize = job_memsize, block = block,
+        job_memsize = job_memsize,
+        block = block,
         image_size = .tile_size(.tile(data)), memsize = memsize,
         multicores = multicores
     )
@@ -244,4 +262,27 @@ sits_classify.raster_cube <- function(data,
         )
     }
     return(probs_cube)
+}
+#' @rdname sits_classify
+#' @export
+sits_classify.derived_cube <- function(data, ml_model, ...) {
+   stop("Input data cube has already been classified")
+}
+#' @rdname sits_classify
+#' @export
+sits_classify.tbl_df <- function(data, ml_model, ...) {
+    data <- tibble::as_tibble(data)
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        data <- .cube_find_class(data)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else
+        stop("Input should be a sits tibble or a data cube")
+    result <- sits_classify(data, ml_model, ...)
+    return(result)
+}
+#' @rdname sits_classify
+#' @export
+sits_classify.default <- function(data, ml_model, ...) {
+    stop("Input should be a sits tibble or a data cube")
 }

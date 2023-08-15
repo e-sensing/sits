@@ -2,39 +2,98 @@
 % Please edit documentation in R/sits_clean.R
 \name{sits_clean}
 \alias{sits_clean}
-\title{Cleans a classified map using a windowed mode}
+\alias{sits_clean.class_cube}
+\alias{sits_clean.raster_cube}
+\alias{sits_clean.derived_cube}
+\alias{sits_clean.tbl_df}
+\alias{sits_clean.default}
+\title{Cleans a classified map using a local window}
 \usage{
 sits_clean(
   cube,
-  window_size,
-  memsize = 4,
-  multicores = 2,
+  window_size = 5L,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
+
+\method{sits_clean}{class_cube}(
+  cube,
+  window_size = 5L,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
+
+\method{sits_clean}{raster_cube}(
+  cube,
+  window_size = 5L,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
+
+\method{sits_clean}{derived_cube}(
+  cube,
+  window_size = 5L,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
+
+\method{sits_clean}{tbl_df}(
+  cube,
+  window_size = 5L,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
+
+\method{sits_clean}{default}(
+  cube,
+  window_size = 5L,
+  memsize = 4L,
+  multicores = 2L,
   output_dir,
   version = "v1",
   progress = TRUE
 )
 }
 \arguments{
-\item{cube}{A classified data cube}
+\item{cube}{Classified data cube (tibble of class "class_cube").}
 
-\item{window_size}{An odd number representing the size of the
-sliding window of the modal function.}
+\item{window_size}{An odd integer  representing the size of the
+sliding window of the modal function (min = 1, max = 15).}
 
-\item{memsize}{Memory available for classification (in GB).}
+\item{memsize}{Memory available for classification in GB
+(integer, min = 1, max = 16384).}
 
-\item{multicores}{Number of cores to be used for classification.}
+\item{multicores}{Number of cores to be used for classification
+(integer, min = 1, max = 2048).}
 
-\item{output_dir}{Directory where files will be saved.}
+\item{output_dir}{Valid directory for output file.
+(character vector of length 1).}
 
-\item{version}{Version of the output file.}
+\item{version}{Version of the output file
+(character vector of length 1)}
 
-\item{progress}{Show progress bar?}
+\item{progress}{Logical: Show progress bar?}
 }
 \value{
-A data cube with an classified map cleaned.
+A tibble with an classified map (class = "class_cube").
 }
 \description{
-Applies a windowed mode function to clean up possible noisy pixels keeping
+Applies a modal function to clean up possible noisy pixels keeping
 the most frequently values within the neighborhood.
 In a tie, the first value of the vector is considered.
 }
@@ -50,23 +109,30 @@ cube <- sits_cube(
 )
 # classify a data cube
 probs_cube <- sits_classify(
-    data = cube, ml_model = rf_model, output_dir = tempdir()
+    data = cube,
+    ml_model = rf_model,
+    output_dir = tempdir(),
+    version = "ex_clean"
 )
 # label the probability cube
 label_cube <- sits_label_classification(
-    probs_cube, output_dir = tempdir()
+    probs_cube,
+    output_dir = tempdir(),
+    version = "ex_clean"
 )
 # apply a mode function in the labelled cube
 clean_cube <- sits_clean(
-    label_cube, window_size = 5,  output_dir = tempdir()
+    cube = label_cube,
+    window_size = 5,
+    memsize = 4,
+    multicores = 2,
+    output_dir = tempdir(),
+    version = "ex_clean",
+    progress = FALSE
 )
 }
 
 }
 \author{
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
-
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
-Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

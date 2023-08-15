@@ -7,11 +7,13 @@
 sits_rfor(samples = NULL, num_trees = 100, mtry = NULL, ...)
 }
 \arguments{
-\item{samples}{Time series with the training samples.}
+\item{samples}{Time series with the training samples
+(tibble of class "sits").}
 
 \item{num_trees}{Number of trees to grow. This should not be set to too
 small a number, to ensure that every input
-row gets predicted at least a few times (default: 100).}
+row gets predicted at least a few times (default: 100)
+(integer, min = 50, max = 150).}
 
 \item{mtry}{Number of variables randomly sampled as candidates at
 each split (default: NULL - use default value of

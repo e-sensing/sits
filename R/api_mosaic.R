@@ -1,7 +1,16 @@
+#' @title Split data cube by band and date
+#' @keywords internal
+#' @noRd
+#' @param  cube      Data cube
+#' @return           Data.frame with unnested cube by band and date
 .mosaic_split_band_date <- function(cube) {
     UseMethod(".mosaic_split_band_date", cube)
 }
-
+#' @title Split raster data cube by band and date
+#' @keywords internal
+#' @noRd
+#' @param  cube      Data cube
+#' @return           Data.frame with unnested cube
 #' @export
 .mosaic_split_band_date.raster_cube <- function(cube) {
     data <- tidyr::unnest(
@@ -31,7 +40,11 @@
     )
     data
 }
-
+#' @title Split derived data cube by band and date
+#' @keywords internal
+#' @noRd
+#' @param  cube      Data cube
+#' @return           Data.frame with unnested cube
 #' @export
 .mosaic_split_band_date.derived_cube <- function(cube) {
     data <- tidyr::unnest(
@@ -63,7 +76,16 @@
     )
     data
 }
-
+#' @title Merge tiles to get mosaic
+#' @keywords internal
+#' @noRd
+#' @param  cube         Data cube
+#' @param  crs          CRS of the mosaic
+#' @param  output_dir   Directory where file will be written
+#' @param  multicores   Number of cores used for regularization.
+#' @param  version      Version of result.
+#' @param  progress     Show progress bar?
+#' @return              Merged data cube
 .mosaic_merge_tiles <- function(cube,
                                 crs,
                                 output_dir,
@@ -135,7 +157,14 @@
     # Join output assets as a cube and return it
     .cube_merge_tiles(mosaic_cube)
 }
-
+#' @title Crop asset as a part of mosaicking
+#' @keywords internal
+#' @noRd
+#' @param  asset        Data cube
+#' @param  crs          CRS of the mosaic
+#' @param  output_dir   Directory where file will be written
+#' @param  version      Version of result.
+#' @return              Cropped data cube
 .mosaic_crop_asset <- function(asset, crs, roi, output_dir, version) {
     # Get asset file path
     file <- .tile_path(asset)
@@ -224,7 +253,11 @@
     )
     return(asset)
 }
-
+#' @title Delete ROI
+#' @keywords internal
+#' @noRd
+#' @param  roi          Region of interest
+#' @return              Called for side effects
 .mosaic_del_roi <- function(roi) {
     if (is.null(roi)) {
         return(roi)
@@ -233,21 +266,34 @@
     file_name <- .file_sans_ext(roi)
     shp_exts <- c(".shp", ".shx", ".dbf", ".prj")
     unlink(paste0(file.path(dir_name, file_name), shp_exts))
+    return(invisible(roi))
 }
-
+#' @title Get type of mosaic
+#' @keywords internal
+#' @noRd
+#' @param  tile         Tile of data cube
+#' @return              BDC or RASTER
 .mosaic_type <- function(tile) {
     if (.cube_source(tile) %in% "BDC") {
         return("BDC")
     }
     return("RASTER")
 }
-
+#' @title Switch based on mosaic type
+#' @keywords internal
+#' @noRd
+#' @param  tile         Tile of data cube
+#' @return              Result dependent on the type
 .mosaic_switch <- function(tile, ...) {
     switch(.mosaic_type(tile),
         ...
     )
 }
-
+#' @title Get mosaic CRS
+#' @keywords internal
+#' @noRd
+#' @param  tile         Tile of data cube
+#' @return              Either BDC Albers projection or CRS for other rasters
 .mosaic_crs <- function(tile, as_crs) {
     .mosaic_switch(
         tile,

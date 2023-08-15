@@ -6,9 +6,9 @@
 \usage{
 sits_confidence_sampling(
   probs_cube,
-  n = 20,
+  n = 20L,
   min_margin = 0.9,
-  sampling_window = 10
+  sampling_window = 10L
 )
 }
 \arguments{

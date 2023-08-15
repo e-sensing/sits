@@ -59,6 +59,8 @@
 #' can have repeated elements or not.
 #' @param extensions    A \code{character} vector with all allowed file
 #' extensions.
+#' @param file_exists   A \code{logical} value indicating if
+#'                      the file should exist
 #' @param expr          A R \code{expression} to be evaluated.
 #' @param show_pks_name A \code{logical} value indicating if
 #'                      uninstalled packages can be shown.
@@ -88,15 +90,14 @@
 #' }
 #' }
 #'
-#' @return \code{.check_set_caller()} returns \code{NULL}.
+#' @return Called for side effects
 .check_set_caller <- function(caller) {
     envir <- parent.frame()
     if (length(sys.frames()) > 1) {
         envir <- sys.frame(-1)
     }
     assign(".check_caller", caller, envir = envir)
-
-    return(invisible(NULL))
+    return(invisible(caller))
 }
 #' @rdname check_functions
 #' @name .check_identify_caller
@@ -110,13 +111,11 @@
             return(caller)
         }
     }
-
     # check parent frame
     if (exists(".check_caller", envir = parent.frame())) {
         caller <- get(".check_caller", envir = f)
         return(caller)
     }
-
     # no caller defined, get first function in calling stack
     caller <- sys.calls()[[1]]
     caller <- gsub(
@@ -187,8 +186,7 @@
 #' }
 #' @keywords internal
 #' @noRd
-#' @return The same input value if no error occurs
-#'
+#' @return  Called for side effects
 .check_that <- function(x, ...,
                         local_msg = NULL,
                         msg = NULL) {
@@ -213,7 +211,6 @@
         # process message
         stop(sprintf(msg, local_msg), call. = FALSE)
     }
-
     return(invisible(x))
 }
 #' @rdname check_functions
@@ -243,6 +240,32 @@
             msg = msg
         )
     }
+    return(invisible(x))
+}
+#' @rdname check_functions
+#' @keywords internal
+#' @noRd
+.check_valid <- function(x, ...) {
+    # check for NA
+    .check_na(x)
+    # check for NULL
+    .check_null(x)
+    return(invisible(x))
+}
+#' @rdname check_functions
+#' @keywords internal
+#' @noRd
+.check_cube_files <- function(x, ...) {
+    # check for data access
+    robj <- tryCatch(
+        .raster_open_rast(.tile_path(x)),
+        error = function(e) {
+            return(NULL)
+        })
+    # return error if data is not accessible
+    .check_that(!purrr::is_null(robj),
+        msg = "Invalid data cube - missing files"
+    )
     return(invisible(x))
 }
 #' @rdname check_functions
@@ -290,7 +313,6 @@
                           msg = NULL) {
     # make default message
     msg <- .check_default_message(x, msg)
-
     # pre-condition
     .check_num_type(
         len_min,
@@ -310,7 +332,6 @@
             msg = msg
         )
     }
-
     # these checks are separate because the messages are different
     .check_that(
         length(x) >= len_min,
@@ -323,7 +344,6 @@
         local_msg = paste0("length should be <= ", len_max),
         msg = msg
     )
-
     return(invisible(x))
 }
 #' @rdname check_functions
@@ -333,10 +353,8 @@
     if (!is.function(fn_check)) {
         stop(".check_apply: fn_check should be a function.", call. = TRUE)
     }
-
     # check all elements
     lapply(x, fn_check, ...)
-
     return(invisible(x))
 }
 #' @rdname check_functions
@@ -368,21 +386,18 @@
         local_msg = "value is not a number",
         msg = msg
     )
-
     # test integer
     if (is_integer) {
         # if length is zero there is nothing to check
         if (length(x) == 0) {
             return(invisible(x))
         }
-
         .check_that(
             is.numeric(x) && all(x == suppressWarnings(as.integer(x))),
             local_msg = "value is not integer",
             msg = msg
         )
     }
-
     return(invisible(x))
 }
 #' @rdname check_functions
@@ -478,7 +493,6 @@
     }
     # check names
     .check_names(x, is_named = is_named, msg = msg)
-
     return(invisible(x))
 }
 #' @rdname check_functions
@@ -546,7 +560,6 @@
     # remove NAs before check to test tolerance
     result <- x
     x <- x[!is.na(x)]
-
     # adjust min and max to tolerance
     if (!is.null(tolerance)) {
         min <- min - tolerance
@@ -554,7 +567,6 @@
         exclusive_min <- exclusive_min - tolerance
         exclusive_max <- exclusive_max + tolerance
     }
-
     # min and max checks
     if (min == max) {
         .check_that(
@@ -602,7 +614,6 @@
                        msg = NULL) {
     # make default message
     msg <- .check_default_message(x, msg)
-
     # check for null and exit if it is allowed
     if (allow_null && is.null(x)) {
         return(invisible(x))
@@ -625,7 +636,6 @@
             msg = msg
         )
     }
-
     # check duplicate
     if (!allow_duplicate) {
         .check_that(
@@ -634,12 +644,11 @@
             msg = msg
         )
     }
-
     # check names
     .check_names(x,
-        is_named = is_named,
-        is_unique = has_unique_names,
-        msg = msg
+                 is_named = is_named,
+                 is_unique = has_unique_names,
+                 msg = msg
     )
     # check regular expression pattern
     if (!is.null(regex)) {
@@ -734,8 +743,8 @@
 
     # pre-condition
     .check_chr(within,
-        len_min = 1,
-        msg = "invalid 'within' parameter"
+               len_min = 1,
+               msg = "invalid 'within' parameter"
     )
     # check parameters
     .check_discriminator(discriminator)
@@ -792,7 +801,6 @@
             msg = msg
         )
     }
-
     return(invisible(result))
 }
 #' @rdname check_functions
@@ -806,19 +814,15 @@
                                 msg = NULL) {
     # make default message
     msg <- .check_default_message(x, msg)
-
     # pre-condition
     .check_chr(contains,
-        len_min = 1,
-        msg = "invalid 'contains' parameter"
+               len_min = 1,
+               msg = "invalid 'contains' parameter"
     )
-
     # check discriminators
     .check_discriminator(discriminator)
-
     # check type
     .check_chr_type(x, msg = msg)
-
     # check for repeated values
     if (!can_repeat) {
         .check_that(
@@ -827,7 +831,6 @@
             msg = msg
         )
     }
-
     result <- x
     # simplify
     x <- unique(x)
@@ -888,6 +891,7 @@
 #' @noRd
 .check_file <- function(x, ...,
                         extensions = NULL,
+                        file_exists = TRUE,
                         msg = NULL) {
     # make default message
     msg <- .check_default_message(x, msg)
@@ -902,44 +906,47 @@
     }
     # check parameter
     .check_chr(x,
-        allow_empty = FALSE, len_min = 1,
-        allow_null = FALSE, msg = msg
+               allow_na = FALSE,
+               allow_empty = FALSE, len_min = 1,
+               allow_null = FALSE, msg = msg
     )
     # check extension
     if (!is.null(extensions)) {
         .check_chr_within(ext_file(x),
-            within = extensions,
-            case_sensitive = FALSE,
-            msg = "invalid file extension"
+                          within = extensions,
+                          case_sensitive = FALSE,
+                          msg = "invalid file extension"
         )
     }
-    existing_files <- file.exists(x)
-    existing_dirs <- dir.exists(x)
-    .check_that(
-        all(existing_files | existing_dirs),
-        local_msg = paste(
-            "file does not exist:",
-            paste0("'", x[!existing_files], "'",
-                collapse = ", "
-            )
-        ),
-        msg = msg
-    )
+    if (file_exists) {
+        existing_files <- file.exists(x)
+        existing_dirs <- dir.exists(x)
+        .check_that(
+            all(existing_files | existing_dirs),
+            local_msg = paste(
+                "file does not exist:",
+                paste0("'", x[!existing_files], "'",
+                       collapse = ", "
+                )
+            ),
+            msg = msg
+        )
+    } else {
+        .check_that(
+            x = suppressWarnings(file.create(x)),
+            msg = "file is not writable"
+        )
+    }
     return(invisible(x))
 }
-#' @rdname check_functions
-#'
-#' @details
-#' Special checking function:
-#'
-#' \itemize{
-#' \item{
+#' @title Check environment variable
+#' @name .check_env_var
+#' @description
 #' \code{.check_env_var()} throws an error if provided environment variable is
 #' not existing.
-#' }
-#' }
 #' @keywords internal
 #' @noRd
+#' @return Called for side effects.
 .check_env_var <- function(x, ...,
                            msg = NULL) {
     # make default message
@@ -965,21 +972,13 @@
     }
     return(invisible(x))
 }
-#' @rdname check_functions
-#'
-#' @details
-#' Contextual check and error conversion functions:
-#'
-#' \itemize{
-#' \item{
-#' \code{.check_warn()} converts an error raised by an R expression in
-#' \code{expr} parameter into a warning message.
-#' }
-#' \item{
-#' \code{.check_error()} captures any error raised by an R expression in
-#' \code{expr} parameter, and shows a personalized message.
-#' }
-#' }
+#' @title Check warning
+#' @name .check_warn
+#' @description
+#' Converts an error raised by an R expression in
+#' \code{expr} parameter into a warning message
+#' @param  expr   R expression
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_warn <- function(expr) {
@@ -991,10 +990,18 @@
             warning(e$message, call. = FALSE)
         }
     )
-
     return(invisible(result))
 }
-#' @rdname check_functions
+#' @title Check error
+#' @name .check_error
+#' @description
+#' captures any error raised by an R expression in
+#' \code{expr} parameter, and shows a personalized message.
+#'
+#' @param  expr   R expression
+#' @param  ...    Other parameters
+#' @param  msg Error message
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_error <- function(expr, ...,
@@ -1007,7 +1014,6 @@
             .check_that(FALSE, local_msg = e$message, msg = msg)
         }
     )
-
     return(invisible(result))
 }
 #' @title Check is numerical parameter is valid using reasonable defaults
@@ -1020,14 +1026,15 @@
 #' @param  allow_na   allow NA?
 #' @param  exclusive_min  is there an exclusive minimum?
 #' @param  tolerance tolerance for equality comparison
-#'
-#' @return          No return value, called for side effects.
+#' @param  msg Error message
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_num_parameter <- function(param, min = -Inf, max = Inf,
                                  len_min = 1, len_max = 1,
                                  allow_na = FALSE,
-                                 exclusive_min = -Inf, tolerance = 0) {
+                                 exclusive_min = -Inf, tolerance = 0,
+                                 msg = NULL) {
     .check_num(
         x = param,
         allow_na = allow_na,
@@ -1036,32 +1043,49 @@
         len_min = len_min,
         len_max = len_max,
         exclusive_min = exclusive_min,
-        tolerance = tolerance
+        tolerance = tolerance,
+        msg = msg
     )
+    return(invisible(param))
 }
+#' @title Check is logical parameter is valid
+#' @name .check_lgl_parameter
+#' @param  x   parameter to be checked
+#' @param  len_min minimum length of vector
+#' @param  len_max maximum length of vector
+#' @param  allow_na     allow NA?
+#' @param  allow_null   allow NULL?
+#' @param  is_named     is the parameter named?
+#' @param  msg Error message
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
 .check_lgl_parameter <- function(param, len_min = 1, len_max = 1,
                                  allow_na = FALSE, allow_null = FALSE,
-                                 is_named = FALSE) {
+                                 is_named = FALSE,
+                                 msg = NULL) {
     .check_lgl(
         x = param,
         len_min = len_min,
         len_max = len_max,
         allow_na = allow_na,
         allow_null = allow_null,
-        is_named = is_named
+        is_named = is_named,
+        msg = msg
     )
+    return(invisible(param))
 }
-#' @title Check is dates parameter are valid
-#' @name .check_dates_parameter
+#' @title Check is date is valid
+#' @name .check_date_parameter
 #' @param  param   parameter to be checked
 #' @param  len_min minimum length of vector
 #' @param  len_max maximum length of vector
 #' @param  allow_null allow NULL?
-#'
-#' @return No return value, called for side effects.
+#' @param  msg Error message
+#' @return Called for side effects.
 #' @keywords internal
-.check_dates_parameter <- function(param, len_min = 1, len_max = 2^31 - 1,
-                                   allow_null = TRUE) {
+.check_date_parameter <- function(param, len_min = 1, len_max = 1,
+                                  allow_null = FALSE, msg = NULL) {
     # Standard regexp of RFC 3339
     pattern_rfc <- "^\\d{4}-\\d{2}-\\d{2}$"
     .check_that(
@@ -1072,6 +1096,7 @@
             "year-month-day format: YYYY-MM-DD"
         )
     )
+    return(invisible(param))
 }
 #' @title Check is integer parameter is valid using reasonable defaults
 #' @name .check_int_parameter
@@ -1080,42 +1105,50 @@
 #' @param  max maximum value
 #' @param  len_min minimum length of vector
 #' @param  len_max maximum length of vector
-#'
-#' @return          No return value, called for side effects.
+#' @param  msg Error message
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_int_parameter <- function(param, min = 1, max = 2^31 - 1,
-                                 len_min = 1, len_max = 1) {
+                                 len_min = 1, len_max = 1, msg = NULL) {
     .check_num(
         x = param,
+        allow_na = FALSE,
+        allow_null = FALSE,
         min = min,
         max = max,
         len_min = len_min,
         len_max = len_max,
-        is_integer = TRUE
+        is_integer = TRUE,
+        msg = msg
     )
+    return(invisible(param))
 }
 #' @title Check is integer parameter is valid using reasonable defaults
 #' @name .check_chr_parameter
 #' @param  x   parameter to be checked
 #' @param  len_min minimum length of vector
 #' @param  len_max maximum length of vector
-#' @return          No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_chr_parameter <- function(param, len_min = 1, len_max = 1) {
     .check_chr(
         param,
         len_min = len_min,
-        len_max = len_max
+        len_max = len_max,
+        allow_na = FALSE,
+        allow_empty = FALSE,
+        allow_null = FALSE,
     )
+    return(invisible(param))
 }
 #' @title Check is window size is valid using reasonable defaults
 #' @name .check_window_size
 #' @param  window_size   size of the local window
 #' @param  min minimum value
 #' @param  max maximum value
-#' @return  No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_window_size <- function(window_size, min = 1, max = 2^32 - 1) {
@@ -1124,52 +1157,81 @@
         x = window_size %% 2 != 0,
         msg = "window_size must be an odd number"
     )
+    return(invisible(window_size))
 }
 #' @title Check is multicores parameter is valid using reasonable defaults
 #' @name .check_multicores
 #' @param  multicores   number of cores to be used
-#'
-#' @return          No return value, called for side effects.
+#' @param  min minimum value
+#' @param  max maximum value
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_multicores <- function(multicores) {
+.check_multicores <- function(multicores, min, max) {
     .check_num(
         x = multicores,
-        min = 1,
+        min = min,
+        max = max,
         len_min = 1,
         len_max = 1,
+        allow_na   = FALSE,
+        allow_null = FALSE,
         is_integer = TRUE,
         msg = "invalid 'multicores' parameter"
     )
+    return(invisible(multicores))
 }
 #' @title Check is memsize parameter is valid using reasonable defaults
 #' @name .check_memsize
 #' @param  memsize  size of memory in GB
-#' @return          No return value, called for side effects.
+#' @param  min minimum value
+#' @param  max maximum value
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_memsize <- function(memsize) {
+.check_memsize <- function(memsize, min, max) {
     # precondition - memory
     .check_num(
         x = memsize,
-        exclusive_min = 0,
+        min = min,
+        max = max,
         len_min = 1,
         len_max = 1,
+        allow_na   = FALSE,
+        allow_null = FALSE,
+        is_integer = TRUE,
         msg = "invalid 'memsize' parameter"
     )
+    return(invisible(memsize))
 }
 #' @title Check is output_dir parameter is valid using reasonable defaults
 #' @name .check_output_dir
 #' @param  output_dir  name of output directory
-#' @return No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_output_dir <- function(output_dir) {
+    .check_chr(
+        x = output_dir,
+        allow_na = FALSE,
+        allow_null = FALSE,
+        allow_empty = FALSE,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid output_dir"
+    )
     .check_file(
         x = .file_normalize(output_dir),
         msg = "invalid output dir"
     )
+    return(invisible(output_dir))
 }
+#' @title Check is crs parameter is valid
+#' @name .check_crs
+#' @param  crs Coordinate reference system index.
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
 .check_crs <- function(crs) {
     crs <- suppressWarnings(.try(sf::st_crs(crs), .default = NA))
     .check_that(
@@ -1177,51 +1239,61 @@
         local_msg = "the 'crs' must be a valid character or numeric value.",
         msg = "invalid 'crs' parameter."
     )
+    return(invisible(crs))
 }
 #' @title Check is version parameter is valid using reasonable defaults
 #' @name .check_version
 #' @keywords internal
 #' @noRd
-#' @param  version  version parameter
-#' @return          No return value, called for side effects.
+#' @param  version  character vector
+#' @return Called for side effects.
 .check_version <- function(version) {
     .check_chr(
         x = version,
+        allow_na = FALSE,
+        allow_null = FALSE,
+        allow_empty = FALSE,
         len_min = 1,
+        len_max = 1,
         msg = "invalid version"
     )
+    return(invisible(version))
 }
 #' @title Check is version parameter is valid using reasonable defaults
-#' @name .check_version
+#' @name .check_progress
 #' @keywords internal
 #' @noRd
-#' @param  progress progress parameter
-#' @return          No return value, called for side effects.
+#' @param  progress TRUE/FALSE
+#' @return Called for side effects.
 .check_progress <- function(progress) {
     .check_lgl(
         x = progress,
         len_min = 1,
         len_max = 1,
+        allow_na = FALSE,
+        allow_null = FALSE,
         msg = "invalid progress"
     )
+    return(invisible(progress))
 }
 #' @title Check is expression parameter is valid using reasonable defaults
 #' @name .check_expression
 #' @param  list_expr expression parameter
-#' @return          No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_expression <- function(list_expr) {
     .check_lst(list_expr,
-        min_len = 1, max_len = 1,
-        msg = "invalid expression value"
+               min_len = 1, max_len = 1,
+               msg = "invalid expression value"
     )
+    return(invisible(list_expr))
 }
 #' @title Does the values has same number of pixels than input values?
-#' @name .check_predicted
+#' @name .check_processed_values
 #' @param values a matrix of processed values
 #' @param input_pixels number of pixels in input matrix
-#' @return  No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_processed_values <- function(values, input_pixels) {
@@ -1232,11 +1304,12 @@
             "from number of input pixels"
         )
     )
+    return(invisible(values))
 }
 #' @title Does the input data contain a set of predicted values?
 #' @name .check_predicted
 #' @param data a sits tibble
-#' @return  No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_predicted <- function(data) {
@@ -1250,24 +1323,26 @@
         within = names(data$predicted[[1]]),
         msg = "tibble has not been classified"
     )
+    return(invisible(data))
 }
 #' @title Does the input data contain a raster cube?
 #' @name .check_is_raster_cube
-#' @param data a sits cube to be tested
-#' @return  No return value, called for side effects.
+#' @param cube a sits cube to be tested
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_is_raster_cube <- function(data) {
+.check_is_raster_cube <- function(cube) {
     .check_that(
-        x = inherits(data, "raster_cube"),
+        x = inherits(cube, "raster_cube"),
         local_msg = "data should be a raster cube",
         msg = "invalid cube parameter"
     )
+    return(invisible(cube))
 }
 #' @title Check if cube is a probs cube
 #' @name .check_is_probs_cube
 #' @param cube a sits cube to be tested
-#' @return  No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -1278,26 +1353,26 @@
         x = inherits(cube, "probs_cube"),
         msg = "cube is not probability cube"
     )
+    return(invisible(cube))
 }
 #' @title Check if cube is a variance cube
 #' @name .check_is_variance_cube
 #' @param cube a sits cube to be tested
-#' @return  No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  cube         input data cube
 .check_is_variance_cube <- function(cube) {
     .check_that(
         x = inherits(cube, "variance_cube"),
         msg = "cube is not variance cube"
     )
+    return(invisible(cube))
 }
 #' @title Check if cube is a uncert cube
 #' @name .check_is_uncert_cube
 #' @param cube a sits cube to be tested
-#' @return  No return value, called for side effects
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_is_uncert_cube <- function(cube) {
@@ -1305,23 +1380,25 @@
         x = inherits(cube, "uncertainty_cube"),
         msg = "cube is not an uncertainty cube"
     )
+    return(invisible(cube))
 }
 #' @title Check if cube is a classified image
 #' @name .check_cube_is_class_cube
 #' @param cube a sits cube to be tested
-#' @return  No return value, called for side effects
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_cube_is_class_cube <- function(cube) {
     .check_that(
         x = inherits(cube, "class_cube"),
-        msg = "cube is not classified image"
+        msg = "cube is not a classified data cube"
     )
+    return(invisible(cube))
 }
 #' @title Check if cube is a probability
 #' @name .check_cube_is_probs_cube
 #' @param cube a sits cube to be tested
-#' @return  No return value, called for side effects
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_cube_is_probs_cube <- function(cube) {
@@ -1329,6 +1406,7 @@
         x = inherits(cube, "probs_cube"),
         msg = "cube is not probs image"
     )
+    return(invisible(cube))
 }
 #' @title Check if cube is a results cube
 #' @name .check_cube_is_results_cube
@@ -1376,7 +1454,7 @@
 #' @title Does the input data contain a sits accuracy object?
 #' @name .check_is_sits_accuracy
 #' @param data a sits accuracy object
-#' @return  No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_is_sits_accuracy <- function(data) {
@@ -1385,11 +1463,12 @@
         local_msg = "please run sits_accuracy() first",
         msg = "input does not contain accuracy information"
     )
+    return(invisible(data))
 }
 #' @title Does the input data contain a sits model?
 #' @name .check_is_sits_model
 #' @param model a sits model
-#' @return  No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_is_sits_model <- function(model) {
@@ -1411,14 +1490,27 @@
     # Check model samples
     samples <- .ml_samples(model)
     .check_samples(samples)
+    return(invisible(model))
 }
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @name .check_samples
 #' @param data a sits tibble
-#' @return  No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_samples <- function(data) {
+    .check_na(data)
+    .check_null(data)
+    UseMethod(".check_samples", data)
+}
+#' @title Does the data contain the cols of time series?
+#' @name .check_samples.sits
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+#' @export
+.check_samples.sits <- function(data) {
     .check_that(
         x = all(.conf("df_sample_columns") %in% colnames(data)),
         msg = "invalid samples file"
@@ -1427,16 +1519,54 @@
         x = nrow(data) > 0,
         msg = "samples does not contain values"
     )
+    return(invisible(data))
+}
+#' @title Does the tibble contain the cols of time series?
+#' @name .check_samples.tbl_df
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+#' @export
+.check_samples.tbl_df <- function(data) {
+    data <- tibble::as_tibble(data)
+    .check_that(
+        x = all(.conf("df_sample_columns") %in% colnames(data)),
+        msg = "invalid samples file"
+    )
+    .check_that(
+        x = nrow(data) > 0,
+        msg = "samples does not contain values"
+    )
+    class(data) <- c("sits", class(data))
+    return(invisible(data))
+}
+#' @title Does the input contain the cols of time series?
+#' @name .check_samples.default
+#' @param data input data
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+#' @export
+.check_samples.default <- function(data) {
+    if (is.list(data)) {
+        class(data) <- c("list", class(data))
+        data <- tibble::as_tibble(data)
+        data <- .check_samples(data)
+    }
+    else
+        stop("data cannot be converted to tibble")
+    return(invisible(data))
 }
 
 #' @title Does input data has time series?
 #' @name .check_samples_ts
 #' @param data a sits tibble
-#' @return  No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_samples_ts <- function(data) {
-    .check_samples(data)
+    data <- .check_samples(data)
     .check_chr_contains(
         x = colnames(data),
         contains = "time_series",
@@ -1449,18 +1579,19 @@
     # check if all samples have the same bands
     n_bands <- unique(lengths(data[["time_series"]]))
     .check_that(length(n_bands) == 1,
-        local_msg = "samples with different bands",
-        msg = "inconsistent samples"
+                local_msg = "samples with different bands",
+                msg = "inconsistent samples"
     )
+    return(invisible(data))
 }
 #' @title Can the input data be used for training?
 #' @name .check_samples_train
 #' @param data a sits tibble
-#' @return  No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_samples_train <- function(data) {
-    .check_samples(data)
+    data <- .check_samples_ts(data)
     # check that there is no NA in labels
     labels <- .samples_labels(data)
     .check_that(
@@ -1468,7 +1599,6 @@
             !any(is.na(labels)),
         msg = "invalid labels in samples data"
     )
-    .check_samples_ts(data)
     # Get unnested time series
     ts <- .ts(data)
     # check there are no NA in distances
@@ -1479,9 +1609,10 @@
         simplify = FALSE
     ), use.names = FALSE))
     .check_that(length(n_times) == 1,
-        local_msg = "samples contain timelines with different lengths",
-        msg = "inconsistent samples"
+                local_msg = "samples contain timelines with different lengths",
+                msg = "inconsistent samples"
     )
+    return(invisible(data))
 }
 #' @title Is the samples_validation object valid?
 #' @name .check_samples_validation
@@ -1489,7 +1620,7 @@
 #' @param labels labels of the data cube to be validated
 #' @param timeline timeline of the data cube to be validated
 #' @param bands  bands of the data cube to be validated
-#' @return  No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_samples_validation <- function(samples_validation,
@@ -1497,7 +1628,7 @@
                                       timeline,
                                       bands) {
     # check if the validation samples are ok
-    .check_samples(samples_validation)
+    samples_validation <- .check_samples(samples_validation)
     # check if the labels matches with train data
     .check_that(
         all(sits_labels(samples_validation) %in% labels) &&
@@ -1512,28 +1643,30 @@
         all(sits_bands(samples_validation) %in% bands) &&
             all(bands %in% sits_bands(samples_validation))
     )
+    return(invisible(samples_validation))
 }
 #' @title Do the samples contain a cluster column?
 #' @name .check_samples_cluster
 #' @param data a sits tibble with cluster col
-#' @return  No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 #  Are the samples valid?
 .check_samples_cluster <- function(data) {
-    .check_samples(data)
+    data <- .check_samples(data)
     # is the input data the result of a cluster function?
     .check_chr_contains(
         names(data),
         contains = "cluster",
         msg = "missing cluster column"
     )
+    return(invisible(data))
 }
 #' @title Are the predictors valid?
 #' @name .check_predictors
 #' @param pred a tibble with predictors values
 #' @param samples samples from where the predictors have been calculated
-#' @return  No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_predictors <- function(pred, samples) {
@@ -1552,12 +1685,13 @@
         x = ncol(pred) == 2 + n_bands * n_times,
         msg = "invalid predictors data"
     )
+    return(invisible(pred))
 }
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @name .check_smoothness
 #' @param smoothness a vector or numeric value
 #' @param nlabels    a numeric value
-#' @return  No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_smoothness <- function(smoothness, nlabels) {
@@ -1568,11 +1702,12 @@
             "a vector of length", nlabels
         )
     )
+    return(invisible(smoothness))
 }
 #' @title Check if cube has only one tile
 #' @name .check_has_one_tile
 #' @param  cube         input data cube
-#' @return  No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_has_one_tile <- function(cube) {
@@ -1580,88 +1715,25 @@
         x = nrow(cube) == 1,
         msg = "accepts only one tile at a time"
     )
+    return(invisible(cube))
 }
 #' @title Check that cube is regular
 #' @name .check_is_regular
 #' @keywords internal
 #' @noRd
 #' @param cube  datacube
-#' @return  TRUE/FALSE
+#' @return Called for side effects.
 .check_is_regular <- function(cube) {
     .check_that(
         x = .cube_is_regular(cube),
         msg = "cube is not regular, please run sits_regularize() first"
     )
-}
-
-#' @title Check if bboxes of all tiles of the cube are the same
-#' @name .check_has_unique_bbox
-#' @keywords internal
-#' @noRd
-#' @param  cube         input data cube
-#' @return TRUE/FALSE
-.check_has_unique_bbox <- function(cube) {
-    tolerance <- .conf(
-        "sources", .cube_source(cube),
-        "collections", .cube_collection(cube),
-        "ext_tolerance"
-    )
-
-    # check if the resolutions are unique
-    equal_bbox <- slider::slide_lgl(cube, function(tile) {
-        file_info <- .fi(tile)
-
-        test <-
-            (.is_eq(max(file_info[["xmax"]]),
-                min(file_info[["xmax"]]),
-                tolerance = tolerance
-            ) &&
-                .is_eq(max(file_info[["xmin"]]),
-                    min(file_info[["xmin"]]),
-                    tolerance = tolerance
-                ) &&
-                .is_eq(max(file_info[["ymin"]]),
-                    min(file_info[["ymin"]]),
-                    tolerance = tolerance
-                ) &&
-                .is_eq(max(file_info[["ymax"]]),
-                    min(file_info[["ymax"]]),
-                    tolerance = tolerance
-                ))
-
-        return(test)
-    })
-    if (!all(equal_bbox)) {
-        return(FALSE)
-    } else {
-        return(TRUE)
-    }
-}
-#' @title Check if sizes of all tiles of the cube are the same
-#' @name .check_has_unique_tile_size
-#' @keywords internal
-#' @noRd
-#' @param  cube         input data cube
-#' @return TRUE/FALSE
-.check_has_unique_tile_size <- function(cube) {
-    # check if the sizes of all tiles are the same
-    test_cube_size <- slider::slide_lgl(cube, function(tile) {
-        if (length(unique(.tile_nrows(tile))) > 1 ||
-            length(unique(.tile_ncols(tile))) > 1) {
-            return(FALSE)
-        }
-        return(TRUE)
-    })
-    if (!all(test_cube_size)) {
-        return(FALSE)
-    } else {
-        return(TRUE)
-    }
+    return(invisible(cube))
 }
 #' @title Check if CSV data is correct
 #' @name .check_csv
 #' @param csv  data frame extracted from CSV file
-#' @return No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_csv <- function(csv) {
@@ -1672,12 +1744,13 @@
         discriminator = "all_of",
         msg = "invalid csv file"
     )
+    return(invisible(csv))
 }
 #' @title Check if data contains predicted and reference values
 #' @name .check_pred_ref_match
 #' @param reference  vector with reference labels
 #' @param predicted  vector with predicted labels
-#' @return No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_pred_ref_match <- function(reference, predicted) {
@@ -1685,12 +1758,13 @@
         x = length(reference) == length(predicted),
         msg = "predicted and reference vector do not match"
     )
+    return(invisible(reference))
 }
 #' @title Do the samples and tile match?
 #' @name .check_samples_tile_match
 #' @param samples  samples organised as a tibble
 #' @param tile  one tile of a data cube
-#' @return No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_samples_tile_match <- function(samples, tile) {
@@ -1709,11 +1783,12 @@
         within = tile_bands,
         msg = "some bands in samples are not in cube"
     )
+    return(invisible(samples))
 }
 #' @title Does the input data contains valid reference labels?
 #' @name  .check_labels
 #' @param  data vector with labels
-#' @return No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_labels <- function(data) {
@@ -1721,43 +1796,74 @@
         x = !("NoClass" %in% (data)),
         msg = "input data without labels"
     )
+    return(invisible(data))
 }
 #' @title Does the class cube contain enough labels?
 #' @name  .check_labels_class_cube
 #' @param  cube class cube
-#' @return No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_labels_class_cube <- function(cube) {
     # select the files for the classified cube
     files <- unlist(.cube_paths(cube))
     # open the first file
-    r <- .raster_open_rast(files)
-    # get the frequency table
-    freq <- .raster_freq(r)
-    # get the classes as numerical values
-    classes_num <- as.character(freq$value)
+    classes_list <- purrr::map(files, function(file) {
+        r <- .raster_open_rast(file)
+        # get the frequency table
+        freq <- .raster_freq(r)
+        # get the classes as numerical values
+        classes_tile <- as.character(freq$value)
+        return(classes_tile)
+    })
+    classes_num <- unique(unlist(classes_list))
     labels_num <- names(sits_labels(cube))
     # do the labels and raster numbers match?
     .check_that(
         x = all(classes_num %in% labels_num),
         msg = "Labels do not match number of classes in cube"
     )
+    return(invisible(cube))
 }
 #' @title Check if an object is a bbox
 #' @noRd
-#' @returns Throws an error if an object is not a bbox.
+#' @return Called for side effects.
 .check_bbox <- function(x) {
     if (!setequal(names(x), c(.bbox_cols, "crs"))) {
         stop("object is not a valid bbox")
     }
+    return(invisible(x))
+}
+#' @title Check if roi or tiles are provided
+#' @name .check_roi_tiles
+#' @param roi           Region of interest
+#' @param tiles         Tiles to be included in cube
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_roi_tiles <- function(roi, tiles) {
+    # Ensures that only a spatial filter is informed
+    if (.has(roi) && .has(tiles)) {
+        stop(
+            "It is not possible to search with roi and tiles.",
+            "Please provide only roi or tiles."
+        )
+    }
+    # Ensures that a spatial filter is informed
+    if (!.has(roi) && !.has(tiles)) {
+        stop(
+            "No spatial search criteria.",
+            "Please provide roi or tiles."
+        )
+    }
+    return(invisible(roi))
 }
 #' @title Check if bands are part of a data cube
 #' @name .check_cube_bands
 #' @param cube          Data cube
 #' @param bands         Bands to be check
 #' @param add_cloud     Include the cloud band?
-#' @return No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_cube_bands <- function(cube, bands, add_cloud = TRUE) {
@@ -1768,6 +1874,7 @@
         case_sensitive = FALSE,
         msg = "invalid 'bands' parameter"
     )
+    return(invisible(cube))
 }
 #' @title Check if  cubes have the same bbox
 #' @name .check_cubes_same_bbox
@@ -1775,7 +1882,7 @@
 #' @noRd
 #' @param  cube1     input data cube
 #' @param  cube2     input data cube
-#' @return No return value, called for side effects.
+#' @return Called for side effects.
 .check_cubes_same_bbox <- function(cube1, cube2) {
     tolerance <- .conf(
         "sources", .cube_source(cube1),
@@ -1796,6 +1903,7 @@
         x = all(ok),
         msg = "cubes do not have the same bounding box"
     )
+    return(invisible(cube1))
 }
 #' @title Check if cubes have the same size
 #' @name .check_cubes_same_size
@@ -1803,13 +1911,14 @@
 #' @noRd
 #' @param  cube1     input data cube
 #' @param  cube2     input data cube
-#' @return No return value, called for side effects.
+#' @return Called for side effects..
 .check_cubes_same_size <- function(cube1, cube2) {
     .check_that(
         x = all(.cube_ncols(cube1) == .cube_ncols(cube2)) &&
             all(.cube_nrows(cube1) == .cube_nrows(cube2)),
         msg = "cubes do not have the same size"
     )
+    return(invisible(cube1))
 }
 
 #' @title Check if cubes have the same tiles
@@ -1818,12 +1927,13 @@
 #' @noRd
 #' @param  cube1     input data cube
 #' @param  cube2     input data cube
-#' @return No return value, called for side effects.
+#' @return Called for side effects.
 .check_cubes_same_tiles <- function(cube1, cube2) {
     .check_that(
         x = nrow(cube1) == nrow(cube2),
         msg = "cubes do not have the same tiles"
     )
+    return(invisible(cube1))
 }
 #' @title Check if cubes have the same labels
 #' @name .check_cubes_same_labels
@@ -1831,12 +1941,13 @@
 #' @noRd
 #' @param  cube1     input data cube
 #' @param  cube2     input data cube
-#' @return No return value, called for side effects.
+#' @return Called for side effects.
 .check_cubes_same_labels <- function(cube1, cube2) {
     .check_that(
         x = all(sits_labels(cube1) == sits_labels(cube2)),
         msg = "cubes do not have the same labels"
     )
+    return(invisible(cube1))
 }
 #' @title Check if cubes have the same timeline
 #' @name .check_cubes_same_timeline
@@ -1844,12 +1955,13 @@
 #' @noRd
 #' @param  cube1     input data cube
 #' @param  cube2     input data cube
-#' @return No return value, called for side effects.
+#' @return Called for side effects.
 .check_cubes_same_timeline <- function(cube1, cube2) {
     .check_that(
         x = all(sits_timeline(cube1) == sits_timeline(cube2)),
         msg = "cubes do not have the same timeline"
     )
+    return(invisible(cube1))
 }
 #' @title Check if two cubes have the same organization
 #' @name .check_cubes_match
@@ -1857,7 +1969,7 @@
 #' @noRd
 #' @param  cube1     input data cube
 #' @param  cube2     input data cube
-#' @return No return value, called for side effects.
+#' @return Called for side effects.
 .check_cubes_match <- function(cube1, cube2) {
     # check same size
     .check_cubes_same_tiles(cube1, cube2)
@@ -1865,17 +1977,18 @@
     .check_cubes_same_bbox(cube1, cube2)
     .check_cubes_same_timeline(cube1, cube2)
     .check_cubes_same_labels(cube1, cube2)
+    return(invisible(cube1))
 }
 #' @title Check if list of probs cubes have the same organization
 #' @name .check_probs_cube_lst
 #' @keywords internal
 #' @noRd
 #' @param  cubes         list of input data cubes
-#' @return No return value, called for side effects.
+#' @return Called for side effects
 .check_probs_cube_lst <- function(cubes) {
     .check_that(length(cubes) >= 2,
-        local_msg = "length should be at least two",
-        msg = "invalid `cubes` parameter"
+                local_msg = "length should be at least two",
+                msg = "invalid `cubes` parameter"
     )
     .check_lst_type(cubes, msg = "cubes are not in a list")
     # is every cube a probs cube
@@ -1885,17 +1998,18 @@
     purrr::map(cubes, function(cube) {
         .check_cubes_match(first, cube)
     })
+    return(invisible(cubes))
 }
 #' @title Check if list of uncertainty cubes have the same organization
 #' @name .check_uncert_cube_lst
 #' @keywords internal
 #' @noRd
 #' @param  uncert_cubes     list of input data cubes
-#' @return No return value, called for side effects.
+#' @return Called for side effects
 .check_uncert_cube_lst <- function(uncert_cubes) {
     .check_that(length(uncert_cubes) >= 2,
-        local_msg = "length should be at least two",
-        msg = "invalid `uncert_cubes` parameter"
+                local_msg = "length should be at least two",
+                msg = "invalid `uncert_cubes` parameter"
     )
     .check_lst_type(uncert_cubes, msg = "cubes are not in a list")
     # is every cube a probs cube
@@ -1905,12 +2019,13 @@
     purrr::map(uncert_cubes, function(cube) {
         .check_cubes_match(first, cube)
     })
+    return(invisible(uncert_cubes))
 }
 #' @title Check if errox matrix and area are cosrrect
 #' @name .check_error_matrix_area
 #' @param  error_matrix  Error matrix for classification
 #' @param  area  Area of each class
-#' @return No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 #'
@@ -1935,11 +2050,12 @@
         x = all(names(area) %in% colnames(error_matrix)),
         msg = "Label mismatch between error matrix and area vector."
     )
+    return(invisible(error_matrix))
 }
 #' @title Checks if the required packages are installed
 #' @name .check_require_packages
 #' @param x   the name of the required package
-#' @return the name of the package
+#' @return Called for side effects
 #' @keywords internal
 #' @noRd
 .check_require_packages <- function(x, ...,
@@ -1948,45 +2064,52 @@
         x, requireNamespace,
         quietly = TRUE
     )
-
     .check_that(
         all(are_packages_installed),
         msg = paste(msg, x[!are_packages_installed])
     )
-
     return(invisible(x))
 }
 #' @title Checks if the character parameter is empty
 #' @name .check_empty_char
 #' @param x a character vector
-#' @return No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_empty_char <- function(x, msg, ...) {
     .check_that(all(nzchar(x)), msg = msg, ...)
+    return(invisible(x))
 }
 #' @title Checks if the tibble/data.frame is empty
 #' @name .check_empty_data_frame
 #' @param x a data frame
-#' @return No return value, called for side effects.
+#' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_empty_data_frame <- function(x, msg, ...) {
     .check_that(nrow(x) > 0, msg = msg, ...)
+    return(invisible(x))
 }
-.check_endmembers_parameter <- function(x) {
+#' @title Checks if the endmembers parameter is valid
+#' @name .check_endmembers_parameter
+#' @keywords internal
+#' @noRd
+#' @param em  Endmembers description (data.frame)
+#' @return Called for side effects.
+.check_endmembers_parameter <- function(em) {
     .check_that(
-        x = inherits(x, c("data.frame", "character")),
+        x = inherits(em, c("data.frame", "character")),
         msg = "invalid 'endmembers' parameter"
     )
+    return(invisible(em))
 }
 #' @title Checks if the endmembers data is in a valid parameter
 #' @name .check_endmembers_tbl
-#' @param em   Reference spectra endmembers.
-#' @param cube A sits cube
-#' @return No return value, called for side effects.
 #' @keywords internal
 #' @noRd
+#' @param em   Reference spectra endmembers.
+#' @param cube A sits cube
+#' @return Called for side effects.
 .check_endmembers_tbl <- function(em) {
     # Pre-condition
     .check_na(
@@ -2013,14 +2136,29 @@
             "number of spectral bands."
         )
     )
+    return(invisible(em))
 }
+#' @title Checks if the bands required by endmembers exist
+#' @name .check_endmembers_bands
+#' @keywords internal
+#' @noRd
+#' @param em    Reference spectra endmembers.
+#' @param bands Bands to compute endmembers.
+#' @return Called for side effects.
 .check_endmembers_bands <- function(em, bands) {
     .check_chr_within(
         x = .band_eo(.endmembers_bands(em)),
         within = bands,
         msg = "invalid 'endmembers' columns"
     )
+    return(invisible(em))
 }
+#' @title Checks if resolution is OK
+#' @name .check_res
+#' @param x   Image resolution.
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
 .check_res <- function(x) {
     .check_num(
         x = x,
@@ -2030,6 +2168,7 @@
         allow_null = TRUE,
         msg = "invalid 'res' parameter."
     )
+    return(invisible(x))
 }
 #' @title Checks if working in documentation mode
 #' @name .check_documentation
@@ -2043,7 +2182,6 @@
         Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
         progress <- FALSE
     }
-
     return(progress)
 }
 #' @title Checks if messages should be displayed
@@ -2074,6 +2212,12 @@
         return(TRUE)
     }
 }
+#' @title Checks if STAC items are correct
+#' @name .check_warnings
+#' @param items STAC items
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
 .check_stac_items <- function(items) {
     .check_that(
         rstac::items_length(items) > 0,
@@ -2084,11 +2228,12 @@
         ),
         msg = "cube search criteria returned no items"
     )
+    return(invisible(items))
 }
 #' @title Checks recovery
 #' @name .check_recovery
 #' @param data     existing data
-#' @return called for side effects
+#' @return Called for side effects
 #' @keywords internal
 #' @noRd
 .check_recovery <- function(data) {
@@ -2103,12 +2248,12 @@
             "change 'output_dir' or 'version' parameters)"
         )
     }
-    return(invisible(NULL))
+    return(invisible(data))
 }
 #' @title Checks discriminators
 #' @name .check_discriminator
 #' @param discriminator     discriminator for within and contains
-#' @return called for side effects
+#' @return Called for side effects
 #' @keywords internal
 #' @noRd
 .check_discriminator <- function(discriminator) {
@@ -2120,7 +2265,6 @@
         none_of = "be none of",
         exactly = "be exactly"
     )
-
     if (length(discriminator) != 1 ||
         !discriminator %in% names(discriminators)) {
         stop(
@@ -2131,7 +2275,7 @@
             call. = TRUE
         )
     }
-    return(invisible(NULL))
+    return(invisible(discriminator))
 }
 #' @title Checks view bands
 #' @name .check_view_bands
@@ -2140,15 +2284,15 @@
 #' @param red       Red band for view
 #' @param green     Green band for view
 #' @param blue      Blue band for view
-#' @return called for side effects
+#' @return Called for side effects
 #' @keywords internal
 #' @noRd
 .check_view_bands <- function(cube, band, red, green, blue) {
     .check_that(
         !(purrr::is_null(band)) ||
             (!(purrr::is_null(red)) &&
-                !(purrr::is_null(green)) &&
-                !(purrr::is_null(blue))
+                 !(purrr::is_null(green)) &&
+                 !(purrr::is_null(blue))
             ),
         local_msg = paste0(
             "either 'band' parameter or 'red', 'green', and",
@@ -2173,6 +2317,7 @@
             msg = "invalid RGB bands"
         )
     }
+    return(invisible(cube))
 }
 
 #' @title Check if the provided object is a vector
@@ -2202,7 +2347,7 @@
 #' @title Checks local items
 #' @name .check_local_items
 #' @param items      Items with information on local cube
-#' @return called for side effects
+#' @return Called for side effects
 #' @keywords internal
 #' @noRd
 .check_local_items <- function(items) {
@@ -2215,7 +2360,6 @@
 
     # get crs from file_info
     crs <- unique(items[["crs"]])
-
     # check crs
     .check_length(
         crs,
@@ -2232,4 +2376,19 @@
         len_max = 1,
         msg = "invalid tile value"
     )
+    return(invisible(items))
+}
+#' @title Checks palette
+#' @name .check_palette
+#' @param palette      Character vector with palette name
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_palette <- function(palette) {
+    .check_chr_parameter(palette)
+    .check_that(
+        palette %in% grDevices::hcl.pals(),
+        msg = "Palette not available in grDevices::hcl.pals()"
+    )
+    return(invisible(palette))
 }

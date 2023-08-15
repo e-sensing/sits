@@ -218,6 +218,7 @@
             return(row)
         }
     )
+    class(data) <- c("sits", class(data))
     return(data)
 }
 #'
@@ -236,7 +237,7 @@
 #'
 .tibble_prune <- function(data) {
     # verify that tibble is correct
-    .check_samples(data)
+    data <- .check_samples(data)
 
     n_samples <- data$time_series |>
         purrr::map_int(function(t) {
@@ -312,6 +313,6 @@
             ))
         ) |>
         dplyr::ungroup()
-
+    class(result) <- c("sits", class(result))
     return(result)
 }

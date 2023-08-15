@@ -57,14 +57,19 @@
 #' @param samples         Time series data and metadata
 #'                        to be used to generate the dendrogram.
 #' @param bands           Vector of bands to be clustered.
-#' @param dist_method     One of the supported distance
-#'                        from proxy's dist, e.g. \code{TWDTW}.
-#' @param linkage         Agglomeration method to be used.
-#'                        Can be any `hclust` method (see `hclust`).
-#'                        Default is 'ward.D2'.
+#' @param dist_method     One of the supported distances (single char vector)
+#'                        "dtw": DTW with a Sakoe-Chiba constraint.
+#'                        "dtw2": DTW with L2 norm and Sakoe-Chiba constraint.
+#'                        "dtw_basic": A faster DTW with less functionality.
+#'                        "lbk": Keogh's lower bound for DTW.
+#'                        "lbi": Lemire's lower bound for DTW.
+#' @param linkage         Agglomeration method to be used (single char vector)
+#'                        One of "ward.D", "ward.D2", "single", "complete",
+#'                        "average", "mcquitty", "median" or "centroid".
 #' @param  ...            Any additional parameters to be passed
 #'                        to dtwclust::tsclust() function.
-#' @return                Full dendrogram tree for data analysis.
+#' @return                Full dendrogram tree for data analysis
+#'                        (class "dendrogram")
 #'
 .cluster_dendrogram <- function(samples,
                                 bands,
@@ -73,7 +78,7 @@
     # verifies if dtwclust package is installed
     .check_require_packages("dtwclust")
     # get the values of the time series
-    values <- sits_values(samples, bands, format = "cases_dates_bands")
+    values <- .values_ts(samples, bands, format = "cases_dates_bands")
     # call dtwclust and get the resulting dendrogram
     dendro <- dtwclust::tsclust(
         values,
@@ -87,7 +92,7 @@
     return(dendro)
 }
 #' @title Compute validity indexes to a range of cut height
-#' @name .sits_cluster_dendro_bestcut
+#' @name .cluster_dendro_bestcut
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -130,6 +135,12 @@
     best_cut <- structure(c(k_result, h_result), .Names = c("k", "height"))
     return(best_cut)
 }
+#' @title Compute Rand index for cluster table
+#' @name .cluster_rand_index
+#' @noRd
+#' @param x a cluster produced by dtwclust::tsclust
+#' @param correct use best calculation
+#' @return Rand index for cluster
 .cluster_rand_index <- function(x, correct = TRUE) {
     if (length(dim(x)) != 2) {
         stop("Argument x needs to be a 2-dimensional table.")

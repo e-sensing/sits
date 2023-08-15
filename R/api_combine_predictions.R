@@ -1,4 +1,21 @@
-#---- internal functions ----
+#' @title Estimate ensemble prediction based on list of probs cubes
+#'
+#' @name  .comb
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  probs_cubes   List of probability data cubes.
+#' @param  uncert_cubes  List of uncertainty cubes to be used as local weights.
+#' @param  comb_fn       Method to combine cubes
+#' @param  band          Band to be processed
+#' @param  memsize       Maximum overall memory (in GB) to run the
+#'                       function.
+#' @param  multicores    Number of cores to run the function.
+#' @param  output_dir    Output directory for image files.
+#' @param  version       Version of resulting image.
+#' @param  progress      Show progress bar?
+#' @return A combined probability cube
 .comb <- function(probs_cubes,
                   uncert_cubes,
                   comb_fn,
@@ -56,6 +73,21 @@
     })
     probs_cube
 }
+#' @title Estimate ensemble prediction for tile-band-block combinations
+#' @name  .comb_tiles
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  probs_tiles   List of probability tiles.
+#' @param  uncert_cubes  List of uncertainty tiles.
+#' @param  band          Band to be processed
+#' @param  comb_fn       Method to combine cubes
+#' @param  block_size    Size of block to be processed
+#' @param  output_dir    Output directory for image files.
+#' @param  version       Version of resulting image.
+#' @param  progress      Show progress bar?
+#' @return A combined tile-band-block raster object
 .comb_tiles <- function(probs_tiles,
                         uncert_tiles,
                         band,
@@ -174,6 +206,15 @@
     probs_tile
 }
 #---- combine functions ----
+#' @title Combine probs tiles by average value
+#' @name  .comb_fn_average
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cubes         List of probability cubes.
+#' @param  weights       Weights for weigthed average
+#' @return A combined tile-band-block raster object
 .comb_fn_average <- function(cubes, weights) {
     # Average probability calculation
     comb_fn <- function(values, uncert_values = NULL) {
@@ -195,6 +236,14 @@
     }
     comb_fn
 }
+#' @title Combine probs tiles by uncertainty
+#' @name  .comb_fn_uncertainty
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cubes         List of probability cubes.
+#' @return A combined tile-band-block raster object
 .comb_fn_uncertainty <- function(cubes) {
     # Average probability calculation
     comb_fn <- function(values, uncert_values) {

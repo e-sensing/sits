@@ -7,16 +7,18 @@
 #'              of the logit of the probability,
 #'              to support the choice of parameters for Bayesian smoothing.
 #'
-#' @param  cube              Probability data cube.
-#' @param  window_size       Size of the neighborhood.
+#' @param  cube              Probability data cube (class "probs_cube")
+#' @param  window_size       Size of the neighborhood (odd integer)
 #' @param  neigh_fraction    Fraction of neighbors with highest probability
-#'                           to be used in Bayesian inference.
-#' @param  multicores        Number of cores to run the smoothing function
+#'                           for Bayesian inference (numeric from 0.0 to 1.0)
 #' @param  memsize           Maximum overall memory (in GB) to run the
-#'                           smoothing.
+#'                           smoothing (integer, min = 1, max = 16384)
+#' @param  multicores        Number of cores to run the smoothing function
+#'                           (integer, min = 1, max = 2048)
 #' @param  output_dir        Output directory for image files
+#'                           (character vector of length 1)
 #' @param  version           Version of resulting image
-#'                           (in the case of multiple tests)
+#'                           (character vector of length 1)
 #'
 #' @return A variance data cube.
 #'
@@ -46,19 +48,41 @@
 #'     plot(var_cube)
 #' }
 #' @export
-sits_variance <- function(cube,
-                          window_size = 9,
-                          neigh_fraction = 0.5,
-                          multicores = 2,
-                          memsize = 4,
-                          output_dir,
-                          version = "v1") {
-    # Check if cube has probability data
-    .check_is_probs_cube(cube)
+sits_variance <- function(
+        cube,
+        window_size = 9L,
+        neigh_fraction = 0.5,
+        memsize = 4L,
+        multicores = 2L,
+        output_dir,
+        version = "v1") {
+    # Check if cube has data and metadata
+    .check_cube_files(cube)
+    # check window size
+    .check_window_size(window_size, min = 3, max = 33)
+    # check neighborhood fraction
+    .check_num_parameter(neigh_fraction, min = 0., max = 1.0)
     # Check memsize
-    .check_memsize(memsize)
+    .check_memsize(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
+    # check output_dir
+    .check_output_dir(output_dir)
+    # check version
+    .check_version(version)
+    # Dispatch
+    UseMethod("sits_variance", cube)
+}
+#' @rdname sits_variance
+#' @export
+sits_variance.probs_cube <- function(
+        cube,
+        window_size = 9L,
+        neigh_fraction = 0.5,
+        memsize = 4L,
+        multicores = 2L,
+        output_dir,
+        version = "v1") {
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels
@@ -88,7 +112,7 @@ sits_variance <- function(cube,
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
     # Call the variance method
-    .variance(
+    variance_cube <- .variance(
         cube = cube,
         block = block,
         window_size = window_size,
@@ -98,4 +122,44 @@ sits_variance <- function(cube,
         output_dir = output_dir,
         version = version
     )
+    return(variance_cube)
+}
+#' @rdname sits_variance
+#' @export
+sits_variance.raster_cube <- function(cube, window_size = 7L,
+                                      neigh_fraction = 0.5,
+                                      memsize = 4L, multicores = 2L,
+                                      output_dir, version = "v1") {
+    stop("Input should be a probability cube")
+    return(cube)
+}
+#' @rdname sits_variance
+#' @export
+sits_variance.derived_cube <- function(cube, window_size = 7L,
+                                       neigh_fraction = 0.5,
+                                       memsize = 4L, multicores = 2L,
+                                       output_dir, version = "v1") {
+    stop("Input should be a probability cube")
+    return(cube)
+}
+#' @rdname sits_variance
+#' @export
+sits_variance.tbl_df <- function(cube, window_size = 7L, neigh_fraction = 0.5,
+                                 memsize = 4L, multicores = 2L,
+                                 output_dir, version = "v1") {
+    cube <- tibble::as_tibble(cube)
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
+        cube <- .cube_find_class(cube)
+    } else
+        stop("Input should be a data cube")
+    variance_cube <- sits_variance(cube, window_size, neigh_fraction,
+        memsize, multicores, output_dir, version)
+    return(variance_cube)
+}
+#' @rdname sits_variance
+#' @export
+sits_variance.default <- function(cube, window_size = 7L, neigh_fraction = 0.5,
+                                  memsize = 4L, multicores = 2L,
+                                  output_dir, version = "v1") {
+    stop("Input should be a probability cube")
 }

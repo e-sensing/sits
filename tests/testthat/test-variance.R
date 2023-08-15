@@ -20,7 +20,7 @@ test_that("One-year, single core classification", {
     # smooth the probability cube using Bayesian statistics
     var_cube <- sits_variance(probs_cube, output_dir = tempdir())
     # check is variance cube
-    expect_true(.check_is_variance_cube(var_cube))
+    .check_is_variance_cube(var_cube)
 
     r_obj <- .raster_open_rast(var_cube$file_info[[1]]$path[[1]])
 

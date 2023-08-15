@@ -117,7 +117,7 @@ Please refer to the sits documentation available in
 if (sits_run_examples()) {
     # view samples
     sits_view(cerrado_2classes)
-    . # create a local data cube
+    # create a local data cube
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     modis_cube <- sits_cube(
         source = "BDC",
@@ -130,7 +130,7 @@ if (sits_run_examples()) {
     )
     # train a model
     rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
-    . # classify the cube
+    # classify the cube
     modis_probs <- sits_classify(
         data = modis_cube,
         ml_model = rf_model,
@@ -143,9 +143,9 @@ if (sits_run_examples()) {
         modis_probs,
         output_dir = tempdir()
     )
-    . # view the classified map
+    # view the classified map
     sits_view(modis_label)
-    . # view the classified map with the B/W image
+    # view the classified map with the B/W image
     sits_view(modis_cube,
         band = "NDVI",
         class_cube = modis_label,
@@ -171,7 +171,7 @@ if (sits_run_examples()) {
         tile = "012010",
         bands = "NDVI",
         date = sits_timeline(modis_cube)[1],
-        seg_fn = sits_slic(step = 20)
+        seg_fn = sits_supercells(step = 20)
     )
     # view image and segments
     sits_view(
@@ -201,11 +201,11 @@ if (sits_run_examples()) {
         samples = segments
     )
     # train a model
-    tcnn_model <- sits_train(samples_modis_ndvi, sits_tempcnn())
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
     # classify the segments
     seg_class <- sits_classify(
         data = samples_seg,
-        ml_model = tcnn_model
+        ml_model = rfor_model
     )
 
     # add a column to the segments by class

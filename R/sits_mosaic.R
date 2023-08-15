@@ -92,11 +92,12 @@ sits_mosaic <- function(cube,
     # Pre-conditions
     .check_is_raster_cube(cube)
     .check_crs(crs)
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
     .check_version(version)
     .check_progress(progress)
-
+    # version is case-insensitive in sits
+    version <- tolower(version)
     # Spatial filter
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)

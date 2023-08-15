@@ -67,7 +67,8 @@
 #'     # get the average value per segment
 #'     samples_seg <- sits_get_data(
 #'         cube = cube,
-#'         samples = segments
+#'         samples = segments,
+#'         n_sam_pol = 10
 #'     )
 #'     # classify the segments
 #'     seg_class <- sits_classify(
@@ -177,13 +178,13 @@ sits_segment <- function(cube,
 #'                      "jsd", "dtw", and any distance function from the
 #'                      \code{philentropy} package.
 #'                      See \code{philentropy::getDistMethods()}.
-#'                      Default: "euclidean"
+#'                      Default: "dtw"
 #' @param avg_fun       Averaging function to calculate the values
 #'                      of the supercells' centers.
 #'                      Accepts any fitting R function
 #'                      (e.g., base::mean() or stats::median())
 #'                      or one of internally implemented "mean" and "median".
-#'                      Default: "mean"
+#'                      Default: "median"
 #' @param iter          Number of iterations to create the output.
 #' @param minarea       Specifies the minimal size of a supercell (in cells).
 #' @param verbose       Show the progress bar?
@@ -303,9 +304,7 @@ sits_slic <- function(data = NULL,
         v_obj[["x"]] <- as.vector(v_ext)[[1]] + xres
         v_obj[["y"]] <- as.vector(v_ext)[[4]] - yres
         # Get only polygons segments
-        v_obj <- suppressWarnings(
-            sf::st_collection_extract(v_obj, "POLYGON")
-        )
+        v_obj <- suppressWarnings(sf::st_collection_extract(v_obj, "POLYGON"))
         # Return the segment object
         return(v_obj)
     }
@@ -344,7 +343,7 @@ sits_slic <- function(data = NULL,
 #'         tile = "012010",
 #'         bands = "NDVI",
 #'         date = sits_timeline(cube)[1],
-#'         seg_fn = sits_slic(step = 10)
+#'         seg_fn = sits_supercells(step = 10)
 #'     )
 #'     # create a classification model
 #'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -377,8 +376,19 @@ sits_join_segments <- function(data, segments) {
     )
     # select polygon_id and class for the time series tibble
     data_id <- data |>
+        dplyr::select("polygon_id", "predicted") |>
         tidyr::unnest(cols = "predicted") |>
-        dplyr::select(dplyr::all_of(c("polygon_id", "class")))
+        dplyr::group_by(.data[["polygon_id"]])
+
+    labels <- setdiff(colnames(data_id), c("polygon_id", "from", "to", "class"))
+
+    data_id <- data_id |>
+        dplyr::summarise(dplyr::across(.cols = dplyr::all_of(labels), sum)) |>
+        dplyr::rowwise() |>
+        dplyr::mutate(class = labels[which.max(
+            dplyr::c_across(dplyr::all_of(labels)))]) |>
+        dplyr::mutate(polygon_id = as.numeric(.data[["polygon_id"]]))
+
     # join the data_id tibble with the segments (sf objects)
     segments_tile <- purrr::map(segments, function(seg) {
         dplyr::left_join(seg, data_id, by = c("supercells" = "polygon_id"))

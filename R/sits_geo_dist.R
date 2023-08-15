@@ -17,13 +17,15 @@
 #' Nature Communications 13, 2208 (2022).
 #' https://doi.org/10.1038/s41467-022-29838-9
 #'
-#' @param samples A \code{samples} training data set.
-#' @param roi     A region of interest (ROI) used to extract random
-#'   predicted points.
-#' @param n       Maximum number of samples to consider.
+#' @param samples Time series (tibble of class "sits").
+#' @param roi     A region of interest (ROI), either a file containing a
+#'                shapefile or an "sf" object
+#' @param n       Maximum number of samples to consider
+#'                (integer)
 #' @param crs     CRS of the \code{samples}.
 #'
-#' @return A tibble with sample-to-sample and sample-to-prediction distances.
+#' @return A tibble with sample-to-sample and sample-to-prediction distances
+#'         (object of class "distances").
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -43,9 +45,9 @@
 #' }
 #' @export
 #'
-sits_geo_dist <- function(samples, roi, n = 1000, crs = "EPSG:4326") {
+sits_geo_dist <- function(samples, roi, n = 1000L, crs = "EPSG:4326") {
     # Pre-conditions
-    .check_samples(samples)
+    samples <- .check_samples(samples)
     if (.has(roi)) {
         roi <- .roi_as_sf(roi = roi, as_crs = "EPSG:4326")
     }

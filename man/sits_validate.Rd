@@ -12,14 +12,16 @@ sits_validate(
 )
 }
 \arguments{
-\item{samples}{Time series set to be validated.}
+\item{samples}{Time series to be validated (class "sits").}
 
-\item{samples_validation}{Time series set used for validation.}
+\item{samples_validation}{Optional: Time series used for validation
+(class "sits")}
 
 \item{validation_split}{Percent of original time series set to be used
-for validation (if samples_validation is NULL)}
+for validation if samples_validation is NULL
+(numeric value).}
 
-\item{ml_method}{Machine learning method.}
+\item{ml_method}{Machine learning method (function)}
 }
 \value{
 A \code{caret::confusionMatrix} object to be used for
@@ -42,7 +44,18 @@ This function returns the confusion matrix, and Kappa values.
 }
 \examples{
 if (sits_run_examples()) {
-    conf_matrix <- sits_validate(cerrado_2classes)
+    samples <- sits_sample(cerrado_2classes, frac = 0.5)
+    samples_validation <- sits_sample(cerrado_2classes, frac = 0.5)
+    conf_matrix_1 <- sits_validate(
+         samples = samples,
+         samples_validation = samples_validation,
+         ml_method = sits_rfor()
+   )
+   conf_matrix_2 <- sits_validate(
+         samples = cerrado_2classes,
+         validation_split = 0.2,
+         ml_method = sits_rfor()
+   )
 }
 }
 \author{

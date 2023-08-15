@@ -61,8 +61,8 @@ test_that("Mixture model tests", {
     r_obj <- .raster_open_rast(mm_rmse$file_info[[1]]$path[[2]])
     expect_true(.raster_nrows(r_obj) == .tile_nrows(reg_cube))
 
-    write.csv(em, file = paste0(tempdir(),"/mmodel.csv"),  row.names = FALSE)
-    csv_file <- paste0(tempdir(),"/mmodel.csv")
+    write.csv(em, file = paste0(tempdir(), "/mmodel.csv"),  row.names = FALSE)
+    csv_file <- paste0(tempdir(), "/mmodel.csv")
 
     # Read endmembers from CSV
     mm_rmse_csv <- sits_mixture_model(

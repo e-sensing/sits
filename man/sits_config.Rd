@@ -4,30 +4,14 @@
 \alias{sits_config}
 \title{Configure parameters for sits package}
 \usage{
-sits_config(
-  processing_bloat = NULL,
-  rstac_pagination_limit = NULL,
-  gdal_creation_options = NULL,
-  gdalcubes_chunk_size = NULL,
-  reset = FALSE
-)
+sits_config(config_user_file = NULL)
 }
 \arguments{
-\item{processing_bloat}{Estimated growth size of R memory relative
-to block size.}
-
-\item{rstac_pagination_limit}{Limit of number of items returned by STAC.}
-
-\item{gdal_creation_options}{GDAL creation options for GeoTiff.}
-
-\item{gdalcubes_chunk_size}{Chunk size to be used by gdalcubes}
-
-\item{reset}{Should current configuration options be
-cleaned before loading config files?
-Default is \code{FALSE}.}
+\item{config_user_file}{YAML user configuration file
+(character vector of a file with "yml" extension)}
 }
 \value{
-A list containing the current configuration options.
+Called for side effects
 }
 \description{
 These functions load and show sits configurations.
@@ -38,20 +22,20 @@ This includes information about the image collections handled by `sits`.
 
 \code{sits_config()} loads the default configuration file and
 the user provided configuration file. The final configuration is
-obtained by overriding the options by the values provided in
-\code{processing_bloat}, \code{rstac_pagination_limit},
-\code{gdal_creation_options} and \code{gdalcubes_chunk_size}
+obtained by overriding the options by the values provided by the user.
 }
 \details{
 Users can provide additional configuration files, by specifying the
 location of their file in the environmental variable
-\code{SITS_CONFIG_USER_FILE}.
+\code{SITS_CONFIG_USER_FILE} or as parameter to this function.
 
 To see the key entries and contents of the current configuration values,
 use \code{sits_config_show()}.
 }
 \examples{
-current_config <- sits_config()
+yaml_user_file <- system.file("extdata/config_user_example.yml",
+                  package = "sits")
+sits_config(config_user_file = yaml_user_file)
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

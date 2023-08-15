@@ -4,6 +4,9 @@
 \alias{sits_apply}
 \alias{sits_apply.sits}
 \alias{sits_apply.raster_cube}
+\alias{sits_apply.derived_cube}
+\alias{sits_apply.tbl_df}
+\alias{sits_apply.default}
 \title{Apply a function on a set of time series}
 \usage{
 sits_apply(data, ...)
@@ -13,12 +16,18 @@ sits_apply(data, ...)
 \method{sits_apply}{raster_cube}(
   data,
   ...,
-  window_size = 3,
-  memsize = 1,
-  multicores = 2,
+  window_size = 3L,
+  memsize = 4L,
+  multicores = 2L,
   output_dir,
   progress = FALSE
 )
+
+\method{sits_apply}{derived_cube}(data, ...)
+
+\method{sits_apply}{tbl_df}(data, ...)
+
+\method{sits_apply}{default}(data, ...)
 }
 \arguments{
 \item{data}{Valid sits tibble or cube}

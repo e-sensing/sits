@@ -5,31 +5,30 @@
 #' @description This function returns the timeline for a given data set, either
 #'              a set of time series, a data cube, or a trained model.
 #'
-#' @param  data     either a sits tibble, a data cube, or a trained model.
-#'
-#' @return      Timeline of sample set or of data cube.
+#' @param  data  Tibble of class "sits" or class "raster_cube"
+#' @return       Vector of class Date with timeline of samples or data cube.
 #'
 #' @examples
 #' sits_timeline(samples_modis_ndvi)
 #' @export
 sits_timeline <- function(data) {
-    .check_set_caller("sits_timeline")
-    # get the meta-type (sits or cube)
-    data <- .conf_data_meta_type(data)
     UseMethod("sits_timeline", data)
 }
+#' @rdname sits_timeline
 #' @export
 #'
 sits_timeline.sits <- function(data) {
-    return(data$time_series[[1]]$Index)
+    return(as.Date(data$time_series[[1]]$Index))
 }
+#' @rdname sits_timeline
 #' @export
 #'
 sits_timeline.sits_model <- function(data) {
     .check_is_sits_model(data)
     samples <- .ml_samples(data)
-    return(samples$time_series[[1]]$Index)
+    return(as.Date(samples$time_series[[1]]$Index))
 }
+#' @rdname sits_timeline
 #' @export
 #'
 sits_timeline.raster_cube <- function(data) {
@@ -52,10 +51,30 @@ sits_timeline.raster_cube <- function(data) {
         return(timelines.lst)
     }
 }
+#' @rdname sits_timeline
 #' @export
 #'
 sits_timeline.derived_cube <- function(data) {
     # return the timeline of the cube
     timeline <- .tile_timeline(data)
     return(timeline)
+}
+#' @rdname sits_timeline
+#' @export
+sits_timeline.tbl_df <- function(data) {
+    data <- tibble::as_tibble(data)
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        data <- .cube_find_class(data)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else
+        stop("Input should be a sits tibble or a data cube")
+    data <- sits_timeline(data)
+    return(data)
+}
+#' @rdname sits_timeline
+#' @export
+#'
+sits_timeline.default <- function(data) {
+    stop("input should be an object of class cube or class sits")
 }

@@ -3,36 +3,73 @@
 \name{sits_labels}
 \alias{sits_labels}
 \alias{sits_labels.sits}
+\alias{sits_labels.derived_cube}
 \alias{sits_labels.raster_cube}
 \alias{sits_labels.patterns}
 \alias{sits_labels.sits_model}
+\alias{sits_labels.tbl_df}
+\alias{sits_labels.default}
+\alias{sits_labels<-.tbl_df}
 \title{Get labels associated to a data set}
 \usage{
 sits_labels(data)
 
 \method{sits_labels}{sits}(data)
 
+\method{sits_labels}{derived_cube}(data)
+
 \method{sits_labels}{raster_cube}(data)
 
 \method{sits_labels}{patterns}(data)
 
 \method{sits_labels}{sits_model}(data)
+
+\method{sits_labels}{tbl_df}(data)
+
+\method{sits_labels}{default}(data)
+
+\method{sits_labels}{tbl_df}(data) <- value
 }
 \arguments{
-\item{data}{Time series or a cube.}
+\item{data}{Time series (tibble of class "sits"),
+patterns (tibble of class "patterns"),
+data cube (tibble of class "raster_cube"), or
+model (closure of class "sits_model").}
+
+\item{value}{A character vector used to convert labels. Labels will
+be renamed to the respective value positioned at the
+labels order returned by \code{\link{sits_labels}}.}
 }
 \value{
-The labels associated to a set of time series or to
-                 a data cube.
+The labels of the input data (character vector).
 }
 \description{
 Finds labels in a sits tibble or data cube
 }
 \examples{
-# read a tibble with 400 samples of Cerrado and 346 samples of Pasture
-data(cerrado_2classes)
-# print the labels
-sits_labels(cerrado_2classes)
+if (sits_run_examples()) {
+    # get the labels for a time series set
+    labels_ts <- sits_labels(samples_modis_ndvi)
+    # get labels for a set of patterns
+    labels_pat <- sits_labels(sits_patterns(samples_modis_ndvi))
+    # create a random forest model
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+    # get lables for the model
+    labels_mod <- sits_labels(rfor_model)
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
+    )
+    # classify a data cube
+    probs_cube <- sits_classify(
+        data = cube, ml_model = rfor_model, output_dir = tempdir()
+    )
+    # get the labels for a probs cube
+    labels_probs <- sits_labels(probs_cube)
+}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

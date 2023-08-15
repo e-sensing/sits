@@ -75,7 +75,7 @@
         update_bbox <- nrow(chunks) != nchunks
     }
     # Compute fractions probability
-    probs_fractions <- 1/length(.ml_labels(ml_model))
+    probs_fractions <- 1 / length(.ml_labels(ml_model))
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -281,7 +281,7 @@
         samples <- .samples_select_bands(samples = samples, bands = bands)
     }
     # Apply time series filter
-    if (.has(filter_fn)) {
+    if (!purrr::is_null(filter_fn)) {
         samples <- .apply_across(data = samples, fn = filter_fn)
     }
     # Compute the breaks in time for multiyear classification
