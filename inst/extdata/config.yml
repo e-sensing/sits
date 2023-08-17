@@ -43,6 +43,8 @@ leaflet_max_megabytes : 512
 leaflet_comp_factor : 0.50
 # sample size
 summary_sample_size : 10000
+# get data strategy
+n_samples_to_split: 20000
 # BDC access key
 BDC_ACCESS_KEY: "gsLxTlcbO7tu7tMEOVWKD6YkJDhlNz7iwkRN2XZf55"
 HLS_ACCESS_URL: "machine.urs.earthdata.nasa.gov"
