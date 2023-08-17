@@ -1081,3 +1081,35 @@ NULL
 .cube_is_token_expired.default <- function(cube) {
     return(FALSE)
 }
+
+.cube_split_tiles_bands <- function(cube, bands) {
+    # All combinations between tiles and bands
+    tiles_bands <- tidyr::expand_grid(
+        tile = .cube_tiles(cube),
+        band = bands
+    )
+    # Generate a list combined by tiles and bands
+    tiles_bands <- purrr::pmap(tiles_bands, function(tile, band) {
+        return(list(tile, band))
+    })
+    # Return a list of combinations
+    return(tiles_bands)
+}
+
+.cube_split_chunks_samples <- function(cube, samples) {
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    cube_chunks <- slider::slide_dfr(cube, function(tile) {
+        chunks <- .tile_chunks_create(
+            tile = tile,
+            overlap = 0,
+            block = block
+        )
+        chunks_sf <- .bbox_as_sf(
+            .bbox(chunks, by_feature = TRUE), as_crs = sf::st_crs(samples)
+        )
+        chunks_sf <- chunks_sf[.intersects(chunks_sf, samples), ]
+        tile_chunks[["tile"]] <- tile[["tile"]]
+        return(tile_chunks)
+    })
+    return(cube_chunks)
+}

@@ -103,12 +103,9 @@
 #'
 #' @export
 sits_get_data <- function(cube,
-                          samples = NULL,
-                          ...,
-                          start_date = as.Date(sits_timeline(cube)[1]),
-                          end_date = as.Date(
-                              sits_timeline(cube)[length(sits_timeline(cube))]
-                          ),
+                          samples = NULL, ...,
+                          start_date = NULL,
+                          end_date = NULL,
                           label = "NoClass",
                           bands = sits_bands(cube),
                           crs = 4326L,
@@ -141,8 +138,7 @@ sits_get_data.default <- function(cube, samples, ...) {
 #' @rdname sits_get_data
 #' @export
 sits_get_data.csv <- function(cube,
-                              samples,
-                              ...,
+                              samples, ...,
                               bands = sits_bands(cube),
                               crs = 4326L,
                               multicores = 2,
@@ -162,12 +158,10 @@ sits_get_data.csv <- function(cube,
 #' @rdname sits_get_data
 #' @export
 sits_get_data.shp <- function(cube,
-                              samples,
-                              ...,
+                              samples, ...,
                               label = "NoClass",
-                              start_date = as.Date(sits_timeline(cube)[1]),
-                              end_date = as.Date(sits_timeline(cube)
-                                                 [length(sits_timeline(cube))]),
+                              start_date = NULL,
+                              end_date = NULL,
                               bands = sits_bands(cube),
                               label_attr = NULL,
                               n_sam_pol = 30,
@@ -175,12 +169,15 @@ sits_get_data.shp <- function(cube,
                               pol_id = NULL,
                               multicores = 2,
                               progress = FALSE) {
-    # pre-condition - shapefile should have an id parameter
+    # Pre-condition - shapefile should have an id parameter
     .check_that(
         !(pol_avg && purrr::is_null(pol_id)),
         msg = "invalid 'pol_id' parameter."
     )
-    # extract a data frame from shapefile
+    # Get default start and end date
+    start_date <- .default(start_date, .cube_start_date(cube))
+    end_date <- .default(end_date, .cube_end_date(cube))
+    # Extract a data frame from shapefile
     samples <- .shp_get_samples(
         shp_file    = samples,
         label       = label,
@@ -190,7 +187,7 @@ sits_get_data.shp <- function(cube,
         n_shp_pol   = n_sam_pol,
         shp_id      = pol_id
     )
-    # extract time series from a cube given a data.frame
+    # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
         samples    = samples,
