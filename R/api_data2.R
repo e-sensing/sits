@@ -183,35 +183,29 @@
                                 progress) {
     # Get cube timeline
     tl <- sits_timeline(cube)
-    # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
-    # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
-
-
-    tiles_bands <- .cube_split_tiles_bands(cube = cube, bands = bands)
+    # Get chunks samples
+    chunks_samples <- .cube_split_chunks_samples(cube = cube, samples = samples)
     # Set output_dir
     output_dir <- tempdir()
     if (Sys.getenv("SITS_SAMPLES_CACHE_DIR") != "") {
         output_dir <- Sys.getenv("SITS_SAMPLES_CACHE_DIR")
     }
-    # To avoid open more process than tiles and bands combinations
-    if (multicores > length(tiles_bands)) {
-        multicores <- length(tiles_bands)
+    # To avoid open more process than chunks and samples combinations
+    if (multicores > length(chunks_samples)) {
+        multicores <- length(chunks_samples)
     }
     # Prepare parallelization
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
     # Get the samples in parallel using tile-band combination
-    samples_tiles_bands <- .parallel_map(tiles_bands, function(tile_band) {
-        tile_id <- tile_band[[1]]
-        band <- tile_band[[2]]
-
+    samples_tiles_bands <- .parallel_map(chunks_samples, function(chunk) {
         tile <- sits_select(
             data = cube,
-            bands = c(band, cld_band),
-            tiles = tile_id
+            bands = c(bands, cld_band),
+            tiles = chunk[["tile"]]
         )
+        # Get chunk samples
+        samples <- chunk[["samples"]]
         hash_bundle <- digest::digest(list(tile, samples), algo = "md5")
         # Create a file to store the samples
         filename <- .file_path(
@@ -281,7 +275,7 @@
             xy = xy,
             cld_band = cld_band
         )
-        ts[["tile"]] <- tile_id
+        ts[["tile"]] <- chunk[["tile"]]
         ts[["#..id"]] <- seq_len(nrow(ts))
         saveRDS(ts, filename)
         return(ts)
@@ -356,5 +350,3 @@
     }
     return(ts_tbl)
 }
-
-

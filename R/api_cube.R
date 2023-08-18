@@ -1098,7 +1098,7 @@ NULL
 
 .cube_split_chunks_samples <- function(cube, samples) {
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
-    cube_chunks <- slider::slide_dfr(cube, function(tile) {
+    cube_chunks <- slider::slide(cube, function(tile) {
         chunks <- .tile_chunks_create(
             tile = tile,
             overlap = 0,
@@ -1108,8 +1108,12 @@ NULL
             .bbox(chunks, by_feature = TRUE), as_crs = sf::st_crs(samples)
         )
         chunks_sf <- chunks_sf[.intersects(chunks_sf, samples), ]
-        tile_chunks[["tile"]] <- tile[["tile"]]
-        return(tile_chunks)
+        chunks_sf[["tile"]] <- tile[["tile"]]
+        chunks_sf <- slider::slide(chunks_sf, function(chunk_sf) {
+            chunk_sf[["samples"]] <- list(samples[.within(samples, chunk_sf), ])
+            return(chunk_sf)
+        })
+        return(chunks_sf)
     })
     return(cube_chunks)
 }
