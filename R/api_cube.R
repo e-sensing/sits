@@ -1107,13 +1107,16 @@ NULL
         chunks_sf <- .bbox_as_sf(
             .bbox(chunks, by_feature = TRUE), as_crs = sf::st_crs(samples)
         )
+        chunks_sf <- dplyr::bind_cols(chunks_sf, chunks)
         chunks_sf <- chunks_sf[.intersects(chunks_sf, samples), ]
         chunks_sf[["tile"]] <- tile[["tile"]]
+        chunks_sf <- dplyr::group_by(chunks_sf, .data[["row"]], .drop = FALSE) |>
+            dplyr::summarise()
         chunks_sf <- slider::slide(chunks_sf, function(chunk_sf) {
             chunk_sf[["samples"]] <- list(samples[.within(samples, chunk_sf), ])
             return(chunk_sf)
         })
         return(chunks_sf)
     })
-    return(cube_chunks)
+    return(unlist(cube_chunks, recursive = FALSE))
 }

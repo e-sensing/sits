@@ -205,7 +205,7 @@
             tiles = chunk[["tile"]]
         )
         # Get chunk samples
-        samples <- chunk[["samples"]]
+        samples <- chunk[["samples"]][[1]]
         hash_bundle <- digest::digest(list(tile, samples), algo = "md5")
         # Create a file to store the samples
         filename <- .file_path(
@@ -271,7 +271,7 @@
         ts <- .ts_get_raster_data(
             tile = tile,
             points = samples_tbl,
-            bands = band,
+            bands = bands,
             xy = xy,
             cld_band = cld_band
         )
