@@ -347,7 +347,6 @@ sits_get_data.segs_cube <- function(cube,
         data <- .segments_get_data(
             cube = cube,
             bands = bands,
-            aggreg_fn = aggreg_fn,
             pol_id = pol_id,
             multicores = multicores,
             progress = progress

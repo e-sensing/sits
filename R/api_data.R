@@ -53,6 +53,7 @@
             cube = cube,
             samples = samples,
             bands = bands,
+            cld_band = cld_band,
             multicores = multicores,
             progress = progress
         )
