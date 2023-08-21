@@ -325,10 +325,14 @@
         dplyr::slice_head(n = 1) |>
         dplyr::ungroup()
     # recreate hash values
-    hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
-        tile_id <- tile_band[[1]]
-        band <- tile_band[[2]]
-        tile <- sits_select(cube, bands = c(band, cld_band), tiles = tile_id)
+    hash_bundle <- purrr::map_chr(chunks_samples, function(chunk) {
+        tile <- sits_select(
+            data = cube,
+            bands = c(bands, cld_band),
+            tiles = chunk[["tile"]]
+        )
+        # Get chunk samples
+        samples <- chunk[["samples"]][[1]]
         digest::digest(list(tile, samples), algo = "md5")
     })
     # recreate file names to delete them

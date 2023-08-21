@@ -1110,8 +1110,8 @@ NULL
         chunks_sf <- dplyr::bind_cols(chunks_sf, chunks)
         chunks_sf <- chunks_sf[.intersects(chunks_sf, samples), ]
         chunks_sf[["tile"]] <- tile[["tile"]]
-        chunks_sf <- dplyr::group_by(chunks_sf, .data[["row"]], .drop = FALSE) |>
-            dplyr::summarise()
+        chunks_sf <- dplyr::group_by(chunks_sf, .data[["row"]], .data[["tile"]])
+        chunks_sf <- dplyr::summarise(chunks_sf)
         chunks_sf <- slider::slide(chunks_sf, function(chunk_sf) {
             chunk_sf[["samples"]] <- list(samples[.within(samples, chunk_sf), ])
             return(chunk_sf)
