@@ -279,9 +279,7 @@
         ts[["#..id"]] <- seq_len(nrow(ts))
         saveRDS(ts, filename)
         return(ts)
-    },
-    progress = progress
-    )
+    }, progress = progress)
     # bind rows to get a melted tibble of samples
     ts_tbl <- dplyr::bind_rows(samples_tiles_bands)
     if (!.has_ts(ts_tbl)) {

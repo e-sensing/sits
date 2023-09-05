@@ -47,7 +47,7 @@
         cld_band <- NULL
     }
     # define parallelization strategy
-    # 1st case - ...
+    # 1st case - split samples by chunks
     if (nrow(samples) > .conf("n_samples_to_split")) {
         ts_tbl <- .get_data_by_chunks(
             cube = cube,
@@ -59,7 +59,7 @@
         )
         return(ts_tbl)
     }
-    # 2nd case - ...
+    # 2nd case - split samples by bands and tile
     ts_tbl <- .get_data_by_tile(
         cube = cube,
         samples = samples,
