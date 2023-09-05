@@ -123,6 +123,7 @@ sits_get_data <- function(cube,
     .check_crs(crs)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
+    samples <- .default(samples, cube)
     if (is.character(samples)) {
         class(samples) <- c(.file_ext(samples), class(samples))
     }
@@ -143,8 +144,9 @@ sits_get_data.csv <- function(cube,
                               crs = 4326L,
                               multicores = 2,
                               progress = FALSE) {
-    # Get samples
+    # Extract a data frame from csv
     samples <- .csv_get_samples(samples)
+    # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
         samples    = samples,
@@ -206,10 +208,9 @@ sits_get_data.shp <- function(cube,
 sits_get_data.sf <- function(cube,
                              samples,
                              ...,
+                             start_date = NULL,
+                             end_date = NULL,
                              bands = sits_bands(cube),
-                             start_date = as.Date(sits_timeline(cube)[1]),
-                             end_date = as.Date(sits_timeline(cube)
-                                                [length(sits_timeline(cube))]),
                              label = "NoClass",
                              label_attr = NULL,
                              n_sam_pol = 30,
@@ -223,7 +224,10 @@ sits_get_data.sf <- function(cube,
         with the id for each polygon and include
         this column name in the 'pol_id' parameter."
     )
-    # extract a samples data.frame from sf object
+    # Get default start and end date
+    start_date <- .default(start_date, .cube_start_date(cube))
+    end_date <- .default(end_date, .cube_end_date(cube))
+    # Extract a samples data.frame from sf object
     samples <- .sf_get_samples(
         sf_object  = samples,
         label      = label,
@@ -233,7 +237,7 @@ sits_get_data.sf <- function(cube,
         n_sam_pol  = n_sam_pol,
         pol_id     = pol_id
     )
-    # extract time series from a cube given a data.frame
+    # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
         samples    = samples,
@@ -255,7 +259,7 @@ sits_get_data.sits <- function(cube,
                                bands = sits_bands(cube),
                                multicores = 2,
                                progress = FALSE) {
-    # extract time series from a cube given a data.frame
+    # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
         samples    = samples,
@@ -272,38 +276,36 @@ sits_get_data.sits <- function(cube,
 sits_get_data.data.frame <- function(cube,
                                      samples,
                                      ...,
-                                     start_date = as.Date(
-                                         sits_timeline(cube)[1]
-                                     ),
-                                     end_date = as.Date(
-                                         sits_timeline(cube)[
-                                             length(sits_timeline(cube))
-                                         ]
-                                     ),
-                                     label = "NoClass",
+                                     start_date = NULL,
+                                     end_date = NULL,
                                      bands = sits_bands(cube),
+                                     label = "NoClass",
                                      crs = 4326,
                                      multicores = 2,
                                      progress = FALSE) {
-    # check if samples contains all the required columns
+    # Check if samples contains all the required columns
     .check_chr_contains(
         x = colnames(samples),
         contains = c("latitude", "longitude"),
         discriminator = "all_of",
         msg = "missing lat/long information in data frame"
     )
-    # fill missing columns
-    if (!("label" %in% colnames(samples))) {
+    # Get default start and end date
+    start_date <- .default(start_date, .cube_start_date(cube))
+    end_date <- .default(end_date, .cube_end_date(cube))
+    # Fill missing columns
+    if (!.has_column(samples, "label")) {
         samples$label <- label
     }
-    if (!("start_date" %in% colnames(samples))) {
+    if (!.has_column(samples, "start_date")) {
         samples$start_date <- start_date
     }
-    if (!("end_date" %in% colnames(samples))) {
+    if (!.has_column(samples, "end_date")) {
         samples$end_date <- end_date
     }
-    class(samples) <- c("sits", class(samples))
-    # extract time series from a cube given a data.frame
+    # Set samples class
+    samples <- .set_class(samples, c("sits", class(samples)))
+    # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
         samples    = samples,
@@ -330,13 +332,11 @@ sits_get_data.segs_cube <- function(cube,
         x = !(purrr::is_null(aggreg_fn) && purrr::is_null(n_sam_pol)),
         msg = "either aggreg_fun or n_sam_pol must not be both NULL"
     )
-    # TODO: refactor
     # extract time series from a cube from a set of segments
     # case 1 - one point per polygon with an aggregation function
-    if (purrr::is_null(n_sam_pol)) {
+    if (is.null(n_sam_pol)) {
         data <- .segments_get_summary(
             cube = cube,
-            segments = samples,
             bands = bands,
             aggreg_fn = aggreg_fn,
             pol_id = pol_id,
@@ -348,6 +348,7 @@ sits_get_data.segs_cube <- function(cube,
             cube = cube,
             bands = bands,
             pol_id = pol_id,
+            n_sam_pol = n_sam_pol,
             multicores = multicores,
             progress = progress
         )

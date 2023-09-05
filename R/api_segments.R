@@ -13,43 +13,44 @@
 #' @param progress   Show progress bar?
 #'
 .segments_get_summary <- function(cube,
-                                  segments,
                                   bands,
                                   aggreg_fn,
                                   pol_id,
                                   multicores,
                                   progress) {
-    # verify if exactextractr is installed
+    # Verify if exactextractr is installed
     .check_require_packages("exactextractr")
-    # get start and end dates
+    # Get start and end dates
     start_date <- .cube_start_date(cube)
     end_date <- .cube_end_date(cube)
+    # Get chunks samples
+    chunks_samples <- slider::slide(cube, function(tile) {
+        # Get segments from tile
+        samples <- .get_segments_from_cube(tile)
+        .cube_split_chunks_samples(cube = tile, samples = samples)
+    })
+    chunks_samples <- unlist(chunks_samples, recursive = FALSE)
 
-    # combine tiles and bands for parallel processing
-    tiles_bands <- tidyr::expand_grid(
-        tile = .cube_tiles(cube),
-        band = bands
-    ) |>
-        purrr::pmap(function(tile, band) {
-            return(list(tile, band))
-        })
-    # set output_dir
+    # Set output_dir
     output_dir <- tempdir()
-    if (nzchar(Sys.getenv("SITS_SAMPLES_CACHE_DIR"))) {
+    if (Sys.getenv("SITS_SAMPLES_CACHE_DIR") != "") {
         output_dir <- Sys.getenv("SITS_SAMPLES_CACHE_DIR")
     }
-    # prepare parallelization
-    multicores <- min(multicores, length(tiles_bands))
+    # To avoid open more process than chunks and samples combinations
+    if (multicores > length(chunks_samples)) {
+        multicores <- length(chunks_samples)
+    }
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
 
-    samples_tiles_bands <- .parallel_map(tiles_bands, function(tile_band) {
-        tile_id <- tile_band[[1]]
-        band <- tile_band[[2]]
-        # select a band for a tile
-        tile <- sits_select(cube, bands = band, tiles = tile_id)
-        # select tile segments
-        segs_tile <- .segment_read_vec(tile)
+    samples_tiles_bands <- .parallel_map(chunks_samples, function(chunk) {
+        tile <- sits_select(
+            data = cube,
+            bands = bands,
+            tiles = chunk[["tile"]]
+        )
+        # Get chunk segments
+        segs_tile <- chunk[["samples"]][[1]]
         # create hash for combination of tile and samples
         hash_bundle <- digest::digest(list(tile, segs_tile), algo = "md5")
         # create a file with a hash code
@@ -101,13 +102,13 @@
         # extract time series per tile and band
         ts <- .segments_get_ts(
             tile = tile,
-            band = band,
+            bands = bands,
             samples_tbl = samples_tbl,
             segs_tile = segs_tile,
             aggreg_fn = aggreg_fn
         )
 
-        ts[["tile"]] <- tile_id
+        ts[["tile"]] <- tile[["tile"]]
         ts[["#..id"]] <- seq_len(nrow(ts))
 
         return(ts)
@@ -183,7 +184,6 @@
 #' @description     Using the segments as polygons, get all time series
 #'
 #' @param cube       regular data cube
-#' @param segments   polygons produced by sits_segments
 #' @param bands      bands used in time series
 #' @param pol_id     ID attribute for polygons.
 #' @param n_sam_pol  Number of samples per polygon to be read.
@@ -191,7 +191,6 @@
 #' @param progress   Show progress bar?
 #'
 .segments_get_data <- function(cube,
-                               segments,
                                bands,
                                pol_id,
                                n_sam_pol,
@@ -200,12 +199,11 @@
     # extract a samples data.frame from sf object
     samples <- slider::slide_dfr(cube, function(tile) {
         samples_tile  <- .sf_get_samples(
-            sf_object  = segments[[.tile_name(tile)]],
+            sf_object  = tile[["vector_info"]][[1]],
             label      = "NoClass",
             label_attr = NULL,
-            start_date = as.Date(sits_timeline(cube)[1]),
-            end_date   = as.Date(sits_timeline(cube)
-                                 [length(sits_timeline(cube))]),
+            start_date = .cube_start_date(tile),
+            end_date   = .cube_end_date(tile),
             n_sam_pol  = n_sam_pol,
             pol_id     = pol_id
         )
@@ -229,37 +227,41 @@
 #' @description     Using the segments as polygons
 #'
 #' @param tile        Tile of regular data cube
-#' @param band        Band to extract time series
+#' @param bands       Bands to extract time series
 #' @param samples_tbl Samples tibble
 #' @param segs_tile   Polygons produced by sits_supercells for the tile
 #' @param aggreg_fn   Aggregation function to compute a summary of each segment
 #'
 .segments_get_ts <- function(tile,
-                             band,
+                             bands,
                              samples_tbl,
                              segs_tile,
                              aggreg_fn) {
-    # get the scale factors, max, min and missing values
-    band_params <- .tile_band_conf(tile, band)
-    missing_value <- .miss_value(band_params)
-    minimum_value <- .min_value(band_params)
-    maximum_value <- .max_value(band_params)
-    scale_factor <- .scale(band_params)
-    offset_value <- .offset(band_params)
-    # extract the values
-    values <- .tile_extract_segments(tile, band, segs_tile, aggreg_fn)
-    # adjust maximum and minimum values
-    values[values == missing_value] <- NA
-    values[values < minimum_value] <- NA
-    values[values > maximum_value] <- NA
-    # use linear imputation
-    impute_fn <- .impute_linear()
-    # are there NA values? interpolate them
-    if (any(is.na(values))) {
-        values <- impute_fn(values)
-    }
-    # correct the values using the scale factor
-    values <- values * scale_factor + offset_value
+
+    purrr::map(bands, function(band) {
+        # get the scale factors, max, min and missing values
+        band_params <- .tile_band_conf(tile, band)
+        missing_value <- .miss_value(band_params)
+        minimum_value <- .min_value(band_params)
+        maximum_value <- .max_value(band_params)
+        scale_factor <- .scale(band_params)
+        offset_value <- .offset(band_params)
+        # extract the values
+        values <- .tile_extract_segments(tile, band, segs_tile, aggreg_fn)
+        # adjust maximum and minimum values
+        values[values == missing_value] <- NA
+        values[values < minimum_value] <- NA
+        values[values > maximum_value] <- NA
+        # use linear imputation
+        impute_fn <- .impute_linear()
+        # are there NA values? interpolate them
+        if (any(is.na(values))) {
+            values <- impute_fn(values)
+        }
+        # correct the values using the scale factor
+        values <- values * scale_factor + offset_value
+    })
+
     # join new time series with previous values
     samples_tbl <- slider::slide2_dfr(
         samples_tbl, seq_len(nrow(samples_tbl)),
@@ -425,6 +427,12 @@
     colnames(values) <- .pred_features_name(tile_bands, .tile_timeline(tile))
     # Return values
     values
+}
+
+.get_segments_from_cube <- function(cube) {
+    slider::slide_dfr(cube, function(tile) {
+        .segment_read_vec(tile)
+    })
 }
 
 .segment_path <- function(cube) {

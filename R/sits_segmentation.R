@@ -95,7 +95,7 @@ sits_segment <- function(cube,
     # Preconditions
     .check_is_raster_cube(cube)
     .check_is_regular(cube)
-    .check_memsize(memsize)
+    .check_memsize(memsize, min = 1, max = 16384)
     .check_output_dir(output_dir)
     .check_version(version)
     .check_progress(progress)
