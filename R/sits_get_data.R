@@ -123,6 +123,7 @@ sits_get_data <- function(cube,
     .check_crs(crs)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
+    # In the case of extracting time series from segments
     samples <- .default(samples, cube)
     if (is.character(samples)) {
         class(samples) <- c(.file_ext(samples), class(samples))

@@ -151,10 +151,14 @@
 
     # recreate hash values
     hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
-        tile_id <- tile_band[[1]]
-        band <- tile_band[[2]]
-        tile <- sits_select(cube, bands = band, tiles = tile_id)
-        digest::digest(list(tile, segments), algo = "md5")
+        tile <- sits_select(
+            data = cube,
+            bands = c(bands, cld_band),
+            tiles = chunk[["tile"]]
+        )
+        # Get chunk samples
+        samples <- chunk[["samples"]][[1]]
+        digest::digest(list(tile, samples), algo = "md5")
     })
 
     # recreate file names to delete them
@@ -238,7 +242,7 @@
                              segs_tile,
                              aggreg_fn) {
 
-    purrr::map(bands, function(band) {
+    ts_bands <- purrr::map(bands, function(band) {
         # get the scale factors, max, min and missing values
         band_params <- .tile_band_conf(tile, band)
         missing_value <- .miss_value(band_params)
@@ -260,17 +264,24 @@
         }
         # correct the values using the scale factor
         values <- values * scale_factor + offset_value
+        # Returning extracted time series
+        return(values)
     })
+    # Now we have to transpose the data
+    ts_bands <- ts_bands |>
+        purrr::set_names(bands) |>
+        purrr::map(function(x) t(tibble::as_tibble(x)))
 
     # join new time series with previous values
     samples_tbl <- slider::slide2_dfr(
         samples_tbl, seq_len(nrow(samples_tbl)),
         function(sample, i) {
             old_ts <- sample$time_series[[1]]
-            new_ts <- tibble::tibble(ts = values[i, ])
-            new_ts <- dplyr::bind_cols(old_ts, new_ts)
-            colnames(new_ts) <- c(colnames(old_ts), band)
-            sample$time_series[[1]] <- new_ts
+            new_ts <- purrr::map_depth(
+                ts_bands, 1, function(x) tibble::tibble(x[, i])
+            )
+            new_ts <- dplyr::bind_cols(new_ts, .name_repair = ~ bands)
+            sample$time_series[[1]] <- dplyr::bind_cols(old_ts, new_ts)
             return(sample)
         }
     )
