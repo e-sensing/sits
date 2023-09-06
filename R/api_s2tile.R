@@ -42,10 +42,11 @@
     # creates a list of simple features
     s2_sf_lst <- unique(s2_tb$epsg) |>
         purrr::map(function(x) {
-            dplyr::filter(s2_tb, epsg == x) |>
+            dplyr::filter(s2_tb, epsg == {{x}}) |>
                 dplyr::mutate(
                     xmax = xmin + 109800,
-                    ymax = ymin + 109800
+                    ymax = ymin + 109800,
+                    crs = paste0("EPSG:", {{x}})
                 ) |>
                 dplyr::rowwise() |>
                 dplyr::mutate(geom = sf::st_as_sfc(sf::st_bbox(
