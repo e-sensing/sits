@@ -391,9 +391,10 @@
 #' @noRd
 #' @param cube       Data cube.
 #' @param period     ISO8601 time period.
+#' @param extra_date_step Add an extra date in the end of timeline?
 #'
 #' @return a \code{vector} with all timeline values.
-.gc_get_valid_timeline <- function(cube, period) {
+.gc_get_valid_timeline <- function(cube, period, extra_date_step = FALSE) {
     # set caller to show in errors
     .check_set_caller(".gc_get_valid_timeline")
 
@@ -451,13 +452,10 @@
         tl <- c(tl, date)
     }
 
-    # timeline cube
-    tiles_tl <- suppressWarnings(sits_timeline(cube))
-
-    if (!is.list(tiles_tl)) {
-        tiles_tl <- list(tiles_tl)
+    # Add extra time step
+    if (extra_date_step) {
+        tl <- c(tl, tl[[length(tl)]] %m+% lubridate::period(period))
     }
-
     return(tl)
 }
 
