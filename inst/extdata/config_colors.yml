@@ -1,75 +1,96 @@
 # Default Palette includes:
 # Most classes of the "Brazilian Vegetation Manual" (IBGE,2001)
-# IPCC AFOLU, TerraClass project, IGBP Discover, Copernicus Global Land Cover
+# IPCC AFOLU, PRODES, TerraClass project, IGBP Discover, Copernicus Global Land Cover
 
 # Source https://htmlcolorcodes.com/color-chart/flat-design-color-chart/
+# Colours partially adapted for Africa Standardized Terrestrial Ecosystems
+# and 1970 U.S. Vegetation Map
 
 colors:
     Tropical_Forest:
-        # Based on "nephritis" palette of Flat Design Color Chart
-        Evergreen_Broadleaf_Forest  : &forest "#1E8449"
+        # Oak-hickory-pine forest in US Veg Map
+        Evergreen_Broadleaf_Forest  : &forest "#518940"
         # Forest
         Forest                      : *forest
         Closed_Forest               : *forest
+        # Mixed Forest
+        # Southern mixed forest in US Veg Map
+        Open_Forest                 : &openforest "#53A145"
+        Mixed_Forest                : *openforest
+        Sparse_Forest               : *openforest
+        # Southern floodplain forest in US Veg Map
+        Riparian_Forest             : &riparian_forest "#8FADB1"
+        Mountainside_Forest         : *forest
+        #
+        Seasonally_Flooded          : "#A3E4D7"
         # Dense Woodlands and similar
-        Woodland                    : &woodlands "#27AE60"
+        # Oak-hickory forest in US Veg Map
+        Woodland                    : &woodlands "#91AC41"
         Dense_Woodland              : *woodlands
         Woody_Savanna               : *woodlands
-        Open_Forest                 : *woodlands
         Cerradao                    : *woodlands
-        # Mixed Forest
-        Mixed_Forest                : *woodlands
-        Sparse_Forest               : *woodlands
+
+    Wetland:
+        # Based on "belize hole" palette from Flat Design Color Chart
+        Water                       : "#2980B9"
+        Wetland                     :  &wetlands "#96C8C8"
+        Permanent_Wetland           :  *wetlands
+        # Based on "peter river" palette from Flat Design Color Chart
+        Mangrove                    : "#D4E6F1"
 
     Savanna:
         # Savanna and Cerrado
-        # Based on "emerald" palette of Flat Design Color Chart
-        Savanna                     : &savanna "#58D68D"
+        # Bluestem praire in US Veg Map
+        Savanna                     : &savanna "#a2d43f"
         Wooded_Grassland            : *savanna
         Cerrado_Strictu_Sensu       : *savanna
         Cerrado                     : *savanna
-        Campo_Cerrado               : &campo_cerrado "#ABEBC6"
+        # Wheatgrass-bluestem-needlegrass
+        Campo_Cerrado               : &campo_cerrado "#c5ed42"
         Savanna_Parkland            : *campo_cerrado
         Open_Cerrado                : *campo_cerrado
 
     Deciduous_Tropical_Forests:
         # Caatinga and decidous tropical forest
         # Based on "green sea" palette of Flat Design Color Chart
-        Caatinga                    : &caatinga "#A2D9CE"
+        Caatinga                    : &caatinga "#ffc3ca"
         Deciduous_Forest            : *caatinga
 
     Planted_Forest:
         # Silviculture and Planted Forest
-        # Based on "green sea" palette of Flat Design Color Chart
-        Planted_Forest              : &planted_forest "#45B39D"
+        # Northern hardwood
+        Planted_Forest              : &planted_forest "#90cac8"
         Silviculture                : *planted_forest
         # Secondary Vegetation
-        # Based on "turqouise" palette from Flat Design Color Chart
-        Secondary_Vegetation        : "#48C9B0"
+        # Beech-maple forest
+        Secondary_Vegetation        : "#9bd15e"
 
     Boreal_Temperate_Forests:
         # Based on "turquoise" palette of Flat Design Color Chart
-        Evergreen_Needleleaf_Forest  : &enf "#1ABC9C"
-        Deciduous_Needleleaf_Forest  : &dnf "#76D7C4"
-        Deciduous_Broadleaf_Forest   : &dnf "#A3E4D7"
+        # Great lakes pine forest in US Veg Map
+        Evergreen_Needleleaf_Forest  : &enf "#96b1b7"
+        # Great lakes spruce-fir forest
+        Deciduous_Needleleaf_Forest  : &dnf "#b9e8f8"
+        # Pine-douglas fir forest
+        Deciduous_Broadleaf_Forest   : &dnf "#55a3b7"
 
     Grassland:
-        # Based on "sunflower" palette of Flat Design Color Chart
-        Grassland                   : &grassland "#F7DC6F"
+        # California steppe
+        Grassland                   : &grassland "#f6cc41"
         Steppe                      : *grassland
         Natural_Herbaceous          : *grassland
         # Pasture is a special case
-        # based on "green sea" palette of Flat Design Color Chart
-        Pasture                     : &pasture "#FCF3CF"
+        # Grama-buffalo grass
+        Pasture                     : &pasture "#fae28c"
         Dense_Herbaceous            : *pasture
         Herbaceous_Vegetation       : *pasture
 
     Shrubland:
         # Based on "orange" palette of Flat Design Color Chart
-        Closed_Shrubland            : &closed_shrubland "#F39C12"
+        Closed_Shrubland            : &closed_shrubland "#fa586e"
         Wooded_Shrubland            : *closed_shrubland
         Dense_Shrubland             : *closed_shrubland
-        Shrubland                   : &shrubland "#F8C471"
+        Shrubland                   : &shrubland "#ffc3ca"
         Open_Shrubland              : *shrubland
         Sparse_Shrubland            : *shrubland
         Rocky_Savanna               : *shrubland
@@ -133,32 +154,29 @@ colors:
         Forest_Cropland_Mosaic     : "#F7FCB9"
         Cropland_Natural_Vegetation: "#F7FCB9"
 
-    Wetland:
-        # Based on "belize hole" palette from Flat Design Color Chart
-        Water                       : "#2980B9"
-        Wetland                     :  &wetlands "#7FB3D5"
-        Permanent_Wetland           :  *wetlands
-        # Based on "peter river" palette from Flat Design Color Chart
-        Mangrove                    : "#D4E6F1"
-
     Deforestation:
 
         # Deforestation, Degradation, Mining
         # Based on "Alizarin" palette from Flat Design Color Chart
-        Deforestation               : &deforestation "#FDEDEC"
+        Deforestation               : &deforestation "#ccbab4"
         Deforestation_Mask          : *deforestation
-        Degradation                 : "#F5B7B1"
+        Degradation                 : "#afc97f"
         # PRODES
         # Based on "Alizarin" palette from Flat Design Color Chart
-        Burned_Area                 : &burned_area "#EC7063"
+        Burned_Area                 : &burned_area "#CB4335"
         ClearCut_Burn               : *burned_area
-        # Based on "sunflower" palette of Flat Design Color Chart
-        Cleared_Area                : &clear_cut_soil "#F1C40F"
+        ClearCut_Burned_Area        : *burned_area
+        # Uses same colour as pasture
+        # Color 52 - grama-tobosa shrubsteppe
+        Cleared_Area                : &clear_cut_soil "#feaa7a"
         ClearCut_Soil               : *clear_cut_soil
+        ClearCut_Bare_Soil          : *clear_cut_soil
         Bare_Soil                   : *clear_cut_soil
         # Based on "nephritis" palette of Flat Design Color Chart
         Highly_Degraded             : &clear_cut_deg "#D4EFDF"
         ClearCut_Veg                : *clear_cut_deg
+        Clear_Cut_Vegetation        : *clear_cut_deg
+        Clear_Cut_Veg               : *clear_cut_deg
         # Based on "amethyst" palette from Flat Design Color Chart
         Mining                      : "#C39BD3"
         # Based on "silver" palette from Flat Design Color Chart
@@ -166,11 +184,9 @@ colors:
     Urban:
         # Based on "wet asphalt" palette from Flat Design Color Chart
         Urban_Area                  : "#85929E"
-
     Snow_Ice:
         # Based on "asbestos" palette from Flat Design Color Chart
         Snow_Ice                    : &snow "#E5E8E8"
-
     Others:
         # No Class uses "silver" palette from Flat Design Color Chart
         No_Class                    : &no_class "#F2F3F4"

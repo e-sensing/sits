@@ -55,42 +55,4 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0.01
                 grid_system : "BDC-Large V2"
-            CBERS-WFI-8D    :
-                bands       :
-                    NDVI    :
-                        <<: *bdc_awfi_ndvi
-                        band_name     : "NDVI"
-                    EVI     :
-                        <<: *bdc_awfi_ndvi
-                        band_name     : "EVI"
-                    B13     :
-                        <<: *bdc_awfi_b13
-                        missing_value : -9999
-                        minimum_value : 0
-                        maximum_value : 10000
-                        scale_factor  : 0.0001
-                        offset_value  : 0
-                        resolution   :  64
-                        band_name     : "BAND13"
-                        data_type     : "INT2S"
-                    B14     :
-                        <<: *bdc_awfi_b13
-                        band_name     : "BAND14"
-                    B15     :
-                        <<: *bdc_awfi_b13
-                        band_name     : "BAND15"
-                    B16     :
-                        <<: *bdc_awfi_b13
-                        band_name     : "BAND16"
-                    CLOUD   :
-                        <<: *bdc_awfi_cloud
-                        band_name     : "CMASK"
-                satellite   : "CBERS-4-4A"
-                sensor      : "WFI"
-                collection_name: "CBERS-WFI_64_8D_LCF-1"
-                token_vars  :  ["BDC_ACCESS_KEY"]
-                open_data   : true
-                open_data_token : true
-                metadata_search : "tile"
-                ext_tolerance: 0.01
-                grid_system : "BDC-Large V2"
+
