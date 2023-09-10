@@ -149,11 +149,10 @@
         dplyr::slice_head(n = 1) |>
         dplyr::ungroup()
 
-    # recreate hash values
-    hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
+    hash_bundle <- purrr::map_chr(chunks_samples, function(chunk) {
         tile <- sits_select(
             data = cube,
-            bands = c(bands, cld_band),
+            bands = bands,
             tiles = chunk[["tile"]]
         )
         # Get chunk samples
