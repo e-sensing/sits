@@ -618,6 +618,42 @@ NULL
     cube <- .cube_filter_interval(cube, start_date, end_date)
     return(cube)
 }
+
+#' @title Filter tiles by sparse dates
+#' @noRd
+#' @param cube  A data cube.
+#' @param dates A character vector with dates.
+#' @return  A filtered data cube.
+.cube_filter_dates <- function(cube, dates) {
+    UseMethod(".cube_filter_dates", cube)
+}
+#' @export
+.cube_filter_dates.raster_cube <- function(cube, dates) {
+    # Filter dates for each tile
+    cube <- .cube_foreach_tile(cube, function(tile) {
+        dates_in_tile <- dates %in% .tile_timeline(tile)
+        if (!any(dates_in_tile)) {
+            return(NULL)
+        }
+        .tile_filter_dates(tile, dates[dates_in_tile])
+    })
+    # Post-condition
+    .check_that(
+        nrow(cube) > 1,
+        msg = "The provided 'dates' does not match any date in the cube.",
+        local_msg = "invalid 'dates' parameter."
+    )
+    # Return cube
+    return(cube)
+}
+#' @export
+.cube_filter_dates.default <- function(cube, dates) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    cube <- .cube_filter_dates(cube = cube, dates = dates)
+    return(cube)
+}
+
 #' @title Filter cube based on a set of bands
 #' @noRd
 #' @param cube  A data cube.

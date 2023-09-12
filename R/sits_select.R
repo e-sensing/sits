@@ -8,6 +8,7 @@
 #' @param end_date   Date in YYYY-MM-DD format: end date to be filtered.
 #' @param ...        Additional parameters to be provided
 #' @param tiles      Character vector with the names of the tiles.
+#' @param dates      Character vector with sparse dates to select.
 #'
 #' @description      Filter only the selected bands and dates
 #'                   from a set of time series or froam a data cube.
@@ -84,6 +85,7 @@ sits_select.raster_cube <- function(data,
                                     bands = NULL,
                                     start_date = NULL,
                                     end_date = NULL, ...,
+                                    dates = NULL,
                                     tiles = NULL) {
     # Pre-condition
     .check_cube_files(data)
@@ -102,7 +104,12 @@ sits_select.raster_cube <- function(data,
         # filter the selected bands
         data <- .cube_filter_bands(cube = data, bands = bands)
     }
-    # Filter dates
+    # Filter by dates
+    if (!purrr::is_null(dates)) {
+        dates <- .timeline_format(dates)
+        data <- .cube_filter_dates(cube = data, dates = dates)
+    }
+    # Filter by period
     if (!purrr::is_null(start_date) && !purrr::is_null(end_date)
         && !is.na(start_date) && !is.na(end_date)) {
         start_date <- .timeline_format(start_date)
