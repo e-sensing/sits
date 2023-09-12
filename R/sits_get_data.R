@@ -103,7 +103,7 @@
 #'
 #' @export
 sits_get_data <- function(cube,
-                          samples = NULL, ...,
+                          samples, ...,
                           start_date = NULL,
                           end_date = NULL,
                           label = "NoClass",
@@ -123,8 +123,6 @@ sits_get_data <- function(cube,
     .check_crs(crs)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
-    # In the case of extracting time series from segments
-    samples <- .default(samples, cube)
     if (is.character(samples)) {
         class(samples) <- c(.file_ext(samples), class(samples))
     }
@@ -321,7 +319,7 @@ sits_get_data.data.frame <- function(cube,
 #' @rdname sits_get_data
 #' @export
 sits_get_data.segs_cube <- function(cube,
-                                    samples = NULL,
+                                    samples,
                                     ...,
                                     bands = sits_bands(cube),
                                     aggreg_fn = "mean",

@@ -13,7 +13,7 @@
 \usage{
 sits_get_data(
   cube,
-  samples = NULL,
+  samples,
   ...,
   start_date = NULL,
   end_date = NULL,
@@ -96,7 +96,7 @@ sits_get_data(
 
 \method{sits_get_data}{segs_cube}(
   cube,
-  samples = NULL,
+  samples,
   ...,
   bands = sits_bands(cube),
   aggreg_fn = "mean",

@@ -6,6 +6,7 @@
 \alias{sits_classify.raster_cube}
 \alias{sits_classify.derived_cube}
 \alias{sits_classify.tbl_df}
+\alias{sits_classify.segs_cube}
 \alias{sits_classify.default}
 \title{Classify time series or data cubes}
 \usage{
@@ -46,6 +47,21 @@ sits_classify(
 \method{sits_classify}{derived_cube}(data, ml_model, ...)
 
 \method{sits_classify}{tbl_df}(data, ml_model, ...)
+
+\method{sits_classify}{segs_cube}(
+  data,
+  ml_model,
+  ...,
+  filter_fn = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  memsize = 8L,
+  multicores = 2L,
+  output_dir,
+  version = "v1",
+  verbose = FALSE,
+  progress = TRUE
+)
 
 \method{sits_classify}{default}(data, ml_model, ...)
 }

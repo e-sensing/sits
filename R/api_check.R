@@ -1339,6 +1339,21 @@
     )
     return(invisible(cube))
 }
+#' @title Does the input data contain a vector cube?
+#' @name .check_is_vector_cube
+#' @param cube a sits cube to be tested
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_is_vector_cube <- function(cube) {
+    .check_that(
+        x = inherits(cube, "vector_cube"),
+        local_msg = "data should be a vector cube",
+        msg = "invalid cube parameter"
+    )
+    return(invisible(cube))
+}
+
 #' @title Check if cube is a probs cube
 #' @name .check_is_probs_cube
 #' @param cube a sits cube to be tested

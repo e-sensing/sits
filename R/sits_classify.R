@@ -283,6 +283,99 @@ sits_classify.tbl_df <- function(data, ml_model, ...) {
 }
 #' @rdname sits_classify
 #' @export
+sits_classify.segs_cube <- function(data,
+                                    ml_model, ...,
+                                    filter_fn = NULL,
+                                    start_date = NULL,
+                                    end_date = NULL,
+                                    memsize = 8L,
+                                    multicores = 2L,
+                                    output_dir,
+                                    version = "v1",
+                                    verbose = FALSE,
+                                    progress = TRUE) {
+
+    # preconditions
+    .check_is_vector_cube(data)
+    .check_is_sits_model(ml_model)
+    .check_memsize(memsize, min = 1, max = 16384)
+    .check_multicores(multicores, min = 1, max = 2048)
+    .check_output_dir(output_dir)
+    .check_version(version)
+    .check_progress(progress)
+
+    # version is case-insensitive in sits
+    version <- tolower(version)
+
+    # Temporal filter
+    if (.has(start_date) || .has(end_date)) {
+        data <- .cube_filter_interval(
+            cube = data, start_date = start_date, end_date = end_date
+        )
+    }
+    if (!purrr::is_null(filter_fn)) {
+        .check_that(is.function(filter_fn),
+                    local_msg = "Please use sits_whittaker() or sits_sgolay()",
+                    msg = "Invalid filter_fn parameter"
+        )
+    }
+    # Retrieve the samples from the model
+    samples <- .ml_samples(ml_model)
+    # Do the samples and tile match their timeline length?
+    .check_samples_tile_match(samples = samples, tile = data)
+    # Update multicores parameter
+    if ("xgb_model" %in% .ml_class(ml_model)) {
+        multicores <- 1
+    }
+    # Prepare parallel processing
+    .parallel_start(
+        workers = multicores, log = verbose,
+        output_dir = output_dir
+    )
+    on.exit(.parallel_stop(), add = TRUE)
+    # Show block information
+    if (verbose) {
+        start_time <- Sys.time()
+        message(
+            "Using blocks of size (", .nrows(block),
+            " x ", .ncols(block), ")"
+        )
+    }
+    # Classification
+    # Process each tile sequentially
+    probs_cube <- .cube_foreach_tile(data, function(tile) {
+        tile_segments <- .vector_read_vec(.segment_path(tile))
+
+        # Classify the data
+        probs_tile <- .classify_tile(
+            tile = tile,
+            band = "probs",
+            ml_model = ml_model,
+            block = block,
+            roi = roi,
+            filter_fn = filter_fn,
+            output_dir = output_dir,
+            version = version,
+            verbose = verbose,
+            progress = progress
+        )
+        return(probs_tile)
+    })
+    # Show block information
+    if (verbose) {
+        end_time <- Sys.time()
+        message("")
+        message("Classification finished at ", end_time)
+        message(
+            "Elapsed time of ",
+            format(round(end_time - start_time, digits = 2))
+        )
+    }
+    return(probs_cube)
+
+}
+#' @rdname sits_classify
+#' @export
 sits_classify.default <- function(data, ml_model, ...) {
     stop("Input should be a sits tibble or a data cube")
 }
