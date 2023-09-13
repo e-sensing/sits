@@ -4,7 +4,10 @@
 \alias{sits_colors_show}
 \title{Function to show colors in SITS}
 \usage{
-sits_colors_show()
+sits_colors_show(legend = NULL)
+}
+\arguments{
+\item{legend}{One of the accepted legend in sits}
 }
 \value{
 no return, called for side effects

@@ -82,8 +82,10 @@
 #' @param color_tb A SITS color table
 #' @return a gglot2 object
 .colors_show <- function(color_tb) {
+    color_tb$name <- purrr::map_chr(color_tb$name, function(name)
+        { paste(name = unlist(strsplit(name, split = "_")), collapse = " ")})
     n_colors <- nrow(color_tb)
-    n_rows_show <- n_colors %/% 3
+    n_rows_show <- n_colors %/% 4
     color_tb <- tibble::add_column(color_tb,
         y = seq(0, n_colors - 1) %% n_rows_show,
         x = seq(0, n_colors - 1) %/% n_rows_show
@@ -115,12 +117,13 @@
             mapping = ggplot2::aes(
                 x = .data[["x"]] + 0.5,
                 y = .data[["y"]] + 0.8,
-                label = .data[["name"]]
+                label = stringr::str_wrap(.data[["name"]], width = 10)
             ),
+            family = "opensans",
             colour = "grey15",
             hjust = 0.5,
             vjust = 1,
-            size = 9 / ggplot2::.pt
+            size = 10 / ggplot2::.pt
         )
 
     g + ggplot2::theme(

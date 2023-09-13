@@ -189,9 +189,14 @@
         input = color_yml_file,
         merge.precedence = "override"
     )
-    config_colors <- config_colors$colors
-    base_names <- names(config_colors)
-    color_table <- purrr::map2_dfr(config_colors, base_names, function(cl, bn) {
+    class_schemes <- config_colors$class_schemes
+    sits_env[["config"]] <- utils::modifyList(sits_env[["config"]],
+                                              class_schemes,
+                                              keep.null = FALSE
+    )
+    colors <- config_colors$colors
+    base_names <- names(colors)
+    color_table <- purrr::map2_dfr(colors, base_names, function(cl, bn) {
         cc_tb <- tibble::tibble(
             name = names(cl),
             color = unlist(cl),
@@ -261,6 +266,20 @@
 #'
 .conf_colors <- function() {
     return(sits_env$color_table)
+}
+#' @title Configure fonts to be used
+#' @name .conf_set_fonts
+#' @keywords internal
+#' @noRd
+#' @return NULL, called for side effects
+#'
+.conf_set_fonts <- function() {
+    library(showtext)
+    library(sysfonts)
+    sysfonts::font_add_google("Open Sans", family = "opensans")
+    sysfonts::font_add_google("IBM Plex Sans", family = "ibm")
+    sysfonts::font_add_google("Noto Sans", family = "noto")
+    return(NULL)
 }
 #' @title Return the user configuration set in enviromental variable
 #' @name .conf_user_env_var
