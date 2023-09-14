@@ -81,7 +81,7 @@
 #' @noRd
 #' @param color_tb A SITS color table
 #' @return a gglot2 object
-.colors_show <- function(color_tb) {
+.colors_show <- function(color_tb, font_family) {
     color_tb$name <- purrr::map_chr(color_tb$name, function(name)
         { paste(name = unlist(strsplit(name, split = "_")), collapse = " ")})
     n_colors <- nrow(color_tb)
@@ -119,7 +119,7 @@
                 y = .data[["y"]] + 0.8,
                 label = stringr::str_wrap(.data[["name"]], width = 10)
             ),
-            family = "opensans",
+            family = font_family,
             colour = "grey15",
             hjust = 0.5,
             vjust = 1,

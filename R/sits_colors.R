@@ -20,6 +20,7 @@ sits_colors <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description         Shows the default SITS colors
 #' @param legend  One of the accepted legend in sits
+#' @param font_family A font family loaded in SITS
 #'
 #' @return  no return, called for side effects
 #'
@@ -30,16 +31,20 @@ sits_colors <- function() {
 #' }
 #' @export
 #'
-sits_colors_show <- function(legend = NULL) {
-    # verifies if stringr package is installed
-    .check_require_packages("stringr")
+sits_colors_show <- function(legend = NULL,
+                             font_family = "opensans") {
+    # verifies if sysfonts package is installed
+    .check_require_packages("sysfonts")
+    # checks if font family is available
+    if (!font_family %in% sysfonts::font_families())
+        font_family <- "opensans"
     legends <- .conf("legends")
     if (purrr::is_null(legend)) {
         print("Showing all available colors")
         leg <- paste0(paste("Optional - select one of the legends: "),
                paste(legends, collapse = ", "))
         print(leg)
-        g <- .colors_show(sits_colors())
+        g <- .colors_show(sits_colors(), font_family)
         return(g)
     } else {
         if (legend %in% legends) {
@@ -48,7 +53,7 @@ sits_colors_show <- function(legend = NULL) {
                 dplyr::filter(.data[["name"]] %in% colors)
             color_table_legend <- color_table_legend[
                 match(colors, color_table_legend$name), ]
-            g <- .colors_show(color_table_legend)
+            g <- .colors_show(color_table_legend, font_family)
             return(g)
         } else {
             print("Selected map legend not available")

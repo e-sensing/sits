@@ -7,7 +7,8 @@
 # and 1970 U.S. Vegetation Map
 #
 class_schemes:
-    legends: ["IGBP", "UMD", "ESA_CCI_LC", "WORLDCOVER", "PRODES"]
+    legends: ["IGBP", "UMD", "ESA_CCI_LC", "WORLDCOVER", "PRODES",
+              "TERRA_CLASS"]
 
     IGBP: ["Evergreen_Needleleaf_Forests", "Evergreen_Broadleaf_Forests",
        "Deciduous_Needleleaf_Forests", "Deciduous_Broadleaf_Forests",
@@ -193,8 +194,13 @@ class_schemes:
              "Mining", "Water", "Wetland",
              "Urban_Area", "Cropland", "Pasture"]
 
+    TERRA_CLASS: ["Forest", "Secondary_Vegetation","Degradation",
+                  "Deforestation",
+                  "Cropland", "Pasture", "Cerradao", "Cerrado",
+                  "Campo_Cerrado", "Mining", "Water", "Wetland",
+                  "Urban_Area"]
+
 colors:
-    Tropical_Forest:
         # Oak-hickory-pine forest in US Veg Map
         Evergreen_Broadleaf_Forest   : &forest "#518940"
         Evergreen_Broadleaf_Forests  : *forest
@@ -227,7 +233,6 @@ colors:
         Woody_Savannas              : *woodlands
         Cerradao                    : *woodlands
 
-    Deciduous_Tropical_Forests:
         # Caatinga and decidous tropical forest
         Caatinga                    : &caatinga "#c7ebdb"
         Deciduous_Forest            : *caatinga
@@ -236,14 +241,13 @@ colors:
         Deciduous_Broadleaf_Forest   : *caatinga
         Deciduous_Broadleaf_Forests   : *caatinga
 
-    Planted_Forest:
         # Silviculture and Planted Forest
         # Northern hardwood
         Planted_Forest              : &planted_forest "#90cac8"
         Planted_Forests             : *planted_forest
         Silviculture                : *planted_forest
 
-    Temperate_Forest:
+        # Temperate Forests
         # Great lakes pine forest in US Veg Map
         Evergreen_Needleleaf_Forest  : &enf "#96b1b7"
         Evergreen_Needleleaf_Forests : *enf
@@ -256,7 +260,6 @@ colors:
         Mixed_Forests               : *mixedforest
         Tree_Cover_Mixed_Leaf       : *mixedforest
 
-    Savanna:
         # Savanna and Cerrado
         # Bluestem praire in US Veg Map
         Savanna                     : &savanna "#a2d43f"
@@ -269,7 +272,7 @@ colors:
         Savanna_Parkland            : *campo_cerrado
         Open_Cerrado                : *campo_cerrado
 
-    Grassland:
+        # Grasslands and similar
         # California steppe
         Grassland                   : &grassland "#f6cc41"
         Grasslands                  : *grassland
@@ -281,7 +284,7 @@ colors:
         Dense_Herbaceous            : *pasture
         Herbaceous_Vegetation       : *pasture
 
-    Shrubland:
+        # Shrublands
         # Based on "pumpkin" palette of Flat Design Color Chart
         Closed_Shrubland            : &closed_shrubland "#BA4A00"
         Closed_Shrublands           : *closed_shrubland
@@ -293,7 +296,7 @@ colors:
         Sparse_Shrubland            : *shrubland
         Rocky_Savanna               : *shrubland
 
-    Barren:
+        # Barren and Sparse Vegetation
         # Based on "orange" palette of Flat Design Color Chart
         Barren                      : &barren "#FDEBD0"
         Bare_Area                   : *barren
@@ -304,12 +307,12 @@ colors:
         Non_Vegetated_Lands         : *barren
         Dunes                       : "#FEF9E7"
 
-    Tundra:
+        # Tundra
         # based on the "wisteria" palette of Flat Design Color Chart
         Lichens_Mosses               : &moss "#E8DAEF"
         Moss_Lichen                 : *moss
 
-    Flooded_trees:
+        # Flooded_trees and mangroves
         Mangrove                    : &mangrove "#D4E6F1"
         Mangroves                   : *mangrove
         Tree_Cover_Flooded_Saline_Water: *mangrove
@@ -318,7 +321,7 @@ colors:
         Herbaceous_Wetland          : *flooded
         Shrub_Herbaceous_Cover_Flooded: *flooded
 
-    Wetland:
+        # Water and Wetlands
         # Based on "belize hole" palette from Flat Design Color Chart
         Water                       :  &water "#2980B9"
         Water_Bodies                :  *water
@@ -328,7 +331,7 @@ colors:
         Permanent_Wetland           :  *wetlands
         Permanent_Wetlands          :  *wetlands
 
-    Cropland:
+        # Croplands
         # Based on "carrot" palette from Flat Design Color Chart
         Cropland                    : &cropland "#F0B27A"
         Croplands                   : *cropland
@@ -376,7 +379,6 @@ colors:
         # Based on "turquoise" palette of Flat Design Color Chart
         Rice                        : "#FBEEE6"
 
-    Mosaic:
         # Mosaic classes
         Forest_Cropland_Mosaic     : &mosaic_1 "#947E13"
         Mosaic_Vegetation_Cropland : *mosaic_1
@@ -387,13 +389,13 @@ colors:
         Mosaic_Cropland_Vegetation:  *mosaic_2
         Mosaic_Herbaceous_Tree_Shrub: *mosaic_2
 
-    Deforestation:
+        # Deforestation - PRODES and DETER
         # Secondary Vegetation
         # Beech-maple forest
         Secondary_Vegetation        : "#9bd15e"
         # Deforestation, Degradation, Mining
-        # Based on "Alizarin" palette from Flat Design Color Chart
-        Degradation                 : "#afc97f"
+        # Based on "Alizarin" palette from Flat Design Color Chart "#afc97f"
+        Degradation                 :  "#D6D295"
         # PRODES
         # Based on "Alizarin" palette from Flat Design Color Chart
         Burned_Area                 : &burned_area "#CD6155"
@@ -410,24 +412,27 @@ colors:
         Clear_Cut_Vegetation        : *clear_cut_deg
         # Based on "amethyst" palette from Flat Design Color Chart
         Mining                      : "#C39BD3"
-        # Deforestation_Mask #FDEBD0
-        Deforestation               : &deforestation "#C9D6AE"
+        # Deforestation_Mask #FDEBD0 "#C9D6AE"
+        Deforestation               : &deforestation  "#CAD4C9"
         Deforestation_Mask          : *deforestation
         # Based on "silver" palette from Flat Design Color Chart
-        Non_Forest                  : &non_forest "#BDC3C7"
+        Non_Forest                  : &non_forest "#C9D6AE"
         Natural_Non_Forested        : *non_forest
-    Urban:
+
+        # Urban Areas
         # Based on "wet asphalt" palette from Flat Design Color Chart
         Urban_Area                  : &urban "#85929E"
         Urban_Builtup_Lands         : *urban
         Builtup                     : *urban
-    Snow_Ice:
+
+        # Snow and Ice
         # Based on "asbestos" palette from Flat Design Color Chart
         Snow_Ice                    : &snow "#E5E8E8"
         Permanent_Snow_Ice          : *snow
         Snow_and_Ice                : *snow
-    Others:
-        # No Class uses "silver" palette from Flat Design Color Chart
+
+        # Others
+        # uses "silver" palette from Flat Design Color Chart
         No_Class                    : &no_class "#F2F3F4"
         No_Data                     : *no_class
         Unclassified                : *no_class

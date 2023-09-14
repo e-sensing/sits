@@ -4,10 +4,12 @@
 \alias{sits_colors_show}
 \title{Function to show colors in SITS}
 \usage{
-sits_colors_show(legend = NULL)
+sits_colors_show(legend = NULL, font_family = "opensans")
 }
 \arguments{
 \item{legend}{One of the accepted legend in sits}
+
+\item{font_family}{A font family loaded in SITS}
 }
 \value{
 no return, called for side effects

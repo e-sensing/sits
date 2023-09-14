@@ -54,7 +54,6 @@ Imports:
     Rcpp,
     rstac (>= 0.9.2-3),
     sf (>= 1.0-12),
-    showtext,
     sysfonts,
     slider (>= 0.2.0),
     stats,

@@ -195,12 +195,11 @@
                                               keep.null = FALSE
     )
     colors <- config_colors$colors
-    base_names <- names(colors)
-    color_table <- purrr::map2_dfr(colors, base_names, function(cl, bn) {
+    color_table <- purrr::map2_dfr(colors, names(colors),
+                                   function(cl, nm) {
         cc_tb <- tibble::tibble(
-            name = names(cl),
-            color = unlist(cl),
-            group = bn
+            name = nm,
+            color = cl
         )
         return(cc_tb)
     })
@@ -250,8 +249,7 @@
         } else {
             color_table <- tibble::add_row(color_table,
                 name = name,
-                color = col,
-                group = "User"
+                color = col
             )
         }
     }
@@ -274,11 +272,10 @@
 #' @return NULL, called for side effects
 #'
 .conf_set_fonts <- function() {
-    library(showtext)
-    library(sysfonts)
+    # verifies if sysfonts package is installed
+    .check_require_packages("sysfonts")
     sysfonts::font_add_google("Open Sans", family = "opensans")
-    sysfonts::font_add_google("IBM Plex Sans", family = "ibm")
-    sysfonts::font_add_google("Noto Sans", family = "noto")
+    sysfonts::font_add_google("Roboto", family = "roboto")
     return(NULL)
 }
 #' @title Return the user configuration set in enviromental variable
