@@ -276,6 +276,7 @@
     .check_require_packages("sysfonts")
     sysfonts::font_add_google("Open Sans", family = "opensans")
     sysfonts::font_add_google("Roboto", family = "roboto")
+    sysfonts::font_add_google("Source Sans 3", family = "sourcesans")
     return(NULL)
 }
 #' @title Return the user configuration set in enviromental variable
@@ -338,6 +339,15 @@
             user_colors <- user_config$colors
             .conf_merge_colors(user_colors)
             user_config$colors <- NULL
+        }
+        if (!purrr::is_null(user_config$class_schemes)) {
+            class_schemes <- user_config$class_schemes
+            sits_env[["config"]] <- utils::modifyList(
+                sits_env[["config"]],
+                class_schemes,
+                keep.null = FALSE
+            )
+            user_config$class_schemes <- NULL
         }
         if (length(user_config) > 0) {
             user_config <- utils::modifyList(sits_env[["config"]],

@@ -117,7 +117,7 @@
             mapping = ggplot2::aes(
                 x = .data[["x"]] + 0.5,
                 y = .data[["y"]] + 0.8,
-                label = stringr::str_wrap(.data[["name"]], width = 10)
+                label = stringr::str_wrap(.data[["name"]], width = 12)
             ),
             family = font_family,
             colour = "grey15",

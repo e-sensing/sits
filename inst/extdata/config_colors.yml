@@ -188,11 +188,11 @@ class_schemes:
 
     PRODES: ["Forest", "Mountainside_Forest", "Riparian_Forest",
              "Seasonally_Flooded", "Secondary_Vegetation", "Degradation",
-             "Natural_Non_Forested",
              "Deforestation_Mask", "Clear_Cut_Vegetation",
              "Clear_Cut_Bare_Soil", "Clear_Cut_Burned_Area",
-             "Mining", "Water", "Wetland",
-             "Urban_Area", "Cropland", "Pasture"]
+             "Mining", "Water", "Wetland", "Natural_Non_Forested",
+             "Urban_Area", "Cropland", "Pasture",
+             "Cerradao", "Cerrado", "Campo_Cerrado"]
 
     TERRA_CLASS: ["Forest", "Secondary_Vegetation","Degradation",
                   "Deforestation",
@@ -392,26 +392,26 @@ colors:
         # Deforestation - PRODES and DETER
         # Secondary Vegetation
         # Beech-maple forest
-        Secondary_Vegetation        : "#9bd15e"
+        Secondary_Vegetation        : "#40C772"
         # Deforestation, Degradation, Mining
         # Based on "Alizarin" palette from Flat Design Color Chart "#afc97f"
         Degradation                 :  "#D6D295"
         # PRODES
         # Based on "Alizarin" palette from Flat Design Color Chart
-        Burned_Area                 : &burned_area "#CD6155"
+        Burned_Area                 : &burned_area "#D67B73"
         Clear_Cut_Burn               : *burned_area
         Clear_Cut_Burned_Area        : *burned_area
         # Color 52 - grama-tobosa shrubsteppe
-        Cleared_Area                : &clear_cut_soil "#E6B0AA"
+        Cleared_Area                : &clear_cut_soil "#D7C49C"
         Clear_Cut_Soil               : *clear_cut_soil
         Clear_Cut_Bare_Soil          : *clear_cut_soil
         Bare_Soil                   : *clear_cut_soil
         # Based on "nephritis" palette of Flat Design Color Chart
-        Highly_Degraded             : &clear_cut_deg "#D4EFDF"
+        Highly_Degraded             : &clear_cut_deg "#BFD9BD"
         Clear_Cut_Veg                : *clear_cut_deg
         Clear_Cut_Vegetation        : *clear_cut_deg
         # Based on "amethyst" palette from Flat Design Color Chart
-        Mining                      : "#C39BD3"
+        Mining                      : "#CEB4D4"
         # Deforestation_Mask #FDEBD0 "#C9D6AE"
         Deforestation               : &deforestation  "#CAD4C9"
         Deforestation_Mask          : *deforestation
@@ -421,7 +421,7 @@ colors:
 
         # Urban Areas
         # Based on "wet asphalt" palette from Flat Design Color Chart
-        Urban_Area                  : &urban "#85929E"
+        Urban_Area                  : &urban "#D9BEBE"
         Urban_Builtup_Lands         : *urban
         Builtup                     : *urban
 
@@ -438,4 +438,3 @@ colors:
         Unclassified                : *no_class
         # Cloud uses "cloud" palette from Flat Design Color Chart
         Cloud                       : &cloud "#D0D3D4"
-
