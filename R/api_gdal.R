@@ -170,6 +170,8 @@
 #' @param roi          ROI to crop base_files
 #' @returns            Name of file that was written to
 .gdal_merge_into <- function(file, base_files, multicores, roi = NULL) {
+    r_obj <- .raster_open_rast(file)
+    roi <- .roi_as_sf(roi, as_crs = .raster_crs(r_obj))
     # Merge src_files
     file <- .try(
         {
@@ -187,7 +189,7 @@
                         "-wo" = paste0("NUM_THREADS=", multicores),
                         "-multi" = TRUE,
                         "-cutline" = roi_file,
-                        "-crop-to-cutline" = TRUE,
+                        "-crop_to_cutline" = TRUE,
                         "-q" = TRUE,
                         "-overwrite" = FALSE
                     ),
