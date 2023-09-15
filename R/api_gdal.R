@@ -167,22 +167,45 @@
 #' @param file         Files to be written to (with path)
 #' @param base_files   Files to be copied from (with path)
 #' @param multicores   Number of cores to be used in parallel
+#' @param roi          ROI to crop base_files
 #' @returns            Name of file that was written to
-.gdal_merge_into <- function(file, base_files, multicores) {
+.gdal_merge_into <- function(file, base_files, multicores, roi = NULL) {
     # Merge src_files
     file <- .try(
         {
-            .gdal_warp(
-                file = file,
-                base_files = base_files,
-                params = list(
-                    "-wo" = paste0("NUM_THREADS=", multicores),
-                    "-multi" = TRUE,
-                    "-q" = TRUE,
-                    "-overwrite" = FALSE
-                ),
-                quiet = TRUE
-            )
+            if (.has(roi)) {
+                # Write roi in a temporary file
+                roi_file <- .roi_write(
+                    roi = roi,
+                    output_file = tempfile(fileext = ".shp"),
+                    quiet = TRUE
+                )
+                .gdal_warp(
+                    file = file,
+                    base_files = base_files,
+                    params = list(
+                        "-wo" = paste0("NUM_THREADS=", multicores),
+                        "-multi" = TRUE,
+                        "-cutline" = roi_file,
+                        "-crop-to-cutline" = TRUE,
+                        "-q" = TRUE,
+                        "-overwrite" = FALSE
+                    ),
+                    quiet = TRUE
+                )
+            } else {
+                .gdal_warp(
+                    file = file,
+                    base_files = base_files,
+                    params = list(
+                        "-wo" = paste0("NUM_THREADS=", multicores),
+                        "-multi" = TRUE,
+                        "-q" = TRUE,
+                        "-overwrite" = FALSE
+                    ),
+                    quiet = TRUE
+                )
+            }
         },
         .rollback = {
             unlink(file)
@@ -190,6 +213,7 @@
         .finally = {
             # Delete auxiliary files
             unlink(paste0(file, ".aux.xml"))
+            if (.has(roi)) unlink(roi_file)
         }
     )
     # Return file
