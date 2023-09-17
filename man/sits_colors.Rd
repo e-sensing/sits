@@ -4,7 +4,10 @@
 \alias{sits_colors}
 \title{Function to retrieve sits color table}
 \usage{
-sits_colors()
+sits_colors(legend = NULL)
+}
+\arguments{
+\item{legend}{One of the accepted legends in sits}
 }
 \value{
 A tibble with color names and values
@@ -14,7 +17,7 @@ Returns a color table
 }
 \examples{
 if (sits_run_examples()) {
-    # show the names of the colors supported by SITS
+    # return the names of all colors supported by SITS
     sits_colors()
 }
 }

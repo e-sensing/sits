@@ -276,7 +276,7 @@
     .check_require_packages("sysfonts")
     sysfonts::font_add_google("Open Sans", family = "opensans")
     sysfonts::font_add_google("Roboto", family = "roboto")
-    sysfonts::font_add_google("Source Sans 3", family = "sourcesans")
+    sysfonts::font_add_google("Lato", family = "lato")
     return(NULL)
 }
 #' @title Return the user configuration set in enviromental variable
