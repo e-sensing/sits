@@ -1,13 +1,4 @@
 # Internal configuration parameters - relevant only to sits developers
-# s3 classes known to sits
-sits_s3_classes :   ["sits", "patterns", "predicted", "sits_model",
-                    "raster_cube", "probs_cube",
-                    "uncertainty_cube", "class_cube",
-                    "stac_cube", "bdc_cube", "aws_cube",
-                    "usgs_cube", "deafrica_cube"]
-
-# s3 classes resulting from classification and post-classification
-sits_s3_classes_proc :   ["probs_cube","uncertainty_cube", "class_cube", "variance_cube"]
 
 # bands resulting from classification and post-classification
 sits_results_bands : ["probs", "bayes", "uncert", "entropy",

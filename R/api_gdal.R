@@ -68,7 +68,7 @@
 #' @noRd
 #' @param file        File to be created (with path)
 #' @param base_file   File to be copied from (with path)
-#' @param param       GDAL parameters
+#' @param params       GDAL parameters
 #' @param quiet       TRUE/FALSE
 #' @returns           Called for side effects
 .gdal_translate <- function(file, base_file, params, quiet) {
