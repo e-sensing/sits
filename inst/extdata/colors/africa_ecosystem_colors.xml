@@ -1,0 +1,401 @@
+<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
+<qgis minScale="0" version="3.22.1-Białowieża" hasScaleBasedVisibilityFlag="0" maxScale="0" styleCategories="AllStyleCategories">
+  <flags>
+    <Identifiable>1</Identifiable>
+    <Removable>1</Removable>
+    <Searchable>1</Searchable>
+    <Private>0</Private>
+  </flags>
+  <temporal enabled="0" mode="0" fetchMode="0">
+    <fixedRange>
+      <start></start>
+      <end></end>
+    </fixedRange>
+  </temporal>
+  <customproperties>
+    <Option/>
+  </customproperties>
+  <pipe-data-defined-properties>
+    <Option type="Map">
+      <Option name="name" value="" type="QString"/>
+      <Option name="properties"/>
+      <Option name="type" value="collection" type="QString"/>
+    </Option>
+  </pipe-data-defined-properties>
+  <pipe>
+    <provider>
+      <resampling enabled="false" maxOversampling="2" zoomedOutResamplingMethod="nearestNeighbour" zoomedInResamplingMethod="nearestNeighbour"/>
+    </provider>
+    <rasterrenderer opacity="1" alphaBand="-1" band="1" nodataColor="" type="paletted">
+      <minMaxOrigin>
+        <limits>None</limits>
+        <extent>WholeRaster</extent>
+        <statAccuracy>Estimated</statAccuracy>
+        <cumulativeCutLower>0.02</cumulativeCutLower>
+        <cumulativeCutUpper>0.98</cumulativeCutUpper>
+        <stdDevFactor>2</stdDevFactor>
+      </minMaxOrigin>
+      <colorPalette>
+        <paletteEntry color="#7f8534" alpha="255" value="0" label="1.A.1.Fe.1-Madagascar Western Dry Forest"/>
+        <paletteEntry color="#895a44" alpha="255" value="1" label="1.A.1.Fe.2-Madagascar Tapia Forest"/>
+        <paletteEntry color="#7c4649" alpha="255" value="3" label="1.A.1.Ff.2-Eastern African Coastal Dry Semi-Deciduous Forest"/>
+        <paletteEntry color="#a46b65" alpha="255" value="4" label="1.A.1.Fg.1-Albany Subtropical Thicket"/>
+        <paletteEntry color="#7d3c51" alpha="255" value="5" label="1.A.1.Fh.2-Maputaland Sand Forest"/>
+        <paletteEntry color="#686526" alpha="255" value="6" label="1.A.1.Fh.3-Zambesian Cryptosepalum Dry Forest"/>
+        <paletteEntry color="#00750a" alpha="255" value="7" label="1.A.2.Fd.1-Guineo-Congolian Evergreen Rainforest"/>
+        <paletteEntry color="#117b0c" alpha="255" value="8" label="1.A.2.Fd.3-Guineo-Congolian Semi-Deciduous Rainforest"/>
+        <paletteEntry color="#076e0a" alpha="255" value="9" label="1.A.2.Fd.4-Guineo-Congolian Littoral Rainforest"/>
+        <paletteEntry color="#24642d" alpha="255" value="11" label="1.A.2.Fe.1-Eastern Madagascar Lowland Rainforest"/>
+        <paletteEntry color="#10760e" alpha="255" value="12" label="1.A.2.Fe.2-Eastern Madagascar Subhumid Forest"/>
+        <paletteEntry color="#316212" alpha="255" value="13" label="1.A.2.Fe.3-Western Madagascar Subhumid Forest"/>
+        <paletteEntry color="#217417" alpha="255" value="14" label="1.A.2.Fe.4-Western Madagascar Humid Forest"/>
+        <paletteEntry color="#0e962f" alpha="255" value="15" label="1.A.2.Fe.5-Madagascar Evergreen Littoral Forest"/>
+        <paletteEntry color="#0c8100" alpha="255" value="16" label="1.A.2.Ff.1-Eastern African Lowland Semi-Evergreen Forest"/>
+        <paletteEntry color="#178e00" alpha="255" value="21" label="1.A.2.Ff.2-Central Indian Ocean Coastal Forest"/>
+        <paletteEntry color="#25911b" alpha="255" value="27" label="1.A.2.Ff.3-Southern Indian Ocean Coastal Forest"/>
+        <paletteEntry color="#0a6e28" alpha="255" value="51" label="1.A.2.Ff.4-Southern African Scarp Forest"/>
+        <paletteEntry color="#539c00" alpha="255" value="52" label="1.A.3.Fd.1-Eastern African Dry Evergreen Montane Forest"/>
+        <paletteEntry color="#627b18" alpha="255" value="61" label="1.A.3.Ff.1-Eastern Madagascar Montane Forest"/>
+        <paletteEntry color="#4fa809" alpha="255" value="66" label="1.A.3.Ff.4-Moist Evergreen Montane Forest"/>
+        <paletteEntry color="#446589" alpha="255" value="67" label="1.A.4.Fe.1-Uapaca guineensis Swamp Forest"/>
+        <paletteEntry color="#317590" alpha="255" value="68" label="1.A.4.Fe.2-Makaranga Swamp Forest"/>
+        <paletteEntry color="#3f6cac" alpha="255" value="70" label="1.A.4.Ff.1-Zululand-Mozambique Coastal Swamp Forest"/>
+        <paletteEntry color="#2b3e60" alpha="255" value="81" label="1.A.4.Fg.1-Antostema - Alstoneia Swamp Forest"/>
+        <paletteEntry color="#425780" alpha="255" value="86" label="1.A.4.Fg.2-Raffia Swamp"/>
+        <paletteEntry color="#2667a1" alpha="255" value="87" label="1.A.4.Fg.3-Central Congo Basin Swamp Forest"/>
+        <paletteEntry color="#00734c" alpha="255" value="88" label="1.A.4.Fh.1-Western African Non-Riverine Swamp Forest"/>
+        <paletteEntry color="#4ce600" alpha="255" value="89" label="1.A.5.Ua.1-Atlantic Ocean Mangrove"/>
+        <paletteEntry color="#59ff19" alpha="255" value="96" label="1.A.5.Wb.1-Indian Ocean Mangrove"/>
+        <paletteEntry color="#7e5218" alpha="255" value="97" label="1.B.1.Fe.1-Southern Afrotemperate Forest"/>
+        <paletteEntry color="#69371d" alpha="255" value="98" label="1.B.1.Fe.2-Northern Afrotemperate Forest"/>
+        <paletteEntry color="#685a28" alpha="255" value="101" label="1.B.1.Fe.3-Southern Mistbelt Forest"/>
+        <paletteEntry color="#80451e" alpha="255" value="102" label="1.B.1.Fe.4-Northern Mistbelt Forest"/>
+        <paletteEntry color="#a8a800" alpha="255" value="112" label="1.B.1.Ph.1-Mediterranean Lowland Mixed Forest"/>
+        <paletteEntry color="#70a800" alpha="255" value="113" label="1.B.1.Ph.2-Northern African Pinus / Quercus Forest &amp; Woodland"/>
+        <paletteEntry color="#40e566" alpha="255" value="116" label="1.B.1.Ph.3-Mediterranean montane coniferous forest"/>
+        <paletteEntry color="#00a884" alpha="255" value="117" label="1.B.3.Fe.1-Fynbos Flooded Riparian Thicket"/>
+        <paletteEntry color="#737300" alpha="255" value="118" label="1.B.3.Ff.1-Southern African Riparian Phreatophyte Vegetation"/>
+        <paletteEntry color="#a6ee96" alpha="255" value="119" label="2.A.1.Ff.2-Western African Mesic Woodland &amp; Grassland"/>
+        <paletteEntry color="#7cff63" alpha="255" value="120" label="2.A.1.Ff.3-Gabono-Congolian Mesic Woodland &amp; Grassland"/>
+        <paletteEntry color="#ffe379" alpha="255" value="121" label="2.A.1.Fg.1-Dry Combretum - Mixed Woodland &amp; Savanna"/>
+        <paletteEntry color="#ffcb81" alpha="255" value="122" label="2.A.1.Fg.2-Dry Acacia Woodland &amp; Savanna"/>
+        <paletteEntry color="#ffda7f" alpha="255" value="123" label="2.A.1.Fg.3-Dry Acacia - Terminalia - Combretum Woodland &amp; Savanna"/>
+        <paletteEntry color="#ffd77b" alpha="255" value="126" label="2.A.1.Fg.4-Southern Kalahari Dunefield Woodland &amp; Savanna"/>
+        <paletteEntry color="#f6e47b" alpha="255" value="131" label="2.A.1.Fg.5-Kalahari Camel Thorn Woodland &amp; Savanna"/>
+        <paletteEntry color="#ffd87f" alpha="255" value="132" label="2.A.1.Fh.1-Limpopo Mopane"/>
+        <paletteEntry color="#f3de73" alpha="255" value="133" label="2.A.1.Fh.2-Zambezi Mopane"/>
+        <paletteEntry color="#f8c48d" alpha="255" value="136" label="2.A.1.Fh.3-Namibia-Angola Mopane"/>
+        <paletteEntry color="#e6e600" alpha="255" value="142" label="2.A.1.Fi.1-Sudano-Sahelian Herbaceous Savanna"/>
+        <paletteEntry color="#d7d79e" alpha="255" value="143" label="2.A.1.Fi.2-Sudano-Sahelian Shrub Savanna"/>
+        <paletteEntry color="#abcd66" alpha="255" value="146" label="2.A.1.Fi.3-Sudano-Sahelian Treed Savanna"/>
+        <paletteEntry color="#a3ff73" alpha="255" value="147" label="2.A.1.Fn.1-Wet Miombo"/>
+        <paletteEntry color="#c1ff75" alpha="255" value="148" label="2.A.1.Fn.2-Dry Miombo"/>
+        <paletteEntry color="#adff67" alpha="255" value="151" label="2.A.1.Fn.3-Baikiaea Woodland &amp; Savanna"/>
+        <paletteEntry color="#84ff76" alpha="255" value="152" label="2.A.1.Fo.1-Moist Combretum - Terminalia Woodland &amp; Savanna"/>
+        <paletteEntry color="#95f46b" alpha="255" value="153" label="2.A.1.Fo.2-Moist Acacia - (Combretum) Woodland &amp; Savanna"/>
+        <paletteEntry color="#ffd871" alpha="255" value="154" label="2.A.1.Fp.1-Madagascar Plateau Woodland &amp; Grassland"/>
+        <paletteEntry color="#99ef73" alpha="255" value="155" label="2.A.1.Fq.1-Malagasy Subhumid Woodland &amp; Savanna"/>
+        <paletteEntry color="#bad276" alpha="255" value="157" label="2.A.2.Fe.2-Afro-Alpine Moorland"/>
+        <paletteEntry color="#c5a570" alpha="255" value="161" label="2.A.2.Fe.3-Afromontane Grassland"/>
+        <paletteEntry color="#cdcd66" alpha="255" value="162" label="2.A.2.Fj.1-Malagasy Montane Scrub"/>
+        <paletteEntry color="#89cd66" alpha="255" value="166" label="2.A.5.Fc.1-African Tropical Freshwater Marsh (Dembos)"/>
+        <paletteEntry color="#8ab261" alpha="255" value="167" label="2.A.5.Fc.4-African Temperate Moorland"/>
+        <paletteEntry color="#448970" alpha="255" value="168" label="2.A.5.Fd.1-Okavango-Cuvelai Phreatophyte Vegetation"/>
+        <paletteEntry color="#1ae566" alpha="255" value="169" label="2.A.5.Pm.1-Date Palm Oasis"/>
+        <paletteEntry color="#59806f" alpha="255" value="171" label="2.A.5.Pm.2-Northern African Alluvial Wash &amp; Riparian Vegetation"/>
+        <paletteEntry color="#66b266" alpha="255" value="172" label="2.A.5.Pm.4-Sahelian Riparian Forest"/>
+        <paletteEntry color="#89cd66" alpha="255" value="176" label="2.A.5.Pm.5-Northern African Flooded Riparian Woodland"/>
+        <paletteEntry color="#80e5b2" alpha="255" value="177" label="2.A.5.Pm.6-Northern African Riparian Phreatophyte Vegetation"/>
+        <paletteEntry color="#e8c0ff" alpha="255" value="178" label="2.B.1.Fh.1-Fynbos"/>
+        <paletteEntry color="#ecd9fb" alpha="255" value="179" label="2.B.1.Fh.2-Renosterveld"/>
+        <paletteEntry color="#ffb5ff" alpha="255" value="181" label="2.B.1.Fh.3-Strandveld"/>
+        <paletteEntry color="#b2991a" alpha="255" value="182" label="2.B.1.Pk.1-Mediterranean Montane Scrub"/>
+        <paletteEntry color="#cc9933" alpha="255" value="183" label="2.B.1.Pk.2-Mediterranean Lowland Scrub"/>
+        <paletteEntry color="#ffffbe" alpha="255" value="191" label="2.B.2.Fm.1-Drakensberg Grassland"/>
+        <paletteEntry color="#dcffdb" alpha="255" value="192" label="2.B.2.Fm.2-Dry Highveld Grassland"/>
+        <paletteEntry color="#ffffe0" alpha="255" value="193" label="2.B.2.Fm.3-Moist Highveld Grassland"/>
+        <paletteEntry color="#ffeeba" alpha="255" value="195" label="2.B.2.Fm.4-Sub-Escarpment Grassland"/>
+        <paletteEntry color="#007bef" alpha="255" value="196" label="2.B.6.Fd.1-African Temperate Freshwater Marsh"/>
+        <paletteEntry color="#00a9e6" alpha="255" value="197" label="2.B.6.Fd.2-African Temperate Vernal Pool"/>
+        <paletteEntry color="#73b2ff" alpha="255" value="198" label="2.B.7.Fg.1-African Cape Coastal Salt Marsh"/>
+        <paletteEntry color="#8583ff" alpha="255" value="199" label="2.B.7.Fh.1-Tropical African Coastal Salt Marsh"/>
+        <paletteEntry color="#a4af8b" alpha="255" value="200" label="2.B.7.Fi.1-Eastern African Salt Marsh"/>
+        <paletteEntry color="#ffffff" alpha="255" value="201" label="2.B.7.Fj.1-Etosha Salt Pan"/>
+        <paletteEntry color="#ffffff" alpha="255" value="202" label="2.B.7.Fj.2-Kalahari Salt Pan"/>
+        <paletteEntry color="#ffffff" alpha="255" value="204" label="2.B.7.Fj.3-Bushmanland-Highveld Salt Pan"/>
+        <paletteEntry color="#ffffff" alpha="255" value="206" label="2.B.7.Fj.4-Lowveld-Limpopo Salt Pan"/>
+        <paletteEntry color="#ffffff" alpha="255" value="207" label="2.B.7.Pr.1-Saharan Mediterranean Salt Pan"/>
+        <paletteEntry color="#bfb2b2" alpha="255" value="208" label="2.B.7.Pr.2-Somalia-Masai Salt Pan"/>
+        <paletteEntry color="#1acccc" alpha="255" value="211" label="2.B.7.Ps.1-Mediterranean Coastal Salt Marsh"/>
+        <paletteEntry color="#cd6666" alpha="255" value="216" label="3.A.2.Fc.1-Richtersveld"/>
+        <paletteEntry color="#e2754f" alpha="255" value="221" label="3.A.2.Fc.2-Namaqualand Hardeveld"/>
+        <paletteEntry color="#d77541" alpha="255" value="222" label="3.A.2.Fc.3-Namaqualand Sandveld"/>
+        <paletteEntry color="#ca7b5e" alpha="255" value="226" label="3.A.2.Fc.4-Knersvlakte"/>
+        <paletteEntry color="#ec4d8c" alpha="255" value="236" label="3.A.2.Fc.5-Trans-Escarpment Succulent Karoo"/>
+        <paletteEntry color="#d97c85" alpha="255" value="241" label="3.A.2.Fc.7-Sperregebied Succulent Karoo"/>
+        <paletteEntry color="#d4785e" alpha="255" value="242" label="3.A.2.Fd.1-Madagascar Southwestern Coastal Bushland"/>
+        <paletteEntry color="#c35d5f" alpha="255" value="243" label="3.A.2.Fd.2-Madagascar Southwestern Dry Forest-Thicket"/>
+        <paletteEntry color="#cdaa66" alpha="255" value="244" label="3.A.2.Fe.1-Eastern African Bushland &amp; Thicket"/>
+        <paletteEntry color="#cdcd66" alpha="255" value="246" label="3.A.2.Fe.2-Eastern African Semi-Desert Scrub"/>
+        <paletteEntry color="#d7b09e" alpha="255" value="247" label="3.A.2.Fe.3-Eastern African Acacia Woodland"/>
+        <paletteEntry color="#898944" alpha="255" value="248" label="3.A.2.Fe.4-Eastern African Acacia - Commiphora Woodland"/>
+        <paletteEntry color="#ba8f4b" alpha="255" value="268" label="3.A.2.Fh.1-Bushmanland Semi-Desert Scrub &amp; Grassland"/>
+        <paletteEntry color="#c75060" alpha="255" value="269" label="3.A.2.Fh.2-Upper Karoo Semi-Desert Scrub &amp; Grassland"/>
+        <paletteEntry color="#d68184" alpha="255" value="271" label="3.A.2.Fh.3-Lower Karoo Semi-Desert Scrub &amp; Grassland"/>
+        <paletteEntry color="#bd5849" alpha="255" value="301" label="3.A.2.Fh.4-Southern Namibian Semi-Desert Scrub &amp; Grassland"/>
+        <paletteEntry color="#cb6d69" alpha="255" value="304" label="3.A.2.Fh.5-Pro-Namib Semi-Desert Scrub"/>
+        <paletteEntry color="#ef4b63" alpha="255" value="305" label="3.A.2.Fh.6-Kaokoveld Semi-Desert Scrub"/>
+        <paletteEntry color="#efb7af" alpha="255" value="306" label="3.A.2.Fi.1-Gariep Desert"/>
+        <paletteEntry color="#d79e9e" alpha="255" value="500" label="3.A.2.Fi.2-Southern Namib Desert"/>
+        <paletteEntry color="#b68d9f" alpha="255" value="601" label="3.A.2.Fi.4-Northern Namib Desert"/>
+        <paletteEntry color="#f5f570" alpha="255" value="602" label="3.A.2.Pf.1-North Sahel Herbaceous Steppe"/>
+        <paletteEntry color="#e6e600" alpha="255" value="603" label="3.A.2.Pf.2-North Sahel Shrubland Steppe &amp; Grassland"/>
+        <paletteEntry color="#a8a800" alpha="255" value="605" label="3.A.2.Pf.3-North Sahel Treed Steppe &amp; Grassland"/>
+        <paletteEntry color="#737300" alpha="255" value="606" label="3.A.2.Pg.1-Mountainous Saxicolous Grassland"/>
+        <paletteEntry color="#ffffbe" alpha="255" value="607" label="3.A.2.Pg.2-Saharan Herbaceous Steppe"/>
+        <paletteEntry color="#9ebbd7" alpha="255" value="608" label="3.A.2.Pg.3-Saharan Shrub Steppe"/>
+        <paletteEntry color="#ffffbe" alpha="255" value="700" label="3.A.2.Pg.4-Saharan Sandy Grassland"/>
+        <paletteEntry color="#998066" alpha="255" value="701" label="3.A.2.Pj.1-Saharan Desert Pavement"/>
+        <paletteEntry color="#d7c29e" alpha="255" value="702" label="3.A.2.Pj.2-Saharan Desert Rock Outcrop"/>
+        <paletteEntry color="#faf0cf" alpha="255" value="800" label="3.A.2.Pj.3-Saharan Desert Dune &amp; Sand Plain"/>
+        <paletteEntry color="#ffebbe" alpha="255" value="952" label="6.A.1.Fc.2-Atlantic African Coastal Dune"/>
+        <paletteEntry color="#ffebbe" alpha="255" value="958" label="6.A.1.Fc.7-African Tropical Dune Vegetation"/>
+        <paletteEntry color="#ffebbe" alpha="255" value="959" label="6.B.2.Fd.2-African Temperate Dune Vegetation"/>
+        <paletteEntry color="#ffe1e1" alpha="255" value="962" label="6.B.2.Pe.1-Northern African Mediterranean Alpine Rock &amp; Scree"/>
+        <paletteEntry color="#0070ff" alpha="255" value="969" label="Water"/>
+      </colorPalette>
+    </rasterrenderer>
+    <brightnesscontrast brightness="0" gamma="1" contrast="0"/>
+    <huesaturation saturation="0" colorizeRed="255" colorizeOn="0" colorizeGreen="128" colorizeBlue="128" invertColors="0" colorizeStrength="100" grayscaleMode="0"/>
+    <rasterresampler maxOversampling="2"/>
+    <resamplingStage>resamplingFilter</resamplingStage>
+  </pipe>
+  <originalStyle>
+    <maplayer refreshOnNotifyMessage="" minScale="0" autoRefreshEnabled="0" hasScaleBasedVisibilityFlag="0" legendPlaceholderImage="" maxScale="0" autoRefreshTime="0" refreshOnNotifyEnabled="0" type="raster" styleCategories="AllStyleCategories">
+      <id>africa_labeledecosys_90m_722da008_f4bf_4bc9_8f15_785aa2d6d812</id>
+      <datasource>//igskbtcnws163/e/Workspace/ecosys/Africa_IVC_20130316_final_MG.tif</datasource>
+      <keywordList>
+        <value/>
+      </keywordList>
+      <layername>africa_labeledecosys_90m</layername>
+      <srs>
+        <spatialrefsys>
+          <wkt>GEOGCRS["WGS 84",ENSEMBLE["World Geodetic System 1984 ensemble",MEMBER["World Geodetic System 1984 (Transit)"],MEMBER["World Geodetic System 1984 (G730)"],MEMBER["World Geodetic System 1984 (G873)"],MEMBER["World Geodetic System 1984 (G1150)"],MEMBER["World Geodetic System 1984 (G1674)"],MEMBER["World Geodetic System 1984 (G1762)"],ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]],ENSEMBLEACCURACY[2.0]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],CS[ellipsoidal,2],AXIS["geodetic latitude (Lat)",north,ORDER[1],ANGLEUNIT["degree",0.0174532925199433]],AXIS["geodetic longitude (Lon)",east,ORDER[2],ANGLEUNIT["degree",0.0174532925199433]],USAGE[SCOPE["Horizontal component of 3D system."],AREA["World."],BBOX[-90,-180,90,180]],ID["EPSG",4326]]</wkt>
+          <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
+          <srsid>3452</srsid>
+          <srid>4326</srid>
+          <authid>EPSG:4326</authid>
+          <description>WGS 84</description>
+          <projectionacronym>longlat</projectionacronym>
+          <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
+          <geographicflag>true</geographicflag>
+        </spatialrefsys>
+      </srs>
+      <resourceMetadata>
+        <identifier/>
+        <parentidentifier/>
+        <language/>
+        <type/>
+        <title/>
+        <abstract/>
+        <links/>
+        <fees/>
+        <encoding/>
+        <crs>
+          <spatialrefsys>
+            <wkt/>
+            <proj4/>
+            <srsid>0</srsid>
+            <srid>0</srid>
+            <authid/>
+            <description/>
+            <projectionacronym/>
+            <ellipsoidacronym/>
+            <geographicflag>false</geographicflag>
+          </spatialrefsys>
+        </crs>
+        <extent/>
+      </resourceMetadata>
+      <provider>gdal</provider>
+      <noData>
+        <noDataList useSrcNoData="0" bandNo="1"/>
+      </noData>
+      <map-layer-style-manager current="default">
+        <map-layer-style name="default"/>
+      </map-layer-style-manager>
+      <metadataUrls/>
+      <flags>
+        <Identifiable>1</Identifiable>
+        <Removable>1</Removable>
+        <Searchable>1</Searchable>
+        <Private>0</Private>
+      </flags>
+      <temporal enabled="0" mode="0" fetchMode="0">
+        <fixedRange>
+          <start/>
+          <end/>
+        </fixedRange>
+      </temporal>
+      <customproperties>
+        <Option/>
+      </customproperties>
+      <pipe-data-defined-properties>
+        <Option type="Map">
+          <Option name="name" value="" type="QString"/>
+          <Option name="properties"/>
+          <Option name="type" value="collection" type="QString"/>
+        </Option>
+      </pipe-data-defined-properties>
+      <pipe>
+        <provider>
+          <resampling enabled="false" maxOversampling="2" zoomedOutResamplingMethod="nearestNeighbour" zoomedInResamplingMethod="nearestNeighbour"/>
+        </provider>
+        <rasterrenderer opacity="1" alphaBand="-1" band="1" nodataColor="" type="paletted">
+          <minMaxOrigin>
+            <limits>None</limits>
+            <extent>WholeRaster</extent>
+            <statAccuracy>Estimated</statAccuracy>
+            <cumulativeCutLower>0.02</cumulativeCutLower>
+            <cumulativeCutUpper>0.98</cumulativeCutUpper>
+            <stdDevFactor>2</stdDevFactor>
+          </minMaxOrigin>
+          <colorPalette>
+            <paletteEntry color="#7f8534" alpha="255" value="0" label="1.A.1.Fe.1-Madagascar Western Dry Forest"/>
+            <paletteEntry color="#895a44" alpha="255" value="1" label="1.A.1.Fe.2-Madagascar Tapia Forest"/>
+            <paletteEntry color="#7c4649" alpha="255" value="3" label="1.A.1.Ff.2-Eastern African Coastal Dry Semi-Deciduous Forest"/>
+            <paletteEntry color="#a46b65" alpha="255" value="4" label="1.A.1.Fg.1-Albany Subtropical Thicket"/>
+            <paletteEntry color="#7d3c51" alpha="255" value="5" label="1.A.1.Fh.2-Maputaland Sand Forest"/>
+            <paletteEntry color="#686526" alpha="255" value="6" label="1.A.1.Fh.3-Zambesian Cryptosepalum Dry Forest"/>
+            <paletteEntry color="#00750a" alpha="255" value="7" label="1.A.2.Fd.1-Guineo-Congolian Evergreen Rainforest"/>
+            <paletteEntry color="#117b0c" alpha="255" value="8" label="1.A.2.Fd.3-Guineo-Congolian Semi-Deciduous Rainforest"/>
+            <paletteEntry color="#076e0a" alpha="255" value="9" label="1.A.2.Fd.4-Guineo-Congolian Littoral Rainforest"/>
+            <paletteEntry color="#24642d" alpha="255" value="11" label="1.A.2.Fe.1-Eastern Madagascar Lowland Rainforest"/>
+            <paletteEntry color="#10760e" alpha="255" value="12" label="1.A.2.Fe.2-Eastern Madagascar Subhumid Forest"/>
+            <paletteEntry color="#316212" alpha="255" value="13" label="1.A.2.Fe.3-Western Madagascar Subhumid Forest"/>
+            <paletteEntry color="#217417" alpha="255" value="14" label="1.A.2.Fe.4-Western Madagascar Humid Forest"/>
+            <paletteEntry color="#0e962f" alpha="255" value="15" label="1.A.2.Fe.5-Madagascar Evergreen Littoral Forest"/>
+            <paletteEntry color="#0c8100" alpha="255" value="16" label="1.A.2.Ff.1-Eastern African Lowland Semi-Evergreen Forest"/>
+            <paletteEntry color="#178e00" alpha="255" value="21" label="1.A.2.Ff.2-Central Indian Ocean Coastal Forest"/>
+            <paletteEntry color="#25911b" alpha="255" value="27" label="1.A.2.Ff.3-Southern Indian Ocean Coastal Forest"/>
+            <paletteEntry color="#0a6e28" alpha="255" value="51" label="1.A.2.Ff.4-Southern African Scarp Forest"/>
+            <paletteEntry color="#539c00" alpha="255" value="52" label="1.A.3.Fd.1-Eastern African Dry Evergreen Montane Forest"/>
+            <paletteEntry color="#627b18" alpha="255" value="61" label="1.A.3.Ff.1-Eastern Madagascar Montane Forest"/>
+            <paletteEntry color="#4fa809" alpha="255" value="66" label="1.A.3.Ff.4-Moist Evergreen Montane Forest"/>
+            <paletteEntry color="#446589" alpha="255" value="67" label="1.A.4.Fe.1-Uapaca guineensis Swamp Forest"/>
+            <paletteEntry color="#317590" alpha="255" value="68" label="1.A.4.Fe.2-Makaranga Swamp Forest"/>
+            <paletteEntry color="#3f6cac" alpha="255" value="70" label="1.A.4.Ff.1-Zululand-Mozambique Coastal Swamp Forest"/>
+            <paletteEntry color="#2b3e60" alpha="255" value="81" label="1.A.4.Fg.1-Antostema - Alstoneia Swamp Forest"/>
+            <paletteEntry color="#425780" alpha="255" value="86" label="1.A.4.Fg.2-Raffia Swamp"/>
+            <paletteEntry color="#2667a1" alpha="255" value="87" label="1.A.4.Fg.3-Central Congo Basin Swamp Forest"/>
+            <paletteEntry color="#00734c" alpha="255" value="88" label="1.A.4.Fh.1-Western African Non-Riverine Swamp Forest"/>
+            <paletteEntry color="#4ce600" alpha="255" value="89" label="1.A.5.Ua.1-Atlantic Ocean Mangrove"/>
+            <paletteEntry color="#59ff19" alpha="255" value="96" label="1.A.5.Wb.1-Indian Ocean Mangrove"/>
+            <paletteEntry color="#7e5218" alpha="255" value="97" label="1.B.1.Fe.1-Southern Afrotemperate Forest"/>
+            <paletteEntry color="#69371d" alpha="255" value="98" label="1.B.1.Fe.2-Northern Afrotemperate Forest"/>
+            <paletteEntry color="#685a28" alpha="255" value="101" label="1.B.1.Fe.3-Southern Mistbelt Forest"/>
+            <paletteEntry color="#80451e" alpha="255" value="102" label="1.B.1.Fe.4-Northern Mistbelt Forest"/>
+            <paletteEntry color="#a8a800" alpha="255" value="112" label="1.B.1.Ph.1-Mediterranean Lowland Mixed Forest"/>
+            <paletteEntry color="#70a800" alpha="255" value="113" label="1.B.1.Ph.2-Northern African Pinus / Quercus Forest &amp; Woodland"/>
+            <paletteEntry color="#40e566" alpha="255" value="116" label="1.B.1.Ph.3-Mediterranean montane coniferous forest"/>
+            <paletteEntry color="#00a884" alpha="255" value="117" label="1.B.3.Fe.1-Fynbos Flooded Riparian Thicket"/>
+            <paletteEntry color="#737300" alpha="255" value="118" label="1.B.3.Ff.1-Southern African Riparian Phreatophyte Vegetation"/>
+            <paletteEntry color="#a6ee96" alpha="255" value="119" label="2.A.1.Ff.2-Western African Mesic Woodland &amp; Grassland"/>
+            <paletteEntry color="#7cff63" alpha="255" value="120" label="2.A.1.Ff.3-Gabono-Congolian Mesic Woodland &amp; Grassland"/>
+            <paletteEntry color="#ffe379" alpha="255" value="121" label="2.A.1.Fg.1-Dry Combretum - Mixed Woodland &amp; Savanna"/>
+            <paletteEntry color="#ffcb81" alpha="255" value="122" label="2.A.1.Fg.2-Dry Acacia Woodland &amp; Savanna"/>
+            <paletteEntry color="#ffda7f" alpha="255" value="123" label="2.A.1.Fg.3-Dry Acacia - Terminalia - Combretum Woodland &amp; Savanna"/>
+            <paletteEntry color="#ffd77b" alpha="255" value="126" label="2.A.1.Fg.4-Southern Kalahari Dunefield Woodland &amp; Savanna"/>
+            <paletteEntry color="#f6e47b" alpha="255" value="131" label="2.A.1.Fg.5-Kalahari Camel Thorn Woodland &amp; Savanna"/>
+            <paletteEntry color="#ffd87f" alpha="255" value="132" label="2.A.1.Fh.1-Limpopo Mopane"/>
+            <paletteEntry color="#f3de73" alpha="255" value="133" label="2.A.1.Fh.2-Zambezi Mopane"/>
+            <paletteEntry color="#f8c48d" alpha="255" value="136" label="2.A.1.Fh.3-Namibia-Angola Mopane"/>
+            <paletteEntry color="#e6e600" alpha="255" value="142" label="2.A.1.Fi.1-Sudano-Sahelian Herbaceous Savanna"/>
+            <paletteEntry color="#d7d79e" alpha="255" value="143" label="2.A.1.Fi.2-Sudano-Sahelian Shrub Savanna"/>
+            <paletteEntry color="#abcd66" alpha="255" value="146" label="2.A.1.Fi.3-Sudano-Sahelian Treed Savanna"/>
+            <paletteEntry color="#a3ff73" alpha="255" value="147" label="2.A.1.Fn.1-Wet Miombo"/>
+            <paletteEntry color="#c1ff75" alpha="255" value="148" label="2.A.1.Fn.2-Dry Miombo"/>
+            <paletteEntry color="#adff67" alpha="255" value="151" label="2.A.1.Fn.3-Baikiaea Woodland &amp; Savanna"/>
+            <paletteEntry color="#84ff76" alpha="255" value="152" label="2.A.1.Fo.1-Moist Combretum - Terminalia Woodland &amp; Savanna"/>
+            <paletteEntry color="#95f46b" alpha="255" value="153" label="2.A.1.Fo.2-Moist Acacia - (Combretum) Woodland &amp; Savanna"/>
+            <paletteEntry color="#ffd871" alpha="255" value="154" label="2.A.1.Fp.1-Madagascar Plateau Woodland &amp; Grassland"/>
+            <paletteEntry color="#99ef73" alpha="255" value="155" label="2.A.1.Fq.1-Malagasy Subhumid Woodland &amp; Savanna"/>
+            <paletteEntry color="#bad276" alpha="255" value="157" label="2.A.2.Fe.2-Afro-Alpine Moorland"/>
+            <paletteEntry color="#c5a570" alpha="255" value="161" label="2.A.2.Fe.3-Afromontane Grassland"/>
+            <paletteEntry color="#cdcd66" alpha="255" value="162" label="2.A.2.Fj.1-Malagasy Montane Scrub"/>
+            <paletteEntry color="#89cd66" alpha="255" value="166" label="2.A.5.Fc.1-African Tropical Freshwater Marsh (Dembos)"/>
+            <paletteEntry color="#8ab261" alpha="255" value="167" label="2.A.5.Fc.4-African Temperate Moorland"/>
+            <paletteEntry color="#448970" alpha="255" value="168" label="2.A.5.Fd.1-Okavango-Cuvelai Phreatophyte Vegetation"/>
+            <paletteEntry color="#1ae566" alpha="255" value="169" label="2.A.5.Pm.1-Date Palm Oasis"/>
+            <paletteEntry color="#59806f" alpha="255" value="171" label="2.A.5.Pm.2-Northern African Alluvial Wash &amp; Riparian Vegetation"/>
+            <paletteEntry color="#66b266" alpha="255" value="172" label="2.A.5.Pm.4-Sahelian Riparian Forest"/>
+            <paletteEntry color="#89cd66" alpha="255" value="176" label="2.A.5.Pm.5-Northern African Flooded Riparian Woodland"/>
+            <paletteEntry color="#80e5b2" alpha="255" value="177" label="2.A.5.Pm.6-Northern African Riparian Phreatophyte Vegetation"/>
+            <paletteEntry color="#e8c0ff" alpha="255" value="178" label="2.B.1.Fh.1-Fynbos"/>
+            <paletteEntry color="#ecd9fb" alpha="255" value="179" label="2.B.1.Fh.2-Renosterveld"/>
+            <paletteEntry color="#ffb5ff" alpha="255" value="181" label="2.B.1.Fh.3-Strandveld"/>
+            <paletteEntry color="#b2991a" alpha="255" value="182" label="2.B.1.Pk.1-Mediterranean Montane Scrub"/>
+            <paletteEntry color="#cc9933" alpha="255" value="183" label="2.B.1.Pk.2-Mediterranean Lowland Scrub"/>
+            <paletteEntry color="#ffffbe" alpha="255" value="191" label="2.B.2.Fm.1-Drakensberg Grassland"/>
+            <paletteEntry color="#dcffdb" alpha="255" value="192" label="2.B.2.Fm.2-Dry Highveld Grassland"/>
+            <paletteEntry color="#ffffe0" alpha="255" value="193" label="2.B.2.Fm.3-Moist Highveld Grassland"/>
+            <paletteEntry color="#ffeeba" alpha="255" value="195" label="2.B.2.Fm.4-Sub-Escarpment Grassland"/>
+            <paletteEntry color="#007bef" alpha="255" value="196" label="2.B.6.Fd.1-African Temperate Freshwater Marsh"/>
+            <paletteEntry color="#00a9e6" alpha="255" value="197" label="2.B.6.Fd.2-African Temperate Vernal Pool"/>
+            <paletteEntry color="#73b2ff" alpha="255" value="198" label="2.B.7.Fg.1-African Cape Coastal Salt Marsh"/>
+            <paletteEntry color="#8583ff" alpha="255" value="199" label="2.B.7.Fh.1-Tropical African Coastal Salt Marsh"/>
+            <paletteEntry color="#a4af8b" alpha="255" value="200" label="2.B.7.Fi.1-Eastern African Salt Marsh"/>
+            <paletteEntry color="#ffffff" alpha="255" value="201" label="2.B.7.Fj.1-Etosha Salt Pan"/>
+            <paletteEntry color="#ffffff" alpha="255" value="202" label="2.B.7.Fj.2-Kalahari Salt Pan"/>
+            <paletteEntry color="#ffffff" alpha="255" value="204" label="2.B.7.Fj.3-Bushmanland-Highveld Salt Pan"/>
+            <paletteEntry color="#ffffff" alpha="255" value="206" label="2.B.7.Fj.4-Lowveld-Limpopo Salt Pan"/>
+            <paletteEntry color="#ffffff" alpha="255" value="207" label="2.B.7.Pr.1-Saharan Mediterranean Salt Pan"/>
+            <paletteEntry color="#bfb2b2" alpha="255" value="208" label="2.B.7.Pr.2-Somalia-Masai Salt Pan"/>
+            <paletteEntry color="#1acccc" alpha="255" value="211" label="2.B.7.Ps.1-Mediterranean Coastal Salt Marsh"/>
+            <paletteEntry color="#cd6666" alpha="255" value="216" label="3.A.2.Fc.1-Richtersveld"/>
+            <paletteEntry color="#e2754f" alpha="255" value="221" label="3.A.2.Fc.2-Namaqualand Hardeveld"/>
+            <paletteEntry color="#d77541" alpha="255" value="222" label="3.A.2.Fc.3-Namaqualand Sandveld"/>
+            <paletteEntry color="#ca7b5e" alpha="255" value="226" label="3.A.2.Fc.4-Knersvlakte"/>
+            <paletteEntry color="#ec4d8c" alpha="255" value="236" label="3.A.2.Fc.5-Trans-Escarpment Succulent Karoo"/>
+            <paletteEntry color="#d97c85" alpha="255" value="241" label="3.A.2.Fc.7-Sperregebied Succulent Karoo"/>
+            <paletteEntry color="#d4785e" alpha="255" value="242" label="3.A.2.Fd.1-Madagascar Southwestern Coastal Bushland"/>
+            <paletteEntry color="#c35d5f" alpha="255" value="243" label="3.A.2.Fd.2-Madagascar Southwestern Dry Forest-Thicket"/>
+            <paletteEntry color="#cdaa66" alpha="255" value="244" label="3.A.2.Fe.1-Eastern African Bushland &amp; Thicket"/>
+            <paletteEntry color="#cdcd66" alpha="255" value="246" label="3.A.2.Fe.2-Eastern African Semi-Desert Scrub"/>
+            <paletteEntry color="#d7b09e" alpha="255" value="247" label="3.A.2.Fe.3-Eastern African Acacia Woodland"/>
+            <paletteEntry color="#898944" alpha="255" value="248" label="3.A.2.Fe.4-Eastern African Acacia - Commiphora Woodland"/>
+            <paletteEntry color="#ba8f4b" alpha="255" value="268" label="3.A.2.Fh.1-Bushmanland Semi-Desert Scrub &amp; Grassland"/>
+            <paletteEntry color="#c75060" alpha="255" value="269" label="3.A.2.Fh.2-Upper Karoo Semi-Desert Scrub &amp; Grassland"/>
+            <paletteEntry color="#d68184" alpha="255" value="271" label="3.A.2.Fh.3-Lower Karoo Semi-Desert Scrub &amp; Grassland"/>
+            <paletteEntry color="#bd5849" alpha="255" value="301" label="3.A.2.Fh.4-Southern Namibian Semi-Desert Scrub &amp; Grassland"/>
+            <paletteEntry color="#cb6d69" alpha="255" value="304" label="3.A.2.Fh.5-Pro-Namib Semi-Desert Scrub"/>
+            <paletteEntry color="#ef4b63" alpha="255" value="305" label="3.A.2.Fh.6-Kaokoveld Semi-Desert Scrub"/>
+            <paletteEntry color="#efb7af" alpha="255" value="306" label="3.A.2.Fi.1-Gariep Desert"/>
+            <paletteEntry color="#d79e9e" alpha="255" value="500" label="3.A.2.Fi.2-Southern Namib Desert"/>
+            <paletteEntry color="#b68d9f" alpha="255" value="601" label="3.A.2.Fi.4-Northern Namib Desert"/>
+            <paletteEntry color="#f5f570" alpha="255" value="602" label="3.A.2.Pf.1-North Sahel Herbaceous Steppe"/>
+            <paletteEntry color="#e6e600" alpha="255" value="603" label="3.A.2.Pf.2-North Sahel Shrubland Steppe &amp; Grassland"/>
+            <paletteEntry color="#a8a800" alpha="255" value="605" label="3.A.2.Pf.3-North Sahel Treed Steppe &amp; Grassland"/>
+            <paletteEntry color="#737300" alpha="255" value="606" label="3.A.2.Pg.1-Mountainous Saxicolous Grassland"/>
+            <paletteEntry color="#ffffbe" alpha="255" value="607" label="3.A.2.Pg.2-Saharan Herbaceous Steppe"/>
+            <paletteEntry color="#9ebbd7" alpha="255" value="608" label="3.A.2.Pg.3-Saharan Shrub Steppe"/>
+            <paletteEntry color="#ffffbe" alpha="255" value="700" label="3.A.2.Pg.4-Saharan Sandy Grassland"/>
+            <paletteEntry color="#998066" alpha="255" value="701" label="3.A.2.Pj.1-Saharan Desert Pavement"/>
+            <paletteEntry color="#d7c29e" alpha="255" value="702" label="3.A.2.Pj.2-Saharan Desert Rock Outcrop"/>
+            <paletteEntry color="#faf0cf" alpha="255" value="800" label="3.A.2.Pj.3-Saharan Desert Dune &amp; Sand Plain"/>
+            <paletteEntry color="#ffebbe" alpha="255" value="952" label="6.A.1.Fc.2-Atlantic African Coastal Dune"/>
+            <paletteEntry color="#ffebbe" alpha="255" value="958" label="6.A.1.Fc.7-African Tropical Dune Vegetation"/>
+            <paletteEntry color="#ffebbe" alpha="255" value="959" label="6.B.2.Fd.2-African Temperate Dune Vegetation"/>
+            <paletteEntry color="#ffe1e1" alpha="255" value="962" label="6.B.2.Pe.1-Northern African Mediterranean Alpine Rock &amp; Scree"/>
+            <paletteEntry color="#0070ff" alpha="255" value="969" label="Water"/>
+          </colorPalette>
+        </rasterrenderer>
+        <brightnesscontrast brightness="0" gamma="1" contrast="0"/>
+        <huesaturation saturation="0" colorizeRed="255" colorizeOn="0" colorizeGreen="128" colorizeBlue="128" invertColors="0" colorizeStrength="100" grayscaleMode="0"/>
+        <rasterresampler maxOversampling="2"/>
+        <resamplingStage>resamplingFilter</resamplingStage>
+      </pipe>
+      <blendMode>0</blendMode>
+    </maplayer>
+  </originalStyle>
+  <blendMode>0</blendMode>
+</qgis>
