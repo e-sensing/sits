@@ -123,24 +123,25 @@
             ),
             fill = color_tb$color
         ) +
-        ggplot2::geom_text(
+        suppressWarnings(ggplot2::geom_text(
             data = color_tb,
             mapping = ggplot2::aes(
                 x = .data[["x"]] + 0.5,
                 y = .data[["y"]] + 0.6 + 0.1 * (.data[["lines"]] - 1),
                 label = stringr::str_wrap(.data[["name"]], width = 12)
             ),
+            size = 4,
             family = font_family,
             colour = "grey15",
             hjust = 0.5,
             vjust = 1,
             size = 10 / ggplot2::.pt
-        )
+        ))
 
     g + ggplot2::theme(
         panel.background = ggplot2::element_rect(fill = "#FFFFFF")
     )
-    return(g)
+    return(suppressWarnings(g))
 }
 #'
 #' @title Write a color table in QGIS Style format

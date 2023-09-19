@@ -174,10 +174,13 @@
             tmap::tm_layout(
                 legend.show = TRUE,
                 legend.outside = FALSE,
+                scale = tmap_params[["scale"]],
+                fontfamily = tmap_params[["font_family"]],
                 legend.bg.color = tmap_params[["bg_color"]],
                 legend.bg.alpha = tmap_params[["bg_alpha"]],
                 legend.title.size = tmap_params[["title_size"]],
                 legend.text.size = tmap_params[["text_size"]],
+                legend.width = tmap_params[["legend_width"]]
             )
     )
     return(p)
@@ -461,7 +464,7 @@
     if (!purrr::is_null(tmap_options[["tmap_max_cells"]])) {
         max_cells <- tmap_options[["tmap_max_cells"]]
     } else {
-        max_cells <- as.numeric(.conf("tmap_max_cells"))
+        max_cells <- as.numeric(.conf("tmap", "tmap_max_cells"))
     }
     max_raster <- c(plot = max_cells, view = max_cells)
     # set the options for tmap
@@ -502,11 +505,15 @@
 #'
 .plot_tmap_params <- function(tmap_options) {
     # set the tmap options
-    labels_size <- as.numeric(.conf("tmap_graticules_labels_size"))
-    title_size <- as.numeric(.conf("tmap_legend_title_size"))
-    text_size <- as.numeric(.conf("tmap_legend_text_size"))
-    bg_color <- .conf("tmap_legend_bg_color")
-    bg_alpha <- as.numeric(.conf("tmap_legend_bg_alpha"))
+    labels_size <- as.numeric(.conf("tmap", "tmap_graticules_labels_size"))
+    title_size  <- as.numeric(.conf("tmap", "tmap_legend_title_size"))
+    text_size   <- as.numeric(.conf("tmap", "tmap_legend_text_size"))
+    legend_width <- as.numeric(.conf("tmap", "tmap_legend_width"))
+    legend_height <- as.numeric(.conf("tmap", "tmap_legend_height"))
+    bg_color    <- .conf("tmap", "tmap_legend_bg_color")
+    bg_alpha    <- as.numeric(.conf("tmap", "tmap_legend_bg_alpha"))
+    scale       <- as.numeric(.conf("tmap", "tmap_scale"))
+    font_family <- .conf("tmap", "tmap_font_family")
 
     # user specified tmap options
     if (!purrr::is_null(tmap_options)) {
@@ -536,13 +543,24 @@
         if (!purrr::is_null(tmap_options[["tmap_legend_bg_alpha"]])) {
             bg_alpha <- as.numeric(tmap_options[["tmap_legend_bg_alpha"]])
         }
+        # tmap legend height
+        if (!purrr::is_null(tmap_options[["tmap_legend_height"]])) {
+            legend_height <- as.numeric(tmap_options[["tmap_legend_height"]])
+        }
+        if (!purrr::is_null(tmap_options[["tmap_legend_width"]])) {
+            legend_width <- as.numeric(tmap_options[["tmap_legend_width"]])
+        }
     }
     tmap_params <- list(
+        "scale"       = scale,
+        "font_family" = font_family,
         "labels_size" = labels_size,
         "title_size" = title_size,
         "text_size" = text_size,
         "bg_color" = bg_color,
-        "bg_alpha" = bg_alpha
+        "bg_alpha" = bg_alpha,
+        "legend_height" = legend_height,
+        "legend_width" = legend_width
     )
     return(tmap_params)
 }

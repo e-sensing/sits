@@ -52,12 +52,12 @@ sits_colors <- function(legend = NULL) {
 #' @export
 #'
 sits_colors_show <- function(legend = NULL,
-                             font_family = "roboto") {
+                             font_family = "plex_sans") {
     # verifies if sysfonts package is installed
     .check_require_packages("sysfonts")
     # checks if font family is available
     if (!font_family %in% sysfonts::font_families())
-        font_family <- "roboto"
+        font_family <- "plex_sans"
     # legend must be valid
     legends <- .conf("legends")
     if (purrr::is_null(legend))

@@ -4,7 +4,7 @@
 \alias{sits_colors_show}
 \title{Function to show colors in SITS}
 \usage{
-sits_colors_show(legend = NULL, font_family = "roboto")
+sits_colors_show(legend = NULL, font_family = "plex_sans")
 }
 \arguments{
 \item{legend}{One of the accepted legends in sits}
