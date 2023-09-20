@@ -304,12 +304,13 @@ summary.class_cube <- function(object, ...,
     files <- .tile_paths(tile)
     # print the base information (if requested)
     .summary_tile_information(tile)
-    # read the files with terra
-    r <- terra::rast(files)
+    # read raster files
+    r <- .raster_open_rast(files)
     # get a frequency of values
-    class_areas <- terra::freq(r)
+    class_areas <- .raster_freq(r)
     # transform to km^2
-    class_areas[["area"]] <-  (class_areas[["count"]] * .tile_xres(tile) * .tile_yres(tile)) / 10^6
+    cell_size <- .tile_xres(tile) * .tile_yres(tile)
+    class_areas[["area"]] <-  (class_areas[["count"]] * cell_size) / 10^6
     # change value to character
     class_areas <- dplyr::mutate(class_areas,
         value = as.character(.data[["value"]])

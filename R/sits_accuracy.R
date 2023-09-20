@@ -209,7 +209,7 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
             xy = xy
         )
         # Get the predicted values
-        predicted <- labels_cube[unlist(values)]
+        predicted <- labels_cube[.as_chr(unlist(values))]
         # Get reference classes
         reference <- points_tile$label
         # Does the number of predicted and reference values match?
@@ -249,7 +249,7 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
         # Include class names
         freq <- dplyr::mutate(freq,
             area = area,
-            class = labels_cube[freq$value]
+            class = labels_cube[.as_chr(freq$value)]
         )
         return(freq)
     })
