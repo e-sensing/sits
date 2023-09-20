@@ -193,6 +193,43 @@ NULL
     yres <- .tile_yres(tile)
     return(yres)
 }
+
+#' @title Update tile labels
+#' @noRd
+#' @param tile   A tile.
+#' @param labels A character vector with new labels
+#' @return vector of labels
+.tile_update_label <- function(tile, labels) {
+    UseMethod(".tile_update_label", tile)
+}
+
+#' @export
+.tile_update_label.class_cube <- function(tile, labels) {
+    # Open classified raster
+    tile_rast <- .raster_open_rast(.tile_path(tile))
+    # Get frequency values
+    freq_tbl <- .raster_freq(tile_rast)
+    # Get tile labels
+    tile_labels <- .tile_labels(tile)
+    if (is.null(names(tile_labels))) {
+        names(tile_labels) <- seq_along(tile_labels)
+    }
+    # Get new labels values
+    tile_labels <- tile_labels[.as_chr(freq_tbl[["value"]])]
+    # Set new labels
+    .tile_labels(tile) <- tile_labels
+    # Return tile with updated labels
+    return(tile)
+}
+
+#' @export
+.tile_update_label.default <- function(tile, labels) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    tile <- .tile_update_label(tile, labels)
+    return(tile)
+}
+
 #' @title Get/Set labels
 #' @noRd
 #' @param tile A tile.
@@ -1143,7 +1180,7 @@ NULL
 #' @param derived_class class of the derived tile
 #' @param block_files  files that host the blocks
 #' @param multicores  number of parallel processes
-#' @param update_bbox  should bbox be updated?
+#' @param update_bbox   should bbox be updated?
 #' @return a new tile with files written
 .tile_derived_merge_blocks <- function(file, band, labels, base_tile,
                                        derived_class, block_files, multicores,

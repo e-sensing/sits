@@ -119,9 +119,12 @@
         multicores = .jobs_multicores(),
         update_bbox = FALSE
     )
+    # Update tile labels
+    class_tile <- .tile_update_label(class_tile, labels)
     # Return class tile
     class_tile
 }
+
 #' @title Reclassify function
 #' @keywords internal
 #' @noRd
