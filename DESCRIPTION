@@ -123,7 +123,6 @@ Collate:
     'api_csv.R'
     'api_cube.R'
     'api_data.R'
-    'api_data2.R'
     'api_debug.R'
     'api_download.R'
     'api_factory.R'
