@@ -189,7 +189,6 @@
                         "-wo" = paste0("NUM_THREADS=", multicores),
                         "-multi" = TRUE,
                         "-cutline" = roi_file,
-                        "-crop_to_cutline" = TRUE,
                         "-q" = TRUE,
                         "-overwrite" = FALSE
                     ),
