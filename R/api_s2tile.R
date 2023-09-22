@@ -32,7 +32,7 @@
         .bbox() |>
         dplyr::mutate(
             xmin = xmin - 1.5,
-            ymax = ymax - 1.5
+            ymin = ymin - 1.5
         ) |>
         .bbox_as_sf()
 
