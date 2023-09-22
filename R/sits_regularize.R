@@ -123,8 +123,6 @@ sits_regularize.raster_cube <- function(cube,
             )
         }
     }
-    # Normalize path
-    output_dir <- .file_normalize(output_dir)
     # Regularize
     .gc_regularize(
         cube = cube,
