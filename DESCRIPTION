@@ -144,6 +144,7 @@ Collate:
     'api_raster_sub_image.R'
     'api_raster_terra.R'
     'api_reclassify.R'
+    'api_regularize.R'
     'api_roi.R'
     'api_s2tile.R'
     'api_samples.R'
