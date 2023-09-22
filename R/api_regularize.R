@@ -1,7 +1,6 @@
-.reg_tile <- function(cube, res, roi, period, output_dir, progress) {
+.reg_cube <- function(cube, res, roi, period, output_dir, progress) {
     # Save input cube class
     cube_class <- class(cube)
-
     # Create assets as jobs
     cube_assets <- .reg_cube_split_assets(cube = cube, period = period)
 
@@ -102,7 +101,8 @@
                   nrows = floor((.ymax(asset) - .ymin(asset)) / res))
     bbox <- list(xmin = .xmin(asset),
                  xmax = .xmin(asset) + .ncols(block) * res,
-                 ymin = .ymax(asset) - .nrows(block) * res, ymax = .ymax(asset),
+                 ymin = .ymax(asset) - .nrows(block) * res,
+                 ymax = .ymax(asset),
                  crs = .crs(asset))
     out_file <- .gdal_template_block(
         block = block,
