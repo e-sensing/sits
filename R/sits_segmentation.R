@@ -27,9 +27,9 @@
 #'        Use the functions available in \code{sf} for further analysis.}
 #'  }
 #'
-#' @param cube        Regular data cube
-#' @param seg_fn      Function to apply the segmentation
-#' @param roi         Region of interest (see below)
+#' @param  cube       Regular data cube
+#' @param  seg_fn     Function to apply the segmentation
+#' @param  roi        Region of interest (see below)
 #' @param  start_date Start date for the segmentation
 #' @param  end_date   End date for the segmentation.
 #' @param  memsize    Memory available for classification (in GB).
@@ -57,28 +57,23 @@
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir
 #'     )
-#'     # segment the image
+#'     # segment the vector cube
 #'     segments <- sits_segment(
 #'         cube = cube,
 #'         output_dir = tempdir()
 #'     )
 #'     # create a classification model
 #'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-#'     # get the average value per segment
-#'     samples_seg <- sits_get_data(
-#'         cube = cube,
-#'         samples = segments,
-#'         n_sam_pol = 10
-#'     )
 #'     # classify the segments
-#'     seg_class <- sits_classify(
-#'         data = samples_seg,
-#'         ml_model = rfor_model
+#'     seg_probs <- sits_classify(
+#'         data = segments,
+#'         ml_model = rfor_model,
+#'         output_dir = tempdir()
 #'     )
-#'     # add a column to the segments by class
-#'     sf_seg <- sits_join_segments(
-#'         data = seg_class,
-#'         segments = segments
+#'     # label the probability segments
+#'     seg_label <- sits_label_classification(
+#'         cube = seg_probs,
+#'         output_dir = tempdir()
 #'     )
 #' }
 #' @export
@@ -141,7 +136,7 @@ sits_segment <- function(cube,
     # Process each tile sequentially
     segs_cube <- .cube_foreach_tile(cube, function(tile) {
         # Segment the data
-        segs_tile <- .segment_tile(
+        segs_tile <- .segments_tile(
             tile = tile,
             seg_fn = seg_fn,
             band = "segments",
@@ -211,31 +206,23 @@ sits_segment <- function(cube,
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir
 #'     )
-#'
-#'     # segment the image
+#'     # segment the vector cube
 #'     segments <- sits_segment(
 #'         cube = cube,
-#'         tile = "012010",
-#'         bands = "NDVI",
-#'         date = sits_timeline(cube)[1],
-#'         seg_fn = sits_supercells(step = 10)
+#'         output_dir = tempdir()
 #'     )
 #'     # create a classification model
 #'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-#'     # get the average value per segment
-#'     samples_seg <- sits_get_data(
-#'         cube = cube,
-#'         samples = segments
-#'     )
 #'     # classify the segments
-#'     seg_class <- sits_classify(
-#'         data = samples_seg,
-#'         ml_model = rfor_model
+#'     seg_probs <- sits_classify(
+#'         data = segments,
+#'         ml_model = rfor_model,
+#'         output_dir = tempdir()
 #'     )
-#'     # add a column to the segments by class
-#'     sf_seg <- sits_join_segments(
-#'         data = seg_class,
-#'         segments = segments
+#'     # label the probability segments
+#'     seg_label <- sits_label_classification(
+#'         cube = seg_probs,
+#'         output_dir = tempdir()
 #'     )
 #' }
 #' @export
@@ -308,93 +295,4 @@ sits_slic <- function(data = NULL,
         # Return the segment object
         return(v_obj)
     }
-}
-
-#' @title Return segments from a classified set of time series
-#' @name sits_join_segments
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @description The \code{\link{sits_segment}} function produces
-#' a list of "sf" segments. These segments are used to obtain a set
-#' of time series (one per segment) using
-#' \code{\link{sits_get_data}}. The time series can then be classified
-#' using \code{\link{sits_classify}}. The next step is to add the result
-#' of time series classification to the "sf" segments file. This action
-#' is performed by this function.
-#'
-#' @param data     A sits tibble with predicted values
-#' @param segments A list of "sf" segments with polygon geometry
-#'                 organized by tile.
-#' @return         An list of sf objects of polygon geometry
-#'                 with an additional class attribute
-#'                 organized by tile
-#' @examples
-#' if (sits_run_examples()) {
-#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#'     # create a data cube
-#'     cube <- sits_cube(
-#'         source = "BDC",
-#'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir
-#'     )
-#'
-#'     # segment the image
-#'     segments <- sits_segment(
-#'         cube = cube,
-#'         tile = "012010",
-#'         bands = "NDVI",
-#'         date = sits_timeline(cube)[1],
-#'         seg_fn = sits_supercells(step = 10)
-#'     )
-#'     # create a classification model
-#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-#'     # get the average value per segment
-#'     samples_seg <- sits_get_data(
-#'         cube = cube,
-#'         samples = segments
-#'     )
-#'     # classify the segments
-#'     seg_class <- sits_classify(
-#'         data = samples_seg,
-#'         ml_model = rfor_model
-#'     )
-#'     # add a column to the segments by class
-#'     sf_seg <- sits_join_segments(
-#'         data = seg_class,
-#'         segments = segments
-#'     )
-#' }
-#' @export
-sits_join_segments <- function(data, segments) {
-    # pre-conditions
-    .check_that(
-        x = inherits(data, "predicted"),
-        msg = "input data should be a set of classified time series"
-    )
-    .check_that(
-        x = inherits(segments, "segments"),
-        msg = "invalid segments input"
-    )
-    # select polygon_id and class for the time series tibble
-    data_id <- data |>
-        dplyr::select("polygon_id", "predicted") |>
-        tidyr::unnest(cols = "predicted") |>
-        dplyr::group_by(.data[["polygon_id"]])
-
-    labels <- setdiff(colnames(data_id), c("polygon_id", "from", "to", "class"))
-
-    data_id <- data_id |>
-        dplyr::summarise(dplyr::across(.cols = dplyr::all_of(labels), sum)) |>
-        dplyr::rowwise() |>
-        dplyr::mutate(class = labels[which.max(
-            dplyr::c_across(dplyr::all_of(labels)))]) |>
-        dplyr::mutate(polygon_id = as.numeric(.data[["polygon_id"]]))
-
-    # join the data_id tibble with the segments (sf objects)
-    segments_tile <- purrr::map(segments, function(seg) {
-        dplyr::left_join(seg, data_id, by = c("supercells" = "polygon_id"))
-    })
-    # keep the names
-    names(segments_tile) <- names(segments)
-    class(segments_tile) <- class(segments)
-    return(segments_tile)
 }

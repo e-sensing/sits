@@ -181,6 +181,112 @@
     # Return probs tile
     probs_tile
 }
+
+#' @title Classify a chunk of raster data  using multicores
+#' @name .classify_tile
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Classifies a block of data using multicores. It breaks
+#' the data into horizontal blocks and divides them between the available cores.
+#'
+#' Reads data using terra, cleans the data for NAs and missing values.
+#' The clean data is stored in a data table with the time instances
+#' for all pixels of the block. The algorithm then classifies data on
+#' an year by year basis. For each year, extracts the sub-blocks for each band.
+#'
+#' After all cores process their blocks, it joins the result and then writes it
+#' in the classified images for each corresponding year.
+#'
+#' @param  tile       Single tile of a data cube.
+#' @param  ml_model   Model trained by \code{\link[sits]{sits_train}}.
+#' @param  filter_fn  Smoothing filter function to be applied to the data.
+#' @param  aggreg_fn  Function to compute a summary of each segment.
+#' @param  n_sam_pol  Number of samples per polygon to be read
+#'                    for POLYGON or MULTIPOLYGON shapefiles or sf objects.
+#' @param  multicores Number of cores to be used for classification
+#' @param  version    Version of result.
+#' @param  output_dir Output directory.
+#' @param  progress   Show progress bar?
+#' @return List of the classified raster layers.
+.classify_vector_tile <- function(tile, ml_model, filter_fn, aggreg_fn,
+                                  n_sam_pol, multicores, version, output_dir,
+                                  progress) {
+    # Output file
+    out_file <- .file_derived_name(
+        tile = tile, band = "probs", version = version,
+        output_dir = output_dir, ext = "gpkg"
+    )
+    # Resume feature
+    if (.segments_is_valid(out_file)) {
+        if (.check_messages()) {
+            message("Recovery: tile '", tile[["tile"]], "' already exists.")
+            message(
+                "(If you want to produce a new image, please ",
+                "change 'output_dir' or 'version' parameters)"
+            )
+        }
+        # Create tile based on template
+        probs_tile <- .tile_segments_from_file(
+            file = out_file,
+            band = "probs",
+            base_tile = tile,
+            labels = .ml_labels_code(ml_model),
+            vector_class = "probs_vector_cube",
+            update_bbox = FALSE
+        )
+        return(probs_tile)
+    }
+
+    bands <- .tile_bands(tile)
+    if (is.null(n_sam_pol)) {
+        segments_ts <- .segments_get_summary(
+            cube = tile,
+            bands = bands,
+            aggreg_fn = aggreg_fn,
+            pol_id = "pol_id",
+            multicores = multicores,
+            progress = FALSE
+        )
+    } else {
+        segments_ts <- .segments_get_data(
+            cube = tile,
+            bands = bands,
+            pol_id = "pol_id",
+            n_sam_pol = n_sam_pol,
+            multicores = multicores,
+            progress = FALSE
+        )
+    }
+    classified_ts <- .classify_ts(
+        samples = segments_ts,
+        ml_model = ml_model,
+        filter_fn = filter_fn,
+        multicores = multicores,
+        progress = progress
+    )
+    # Join probability values with segments
+    joined_segments <- .segments_join_probs(
+        data = classified_ts,
+        segments = .segments_read_vec(tile)
+    )
+    # Write all segments
+    .vector_write_vec(v_obj = joined_segments, file_path = out_file)
+    # Create tile based on template
+    probs_tile <- .tile_segments_from_file(
+        file = out_file,
+        band = "probs",
+        base_tile = tile,
+        labels = .ml_labels_code(ml_model),
+        vector_class = "probs_vector_cube",
+        update_bbox = FALSE
+    )
+    # Return probability vector tile
+    return(probs_tile)
+}
+
 #' @title Read a block of values retrieved from a set of raster images
 #' @name  .classify_data_read
 #' @keywords internal

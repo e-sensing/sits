@@ -40,6 +40,10 @@
 #'                           (integer, min = 1, max = 16384).
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
+#' @param pol_id             ID attribute for polygons
+#'                           (character vector of length 1).
+#' @param aggreg_fn          Function to compute a summary of each segment
+#'                           (object of class "function").
 #' @param  output_dir        Valid directory for output file.
 #'                           (character vector of length 1).
 #' @param  version           Version of the output
@@ -281,6 +285,7 @@ sits_classify.tbl_df <- function(data, ml_model, ...) {
     result <- sits_classify(data, ml_model, ...)
     return(result)
 }
+
 #' @rdname sits_classify
 #' @export
 sits_classify.segs_cube <- function(data,
@@ -292,6 +297,8 @@ sits_classify.segs_cube <- function(data,
                                     multicores = 2L,
                                     output_dir,
                                     version = "v1",
+                                    aggreg_fn = "mean",
+                                    n_sam_pol = NULL,
                                     verbose = FALSE,
                                     progress = TRUE) {
 
@@ -333,46 +340,23 @@ sits_classify.segs_cube <- function(data,
         output_dir = output_dir
     )
     on.exit(.parallel_stop(), add = TRUE)
-    # Show block information
-    if (verbose) {
-        start_time <- Sys.time()
-        message(
-            "Using blocks of size (", .nrows(block),
-            " x ", .ncols(block), ")"
-        )
-    }
     # Classification
     # Process each tile sequentially
-    probs_cube <- .cube_foreach_tile(data, function(tile) {
-        tile_segments <- .vector_read_vec(.segment_path(tile))
-
-        # Classify the data
-        probs_tile <- .classify_tile(
+    probs_vector_cube <- .cube_foreach_tile(data, function(tile) {
+        # Classify all the segments for each tile
+        class_vector <- .classify_vector_tile(
             tile = tile,
-            band = "probs",
             ml_model = ml_model,
-            block = block,
-            roi = roi,
             filter_fn = filter_fn,
-            output_dir = output_dir,
+            aggreg_fn = aggreg_fn,
+            n_sam_pol = n_sam_pol,
+            multicores = multicores,
             version = version,
-            verbose = verbose,
+            output_dir = output_dir,
             progress = progress
         )
-        return(probs_tile)
     })
-    # Show block information
-    if (verbose) {
-        end_time <- Sys.time()
-        message("")
-        message("Classification finished at ", end_time)
-        message(
-            "Elapsed time of ",
-            format(round(end_time - start_time, digits = 2))
-        )
-    }
-    return(probs_cube)
-
+    return(probs_vector_cube)
 }
 #' @rdname sits_classify
 #' @export

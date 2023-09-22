@@ -150,6 +150,33 @@ sits_label_classification.probs_cube <- function(cube, ...,
 
 #' @rdname sits_label_classification
 #' @export
+sits_label_classification.probs_vector_cube <- function(cube, ...,
+                                                        output_dir,
+                                                        version = "v1",
+                                                        progress = TRUE) {
+    # Pre-conditions - Check parameters
+    .check_cube_files(cube)
+    .check_output_dir(output_dir)
+    .check_version(version)
+    # version is case-insensitive in sits
+    version <- tolower(version)
+    # Process each tile sequentially
+    class_cube <- .cube_foreach_tile(cube, function(tile) {
+        # Label the segments
+        class_tile <- .label_vector_tile(
+            tile = tile,
+            band = "class",
+            version = version,
+            output_dir = output_dir
+        )
+        # Return classified tile segments
+        return(class_tile)
+    })
+    return(class_cube)
+}
+
+#' @rdname sits_label_classification
+#' @export
 sits_label_classification.raster_cube <- function(cube, ...) {
     stop("Input should be a classified cube")
     return(cube)

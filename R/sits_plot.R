@@ -391,7 +391,7 @@ plot.segments <- function(x, ...,
     }
     .check_chr_parameter(tile)
     # retrieve the segments for this tile
-    sf_seg <- .segment_read_vec(tile)
+    sf_seg <- .segments_read_vec(tile)
     # check that segments have been classified
     .check_that("class" %in% colnames(sf_seg),
         msg = "segments have not been classified"

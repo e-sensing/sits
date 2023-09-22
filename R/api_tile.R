@@ -1144,7 +1144,7 @@ NULL
 #' @param update_bbox  should bbox be updated?
 #' @return a new tile
 .tile_segments_from_file <- function(file, band, base_tile, vector_class,
-                                     update_bbox = FALSE) {
+                                     labels = NULL, update_bbox = FALSE) {
     v_obj <- .vector_read_vec(file_path = file)
     base_tile <- .tile(base_tile)
     bbox <- .vector_bbox(v_obj)
@@ -1156,6 +1156,8 @@ NULL
         .ymax(base_tile) <- bbox[["ymax"]]
         .crs(base_tile) <- .vector_crs(v_obj, wkt = TRUE)
     }
+    # Update labels before file_info
+    .tile_labels(base_tile) <- labels
     # Update file_info
     .vi(base_tile) <- .vi_segment_from_file(
         file = file,
