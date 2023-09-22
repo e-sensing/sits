@@ -6,9 +6,9 @@
 \usage{
 sits_uncertainty_sampling(
   uncert_cube,
-  n = 100,
+  n = 100L,
   min_uncert = 0.4,
-  sampling_window = 10
+  sampling_window = 10L
 )
 }
 \arguments{

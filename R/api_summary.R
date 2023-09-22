@@ -26,44 +26,6 @@
     cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
     return(invisible(tile))
 }
-#' @title Summary of a derived cube
-#' @noRd
-#' @param object data cube
-#' @param tile A \code{tile}.
-#' @return Summary of a derived cube
-.summary_derived_cube <- function(object,
-                                  tile = object$tile[[1]]) {
-    # get sample size
-    sample_size <- .conf("summary_sample_size")
-    # filter the tile to be processed
-    tile <- .summary_check_tile(object, tile)
-    # get the bands
-    band <- sits_bands(tile)
-    .check_num(
-        x = length(band),
-        min = 1,
-        max = 1,
-        is_integer = TRUE,
-        msg = "invalid cube - more than one probs band"
-    )
-    # extract the file paths
-    files <- .tile_paths(tile)
-
-    # print the base information (if requested)
-    .summary_tile_information(tile)
-    # read the files with terra
-    r <- terra::rast(files)
-    # get the a sample of the values
-    values <- r |>
-        terra::spatSample(size = sample_size, na.rm = TRUE)
-    # scale the values
-    band_conf <- .tile_band_conf(tile, band)
-    scale <- .scale(band_conf)
-    offset <- .offset(band_conf)
-    sum <- summary(values * scale + offset)
-    colnames(sum) <- sits_labels(tile)
-    return(sum)
-}
 #' @title Check in tile is available
 #' @noRd
 #' @param object data cube

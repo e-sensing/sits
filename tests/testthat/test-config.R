@@ -20,11 +20,6 @@ test_that("User functions", {
                 )
         )
     )
-
-    expect_equal(
-        .check_file(.conf_user_file()),
-        .conf_user_file()
-    )
     default <- sits_config()
     expect_equal(
         .conf("processing_bloat"),
@@ -33,7 +28,7 @@ test_that("User functions", {
 
     expect_equal(
         .conf("rstac_pagination_limit"),
-        500
+        100
     )
 
     expect_equal(

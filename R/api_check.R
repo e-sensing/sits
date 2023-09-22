@@ -59,6 +59,8 @@
 #' can have repeated elements or not.
 #' @param extensions    A \code{character} vector with all allowed file
 #' extensions.
+#' @param file_exists   A \code{logical} value indicating if
+#'                      the file should exist
 #' @param expr          A R \code{expression} to be evaluated.
 #' @param show_pks_name A \code{logical} value indicating if
 #'                      uninstalled packages can be shown.
@@ -248,6 +250,22 @@
     .check_na(x)
     # check for NULL
     .check_null(x)
+    return(invisible(x))
+}
+#' @rdname check_functions
+#' @keywords internal
+#' @noRd
+.check_cube_files <- function(x, ...) {
+    # check for data access
+    robj <- tryCatch(
+        .raster_open_rast(.tile_path(x)),
+        error = function(e) {
+            return(NULL)
+        })
+    # return error if data is not accessible
+    .check_that(!purrr::is_null(robj),
+        msg = "Invalid data cube - missing files"
+    )
     return(invisible(x))
 }
 #' @rdname check_functions
@@ -873,6 +891,7 @@
 #' @noRd
 .check_file <- function(x, ...,
                         extensions = NULL,
+                        file_exists = TRUE,
                         msg = NULL) {
     # make default message
     msg <- .check_default_message(x, msg)
@@ -899,18 +918,25 @@
                           msg = "invalid file extension"
         )
     }
-    existing_files <- file.exists(x)
-    existing_dirs <- dir.exists(x)
-    .check_that(
-        all(existing_files | existing_dirs),
-        local_msg = paste(
-            "file does not exist:",
-            paste0("'", x[!existing_files], "'",
-                   collapse = ", "
-            )
-        ),
-        msg = msg
-    )
+    if (file_exists) {
+        existing_files <- file.exists(x)
+        existing_dirs <- dir.exists(x)
+        .check_that(
+            all(existing_files | existing_dirs),
+            local_msg = paste(
+                "file does not exist:",
+                paste0("'", x[!existing_files], "'",
+                       collapse = ", "
+                )
+            ),
+            msg = msg
+        )
+    } else {
+        .check_that(
+            x = suppressWarnings(file.create(x)),
+            msg = "file is not writable"
+        )
+    }
     return(invisible(x))
 }
 #' @title Check environment variable
@@ -1017,7 +1043,8 @@
         len_min = len_min,
         len_max = len_max,
         exclusive_min = exclusive_min,
-        tolerance = tolerance
+        tolerance = tolerance,
+        msg = msg
     )
     return(invisible(param))
 }
@@ -1093,7 +1120,7 @@
         len_min = len_min,
         len_max = len_max,
         is_integer = TRUE,
-        msg = "invalid value - param is not integer"
+        msg = msg
     )
     return(invisible(param))
 }
@@ -1364,7 +1391,7 @@
 .check_cube_is_class_cube <- function(cube) {
     .check_that(
         x = inherits(cube, "class_cube"),
-        msg = "cube is not classified image"
+        msg = "cube is not a classified data cube"
     )
     return(invisible(cube))
 }
@@ -1474,6 +1501,16 @@
 .check_samples <- function(data) {
     .check_na(data)
     .check_null(data)
+    UseMethod(".check_samples", data)
+}
+#' @title Does the data contain the cols of time series?
+#' @name .check_samples.sits
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+#' @export
+.check_samples.sits <- function(data) {
     .check_that(
         x = all(.conf("df_sample_columns") %in% colnames(data)),
         msg = "invalid samples file"
@@ -1484,6 +1521,43 @@
     )
     return(invisible(data))
 }
+#' @title Does the tibble contain the cols of time series?
+#' @name .check_samples.tbl_df
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+#' @export
+.check_samples.tbl_df <- function(data) {
+    data <- tibble::as_tibble(data)
+    .check_that(
+        x = all(.conf("df_sample_columns") %in% colnames(data)),
+        msg = "invalid samples file"
+    )
+    .check_that(
+        x = nrow(data) > 0,
+        msg = "samples does not contain values"
+    )
+    class(data) <- c("sits", class(data))
+    return(invisible(data))
+}
+#' @title Does the input contain the cols of time series?
+#' @name .check_samples.default
+#' @param data input data
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+#' @export
+.check_samples.default <- function(data) {
+    if (is.list(data)) {
+        class(data) <- c("list", class(data))
+        data <- tibble::as_tibble(data)
+        data <- .check_samples(data)
+    }
+    else
+        stop("data cannot be converted to tibble")
+    return(invisible(data))
+}
 
 #' @title Does input data has time series?
 #' @name .check_samples_ts
@@ -1492,7 +1566,7 @@
 #' @keywords internal
 #' @noRd
 .check_samples_ts <- function(data) {
-    .check_samples(data)
+    data <- .check_samples(data)
     .check_chr_contains(
         x = colnames(data),
         contains = "time_series",
@@ -1517,7 +1591,7 @@
 #' @keywords internal
 #' @noRd
 .check_samples_train <- function(data) {
-    .check_samples_ts(data)
+    data <- .check_samples_ts(data)
     # check that there is no NA in labels
     labels <- .samples_labels(data)
     .check_that(
@@ -1554,7 +1628,7 @@
                                       timeline,
                                       bands) {
     # check if the validation samples are ok
-    .check_samples(samples_validation)
+    samples_validation <- .check_samples(samples_validation)
     # check if the labels matches with train data
     .check_that(
         all(sits_labels(samples_validation) %in% labels) &&
@@ -1579,7 +1653,7 @@
 #' @noRd
 #  Are the samples valid?
 .check_samples_cluster <- function(data) {
-    .check_samples(data)
+    data <- .check_samples(data)
     # is the input data the result of a cluster function?
     .check_chr_contains(
         names(data),
@@ -2287,4 +2361,18 @@
         msg = "invalid tile value"
     )
     return(invisible(items))
+}
+#' @title Checks palette
+#' @name .check_palette
+#' @param palette      Character vector with palette name
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_palette <- function(palette) {
+    .check_chr_parameter(palette)
+    .check_that(
+        palette %in% grDevices::hcl.pals(),
+        msg = "Palette not available in grDevices::hcl.pals()"
+    )
+    return(invisible(palette))
 }

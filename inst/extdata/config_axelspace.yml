@@ -1,0 +1,58 @@
+sources:
+    AXELSPACE               :
+        s3_class            : ["stac_cube", "eo_cube", "raster_cube"]
+        service             : "STAC"
+        url                 : "https://brazildatacube.dpi.inpe.br/stac/"
+        collections         :
+            GRUS            : &grus
+                bands       :
+                    PAN     : &grus_pan
+                        missing_value : 0
+                        minimum_value : 1
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    : 2.5
+                        band_name     : "Panchromatic"
+                        data_type     : "INT2S"
+                    BLUE     : &grus_blue
+                        missing_value : 0
+                        minimum_value : 1
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution   :  5
+                        band_name     : "Blue"
+                        data_type     : "INT2S"
+                    GREEN     :
+                        <<: *grus_blue
+                        band_name     : "Green"
+                    RED     :
+                        <<: *grus_blue
+                        band_name     : "Red"
+                    RED-EDGE     :
+                        <<: *grus_blue
+                        band_name     : "Red Edge"
+                    NIR     :
+                        <<: *grus_blue
+                        band_name     : "Near Infrared"
+                    CLOUD   : &bdc_awfi_cloud
+                        bit_mask      : false
+                        band_name     : "CMASK"
+                        values        :
+                            0         : "No Data"
+                            127       : "Clear Pixel"
+                            255       : "Cloud"
+                        interp_values : [0, 255]
+                        resolution   :  64
+                        data_type     : "INT1U"
+                satellite   : "CBERS-4"
+                sensor      : "WFI"
+                collection_name: "CB4-16D-2"
+                token_vars  :  ["BDC_ACCESS_KEY"]
+                open_data   : true
+                open_data_token : true
+                metadata_search : "tile"
+                ext_tolerance: 0.01
+                grid_system : "BDC-Large V2"
+

@@ -4,7 +4,6 @@
 .RData
 .Ruserdata
 .DS_Store
-*.xml
 packrat/lib*/
 .tmp
 src/*.o

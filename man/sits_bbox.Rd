@@ -19,9 +19,9 @@ sits_bbox(data, crs = "EPSG:4326", as_crs = NULL)
 \method{sits_bbox}{default}(data, crs = "EPSG:4326", as_crs = NULL)
 }
 \arguments{
-\item{data}{\code{samples} data or \code{cube}.}
+\item{data}{samples (class "sits") or \code{cube}.}
 
-\item{crs}{CRS of the samples points.}
+\item{crs}{CRS of the samples points (single char)}
 
 \item{as_crs}{CRS to project the resulting \code{bbox}.}
 }

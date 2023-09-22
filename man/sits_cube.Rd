@@ -34,48 +34,65 @@ sits_cube(source, collection, ...)
   parse_info = NULL,
   version = "v1",
   delim = "_",
-  multicores = 2,
+  multicores = 2L,
   progress = TRUE
 )
 }
 \arguments{
 \item{source}{Data source (one of \code{"AWS"}, \code{"BDC"},
-\code{"DEAFRICA"}, \code{"MPC"}, \code{"USGS"}).}
+\code{"DEAFRICA"}, \code{"MPC"}, \code{"SDC"},
+\code{"USGS"} - character vector of length 1).}
 
-\item{collection}{Image collection in data source (To find out
-the supported collections, use \code{\link{sits_list_collections}()}).}
+\item{collection}{Image collection in data source
+(character vector of length 1).
+To find out the supported collections,
+use \code{\link{sits_list_collections}()}).}
 
 \item{...}{Other parameters to be passed for specific types.}
 
 \item{bands}{Spectral bands and indices to be included
-in the cube (optional).}
+in the cube (optional - character vector).
+Use \code{\link{sits_list_collections}()} to find out
+the bands available for each collection.}
 
 \item{tiles}{Tiles from the collection to be included in
-the cube (see details below).}
+the cube (see details below)
+(character vector of length 1).}
 
-\item{roi}{Filter collection by region of interest
-(see details below).}
+\item{roi}{Region of interest (either an sf object, shapefile,
+or a numeric vector with named XY values
+("xmin", "xmax", "ymin", "ymax") or
+named lat/long values
+("lon_min", "lat_min", "lon_max", "lat_max").}
 
 \item{start_date, end_date}{Initial and final dates to include
-images from the collection in the cube (optional).}
+images from the collection in the cube (optional).
+(Date in YYYY-MM-DD format).}
 
 \item{platform}{Optional parameter specifying the platform in case
-of collections that include more than one satellite.}
+of collections that include more than one satellite
+(character vector of length 1).}
 
-\item{progress}{Show a progress bar?}
+\item{progress}{Logical: show a progress bar?}
 
 \item{data_dir}{Local directory where images are stored
-(for local cubes).}
+(for local cubes - character vector of length 1).}
 
-\item{labels}{Labels associated to the classes (only for result cubes).}
+\item{labels}{Labels associated to the classes
+(Named character vector for cubes of
+classes "probs_cube" or "class_cube").}
 
-\item{parse_info}{Parsing information for local files.}
+\item{parse_info}{Parsing information for local files
+(for local cubes - character vector).}
 
-\item{version}{Version of the classified and/or labelled files.}
+\item{version}{Version of the classified and/or labelled files.
+(for local cubes - character vector of length 1).}
 
-\item{delim}{Delimiter for parsing local files.}
+\item{delim}{Delimiter for parsing local files
+(single character)}
 
-\item{multicores}{Number of workers for parallel processing}
+\item{multicores}{Number of workers for parallel processing
+(integer, min = 1, max = 2048).}
 }
 \value{
 A \code{tibble} describing the contents of a data cube.
@@ -231,7 +248,6 @@ Please refer to the sits documentation available in
 \examples{
 if (sits_run_examples()) {
     # --- Access to the Brazil Data Cube
-
     # create a raster cube file based on the information in the BDC
     cbers_tile <- sits_cube(
         source = "BDC",
@@ -241,7 +257,6 @@ if (sits_run_examples()) {
         start_date = "2018-09-01",
         end_date = "2019-08-28"
     )
-
     # --- Access to Digital Earth Africa
     # create a raster cube file based on the information about the files
     # DEAFRICA does not support definition of tiles
@@ -258,11 +273,10 @@ if (sits_run_examples()) {
         start_date = "2019-01-01",
         end_date = "2019-10-28"
     )
-
     # --- Access to AWS open data Sentinel 2/2A level 2 collection
     s2_cube <- sits_cube(
         source = "AWS",
-        collection = "SENTINEL-2-L2A",
+        collection = "SENTINEL-S2-L2A-COGS",
         tiles = c("20LKP", "20LLP"),
         bands = c("B04", "B08", "B11"),
         start_date = "2018-07-18",
@@ -279,10 +293,9 @@ if (sits_run_examples()) {
         end_date = "2018-08-23"
     )
 
-    # -- Creating Landsat cube from MPC"
+    # -- Creating Landsat cube from MPC
     roi <- c("lon_min" = -50.410, "lon_max" = -50.379,
-             "lat_min" = -10.1910 , "lat_min" = -10.1573,
-              )
+             "lat_min" = -10.1910 , "lat_max" = -10.1573)
     mpc_cube <- sits_cube(
         source = "MPC",
         collection = "LANDSAT-C2-L2",
@@ -294,14 +307,12 @@ if (sits_run_examples()) {
 
     # --- Create a cube based on a local MODIS data
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-
     modis_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir
     )
 }
-
 }
 \references{
 \code{rstac} package (https://github.com/brazil-data-cube/rstac)

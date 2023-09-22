@@ -45,8 +45,8 @@ summary.sits <- function(object, ...) {
 #' if (sits_run_examples()) {
 #'     data(cerrado_2classes)
 #'     # split training and test data
-#'     train_data <- sits_sample(cerrado_2classes, n = 200)
-#'     test_data <- sits_sample(cerrado_2classes, n = 200)
+#'     train_data <- sits_sample(cerrado_2classes, frac = 0.5)
+#'     test_data  <- sits_sample(cerrado_2classes, frac = 0.5)
 #'     # train a random forest model
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     # classify test data
@@ -186,17 +186,12 @@ summary.raster_cube <- function(object, ...,
     # print statistics
     sum
 }
-#' @title  Summarize data cubes
-#' @method summary probs_cube
-#' @name summary.probs_cube
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description This is a generic function. Parameters depend on the specific
-#' type of input.
-#' @param  object    Object of class "probs_cube"
-#' @param ...        Further specifications for \link{summary}.
-#' @param  tile        Tile to be summarized
-#'
-#' @return A summary of a probability cube.
+#' @title Summary of a derived cube
+#' @noRd
+#' @param object data cube
+#' @param  ...         Further specifications for \link{summary}.
+#' @param tile A \code{tile}.
+#' @return Summary of a derived cube
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -214,40 +209,6 @@ summary.raster_cube <- function(object, ...,
 #'         data = cube, ml_model = rfor_model, output_dir = tempdir()
 #'     )
 #'     summary(probs_cube)
-#' }
-#'
-#' @export
-summary.probs_cube <- function(object, ...,
-                               tile = object$tile[[1]]) {
-    .summary_derived_cube(object, tile)
-}
-#' @title  Summarize data cubes
-#' @method summary variance_cube
-#' @name summary.variance_cube
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description This is a generic function. Parameters depend on the specific
-#' type of input.
-#' @param  object    Object of class "probs_cube"
-#' @param ...        Further specifications for \link{summary}.
-#' @param  tile      Tile to be summarized
-#'
-#' @return A summary of a probability cube
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#'     # create a data cube from local files
-#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#'     cube <- sits_cube(
-#'         source = "BDC",
-#'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir
-#'     )
-#'     # create a random forest model
-#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-#'     # classify a data cube
-#'     probs_cube <- sits_classify(
-#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
-#'     )
 #'     # get the variance cube
 #'     variance_cube <- sits_variance(
 #'         probs_cube,
@@ -257,9 +218,38 @@ summary.probs_cube <- function(object, ...,
 #' }
 #'
 #' @export
-summary.variance_cube <- function(object, ...,
+summary.derived_cube <- function(object, ...,
                                   tile = object$tile[[1]]) {
-    .summary_derived_cube(object, tile)
+    # get sample size
+    sample_size <- .conf("summary_sample_size")
+    # filter the tile to be processed
+    tile <- .summary_check_tile(object, tile)
+    # get the bands
+    band <- sits_bands(tile)
+    .check_num(
+        x = length(band),
+        min = 1,
+        max = 1,
+        is_integer = TRUE,
+        msg = "invalid cube - more than one probs band"
+    )
+    # extract the file paths
+    files <- .tile_paths(tile)
+
+    # print the base information (if requested)
+    .summary_tile_information(tile)
+    # read the files with terra
+    r <- terra::rast(files)
+    # get the a sample of the values
+    values <- r |>
+        terra::spatSample(size = sample_size, na.rm = TRUE)
+    # scale the values
+    band_conf <- .tile_band_conf(tile, band)
+    scale <- .scale(band_conf)
+    offset <- .offset(band_conf)
+    sum <- summary(values * scale + offset)
+    colnames(sum) <- sits_labels(tile)
+    return(sum)
 }
 #' @title  Summarize data cubes
 #' @method summary class_cube

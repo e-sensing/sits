@@ -53,8 +53,8 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # show accuracy for a set of samples
-#'     train_data <- sits_sample(samples_modis_ndvi, n = 200)
-#'     test_data <- sits_sample(samples_modis_ndvi, n = 200)
+#'     train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
+#'     test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     points_class <- sits_classify(
 #'         data = test_data, ml_model = rfor_model
@@ -129,6 +129,8 @@ sits_accuracy.sits <- function(data, ...) {
 #' @rdname sits_accuracy
 #' @export
 sits_accuracy.class_cube <- function(data, ..., validation) {
+    # check the cube is valid
+    .check_cube_files(data)
     # generic function
     # Is this a CSV file?
     if (is.character(validation)) {
@@ -145,7 +147,7 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
         }
     }
     # Precondition - check if validation samples are OK
-    .check_samples(validation)
+    validation <- .check_samples(validation)
 
     # Find the labels of the cube
     labels_cube <- sits_labels(data)
@@ -272,8 +274,36 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
     class(acc_area) <- c("sits_area_accuracy", class(acc_area))
     return(acc_area)
 }
-
-
+#' @rdname sits_accuracy
+#' @export
+sits_accuracy.raster_cube <- function(data, ...) {
+    stop("sits_accuracy needs a classified cube")
+}
+#' @rdname sits_accuracy
+#' @export
+sits_accuracy.derived_cube <- function(data, ...) {
+    stop("sits_accuracy needs a classified cube")
+}
+#' @rdname sits_accuracy
+#' @export
+sits_accuracy.tbl_df <- function(data,...) {
+    data <- tibble::as_tibble(data)
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        data <- .cube_find_class(data)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else
+        stop("Input should be a sits tibble or a data cube")
+    acc <- sits_accuracy(data, ...)
+    return(acc)
+}
+#' @rdname sits_accuracy
+#' @export
+sits_accuracy.default <- function(data,...) {
+    data <- tibble::as_tibble(data)
+    acc <- sits_accuracy(data,...)
+    return(acc)
+}
 #' @title Print accuracy summary
 #' @name sits_accuracy_summary
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

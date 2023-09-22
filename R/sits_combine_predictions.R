@@ -5,18 +5,23 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param  cubes         List of probability data cubes.
-#' @param  type          Method to measure uncertainty. See details.
+#' @param  cubes         List of probability data cubes (class "probs_cube")
+#' @param  type          Method to measure uncertainty. One of "average" or
+#'                       "uncertainty"
 #' @param  ...           Parameters for specific functions.
-#' @param  weights       Weights for averaging
-#' @param  uncert_cubes  Uncertainty cubes to be used as local weights.
-#' @param  multicores    Number of cores to run the function.
-#' @param  memsize       Maximum overall memory (in GB) to run the
-#'                       function.
-#' @param  output_dir    Output directory for image files.
-#' @param  version       Version of resulting image.
-#'                       (in the case of multiple tests)
-#' @return A combined probability cube
+#' @param  weights       Weights for averaging (numeric vector).
+#' @param  uncert_cubes  Uncertainty cubes to be used as local weights when
+#'                       type = "uncertainty" is selected
+#'                       (list of tibbles with class "uncertainty_cube")
+#' @param  memsize       Memory available for classification in GB
+#'                       (integer, min = 1, max = 16384).
+#' @param  multicores    Number of cores to be used for classification
+#'                       (integer, min = 1, max = 2048).
+#' @param  output_dir    Valid directory for output file.
+#'                       (character vector of length 1).
+#' @param  version       Version of the output
+#'                      (character vector of length 1).
+#' @return A combined probability cube (tibble of class "probs_cube").
 #'
 #' @description Calculate an ensemble predictor based a list of probability
 #' cubes. The function combines the output of two or more classifier
@@ -45,14 +50,14 @@
 #'         version = "rfor"
 #'     )
 #'     # create an XGBoost model
-#'     tcnn_model <- sits_train(samples_modis_ndvi, sits_tempcnn())
-#'     # classify a data cube using tempcnn model
-#'     probs_tcnn_cube <- sits_classify(
-#'         data = cube, ml_model = tcnn_model, output_dir = tempdir(),
-#'         version = "tcnn"
+#'     svm_model <- sits_train(samples_modis_ndvi, sits_svm())
+#'     # classify a data cube using SVM model
+#'     probs_svm_cube <- sits_classify(
+#'         data = cube, ml_model = svm_model, output_dir = tempdir(),
+#'         version = "svm"
 #'     )
 #'     # create a list of predictions to be combined
-#'     pred_cubes <- list(probs_rfor_cube, probs_tcnn_cube)
+#'     pred_cubes <- list(probs_rfor_cube, probs_svm_cube)
 #'     # combine predictions
 #'     comb_probs_cube <- sits_combine_predictions(
 #'         pred_cubes,
@@ -64,21 +69,12 @@
 #' @export
 sits_combine_predictions <- function(cubes,
                                      type = "average", ...,
-                                     memsize = 8,
-                                     multicores = 2,
+                                     memsize = 8L,
+                                     multicores = 2L,
                                      output_dir,
                                      version = "v1") {
     # check if list of probs cubes have the same organization
     .check_probs_cube_lst(cubes)
-    # Check memsize
-    .check_memsize(memsize, min = 1, max = 16384)
-    # Check multicores
-    .check_multicores(multicores, min = 1, max = 2048)
-    # Check output dir
-    .check_output_dir(output_dir)
-    # Check version
-    .check_version(version)
-
     class(type) <- type
     UseMethod("sits_combine_predictions", type)
 }
@@ -88,10 +84,20 @@ sits_combine_predictions <- function(cubes,
 sits_combine_predictions.average <- function(cubes,
                                              type = "average", ...,
                                              weights = NULL,
-                                             memsize = 8,
-                                             multicores = 2,
+                                             memsize = 8L,
+                                             multicores = 2L,
                                              output_dir,
                                              version = "v1") {
+    # Check memsize
+    .check_memsize(memsize, min = 1, max = 16384)
+    # Check multicores
+    .check_multicores(multicores, min = 1, max = 2048)
+    # Check output dir
+    .check_output_dir(output_dir)
+    # Check version
+    .check_version(version)
+    # version is case-insensitive in sits
+    version <- tolower(version)
     # Get weights
     n_inputs <- length(cubes)
     weights <- .default(weights, rep(1 / n_inputs, n_inputs))
@@ -125,10 +131,20 @@ sits_combine_predictions.average <- function(cubes,
 sits_combine_predictions.uncertainty <- function(cubes,
                                                  type = "uncertainty", ...,
                                                  uncert_cubes,
-                                                 memsize = 8,
-                                                 multicores = 2,
+                                                 memsize = 8L,
+                                                 multicores = 2L,
                                                  output_dir,
                                                  version = "v1") {
+    # Check memsize
+    .check_memsize(memsize, min = 1, max = 16384)
+    # Check multicores
+    .check_multicores(multicores, min = 1, max = 2048)
+    # Check output dir
+    .check_output_dir(output_dir)
+    # Check version
+    .check_version(version)
+    # version is case-insensitive in sits
+    version <- tolower(version)
     # Check if list of probs cubes and uncert_cubes have the same organization
     .check_that(
         length(cubes) == length(uncert_cubes),
@@ -155,10 +171,6 @@ sits_combine_predictions.uncertainty <- function(cubes,
 }
 #' @rdname sits_combine_predictions
 #' @export
-sits_combine_predictions.default <- function(cubes, type, ...,
-                                             memsize,
-                                             multicores,
-                                             output_dir,
-                                             version) {
+sits_combine_predictions.default <- function(cubes, type, ...) {
     stop("Invalid method for combining predictions")
 }

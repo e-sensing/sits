@@ -12,7 +12,8 @@
 #' the user provided configuration file. The final configuration is
 #' obtained by overriding the options by the values provided by the user.
 #'
-#' @param config_user_file    path to YAML user configuration file
+#' @param config_user_file    YAML user configuration file
+#'                            (character vector of a file with "yml" extension)
 #'
 #' @details
 #' Users can provide additional configuration files, by specifying the
@@ -30,7 +31,6 @@
 #' sits_config(config_user_file = yaml_user_file)
 #' @export
 sits_config <- function(config_user_file = NULL) {
-    #
     # load the internal configuration file
     config_internals_file <- .conf_internals_file()
 
@@ -55,6 +55,8 @@ sits_config <- function(config_user_file = NULL) {
     .conf_load_color_table()
     # set the user options
     .conf_set_user_file(config_user_file)
+    # set the fonts
+    .conf_set_fonts()
     # return configuration
     return(invisible(sits_env$config))
 }

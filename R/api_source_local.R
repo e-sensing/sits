@@ -42,7 +42,7 @@
     parse_info <- .conf_parse_info(parse_info, results_cube)
 
     # bands in upper case for raw cubes, lower case for results cubes
-    bands <- .band_set_case(bands, results_cube)
+    bands <- .band_set_case(bands)
 
     # make query and retrieve items
     items <- .local_cube_items_new(

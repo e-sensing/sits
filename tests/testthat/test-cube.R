@@ -108,7 +108,6 @@ test_that("Creating cubes from BDC - CBERS-WFI-16D", {
         },
         .default = NULL
     )
-
     # test bands and bbox
     expect_true(all(sits_bands(cbers_cube_16d) %in% bands))
     bbox <- sits_bbox(cbers_cube_16d)
@@ -632,6 +631,9 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
         )
     )
     expect_true(file.rename("~/.netrc_save", "~/.netrc"))
+    if (file.exists("./.rcookies"))
+        unlink("./.rcookies")
+
 })
 test_that("Creating Sentinel cubes from AWS", {
     s2_cube <- .try(
