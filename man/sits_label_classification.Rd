@@ -3,6 +3,7 @@
 \name{sits_label_classification}
 \alias{sits_label_classification}
 \alias{sits_label_classification.probs_cube}
+\alias{sits_label_classification.probs_vector_cube}
 \alias{sits_label_classification.raster_cube}
 \alias{sits_label_classification.derived_cube}
 \alias{sits_label_classification.tbl_df}
@@ -27,6 +28,14 @@ sits_label_classification(
   window_size = 3L,
   memsize = 4L,
   multicores = 2L,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
+
+\method{sits_label_classification}{probs_vector_cube}(
+  cube,
+  ...,
   output_dir,
   version = "v1",
   progress = TRUE

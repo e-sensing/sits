@@ -62,31 +62,23 @@ if (sits_run_examples()) {
         collection = "MOD13Q1-6",
         data_dir = data_dir
     )
-
-    # segment the image
+    # segment the vector cube
     segments <- sits_segment(
         cube = cube,
-        tile = "012010",
-        bands = "NDVI",
-        date = sits_timeline(cube)[1],
-        seg_fn = sits_supercells(step = 10)
+        output_dir = tempdir()
     )
     # create a classification model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-    # get the average value per segment
-    samples_seg <- sits_get_data(
-        cube = cube,
-        samples = segments
-    )
     # classify the segments
-    seg_class <- sits_classify(
-        data = samples_seg,
-        ml_model = rfor_model
+    seg_probs <- sits_classify(
+        data = segments,
+        ml_model = rfor_model,
+        output_dir = tempdir()
     )
-    # add a column to the segments by class
-    sf_seg <- sits_join_segments(
-        data = seg_class,
-        segments = segments
+    # label the probability segments
+    seg_label <- sits_label_classification(
+        cube = seg_probs,
+        output_dir = tempdir()
     )
 }
 }

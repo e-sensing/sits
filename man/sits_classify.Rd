@@ -59,6 +59,8 @@ sits_classify(
   multicores = 2L,
   output_dir,
   version = "v1",
+  aggreg_fn = "mean",
+  n_sam_pol = NULL,
   verbose = FALSE,
   progress = TRUE
 )
@@ -103,6 +105,12 @@ named lat/long values
 (character vector of length 1).}
 
 \item{verbose}{Logical: print information about processing time?}
+
+\item{aggreg_fn}{Function to compute a summary of each segment
+(object of class "function").}
+
+\item{pol_id}{ID attribute for polygons
+(character vector of length 1).}
 }
 \value{
 Time series with predicted labels for
