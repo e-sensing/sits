@@ -1,0 +1,11 @@
+      <colorramp name="[source]" type="randomcolors">
+        <Option/>
+      </colorramp>
+    </rasterrenderer>
+    <brightnesscontrast gamma="1" contrast="0" brightness="0"/>
+    <huesaturation invertColors="0" colorizeGreen="128" colorizeStrength="100" colorizeRed="255" saturation="0" colorizeBlue="128" colorizeOn="0" grayscaleMode="0"/>
+    <rasterresampler maxOversampling="2"/>
+    <resamplingStage>resamplingFilter</resamplingStage>
+  </pipe>
+  <blendMode>0</blendMode>
+</qgis>

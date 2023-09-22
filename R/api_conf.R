@@ -189,13 +189,17 @@
         input = color_yml_file,
         merge.precedence = "override"
     )
-    config_colors <- config_colors$colors
-    base_names <- names(config_colors)
-    color_table <- purrr::map2_dfr(config_colors, base_names, function(cl, bn) {
+    class_schemes <- config_colors$class_schemes
+    sits_env[["config"]] <- utils::modifyList(sits_env[["config"]],
+                                              class_schemes,
+                                              keep.null = FALSE
+    )
+    colors <- config_colors$colors
+    color_table <- purrr::map2_dfr(colors, names(colors),
+                                   function(cl, nm) {
         cc_tb <- tibble::tibble(
-            name = names(cl),
-            color = unlist(cl),
-            group = bn
+            name = nm,
+            color = cl
         )
         return(cc_tb)
     })
@@ -245,8 +249,7 @@
         } else {
             color_table <- tibble::add_row(color_table,
                 name = name,
-                color = col,
-                group = "User"
+                color = col
             )
         }
     }
@@ -261,6 +264,23 @@
 #'
 .conf_colors <- function() {
     return(sits_env$color_table)
+}
+#' @title Configure fonts to be used
+#' @name .conf_set_fonts
+#' @keywords internal
+#' @noRd
+#' @return NULL, called for side effects
+#'
+.conf_set_fonts <- function() {
+    # verifies if sysfonts package is installed
+    .check_require_packages("sysfonts")
+    .check_require_packages("showtext")
+    showtext::showtext_auto()
+    sysfonts::font_add_google("IBM Plex Sans", family = "plex_sans")
+    sysfonts::font_add_google("Roboto", family = "roboto")
+    sysfonts::font_add_google("Lato", family = "lato")
+
+    return(NULL)
 }
 #' @title Return the user configuration set in enviromental variable
 #' @name .conf_user_env_var
@@ -323,6 +343,15 @@
             .conf_merge_colors(user_colors)
             user_config$colors <- NULL
         }
+        if (!purrr::is_null(user_config$class_schemes)) {
+            class_schemes <- user_config$class_schemes
+            sits_env[["config"]] <- utils::modifyList(
+                sits_env[["config"]],
+                class_schemes,
+                keep.null = FALSE
+            )
+            user_config$class_schemes <- NULL
+        }
         if (length(user_config) > 0) {
             user_config <- utils::modifyList(sits_env[["config"]],
                 user_config,
@@ -339,7 +368,8 @@
                 gdalcubes_chunk_size =
                     user_config[["gdalcubes_chunk_size"]],
                 sources = user_config[["sources"]],
-                colors = user_config[["colors"]]
+                colors = user_config[["colors"]],
+                tmap   = user_config[["tmap"]]
             )
         }
     }

@@ -1,46 +1,21 @@
 # Internal configuration parameters - relevant only to sits developers
-# s3 classes known to sits
-sits_s3_classes :   ["sits", "patterns", "predicted", "sits_model",
-                    "raster_cube", "probs_cube",
-                    "uncertainty_cube", "class_cube",
-                    "stac_cube", "bdc_cube", "aws_cube",
-                    "usgs_cube", "deafrica_cube"]
+# default raster package
+raster_api_package      : "terra"
 
-# s3 classes resulting from classification and post-classification
-sits_s3_classes_proc :   ["probs_cube","uncertainty_cube", "class_cube", "variance_cube"]
+# sample size
+summary_sample_size : 10000
 
-# bands resulting from classification and post-classification
-sits_results_bands : ["probs", "bayes", "uncert", "entropy",
-                      "class", "least", "margin", "variance"]
+# estimated relative growth size of R memory relative to block size
+processing_bloat        : 5
+processing_bloat_smooth : 8
 
-# bands resulting from classification and smoothing
-sits_probs_bands : ["probs", "bayes"]
-# bands resulting from uncertainty
-sits_uncert_bands : ["uncert", "entropy", "least", "margin"]
+# number of items returned by stac service
+rstac_pagination_limit  : 100
 
-# color palettes available in sits
-sits_color_palettes:    ["BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu",
-                        "RdYlGn", "Spectral", "Accent", "Dark2", "Paired",
-                        "Pastel1", "Pastel2", "Set1", "Set2", "Set3",
-                        "BuGn", "BuPu", "GnBu", "PuBu", "PuBuGn", "PuRd", "RdPu",
-                        "YlGn", "YlGnBu", "YlOrRd", "YlOrBr", "OrRd",
-                        "Blues", "Greens", "Oranges", "Reds", "Greys", "Purples"]
-
-sits_color_table_cols: ["name", "color"]
-
-# bands resulting from classification and post-classification
-sits_results_s3_class:
-                    probs: "probs_cube"
-                    bayes: "probs_cube"
-                    uncert: "uncertainty_cube"
-                    entropy: "uncertainty_cube"
-                    variance: "variance_cube"
-                    class:  "class_cube"
-
-# parsing info contents for results cube
-results_parse_info_def : ["X1", "X2", "tile", "start_date", "end_date",
-"band", "version"]
-results_parse_info_col : ["tile", "start_date", "end_date", "band"]
+# configuration for generate tokens for mpc cubes
+cube_token_generator_n_tries: 3
+cube_token_generator_sleep_time: 10
+cube_token_generator_min_remaining_time: 5
 
 # mandatory columns in data cube description
 sits_cube_cols :    ["source", "collection", "satellite", "sensor",
@@ -62,9 +37,6 @@ sample_get_data_formats : ["data.frame", "tbl_df", "sf", "sits"]
 # mandatory columns in CSV input files
 df_sample_columns : ["longitude", "latitude", "start_date", "end_date", "label"]
 
-# possible som evaluations
-som_outcomes    : ["clean", "analyze", "remove"]
-
 # supported shp types
 sf_geom_types_supported : ["POINT", "POLYGON", "MULTIPOLYGON"]
 
@@ -74,6 +46,32 @@ local_file_extensions   : ["tiff", "tif", "jp2", "hdf", "vrt"]
 local_parse_info_col    : ["tile", "band", "date"]
 local_parse_info_def    : ["X1", "X2", "tile", "band", "date"]
 
+# parse info of generated regular cubes
+reg_file_parse_info: ["cube", "tile", "band", "date"]
+
+# parsing info contents for results cube
+results_parse_info_def : ["X1", "X2", "tile", "start_date", "end_date",
+"band", "version"]
+results_parse_info_col : ["tile", "start_date", "end_date", "band"]
+
+# bands resulting from classification and post-classification
+sits_results_bands : ["probs", "bayes", "uncert", "entropy",
+                      "class", "least", "margin", "variance"]
+
+# bands resulting from classification and smoothing
+sits_probs_bands : ["probs", "bayes"]
+# bands resulting from uncertainty
+sits_uncert_bands : ["uncert", "entropy", "least", "margin"]
+
+# bands resulting from classification and post-classification
+sits_results_s3_class:
+                    probs: "probs_cube"
+                    bayes: "probs_cube"
+                    uncert: "uncertainty_cube"
+                    entropy: "uncertainty_cube"
+                    variance: "variance_cube"
+                    class:  "class_cube"
+
 # default configuration for raster cubes
 raster_cube_scale_factor : 0.0001
 raster_cube_data_type    : "INT2S"
@@ -82,11 +80,6 @@ raster_cube_missing_value : -9999
 raster_cube_minimum_value : -10000
 raster_cube_maximum_value : 10000
 
-# configuration for generate tokens for mpc cubes
-cube_token_generator_n_tries: 3
-cube_token_generator_sleep_time: 10
-cube_token_generator_min_remaining_time: 5
-
 # old configuration for probability cubes
 probs_cube_scale_factor : 0.0001
 probs_cube_data_type    : "INT2U"
@@ -94,19 +87,6 @@ probs_cube_missing_value: 65535
 probs_cube_band         : "probs"
 probs_cube_class        : ["probs_cube", "raster_cube", "sits_cube", "tbl_df",
                            "tbl", "data.frame"]
-
-# GDAL GTiff presets
-gdal_presets         :
-    cog              :
-        overviews    : [2, 4, 8, 16]
-        method       : "NEAREST"
-    block            :
-        of           : "GTiff"
-        co           : ["COMPRESS=NONE", "BIGTIFF=NO"] # cannot be tiled!
-    image            :
-        of           : "GTiff"
-        co           : ["COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES",
-                        "TILED=YES", "BLOCKXSIZE=512", "BLOCKYSIZE=512"]
 
 # Default values for non-registered bands
 default_values       :
@@ -177,18 +157,27 @@ valid_raster_data_types : ["INT1U", "INT2U", "INT2S", "INT4U",
 valid_raster_resampling : ["near", "bilinear", "cubic",
                           "cubicspline", "lanczos"]
 
-# deep learning activation methods
-dl_activation_methods : ["relu", "elu", "selu", "sigmoid"]
+# GDAL GTiff presets
+gdal_presets         :
+    cog              :
+        overviews    : [2, 4, 8, 16]
+        method       : "NEAREST"
+    block            :
+        of           : "GTiff"
+        co           : ["COMPRESS=NONE", "BIGTIFF=NO"] # cannot be tiled!
+    image            :
+        of           : "GTiff"
+        co           : ["COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES",
+                        "TILED=YES", "BLOCKXSIZE=512", "BLOCKYSIZE=512"]
 
-# metadata search strategy
-metadata_search_strategies : ["tile", "feature"]
+# GDAL GTiff default creation options
+gdal_creation_options   : [ "COMPRESS=LZW", "PREDICTOR=2",
+                            "BIGTIFF=YES", "TILED=YES",
+                            "BLOCKXSIZE=512", "BLOCKYSIZE=512" ]
 
-# class interval methods for plotting
-class_intervals: ["sd", "equal", "quantile", "log", "pretty"]
-
-# parse info of generated regular cubes
-reg_file_parse_info: ["cube", "tile", "band", "date"]
-
+gdalcubes_options       : ["COMPRESS=LZW", "PREDICTOR=2",
+                           "BIGTIFF=YES", "BLOCKXSIZE=512",
+                           "BLOCKYSIZE=512"]
 # gdalcubes parameters
 gdalcubes_chunk_size: [1, 2048, 2048]
 gdalcubes_type_format: "int16"
@@ -199,3 +188,42 @@ gdalcubes_cog_resample_overview: "bilinear"
 dendro_dist_method: ["dtw", "dtw2", "dtw_basic", "lbk", "lbi"]
 dendro_linkage: ["ward.D", "ward.D2", "single", "complete",
                  "average", "mcquitty", "median", "centroid"]
+
+# possible som evaluations
+som_outcomes    : ["clean", "analyze", "remove"]
+
+# deep learning activation methods
+dl_activation_methods : ["relu", "elu", "selu", "sigmoid"]
+
+# metadata search strategy
+metadata_search_strategies : ["tile", "feature"]
+
+
+# Colours and plots
+#
+# class interval methods for plotting
+class_intervals: ["sd", "equal", "quantile", "log", "pretty"]
+# color table mandatory collumns
+sits_color_table_cols: ["name", "color"]
+# maxbytes per plot (in MB)
+plot_max_Mbytes: 10
+
+# tmap configurations
+tmap:
+        tmap_max_cells: 1e+06
+        tmap_graticules_labels_size: 0.7
+        tmap_legend_title_size: 1.0
+        tmap_legend_text_size: 1.0
+        tmap_legend_bg_color: "white"
+        tmap_legend_bg_alpha: 0.5
+        tmap_legend_width: 0.5
+        tmap_legend_height: 1.0
+        tmap_scale: 1.0
+        tmap_font_family: "plex_sans"
+
+# maxbytes for leaflet (in MB)
+leaflet_megabytes : 64
+leaflet_min_megabytes : 16
+leaflet_max_megabytes : 512
+# estimated compression factor for leaflet
+leaflet_comp_factor : 0.50
