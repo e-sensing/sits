@@ -163,16 +163,18 @@ sits_regularize.raster_cube <- function(cube,
             )
         }
     }
-    # Normalize path
-    output_dir <- .file_normalize(output_dir)
-    # Regularize
-    .gc_regularize(
+    # Prepare parallel processing
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
+    # Convert input sentinel1 cube to sentinel2 grid
+    cube <- .reg_s2tile_convert(cube = cube, roi = roi)
+    # Call regularize in parallel
+    .reg_cube(
         cube = cube,
-        period = period,
         res = res,
         roi = roi,
+        period = period,
         output_dir = output_dir,
-        multicores = multicores,
         progress = progress
     )
 }
