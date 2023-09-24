@@ -270,7 +270,8 @@
     # Join probability values with segments
     joined_segments <- .segments_join_probs(
         data = classified_ts,
-        segments = .segments_read_vec(tile)
+        segments = .segments_read_vec(tile),
+        aggregate = .has(n_sam_pol)
     )
     # Write all segments
     .vector_write_vec(v_obj = joined_segments, file_path = out_file)

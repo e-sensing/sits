@@ -130,7 +130,6 @@
 #'   "start_date" and "end_date".}
 #' }
 #'
-#'
 #' @note In MPC, sits can access are two open data collections:
 #' \code{"SENTINEL-2-L2A"} for Sentinel-2/2A images, and
 #' \code{"LANDSAT-C2-L2"} for the Landsat-4/5/7/8/9 collection.

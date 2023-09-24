@@ -297,7 +297,7 @@
     # extract a samples data.frame from sf object
     samples <- slider::slide_dfr(cube, function(tile) {
         samples_tile  <- .sf_get_samples(
-            sf_object  = tile[["vector_info"]][[1]],
+            sf_object  = .segments_read_vec(tile),
             label      = "NoClass",
             label_attr = NULL,
             start_date = .cube_start_date(tile),
@@ -458,7 +458,7 @@
     return(vector_seg)
 }
 
-.segments_join_probs <- function(data, segments) {
+.segments_join_probs <- function(data, segments, aggregate) {
     # select polygon_id and class for the time series tibble
     data_id <- data |>
         dplyr::select("polygon_id", "predicted") |>
@@ -467,8 +467,14 @@
 
     labels <- setdiff(colnames(data_id), c("polygon_id", "from", "to", "class"))
 
-    data_id <- data_id |>
-        dplyr::summarise(dplyr::across(.cols = dplyr::all_of(labels), sum))
+    if (aggregate) {
+        data_id <- data_id |>
+            dplyr::summarise(dplyr::across(.cols = dplyr::all_of(labels), median)) |>
+            dplyr::rowwise() |>
+            dplyr::mutate(sum = sum(dplyr::c_across(cols = dplyr::all_of(labels)))) |>
+            dplyr::mutate(dplyr::across(.cols = dplyr::all_of(labels), ~ .x / .data[["sum"]])) |>
+            dplyr::select(-.data[["sum"]])
+    }
 
     # join the data_id tibble with the segments (sf objects)
     dplyr::left_join(segments, data_id, by = c("pol_id" = "polygon_id"))
