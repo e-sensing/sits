@@ -8,7 +8,6 @@
 \alias{sits_get_data.sf}
 \alias{sits_get_data.sits}
 \alias{sits_get_data.data.frame}
-\alias{sits_get_data.segs_cube}
 \title{Get time series from data cubes and cloud services}
 \usage{
 sits_get_data(
@@ -91,18 +90,6 @@ sits_get_data(
   label = "NoClass",
   crs = 4326,
   multicores = 2,
-  progress = FALSE
-)
-
-\method{sits_get_data}{segs_cube}(
-  cube,
-  samples,
-  ...,
-  bands = sits_bands(cube),
-  aggreg_fn = "mean",
-  pol_id = "pol_id",
-  n_sam_pol = NULL,
-  multicores = 1,
   progress = FALSE
 )
 }
