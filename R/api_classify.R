@@ -239,8 +239,9 @@
         )
         return(probs_tile)
     }
-
+    # Get tile bands
     bands <- .tile_bands(tile)
+    # Extract segments time series
     if (is.null(n_sam_pol)) {
         segments_ts <- .segments_get_summary(
             cube = tile,
@@ -260,6 +261,7 @@
             progress = FALSE
         )
     }
+    # Classify segments
     classified_ts <- .classify_ts(
         samples = segments_ts,
         ml_model = ml_model,
