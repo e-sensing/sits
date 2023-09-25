@@ -125,3 +125,69 @@ test_that("One-year, multicores processing reclassify", {
 
     unlink(ro_mask$file_info[[1]]$path)
 })
+
+test_that("One-year, reclassify different rules", {
+    rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
+    )
+
+    probs_cube <- sits_classify(
+        data = cube,
+        ml_model = rf_model,
+        output_dir = tempdir(),
+        version = "ex_classify",
+        multicores = 2,
+        memsize = 4
+    )
+
+    label_cube <- sits_label_classification(
+        probs_cube,
+        output_dir = tempdir(),
+        multicores = 2,
+        memsize = 4
+    )
+
+    reclass <- sits_reclassify(
+        cube = label_cube,
+        mask = label_cube,
+        rules = list(
+            Cerrado = mask %in% c("Pasture", "Cerrado")
+        ),
+        output_dir = tempdir(),
+        multicores = 2,
+        memsize = 4
+    )
+
+    expect_equal(
+        object = sits_labels(reclass),
+        expected = c("1" =  "Cerrado", "2" = "Forest", "4" = "Soy_Corn")
+    )
+
+    reclassv2 <- sits_reclassify(
+        cube = label_cube,
+        mask = label_cube,
+        rules = list(
+            CerradoNew = mask %in% c("Pasture", "Cerrado")
+        ),
+        output_dir = tempdir(),
+        version = "v2",
+        multicores = 2,
+        memsize = 4
+    )
+
+    expect_equal(
+        object = sits_labels(reclassv2),
+        expected = c("2" = "Forest", "4" = "Soy_Corn", "5" = "CerradoNew")
+    )
+
+    unlink(reclassv2$file_info[[1]]$path)
+    unlink(reclass$file_info[[1]]$path)
+    unlink(label_cube$file_info[[1]]$path)
+    unlink(probs_cube$file_info[[1]]$path)
+})
