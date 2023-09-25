@@ -69,7 +69,7 @@ NULL
     class(source) <- unique(c(classes, class(source)))
 
     if (!is.null(collection)) {
-        classes <- c(paste(classes, tolower(collection), sep = "_"), classes)
+        classes <- paste(classes[[1]], tolower(collection), sep = "_")
         class(source) <- unique(c(classes, class(source)))
     }
     return(source)
@@ -533,7 +533,7 @@ NULL
 #' @rdname .source_collection
 #' @noRd
 .source_collection_access_test <- function(source, collection, ...) {
-    source <- .source_new(source)
+    source <- .source_new(source, collection = collection)
 
     UseMethod(".source_collection_access_test", source)
 }

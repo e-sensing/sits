@@ -540,14 +540,15 @@
             "fid",
             "band",
             "date",
+            "nrows",
+            "ncols",
+            "xres",
+            "yres",
             "xmin",
             "ymin",
             "xmax",
             "ymax",
-            "xres",
-            "yres",
-            "nrows",
-            "ncols",
+            "crs",
             "path"
         ))
     )
