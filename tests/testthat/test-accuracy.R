@@ -89,6 +89,7 @@ test_that("K-fold validate", {
 
     expect_true(file.remove(xls_file))
 })
+
 test_that("Accuracy areas", {
     set.seed(1234)
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -158,4 +159,59 @@ test_that("Accuracy areas", {
         expected = 0.75,
         tolerance = 0.5
     )
+})
+
+test_that("Accuracy areas when samples labels do not match cube labels", {
+    set.seed(1234)
+
+    rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        multicores = 2,
+        memsize = 4
+    )
+
+    probs_cube <- sits_classify(
+        data = cube,
+        ml_model = rf_model,
+        output_dir = tempdir(),
+        version = "ex_classify",
+        multicores = 2,
+        memsize = 4
+    )
+
+    label_cube <- sits_label_classification(
+        probs_cube,
+        output_dir = tempdir(),
+        multicores = 2,
+        memsize = 4
+    )
+
+    reclass <- sits_reclassify(
+        cube = label_cube,
+        mask = label_cube,
+        rules = list(
+            Cerrado = mask %in% c("Pasture", "Cerrado")
+        ),
+        output_dir = tempdir(),
+        multicores = 2,
+        memsize = 4
+    )
+
+    acc <- sits_accuracy(
+        data = reclass, validation = samples_modis_ndvi
+    )
+
+    expect_true(as.numeric(acc$area_pixels["Forest"]) >
+                    acc$area_pixels["Cerrado"])
+    expect_equal(as.numeric(acc$accuracy$overall),
+                 expected = 0.33,
+                 tolerance = 0.5
+    )
+
 })
