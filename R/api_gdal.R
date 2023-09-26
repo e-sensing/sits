@@ -171,11 +171,12 @@
 #' @returns            Name of file that was written to
 .gdal_merge_into <- function(file, base_files, multicores, roi = NULL) {
     r_obj <- .raster_open_rast(file)
-    roi <- .roi_as_sf(roi, as_crs = .raster_crs(r_obj))
     # Merge src_files
     file <- .try(
         {
             if (.has(roi)) {
+                # reproject ROI
+                roi <- .roi_as_sf(roi, as_crs = .raster_crs(r_obj))
                 # Write roi in a temporary file
                 roi_file <- .roi_write(
                     roi = roi,

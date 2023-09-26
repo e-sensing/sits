@@ -199,7 +199,7 @@ test_that("Accuracy areas when samples labels do not match cube labels", {
             Cerrado = mask %in% c("Pasture", "Cerrado")
         ),
         output_dir = tempdir(),
-        multicores = 2,
+        multicores = 1,
         memsize = 4
     )
 

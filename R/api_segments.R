@@ -464,7 +464,7 @@
         dplyr::select("polygon_id", "predicted") |>
         dplyr::mutate(polygon_id = as.numeric(.data[["polygon_id"]])) |>
         tidyr::unnest(cols = "predicted") |>
-        dplyr::select(-.data[["class"]]) |>
+        dplyr::select(-"class") |>
         dplyr::group_by(.data[["polygon_id"]])
     # Select just probability labels
     labels <- setdiff(colnames(data_id), c("polygon_id", "from", "to", "class"))
@@ -475,7 +475,7 @@
             dplyr::rowwise() |>
             dplyr::mutate(sum = sum(dplyr::c_across(cols = dplyr::all_of(labels)))) |>
             dplyr::mutate(dplyr::across(.cols = dplyr::all_of(labels), ~ .x / .data[["sum"]])) |>
-            dplyr::select(-.data[["sum"]])
+            dplyr::select("sum")
     }
 
     # join the data_id tibble with the segments (sf objects)

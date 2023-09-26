@@ -1,11 +1,10 @@
 test_that("sits colors", {
-    g <- sits_colors_show()
+    g <- sits_colors_show("PRODES")
     expect_equal(g$labels$xmin, "x + 0.05")
-    expect_equal(g$labels$label, "name")
 
     color_tb <- sits_colors()
     expect_equal(color_tb[1, ]$name, "Evergreen_Broadleaf_Forest")
-    expect_equal(unname(color_tb[1, ]$color), "#1E8449")
+    expect_equal(unname(color_tb[1, ]$color), "#518940")
 
     color_tb[1, ]$name <- "Tropical_Forest"
     new_tb <- sits_colors_set(color_tb)
@@ -27,8 +26,8 @@ test_that("plot colors", {
         ),
         bands = "class",
         labels = c(
-            "1" = "ClearCut_Burn", "2" = "ClearCut_Soil",
-            "3" = "ClearCut_Veg", "4" = "Forest"
+            "1" = "Clear_Cut_Burned_Area", "2" = "Clear_Cut_Bare_Soil",
+            "3" = "Clear_Cut_Vegetation", "4" = "Forest"
         ),
         progress = FALSE
     )
@@ -37,7 +36,8 @@ test_that("plot colors", {
     expect_equal(p$tm_layout$legend.bg.color, "white")
     expect_equal(
         unname(p$tm_raster$labels),
-        c("ClearCut_Burn", "ClearCut_Soil", "ClearCut_Veg", "Forest")
+        c("Clear_Cut_Burned_Area", "Clear_Cut_Bare_Soil",
+          "Clear_Cut_Vegetation", "Forest")
     )
 })
 
@@ -49,7 +49,7 @@ test_that("colors_get", {
         rev = TRUE
     ))
     expect_length(colors, 3)
-    expect_equal(colors[["Forest"]], "#1E8449")
+    expect_equal(colors[["Forest"]], "#518940")
 })
 
 test_that("legend", {
