@@ -274,9 +274,12 @@
 .conf_set_fonts <- function() {
     # verifies if sysfonts package is installed
     .check_require_packages("sysfonts")
-    sysfonts::font_add_google("Open Sans", family = "opensans")
+    .check_require_packages("showtext")
+    showtext::showtext_auto()
+    sysfonts::font_add_google("IBM Plex Sans", family = "plex_sans")
     sysfonts::font_add_google("Roboto", family = "roboto")
     sysfonts::font_add_google("Lato", family = "lato")
+
     return(NULL)
 }
 #' @title Return the user configuration set in enviromental variable
@@ -365,7 +368,8 @@
                 gdalcubes_chunk_size =
                     user_config[["gdalcubes_chunk_size"]],
                 sources = user_config[["sources"]],
-                colors = user_config[["colors"]]
+                colors = user_config[["colors"]],
+                tmap   = user_config[["tmap"]]
             )
         }
     }

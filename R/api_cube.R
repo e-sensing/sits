@@ -248,10 +248,13 @@ NULL
 }
 #' @export
 .cube_s3class.raster_cube <- function(cube) {
-    unique(c(
-        .source_s3class(source = .cube_source(cube = cube)),
-        class(cube)
-    ))
+    s3_class <- .source_s3class(source = .cube_source(cube = cube))
+    col_class <- paste(
+        s3_class[[1]],
+        tolower(.tile_collection(cube)),
+        sep = "_"
+    )
+    unique(c(col_class, s3_class, class(cube)))
 }
 #' @export
 .cube_s3class.default <- function(cube) {

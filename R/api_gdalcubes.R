@@ -6,11 +6,18 @@
 #' @param cube       Data cube.
 #' @param timeline   Timeline of regularized cube
 #' @param period     Period of interval to aggregate images
-#'
+#' @param roi        Optional. Used only for Sentinel-1 cube.
 #' @param ...        Additional parameters.
 #'
 #' @return           Data cube with the images arranged by cloud.
 .gc_arrange_images <- function(cube, timeline, period, ...) {
+    UseMethod(".gc_arrange_images", cube)
+}
+
+#' @keywords internal
+#' @noRd
+#' @export
+.gc_arrange_images.raster_cube <- function(cube, timeline, period, ...) {
     # include the end of last interval
     timeline <- c(
         timeline,
@@ -42,6 +49,64 @@
     })
 
     return(cube)
+}
+
+#' @keywords internal
+#' @noRd
+#' @export
+`.gc_arrange_images.mpc_cube_sentinel-1-grd` <- function(cube,
+                                                         timeline,
+                                                         period,
+                                                         roi,
+                                                         ...) {
+    # dummy local variables to avoid warnings from tidyverse syntax
+    .x <- NULL
+
+    # pre-requisites
+    .check_that(nrow(cube) == 1,
+                local_msg = "cube must have one row",
+                msg = "invalid sentinel-1 cube")
+
+    # include the end of last interval
+    timeline <- c(
+        timeline,
+        timeline[[length(timeline)]] %m+% lubridate::period(period)
+    )
+
+    # generate Sentinel-2 tiles and intersects it with doi
+    tiles <- .s2tile_open(roi)
+    tiles <- tiles[.intersects(tiles, .roi_as_sf(roi)), ]
+
+    # prepare a sf object representing the bbox of each image in file_info
+    fi_bbox <- .bbox_as_sf(.bbox(
+        x = cube$file_info[[1]],
+        default_crs = cube$crs,
+        by_feature = TRUE
+    ))
+
+    # create a new cube according to Sentinel-2 MGRS
+    cube_class <- .cube_s3class(cube)
+    cube <- tiles |>
+        dplyr::rowwise() |>
+        dplyr::group_map(~{
+            file_info <- .fi(cube)[.intersects({{fi_bbox}}, .x), ]
+            .cube_create(
+                source = .tile_source(cube),
+                collection = .tile_collection(cube),
+                satellite = .tile_satellite(cube),
+                sensor = .tile_sensor(cube),
+                tile = .x$tile_id,
+                xmin = .x$xmin,
+                xmax = .x$xmax,
+                ymin = .x$ymin,
+                ymax = .x$ymax,
+                crs = paste0("EPSG:", .x$epsg),
+                file_info = file_info
+            )
+        }) |>
+        dplyr::bind_rows()
+
+    .cube_set_class(cube, cube_class)
 }
 
 #' @title Create a cube_view object
@@ -171,13 +236,19 @@
         unlink(path_db)
     }
 
-    # can be "proj:epsg" or "proj:wkt2"
-    crs_type <- .gc_detect_crs_type(.cube_crs(cube))
+    # use crs from tile if there is no crs in file_info
+    if ("crs" %in% names(.fi(cube))) {
+        file_info <- dplyr::select(cube, "file_info") |>
+            tidyr::unnest(cols = c("file_info"))
+    } else {
+        file_info <- dplyr::select(cube, "file_info", "crs") |>
+            tidyr::unnest(cols = c("file_info"))
+    }
 
-    file_info <- dplyr::select(
-        cube, "file_info", "crs"
-    ) |>
-        tidyr::unnest(cols = c("file_info")) |>
+    # can be "proj:epsg" or "proj:wkt2"
+    crs_type <- .gc_detect_crs_type(file_info$crs[[1]])
+
+    file_info <- file_info |>
         dplyr::transmute(
             fid = .data[["fid"]],
             xmin = .data[["xmin"]],
@@ -320,9 +391,10 @@
 #' @noRd
 #' @param cube       Data cube.
 #' @param period     ISO8601 time period.
+#' @param extra_date_step Add an extra date in the end of timeline?
 #'
 #' @return a \code{vector} with all timeline values.
-.gc_get_valid_timeline <- function(cube, period) {
+.gc_get_valid_timeline <- function(cube, period, extra_date_step = FALSE) {
     # set caller to show in errors
     .check_set_caller(".gc_get_valid_timeline")
 
@@ -380,13 +452,10 @@
         tl <- c(tl, date)
     }
 
-    # timeline cube
-    tiles_tl <- suppressWarnings(sits_timeline(cube))
-
-    if (!is.list(tiles_tl)) {
-        tiles_tl <- list(tiles_tl)
+    # Add extra time step
+    if (extra_date_step) {
+        tl <- c(tl, tl[[length(tl)]] %m+% lubridate::period(period))
     }
-
     return(tl)
 }
 
@@ -493,7 +562,8 @@
     cube <- .gc_arrange_images(
         cube = cube,
         timeline = timeline,
-        period = period
+        period = period,
+        roi = roi
     )
 
     # start processes

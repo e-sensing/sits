@@ -364,7 +364,7 @@
                     band = bands,
                     asset_info = asset_info,
                     path = paths,
-                    cloud_cover = cloud_cover
+                    cloud_cover = NA
                 ),
                 cols = c("band", "asset_info", "path", "cloud_cover")
             )
@@ -421,7 +421,9 @@
 
     # prepare cube
     cube <- cube |>
-        tidyr::nest(file_info = -dplyr::matches(c("tile", "crs"))) |>
+        dplyr::mutate(crs2 = .data[["crs"]]) |>
+        tidyr::nest(file_info = -dplyr::matches(c("tile", "crs2"))) |>
+        dplyr::rename(crs = .data[["crs2"]]) |>
         slider::slide_dfr(function(tile) {
             # get file_info
             file_info <- tile[["file_info"]][[1]]
