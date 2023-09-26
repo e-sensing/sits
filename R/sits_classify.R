@@ -40,9 +40,9 @@
 #'                           (integer, min = 1, max = 16384).
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
-#' @param pol_id             ID attribute for polygons
+#' @param  pol_id            ID attribute for polygons
 #'                           (character vector of length 1).
-#' @param aggreg_fn          Function to compute a summary of each segment
+#' @param  aggreg_fn         Function to compute a summary of each segment
 #'                           (object of class "function").
 #' @param  output_dir        Valid directory for output file.
 #'                           (character vector of length 1).

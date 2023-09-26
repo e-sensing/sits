@@ -459,12 +459,14 @@
 }
 
 .segments_join_probs <- function(data, segments, aggregate) {
-    # select polygon_id and class for the time series tibble
+    # Select polygon_id and class for the time series tibble
     data_id <- data |>
         dplyr::select("polygon_id", "predicted") |>
+        dplyr::mutate(polygon_id = as.numeric(.data[["polygon_id"]])) |>
         tidyr::unnest(cols = "predicted") |>
+        dplyr::select(-.data[["class"]]) |>
         dplyr::group_by(.data[["polygon_id"]])
-
+    # Select just probability labels
     labels <- setdiff(colnames(data_id), c("polygon_id", "from", "to", "class"))
 
     if (aggregate) {

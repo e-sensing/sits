@@ -233,7 +233,7 @@
             file = out_file,
             band = "probs",
             base_tile = tile,
-            labels = .ml_labels_code(ml_model),
+            labels = .ml_labels(ml_model),
             vector_class = "probs_vector_cube",
             update_bbox = FALSE
         )
@@ -282,7 +282,7 @@
         file = out_file,
         band = "probs",
         base_tile = tile,
-        labels = .ml_labels_code(ml_model),
+        labels = .ml_labels(ml_model),
         vector_class = "probs_vector_cube",
         update_bbox = FALSE
     )
