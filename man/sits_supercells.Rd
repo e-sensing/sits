@@ -2,21 +2,22 @@
 % Please edit documentation in R/sits_segmentation.R
 \name{sits_supercells}
 \alias{sits_supercells}
+\alias{sits_slic}
 \title{Segment an image using supercells}
 \usage{
-sits_supercells(
-  tile = NULL,
+sits_slic(
+  data = NULL,
   step = 50,
   compactness = 1,
-  dist_fun = "dtw",
-  avg_fun = "median",
+  dist_fun = "euclidean",
+  avg_fun = "mean",
   iter = 10,
   minarea = 30,
-  multicores = 1
+  verbose = FALSE
 )
 }
 \arguments{
-\item{tile}{Tile, bands, date to be segmented}
+\item{data}{A matrix with time series.}
 
 \item{step}{Distance (in number of cells) between initial
 supercells' centers.}
@@ -41,7 +42,7 @@ Default: "median"}
 
 \item{minarea}{Specifies the minimal size of a supercell (in cells).}
 
-\item{multicores}{Number of cores for parallel processing}
+\item{verbose}{Show the progress bar?}
 }
 \value{
 Set of segments for a single tile
@@ -61,31 +62,23 @@ if (sits_run_examples()) {
         collection = "MOD13Q1-6",
         data_dir = data_dir
     )
-
-    # segment the image
+    # segment the vector cube
     segments <- sits_segment(
         cube = cube,
-        tile = "012010",
-        bands = "NDVI",
-        date = sits_timeline(cube)[1],
-        seg_fn = sits_supercells(step = 10)
+        output_dir = tempdir()
     )
     # create a classification model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-    # get the average value per segment
-    samples_seg <- sits_get_data(
-        cube = cube,
-        samples = segments
-    )
     # classify the segments
-    seg_class <- sits_classify(
-        data = samples_seg,
-        ml_model = rfor_model
+    seg_probs <- sits_classify(
+        data = segments,
+        ml_model = rfor_model,
+        output_dir = tempdir()
     )
-    # add a column to the segments by class
-    sf_seg <- sits_join_segments(
-        data = seg_class,
-        segments = segments
+    # label the probability segments
+    seg_label <- sits_label_classification(
+        cube = seg_probs,
+        output_dir = tempdir()
     )
 }
 }

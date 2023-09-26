@@ -8,6 +8,11 @@
 #'
 #' @param  cube        Classified image data cube.
 #' @param  ...         Other parameters for specific functions.
+#' @param  clean       A logical value to apply a modal function to clean up
+#'                     possible noisy pixels keeping the most frequently
+#'                     values within the neighborhood. Default is TRUE.
+#' @param window_size  An odd integer representing the size of the
+#'                     sliding window of the modal function (min = 1, max = 15).
 #' @param  multicores  Number of workers to label the classification in
 #'                     parallel.
 #' @param  memsize     maximum overall memory (in GB) to label the
@@ -51,19 +56,23 @@
 #'     plot(label_cube)
 #' }
 #' @export
-sits_label_classification <- function(cube, ...,
-                                      memsize = 4L,
-                                      multicores = 2L,
+sits_label_classification <- function(cube,
+                                      clean = TRUE,
+                                      window_size = 3L,
+                                      memsize = 4,
+                                      multicores = 2,
                                       output_dir,
                                       version = "v1",
                                       progress = TRUE) {
     # Dispatch
     UseMethod("sits_label_classification", cube)
 }
-#'
+
 #' @rdname sits_label_classification
 #' @export
 sits_label_classification.probs_cube <- function(cube, ...,
+                                                 clean = TRUE,
+                                                 window_size = 3L,
                                                  memsize = 4L,
                                                  multicores = 2L,
                                                  output_dir,
@@ -71,6 +80,8 @@ sits_label_classification.probs_cube <- function(cube, ...,
                                                  progress = TRUE) {
     # Pre-conditions - Check parameters
     .check_cube_files(cube)
+    .check_lgl_parameter(clean)
+    .check_window_size(window_size = window_size, min = 3, max = 15)
     .check_memsize(memsize, min = 1, max = 16384)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
@@ -80,6 +91,10 @@ sits_label_classification.probs_cube <- function(cube, ...,
 
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    # Get image size
+    image_size <- .raster_size(.raster_open_rast(.tile_path(cube)))
+    # Overlapping pixels
+    overlap <- ceiling(window_size / 2) - 1
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
@@ -113,22 +128,67 @@ sits_label_classification.probs_cube <- function(cube, ...,
             version = version,
             progress = progress
         )
+        label_path <- .tile_path(class_tile)
+        if (clean) {
+            # Apply clean in data
+            class_tile <- .clean_tile(
+                tile = class_tile,
+                block = image_size,
+                band = "class",
+                window_size = window_size,
+                overlap = overlap,
+                output_dir = output_dir,
+                version = version
+            )
+            # Remove raster file without clean
+            unlink(label_path)
+        }
         return(class_tile)
     })
     return(class_cube)
 }
+
+#' @rdname sits_label_classification
+#' @export
+sits_label_classification.probs_vector_cube <- function(cube, ...,
+                                                        output_dir,
+                                                        version = "v1",
+                                                        progress = TRUE) {
+    # Pre-conditions - Check parameters
+    .check_cube_files(cube)
+    .check_output_dir(output_dir)
+    .check_version(version)
+    # version is case-insensitive in sits
+    version <- tolower(version)
+    # Process each tile sequentially
+    class_cube <- .cube_foreach_tile(cube, function(tile) {
+        # Label the segments
+        class_tile <- .label_vector_tile(
+            tile = tile,
+            band = "class",
+            version = version,
+            output_dir = output_dir
+        )
+        # Return classified tile segments
+        return(class_tile)
+    })
+    return(class_cube)
+}
+
 #' @rdname sits_label_classification
 #' @export
 sits_label_classification.raster_cube <- function(cube, ...) {
     stop("Input should be a classified cube")
     return(cube)
 }
+
 #' @rdname sits_label_classification
 #' @export
 sits_label_classification.derived_cube <- function(cube, ...) {
     stop("Input should be a classified cube")
     return(cube)
 }
+
 #' @rdname sits_label_classification
 #' @export
 sits_label_classification.tbl_df <- function(cube, ...){
@@ -140,9 +200,9 @@ sits_label_classification.tbl_df <- function(cube, ...){
     class_cube <- sits_label_classification(cube, ...)
     return(class_cube)
 }
+
 #' @rdname sits_label_classification
 #' @export
 sits_label_classification.default <- function(cube, ...) {
     stop("Input should be a classified cube")
 }
-

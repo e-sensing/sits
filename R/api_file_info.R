@@ -159,6 +159,7 @@ NULL
         path = file
     )
 }
+
 #' @title Get file_info id
 #' @noRd
 #' @param fi   file_info

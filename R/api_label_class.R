@@ -86,6 +86,54 @@
     class_tile
 }
 
+#' @title Build a classified vector segments from a tile
+#' @noRd
+#' @param tile     Tile of data cube
+#' @param band     Spectral band
+#' @param output_dir Directory where file will be saved
+#' @param version  Version name
+#' @return        Classified vector tile
+.label_vector_tile <- function(tile, band, version, output_dir) {
+    # Output file
+    out_file <- .file_derived_name(
+        tile = tile, band = "class", version = version,
+        output_dir = output_dir, ext = "gpkg"
+    )
+    # Resume feature
+    if (.segments_is_valid(out_file)) {
+        if (.check_messages()) {
+            message("Recovery: tile '", tile[["tile"]], "' already exists.")
+            message(
+                "(If you want to produce a new image, please ",
+                "change 'output_dir' or 'version' parameters)"
+            )
+        }
+    }
+    # Get tile labels
+    labels <- unname(.tile_labels(tile))
+    # Read probability segments
+    probs_segments <- .segments_read_vec(tile)
+    # Classify each segment by majority probability
+    probs_segments <- probs_segments |>
+        dplyr::rowwise() |>
+        dplyr::mutate(class = labels[which.max(
+            dplyr::c_across(dplyr::all_of(labels)))]) |>
+        dplyr::mutate(pol_id = as.numeric(.data[["pol_id"]]))
+    # Write all segments
+    .vector_write_vec(v_obj = probs_segments, file_path = out_file)
+    # Create tile based on template
+    class_tile <- .tile_segments_from_file(
+        file = out_file,
+        band = "class",
+        base_tile = tile,
+        labels = .tile_labels(tile),
+        vector_class = "class_vector_cube",
+        update_bbox = FALSE
+    )
+    # Return classified vector tile
+    return(class_tile)
+}
+
 #---- label functions ----
 #' @title Build a classified map from probs cube based on maximal probability
 #' @noRd

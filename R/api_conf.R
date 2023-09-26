@@ -817,6 +817,30 @@
     return(res)
 }
 
+#' @title Retrieve the raster package to be used
+#' @name .conf_raster_pkg
+#' @keywords internal
+#' @noRd
+#' @return the raster package used to process raster data
+#'
+.conf_vector_pkg <- function() {
+    res <- .conf(key = c("vector_api_package"))
+
+    # post-condition
+    .check_chr(res,
+               len_min = 1, len_max = 1,
+               msg = "invalid 'vector_api_package' in config file"
+    )
+
+    .check_chr_within(res,
+                      within = .vector_supported_packages(),
+                      discriminator = "one_of",
+                      msg = "invalid 'raster_api_package' in config file"
+    )
+
+    return(res)
+}
+
 #' @title Basic access config functions
 #' @noRd
 #'
@@ -974,6 +998,16 @@ NULL
     derived_class <- tolower(derived_class)
     .conf("derived_cube", derived_class, "s3_class")
 }
+#' @title Get the S3 class values of a `vector_cube`
+#' @noRd
+#' @param vector_class  A `vector_cube` class name.
+#' @return A S3 class.
+.conf_vector_s3class <- function(vector_class) {
+    # derived_class is lowercase
+    vector_class <- tolower(vector_class)
+    .conf("vector_cube", vector_class, "s3_class")
+}
+
 #' @title Get a band configuration of a `derived_cube`
 #' @noRd
 #' @param derived_class  A `derived_cube` class name.

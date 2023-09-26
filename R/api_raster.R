@@ -151,6 +151,25 @@
 
     UseMethod(".raster_set_values", pkg_class)
 }
+
+#' @title Raster package internal set values function
+#' @name .raster_set_na
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj     raster package object
+#' @param na_value  Numeric matrix to copy to raster object
+#' @param ...       additional parameters to be passed to raster package
+#'
+#' @return Raster object
+.raster_set_na <- function(r_obj, na_value, ...) {
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_set_na", pkg_class)
+}
+
 #' @title Get top values of a raster.
 #'
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
@@ -706,6 +725,20 @@
     )
 
     return(params)
+}
+
+#' @title Polygonize raster
+#' @name .raster_polygonize
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @return name of the package.
+.raster_polygonize <- function(r_obj, dissolve = TRUE, ...) {
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_polygonize", pkg_class)
 }
 
 .raster_template <- function(base_file, out_file, nlayers, data_type,

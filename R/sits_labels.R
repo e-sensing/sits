@@ -57,6 +57,12 @@ sits_labels.derived_cube <- function(data) {
 #' @rdname sits_labels
 #' @export
 #'
+sits_labels.derived_vector_cube <- function(data) {
+    return(data$labels[[1]])
+}
+#' @rdname sits_labels
+#' @export
+#'
 sits_labels.raster_cube <- function(data) {
     stop(paste0("Input should be a set of time series",
          " or probs, class or variance cube"))

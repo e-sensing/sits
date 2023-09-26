@@ -102,6 +102,35 @@
     y <- sf::st_transform(y, crs = as_crs)
     apply(sf::st_within(x, y, sparse = FALSE), 1, any)
 }
+#' @title Spatial contains
+#' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @description
+#' This function is based on sf::st_contains(). It projects y
+#' to the CRS of x before compute contains operation. For each geometry of x,
+#' returns TRUE if it is contained any geometry of y,
+#' otherwise it returns FALSE.
+#'
+#' @param x,y sf geometries.
+#'
+#' @returns A vector indicating which geometries of x
+#' is contained geometries of y.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     x <- .roi_as_sf(c(lon_min = 0, lon_max = 3, lat_min = 2, lat_max = 5))
+#'     y <- .bbox_as_sf(c(xmin = 1, xmax = 2, ymin = 3, ymax = 4, crs = 4326))
+#'     .contains(x, y) # TRUE
+#' }
+#'
+.contains <- function(x, y) {
+    as_crs <- sf::st_crs(x)
+    y <- sf::st_transform(y, crs = as_crs)
+    apply(sf::st_contains(x, y, sparse = FALSE), 1, any)
+}
 #' @title Find the closest points.
 #'
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}

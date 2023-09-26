@@ -6,7 +6,8 @@
 #' @description
 #' These are a short named version of data type functions.
 #'
-#' @param x Input value.
+#' @param x           Input value.
+#' @param column_name Character with column name
 #' @param ... Additional parameters.
 #'
 #' @examples
@@ -76,6 +77,14 @@ NULL
         return(names(x) != "")
     }
     rep(FALSE, length(x))
+}
+
+#' @title Check if an input has column name or not. If there is
+#'   the function evaluates as \code{TRUE}.
+#'   Returns \code{logical}.
+#' @noRd
+.has_column <- function(x, column_name) {
+    any(.has_name(x)) && column_name %in% names(x)
 }
 
 #' @title Set \code{class} of object \code{x}.

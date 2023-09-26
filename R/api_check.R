@@ -1339,6 +1339,21 @@
     )
     return(invisible(cube))
 }
+#' @title Does the input data contain a vector cube?
+#' @name .check_is_vector_cube
+#' @param cube a sits cube to be tested
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_is_vector_cube <- function(cube) {
+    .check_that(
+        x = inherits(cube, "vector_cube"),
+        local_msg = "data should be a vector cube",
+        msg = "invalid cube parameter"
+    )
+    return(invisible(cube))
+}
+
 #' @title Check if cube is a probs cube
 #' @name .check_is_probs_cube
 #' @param cube a sits cube to be tested
@@ -2319,6 +2334,22 @@
     }
     return(invisible(cube))
 }
+
+#' @title Check if the provided object is a vector
+#' @name .check_vector
+#' @param v_obj  a sf, sfc or sfg object
+#' @return No return value, called for side effects.
+#' @keywords internal
+#' @noRd
+.check_vector <- function(csv) {
+    .check_chr_contains(
+        x = class(csv),
+        contains = c("sf", "sfc", "sfg"),
+        discriminator = "one_of",
+        msg = "invalid vector object"
+    )
+}
+
 .check_default_message <- function(x, msg = NULL) {
     # make default message
     if (purrr::is_null(msg)) {

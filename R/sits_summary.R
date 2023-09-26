@@ -304,11 +304,13 @@ summary.class_cube <- function(object, ...,
     files <- .tile_paths(tile)
     # print the base information (if requested)
     .summary_tile_information(tile)
-    # read the files with terra
-    r <- terra::rast(files)
-    # get the a sample of the values
-    class_areas <- r |>
-        terra::expanse(unit = "km", byValue = TRUE)
+    # read raster files
+    r <- .raster_open_rast(files)
+    # get a frequency of values
+    class_areas <- .raster_freq(r)
+    # transform to km^2
+    cell_size <- .tile_xres(tile) * .tile_yres(tile)
+    class_areas[["area"]] <-  (class_areas[["count"]] * cell_size) / 10^6
     # change value to character
     class_areas <- dplyr::mutate(class_areas,
         value = as.character(.data[["value"]])
@@ -319,7 +321,7 @@ summary.class_cube <- function(object, ...,
     # join the labels with the areas
     sum <- dplyr::full_join(df1, class_areas, by = "value")
     sum <- dplyr::mutate(sum,
-        area_km2 = signif(.data[["area"]], 4),
+        area_km2 = signif(.data[["area"]], 3),
         .keep = "unused"
     )
     # remove layer information

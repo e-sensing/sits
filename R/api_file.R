@@ -75,19 +75,22 @@
 .file_remove_vsi <- function(file) {
     gsub(pattern = "^(/vsicurl/|/vsis3/|/vsigs/)", replacement = "", x = file)
 }
+
 #' @title Create a file path for a block
 #' @noRd
-#' @param pattern  Pattern to be used
-#' @param block    Block (first row, first col, nrows, ncols)
+#' @param pattern    Pattern to be used
+#' @param block      Block (first row, first col, nrows, ncols)
 #' @param output_dir Directory where the block will be saved
-#' @returns        File path for the block
-.file_block_name <- function(pattern, block, output_dir) {
+#' @param ext        file block extension
+#' @returns File path for the block
+.file_block_name <- function(pattern, block, output_dir, ext = "tif") {
     .file_path(
         pattern, "block", block[["row"]], block[["col"]],
-        ext = "tif", output_dir = file.path(output_dir, ".sits"),
+        ext = ext, output_dir = file.path(output_dir, ".sits"),
         create_dir = TRUE
     )
 }
+
 #' @title Create a log file
 #' @noRd
 #' @param output_dir Directory where the log  will be saved
@@ -99,20 +102,23 @@
         output_dir = file.path(output_dir, ".sits"), create_dir = TRUE
     )
 }
+
 #' @title Build a file path for a derived file
 #' @noRd
-#' @param tile     Tile of data cube
-#' @param band     Spectral band
-#' @param version  Version name
+#' @param tile       Tile of data cube
+#' @param band       Spectral band
+#' @param version    Version name
 #' @param output_dir Directory where file will be saved
-#' @returns        File path for derived file
-.file_derived_name <- function(tile, band, version, output_dir) {
+#' @param ext        file extension path
+#' @returns File path for derived file
+.file_derived_name <- function(tile, band, version, output_dir, ext = "tif") {
     .file_path(
         tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
         .tile_start_date(tile), .tile_end_date(tile), band, version,
-        ext = "tif", output_dir = output_dir
+        ext = ext, output_dir = output_dir
     )
 }
+
 #' @title Build a file path for a cleaned map (used in sits_clean)
 #' @noRd
 #' @param tile     Tile of data cube
@@ -128,6 +134,7 @@
         ext = "tif", output_dir = output_dir
     )
 }
+
 #' @title Build a file path for a mosaic
 #' @noRd
 #' @param tile     Tile of data cube

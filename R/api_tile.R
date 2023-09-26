@@ -193,6 +193,43 @@ NULL
     yres <- .tile_yres(tile)
     return(yres)
 }
+
+#' @title Update tile labels
+#' @noRd
+#' @param tile   A tile.
+#' @param labels A character vector with new labels
+#' @return vector of labels
+.tile_update_label <- function(tile, labels) {
+    UseMethod(".tile_update_label", tile)
+}
+
+#' @export
+.tile_update_label.class_cube <- function(tile, labels) {
+    # Open classified raster
+    tile_rast <- .raster_open_rast(.tile_path(tile))
+    # Get frequency values
+    freq_tbl <- .raster_freq(tile_rast)
+    # Get tile labels
+    tile_labels <- .tile_labels(tile)
+    if (is.null(names(tile_labels))) {
+        names(tile_labels) <- seq_along(tile_labels)
+    }
+    # Get new labels values
+    tile_labels <- tile_labels[.as_chr(freq_tbl[["value"]])]
+    # Set new labels
+    .tile_labels(tile) <- tile_labels
+    # Return tile with updated labels
+    return(tile)
+}
+
+#' @export
+.tile_update_label.default <- function(tile, labels) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    tile <- .tile_update_label(tile, labels)
+    return(tile)
+}
+
 #' @title Get/Set labels
 #' @noRd
 #' @param tile A tile.
@@ -1095,6 +1132,45 @@ NULL
     # Set tile class and return tile
     .cube_set_class(base_tile, .conf_derived_s3class(derived_class))
 }
+
+#' @title Create a tile derived from a segment file
+#' @name .tile_segments_from_file
+#' @keywords internal
+#' @noRd
+#' @param file  file to be merged
+#' @param band  band to be used in the tile
+#' @param base_tile  reference tile used in the operation
+#' @param vector_class class of the vector tile
+#' @param update_bbox  should bbox be updated?
+#' @return a new tile
+.tile_segments_from_file <- function(file, band, base_tile, vector_class,
+                                     labels = NULL, update_bbox = FALSE) {
+    v_obj <- .vector_read_vec(file_path = file)
+    base_tile <- .tile(base_tile)
+    bbox <- .vector_bbox(v_obj)
+    if (update_bbox) {
+        # Update spatial bbox
+        .xmin(base_tile) <- bbox[["xmin"]]
+        .xmax(base_tile) <- bbox[["xmax"]]
+        .ymin(base_tile) <- bbox[["ymin"]]
+        .ymax(base_tile) <- bbox[["ymax"]]
+        .crs(base_tile) <- .vector_crs(v_obj, wkt = TRUE)
+    }
+    # Update labels before file_info
+    .tile_labels(base_tile) <- labels
+    # Update file_info
+    .vi(base_tile) <- .vi_segment_from_file(
+        file = file,
+        base_tile = base_tile,
+        band = band,
+        start_date = .tile_start_date(base_tile),
+        end_date = .tile_end_date(base_tile)
+    )
+    # Set tile class and return tile
+    seg_classes <- c(.conf_vector_s3class(vector_class), class(base_tile))
+    .cube_set_class(base_tile, seg_classes)
+}
+
 #' @title Write values of a derived tile from a set of blocks
 #' @name .tile_derived_merge_blocks
 #' @keywords internal
@@ -1106,7 +1182,7 @@ NULL
 #' @param derived_class class of the derived tile
 #' @param block_files  files that host the blocks
 #' @param multicores  number of parallel processes
-#' @param update_bbox  should bbox be updated?
+#' @param update_bbox   should bbox be updated?
 #' @return a new tile with files written
 .tile_derived_merge_blocks <- function(file, band, labels, base_tile,
                                        derived_class, block_files, multicores,
@@ -1145,6 +1221,40 @@ NULL
         base_tile = base_tile,
         derived_class = derived_class,
         labels = labels,
+        update_bbox = update_bbox
+    )
+    # If all goes well, delete block files
+    unlink(block_files)
+    # Return derived tile
+    tile
+}
+
+#' @title Write values of a derived tile from a set of blocks segments
+#' @name .tile_segment_merge_blocks
+#' @keywords internal
+#' @noRd
+#' @param block_files blocks to be merged
+#' @param base_tile  reference tile used in the operation
+#' @param band  band to be used in the tile
+#' @param derived_class class of the derived tile
+#' @param out_file output file name
+#' @param update_bbox  should bbox be updated?
+#' @return a new tile with files written
+.tile_segment_merge_blocks <- function(block_files, base_tile, band, vector_class,
+                                       out_file, update_bbox = FALSE) {
+    base_tile <- .tile(base_tile)
+    # Read all blocks file
+    vec_segments <- purrr::map_dfr(block_files, .vector_read_vec.sf)
+    # Define an unique ID
+    vec_segments[["pol_id"]] <- seq_len(nrow(vec_segments))
+    # Write all segments
+    .vector_write_vec(v_obj = vec_segments, file_path = out_file)
+    # Create tile based on template
+    tile <- .tile_segments_from_file(
+        file = out_file,
+        band = band,
+        base_tile = base_tile,
+        vector_class = vector_class,
         update_bbox = update_bbox
     )
     # If all goes well, delete block files

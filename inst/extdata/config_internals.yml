@@ -2,12 +2,19 @@
 # default raster package
 raster_api_package      : "terra"
 
+# default vector package
+vector_api_package      : "sf"
+
 # sample size
 summary_sample_size : 10000
+
+# get data strategy
+n_samples_to_split: 20000
 
 # estimated relative growth size of R memory relative to block size
 processing_bloat        : 5
 processing_bloat_smooth : 8
+processing_bloat_seg    : 2
 
 # number of items returned by stac service
 rstac_pagination_limit  : 100
@@ -141,6 +148,23 @@ derived_cube         :
                 maximum_value: 254
                 offset_value : 0
                 scale_factor : 1
+
+# Vector cube definitions
+vector_cube          :
+    segs_cube        :
+        s3_class     : ["segs_cube", "vector_cube"]
+        bands        :
+            segments :
+    probs_vector_cube:
+        s3_class     : ["probs_vector_cube", "derived_vector_cube", "segs_cube",
+                        "vector_cube"]
+        bands        :
+            probs    :
+    class_vector_cube:
+        s3_class     : ["class_vector_cube", "derived_vector_cube", "segs_cube",
+                        "vector_cube"]
+        bands        :
+            class    :
 
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"

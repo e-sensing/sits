@@ -6,10 +6,8 @@
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description
-#' Apply a spatial segmentation on a data cube based on a user defined
-#' segmentation function. The user defines the tiles of
-#' the cube to be segmented and informs the bands and the date to
-#' be used. The function applies the segmentation algorithm
+#' Apply a spatial-temporal segmentation on a data cube based on a user defined
+#' segmentation function. The function applies the segmentation algorithm
 #' "seg_fn" to each tile.
 #'
 #' Segmentation uses the following steps:
@@ -29,16 +27,27 @@
 #'        Use the functions available in \code{sf} for further analysis.}
 #'  }
 #'
-#' @param cube          Regular data cube
-#' @param tiles         Tiles to be segmented
-#' @param bands         Bands to include in the segmentation
-#' @param dates         Dates to consider to be segmented
-#' @param seg_fn        Function to apply the segmentation
-#' @param ...           Other params to be passed to segmentation function
+#' @param  cube       Regular data cube
+#' @param  seg_fn     Function to apply the segmentation
+#' @param  roi        Region of interest (see below)
+#' @param  start_date Start date for the segmentation
+#' @param  end_date   End date for the segmentation.
+#' @param  memsize    Memory available for classification (in GB).
+#' @param  multicores Number of cores to be used for classification.
+#' @param  output_dir Directory for output file.
+#' @param  version    Version of the output (for multiple
+#' segmentations).
+#' @param  progress   Show progress bar?
 #'
-#' @return              A list of "sf" objects, indexed by tile.
-#'                      Each "sf" object contains the polygons that define
-#'                      the segments.
+#' @return          A tibble of class 'segs_cube' representing the
+#' segmentation.
+#'
+#' @note
+#'    The "roi" parameter defines a region of interest. It can be
+#'    an sf_object, a shapefile, or a bounding box vector with
+#'    named XY values ("xmin", "xmax", "ymin", "ymax") or
+#'    named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
+#'
 #' @examples
 #' if (sits_run_examples()) {
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -48,80 +57,100 @@
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir
 #'     )
-#'     # segment the image
+#'     # segment the vector cube
 #'     segments <- sits_segment(
 #'         cube = cube,
-#'         tile = "012010",
-#'         bands = "NDVI",
-#'         dates = sits_timeline(cube)[1],
-#'         seg_fn = sits_supercells(step = 20)
+#'         output_dir = tempdir()
 #'     )
 #'     # create a classification model
 #'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-#'     # get the average value per segment
-#'     samples_seg <- sits_get_data(
-#'         cube = cube,
-#'         samples = segments,
-#'         n_sam_pol = 10
-#'     )
 #'     # classify the segments
-#'     seg_class <- sits_classify(
-#'         data = samples_seg,
-#'         ml_model = rfor_model
+#'     seg_probs <- sits_classify(
+#'         data = segments,
+#'         ml_model = rfor_model,
+#'         output_dir = tempdir()
 #'     )
-#'     # add a column to the segments by class
-#'     sf_seg <- sits_join_segments(
-#'         data = seg_class,
-#'         segments = segments
+#'     # label the probability segments
+#'     seg_label <- sits_label_classification(
+#'         cube = seg_probs,
+#'         output_dir = tempdir()
 #'     )
 #' }
 #' @export
 sits_segment <- function(cube,
-                         tiles = NULL,
-                         bands = NULL,
-                         dates = NULL,
-                         seg_fn, ...) {
-    # is the cube regular?
+                         seg_fn = sits_slic(),
+                         roi = NULL,
+                         start_date = NULL,
+                         end_date = NULL,
+                         memsize = 8,
+                         multicores = 2,
+                         output_dir,
+                         version = "v1",
+                         progress = TRUE) {
+    # Preconditions
+    .check_is_raster_cube(cube)
     .check_is_regular(cube)
-    # does tile belong to the cube?
-    tiles <- .default(tiles, .cube_tiles(cube))
-    .check_chr_within(
-        x = tiles,
-        within = .cube_tiles(cube),
-        msg = "tiles not available in the cube"
+    .check_memsize(memsize, min = 1, max = 16384)
+    .check_output_dir(output_dir)
+    .check_version(version)
+    .check_progress(progress)
+
+    # Spatial filter
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi)
+        cube <- .cube_filter_spatial(cube = cube, roi = roi)
+    }
+    # Temporal filter
+    if (.has(start_date) || .has(end_date)) {
+        cube <- .cube_filter_interval(
+            cube = cube, start_date = start_date, end_date = end_date
+        )
+    }
+    start_date <- .default(start_date, .cube_start_date(cube))
+    end_date <- .default(end_date, .cube_end_date(cube))
+
+    # Check memory and multicores
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = .block_size(block = block, overlap = 0),
+        npaths = length(.tile_paths(cube)),
+        nbytes = 8,
+        proc_bloat = .conf("processing_bloat_seg")
     )
-    # Are bands OK?
-    bands <- .default(bands, .cube_bands(cube))
-    .check_chr_within(bands, .cube_bands(cube),
-        msg = "bands not available in the cube"
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize, memsize = memsize, multicores = multicores
     )
-    # Is date OK?
-    dates <- .default(dates, .cube_timeline(cube)[[1]][[1]])
-    .check_that(all(as.Date(dates) %in% .cube_timeline(cube)[[1]]),
-        msg = "dates not available in the cube"
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_memsize = job_memsize, block = block,
+        image_size = .tile_size(.tile(cube)), memsize = memsize,
+        multicores = multicores
     )
-    # get start and end date
-    start_date <- as.Date(dates[[1]])
-    end_date <- as.Date(dates[[length(dates)]])
-    .check_that(
-        start_date <= end_date,
-        msg = "start_date should be earlier than end_date"
-    )
-    # segment each tile
-    segments <- purrr::map(tiles, function(tile) {
-        tile_seg <- .cube_filter_tiles(cube, tile) |>
-            .cube_filter_bands(bands) |>
-            .cube_filter_interval(
-                start_date = start_date,
-                end_date = end_date
-            )
-        seg_fn(tile_seg, ...)
+    # Prepare parallel processing
+    .parallel_start(workers = multicores, output_dir = output_dir)
+    on.exit(.parallel_stop(), add = TRUE)
+    # Segmentation
+    # Process each tile sequentially
+    segs_cube <- .cube_foreach_tile(cube, function(tile) {
+        # Segment the data
+        segs_tile <- .segments_tile(
+            tile = tile,
+            seg_fn = seg_fn,
+            band = "segments",
+            block = block,
+            roi = roi,
+            output_dir = output_dir,
+            version = version,
+            progress = progress
+        )
+        return(segs_tile)
     })
-    names(segments) <- tiles
-    class(segments) <- c("segments", class(segments))
-    return(segments)
+    return(segs_cube)
 }
-#'
+
 #' @title Segment an image using supercells
 #' @name sits_supercells
 #'
@@ -135,7 +164,7 @@ sits_segment <- function(cube,
 #' SLIC superpixels algorithm proposed by Achanta et al. (2012).
 #' See references for more details.
 #'
-#' @param tile          Tile, bands, date to be segmented
+#' @param data          A matrix with time series.
 #' @param step          Distance (in number of cells) between initial
 #'                      supercells' centers.
 #' @param compactness   A compactness value. Larger values cause clusters to
@@ -153,7 +182,7 @@ sits_segment <- function(cube,
 #'                      Default: "median"
 #' @param iter          Number of iterations to create the output.
 #' @param minarea       Specifies the minimal size of a supercell (in cells).
-#' @param multicores    Number of cores for parallel processing
+#' @param verbose       Show the progress bar?
 #'
 #' @return              Set of segments for a single tile
 #'
@@ -177,164 +206,93 @@ sits_segment <- function(cube,
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir
 #'     )
-#'
-#'     # segment the image
+#'     # segment the vector cube
 #'     segments <- sits_segment(
 #'         cube = cube,
-#'         tile = "012010",
-#'         bands = "NDVI",
-#'         date = sits_timeline(cube)[1],
-#'         seg_fn = sits_supercells(step = 10)
+#'         output_dir = tempdir()
 #'     )
 #'     # create a classification model
 #'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-#'     # get the average value per segment
-#'     samples_seg <- sits_get_data(
-#'         cube = cube,
-#'         samples = segments
-#'     )
 #'     # classify the segments
-#'     seg_class <- sits_classify(
-#'         data = samples_seg,
-#'         ml_model = rfor_model
+#'     seg_probs <- sits_classify(
+#'         data = segments,
+#'         ml_model = rfor_model,
+#'         output_dir = tempdir()
 #'     )
-#'     # add a column to the segments by class
-#'     sf_seg <- sits_join_segments(
-#'         data = seg_class,
-#'         segments = segments
+#'     # label the probability segments
+#'     seg_label <- sits_label_classification(
+#'         cube = seg_probs,
+#'         output_dir = tempdir()
 #'     )
 #' }
 #' @export
-sits_supercells <- function(tile = NULL,
-                            step = 50,
-                            compactness = 1,
-                            dist_fun = "dtw",
-                            avg_fun = "median",
-                            iter = 10,
-                            minarea = 30,
-                            multicores = 1) {
-    seg_fun <- function(tile) {
-        # step is OK?
-        .check_int_parameter(step, min = 1, max = 500)
-        # compactness is OK?
-        .check_int_parameter(compactness, min = 1, max = 50)
-        # iter is OK?
-        .check_int_parameter(iter, min = 10, max = 100)
-        # minarea is OK?
-        .check_int_parameter(minarea, min = 10, max = 100)
-        # multicores
-        .check_int_parameter(multicores, min = 1, max = 1000)
-        # set multicores to 1
-        multicores <- 1
-        # obtain the image files to perform the segmentation
-        files <- .tile_paths(tile)
-        # obtain the SpatRaster (terra) object
-        rast <- terra::rast(files)
-        # segment the terra object
-        cells_sf <- supercells::supercells(
-            x = rast,
-            compactness = compactness,
-            step = step,
-            dist_fun = dist_fun,
-            avg_fun = avg_fun,
-            iter = iter,
-            minarea = minarea,
-            chunks = FALSE,
-            future = FALSE
+sits_slic <- function(data = NULL,
+                      step = 50,
+                      compactness = 1,
+                      dist_fun = "euclidean",
+                      avg_fun = "mean",
+                      iter = 10,
+                      minarea = 30,
+                      verbose = FALSE) {
+    # step is OK?
+    .check_int_parameter(step, min = 1, max = 500)
+    # compactness is OK?
+    .check_int_parameter(compactness, min = 1, max = 50)
+    # iter is OK?
+    .check_int_parameter(iter, min = 10, max = 100)
+    # minarea is OK?
+    .check_int_parameter(minarea, min = 10, max = 100)
+    function(data, block, bbox) {
+        # Create a template rast
+        v_temp <- .raster_new_rast(
+            nrows = block[["nrows"]], ncols = block[["ncols"]],
+            xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
+            ymin = bbox[["ymin"]], ymax = bbox[["ymax"]],
+            nlayers = 1, crs = bbox[["crs"]]
         )
-        class(cells_sf) <- c("supercells", class(cells_sf))
-        return(cells_sf)
+        # Get raster dimensions
+        mat <- as.integer(
+            c(.raster_nrows(v_temp), .raster_ncols(v_temp))
+        )
+        # Get caller function and call it
+        fn <- get("run_slic",
+                  envir = asNamespace("supercells"),
+                  inherits = FALSE
+        )
+        slic <- fn(
+            mat = mat, vals = data, step = step, nc = compactness,
+            con = TRUE, centers = TRUE, type = dist_fun,
+            type_fun = function() "", avg_fun_fun = function() "",
+            avg_fun_name = avg_fun, iter = iter, lims = minarea,
+            input_centers = matrix(c(0L, 0L), ncol = 2),
+            verbose = as.integer(verbose)
+        )
+        # Set values and NA value in template raster
+        v_obj <- .raster_set_values(v_temp, slic[[1]])
+        v_obj <- .raster_set_na(v_obj, -1)
+        # Polygonize raster and convert to sf object
+        v_obj <- .raster_polygonize(v_obj, dissolve = TRUE)
+        # TODO: use vector API
+        v_obj <- sf::st_as_sf(v_obj)
+        if (nrow(v_obj) == 0) {
+            return(v_obj)
+        }
+        # Get valid centers
+        valid_centers <- slic[[2]][,1] != 0 | slic[[2]][,2] != 0
+        # Bind valid centers with segments table
+        v_obj <- cbind(v_obj, stats::na.omit(slic[[2]][valid_centers, ]))
+        # Rename columns
+        names(v_obj) <- c("supercells", "x", "y", "geometry")
+        # Get the extent of template raster
+        v_ext <- .raster_bbox(v_temp)
+        # Calculate pixel position by rows and cols
+        xres <- (v_obj[["x"]] * .raster_xres(v_temp)) + (.raster_xres(v_temp)/2)
+        yres <- (v_obj[["y"]] * .raster_yres(v_temp)) - (.raster_yres(v_temp)/2)
+        v_obj[["x"]] <- as.vector(v_ext)[[1]] + xres
+        v_obj[["y"]] <- as.vector(v_ext)[[4]] - yres
+        # Get only polygons segments
+        v_obj <- suppressWarnings(sf::st_collection_extract(v_obj, "POLYGON"))
+        # Return the segment object
+        return(v_obj)
     }
-    # If samples is informed, train a model and return a predict function
-    # Otherwise give back a train function to train model further
-    result <- .factory_function(tile, seg_fun)
-    return(result)
-}
-#' @title Return segments from a classified set of time series
-#' @name sits_join_segments
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @description The \code{\link{sits_segment}} function produces
-#' a list of "sf" segments. These segments are used to obtain a set
-#' of time series (one per segment) using
-#' \code{\link{sits_get_data}}. The time series can then be classified
-#' using \code{\link{sits_classify}}. The next step is to add the result
-#' of time series classification to the "sf" segments file. This action
-#' is performed by this function.
-#'
-#' @param data     A sits tibble with predicted values
-#' @param segments A list of "sf" segments with polygon geometry
-#'                 organized by tile.
-#' @return         An list of sf objects of polygon geometry
-#'                 with an additional class attribute
-#'                 organized by tile
-#' @examples
-#' if (sits_run_examples()) {
-#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#'     # create a data cube
-#'     cube <- sits_cube(
-#'         source = "BDC",
-#'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir
-#'     )
-#'
-#'     # segment the image
-#'     segments <- sits_segment(
-#'         cube = cube,
-#'         tile = "012010",
-#'         bands = "NDVI",
-#'         date = sits_timeline(cube)[1],
-#'         seg_fn = sits_supercells(step = 10)
-#'     )
-#'     # create a classification model
-#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-#'     # get the average value per segment
-#'     samples_seg <- sits_get_data(
-#'         cube = cube,
-#'         samples = segments
-#'     )
-#'     # classify the segments
-#'     seg_class <- sits_classify(
-#'         data = samples_seg,
-#'         ml_model = rfor_model
-#'     )
-#'     # add a column to the segments by class
-#'     sf_seg <- sits_join_segments(
-#'         data = seg_class,
-#'         segments = segments
-#'     )
-#' }
-#' @export
-sits_join_segments <- function(data, segments) {
-    # pre-conditions
-    .check_that(
-        x = inherits(data, "predicted"),
-        msg = "input data should be a set of classified time series"
-    )
-    .check_that(
-        x = inherits(segments, "segments"),
-        msg = "invalid segments input"
-    )
-    # select polygon_id and class for the time series tibble
-    data_id <- data |>
-        dplyr::select("polygon_id", "predicted") |>
-        tidyr::unnest(cols = "predicted") |>
-        dplyr::group_by(.data[["polygon_id"]])
-
-    labels <- setdiff(colnames(data_id), c("polygon_id", "from", "to", "class"))
-
-    data_id <- data_id |>
-        dplyr::summarise(dplyr::across(.cols = dplyr::all_of(labels), sum)) |>
-        dplyr::rowwise() |>
-        dplyr::mutate(class = labels[which.max(
-            dplyr::c_across(dplyr::all_of(labels)))]) |>
-        dplyr::mutate(polygon_id = as.numeric(.data[["polygon_id"]]))
-
-    # join the data_id tibble with the segments (sf objects)
-    segments_tile <- purrr::map(segments, function(seg) {
-        dplyr::left_join(seg, data_id, by = c("supercells" = "polygon_id"))
-    })
-    # keep the names
-    names(segments_tile) <- names(segments)
-    class(segments_tile) <- class(segments)
-    return(segments_tile)
 }

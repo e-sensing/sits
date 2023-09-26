@@ -3,6 +3,7 @@
 \name{sits_label_classification}
 \alias{sits_label_classification}
 \alias{sits_label_classification.probs_cube}
+\alias{sits_label_classification.probs_vector_cube}
 \alias{sits_label_classification.raster_cube}
 \alias{sits_label_classification.derived_cube}
 \alias{sits_label_classification.tbl_df}
@@ -11,9 +12,10 @@
 \usage{
 sits_label_classification(
   cube,
-  ...,
-  memsize = 4L,
-  multicores = 2L,
+  clean = TRUE,
+  window_size = 3L,
+  memsize = 4,
+  multicores = 2,
   output_dir,
   version = "v1",
   progress = TRUE
@@ -22,8 +24,18 @@ sits_label_classification(
 \method{sits_label_classification}{probs_cube}(
   cube,
   ...,
+  clean = TRUE,
+  window_size = 3L,
   memsize = 4L,
   multicores = 2L,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
+
+\method{sits_label_classification}{probs_vector_cube}(
+  cube,
+  ...,
   output_dir,
   version = "v1",
   progress = TRUE
@@ -40,7 +52,12 @@ sits_label_classification(
 \arguments{
 \item{cube}{Classified image data cube.}
 
-\item{...}{Other parameters for specific functions.}
+\item{clean}{A logical value to apply a modal function to clean up
+possible noisy pixels keeping the most frequently
+values within the neighborhood. Default is TRUE.}
+
+\item{window_size}{An odd integer representing the size of the
+sliding window of the modal function (min = 1, max = 15).}
 
 \item{memsize}{maximum overall memory (in GB) to label the
 classification.}
@@ -54,6 +71,8 @@ parallel.}
 (in the case of multiple runs).}
 
 \item{progress}{Show progress bar?}
+
+\item{...}{Other parameters for specific functions.}
 }
 \value{
 A data cube with an image with the classified map.

@@ -387,11 +387,11 @@ plot.segments <- function(x, ...,
         palette <- dots[["color_palette"]]
     }
     if (purrr::is_null(tile)) {
-        tile <- names(x)[1]
+        x <- .tile(x)
     }
     .check_chr_parameter(tile)
     # retrieve the segments for this tile
-    sf_seg <- x[[tile]]
+    sf_seg <- .segments_read_vec(tile)
     # check that segments have been classified
     .check_that("class" %in% colnames(sf_seg),
         msg = "segments have not been classified"

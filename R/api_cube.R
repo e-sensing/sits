@@ -621,6 +621,42 @@ NULL
     cube <- .cube_filter_interval(cube, start_date, end_date)
     return(cube)
 }
+
+#' @title Filter tiles by sparse dates
+#' @noRd
+#' @param cube  A data cube.
+#' @param dates A character vector with dates.
+#' @return  A filtered data cube.
+.cube_filter_dates <- function(cube, dates) {
+    UseMethod(".cube_filter_dates", cube)
+}
+#' @export
+.cube_filter_dates.raster_cube <- function(cube, dates) {
+    # Filter dates for each tile
+    cube <- .cube_foreach_tile(cube, function(tile) {
+        dates_in_tile <- dates %in% .tile_timeline(tile)
+        if (!any(dates_in_tile)) {
+            return(NULL)
+        }
+        .tile_filter_dates(tile, dates[dates_in_tile])
+    })
+    # Post-condition
+    .check_that(
+        nrow(cube) > 1,
+        msg = "The provided 'dates' does not match any date in the cube.",
+        local_msg = "invalid 'dates' parameter."
+    )
+    # Return cube
+    return(cube)
+}
+#' @export
+.cube_filter_dates.default <- function(cube, dates) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    cube <- .cube_filter_dates(cube = cube, dates = dates)
+    return(cube)
+}
+
 #' @title Filter cube based on a set of bands
 #' @noRd
 #' @param cube  A data cube.
@@ -1083,4 +1119,43 @@ NULL
 #' @export
 .cube_is_token_expired.default <- function(cube) {
     return(FALSE)
+}
+
+.cube_split_tiles_bands <- function(cube, bands) {
+    # All combinations between tiles and bands
+    tiles_bands <- tidyr::expand_grid(
+        tile = .cube_tiles(cube),
+        band = bands
+    )
+    # Generate a list combined by tiles and bands
+    tiles_bands <- purrr::pmap(tiles_bands, function(tile, band) {
+        return(list(tile, band))
+    })
+    # Return a list of combinations
+    return(tiles_bands)
+}
+
+.cube_split_chunks_samples <- function(cube, samples) {
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    cube_chunks <- slider::slide(cube, function(tile) {
+        chunks <- .tile_chunks_create(
+            tile = tile,
+            overlap = 0,
+            block = block
+        )
+        chunks_sf <- .bbox_as_sf(
+            .bbox(chunks, by_feature = TRUE), as_crs = sf::st_crs(samples)
+        )
+        chunks_sf <- dplyr::bind_cols(chunks_sf, chunks)
+        chunks_sf <- chunks_sf[.intersects(chunks_sf, samples), ]
+        chunks_sf[["tile"]] <- tile[["tile"]]
+        chunks_sf <- dplyr::group_by(chunks_sf, .data[["row"]], .data[["tile"]])
+        chunks_sf <- dplyr::summarise(chunks_sf)
+        chunks_sf <- slider::slide(chunks_sf, function(chunk_sf) {
+            chunk_sf[["samples"]] <- list(samples[.within(samples, chunk_sf), ])
+            return(chunk_sf)
+        })
+        return(chunks_sf)
+    })
+    return(unlist(cube_chunks, recursive = FALSE))
 }

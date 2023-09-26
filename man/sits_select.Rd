@@ -19,6 +19,7 @@ sits_select(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
   start_date = NULL,
   end_date = NULL,
   ...,
+  dates = NULL,
   tiles = NULL
 )
 
@@ -38,6 +39,8 @@ sits_select(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
 \item{end_date}{Date in YYYY-MM-DD format: end date to be filtered.}
 
 \item{...}{Additional parameters to be provided}
+
+\item{dates}{Character vector with sparse dates to select.}
 
 \item{tiles}{Character vector with the names of the tiles.}
 }

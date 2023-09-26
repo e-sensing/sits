@@ -8,15 +8,14 @@
 \alias{sits_get_data.sf}
 \alias{sits_get_data.sits}
 \alias{sits_get_data.data.frame}
-\alias{sits_get_data.segments}
 \title{Get time series from data cubes and cloud services}
 \usage{
 sits_get_data(
   cube,
   samples,
   ...,
-  start_date = as.Date(sits_timeline(cube)[1]),
-  end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
+  start_date = NULL,
+  end_date = NULL,
   label = "NoClass",
   bands = sits_bands(cube),
   crs = 4326L,
@@ -45,8 +44,8 @@ sits_get_data(
   samples,
   ...,
   label = "NoClass",
-  start_date = as.Date(sits_timeline(cube)[1]),
-  end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
+  start_date = NULL,
+  end_date = NULL,
   bands = sits_bands(cube),
   label_attr = NULL,
   n_sam_pol = 30,
@@ -60,9 +59,9 @@ sits_get_data(
   cube,
   samples,
   ...,
+  start_date = NULL,
+  end_date = NULL,
   bands = sits_bands(cube),
-  start_date = as.Date(sits_timeline(cube)[1]),
-  end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
   label = "NoClass",
   label_attr = NULL,
   n_sam_pol = 30,
@@ -85,24 +84,12 @@ sits_get_data(
   cube,
   samples,
   ...,
-  start_date = as.Date(sits_timeline(cube)[1]),
-  end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
-  label = "NoClass",
+  start_date = NULL,
+  end_date = NULL,
   bands = sits_bands(cube),
+  label = "NoClass",
   crs = 4326,
   multicores = 2,
-  progress = FALSE
-)
-
-\method{sits_get_data}{segments}(
-  cube,
-  samples,
-  ...,
-  bands = sits_bands(cube),
-  aggreg_fn = "mean",
-  pol_id = "supercells",
-  n_sam_pol = NULL,
-  multicores = 1,
   progress = FALSE
 )
 }

@@ -49,6 +49,15 @@
 #' @param ...   Other parameters for terra functions
 #' @return      Values extracted from terra raster object
 #' @export
+.raster_set_na.terra <- function(r_obj, na_value, ...) {
+    terra::NAflag(x = r_obj) <- na_value
+
+    return(r_obj)
+}
+
+#' @keywords internal
+#' @noRd
+#' @export
 .raster_extract.terra <- function(r_obj, xy, ...) {
     terra::extract(x = r_obj, y = xy, ...)
 }
@@ -462,6 +471,7 @@
 .raster_col.terra <- function(r_obj, x) {
     terra::colFromX(r_obj, x)
 }
+
 #' @title Return row value given an Y coordinate
 #' @keywords internal
 #' @noRd
@@ -474,4 +484,11 @@
 #' @export
 .raster_row.terra <- function(r_obj, y) {
     terra::rowFromY(r_obj, y)
+}
+
+#' @keywords internal
+#' @noRd
+#' @export
+.raster_polygonize.terra <- function(r_obj, dissolve = TRUE, ...) {
+    terra::as.polygons(r_obj, dissolve = TRUE, ...)
 }

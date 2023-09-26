@@ -40,6 +40,10 @@
 #'                           (integer, min = 1, max = 16384).
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
+#' @param  pol_id            ID attribute for polygons
+#'                           (character vector of length 1).
+#' @param  aggreg_fn         Function to compute a summary of each segment
+#'                           (object of class "function").
 #' @param  output_dir        Valid directory for output file.
 #'                           (character vector of length 1).
 #' @param  version           Version of the output
@@ -280,6 +284,79 @@ sits_classify.tbl_df <- function(data, ml_model, ...) {
         stop("Input should be a sits tibble or a data cube")
     result <- sits_classify(data, ml_model, ...)
     return(result)
+}
+
+#' @rdname sits_classify
+#' @export
+sits_classify.segs_cube <- function(data,
+                                    ml_model, ...,
+                                    filter_fn = NULL,
+                                    start_date = NULL,
+                                    end_date = NULL,
+                                    memsize = 8L,
+                                    multicores = 2L,
+                                    output_dir,
+                                    version = "v1",
+                                    aggreg_fn = "mean",
+                                    n_sam_pol = NULL,
+                                    verbose = FALSE,
+                                    progress = TRUE) {
+
+    # preconditions
+    .check_is_vector_cube(data)
+    .check_is_sits_model(ml_model)
+    .check_memsize(memsize, min = 1, max = 16384)
+    .check_multicores(multicores, min = 1, max = 2048)
+    .check_output_dir(output_dir)
+    .check_version(version)
+    .check_progress(progress)
+
+    # version is case-insensitive in sits
+    version <- tolower(version)
+
+    # Temporal filter
+    if (.has(start_date) || .has(end_date)) {
+        data <- .cube_filter_interval(
+            cube = data, start_date = start_date, end_date = end_date
+        )
+    }
+    if (!purrr::is_null(filter_fn)) {
+        .check_that(is.function(filter_fn),
+                    local_msg = "Please use sits_whittaker() or sits_sgolay()",
+                    msg = "Invalid filter_fn parameter"
+        )
+    }
+    # Retrieve the samples from the model
+    samples <- .ml_samples(ml_model)
+    # Do the samples and tile match their timeline length?
+    .check_samples_tile_match(samples = samples, tile = data)
+    # Update multicores parameter
+    if ("xgb_model" %in% .ml_class(ml_model)) {
+        multicores <- 1
+    }
+    # Prepare parallel processing
+    .parallel_start(
+        workers = multicores, log = verbose,
+        output_dir = output_dir
+    )
+    on.exit(.parallel_stop(), add = TRUE)
+    # Classification
+    # Process each tile sequentially
+    probs_vector_cube <- .cube_foreach_tile(data, function(tile) {
+        # Classify all the segments for each tile
+        class_vector <- .classify_vector_tile(
+            tile = tile,
+            ml_model = ml_model,
+            filter_fn = filter_fn,
+            aggreg_fn = aggreg_fn,
+            n_sam_pol = n_sam_pol,
+            multicores = multicores,
+            version = version,
+            output_dir = output_dir,
+            progress = progress
+        )
+    })
+    return(probs_vector_cube)
 }
 #' @rdname sits_classify
 #' @export
