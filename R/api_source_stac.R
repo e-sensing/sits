@@ -364,7 +364,7 @@
                     band = bands,
                     asset_info = asset_info,
                     path = paths,
-                    cloud_cover = NA
+                    cloud_cover = cloud_cover
                 ),
                 cols = c("band", "asset_info", "path", "cloud_cover")
             )
