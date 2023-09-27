@@ -69,9 +69,9 @@ test_that("One-year, multicores processing reclassify", {
     expect_equal(
         sits_labels(ro_mask),
         c(
-            "ClearCut_Fire", "ClearCut_Soil",
-            "ClearCut_Veg", "Forest", "Old_Deforestation",
-            "Water_Mask", "NonForest_Mask"
+            "1" = "ClearCut_Fire", "2" =  "ClearCut_Soil",
+            "3" =  "ClearCut_Veg", "4" = "Forest",
+            "5" = "Old_Deforestation", "7" = "NonForest_Mask"
         )
     )
     ro_class_obj <- .raster_open_rast(.tile_path(ro_class))

@@ -65,7 +65,7 @@ test_that("Segmentation", {
         ml_model = rf_model,
         output_dir = tempdir(),
         n_sam_pol = 20,
-        multicores = 2,
+        multicores = 1,
         memsize = 4,
         version = "v2"
     )

@@ -475,7 +475,7 @@
             dplyr::rowwise() |>
             dplyr::mutate(sum = sum(dplyr::c_across(cols = dplyr::all_of(labels)))) |>
             dplyr::mutate(dplyr::across(.cols = dplyr::all_of(labels), ~ .x / .data[["sum"]])) |>
-            dplyr::select("sum")
+            dplyr::select(-"sum")
     }
 
     # join the data_id tibble with the segments (sf objects)
