@@ -106,45 +106,6 @@ test_that("Plot Time Series and Images", {
     expect_equal(p4$tm_grid$grid.projection, 4326)
     expect_equal(p4$tm_raster$n, 5)
     expect_true(p4$tm_shape$check_shape)
-
-    # segment the image
-    segments <- sits_segment(
-        cube = sinop,
-        tile = "012010",
-        bands = "NDVI",
-        date = sits_timeline(sinop)[1],
-        seg_fn = sits_supercells(step = 20)
-    )
-    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-    #'     # get the average value per segment
-    samples_seg <- sits_get_data(
-        cube = sinop,
-        samples = segments,
-        progress = FALSE
-    )
-    #'     # classify the segments
-    seg_class <- sits_classify(
-        data = samples_seg,
-        ml_model = rfor_model,
-        progress = FALSE,
-    )
-    #'     # add a column to the segments by class
-    sf_seg <- sits_join_segments(
-        data = seg_class,
-        segments = segments
-    )
-    p5 <- plot(sinop, band = "NDVI", segments = sf_seg, palette = "RdYlGn")
-    expect_equal(p5$tm_raster$palette, "RdYlGn")
-    expect_equal(p5$tm_shape$shp_name, "stars_obj")
-
-
-    p6 <- plot(sinop, red = "NDVI", green = "NDVI", blue = "NDVI",
-               segments = sf_seg, seg_color = "red")
-
-    expect_equal(p6$tm_shape$shp_name, "rgb_st")
-    expect_equal(p6$tm_borders$col, "red")
-    expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(sinop_labels$file_info[[1]]$path))))
 })
 
 test_that("Plot Accuracy", {

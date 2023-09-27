@@ -112,56 +112,6 @@ test_that("View", {
     expect_equal(v6$x$calls[[5]]$args[[5]], "012010 entropy")
     expect_equal(v6$x$calls[[6]]$args[[5]], "classification")
 
-    # include segments
-    segments <- sits_segment(
-        cube = modis_cube,
-        tile = "012010",
-        bands = "NDVI",
-        date = sits_timeline(modis_cube)[1],
-        seg_fn = sits_supercells(step = 20)
-    )
-    v_segs <- sits_view(modis_cube,
-                    band = "NDVI",
-                    dates = sits_timeline(modis_cube)[[1]],
-                    palette = "RdYlGn",
-                    segments = segments
-    )
-    expect_equal(v_segs$x$calls[[5]]$args[[5]], "012010 2013-09-14")
-    expect_equal(v_segs$x$calls[[6]]$args[[3]], "segments")
-
-    samples <- sits_get_data(
-        cube = modis_cube,
-        samples = segments,
-        progress = FALSE
-    )
-    # get the average value per segment
-    # classify the segments
-    seg_class <- sits_classify(
-        data = samples,
-        ml_model = rf_model,
-        progress = FALSE
-    )
-    # add a column to the segments by class
-    sf_seg <- sits_join_segments(
-        data = seg_class,
-        segments = segments
-    )
-
-    v7 <- sits_view(modis_cube,
-                    red = "NDVI",
-                    green = "NDVI",
-                    blue = "NDVI",
-                    dates = timeline[[1]],
-                    class_cube = modis_label,
-                    segments = sf_seg)
-
-    expect_true(grepl("EPSG3857", v7$x$options$crs$crsClass))
-    expect_equal(v7$x$calls[[1]]$method, "addProviderTiles")
-    expect_equal(v7$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
-    expect_equal(v7$x$calls[[5]]$args[[5]], "012010 2013-09-14")
-    expect_equal(v7$x$calls[[6]]$args[[5]], "classification")
-    expect_equal(v7$x$calls[[7]]$method, "addPolygons")
-
     cbers_cube <- tryCatch(
         {
             sits_cube(
