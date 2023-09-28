@@ -471,7 +471,7 @@
 
     if (aggregate) {
         data_id <- data_id |>
-            dplyr::summarise(dplyr::across(.cols = dplyr::all_of(labels), median)) |>
+            dplyr::summarise(dplyr::across(.cols = dplyr::all_of(labels), stats::median)) |>
             dplyr::rowwise() |>
             dplyr::mutate(sum = sum(dplyr::c_across(cols = dplyr::all_of(labels)))) |>
             dplyr::mutate(dplyr::across(.cols = dplyr::all_of(labels), ~ .x / .data[["sum"]])) |>

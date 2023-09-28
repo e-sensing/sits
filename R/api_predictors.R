@@ -62,7 +62,12 @@
     pred
 }
 
-#' TODO: document
+#' @title Get predictors names with timeline
+#' @keywords internal
+#' @noRd
+#' @param bands    Character vector with bands of training samples
+#' @param timeline Character vector with timeline
+#' @return Character vector with predictors name
 .pred_features_name <- function(bands, timeline) {
     n <- length(timeline)
     c(vapply(

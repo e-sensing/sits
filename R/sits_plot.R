@@ -367,12 +367,6 @@ plot.predicted <- function(x, y, ...,
 #'         data = samples_seg,
 #'         ml_model = rfor_model
 #'     )
-#'     # add a column to the segments by class
-#'     sf_seg <- sits_join_segments(
-#'         data = seg_class,
-#'         segments = segments
-#'     )
-#'     plot(sf_seg)
 #' }
 #' @export
 plot.segments <- function(x, ...,

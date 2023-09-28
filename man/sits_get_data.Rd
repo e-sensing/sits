@@ -136,9 +136,6 @@ for POLYGON or MULTIPOLYGON shapefiles or sf objects
 (integer, with min = 1 and max = 2048).}
 
 \item{progress}{Logical: show progress bar?}
-
-\item{aggreg_fn}{Function to compute a summary of each segment
-(object of class "function").}
 }
 \value{
 A tibble of class "sits" with set of time series
