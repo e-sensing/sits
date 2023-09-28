@@ -49,8 +49,6 @@
 #' @param pol_avg         Logical: summarize samples for each polygon?
 #' @param pol_id          ID attribute for polygons
 #'                        (character vector of length 1)
-#' @param aggreg_fn       Function to compute a summary of each segment
-#'                        (object of class "function").
 #' @param multicores      Number of threads to process the time series
 #'                        (integer, with min = 1 and max = 2048).
 #' @param progress        Logical: show progress bar?

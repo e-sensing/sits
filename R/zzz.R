@@ -24,7 +24,8 @@ utils::globalVariables(c(
     ".x", ":=", # dplyr
     "self", "ctx", "super", "private", # torch
     "uniform", "choice", "randint",
-    "normal", "lognormal", "loguniform" # sits_tuning_random
+    "normal", "lognormal", "loguniform", # sits_tuning_random
+    "sar:frequency_band", "sar:instrument_mode", "sat:orbit_state" # S1 stac
 ))
 #' @importFrom lubridate %within% %m+%
 #' @importFrom Rcpp sourceCpp

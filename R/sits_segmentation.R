@@ -18,13 +18,8 @@
 #'        associated to each segment.}
 #'  \item{use \code{\link[sits]{sits_classify}} to classify the
 #'       time series associated to the segments.}
-#'  \item{use \code{\link[sits]{sits_join_segments}} to update the class
-#'       for each segment, based on the time series classification.}
 #'  \item{use \code{\link[sits]{plot}} or \code{\link[sits]{sits_view}}
 #'        to display the results.}
-#'  \item{The result of \code{\link[sits]{sits_join_segments}} is a
-#'        list of \code{sf} objects with a "class" attribute.
-#'        Use the functions available in \code{sf} for further analysis.}
 #'  }
 #'
 #' @param  cube       Regular data cube

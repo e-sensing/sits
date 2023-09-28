@@ -109,8 +109,10 @@ named lat/long values
 \item{aggreg_fn}{Function to compute a summary of each segment
 (object of class "function").}
 
-\item{pol_id}{ID attribute for polygons
-(character vector of length 1).}
+\item{n_sam_pol}{Number of samples per polygon to be read
+for POLYGON or MULTIPOLYGON shapefiles or sf
+objects.
+(single integer).}
 }
 \value{
 Time series with predicted labels for

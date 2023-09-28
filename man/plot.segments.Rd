@@ -71,12 +71,6 @@ if (sits_run_examples()) {
         data = samples_seg,
         ml_model = rfor_model
     )
-    # add a column to the segments by class
-    sf_seg <- sits_join_segments(
-        data = seg_class,
-        segments = segments
-    )
-    plot(sf_seg)
 }
 }
 \author{
