@@ -116,6 +116,7 @@
     # Classify each segment by majority probability
     probs_segments <- probs_segments |>
         dplyr::rowwise() |>
+        dplyr::filter(!any(is.na(dplyr::c_across(dplyr::all_of(labels))))) |>
         dplyr::mutate(class = labels[which.max(
             dplyr::c_across(dplyr::all_of(labels)))]) |>
         dplyr::mutate(pol_id = as.numeric(.data[["pol_id"]]))
