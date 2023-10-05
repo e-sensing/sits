@@ -7,7 +7,7 @@
 \method{plot}{vector_cube}(
   x,
   ...,
-  band = sits_bands(cube)[1],
+  band = sits_bands(x)[1],
   red = NULL,
   green = NULL,
   blue = NULL,

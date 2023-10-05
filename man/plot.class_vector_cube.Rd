@@ -24,6 +24,10 @@
 
 \item{legend}{Named vector that associates labels to colors.}
 
+\item{seg_color}{Segment color.}
+
+\item{line_width}{Segment line width.}
+
 \item{palette}{Alternative RColorBrewer palette}
 
 \item{tmap_options}{List with optional tmap parameters
