@@ -63,8 +63,10 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     coincidences1 <- bands1 %in% bands2
     coincidences2 <- bands2 %in% bands1
     if (any(coincidences1) || any(coincidences2)) {
-        bands1[coincidences1] <- paste0(bands1, suffix[[1]][coincidences1])
-        bands2[coincidences2] <- paste0(bands2, suffix[[2]][coincidences2])
+        bands1_names <- rep(x = suffix[[1]], length(coincidences1))
+        bands2_names <- rep(x = suffix[[2]], length(coincidences2))
+        bands1[coincidences1] <- paste0(bands1[coincidences1], bands1_names[coincidences1])
+        bands2[coincidences2] <- paste0(bands2[coincidences2], bands2_names[coincidences2])
         .check_that(
             !any(bands1 %in% bands2),
             local_msg = "duplicated band names",
