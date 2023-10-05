@@ -91,9 +91,7 @@ sits_segment <- function(cube,
     .check_output_dir(output_dir)
     .check_version(version)
     .check_progress(progress)
-    .check_that(x = is.function(seg_fn),
-                msg = "invalid segmentation function"
-    )
+    .check_function(seg_fn)
 
     # Spatial filter
     if (.has(roi)) {
