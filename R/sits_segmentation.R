@@ -227,12 +227,12 @@ sits_segment <- function(cube,
 #' }
 #' @export
 sits_slic <- function(data = NULL,
-                      step = 50,
+                      step = 5,
                       compactness = 1,
                       dist_fun = "euclidean",
                       avg_fun = "median",
-                      iter = 20,
-                      minarea = 30,
+                      iter = 30,
+                      minarea = 10,
                       verbose = FALSE) {
     # step is OK?
     .check_int_parameter(step, min = 1, max = 500)

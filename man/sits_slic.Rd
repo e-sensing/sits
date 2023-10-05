@@ -6,12 +6,12 @@
 \usage{
 sits_slic(
   data = NULL,
-  step = 50,
+  step = 5,
   compactness = 1,
   dist_fun = "euclidean",
   avg_fun = "median",
-  iter = 20,
-  minarea = 30,
+  iter = 30,
+  minarea = 10,
   verbose = FALSE
 )
 }
