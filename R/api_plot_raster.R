@@ -7,8 +7,9 @@
 #' @param  tile          Tile to be plotted.
 #' @param  band          Band to be plotted.
 #' @param  date          Date to be plotted.
-#' @param  segments      List with segments to be shown (one per tile)
+#' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
+#' @param  line_width    Line width to plot the segments boundary
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
 #' @param  tmap_options  List with optional tmap parameters
@@ -24,8 +25,9 @@
 .plot_false_color <- function(tile,
                               band,
                               date,
-                              segments = NULL,
+                              sf_seg    = NULL,
                               seg_color = NULL,
+                              line_width = 0.2,
                               palette,
                               rev,
                               tmap_options) {
@@ -87,17 +89,9 @@
             )
     )
     # include segments
-    if (!purrr::is_null(segments)) {
-        tile_name <- tile$tile
-        .check_chr_within(
-            x = tile_name,
-            within = names(segments),
-            msg = "there are no segments for this tile"
-        )
-        # retrieve the segments for this tile
-        sf_seg <- segments[[tile_name]]
+    if (!purrr::is_null(sf_seg)) {
         p <- p + tmap::tm_shape(sf_seg) +
-            tmap::tm_borders(col = seg_color, lwd = 0.2)
+            tmap::tm_borders(col = seg_color, lwd = line_width)
     }
     return(p)
 }
@@ -360,8 +354,9 @@
 #' @param  green         Band to be plotted in green
 #' @param  blue          Band to be plotted in blue
 #' @param  date          Date to be plotted
-#' @param  segments      List with segments to be shown (one per tile)
+#' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
+#' @param  line_width    Line width to plot the segments boundary
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap max_cells (default: 1e+06)
 #'                       tmap_graticules_labels_size (default: 0.7)
@@ -377,8 +372,9 @@
                       green,
                       blue,
                       date,
-                      segments = NULL,
+                      sf_seg = NULL,
                       seg_color = NULL,
+                      line_width = 0.2,
                       tmap_options) {
     # verifies if stars package is installed
     .check_require_packages("stars")
@@ -428,16 +424,8 @@
 
     # include segments
     if (!purrr::is_null(segments)) {
-        tile_name <- tile$tile
-        .check_chr_within(
-            x = tile_name,
-            within = names(segments),
-            msg = "there are no segments for this tile"
-        )
-        # retrieve the segments for this tile
-        sf_seg <- segments[[tile_name]]
         p <- p + tmap::tm_shape(sf_seg) +
-            tmap::tm_borders(col = seg_color, lwd = 0.2)
+            tmap::tm_borders(col = seg_color, lwd = line_width)
     }
 
     return(p)

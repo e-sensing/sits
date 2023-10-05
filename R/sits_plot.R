@@ -315,124 +315,6 @@ plot.predicted <- function(x, y, ...,
     )
     return(invisible(p))
 }
-#' @title  Plot Segments
-#' @name plot.segments
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Plot RGB raster cube
-#'
-#' @param  x             Object of class "segments".
-#' @param  ...           Further specifications for \link{plot}.
-#' @param  tile           Tile to be plotted.
-#' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Alternative RColorBrewer palette
-#' @param  tmap_options  List with optional tmap parameters
-#'                       tmap_max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
-#'
-#' @return               A plot object with an RGB image
-#'                       or a B/W image on a color
-#'                       scale using the pallete
-#'
-#' @note To see which color palettes are supported, please run
-#' @examples
-#' if (sits_run_examples()) {
-#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#'     cube <- sits_cube(
-#'         source = "BDC",
-#'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir
-#'     )
-#'     # segment the image
-#'     segments <- sits_segment(
-#'         cube = cube,
-#'         tile = "012010",
-#'         bands = "NDVI",
-#'         date = sits_timeline(cube)[1],
-#'         seg_fn = sits_supercells(step = 20)
-#'     )
-#'     # create a classification model
-#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-#'     # get the average value per segment
-#'     samples_seg <- sits_get_data(
-#'         cube = cube,
-#'         samples = segments
-#'     )
-#'     # classify the segments
-#'     seg_class <- sits_classify(
-#'         data = samples_seg,
-#'         ml_model = rfor_model
-#'     )
-#' }
-#' @export
-plot.segments <- function(x, ...,
-                          tile = NULL,
-                          legend = NULL,
-                          palette = "Spectral",
-                          tmap_options = NULL) {
-    # check for color_palette parameter (sits 1.4.1)
-    dots <- list(...)
-    if (missing(palette) && "color_palette" %in% names(dots)) {
-        warning("please use palette in place of color_palette")
-        palette <- dots[["color_palette"]]
-    }
-    if (purrr::is_null(tile)) {
-        x <- .tile(x)
-    }
-    .check_chr_parameter(tile)
-    # retrieve the segments for this tile
-    sf_seg <- .segments_read_vec(tile)
-    # check that segments have been classified
-    .check_that("class" %in% colnames(sf_seg),
-        msg = "segments have not been classified"
-    )
-    # get the labels
-    labels <- sf_seg |>
-        sf::st_drop_geometry() |>
-        dplyr::select("class") |>
-        dplyr::distinct() |>
-        dplyr::pull()
-    names(labels) <- seq_along(labels)
-    # obtain the colors
-    colors <- .colors_get(
-        labels = labels,
-        legend = legend,
-        palette = palette,
-        rev = TRUE
-    )
-    # set the tmap options
-    tmap_params <- .plot_tmap_params(tmap_options)
-    # name the colors to match the labels
-    names(colors) <- labels
-    # join sf geometries
-    sf_seg <- sf_seg |>
-        dplyr::group_by(.data[["class"]]) |>
-        dplyr::summarise()
-    # plot the data using tmap
-    p <- tmap::tm_shape(sf_seg) +
-        tmap::tm_fill(
-            col = "class",
-            palette = colors
-        ) +
-        tmap::tm_graticules(
-            labels.size = tmap_params[["labels_size"]]
-        ) +
-        tmap::tm_compass() +
-        tmap::tm_layout(
-            legend.show = TRUE,
-            legend.outside = FALSE,
-            legend.bg.color = tmap_params[["bg_color"]],
-            legend.bg.alpha = tmap_params[["bg_alpha"]],
-            legend.title.size = tmap_params[["title_size"]],
-            legend.text.size = tmap_params[["text_size"]]
-        ) +
-        tmap::tm_borders(lwd = 0.2)
-    return(p)
-}
 #' @title  Plot RGB data cubes
 #' @name plot.raster_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -447,8 +329,6 @@ plot.segments <- function(x, ...,
 #' @param  blue          Band for blue color.
 #' @param  tile          Tile to be plotted.
 #' @param  date          Date to be plotted.
-#' @param  segments      List with segments to be shown (one per tile)
-#' @param  seg_color     Color to use for segment borders
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  tmap_options  List with optional tmap parameters
@@ -478,14 +358,12 @@ plot.segments <- function(x, ...,
 #' }
 #' @export
 plot.raster_cube <- function(x, ...,
-                             band = NULL,
+                             band = sits_bands(cube)[1],
                              red = NULL,
                              green = NULL,
                              blue = NULL,
                              tile = x$tile[[1]],
                              date = NULL,
-                             segments = NULL,
-                             seg_color = "lightgoldenrod",
                              palette = "RdYlGn",
                              rev = FALSE,
                              tmap_options = NULL) {
@@ -495,17 +373,13 @@ plot.raster_cube <- function(x, ...,
         warning("please use palette in place of color_palette")
         palette <- dots[["color_palette"]]
     }
-    # deal with bands
-    .check_that(
-        purrr::is_null(band) ||
-            (purrr::is_null(red) &&
-                purrr::is_null(green) &&
-                purrr::is_null(blue)),
-        local_msg = paste0(
-            "either 'band' parameter or 'red', 'green', and",
-            "'blue' parameters should be informed"
-        )
+    # BW or color?
+    if (!purrr::is_null(red) && !purrr::is_null(green) &&
+        !purrr::is_null(blue)
     )
+        bw <-  FALSE
+    else
+        bw <-  TRUE
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?
@@ -533,15 +407,16 @@ plot.raster_cube <- function(x, ...,
     )
 
     # Plot a B/W band as false color
-    if (!purrr::is_null(band)) {
+    if (bw) {
+        message("plotting false color image")
         .check_cube_bands(tile, bands = band)
         # plot the band as false color
         p <- .plot_false_color(
             tile = tile,
             band = band,
             date = date,
-            segments = segments,
-            seg_color = seg_color,
+            sf_seg    = NULL,
+            seg_color = NULL,
             palette = palette,
             rev = rev,
             tmap_options = tmap_options
@@ -556,8 +431,143 @@ plot.raster_cube <- function(x, ...,
             green = green,
             blue = blue,
             date = date,
-            segments = segments,
+            sf_seg    = NULL,
+            seg_color = NULL,
+            tmap_options = tmap_options
+        )
+    }
+    return(p)
+}
+#' @title  Plot RGB vector data cubes
+#' @name plot.vector_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Plot RGB raster cube
+#'
+#' @param  x             Object of class "raster_cube".
+#' @param  ...           Further specifications for \link{plot}.
+#' @param  band          Band for plotting grey images.
+#' @param  red           Band for red color.
+#' @param  green         Band for green color.
+#' @param  blue          Band for blue color.
+#' @param  tile          Tile to be plotted.
+#' @param  date          Date to be plotted.
+#' @param  seg_color     Color to show the segment boundaries
+#' @param  line_width    Line width to plot the segments boundary
+#' @param  palette       An RColorBrewer palette
+#' @param  rev           Reverse the color order in the palette?
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap_max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
+#'
+#' @return               A plot object with an RGB image
+#'                       or a B/W image on a color
+#'                       scale using the pallete
+#'
+#' @note To see which color palettes are supported, please run
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir
+#'     )
+#'     # Segment the cube
+#'     segments <- sits_segment(
+#'         cube = cube,
+#'         output_dir = tempdir(),
+#'         multicores = 2,
+#'         memsize = 4
+#'     )
+#'     # plot NDVI band of the second date date of the data cube
+#'     plot(segments, band = "NDVI", date = sits_timeline(cube)[1])
+#' }
+#' @export
+plot.vector_cube <- function(x, ...,
+                             band = sits_bands(cube)[1],
+                             red = NULL,
+                             green = NULL,
+                             blue = NULL,
+                             tile = x$tile[[1]],
+                             date = NULL,
+                             seg_color = "black",
+                             line_width = 0.5,
+                             palette = "RdYlGn",
+                             rev = FALSE,
+                             tmap_options = NULL) {
+    # check for color_palette parameter (sits 1.4.1)
+    dots <- list(...)
+    if (missing(palette) && "color_palette" %in% names(dots)) {
+        warning("please use palette in place of color_palette")
+        palette <- dots[["color_palette"]]
+    }
+    # BW or color?
+    if (!purrr::is_null(red) && !purrr::is_null(green) && !purrr::is_null(blue))
+        bw <-  FALSE
+    else
+        bw <-  TRUE
+    # only one tile at a time
+    .check_chr_parameter(tile)
+    # is tile inside the cube?
+    .check_chr_contains(
+        x = x$tile,
+        contains = tile,
+        case_sensitive = FALSE,
+        discriminator = "one_of",
+        can_repeat = FALSE,
+        msg = "tile is not included in the cube"
+    )
+    # filter the tile to be processed
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
+    if (purrr::is_null(date)) {
+        date <- .tile_timeline(tile)[[1]]
+    }
+    # only one date at a time
+    .check_that(length(date) == 1,
+                msg = "only one date per plot is allowed"
+    )
+    # is this a valid date?
+    date <- as.Date(date)
+    .check_that(date %in% .tile_timeline(tile),
+                msg = "date is not contained in the cube timeline"
+    )
+    # retrieve the segments for this tile
+    sf_seg <- .segments_read_vec(tile)
+    # Plot a B/W band as false color
+    if (bw) {
+        message("plotting false color image")
+        .check_cube_bands(tile, bands = band)
+        # plot the band as false color
+        p <- .plot_false_color(
+            tile = tile,
+            band = band,
+            date = date,
+            sf_seg    = sf_seg,
             seg_color = seg_color,
+            line_width = line_width,
+            palette = palette,
+            rev = rev,
+            tmap_options = tmap_options
+        )
+    } else {
+        # plot RGB image
+        .check_cube_bands(tile, bands = c(red, green, blue))
+        # plot RGB
+        p <- .plot_rgb(
+            tile = tile,
+            red = red,
+            green = green,
+            blue = blue,
+            date = date,
+            sf_seg   = sf_seg,
+            seg_color = seg_color,
+            line_width = line_width,
             tmap_options = tmap_options
         )
     }
@@ -899,7 +909,138 @@ plot.class_cube <- function(x, y, ...,
         tmap_options = tmap_options
     )
 }
-
+#' @title  Plot Segments
+#' @name plot.class_vector_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Plot vector classified cube
+#'
+#' @param  x             Object of class "segments".
+#' @param  ...           Further specifications for \link{plot}.
+#' @param  tile          Tile to be plotted.
+#' @param  legend        Named vector that associates labels to colors.
+#' @param  palette       Alternative RColorBrewer palette
+#' @param  tmap_options  List with optional tmap parameters
+#'                       tmap_max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
+#'
+#' @return               A plot object with an RGB image
+#'                       or a B/W image on a color
+#'                       scale using the pallete
+#'
+#' @note To see which color palettes are supported, please run
+#' @examples
+#' if (sits_run_examples()) {
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir
+#'     )
+#'     # segment the image
+#'     segments <- sits_segment(
+#'         cube = cube,
+#'         output_dir = tempdir()
+#'     )
+#'     # create a classification model
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     # classify the segments
+#'     probs_segs <- sits_classify(
+#'         data = segments,
+#'         ml_model = rfor_model,
+#'         output_dir = tempdir()
+#'     )
+#'     #
+#'     # Create a classified vector cube
+#'     class_segs <- sits_label_classification(
+#'         cube = probs_segs,
+#'         output_dir = tempdir(),
+#'         multicores = 2,
+#'         memsize = 4
+#'     )
+#'     # plot the segments
+#'     plot(class_segs)
+#' }
+#' @export
+plot.class_vector_cube <- function(x, ...,
+                                   tile = x$tile[[1]],
+                                   legend = NULL,
+                                   seg_color = "black",
+                                   line_width = 0.5,
+                                   palette = "Spectral",
+                                   tmap_options = NULL) {
+    # check for color_palette parameter (sits 1.4.1)
+    dots <- list(...)
+    if (missing(palette) && "color_palette" %in% names(dots)) {
+        warning("please use palette in place of color_palette")
+        palette <- dots[["color_palette"]]
+    }
+    # only one tile at a time
+    .check_chr_parameter(tile)
+    # is tile inside the cube?
+    .check_chr_contains(
+        x = x$tile,
+        contains = tile,
+        case_sensitive = FALSE,
+        discriminator = "one_of",
+        can_repeat = FALSE,
+        msg = "tile is not included in the cube"
+    )
+    # filter the tile to be processed
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
+    # retrieve the segments for this tile
+    sf_seg <- .segments_read_vec(tile)
+    # check that segments have been classified
+    .check_that("class" %in% colnames(sf_seg),
+                msg = "segments have not been classified"
+    )
+    # get the labels
+    labels <- sf_seg |>
+        sf::st_drop_geometry() |>
+        dplyr::select("class") |>
+        dplyr::distinct() |>
+        dplyr::pull()
+    names(labels) <- seq_along(labels)
+    # obtain the colors
+    colors <- .colors_get(
+        labels = labels,
+        legend = legend,
+        palette = palette,
+        rev = TRUE
+    )
+    # set the tmap options
+    tmap_params <- .plot_tmap_params(tmap_options)
+    # name the colors to match the labels
+    names(colors) <- labels
+    # join sf geometries
+    sf_seg <- sf_seg |>
+        dplyr::group_by(.data[["class"]]) |>
+        dplyr::summarise()
+    # plot the data using tmap
+    p <- tmap::tm_shape(sf_seg) +
+        tmap::tm_fill(
+            col = "class",
+            palette = colors
+        ) +
+        tmap::tm_graticules(
+            labels.size = tmap_params[["labels_size"]]
+        ) +
+        tmap::tm_compass() +
+        tmap::tm_layout(
+            legend.show = TRUE,
+            legend.outside = FALSE,
+            legend.bg.color = tmap_params[["bg_color"]],
+            legend.bg.alpha = tmap_params[["bg_alpha"]],
+            legend.title.size = tmap_params[["title_size"]],
+            legend.text.size = tmap_params[["text_size"]]
+        ) +
+        tmap::tm_borders(lwd = 0.2)
+    return(p)
+}
 
 #' @title  Plot Random Forest  model
 #' @name   plot.rfor_model

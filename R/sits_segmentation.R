@@ -12,12 +12,14 @@
 #'
 #' Segmentation uses the following steps:
 #' \itemize{
-#'  \item{use \code{\link[sits]{sits_segment}} to obtain the \code{sf}
-#'        polygons that define the boundary of the segments.}
-#'  \item{use \code{\link[sits]{sits_get_data}} to obtain one time series
-#'        associated to each segment.}
+#'  \item{create a regular data cube}
+#'  \item{use \code{\link[sits]{sits_segment}} to obtain a vector data cube
+#'        with polygons that define the boundary of the segments.}
 #'  \item{use \code{\link[sits]{sits_classify}} to classify the
-#'       time series associated to the segments.}
+#'       time series associated to the segments, and obtain the probability
+#'       for each class.}
+#'  \item{use \code{\link[sits]{sits_label_classification}} to label the
+#'      vector probability cube.}
 #'  \item{use \code{\link[sits]{plot}} or \code{\link[sits]{sits_view}}
 #'        to display the results.}
 #'  }
@@ -89,6 +91,9 @@ sits_segment <- function(cube,
     .check_output_dir(output_dir)
     .check_version(version)
     .check_progress(progress)
+    .check_that(x = is.function(seg_fn),
+                msg = "invalid segmentation function"
+    )
 
     # Spatial filter
     if (.has(roi)) {
@@ -146,8 +151,8 @@ sits_segment <- function(cube,
     return(segs_cube)
 }
 
-#' @title Segment an image using supercells
-#' @name sits_supercells
+#' @title Segment an image using SLIC
+#' @name sits_slic
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -225,8 +230,8 @@ sits_slic <- function(data = NULL,
                       step = 50,
                       compactness = 1,
                       dist_fun = "euclidean",
-                      avg_fun = "mean",
-                      iter = 10,
+                      avg_fun = "median",
+                      iter = 20,
                       minarea = 30,
                       verbose = FALSE) {
     # step is OK?
