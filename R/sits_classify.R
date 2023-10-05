@@ -299,8 +299,8 @@ sits_classify.segs_cube <- function(data,
                                     multicores = 2L,
                                     output_dir,
                                     version = "v1",
-                                    aggreg_fn = "mean",
-                                    n_sam_pol = NULL,
+                                    aggreg_fn = "median",
+                                    n_sam_pol = 40,
                                     verbose = FALSE,
                                     progress = TRUE) {
 

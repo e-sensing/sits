@@ -50,12 +50,14 @@ segmentation function. The function applies the segmentation algorithm
 
 Segmentation uses the following steps:
 \itemize{
- \item{use \code{\link[sits]{sits_segment}} to obtain the \code{sf}
-       polygons that define the boundary of the segments.}
- \item{use \code{\link[sits]{sits_get_data}} to obtain one time series
-       associated to each segment.}
+ \item{create a regular data cube}
+ \item{use \code{\link[sits]{sits_segment}} to obtain a vector data cube
+       with polygons that define the boundary of the segments.}
  \item{use \code{\link[sits]{sits_classify}} to classify the
-      time series associated to the segments.}
+      time series associated to the segments, and obtain the probability
+      for each class.}
+ \item{use \code{\link[sits]{sits_label_classification}} to label the
+     vector probability cube.}
  \item{use \code{\link[sits]{plot}} or \code{\link[sits]{sits_view}}
        to display the results.}
  }

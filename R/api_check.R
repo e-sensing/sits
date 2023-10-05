@@ -1887,7 +1887,7 @@
         bands,
         within = .cube_bands(cube = cube, add_cloud = add_cloud),
         case_sensitive = FALSE,
-        msg = "invalid 'bands' parameter"
+        msg = "invalid 'bands'"
     )
     return(invisible(cube))
 }
