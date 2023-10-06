@@ -423,7 +423,7 @@
         tmap::tm_compass()
 
     # include segments
-    if (!purrr::is_null(segments)) {
+    if (!purrr::is_null(sf_seg)) {
         p <- p + tmap::tm_shape(sf_seg) +
             tmap::tm_borders(col = seg_color, lwd = line_width)
     }

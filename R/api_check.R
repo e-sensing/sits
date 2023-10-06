@@ -1276,6 +1276,16 @@
     )
     return(invisible(progress))
 }
+#' @title Check is function parameters is valid using reasonable defaults
+#' @name .check_function
+#' @keywords internal
+#' @noRd
+#' @param fn a function parameter
+#' @return Called for side effects.
+.check_function <- function(fn) {
+    .check_that(x = is.function(fn), msg = "invalid function pameter")
+    return(invisible(fn))
+}
 #' @title Check is expression parameter is valid using reasonable defaults
 #' @name .check_expression
 #' @param  list_expr expression parameter

@@ -358,7 +358,7 @@ plot.predicted <- function(x, y, ...,
 #' }
 #' @export
 plot.raster_cube <- function(x, ...,
-                             band = sits_bands(cube)[1],
+                             band = sits_bands(x)[1],
                              red = NULL,
                              green = NULL,
                              blue = NULL,
@@ -490,7 +490,7 @@ plot.raster_cube <- function(x, ...,
 #' }
 #' @export
 plot.vector_cube <- function(x, ...,
-                             band = sits_bands(cube)[1],
+                             band = sits_bands(x)[1],
                              red = NULL,
                              green = NULL,
                              blue = NULL,
@@ -919,6 +919,8 @@ plot.class_cube <- function(x, y, ...,
 #' @param  ...           Further specifications for \link{plot}.
 #' @param  tile          Tile to be plotted.
 #' @param  legend        Named vector that associates labels to colors.
+#' @param  seg_color     Segment color.
+#' @param  line_width    Segment line width.
 #' @param  palette       Alternative RColorBrewer palette
 #' @param  tmap_options  List with optional tmap parameters
 #'                       tmap_max_cells (default: 1e+06)
