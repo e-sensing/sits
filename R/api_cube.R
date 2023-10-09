@@ -1135,7 +1135,7 @@ NULL
     return(tiles_bands)
 }
 
-.cube_split_chunks_samples <- function(cube, samples) {
+.cube_split_chunks_samples <- function(cube, samples_sf) {
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     cube_chunks <- slider::slide(cube, function(tile) {
         chunks <- .tile_chunks_create(
@@ -1144,15 +1144,16 @@ NULL
             block = block
         )
         chunks_sf <- .bbox_as_sf(
-            .bbox(chunks, by_feature = TRUE), as_crs = sf::st_crs(samples)
+            .bbox(chunks, by_feature = TRUE), as_crs = sf::st_crs(samples_sf)
         )
         chunks_sf <- dplyr::bind_cols(chunks_sf, chunks)
-        chunks_sf <- chunks_sf[.intersects(chunks_sf, samples), ]
+        chunks_sf <- chunks_sf[.intersects(chunks_sf, samples_sf), ]
         chunks_sf[["tile"]] <- tile[["tile"]]
         chunks_sf <- dplyr::group_by(chunks_sf, .data[["row"]], .data[["tile"]])
         chunks_sf <- dplyr::summarise(chunks_sf)
         chunks_sf <- slider::slide(chunks_sf, function(chunk_sf) {
-            chunk_sf[["samples"]] <- list(samples[.within(samples, chunk_sf), ])
+            chunk_sf[["samples"]] <- list(samples_sf[
+                .within(samples_sf, chunk_sf), ])
             return(chunk_sf)
         })
         return(chunks_sf)
