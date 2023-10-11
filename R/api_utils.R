@@ -65,7 +65,7 @@ NULL
 #'   Returns \code{logical}.
 #' @noRd
 .has <- function(x) {
-    length(x) > 0 && !any(is.na(x))
+    length(x) > 0
 }
 
 #' @title Check if an input has names or not. If there is
