@@ -14,7 +14,7 @@
   tile = x$tile[[1]],
   date = NULL,
   seg_color = "black",
-  line_width = 0.5,
+  line_width = 1,
   palette = "RdYlGn",
   rev = FALSE,
   tmap_options = NULL
@@ -39,7 +39,7 @@
 
 \item{seg_color}{Color to show the segment boundaries}
 
-\item{line_width}{Line width to plot the segments boundary}
+\item{line_width}{Line width to plot the segments boundary (in pixels)}
 
 \item{palette}{An RColorBrewer palette}
 

@@ -522,7 +522,7 @@
     samples_sf <- sits_as_sf(samples)
     # Get chunks samples
     chunks_samples <- .cube_split_chunks_samples(cube = cube,
-                                                 samples = samples_sf)
+                                                 samples_sf = samples_sf)
     # Set output_dir
     output_dir <- tempdir()
     if (Sys.getenv("SITS_SAMPLES_CACHE_DIR") != "") {

@@ -121,8 +121,8 @@
     # Get chunks samples
     chunks_samples <- slider::slide(cube, function(tile) {
         # Get segments from tile
-        samples <- .get_segments_from_cube(tile)
-        .cube_split_chunks_samples(cube = tile, samples = samples)
+        segments_sf <- .get_segments_from_cube(tile)
+        .cube_split_chunks_samples(cube = tile, samples_sf = segments_sf)
     })
     chunks_samples <- unlist(chunks_samples, recursive = FALSE)
 

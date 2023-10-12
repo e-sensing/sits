@@ -453,7 +453,7 @@ plot.raster_cube <- function(x, ...,
 #' @param  tile          Tile to be plotted.
 #' @param  date          Date to be plotted.
 #' @param  seg_color     Color to show the segment boundaries
-#' @param  line_width    Line width to plot the segments boundary
+#' @param  line_width    Line width to plot the segments boundary (in pixels)
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  tmap_options  List with optional tmap parameters
@@ -497,7 +497,7 @@ plot.vector_cube <- function(x, ...,
                              tile = x$tile[[1]],
                              date = NULL,
                              seg_color = "black",
-                             line_width = 0.5,
+                             line_width = 1,
                              palette = "RdYlGn",
                              rev = FALSE,
                              tmap_options = NULL) {

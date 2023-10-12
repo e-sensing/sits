@@ -6,6 +6,7 @@
 \alias{sits_view.data.frame}
 \alias{sits_view.som_map}
 \alias{sits_view.raster_cube}
+\alias{sits_view.vector_cube}
 \alias{sits_view.uncertainty_cube}
 \alias{sits_view.class_cube}
 \alias{sits_view.probs_cube}
@@ -32,7 +33,24 @@ sits_view(x, ...)
   class_cube = NULL,
   legend = NULL,
   palette = "RdYlGn",
-  segments = NULL,
+  view_max_mb = NULL
+)
+
+\method{sits_view}{vector_cube}(
+  x,
+  ...,
+  band = NULL,
+  red = NULL,
+  green = NULL,
+  blue = NULL,
+  tiles = x$tile,
+  dates = NULL,
+  class_cube = NULL,
+  legend = NULL,
+  palette = "RdYlGn",
+  fill_opacity = 0.5,
+  seg_color = "black",
+  line_width = 1,
   view_max_mb = NULL
 )
 
@@ -43,7 +61,6 @@ sits_view(x, ...)
   class_cube = NULL,
   legend = NULL,
   palette = "Blues",
-  segments = NULL,
   view_max_mb = NULL
 )
 
@@ -53,7 +70,6 @@ sits_view(x, ...)
   tiles = NULL,
   legend = NULL,
   palette = "Spectral",
-  segments = NULL,
   view_max_mb = NULL
 )
 
@@ -96,9 +112,13 @@ in sits default colors)}
 
 \item{class_cube}{Classified cube to be overlayed on top on image.}
 
-\item{segments}{Segment list produced by \link{sits_segment}}
-
 \item{view_max_mb}{Maximum size of leaflet to be visualized}
+
+\item{fill_opacity}{Opacity of segment fill}
+
+\item{seg_color}{Color for segment boundaries}
+
+\item{line_width}{Line width for segments (in pixels)}
 }
 \value{
 A leaflet object containing either samples or

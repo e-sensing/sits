@@ -2302,9 +2302,8 @@
     }
     return(invisible(discriminator))
 }
-#' @title Checks view bands
-#' @name .check_view_bands
-#' @param cube      Data cube
+#' @title Checks view bands are defined
+#' @name .check_view_bands_params
 #' @param band      B/W band for view
 #' @param red       Red band for view
 #' @param green     Green band for view
@@ -2312,7 +2311,7 @@
 #' @return Called for side effects
 #' @keywords internal
 #' @noRd
-.check_view_bands <- function(cube, band, red, green, blue) {
+.check_view_bands_params <- function(band, red, green, blue) {
     .check_that(
         !(purrr::is_null(band)) ||
             (!(purrr::is_null(red)) &&
@@ -2324,6 +2323,18 @@
             "'blue' parameters should be informed"
         )
     )
+}
+#' @title Checks view bands
+#' @name .check_view_bands
+#' @param cube      Data cube
+#' @param band      B/W band for view
+#' @param red       Red band for view
+#' @param green     Green band for view
+#' @param blue      Blue band for view
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_view_bands <- function(cube, band, red, green, blue) {
     if (!purrr::is_null(band)) {
         # check band is available
         .check_chr_within(
@@ -2332,7 +2343,10 @@
             discriminator = "any_of",
             msg = "invalid BW band"
         )
-    } else {
+    }
+    if (!(purrr::is_null(red)) &&
+        !(purrr::is_null(green)) &&
+        !(purrr::is_null(blue))) {
         bands <- c(red, green, blue)
         # check bands are available
         .check_chr_within(
