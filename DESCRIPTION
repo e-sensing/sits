@@ -141,6 +141,7 @@ Collate:
     'api_period.R'
     'api_plot_time_series.R'
     'api_plot_raster.R'
+    'api_plot_vector.R'
     'api_point.R'
     'api_predictors.R'
     'api_raster.R'

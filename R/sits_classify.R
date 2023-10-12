@@ -74,7 +74,7 @@
 #'    "memsize" and "multicores".
 #'
 #'    For classifying vector data cubes created by
-#'    \code{\link[sits]{sits_segmentation}}, two parameters can be used:
+#'    \code{\link[sits]{sits_segment}}, two parameters can be used:
 #'    \code{n_sam_pol}, which is the number of time series to be classified
 #'    per segment, or \code{aggreg_fn}, which is a function to aggregate the
 #'    values of all pixels in the segment for each time step. The choice

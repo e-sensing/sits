@@ -109,10 +109,8 @@ named lat/long values
 \item{aggreg_fn}{Function to compute a summary of each segment
 (object of class "function").}
 
-\item{n_sam_pol}{Number of samples per polygon to be read
-for POLYGON or MULTIPOLYGON shapefiles or sf
-objects.
-(single integer).}
+\item{n_sam_pol}{Number of time series per segment to be classified
+(integer, min = 10, max = 50).}
 }
 \value{
 Time series with predicted labels for
@@ -151,6 +149,15 @@ The "roi" parameter defines a region of interest. It can be
    processing. The "memsize" parameter  controls the amount of memory
    available for classification. We recommend using a 4:1 relation between
    "memsize" and "multicores".
+
+   For classifying vector data cubes created by
+   \code{\link[sits]{sits_segment}}, two parameters can be used:
+   \code{n_sam_pol}, which is the number of time series to be classified
+   per segment, or \code{aggreg_fn}, which is a function to aggregate the
+   values of all pixels in the segment for each time step. The choice
+   of \code{n_sam_pol} prevails over the choice of \code{aggreg_fn}. Thus,
+   to use \code{aggreg_fn}, the parameter \code{n_sam_pol} should be set to
+   NULL.
 
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
@@ -192,6 +199,38 @@ if (sits_run_examples()) {
     )
     # plot the classified image
     plot(label_cube)
+    # segmentation
+    # segment the image
+    segments <- sits_segment(
+        cube = cube,
+        seg_fn = sits_slic(step = 5,
+                       compactness = 1,
+                       dist_fun = "euclidean",
+                       avg_fun = "median",
+                       iter = 50,
+                       minarea = 10,
+                       verbose = FALSE
+                       ),
+        output_dir = tempdir()
+    )
+    # Create a classified vector cube
+    probs_segs <- sits_classify(
+        data = segments,
+        ml_model = rf_model,
+        output_dir = tempdir(),
+        aggreg_fn = NULL,
+        n_sam_pol = 20,
+        multicores = 4
+    )
+    # Create a labelled vector cube
+    class_segs <- sits_label_classification(
+        cube = probs_segs,
+        output_dir = tempdir(),
+        multicores = 2,
+        memsize = 4
+    )
+    # plot class_segs
+    plot(class_segs)
 }
 
 }

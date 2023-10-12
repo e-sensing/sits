@@ -24,6 +24,11 @@ test_that("Segmentation", {
         as.character(unique(sf::st_geometry_type(vector_segs))),
         expected = "POLYGON"
     )
+    p1 <- plot(segments)
+    expect_equal(p1[[1]]$shp_name, "stars_obj")
+    expect_equal(p1$tm_grid$grid.projection, 4326)
+    expect_equal(p1$tm_layout$legend.bg.alpha, 0.5)
+
     # Train a rf model
     rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
     # Create a probability vector cube
@@ -31,9 +36,15 @@ test_that("Segmentation", {
         data = segments,
         ml_model = rf_model,
         output_dir = tempdir(),
+        n_sam_pol = 10,
         multicores = 2,
         memsize = 4
     )
+    p2 <- plot(probs_segs)
+    expect_equal(p2$tm_shape$shp_name, "sf_seg")
+    expect_equal(ncol(p2$tm_shape$shp), 9)
+    expect_equal(p2$tm_layout$asp, 0)
+
     expect_s3_class(object = probs_segs, class = "probs_vector_cube")
     expect_true(
         "vector_info" %in% colnames(probs_segs)
@@ -59,12 +70,16 @@ test_that("Segmentation", {
     expect_true(
         "class" %in% colnames(vector_class)
     )
+    p3 <- plot(class_segs)
+    expect_equal(p3$tm_shape$shp_name, "sf_seg")
+    expect_equal(ncol(p3$tm_shape$shp), 2)
+    expect_equal(p2$tm_compass$compass.show.labels, 1)
     # Create a new probability vector cube
     probs_segs2 <- sits_classify(
         data = segments,
         ml_model = rf_model,
         output_dir = tempdir(),
-        n_sam_pol = 20,
+        n_sam_pol = NULL,
         multicores = 1,
         memsize = 4,
         version = "v2"
