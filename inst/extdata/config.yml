@@ -1251,8 +1251,8 @@ sources:
                 satellite   : "SENTINEL-1"
                 sensor      : "GRD"
                 platforms   :
-                    SENTINEL-2A: "Sentinel-1A"
-                    SENTINEL-2B: "Sentinel-1B"
+                    SENTINEL-1A: "Sentinel-1A"
+                    SENTINEL-1B: "Sentinel-1B"
                 collection_name: "sentinel-1-grd"
                 open_data: true
                 open_data_token: false
