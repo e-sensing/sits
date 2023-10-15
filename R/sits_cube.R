@@ -92,11 +92,14 @@
 #' To create a cube from local files, users need to inform:
 #' \itemize{
 #' \item{\code{source}:} {Provider from where the data has been
-#'  downloaded (e.g, "BDC", "AWS").}
-#' \item{\code{collection}:}{Collection where the data has been extracted from.}
+#'  downloaded (e.g, "BDC", "MPC").}
+#' \item{\code{collection}:}{Collection where the data has been extracted from.
+#'  (e.g., "SENTINEL-2-L2A" for the Sentinel-2 MPC collection level 2A).}
 #' \item{\code{data_dir}: }{Local directory where images are stored.}
-#' \item{\code{parse_info}: }{Parsing information for files (see below).}
-#' \item{\code{delim}: }{Delimiter character for parsing files (see below).}
+#' \item{\code{parse_info}: }{Parsing information for files (see below).
+#'   Default is \code{c("X1", "X2", tile", "band", "date")}.}
+#' \item{\code{delim}: }{Delimiter character for parsing files (see below).
+#'    Default is \code{"_"}.}
 #' }
 #'
 #' To create a cube from local files, all images should have
@@ -104,15 +107,15 @@
 #' a single image band for a single date.
 #' Files can belong to different tiles of a spatial reference system and
 #' file names need to include tile, date, and band information.
-#' For example: \code{"CBERS-4_022024_B13_2018-02-02.tif"}
-#' and \code{"cube_20LKP_B02_2018-07-18.jp2"} are accepted names.
+#' For example: \code{"CBERS-4_WFI_022024_B13_2018-02-02.tif"}
+#' and \code{"SENTINEL-2_MSI_20LKP_B02_2018-07-18.jp2"} are accepted names.
 #' The user has to provide parsing information to allow \code{sits}
 #' to extract values of tile, band, and date. In the examples above,
-#' the parsing info is \code{c("X1", "tile", "band", "date")}
-#' and the delimiter is \code{"_"}.
+#' the parsing info is \code{c("X1", "X2", tile", "band", "date")}
+#' and the delimiter is \code{"_"}, which are the default values.
 #'
-#' It is also possible to create result cubes; these are local cubes that have
-#' been produced by classification or post-classification algorithms. In
+#' It is also possible to create result cubes for these are local files
+#' produced by classification or post-classification algorithms. In
 #' this case, there are more parameters that are required (see below) and the
 #' parameter \code{parse_info} is specified differently:
 #' \itemize{
