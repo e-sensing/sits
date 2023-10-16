@@ -135,56 +135,54 @@ summary.sits_area_accuracy <- function(object, ...) {
 #' }
 #'
 #' @export
-summary.raster_cube <- function(object, ...,
-                                tile = object$tile[[1]],
-                                date = NULL) {
-    # filter the tile to be processed
-    tile <- .summary_check_tile(object, tile)
-    if (purrr::is_null(date)) {
-        date <- .tile_timeline(tile)[[1]]
+summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
+    # Pre-conditional check
+    .check_date_parameter(date, allow_null = TRUE)
+    .check_chr_parameter(tile, allow_null = TRUE)
+    # Extract the chosen tile
+    if (!is.null(tile)) {
+        object <- .summary_check_tile(object, tile)
     }
-    # only one date at a time
-    .check_that(length(date) == 1,
-        msg = "only one date per summary is allowed"
-    )
-    # is this a valid date?
-    date <- as.Date(date)
-    .check_that(date %in% .tile_timeline(tile),
-        msg = "date is not contained in the cube timeline"
-    )
-
-    # extract the chosen date
-    tile <- .tile_filter_dates(tile, dates = date)
-    # get the bands
-    bands <- sits_bands(tile)
-    if ("CLOUD" %in% bands) {
-        tile <- .tile_filter_bands(tile, bands[bands != "CLOUD"])
+    # Extract the chosen date
+    if (!is.null(date)) {
+        object <- .cube_filter_dates(object, dates = date)
     }
-    # extract the file paths
-    files <- .tile_paths(tile)
-    # print the base information
-    .summary_tile_information(tile)
-    # get sample size
-    sample_size <- .conf("summary_sample_size")
-    # read the files with terra
-    r <- terra::rast(files)
-    # get the a sample of the values
-    values <- r |>
-        terra::spatSample(size = sample_size, na.rm = TRUE) |>
-        tibble::as_tibble()
-    # set names as the band names
-    bands <- bands[bands != "CLOUD"]
-    # extract statistics
-    band_conf <- .tile_band_conf(tile, bands[[1]])
-    scale <- .scale(band_conf)
-    offset <- .offset(band_conf)
-    # rescale values
-    # get summary
-    sum <- summary(values * scale + offset)
-    # change names
-    colnames(sum) <- bands
-    # print statistics
-    sum
+    # Display cube general metadata
+    cli::cli_h1("Cube Metadata")
+    cube_bbox <- sits_bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
+    cli::cli_li("Bounding Box: xmin = {cube_bbox[['xmin']]},
+                               xmax = {cube_bbox[['xmax']]},
+                               ymin = {cube_bbox[['ymin']]},
+                               ymax = {cube_bbox[['ymax']]}")
+    cli::cli_li("Bands: {sits_bands(object)}")
+    cli::cli_li("Timeline: {unique(as.Date(unlist(.cube_timeline(object))))}")
+    is_regular <- .cube_is_regular(object)
+    cli::cli_li("Regular cube: {is_regular}")
+    # Display cube cloud coverage
+    if ("CLOUD" %in% .cube_bands(object)) {
+        cli::cli_h1("Cloud cover info")
+        cube_unnest <- tidyr::unnest(
+            object[, c("tile", "file_info")], "file_info"
+        )
+        cube_unnest <- cube_unnest[, c("tile", "date", "cloud_cover")]
+        cube_unnest <- unique(dplyr::arrange(cube_unnest, .data[["date"]]))
+        print(cube_unnest, n = Inf)
+    }
+    # Display raster summary
+    cli::cli_h1("Cube Summary")
+    sum <- slider::slide(object, function(tile) {
+        # Get the first date to not read all images
+        date <- .default(date, .tile_timeline(tile)[[1]])
+        tile <- .tile_filter_dates(tile, date)
+        cli::cli_h3("Tile: {.field {tile$tile}}")
+        rast <- .raster_open_rast(.tile_paths(tile))
+        sum <- suppressWarnings(.raster_summary(rast))
+        print(sum)
+        return(sum)
+    })
+    # Return the summary from the cube
+    names(sum) <- .cube_tiles(object)
+    return(invisible(sum))
 }
 #' @title Summary of a derived cube
 #' @noRd
