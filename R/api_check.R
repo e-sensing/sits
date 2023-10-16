@@ -1127,19 +1127,21 @@
 #' @title Check is integer parameter is valid using reasonable defaults
 #' @name .check_chr_parameter
 #' @param  x   parameter to be checked
+#' @param  allow_null allow null parameter?
 #' @param  len_min minimum length of vector
 #' @param  len_max maximum length of vector
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_chr_parameter <- function(param, len_min = 1, len_max = 1) {
+.check_chr_parameter <- function(param, allow_null = FALSE, len_min = 1,
+                                 len_max = 1) {
     .check_chr(
         param,
         len_min = len_min,
         len_max = len_max,
+        allow_null = allow_null,
         allow_na = FALSE,
-        allow_empty = FALSE,
-        allow_null = FALSE,
+        allow_empty = FALSE
     )
     return(invisible(param))
 }
