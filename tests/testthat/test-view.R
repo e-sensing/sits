@@ -112,6 +112,60 @@ test_that("View", {
     expect_equal(v6$x$calls[[5]]$args[[5]], "012010 entropy")
     expect_equal(v6$x$calls[[6]]$args[[5]], "classification")
 
+    # segmentation
+    # segment the image
+    segments <- sits_segment(
+        cube = modis_cube,
+        seg_fn = sits_slic(step = 5,
+                           compactness = 1,
+                           dist_fun = "euclidean",
+                           avg_fun = "median",
+                           iter = 50,
+                           minarea = 10,
+                           verbose = FALSE
+        ),
+        output_dir = tempdir()
+    )
+    v7 <- sits_view(segments)
+    expect_true(grepl("EPSG3857", v7$x$options$crs$crsClass))
+    expect_equal(v7$x$calls[[1]]$method, "addProviderTiles")
+    expect_equal(v7$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
+    expect_equal(v7$x$calls[[5]]$method, "addPolygons")
+
+    v8 <- sits_view(segments, band = "NDVI")
+    expect_true(grepl("EPSG3857", v8$x$options$crs$crsClass))
+    expect_equal(v8$x$calls[[1]]$method, "addProviderTiles")
+    expect_equal(v8$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
+    expect_equal(v8$x$calls[[5]]$method, "addRasterImage")
+    expect_equal(v8$x$calls[[6]]$method, "addPolygons")
+
+    probs_segs <- sits_classify(
+        data = segments,
+        ml_model = rf_model,
+        output_dir = tempdir(),
+        aggreg_fn = NULL,
+        version = "v2",
+        n_sam_pol = 20,
+        multicores = 4
+    )
+
+    # Create a classified vector cube
+    class_segs <- sits_label_classification(
+        cube = probs_segs,
+        output_dir = tempdir(),
+        multicores = 2,
+        memsize = 4,
+        version = "v_segs_2"
+    )
+
+    v9 <- sits_view(class_segs, class_cube = modis_label)
+    expect_true(grepl("EPSG3857", v9$x$options$crs$crsClass))
+    expect_equal(v9$x$calls[[1]]$method, "addProviderTiles")
+    expect_equal(v9$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
+    expect_equal(v9$x$calls[[5]]$method, "addPolygons")
+    expect_equal(v9$x$calls[[6]]$method, "addRasterImage")
+
+
     cbers_cube <- tryCatch(
         {
             sits_cube(
@@ -132,17 +186,17 @@ test_that("View", {
     testthat::skip_if(purrr::is_null(cbers_cube),
                       message = "BDC is not accessible"
     )
-    v8 <- sits_view(cbers_cube,
+    v_cb <- sits_view(cbers_cube,
                     tiles = c("007004", "007005"),
                     red = "B15",
                     green = "B16",
                     blue = "B13",
                     dates = "2018-08-29")
 
-    expect_equal(v8$x$options$crs$crsClass, "L.CRS.EPSG3857")
-    expect_equal(v8$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
-    expect_equal(v8$x$calls[[5]]$method, "addRasterImage")
-    expect_equal(v8$x$calls[[6]]$args[[5]], "007005 2018-08-29")
+    expect_equal(v_cb$x$options$crs$crsClass, "L.CRS.EPSG3857")
+    expect_equal(v_cb$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
+    expect_equal(v_cb$x$calls[[5]]$method, "addRasterImage")
+    expect_equal(v_cb$x$calls[[6]]$args[[5]], "007005 2018-08-29")
 
     expect_true(all(file.remove(unlist(modis_uncert$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(modis_probs$file_info[[1]]$path))))

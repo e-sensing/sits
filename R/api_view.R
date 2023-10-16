@@ -1,10 +1,10 @@
 #' @title  Include leaflet to view images (BW or RGB)
-#' @name .view_image
+#' @name .view_image_raster
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  cube          Cube to be plotted
+#' @param  cube          Cube to be plotted (raster cube)
 #' @param  class_cube    Classified cube to be overlayed on top on image
 #' @param  tiles         Tiles to be plotted (in case of a multi-tile cube).
 #' @param  dates         Dates to be plotted.
@@ -14,22 +14,20 @@
 #' @param  blue          Band for blue color.
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file.
-#' @param  segments      Segment list obtained by \link{sits_segmentation}
 #' @param  view_max_mb   Maximum size of leaflet to be visualized
 #'
 #' @return               A leaflet object.
 #'
-.view_image <- function(cube,
+.view_image_raster <- function(cube,
                         class_cube,
                         tiles,
                         dates,
-                        band = NULL,
-                        red = NULL,
-                        green = NULL,
-                        blue = NULL,
+                        band,
+                        red,
+                        green,
+                        blue,
                         legend,
                         palette,
-                        segments,
                         view_max_mb) {
     # filter the tiles to be processed
     cube <- .view_filter_tiles(cube, tiles)
@@ -47,7 +45,8 @@
     leaf_map <- .view_add_basic_maps()
     # get names of basic maps
     base_maps <- .view_get_base_maps(leaf_map)
-    # add B/W band, class cube, and segments
+    # add B/W band if required
+    # create a leaflet for B/W bands
     if (!purrr::is_null(band)) {
         leaf_map <- leaf_map |>
             .view_bw_band(
@@ -58,6 +57,7 @@
                 palette = palette
             )
     } else {
+        # add RGB bands if required
         # create a leaflet for RGB bands
         leaf_map <- leaf_map |>
             .view_rgb_bands(
@@ -77,19 +77,12 @@
             legend = legend,
             palette = palette,
             output_size = output_size
-        ) |>
-        # include segments, if available
-        .view_segments(
-            segments = segments,
-            legend = legend,
-            palette = palette
         )
     # get overlay groups
     overlay_groups <- .view_add_overlay_grps(
         cube = cube,
         dates = dates,
-        class_cube = class_cube,
-        segments = segments
+        class_cube = class_cube
     )
     # add layers control to leafmap
     leaf_map <- leaf_map |>
@@ -100,8 +93,132 @@
         ) |>
         # add legend to leaf_map
         .view_add_legend(
+            cube = class_cube,
+            legend = legend,
+            palette = palette
+        )
+    return(leaf_map)
+}
+#' @title  Include leaflet to view vector images
+#' @name .view_image_vector
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  cube          Cube to be plotted (vector or raster cube)
+#' @param  tiles         Tiles to be plotted (in case of a multi-tile cube).
+#' @param  dates         Dates to be plotted.
+#' @param  band          For plotting grey images.
+#' @param  red           Band for red color.
+#' @param  green         Band for green color.
+#' @param  blue          Band for blue color.
+#' @param  class_cube    Classified cube to be overlayed on top on image
+#' @param  legend        Named vector that associates labels to colors.
+#' @param  palette       Palette provided in the configuration file.
+#' @param  seg_color     Color for segments
+#' @param  line_width    Line width for segments
+#' @param  fill_opacity  Opacity of segment fill
+#' @param  view_max_mb   Maximum size of leaflet to be visualized
+#'
+#' @return               A leaflet object.
+#'
+.view_image_vector <- function(cube,
+                               tiles,
+                               dates,
+                               band,
+                               red,
+                               green,
+                               blue,
+                               class_cube,
+                               legend,
+                               palette,
+                               fill_opacity,
+                               seg_color,
+                               line_width,
+                               view_max_mb) {
+    # filter the tiles to be processed
+    cube <- .view_filter_tiles(cube, tiles)
+    # check the view_max_mb parameter
+    view_max_mb <- .view_set_max_mb(view_max_mb)
+    # find out if resampling is required (for big images)
+    output_size <- .view_resample_size(
+        cube = cube,
+        ndates = length(dates),
+        view_max_mb = view_max_mb
+    )
+    # create a leaflet and add providers
+    leaf_map <- .view_add_basic_maps()
+    # get names of basic maps
+    base_maps <- .view_get_base_maps(leaf_map)
+    # add B/W band if required
+    # create a leaflet for B/W bands
+    if (!purrr::is_null(band)) {
+        if (purrr::is_null(dates))
+            dates <- .cube_timeline(cube)[[1]][1]
+        leaf_map <- leaf_map |>
+            .view_bw_band(
+                cube = cube,
+                band = band,
+                dates = dates,
+                output_size = output_size,
+                palette = palette
+            )
+    }
+    # add RGB bands if required
+    # create a leaflet for RGB bands
+    if (!purrr::is_null(red) &&
+        !purrr::is_null(green) &&
+        !purrr::is_null(blue)) {
+        # update the dates parameter
+        if (purrr::is_null(dates))
+            dates <- .cube_timeline(cube)[[1]][1]
+        leaf_map <- leaf_map |>
+            .view_rgb_bands(
+                cube = cube,
+                red = red,
+                green = green,
+                blue = blue,
+                dates = dates,
+                output_size = output_size
+            )
+    }
+    # include segments (and class cube if available)
+    leaf_map <- leaf_map |>
+        # include segments
+        .view_segments(
+            cube = cube,
+            seg_color = seg_color,
+            line_width = line_width,
+            fill_opacity  = fill_opacity,
+            legend = legend,
+            palette = palette
+        ) |>
+        .view_class_cube(
             class_cube = class_cube,
-            segments = segments,
+            tiles = tiles,
+            legend = legend,
+            palette = palette,
+            output_size = output_size
+        )
+    # have we included base images?
+
+    # get overlay groups
+    overlay_groups <- .view_add_overlay_grps(
+        cube = cube,
+        dates = dates,
+        class_cube = class_cube
+    )
+    # add layers control to leafmap
+    leaf_map <- leaf_map |>
+        leaflet::addLayersControl(
+            baseGroups = base_maps,
+            overlayGroups = overlay_groups,
+            options = leaflet::layersControlOptions(collapsed = FALSE)
+        ) |>
+        # add legend to leaf_map
+        .view_add_legend(
+            cube = cube,
+            legend = legend,
             palette = palette
         )
     return(leaf_map)
@@ -298,82 +415,78 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  leafmap       Leaflet map
-#' @param  segments      Segment list obtained by \link{sits_segmentation}
+#' @param  cube          Vector cube
+#' @param  seg_color     Color for segments boundaries
+#' @param  line_width    Line width for segments (in pixels)
+#' @param  fill_opacity  Opacity of segment fill
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file.
 #'
 #' @return               A leaflet object
 #
 .view_segments <- function(leaf_map,
-                           segments,
+                           cube,
+                           seg_color,
+                           line_width,
+                           fill_opacity,
                            legend,
                            palette) {
-    # if there are no segments, return
-    if (purrr::is_null(segments)) {
-        return(leaf_map)
-    } else {
-        # add segments if they exist
-        # check that segments are valid
-        .check_that(
-            x = inherits(segments, c("segments")),
-            msg = "segments to be overlayed are invalid"
+    # retrieve segments on a tile basis
+    for (row in seq_len(nrow(cube))) {
+        # get tile
+        tile <- cube[row, ]
+        # retrieve the segments for this tile
+        sf_seg <- .segments_read_vec(tile)
+        # transform the segments
+        sf_seg <- sf::st_transform(
+            sf_seg,
+            crs = sf::st_crs("EPSG:4326")
         )
-        # how many tiles are there in the segments
-        tile_names <- names(segments)
-        for (tile_name in tile_names) {
-            # retrieve the segments for this tile
-            sf_seg <- segments[[tile_name]]
-            # transform the segments
-            sf_seg <- sf::st_transform(
-                sf_seg,
-                crs = sf::st_crs("EPSG:4326")
+        # have the segments been classified?
+        if ("class" %in% colnames(sf_seg)) {
+            # dissolve sf_seg
+            sf_seg <- sf_seg |>
+                dplyr::group_by(.data[["class"]]) |>
+                dplyr::summarise()
+            labels_seg <- sf_seg |>
+                sf::st_drop_geometry() |>
+                dplyr::select("class") |>
+                dplyr::pull()
+            # get the names of the labels
+            names(labels_seg) <- seq_along(labels_seg)
+            # obtain the colors
+            colors <- .colors_get(
+                labels = labels_seg,
+                legend = legend,
+                palette = palette,
+                rev = TRUE
             )
-            # have the segments been classified?
-            if ("class" %in% colnames(sf_seg)) {
-                # dissolve sf_seg
-                sf_seg <- sf_seg |>
-                    dplyr::group_by(.data[["class"]]) |>
-                    dplyr::summarise()
-                labels_seg <- sf_seg |>
-                    sf::st_drop_geometry() |>
-                    dplyr::select("class") |>
-                    dplyr::pull()
-                # get the names of the labels
-                names(labels_seg) <- seq_along(labels_seg)
-                # obtain the colors
-                colors <- .colors_get(
-                    labels = labels_seg,
-                    legend = legend,
-                    palette = palette,
-                    rev = TRUE
-                )
-                # add a new leafmap to show polygons of segments
-                leaf_map <- leafem::addFeatures(
-                    leaf_map,
-                    data = sf_seg,
-                    label = labels_seg,
-                    color = "white",
-                    opacity = 1,
-                    fillColor = unname(colors),
-                    fillOpacity = 0.6,
-                    weight = 1,
-                    group = "segments"
-                )
-            } else {
-                leaf_map <- leafem::addFeatures(
-                    leaf_map,
-                    data = sf_seg,
-                    fillColor = "grey",
-                    color = "white",
-                    opacity = 1,
-                    fillOpacity = 0.6,
-                    weight = 1,
-                    group = "segments",
-                )
-            }
+            # add a new leafmap to show polygons of segments
+            leaf_map <- leafem::addFeatures(
+                leaf_map,
+                data = sf_seg,
+                label = labels_seg,
+                color = seg_color,
+                weight = line_width,
+                opacity = 1,
+                fillColor = unname(colors),
+                fillOpacity = fill_opacity,
+                group = "segments"
+            )
+        } else {
+            leaf_map <- leafem::addFeatures(
+                leaf_map,
+                data = sf_seg,
+                fillColor = "grey",
+                color = seg_color,
+                opacity = 1,
+                fillOpacity = 0.6,
+                weight = line_width,
+                group = "segments",
+            )
         }
-        return(leaf_map)
     }
+    return(leaf_map)
 }
 #' @title  Include leaflet to view B/W band
 #' @name .view_bw_band
@@ -586,7 +699,7 @@
                                   band_file,
                                   tile,
                                   band,
-                                  date = NULL,
+                                  date,
                                   palette,
                                   output_size) {
     # create a stars object
@@ -663,6 +776,53 @@
     cube <- .cube_filter_tiles(cube, tiles)
     return(cube)
 }
+#' @title  Get the labels for a classified vector cube
+#' @name .view_get_labels_raster
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  class_cube    Classified raster cube
+#' @return               Labels
+#'
+#'
+.view_get_labels_raster <- function(class_cube){
+    labels <- unlist(.cube_labels(class_cube, dissolve = FALSE))
+    return(labels)
+}
+#' @title  Get the labels for a classified vector cube
+#' @name .view_get_labels_vector
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  cube          Classified vector cube
+#' @param  legend        Class legend
+#' @param  palette       Color palette
+#' @return               Leaflet map with legend
+#'
+#'
+.view_get_labels_vector <- function(cube,
+                                    legend = NULL,
+                                    palette = NULL) {
+    # get segments from cube
+    labels <- slider::slide(cube, function(tile){
+        # retrieve the segments for this tile
+        segments <- .segments_read_vec(tile)
+        # dissolve segments
+        segments <- segments |>
+            dplyr::group_by(.data[["class"]]) |>
+            dplyr::summarise()
+        # get the labels
+        labels_tile <- segments |>
+            sf::st_drop_geometry() |>
+            dplyr::select("class") |>
+            dplyr::pull()
+        return(labels_tile)
+    })
+    labels <- unique(unlist(labels))
+    return(labels)
+}
 #' @title  Add a legend to the leafmap
 #' @name .view_add_legend
 #' @keywords internal
@@ -670,45 +830,30 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  leaf_map      Leaflet map
-#' @param  class_cube    Classified cube
-#' @param  segments      Segments
+#' @param  cube          Vector or raster cube
 #' @param  legend        Class legend
 #' @param  palette       Color palette
 #' @return               Leaflet map with legend
 #'
 #'
 .view_add_legend <- function(leaf_map,
-                             class_cube = NULL,
-                             legend = NULL,
-                             segments = NULL,
-                             palette = NULL) {
+                             cube,
+                             legend,
+                             palette) {
     # initialize labels
     labels <- NULL
-    # if class_cube exists, get fact_pal
-    if (!purrr::is_null(class_cube)) {
-        # get the labels
-        labels <- unlist(.cube_labels(class_cube, dissolve = FALSE))
-    } else {
-        # get fact_pal from the segments
-        if (!purrr::is_null(segments)) {
-            # have the segments been classified?
-            sf_seg <- segments[[1]]
-            if ("class" %in% colnames(sf_seg)) {
-                # dissolve sf_seg
-                sf_seg <- sf_seg |>
-                    dplyr::group_by(.data[["class"]]) |>
-                    dplyr::summarise()
-                # get the labels
-                labels <- sf_seg |>
-                    sf::st_drop_geometry() |>
-                    dplyr::select("class") |>
-                    dplyr::pull()
-            }
+
+    # obtain labels from class cube
+    if (!purrr::is_null(cube)) {
+        if (inherits(cube, "class_cube")) {
+            labels <- .view_get_labels_raster(cube)
+        }
+        if (inherits(cube, "class_vector_cube")) {
+            labels <- .view_get_labels_vector(cube)
         }
     }
-    # are there any labels to the shown in the legend?
     if (!purrr::is_null(labels)) {
-        # obtain the colors
+        # obtain labels from vector class cube
         labels <- sort(unname(labels))
         colors <- .colors_get(
             labels = labels,
@@ -732,51 +877,71 @@
     }
     return(leaf_map)
 }
-
 #' @title  Add overlay groups to leaflet map
-#' @name .view_add_overlay_grps
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  cube          Raster cube
+#' @param  dates         Dates
 #' @param  class_cube    Classified cube
-#' @param  segments      Segments
 #' @return               Leaflet map with with overlay groups
-#'
-.view_add_overlay_grps <- function(cube = NULL,
+.view_add_overlay_grps <- function(cube, ...,
                                    dates = NULL,
-                                   class_cube = NULL,
-                                   segments = NULL) {
+                                   class_cube = NULL) {
+    UseMethod(".view_add_overlay_grps", cube)
+}
+#'
+#' @export
+.view_add_overlay_grps.raster_cube <- function(cube, ...,
+                                               dates = NULL,
+                                               class_cube = NULL) {
     overlay_groups <- NULL
-
-    if (!purrr::is_null(cube)) {
-        if (!inherits(cube, "derived_cube")) {
-            # raster cube needs dates
-            .check_that(
-                x = !purrr::is_null(dates),
-                msg = "raster cube must have associated dates"
-            )
-            grps <- unlist(purrr::map(cube[["tile"]], function(tile) {
-                paste(tile, dates)
-            }))
-            overlay_groups <- c(overlay_groups, grps)
-        } else {
-            grps <- unlist(purrr::map(cube[["tile"]], function(tile) {
-                paste(tile, .cube_bands(cube))
-            }))
-            overlay_groups <- c(overlay_groups, grps)
-        }
-    }
+    # raster cube needs dates
+    .check_that(
+        x = !purrr::is_null(dates),
+        msg = "raster cube must have associated dates"
+    )
+    grps <- unlist(purrr::map(cube[["tile"]], function(tile) {
+        paste(tile, dates)
+    }))
+    overlay_groups <- c(overlay_groups, grps)
     # add class_cube
-    if (!purrr::is_null(class_cube)) {
+    if (!purrr::is_null(class_cube))
         overlay_groups <- c(overlay_groups, "classification")
-    }
-    # add segments
-    if (!purrr::is_null(segments)) {
-        overlay_groups <- c(overlay_groups, "segments")
-    }
+    return(overlay_groups)
+}
+#'
+#' @export
+.view_add_overlay_grps.derived_cube <- function(cube, ...,
+                                                dates = NULL,
+                                                class_cube = NULL) {
 
+    overlay_groups <- NULL
+    grps <- unlist(purrr::map(cube[["tile"]], function(tile) {
+        paste(tile, .cube_bands(cube))
+    }))
+    overlay_groups <- c(overlay_groups, grps)
+    # add class_cube
+    if (!purrr::is_null(class_cube))
+        overlay_groups <- c(overlay_groups, "classification")
+    return(overlay_groups)
+}
+#'
+#' @export
+.view_add_overlay_grps.vector_cube <- function(cube, ...,
+                                               dates = NULL,
+                                               class_cube = NULL) {
+    overlay_groups <- NULL
+    if (!purrr::is_null(dates)) {
+        grps <- unlist(purrr::map(cube[["tile"]], function(tile) {
+            paste(tile, dates)
+        }))
+        overlay_groups <- c(overlay_groups, grps)
+    }
+    overlay_groups <- c(overlay_groups, "segments")
+    if (!purrr::is_null(class_cube))
+        overlay_groups <- c(overlay_groups, "classification")
     return(overlay_groups)
 }
 #' @title  Add base maps to leaflet map

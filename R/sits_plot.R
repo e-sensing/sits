@@ -453,7 +453,7 @@ plot.raster_cube <- function(x, ...,
 #' @param  tile          Tile to be plotted.
 #' @param  date          Date to be plotted.
 #' @param  seg_color     Color to show the segment boundaries
-#' @param  line_width    Line width to plot the segments boundary
+#' @param  line_width    Line width to plot the segments boundary (in pixels)
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  tmap_options  List with optional tmap parameters
@@ -497,7 +497,7 @@ plot.vector_cube <- function(x, ...,
                              tile = x$tile[[1]],
                              date = NULL,
                              seg_color = "black",
-                             line_width = 0.5,
+                             line_width = 1,
                              palette = "RdYlGn",
                              rev = FALSE,
                              tmap_options = NULL) {
@@ -508,7 +508,9 @@ plot.vector_cube <- function(x, ...,
         palette <- dots[["color_palette"]]
     }
     # BW or color?
-    if (!purrr::is_null(red) && !purrr::is_null(green) && !purrr::is_null(blue))
+    if (!purrr::is_null(red) &&
+        !purrr::is_null(green) &&
+        !purrr::is_null(blue))
         bw <-  FALSE
     else
         bw <-  TRUE
@@ -578,7 +580,7 @@ plot.vector_cube <- function(x, ...,
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description plots a probability cube using stars
 #'
-#' @param  x             Object of class "probs_image".
+#' @param  x             Object of class "probs_cube".
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tile           Tile to be plotted.
 #' @param labels         Labels to plot (optional).
@@ -643,6 +645,97 @@ plot.probs_cube <- function(x, ...,
 
     # plot the probs cube
     p <- .plot_probs(tile, labels, palette, rev, tmap_options)
+
+    return(p)
+}
+#' @title  Plot probability vector cubes
+#' @name   plot.probs_vector_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a probability cube using stars
+#'
+#' @param  x             Object of class "probs_vector_cube".
+#' @param  ...           Further specifications for \link{plot}.
+#' @param tile           Tile to be plotted.
+#' @param labels         Labels to plot (optional).
+#' @param palette        RColorBrewer palette
+#' @param rev            Reverse order of colors in palette?
+#' @param tmap_options   List with optional tmap parameters
+#'                       tmap_max_cells (default: 1e+06)
+#'                       tmap_graticules_labels_size (default: 0.7)
+#'                       tmap_legend_title_size (default: 1.5)
+#'                       tmap_legend_text_size (default: 1.2)
+#'                       tmap_legend_bg_color (default: "white")
+#'                       tmap_legend_bg_alpha (default: 0.5)
+#' @return               A plot containing probabilities associated
+#'                       to each class for each pixel.
+#'
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir
+#'     )
+#'     # segment the image
+#'     segments <- sits_segment(
+#'         cube = cube,
+#'         seg_fn = sits_slic(step = 5,
+#'                            compactness = 1,
+#'                            dist_fun = "euclidean",
+#'                            avg_fun = "median",
+#'                            iter = 20,
+#'                            minarea = 10,
+#'                            verbose = FALSE),
+#'         output_dir = tempdir()
+#'     )
+#'     # classify a data cube
+#'     probs_vector_cube <- sits_classify(
+#'         data = segments,
+#'         ml_model = rfor_model,
+#'         output_dir = tempdir()
+#'     )
+#'     # plot the resulting probability cube
+#'     plot(probs_vector_cube)
+#' }
+#'
+#' @export
+#'
+plot.probs_vector_cube <- function(x, ...,
+                                   tile = x$tile[[1]],
+                                   labels = NULL,
+                                   palette = "YlGnBu",
+                                   rev = FALSE,
+                                   tmap_options = NULL) {
+    # check for color_palette parameter (sits 1.4.1)
+    dots <- list(...)
+    if (missing(palette) && "color_palette" %in% names(dots)) {
+        warning("please use palette in place of color_palette")
+        palette <- dots[["color_palette"]]
+    }
+    # precondition
+    .check_chr_contains(
+        x = x$tile,
+        contains = tile,
+        case_sensitive = FALSE,
+        discriminator = "one_of",
+        can_repeat = FALSE,
+        msg = "tile is not included in the cube"
+    )
+
+    # filter the cube
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
+
+    # plot the probs vector cube
+    p <- .plot_probs_vector(tile = tile,
+                            labels_plot = labels,
+                            palette = palette,
+                            rev = rev,
+                            tmap_options = tmap_options)
 
     return(p)
 }
@@ -994,53 +1087,13 @@ plot.class_vector_cube <- function(x, ...,
     )
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-    # retrieve the segments for this tile
-    sf_seg <- .segments_read_vec(tile)
-    # check that segments have been classified
-    .check_that("class" %in% colnames(sf_seg),
-                msg = "segments have not been classified"
-    )
-    # get the labels
-    labels <- sf_seg |>
-        sf::st_drop_geometry() |>
-        dplyr::select("class") |>
-        dplyr::distinct() |>
-        dplyr::pull()
-    names(labels) <- seq_along(labels)
-    # obtain the colors
-    colors <- .colors_get(
-        labels = labels,
+    # plot class vector cube
+    p <- .plot_class_vector(
+        tile = tile,
         legend = legend,
         palette = palette,
-        rev = TRUE
+        tmap_options = tmap_options
     )
-    # set the tmap options
-    tmap_params <- .plot_tmap_params(tmap_options)
-    # name the colors to match the labels
-    names(colors) <- labels
-    # join sf geometries
-    sf_seg <- sf_seg |>
-        dplyr::group_by(.data[["class"]]) |>
-        dplyr::summarise()
-    # plot the data using tmap
-    p <- tmap::tm_shape(sf_seg) +
-        tmap::tm_fill(
-            col = "class",
-            palette = colors
-        ) +
-        tmap::tm_graticules(
-            labels.size = tmap_params[["labels_size"]]
-        ) +
-        tmap::tm_compass() +
-        tmap::tm_layout(
-            legend.show = TRUE,
-            legend.outside = FALSE,
-            legend.bg.color = tmap_params[["bg_color"]],
-            legend.bg.alpha = tmap_params[["bg_alpha"]],
-            legend.title.size = tmap_params[["title_size"]],
-            legend.text.size = tmap_params[["text_size"]]
-        ) +
-        tmap::tm_borders(lwd = 0.2)
     return(p)
 }
 
