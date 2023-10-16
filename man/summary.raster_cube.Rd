@@ -4,7 +4,7 @@
 \alias{summary.raster_cube}
 \title{Summarize data cubes}
 \usage{
-\method{summary}{raster_cube}(object, ..., tile = object$tile[[1]], date = NULL)
+\method{summary}{raster_cube}(object, ..., tile = NULL, date = NULL)
 }
 \arguments{
 \item{object}{Object of classes "raster_cube".}
