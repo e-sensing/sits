@@ -13,8 +13,8 @@ test_that("Segmentation", {
     segments <- sits_segment(
         cube = cube,
         output_dir = tempdir(),
-        multicores = 2,
-        memsize = 4
+        multicores = 6,
+        memsize = 24
     )
     expect_s3_class(object = segments, class = "vector_cube")
     expect_true("vector_info" %in% colnames(segments))
@@ -36,9 +36,9 @@ test_that("Segmentation", {
         data = segments,
         ml_model = rf_model,
         output_dir = tempdir(),
-        n_sam_pol = 10,
-        multicores = 2,
-        memsize = 4
+        n_sam_pol = 20,
+        multicores = 6,
+        memsize = 24
     )
     p2 <- plot(probs_segs)
     expect_equal(p2$tm_shape$shp_name, "sf_seg")
