@@ -155,7 +155,8 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
                                ymin = {cube_bbox[['ymin']]},
                                ymax = {cube_bbox[['ymax']]}")
     cli::cli_li("Bands: {sits_bands(object)}")
-    cli::cli_li("Timeline: {unique(as.Date(unlist(.cube_timeline(object))))}")
+    # timeline <- unique(as.Date(unlist(.cube_timeline(object)), ))
+    # cli::cli_li("Timeline: {timeline}")
     is_regular <- .cube_is_regular(object)
     cli::cli_li("Regular cube: {is_regular}")
     # Display cube cloud coverage
@@ -172,8 +173,11 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
     cli::cli_h1("Cube Summary")
     sum <- slider::slide(object, function(tile) {
         # Get the first date to not read all images
+        # TODO: colocar data
         date <- .default(date, .tile_timeline(tile)[[1]])
         tile <- .tile_filter_dates(tile, date)
+        bands <- if (is_regular) .tile_bands(tile) else .tile_bands(tile)[[1]]
+        tile <- .tile_filter_bands(tile, bands)
         cli::cli_h3("Tile: {.field {tile$tile}}")
         rast <- .raster_open_rast(.tile_paths(tile))
         sum <- suppressWarnings(.raster_summary(rast))
