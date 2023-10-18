@@ -108,6 +108,9 @@ test_that("Creating cubes from BDC - CBERS-WFI-16D", {
         },
         .default = NULL
     )
+    testthat::skip_if(purrr::is_null(cbers_cube_16d),
+                      message = "BDC is not accessible"
+    )
     # test bands and bbox
     expect_true(all(sits_bands(cbers_cube_16d) %in% bands))
     bbox <- sits_bbox(cbers_cube_16d)

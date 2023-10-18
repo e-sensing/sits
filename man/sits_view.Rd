@@ -71,6 +71,7 @@ sits_view(x, ...)
   tiles = NULL,
   legend = NULL,
   palette = "Spectral",
+  opacity = 0.8,
   view_max_mb = NULL
 )
 
@@ -81,6 +82,7 @@ sits_view(x, ...)
   class_cube = NULL,
   legend = NULL,
   view_max_mb = NULL,
+  opacity = 0.7,
   palette = "YlGnBu"
 )
 

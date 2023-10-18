@@ -80,9 +80,8 @@ test_that("Segmentation", {
         ml_model = rf_model,
         output_dir = tempdir(),
         n_sam_pol = NULL,
-        multicores = 1,
-        memsize = 4,
-        version = "v2"
+        multicores = 2,
+        memsize = 4
     )
     expect_s3_class(object = probs_segs2, class = "probs_vector_cube")
     expect_true(

@@ -9,7 +9,7 @@ vector_api_package      : "sf"
 summary_sample_size : 10000
 
 # get data strategy
-n_samples_to_split: 20000
+n_samples_to_split: 1000
 
 # estimated relative growth size of R memory relative to block size
 processing_bloat        : 5

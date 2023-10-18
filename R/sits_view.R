@@ -324,6 +324,7 @@ sits_view.class_cube <- function(x, ...,
                                  tiles = NULL,
                                  legend = NULL,
                                  palette = "Spectral",
+                                 opacity = 0.8,
                                  view_max_mb = NULL) {
     # preconditions
     .check_require_packages("leaflet")
@@ -357,6 +358,7 @@ sits_view.class_cube <- function(x, ...,
             tiles = tiles,
             legend = legend,
             palette = palette,
+            opacity = opacity,
             output_size = output_size
         ) |>
         # add legend
@@ -388,6 +390,7 @@ sits_view.probs_cube <- function(x, ...,
                                  class_cube = NULL,
                                  legend = NULL,
                                  view_max_mb = NULL,
+                                 opacity = 0.7,
                                  palette = "YlGnBu") {
     # preconditions
     # verifies if leafem and leaflet packages are installed
@@ -459,6 +462,7 @@ sits_view.probs_cube <- function(x, ...,
             tiles = tiles,
             legend = legend,
             palette = palette,
+            opacity = opacity,
             output_size = output_size
         ) |>
         # add legend
