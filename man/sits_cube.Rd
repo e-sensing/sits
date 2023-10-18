@@ -286,7 +286,7 @@ if (sits_run_examples()) {
         end_date = "2019-07-23"
     )
 
-    # -- Creating Sentinel cube from MPC"
+    # -- Creating Sentinel cube from MPC
     s2_cube <- sits_cube(
         source = "MPC",
         collection = "SENTINEL-2-L2A",
