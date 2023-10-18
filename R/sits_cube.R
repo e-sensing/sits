@@ -1,8 +1,6 @@
 #' @title Create data cubes from image collections
 #' @name sits_cube
 #'
-#' @references \code{rstac} package (https://github.com/brazil-data-cube/rstac)
-#'
 #' @description Creates a data cube based on spatial and temporal restrictions
 #' in collections available in cloud services or local repositories.
 #' The following cloud providers are supported, based on the STAC protocol:
@@ -65,7 +63,6 @@
 #' @return A \code{tibble} describing the contents of a data cube.
 #'
 #' @details
-#'
 #' To create cubes from cloud providers, users need to inform:
 #' \itemize{
 #' \item{\code{source}: }{One of \code{"AWS"}, \code{"BDC"}, \code{"DEAFRICA"},
@@ -79,8 +76,7 @@
 #' Either \code{tiles} or  \code{roi} must be informed.
 #' The parameters \code{bands}, \code{start_date}, and
 #' \code{end_date} are optional for cubes created from cloud providers.
-#'
-#' The \code{roi} parameter allows a selection of an area of interest,
+#' #' The \code{roi} parameter allows a selection of an area of interest,
 #' either using a named \code{vector} (\code{"lon_min"}, \code{"lat_min"},
 #' \code{"lon_max"}, \code{"lat_max"}) in WGS84, a \code{sfc} or \code{sf}
 #' object from sf package in WGS84 projection.
@@ -97,7 +93,7 @@
 #'  (e.g., "SENTINEL-2-L2A" for the Sentinel-2 MPC collection level 2A).}
 #' \item{\code{data_dir}: }{Local directory where images are stored.}
 #' \item{\code{parse_info}: }{Parsing information for files (see below).
-#'   Default is \code{c("X1", "X2", tile", "band", "date")}.}
+#'   Default is \code{c("X1", "X2", "tile", "band", "date")}.}
 #' \item{\code{delim}: }{Delimiter character for parsing files (see below).
 #'    Default is \code{"_"}.}
 #' }
@@ -111,13 +107,14 @@
 #' and \code{"SENTINEL-2_MSI_20LKP_B02_2018-07-18.jp2"} are accepted names.
 #' The user has to provide parsing information to allow \code{sits}
 #' to extract values of tile, band, and date. In the examples above,
-#' the parsing info is \code{c("X1", "X2", tile", "band", "date")}
-#' and the delimiter is \code{"_"}, which are the default values.
+#' the parsing info is c("X1", "X2", "tile", "band", "date")
+#' and the delimiter is "_", which are the default values.
 #'
 #' It is also possible to create result cubes for these are local files
 #' produced by classification or post-classification algorithms. In
 #' this case, there are more parameters that are required (see below) and the
-#' parameter \code{parse_info} is specified differently:
+#' parameter \code{parse_info} is specified differently.
+#'
 #' \itemize{
 #' \item{\code{band}: }{The band name is associated to the type of result. Use
 #'   \code{"probs"}, for probability cubes produced by \code{sits_classify()};
@@ -125,14 +122,13 @@
 #'   \code{"entropy"} when using \code{sits_uncertainty()}, or \code{"class"}
 #'   for cubes produced by \code{sits_label_classification()}.}
 #' \item{\code{labels}: }{Labels associated to the classification results.}
-#' \item{\code{parse_info}: }{File name parsing information has to allow
-#'   \code{sits} to deduce the values of "tile", "start_date", "end_date" from
-#'   the file name. Default is
-#'   \code{c("X1", "X2", "tile", "start_date", "end_date", "band")}.
-#'   Note that, unlike non-classified image files, cubes with results have both
+#' \item{\code{parse_info}: }{File name parsing information
+#'   to deduce the values of "tile", "start_date", "end_date" from
+#'   the file name. Default is c("X1", "X2", "tile", "start_date",
+#'   "end_date", "band"). Unlike non-classified image files,
+#'   cubes with results have both
 #'   "start_date" and "end_date".}
 #' }
-#'
 #' @note In MPC, sits can access are two open data collections:
 #' \code{"SENTINEL-2-L2A"} for Sentinel-2/2A images, and
 #' \code{"LANDSAT-C2-L2"} for the Landsat-4/5/7/8/9 collection.
@@ -192,10 +188,6 @@
 #' Sys.setenv(
 #'     BDC_ACCESS_KEY = <your_bdc_access_key>
 #' )}
-#'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @examples
 #' if (sits_run_examples()) {

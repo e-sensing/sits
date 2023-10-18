@@ -71,7 +71,7 @@ sits_tuning <- function(samples,
                         params = sits_tuning_hparams(
                             optimizer = torchopt::optim_adamw,
                             opt_hparams = list(
-                                lr = beta(0.3, 5)
+                                lr = loguniform(10^-2, 10^-4)
                             )
                         ),
                         trials = 30,

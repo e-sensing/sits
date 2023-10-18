@@ -18,7 +18,7 @@
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Color palette (if colors not in legend nor
 #'                       in sits default colors)
-#' @param  fill_opacity  Opacity of segment fill
+#' @param  opacity       Opacity of segment fill or class cube
 #' @param  seg_color     Color for segment boundaries
 #' @param  line_width    Line width for segments (in pixels)
 #' @param  view_max_mb   Maximum size of leaflet to be visualized
@@ -161,6 +161,7 @@ sits_view.raster_cube <- function(x, ...,
                                   class_cube = NULL,
                                   legend = NULL,
                                   palette = "RdYlGn",
+                                  opacity = 0.7,
                                   view_max_mb = NULL) {
     # preconditions
     # Probs cube not supported
@@ -184,6 +185,7 @@ sits_view.raster_cube <- function(x, ...,
         blue = blue,
         legend = legend,
         palette = palette,
+        opacity = opacity,
         view_max_mb = view_max_mb
     )
     return(leaf_map)
@@ -201,7 +203,7 @@ sits_view.vector_cube <- function(x, ...,
                                   class_cube = NULL,
                                   legend = NULL,
                                   palette = "RdYlGn",
-                                  fill_opacity = 0.5,
+                                  opacity = 0.7,
                                   seg_color = "black",
                                   line_width = 1,
                                   view_max_mb = NULL) {
@@ -225,7 +227,7 @@ sits_view.vector_cube <- function(x, ...,
         class_cube = class_cube,
         legend = legend,
         palette = palette,
-        fill_opacity = fill_opacity,
+        opacity = opacity,
         seg_color = seg_color,
         line_width = line_width,
         view_max_mb = view_max_mb
