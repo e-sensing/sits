@@ -48,7 +48,7 @@ test_that("View", {
         memsize = 4,
         multicores = 1,
         progress = FALSE,
-        version = "v_view"
+        version = "v_2"
     )
     v2_probs <- sits_view(modis_probs)
     expect_true("leaflet" %in% class(v2_probs))
@@ -58,7 +58,8 @@ test_that("View", {
     # create a class cube
     modis_label <- sits_label_classification(modis_probs,
         output_dir = tempdir(),
-        progress = FALSE
+        progress = FALSE,
+        version = "v2"
     )
     v3 <- sits_view(modis_label)
     expect_true(grepl("EPSG3857", v3$x$options$crs$crsClass))

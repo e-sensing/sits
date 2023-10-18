@@ -346,7 +346,8 @@ sits_classify.segs_cube <- function(data,
     # preconditions
     .check_is_vector_cube(data)
     .check_is_sits_model(ml_model)
-    .check_int_parameter(n_sam_pol, min = 5, max = 50)
+    if (!purrr::is_null(n_sam_pol))
+        .check_int_parameter(n_sam_pol, min = 5, max = 50)
     .check_memsize(memsize, min = 1, max = 16384)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
