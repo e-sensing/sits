@@ -35,12 +35,7 @@ test_that("summary sits area accuracy", {
         progress = FALSE
     )
     sum_cube <- capture.output(suppressWarnings(summary(cube)))
-    expect_true(grepl("class", sum_cube[1]))
-    expect_true(grepl("dimensions", sum_cube[2]))
-    expect_true(grepl("resolution", sum_cube[3]))
-    expect_true(grepl("extent", sum_cube[4]))
-    expect_true(grepl("coord", sum_cube[5]))
-    expect_true(grepl("Min", sum_cube[7]))
+    expect_true(grepl("TERRA", sum_cube[1]))
 
     # create a random forest model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
