@@ -149,22 +149,24 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
     }
     # Display cube general metadata
     cli::cli_h1("Cube Metadata")
+    cli::cli_li("Class: {.field {raster_cube}}")
     cube_bbox <- sits_bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
-    cli::cli_li("Bounding Box: xmin = {cube_bbox[['xmin']]},
-                               xmax = {cube_bbox[['xmax']]},
-                               ymin = {cube_bbox[['ymin']]},
-                               ymax = {cube_bbox[['ymax']]}")
-    cli::cli_li("Bands: {sits_bands(object)}")
-    # timeline <- unique(as.Date(unlist(.cube_timeline(object)), ))
-    # cli::cli_li("Timeline: {timeline}")
+    cli::cli_li("Bounding Box: xmin = {.field {cube_bbox[['xmin']]}},
+                               xmax = {.field {cube_bbox[['xmax']]}},
+                               ymin = {.field {cube_bbox[['ymin']]}},
+                               ymax = {.field {cube_bbox[['ymax']]}}")
+    cli::cli_li("Bands: {.field {sits_bands(object)}}")
+    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(s2_cube))))
+    cli::cli_li("Timeline: {.field {timeline}}")
     is_regular <- .cube_is_regular(object)
-    cli::cli_li("Regular cube: {is_regular}")
+    cli::cli_li("Regular cube: {.field {is_regular}}")
     # Display cube cloud coverage
-    if ("CLOUD" %in% .cube_bands(object)) {
-        cli::cli_h1("Cloud cover info")
+    if ("CLOUD" %in% .cube_bands(object) &&
+        .has_column(.fi(object), "cloud_cover")) {
         cube_unnest <- tidyr::unnest(
             object[, c("tile", "file_info")], "file_info"
         )
+        cli::cli_h1("Cloud cover info")
         cube_unnest <- cube_unnest[, c("tile", "date", "cloud_cover")]
         cube_unnest <- unique(dplyr::arrange(cube_unnest, .data[["date"]]))
         print(cube_unnest, n = Inf)
@@ -173,12 +175,11 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
     cli::cli_h1("Cube Summary")
     sum <- slider::slide(object, function(tile) {
         # Get the first date to not read all images
-        # TODO: colocar data
         date <- .default(date, .tile_timeline(tile)[[1]])
         tile <- .tile_filter_dates(tile, date)
         bands <- if (is_regular) .tile_bands(tile) else .tile_bands(tile)[[1]]
         tile <- .tile_filter_bands(tile, bands)
-        cli::cli_h3("Tile: {.field {tile$tile}}")
+        cli::cli_h3("Tile: {.field {tile$tile}} and Date: {.field {date}}")
         rast <- .raster_open_rast(.tile_paths(tile))
         sum <- suppressWarnings(.raster_summary(rast))
         print(sum)
@@ -220,12 +221,26 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
 #' }
 #'
 #' @export
-summary.derived_cube <- function(object, ...,
-                                  tile = object$tile[[1]]) {
+summary.derived_cube <- function(object, ..., tile = NULL) {
+    # Pre-conditional check
+    .check_chr_parameter(tile, allow_null = TRUE)
+    # Extract the chosen tile
+    if (!is.null(tile)) {
+        object <- .summary_check_tile(object, tile)
+    }
+    # Display cube general metadata
+    cli::cli_h1("Cube Metadata")
+    cli::cli_li("Class: {.field {derived_cube}}")
+    cube_bbox <- sits_bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
+    cli::cli_li("Bounding Box: xmin = {.field {cube_bbox[['xmin']]}},
+                               xmax = {.field {cube_bbox[['xmax']]}},
+                               ymin = {.field {cube_bbox[['ymin']]}},
+                               ymax = {.field {cube_bbox[['ymax']]}}")
+    cli::cli_li("Bands: {.field {sits_bands(object)}}")
+    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(s2_cube))))
+    cli::cli_li("Timeline: {.field {timeline}}")
     # get sample size
     sample_size <- .conf("summary_sample_size")
-    # filter the tile to be processed
-    tile <- .summary_check_tile(object, tile)
     # get the bands
     band <- sits_bands(tile)
     .check_num(
