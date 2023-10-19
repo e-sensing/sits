@@ -6,6 +6,7 @@ test_that("sits summary", {
     expect_equal(sum1$label, c("Cerrado", "Forest", "Pasture", "Soy_Corn"))
     expect_equal(sum1$count, c(379, 131, 344, 364))
 })
+
 test_that("summary sits accuracy", {
     data(cerrado_2classes)
     # split training and test data
@@ -25,6 +26,7 @@ test_that("summary sits accuracy", {
     expect_true(grepl("Accuracy", sum[2]))
     expect_true(grepl("Kappa", sum[4]))
 })
+
 test_that("summary sits area accuracy", {
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
