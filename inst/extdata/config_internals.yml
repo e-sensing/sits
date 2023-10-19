@@ -63,21 +63,24 @@ results_parse_info_col : ["tile", "start_date", "end_date", "band"]
 
 # bands resulting from classification and post-classification
 sits_results_bands : ["probs", "bayes", "uncert", "entropy",
-                      "class", "least", "margin", "variance"]
+                      "class", "least", "margin", "variance",
+                      "segments", "probs-vector"]
 
 # bands resulting from classification and smoothing
-sits_probs_bands : ["probs", "bayes"]
+sits_probs_bands : ["probs", "bayes", "probs-vector"]
 # bands resulting from uncertainty
 sits_uncert_bands : ["uncert", "entropy", "least", "margin"]
 
 # bands resulting from classification and post-classification
 sits_results_s3_class:
                     probs: "probs_cube"
+                    probs-vector: "probs_vector_cube"
                     bayes: "probs_cube"
                     uncert: "uncertainty_cube"
                     entropy: "uncertainty_cube"
                     variance: "variance_cube"
                     class:  "class_cube"
+                    class-vector:  "class_vector_cube"
 
 # default configuration for raster cubes
 raster_cube_scale_factor : 0.0001
@@ -159,12 +162,12 @@ vector_cube          :
         s3_class     : ["probs_vector_cube", "derived_vector_cube", "segs_cube",
                         "vector_cube"]
         bands        :
-            probs    :
+            probs-vector :
     class_vector_cube:
         s3_class     : ["class_vector_cube", "derived_vector_cube", "segs_cube",
                         "vector_cube"]
         bands        :
-            class    :
+            class-vector    :
 
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"

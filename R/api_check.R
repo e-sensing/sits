@@ -1246,7 +1246,7 @@
 #' @keywords internal
 #' @noRd
 #' @param  version  character vector
-#' @return Called for side effects.
+#' @return version adjusted to remove underscores
 .check_version <- function(version) {
     .check_chr(
         x = version,
@@ -1257,7 +1257,9 @@
         len_max = 1,
         msg = "invalid version"
     )
-    return(invisible(version))
+    # avoids use of underscores
+    version <- gsub("_", "-", version)
+    return(version)
 }
 #' @title Check is version parameter is valid using reasonable defaults
 #' @name .check_progress
@@ -1455,7 +1457,7 @@
         )
 
         # is label parameter was provided in labelled cubes?
-        if (bands %in% c("probs", "bayes")) {
+        if (bands %in% c("probs", "bayes", "probs-vector")) {
             .check_chr(
                 labels,
                 len_min = 1,
@@ -1465,7 +1467,7 @@
             )
         }
         # labels should be named in class cubes?
-        if (bands %in% c("class")) {
+        if (bands %in% c("class", "class-vector")) {
             .check_length(
                 labels,
                 len_min = 2,

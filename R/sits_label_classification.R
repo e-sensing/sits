@@ -85,7 +85,7 @@ sits_label_classification.probs_cube <- function(cube, ...,
     .check_memsize(memsize, min = 1, max = 16384)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
-    .check_version(version)
+    version <- .check_version(version)
     # version is case-insensitive in sits
     version <- tolower(version)
 
@@ -157,7 +157,7 @@ sits_label_classification.probs_vector_cube <- function(cube, ...,
     # Pre-conditions - Check parameters
     .check_cube_files(cube)
     .check_output_dir(output_dir)
-    .check_version(version)
+    version <- .check_version(version)
     # version is case-insensitive in sits
     version <- tolower(version)
     # Process each tile sequentially

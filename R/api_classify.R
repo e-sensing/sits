@@ -216,7 +216,7 @@
                                   progress) {
     # Output file
     out_file <- .file_derived_name(
-        tile = tile, band = "probs", version = version,
+        tile = tile, band = "probs-vector", version = version,
         output_dir = output_dir, ext = "gpkg"
     )
     # Resume feature
@@ -231,7 +231,7 @@
         # Create tile based on template
         probs_tile <- .tile_segments_from_file(
             file = out_file,
-            band = "probs",
+            band = "probs-vector",
             base_tile = tile,
             labels = .ml_labels(ml_model),
             vector_class = "probs_vector_cube",
