@@ -94,7 +94,7 @@ sits_mosaic <- function(cube,
     .check_crs(crs)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
-    .check_version(version)
+    version <- .check_version(version)
     .check_progress(progress)
     # version is case-insensitive in sits
     version <- tolower(version)

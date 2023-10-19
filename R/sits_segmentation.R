@@ -89,7 +89,7 @@ sits_segment <- function(cube,
     .check_is_regular(cube)
     .check_memsize(memsize, min = 1, max = 16384)
     .check_output_dir(output_dir)
-    .check_version(version)
+    version <- .check_version(version)
     .check_progress(progress)
     .check_function(seg_fn)
 

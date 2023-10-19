@@ -69,7 +69,7 @@ sits_variance <- function(
     # check output_dir
     .check_output_dir(output_dir)
     # check version
-    .check_version(version)
+    version <- .check_version(version)
     # Dispatch
     UseMethod("sits_variance", cube)
 }

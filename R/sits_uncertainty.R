@@ -68,7 +68,7 @@ sits_uncertainty <- function(
     # check output dir
     .check_output_dir(output_dir)
     # check version
-    .check_version(version)
+    version <- .check_version(version)
     # version is case-insensitive in sits
     version <- tolower(version)
     # Check memory and multicores
