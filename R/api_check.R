@@ -1459,7 +1459,7 @@
         )
 
         # is label parameter was provided in labelled cubes?
-        if (bands %in% c("probs", "bayes", "probs-vector")) {
+        if (bands %in% c("probs", "bayes", "segments", "probs-vector")) {
             .check_chr(
                 labels,
                 len_min = 1,
