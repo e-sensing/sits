@@ -460,8 +460,7 @@
             # dissolve sf_seg
             sf_seg <- sf_seg |>
                 dplyr::group_by(.data[["class"]]) |>
-                dplyr::summarise() |>
-                sf::st_simplify()
+                dplyr::summarise()
             labels_seg <- sf_seg |>
                 sf::st_drop_geometry() |>
                 dplyr::select("class") |>
