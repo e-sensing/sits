@@ -49,7 +49,7 @@ sf_geom_types_supported : ["POINT", "POLYGON", "MULTIPOLYGON"]
 
 # local cube config options
 local_s3_class          : ["local_cube", "raster_cube"]
-local_file_extensions   : ["tiff", "tif", "jp2", "hdf", "vrt"]
+local_file_extensions   : ["tiff", "tif", "jp2", "hdf", "vrt", "gpkg"]
 local_parse_info_col    : ["tile", "band", "date"]
 local_parse_info_def    : ["X1", "X2", "tile", "band", "date"]
 
@@ -64,7 +64,7 @@ results_parse_info_col : ["tile", "start_date", "end_date", "band"]
 # bands resulting from classification and post-classification
 sits_results_bands : ["probs", "bayes", "uncert", "entropy",
                       "class", "least", "margin", "variance",
-                      "segments", "probs-vector"]
+                      "segments", "probs-vector", "class-vector"]
 
 # bands resulting from classification and smoothing
 sits_probs_bands : ["probs", "bayes", "probs-vector"]
