@@ -1247,6 +1247,10 @@ NULL
     vec_segments <- purrr::map_dfr(block_files, .vector_read_vec.sf)
     # Define an unique ID
     vec_segments[["pol_id"]] <- seq_len(nrow(vec_segments))
+    # Store base tile file info as JSON to use further do retrieve cube
+    #vec_segments[["file_info"]] <- .as_chr(jsonlite::serializeJSON(base_tile))
+    #vec_segments[["file_info"]] <- .as_chr(jsonlite::serializeJSON(.fi(base_tile)))
+    vec_segments[["file_info"]] <- .as_chr(jsonlite::base64_enc(serialize(.fi(base_tile))))
     # Write all segments
     .vector_write_vec(v_obj = vec_segments, file_path = out_file)
     # Create tile based on template

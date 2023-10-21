@@ -27,15 +27,13 @@ NULL
     tile
 }
 
-.vi_derived <- function(band, start_date, end_date, xres, yres,
-                        xmin, xmax, ymin, ymax, path) {
+.vi_derived <- function(band, start_date, end_date, xmin, xmax, ymin,
+                        ymax, path) {
     # Create a new derived file_info
     tibble::tibble(
         band = .band_derived(band),
         start_date = start_date,
         end_date = end_date,
-        xres = xres,
-        yres = yres,
         xmin = xmin,
         xmax = xmax,
         ymin = ymin,
@@ -52,8 +50,6 @@ NULL
         band = band,
         start_date = start_date,
         end_date = end_date,
-        xres = .tile_xres(base_tile),
-        yres = .tile_yres(base_tile),
         xmin = bbox[["xmin"]],
         xmax = bbox[["xmax"]],
         ymin = bbox[["ymin"]],

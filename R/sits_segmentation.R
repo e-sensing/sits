@@ -57,7 +57,7 @@
 #'     # segment the vector cube
 #'     segments <- sits_segment(
 #'         cube = cube,
-#'         output_dir = tempdir()
+#'         output_dir = "/home/sits/test_seg/"
 #'     )
 #'     # create a classification model
 #'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -65,12 +65,12 @@
 #'     seg_probs <- sits_classify(
 #'         data = segments,
 #'         ml_model = rfor_model,
-#'         output_dir = tempdir()
+#'         output_dir = "/home/sits/test_seg/"
 #'     )
 #'     # label the probability segments
 #'     seg_label <- sits_label_classification(
 #'         cube = seg_probs,
-#'         output_dir = tempdir()
+#'         output_dir = = "/home/sits/test_seg/"
 #'     )
 #' }
 #' @export
@@ -89,7 +89,7 @@ sits_segment <- function(cube,
     .check_is_regular(cube)
     .check_memsize(memsize, min = 1, max = 16384)
     .check_output_dir(output_dir)
-    .check_version(version)
+    version <- .check_version(version)
     .check_progress(progress)
     .check_function(seg_fn)
 
