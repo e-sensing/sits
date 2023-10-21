@@ -194,11 +194,9 @@
             msg = "invalid 'pol_id' parameter."
         )
     }
-
     points_tab <- seq_len(nrow(sf_object)) |>
         purrr::map_dfr(function(i) {
             # retrieve the class from the shape attribute
-
             if ("label" %in% colnames(sf_df)) {
                 label <- as.character(
                     unlist(sf_df[i, "label"], use.names = FALSE)
@@ -212,7 +210,6 @@
             if (!purrr::is_null(pol_id) && pol_id %in% colnames(sf_df)) {
                 polygon_id <- unname(as.character(sf_df[i, pol_id]))
             }
-
             # obtain a set of samples based on polygons
             points <- list(sf::st_sample(sf_object[i, ], size = n_sam_pol))
             # get one time series per sample

@@ -296,18 +296,20 @@
                                progress) {
     # extract a samples data.frame from sf object
     samples <- slider::slide_dfr(cube, function(tile) {
-        samples_tile  <- .sf_get_samples(
+        samples_tile <- .segments_get_samples(
             sf_object  = .segments_read_vec(tile),
-            label      = "NoClass",
-            label_attr = NULL,
-            start_date = .cube_start_date(tile),
-            end_date   = .cube_end_date(tile),
             n_sam_pol  = n_sam_pol,
-            pol_id     = pol_id
+            pol_id     = pol_id,
+            multicores = multicores
         )
+        # include information to transform data frame to a sits tibble
+        samples_tile$label <- "NoClass"
+        samples_tile$start_date <- .cube_start_date(tile)
+        samples_tile$end_date   <- .cube_end_date(tile)
         return(samples_tile)
     })
-
+    # transform the samples to class sits
+    class(samples) <- c("sits", class(samples))
     # extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
@@ -480,4 +482,52 @@
 
     # join the data_id tibble with the segments (sf objects)
     dplyr::left_join(segments, data_id, by = c("pol_id" = "polygon_id"))
+}
+#' @title Extract list of POINT samples from segments
+#'
+#' @name .segments_get_samples
+#' @keywords internal
+#' @noRd
+#' @description     Using the segments as polygons, get all time series
+#' @param sf_object       sf object containing polygons
+#' @param pol_id     ID attribute for polygons.
+#' @param n_sam_pol  Number of samples per polygon to be read.
+#' @param multicores Number of cores to use for processing
+#'
+.segments_get_samples <- function(sf_object,
+                                  n_sam_pol,
+                                  pol_id,
+                                  multicores) {
+
+    # If the sf object is not in planar coordinates, convert it
+    sf_object <- suppressWarnings(sf::st_transform(sf_object, crs = 4326))
+    # create partitions
+    sf_object[["part_id"]] <- .partitions(x = seq_len(nrow(sf_object)),
+                                          n = multicores)
+    # allocate n_sam_pol in the object (required for parallel processing)
+    sf_object[["n_sam_pol"]] <- n_sam_pol
+    # reorganize as a nested data frame
+    sf_parts <- tidyr::nest(sf_object, polygons = -"part_id")
+
+    # prepare parallelization
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
+    # get the samples in parallel using tile-band combination
+    samples <- .jobs_map_parallel_dfr(
+        sf_parts,
+        function(sf_part) {
+            sf_pols <- sf_part[["polygons"]][[1]]
+            points_sf <- seq_len(nrow(sf_pols)) |>
+                purrr::map_dfr(function(i){
+                    points_row <- sf_pols[i,] |>
+                        sf::st_sample(size = sf_pols[i,]$n_sam_pol) |>
+                        sf::st_coordinates() |>
+                        as.data.frame()
+                    colnames(points_row) <- c("longitude", "latitude")
+                    points_row$polygon_id <- sf_pols[i,]$pol_id
+                    return(points_row)
+                })
+            return(points_sf)
+        })
+    return(samples)
 }

@@ -40,6 +40,7 @@
 #'                           (integer, min = 1, max = 16384).
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
+#' @param  gpu_memory        Memory available in GPU (default = NULL)
 #' @param  aggreg_fn         Function to compute a summary of each segment
 #'                           (object of class "function").
 #' @param  n_sam_pol         Number of time series per segment to be classified
@@ -336,6 +337,7 @@ sits_classify.segs_cube <- function(data,
                                     end_date = NULL,
                                     memsize = 8L,
                                     multicores = 2L,
+                                    gpu_memory = NULL,
                                     output_dir,
                                     version = "v1",
                                     aggreg_fn = "median",
@@ -353,10 +355,13 @@ sits_classify.segs_cube <- function(data,
     .check_output_dir(output_dir)
     version <- .check_version(version)
     .check_progress(progress)
-
     # version is case-insensitive in sits
     version <- tolower(version)
-
+    # If we using the GPU, gpu_memory parameter needs to be specified
+    if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {
+        .check_int_parameter(gpu_memory, min = 1, max = 16384,
+                             msg = "Using GPU: gpu_memory must be informed")
+    }
     # Temporal filter
     if (.has(start_date) || .has(end_date)) {
         data <- .cube_filter_interval(
@@ -394,6 +399,7 @@ sits_classify.segs_cube <- function(data,
             aggreg_fn = aggreg_fn,
             n_sam_pol = n_sam_pol,
             multicores = multicores,
+            gpu_memory = gpu_memory,
             version = version,
             output_dir = output_dir,
             progress = progress
