@@ -501,7 +501,7 @@
     num_parts <- ceiling(pred_size/gpu_memory)
     # Divide samples predictors in chunks to parallel processing
     parts <- .pred_create_partition(pred = pred, partitions = num_parts)
-    prediction <- purrr::map_dfr(parts, function(part){
+    prediction <- slider::slide_dfr(parts, function(part){
         # Get predictors of a given partition
         pred_part <- .pred_part(part)
         # Get predictors features to classify
