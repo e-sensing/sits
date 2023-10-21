@@ -519,11 +519,12 @@
             sf_pols <- sf_part[["polygons"]][[1]]
             points_sf <- seq_len(nrow(sf_pols)) |>
                 purrr::map_dfr(function(i){
-                    points_row <- sf_pols[i,] |>
-                        sf::st_sample(size = sf_pols[i,]$n_sam_pol) |>
-                        sf::st_coordinates() |>
-                        as.data.frame()
-                    colnames(points_row) <- c("longitude", "latitude")
+                    polymatrix <- sf::st_coordinates(sf_pols[i,])
+                    polymatrix <- polymatrix[, 1:2]
+                    points_mx <- sample_points(polymatrix,
+                                                sf_pols[i,]$n_sam_pol)
+                    colnames(points_mx) <- c("longitude", "latitude")
+                    points_row <- tibble::as_tibble(points_mx)
                     points_row$polygon_id <- sf_pols[i,]$pol_id
                     return(points_row)
                 })
