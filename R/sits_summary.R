@@ -149,7 +149,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
     }
     # Display cube general metadata
     cli::cli_h1("Cube Metadata")
-    cli::cli_li("Class: {.field {raster_cube}}")
+    cli::cli_li("Class: {.field raster_cube}")
     cube_bbox <- sits_bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
     cli::cli_li("Bounding Box: xmin = {.field {cube_bbox[['xmin']]}},
                                xmax = {.field {cube_bbox[['xmax']]}},
@@ -230,17 +230,21 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
     }
     # Display cube general metadata
     cli::cli_h1("Cube Metadata")
-    cli::cli_li("Class: {.field {derived_cube}}")
+    cli::cli_li("Class: {.field derived_cube}")
     cube_bbox <- sits_bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
     cli::cli_li("Bounding Box: xmin = {.field {cube_bbox[['xmin']]}},
                                xmax = {.field {cube_bbox[['xmax']]}},
                                ymin = {.field {cube_bbox[['ymin']]}},
                                ymax = {.field {cube_bbox[['ymax']]}}")
-    cli::cli_li("Bands: {.field {sits_bands(object)}}")
+    cli::cli_li("Band(s): {.field {sits_bands(object)}}")
     timeline <- unique(lubridate::as_date(unlist(.cube_timeline(s2_cube))))
     cli::cli_li("Timeline: {.field {timeline}}")
     # get sample size
     sample_size <- .conf("summary_sample_size")
+    # Get tile name
+    tile <- .default(tile, .cube_tiles(object)[[1]])
+    cli::cli_h1("Cube Summary")
+    tile <- .cube_filter_tiles(object, tile)
     # get the bands
     band <- sits_bands(tile)
     .check_num(
@@ -252,9 +256,6 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
     )
     # extract the file paths
     files <- .tile_paths(tile)
-
-    # print the base information (if requested)
-    .summary_tile_information(tile)
     # read the files with terra
     r <- terra::rast(files)
     # get the a sample of the values
@@ -304,10 +305,28 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
 #' }
 #' @export
 #'
-summary.class_cube <- function(object, ...,
-                               tile = object$tile[[1]]) {
-    # check tile
-    tile <- .summary_check_tile(object, tile)
+summary.class_cube <- function(object, ..., tile = NULL) {
+    # Pre-conditional check
+    .check_chr_parameter(tile, allow_null = TRUE)
+    # Extract the chosen tile
+    if (!is.null(tile)) {
+        object <- .summary_check_tile(object, tile)
+    }
+    # Display cube general metadata
+    cli::cli_h1("Cube Metadata")
+    cli::cli_li("Class: {.field class_cube}")
+    cube_bbox <- sits_bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
+    cli::cli_li("Bounding Box: xmin = {.field {cube_bbox[['xmin']]}},
+                               xmax = {.field {cube_bbox[['xmax']]}},
+                               ymin = {.field {cube_bbox[['ymin']]}},
+                               ymax = {.field {cube_bbox[['ymax']]}}")
+    cli::cli_li("Band(s): {.field {sits_bands(object)}}")
+    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(s2_cube))))
+    cli::cli_li("Timeline: {.field {timeline}}")
+    # Get tile name
+    tile <- .default(tile, .cube_tiles(object)[[1]])
+    cli::cli_h1("Cube Summary")
+    tile <- .cube_filter_tiles(object, tile)
     # get the bands
     band <- sits_bands(tile)
     .check_num(
@@ -315,12 +334,10 @@ summary.class_cube <- function(object, ...,
         min = 1,
         max = 1,
         is_integer = TRUE,
-        msg = "invalid cube - more than one class band"
+        msg = "invalid cube - more than one probs band"
     )
     # extract the file paths
     files <- .tile_paths(tile)
-    # print the base information (if requested)
-    .summary_tile_information(tile)
     # read raster files
     r <- .raster_open_rast(files)
     # get a frequency of values
