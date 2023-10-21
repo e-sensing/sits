@@ -4,7 +4,7 @@
 \alias{summary.class_cube}
 \title{Summarize data cubes}
 \usage{
-\method{summary}{class_cube}(object, ..., tile = object$tile[[1]])
+\method{summary}{class_cube}(object, ..., tile = NULL)
 }
 \arguments{
 \item{object}{Object of class "class_cube"}
