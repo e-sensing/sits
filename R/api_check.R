@@ -1130,18 +1130,20 @@
 #' @param  allow_null allow null parameter?
 #' @param  len_min minimum length of vector
 #' @param  len_max maximum length of vector
+#' @param  msg message error
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_chr_parameter <- function(param, allow_null = FALSE, len_min = 1,
-                                 len_max = 1) {
+.check_chr_parameter <- function(param, len_min = 1, len_max = 1,
+                                 allow_null = FALSE, msg = NULL) {
     .check_chr(
         param,
         len_min = len_min,
         len_max = len_max,
         allow_null = allow_null,
         allow_na = FALSE,
-        allow_empty = FALSE
+        allow_empty = FALSE,
+        msg = msg
     )
     return(invisible(param))
 }
@@ -1459,7 +1461,7 @@
         )
 
         # is label parameter was provided in labelled cubes?
-        if (bands %in% c("probs", "bayes", "probs-vector")) {
+        if (bands %in% c("probs", "bayes")) {
             .check_chr(
                 labels,
                 len_min = 1,
@@ -1469,7 +1471,7 @@
             )
         }
         # labels should be named in class cubes?
-        if (bands %in% c("class", "class-vector")) {
+        if (bands %in% c("class")) {
             .check_length(
                 labels,
                 len_min = 2,

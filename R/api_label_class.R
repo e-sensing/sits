@@ -152,3 +152,9 @@
     # Return closure
     label_fn
 }
+.label_gpkg_file <- function(gpkg_file){
+    sf <- sf::st_read(gpkg_file, quiet = TRUE)
+    labels <- setdiff(colnames(sf), c("supercells", "x", "y",
+                                      "pol_id", "geom", "class"))
+    return(labels)
+}

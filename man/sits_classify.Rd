@@ -57,6 +57,7 @@ sits_classify(
   end_date = NULL,
   memsize = 8L,
   multicores = 2L,
+  gpu_memory = NULL,
   output_dir,
   version = "v1",
   aggreg_fn = "median",
@@ -105,6 +106,8 @@ named lat/long values
 (character vector of length 1).}
 
 \item{verbose}{Logical: print information about processing time?}
+
+\item{gpu_memory}{Memory available in GPU (default = NULL)}
 
 \item{aggreg_fn}{Function to compute a summary of each segment
 (object of class "function").}

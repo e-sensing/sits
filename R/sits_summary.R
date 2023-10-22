@@ -156,7 +156,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
                                ymin = {.field {cube_bbox[['ymin']]}},
                                ymax = {.field {cube_bbox[['ymax']]}}")
     cli::cli_li("Bands: {.field {sits_bands(object)}}")
-    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(s2_cube))))
+    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(object))))
     cli::cli_li("Timeline: {.field {timeline}}")
     is_regular <- .cube_is_regular(object)
     cli::cli_li("Regular cube: {.field {is_regular}}")
@@ -237,7 +237,7 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
                                ymin = {.field {cube_bbox[['ymin']]}},
                                ymax = {.field {cube_bbox[['ymax']]}}")
     cli::cli_li("Band(s): {.field {sits_bands(object)}}")
-    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(s2_cube))))
+    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(object))))
     cli::cli_li("Timeline: {.field {timeline}}")
     # get sample size
     sample_size <- .conf("summary_sample_size")
@@ -321,7 +321,7 @@ summary.class_cube <- function(object, ..., tile = NULL) {
                                ymin = {.field {cube_bbox[['ymin']]}},
                                ymax = {.field {cube_bbox[['ymax']]}}")
     cli::cli_li("Band(s): {.field {sits_bands(object)}}")
-    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(s2_cube))))
+    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(object))))
     cli::cli_li("Timeline: {.field {timeline}}")
     # Get tile name
     tile <- .default(tile, .cube_tiles(object)[[1]])

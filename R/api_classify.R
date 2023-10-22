@@ -207,17 +207,28 @@
 #' @param  n_sam_pol  Number of samples per polygon to be read
 #'                    for POLYGON or MULTIPOLYGON shapefiles or sf objects.
 #' @param  multicores Number of cores to be used for classification
+#' @param  gpu_memory Memory available in GPU (default = NULL)
 #' @param  version    Version of result.
 #' @param  output_dir Output directory.
 #' @param  progress   Show progress bar?
 #' @return List of the classified raster layers.
-.classify_vector_tile <- function(tile, ml_model, filter_fn, aggreg_fn,
-                                  n_sam_pol, multicores, version, output_dir,
+.classify_vector_tile <- function(tile,
+                                  ml_model,
+                                  filter_fn,
+                                  aggreg_fn,
+                                  n_sam_pol,
+                                  multicores,
+                                  gpu_memory,
+                                  version,
+                                  output_dir,
                                   progress) {
     # Output file
     out_file <- .file_derived_name(
-        tile = tile, band = "probs-vector", version = version,
-        output_dir = output_dir, ext = "gpkg"
+        tile = tile,
+        band = "probs",
+        version = version,
+        output_dir = output_dir,
+        ext = "gpkg"
     )
     # Resume feature
     if (.segments_is_valid(out_file)) {
@@ -231,7 +242,7 @@
         # Create tile based on template
         probs_tile <- .tile_segments_from_file(
             file = out_file,
-            band = "probs-vector",
+            band = "probs",
             base_tile = tile,
             labels = .ml_labels(ml_model),
             vector_class = "probs_vector_cube",
@@ -267,6 +278,7 @@
         ml_model = ml_model,
         filter_fn = filter_fn,
         multicores = multicores,
+        gpu_memory = gpu_memory,
         progress = progress
     )
     # Join probability values with segments
@@ -373,12 +385,14 @@
 #' @param  ml_model   model trained by \code{\link[sits]{sits_train}}.
 #' @param  filter_fn  Smoothing filter to be applied (if desired).
 #' @param  multicores number of threads to process the time series.
+#' @param  gpu_memory Memory available in GPU
 #' @param  progress   Show progress bar?
 #' @return A tibble with the predicted labels.
 .classify_ts <- function(samples,
                          ml_model,
                          filter_fn,
                          multicores,
+                         gpu_memory,
                          progress) {
     # Start parallel workers
     .parallel_start(workers = multicores)
@@ -410,20 +424,11 @@
         # Convert samples time series in predictors and preprocess data
         pred <- .predictors(samples = samples, ml_model = ml_model)
     }
-    # Divide samples predictors in chunks to parallel processing
-    parts <- .pred_create_partition(pred = pred, partitions = multicores)
-    # Do parallel process
-    prediction <- .jobs_map_parallel_dfr(parts, function(part) {
-        # Get predictors of a given partition
-        pred_part <- .pred_part(part)
-        # Get predictors features to classify
-        values <- .pred_features(pred_part)
-        # Classify
-        values <- ml_model(values)
-        # Return classification
-        values <- tibble::tibble(data.frame(values))
-        values
-    }, progress = progress)
+    # choose between GPU and CPU
+    if ("torch_model" %in% class(ml_model) && torch::cuda_is_available())
+        prediction <- .classify_ts_gpu(pred, ml_model, gpu_memory)
+    else
+        prediction <- .classify_ts_cpu(pred, ml_model, multicores, progress)
     # Store the result in the input data
     if (length(class_info[["dates_index"]][[1]]) > 1) {
         prediction <- .tibble_prediction_multiyear(
@@ -440,3 +445,76 @@
     # Set result class and return it
     .set_class(x = prediction, "predicted", class(samples))
 }
+#' @title Classify predictors using CPU
+#' @name .classify_ts_cpu
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns a sits tibble with the results of the ML classifier.
+#'
+#' @param  pred       a tibble with predictors
+#' @param  ml_model   model trained by \code{\link[sits]{sits_train}}.
+#' @param  multicores number of threads to process the time series.
+#' @param  progress   Show progress bar?
+#' @return A tibble with the predicted values.
+.classify_ts_cpu <- function(pred,
+                             ml_model,
+                             multicores,
+                             progress){
+
+    # Divide samples predictors in chunks to parallel processing
+    parts <- .pred_create_partition(pred = pred, partitions = multicores)
+    # Do parallel process
+    prediction <- .jobs_map_parallel_dfr(parts, function(part) {
+        # Get predictors of a given partition
+        pred_part <- .pred_part(part)
+        # Get predictors features to classify
+        values <- .pred_features(pred_part)
+        # Classify
+        values <- ml_model(values)
+        # Return classification
+        values <- tibble::tibble(data.frame(values))
+        values
+    }, progress = progress)
+
+    return(prediction)
+}
+#' @title Classify predictors using GPU
+#' @name .classify_ts_gpu
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns a sits tibble with the results of the ML classifier.
+#'
+#' @param  pred       a tibble with predictors
+#' @param  ml_model   model trained by \code{\link[sits]{sits_train}}.
+#' @param  gpu_memory memory available in GPU
+#' @return A tibble with the predicted values.
+.classify_ts_gpu <- function(pred,
+                             ml_model,
+                             gpu_memory){
+    # estimate size of GPU memory required (in GB)
+    pred_size <- nrow(pred) * ncol(pred) * 4 * .conf("processing_bloat")/1e+09
+    # estimate how should we partition the predictors
+    num_parts <- ceiling(pred_size/gpu_memory)
+    # Divide samples predictors in chunks to parallel processing
+    parts <- .pred_create_partition(pred = pred, partitions = num_parts)
+    prediction <- slider::slide_dfr(parts, function(part){
+        # Get predictors of a given partition
+        pred_part <- .pred_part(part)
+        # Get predictors features to classify
+        values <- .pred_features(pred_part)
+        # Classify
+        values <- ml_model(values)
+        # Return classification
+        values <- tibble::tibble(data.frame(values))
+        # Clean torch cache
+        torch::cuda_empty_cache()
+        return(values)
+    })
+    return(prediction)
+}
+
+

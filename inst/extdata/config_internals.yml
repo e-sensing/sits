@@ -64,10 +64,10 @@ results_parse_info_col : ["tile", "start_date", "end_date", "band"]
 # bands resulting from classification and post-classification
 sits_results_bands : ["probs", "bayes", "uncert", "entropy",
                       "class", "least", "margin", "variance",
-                      "segments", "probs-vector", "class-vector"]
+                      "segments"]
 
 # bands resulting from classification and smoothing
-sits_probs_bands : ["probs", "bayes", "probs-vector"]
+sits_probs_bands : ["probs", "bayes"]
 # bands resulting from uncertainty
 sits_uncert_bands : ["uncert", "entropy", "least", "margin"]
 
