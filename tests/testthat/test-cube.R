@@ -664,7 +664,7 @@ test_that("Creating Sentinel cubes from AWS", {
 
     sum_cube <- capture.output(summary(s2_cube))
 
-    expect_true(grepl("ymax", sum_cube[15]))
+    expect_true(any(grepl("B05", sum_cube)))
 
     v_s2 <- sits_view(
         x = s2_cube,
