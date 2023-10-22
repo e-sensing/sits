@@ -202,6 +202,7 @@ sits_classify.raster_cube <- function(data,
                                       end_date = NULL,
                                       memsize = 8L,
                                       multicores = 2L,
+                                      gpu_memory = NULL,
                                       output_dir,
                                       version = "v1",
                                       verbose = FALSE,
@@ -243,17 +244,26 @@ sits_classify.raster_cube <- function(data,
     # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
-    # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = 0),
-        npaths = length(.tile_paths(data)) + length(.ml_labels(ml_model)),
-        nbytes = 8,
-        proc_bloat = .conf("processing_bloat")
-    )
-    # Update multicores parameter
-    multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
-    )
+    # If we using the GPU, gpu_memory parameter needs to be specified
+    if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {
+        .check_int_parameter(gpu_memory, min = 1, max = 16384,
+                             msg = "Using GPU: gpu_memory must be informed")
+
+        jobs_memsize = gpu_memory
+        multicores = 1
+    } else {
+        # Check minimum memory needed to process one block
+        job_memsize <- .jobs_memsize(
+            job_size = .block_size(block = block, overlap = 0),
+            npaths = length(.tile_paths(data)) + length(.ml_labels(ml_model)),
+            nbytes = 8,
+            proc_bloat = .conf("processing_bloat")
+        )
+        # Update multicores parameter
+        multicores <- .jobs_max_multicores(
+            job_memsize = job_memsize, memsize = memsize, multicores = multicores
+        )
+    }
     # Update multicores parameter
     if ("xgb_model" %in% .ml_class(ml_model)) {
         multicores <- 1

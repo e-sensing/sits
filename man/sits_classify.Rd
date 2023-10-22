@@ -38,6 +38,7 @@ sits_classify(
   end_date = NULL,
   memsize = 8L,
   multicores = 2L,
+  gpu_memory = NULL,
   output_dir,
   version = "v1",
   verbose = FALSE,
@@ -99,6 +100,8 @@ named lat/long values
 \item{memsize}{Memory available for classification in GB
 (integer, min = 1, max = 16384).}
 
+\item{gpu_memory}{Memory available in GPU (default = NULL)}
+
 \item{output_dir}{Valid directory for output file.
 (character vector of length 1).}
 
@@ -106,8 +109,6 @@ named lat/long values
 (character vector of length 1).}
 
 \item{verbose}{Logical: print information about processing time?}
-
-\item{gpu_memory}{Memory available in GPU (default = NULL)}
 
 \item{aggreg_fn}{Function to compute a summary of each segment
 (object of class "function").}
