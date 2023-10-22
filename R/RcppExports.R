@@ -73,8 +73,16 @@ C_normalize_data_0 <- function(data, min, max) {
     .Call(`_sits_C_normalize_data_0`, data, min, max)
 }
 
-sample_points <- function(polymatrix, n_sam_pol) {
-    .Call(`_sits_sample_points`, polymatrix, n_sam_pol)
+sample_points_inclusion <- function(polymatrix, n_sam_pol) {
+    .Call(`_sits_sample_points_inclusion`, polymatrix, n_sam_pol)
+}
+
+sample_points_crossings <- function(polymatrix, n_sam_pol) {
+    .Call(`_sits_sample_points_crossings`, polymatrix, n_sam_pol)
+}
+
+sample_points_grid <- function(polymatrix, n_sam_pol) {
+    .Call(`_sits_sample_points_grid`, polymatrix, n_sam_pol)
 }
 
 C_max_sampling <- function(x, nrows, ncols, window_size) {
