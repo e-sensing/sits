@@ -28,15 +28,15 @@
 }
 #' @title Check in tile is available
 #' @noRd
-#' @param object data cube
+#' @param cube data cube
 #' @param tile A \code{tile}.
 #' @return Tile if available, else report error
-.summary_check_tile <- function(object, tile) {
+.summary_check_tile <- function(cube, tile) {
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?
     .check_chr_contains(
-        x = object$tile,
+        x = .cube_tiles(cube),
         contains = tile,
         case_sensitive = FALSE,
         discriminator = "one_of",
@@ -44,6 +44,6 @@
         msg = "tile is not included in the cube"
     )
     # filter the tile to be processed
-    tile <- .cube_filter_tiles(cube = object, tiles = tile)
+    tile <- .cube_filter_tiles(cube = cube, tiles = tile)
     return(tile)
 }

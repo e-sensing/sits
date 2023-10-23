@@ -65,6 +65,7 @@ Imports:
     utils
 Suggests:
     caret,
+    cli,
     dendextend,
     dtwclust,
     DiagrammeR,
