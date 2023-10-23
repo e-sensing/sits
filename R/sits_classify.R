@@ -249,7 +249,7 @@ sits_classify.raster_cube <- function(data,
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
                              msg = "Using GPU: gpu_memory must be informed")
 
-        job_memsize <-  gpu_memory
+        memsize <-  gpu_memory
         multicores  <- 1
     } else {
         # Check minimum memory needed to process one block
