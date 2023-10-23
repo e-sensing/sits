@@ -85,6 +85,10 @@ sample_points_grid <- function(polymatrix, n_sam_pol) {
     .Call(`_sits_sample_points_grid`, polymatrix, n_sam_pol)
 }
 
+sample_points_bin <- function(polymatrix, n_sam_pol) {
+    .Call(`_sits_sample_points_bin`, polymatrix, n_sam_pol)
+}
+
 C_max_sampling <- function(x, nrows, ncols, window_size) {
     .Call(`_sits_C_max_sampling`, x, nrows, ncols, window_size)
 }

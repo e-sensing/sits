@@ -285,6 +285,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sample_points_bin
+NumericMatrix sample_points_bin(const NumericMatrix& polymatrix, const int n_sam_pol);
+RcppExport SEXP _sits_sample_points_bin(SEXP polymatrixSEXP, SEXP n_sam_polSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type polymatrix(polymatrixSEXP);
+    Rcpp::traits::input_parameter< const int >::type n_sam_pol(n_sam_polSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_points_bin(polymatrix, n_sam_pol));
+    return rcpp_result_gen;
+END_RCPP
+}
 // C_max_sampling
 DataFrame C_max_sampling(const NumericVector& x, int nrows, int ncols, int window_size);
 RcppExport SEXP _sits_C_max_sampling(SEXP xSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP) {
@@ -456,6 +468,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_sample_points_inclusion", (DL_FUNC) &_sits_sample_points_inclusion, 2},
     {"_sits_sample_points_crossings", (DL_FUNC) &_sits_sample_points_crossings, 2},
     {"_sits_sample_points_grid", (DL_FUNC) &_sits_sample_points_grid, 2},
+    {"_sits_sample_points_bin", (DL_FUNC) &_sits_sample_points_bin, 2},
     {"_sits_C_max_sampling", (DL_FUNC) &_sits_C_max_sampling, 4},
     {"_sits_bayes_smoother", (DL_FUNC) &_sits_bayes_smoother, 6},
     {"_sits_bayes_var", (DL_FUNC) &_sits_bayes_var, 5},

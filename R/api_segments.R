@@ -521,7 +521,7 @@
                 purrr::map_dfr(function(i){
                     polymatrix <- sf::st_coordinates(sf_pols[i,])
                     polymatrix <- polymatrix[, 1:2]
-                    points_mx <- sample_points_inclusion(polymatrix,
+                    points_mx <- sample_points_bin(polymatrix,
                                                 sf_pols[i,]$n_sam_pol)
                     colnames(points_mx) <- c("longitude", "latitude")
                     points_row <- tibble::as_tibble(points_mx)
@@ -532,3 +532,5 @@
         })
     return(samples)
 }
+
+# sf::st_sample(sf_object[i, ], size = n_sam_pol)
