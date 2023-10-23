@@ -216,6 +216,14 @@ sits_classify.raster_cube <- function(data,
     .check_output_dir(output_dir)
     version <- .check_version(version)
     .check_progress(progress)
+    # If we using the GPU, gpu_memory parameter needs to be specified
+    if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {
+        .check_int_parameter(gpu_memory, min = 1, max = 16384,
+                             msg = "Using GPU: gpu_memory must be informed")
+
+        proc_bloat <- .conf("processing_bloat_gpu")
+    } else
+        proc_bloat <- .conf("processing_bloat_cpu")
 
     # version is case-insensitive in sits
     version <- tolower(version)
@@ -249,7 +257,7 @@ sits_classify.raster_cube <- function(data,
         job_size = .block_size(block = block, overlap = 0),
         npaths = length(.tile_paths(data)) + length(.ml_labels(ml_model)),
         nbytes = 8,
-        proc_bloat = .conf("processing_bloat")
+        proc_bloat = proc_bloat
     )
     # If we using the GPU, gpu_memory parameter needs to be specified
     if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {

@@ -145,7 +145,7 @@ sits_apply.raster_cube <- function(data, ...,
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = overlap),
         npaths = length(in_bands) + 1,
-        nbytes = 8, proc_bloat = .conf("processing_bloat")
+        nbytes = 8, proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(

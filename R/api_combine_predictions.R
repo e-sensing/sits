@@ -37,7 +37,7 @@
         npaths = length(probs_cubes) * nrow(base_cube) *
             length(sits_labels(base_cube)),
         nbytes = 8,
-        proc_bloat = .conf("processing_bloat")
+        proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(

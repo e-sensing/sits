@@ -111,6 +111,8 @@
         )
         # Apply the classification model to values
         values <- ml_model(values)
+        # Clean the torch cache
+        torch::cuda_empty_cache()
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         # Log
@@ -321,7 +323,7 @@
     # Get cloud values (NULL if not exists)
     cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
     # Read and preprocess values of each band
-    values <- purrr::map_dfc(.ml_bands(ml_model), function(band) {
+    values <- purrr::map(.ml_bands(ml_model), function(band) {
         # Get band values (stops if band not found)
         values <- .tile_read_block(tile = tile, band = band, block = block)
         # Log
@@ -364,8 +366,11 @@
             value = band
         )
         # Return values
-        as.data.frame(values)
+        return(as.data.frame(values))
     })
+    # collapse list to get data.frame
+    values <- suppressMessages(purrr::list_cbind(values,
+                                                 name_repair = "universal"))
     # Compose final values
     values <- as.matrix(values)
     # Set values features name
@@ -496,7 +501,7 @@
                              ml_model,
                              gpu_memory){
     # estimate size of GPU memory required (in GB)
-    pred_size <- nrow(pred) * ncol(pred) * 4 * .conf("processing_bloat")/1e+09
+    pred_size <- nrow(pred) * ncol(pred) * 4 * .conf("processing_bloat_gpu")/1e+09
     # estimate how should we partition the predictors
     num_parts <- ceiling(pred_size/gpu_memory)
     # Divide samples predictors in chunks to parallel processing
