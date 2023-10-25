@@ -25,6 +25,7 @@ sits_classify(
   ...,
   filter_fn = NULL,
   multicores = 2L,
+  gpu_memory = NULL,
   progress = TRUE
 )
 
@@ -84,6 +85,8 @@ sits_classify(
 
 \item{progress}{Logical: Show progress bar?}
 
+\item{gpu_memory}{Memory available in GPU (default = NULL)}
+
 \item{roi}{Region of interest (either an sf object, shapefile,
 or a numeric vector with named XY values
 ("xmin", "xmax", "ymin", "ymax") or
@@ -98,8 +101,6 @@ named lat/long values
 
 \item{memsize}{Memory available for classification in GB
 (integer, min = 1, max = 16384).}
-
-\item{gpu_memory}{Memory available in GPU (default = NULL)}
 
 \item{output_dir}{Valid directory for output file.
 (character vector of length 1).}

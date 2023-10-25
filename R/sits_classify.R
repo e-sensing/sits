@@ -165,6 +165,7 @@ sits_classify.sits <- function(data,
                                ...,
                                filter_fn = NULL,
                                multicores = 2L,
+                               gpu_memory = NULL,
                                progress = TRUE) {
     # Pre-conditions
     data <- .check_samples_ts(data)
@@ -181,6 +182,7 @@ sits_classify.sits <- function(data,
         ml_model = ml_model,
         filter_fn = filter_fn,
         multicores = multicores,
+        gpu_memory = gpu_memory,
         progress = progress
     )
     return(classified_ts)
