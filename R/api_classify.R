@@ -205,7 +205,6 @@
 #' @param  tile       Single tile of a data cube.
 #' @param  ml_model   Model trained by \code{\link[sits]{sits_train}}.
 #' @param  filter_fn  Smoothing filter function to be applied to the data.
-#' @param  aggreg_fn  Function to compute a summary of each segment.
 #' @param  n_sam_pol  Number of samples per polygon to be read
 #'                    for POLYGON or MULTIPOLYGON shapefiles or sf objects.
 #' @param  multicores Number of cores to be used for classification
@@ -217,7 +216,6 @@
 .classify_vector_tile <- function(tile,
                                   ml_model,
                                   filter_fn,
-                                  aggreg_fn,
                                   n_sam_pol,
                                   multicores,
                                   gpu_memory,
@@ -254,26 +252,14 @@
     }
     # Get tile bands
     bands <- .tile_bands(tile)
-    # Extract segments time series
-    if (is.null(n_sam_pol)) {
-        segments_ts <- .segments_get_summary(
-            cube = tile,
-            bands = bands,
-            aggreg_fn = aggreg_fn,
-            pol_id = "pol_id",
-            multicores = multicores,
-            progress = FALSE
-        )
-    } else {
-        segments_ts <- .segments_get_data(
-            cube = tile,
-            bands = bands,
-            pol_id = "pol_id",
-            n_sam_pol = n_sam_pol,
-            multicores = multicores,
-            progress = FALSE
-        )
-    }
+    segments_ts <- .segments_extract_data(
+        tile = tile,
+        bands = bands,
+        pol_id = "pol_id",
+        n_sam_pol = n_sam_pol,
+        multicores = multicores,
+        progress = FALSE
+    )
     # Classify segments
     classified_ts <- .classify_ts(
         samples = segments_ts,

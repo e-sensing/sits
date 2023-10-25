@@ -41,8 +41,6 @@
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
 #' @param  gpu_memory        Memory available in GPU (default = NULL)
-#' @param  aggreg_fn         Function to compute a summary of each segment
-#'                           (object of class "function").
 #' @param  n_sam_pol         Number of time series per segment to be classified
 #'                           (integer, min = 10, max = 50).
 #' @param  output_dir        Valid directory for output file.
@@ -77,11 +75,7 @@
 #'    For classifying vector data cubes created by
 #'    \code{\link[sits]{sits_segment}}, two parameters can be used:
 #'    \code{n_sam_pol}, which is the number of time series to be classified
-#'    per segment, or \code{aggreg_fn}, which is a function to aggregate the
-#'    values of all pixels in the segment for each time step. The choice
-#'    of \code{n_sam_pol} prevails over the choice of \code{aggreg_fn}. Thus,
-#'    to use \code{aggreg_fn}, the parameter \code{n_sam_pol} should be set to
-#'    NULL.
+#'    per segment.
 #'
 #' @note
 #' Please refer to the sits documentation available in
@@ -142,7 +136,6 @@
 #'         data = segments,
 #'         ml_model = rf_model,
 #'         output_dir = tempdir(),
-#'         aggreg_fn = NULL,
 #'         n_sam_pol = 20,
 #'         multicores = 4
 #'     )
@@ -358,7 +351,6 @@ sits_classify.segs_cube <- function(data,
                                     gpu_memory = NULL,
                                     output_dir,
                                     version = "v1",
-                                    aggreg_fn = "median",
                                     n_sam_pol = 40,
                                     verbose = FALSE,
                                     progress = TRUE) {
@@ -366,8 +358,7 @@ sits_classify.segs_cube <- function(data,
     # preconditions
     .check_is_vector_cube(data)
     .check_is_sits_model(ml_model)
-    if (!purrr::is_null(n_sam_pol))
-        .check_int_parameter(n_sam_pol, min = 5, max = 50)
+    .check_int_parameter(n_sam_pol, min = 5, max = 50)
     .check_memsize(memsize, min = 1, max = 16384)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
@@ -414,7 +405,6 @@ sits_classify.segs_cube <- function(data,
             tile = tile,
             ml_model = ml_model,
             filter_fn = filter_fn,
-            aggreg_fn = aggreg_fn,
             n_sam_pol = n_sam_pol,
             multicores = multicores,
             gpu_memory = gpu_memory,

@@ -358,7 +358,7 @@ plot.predicted <- function(x, y, ...,
 #' }
 #' @export
 plot.raster_cube <- function(x, ...,
-                             band = sits_bands(x)[1],
+                             band = NULL,
                              red = NULL,
                              green = NULL,
                              blue = NULL,
@@ -380,6 +380,8 @@ plot.raster_cube <- function(x, ...,
         bw <-  FALSE
     else
         bw <-  TRUE
+    if (bw)
+        band = .default(band, .cube_bands(x, add_cloud = FALSE)[1])
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?

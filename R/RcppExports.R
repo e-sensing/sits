@@ -81,10 +81,6 @@ sample_points_crossings <- function(polymatrix, n_sam_pol) {
     .Call(`_sits_sample_points_crossings`, polymatrix, n_sam_pol)
 }
 
-sample_points_grid <- function(polymatrix, n_sam_pol) {
-    .Call(`_sits_sample_points_grid`, polymatrix, n_sam_pol)
-}
-
 sample_points_bin <- function(polymatrix, n_sam_pol) {
     .Call(`_sits_sample_points_bin`, polymatrix, n_sam_pol)
 }

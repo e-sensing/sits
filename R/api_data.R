@@ -47,8 +47,23 @@
         cld_band <- NULL
     }
     # define parallelization strategy
-    # 1st case - split samples by chunks
-    if (nrow(samples) > .conf("n_samples_to_split")) {
+    # find block size
+    rast <- .raster_open_rast(.tile_path(cube))
+    block <- .raster_file_blocksize(rast)
+    # 1st case - split samples by tiles
+    if (.raster_nrows(rast) == block[["nrows"]] &&
+        .raster_ncols(rast) == block[["ncols"]]) {
+        # split samples by bands and tile
+        ts_tbl <- .get_data_by_tile(
+            cube = cube,
+            samples = samples,
+            bands = bands,
+            cld_band = cld_band,
+            multicores = multicores,
+            progress = progress
+        )
+    } else {
+        # get data by chunks
         ts_tbl <- .get_data_by_chunks(
             cube = cube,
             samples = samples,
@@ -57,17 +72,7 @@
             multicores = multicores,
             progress = progress
         )
-        return(ts_tbl)
     }
-    # 2nd case - split samples by bands and tile
-    ts_tbl <- .get_data_by_tile(
-        cube = cube,
-        samples = samples,
-        bands = bands,
-        cld_band = cld_band,
-        multicores = multicores,
-        progress = progress
-    )
     return(ts_tbl)
 }
 

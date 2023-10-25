@@ -1330,26 +1330,26 @@ NULL
 #'
 #' @param tile        Metadata about a data cube (one tile)
 #' @param band        Name of the band to the retrieved
-#' @param seg_pols    Segments as polygons
-#' @param aggreg_fn   Aggregation function for joining polygon values
+#' @param segment     Segment
 #'
-#' @return Data.frame with aggregated values per polygon.
+#' @return Data.frame with values per polygon.
 #'
-.tile_extract_segments <- function(tile, band, seg_pols, aggreg_fn) {
-    # Create a stack object
+.tile_extract_segments <- function(tile,
+                                   band,
+                                   segments) {
+    # Create a SpatRaster object
     r_obj <- .raster_open_rast(.tile_paths(tile = tile, bands = band))
-    n_names <- length(names(r_obj))
-    names(r_obj) <- c(1:n_names)
-    # Convert to SpatVectors
-    class(seg_pols) <- c("sf", class(seg_pols))
     # Extract the values
-    values <- as.matrix(exactextractr::exact_extract(
+    values <- exactextractr::exact_extract(
         x = r_obj,
-        y = seg_pols,
-        fun = aggreg_fn
-    ))
+        y = segments,
+        fun = NULL,
+        include_cols = "pol_id"
+    )
+    values <- dplyr::bind_rows(values)
+    values <- dplyr::select(values, -"coverage_fraction")
     # Return values
-    return(values)
+    return(as.matrix(values))
 }
 #' @title Check if tile contains cloud band
 #' @keywords internal
