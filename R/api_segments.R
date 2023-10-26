@@ -211,51 +211,25 @@
                                    multicores,
                                    progress) {
 
-    # retrieve segments from tile
-    segments <- .segments_read_vec(tile)
-
-    # get the samples in parallel using tile-band combination
-    samples <- .segments_get_ts(tile = tile,
-                                bands = bands,
-                                segments = segments,
-                                n_sam_pol = n_sam_pol,
-                                multicores = multicores)
-    return(samples)
-}
-#' @title Extract time series from segments by tile and band
-#'
-#' @name .segments_get_ts
-#' @noRd
-#' @description     Using the segments as polygons
-#'
-#' @param tile        Tile of regular data cube
-#' @param bands       Bands to extract time series
-#' @param segments     Segments to extract time series
-#' @param n_sam_pol    Number of samples per polygon
-#' @param multicores   number of cores to be used
-.segments_get_ts <- function(tile,
-                             bands,
-                             segments,
-                             n_sam_pol,
-                             multicores) {
-
     # multicores is less or equal to number of bands
     multicores <- min(multicores, length(bands))
     # prepare parallelization
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
+    # create a tibble with band-files parameters
+    seg_tile_bands <- .segments_split_tile_bands(tile, bands)
 
-    # Extract band values from
-    ts_bands <- .jobs_map_parallel(bands, function(band) {
+    # Extract band values
+    ts_bands <- .jobs_map_parallel(seg_tile_bands, function(seg_tile_band) {
         # get the scale factors, max, min and missing values
-        band_params <- .tile_band_conf(tile, band)
+        band_params <- seg_tile_band[["params"]][[1]]
         missing_value <- .miss_value(band_params)
         minimum_value <- .min_value(band_params)
         maximum_value <- .max_value(band_params)
         scale_factor <- .scale(band_params)
         offset_value <- .offset(band_params)
         # extract the values
-        values <- .tile_extract_segments(tile, band, segments)
+        values <- .tile_extract_segments(seg_tile_band)
         pol_id <- values[,"pol_id"]
         values <- values[, -1:0]
         # adjust maximum and minimum values
@@ -306,4 +280,26 @@
     # set sits class
     class(samples) <- c("sits", class(samples))
     return(samples)
+}
+#' @title Split tile bands for extraction of values inside segments
+#' @name .segments_split_tile_bands
+#' @keywords internal
+#' @noRd
+#' @param tile   input tile
+#' @param bands  bands where data will be extracted
+#'
+#' @return tibble with band-files pairs
+#'
+.segments_split_tile_bands <- function(tile, bands){
+    tile_bands <- purrr::map(bands, function (band){
+        band_files <- .fi_filter_bands(.fi(tile), band)$path
+        tibble::tibble(
+            band = band,
+            files = list(band_files),
+            segs_path = .segments_path(tile),
+            params = list(.tile_band_conf(tile, band))
+        )
+    })
+    tile_bands <- dplyr::bind_rows(tile_bands)
+    return(tile_bands)
 }

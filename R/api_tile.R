@@ -1328,17 +1328,16 @@ NULL
 #'
 #' @description Given a data cube, retrieve the time series of XY locations
 #'
-#' @param tile        Metadata about a data cube (one tile)
-#' @param band        Name of the band to the retrieved
-#' @param segment     Segment
+#' @param seg_tile_band    Tibble with information on raster and vector files
 #'
 #' @return Data.frame with values per polygon.
 #'
-.tile_extract_segments <- function(tile,
-                                   band,
-                                   segments) {
+.tile_extract_segments <- function(seg_tile_band) {
     # Create a SpatRaster object
-    r_obj <- .raster_open_rast(.tile_paths(tile = tile, bands = band))
+    r_obj <- .raster_open_rast(seg_tile_band[["files"]][[1]])
+    names(r_obj) <- paste0(seg_tile_band[["band"]], "-",
+                           seq_len(terra::nlyr(r_obj)))
+    segments <- .vector_read_vec(seg_tile_band[["segs_path"]])
     # Extract the values
     values <- exactextractr::exact_extract(
         x = r_obj,
@@ -1400,3 +1399,4 @@ NULL
     }
     return(invisible(end_time))
 }
+
