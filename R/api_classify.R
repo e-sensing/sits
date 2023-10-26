@@ -220,6 +220,7 @@
                                   filter_fn,
                                   n_sam_pol,
                                   multicores,
+                                  memsize,
                                   gpu_memory,
                                   version,
                                   output_dir,
@@ -254,12 +255,14 @@
     }
     # Get tile bands
     bands <- .tile_bands(tile, add_cloud = FALSE)
-    segments_ts <- .segments_extract_data(
+    segments_ts <- .segments_extract_multicores(
         tile = tile,
         bands = bands,
         pol_id = "pol_id",
         n_sam_pol = n_sam_pol,
         multicores = multicores,
+        memsize = memsize,
+        output_dir = output_dir,
         progress = FALSE
     )
     # Classify segments

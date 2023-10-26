@@ -197,6 +197,7 @@
 #' @noRd
 #' @description     Using the segments as polygons, get all time series
 #'
+#' @param seg_tile_bands tibble to be processed in parallel
 #' @param tile       tile of regular data cube
 #' @param bands      bands used in time series
 #' @param pol_id     ID attribute for polygons.
@@ -204,7 +205,10 @@
 #' @param multicores Number of cores to use for processing
 #' @param progress   Show progress bar?
 #'
-.segments_extract_data <- function(tile,
+#' @return  samples associated to segments
+#'
+.segments_extract_data <- function(seg_tile_bands,
+                                   tile,
                                    bands,
                                    pol_id,
                                    n_sam_pol,
@@ -216,8 +220,6 @@
     # prepare parallelization
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
-    # create a tibble with band-files parameters
-    seg_tile_bands <- .segments_split_tile_bands(tile, bands)
 
     # Extract band values
     ts_bands <- .jobs_map_parallel(seg_tile_bands, function(seg_tile_band) {
@@ -246,19 +248,32 @@
         values <- values * scale_factor + offset_value
         # Returning extracted time series
         return(list(pol_id, c(t(unname(values)))))
-    })
+    }, progress = progress)
+    # extract the pol_id information from the first element of the list
     pol_id <- ts_bands[[1]][[1]]
+    # remove the first element of the each list and retain the second
     ts_bands <- purrr::map(ts_bands, function(ts_band) ts_band[[2]])
+    # rename the resulting list
     names(ts_bands) <- bands
+    # transform the list to a tibble
     ts_bands <-  tibble::as_tibble(ts_bands)
+    # retrieve the dates of the tile
     n_dates <- length(.tile_timeline(tile))
+    # find how many samples have been extracted from the tile
     n_samples <- nrow(ts_bands)/n_dates
+    # include sample_id information
     ts_bands[["sample_id"]] <- rep(seq_len(n_samples),
                                    each = n_dates)
+    # include timeline
     ts_bands[["Index"]] <- rep(.tile_timeline(tile), times = n_samples)
+    # nest the values by bands
     ts_bands <- tidyr::nest(ts_bands, time_series = c("Index", bands))
+    # include the ids of the polygons
     ts_bands[["polygon_id"]] <- pol_id
+    # nest the values by sample_id and time_series
     ts_bands <- tidyr::nest(ts_bands, points = c("sample_id", "time_series"))
+    # retrieve the segments
+    segments <- .vector_read_vec(seg_tile_bands[["segs_path"]][1])
     # include lat/long information
     lat_long <- .proj_to_latlong(segments$x, segments$y, .crs(tile))
     # create metadata for the polygons
@@ -271,6 +286,7 @@
         cube       = tile[["collection"]],
         ts_bands
     )
+    # unnest to obtain the samples.
     samples <- tidyr::unnest(samples, cols = "points")
     # sample the values
     samples <- dplyr::slice_sample(samples,
@@ -291,7 +307,7 @@
 #' @return tibble with band-files pairs
 #'
 .segments_split_tile_bands <- function(tile, bands){
-    tile_bands <- purrr::map(bands, function (band){
+    tile_bands <- purrr::map(bands, function(band){
         band_files <- .fi_filter_bands(.fi(tile), band)$path
         tibble::tibble(
             band = band,
@@ -302,4 +318,113 @@
     })
     tile_bands <- dplyr::bind_rows(tile_bands)
     return(tile_bands)
+}
+#' @title Split tile bands for extraction of values inside segments
+#' @name .segments_split_tile_bands_list
+#' @keywords internal
+#' @noRd
+#' @param tile   input tile
+#' @param bands  bands where data will be extracted
+#' @param segments large set of segments
+#' @param n_iterations number of parts to break the segments
+#' @param output_dir directory to write the segments
+#' @return list of tibbles with band-files pairs
+#'
+.segments_split_tile_bands_list <- function(tile, bands, segments,
+                                            n_iterations, output_dir){
+
+    segments[["group"]] <- rep(
+        seq_len(n_iterations), each = ceiling(nrow(segments) / n_iterations)
+    )[seq_len(nrow(segments))]
+
+    segments_lst <- dplyr::group_split(
+        dplyr::group_by(segments, .data[["group"]])
+    )
+    segment_files <- purrr::map_chr(segments_lst, function(seg_part){
+        # Block file name
+        hash_bundle <- digest::digest(seg_part, algo = "md5")
+        seg_file <- .file_path(paste0(hash_bundle, "_segments"),
+                               ext = "gpkg",
+                               output_dir = output_dir)
+        return(seg_file)
+    })
+    seg_tile_band_lst <- purrr::map(segment_files, function(seg_file) {
+        tile_bands <- purrr::map(bands, function(band){
+            band_files <- .fi_filter_bands(.fi(tile), band)$path
+            tibble::tibble(
+                band = band,
+                files = list(band_files),
+                segs_path = seg_file,
+                params = list(.tile_band_conf(tile, band))
+            )
+        })
+        seg_tile_band <- dplyr::bind_rows(tile_bands)
+        return(seg_tile_band)
+    })
+    return(seg_tile_band_lst)
+}
+#'
+#'
+#' @name .segments_extract_multicores
+#' @keywords internal
+#' @noRd
+#' @description     Using the segments as polygons, get all time series
+#'
+#' @param tile       tile of regular data cube
+#' @param bands      bands used in time series
+#' @param pol_id     ID attribute for polygons.
+#' @param n_sam_pol  Number of samples per polygon to be read.
+#' @param multicores Number of cores to use for processing
+#' @param memsize    Memory available for processing
+#' @param output_dir Directory for saving temporary segment files
+#' @param progress   Show progress bar?
+#'
+.segments_extract_multicores <- function(tile,
+                                         bands,
+                                         pol_id,
+                                         n_sam_pol,
+                                         multicores,
+                                         memsize,
+                                         output_dir,
+                                         progress) {
+
+    # how much memory do we need?
+    req_memory <- .tile_nrows(tile)  * .tile_ncols(tile) *
+        length(.tile_timeline(tile)) * length(bands) * 4 *
+        .conf("processing_bloat_seg") / 1e+09
+
+    # do we have enough memory?
+    if (req_memory < memsize) {
+        seg_tile_bands <- .segments_split_tile_bands(tile, bands)
+        samples <- .segments_extract_data(seg_tile_bands,
+                                          tile,
+                                          bands,
+                                          pol_id,
+                                          n_sam_pol,
+                                          multicores,
+                                          progress)
+    } else {
+        # how many iterations do we need?
+        n_iterations <- ceiling(req_memory / memsize)
+        # retrieve the segments for the tile
+        segments <- .segments_read_vec(tile)
+        seg_tile_bands_lst <- .segments_split_tile_bands_list(
+            tile = tile,
+            bands = bands,
+            segments = segments,
+            n_iterations = n_iterations,
+            output_dir = output_dir)
+        samples <- purrr::map(seg_tile_bands_lst, function(seg_tile_bands){
+            samples_part <- .segments_extract_data(seg_tile_bands,
+                                              tile,
+                                              bands,
+                                              pol_id,
+                                              n_sam_pol,
+                                              multicores,
+                                              progress)
+            return(samples_part)
+        })
+        samples <- dplyr::bind_rows(samples)
+    }
+    return(samples)
 }
