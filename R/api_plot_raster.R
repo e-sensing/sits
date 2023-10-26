@@ -78,14 +78,14 @@
                 midpoint = NA
             ) +
             tmap::tm_graticules(
-                labels.size = tmap_params[["labels_size"]]
+                labels.size = tmap_params[["graticules_labels_size"]]
             ) +
             tmap::tm_compass() +
             tmap::tm_layout(
-                legend.bg.color = tmap_params[["bg_color"]],
-                legend.bg.alpha = tmap_params[["bg_alpha"]],
-                legend.title.size = tmap_params[["title_size"]],
-                legend.text.size = tmap_params[["text_size"]]
+                legend.bg.color = tmap_params[["legend_bg_color"]],
+                legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
+                legend.title.size = tmap_params[["legend_title_size"]],
+                legend.text.size = tmap_params[["legend_text_size"]]
             )
     )
     # include segments
@@ -274,10 +274,10 @@
         tmap::tm_layout(
             legend.show = TRUE,
             legend.outside = FALSE,
-            legend.bg.color = tmap_params[["bg_color"]],
-            legend.bg.alpha = tmap_params[["bg_alpha"]],
-            legend.title.size = tmap_params[["title_size"]],
-            legend.text.size = tmap_params[["text_size"]],
+            legend.bg.color = tmap_params[["legend_bg_color"]],
+            legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
+            legend.title.size = tmap_params[["legend_title_size"]],
+            legend.text.size = tmap_params[["legend_text_size"]],
             outer.margins = 0
         )
 
@@ -423,7 +423,7 @@
     p <- tmap::tm_shape(rgb_st) +
         tmap::tm_raster() +
         tmap::tm_graticules(
-            labels.size = tmap_params[["labels_size"]]
+            labels.size = tmap_params[["graticules_labels_size"]]
         ) +
         tmap::tm_compass()
 

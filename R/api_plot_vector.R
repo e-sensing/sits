@@ -142,7 +142,7 @@
         ) +
         tmap::tm_compass() +
         tmap::tm_layout(
-            font_family     = tmap_params[["font_family"]],
+            fontfamily      = tmap_params[["font_family"]],
             legend.bg.color = tmap_params[["legend_bg_color"]],
             legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
             legend.title.size = tmap_params[["legend_title_size"]],
