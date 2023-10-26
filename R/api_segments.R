@@ -211,26 +211,15 @@
                                    multicores,
                                    progress) {
 
-    segs_tile <- .segments_read_vec(tile)
-    segs_tile[["part_id"]] <- .partitions(x = seq_len(nrow(segs_tile)),
-                                          n = multicores)
-    segs_tile[["n_sam_pol"]] <- n_sam_pol
-    # reorganize as a nested data frame
-    segs_tile <- tidyr::nest(segs_tile, polygons = -"part_id")
+    # retrieve segments from tile
+    segments <- .segments_read_vec(tile)
 
-    # prepare parallelization
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
     # get the samples in parallel using tile-band combination
-    samples <- .jobs_map_parallel_dfr(
-        segs_tile,
-        function(sf_part){
-            segments <- sf_part[["polygons"]][[1]]
-            values_seg <- .segments_get_ts(tile = tile,
-                                           bands = bands,
-                                           segments = segments)
-            return(values_seg)
-        })
+    samples <- .segments_get_ts(tile = tile,
+                                bands = bands,
+                                segments = segments,
+                                n_sam_pol = n_sam_pol,
+                                multicores = multicores)
     return(samples)
 }
 #' @title Extract time series from segments by tile and band
@@ -242,12 +231,22 @@
 #' @param tile        Tile of regular data cube
 #' @param bands       Bands to extract time series
 #' @param segments     Segments to extract time series
+#' @param n_sam_pol    Number of samples per polygon
+#' @param multicores   number of cores to be used
 .segments_get_ts <- function(tile,
                              bands,
-                             segments) {
+                             segments,
+                             n_sam_pol,
+                             multicores) {
+
+    # multicores is less or equal to number of bands
+    multicores <- min(multicores, length(bands))
+    # prepare parallelization
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
 
     # Extract band values from
-    ts_bands <- purrr::map(bands, function(band) {
+    ts_bands <- .jobs_map_parallel(bands, function(band) {
         # get the scale factors, max, min and missing values
         band_params <- .tile_band_conf(tile, band)
         missing_value <- .miss_value(band_params)
@@ -300,7 +299,6 @@
     )
     samples <- tidyr::unnest(samples, cols = "points")
     # sample the values
-    n_sam_pol <- segments[1,]$n_sam_pol
     samples <- dplyr::slice_sample(samples,
                                    n = n_sam_pol,
                                    by = "polygon_id")

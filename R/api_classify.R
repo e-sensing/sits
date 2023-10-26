@@ -251,7 +251,7 @@
         return(probs_tile)
     }
     # Get tile bands
-    bands <- .tile_bands(tile)
+    bands <- .tile_bands(tile, add_cloud = FALSE)
     segments_ts <- .segments_extract_data(
         tile = tile,
         bands = bands,
