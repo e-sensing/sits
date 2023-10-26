@@ -239,16 +239,19 @@ plot_max_Mbytes: 10
 
 # tmap configurations
 tmap:
-        tmap_max_cells: 1e+06
-        tmap_graticules_labels_size: 0.7
-        tmap_legend_title_size: 1.0
-        tmap_legend_text_size: 1.0
-        tmap_legend_bg_color: "white"
-        tmap_legend_bg_alpha: 0.5
-        tmap_legend_width: 0.5
-        tmap_legend_height: 1.0
-        tmap_scale: 1.0
-        tmap_font_family: "plex_sans"
+        max_cells: 1e+06
+        graticules_labels_size: 0.7
+        legend_outside: False
+        legend_outside_position: "right"
+        legend_title_size: 1.0
+        legend_text_size: 1.0
+        legend_bg_color: "white"
+        legend_bg_alpha: 0.5
+        legend_width: 0.5
+        legend_position: ["left", "bottom"]
+        legend_height: 1.0
+        scale: 0.5
+        font_family: "plex_sans"
 
 # maxbytes for leaflet (in MB)
 leaflet_megabytes : 64

@@ -332,18 +332,21 @@ plot.predicted <- function(x, y, ...,
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  tmap_options  List with optional tmap parameters
-#'                       tmap_max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
+#'                       max_cells (default: 1e+06)
+#'                       scale (default: 0.5)
+#'                       graticules_labels_size (default: 0.7)
+#'                       legend_title_size (default: 1.0)
+#'                       legend_text_size (default: 1.0)
+#'                       legend_bg_color (default: "white")
+#'                       legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
 #'                       scale using the pallete
 #'
-#' @note To see which color palettes are supported, please run
+#' @note To see which colors are supported, please run \code{sits_colors()}
+#'       Use \code{scale} parameter for general output control.
+#'       If required, then set the other params individually
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a data cube from local files
@@ -919,12 +922,17 @@ plot.uncertainty_cube <- function(x, ...,
 #' @param  legend          Named vector that associates labels to colors.
 #' @param  palette         Alternative RColorBrewer palette
 #' @param  tmap_options    List with optional tmap parameters
-#'                         tmap_max_cells (default: 1e+06)
-#'                         tmap_graticules_labels_size (default: 0.7)
-#'                         tmap_legend_title_size (default: 1.5)
-#'                         tmap_legend_text_size (default: 1.2)
-#'                         tmap_legend_bg_color (default: "white")
-#'                         tmap_legend_bg_alpha (default: 0.5)
+#'                         max_cells (default: 1e+06)
+#'                         graticules_labels_size (default: 0.7)
+#'                         scale (default = 0.8)
+#'                         legend_title_size (default: 0.7)
+#'                         legend_text_size (default: 0.7)
+#'                         legend_bg_color (default: "white")
+#'                         legend_bg_alpha (default: 0.5)
+#'                         legend_width (default: 0.5)
+#'                         legend_height (default: 0.7)
+#'                         legend_position (default: c("left", "bottom"))
+#'
 #'
 #' @return                 A  color map, where each pixel has the color
 #'                         associated to a label, as defined by the legend
