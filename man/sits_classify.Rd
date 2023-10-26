@@ -25,6 +25,7 @@ sits_classify(
   ...,
   filter_fn = NULL,
   multicores = 2L,
+  gpu_memory = NULL,
   progress = TRUE
 )
 
@@ -38,6 +39,7 @@ sits_classify(
   end_date = NULL,
   memsize = 8L,
   multicores = 2L,
+  gpu_memory = NULL,
   output_dir,
   version = "v1",
   verbose = FALSE,
@@ -57,9 +59,9 @@ sits_classify(
   end_date = NULL,
   memsize = 8L,
   multicores = 2L,
+  gpu_memory = NULL,
   output_dir,
   version = "v1",
-  aggreg_fn = "median",
   n_sam_pol = 40,
   verbose = FALSE,
   progress = TRUE
@@ -83,6 +85,8 @@ sits_classify(
 
 \item{progress}{Logical: Show progress bar?}
 
+\item{gpu_memory}{Memory available in GPU (default = NULL)}
+
 \item{roi}{Region of interest (either an sf object, shapefile,
 or a numeric vector with named XY values
 ("xmin", "xmax", "ymin", "ymax") or
@@ -105,9 +109,6 @@ named lat/long values
 (character vector of length 1).}
 
 \item{verbose}{Logical: print information about processing time?}
-
-\item{aggreg_fn}{Function to compute a summary of each segment
-(object of class "function").}
 
 \item{n_sam_pol}{Number of time series per segment to be classified
 (integer, min = 10, max = 50).}
@@ -153,11 +154,7 @@ The "roi" parameter defines a region of interest. It can be
    For classifying vector data cubes created by
    \code{\link[sits]{sits_segment}}, two parameters can be used:
    \code{n_sam_pol}, which is the number of time series to be classified
-   per segment, or \code{aggreg_fn}, which is a function to aggregate the
-   values of all pixels in the segment for each time step. The choice
-   of \code{n_sam_pol} prevails over the choice of \code{aggreg_fn}. Thus,
-   to use \code{aggreg_fn}, the parameter \code{n_sam_pol} should be set to
-   NULL.
+   per segment.
 
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
@@ -218,7 +215,6 @@ if (sits_run_examples()) {
         data = segments,
         ml_model = rf_model,
         output_dir = tempdir(),
-        aggreg_fn = NULL,
         n_sam_pol = 20,
         multicores = 4
     )

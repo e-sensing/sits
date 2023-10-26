@@ -1328,28 +1328,27 @@ NULL
 #'
 #' @description Given a data cube, retrieve the time series of XY locations
 #'
-#' @param tile        Metadata about a data cube (one tile)
-#' @param band        Name of the band to the retrieved
-#' @param seg_pols    Segments as polygons
-#' @param aggreg_fn   Aggregation function for joining polygon values
+#' @param seg_tile_band    Tibble with information on raster and vector files
 #'
-#' @return Data.frame with aggregated values per polygon.
+#' @return Data.frame with values per polygon.
 #'
-.tile_extract_segments <- function(tile, band, seg_pols, aggreg_fn) {
-    # Create a stack object
-    r_obj <- .raster_open_rast(.tile_paths(tile = tile, bands = band))
-    n_names <- length(names(r_obj))
-    names(r_obj) <- c(1:n_names)
-    # Convert to SpatVectors
-    class(seg_pols) <- c("sf", class(seg_pols))
+.tile_extract_segments <- function(seg_tile_band) {
+    # Create a SpatRaster object
+    r_obj <- .raster_open_rast(seg_tile_band[["files"]][[1]])
+    names(r_obj) <- paste0(seg_tile_band[["band"]], "-",
+                           seq_len(terra::nlyr(r_obj)))
+    segments <- .vector_read_vec(seg_tile_band[["segs_path"]])
     # Extract the values
-    values <- as.matrix(exactextractr::exact_extract(
+    values <- exactextractr::exact_extract(
         x = r_obj,
-        y = seg_pols,
-        fun = aggreg_fn
-    ))
+        y = segments,
+        fun = NULL,
+        include_cols = "pol_id"
+    )
+    values <- dplyr::bind_rows(values)
+    values <- dplyr::select(values, -"coverage_fraction")
     # Return values
-    return(values)
+    return(as.matrix(values))
 }
 #' @title Check if tile contains cloud band
 #' @keywords internal
@@ -1400,3 +1399,4 @@ NULL
     }
     return(invisible(end_time))
 }
+

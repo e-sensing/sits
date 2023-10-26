@@ -43,11 +43,14 @@
 #'                     in the cube (optional - character vector).
 #'                     Use \code{\link{sits_list_collections}()} to find out
 #'                     the bands available for each collection.
+#' @param vector_band  Band for vector cube ("segments", "probs", "class")
 #' @param start_date,end_date Initial and final dates to include
 #'                     images from the collection in the cube (optional).
 #'                     (Date in YYYY-MM-DD format).
 #' @param data_dir     Local directory where images are stored
 #'                     (for local cubes - character vector of length 1).
+#' @param vector_dir    Local director where vector files are stored
+#'                     (for local vector cubes - character vector of length 1).
 #' @param parse_info   Parsing information for local files
 #'                     (for local cubes - character vector).
 #' @param version      Version of the classified and/or labelled files.
@@ -227,7 +230,7 @@
 #'         end_date = "2019-07-23"
 #'     )
 #'
-#'     # -- Creating Sentinel cube from MPC"
+#'     # -- Creating Sentinel cube from MPC
 #'     s2_cube <- sits_cube(
 #'         source = "MPC",
 #'         collection = "SENTINEL-2-L2A",
@@ -359,8 +362,10 @@ sits_cube.stac_cube <- function(source,
 sits_cube.local_cube <- function(source,
                                  collection, ...,
                                  data_dir,
+                                 vector_dir = NULL,
                                  tiles = NULL,
                                  bands = NULL,
+                                 vector_band = NULL,
                                  start_date = NULL,
                                  end_date = NULL,
                                  labels = NULL,
@@ -387,6 +392,23 @@ sits_cube.local_cube <- function(source,
     } else {
         results_cube <- FALSE
     }
+    if (!purrr::is_null(vector_dir)) {
+        if (!purrr::is_null(bands)) {
+            .check_that(
+                !(all(bands %in% .conf("sits_results_bands"))),
+                msg = "bands for vector cubes should be provided in
+            parameter vector_bands"
+            )
+        }
+        .check_chr_parameter(vector_band,
+                             msg = "one vector_band must be provided
+                             (either segments, class, or probs)")
+        .check_that(
+            vector_band %in% c("segments", "class", "probs"),
+            msg = "bands for vector cubes should be provided in
+            parameter vector_bands"
+        )
+    }
     if (!results_cube) {
         .source_check(source = source)
         .source_collection_check(source = source, collection = collection)
@@ -396,11 +418,13 @@ sits_cube.local_cube <- function(source,
         source = source,
         collection = collection,
         data_dir = data_dir,
+        vector_dir = vector_dir,
         parse_info = parse_info,
         version = version,
         delim = delim,
         tiles = tiles,
         bands = bands,
+        vector_band = vector_band,
         labels = labels,
         start_date = start_date,
         end_date = end_date,

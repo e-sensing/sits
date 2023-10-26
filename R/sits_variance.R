@@ -92,7 +92,7 @@ sits_variance.probs_cube <- function(
         job_size = .block_size(block = block, overlap = overlap),
         npaths = length(.tile_labels(cube)) * 2,
         nbytes = 8,
-        proc_bloat = .conf("processing_bloat")
+        proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(

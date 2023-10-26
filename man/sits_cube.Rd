@@ -26,8 +26,10 @@ sits_cube(source, collection, ...)
   collection,
   ...,
   data_dir,
+  vector_dir = NULL,
   tiles = NULL,
   bands = NULL,
+  vector_band = NULL,
   start_date = NULL,
   end_date = NULL,
   labels = NULL,
@@ -77,6 +79,11 @@ of collections that include more than one satellite
 
 \item{data_dir}{Local directory where images are stored
 (for local cubes - character vector of length 1).}
+
+\item{vector_dir}{Local director where vector files are stored
+(for local vector cubes - character vector of length 1).}
+
+\item{vector_band}{Band for vector cube ("segments", "probs", "class")}
 
 \item{labels}{Labels associated to the classes
 (Named character vector for cubes of
@@ -283,7 +290,7 @@ if (sits_run_examples()) {
         end_date = "2019-07-23"
     )
 
-    # -- Creating Sentinel cube from MPC"
+    # -- Creating Sentinel cube from MPC
     s2_cube <- sits_cube(
         source = "MPC",
         collection = "SENTINEL-2-L2A",

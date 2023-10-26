@@ -458,6 +458,21 @@
 .raster_freq.terra <- function(r_obj, ...) {
     terra::freq(x = r_obj, bylayer = TRUE)
 }
+
+#' @title Summary values of terra object
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @param r_obj    raster package object to count values
+#' @param ...      additional parameters to be passed to raster package
+#'
+#' @return matrix with layer, value, and count column
+#' @export
+.raster_summary.terra <- function(r_obj, ...) {
+    terra::summary(r_obj, ...)
+}
+
 #' @title Return col value given an X coordinate
 #' @keywords internal
 #' @noRd
