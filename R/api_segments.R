@@ -346,6 +346,7 @@
         seg_file <- .file_path(paste0(hash_bundle, "_segments"),
                                ext = "gpkg",
                                output_dir = output_dir)
+        .vector_write_vec(seg_part, seg_file)
         return(seg_file)
     })
     seg_tile_band_lst <- purrr::map(segment_files, function(seg_file) {
