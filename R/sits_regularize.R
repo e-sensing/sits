@@ -68,6 +68,27 @@
 #'         multicores = 2,
 #'         output_dir = tempdir()
 #'     )
+#'
+#'     ## Sentinel-1 SAR
+#'     roi <- c("lon_min" = -50.410, "lon_max" = -50.379,
+#'              "lat_min" = -10.1910, "lat_max" = -10.1573)
+#'     s1_cube_open <- sits_cube(
+#'         source = "MPC",
+#'         collection = "SENTINEL-1-GRD",
+#'         bands = c("VV", "VH"),
+#'         roi = roi,
+#'         start_date = "2020-06-01",
+#'         end_date = "2020-09-28"
+#'     )
+#'     # regularize the cube
+#'     rg_cube <- sits_regularize(
+#'         cube = s1_cube_open,
+#'         period = "P12D",
+#'         res = 60,
+#'         roi = roi
+#'         multicores = 2,
+#'         output_dir = tempdir(),
+#'     )
 #' }
 #'
 #' @export
