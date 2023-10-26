@@ -112,7 +112,9 @@
         # Apply the classification model to values
         values <- ml_model(values)
         # Clean the torch cache
-        torch::cuda_empty_cache()
+        if (torch::cuda_is_available()) {
+            torch::cuda_empty_cache()
+        }
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         # Log
