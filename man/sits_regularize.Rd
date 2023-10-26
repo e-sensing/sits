@@ -157,9 +157,9 @@ if (sits_run_examples()) {
         cube = s1_cube_open,
         period = "P12D",
         res = 60,
-        roi = roi
+        roi = roi,
         multicores = 2,
-        output_dir = tempdir(),
+        output_dir = tempdir()
     )
 }
 
