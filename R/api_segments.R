@@ -267,7 +267,8 @@
     # include timeline
     ts_bands[["Index"]] <- rep(.tile_timeline(tile), times = n_samples)
     # nest the values by bands
-    ts_bands <- tidyr::nest(ts_bands, time_series = c("Index", bands))
+    ts_bands <- tidyr::nest(ts_bands,
+                            time_series = c("Index", dplyr::all_of(bands)))
     # include the ids of the polygons
     ts_bands[["polygon_id"]] <- pol_id
     # nest the values by sample_id and time_series

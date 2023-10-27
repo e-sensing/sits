@@ -242,6 +242,7 @@ sits_view.uncertainty_cube <- function(x, ...,
                                        class_cube = NULL,
                                        legend = NULL,
                                        palette = "Blues",
+                                       opacity = 0.7,
                                        view_max_mb = NULL) {
     # preconditions
     # verifies if leafem and leaflet packages are installed
@@ -294,6 +295,7 @@ sits_view.uncertainty_cube <- function(x, ...,
         tiles = tiles,
         legend = legend,
         palette = palette,
+        opacity = opacity,
         output_size = output_size
     )
     # add overlay groups

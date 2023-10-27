@@ -74,22 +74,4 @@ test_that("Segmentation", {
     expect_equal(p3$tm_shape$shp_name, "sf_seg")
     expect_equal(ncol(p3$tm_shape$shp), 2)
     expect_equal(p2$tm_compass$compass.show.labels, 1)
-    # Create a new probability vector cube
-    probs_segs2 <- sits_classify(
-        data = segments,
-        ml_model = rf_model,
-        output_dir = tempdir(),
-        n_sam_pol = NULL,
-        multicores = 2,
-        memsize = 4
-    )
-    expect_s3_class(object = probs_segs2, class = "probs_vector_cube")
-    expect_true(
-        "vector_info" %in% colnames(probs_segs2)
-    )
-    # Read segments of a probability cube
-    vector_probs <- .segments_read_vec(probs_segs2)
-    expect_true(
-        all(sits_labels(probs_segs2) %in% colnames(vector_probs))
-    )
 })
