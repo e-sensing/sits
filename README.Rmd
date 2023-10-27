@@ -36,14 +36,14 @@ torch::torch_manual_seed(1234)
 
 `sits` is an open source R package for satellite image time series analysis. It enables users to apply machine learning techniques for classifying image time series obtained from earth observation data cubes. The basic workflow in  `sits` is:
 
-1. Select an image collection available on cloud providers AWS, Microsoft Planetary Computer, Digital Earth Africa and Brazil Data Cube. 
-2. Build a regular data cube using analysis-ready image collections.
+1. Select an image collection available on cloud providers AWS, Microsoft Planetary Computer, Digital Earth Africa, Swiss Data Cube, NASA Harmonized Landsat/Sentinel and Brazil Data Cube. 
+2. Build a regular data cube from analysis-ready image collections.
 3. Extract labelled time series from data cubes to be used as training samples.
-4. Perform quality control using self-organised maps.
-5. Filtering time series samples for noise reduction.
-6. Use the samples to train machine learning models.
-7. Tune machine learning models for improved accuracy.
-8. Classify data cubes using machine learning models.
+4. Perform samples quality control using self-organised maps.
+5. Train machine learning and deep learning models.
+6. Tune deep learning models for improved accuracy.
+7. Classify data cubes using machine learning and deep learning models.
+8. Run spatial-temporal segmentation methods for object-based time series classification.
 9. Post-process classified images with Bayesian smoothing to remove outliers. 
 10. Estimate uncertainty values of classified images.
 11. Evaluate classification accuracy using best practices.
@@ -64,14 +64,16 @@ Those that want to evaluate the `sits` package before installing are invited to 
 1. [Introduction to SITS](https://www.kaggle.com/esensing/introduction-to-sits)
 2. [Working with time series in SITS](https://www.kaggle.com/esensing/working-with-time-series-in-sits)
 3. [Creating data cubes in SITS](https://www.kaggle.com/esensing/creating-data-cubes-in-sits)
-4. [Raster classification in SITS](https://www.kaggle.com/esensing/raster-classification-in-sits)
-5. [Using SOM for sample quality control in SITS](https://www.kaggle.com/esensing/using-som-for-sample-quality-control-in-sits)
+4. [Machine learning for data cubes](https://www.kaggle.com/esensing/machine-learning-for-data-cubes)
+5. [Raster classification in SITS](https://www.kaggle.com/esensing/raster-classification-in-sits)
+6. [Object-based time series classification using GPU](https://www.kaggle.com/esensing/object-based-time-series-classification-using-gpu)
+7. [Using SOM for sample quality control in SITS](https://www.kaggle.com/esensing/using-som-for-sample-quality-control-in-sits)
 
 ## Installation
 
 ### Pre-Requisites
 
-The `sits` package relies on the geospatial packages `sf`, `stars`, `gdalcubes` and `terra`, which depend on the external libraries GDAL and PROJ. Please follow the instructions for installing `sf` together with GDAL available at the [RSpatial sf github repository](https://github.com/r-spatial/sf).
+The `sits` package relies on the geospatial packages `sf`, `stars`, `gdalcubes` and `terra`, which depend on the external libraries GDAL and PROJ. Please follow the instructions for installing `sits` from the [Setup chapter of the on-line sits book](https://e-sensing.github.io/sitsbook/setup.html).
 
 ### Obtaining `sits`
 
@@ -81,7 +83,7 @@ The `sits` package relies on the geospatial packages `sf`, `stars`, `gdalcubes` 
 install.packages("sits")
 ```
 
-The development version is available on github.
+The latest supported version is available on github. It may have additional fixes from the version available from CRAN. 
 
 ```{r, eval=FALSE}
 devtools::install_github("e-sensing/sits", dependencies = TRUE)
@@ -105,6 +107,7 @@ The `sits` package allows users to created data cubes from analysis-ready data (
 4. Digital Earth Africa ([DEAFRICA](https://www.digitalearthafrica.org/)): Open data collection of Sentinel-2/2A and Landsat-8 for Africa.
 5. [USGS](https://landsatlook.usgs.gov/stac-browser): Landsat-4/5/7/8 collections, which are not open data.
 6. Swiss Data Cube ([SDC](https://www.swissdatacube.org/)): Open data collection of Sentinel-2/2A and Landsat-8.
+7. NASA Harmonized Landsat/Sentinel Collection [HLS](https://hls.gsfc.nasa.gov/).
 
 Open data collections do not require payment of access fees. Except for those in the Brazil Data Cube, these collections are not regular. Irregular collections require further processing before they can be used for classification using machine learning models.
 
@@ -222,9 +225,9 @@ tempcnn_model <- sits_train(
 # Select NDVI band of the  point to be classified
 # Classify using TempCNN model
 # Plot the result
-point_mt_6bands %>%
-    sits_select(bands = "NDVI") %>%
-    sits_classify(tempcnn_model) %>%
+point_mt_6bands |> 
+    sits_select(bands = "NDVI") |> 
+    sits_classify(tempcnn_model) |> 
     plot()
 ```
 
