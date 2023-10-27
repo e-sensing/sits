@@ -442,7 +442,7 @@ colors:
         Clear_Cut_Burn               : *burned_area
         Clear_Cut_Burned_Area        : *burned_area
         # Color 52 - grama-tobosa shrubsteppe
-        Cleared_Area                : &clear_cut_soil "#EDECC7" # "#D7C49C"
+        Cleared_Area                : &clear_cut_soil "#D7C49C" # "#CCCBAB" #
         Clear_Cut_Soil              : *clear_cut_soil
         Clear_Cut_Bare_Soil         : *clear_cut_soil
         Bare_Soil                   : *clear_cut_soil

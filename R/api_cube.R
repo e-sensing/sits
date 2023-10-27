@@ -1148,6 +1148,8 @@ NULL
         )
         chunks_sf <- dplyr::bind_cols(chunks_sf, chunks)
         chunks_sf <- chunks_sf[.intersects(chunks_sf, samples_sf), ]
+        if (nrow(chunks_sf) == 0 )
+            return(NULL)
         chunks_sf[["tile"]] <- tile[["tile"]]
         chunks_sf <- dplyr::group_by(chunks_sf, .data[["row"]], .data[["tile"]])
         chunks_sf <- dplyr::summarise(chunks_sf)
