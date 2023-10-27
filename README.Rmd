@@ -59,7 +59,7 @@ Detailed documentation on how to use `sits` is available in the e-book ["Satelli
 
 ## `sits` on Kaggle
 
-Those that want to evaluate the `sits` package before installing are invited to run the examples available on [Kaggle](https://www.kaggle.com/esensing/code). These examples provide a fast-track introduction to the package. We recommend running them in the following order: 
+Those that want to evaluate the `sits` package before installing are invited to run the examples available on [Kaggle](https://www.kaggle.com/esensing/code). If you are new on kaggle, please follow the [instructions](https://gist.github.com/OldLipe/814089cc5792c9c0c989d870a22910f4) to set up your account. These examples provide a fast-track introduction to the package. We recommend running them in the following order: 
 
 1. [Introduction to SITS](https://www.kaggle.com/esensing/introduction-to-sits)
 2. [Working with time series in SITS](https://www.kaggle.com/esensing/working-with-time-series-in-sits)

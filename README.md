@@ -64,9 +64,11 @@ Cubes”](https://e-sensing.github.io/sitsbook/).
 
 Those that want to evaluate the `sits` package before installing are
 invited to run the examples available on
-[Kaggle](https://www.kaggle.com/esensing/code). These examples provide a
-fast-track introduction to the package. We recommend running them in the
-following order:
+[Kaggle](https://www.kaggle.com/esensing/code). If you are new on
+kaggle, please follow the
+[instructions](https://gist.github.com/OldLipe/814089cc5792c9c0c989d870a22910f4)
+to set up your account. These examples provide a fast-track introduction
+to the package. We recommend running them in the following order:
 
 1.  [Introduction to
     SITS](https://www.kaggle.com/esensing/introduction-to-sits)
@@ -107,7 +109,7 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 # load the sits library
 library(sits)
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.4.0.
+#> Loaded sits v1.4.2.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         Documentation avaliable in https://e-sensing.github.io/sitsbook/.
 ```
@@ -118,7 +120,7 @@ library(sits)
 
 The `sits` package allows users to created data cubes from
 analysis-ready data (ARD) image collections available in cloud services.
-The collections accessible in `sits` 1.4.0 are:
+The collections accessible in `sits` 1.4.2 are:
 
 1.  Brazil Data Cube
     ([BDC](http://brazildatacube.org/en/home-page-2/#dataproducts)):
@@ -152,13 +154,13 @@ similar ways.
 
 ``` r
 s2_cube <- sits_cube(
-  source = "MPC",
-  collection = "SENTINEL-2-L2A",
-  tiles = c("20LKP", "20LLP"),
-  bands = c("B03", "B08", "B11", "SCL"),
-  start_date = as.Date("2018-07-01"),
-  end_date = as.Date("2019-06-30"),
-  progress = FALSE
+    source = "MPC",
+    collection = "SENTINEL-2-L2A",
+    tiles = c("20LKP", "20LLP"),
+    bands = c("B03", "B08", "B11", "SCL"),
+    start_date = as.Date("2018-07-01"),
+    end_date = as.Date("2019-06-30"),
+    progress = FALSE
 )
 ```
 
@@ -186,11 +188,11 @@ Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92).
 
 ``` r
 gc_cube <- sits_regularize(
-  cube          = s2_cube,
-  output_dir    = tempdir(),
-  period        = "P15D",
-  res           = 60,
-  multicores    = 4
+    cube          = s2_cube,
+    output_dir    = tempdir(),
+    period        = "P15D",
+    res           = 60,
+    multicores    = 4
 )
 ```
 
@@ -204,7 +206,7 @@ The cube can be shown in a leaflet using `sits_view()`.
 
 ``` r
 # View a color composite on a leaflet
-sits_view(s2_cube[1,], green = "B08", blue = "B03", red = "B11")
+sits_view(s2_cube[1, ], green = "B08", blue = "B03", red = "B11")
 ```
 
 ## Working with Time Series in `sits`
@@ -225,20 +227,19 @@ library(sits)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 # create a cube from downloaded files
 raster_cube <- sits_cube(
-  source = "BDC",
-  collection = "MOD13Q1-6",
-  data_dir = data_dir,
-  delim = "_",
-  parse_info = c("X1", "X2", "tile", "band", "date"),
-  progress = FALSE
+    source = "BDC",
+    collection = "MOD13Q1-6",
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "X2", "tile", "band", "date"),
+    progress = FALSE
 )
 # obtain a set of samples defined by a CSV file
 csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-  package = "sits"
+    package = "sits"
 )
 # retrieve the time series associated with the samples from the data cube
 points <- sits_get_data(raster_cube, samples = csv_file)
-#> All points have been retrieved
 # show the time series
 points[1:3, ]
 #> # A tibble: 3 × 7
@@ -290,16 +291,16 @@ data("samples_modis_ndvi")
 data("point_mt_6bands")
 # Train a deep learning model
 tempcnn_model <- sits_train(
-  samples = samples_modis_ndvi,
-  ml_method = sits_tempcnn()
+    samples = samples_modis_ndvi,
+    ml_method = sits_tempcnn()
 )
 # Select NDVI band of the  point to be classified
 # Classify using TempCNN model
 # Plot the result
 point_mt_6bands %>%
-  sits_select(bands = "NDVI") %>%
-  sits_classify(tempcnn_model) %>%
-  plot()
+    sits_select(bands = "NDVI") %>%
+    sits_classify(tempcnn_model) %>%
+    plot()
 #>   |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
 ```
 
@@ -321,35 +322,35 @@ using `sits_view()`.
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 sinop <- sits_cube(
-  source = "BDC",
-  collection = "MOD13Q1-6",
-  data_dir = data_dir,
-  delim = "_",
-  parse_info = c("X1", "X2", "tile", "band", "date"),
-  progress = FALSE
+    source = "BDC",
+    collection = "MOD13Q1-6",
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "X2", "tile", "band", "date"),
+    progress = FALSE
 )
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(
-  data = sinop,
-  ml_model = tempcnn_model,
-  output_dir = tempdir()
+    data = sinop,
+    ml_model = tempcnn_model,
+    output_dir = tempdir()
 )
 #>   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(
-  cube = probs_cube,
-  output_dir = tempdir()
+    cube = probs_cube,
+    output_dir = tempdir()
 )
 # generate a thematic map
 label_cube <- sits_label_classification(
-  cube = bayes_cube,
-  output_dir = tempdir()
+    cube = bayes_cube,
+    output_dir = tempdir()
 )
 #>   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
 # plot the the labelled cube
 plot(label_cube,
-  title = "Land use and Land cover in Sinop, MT, Brazil in 2018"
+    title = "Land use and Land cover in Sinop, MT, Brazil in 2018"
 )
 ```
 
