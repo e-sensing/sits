@@ -145,7 +145,7 @@ test_that("View", {
         ml_model = rf_model,
         output_dir = tempdir(),
         aggreg_fn = NULL,
-        version = "v2",
+        version = "vsegs_test",
         n_sam_pol = 20,
         multicores = 4
     )
@@ -156,7 +156,7 @@ test_that("View", {
         output_dir = tempdir(),
         multicores = 2,
         memsize = 4,
-        version = "v_segs_2"
+        version = "v_segs_test"
     )
 
     v9 <- sits_view(class_segs, class_cube = modis_label)
@@ -164,7 +164,8 @@ test_that("View", {
     expect_equal(v9$x$calls[[1]]$method, "addProviderTiles")
     expect_equal(v9$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
     expect_equal(v9$x$calls[[5]]$method, "addPolygons")
-    expect_equal(v9$x$calls[[6]]$method, "addRasterImage")
+    expect_equal(v9$x$calls[[6]]$method, "addPolygons")
+    expect_equal(v9$x$calls[[7]]$method, "addRasterImage")
 
 
     cbers_cube <- tryCatch(

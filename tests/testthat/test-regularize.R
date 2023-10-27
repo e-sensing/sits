@@ -276,24 +276,29 @@ test_that("Regularizing local cubes without CLOUD BAND", {
 })
 test_that("Regularizing SENTINEL-1 data",{
         ## Sentinel-1 SAR
-        roi <- c("lon_min" = -50.410, "lon_max" = -50.379,
+        roi_sar <- c("lon_min" = -50.410, "lon_max" = -50.379,
                  "lat_min" = -10.1910, "lat_max" = -10.1573)
         s1_cube_open <- sits_cube(
             source = "MPC",
             collection = "SENTINEL-1-GRD",
             bands = c("VV", "VH"),
-            roi = roi,
+            roi = roi_sar,
             start_date = "2020-06-01",
             end_date = "2020-09-28"
         )
+        expect_false(.cube_is_regular(s1_cube_open))
+        expect_true(all(sits_bands(s1_cube_open) %in% c("VH", "VV")))
         # regularize the cube
-        rg_cube <- sits_regularize(
+        suppressWarnings(rg_cube <- sits_regularize(
             cube = s1_cube_open,
             period = "P12D",
             res = 60,
             roi = roi_sar,
             multicores = 2,
             output_dir = tempdir()
-        )
-
+        ))
+        expect_true(.cube_is_regular(rg_cube))
+        expect_true(all(sits_bands(rg_cube) %in% c("VH", "VV")))
+        expect_equal(rg_cube$crs, "EPSG:32722")
+        expect_equal(rg_cube$tile, "22LEP")
 })

@@ -312,6 +312,19 @@ if (sits_run_examples()) {
         end_date = "2006-10-28"
     )
 
+    ## Sentinel-1 SAR from MPC
+    roi_sar <- c("lon_min" = -50.410, "lon_max" = -50.379,
+    "lat_min" = -10.1910, "lat_max" = -10.1573)
+
+    s1_cube_open <- sits_cube(
+       source = "MPC",
+       collection = "SENTINEL-1-GRD",
+       bands = c("VV", "VH"),
+       roi = roi_sar,
+       start_date = "2020-06-01",
+       end_date = "2020-09-28"
+       )
+
     # --- Create a cube based on a local MODIS data
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     modis_cube <- sits_cube(
