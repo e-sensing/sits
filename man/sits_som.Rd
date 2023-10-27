@@ -76,10 +76,6 @@ the posterior probability is < `posterior_threshold`, the sample is tagged as
 The user can define which tagged samples will be returned using the "keep"
 parameter, with the following options: "clean", "analyze", "remove".
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
 if (sits_run_examples()) {
     # create a som map

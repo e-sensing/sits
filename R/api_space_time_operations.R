@@ -45,45 +45,6 @@
     return(ll)
 }
 
-#' @title Transform samples to wgs84
-#' @name .proj_transform_samples
-#' @keywords internal
-#' @noRd
-#
-#' @description Transforming samples points to wgs84 and replace the longitude
-#' and latitude values.
-#'
-#' @param samples         Samples to be retrieved.
-#' @param crs             A coordinate reference system of samples.
-#'                        The provided crs could be a character
-#'                        (e.g, "EPSG:4326" or "WGS84" or a proj4string), or a
-#'                        a numeric with the EPSG code (e.g. 4326).
-#'                        This parameter only works for 'csv' or data.frame'
-#'                        samples. Default is 4326.
-#'
-#' @return A tibble with tranformed points.
-.proj_transform_samples <- function(samples, crs) {
-
-    .check_chr_contains(
-        x = colnames(samples),
-        contains = .point_cols,
-        msg = "data input is not valid"
-    )
-
-    samples <- suppressWarnings(
-        sf::st_transform(
-            x = sits_as_sf(data = samples, crs = crs),
-            crs = 4326
-        )
-    )
-    pts_repr <- tibble::as_tibble(sf::st_coordinates(samples))
-    samples[, c("longitude", "latitude")] <- pts_repr[, c("X", "Y")]
-
-    samples <- sf::st_drop_geometry(samples)
-
-    return(samples)
-}
-
 #' @title Spatial intersects
 #' @noRd
 #'
@@ -102,9 +63,10 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' x <- .bbox_as_sf(c(xmin=1, xmax=2, ymin=3, ymax=4, crs=4326))
-#' y <- .roi_as_sf(c(lon_min=1.5, lon_max=3, lat_min=3.5, lat_max=5))
-#' .intersects(x, y) # TRUE
+#'     x <- .bbox_as_sf(c(xmin = 1, xmax = 2, ymin = 3, ymax = 4, crs = 4326))
+#'     y <- .roi_as_sf(c(lon_min = 1.5, lon_max = 3,
+#'                       lat_min = 3.5, lat_max = 5))
+#'     .intersects(x, y) # TRUE
 #' }
 #'
 .intersects <- function(x, y) {
@@ -130,15 +92,44 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' x <- .bbox_as_sf(c(xmin=1, xmax=2, ymin=3, ymax=4, crs=4326))
-#' y <- .roi_as_sf(c(lon_min=0, lon_max=3, lat_min=2, lat_max=5))
-#' .within(x, y) # TRUE
+#'     x <- .bbox_as_sf(c(xmin = 1, xmax = 2, ymin = 3, ymax = 4, crs = 4326))
+#'     y <- .roi_as_sf(c(lon_min = 0, lon_max = 3, lat_min = 2, lat_max = 5))
+#'     .within(x, y) # TRUE
 #' }
 #'
 .within <- function(x, y) {
     as_crs <- sf::st_crs(x)
     y <- sf::st_transform(y, crs = as_crs)
     apply(sf::st_within(x, y, sparse = FALSE), 1, any)
+}
+#' @title Spatial contains
+#' @noRd
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @description
+#' This function is based on sf::st_contains(). It projects y
+#' to the CRS of x before compute contains operation. For each geometry of x,
+#' returns TRUE if it is contained any geometry of y,
+#' otherwise it returns FALSE.
+#'
+#' @param x,y sf geometries.
+#'
+#' @returns A vector indicating which geometries of x
+#' is contained geometries of y.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     x <- .roi_as_sf(c(lon_min = 0, lon_max = 3, lat_min = 2, lat_max = 5))
+#'     y <- .bbox_as_sf(c(xmin = 1, xmax = 2, ymin = 3, ymax = 4, crs = 4326))
+#'     .contains(x, y) # TRUE
+#' }
+#'
+.contains <- function(x, y) {
+    as_crs <- sf::st_crs(x)
+    y <- sf::st_transform(y, crs = as_crs)
+    apply(sf::st_contains(x, y, sparse = FALSE), 1, any)
 }
 #' @title Find the closest points.
 #'

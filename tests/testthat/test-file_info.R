@@ -4,7 +4,7 @@ test_that("file_info functions", {
             sits_cube(
                 source = "BDC",
                 collection = "CBERS-WFI-16D",
-                bands = c("NDVI", "EVI"),
+                bands = c("NDVI", "EVI", "CLOUD"),
                 tiles = c("007004", "007005"),
                 start_date = "2018-09-01",
                 end_date = "2018-10-28",
@@ -30,7 +30,7 @@ test_that("file_info functions", {
 
     # tile paths
     expect_length(.tile_path(cbers_cube), 1)
-    expect_length(.tile_paths(cbers_cube), 8)
+    expect_length(.tile_paths(cbers_cube), 12)
 
     # tile resolutions
     expect_equal(.tile_xres(cbers_cube), 64.000, tolerance = 10e-3)
@@ -38,15 +38,27 @@ test_that("file_info functions", {
 
     # tile properties
     expect_length(.tile_timeline(cbers_cube), 4)
-    expect_equal(.tile_bands(cbers_cube), c("EVI", "NDVI"))
+    expect_true(all(.tile_bands(cbers_cube) %in% c("EVI", "NDVI", "CLOUD")))
 
     # tile filters
-    tile_fid <- dplyr::filter(.fi(cbers_cube),
+    tile_fid <- dplyr::filter(
+        .fi(cbers_cube),
         fid == "CB4-16D_V2_007004_20180829"
     )
+    # cloud cover
+    expect_true(min(.fi_cloud_cover(.fi(cbers_cube))) == 0.0)
+
+    # filter id
+    fid_1 <- .fi_filter_fid(.fi(cbers_cube), .fi(cbers_cube)$fid[[1]])
+    expect_true(nrow(fid_1) == 3)
 
     expect_s3_class(tile_fid, "tbl_df")
-    expect_equal(nrow(tile_fid), 2)
+    expect_equal(nrow(tile_fid), 3)
+
+    # test errors
+    fi <- .fi(cbers_cube)
+    expect_error(.fi_filter_fid(fi, fid = "CB4-16D-V222"))
+    expect_error(.fi_filter_bands(fi, bands = "NBR"))
 
     cube_sliced_date <- .cube_filter_interval(
         cbers_cube,
@@ -61,11 +73,20 @@ test_that("file_info functions", {
 
     expect_s3_class(.fi(cube_band), "tbl_df")
     expect_equal(nrow(.fi(cube_band)), 4)
+
+    expect_error(.fi_type(1))
+    expect_error(.fi_switch(1))
+    fi2 <- .fi_filter_interval(fi, start_date = NULL, end_date = NULL)
+    expect_equal(nrow(fi), nrow(fi2))
+    expect_error(.fi_filter_interval(fi,
+                                     start_date = "2019-09-01",
+                                     end_date = "2019-10-28"))
+    expect_error(.fi_filter_dates(fi, dates = c("2019-09-01", "2019-10-28")))
+    roi <- sits_bbox(cbers_cube, as_crs = "EPSG:4326")
+
 })
 
 test_that("file_info functions for result cubes", {
-
-
     # build an extreme gradient boosting model
     xgb_model <- sits_train(
         samples_modis_ndvi,

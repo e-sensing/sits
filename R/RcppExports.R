@@ -29,6 +29,14 @@ C_kernel_max <- function(x, ncols, nrows, band, window_size) {
     .Call(`_sits_C_kernel_max`, x, ncols, nrows, band, window_size)
 }
 
+C_kernel_var <- function(x, ncols, nrows, band, window_size) {
+    .Call(`_sits_C_kernel_var`, x, ncols, nrows, band, window_size)
+}
+
+C_kernel_modal <- function(x, ncols, nrows, band, window_size) {
+    .Call(`_sits_C_kernel_modal`, x, ncols, nrows, band, window_size)
+}
+
 C_label_max_prob <- function(x) {
     .Call(`_sits_C_label_max_prob`, x)
 }
@@ -63,6 +71,18 @@ C_normalize_data <- function(data, min, max) {
 
 C_normalize_data_0 <- function(data, min, max) {
     .Call(`_sits_C_normalize_data_0`, data, min, max)
+}
+
+sample_points_inclusion <- function(polymatrix, n_sam_pol) {
+    .Call(`_sits_sample_points_inclusion`, polymatrix, n_sam_pol)
+}
+
+sample_points_crossings <- function(polymatrix, n_sam_pol) {
+    .Call(`_sits_sample_points_crossings`, polymatrix, n_sam_pol)
+}
+
+sample_points_bin <- function(polymatrix, n_sam_pol) {
+    .Call(`_sits_sample_points_bin`, polymatrix, n_sam_pol)
 }
 
 C_max_sampling <- function(x, nrows, ncols, window_size) {

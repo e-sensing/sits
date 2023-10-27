@@ -7,7 +7,7 @@
 sits_pred_features(pred)
 }
 \arguments{
-\item{pred}{X-Y predictors: a data.table with one row per sample.}
+\item{pred}{X-Y predictors: a data.frame with one row per sample.}
 }
 \value{
 The Y predictors for the sample: data.frame with one row per sample.
@@ -26,10 +26,9 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-     pred <- sits_predictors(samples_modis_ndvi)
-     features <- sits_pred_features(pred)
+    pred <- sits_predictors(samples_modis_ndvi)
+    features <- sits_pred_features(pred)
 }
-
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

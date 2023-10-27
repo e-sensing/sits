@@ -1,3 +1,21 @@
+#' @title Calculate the variance of a tile
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Takes a probability cube and estimate the local variance
+#'              of the logit of the probability,
+#'              to support the choice of parameters for Bayesian smoothing.
+#'
+#' @param  tile              Tile of a data cube.
+#' @param  band              Band to be processed.
+#' @param  block             Block size
+#' @param  overlap           Overlap between tiles
+#' @param  smooth_fn         Function used for smoothing
+#' @param  output_dir        Output directory for image files
+#' @param  version           Version of resulting image
+#'                           (in the case of multiple tests)
+#' @return A variance tile.
 .variance_tile <- function(tile,
                            band,
                            block,
@@ -32,7 +50,8 @@
         block <- .block(chunk)
         # Block file name
         block_file <- .file_block_name(
-            pattern = .file_pattern(out_file), block = block,
+            pattern = .file_pattern(out_file),
+            block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure
@@ -85,7 +104,28 @@
     # Return var tile
     var_tile
 }
-
+#' @title Calculate the variance of a probability cube
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Takes a probability cube and estimate the local variance
+#'              of the logit of the probability,
+#'              to support the choice of parameters for Bayesian smoothing.
+#'
+#' @param  cube              Probability data cube.
+#' @param  block             Block size
+#' @param  window_size       Size of the neighborhood.
+#' @param  neigh_fraction    Fraction of neighbors with highest probability
+#'                           to be used in Bayesian inference.
+#' @param  multicores        Number of cores to run the smoothing function
+#' @param  memsize           Maximum overall memory (in GB) to run the
+#'                           smoothing.
+#' @param  output_dir        Output directory for image files
+#' @param  version           Version of resulting image
+#'                           (in the case of multiple tests)
+#'
+#' @return A variance data cube.
 .variance <- function(cube,
                       block,
                       window_size,
@@ -98,7 +138,8 @@
     # Create smooth function
     smooth_fn <- .variance_fn(
         window_size = window_size,
-        neigh_fraction = neigh_fraction)
+        neigh_fraction = neigh_fraction
+    )
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
     # Smoothing
@@ -116,6 +157,16 @@
         )
     })
 }
+#' @title Calculate the variance smoothing function
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  window_size       Size of the neighborhood.
+#' @param  neigh_fraction    Fraction of neighbors with highest probability
+#'                           to be used in Bayesian inference.
+#'
+#' @return A variance smoothing function.
 .variance_fn <- function(window_size,
                          neigh_fraction) {
     # Check window size
@@ -134,7 +185,8 @@
             m_nrow = .nrows(block),
             m_ncol = .ncols(block),
             w = window,
-            neigh_fraction = neigh_fraction)
+            neigh_fraction = neigh_fraction
+        )
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         # Return values

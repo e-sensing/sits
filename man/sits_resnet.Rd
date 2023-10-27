@@ -12,7 +12,7 @@ sits_resnet(
   epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
-  optimizer = torchopt::optim_adamw,
+  optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
   lr_decay_epochs = 1,
   lr_decay_rate = 0.95,
@@ -117,7 +117,8 @@ if (sits_run_examples()) {
     plot(bayes_cube)
     # label the probability cube
     label_cube <- sits_label_classification(
-        bayes_cube, output_dir = tempdir()
+        bayes_cube,
+        output_dir = tempdir()
     )
     # plot the labelled cube
     plot(label_cube)

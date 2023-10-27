@@ -44,7 +44,6 @@
 #' @export
 #'
 sits_to_xlsx <- function(acc_lst, file, data = NULL) {
-
     # set caller to show in errors
     .check_set_caller("sits_to_xlsx")
     # create a workbook to save the results

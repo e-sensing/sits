@@ -32,10 +32,6 @@ using the synthetic minority oversampling technique (SMOTE)
 for oversampling. Undersampling is done using the SOM methods available in
 the sits package.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
 if (sits_run_examples()) {
     # print the labels summary for a sample set

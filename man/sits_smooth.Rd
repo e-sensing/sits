@@ -2,15 +2,75 @@
 % Please edit documentation in R/sits_smooth.R
 \name{sits_smooth}
 \alias{sits_smooth}
+\alias{sits_smooth.probs_cube}
+\alias{sits_smooth.raster_cube}
+\alias{sits_smooth.derived_cube}
+\alias{sits_smooth.tbl_df}
+\alias{sits_smooth.default}
 \title{Smooth probability cubes with spatial predictors}
 \usage{
 sits_smooth(
   cube,
-  window_size = 7,
+  window_size = 7L,
   neigh_fraction = 0.5,
-  smoothness = 10,
-  memsize = 4,
-  multicores = 2,
+  smoothness = 10L,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1"
+)
+
+\method{sits_smooth}{probs_cube}(
+  cube,
+  window_size = 7L,
+  neigh_fraction = 0.5,
+  smoothness = 10L,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1"
+)
+
+\method{sits_smooth}{raster_cube}(
+  cube,
+  window_size = 7L,
+  neigh_fraction = 0.5,
+  smoothness = 10L,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1"
+)
+
+\method{sits_smooth}{derived_cube}(
+  cube,
+  window_size = 7L,
+  neigh_fraction = 0.5,
+  smoothness = 10L,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1"
+)
+
+\method{sits_smooth}{tbl_df}(
+  cube,
+  window_size = 7L,
+  neigh_fraction = 0.5,
+  smoothness = 10L,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1"
+)
+
+\method{sits_smooth}{default}(
+  cube,
+  window_size = 7L,
+  neigh_fraction = 0.5,
+  smoothness = 10L,
+  memsize = 4L,
+  multicores = 2L,
   output_dir,
   version = "v1"
 )
@@ -18,24 +78,28 @@ sits_smooth(
 \arguments{
 \item{cube}{Probability data cube.}
 
-\item{window_size}{Size of the neighborhood.}
+\item{window_size}{Size of the neighborhood
+(integer, min = 3, max = 21)}
 
 \item{neigh_fraction}{Fraction of neighbors with high probabilities
-to be used in Bayesian inference.}
+to be used in Bayesian inference.
+(numeric, min = 0.1, max = 1.0)}
 
 \item{smoothness}{Estimated variance of logit of class probabilities
-(Bayesian smoothing parameter). It can be either
-a vector or a scalar.}
+(Bayesian smoothing parameter)
+(integer vector or scalar, min = 1, max = 200).}
 
-\item{memsize}{Maximum overall memory (in GB) to run the
-smoothing.}
+\item{memsize}{Memory available for classification in GB
+(integer, min = 1, max = 16384).}
 
-\item{multicores}{Number of cores to run the smoothing function}
+\item{multicores}{Number of cores to be used for classification
+(integer, min = 1, max = 2048).}
 
-\item{output_dir}{Output directory for image files}
+\item{output_dir}{Valid directory for output file.
+(character vector of length 1).}
 
-\item{version}{Version of resulting image
-(in the case of multiple tests)}
+\item{version}{Version of the output
+(character vector of length 1).}
 }
 \value{
 A data cube.
@@ -45,14 +109,10 @@ Takes a set of classified raster layers with probabilities,
              whose metadata is]created by \code{\link[sits]{sits_cube}},
              and applies a Bayesian smoothing function.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
 if (sits_run_examples()) {
-    # create a ResNet model
-    torch_model <- sits_train(samples_modis_ndvi, sits_resnet(epochs = 20))
+    # create am xgboost model
+    xgb_model <- sits_train(samples_modis_ndvi, sits_xgboost())
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
@@ -62,7 +122,7 @@ if (sits_run_examples()) {
     )
     # classify a data cube
     probs_cube <- sits_classify(
-        data = cube, ml_model = torch_model, output_dir = tempdir()
+        data = cube, ml_model = xgb_model, output_dir = tempdir()
     )
     # plot the probability cube
     plot(probs_cube)
@@ -72,7 +132,8 @@ if (sits_run_examples()) {
     plot(bayes_cube)
     # label the probability cube
     label_cube <- sits_label_classification(
-        bayes_cube, output_dir = tempdir()
+        bayes_cube,
+        output_dir = tempdir()
     )
     # plot the labelled cube
     plot(label_cube)

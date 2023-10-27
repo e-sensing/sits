@@ -1,8 +1,8 @@
 test_that("conf_matrix -2 classes", {
     data(cerrado_2classes)
     set.seed(1234)
-    train_data <- sits_sample(cerrado_2classes, n = 200)
-    test_data <- sits_sample(cerrado_2classes, n = 200)
+    train_data <- sits_sample(cerrado_2classes, frac = 0.5)
+    test_data  <- sits_sample(cerrado_2classes, frac = 0.5)
     rfor_model <- sits_train(train_data, sits_rfor(verbose = FALSE))
     points_class <- sits_classify(
         data = test_data,
@@ -22,8 +22,8 @@ test_that("conf_matrix -2 classes", {
 test_that("conf_matrix - more than 2 classes", {
     set.seed(1234)
     data(samples_modis_ndvi)
-    train_data <- sits_sample(samples_modis_ndvi, n = 50)
-    test_data <- sits_sample(samples_modis_ndvi, n = 50)
+    train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
+    test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
     rfor_model <- sits_train(train_data, sits_rfor())
     points_class <- sits_classify(
         data = test_data,
@@ -37,6 +37,23 @@ test_that("conf_matrix - more than 2 classes", {
     expect_true(grepl("Confusion Matrix", p1[1]))
     expect_true(grepl("Cerrado", p1[5]))
     expect_true(grepl("Kappa", p1[15]))
+})
+test_that("samples_validation", {
+    set.seed(1234)
+    samples <- samples_modis_ndvi
+    samples$id <- seq_len(nrow(samples))
+    train_data <- sits_sample(samples, frac = 0.8)
+    # Remove the lines used for validation
+    sel <- !samples$id %in% train_data$id
+    val_samples <- samples[sel, ]
+    samples_val <-
+        .check_samples_validation(
+            samples_validation = val_samples,
+            labels = sits_labels(samples),
+            timeline = sits_timeline(samples),
+            bands = sits_bands(samples)
+        )
+    expect_true(nrow(samples_val) == nrow(val_samples))
 })
 test_that("XLS", {
     set.seed(1234)
@@ -72,6 +89,7 @@ test_that("K-fold validate", {
 
     expect_true(file.remove(xls_file))
 })
+
 test_that("Accuracy areas", {
     set.seed(1234)
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -127,17 +145,73 @@ test_that("Accuracy areas", {
     expect_true(grepl("Mapped Area", p1[11]))
 
     # alternative: use a sits tibble
-    validation <- tibble::as_tibble(
-                  utils::read.csv(
-                  ground_truth,
-                  stringsAsFactors = FALSE)
+    samples_csv <- tibble::as_tibble(
+        utils::read.csv(
+            ground_truth,
+            stringsAsFactors = FALSE
+        )
     )
-    as2 <- sits_accuracy(label_cube, validation)
+    as2 <- sits_accuracy(label_cube, validation = samples_csv)
 
     expect_true(as.numeric(as2$area_pixels["Forest"]) >
-                           as2$area_pixels["Pasture"])
+        as2$area_pixels["Pasture"])
     expect_equal(as.numeric(as2$accuracy$overall),
-                 expected = 0.75,
+        expected = 0.75,
+        tolerance = 0.5
+    )
+})
+
+test_that("Accuracy areas when samples labels do not match cube labels", {
+    set.seed(1234)
+
+    rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        multicores = 2,
+        memsize = 4
+    )
+
+    probs_cube <- sits_classify(
+        data = cube,
+        ml_model = rf_model,
+        output_dir = tempdir(),
+        version = "ex_classify",
+        multicores = 2,
+        memsize = 4
+    )
+
+    label_cube <- sits_label_classification(
+        probs_cube,
+        output_dir = tempdir(),
+        multicores = 2,
+        memsize = 4
+    )
+
+    reclass <- sits_reclassify(
+        cube = label_cube,
+        mask = label_cube,
+        rules = list(
+            Cerrado = mask %in% c("Pasture", "Cerrado")
+        ),
+        output_dir = tempdir(),
+        multicores = 1,
+        memsize = 4
+    )
+
+    acc <- sits_accuracy(
+        data = reclass, validation = samples_modis_ndvi
+    )
+
+    expect_true(as.numeric(acc$area_pixels["Forest"]) >
+                    acc$area_pixels["Cerrado"])
+    expect_equal(as.numeric(acc$accuracy$overall),
+                 expected = 0.33,
                  tolerance = 0.5
     )
+
 })

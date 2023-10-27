@@ -10,12 +10,9 @@
 #'
 #' @return A summary of the sits tibble.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'      summary(samples_modis_ndvi)
+#'     summary(samples_modis_ndvi)
 #' }
 #'
 #' @export
@@ -44,22 +41,19 @@ summary.sits <- function(object, ...) {
 #'
 #' @return A summary of the sample accuracy
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
 #'     data(cerrado_2classes)
 #'     # split training and test data
-#'     train_data <- sits_sample(cerrado_2classes, n = 200)
-#'     test_data <- sits_sample(cerrado_2classes, n = 200)
+#'     train_data <- sits_sample(cerrado_2classes, frac = 0.5)
+#'     test_data  <- sits_sample(cerrado_2classes, frac = 0.5)
 #'     # train a random forest model
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     # classify test data
 #'     points_class <- sits_classify(
-#'          data = test_data,
-#'          ml_model = rfor_model
-#'      )
+#'         data = test_data,
+#'         ml_model = rfor_model
+#'     )
 #'     # measure accuracy
 #'     acc <- sits_accuracy(points_class)
 #'     summary(acc)
@@ -81,9 +75,6 @@ summary.sits_accuracy <- function(object, ...) {
 #'
 #' @return A summary of the sample accuracy
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a data cube from local files
@@ -101,7 +92,8 @@ summary.sits_accuracy <- function(object, ...) {
 #'     )
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
-#'         probs_cube, output_dir = tempdir()
+#'         probs_cube,
+#'         output_dir = tempdir()
 #'     )
 #'     # obtain the ground truth for accuracy assessment
 #'     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
@@ -127,14 +119,9 @@ summary.sits_area_accuracy <- function(object, ...) {
 #' @param  ...         Further specifications for \link{summary}.
 #' @param  tile        Tile to be summarized
 #' @param  date        Date to be summarized
-#' @param  only_stats  Show only the statistics? (TRUE/FALSE)
-#' @param  sample_size Number of sample used to build statistics
 #'
 #' @return A summary of the data cube.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a data cube from local files
@@ -144,77 +131,70 @@ summary.sits_area_accuracy <- function(object, ...) {
 #'         collection = "MOD13Q1-6",
 #'         data_dir = data_dir
 #'     )
-#' summary(cube)
+#'     summary(cube)
 #' }
 #'
 #' @export
-summary.raster_cube <- function(
-        object, ...,
-        tile = object$tile[[1]],
-        date = NULL,
-        only_stats = FALSE,
-        sample_size = 100000
-) {
-    # filter the tile to be processed
-    tile <- .summary_check_tile(object, tile)
-    if (purrr::is_null(date))
-        date <- .tile_timeline(tile)[[1]]
-    # only one date at a time
-    .check_that(length(date) == 1,
-                msg = "only one date per summary is allowed")
-    # is this a valid date?
-    date <- as.Date(date)
-    .check_that(date %in% .tile_timeline(tile),
-                msg = "date is not contained in the cube timeline")
-
-    # extract the chosen date
-    tile <- .tile_filter_dates(tile, dates = date)
-    # get the bands
-    bands <- sits_bands(tile)
-    if ("CLOUD" %in% bands)
-        tile <- .tile_filter_bands(tile, bands[bands != "CLOUD"])
-    # extract the file paths
-    files <- .tile_paths(tile)
-
-    # print the base information (if requested)
-    if (!only_stats)
-        .summary_tile_information(tile)
-    # read the files with terra
-    r <- terra::rast(files)
-    # get the a sample of the values
-    values <- r |>
-        terra::spatSample(size = sample_size, na.rm = TRUE) |>
-        tibble::as_tibble()
-    # set names as the band names
-    bands <- bands[bands != "CLOUD"]
-    # extract statistics
-    band_conf <- .tile_band_conf(tile, bands[[1]])
-    scale <- .scale(band_conf)
-    offset <- .offset(band_conf)
-    # rescale values
-    # get summary
-    sum <- summary(values * scale + offset)
-    # change names
-    colnames(sum) <- bands
-    # print statistics
-    sum
+summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
+    # Pre-conditional check
+    .check_date_parameter(date, allow_null = TRUE)
+    .check_chr_parameter(tile, allow_null = TRUE)
+    # Extract the chosen tile
+    if (!is.null(tile)) {
+        object <- .summary_check_tile(object, tile)
+    }
+    # Extract the chosen date
+    if (!is.null(date)) {
+        object <- .cube_filter_dates(object, dates = date)
+    }
+    # Display cube general metadata
+    cli::cli_h1("Cube Metadata")
+    cli::cli_li("Class: {.field raster_cube}")
+    cube_bbox <- sits_bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
+    cli::cli_li("Bounding Box: xmin = {.field {cube_bbox[['xmin']]}},
+                               xmax = {.field {cube_bbox[['xmax']]}},
+                               ymin = {.field {cube_bbox[['ymin']]}},
+                               ymax = {.field {cube_bbox[['ymax']]}}")
+    cli::cli_li("Bands: {.field {sits_bands(object)}}")
+    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(object))))
+    cli::cli_li("Timeline: {.field {timeline}}")
+    is_regular <- .cube_is_regular(object)
+    cli::cli_li("Regular cube: {.field {is_regular}}")
+    # Display cube cloud coverage
+    if ("CLOUD" %in% .cube_bands(object) &&
+        .has_column(.fi(object), "cloud_cover")) {
+        cube_unnest <- tidyr::unnest(
+            object[, c("tile", "file_info")], "file_info"
+        )
+        cli::cli_h1("Cloud cover info")
+        cube_unnest <- cube_unnest[, c("tile", "date", "cloud_cover")]
+        cube_unnest <- unique(dplyr::arrange(cube_unnest, .data[["date"]]))
+        print(cube_unnest, n = Inf)
+    }
+    # Display raster summary
+    cli::cli_h1("Cube Summary")
+    sum <- slider::slide(object, function(tile) {
+        # Get the first date to not read all images
+        date <- .default(date, .tile_timeline(tile)[[1]])
+        tile <- .tile_filter_dates(tile, date)
+        bands <- if (is_regular) .tile_bands(tile) else .tile_bands(tile)[[1]]
+        tile <- .tile_filter_bands(tile, bands)
+        cli::cli_h3("Tile: {.field {tile$tile}} and Date: {.field {date}}")
+        rast <- .raster_open_rast(.tile_paths(tile))
+        sum <- suppressWarnings(.raster_summary(rast))
+        print(sum)
+        return(sum)
+    })
+    # Return the summary from the cube
+    names(sum) <- .cube_tiles(object)
+    return(invisible(sum))
 }
-#' @title  Summarize data cubes
-#' @method summary probs_cube
-#' @name summary.probs_cube
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description This is a generic function. Parameters depend on the specific
-#' type of input.
-#' @param  object    Object of class "probs_cube"
-#' @param ...        Further specifications for \link{summary}.
-#' @param  tile        Tile to be summarized
-#' @param  only_stats  Show only the statistics? (TRUE/FALSE)
-#' @param  sample_size Number of sample used to build statistics
-#'
-#' @return A summary of a probability cube
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @title Summary of a derived cube
+#' @noRd
+#' @param object data cube
+#' @param  ...         Further specifications for \link{summary}.
+#' @param tile A \code{tile}.
+#' @return Summary of a derived cube
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -232,63 +212,62 @@ summary.raster_cube <- function(
 #'         data = cube, ml_model = rfor_model, output_dir = tempdir()
 #'     )
 #'     summary(probs_cube)
-#' }
-#'
-#' @export
-summary.probs_cube <- function(
-       object, ...,
-       tile = object$tile[[1]],
-       only_stats = FALSE,
-       sample_size = 100000
-) {
-    .summary_derived_cube(object, tile, only_stats, sample_size)
-}
-#' @title  Summarize data cubes
-#' @method summary variance_cube
-#' @name summary.variance_cube
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description This is a generic function. Parameters depend on the specific
-#' type of input.
-#' @param  object    Object of class "probs_cube"
-#' @param ...        Further specifications for \link{summary}.
-#' @param  tile        Tile to be summarized
-#' @param  only_stats  Show only the statistics? (TRUE/FALSE)
-#' @param  sample_size Number of sample used to build statistics
-#'
-#' @return A summary of a probability cube
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#'     # create a data cube from local files
-#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#'     cube <- sits_cube(
-#'         source = "BDC",
-#'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir
-#'     )
-#'     # create a random forest model
-#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-#'     # classify a data cube
-#'     probs_cube <- sits_classify(
-#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
-#'     )
 #'     # get the variance cube
 #'     variance_cube <- sits_variance(
-#'         probs_cube, output_dir = tempdir()
+#'         probs_cube,
+#'         output_dir = tempdir()
 #'     )
 #'     summary(variance_cube)
 #' }
 #'
 #' @export
-summary.variance_cube <- function(
-        object, ...,
-        tile = object$tile[[1]],
-        only_stats = FALSE,
-        sample_size = 100000) {
-    .summary_derived_cube(object, tile, only_stats, sample_size)
+summary.derived_cube <- function(object, ..., tile = NULL) {
+    # Pre-conditional check
+    .check_chr_parameter(tile, allow_null = TRUE)
+    # Extract the chosen tile
+    if (!is.null(tile)) {
+        object <- .summary_check_tile(object, tile)
+    }
+    # Display cube general metadata
+    cli::cli_h1("Cube Metadata")
+    cli::cli_li("Class: {.field derived_cube}")
+    cube_bbox <- sits_bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
+    cli::cli_li("Bounding Box: xmin = {.field {cube_bbox[['xmin']]}},
+                               xmax = {.field {cube_bbox[['xmax']]}},
+                               ymin = {.field {cube_bbox[['ymin']]}},
+                               ymax = {.field {cube_bbox[['ymax']]}}")
+    cli::cli_li("Band(s): {.field {sits_bands(object)}}")
+    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(object))))
+    cli::cli_li("Timeline: {.field {timeline}}")
+    # get sample size
+    sample_size <- .conf("summary_sample_size")
+    # Get tile name
+    tile <- .default(tile, .cube_tiles(object)[[1]])
+    cli::cli_h1("Cube Summary")
+    tile <- .cube_filter_tiles(object, tile)
+    # get the bands
+    band <- sits_bands(tile)
+    .check_num(
+        x = length(band),
+        min = 1,
+        max = 1,
+        is_integer = TRUE,
+        msg = "invalid cube - more than one probs band"
+    )
+    # extract the file paths
+    files <- .tile_paths(tile)
+    # read the files with terra
+    r <- terra::rast(files)
+    # get the a sample of the values
+    values <- r |>
+        terra::spatSample(size = sample_size, na.rm = TRUE)
+    # scale the values
+    band_conf <- .tile_band_conf(tile, band)
+    scale <- .scale(band_conf)
+    offset <- .offset(band_conf)
+    sum <- summary(values * scale + offset)
+    colnames(sum) <- sits_labels(tile)
+    return(sum)
 }
 #' @title  Summarize data cubes
 #' @method summary class_cube
@@ -299,13 +278,8 @@ summary.variance_cube <- function(
 #' @param  object    Object of class "class_cube"
 #' @param ...        Further specifications for \link{summary}.
 #' @param  tile        Tile to be summarized
-#' @param  only_stats  Show only the statistics? (TRUE/FALSE)
-#' @param  sample_size Number of sample used to build statistics
 #'
 #' @return A summary of a classified cube
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -324,19 +298,35 @@ summary.variance_cube <- function(
 #'     )
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
-#'         probs_cube, output_dir = tempdir()
+#'         probs_cube,
+#'         output_dir = tempdir()
 #'     )
 #'     summary(label_cube)
 #' }
 #' @export
 #'
-summary.class_cube <- function(
-        object, ...,
-        tile = object$tile[[1]],
-        only_stats = FALSE,
-        sample_size = 100000) {
-    # check tile
-    tile <- .summary_check_tile(object, tile)
+summary.class_cube <- function(object, ..., tile = NULL) {
+    # Pre-conditional check
+    .check_chr_parameter(tile, allow_null = TRUE)
+    # Extract the chosen tile
+    if (!is.null(tile)) {
+        object <- .summary_check_tile(object, tile)
+    }
+    # Display cube general metadata
+    cli::cli_h1("Cube Metadata")
+    cli::cli_li("Class: {.field class_cube}")
+    cube_bbox <- sits_bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
+    cli::cli_li("Bounding Box: xmin = {.field {cube_bbox[['xmin']]}},
+                               xmax = {.field {cube_bbox[['xmax']]}},
+                               ymin = {.field {cube_bbox[['ymin']]}},
+                               ymax = {.field {cube_bbox[['ymax']]}}")
+    cli::cli_li("Band(s): {.field {sits_bands(object)}}")
+    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(object))))
+    cli::cli_li("Timeline: {.field {timeline}}")
+    # Get tile name
+    tile <- .default(tile, .cube_tiles(object)[[1]])
+    cli::cli_h1("Cube Summary")
+    tile <- .cube_filter_tiles(object, tile)
     # get the bands
     band <- sits_bands(tile)
     .check_num(
@@ -344,20 +334,42 @@ summary.class_cube <- function(
         min = 1,
         max = 1,
         is_integer = TRUE,
-        msg = "invalid cube - more than one class band")
+        msg = "invalid cube - more than one probs band"
+    )
     # extract the file paths
     files <- .tile_paths(tile)
-
-    # print the base information (if requested)
-    if (!only_stats)
-        .summary_tile_information(tile)
-    # read the files with terra
-    r <- terra::rast(files)
-    # get the a sample of the values
-    class_areas <- r |>
-        terra::expanse(unit = "km", byValue = TRUE)
-    # create a tibble
-    areas <-  class_areas[, 3]
-    # get the result
-    data.frame(class = sits_labels(tile), area_km2  = signif(areas, 4))
+    # read raster files
+    r <- .raster_open_rast(files)
+    # get a frequency of values
+    class_areas <- .raster_freq(r)
+    # transform to km^2
+    cell_size <- .tile_xres(tile) * .tile_yres(tile)
+    class_areas[["area"]] <-  (class_areas[["count"]] * cell_size) / 10^6
+    # change value to character
+    class_areas <- dplyr::mutate(class_areas,
+        value = as.character(.data[["value"]])
+    )
+    # create a data.frame with the labels
+    labels <- sits_labels(tile)
+    df1 <- data.frame(value = names(labels), class = unname(labels))
+    # join the labels with the areas
+    sum <- dplyr::full_join(df1, class_areas, by = "value")
+    sum <- dplyr::mutate(sum,
+        area_km2 = signif(.data[["area"]], 3),
+        .keep = "unused"
+    )
+    # remove layer information
+    sum_clean <- sum[, -3] |>
+        stats::na.omit()
+    # are there NA's ?
+    sum_NA <- dplyr::filter(sum, is.na(.data[["area_km2"]]))
+    # inform missing classes
+    if (nrow(sum_NA) > 0) {
+        message(
+            "classes ", paste0(sum_NA$class, collapse = " "),
+            " have no area"
+        )
+    }
+    # show the result
+    return(sum_clean)
 }

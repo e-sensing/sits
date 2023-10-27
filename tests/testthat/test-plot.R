@@ -1,6 +1,4 @@
 test_that("Plot Time Series and Images", {
-
-
     cerrado_ndvi <- sits_select(cerrado_2classes, "NDVI")
 
     p <- plot(cerrado_ndvi[1, ])
@@ -50,19 +48,23 @@ test_that("Plot Time Series and Images", {
         data_dir = data_dir,
         progress = FALSE
     )
-    p <- plot(sinop, band = "NDVI", color_palette = "RdYlGn")
+    p <- plot(sinop, band = "NDVI", palette = "RdYlGn", rev = TRUE)
     expect_equal(p$tm_shape$shp_name, "stars_obj")
-    expect_equal(p$tm_raster$palette, "RdYlGn")
+    expect_equal(p$tm_raster$palette, "-RdYlGn")
     expect_equal(p$tm_grid$grid.projection, 4326)
 
-    p_rgb <- plot(sinop, red = "NDVI", green = "NDVI", blue = "NDVI")
+    tmap_options <- list("tmap_legend_title_size" = 1.0,
+                        "tmap_legend_text_size" = 0.7,
+                        "tmap_max_cells" = 1e+06,
+                        "tmap_graticules_labels_size" = 0.7,
+                        "tmap_legend_bg_color" = "white",
+                        "tmap_legend_bg_alpha" = 0.6)
+
+    p_rgb <- plot(sinop, red = "NDVI", green = "NDVI", blue = "NDVI",
+                  tmap_options = tmap_options)
 
     expect_equal(p_rgb$tm_shape$shp_name, "rgb_st")
     expect_equal(p_rgb$tm_grid$grid.projection, 4326)
-
-    col <- p_rgb$tm_shape$shp$`TERRA_MODIS_012010_NDVI_2013-09-14.jp2`
-    expect_equal(col[1, 1], "#646464")
-    expect_equal(col[1, 10], "#A9A9A9")
 
     sinop_probs <- suppressMessages(
         sits_classify(
@@ -88,12 +90,11 @@ test_that("Plot Time Series and Images", {
         output_dir = tempdir()
     )
 
-    p_uncert <- plot(sinop_uncert, color_palette = "Reds", rev = FALSE)
+    p_uncert <- plot(sinop_uncert, palette = "Reds", rev = FALSE)
 
     expect_equal(p_uncert$tm_raster$palette, "Reds")
     expect_equal(length(p_uncert$tm_raster$title), 1)
     expect_equal(p_uncert$tm_layout$legend.bg.color, "white")
-
 
     sinop_labels <- sits_label_classification(
         sinop_probs,
@@ -105,15 +106,12 @@ test_that("Plot Time Series and Images", {
     expect_equal(p4$tm_grid$grid.projection, 4326)
     expect_equal(p4$tm_raster$n, 5)
     expect_true(p4$tm_shape$check_shape)
-
-    expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(sinop_labels$file_info[[1]]$path))))
 })
 
 test_that("Plot Accuracy", {
     # show accuracy for a set of samples
-    train_data <- sits_sample(samples_modis_ndvi, n = 200)
-    test_data <- sits_sample(samples_modis_ndvi, n = 200)
+    train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
+    test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
     # compute a random forest model
     rfor_model <- sits_train(train_data, sits_rfor())
     # classify training points
@@ -126,17 +124,18 @@ test_that("Plot Accuracy", {
     expect_equal(p$labels$x, "Class")
     expect_equal(p$labels$y, "Agreement with reference")
     expect_equal(p$theme$line$colour, "black")
-
 })
 
 test_that("Plot Models", {
     set.seed(290356)
     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
     p_model <- plot(rfor_model)
-    expect_true(all(p_model$data$variable %in% c("NDVI1", "NDVI2", "NDVI3",
-                                                 "NDVI4", "NDVI5", "NDVI6",
-                                                 "NDVI7", "NDVI8", "NDVI9",
-                                                 "NDVI10", "NDVI11", "NDVI12")))
+    expect_true(all(p_model$data$variable %in% c(
+        "NDVI1", "NDVI2", "NDVI3",
+        "NDVI4", "NDVI5", "NDVI6",
+        "NDVI7", "NDVI8", "NDVI9",
+        "NDVI10", "NDVI11", "NDVI12"
+    )))
     expect_true(all(p_model$data$minimal_depth[1:2] %in% c(0, 1)))
 
     xgb_model <- sits_train(samples_modis_ndvi, ml_method = sits_xgboost())
@@ -147,11 +146,8 @@ test_that("Plot Models", {
 })
 
 test_that("Dendrogram Plot", {
-
     samples <- sits_cluster_dendro(cerrado_2classes,
-        bands = c("NDVI", "EVI"),
-        .plot = FALSE
-    )
+        bands = c("NDVI", "EVI"))
     cluster <- .cluster_dendrogram(
         samples = samples,
         bands = c("NDVI", "EVI")
@@ -160,15 +156,14 @@ test_that("Dendrogram Plot", {
     best_cut <- .cluster_dendro_bestcut(samples, cluster)
 
     dend <- plot(samples,
-                 cluster = cluster,
-                 cutree_height = best_cut["height"],
-                 color_palette = "RdYlGn"
+        cluster = cluster,
+        cutree_height = best_cut["height"],
+        palette = "RdYlGn"
     )
     expect_equal(class(dend), "dendrogram")
 })
 
 test_that("Plot torch model", {
-
     model <- sits_train(
         samples_modis_ndvi,
         sits_mlp(
@@ -215,8 +210,6 @@ test_that("SOM map plot", {
 })
 
 test_that("SOM evaluate cluster plot", {
-
-
     set.seed(1234)
     som_map <-
         suppressWarnings(sits_som_map(

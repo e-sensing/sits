@@ -7,7 +7,6 @@
 #' @return          Attributes of wrs path and row.
 #'
 .usgs_format_tiles <- function(tiles) {
-
     # regex pattern of wrs_path and wrs_row
     pattern_l8 <- "[0-9]{6}"
 
@@ -29,30 +28,33 @@
 
     return(tiles_tbl)
 }
-
+#' @title Test access to collection in USGS
 #' @keywords internal
 #' @noRd
+#' @param source     Data source.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param collection Image collection.
+#' @param bands      Band names
+#' @return           Called for side effects
 #' @export
 .source_collection_access_test.usgs_cube <- function(source, ...,
                                                      collection,
                                                      bands) {
-
     # require package
     .check_require_packages("rstac")
-
+    # create a STAC query
     items_query <- .stac_create_items_query(
         source = source,
         collection = collection,
         limit = 1
     )
-
+    # Run a query
     items_query <- rstac::ext_query(
         q = items_query,
         "landsat:correction" %in% "L2SR",
         "platform" %in% "LANDSAT_8",
         "landsat:collection_number" %in% "02"
     )
-
     # assert that service is online
     tryCatch(
         {
@@ -65,7 +67,7 @@
             ), call. = FALSE)
         }
     )
-
+    # check result
     .check_stac_items(items)
     items <- .source_items_bands_select(
         source = source,
@@ -73,13 +75,12 @@
         bands = bands[[1]],
         collection = collection, ...
     )
-
+    # Get HTTP refs
     href <- .source_item_get_hrefs(
         source = source,
         item = items$feature[[1]],
         collection = collection, ...
     )
-
     # assert that token and/or href is valid
     tryCatch(
         {
@@ -92,10 +93,14 @@
             ), call. = FALSE)
         }
     )
-
-    return(invisible(NULL))
+    return(invisible(source))
 }
-
+#' @title Retrieves the paths or URLs of each file bands of an item for BDC
+#' @param source     Name of the STAC provider.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param item       \code{STACItemcollection} object from rstac package.
+#' @param collection Collection to be searched in the data source.
+#' @return Returns paths to each image band of an item.
 #' @keywords internal
 #' @noRd
 #' @export
@@ -108,16 +113,25 @@
     # add gdal vsi in href urls
     return(.stac_add_gdal_fs(href))
 }
-
+#' @title Create an items object in a USGS collection
 #' @keywords internal
 #' @noRd
+#' @description \code{.source_items_new()} this function is called to create
+#' an items object. In case of Web services, this function is responsible for
+#' making the Web requests to the server.
+#' @param source     Name of the STAC provider.
+#' @param collection Collection to be searched in the data source.
+#' @param stac_query Query that follows the STAC protocol
+#' @param ...        Additional parameters
+#' @param tiles      Selected tiles (optional)
+#' @param platform   Satellite platform (optional).
+#' @return An object referring the images of an USGS collection
 #' @export
 .source_items_new.usgs_cube <- function(source,
                                         collection,
                                         stac_query, ...,
                                         tiles = NULL,
                                         platform = NULL) {
-
     # set caller to show in errors
     .check_set_caller(".source_items_new.usgs_cube")
 
@@ -147,7 +161,7 @@
     } else {
         platform <- unlist(unname(
             .conf(
-            "sources", source, "collections",  collection, "platforms"
+                "sources", source, "collections", collection, "platforms"
             )
         ))
 
@@ -167,7 +181,6 @@
 
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles)) {
-
         # format tile parameter provided by users
         sep_tile <- .usgs_format_tiles(tiles)
 
@@ -207,14 +220,18 @@
     )
     return(items_info)
 }
-
+#' @title Organizes items by tiles for USGS collections
+#' @param source     Name of the STAC provider.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
 #' @keywords internal
 #' @noRd
 #' @export
 .source_items_tile.usgs_cube <- function(source,
                                          items, ...,
                                          collection = NULL) {
-
     # store tile info in items object
     items$features <- purrr::map(items$features, function(feature) {
         feature$properties$tile <- paste0(
@@ -225,4 +242,20 @@
     })
 
     rstac::items_reap(items, field = c("properties", "tile"))
+}
+#' @noRd
+#' @title Configure access.
+#' @param source  Data source
+#' @param collection Image collection
+#' @return Called for side effects
+.source_configure_access.usgs_cube <- function(source, collection = NULL) {
+    aws_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
+    if (nchar(aws_access_key) == 0)
+        stop(
+            paste("You need a valid AWS_SECRET_ACCESS_KEY",
+                  "to access USGS collection.",
+                  "If you have this key",
+                  "please put it on an enviromental variable")
+        )
+    return(invisible(source))
 }

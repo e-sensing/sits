@@ -85,7 +85,6 @@
 #' @return                  Tibble storing the predictions.
 #'
 .tibble_prediction_multiyear <- function(data, class_info, prediction) {
-
     # retrieve the global timeline
     timeline_global <- class_info$timeline[[1]]
 
@@ -122,11 +121,13 @@
             idx_fst <- (row_n - 1) * (length(ref_dates_lst)) + 1
             idx_lst <- idx_fst + length(ref_dates_lst) - 1
             pred_row <- prediction[idx_fst:idx_lst, ]
-            if (idx_lst == idx_fst)
+            if (idx_lst == idx_fst) {
                 pred_row <- matrix(
                     pred_row,
                     nrow = 1,
-                    dimnames = list(NULL, colnames(prediction)))
+                    dimnames = list(NULL, colnames(prediction))
+                )
+            }
             pred_row_lab <- pred_labels[idx_fst:idx_lst]
 
             # store the classification results
@@ -142,10 +143,12 @@
                         class = pred_row_lab[idx]
                     )
                     pred_date <- dplyr::bind_cols(pred_date, probs_date)
-                })
+                }
+            )
             row$predicted <- list(pred_sample)
             return(row)
-        })
+        }
+    )
 
     return(data_pred)
 }
@@ -198,7 +201,7 @@
                     / lubridate::ddays(1))
                 )
                 # shift the time series to match dates
-                if (idx != 1) ts <- shift_ts(ts, - (idx - 1))
+                if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
                 # change the dates to the reference dates
                 ts1 <- dplyr::mutate(ts, Index = !!ref_dates)
                 # save the resulting row in the output tibble
@@ -215,6 +218,7 @@
             return(row)
         }
     )
+    class(data) <- c("sits", class(data))
     return(data)
 }
 #'
@@ -233,7 +237,7 @@
 #'
 .tibble_prune <- function(data) {
     # verify that tibble is correct
-    .check_samples(data)
+    data <- .check_samples(data)
 
     n_samples <- data$time_series |>
         purrr::map_int(function(t) {
@@ -263,7 +267,6 @@
 #' @return              Checked bands (cube bands if bands are NULL).
 #'
 .tibble_bands_check <- function(samples, bands = NULL) {
-
     # set caller to show in errors
     .check_set_caller(".tibble_bands_check")
     # check the bands are available
@@ -310,6 +313,6 @@
             ))
         ) |>
         dplyr::ungroup()
-
+    class(result) <- c("sits", class(result))
     return(result)
 }

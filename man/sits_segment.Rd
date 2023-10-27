@@ -4,87 +4,98 @@
 \alias{sits_segment}
 \title{Segment an image}
 \usage{
-sits_segment(cube, tiles = NULL, bands = NULL, dates = NULL, seg_fn, ...)
+sits_segment(
+  cube,
+  seg_fn = sits_slic(),
+  roi = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  memsize = 8,
+  multicores = 2,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
 }
 \arguments{
 \item{cube}{Regular data cube}
 
-\item{tiles}{Tiles to be segmented}
-
-\item{bands}{Bands to include in the segmentation}
-
-\item{dates}{Dates to consider to be segmented}
-
 \item{seg_fn}{Function to apply the segmentation}
 
-\item{...}{Other params to be passed to segmentation function}
+\item{roi}{Region of interest (see below)}
+
+\item{start_date}{Start date for the segmentation}
+
+\item{end_date}{End date for the segmentation.}
+
+\item{memsize}{Memory available for classification (in GB).}
+
+\item{multicores}{Number of cores to be used for classification.}
+
+\item{output_dir}{Directory for output file.}
+
+\item{version}{Version of the output (for multiple
+segmentations).}
+
+\item{progress}{Show progress bar?}
 }
 \value{
-A list of "sf" objects, indexed by tile.
-                     Each "sf" object contains the polygons that define
-                     the segments.
+A tibble of class 'segs_cube' representing the
+segmentation.
 }
 \description{
-Apply a spatial segmentation on a data cube based on a user defined
-segmentation function. The user defines the tiles of
-the cube to be segmented and informs the bands and the date to
-be used. The function applies the segmentation algorithm
+Apply a spatial-temporal segmentation on a data cube based on a user defined
+segmentation function. The function applies the segmentation algorithm
 "seg_fn" to each tile.
 
 Segmentation uses the following steps:
 \itemize{
- \item{use \code{\link[sits]{sits_segment}} to obtain the \code{sf}
-       polygons that define the boundary of the segments.}
- \item{use \code{\link[sits]{sits_get_data}} to obtain one time series
-       associated to each segment.}
+ \item{create a regular data cube}
+ \item{use \code{\link[sits]{sits_segment}} to obtain a vector data cube
+       with polygons that define the boundary of the segments.}
  \item{use \code{\link[sits]{sits_classify}} to classify the
-      time series associated to the segments.}
- \item{use \code{\link[sits]{sits_join_segments}} to update the class
-      for each segment, based on the time series classification.}
+      time series associated to the segments, and obtain the probability
+      for each class.}
+ \item{use \code{\link[sits]{sits_label_classification}} to label the
+     vector probability cube.}
  \item{use \code{\link[sits]{plot}} or \code{\link[sits]{sits_view}}
        to display the results.}
- \item{The result of \code{\link[sits]{sits_join_segments}} is a
-       list of \code{sf} objects with a "class" attribute.
-       Use the functions available in \code{sf} for further analysis.}
  }
+}
+\note{
+The "roi" parameter defines a region of interest. It can be
+   an sf_object, a shapefile, or a bounding box vector with
+   named XY values ("xmin", "xmax", "ymin", "ymax") or
+   named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
 }
 \examples{
 if (sits_run_examples()) {
-data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-# create a data cube
-cube <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6",
-    data_dir = data_dir
-)
-
-# segment the image
-segments <- sits_segment(
-    cube = cube,
-    tile = "012010",
-    bands = "NDVI",
-    dates = sits_timeline(cube)[1],
-    seg_fn = sits_supercells(step = 20)
-)
-# create a classification model
-rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-# get the average value per segment
-samples_seg <- sits_get_data(
-    cube = cube,
-    samples = segments
-)
-# classify the segments
-seg_class <- sits_classify(
-    data = samples_seg,
-    ml_model = rfor_model
-)
-# add a column to the segments by class
-sf_seg <- sits_join_segments(
-    data = seg_class,
-    segments = segments
-)
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    # create a data cube
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
+    )
+    # segment the vector cube
+    segments <- sits_segment(
+        cube = cube,
+        output_dir = tempdir()
+    )
+    # create a classification model
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+    # classify the segments
+    seg_probs <- sits_classify(
+        data = segments,
+        ml_model = rfor_model,
+        output_dir = tempdir()
+    )
+    # label the probability segments
+    seg_label <- sits_label_classification(
+        cube = seg_probs,
+        output_dir = tempdir()
+    )
 }
-
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

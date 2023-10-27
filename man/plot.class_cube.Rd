@@ -11,7 +11,7 @@
   tile = x$tile[[1]],
   title = "Classified Image",
   legend = NULL,
-  color_palette = "Spectral",
+  palette = "Spectral",
   tmap_options = NULL
 )
 }
@@ -28,15 +28,19 @@
 
 \item{legend}{Named vector that associates labels to colors.}
 
-\item{color_palette}{Alternative RColorBrewer palette}
+\item{palette}{Alternative RColorBrewer palette}
 
 \item{tmap_options}{List with optional tmap parameters
-tmap_max_cells (default: 1e+06)
-tmap_graticules_labels_size (default: 0.7)
-tmap_legend_title_size (default: 1.5)
-tmap_legend_text_size (default: 1.2)
-tmap_legend_bg_color (default: "white")
-tmap_legend_bg_alpha (default: 0.5)}
+max_cells (default: 1e+06)
+graticules_labels_size (default: 0.7)
+scale (default = 0.8)
+legend_title_size (default: 0.7)
+legend_text_size (default: 0.7)
+legend_bg_color (default: "white")
+legend_bg_alpha (default: 0.5)
+legend_width (default: 0.5)
+legend_height (default: 0.7)
+legend_position (default: c("left", "bottom"))}
 }
 \value{
 A  color map, where each pixel has the color
@@ -63,7 +67,8 @@ if (sits_run_examples()) {
     )
     # label cube with the most likely class
     label_cube <- sits_label_classification(
-        probs_cube, output_dir = tempdir()
+        probs_cube,
+        output_dir = tempdir()
     )
     # plot the resulting classified image
     plot(label_cube)

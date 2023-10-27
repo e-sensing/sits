@@ -17,13 +17,15 @@
 #' Nature Communications 13, 2208 (2022).
 #' https://doi.org/10.1038/s41467-022-29838-9
 #'
-#' @param samples A \code{samples} training data set.
-#' @param roi     A region of interest (ROI) used to extract random
-#'   predicted points.
-#' @param n       Maximum number of samples to consider.
+#' @param samples Time series (tibble of class "sits").
+#' @param roi     A region of interest (ROI), either a file containing a
+#'                shapefile or an "sf" object
+#' @param n       Maximum number of samples to consider
+#'                (integer)
 #' @param crs     CRS of the \code{samples}.
 #'
-#' @return A tibble with sample-to-sample and sample-to-prediction distances.
+#' @return A tibble with sample-to-sample and sample-to-prediction distances
+#'         (object of class "distances").
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -34,32 +36,31 @@
 #'     # convert to an sf object
 #'     mt_sf <- sf::read_sf(mt_shp)
 #'     # calculate sample-to-sample and sample-to-prediction distances
-#'     distances <- sits_geo_dist(samples = samples_modis_ndvi,
-#'     roi = mt_sf)
+#'     distances <- sits_geo_dist(
+#'         samples = samples_modis_ndvi,
+#'         roi = mt_sf
+#'     )
 #'     # plot sample-to-sample and sample-to-prediction distances
 #'     plot(distances)
 #' }
 #' @export
 #'
-sits_geo_dist <- function(samples, roi, n = 1000, crs = "EPSG:4326") {
-
+sits_geo_dist <- function(samples, roi, n = 1000L, crs = "EPSG:4326") {
     # Pre-conditions
-    .check_samples(samples)
+    samples <- .check_samples(samples)
     if (.has(roi)) {
         roi <- .roi_as_sf(roi = roi, as_crs = "EPSG:4326")
     }
-
     # TODO: change to samples API
     samples <- samples[sample(seq_len(nrow(samples)), min(n, nrow(samples))), ]
-
     # Convert training samples to points
     samples_sf <- .point_as_sf(
-        .point(x = samples, crs = crs), as_crs = "EPSG:4326"
+        .point(x = samples, crs = crs),
+        as_crs = "EPSG:4326"
     )
-
     # Get random points from roi
     pred_sf <- sf::st_sample(x = roi, size = n)
-
+    # calculate distances (sample to sample and sample to prediction)
     dist_ss <- .find_closest(samples_sf)
     dist_sp <- .find_closest(samples_sf, pred_sf)
     dist_ss <- dplyr::mutate(dist_ss, type = "sample-to-sample")

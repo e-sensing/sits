@@ -2,9 +2,64 @@
 % Please edit documentation in R/sits_regularize.R
 \name{sits_regularize}
 \alias{sits_regularize}
+\alias{sits_regularize.raster_cube}
+\alias{sits_regularize.mpc_cube_sentinel-1-grd}
+\alias{sits_regularize.derived_cube}
+\alias{sits_regularize.tbl_df}
+\alias{sits_regularize.default}
 \title{Build a regular data cube from an irregular one}
 \usage{
 sits_regularize(
+  cube,
+  period,
+  res,
+  output_dir,
+  roi = NULL,
+  multicores = 2L,
+  progress = TRUE
+)
+
+\method{sits_regularize}{raster_cube}(
+  cube,
+  period,
+  res,
+  output_dir,
+  roi = NULL,
+  multicores = 2L,
+  progress = TRUE
+)
+
+\method{sits_regularize}{`mpc_cube_sentinel-1-grd`}(
+  cube,
+  period,
+  res,
+  output_dir,
+  roi = NULL,
+  multicores = 2L,
+  progress = TRUE
+)
+
+\method{sits_regularize}{derived_cube}(
+  cube,
+  period,
+  res,
+  output_dir,
+  roi = NULL,
+  multicores = 2,
+  progress = TRUE
+)
+
+\method{sits_regularize}{tbl_df}(
+  cube,
+  period,
+  res,
+  output_dir,
+  roi = NULL,
+  multicores = 2,
+  progress = TRUE
+)
+
+\method{sits_regularize}{default}(
   cube,
   period,
   res,
@@ -31,7 +86,7 @@ data cubes, with number and unit, where
 See more above.}
 
 \item{multicores}{Number of cores used for regularization;
-used for parallel processing of input.}
+used for parallel processing of input (integer)}
 
 \item{progress}{show progress bar?}
 }
@@ -46,29 +101,25 @@ Bands may have different resolutions,
 images may not cover the entire time, and time intervals are not regular.
 For this reason, subsets of these collection need to be converted to
 regular data cubes before further processing and data analysis.
-
 This function requires users to include the cloud band in their ARD-based
 data cubes.
 }
 \note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-
 The "roi" parameter defines a region of interest. It can be
-   an sf_object, a shapefile, or a bounding box vector with
-   named XY values ("xmin", "xmax", "ymin", "ymax") or
-   named lat/long values ("lat_min", "lat_max", "long_min", "long_max").
-   The \code{sits_regularize} function will crop the images that contain the
-   roi region.
+     an sf_object, a shapefile, or a bounding box vector with
+     named XY values ("xmin", "xmax", "ymin", "ymax") or
+     named lat/long values ("lat_min", "lat_max", "long_min", "long_max").
+     \code{sits_regularize()} function will crop the images
+     that contain the region of interest().
 
 The aggregation method used in \code{sits_regularize}
-      sorts the images based on cloud cover, where images with the fewest
-      clouds at the top of the stack. Once
-      the stack of images is sorted, the method uses the first valid value to
-      create the temporal aggregation.
+     sorts the images based on cloud cover, where images with the fewest
+     clouds at the top of the stack. Once
+     the stack of images is sorted, the method uses the first valid value to
+     create the temporal aggregation.
 
 The input (non-regular) ARD cube needs to include the cloud band for
-      the regularization to work.
+     the regularization to work.
 }
 \examples{
 if (sits_run_examples()) {
@@ -77,17 +128,38 @@ if (sits_run_examples()) {
         source = "AWS",
         collection = "SENTINEL-2-L2A",
         tiles = c("20LKP", "20LLP"),
-        bands = c("B8A", "SCL"),
+        bands = c("B8A", "CLOUD"),
         start_date = "2018-10-01",
         end_date = "2018-11-01"
     )
     # regularize the cube
     rg_cube <- sits_regularize(
         cube = s2_cube_open,
-        output_dir = tempdir(),
-        res = 60,
         period = "P16D",
-        multicores = 2
+        res = 60,
+        multicores = 2,
+        output_dir = tempdir()
+    )
+
+    ## Sentinel-1 SAR
+    roi <- c("lon_min" = -50.410, "lon_max" = -50.379,
+             "lat_min" = -10.1910, "lat_max" = -10.1573)
+    s1_cube_open <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-1-GRD",
+        bands = c("VV", "VH"),
+        roi = roi,
+        start_date = "2020-06-01",
+        end_date = "2020-09-28"
+    )
+    # regularize the cube
+    rg_cube <- sits_regularize(
+        cube = s1_cube_open,
+        period = "P12D",
+        res = 60,
+        roi = roi,
+        multicores = 2,
+        output_dir = tempdir()
     )
 }
 

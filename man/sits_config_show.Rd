@@ -4,25 +4,23 @@
 \alias{sits_config_show}
 \title{Show current sits configuration}
 \usage{
-sits_config_show(source = NULL, collection = NULL, colors = FALSE)
+sits_config_show(source = NULL, collection = NULL)
 }
 \arguments{
-\item{source}{Data source to be shown in detail.}
+\item{source}{Data source (character vector).}
 
-\item{collection}{Collection key entry to be shown in detail.}
-
-\item{colors}{Show colors?}
+\item{collection}{Collection (character vector).}
 }
 \value{
-A \code{list} containing the respective
-configuration printed in the console.
+No return value, called for side effects.
 }
 \description{
 Prints the current sits configuration options.
 To show specific configuration options for
 a source, a collection, or a palette, users can inform the corresponding
-keys to \code{source}, \code{collection}, and \code{colors} parameters.
+keys to \code{source} and \code{collection}.
 }
 \examples{
-sits_config_show()
+sits_config_show(source = "BDC")
+sits_config_show(source = "BDC", collection = "CBERS-WFI-16D")
 }

@@ -27,7 +27,6 @@
 #' @return A tibble with the classification information.
 #'
 .timeline_class_info <- function(data, samples) {
-
     # find the timeline
     timeline <- sits_timeline(data)
     # precondition is the timeline correct?
@@ -68,7 +67,6 @@
     )
     return(class_info)
 }
-
 #' @title Test if date fits with the timeline
 #'
 #' @name .timeline_valid_date
@@ -88,7 +86,6 @@
 #' @return Is this is valid starting date?
 #'
 .timeline_valid_date <- function(date, timeline) {
-
     # is the date inside the timeline?
     if (date %within% lubridate::interval(
         timeline[1],
@@ -107,7 +104,7 @@
     }
     # what is the difference in days between the last two days of the timeline?
     timeline_diff <- as.integer(timeline[length(timeline)] -
-                                    timeline[length(timeline) - 1])
+        timeline[length(timeline) - 1])
 
     # if the difference in days in the timeline is smaller than the difference
     # between the reference date and the last date of the timeline, then
@@ -139,8 +136,6 @@
                             model_start_date,
                             model_end_date,
                             num_samples) {
-
-
     # set caller to show in errors
     .check_set_caller(".timeline_match")
 
@@ -257,7 +252,6 @@
 .timeline_during <- function(timeline,
                              start_date = NULL,
                              end_date = NULL) {
-
     # set caller to show in errors
     .check_set_caller(".sits_timeline_during")
     # obtain the start and end indexes
@@ -280,49 +274,51 @@
 #' @name  .timeline_format
 #' @keywords internal
 #' @noRd
-#' @description Given a information about dates, check if the date can be
+#' @description Given a information about dates, check if all dates can be
 #'              interpreted by lubridate
-#' @param date   a date information
+#' @param dates  character vector representing dates
 #' @return date class vector
 #'
-.timeline_format <- function(date) {
-
+.timeline_format <- function(dates) {
     # set caller to show in errors
     .check_set_caller(".timeline_format")
     .check_length(
-        x = date,
+        x = dates,
         len_min = 1,
         msg = "invalid date parameter"
     )
+    # convert to character (strsplit does not deal with dates)
+    dates <- as.character(dates)
     # check type of date interval
-    converted_date <- purrr::map_dbl(date, function(dt) {
+    converted_dates <- purrr::map_dbl(dates, function(dt) {
         if (length(strsplit(dt, "-")[[1]]) == 1) {
-            converted_date <- lubridate::fast_strptime(dt, c("%Y%m%d", "%Y"))
+            converted_dates <- lubridate::fast_strptime(dt, c("%Y%m%d", "%Y"))
         } else if (length(strsplit(dt, "-")[[1]]) == 2) {
-            converted_date <- lubridate::fast_strptime(dt, "%Y-%m")
-        } else {
-            converted_date <- lubridate::fast_strptime(dt, "%Y-%m-%d")
-        }
+            converted_dates <- lubridate::fast_strptime(dt, "%Y-%m")
+        } else if (length(strsplit(dt, "-")[[1]]) == 3) {
+            converted_dates <- lubridate::fast_strptime(dt, "%Y-%m-%d")
+        } else
+            stop("cannot convert date to YYYY-MM-DD format")
         # transform to date object
-        converted_date <- lubridate::as_date(converted_date)
+        converted_dates <- lubridate::as_date(converted_dates)
         # check if there are NAs values
         .check_that(
-            x = !is.na(converted_date),
+            x = all(!is.na(converted_dates)),
             msg = paste0("invalid date format '", dt, "' in file name")
         )
-        return(converted_date)
+        return(converted_dates)
     })
 
     # convert to a vector of dates
-    converted_date <- lubridate::as_date(converted_date)
+    converted_dates <- lubridate::as_date(converted_dates)
     # post-condition
     .check_length(
-        x = converted_date,
-        len_min = length(date),
-        len_max = length(date),
+        x = converted_dates,
+        len_min = length(dates),
+        len_max = length(dates),
         msg = "invalid date values"
     )
-    return(converted_date)
+    return(converted_dates)
 }
 
 #' @title Checks that the timeline of all time series of a data set are equal

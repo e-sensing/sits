@@ -8,10 +8,10 @@
 sits_pred_references(pred)
 }
 \arguments{
-\item{pred}{X-Y predictors: a data.table with one row per sample.}
+\item{pred}{X-Y predictors: a data.frame with one row per sample.}
 }
 \value{
-The label associated to each training sample.
+A character vector with labels associated to training samples.
 }
 \description{
 Predictors are X-Y values required for machine learning
@@ -21,14 +21,10 @@ are categorical ("label_id" and "label"). The other columns are
 the values of each band and time, organized first by band and then by time.
 This function returns the numeric values associated to each sample.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
 if (sits_run_examples()) {
-     pred <- sits_predictors(samples_modis_ndvi)
-     ref  <- sits_pred_references(pred)
+    pred <- sits_predictors(samples_modis_ndvi)
+    ref <- sits_pred_references(pred)
 }
 }
 \author{

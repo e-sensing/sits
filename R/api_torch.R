@@ -1,4 +1,11 @@
-
+#' @title Serialize torch model
+#' @name .torch_serialize_model
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @description Serializes a torch model to be used in parallel processing
+#' @param model        Torch model
+#' @return serialized model
 .torch_serialize_model <- function(model) {
     # Open raw connection
     con <- rawConnection(raw(), open = "wr")
@@ -9,7 +16,14 @@
     # Read serialized model and return
     rawConnectionValue(con)
 }
-
+#' @title Unserialize torch model
+#' @name .torch_unserialize_model
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @description Unserializes a torch model
+#' @param raw     Serialized Torch model
+#' @return Torch model
 .torch_unserialize_model <- function(raw) {
     # Open raw connection to read model
     con <- rawConnection(raw)
@@ -18,9 +32,6 @@
     # Unserialize and load torch model from connection and return
     torch::torch_load(con)
 }
-
-# ---- torch model helpers ----
-
 #' @title Torch module for Conv1D + Batch Norm + Relu + Dropout
 #' @name .torch_conv1D_batch_norm_relu_dropout
 #'
@@ -331,13 +342,11 @@
     classname = "torch_multi_linear_batch_norm_relu",
     initialize = function(input_dim, hidden_dims) {
         tensors <- list()
-
         # input layer
         tensors[[1]] <- .torch_linear_batch_norm_relu(
             input_dim = input_dim,
             output_dim = hidden_dims[1]
         )
-
         # if hidden layers is a vector then we add those layers
         if (length(hidden_dims) > 1) {
             for (i in 2:length(hidden_dims)) {
@@ -348,7 +357,6 @@
                     )
             }
         }
-
         # create a sequential module that calls the layers in the same order.
         self$model <- torch::nn_sequential(!!!tensors)
     },

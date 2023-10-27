@@ -2,6 +2,15 @@
 
 # What's new in SITS version 1.4
 
+### New features in SITS version 1.4.2
+* Support for vector data cubes, including visualisation
+* Object-based time series analysis using spatio-temporal segmentation
+* Improved support for GPU usage when running deep learning algorithms
+* New function to clean values by modal filter in classified images
+* Added experimental support for Sentinel-1 images available on MPC
+* Summary function now includes cloud cover information
+* General bug fixes
+
 ### New features in SITS version 1.4.1
 * Updated access to collections in Brazil Data Cube, HLS, and AWS
 * Corrected errors in labelling of classified cubes
@@ -9,7 +18,7 @@
 
 
 ### New features in SITS version 1.4.0
-* New function for image segementation based on `supercells` package
+* New function for image segmentation based on `supercells` package
 * New version of `sits_get_data()` to extract average values of time series based on segments
 * Support for Harmonized Landsat Sentinel (HLS) collections from NASA
 * Support for probability cubes and uncertainty cubes in `sits_view()`

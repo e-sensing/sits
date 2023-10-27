@@ -149,7 +149,6 @@
     classname = "positional_encoding",
     # timeline is a vector with the observation dates
     initialize = function(timeline, dim_encoder = 128) {
-
         # length of positional encoder is the length of dates vector
         max_len <- length(timeline)
         # keep the dates vector

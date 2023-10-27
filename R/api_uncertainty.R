@@ -1,6 +1,43 @@
-
 #---- internal functions ----
-
+#' @title Create an uncertainty cube
+#' @name .uncertainty_cube
+#' @keywords internal
+#' @noRd
+#' @param cube A cube
+#' @param band band name
+#' @param uncert_fn function to compute uncertainty
+#' @param output_dir directory where files will be saved
+#' @param version version name of resulting cube#'
+#' @return uncertainty cube
+.uncertainty_cube <- function(cube,
+                              band,
+                              uncert_fn,
+                              output_dir,
+                              version) {
+    # Process each tile sequentially
+    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
+        # Compute uncertainty
+        uncert_tile <- .uncertainty_tile(
+            tile = tile,
+            band = band,
+            uncert_fn = uncert_fn,
+            output_dir = output_dir,
+            version = version
+        )
+        return(uncert_tile)
+    })
+    return(uncert_cube)
+}
+#' @title Create an uncertainty tile-band asset
+#' @name .uncertainty_tile
+#' @keywords internal
+#' @noRd
+#' @param tile tile of data cube
+#' @param band band name
+#' @param uncert_fn function to compute uncertainty
+#' @param output_dir directory where files will be saved
+#' @param version version name of resulting cube#'
+#' @return uncertainty tile-band combination
 .uncertainty_tile <- function(tile,
                               band,
                               uncert_fn,
@@ -33,7 +70,8 @@
         block <- .block(chunk)
         # Block file name
         block_file <- .file_block_name(
-            pattern = .file_pattern(out_file), block = block,
+            pattern = .file_pattern(out_file),
+            block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure
@@ -92,7 +130,11 @@
 }
 
 #---- uncertainty functions ----
-
+#' @title Least uncertainty function
+#' @name .uncertainty_fn_least
+#' @keywords internal
+#' @noRd
+#' @return a closure to apply a function in matrix values
 .uncertainty_fn_least <- function() {
     # Define uncertainty function
     uncert_fn <- function(values) {
@@ -109,9 +151,12 @@
     # Return closure
     uncert_fn
 }
-
+#' @title Entropy uncertainty function
+#' @name .uncertainty_fn_entropy
+#' @keywords internal
+#' @noRd
+#' @return a closure to apply a function in matrix values
 .uncertainty_fn_entropy <- function() {
-
     # Define uncertainty function
     uncert_fn <- function(values) {
         # Used in check (below)
@@ -126,7 +171,11 @@
     # Return closure
     uncert_fn
 }
-
+#' @title margin uncertainty function
+#' @name .uncertainty_fn_margin
+#' @keywords internal
+#' @noRd
+#' @return a closure to apply a function in matrix values
 .uncertainty_fn_margin <- function() {
     # Define uncertainty function
     uncert_fn <- function(values) {

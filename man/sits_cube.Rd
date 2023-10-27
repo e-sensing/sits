@@ -6,13 +6,12 @@
 \alias{sits_cube.local_cube}
 \title{Create data cubes from image collections}
 \usage{
-sits_cube(source, collection, ..., data_dir = NULL)
+sits_cube(source, collection, ...)
 
 \method{sits_cube}{stac_cube}(
   source,
   collection,
   ...,
-  data_dir = NULL,
   bands = NULL,
   tiles = NULL,
   roi = NULL,
@@ -25,58 +24,82 @@ sits_cube(source, collection, ..., data_dir = NULL)
 \method{sits_cube}{local_cube}(
   source,
   collection,
-  data_dir,
   ...,
+  data_dir,
+  vector_dir = NULL,
   tiles = NULL,
   bands = NULL,
+  vector_band = NULL,
   start_date = NULL,
   end_date = NULL,
   labels = NULL,
   parse_info = NULL,
   version = "v1",
   delim = "_",
-  multicores = 2,
+  multicores = 2L,
   progress = TRUE
 )
 }
 \arguments{
 \item{source}{Data source (one of \code{"AWS"}, \code{"BDC"},
-\code{"DEAFRICA"}, \code{"MPC"}, \code{"USGS"}).}
+\code{"DEAFRICA"}, \code{"MPC"}, \code{"SDC"},
+\code{"USGS"} - character vector of length 1).}
 
-\item{collection}{Image collection in data source (To find out
-the supported collections, use \code{\link{sits_list_collections}()}).}
+\item{collection}{Image collection in data source
+(character vector of length 1).
+To find out the supported collections,
+use \code{\link{sits_list_collections}()}).}
 
 \item{...}{Other parameters to be passed for specific types.}
 
-\item{data_dir}{Local directory where images are stored
-(for local cubes).}
-
 \item{bands}{Spectral bands and indices to be included
-in the cube (optional).}
+in the cube (optional - character vector).
+Use \code{\link{sits_list_collections}()} to find out
+the bands available for each collection.}
 
 \item{tiles}{Tiles from the collection to be included in
-the cube (see details below).}
+the cube (see details below)
+(character vector of length 1).}
 
-\item{roi}{Filter collection by region of interest
-(see details below).}
+\item{roi}{Region of interest (either an sf object, shapefile,
+or a numeric vector with named XY values
+("xmin", "xmax", "ymin", "ymax") or
+named lat/long values
+("lon_min", "lat_min", "lon_max", "lat_max").}
 
 \item{start_date, end_date}{Initial and final dates to include
-images from the collection in the cube (optional).}
+images from the collection in the cube (optional).
+(Date in YYYY-MM-DD format).}
 
 \item{platform}{Optional parameter specifying the platform in case
-of collections that include more than one satellite.}
+of collections that include more than one satellite
+(character vector of length 1).}
 
-\item{progress}{Show a progress bar?}
+\item{progress}{Logical: show a progress bar?}
 
-\item{labels}{Labels associated to the classes (only for result cubes).}
+\item{data_dir}{Local directory where images are stored
+(for local cubes - character vector of length 1).}
 
-\item{parse_info}{Parsing information for local files.}
+\item{vector_dir}{Local director where vector files are stored
+(for local vector cubes - character vector of length 1).}
 
-\item{version}{Version of the classified and/or labelled files.}
+\item{vector_band}{Band for vector cube ("segments", "probs", "class")}
 
-\item{delim}{Delimiter for parsing local files.}
+\item{labels}{Labels associated to the classes
+(Named character vector for cubes of
+classes "probs_cube" or "class_cube").}
 
-\item{multicores}{Number of workers for parallel processing}
+\item{parse_info}{Parsing information for local files
+(for local cubes - character vector).}
+
+\item{version}{Version of the classified and/or labelled files.
+(for local cubes - character vector of length 1).}
+
+\item{delim}{Delimiter for parsing local files
+(single character)}
+
+\item{multicores}{Number of workers for parallel processing
+(integer, min = 1, max = 2048).}
 }
 \value{
 A \code{tibble} describing the contents of a data cube.
@@ -114,8 +137,7 @@ To create cubes from cloud providers, users need to inform:
 Either \code{tiles} or  \code{roi} must be informed.
 The parameters \code{bands}, \code{start_date}, and
 \code{end_date} are optional for cubes created from cloud providers.
-
-The \code{roi} parameter allows a selection of an area of interest,
+#' The \code{roi} parameter allows a selection of an area of interest,
 either using a named \code{vector} (\code{"lon_min"}, \code{"lat_min"},
 \code{"lon_max"}, \code{"lat_max"}) in WGS84, a \code{sfc} or \code{sf}
 object from sf package in WGS84 projection.
@@ -127,11 +149,14 @@ intersect the \code{roi}.
 To create a cube from local files, users need to inform:
 \itemize{
 \item{\code{source}:} {Provider from where the data has been
- downloaded (e.g, "BDC", "AWS").}
-\item{\code{collection}:}{Collection where the data has been extracted from.}
+ downloaded (e.g, "BDC", "MPC").}
+\item{\code{collection}:}{Collection where the data has been extracted from.
+ (e.g., "SENTINEL-2-L2A" for the Sentinel-2 MPC collection level 2A).}
 \item{\code{data_dir}: }{Local directory where images are stored.}
-\item{\code{parse_info}: }{Parsing information for files (see below).}
-\item{\code{delim}: }{Delimiter character for parsing files (see below).}
+\item{\code{parse_info}: }{Parsing information for files (see below).
+  Default is \code{c("X1", "X2", "tile", "band", "date")}.}
+\item{\code{delim}: }{Delimiter character for parsing files (see below).
+   Default is \code{"_"}.}
 }
 
 To create a cube from local files, all images should have
@@ -139,17 +164,18 @@ the same spatial resolution and projection and each file should contain
 a single image band for a single date.
 Files can belong to different tiles of a spatial reference system and
 file names need to include tile, date, and band information.
-For example: \code{"CBERS-4_022024_B13_2018-02-02.tif"}
-and \code{"cube_20LKP_B02_2018-07-18.jp2"} are accepted names.
+For example: \code{"CBERS-4_WFI_022024_B13_2018-02-02.tif"}
+and \code{"SENTINEL-2_MSI_20LKP_B02_2018-07-18.jp2"} are accepted names.
 The user has to provide parsing information to allow \code{sits}
 to extract values of tile, band, and date. In the examples above,
-the parsing info is \code{c("X1", "tile", "band", "date")}
-and the delimiter is \code{"_"}.
+the parsing info is c("X1", "X2", "tile", "band", "date")
+and the delimiter is "_", which are the default values.
 
-It is also possible to create result cubes; these are local cubes that have
-been produced by classification or post-classification algorithms. In
+It is also possible to create result cubes for these are local files
+produced by classification or post-classification algorithms. In
 this case, there are more parameters that are required (see below) and the
-parameter \code{parse_info} is specified differently:
+parameter \code{parse_info} is specified differently.
+
 \itemize{
 \item{\code{band}: }{The band name is associated to the type of result. Use
   \code{"probs"}, for probability cubes produced by \code{sits_classify()};
@@ -157,11 +183,11 @@ parameter \code{parse_info} is specified differently:
   \code{"entropy"} when using \code{sits_uncertainty()}, or \code{"class"}
   for cubes produced by \code{sits_label_classification()}.}
 \item{\code{labels}: }{Labels associated to the classification results.}
-\item{\code{parse_info}: }{File name parsing information has to allow
-  \code{sits} to deduce the values of "tile", "start_date", "end_date" from
-  the file name. Default is
-  \code{c("X1", "X2", "tile", "start_date", "end_date", "band")}.
-  Note that, unlike non-classified image files, cubes with results have both
+\item{\code{parse_info}: }{File name parsing information
+  to deduce the values of "tile", "start_date", "end_date" from
+  the file name. Default is c("X1", "X2", "tile", "start_date",
+  "end_date", "band"). Unlike non-classified image files,
+  cubes with results have both
   "start_date" and "end_date".}
 }
 }
@@ -225,36 +251,25 @@ an environment variable, as follows:
 Sys.setenv(
     BDC_ACCESS_KEY = <your_bdc_access_key>
 )}
-
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
 if (sits_run_examples()) {
-
     # --- Access to the Brazil Data Cube
-    # Provide your BDC credentials as environment variables
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    if (nchar(bdc_access_key) == 0) {
-        stop("No BDC_ACCESS_KEY defined in environment.")
-    }
-
     # create a raster cube file based on the information in the BDC
     cbers_tile <- sits_cube(
         source = "BDC",
-        collection = "CB4-16D-2",
+        collection = "CBERS-WFI-16D",
         bands = c("NDVI", "EVI"),
         tiles = "007004",
         start_date = "2018-09-01",
         end_date = "2019-08-28"
     )
-
     # --- Access to Digital Earth Africa
     # create a raster cube file based on the information about the files
     # DEAFRICA does not support definition of tiles
     cube_dea <- sits_cube(
         source = "DEAFRICA",
-        collection = "s2_l2a",
+        collection = "S2_L2A",
         bands = c("B04", "B08"),
         roi = c(
             "lat_min" = 17.379,
@@ -265,7 +280,6 @@ if (sits_run_examples()) {
         start_date = "2019-01-01",
         end_date = "2019-10-28"
     )
-
     # --- Access to AWS open data Sentinel 2/2A level 2 collection
     s2_cube <- sits_cube(
         source = "AWS",
@@ -276,7 +290,7 @@ if (sits_run_examples()) {
         end_date = "2019-07-23"
     )
 
-    # -- Creating Sentinel cube from MPC"
+    # -- Creating Sentinel cube from MPC
     s2_cube <- sits_cube(
         source = "MPC",
         collection = "SENTINEL-2-L2A",
@@ -286,32 +300,37 @@ if (sits_run_examples()) {
         end_date = "2018-08-23"
     )
 
-    # -- Creating Landsat cube from MPC"
+    # -- Creating Landsat cube from MPC
+    roi <- c("lon_min" = -50.410, "lon_max" = -50.379,
+             "lat_min" = -10.1910 , "lat_max" = -10.1573)
     mpc_cube <- sits_cube(
         source = "MPC",
         collection = "LANDSAT-C2-L2",
         bands = c("BLUE", "RED", "CLOUD"),
-        roi = c(
-            "xmin" = -50.379,
-            "ymin" = -10.1573,
-            "xmax" = -50.410,
-            "ymax" = -10.1910
-        ),
+        roi = roi,
         start_date = "2005-01-01",
         end_date = "2006-10-28"
     )
 
+    ## Sentinel-1 SAR from MPC
+    roi_sar <- c("lon_min" = -50.410, "lon_max" = -50.379,
+    "lat_min" = -10.1910, "lat_max" = -10.1573)
+
+    s1_cube_open <- sits_cube(
+       source = "MPC",
+       collection = "SENTINEL-1-GRD",
+       bands = c("VV", "VH"),
+       roi = roi_sar,
+       start_date = "2020-06-01",
+       end_date = "2020-09-28"
+       )
+
     # --- Create a cube based on a local MODIS data
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-
     modis_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir
     )
 }
-
-}
-\references{
-\code{rstac} package (https://github.com/brazil-data-cube/rstac)
 }

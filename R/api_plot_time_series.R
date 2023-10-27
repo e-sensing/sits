@@ -47,15 +47,16 @@
             dplyr::summarise(
                 med  = stats::median(.data[["value"]]),
                 qt25 = stats::quantile(.data[["value"]], 0.25),
-                qt75 = stats::quantile(.data[["value"]], 0.75))
+                qt75 = stats::quantile(.data[["value"]], 0.75)
+            )
         return(qts)
     }
     # this function plots the values of all time series together (for one band)
     plot_samples <- function(melted, qts, band, label, number) {
         # make the plot title
         title <- paste("Samples (", number, ") for class ",
-                       label, " in band = ", band,
-                       sep = ""
+            label, " in band = ", band,
+            sep = ""
         )
         # plot all data together
         g <- .plot_ggplot_together(melted, qts, title)
@@ -172,7 +173,6 @@
 #' @return            A plot object produced by the ggplot2 package
 #'                    which shows the NA values of a time series.
 .plot_ggplot_series_na <- function(row) {
-
     # verifies if tidyr package is installed
     .check_require_packages("tidyr")
 
@@ -197,18 +197,19 @@
     # prepare tibble to ggplot (fortify)
     ts1 <- tidyr::pivot_longer(data, -"Index")
     g <- ggplot2::ggplot(data = ts1 |>
-                             dplyr::filter(.data[["name"]] != "cld")) +
-        ggplot2::geom_col(ggplot2::aes(
-            x = .data[["Index"]],
-            y = .data[["value"]]
-        ),
-        fill = "sienna",
-        alpha = 0.3,
-        data = ts1 |>
-            dplyr::filter(
-                .data[["name"]] == "cld",
-                !is.na(.data[["value"]])
-            )
+        dplyr::filter(.data[["name"]] != "cld")) +
+        ggplot2::geom_col(
+            ggplot2::aes(
+                x = .data[["Index"]],
+                y = .data[["value"]]
+            ),
+            fill = "sienna",
+            alpha = 0.3,
+            data = ts1 |>
+                dplyr::filter(
+                    .data[["name"]] == "cld",
+                    !is.na(.data[["value"]])
+                )
         ) +
         ggplot2::geom_line(ggplot2::aes(
             x = .data[["Index"]],
@@ -277,10 +278,10 @@
 #' @return           title to be used in the plot.
 .plot_title <- function(latitude, longitude, label) {
     title <- paste("location (",
-                   signif(latitude, digits = 4), ", ",
-                   signif(longitude, digits = 4), ") - ",
-                   label,
-                   sep = ""
+        signif(latitude, digits = 4), ", ",
+        signif(longitude, digits = 4), ") - ",
+        label,
+        sep = ""
     )
     return(title)
 }

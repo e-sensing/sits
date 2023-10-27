@@ -1,5 +1,8 @@
-# ---- samples functions ----
-
+#' @title Merge fraction bands (mixture models)
+#' @noRd
+#' @param samples Original samples
+#' @param values  Values from time series of fraction bands
+#' @return merge set of training samples
 .samples_merge_fracs <- function(samples, values) {
     # Bind samples time series and fractions columns
     values <- dplyr::bind_cols(.ts(samples), values)
@@ -10,19 +13,29 @@
     # Return a sits tibble
     samples
 }
-
+#' @title Split samples in groups
+#' @noRd
+#' @param samples Original samples
+#' @param multicores  Number of cores
+#' @return Split samples by ID
 .samples_split_groups <- function(samples, multicores) {
     # Change multicores value in case multicores is greater than samples nrows
     multicores <- if (multicores > nrow(samples)) nrow(samples) else multicores
     # Create a new column to each group id
     samples[["group"]] <- rep(
-        seq_len(multicores), each = ceiling(nrow(samples) / multicores)
+        seq_len(multicores),
+        each = ceiling(nrow(samples) / multicores)
     )[seq_len(nrow(samples))]
     # Split each group by an id
     dplyr::group_split(
-        dplyr::group_by(samples, .data[["group"]]), .keep = FALSE)
+        dplyr::group_by(samples, .data[["group"]]),
+        .keep = FALSE
+    )
 }
-
+#' @title Merge samples
+#' @noRd
+#' @param samples_lst List of samples
+#' @return Training samples data.frame
 .samples_merge_groups <- function(samples_lst) {
     # Binding the list items into a tibble
     samples <- dplyr::bind_rows(samples_lst)
@@ -31,15 +44,12 @@
     # Return sits tibble
     samples
 }
-
 #' @title Create partitions of a data set
 #' @name  .samples_create_folds
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Alexandre Ywata, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
 #' @description Split a sits tibble into k groups, based on the label.
-#'
 #' @keywords internal
 #' @noRd
 #' @param data   A sits tibble to be partitioned.
@@ -51,14 +61,15 @@
     # verify if data exists
     # splits the data into k groups
     data$folds <- caret::createFolds(data$label,
-                                     k = folds,
-                                     returnTrain = FALSE, list = FALSE
+        k = folds,
+        returnTrain = FALSE, list = FALSE
     )
     return(data)
 }
-
-#---- sits (samples) ----
-
+#' @title Extract time series from samples
+#' @noRd
+#' @param samples Data.frame with samples
+#' @return Time series for the first sample
 .samples_ts <- function(samples) {
     # Check time_series column
     if (!.has_ts(samples)) {
@@ -67,24 +78,39 @@
     # Return time series of the first sample
     samples[["time_series"]][[1]]
 }
-
+#' @title Get number of temporal intervals in time series samples
+#' @noRd
+#' @param samples Data.frame with samples
+#' @return Number of temporal intervals for the first sample
 .samples_ntimes <- function(samples) {
     # Number of observations of the first sample governs whole samples data
     nrow(.samples_ts(samples))
 }
-
+#' @title Get bands of time series samples
+#' @noRd
+#' @param samples Data.frame with samples
+#' @return Bands for the first sample
 .samples_bands <- function(samples) {
     # Bands of the first sample governs whole samples data
     setdiff(names(.samples_ts(samples)), "Index")
 }
-
+#' @title Select bands of time series samples
+#' @noRd
+#' @param samples Data.frame with samples
+#' @param bands   Bands to be selected
+#' @return Time series samples with the selected bands
 .samples_select_bands <- function(samples, bands) {
     # Filter samples
     .ts(samples) <- .ts_select_bands(ts = .ts(samples), bands = bands)
     # Return samples
     samples
 }
-
+#' @title Select time series samples based on a temporal interval
+#' @noRd
+#' @param samples      Data.frame with samples
+#' @param start_date   First date of the interval
+#' @param end_date     Last date of the interval
+#' @return Time series samples filter by interval
 .samples_filter_interval <- function(samples, start_date, end_date) {
     # Filter interval
     .ts(samples) <- .ts_filter_interval(
@@ -96,18 +122,29 @@
     # Return samples
     samples
 }
-
+#' @title Get labels of time series samples
+#' @noRd
+#' @param samples Data.frame with samples
+#' @return vector with labels
 .samples_labels <- function(samples) {
     sort(unique(samples[["label"]]), na.last = TRUE)
 }
-
+#' @title Apply function to time series samples
+#' @noRd
+#' @param samples Data.frame with samples
+#' @param fn      Function to be applied to sample
+#' @param ...     Additional parameters for function
+#' @return samples with applied function
 .samples_foreach_ts <- function(samples, fn, ...) {
     # Apply function to each time_series
     samples[["time_series"]] <- lapply(samples[["time_series"]], fn, ...)
     # Return samples
     samples
 }
-
+#' @title Prune samples
+#' @noRd
+#' @param samples Data.frame with samples
+#' @return Samples with the same number of temporal intervals as the first
 .samples_prune <- function(samples) {
     # Get the time series length for the first sample
     ntimes <- .samples_ntimes(samples)
@@ -120,7 +157,10 @@
         }
     })
 }
-
+#' @title Get sample statistics
+#' @noRd
+#' @param samples Data.frame with samples
+#' @return List of Q02 and Q98 for normalization
 .samples_stats <- function(samples) {
     # Get all time series
     preds <- .samples_ts(samples)
@@ -137,7 +177,11 @@
     # Return stats object
     list(q02 = q02, q98 = q98)
 }
-
+#' @title Split samples
+#' @noRd
+#' @param samples Data.frame with samples
+#' @param split_intervals   Intervals for samples to be split
+#' @return Samples split by desired intervals
 .samples_split <- function(samples, split_intervals) {
     slider::slide_dfr(samples, function(sample) {
         ts <- sample[["time_series"]][[1]]

@@ -18,23 +18,19 @@ A summary of the sample accuracy
 This is a generic function. Parameters depend on the specific
 type of input.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
 if (sits_run_examples()) {
     data(cerrado_2classes)
     # split training and test data
-    train_data <- sits_sample(cerrado_2classes, n = 200)
-    test_data <- sits_sample(cerrado_2classes, n = 200)
+    train_data <- sits_sample(cerrado_2classes, frac = 0.5)
+    test_data  <- sits_sample(cerrado_2classes, frac = 0.5)
     # train a random forest model
     rfor_model <- sits_train(train_data, sits_rfor())
     # classify test data
     points_class <- sits_classify(
-         data = test_data,
-         ml_model = rfor_model
-     )
+        data = test_data,
+        ml_model = rfor_model
+    )
     # measure accuracy
     acc <- sits_accuracy(points_class)
     summary(acc)

@@ -1,4 +1,3 @@
-
 #' @title Apply a function to one band of a time series
 #' @name .apply
 #' @keywords internal
@@ -12,8 +11,8 @@
 .apply <- function(data, col, fn, ...) {
     # pre-condition
     .check_chr_within(col,
-                      within = names(data),
-                      msg = "invalid column name"
+        within = names(data),
+        msg = "invalid column name"
     )
     # select data do unpack
     x <- data[col]
@@ -34,7 +33,23 @@
     data[[col]] <- x[[col]]
     return(data)
 }
-
+#' @title Apply an expression to block of a set of input bands
+#' @name .apply_feature
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  feature         Subset of a data cube containing the input bands
+#'                         used in the expression
+#' @param  block           Individual block that will be processed
+#' @param  window_size     Size of the neighbourhood (if required)
+#' @param  expr            Expression to be applied
+#' @param  out_band        Output band
+#' @param  in_bands        Input bands
+#' @param  overlap         Overlap between tiles (if required)
+#' @param  output_dir      Directory where image will be save
+#'
+#' @return                 A feature compose by a combination of tile and band.
 .apply_feature <- function(feature, block, window_size, expr,
                            out_band, in_bands, overlap, output_dir) {
     # Output file
@@ -67,7 +82,8 @@
         block <- .block(chunk)
         # Block file name for each fraction
         block_files <- .file_block_name(
-            pattern = .file_pattern(out_file), block = block,
+            pattern = .file_pattern(out_file),
+            block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure
@@ -150,19 +166,18 @@
 }
 
 #' @title Apply an expression across all bands
-#'
 #' @name .apply_across
 #' @keywords internal
 #' @noRd
 #'
 #' @param data  Tile name.
-#'
+#' @param fn    Function to be applied
+#' @param ...   Further parameters for the function
 #' @return      A sits tibble with all processed bands.
 #'
 .apply_across <- function(data, fn, ...) {
-
     # Pre-conditions
-    .check_samples(data)
+    data <- .check_samples(data)
 
     result <-
         .apply(data, col = "time_series", fn = function(x, ...) {
@@ -174,22 +189,20 @@
 
     return(result)
 }
-
 #' @title Captures a band expression
-#'
 #' @name .apply_capture_expression
 #' @keywords internal
 #' @noRd
 #'
-#' @param tile_name  Tile name.
-#'
-#' @return           Named list with one expression
+#' @param ...  Expression to be applied
+#' @return     Named list with one expression
 #'
 .apply_capture_expression <- function(...) {
     # Capture dots as a list of quoted expressions
     list_expr <- lapply(substitute(list(...), env = environment()),
-                        unlist,
-                        recursive = FALSE)[-1]
+        unlist,
+        recursive = FALSE
+    )[-1]
 
     # Check bands names from expression
     .check_expression(list_expr)
@@ -200,21 +213,16 @@
 
     return(list_expr)
 }
-
 #' @title Finds out all existing bands in an expression
-#'
 #' @name .apply_input_bands
 #' @keywords internal
 #' @noRd
 #'
-#' @param tile       Data cube tile.
-#' @param expr       Band expression.
-#'
-#' @return           List of combination among tiles, bands, and dates
-#'                   that are missing from the cube.
+#' @param cube       Data cube.
+#' @param expr       Band combination expression.
+#' @return           List of input bands required to run the expression
 #'
 .apply_input_bands <- function(cube, expr) {
-
     # Get all required bands in expression
     expr_bands <- toupper(.apply_get_all_names(expr[[1]]))
 
@@ -232,12 +240,13 @@
         x = all(found_bands),
         local_msg = "use 'sits_bands()' to check available bands",
         msg = paste("band(s)", paste0("'", expr_bands[!found_bands],
-                                      "'", collapse = ", "), "not found")
+            "'",
+            collapse = ", "
+        ), "not found")
     )
 
     return(bands)
 }
-
 #' @title Returns all names in an expression
 #'
 #' @name .apply_get_all_names
@@ -256,9 +265,15 @@
         character()
     }
 }
-
+#' @title Kernel function for window operations in spatial neighbourhoods
+#' @name .kern_functions
+#' @noRd
+#' @param windows size of local window
+#' @param img_nrow  image size in rows
+#' @param img_ncol  image size in cols
+#' @return operations on local kernels
+#'
 .kern_functions <- function(window_size, img_nrow, img_ncol) {
-
     # Pre-conditions
     .check_window_size(window_size, max = min(img_nrow, img_ncol) - 1)
 
@@ -289,6 +304,18 @@
         },
         w_max = function(m) {
             C_kernel_max(
+                x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
+                band = 0, window_size = window_size
+            )
+        },
+        w_var = function(m) {
+            C_kernel_var(
+                x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
+                band = 0, window_size = window_size
+            )
+        },
+        w_modal = function(m) {
+            C_kernel_modal(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
                 band = 0, window_size = window_size
             )

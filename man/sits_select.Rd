@@ -5,6 +5,8 @@
 \alias{sits_select.sits}
 \alias{sits_select.raster_cube}
 \alias{sits_select.patterns}
+\alias{sits_select.tbl_df}
+\alias{sits_select.default}
 \title{Filter bands on a data set (tibble or cube)}
 \usage{
 sits_select(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
@@ -17,31 +19,37 @@ sits_select(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
   start_date = NULL,
   end_date = NULL,
   ...,
+  dates = NULL,
   tiles = NULL
 )
 
-\method{sits_select}{patterns}(data, bands, ...)
+\method{sits_select}{patterns}(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
+
+\method{sits_select}{tbl_df}(data, ...)
+
+\method{sits_select}{default}(data, ...)
 }
 \arguments{
-\item{data}{A sits tibble or data cube.}
+\item{data}{Tibble (class "sits" or class "raster_cube").}
 
 \item{bands}{Character vector with the names of the bands.}
 
-\item{start_date}{Character value with the start date to be filtered.}
+\item{start_date}{Date in YYYY-MM-DD format: start date to be filtered.}
 
-\item{end_date}{Character value with the end date to be filtered.}
+\item{end_date}{Date in YYYY-MM-DD format: end date to be filtered.}
 
-\item{...}{Additional parameters to be provided in the select
-function.}
+\item{...}{Additional parameters to be provided}
+
+\item{dates}{Character vector with sparse dates to select.}
 
 \item{tiles}{Character vector with the names of the tiles.}
 }
 \value{
-For sits tibble, returns a sits tibble with the selected bands.
-For data cube, a data cube with the selected bands.
+Tibble of class "sits" or class "raster_cube".
 }
 \description{
-Filter only the selected bands from a tibble or a data cube.
+Filter only the selected bands and dates
+                  from a set of time series or froam a data cube.
 }
 \examples{
 # Retrieve a set of time series with 2 classes
@@ -52,6 +60,10 @@ sits_bands(cerrado_2classes)
 data <- sits_select(cerrado_2classes, bands = c("NDVI"))
 # Print the labels of the resulting tibble
 sits_bands(data)
+# select start and end date
+point_2010 <- sits_select(point_mt_6bands,
+              start_date = "2000-01-01",
+              end_date = "2030-12-31")
 
 }
 \author{

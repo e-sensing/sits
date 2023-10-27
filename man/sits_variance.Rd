@@ -2,35 +2,92 @@
 % Please edit documentation in R/sits_variance.R
 \name{sits_variance}
 \alias{sits_variance}
+\alias{sits_variance.probs_cube}
+\alias{sits_variance.raster_cube}
+\alias{sits_variance.derived_cube}
+\alias{sits_variance.tbl_df}
+\alias{sits_variance.default}
 \title{Calculate the variance of a probability cube}
 \usage{
 sits_variance(
   cube,
-  window_size = 9,
+  window_size = 9L,
   neigh_fraction = 0.5,
-  multicores = 2,
-  memsize = 4,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1"
+)
+
+\method{sits_variance}{probs_cube}(
+  cube,
+  window_size = 9L,
+  neigh_fraction = 0.5,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1"
+)
+
+\method{sits_variance}{raster_cube}(
+  cube,
+  window_size = 7L,
+  neigh_fraction = 0.5,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1"
+)
+
+\method{sits_variance}{derived_cube}(
+  cube,
+  window_size = 7L,
+  neigh_fraction = 0.5,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1"
+)
+
+\method{sits_variance}{tbl_df}(
+  cube,
+  window_size = 7L,
+  neigh_fraction = 0.5,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1"
+)
+
+\method{sits_variance}{default}(
+  cube,
+  window_size = 7L,
+  neigh_fraction = 0.5,
+  memsize = 4L,
+  multicores = 2L,
   output_dir,
   version = "v1"
 )
 }
 \arguments{
-\item{cube}{Probability data cube.}
+\item{cube}{Probability data cube (class "probs_cube")}
 
-\item{window_size}{Size of the neighborhood.}
+\item{window_size}{Size of the neighborhood (odd integer)}
 
 \item{neigh_fraction}{Fraction of neighbors with highest probability
-to be used in Bayesian inference.}
-
-\item{multicores}{Number of cores to run the smoothing function}
+for Bayesian inference (numeric from 0.0 to 1.0)}
 
 \item{memsize}{Maximum overall memory (in GB) to run the
-smoothing.}
+smoothing (integer, min = 1, max = 16384)}
 
-\item{output_dir}{Output directory for image files}
+\item{multicores}{Number of cores to run the smoothing function
+(integer, min = 1, max = 2048)}
+
+\item{output_dir}{Output directory for image files
+(character vector of length 1)}
 
 \item{version}{Version of resulting image
-(in the case of multiple tests)}
+(character vector of length 1)}
 }
 \value{
 A variance data cube.

@@ -4,13 +4,25 @@
 \alias{sits_accuracy}
 \alias{sits_accuracy.sits}
 \alias{sits_accuracy.class_cube}
+\alias{sits_accuracy.raster_cube}
+\alias{sits_accuracy.derived_cube}
+\alias{sits_accuracy.tbl_df}
+\alias{sits_accuracy.default}
 \title{Assess classification accuracy (area-weighted method)}
 \usage{
 sits_accuracy(data, ...)
 
 \method{sits_accuracy}{sits}(data, ...)
 
-\method{sits_accuracy}{class_cube}(data, validation = NULL, ..., validation_csv = NULL)
+\method{sits_accuracy}{class_cube}(data, ..., validation)
+
+\method{sits_accuracy}{raster_cube}(data, ...)
+
+\method{sits_accuracy}{derived_cube}(data, ...)
+
+\method{sits_accuracy}{tbl_df}(data, ...)
+
+\method{sits_accuracy}{default}(data, ...)
 }
 \arguments{
 \item{data}{Either a data cube with classified images or
@@ -19,9 +31,7 @@ a set of time series}
 \item{\dots}{Specific parameters}
 
 \item{validation}{Samples for validation (see below)
-Only required when data is a data cube.}
-
-\item{validation_csv}{CSV file with samples (deprecated)}
+Only required when data is a class cube.}
 }
 \value{
 A list of lists: The error_matrix, the class_areas, the unbiased
@@ -53,8 +63,8 @@ The validation data needs to contain the following columns: "latitude",
 \examples{
 if (sits_run_examples()) {
     # show accuracy for a set of samples
-    train_data <- sits_sample(samples_modis_ndvi, n = 200)
-    test_data <- sits_sample(samples_modis_ndvi, n = 200)
+    train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
+    test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
     rfor_model <- sits_train(train_data, sits_rfor())
     points_class <- sits_classify(
         data = test_data, ml_model = rfor_model
@@ -77,7 +87,8 @@ if (sits_run_examples()) {
     )
     # label the probability cube
     label_cube <- sits_label_classification(
-        probs_cube, output_dir = tempdir()
+        probs_cube,
+        output_dir = tempdir()
     )
     # obtain the ground truth for accuracy assessment
     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",

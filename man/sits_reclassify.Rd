@@ -3,14 +3,16 @@
 \name{sits_reclassify}
 \alias{sits_reclassify}
 \alias{sits_reclassify.class_cube}
+\alias{sits_reclassify.tbl_df}
+\alias{sits_reclassify.default}
 \title{Reclassify a classified cube}
 \usage{
 sits_reclassify(
   cube,
   mask,
   rules,
-  memsize = 4,
-  multicores = 2,
+  memsize = 4L,
+  multicores = 2L,
   output_dir,
   version = "v1"
 )
@@ -19,30 +21,53 @@ sits_reclassify(
   cube,
   mask,
   rules,
-  memsize = 4,
-  multicores = 2,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1"
+)
+
+\method{sits_reclassify}{tbl_df}(
+  cube,
+  mask,
+  rules,
+  memsize,
+  multicores,
+  output_dir,
+  version = "v1"
+)
+
+\method{sits_reclassify}{default}(
+  cube,
+  mask,
+  rules,
+  memsize,
+  multicores,
   output_dir,
   version = "v1"
 )
 }
 \arguments{
-\item{cube}{Classified image cube to be reclassified.}
+\item{cube}{Image cube to be reclassified (class = "class_cube")}
 
-\item{mask}{Classified image cube with additional information
-to be used in expressions.}
+\item{mask}{Image cube with additional information
+to be used in expressions (class = "class_cube").}
 
-\item{rules}{Named expressions to be evaluated (see details).}
+\item{rules}{Expressions to be evaluated (named list).}
 
-\item{memsize}{Memory available for classification (in GB).}
+\item{memsize}{Memory available for classification in GB
+(integer, min = 1, max = 16384).}
 
-\item{multicores}{Number of cores to be used for classification.}
+\item{multicores}{Number of cores to be used for classification
+(integer, min = 1, max = 2048).}
 
-\item{output_dir}{Directory where files will be saved.}
+\item{output_dir}{Directory where files will be saved
+(character vector of length 1 with valid location).}
 
-\item{version}{Version of resulting image (in the case of multiple runs).}
+\item{version}{Version of resulting image (character).}
 }
 \value{
-A classified image cube.
+An object of class "class_cube" (reclassified cube).
 }
 \description{
 Apply a set of named expressions to reclassify a classified image.
@@ -62,68 +87,74 @@ output cube. Last expressions has precedence over first ones.
 }
 \examples{
 if (sits_run_examples()) {
-    # Open mask map
-    data_dir <- system.file("extdata/raster/prodes", package = "sits")
-    prodes2021 <- sits_cube(
-        source = "USGS",
-        collection = "LANDSAT-C2L2-SR",
-        data_dir = data_dir,
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
-        bands = "class",
-        labels = c(
-            "1" = "Forest", "2" = "Water", "3" = "NonForest",
-            "4" = "NonForest2", "6" = "d2007", "7" = "d2008",
-            "8" = "d2009",  "9" = "d2010",  "10" = "d2011", "11" = "d2012",
-            "12" = "d2013", "13" = "d2014", "14" = "d2015", "15" = "d2016",
-            "16" = "d2017", "17" = "d2018", "18" = "r2010", "19" = "r2011",
-            "20" = "r2012", "21" = "r2013", "22" = "r2014", "23" = "r2015",
-            "24" = "r2016", "25" = "r2017", "26" = "r2018", "27" = "d2019",
-            "28" = "r2019", "29" = "d2020", "31" = "r2020",
-            "32" = "Clouds2021", "33" = "d2021", "34" = "r2021"),
-        version = "v20220606"
-    )
-
-    # Open classification map
-    data_dir <- system.file("extdata/raster/classif", package = "sits")
-    ro_class <- sits_cube(
-        source = "MPC",
-        collection = "SENTINEL-2-L2A",
-        data_dir = data_dir,
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
-        bands = "class",
-        labels = c("1" = "ClearCut_Burn", "2" = "ClearCut_Soil",
-                   "3" = "ClearCut_Veg",  "4" = "Forest")
-    )
-
-    # Reclassify cube
-    ro_mask <- sits_reclassify(
-        cube = ro_class,
-        mask = prodes2021,
-        rules = list(
-            "Deforestation_Mask" = mask \%in\% c(
-                "d2007", "d2008", "d2009",
-                "d2010", "d2011", "d2012",
-                "d2013", "d2014", "d2015",
-                "d2016", "d2017", "d2018",
-                "r2010", "r2011", "r2012",
-                "r2013", "r2014", "r2015",
-                "r2016", "r2017", "r2018",
-                "d2019", "r2019", "d2020",
-                "r2020", "r2021"
-            ),
-            "Water" = mask == "Water",
-            "NonForest" = mask \%in\% c("NonForest", "NonForest2")
+# Open mask map
+data_dir <- system.file("extdata/raster/prodes", package = "sits")
+prodes2021 <- sits_cube(
+    source = "USGS",
+    collection = "LANDSAT-C2L2-SR",
+    data_dir = data_dir,
+    parse_info = c(
+        "X1", "X2", "tile", "start_date", "end_date",
+        "band", "version"
+    ),
+    bands = "class",
+    version = "v20220606",
+    labels = c("1" = "Forest", "2" = "Water", "3" = "NonForest",
+               "4" = "NonForest2", "6" = "d2007", "7" = "d2008",
+               "8" = "d2009", "9" = "d2010", "10" = "d2011",
+               "11" = "d2012", "12" = "d2013", "13" = "d2014",
+               "14" = "d2015", "15" = "d2016", "16" = "d2017",
+               "17" = "d2018", "18" = "r2010", "19" = "r2011",
+               "20" = "r2012", "21" = "r2013", "22" = "r2014",
+               "23" = "r2015", "24" = "r2016", "25" = "r2017",
+               "26" = "r2018", "27" = "d2019", "28" = "r2019",
+               "29" = "d2020", "31" = "r2020", "32" = "Clouds2021",
+               "33" = "d2021", "34" = "r2021"),
+    progress = FALSE
+)
+#' Open classification map
+data_dir <- system.file("extdata/raster/classif", package = "sits")
+ro_class <- sits_cube(
+    source = "MPC",
+    collection = "SENTINEL-2-L2A",
+    data_dir = data_dir,
+    parse_info = c(
+        "X1", "X2", "tile", "start_date", "end_date",
+        "band", "version"
+    ),
+    bands = "class",
+    labels = c(
+        "1" = "ClearCut_Fire", "2" = "ClearCut_Soil",
+        "3" = "ClearCut_Veg", "4" = "Forest"
+    ),
+    progress = FALSE
+)
+# Reclassify cube
+ro_mask <- sits_reclassify(
+    cube = ro_class,
+    mask = prodes2021,
+    rules = list(
+        "Old_Deforestation" = mask \%in\% c(
+            "d2007", "d2008", "d2009",
+            "d2010", "d2011", "d2012",
+            "d2013", "d2014", "d2015",
+            "d2016", "d2017", "d2018",
+            "r2010", "r2011", "r2012",
+            "r2013", "r2014", "r2015",
+            "r2016", "r2017", "r2018",
+            "d2019", "r2019", "d2020",
+            "r2020", "r2021"
         ),
-        memsize = 4,
-        multicores = 2,
-        output_dir = tempdir(),
-        version = "v2"
-    )
-
-    plot(ro_mask)
+        "Water_Mask" = mask == "Water",
+        "NonForest_Mask" = mask \%in\% c("NonForest", "NonForest2")
+    ),
+    memsize = 4,
+    multicores = 2,
+    output_dir = tempdir(),
+    version = "ex_reclassify"
+)
 }
+
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

@@ -37,8 +37,7 @@
 #'                         a set of time series
 #' @param \dots            Specific parameters
 #' @param validation       Samples for validation (see below)
-#'                         Only required when data is a data cube.
-#' @param validation_csv   CSV file with samples (deprecated)
+#'                         Only required when data is a class cube.
 #'
 #' @return
 #' A list of lists: The error_matrix, the class_areas, the unbiased
@@ -54,8 +53,8 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # show accuracy for a set of samples
-#'     train_data <- sits_sample(samples_modis_ndvi, n = 200)
-#'     test_data <- sits_sample(samples_modis_ndvi, n = 200)
+#'     train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
+#'     test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     points_class <- sits_classify(
 #'         data = test_data, ml_model = rfor_model
@@ -78,7 +77,8 @@
 #'     )
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
-#'         probs_cube, output_dir = tempdir()
+#'         probs_cube,
+#'         output_dir = tempdir()
 #'     )
 #'     # obtain the ground truth for accuracy assessment
 #'     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
@@ -89,21 +89,18 @@
 #' }
 #' @export
 sits_accuracy <- function(data, ...) {
+    .check_valid(data)
     UseMethod("sits_accuracy", data)
 }
 #' @rdname sits_accuracy
 #' @export
 sits_accuracy.sits <- function(data, ...) {
-
     # Set caller to show in errors
     .check_set_caller("sits_accuracy.sits")
-
     # Require package
     .check_require_packages("caret")
-
     # Does the input data contain a set of predicted values?
     .check_predicted(data)
-
     # Recover predicted and reference vectors from input
     # Is the input the result of a sits_classify?
     if ("label" %in% names(data)) {
@@ -125,25 +122,15 @@ sits_accuracy.sits <- function(data, ...) {
 
     # Assign class to result
     class(acc) <- c("sits_accuracy", class(acc))
-
     # return caret confusion matrix
     return(acc)
 }
 #' @title Area-weighted post-classification accuracy for data cubes
 #' @rdname sits_accuracy
 #' @export
-sits_accuracy.class_cube <- function(data, validation = NULL, ...,
-                                     validation_csv = NULL) {
-
-    if (!purrr::is_null(validation_csv)) {
-        if (.check_warnings())
-            warning("validation_csv parameter is deprecated since sits 1.3.
-                please use only validation"
-            )
-        validation <- validation_csv
-    }
-    .check_null(validation,
-                msg = "please provide a set of validation samples")
+sits_accuracy.class_cube <- function(data, ..., validation) {
+    # check the cube is valid
+    .check_cube_files(data)
     # generic function
     # Is this a CSV file?
     if (is.character(validation)) {
@@ -160,7 +147,7 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
         }
     }
     # Precondition - check if validation samples are OK
-    .check_samples(validation)
+    validation <- .check_samples(validation)
 
     # Find the labels of the cube
     labels_cube <- sits_labels(data)
@@ -168,7 +155,6 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
     # Create a list of (predicted, reference) values
     # Consider all tiles of the data cube
     pred_ref_lst <- slider::slide(data, function(tile) {
-
         # Find the labelled band
         labelled_band <- .tile_bands(tile)
 
@@ -223,7 +209,7 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
             xy = xy
         )
         # Get the predicted values
-        predicted <- labels_cube[unlist(values)]
+        predicted <- labels_cube[.as_chr(unlist(values))]
         # Get reference classes
         reference <- points_tile$label
         # Does the number of predicted and reference values match?
@@ -237,7 +223,7 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
     pred_ref <- do.call(rbind, pred_ref_lst)
     # is this data valid?
     .check_null(pred_ref,
-                msg = "No validation samples inside data cube"
+        msg = "No validation samples inside data cube"
     )
 
     # Create the error matrix
@@ -254,7 +240,6 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
 
     # Get area for each class for each row of the cube
     freq_lst <- slider::slide(data, function(tile) {
-
         # Get the frequency count and value for each labelled image
         freq <- .tile_area_freq(tile)
         # pixel area
@@ -263,8 +248,9 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
         area <- freq$count * .tile_xres(tile) * .tile_yres(tile) / 10000
         # Include class names
         freq <- dplyr::mutate(freq,
-                              area = area,
-                              class = labels_cube[freq$value])
+            area = area,
+            class = labels_cube[.as_chr(freq$value)]
+        )
         return(freq)
     })
     # Get a tibble by binding the row (duplicated labels with different counts)
@@ -288,8 +274,36 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
     class(acc_area) <- c("sits_area_accuracy", class(acc_area))
     return(acc_area)
 }
-
-
+#' @rdname sits_accuracy
+#' @export
+sits_accuracy.raster_cube <- function(data, ...) {
+    stop("sits_accuracy needs a classified cube")
+}
+#' @rdname sits_accuracy
+#' @export
+sits_accuracy.derived_cube <- function(data, ...) {
+    stop("sits_accuracy needs a classified cube")
+}
+#' @rdname sits_accuracy
+#' @export
+sits_accuracy.tbl_df <- function(data,...) {
+    data <- tibble::as_tibble(data)
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        data <- .cube_find_class(data)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else
+        stop("Input should be a sits tibble or a data cube")
+    acc <- sits_accuracy(data, ...)
+    return(acc)
+}
+#' @rdname sits_accuracy
+#' @export
+sits_accuracy.default <- function(data,...) {
+    data <- tibble::as_tibble(data)
+    acc <- sits_accuracy(data,...)
+    return(acc)
+}
 #' @title Print accuracy summary
 #' @name sits_accuracy_summary
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -299,15 +313,15 @@ sits_accuracy.class_cube <- function(data, validation = NULL, ...,
 #'
 #' @param x         Object of class \code{sits_accuracy}.
 #' @param digits    Number of significant digits when printed.
-#' @return          No return value, called for side effects.
+#' @return          Called for side effects.
 #'
 #' @keywords internal
 #' @export
-sits_accuracy_summary <- function(x,
-                                  digits = max(3, getOption("digits") - 3)) {
-
+sits_accuracy_summary <- function(x, digits = NULL) {
     # set caller to show in errors
     .check_set_caller("sits_accuracy_summary")
+    # default value for digits
+    digits <- .default(digits, max(3, getOption("digits") - 3))
 
     if ("sits_area_accuracy" %in% class(x)) {
         print.sits_area_accuracy(x)
@@ -324,12 +338,10 @@ sits_accuracy_summary <- function(x,
         ), ")",
         sep = ""
     )
-
     overall_text <- c(
         paste(overall["Accuracy"]), accuracy_ci,
         paste(overall["Kappa"])
     )
-
     overall_names <- c("Accuracy", "95% CI", "Kappa")
 
     cat("Overall Statistics")
@@ -342,6 +354,7 @@ sits_accuracy_summary <- function(x,
     rownames(out) <- rep("", nrow(out))
 
     print(out, quote = FALSE)
+    return(invisible(x))
 }
 #' @title Print the values of a confusion matrix
 #' @name print.sits_accuracy
@@ -353,12 +366,13 @@ sits_accuracy_summary <- function(x,
 #' @param x         Object of class \code{confusionMatrix}.
 #' @param \dots     Other parameters passed to the "print" function.
 #' @param digits    Number of significant digits when printed.
-#' @return          No return value, called for side effects.
+#' @return          Called for side effects.
 #'
 #' @keywords internal
 #' @export
-print.sits_accuracy <- function(x, ...,
-                                  digits = max(3, getOption("digits") - 3)) {
+print.sits_accuracy <- function(x, ..., digits = NULL) {
+    # default value for digits
+    digits <- .default(digits, max(3, getOption("digits") - 3))
     # rename confusion matrix names
     names(x) <- c("positive", "table", "overall", "by_class", "mode", "dots")
     cat("Confusion Matrix and Statistics\n\n")
@@ -457,6 +471,7 @@ print.sits_accuracy <- function(x, ...,
 
         print(out, quote = FALSE)
     }
+    return(invisible(x))
 }
 #' @title Print the area-weighted accuracy
 #' @name print.sits_area_accuracy
@@ -468,12 +483,11 @@ print.sits_accuracy <- function(x, ...,
 #' @param x         An object of class \code{sits_area_accuracy}.
 #' @param \dots     Other parameters passed to the "print" function
 #' @param digits    Significant digits
-#' @return          No return value, called for side effects.
+#' @return          Called for side effects.
 #'
 #' @keywords internal
 #' @export
 print.sits_area_accuracy <- function(x, ..., digits = 2) {
-
     # round the data to the significant digits
     overall <- round(x$accuracy$overall, digits = digits)
 
@@ -504,4 +518,5 @@ print.sits_area_accuracy <- function(x, ..., digits = 2) {
 
     cat("\nMapped Area x Estimated Area (ha)\n")
     print(tb1)
+    return(invisible(x))
 }

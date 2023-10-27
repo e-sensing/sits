@@ -1,5 +1,4 @@
 test_that("SVM  - Formula logref", {
-
     svm_model <- sits_train(
         samples_modis_ndvi,
         sits_svm(
@@ -24,7 +23,6 @@ test_that("SVM  - Formula logref", {
 })
 
 test_that("SVM  - Formula logref - difference", {
-
     svm_model <- sits_train(
         samples_modis_ndvi,
         ml_method = sits_svm(
@@ -47,7 +45,6 @@ test_that("SVM  - Formula logref - difference", {
 })
 
 test_that("SVM - Formula linear", {
-
     svm_model <- sits_train(
         samples_modis_ndvi,
         sits_svm(
@@ -69,7 +66,6 @@ test_that("SVM - Formula linear", {
 })
 
 test_that("Random Forest", {
-
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 200))
     expect_equal(sits_bands(rfor_model), "NDVI")
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
@@ -88,7 +84,6 @@ test_that("Random Forest", {
 })
 
 test_that("Random Forest - Whittaker", {
-
     samples_whit <- sits_filter(samples_modis_ndvi, filter = sits_whittaker())
     rfor_model <- sits_train(samples_whit, sits_rfor(num_trees = 200))
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
@@ -105,7 +100,6 @@ test_that("Random Forest - Whittaker", {
 })
 
 test_that("Random Forest - SGolay", {
-
     samples_mt_sg <- sits_filter(samples_modis_ndvi, filter = sits_sgolay())
     rfor_model <- sits_train(samples_mt_sg, sits_rfor(num_trees = 200))
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
@@ -122,7 +116,6 @@ test_that("Random Forest - SGolay", {
 })
 
 test_that("XGBoost", {
-
     model <- sits_train(
         samples_modis_ndvi,
         sits_xgboost(
@@ -174,8 +167,6 @@ test_that("DL-MLP", {
 })
 
 test_that("ResNet", {
-
-
     model <- tryCatch(
         {
             sits_train(samples_modis_ndvi, sits_resnet(epochs = 5))
@@ -201,7 +192,8 @@ test_that("ResNet", {
 })
 
 test_that("TempCNN model", {
-    model <- sits_train(samples_modis_ndvi,
+    model <- sits_train(
+        samples_modis_ndvi,
         sits_tempcnn(epochs = 5)
     )
 
@@ -221,7 +213,8 @@ test_that("TempCNN model", {
 })
 
 test_that("LightTAE model", {
-    model <- sits_train(samples_modis_ndvi,
+    model <- sits_train(
+        samples_modis_ndvi,
         sits_lighttae(epochs = 5)
     )
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
@@ -239,7 +232,8 @@ test_that("LightTAE model", {
 })
 
 test_that("PSETAE model", {
-    model <- sits_train(samples_modis_ndvi,
+    model <- sits_train(
+        samples_modis_ndvi,
         sits_tae(epochs = 5)
     )
 
@@ -280,4 +274,7 @@ test_that("normalization new version", {
     # Normalized data should have maximum value between
     #   abs(max(values)) and 1.0 (inclusive)
     expect_true(abs(max(values)) < max(values_norm) && max(values_norm) <= 1.0)
+})
+test_that("ML errors", {
+    expect_error(.ml_model("a"))
 })

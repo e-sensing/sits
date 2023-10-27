@@ -5,6 +5,7 @@
 \alias{sits_uncertainty.least}
 \alias{sits_uncertainty.entropy}
 \alias{sits_uncertainty.margin}
+\alias{sits_uncertainty.default}
 \title{Estimate classification uncertainty based on probs cube}
 \usage{
 sits_uncertainty(
@@ -42,6 +43,8 @@ sits_uncertainty(
   output_dir,
   version = "v1"
 )
+
+\method{sits_uncertainty}{default}(cube, type, multicores, memsize, output_dir, version)
 }
 \arguments{
 \item{cube}{Probability data cube.}
@@ -71,10 +74,6 @@ The supported types of uncertainty are 'entropy', 'least', and 'margin'.
 entropy, 'least' is the difference between 100% and most confident
 prediction, and 'margin' is the difference between the two most confident
 predictions.
-}
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
 if (sits_run_examples()) {

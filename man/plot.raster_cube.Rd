@@ -13,9 +13,7 @@
   blue = NULL,
   tile = x$tile[[1]],
   date = NULL,
-  segments = NULL,
-  seg_color = "lightgoldenrod",
-  color_palette = "RdYlGn",
+  palette = "RdYlGn",
   rev = FALSE,
   tmap_options = NULL
 )
@@ -37,21 +35,18 @@
 
 \item{date}{Date to be plotted.}
 
-\item{segments}{List with segments to be shown (one per tile)}
-
-\item{seg_color}{Color to use for segment borders}
-
-\item{color_palette}{An RColorBrewer palette}
+\item{palette}{An RColorBrewer palette}
 
 \item{rev}{Reverse the color order in the palette?}
 
 \item{tmap_options}{List with optional tmap parameters
-tmap_max_cells (default: 1e+06)
-tmap_graticules_labels_size (default: 0.7)
-tmap_legend_title_size (default: 1.5)
-tmap_legend_text_size (default: 1.2)
-tmap_legend_bg_color (default: "white")
-tmap_legend_bg_alpha (default: 0.5)}
+max_cells (default: 1e+06)
+scale (default: 0.5)
+graticules_labels_size (default: 0.7)
+legend_title_size (default: 1.0)
+legend_text_size (default: 1.0)
+legend_bg_color (default: "white")
+legend_bg_alpha (default: 0.5)}
 }
 \value{
 A plot object with an RGB image
@@ -62,7 +57,9 @@ A plot object with an RGB image
 Plot RGB raster cube
 }
 \note{
-To see which color palettes are supported, please run
+To see which colors are supported, please run \code{sits_colors()}
+      Use \code{scale} parameter for general output control.
+      If required, then set the other params individually
 }
 \examples{
 if (sits_run_examples()) {

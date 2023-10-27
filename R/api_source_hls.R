@@ -1,24 +1,37 @@
+#' @title Create an items object in an HLS cube
 #' @keywords internal
 #' @noRd
+#' @description \code{.source_items_new()} this function is called to create
+#' an items object. In case of Web services, this function is responsible for
+#' making the Web requests to the server.
+#' @param source     Name of the STAC provider.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param collection Collection to be searched in the data source.
+#' @param stac_query Query that follows the STAC protocol
+#' @param tiles      Selected tiles (optional)
+#' @return An object referring the images of a sits cube.
 #' @export
 .source_items_new.hls_cube <- function(source, ...,
                                        collection,
                                        stac_query,
                                        tiles = NULL) {
-
     if (!is.null(tiles)) {
         stop(paste("HLS cubes do not support searching for tiles, use",
-                   "'roi' parameter instead.",
-                   call. = FALSE
+            "'roi' parameter instead.",
+            call. = FALSE
         ))
     }
     # NASA EarthData requires a login/password combination
     netrc_path <- "~/.netrc"
-    if (.Platform$OS.type == "windows")
+    if (.Platform$OS.type == "windows") {
         netrc_path <- "%HOME%\\_netrc"
-    if (!file.exists(netrc_path))
-            warning(paste("could not find .netrc file", "\n",
-                          "Have you configured your access to NASA EarthData?"))
+    }
+    if (!file.exists(netrc_path)) {
+        stop(paste(
+            "could not find .netrc file", "\n",
+            "Have you configured your access to NASA EarthData?"
+        ))
+    }
 
     # Convert roi to bbox
     lon <- stac_query$params$intersects$coordinates[, , 1]
@@ -46,15 +59,40 @@
     )
     return(items_info)
 }
-
+#' @title Organizes items by tiles for HLS collections
+#' @param source     Name of the STAC provider.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
 #' @keywords internal
 #' @noRd
 #' @export
 .source_items_tile.hls_cube <- function(source, ...,
                                         items,
                                         collection = NULL) {
-
     tiles <- strsplit(rstac::items_reap(items, field = "id"), "\\.")
     tiles <- purrr::map_chr(tiles, function(x) x[[3]])
     substr(tiles, 2, 6)
+}
+#' @noRd
+#' @title Configure access.
+#' @param source  Data source
+#' @param collection Image collection
+#' @return Called for side effects
+.source_configure_access.hls_cube <- function(source, collection = NULL) {
+    netrc_file <- "~/.netrc"
+    if (.Platform$OS.type == "windows")
+        netrc_file <- "%HOME%_netrc"
+    # does the file exist
+    if (!file.exists(netrc_file))
+        stop(paste("Missing HLS access configuration.",
+                    "Please see instructions in Chapter 4 of on-line book"))
+    else{
+        conf_hls <- utils::read.delim(netrc_file)
+        if (!(.conf("HLS_ACCESS_URL") %in% names(conf_hls)))
+            stop(paste("Missing HLS access configuration.",
+                       "Please see instructions in Chapter 4 of on-line book"))
+    }
+    return(invisible(source))
 }

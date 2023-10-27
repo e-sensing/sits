@@ -13,13 +13,16 @@
 #' To merge data cubes, they should share the same sensor, resolution,
 #' bounding box, timeline, and have different bands.
 #'
-#' @param data1      Time series or cube to be merged.
-#' @param data2      Time series or cube to be merged.
+#' @param data1      Time series (tibble of class "sits")
+#'                   or data cube (tibble of class "raster_cube") .
+#' @param data2      Time series (tibble of class "sits")
+#'                   or data cube (tibble of class "raster_cube") .
 #' @param ...        Additional parameters
 #' @param suffix     If there are duplicate bands in data1 and data2
-#'                   these suffixes will be added.
-#'
-#' @return merged data sets
+#'                   these suffixes will be added
+#'                   (character vector).
+#' @return merged data sets (tibble of class "sits" or
+#'         tibble of class "raster_cube")
 #' @examples
 #' if (sits_run_examples()) {
 #'     # Retrieve a time series with values of NDVI
@@ -35,40 +38,35 @@
 #' }
 #' @export
 #'
-sits_merge <- function(data1, data2, ..., suffix = c(".1", ".2")) {
-
-    # set caller to show in errors
-    .check_set_caller("sits_merge")
-    # get the meta-type (sits or cube)
-    data1 <- .conf_data_meta_type(data1)
+sits_merge <- function(data1, data2, ...) {
     UseMethod("sits_merge", data1)
 }
-
 #' @rdname sits_merge
 #' @export
 sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
-
     # precondition - data sets are not empty
     .check_that(
         x = nrow(data1) > 0 & nrow(data2) > 0,
         msg = "invalid input data"
     )
-
-    # verify if data1.tb and data2.tb has the same number of rows
+    # check that data2 and data1 are sits tibble
+    .check_samples_ts(data1)
+    .check_samples_ts(data2)
+    # verify if data1 and data2 have the same number of rows
     .check_that(
         x = nrow(data1) == nrow(data2),
         msg = "cannot merge tibbles of different sizes"
     )
-
     # are the names of the bands different?
-    # if they are not
     bands1 <- sits_bands(data1)
     bands2 <- sits_bands(data2)
     coincidences1 <- bands1 %in% bands2
     coincidences2 <- bands2 %in% bands1
     if (any(coincidences1) || any(coincidences2)) {
-        bands1[coincidences1] <- paste0(bands1, suffix[[1]][coincidences1])
-        bands2[coincidences2] <- paste0(bands2, suffix[[2]][coincidences2])
+        bands1_names <- rep(x = suffix[[1]], length(coincidences1))
+        bands2_names <- rep(x = suffix[[2]], length(coincidences2))
+        bands1[coincidences1] <- paste0(bands1[coincidences1], bands1_names[coincidences1])
+        bands2[coincidences2] <- paste0(bands2[coincidences2], bands2_names[coincidences2])
         .check_that(
             !any(bands1 %in% bands2),
             local_msg = "duplicated band names",
@@ -84,7 +82,6 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     }
     # prepare result
     result <- data1
-
     # merge time series
     result$time_series <- purrr::map2(
         data1$time_series,
@@ -134,4 +131,9 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
         return(x)
     })
     return(data1)
+}
+#' @rdname sits_merge
+#' @export
+sits_merge.default <- function(data1, data2, ...){
+    stop("Input should be objects of class sits or class raster_cube")
 }

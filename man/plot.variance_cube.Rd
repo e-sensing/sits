@@ -9,7 +9,7 @@
   ...,
   tile = x$tile[[1]],
   labels = NULL,
-  color_palette = "YlGnBu",
+  palette = "YlGnBu",
   rev = FALSE,
   type = "map",
   tmap_options = NULL
@@ -24,7 +24,7 @@
 
 \item{labels}{Labels to plot (optional).}
 
-\item{color_palette}{RColorBrewer palette}
+\item{palette}{RColorBrewer palette}
 
 \item{rev}{Reverse order of colors in palette?}
 
@@ -61,7 +61,7 @@ if (sits_run_examples()) {
         data = cube, ml_model = rfor_model, output_dir = tempdir()
     )
     # obtain a variance cube
-    var_cube <-  sits_variance(probs_cube, output_dir = tempdir())
+    var_cube <- sits_variance(probs_cube, output_dir = tempdir())
     # plot the variance cube
     plot(var_cube)
 }

@@ -7,12 +7,13 @@
 sits_pred_normalize(pred, stats)
 }
 \arguments{
-\item{pred}{X-Y predictors: a data.table with one row per sample.}
+\item{pred}{X-Y predictors: a data.frame with one row per sample.}
 
-\item{stats}{Output of the "sits_stats()" applied to the samples.}
+\item{stats}{Values of time series for Q02 and Q98 of the data
+(list of numeric values with two elements)}
 }
 \value{
-A normalized set of predictor values
+A data.frame with normalized predictor values
 }
 \description{
 Most machine learning algorithms require data to be
@@ -26,9 +27,9 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-     stats <- sits_stats(samples_modis_ndvi)
-     pred <- sits_predictors(samples_modis_ndvi)
-     pred_norm <- sits_pred_normalize(pred, stats)
+    stats <- sits_stats(samples_modis_ndvi)
+    pred <- sits_predictors(samples_modis_ndvi)
+    pred_norm <- sits_pred_normalize(pred, stats)
 }
 }
 \author{

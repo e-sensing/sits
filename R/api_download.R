@@ -1,15 +1,25 @@
+#' @title Downloads an asset
+#' @noRd
+#' @param asset  File to be downloaded (with path)
+#' @param res    Spatial resolution
+#' @param sf_roi Region of interest (sf object)
+#' @param output_dir Directory where file will be saved
+#' @param progress Show progress bar?
+#' @returns  Updated asset
 .download_asset <- function(asset, res, sf_roi, output_dir, progress) {
     # Get all paths and expand
     file <- .file_normalize(.tile_path(asset))
     # Create a list of user parameters as gdal format
-    gdal_params <- .gdal_format_params(asset = asset,
-                                       sf_roi = sf_roi,
-                                       res = res)
+    gdal_params <- .gdal_format_params(
+        asset = asset,
+        sf_roi = sf_roi,
+        res = res
+    )
     # Create output file
     derived_cube <- inherits(asset, "derived_cube")
-    if (derived_cube)
+    if (derived_cube) {
         out_file <- paste0(output_dir, "/", basename(file))
-    else
+    } else {
         out_file <- .file_path(
             .tile_satellite(asset),
             .download_remove_slash(.tile_sensor(asset)),
@@ -19,12 +29,14 @@
             output_dir = output_dir,
             ext = "tif"
         )
+    }
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         if (.check_messages()) {
             message("Recovery: file '", out_file, "' already exists.")
-            message("(If you want to get a new version, please ",
-                    "change 'output_dir' parameter
+            message(
+                "(If you want to get a new version, please ",
+                "change 'output_dir' parameter
                     or delete the existing file)"
             )
         }
@@ -46,7 +58,13 @@
     # Return updated asset
     asset
 }
-
+#' @title Updates an asset for download
+#' @noRd
+#' @param asset  File to be downloaded (with path)
+#' @param roi Region of interest (sf object)
+#' @param res    Spatial resolution
+#' @param out_file Path where file will be saved
+#' @returns  Updated asset
 .download_update_asset <- function(asset, roi, res, out_file) {
     if (!is.null(roi) || !is.null(res)) {
         # Open raster
@@ -69,7 +87,11 @@
     asset[["file_info"]][[1]][["path"]] <- out_file
     return(asset)
 }
-
+#' @title Choice of appropriate download function
+#' @noRd
+#' @param out_file    Path where file will be saved
+#' @param gdal_params GDAL parameters
+#' @returns  Appropriate download function
 .download_controller <- function(out_file, gdal_params) {
     # gdal is used if the image needs to be cropped or resampled
     if (any(c("-srcwin", "-tr") %in% names(gdal_params))) {
@@ -79,7 +101,11 @@
     }
     return(download_fn)
 }
-
+#' @title Download function when using GDAL
+#' @noRd
+#' @param out_file    Path where file will be saved
+#' @param gdal_params GDAL parameters
+#' @returns  Appropriate GDAL download function
 .download_gdal <- function(out_file, gdal_params) {
     download_fn <- function(file) {
         .gdal_translate(
@@ -90,7 +116,10 @@
     }
     download_fn
 }
-
+#' @title Download function when not using GDAL
+#' @noRd
+#' @param out_file    Path where file will be saved
+#' @returns  Appropriate non-GDAL download function
 .download_base <- function(out_file) {
     donwload_fn <- function(file) {
         # Remove vsi driver path
@@ -107,7 +136,10 @@
     }
     donwload_fn
 }
-
+#' @title Remove slash from sensor name
+#' @noRd
+#' @param x    Sensor name (e.g. "TM/OLI")
+#' @returns    Sensor name without slashes
 .download_remove_slash <- function(x) {
     gsub(pattern = "/", replacement = "", x = x)
 }

@@ -27,17 +27,16 @@
 #' @param  verbose         Print processing information?
 #' @param  progress        Show progress bar?
 #' @return List of the classified raster layers.
-.classify_tile  <- function(tile,
-                            band,
-                            ml_model,
-                            block,
-                            roi,
-                            filter_fn,
-                            output_dir,
-                            version,
-                            verbose,
-                            progress) {
-
+.classify_tile <- function(tile,
+                           band,
+                           ml_model,
+                           block,
+                           roi,
+                           filter_fn,
+                           output_dir,
+                           version,
+                           verbose,
+                           progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
@@ -46,8 +45,10 @@
     if (file.exists(out_file)) {
         if (.check_messages()) {
             message("Recovery: tile '", tile[["tile"]], "' already exists.")
-            message("(If you want to produce a new image, please ",
-                    "change 'output_dir' or 'version' parameters)")
+            message(
+                "(If you want to produce a new image, please ",
+                "change 'output_dir' or 'version' parameters)"
+            )
         }
         probs_tile <- .tile_derived_from_file(
             file = out_file,
@@ -59,15 +60,8 @@
         )
         return(probs_tile)
     }
-    # # Callback final tile classification
-    # .callback(process = "tile_classification", event = "started",
-    #           context = environment())
     # Show initial time for tile classification
-    if (verbose) {
-        tile_start_time <- Sys.time()
-        message("Starting classification of tile '",
-                tile[["tile"]], "' at ", tile_start_time)
-    }
+    tile_start_time <- .tile_classif_start(tile, verbose)
     # Create chunks as jobs
     chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
     # By default, update_bbox is FALSE
@@ -80,6 +74,8 @@
         # Should bbox of resulting tile be updated?
         update_bbox <- nrow(chunks) != nchunks
     }
+    # Compute fractions probability
+    probs_fractions <- 1 / length(.ml_labels(ml_model))
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -107,31 +103,26 @@
         values <- C_fill_na(values, 0)
         # Used to check values (below)
         input_pixels <- nrow(values)
-
-        #
         # Log here
-        #
         .debug_log(
             event = "start_block_data_classification",
             key = "model",
             value = .ml_class(ml_model)
         )
-
         # Apply the classification model to values
         values <- ml_model(values)
-
+        # Clean the torch cache
+        if (torch::cuda_is_available()) {
+            torch::cuda_empty_cache()
+        }
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
-
-        #
-        # Log here
-        #
+        # Log
         .debug_log(
             event = "end_block_data_classification",
             key = "model",
             value = .ml_class(ml_model)
         )
-
         # Prepare probability to be saved
         band_conf <- .conf_derived_band(
             derived_class = "probs_cube", band = band
@@ -143,10 +134,11 @@
         scale <- .scale(band_conf)
         if (.has(scale) && scale != 1) {
             values <- values / scale
+            probs_fractions  <- probs_fractions / scale
         }
 
-        # Mask NA pixels
-        values[na_mask, ] <- NA
+        # Mask NA pixels with same probabilities for all classes
+        values[na_mask, ] <- probs_fractions
 
         #
         # Log here
@@ -156,8 +148,6 @@
             key = "file",
             value = block_file
         )
-
-
         # Prepare and save results as raster
         .raster_write_block(
             files = block_file,
@@ -168,17 +158,12 @@
             missing_value = .miss_value(band_conf),
             crop_block = NULL
         )
-
-        #
-        # Log here
-        #
+        # Log
         .debug_log(
             event = "end_block_data_save",
             key = "file",
             value = block_file
         )
-
-
         # Free memory
         gc()
         # Returned block file
@@ -195,20 +180,121 @@
         multicores = .jobs_multicores(),
         update_bbox = update_bbox
     )
-    # # Callback final tile classification
-    # .callback(event = "tile_classification", status = "end",
-    #           context = environment())
     # show final time for classification
-    if (verbose) {
-        tile_end_time <- Sys.time()
-        message("Tile '", tile[["tile"]], "' finished at ", tile_end_time)
-        message("Elapsed time of ",
-                format(round(tile_end_time - tile_start_time, digits = 2)))
-        message("")
-    }
+    .tile_classif_end(tile, tile_start_time, verbose)
     # Return probs tile
     probs_tile
 }
+
+#' @title Classify a chunk of raster data  using multicores
+#' @name .classify_tile
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Classifies a block of data using multicores. It breaks
+#' the data into horizontal blocks and divides them between the available cores.
+#'
+#' Reads data using terra, cleans the data for NAs and missing values.
+#' The clean data is stored in a data table with the time instances
+#' for all pixels of the block. The algorithm then classifies data on
+#' an year by year basis. For each year, extracts the sub-blocks for each band.
+#'
+#' After all cores process their blocks, it joins the result and then writes it
+#' in the classified images for each corresponding year.
+#'
+#' @param  tile       Single tile of a data cube.
+#' @param  ml_model   Model trained by \code{\link[sits]{sits_train}}.
+#' @param  filter_fn  Smoothing filter function to be applied to the data.
+#' @param  n_sam_pol  Number of samples per polygon to be read
+#'                    for POLYGON or MULTIPOLYGON shapefiles or sf objects.
+#' @param  multicores Number of cores to be used for classification
+#' @param  gpu_memory Memory available in GPU (default = NULL)
+#' @param  version    Version of result.
+#' @param  output_dir Output directory.
+#' @param  progress   Show progress bar?
+#' @return List of the classified raster layers.
+.classify_vector_tile <- function(tile,
+                                  ml_model,
+                                  filter_fn,
+                                  n_sam_pol,
+                                  multicores,
+                                  memsize,
+                                  gpu_memory,
+                                  version,
+                                  output_dir,
+                                  progress) {
+    # Output file
+    out_file <- .file_derived_name(
+        tile = tile,
+        band = "probs",
+        version = version,
+        output_dir = output_dir,
+        ext = "gpkg"
+    )
+    # Resume feature
+    if (.segments_is_valid(out_file)) {
+        if (.check_messages()) {
+            message("Recovery: tile '", tile[["tile"]], "' already exists.")
+            message(
+                "(If you want to produce a new image, please ",
+                "change 'output_dir' or 'version' parameters)"
+            )
+        }
+        # Create tile based on template
+        probs_tile <- .tile_segments_from_file(
+            file = out_file,
+            band = "probs",
+            base_tile = tile,
+            labels = .ml_labels(ml_model),
+            vector_class = "probs_vector_cube",
+            update_bbox = FALSE
+        )
+        return(probs_tile)
+    }
+    # Get tile bands
+    bands <- .tile_bands(tile, add_cloud = FALSE)
+    segments_ts <- .segments_extract_multicores(
+        tile = tile,
+        bands = bands,
+        pol_id = "pol_id",
+        n_sam_pol = n_sam_pol,
+        multicores = multicores,
+        memsize = memsize,
+        output_dir = output_dir,
+        progress = FALSE
+    )
+    # Classify segments
+    classified_ts <- .classify_ts(
+        samples = segments_ts,
+        ml_model = ml_model,
+        filter_fn = filter_fn,
+        multicores = multicores,
+        gpu_memory = gpu_memory,
+        progress = progress
+    )
+    # Join probability values with segments
+    joined_segments <- .segments_join_probs(
+        data = classified_ts,
+        segments = .segments_read_vec(tile),
+        aggregate = .has(n_sam_pol)
+    )
+    # Write all segments
+    .vector_write_vec(v_obj = joined_segments, file_path = out_file)
+    # Create tile based on template
+    probs_tile <- .tile_segments_from_file(
+        file = out_file,
+        band = "probs",
+        base_tile = tile,
+        labels = .ml_labels(ml_model),
+        vector_class = "probs_vector_cube",
+        update_bbox = FALSE
+    )
+    # Return probability vector tile
+    return(probs_tile)
+}
+
 #' @title Read a block of values retrieved from a set of raster images
 #' @name  .classify_data_read
 #' @keywords internal
@@ -228,7 +314,7 @@
     # Get cloud values (NULL if not exists)
     cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
     # Read and preprocess values of each band
-    values <- purrr::map_dfc(.ml_bands(ml_model), function(band) {
+    values <- purrr::map(.ml_bands(ml_model), function(band) {
         # Get band values (stops if band not found)
         values <- .tile_read_block(tile = tile, band = band, block = block)
         # Log
@@ -242,7 +328,7 @@
             values[cloud_mask] <- NA
         }
         # use linear imputation
-        impute_fn = .impute_linear()
+        impute_fn <- .impute_linear()
         # are there NA values? interpolate them
         if (any(is.na(values))) {
             values <- impute_fn(values)
@@ -264,19 +350,18 @@
                 values <- C_normalize_data_0(values, q02, q98)
             }
         }
-
-        #
-        # Log here
-        #
+        # Log
         .debug_log(
             event = "end_block_data_process",
             key = "band",
             value = band
         )
-
         # Return values
-        as.data.frame(values)
+        return(as.data.frame(values))
     })
+    # collapse list to get data.frame
+    values <- suppressMessages(purrr::list_cbind(values,
+                                                 name_repair = "universal"))
     # Compose final values
     values <- as.matrix(values)
     # Set values features name
@@ -296,36 +381,32 @@
 #' @param  ml_model   model trained by \code{\link[sits]{sits_train}}.
 #' @param  filter_fn  Smoothing filter to be applied (if desired).
 #' @param  multicores number of threads to process the time series.
+#' @param  gpu_memory Memory available in GPU
 #' @param  progress   Show progress bar?
 #' @return A tibble with the predicted labels.
 .classify_ts <- function(samples,
                          ml_model,
                          filter_fn,
                          multicores,
+                         gpu_memory,
                          progress) {
-
     # Start parallel workers
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
-
     # Get bands from model
     bands <- .ml_bands(ml_model)
-
     # Update samples bands order
     if (any(bands != .samples_bands(samples))) {
         samples <- .samples_select_bands(samples = samples, bands = bands)
     }
-
     # Apply time series filter
-    if (.has(filter_fn)) {
+    if (!purrr::is_null(filter_fn)) {
         samples <- .apply_across(data = samples, fn = filter_fn)
     }
-
     # Compute the breaks in time for multiyear classification
     class_info <- .timeline_class_info(
         data = samples, samples = .ml_samples(ml_model)
     )
-
     # Split long time series of samples in a set of small time series
     if (length(class_info[["dates_index"]][[1]]) > 1) {
         splitted <- .samples_split(
@@ -339,22 +420,11 @@
         # Convert samples time series in predictors and preprocess data
         pred <- .predictors(samples = samples, ml_model = ml_model)
     }
-
-    # Divide samples predictors in chunks to parallel processing
-    parts <- .pred_create_partition(pred = pred, partitions = multicores)
-    # Do parallel process
-    prediction <- .jobs_map_parallel_dfr(parts, function(part) {
-        # Get predictors of a given partition
-        pred_part <- .pred_part(part)
-        # Get predictors features to classify
-        values <- .pred_features(pred_part)
-        # Classify
-        values <- ml_model(values)
-        # Return classification
-        values <- tibble::tibble(data.frame(values))
-        values
-    }, progress = progress)
-
+    # choose between GPU and CPU
+    if ("torch_model" %in% class(ml_model) && torch::cuda_is_available())
+        prediction <- .classify_ts_gpu(pred, ml_model, gpu_memory)
+    else
+        prediction <- .classify_ts_cpu(pred, ml_model, multicores, progress)
     # Store the result in the input data
     if (length(class_info[["dates_index"]][[1]]) > 1) {
         prediction <- .tibble_prediction_multiyear(
@@ -371,3 +441,76 @@
     # Set result class and return it
     .set_class(x = prediction, "predicted", class(samples))
 }
+#' @title Classify predictors using CPU
+#' @name .classify_ts_cpu
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns a sits tibble with the results of the ML classifier.
+#'
+#' @param  pred       a tibble with predictors
+#' @param  ml_model   model trained by \code{\link[sits]{sits_train}}.
+#' @param  multicores number of threads to process the time series.
+#' @param  progress   Show progress bar?
+#' @return A tibble with the predicted values.
+.classify_ts_cpu <- function(pred,
+                             ml_model,
+                             multicores,
+                             progress){
+
+    # Divide samples predictors in chunks to parallel processing
+    parts <- .pred_create_partition(pred = pred, partitions = multicores)
+    # Do parallel process
+    prediction <- .jobs_map_parallel_dfr(parts, function(part) {
+        # Get predictors of a given partition
+        pred_part <- .pred_part(part)
+        # Get predictors features to classify
+        values <- .pred_features(pred_part)
+        # Classify
+        values <- ml_model(values)
+        # Return classification
+        values <- tibble::tibble(data.frame(values))
+        values
+    }, progress = progress)
+
+    return(prediction)
+}
+#' @title Classify predictors using GPU
+#' @name .classify_ts_gpu
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns a sits tibble with the results of the ML classifier.
+#'
+#' @param  pred       a tibble with predictors
+#' @param  ml_model   model trained by \code{\link[sits]{sits_train}}.
+#' @param  gpu_memory memory available in GPU
+#' @return A tibble with the predicted values.
+.classify_ts_gpu <- function(pred,
+                             ml_model,
+                             gpu_memory){
+    # estimate size of GPU memory required (in GB)
+    pred_size <- nrow(pred) * ncol(pred) * 4 * .conf("processing_bloat_gpu")/1e+09
+    # estimate how should we partition the predictors
+    num_parts <- ceiling(pred_size/gpu_memory)
+    # Divide samples predictors in chunks to parallel processing
+    parts <- .pred_create_partition(pred = pred, partitions = num_parts)
+    prediction <- slider::slide_dfr(parts, function(part){
+        # Get predictors of a given partition
+        pred_part <- .pred_part(part)
+        # Get predictors features to classify
+        values <- .pred_features(pred_part)
+        # Classify
+        values <- ml_model(values)
+        # Return classification
+        values <- tibble::tibble(data.frame(values))
+        # Clean torch cache
+        torch::cuda_empty_cache()
+        return(values)
+    })
+    return(prediction)
+}
+
+

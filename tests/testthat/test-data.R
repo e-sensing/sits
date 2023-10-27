@@ -14,24 +14,28 @@ test_that("Reading a LAT/LONG from RASTER", {
     expect_equal(names(point_ndvi)[1], "longitude")
     expect_true(ncol(.tibble_time_series(point_ndvi)) == 2)
     expect_true(length(sits_timeline(point_ndvi)) == 12)
+
+    samples2 <- tibble::tibble(longitude = -55.66738, latitude = 11.76990)
+    expect_warning(
+        sits_get_data(raster_cube, samples2, progress = FALSE)
+    )
 })
 
 test_that("Reading a CSV file from RASTER", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    raster_cube <-  sits_cube(
+    raster_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
-        progress = FALSE
+        progress = TRUE
     )
 
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-                                   package = "sits"
+        package = "sits"
     )
     points_poly <- sits_get_data(
         raster_cube,
-        samples = csv_raster_file,
-        progress = FALSE
+        samples = csv_raster_file
     )
 
     df_csv <- utils::read.csv(
@@ -46,6 +50,8 @@ test_that("Reading a CSV file from RASTER", {
     expect_true(ncol(.tibble_time_series(points_poly)) == 2)
     expect_true(length(sits_timeline(points_poly)) == 12)
 
+    Sys.setenv("SITS_SAMPLES_CACHE_DIR" = tempdir())
+
     points_df <- sits_get_data(
         raster_cube,
         samples = df_csv,
@@ -57,14 +63,10 @@ test_that("Reading a CSV file from RASTER", {
     expect_equal(length(names(points_df)), 7)
     expect_true(ncol(.tibble_time_series(points_df)) == 2)
     expect_true(length(sits_timeline(points_df)) == 12)
+    Sys.unsetenv("SITS_SAMPLES_CACHE_DIR")
 })
 
 test_that("Retrieving points from BDC using POLYGON shapefiles", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-                      message = "No BDC_ACCESS_KEY defined in environment."
-    )
     # read the shape file for Mato Grosso
     shp_file <- system.file(
         "extdata/shapefiles/mato_grosso/mt.shp",
@@ -73,20 +75,22 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     sf_mt <- sf::read_sf(shp_file)
 
     # create a raster cube covering for the Mato Grosso state
-    modis_cube <- .try({
-        sits_cube(
-            source = "BDC",
-            collection = "MOD13Q1-6",
-            bands = c("NDVI", "EVI"),
-            roi = sf_mt,
-            start_date = "2018-09-01",
-            end_date = "2019-08-29",
-            progress = FALSE
-        )
-    },
-    .default = NULL)
+    modis_cube <- .try(
+        {
+            sits_cube(
+                source = "BDC",
+                collection = "MOD13Q1-6",
+                bands = c("NDVI", "EVI"),
+                roi = sf_mt,
+                start_date = "2018-09-01",
+                end_date = "2019-08-29",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
     # get the timeline
     cube_timeline <- sits_timeline(modis_cube)
@@ -96,13 +100,18 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
         modis_cube,
         samples = shp_file,
         n_sam_pol = 5,
-        progress = FALSE
+        progress = FALSE,
+        multicores = 1
     )
     expect_equal(object = nrow(points_shp), expected = 5)
-    expect_equal(object = unique(points_shp[["start_date"]]),
-                 expected = as.Date(cube_timeline[1]))
-    expect_equal(object = unique(points_shp[["end_date"]]),
-                 expected = as.Date(cube_timeline[length(cube_timeline)]))
+    expect_equal(
+        object = unique(points_shp[["start_date"]]),
+        expected = as.Date(cube_timeline[1])
+    )
+    expect_equal(
+        object = unique(points_shp[["end_date"]]),
+        expected = as.Date(cube_timeline[length(cube_timeline)])
+    )
 
     # test bounding box
     polygons_bbox <- .bbox(sf_mt)
@@ -118,28 +127,28 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     # test for errors in get_data syntax
     expect_error(
         sits_get_data(modis_cube,
-                      samples = shp_file,
-                      pol_avg = TRUE,
-                      progress = FALSE
+            samples = shp_file,
+            pol_avg = TRUE,
+            progress = FALSE
         )
     )
     # test for errors in get_data syntax
     expect_error(
         sits_get_data(modis_cube,
-                      samples = shp_file,
-                      pol_avg = TRUE,
-                      pol_id = "iddddddd",
-                      progress = FALSE
+            samples = shp_file,
+            pol_avg = TRUE,
+            pol_id = "iddddddd",
+            progress = FALSE
         )
     )
     # retrieve labelled points from BDC cube
     points_shp_avg <- sits_get_data(modis_cube,
-                                    samples = shp_file,
-                                    n_sam_pol = 5,
-                                    label_attr = "NM_ESTADO",
-                                    pol_avg = TRUE,
-                                    pol_id = "CD_GEOCUF",
-                                    progress = FALSE
+        samples = shp_file,
+        n_sam_pol = 5,
+        label_attr = "NM_ESTADO",
+        pol_avg = TRUE,
+        pol_id = "CD_GEOCUF",
+        progress = FALSE
     )
 
     expect_equal(object = nrow(points_shp_avg), expected = 1)
@@ -149,11 +158,11 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     )
     # retrieve points from BDC cube with no label
     points_shp_no_label <- sits_get_data(modis_cube,
-                                         samples = shp_file,
-                                         n_sam_pol = 5,
-                                         pol_avg = TRUE,
-                                         pol_id = "CD_GEOCUF",
-                                         progress = FALSE
+        samples = shp_file,
+        n_sam_pol = 5,
+        pol_avg = TRUE,
+        pol_id = "CD_GEOCUF",
+        progress = FALSE
     )
 
     expect_equal(object = nrow(points_shp_no_label), expected = 1)
@@ -164,19 +173,14 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     # test for errors in get_data syntax
     expect_error(
         sits_get_data(raster_cube,
-                      samples = temp_shp,
-                      label_attr = "labelddddsssaaa",
-                      progress = FALSE
+            samples = temp_shp,
+            label_attr = "labelddddsssaaa",
+            progress = FALSE
         )
     )
 })
 
 test_that("Retrieving points from BDC using POINT shapefiles", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-                      message = "No BDC_ACCESS_KEY defined in environment."
-    )
     shp_file <- system.file(
         "extdata/shapefiles/cerrado/cerrado_forested.shp",
         package = "sits"
@@ -187,34 +191,40 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
     sf_roi["crs"] <- 4326
 
     # create a raster cube file based on the information about the files
-    modis_cube <- .try({
-        sits_cube(
-            source = "BDC",
-            collection = "MOD13Q1-6",
-            bands = c("NDVI", "EVI"),
-            roi = sf_roi,
-            start_date = "2018-09-01",
-            end_date = "2019-08-29",
-            progress = FALSE
-        )
-    },
-    .default = NULL)
+    modis_cube <- .try(
+        {
+            sits_cube(
+                source = "BDC",
+                collection = "MOD13Q1-6",
+                bands = c("NDVI", "EVI"),
+                roi = sf_roi,
+                start_date = "2018-09-01",
+                end_date = "2019-08-29",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
     tf <- paste0(tempdir(), "/cerrado_forested.shp")
     sf::st_write(sf_cf[1:5, ], dsn = tf, quiet = TRUE, append = FALSE)
     points_cf <- sits_get_data(modis_cube,
-                               samples = tf,
-                               label = "Woodland",
-                               progress = FALSE
+        samples = tf,
+        label = "Woodland",
+        progress = FALSE
     )
     cube_timeline <- sits_timeline(modis_cube)
     expect_equal(object = nrow(points_cf), expected = 5)
-    expect_equal(object = unique(points_cf[["start_date"]]),
-                 expected = as.Date(cube_timeline[1]))
-    expect_equal(object = unique(points_cf[["end_date"]]),
-                 expected = as.Date(cube_timeline[length(cube_timeline)]))
+    expect_equal(
+        object = unique(points_cf[["start_date"]]),
+        expected = as.Date(cube_timeline[1])
+    )
+    expect_equal(
+        object = unique(points_cf[["end_date"]]),
+        expected = as.Date(cube_timeline[length(cube_timeline)])
+    )
 
     points_bbox <- .bbox(sf_cf)
 
@@ -225,31 +235,27 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
         .data[["latitude"]] >= points_bbox[["ymin"]],
         .data[["latitude"]] <= points_bbox[["ymax"]],
     )
-
 })
 
 test_that("Retrieving points from BDC using sits tibble", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-                      message = "No BDC_ACCESS_KEY defined in environment."
-    )
     cube_bbox <- sits_bbox(cerrado_2classes)
     # create a raster cube file based on the bbox of the sits tibble
-    modis_cube <- .try({
-        sits_cube(
-            source = "BDC",
-            collection = "MOD13Q1-6",
-            bands = c("NDVI", "EVI"),
-            roi = cube_bbox,
-            start_date = "2018-09-01",
-            end_date = "2019-08-29",
-            progress = FALSE
-        )
-    },
-    .default = NULL)
+    modis_cube <- .try(
+        {
+            sits_cube(
+                source = "BDC",
+                collection = "MOD13Q1-6",
+                bands = c("NDVI", "EVI"),
+                roi = cube_bbox,
+                start_date = "2018-09-01",
+                end_date = "2019-08-29",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
     # create a sits_tibble to retrieve the data
     # first select unique locations
@@ -263,23 +269,22 @@ test_that("Retrieving points from BDC using sits tibble", {
     input_tb$start_date <- as.Date("2018-09-01")
     input_tb$end_date <- as.Date("2019-08-29")
     points_tb <- sits_get_data(modis_cube,
-                               samples = input_tb,
-                               progress = FALSE
+        samples = input_tb,
+        progress = FALSE
     )
     cube_timeline <- sits_timeline(modis_cube)
     expect_equal(object = nrow(points_tb), expected = 5)
-    expect_equal(object = unique(points_tb[["start_date"]]),
-                 expected = as.Date(cube_timeline[1]))
-    expect_equal(object = unique(points_tb[["end_date"]]),
-                 expected = as.Date(cube_timeline[length(cube_timeline)]))
+    expect_equal(
+        object = unique(points_tb[["start_date"]]),
+        expected = as.Date(cube_timeline[1])
+    )
+    expect_equal(
+        object = unique(points_tb[["end_date"]]),
+        expected = as.Date(cube_timeline[length(cube_timeline)])
+    )
 })
 
 test_that("Retrieving points from BDC using sf objects", {
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-                      message = "No BDC_ACCESS_KEY defined in environment."
-    )
     shp_file <- system.file(
         "extdata/shapefiles/cerrado/cerrado_forested.shp",
         package = "sits"
@@ -290,34 +295,40 @@ test_that("Retrieving points from BDC using sf objects", {
     sf_roi["crs"] <- 4326
 
     # create a raster cube file based on the bbox of the sf object
-    modis_cube <- .try({
-        sits_cube(
-            source = "BDC",
-            collection = "MOD13Q1-6",
-            bands = c("NDVI", "EVI"),
-            roi = sf_roi,
-            start_date = "2018-09-01",
-            end_date = "2019-08-29",
-            progress = FALSE
-        )
-    },
-    .default = NULL)
+    modis_cube <- .try(
+        {
+            sits_cube(
+                source = "BDC",
+                collection = "MOD13Q1-6",
+                bands = c("NDVI", "EVI"),
+                roi = sf_roi,
+                start_date = "2018-09-01",
+                end_date = "2019-08-29",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
 
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
     points_cf <- sits_get_data(modis_cube,
-                               samples = sf_cf[1:5, ],
-                               label = "Woodland",
-                               progress = FALSE
+        samples = sf_cf[1:5, ],
+        label = "Woodland",
+        progress = FALSE
     )
 
     cube_timeline <- sits_timeline(modis_cube)
     expect_equal(object = nrow(points_cf), expected = 5)
-    expect_equal(object = unique(points_cf[["start_date"]]),
-                 expected = as.Date(cube_timeline[1]))
-    expect_equal(object = unique(points_cf[["end_date"]]),
-                 expected = as.Date(cube_timeline[length(cube_timeline)]))
+    expect_equal(
+        object = unique(points_cf[["start_date"]]),
+        expected = as.Date(cube_timeline[1])
+    )
+    expect_equal(
+        object = unique(points_cf[["end_date"]]),
+        expected = as.Date(cube_timeline[length(cube_timeline)])
+    )
 
     points_bbox <- .bbox(sf_cf)
 
@@ -339,35 +350,41 @@ test_that("Retrieving points from BDC using sf objects", {
     sf_mt <- sf::read_sf(shp_file)
 
     # create a raster cube covering for the Mato Grosso state
-    modis_cube <- .try({
-        sits_cube(
-            source = "BDC",
-            collection = "MOD13Q1-6",
-            bands = c("NDVI", "EVI"),
-            roi = sf_mt,
-            start_date = "2018-09-01",
-            end_date = "2019-08-29",
-            progress = FALSE
-        )
-    },
-    .default = NULL)
+    modis_cube <- .try(
+        {
+            sits_cube(
+                source = "BDC",
+                collection = "MOD13Q1-6",
+                bands = c("NDVI", "EVI"),
+                roi = sf_mt,
+                start_date = "2018-09-01",
+                end_date = "2019-08-29",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
 
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
     # obtain a set of points based on an SF POLYGOn geometry
     points_poly <- sits_get_data(modis_cube,
-                                 samples = sf_mt,
-                                 n_sam_pol = 5,
-                                 progress = FALSE
+        samples = sf_mt,
+        n_sam_pol = 5,
+        progress = FALSE
     )
 
     cube_timeline <- sits_timeline(modis_cube)
     expect_equal(object = nrow(points_poly), expected = 5)
-    expect_equal(object = unique(points_poly[["start_date"]]),
-                 expected = as.Date(cube_timeline[1]))
-    expect_equal(object = unique(points_poly[["end_date"]]),
-                 expected = as.Date(cube_timeline[length(cube_timeline)]))
+    expect_equal(
+        object = unique(points_poly[["start_date"]]),
+        expected = as.Date(cube_timeline[1])
+    )
+    expect_equal(
+        object = unique(points_poly[["end_date"]]),
+        expected = as.Date(cube_timeline[length(cube_timeline)])
+    )
 
     # test bounding box
     polygons_bbox <- .bbox(sf_mt)
@@ -433,24 +450,28 @@ test_that("Reading data from Classified data", {
     label_cube <- sits_label_classification(
         bayes_cube,
         output_dir = output_dir,
-        progress = FALSE)
+        progress = FALSE
+    )
 
     # Using CSV
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-                                   package = "sits"
+        package = "sits"
     )
     points_poly <- sits_get_data(label_cube,
-                                 samples = csv_raster_file,
-                                 progress = FALSE
+        samples = csv_raster_file,
+        progress = TRUE,
+        multicores = 1
     )
     expect_equal(
         nrow(points_poly), nrow(read.csv(csv_raster_file))
     )
 
     expect_equal(
-        colnames(points_poly), c("longitude", "latitude",
-                                 "start_date", "end_date",
-                                 "label", "cube", "predicted")
+        colnames(points_poly), c(
+            "longitude", "latitude",
+            "start_date", "end_date",
+            "label", "cube", "predicted"
+        )
     )
     # Using lat/long
     samples <- tibble::tibble(longitude = -55.66738, latitude = -11.76990)
@@ -459,9 +480,11 @@ test_that("Reading data from Classified data", {
     expect_equal(nrow(point_ndvi), 1)
 
     expect_equal(
-        colnames(point_ndvi), c("longitude", "latitude",
-                                 "start_date", "end_date",
-                                 "label", "cube", "predicted")
+        colnames(point_ndvi), c(
+            "longitude", "latitude",
+            "start_date", "end_date",
+            "label", "cube", "predicted"
+        )
     )
     unlink(probs_cube$file_info[[1]]$path)
     unlink(bayes_cube$file_info[[1]]$path)

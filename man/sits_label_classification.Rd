@@ -3,10 +3,17 @@
 \name{sits_label_classification}
 \alias{sits_label_classification}
 \alias{sits_label_classification.probs_cube}
+\alias{sits_label_classification.probs_vector_cube}
+\alias{sits_label_classification.raster_cube}
+\alias{sits_label_classification.derived_cube}
+\alias{sits_label_classification.tbl_df}
+\alias{sits_label_classification.default}
 \title{Build a labelled image from a probability cube}
 \usage{
 sits_label_classification(
   cube,
+  clean = TRUE,
+  window_size = 3L,
   memsize = 4,
   multicores = 2,
   output_dir,
@@ -16,15 +23,41 @@ sits_label_classification(
 
 \method{sits_label_classification}{probs_cube}(
   cube,
-  memsize = 4,
-  multicores = 2,
+  ...,
+  clean = TRUE,
+  window_size = 3L,
+  memsize = 4L,
+  multicores = 2L,
   output_dir,
   version = "v1",
   progress = TRUE
 )
+
+\method{sits_label_classification}{probs_vector_cube}(
+  cube,
+  ...,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
+
+\method{sits_label_classification}{raster_cube}(cube, ...)
+
+\method{sits_label_classification}{derived_cube}(cube, ...)
+
+\method{sits_label_classification}{tbl_df}(cube, ...)
+
+\method{sits_label_classification}{default}(cube, ...)
 }
 \arguments{
 \item{cube}{Classified image data cube.}
+
+\item{clean}{A logical value to apply a modal function to clean up
+possible noisy pixels keeping the most frequently
+values within the neighborhood. Default is TRUE.}
+
+\item{window_size}{An odd integer representing the size of the
+sliding window of the modal function (min = 1, max = 15).}
 
 \item{memsize}{maximum overall memory (in GB) to label the
 classification.}
@@ -38,6 +71,8 @@ parallel.}
 (in the case of multiple runs).}
 
 \item{progress}{Show progress bar?}
+
+\item{...}{Other parameters for specific functions.}
 }
 \value{
 A data cube with an image with the classified map.
@@ -73,7 +108,8 @@ if (sits_run_examples()) {
     plot(bayes_cube)
     # label the probability cube
     label_cube <- sits_label_classification(
-        bayes_cube, output_dir = tempdir()
+        bayes_cube,
+        output_dir = tempdir()
     )
     # plot the labelled cube
     plot(label_cube)

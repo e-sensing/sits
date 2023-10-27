@@ -6,26 +6,27 @@
 #' @description
 #' These are a short named version of data type functions.
 #'
-#' @param x Input value.
+#' @param x           Input value.
+#' @param column_name Character with column name
 #' @param ... Additional parameters.
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' .as_int(1.234)
-#' .as_dbl(42L)
-#' x <- 1.234
-#' .as_int(x) == x # x is not integer
-#' x <- 42.0
-#' .as_int(x) == x # x is an integer
-#' .as_chr(x)
-#' .as_date(list("2020-01-01", "2022-12-01"))
-#' .has(list()) # FALSE
-#' .has(NULL) # FALSE
-#' .has(c()) # FALSE
-#' .has(FALSE) # TRUE
-#' .set_class(list(), "new_class")
-#' .compact(c(1, 2, 3)) # 1 2 3
-#' .compact(c(1, 1, 1)) # 1
+#'     .as_int(1.234)
+#'     .as_dbl(42L)
+#'     x <- 1.234
+#'     .as_int(x) == x # x is not integer
+#'     x <- 42.0
+#'     .as_int(x) == x # x is an integer
+#'     .as_chr(x)
+#'     .as_date(list("2020-01-01", "2022-12-01"))
+#'     .has(list()) # FALSE
+#'     .has(NULL) # FALSE
+#'     .has(c()) # FALSE
+#'     .has(FALSE) # TRUE
+#'     .set_class(list(), "new_class")
+#'     .compact(c(1, 2, 3)) # 1 2 3
+#'     .compact(c(1, 1, 1)) # 1
 #' }
 #'
 NULL
@@ -72,8 +73,18 @@ NULL
 #'   Returns \code{logical}.
 #' @noRd
 .has_name <- function(x) {
-    if (.has(names(x))) return(names(x) != "")
+    if (.has(names(x))) {
+        return(names(x) != "")
+    }
     rep(FALSE, length(x))
+}
+
+#' @title Check if an input has column name or not. If there is
+#'   the function evaluates as \code{TRUE}.
+#'   Returns \code{logical}.
+#' @noRd
+.has_column <- function(x, column_name) {
+    any(.has_name(x)) && column_name %in% names(x)
 }
 
 #' @title Set \code{class} of object \code{x}.
@@ -107,7 +118,7 @@ NULL
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description
-#' This is a fancy implementation of \code{tryCatch()}. It
+#' This is a implementation of \code{tryCatch()}. It
 #' has a shorter name and provide a easy functionality of rolling back
 #' (run an expression in case of error, but not avoiding it),
 #' of default value (run expression in case of error bypassing it).
@@ -136,28 +147,32 @@ NULL
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' .try({
-#'   file <- tempfile("test.txt")
-#'   cat(letters, file = file)
-#'   cat(letters[["a"]], file = file, append = TRUE) # error!
-#' },
-#' .rollback = {
-#'   unlink(file) # delete file before error is thrown
-#' })
+#'     .try(
+#'         {
+#'             file <- tempfile("test.txt")
+#'             cat(letters, file = file)
+#'             cat(letters[["a"]], file = file, append = TRUE) # error!
+#'         },
+#'         .rollback = {
+#'             unlink(file) # delete file before error is thrown
+#'         }
+#'     )
 #'
-#' value <- .try({
-#'   addr <- url("http://example.com/")
-#'   open(addr)
-#'   readLines(addr)
-#'   "You have access to the internet!" # don't use return()!
-#' },
-#' .default = {
-#'   "You do not have access to the internet!" # bypass any error!
-#' },
-#' .finally = {
-#'   close(addr) # close connection before exit (with error or not)
-#' })
-#' print(value)
+#'     value <- .try(
+#'         {
+#'             addr <- url("http://example.com/")
+#'             open(addr)
+#'             readLines(addr)
+#'             "You have access to the internet!" # don't use return()!
+#'         },
+#'         .default = {
+#'             "You do not have access to the internet!" # bypass any error!
+#'         },
+#'         .finally = {
+#'             close(addr) # close connection before exit (with error or not)
+#'         }
+#'     )
+#'     print(value)
 #' }
 #'
 #' @returns Last expression evaluated in \code{expr}, if no error occurs.
@@ -191,11 +206,11 @@ NULL
         }
     )
 }
-
-.rbind <- function(x) {
-    do.call(rbind, args = x)
-}
-
+#' @title Discards cols in data
+#' @noRd
+#' @param data  Data.frame or matrix
+#' @param cols  Column names to be discarded
+#' @returns Data without cols
 .discard <- function(data, cols) {
     cols <- which(names(data) %in% cols)
     if (.has(cols)) {
@@ -204,49 +219,69 @@ NULL
     # Return data
     data
 }
-
+#' @title Apply function in data column
+#' @noRd
+#' @param data  Data.frame or matrix
+#' @param col   Column names to be used for function
+#' @param fn    Function to be applied
+#' @param ...   Generic entries
+#' @returns Data with function applied
 .by <- function(data, col, fn, ...) {
     if (!col %in% names(data)) {
         stop("invalid 'col' parameter: '", col, "' not found in data columns")
     }
     unname(c(by(data, data[[col]], fn, ...)))
 }
+#' @title Check value is between max and min
+#' @noRd
+#' @param x     Value
+#' @param min   Minimum reference value
+#' @param max   Maximum reference value
+#' @returns TRUE/FALSE
 .between <- function(x, min, max) {
     min <= x & x <= max
 }
-
+#' @title Calculate partitions in vector
+#' @noRd
+#' @param x     Data vector
+#' @param n     Number of partitions
+#' @returns Vector with indexes for partitions
 .partitions <- function(x, n) {
     n <- max(1, min(length(x), n))
     .as_int(round(seq.int(from = 1, to = n, length.out = length(x))))
 }
-
+#' @title Collapse
+#' @noRd
+#' @param ...   Generic entries (character vectors)
+#' @returns Single character vectors
 .collapse <- function(...) {
     paste0(..., collapse = ", ")
 }
-
+#' @title Return default value
+#' @noRd
+#' @param x     R object
+#' @param default     Default value
+#' @returns Default value if x is NULL
 .default <- function(x, default = NULL) {
-    if (.has(x)) return(x)
+    if (!all(is.na(x)) && .has(x)) {
+        return(x)
+    }
     default
 }
-
+#' @title Create a tibble from a vector
+#' @noRd
+#' @param ...   Generic entries
+#' @returns Default value if x is NULL
 .common_size <- function(...) {
     tibble::tibble(...)
 }
-
+#' @title Get i-th element of data.frame x
+#' @noRd
+#' @param x     Data.frame
+#' @param i     Row index
 .slice_dfr <- function(x, i) {
     UseMethod(".slice_dfr", i)
 }
-
-#' @export
-.slice_dfr.logical <- function(x, i) {
-    .check_that(
-        length(i) == nrow(x) || length(i) == 1,
-        local_msg = paste("length must be 1 or", nrow(x)),
-        msg = "invalid logical subscript"
-    )
-    x[i, ]
-}
-
 #' @export
 .slice_dfr.numeric <- function(x, i) {
     .check_that(

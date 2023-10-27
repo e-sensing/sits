@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 1.4.1
+Version: 1.4.2
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara.inpe@gmail.com'),
@@ -50,19 +50,22 @@ Imports:
     graphics,
     lubridate,
     parallel (>= 4.0.5),
-    purrr (>= 0.3.0),
+    purrr (>= 1.0.2),
     Rcpp,
-    rstac (>= 0.9.2-3),
+    rstac (>= 0.9.2-5),
     sf (>= 1.0-12),
+    showtext,
+    sysfonts,
     slider (>= 0.2.0),
     stats,
     terra (>= 1.5-17),
     tibble (>= 3.1),
     tidyr (>= 1.2.0),
-    torch (>= 0.9.0),
+    torch (>= 0.11.0),
     utils
 Suggests:
     caret,
+    cli,
     dendextend,
     dtwclust,
     DiagrammeR,
@@ -78,17 +81,18 @@ Suggests:
     jsonlite,
     kohonen (>= 3.0.11),
     leafem (>= 0.2.0),
-    leaflet (>= 2.1.1),
-    luz (>= 0.3.0),
+    leaflet (>= 2.2.0),
+    luz (>= 0.4.0),
     methods,
     mgcv,
     nnet,
     openxlsx,
     randomForest,
     randomForestExplainer,
-    RcppArmadillo (>= 0.11),
+    RcppArmadillo (>= 0.12),
     scales,
     stars (>= 0.6),
+    stringr,
     supercells,
     testthat (>= 3.1.3),
     tmap (>= 3.3),
@@ -112,6 +116,7 @@ Collate:
     'api_check.R'
     'api_chunks.R'
     'api_classify.R'
+    'api_clean.R'
     'api_cluster.R'
     'api_colors.R'
     'api_combine_predictions.R'
@@ -122,7 +127,6 @@ Collate:
     'api_data.R'
     'api_debug.R'
     'api_download.R'
-    'api_expressions.R'
     'api_factory.R'
     'api_file_info.R'
     'api_file.R'
@@ -138,13 +142,16 @@ Collate:
     'api_period.R'
     'api_plot_time_series.R'
     'api_plot_raster.R'
+    'api_plot_vector.R'
     'api_point.R'
     'api_predictors.R'
     'api_raster.R'
     'api_raster_sub_image.R'
     'api_raster_terra.R'
     'api_reclassify.R'
+    'api_regularize.R'
     'api_roi.R'
+    'api_s2tile.R'
     'api_samples.R'
     'api_segments.R'
     'api_sf.R'
@@ -176,7 +183,10 @@ Collate:
     'api_tuning.R'
     'api_uncertainty.R'
     'api_utils.R'
+    'api_values.R'
     'api_variance.R'
+    'api_vector.R'
+    'api_vector_info.R'
     'api_view.R'
     'RcppExports.R'
     'data.R'
@@ -222,7 +232,6 @@ Collate:
     'sits_summary.R'
     'sits_tae.R'
     'sits_tempcnn.R'
-    'sits_temporal_segmentation.R'
     'sits_timeline.R'
     'sits_train.R'
     'sits_tuning.R'
@@ -230,7 +239,6 @@ Collate:
     'sits_uncertainty.R'
     'sits_validate.R'
     'sits_view.R'
-    'sits_values.R'
     'sits_variance.R'
     'sits_xlsx.R'
     'zzz.R'

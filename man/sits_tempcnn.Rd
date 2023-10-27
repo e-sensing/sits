@@ -7,15 +7,15 @@
 sits_tempcnn(
   samples = NULL,
   samples_validation = NULL,
-  cnn_layers = c(128, 128, 128),
-  cnn_kernels = c(7, 7, 7),
+  cnn_layers = c(256, 256, 256),
+  cnn_kernels = c(5, 5, 5),
   cnn_dropout_rates = c(0.2, 0.2, 0.2),
   dense_layer_nodes = 256,
   dense_layer_dropout_rate = 0.5,
   epochs = 150,
   batch_size = 64,
   validation_split = 0.2,
-  optimizer = torchopt::optim_adamw,
+  optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 0.005, eps = 1e-08, weight_decay = 1e-06),
   lr_decay_epochs = 1,
   lr_decay_rate = 0.95,
@@ -114,7 +114,8 @@ if (sits_run_examples()) {
     plot(bayes_cube)
     # label the probability cube
     label_cube <- sits_label_classification(
-        bayes_cube, output_dir = tempdir()
+        bayes_cube,
+        output_dir = tempdir()
     )
     # plot the labelled cube
     plot(label_cube)

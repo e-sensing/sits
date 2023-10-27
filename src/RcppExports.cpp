@@ -110,6 +110,36 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// C_kernel_var
+NumericVector C_kernel_var(const NumericMatrix& x, int ncols, int nrows, int band, int window_size);
+RcppExport SEXP _sits_C_kernel_var(SEXP xSEXP, SEXP ncolsSEXP, SEXP nrowsSEXP, SEXP bandSEXP, SEXP window_sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type ncols(ncolsSEXP);
+    Rcpp::traits::input_parameter< int >::type nrows(nrowsSEXP);
+    Rcpp::traits::input_parameter< int >::type band(bandSEXP);
+    Rcpp::traits::input_parameter< int >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_kernel_var(x, ncols, nrows, band, window_size));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_kernel_modal
+NumericVector C_kernel_modal(const NumericMatrix& x, int ncols, int nrows, int band, int window_size);
+RcppExport SEXP _sits_C_kernel_modal(SEXP xSEXP, SEXP ncolsSEXP, SEXP nrowsSEXP, SEXP bandSEXP, SEXP window_sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type ncols(ncolsSEXP);
+    Rcpp::traits::input_parameter< int >::type nrows(nrowsSEXP);
+    Rcpp::traits::input_parameter< int >::type band(bandSEXP);
+    Rcpp::traits::input_parameter< int >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_kernel_modal(x, ncols, nrows, band, window_size));
+    return rcpp_result_gen;
+END_RCPP
+}
 // C_label_max_prob
 arma::colvec C_label_max_prob(const arma::mat& x);
 RcppExport SEXP _sits_C_label_max_prob(SEXP xSEXP) {
@@ -216,6 +246,42 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type min(minSEXP);
     Rcpp::traits::input_parameter< const double& >::type max(maxSEXP);
     rcpp_result_gen = Rcpp::wrap(C_normalize_data_0(data, min, max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sample_points_inclusion
+NumericMatrix sample_points_inclusion(const NumericMatrix& polymatrix, const int n_sam_pol);
+RcppExport SEXP _sits_sample_points_inclusion(SEXP polymatrixSEXP, SEXP n_sam_polSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type polymatrix(polymatrixSEXP);
+    Rcpp::traits::input_parameter< const int >::type n_sam_pol(n_sam_polSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_points_inclusion(polymatrix, n_sam_pol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sample_points_crossings
+NumericMatrix sample_points_crossings(const NumericMatrix& polymatrix, const int n_sam_pol);
+RcppExport SEXP _sits_sample_points_crossings(SEXP polymatrixSEXP, SEXP n_sam_polSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type polymatrix(polymatrixSEXP);
+    Rcpp::traits::input_parameter< const int >::type n_sam_pol(n_sam_polSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_points_crossings(polymatrix, n_sam_pol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sample_points_bin
+NumericMatrix sample_points_bin(const NumericMatrix& polymatrix, const int n_sam_pol);
+RcppExport SEXP _sits_sample_points_bin(SEXP polymatrixSEXP, SEXP n_sam_polSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type polymatrix(polymatrixSEXP);
+    Rcpp::traits::input_parameter< const int >::type n_sam_pol(n_sam_polSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_points_bin(polymatrix, n_sam_pol));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -376,6 +442,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_kernel_sd", (DL_FUNC) &_sits_C_kernel_sd, 5},
     {"_sits_C_kernel_min", (DL_FUNC) &_sits_C_kernel_min, 5},
     {"_sits_C_kernel_max", (DL_FUNC) &_sits_C_kernel_max, 5},
+    {"_sits_C_kernel_var", (DL_FUNC) &_sits_C_kernel_var, 5},
+    {"_sits_C_kernel_modal", (DL_FUNC) &_sits_C_kernel_modal, 5},
     {"_sits_C_label_max_prob", (DL_FUNC) &_sits_C_label_max_prob, 1},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
@@ -385,6 +453,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_nnls_solver_batch", (DL_FUNC) &_sits_C_nnls_solver_batch, 5},
     {"_sits_C_normalize_data", (DL_FUNC) &_sits_C_normalize_data, 3},
     {"_sits_C_normalize_data_0", (DL_FUNC) &_sits_C_normalize_data_0, 3},
+    {"_sits_sample_points_inclusion", (DL_FUNC) &_sits_sample_points_inclusion, 2},
+    {"_sits_sample_points_crossings", (DL_FUNC) &_sits_sample_points_crossings, 2},
+    {"_sits_sample_points_bin", (DL_FUNC) &_sits_sample_points_bin, 2},
     {"_sits_C_max_sampling", (DL_FUNC) &_sits_C_max_sampling, 4},
     {"_sits_bayes_smoother", (DL_FUNC) &_sits_bayes_smoother, 6},
     {"_sits_bayes_var", (DL_FUNC) &_sits_bayes_var, 5},

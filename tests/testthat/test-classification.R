@@ -26,12 +26,10 @@ test_that("Classify with random forest - single core and multicore", {
 })
 
 test_that("Classify a set of time series with svm + filter", {
-
-
     # single core
     samples_filt <- sits_apply(cerrado_2classes,
-                               NDVI = sits_sgolay(NDVI),
-                               EVI = sits_sgolay(EVI),
+        NDVI = sits_sgolay(NDVI),
+        EVI = sits_sgolay(EVI),
     )
 
     svm_model <- sits_train(samples_filt, sits_svm())
@@ -48,7 +46,6 @@ test_that("Classify a set of time series with svm + filter", {
 })
 
 test_that("Classify error bands 1", {
-
     model <- sits_train(samples_modis_ndvi, sits_svm())
     point <- sits_select(point_mt_6bands, "EVI")
 

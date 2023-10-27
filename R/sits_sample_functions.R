@@ -4,78 +4,51 @@
 #'
 #' @description Takes a sits tibble with different labels and
 #'              returns a new tibble. For a given field as a group criterion,
-#'              this new tibble contains a given number or percentage
+#'              this new tibble contains a percentage
 #'              of the total number of samples per group.
-#'              Parameter n: number of random samples.
-#'              Parameter frac: a fraction of random samples.
-#'              If n is greater than the number of samples for a given label,
-#'              that label will be sampled with replacement. Also,
-#'              if frac > 1 , all sampling will be done with replacement.
+#'              If frac > 1 , all sampling will be done with replacement.
 #'
-#' @param  data       Input sits tibble.
-#' @param  n          Number of samples to pick from each group of data.
-#' @param  frac       Percentage of samples to pick from each group of data.
-#' @param  oversample Oversample classes with small number of samples?
+#' @param  data       Sits time series tibble (class = "sits")
+#' @param  frac       Percentage of samples to extract
+#'                    (range: 0.0 to 2.0, default = 0.2)
+#' @param  oversample Logical: oversample classes with small number of samples?
+#'                    (TRUE/FALSE)
 #' @return            A sits tibble with a fixed quantity of samples.
 #' @examples
 #' # Retrieve a set of time series with 2 classes
 #' data(cerrado_2classes)
 #' # Print the labels of the resulting tibble
-#' sits_labels(cerrado_2classes)
-#' # Samples the data set
-#' data <- sits_sample(cerrado_2classes, n = 10)
-#' # Print the labels of the resulting tibble
-#' sits_labels(data)
+#' summary(cerrado_2classes)
+#' # Sample by fraction
+#' data_02 <- sits_sample(cerrado_2classes, frac = 0.2)
+#' # Print the labels
+#' summary(data_02)
 #' @export
 sits_sample <- function(data,
-                        n = NULL,
-                        frac = NULL,
+                        frac = 0.2,
                         oversample = TRUE) {
-
     # set caller to show in errors
     .check_set_caller("sits_sample")
-
-    # verify if data is valid
-    .check_samples(data)
-
-    # verify if either n or frac is informed
-    .check_that(
-        x = !(purrr::is_null(n) & purrr::is_null(frac)),
-        local_msg = "neither 'n' or 'frac' parameters were informed",
-        msg = "invalid sample parameters"
-    )
-
+    # verify if data and frac are valid
+    .check_samples_ts(data)
+    # check frac parameter
+    .check_num_parameter(frac, min = 0.0, max = 2.0,
+                         msg = "invalid frac parameter")
+    # check oversample
+    .check_lgl_parameter(oversample, msg = "invalid oversample parameter")
+    # group the data by label
     groups <- by(data, data[["label"]], list)
-
-    result_lst <- purrr::map(groups, function(class_samples) {
-        if (!purrr::is_null(n)) {
-            if (n > nrow(class_samples) && !oversample) {
-                # should imbalanced class be oversampled?
-                nrow <- nrow(class_samples)
-            } else {
-                nrow <- n
-            }
-            result <- dplyr::slice_sample(
-                class_samples,
-                n = nrow,
-                replace = oversample
-            )
-        } else {
-            result <- dplyr::slice_sample(
-                class_samples,
-                prop = frac,
-                replace = oversample
-            )
-        }
-        return(result)
+    # for each group of samples, obtain the required subset
+    result <- purrr::map_dfr(groups, function(class_samples) {
+        result_class <- dplyr::slice_sample(
+            class_samples,
+            prop = frac,
+            replace = oversample
+        )
+        return(result_class)
     })
-
-    result <- dplyr::bind_rows(result_lst)
-
     return(result)
 }
-
-
 #' @title Reduce imbalance in a set of samples
 #' @name sits_reduce_imbalance
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -87,6 +60,14 @@ sits_sample <- function(data,
 #' for oversampling. Undersampling is done using the SOM methods available in
 #' the sits package.
 #'
+#' @param  samples              Sample set to rebalance
+#' @param  n_samples_over       Number of samples to oversample
+#'                              for classes with samples less than this number.
+#' @param  n_samples_under      Number of samples to undersample
+#'                              for classes with samples more than this number.
+#' @param  multicores           Number of cores to process the data (default 2).
+#'
+#' @return A sits tibble with reduced sample imbalance.
 #'
 #' @references
 #' The reference paper on SMOTE is
@@ -102,18 +83,6 @@ sits_sample <- function(data,
 #' image time series”. ISPRS Journal of Photogrammetry and Remote Sensing,
 #' vol. 177, pp 75-88, 2021. https://doi.org/10.1016/j.isprsjprs.2021.04.014.
 #'
-#'
-#' @param  samples              Sample set to rebalance
-#' @param  n_samples_over       Number of samples to oversample
-#'                              for classes with samples less than this number.
-#' @param  n_samples_under      Number of samples to undersample
-#'                              for classes with samples more than this number.
-#' @param  multicores           Number of cores to process the data (default 2).
-#'
-#' @return A sits tibble with reduced sample imbalance.
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
 #'     # print the labels summary for a sample set
@@ -132,7 +101,6 @@ sits_reduce_imbalance <- function(samples,
                                   n_samples_over = 200,
                                   n_samples_under = 400,
                                   multicores = 2) {
-
     # set caller to show in errors
     .check_set_caller("sits_reduce_imbalance")
     # pre-conditions
@@ -150,10 +118,9 @@ sits_reduce_imbalance <- function(samples,
         ),
         msg = "invalid 'n_samples_over' and 'n_samples_under' parameters"
     )
-
+    # get the bands and the labels
     bands <- sits_bands(samples)
     labels <- sits_labels(samples)
-
     # params of output tibble
     lat <- 0.0
     long <- 0.0
@@ -161,56 +128,53 @@ sits_reduce_imbalance <- function(samples,
     end_date <- samples$end_date[[1]]
     cube <- samples$cube[[1]]
     timeline <- sits_timeline(samples)
-
     # get classes to undersample
     classes_under <- samples |>
         summary() |>
         dplyr::filter(.data[["count"]] >= n_samples_under) |>
         dplyr::pull("label")
-
-
     # get classes to oversample
     classes_over <- samples |>
         summary() |>
         dplyr::filter(.data[["count"]] <= n_samples_over) |>
         dplyr::pull("label")
-
-
+    # create an output tibble
     new_samples <- .tibble()
-
+    # under sampling
     if (length(classes_under) > 0) {
         .parallel_start(workers = multicores)
         on.exit(.parallel_stop())
-
+        # for each class, select some of the samples using SOM
         samples_under_new <- .parallel_map(classes_under, function(cls) {
+            # select the samples for the class
             samples_cls <- dplyr::filter(samples, .data[["label"]] == cls)
+            # set the dimension of the SOM grid
             grid_dim <- ceiling(sqrt(n_samples_under / 4))
-
+            # build the SOM map
             som_map <- sits_som_map(
                 samples_cls,
                 grid_xdim = grid_dim,
                 grid_ydim = grid_dim,
                 rlen = 50
             )
-
+            # select samples on the SOM grid using the neurons
             samples_under <- som_map$data |>
                 dplyr::group_by(.data[["id_neuron"]]) |>
                 dplyr::slice_sample(n = 4, replace = TRUE) |>
                 dplyr::ungroup()
-
             return(samples_under)
         })
-
-        # bind under samples results
+        # bind undersample results
         samples_under_new <- dplyr::bind_rows(samples_under_new)
         new_samples <- dplyr::bind_rows(new_samples, samples_under_new)
     }
-
+    # oversampling
     if (length(classes_over) > 0) {
         .parallel_start(workers = multicores)
         on.exit(.parallel_stop())
-
+        # for each class, build synthetic samples using SMOTE
         samples_over_new <- .parallel_map(classes_over, function(cls) {
+            # select the samples for the class
             samples_bands <- purrr::map(bands, function(band) {
                 # selection of band
                 dist_band <- samples |>
@@ -251,12 +215,11 @@ sits_reduce_imbalance <- function(samples,
             }
             return(tb_class_new)
         })
-
-        # bind under samples results
+        # bind oversampling results
         samples_over_new <- dplyr::bind_rows(samples_over_new)
         new_samples <- dplyr::bind_rows(new_samples, samples_over_new)
     }
-
+    # keep classes (no undersampling nor oversampling)
     classes_ok <- labels[!(labels %in% classes_under |
         labels %in% classes_over)]
     if (length(classes_ok) > 0) {
@@ -266,6 +229,6 @@ sits_reduce_imbalance <- function(samples,
         )
         new_samples <- dplyr::bind_rows(new_samples, samples_classes_ok)
     }
-
+    # return new sample set
     return(new_samples)
 }

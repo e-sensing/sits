@@ -10,9 +10,9 @@ output: github_document
 
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-"
+    collapse = TRUE,
+    comment = "#>",
+    fig.path = "man/figures/README-"
 )
 # set seed for reproducibility
 set.seed(4242)
@@ -36,14 +36,14 @@ torch::torch_manual_seed(1234)
 
 `sits` is an open source R package for satellite image time series analysis. It enables users to apply machine learning techniques for classifying image time series obtained from earth observation data cubes. The basic workflow in  `sits` is:
 
-1. Select an image collection available on cloud providers AWS, Microsoft Planetary Computer, Digital Earth Africa and Brazil Data Cube. 
-2. Build a regular data cube using analysis-ready image collections.
+1. Select an image collection available on cloud providers AWS, Microsoft Planetary Computer, Digital Earth Africa, Swiss Data Cube, NASA Harmonized Landsat/Sentinel and Brazil Data Cube. 
+2. Build a regular data cube from analysis-ready image collections.
 3. Extract labelled time series from data cubes to be used as training samples.
-4. Perform quality control using self-organised maps.
-5. Filtering time series samples for noise reduction.
-6. Use the samples to train machine learning models.
-7. Tune machine learning models for improved accuracy.
-8. Classify data cubes using machine learning models.
+4. Perform samples quality control using self-organised maps.
+5. Train machine learning and deep learning models.
+6. Tune deep learning models for improved accuracy.
+7. Classify data cubes using machine learning and deep learning models.
+8. Run spatial-temporal segmentation methods for object-based time series classification.
 9. Post-process classified images with Bayesian smoothing to remove outliers. 
 10. Estimate uncertainty values of classified images.
 11. Evaluate classification accuracy using best practices.
@@ -59,19 +59,21 @@ Detailed documentation on how to use `sits` is available in the e-book ["Satelli
 
 ## `sits` on Kaggle
 
-Those that want to evaluate the `sits` package before installing are invited to run the examples available on [Kaggle](https://www.kaggle.com/esensing/code). These examples provide a fast-track introduction to the package. We recommend running them in the following order: 
+Those that want to evaluate the `sits` package before installing are invited to run the examples available on [Kaggle](https://www.kaggle.com/esensing/code). If you are new on kaggle, please follow the [instructions](https://gist.github.com/OldLipe/814089cc5792c9c0c989d870a22910f4) to set up your account. These examples provide a fast-track introduction to the package. We recommend running them in the following order: 
 
 1. [Introduction to SITS](https://www.kaggle.com/esensing/introduction-to-sits)
 2. [Working with time series in SITS](https://www.kaggle.com/esensing/working-with-time-series-in-sits)
 3. [Creating data cubes in SITS](https://www.kaggle.com/esensing/creating-data-cubes-in-sits)
-4. [Raster classification in SITS](https://www.kaggle.com/esensing/raster-classification-in-sits)
-5. [Using SOM for sample quality control in SITS](https://www.kaggle.com/esensing/using-som-for-sample-quality-control-in-sits)
+4. [Machine learning for data cubes](https://www.kaggle.com/esensing/machine-learning-for-data-cubes)
+5. [Raster classification in SITS](https://www.kaggle.com/esensing/raster-classification-in-sits)
+6. [Object-based time series classification using GPU](https://www.kaggle.com/esensing/object-based-time-series-classification-using-gpu)
+7. [Using SOM for sample quality control in SITS](https://www.kaggle.com/esensing/using-som-for-sample-quality-control-in-sits)
 
 ## Installation
 
 ### Pre-Requisites
 
-The `sits` package relies on the geospatial packages `sf`, `stars`, `gdalcubes` and `terra`, which depend on the external libraries GDAL and PROJ. Please follow the instructions for installing `sf` together with GDAL available at the [RSpatial sf github repository](https://github.com/r-spatial/sf).
+The `sits` package relies on the geospatial packages `sf`, `stars`, `gdalcubes` and `terra`, which depend on the external libraries GDAL and PROJ. Please follow the instructions for installing `sits` from the [Setup chapter of the on-line sits book](https://e-sensing.github.io/sitsbook/setup.html).
 
 ### Obtaining `sits`
 
@@ -81,7 +83,7 @@ The `sits` package relies on the geospatial packages `sf`, `stars`, `gdalcubes` 
 install.packages("sits")
 ```
 
-The development version is available on github.
+The latest supported version is available on github. It may have additional fixes from the version available from CRAN. 
 
 ```{r, eval=FALSE}
 devtools::install_github("e-sensing/sits", dependencies = TRUE)
@@ -105,6 +107,7 @@ The `sits` package allows users to created data cubes from analysis-ready data (
 4. Digital Earth Africa ([DEAFRICA](https://www.digitalearthafrica.org/)): Open data collection of Sentinel-2/2A and Landsat-8 for Africa.
 5. [USGS](https://landsatlook.usgs.gov/stac-browser): Landsat-4/5/7/8 collections, which are not open data.
 6. Swiss Data Cube ([SDC](https://www.swissdatacube.org/)): Open data collection of Sentinel-2/2A and Landsat-8.
+7. NASA Harmonized Landsat/Sentinel Collection [HLS](https://hls.gsfc.nasa.gov/).
 
 Open data collections do not require payment of access fees. Except for those in the Brazil Data Cube, these collections are not regular. Irregular collections require further processing before they can be used for classification using machine learning models.
 
@@ -138,7 +141,7 @@ gc_cube <- sits_regularize(
     cube          = s2_cube,
     output_dir    = tempdir(),
     period        = "P15D",
-    res           = 60, 
+    res           = 60,
     multicores    = 4
 )
 ```
@@ -147,7 +150,7 @@ The above command builds a regular data cube with all bands interpolated to 60 m
 The cube can be shown in a leaflet using `sits_view()`. 
 ```{r, echo=TRUE, eval=FALSE}
 # View a color composite on a leaflet
-sits_view(s2_cube[1,], green = "B08", blue = "B03", red = "B11")
+sits_view(s2_cube[1, ], green = "B08", blue = "B03", red = "B11")
 ```
 
 
@@ -159,7 +162,7 @@ sits_view(s2_cube[1,], green = "B08", blue = "B03", red = "B11")
 
 ```{r, tidy = "styler", eval=TRUE, echo=TRUE, cache=TRUE} 
 library(sits)
-# this data cube uses images from the Brazil Data Cube that have 
+# this data cube uses images from the Brazil Data Cube that have
 # downloaded to a local directory
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 # create a cube from downloaded files
@@ -173,11 +176,12 @@ raster_cube <- sits_cube(
 )
 # obtain a set of samples defined by a CSV file
 csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-                        package = "sits")
+    package = "sits"
+)
 # retrieve the time series associated with the samples from the data cube
 points <- sits_get_data(raster_cube, samples = csv_file)
 # show the time series
-points[1:3,]
+points[1:3, ]
 ```
 
 After a time series has been obtained, it is loaded in a tibble. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates. The first sample has been labelled "Pasture", at location (-55.65931, -11.76267), and is considered valid for the period (2013-09-14, 2014-08-29). 
@@ -215,16 +219,16 @@ data("samples_modis_ndvi")
 data("point_mt_6bands")
 # Train a deep learning model
 tempcnn_model <- sits_train(
-    samples = samples_modis_ndvi, 
+    samples = samples_modis_ndvi,
     ml_method = sits_tempcnn()
-) 
+)
 # Select NDVI band of the  point to be classified
 # Classify using TempCNN model
 # Plot the result
-point_mt_6bands %>% 
-  sits_select(bands = "NDVI") %>% 
-  sits_classify(tempcnn_model) %>% 
-  plot()
+point_mt_6bands |> 
+    sits_select(bands = "NDVI") |> 
+    sits_classify(tempcnn_model) |> 
+    plot()
 ```
 
 The following example shows how to classify a data cube organized as a
@@ -246,13 +250,13 @@ sinop <- sits_cube(
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(
-    data = sinop, 
+    data = sinop,
     ml_model = tempcnn_model,
     output_dir = tempdir()
 )
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(
-    cube = probs_cube, 
+    cube = probs_cube,
     output_dir = tempdir()
 )
 # generate a thematic map
@@ -261,8 +265,9 @@ label_cube <- sits_label_classification(
     output_dir = tempdir()
 )
 # plot the the labelled cube
-plot(label_cube, 
-     title = "Land use and Land cover in Sinop, MT, Brazil in 2018")
+plot(label_cube,
+    title = "Land use and Land cover in Sinop, MT, Brazil in 2018"
+)
 ```
 
 

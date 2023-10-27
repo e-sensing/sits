@@ -4,6 +4,10 @@
 \alias{sits_classify}
 \alias{sits_classify.sits}
 \alias{sits_classify.raster_cube}
+\alias{sits_classify.derived_cube}
+\alias{sits_classify.tbl_df}
+\alias{sits_classify.segs_cube}
+\alias{sits_classify.default}
 \title{Classify time series or data cubes}
 \usage{
 sits_classify(
@@ -11,7 +15,7 @@ sits_classify(
   ml_model,
   ...,
   filter_fn = NULL,
-  multicores = 2,
+  multicores = 2L,
   progress = TRUE
 )
 
@@ -20,7 +24,8 @@ sits_classify(
   ml_model,
   ...,
   filter_fn = NULL,
-  multicores = 2,
+  multicores = 2L,
+  gpu_memory = NULL,
   progress = TRUE
 )
 
@@ -32,45 +37,87 @@ sits_classify(
   filter_fn = NULL,
   start_date = NULL,
   end_date = NULL,
-  memsize = 8,
-  multicores = 2,
+  memsize = 8L,
+  multicores = 2L,
+  gpu_memory = NULL,
   output_dir,
   version = "v1",
   verbose = FALSE,
   progress = TRUE
 )
+
+\method{sits_classify}{derived_cube}(data, ml_model, ...)
+
+\method{sits_classify}{tbl_df}(data, ml_model, ...)
+
+\method{sits_classify}{segs_cube}(
+  data,
+  ml_model,
+  ...,
+  filter_fn = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  memsize = 8L,
+  multicores = 2L,
+  gpu_memory = NULL,
+  output_dir,
+  version = "v1",
+  n_sam_pol = 40,
+  verbose = FALSE,
+  progress = TRUE
+)
+
+\method{sits_classify}{default}(data, ml_model, ...)
 }
 \arguments{
-\item{data}{Data cube.}
+\item{data}{Data cube (tibble of class "raster_cube")}
 
-\item{ml_model}{R model trained by \code{\link[sits]{sits_train}}.}
+\item{ml_model}{R model trained by \code{\link[sits]{sits_train}}
+(closure of class "sits_model")}
 
 \item{...}{Other parameters for specific functions.}
 
-\item{filter_fn}{Smoothing filter to be applied (if desired).}
+\item{filter_fn}{Smoothing filter to be applied - optional
+(clousure containing object of class "function").}
 
-\item{multicores}{Number of cores to be used for classification.}
+\item{multicores}{Number of cores to be used for classification
+(integer, min = 1, max = 2048).}
 
-\item{progress}{Show progress bar?}
+\item{progress}{Logical: Show progress bar?}
 
-\item{roi}{Region of interest (see below)}
+\item{gpu_memory}{Memory available in GPU (default = NULL)}
 
-\item{start_date}{Start date for the classification.}
+\item{roi}{Region of interest (either an sf object, shapefile,
+or a numeric vector with named XY values
+("xmin", "xmax", "ymin", "ymax") or
+named lat/long values
+("lon_min", "lat_min", "lon_max", "lat_max").}
 
-\item{end_date}{End date for the classification.}
+\item{start_date}{Start date for the classification
+(Date in YYYY-MM-DD format).}
 
-\item{memsize}{Memory available for classification (in GB).}
+\item{end_date}{End date for the classification
+(Date im YYYY-MM-DD format).}
 
-\item{output_dir}{Directory for output file.}
+\item{memsize}{Memory available for classification in GB
+(integer, min = 1, max = 16384).}
 
-\item{version}{Version of the output (for multiple
-classifications).}
+\item{output_dir}{Valid directory for output file.
+(character vector of length 1).}
 
-\item{verbose}{Print information about processing time?}
+\item{version}{Version of the output
+(character vector of length 1).}
+
+\item{verbose}{Logical: print information about processing time?}
+
+\item{n_sam_pol}{Number of time series per segment to be classified
+(integer, min = 10, max = 50).}
 }
 \value{
-Predicted data (classified time series)
-                          or a data cube with probabilities for each class.
+Time series with predicted labels for
+                          each point (tibble of class "sits")
+                          or a data cube with probabilities for each class
+                          (tibble of class "probs_cube").
 }
 \description{
 This function classifies a set of time series or data cube given
@@ -98,12 +145,16 @@ The "roi" parameter defines a region of interest. It can be
    Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
    (see \code{\link[sits]{sits_whittaker}}).
 
-
    The "memsize" and "multicores" parameters are used for multiprocessing.
    The "multicores" parameter defines the number of cores used for
    processing. The "memsize" parameter  controls the amount of memory
    available for classification. We recommend using a 4:1 relation between
    "memsize" and "multicores".
+
+   For classifying vector data cubes created by
+   \code{\link[sits]{sits_segment}}, two parameters can be used:
+   \code{n_sam_pol}, which is the number of time series to be classified
+   per segment.
 
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
@@ -132,14 +183,50 @@ if (sits_run_examples()) {
     )
     # classify a data cube
     probs_cube <- sits_classify(
-        data = cube, ml_model = rf_model, output_dir = tempdir()
+        data = cube,
+        ml_model = rf_model,
+        output_dir = tempdir(),
+        version = "ex_classify"
     )
     # label the probability cube
     label_cube <- sits_label_classification(
-        probs_cube, output_dir = tempdir()
+        probs_cube,
+        output_dir = tempdir(),
+        version = "ex_classify"
     )
     # plot the classified image
     plot(label_cube)
+    # segmentation
+    # segment the image
+    segments <- sits_segment(
+        cube = cube,
+        seg_fn = sits_slic(step = 5,
+                       compactness = 1,
+                       dist_fun = "euclidean",
+                       avg_fun = "median",
+                       iter = 50,
+                       minarea = 10,
+                       verbose = FALSE
+                       ),
+        output_dir = tempdir()
+    )
+    # Create a classified vector cube
+    probs_segs <- sits_classify(
+        data = segments,
+        ml_model = rf_model,
+        output_dir = tempdir(),
+        n_sam_pol = 20,
+        multicores = 4
+    )
+    # Create a labelled vector cube
+    class_segs <- sits_label_classification(
+        cube = probs_segs,
+        output_dir = tempdir(),
+        multicores = 2,
+        memsize = 4
+    )
+    # plot class_segs
+    plot(class_segs)
 }
 
 }

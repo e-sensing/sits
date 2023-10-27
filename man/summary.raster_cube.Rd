@@ -4,14 +4,7 @@
 \alias{summary.raster_cube}
 \title{Summarize data cubes}
 \usage{
-\method{summary}{raster_cube}(
-  object,
-  ...,
-  tile = object$tile[[1]],
-  date = NULL,
-  only_stats = FALSE,
-  sample_size = 1e+05
-)
+\method{summary}{raster_cube}(object, ..., tile = NULL, date = NULL)
 }
 \arguments{
 \item{object}{Object of classes "raster_cube".}
@@ -21,10 +14,6 @@
 \item{tile}{Tile to be summarized}
 
 \item{date}{Date to be summarized}
-
-\item{only_stats}{Show only the statistics? (TRUE/FALSE)}
-
-\item{sample_size}{Number of sample used to build statistics}
 }
 \value{
 A summary of the data cube.
@@ -32,10 +21,6 @@ A summary of the data cube.
 \description{
 This is a generic function. Parameters depend on the specific
 type of input.
-}
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
 if (sits_run_examples()) {
@@ -46,7 +31,7 @@ if (sits_run_examples()) {
         collection = "MOD13Q1-6",
         data_dir = data_dir
     )
-summary(cube)
+    summary(cube)
 }
 
 }

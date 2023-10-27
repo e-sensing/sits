@@ -7,12 +7,12 @@
 sits_pred_sample(pred, frac)
 }
 \arguments{
-\item{pred}{X-Y predictors: a data.table with one row per sample.}
+\item{pred}{X-Y predictors: a data.frame with one row per sample.}
 
 \item{frac}{Fraction of the X-Y predictors to be extracted}
 }
 \value{
-A fraction of the X-Y predictors.
+A data.frame with the chosen fraction of the X-Y predictors.
 }
 \description{
 Many machine learning algorithms (especially deep learning)
@@ -27,8 +27,8 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-     pred <- sits_predictors(samples_modis_ndvi)
-     pred_frac <- sits_pred_sample(pred, frac = 0.5)
+    pred <- sits_predictors(samples_modis_ndvi)
+    pred_frac <- sits_pred_sample(pred, frac = 0.5)
 }
 }
 \author{

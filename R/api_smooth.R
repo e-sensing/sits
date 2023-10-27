@@ -1,5 +1,17 @@
-#---- internal functions ----
-
+#' @title Smooth a tile
+#' @name .apply_feature
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  tile.           Subset of a data cube containing one tile
+#' @param  band            Band to be processed
+#' @param  block           Individual block that will be processed
+#' @param  overlap         Overlap between tiles (if required)
+#' @param  smooth_fn       Smoothing function
+#' @param  output_dir      Directory where image will be save
+#' @param  version         Version of result
+#' @return                 Smoothed tile-band combination
 .smooth_tile <- function(tile,
                          band,
                          block,
@@ -33,7 +45,8 @@
         block <- .block(chunk)
         # Block file name
         block_file <- .file_block_name(
-            pattern = .file_pattern(out_file), block = block,
+            pattern = .file_pattern(out_file),
+            block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure
@@ -89,7 +102,23 @@
 
 
 #---- Bayesian smoothing ----
-
+#' @title Smooth probability cubes with spatial predictors
+#' @noRd
+#' @param  cube              Probability data cube.
+#' @param  block             Individual block that will be processed
+#' @param  window_size       Size of the neighborhood.
+#' @param  neigh_fraction    Fraction of neighbors with high probabilities
+#'                           to be used in Bayesian inference.
+#' @param  smoothness        Estimated variance of logit of class probabilities
+#'                           (Bayesian smoothing parameter). It can be either
+#'                           a vector or a scalar.
+#' @param  multicores        Number of cores to run the smoothing function
+#' @param  memsize           Maximum overall memory (in GB) to run the
+#'                           smoothing.
+#' @param  output_dir        Output directory for image files
+#' @param  version           Version of resulting image
+#'                           (in the case of multiple tests)
+#'
 .smooth <- function(cube,
                     block,
                     window_size,
@@ -123,8 +152,15 @@
         )
     })
 }
-#---- smooth functions ----
-
+#' @title Define smoothing function
+#' @noRd
+#' @param  window_size       Size of the neighborhood.
+#' @param  neigh_fraction    Fraction of neighbors with high probabilities
+#'                           to be used in Bayesian inference.
+#' @param  smoothness        Estimated variance of logit of class probabilities
+#'                           (Bayesian smoothing parameter). It can be either
+#'                           a vector or a scalar.
+#' @return Function to be applied to smoothen data
 .smooth_fn_bayes <- function(window_size,
                              neigh_fraction,
                              smoothness) {
@@ -142,8 +178,8 @@
         # Process Bayesian
         values <- bayes_smoother_fraction(
             logits = values,
-            nrows  = .nrows(block),
-            ncols  = .ncols(block),
+            nrows = .nrows(block),
+            ncols = .ncols(block),
             window_size = window_size,
             smoothness = smoothness,
             neigh_fraction = neigh_fraction

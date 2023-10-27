@@ -1,40 +1,9 @@
 # These are configuration parameters that can be set by users
+# The parameters enable access to the cloud collections
 
-# estimated relative growth size of R memory relative to block size
-processing_bloat        : 5
-processing_bloat_smooth : 8
-
-
-# number of items returned by stac service
-rstac_pagination_limit  : 100
-
-# default raster package
-raster_api_package      : "terra"
-
-# GDAL GTiff default creation options
-gdal_creation_options   : [ "COMPRESS=LZW", "PREDICTOR=2",
-                            "BIGTIFF=YES", "TILED=YES",
-                            "BLOCKXSIZE=512", "BLOCKYSIZE=512" ]
-
-gdalcubes_options       : ["COMPRESS=LZW", "PREDICTOR=2",
-                           "BIGTIFF=YES", "BLOCKXSIZE=512",
-                           "BLOCKYSIZE=512"]
-
-# maxbytes per plot (in MB)
-plot_max_Mbytes: 10
-# tmap max_cells (in number of cells)
-tmap_max_cells: 1e+06
-# tmap configuration parameters
-tmap_graticules_labels_size: 0.7
-tmap_legend_title_size: 1.5
-tmap_legend_text_size: 1.2
-tmap_legend_bg_color: "white"
-tmap_legend_bg_alpha: 0.5
-
-# maxbytes for leaflet (in MB)
-leaflet_max_megabytes : 64
-# estimated compression factor for leaflet
-leaflet_comp_factor : 0.50
+# BDC access key
+BDC_ACCESS_KEY: "gsLxTlcbO7tu7tMEOVWKD6YkJDhlNz7iwkRN2XZf55"
+HLS_ACCESS_URL: "machine.urs.earthdata.nasa.gov"
 
 sources:
     BDC                     :
@@ -529,7 +498,7 @@ sources:
                         band_name    : "rededge3"
                     B08     :
                         <<: *aws_msi_10m
-                        band_name    : "B08"
+                        band_name    : "nir"
                     B8A     :
                         <<: *aws_msi_20m
                         band_name    : "nir08"
@@ -568,9 +537,8 @@ sources:
                     SENTINEL-2B: "sentinel-2b"
                 collection_name: "sentinel-2-l2a"
                 access_vars :
-                   AWS_DEFAULT_REGION   : "eu-central-1"
+                   AWS_DEFAULT_REGION   : "us-west-2"
                    AWS_S3_ENDPOINT      : "s3.amazonaws.com"
-                   AWS_REQUEST_PAYER    : "requester"
                    AWS_NO_SIGN_REQUEST  : true
                 open_data   : true
                 open_data_token: false
@@ -1266,6 +1234,31 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0
                 grid_system  : "MGRS"
+            SENTINEL-1-GRD  : &mspc_msi
+                bands       :
+                    VV      : &mspc_grd_10m
+                        missing_value : 0
+                        minimum_value : 1
+                        maximum_value : 65534
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    :  10
+                        band_name     : "vv"
+                        data_type     : "INT2U"
+                    VH     :
+                        <<: *mspc_grd_10m
+                        band_name     : "vh"
+                satellite   : "SENTINEL-1"
+                sensor      : "GRD"
+                platforms   :
+                    SENTINEL-1A: "Sentinel-1A"
+                    SENTINEL-1B: "Sentinel-1B"
+                collection_name: "sentinel-1-grd"
+                open_data: true
+                open_data_token: false
+                metadata_search: "feature"
+                ext_tolerance: 0
+                grid_system : "MGRS"
     HLS                     :
         s3_class            : ["hls_cube", "stac_cube", "eo_cube",
                                "raster_cube"]

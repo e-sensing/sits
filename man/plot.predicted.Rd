@@ -4,7 +4,7 @@
 \alias{plot.predicted}
 \title{Plot time series predictions}
 \usage{
-\method{plot}{predicted}(x, y, ..., bands = "NDVI", color_palette = "Harmonic")
+\method{plot}{predicted}(x, y, ..., bands = "NDVI", palette = "Harmonic")
 }
 \arguments{
 \item{x}{Object of class "predicted".}
@@ -15,7 +15,7 @@
 
 \item{bands}{Bands for visualization.}
 
-\item{color_palette}{HCL palette used for visualization
+\item{palette}{HCL palette used for visualization
 in case classes are not in the default sits palette.}
 }
 \value{
@@ -26,14 +26,13 @@ A plot object produced by ggplot2
 Given a sits tibble with a set of predictions, plot them
 }
 \note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
+This code is reused from the dtwSat package by Victor Maus.
 }
 \examples{
 if (sits_run_examples()) {
     # Retrieve the samples for Mato Grosso
-    # train a tempCNN model
-    ml_model <- sits_train(samples_modis_ndvi, ml_method = sits_tempcnn)
+    # train an svm model
+    ml_model <- sits_train(samples_modis_ndvi, ml_method = sits_svm)
     # classify the point
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_class <- sits_classify(

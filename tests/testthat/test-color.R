@@ -1,11 +1,10 @@
 test_that("sits colors", {
-    g <- sits_colors_show()
+    g <- sits_colors_show("PRODES")
     expect_equal(g$labels$xmin, "x + 0.05")
-    expect_equal(g$labels$label, "name")
 
     color_tb <- sits_colors()
     expect_equal(color_tb[1, ]$name, "Evergreen_Broadleaf_Forest")
-    expect_equal(unname(color_tb[1, ]$color), "#1E8449")
+    expect_equal(unname(color_tb[1, ]$color), "#518940")
 
     color_tb[1, ]$name <- "Tropical_Forest"
     new_tb <- sits_colors_set(color_tb)
@@ -21,50 +20,64 @@ test_that("plot colors", {
         source = "MPC",
         collection = "SENTINEL-2-L2A",
         data_dir = data_dir,
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
+        parse_info = c(
+            "X1", "X2", "tile", "start_date", "end_date",
+            "band", "version"
+        ),
         bands = "class",
-        labels = c("1" = "ClearCut_Burn", "2" = "ClearCut_Soil",
-                   "3" = "ClearCut_Veg", "4" = "Forest"),
+        labels = c(
+            "1" = "Clear_Cut_Burned_Area", "2" = "Clear_Cut_Bare_Soil",
+            "3" = "Clear_Cut_Vegetation", "4" = "Forest"
+        ),
         progress = FALSE
     )
     p <- plot(ro_class)
     expect_equal(p$tm_shape$line.center, "midpoint")
     expect_equal(p$tm_layout$legend.bg.color, "white")
-    expect_equal(unname(p$tm_raster$labels),
-                 c("ClearCut_Burn", "ClearCut_Soil", "ClearCut_Veg", "Forest"))
+    expect_equal(
+        unname(p$tm_raster$labels),
+        c("Clear_Cut_Burned_Area", "Clear_Cut_Bare_Soil",
+          "Clear_Cut_Vegetation", "Forest")
+    )
 })
 
 test_that("colors_get", {
     labels <- c("Forest", "Cropland", "Pasture")
-    colors <- suppressWarnings(sits:::.colors_get(labels, legend = NULL,
-                                                  color_palette = "Spectral",
-                                                  rev = TRUE))
+    colors <- suppressWarnings(sits:::.colors_get(labels,
+        legend = NULL,
+        palette = "Spectral",
+        rev = TRUE
+    ))
     expect_length(colors, 3)
-    expect_equal(colors[["Forest"]], "#1E8449")
+    expect_equal(colors[["Forest"]], "#518940")
 })
 
 test_that("legend", {
     def_legend <- c(
         "Forest" = "forestgreen", "Cerrado" = "lightgreen",
-        "Pasture" = "bisque2", "SoyCorn" = "sienna")
+        "Pasture" = "bisque2", "SoyCorn" = "sienna"
+    )
 
     labels <- c("Forest", "Cerrado", "Pasture", "SoyCorn")
 
-    colors <- suppressWarnings(sits:::.colors_get(labels, legend = def_legend,
-                                                  color_palette = "Spectral",
-                                                  rev = TRUE))
+    colors <- suppressWarnings(sits:::.colors_get(labels,
+        legend = def_legend,
+        palette = "Spectral",
+        rev = TRUE
+    ))
     expect_true(all(names(colors) %in% labels))
 
     def_legend_2 <- c(
         "Forest" = "forestgreen", "Cerrado" = "lightgreen",
-        "Pasture" = "bisque2")
+        "Pasture" = "bisque2"
+    )
 
     expect_warning({
         expect_warning({
-            sits:::.colors_get(labels, legend = def_legend_2,
-                               color_palette = "Spectral", rev = TRUE)
+            sits:::.colors_get(labels,
+                legend = def_legend_2,
+                palette = "Spectral", rev = TRUE
+            )
         })
     })
-
 })

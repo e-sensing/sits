@@ -26,8 +26,8 @@
     }
     # perform SMOTE
     smoteret <- .smote_apply(data[, -col_ind],
-                             data[, col_ind],
-                             dup_size = dup_size
+        data[, col_ind],
+        dup_size = dup_size
     )
     # rbind the original observations and sufficient samples of the synthetic
     # ones
@@ -86,10 +86,9 @@
     N_class <- target[target != names(which.min(n_target))]
     # The number of positive instances
     sizeP <- nrow(P_set)
-    # The number of negative instances
-    sizeN <- nrow(N_set)
+    # Get k nearest neighbors
     knear <- .smote_knearest(P_set, P_set, K)
-    sum_dup <- .smote_n_dup_max(sizeP + sizeN, sizeP, sizeN, dup_size)
+    sum_dup <- dup_size
     syn_dat <- NULL
     for (i in 1:sizeP) {
         if (is.matrix(knear)) {
@@ -131,7 +130,13 @@
 
     return(D_result)
 }
-
+#' @title Find K nearest neighbors
+#' @keywords internal
+#' @noRd
+#' @param D  Query data matrix
+#' @param P  Input data matrix
+#' @param n_clust maximum number of nearest neighbors to search
+#' @return Index matrix of K nearest neighbor for each instance
 .smote_knearest <- function(D, P, n_clust) {
     .check_require_packages("FNN")
 
@@ -143,25 +148,4 @@
         knD[i, 1] <- 0
     }
     return(knD[, 2:(n_clust + 1)])
-}
-.smote_n_dup_max <- function(size_input, size_P, size_N, dup_size = 0) {
-    # Size_P is the number of positive used
-    # for generating actual size of P
-    if (is.vector(dup_size) && length(dup_size) > 1) {
-        if (length(which(dup_size == 0)) > 0) {
-            sizeM <- floor((2 * size_N - size_input) / size_P)
-        }
-        if (length(which(dup_size == 0)) == 0) {
-            sizeM <- max(dup_size)
-        }
-    }
-    if (!is.vector(dup_size) || length(dup_size) == 1) {
-        if (dup_size == 0) {
-            sizeM <- floor((2 * size_N - size_input) / size_P)
-        }
-        if (dup_size != 0) {
-            sizeM <- dup_size
-        }
-    }
-    return(sizeM)
 }

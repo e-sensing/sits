@@ -6,6 +6,7 @@
 \alias{sits_view.data.frame}
 \alias{sits_view.som_map}
 \alias{sits_view.raster_cube}
+\alias{sits_view.vector_cube}
 \alias{sits_view.uncertainty_cube}
 \alias{sits_view.class_cube}
 \alias{sits_view.probs_cube}
@@ -14,11 +15,11 @@
 \usage{
 sits_view(x, ...)
 
-\method{sits_view}{sits}(x, ..., legend = NULL, color_palette = "Harmonic")
+\method{sits_view}{sits}(x, ..., legend = NULL, palette = "Harmonic")
 
-\method{sits_view}{data.frame}(x, ..., legend = NULL, color_palette = "Harmonic")
+\method{sits_view}{data.frame}(x, ..., legend = NULL, palette = "Harmonic")
 
-\method{sits_view}{som_map}(x, ..., id_neurons, legend = NULL, color_palette = "Harmonic")
+\method{sits_view}{som_map}(x, ..., id_neurons, legend = NULL, palette = "Harmonic")
 
 \method{sits_view}{raster_cube}(
   x,
@@ -31,8 +32,26 @@ sits_view(x, ...)
   dates = NULL,
   class_cube = NULL,
   legend = NULL,
-  color_palette = "RdYlGn",
-  segments = NULL,
+  palette = "RdYlGn",
+  opacity = 0.7,
+  view_max_mb = NULL
+)
+
+\method{sits_view}{vector_cube}(
+  x,
+  ...,
+  band = NULL,
+  red = NULL,
+  green = NULL,
+  blue = NULL,
+  tiles = x$tile,
+  dates = NULL,
+  class_cube = NULL,
+  legend = NULL,
+  palette = "RdYlGn",
+  opacity = 0.7,
+  seg_color = "black",
+  line_width = 1,
   view_max_mb = NULL
 )
 
@@ -42,8 +61,8 @@ sits_view(x, ...)
   tiles = x$tile,
   class_cube = NULL,
   legend = NULL,
-  color_palette = "Blues",
-  segments = NULL,
+  palette = "Blues",
+  opacity = 0.7,
   view_max_mb = NULL
 )
 
@@ -52,8 +71,8 @@ sits_view(x, ...)
   ...,
   tiles = NULL,
   legend = NULL,
-  color_palette = "Spectral",
-  segments = NULL,
+  palette = "Spectral",
+  opacity = 0.8,
   view_max_mb = NULL
 )
 
@@ -64,7 +83,8 @@ sits_view(x, ...)
   class_cube = NULL,
   legend = NULL,
   view_max_mb = NULL,
-  color_palette = "YlGnBu"
+  opacity = 0.7,
+  palette = "YlGnBu"
 )
 
 \method{sits_view}{default}(x, ...)
@@ -77,7 +97,8 @@ sits_view(x, ...)
 
 \item{legend}{Named vector that associates labels to colors.}
 
-\item{color_palette}{Palette provided in the configuration file.}
+\item{palette}{Color palette (if colors not in legend nor
+in sits default colors)}
 
 \item{id_neurons}{Neurons from the SOM map to be shown.}
 
@@ -95,9 +116,13 @@ sits_view(x, ...)
 
 \item{class_cube}{Classified cube to be overlayed on top on image.}
 
-\item{segments}{Segment list produced by \link{sits_segment}}
+\item{opacity}{Opacity of segment fill or class cube}
 
 \item{view_max_mb}{Maximum size of leaflet to be visualized}
+
+\item{seg_color}{Color for segment boundaries}
+
+\item{line_width}{Line width for segments (in pixels)}
 }
 \value{
 A leaflet object containing either samples or
@@ -116,7 +141,7 @@ Please refer to the sits documentation available in
 if (sits_run_examples()) {
     # view samples
     sits_view(cerrado_2classes)
-.    # create a local data cube
+    # create a local data cube
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     modis_cube <- sits_cube(
         source = "BDC",
@@ -129,7 +154,7 @@ if (sits_run_examples()) {
     )
     # train a model
     rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
-.    # classify the cube
+    # classify the cube
     modis_probs <- sits_classify(
         data = modis_cube,
         ml_model = rf_model,
@@ -142,9 +167,9 @@ if (sits_run_examples()) {
         modis_probs,
         output_dir = tempdir()
     )
-.    # view the classified map
+    # view the classified map
     sits_view(modis_label)
-.    # view the classified map with the B/W image
+    # view the classified map with the B/W image
     sits_view(modis_cube,
         band = "NDVI",
         class_cube = modis_label,
@@ -163,70 +188,6 @@ if (sits_run_examples()) {
     )
     # view the uncertainty cube
     sits_view(modis_uncert)
-
-    # segment the image
-    segments <- sits_segment(
-        cube = modis_cube,
-        tile = "012010",
-        bands = "NDVI",
-        date = sits_timeline(modis_cube)[1],
-        seg_fn = sits_slic(step = 20)
-    )
-    # view image and segments
-    sits_view (
-        modis_cube,
-        band = "NDVI",
-        segments = segments
-    )
-    # view image, classified image and segments
-    sits_view (
-        modis_cube,
-        red = "NDVI",
-        green = "NDVI",
-        blue = "NDVI",
-        class_cube = modis_label,
-        segments = segments
-    )
-    # view B/W image, classified image and segments
-    sits_view (
-        modis_cube,
-        band = "NDVI",
-        class_cube = modis_label,
-        segments = segments
-    )
-    # get the average value per segment
-    samples_seg <- sits_get_data(
-        cube = modis_cube,
-        samples = segments
-    )
-    # train a model
-    tcnn_model <- sits_train(samples_modis_ndvi, sits_tempcnn())
-    # classify the segments
-    seg_class <- sits_classify(
-        data = samples_seg,
-        ml_model = tcnn_model
-    )
-
-    # add a column to the segments by class
-    segments <- sits_join_segments(
-        data = seg_class,
-        segments = segments
-    )
-    # view image and classified segments
-    sits_view (
-        modis_cube,
-        band = "NDVI",
-        segments = segments
-    )
-    # view image, classified image and segments
-    sits_view (
-        modis_cube,
-        red = "NDVI",
-        green = "NDVI",
-        blue = "NDVI",
-        class_cube = modis_label,
-        segments = segments
-    )
 }
 }
 \author{

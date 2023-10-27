@@ -1,5 +1,6 @@
 #' @title Return the values of a set of time series
-#' @name sits_values
+#' @name .values_ts
+#' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description This function returns the values of a sits tibble
@@ -13,20 +14,9 @@
 #'                    or "bands_cases_dates" or "bands_dates_cases".
 #'
 #' @return A matrix with values.
-#' @examples
-#' # Retrieve a set of time series with 2 classes
-#' data(cerrado_2classes)
-#' # retrieve the values split by bands and dates
-#' ls1 <- sits_values(cerrado_2classes[1:2, ], format = "bands_dates_cases")
-#' # retrieve the values split by cases (occurences)
-#' ls2 <- sits_values(cerrado_2classes[1:2, ], format = "cases_dates_bands")
-#' #' # retrieve the values split by bands and cases (occurences)
-#' ls3 <- sits_values(cerrado_2classes[1:2, ], format = "bands_cases_dates")
-#' @export
-sits_values <- function(data, bands = NULL, format = "cases_dates_bands") {
-
+.values_ts <- function(data, bands = NULL, format = "cases_dates_bands") {
     # set caller to show in errors
-    .check_set_caller("sits_values")
+    .check_set_caller(".values_ts")
     .check_chr_within(
         x = format,
         within = c(
@@ -41,10 +31,11 @@ sits_values <- function(data, bands = NULL, format = "cases_dates_bands") {
         )
     )
     class(format) <- c(format, class(format))
-    UseMethod("sits_values", format)
+    UseMethod(".values_ts", format)
 }
+#' @noRd
 #' @export
-sits_values.cases_dates_bands <- function(data, bands = NULL, format) {
+.values_ts.cases_dates_bands <- function(data, bands = NULL, format) {
     if (purrr::is_null(bands)) {
         bands <- sits_bands(data)
     }
@@ -55,12 +46,13 @@ sits_values.cases_dates_bands <- function(data, bands = NULL, format) {
         })
     return(values)
 }
+#' @noRd
 #' @export
-sits_values.bands_cases_dates <- function(data, bands = NULL, format) {
+.values_ts.bands_cases_dates <- function(data, bands = NULL, format) {
     if (purrr::is_null(bands)) {
         bands <- sits_bands(data)
     }
-
+    # get the distances tables
     distances_tbl <- data |>
         dplyr::mutate(
             sample_id = seq_len(nrow(!!data))
@@ -70,7 +62,7 @@ sits_values.bands_cases_dates <- function(data, bands = NULL, format) {
         dplyr::group_by(.data[["sample_id"]]) |>
         dplyr::mutate(temp_index = seq_len(dplyr::n())) |>
         dplyr::ungroup()
-
+    # melt the data
     if (length(bands) > 1) {
         distances_tbl <- tidyr::pivot_wider(
             distances_tbl,
@@ -87,18 +79,18 @@ sits_values.bands_cases_dates <- function(data, bands = NULL, format) {
             names_sep = ""
         )
     }
-
+    # return values
     values <- purrr::map(bands, function(band) {
         unname(as.matrix(dplyr::select(
-            distances_tbl, dplyr::starts_with(band))
-        ))
+            distances_tbl, dplyr::starts_with(band)
+        )))
     })
-
     names(values) <- bands
     return(values)
 }
+#' @noRd
 #' @export
-sits_values.bands_dates_cases <- function(data, bands = NULL, format) {
+.values_ts.bands_dates_cases <- function(data, bands = NULL, format) {
     if (purrr::is_null(bands)) {
         bands <- sits_bands(data)
     }
@@ -111,7 +103,6 @@ sits_values.bands_dates_cases <- function(data, bands = NULL, format) {
             tibble::as_tibble() |>
             as.matrix()
     })
-
     names(values) <- bands
     return(values)
 }

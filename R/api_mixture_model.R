@@ -1,5 +1,14 @@
 # ---- mixture functions ----
-
+#' @title Apply a mixture model to a set of time series
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  samples      Time series
+#' @param  em           Endmembers bands
+#' @param  mixture_fn   Function to be applied.
+#' @param out_fracs     Names of output fraction images
+#' @return              Set of time series with new fraction band values
 .mixture_samples <- function(samples, em, mixture_fn, out_fracs) {
     # Get the time series of samples time series
     values <- .ts(samples)
@@ -13,7 +22,18 @@
     # Merge samples and fractions values
     .samples_merge_fracs(samples = samples, values = values)
 }
-
+#' @title Apply a mixture model to a raster feature
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  feature      Raster feature where mixture is to be applied
+#' @param  block        Image block
+#' @param  em           Endmembers bands
+#' @param  mixture_fn   Function to be applied.
+#' @param  out_fracs    Names of output fraction images
+#' @param  output_dir   Directory where fraction images will be saved
+#' @return              Set of new fraction images
 .mixture_feature <- function(feature, block, em,
                              mixture_fn, out_fracs, output_dir) {
     # Output files
@@ -46,12 +66,14 @@
         block <- .block(chunk)
         # Block file name for each fraction
         block_files <- .file_block_name(
-            pattern = .file_pattern(out_files), block = block,
+            pattern = .file_pattern(out_files),
+            block = block,
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (.raster_is_valid(block_files))
+        if (.raster_is_valid(block_files)) {
             return(block_files)
+        }
         # Read bands data
         values <- .mixture_data_read(tile = feature, block = block, em = em)
         # Apply the non-negative least squares solver
@@ -89,7 +111,15 @@
     # Return a eo_cube tile feature
     fracs_feature
 }
-
+#' @title Read data to compute a mixture model
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  tile         Raster tile
+#' @param  block        Image block
+#' @param  em           Endmember values
+#' @return              Set of values for new fraction images (by block)
 .mixture_data_read <- function(tile, block, em) {
     # for cubes that have a time limit to expire - mpc cubes only
     tile <- .cube_token_generator(tile)
@@ -114,7 +144,12 @@
 }
 
 # ---- mixture model functions ----
-
+#' @title Solve linear mixture model using NNLS (Non-Negative Least Squares)
+#' @keywords internal
+#' @noRd
+#' @param  em       Endmember values
+#' @param  rmse     Root mean square error band
+#' @return          Mixture model function to calculate fraction bands
 .mixture_fn_nnls <- function(em, rmse) {
     em_mtx <- .endmembers_as_matrix(em)
     mixture_fn <- function(values) {
@@ -136,13 +171,17 @@
 }
 
 # ---- endmembers functions ----
-
+#' @title Check type of endmembers table
+#' @keywords internal
+#' @noRd
+#' @param  em       Endmember values
+#' @return          Type of endmember value specification (csv of tbl_df)
 .endmembers_type <- function(em) {
     if (is.data.frame(em)) {
         "tbl_df"
     } else if (is.character(em)) {
         ext <- tolower(.file_ext(em))
-        if (ext %in% c("csv", "shp")) {
+        if (ext %in% c("csv")) {
             ext
         } else {
             stop("not supported extension '", ext, "'")
@@ -151,39 +190,60 @@
         stop("invalid 'endmembers' parameter type")
     }
 }
-
+#' @title Switch over type of endmembers table
+#' @keywords internal
+#' @noRd
+#' @param  em       Endmember values
+#' @return          Valid endmember specification (csv of tbl_df)
 .endmembers_switch <- function(em, ...) {
-    switch(.endmembers_type(em), ...)
+    switch(.endmembers_type(em),
+        ...
+    )
 }
-
+#' @title Convert endmembers specification to data.frame
+#' @keywords internal
+#' @noRd
+#' @param  em       Endmember values (csv of tbl_df)
+#' @return          Endmembers as data.frame
 .endmembers_as_tbl <- function(em) {
     em <- .endmembers_switch(
         em,
         "tbl_df" = em,
-        "csv" = utils::read.csv(em),
-        "shp" = sf::st_read(em)
+        "csv" = utils::read.csv(em)
     )
     # Ensure that all columns are in uppercase
     dplyr::rename_with(em, toupper)
 }
-
+#' @title Return bands in endmembers specification
+#' @keywords internal
+#' @noRd
+#' @param  em       Endmember values
+#' @return          Bands in endmember specification
 .endmembers_bands <- function(em) {
     # endmembers tribble can be type or class
     type_class <- colnames(em)[[1]]
     setdiff(colnames(em), type_class)
 }
-
+#' @title Return fraction bands in endmembers specification
+#' @keywords internal
+#' @noRd
+#' @param  em           Endmember values
+#' @param  include_rmse Include root mean square error band?
+#' @return          Bands in endmember specification
 .endmembers_fracs <- function(em, include_rmse = FALSE) {
     # endmembers tribble can be type or class
     type_class <- toupper(colnames(em)[[1]])
-    if (!include_rmse) return(toupper(em[[type_class]]))
+    if (!include_rmse) {
+        return(toupper(em[[type_class]]))
+    }
     toupper(c(em[[type_class]], "RMSE"))
 }
-
+#' @title Transform endmembers specification to matrix
+#' @keywords internal
+#' @noRd
+#' @param  em       Endmember values
+#' @return          Endmember specification as a matrix
 .endmembers_as_matrix <- function(em) {
     bands <- .endmembers_bands(em)
     as.matrix(em[, bands])
 }
-
-
-

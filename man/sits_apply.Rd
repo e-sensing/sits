@@ -4,6 +4,9 @@
 \alias{sits_apply}
 \alias{sits_apply.sits}
 \alias{sits_apply.raster_cube}
+\alias{sits_apply.derived_cube}
+\alias{sits_apply.tbl_df}
+\alias{sits_apply.default}
 \title{Apply a function on a set of time series}
 \usage{
 sits_apply(data, ...)
@@ -13,12 +16,18 @@ sits_apply(data, ...)
 \method{sits_apply}{raster_cube}(
   data,
   ...,
-  window_size = 3,
-  memsize = 1,
-  multicores = 2,
+  window_size = 3L,
+  memsize = 4L,
+  multicores = 2L,
   output_dir,
   progress = FALSE
 )
+
+\method{sits_apply}{derived_cube}(data, ...)
+
+\method{sits_apply}{tbl_df}(data, ...)
+
+\method{sits_apply}{default}(data, ...)
 }
 \arguments{
 \item{data}{Valid sits tibble or cube}
@@ -86,34 +95,36 @@ all pixels in the window are \code{NA}.
   values.}
 \item{\code{w_min()}: returns the minimum of the neighborhood's values.}
 \item{\code{w_max()}: returns the maximum of the neighborhood's values.}
+\item{\code{w_var()}: returns the variance of the neighborhood's values.}
+\item{\code{w_modal()}: returns the modal of the neighborhood's values.}
 }
 }
 
 \examples{
 if (sits_run_examples()) {
-# Get a time series
-# Apply a normalization function
+    # Get a time series
+    # Apply a normalization function
 
-point2 <-
-    sits_select(point_mt_6bands, "NDVI") |>
-    sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
+    point2 <-
+        sits_select(point_mt_6bands, "NDVI") |>
+        sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
 
-# Example of generation texture band with variance
-# Create a data cube from local files
-data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-cube <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6",
-    data_dir = data_dir
-)
+    # Example of generation texture band with variance
+    # Create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
+    )
 
-# Generate a texture images with variance in NDVI images
-cube_texture <- sits_apply(
-    data = cube,
-    NDVITEXTURE = w_median(NDVI),
-    window_size = 5,
-    output_dir = tempdir()
-)
+    # Generate a texture images with variance in NDVI images
+    cube_texture <- sits_apply(
+        data = cube,
+        NDVITEXTURE = w_median(NDVI),
+        window_size = 5,
+        output_dir = tempdir()
+    )
 }
 }
 \author{

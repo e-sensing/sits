@@ -31,14 +31,10 @@ based on a smooth function.
 This method is based on the "createPatterns" method of the dtwSat package,
 which is also described in the reference paper.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
 if (sits_run_examples()) {
-   patterns <- sits_patterns(cerrado_2classes)
-   plot(patterns)
+    patterns <- sits_patterns(cerrado_2classes)
+    plot(patterns)
 }
 
 }

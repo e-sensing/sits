@@ -2,15 +2,33 @@
 % Please edit documentation in R/sits_timeline.R
 \name{sits_timeline}
 \alias{sits_timeline}
+\alias{sits_timeline.sits}
+\alias{sits_timeline.sits_model}
+\alias{sits_timeline.raster_cube}
+\alias{sits_timeline.derived_cube}
+\alias{sits_timeline.tbl_df}
+\alias{sits_timeline.default}
 \title{Get timeline of a cube or a set of time series}
 \usage{
 sits_timeline(data)
+
+\method{sits_timeline}{sits}(data)
+
+\method{sits_timeline}{sits_model}(data)
+
+\method{sits_timeline}{raster_cube}(data)
+
+\method{sits_timeline}{derived_cube}(data)
+
+\method{sits_timeline}{tbl_df}(data)
+
+\method{sits_timeline}{default}(data)
 }
 \arguments{
-\item{data}{either a sits tibble, a data cube, or a trained model.}
+\item{data}{Tibble of class "sits" or class "raster_cube"}
 }
 \value{
-Timeline of sample set or of data cube.
+Vector of class Date with timeline of samples or data cube.
 }
 \description{
 This function returns the timeline for a given data set, either
@@ -18,7 +36,6 @@ This function returns the timeline for a given data set, either
 }
 \examples{
 sits_timeline(samples_modis_ndvi)
-
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

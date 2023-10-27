@@ -4,13 +4,7 @@
 \alias{summary.class_cube}
 \title{Summarize data cubes}
 \usage{
-\method{summary}{class_cube}(
-  object,
-  ...,
-  tile = object$tile[[1]],
-  only_stats = FALSE,
-  sample_size = 1e+05
-)
+\method{summary}{class_cube}(object, ..., tile = NULL)
 }
 \arguments{
 \item{object}{Object of class "class_cube"}
@@ -18,10 +12,6 @@
 \item{...}{Further specifications for \link{summary}.}
 
 \item{tile}{Tile to be summarized}
-
-\item{only_stats}{Show only the statistics? (TRUE/FALSE)}
-
-\item{sample_size}{Number of sample used to build statistics}
 }
 \value{
 A summary of a classified cube
@@ -29,10 +19,6 @@ A summary of a classified cube
 \description{
 This is a generic function. Parameters depend on the specific
 type of input.
-}
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
 if (sits_run_examples()) {
@@ -51,7 +37,8 @@ if (sits_run_examples()) {
     )
     # label the probability cube
     label_cube <- sits_label_classification(
-        probs_cube, output_dir = tempdir()
+        probs_cube,
+        output_dir = tempdir()
     )
     summary(label_cube)
 }

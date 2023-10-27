@@ -11,25 +11,22 @@
         )
     )
 }
-
 .onLoad <- function(lib, pkg) {
     Sys.setenv(R_CONFIG_FILE = "config.yml")
     sits_config()
 }
-
 # Creates a package environment to store global variables
 sits_env <- new.env()
 # Uses "log" as the default model formula
 sits_env$model_formula <- "log"
-
 # Include the following global variables in the sits package
 utils::globalVariables(c(
     ".x", ":=", # dplyr
     "self", "ctx", "super", "private", # torch
     "uniform", "choice", "randint",
-    "normal", "lognormal", "loguniform" # sits_tuning_random
+    "normal", "lognormal", "loguniform", # sits_tuning_random
+    "sar:frequency_band", "sar:instrument_mode", "sat:orbit_state" # S1 stac
 ))
-
 #' @importFrom lubridate %within% %m+%
 #' @importFrom Rcpp sourceCpp
 #' @importFrom dplyr .data

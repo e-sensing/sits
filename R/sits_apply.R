@@ -60,47 +60,51 @@
 #'   values.}
 #' \item{\code{w_min()}: returns the minimum of the neighborhood's values.}
 #' \item{\code{w_max()}: returns the maximum of the neighborhood's values.}
+#' \item{\code{w_var()}: returns the variance of the neighborhood's values.}
+#' \item{\code{w_modal()}: returns the modal of the neighborhood's values.}
 #' }
-#'
 #'
 #' @return A sits tibble or a sits cube with new bands, produced
 #'         according to the requested expression.
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' # Get a time series
-#' # Apply a normalization function
+#'     # Get a time series
+#'     # Apply a normalization function
 #'
-#' point2 <-
-#'     sits_select(point_mt_6bands, "NDVI") |>
-#'     sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
+#'     point2 <-
+#'         sits_select(point_mt_6bands, "NDVI") |>
+#'         sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
 #'
-#' # Example of generation texture band with variance
-#' # Create a data cube from local files
-#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#' cube <- sits_cube(
-#'     source = "BDC",
-#'     collection = "MOD13Q1-6",
-#'     data_dir = data_dir
-#' )
+#'     # Example of generation texture band with variance
+#'     # Create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir
+#'     )
 #'
-#' # Generate a texture images with variance in NDVI images
-#' cube_texture <- sits_apply(
-#'     data = cube,
-#'     NDVITEXTURE = w_median(NDVI),
-#'     window_size = 5,
-#'     output_dir = tempdir()
-#' )
+#'     # Generate a texture images with variance in NDVI images
+#'     cube_texture <- sits_apply(
+#'         data = cube,
+#'         NDVITEXTURE = w_median(NDVI),
+#'         window_size = 5,
+#'         output_dir = tempdir()
+#'     )
 #' }
 #' @rdname sits_apply
 #' @export
 sits_apply <- function(data, ...) {
+    .check_na(data)
+    .check_null(data)
     UseMethod("sits_apply", data)
 }
 
 #' @rdname sits_apply
 #' @export
 sits_apply.sits <- function(data, ...) {
+    data <- .check_samples(data)
     .check_set_caller("sits_apply.sits")
 
     .apply(data, col = "time_series", fn = dplyr::mutate, ...)
@@ -109,21 +113,20 @@ sits_apply.sits <- function(data, ...) {
 #' @rdname sits_apply
 #' @export
 sits_apply.raster_cube <- function(data, ...,
-                                   window_size = 3,
-                                   memsize = 1,
-                                   multicores = 2,
+                                   window_size = 3L,
+                                   memsize = 4L,
+                                   multicores = 2L,
                                    output_dir,
                                    progress = FALSE) {
-
     # Check cube
     .check_is_raster_cube(data)
     .check_is_regular(data)
     # Check window size
     .check_window_size(window_size)
     # Check memsize
-    .check_memsize(memsize)
+    .check_memsize(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores)
+    .check_multicores(multicores, min = 1, max = 2048)
     # Check output_dir
     .check_output_dir(output_dir)
 
@@ -142,7 +145,7 @@ sits_apply.raster_cube <- function(data, ...,
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = overlap),
         npaths = length(in_bands) + 1,
-        nbytes = 8, proc_bloat = .conf("processing_bloat")
+        nbytes = 8, proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
@@ -172,4 +175,27 @@ sits_apply.raster_cube <- function(data, ...,
     }, progress = progress)
     # Join output features as a cube and return it
     .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_band)))
+}
+#' @rdname sits_apply
+#' @export
+sits_apply.derived_cube <- function(data,...) {
+    stop("Input data should be a non-classified cube")
+}
+#' @rdname sits_apply
+#' @export
+sits_apply.tbl_df <- function(data,...) {
+    data <- tibble::as_tibble(data)
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        data <- .cube_find_class(data)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else
+        stop("Input should be a sits tibble or a data cube")
+    acc <- sits_apply(data, ...)
+    return(acc)
+}
+#' @rdname sits_apply
+#' @export
+sits_apply.default <- function(data, ...) {
+    stop("Input should be a sits tibble or a data cube")
 }

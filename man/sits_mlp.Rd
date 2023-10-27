@@ -66,10 +66,9 @@ This function uses the R "torch" and "luz" packages.
 Please refer to the documentation of those package for more details.
 }
 \note{
-The parameters for the MLP have been chosen based on the work by
-Wang et al. 2017
-that takes multilayer perceptrons as the baseline for time series
-classifications:
+The default parameters for the MLP have been chosen based on the work by
+Wang et al. 2017 that takes multilayer perceptrons as the baseline
+for time series classifications:
 (a) Three layers with 512 neurons each, specified by the parameter `layers`;
 (b) dropout rates of 10%, 20%, and 30% for the layers;
 (c) the "optimizer_adam" as optimizer (default value);
@@ -79,16 +78,6 @@ are used for input at a given steps;
 (f) a validation percentage of 20%, which means 20% of the samples
 will be randomly set side for validation.
 (g) The "relu" activation function.
-
-#' @references
-
-Zhiguang Wang, Weizhong Yan, and Tim Oates,
-"Time series classification from scratch with deep neural networks:
- A strong baseline",
- 2017 international joint conference on neural networks (IJCNN).
-
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
 if (sits_run_examples()) {
@@ -115,18 +104,19 @@ if (sits_run_examples()) {
     plot(bayes_cube)
     # label the probability cube
     label_cube <- sits_label_classification(
-        bayes_cube, output_dir = tempdir()
+        bayes_cube,
+        output_dir = tempdir()
     )
     # plot the labelled cube
     plot(label_cube)
 }
 }
+\references{
+Zhiguang Wang, Weizhong Yan, and Tim Oates,
+"Time series classification from scratch with deep neural networks:
+ A strong baseline",
+ 2017 international joint conference on neural networks (IJCNN).
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
-
-Rolf Simoes, \email{rolf.simoes@inpe.br}
-
-Felipe Souza, \email{lipecaso@gmail.com}
-
-Alber Sanchez, \email{alber.ipia@inpe.br}
 }

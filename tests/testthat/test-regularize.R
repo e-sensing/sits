@@ -1,17 +1,18 @@
 test_that("Regularizing cubes from AWS, and extracting samples from them", {
-    s2_cube_open <- .try({
-        sits_cube(
-            source = "AWS",
-            collection = "SENTINEL-2-L2A",
-            tiles = c("20LKP", "20LLP"),
-            bands = c("B8A", "CLOUD"),
-            start_date = "2018-10-01",
-            end_date = "2018-11-01",
-            multicores = 1,
-            progress = FALSE
-        )
-    },
-    .default = NULL
+    s2_cube_open <- .try(
+        {
+            sits_cube(
+                source = "AWS",
+                collection = "SENTINEL-2-L2A",
+                tiles = c("20LKP", "20LLP"),
+                bands = c("B8A", "CLOUD"),
+                start_date = "2018-10-01",
+                end_date = "2018-11-01",
+                multicores = 1,
+                progress = FALSE
+            )
+        },
+        .default = NULL
     )
 
     testthat::skip_if(
@@ -27,12 +28,12 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     }
     expect_warning({
         rg_cube <- sits_regularize(
-        cube = .tile(s2_cube_open),
-        output_dir = dir_images,
-        res = 240,
-        period = "P16D",
-        multicores = 2,
-        progress = FALSE
+            cube = .tile(s2_cube_open),
+            output_dir = dir_images,
+            res = 240,
+            period = "P16D",
+            multicores = 2,
+            progress = FALSE
         )
     })
 
@@ -48,7 +49,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     expect_equal(nrow(tile_fileinfo), 2)
 
     csv_file <- system.file("extdata/samples/samples_amazonia.csv",
-                            package = "sits"
+        package = "sits"
     )
 
     # read sample information from CSV file and put it in a tibble
@@ -60,30 +61,32 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
         output_dir = dir_images
     )
 
-    vls <- unlist(sits_values(ts))
+    vls <- unlist(.values_ts(ts))
     expect_true(all(vls > 0 & vls < 1.))
     expect_equal(sits_bands(ts), sits_bands(rg_cube))
     expect_equal(sits_timeline(ts), sits_timeline(rg_cube))
 })
 
 test_that("Creating Landsat cubes from MPC", {
+    bbox <- c(
+        xmin = -48.28579, ymin = -16.05026,
+        xmax = -47.30839, ymax = -15.50026,
+        crs = 4326
+    )
 
-    bbox <- c(xmin = -48.28579, ymin = -16.05026,
-              xmax = -47.30839, ymax = -15.50026,
-              crs = 4326)
-
-    landsat_cube <- .try({
-        sits_cube(
-            source = "MPC",
-            collection = "LANDSAT-C2-L2",
-            roi = bbox,
-            bands = c("NIR08", "CLOUD"),
-            start_date = as.Date("2008-07-18"),
-            end_date = as.Date("2008-10-23"),
-            progress = FALSE
-        )
-    },
-    .default = NULL
+    landsat_cube <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "LANDSAT-C2-L2",
+                roi = bbox,
+                bands = c("NIR08", "CLOUD"),
+                start_date = as.Date("2008-07-18"),
+                end_date = as.Date("2008-10-23"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
     )
 
     testthat::skip_if(purrr::is_null(landsat_cube), "MPC is not accessible")
@@ -104,12 +107,12 @@ test_that("Creating Landsat cubes from MPC", {
     }
     expect_warning({
         rg_landsat <- sits_regularize(
-        cube        = landsat_cube,
-        output_dir  = output_dir,
-        res         = 240,
-        period      = "P30D",
-        multicores  = 1,
-        progress = FALSE
+            cube = landsat_cube,
+            output_dir = output_dir,
+            res = 240,
+            period = "P30D",
+            multicores = 1,
+            progress = FALSE
         )
     })
 
@@ -118,19 +121,20 @@ test_that("Creating Landsat cubes from MPC", {
 
     expect_true(.cube_is_regular(rg_landsat))
 
-    l5_cube <- .try({
-        sits_cube(
-            source = "MPC",
-            collection = "LANDSAT-C2-L2",
-            platform = "LANDSAT-5",
-            roi = bbox,
-            bands = c("NIR08", "CLOUD"),
-            start_date = as.Date("2008-07-18"),
-            end_date = as.Date("2008-10-23"),
-            progress = FALSE
-        )
-    },
-    .default = NULL
+    l5_cube <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "LANDSAT-C2-L2",
+                platform = "LANDSAT-5",
+                roi = bbox,
+                bands = c("NIR08", "CLOUD"),
+                start_date = as.Date("2008-07-18"),
+                end_date = as.Date("2008-10-23"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
     )
 
     expect_true(any(grepl("LT05", l5_cube$file_info[[1]]$fid)))
@@ -150,14 +154,13 @@ test_that("Creating Landsat cubes from MPC", {
 })
 
 test_that("Regularizing local cubes extracted from BDC", {
-
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     local_cube <- sits_cube(
-            source = "BDC",
-            collection = "MOD13Q1-6",
-            data_dir = data_dir,
-            multicores = 2,
-            progress = FALSE
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        multicores = 2,
+        progress = FALSE
     )
     local_bbox <- sits_bbox(local_cube)
     timeline <- sits_timeline(local_cube)
@@ -165,21 +168,22 @@ test_that("Regularizing local cubes extracted from BDC", {
     end_date <- timeline[length(timeline)]
 
     # create a raster cube file based on the information about the files
-    bdc_cube <- .try({
-        sits_cube(
-            source = "BDC",
-            collection = "MOD13Q1-6",
-            roi = local_bbox,
-            start_date = start_date,
-            end_date = end_date,
-            bands = c("NDVI", "CLOUD"),
-            multicores = 2
-        )
-    },
-    .default = NULL
+    bdc_cube <- .try(
+        {
+            sits_cube(
+                source = "BDC",
+                collection = "MOD13Q1-6",
+                roi = local_bbox,
+                start_date = start_date,
+                end_date = end_date,
+                bands = c("NDVI", "CLOUD"),
+                multicores = 2
+            )
+        },
+        .default = NULL
     )
     testthat::skip_if(purrr::is_null(bdc_cube),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
 
     expect_true(all(sits_bands(bdc_cube) %in% c("NDVI", "CLOUD")))
@@ -233,7 +237,6 @@ test_that("Regularizing local cubes extracted from BDC", {
 })
 
 test_that("Regularizing local cubes without CLOUD BAND", {
-
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     local_cube <- sits_cube(
         source = "BDC",
@@ -249,11 +252,11 @@ test_that("Regularizing local cubes without CLOUD BAND", {
     # regularize local cube
     expect_warning({
         local_reg_cube <- sits_regularize(
-        cube = local_cube,
-        period = "P2M",
-        res = 500,
-        output_dir = output_dir,
-        progress = FALSE
+            cube = local_cube,
+            period = "P2M",
+            res = 500,
+            output_dir = output_dir,
+            progress = FALSE
         )
     })
     tl_orig <- sits_timeline(local_cube)
@@ -265,8 +268,37 @@ test_that("Regularizing local cubes without CLOUD BAND", {
     # check there are no NAs
     expect_equal(length(which(is.na(values_reg))), 0)
     # check interval is two months
-    int <- lubridate::interval(start = as.Date(tl_reg[1]),
-                               end = as.Date(tl_reg[2]))
+    int <- lubridate::interval(
+        start = as.Date(tl_reg[1]),
+        end = as.Date(tl_reg[2])
+    )
     expect_equal(lubridate::time_length(int, "month"), 2)
-
+})
+test_that("Regularizing SENTINEL-1 data",{
+        ## Sentinel-1 SAR
+        roi_sar <- c("lon_min" = -50.410, "lon_max" = -50.379,
+                 "lat_min" = -10.1910, "lat_max" = -10.1573)
+        s1_cube_open <- sits_cube(
+            source = "MPC",
+            collection = "SENTINEL-1-GRD",
+            bands = c("VV", "VH"),
+            roi = roi_sar,
+            start_date = "2020-06-01",
+            end_date = "2020-09-28"
+        )
+        expect_false(.cube_is_regular(s1_cube_open))
+        expect_true(all(sits_bands(s1_cube_open) %in% c("VH", "VV")))
+        # regularize the cube
+        suppressWarnings(rg_cube <- sits_regularize(
+            cube = s1_cube_open,
+            period = "P12D",
+            res = 60,
+            roi = roi_sar,
+            multicores = 2,
+            output_dir = tempdir()
+        ))
+        expect_true(.cube_is_regular(rg_cube))
+        expect_true(all(sits_bands(rg_cube) %in% c("VH", "VV")))
+        expect_equal(rg_cube$crs, "EPSG:32722")
+        expect_equal(rg_cube$tile, "22LEP")
 })

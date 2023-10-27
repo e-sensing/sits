@@ -2,41 +2,60 @@
 % Please edit documentation in R/sits_cluster.R
 \name{sits_cluster_dendro}
 \alias{sits_cluster_dendro}
+\alias{sits_cluster_dendro.sits}
+\alias{sits_cluster_dendro.tbl_df}
+\alias{sits_cluster_dendro.default}
 \title{Find clusters in time series samples}
 \usage{
 sits_cluster_dendro(
-  samples = NULL,
+  samples,
   bands = NULL,
   dist_method = "dtw_basic",
   linkage = "ward.D2",
   k = NULL,
-  color_palette = "RdYlGn",
-  .plot = TRUE,
+  palette = "RdYlGn"
+)
+
+\method{sits_cluster_dendro}{sits}(
+  samples,
+  bands = NULL,
+  dist_method = "dtw_basic",
+  linkage = "ward.D2",
+  k = NULL,
+  palette = "RdYlGn",
   ...
 )
+
+\method{sits_cluster_dendro}{tbl_df}(samples, ...)
+
+\method{sits_cluster_dendro}{default}(samples, ...)
 }
 \arguments{
-\item{samples}{Tibble with input set of time series.}
+\item{samples}{Tibble with input set of time series (class "sits").}
 
-\item{bands}{Bands to be used in the clustering.}
+\item{bands}{Bands to be used in the clustering
+(character vector)}
 
-\item{dist_method}{Distance method.}
+\item{dist_method}{One of the supported distances (single char vector)
+"dtw": DTW with a Sakoe-Chiba constraint.
+"dtw2": DTW with L2 norm and Sakoe-Chiba constraint.
+"dtw_basic": A faster DTW with less functionality.
+"lbk": Keogh's lower bound for DTW.
+"lbi": Lemire's lower bound for DTW.}
 
-\item{linkage}{Agglomeration method.
-Can be any `hclust` method (see `hclust`).
-Default is 'ward.D2'.}
+\item{linkage}{Agglomeration method to be used (single char vector)
+One of "ward.D", "ward.D2", "single", "complete",
+"average", "mcquitty", "median" or "centroid".}
 
 \item{k}{Desired number of clusters (overrides default value)}
 
-\item{color_palette}{Color palette as per `grDevices::hcl.pals()` function.}
-
-\item{.plot}{Plot the dendrogram?}
+\item{palette}{Color palette as per `grDevices::hcl.pals()` function.}
 
 \item{...}{Additional parameters to be passed
 to dtwclust::tsclust() function.}
 }
 \value{
-Tibble with added "cluster" column.
+Tibble with "cluster" column (class "sits_cluster").
 }
 \description{
 These functions support hierarchical agglomerative clustering in
@@ -63,7 +82,11 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
+    # default
     clusters <- sits_cluster_dendro(cerrado_2classes)
+    # with parameters
+    clusters <- sits_cluster_dendro(cerrado_2classes,
+                bands = "NDVI", k = 5)
 }
 
 }

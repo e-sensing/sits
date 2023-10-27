@@ -10,10 +10,8 @@
 #' @param  class     Tibble with classified samples whose labels are known.
 #' @return           A tibble with predicted and reference values.
 .accuracy_pred_ref <- function(class) {
-
     # retrieve the predicted values
     pred <- unlist(purrr::map(class$predicted, function(r) r$class))
-
     # retrieve the reference labels
     ref <- class$label
     # does the input data contains valid reference labels?
@@ -45,9 +43,7 @@
 #' A list of lists: The error_matrix, the class_areas, the unbiased
 #' estimated areas, the standard error areas, confidence interval 95% areas,
 #' and the accuracy (user, producer, and overall).
-
 .accuracy_area_assess <- function(cube, error_matrix, area) {
-
     # set caller to show in errors
     .check_set_caller(".sits_accuracy_area_assess")
     # check if cube has the right type

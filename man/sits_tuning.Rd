@@ -10,7 +10,7 @@ sits_tuning(
   validation_split = 0.2,
   ml_method = sits_tempcnn(),
   params = sits_tuning_hparams(optimizer = torchopt::optim_adamw, opt_hparams = list(lr =
-    beta(0.3, 5))),
+    loguniform(10^-2, 10^-4))),
   trials = 30,
   multicores = 2,
   progress = FALSE
@@ -56,10 +56,6 @@ best hyper-parameters in a list.
 hyper-parameters passed to \code{params} parameter should be passed
 by calling \code{sits_tuning_hparams()} function.
 }
-\note{
-Please refer to the sits documentation available in
-  <https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
 if (sits_run_examples()) {
     # find best learning rate parameters for TempCNN
@@ -68,10 +64,10 @@ if (sits_run_examples()) {
         ml_method = sits_tempcnn(),
         params = sits_tuning_hparams(
             optimizer = choice(
-                torchopt::optim_adamw
+                torch::optim_adamw
             ),
             opt_hparams = list(
-                lr = beta(0.3, 5)
+                lr = loguniform(10^-2, 10^-4)
             )
         ),
         trials = 4,
@@ -89,4 +85,7 @@ if (sits_run_examples()) {
 James Bergstra, Yoshua Bengio,
  "Random Search for Hyper-Parameter Optimization".
  Journal of Machine Learning Research. 13: 281–305, 2012.
+}
+\author{
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

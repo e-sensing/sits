@@ -1,6 +1,16 @@
-
-#---- internal functions ----
-
+#' @title Reclassify tile
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  tile.           Subset of a data cube
+#' @param  mask            Reclassification mask
+#' @param  band            Output band
+#' @param  labels          Output labels
+#' @param  reclassify_fn   Function to be applied for reclassification
+#' @param  output_dir      Directory where image will be save
+#' @param  version         Version of result.
+#' @return reclassified tile
 .reclassify_tile <- function(tile, mask, band, labels, reclassify_fn,
                              output_dir, version) {
     # Output files
@@ -15,8 +25,11 @@
             band = band,
             base_tile = tile,
             derived_class = "class_cube",
+            labels = labels,
             update_bbox = FALSE
         )
+        # Update tile labels
+        class_tile <- .tile_update_label(class_tile, labels)
         return(class_tile)
     }
     # Create chunks as jobs
@@ -27,7 +40,8 @@
         block <- .block(chunk)
         # Output file name
         block_file <- .file_block_name(
-            pattern = .file_pattern(out_file), block = block,
+            pattern = .file_pattern(out_file),
+            block = block,
             output_dir = output_dir
         )
         # Output mask file name
@@ -108,10 +122,20 @@
         multicores = .jobs_multicores(),
         update_bbox = FALSE
     )
+    # Update tile labels
+    class_tile <- .tile_update_label(class_tile, labels)
     # Return class tile
     class_tile
 }
 
+#' @title Reclassify function
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @param  rules           Rules to be applied
+#' @param  labels_cube     Labels of input cube
+#' @param  labels_mask     Labels of reclassification mask
+#' @return function to be applied for reclassification
 .reclassify_fn_expr <- function(rules, labels_cube, labels_mask) {
     # Check if rules are named
     if (!all(.has_name(rules))) {
@@ -156,8 +180,10 @@
             values[result] <- label
         }
         # Get values as numeric
-        values <- matrix(data = labels_code[match(values, labels)],
-                         nrow = input_pixels)
+        values <- matrix(
+            data = labels_code[match(values, labels)],
+            nrow = input_pixels
+        )
         # Mask NA values
         values[is.na(env[["mask"]])] <- NA
         # Are the results consistent with the data input?

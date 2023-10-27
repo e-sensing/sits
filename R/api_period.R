@@ -14,14 +14,14 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' .period_check("P16D") # valid
-#' .period_check("P1M10D") # error: invalid period format
-#' .period_val("P16D") # 16
-#' .period_val("P2M") # 2
-#' .period_val("P1Y") # 1
-#' .period_unit("P16D") # day
-#' .period_unit("P2M") # month
-#' .period_unit("P1Y") # year
+#'     .period_check("P16D") # valid
+#'     .period_check("P1M10D") # error: invalid period format
+#'     .period_val("P16D") # 16
+#'     .period_val("P2M") # 2
+#'     .period_val("P1Y") # 1
+#'     .period_unit("P16D") # day
+#'     .period_unit("P2M") # month
+#'     .period_unit("P1Y") # year
 #' }
 #'
 #' @family data types

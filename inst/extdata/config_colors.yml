@@ -1,102 +1,400 @@
 # Default Palette includes:
 # Most classes of the "Brazilian Vegetation Manual" (IBGE,2001)
-# IPCC AFOLU, TerraClass project, IGBP Discover, Copernicus Global Land Cover
+# IPCC AFOLU, PRODES, TerraClass project, IGBP Discover, Copernicus Global Land Cover
 
 # Source https://htmlcolorcodes.com/color-chart/flat-design-color-chart/
+# Colours partially adapted for Africa Standardized Terrestrial Ecosystems
+# and 1970 U.S. Vegetation Map
+#
+class_schemes:
+    legends: ["IGBP", "UMD", "ESA_CCI_LC", "WORLDCOVER", "PRODES",
+              "PRODES_VISUAL", "TERRA_CLASS", "TERRA_CLASS_PT"]
+
+    IGBP: [ "Evergreen_Broadleaf_Forests", "Deciduous_Broadleaf_Forests",
+           "Evergreen_Needleleaf_Forests", "Deciduous_Needleleaf_Forests",
+           "Closed_Shrublands", "Open_Shrublands",
+           "Woody_Savannas", "Savannas", "Grasslands",
+           "Permanent_Wetlands", "Croplands", "Urban_Builtup_Lands",
+           "Cropland_Vegetation_Mosaics", "Permanent_Snow_Ice",
+           "Barren", "Water_Bodies"]
+
+# IBGP Classification
+# (1) Evergreen Needleleaf Forests: dominated by evergreen conifer trees (canopy >2m).
+#     Tree cover >60%.
+# (2) Evergreen Broadleaf Forests: dominated by evergreen broadleaf and palmate
+#     trees (canopy >2m). Tree cover >60%.
+# (3) Deciduous Needleleaf Forests: dominated by deciduous needleleaf (larch)
+#     trees (canopy >2m). Tree cover >60%.
+# (4) Deciduous Broadleaf Forests: dominated by deciduous
+#     broadleaf trees (canopy >2m). Tree cover >60%.
+# (5) Mixed Forests: dominated by neither deciduous nor evergreen
+#     (40-60% of each) tree type (canopy >2m). Tree cover >60%.
+# (6) Closed Shrublands: dominated by woody perennials (1-2m height) >60% cover.
+# (7) Open Shrublands: dominated by woody perennials (1-2m height) 10-60% cover.
+# (8) Woody Savannas: tree cover 30-60% (canopy >2m).
+# (9) Savannas: tree cover 10-30% (canopy >2m).
+# (10) Grasslands: dominated by herbaceous annuals (<2m).
+# (11) Permanent Wetlands: permanently inundated lands with 30-60% water cover and >10% vegetated cover.
+# (12) Croplands: at least 60% of area is cultivated cropland.
+# (13) Urban and Built-up Lands: at least 30% impervious surface area including building materials, asphalt and vehicles.
+# (14) Cropland/Natural Vegetation Mosaics: mosaics of small-scale cultivation 40-60% with natural tree, shrub, or herbaceous vegetation.
+# (15) Permanent Snow and Ice: at least 60% of area is covered by snow and ice for at least 10 months of the year.
+# (16) Barren: at least 60% of area is non-vegetated barren (sand, rock, soil) areas with less than 10% vegetation.
+# (17) Water Bodies: at least 60% of area is covered by permanent water bodies.
+#
+    UMD: [ "Evergreen_Broadleaf_Forests",
+           "Deciduous_Broadleaf_Forests",
+           "Mixed_Forests",
+           "Evergreen_Needleleaf_Forests",
+           "Deciduous_Needleleaf_Forests",
+           "Woody_Savannas", "Savannas", "Grasslands",
+           "Closed_Shrublands", "Open_Shrublands",
+           "Croplands", "Cropland_Vegetation_Mosaics",
+           "Non_Vegetated_Lands",
+           "Permanent_Wetlands", "Water_Bodies",
+           "Urban_Builtup_Lands"]
+
+# UMD Classification
+# (1) Water Bodies: at least 60% of area is covered by permanent water bodies.
+# (2) Evergreen Needleleaf Forests: dominated by evergreen conifer trees (canopy >2m). Tree cover >60%.
+# (3) Evergreen Broadleaf Forests: dominated by evergreen broadleaf and palmate trees (canopy >2m). Tree cover >60%.
+# (4) Deciduous Needleleaf Forests: dominated by deciduous needleleaf (larch) trees (canopy >2m). Tree cover >60%.
+# (5) Deciduous Broadleaf Forests: dominated by deciduous broadleaf trees (canopy >2m). Tree cover >60%.
+# (6)  Mixed Forests: dominated by neither deciduous nor evergreen (40-60% of each) tree type (canopy >2m). Tree cover >60%.
+# (7)  Closed Shrublands: dominated by woody perennials (1-2m height) >60% cover.
+# (8)  Open Shrublands: dominated by woody perennials (1-2m height) 10-60% cover.
+# (9)  Woody Savannas: tree cover 30-60% (canopy >2m).
+# (10) Savannas: tree cover 10-30% (canopy >2m).
+# (11) Grasslands: dominated by herbaceous annuals (<2m).
+# (12) Permanent Wetlands: permanently inundated lands with 30-60% water cover and >10% vegetated cover.
+# (13) Croplands: at least 60% of area is cultivated cropland.
+# (14) Urban and Built-up Lands: at least 30% impervious surface area including building materials, asphalt and vehicles.
+# (15)	Cropland/Natural Vegetation Mosaics: mosaics of small-scale cultivation 40-60% with natural tree, shrub, or herbaceous vegetation.
+# (16) Non-Vegetated Lands: at least 60% of area is non-vegetated barren (sand, rock, soil) or permanent snow and ice with less than 10% vegetation.
+
+    ESA_CCI_LC: ["Tree_Cover_Broadleaved_Evergreen",
+                 "Tree_Cover_Broadleaved_Decidous",
+                 "Tree_Cover_Mixed_Leaf",
+                 "Tree_Cover_Neddleleaved_Evergreen",
+                 "Tree_Cover_Neddleleaved_Deciduous",
+                 "Tree_Cover_Flooded_Fresh_Water",
+                 "Shrub_Herbaceous_Cover_Flooded",
+                 "Tree_Cover_Flooded_Saline_Water",
+                 "Mosaic_Cropland_Vegetation",
+                 "Mosaic_Vegetation_Cropland",
+                 "Mosaic_Tree_Shrub_Herbaceous",
+                 "Mosaic_Herbaceous_Tree_Shrub",
+                 "Shrubland", "Grassland",
+                 "Cropland_Rainfed", "Cropland_Irrigated",
+                 "Lichens_Mosses", "Sparse_Vegetation",
+                 "Urban_Area", "Bare_Area", "Water_Bodies",
+                 "Permanent_Snow_Ice", "No_Data"]
+
+# ESA-CCI-LC Classification
+# (1) No Data
+# (10) Cropland, rainfed
+# (20) Cropland, irrigated or post‐flooding
+# (30) Mosaic cropland (>50%) / natural vegetation
+#      (tree, shrub, herbaceous cover) (<50%)
+# (40) Mosaic natural vegetation (tree, shrub, herbaceous cover) (>50%) /
+#      cropland (<50%)
+# (50) Tree cover, broadleaved, evergreen, closed to open (>15%)
+# (60) Tree cover, broadleaved, deciduous, closed to open (>15%)
+# (70) Tree cover, needleleaved, evergreen, closed to open (>15%)
+# (80) Tree cover, needleleaved, deciduous, closed to open (>15%)
+# (90) Tree cover, mixed leaf type (broadleaved and needleleaved)
+# (100) Mosaic tree and shrub (>50%) / herbaceous cover (<50%)
+# (110) Mosaic herbaceous cover (>50%) / tree and shrub (<50%)
+# (120) Shrubland
+# (130) Grassland
+# (140) Lichens and mosses
+# (150) Sparse vegetation (tree, shrub, herbaceous cover) (<15%)
+# (160) Tree cover, flooded, fresh or brakish water
+# (170) Tree cover, flooded, saline water
+# (180) Shrub or herbaceous cover, flooded, fresh/saline/brakish water
+# (190) Urban area
+# (200) Bare area
+# (210) Water bodies
+# (220) Permanent snow and ice
+#
+    WORLDCOVER: ["Tree_Cover", "Shrubland", "Grassland", "Cropland",
+                 "Builtup", "Bare_Sparse_Vegetation", "Snow_and_Ice",
+                 "Permanent_Water_Bodies", "Herbaceous_Wetland",
+                 "Mangroves", "Moss_and_Lichen"]
+
+
+# WorldCover - ESA 10 meter map
+
+# (10)	Tree cover	LCCS - A12A3 // A11A1 A24A3C1(C2)- R1(R2)
+#       This class includes any geographic area dominated by trees with a cover
+#       of 10% or more. Other land cover classes (shrubs and/or herbs in the
+#       understorey, built-up, permanent water bodies, …) can be present
+#       below the canopy, even with a density higher than trees. Areas planted
+#       with trees for afforestation purposes and plantations (e.g. oil palm,
+#       olive trees) are included in this class. This class also includes tree
+#       covered areas seasonally or permanently flooded with
+#       fresh water except for mangroves.
+# (20)	Shrubland	LCCS - A12A4 // A11A2
+#    	This class includes any geographic area dominated by natural shrubs
+#    	having a cover of 10% or more. Shrubs are defined as woody perennial
+#    	plants with persistent and woody stems and without any defined main
+#    	stem being less than 5 m tall. Trees can be present in scattered form
+#    	if their cover is less than 10%. Herbaceous plants can also be present
+#    	at any density. The shrub foliage can be either
+#    	evergreen or deciduous.
+# (30)	Grassland	LCCS- A12A2
+#       This class includes any geographic area dominated by natural
+#       herbaceous plants (Plants without persistent stem or shoots above
+#       ground and lacking definite firm structure): (grasslands, prairies,
+#       steppes, savannahs, pastures) with a cover of 10% or more,
+#       irrespective of different human and/or animal activities,
+#       such as: grazing, selective fire management etc.
+#       Woody plants (trees and/or shrubs) can be present assuming their
+#       cover is less than 10%. It may also contain uncultivated c
+#       ropland areas (without harvest/ bare soil period) in the reference year.
+# (40)	Cropland	LCCS - A11A3(A4)(A5) // A23
+#       Land covered with annual cropland that is sowed/planted and harvestable
+#       at least once within the 12 months after the sowing/planting date.
+#       The annual cropland produces an herbaceous cover and is sometimes
+#       combined with some tree or woody vegetation.
+#       Note that perennial woody crops will be classified as the appropriate
+#       tree cover or shrub land cover type. Greenhouses are
+#       considered as built-up.
+# (50)	Built-up	LCCS - B15A1	Land covered by buildings, roads and
+#       other man-made structures such as railroads. Buildings include both
+#       residential and industrial building. Urban green (parks,
+#       sport facilities) is not included in this class. Waste dump deposits
+#       and extraction sites are considered as bare.
+# (60)	Bare / sparse vegetation	LCCS - B16A1(A2) // B15A2
+#       Lands with exposed soil, sand, or rocks and never has more than 10%
+#       vegetated cover during any time of the year
+# (70)	Snow and Ice	LCCS - B28A2(A3)
+#       This class includes any geographic area covered by
+#       snow or glaciers persistently
+# (80)	Permanent water bodies	LCCS - B28A1(B1) // B27A1(B1)
+#       This class includes any geographic area covered for most of the year
+#       (more than 9 months) by water bodies: lakes, reservoirs, and rivers.
+#       Can be either fresh or salt-water bodies. In some cases the water
+#       can be frozen for part of the year (less than 9 months).
+# (90)	Herbaceous wetland	LCCS - A24A2	Land dominated by natural herbaceous
+#       vegetation (cover of 10% or more) that is permanently or regularly
+#       flooded by fresh, brackish or salt water.
+#       It excludes unvegetated sediment (see 60), swamp forests (classified as
+#       tree cover) and mangroves.
+# (95)	Mangroves	LCCS - A24A3C5-R3	Taxonomically diverse,
+#       salt-tolerant tree and other plant species which thrive in
+#       intertidal zones of sheltered tropical shores,
+#       "overwash" islands, and estuaries.
+# (100)	Moss and lichen	LCCS - A12A7	Land covered with lichens and/or mosses.
+#       Lichens are composite organisms formed from the symbiotic association
+#       of fungi and algae. Mosses contain photo-autotrophic land plants without
+#       true leaves, stems, roots but with leaf-and stemlike organs.
+
+
+    PRODES: ["Forest", "Mountainside_Forest", "Riparian_Forest",
+             "Seasonally_Flooded", "Secondary_Vegetation", "Degradation",
+             "Deforestation_Mask", "Clear_Cut_Trees", "Clear_Cut_Vegetation",
+             "Clear_Cut_Bare_Soil", "Clear_Cut_Burned_Area",
+             "Water", "Wetland", "Natural_Non_Forested",
+             "Urban_Area", "Cropland", "Pasture",
+             "Cerradao", "Cerrado", "Campo_Cerrado"]
+
+    PRODES_VISUAL: ["Floresta", "Hidrografia", "Nao Floresta", "Nao Floresta2",
+                    "d2007", "d2008", "d2009", "d2010", "d2011", "d2012",
+                    "d2013", "d2014", "d2015", "d2016", "d2017", "d2018",
+                    "d2019", "d2020", "d2021",
+                    "r2007", "r2008", "r2009", "r2010", "r2011", "r2012",
+                    "r2013", "r2014", "r2015", "r2016", "r2017", "r2018",
+                    "r2019", "r2020", "r2021", "Nuvem 2021"]
+
+    TERRA_CLASS: ["Forest", "Secondary_Vegetation","Degradation",
+                  "Planted_Forest","Cerradao", "Cerrado",
+                  "Campo_Cerrado", "Caatinga",
+                  "Open_Shrubland", "Closed_Shrubland",
+                  "Shrubby_Pasture", "Herbaceous_Pasture",
+                  "Cropland_1_cycle", "Cropland_2_cycles",
+                  "Semi_Perennial_Crop", "Perennial_Crop",
+                   "Mining", "Water", "Wetland", "Urban_Area"]
+
+    TERRA_CLASS_PT: ["VEGETACAO NATURAL FLORESTAL PRIMARIA",
+                        "VEGETACAO NATURAL FLORESTAL SECUNDARIA",
+                        "SILVICULTURA", "PASTAGEM ARBUSTIVA ARBOREA",
+                        "PASTAGEM HERBACEA", "CULTURA AGRICOLA PERENE",
+                        "CULTURA AGRICOLA SEMIPERENE",
+                        "CULTURA AGRICOLA TEMPORARIA DE 1 CICLO",
+                        "CULTURA AGRICOLA TEMPORARIA DE MAIS DE 1 CICLO",
+                        "MINERACAO", "URBANIZADA", "OUTROS USOS",
+                        "DESFLORESTAMENTO NO ANO", "CORPO DAGUA",
+                        "NAO OBSERVADO", "NAO FLORESTA"]
 
 colors:
-    Tropical_Forest:
-        # Based on "nephritis" palette of Flat Design Color Chart
-        Evergreen_Broadleaf_Forest  : &forest "#1E8449"
+        # Oak-hickory-pine forest in US Veg Map
+        Evergreen_Broadleaf_Forest   : &forest "#518940"
+        Evergreen_Broadleaf_Forests  : *forest
+        Tree_Cover_Broadleaved_Evergreen: *forest
+
         # Forest
         Forest                      : *forest
+        Forests                     : *forest
         Closed_Forest               : *forest
-        # Dense Woodlands and similar
-        Woodland                    : &woodlands "#27AE60"
-        Dense_Woodland              : *woodlands
-        Woody_Savanna               : *woodlands
-        Open_Forest                 : *woodlands
-        Cerradao                    : *woodlands
+        Closed_Forests              : *forest
+        Mountainside_Forest         : &msf "#229C59"
+        Mountainside_Forests        : *msf
         # Mixed Forest
-        Mixed_Forest                : *woodlands
-        Sparse_Forest               : *woodlands
+        # Southern mixed forest in US Veg Map
+        Open_Forest                 : &openforest "#53A145"
+        Open_Forests                : *openforest
+        Sparse_Forest               : *openforest
+        Sparse_Forests              : *openforest
+        Tree_Cover                  : *openforest
+        # Southern floodplain forest in US Veg Map "#8FADB1"
+        Riparian_Forest             : &riparian_forest "#00B29E"
+        Riparian_Forests            : *riparian_forest
+        #
 
-    Savanna:
+        # Dense Woodlands and similar
+        # Oak-hickory forest in US Veg Map
+        Woodland                    : &woodlands "#91AC41"
+        Woodlands                   : *woodlands
+        Dense_Woodland              : *woodlands
+        Dense_Woodlands             : *woodlands
+        Woody_Savanna               : *woodlands
+        Woody_Savannas              : *woodlands
+        Cerradao                    : *woodlands
+
+        # Caatinga and decidous tropical forest
+        Caatinga                    : &caatinga "#94C293"
+        Deciduous_Forest            : *caatinga
+        Deciduous_Forests           : *caatinga
+        Tree_Cover_Broadleaved_Decidous: *caatinga
+        Deciduous_Broadleaf_Forest   : *caatinga
+        Deciduous_Broadleaf_Forests   : *caatinga
+
+        # Silviculture and Planted Forest
+        # Northern hardwood
+        Planted_Forest              : &planted_forest "#76E0B9" # "#59D5A5"
+        Planted_Forests             : *planted_forest
+        Silviculture                : *planted_forest
+
+        # Temperate Forests
+        # Great lakes pine forest in US Veg Map
+        Evergreen_Needleleaf_Forest  : &enf "#20D6BC"
+        Evergreen_Needleleaf_Forests : *enf
+        Tree_Cover_Neddleleaved_Evergreen: *enf
+        # Great lakes spruce-fir forest
+        Deciduous_Needleleaf_Forest  : &dnf "#ABE3DB"
+        Deciduous_Needleleaf_Forests  : *dnf
+        Tree_Cover_Neddleleaved_Deciduous: *dnf
+        # Pine-douglas fir forest
+        Mixed_Forest                : &mixedforest "#4FC78E"
+        Mixed_Forests               : *mixedforest
+        Tree_Cover_Mixed_Leaf       : *mixedforest
+
         # Savanna and Cerrado
-        # Based on "emerald" palette of Flat Design Color Chart
-        Savanna                     : &savanna "#58D68D"
+        # Bluestem praire in US Veg Map
+        Savanna                     : &savanna "#a2d43f"
+        Savannas                    : *savanna
         Wooded_Grassland            : *savanna
         Cerrado_Strictu_Sensu       : *savanna
         Cerrado                     : *savanna
-        Campo_Cerrado               : &campo_cerrado "#ABEBC6"
+        # Wheatgrass-bluestem-needlegrass
+        Campo_Cerrado               : &campo_cerrado "#c5ed42"
         Savanna_Parkland            : *campo_cerrado
         Open_Cerrado                : *campo_cerrado
 
-    Deciduous_Tropical_Forests:
-        # Caatinga and decidous tropical forest
-        # Based on "green sea" palette of Flat Design Color Chart
-        Caatinga                    : &caatinga "#A2D9CE"
-        Deciduous_Forest            : *caatinga
-
-    Planted_Forest:
-        # Silviculture and Planted Forest
-        # Based on "green sea" palette of Flat Design Color Chart
-        Planted_Forest              : &planted_forest "#45B39D"
-        Silviculture                : *planted_forest
-        # Secondary Vegetation
-        # Based on "turqouise" palette from Flat Design Color Chart
-        Secondary_Vegetation        : "#48C9B0"
-
-    Boreal_Temperate_Forests:
-        # Based on "turquoise" palette of Flat Design Color Chart
-        Evergreen_Needleleaf_Forest  : &enf "#1ABC9C"
-        Deciduous_Needleleaf_Forest  : &dnf "#76D7C4"
-        Deciduous_Broadleaf_Forest   : &dnf "#A3E4D7"
-
-    Grassland:
-        # Based on "sunflower" palette of Flat Design Color Chart
-        Grassland                   : &grassland "#F7DC6F"
+        # Grasslands and similar
+        # California steppe
+        Grassland                   : &grassland "#f6cc41"
+        Grasslands                  : *grassland
         Steppe                      : *grassland
         Natural_Herbaceous          : *grassland
         # Pasture is a special case
-        # based on "green sea" palette of Flat Design Color Chart
-        Pasture                     : &pasture "#FCF3CF"
+        # Grama-buffalo grass
+        Pasture                     : &pasture "#FAD12D"
         Dense_Herbaceous            : *pasture
         Herbaceous_Vegetation       : *pasture
+        Herbaceous_Pasture          : *pasture
+        Shrubby_Pasture             : &shrubby_pasture "#C7A723"
 
-    Shrubland:
-        # Based on "orange" palette of Flat Design Color Chart
-        Closed_Shrubland            : &closed_shrubland "#F39C12"
+
+        # Shrublands
+        # Based on "pumpkin" palette of Flat Design Color Chart
+        Closed_Shrubland            : &closed_shrubland "#C7BB3A"
+        Closed_Shrublands           : *closed_shrubland
         Wooded_Shrubland            : *closed_shrubland
         Dense_Shrubland             : *closed_shrubland
-        Shrubland                   : &shrubland "#F8C471"
+        Shrubland                   : &shrubland "#D0C97B"
+        Shrublands                  : *shrubland
         Open_Shrubland              : *shrubland
+        Open_Shrublands             : *shrubland
         Sparse_Shrubland            : *shrubland
         Rocky_Savanna               : *shrubland
 
-    Barren:
+        # Barren and Sparse Vegetation
         # Based on "orange" palette of Flat Design Color Chart
-        Barren                      : &barren "#FDEBD0"
-        Sparsely_Vegetated          : *barren
-        Natural_Non_Forested        : *barren
-        Nat_NonVeg                  : *barren
-        Natural_Non_Vegetated       : *barren
+        Barren                      : &barren "#F4D7D6"
+        Bare_Area                   : *barren
+        Bare_Sparse_Vegetation      : &sparse_veg "#DBEBD8"
+        Sparsely_Vegetated          : *sparse_veg
+        Sparse_Vegetation           : *sparse_veg
+        Natural_Non_Vegetated       : *sparse_veg
+        Non_Vegetated_Lands         : *sparse_veg
         Dunes                       : "#FEF9E7"
 
-    Cropland:
+        # Mosaic classes
+        Forest_Cropland_Mosaic     : &mosaic_1 "#949216"
+        Mosaic_Vegetation_Cropland : *mosaic_1
+
+
+        Cropland_Natural_Vegetation: &mosaic_2 "#A6A44B"
+        Cropland_Vegetation_Mosaics: *mosaic_2
+        Mosaic_Cropland_Vegetation:  *mosaic_2
+
+        Mosaic_Tree_Shrub_Herbaceous: "#E0DD22"
+        Mosaic_Herbaceous_Tree_Shrub: "#D1D0A3"
+
+        # Tundra
+        Lichens_Mosses              : &moss "#E8DAEF"
+        Moss_Lichen                 : *moss
+        Moss_and_Lichen             : *moss
+
+        # Flooded_trees and mangroves
+        Mangrove                    : &mangrove "#8BD5E0"
+        Mangroves                   : *mangrove
+        Tree_Cover_Flooded_Saline_Water: *mangrove
+        Seasonally_Flooded          : &flooded "#3ABABA"
+        Tree_Cover_Flooded_Fresh_Water: *flooded
+        Herbaceous_Wetland          : *flooded
+        Shrub_Herbaceous_Cover_Flooded: "#7CF4FA"
+
+        # Water and Wetlands
+        # Based on "belize hole" palette from Flat Design Color Chart
+        Water                       :  &water "#5F9ABD"
+        Water_Bodies                :  *water
+        Permanent_Water_Bodies      :  *water
+        Wetland                     :  &wetlands "#A0B9C8" # "#86C6D1"
+        Wetlands                    :  *wetlands
+        Permanent_Wetland           :  *wetlands
+        Permanent_Wetlands          :  *wetlands
+
+        # Croplands
         # Based on "carrot" palette from Flat Design Color Chart
         Cropland                    : &cropland "#F0B27A"
+        Croplands                   : *cropland
         Temporary_Crop              : *cropland
         Temporary_Agriculture       : *cropland
-        Agriculture_1_cycle         : *cropland
-        Cropland_1_cycle            : *cropland
-        Agriculture_2_cycle         : &ag_2_cycle "#EB984E"
-        Cropland_2_cycle            : *ag_2_cycle
+        Agriculture_1_cycle         : &ag_1_cycle "#EAC5A8"
+        Cropland_1_cycle            : *ag_1_cycle
+        Agriculture_2_cycles        : &ag_2_cycle  "#E69A60"
+        Cropland_2_cycles           : *ag_2_cycle
         Semi_Perennial_Crop         : &semi_perennial_crop "#E67E22"
+        # This is from ESA
+        Cropland_Rainfed            : *ag_1_cycle
+        Cropland_Irrigated          : *ag_2_cycle
         # Sugarcane is semi perennial crop
         Sugarcane                   : *semi_perennial_crop
         Perennial_Crop              : &perennial_crop "#CA6F1E"
-        Perennial_Agriculture.      : *perennial_crop
+        Perennial_Agriculture       : *perennial_crop
         Annual_Crop                 : *perennial_crop
         # Coffee is perennial agriculture
         Coffee                      : *perennial_crop
@@ -128,54 +426,119 @@ colors:
         # Based on "turquoise" palette of Flat Design Color Chart
         Rice                        : "#FBEEE6"
 
-    Mosaic:
-        # Mosaic classes use color 2 of "YlGn-9" Brewer palette
-        Forest_Cropland_Mosaic     : "#F7FCB9"
-        Cropland_Natural_Vegetation: "#F7FCB9"
 
-    Wetland:
-        # Based on "belize hole" palette from Flat Design Color Chart
-        Water                       : "#2980B9"
-        Wetland                     :  &wetlands "#7FB3D5"
-        Permanent_Wetland           :  *wetlands
-        # Based on "peter river" palette from Flat Design Color Chart
-        Mangrove                    : "#D4E6F1"
 
-    Deforestation:
-
+        # Deforestation - PRODES and DETER
+        # Secondary Vegetation
+        # Beech-maple forest
+        Secondary_Vegetation        : &sec_vec "#40C772"
         # Deforestation, Degradation, Mining
-        # Based on "Alizarin" palette from Flat Design Color Chart
-        Deforestation               : &deforestation "#FDEDEC"
-        Deforestation_Mask          : *deforestation
-        Degradation                 : "#F5B7B1"
+        # Based on "Alizarin" palette from Flat Design Color Chart "#afc97f"
+        Degradation                 : &degradation "#94B396" #"B8750B" # "#9BE1B5"
+        Degraded_Forest             : *degradation
         # PRODES
         # Based on "Alizarin" palette from Flat Design Color Chart
-        Burned_Area                 : &burned_area "#EC7063"
-        ClearCut_Burn               : *burned_area
-        # Based on "sunflower" palette of Flat Design Color Chart
-        Cleared_Area                : &clear_cut_soil "#F1C40F"
-        ClearCut_Soil               : *clear_cut_soil
+        Burned_Area                  : &burned_area "#D67B73"
+        Clear_Cut_Burn               : *burned_area
+        Clear_Cut_Burned_Area        : *burned_area
+        # Color 52 - grama-tobosa shrubsteppe
+        Cleared_Area                : &clear_cut_soil "#D7C49C" # "#CCCBAB" #
+        Clear_Cut_Soil              : *clear_cut_soil
+        Clear_Cut_Bare_Soil         : *clear_cut_soil
         Bare_Soil                   : *clear_cut_soil
         # Based on "nephritis" palette of Flat Design Color Chart
-        Highly_Degraded             : &clear_cut_deg "#D4EFDF"
-        ClearCut_Veg                : *clear_cut_deg
+        Highly_Degraded             : &clear_cut_deg "#BFD9BD"
+        Clear_Cut_Veg               : *clear_cut_deg
+        Clear_Cut_Vegetation        : "#D8DA83"
+        Clear_Cut_Trees             : "#B4B56D" # "#91D990"
         # Based on "amethyst" palette from Flat Design Color Chart
-        Mining                      : "#C39BD3"
+        Mining                      : &mining "#CEB4D4"
+        # Deforestation_Mask #FDEBD0 "#C9D6AE"
+        Deforestation               : &deforestation  "#DBE6DA"
+        Deforestation_Mask          : *deforestation
         # Based on "silver" palette from Flat Design Color Chart
-        Non_Forest                  : "#BDC3C7"
-    Urban:
-        # Based on "wet asphalt" palette from Flat Design Color Chart
-        Urban_Area                  : "#85929E"
+        Non_Forest                  : &non_forest "#C0D665"
+        Natural_Non_Forested        : *non_forest
 
-    Snow_Ice:
+        # Urban Areas
+        # Based on "wet asphalt" palette from Flat Design Color Chart
+        Urban_Area                  : &urban "#B2B0B8"
+        Urban_Builtup_Lands         : *urban
+        Builtup                     : *urban
+
+        # Snow and Ice
         # Based on "asbestos" palette from Flat Design Color Chart
         Snow_Ice                    : &snow "#E5E8E8"
+        Permanent_Snow_Ice          : *snow
+        Snow_and_Ice                : *snow
 
-    Others:
-        # No Class uses "silver" palette from Flat Design Color Chart
+        # Others
+        # uses "silver" palette from Flat Design Color Chart
         No_Class                    : &no_class "#F2F3F4"
-        No_Samples                  : *no_class
+        No_Data                     : *no_class
         Unclassified                : *no_class
         # Cloud uses "cloud" palette from Flat Design Color Chart
         Cloud                       : &cloud "#D0D3D4"
 
+        # Color names in Portuguese
+        CorteRaso_SoloExposto       : *clear_cut_soil
+        CorteRaso_Queimada          : *burned_area
+        Floresta                    : *forest
+        Regeneração                 : *sec_vec
+
+        # PRODES Analogico
+        Hidrografia                 : *water
+        "Nao Floresta"              : *non_forest
+        "Nao Floresta2"             : *non_forest
+        NonForest                   : *non_forest
+        NonForest2                  : *non_forest
+        d2007                       : "#f8f4ea"
+        d2008                       : "#f2e9d5"
+        d2009                       : "#ecdec0"
+        d2010                       : "#e6d3ab"
+        d2011                       : "#e0c896"
+        d2012                       : "#dabd82"
+        d2013                       : "#d4b26d"
+        d2014                       : "#cea758"
+        d2015                       : "#c89c43"
+        d2016                       : "#bb8e36"
+        d2017                       : "#a67e30"
+        d2018                       : "#916e2a"
+        d2019                       : "#7c5f24"
+        d2020                       : "#684f1e"
+        d2021                       : "#533f18"
+        r2007                       : &residue "#F2D5CE"
+        r2008                       : *residue
+        r2009                       : *residue
+        r2010                       : *residue
+        r2011                       : *residue
+        r2012                       : *residue
+        r2013                       : *residue
+        r2014                       : *residue
+        r2015                       : *residue
+        r2016                       : *residue
+        r2017                       : *residue
+        r2018                       : *residue
+        r2019                       : *residue
+        r2020                       : *residue
+        r2021                       : *residue
+        "Nuvem 2021"                : *cloud
+        Clouds2021                  : *cloud
+
+        # TerraClass-Amazonia
+        'VEGETACAO NATURAL FLORESTAL PRIMARIA'   : *forest
+        'VEGETACAO NATURAL FLORESTAL SECUNDARIA' : *sec_vec
+        'SILVICULTURA'               : *planted_forest
+        'PASTAGEM ARBUSTIVA ARBOREA' : *shrubby_pasture
+        'PASTAGEM HERBACEA'          : *pasture
+        'CULTURA AGRICOLA PERENE'    : *perennial_crop
+        'CULTURA AGRICOLA SEMIPERENE': *semi_perennial_crop
+        'CULTURA AGRICOLA TEMPORARIA DE 1 CICLO': *ag_1_cycle
+        'CULTURA AGRICOLA TEMPORARIA DE MAIS DE 1 CICLO' : *ag_2_cycle
+        'MINERACAO'                  : *mining
+        'URBANIZADA'                 : *urban
+        'OUTROS USOS'                : *no_class
+        'DESFLORESTAMENTO NO ANO'    : *deforestation
+        'CORPO DAGUA'                : *water
+        'NAO OBSERVADO'              : *no_class
+        'NAO FLORESTA'               : *non_forest
