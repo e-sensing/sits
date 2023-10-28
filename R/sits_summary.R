@@ -2,6 +2,7 @@
 #' @method summary sits
 #' @name summary.sits
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Souza, \email{felipe.souza@@inpe.br}
 #' @description This is a generic function. Parameters depend on the specific
 #' type of input.
 #'
@@ -112,6 +113,7 @@ summary.sits_area_accuracy <- function(object, ...) {
 #' @method summary raster_cube
 #' @name summary.raster_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Souza, \email{felipe.souza@@inpe.br}
 #' @description This is a generic function. Parameters depend on the specific
 #' type of input.
 #'
@@ -190,6 +192,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
     return(invisible(sum))
 }
 #' @title Summary of a derived cube
+#' @author Felipe Souza, \email{felipe.souza@@inpe.br}
 #' @noRd
 #' @param object data cube
 #' @param  ...         Further specifications for \link{summary}.

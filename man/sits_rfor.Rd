@@ -29,12 +29,8 @@ Model fitted to input data
 }
 \description{
 Use Random Forest algorithm to classify samples.
-This function is a front-end to the "randomForest" package.
+This function is a front-end to the \code{randomForest} package.
 Please refer to the documentation in that package for more details.
-}
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
 if (sits_run_examples()) {

@@ -6,18 +6,20 @@
 #' sits. They provide support from creating a dendrogram and using it for
 #' cleaning samples.
 #'
-#' \code{sits_cluster_dendro()} takes a tibble containing time series and
+#' \code{link[sits]{sits_cluster_dendro()}} takes a tibble with time series and
 #' produces a sits tibble with an added "cluster" column. The function first
 #' calculates a dendrogram and obtains a validity index for best clustering
 #' using the adjusted Rand Index. After cutting the dendrogram using the chosen
 #' validity index, it assigns a cluster to each sample.
 #'
-#' \code{sits_cluster_frequency()} computes the contingency table between labels
+#' \code{link[sits]{sits_cluster_frequency()}} computes the contingency
+#' table between labels
 #' and clusters and produces a matrix.
-#' It needs as input a tibble produced by \code{sits_cluster_dendro()}.
+#' Its input is a tibble produced by \code{link[sits]{sits_cluster_dendro()}}.
 #'
-#' \code{sits_cluster_clean()} takes a tibble with time series
-#' that has an additional `cluster` produced by \code{sits_cluster_dendro()}
+#' \code{link[sits]{sits_cluster_clean()}} takes a tibble with time series
+#' that has an additional `cluster` produced by
+#' \code{link[sits]{sits_cluster_dendro()}}
 #' and removes labels that are minority in each cluster.
 #'
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
@@ -155,7 +157,7 @@ sits_cluster_dendro.default <- function(samples, ...) {
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @param samples         Tibble with input set of time series with additional
 #'                        cluster information produced
-#'                        by \code{sits::sits_cluster_dendro}.
+#'                        by \code{link[sits]{sits_cluster_dendro}}.
 #' @return                A matrix containing frequencies
 #'                        of labels in clusters.
 #' @examples
@@ -185,12 +187,13 @@ sits_cluster_frequency <- function(samples) {
 #' @name sits_cluster_clean
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description Takes a tibble with time series
-#' that has an additional `cluster` produced by \code{sits_cluster_dendro()}
+#' that has an additional `cluster` produced by
+#' \code{link[sits]{sits_cluster_dendro()}}
 #' and removes labels that are minority in each cluster.
 #'
 #' @param samples         Tibble with set of time series with additional
 #'                        cluster information produced
-#'                        by \code{sits::sits_cluster_dendro()} (class "sits")
+#'                        by \code{link[sits]{sits_cluster_dendro()}}
 #' @return                Tibble with time series (class "sits")
 #' @examples
 #' if (sits_run_examples()) {

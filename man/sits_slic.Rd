@@ -24,11 +24,11 @@ supercells' centers.}
 \item{compactness}{A compactness value. Larger values cause clusters to
 be more compact/even (square).}
 
-\item{dist_fun}{Distance function. Currently implemented: "euclidean",
-"jsd", "dtw", and any distance function from the
+\item{dist_fun}{Distance function. Currently implemented:
+\code{euclidean, jsd, dtw},
+and any distance function from the
 \code{philentropy} package.
-See \code{philentropy::getDistMethods()}.
-Default: "dtw"}
+See \code{philentropy::getDistMethods()}.}
 
 \item{avg_fun}{Averaging function to calculate the values
 of the supercells' centers.
@@ -47,7 +47,7 @@ Default: "median"}
 Set of segments for a single tile
 }
 \description{
-Apply a segmentation on a data cube based on the "supercells" package.
+Apply a segmentation on a data cube based on the \code{supercells} package.
 This is an adaptation and extension to remote sensing data of the
 SLIC superpixels algorithm proposed by Achanta et al. (2012).
 See references for more details.

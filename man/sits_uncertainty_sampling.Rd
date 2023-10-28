@@ -12,7 +12,8 @@ sits_uncertainty_sampling(
 )
 }
 \arguments{
-\item{uncert_cube}{An uncertainty cube. See \code{sits_uncertainty}.}
+\item{uncert_cube}{An uncertainty cube.
+See \code{\link[sits]{sits_uncertainty}}.}
 
 \item{n}{Number of suggested points.}
 
@@ -32,15 +33,14 @@ The function selects data points that have confused an algorithm.
 These points don't have labels and need be manually labelled by experts
 and then used to increase the classification's training set.
 
-This function is best used in the following context
-\itemize{
-   \item{1. }{Select an initial set of samples.}
-   \item{2. }{Train a machine learning model.}
-   \item{3. }{Build a data cube and classify it using the model.}
-   \item{4. }{Run a Bayesian smoothing in the resulting probability cube.}
-   \item{5. }{Create an uncertainty cube.}
-   \item{6. }{Perform uncertainty sampling.}
-}
+This function is best used in the following context:
+ 1. Select an initial set of samples.
+ 2. Train a machine learning model.
+ 3. Build a data cube and classify it using the model.
+ 4. Run a Bayesian smoothing in the resulting probability cube.
+ 5. Create an uncertainty cube.
+ 6. Perform uncertainty sampling.
+
 The Bayesian smoothing procedure will reduce the classification outliers
 and thus increase the likelihood that the resulting pixels with high
 uncertainty have meaningful information.

@@ -13,20 +13,20 @@
 #' These points don't have labels and need be manually labelled by experts
 #' and then used to increase the classification's training set.
 #'
-#' This function is best used in the following context
-#' \itemize{
-#'    \item{1. }{Select an initial set of samples.}
-#'    \item{2. }{Train a machine learning model.}
-#'    \item{3. }{Build a data cube and classify it using the model.}
-#'    \item{4. }{Run a Bayesian smoothing in the resulting probability cube.}
-#'    \item{5. }{Create an uncertainty cube.}
-#'    \item{6. }{Perform uncertainty sampling.}
-#' }
+#' This function is best used in the following context:
+#'  1. Select an initial set of samples.
+#'  2. Train a machine learning model.
+#'  3. Build a data cube and classify it using the model.
+#'  4. Run a Bayesian smoothing in the resulting probability cube.
+#'  5. Create an uncertainty cube.
+#'  6. Perform uncertainty sampling.
+#'
 #' The Bayesian smoothing procedure will reduce the classification outliers
 #' and thus increase the likelihood that the resulting pixels with high
 #' uncertainty have meaningful information.
 #'
-#' @param uncert_cube     An uncertainty cube. See \code{sits_uncertainty}.
+#' @param uncert_cube     An uncertainty cube.
+#'                        See \code{\link[sits]{sits_uncertainty}}.
 #' @param n               Number of suggested points.
 #' @param min_uncert      Minimum uncertainty value to select a sample.
 #' @param sampling_window Window size for collecting points (in pixels).
@@ -158,21 +158,20 @@ sits_uncertainty_sampling <- function(uncert_cube,
 #' this label compared to all others. The algorithm also considers a
 #' minimum distance between new labels, to minimize spatial autocorrelation
 #' effects.
+#' This function is best used in the following context:
+#'  1. Select an initial set of samples.
+#'  2. Train a machine learning model.
+#'  3. Build a data cube and classify it using the model.
+#'  4. Run a Bayesian smoothing in the resulting probability cube.
+#'  5. Perform confidence sampling.
 #'
-#' This function is best used in the following context
-#' \itemize{
-#'    \item{1. }{Select an initial set of samples.}
-#'    \item{2. }{Train a machine learning model.}
-#'    \item{3. }{Build a data cube and classify it using the model.}
-#'    \item{4. }{Run a Bayesian smoothing in the resulting probability cube.}
-#'    \item{5. }{Create an uncertainty cube.}
-#'    \item{6. }{Perform confidence sampling.}
-#' }
 #' The Bayesian smoothing procedure will reduce the classification outliers
 #' and thus increase the likelihood that the resulting pixels with provide
 #' good quality samples for each class.
 #'
-#' @param probs_cube      A probability cube. See \code{sits_classify}.
+#' @param probs_cube      A smoothed probability cube.
+#'                        See \code{\link[sits]{sits_classify}} and
+#'                        \code{\link[sits]{sits_smooth}}.
 #' @param n               Number of suggested points per class.
 #' @param min_margin      Minimum margin of confidence to select a sample
 #' @param sampling_window Window size for collecting points (in pixels).

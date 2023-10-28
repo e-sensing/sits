@@ -12,10 +12,8 @@
 #' Instead of performing an exhaustive test of all parameter combinations,
 #' it selecting them randomly. Validation is done using an independent set
 #' of samples or by a validation split.  The function returns the
-#' best hyper-parameters in a list.
-#'
-#' hyper-parameters passed to \code{params} parameter should be passed
-#' by calling \code{sits_tuning_hparams()} function.
+#' best hyper-parameters in a list. Hyper-parameters passed to \code{params}
+#' parameter should be passed by calling \code{sits_tuning_hparams()}.
 #'
 #' @references
 #'  James Bergstra, Yoshua Bengio,
@@ -170,8 +168,8 @@ sits_tuning <- function(samples,
 #' by \code{sits_tuning()} function search randomly the best parameter
 #' combination.
 #'
-#' User should pass the possible values for hyper-parameters as
-#' constant or by calling the following random functions:
+#' Users should pass the possible values for hyper-parameters as
+#' constants or by calling the following random functions:
 #'
 #' \itemize{
 #'   \item \code{uniform(min = 0, max = 1, n = 1)}: returns random numbers

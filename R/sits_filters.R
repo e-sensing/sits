@@ -6,7 +6,7 @@
 #'
 #' @description
 #'  Applies a filter to all bands, using a filter function
-#'  such as `sits_whittaker()` or `sits_sgolay()`.
+#'  such as sits_whittaker() or sits_sgolay().
 #' @examples
 #' if (sits_run_examples()) {
 #'     # Retrieve a time series with values of NDVI

@@ -149,22 +149,17 @@ They contain both the satellite image time series and their metadata.
 }
 \note{
 There are four ways of specifying data to be retrieved using the
-"samples" parameter:
-\itemize{
-\item{CSV file: }{Provide a CSV file with columns
-"longitude", "latitude", "start_date", "end_date" and "label" for
-each sample}
-\item{SHP file: }{Provide a shapefile in POINT or POLYGON geometry
+\code{samples} parameter:
+(a) CSV file: a CSV file with columns
+\code{longitude}, \code{latitude},
+\code{start_date}, \code{end_date} and \code{label} for each sample;
+(b) SHP file: a shapefile in POINT or POLYGON geometry
 containing the location of the samples and an attribute to be
-used as label. Also, provide start and end date for the time series.}
-\item{sits object: }{A sits tibble.}
-\item{sf object: }{An "sf" object with POINT or POLYGON geometry.}
-\item{data.frame: }{A data.frame with with mandatory columns
-"longitude", "latitude".}
-}
-
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
+used as label. Also, provide start and end date for the time series;
+(c) sits object: A sits tibble;
+(d) sf object: An \code{link[sf]{sf}} object with POINT or POLYGON geometry;
+(e) data.frame: A data.frame with with mandatory columns
+\code{longitude} and \code{latitude}.
 }
 \examples{
 if (sits_run_examples()) {

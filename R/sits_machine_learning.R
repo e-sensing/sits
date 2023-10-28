@@ -6,7 +6,7 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Use Random Forest algorithm to classify samples.
-#' This function is a front-end to the "randomForest" package.
+#' This function is a front-end to the \code{randomForest} package.
 #' Please refer to the documentation in that package for more details.
 #'
 #' @param samples    Time series with the training samples
@@ -23,9 +23,6 @@
 #'                   to `randomForest::randomForest` function.
 #' @return           Model fitted to input data
 #'                   (to be passed to \code{\link[sits]{sits_classify}}).
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @examples
 #' if (sits_run_examples()) {
