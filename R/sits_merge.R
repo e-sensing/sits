@@ -1,7 +1,5 @@
 #' @title Merge two data sets (time series or cubes)
-#'
 #' @name sits_merge
-#'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description To merge two series, we consider that they contain different

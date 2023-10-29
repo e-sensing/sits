@@ -21,7 +21,7 @@
 #' \code{SITS_CONFIG_USER_FILE} or as parameter to this function.
 #'
 #' To see the key entries and contents of the current configuration values,
-#' use \code{sits_config_show()}.
+#' use \code{link[sits]{sits_config_show()}}.
 #'
 #' @return Called for side effects
 #'

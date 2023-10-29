@@ -30,7 +30,7 @@ location of their file in the environmental variable
 \code{SITS_CONFIG_USER_FILE} or as parameter to this function.
 
 To see the key entries and contents of the current configuration values,
-use \code{sits_config_show()}.
+use \code{link[sits]{sits_config_show()}}.
 }
 \examples{
 yaml_user_file <- system.file("extdata/config_user_example.yml",

@@ -4,7 +4,7 @@
 #'
 #' @description Given a trained machine learning or deep learning model,
 #' exports the model as an object for further exploration outside the
-#' "sits" package
+#' \code{sits} package.
 #'
 #' @param ml_model A trained machine learning model
 #'

@@ -37,4 +37,6 @@ if (sits_run_examples()) {
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Felipe Souza, \email{felipe.souza@inpe.br}
 }

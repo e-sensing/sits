@@ -1,7 +1,5 @@
 #' @title Classify time series or data cubes
-#'
 #' @name sits_classify
-#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -10,16 +8,13 @@
 #' a trained model prediction model created by \code{\link[sits]{sits_train}}.
 #'
 #' SITS supports the following models:
-#' \itemize{
-#'  \item{support vector machines: } {see \code{\link[sits]{sits_svm}}}
-#'  \item{random forests: }          {see \code{\link[sits]{sits_rfor}}}
-#'  \item{extreme gradient boosting: } {see \code{\link[sits]{sits_xgboost}}}
-#'  \item{multi-layer perceptrons: } {see \code{\link[sits]{sits_mlp}}}
-#'  \item{1D CNN: } {see \code{\link[sits]{sits_tempcnn}}}
-#'  \item{deep residual networks:}{see \code{\link[sits]{sits_resnet}}}
-#'  \item{self-attention encoders:}{see \code{\link[sits]{sits_lighttae}}}
-#'  }
-#'
+#' (a) support vector machines:  \code{\link[sits]{sits_svm}};
+#' (b) random forests:  \code{\link[sits]{sits_rfor}};
+#' (c) extreme gradient boosting: \code{\link[sits]{sits_xgboost}};
+#' (d) multi-layer perceptrons: \code{\link[sits]{sits_mlp}};
+#' (e) 1D CNN: \code{\link[sits]{sits_tempcnn}};
+#' (f) deep residual networks: \code{\link[sits]{sits_resnet}};
+#' (g) self-attention encoders: \code{\link[sits]{sits_lighttae}}.
 #'
 #' @param  data              Data cube (tibble of class "raster_cube")
 #' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}
@@ -40,7 +35,7 @@
 #'                           (integer, min = 1, max = 16384).
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
-#' @param  gpu_memory        Memory available in GPU (default = NULL)
+#' @param  gpu_memory        Memory available in GPU in GB (default = 16)
 #' @param  n_sam_pol         Number of time series per segment to be classified
 #'                           (integer, min = 10, max = 50).
 #' @param  output_dir        Valid directory for output file.
@@ -56,30 +51,31 @@
 #'                           (tibble of class "probs_cube").
 #'
 #' @note
-#'    The "roi" parameter defines a region of interest. It can be
+#'    The \code{roi} parameter defines a region of interest. It can be
 #'    an sf_object, a shapefile, or a bounding box vector with
-#'    named XY values ("xmin", "xmax", "ymin", "ymax") or
-#'    named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
+#'    named XY values (\code{xmin}, \code{xmax}, \code{ymin}, \code{ymax}) or
+#'    named lat/long values (\code{lon_min}, \code{lon_max},
+#'    \code{lat_min}, \code{lat_max})
 #'
-#'    The "filter_fn" parameter specifies a smoothing filter to be applied to
-#'    time series for reducing noise. Currently, options include
-#'    Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
-#'    (see \code{\link[sits]{sits_whittaker}}).
+#'    Parameter \code{filter_fn} parameter specifies a smoothing filter
+#'    to be applied to each time series for reducing noise. Currently, options
+#'    are Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
+#'    (see \code{\link[sits]{sits_whittaker}}) filters.
 #'
-#'    The "memsize" and "multicores" parameters are used for multiprocessing.
-#'    The "multicores" parameter defines the number of cores used for
-#'    processing. The "memsize" parameter  controls the amount of memory
-#'    available for classification. We recommend using a 4:1 relation between
-#'    "memsize" and "multicores".
+#'    Parameter \code{memsize} controls the amount of memory available
+#'    for classification, while \code{multicores}  defines the number of cores
+#'    used for processing. We recommend using as much memory as possible.
+#'
+#'    When using a GPU for deep learning, \code{gpu_memory} indicates the
+#'    memory of available in the graphics card.
 #'
 #'    For classifying vector data cubes created by
-#'    \code{\link[sits]{sits_segment}}, two parameters can be used:
-#'    \code{n_sam_pol}, which is the number of time series to be classified
-#'    per segment.
+#'    \code{\link[sits]{sits_segment}},
+#'    \code{n_sam_pol} controls is the number of time series to be
+#'    classified per segment.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'    Please refer to the sits documentation available in
+#'    <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
 #'     # Example of classification of a time series
@@ -165,7 +161,7 @@ sits_classify.sits <- function(data,
                                ...,
                                filter_fn = NULL,
                                multicores = 2L,
-                               gpu_memory = NULL,
+                               gpu_memory = 16,
                                progress = TRUE) {
     # Pre-conditions
     data <- .check_samples_ts(data)
@@ -197,7 +193,7 @@ sits_classify.raster_cube <- function(data,
                                       end_date = NULL,
                                       memsize = 8L,
                                       multicores = 2L,
-                                      gpu_memory = NULL,
+                                      gpu_memory = 16,
                                       output_dir,
                                       version = "v1",
                                       verbose = FALSE,
@@ -350,7 +346,7 @@ sits_classify.segs_cube <- function(data,
                                     end_date = NULL,
                                     memsize = 8L,
                                     multicores = 2L,
-                                    gpu_memory = NULL,
+                                    gpu_memory = 16,
                                     output_dir,
                                     version = "v1",
                                     n_sam_pol = 40,

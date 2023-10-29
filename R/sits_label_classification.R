@@ -2,6 +2,7 @@
 #'
 #' @name  sits_label_classification
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Souza, \email{felipe.souza@@inpe.br}
 #'
 #' @description Takes a set of classified raster layers with probabilities,
 #'              and label them based on the maximum probability for each pixel.

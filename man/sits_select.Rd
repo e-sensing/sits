@@ -30,7 +30,7 @@ sits_select(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
 \method{sits_select}{default}(data, ...)
 }
 \arguments{
-\item{data}{Tibble (class "sits" or class "raster_cube").}
+\item{data}{Tibble with time series or data cube.}
 
 \item{bands}{Character vector with the names of the bands.}
 
@@ -45,7 +45,7 @@ sits_select(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
 \item{tiles}{Character vector with the names of the tiles.}
 }
 \value{
-Tibble of class "sits" or class "raster_cube".
+Tibble with time series or data cube.
 }
 \description{
 Filter only the selected bands and dates

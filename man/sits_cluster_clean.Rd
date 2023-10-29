@@ -9,14 +9,15 @@ sits_cluster_clean(samples)
 \arguments{
 \item{samples}{Tibble with set of time series with additional
 cluster information produced
-by \code{sits::sits_cluster_dendro()} (class "sits")}
+by \code{link[sits]{sits_cluster_dendro()}}}
 }
 \value{
 Tibble with time series (class "sits")
 }
 \description{
 Takes a tibble with time series
-that has an additional `cluster` produced by \code{sits_cluster_dendro()}
+that has an additional `cluster` produced by
+\code{link[sits]{sits_cluster_dendro()}}
 and removes labels that are minority in each cluster.
 }
 \examples{

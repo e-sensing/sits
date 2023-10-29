@@ -42,7 +42,7 @@ A confusion matrix assessment produced by the caret package.
 \description{
 This function calculates the accuracy of the classification
 result. For a set of time series, it creates a confusion matrix and then
-calculates the resulting statistics using the R package "caret". The time
+calculates the resulting statistics using package \code{caret}. The time
 series needs to be classified using \code{\link[sits]{sits_classify}}.
 
 Classified images are generated using \code{\link[sits]{sits_classify}}

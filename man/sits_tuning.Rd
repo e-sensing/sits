@@ -51,10 +51,8 @@ This function performs a random search on values of selected hyperparameters.
 Instead of performing an exhaustive test of all parameter combinations,
 it selecting them randomly. Validation is done using an independent set
 of samples or by a validation split.  The function returns the
-best hyper-parameters in a list.
-
-hyper-parameters passed to \code{params} parameter should be passed
-by calling \code{sits_tuning_hparams()} function.
+best hyper-parameters in a list. Hyper-parameters passed to \code{params}
+parameter should be passed by calling \code{sits_tuning_hparams()}.
 }
 \examples{
 if (sits_run_examples()) {

@@ -62,18 +62,20 @@ These functions support hierarchical agglomerative clustering in
 sits. They provide support from creating a dendrogram and using it for
 cleaning samples.
 
-\code{sits_cluster_dendro()} takes a tibble containing time series and
+\code{link[sits]{sits_cluster_dendro()}} takes a tibble with time series and
 produces a sits tibble with an added "cluster" column. The function first
 calculates a dendrogram and obtains a validity index for best clustering
 using the adjusted Rand Index. After cutting the dendrogram using the chosen
 validity index, it assigns a cluster to each sample.
 
-\code{sits_cluster_frequency()} computes the contingency table between labels
+\code{link[sits]{sits_cluster_frequency()}} computes the contingency
+table between labels
 and clusters and produces a matrix.
-It needs as input a tibble produced by \code{sits_cluster_dendro()}.
+Its input is a tibble produced by \code{link[sits]{sits_cluster_dendro()}}.
 
-\code{sits_cluster_clean()} takes a tibble with time series
-that has an additional `cluster` produced by \code{sits_cluster_dendro()}
+\code{link[sits]{sits_cluster_clean()}} takes a tibble with time series
+that has an additional `cluster` produced by
+\code{link[sits]{sits_cluster_dendro()}}
 and removes labels that are minority in each cluster.
 }
 \note{
