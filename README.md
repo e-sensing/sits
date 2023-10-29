@@ -120,13 +120,21 @@ library(sits)
 #>         Documentation avaliable in https://e-sensing.github.io/sitsbook/.
 ```
 
+### Support for GPU
+
+Classification using torch-based deep learning models in `sits` uses
+CUDA compatible NVIDIA GPUs if available, which provides up 10-fold
+speed-up compared to using CPUs only. Please see the [installation
+instructions](https://torch.mlverse.org/docs/articles/installation) for
+more information on how to install the required drivers.
+
 ## Building Earth Observation Data Cubes
 
 ### Image Collections Accessible by `sits`
 
-The `sits` package allows users to created data cubes from
-analysis-ready data (ARD) image collections available in cloud services.
-The collections accessible in `sits` 1.4.2 are:
+Users create data cubes from analysis-ready data (ARD) image collections
+available in cloud services. The collections accessible in `sits` 1.4.2
+are:
 
 1.  Brazil Data Cube
     ([BDC](http://brazildatacube.org/en/home-page-2/#dataproducts)):
@@ -381,7 +389,10 @@ Land use and Land cover in Sinop, MT, Brazil in 2018
 
 ## Additional information
 
-For more information, please see the on-line book [“SITS: Data analysis
+Since version 1.4.2, `sits` support OBIA analysis of image time series,
+using an extension of R package `supercells`.
+
+The package is described in detail in on-line book [“SITS: Data analysis
 and machine learning for data cubes using satellite image time
 series”](https://e-sensing.github.io/sitsbook/).
 
@@ -458,23 +469,31 @@ be used in connection with sits.
   Self-Attention.” ReScience C 7 (2), 2021.
   <doi:10.5281/zenodo.4835356>.
 
-#### R packages used in sits
+- \[13\] Jakub Nowosad, Tomasz Stepinski, “Extended SLIC superpixels
+  algorithm for applications to non-imagery geospatial rasters”.
+  International Journal of Applied Earth Observation and Geoinformation,
+  112, 102935, 2022.
 
-The authors are thankful for the contributions of Marius Appel, Tim
-Appelhans, Henrik Bengtsson, Robert Hijmans, Edzer Pebesma, and Ron
-Wehrens, respectively chief developers of the packages `gdalcubes`,
-`leafem`, `data.table`, `terra/raster`, `sf`/`stars`, and `kohonen`. The
-`sits` package is also much indebted to the work of the RStudio team,
-including the `tidyverse`. We are indepted to Daniel Falbel for his and
-the `torch` packages. We thank Charlotte Pelletier and Hassan Fawaz for
-sharing the python code that has been reused for the TempCNN and ResNet
-machine learning models. We would like to thank Maja Schneider for
-sharing the python code that helped the implementation of the
-`sits_lighttae()` and `sits_tae()` model. We recognise the importance of
-the work by Chris Holmes and Mattias Mohr on the STAC specification and
-API.
+- \[14\] Martin Tennekes, “tmap: Thematic Maps in R.” Journal of
+  Statistical Software, 84(6), 1–39, 2018.
 
-## Acknowledgements for Financial and Material Support
+### Acknowledgements for community support
+
+The authors are thankful for the contributions of Edzer Pebesma, Jakub
+Novosad. Marius Appel, Martin Tennekes, Robert Hijmans, Ron Wehrens, and
+Tim Appelhans, respectively chief developers of the packages
+`sf`/`stars`, `supercells`, `gdalcubes`, `tmap`, `terra`, `kohonen`, and
+`leafem`. The `sits` package is also much indebted to the work of the
+RStudio team, including the `tidyverse`. We are indepted to Daniel
+Falbel for his great work in the `torch` and `luz` packages. We thank
+Charlotte Pelletier and Hassan Fawaz for sharing the python code that
+has been reused for the TempCNN and ResNet machine learning models. We
+would like to thank Maja Schneider for sharing the python code that
+helped the implementation of the `sits_lighttae()` and `sits_tae()`
+model. We recognise the importance of the work by Chris Holmes and
+Mattias Mohr on the STAC specification and API.
+
+### Acknowledgements for Financial and Material Support
 
 We acknowledge and thank the project funders that provided financial and
 material support:
@@ -507,7 +526,7 @@ material support:
     and innovation programme under [grant agreement
     No. 101059548](https://cordis.europa.eu/project/id/101059548).
 
-## How to contribute
+### How to contribute
 
 The `sits` project is released with a [Contributor Code of
 Conduct](https://github.com/e-sensing/sits/blob/master/CODE_OF_CONDUCT.md).
