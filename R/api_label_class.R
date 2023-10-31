@@ -12,19 +12,6 @@
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
     )
-    # Resume feature
-    if (file.exists(out_file)) {
-        .check_recovery(tile[["tile"]])
-        class_tile <- .tile_derived_from_file(
-            file = out_file,
-            band = band,
-            base_tile = tile,
-            derived_class = "class_cube",
-            labels = .tile_labels(tile),
-            update_bbox = FALSE
-        )
-        return(class_tile)
-    }
     # Create chunks as jobs
     chunks <- .tile_chunks_create(tile = tile, overlap = 0)
     # Process jobs in parallel

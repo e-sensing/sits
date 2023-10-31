@@ -1069,6 +1069,7 @@ NULL
         block_files = block_files,
         data_type = .data_type(band_conf),
         missing_value = .miss_value(band_conf),
+        overwrite = FALSE,
         multicores = multicores
     )
     # Create tile based on template
@@ -1182,7 +1183,7 @@ NULL
 #' @param derived_class class of the derived tile
 #' @param block_files  files that host the blocks
 #' @param multicores  number of parallel processes
-#' @param update_bbox   should bbox be updated?
+#' @param update_bbox should bbox be updated?
 #' @return a new tile with files written
 .tile_derived_merge_blocks <- function(file, band, labels, base_tile,
                                        derived_class, block_files, multicores,

@@ -51,7 +51,7 @@
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
 #'         bayes_cube,
-#'         output_dir = tempdir()
+#'         output_dir = tempdir(), multicores = 1
 #'     )
 #'     # plot the labelled cube
 #'     plot(label_cube)
@@ -120,6 +120,24 @@ sits_label_classification.probs_cube <- function(cube, ...,
     label_fn <- .label_fn_majority()
     # Process each tile sequentially
     class_cube <- .cube_foreach_tile(cube, function(tile) {
+        # Output file
+        out_file <- .file_derived_name(
+            tile = tile, band = "class", version = version,
+            output_dir = output_dir
+        )
+        # Resume feature
+        if (file.exists(out_file)) {
+            .check_recovery(tile[["tile"]])
+            class_tile <- .tile_derived_from_file(
+                file = out_file,
+                band = "class",
+                base_tile = tile,
+                derived_class = "class_cube",
+                labels = .tile_labels(tile),
+                update_bbox = FALSE
+            )
+            return(class_tile)
+        }
         # Label the data
         class_tile <- .label_tile(
             tile = tile,
@@ -129,7 +147,6 @@ sits_label_classification.probs_cube <- function(cube, ...,
             version = version,
             progress = progress
         )
-        label_path <- .tile_path(class_tile)
         if (clean) {
             # Apply clean in data
             class_tile <- .clean_tile(
@@ -141,8 +158,6 @@ sits_label_classification.probs_cube <- function(cube, ...,
                 output_dir = output_dir,
                 version = version
             )
-            # Remove raster file without clean
-            unlink(label_path)
         }
         return(class_tile)
     })
