@@ -1069,7 +1069,6 @@ NULL
         block_files = block_files,
         data_type = .data_type(band_conf),
         missing_value = .miss_value(band_conf),
-        overwrite = FALSE,
         multicores = multicores
     )
     # Create tile based on template

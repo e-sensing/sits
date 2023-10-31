@@ -791,7 +791,6 @@
 #' @param data_type     sits internal raster data type. One of "INT1U",
 #'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
 #' @param missing_value Missing value of out_files.
-#' @param overwrite     Should overwrite raster file?
 #' @param multicores    Number of cores to process merging
 #'
 #' @return No return value, called for side effects.
