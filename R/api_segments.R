@@ -271,6 +271,13 @@
                             time_series = c("Index", dplyr::all_of(bands)))
     # include the ids of the polygons
     ts_bands[["polygon_id"]] <- pol_id
+    # we do the unnest again because we do not know the polygon id index
+    ts_bands <- tidyr::unnest(ts_bands, "time_series")
+    # remove pixels where all timeline was NA
+    ts_bands <-  tidyr::drop_na(ts_bands)
+    # nest the values by bands
+    ts_bands <- tidyr::nest(ts_bands,
+                            time_series = c("Index", dplyr::all_of(bands)))
     # nest the values by sample_id and time_series
     ts_bands <- tidyr::nest(ts_bands, points = c("sample_id", "time_series"))
     # retrieve the segments
@@ -418,12 +425,12 @@
             output_dir = output_dir)
         samples <- purrr::map(seg_tile_bands_lst, function(seg_tile_bands){
             samples_part <- .segments_extract_data(seg_tile_bands,
-                                              tile,
-                                              bands,
-                                              pol_id,
-                                              n_sam_pol,
-                                              multicores,
-                                              progress)
+                                                   tile,
+                                                   bands,
+                                                   pol_id,
+                                                   n_sam_pol,
+                                                   multicores,
+                                                   progress)
             return(samples_part)
         })
         samples <- dplyr::bind_rows(samples)

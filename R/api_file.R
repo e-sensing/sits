@@ -129,8 +129,7 @@
 .file_clean_name <- function(tile, band, version, output_dir) {
     .file_path(
         tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
-        .tile_start_date(tile), .tile_end_date(tile), band,
-        paste(version, "clean", sep = "-"),
+        .tile_start_date(tile), .tile_end_date(tile), band, version,
         ext = "tif", output_dir = output_dir
     )
 }
