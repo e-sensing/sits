@@ -51,7 +51,7 @@
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
 #'         bayes_cube,
-#'         output_dir = tempdir(), multicores = 1
+#'         output_dir = tempdir()
 #'     )
 #'     # plot the labelled cube
 #'     plot(label_cube)
