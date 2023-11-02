@@ -64,7 +64,8 @@ if (sits_run_examples()) {
     # segment the vector cube
     segments <- sits_segment(
         cube = cube,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        version = "slic-demo"
     )
     # create a classification model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -72,12 +73,14 @@ if (sits_run_examples()) {
     seg_probs <- sits_classify(
         data = segments,
         ml_model = rfor_model,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        version = "slic-demo"
     )
     # label the probability segments
     seg_label <- sits_label_classification(
         cube = seg_probs,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        version = "slic-demo"
     )
 }
 }

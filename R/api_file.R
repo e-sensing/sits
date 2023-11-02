@@ -119,22 +119,6 @@
     )
 }
 
-#' @title Build a file path for a cleaned map (used in sits_clean)
-#' @noRd
-#' @param tile     Tile of data cube
-#' @param band     Spectral band
-#' @param version Version name
-#' @param output_dir Directory where file will be saved
-#' @returns        File path for derived cleaned map
-.file_clean_name <- function(tile, band, version, output_dir) {
-    .file_path(
-        tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
-        .tile_start_date(tile), .tile_end_date(tile), band,
-        paste(version, "clean", sep = "-"),
-        ext = "tif", output_dir = output_dir
-    )
-}
-
 #' @title Build a file path for a mosaic
 #' @noRd
 #' @param tile     Tile of data cube

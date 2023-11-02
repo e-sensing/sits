@@ -1380,8 +1380,6 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #'     xgb_model <- sits_train(samples_modis_ndvi,
 #'         ml_method = sits_xgboost()
 #'     )
-#'     # plot the model
-#'     plot(xgb_model)
 #' }
 #' @export
 #'

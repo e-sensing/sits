@@ -57,10 +57,11 @@ NULL
 #' @param xmax largest X coordinate
 #' @param ymin smallest Y coordinate
 #' @param ymax largest Y coordinate
+#' @param crs  coordinate reference system
 #' @param path location of the data
 #' @returns  eo_cube tibble
 .fi_eo <- function(fid, band, date, ncols, nrows, xres, yres, xmin, xmax,
-                   ymin, ymax, path) {
+                   ymin, ymax, crs, path) {
     # Create a new eo file_info
     tibble::tibble(
         fid = fid,
@@ -74,6 +75,7 @@ NULL
         xmax = xmax,
         ymin = ymin,
         ymax = ymax,
+        crs = crs,
         path = path
     )
 }
@@ -99,6 +101,7 @@ NULL
         xmax = .raster_xmax(r_obj),
         ymin = .raster_ymin(r_obj),
         ymax = .raster_ymax(r_obj),
+        crs = .raster_crs(r_obj),
         path = files
     )
 }

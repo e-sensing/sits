@@ -23,25 +23,9 @@
                         output_dir,
                         version) {
     # Output file
-    out_file <- .file_clean_name(
-        tile = tile, band = band,
-        version = version, output_dir = output_dir
+    out_file <- .file_derived_name(
+        tile = tile, band = band, version = version, output_dir = output_dir
     )
-    # Resume asset
-    if (.raster_is_valid(out_file, output_dir = output_dir)) {
-        # recovery message
-        .check_recovery(out_file)
-        # Create tile based on template
-        tile <- .tile_derived_from_file(
-            file = out_file, band = band,
-            base_tile = tile, derived_class = .tile_derived_class(tile),
-            labels = .tile_labels(tile),
-            update_bbox = FALSE
-        )
-        return(tile)
-    }
-    # Remove remaining incomplete files
-    unlink(out_file)
     # Create chunks as jobs
     chunks <- .tile_chunks_create(
         tile = tile, overlap = overlap, block = block
@@ -88,6 +72,8 @@
         # Returned block files for each fraction
         block_files
     })
+    # Remove raster without clean
+    unlink(.tile_path(tile))
     # Merge blocks into a new class_cube tile
     band_tile <- .tile_derived_merge_blocks(
         file = out_file,

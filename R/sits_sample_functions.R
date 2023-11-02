@@ -229,6 +229,8 @@ sits_reduce_imbalance <- function(samples,
         )
         new_samples <- dplyr::bind_rows(new_samples, samples_classes_ok)
     }
+    # remove SOM additional columns
+    colnames_sits <- setdiff(colnames(new_samples), c("id_neuron", "id_sample"))
     # return new sample set
-    return(new_samples)
+    return(new_samples[, colnames_sits])
 }

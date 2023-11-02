@@ -133,14 +133,16 @@
 #'         ml_model = rf_model,
 #'         output_dir = tempdir(),
 #'         n_sam_pol = 20,
-#'         multicores = 4
+#'         multicores = 4,
+#'         version = "segs_classify"
 #'     )
 #'     # Create a labelled vector cube
 #'     class_segs <- sits_label_classification(
 #'         cube = probs_segs,
 #'         output_dir = tempdir(),
 #'         multicores = 2,
-#'         memsize = 4
+#'         memsize = 4,
+#'         version = "segs_classify"
 #'     )
 #'     # plot class_segs
 #'     plot(class_segs)

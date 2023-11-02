@@ -133,6 +133,14 @@ sits_apply.raster_cube <- function(data, ...,
     # Get output band expression
     expr <- .apply_capture_expression(...)
     out_band <- names(expr)
+    # Check if band already exists in cube
+    if (out_band %in% .cube_bands(data)) {
+        warning(
+            paste0("The provided band '", out_band, "' already exists in cube."),
+            call. = FALSE
+        )
+        return(data)
+    }
     # Get all input bands in cube data
     in_bands <- .apply_input_bands(data, expr = expr)
 
