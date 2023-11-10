@@ -171,7 +171,7 @@ sits_mlp <- function(samples = NULL,
                 timeline = timeline, bands = bands
             )
             # Test samples are extracted from validation data
-            test_samples <- .predictors(samples)
+            test_samples <- .predictors(samples_validation)
             test_samples <- .pred_normalize(
                 pred = test_samples, stats = ml_stats
             )
