@@ -78,14 +78,14 @@
                 midpoint = NA
             ) +
             tmap::tm_graticules(
-                labels.size = tmap_params[["labels_size"]]
+                labels.size = tmap_params[["graticules_labels_size"]]
             ) +
             tmap::tm_compass() +
             tmap::tm_layout(
-                legend.bg.color = tmap_params[["bg_color"]],
-                legend.bg.alpha = tmap_params[["bg_alpha"]],
-                legend.title.size = tmap_params[["title_size"]],
-                legend.text.size = tmap_params[["text_size"]]
+                legend.bg.color = tmap_params[["legend_bg_color"]],
+                legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
+                legend.title.size = tmap_params[["legend_title_size"]],
+                legend.text.size = tmap_params[["legend_text_size"]]
             )
     )
     # include segments
@@ -105,12 +105,14 @@
 #' @param  legend        Legend for the classes
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  tmap_options  List with optional tmap parameters
-#'                       tmap max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
+#'                       max_cells (default: 1e+06)
+#'                       scale (default: 0.8)
+#'                       font_family (default: "plex_sans")
+#'                       graticules_labels_size (default: 0.7)
+#'                       legend_title_size (default: 0.8)
+#'                       legend_text_size (default: 0.8)
+#'                       legend_bg_color (default: "white")
+#'                       legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object
 #'
@@ -162,23 +164,26 @@
                 labels = labels
             ) +
             tmap::tm_graticules(
-                labels.size = tmap_params[["labels_size"]]
+                labels.size = tmap_params[["graticules_labels_size"]]
             ) +
             tmap::tm_compass() +
             tmap::tm_layout(
-                legend.show = TRUE,
-                legend.outside = FALSE,
-                scale = tmap_params[["scale"]],
-                fontfamily = tmap_params[["font_family"]],
-                legend.bg.color = tmap_params[["bg_color"]],
-                legend.bg.alpha = tmap_params[["bg_alpha"]],
-                legend.title.size = tmap_params[["title_size"]],
-                legend.text.size = tmap_params[["text_size"]],
-                legend.width = tmap_params[["legend_width"]]
+                scale           = tmap_params[["scale"]],
+                fontfamily      = tmap_params[["font_family"]],
+                legend.show     = TRUE,
+                legend.outside  = tmap_params[["legend_outside"]],
+                legend.bg.color = tmap_params[["legend_bg_color"]],
+                legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
+                legend.title.size = tmap_params[["legend_title_size"]],
+                legend.text.size = tmap_params[["legend_text_size"]],
+                legend.width     = tmap_params[["legend_width"]],
+                legend.height    = tmap_params[["legend_height"]],
+                legend.position  = tmap_params[["legend_position"]]
             )
     )
     return(p)
 }
+
 #' @title  Plot probs
 #' @name   .plot_probs
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -269,10 +274,10 @@
         tmap::tm_layout(
             legend.show = TRUE,
             legend.outside = FALSE,
-            legend.bg.color = tmap_params[["bg_color"]],
-            legend.bg.alpha = tmap_params[["bg_alpha"]],
-            legend.title.size = tmap_params[["title_size"]],
-            legend.text.size = tmap_params[["text_size"]],
+            legend.bg.color = tmap_params[["legend_bg_color"]],
+            legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
+            legend.title.size = tmap_params[["legend_title_size"]],
+            legend.text.size = tmap_params[["legend_text_size"]],
             outer.margins = 0
         )
 
@@ -418,7 +423,7 @@
     p <- tmap::tm_shape(rgb_st) +
         tmap::tm_raster() +
         tmap::tm_graticules(
-            labels.size = tmap_params[["labels_size"]]
+            labels.size = tmap_params[["graticules_labels_size"]]
         ) +
         tmap::tm_compass()
 
@@ -449,10 +454,10 @@
 #'
 .plot_read_size <- function(tile, tmap_options) {
     # get the maximum number of bytes to be displayed
-    if (!purrr::is_null(tmap_options[["tmap_max_cells"]])) {
-        max_cells <- tmap_options[["tmap_max_cells"]]
+    if (!purrr::is_null(tmap_options[["max_cells"]])) {
+        max_cells <- tmap_options[["max_cells"]]
     } else {
-        max_cells <- as.numeric(.conf("tmap", "tmap_max_cells"))
+        max_cells <- as.numeric(.conf("tmap", "max_cells"))
     }
     max_raster <- c(plot = max_cells, view = max_cells)
     # set the options for tmap
@@ -483,72 +488,85 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  tmap_options  List with optional tmap parameters
-#'                       tmap max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
 #' @return            Updated tmap params.
 #'
 .plot_tmap_params <- function(tmap_options) {
     # set the tmap options
-    labels_size <- as.numeric(.conf("tmap", "tmap_graticules_labels_size"))
-    title_size  <- as.numeric(.conf("tmap", "tmap_legend_title_size"))
-    text_size   <- as.numeric(.conf("tmap", "tmap_legend_text_size"))
-    legend_width <- as.numeric(.conf("tmap", "tmap_legend_width"))
-    legend_height <- as.numeric(.conf("tmap", "tmap_legend_height"))
-    bg_color    <- .conf("tmap", "tmap_legend_bg_color")
-    bg_alpha    <- as.numeric(.conf("tmap", "tmap_legend_bg_alpha"))
-    scale       <- as.numeric(.conf("tmap", "tmap_scale"))
-    font_family <- .conf("tmap", "tmap_font_family")
+    graticules_labels_size <- as.numeric(.conf("tmap", "graticules_labels_size"))
+    legend_title_size     <-  as.numeric(.conf("tmap", "legend_title_size"))
+    legend_text_size      <-  as.numeric(.conf("tmap", "legend_text_size"))
+    legend_width          <-  as.numeric(.conf("tmap", "legend_width"))
+    legend_height         <-  as.numeric(.conf("tmap", "legend_height"))
+    legend_position       <-  .conf("tmap", "legend_position")
+    legend_outside        <-  .conf("tmap", "legend_outside")
+    legend_outside_position <- .conf("tmap", "legend_outside_position")
+    legend_bg_color       <-  .conf("tmap", "legend_bg_color")
+    legend_bg_alpha       <- as.numeric(.conf("tmap", "legend_bg_alpha"))
+    scale                 <- as.numeric(.conf("tmap", "scale"))
+    font_family           <- .conf("tmap", "font_family")
 
     # user specified tmap options
     if (!purrr::is_null(tmap_options)) {
+        # scale
+        if (!purrr::is_null(tmap_options[["scale"]])) {
+            scale <- as.numeric(tmap_options[["scale"]])
+        }
+        # font_family
+        if (!purrr::is_null(tmap_options[["font_family"]])) {
+            font_family <- as.numeric(tmap_options[["font_family"]])
+        }
         # graticules label size
-        if (!purrr::is_null(tmap_options[["tmap_graticules_labels_size"]])) {
-            labels_size <- as.numeric(
-                tmap_options[["tmap_graticules_labels_size"]]
-            )
+        if (!purrr::is_null(tmap_options[["graticules_labels_size"]])) {
+            graticules_labels_size <- as.numeric(
+                tmap_options[["graticules_labels_size"]])
         }
         # legend title size
-        if (!purrr::is_null(tmap_options[["tmap_legend_title_size"]])) {
-            title_size <- as.numeric(
-                tmap_options[["tmap_legend_title_size"]]
-            )
+        if (!purrr::is_null(tmap_options[["legend_title_size"]])) {
+            legend_title_size <- as.numeric(tmap_options[["legend_title_size"]])
         }
         # legend text size
-        if (!purrr::is_null(tmap_options[["tmap_legend_text_size"]])) {
-            text_size <- as.numeric(
-                tmap_options[["tmap_legend_text_size"]]
-            )
+        if (!purrr::is_null(tmap_options[["legend_text_size"]])) {
+            legend_text_size <- as.numeric(tmap_options[["legend_text_size"]])
         }
         # tmap legend bg color
-        if (!purrr::is_null(tmap_options[["tmap_legend_bg_color"]])) {
-            bg_color <- tmap_options[["tmap_legend_bg_color"]]
+        if (!purrr::is_null(tmap_options[["legend_bg_color"]])) {
+            legend_bg_color <- tmap_options[["legend_bg_color"]]
         }
         # tmap legend bg alpha
-        if (!purrr::is_null(tmap_options[["tmap_legend_bg_alpha"]])) {
-            bg_alpha <- as.numeric(tmap_options[["tmap_legend_bg_alpha"]])
+        if (!purrr::is_null(tmap_options[["legend_bg_alpha"]])) {
+            legend_bg_alpha <- as.numeric(tmap_options[["legend_bg_alpha"]])
         }
         # tmap legend height
-        if (!purrr::is_null(tmap_options[["tmap_legend_height"]])) {
-            legend_height <- as.numeric(tmap_options[["tmap_legend_height"]])
+        if (!purrr::is_null(tmap_options[["legend_height"]])) {
+            legend_height <- as.numeric(tmap_options[["legend_height"]])
         }
-        if (!purrr::is_null(tmap_options[["tmap_legend_width"]])) {
-            legend_width <- as.numeric(tmap_options[["tmap_legend_width"]])
+        if (!purrr::is_null(tmap_options[["legend_width"]])) {
+            legend_width <- as.numeric(tmap_options[["legend_width"]])
+        }
+        if (!purrr::is_null(tmap_options[["legend_position"]])) {
+            legend_position <- tmap_options[["legend_position"]]
+        }
+        if (!purrr::is_null(tmap_options[["legend_outside"]])) {
+            legend_outside <- tmap_options[["legend_outside"]]
+        }
+        if (!purrr::is_null(tmap_options[["legend_outside_position"]])) {
+            legend_outside_position <-
+                tmap_options[["legend_outside_position"]]
         }
     }
     tmap_params <- list(
         "scale"       = scale,
         "font_family" = font_family,
-        "labels_size" = labels_size,
-        "title_size" = title_size,
-        "text_size" = text_size,
-        "bg_color" = bg_color,
-        "bg_alpha" = bg_alpha,
-        "legend_height" = legend_height,
-        "legend_width" = legend_width
+        "graticules_labels_size" = graticules_labels_size,
+        "legend_title_size"      = legend_title_size,
+        "legend_text_size"       = legend_text_size,
+        "legend_bg_color"        = legend_bg_color,
+        "legend_bg_alpha"        = legend_bg_alpha,
+        "legend_height"          = legend_height,
+        "legend_width"           = legend_width,
+        "legend_position"        = legend_position,
+        "legend_outside"         = legend_outside,
+        "legend_outside_position"  = legend_outside_position
     )
     return(tmap_params)
 }

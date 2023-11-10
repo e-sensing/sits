@@ -30,8 +30,6 @@ if (sits_run_examples()) {
     xgb_model <- sits_train(samples_modis_ndvi,
         ml_method = sits_xgboost()
     )
-    # plot the model
-    plot(xgb_model)
 }
 }
 \author{

@@ -30,8 +30,9 @@
 #' @note
 #'  The "roi" parameter defines a region of interest. It can be
 #'  an sf_object, a shapefile, or a bounding box vector with
-#'  named XY values ("xmin", "xmax", "ymin", "ymax") or
-#'  named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
+#'  named XY values (\code{xmin}, \code{xmax}, \code{ymin}, \code{ymax}) or
+#'  named lat/long values (\code{lon_min}, \code{lon_max},
+#'    \code{lat_min}, \code{lat_max}).
 #'
 #'  The user should specify the crs of the mosaic since in many cases the
 #'  input images will be in different coordinate systems. For example,
@@ -94,7 +95,7 @@ sits_mosaic <- function(cube,
     .check_crs(crs)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
-    .check_version(version)
+    version <- .check_version(version)
     .check_progress(progress)
     # version is case-insensitive in sits
     version <- tolower(version)

@@ -33,6 +33,7 @@ sits_view(x, ...)
   class_cube = NULL,
   legend = NULL,
   palette = "RdYlGn",
+  opacity = 0.7,
   view_max_mb = NULL
 )
 
@@ -48,7 +49,7 @@ sits_view(x, ...)
   class_cube = NULL,
   legend = NULL,
   palette = "RdYlGn",
-  fill_opacity = 0.5,
+  opacity = 0.7,
   seg_color = "black",
   line_width = 1,
   view_max_mb = NULL
@@ -61,6 +62,7 @@ sits_view(x, ...)
   class_cube = NULL,
   legend = NULL,
   palette = "Blues",
+  opacity = 0.7,
   view_max_mb = NULL
 )
 
@@ -70,6 +72,7 @@ sits_view(x, ...)
   tiles = NULL,
   legend = NULL,
   palette = "Spectral",
+  opacity = 0.8,
   view_max_mb = NULL
 )
 
@@ -80,6 +83,7 @@ sits_view(x, ...)
   class_cube = NULL,
   legend = NULL,
   view_max_mb = NULL,
+  opacity = 0.7,
   palette = "YlGnBu"
 )
 
@@ -112,9 +116,9 @@ in sits default colors)}
 
 \item{class_cube}{Classified cube to be overlayed on top on image.}
 
-\item{view_max_mb}{Maximum size of leaflet to be visualized}
+\item{opacity}{Opacity of segment fill or class cube}
 
-\item{fill_opacity}{Opacity of segment fill}
+\item{view_max_mb}{Maximum size of leaflet to be visualized}
 
 \item{seg_color}{Color for segment boundaries}
 

@@ -9,12 +9,14 @@ vector_api_package      : "sf"
 summary_sample_size : 10000
 
 # get data strategy
-n_samples_to_split: 20000
+n_samples_to_split: 1000
 
 # estimated relative growth size of R memory relative to block size
 processing_bloat        : 5
+processing_bloat_cpu    : 5
 processing_bloat_smooth : 8
 processing_bloat_seg    : 2
+processing_bloat_gpu    : 2
 
 # number of items returned by stac service
 rstac_pagination_limit  : 100
@@ -49,7 +51,7 @@ sf_geom_types_supported : ["POINT", "POLYGON", "MULTIPOLYGON"]
 
 # local cube config options
 local_s3_class          : ["local_cube", "raster_cube"]
-local_file_extensions   : ["tiff", "tif", "jp2", "hdf", "vrt"]
+local_file_extensions   : ["tiff", "tif", "jp2", "hdf", "vrt", "gpkg"]
 local_parse_info_col    : ["tile", "band", "date"]
 local_parse_info_def    : ["X1", "X2", "tile", "band", "date"]
 
@@ -63,7 +65,8 @@ results_parse_info_col : ["tile", "start_date", "end_date", "band"]
 
 # bands resulting from classification and post-classification
 sits_results_bands : ["probs", "bayes", "uncert", "entropy",
-                      "class", "least", "margin", "variance"]
+                      "class", "least", "margin", "variance",
+                      "segments"]
 
 # bands resulting from classification and smoothing
 sits_probs_bands : ["probs", "bayes"]
@@ -73,11 +76,13 @@ sits_uncert_bands : ["uncert", "entropy", "least", "margin"]
 # bands resulting from classification and post-classification
 sits_results_s3_class:
                     probs: "probs_cube"
+                    probs-vector: "probs_vector_cube"
                     bayes: "probs_cube"
                     uncert: "uncertainty_cube"
                     entropy: "uncertainty_cube"
                     variance: "variance_cube"
                     class:  "class_cube"
+                    class-vector:  "class_vector_cube"
 
 # default configuration for raster cubes
 raster_cube_scale_factor : 0.0001
@@ -159,12 +164,12 @@ vector_cube          :
         s3_class     : ["probs_vector_cube", "derived_vector_cube", "segs_cube",
                         "vector_cube"]
         bands        :
-            probs    :
+            probs-vector :
     class_vector_cube:
         s3_class     : ["class_vector_cube", "derived_vector_cube", "segs_cube",
                         "vector_cube"]
         bands        :
-            class    :
+            class-vector    :
 
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"
@@ -234,16 +239,19 @@ plot_max_Mbytes: 10
 
 # tmap configurations
 tmap:
-        tmap_max_cells: 1e+06
-        tmap_graticules_labels_size: 0.7
-        tmap_legend_title_size: 1.0
-        tmap_legend_text_size: 1.0
-        tmap_legend_bg_color: "white"
-        tmap_legend_bg_alpha: 0.5
-        tmap_legend_width: 0.5
-        tmap_legend_height: 1.0
-        tmap_scale: 1.0
-        tmap_font_family: "plex_sans"
+        max_cells: 1e+06
+        graticules_labels_size: 0.7
+        legend_outside: False
+        legend_outside_position: "right"
+        legend_title_size: 1.0
+        legend_text_size: 1.0
+        legend_bg_color: "white"
+        legend_bg_alpha: 0.5
+        legend_width: 0.5
+        legend_position: ["left", "bottom"]
+        legend_height: 1.0
+        scale: 0.5
+        font_family: "plex_sans"
 
 # maxbytes for leaflet (in MB)
 leaflet_megabytes : 64

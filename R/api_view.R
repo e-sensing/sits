@@ -28,6 +28,7 @@
                         blue,
                         legend,
                         palette,
+                        opacity,
                         view_max_mb) {
     # filter the tiles to be processed
     cube <- .view_filter_tiles(cube, tiles)
@@ -76,6 +77,7 @@
             tiles = tiles,
             legend = legend,
             palette = palette,
+            opacity = opacity,
             output_size = output_size
         )
     # get overlay groups
@@ -132,7 +134,7 @@
                                class_cube,
                                legend,
                                palette,
-                               fill_opacity,
+                               opacity,
                                seg_color,
                                line_width,
                                view_max_mb) {
@@ -189,7 +191,7 @@
             cube = cube,
             seg_color = seg_color,
             line_width = line_width,
-            fill_opacity  = fill_opacity,
+            opacity  = opacity,
             legend = legend,
             palette = palette
         ) |>
@@ -198,6 +200,7 @@
             tiles = tiles,
             legend = legend,
             palette = palette,
+            opacity = opacity,
             output_size = output_size
         )
     # have we included base images?
@@ -418,7 +421,7 @@
 #' @param  cube          Vector cube
 #' @param  seg_color     Color for segments boundaries
 #' @param  line_width    Line width for segments (in pixels)
-#' @param  fill_opacity  Opacity of segment fill
+#' @param  opacity       Opacity of segment fill
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file.
 #'
@@ -428,7 +431,7 @@
                            cube,
                            seg_color,
                            line_width,
-                           fill_opacity,
+                           opacity,
                            legend,
                            palette) {
     # retrieve segments on a tile basis
@@ -441,6 +444,16 @@
         sf_seg <- sf::st_transform(
             sf_seg,
             crs = sf::st_crs("EPSG:4326")
+        )
+        # create a layer with the segment borders
+        leaf_map <- leafem::addFeatures(
+            leaf_map,
+            data = sf_seg,
+            color = seg_color,
+            opacity = 1,
+            fillOpacity = 0,
+            weight = line_width,
+            group = "segments",
         )
         # have the segments been classified?
         if ("class" %in% colnames(sf_seg)) {
@@ -467,22 +480,12 @@
                 data = sf_seg,
                 label = labels_seg,
                 color = seg_color,
+                stroke = FALSE,
                 weight = line_width,
                 opacity = 1,
                 fillColor = unname(colors),
-                fillOpacity = fill_opacity,
-                group = "segments"
-            )
-        } else {
-            leaf_map <- leafem::addFeatures(
-                leaf_map,
-                data = sf_seg,
-                fillColor = "grey",
-                color = seg_color,
-                opacity = 1,
-                fillOpacity = 0.6,
-                weight = line_width,
-                group = "segments",
+                fillOpacity = opacity,
+                group = "class_segments"
             )
         }
     }
@@ -619,6 +622,7 @@
 #' @param  tiles         Tiles to be plotted (in case of a multi-tile cube).
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided as alternative legend.
+#' @param  opacity       Fill opacity
 #' @param  output_size   Controls size of leaflet to be visualized
 #'
 .view_class_cube <- function(leaf_map,
@@ -626,6 +630,7 @@
                              tiles,
                              legend,
                              palette,
+                             opacity,
                              output_size) {
     # should we overlay a classified image?
     if (!purrr::is_null(class_cube)) {
@@ -686,6 +691,7 @@
         leaf_map <- leaf_map |>
             leafem::addStarsImage(
                 x = st_obj_new,
+                opacity = opacity,
                 colors = colors,
                 method = "ngb",
                 group = "classification",
@@ -940,6 +946,8 @@
         overlay_groups <- c(overlay_groups, grps)
     }
     overlay_groups <- c(overlay_groups, "segments")
+    if ("class_vector_cube" %in% class(cube))
+        overlay_groups <- c(overlay_groups, "class_segments")
     if (!purrr::is_null(class_cube))
         overlay_groups <- c(overlay_groups, "classification")
     return(overlay_groups)

@@ -69,7 +69,7 @@ sits_variance <- function(
     # check output_dir
     .check_output_dir(output_dir)
     # check version
-    .check_version(version)
+    version <- .check_version(version)
     # Dispatch
     UseMethod("sits_variance", cube)
 }
@@ -92,7 +92,7 @@ sits_variance.probs_cube <- function(
         job_size = .block_size(block = block, overlap = overlap),
         npaths = length(.tile_labels(cube)) * 2,
         nbytes = 8,
-        proc_bloat = .conf("processing_bloat")
+        proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(

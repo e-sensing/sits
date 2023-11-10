@@ -31,12 +31,16 @@
 \item{palette}{Alternative RColorBrewer palette}
 
 \item{tmap_options}{List with optional tmap parameters
-tmap_max_cells (default: 1e+06)
-tmap_graticules_labels_size (default: 0.7)
-tmap_legend_title_size (default: 1.5)
-tmap_legend_text_size (default: 1.2)
-tmap_legend_bg_color (default: "white")
-tmap_legend_bg_alpha (default: 0.5)}
+max_cells (default: 1e+06)
+graticules_labels_size (default: 0.7)
+scale (default = 0.8)
+legend_title_size (default: 0.7)
+legend_text_size (default: 0.7)
+legend_bg_color (default: "white")
+legend_bg_alpha (default: 0.5)
+legend_width (default: 0.5)
+legend_height (default: 0.7)
+legend_position (default: c("left", "bottom"))}
 }
 \value{
 A  color map, where each pixel has the color

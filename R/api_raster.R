@@ -652,6 +652,24 @@
     UseMethod(".raster_freq", pkg_class)
 }
 
+#' @title Raster package internal summary values function
+#' @name .raster_summary
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @param r_obj    raster package object to count values
+#' @param ...      additional parameters to be passed to raster package
+#'
+#' @return matrix with layer, value, and count columns
+.raster_summary <- function(r_obj, ...) {
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_summary", pkg_class)
+}
+
 #' @title Return col value given an X coordinate
 #' @keywords internal
 #' @noRd

@@ -111,6 +111,10 @@
         )
         # Apply the classification model to values
         values <- ml_model(values)
+        # Clean the torch cache
+        if (torch::cuda_is_available()) {
+            torch::cuda_empty_cache()
+        }
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         # Log
@@ -203,21 +207,31 @@
 #' @param  tile       Single tile of a data cube.
 #' @param  ml_model   Model trained by \code{\link[sits]{sits_train}}.
 #' @param  filter_fn  Smoothing filter function to be applied to the data.
-#' @param  aggreg_fn  Function to compute a summary of each segment.
 #' @param  n_sam_pol  Number of samples per polygon to be read
 #'                    for POLYGON or MULTIPOLYGON shapefiles or sf objects.
 #' @param  multicores Number of cores to be used for classification
+#' @param  gpu_memory Memory available in GPU (default = NULL)
 #' @param  version    Version of result.
 #' @param  output_dir Output directory.
 #' @param  progress   Show progress bar?
 #' @return List of the classified raster layers.
-.classify_vector_tile <- function(tile, ml_model, filter_fn, aggreg_fn,
-                                  n_sam_pol, multicores, version, output_dir,
+.classify_vector_tile <- function(tile,
+                                  ml_model,
+                                  filter_fn,
+                                  n_sam_pol,
+                                  multicores,
+                                  memsize,
+                                  gpu_memory,
+                                  version,
+                                  output_dir,
                                   progress) {
     # Output file
     out_file <- .file_derived_name(
-        tile = tile, band = "probs", version = version,
-        output_dir = output_dir, ext = "gpkg"
+        tile = tile,
+        band = "probs",
+        version = version,
+        output_dir = output_dir,
+        ext = "gpkg"
     )
     # Resume feature
     if (.segments_is_valid(out_file)) {
@@ -240,33 +254,24 @@
         return(probs_tile)
     }
     # Get tile bands
-    bands <- .tile_bands(tile)
-    # Extract segments time series
-    if (is.null(n_sam_pol)) {
-        segments_ts <- .segments_get_summary(
-            cube = tile,
-            bands = bands,
-            aggreg_fn = aggreg_fn,
-            pol_id = "pol_id",
-            multicores = multicores,
-            progress = FALSE
-        )
-    } else {
-        segments_ts <- .segments_get_data(
-            cube = tile,
-            bands = bands,
-            pol_id = "pol_id",
-            n_sam_pol = n_sam_pol,
-            multicores = multicores,
-            progress = FALSE
-        )
-    }
+    bands <- .tile_bands(tile, add_cloud = FALSE)
+    segments_ts <- .segments_extract_multicores(
+        tile = tile,
+        bands = bands,
+        pol_id = "pol_id",
+        n_sam_pol = n_sam_pol,
+        multicores = multicores,
+        memsize = memsize,
+        output_dir = output_dir,
+        progress = FALSE
+    )
     # Classify segments
     classified_ts <- .classify_ts(
         samples = segments_ts,
         ml_model = ml_model,
         filter_fn = filter_fn,
         multicores = multicores,
+        gpu_memory = gpu_memory,
         progress = progress
     )
     # Join probability values with segments
@@ -309,7 +314,7 @@
     # Get cloud values (NULL if not exists)
     cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
     # Read and preprocess values of each band
-    values <- purrr::map_dfc(.ml_bands(ml_model), function(band) {
+    values <- purrr::map(.ml_bands(ml_model), function(band) {
         # Get band values (stops if band not found)
         values <- .tile_read_block(tile = tile, band = band, block = block)
         # Log
@@ -352,8 +357,11 @@
             value = band
         )
         # Return values
-        as.data.frame(values)
+        return(as.data.frame(values))
     })
+    # collapse list to get data.frame
+    values <- suppressMessages(purrr::list_cbind(values,
+                                                 name_repair = "universal"))
     # Compose final values
     values <- as.matrix(values)
     # Set values features name
@@ -373,12 +381,14 @@
 #' @param  ml_model   model trained by \code{\link[sits]{sits_train}}.
 #' @param  filter_fn  Smoothing filter to be applied (if desired).
 #' @param  multicores number of threads to process the time series.
+#' @param  gpu_memory Memory available in GPU
 #' @param  progress   Show progress bar?
 #' @return A tibble with the predicted labels.
 .classify_ts <- function(samples,
                          ml_model,
                          filter_fn,
                          multicores,
+                         gpu_memory,
                          progress) {
     # Start parallel workers
     .parallel_start(workers = multicores)
@@ -410,20 +420,11 @@
         # Convert samples time series in predictors and preprocess data
         pred <- .predictors(samples = samples, ml_model = ml_model)
     }
-    # Divide samples predictors in chunks to parallel processing
-    parts <- .pred_create_partition(pred = pred, partitions = multicores)
-    # Do parallel process
-    prediction <- .jobs_map_parallel_dfr(parts, function(part) {
-        # Get predictors of a given partition
-        pred_part <- .pred_part(part)
-        # Get predictors features to classify
-        values <- .pred_features(pred_part)
-        # Classify
-        values <- ml_model(values)
-        # Return classification
-        values <- tibble::tibble(data.frame(values))
-        values
-    }, progress = progress)
+    # choose between GPU and CPU
+    if ("torch_model" %in% class(ml_model) && torch::cuda_is_available())
+        prediction <- .classify_ts_gpu(pred, ml_model, gpu_memory)
+    else
+        prediction <- .classify_ts_cpu(pred, ml_model, multicores, progress)
     # Store the result in the input data
     if (length(class_info[["dates_index"]][[1]]) > 1) {
         prediction <- .tibble_prediction_multiyear(
@@ -440,3 +441,76 @@
     # Set result class and return it
     .set_class(x = prediction, "predicted", class(samples))
 }
+#' @title Classify predictors using CPU
+#' @name .classify_ts_cpu
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns a sits tibble with the results of the ML classifier.
+#'
+#' @param  pred       a tibble with predictors
+#' @param  ml_model   model trained by \code{\link[sits]{sits_train}}.
+#' @param  multicores number of threads to process the time series.
+#' @param  progress   Show progress bar?
+#' @return A tibble with the predicted values.
+.classify_ts_cpu <- function(pred,
+                             ml_model,
+                             multicores,
+                             progress){
+
+    # Divide samples predictors in chunks to parallel processing
+    parts <- .pred_create_partition(pred = pred, partitions = multicores)
+    # Do parallel process
+    prediction <- .jobs_map_parallel_dfr(parts, function(part) {
+        # Get predictors of a given partition
+        pred_part <- .pred_part(part)
+        # Get predictors features to classify
+        values <- .pred_features(pred_part)
+        # Classify
+        values <- ml_model(values)
+        # Return classification
+        values <- tibble::tibble(data.frame(values))
+        values
+    }, progress = progress)
+
+    return(prediction)
+}
+#' @title Classify predictors using GPU
+#' @name .classify_ts_gpu
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns a sits tibble with the results of the ML classifier.
+#'
+#' @param  pred       a tibble with predictors
+#' @param  ml_model   model trained by \code{\link[sits]{sits_train}}.
+#' @param  gpu_memory memory available in GPU
+#' @return A tibble with the predicted values.
+.classify_ts_gpu <- function(pred,
+                             ml_model,
+                             gpu_memory){
+    # estimate size of GPU memory required (in GB)
+    pred_size <- nrow(pred) * ncol(pred) * 4 * .conf("processing_bloat_gpu")/1e+09
+    # estimate how should we partition the predictors
+    num_parts <- ceiling(pred_size/gpu_memory)
+    # Divide samples predictors in chunks to parallel processing
+    parts <- .pred_create_partition(pred = pred, partitions = num_parts)
+    prediction <- slider::slide_dfr(parts, function(part){
+        # Get predictors of a given partition
+        pred_part <- .pred_part(part)
+        # Get predictors features to classify
+        values <- .pred_features(pred_part)
+        # Classify
+        values <- ml_model(values)
+        # Return classification
+        values <- tibble::tibble(data.frame(values))
+        # Clean torch cache
+        torch::cuda_empty_cache()
+        return(values)
+    })
+    return(prediction)
+}
+
+

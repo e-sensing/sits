@@ -1127,19 +1127,23 @@
 #' @title Check is integer parameter is valid using reasonable defaults
 #' @name .check_chr_parameter
 #' @param  x   parameter to be checked
+#' @param  allow_null allow null parameter?
 #' @param  len_min minimum length of vector
 #' @param  len_max maximum length of vector
+#' @param  msg message error
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_chr_parameter <- function(param, len_min = 1, len_max = 1) {
+.check_chr_parameter <- function(param, len_min = 1, len_max = 1,
+                                 allow_null = FALSE, msg = NULL) {
     .check_chr(
         param,
         len_min = len_min,
         len_max = len_max,
+        allow_null = allow_null,
         allow_na = FALSE,
         allow_empty = FALSE,
-        allow_null = FALSE,
+        msg = msg
     )
     return(invisible(param))
 }
@@ -1246,7 +1250,7 @@
 #' @keywords internal
 #' @noRd
 #' @param  version  character vector
-#' @return Called for side effects.
+#' @return version adjusted to remove underscores
 .check_version <- function(version) {
     .check_chr(
         x = version,
@@ -1257,7 +1261,9 @@
         len_max = 1,
         msg = "invalid version"
     )
-    return(invisible(version))
+    # avoids use of underscores
+    version <- gsub("_", "-", version)
+    return(version)
 }
 #' @title Check is version parameter is valid using reasonable defaults
 #' @name .check_progress

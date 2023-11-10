@@ -141,7 +141,7 @@ sits_reclassify.class_cube <- function(cube,
     .check_memsize(memsize, min = 1, max = 16384)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
-    .check_version(version)
+    version <- .check_version(version)
     # version is case-insensitive in sits
     version <- tolower(version)
 
@@ -151,7 +151,7 @@ sits_reclassify.class_cube <- function(cube,
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
         npaths = 2,
-        nbytes = 8, proc_bloat = .conf("processing_bloat")
+        nbytes = 8, proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(

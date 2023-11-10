@@ -18,8 +18,8 @@ This function allow user building the hyper-parameters space used
 by \code{sits_tuning()} function search randomly the best parameter
 combination.
 
-User should pass the possible values for hyper-parameters as
-constant or by calling the following random functions:
+Users should pass the possible values for hyper-parameters as
+constants or by calling the following random functions:
 
 \itemize{
   \item \code{uniform(min = 0, max = 1, n = 1)}: returns random numbers

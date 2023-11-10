@@ -2,6 +2,21 @@
 
 # What's new in SITS version 1.4
 
+### Hotfix version 1.4.2-1
+* Fix crs bug in `sits_apply()`
+* Update file name in clean feature
+* Fix time series extraction bug with segments
+* Fix examples
+
+### New features in SITS version 1.4.2
+* Support for vector data cubes, including visualisation
+* Object-based time series analysis using spatio-temporal segmentation
+* Improved support for GPU usage when running deep learning algorithms
+* New function to clean values by modal filter in classified images
+* Added experimental support for Sentinel-1 images available on MPC
+* Summary function now includes cloud cover information
+* General bug fixes
+
 ### New features in SITS version 1.4.1
 * Updated access to collections in Brazil Data Cube, HLS, and AWS
 * Corrected errors in labelling of classified cubes

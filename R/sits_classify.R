@@ -1,7 +1,5 @@
 #' @title Classify time series or data cubes
-#'
 #' @name sits_classify
-#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -10,16 +8,13 @@
 #' a trained model prediction model created by \code{\link[sits]{sits_train}}.
 #'
 #' SITS supports the following models:
-#' \itemize{
-#'  \item{support vector machines: } {see \code{\link[sits]{sits_svm}}}
-#'  \item{random forests: }          {see \code{\link[sits]{sits_rfor}}}
-#'  \item{extreme gradient boosting: } {see \code{\link[sits]{sits_xgboost}}}
-#'  \item{multi-layer perceptrons: } {see \code{\link[sits]{sits_mlp}}}
-#'  \item{1D CNN: } {see \code{\link[sits]{sits_tempcnn}}}
-#'  \item{deep residual networks:}{see \code{\link[sits]{sits_resnet}}}
-#'  \item{self-attention encoders:}{see \code{\link[sits]{sits_lighttae}}}
-#'  }
-#'
+#' (a) support vector machines:  \code{\link[sits]{sits_svm}};
+#' (b) random forests:  \code{\link[sits]{sits_rfor}};
+#' (c) extreme gradient boosting: \code{\link[sits]{sits_xgboost}};
+#' (d) multi-layer perceptrons: \code{\link[sits]{sits_mlp}};
+#' (e) 1D CNN: \code{\link[sits]{sits_tempcnn}};
+#' (f) deep residual networks: \code{\link[sits]{sits_resnet}};
+#' (g) self-attention encoders: \code{\link[sits]{sits_lighttae}}.
 #'
 #' @param  data              Data cube (tibble of class "raster_cube")
 #' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}
@@ -40,8 +35,7 @@
 #'                           (integer, min = 1, max = 16384).
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
-#' @param  aggreg_fn         Function to compute a summary of each segment
-#'                           (object of class "function").
+#' @param  gpu_memory        Memory available in GPU in GB (default = 16)
 #' @param  n_sam_pol         Number of time series per segment to be classified
 #'                           (integer, min = 10, max = 50).
 #' @param  output_dir        Valid directory for output file.
@@ -57,34 +51,31 @@
 #'                           (tibble of class "probs_cube").
 #'
 #' @note
-#'    The "roi" parameter defines a region of interest. It can be
+#'    The \code{roi} parameter defines a region of interest. It can be
 #'    an sf_object, a shapefile, or a bounding box vector with
-#'    named XY values ("xmin", "xmax", "ymin", "ymax") or
-#'    named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
+#'    named XY values (\code{xmin}, \code{xmax}, \code{ymin}, \code{ymax}) or
+#'    named lat/long values (\code{lon_min}, \code{lon_max},
+#'    \code{lat_min}, \code{lat_max})
 #'
-#'    The "filter_fn" parameter specifies a smoothing filter to be applied to
-#'    time series for reducing noise. Currently, options include
-#'    Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
-#'    (see \code{\link[sits]{sits_whittaker}}).
+#'    Parameter \code{filter_fn} parameter specifies a smoothing filter
+#'    to be applied to each time series for reducing noise. Currently, options
+#'    are Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
+#'    (see \code{\link[sits]{sits_whittaker}}) filters.
 #'
-#'    The "memsize" and "multicores" parameters are used for multiprocessing.
-#'    The "multicores" parameter defines the number of cores used for
-#'    processing. The "memsize" parameter  controls the amount of memory
-#'    available for classification. We recommend using a 4:1 relation between
-#'    "memsize" and "multicores".
+#'    Parameter \code{memsize} controls the amount of memory available
+#'    for classification, while \code{multicores}  defines the number of cores
+#'    used for processing. We recommend using as much memory as possible.
+#'
+#'    When using a GPU for deep learning, \code{gpu_memory} indicates the
+#'    memory of available in the graphics card.
 #'
 #'    For classifying vector data cubes created by
-#'    \code{\link[sits]{sits_segment}}, two parameters can be used:
-#'    \code{n_sam_pol}, which is the number of time series to be classified
-#'    per segment, or \code{aggreg_fn}, which is a function to aggregate the
-#'    values of all pixels in the segment for each time step. The choice
-#'    of \code{n_sam_pol} prevails over the choice of \code{aggreg_fn}. Thus,
-#'    to use \code{aggreg_fn}, the parameter \code{n_sam_pol} should be set to
-#'    NULL.
+#'    \code{\link[sits]{sits_segment}},
+#'    \code{n_sam_pol} controls is the number of time series to be
+#'    classified per segment.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'    Please refer to the sits documentation available in
+#'    <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
 #'     # Example of classification of a time series
@@ -141,16 +132,17 @@
 #'         data = segments,
 #'         ml_model = rf_model,
 #'         output_dir = tempdir(),
-#'         aggreg_fn = NULL,
 #'         n_sam_pol = 20,
-#'         multicores = 4
+#'         multicores = 4,
+#'         version = "segs_classify"
 #'     )
 #'     # Create a labelled vector cube
 #'     class_segs <- sits_label_classification(
 #'         cube = probs_segs,
 #'         output_dir = tempdir(),
 #'         multicores = 2,
-#'         memsize = 4
+#'         memsize = 4,
+#'         version = "segs_classify"
 #'     )
 #'     # plot class_segs
 #'     plot(class_segs)
@@ -171,6 +163,7 @@ sits_classify.sits <- function(data,
                                ...,
                                filter_fn = NULL,
                                multicores = 2L,
+                               gpu_memory = 16,
                                progress = TRUE) {
     # Pre-conditions
     data <- .check_samples_ts(data)
@@ -187,6 +180,7 @@ sits_classify.sits <- function(data,
         ml_model = ml_model,
         filter_fn = filter_fn,
         multicores = multicores,
+        gpu_memory = gpu_memory,
         progress = progress
     )
     return(classified_ts)
@@ -201,6 +195,7 @@ sits_classify.raster_cube <- function(data,
                                       end_date = NULL,
                                       memsize = 8L,
                                       multicores = 2L,
+                                      gpu_memory = 16,
                                       output_dir,
                                       version = "v1",
                                       verbose = FALSE,
@@ -212,8 +207,16 @@ sits_classify.raster_cube <- function(data,
     .check_memsize(memsize, min = 1, max = 16384)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
-    .check_version(version)
+    version <- .check_version(version)
     .check_progress(progress)
+    # If we using the GPU, gpu_memory parameter needs to be specified
+    if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {
+        .check_int_parameter(gpu_memory, min = 1, max = 16384,
+                             msg = "Using GPU: gpu_memory must be informed")
+
+        proc_bloat <- .conf("processing_bloat_gpu")
+    } else
+        proc_bloat <- .conf("processing_bloat_cpu")
 
     # version is case-insensitive in sits
     version <- tolower(version)
@@ -247,12 +250,21 @@ sits_classify.raster_cube <- function(data,
         job_size = .block_size(block = block, overlap = 0),
         npaths = length(.tile_paths(data)) + length(.ml_labels(ml_model)),
         nbytes = 8,
-        proc_bloat = .conf("processing_bloat")
+        proc_bloat = proc_bloat
     )
-    # Update multicores parameter
-    multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
-    )
+    # If we using the GPU, gpu_memory parameter needs to be specified
+    if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {
+        .check_int_parameter(gpu_memory, min = 1, max = 16384,
+                             msg = "Using GPU: gpu_memory must be informed")
+
+        memsize <-  gpu_memory
+        multicores  <- 1
+    } else {
+        # Update multicores parameter
+        multicores <- .jobs_max_multicores(
+            job_memsize = job_memsize, memsize = memsize, multicores = multicores
+        )
+    }
     # Update multicores parameter
     if ("xgb_model" %in% .ml_class(ml_model)) {
         multicores <- 1
@@ -336,9 +348,9 @@ sits_classify.segs_cube <- function(data,
                                     end_date = NULL,
                                     memsize = 8L,
                                     multicores = 2L,
+                                    gpu_memory = 16,
                                     output_dir,
                                     version = "v1",
-                                    aggreg_fn = "median",
                                     n_sam_pol = 40,
                                     verbose = FALSE,
                                     progress = TRUE) {
@@ -350,12 +362,15 @@ sits_classify.segs_cube <- function(data,
     .check_memsize(memsize, min = 1, max = 16384)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
-    .check_version(version)
+    version <- .check_version(version)
     .check_progress(progress)
-
     # version is case-insensitive in sits
     version <- tolower(version)
-
+    # If we using the GPU, gpu_memory parameter needs to be specified
+    if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {
+        .check_int_parameter(gpu_memory, min = 1, max = 16384,
+                             msg = "Using GPU: gpu_memory must be informed")
+    }
     # Temporal filter
     if (.has(start_date) || .has(end_date)) {
         data <- .cube_filter_interval(
@@ -390,9 +405,10 @@ sits_classify.segs_cube <- function(data,
             tile = tile,
             ml_model = ml_model,
             filter_fn = filter_fn,
-            aggreg_fn = aggreg_fn,
             n_sam_pol = n_sam_pol,
             multicores = multicores,
+            memsize = memsize,
+            gpu_memory = gpu_memory,
             version = version,
             output_dir = output_dir,
             progress = progress

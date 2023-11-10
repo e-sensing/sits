@@ -29,10 +29,6 @@
 #' The supported types of ensemble predictors are 'average' and
 #' 'uncertainty'.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a data cube from local files
@@ -95,7 +91,7 @@ sits_combine_predictions.average <- function(cubes,
     # Check output dir
     .check_output_dir(output_dir)
     # Check version
-    .check_version(version)
+    version <- .check_version(version)
     # version is case-insensitive in sits
     version <- tolower(version)
     # Get weights
@@ -142,7 +138,7 @@ sits_combine_predictions.uncertainty <- function(cubes,
     # Check output dir
     .check_output_dir(output_dir)
     # Check version
-    .check_version(version)
+    version <- .check_version(version)
     # version is case-insensitive in sits
     version <- tolower(version)
     # Check if list of probs cubes and uncert_cubes have the same organization

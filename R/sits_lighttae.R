@@ -1,9 +1,9 @@
 #' @title Train a model using Lightweight Temporal Self-Attention Encoder
 #' @name sits_lighttae
 #'
-#' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #'
 #' @description Implementation of Light Temporal Attention Encoder (L-TAE)
 #' for satellite image time series
@@ -50,10 +50,10 @@
 #'                           to be used as validation data.
 #' @param optimizer          Optimizer function to be used.
 #' @param opt_hparams        Hyperparameters for optimizer:
-#'                           lr : Learning rate of the optimizer
-#'                           eps: Term added to the denominator
+#'                           \code{lr} : Learning rate of the optimizer
+#'                           \code{eps}: Term added to the denominator
 #'                                to improve numerical stability.
-#'                           weight_decay:       L2 regularization
+#'                           \code{weight_decay}:       L2 regularization rate.
 #' @param lr_decay_epochs    Number of epochs to reduce learning rate.
 #' @param lr_decay_rate      Decay factor for reducing learning rate.
 #' @param patience           Number of epochs without improvements until
@@ -64,9 +64,6 @@
 #'
 #' @return A fitted model to be used for classification of data cubes.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @examples
 #' if (sits_run_examples()) {

@@ -40,10 +40,10 @@ to be used as validation data.}
 \item{optimizer}{Optimizer function to be used.}
 
 \item{opt_hparams}{Hyperparameters for optimizer:
-lr : Learning rate of the optimizer
-eps: Term added to the denominator
+\code{lr} : Learning rate of the optimizer
+\code{eps}: Term added to the denominator
      to improve numerical stability.
-weight_decay:       L2 regularization}
+\code{weight_decay}:       L2 regularization rate.}
 
 \item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
 
@@ -72,10 +72,6 @@ If you use this method, please cite the original TAE and the LTAE paper.
 We also used the code made available by Maja Schneider in her work with
 Marco Körner referenced below and available at
 https://github.com/maja601/RC2020-psetae.
-}
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
 if (sits_run_examples()) {
@@ -129,9 +125,9 @@ ReScience C 7 (2), 2021.
 DOI: 10.5281/zenodo.4835356
 }
 \author{
-Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
-
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
+
+Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
 }

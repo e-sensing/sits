@@ -193,9 +193,9 @@ class_schemes:
 
     PRODES: ["Forest", "Mountainside_Forest", "Riparian_Forest",
              "Seasonally_Flooded", "Secondary_Vegetation", "Degradation",
-             "Deforestation_Mask", "Clear_Cut_Vegetation",
+             "Deforestation_Mask", "Clear_Cut_Trees", "Clear_Cut_Vegetation",
              "Clear_Cut_Bare_Soil", "Clear_Cut_Burned_Area",
-             "Mining", "Water", "Wetland", "Natural_Non_Forested",
+             "Water", "Wetland", "Natural_Non_Forested",
              "Urban_Area", "Cropland", "Pasture",
              "Cerradao", "Cerrado", "Campo_Cerrado"]
 
@@ -434,7 +434,7 @@ colors:
         Secondary_Vegetation        : &sec_vec "#40C772"
         # Deforestation, Degradation, Mining
         # Based on "Alizarin" palette from Flat Design Color Chart "#afc97f"
-        Degradation                 : &degradation "#9BE1B5" #"#DDD458"
+        Degradation                 : &degradation "#94B396" #"B8750B" # "#9BE1B5"
         Degraded_Forest             : *degradation
         # PRODES
         # Based on "Alizarin" palette from Flat Design Color Chart
@@ -442,21 +442,22 @@ colors:
         Clear_Cut_Burn               : *burned_area
         Clear_Cut_Burned_Area        : *burned_area
         # Color 52 - grama-tobosa shrubsteppe
-        Cleared_Area                : &clear_cut_soil "#D7C49C"
+        Cleared_Area                : &clear_cut_soil "#D7C49C" # "#CCCBAB" #
         Clear_Cut_Soil              : *clear_cut_soil
         Clear_Cut_Bare_Soil         : *clear_cut_soil
         Bare_Soil                   : *clear_cut_soil
         # Based on "nephritis" palette of Flat Design Color Chart
         Highly_Degraded             : &clear_cut_deg "#BFD9BD"
         Clear_Cut_Veg               : *clear_cut_deg
-        Clear_Cut_Vegetation        : *clear_cut_deg
+        Clear_Cut_Vegetation        : "#D8DA83"
+        Clear_Cut_Trees             : "#B4B56D" # "#91D990"
         # Based on "amethyst" palette from Flat Design Color Chart
         Mining                      : &mining "#CEB4D4"
         # Deforestation_Mask #FDEBD0 "#C9D6AE"
-        Deforestation               : &deforestation  "#CAD4C9"
+        Deforestation               : &deforestation  "#DBE6DA"
         Deforestation_Mask          : *deforestation
         # Based on "silver" palette from Flat Design Color Chart
-        Non_Forest                  : &non_forest "#C9D6AE"
+        Non_Forest                  : &non_forest "#C0D665"
         Natural_Non_Forested        : *non_forest
 
         # Urban Areas

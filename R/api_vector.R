@@ -1,93 +1,51 @@
-#' @title Supported vector packages
-#' @keywords internal
-#' @noRd
-#' @return   Names of vector packages supported by sits
-.vector_supported_packages <- function() {
-    return("sf")
-}
-
-#' @title Check for vector package availability
-#' @name .vector_check_package
-#' @keywords internal
-#' @noRd
+#' @title Vector package
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#'
-#' @return name of the package.
-.vector_check_package <- function() {
-    pkg_class <- .conf_vector_pkg()
-    class(pkg_class) <- pkg_class
-
-    UseMethod(".vector_check_package", pkg_class)
-}
-
-.vector_open_vec <- function(file_path, ...) {
-    # check package
-    pkg_class <- .vector_check_package()
-
-    UseMethod(".vector_open_vec", pkg_class)
-}
-
-.vector_read_vec <- function(file_path, ...) {
-    # check package
-    pkg_class <- .vector_check_package()
-
-    UseMethod(".vector_read_vec", pkg_class)
-}
-
-.vector_write_vec <- function(v_obj, file_path, ...) {
-    # check package
-    pkg_class <- .vector_check_package()
-
-    UseMethod(".vector_write_vec", pkg_class)
-}
-
-#' @title Raster package internal create raster object function
-#' @name .vector_new_vec
+#' @description  API to access vector files
 #' @keywords internal
 #' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param ...           additional parameters to be passed to raster package
-#'
-#' @return               A vector object.
-.vector_new_vec <- function(...) {
-    # check package
-    pkg_class <- .vector_check_package()
-
-    UseMethod(".raster_new_rast", pkg_class)
+#' @param file_path          Path to vector file.
+#' @param v_obj              sf object
+#' @param wkt                Information in WKT format?
+#' @param crs                Desired CRS for object to be reprojected
+#' @param ... Additional parameters.
+NULL
+#' @title Open a vector file
+#' @noRd
+#' @returns An sf object to vector file
+.vector_open_vec <- function(file_path, ...) {
+    sf::st_read(dsn = file_path, ..., quiet = TRUE)
 }
-
-#' @name .vector_crs
-#' @keywords internal
+#' @title Read a vector file
+#' @noRd
+#' @returns An sf object to vector file
+.vector_read_vec <- function(file_path, ...) {
+    sf::read_sf(dsn = file_path, ..., quiet = TRUE)
+}
+#' @title Write a vector file
+#' @noRd
+#' @returns NULL (called for side effects)
+.vector_write_vec <- function(v_obj, file_path, ...) {
+    sf::st_write(obj = v_obj, dsn = file_path, quiet = TRUE, ...)
+}
+#' @title Retrieve the CRS of a vector object
 #' @noRd
 .vector_crs <- function(v_obj, wkt = TRUE, ...) {
-    # check package
-    pkg_class <- .vector_check_package()
-
-    UseMethod(".vector_crs", pkg_class)
+    crs <- sf::st_crs(v_obj, ...)
+    if (wkt) {
+        return(crs[["wkt"]])
+    }
+    crs
 }
 
-#' @name .vector_bbox
+#' @title Retrieve the bbox of a vector object
 #' @keywords internal
 #' @noRd
 .vector_bbox <- function(v_obj, ...) {
-    # check package
-    pkg_class <- .vector_check_package()
-
-    UseMethod(".vector_bbox", pkg_class)
+    sf::st_bbox(v_obj, ...)
 }
-
-#' @name .vector_reproject
+#' @title Reproject a vector object
 #' @keywords internal
 #' @noRd
 .vector_reproject <- function(v_obj, crs, ...) {
-    # check package
-    pkg_class <- .vector_check_package()
-
-    UseMethod(".vector_reproject", pkg_class)
-}
-
-.vector_set_class <- function(vector, ...) {
-    .set_class(vector, ..., c("tbl_df", "tbl", "data.frame"))
+    sf::st_transform(x = v_obj, crs = crs, ...)
 }

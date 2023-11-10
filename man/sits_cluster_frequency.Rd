@@ -9,7 +9,7 @@ sits_cluster_frequency(samples)
 \arguments{
 \item{samples}{Tibble with input set of time series with additional
 cluster information produced
-by \code{sits::sits_cluster_dendro}.}
+by \code{link[sits]{sits_cluster_dendro}}.}
 }
 \value{
 A matrix containing frequencies

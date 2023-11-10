@@ -68,7 +68,7 @@ sits_uncertainty <- function(
     # check output dir
     .check_output_dir(output_dir)
     # check version
-    .check_version(version)
+    version <- .check_version(version)
     # version is case-insensitive in sits
     version <- tolower(version)
     # Check memory and multicores
@@ -79,7 +79,7 @@ sits_uncertainty <- function(
         job_size = .block_size(block = block, overlap = 0),
         npaths = length(.tile_labels(cube)) + 1,
         nbytes = 8,
-        proc_bloat = .conf("processing_bloat")
+        proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(

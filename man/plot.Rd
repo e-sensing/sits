@@ -25,32 +25,23 @@ A series of plot objects produced by ggplot2 showing all
 \description{
 This is a generic function. Parameters depend on the specific
 type of input.  See each function description for the
-required parameters:
+required parameters.
 \itemize{
- \item{sits tibble: }          {see \code{\link{plot.sits}}}
- \item{patterns: }             {see \code{\link{plot.patterns}}}
- \item{SOM map: }              {see \code{\link{plot.som_map}}}
- \item{SOM evaluate cluster: } {see \code{\link{plot.som_evaluate_cluster}}}
- \item{classified time series: } {see \code{\link{plot.predicted}}}
- \item{raster cube: }         {see \code{\link{plot.raster_cube}}}
- \item{random forest model:} {see \code{\link{plot.rfor_model}}}
- \item{xgboost model:} {see \code{\link{plot.xgb_model}}}
- \item{torch ML model: } {see \code{\link{plot.torch_model}}}
- \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
- \item{model uncertainty: } {see \code{\link{plot.uncertainty_cube}}}
- \item{classified image: }     {see \code{\link{plot.class_cube}}}
+\item sits tibble: see \code{\link{plot.sits}}
+\item patterns: see \code{\link{plot.patterns}}
+\item SOM map: see \code{\link{plot.som_map}}
+\item SOM evaluate cluster: see \code{\link{plot.som_evaluate_cluster}}
+\item classified time series: see \code{\link{plot.predicted}}
+\item raster cube: see \code{\link{plot.raster_cube}}
+\item vector cube: see \code{\link{plot.vector_cube}}
+\item random forest model: see \code{\link{plot.rfor_model}}
+\item xgboost model: see \code{\link{plot.xgb_model}}
+\item torch ML model: see \code{\link{plot.torch_model}}
+\item classification probabilities: see \code{\link{plot.probs_cube}}
+\item model uncertainty: see \code{\link{plot.uncertainty_cube}}
+\item classified cube: see \code{\link{plot.class_cube}}
+\item classified vector cube: see \code{\link{plot.class_vector_cube}}
 }
-In the case of time series, the plot function produces different plots
-based on the input data:
-\itemize{
- \item{"all years": }{Plot all samples from the same location together}
- \item{"together": }{Plot all samples of the same band and label together}
-}
-The plot function makes an educated guess of what plot is required
-based on the input data. If the input data has less than 30 samples or
-the \code{together} parameter is FALSE, it will plot only one randomly
-chosen sample. If the \code{together} parameter is set to TRUE or
-there are more than 30 samples, it will plot all samples.
 }
 \examples{
 if (sits_run_examples()) {

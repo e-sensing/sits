@@ -49,18 +49,19 @@ segmentation function. The function applies the segmentation algorithm
 "seg_fn" to each tile.
 
 Segmentation uses the following steps:
-\itemize{
- \item{create a regular data cube}
- \item{use \code{\link[sits]{sits_segment}} to obtain a vector data cube
-       with polygons that define the boundary of the segments.}
- \item{use \code{\link[sits]{sits_classify}} to classify the
-      time series associated to the segments, and obtain the probability
-      for each class.}
- \item{use \code{\link[sits]{sits_label_classification}} to label the
-     vector probability cube.}
- \item{use \code{\link[sits]{plot}} or \code{\link[sits]{sits_view}}
-       to display the results.}
- }
+\enumerate{
+ \item Create a regular data cube with \code{\link[sits]{sits_cube}} and
+       \code{\link[sits]{sits_regularize}};
+ \item Run \code{\link[sits]{sits_segment}} to obtain a vector data cube
+       with polygons that define the boundary of the segments;
+ \item Classify the time series associated to the segments
+       with \code{\link[sits]{sits_classify}}, to get obtain
+       a vector probability cube;
+ \item Use \code{\link[sits]{sits_label_classification}} to label the
+     vector probability cube;
+ \item Display the results with \code{\link[sits]{plot}} or
+       \code{\link[sits]{sits_view}}.
+}
 }
 \note{
 The "roi" parameter defines a region of interest. It can be

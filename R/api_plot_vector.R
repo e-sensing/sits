@@ -56,16 +56,20 @@
             palette = colors
         ) +
         tmap::tm_graticules(
-            labels.size = tmap_params[["labels_size"]]
+            labels.size = tmap_params[["graticules_labels_size"]]
         ) +
         tmap::tm_compass() +
         tmap::tm_layout(
             legend.show = TRUE,
             legend.outside = FALSE,
-            legend.bg.color = tmap_params[["bg_color"]],
-            legend.bg.alpha = tmap_params[["bg_alpha"]],
-            legend.title.size = tmap_params[["title_size"]],
-            legend.text.size = tmap_params[["text_size"]]
+            scale = tmap_params[["scale"]],
+            fontfamily        = tmap_params[["font_family"]],
+            legend.bg.color   = tmap_params[["legend_bg_color"]],
+            legend.bg.alpha   = tmap_params[["legend_bg_alpha"]],
+            legend.title.size = tmap_params[["legend_title_size"]],
+            legend.text.size = tmap_params[["legend_text_size"]],
+            legend.width     = tmap_params[["legend_width"]],
+            legend.position  = tmap_params[["legend_position"]]
         ) +
         tmap::tm_borders(lwd = 0.2)
     return(p)
@@ -134,20 +138,21 @@
         tmap::tm_polygons(labels_plot) +
         tmap::tm_facets(sync = FALSE, ncol = 2, scale.factor = 1) +
         tmap::tm_graticules(
-            labels.size = tmap_params[["labels_size"]]
+            labels.size = tmap_params[["graticules_labels_size"]]
         ) +
         tmap::tm_compass() +
         tmap::tm_layout(
-            legend.show = TRUE,
-            legend.outside = FALSE,
+            fontfamily      = tmap_params[["font_family"]],
+            legend.bg.color = tmap_params[["legend_bg_color"]],
+            legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
+            legend.title.size = tmap_params[["legend_title_size"]],
+            legend.text.size = tmap_params[["legend_text_size"]],
+            legend.width     = tmap_params[["legend_width"]],
+            legend.height    = tmap_params[["legend_height"]],
             outer.margins = c(0.00001, 0.00001, 0.00001, 0.00001),
             inner.margins = c(0, 0, 0, 0),
             between.margin = 0,
-            asp = 0,
-            legend.bg.color = tmap_params[["bg_color"]],
-            legend.bg.alpha = tmap_params[["bg_alpha"]],
-            legend.title.size = tmap_params[["title_size"]],
-            legend.text.size = tmap_params[["text_size"]]
+            asp = 0
         ) +
         tmap::tm_borders(lwd = 0.2)
 

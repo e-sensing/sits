@@ -1,4 +1,7 @@
-#' Copy the images of a cube to a local directory
+#'
+#' @title Copy the images of a cube to a local directory
+#' @name sits_cube_copy
+#' @description
 #'
 #' This function downloads the images of a cube in parallel.
 #' A region of interest (\code{roi}) can be provided to crop

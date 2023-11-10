@@ -2,7 +2,7 @@
 #' @name sits_select
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param data       Tibble (class "sits" or class "raster_cube").
+#' @param data       Tibble with time series or data cube.
 #' @param bands      Character vector with the names of the bands.
 #' @param start_date Date in YYYY-MM-DD format: start date to be filtered.
 #' @param end_date   Date in YYYY-MM-DD format: end date to be filtered.
@@ -13,7 +13,7 @@
 #' @description      Filter only the selected bands and dates
 #'                   from a set of time series or froam a data cube.
 #'
-#' @return           Tibble of class "sits" or class "raster_cube".
+#' @return           Tibble with time series or data cube.
 #'
 #' @examples
 #' # Retrieve a set of time series with 2 classes

@@ -310,6 +310,7 @@
                 item = item,
                 collection = collection, ...
             )
+            cloud_cover <- .default(cloud_cover, 0)
             # post-conditions
             .check_na(date, msg = "invalid date value")
             .check_length(date,

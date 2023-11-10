@@ -36,7 +36,7 @@ Description: An end-to-end toolkit for land use and land cover classification
     Minimum recommended requirements: 16 GB RAM and 4 CPU dual-core.
 Encoding: UTF-8
 Language: en-US
-Depends: R (>= 4.1.0)
+Depends: R (>= 4.0.0)
 URL: https://github.com/e-sensing/sits/, https://e-sensing.github.io/sitsbook/
 BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2
@@ -50,9 +50,9 @@ Imports:
     graphics,
     lubridate,
     parallel (>= 4.0.5),
-    purrr (>= 0.3.0),
+    purrr (>= 1.0.2),
     Rcpp,
-    rstac (>= 0.9.2-3),
+    rstac (>= 0.9.2-5),
     sf (>= 1.0-12),
     showtext,
     sysfonts,
@@ -61,10 +61,11 @@ Imports:
     terra (>= 1.5-17),
     tibble (>= 3.1),
     tidyr (>= 1.2.0),
-    torch (>= 0.9.0),
+    torch (>= 0.11.0),
     utils
 Suggests:
     caret,
+    cli,
     dendextend,
     dtwclust,
     DiagrammeR,
@@ -80,15 +81,15 @@ Suggests:
     jsonlite,
     kohonen (>= 3.0.11),
     leafem (>= 0.2.0),
-    leaflet (>= 2.1.1),
-    luz (>= 0.3.0),
+    leaflet (>= 2.2.0),
+    luz (>= 0.4.0),
     methods,
     mgcv,
     nnet,
     openxlsx,
     randomForest,
     randomForestExplainer,
-    RcppArmadillo (>= 0.11),
+    RcppArmadillo (>= 0.12),
     scales,
     stars (>= 0.6),
     stringr,
@@ -186,7 +187,6 @@ Collate:
     'api_variance.R'
     'api_vector.R'
     'api_vector_info.R'
-    'api_vector_sf.R'
     'api_view.R'
     'RcppExports.R'
     'data.R'

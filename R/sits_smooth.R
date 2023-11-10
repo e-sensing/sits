@@ -76,7 +76,7 @@ sits_smooth <- function(cube, window_size = 7L, neigh_fraction = 0.5,
     output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
     # Check version
-    .check_version(version)
+    version <- .check_version(version)
     # get nlabels
     nlabels <- length(sits_labels(cube))
     # Check smoothness
@@ -110,7 +110,7 @@ sits_smooth.probs_cube <- function(cube, window_size = 7L, neigh_fraction = 0.5,
         job_size = .block_size(block = block, overlap = overlap),
         npaths = length(.tile_labels(cube)) * 2,
         nbytes = 8,
-        proc_bloat = .conf("processing_bloat")
+        proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(

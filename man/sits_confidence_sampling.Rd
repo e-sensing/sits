@@ -12,7 +12,9 @@ sits_confidence_sampling(
 )
 }
 \arguments{
-\item{probs_cube}{A probability cube. See \code{sits_classify}.}
+\item{probs_cube}{A smoothed probability cube.
+See \code{\link[sits]{sits_classify}} and
+\code{\link[sits]{sits_smooth}}.}
 
 \item{n}{Number of suggested points per class.}
 
@@ -35,16 +37,13 @@ location where the machine learning model has high confidence in choosing
 this label compared to all others. The algorithm also considers a
 minimum distance between new labels, to minimize spatial autocorrelation
 effects.
+This function is best used in the following context:
+ 1. Select an initial set of samples.
+ 2. Train a machine learning model.
+ 3. Build a data cube and classify it using the model.
+ 4. Run a Bayesian smoothing in the resulting probability cube.
+ 5. Perform confidence sampling.
 
-This function is best used in the following context
-\itemize{
-   \item{1. }{Select an initial set of samples.}
-   \item{2. }{Train a machine learning model.}
-   \item{3. }{Build a data cube and classify it using the model.}
-   \item{4. }{Run a Bayesian smoothing in the resulting probability cube.}
-   \item{5. }{Create an uncertainty cube.}
-   \item{6. }{Perform confidence sampling.}
-}
 The Bayesian smoothing procedure will reduce the classification outliers
 and thus increase the likelihood that the resulting pixels with provide
 good quality samples for each class.

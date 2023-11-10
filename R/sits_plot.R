@@ -4,32 +4,23 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description This is a generic function. Parameters depend on the specific
 #' type of input.  See each function description for the
-#' required parameters:
+#' required parameters.
 #' \itemize{
-#'  \item{sits tibble: }          {see \code{\link{plot.sits}}}
-#'  \item{patterns: }             {see \code{\link{plot.patterns}}}
-#'  \item{SOM map: }              {see \code{\link{plot.som_map}}}
-#'  \item{SOM evaluate cluster: } {see \code{\link{plot.som_evaluate_cluster}}}
-#'  \item{classified time series: } {see \code{\link{plot.predicted}}}
-#'  \item{raster cube: }         {see \code{\link{plot.raster_cube}}}
-#'  \item{random forest model:} {see \code{\link{plot.rfor_model}}}
-#'  \item{xgboost model:} {see \code{\link{plot.xgb_model}}}
-#'  \item{torch ML model: } {see \code{\link{plot.torch_model}}}
-#'  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
-#'  \item{model uncertainty: } {see \code{\link{plot.uncertainty_cube}}}
-#'  \item{classified image: }     {see \code{\link{plot.class_cube}}}
+#' \item sits tibble: see \code{\link{plot.sits}}
+#' \item patterns: see \code{\link{plot.patterns}}
+#' \item SOM map: see \code{\link{plot.som_map}}
+#' \item SOM evaluate cluster: see \code{\link{plot.som_evaluate_cluster}}
+#' \item classified time series: see \code{\link{plot.predicted}}
+#' \item raster cube: see \code{\link{plot.raster_cube}}
+#' \item vector cube: see \code{\link{plot.vector_cube}}
+#' \item random forest model: see \code{\link{plot.rfor_model}}
+#' \item xgboost model: see \code{\link{plot.xgb_model}}
+#' \item torch ML model: see \code{\link{plot.torch_model}}
+#' \item classification probabilities: see \code{\link{plot.probs_cube}}
+#' \item model uncertainty: see \code{\link{plot.uncertainty_cube}}
+#' \item classified cube: see \code{\link{plot.class_cube}}
+#' \item classified vector cube: see \code{\link{plot.class_vector_cube}}
 #' }
-#' In the case of time series, the plot function produces different plots
-#' based on the input data:
-#' \itemize{
-#'  \item{"all years": }{Plot all samples from the same location together}
-#'  \item{"together": }{Plot all samples of the same band and label together}
-#' }
-#' The plot function makes an educated guess of what plot is required
-#' based on the input data. If the input data has less than 30 samples or
-#' the \code{together} parameter is FALSE, it will plot only one randomly
-#' chosen sample. If the \code{together} parameter is set to TRUE or
-#' there are more than 30 samples, it will plot all samples.
 #'
 #' @param x        Object of class "sits".
 #' @param y        Ignored.
@@ -332,18 +323,21 @@ plot.predicted <- function(x, y, ...,
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  tmap_options  List with optional tmap parameters
-#'                       tmap_max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
+#'                       max_cells (default: 1e+06)
+#'                       scale (default: 0.5)
+#'                       graticules_labels_size (default: 0.7)
+#'                       legend_title_size (default: 1.0)
+#'                       legend_text_size (default: 1.0)
+#'                       legend_bg_color (default: "white")
+#'                       legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
 #'                       scale using the pallete
 #'
-#' @note To see which color palettes are supported, please run
+#' @note To see which colors are supported, please run \code{sits_colors()}
+#'       Use \code{scale} parameter for general output control.
+#'       If required, then set the other params individually
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a data cube from local files
@@ -358,7 +352,7 @@ plot.predicted <- function(x, y, ...,
 #' }
 #' @export
 plot.raster_cube <- function(x, ...,
-                             band = sits_bands(x)[1],
+                             band = NULL,
                              red = NULL,
                              green = NULL,
                              blue = NULL,
@@ -380,6 +374,8 @@ plot.raster_cube <- function(x, ...,
         bw <-  FALSE
     else
         bw <-  TRUE
+    if (bw)
+        band = .default(band, .cube_bands(x, add_cloud = FALSE)[1])
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?
@@ -917,12 +913,17 @@ plot.uncertainty_cube <- function(x, ...,
 #' @param  legend          Named vector that associates labels to colors.
 #' @param  palette         Alternative RColorBrewer palette
 #' @param  tmap_options    List with optional tmap parameters
-#'                         tmap_max_cells (default: 1e+06)
-#'                         tmap_graticules_labels_size (default: 0.7)
-#'                         tmap_legend_title_size (default: 1.5)
-#'                         tmap_legend_text_size (default: 1.2)
-#'                         tmap_legend_bg_color (default: "white")
-#'                         tmap_legend_bg_alpha (default: 0.5)
+#'                         max_cells (default: 1e+06)
+#'                         graticules_labels_size (default: 0.7)
+#'                         scale (default = 0.8)
+#'                         legend_title_size (default: 0.7)
+#'                         legend_text_size (default: 0.7)
+#'                         legend_bg_color (default: "white")
+#'                         legend_bg_alpha (default: 0.5)
+#'                         legend_width (default: 0.5)
+#'                         legend_height (default: 0.7)
+#'                         legend_position (default: c("left", "bottom"))
+#'
 #'
 #' @return                 A  color map, where each pixel has the color
 #'                         associated to a label, as defined by the legend
@@ -1293,12 +1294,10 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #' @title  Plot a SOM map
 #' @name   plot.som_map
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a SOM map generated by "sits_som_map"
-#' The plot function produces different plots based on the input data:
-#' \itemize{
-#'  \item{"codes": }{Plot the vector weight for in each neuron.}
-#'  \item{"mapping": }{Shows where samples are mapped.}
-#' }
+#' @description plots a SOM map generated by "sits_som_map".
+#' The plot function produces different plots based on the input data.
+#' If type is "codes", plots the vector weight for in each neuron.
+#' If type is "mapping", shows where samples are mapped.
 #'
 #' @param  x          Object of class "som_map".
 #' @param  y          Ignored.
@@ -1381,8 +1380,6 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #'     xgb_model <- sits_train(samples_modis_ndvi,
 #'         ml_method = sits_xgboost()
 #'     )
-#'     # plot the model
-#'     plot(xgb_model)
 #' }
 #' @export
 #'

@@ -11,18 +11,20 @@
 #' "seg_fn" to each tile.
 #'
 #' Segmentation uses the following steps:
-#' \itemize{
-#'  \item{create a regular data cube}
-#'  \item{use \code{\link[sits]{sits_segment}} to obtain a vector data cube
-#'        with polygons that define the boundary of the segments.}
-#'  \item{use \code{\link[sits]{sits_classify}} to classify the
-#'       time series associated to the segments, and obtain the probability
-#'       for each class.}
-#'  \item{use \code{\link[sits]{sits_label_classification}} to label the
-#'      vector probability cube.}
-#'  \item{use \code{\link[sits]{plot}} or \code{\link[sits]{sits_view}}
-#'        to display the results.}
-#'  }
+#' \enumerate{
+#'  \item Create a regular data cube with \code{\link[sits]{sits_cube}} and
+#'        \code{\link[sits]{sits_regularize}};
+#'  \item Run \code{\link[sits]{sits_segment}} to obtain a vector data cube
+#'        with polygons that define the boundary of the segments;
+#'  \item Classify the time series associated to the segments
+#'        with \code{\link[sits]{sits_classify}}, to get obtain
+#'        a vector probability cube;
+#'  \item Use \code{\link[sits]{sits_label_classification}} to label the
+#'      vector probability cube;
+#'  \item Display the results with \code{\link[sits]{plot}} or
+#'        \code{\link[sits]{sits_view}}.
+#'}
+#'
 #'
 #' @param  cube       Regular data cube
 #' @param  seg_fn     Function to apply the segmentation
@@ -89,7 +91,7 @@ sits_segment <- function(cube,
     .check_is_regular(cube)
     .check_memsize(memsize, min = 1, max = 16384)
     .check_output_dir(output_dir)
-    .check_version(version)
+    version <- .check_version(version)
     .check_progress(progress)
     .check_function(seg_fn)
 
@@ -157,7 +159,7 @@ sits_segment <- function(cube,
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description
-#' Apply a segmentation on a data cube based on the "supercells" package.
+#' Apply a segmentation on a data cube based on the \code{supercells} package.
 #' This is an adaptation and extension to remote sensing data of the
 #' SLIC superpixels algorithm proposed by Achanta et al. (2012).
 #' See references for more details.
@@ -167,11 +169,11 @@ sits_segment <- function(cube,
 #'                      supercells' centers.
 #' @param compactness   A compactness value. Larger values cause clusters to
 #'                      be more compact/even (square).
-#' @param dist_fun      Distance function. Currently implemented: "euclidean",
-#'                      "jsd", "dtw", and any distance function from the
+#' @param dist_fun      Distance function. Currently implemented:
+#'                      \code{euclidean, jsd, dtw},
+#'                      and any distance function from the
 #'                      \code{philentropy} package.
 #'                      See \code{philentropy::getDistMethods()}.
-#'                      Default: "dtw"
 #' @param avg_fun       Averaging function to calculate the values
 #'                      of the supercells' centers.
 #'                      Accepts any fitting R function
@@ -207,7 +209,8 @@ sits_segment <- function(cube,
 #'     # segment the vector cube
 #'     segments <- sits_segment(
 #'         cube = cube,
-#'         output_dir = tempdir()
+#'         output_dir = tempdir(),
+#'         version = "slic-demo"
 #'     )
 #'     # create a classification model
 #'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -215,12 +218,14 @@ sits_segment <- function(cube,
 #'     seg_probs <- sits_classify(
 #'         data = segments,
 #'         ml_model = rfor_model,
-#'         output_dir = tempdir()
+#'         output_dir = tempdir(),
+#'         version = "slic-demo"
 #'     )
 #'     # label the probability segments
 #'     seg_label <- sits_label_classification(
 #'         cube = seg_probs,
-#'         output_dir = tempdir()
+#'         output_dir = tempdir(),
+#'         version = "slic-demo"
 #'     )
 #' }
 #' @export
