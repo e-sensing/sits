@@ -7,7 +7,7 @@
 #' the most frequently values within the neighborhood.
 #' In a tie, the first value of the vector is considered.
 #'
-#' @param asset       Subset of a data cube
+#' @param tile        Subset of a data cube
 #' @param block       Image block to be cleaned
 #' @param band        Band to be processed
 #' @param window_size Size of local neighborhood
@@ -26,6 +26,19 @@
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
     )
+    # Resume tile
+    if (.raster_is_valid(out_file, output_dir = output_dir)) {
+        # recovery message
+        .check_recovery(out_file)
+        # Create tile based on template
+        tile <- .tile_derived_from_file(
+            file = out_file, band = band,
+            base_tile = tile, derived_class = .tile_derived_class(tile),
+            labels = .tile_labels(tile),
+            update_bbox = FALSE
+        )
+        return(tile)
+    }
     # Create chunks as jobs
     chunks <- .tile_chunks_create(
         tile = tile, overlap = overlap, block = block
@@ -86,8 +99,9 @@
         update_bbox = FALSE
     )
     # Return a asset
-    band_tile
+    return(band_tile)
 }
+
 #' @title Read data for cleaning operation
 #' @name .clean_data_read
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
@@ -103,5 +117,5 @@
     # Set columns name
     colnames(values) <- band
     # Return values
-    values
+    return(values)
 }
