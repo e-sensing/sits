@@ -82,7 +82,7 @@ to the package. We recommend running them in the following order:
     cubes](https://www.kaggle.com/esensing/machine-learning-for-data-cubes)
 6.  [Classification of raster data cubes](https://www.kaggle.com/code/esensing/classification-of-raster-data-cubes)
 7.  [Bayesian smooting for post-processing](https://www.kaggle.com/code/esensing/bayesian-smoothing-for-post-processing)
-8.  [Uncertainty and active learning](https://e-sensing.github.io/sitsbook/uncertainty-and-active-learning.html)
+8.  [Uncertainty and active learning](https://www.kaggle.com/code/esensing/uncertainty-and-active-learning)
 9.  [Object-based time series classification](https://www.kaggle.com/esensing/object-based-image-time-series-classification)
 
 ## Installation
