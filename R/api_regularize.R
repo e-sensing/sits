@@ -165,6 +165,8 @@
         }) |>
         dplyr::bind_rows()
 
+    # Finalize customizing cube class
+    cube_class <- c(cube_class[1], "sar_cube", cube_class[-1])
     .cube_set_class(cube, cube_class)
 }
 
