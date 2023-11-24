@@ -295,7 +295,7 @@
 `.source_items_tile.mpc_cube_sentinel-1-grd` <- function(source,
                                                          items, ...,
                                                          collection = NULL) {
-    rep("20LKP", rstac::items_length(items))
+    rep("NoTilingSystem", rstac::items_length(items))
 }
 
 #' @keywords internal
