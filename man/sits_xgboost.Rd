@@ -14,6 +14,7 @@ sits_xgboost(
   subsample = 0.8,
   nfold = 5,
   nrounds = 100,
+  nthread = 6,
   early_stopping_rounds = 20,
   verbose = FALSE
 )

@@ -170,7 +170,7 @@ sits_classify.sits <- function(data,
     .check_is_sits_model(ml_model)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
-    # Update multicores: xgb model do its own parallelization
+    # Update multicores: xgb model does its own parallelization
     if (inherits(ml_model, "xgb_model")) {
         multicores <- 1
     }

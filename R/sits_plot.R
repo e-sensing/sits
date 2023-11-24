@@ -1362,13 +1362,15 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #' @name   plot.xgb_model
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Plots the important variables in an extreme gradient boosting.
+#' @description Plots trees in an extreme gradient boosting model.
 #'
 #'
 #' @param  x             Object of class "xgb_model".
 #' @param  ...           Further specifications for \link{plot}.
-#' @param  n_trees       Number of trees to be plotted
-#' @return               A plot object.
+#' @param  trees         Vector of trees to be plotted
+#' @param  width         Width of the output window
+#' @param  height        Height of the output window
+#' @return               A plot
 #'
 #' @note
 #' Please refer to the sits documentation available in
@@ -1380,17 +1382,20 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #'     xgb_model <- sits_train(samples_modis_ndvi,
 #'         ml_method = sits_xgboost()
 #'     )
+#'     plot(xgb_model)
 #' }
 #' @export
 #'
-plot.xgb_model <- function(x, ..., n_trees = 3) {
+plot.xgb_model <- function(x, ...,
+                           trees = c(0:4), width = 1500, height = 1900) {
     # verifies if DiagrammeR package is installed
     .check_require_packages("DiagrammeR")
     .check_is_sits_model(x)
-    # retrieve the XGB object from the enviroment
+    # retrieve the XGB object from the environment
     xgb <- .ml_model(x)
     # plot the trees
-    p <- xgboost::xgb.plot.tree(model = xgb, trees = seq_len(n_trees) - 1)
+    gr <- xgboost::xgb.plot.tree(model = xgb, trees = trees, render = FALSE)
+    p <-  DiagrammeR::render_graph(gr, width = width, height = height)
     return(p)
 }
 #' @title  Plot Torch (deep learning) model
