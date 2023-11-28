@@ -398,9 +398,10 @@
                                          progress) {
 
     # how much memory do we need?
-    req_memory <- .tile_nrows(tile)  * .tile_ncols(tile) *
-        length(.tile_timeline(tile)) * length(bands) * 4 *
-        .conf("processing_bloat_seg") / 1e+09
+    # Get image size
+    req_memory <- .as_dbl(.tile_nrows(tile)) * .as_dbl(.tile_ncols(tile))
+    req_memory <- req_memory * length(.tile_timeline(tile)) *
+        length(bands) * 4 * .conf("processing_bloat_seg") / 1e+09
 
     # do we have enough memory?
     if (req_memory < memsize) {
