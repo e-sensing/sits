@@ -2,6 +2,9 @@
 
 # What's new in SITS version 1.4
 
+### Hotfix version 1.4.2-2
+* Fix integer overflow bug in `sits_classify()` segments
+
 ### Hotfix version 1.4.2-1
 * Fix crs bug in `sits_apply()`
 * Update file name in clean feature
