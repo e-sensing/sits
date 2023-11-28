@@ -255,6 +255,7 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
 #' @param nfold            Number of the subsamples for the cross-validation.
 #' @param nrounds          Number of rounds to iterate the cross-validation
 #'                         (default: 100)
+#' @param nthread          Number of threads (default = 6)
 #' @param early_stopping_rounds Training with a validation set will stop
 #'                         if the performance doesn't improve for k rounds.
 #' @param verbose          Print information on statistics during the process
@@ -311,13 +312,6 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
             max_delta_step = max_delta_step, subsample = subsample,
             nthread = nthread
         )
-        # Train a xgboost model
-        # model <- xgboost::xgboost(
-        #     data = as.matrix(.pred_features(train_samples)),
-        #     label = references, num_class = length(labels), params = params,
-        #     nrounds = nrounds, verbose = FALSE
-        # )
-        #
         if (verbose)
             verbose = 1
         else

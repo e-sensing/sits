@@ -52,6 +52,8 @@ Default: 0.8.}
 \item{nrounds}{Number of rounds to iterate the cross-validation
 (default: 100)}
 
+\item{nthread}{Number of threads (default = 6)}
+
 \item{early_stopping_rounds}{Training with a validation set will stop
 if the performance doesn't improve for k rounds.}
 
