@@ -266,7 +266,7 @@
         progress = FALSE
     )
     # Classify segments
-    classified_ts <- .classify_ts(
+    segments_ts <- .classify_ts(
         samples = segments_ts,
         ml_model = ml_model,
         filter_fn = filter_fn,
@@ -275,13 +275,13 @@
         progress = progress
     )
     # Join probability values with segments
-    joined_segments <- .segments_join_probs(
-        data = classified_ts,
-        segments = .segments_read_vec(tile),
-        aggregate = .has(n_sam_pol)
+    segments_ts <- .segments_join_probs(
+            data = segments_ts,
+            segments = .segments_read_vec(tile)
     )
+
     # Write all segments
-    .vector_write_vec(v_obj = joined_segments, file_path = out_file)
+    .vector_write_vec(v_obj = segments_ts, file_path = out_file)
     # Create tile based on template
     probs_tile <- .tile_segments_from_file(
         file = out_file,
