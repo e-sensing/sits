@@ -64,8 +64,7 @@ sits_classify(
   version = "v1",
   n_sam_pol = NULL,
   verbose = FALSE,
-  progress = TRUE,
-  .keep_probs = FALSE
+  progress = TRUE
 )
 
 \method{sits_classify}{default}(data, ml_model, ...)
@@ -113,8 +112,6 @@ named lat/long values
 
 \item{n_sam_pol}{Number of time series per segment to be classified
 (integer, min = 10, max = 50).}
-
-\item{.keep_probs}{Keep all probabilities?}
 }
 \value{
 Time series with predicted labels for
