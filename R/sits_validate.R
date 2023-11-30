@@ -229,4 +229,5 @@ sits_validate <- function(samples,
     acc_obj <- caret::confusionMatrix(predicted, reference)
     # Set result class and return it
     .set_class(x = acc_obj, "sits_accuracy", class(acc_obj))
+    return(acc_obj)
 }

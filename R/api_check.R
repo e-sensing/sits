@@ -1105,16 +1105,18 @@
 #' @param  max maximum value
 #' @param  len_min minimum length of vector
 #' @param  len_max maximum length of vector
+#' @param  allow_null  Allow NULL value?
 #' @param  msg Error message
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
 .check_int_parameter <- function(param, min = 1, max = 2^31 - 1,
-                                 len_min = 1, len_max = 1, msg = NULL) {
+                                 len_min = 1, len_max = 1,
+                                 allow_null = FALSE, msg = NULL) {
     .check_num(
         x = param,
         allow_na = FALSE,
-        allow_null = FALSE,
+        allow_null = allow_null,
         min = min,
         max = max,
         len_min = len_min,

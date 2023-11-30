@@ -132,9 +132,8 @@
 #'         data = segments,
 #'         ml_model = rf_model,
 #'         output_dir = tempdir(),
-#'         n_sam_pol = 20,
 #'         multicores = 4,
-#'         version = "segs_classify"
+#'         version = "segs"
 #'     )
 #'     # Create a labelled vector cube
 #'     class_segs <- sits_label_classification(
@@ -170,7 +169,7 @@ sits_classify.sits <- function(data,
     .check_is_sits_model(ml_model)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
-    # Update multicores: xgb model do its own parallelization
+    # Update multicores: xgb model does its own parallelization
     if (inherits(ml_model, "xgb_model")) {
         multicores <- 1
     }
@@ -351,14 +350,14 @@ sits_classify.segs_cube <- function(data,
                                     gpu_memory = 16,
                                     output_dir,
                                     version = "v1",
-                                    n_sam_pol = 40,
+                                    n_sam_pol = NULL,
                                     verbose = FALSE,
                                     progress = TRUE) {
 
     # preconditions
     .check_is_vector_cube(data)
     .check_is_sits_model(ml_model)
-    .check_int_parameter(n_sam_pol, min = 5, max = 50)
+    .check_int_parameter(n_sam_pol, min = 5, allow_null = TRUE)
     .check_memsize(memsize, min = 1, max = 16384)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)

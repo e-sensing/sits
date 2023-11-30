@@ -77,14 +77,18 @@ to the package. We recommend running them in the following order:
     SITS](https://www.kaggle.com/esensing/working-with-time-series-in-sits)
 3.  [Creating data cubes in
     SITS](https://www.kaggle.com/esensing/creating-data-cubes-in-sits)
-4.  [Machine learning for data
+4.  [Improving the quality of training
+    samples](https://www.kaggle.com/code/esensing/improving-quality-of-training-samples)
+5.  [Machine learning for data
     cubes](https://www.kaggle.com/esensing/machine-learning-for-data-cubes)
-5.  [Raster classification in
-    SITS](https://www.kaggle.com/esensing/raster-classification-in-sits)
-6.  [Object-based time series classification using
-    GPU](https://www.kaggle.com/esensing/object-based-time-series-classification-using-gpu)
-7.  [Using SOM for sample quality control in
-    SITS](https://www.kaggle.com/esensing/using-som-for-sample-quality-control-in-sits)
+6.  [Classification of raster data
+    cubes](https://www.kaggle.com/code/esensing/classification-of-raster-data-cubes)
+7.  [Bayesian smoothing for
+    post-processing](https://www.kaggle.com/code/esensing/bayesian-smoothing-for-post-processing)
+8.  [Uncertainty and active
+    learning](https://www.kaggle.com/code/esensing/uncertainty-and-active-learning)
+9.  [Object-based time series
+    classification](https://www.kaggle.com/esensing/object-based-image-time-series-classification)
 
 ## Installation
 
@@ -115,7 +119,7 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 # load the sits library
 library(sits)
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.4.2.
+#> Loaded sits v1.4.2-1.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         Documentation avaliable in https://e-sensing.github.io/sitsbook/.
 ```
@@ -133,8 +137,8 @@ more information on how to install the required drivers.
 ### Image Collections Accessible by `sits`
 
 Users create data cubes from analysis-ready data (ARD) image collections
-available in cloud services. The collections accessible in `sits` 1.4.2
-are:
+available in cloud services. The collections accessible in `sits`
+1.4.2.1 are:
 
 1.  Brazil Data Cube
     ([BDC](http://brazildatacube.org/en/home-page-2/#dataproducts)):

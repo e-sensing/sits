@@ -14,6 +14,7 @@ sits_xgboost(
   subsample = 0.8,
   nfold = 5,
   nrounds = 100,
+  nthread = 6,
   early_stopping_rounds = 20,
   verbose = FALSE
 )
@@ -50,6 +51,8 @@ Default: 0.8.}
 
 \item{nrounds}{Number of rounds to iterate the cross-validation
 (default: 100)}
+
+\item{nthread}{Number of threads (default = 6)}
 
 \item{early_stopping_rounds}{Training with a validation set will stop
 if the performance doesn't improve for k rounds.}

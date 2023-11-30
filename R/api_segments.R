@@ -168,7 +168,7 @@
     return(vector_seg)
 }
 
-.segments_join_probs <- function(data, segments, aggregate) {
+.segments_join_probs <- function(data, segments) {
     # Select polygon_id and class for the time series tibble
     data_id <- data |>
         dplyr::select("polygon_id", "predicted") |>
@@ -179,18 +179,17 @@
     # Select just probability labels
     labels <- setdiff(colnames(data_id), c("polygon_id", "from", "to", "class"))
 
-    if (aggregate) {
-        data_id <- data_id |>
-            dplyr::summarise(dplyr::across(.cols = dplyr::all_of(labels), stats::median)) |>
-            dplyr::rowwise() |>
-            dplyr::mutate(sum = sum(dplyr::c_across(cols = dplyr::all_of(labels)))) |>
-            dplyr::mutate(dplyr::across(.cols = dplyr::all_of(labels), ~ .x / .data[["sum"]])) |>
-            dplyr::select(-"sum")
-    }
+    data_id <- data_id |>
+        dplyr::summarise(dplyr::across(.cols = dplyr::all_of(labels), stats::median)) |>
+        dplyr::rowwise() |>
+        dplyr::mutate(sum = sum(dplyr::c_across(cols = dplyr::all_of(labels)))) |>
+        dplyr::mutate(dplyr::across(.cols = dplyr::all_of(labels), ~ .x / .data[["sum"]])) |>
+        dplyr::select(-"sum")
 
     # join the data_id tibble with the segments (sf objects)
     dplyr::left_join(segments, data_id, by = c("pol_id" = "polygon_id"))
 }
+
 #'
 #' @name .segments_extract_data
 #' @keywords internal
@@ -296,10 +295,12 @@
     )
     # unnest to obtain the samples.
     samples <- tidyr::unnest(samples, cols = "points")
-    # sample the values
-    samples <- dplyr::slice_sample(samples,
-                                   n = n_sam_pol,
-                                   by = "polygon_id")
+    # sample the values if n_sam_plot is not NULL
+    if (!purrr::is_null(n_sam_pol)) {
+        samples <- dplyr::slice_sample(samples,
+                                       n = n_sam_pol,
+                                       by = "polygon_id")
+    }
     samples <- .discard(samples, "sample_id")
     # set sits class
     class(samples) <- c("sits", class(samples))

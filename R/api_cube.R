@@ -132,6 +132,48 @@ NULL
     # return the cube
     x
 }
+#' @title Return areas of classes of a class_cue
+#' @keywords internal
+#' @noRd
+#' @name .cube_class_areas
+#' @param cube       class cube
+#'
+#' @return A \code{vector} with the areas of the cube labels.
+.cube_class_areas <- function(cube) {
+    .check_cube_is_class_cube(cube)
+    labels_cube <- sits_labels(cube)
+
+    # Get area for each class for each row of the cube
+    freq_lst <- slider::slide(cube, function(tile) {
+        # Get the frequency count and value for each labelled image
+        freq <- .tile_area_freq(tile)
+        # pixel area
+        # convert the area to hectares
+        # assumption: spatial resolution unit is meters
+        area <- freq$count * .tile_xres(tile) * .tile_yres(tile) / 10000
+        # Include class names
+        freq <- dplyr::mutate(freq,
+                              area = area,
+                              class = labels_cube[.as_chr(freq$value)]
+        )
+        return(freq)
+    })
+    # Get a tibble by binding the row (duplicated labels with different counts)
+    freq <- do.call(rbind, freq_lst)
+    # summarize the counts for each label
+    freq <- freq |>
+        dplyr::filter(!is.na(class)) |>
+        dplyr::group_by(class) |>
+        dplyr::summarise(area = sum(.data[["area"]]))
+
+    # Area is taken as the sum of pixels
+    class_areas <- freq$area
+    # Names of area are the classes
+    names(class_areas) <- freq$class
+    # NAs are set to 0
+    class_areas[is.na(class_areas)] <- 0
+    return(class_areas)
+}
 
 #' @title Return bands of a data cube
 #' @keywords internal
