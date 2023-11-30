@@ -72,8 +72,6 @@ sits_label_classification.probs_cube <- function(cube, ...,
                                                  progress = TRUE) {
     # Pre-conditions - Check parameters
     .check_cube_files(cube)
-    .check_lgl_parameter(clean)
-    .check_window_size(window_size = window_size, min = 3, max = 15)
     .check_memsize(memsize, min = 1, max = 16384)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
@@ -83,10 +81,6 @@ sits_label_classification.probs_cube <- function(cube, ...,
 
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
-    # Get image size
-    image_size <- .raster_size(.raster_open_rast(.tile_path(cube)))
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
