@@ -178,9 +178,28 @@
         dplyr::group_by(.data[["polygon_id"]])
     # Select just probability labels
     labels <- setdiff(colnames(data_id), c("polygon_id", "from", "to", "class"))
+    # Calculate metrics
+    data_id <- dplyr::summarise(
+        data_id,
+        dplyr::across(.cols = dplyr::all_of(labels),
+                      .names = "{.col}_mean", mean),
+        dplyr::across(.cols = dplyr::all_of(labels),
+                      .names = "{.col}_mean_logit", function(x) {
+            x <- ifelse(x == 0, 0.00001, x)
+            x <- ifelse(x == 1, 0.99999, x)
+            mean(log(x / (1 - x)))
+        }),
+        dplyr::across(.cols = dplyr::all_of(labels),
+                      .names = "{.col}_var_logit", function(x) {
+            x <- ifelse(x == 0, 0.00001, x)
+            x <- ifelse(x == 1, 0.99999, x)
+            var(log(x / (1 - x)))
+        })
+    )
 
+    # Summarize probabilities
     data_id <- data_id |>
-        dplyr::summarise(dplyr::across(.cols = dplyr::all_of(labels), stats::median)) |>
+        dplyr::rename_with(~ gsub("_mean$", "", .x)) |>
         dplyr::rowwise() |>
         dplyr::mutate(sum = sum(dplyr::c_across(cols = dplyr::all_of(labels)))) |>
         dplyr::mutate(dplyr::across(.cols = dplyr::all_of(labels), ~ .x / .data[["sum"]])) |>
