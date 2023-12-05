@@ -63,7 +63,7 @@ sits_smooth <- function(cube, window_size = 7L, neigh_fraction = 0.5,
         smoothness = 10L, memsize = 4L, multicores = 2L,
         output_dir, version = "v1") {
     # Check if cube has probability data
-    .check_cube_files(cube)
+    .check_raster_cube_files(cube)
     # check window size
     .check_window_size(window_size, min = 3, max = 33)
     # check neighborhood fraction

@@ -12,8 +12,8 @@
 \usage{
 sits_label_classification(
   cube,
-  memsize = 4,
-  multicores = 2,
+  memsize = 4L,
+  multicores = 2L,
   output_dir,
   version = "v1",
   progress = TRUE

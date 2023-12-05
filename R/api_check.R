@@ -255,7 +255,7 @@
 #' @rdname check_functions
 #' @keywords internal
 #' @noRd
-.check_cube_files <- function(x, ...) {
+.check_raster_cube_files <- function(x, ...) {
     # check for data access
     robj <- tryCatch(
         .raster_open_rast(.tile_path(x)),

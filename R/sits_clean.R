@@ -70,7 +70,7 @@ sits_clean.class_cube <- function(cube, window_size = 5L, memsize = 4L,
                                   version = "v1-clean", progress = TRUE) {
     # Preconditions
     # Check cube has files
-    .check_cube_files(cube)
+    .check_raster_cube_files(cube)
     # Check window size
     .check_window_size(window_size, min = 1, max = 15)
     # Check memsize

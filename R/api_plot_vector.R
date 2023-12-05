@@ -7,13 +7,12 @@
 #' @param  tile          Tile to be plotted.
 #' @param  legend        Legend for the classes
 #' @param  palette       A sequential RColorBrewer palette
-#' @param  tmap_options  List with optional tmap parameters
-#'                       tmap max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
+#' @param  tmap_options  Named vector with optional tmap parameters
+#'                       graticules_labels_size (default: 0.7)
+#'                       legend_title_size (default: 1.5)
+#'                       legend_text_size (default: 1.2)
+#'                       legend_bg_color (default: "white")
+#'                       legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object
 #'
@@ -42,7 +41,7 @@
         rev = TRUE
     )
     # set the tmap options
-    tmap_params <- .plot_tmap_params(tmap_options)
+    tmap_options <- .plot_tmap_params(tmap_options)
     # name the colors to match the labels
     names(colors) <- labels
     # join sf geometries
@@ -56,20 +55,20 @@
             palette = colors
         ) +
         tmap::tm_graticules(
-            labels.size = tmap_params[["graticules_labels_size"]]
+            labels.size = tmap_options[["graticules_labels_size"]]
         ) +
         tmap::tm_compass() +
         tmap::tm_layout(
             legend.show = TRUE,
             legend.outside = FALSE,
-            scale = tmap_params[["scale"]],
-            fontfamily        = tmap_params[["font_family"]],
-            legend.bg.color   = tmap_params[["legend_bg_color"]],
-            legend.bg.alpha   = tmap_params[["legend_bg_alpha"]],
-            legend.title.size = tmap_params[["legend_title_size"]],
-            legend.text.size = tmap_params[["legend_text_size"]],
-            legend.width     = tmap_params[["legend_width"]],
-            legend.position  = tmap_params[["legend_position"]]
+            scale = tmap_options[["scale"]],
+            fontfamily        = tmap_options[["font_family"]],
+            legend.bg.color   = tmap_options[["legend_bg_color"]],
+            legend.bg.alpha   = tmap_options[["legend_bg_alpha"]],
+            legend.title.size = tmap_options[["legend_title_size"]],
+            legend.text.size  = tmap_options[["legend_text_size"]],
+            legend.width      = tmap_options[["legend_width"]],
+            legend.position   = tmap_options[["legend_position"]]
         ) +
         tmap::tm_borders(lwd = 0.2)
     return(p)
@@ -84,13 +83,7 @@
 #' @param  labels_plot   Labels to be plotted
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Revert the color of the palette?
-#' @param  tmap_options  List with optional tmap parameters
-#'                       tmap max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
+#' @param  tmap_options  Named vector with optional tmap parameters
 #'
 #' @return               A plot object
 #'
@@ -124,7 +117,7 @@
     # get the segements to be plotted
     sf_seg <- .segments_read_vec(tile)
     # set the tmap options
-    tmap_params <- .plot_tmap_params(tmap_options)
+    tmap_options <- .plot_tmap_params(tmap_options)
     # set the mode to plot
     tmap::tmap_mode("plot")
     # plot the segments by facet
@@ -138,17 +131,17 @@
         tmap::tm_polygons(labels_plot) +
         tmap::tm_facets(sync = FALSE, ncol = 2, scale.factor = 1) +
         tmap::tm_graticules(
-            labels.size = tmap_params[["graticules_labels_size"]]
+            labels.size = tmap_options[["graticules_labels_size"]]
         ) +
         tmap::tm_compass() +
         tmap::tm_layout(
-            fontfamily      = tmap_params[["font_family"]],
-            legend.bg.color = tmap_params[["legend_bg_color"]],
-            legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
-            legend.title.size = tmap_params[["legend_title_size"]],
-            legend.text.size = tmap_params[["legend_text_size"]],
-            legend.width     = tmap_params[["legend_width"]],
-            legend.height    = tmap_params[["legend_height"]],
+            fontfamily      = tmap_options[["font_family"]],
+            legend.bg.color = tmap_options[["legend_bg_color"]],
+            legend.bg.alpha = tmap_options[["legend_bg_alpha"]],
+            legend.title.size = tmap_options[["legend_title_size"]],
+            legend.text.size = tmap_options[["legend_text_size"]],
+            legend.width     = tmap_options[["legend_width"]],
+            legend.height    = tmap_options[["legend_height"]],
             outer.margins = c(0.00001, 0.00001, 0.00001, 0.00001),
             inner.margins = c(0, 0, 0, 0),
             between.margin = 0,

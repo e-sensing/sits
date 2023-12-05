@@ -57,7 +57,7 @@ sits_variance <- function(
         output_dir,
         version = "v1") {
     # Check if cube has data and metadata
-    .check_cube_files(cube)
+    .check_raster_cube_files(cube)
     # check window size
     .check_window_size(window_size, min = 3, max = 33)
     # check neighborhood fraction

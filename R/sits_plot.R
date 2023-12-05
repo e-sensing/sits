@@ -322,9 +322,9 @@ plot.predicted <- function(x, y, ...,
 #' @param  date          Date to be plotted.
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
-#' @param  tmap_options  List with optional tmap parameters
+#' @param  tmap_options  Named list with optional tmap parameters
 #'                       max_cells (default: 1e+06)
-#'                       scale (default: 0.5)
+#'                       scale (default: 1.0)
 #'                       graticules_labels_size (default: 0.7)
 #'                       legend_title_size (default: 1.0)
 #'                       legend_text_size (default: 1.0)
@@ -452,13 +452,14 @@ plot.raster_cube <- function(x, ...,
 #' @param  line_width    Line width to plot the segments boundary (in pixels)
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
-#' @param  tmap_options  List with optional tmap parameters
-#'                       tmap_max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
+#' @param  tmap_options  Named list with optional tmap parameters
+#'                       max_cells (default: 1e+06)
+#'                       scale (default: 1.0)
+#'                       graticules_labels_size (default: 0.7)
+#'                       legend_title_size (default: 1.0)
+#'                       legend_text_size (default: 1.0)
+#'                       legend_bg_color (default: "white")
+#'                       legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
@@ -582,13 +583,14 @@ plot.vector_cube <- function(x, ...,
 #' @param labels         Labels to plot (optional).
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
-#' @param tmap_options   List with optional tmap parameters
-#'                       tmap_max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
+#' @param  tmap_options  Named list with optional tmap parameters
+#'                       max_cells (default: 1e+06)
+#'                       scale (default: 1.0)
+#'                       graticules_labels_size (default: 0.7)
+#'                       legend_title_size (default: 1.0)
+#'                       legend_text_size (default: 1.0)
+#'                       legend_bg_color (default: "white")
+#'                       legend_bg_alpha (default: 0.5)
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
 #'
@@ -655,13 +657,14 @@ plot.probs_cube <- function(x, ...,
 #' @param labels         Labels to plot (optional).
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
-#' @param tmap_options   List with optional tmap parameters
-#'                       tmap_max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
+#' @param  tmap_options  Named list with optional tmap parameters
+#'                       max_cells (default: 1e+06)
+#'                       scale (default: 1.0)
+#'                       graticules_labels_size (default: 0.7)
+#'                       legend_title_size (default: 1.0)
+#'                       legend_text_size (default: 1.0)
+#'                       legend_bg_color (default: "white")
+#'                       legend_bg_alpha (default: 0.5)
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
 #'
@@ -747,13 +750,14 @@ plot.probs_vector_cube <- function(x, ...,
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param type           Type of plot ("map" or "hist")
-#' @param tmap_options   List with optional tmap parameters
-#'                       tmap_max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
+#' @param tmap_options   Named list with optional tmap parameters
+#'                       max_cells (default: 1e+06)
+#'                       scale (default: 1.0)
+#'                       graticules_labels_size (default: 0.7)
+#'                       legend_title_size (default: 1.0)
+#'                       legend_text_size (default: 1.0)
+#'                       legend_bg_color (default: "white")
+#'                       legend_bg_alpha (default: 0.5)
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
 #'
@@ -830,13 +834,14 @@ plot.variance_cube <- function(x, ...,
 #' @param  tile          Tiles to be plotted.
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
-#' @param  tmap_options  List with optional tmap parameters
-#'                       tmap_max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
+#' @param  tmap_options  Named list with optional tmap parameters
+#'                       max_cells (default: 1e+06)
+#'                       scale (default: 1.0)
+#'                       graticules_labels_size (default: 0.7)
+#'                       legend_title_size (default: 1.0)
+#'                       legend_text_size (default: 1.0)
+#'                       legend_bg_color (default: "white")
+#'                       legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object produced by the stars package
 #'                       with a map showing the uncertainty associated
@@ -912,18 +917,14 @@ plot.uncertainty_cube <- function(x, ...,
 #' @param  title           Title of the plot.
 #' @param  legend          Named vector that associates labels to colors.
 #' @param  palette         Alternative RColorBrewer palette
-#' @param  tmap_options    List with optional tmap parameters
+#' @param  tmap_options    Named list with optional tmap parameters
 #'                         max_cells (default: 1e+06)
+#'                         scale (default: 0.5)
 #'                         graticules_labels_size (default: 0.7)
-#'                         scale (default = 0.8)
-#'                         legend_title_size (default: 0.7)
-#'                         legend_text_size (default: 0.7)
+#'                         legend_title_size (default: 1.0)
+#'                         legend_text_size (default: 1.0)
 #'                         legend_bg_color (default: "white")
 #'                         legend_bg_alpha (default: 0.5)
-#'                         legend_width (default: 0.5)
-#'                         legend_height (default: 0.7)
-#'                         legend_position (default: c("left", "bottom"))
-#'
 #'
 #' @return                 A  color map, where each pixel has the color
 #'                         associated to a label, as defined by the legend
@@ -1016,13 +1017,14 @@ plot.class_cube <- function(x, y, ...,
 #' @param  seg_color     Segment color.
 #' @param  line_width    Segment line width.
 #' @param  palette       Alternative RColorBrewer palette
-#' @param  tmap_options  List with optional tmap parameters
-#'                       tmap_max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
+#' @param  tmap_options  Named list with optional tmap parameters
+#'                       max_cells (default: 1e+06)
+#'                       scale (default: 0.5)
+#'                       graticules_labels_size (default: 0.7)
+#'                       legend_title_size (default: 1.0)
+#'                       legend_text_size (default: 1.0)
+#'                       legend_bg_color (default: "white")
+#'                       legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color

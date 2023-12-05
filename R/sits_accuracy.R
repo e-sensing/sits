@@ -129,8 +129,6 @@ sits_accuracy.sits <- function(data, ...) {
 #' @rdname sits_accuracy
 #' @export
 sits_accuracy.class_cube <- function(data, ..., validation) {
-    # check the cube is valid
-    .check_cube_files(data)
     # generic function
     # Is this a CSV file?
     if (is.character(validation)) {

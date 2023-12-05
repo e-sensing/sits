@@ -12,13 +12,14 @@
 #' @param  line_width    Line width to plot the segments boundary
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
-#' @param  tmap_options  List with optional tmap parameters
-#'                       tmap max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
+#' @param  tmap_options  Named vector with optional tmap parameters:
+#'                       scale (default = 1.0)
+#'                       max_cells (default: 1e+06)
+#'                       graticules_labels_size (default: 0.7)
+#'                       legend_title_size (default: 1.5)
+#'                       legend_text_size (default: 1.2)
+#'                       legend_bg_color (default: "white")
+#'                       legend_bg_alpha (default: 0.5)
 #'
 #' @return               A plot object
 #'
@@ -104,7 +105,7 @@
 #' @param  tile          Tile to be plotted.
 #' @param  legend        Legend for the classes
 #' @param  palette       A sequential RColorBrewer palette
-#' @param  tmap_options  List with optional tmap parameters
+#' @param  tmap_options  Named vector with optional tmap parameters
 #'                       max_cells (default: 1e+06)
 #'                       scale (default: 0.8)
 #'                       font_family (default: "plex_sans")
@@ -193,14 +194,14 @@
 #' @param  labels_plot   Labels to be plotted
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
-#' @param  tmap_options  List with optional tmap parameters
-#'                       tmap max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
-#'
+#' @param  tmap_options  Named vector with optional tmap parameters
+#'                       max_cells (default: 1e+06)
+#'                       graticules_labels_size (default: 0.7)
+#'                       legend_title_size (default: 1.5)
+#'                       legend_text_size (default: 1.2)
+#'                       legend_bg_color (default: "white")
+#'                       legend_bg_alpha (default: 0.5)
+#'                       scale (default: 1.0)
 #' @return               A plot object
 #'
 .plot_probs <- function(tile,
@@ -260,7 +261,7 @@
     bds <- as.numeric(names(labels[labels %in% labels_plot]))
 
     # set the tmap options
-    tmap_params <- .plot_tmap_params(tmap_options)
+    tmap_options <- .plot_tmap_params(tmap_options)
 
     p <- tmap::tm_shape(probs_st[, , , bds]) +
         tmap::tm_raster(
@@ -274,10 +275,10 @@
         tmap::tm_layout(
             legend.show = TRUE,
             legend.outside = FALSE,
-            legend.bg.color = tmap_params[["legend_bg_color"]],
-            legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
-            legend.title.size = tmap_params[["legend_title_size"]],
-            legend.text.size = tmap_params[["legend_text_size"]],
+            legend.bg.color = tmap_options[["legend_bg_color"]],
+            legend.bg.alpha = tmap_options[["legend_bg_alpha"]],
+            legend.title.size = tmap_options[["legend_title_size"]],
+            legend.text.size = tmap_options[["legend_text_size"]],
             outer.margins = 0
         )
 
@@ -362,14 +363,14 @@
 #' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
-#' @param  tmap_options  List with optional tmap parameters
-#'                       tmap max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
-#'
+#' @param  tmap_options  Named vector with optional tmap parameters
+#'                       max_cells (default: 1e+06)
+#'                       graticules_labels_size (default: 0.7)
+#'                       legend_title_size (default: 1.5)
+#'                       legend_text_size (default: 1.2)
+#'                       legend_bg_color (default: "white")
+#'                       legend_bg_alpha (default: 0.5)
+#'                       scale (default: 1.0)
 #' @return               A plot object
 #'
 .plot_rgb <- function(tile,
@@ -418,12 +419,12 @@
         stretch = TRUE
     )
 
-    tmap_params <- .plot_tmap_params(tmap_options)
+    tmap_options <- .plot_tmap_params(tmap_options)
 
     p <- tmap::tm_shape(rgb_st) +
         tmap::tm_raster() +
         tmap::tm_graticules(
-            labels.size = tmap_params[["graticules_labels_size"]]
+            labels.size = tmap_options[["graticules_labels_size"]]
         ) +
         tmap::tm_compass()
 
@@ -442,26 +443,16 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  tile       Tile to be plotted.
-#' @param  tmap_options  List with optional tmap parameters
-#'                       tmap max_cells (default: 1e+06)
-#'                       tmap_graticules_labels_size (default: 0.7)
-#'                       tmap_legend_title_size (default: 1.5)
-#'                       tmap_legend_text_size (default: 1.2)
-#'                       tmap_legend_bg_color (default: "white")
-#'                       tmap_legend_bg_alpha (default: 0.5)
+#' @param  tmap_options  Named vector with options
 #' @return            Cell size for x and y coordinates.
 #'
 #'
 .plot_read_size <- function(tile, tmap_options) {
     # get the maximum number of bytes to be displayed
-    if (!purrr::is_null(tmap_options[["max_cells"]])) {
-        max_cells <- tmap_options[["max_cells"]]
-    } else {
-        max_cells <- as.numeric(.conf("tmap", "max_cells"))
-    }
-    max_raster <- c(plot = max_cells, view = max_cells)
+    max_cells <- 1e+07
+    # max_raster <- c(plot = max_cells, view = max_cells)
     # set the options for tmap
-    tmap::tmap_options(max.raster = max_raster)
+    # tmap::tmap_options(max.raster = max_raster)
     # numbers of nrows and ncols
     nrows <- max(.tile_nrows(tile))
     ncols <- max(.tile_ncols(tile))
@@ -487,86 +478,50 @@
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  tmap_options  List with optional tmap parameters
+#' @param  tmap_user  Named vector with optional tmap parameters
 #' @return            Updated tmap params.
 #'
-.plot_tmap_params <- function(tmap_options) {
-    # set the tmap options
-    graticules_labels_size <- as.numeric(.conf("tmap", "graticules_labels_size"))
-    legend_title_size     <-  as.numeric(.conf("tmap", "legend_title_size"))
-    legend_text_size      <-  as.numeric(.conf("tmap", "legend_text_size"))
-    legend_width          <-  as.numeric(.conf("tmap", "legend_width"))
-    legend_height         <-  as.numeric(.conf("tmap", "legend_height"))
-    legend_position       <-  .conf("tmap", "legend_position")
-    legend_outside        <-  .conf("tmap", "legend_outside")
-    legend_outside_position <- .conf("tmap", "legend_outside_position")
-    legend_bg_color       <-  .conf("tmap", "legend_bg_color")
-    legend_bg_alpha       <- as.numeric(.conf("tmap", "legend_bg_alpha"))
-    scale                 <- as.numeric(.conf("tmap", "scale"))
-    font_family           <- .conf("tmap", "font_family")
-
-    # user specified tmap options
-    if (!purrr::is_null(tmap_options)) {
-        # scale
-        if (!purrr::is_null(tmap_options[["scale"]])) {
-            scale <- as.numeric(tmap_options[["scale"]])
-        }
-        # font_family
-        if (!purrr::is_null(tmap_options[["font_family"]])) {
-            font_family <- as.numeric(tmap_options[["font_family"]])
-        }
-        # graticules label size
-        if (!purrr::is_null(tmap_options[["graticules_labels_size"]])) {
-            graticules_labels_size <- as.numeric(
-                tmap_options[["graticules_labels_size"]])
-        }
-        # legend title size
-        if (!purrr::is_null(tmap_options[["legend_title_size"]])) {
-            legend_title_size <- as.numeric(tmap_options[["legend_title_size"]])
-        }
-        # legend text size
-        if (!purrr::is_null(tmap_options[["legend_text_size"]])) {
-            legend_text_size <- as.numeric(tmap_options[["legend_text_size"]])
-        }
-        # tmap legend bg color
-        if (!purrr::is_null(tmap_options[["legend_bg_color"]])) {
-            legend_bg_color <- tmap_options[["legend_bg_color"]]
-        }
-        # tmap legend bg alpha
-        if (!purrr::is_null(tmap_options[["legend_bg_alpha"]])) {
-            legend_bg_alpha <- as.numeric(tmap_options[["legend_bg_alpha"]])
-        }
-        # tmap legend height
-        if (!purrr::is_null(tmap_options[["legend_height"]])) {
-            legend_height <- as.numeric(tmap_options[["legend_height"]])
-        }
-        if (!purrr::is_null(tmap_options[["legend_width"]])) {
-            legend_width <- as.numeric(tmap_options[["legend_width"]])
-        }
-        if (!purrr::is_null(tmap_options[["legend_position"]])) {
-            legend_position <- tmap_options[["legend_position"]]
-        }
-        if (!purrr::is_null(tmap_options[["legend_outside"]])) {
-            legend_outside <- tmap_options[["legend_outside"]]
-        }
-        if (!purrr::is_null(tmap_options[["legend_outside_position"]])) {
-            legend_outside_position <-
-                tmap_options[["legend_outside_position"]]
-        }
-    }
-    tmap_params <- list(
-        "scale"       = scale,
-        "font_family" = font_family,
-        "graticules_labels_size" = graticules_labels_size,
-        "legend_title_size"      = legend_title_size,
-        "legend_text_size"       = legend_text_size,
-        "legend_bg_color"        = legend_bg_color,
-        "legend_bg_alpha"        = legend_bg_alpha,
-        "legend_height"          = legend_height,
-        "legend_width"           = legend_width,
-        "legend_position"        = legend_position,
-        "legend_outside"         = legend_outside,
-        "legend_outside_position"  = legend_outside_position
+.plot_tmap_params <- function(tmap_user) {
+    # reset the tmap params
+    tmap::tmap_options_reset()
+    # get the tmap defaults
+    tmap_options <- list(
+        graticules_labels_size =
+            as.numeric(.conf("tmap", "graticules_labels_size")),
+        legend_title_size     =  as.numeric(.conf("tmap", "legend_title_size")),
+        legend_text_size      =  as.numeric(.conf("tmap", "legend_text_size")),
+        legend_width          =  as.numeric(.conf("tmap", "legend_width")),
+        legend_height         =  as.numeric(.conf("tmap", "legend_height")),
+        legend_position       =  .conf("tmap", "legend_position"),
+        legend_outside        =  .conf("tmap", "legend_outside"),
+        legend_outside_position = .conf("tmap", "legend_outside_position"),
+        legend_bg_color       =  .conf("tmap", "legend_bg_color"),
+        legend_bg_alpha       = as.numeric(.conf("tmap", "legend_bg_alpha")),
+        scale                 = as.numeric(.conf("tmap", "scale")),
+        font_family           = .conf("tmap", "font_family")
     )
-    return(tmap_params)
+    if (!purrr::is_null(tmap_user)) {
+        keys <- unique(c(names(tmap_user), names(tmap_options)))
+        .check_that(
+            all(keys %in% names(tmap_options)),
+            msg = paste("invalid tmap params - valid params are ",
+                        keys, collapse = " ")
+        )
+        for (k in names(tmap_user))
+            tmap_options <- tmap_user[[k]]
+    }
+    # set tmap options
+    tmap::tmap_options(scale = as.numeric(tmap_options[["scale"]]),
+                       legend.title.size     =  as.numeric(tmap_options[["legend_title_size"]]),
+                       legend.text.size      =  as.numeric(tmap_options[["legend_text_size"]]),
+                       legend.width          =  as.numeric(tmap_options[["legend_width"]]),
+                       legend.height         =  as.numeric(tmap_options[["legend_height"]]),
+                       legend.position       =  tmap_options[["legend_position"]],
+                       legend.outside        =  tmap_options[["legend_outside"]],
+                       legend.outside.position = tmap_options[["legend_outside_position"]],
+                       legend.bg.color       =  tmap_options[["legend_bg_color"]],
+                       legend.bg.alpha       =  as.numeric(tmap_options[["legend_bg_alpha"]]),
+                       fontfamily            =  tmap_options[["font_family"]]
+                       )
+    return(tmap_options)
 }

@@ -2,31 +2,22 @@
 % Please edit documentation in R/sits_uncertainty.R
 \name{sits_uncertainty}
 \alias{sits_uncertainty}
-\alias{sits_uncertainty.least}
-\alias{sits_uncertainty.entropy}
-\alias{sits_uncertainty.margin}
+\alias{sits_uncertainty.probs_cube}
+\alias{sits_uncertainty.probs_vector_cube}
 \alias{sits_uncertainty.default}
 \title{Estimate classification uncertainty based on probs cube}
 \usage{
 sits_uncertainty(
   cube,
+  ...,
   type = "entropy",
-  multicores = 2,
-  memsize = 4,
+  multicores = 2L,
+  memsize = 4L,
   output_dir,
   version = "v1"
 )
 
-\method{sits_uncertainty}{least}(
-  cube,
-  type = "least",
-  multicores = 2,
-  memsize = 4,
-  output_dir,
-  version = "v1"
-)
-
-\method{sits_uncertainty}{entropy}(
+\method{sits_uncertainty}{probs_cube}(
   cube,
   type = "entropy",
   multicores = 2,
@@ -35,9 +26,9 @@ sits_uncertainty(
   version = "v1"
 )
 
-\method{sits_uncertainty}{margin}(
+\method{sits_uncertainty}{probs_vector_cube}(
   cube,
-  type = "margin",
+  type = "entropy",
   multicores = 2,
   memsize = 4,
   output_dir,
@@ -48,6 +39,8 @@ sits_uncertainty(
 }
 \arguments{
 \item{cube}{Probability data cube.}
+
+\item{...}{Other parameters for specific functions.}
 
 \item{type}{Method to measure uncertainty. See details.}
 

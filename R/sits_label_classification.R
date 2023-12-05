@@ -53,8 +53,8 @@
 #' }
 #' @export
 sits_label_classification <- function(cube,
-                                      memsize = 4,
-                                      multicores = 2,
+                                      memsize = 4L,
+                                      multicores = 2L,
                                       output_dir,
                                       version = "v1",
                                       progress = TRUE) {
@@ -126,7 +126,7 @@ sits_label_classification.probs_vector_cube <- function(cube, ...,
                                                         version = "v1",
                                                         progress = TRUE) {
     # Pre-conditions - Check parameters
-    .check_cube_files(cube)
+    .check_raster_cube_files(cube)
     .check_output_dir(output_dir)
     version <- .check_version(version)
     # version is case-insensitive in sits

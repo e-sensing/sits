@@ -296,7 +296,7 @@ sits_sampling_design <- function(cube,
                                  std_err = 0.01,
                                  rare_class_prop = 0.1){
     # check the cube is valid
-    .check_cube_files(cube)
+    .check_raster_cube_files(cube)
     # check cube is class cube
     .check_cube_is_class_cube(cube)
     # get the labels
