@@ -91,6 +91,7 @@ Suggests:
     randomForestExplainer,
     RcppArmadillo (>= 0.12),
     scales,
+    spdep,
     stars (>= 0.6),
     stringr,
     supercells,

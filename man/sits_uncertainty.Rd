@@ -19,6 +19,7 @@ sits_uncertainty(
 
 \method{sits_uncertainty}{probs_cube}(
   cube,
+  ...,
   type = "entropy",
   multicores = 2,
   memsize = 4,
@@ -28,6 +29,7 @@ sits_uncertainty(
 
 \method{sits_uncertainty}{probs_vector_cube}(
   cube,
+  ...,
   type = "entropy",
   multicores = 2,
   memsize = 4,
@@ -35,7 +37,7 @@ sits_uncertainty(
   version = "v1"
 )
 
-\method{sits_uncertainty}{default}(cube, type, multicores, memsize, output_dir, version)
+\method{sits_uncertainty}{default}(cube, ..., type, multicores, memsize, output_dir, version)
 }
 \arguments{
 \item{cube}{Probability data cube.}

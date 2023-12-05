@@ -39,9 +39,9 @@
 
 \item{rev}{Reverse the color order in the palette?}
 
-\item{tmap_options}{Named vector with optional tmap parameters
+\item{tmap_options}{Named list with optional tmap parameters
 max_cells (default: 1e+06)
-scale (default: 0.5)
+scale (default: 1.0)
 graticules_labels_size (default: 0.7)
 legend_title_size (default: 1.0)
 legend_text_size (default: 1.0)

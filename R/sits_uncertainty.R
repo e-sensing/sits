@@ -64,7 +64,7 @@ sits_uncertainty <-  function(cube, ...,
 #' @rdname sits_uncertainty
 #' @export
 sits_uncertainty.probs_cube <- function(
-        cube,
+        cube, ...,
         type = "entropy",
         multicores = 2,
         memsize = 4,
@@ -121,7 +121,7 @@ sits_uncertainty.probs_cube <- function(
 #' @rdname sits_uncertainty
 #' @export
 sits_uncertainty.probs_vector_cube <- function(
-        cube,
+        cube, ...,
         type = "entropy",
         multicores = 2,
         memsize = 4,
@@ -151,7 +151,7 @@ sits_uncertainty.probs_vector_cube <- function(
 #' @rdname sits_uncertainty
 #' @export
 sits_uncertainty.default <- function(
-        cube,
+        cube, ...,
         type,
         multicores,
         memsize,

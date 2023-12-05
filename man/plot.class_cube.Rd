@@ -30,7 +30,7 @@
 
 \item{palette}{Alternative RColorBrewer palette}
 
-\item{tmap_options}{Named vector with optional tmap parameters
+\item{tmap_options}{Named list with optional tmap parameters
 max_cells (default: 1e+06)
 scale (default: 0.5)
 graticules_labels_size (default: 0.7)

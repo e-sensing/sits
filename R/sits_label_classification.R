@@ -71,7 +71,7 @@ sits_label_classification.probs_cube <- function(cube, ...,
                                                  version = "v1",
                                                  progress = TRUE) {
     # Pre-conditions - Check parameters
-    .check_cube_files(cube)
+    .check_raster_cube_files(cube)
     .check_memsize(memsize, min = 1, max = 16384)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
