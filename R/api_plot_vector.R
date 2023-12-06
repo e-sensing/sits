@@ -151,3 +151,60 @@
 
     return(suppressWarnings(p))
 }
+#' @title  Plot uncertainty vector cube
+#' @name   .plot_uncertainty_vector
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots an uncertainty vector cube
+#' @keywords internal
+#' @noRd
+#' @param  tile          Tile to be plotted.
+#' @param  palette       A sequential RColorBrewer palette
+#' @param  rev           Revert the color of the palette?
+#' @param  tmap_options  Named vector with optional tmap parameters
+#'
+#' @return               A plot object
+#'
+.plot_uncertainty_vector <- function(tile,
+                                     palette,
+                                     rev,
+                                     tmap_options) {
+    # verifies if stars package is installed
+    .check_require_packages("stars")
+    # verifies if tmap package is installed
+    .check_require_packages("tmap")
+    # precondition - check color palette
+    .check_palette(palette)
+    # revert the palette
+    if (rev) {
+        palette <- paste0("-", palette)
+    }
+    # get the segements to be plotted
+    sf_seg <- .segments_read_vec(tile)
+    # set the tmap options
+    tmap_options <- .plot_tmap_params(tmap_options)
+    # obtain the uncertainty type
+    uncert_type <- .vi(tile)$band
+    # plot the segments by facet
+    p <- tmap::tm_shape(sf_seg) +
+        tmap::tm_polygons(uncert_type, palette = palette) +
+        tmap::tm_graticules(
+            labels.size = tmap_options[["graticules_labels_size"]]
+        ) +
+        tmap::tm_compass() +
+        tmap::tm_layout(
+            fontfamily      = tmap_options[["font_family"]],
+            legend.bg.color = tmap_options[["legend_bg_color"]],
+            legend.bg.alpha = tmap_options[["legend_bg_alpha"]],
+            legend.title.size = tmap_options[["legend_title_size"]],
+            legend.text.size = tmap_options[["legend_text_size"]],
+            legend.width     = tmap_options[["legend_width"]],
+            legend.height    = tmap_options[["legend_height"]],
+            outer.margins = c(0.00001, 0.00001, 0.00001, 0.00001),
+            inner.margins = c(0, 0, 0, 0),
+            between.margin = 0,
+            asp = 0
+        ) +
+        tmap::tm_borders(lwd = 0.2)
+
+    return(suppressWarnings(p))
+}

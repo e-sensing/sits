@@ -483,7 +483,7 @@
 #'
 .plot_tmap_params <- function(tmap_user) {
     # reset the tmap params
-    tmap::tmap_options_reset()
+    suppressMessages(tmap::tmap_options_reset())
     # get the tmap defaults
     tmap_options <- list(
         graticules_labels_size =
@@ -508,7 +508,7 @@
                         keys, collapse = " ")
         )
         for (k in names(tmap_user))
-            tmap_options <- tmap_user[[k]]
+            tmap_options[[k]] <- tmap_user[[k]]
     }
     # set tmap options
     tmap::tmap_options(scale = as.numeric(tmap_options[["scale"]]),

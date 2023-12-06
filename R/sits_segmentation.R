@@ -240,7 +240,7 @@ sits_slic <- function(data = NULL,
     # step is OK?
     .check_int_parameter(step, min = 1, max = 500)
     # compactness is OK?
-    .check_int_parameter(compactness, min = 1, max = 50)
+    .check_num_parameter(compactness, min = 0.1, max = 50)
     # iter is OK?
     .check_int_parameter(iter, min = 10, max = 100)
     # minarea is OK?

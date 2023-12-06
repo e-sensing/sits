@@ -905,6 +905,101 @@ plot.uncertainty_cube <- function(x, ...,
 
     return(p)
 }
+#' @title  Plot uncertainty vector cubes
+#' @name   plot.uncertainty_vector_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a probability cube using stars
+#'
+#' @param  x             Object of class "probs_vector_cube".
+#' @param  ...           Further specifications for \link{plot}.
+#' @param tile           Tile to be plotted.
+#' @param palette        RColorBrewer palette
+#' @param rev            Reverse order of colors in palette?
+#' @param  tmap_options  Named list with optional tmap parameters
+#'                       max_cells (default: 1e+06)
+#'                       scale (default: 1.0)
+#'                       graticules_labels_size (default: 0.7)
+#'                       legend_title_size (default: 1.0)
+#'                       legend_text_size (default: 1.0)
+#'                       legend_bg_color (default: "white")
+#'                       legend_bg_alpha (default: 0.5)
+#' @return               A plot containing probabilities associated
+#'                       to each class for each pixel.
+#'
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir
+#'     )
+#'     # segment the image
+#'     segments <- sits_segment(
+#'         cube = cube,
+#'         seg_fn = sits_slic(step = 5,
+#'                            compactness = 1,
+#'                            dist_fun = "euclidean",
+#'                            avg_fun = "median",
+#'                            iter = 20,
+#'                            minarea = 10,
+#'                            verbose = FALSE),
+#'         output_dir = tempdir()
+#'     )
+#'     # classify a data cube
+#'     probs_vector_cube <- sits_classify(
+#'         data = segments,
+#'         ml_model = rfor_model,
+#'         output_dir = tempdir()
+#'     )
+#'     # measure uncertainty
+#'     uncert_vector_cube <- sits_uncertainty(
+#'         cube = probs_vector_cube,
+#'         type = "margin",
+#'         output_dir = tempdir()
+#'     )
+#'     # plot the resulting uncertainty cube
+#'     plot(uncert_vector_cube)
+#' }
+#'
+#' @export
+#'
+plot.uncertainty_vector_cube <- function(x, ...,
+                                         tile = x$tile[[1]],
+                                         palette =  "RdYlGn",
+                                         rev = FALSE,
+                                         tmap_options = NULL) {
+    # check for color_palette parameter (sits 1.4.1)
+    dots <- list(...)
+    if (missing(palette) && "color_palette" %in% names(dots)) {
+        warning("please use palette in place of color_palette")
+        palette <- dots[["color_palette"]]
+    }
+    # precondition
+    .check_chr_contains(
+        x = x$tile,
+        contains = tile,
+        case_sensitive = FALSE,
+        discriminator = "one_of",
+        can_repeat = FALSE,
+        msg = "tile is not included in the cube"
+    )
+
+    # filter the cube
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
+
+    # plot the probs vector cube
+    p <- .plot_uncertainty_vector(tile = tile,
+                                   palette = palette,
+                                   rev = rev,
+                                   tmap_options = tmap_options)
+
+    return(p)
+}
 #' @title  Plot classified images
 #' @name   plot.class_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
