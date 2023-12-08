@@ -118,36 +118,30 @@
     sf_seg <- .segments_read_vec(tile)
     # set the tmap options
     tmap_options <- .plot_tmap_params(tmap_options)
-    # set the mode to plot
-    tmap::tmap_mode("plot")
-    # plot the segments by facet
-    # fix number of cols
-    if (length(labels_plot) < 2 )
-        ncol_plot <- 1
-    else
-        ncol_plot <- 2
     # plot the segments by facet
     p <- tmap::tm_shape(sf_seg) +
-        tmap::tm_polygons(labels_plot) +
-        tmap::tm_facets(sync = FALSE, ncol = 2, scale.factor = 1) +
+        tmap::tm_fill(labels_plot,
+                          style = "cont",
+                          palette = palette,
+                          midpoint = 0.5,
+                          title = labels[labels %in% labels_plot]) +
         tmap::tm_graticules(
             labels.size = tmap_options[["graticules_labels_size"]]
         ) +
+        tmap::tm_facets() +
         tmap::tm_compass() +
         tmap::tm_layout(
+            scale           = tmap_options[["scale"]],
             fontfamily      = tmap_options[["font_family"]],
+            legend.show     = TRUE,
+            legend.outside  = FALSE,
             legend.bg.color = tmap_options[["legend_bg_color"]],
             legend.bg.alpha = tmap_options[["legend_bg_alpha"]],
             legend.title.size = tmap_options[["legend_title_size"]],
             legend.text.size = tmap_options[["legend_text_size"]],
-            legend.width     = tmap_options[["legend_width"]],
-            legend.height    = tmap_options[["legend_height"]],
-            outer.margins = c(0.00001, 0.00001, 0.00001, 0.00001),
-            inner.margins = c(0, 0, 0, 0),
-            between.margin = 0,
-            asp = 0
+            legend.width     = tmap_options[["legend_width"]]
         ) +
-        tmap::tm_borders(lwd = 0.2)
+        tmap::tm_borders(lwd = 0.1)
 
     return(suppressWarnings(p))
 }
@@ -186,23 +180,24 @@
     uncert_type <- .vi(tile)$band
     # plot the segments by facet
     p <- tmap::tm_shape(sf_seg) +
-        tmap::tm_polygons(uncert_type, palette = palette) +
+        tmap::tm_polygons(uncert_type,
+                          palette = palette,
+                          style = "cont") +
         tmap::tm_graticules(
             labels.size = tmap_options[["graticules_labels_size"]]
         ) +
         tmap::tm_compass() +
         tmap::tm_layout(
+            legend.show = TRUE,
+            legend.outside = FALSE,
+            scale = tmap_options[["scale"]],
             fontfamily      = tmap_options[["font_family"]],
             legend.bg.color = tmap_options[["legend_bg_color"]],
             legend.bg.alpha = tmap_options[["legend_bg_alpha"]],
             legend.title.size = tmap_options[["legend_title_size"]],
             legend.text.size = tmap_options[["legend_text_size"]],
             legend.width     = tmap_options[["legend_width"]],
-            legend.height    = tmap_options[["legend_height"]],
-            outer.margins = c(0.00001, 0.00001, 0.00001, 0.00001),
-            inner.margins = c(0, 0, 0, 0),
-            between.margin = 0,
-            asp = 0
+            legend.position   = tmap_options[["legend_position"]]
         ) +
         tmap::tm_borders(lwd = 0.2)
 

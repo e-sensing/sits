@@ -252,6 +252,7 @@ tmap:
         legend_height: 1.0
         scale: 1.0
         font_family: "plex_sans"
+        n_breaks: 20
 
 # maxbytes for leaflet (in MB)
 leaflet_megabytes : 64

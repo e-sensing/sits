@@ -619,7 +619,7 @@ plot.vector_cube <- function(x, ...,
 plot.probs_cube <- function(x, ...,
                             tile = x$tile[[1]],
                             labels = NULL,
-                            palette = "YlGnBu",
+                            palette = "YlGn",
                             rev = FALSE,
                             tmap_options = NULL) {
     # check for color_palette parameter (sits 1.4.1)
@@ -707,7 +707,7 @@ plot.probs_cube <- function(x, ...,
 plot.probs_vector_cube <- function(x, ...,
                                    tile = x$tile[[1]],
                                    labels = NULL,
-                                   palette = "YlGnBu",
+                                   palette = "YlGn",
                                    rev = FALSE,
                                    tmap_options = NULL) {
     # check for color_palette parameter (sits 1.4.1)
@@ -971,7 +971,7 @@ plot.uncertainty_cube <- function(x, ...,
 plot.uncertainty_vector_cube <- function(x, ...,
                                          tile = x$tile[[1]],
                                          palette =  "RdYlGn",
-                                         rev = FALSE,
+                                         rev = TRUE,
                                          tmap_options = NULL) {
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)

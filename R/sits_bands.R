@@ -63,20 +63,6 @@ sits_bands.raster_cube <- function(x) {
 }
 #' @rdname sits_bands
 #' @export
-sits_bands.vector_cube <- function(x) {
-    bands_lst <- slider::slide(x, function(tile) {
-        bands_tile <- .vi(tile)$band
-        return(bands_tile)
-    })
-    bands <- unique(bands_lst)
-    .check_that(length(bands) == 1,
-                local_msg = "tiles have different bands",
-                msg = "cube is inconsistent"
-    )
-    return(unlist(bands))
-}
-#' @rdname sits_bands
-#' @export
 sits_bands.patterns <- function(x) {
     return(sits_bands.sits(x))
 }

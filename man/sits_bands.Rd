@@ -4,7 +4,6 @@
 \alias{sits_bands}
 \alias{sits_bands.sits}
 \alias{sits_bands.raster_cube}
-\alias{sits_bands.vector_cube}
 \alias{sits_bands.patterns}
 \alias{sits_bands.sits_model}
 \alias{sits_bands.tbl_df}
@@ -20,8 +19,6 @@ sits_bands(x)
 \method{sits_bands}{sits}(x)
 
 \method{sits_bands}{raster_cube}(x)
-
-\method{sits_bands}{vector_cube}(x)
 
 \method{sits_bands}{patterns}(x)
 

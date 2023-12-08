@@ -177,14 +177,99 @@
                 legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
                 legend.title.size = tmap_params[["legend_title_size"]],
                 legend.text.size = tmap_params[["legend_text_size"]],
-                legend.width     = tmap_params[["legend_width"]],
-                legend.height    = tmap_params[["legend_height"]],
-                legend.position  = tmap_params[["legend_position"]]
+                legend.width     = tmap_params[["legend_width"]]
+                # legend.height    = tmap_params[["legend_height"]],
+                # legend.position  = tmap_params[["legend_position"]]
             )
     )
     return(p)
 }
+#' @title  Plot a RGB image
+#' @name   .plot_rgb
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param  tile          Tile to be plotted
+#' @param  red           Band to be plotted in red
+#' @param  green         Band to be plotted in green
+#' @param  blue          Band to be plotted in blue
+#' @param  date          Date to be plotted
+#' @param  sf_seg        Segments (sf object)
+#' @param  seg_color     Color to use for segment borders
+#' @param  line_width    Line width to plot the segments boundary
+#' @param  tmap_options  Named vector with optional tmap parameters
+#'                       max_cells (default: 1e+06)
+#'                       graticules_labels_size (default: 0.7)
+#'                       legend_title_size (default: 1.5)
+#'                       legend_text_size (default: 1.2)
+#'                       legend_bg_color (default: "white")
+#'                       legend_bg_alpha (default: 0.5)
+#'                       scale (default: 1.0)
+#' @return               A plot object
+#'
+.plot_rgb <- function(tile,
+                      red,
+                      green,
+                      blue,
+                      date,
+                      sf_seg = NULL,
+                      seg_color = NULL,
+                      line_width = 0.2,
+                      tmap_options) {
+    # verifies if stars package is installed
+    .check_require_packages("stars")
+    # verifies if tmap package is installed
+    .check_require_packages("tmap")
 
+    # get RGB files for the requested timeline
+    red_file <- .tile_path(tile, red, date)
+    green_file <- .tile_path(tile, green, date)
+    blue_file <- .tile_path(tile, blue, date)
+
+    # size of data to be read
+    size <- .plot_read_size(
+        tile = tile,
+        tmap_options = tmap_options
+    )
+    # read raster data as a stars object with separate RGB bands
+    rgb_st <- stars::read_stars(
+        c(red_file, green_file, blue_file),
+        along = "band",
+        RasterIO = list(
+            "nBufXSize" = size[["xsize"]],
+            "nBufYSize" = size[["ysize"]]
+        ),
+        proxy = FALSE
+    )
+    # get the max values
+    band_params <- .tile_band_conf(tile, red)
+    max_value <- .max_value(band_params)
+
+    rgb_st <- stars::st_rgb(rgb_st[, , , 1:3],
+                            dimension = "band",
+                            maxColorValue = max_value,
+                            use_alpha = FALSE,
+                            probs = c(0.05, 0.95),
+                            stretch = TRUE
+    )
+
+    tmap_options <- .plot_tmap_params(tmap_options)
+
+    p <- tmap::tm_shape(rgb_st) +
+        tmap::tm_raster() +
+        tmap::tm_graticules(
+            labels.size = tmap_options[["graticules_labels_size"]]
+        ) +
+        tmap::tm_compass()
+
+    # include segments
+    if (!purrr::is_null(sf_seg)) {
+        p <- p + tmap::tm_shape(sf_seg) +
+            tmap::tm_borders(col = seg_color, lwd = line_width)
+    }
+
+    return(p)
+}
 #' @title  Plot probs
 #' @name   .plot_probs
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -261,7 +346,7 @@
     bds <- as.numeric(names(labels[labels %in% labels_plot]))
 
     # set the tmap options
-    tmap_options <- .plot_tmap_params(tmap_options)
+    tmap_params <- .plot_tmap_params(tmap_options)
 
     p <- tmap::tm_shape(probs_st[, , , bds]) +
         tmap::tm_raster(
@@ -270,16 +355,21 @@
             midpoint = 0.5,
             title = labels[labels %in% labels_plot]
         ) +
-        tmap::tm_facets(free.coords = TRUE) +
+        tmap::tm_graticules(
+            labels.size = tmap_params[["graticules_labels_size"]]
+        ) +
+        tmap::tm_facets(sync = FALSE) +
         tmap::tm_compass() +
         tmap::tm_layout(
-            legend.show = TRUE,
-            legend.outside = FALSE,
-            legend.bg.color = tmap_options[["legend_bg_color"]],
-            legend.bg.alpha = tmap_options[["legend_bg_alpha"]],
-            legend.title.size = tmap_options[["legend_title_size"]],
-            legend.text.size = tmap_options[["legend_text_size"]],
-            outer.margins = 0
+            scale           = tmap_params[["scale"]],
+            fontfamily      = tmap_params[["font_family"]],
+            legend.show     = TRUE,
+            legend.outside  = FALSE,
+            legend.bg.color = tmap_params[["legend_bg_color"]],
+            legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
+            legend.title.size = tmap_params[["legend_title_size"]],
+            legend.text.size = tmap_params[["legend_text_size"]],
+            legend.width     = tmap_params[["legend_width"]]
         )
 
     return(p)
@@ -350,92 +440,6 @@
 
     return(p)
 }
-#' @title  Plot a RGB image
-#' @name   .plot_rgb
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @keywords internal
-#' @noRd
-#' @param  tile          Tile to be plotted
-#' @param  red           Band to be plotted in red
-#' @param  green         Band to be plotted in green
-#' @param  blue          Band to be plotted in blue
-#' @param  date          Date to be plotted
-#' @param  sf_seg        Segments (sf object)
-#' @param  seg_color     Color to use for segment borders
-#' @param  line_width    Line width to plot the segments boundary
-#' @param  tmap_options  Named vector with optional tmap parameters
-#'                       max_cells (default: 1e+06)
-#'                       graticules_labels_size (default: 0.7)
-#'                       legend_title_size (default: 1.5)
-#'                       legend_text_size (default: 1.2)
-#'                       legend_bg_color (default: "white")
-#'                       legend_bg_alpha (default: 0.5)
-#'                       scale (default: 1.0)
-#' @return               A plot object
-#'
-.plot_rgb <- function(tile,
-                      red,
-                      green,
-                      blue,
-                      date,
-                      sf_seg = NULL,
-                      seg_color = NULL,
-                      line_width = 0.2,
-                      tmap_options) {
-    # verifies if stars package is installed
-    .check_require_packages("stars")
-    # verifies if tmap package is installed
-    .check_require_packages("tmap")
-
-    # get RGB files for the requested timeline
-    red_file <- .tile_path(tile, red, date)
-    green_file <- .tile_path(tile, green, date)
-    blue_file <- .tile_path(tile, blue, date)
-
-    # size of data to be read
-    size <- .plot_read_size(
-        tile = tile,
-        tmap_options = tmap_options
-    )
-    # read raster data as a stars object with separate RGB bands
-    rgb_st <- stars::read_stars(
-        c(red_file, green_file, blue_file),
-        along = "band",
-        RasterIO = list(
-            "nBufXSize" = size[["xsize"]],
-            "nBufYSize" = size[["ysize"]]
-        ),
-        proxy = FALSE
-    )
-    # get the max values
-    band_params <- .tile_band_conf(tile, red)
-    max_value <- .max_value(band_params)
-
-    rgb_st <- stars::st_rgb(rgb_st[, , , 1:3],
-        dimension = "band",
-        maxColorValue = max_value,
-        use_alpha = FALSE,
-        probs = c(0.05, 0.95),
-        stretch = TRUE
-    )
-
-    tmap_options <- .plot_tmap_params(tmap_options)
-
-    p <- tmap::tm_shape(rgb_st) +
-        tmap::tm_raster() +
-        tmap::tm_graticules(
-            labels.size = tmap_options[["graticules_labels_size"]]
-        ) +
-        tmap::tm_compass()
-
-    # include segments
-    if (!purrr::is_null(sf_seg)) {
-        p <- p + tmap::tm_shape(sf_seg) +
-            tmap::tm_borders(col = seg_color, lwd = line_width)
-    }
-
-    return(p)
-}
 #' @title  Return the cell size for the image to be reduced for plotting
 #' @name .plot_read_size
 #' @keywords internal
@@ -498,6 +502,7 @@
         legend_bg_color       =  .conf("tmap", "legend_bg_color"),
         legend_bg_alpha       = as.numeric(.conf("tmap", "legend_bg_alpha")),
         scale                 = as.numeric(.conf("tmap", "scale")),
+        n_breaks              = as.numeric(.conf("tmap", "n_breaks")),
         font_family           = .conf("tmap", "font_family")
     )
     if (!purrr::is_null(tmap_user)) {

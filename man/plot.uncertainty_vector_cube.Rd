@@ -9,7 +9,7 @@
   ...,
   tile = x$tile[[1]],
   palette = "RdYlGn",
-  rev = FALSE,
+  rev = TRUE,
   tmap_options = NULL
 )
 }
