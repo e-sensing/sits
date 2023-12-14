@@ -6,9 +6,7 @@
 # Colours partially adapted for Africa Standardized Terrestrial Ecosystems
 # and 1970 U.S. Vegetation Map
 #
-class_schemes:
-    legends: ["IGBP", "UMD", "ESA_CCI_LC", "WORLDCOVER", "PRODES",
-              "PRODES_VISUAL", "TERRA_CLASS", "TERRA_CLASS_PT"]
+legends:
 
     IGBP: [ "Evergreen_Broadleaf_Forests", "Deciduous_Broadleaf_Forests",
            "Evergreen_Needleleaf_Forests", "Deciduous_Needleleaf_Forests",

@@ -4,37 +4,66 @@
 \alias{sits_colors_set}
 \title{Function to set sits color table}
 \usage{
-sits_colors_set(color_tb)
+sits_colors_set(colors, legend = NULL)
 }
 \arguments{
-\item{color_tb}{New color table}
+\item{colors}{New color table (a tibble or data.frame with name and HEX code)}
+
+\item{legend}{Legend associated to the color table (optional)}
 }
 \value{
-A modified sits color table
+A modified sits color table (invisible)
 }
 \description{
-Sets a color table
+Includes new colors in the SITS color sets. If the colors exist,
+             replace them with the new HEX value. Optionally, the new colors
+             can be associated to a legend. In this case, the new legend
+             name should be informed.
+             The colors parameter should be a data.frame or a tibble
+             with name and HEX code. Colour names should be one character
+             string only. Composite names need to be combined with
+             underscores (e.g., use "Snow_and_Ice" instead of "Snow and Ice").
+
+             This function changes the global sits color table and the
+             global set of sits color legends. To undo these effects,
+             please use "sits_colors_reset()".
 }
 \examples{
 if (sits_run_examples()) {
     # Define a color table based on the Anderson Land Classification System
     us_nlcd <- tibble::tibble(name = character(), color = character())
     us_nlcd <- us_nlcd |>
-        tibble::add_row(name = "Urban Built Up", color = "#85929E") |>
-        tibble::add_row(name = "Agricultural Land", color = "#F0B27A") |>
+        tibble::add_row(name = "Urban_Built_Up", color = "#85929E") |>
+        tibble::add_row(name = "Agricultural_Land", color = "#F0B27A") |>
         tibble::add_row(name = "Rangeland", color = "#F1C40F") |>
-        tibble::add_row(name = "Forest Land", color = "#27AE60") |>
+        tibble::add_row(name = "Forest_Land", color = "#27AE60") |>
         tibble::add_row(name = "Water", color = "#2980B9") |>
         tibble::add_row(name = "Wetland", color = "#D4E6F1") |>
-        tibble::add_row(name = "Barren Land", color = "#FDEBD0") |>
+        tibble::add_row(name = "Barren_Land", color = "#FDEBD0") |>
         tibble::add_row(name = "Tundra", color = "#EBDEF0") |>
-        tibble::add_row(name = "Snow and Ice", color = "#F7F9F9")
+        tibble::add_row(name = "Snow_and_Ice", color = "#F7F9F9")
 
     # Load the color table into `sits`
-    sits_colors_set(us_nlcd)
+    sits_colors_set(colors = us_nlcd, legend = "US_NLCD")
 
     # Show the new color table used by sits
-    sits_colors_show()
+    sits_colors_show("US_NLCD")
+
+    # Change colors in the sits global color table
+    # First show the default colors for the UMD legend
+    sits_colors_show("UMD")
+    # Then change some colors associated to the UMD legend
+    mycolors <- tibble::tibble(name = character(), color = character())
+    mycolors <- mycolors |>
+        tibble::add_row(name = "Savannas", color = "#F8C471") |>
+        tibble::add_row(name = "Grasslands", color = "#ABEBC6")
+    sits_colors_set(colors = mycolors)
+    # Notice that the UMD colors change
+    sits_colors_show("UMD")
+    # Reset the color table
+    sits_colors_reset()
+    # Show the default colors for the UMD legend
+    sits_colors_show("UMD")
 }
 }
 \author{

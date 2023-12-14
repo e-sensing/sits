@@ -2,9 +2,18 @@ processing_bloat        : 8
 rstac_pagination_limit  : 100
 gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 
+
+legends:
+    US_NLCD :       ["Urban_Built_Up", "Agricultural_Land",
+                     "Rangeland", "Forest_Land", "Water", "Wetland",
+                     "Tundra", "Snow_and_Ice"]
+
 colors:
-    Cropland:           "khaki"
-    Deforestation:      "sienna"
-    Forest :            "darkgreen"
-    Grassland :         "lightgreen"
-    NonForest:          "lightsteelblue1"
+    Urban_Built_Up      :  "#85929E"
+    Agricultural_Land   :  "#F0B27A"
+    Rangeland           :  "#F1C40F"
+    Forest_Land         :  "#27AE60"
+    Water               :  "#2980B9"
+    Wetland             :  "#D4E6F1"
+    Tundra              :  "#EBDEF0"
+    Snow_and_Ice        :  "#F7F9F9"

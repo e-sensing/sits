@@ -176,7 +176,7 @@
 
     return(yml_file)
 }
-#' @title Get color table
+#' @title Loads default color table and legends
 #' @name .conf_load_color_table
 #' @description Loads the default color table
 #' @keywords internal
@@ -189,11 +189,12 @@
         input = color_yml_file,
         merge.precedence = "override"
     )
-    class_schemes <- config_colors$class_schemes
-    sits_env[["config"]] <- utils::modifyList(sits_env[["config"]],
-                                              class_schemes,
-                                              keep.null = FALSE
-    )
+    # set the legends
+    sits_env$legends <- config_colors$legends
+    # sits_env[["config"]] <- utils::modifyList(sits_env[["config"]],
+    #                                           class_schemes,
+    #                                           keep.null = FALSE
+    # )
     colors <- config_colors$colors
     color_table <- purrr::map2_dfr(colors, names(colors),
                                    function(cl, nm) {
@@ -203,17 +204,18 @@
         )
         return(cc_tb)
     })
+
     # set the color table
-    .conf_set_color_table(color_table)
+    sits_env$color_table <- color_table
     return(invisible(color_table))
 }
-#' @title Set user color table
-#' @name .conf_set_color_table
+#' @title Add user color table
+#' @name .conf_add_color_table
 #' @description Loads a user color table
 #' @keywords internal
 #' @noRd
-#' @return Called for side effects
-.conf_set_color_table <- function(color_tb) {
+#' @return new color table (invisible)
+.conf_add_color_table <- function(color_tb) {
     # pre condition - table contains name and hex code
     .check_chr_contains(
         x = colnames(color_tb),
@@ -221,20 +223,20 @@
         discriminator = "all_of",
         msg = "invalid colour table - missing either name or hex columns"
     )
-    # pre condition - table contains no duplicates
-    tbd <- dplyr::distinct(color_tb, .data[["name"]])
-    .check_that(nrow(tbd) == nrow(color_tb),
-        msg = "color table contains duplicate names"
-    )
-    sits_env$color_table <- color_tb
-    return(invisible(color_tb))
+    # replace all duplicates
+    new_colors <- dplyr::pull(color_tb, .data[["name"]])
+    # remove duplicate colors
+    old_color_tb <- dplyr::filter(sits_env$color_table,
+                                  !(.data[["name"]] %in% new_colors))
+    sits_env$color_table <- dplyr::bind_rows(old_color_tb, color_tb)
+    return(invisible(sits_env$color_table))
 }
 #' @title Merge user colors with default colors
 #' @name .conf_merge_colors
 #' @description Combines user colors with default color table
 #' @keywords internal
 #' @noRd
-#' @return NULL, called for side effects
+#' @return new color table
 .conf_merge_colors <- function(user_colors) {
     # get the current color table
     color_table <- .conf_colors()
@@ -253,8 +255,25 @@
             )
         }
     }
-    .conf_set_color_table(color_table)
-    return(invisible(color_table))
+    sits_env$color_table <- color_table
+    return(color_table)
+}
+.conf_merge_legends <- function(user_legends){
+    # check legends are valid names
+    .check_chr_parameter(names(user_legends), len_max = 100,
+                         msg = "invalid user legends")
+    # check legend names do not already exist
+    .check_that(!(all(names(user_legends) %in% names (sits_env$legends))),
+                  msg = "user defined legends already exist in sits")
+    # check colors names are valid
+    ok <- purrr::map_lgl(user_legends, function(leg){
+        .check_chr_parameter(leg, len_max = 100,
+                             msg = "invalid color names in user legend")
+        return(TRUE)
+    })
+    sits_env$legends <- c(sits_env$legends, user_legends)
+    return(invisible(sits_env$legends))
+
 }
 #' @title Return the default color table
 #' @name .conf_colors
@@ -343,14 +362,10 @@
             .conf_merge_colors(user_colors)
             user_config$colors <- NULL
         }
-        if (!purrr::is_null(user_config$class_schemes)) {
-            class_schemes <- user_config$class_schemes
-            sits_env[["config"]] <- utils::modifyList(
-                sits_env[["config"]],
-                class_schemes,
-                keep.null = FALSE
-            )
-            user_config$class_schemes <- NULL
+        if (!purrr::is_null(user_config$legends)) {
+            user_legends <- user_config$legends
+            .conf_merge_legends(user_legends)
+            user_config$legends <- NULL
         }
         if (length(user_config) > 0) {
             user_config <- utils::modifyList(sits_env[["config"]],

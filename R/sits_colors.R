@@ -14,12 +14,11 @@
 #' @export
 #'
 sits_colors <- function(legend = NULL) {
-    legends <- .conf("legends")
     if (purrr::is_null(legend)) {
         print("Returning all available colors")
-        return(.conf_colors())
+        return(sits_env$color_table)
     } else {
-        if (legend %in% legends) {
+        if (legend %in% sits_env$legends) {
             colors <- .conf(legend)
             color_table_legend <- .conf_colors() |>
                 dplyr::filter(.data[["name"]] %in% colors)
@@ -29,7 +28,7 @@ sits_colors <- function(legend = NULL) {
         } else {
             print("Selected map legend not available")
             leg <- paste0(paste("Please select one of the legends: "),
-                          paste(legends, collapse = ", "))
+                          paste(names(sits_env$legends), collapse = ", "))
             print(leg)
             return(NULL)
         }
@@ -59,19 +58,18 @@ sits_colors_show <- function(legend = NULL,
     if (!font_family %in% sysfonts::font_families())
         font_family <- "plex_sans"
     # legend must be valid
-    legends <- .conf("legends")
     if (purrr::is_null(legend))
         legend <- "none"
-    if (!(legend %in% legends)) {
+    if (!(legend %in% names(sits_env$legends))) {
         msg <- paste0(paste("Please select one of the legends: "),
-                      paste(legends, collapse = ", "))
+                      paste(names(sits_env$legends), collapse = ", "))
         print(msg)
         return(invisible(NULL))
     }
     # retrieve the color names associated to the legend
-    colors <- .conf(legend)
+    colors <- sits_env$legends[[legend]]
     # retrive the HEX codes associated to each color
-    color_table_legend <- .conf_colors() |>
+    color_table_legend <- sits_env$color_table |>
         dplyr::filter(.data[["name"]] %in% colors)
     # order the colors to match the order of the legend
     color_table_legend <- color_table_legend[
@@ -85,36 +83,77 @@ sits_colors_show <- function(legend = NULL,
 #' @title Function to set sits color table
 #' @name sits_colors_set
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Sets a color table
-#' @param color_tb New color table
-#' @return      A modified sits color table
+#' @description Includes new colors in the SITS color sets. If the colors exist,
+#'              replace them with the new HEX value. Optionally, the new colors
+#'              can be associated to a legend. In this case, the new legend
+#'              name should be informed.
+#'              The colors parameter should be a data.frame or a tibble
+#'              with name and HEX code. Colour names should be one character
+#'              string only. Composite names need to be combined with
+#'              underscores (e.g., use "Snow_and_Ice" instead of "Snow and Ice").
+#'
+#'              This function changes the global sits color table and the
+#'              global set of sits color legends. To undo these effects,
+#'              please use "sits_colors_reset()".
+#'
+#' @param colors New color table (a tibble or data.frame with name and HEX code)
+#' @param legend Legend associated to the color table (optional)
+#' @return      A modified sits color table (invisible)
 #'
 #' @examples
 #' if (sits_run_examples()) {
 #'     # Define a color table based on the Anderson Land Classification System
 #'     us_nlcd <- tibble::tibble(name = character(), color = character())
 #'     us_nlcd <- us_nlcd |>
-#'         tibble::add_row(name = "Urban Built Up", color = "#85929E") |>
-#'         tibble::add_row(name = "Agricultural Land", color = "#F0B27A") |>
+#'         tibble::add_row(name = "Urban_Built_Up", color = "#85929E") |>
+#'         tibble::add_row(name = "Agricultural_Land", color = "#F0B27A") |>
 #'         tibble::add_row(name = "Rangeland", color = "#F1C40F") |>
-#'         tibble::add_row(name = "Forest Land", color = "#27AE60") |>
+#'         tibble::add_row(name = "Forest_Land", color = "#27AE60") |>
 #'         tibble::add_row(name = "Water", color = "#2980B9") |>
 #'         tibble::add_row(name = "Wetland", color = "#D4E6F1") |>
-#'         tibble::add_row(name = "Barren Land", color = "#FDEBD0") |>
+#'         tibble::add_row(name = "Barren_Land", color = "#FDEBD0") |>
 #'         tibble::add_row(name = "Tundra", color = "#EBDEF0") |>
-#'         tibble::add_row(name = "Snow and Ice", color = "#F7F9F9")
+#'         tibble::add_row(name = "Snow_and_Ice", color = "#F7F9F9")
 #'
 #'     # Load the color table into `sits`
-#'     sits_colors_set(us_nlcd)
+#'     sits_colors_set(colors = us_nlcd, legend = "US_NLCD")
 #'
 #'     # Show the new color table used by sits
-#'     sits_colors_show()
+#'     sits_colors_show("US_NLCD")
+#'
+#'     # Change colors in the sits global color table
+#'     # First show the default colors for the UMD legend
+#'     sits_colors_show("UMD")
+#'     # Then change some colors associated to the UMD legend
+#'     mycolors <- tibble::tibble(name = character(), color = character())
+#'     mycolors <- mycolors |>
+#'         tibble::add_row(name = "Savannas", color = "#F8C471") |>
+#'         tibble::add_row(name = "Grasslands", color = "#ABEBC6")
+#'     sits_colors_set(colors = mycolors)
+#'     # Notice that the UMD colors change
+#'     sits_colors_show("UMD")
+#'     # Reset the color table
+#'     sits_colors_reset()
+#'     # Show the default colors for the UMD legend
+#'     sits_colors_show("UMD")
 #' }
 #' @export
 #'
-sits_colors_set <- function(color_tb) {
-    .conf_set_color_table(color_tb)
-    return(invisible(color_tb))
+sits_colors_set <- function(colors, legend = NULL) {
+    # add the new color table
+    new_color_tb <- .conf_add_color_table(colors)
+    if (!purrr::is_null(legend)) {
+        # add the list of color names to a new legend
+        .check_chr_parameter(legend, msg = "invalid legend")
+        # crete a new legend entry
+        new_legend_entry <- list()
+        # add the colors from the color table
+        new_legend_entry[[1]] <- dplyr::pull(colors, .data[["name"]])
+        # give a new to the new legend entry
+        names(new_legend_entry) <- legend
+        sits_env$legends <- c(sits_env$legends, new_legend_entry)
+    }
+    return(invisible(new_color_tb))
 }
 #' @title Function to reset sits color table
 #' @name sits_colors_reset
