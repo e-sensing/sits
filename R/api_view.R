@@ -935,6 +935,21 @@
 }
 #'
 #' @export
+.view_add_overlay_grps.class_cube <- function(cube, ...,
+                                                dates = NULL,
+                                                class_cube = NULL) {
+
+    # overlay_groups <- NULL
+    # grps <- unlist(purrr::map(cube[["tile"]], function(tile) {
+    #     paste(tile, .cube_bands(cube))
+    # }))
+    # overlay_groups <- c(overlay_groups, grps)
+    # # add class_cube
+    overlay_groups <- c("classification")
+    return(overlay_groups)
+}
+#'
+#' @export
 .view_add_overlay_grps.vector_cube <- function(cube, ...,
                                                dates = NULL,
                                                class_cube = NULL) {

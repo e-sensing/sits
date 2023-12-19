@@ -30,17 +30,14 @@
 
 \item{palette}{Alternative RColorBrewer palette}
 
-\item{tmap_options}{List with optional tmap parameters
+\item{tmap_options}{Named list with optional tmap parameters
 max_cells (default: 1e+06)
+scale (default: 0.5)
 graticules_labels_size (default: 0.7)
-scale (default = 0.8)
-legend_title_size (default: 0.7)
-legend_text_size (default: 0.7)
+legend_title_size (default: 1.0)
+legend_text_size (default: 1.0)
 legend_bg_color (default: "white")
-legend_bg_alpha (default: 0.5)
-legend_width (default: 0.5)
-legend_height (default: 0.7)
-legend_position (default: c("left", "bottom"))}
+legend_bg_alpha (default: 0.5)}
 }
 \value{
 A  color map, where each pixel has the color

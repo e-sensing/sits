@@ -88,7 +88,7 @@ sits_select.raster_cube <- function(data,
                                     dates = NULL,
                                     tiles = NULL) {
     # Pre-condition
-    .check_cube_files(data)
+    .check_raster_cube_files(data)
     # Filter bands
     if (!purrr::is_null(bands) && !any(is.na(bands))) {
         bands <- .band_set_case(bands)

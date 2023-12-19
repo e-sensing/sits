@@ -59,7 +59,7 @@ sits_cube_copy <- function(cube,
                            progress = TRUE) {
     # Pre-conditions
     .check_is_raster_cube(cube)
-    .check_cube_files(cube)
+    .check_raster_cube_files(cube)
     if (.has(roi)) {
         sf_roi <- .roi_as_sf(roi, default_crs = cube$crs[[1]])
     } else {

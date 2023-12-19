@@ -129,8 +129,6 @@ sits_accuracy.sits <- function(data, ...) {
 #' @rdname sits_accuracy
 #' @export
 sits_accuracy.class_cube <- function(data, ..., validation) {
-    # check the cube is valid
-    .check_cube_files(data)
     # generic function
     # Is this a CSV file?
     if (is.character(validation)) {
@@ -238,38 +236,10 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
         )
     )
 
-    # Get area for each class for each row of the cube
-    freq_lst <- slider::slide(data, function(tile) {
-        # Get the frequency count and value for each labelled image
-        freq <- .tile_area_freq(tile)
-        # pixel area
-        # convert the area to hectares
-        # assumption: spatial resolution unit is meters
-        area <- freq$count * .tile_xres(tile) * .tile_yres(tile) / 10000
-        # Include class names
-        freq <- dplyr::mutate(freq,
-            area = area,
-            class = labels_cube[.as_chr(freq$value)]
-        )
-        return(freq)
-    })
-    # Get a tibble by binding the row (duplicated labels with different counts)
-    freq <- do.call(rbind, freq_lst)
-    # summarize the counts for each label
-    freq <- freq |>
-        dplyr::filter(!is.na(class)) |>
-        dplyr::group_by(class) |>
-        dplyr::summarise(area = sum(.data[["area"]]))
-
-    # Area is taken as the sum of pixels
-    area <- freq$area
-    # Names of area are the classes
-    names(area) <- freq$class
-    # NAs are set to 0
-    area[is.na(area)] <- 0
-
+    # Get area for each class of the cube
+    class_areas <- .cube_class_areas(data)
     # Compute accuracy metrics
-    acc_area <- .accuracy_area_assess(data, error_matrix, area)
+    acc_area <- .accuracy_area_assess(data, error_matrix, class_areas)
 
     class(acc_area) <- c("sits_area_accuracy", class(acc_area))
     return(acc_area)

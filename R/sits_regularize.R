@@ -113,7 +113,7 @@ sits_regularize.raster_cube <- function(cube,
                                         multicores = 2L,
                                         progress = TRUE) {
     # Preconditions
-    .check_cube_files(cube)
+    .check_raster_cube_files(cube)
     .period_check(period)
     .check_num_parameter(res, exclusive_min = 0)
     output_dir <- .file_normalize(output_dir)
@@ -165,7 +165,7 @@ sits_regularize.raster_cube <- function(cube,
                                                       multicores = 2L,
                                                       progress = TRUE) {
     # Preconditions
-    .check_cube_files(cube)
+    .check_raster_cube_files(cube)
     .period_check(period)
     .check_num_parameter(res, exclusive_min = 0)
     output_dir <- .file_normalize(output_dir)

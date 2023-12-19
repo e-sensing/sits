@@ -362,14 +362,7 @@ sits_view.class_cube <- function(x, ...,
             palette = palette,
             opacity = opacity,
             output_size = output_size
-        ) |>
-        # add legend
-        .view_add_legend(
-            cube = cube,
-            legend = legend,
-            palette = palette
         )
-
     # add overlay groups
     overlay_groups <- .view_add_overlay_grps(
         cube = cube
@@ -380,7 +373,14 @@ sits_view.class_cube <- function(x, ...,
             baseGroups = base_maps,
             overlayGroups = overlay_groups,
             options = leaflet::layersControlOptions(collapsed = FALSE)
+        ) |>
+        # add legend
+        .view_add_legend(
+            cube = cube,
+            legend = legend,
+            palette = palette
         )
+
     return(leaf_map)
 }
 #' @rdname sits_view

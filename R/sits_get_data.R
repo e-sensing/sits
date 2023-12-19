@@ -111,7 +111,7 @@ sits_get_data <- function(cube,
     # Pre-conditions
     .check_is_raster_cube(cube)
     .check_is_regular(cube)
-    .check_cube_files(cube)
+    .check_raster_cube_files(cube)
     .check_cube_bands(cube, bands = bands)
     .check_crs(crs)
     .check_multicores(multicores, min = 1, max = 2048)

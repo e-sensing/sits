@@ -62,7 +62,7 @@ sits_classify(
   gpu_memory = 16,
   output_dir,
   version = "v1",
-  n_sam_pol = 40,
+  n_sam_pol = NULL,
   verbose = FALSE,
   progress = TRUE
 )
@@ -215,9 +215,8 @@ if (sits_run_examples()) {
         data = segments,
         ml_model = rf_model,
         output_dir = tempdir(),
-        n_sam_pol = 20,
         multicores = 4,
-        version = "segs_classify"
+        version = "segs"
     )
     # Create a labelled vector cube
     class_segs <- sits_label_classification(

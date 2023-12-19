@@ -55,8 +55,8 @@ sits_config <- function(config_user_file = NULL) {
     .conf_load_color_table()
     # set the user options
     .conf_set_user_file(config_user_file)
-    # set the fonts
-    .conf_set_fonts()
+    # set the fonts - disable because of problems using DEAfrica
+    # .conf_set_fonts()
     # return configuration
     return(invisible(sits_env$config))
 }

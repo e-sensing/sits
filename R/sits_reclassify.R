@@ -117,13 +117,13 @@ sits_reclassify <- function(cube,
     .check_valid(mask)
     # check cube
     .check_cube_is_class_cube(cube)
-    .check_cube_files(cube)
+    .check_raster_cube_files(cube)
     # # check mask
     .check_that(
         x = inherits(mask, "class_cube"),
         msg = "mask is not a classified data cube"
     )
-    .check_cube_files(mask)
+    .check_raster_cube_files(mask)
     UseMethod("sits_reclassify", cube)
 }
 

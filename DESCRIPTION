@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 1.4.2-2
+Version: 1.4.2-3
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara.inpe@gmail.com'),
@@ -91,6 +91,7 @@ Suggests:
     randomForestExplainer,
     RcppArmadillo (>= 0.12),
     scales,
+    spdep,
     stars (>= 0.6),
     stringr,
     supercells,
@@ -203,6 +204,7 @@ Collate:
     'sits_csv.R'
     'sits_cube.R'
     'sits_cube_copy.R'
+    'sits_clean.R'
     'sits_cluster.R'
     'sits_factory.R'
     'sits_filters.R'

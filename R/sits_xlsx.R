@@ -7,9 +7,9 @@
 #' by \code{\link[sits]{sits_accuracy}}
 #' and saves them in an Excel spreadsheet.
 #'
-#' @param acc_lst   A list of accuracy statistics
+#' @param acc       Accuracy statistics (either an output of sits_accuracy
+#'                  or a list of those)
 #' @param file      The file where the XLSX data is to be saved.
-#' @param data      (optional) Print information about the samples
 #'
 #' @return No return value, called for side effects.
 #'
@@ -43,7 +43,21 @@
 #' }
 #' @export
 #'
-sits_to_xlsx <- function(acc_lst, file, data = NULL) {
+#'
+sits_to_xlsx <- function(acc, file) {
+    UseMethod("sits_to_xlsx", acc)
+}
+#' @rdname sits_to_xlsx
+#' @export
+#'
+sits_to_xlsx.sits_accuracy <- function(acc, file) {
+    acc_lst <- list(acc)
+    sits_to_xlsx(acc_lst, file)
+}
+#' @rdname sits_to_xlsx
+#' @export
+#'
+sits_to_xlsx.list <- function(acc, file) {
     # set caller to show in errors
     .check_set_caller("sits_to_xlsx")
     # create a workbook to save the results
@@ -52,14 +66,14 @@ sits_to_xlsx <- function(acc_lst, file, data = NULL) {
     eo_n <- c("(Sensitivity)|(Specificity)|
               (Pos Pred Value)|(Neg Pred Value)|(F1)")
     # defined the number of sheets
-    num_sheets <- length(acc_lst)
+    num_sheets <- length(acc)
     .check_length(
         x = num_sheets,
         len_min = 1,
         msg = "number of sheets should be at least one"
     )
     # save all elements of the list
-    purrr::map2(acc_lst, 1:num_sheets, function(cf_mat, ind) {
+    purrr::map2(acc, 1:num_sheets, function(cf_mat, ind) {
         # create a worksheet for each confusion matrix
         if (purrr::is_null(cf_mat$name)) {
             cf_mat$name <- paste0("sheet", ind)

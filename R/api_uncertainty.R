@@ -1,6 +1,6 @@
 #---- internal functions ----
-#' @title Create an uncertainty cube
-#' @name .uncertainty_cube
+#' @title Create an uncertainty raster cube
+#' @name .uncertainty_raster_cube
 #' @keywords internal
 #' @noRd
 #' @param cube A cube
@@ -9,7 +9,7 @@
 #' @param output_dir directory where files will be saved
 #' @param version version name of resulting cube#'
 #' @return uncertainty cube
-.uncertainty_cube <- function(cube,
+.uncertainty_raster_cube <- function(cube,
                               band,
                               uncert_fn,
                               output_dir,
@@ -17,7 +17,7 @@
     # Process each tile sequentially
     uncert_cube <- .cube_foreach_tile(cube, function(tile) {
         # Compute uncertainty
-        uncert_tile <- .uncertainty_tile(
+        uncert_tile <- .uncertainty_raster_tile(
             tile = tile,
             band = band,
             uncert_fn = uncert_fn,
@@ -29,16 +29,16 @@
     return(uncert_cube)
 }
 #' @title Create an uncertainty tile-band asset
-#' @name .uncertainty_tile
+#' @name .uncertainty_raster_tile
 #' @keywords internal
 #' @noRd
 #' @param tile tile of data cube
 #' @param band band name
 #' @param uncert_fn function to compute uncertainty
 #' @param output_dir directory where files will be saved
-#' @param version version name of resulting cube#'
+#' @param version version name of resulting cube
 #' @return uncertainty tile-band combination
-.uncertainty_tile <- function(tile,
+.uncertainty_raster_tile <- function(tile,
                               band,
                               uncert_fn,
                               output_dir,
@@ -53,7 +53,7 @@
     # Resume feature
     if (file.exists(out_file)) {
         .check_recovery(tile[["tile"]])
-
+        # return the existing tile
         uncert_tile <- .tile_derived_from_file(
             file = out_file,
             band = band,
@@ -62,6 +62,7 @@
         )
         return(uncert_tile)
     }
+    # If output file does not exist
     # Create chunks as jobs
     chunks <- .tile_chunks_create(tile = tile, overlap = 0)
     # Process jobs in parallel
@@ -127,6 +128,89 @@
     )
     # Return uncertainty tile
     uncert_tile
+}
+
+#---- internal functions ----
+#' @title Create an uncertainty raster cube
+#' @name .uncertainty_vector_cube
+#' @keywords internal
+#' @noRd
+#' @param cube A cube
+#' @param band band name
+#' @param output_dir directory where files will be saved
+#' @param version version name of resulting cube#'
+#' @return uncertainty cube
+.uncertainty_vector_cube <- function(cube,
+                                     band,
+                                     output_dir,
+                                     version) {
+    # Process each tile sequentially
+    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
+        # Compute uncertainty
+        uncert_tile <- .uncertainty_vector_tile(
+            tile = tile,
+            band = band,
+            output_dir = output_dir,
+            version = version
+        )
+        return(uncert_tile)
+    })
+    class(uncert_cube) <- c("uncertainty_vector_cube", class(cube))
+    return(uncert_cube)
+}
+#' @title Create an uncertainty vector tile
+#' @name .uncertainty_vector_tile
+#' @keywords internal
+#' @noRd
+#' @param tile tile of data cube
+#' @param band band name
+#' @param output_dir directory where files will be saved
+#' @param version version name of resulting cube
+#' @return uncertainty tile-band combination
+.uncertainty_vector_tile <- function(tile,
+                                     band,
+                                     output_dir,
+                                     version) {
+    # Output file
+    out_file <- .file_derived_name(
+        tile = tile,
+        band = band,
+        version = version,
+        output_dir = output_dir,
+        ext = "gpkg"
+    )
+    # select uncertainty function
+    uncert_fn <- switch(
+        band,
+        "least"   = .uncertainty_fn_least(),
+        "margin"  = .uncertainty_fn_margin(),
+        "entropy" = .uncertainty_fn_entropy()
+    )
+    # get the labels
+    labels <- unname(sits_labels(tile))
+    # read the segments
+    sf_seg <- .segments_read_vec(tile)
+    # extract matrix values from segments
+    probs_matrix <- sf_seg |>
+        sf::st_drop_geometry() |>
+        dplyr::select(dplyr::all_of(labels)) |>
+        as.matrix()
+    # apply uncertainty function
+    uncert_values <- uncert_fn(probs_matrix)
+    colnames(uncert_values) <- band
+    uncert_values <- tibble::as_tibble(uncert_values)
+    # merge uncertainty values
+    sf_seg <- sf_seg |>
+        dplyr::bind_cols(uncert_values) |>
+        dplyr::relocate(dplyr::all_of(band), .before = "geom")
+    # Prepare and save results as vector
+    .vector_write_vec(v_obj = sf_seg, file_path = out_file)
+    # Set information on uncert_tile
+    uncert_tile <- tile
+    uncert_tile$vector_info[[1]]$band <- band
+    uncert_tile$vector_info[[1]]$path <- out_file
+    class(uncert_tile) <- c("uncertainty_vector_cube", class(uncert_tile))
+    return(uncert_tile)
 }
 
 #---- uncertainty functions ----
