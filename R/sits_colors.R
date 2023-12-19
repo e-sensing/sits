@@ -54,9 +54,6 @@ sits_colors_show <- function(legend = NULL,
                              font_family = "sans") {
     # verifies if sysfonts package is installed
     .check_require_packages("sysfonts")
-    # checks if font family is available
-    if (!font_family %in% sysfonts::font_families())
-        font_family <- "plex_sans"
     # legend must be valid
     if (purrr::is_null(legend))
         legend <- "none"
