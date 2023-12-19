@@ -247,11 +247,12 @@ tmap:
         legend_text_size: 1.0
         legend_bg_color: "white"
         legend_bg_alpha: 0.5
-        legend_width: 0.5
+        legend_width: 1.0
         legend_position: ["left", "bottom"]
         legend_height: 1.0
-        scale: 0.5
+        scale: 1.0
         font_family: "plex_sans"
+        n_breaks: 20
 
 # maxbytes for leaflet (in MB)
 leaflet_megabytes : 64

@@ -4,20 +4,24 @@
 \alias{plot.xgb_model}
 \title{Plot XGB model}
 \usage{
-\method{plot}{xgb_model}(x, ..., n_trees = 3)
+\method{plot}{xgb_model}(x, ..., trees = c(0:4), width = 1500, height = 1900)
 }
 \arguments{
 \item{x}{Object of class "xgb_model".}
 
 \item{...}{Further specifications for \link{plot}.}
 
-\item{n_trees}{Number of trees to be plotted}
+\item{trees}{Vector of trees to be plotted}
+
+\item{width}{Width of the output window}
+
+\item{height}{Height of the output window}
 }
 \value{
-A plot object.
+A plot
 }
 \description{
-Plots the important variables in an extreme gradient boosting.
+Plots trees in an extreme gradient boosting model.
 }
 \note{
 Please refer to the sits documentation available in
@@ -30,6 +34,7 @@ if (sits_run_examples()) {
     xgb_model <- sits_train(samples_modis_ndvi,
         ml_method = sits_xgboost()
     )
+    plot(xgb_model)
 }
 }
 \author{

@@ -2,16 +2,21 @@
 % Please edit documentation in R/sits_xlsx.R
 \name{sits_to_xlsx}
 \alias{sits_to_xlsx}
+\alias{sits_to_xlsx.sits_accuracy}
+\alias{sits_to_xlsx.list}
 \title{Save accuracy assessments as Excel files}
 \usage{
-sits_to_xlsx(acc_lst, file, data = NULL)
+sits_to_xlsx(acc, file)
+
+\method{sits_to_xlsx}{sits_accuracy}(acc, file)
+
+\method{sits_to_xlsx}{list}(acc, file)
 }
 \arguments{
-\item{acc_lst}{A list of accuracy statistics}
+\item{acc}{Accuracy statistics (either an output of sits_accuracy
+or a list of those)}
 
 \item{file}{The file where the XLSX data is to be saved.}
-
-\item{data}{(optional) Print information about the samples}
 }
 \value{
 No return value, called for side effects.

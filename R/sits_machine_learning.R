@@ -255,6 +255,7 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
 #' @param nfold            Number of the subsamples for the cross-validation.
 #' @param nrounds          Number of rounds to iterate the cross-validation
 #'                         (default: 100)
+#' @param nthread          Number of threads (default = 6)
 #' @param early_stopping_rounds Training with a validation set will stop
 #'                         if the performance doesn't improve for k rounds.
 #' @param verbose          Print information on statistics during the process
@@ -284,6 +285,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
                          min_split_loss = 1, max_depth = 5,
                          min_child_weight = 1, max_delta_step = 1,
                          subsample = 0.8, nfold = 5, nrounds = 100,
+                         nthread = 6,
                          early_stopping_rounds = 20, verbose = FALSE) {
     # Function that trains a xgb model
     train_fun <- function(samples) {
@@ -307,13 +309,21 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
             eval_metric = "mlogloss", eta = learning_rate,
             gamma = min_split_loss, max_depth = max_depth,
             min_child_weight = min_child_weight,
-            max_delta_step = max_delta_step, subsample = subsample
+            max_delta_step = max_delta_step, subsample = subsample,
+            nthread = nthread
         )
-        # Train a xgboost model
-        model <- xgboost::xgboost(
+        if (verbose)
+            verbose = 1
+        else
+            verbose = 0
+        # transform predictors in a xgb.DMatrix
+        xgb_matrix <- xgboost::xgb.DMatrix(
             data = as.matrix(.pred_features(train_samples)),
-            label = references, num_class = length(labels), params = params,
-            nrounds = nrounds, verbose = FALSE
+            label = references)
+        # train the model
+        model <- xgboost::xgb.train(xgb_matrix,
+            num_class = length(labels), params = params,
+            nrounds = nrounds, verbose = verbose
         )
         # Get best ntreelimit
         ntreelimit <- model$best_ntreelimit

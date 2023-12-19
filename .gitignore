@@ -21,6 +21,7 @@ inst/doc
 doc
 Meta
 *.bkp
+*.pdf
 .sits/
 *.gcda
 *.gcno

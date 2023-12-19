@@ -24,13 +24,14 @@
 
 \item{rev}{Reverse the color order in the palette?}
 
-\item{tmap_options}{List with optional tmap parameters
-tmap_max_cells (default: 1e+06)
-tmap_graticules_labels_size (default: 0.7)
-tmap_legend_title_size (default: 1.5)
-tmap_legend_text_size (default: 1.2)
-tmap_legend_bg_color (default: "white")
-tmap_legend_bg_alpha (default: 0.5)}
+\item{tmap_options}{Named list with optional tmap parameters
+max_cells (default: 1e+06)
+scale (default: 1.0)
+graticules_labels_size (default: 0.7)
+legend_title_size (default: 1.0)
+legend_text_size (default: 1.0)
+legend_bg_color (default: "white")
+legend_bg_alpha (default: 0.5)}
 }
 \value{
 A plot object produced by the stars package

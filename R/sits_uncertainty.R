@@ -7,6 +7,7 @@
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @param  cube         Probability data cube.
+#' @param  ...         Other parameters for specific functions.
 #' @param  type         Method to measure uncertainty. See details.
 #' @param  multicores   Number of cores to run the function.
 #' @param  memsize      Maximum overall memory (in GB) to run the function.
@@ -51,16 +52,26 @@
 #'     plot(uncert_cube)
 #' }
 #' @export
-sits_uncertainty <- function(
-        cube,
+sits_uncertainty <-  function(cube, ...,
+                              type = "entropy",
+                              multicores = 2L,
+                              memsize = 4L,
+                              output_dir,
+                              version = "v1") {
+    # Dispatch
+    UseMethod("sits_uncertainty", cube)
+}
+#' @rdname sits_uncertainty
+#' @export
+sits_uncertainty.probs_cube <- function(
+        cube, ...,
         type = "entropy",
         multicores = 2,
         memsize = 4,
         output_dir,
         version = "v1") {
     # Check if cube has probability data
-    .check_cube_files(cube)
-    .check_cube_is_probs_cube(cube)
+    .check_raster_cube_files(cube)
     # Check memsize
     .check_memsize(memsize, min = 1, max = 16384)
     # Check multicores
@@ -91,24 +102,17 @@ sits_uncertainty <- function(
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
     # Define the class of the smoothing
-    class(type) <- c(type, class(type))
-    UseMethod("sits_uncertainty", type)
-}
-
-#' @rdname sits_uncertainty
-#' @export
-sits_uncertainty.least <- function(
-        cube,
-        type = "least",
-        multicores = 2,
-        memsize = 4,
-        output_dir,
-        version = "v1") {
+    uncert_fn <- switch(
+        type,
+        "least"   = .uncertainty_fn_least(),
+        "margin"  = .uncertainty_fn_margin(),
+        "entropy" = .uncertainty_fn_entropy()
+    )
     # Compute uncertainty
-    uncert_cube <- .uncertainty_cube(
+    uncert_cube <- .uncertainty_raster_cube(
         cube = cube,
-        band = "least",
-        uncert_fn = .uncertainty_fn_least(),
+        band = type,
+        uncert_fn = uncert_fn,
         output_dir = output_dir,
         version = version
     )
@@ -116,38 +120,29 @@ sits_uncertainty.least <- function(
 }
 #' @rdname sits_uncertainty
 #' @export
-sits_uncertainty.entropy <- function(
-        cube,
+sits_uncertainty.probs_vector_cube <- function(
+        cube, ...,
         type = "entropy",
         multicores = 2,
         memsize = 4,
         output_dir,
         version = "v1") {
+    # Check if cube has probability data
+    .check_raster_cube_files(cube)
+    # Check memsize
+    .check_memsize(memsize, min = 1, max = 16384)
+    # Check multicores
+    .check_multicores(multicores, min = 1, max = 2048)
+    # check output dir
+    .check_output_dir(output_dir)
+    # check version
+    version <- .check_version(version)
+    # version is case-insensitive in sits
+    version <- tolower(version)
     # Compute uncertainty
-    uncert_cube <- .uncertainty_cube(
+    uncert_cube <- .uncertainty_vector_cube(
         cube = cube,
-        band = "entropy",
-        uncert_fn = .uncertainty_fn_entropy(),
-        output_dir = output_dir,
-        version = version
-    )
-    return(uncert_cube)
-}
-
-#' @rdname sits_uncertainty
-#' @export
-sits_uncertainty.margin <- function(
-        cube,
-        type = "margin",
-        multicores = 2,
-        memsize = 4,
-        output_dir,
-        version = "v1") {
-    # Create uncertainty cube
-    uncert_cube <- .uncertainty_cube(
-        cube = cube,
-        band = "margin",
-        uncert_fn = .uncertainty_fn_margin(),
+        band = type,
         output_dir = output_dir,
         version = version
     )
@@ -156,7 +151,7 @@ sits_uncertainty.margin <- function(
 #' @rdname sits_uncertainty
 #' @export
 sits_uncertainty.default <- function(
-        cube,
+        cube, ...,
         type,
         multicores,
         memsize,

@@ -1,3 +1,18 @@
+#'
+#' @name .segments_tile
+#' @keywords internal
+#' @noRd
+#' @description     Extract the segments from a tile
+#'
+#' @param tile       tile of regular data cube
+#' @param seg_fn     Segmentation function to be used
+#' @param band       Name of output band
+#' @param block      Block size
+#' @param roi        Region of interest
+#' @param output_dir Directory for saving temporary segment files
+#' @param version    Version of the result
+#' @param progress   Show progress bar?
+#' @return segments for the tile
 .segments_tile <- function(tile,
                            seg_fn,
                            band,
@@ -67,7 +82,7 @@
         values <- C_fill_na(values, 0)
         # Used to check values (below)
         input_pixels <- nrow(values)
-        # Apply segment function
+        # Apply segmentation function
         values <- seg_fn(values, block, bbox)
         # Check if the result values is a vector object
         .check_vector(values)
@@ -92,8 +107,13 @@
     # Return segments tile
     seg_tile
 }
-
-
+#' @name .segments_is_valud
+#' @keywords internal
+#' @noRd
+#' @description     Check if segments file is valid
+#'
+#' @param file      GKPG file containing the segments
+#' @return  TRUE/FALSE
 .segments_is_valid <- function(file) {
     # resume processing in case of failure
     if (!all(file.exists(file))) {
@@ -115,7 +135,14 @@
     }
     return(TRUE)
 }
-
+#' @name .segments_data_read
+#' @keywords internal
+#' @noRd
+#' @description     Extract the segments from a tile
+#'
+#' @param tile       Tile of regular data cube
+#' @param block      Block size
+#' @return values of the time series in the block
 .segments_data_read <- function(tile, block) {
     # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
@@ -149,44 +176,124 @@
     values
 }
 
-.get_segments_from_cube <- function(cube) {
-    slider::slide_dfr(cube, function(tile) {
-        .segments_read_vec(tile)
-    })
-}
-
+#' @name .segments_path
+#' @keywords internal
+#' @noRd
+#' @description     Find the path to the GPKG file with the segments
+#'
+#' @param cube       Regular data cube
+#' @return GPKG file name
 .segments_path <- function(cube) {
     slider::slide_chr(cube, function(tile) {
         tile[["vector_info"]][[1]][["path"]]
     })
 }
-
+#' @name .segments_read_vec
+#' @keywords internal
+#' @noRd
+#' @description     Read the segments associated to a tile
+#' @param cube      Regular data cube
+#' @return segment vectors (sf object)
 .segments_read_vec <- function(cube) {
     tile <- .tile(cube)
     vector_seg <- .vector_read_vec(.segments_path(tile))
 
     return(vector_seg)
 }
-
-.segments_join_probs <- function(data, segments, aggregate) {
+#' @name .segments_join_probs
+#' @keywords internal
+#' @noRd
+#' @description     Join the probabilities of time series inside each
+#'                  segment to the segments vectors
+#' @param data      Classified time series
+#' @param segments  Segments object (sf object)
+#' @return segment vectors (sf object) with the probabilities
+#'
+.segments_join_probs <- function(data, segments) {
     # Select polygon_id and class for the time series tibble
-    data_id <- data |>
+    data <- data |>
         dplyr::select("polygon_id", "predicted") |>
         dplyr::mutate(polygon_id = as.numeric(.data[["polygon_id"]])) |>
         tidyr::unnest(cols = "predicted") |>
         dplyr::select(-"class") |>
         dplyr::group_by(.data[["polygon_id"]])
     # Select just probability labels
-    labels <- setdiff(colnames(data_id), c("polygon_id", "from", "to", "class"))
+    labels <- setdiff(colnames(data), c("polygon_id", "from", "to", "class"))
+    # Calculate metrics
+    data <- dplyr::summarise(
+        data,
+        dplyr::across(.cols = dplyr::all_of(labels),
+                      .names = "{.col}_mean", mean)
+    )
+    # Summarize probabilities
+    data <- data |>
+        dplyr::rename_with(~ gsub("_mean$", "", .x)) |>
+        dplyr::rowwise() |>
+        dplyr::mutate(sum = sum(dplyr::c_across(cols = dplyr::all_of(labels)))) |>
+        dplyr::mutate(dplyr::across(.cols = dplyr::all_of(labels), ~ .x / .data[["sum"]])) |>
+        dplyr::select(-"sum")
 
-    if (aggregate) {
-        data_id <- data_id |>
-            dplyr::summarise(dplyr::across(.cols = dplyr::all_of(labels), stats::median)) |>
-            dplyr::rowwise() |>
-            dplyr::mutate(sum = sum(dplyr::c_across(cols = dplyr::all_of(labels)))) |>
-            dplyr::mutate(dplyr::across(.cols = dplyr::all_of(labels), ~ .x / .data[["sum"]])) |>
-            dplyr::select(-"sum")
-    }
+    # join the data_id tibble with the segments (sf objects)
+    dplyr::left_join(segments, data, by = c("pol_id" = "polygon_id"))
+}
+#' @name .segments_join_probs_neigh
+#' @keywords internal
+#' @noRd
+#' @description     Join the probabilities of time series inside each
+#'                  segment to the segments vectors
+#'                  Include neighbour information
+#' @param data      Classified time series
+#' @param segments  Segments object (sf object)
+#' @return segment vectors (sf object) with the probabilities
+#'
+.segments_join_probs_neigh <- function(data, segments) {
+    # Select polygon_id and class for the time series tibble
+    data <- data |>
+        dplyr::select("polygon_id", "predicted") |>
+        dplyr::mutate(polygon_id = as.numeric(.data[["polygon_id"]])) |>
+        tidyr::unnest(cols = "predicted") |>
+        dplyr::select(-"class") |>
+        dplyr::group_by(.data[["polygon_id"]])
+    # Select just probability labels
+    labels <- setdiff(colnames(data), c("polygon_id", "from", "to", "class"))
+    # Calculate metrics
+    data_id <- dplyr::summarise(
+        data,
+        dplyr::across(.cols = dplyr::all_of(labels),
+                      .names = "{.col}_mean", mean),
+        dplyr::across(.cols = dplyr::all_of(labels),
+                      .names = "{.col}_var", stats::var)
+    )
+    # Summarize probabilities
+    data_id <- data_id |>
+        dplyr::rename_with(~ gsub("_mean$", "", .x)) |>
+        dplyr::rowwise() |>
+        dplyr::mutate(sum = sum(dplyr::c_across(cols = dplyr::all_of(labels)))) |>
+        dplyr::mutate(dplyr::across(.cols = dplyr::all_of(labels), ~ .x / .data[["sum"]])) |>
+        dplyr::select(-"sum")
+
+    # Get the information about the neighbours
+    neighbors <- spdep::poly2nb(segments)
+    # ungroup the data tibble
+    data <- dplyr::ungroup(data)
+    # obtain neighborhood statistics for each polygon
+    neigh_stats <- purrr::map_dfr(unique(data$polygon_id), function(id){
+        # get the ids of the neighbours of a polygon
+        ids <- neighbors[[id]]
+        # get mean and variance of the neighbours per class
+        neigh <- data |>
+            dplyr::filter(.data[["polygon_id"]] %in% ids) |>
+            dplyr::select(!!labels) |>
+            dplyr::summarise(
+                dplyr::across(.cols = dplyr::all_of(labels),
+                              .names = "{.col}_nmean", mean),
+                dplyr::across(.cols = dplyr::all_of(labels),
+                              .names = "{.col}_nvar", stats::var)
+            )
+        return(neigh)
+    })
+    # include neighborhood statistics in the results
+    data_id <- dplyr::bind_cols(data_id, neigh_stats)
 
     # join the data_id tibble with the segments (sf objects)
     dplyr::left_join(segments, data_id, by = c("pol_id" = "polygon_id"))
@@ -296,10 +403,12 @@
     )
     # unnest to obtain the samples.
     samples <- tidyr::unnest(samples, cols = "points")
-    # sample the values
-    samples <- dplyr::slice_sample(samples,
-                                   n = n_sam_pol,
-                                   by = "polygon_id")
+    # sample the values if n_sam_plot is not NULL
+    if (!purrr::is_null(n_sam_pol)) {
+        samples <- dplyr::slice_sample(samples,
+                                       n = n_sam_pol,
+                                       by = "polygon_id")
+    }
     samples <- .discard(samples, "sample_id")
     # set sits class
     class(samples) <- c("sits", class(samples))
