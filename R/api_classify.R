@@ -206,6 +206,7 @@
 #'
 #' @param  tile       Single tile of a data cube.
 #' @param  ml_model   Model trained by \code{\link[sits]{sits_train}}.
+#' @param  block      Optimized block to be read into memory.
 #' @param  filter_fn  Smoothing filter function to be applied to the data.
 #' @param  n_sam_pol  Number of samples per polygon to be read
 #'                    for POLYGON or MULTIPOLYGON shapefiles or sf objects.
@@ -217,6 +218,7 @@
 #' @return List of the classified raster layers.
 .classify_vector_tile <- function(tile,
                                   ml_model,
+                                  block,
                                   filter_fn,
                                   n_sam_pol,
                                   multicores,
@@ -253,6 +255,27 @@
         )
         return(probs_tile)
     }
+    # Create chunks as jobs
+    chunks <- .tile_
+    #
+    # Create chunks as jobs
+    chunks_samples <- .cube_split_chunks_samples(
+        cube = cube, samples_sf = samples
+    )
+    # By default, update_bbox is FALSE
+    update_bbox <- FALSE
+    if (.has(roi)) {
+        # How many chunks there are in tile?
+        nchunks <- nrow(chunks)
+        # Intersecting chunks with ROI
+        chunks <- .chunks_filter_spatial(chunks, roi = roi)
+        # Should bbox of resulting tile be updated?
+        update_bbox <- nrow(chunks) != nchunks
+    }
+    #
+    # # Create chunks as jobs
+    # chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
+
     # Get tile bands
     bands <- .tile_bands(tile, add_cloud = FALSE)
     segments_ts <- .segments_extract_multicores(
@@ -276,8 +299,8 @@
     )
     # Join probability values with segments
     segments_ts <- .segments_join_probs(
-            data = segments_ts,
-            segments = .segments_read_vec(tile)
+        data = segments_ts,
+        segments = .segments_read_vec(tile)
     )
 
     # Write all segments
