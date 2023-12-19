@@ -51,7 +51,7 @@ sits_colors <- function(legend = NULL) {
 #' @export
 #'
 sits_colors_show <- function(legend = NULL,
-                             font_family = "plex_sans") {
+                             font_family = "sans") {
     # verifies if sysfonts package is installed
     .check_require_packages("sysfonts")
     # checks if font family is available
