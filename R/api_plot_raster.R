@@ -108,7 +108,7 @@
 #' @param  tmap_options  Named vector with optional tmap parameters
 #'                       max_cells (default: 1e+06)
 #'                       scale (default: 0.8)
-#'                       font_family (default: "plex_sans")
+#'                       font_family (default: "sans")
 #'                       graticules_labels_size (default: 0.7)
 #'                       legend_title_size (default: 0.8)
 #'                       legend_text_size (default: 0.8)
