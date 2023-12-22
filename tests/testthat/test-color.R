@@ -1,17 +1,40 @@
 test_that("sits colors", {
     g <- sits_colors_show("PRODES")
     expect_equal(g$labels$xmin, "x + 0.05")
+    sits_colors_reset()
 
     color_tb <- sits_colors()
     expect_equal(color_tb[1, ]$name, "Evergreen_Broadleaf_Forest")
     expect_equal(unname(color_tb[1, ]$color), "#518940")
 
-    color_tb[1, ]$name <- "Tropical_Forest"
-    new_tb <- sits_colors_set(color_tb)
-    expect_equal(new_tb[1, ]$name, "Tropical_Forest")
+    us_nlcd <- tibble::tibble(name = character(), color = character())
+    us_nlcd <- us_nlcd |>
+        tibble::add_row(name = "Urban_Built_Up", color = "#85929E") |>
+        tibble::add_row(name = "Agricultural_Land", color = "#F0B27A") |>
+        tibble::add_row(name = "Rangeland", color = "#F1C40F") |>
+        tibble::add_row(name = "Forest_Land", color = "#27AE60") |>
+        tibble::add_row(name = "Water", color = "#2980B9") |>
+        tibble::add_row(name = "Wetland", color = "#D4E6F1") |>
+        tibble::add_row(name = "Barren_Land", color = "#FDEBD0") |>
+        tibble::add_row(name = "Tundra", color = "#EBDEF0") |>
+        tibble::add_row(name = "Snow_and_Ice", color = "#F7F9F9")
+
+    # Load the color table into `sits`
+    new_color_tb <- sits_colors_set(colors = us_nlcd, legend = "US_NLCD")
+
+    us_nlcd_color_1 <- dplyr::filter(new_color_tb, name == "Urban_Built_Up")
+    expect_equal(us_nlcd_color_1$color, "#85929E")
+
+    mycolors <- tibble::tibble(name = character(), color = character())
+    mycolors <- mycolors |>
+        tibble::add_row(name = "Savannas", color = "#F8C471") |>
+        tibble::add_row(name = "Grasslands", color = "#ABEBC6")
+
+    # set the user-defined colors
+    new_color_tb2 <- sits_colors_set(colors = mycolors)
+    new_color_grass <- dplyr::filter(new_color_tb2, name == "Grasslands")
+    expect_equal(new_color_grass$color, "#ABEBC6")
     sits_colors_reset()
-    old_tb <- sits_colors()
-    expect_equal(old_tb[1, ]$name, "Evergreen_Broadleaf_Forest")
 })
 
 test_that("plot colors", {

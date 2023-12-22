@@ -251,7 +251,7 @@ tmap:
         legend_position: ["left", "bottom"]
         legend_height: 1.0
         scale: 1.0
-        font_family: "plex_sans"
+        font_family: "sans"
         n_breaks: 20
 
 # maxbytes for leaflet (in MB)

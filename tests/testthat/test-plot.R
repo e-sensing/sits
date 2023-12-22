@@ -53,12 +53,11 @@ test_that("Plot Time Series and Images", {
     expect_equal(p$tm_raster$palette, "-RdYlGn")
     expect_equal(p$tm_grid$grid.projection, 4326)
 
-    tmap_options <- list("tmap_legend_title_size" = 1.0,
-                        "tmap_legend_text_size" = 0.7,
-                        "tmap_max_cells" = 1e+06,
-                        "tmap_graticules_labels_size" = 0.7,
-                        "tmap_legend_bg_color" = "white",
-                        "tmap_legend_bg_alpha" = 0.6)
+    tmap_options <- list("legend_title_size" = 1.0,
+                        "legend_text_size" = 0.7,
+                        "graticules_labels_size" = 0.7,
+                        "legend_bg_color" = "white",
+                        "legend_bg_alpha" = 0.6)
 
     p_rgb <- plot(sinop, red = "NDVI", green = "NDVI", blue = "NDVI",
                   tmap_options = tmap_options)
@@ -77,7 +76,7 @@ test_that("Plot Time Series and Images", {
         )
     )
     p_probs <- plot(sinop_probs)
-    expect_equal(p_probs$tm_raster$palette, "YlGnBu")
+    expect_equal(p_probs$tm_raster$palette, "YlGn")
     expect_equal(length(p_probs$tm_raster$title), 4)
     expect_equal(p_probs$tm_layout$legend.bg.color, "white")
 

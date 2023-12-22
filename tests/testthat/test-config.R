@@ -38,12 +38,10 @@ test_that("User functions", {
 
     expect_equal(
         unname(.colors_get(labels = c(
-            "Cropland", "Deforestation",
-            "Forest", "Grassland", "NonForest"
+            "Rangeland", "Forest_Land", "Water"
         ), legend = NULL, palette = "Spectral", rev = TRUE)),
         c(
-            "khaki", "sienna", "darkgreen", "lightgreen",
-            "lightsteelblue1"
+            "#F1C40F", "#27AE60", "#2980B9"
         )
     )
 

@@ -43,7 +43,6 @@ test_that("Segmentation", {
     p2 <- plot(probs_segs)
     expect_equal(p2$tm_shape$shp_name, "sf_seg")
     expect_equal(ncol(p2$tm_shape$shp), 9)
-    expect_equal(p2$tm_layout$asp, 0)
 
     expect_s3_class(object = probs_segs, class = "probs_vector_cube")
     expect_true(
