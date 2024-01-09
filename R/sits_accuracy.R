@@ -196,7 +196,7 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
 
         # Convert the tibble to a matrix
         xy <- matrix(c(points_tile$X, points_tile$Y),
-            nrow = nrow(points_tile), ncol = 2
+                     nrow = nrow(points_tile), ncol = 2
         )
         colnames(xy) <- c("X", "Y")
 
@@ -206,10 +206,16 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
             band = labelled_band,
             xy = xy
         )
+        # Transform to vector
+        values <- unlist(values)
+        # Indexes of NA values
+        idx_na <- !is.na(values)
+        # Remove NAs from values
+        values <- values[idx_na]
         # Get the predicted values
-        predicted <- labels_cube[.as_chr(unlist(values))]
-        # Get reference classes
-        reference <- points_tile$label
+        predicted <- labels_cube[.as_chr(values)]
+        # Get reference classes and remove NAs
+        reference <- points_tile$label[idx_na]
         # Does the number of predicted and reference values match?
         .check_pred_ref_match(reference, predicted)
         # Create a tibble to store the results
