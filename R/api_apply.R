@@ -129,7 +129,7 @@
         # Returned block files for each fraction
         block_files
     })
-    # Merge blocks into a new class_cube tile
+    # Merge blocks into a new eo_cube tile
     band_tile <- .tile_eo_merge_blocks(
         files = out_file,
         bands = out_band,

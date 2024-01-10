@@ -135,7 +135,7 @@ sits_apply.raster_cube <- function(data, ...,
     out_band <- names(expr)
     # Check if band already exists in cube
     if (out_band %in% .cube_bands(data)) {
-        if (.check_messages()){
+        if (.check_messages()) {
             warning(
                 paste0("The provided band '", out_band,
                        "' already exists in cube."),
