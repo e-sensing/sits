@@ -1,10 +1,8 @@
 .reduce_tile <- function(tile,
                          block,
                          expr,
-                         window_size,
                          out_band,
                          in_bands,
-                         overlap,
                          output_dir,
                          progress) {
 
@@ -31,7 +29,7 @@
     unlink(out_file)
     # Create chunks as jobs
     chunks <- .tile_chunks_create(
-        tile = tile, overlap = overlap, block = block
+        tile = tile, overlap = 0, block = block
     )
     # Filter tile bands
     if (.band_cloud() %in% .tile_bands(tile)) {
@@ -68,11 +66,7 @@
         values <- eval(
             expr = expr[[out_band]],
             envir = values,
-            enclos = .kern_functions(
-                window_size = window_size,
-                img_nrow = block[["nrows"]],
-                img_ncol = block[["ncols"]]
-            )
+            enclos = .temp_functions()
         )
         # Prepare fractions to be saved
         band_conf <- .tile_band_conf(tile = tile, band = out_band)
@@ -112,5 +106,64 @@
     band_tile
 }
 
+#' @title Temporal functions for reduce operations
+#' @name .temp_functions
+#' @noRd
+#' @return operations on reduce function
+.temp_functions <- function() {
+    result_env <- list2env(list(
+        t_max = function(m) {
+            C_temp_max(mtx = as.matrix(m))
+        },
+        t_min = function(m) {
+            C_temp_min(mtx = as.matrix(m))
+        },
+        t_mean = function(m) {
+            C_temp_mean(mtx = as.matrix(m))
+        },
+        t_median = function(m) {
+            C_temp_median(mtx = as.matrix(m))
+        },
+        t_sum = function(m) {
+            C_temp_sum(mtx = as.matrix(m))
+        },
+        t_std = function(m) {
+            C_temp_std(mtx = as.matrix(m))
+        },
+        t_skewness = function(m) {
+            C_temp_skew(mtx = as.matrix(m))
+        },
+        t_kurtosis = function(m) {
+            C_temp_kurt(mtx = as.matrix(m))
+        },
+        t_amplitude = function(m) {
+            C_temp_amplitude(mtx = as.matrix(m))
+        },
+        t_fslope = function(m) {
+            C_temp_fslope(mtx = as.matrix(m))
+        },
+        t_abs_sum = function(m) {
+            C_temp_abs_sum(mtx = as.matrix(m))
+        },
+        t_amd = function(m) {
+            C_temp_amd(mtx = as.matrix(m))
+        },
+        t_mse = function(m) {
+            C_temp_mse(mtx = as.matrix(m))
+        },
+        t_fqr = function(m) {
+            C_temp_fqr(mtx = as.matrix(m))
+        },
+        t_sqr = function(m) {
+            C_temp_sqr(mtx = as.matrix(m))
+        },
+        t_tqr = function(m) {
+            C_temp_tqr(mtx = as.matrix(m))
+        },
+        t_iqr = function(m) {
+            C_temp_iqr(mtx = as.matrix(m))
+        }
+    ), parent = parent.env(environment()), hash = TRUE)
 
-
+    return(result_env)
+}

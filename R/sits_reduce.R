@@ -13,10 +13,6 @@
 #' from the function.
 #'
 #' @param data          Valid sits tibble or cube
-#' @param window_size   An odd number representing the size of the
-#'                      sliding window of sits kernel functions
-#'                      used in expressions (for a list of supported
-#'                      kernel functions, please see details).
 #' @param memsize       Memory available for classification (in GB).
 #' @param multicores    Number of cores to be used for classification.
 #' @param output_dir    Directory where files will be saved.
@@ -27,41 +23,46 @@
 #' \code{sits_reduce()} allow any valid R expression to compute new bands.
 #' Use R syntax to pass an expression to this function.
 #' Besides arithmetic operators, you can use virtually any R function
-#' that can be applied to elements of a matrix (functions that are
-#' unaware of matrix sizes, e.g. \code{sqrt()}, \code{sin()},
-#' \code{log()}).
+#' that can be applied to elements of a matrix.
+#' The provided functions must operate at line level in order to perform
+#' temporal reduction on a pixel.
 #'
-#' Also, \code{sits_apply()} accepts a predefined set of kernel functions
-#' (see below) that can be applied to pixels considering its
-#' neighborhood. \code{sits_apply()} considers a neighborhood of a
-#' pixel as a set of pixels equidistant to it (including itself)
-#' according the Chebyshev distance. This neighborhood form a
-#' square window (also known as kernel) around the central pixel
-#' (Moore neighborhood). Users can set the \code{window_size}
-#' parameter to adjust the size of the kernel window.
-#' The image is conceptually mirrored at the edges so that neighborhood
-#' including a pixel outside the image is equivalent to take the
-#' 'mirrored' pixel inside the edge.
+#' \code{sits_reduce()} Applies a function to each row of a matrix.
+#' In this matrix, each row represents a pixel and each column
+#' represents a single date. We provide some operations already
+#' implemented in the package to perform the reduce operation.
+#' See the list of available functions below:
 #'
-#' \code{sits_apply()} applies a function to the kernel and its result
-#' is assigned to a corresponding central pixel on a new matrix.
-#' The kernel slides throughout the input image and this process
-#' generates an entire new matrix, which is returned as a new band
-#' to the cube. The kernel functions ignores any \code{NA} values
-#' inside the kernel window. Central pixel is \code{NA} just only
-#' all pixels in the window are \code{NA}.
-#'
-#' @section Summarizing kernel functions:
+#' @section Summarizing temporal functions:
 #' \itemize{
-#' \item{\code{w_median()}: returns the median of the neighborhood's values.}
-#' \item{\code{w_sum()}: returns the sum of the neighborhood's values.}
-#' \item{\code{w_mean()}: returns the mean of the neighborhood's values.}
-#' \item{\code{w_sd()}: returns the standard deviation of the neighborhood's
-#'   values.}
-#' \item{\code{w_min()}: returns the minimum of the neighborhood's values.}
-#' \item{\code{w_max()}: returns the maximum of the neighborhood's values.}
-#' \item{\code{w_var()}: returns the variance of the neighborhood's values.}
-#' \item{\code{w_modal()}: returns the modal of the neighborhood's values.}
+#'  \item{\code{t_max()}: Returns the maximum value of the series.}
+#'  \item{\code{t_min()}: Returns the minimum value of the series}
+#'  \item{\code{t_mean()}: Returns the mean of the series.}
+#'  \item{\code{t_median()}: Returns the median of the series.}
+#'  \item{\code{t_sum()}: Returns the sum of all the points in the series.}
+#'  \item{\code{t_std()}: Returns the standard deviation of the series.}
+#'  \item{\code{t_skewness()}: Returns the skewness of the series.}
+#'  \item{\code{t_kurtosis()}: Returns the kurtosis of the series.}
+#'  \item{\code{t_amplitude()}: Returns the difference between the maximum and
+#'  minimum values of the cycle. A small amplitude means a stable cycle.}
+#'  \item{\code{t_fslope()}: Returns the maximum value of the first slope of
+#'  the cycle. Indicates when the cycle presents an abrupt change in the
+#'  curve. The slope between two values relates the speed of the growth or
+#'  senescence phases}
+#'  \item{\code{t_abs_sum()}: Returns the absolute sum of the points in the
+#'  series.}
+#'  \item{\code{t_amd()}: Returns the absolute mean of the difference between
+#'  each point in the series.}
+#'  \item{\code{t_mse()}: Returns the average spectral energy density.
+#'  The energy of the time series is distributed by frequency.}
+#'  \item{\code{t_fqr()}: Returns the value of the first quartile of the
+#'  series (0.25).}
+#'  \item{\code{t_sqr()}: Returns the value of the second quartile of the
+#'  series (0.50).}
+#'  \item{\code{t_tqr()}: Returns the value of the third quartile of the
+#'  series (0.75).}
+#'  \item{\code{t_iqr()}: Returns the interquartile range
+#'  (difference between the third and first quartiles).}
 #' }
 #'
 #' @return A sits tibble or a sits cube with new bands, produced
@@ -85,7 +86,6 @@ sits_reduce.sits <- function(data, ...) {
 #' @rdname sits_reduce
 #' @export
 sits_reduce.raster_cube <- function(data, ...,
-                                    window_size = 3L,
                                     memsize = 4L,
                                     multicores = 2L,
                                     output_dir,
@@ -94,8 +94,6 @@ sits_reduce.raster_cube <- function(data, ...,
     # Check cube
     .check_is_raster_cube(data)
     .check_is_regular(data)
-    # Check window size
-    .check_window_size(window_size)
     # Check memsize
     .check_memsize(memsize, min = 1, max = 16384)
     # Check multicores
@@ -123,11 +121,9 @@ sits_reduce.raster_cube <- function(data, ...,
     # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
-    # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = overlap),
+        job_size = .block_size(block = block, overlap = 0),
         npaths = length(in_bands) * length(.tile_timeline(data)),
         nbytes = 8, proc_bloat = .conf("processing_bloat_cpu")
     )
@@ -154,10 +150,8 @@ sits_reduce.raster_cube <- function(data, ...,
             tile = tile,
             block = block,
             expr = expr,
-            window_size = window_size,
             out_band = out_band,
             in_bands = in_bands,
-            overlap = overlap,
             output_dir = output_dir,
             progress = progress
         )
