@@ -249,6 +249,193 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// C_temp_max
+arma::vec C_temp_max(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_max(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_max(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_min
+arma::vec C_temp_min(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_min(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_min(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_mean
+arma::vec C_temp_mean(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_mean(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_mean(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_median
+arma::vec C_temp_median(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_median(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_median(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_sum
+arma::vec C_temp_sum(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_sum(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_sum(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_std
+arma::vec C_temp_std(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_std(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_std(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_skew
+arma::vec C_temp_skew(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_skew(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_skew(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_kurt
+arma::vec C_temp_kurt(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_kurt(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_kurt(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_amplitude
+arma::vec C_temp_amplitude(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_amplitude(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_amplitude(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_fslope
+arma::vec C_temp_fslope(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_fslope(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_fslope(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_abs_sum
+arma::vec C_temp_abs_sum(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_abs_sum(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_abs_sum(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_amd
+arma::vec C_temp_amd(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_amd(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_amd(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_mse
+arma::vec C_temp_mse(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_mse(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_mse(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_fqr
+arma::vec C_temp_fqr(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_fqr(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_fqr(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_sqr
+arma::vec C_temp_sqr(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_sqr(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_sqr(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_tqr
+arma::vec C_temp_tqr(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_tqr(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_tqr(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_temp_iqr
+arma::vec C_temp_iqr(const arma::mat& mtx);
+RcppExport SEXP _sits_C_temp_iqr(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_temp_iqr(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sample_points_inclusion
 NumericMatrix sample_points_inclusion(const NumericMatrix& polymatrix, const int n_sam_pol);
 RcppExport SEXP _sits_sample_points_inclusion(SEXP polymatrixSEXP, SEXP n_sam_polSEXP) {
@@ -453,6 +640,23 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_nnls_solver_batch", (DL_FUNC) &_sits_C_nnls_solver_batch, 5},
     {"_sits_C_normalize_data", (DL_FUNC) &_sits_C_normalize_data, 3},
     {"_sits_C_normalize_data_0", (DL_FUNC) &_sits_C_normalize_data_0, 3},
+    {"_sits_C_temp_max", (DL_FUNC) &_sits_C_temp_max, 1},
+    {"_sits_C_temp_min", (DL_FUNC) &_sits_C_temp_min, 1},
+    {"_sits_C_temp_mean", (DL_FUNC) &_sits_C_temp_mean, 1},
+    {"_sits_C_temp_median", (DL_FUNC) &_sits_C_temp_median, 1},
+    {"_sits_C_temp_sum", (DL_FUNC) &_sits_C_temp_sum, 1},
+    {"_sits_C_temp_std", (DL_FUNC) &_sits_C_temp_std, 1},
+    {"_sits_C_temp_skew", (DL_FUNC) &_sits_C_temp_skew, 1},
+    {"_sits_C_temp_kurt", (DL_FUNC) &_sits_C_temp_kurt, 1},
+    {"_sits_C_temp_amplitude", (DL_FUNC) &_sits_C_temp_amplitude, 1},
+    {"_sits_C_temp_fslope", (DL_FUNC) &_sits_C_temp_fslope, 1},
+    {"_sits_C_temp_abs_sum", (DL_FUNC) &_sits_C_temp_abs_sum, 1},
+    {"_sits_C_temp_amd", (DL_FUNC) &_sits_C_temp_amd, 1},
+    {"_sits_C_temp_mse", (DL_FUNC) &_sits_C_temp_mse, 1},
+    {"_sits_C_temp_fqr", (DL_FUNC) &_sits_C_temp_fqr, 1},
+    {"_sits_C_temp_sqr", (DL_FUNC) &_sits_C_temp_sqr, 1},
+    {"_sits_C_temp_tqr", (DL_FUNC) &_sits_C_temp_tqr, 1},
+    {"_sits_C_temp_iqr", (DL_FUNC) &_sits_C_temp_iqr, 1},
     {"_sits_sample_points_inclusion", (DL_FUNC) &_sits_sample_points_inclusion, 2},
     {"_sits_sample_points_crossings", (DL_FUNC) &_sits_sample_points_crossings, 2},
     {"_sits_sample_points_bin", (DL_FUNC) &_sits_sample_points_bin, 2},
