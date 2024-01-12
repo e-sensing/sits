@@ -106,6 +106,46 @@
     band_tile
 }
 
+.reduce <- function(data, expr, in_band, out_band) {
+    col <- "time_series"
+    # Pre-condition
+    .check_chr_within(
+        col,
+        within = names(data),
+        msg = "invalid column name"
+    )
+    # Select data do unpack
+    x <- data[col]
+    # Prepare to unpack
+    x[["#.."]] <- as.factor(seq_len(nrow(data)))
+    # Unpack
+    x <- tidyr::unnest(x, cols = dplyr::all_of(col))
+    # Apply the temporal operation
+    x <- by(x, x[, "#.."], function(y) {
+        y <- list(t(y[[in_band]]))
+        names(y) <- in_band
+        eval(
+            expr = expr[[out_band]],
+            envir = y,
+            enclos = .temp_functions()
+        )
+    })
+    # Unlist results
+    x <- unlist(x)
+    # Create a data frame
+    x <- tibble::tibble(x)
+    colnames(x) <- out_band
+    x[["#.."]] <- as.factor(seq_len(nrow(x)))
+    # pack
+    x <- tidyr::nest(x, `..unnest_col` = -"#..")
+    # remove garbage
+    x[["#.."]] <- NULL
+    names(x) <- col
+    # prepare result
+    data[[col]] <- x[[col]]
+    return(data)
+}
+
 #' @title Temporal functions for reduce operations
 #' @name .temp_functions
 #' @noRd
