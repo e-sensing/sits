@@ -73,10 +73,6 @@ See the list of available functions below:
  the cycle. Indicates when the cycle presents an abrupt change in the
  curve. The slope between two values relates the speed of the growth or
  senescence phases}
- \item{\code{t_abs_sum()}: Returns the absolute sum of the points in the
- series.}
- \item{\code{t_amd()}: Returns the absolute mean of the difference between
- each point in the series.}
  \item{\code{t_mse()}: Returns the average spectral energy density.
  The energy of the time series is distributed by frequency.}
  \item{\code{t_fqr()}: Returns the value of the first quartile of the
