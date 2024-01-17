@@ -101,11 +101,13 @@ sits_reduce.raster_cube <- function(data, ...,
     # Check output_dir
     .check_output_dir(output_dir)
 
+    # Get cube bands
+    bands <- .cube_bands(data)
     # Get output band expression
     expr <- .apply_capture_expression(...)
     out_band <- names(expr)
     # Check if band already exists in cube
-    if (out_band %in% .cube_bands(data)) {
+    if (out_band %in% bands) {
         if (.check_messages()) {
             warning(
                 paste0("The provided band '", out_band,
@@ -116,7 +118,7 @@ sits_reduce.raster_cube <- function(data, ...,
         return(data)
     }
     # Get all input bands in cube data
-    in_bands <- .apply_input_bands(data, expr = expr)
+    in_bands <- .apply_input_bands(data, bands = bands, expr = expr)
 
     # Check memory and multicores
     # Get block size

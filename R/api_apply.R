@@ -219,15 +219,13 @@
 #' @noRd
 #'
 #' @param cube       Data cube.
+#' @param bands      Input bands in a cube or samples.
 #' @param expr       Band combination expression.
 #' @return           List of input bands required to run the expression
 #'
-.apply_input_bands <- function(cube, expr) {
+.apply_input_bands <- function(cube, bands, expr) {
     # Get all required bands in expression
     expr_bands <- toupper(.apply_get_all_names(expr[[1]]))
-
-    # Get all input bands in cube data
-    bands <- .cube_bands(cube)
 
     # Select bands that are in input expression
     bands <- bands[bands %in% expr_bands]
