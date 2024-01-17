@@ -18,7 +18,7 @@ sits_timeline <- function(data) {
 #' @export
 #'
 sits_timeline.sits <- function(data) {
-    return(as.Date(data$time_series[[1]]$Index))
+    return(.samples_timeline(data))
 }
 #' @rdname sits_timeline
 #' @export

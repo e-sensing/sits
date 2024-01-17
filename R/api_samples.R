@@ -94,6 +94,15 @@
     # Bands of the first sample governs whole samples data
     setdiff(names(.samples_ts(samples)), "Index")
 }
+
+#' @title Get timeline of time series samples
+#' @noRd
+#' @param samples Data.frame with samples
+#' @return Timeline of the first sample
+.samples_timeline <- function(samples) {
+    as.Date(samples$time_series[[1]]$Index)
+}
+
 #' @title Select bands of time series samples
 #' @noRd
 #' @param samples Data.frame with samples
