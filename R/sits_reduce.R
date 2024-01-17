@@ -1,4 +1,4 @@
-#' @title Reduces a cube from a summarization function
+#' @title Reduces a cube or samples from a summarization function
 #'
 #' @name sits_reduce
 #'
@@ -63,6 +63,31 @@
 #'
 #' @return A sits tibble or a sits cube with new bands, produced
 #'         according to the requested expression.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # Reduce summarization function
+#'
+#'     point2 <-
+#'         sits_select(point_mt_6bands, "NDVI") |>
+#'         sits_reduce(NDVI_MEDIAN = t_median(NDVI))
+#'
+#'     # Example of generation mean summarization from a cube
+#'     # Create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir
+#'     )
+#'
+#'     # Reduce NDVI band with mean function
+#'     cube_mean <- sits_reduce(
+#'         data = cube,
+#'         NDVIMEAN = t_mean(NDVI),
+#'         output_dir = tempdir()
+#'     )
+#' }
 #'
 #' @rdname sits_reduce
 #' @export

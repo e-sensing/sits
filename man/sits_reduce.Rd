@@ -4,7 +4,7 @@
 \alias{sits_reduce}
 \alias{sits_reduce.sits}
 \alias{sits_reduce.raster_cube}
-\title{Reduces a cube from a summarization function}
+\title{Reduces a cube or samples from a summarization function}
 \usage{
 sits_reduce(data, ...)
 
@@ -86,6 +86,32 @@ See the list of available functions below:
 }
 }
 
+\examples{
+if (sits_run_examples()) {
+    # Reduce summarization function
+
+    point2 <-
+        sits_select(point_mt_6bands, "NDVI") |>
+        sits_reduce(NDVI_MEDIAN = t_median(NDVI))
+
+    # Example of generation mean summarization from a cube
+    # Create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
+    )
+
+    # Reduce NDVI band with mean function
+    cube_mean <- sits_reduce(
+        data = cube,
+        NDVIMEAN = t_mean(NDVI),
+        output_dir = tempdir()
+    )
+}
+
+}
 \author{
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 
