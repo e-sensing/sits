@@ -48,6 +48,24 @@
     .check_set_caller(".sits_accuracy_area_assess")
     # check if cube has the right type
     .check_cube_is_class_cube(cube)
+    # In the case where some classes are not in the classified cube, but
+    # are in the validation file
+    diff_classes <- setdiff(rownames(error_matrix), names(area))
+    if (length(diff_classes) > 0 &&
+        length(diff_classes) < length(rownames(error_matrix))) {
+        warning(
+            paste("The classified cube does not have all the classes in the",
+                  "validation file."),
+            call. = FALSE
+        )
+        # Create a numeric vector with zeros
+        vec_areas <- rep(0, length(diff_classes))
+        names(vec_areas) <- diff_classes
+        # Join with all area classes
+        area <- c(area, vec_areas)
+        area <- area[sort(names(area))]
+
+    }
     # check error matrix
     .check_error_matrix_area(error_matrix, area)
 
