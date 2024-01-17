@@ -75,7 +75,31 @@ sits_reduce <- function(data, ...) {
 #' @rdname sits_reduce
 #' @export
 sits_reduce.sits <- function(data, ...) {
-    return(NULL)
+    data <- .check_samples(data)
+    # Get samples bands
+    bands <- .samples_bands(data)
+    # Get output band expression
+    expr <- .apply_capture_expression(...)
+    out_band <- names(expr)
+    # Check if band already exists in samples
+    if (out_band %in% bands) {
+        if (.check_messages()) {
+            warning(
+                paste0("The provided band '", out_band,
+                       "' already exists in samples."),
+                call. = FALSE
+            )
+        }
+        return(data)
+    }
+    # Get all input band
+    in_band <- .apply_input_bands(data, bands = bands, expr = expr)
+    # Reduce samples
+    data <- .reduce_samples(
+        data, expr = expr, in_band = in_band, out_band = out_band
+    )
+    # Return the reduced cube
+    return(data)
 }
 
 

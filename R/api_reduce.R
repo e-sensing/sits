@@ -106,8 +106,9 @@
     band_tile
 }
 
-.reduce <- function(data, expr, in_band, out_band) {
+.reduce_samples <- function(data, expr, in_band, out_band) {
     col <- "time_series"
+    min_date <- min(.samples_timeline(data))
     # Pre-condition
     .check_chr_within(
         col,
@@ -136,6 +137,8 @@
     x <- tibble::tibble(x)
     colnames(x) <- out_band
     x[["#.."]] <- as.factor(seq_len(nrow(x)))
+    # Add index column
+    x <- tibble::add_column(x, Index = min_date, .before = out_band)
     # pack
     x <- tidyr::nest(x, `..unnest_col` = -"#..")
     # remove garbage
@@ -181,12 +184,6 @@
         },
         t_fslope = function(m) {
             C_temp_fslope(mtx = as.matrix(m))
-        },
-        t_abs_sum = function(m) {
-            C_temp_abs_sum(mtx = as.matrix(m))
-        },
-        t_amd = function(m) {
-            C_temp_amd(mtx = as.matrix(m))
         },
         t_mse = function(m) {
             C_temp_mse(mtx = as.matrix(m))
