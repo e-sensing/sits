@@ -94,6 +94,7 @@
         values <- .classify_data_read(
             tile = tile,
             block = block,
+            bands = .ml_bands(ml_model),
             ml_model = ml_model,
             filter_fn = filter_fn
         )
@@ -304,17 +305,18 @@
 #'
 #' @param  tile            Input tile to read data.
 #' @param  block           Bounding box in (col, row, ncols, nrows).
+#' @param  bands           Bands to extract time series
 #' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
 #' @param  filter_fn       Smoothing filter function to be applied to the data.
 #' @return A matrix with values for classification.
-.classify_data_read <- function(tile, block, ml_model, filter_fn) {
+.classify_data_read <- function(tile, block, bands, ml_model, filter_fn) {
     # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
     # Read and preprocess values of cloud
     # Get cloud values (NULL if not exists)
     cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
     # Read and preprocess values of each band
-    values <- purrr::map(.ml_bands(ml_model), function(band) {
+    values <- purrr::map(bands, function(band) {
         # Get band values (stops if band not found)
         values <- .tile_read_block(tile = tile, band = band, block = block)
         # Log
@@ -365,7 +367,9 @@
     # Compose final values
     values <- as.matrix(values)
     # Set values features name
-    colnames(values) <- .ml_features_name(ml_model)
+    if (.has(ml_model)) {
+        colnames(values) <- .ml_features_name(ml_model)
+    }
     # Return values
     values
 }

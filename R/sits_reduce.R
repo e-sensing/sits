@@ -1,0 +1,209 @@
+#' @title Reduces a cube or samples from a summarization function
+#'
+#' @name sits_reduce
+#'
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description
+#' Apply a temporal reduction from a named expression in cube or sits tibble.
+#' In the case of cubes, it materializes a new band in \code{output_dir}.
+#' The result will be a cube with only one date with the raster reduced
+#' from the function.
+#'
+#' @param data          Valid sits tibble or cube
+#' @param memsize       Memory available for classification (in GB).
+#' @param multicores    Number of cores to be used for classification.
+#' @param output_dir    Directory where files will be saved.
+#' @param progress      Show progress bar?
+#' @param ...           Named expressions to be evaluated (see details).
+#'
+#' @details
+#' \code{sits_reduce()} allow any valid R expression to compute new bands.
+#' Use R syntax to pass an expression to this function.
+#' Besides arithmetic operators, you can use virtually any R function
+#' that can be applied to elements of a matrix.
+#' The provided functions must operate at line level in order to perform
+#' temporal reduction on a pixel.
+#'
+#' \code{sits_reduce()} Applies a function to each row of a matrix.
+#' In this matrix, each row represents a pixel and each column
+#' represents a single date. We provide some operations already
+#' implemented in the package to perform the reduce operation.
+#' See the list of available functions below:
+#'
+#' @section Summarizing temporal functions:
+#' \itemize{
+#'  \item{\code{t_max()}: Returns the maximum value of the series.}
+#'  \item{\code{t_min()}: Returns the minimum value of the series}
+#'  \item{\code{t_mean()}: Returns the mean of the series.}
+#'  \item{\code{t_median()}: Returns the median of the series.}
+#'  \item{\code{t_sum()}: Returns the sum of all the points in the series.}
+#'  \item{\code{t_std()}: Returns the standard deviation of the series.}
+#'  \item{\code{t_skewness()}: Returns the skewness of the series.}
+#'  \item{\code{t_kurtosis()}: Returns the kurtosis of the series.}
+#'  \item{\code{t_amplitude()}: Returns the difference between the maximum and
+#'  minimum values of the cycle. A small amplitude means a stable cycle.}
+#'  \item{\code{t_fslope()}: Returns the maximum value of the first slope of
+#'  the cycle. Indicates when the cycle presents an abrupt change in the
+#'  curve. The slope between two values relates the speed of the growth or
+#'  senescence phases}
+#'  \item{\code{t_mse()}: Returns the average spectral energy density.
+#'  The energy of the time series is distributed by frequency.}
+#'  \item{\code{t_fqr()}: Returns the value of the first quartile of the
+#'  series (0.25).}
+#'  \item{\code{t_sqr()}: Returns the value of the second quartile of the
+#'  series (0.50).}
+#'  \item{\code{t_tqr()}: Returns the value of the third quartile of the
+#'  series (0.75).}
+#'  \item{\code{t_iqr()}: Returns the interquartile range
+#'  (difference between the third and first quartiles).}
+#' }
+#'
+#' @return A sits tibble or a sits cube with new bands, produced
+#'         according to the requested expression.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # Reduce summarization function
+#'
+#'     point2 <-
+#'         sits_select(point_mt_6bands, "NDVI") |>
+#'         sits_reduce(NDVI_MEDIAN = t_median(NDVI))
+#'
+#'     # Example of generation mean summarization from a cube
+#'     # Create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir
+#'     )
+#'
+#'     # Reduce NDVI band with mean function
+#'     cube_mean <- sits_reduce(
+#'         data = cube,
+#'         NDVIMEAN = t_mean(NDVI),
+#'         output_dir = tempdir()
+#'     )
+#' }
+#'
+#' @rdname sits_reduce
+#' @export
+sits_reduce <- function(data, ...) {
+    .check_na(data)
+    .check_null(data)
+    UseMethod("sits_reduce", data)
+}
+
+#' @rdname sits_reduce
+#' @export
+sits_reduce.sits <- function(data, ...) {
+    data <- .check_samples(data)
+    # Get samples bands
+    bands <- .samples_bands(data)
+    # Get output band expression
+    expr <- .apply_capture_expression(...)
+    out_band <- names(expr)
+    # Check if band already exists in samples
+    if (out_band %in% bands) {
+        if (.check_messages()) {
+            warning(
+                paste0("The provided band '", out_band,
+                       "' already exists in samples."),
+                call. = FALSE
+            )
+        }
+        return(data)
+    }
+    # Get all input band
+    in_band <- .apply_input_bands(data, bands = bands, expr = expr)
+    # Reduce samples
+    data <- .reduce_samples(
+        data, expr = expr, in_band = in_band, out_band = out_band
+    )
+    # Return the reduced cube
+    return(data)
+}
+
+
+#' @rdname sits_reduce
+#' @export
+sits_reduce.raster_cube <- function(data, ...,
+                                    memsize = 4L,
+                                    multicores = 2L,
+                                    output_dir,
+                                    progress = FALSE) {
+
+    # Check cube
+    .check_is_raster_cube(data)
+    .check_is_regular(data)
+    # Check memsize
+    .check_memsize(memsize, min = 1, max = 16384)
+    # Check multicores
+    .check_multicores(multicores, min = 1, max = 2048)
+    # Check output_dir
+    .check_output_dir(output_dir)
+
+    # Get cube bands
+    bands <- .cube_bands(data)
+    # Get output band expression
+    expr <- .apply_capture_expression(...)
+    out_band <- names(expr)
+    # Check if band already exists in cube
+    if (out_band %in% bands) {
+        if (.check_messages()) {
+            warning(
+                paste0("The provided band '", out_band,
+                       "' already exists in cube."),
+                call. = FALSE
+            )
+        }
+        return(data)
+    }
+    # Get all input bands in cube data
+    in_bands <- .apply_input_bands(data, bands = bands, expr = expr)
+
+    # Check memory and multicores
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
+    # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = .block_size(block = block, overlap = 0),
+        npaths = length(in_bands) * length(.tile_timeline(data)),
+        nbytes = 8, proc_bloat = .conf("processing_bloat_cpu")
+    )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+    )
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_memsize = job_memsize,
+        block = block,
+        image_size = .tile_size(.tile(data)), memsize = memsize,
+        multicores = multicores
+    )
+    # Prepare parallelization
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
+
+    # Reducing
+    # Process each tile sequentially
+    reduce_cube <- .cube_foreach_tile(data, function(tile) {
+        # Reduce the data
+        probs_tile <- .reduce_tile(
+            tile = tile,
+            block = block,
+            expr = expr,
+            out_band = out_band,
+            in_bands = in_bands,
+            output_dir = output_dir,
+            progress = progress
+        )
+        return(probs_tile)
+    })
+    # Return the reduced cube
+    return(reduce_cube)
+}
