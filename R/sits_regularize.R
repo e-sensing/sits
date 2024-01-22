@@ -132,7 +132,7 @@ sits_regularize.raster_cube <- function(cube,
         }
     }
     if (.has(roi)) {
-        roi <- .roi_as_sf(roi)
+        roi <- .roi_as_sf(roi, default_crs = .crs(cube)[[1]])
     }
     # Display warning message in case STAC cube
     if (!.cube_is_local(cube)) {
