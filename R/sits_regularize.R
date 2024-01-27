@@ -132,7 +132,18 @@ sits_regularize.raster_cube <- function(cube,
         }
     }
     if (.has(roi)) {
-        roi <- .roi_as_sf(roi, default_crs = .crs(cube)[[1]])
+        crs <- NULL
+        if (.roi_type(roi) == "bbox" && !.has(roi[["crs"]])) {
+            crs <- .crs(cube)
+            if (length(crs) > 1 && .check_warnings()) {
+                warning("Multiple CRS found in provided cube.",
+                        "Using the CRS of the first tile to create ROI.",
+                        call. = FALSE,
+                        immediate. = TRUE
+                )
+            }
+        }
+        roi <- .roi_as_sf(roi, default_crs = crs[[1]])
     }
     # Display warning message in case STAC cube
     if (!.cube_is_local(cube)) {
