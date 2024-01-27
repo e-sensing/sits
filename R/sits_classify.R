@@ -230,8 +230,8 @@ sits_classify.raster_cube <- function(data,
     }
     if (!purrr::is_null(filter_fn)) {
         .check_that(is.function(filter_fn),
-            local_msg = "Please use sits_whittaker() or sits_sgolay()",
-            msg = "Invalid filter_fn parameter"
+                    local_msg = "Please use sits_whittaker() or sits_sgolay()",
+                    msg = "Invalid filter_fn parameter"
         )
     }
     # Retrieve the samples from the model
@@ -318,7 +318,7 @@ sits_classify.raster_cube <- function(data,
 #' @rdname sits_classify
 #' @export
 sits_classify.derived_cube <- function(data, ml_model, ...) {
-   stop("Input data cube has already been classified")
+    stop("Input data cube has already been classified")
 }
 #' @rdname sits_classify
 #' @export
@@ -430,6 +430,7 @@ sits_classify.segs_cube <- function(data,
             tile = tile,
             ml_model = ml_model,
             block = block,
+            roi = roi,
             filter_fn = filter_fn,
             n_sam_pol = n_sam_pol,
             multicores = multicores,
