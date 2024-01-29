@@ -362,12 +362,11 @@ sits_classify.segs_cube <- function(data,
     .check_progress(progress)
     # version is case-insensitive in sits
     version <- tolower(version)
-    proc_bloat <- .conf("processing_bloat_cpu")
+    proc_bloat <- .conf("processing_bloat_smooth")
     # If we using the GPU, gpu_memory parameter needs to be specified
     if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
                              msg = "Using GPU: gpu_memory must be informed")
-        proc_bloat <- .conf("processing_bloat_gpu")
     }
     # Spatial filter
     if (.has(roi)) {
