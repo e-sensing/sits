@@ -54,6 +54,7 @@ sits_classify(
   data,
   ml_model,
   ...,
+  roi = NULL,
   filter_fn = NULL,
   start_date = NULL,
   end_date = NULL,

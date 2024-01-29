@@ -149,3 +149,26 @@ NULL
     chunks_sf <- .bbox_as_sf(.bbox(chunks, by_feature = TRUE))
     chunks[.intersects(chunks_sf, .roi_as_sf(roi)), ]
 }
+
+#' @title Filter chunks that intersects segments
+#' @noRd
+#' @param chunks A data frame with chunks
+#' @param tile   A cube tile
+#' @returns  A tibble with filtered segments
+.chunks_filter_segments <- function(chunks, tile) {
+    # Read segments from tile
+    segments <- .segments_read_vec(tile)
+    # Transform each chunk in sf object
+    sf_chunks <- purrr::map(seq_len(nrow(chunks)), function(i) {
+        chunk <- chunks[i,]
+        .bbox_as_sf(.bbox(chunks[i,], default_crs = .tile_crs(tile)))
+
+    })
+    sf_chunks <- dplyr::bind_rows(sf_chunks)
+    # Find segments in chunks
+    idx_contains <- sf::st_contains(sf_chunks, segments, sparse = TRUE)
+    chunks$segments <- purrr::map(idx_contains, function(i) {
+        segments[i, ]
+    })
+    return(chunks)
+}

@@ -208,18 +208,15 @@ sits_classify.raster_cube <- function(data,
     .check_output_dir(output_dir)
     version <- .check_version(version)
     .check_progress(progress)
+    proc_bloat <- .conf("processing_bloat_cpu")
     # If we using the GPU, gpu_memory parameter needs to be specified
     if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
                              msg = "Using GPU: gpu_memory must be informed")
-
         proc_bloat <- .conf("processing_bloat_gpu")
-    } else
-        proc_bloat <- .conf("processing_bloat_cpu")
-
+    }
     # version is case-insensitive in sits
     version <- tolower(version)
-
     # Spatial filter
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
@@ -233,8 +230,8 @@ sits_classify.raster_cube <- function(data,
     }
     if (!purrr::is_null(filter_fn)) {
         .check_that(is.function(filter_fn),
-            local_msg = "Please use sits_whittaker() or sits_sgolay()",
-            msg = "Invalid filter_fn parameter"
+                    local_msg = "Please use sits_whittaker() or sits_sgolay()",
+                    msg = "Invalid filter_fn parameter"
         )
     }
     # Retrieve the samples from the model
@@ -251,6 +248,10 @@ sits_classify.raster_cube <- function(data,
         nbytes = 8,
         proc_bloat = proc_bloat
     )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+    )
     # If we using the GPU, gpu_memory parameter needs to be specified
     if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
@@ -258,11 +259,6 @@ sits_classify.raster_cube <- function(data,
 
         memsize <-  gpu_memory
         multicores  <- 1
-    } else {
-        # Update multicores parameter
-        multicores <- .jobs_max_multicores(
-            job_memsize = job_memsize, memsize = memsize, multicores = multicores
-        )
     }
     # Update multicores parameter
     if ("xgb_model" %in% .ml_class(ml_model)) {
@@ -322,7 +318,7 @@ sits_classify.raster_cube <- function(data,
 #' @rdname sits_classify
 #' @export
 sits_classify.derived_cube <- function(data, ml_model, ...) {
-   stop("Input data cube has already been classified")
+    stop("Input data cube has already been classified")
 }
 #' @rdname sits_classify
 #' @export
@@ -342,6 +338,7 @@ sits_classify.tbl_df <- function(data, ml_model, ...) {
 #' @export
 sits_classify.segs_cube <- function(data,
                                     ml_model, ...,
+                                    roi = NULL,
                                     filter_fn = NULL,
                                     start_date = NULL,
                                     end_date = NULL,
@@ -365,6 +362,17 @@ sits_classify.segs_cube <- function(data,
     .check_progress(progress)
     # version is case-insensitive in sits
     version <- tolower(version)
+    proc_bloat <- .conf("processing_bloat_smooth")
+    # If we using the GPU, gpu_memory parameter needs to be specified
+    if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {
+        .check_int_parameter(gpu_memory, min = 1, max = 16384,
+                             msg = "Using GPU: gpu_memory must be informed")
+    }
+    # Spatial filter
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi)
+        data <- .cube_filter_spatial(cube = data, roi = roi)
+    }
     # If we using the GPU, gpu_memory parameter needs to be specified
     if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
@@ -382,14 +390,31 @@ sits_classify.segs_cube <- function(data,
                     msg = "Invalid filter_fn parameter"
         )
     }
-    # Retrieve the samples from the model
-    samples <- .ml_samples(ml_model)
-    # Do the samples and tile match their timeline length?
-    .check_samples_tile_match(samples = samples, tile = data)
+    # Check memory and multicores
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
+    # Check minimum memory needed to process one block
+    job_memsize <- .jobs_memsize(
+        job_size = .block_size(block = block, overlap = 0),
+        npaths = length(.tile_paths(data)) + length(.ml_labels(ml_model)),
+        nbytes = 8,
+        proc_bloat = proc_bloat
+    )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+    )
     # Update multicores parameter
     if ("xgb_model" %in% .ml_class(ml_model)) {
         multicores <- 1
     }
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_memsize = job_memsize,
+        block = block,
+        image_size = .tile_size(.tile(data)), memsize = memsize,
+        multicores = multicores
+    )
     # Prepare parallel processing
     .parallel_start(
         workers = multicores, log = verbose,
@@ -403,6 +428,8 @@ sits_classify.segs_cube <- function(data,
         class_vector <- .classify_vector_tile(
             tile = tile,
             ml_model = ml_model,
+            block = block,
+            roi = roi,
             filter_fn = filter_fn,
             n_sam_pol = n_sam_pol,
             multicores = multicores,

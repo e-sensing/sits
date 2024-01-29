@@ -1204,3 +1204,19 @@ NULL
     })
     return(unlist(cube_chunks, recursive = FALSE))
 }
+
+.cube_split_segments <- function(cube, block) {
+    segments_sf <- .segments_read_vec(segments)
+    chunks <- .tile_chunks_create(
+        tile = segments,
+        overlap = 0,
+        block = block
+    )
+    chunks_sf <- .bbox_as_sf(
+        .bbox(chunks, by_feature = TRUE), as_crs = sf::st_crs(segments_sf)
+    )
+    chunks_jobs <- slider::slide(chunks_sf[1,], function(chunk_sf) {
+        segments_sf[ .intersects(segments_sf, chunk_sf),]
+    })
+    return(chunks_sf)
+}
