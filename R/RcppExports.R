@@ -73,6 +73,74 @@ C_normalize_data_0 <- function(data, min, max) {
     .Call(`_sits_C_normalize_data_0`, data, min, max)
 }
 
+C_temp_max <- function(mtx) {
+    .Call(`_sits_C_temp_max`, mtx)
+}
+
+C_temp_min <- function(mtx) {
+    .Call(`_sits_C_temp_min`, mtx)
+}
+
+C_temp_mean <- function(mtx) {
+    .Call(`_sits_C_temp_mean`, mtx)
+}
+
+C_temp_median <- function(mtx) {
+    .Call(`_sits_C_temp_median`, mtx)
+}
+
+C_temp_sum <- function(mtx) {
+    .Call(`_sits_C_temp_sum`, mtx)
+}
+
+C_temp_std <- function(mtx) {
+    .Call(`_sits_C_temp_std`, mtx)
+}
+
+C_temp_skew <- function(mtx) {
+    .Call(`_sits_C_temp_skew`, mtx)
+}
+
+C_temp_kurt <- function(mtx) {
+    .Call(`_sits_C_temp_kurt`, mtx)
+}
+
+C_temp_amplitude <- function(mtx) {
+    .Call(`_sits_C_temp_amplitude`, mtx)
+}
+
+C_temp_fslope <- function(mtx) {
+    .Call(`_sits_C_temp_fslope`, mtx)
+}
+
+C_temp_abs_sum <- function(mtx) {
+    .Call(`_sits_C_temp_abs_sum`, mtx)
+}
+
+C_temp_amd <- function(mtx) {
+    .Call(`_sits_C_temp_amd`, mtx)
+}
+
+C_temp_mse <- function(mtx) {
+    .Call(`_sits_C_temp_mse`, mtx)
+}
+
+C_temp_fqr <- function(mtx) {
+    .Call(`_sits_C_temp_fqr`, mtx)
+}
+
+C_temp_sqr <- function(mtx) {
+    .Call(`_sits_C_temp_sqr`, mtx)
+}
+
+C_temp_tqr <- function(mtx) {
+    .Call(`_sits_C_temp_tqr`, mtx)
+}
+
+C_temp_iqr <- function(mtx) {
+    .Call(`_sits_C_temp_iqr`, mtx)
+}
+
 sample_points_inclusion <- function(polymatrix, n_sam_pol) {
     .Call(`_sits_sample_points_inclusion`, polymatrix, n_sam_pol)
 }
