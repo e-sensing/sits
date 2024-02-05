@@ -526,7 +526,7 @@ NULL
     # check source
     .source_check(source = source)
     # get collections from source
-    collections <- .conf_names(c("sources", source, "collections"))
+    collections <- .conf_names("sources", source, "collections")
     return(collections)
 }
 
