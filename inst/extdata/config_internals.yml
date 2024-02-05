@@ -110,7 +110,28 @@ default_values           :
             maximum_value: 10000
             offset_value : 0
             scale_factor : 0.0001
+        NDNI             : &ndni_int2s_eo
+            data_type    : "INT2S"
+            missing_value: -32767
+            minimum_value: 0
+            maximum_value: 10000
+            offset_value : 0
+            scale_factor : 0.0001
         EVI              :
+            <<: *ndvi_int2s_eo
+        NDWI             :
+            <<: *ndvi_int2s_eo
+        GNDVI            :
+            <<: *ndvi_int2s_eo
+        NBR              :
+            <<: *ndvi_int2s_eo
+        NDSI             :
+            <<: *ndvi_int2s_eo
+        NDRE             :
+            <<: *ndvi_int2s_eo
+        SAVI             :
+            <<: *ndvi_int2s_eo
+        MSAVI2           :
             <<: *ndvi_int2s_eo
         default          :
             data_type    : "FLT4S"
