@@ -927,21 +927,42 @@ NULL
 #' @noRd
 #' @param source  Data source.
 #' @param collection  Collection in the data source.
-#' @param band  Band name.
+#' @param band  Band name
+#' @param tile  Tile
 #' @details
 #' If the band is not found, a default value will be returned from config.
 #' If neither source nor collection entries are found in configuration file,
 #' an error is thrown.
 #' @returns  A value in config.
-.conf_eo_band <- function(source, collection, band) {
+.conf_eo_band <- function(source, collection, band, tile = NULL) {
     # Format band name
     band <- .band_eo(band)
     # Return a default value if band does not exists in config
     if (!.conf_eo_band_exists(source, collection, band)) {
-        return(.conf("default_values", "eo_cube"))
+        data_type <- "INT2S"
+        # does the file exist?
+        if (!purrr::is_null(tile)) {
+            band_path <- .tile_path(tile, band)
+            if (!purrr::is_null(band_path)) {
+                rast <- terra::rast(band_path)
+                data_type <- terra::datatype(rast)
+                conf_band <- .conf("default_vales", data_type)
+            } else {
+            # file does not exist
+            if (!.has(.conf("default_vales", band)))
+                conf_band <- .conf("default_vales", band)
+            else
+                conf_band <- .conf("default_vales", "INT4S")
+            }
+        }
     }
-    # Get band config value and return it
-    .conf("sources", source, "collections", collection, "bands", band)
+    else {
+        # Get band config value and return it
+        conf_band <- .conf("sources", source,
+                           "collections", collection,
+                           "bands", band)
+    }
+    return(conf_band)
 }
 #' @title Config functions for derived_cube
 #' @noRd
