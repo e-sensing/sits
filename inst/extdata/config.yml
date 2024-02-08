@@ -1250,6 +1250,7 @@ sources:
                         band_name     : "vh"
                 satellite   : "SENTINEL-1"
                 sensor      : "GRD"
+                orbits      : ["ascending", "descending"]
                 platforms   :
                     SENTINEL-1A: "Sentinel-1A"
                     SENTINEL-1B: "Sentinel-1B"

@@ -112,7 +112,7 @@ default_values       :
 
     INT4S            : &conf_default_int4s
         data_type    : "INT4S"
-        missing_value: -2147483648
+        missing_value: -2147483647
         minimum_value: -2147483647
         maximum_value:  2147483647
         offset_value : 0
