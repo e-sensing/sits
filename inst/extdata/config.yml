@@ -1240,7 +1240,7 @@ sources:
                         missing_value : 0
                         minimum_value : 1
                         maximum_value : 65534
-                        scale_factor  : 0.0001
+                        scale_factor  : 1
                         offset_value  : 0
                         resolution    : 10
                         band_name     : "vv"
@@ -1266,7 +1266,7 @@ sources:
                         missing_value : -32768.0
                         minimum_value : 0
                         maximum_value : 65534
-                        scale_factor  : 0.0001
+                        scale_factor  : 1
                         offset_value  : 0
                         resolution    : 10
                         band_name     : "vv"
