@@ -3,6 +3,7 @@
 \name{sits_cube}
 \alias{sits_cube}
 \alias{sits_cube.mpc_cube_sentinel-1-grd}
+\alias{sits_cube.mpc_cube_sentinel-1-rtc}
 \alias{sits_cube.stac_cube}
 \alias{sits_cube.local_cube}
 \title{Create data cubes from image collections}
@@ -10,6 +11,20 @@
 sits_cube(source, collection, ...)
 
 \method{sits_cube}{`mpc_cube_sentinel-1-grd`}(
+  source,
+  collection,
+  ...,
+  orbit = "ascending",
+  bands = NULL,
+  tiles = NULL,
+  roi = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  platform = NULL,
+  progress = TRUE
+)
+
+\method{sits_cube}{`mpc_cube_sentinel-1-rtc`}(
   source,
   collection,
   ...,
@@ -67,7 +82,7 @@ use \code{\link{sits_list_collections}()}).}
 
 \item{...}{Other parameters to be passed for specific types.}
 
-\item{orbit}{Orbit name ("ascending", "descending") for SAR cube.}
+\item{orbit}{Orbit name ("ascending", "descending") for SAR cubes.}
 
 \item{bands}{Spectral bands and indices to be included
 in the cube (optional - character vector).
@@ -330,7 +345,7 @@ if (sits_run_examples()) {
        source = "MPC",
        collection = "SENTINEL-1-GRD",
        bands = c("VV", "VH"),
-       orbit = "ascending",
+       orbit = "descending",
        roi = roi_sar,
        start_date = "2020-06-01",
        end_date = "2020-09-28"
