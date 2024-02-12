@@ -130,7 +130,7 @@
             "ymin" = -10.1973,
             "xmax" = -50.410,
             "ymax" = -10.1510,
-            "crs"  = "EPSG:4386"
+            "crs"  = "EPSG:4326"
         ),
         start_date = start_date,
         end_date = end_date,
