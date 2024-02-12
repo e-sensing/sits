@@ -405,7 +405,7 @@ sits_cube.stac_cube <- function(source,
         end_date = end_date
     )
     # builds a sits data cube
-    .source_cube(
+    cube <- .source_cube(
         source = source,
         collection = collection,
         bands = bands,
@@ -416,6 +416,8 @@ sits_cube.stac_cube <- function(source,
         platform = platform,
         progress = progress, ...
     )
+    # adjust crs of the cube before return
+    .cube_adjust_crs(cube)
 }
 #' @rdname sits_cube
 #'
