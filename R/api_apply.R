@@ -94,6 +94,9 @@
         values <- .apply_data_read(
             tile = feature, block = block, in_bands = in_bands
         )
+        if (all(is.na(values))) {
+            return(NULL)
+        }
         # Evaluate expression here
         # Band and kernel evaluation
         values <- eval(
