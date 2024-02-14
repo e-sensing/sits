@@ -537,7 +537,8 @@ NULL
 .tile_band_conf.eo_cube <- function(tile, band) {
     .conf_eo_band(
         source = .tile_source(tile), collection = .tile_collection(tile),
-        band = band[[1]]
+        band = band[[1]],
+        tile = tile
     )
 }
 #' @export

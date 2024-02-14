@@ -72,7 +72,7 @@
 .intersects <- function(x, y) {
     as_crs <- sf::st_crs(x)
     y <- sf::st_transform(y, crs = as_crs)
-    apply(suppressMessages(sf::st_intersects(x, y, sparse = FALSE)), 1, any)
+    apply(sf::st_intersects(x, y, sparse = FALSE), 1, any)
 }
 #' @title Spatial within
 #' @noRd
@@ -100,7 +100,7 @@
 .within <- function(x, y) {
     as_crs <- sf::st_crs(x)
     y <- sf::st_transform(y, crs = as_crs)
-    apply(suppressMessages(sf::st_within(x, y, sparse = FALSE)), 1, any)
+    apply(sf::st_within(x, y, sparse = FALSE), 1, any)
 }
 #' @title Spatial contains
 #' @noRd
