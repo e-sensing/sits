@@ -1196,6 +1196,12 @@ NULL
 }
 
 .cube_split_chunks_samples <- function(cube, samples_sf) {
+    # Hold s2 status
+    s2_status <- sf::sf_use_s2()
+    suppressMessages(sf::sf_use_s2(FALSE))
+    # Back to original status on exit
+    on.exit(suppressMessages(sf::sf_use_s2(s2_status)))
+    # Get block size of raster file
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     cube_chunks <- slider::slide(cube, function(tile) {
         chunks <- .tile_chunks_create(
