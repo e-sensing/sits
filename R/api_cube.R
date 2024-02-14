@@ -277,6 +277,24 @@ NULL
     crs <- .cube_crs(cube)
     return(crs)
 }
+#' @title Adjust crs of a data cube
+#' @keywords internal
+#' @noRd
+#' @name .cube_adjust_crs
+#' @param cube  data cube
+#' @return data cube with adjusted crs
+.cube_adjust_crs <- function(cube) {
+    UseMethod(".cube_adjust_crs", cube)
+}
+#' @export
+`.cube_adjust_crs.mpc_cube_sentinel-1-grd` <- function(cube) {
+    cube$crs <- NA
+    return(cube)
+}
+#' @export
+.cube_adjust_crs.default <- function(cube) {
+    return(cube)
+}
 #' @title Return the S3 class of the cube
 #' @name .cube_s3class
 #' @keywords internal

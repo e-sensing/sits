@@ -254,7 +254,7 @@
 #'        source = "MPC",
 #'        collection = "SENTINEL-1-GRD",
 #'        bands = c("VV", "VH"),
-#'        orbit = "ascending",
+#'        orbit = "descending",
 #'        roi = roi_sar,
 #'        start_date = "2020-06-01",
 #'        end_date = "2020-09-28"
@@ -287,6 +287,32 @@ sits_cube <- function(source, collection, ...) {
 #'
 #' @export
 `sits_cube.mpc_cube_sentinel-1-grd` <- function(source,
+                                                collection, ...,
+                                                orbit = "ascending",
+                                                bands = NULL,
+                                                tiles = NULL,
+                                                roi = NULL,
+                                                start_date = NULL,
+                                                end_date = NULL,
+                                                platform = NULL,
+                                                progress = TRUE) {
+    sits_cube.stac_cube(
+        source = source,
+        collection = collection,
+        bands = bands,
+        tiles = tiles,
+        roi = roi,
+        start_date = start_date,
+        end_date = end_date,
+        platform = platform,
+        progress = progress,
+        orbit = orbit
+    )
+}
+#' @rdname sits_cube
+#'
+#' @export
+`sits_cube.mpc_cube_sentinel-1-rtc` <- function(source,
                                                 collection, ...,
                                                 orbit = "ascending",
                                                 bands = NULL,
@@ -379,7 +405,7 @@ sits_cube.stac_cube <- function(source,
         end_date = end_date
     )
     # builds a sits data cube
-    .source_cube(
+    cube <- .source_cube(
         source = source,
         collection = collection,
         bands = bands,
@@ -390,6 +416,8 @@ sits_cube.stac_cube <- function(source,
         platform = platform,
         progress = progress, ...
     )
+    # adjust crs of the cube before return
+    .cube_adjust_crs(cube)
 }
 #' @rdname sits_cube
 #'
