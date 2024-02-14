@@ -33,6 +33,7 @@
 #'                     in the cube (optional - character vector).
 #'                     Use \code{\link{sits_list_collections}()} to find out
 #'                     the bands available for each collection.
+#' @param orbit        Orbit name ("ascending", "descending") for SAR cubes.
 #' @param vector_band  Band for vector cube ("segments", "probs", "class")
 #' @param start_date,end_date Initial and final dates to include
 #'                     images from the collection in the cube (optional).
@@ -253,6 +254,7 @@
 #'        source = "MPC",
 #'        collection = "SENTINEL-1-GRD",
 #'        bands = c("VV", "VH"),
+#'        orbit = "ascending",
 #'        roi = roi_sar,
 #'        start_date = "2020-06-01",
 #'        end_date = "2020-09-28"
@@ -281,6 +283,33 @@ sits_cube <- function(source, collection, ...) {
     # Dispatch
     UseMethod("sits_cube", source)
 }
+#' @rdname sits_cube
+#'
+#' @export
+`sits_cube.mpc_cube_sentinel-1-grd` <- function(source,
+                                                collection, ...,
+                                                orbit = "ascending",
+                                                bands = NULL,
+                                                tiles = NULL,
+                                                roi = NULL,
+                                                start_date = NULL,
+                                                end_date = NULL,
+                                                platform = NULL,
+                                                progress = TRUE) {
+    sits_cube.stac_cube(
+        source = source,
+        collection = collection,
+        bands = bands,
+        tiles = tiles,
+        roi = roi,
+        start_date = start_date,
+        end_date = end_date,
+        platform = platform,
+        progress = progress,
+        orbit = orbit
+    )
+}
+
 #' @rdname sits_cube
 #'
 #' @export
