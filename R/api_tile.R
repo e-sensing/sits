@@ -526,11 +526,13 @@ NULL
 #' @name .tile_band_conf
 #' @keywords internal
 #' @noRd
-#' @param tile A tile.
-#' @param band Band character vector.
+#' @param tile   A tile.
+#' @param band   Band character vector.
+#' @param normalized A logical indicating if band is normalized.
+#' @param ...    Additional parameters.
 #'
 #' @return band_conf or band_cloud_conf
-.tile_band_conf <- function(tile, band) {
+.tile_band_conf <- function(tile, band, ...) {
     UseMethod(".tile_band_conf", tile)
 }
 #' @export
@@ -552,13 +554,13 @@ NULL
     return(NULL)
 }
 #' @export
-.tile_band_conf.derived_cube <- function(tile, band) {
+.tile_band_conf.derived_cube <- function(tile, band, ...) {
     .conf_derived_band(
         derived_class = .tile_derived_class(tile), band = band[[1]]
     )
 }
 #' @export
-.tile_band_conf.default <- function(tile, band) {
+.tile_band_conf.default <- function(tile, band, ...) {
     tile <- tibble::as_tibble(tile)
     tile <- .cube_find_class(tile)
     band_conf <- .tile_band_conf(tile, band)

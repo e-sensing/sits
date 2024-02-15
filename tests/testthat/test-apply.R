@@ -1,4 +1,4 @@
-test_that("EVI generation", {
+test_that("Testing normalized index generation", {
     s2_cube <- tryCatch(
         {
             sits_cube(
@@ -26,8 +26,8 @@ test_that("EVI generation", {
         suppressWarnings(dir.create(dir_images))
     }
     unlink(list.files(dir_images,
-        pattern = "\\.tif$",
-        full.names = TRUE
+                      pattern = "\\.tif$",
+                      full.names = TRUE
     ))
 
 
@@ -43,12 +43,12 @@ test_that("EVI generation", {
     )
 
     gc_cube_new <- sits_apply(gc_cube,
-        EVI2 = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),
-        multicores = 1,
-        output_dir = dir_images
+                              EVI = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),
+                              multicores = 1,
+                              output_dir = dir_images
     )
 
-    expect_true(all(sits_bands(gc_cube_new) %in% c("EVI2", "B05", "B8A")))
+    expect_true(all(sits_bands(gc_cube_new) %in% c("EVI", "B05", "B8A")))
 
     timeline <- sits_timeline(gc_cube_new)
     start_date <- timeline[1]
@@ -63,7 +63,7 @@ test_that("EVI generation", {
     file_info_b8a <- .fi(gc_cube_new) |> .fi_filter_bands(bands = "B8A")
     b8a_band_1 <- .raster_open_rast(file_info_b8a$path[[1]])
 
-    file_info_evi2 <- .fi(gc_cube_new) |> .fi_filter_bands(bands = "EVI2")
+    file_info_evi2 <- .fi(gc_cube_new) |> .fi_filter_bands(bands = "EVI")
     evi2_band_1 <- .raster_open_rast(file_info_evi2$path[[1]])
 
     b05_100 <- as.numeric(b05_band_1[100] / 10000)
@@ -104,12 +104,85 @@ test_that("EVI generation", {
                                 progress = FALSE)
     evi_tibble_2 <- sits_apply(
         evi_tibble,
-        EVI2_NEW = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1)
+        EVI_NEW = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1)
     )
 
-    values_evi2 <- .tibble_time_series(evi_tibble_2)$EVI2
-    values_evi2_new <- .tibble_time_series(evi_tibble_2)$EVI2_NEW
+    values_evi2 <- .tibble_time_series(evi_tibble_2)$EVI
+    values_evi2_new <- .tibble_time_series(evi_tibble_2)$EVI_NEW
     expect_equal(values_evi2, values_evi2_new, tolerance = 0.001)
+})
+
+test_that("Testing non-normalized index generation", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+
+
+    dir_images <- paste0(tempdir(), "/images/")
+    if (!dir.exists(dir_images)) {
+        suppressWarnings(dir.create(dir_images))
+    }
+    gc_cube_new <- sits_apply(cube,
+                              XYZ = 1 / NDVI * 0.25,
+                              normalized = FALSE,
+                              multicores = 2,
+                              output_dir = dir_images
+    )
+
+    expect_true(all(sits_bands(gc_cube_new) %in% c("NDVI", "XYZ")))
+
+    file_info_ndvi <- .fi(gc_cube_new) |> .fi_filter_bands(bands = "NDVI")
+    ndvi_band_1 <- .raster_open_rast(file_info_ndvi$path[[1]])
+
+    file_info_xyz <- .fi(gc_cube_new) |> .fi_filter_bands(bands = "XYZ")
+    xyz_band_1 <- .raster_open_rast(file_info_xyz$path[[1]])
+
+    scale_factor <- 10000
+    ndvi_100 <- as.numeric(ndvi_band_1[100] / 10000)
+    xyz_100 <- as.numeric(xyz_band_1[100] / 10000) * scale_factor
+
+    xyz_calc_100 <- 1 / ndvi_100 * 0.25
+    expect_equal(xyz_100, xyz_calc_100, tolerance = 0.001)
+
+    ndvi_150 <- as.numeric(ndvi_band_1[150] / 10000)
+    xyz_150 <- as.numeric(xyz_band_1[150] / 10000) * scale_factor
+
+    xyz_calc_150 <- 1 / ndvi_150 * 0.25
+    expect_equal(xyz_150, xyz_calc_150, tolerance = 0.001)
+
+    bbox_cube <- sits_bbox(gc_cube_new, as_crs = "EPSG:4326")
+    lats <- runif(10, min = bbox_cube[["ymin"]], max = bbox_cube[["ymax"]])
+    longs <- runif(10, min = bbox_cube[["xmin"]], max = bbox_cube[["xmax"]])
+
+    timeline <- sits_timeline(gc_cube_new)
+    start_date <- timeline[1]
+    end_date <- timeline[length(timeline)]
+
+    csv_tb <- purrr::map2_dfr(lats, longs, function(lat, long) {
+        tibble::tibble(
+            longitude = long,
+            latitude = lat,
+            start_date = start_date,
+            end_date = end_date,
+            label = "NoClass"
+        )
+    })
+    csv_file <- paste0(tempdir(), "/csv_gc_cube2.csv")
+    write.csv(csv_tb, file = csv_file)
+
+    xyz_tibble <- sits_get_data(gc_cube_new, csv_file, progress = FALSE)
+    xyz_tibble_2 <- sits_apply(
+        xyz_tibble,
+        XYZ_NEW = 1 / NDVI * 0.25
+    )
+
+    values_xyz2 <- .tibble_time_series(xyz_tibble)$XYZ
+    values_xyz_new <- .tibble_time_series(xyz_tibble_2)$XYZ_NEW
+    expect_equal(values_xyz2, values_xyz_new, tolerance = 0.001)
 })
 
 test_that("Kernel functions", {
@@ -225,8 +298,8 @@ test_that("Kernel functions", {
     expect_true(max_1 == max_2)
 
     tif_files <- grep("tif",
-        list.files(tempdir(), full.names = TRUE),
-        value = TRUE
+                      list.files(tempdir(), full.names = TRUE),
+                      value = TRUE
     )
 
     success <- file.remove(tif_files)

@@ -149,7 +149,8 @@
         base_tile = feature,
         block_files = block_files,
         multicores = 1,
-        update_bbox = FALSE
+        update_bbox = FALSE,
+        normalized = normalized
     )
     # Return a feature tile
     band_tile

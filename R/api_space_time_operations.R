@@ -129,7 +129,7 @@
 .contains <- function(x, y) {
     as_crs <- sf::st_crs(x)
     y <- sf::st_transform(y, crs = as_crs)
-    apply(sf::st_contains(x, y, sparse = FALSE), 1, any)
+    apply(suppressMessages(sf::st_contains(x, y, sparse = FALSE)), 1, any)
 }
 #' @title Find the closest points.
 #'
