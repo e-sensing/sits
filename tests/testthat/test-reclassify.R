@@ -160,6 +160,7 @@ test_that("One-year, reclassify different rules", {
             Cerrado = mask %in% c("Pasture", "Cerrado")
         ),
         output_dir = tempdir(),
+        version = "reclass",
         multicores = 2,
         memsize = 4
     )
