@@ -115,8 +115,8 @@ if (sits_run_examples()) {
             lon_max = -65.07629670,
             lat_max = -10.36046639
         ),
-        multicores = 12,
-        output_dir = "~/mixture_model/cube"
+        multicores = 2,
+        output_dir = reg_dir
     )
 
     # Create the endmembers tibble
@@ -133,7 +133,7 @@ if (sits_run_examples()) {
         endmembers = em,
         memsize = 4,
         multicores = 2,
-        output_dir = "~/mixture_model/mm"
+        output_dir = tempdir()
     )
 }
 

@@ -67,7 +67,7 @@ use \code{\link{sits_list_collections}()}).}
 
 \item{...}{Other parameters to be passed for specific types.}
 
-\item{orbit}{Orbit name ("ascending", "descending") for SAR cube.}
+\item{orbit}{Orbit name ("ascending", "descending") for SAR cubes.}
 
 \item{bands}{Spectral bands and indices to be included
 in the cube (optional - character vector).
