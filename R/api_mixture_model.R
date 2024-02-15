@@ -79,7 +79,9 @@
         # Apply the non-negative least squares solver
         values <- mixture_fn(values = as.matrix(values))
         # Prepare fractions to be saved
-        band_conf <- .tile_band_conf(tile = feature, band = out_fracs)
+        band_conf <- .tile_band_conf(
+            tile = feature, band = out_fracs, normalized = TRUE
+        )
         offset <- .offset(band_conf)
         if (!is.null(offset) && offset != 0) {
             values <- values - offset
@@ -106,7 +108,8 @@
     # Merge blocks into a new eo_cube tile feature
     fracs_feature <- .tile_eo_merge_blocks(
         files = out_files, bands = out_fracs, base_tile = feature,
-        block_files = block_files, multicores = 1, update_bbox = FALSE
+        block_files = block_files, multicores = 1, update_bbox = FALSE,
+        normalized = TRUE
     )
     # Return a eo_cube tile feature
     fracs_feature
