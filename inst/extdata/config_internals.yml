@@ -103,41 +103,39 @@ probs_cube_class        : ["probs_cube", "raster_cube", "sits_cube", "tbl_df",
 # Default values for non-registered bands
 default_values           :
     eo_cube              :
-        NDVI             : &ndvi_int2s_eo
+        INT2S            : &int2s_eo
             data_type    : "INT2S"
             missing_value: -32767
             minimum_value: -10000
             maximum_value: 10000
             offset_value : 0
             scale_factor : 0.0001
-        NDNI             : &ndni_int2s_eo
-            data_type    : "INT2S"
-            missing_value: -32767
+        INT2U            : &int2u_eo
+            data_type    : "INT2U"
+            missing_value: 65534
             minimum_value: 0
-            maximum_value: 10000
+            maximum_value: 65533
             offset_value : 0
             scale_factor : 0.0001
-        EVI              :
-            <<: *ndvi_int2s_eo
-        NDWI             :
-            <<: *ndvi_int2s_eo
-        GNDVI            :
-            <<: *ndvi_int2s_eo
-        NBR              :
-            <<: *ndvi_int2s_eo
-        NDSI             :
-            <<: *ndvi_int2s_eo
-        NDRE             :
-            <<: *ndvi_int2s_eo
-        SAVI             :
-            <<: *ndvi_int2s_eo
-        MSAVI2           :
-            <<: *ndvi_int2s_eo
-        default          :
+        INT4S            : &int4s_eo
+            data_type    : "INT4S"
+            missing_value: -2147483647
+            minimum_value: -2147483647
+            maximum_value: 2147483646
+            offset_value : 0
+            scale_factor : 1
+        INT4U            : &int4u_eo
+            data_type    : "INT4U"
+            missing_value: 4294967296.0
+            minimum_value: 0
+            maximum_value: 4294967295.0
+            offset_value : 0
+            scale_factor : 1
+        FLT4S            : &int4u_eo
             data_type    : "FLT4S"
-            missing_value: -3.402823466385288e+38
-            minimum_value: -3.402823466385288e+38
-            maximum_value: 1.7014118346015974e+38
+            missing_value: -3.402823466385288e+37
+            minimum_value: -3.402823466385288e+37
+            maximum_value: 1.7014118346015974e+37
             offset_value : 0
             scale_factor : 1
 
