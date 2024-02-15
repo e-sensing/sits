@@ -44,7 +44,7 @@ test_that("EVI generation", {
 
     gc_cube_new <- sits_apply(gc_cube,
         EVI2 = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),
-        multicores = 2,
+        multicores = 1,
         output_dir = dir_images
     )
 
@@ -100,7 +100,8 @@ test_that("EVI generation", {
     csv_file <- paste0(tempdir(), "/csv_gc_cube.csv")
     write.csv(csv_tb, file = csv_file)
 
-    evi_tibble <- sits_get_data(gc_cube_new, csv_file, progress = FALSE)
+    evi_tibble <- sits_get_data(gc_cube_new, csv_file, multicores = 1,
+                                progress = FALSE)
     evi_tibble_2 <- sits_apply(
         evi_tibble,
         EVI2_NEW = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1)

@@ -20,6 +20,7 @@
 #' @param memsize       Memory available for classification (in GB).
 #' @param multicores    Number of cores to be used for classification.
 #' @param output_dir    Directory where files will be saved.
+#' @param normalized    Produce normalized band?
 #' @param progress      Show progress bar?
 #' @param ...           Named expressions to be evaluated (see details).
 #'
@@ -116,6 +117,7 @@ sits_apply.raster_cube <- function(data, ...,
                                    window_size = 3L,
                                    memsize = 4L,
                                    multicores = 2L,
+                                   normalized = TRUE,
                                    output_dir,
                                    progress = FALSE) {
     # Check cube
@@ -182,6 +184,7 @@ sits_apply.raster_cube <- function(data, ...,
             out_band = out_band,
             in_bands = in_bands,
             overlap = overlap,
+            normalized = normalized,
             output_dir = output_dir
         )
         return(output_feature)

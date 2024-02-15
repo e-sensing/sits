@@ -535,10 +535,21 @@ NULL
 }
 #' @export
 .tile_band_conf.eo_cube <- function(tile, band) {
-    .conf_eo_band(
+    band_conf <- .conf_eo_band(
         source = .tile_source(tile), collection = .tile_collection(tile),
         band = band[[1]]
     )
+    if (.has(band_conf))
+        return(band_conf)
+
+    if (band %in% .tile_bands(tile)) {
+        band_path <- .tile_path(tile, band)
+        rast <- terra::rast(band_path)
+        data_type <- terra::datatype(rast)
+        band_conf <- .conf("default_values", data_type)
+        return(band_conf)
+    }
+    return(NULL)
 }
 #' @export
 .tile_band_conf.derived_cube <- function(tile, band) {
@@ -1050,18 +1061,18 @@ NULL
 #' @name .tile_eo_merge_blocks
 #' @keywords internal
 #' @noRd
-#' @param files files to be merged
-#' @param bands bands to be used in the files
-#' @param base_tile  reference tile used in the operation
-#' @param block_files files associated with the the blocks
-#' @param multicores  multicores for processing
-#' @param update_bbox  should bbox be updated?
+#' @param files         Files to be merged
+#' @param bands         Bands to be merged
+#' @param band_conf     Band confuguration
+#' @param base_tile     Reference tile used in the operation
+#' @param block_files   Files associated with the the blocks
+#' @param multicores    Multicores for processing
+#' @param update_bbox   Should bbox be updated?
 #' @return an EO tile with merged blocks
-.tile_eo_merge_blocks <- function(files, bands, base_tile, block_files,
+.tile_eo_merge_blocks <- function(files, bands, band_conf,
+                                  base_tile, block_files,
                                   multicores, update_bbox) {
     base_tile <- .tile(base_tile)
-    # Get conf band
-    band_conf <- .tile_band_conf(tile = base_tile, band = bands)
     # Create a template raster based on the first image of the tile
     .raster_merge_blocks(
         out_files = files,

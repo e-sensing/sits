@@ -19,6 +19,7 @@ sits_apply(data, ...)
   window_size = 3L,
   memsize = 4L,
   multicores = 2L,
+  normalized = TRUE,
   output_dir,
   progress = FALSE
 )
@@ -42,6 +43,8 @@ kernel functions, please see details).}
 \item{memsize}{Memory available for classification (in GB).}
 
 \item{multicores}{Number of cores to be used for classification.}
+
+\item{normalized}{Produce normalized band?}
 
 \item{output_dir}{Directory where files will be saved.}
 
