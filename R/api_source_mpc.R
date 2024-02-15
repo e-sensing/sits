@@ -273,7 +273,7 @@
                                                         collection,
                                                         stac_query, ...,
                                                         tiles = NULL,
-                                                        orbit = "ascending") {
+                                                        orbit = "descending") {
 
     # set caller to show in errors
     .check_set_caller(".source_items_new.mpc_cube_sentinel-1-grd")
@@ -337,7 +337,7 @@
                                                         collection,
                                                         stac_query, ...,
                                                         tiles = NULL,
-                                                        orbit = "ascending") {
+                                                        orbit = "descending") {
     `.source_items_new.mpc_cube_sentinel-1-grd`(
         source = source,
         collection = collection,

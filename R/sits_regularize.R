@@ -100,7 +100,7 @@ sits_regularize <- function(cube,
                             multicores = 2L,
                             progress = TRUE) {
     # Pre-conditions
-    .check_valid(cube)
+    .check_null(cube)
     UseMethod("sits_regularize", cube)
 }
 #' @rdname sits_regularize

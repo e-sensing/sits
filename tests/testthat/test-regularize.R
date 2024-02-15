@@ -283,6 +283,7 @@ test_that("Regularizing SENTINEL-1 data",{
             collection = "SENTINEL-1-GRD",
             bands = c("VV", "VH"),
             roi = roi_sar,
+            orbit = "descending",
             start_date = "2020-06-01",
             end_date = "2020-09-28"
         )
