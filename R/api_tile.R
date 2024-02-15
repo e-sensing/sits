@@ -526,28 +526,48 @@ NULL
 #' @name .tile_band_conf
 #' @keywords internal
 #' @noRd
-#' @param tile A tile.
-#' @param band Band character vector.
+#' @param tile   A tile.
+#' @param band   Band character vector.
+#' @param normalized A logical indicating if band is normalized.
+#' @param ...    Additional parameters.
 #'
 #' @return band_conf or band_cloud_conf
-.tile_band_conf <- function(tile, band) {
+.tile_band_conf <- function(tile, band, ...) {
     UseMethod(".tile_band_conf", tile)
 }
 #' @export
-.tile_band_conf.eo_cube <- function(tile, band) {
-    .conf_eo_band(
+.tile_band_conf.eo_cube <- function(tile, band, ..., normalized = FALSE) {
+    conf_band <- .conf_eo_band(
         source = .tile_source(tile), collection = .tile_collection(tile),
         band = band[[1]]
     )
+    if (.has(conf_band)) {
+        return(conf_band)
+    }
+    # 1ft attempt => case band is normalized
+    if (normalized) {
+        return(.conf("default_values", "eo_cube", "INT2S"))
+    }
+    # 2nd attempt => verify raster data type
+    if (band %in% .tile_bands(tile)) {
+        # Get the first tile path
+        band_path <- .tile_path(tile, band)
+        # Get the raster data type
+        data_type <- .raster_datatype(.raster_open_rast(band_path))
+        return(.conf("default_values", "eo_cube", data_type))
+    }
+    # Otherwise write band in FLT4S
+    return(.conf("default_values", "eo_cube", "FLT4S"))
+
 }
 #' @export
-.tile_band_conf.derived_cube <- function(tile, band) {
+.tile_band_conf.derived_cube <- function(tile, band, ...) {
     .conf_derived_band(
         derived_class = .tile_derived_class(tile), band = band[[1]]
     )
 }
 #' @export
-.tile_band_conf.default <- function(tile, band) {
+.tile_band_conf.default <- function(tile, band, ...) {
     tile <- tibble::as_tibble(tile)
     tile <- .cube_find_class(tile)
     band_conf <- .tile_band_conf(tile, band)
@@ -1056,12 +1076,15 @@ NULL
 #' @param block_files files associated with the the blocks
 #' @param multicores  multicores for processing
 #' @param update_bbox  should bbox be updated?
+#' @param normalized A logical indicating if band is normalized.
 #' @return an EO tile with merged blocks
 .tile_eo_merge_blocks <- function(files, bands, base_tile, block_files,
-                                  multicores, update_bbox) {
+                                  multicores, update_bbox, normalized = FALSE) {
     base_tile <- .tile(base_tile)
     # Get conf band
-    band_conf <- .tile_band_conf(tile = base_tile, band = bands)
+    band_conf <- .tile_band_conf(
+        tile = base_tile, band = bands, normalized = normalized
+    )
     # Create a template raster based on the first image of the tile
     .raster_merge_blocks(
         out_files = files,

@@ -937,12 +937,9 @@ NULL
 .conf_eo_band <- function(source, collection, band) {
     # Format band name
     band <- .band_eo(band)
-    # Return a default value if band does not exists in config
+    # does the band exists in cube config?
     if (!.conf_eo_band_exists(source, collection, band)) {
-        if (band %in% .conf_names("default_values", "eo_cube")) {
-            return(.conf("default_values", "eo_cube", band))
-        }
-        return(.conf("default_values", "eo_cube", "default"))
+        return(NULL)
     }
     # Get band config value and return it
     .conf("sources", source, "collections", collection, "bands", band)
