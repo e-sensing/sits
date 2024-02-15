@@ -459,6 +459,21 @@
     terra::freq(x = r_obj, bylayer = TRUE)
 }
 
+#' @title Raster package internal raster data type
+#' @name .raster_datatype
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @param r_obj     raster package object
+#' @param by_layer  A logical value indicating the type of return
+#' @param ...      additional parameters to be passed to raster package
+#'
+#' @return A character value with data type
+.raster_datatype.terra <- function(r_obj, ..., by_layer = TRUE) {
+    terra::datatype(x = r_obj, bylyr = by_layer)
+}
+
 #' @title Summary values of terra object
 #' @keywords internal
 #' @noRd
