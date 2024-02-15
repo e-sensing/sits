@@ -39,20 +39,21 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param  feature      Subset of a data cube containing the input bands
-#'                      used in the expression
-#' @param  block        Individual block that will be processed
-#' @param  window_size  Size of the neighbourhood (if required)
-#' @param  normalized   A logical indicating if band is scaled
-#' @param  expr         Expression to be applied
-#' @param  out_band     Output band
-#' @param  in_bands     Input bands
-#' @param  overlap      Overlap between tiles (if required)
-#' @param  output_dir   Directory where image will be save
+#' @param  feature         Subset of a data cube containing the input bands
+#'                         used in the expression
+#' @param  block           Individual block that will be processed
+#' @param  window_size     Size of the neighbourhood (if required)
+#' @param  expr            Expression to be applied
+#' @param  out_band        Output band
+#' @param  in_bands        Input bands
+#' @param  overlap         Overlap between tiles (if required)
+#' @param  normalized      Produce normalized band?
+#' @param  output_dir      Directory where image will be save
 #'
-#' @return              A feature compose by a combination of tile and band.
-.apply_feature <- function(feature, block, expr, window_size, normalized,
-                           out_band, in_bands, overlap, output_dir) {
+#' @return                 A feature compose by a combination of tile and band.
+.apply_feature <- function(feature, block, window_size, expr,
+                           out_band, in_bands, overlap,
+                           normalized, output_dir) {
     # Output file
     out_file <- .file_eo_name(
         tile = feature, band = out_band,
@@ -77,6 +78,14 @@
     chunks <- .tile_chunks_create(
         tile = feature, overlap = overlap, block = block
     )
+    # Get band configuration
+    band_conf <- .tile_band_conf(tile = feature, band = out_band)
+    if (!.has(band_conf)) {
+        if (normalized)
+            band_conf <- .conf("default_values", "INT2S")
+        else
+            band_conf <- .conf("default_values", "FLT4S")
+    }
     # Process jobs sequentially
     block_files <- .jobs_map_sequential(chunks, function(chunk) {
         # Get job block
@@ -110,9 +119,6 @@
             )
         )
         # Prepare fractions to be saved
-        band_conf <- .tile_band_conf(
-            tile = feature, band = out_band, normalized = normalized
-        )
         offset <- .offset(band_conf)
         if (.has(offset) && offset != 0) {
             values <- values - offset
@@ -139,6 +145,7 @@
     band_tile <- .tile_eo_merge_blocks(
         files = out_file,
         bands = out_band,
+        band_conf = band_conf,
         base_tile = feature,
         block_files = block_files,
         multicores = 1,

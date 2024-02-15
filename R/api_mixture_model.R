@@ -58,6 +58,8 @@
     }
     # Remove remaining incomplete fractions files
     unlink(out_files)
+    # Get band configuration
+    band_conf <- .conf("default_values", "INT2S")
     # Create chunks as jobs
     chunks <- .tile_chunks_create(tile = feature, overlap = 0, block = block)
     # Process jobs sequentially
@@ -79,9 +81,6 @@
         # Apply the non-negative least squares solver
         values <- mixture_fn(values = as.matrix(values))
         # Prepare fractions to be saved
-        band_conf <- .tile_band_conf(
-            tile = feature, band = out_fracs, normalized = TRUE
-        )
         offset <- .offset(band_conf)
         if (!is.null(offset) && offset != 0) {
             values <- values - offset
@@ -107,9 +106,13 @@
     })
     # Merge blocks into a new eo_cube tile feature
     fracs_feature <- .tile_eo_merge_blocks(
-        files = out_files, bands = out_fracs, base_tile = feature,
-        block_files = block_files, multicores = 1, update_bbox = FALSE,
-        normalized = TRUE
+        files = out_files,
+        bands = out_fracs,
+        band_conf = band_conf,
+        base_tile = feature,
+        block_files = block_files,
+        multicores = 1,
+        update_bbox = FALSE
     )
     # Return a eo_cube tile feature
     fracs_feature

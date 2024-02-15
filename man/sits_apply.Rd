@@ -17,9 +17,9 @@ sits_apply(data, ...)
   data,
   ...,
   window_size = 3L,
-  normalized = TRUE,
   memsize = 4L,
   multicores = 2L,
+  normalized = TRUE,
   output_dir,
   progress = FALSE
 )
@@ -40,13 +40,11 @@ sliding window of sits kernel functions
 used in expressions (for a list of supported
 kernel functions, please see details).}
 
-\item{normalized}{An logical value representing the
-output generate index. Default is TRUE.
-(see details)}
-
 \item{memsize}{Memory available for classification (in GB).}
 
 \item{multicores}{Number of cores to be used for classification.}
+
+\item{normalized}{Produce normalized band?}
 
 \item{output_dir}{Directory where files will be saved.}
 

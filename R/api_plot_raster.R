@@ -51,7 +51,20 @@
         tile = tile,
         tmap_options = tmap_options
     )
-
+    if (!.has(.crs(tile))) {
+        temp <- tempfile(fileext = ".tif")
+        .gdal_warp(
+            file = temp,
+            base_files = bw_file,
+            params = list(
+                "-ts" = list(size[["xsize"]], size[["ysize"]]),
+                "-multi" = TRUE,
+                "-q" = TRUE,
+                "-overwrite" = FALSE
+            ),
+            quiet = TRUE)
+        bw_file <- temp
+    }
     # read file
     stars_obj <- stars::read_stars(
         bw_file,

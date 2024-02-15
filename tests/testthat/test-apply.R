@@ -100,7 +100,8 @@ test_that("Testing normalized index generation", {
     csv_file <- paste0(tempdir(), "/csv_gc_cube.csv")
     write.csv(csv_tb, file = csv_file)
 
-    evi_tibble <- sits_get_data(gc_cube_new, csv_file, progress = FALSE)
+    evi_tibble <- sits_get_data(gc_cube_new, csv_file, multicores = 1,
+                                progress = FALSE)
     evi_tibble_2 <- sits_apply(
         evi_tibble,
         EVI_NEW = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1)
@@ -297,8 +298,8 @@ test_that("Kernel functions", {
     expect_true(max_1 == max_2)
 
     tif_files <- grep("tif",
-        list.files(tempdir(), full.names = TRUE),
-        value = TRUE
+                      list.files(tempdir(), full.names = TRUE),
+                      value = TRUE
     )
 
     success <- file.remove(tif_files)

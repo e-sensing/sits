@@ -36,6 +36,8 @@
         in_bands <- c(in_bands, .band_cloud())
     }
     tile <- .tile_filter_bands(tile, in_bands)
+    # Get band configuration
+    band_conf <- .conf("default_values", "INT2S")
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Get job block
@@ -69,7 +71,6 @@
             enclos = .temp_functions()
         )
         # Prepare fractions to be saved
-        band_conf <- .tile_band_conf(tile = tile, band = out_band)
         offset <- .offset(band_conf)
         if (.has(offset) && offset != 0) {
             values <- values - offset
@@ -97,6 +98,7 @@
     band_tile <- .tile_eo_merge_blocks(
         files = out_file,
         bands = out_band,
+        band_conf = band_conf,
         base_tile = tile,
         block_files = block_files,
         multicores = 1,

@@ -1,5 +1,5 @@
 #' @title Smooth a tile
-#' @name .apply_feature
+#' @name .smooth_tile
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
