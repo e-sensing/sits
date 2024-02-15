@@ -39,18 +39,19 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param  feature         Subset of a data cube containing the input bands
-#'                         used in the expression
-#' @param  block           Individual block that will be processed
-#' @param  window_size     Size of the neighbourhood (if required)
-#' @param  expr            Expression to be applied
-#' @param  out_band        Output band
-#' @param  in_bands        Input bands
-#' @param  overlap         Overlap between tiles (if required)
-#' @param  output_dir      Directory where image will be save
+#' @param  feature      Subset of a data cube containing the input bands
+#'                      used in the expression
+#' @param  block        Individual block that will be processed
+#' @param  window_size  Size of the neighbourhood (if required)
+#' @param  normalized   A logical indicating if band is scaled
+#' @param  expr         Expression to be applied
+#' @param  out_band     Output band
+#' @param  in_bands     Input bands
+#' @param  overlap      Overlap between tiles (if required)
+#' @param  output_dir   Directory where image will be save
 #'
-#' @return                 A feature compose by a combination of tile and band.
-.apply_feature <- function(feature, block, window_size, expr,
+#' @return              A feature compose by a combination of tile and band.
+.apply_feature <- function(feature, block, expr, window_size, normalized,
                            out_band, in_bands, overlap, output_dir) {
     # Output file
     out_file <- .file_eo_name(
@@ -109,7 +110,9 @@
             )
         )
         # Prepare fractions to be saved
-        band_conf <- .tile_band_conf(tile = feature, band = out_band)
+        band_conf <- .tile_band_conf(
+            tile = feature, band = out_band, normalized = normalized
+        )
         offset <- .offset(band_conf)
         if (.has(offset) && offset != 0) {
             values <- values - offset
@@ -139,7 +142,8 @@
         base_tile = feature,
         block_files = block_files,
         multicores = 1,
-        update_bbox = FALSE
+        update_bbox = FALSE,
+        normalized = normalized
     )
     # Return a feature tile
     band_tile

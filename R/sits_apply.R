@@ -114,6 +114,7 @@ sits_apply.sits <- function(data, ...) {
 #' @export
 sits_apply.raster_cube <- function(data, ...,
                                    window_size = 3L,
+                                   normalized = TRUE,
                                    memsize = 4L,
                                    multicores = 2L,
                                    output_dir,
@@ -123,6 +124,8 @@ sits_apply.raster_cube <- function(data, ...,
     .check_is_regular(data)
     # Check window size
     .check_window_size(window_size)
+    # Check normalized index
+    .check_lgl(normalized)
     # Check memsize
     .check_memsize(memsize, min = 1, max = 16384)
     # Check multicores
@@ -179,6 +182,7 @@ sits_apply.raster_cube <- function(data, ...,
             block = block,
             expr = expr,
             window_size = window_size,
+            normalized = normalized,
             out_band = out_band,
             in_bands = in_bands,
             overlap = overlap,
