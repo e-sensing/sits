@@ -270,18 +270,23 @@
         # Should bbox of resulting tile be updated?
         update_bbox <- nrow(chunks) != nchunks
     }
-    chunks <- .chunks_filter_segments(chunks, tile)
-
+    # Filter segments that intersects with each chunk
+    chunks <- .chunks_filter_segments(chunks, tile, output_dir)
     # Process jobs in parallel
-    segments_ts <- .jobs_map_parallel(chunks, function(chunk) {
+    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
         block <- .block(chunk)
         # Block file name
         block_file <- .file_block_name(
             pattern = .file_pattern(out_file),
             block = block,
-            output_dir = output_dir
+            output_dir = output_dir,
+            ext = "gpkg"
         )
+        # Resume processing in case of failure
+        if (.segments_is_valid(block_file)) {
+            return(block_file)
+        }
         # Extract segments time series
         segments_ts <- .segments_poly_read(tile, chunk, n_sam_pol)
         # Classify segments
@@ -289,17 +294,25 @@
             samples = segments_ts,
             ml_model = ml_model,
             filter_fn = filter_fn,
-            multicores = multicores,
+            multicores = 1,
             gpu_memory = gpu_memory,
-            progress = progress
+            progress = FALSE
         )
         # Join probability values with segments
         segments_ts <- .segments_join_probs(
             data = segments_ts,
             segments = .segments_read_vec(tile)
         )
-        return(segments_ts)
+        # Write segment block
+        .vector_write_vec(v_obj = segments_ts, file_path = block_file)
+        # Free memory
+        gc()
+        # Return block file
+        return(block_file)
     }, progress = progress)
+    # TODO: unlink the wrote chunks
+    # Read all segments
+    segments_ts <- purrr::map(block_files, .vector_read_vec)
     segments_ts <- dplyr::bind_rows(segments_ts)
     # Write all segments
     .vector_write_vec(v_obj = segments_ts, file_path = out_file)
@@ -312,6 +325,8 @@
         vector_class = "probs_vector_cube",
         update_bbox = FALSE
     )
+    # Remove file block
+    unlink(block_files)
     # Return probability vector tile
     return(probs_tile)
 }

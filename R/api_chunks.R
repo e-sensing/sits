@@ -154,21 +154,27 @@ NULL
 #' @noRd
 #' @param chunks A data frame with chunks
 #' @param tile   A cube tile
+#' @param output_dir Output directory
 #' @returns  A tibble with filtered segments
-.chunks_filter_segments <- function(chunks, tile) {
+.chunks_filter_segments <- function(chunks, tile, output_dir) {
     # Read segments from tile
     segments <- .segments_read_vec(tile)
     # Transform each chunk in sf object
-    sf_chunks <- purrr::map(seq_len(nrow(chunks)), function(i) {
-        chunk <- chunks[i,]
-        .bbox_as_sf(.bbox(chunks[i,], default_crs = .tile_crs(tile)))
-
-    })
-    sf_chunks <- dplyr::bind_rows(sf_chunks)
+    sf_chunks <- .bbox_as_sf(
+        .bbox(chunks, by_feature = TRUE, default_crs = .tile_crs(tile))
+    )
     # Find segments in chunks
     idx_contains <- sf::st_contains(sf_chunks, segments, sparse = TRUE)
-    chunks$segments <- purrr::map(idx_contains, function(i) {
-        segments[i, ]
+    chunks$segments <- purrr::map(seq_along(idx_contains), function(i) {
+        idx <- idx_contains[[i]]
+        block_file <- .file_block_name(
+            pattern = "chunk_seg",
+            block = .block(chunks[i, ]),
+            output_dir = output_dir,
+            ext = "gpkg"
+        )
+        .vector_write_vec(segments[idx, ], block_file)
+        return(block_file)
     })
     return(chunks)
 }

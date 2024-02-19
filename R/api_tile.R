@@ -1328,7 +1328,7 @@ NULL
 #'
 #' @description Given a data cube, retrieve the time series of XY locations
 #'
-#' @param tile ...
+#' @param tile ... TODO: document
 #' @param band ...
 #' @param chunk ...
 #'
@@ -1341,10 +1341,12 @@ NULL
     # Create a SpatRaster object
     r_obj <- .raster_open_rast(files)
     names(r_obj) <- paste0(band, "-", seq_len(terra::nlyr(r_obj)))
+    # Read the segments
+    segments <- .vector_read_vec(chunk[["segments"]][[1]])
     # Extract the values
     values <- exactextractr::exact_extract(
         x = r_obj,
-        y = chunk[["segments"]][[1]],
+        y = segments,
         fun = NULL,
         include_cols = "pol_id"
     )

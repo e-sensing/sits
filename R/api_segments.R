@@ -386,7 +386,7 @@
     # nest the values by sample_id and time_series
     ts_bands <- tidyr::nest(ts_bands, points = c("sample_id", "time_series"))
     # retrieve the segments
-    segments <- chunk[["segments"]][[1]]
+    segments <- .vector_read_vec(chunk[["segments"]][[1]])
     # include lat/long information
     lat_long <- .proj_to_latlong(segments$x, segments$y, .crs(tile))
     # create metadata for the polygons
