@@ -455,7 +455,7 @@ sources:
         service             : "STAC"
         url                 : "https://earth-search.aws.element84.com/v1/"
         collections         :
-            SENTINEL-2-L2A :
+            SENTINEL-2-L2A  :
                 bands       :
                     B01     : &aws_msi_60m
                         missing_value: -9999
@@ -1234,15 +1234,15 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0
                 grid_system  : "MGRS"
-            SENTINEL-1-GRD  : &mspc_msi
+            SENTINEL-1-GRD  : &mspc_s1_grd
                 bands       :
                     VV      : &mspc_grd_10m
                         missing_value : 0
                         minimum_value : 1
                         maximum_value : 65534
-                        scale_factor  : 0.0001
+                        scale_factor  : 0.001
                         offset_value  : 0
-                        resolution    :  10
+                        resolution    : 10
                         band_name     : "vv"
                         data_type     : "INT2U"
                     VH     :
@@ -1250,6 +1250,7 @@ sources:
                         band_name     : "vh"
                 satellite   : "SENTINEL-1"
                 sensor      : "GRD"
+                orbits      : ["ascending", "descending"]
                 platforms   :
                     SENTINEL-1A: "Sentinel-1A"
                     SENTINEL-1B: "Sentinel-1B"
@@ -1259,6 +1260,33 @@ sources:
                 metadata_search: "feature"
                 ext_tolerance: 0
                 grid_system : "MGRS"
+            SENTINEL-1-RTC  : &mspc_s1_rtc
+                bands       :
+                    VV      : &mspc_rtc_10m
+                        missing_value : -32768.0
+                        minimum_value : 0
+                        maximum_value : 65534
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "vv"
+                        data_type     : "FLT4S"
+                    VH     :
+                        <<: *mspc_rtc_10m
+                        band_name     : "vh"
+                satellite   : "SENTINEL-1"
+                sensor      : "RTC"
+                orbits      : ["ascending", "descending"]
+                platforms   :
+                    SENTINEL-1A: "Sentinel-1A"
+                    SENTINEL-1B: "Sentinel-1B"
+                collection_name: "sentinel-1-rtc"
+                open_data: false
+                open_data_token: false
+                metadata_search: "feature"
+                ext_tolerance: 0
+                grid_system : "MGRS"
+                token_vars  :  ["MPC_TOKEN"]
     HLS                     :
         s3_class            : ["hls_cube", "stac_cube", "eo_cube",
                                "raster_cube"]

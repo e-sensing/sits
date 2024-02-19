@@ -13,7 +13,7 @@ test_that("Segmentation", {
     segments <- sits_segment(
         cube = cube,
         output_dir = tempdir(),
-        multicores = 6,
+        multicores = 1,
         memsize = 24
     )
     expect_s3_class(object = segments, class = "vector_cube")

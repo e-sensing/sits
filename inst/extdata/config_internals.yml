@@ -102,13 +102,29 @@ probs_cube_class        : ["probs_cube", "raster_cube", "sits_cube", "tbl_df",
 
 # Default values for non-registered bands
 default_values       :
-    eo_cube          :
+    INT2S            : &conf_default_int2s
         data_type    : "INT2S"
         missing_value: -32768
         minimum_value: -10000
         maximum_value: 10000
         offset_value : 0
         scale_factor : 0.0001
+
+    INT4S            : &conf_default_int4s
+        data_type    : "INT4S"
+        missing_value: -2147483647
+        minimum_value: -2147483647
+        maximum_value:  2147483647
+        offset_value : 0
+        scale_factor : 0.0001
+
+    FLT4S            :
+        data_type    : "FLT4S"
+        missing_value: -3.402823466385288e+37
+        minimum_value: -3.402823466385288e+37
+        maximum_value: 1.7014118346015974e+37
+        offset_value : 0
+        scale_factor : 1
 
 # Derived cube definitions
 derived_cube         :

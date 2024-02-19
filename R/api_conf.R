@@ -428,7 +428,8 @@
 #' @keywords internal
 #' @noRd
 #' @return   names associated to the chosen access key
-.conf_names <- function(key) {
+.conf_names <- function(...) {
+    key <- c(...)
     res <- tryCatch(
         {
             names(sits_env$config[[key]])
@@ -927,7 +928,7 @@ NULL
 #' @noRd
 #' @param source  Data source.
 #' @param collection  Collection in the data source.
-#' @param band  Band name.
+#' @param band  Band name
 #' @details
 #' If the band is not found, a default value will be returned from config.
 #' If neither source nor collection entries are found in configuration file,
@@ -936,9 +937,9 @@ NULL
 .conf_eo_band <- function(source, collection, band) {
     # Format band name
     band <- .band_eo(band)
-    # Return a default value if band does not exists in config
+    # does the band exists in cube config?
     if (!.conf_eo_band_exists(source, collection, band)) {
-        return(.conf("default_values", "eo_cube"))
+        return(NULL)
     }
     # Get band config value and return it
     .conf("sources", source, "collections", collection, "bands", band)

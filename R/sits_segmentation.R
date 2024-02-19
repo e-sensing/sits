@@ -263,10 +263,10 @@ sits_slic <- function(data = NULL,
                   inherits = FALSE
         )
         slic <- fn(
-            mat = mat, vals = data, step = step, nc = compactness,
-            con = TRUE, centers = TRUE, type = dist_fun,
-            type_fun = function() "", avg_fun_fun = function() "",
-            avg_fun_name = avg_fun, iter = iter, lims = minarea,
+            mat = mat, vals = data, step = step, compactness = compactness,
+            clean = TRUE, centers = TRUE, dist_name = dist_fun,
+            dist_fun = function() "", avg_fun_fun = function() "",
+            avg_fun_name = avg_fun, iter = iter, minarea = minarea,
             input_centers = matrix(c(0L, 0L), ncol = 2),
             verbose = as.integer(verbose)
         )

@@ -97,7 +97,9 @@
 #' @param source     Name of the STAC provider.
 #' @param collection Collection to be searched in the data source.
 #' @param stac_query Query that follows the STAC protocol
+#' @param bands      Names of the bands to filter
 #' @param ...        Other parameters to be passed for specific types.
+#' @param orbit      Name of the orbit (e.g. "ascending" or "descending")
 #' @param tiles      Selected tiles (optional)
 #' @param platform   Satellite platform (optional).
 #' @return An object referring the images of a sits cube.
@@ -106,33 +108,39 @@
         source,
         collection,
         bands, ...,
+        orbit = "descending",
         start_date = NULL,
         end_date = NULL,
         dry_run = TRUE) {
 
     # require package
     .check_require_packages("rstac")
+    orbits <- .conf("sources", source, "collections", collection, "orbits")
+    .check_chr_within(
+        x = orbit,
+        within = orbits,
+        msg = "Invalid `orbit` parameter"
+    )
 
     stac_query <- .stac_create_items_query(
         source = source,
         collection = collection,
         roi = list(
-            "xmin" = -50.379,
-            "ymin" = -10.1573,
+            "xmin" = -50.479,
+            "ymin" = -10.1973,
             "xmax" = -50.410,
-            "ymax" = -10.1910,
-            "crs"  = "EPSG:4386"
+            "ymax" = -10.1510,
+            "crs"  = "EPSG:4326"
         ),
         start_date = start_date,
         end_date = end_date,
         limit = 1
     )
-
     stac_query <- rstac::ext_filter(
         stac_query,
         `sar:frequency_band` == "C" &&
             `sar:instrument_mode` == "IW" &&
-            `sat:orbit_state` == "descending"
+            `sat:orbit_state` == {{orbit}}
     )
 
     # assert that service is online
@@ -193,6 +201,26 @@
     }
     return(invisible(NULL))
 }
+
+`.source_collection_access_test.mpc_cube_sentinel-1-rtc` <- function(
+        source,
+        collection,
+        bands, ...,
+        orbit = "descending",
+        start_date = NULL,
+        end_date = NULL,
+        dry_run = TRUE) {
+
+    `.source_collection_access_test.mpc_cube_sentinel-1-grd`(
+        source = source,
+        collection = collection,
+        bands = bands, ...,
+        orbit = orbit,
+        start_date = start_date,
+        end_date = end_date,
+        dry_run = dry_run
+    )
+}
 #' @title Get bbox from file info
 #' @keywords internal
 #' @noRd
@@ -229,21 +257,38 @@
     bbox <- c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
     return(bbox)
 }
+`.source_tile_get_bbox.mpc_cube_sentinel-1-rtc` <- function(source,
+                                                            file_info, ...,
+                                                            collection = NULL) {
+    `.source_tile_get_bbox.mpc_cube_sentinel-1-grd`(
+        source = source,
+        file_info = file_info, ...,
+        collection = collection
+    )
+}
 #' @keywords internal
 #' @noRd
 #' @export
 `.source_items_new.mpc_cube_sentinel-1-grd` <- function(source,
                                                         collection,
                                                         stac_query, ...,
-                                                        tiles = NULL) {
+                                                        tiles = NULL,
+                                                        orbit = "descending") {
 
     # set caller to show in errors
     .check_set_caller(".source_items_new.mpc_cube_sentinel-1-grd")
+    orbits <- .conf("sources", source, "collections", collection, "orbits")
+    .check_chr_within(
+        x = orbit,
+        within = orbits,
+        msg = "Invalid `orbit` parameter"
+    )
 
     stac_query <- rstac::ext_filter(
         stac_query,
         `sar:frequency_band` == "C" &&
-        `sar:instrument_mode` == "IW"
+            `sar:instrument_mode` == "IW" &&
+            `sat:orbit_state` == {{orbit}}
     )
 
     # mpc does not support %in% operator, so we have to
@@ -288,7 +333,19 @@
     )
     return(items_info)
 }
-
+`.source_items_new.mpc_cube_sentinel-1-rtc` <- function(source,
+                                                        collection,
+                                                        stac_query, ...,
+                                                        tiles = NULL,
+                                                        orbit = "descending") {
+    `.source_items_new.mpc_cube_sentinel-1-grd`(
+        source = source,
+        collection = collection,
+        stac_query = stac_query, ...,
+        tiles = tiles,
+        orbit = orbit
+    )
+}
 #' @keywords internal
 #' @noRd
 #' @export
@@ -296,6 +353,15 @@
                                                          items, ...,
                                                          collection = NULL) {
     rep("NoTilingSystem", rstac::items_length(items))
+}
+`.source_items_tile.mpc_cube_sentinel-1-rtc` <- function(source,
+                                                         items, ...,
+                                                         collection = NULL) {
+    `.source_items_tile.mpc_cube_sentinel-1-grd`(
+        source = source,
+        items = items, ...,
+        collection = collection
+    )
 }
 
 #' @keywords internal

@@ -652,6 +652,24 @@
     UseMethod(".raster_freq", pkg_class)
 }
 
+#' @title Raster package internal raster data type
+#' @name .raster_datatype
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @param r_obj    raster package object
+#' @param by_layer  A logical value indicating the type of return
+#' @param ...      additional parameters to be passed to raster package
+#'
+#' @return A character value with data type
+.raster_datatype <- function(r_obj, ..., by_layer = TRUE) {
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_datatype", pkg_class)
+}
+
 #' @title Raster package internal summary values function
 #' @name .raster_summary
 #' @keywords internal
