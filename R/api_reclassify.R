@@ -89,6 +89,10 @@
         )
         # Evaluate expressions
         values <- reclassify_fn(values = values, mask_values = mask_values)
+        # Does values is valid? In case of a matrix with integer(0) values
+        if (!.has(values)) {
+            values <- rep(NA, .block_size(block))
+        }
         offset <- .offset(band_conf)
         if (.has(offset) && offset != 0) {
             values <- values - offset
