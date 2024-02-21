@@ -86,7 +86,7 @@
         block_files
     })
     # Remove raster without clean
-    unlink(.tile_path(tile))
+    on.exit(unlink(.tile_path(tile)))
     # Merge blocks into a new class_cube tile
     band_tile <- .tile_derived_merge_blocks(
         file = out_file,
