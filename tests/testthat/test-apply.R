@@ -129,7 +129,7 @@ test_that("Testing non-normalized index generation", {
     gc_cube_new <- sits_apply(cube,
                               XYZ = 1 / NDVI * 0.25,
                               normalized = FALSE,
-                              multicores = 2,
+                              multicores = 1,
                               output_dir = dir_images
     )
 

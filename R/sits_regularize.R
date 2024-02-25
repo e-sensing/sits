@@ -76,6 +76,7 @@
 #'         source = "MPC",
 #'         collection = "SENTINEL-1-GRD",
 #'         bands = c("VV", "VH"),
+#'         orbit = "descending",
 #'         roi = roi,
 #'         start_date = "2020-06-01",
 #'         end_date = "2020-09-28"

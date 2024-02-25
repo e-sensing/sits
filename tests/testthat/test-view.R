@@ -64,7 +64,7 @@ test_that("View", {
     v3 <- sits_view(modis_label)
     expect_true(grepl("EPSG3857", v3$x$options$crs$crsClass))
     expect_true(
-        all(v3$x$calls[[6]]$args[[1]]$labels %in% c(
+        all(v3$x$calls[[7]]$args[[1]]$labels %in% c(
             "Cerrado", "Pasture",
             "Forest", "Soy_Corn"
         ))

@@ -227,7 +227,7 @@ legends:
 
 colors:
         # Oak-hickory-pine forest in US Veg Map
-        Evergreen_Broadleaf_Forest   : &forest "#518940"
+        Evergreen_Broadleaf_Forest   : &forest "#1E8449" #"#518940"
         Evergreen_Broadleaf_Forests  : *forest
         Tree_Cover_Broadleaved_Evergreen: *forest
 
@@ -238,20 +238,16 @@ colors:
         Closed_Forests              : *forest
         Mountainside_Forest         : &msf "#229C59"
         Mountainside_Forests        : *msf
-        # Mixed Forest
-        # Southern mixed forest in US Veg Map
+        # Mixed Tropical Forest
         Open_Forest                 : &openforest "#53A145"
         Open_Forests                : *openforest
         Sparse_Forest               : *openforest
         Sparse_Forests              : *openforest
         Tree_Cover                  : *openforest
-        # Southern floodplain forest in US Veg Map "#8FADB1"
+        # Riparian Forest
         Riparian_Forest             : &riparian_forest "#00B29E"
         Riparian_Forests            : *riparian_forest
-        #
-
         # Dense Woodlands and similar
-        # Oak-hickory forest in US Veg Map
         Woodland                    : &woodlands "#91AC41"
         Woodlands                   : *woodlands
         Dense_Woodland              : *woodlands
@@ -259,7 +255,6 @@ colors:
         Woody_Savanna               : *woodlands
         Woody_Savannas              : *woodlands
         Cerradao                    : *woodlands
-
         # Caatinga and decidous tropical forest
         Caatinga                    : &caatinga "#94C293"
         Deciduous_Forest            : *caatinga
@@ -267,41 +262,33 @@ colors:
         Tree_Cover_Broadleaved_Decidous: *caatinga
         Deciduous_Broadleaf_Forest   : *caatinga
         Deciduous_Broadleaf_Forests   : *caatinga
-
         # Silviculture and Planted Forest
-        # Northern hardwood
         Planted_Forest              : &planted_forest "#76E0B9" # "#59D5A5"
         Planted_Forests             : *planted_forest
         Silviculture                : *planted_forest
-
         # Temperate Forests
-        # Great lakes pine forest in US Veg Map
         Evergreen_Needleleaf_Forest  : &enf "#20D6BC"
         Evergreen_Needleleaf_Forests : *enf
         Tree_Cover_Neddleleaved_Evergreen: *enf
-        # Great lakes spruce-fir forest
         Deciduous_Needleleaf_Forest  : &dnf "#ABE3DB"
         Deciduous_Needleleaf_Forests  : *dnf
         Tree_Cover_Neddleleaved_Deciduous: *dnf
-        # Pine-douglas fir forest
+        # Mixed Temperate Forest
         Mixed_Forest                : &mixedforest "#4FC78E"
         Mixed_Forests               : *mixedforest
         Tree_Cover_Mixed_Leaf       : *mixedforest
-
         # Savanna and Cerrado
-        # Bluestem praire in US Veg Map
         Savanna                     : &savanna "#a2d43f"
         Savannas                    : *savanna
         Wooded_Grassland            : *savanna
         Cerrado_Strictu_Sensu       : *savanna
         Cerrado                     : *savanna
-        # Wheatgrass-bluestem-needlegrass
+        # Open Cerrado
         Campo_Cerrado               : &campo_cerrado "#c5ed42"
         Savanna_Parkland            : *campo_cerrado
         Open_Cerrado                : *campo_cerrado
-
         # Grasslands and similar
-        # California steppe
+
         Grassland                   : &grassland "#f6cc41"
         Grasslands                  : *grassland
         Steppe                      : *grassland
@@ -367,7 +354,7 @@ colors:
 
         # Water and Wetlands
         # Based on "belize hole" palette from Flat Design Color Chart
-        Water                       :  &water "#5F9ABD"
+        Water                       :  &water "#2980B9" # "#5F9ABD"
         Water_Bodies                :  *water
         Permanent_Water_Bodies      :  *water
         Wetland                     :  &wetlands "#A0B9C8" # "#86C6D1"
@@ -436,7 +423,7 @@ colors:
         Degraded_Forest             : *degradation
         # PRODES
         # Based on "Alizarin" palette from Flat Design Color Chart
-        Burned_Area                  : &burned_area "#D67B73"
+        Burned_Area                  : &burned_area "#EC7063"
         Clear_Cut_Burn               : *burned_area
         Clear_Cut_Burned_Area        : *burned_area
         # Color 52 - grama-tobosa shrubsteppe

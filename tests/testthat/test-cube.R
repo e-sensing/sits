@@ -248,7 +248,7 @@ test_that("Creating cubes from BDC - LANDSAT per tile", {
     testthat::skip_if(purrr::is_null(bdc_l8_cube),
         message = "BDC cube LANDSAT-OLI-16D is not accessible"
     )
-    usexpect_equal(bdc_l8_cube$tile, tile)
+    expect_equal(bdc_l8_cube$tile, tile)
     expect_true(all(sits_bands(bdc_l8_cube) %in% bands))
     # test timeline
     timeline <- sits_timeline(bdc_l8_cube)

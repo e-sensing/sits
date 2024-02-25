@@ -119,10 +119,10 @@ default_values       :
         scale_factor : 0.0001
 
     FLT4S            :
-        data_type    : "INT4S"
-        missing_value: -Inf
-        minimum_value: -Inf
-        maximum_value:  Inf
+        data_type    : "FLT4S"
+        missing_value: -3.402823466385288e+37
+        minimum_value: -3.402823466385288e+37
+        maximum_value: 1.7014118346015974e+37
         offset_value : 0
         scale_factor : 1
 

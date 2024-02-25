@@ -5,7 +5,7 @@ test_that("sits colors", {
 
     color_tb <- sits_colors()
     expect_equal(color_tb[1, ]$name, "Evergreen_Broadleaf_Forest")
-    expect_equal(unname(color_tb[1, ]$color), "#518940")
+    expect_equal(unname(color_tb[1, ]$color), "#1E8449")
 
     us_nlcd <- tibble::tibble(name = character(), color = character())
     us_nlcd <- us_nlcd |>
@@ -72,7 +72,7 @@ test_that("colors_get", {
         rev = TRUE
     ))
     expect_length(colors, 3)
-    expect_equal(colors[["Forest"]], "#518940")
+    expect_equal(colors[["Forest"]], "#1E8449")
 })
 
 test_that("legend", {
