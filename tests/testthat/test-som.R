@@ -1,9 +1,11 @@
-test_that("Creating clustering using Self-organizing Maps", {
+test_that("Creating clustering using Self-organizing Maps with DTW distance", {
     set.seed(2903)
+
     som_map <- sits_som_map(
         samples_modis_ndvi,
         grid_xdim = 4,
-        grid_ydim = 4
+        grid_ydim = 4,
+        distance  = "dtw" # custom distance only available in the sits package
     )
 
     expect_true(all(colnames(som_map$labelled_neurons) %in%
