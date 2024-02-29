@@ -45,10 +45,20 @@
 #' @param grid_ydim      Y dimension of the SOM grid.
 #' @param alpha          Starting learning rate
 #'                       (decreases according to number of iterations).
-#' @param distance       The type of similarity measure (distance).
+#' @param distance       The type of similarity measure (distance). The
+#'                       following similarity measurements are supported:
+#'                       \code{"euclidean"}, \code{"dtw"}, \code{"manhattan"},
+#'                       and \code{"tanimoto"}. The default similarity measure
+#'                       is \code{"euclidean"}.
 #' @param rlen           Number of iterations to produce the SOM.
 #' @param som_radius     Radius of SOM neighborhood.
 #' @param mode           Type of learning algorithm (default = "online").
+#'
+#' @note The sits package implements the \code{"dtw"} (Dynamic Time Warping)
+#'       similarity measure. All other similarity measurements are from
+#'       the \code{\link[kohonen:supersom]{kohonen::supersom (dist.fcts)}}
+#'       function.
+#'
 #' @return
 #' \code{sits_som_map()} produces a list with three members:
 #' (1) the samples tibble, with one additional column indicating
