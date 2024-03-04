@@ -467,7 +467,7 @@ print.sits_area_accuracy <- function(x, ..., digits = 2) {
     # round the data to the significant digits
     overall <- round(x$accuracy$overall, digits = digits)
 
-    cat("Area Weigthed Statistics\n")
+    cat("Area Weighted Statistics\n")
     cat(paste0("Overall Accuracy = ", overall, "\n"))
 
     acc_user <- round(x$accuracy$user, digits = digits)

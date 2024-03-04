@@ -255,7 +255,7 @@ plot_max_Mbytes: 10
 
 # tmap configurations
 tmap:
-        max_cells: 1e+06
+        max_cells: 1e+07
         graticules_labels_size: 0.7
         legend_outside: False
         legend_outside_position: "right"

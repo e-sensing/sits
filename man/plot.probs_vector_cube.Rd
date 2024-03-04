@@ -10,8 +10,9 @@
   tile = x$tile[[1]],
   labels = NULL,
   palette = "YlGn",
+  style = "cont",
   rev = FALSE,
-  tmap_options = NULL
+  scale = 0.8
 )
 }
 \arguments{
@@ -25,16 +26,13 @@
 
 \item{palette}{RColorBrewer palette}
 
+\item{style}{Method to process the color scale
+("cont", "order", "quantile", "fisher",
+ "jenks", "log10")}
+
 \item{rev}{Reverse order of colors in palette?}
 
-\item{tmap_options}{Named list with optional tmap parameters
-max_cells (default: 1e+06)
-scale (default: 1.0)
-graticules_labels_size (default: 0.7)
-legend_title_size (default: 1.0)
-legend_text_size (default: 1.0)
-legend_bg_color (default: "white")
-legend_bg_alpha (default: 0.5)}
+\item{scale}{Scale to plot map (0.4 to 1.0)}
 }
 \value{
 A plot containing probabilities associated

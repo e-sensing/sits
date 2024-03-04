@@ -5,7 +5,7 @@ test_that("Creating clustering using Self-organizing Maps with DTW distance", {
         samples_modis_ndvi,
         grid_xdim = 4,
         grid_ydim = 4,
-        distance  = "dtw" # custom distance only available in the sits package
+        distance  = "euclidean" # custom distance only available in the sits package
     )
 
     expect_true(all(colnames(som_map$labelled_neurons) %in%

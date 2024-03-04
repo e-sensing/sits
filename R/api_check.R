@@ -2434,8 +2434,8 @@
 .check_palette <- function(palette) {
     .check_chr_parameter(palette)
     .check_that(
-        palette %in% grDevices::hcl.pals(),
-        msg = "Palette not available in grDevices::hcl.pals()"
+        palette %in% rownames(RColorBrewer::brewer.pal.info),
+        msg = "Palette not available - please use an RColorBrewer palette"
     )
     return(invisible(palette))
 }

@@ -16,8 +16,10 @@
   seg_color = "black",
   line_width = 1,
   palette = "RdYlGn",
+  style = "cont",
+  n_colors = 10,
   rev = FALSE,
-  tmap_options = NULL
+  scale = 0.8
 )
 }
 \arguments{
@@ -43,16 +45,11 @@
 
 \item{palette}{An RColorBrewer palette}
 
+\item{n_colors}{Number of colors to be shown}
+
 \item{rev}{Reverse the color order in the palette?}
 
-\item{tmap_options}{Named list with optional tmap parameters
-max_cells (default: 1e+06)
-scale (default: 1.0)
-graticules_labels_size (default: 0.7)
-legend_title_size (default: 1.0)
-legend_text_size (default: 1.0)
-legend_bg_color (default: "white")
-legend_bg_alpha (default: 0.5)}
+\item{scale}{Scale to plot map (0.4 to 1.0)}
 }
 \value{
 A plot object with an RGB image

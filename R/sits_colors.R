@@ -18,8 +18,9 @@ sits_colors <- function(legend = NULL) {
         print("Returning all available colors")
         return(sits_env$color_table)
     } else {
-        if (legend %in% sits_env$legends) {
-            colors <- .conf(legend)
+        if (legend %in% names(sits_env$legends)) {
+            # retrieve the color names associated to the legend
+            colors <- sits_env$legends[[legend]]
             color_table_legend <- .conf_colors() |>
                 dplyr::filter(.data[["name"]] %in% colors)
             color_table_legend <- color_table_legend[

@@ -532,7 +532,6 @@ test_that("Classification with post-processing", {
     expect_true(max_lab == 4)
     expect_true(min_lab == 1)
 
-
     sinop_bayes <- sits_smooth(
         sinop_probs,
         output_dir = output_dir,
@@ -641,6 +640,54 @@ test_that("Classification with post-processing", {
     expect_true(all(file.remove(unlist(sinop_uncert$file_info[[1]]$path))))
 })
 
+test_that("Clean classification",{
+
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+
+    sinop <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    output_dir <- paste0(tempdir(), "/clean")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
+
+    sinop_probs <- sits_classify(
+        data = sinop,
+        ml_model = rfor_model,
+        output_dir = output_dir,
+        memsize = 4,
+        multicores = 1,
+        progress = FALSE
+    )
+    sinop_class <- sits_label_classification(
+        sinop_probs,
+        output_dir = output_dir,
+        progress = FALSE
+    )
+    sum_orig <- summary(sinop_class)
+
+    # testing sits clean
+    clean_cube <- sits_clean(
+        cube = sinop_class,
+        output_dir = output_dir,
+        progress = FALSE
+    )
+    sum_clean <- summary(clean_cube)
+
+    expect_equal(nrow(sum_orig), nrow(sum_clean))
+
+    expect_equal(sum(sum_orig$count), sum(sum_clean$count))
+    expect_equal(sum(sum_orig$area_km2), sum(sum_clean$area_km2))
+
+    expect_lt(sum_orig[2,4], sum_clean[2,4])
+
+})
 test_that("Raster GDAL datatypes", {
     gdal_type <- .raster_gdal_datatype("INT2U")
     expect_equal(gdal_type, "UInt16")

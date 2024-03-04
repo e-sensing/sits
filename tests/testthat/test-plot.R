@@ -53,14 +53,7 @@ test_that("Plot Time Series and Images", {
     expect_equal(p$tm_raster$palette, "-RdYlGn")
     expect_equal(p$tm_grid$grid.projection, 4326)
 
-    tmap_options <- list("legend_title_size" = 1.0,
-                        "legend_text_size" = 0.7,
-                        "graticules_labels_size" = 0.7,
-                        "legend_bg_color" = "white",
-                        "legend_bg_alpha" = 0.6)
-
-    p_rgb <- plot(sinop, red = "NDVI", green = "NDVI", blue = "NDVI",
-                  tmap_options = tmap_options)
+    p_rgb <- plot(sinop, red = "NDVI", green = "NDVI", blue = "NDVI")
 
     expect_equal(p_rgb$tm_shape$shp_name, "rgb_st")
     expect_equal(p_rgb$tm_grid$grid.projection, 4326)

@@ -321,15 +321,12 @@ plot.predicted <- function(x, y, ...,
 #' @param  tile          Tile to be plotted.
 #' @param  date          Date to be plotted.
 #' @param  palette       An RColorBrewer palette
+#' @param  style         Method to process the color scale
+#'                       ("cont", "order", "quantile", "fisher",
+#'                        "jenks", "log10")
+#' @param  n_colors      Number of colors to be shown
 #' @param  rev           Reverse the color order in the palette?
-#' @param  tmap_options  Named list with optional tmap parameters
-#'                       max_cells (default: 1e+06)
-#'                       scale (default: 1.0)
-#'                       graticules_labels_size (default: 0.7)
-#'                       legend_title_size (default: 1.0)
-#'                       legend_text_size (default: 1.0)
-#'                       legend_bg_color (default: "white")
-#'                       legend_bg_alpha (default: 0.5)
+#' @param  scale         Scale to plot map (0.4 to 1.0)
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
@@ -359,8 +356,10 @@ plot.raster_cube <- function(x, ...,
                              tile = x$tile[[1]],
                              date = NULL,
                              palette = "RdYlGn",
+                             style = "cont",
+                             n_colors = 10,
                              rev = FALSE,
-                             tmap_options = NULL) {
+                             scale = 0.8) {
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
@@ -414,8 +413,10 @@ plot.raster_cube <- function(x, ...,
             sf_seg    = NULL,
             seg_color = NULL,
             palette = palette,
+            style = style,
+            n_colors = n_colors,
             rev = rev,
-            tmap_options = tmap_options
+            scale = scale
         )
     } else {
         # plot RGB image
@@ -428,8 +429,7 @@ plot.raster_cube <- function(x, ...,
             blue = blue,
             date = date,
             sf_seg    = NULL,
-            seg_color = NULL,
-            tmap_options = tmap_options
+            seg_color = NULL
         )
     }
     return(p)
@@ -451,15 +451,12 @@ plot.raster_cube <- function(x, ...,
 #' @param  seg_color     Color to show the segment boundaries
 #' @param  line_width    Line width to plot the segments boundary (in pixels)
 #' @param  palette       An RColorBrewer palette
+#' @param  style         Method to process the color scale
+#'                       ("cont", "order", "quantile", "fisher",
+#'                        "jenks", "log10")
+#' @param  n_colors      Number of colors to be shown
 #' @param  rev           Reverse the color order in the palette?
-#' @param  tmap_options  Named list with optional tmap parameters
-#'                       max_cells (default: 1e+06)
-#'                       scale (default: 1.0)
-#'                       graticules_labels_size (default: 0.7)
-#'                       legend_title_size (default: 1.0)
-#'                       legend_text_size (default: 1.0)
-#'                       legend_bg_color (default: "white")
-#'                       legend_bg_alpha (default: 0.5)
+#' @param  scale         Scale to plot map (0.4 to 1.0)
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
@@ -496,8 +493,10 @@ plot.vector_cube <- function(x, ...,
                              seg_color = "black",
                              line_width = 1,
                              palette = "RdYlGn",
+                             style = "cont",
+                             n_colors = 10,
                              rev = FALSE,
-                             tmap_options = NULL) {
+                             scale = 0.8) {
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
@@ -551,8 +550,10 @@ plot.vector_cube <- function(x, ...,
             seg_color = seg_color,
             line_width = line_width,
             palette = palette,
+            style = style,
+            n_colors = n_colors,
             rev = rev,
-            tmap_options = tmap_options
+            scale = scale
         )
     } else {
         # plot RGB image
@@ -566,8 +567,7 @@ plot.vector_cube <- function(x, ...,
             date = date,
             sf_seg   = sf_seg,
             seg_color = seg_color,
-            line_width = line_width,
-            tmap_options = tmap_options
+            line_width = line_width
         )
     }
     return(p)
@@ -582,15 +582,12 @@ plot.vector_cube <- function(x, ...,
 #' @param tile           Tile to be plotted.
 #' @param labels         Labels to plot (optional).
 #' @param palette        RColorBrewer palette
+#' @param  style         Method to process the color scale
+#'                       ("cont", "order", "quantile", "fisher",
+#'                        "jenks", "log10")
+#' @param n_colors       Number of colors to be shown
 #' @param rev            Reverse order of colors in palette?
-#' @param  tmap_options  Named list with optional tmap parameters
-#'                       max_cells (default: 1e+06)
-#'                       scale (default: 1.0)
-#'                       graticules_labels_size (default: 0.7)
-#'                       legend_title_size (default: 1.0)
-#'                       legend_text_size (default: 1.0)
-#'                       legend_bg_color (default: "white")
-#'                       legend_bg_alpha (default: 0.5)
+#' @param scale          Scale to plot map (0.4 to 1.0)
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
 #'
@@ -620,8 +617,10 @@ plot.probs_cube <- function(x, ...,
                             tile = x$tile[[1]],
                             labels = NULL,
                             palette = "YlGn",
+                            style = "cont",
+                            n_colors = 10,
                             rev = FALSE,
-                            tmap_options = NULL) {
+                            scale = 0.8) {
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
@@ -642,7 +641,13 @@ plot.probs_cube <- function(x, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot the probs cube
-    p <- .plot_probs(tile, labels, palette, rev, tmap_options)
+    p <- .plot_probs(tile = tile,
+                     labels_plot = labels,
+                     palette = palette,
+                     style = style,
+                     n_colors = n_colors,
+                     rev = rev,
+                     scale = scale)
 
     return(p)
 }
@@ -656,15 +661,11 @@ plot.probs_cube <- function(x, ...,
 #' @param tile           Tile to be plotted.
 #' @param labels         Labels to plot (optional).
 #' @param palette        RColorBrewer palette
+#' @param  style         Method to process the color scale
+#'                       ("cont", "order", "quantile", "fisher",
+#'                        "jenks", "log10")
 #' @param rev            Reverse order of colors in palette?
-#' @param  tmap_options  Named list with optional tmap parameters
-#'                       max_cells (default: 1e+06)
-#'                       scale (default: 1.0)
-#'                       graticules_labels_size (default: 0.7)
-#'                       legend_title_size (default: 1.0)
-#'                       legend_text_size (default: 1.0)
-#'                       legend_bg_color (default: "white")
-#'                       legend_bg_alpha (default: 0.5)
+#' @param scale          Scale to plot map (0.4 to 1.0)
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
 #'
@@ -708,8 +709,9 @@ plot.probs_vector_cube <- function(x, ...,
                                    tile = x$tile[[1]],
                                    labels = NULL,
                                    palette = "YlGn",
+                                   style = "cont",
                                    rev = FALSE,
-                                   tmap_options = NULL) {
+                                   scale = 0.8) {
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
@@ -733,8 +735,9 @@ plot.probs_vector_cube <- function(x, ...,
     p <- .plot_probs_vector(tile = tile,
                             labels_plot = labels,
                             palette = palette,
+                            style = style,
                             rev = rev,
-                            tmap_options = tmap_options)
+                            scale = scale)
 
     return(p)
 }
@@ -748,16 +751,13 @@ plot.probs_vector_cube <- function(x, ...,
 #' @param tile           Tile to be plotted.
 #' @param labels         Labels to plot (optional).
 #' @param palette        RColorBrewer palette
+#' @param  style         Method to process the color scale
+#'                       ("cont", "order", "quantile", "fisher",
+#'                        "jenks", "log10")
+#' @param n_colors       Number of colors to be shown
 #' @param rev            Reverse order of colors in palette?
 #' @param type           Type of plot ("map" or "hist")
-#' @param tmap_options   Named list with optional tmap parameters
-#'                       max_cells (default: 1e+06)
-#'                       scale (default: 1.0)
-#'                       graticules_labels_size (default: 0.7)
-#'                       legend_title_size (default: 1.0)
-#'                       legend_text_size (default: 1.0)
-#'                       legend_bg_color (default: "white")
-#'                       legend_bg_alpha (default: 0.5)
+#' @param scale          Scale to plot map (0.4 to 1.0)
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
 #'
@@ -789,9 +789,11 @@ plot.variance_cube <- function(x, ...,
                                tile = x$tile[[1]],
                                labels = NULL,
                                palette = "YlGnBu",
+                               style = "cont",
+                               n_colors = 10,
                                rev = FALSE,
                                type = "map",
-                               tmap_options = NULL) {
+                               scale = 0.8) {
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
@@ -816,7 +818,13 @@ plot.variance_cube <- function(x, ...,
     )
     # plot the variance cube
     if (type == "map") {
-        p <- .plot_probs(tile, labels, palette, rev, tmap_options)
+        p <- .plot_probs(tile = tile,
+                         labels_plot = labels,
+                         palette = palette,
+                         style = style,
+                         n_colors = n_colors,
+                         rev = rev,
+                         scale = scale)
     } else {
         p <- .plot_variance_hist(tile)
     }
@@ -833,15 +841,12 @@ plot.variance_cube <- function(x, ...,
 #' @param  ...           Further specifications for \link{plot}.
 #' @param  tile          Tiles to be plotted.
 #' @param  palette       An RColorBrewer palette
+#' @param  style         Method to process the color scale
+#'                       ("cont", "order", "quantile", "fisher",
+#'                        "jenks", "log10")
+#' @param  n_colors      Number of colors to be shown
 #' @param  rev           Reverse the color order in the palette?
-#' @param  tmap_options  Named list with optional tmap parameters
-#'                       max_cells (default: 1e+06)
-#'                       scale (default: 1.0)
-#'                       graticules_labels_size (default: 0.7)
-#'                       legend_title_size (default: 1.0)
-#'                       legend_text_size (default: 1.0)
-#'                       legend_bg_color (default: "white")
-#'                       legend_bg_alpha (default: 0.5)
+#' @param  scale          Scale to plot map (0.4 to 1.0)
 #'
 #' @return               A plot object produced by the stars package
 #'                       with a map showing the uncertainty associated
@@ -872,8 +877,10 @@ plot.variance_cube <- function(x, ...,
 plot.uncertainty_cube <- function(x, ...,
                                   tile = x$tile[[1]],
                                   palette = "RdYlGn",
+                                  style = "cont",
                                   rev = TRUE,
-                                  tmap_options = NULL) {
+                                  n_colors = 10,
+                                  scale = 0.8) {
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
@@ -899,8 +906,10 @@ plot.uncertainty_cube <- function(x, ...,
         band = band,
         date = NULL,
         palette = palette,
+        style = style,
+        n_colors = n_colors,
         rev = rev,
-        tmap_options = tmap_options
+        scale = scale
     )
 
     return(p)
@@ -914,15 +923,11 @@ plot.uncertainty_cube <- function(x, ...,
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tile           Tile to be plotted.
 #' @param palette        RColorBrewer palette
+#' @param  style         Method to process the color scale
+#'                       ("cont", "order", "quantile", "fisher",
+#'                        "jenks", "log10")
 #' @param rev            Reverse order of colors in palette?
-#' @param  tmap_options  Named list with optional tmap parameters
-#'                       max_cells (default: 1e+06)
-#'                       scale (default: 1.0)
-#'                       graticules_labels_size (default: 0.7)
-#'                       legend_title_size (default: 1.0)
-#'                       legend_text_size (default: 1.0)
-#'                       legend_bg_color (default: "white")
-#'                       legend_bg_alpha (default: 0.5)
+#' @param scale          Scale to plot map (0.4 to 1.0)
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
 #'
@@ -971,8 +976,9 @@ plot.uncertainty_cube <- function(x, ...,
 plot.uncertainty_vector_cube <- function(x, ...,
                                          tile = x$tile[[1]],
                                          palette =  "RdYlGn",
+                                         style = "cont",
                                          rev = TRUE,
-                                         tmap_options = NULL) {
+                                         scale = 0.8) {
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
@@ -995,8 +1001,9 @@ plot.uncertainty_vector_cube <- function(x, ...,
     # plot the probs vector cube
     p <- .plot_uncertainty_vector(tile = tile,
                                    palette = palette,
+                                   style = style,
                                    rev = rev,
-                                   tmap_options = tmap_options)
+                                   scale = scale)
 
     return(p)
 }
@@ -1012,14 +1019,7 @@ plot.uncertainty_vector_cube <- function(x, ...,
 #' @param  title           Title of the plot.
 #' @param  legend          Named vector that associates labels to colors.
 #' @param  palette         Alternative RColorBrewer palette
-#' @param  tmap_options    Named list with optional tmap parameters
-#'                         max_cells (default: 1e+06)
-#'                         scale (default: 0.5)
-#'                         graticules_labels_size (default: 0.7)
-#'                         legend_title_size (default: 1.0)
-#'                         legend_text_size (default: 1.0)
-#'                         legend_bg_color (default: "white")
-#'                         legend_bg_alpha (default: 0.5)
+#' @param  scale           Scale to plot map (0.4 to 1.0)
 #'
 #' @return                 A  color map, where each pixel has the color
 #'                         associated to a label, as defined by the legend
@@ -1055,7 +1055,7 @@ plot.class_cube <- function(x, y, ...,
                             title = "Classified Image",
                             legend = NULL,
                             palette = "Spectral",
-                            tmap_options = NULL) {
+                            scale = 0.8) {
     stopifnot(missing(y))
     # set caller to show in errors
     .check_set_caller("plot_class_cube")
@@ -1096,7 +1096,7 @@ plot.class_cube <- function(x, y, ...,
         tile = tile,
         legend = legend,
         palette = palette,
-        tmap_options = tmap_options
+        scale = scale
     )
 }
 #' @title  Plot Segments
@@ -1112,14 +1112,7 @@ plot.class_cube <- function(x, y, ...,
 #' @param  seg_color     Segment color.
 #' @param  line_width    Segment line width.
 #' @param  palette       Alternative RColorBrewer palette
-#' @param  tmap_options  Named list with optional tmap parameters
-#'                       max_cells (default: 1e+06)
-#'                       scale (default: 0.5)
-#'                       graticules_labels_size (default: 0.7)
-#'                       legend_title_size (default: 1.0)
-#'                       legend_text_size (default: 1.0)
-#'                       legend_bg_color (default: "white")
-#'                       legend_bg_alpha (default: 0.5)
+#' @param  scale         Scale to plot map (0.4 to 1.0)
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
@@ -1165,7 +1158,7 @@ plot.class_vector_cube <- function(x, ...,
                                    seg_color = "black",
                                    line_width = 0.5,
                                    palette = "Spectral",
-                                   tmap_options = NULL) {
+                                   scale = 0.8) {
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
@@ -1190,7 +1183,7 @@ plot.class_vector_cube <- function(x, ...,
         tile = tile,
         legend = legend,
         palette = palette,
-        tmap_options = tmap_options
+        scale = scale
     )
     return(p)
 }
