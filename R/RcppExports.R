@@ -145,6 +145,14 @@ C_temp_iqr <- function(mtx) {
     .Call(`_sits_C_temp_iqr`, mtx)
 }
 
+rlang_env_unlock <- function(env) {
+    invisible(.Call(`_sits_rlang_env_unlock`, env))
+}
+
+rlang_env_lock <- function(env) {
+    invisible(.Call(`_sits_rlang_env_lock`, env))
+}
+
 sample_points_inclusion <- function(polymatrix, n_sam_pol) {
     .Call(`_sits_sample_points_inclusion`, polymatrix, n_sam_pol)
 }

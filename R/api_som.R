@@ -1,3 +1,25 @@
+#' @title Register custom distances in the `kohonen` package environment.
+#' @name .som_register_custom_distances
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description This function injects custom distance functions in the
+#' environment of the `kohonen` package.
+#'
+.som_register_custom_distances <- function() {
+    kohonen_namespace <- base::asNamespace("kohonen")
+
+    # unlock the environment
+    rlang_env_unlock(kohonen_namespace)
+
+    # include custom distances in the environment
+    base::assign("dtw", dtw, envir = kohonen_namespace)
+
+    # lock the environment
+    rlang_env_lock(kohonen_namespace)
+}
+
 #' @title Label neurons
 #' @name .som_label_neurons
 #' @keywords internal

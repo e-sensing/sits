@@ -81,9 +81,10 @@ The user can define which tagged samples will be returned using the "keep"
 parameter, with the following options: "clean", "analyze", "remove".
 }
 \note{
-The sits package implements the \code{"dtw"} (Dynamic Time Warping)
-      similarity measure. All other similarity measurements are from
-      the \code{\link[kohonen:supersom]{kohonen::supersom (dist.fcts)}}
+The \code{sits} package implements the \code{"dtw"} (Dynamic Time
+      Warping) similarity measure. All other similarity measurements
+      come from the
+      \code{\link[kohonen:supersom]{kohonen::supersom (dist.fcts)}}
       function.
 }
 \examples{
