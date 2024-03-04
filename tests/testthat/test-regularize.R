@@ -19,10 +19,15 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
         purrr::is_null(s2_cube_open),
         "AWS is not accessible"
     )
+
     expect_false(.cube_is_regular(s2_cube_open))
     expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
 
-
+    out <- capture_warning(timelines <- sits_timeline(s2_cube_open))
+    expect_true(grepl("returning all timelines", out))
+    expect_equal(length(timelines), 2)
+    expect_equal(length(timelines[["20LKP"]]), 6)
+    expect_equal(length(timelines[["20LLP"]]), 13)
 
     dir_images <- paste0(tempdir(), "/images_aws/")
     if (!dir.exists(dir_images)) {

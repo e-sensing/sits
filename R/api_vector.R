@@ -43,9 +43,3 @@ NULL
 .vector_bbox <- function(v_obj, ...) {
     sf::st_bbox(v_obj, ...)
 }
-#' @title Reproject a vector object
-#' @keywords internal
-#' @noRd
-.vector_reproject <- function(v_obj, crs, ...) {
-    sf::st_transform(x = v_obj, crs = crs, ...)
-}

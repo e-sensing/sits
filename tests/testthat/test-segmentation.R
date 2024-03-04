@@ -16,6 +16,7 @@ test_that("Segmentation", {
         multicores = 1,
         memsize = 24
     )
+
     expect_s3_class(object = segments, class = "vector_cube")
     expect_true("vector_info" %in% colnames(segments))
     # Read segments as sf object
@@ -24,6 +25,18 @@ test_that("Segmentation", {
         as.character(unique(sf::st_geometry_type(vector_segs))),
         expected = "POLYGON"
     )
+    vector_obj <- .vector_open_vec(segments$vector_info[[1]]$path)
+
+    expect_true("sf" %in% class(vector_obj))
+
+    crs_wkt <- .vector_crs(v_obj, wkt = TRUE)
+    expect_equal(class(crs_wkt), "character")
+    expect_true(grepl("PROJCRS", crs_wkt))
+
+    crs_nowkt <- .vector_crs(v_obj, wkt = FALSE)
+    expect_equal(class(crs_nowkt), "crs")
+    expect_true(grepl("PROJCRS", crs_nowkt$wkt))
+
     p1 <- plot(segments)
     expect_equal(p1[[1]]$shp_name, "stars_obj")
     expect_equal(p1$tm_grid$grid.projection, 4326)

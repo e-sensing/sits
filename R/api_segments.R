@@ -236,68 +236,6 @@
     # join the data_id tibble with the segments (sf objects)
     dplyr::left_join(segments, data, by = c("pol_id" = "polygon_id"))
 }
-#' @name .segments_join_probs_neigh
-#' @keywords internal
-#' @noRd
-#' @description     Join the probabilities of time series inside each
-#'                  segment to the segments vectors
-#'                  Include neighbour information
-#' @param data      Classified time series
-#' @param segments  Segments object (sf object)
-#' @return segment vectors (sf object) with the probabilities
-#'
-.segments_join_probs_neigh <- function(data, segments) {
-    # Select polygon_id and class for the time series tibble
-    data <- data |>
-        dplyr::select("polygon_id", "predicted") |>
-        dplyr::mutate(polygon_id = as.numeric(.data[["polygon_id"]])) |>
-        tidyr::unnest(cols = "predicted") |>
-        dplyr::select(-"class") |>
-        dplyr::group_by(.data[["polygon_id"]])
-    # Select just probability labels
-    labels <- setdiff(colnames(data), c("polygon_id", "from", "to", "class"))
-    # Calculate metrics
-    data_id <- dplyr::summarise(
-        data,
-        dplyr::across(.cols = dplyr::all_of(labels),
-                      .names = "{.col}_mean", mean),
-        dplyr::across(.cols = dplyr::all_of(labels),
-                      .names = "{.col}_var", stats::var)
-    )
-    # Summarize probabilities
-    data_id <- data_id |>
-        dplyr::rename_with(~ gsub("_mean$", "", .x)) |>
-        dplyr::rowwise() |>
-        dplyr::mutate(sum = sum(dplyr::c_across(cols = dplyr::all_of(labels)))) |>
-        dplyr::mutate(dplyr::across(.cols = dplyr::all_of(labels), ~ .x / .data[["sum"]])) |>
-        dplyr::select(-"sum")
-
-    # Get the information about the neighbours
-    neighbors <- spdep::poly2nb(segments)
-    # ungroup the data tibble
-    data <- dplyr::ungroup(data)
-    # obtain neighborhood statistics for each polygon
-    neigh_stats <- purrr::map_dfr(unique(data$polygon_id), function(id){
-        # get the ids of the neighbours of a polygon
-        ids <- neighbors[[id]]
-        # get mean and variance of the neighbours per class
-        neigh <- data |>
-            dplyr::filter(.data[["polygon_id"]] %in% ids) |>
-            dplyr::select(!!labels) |>
-            dplyr::summarise(
-                dplyr::across(.cols = dplyr::all_of(labels),
-                              .names = "{.col}_nmean", mean),
-                dplyr::across(.cols = dplyr::all_of(labels),
-                              .names = "{.col}_nvar", stats::var)
-            )
-        return(neigh)
-    })
-    # include neighborhood statistics in the results
-    data_id <- dplyr::bind_cols(data_id, neigh_stats)
-
-    # join the data_id tibble with the segments (sf objects)
-    dplyr::left_join(segments, data_id, by = c("pol_id" = "polygon_id"))
-}
 #'
 #' @name .segments_extract_data
 #' @keywords internal

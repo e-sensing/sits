@@ -409,6 +409,17 @@ test_that("Reading metadata from CSV file", {
         "id", "longitude", "latitude",
         "start_date", "end_date", "label"
     )))
+    cerrado_samples <- cerrado_2classes
+    class(cerrado_samples) <- "tbl_df"
+    csv_file2 <- paste0(tempdir(), "/cerrado_2classes_2.csv")
+    sits_to_csv(cerrado_samples, file = csv_file2)
+    csv2 <- read.csv(csv_file2)
+    expect_true(nrow(csv2) == 746)
+    expect_true(all(names(csv2) %in% c(
+        "id", "longitude", "latitude",
+        "start_date", "end_date", "label"
+    )))
+
 })
 
 test_that("Working with shapefile ", {
