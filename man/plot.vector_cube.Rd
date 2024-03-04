@@ -45,6 +45,10 @@
 
 \item{palette}{An RColorBrewer palette}
 
+\item{style}{Method to process the color scale
+("cont", "order", "quantile", "fisher",
+ "jenks", "log10")}
+
 \item{n_colors}{Number of colors to be shown}
 
 \item{rev}{Reverse the color order in the palette?}

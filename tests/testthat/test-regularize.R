@@ -22,10 +22,13 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     expect_false(.cube_is_regular(s2_cube_open))
     expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
 
+
+
     dir_images <- paste0(tempdir(), "/images_aws/")
     if (!dir.exists(dir_images)) {
         suppressWarnings(dir.create(dir_images))
     }
+
     expect_warning({
         rg_cube <- sits_regularize(
             cube = .tile(s2_cube_open),
