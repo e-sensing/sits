@@ -1,40 +1,38 @@
 #include <Rcpp.h>
 
-#include <cstdlib>
-#include <vector>
-#include <cmath>
-#include <algorithm>
-#include <stdexcept>
-
 #include "./sits_types.h"
 
 using namespace Rcpp;
 
 /**
- * Compute the p-norm distance between two 1D C++ vectors.
+ * Compute the p-norm between two time-series.
  *
  * @description
- * The p-norm, also known as the Minkowski norm, is a generalized norm
- * calculation that includes several types of distances based on the value of p.
+ * The `p-norm`, also known as the `Minkowski space`, is a generalized norm
+ * calculation that includes several types of distances based on the value
+ * of `p`.
  *
- * Common values of p include:
+ * Common values of `p` include:
  *
- *  - p = 1 for the Manhattan (city block) distance;
- *  - p = 2 for the Euclidean norm (distance).
+ *  - `p = 1` for the Manhattan (city block) distance;
+ *  - `p = 2` for the Euclidean norm (distance).
  *
  * More details about p-norms can be found on Wikipedia:
  * https://en.wikipedia.org/wiki/Norm_(mathematics)#p-norm
  *
- * @param a A 1D vector representing the first point in an m-dimensional space.
- * @param b A 1D vector representing the second point in an m-dimensional space.
- * @param p The value of the norm to use, determining the type of distance
- *          calculated.
+ * @param a A `std::vector<double>` with time-series values.
+ * @param b A `std::vector<double>` with time-series values.
+ * @param p A `double` value of the norm to use, determining the type of
+ *          distance calculated.
  *
- * @note Both vectors 'a' and 'b' must have the same number of dimensions.
- * @note This function was adapted from the DTW implementation found at:
- *       https://github.com/cjekel/DTW_cpp
+ * @note
+ * Both vectors `a` and `b` must have the same length.
  *
- * @return The p-norm distance between vectors 'a' and 'b'.
+ * @note
+ * The implementation of this DTW distance calculation was adapted from the
+ * `DTW_cpp` single header library (https://github.com/cjekel/DTW_cpp).
+ *
+ * @return The `p-norm` value between vectors `a` and `b`.
  */
 double p_norm(std::vector<double> a, std::vector<double> b, double p)
 {
@@ -51,34 +49,25 @@ double p_norm(std::vector<double> a, std::vector<double> b, double p)
 }
 
 /**
- * Compute the Dynamic Time Warping (DTW) distance between two 2D C++ vectors.
+ * Dynamic Time Warping (DTW) distance.
  *
  * @description
  * This function calculates the Dynamic Time Warping (DTW) distance between
- * two sequences that can have a different number of data points but must
- * share the same number of dimensions. An exception is thrown if the dimensions
- * of the input vectors do not match.
+ * two time-series.
  *
- * For more information on DTW, visit:
- * https://en.wikipedia.org/wiki/Dynamic_time_warping
+ * @param x A `std::vector<std::vector<double>>` with time-series values.
+ * @param y A `std::vector<std::vector<double>>` with time-series values.
  *
- * @param a A 2D vector representing the first sequence
- * @param b A 2D vector representing the second sequence.
- * @param p The value of p-norm to use for distance calculation.
- *
- * @throws std::invalid_argument If the dimensions of 'a' and 'b' do not match.
+ * @reference
+ * Giorgino, T. (2009). Computing and Visualizing Dynamic Time Warping
+ * Alignments in R: The dtw Package. Journal of Statistical Software, 31(7),
+ * 1–24. https://doi.org/10.18637/jss.v031.i07
  *
  * @note
- * Both vectors 'a', and 'b' should be structured as follows:
+ * The implementation of this DTW distance calculation was adapted from the
+ * `DTW_cpp` single header library (https://github.com/cjekel/DTW_cpp).
  *
- *  [number_of_data_points][number_of_dimensions]
- *
- * allowing the DTW distance computation to adapt to any p-norm value specified.
- *
- * @note The implementation of this DTW distance calculation was adapted from:
- *       https://github.com/cjekel/DTW_cpp
- *
- * @return The DTW distance between the two input sequences.
+ * @return DTW distance.
  */
 double distance_dtw_op(std::vector<std::vector<double>> a,
                        std::vector<std::vector<double>> b,
@@ -87,15 +76,6 @@ double distance_dtw_op(std::vector<std::vector<double>> a,
     int n = a.size();
     int o = b.size();
 
-    int a_m = a[0].size();
-    int b_m = b[0].size();
-
-    if (a_m != b_m)
-    {
-        throw std::invalid_argument(
-            "a and b must have the same number of dimensions!"
-        );
-    }
     std::vector<std::vector<double>> d(n, std::vector<double>(o, 0.0));
 
     d[0][0] = p_norm(a[0], b[0], p);
@@ -121,22 +101,27 @@ double distance_dtw_op(std::vector<std::vector<double>> a,
 }
 
 /**
- * Dynamic Time Warping (DTW) distance wrapper.
+ * Dynamic Time Warping (DTW) distance.
  *
  * @description
- * This function calculates prepare data from `Kohonen` package and calculate
- * the DTW distance between two array of points.
+ * This function calculates the Dynamic Time Warping (DTW) distance between
+ * two time-series.
  *
- * @param a A 2D vector representing the first sequence.
- * @param b A 2D vector representing the second sequence.
- * @param np Number of points in vectors `a` and `b`.
- * @param nNA Number of NA values in the vectors `a` and `b`.
+ * @param x A `double *` Time-series data.
+ * @param y A `double *` Self-Organizing Maps (SOM) codebook.
+ * @param np `int` Number of points in arrays `p1` and `p2`.
+ * @param nNA `int` Number of `NA` values in the arrays `p1` and `p2`.
  *
- * @note The function signature was created following the `Kohonen` R package
- *        specifications for custom distance functions.
+ * @reference
+ * Giorgino, T. (2009). Computing and Visualizing Dynamic Time Warping
+ * Alignments in R: The dtw Package. Journal of Statistical Software, 31(7),
+ * 1–24. https://doi.org/10.18637/jss.v031.i07
  *
+ * @note
+ * The implementation of this DTW distance calculation was adapted from the
+ * `DTW_cpp` single header library (https://github.com/cjekel/DTW_cpp).
  *
- * @return The DTW distance between the two input sequences.
+ * @return DTW distance.
  */
 double kohonen_dtw(double *p1, double *p2, int np, int nNA)
 {

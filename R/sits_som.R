@@ -54,9 +54,10 @@
 #' @param som_radius     Radius of SOM neighborhood.
 #' @param mode           Type of learning algorithm (default = "online").
 #'
-#' @note The sits package implements the \code{"dtw"} (Dynamic Time Warping)
-#'       similarity measure. All other similarity measurements are from
-#'       the \code{\link[kohonen:supersom]{kohonen::supersom (dist.fcts)}}
+#' @note The \code{sits} package implements the \code{"dtw"} (Dynamic Time
+#'       Warping) similarity measure. All other similarity measurements
+#'       come from the
+#'       \code{\link[kohonen:supersom]{kohonen::supersom (dist.fcts)}}
 #'       function.
 #'
 #' @return
@@ -94,6 +95,8 @@ sits_som_map <- function(data,
                          distance = "euclidean",
                          som_radius = 2,
                          mode = "online") {
+    # register custom distances
+    .som_register_custom_distances()
     # set caller to show in errors
     .check_set_caller("sits_som_map")
     # verifies if kohonen package is installed
