@@ -1,4 +1,4 @@
-test_that("uncertainty works", {
+test_that("uncertainty", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
     cube <- sits_cube(

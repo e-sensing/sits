@@ -29,11 +29,11 @@ test_that("Segmentation", {
 
     expect_true("sf" %in% class(vector_obj))
 
-    crs_wkt <- .vector_crs(v_obj, wkt = TRUE)
+    crs_wkt <- .vector_crs(vector_obj, wkt = TRUE)
     expect_equal(class(crs_wkt), "character")
     expect_true(grepl("PROJCRS", crs_wkt))
 
-    crs_nowkt <- .vector_crs(v_obj, wkt = FALSE)
+    crs_nowkt <- .vector_crs(vector_obj, wkt = FALSE)
     expect_equal(class(crs_nowkt), "crs")
     expect_true(grepl("PROJCRS", crs_nowkt$wkt))
 
@@ -79,6 +79,9 @@ test_that("Segmentation", {
     )
     # Read segments of a classified cube
     vector_class <- .segments_read_vec(class_segs)
+    expect_equal(nrow(vector_probs), nrow(vector_class))
+    expect_true(all(sits_labels(rf_model) %in% colnames(vector_probs)))
+    expect_true(all(sits_labels(rf_model) %in% colnames(vector_class)))
     expect_true(
         "class" %in% colnames(vector_class)
     )
@@ -86,4 +89,15 @@ test_that("Segmentation", {
     expect_equal(p3$tm_shape$shp_name, "sf_seg")
     expect_equal(ncol(p3$tm_shape$shp), 2)
     expect_equal(p2$tm_compass$compass.show.labels, 1)
+
+    uncert_vect <- sits_uncertainty(probs_segs,
+                                    output_dir = tempdir())
+
+    p4 <- plot(uncert_vect)
+    expect_equal(p4$tm_shape$shp_name, "sf_seg")
+
+    sf_uncert <- .segments_read_vec(uncert_vect)
+    expect_true("entropy" %in% colnames(sf_uncert))
+    expect_equal(nrow(sf_uncert), nrow(vector_class))
+    expect_true(all(sits_labels(rf_model) %in% colnames(sf_uncert)))
 })

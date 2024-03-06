@@ -23,8 +23,15 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     expect_false(.cube_is_regular(s2_cube_open))
     expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
 
-    out <- capture_warning(timelines <- sits_timeline(s2_cube_open))
-    expect_true(grepl("returning all timelines", out))
+    out <- capture_warning({
+        expect_message(
+            object = {
+                sits_timeline(s2_cube_open)
+            },
+            regexp = "returning all timelines"
+        )
+    })
+    timelines <-  sits_timeline(s2_cube_open)
     expect_equal(length(timelines), 2)
     expect_equal(length(timelines[["20LKP"]]), 6)
     expect_equal(length(timelines[["20LLP"]]), 13)

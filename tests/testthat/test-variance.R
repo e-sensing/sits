@@ -1,4 +1,4 @@
-test_that("One-year, single core classification", {
+test_that("Variance cube", {
     # create a rfor model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
     # create a data cube from local files
@@ -21,6 +21,13 @@ test_that("One-year, single core classification", {
     var_cube <- sits_variance(probs_cube, output_dir = tempdir())
     # check is variance cube
     .check_is_variance_cube(var_cube)
+
+    varc <- var_cube
+    class(varc) <- "data.frame"
+    new_cube <- .cube_find_class(varc)
+    expect_true("raster_cube" %in% class(new_cube))
+    expect_true("derived_cube" %in% class(new_cube))
+    expect_true("variance_cube" %in% class(new_cube))
 
     r_obj <- .raster_open_rast(var_cube$file_info[[1]]$path[[1]])
 

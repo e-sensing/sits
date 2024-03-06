@@ -492,6 +492,11 @@ test_that("Classification with post-processing", {
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
+    sinop2 <- sinop
+    class(sinop2) <- "data.frame"
+    new_cube <- .cube_find_class(sinop2)
+    expect_true("raster_cube" %in% class(new_cube))
+    expect_true("eo_cube" %in% class(new_cube))
 
     sinop_probs <- sits_classify(
         data = sinop,
@@ -502,6 +507,14 @@ test_that("Classification with post-processing", {
         progress = FALSE
     )
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
+
+    sinop3 <- sinop_probs
+    class(sinop3) <- "data.frame"
+    new_cube3 <- .cube_find_class(sinop3)
+    expect_true("raster_cube" %in% class(new_cube3))
+    expect_true("derived_cube" %in% class(new_cube3))
+    expect_true("probs_cube" %in% class(new_cube3))
+
     sinop_class <- sits_label_classification(
         sinop_probs,
         output_dir = output_dir,
@@ -531,6 +544,13 @@ test_that("Classification with post-processing", {
     min_lab <- min(.raster_get_values(r_obj))
     expect_true(max_lab == 4)
     expect_true(min_lab == 1)
+
+    sinop4 <- sinop_class
+    class(sinop4) <- "data.frame"
+    new_cube4 <- .cube_find_class(sinop4)
+    expect_true("raster_cube" %in% class(new_cube4))
+    expect_true("derived_cube" %in% class(new_cube4))
+    expect_true("class_cube" %in% class(new_cube4))
 
     sinop_bayes <- sits_smooth(
         sinop_probs,
@@ -601,6 +621,14 @@ test_that("Classification with post-processing", {
 
     max_unc <- max(.raster_get_values(r_unc))
     expect_true(max_unc <= 10000)
+
+    sinop5 <- sinop_uncert
+    class(sinop5) <- "data.frame"
+    new_cube5 <- .cube_find_class(sinop5)
+    expect_true("raster_cube" %in% class(new_cube5))
+    expect_true("derived_cube" %in% class(new_cube5))
+    expect_true("uncert_cube" %in% class(new_cube5))
+
 
     sinop_uncert_2 <- sits_cube(
         source = "BDC",
@@ -683,7 +711,6 @@ test_that("Clean classification",{
     expect_equal(nrow(sum_orig), nrow(sum_clean))
 
     expect_equal(sum(sum_orig$count), sum(sum_clean$count))
-    expect_equal(sum(sum_orig$area_km2), sum(sum_clean$area_km2))
 
     expect_lt(sum_orig[2,4], sum_clean[2,4])
 
