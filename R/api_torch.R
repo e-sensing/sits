@@ -364,3 +364,30 @@
         self$model(x)
     }
 )
+
+.is_torch_model <- function(ml_model) {
+    "torch_model" %in% class(ml_model) && torch::cuda_is_available()
+}
+
+.torch_mem_info <- function() {
+    # Get memory summary
+    mem_sum <- torch::cuda_memory_stats()
+    # Return current memory info in GB
+    mem_sum$allocated_bytes$all$current / 10^9
+}
+
+.as_dataset <- torch::dataset(
+    "dataset",
+    initialize = function(x) {
+        self$x <- x
+    },
+    .getitem = function(i) {
+        list(torch::torch_tensor(self$x[i,,]))
+    },
+    .getbatch = function(i) {
+        self$.getitem(i)
+    },
+    .length = function() {
+        dim(self$x)[[1]]
+    }
+)
