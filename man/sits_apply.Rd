@@ -5,7 +5,6 @@
 \alias{sits_apply.sits}
 \alias{sits_apply.raster_cube}
 \alias{sits_apply.derived_cube}
-\alias{sits_apply.tbl_df}
 \alias{sits_apply.default}
 \title{Apply a function on a set of time series}
 \usage{
@@ -25,8 +24,6 @@ sits_apply(data, ...)
 )
 
 \method{sits_apply}{derived_cube}(data, ...)
-
-\method{sits_apply}{tbl_df}(data, ...)
 
 \method{sits_apply}{default}(data, ...)
 }

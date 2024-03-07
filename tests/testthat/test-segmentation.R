@@ -9,10 +9,15 @@ test_that("Segmentation", {
         data_dir = data_dir,
         progress = FALSE
     )
+    # create output dir
+    output_dir <- paste0(tempdir(), "/seg")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
     # Segment the cube
     segments <- sits_segment(
         cube = cube,
-        output_dir = tempdir(),
+        output_dir = output_dir,
         multicores = 1,
         memsize = 24
     )
@@ -42,13 +47,25 @@ test_that("Segmentation", {
     expect_equal(p1$tm_grid$grid.projection, 4326)
     expect_equal(p1$tm_layout$legend.bg.alpha, 0.5)
 
+    # test read vector cube
+    segment_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        vector_dir = output_dir,
+        vector_band = "segments",
+        progress = FALSE
+    )
+    expect_s3_class(object = segment_cube, class = "vector_cube")
+    expect_true("vector_info" %in% colnames(segment_cube))
+
     # Train a rf model
     rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
     # Create a probability vector cube
     probs_segs <- sits_classify(
         data = segments,
         ml_model = rf_model,
-        output_dir = tempdir(),
+        output_dir = output_dir,
         n_sam_pol = 20,
         multicores = 6,
         memsize = 24
@@ -69,7 +86,7 @@ test_that("Segmentation", {
     # Create a classified vector cube
     class_segs <- sits_label_classification(
         cube = probs_segs,
-        output_dir = tempdir(),
+        output_dir = output_dir,
         multicores = 2,
         memsize = 4
     )
@@ -91,7 +108,7 @@ test_that("Segmentation", {
     expect_equal(p2$tm_compass$compass.show.labels, 1)
 
     uncert_vect <- sits_uncertainty(probs_segs,
-                                    output_dir = tempdir())
+                                    output_dir = output_dir)
 
     p4 <- plot(uncert_vect)
     expect_equal(p4$tm_shape$shp_name, "sf_seg")

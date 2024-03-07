@@ -7,6 +7,19 @@ test_that("sits summary", {
     expect_equal(sum1$count, c(379, 131, 344, 364))
 })
 
+test_that("summary cube",{
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
+    )
+    sum <- capture.output(summary(cube))
+    expect_true(grepl("MODIS", sum[1]))
+    expect_true(grepl("Median", sum[4]))
+})
+
 test_that("summary sits accuracy", {
     data(cerrado_2classes)
     # split training and test data

@@ -195,6 +195,17 @@ NULL
     bands
 }
 #' @export
+.cube_bands.tbl_df <- function(cube, add_cloud = TRUE, dissolve = TRUE) {
+    cube <- tibble::as_tibble(cube)
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
+        class(cube) <- c("raster_cube", class(cube))
+        bands <- .cube_bands(cube)
+    } else
+        stop("Input is not a valid data cube")
+
+    return(bands)
+}
+#' @export
 .cube_bands.default <- function(cube, add_cloud = TRUE, dissolve = TRUE) {
     if (is.list(cube)) {
         class(cube) <- c("list", class(cube))
@@ -222,6 +233,17 @@ NULL
     if (dissolve) {
         return(.dissolve(labels))
     }
+    return(labels)
+}
+#' @export
+.cube_labels.tbl_df <- function(cube, dissolve = TRUE) {
+    cube <- tibble::as_tibble(cube)
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
+        class(cube) <- c("raster_cube", class(cube))
+        labels <- .cube_labels(cube)
+    } else
+        stop("Input is not a valid data cube")
+
     return(labels)
 }
 #' @export
@@ -548,18 +570,7 @@ NULL
 #' Iterates over each cube tile, passing tile to function's first argument.
 #' @returns  A processed data cube.
 .cube_foreach_tile <- function(cube, fn, ...) {
-    UseMethod(".cube_foreach_tile", cube)
-}
-#' @export
-.cube_foreach_tile.raster_cube <- function(cube, fn, ...) {
     slider::slide_dfr(cube, fn, ...)
-}
-#' @export
-.cube_foreach_tile.default <- function(cube, fn, ...) {
-    cube <- tibble::as_tibble(cube)
-    cube <- .cube_find_class(cube)
-    result <- .cube_foreach_tile(cube, fn, ...)
-    return(result)
 }
 # ---- spatial ----
 .cube_bbox <- function(cube, as_crs = NULL) {
@@ -702,7 +713,7 @@ NULL
     })
     # Post-condition
     .check_that(
-        nrow(cube) > 1,
+        nrow(cube) >= 1,
         msg = "The provided 'dates' does not match any date in the cube.",
         local_msg = "invalid 'dates' parameter."
     )

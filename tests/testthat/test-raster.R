@@ -492,11 +492,62 @@ test_that("Classification with post-processing", {
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
+
+    sinop2c <- .cube_find_class(sinop)
+    expect_true("raster_cube" %in% class(sinop2c))
+    expect_true("eo_cube" %in% class(sinop2c))
+
     sinop2 <- sinop
     class(sinop2) <- "data.frame"
     new_cube <- .cube_find_class(sinop2)
     expect_true("raster_cube" %in% class(new_cube))
     expect_true("eo_cube" %in% class(new_cube))
+
+    bands <- .cube_bands(sinop2)
+    expect_equal(bands, "NDVI")
+
+    class <- .cube_s3class(sinop2)
+    expect_true("raster_cube" %in% class)
+    expect_true("eo_cube" %in% class)
+
+    is_complete <- .cube_is_complete(sinop2)
+    expect_true(is_complete)
+
+    time_tb <- .cube_timeline_acquisition(sinop2, period = "P2M", origin = NULL)
+    expect_equal(nrow(time_tb), 6)
+    expect_equal(time_tb[[1,1]], as.Date("2013-09-14"))
+
+    bbox <- .cube_bbox(sinop2)
+    expect_equal(bbox[["xmin"]], -6073798)
+
+    sf_obj <- .cube_as_sf(sinop2)
+    bbox2 <- sf::st_bbox(sf_obj)
+    expect_equal(bbox[["xmin"]], bbox2[["xmin"]])
+
+    d <- .cube_during(sinop2, "2014-01-01", "2014-04-01")
+    expect_true(d)
+
+    t <- .cube_filter_interval(sinop2, "2014-01-01", "2014-04-01")
+    expect_equal(length(sits_timeline(t)), 3)
+
+    timeline <- sits_timeline(sinop2)
+    dates <- as.Date(c(timeline[1], timeline[3], timeline[5]))
+    t2 <- .cube_filter_dates(sinop2, dates)
+    expect_equal(.tile_timeline(t2), dates)
+
+    paths <- .cube_paths(sinop2)[[1]]
+    expect_equal(length(paths), 12)
+    expect_true(grepl("jp2", paths[12]))
+
+    expect_true(.cube_is_local(sinop2))
+
+    cube <- .cube_split_features(sinop2)
+    expect_equal(nrow(cube), 12)
+
+    cube <- .cube_split_assets(sinop2)
+    expect_equal(nrow(cube), 12)
+
+    expect_false(.cube_contains_cloud(sinop2))
 
     sinop_probs <- sits_classify(
         data = sinop,
@@ -551,6 +602,50 @@ test_that("Classification with post-processing", {
     expect_true("raster_cube" %in% class(new_cube4))
     expect_true("derived_cube" %in% class(new_cube4))
     expect_true("class_cube" %in% class(new_cube4))
+
+    labels <- .cube_labels(sinop4)
+    expect_true(all(c("Cerrado", "Forest", "Pasture","Soy_Corn") %in% labels))
+
+    labels <- sits_labels(sinop4)
+    expect_true(all(c("Cerrado", "Forest", "Pasture","Soy_Corn") %in% labels))
+
+    sits_labels(sinop4) <- c("Cerrado", "Floresta", "Pastagem","Soja_Milho")
+    labels <- sits_labels(sinop4)
+    expect_true("Cerrado" %in% labels)
+
+    col <- .cube_collection(sinop4)
+    expect_equal(col, "MOD13Q1-6")
+
+    crs <- .cube_crs(sinop4)
+    expect_true(grepl("Sinusoidal", crs))
+
+    class <- .cube_s3class(sinop4)
+    expect_true("raster_cube" %in% class)
+    expect_true("derived_cube" %in% class)
+    expect_true("class_cube" %in% class)
+
+    ncols <- .cube_ncols(sinop4)
+    expect_equal(ncols, 255)
+
+    nrows <- .cube_nrows(sinop4)
+    expect_equal(ncols, 147)
+
+    source <- .cube_source(sinop4)
+    expect_equal(source, "BDC")
+
+    sd <- .cube_start_date(sinop4)
+    expect_equal(sd, as.Date("2013-09-14"))
+
+    ed <- .cube_end_date(sinop4)
+    expect_equal(ed, as.Date("2014-08-29"))
+
+    timeline <- .cube_timeline(sinop4)[[1]]
+    expect_equal(timeline[1], sd)
+    expect_equal(timeline[2], ed)
+
+    qml_file <- paste0(tempdir(),"/myfile.qml")
+    sits_colors_qgis(sinop_class, qml_file)
+    expect_true(file.size(qml_file) > 2000)
 
     sinop_bayes <- sits_smooth(
         sinop_probs,

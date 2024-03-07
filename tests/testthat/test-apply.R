@@ -88,6 +88,18 @@ test_that("Testing normalized index generation", {
     start_date <- timeline[1]
     end_date <- timeline[length(timeline)]
 
+    # test with data frame
+    #
+    gc_cube2 <- gc_cube
+    class(gc_cube2) <- "data.frame"
+
+    gc_cube2 <- sits_apply(gc_cube2,
+                              NDRE = (B8A - B05) / (B8A + B05),
+                              multicores = 1,
+                              output_dir = dir_images
+    )
+    expect_true("NDRE" %in% sits_bands(gc_cube2))
+
     csv_tb <- purrr::map2_dfr(lats, longs, function(lat, long) {
         tibble::tibble(
             longitude = long,

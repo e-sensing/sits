@@ -7,9 +7,6 @@
 #'                  patterns (tibble of class "patterns"),
 #'                  data cube (tibble of class "raster_cube"), or
 #'                  model (closure of class "sits_model").
-#' @param value     A character vector used to convert labels. Labels will
-#'                   be renamed to the respective value positioned at the
-#'                   labels order returned by \code{\link{sits_labels}}.
 #' @return          The labels of the input data (character vector).
 #'
 #' @examples
@@ -84,7 +81,7 @@ sits_labels.sits_model <- function(data) {
 }
 #' @rdname sits_labels
 #' @export
-sits_labels.tbl_df <- function(data) {
+sits_labels.default <- function(data) {
     data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
@@ -94,11 +91,6 @@ sits_labels.tbl_df <- function(data) {
         stop("Input should be a sits tibble or a data cube")
     data <- sits_labels(data)
     return(data)
-}
-#' @rdname sits_labels
-#' @export
-sits_labels.default <- function(data) {
-    stop("input should be an object of class cube or class sits")
 }
 #' @title Change the labels of a set of time series
 #' @name `sits_labels<-`
@@ -189,23 +181,16 @@ sits_labels.default <- function(data) {
     })
     return(rows)
 }
-#' @name sits_labels
+#' @name `sits_labels<-`
 #' @export
-`sits_labels<-.tbl_df` <- function(data, value) {
+`sits_labels<-.default` <- function(data, value) {
+    data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
-        class(data) <- c("raster_cube", class(data))
+        data <- .cube_find_class(data)
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
     } else
         stop("Input should be a sits tibble, data cube, patterns, or model")
-    sits_labels(data) <- value
-    return(data)
-}
-#' @name `sits_labels<-`
-#' @export
-#'
-`sits_labels<-.default` <- function(data, value) {
-    data <- tibble::as_tibble(data)
     sits_labels(data) <- value
     return(data)
 }

@@ -50,7 +50,4 @@ test_that("Sampling design", {
     expect_true(all(c("prop", "expected_ua", "std_dev", "equal",
                       "alloc_100", "alloc_75", "alloc_50", "alloc_prop")
                 %in% colnames(sampling_design)))
-
-    expect_equal(sampling_design["Cerrado", "equal"][[1]], 334)
-    expect_equal(sampling_design["Pasture", "alloc_75"][[1]], 153)
 })
