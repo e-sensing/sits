@@ -208,15 +208,15 @@ sits_classify.raster_cube <- function(data,
     .check_output_dir(output_dir)
     version <- .check_version(version)
     .check_progress(progress)
+    # Get default proc bloat
+    proc_bloat <- .conf("processing_bloat_cpu")
     # If we using the GPU, gpu_memory parameter needs to be specified
-    if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {
+    if (.is_torch_model(ml_model)) {
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
                              msg = "Using GPU: gpu_memory must be informed")
 
         proc_bloat <- .conf("processing_bloat_gpu")
-    } else
-        proc_bloat <- .conf("processing_bloat_cpu")
-
+    }
     # version is case-insensitive in sits
     version <- tolower(version)
 
@@ -252,16 +252,24 @@ sits_classify.raster_cube <- function(data,
         proc_bloat = proc_bloat
     )
     # If we using the GPU, gpu_memory parameter needs to be specified
-    if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {
+    if (.is_torch_model(ml_model)) {
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
                              msg = "Using GPU: gpu_memory must be informed")
 
-        memsize <-  gpu_memory
+        # Calculate available memory from GPU
+        memsize <- floor(gpu_memory - .torch_mem_info())
+        .check_num_min_max(
+            memsize,
+            exclusive_min = 0,
+            msg = "GPU device has no memory enough."
+        )
         multicores  <- 1
     } else {
         # Update multicores parameter
         multicores <- .jobs_max_multicores(
-            job_memsize = job_memsize, memsize = memsize, multicores = multicores
+            job_memsize = job_memsize,
+            memsize = memsize,
+            multicores = multicores
         )
     }
     # Update multicores parameter
@@ -272,7 +280,8 @@ sits_classify.raster_cube <- function(data,
     block <- .jobs_optimal_block(
         job_memsize = job_memsize,
         block = block,
-        image_size = .tile_size(.tile(data)), memsize = memsize,
+        image_size = .tile_size(.tile(data)),
+        memsize = memsize,
         multicores = multicores
     )
     # Prepare parallel processing
