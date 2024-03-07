@@ -345,9 +345,15 @@ sits_tempcnn <- function(samples = NULL,
             n_bands <- length(bands)
             # Performs data normalization
             values <- .pred_normalize(pred = values, stats = ml_stats)
-
+            # Represent matrix values as array
             values <- array(
                 data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
+            )
+            # Transform to a torch dataset
+            values <- .as_dataset(values)
+            # We need to transform in a dataloader to use the batch size
+            values <- torch::dataloader(
+                values, batch_size = 2^15
             )
             # Do classification
             values <- stats::predict(object = torch_model, values)
