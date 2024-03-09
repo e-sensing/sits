@@ -9,6 +9,7 @@ test_that("Variance cube", {
         data_dir = data_dir,
         progress = FALSE
     )
+    expect_error(sits_variance(cube, output_dir = tempdir()))
     # classify a data cube
     probs_cube <- sits_classify(
         data = cube,
@@ -64,6 +65,14 @@ test_that("Variance cube", {
     })
     expect_true(grepl("output_dir", out[1]))
 
+    class_cube <- sits_label_classification(
+        probs_cube,
+        output_dir = tempdir(),
+        version = "var1"
+    )
+    expect_error(sits_variance(class_cube, output_dir = tempdir()))
+
     expect_true(all(file.remove(unlist(probs_cube$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(var_cube$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(class_cube$file_info[[1]]$path))))
 })

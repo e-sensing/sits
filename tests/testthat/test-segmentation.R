@@ -18,8 +18,9 @@ test_that("Segmentation", {
     segments <- sits_segment(
         cube = cube,
         output_dir = output_dir,
-        multicores = 1,
-        memsize = 24
+        multicores = 2,
+        memsize = 24,
+        progress = FALSE
     )
 
     expect_s3_class(object = segments, class = "vector_cube")
@@ -47,6 +48,23 @@ test_that("Segmentation", {
     expect_equal(p1$tm_grid$grid.projection, 4326)
     expect_equal(p1$tm_layout$legend.bg.alpha, 0.5)
 
+    # test resume feature
+    # testing resume feature
+    out <- capture_messages({
+        expect_message(
+            object = {
+                sits_segment(
+                    cube = cube,
+                    output_dir = output_dir,
+                    multicores = 1,
+                    memsize = 24,
+                    progress = FALSE
+                )
+            },
+            regexp = "Recovery: "
+        )
+    })
+
     # test read vector cube
     segment_cube <- sits_cube(
         source = "BDC",
@@ -58,6 +76,7 @@ test_that("Segmentation", {
     )
     expect_s3_class(object = segment_cube, class = "vector_cube")
     expect_true("vector_info" %in% colnames(segment_cube))
+
 
     # Train a rf model
     rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)

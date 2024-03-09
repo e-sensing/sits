@@ -506,6 +506,16 @@ test_that("Classification with post-processing", {
     bands <- .cube_bands(sinop2)
     expect_equal(bands, "NDVI")
 
+    path1 <- .tile_path(sinop2, date = "2013-09-14",
+                        band = "NDVI")
+    expect_true(grepl("jp2", path1))
+
+    expect_equal(.tile_satellite(sinop2), "TERRA")
+    expect_equal(.tile_sensor(sinop2), "MODIS")
+    expect_equal(.tile_bands(sinop2), "NDVI")
+    band_conf <- .tile_band_conf(sinop2, band = "NDVI")
+    expect_equal(band_conf$band_name, "NDVI")
+
     class <- .cube_s3class(sinop2)
     expect_true("raster_cube" %in% class)
     expect_true("eo_cube" %in% class)
@@ -520,15 +530,25 @@ test_that("Classification with post-processing", {
     bbox <- .cube_bbox(sinop2)
     expect_equal(bbox[["xmin"]], -6073798)
 
-    sf_obj <- .cube_as_sf(sinop2)
-    bbox2 <- sf::st_bbox(sf_obj)
-    expect_equal(bbox[["xmin"]], bbox2[["xmin"]])
+    bbox2 <- .tile_bbox(sinop2)
+    expect_equal(bbox2[["xmin"]], -6073798)
 
-    d <- .cube_during(sinop2, "2014-01-01", "2014-04-01")
-    expect_true(d)
+    sf_obj <- .cube_as_sf(sinop2)
+    bbox3 <- sf::st_bbox(sf_obj)
+    expect_equal(bbox[["xmin"]], bbox3[["xmin"]])
+
+    sf_obj2 <- .tile_as_sf(sinop2)
+    bbox4 <- sf::st_bbox(sf_obj2)
+    expect_equal(bbox[["xmin"]], bbox4[["xmin"]])
+
+    expect_true(.cube_during(sinop2, "2014-01-01", "2014-04-01"))
+    expect_true(.tile_during(sinop2, "2014-01-01", "2014-04-01"))
 
     t <- .cube_filter_interval(sinop2, "2014-01-01", "2014-04-01")
     expect_equal(length(sits_timeline(t)), 3)
+
+    t1 <- .tile_filter_interval(sinop2, "2014-01-01", "2014-04-01")
+    expect_equal(length(sits_timeline(t1)), 3)
 
     timeline <- sits_timeline(sinop2)
     dates <- as.Date(c(timeline[1], timeline[3], timeline[5]))
@@ -584,6 +604,11 @@ test_that("Classification with post-processing", {
             regexp = "Recovery"
         )
     })
+    expect_error(sits_label_classification(
+        sinop, output_dir = tempdir()))
+    expect_error(sits_label_classification(
+        sinop2, output_dir = tempdir()))
+
     expect_true(grepl("output_dir", out[1]))
 
     expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
@@ -596,6 +621,8 @@ test_that("Classification with post-processing", {
     expect_true(max_lab == 4)
     expect_true(min_lab == 1)
 
+    # test access for data.frame objects
+    #
     sinop4 <- sinop_class
     class(sinop4) <- "data.frame"
     new_cube4 <- .cube_find_class(sinop4)
@@ -616,8 +643,12 @@ test_that("Classification with post-processing", {
     col <- .cube_collection(sinop4)
     expect_equal(col, "MOD13Q1-6")
 
+    col <- .tile_collection(sinop4)
+    expect_equal(col, "MOD13Q1-6")
+
     crs <- .cube_crs(sinop4)
     expect_true(grepl("Sinusoidal", crs))
+    expect_true(grepl("Sinusoidal", .tile_crs(sinop4)))
 
     class <- .cube_s3class(sinop4)
     expect_true("raster_cube" %in% class)
@@ -627,10 +658,19 @@ test_that("Classification with post-processing", {
     ncols <- .cube_ncols(sinop4)
     expect_equal(ncols, 255)
 
+    ncols <- .tile_ncols(sinop4)
+    expect_equal(ncols, 255)
+
     nrows <- .cube_nrows(sinop4)
-    expect_equal(ncols, 147)
+    expect_equal(nrows, 147)
+
+    nrows <- .tile_nrows(sinop4)
+    expect_equal(nrows, 147)
 
     source <- .cube_source(sinop4)
+    expect_equal(source, "BDC")
+
+    source <- .tile_source(sinop4)
     expect_equal(source, "BDC")
 
     sd <- .cube_start_date(sinop4)
@@ -643,6 +683,13 @@ test_that("Classification with post-processing", {
     expect_equal(timeline[1], sd)
     expect_equal(timeline[2], ed)
 
+    size <- .tile_size(sinop4)
+    expect_equal(size$nrows, 147)
+
+    expect_true(.tile_is_complete(sinop4))
+
+
+    # Save QML file
     qml_file <- paste0(tempdir(),"/myfile.qml")
     sits_colors_qgis(sinop_class, qml_file)
     expect_true(file.size(qml_file) > 2000)
@@ -709,6 +756,9 @@ test_that("Classification with post-processing", {
         memsize = 4,
         multicores = 2
     )
+    expect_error(sits_label_classification(
+        sinop_uncert, output_dir = tempdir()
+    ))
 
     expect_true(all(file.exists(unlist(sinop_uncert$file_info[[1]]$path))))
     r_unc <- .raster_open_rast(sinop_uncert$file_info[[1]]$path[[1]])
@@ -804,10 +854,32 @@ test_that("Clean classification",{
     sum_clean <- summary(clean_cube)
 
     expect_equal(nrow(sum_orig), nrow(sum_clean))
-
     expect_equal(sum(sum_orig$count), sum(sum_clean$count))
-
     expect_lt(sum_orig[2,4], sum_clean[2,4])
+
+    # test errors in sits_clean
+    expect_error(
+        sits_clean(cube = sinop,
+                   output_dir = output_dir)
+    )
+    expect_error(
+        sits_clean(cube = sinop_probs,
+                   output_dir = output_dir)
+    )
+    sp <- sinop_class
+    class(sp) <- "data.frame"
+
+    clean_cube2 <- sits_clean(
+        cube = sp,
+        output_dir = output_dir,
+        version = "v2",
+        progress = FALSE
+    )
+    sum_clean2 <- summary(clean_cube2)
+
+    expect_equal(nrow(sum_orig), nrow(sum_clean2))
+    expect_equal(sum(sum_orig$count), sum(sum_clean2$count))
+    expect_lt(sum_orig[2,4], sum_clean2[2,4])
 
 })
 test_that("Raster GDAL datatypes", {

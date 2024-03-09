@@ -6,7 +6,6 @@
 \alias{sits_bands.raster_cube}
 \alias{sits_bands.patterns}
 \alias{sits_bands.sits_model}
-\alias{sits_bands.tbl_df}
 \alias{sits_bands.default}
 \alias{sits_bands<-}
 \alias{sits_bands<-.sits}
@@ -23,8 +22,6 @@ sits_bands(x)
 \method{sits_bands}{patterns}(x)
 
 \method{sits_bands}{sits_model}(x)
-
-\method{sits_bands}{tbl_df}(x)
 
 \method{sits_bands}{default}(x)
 

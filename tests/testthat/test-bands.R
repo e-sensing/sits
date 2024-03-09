@@ -16,4 +16,9 @@ test_that("band rename", {
     sinop <- .band_rename(sinop, "NDVI2")
     new_band <- sits_bands(sinop)
     expect_equal(new_band, "NDVI2")
+
+    sp <- sinop
+    class(sinop) <- "data.frame"
+    bands_cube <- sits_bands(sinop)
+    expect_equal(bands_cube, "NDVI2")
 })

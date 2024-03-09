@@ -23,6 +23,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     expect_false(.cube_is_regular(s2_cube_open))
     expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
 
+
     out <- capture_warning({
         expect_message(
             object = {
@@ -62,6 +63,22 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     tile_fileinfo <- .fi(rg_cube)
 
     expect_equal(nrow(tile_fileinfo), 2)
+
+    # Checking input class
+    s2_cube <- s2_cube_open
+    class(s2_cube) <- "data.frame"
+    expect_error(
+        sits_regularize(
+            cube = s2_cube,
+            output_dir = dir_images,
+            res = 240,
+            period = "P16D",
+            multicores = 2,
+            progress = FALSE
+        )
+    )
+
+    # Retrieving data
 
     csv_file <- system.file("extdata/samples/samples_amazonia.csv",
         package = "sits"
