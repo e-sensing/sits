@@ -102,7 +102,7 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
     data1 <- dplyr::arrange(data1, .data[["tile"]])
     data2 <- dplyr::arrange(data2, .data[["tile"]])
     .check_that(
-        x = all(.cube_tiles(data1) == .cube_tiles(data2)),
+        x = all(sort(.cube_tiles(data1)) == sort(.cube_tiles(data2))),
         msg = "merge cubes requires same tiles"
     )
     if (inherits(data1, "hls_cube") && inherits(data2, "hls_cube")) {

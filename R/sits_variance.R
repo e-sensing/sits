@@ -126,27 +126,37 @@ sits_variance.probs_cube <- function(
 }
 #' @rdname sits_variance
 #' @export
-sits_variance.raster_cube <- function(cube, window_size = 7L,
+sits_variance.raster_cube <- function(cube,
+                                      window_size = 7L,
                                       neigh_fraction = 0.5,
-                                      memsize = 4L, multicores = 2L,
-                                      output_dir, version = "v1") {
+                                      memsize = 4L,
+                                      multicores = 2L,
+                                      output_dir,
+                                      version = "v1") {
     stop("Input should be a probability cube")
     return(cube)
 }
 #' @rdname sits_variance
 #' @export
-sits_variance.derived_cube <- function(cube, window_size = 7L,
+sits_variance.derived_cube <- function(cube,
+                                       window_size = 7L,
                                        neigh_fraction = 0.5,
-                                       memsize = 4L, multicores = 2L,
-                                       output_dir, version = "v1") {
+                                       memsize = 4L,
+                                       multicores = 2L,
+                                       output_dir,
+                                       version = "v1") {
     stop("Input should be a probability cube")
     return(cube)
 }
 #' @rdname sits_variance
 #' @export
-sits_variance.tbl_df <- function(cube, window_size = 7L, neigh_fraction = 0.5,
-                                 memsize = 4L, multicores = 2L,
-                                 output_dir, version = "v1") {
+sits_variance.default <- function(cube,
+                                  window_size = 7L,
+                                  neigh_fraction = 0.5,
+                                  memsize = 4L,
+                                  multicores = 2L,
+                                  output_dir,
+                                  version = "v1") {
     cube <- tibble::as_tibble(cube)
     if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
         cube <- .cube_find_class(cube)
@@ -155,11 +165,4 @@ sits_variance.tbl_df <- function(cube, window_size = 7L, neigh_fraction = 0.5,
     variance_cube <- sits_variance(cube, window_size, neigh_fraction,
         memsize, multicores, output_dir, version)
     return(variance_cube)
-}
-#' @rdname sits_variance
-#' @export
-sits_variance.default <- function(cube, window_size = 7L, neigh_fraction = 0.5,
-                                  memsize = 4L, multicores = 2L,
-                                  output_dir, version = "v1") {
-    stop("Input should be a probability cube")
 }

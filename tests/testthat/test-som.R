@@ -1,15 +1,16 @@
-test_that("Creating clustering using Self-organizing Maps with DTW distance", {
+test_that("Creating clustering using Self-organizing Maps", {
     set.seed(2903)
 
     som_map <- sits_som_map(
         samples_modis_ndvi,
         grid_xdim = 4,
         grid_ydim = 4,
-        distance  = "euclidean" # custom distance only available in the sits package
+        distance  = "euclidean"
     )
 
     expect_true(all(colnames(som_map$labelled_neurons) %in%
-        c("id_neuron", "label_samples", "count", "prior_prob", "post_prob")))
+        c("id_neuron", "label_samples", "count",
+          "prior_prob", "post_prob")))
 
     expect_true(som_map$labelled_neurons[1, ]$prior_prob >= 0)
     expect_true(som_map$labelled_neurons[1, ]$post_prob >= 0)
@@ -28,4 +29,14 @@ test_that("Creating clustering using Self-organizing Maps with DTW distance", {
     expect_true(cluster_purity[2, ]$mixture_percentage < 40)
     expect_error(sits_som_clean_samples(samples_modis_ndvi))
     expect_error(sits_som_evaluate_samples(samples_modis_ndvi))
+
+    som_map <- sits_som_map(
+        samples_modis_ndvi,
+        grid_xdim = 4,
+        grid_ydim = 4,
+        distance  = "dtw"
+    )
+    expect_true(all(colnames(som_map$labelled_neurons) %in%
+                        c("id_neuron", "label_samples", "count",
+                          "prior_prob", "post_prob")))
 })

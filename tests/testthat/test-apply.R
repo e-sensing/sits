@@ -316,3 +316,33 @@ test_that("Kernel functions", {
 
     success <- file.remove(tif_files)
 })
+test_that("Error", {
+    rfor_model <- sits_train(
+        samples_modis_ndvi,
+        sits_rfor(num_trees = 30)
+    )
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    sinop <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        progress = TRUE,
+        verbose = TRUE
+    )
+    expect_error(.check_bbox(sinop))
+
+    output_dir <- paste0(tempdir(), "/apply")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
+    sinop_probs <- sits_classify(
+        data = sinop,
+        ml_model = rfor_model,
+        output_dir = output_dir,
+        memsize = 4,
+        multicores = 1,
+        progress = FALSE
+    )
+    expect_error(sits_apply(sinop_probs))
+
+})

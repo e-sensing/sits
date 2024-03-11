@@ -32,7 +32,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
             regexp = "returning all timelines"
         )
     })
-    timelines <-  sits_timeline(s2_cube_open)
+    timelines <-  suppressWarnings(sits_timeline(s2_cube_open))
     expect_equal(length(timelines), 2)
     expect_equal(length(timelines[["20LKP"]]), 6)
     expect_equal(length(timelines[["20LLP"]]), 13)

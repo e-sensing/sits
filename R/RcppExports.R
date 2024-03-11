@@ -133,10 +133,6 @@ C_temp_fqr <- function(mtx) {
     .Call(`_sits_C_temp_fqr`, mtx)
 }
 
-C_temp_sqr <- function(mtx) {
-    .Call(`_sits_C_temp_sqr`, mtx)
-}
-
 C_temp_tqr <- function(mtx) {
     .Call(`_sits_C_temp_tqr`, mtx)
 }

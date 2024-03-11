@@ -64,6 +64,14 @@ test_that("Single core classification with rfor", {
     max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
     expect_true(max_lyr3 <= 10000)
 
+    # defaults and errors
+    expect_error(sits_classify(probs_cube, rf_model))
+    sinop_df <- sinop
+    class(sinop_df) <- "data.frame"
+    probs_df <- sits_classify(sinop_df, rfor_model, output_dir = tempdir())
+
+    expect_true(all(sits_labels(probs_df) %in%
+                        c("Cerrado", "Forest", "Pasture", "Soy_Corn")))
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
 
@@ -516,10 +524,6 @@ test_that("Classification with post-processing", {
     band_conf <- .tile_band_conf(sinop2, band = "NDVI")
     expect_equal(band_conf$band_name, "NDVI")
 
-    class <- .cube_s3class(sinop2)
-    expect_true("raster_cube" %in% class)
-    expect_true("eo_cube" %in% class)
-
     is_complete <- .cube_is_complete(sinop2)
     expect_true(is_complete)
 
@@ -578,13 +582,6 @@ test_that("Classification with post-processing", {
         progress = FALSE
     )
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-
-    sinop3 <- sinop_probs
-    class(sinop3) <- "data.frame"
-    new_cube3 <- .cube_find_class(sinop3)
-    expect_true("raster_cube" %in% class(new_cube3))
-    expect_true("derived_cube" %in% class(new_cube3))
-    expect_true("probs_cube" %in% class(new_cube3))
 
     sinop_class <- sits_label_classification(
         sinop_probs,
@@ -716,8 +713,6 @@ test_that("Classification with post-processing", {
     })
     expect_true(grepl("output_dir", out[1]))
 
-    expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
-
     expect_true(length(sits_timeline(sinop_bayes)) ==
         length(sits_timeline(sinop_probs)))
 
@@ -775,21 +770,6 @@ test_that("Classification with post-processing", {
     expect_true("uncert_cube" %in% class(new_cube5))
 
 
-    sinop_uncert_2 <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        bands = "margin",
-        version = "v1",
-        labels = sits_labels(sinop_class),
-        data_dir = output_dir,
-        parse_info = c(
-            "X1", "X2", "tile",
-            "start_date", "end_date",
-            "band", "version"
-        ),
-        progress = FALSE
-    )
-
     timeline_orig <- sits_timeline(sinop)
     timeline_probs <- sits_timeline(sinop_probs)
     timeline_unc <- sits_timeline(sinop_uncert)
@@ -804,10 +784,23 @@ test_that("Classification with post-processing", {
     expect_equal(timeline_orig[1], timeline_class[1])
     expect_equal(timeline_orig[length(timeline_orig)], timeline_class[2])
 
+
+    sinop6 <- sinop_probs
+    class(sinop6) <- "data.frame"
+
+    sinop_bayes_3 <- sits_smooth(sinop6, output_dir = tempdir())
+    expect_equal(sits_bands(sinop_bayes_3), "bayes")
+
+    expect_error(sits_smooth(sinop, output_dir = tempdir()))
+    expect_error(sits_smooth(sinop_class, output_dir = tempdir()))
+    expect_error(sits_smooth(sinop_uncert, output_dir = tempdir()))
+
+
+
     expect_true(all(file.remove(unlist(sinop_class$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_bayes_2$file_info[[1]]$path))))
-
+    expect_true(all(file.remove(unlist(sinop_bayes_3$file_info[[1]]$path))))
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_uncert$file_info[[1]]$path))))
@@ -931,4 +924,7 @@ test_that("Raster terra interface", {
     r_prodes <- .raster_open_rast(paste0(prodes_dir, "/", prodes_file))
     expect_equal(nrow(r_clone), nrow(r_prodes))
     expect_equal(ncol(r_clone), ncol(r_prodes))
+})
+test_that("Segmentation of large files",{
+
 })

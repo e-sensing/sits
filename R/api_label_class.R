@@ -108,6 +108,17 @@
                 "change 'output_dir' or 'version' parameters)"
             )
         }
+        # Create tile based on template
+        class_tile <- .tile_segments_from_file(
+            file = out_file,
+            band = "class",
+            base_tile = tile,
+            labels = .tile_labels(tile),
+            vector_class = "class_vector_cube",
+            update_bbox = FALSE
+        )
+        # Return classified vector tile
+        return(class_tile)
     }
     # Get tile labels
     labels <- unname(.tile_labels(tile))

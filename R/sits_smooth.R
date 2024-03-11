@@ -59,9 +59,14 @@
 #'     plot(label_cube)
 #' }
 #' @export
-sits_smooth <- function(cube, window_size = 7L, neigh_fraction = 0.5,
-        smoothness = 10L, memsize = 4L, multicores = 2L,
-        output_dir, version = "v1") {
+sits_smooth <- function(cube,
+                        window_size = 7L,
+                        neigh_fraction = 0.5,
+                        smoothness = 10L,
+                        memsize = 4L,
+                        multicores = 2L,
+                        output_dir,
+                        version = "v1") {
     # Check if cube has probability data
     .check_raster_cube_files(cube)
     # check window size
@@ -89,10 +94,14 @@ sits_smooth <- function(cube, window_size = 7L, neigh_fraction = 0.5,
 }
 #' @rdname sits_smooth
 #' @export
-sits_smooth.probs_cube <- function(cube, window_size = 7L, neigh_fraction = 0.5,
+sits_smooth.probs_cube <- function(cube,
+                                   window_size = 7L,
+                                   neigh_fraction = 0.5,
                                    smoothness = 10L,
-                                   memsize = 4L, multicores = 2L,
-                                   output_dir, version = "v1") {
+                                   memsize = 4L,
+                                   multicores = 2L,
+                                   output_dir,
+                                   version = "v1") {
     # version is case-insensitive in sits
     version <- tolower(version)
     # get nlabels
@@ -144,45 +153,49 @@ sits_smooth.probs_cube <- function(cube, window_size = 7L, neigh_fraction = 0.5,
 }
 #' @rdname sits_smooth
 #' @export
-sits_smooth.raster_cube <- function(cube, window_size = 7L,
-                                    neigh_fraction = 0.5, smoothness = 10L,
-                                    memsize = 4L, multicores = 2L,
-                                    output_dir, version = "v1") {
+sits_smooth.raster_cube <- function(cube,
+                                    window_size = 7L,
+                                    neigh_fraction = 0.5,
+                                    smoothness = 10L,
+                                    memsize = 4L,
+                                    multicores = 2L,
+                                    output_dir,
+                                    version = "v1") {
     stop("Input should be a probability cube")
 }
 #' @rdname sits_smooth
 #' @export
 sits_smooth.derived_cube <- function(cube, window_size = 7L,
-                                     neigh_fraction = 0.5, smoothness = 10L,
-                                     memsize = 4L, multicores = 2L,
-                                     output_dir, version = "v1") {
+                                     neigh_fraction = 0.5,
+                                     smoothness = 10L,
+                                     memsize = 4L,
+                                     multicores = 2L,
+                                     output_dir,
+                                     version = "v1") {
     stop("Input should be a probability cube")
 }
 #' @rdname sits_smooth
 #' @export
-sits_smooth.tbl_df <- function(
-        cube,
-        window_size = 7L,
-        neigh_fraction = 0.5,
-        smoothness = 10L,
-        memsize = 4L,
-        multicores = 2L,
-        output_dir,
-        version = "v1") {
+sits_smooth.default <- function(cube,
+                                window_size = 7L,
+                                neigh_fraction = 0.5,
+                                smoothness = 10L,
+                                memsize = 4L,
+                                multicores = 2L,
+                                output_dir,
+                                version = "v1") {
     cube <- tibble::as_tibble(cube)
     if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
         cube <- .cube_find_class(cube)
     } else
         stop("Input should be a data cube")
-    cube <- sits_smooth(cube, window_size, neigh_fraction, smoothness,
-                          memsize, multicores, output_dir, version)
+    cube <- sits_smooth(cube,
+                        window_size = 7L,
+                        neigh_fraction = 0.5,
+                        smoothness = 10L,
+                        memsize = 4L,
+                        multicores = 2L,
+                        output_dir,
+                        version = "v1")
     return(cube)
-}
-#' @rdname sits_smooth
-#' @export
-sits_smooth.default <- function(cube, window_size = 7L,
-                                neigh_fraction = 0.5, smoothness = 10L,
-                                memsize = 4L, multicores = 2L,
-                                output_dir, version = "v1") {
-    stop("Input should be a probability cube")
 }

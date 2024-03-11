@@ -96,11 +96,6 @@ arma::vec C_temp_fqr(const arma::mat& mtx) {
 }
 
 // [[Rcpp::export]]
-arma::vec C_temp_sqr(const arma::mat& mtx) {
-    return arma::quantile(mtx, p_050, 1);
-}
-
-// [[Rcpp::export]]
 arma::vec C_temp_tqr(const arma::mat& mtx) {
     return arma::quantile(mtx, p_075, 1);
 }

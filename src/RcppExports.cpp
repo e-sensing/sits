@@ -414,17 +414,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// C_temp_sqr
-arma::vec C_temp_sqr(const arma::mat& mtx);
-RcppExport SEXP _sits_C_temp_sqr(SEXP mtxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_temp_sqr(mtx));
-    return rcpp_result_gen;
-END_RCPP
-}
 // C_temp_tqr
 arma::vec C_temp_tqr(const arma::mat& mtx);
 RcppExport SEXP _sits_C_temp_tqr(SEXP mtxSEXP) {
@@ -686,7 +675,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_temp_amd", (DL_FUNC) &_sits_C_temp_amd, 1},
     {"_sits_C_temp_mse", (DL_FUNC) &_sits_C_temp_mse, 1},
     {"_sits_C_temp_fqr", (DL_FUNC) &_sits_C_temp_fqr, 1},
-    {"_sits_C_temp_sqr", (DL_FUNC) &_sits_C_temp_sqr, 1},
     {"_sits_C_temp_tqr", (DL_FUNC) &_sits_C_temp_tqr, 1},
     {"_sits_C_temp_iqr", (DL_FUNC) &_sits_C_temp_iqr, 1},
     {"_sits_rlang_env_unlock", (DL_FUNC) &_sits_rlang_env_unlock, 1},

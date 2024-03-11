@@ -137,7 +137,7 @@ sits_cluster_dendro.sits <- function(samples,
 }
 #' @rdname sits_cluster_dendro
 #' @export
-sits_cluster_dendro.tbl_df <- function(samples, ...) {
+sits_cluster_dendro.default <- function(samples, ...) {
     samples <- tibble::as_tibble(samples)
     if (all(.conf("sits_tibble_cols") %in% colnames(samples))) {
         class(samples) <- c("sits", class(samples))
@@ -145,11 +145,6 @@ sits_cluster_dendro.tbl_df <- function(samples, ...) {
         stop("Input should be a sits tibble")
     samples <- sits_cluster_dendro(samples, ...)
     return(samples)
-}
-#' @rdname sits_cluster_dendro
-#' @export
-sits_cluster_dendro.default <- function(samples, ...) {
-    stop("Input samples should be of class sits")
 }
 #'
 #' @title Show label frequency in each cluster produced by dendrogram analysis

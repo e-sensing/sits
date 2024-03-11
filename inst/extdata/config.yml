@@ -2,7 +2,7 @@
 # The parameters enable access to the cloud collections
 
 # BDC access key
-BDC_ACCESS_KEY: "gsLxTlcbO7tu7tMEOVWKD6YkJDhlNz7iwkRN2XZf55"
+BDC_ACCESS_KEY: "vtclkRc5c874XBd0Y7NSUWuzLihnU1bHC5bbLSXfQ5"
 HLS_ACCESS_URL: "machine.urs.earthdata.nasa.gov"
 
 sources:
