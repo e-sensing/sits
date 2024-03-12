@@ -29,8 +29,6 @@ test_that("Testing normalized index generation", {
                       pattern = "\\.tif$",
                       full.names = TRUE
     ))
-
-
     expect_warning(
         gc_cube <- sits_regularize(
             cube = s2_cube,
@@ -335,6 +333,21 @@ test_that("Error", {
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
+    out <- capture_warning({
+        expect_message(
+            {
+                cube_median <- sits_apply(
+                    data = sinop,
+                    output_dir = tempdir(),
+                    NDVI = w_median(NDVI),
+                    window_size = 3,
+                    memsize = 4,
+                    multicores = 2
+                )
+            },
+            regexp = "provided band"
+        )
+    })
     sinop_probs <- sits_classify(
         data = sinop,
         ml_model = rfor_model,

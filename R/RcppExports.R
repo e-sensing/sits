@@ -149,24 +149,8 @@ rlang_env_lock <- function(env) {
     invisible(.Call(`_sits_rlang_env_lock`, env))
 }
 
-sample_points_inclusion <- function(polymatrix, n_sam_pol) {
-    .Call(`_sits_sample_points_inclusion`, polymatrix, n_sam_pol)
-}
-
-sample_points_crossings <- function(polymatrix, n_sam_pol) {
-    .Call(`_sits_sample_points_crossings`, polymatrix, n_sam_pol)
-}
-
-sample_points_bin <- function(polymatrix, n_sam_pol) {
-    .Call(`_sits_sample_points_bin`, polymatrix, n_sam_pol)
-}
-
 C_max_sampling <- function(x, nrows, ncols, window_size) {
     .Call(`_sits_C_max_sampling`, x, nrows, ncols, window_size)
-}
-
-bayes_smoother <- function(m, m_nrow, m_ncol, w, sigma, neigh_fraction) {
-    .Call(`_sits_bayes_smoother`, m, m_nrow, m_ncol, w, sigma, neigh_fraction)
 }
 
 bayes_var <- function(m, m_nrow, m_ncol, w, neigh_fraction) {

@@ -456,42 +456,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// sample_points_inclusion
-NumericMatrix sample_points_inclusion(const NumericMatrix& polymatrix, const int n_sam_pol);
-RcppExport SEXP _sits_sample_points_inclusion(SEXP polymatrixSEXP, SEXP n_sam_polSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type polymatrix(polymatrixSEXP);
-    Rcpp::traits::input_parameter< const int >::type n_sam_pol(n_sam_polSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_points_inclusion(polymatrix, n_sam_pol));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_points_crossings
-NumericMatrix sample_points_crossings(const NumericMatrix& polymatrix, const int n_sam_pol);
-RcppExport SEXP _sits_sample_points_crossings(SEXP polymatrixSEXP, SEXP n_sam_polSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type polymatrix(polymatrixSEXP);
-    Rcpp::traits::input_parameter< const int >::type n_sam_pol(n_sam_polSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_points_crossings(polymatrix, n_sam_pol));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_points_bin
-NumericMatrix sample_points_bin(const NumericMatrix& polymatrix, const int n_sam_pol);
-RcppExport SEXP _sits_sample_points_bin(SEXP polymatrixSEXP, SEXP n_sam_polSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type polymatrix(polymatrixSEXP);
-    Rcpp::traits::input_parameter< const int >::type n_sam_pol(n_sam_polSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_points_bin(polymatrix, n_sam_pol));
-    return rcpp_result_gen;
-END_RCPP
-}
 // C_max_sampling
 DataFrame C_max_sampling(const NumericVector& x, int nrows, int ncols, int window_size);
 RcppExport SEXP _sits_C_max_sampling(SEXP xSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP) {
@@ -503,22 +467,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type ncols(ncolsSEXP);
     Rcpp::traits::input_parameter< int >::type window_size(window_sizeSEXP);
     rcpp_result_gen = Rcpp::wrap(C_max_sampling(x, nrows, ncols, window_size));
-    return rcpp_result_gen;
-END_RCPP
-}
-// bayes_smoother
-arma::mat bayes_smoother(const arma::mat& m, const arma::uword m_nrow, const arma::uword m_ncol, const arma::mat& w, const arma::mat& sigma, const double neigh_fraction);
-RcppExport SEXP _sits_bayes_smoother(SEXP mSEXP, SEXP m_nrowSEXP, SEXP m_ncolSEXP, SEXP wSEXP, SEXP sigmaSEXP, SEXP neigh_fractionSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type m(mSEXP);
-    Rcpp::traits::input_parameter< const arma::uword >::type m_nrow(m_nrowSEXP);
-    Rcpp::traits::input_parameter< const arma::uword >::type m_ncol(m_ncolSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type w(wSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< const double >::type neigh_fraction(neigh_fractionSEXP);
-    rcpp_result_gen = Rcpp::wrap(bayes_smoother(m, m_nrow, m_ncol, w, sigma, neigh_fraction));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -679,11 +627,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_temp_iqr", (DL_FUNC) &_sits_C_temp_iqr, 1},
     {"_sits_rlang_env_unlock", (DL_FUNC) &_sits_rlang_env_unlock, 1},
     {"_sits_rlang_env_lock", (DL_FUNC) &_sits_rlang_env_lock, 1},
-    {"_sits_sample_points_inclusion", (DL_FUNC) &_sits_sample_points_inclusion, 2},
-    {"_sits_sample_points_crossings", (DL_FUNC) &_sits_sample_points_crossings, 2},
-    {"_sits_sample_points_bin", (DL_FUNC) &_sits_sample_points_bin, 2},
     {"_sits_C_max_sampling", (DL_FUNC) &_sits_C_max_sampling, 4},
-    {"_sits_bayes_smoother", (DL_FUNC) &_sits_bayes_smoother, 6},
     {"_sits_bayes_var", (DL_FUNC) &_sits_bayes_var, 5},
     {"_sits_bayes_smoother_fraction", (DL_FUNC) &_sits_bayes_smoother_fraction, 6},
     {"_sits_smooth_sg", (DL_FUNC) &_sits_smooth_sg, 4},

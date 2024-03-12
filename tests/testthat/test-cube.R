@@ -662,17 +662,9 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
     )
     netrc_file <- "~/.netrc"
     file.rename(netrc_file, "~/.netrc_save")
-    expect_error(
-        sits_cube(
-            source = "HLS",
-            collection = "HLSS30",
-            roi = roi,
-            bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
-            start_date = as.Date("2020-05-01"),
-            end_date = as.Date("2020-09-01"),
-            progress = FALSE
-        )
-    )
+    expect_error(.source_configure_access.hls_cube(
+        source = "HLS", collection = "HLSS30"))
+
     expect_true(file.rename("~/.netrc_save", "~/.netrc"))
     if (file.exists("./.rcookies"))
         unlink("./.rcookies")

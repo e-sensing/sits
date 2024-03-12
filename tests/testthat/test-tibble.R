@@ -29,7 +29,7 @@ test_that("Apply", {
 test_that("Data frame",{
     point_df <- point_mt_6bands
     class(point_df) <- "data.frame"
-    point_df_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+    point_df_ndvi <- sits_select(point_df, bands = "NDVI")
     expect_equal(sits_bands(point_df_ndvi), "NDVI")
 })
 test_that("Bands", {

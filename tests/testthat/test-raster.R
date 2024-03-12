@@ -518,11 +518,28 @@ test_that("Classification with post-processing", {
                         band = "NDVI")
     expect_true(grepl("jp2", path1))
 
+    expect_equal(.tile_source(sinop2), "BDC")
+    expect_equal(.tile_collection(sinop2), "MOD13Q1-6")
     expect_equal(.tile_satellite(sinop2), "TERRA")
     expect_equal(.tile_sensor(sinop2), "MODIS")
     expect_equal(.tile_bands(sinop2), "NDVI")
+    expect_equal(.tile_ncols(sinop2), 255)
+    expect_equal(.tile_nrows(sinop2), 147)
+    expect_equal(.tile_size(sinop2)$ncols, 255)
+    expect_equal(.tile_size(sinop2)$nrows, 147)
+    expect_gt(.tile_xres(sinop2), 231)
+    expect_gt(.tile_yres(sinop2), 231)
+    expect_equal(as.Date(.tile_start_date(sinop2)), as.Date("2013-09-14"))
+    expect_equal(as.Date(.tile_end_date(sinop2)), as.Date("2014-08-29"))
+    expect_equal(.tile_fid(sinop), .tile_fid(sinop2))
+    expect_equal(.tile_crs(sinop), .tile_crs(sinop2))
+    expect_error(.tile_area_freq(sinop))
+    expect_equal(.tile_timeline(sinop), .tile_timeline(sinop2))
+    expect_true(.tile_is_complete(sinop2))
     band_conf <- .tile_band_conf(sinop2, band = "NDVI")
     expect_equal(band_conf$band_name, "NDVI")
+
+
 
     is_complete <- .cube_is_complete(sinop2)
     expect_true(is_complete)
@@ -629,6 +646,8 @@ test_that("Classification with post-processing", {
 
     labels <- .cube_labels(sinop4)
     expect_true(all(c("Cerrado", "Forest", "Pasture","Soy_Corn") %in% labels))
+    labels <- .tile_labels(sinop4)
+    expect_true(all(c("Cerrado", "Forest", "Pasture","Soy_Corn") %in% labels))
 
     labels <- sits_labels(sinop4)
     expect_true(all(c("Cerrado", "Forest", "Pasture","Soy_Corn") %in% labels))
@@ -636,6 +655,13 @@ test_that("Classification with post-processing", {
     sits_labels(sinop4) <- c("Cerrado", "Floresta", "Pastagem","Soja_Milho")
     labels <- sits_labels(sinop4)
     expect_true("Cerrado" %in% labels)
+
+    expect_equal(.tile_area_freq(sinop_class)[1,3],.tile_area_freq(sinop4)[1,3])
+
+    expect_error(.tile_update_label(
+        sinop_probs,
+        c("Cerrado", "Floresta", "Pastagem","Soja_Milho")
+    ))
 
     col <- .cube_collection(sinop4)
     expect_equal(col, "MOD13Q1-6")
@@ -844,6 +870,19 @@ test_that("Clean classification",{
         output_dir = output_dir,
         progress = FALSE
     )
+    # testing the recovery feature
+    out <- capture_messages({
+        expect_message(
+            object = {
+                sits_clean(
+                    cube = sinop_class,
+                    output_dir = output_dir,
+                    progress = FALSE
+                )
+            },
+            regexp = "Recovery"
+        )
+    })
     sum_clean <- summary(clean_cube)
 
     expect_equal(nrow(sum_orig), nrow(sum_clean))
