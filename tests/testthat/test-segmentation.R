@@ -3,7 +3,7 @@ test_that("Segmentation", {
     # Create a data cube from local files
     set.seed(29031956)
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    cube <- sits_cube(
+    sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
@@ -16,7 +16,7 @@ test_that("Segmentation", {
     }
     # Segment the cube
     segments <- sits_segment(
-        cube = cube,
+        cube = sinop,
         output_dir = output_dir,
         multicores = 2,
         memsize = 24,
@@ -55,7 +55,7 @@ test_that("Segmentation", {
         expect_message(
             object = {
                 sits_segment(
-                    cube = cube,
+                    cube = sinop,
                     output_dir = output_dir,
                     multicores = 1,
                     memsize = 24,
@@ -80,17 +80,24 @@ test_that("Segmentation", {
     expect_s3_class(object = segment_cube, class = "vector_cube")
     expect_true("vector_info" %in% colnames(segment_cube))
 
-
     # Train a rf model
-    rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
+    samples_filt <- sits_apply(samples_modis_ndvi,
+                               NDVI = sits_sgolay(NDVI))
+
+    rfor_model <- sits_train(samples_filt, sits_rfor())
     # Create a probability vector cube
+    start_date <- sits_timeline(sinop)[1]
+    end_date <- sits_timeline(sinop)[length(sits_timeline(sinop))]
     probs_segs <- sits_classify(
         data = segments,
-        ml_model = rf_model,
+        ml_model = rfor_model,
+        filter_fn = sits_sgolay(),
         output_dir = output_dir,
         n_sam_pol = 20,
         multicores = 6,
         memsize = 24,
+        start_date = start_date,
+        end_date = end_date,
         version = "vt2"
     )
     p2 <- plot(probs_segs)
@@ -122,6 +129,18 @@ test_that("Segmentation", {
                 )
             },
             regexp = "Recovery: "
+        )
+    })
+    # Expect error when trying to classify derived cube
+    expect_error({
+        sits_classify(
+            data = probs_segs,
+            ml_model = rf_model,
+            output_dir = output_dir,
+            n_sam_pol = 20,
+            multicores = 6,
+            memsize = 24,
+            version = "vt2"
         )
     })
     # Create a classified vector cube
@@ -190,6 +209,9 @@ test_that("Segmentation of large files",{
             )
         },
         .default = NULL
+    )
+    testthat::skip_if(purrr::is_null(modis_cube),
+                      message = "BDC is not accessible"
     )
     output_dir <- paste0(tempdir(), "/segs")
     if (!dir.exists(output_dir)) {

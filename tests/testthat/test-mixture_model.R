@@ -9,7 +9,9 @@ test_that("Mixture model tests", {
         end_date = "2019-07-30",
         progress = FALSE
     )
-
+    testthat::skip_if(purrr::is_null(s2_cube),
+                      message = "AWS is not accessible"
+    )
     # Delete files before check
     unlink(list.files(path = tempdir(), pattern = "\\.jp2$", full.names = TRUE))
     unlink(list.files(path = tempdir(), pattern = "\\.tif$", full.names = TRUE))
@@ -61,10 +63,27 @@ test_that("Mixture model tests", {
     r_obj <- .raster_open_rast(mm_rmse$file_info[[1]]$path[[2]])
     expect_true(.raster_nrows(r_obj) == .tile_nrows(reg_cube))
 
+    # test errors in mixture model
+    reg_cube2 <- reg_cube
+    class(reg_cube2) <- "derived_cube"
+    expect_error({
+        mm_rmse <- sits_mixture_model(
+            data = reg_cube2,
+            endmembers = em,
+            memsize = 2,
+            multicores = 2,
+            output_dir = tempdir(),
+            rmse_band = TRUE,
+            progress = FALSE
+        )
+    })
+
+    # Read endmembers from CSV
     write.csv(em, file = paste0(tempdir(), "/mmodel.csv"),  row.names = FALSE)
     csv_file <- paste0(tempdir(), "/mmodel.csv")
 
-    # Read endmembers from CSV
+    reg_cube3 <- reg_cube
+    class(reg_cube3) <- "data.frame"
     mm_rmse_csv <- sits_mixture_model(
         data = reg_cube,
         endmembers = csv_file,

@@ -137,6 +137,19 @@ test_that("One-year, reclassify different rules", {
         multicores = 2,
         memsize = 4
     )
+    expect_error({
+        sits_reclassify(
+            cube = probs_cube,
+            mask = label_cube,
+            rules = list(
+                Cerrado = mask %in% c("Pasture", "Cerrado")
+            ),
+            output_dir = tempdir(),
+            version = "reclass",
+            multicores = 2,
+            memsize = 4
+        )
+    })
 
     expect_equal(
         object = sits_labels(reclass),
