@@ -5,7 +5,6 @@
 \alias{sits_variance.probs_cube}
 \alias{sits_variance.raster_cube}
 \alias{sits_variance.derived_cube}
-\alias{sits_variance.tbl_df}
 \alias{sits_variance.default}
 \title{Calculate the variance of a probability cube}
 \usage{
@@ -40,16 +39,6 @@ sits_variance(
 )
 
 \method{sits_variance}{derived_cube}(
-  cube,
-  window_size = 7L,
-  neigh_fraction = 0.5,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1"
-)
-
-\method{sits_variance}{tbl_df}(
   cube,
   window_size = 7L,
   neigh_fraction = 0.5,

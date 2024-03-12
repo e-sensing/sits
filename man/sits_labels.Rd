@@ -8,9 +8,7 @@
 \alias{sits_labels.raster_cube}
 \alias{sits_labels.patterns}
 \alias{sits_labels.sits_model}
-\alias{sits_labels.tbl_df}
 \alias{sits_labels.default}
-\alias{sits_labels<-.tbl_df}
 \title{Get labels associated to a data set}
 \usage{
 sits_labels(data)
@@ -27,21 +25,13 @@ sits_labels(data)
 
 \method{sits_labels}{sits_model}(data)
 
-\method{sits_labels}{tbl_df}(data)
-
 \method{sits_labels}{default}(data)
-
-\method{sits_labels}{tbl_df}(data) <- value
 }
 \arguments{
 \item{data}{Time series (tibble of class "sits"),
 patterns (tibble of class "patterns"),
 data cube (tibble of class "raster_cube"), or
 model (closure of class "sits_model").}
-
-\item{value}{A character vector used to convert labels. Labels will
-be renamed to the respective value positioned at the
-labels order returned by \code{\link{sits_labels}}.}
 }
 \value{
 The labels of the input data (character vector).

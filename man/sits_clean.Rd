@@ -5,7 +5,6 @@
 \alias{sits_clean.class_cube}
 \alias{sits_clean.raster_cube}
 \alias{sits_clean.derived_cube}
-\alias{sits_clean.tbl_df}
 \alias{sits_clean.default}
 \title{Cleans a classified map using a local window}
 \usage{
@@ -40,16 +39,6 @@ sits_clean(
 )
 
 \method{sits_clean}{derived_cube}(
-  cube,
-  window_size = 5L,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1-clean",
-  progress = TRUE
-)
-
-\method{sits_clean}{tbl_df}(
   cube,
   window_size = 5L,
   memsize = 4L,

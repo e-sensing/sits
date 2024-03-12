@@ -3,7 +3,6 @@
 \name{sits_cluster_dendro}
 \alias{sits_cluster_dendro}
 \alias{sits_cluster_dendro.sits}
-\alias{sits_cluster_dendro.tbl_df}
 \alias{sits_cluster_dendro.default}
 \title{Find clusters in time series samples}
 \usage{
@@ -25,8 +24,6 @@ sits_cluster_dendro(
   palette = "RdYlGn",
   ...
 )
-
-\method{sits_cluster_dendro}{tbl_df}(samples, ...)
 
 \method{sits_cluster_dendro}{default}(samples, ...)
 }

@@ -28,7 +28,11 @@ sits_som_map(
 
 \item{rlen}{Number of iterations to produce the SOM.}
 
-\item{distance}{The type of similarity measure (distance).}
+\item{distance}{The type of similarity measure (distance). The
+following similarity measurements are supported:
+\code{"euclidean"}, \code{"dtw"}, \code{"manhattan"},
+and \code{"tanimoto"}. The default similarity measure
+is \code{"euclidean"}.}
 
 \item{som_radius}{Radius of SOM neighborhood.}
 
@@ -75,6 +79,13 @@ the posterior probability is < `posterior_threshold`, the sample is tagged as
 "analyze" for further inspection.
 The user can define which tagged samples will be returned using the "keep"
 parameter, with the following options: "clean", "analyze", "remove".
+}
+\note{
+The \code{sits} package implements the \code{"dtw"} (Dynamic Time
+      Warping) similarity measure. All other similarity measurements
+      come from the
+      \code{\link[kohonen:supersom]{kohonen::supersom (dist.fcts)}}
+      function.
 }
 \examples{
 if (sits_run_examples()) {

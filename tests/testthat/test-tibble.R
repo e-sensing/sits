@@ -26,7 +26,12 @@ test_that("Apply", {
         tolerance = 0.1
     )
 })
-
+test_that("Data frame",{
+    point_df <- point_mt_6bands
+    class(point_df) <- "data.frame"
+    point_df_ndvi <- sits_select(point_df, bands = "NDVI")
+    expect_equal(sits_bands(point_df_ndvi), "NDVI")
+})
 test_that("Bands", {
     bands <- sits_bands(samples_modis_ndvi)
 
@@ -105,6 +110,34 @@ test_that("Bbox", {
     expect_true(all(names(bbox) %in%
         c("xmin", "ymin", "xmax", "ymax", "crs")))
     expect_true(bbox["xmin"] < -60.0)
+
+    samples <- samples_modis_ndvi
+    class(samples) <- "tbl_df"
+    bbox1 <- sits_bbox(samples)
+    expect_equal(bbox1, bbox)
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    bbox2 <- sits_bbox(cube)
+    new_cube <- cube
+    class(new_cube) <- "tbl_df"
+    bbox3 <- sits_bbox(new_cube)
+    expect_equal(bbox2, bbox3)
+
+    bad_cube <- cube[1,1:3]
+    # create a raster cube
+    bbox5 <- .try(
+        {
+           sits_bbox(bad_cube)
+        },
+        .default = NULL
+    )
+    expect_null(bbox5)
 })
 
 test_that("Merge", {

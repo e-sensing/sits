@@ -8,6 +8,15 @@ test_that("Creating a dendrogram and clustering the results", {
         )
     )
 
+    messages <- capture_messages({
+        clusters2 <- sits_cluster_dendro(
+                cerrado_2classes,
+                bands = c("NDVI", "EVI"),
+                k = 8
+            )
+    })
+    # test message
+    expect_true(grepl("Caveat", messages[3]))
     dendro <- .cluster_dendrogram(cerrado_2classes,
         bands = c("NDVI", "EVI")
     )
@@ -33,4 +42,15 @@ test_that("Creating a dendrogram and clustering the results", {
         unique(clusters_new$cluster)))
     expect_true(sits_cluster_frequency(clusters_new)[3, 1] >
         sits_cluster_frequency(clean)[3, 1])
+
+    # test default
+    samples_df <- cerrado_2classes
+    class(samples_df) <- "data.frame"
+    clusters_df <- suppressMessages(
+        sits_cluster_dendro(
+            samples_df,
+            bands = c("NDVI", "EVI")
+        )
+    )
+    expect_equal(nrow(clusters_df), 746)
 })

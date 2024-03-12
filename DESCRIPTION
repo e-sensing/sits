@@ -90,6 +90,7 @@ Suggests:
     openxlsx,
     randomForest,
     randomForestExplainer,
+    RColorBrewer,
     RcppArmadillo (>= 0.12),
     scales,
     spdep,

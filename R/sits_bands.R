@@ -75,7 +75,7 @@ sits_bands.sits_model <- function(x) {
 }
 #' @rdname sits_bands
 #' @export
-sits_bands.tbl_df <- function(x) {
+sits_bands.default <- function(x) {
     x <- tibble::as_tibble(x)
     if (all(.conf("sits_cube_cols") %in% colnames(x))) {
         x <- .cube_find_class(x)
@@ -86,12 +86,6 @@ sits_bands.tbl_df <- function(x) {
     bands <- sits_bands(x)
     return(bands)
 }
-#' @rdname sits_bands
-#' @export
-sits_bands.default <- function(x) {
-    stop("Input should be an object of class sits, raster_cube, or ml_model")
-}
-
 #' @rdname sits_bands
 #' @export
 `sits_bands<-` <- function(x, value) {

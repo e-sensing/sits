@@ -11,15 +11,12 @@
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
 #' @param  palette       A sequential RColorBrewer palette
+#' @param  style         Method to process the color scale
+#'                       ("cont", "order", "quantile", "fisher",
+#'                        "jenks", "log10")
+#' @param  n_colors      Number of colors to be plotted
 #' @param  rev           Reverse the color palette?
-#' @param  tmap_options  Named vector with optional tmap parameters:
-#'                       scale (default = 1.0)
-#'                       max_cells (default: 1e+06)
-#'                       graticules_labels_size (default: 0.7)
-#'                       legend_title_size (default: 1.5)
-#'                       legend_text_size (default: 1.2)
-#'                       legend_bg_color (default: "white")
-#'                       legend_bg_alpha (default: 0.5)
+#' @param  scale         Scale to plot map (0.4 to 1.0)
 #'
 #' @return               A plot object
 #'
@@ -30,14 +27,19 @@
                               seg_color = NULL,
                               line_width = 0.2,
                               palette,
+                              style,
+                              n_colors,
                               rev,
-                              tmap_options) {
+                              scale) {
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
     .check_require_packages("tmap")
     # deal with color palette
     .check_palette(palette)
+    # Grayscale palette? reverse is TRUE
+    if (palette == "Greys")
+        rev <- TRUE
     # reverse the color palette?
     if (rev) {
         palette <- paste0("-", palette)
@@ -47,10 +49,9 @@
     bw_file <- .tile_path(tile, band, date)
 
     # size of data to be read
-    size <- .plot_read_size(
-        tile = tile,
-        tmap_options = tmap_options
-    )
+    size <- .plot_read_size(tile = tile)
+    # if tile has no CRS warp it to get a valid CRS
+    # used for SAR images
     if (!.has(.crs(tile))) {
         temp <- tempfile(fileext = ".tif")
         .gdal_warp(
@@ -77,29 +78,30 @@
 
     # rescale the stars object
     band_conf <- .tile_band_conf(tile = tile, band = band)
-    scale <- .scale(band_conf)
-    offset <- .offset(band_conf)
-    stars_obj <- stars_obj * scale + offset
+    band_scale <- .scale(band_conf)
+    band_offset <- .offset(band_conf)
+    stars_obj <- stars_obj * band_scale + band_offset
 
-    # set the tmap options
-    tmap_params <- .plot_tmap_params(tmap_options)
+    # generate plot
     p <- suppressMessages(
         tmap::tm_shape(stars_obj) +
             tmap::tm_raster(
-                style = "cont",
+                style = style,
+                n = n_colors,
                 palette = palette,
                 title = band,
                 midpoint = NA
             ) +
             tmap::tm_graticules(
-                labels.size = tmap_params[["graticules_labels_size"]]
+                labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
             ) +
             tmap::tm_compass() +
             tmap::tm_layout(
-                legend.bg.color = tmap_params[["legend_bg_color"]],
-                legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
-                legend.title.size = tmap_params[["legend_title_size"]],
-                legend.text.size = tmap_params[["legend_text_size"]]
+                scale = scale,
+                legend.bg.color = .conf("tmap","legend_bg_color"),
+                legend.bg.alpha = as.numeric(.conf("tmap", "legend_bg_alpha")),
+                legend.title.size = as.numeric(.conf("tmap","legend_title_size")),
+                legend.text.size = as.numeric(.conf("tmap","legend_text_size"))
             )
     )
     # include segments
@@ -118,19 +120,11 @@
 #' @param  tile          Tile to be plotted.
 #' @param  legend        Legend for the classes
 #' @param  palette       A sequential RColorBrewer palette
-#' @param  tmap_options  Named vector with optional tmap parameters
-#'                       max_cells (default: 1e+06)
-#'                       scale (default: 0.8)
-#'                       font_family (default: "sans")
-#'                       graticules_labels_size (default: 0.7)
-#'                       legend_title_size (default: 0.8)
-#'                       legend_text_size (default: 0.8)
-#'                       legend_bg_color (default: "white")
-#'                       legend_bg_alpha (default: 0.5)
+#' @param  scale         Scale to plot the map
 #'
 #' @return               A plot object
 #'
-.plot_class_image <- function(tile, legend, palette, tmap_options) {
+.plot_class_image <- function(tile, legend, palette, scale) {
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
@@ -149,7 +143,7 @@
     )
     names(colors) <- names(labels)
     # size of data to be read
-    size <- .plot_read_size(tile = tile, tmap_options = tmap_options)
+    size <- .plot_read_size(tile = tile)
     # select the image to be plotted
     class_file <- .tile_path(tile)
 
@@ -166,9 +160,6 @@
     # rename stars object
     stars_obj <- stats::setNames(stars_obj, "labels")
 
-    # set the tmap options
-    tmap_params <- .plot_tmap_params(tmap_options)
-
     # plot using tmap
     p <- suppressMessages(
         tmap::tm_shape(stars_obj) +
@@ -178,21 +169,15 @@
                 labels = labels
             ) +
             tmap::tm_graticules(
-                labels.size = tmap_params[["graticules_labels_size"]]
+                labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
             ) +
             tmap::tm_compass() +
             tmap::tm_layout(
-                scale           = tmap_params[["scale"]],
-                fontfamily      = tmap_params[["font_family"]],
-                legend.show     = TRUE,
-                legend.outside  = tmap_params[["legend_outside"]],
-                legend.bg.color = tmap_params[["legend_bg_color"]],
-                legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
-                legend.title.size = tmap_params[["legend_title_size"]],
-                legend.text.size = tmap_params[["legend_text_size"]],
-                legend.width     = tmap_params[["legend_width"]]
-                # legend.height    = tmap_params[["legend_height"]],
-                # legend.position  = tmap_params[["legend_position"]]
+                scale = scale,
+                legend.bg.color = .conf("tmap","legend_bg_color"),
+                legend.bg.alpha = as.numeric(.conf("tmap", "legend_bg_alpha")),
+                legend.title.size = as.numeric(.conf("tmap","legend_title_size")),
+                legend.text.size = as.numeric(.conf("tmap","legend_text_size"))
             )
     )
     return(p)
@@ -210,14 +195,6 @@
 #' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
-#' @param  tmap_options  Named vector with optional tmap parameters
-#'                       max_cells (default: 1e+06)
-#'                       graticules_labels_size (default: 0.7)
-#'                       legend_title_size (default: 1.5)
-#'                       legend_text_size (default: 1.2)
-#'                       legend_bg_color (default: "white")
-#'                       legend_bg_alpha (default: 0.5)
-#'                       scale (default: 1.0)
 #' @return               A plot object
 #'
 .plot_rgb <- function(tile,
@@ -227,8 +204,7 @@
                       date,
                       sf_seg = NULL,
                       seg_color = NULL,
-                      line_width = 0.2,
-                      tmap_options) {
+                      line_width = 0.2) {
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
@@ -240,10 +216,7 @@
     blue_file <- .tile_path(tile, blue, date)
 
     # size of data to be read
-    size <- .plot_read_size(
-        tile = tile,
-        tmap_options = tmap_options
-    )
+    size <- .plot_read_size(tile = tile)
     # read raster data as a stars object with separate RGB bands
     rgb_st <- stars::read_stars(
         c(red_file, green_file, blue_file),
@@ -266,12 +239,10 @@
                             stretch = TRUE
     )
 
-    tmap_options <- .plot_tmap_params(tmap_options)
-
     p <- tmap::tm_shape(rgb_st) +
         tmap::tm_raster() +
         tmap::tm_graticules(
-            labels.size = tmap_options[["graticules_labels_size"]]
+            labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
         ) +
         tmap::tm_compass()
 
@@ -291,22 +262,21 @@
 #' @param  tile          Probs cube to be plotted.
 #' @param  labels_plot   Labels to be plotted
 #' @param  palette       A sequential RColorBrewer palette
+#' @param  style         Method to process the color scale
+#'                       ("cont", "order", "quantile", "fisher",
+#'                        "jenks", "log10")
+#' @param  n_colors      Number of colors to be shown
 #' @param  rev           Reverse the color palette?
-#' @param  tmap_options  Named vector with optional tmap parameters
-#'                       max_cells (default: 1e+06)
-#'                       graticules_labels_size (default: 0.7)
-#'                       legend_title_size (default: 1.5)
-#'                       legend_text_size (default: 1.2)
-#'                       legend_bg_color (default: "white")
-#'                       legend_bg_alpha (default: 0.5)
-#'                       scale (default: 1.0)
+#' @param  scale         Global scale for plot
 #' @return               A plot object
 #'
 .plot_probs <- function(tile,
                         labels_plot,
                         palette,
+                        style,
+                        n_colors,
                         rev,
-                        tmap_options) {
+                        scale) {
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
@@ -330,10 +300,7 @@
         )
     }
     # size of data to be read
-    size <- .plot_read_size(
-        tile = tile,
-        tmap_options = tmap_options
-    )
+    size <- .plot_read_size(tile = tile)
     # get the path
     probs_path <- .tile_path(tile)
     # read the file using stars
@@ -358,31 +325,27 @@
     # select stars bands to be plotted
     bds <- as.numeric(names(labels[labels %in% labels_plot]))
 
-    # set the tmap options
-    tmap_params <- .plot_tmap_params(tmap_options)
-
     p <- tmap::tm_shape(probs_st[, , , bds]) +
         tmap::tm_raster(
-            style = "cont",
+            style = style,
             palette = palette,
-            midpoint = 0.5,
+            n = n_colors,
+            midpoint = NA,
             title = labels[labels %in% labels_plot]
         ) +
         tmap::tm_graticules(
-            labels.size = tmap_params[["graticules_labels_size"]]
+            labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
         ) +
         tmap::tm_facets(sync = FALSE) +
         tmap::tm_compass() +
         tmap::tm_layout(
-            scale           = tmap_params[["scale"]],
-            fontfamily      = tmap_params[["font_family"]],
+            scale           = scale,
             legend.show     = TRUE,
             legend.outside  = FALSE,
-            legend.bg.color = tmap_params[["legend_bg_color"]],
-            legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
-            legend.title.size = tmap_params[["legend_title_size"]],
-            legend.text.size = tmap_params[["legend_text_size"]],
-            legend.width     = tmap_params[["legend_width"]]
+            legend.bg.color = .conf("tmap","legend_bg_color"),
+            legend.bg.alpha = as.numeric(.conf("tmap", "legend_bg_alpha")),
+            legend.title.size = as.numeric(.conf("tmap","legend_title_size")),
+            legend.text.size = as.numeric(.conf("tmap","legend_text_size"))
         )
 
     return(p)
@@ -460,17 +423,12 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  tile       Tile to be plotted.
-#' @param  tmap_options  Named vector with options
 #' @return            Cell size for x and y coordinates.
 #'
 #'
-.plot_read_size <- function(tile, tmap_options) {
+.plot_read_size <- function(tile) {
     # get the maximum number of bytes to be displayed
-    max_cells <- 1e+07
-    # max_raster <- c(plot = max_cells, view = max_cells)
-    # set the options for tmap
-    # tmap::tmap_options(max.raster = max_raster)
-    # numbers of nrows and ncols
+    max_cells <- as.numeric(.conf("tmap", "max_cells"))
     nrows <- max(.tile_nrows(tile))
     ncols <- max(.tile_ncols(tile))
 
@@ -487,59 +445,4 @@
     return(c(
         "xsize" = new_ncols, "ysize" = new_nrows
     ))
-}
-
-#' @title  Return the tmap params
-#' @name .plot_tmap_params
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  tmap_user  Named vector with optional tmap parameters
-#' @return            Updated tmap params.
-#'
-.plot_tmap_params <- function(tmap_user) {
-    # reset the tmap params
-    suppressMessages(tmap::tmap_options_reset())
-    # get the tmap defaults
-    tmap_options <- list(
-        graticules_labels_size =
-            as.numeric(.conf("tmap", "graticules_labels_size")),
-        legend_title_size     =  as.numeric(.conf("tmap", "legend_title_size")),
-        legend_text_size      =  as.numeric(.conf("tmap", "legend_text_size")),
-        legend_width          =  as.numeric(.conf("tmap", "legend_width")),
-        legend_height         =  as.numeric(.conf("tmap", "legend_height")),
-        legend_position       =  .conf("tmap", "legend_position"),
-        legend_outside        =  .conf("tmap", "legend_outside"),
-        legend_outside_position = .conf("tmap", "legend_outside_position"),
-        legend_bg_color       =  .conf("tmap", "legend_bg_color"),
-        legend_bg_alpha       = as.numeric(.conf("tmap", "legend_bg_alpha")),
-        scale                 = as.numeric(.conf("tmap", "scale")),
-        n_breaks              = as.numeric(.conf("tmap", "n_breaks")),
-        font_family           = .conf("tmap", "font_family")
-    )
-    if (!purrr::is_null(tmap_user)) {
-        keys <- unique(c(names(tmap_user), names(tmap_options)))
-        .check_that(
-            all(keys %in% names(tmap_options)),
-            msg = paste("invalid tmap params - valid params are ",
-                        keys, collapse = " ")
-        )
-        for (k in names(tmap_user))
-            tmap_options[[k]] <- tmap_user[[k]]
-    }
-    # set tmap options
-    tmap::tmap_options(scale = as.numeric(tmap_options[["scale"]]),
-                       legend.title.size     =  as.numeric(tmap_options[["legend_title_size"]]),
-                       legend.text.size      =  as.numeric(tmap_options[["legend_text_size"]]),
-                       legend.width          =  as.numeric(tmap_options[["legend_width"]]),
-                       legend.height         =  as.numeric(tmap_options[["legend_height"]]),
-                       legend.position       =  tmap_options[["legend_position"]],
-                       legend.outside        =  tmap_options[["legend_outside"]],
-                       legend.outside.position = tmap_options[["legend_outside_position"]],
-                       legend.bg.color       =  tmap_options[["legend_bg_color"]],
-                       legend.bg.alpha       =  as.numeric(tmap_options[["legend_bg_alpha"]]),
-                       fontfamily            =  tmap_options[["font_family"]]
-                       )
-    return(tmap_options)
 }

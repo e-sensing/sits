@@ -224,10 +224,7 @@ NULL
 
 #' @export
 .tile_update_label.default <- function(tile, labels) {
-    tile <- tibble::as_tibble(tile)
-    tile <- .cube_find_class(tile)
-    tile <- .tile_update_label(tile, labels)
-    return(tile)
+    stop("tile is not a classified cube")
 }
 
 #' @title Get/Set labels

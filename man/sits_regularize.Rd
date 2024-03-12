@@ -5,7 +5,6 @@
 \alias{sits_regularize.raster_cube}
 \alias{sits_regularize.mpc_cube_sentinel-1-grd}
 \alias{sits_regularize.derived_cube}
-\alias{sits_regularize.tbl_df}
 \alias{sits_regularize.default}
 \title{Build a regular data cube from an irregular one}
 \usage{
@@ -40,16 +39,6 @@ sits_regularize(
 )
 
 \method{sits_regularize}{derived_cube}(
-  cube,
-  period,
-  res,
-  output_dir,
-  roi = NULL,
-  multicores = 2,
-  progress = TRUE
-)
-
-\method{sits_regularize}{tbl_df}(
   cube,
   period,
   res,

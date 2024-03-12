@@ -37,6 +37,10 @@ C_kernel_modal <- function(x, ncols, nrows, band, window_size) {
     .Call(`_sits_C_kernel_modal`, x, ncols, nrows, band, window_size)
 }
 
+dtw <- function() {
+    .Call(`_sits_dtw`)
+}
+
 C_label_max_prob <- function(x) {
     .Call(`_sits_C_label_max_prob`, x)
 }
@@ -129,10 +133,6 @@ C_temp_fqr <- function(mtx) {
     .Call(`_sits_C_temp_fqr`, mtx)
 }
 
-C_temp_sqr <- function(mtx) {
-    .Call(`_sits_C_temp_sqr`, mtx)
-}
-
 C_temp_tqr <- function(mtx) {
     .Call(`_sits_C_temp_tqr`, mtx)
 }
@@ -141,24 +141,16 @@ C_temp_iqr <- function(mtx) {
     .Call(`_sits_C_temp_iqr`, mtx)
 }
 
-sample_points_inclusion <- function(polymatrix, n_sam_pol) {
-    .Call(`_sits_sample_points_inclusion`, polymatrix, n_sam_pol)
+rlang_env_unlock <- function(env) {
+    invisible(.Call(`_sits_rlang_env_unlock`, env))
 }
 
-sample_points_crossings <- function(polymatrix, n_sam_pol) {
-    .Call(`_sits_sample_points_crossings`, polymatrix, n_sam_pol)
-}
-
-sample_points_bin <- function(polymatrix, n_sam_pol) {
-    .Call(`_sits_sample_points_bin`, polymatrix, n_sam_pol)
+rlang_env_lock <- function(env) {
+    invisible(.Call(`_sits_rlang_env_lock`, env))
 }
 
 C_max_sampling <- function(x, nrows, ncols, window_size) {
     .Call(`_sits_C_max_sampling`, x, nrows, ncols, window_size)
-}
-
-bayes_smoother <- function(m, m_nrow, m_ncol, w, sigma, neigh_fraction) {
-    .Call(`_sits_bayes_smoother`, m, m_nrow, m_ncol, w, sigma, neigh_fraction)
 }
 
 bayes_var <- function(m, m_nrow, m_ncol, w, neigh_fraction) {

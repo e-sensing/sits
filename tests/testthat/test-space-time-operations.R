@@ -12,6 +12,11 @@ test_that("All", {
 test_that("Time Series Dates", {
     times <- sits_timeline(cerrado_2classes)
     expect_true(length(times) == 23)
+
+    cerrado_tb <- cerrado_2classes
+    class(cerrado_tb) <- "tbl_df"
+    times2 <- sits_timeline(cerrado_tb)
+    expect_true(length(times2) == 23)
 })
 test_that("Timeline format", {
     expect_equal(.timeline_format(date = "2000-10-30"), as.Date("2000-10-30"))

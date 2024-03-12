@@ -207,7 +207,7 @@ sits_apply.derived_cube <- function(data,...) {
 }
 #' @rdname sits_apply
 #' @export
-sits_apply.tbl_df <- function(data,...) {
+sits_apply.default <- function(data,...) {
     data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
@@ -217,9 +217,4 @@ sits_apply.tbl_df <- function(data,...) {
         stop("Input should be a sits tibble or a data cube")
     acc <- sits_apply(data, ...)
     return(acc)
-}
-#' @rdname sits_apply
-#' @export
-sits_apply.default <- function(data, ...) {
-    stop("Input should be a sits tibble or a data cube")
 }

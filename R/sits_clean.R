@@ -144,7 +144,7 @@ sits_clean.derived_cube <- function(cube, window_size = 5L, memsize = 4L,
 }
 #' @rdname sits_clean
 #' @export
-sits_clean.tbl_df <- function(cube, window_size = 5L, memsize = 4L,
+sits_clean.default <- function(cube, window_size = 5L, memsize = 4L,
                               multicores = 2L, output_dir,
                               version = "v1-clean", progress = TRUE) {
     cube <- tibble::as_tibble(cube)
@@ -155,11 +155,4 @@ sits_clean.tbl_df <- function(cube, window_size = 5L, memsize = 4L,
     clean_cube <- sits_clean(cube, window_size, memsize, multicores,
                              output_dir, version, progress)
     return(clean_cube)
-}
-#' @rdname sits_clean
-#' @export
-sits_clean.default <- function(cube, window_size = 5L, memsize = 4L,
-                               multicores = 2L, output_dir,
-                               version = "v1-clean", progress = TRUE) {
-    stop("Input should be a classified cube")
 }

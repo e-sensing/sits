@@ -7,6 +7,41 @@ test_that("sits summary", {
     expect_equal(sum1$count, c(379, 131, 344, 364))
 })
 
+test_that("summary cube",{
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir
+    )
+    sum <- capture.output(summary(cube))
+    expect_true(grepl("MODIS", sum[1]))
+    expect_true(grepl("Median", sum[4]))
+
+    tiles <- c("007004", "007005")
+    start_date <- "2022-05-01"
+    end_date <- "2022-08-29"
+    bands <- c("NDVI", "EVI", "B13", "B14", "B15", "B16", "CLOUD")
+    # create a raster cube file from BDC
+    cbers_cube_8d <- .try(
+        {
+            sits_cube(
+                source = "BDC",
+                collection = "CBERS-WFI-8D",
+                tiles = tiles,
+                start_date = start_date,
+                end_date = end_date,
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    sum2 <- capture.output(summary(cbers_cube_8d, tile = "007004"))
+    expect_true(grepl("007004", sum2[4]))
+    expect_true(grepl("007004", sum2[48]))
+})
+
 test_that("summary sits accuracy", {
     data(cerrado_2classes)
     # split training and test data

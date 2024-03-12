@@ -19,13 +19,29 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
         purrr::is_null(s2_cube_open),
         "AWS is not accessible"
     )
+
     expect_false(.cube_is_regular(s2_cube_open))
     expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
+
+
+    out <- capture_warning({
+        expect_message(
+            object = {
+                sits_timeline(s2_cube_open)
+            },
+            regexp = "returning all timelines"
+        )
+    })
+    timelines <-  suppressWarnings(sits_timeline(s2_cube_open))
+    expect_equal(length(timelines), 2)
+    expect_equal(length(timelines[["20LKP"]]), 6)
+    expect_equal(length(timelines[["20LLP"]]), 13)
 
     dir_images <- paste0(tempdir(), "/images_aws/")
     if (!dir.exists(dir_images)) {
         suppressWarnings(dir.create(dir_images))
     }
+
     expect_warning({
         rg_cube <- sits_regularize(
             cube = .tile(s2_cube_open),
@@ -47,6 +63,22 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     tile_fileinfo <- .fi(rg_cube)
 
     expect_equal(nrow(tile_fileinfo), 2)
+
+    # Checking input class
+    s2_cube <- s2_cube_open
+    class(s2_cube) <- "data.frame"
+    expect_error(
+        sits_regularize(
+            cube = s2_cube,
+            output_dir = dir_images,
+            res = 240,
+            period = "P16D",
+            multicores = 2,
+            progress = FALSE
+        )
+    )
+
+    # Retrieving data
 
     csv_file <- system.file("extdata/samples/samples_amazonia.csv",
         package = "sits"

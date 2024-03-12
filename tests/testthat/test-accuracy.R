@@ -139,7 +139,7 @@ test_that("Accuracy areas", {
 
     p1 <- capture.output(as)
 
-    expect_true(grepl("Area Weigthed Statistics", p1[1]))
+    expect_true(grepl("Area Weighted Statistics", p1[1]))
     expect_true(grepl("Overall Accuracy", p1[2]))
     expect_true(grepl("Cerrado", p1[6]))
     expect_true(grepl("Mapped Area", p1[11]))

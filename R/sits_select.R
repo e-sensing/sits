@@ -134,7 +134,7 @@ sits_select.patterns <- function(data, bands = NULL,
 }
 #' @rdname sits_select
 #' @export
-sits_select.tbl_df <- function(data,...) {
+sits_select.default <- function(data,...) {
     data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
@@ -144,9 +144,4 @@ sits_select.tbl_df <- function(data,...) {
         stop("Input should be a sits tibble or a data cube")
     data <- sits_select(data, ...)
     return(data)
-}
-#' @rdname sits_select
-#' @export
-sits_select.default <- function(data, ...){
-    stop("input should an object of class cube or class sits")
 }

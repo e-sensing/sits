@@ -5,7 +5,6 @@
 \alias{sits_smooth.probs_cube}
 \alias{sits_smooth.raster_cube}
 \alias{sits_smooth.derived_cube}
-\alias{sits_smooth.tbl_df}
 \alias{sits_smooth.default}
 \title{Smooth probability cubes with spatial predictors}
 \usage{
@@ -43,17 +42,6 @@ sits_smooth(
 )
 
 \method{sits_smooth}{derived_cube}(
-  cube,
-  window_size = 7L,
-  neigh_fraction = 0.5,
-  smoothness = 10L,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1"
-)
-
-\method{sits_smooth}{tbl_df}(
   cube,
   window_size = 7L,
   neigh_fraction = 0.5,

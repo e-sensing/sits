@@ -193,9 +193,6 @@
         t_fqr = function(m) {
             C_temp_fqr(mtx = as.matrix(m))
         },
-        t_sqr = function(m) {
-            C_temp_sqr(mtx = as.matrix(m))
-        },
         t_tqr = function(m) {
             C_temp_tqr(mtx = as.matrix(m))
         },

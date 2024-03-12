@@ -224,25 +224,6 @@ sits_regularize.derived_cube <- function(cube,
 }
 #' @rdname sits_regularize
 #' @export
-sits_regularize.tbl_df <- function(
-        cube,
-        period,
-        res,
-        output_dir,
-        roi = NULL,
-        multicores = 2,
-        progress = TRUE) {
-    cube <- tibble::as_tibble(cube)
-    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
-        cube <- .cube_find_class(cube)
-    } else
-        stop("Input should be a data cube")
-    cube <- sits_regularize(cube, period, res, output_dir, roi,
-                            multicores, progress)
-    return(cube)
-}
-#' @rdname sits_regularize
-#' @export
 sits_regularize.default <- function(cube,
                                     period,
                                     res,

@@ -193,6 +193,31 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
     expect_gt(bbox["ymax"], bbox_shp["ymax"])
     intersects <- .cube_intersects(modis_cube, sf_mt)
     expect_true(all(intersects))
+
+    modis_cube2 <- modis_cube
+    class(modis_cube2) <- "data.frame"
+    in2 <- .cube_intersects(modis_cube2, sf_mt)
+    expect_true(all(in2))
+    expect_true(.tile_intersects(modis_cube2[1,], sf_mt))
+
+    expect_false(.tile_within(modis_cube2[1,], sf_mt))
+    expect_false(.tile_within(modis_cube2[6,], sf_mt))
+
+    modis_cube3 <- .cube_filter_spatial(modis_cube2, sf_mt)
+    expect_equal(nrow(modis_cube2), nrow(modis_cube3))
+
+    modis_cube4 <- .cube_filter_bands(modis_cube2, "EVI")
+    expect_true(.cube_bands(modis_cube4) %in% .cube_bands(modis_cube2))
+    tile <- modis_cube2[1,]
+    modis_evi <- .tile_filter_bands(tile, "EVI")
+    expect_equal("EVI", sits_bands(modis_evi))
+
+    modis_tiles <- .cube_tiles(modis_cube2)
+    expect_true(all(c("011009", "012010") %in% .cube_tiles(modis_cube)))
+
+    tile_011009 <- .cube_filter_tiles(modis_cube, "011009")
+    expect_equal(nrow(tile_011009), 1)
+
 })
 test_that("Creating cubes from BDC - invalid roi", {
     expect_error(
@@ -497,6 +522,21 @@ test_that("Creating Sentinel cubes from MPC with ROI", {
     cube_nrows <- .tile_nrows(s2_cube_mpc)
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
+test_that("Creating Sentinel-1 cubes from MPC", {
+    cube_s1 <-  sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-1-RTC",
+        bands = c("VV", "VH"),
+        orbit = "descending",
+        roi = c(lat_max = 3.619058, lon_max = -74.01153, lat_min = 2.625301, lon_min = -75.00018),
+        start_date = "2023-03-01",
+        end_date = "2023-09-30"
+    )
+    bbox <- sits_bbox(cube_s1)
+    expect_true(grepl("18N", bbox[["crs"]]))
+    expect_equal(381340, bbox[["xmin"]])
+    expect_equal(701860, bbox[["xmax"]])
+})
 test_that("Creating LANDSAT cubes from MPC with ROI", {
     roi <- c(
         lon_min = -48.28579, lat_min = -16.05026,
@@ -622,17 +662,9 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
     )
     netrc_file <- "~/.netrc"
     file.rename(netrc_file, "~/.netrc_save")
-    expect_error(
-        sits_cube(
-            source = "HLS",
-            collection = "HLSS30",
-            roi = roi,
-            bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
-            start_date = as.Date("2020-05-01"),
-            end_date = as.Date("2020-09-01"),
-            progress = FALSE
-        )
-    )
+    expect_error(.source_configure_access.hls_cube(
+        source = "HLS", collection = "HLSS30"))
+
     expect_true(file.rename("~/.netrc_save", "~/.netrc"))
     if (file.exists("./.rcookies"))
         unlink("./.rcookies")

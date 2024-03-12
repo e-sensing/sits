@@ -1,31 +1,3 @@
-#' @title Summary of a tile of a cube
-#' @noRd
-#' @param tile A \code{tile}.
-#' @return Called for side effects
-.summary_tile_information <- function(tile) {
-    # print the basic tile information
-    cat("class       : ", class(tile)[1], "\n")
-    cat("dimensions  : ",
-        .tile_nrows(tile), ", ",
-        .tile_ncols(tile), "  (nrow, ncol)\n",
-        sep = ""
-    )
-    cat("resolution  : ",
-        .tile_xres(tile), ", ",
-        .tile_yres(tile), "  (x, y)\n",
-        sep = ""
-    )
-    cat("extent      : ",
-        .xmin(tile), ", ",
-        .xmax(tile), ", ",
-        .ymin(tile), ", ",
-        .ymax(tile),
-        "  (xmin, xmax, ymin, ymax)\n",
-        sep = ""
-    )
-    cat("coord ref   : ", .crs_wkt_to_proj4(tile$crs), "\n")
-    return(invisible(tile))
-}
 #' @title Check in tile is available
 #' @noRd
 #' @param cube data cube

@@ -6,7 +6,6 @@
 \alias{sits_label_classification.probs_vector_cube}
 \alias{sits_label_classification.raster_cube}
 \alias{sits_label_classification.derived_cube}
-\alias{sits_label_classification.tbl_df}
 \alias{sits_label_classification.default}
 \title{Build a labelled image from a probability cube}
 \usage{
@@ -40,8 +39,6 @@ sits_label_classification(
 \method{sits_label_classification}{raster_cube}(cube, ...)
 
 \method{sits_label_classification}{derived_cube}(cube, ...)
-
-\method{sits_label_classification}{tbl_df}(cube, ...)
 
 \method{sits_label_classification}{default}(cube, ...)
 }

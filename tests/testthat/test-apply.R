@@ -29,8 +29,6 @@ test_that("Testing normalized index generation", {
                       pattern = "\\.tif$",
                       full.names = TRUE
     ))
-
-
     expect_warning(
         gc_cube <- sits_regularize(
             cube = s2_cube,
@@ -87,6 +85,18 @@ test_that("Testing normalized index generation", {
     timeline <- sits_timeline(gc_cube_new)
     start_date <- timeline[1]
     end_date <- timeline[length(timeline)]
+
+    # test with data frame
+    #
+    gc_cube2 <- gc_cube
+    class(gc_cube2) <- "data.frame"
+
+    gc_cube2 <- sits_apply(gc_cube2,
+                              NDRE = (B8A - B05) / (B8A + B05),
+                              multicores = 1,
+                              output_dir = dir_images
+    )
+    expect_true("NDRE" %in% sits_bands(gc_cube2))
 
     csv_tb <- purrr::map2_dfr(lats, longs, function(lat, long) {
         tibble::tibble(
@@ -303,4 +313,49 @@ test_that("Kernel functions", {
     )
 
     success <- file.remove(tif_files)
+})
+test_that("Error", {
+    rfor_model <- sits_train(
+        samples_modis_ndvi,
+        sits_rfor(num_trees = 30)
+    )
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    sinop <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        progress = TRUE,
+        verbose = TRUE
+    )
+    expect_error(.check_bbox(sinop))
+
+    output_dir <- paste0(tempdir(), "/apply")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
+    out <- capture_warning({
+        expect_message(
+            {
+                cube_median <- sits_apply(
+                    data = sinop,
+                    output_dir = tempdir(),
+                    NDVI = w_median(NDVI),
+                    window_size = 3,
+                    memsize = 4,
+                    multicores = 2
+                )
+            },
+            regexp = "provided band"
+        )
+    })
+    sinop_probs <- sits_classify(
+        data = sinop,
+        ml_model = rfor_model,
+        output_dir = output_dir,
+        memsize = 4,
+        multicores = 1,
+        progress = FALSE
+    )
+    expect_error(sits_apply(sinop_probs))
+
 })

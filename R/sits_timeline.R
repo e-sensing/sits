@@ -69,12 +69,15 @@ sits_timeline.tbl_df <- function(data) {
         class(data) <- c("sits", class(data))
     } else
         stop("Input should be a sits tibble or a data cube")
-    data <- sits_timeline(data)
-    return(data)
+    timeline <- sits_timeline(data)
+    return(timeline)
 }
 #' @rdname sits_timeline
 #' @export
 #'
 sits_timeline.default <- function(data) {
-    stop("input should be an object of class cube or class sits")
+    data <- tibble::as_tibble(data)
+    timeline <- sits_timeline(data)
+    return(timeline)
+
 }
