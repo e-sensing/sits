@@ -365,6 +365,27 @@ NULL
     is_complete <- .tile_is_complete(tile)
     return(is_complete)
 }
+#' @title Check if tile's file info is not empty
+#' @name .tile_is_nonempty
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#' @return TRUE/FALSE
+.tile_is_nonempty <- function(tile) {
+    UseMethod(".tile_is_nonempty", tile)
+}
+#' @export
+.tile_is_nonempty.raster_cube <- function(tile) {
+    tile <- .tile(tile)
+    nrow(.fi(tile)) > 0
+}
+#' @export
+.tile_is_nonempty.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    is_nonempty <- .tile_is_nonempty(tile)
+    return(is_nonempty)
+}
 #' @title Get path of first asset from file_info.
 #' @name .tile_path
 #' @keywords internal

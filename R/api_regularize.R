@@ -165,6 +165,9 @@
         }) |>
         dplyr::bind_rows()
 
+    # Filter non-empty file info
+    cube <- .cube_filter_nonempty(cube)
+
     # Finalize customizing cube class
     cube_class <- c(cube_class[1], "sar_cube", cube_class[-1])
     .cube_set_class(cube, cube_class)
