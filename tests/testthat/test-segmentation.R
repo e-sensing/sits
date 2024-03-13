@@ -120,7 +120,7 @@ test_that("Segmentation", {
             object = {
                 sits_classify(
                     data = segments,
-                    ml_model = rf_model,
+                    ml_model = rfor_model,
                     output_dir = output_dir,
                     n_sam_pol = 20,
                     multicores = 6,

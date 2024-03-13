@@ -327,7 +327,7 @@ test_that("Regularizing SENTINEL-1 data",{
             period = "P12D",
             res = 60,
             roi = roi_sar,
-            multicores = 2,
+            multicores = 1,
             output_dir = tempdir()
         ))
         expect_true(.cube_is_regular(rg_cube))

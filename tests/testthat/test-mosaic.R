@@ -3,7 +3,7 @@ test_that("One-year, multicores mosaic", {
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    cube <- sits_cube(
+    sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
@@ -15,7 +15,7 @@ test_that("One-year, multicores mosaic", {
     }
     # classify a data cube
     probs_cube <- sits_classify(
-        data = cube,
+        data = sinop,
         ml_model = rfor_model,
         output_dir = output_dir,
         progress = FALSE
@@ -43,7 +43,7 @@ test_that("One-year, multicores mosaic", {
     # crop and reproject original cube
     suppressWarnings({
         mosaic_cube <- sits_mosaic(
-            cube = cube,
+            cube = sinop,
             roi = roi,
             output_dir = output_dir,
             version = "v1",
