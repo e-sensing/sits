@@ -135,7 +135,7 @@ test_that("Segmentation", {
     expect_error({
         sits_classify(
             data = probs_segs,
-            ml_model = rf_model,
+            ml_model = rfor_model,
             output_dir = output_dir,
             n_sam_pol = 20,
             multicores = 6,
@@ -157,8 +157,8 @@ test_that("Segmentation", {
     # Read segments of a classified cube
     vector_class <- .segments_read_vec(class_segs)
     expect_equal(nrow(vector_probs), nrow(vector_class))
-    expect_true(all(sits_labels(rf_model) %in% colnames(vector_probs)))
-    expect_true(all(sits_labels(rf_model) %in% colnames(vector_class)))
+    expect_true(all(sits_labels(rfor_model) %in% colnames(vector_probs)))
+    expect_true(all(sits_labels(rfor_model) %in% colnames(vector_class)))
     expect_true(
         "class" %in% colnames(vector_class)
     )
@@ -192,7 +192,7 @@ test_that("Segmentation", {
     sf_uncert <- .segments_read_vec(uncert_vect)
     expect_true("entropy" %in% colnames(sf_uncert))
     expect_equal(nrow(sf_uncert), nrow(vector_class))
-    expect_true(all(sits_labels(rf_model) %in% colnames(sf_uncert)))
+    expect_true(all(sits_labels(rfor_model) %in% colnames(sf_uncert)))
 })
 test_that("Segmentation of large files",{
 
@@ -238,10 +238,10 @@ test_that("Segmentation of large files",{
         version = "res1000-step50-iter10-minarea100-m4"
     )
     # Train a rf model
-    rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
+    rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
     probs_segs <- sits_classify(
         data = segments,
-        ml_model = rf_model,
+        ml_model = rfor_model,
         output_dir = output_dir,
         n_sam_pol = 10,
         multicores = 6,
