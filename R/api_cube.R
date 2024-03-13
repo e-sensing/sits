@@ -749,6 +749,18 @@ NULL
     cube <- .cube_filter_bands(cube, bands)
     return(cube)
 }
+#' @title Filter tiles that are non-empty.
+#' @noRd
+#' @param cube  A data cube.
+#' @return  A filtered data cube.
+.cube_filter_nonempty <- function(cube) {
+    UseMethod(".cube_filter_nonempty", cube)
+}
+#' @export
+.cube_filter_nonempty.raster_cube <- function(cube, roi) {
+    not_empty <- slider::slide_lgl(cube, .tile_is_nonempty)
+    cube[not_empty, ]
+}
 #' @title Returns the tile names of a data cube
 #' @noRd
 #' @param cube  A data cube.
