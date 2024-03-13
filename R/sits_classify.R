@@ -398,11 +398,6 @@ sits_classify.segs_cube <- function(data,
 }
 #' @rdname sits_classify
 #' @export
-sits_classify.derived_cube <- function(data, ml_model, ...) {
-   stop("Input data cube has already been classified")
-}
-#' @rdname sits_classify
-#' @export
 sits_classify.default <- function(data, ml_model, ...) {
     data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {

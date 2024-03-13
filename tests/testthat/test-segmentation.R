@@ -131,18 +131,6 @@ test_that("Segmentation", {
             regexp = "Recovery: "
         )
     })
-    # Expect error when trying to classify derived cube
-    expect_error({
-        sits_classify(
-            data = probs_segs,
-            ml_model = rfor_model,
-            output_dir = output_dir,
-            n_sam_pol = 20,
-            multicores = 6,
-            memsize = 24,
-            version = "vt2"
-        )
-    })
     # Create a classified vector cube
     class_segs <- sits_label_classification(
         cube = probs_segs,
@@ -195,13 +183,12 @@ test_that("Segmentation", {
     expect_true(all(sits_labels(rfor_model) %in% colnames(sf_uncert)))
 })
 test_that("Segmentation of large files",{
-
     modis_cube <- .try(
         {
             sits_cube(
                 source = "BDC",
                 collection = "MOD13Q1-6",
-                bands = c("NDVI", "CLOUD"),
+                bands = c("NDVI", "EVI", "CLOUD"),
                 tiles = "012010",
                 start_date = "2018-09-14",
                 end_date = "2019-08-29",
@@ -217,13 +204,17 @@ test_that("Segmentation of large files",{
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
-    modis_cube_local <- sits_regularize(
-        cube = modis_cube,
-        period = "P1M",
-        res = 1000,
-        multicores = 6,
-        output_dir = output_dir
+    expect_warning(
+        modis_cube_local <- sits_regularize(
+            cube = modis_cube,
+            period = "P1M",
+            res = 1000,
+            multicores = 6,
+            output_dir = output_dir
+        )
     )
+    expect_true(.cube_is_regular(modis_cube_local))
+    expect_true(all(sits_bands(modis_cube_local) %in% c("EVI", "NDVI")))
     segments <- sits_segment(
         cube = modis_cube_local,
         seg_fn = sits_slic(
@@ -235,8 +226,11 @@ test_that("Segmentation of large files",{
         multicores = 4,
         memsize = 16,
         progress = TRUE,
-        version = "res1000-step50-iter10-minarea100-m4"
+        version = "v2bands"
     )
+    expect_s3_class(object = segments, class = "vector_cube")
+    expect_true("vector_info" %in% colnames(segments))
+
     # Train a rf model
     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
     probs_segs <- sits_classify(
@@ -246,7 +240,15 @@ test_that("Segmentation of large files",{
         n_sam_pol = 10,
         multicores = 6,
         memsize = 24,
-        version = "res1000"
+        version = "v2bands"
     )
-
+    expect_s3_class(probs_segs, class = "probs_vector_cube")
+    expect_true(
+        "vector_info" %in% colnames(probs_segs)
+    )
+    # Read segments of a probability cube
+    vector_probs <- .segments_read_vec(probs_segs)
+    expect_true(
+        all(sits_labels(probs_segs) %in% colnames(vector_probs))
+    )
 })

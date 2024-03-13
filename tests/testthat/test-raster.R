@@ -953,6 +953,3 @@ test_that("Raster terra interface", {
     expect_equal(nrow(r_clone), nrow(r_prodes))
     expect_equal(ncol(r_clone), ncol(r_prodes))
 })
-test_that("Segmentation of large files",{
-
-})
