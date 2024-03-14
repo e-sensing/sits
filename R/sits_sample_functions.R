@@ -366,3 +366,80 @@ sits_sampling_design <- function(cube,
     design <- cbind(prop, expected_ua, std_dev, equal, alloc_options, alloc_prop)
     return(design)
 }
+
+#' @title Allocation of sample size to strata
+#' @name sits_stratified_sampling
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description
+#' Takes a class cube with different labels and a sampling
+#' design with a number of samples per class and allocates a set of
+#' locations for each class
+#'
+#' @param  cube                 Classified cube
+#' @param  sampling_design      Result of sits_sampling_design
+#' @param  alloc                Allocation method chosen
+#' @param  shp_name             Name of shapefile to be saved (optional)
+#' @return samples              Point sf object with required samples
+#'
+#' @export
+sits_stratified_sampling <- function(cube, sampling_design,
+                                     alloc, shp_name = NULL){
+    # check the cube is valid
+    .check_raster_cube_files(cube)
+    # check cube is class cube
+    .check_cube_is_class_cube(cube)
+    # get the labels
+    labels <- .cube_labels(cube)
+    n_labels <- length(labels)
+    # check number of labels
+    .check_that(nrow(sampling_design) == n_labels,
+                msg = "Labels in sampling design do not match labels in cube"
+    )
+    # check names of labels
+    .check_that(all(rownames(sampling_design) %in% labels),
+                msg = "Labels in sampling design do not match labels in cube"
+    )
+    # check allocation method
+    .check_that(alloc %in% colnames(sampling_design),
+                msg = "allocation method is not included in sampling design")
+    # retrieve samples class
+    samples_class <- unlist(sampling_design[,alloc])
+    # check samples class
+    .check_that(all(unname(samples_class) == floor(unname(samples_class))),
+                msg = "allocation values should be integer"
+    )
+    # name samples class
+    names(samples_class) <- rownames(sampling_design)
+    # estimate size
+    size <- as.integer((max(samples_class)/nrow(cube)) * 1.4)
+    samples_lst <- slider::slide(cube, function(tile) {
+        robj <- .raster_open_rast(.tile_path(tile))
+        cls <- data.frame(id = 1:n_labels,
+                          cover = labels)
+        levels(robj) <- cls
+        samples_sv <- terra::spatSample(
+            x = robj,
+            size = size,
+            method = "stratified",
+            as.points = TRUE
+        )
+        samples_sf <- sf::st_as_sf(samples_sv)
+        samples_sf <- dplyr::mutate(samples_sf,
+                                    label = labels[.data[["cover"]]])
+    })
+    samples <- do.call(rbind, samples_lst)
+
+    samples <- purrr::map_dfr(labels, function(lab){
+        samples_class <- samples |>
+            dplyr::filter(.data[["label"]] == lab) |>
+            dplyr::slice_sample(n = samples_class[lab])
+    })
+    if (!purrr::is_null(shp_name)) {
+        .check_that(tools::file_ext(shp_name) == "shp",
+                    msg = "invalid shapefile name")
+        sf::st_write(samples, shp_name)
+        message(paste("Saved samples in shapefile ", shp_name))
+    }
+    return(samples)
+}

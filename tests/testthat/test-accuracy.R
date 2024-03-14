@@ -200,7 +200,8 @@ test_that("Accuracy areas when samples labels do not match cube labels", {
         ),
         output_dir = tempdir(),
         multicores = 1,
-        memsize = 4
+        memsize = 4,
+        version = "reclass"
     )
 
     acc <- sits_accuracy(

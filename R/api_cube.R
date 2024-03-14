@@ -757,7 +757,7 @@ NULL
     UseMethod(".cube_filter_nonempty", cube)
 }
 #' @export
-.cube_filter_nonempty.raster_cube <- function(cube, roi) {
+.cube_filter_nonempty.raster_cube <- function(cube) {
     not_empty <- slider::slide_lgl(cube, .tile_is_nonempty)
     cube[not_empty, ]
 }
