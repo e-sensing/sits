@@ -103,7 +103,7 @@ test_that("Reduce cube with NDVI median", {
     values_std <- .raster_read_rast(.cube_paths(reduce_std)[[1]])
 
     expect_equal(
-        as.integer(C_temp_std(values_cube)[4,]), values_std[4,][[1]],
+        as.integer(C_temp_std(values_cube)[4,]), values_std[4,][[1]] * 10000,
         tolerance = 0.001
     )
 
@@ -117,7 +117,7 @@ test_that("Reduce cube with NDVI median", {
     values_skew <- .raster_read_rast(.cube_paths(reduce_skew)[[1]])
 
     expect_equal(
-        as.integer(10000*C_temp_skew(values_cube)[4,]), values_skew[4,][[1]],
+        C_temp_skew(values_cube)[4,], values_skew[4,][[1]],
         tolerance = 0.001
     )
 
@@ -131,7 +131,7 @@ test_that("Reduce cube with NDVI median", {
     values_kurt <- .raster_read_rast(.cube_paths(reduce_kurt)[[1]])
 
     expect_equal(
-        as.integer(10000*C_temp_kurt(values_cube)[4,]), values_kurt[4,][[1]],
+        C_temp_kurt(values_cube)[4,], values_kurt[4,][[1]],
         tolerance = 0.001
     )
 
