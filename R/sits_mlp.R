@@ -287,6 +287,19 @@ sits_mlp <- function(samples = NULL,
             values <- torch::as_array(
                 x = torch::torch_tensor(values, device = "cpu")
             )
+            # Transform to a torch dataset
+            values <- .as_dataset(values)
+            # We need to transform in a dataloader to use the batch size
+            values <- torch::dataloader(
+                values, batch_size = 2^15
+            )
+            # Do classification
+            values <- .try(
+                stats::predict(object = torch_model, values),
+                .msg_error = paste("An error occured while transfering",
+                                   "data to GPU. Please reduce the value of",
+                                   "the `gpu_memory` parameter.")
+            )
             # Are the results consistent with the data input?
             .check_processed_values(
                 values = values, input_pixels = input_pixels
