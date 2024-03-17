@@ -356,7 +356,12 @@ sits_tempcnn <- function(samples = NULL,
                 values, batch_size = 2^15
             )
             # Do classification
-            values <- stats::predict(object = torch_model, values)
+            values <- .try(
+                stats::predict(object = torch_model, values),
+                .msg_error = paste("An error occured while transfering",
+                                   "data to GPU. Please reduce the value of",
+                                   "the `gpu_memory` parameter.")
+            )
             # Convert to tensor cpu to support GPU processing
             values <- torch::as_array(
                 x = torch::torch_tensor(values, device = "cpu")
