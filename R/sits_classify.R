@@ -238,10 +238,10 @@ sits_classify.raster_cube <- function(data,
             cube = data, start_date = start_date, end_date = end_date
         )
     }
-    if (!purrr::is_null(filter_fn)) {
+    if (.has(filter_fn)) {
         .check_that(is.function(filter_fn),
                     local_msg = "Please use sits_whittaker() or sits_sgolay()",
-                    msg = "Invalid filter_fn parameter"
+                    msg = "Invalid `filter_fn` parameter"
         )
     }
     # Retrieve the samples from the model
@@ -258,11 +258,14 @@ sits_classify.raster_cube <- function(data,
         nbytes = 8,
         proc_bloat = proc_bloat
     )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
     # If we using the GPU, gpu_memory parameter needs to be specified
     if (.is_torch_model(ml_model)) {
-        .check_int_parameter(gpu_memory, min = 1, max = 16384,
-                             msg = "Using GPU: gpu_memory must be informed")
-
         # Calculate available memory from GPU
         memsize <- floor(gpu_memory - .torch_mem_info())
         .check_num_min_max(
@@ -271,13 +274,6 @@ sits_classify.raster_cube <- function(data,
             msg = "GPU device has no memory enough."
         )
         multicores  <- 1
-    } else {
-        # Update multicores parameter
-        multicores <- .jobs_max_multicores(
-            job_memsize = job_memsize,
-            memsize = memsize,
-            multicores = multicores
-        )
     }
     # Update multicores parameter
     if ("xgb_model" %in% .ml_class(ml_model)) {
@@ -386,7 +382,7 @@ sits_classify.segs_cube <- function(data,
     version <- tolower(version)
     proc_bloat <- .conf("processing_bloat_seg_class")
     # If we using the GPU, gpu_memory parameter needs to be specified
-    if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {
+    if (.is_torch_model(ml_model)) {
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
                              msg = "Using GPU: gpu_memory must be informed")
     }
@@ -395,21 +391,16 @@ sits_classify.segs_cube <- function(data,
         roi <- .roi_as_sf(roi)
         data <- .cube_filter_spatial(cube = data, roi = roi)
     }
-    # If we using the GPU, gpu_memory parameter needs to be specified
-    if ("torch_model" %in% class(ml_model) && torch::cuda_is_available()) {
-        .check_int_parameter(gpu_memory, min = 1, max = 16384,
-                             msg = "Using GPU: gpu_memory must be informed")
-    }
     # Temporal filter
     if (.has(start_date) || .has(end_date)) {
         data <- .cube_filter_interval(
             cube = data, start_date = start_date, end_date = end_date
         )
     }
-    if (!purrr::is_null(filter_fn)) {
+    if (.has(filter_fn)) {
         .check_that(is.function(filter_fn),
                     local_msg = "Please use sits_whittaker() or sits_sgolay()",
-                    msg = "Invalid filter_fn parameter"
+                    msg = "Invalid `filter_fn` parameter"
         )
     }
     # Check memory and multicores
@@ -424,8 +415,22 @@ sits_classify.segs_cube <- function(data,
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+        job_memsize = job_memsize,
+        memsize = memsize,
+        multicores = multicores
     )
+    # If we using the GPU, gpu_memory parameter needs to be specified
+    if (.is_torch_model(ml_model)) {
+        # Calculate available memory from GPU
+        memsize <- floor(gpu_memory - .torch_mem_info())
+        .check_num_min_max(
+            memsize,
+            exclusive_min = 0,
+            msg = "GPU device has no memory enough."
+        )
+        multicores  <- 1
+    }
+
     # Update multicores parameter
     if ("xgb_model" %in% .ml_class(ml_model)) {
         multicores <- 1
@@ -434,7 +439,8 @@ sits_classify.segs_cube <- function(data,
     block <- .jobs_optimal_block(
         job_memsize = job_memsize,
         block = block,
-        image_size = .tile_size(.tile(data)), memsize = memsize,
+        image_size = .tile_size(.tile(data)),
+        memsize = memsize,
         multicores = multicores
     )
     # Prepare parallel processing
