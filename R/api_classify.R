@@ -272,6 +272,7 @@
     }
     # Filter segments that intersects with each chunk
     chunks <- .chunks_filter_segments(chunks, tile, output_dir)
+    on.exit(unlink(unlist(chunks$segments)))
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
