@@ -311,7 +311,6 @@
         # Return block file
         return(block_file)
     }, progress = progress)
-    # TODO: unlink the wrote chunks
     # Read all segments
     segments_ts <- purrr::map(block_files, .vector_read_vec)
     segments_ts <- dplyr::bind_rows(segments_ts)
