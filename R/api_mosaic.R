@@ -96,8 +96,12 @@
     band_date_cube <- .mosaic_split_band_date(cube)
     # Get band configs from tile
     band_conf <- .tile_band_conf(.tile(cube), band = .cube_bands(cube))
+    # Get cube file paths
+    cube_files <- unlist(.cube_paths(cube))
+    on.exit(unlink(cube_files))
     # Process jobs in parallel
     mosaic_cube <- .jobs_map_parallel_dfr(band_date_cube, function(job) {
+        # Get cube as a job
         cube <- job[["cube"]][[1]]
         # Get cube file paths
         cube_files <- unlist(.cube_paths(cube))
@@ -151,8 +155,6 @@
             band = .tile_bands(base_tile), update_bbox = TRUE,
             labels = .tile_labels(base_tile)
         )
-        # Delete cube files
-        # unlink(cube_files)
         # Return cube
         return(base_tile)
     }, progress = progress)
