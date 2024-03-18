@@ -161,8 +161,8 @@
         # Used to check values (below)
         input_pixels <- nrow(values)
         # Convert to character vector
-        values <- .as_chr(values)
-        mask_values <- .as_chr(mask_values)
+        values <- as.character(values)
+        mask_values <- as.character(mask_values)
         # New evaluation environment
         env <- list2env(list(
             # Read values and convert to character

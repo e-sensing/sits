@@ -4,6 +4,8 @@
 \alias{sits_classify}
 \alias{sits_classify.sits}
 \alias{sits_classify.raster_cube}
+\alias{sits_classify.derived_cube}
+\alias{sits_classify.tbl_df}
 \alias{sits_classify.segs_cube}
 \alias{sits_classify.default}
 \title{Classify time series or data cubes}
@@ -44,10 +46,15 @@ sits_classify(
   progress = TRUE
 )
 
+\method{sits_classify}{derived_cube}(data, ml_model, ...)
+
+\method{sits_classify}{tbl_df}(data, ml_model, ...)
+
 \method{sits_classify}{segs_cube}(
   data,
   ml_model,
   ...,
+  roi = NULL,
   filter_fn = NULL,
   start_date = NULL,
   end_date = NULL,
@@ -144,6 +151,11 @@ The \code{roi} parameter defines a region of interest. It can be
 
    When using a GPU for deep learning, \code{gpu_memory} indicates the
    memory of available in the graphics card.
+   It is not possible to have an exact idea of the size of Deep Learning
+   models in GPU memory, as the complexity of the model and factors
+   such as CUDA Context increase the size of the model in memory.
+   Therefore, we recommend that you leave at least 1GB free on the
+   video card to store the Deep Learning model that will be used.
 
    For classifying vector data cubes created by
    \code{\link[sits]{sits_segment}},
