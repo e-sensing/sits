@@ -135,6 +135,7 @@
     }
     return(TRUE)
 }
+
 #' @name .segments_data_read
 #' @keywords internal
 #' @noRd
@@ -237,69 +238,66 @@
     dplyr::left_join(segments, data, by = c("pol_id" = "polygon_id"))
 }
 #'
-#' @name .segments_extract_data
+#' @name .segments_data_read
 #' @keywords internal
 #' @noRd
 #' @description     Using the segments as polygons, get all time series
 #'
-#' @param seg_tile_bands tibble to be processed in parallel
 #' @param tile       tile of regular data cube
-#' @param bands      bands used in time series
-#' @param pol_id     ID attribute for polygons.
+#' @param chunk      A chunk to be read.
 #' @param n_sam_pol  Number of samples per polygon to be read.
-#' @param multicores Number of cores to use for processing
-#' @param progress   Show progress bar?
 #'
 #' @return  samples associated to segments
-#'
-.segments_extract_data <- function(seg_tile_bands,
-                                   tile,
-                                   bands,
-                                   pol_id,
-                                   n_sam_pol,
-                                   multicores,
-                                   progress) {
-
-    # multicores is less or equal to number of bands
-    multicores <- min(multicores, length(bands))
-    # prepare parallelization
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
-
-    # Extract band values
-    ts_bands <- .jobs_map_parallel(seg_tile_bands, function(seg_tile_band) {
-        # get the scale factors, max, min and missing values
-        band_params <- seg_tile_band[["params"]][[1]]
-        missing_value <- .miss_value(band_params)
-        minimum_value <- .min_value(band_params)
-        maximum_value <- .max_value(band_params)
-        scale_factor <- .scale(band_params)
-        offset_value <- .offset(band_params)
-        # extract the values
-        values <- .tile_extract_segments(seg_tile_band)
+.segments_poly_read <- function(tile, chunk, n_sam_pol) {
+    # For cubes that have a time limit to expire (MPC cubes only)
+    tile <- .cube_token_generator(tile)
+    # Read and preprocess values of cloud
+    # Get tile bands
+    tile_bands <- .tile_bands(tile, add_cloud = FALSE)
+    # Read and preprocess values of each band
+    ts_bands <- purrr::map(tile_bands, function(band) {
+        # extract band values
+        values <- .tile_extract_segments(tile, band, chunk)
         pol_id <- values[,"pol_id"]
         values <- values[, -1:0]
-        # adjust maximum and minimum values
-        values[values == missing_value] <- NA
-        values[values < minimum_value] <- NA
-        values[values > maximum_value] <- NA
+        # Correct missing, minimum, and maximum values and
+        # apply scale and offset.
+        band_conf <- .tile_band_conf(tile = tile, band = band)
+        miss_value <- .miss_value(band_conf)
+        if (.has(miss_value)) {
+            values[values == miss_value] <- NA
+        }
+        min_value <- .min_value(band_conf)
+        if (.has(min_value)) {
+            values[values < min_value] <- NA
+        }
+        max_value <- .max_value(band_conf)
+        if (.has(max_value)) {
+            values[values > max_value] <- NA
+        }
+        scale <- .scale(band_conf)
+        if (.has(scale) && scale != 1) {
+            values <- values * scale
+        }
+        offset <- .offset(band_conf)
+        if (.has(offset) && offset != 0) {
+            values <- values + offset
+        }
         # use linear imputation
         impute_fn <- .impute_linear()
         # are there NA values? interpolate them
         if (any(is.na(values))) {
             values <- impute_fn(values)
         }
-        # correct the values using the scale factor
-        values <- values * scale_factor + offset_value
         # Returning extracted time series
         return(list(pol_id, c(t(unname(values)))))
-    }, progress = progress)
+    })
     # extract the pol_id information from the first element of the list
     pol_id <- ts_bands[[1]][[1]]
     # remove the first element of the each list and retain the second
     ts_bands <- purrr::map(ts_bands, function(ts_band) ts_band[[2]])
     # rename the resulting list
-    names(ts_bands) <- bands
+    names(ts_bands) <- tile_bands
     # transform the list to a tibble
     ts_bands <-  tibble::as_tibble(ts_bands)
     # retrieve the dates of the tile
@@ -313,7 +311,7 @@
     ts_bands[["Index"]] <- rep(.tile_timeline(tile), times = n_samples)
     # nest the values by bands
     ts_bands <- tidyr::nest(ts_bands,
-                            time_series = c("Index", dplyr::all_of(bands)))
+                            time_series = c("Index", dplyr::all_of(tile_bands)))
     # include the ids of the polygons
     ts_bands[["polygon_id"]] <- pol_id
     # we do the unnest again because we do not know the polygon id index
@@ -322,11 +320,11 @@
     ts_bands <-  tidyr::drop_na(ts_bands)
     # nest the values by bands
     ts_bands <- tidyr::nest(ts_bands,
-                            time_series = c("Index", dplyr::all_of(bands)))
+                            time_series = c("Index", dplyr::all_of(tile_bands)))
     # nest the values by sample_id and time_series
     ts_bands <- tidyr::nest(ts_bands, points = c("sample_id", "time_series"))
     # retrieve the segments
-    segments <- .vector_read_vec(seg_tile_bands[["segs_path"]][1])
+    segments <- .vector_read_vec(chunk[["segments"]][[1]])
     # include lat/long information
     lat_long <- .proj_to_latlong(segments$x, segments$y, .crs(tile))
     # create metadata for the polygons
@@ -418,70 +416,4 @@
         return(seg_tile_band)
     })
     return(seg_tile_band_lst)
-}
-#'
-#'
-#' @name .segments_extract_multicores
-#' @keywords internal
-#' @noRd
-#' @description     Using the segments as polygons, get all time series
-#'
-#' @param tile       tile of regular data cube
-#' @param bands      bands used in time series
-#' @param pol_id     ID attribute for polygons.
-#' @param n_sam_pol  Number of samples per polygon to be read.
-#' @param multicores Number of cores to use for processing
-#' @param memsize    Memory available for processing
-#' @param output_dir Directory for saving temporary segment files
-#' @param progress   Show progress bar?
-#'
-.segments_extract_multicores <- function(tile,
-                                         bands,
-                                         pol_id,
-                                         n_sam_pol,
-                                         multicores,
-                                         memsize,
-                                         output_dir,
-                                         progress) {
-
-    # how much memory do we need?
-    # Get image size
-    req_memory <- .as_dbl(.tile_nrows(tile)) * .as_dbl(.tile_ncols(tile))
-    req_memory <- req_memory * length(.tile_timeline(tile)) *
-        length(bands) * 4 * .conf("processing_bloat_seg") / 1e+09
-
-    # do we have enough memory?
-    if (req_memory < memsize) {
-        seg_tile_bands <- .segments_split_tile_bands(tile, bands)
-        samples <- .segments_extract_data(seg_tile_bands,
-                                          tile,
-                                          bands,
-                                          pol_id,
-                                          n_sam_pol,
-                                          multicores,
-                                          progress)
-    } else {
-        # how many iterations do we need?
-        n_iterations <- ceiling(req_memory / memsize)
-        # retrieve the segments for the tile
-        segments <- .segments_read_vec(tile)
-        seg_tile_bands_lst <- .segments_split_tile_bands_list(
-            tile = tile,
-            bands = bands,
-            segments = segments,
-            n_iterations = n_iterations,
-            output_dir = output_dir)
-        samples <- purrr::map(seg_tile_bands_lst, function(seg_tile_bands){
-            samples_part <- .segments_extract_data(seg_tile_bands,
-                                                   tile,
-                                                   bands,
-                                                   pol_id,
-                                                   n_sam_pol,
-                                                   multicores,
-                                                   progress)
-            return(samples_part)
-        })
-        samples <- dplyr::bind_rows(samples)
-    }
-    return(samples)
 }

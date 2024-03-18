@@ -207,6 +207,8 @@
 #'
 #' @param  tile       Single tile of a data cube.
 #' @param  ml_model   Model trained by \code{\link[sits]{sits_train}}.
+#' @param  block      Optimized block to be read into memory.
+#' @param  roi        Region of interest.
 #' @param  filter_fn  Smoothing filter function to be applied to the data.
 #' @param  n_sam_pol  Number of samples per polygon to be read
 #'                    for POLYGON or MULTIPOLYGON shapefiles or sf objects.
@@ -218,6 +220,8 @@
 #' @return List of the classified raster layers.
 .classify_vector_tile <- function(tile,
                                   ml_model,
+                                  block,
+                                  roi,
                                   filter_fn,
                                   n_sam_pol,
                                   multicores,
@@ -254,33 +258,62 @@
         )
         return(probs_tile)
     }
-    # Get tile bands
-    bands <- .tile_bands(tile, add_cloud = FALSE)
-    segments_ts <- .segments_extract_multicores(
-        tile = tile,
-        bands = bands,
-        pol_id = "pol_id",
-        n_sam_pol = n_sam_pol,
-        multicores = multicores,
-        memsize = memsize,
-        output_dir = output_dir,
-        progress = FALSE
-    )
-    # Classify segments
-    segments_ts <- .classify_ts(
-        samples = segments_ts,
-        ml_model = ml_model,
-        filter_fn = filter_fn,
-        multicores = multicores,
-        gpu_memory = gpu_memory,
-        progress = progress
-    )
-    # Join probability values with segments
-    segments_ts <- .segments_join_probs(
+    # Create chunks as jobs
+    chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
+    # By default, update_bbox is FALSE
+    update_bbox <- FALSE
+    if (.has(roi)) {
+        # How many chunks there are in tile?
+        nchunks <- nrow(chunks)
+        # Intersecting chunks with ROI
+        chunks <- .chunks_filter_spatial(chunks, roi = roi)
+        # Should bbox of resulting tile be updated?
+        update_bbox <- nrow(chunks) != nchunks
+    }
+    # Filter segments that intersects with each chunk
+    chunks <- .chunks_filter_segments(chunks, tile, output_dir)
+    # Process jobs in parallel
+    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
+        # Job block
+        block <- .block(chunk)
+        # Block file name
+        block_file <- .file_block_name(
+            pattern = .file_pattern(out_file),
+            block = block,
+            output_dir = output_dir,
+            ext = "gpkg"
+        )
+        # Resume processing in case of failure
+        if (.segments_is_valid(block_file)) {
+            return(block_file)
+        }
+        # Extract segments time series
+        segments_ts <- .segments_poly_read(tile, chunk, n_sam_pol)
+        # Classify segments
+        segments_ts <- .classify_ts(
+            samples = segments_ts,
+            ml_model = ml_model,
+            filter_fn = filter_fn,
+            multicores = 1,
+            gpu_memory = gpu_memory,
+            progress = FALSE
+        )
+        # Join probability values with segments
+        segments_ts <- .segments_join_probs(
             data = segments_ts,
             segments = .segments_read_vec(tile)
-    )
-
+        )
+        # Write segment block
+        .vector_write_vec(v_obj = segments_ts, file_path = block_file)
+        # Free memory
+        gc()
+        # Return block file
+        return(block_file)
+    }, progress = progress)
+    # TODO: unlink the wrote chunks
+    # Read all segments
+    segments_ts <- purrr::map(block_files, .vector_read_vec)
+    segments_ts <- dplyr::bind_rows(segments_ts)
     # Write all segments
     .vector_write_vec(v_obj = segments_ts, file_path = out_file)
     # Create tile based on template
@@ -292,6 +325,8 @@
         vector_class = "probs_vector_cube",
         update_bbox = FALSE
     )
+    # Remove file block
+    unlink(block_files)
     # Return probability vector tile
     return(probs_tile)
 }

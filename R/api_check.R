@@ -1847,6 +1847,7 @@
         freq <- .raster_freq(r)
         # get the classes as numerical values
         classes_tile <- as.character(freq$value)
+        names(classes_tile) <- file
         return(classes_tile)
     })
     classes_num <- unique(unlist(classes_list))
