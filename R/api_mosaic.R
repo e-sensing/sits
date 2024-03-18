@@ -94,6 +94,8 @@
                                 progress) {
     # Create band date as jobs
     band_date_cube <- .mosaic_split_band_date(cube)
+    # Get band configs from tile
+    band_conf <- .tile_band_conf(.tile(cube), band = .cube_bands(cube))
     # Process jobs in parallel
     mosaic_cube <- .jobs_map_parallel_dfr(band_date_cube, function(job) {
         cube <- job[["cube"]][[1]]
@@ -131,13 +133,13 @@
             file = out_file,
             base_files = cube_files,
             params = list(
-                "-ot" = .gdal_data_type[["INT1U"]],
+                "-ot" = .gdal_data_type[[.data_type(band_conf)]],
                 "-of" = .conf("gdal_presets", "image", "of"),
                 "-co" = .conf("gdal_presets", "image", "co"),
                 "-t_srs" = .as_crs(crs),
                 "-wo" = paste0("NUM_THREADS=", multicores),
                 "-multi" = TRUE,
-                "-srcnodata" = 255
+                "-srcnodata" = .miss_value(band_conf)
             ),
             quiet = TRUE
         )
@@ -150,7 +152,7 @@
             labels = .tile_labels(base_tile)
         )
         # Delete cube files
-        #unlink(cube_files)
+        # unlink(cube_files)
         # Return cube
         return(base_tile)
     }, progress = progress)
@@ -197,10 +199,10 @@
         out_file = out_file,
         src_min = .min_value(band_conf),
         src_max = .max_value(band_conf),
-        dst_min = 0,
-        dst_max = 254,
-        miss_value = 255,
-        data_type = "INT1U"
+        dst_min = .min_value(band_conf),
+        dst_max = .max_value(band_conf),
+        miss_value = .miss_value(band_conf),
+        data_type = .data_type(band_conf)
     )
     # If the asset is fully contained in roi it's not necessary to crop it
     if (.has(roi)) {
@@ -212,8 +214,8 @@
                 file = out_file, out_file = out_file,
                 crs = .as_crs(.tile_crs(asset)),
                 as_crs = .mosaic_crs(tile = asset, as_crs = crs),
-                miss_value = 255,
-                data_type = "INT1U",
+                miss_value = .miss_value(band_conf),
+                data_type = .data_type(band_conf),
                 multicores = 1,
                 overwrite = TRUE
             )
@@ -237,8 +239,8 @@
         out_file = out_file,
         roi_file = roi,
         as_crs = .mosaic_crs(tile = asset, as_crs = crs),
-        miss_value = 255,
-        data_type = "INT1U",
+        miss_value = .miss_value(band_conf),
+        data_type = .data_type(band_conf),
         multicores = 1,
         overwrite = TRUE
     )
