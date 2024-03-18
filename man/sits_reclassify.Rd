@@ -3,7 +3,6 @@
 \name{sits_reclassify}
 \alias{sits_reclassify}
 \alias{sits_reclassify.class_cube}
-\alias{sits_reclassify.tbl_df}
 \alias{sits_reclassify.default}
 \title{Reclassify a classified cube}
 \usage{
@@ -23,16 +22,6 @@ sits_reclassify(
   rules,
   memsize = 4L,
   multicores = 2L,
-  output_dir,
-  version = "v1"
-)
-
-\method{sits_reclassify}{tbl_df}(
-  cube,
-  mask,
-  rules,
-  memsize,
-  multicores,
   output_dir,
   version = "v1"
 )

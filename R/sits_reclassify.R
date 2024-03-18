@@ -201,19 +201,6 @@ sits_reclassify.class_cube <- function(cube,
 }
 #' @rdname sits_reclassify
 #' @export
-sits_reclassify.tbl_df <- function(cube, mask, rules, memsize,
-                                    multicores, output_dir, version = "v1"){
-    cube <- tibble::as_tibble(cube)
-    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
-        cube <- .cube_find_class(cube)
-    } else
-        stop("Input should be a classified cube")
-    cube <- sits_reclassify(cube, mask, rules, memsize,
-                            multicores, output_dir, version)
-    return(cube)
-}
-#' @rdname sits_reclassify
-#' @export
 sits_reclassify.default <- function(cube, mask, rules, memsize,
                                     multicores, output_dir, version = "v1"){
     stop("Input should be a classified cube")

@@ -539,7 +539,7 @@ test_that("Classification with post-processing", {
     band_conf <- .tile_band_conf(sinop2, band = "NDVI")
     expect_equal(band_conf$band_name, "NDVI")
 
-
+    expect_error(.cube_find_class(samples_modis_ndvi))
 
     is_complete <- .cube_is_complete(sinop2)
     expect_true(is_complete)
@@ -550,7 +550,6 @@ test_that("Classification with post-processing", {
 
     bbox <- .cube_bbox(sinop2)
     expect_equal(bbox[["xmin"]], -6073798)
-
     bbox2 <- .tile_bbox(sinop2)
     expect_equal(bbox2[["xmin"]], -6073798)
 
@@ -663,6 +662,7 @@ test_that("Classification with post-processing", {
         c("Cerrado", "Floresta", "Pastagem","Soja_Milho")
     ))
 
+    class(sinop4) <- "data.frame"
     col <- .cube_collection(sinop4)
     expect_equal(col, "MOD13Q1-6")
 
@@ -678,23 +678,14 @@ test_that("Classification with post-processing", {
     expect_true("derived_cube" %in% class)
     expect_true("class_cube" %in% class)
 
-    ncols <- .cube_ncols(sinop4)
-    expect_equal(ncols, 255)
-
-    ncols <- .tile_ncols(sinop4)
-    expect_equal(ncols, 255)
-
-    nrows <- .cube_nrows(sinop4)
-    expect_equal(nrows, 147)
-
-    nrows <- .tile_nrows(sinop4)
-    expect_equal(nrows, 147)
-
-    source <- .cube_source(sinop4)
-    expect_equal(source, "BDC")
-
-    source <- .tile_source(sinop4)
-    expect_equal(source, "BDC")
+    expect_equal(.cube_ncols(sinop4), 255)
+    expect_equal(.tile_ncols(sinop4), 255)
+    expect_equal(.cube_nrows(sinop4), 147)
+    expect_equal(.tile_nrows(sinop4), 147)
+    expect_equal(.cube_source(sinop4), "BDC")
+    expect_equal(.tile_source(sinop4), "BDC")
+    expect_equal(.cube_collection(sinop4), "MOD13Q1-6")
+    expect_equal(.tile_collection(sinop4), "MOD13Q1-6")
 
     sd <- .cube_start_date(sinop4)
     expect_equal(sd, as.Date("2013-09-14"))
@@ -708,9 +699,7 @@ test_that("Classification with post-processing", {
 
     size <- .tile_size(sinop4)
     expect_equal(size$nrows, 147)
-
     expect_true(.tile_is_complete(sinop4))
-
 
     # Save QML file
     qml_file <- paste0(tempdir(),"/myfile.qml")
@@ -963,7 +952,4 @@ test_that("Raster terra interface", {
     r_prodes <- .raster_open_rast(paste0(prodes_dir, "/", prodes_file))
     expect_equal(nrow(r_clone), nrow(r_prodes))
     expect_equal(ncol(r_clone), ncol(r_prodes))
-})
-test_that("Segmentation of large files",{
-
 })

@@ -661,11 +661,24 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
             )
     )
     netrc_file <- "~/.netrc"
-    file.rename(netrc_file, "~/.netrc_save")
+    netrc_save <- "~/.netrc_save"
+    file.rename(netrc_file, netrc_save)
     expect_error(.source_configure_access.hls_cube(
         source = "HLS", collection = "HLSS30"))
 
-    expect_true(file.rename("~/.netrc_save", "~/.netrc"))
+    expect_error(.source_items_new.hls_cube(
+        source = "HLS", collection = "HLSS30", stac_query = NULL))
+
+    expect_true(file.copy(netrc_save, netrc_file))
+
+    conf_hls <- utils::read.delim(netrc_file)
+    names(conf_hls) <- "wrong.machine"
+    utils::write.table(conf_hls, netrc_file)
+    expect_error(.source_configure_access.hls_cube(
+        source = "HLS", collection = "HLSS30"))
+
+    expect_true(file.rename(netrc_save, netrc_file))
+
     if (file.exists("./.rcookies"))
         unlink("./.rcookies")
 
