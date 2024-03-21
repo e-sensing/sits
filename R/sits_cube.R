@@ -296,6 +296,7 @@ sits_cube <- function(source, collection, ...) {
                                                 end_date = NULL,
                                                 platform = NULL,
                                                 progress = TRUE) {
+
     sits_cube.stac_cube(
         source = source,
         collection = collection,
@@ -322,7 +323,7 @@ sits_cube <- function(source, collection, ...) {
                                                 end_date = NULL,
                                                 platform = NULL,
                                                 progress = TRUE) {
-    sits_cube.stac_cube(
+    `sits_cube.mpc_cube_sentinel-1-grd`(
         source = source,
         collection = collection,
         bands = bands,
@@ -499,4 +500,22 @@ sits_cube.local_cube <- function(source,
 #' @export
 sits_cube.default <- function(source, collection, ...) {
     stop("sits_cube: source not found.")
+}
+#' @title Convert MGRS tile information to ROI in WGS84
+#' @name sits_mgrs_to_roi
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@gmail.com}
+#'
+#' @description
+#' Takes a list of MGRS tiles and produces a ROI covering them
+#'
+#' @param  tiles                Character vector with names of MGRS tiles
+#' @return roi                  Valid ROI to use in other SITS functions
+#'
+#' @export
+sits_mgrs_to_roi <- function(tiles){
+
+    # retrive the ROI
+    roi <- .s2_mgrs_to_roi(tiles)
+    return(roi)
 }

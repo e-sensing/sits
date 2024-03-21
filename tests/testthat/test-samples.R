@@ -50,4 +50,20 @@ test_that("Sampling design", {
     expect_true(all(c("prop", "expected_ua", "std_dev", "equal",
                       "alloc_100", "alloc_75", "alloc_50", "alloc_prop")
                 %in% colnames(sampling_design)))
+
+    # select samples
+    shp_file <- paste0(tempdir(),"/strata.shp")
+    overhead <- 1.2
+    samples <- sits_stratified_sampling(label_cube,
+                                        sampling_design,
+                                        overhead = overhead,
+                                        alloc = "alloc_prop",
+                                        shp_file)
+    expect_true(file.exists(shp_file))
+
+    sd <- unlist(sampling_design[,5], use.names = FALSE)
+    expect_equal(sum(ceiling(sd*overhead)), nrow(samples))
+
+    sf_shp <- sf::st_read(shp_file)
+    expect_true(all(sf::st_geometry_type(sf_shp) == "POINT"))
 })

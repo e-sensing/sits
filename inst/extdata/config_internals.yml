@@ -16,7 +16,8 @@ processing_bloat        : 5
 processing_bloat_cpu    : 5
 processing_bloat_smooth : 8
 processing_bloat_seg    : 2
-processing_bloat_gpu    : 2
+processing_bloat_seg_class : 10
+processing_bloat_gpu    : 1.2
 
 # number of items returned by stac service
 rstac_pagination_limit  : 100

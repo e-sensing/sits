@@ -1357,16 +1357,21 @@ NULL
 #'
 #' @description Given a data cube, retrieve the time series of XY locations
 #'
-#' @param seg_tile_band    Tibble with information on raster and vector files
+#' @param tile ... TODO: document
+#' @param band ...
+#' @param chunk ...
 #'
 #' @return Data.frame with values per polygon.
-#'
-.tile_extract_segments <- function(seg_tile_band) {
+.tile_extract_segments <- function(tile, band, chunk) {
+    tile <- .tile(tile)
+    fi <- .fi(tile)
+    fi <- .fi_filter_bands(fi = fi, bands = band)
+    files <- .fi_paths(fi)
     # Create a SpatRaster object
-    r_obj <- .raster_open_rast(seg_tile_band[["files"]][[1]])
-    names(r_obj) <- paste0(seg_tile_band[["band"]], "-",
-                           seq_len(terra::nlyr(r_obj)))
-    segments <- .vector_read_vec(seg_tile_band[["segs_path"]])
+    r_obj <- .raster_open_rast(files)
+    names(r_obj) <- paste0(band, "-", seq_len(terra::nlyr(r_obj)))
+    # Read the segments
+    segments <- .vector_read_vec(chunk[["segments"]][[1]])
     # Extract the values
     values <- exactextractr::exact_extract(
         x = r_obj,

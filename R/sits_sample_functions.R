@@ -366,3 +366,116 @@ sits_sampling_design <- function(cube,
     design <- cbind(prop, expected_ua, std_dev, equal, alloc_options, alloc_prop)
     return(design)
 }
+
+#' @title Allocation of sample size to strata
+#' @name sits_stratified_sampling
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description
+#' Takes a class cube with different labels and a sampling
+#' design with a number of samples per class and allocates a set of
+#' locations for each class
+#'
+#' @param  cube                 Classified cube
+#' @param  sampling_design      Result of sits_sampling_design
+#' @param  alloc                Allocation method chosen
+#' @param  overhead             Additional percentage to account for border points
+#' @param  shp_file             Name of shapefile to be saved (optional)
+#' @return samples              Point sf object with required samples
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
+#'     # label the probability cube
+#'     label_cube <- sits_label_classification(
+#'         probs_cube,
+#'         output_dir = tempdir()
+#'     )
+#'     # estimated UA for classes
+#'     expected_ua <- c(Cerrado = 0.95, Forest = 0.95,
+#'                      Pasture = 0.95, Soy_Corn = 0.95)
+#'     # design sampling
+#'     sampling_design <- sits_sampling_design(label_cube, expected_ua)
+#'     # select samples
+#'     samples <- sits_stratified_sampling(label_cube,
+#'                                         sampling_design, "alloc_prop")
+#'
+#' }
+#' @export
+sits_stratified_sampling <- function(cube,
+                                     sampling_design,
+                                     alloc = "alloc_prop",
+                                     overhead = 1.0,
+                                     shp_file = NULL){
+    # check the cube is valid
+    .check_raster_cube_files(cube)
+    # check cube is class cube
+    .check_cube_is_class_cube(cube)
+    # get the labels
+    labels <- .cube_labels(cube)
+    n_labels <- length(labels)
+    # check number of labels
+    .check_that(nrow(sampling_design) == n_labels,
+                msg = "Labels in sampling design do not match labels in cube"
+    )
+    # check names of labels
+    .check_that(all(rownames(sampling_design) %in% labels),
+                msg = "Labels in sampling design do not match labels in cube"
+    )
+    # check allocation method
+    .check_that(alloc %in% colnames(sampling_design),
+                msg = "allocation method is not included in sampling design")
+    # retrieve samples class
+    samples_class <- unlist(sampling_design[,alloc])
+    # check samples class
+    .check_that(all(unname(samples_class) == floor(unname(samples_class))),
+                msg = "allocation values should be integer"
+    )
+    # name samples class
+    names(samples_class) <- rownames(sampling_design)
+    # include overhead
+    samples_class <- ceiling(samples_class * overhead)
+    # estimate size
+    size <- ceiling(max(samples_class)/nrow(cube))
+    samples_lst <- slider::slide(cube, function(tile) {
+        robj <- .raster_open_rast(.tile_path(tile))
+        cls <- data.frame(id = 1:n_labels,
+                          cover = labels)
+        levels(robj) <- cls
+        samples_sv <- terra::spatSample(
+            x = robj,
+            size = size,
+            method = "stratified",
+            as.points = TRUE
+        )
+        samples_sf <- sf::st_as_sf(samples_sv)
+        samples_sf <- dplyr::mutate(samples_sf,
+                                    label = labels[.data[["cover"]]])
+    })
+    samples <- do.call(rbind, samples_lst)
+
+    samples <- purrr::map_dfr(labels, function(lab){
+        samples_class <- samples |>
+            dplyr::filter(.data[["label"]] == lab) |>
+            dplyr::slice_sample(n = samples_class[lab])
+    })
+    if (!purrr::is_null(shp_file)) {
+        .check_that(tools::file_ext(shp_file) == "shp",
+                    msg = "invalid shapefile name")
+        sf::st_write(samples, shp_file, append = FALSE)
+        message(paste("Saved samples in shapefile ", shp_file))
+    }
+    return(samples)
+}

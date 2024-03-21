@@ -574,7 +574,15 @@
 
     UseMethod(".raster_yres", pkg_class)
 }
+#' @name .raster_scale
+#' @keywords internal
+#' @noRd
+.raster_scale <- function(r_obj, ...) {
+    # check package
+    pkg_class <- .raster_check_package()
 
+    UseMethod(".raster_scale", pkg_class)
+}
 #' @name .raster_crs
 #' @keywords internal
 #' @noRd

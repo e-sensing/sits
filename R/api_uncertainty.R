@@ -85,6 +85,8 @@
             band = .tile_bands(tile),
             block = block
         )
+        # Fill with zeros remaining NA pixels
+        values <- C_fill_na(values, 0)
         # Apply the labeling function to values
         values <- uncert_fn(values)
         # Prepare uncertainty to be saved

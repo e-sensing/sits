@@ -66,8 +66,7 @@ test_that("Mixture model tests", {
     # test errors in mixture model
     reg_cube2 <- reg_cube
     class(reg_cube2) <- "derived_cube"
-    expect_error({
-        mm_rmse <- sits_mixture_model(
+    expect_error(sits_mixture_model(
             data = reg_cube2,
             endmembers = em,
             memsize = 2,
@@ -76,7 +75,7 @@ test_that("Mixture model tests", {
             rmse_band = TRUE,
             progress = FALSE
         )
-    })
+    )
 
     # Read endmembers from CSV
     write.csv(em, file = paste0(tempdir(), "/mmodel.csv"),  row.names = FALSE)
@@ -85,7 +84,7 @@ test_that("Mixture model tests", {
     reg_cube3 <- reg_cube
     class(reg_cube3) <- "data.frame"
     mm_rmse_csv <- sits_mixture_model(
-        data = reg_cube,
+        data = reg_cube3,
         endmembers = csv_file,
         memsize = 2,
         multicores = 2,

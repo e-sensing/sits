@@ -1,3 +1,16 @@
+#' @title Reduce tile into one image
+#' @name .reduce_tile
+#'
+#' @param  tile       Single tile of a data cube.
+#' @param  block      Optimized block to be read into memory.
+#' @param  expr       An expression to be evaluated.
+#' @param  out_band   Output band
+#' @param  in_bands   Input bands
+#' @param  output_dir Output directory.
+#' @param  progress   how progress bar?
+#'
+#' @noRd
+#' @return A reduced temporal tile
 .reduce_tile <- function(tile,
                          block,
                          expr,
@@ -31,13 +44,22 @@
     chunks <- .tile_chunks_create(
         tile = tile, overlap = 0, block = block
     )
-    # Filter tile bands
-    if (.band_cloud() %in% .tile_bands(tile)) {
+    # Add cloud band in input bands
+    if (.tile_contains_cloud(tile)) {
         in_bands <- c(in_bands, .band_cloud())
     }
     tile <- .tile_filter_bands(tile, in_bands)
     # Get band configuration
-    band_conf <- .conf("default_values", "INT2S")
+    band_conf <- .conf_eo_band(
+        source = .tile_source(tile),
+        collection = .tile_collection(tile),
+        band = out_band
+    )
+    # In case the user has not defined a config for the output band
+    if (!.has(band_conf)) {
+        fn_name <- .as_chr(as.list(expr[[out_band]])[[1]])
+        band_conf <- .conf("default_values", .reduce_datatypes(fn_name))
+    }
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Get job block
@@ -68,7 +90,7 @@
         values <- eval(
             expr = expr[[out_band]],
             envir = values,
-            enclos = .temp_functions()
+            enclos = .reduce_fns()
         )
         # Prepare fractions to be saved
         offset <- .offset(band_conf)
@@ -108,6 +130,16 @@
     band_tile
 }
 
+#' @title Reduce samples
+#' @name .reduce_samples
+#'
+#' @param  data      A sits tibble
+#' @param  expr      An expression to be evaluated.
+#' @param  in_band   Input bands
+#' @param  out_band  Output band
+#'
+#' @noRd
+#' @return A reduced temporal tile
 .reduce_samples <- function(data, expr, in_band, out_band) {
     col <- "time_series"
     min_date <- min(.samples_timeline(data))
@@ -130,7 +162,7 @@
         eval(
             expr = expr[[out_band]],
             envir = y,
-            enclos = .temp_functions()
+            enclos = .reduce_fns()
         )
     })
     # Unlist results
@@ -152,10 +184,10 @@
 }
 
 #' @title Temporal functions for reduce operations
-#' @name .temp_functions
+#' @name .reduce_fns
 #' @noRd
 #' @return operations on reduce function
-.temp_functions <- function() {
+.reduce_fns <- function() {
     result_env <- list2env(list(
         t_max = function(m) {
             C_temp_max(mtx = as.matrix(m))
@@ -202,4 +234,19 @@
     ), parent = parent.env(environment()), hash = TRUE)
 
     return(result_env)
+}
+
+#' @title Output datatypes for a defined reduce function
+#' @name .reduce_datatypes
+#'
+#' @param fn_name a character with a reduce function name.
+#'
+#' @noRd
+#' @return An output datatype
+.reduce_datatypes <- function(fn_name) {
+    switch(
+        fn_name,
+        t_sum = , t_std = , t_skewness = , t_kurtosis = , t_mse = "FLT4S",
+        "INT2S"
+    )
 }

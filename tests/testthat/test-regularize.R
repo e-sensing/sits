@@ -321,17 +321,20 @@ test_that("Regularizing SENTINEL-1 data",{
         )
         expect_false(.cube_is_regular(s1_cube_open))
         expect_true(all(sits_bands(s1_cube_open) %in% c("VH", "VV")))
+
+        sf_tile <- .s2tile_open(roi_sar)
+
         # regularize the cube
         suppressWarnings(rg_cube <- sits_regularize(
             cube = s1_cube_open,
             period = "P12D",
             res = 60,
-            roi = roi_sar,
+            roi = sf_tile,
             multicores = 1,
             output_dir = tempdir()
         ))
         expect_true(.cube_is_regular(rg_cube))
         expect_true(all(sits_bands(rg_cube) %in% c("VH", "VV")))
-        expect_equal(rg_cube$crs, "EPSG:32722")
-        expect_equal(rg_cube$tile, "22LEP")
+        expect_true("EPSG:32722" %in% rg_cube$crs)
+        expect_true("22LEP" %in% rg_cube$tile)
 })

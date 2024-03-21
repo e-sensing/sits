@@ -314,6 +314,10 @@ NULL
     return(cube)
 }
 #' @export
+`.cube_adjust_crs.mpc_cube_sentinel-1-rtc` <- function(cube) {
+    `.cube_adjust_crs.mpc_cube_sentinel-1-grd`(cube)
+}
+#' @export
 .cube_adjust_crs.default <- function(cube) {
     return(cube)
 }
@@ -757,7 +761,7 @@ NULL
     UseMethod(".cube_filter_nonempty", cube)
 }
 #' @export
-.cube_filter_nonempty.raster_cube <- function(cube, roi) {
+.cube_filter_nonempty.raster_cube <- function(cube) {
     not_empty <- slider::slide_lgl(cube, .tile_is_nonempty)
     cube[not_empty, ]
 }
@@ -1251,3 +1255,19 @@ NULL
     })
     return(unlist(cube_chunks, recursive = FALSE))
 }
+
+# .cube_split_segments <- function(cube, block) {
+#     segments_sf <- .segments_read_vec(segments)
+#     chunks <- .tile_chunks_create(
+#         tile = segments,
+#         overlap = 0,
+#         block = block
+#     )
+#     chunks_sf <- .bbox_as_sf(
+#         .bbox(chunks, by_feature = TRUE), as_crs = sf::st_crs(segments_sf)
+#     )
+#     chunks_jobs <- slider::slide(chunks_sf[1,], function(chunk_sf) {
+#         segments_sf[ .intersects(segments_sf, chunk_sf),]
+#     })
+#     return(chunks_sf)
+# }

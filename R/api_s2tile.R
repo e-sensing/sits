@@ -70,3 +70,53 @@
                 sf::st_transform(crs = 4326)
         })
 }
+#' @title Convert MGRS tile information to ROI in WGS84
+#' @name .s2_mgrs_to_roi
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description
+#' Takes a list of MGRS tiles and produces a ROI covering them
+#'
+#' @param  tiles                Character vector with names of MGRS tiles
+#' @return roi                  Valid ROI to use in other SITS functions
+#'
+.s2_mgrs_to_roi <- function(tiles){
+
+    # read the MGRS data set
+    mgrs_tiles <- readRDS(system.file("extdata/s2-tiles/tiles.rds",
+                                      package = "sits"))
+    # check tiles names are valid
+    .check_chr_within(
+        x = tiles,
+        within = mgrs_tiles$tile_id,
+        msg = "invalid MGRS tiles"
+    )
+    # select MGRS tiles
+    tiles_selected <- dplyr::filter(mgrs_tiles, .data[["tile_id"]] %in% !!tiles)
+
+    # obtain a list of sf objects
+    bbox_dfr <- slider::slide_dfr(tiles_selected, function(tile){
+        xmin <- as.double(tile$xmin)
+        xmax <- xmin + 109800
+        ymin <- as.double(tile$ymin)
+        ymax <- ymin + 109800
+        bbox <- sf::st_bbox(c("xmin" = xmin, "ymin" = ymin,
+                              "xmax" = xmax, "ymax" = ymax), crs = sf::st_crs(tile$epsg))
+        bbox_ll <- bbox |>
+            sf::st_as_sfc() |>
+            sf::st_transform(crs = 4326) |>
+            sf::st_bbox()
+
+        ll <- c("lon_min" = bbox_ll[["xmin"]], "lat_min" = bbox_ll[["ymin"]],
+                "lon_max" = bbox_ll[["xmax"]], "lat_max" = bbox_ll[["ymax"]])
+        return(ll)
+    })
+    roi <- c("lon_min" = min(bbox_dfr[["lon_min"]]),
+             "lat_min" = min(bbox_dfr[["lat_min"]]),
+             "lon_max" = max(bbox_dfr[["lon_max"]]),
+             "lat_max" = max(bbox_dfr[["lat_max"]])
+    )
+    return(roi)
+}
