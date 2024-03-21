@@ -221,7 +221,7 @@
         dry_run = dry_run
     )
 }
-#' @title Get bbox from file info
+#' @title Get bbox from file info for Sentinel-1 GRD
 #' @keywords internal
 #' @noRd
 #' @param source     Data source
@@ -257,6 +257,15 @@
     bbox <- c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
     return(bbox)
 }
+#' @title Get bbox from file info for Sentinel-1 RTC
+#' @keywords internal
+#' @noRd
+#' @param source     Data source
+#' @param file_info  File info
+#' @param ...        Additional parameters.
+#' @param collection Image collection
+#' @return vector (xmin, ymin, xmax, ymax).
+#' @export
 `.source_tile_get_bbox.mpc_cube_sentinel-1-rtc` <- function(source,
                                                             file_info, ...,
                                                             collection = NULL) {
@@ -291,33 +300,22 @@
             `sat:orbit_state` == {{orbit}}
     )
 
-    # mpc does not support %in% operator, so we have to
+    # Sentinel-1 does not support tiles - convert to ROI
     if (!is.null(tiles)) {
-        items_list <- lapply(tiles, function(tile) {
-            # making the request
-            items_info <- rstac::post_request(q = stac_query, ...)
-            .check_stac_items(items_info)
-            # fetching all the metadata
-            suppressWarnings(
-                rstac::items_fetch(items = items_info, progress = FALSE)
-            )
-        })
-
-        # getting the first item info
-        items_info <- items_list[[1]]
-        # joining the items
-        items_info$features <- do.call(
-            c,
-            args = lapply(items_list, `[[`, "features")
-        )
-    } else {
-        items_info <- rstac::post_request(q = stac_query, ...)
-        .check_stac_items(items_info)
-        # fetching all the metadata
-        items_info <- suppressWarnings(
-            rstac::items_fetch(items = items_info, progress = FALSE)
+        roi <- .s2_mgrs_to_roi(tiles)
+        stac_query$params$intersects <- NULL
+        stac_query$params$bbox <- c(roi[["lon_min"]],
+                                    roi[["lat_min"]],
+                                    roi[["lon_max"]],
+                                    roi[["lat_max"]]
         )
     }
+    items_info <- rstac::post_request(q = stac_query, ...)
+    .check_stac_items(items_info)
+    # fetching all the metadata
+    items_info <- suppressWarnings(
+        rstac::items_fetch(items = items_info, progress = FALSE)
+    )
 
     # assign href
     access_key <- Sys.getenv("MPC_TOKEN")
@@ -333,6 +331,9 @@
     )
     return(items_info)
 }
+#' @keywords internal
+#' @noRd
+#' @export
 `.source_items_new.mpc_cube_sentinel-1-rtc` <- function(source,
                                                         collection,
                                                         stac_query, ...,
@@ -346,24 +347,6 @@
         orbit = orbit
     )
 }
-#' @keywords internal
-#' @noRd
-#' @export
-`.source_items_tile.mpc_cube_sentinel-1-grd` <- function(source,
-                                                         items, ...,
-                                                         collection = NULL) {
-    rep("NoTilingSystem", rstac::items_length(items))
-}
-`.source_items_tile.mpc_cube_sentinel-1-rtc` <- function(source,
-                                                         items, ...,
-                                                         collection = NULL) {
-    `.source_items_tile.mpc_cube_sentinel-1-grd`(
-        source = source,
-        items = items, ...,
-        collection = collection
-    )
-}
-
 #' @keywords internal
 #' @noRd
 #' @export
@@ -433,20 +416,6 @@
     )
     return(items_info)
 }
-#' @title Organizes items for MPC Sentinel-2 collections
-#' @param source     Name of the STAC provider.
-#' @param items      \code{STACItemcollection} object from rstac package.
-#' @param ...        Other parameters to be passed for specific types.
-#' @param collection Collection to be searched in the data source.
-#' @return A list of items.
-#' @keywords internal
-#' @noRd
-#' @export
-`.source_items_tile.mpc_cube_sentinel-2-l2a` <- function(source,
-                                                         items, ...,
-                                                         collection = NULL) {
-    rstac::items_reap(items, field = c("properties", "s2:mgrs_tile"))
-}
 #' @title Create an items object in MPC Landsat collection
 #' @keywords internal
 #' @noRd
@@ -482,7 +451,7 @@
     }
     .check_that(
         is.null(tiles),
-        local_msg = "Error when retrieving Landsat collection",
+        local_msg = "Error when retrieving Landsat MPC collection",
         msg = "Searching by tiles not allowed, use roi"
     )
 
@@ -508,6 +477,43 @@
     )
     return(items)
 }
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_tile.mpc_cube_sentinel-1-grd` <- function(source,
+                                                         items, ...,
+                                                         collection = NULL) {
+    rep("NoTilingSystem", rstac::items_length(items))
+}
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_tile.mpc_cube_sentinel-1-rtc` <- function(source,
+                                                         items, ...,
+                                                         collection = NULL) {
+    `.source_items_tile.mpc_cube_sentinel-1-grd`(
+        source = source,
+        items = items, ...,
+        collection = collection
+    )
+}
+
+
+#' @title Organizes items for MPC Sentinel-2 collections
+#' @param source     Name of the STAC provider.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_tile.mpc_cube_sentinel-2-l2a` <- function(source,
+                                                         items, ...,
+                                                         collection = NULL) {
+    rstac::items_reap(items, field = c("properties", "s2:mgrs_tile"))
+}
+
 #' @title Organizes items for MPC Landsat collections
 #' @param source     Name of the STAC provider.
 #' @param items      \code{STACItemcollection} object from rstac package.
@@ -529,4 +535,28 @@
         feature
     })
     rstac::items_reap(items, field = c("properties", "tile"))
+}
+#' @title Filter S1 GRD tiles
+#' @noRd
+#' @param source  Data source
+#' @param cube    Cube to be filtered
+#' @param tiles   Tiles to be selected
+#' @return Filtered cube
+#' @export
+`.source_filter_tiles.mpc_cube_sentinel-1-grd` <- function(source,
+                                                           collection,
+                                                           cube,
+                                                           tiles) {
+    return(cube)
+}
+`.source_filter_tiles.mpc_cube_sentinel-1-rtc` <- function(source,
+                                                           collection,
+                                                           cube,
+                                                           tiles) {
+    `.source_filter_tiles.mpc_cube_sentinel-1-grd`(
+        source = source,
+        collection = collection,
+        cube = cube,
+        tiles = tiles)
+
 }

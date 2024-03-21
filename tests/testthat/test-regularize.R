@@ -335,6 +335,6 @@ test_that("Regularizing SENTINEL-1 data",{
         ))
         expect_true(.cube_is_regular(rg_cube))
         expect_true(all(sits_bands(rg_cube) %in% c("VH", "VV")))
-        expect_equal(rg_cube$crs, "EPSG:32722")
-        expect_equal(rg_cube$tile, "22LEP")
+        expect_true("EPSG:32722" %in% rg_cube$crs)
+        expect_true("22LEP" %in% rg_cube$tile)
 })

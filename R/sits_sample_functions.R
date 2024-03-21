@@ -379,7 +379,8 @@ sits_sampling_design <- function(cube,
 #' @param  cube                 Classified cube
 #' @param  sampling_design      Result of sits_sampling_design
 #' @param  alloc                Allocation method chosen
-#' @param  shp_name             Name of shapefile to be saved (optional)
+#' @param  overhead             Additional percentage to account for border points
+#' @param  shp_file             Name of shapefile to be saved (optional)
 #' @return samples              Point sf object with required samples
 #'
 #' @examples
@@ -413,8 +414,11 @@ sits_sampling_design <- function(cube,
 #'
 #' }
 #' @export
-sits_stratified_sampling <- function(cube, sampling_design,
-                                     alloc, shp_name = NULL){
+sits_stratified_sampling <- function(cube,
+                                     sampling_design,
+                                     alloc = "alloc_prop",
+                                     overhead = 1.0,
+                                     shp_file = NULL){
     # check the cube is valid
     .check_raster_cube_files(cube)
     # check cube is class cube
@@ -441,8 +445,10 @@ sits_stratified_sampling <- function(cube, sampling_design,
     )
     # name samples class
     names(samples_class) <- rownames(sampling_design)
+    # include overhead
+    samples_class <- ceiling(samples_class * overhead)
     # estimate size
-    size <- as.integer((max(samples_class)/nrow(cube)) * 1.4)
+    size <- ceiling(max(samples_class)/nrow(cube))
     samples_lst <- slider::slide(cube, function(tile) {
         robj <- .raster_open_rast(.tile_path(tile))
         cls <- data.frame(id = 1:n_labels,
@@ -465,11 +471,11 @@ sits_stratified_sampling <- function(cube, sampling_design,
             dplyr::filter(.data[["label"]] == lab) |>
             dplyr::slice_sample(n = samples_class[lab])
     })
-    if (!purrr::is_null(shp_name)) {
-        .check_that(tools::file_ext(shp_name) == "shp",
+    if (!purrr::is_null(shp_file)) {
+        .check_that(tools::file_ext(shp_file) == "shp",
                     msg = "invalid shapefile name")
-        sf::st_write(samples, shp_name)
-        message(paste("Saved samples in shapefile ", shp_name))
+        sf::st_write(samples, shp_file, append = FALSE)
+        message(paste("Saved samples in shapefile ", shp_file))
     }
     return(samples)
 }

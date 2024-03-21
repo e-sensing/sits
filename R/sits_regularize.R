@@ -18,13 +18,14 @@
 #'
 #' @param cube       \code{raster_cube} object whose observation
 #'                   period and/or spatial resolution is not constant.
+#' @param ...        Additional parameters for \code{fn_check} function.
 #' @param period     ISO8601-compliant time period for regular
 #'                   data cubes, with number and unit, where
 #'                   "D", "M" and "Y" stand for days, month and year;
 #'                    e.g., "P16D" for 16 days.
 #' @param res        Spatial resolution of regularized images (in meters).
 #' @param roi        A named \code{numeric} vector with a region of interest.
-#'                   See more above.
+#' @param tiles      MGRS tiles to be produced (only for Sentinel-1 cubes)
 #' @param multicores Number of cores used for regularization;
 #'                   used for parallel processing of input (integer)
 #' @param output_dir Valid directory for storing regularized images.
@@ -93,11 +94,12 @@
 #' }
 #'
 #' @export
-sits_regularize <- function(cube,
+sits_regularize <- function(cube, ...,
                             period,
                             res,
                             output_dir,
                             roi = NULL,
+                            tiles = NULL,
                             multicores = 2L,
                             progress = TRUE) {
     # Pre-conditions
@@ -106,7 +108,7 @@ sits_regularize <- function(cube,
 }
 #' @rdname sits_regularize
 #' @export
-sits_regularize.raster_cube <- function(cube,
+sits_regularize.raster_cube <- function(cube, ...,
                                         period,
                                         res,
                                         output_dir,
@@ -169,11 +171,12 @@ sits_regularize.raster_cube <- function(cube,
 }
 #' @rdname sits_regularize
 #' @export
-`sits_regularize.mpc_cube_sentinel-1-grd` <- function(cube,
+`sits_regularize.mpc_cube_sentinel-1-grd` <- function(cube, ...,
                                                       period,
                                                       res,
                                                       output_dir,
                                                       roi = NULL,
+                                                      tiles = NULL,
                                                       multicores = 2L,
                                                       progress = TRUE) {
     # Preconditions
@@ -184,7 +187,11 @@ sits_regularize.raster_cube <- function(cube,
     .check_output_dir(output_dir)
     .check_multicores(multicores, min = 1, max = 2048)
     .check_progress(progress)
-    .check_null(roi, msg = "invalid roi parameter")
+    # Check for ROI and tiles
+    .check_roi_tiles(roi, tiles)
+    if (is.character(tiles)) {
+        roi <- .s2_mgrs_to_roi(tiles)
+    }
     roi <- .roi_as_sf(roi)
     # Display warning message in case STAC cube
     if (!.cube_is_local(cube)) {
@@ -202,7 +209,7 @@ sits_regularize.raster_cube <- function(cube,
     # Convert input sentinel1 cube to sentinel2 grid
     cube <- .reg_s2tile_convert(cube = cube, roi = roi)
     # Call regularize in parallel
-    .reg_cube(
+    cube <- .reg_cube(
         cube = cube,
         res = res,
         roi = roi,
@@ -210,26 +217,39 @@ sits_regularize.raster_cube <- function(cube,
         output_dir = output_dir,
         progress = progress
     )
+    if (is.character(tiles)) {
+        cube <- .cube_filter_tiles(cube, tiles)
+    }
+    return(cube)
 }
 #' @rdname sits_regularize
 #' @export
-sits_regularize.derived_cube <- function(cube,
-                                         period,
-                                         res,
-                                         output_dir,
-                                         roi = NULL,
-                                         multicores = 2,
-                                         progress = TRUE) {
+`sits_regularize.mpc_cube_sentinel-1-rtc` <- function(cube, ...,
+                                                      period,
+                                                      res,
+                                                      output_dir,
+                                                      roi = NULL,
+                                                      tiles = NULL,
+                                                      multicores = 2L,
+                                                      progress = TRUE) {
+    `sits_regularize.mpc_cube_sentinel-1-grd`(
+        cube = cube,
+        period = period,
+        res = res,
+        output_dir = output_dir,
+        roi = roi,
+        tiles  = tiles,
+        multicores = multicores,
+        progress = progress
+    )
+}
+#' @rdname sits_regularize
+#' @export
+sits_regularize.derived_cube <- function(cube, ...) {
     stop("sits_regularize only works with non-processed cubes")
 }
 #' @rdname sits_regularize
 #' @export
-sits_regularize.default <- function(cube,
-                                    period,
-                                    res,
-                                    output_dir,
-                                    roi = NULL,
-                                    multicores = 2,
-                                    progress = TRUE) {
+sits_regularize.default <- function(cube, ...) {
     stop("Input should be object of class raster cube")
 }

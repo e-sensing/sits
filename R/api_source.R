@@ -1027,3 +1027,13 @@ NULL
     source <- .source_new(source = source)
     UseMethod(".source_adjust_date", source)
 }
+#' @title Filter tiles if required by source
+#' @noRd
+#' @param source  Data source
+#' @param cube    Cube to be filtered
+#' @param tiles   Tiles to be selected
+#' @return Filtered cube
+.source_filter_tiles <- function(source, collection, cube, tiles) {
+    source <- .source_new(source = source, collection = collection)
+    UseMethod(".source_filter_tiles", source)
+}

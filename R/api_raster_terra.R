@@ -84,6 +84,7 @@
     suppressWarnings(
         terra::rast(x = r_obj, nlyrs = nlayers, ...)
     )
+
 }
 #' @title Open a raster object based on a file
 #' @keywords internal
@@ -93,9 +94,12 @@
 #' @return           Terra raster object
 #' @export
 .raster_open_rast.terra <- function(file, ...) {
-    suppressWarnings(
+    r_obj <- suppressWarnings(
         terra::rast(x = .file_normalize(file), ...)
     )
+    # remove gain and offset applied by terra
+    terra::scoff(r_obj) <- NULL
+    r_obj
 }
 #' @title Write values to a terra raster object based on a file
 #' @keywords internal
@@ -430,7 +434,22 @@
 .raster_yres.terra <- function(r_obj, ...) {
     terra::yres(x = r_obj)
 }
-
+#' @keywords internal
+#' @noRd
+#' @export
+.raster_scale.terra <- function(r_obj, ...) {
+    # check value
+    i <- 1
+    while (is.na(r_obj[i])) {
+        i <- i + 1
+    }
+    value <- r_obj[i]
+    if (value > 1.0 && value <= 10000)
+        scale_factor <- 0.0001
+    else
+        scale_factor <- 1.0
+    return(scale_factor)
+}
 #' @keywords internal
 #' @noRd
 #' @export

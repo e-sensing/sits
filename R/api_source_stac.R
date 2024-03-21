@@ -138,17 +138,14 @@
         collection = collection,
         progress = progress, ...
     )
-    if (is.character(tiles)) {
-        # post-condition
-        .check_chr_within(.cube_tiles(cube),
-            within = tiles,
-            can_repeat = FALSE,
-            msg = "invalid tile returned in cube"
-        )
-        # arrange cube tiles according with 'tiles' parameter
-        tiles <- tiles[tiles %in% .cube_tiles(cube)]
-        cube <- cube[match(.cube_tiles(cube), tiles), ]
-    }
+    # filter tiles
+    cube <- .source_filter_tiles(
+        source = source,
+        collection = collection,
+        cube = cube,
+        tiles = tiles
+    )
+
     class(cube) <- .cube_s3class(cube)
     return(cube)
 }
@@ -593,4 +590,25 @@
 #' @return Adjusted date
 .source_adjust_date.stac_cube <- function(source, date) {
     return(date)
+}
+#' @title Filter tiles if required by source
+#' @noRd
+#' @param source  Data source
+#' @param cube    Cube to be filtered
+#' @param tiles   Tiles to be selected
+#' @return Filtered cube
+#' @export
+.source_filter_tiles.stac_cube <- function(source, collection, cube, tiles) {
+    if (is.character(tiles)) {
+        # post-condition
+        .check_chr_within(.cube_tiles(cube),
+                          within = tiles,
+                          discriminator = "any_of",
+                          can_repeat = FALSE,
+                          msg = "cube does not contain requested tiles"
+        )
+        # filter cube tiles
+        cube <- dplyr::filter(cube, .data[["tile"]] %in% tiles)
+    }
+    return(cube)
 }
