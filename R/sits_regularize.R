@@ -240,7 +240,7 @@ sits_regularize.raster_cube <- function(cube, ...,
         roi = roi,
         tiles  = tiles,
         multicores = multicores,
-        progress = progress
+        progress = progress, ...
     )
 }
 #' @rdname sits_regularize
