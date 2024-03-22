@@ -208,6 +208,10 @@ sits_regularize.raster_cube <- function(cube, ...,
     on.exit(.parallel_stop(), add = TRUE)
     # Convert input sentinel1 cube to sentinel2 grid
     cube <- .reg_s2tile_convert(cube = cube, roi = roi)
+    # Filter tiles
+    if (is.character(tiles)) {
+        cube <- .cube_filter_tiles(cube, tiles)
+    }
     # Call regularize in parallel
     cube <- .reg_cube(
         cube = cube,
@@ -217,9 +221,6 @@ sits_regularize.raster_cube <- function(cube, ...,
         output_dir = output_dir,
         progress = progress
     )
-    if (is.character(tiles)) {
-        cube <- .cube_filter_tiles(cube, tiles)
-    }
     return(cube)
 }
 #' @rdname sits_regularize
