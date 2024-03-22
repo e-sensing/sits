@@ -561,25 +561,30 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
     #     progress = TRUE
     # )
 })
-test_that("Creating Sentinel-1 GRD cubes from MPC uding tiles", {
+test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
 
     cube_s1_grd <-  sits_cube(
         source = "MPC",
         collection = "SENTINEL-1-GRD",
         bands = c("VV", "VH"),
         orbit = "descending",
-        tiles = "20LKP",
-        start_date = "2023-03-01",
-        end_date = "2023-09-30"
+        tiles = c("21LUJ","21LVJ"),
+        start_date = "2021-03-01",
+        end_date = "2021-09-30"
     )
     bbox <- sits_bbox(cube_s1_grd)
-    expect_true(grepl("18N", bbox[["crs"]]))
-    expect_equal(381340, bbox[["xmin"]])
-    expect_equal(701860, bbox[["xmax"]])
+    roi_cube_s1 <- sits_mgrs_to_roi(c("21LUJ","21LVJ"))
 
-    roi_20LKP <- sits_mgrs_to_roi("20LKP")
+    expect_true(bbox[["xmin"]] < roi_cube_s1[["lon_min"]])
+    expect_true(bbox[["xmax"]] > roi_cube_s1[["lon_max"]])
+    expect_true(bbox[["ymin"]] < roi_cube_s1[["lat_min"]])
+    expect_true(bbox[["ymax"]] > roi_cube_s1[["lat_max"]])
+    expect_true(all(c("VV", "VH") %in% sits_bands(cube_s1_grd)))
 
-    output_dir <- paste0(tempdir(), "/s1-2")
+    r_obj <- .raster_open_rast(cube_s1_grd$file_info[[1]]$path[[1]])
+    expect_true(terra::nrow(r_obj) == cube_s1_grd$file_info[[1]]$nrows[[1]])
+
+    output_dir <- paste0(tempdir(), "/s1-grd")
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
@@ -588,7 +593,7 @@ test_that("Creating Sentinel-1 GRD cubes from MPC uding tiles", {
         cube = cube_s1_grd,
         period = "P12D",
         res = 120,
-        tiles = "20LKP",
+        tiles = c("21LUJ","21LVJ"),
         multicores = 4,
         output_dir = output_dir,
         progress = TRUE
