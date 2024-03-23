@@ -5,6 +5,7 @@
 \alias{sits_bbox.sits}
 \alias{sits_bbox.raster_cube}
 \alias{sits_bbox.mpc_cube_sentinel-1-grd}
+\alias{sits_bbox.mpc_cube_sentinel-1-rtc}
 \alias{sits_bbox.tbl_df}
 \alias{sits_bbox.default}
 \title{Get the bounding box of the data}
@@ -16,6 +17,8 @@ sits_bbox(data, crs = "EPSG:4326", as_crs = NULL)
 \method{sits_bbox}{raster_cube}(data, crs = "EPSG:4326", as_crs = NULL)
 
 \method{sits_bbox}{`mpc_cube_sentinel-1-grd`}(data, crs = "EPSG:4326", as_crs = NULL)
+
+\method{sits_bbox}{`mpc_cube_sentinel-1-rtc`}(data, crs = "EPSG:4326", as_crs = NULL)
 
 \method{sits_bbox}{tbl_df}(data, crs = "EPSG:4326", as_crs = NULL)
 

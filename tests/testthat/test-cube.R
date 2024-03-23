@@ -584,12 +584,12 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
     r_obj <- .raster_open_rast(cube_s1_grd$file_info[[1]]$path[[1]])
     expect_true(terra::nrow(r_obj) == cube_s1_grd$file_info[[1]]$nrows[[1]])
 
-    output_dir <- paste0(tempdir(), "/s1-grd")
+    output_dir <- paste0(tempdir(), "/s1-grd-reg")
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
 
-    cube_s1_20LKP <- sits_regularize(
+    cube_s1_reg <- sits_regularize(
         cube = cube_s1_grd,
         period = "P12D",
         res = 120,
