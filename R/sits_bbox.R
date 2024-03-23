@@ -61,7 +61,7 @@ sits_bbox.raster_cube <- function(data, crs = "EPSG:4326", as_crs = NULL) {
         xmax = data[["xmax"]],
         ymin = data[["ymin"]],
         ymax = data[["ymax"]],
-        crs = "EPSG:4236"
+        crs = "EPSG:4326"
     )
     return(bbox)
 }
