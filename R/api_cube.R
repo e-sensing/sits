@@ -314,10 +314,6 @@ NULL
     return(cube)
 }
 #' @export
-`.cube_adjust_crs.mpc_cube_sentinel-1-rtc` <- function(cube) {
-    `.cube_adjust_crs.mpc_cube_sentinel-1-grd`(cube)
-}
-#' @export
 .cube_adjust_crs.default <- function(cube) {
     return(cube)
 }

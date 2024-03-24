@@ -67,12 +67,6 @@ sits_bbox.raster_cube <- function(data, crs = "EPSG:4326", as_crs = NULL) {
 }
 #' @rdname sits_bbox
 #' @export
-`sits_bbox.mpc_cube_sentinel-1-rtc` <- function(data, crs = "EPSG:4326",
-                                                as_crs = NULL) {
-    `sits_bbox.mpc_cube_sentinel-1-grd`(data, crs = crs, as_crs = as_crs)
-}
-#' @rdname sits_bbox
-#' @export
 sits_bbox.tbl_df <- function(data, crs = "EPSG:4326", as_crs = NULL) {
     data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
