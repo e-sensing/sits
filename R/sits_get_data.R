@@ -101,7 +101,7 @@ sits_get_data <- function(cube,
                           end_date = NULL,
                           label = "NoClass",
                           bands = sits_bands(cube),
-                          crs = 4326L,
+                          crs = "EPSG:4326",
                           label_attr = NULL,
                           n_sam_pol = 30L,
                           pol_avg = FALSE,
@@ -133,7 +133,7 @@ sits_get_data.default <- function(cube, samples, ...) {
 sits_get_data.csv <- function(cube,
                               samples, ...,
                               bands = sits_bands(cube),
-                              crs = 4326L,
+                              crs = "EPSG:4326",
                               multicores = 2,
                               progress = FALSE) {
     # Extract a data frame from csv
@@ -272,7 +272,7 @@ sits_get_data.data.frame <- function(cube,
                                      end_date = NULL,
                                      bands = sits_bands(cube),
                                      label = "NoClass",
-                                     crs = 4326,
+                                     crs = "EPSG:4326",
                                      multicores = 2,
                                      progress = FALSE) {
     # Check if samples contains all the required columns

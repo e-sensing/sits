@@ -621,7 +621,7 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
         collection = "SENTINEL-1-RTC",
         bands = c("VV", "VH"),
         orbit = "descending",
-        tiles = c("24MUS", "24MVS"),
+        roi = roi,
         start_date = "2021-03-01",
         end_date = "2021-09-30"
     )

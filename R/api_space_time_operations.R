@@ -14,7 +14,7 @@
                                latitude,
                                crs) {
     t <- tibble::tibble(long = longitude, lat = latitude) |>
-        sf::st_as_sf(coords = c("long", "lat"), crs = 4326) |>
+        sf::st_as_sf(coords = c("long", "lat"), crs = "EPSG:4326") |>
         sf::st_transform(crs = crs) |>
         sf::st_coordinates() |>
         tibble::as_tibble()
