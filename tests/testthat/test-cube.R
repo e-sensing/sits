@@ -606,7 +606,16 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
         progress = TRUE
     )
 })
-test_that("Creating S1 RTC cubes from MPC", {
+test_that("Creating Sentinel-1 RTC cubes from MPC", {
+    cube_s1_grd <-  sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-1-GRD",
+        bands = c("VV", "VH"),
+        orbit = "descending",
+        tiles = c("24MUS", "24MVS"),
+        start_date = "2021-03-01",
+        end_date = "2021-09-30"
+    )
     cube_s1_rtc <-  sits_cube(
         source = "MPC",
         collection = "SENTINEL-1-RTC",
