@@ -235,7 +235,7 @@
             dim = "XY",
             remove = TRUE
         ) |>
-        sf::st_transform(crs = 4326) |>
+        sf::st_transform(crs = "EPSG:4326") |>
         sf::st_coordinates()
 
     colnames(result_tb) <- c("longitude", "latitude")

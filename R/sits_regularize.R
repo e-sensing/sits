@@ -208,6 +208,10 @@ sits_regularize.raster_cube <- function(cube, ...,
     on.exit(.parallel_stop(), add = TRUE)
     # Convert input sentinel1 cube to sentinel2 grid
     cube <- .reg_s2tile_convert(cube = cube, roi = roi)
+    .check_that(
+        nrow(cube) > 0,
+        msg = "Spatial region does not intersect cube"
+    )
     # Filter tiles
     if (is.character(tiles)) {
         cube <- .cube_filter_tiles(cube, tiles)
