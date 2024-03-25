@@ -1851,6 +1851,7 @@
         return(classes_tile)
     })
     classes_num <- unique(unlist(classes_list))
+    classes_num <- classes_num[!is.na(classes_num)]
     labels_num <- names(sits_labels(cube))
     # do the labels and raster numbers match?
     .check_that(
