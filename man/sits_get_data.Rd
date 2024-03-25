@@ -18,7 +18,7 @@ sits_get_data(
   end_date = NULL,
   label = "NoClass",
   bands = sits_bands(cube),
-  crs = 4326L,
+  crs = "EPSG:4326",
   label_attr = NULL,
   n_sam_pol = 30L,
   pol_avg = FALSE,
@@ -34,7 +34,7 @@ sits_get_data(
   samples,
   ...,
   bands = sits_bands(cube),
-  crs = 4326L,
+  crs = "EPSG:4326",
   multicores = 2,
   progress = FALSE
 )
@@ -88,7 +88,7 @@ sits_get_data(
   end_date = NULL,
   bands = sits_bands(cube),
   label = "NoClass",
-  crs = 4326,
+  crs = "EPSG:4326",
   multicores = 2,
   progress = FALSE
 )
