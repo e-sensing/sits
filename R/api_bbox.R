@@ -205,7 +205,7 @@ NULL
         geom_elem
     })
     # Return geom
-    geom
+    sf::st_make_valid(geom)
 }
 #' @title Compute the intersection of two bbox
 #' @noRd

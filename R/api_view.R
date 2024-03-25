@@ -297,7 +297,7 @@
     samples <- sf::st_as_sf(
         samples[c("longitude", "latitude", "label")],
         coords = c("longitude", "latitude"),
-        crs = 4326
+        crs = "EPSG:4326"
     )
     # get the bounding box
     samples_bbox <- sf::st_bbox(samples)
