@@ -70,11 +70,7 @@
 #' @return a data cube with assets of the same period (file ID)
 .reg_merge_asset <- function(asset, res, roi, output_dir) {
     # Get band conf missing value
-    band_conf <- .conf_eo_band(
-        source = "MPC",
-        collection = "SENTINEL-1-GRD",
-        band = asset[["asset"]]
-    )
+    band_conf <- .tile_band_conf(asset, band = asset[["asset"]])
     # Prepare output file name
     out_file <- .file_eo_name(
         tile = asset,
