@@ -70,11 +70,7 @@
 #' @return a data cube with assets of the same period (file ID)
 .reg_merge_asset <- function(asset, res, roi, output_dir) {
     # Get band conf missing value
-    band_conf <- .conf_eo_band(
-        source = "MPC",
-        collection = "SENTINEL-1-GRD",
-        band = asset[["asset"]]
-    )
+    band_conf <- .tile_band_conf(asset, band = asset[["asset"]])
     # Prepare output file name
     out_file <- .file_eo_name(
         tile = asset,
@@ -97,13 +93,17 @@
     }
 
     # Create template based on tile metadata
-    block <- list(ncols = floor((.xmax(asset) - .xmin(asset)) / res),
-                  nrows = floor((.ymax(asset) - .ymin(asset)) / res))
-    bbox <- list(xmin = .xmin(asset),
-                 xmax = .xmin(asset) + .ncols(block) * res,
-                 ymin = .ymax(asset) - .nrows(block) * res,
-                 ymax = .ymax(asset),
-                 crs = .crs(asset))
+    roi_bbox <- .bbox(sf::st_intersection(
+        x = .roi_as_sf(roi, as_crs = .crs(asset)),
+        y = .bbox_as_sf(.bbox(asset))
+    ))
+    block <- list(ncols = floor((.xmax(roi_bbox) - .xmin(roi_bbox)) / res),
+                  nrows = floor((.ymax(roi_bbox) - .ymin(roi_bbox)) / res))
+    bbox <- list(xmin = .xmin(roi_bbox),
+                 xmax = .xmin(roi_bbox) + .ncols(block) * res,
+                 ymin = .ymax(roi_bbox) - .nrows(block) * res,
+                 ymax = .ymax(roi_bbox),
+                 crs = .crs(roi_bbox))
     out_file <- .gdal_template_block(
         block = block,
         bbox = bbox,

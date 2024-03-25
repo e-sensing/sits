@@ -116,10 +116,10 @@
 #' @param  blue          Band for blue color.
 #' @param  class_cube    Classified cube to be overlayed on top on image
 #' @param  legend        Named vector that associates labels to colors.
+#' @param  opacity       Opacity of segment fill
 #' @param  palette       Palette provided in the configuration file.
 #' @param  seg_color     Color for segments
 #' @param  line_width    Line width for segments
-#' @param  fill_opacity  Opacity of segment fill
 #' @param  view_max_mb   Maximum size of leaflet to be visualized
 #'
 #' @return               A leaflet object.
@@ -297,7 +297,7 @@
     samples <- sf::st_as_sf(
         samples[c("longitude", "latitude", "label")],
         coords = c("longitude", "latitude"),
-        crs = 4326
+        crs = "EPSG:4326"
     )
     # get the bounding box
     samples_bbox <- sf::st_bbox(samples)
@@ -511,6 +511,10 @@
                           dates,
                           palette,
                           output_size) {
+    # adjust for greyscale images
+    # adjust palette
+    if (palette == "Greys")
+        palette <- grDevices::grey.colors(32, start = 0.05, end = 1.0)
     # obtain the raster objects for the dates chosen
     for (i in seq_along(dates)) {
         date <- as.Date(dates[[i]])

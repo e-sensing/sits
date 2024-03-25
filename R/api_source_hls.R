@@ -15,12 +15,6 @@
                                        collection,
                                        stac_query,
                                        tiles = NULL) {
-    if (!is.null(tiles)) {
-        stop(paste("HLS cubes do not support searching for tiles, use",
-            "'roi' parameter instead.",
-            call. = FALSE
-        ))
-    }
     # NASA EarthData requires a login/password combination
     netrc_path <- "~/.netrc"
     if (.Platform$OS.type == "windows") {
@@ -32,12 +26,22 @@
             "Have you configured your access to NASA EarthData?"
         ))
     }
-
-    # Convert roi to bbox
-    lon <- stac_query$params$intersects$coordinates[, , 1]
-    lat <- stac_query$params$intersects$coordinates[, , 2]
-    stac_query$params$intersects <- NULL
-    stac_query$params$bbox <- c(min(lon), min(lat), max(lon), max(lat))
+    # convert tiles to a valid STAC query
+    if (!is.null(tiles)) {
+        roi <- .s2_mgrs_to_roi(tiles)
+        stac_query$params$intersects <- NULL
+        stac_query$params$bbox <- c(roi[["lon_min"]],
+                                    roi[["lat_min"]],
+                                    roi[["lon_max"]],
+                                    roi[["lat_max"]]
+        )
+    } else {
+        # Convert roi to bbox
+        lon <- stac_query$params$intersects$coordinates[, , 1]
+        lat <- stac_query$params$intersects$coordinates[, , 2]
+        stac_query$params$intersects <- NULL
+        stac_query$params$bbox <- c(min(lon), min(lat), max(lon), max(lat))
+    }
     # making the request
     items_info <- rstac::post_request(q = stac_query, ...)
     .check_stac_items(items_info)

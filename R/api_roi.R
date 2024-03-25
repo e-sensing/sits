@@ -93,6 +93,10 @@ NULL
 #' @returns \code{.roi_as_sf()}: \code{sf}.
 #' @noRd
 .roi_as_sf <- function(roi, default_crs = NULL, as_crs = NULL) {
+    # is the roi defined by a shapefile
+    if (is.character(roi) && file.exists(roi) && (tools::file_ext(roi) == "shp"))
+        roi <- sf::st_read(roi)
+    # convert R objects to sf object
     roi <- .roi_switch(
         roi = roi,
         sf = roi,

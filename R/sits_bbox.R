@@ -51,6 +51,22 @@ sits_bbox.raster_cube <- function(data, crs = "EPSG:4326", as_crs = NULL) {
 }
 #' @rdname sits_bbox
 #' @export
+`sits_bbox.mpc_cube_sentinel-1-grd` <- function(data, crs = "EPSG:4326",
+                                                as_crs = NULL) {
+    # Pre-condition
+    .check_is_raster_cube(data)
+    # Convert to bbox
+    bbox <- tibble::tibble(
+        xmin = data[["xmin"]],
+        xmax = data[["xmax"]],
+        ymin = data[["ymin"]],
+        ymax = data[["ymax"]],
+        crs = "EPSG:4326"
+    )
+    return(bbox)
+}
+#' @rdname sits_bbox
+#' @export
 sits_bbox.tbl_df <- function(data, crs = "EPSG:4326", as_crs = NULL) {
     data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {

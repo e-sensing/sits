@@ -4,7 +4,13 @@
 \alias{sits_stratified_sampling}
 \title{Allocation of sample size to strata}
 \usage{
-sits_stratified_sampling(cube, sampling_design, alloc, shp_name = NULL)
+sits_stratified_sampling(
+  cube,
+  sampling_design,
+  alloc = "alloc_prop",
+  overhead = 1,
+  shp_file = NULL
+)
 }
 \arguments{
 \item{cube}{Classified cube}
@@ -13,7 +19,9 @@ sits_stratified_sampling(cube, sampling_design, alloc, shp_name = NULL)
 
 \item{alloc}{Allocation method chosen}
 
-\item{shp_name}{Name of shapefile to be saved (optional)}
+\item{overhead}{Additional percentage to account for border points}
+
+\item{shp_file}{Name of shapefile to be saved (optional)}
 }
 \value{
 samples              Point sf object with required samples
