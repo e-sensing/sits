@@ -9,7 +9,9 @@ sits_stratified_sampling(
   sampling_design,
   alloc = "alloc_prop",
   overhead = 1,
-  shp_file = NULL
+  multicores = 2,
+  shp_file = NULL,
+  progress = TRUE
 )
 }
 \arguments{
@@ -21,7 +23,12 @@ sits_stratified_sampling(
 
 \item{overhead}{Additional percentage to account for border points}
 
+\item{multicores}{Number of cores that will be used to
+sample the images in parallel.}
+
 \item{shp_file}{Name of shapefile to be saved (optional)}
+
+\item{progress}{Show progress bar? Default is TRUE.}
 }
 \value{
 samples              Point sf object with required samples

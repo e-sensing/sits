@@ -380,7 +380,10 @@ sits_sampling_design <- function(cube,
 #' @param  sampling_design      Result of sits_sampling_design
 #' @param  alloc                Allocation method chosen
 #' @param  overhead             Additional percentage to account for border points
+#' @param  multicores           Number of cores that will be used to
+#'                              sample the images in parallel.
 #' @param  shp_file             Name of shapefile to be saved (optional)
+#' @param progress              Show progress bar? Default is TRUE.
 #' @return samples              Point sf object with required samples
 #'
 #' @examples
@@ -418,7 +421,9 @@ sits_stratified_sampling <- function(cube,
                                      sampling_design,
                                      alloc = "alloc_prop",
                                      overhead = 1.0,
-                                     shp_file = NULL){
+                                     multicores = 2,
+                                     shp_file = NULL,
+                                     progress = TRUE){
     # check the cube is valid
     .check_raster_cube_files(cube)
     # check cube is class cube
@@ -443,13 +448,21 @@ sits_stratified_sampling <- function(cube,
     .check_that(all(unname(samples_class) == floor(unname(samples_class))),
                 msg = "allocation values should be integer"
     )
+    .check_multicores(multicores, min = 1, max = 2048)
+    .check_progress(progress)
     # name samples class
     names(samples_class) <- rownames(sampling_design)
     # include overhead
     samples_class <- ceiling(samples_class * overhead)
     # estimate size
     size <- ceiling(max(samples_class)/nrow(cube))
-    samples_lst <- slider::slide(cube, function(tile) {
+    # Prepare parallel processing
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
+    # Create assets as jobs
+    cube_assets <- .cube_split_assets(cube)
+    # Process each asset in parallel
+    samples <- .jobs_map_parallel_dfr(cube_assets, function(tile) {
         robj <- .raster_open_rast(.tile_path(tile))
         cls <- data.frame(id = 1:n_labels,
                           cover = labels)
@@ -463,8 +476,8 @@ sits_stratified_sampling <- function(cube,
         samples_sf <- sf::st_as_sf(samples_sv)
         samples_sf <- dplyr::mutate(samples_sf,
                                     label = labels[.data[["cover"]]])
-    })
-    samples <- do.call(rbind, samples_lst)
+        samples_sf <- sf::st_transform(samples_sf, crs = "EPSG:4326")
+    }, progress = progress)
 
     samples <- purrr::map_dfr(labels, function(lab){
         samples_class <- samples |>
