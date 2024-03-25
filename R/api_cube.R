@@ -154,7 +154,7 @@ NULL
         # Include class names
         freq <- dplyr::mutate(freq,
                               area = area,
-                              class = labels_cube[.as_chr(freq$value)]
+                              class = labels_cube[as.character(freq$value)]
         )
         return(freq)
     })
