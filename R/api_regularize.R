@@ -129,23 +129,25 @@
     )
 }
 
-.reg_s2tile_convert <- function(cube, roi) {
-    # TODO: check cube
+.reg_s2tile_convert <- function(cube, roi = NULL, tiles = NULL) {
 
     # generate Sentinel-2 tiles and intersects it with doi
-    tiles <- .s2tile_open(roi)
-    tiles <- tiles[.intersects(tiles, .roi_as_sf(roi)), ]
-
-    # prepare a sf object representing the bbox of each image in file_info
-    fi_bbox <- .bbox_as_sf(.bbox(
-        x = cube$file_info[[1]],
-        default_crs = .crs(cube),
-        by_feature = TRUE
-    ))
+    tiles_mgrs <- .s2tile_open(roi, tiles)
 
     # create a new cube according to Sentinel-2 MGRS
     cube_class <- .cube_s3class(cube)
-    cube <- tiles |>
+
+    # prepare a sf object representing the bbox of each image in file_info
+    cube_mgrs <- slider::slide_dfr(tiles_mgrs, function(tile){
+        cube_tile <- dplyr::filter(cube, .data[["crs"]] == tile$crs)
+        fi_bbox <- .bbox_as_sf(.bbox(
+            x = cube_tile$file_info[[1]],
+            default_crs = .crs(tile),
+            by_feature = TRUE
+        ))
+    })
+
+    cube <- tiles_mgrs |>
         dplyr::rowwise() |>
         dplyr::group_map(~{
             file_info <- .fi(cube)[.intersects({{fi_bbox}}, .x), ]

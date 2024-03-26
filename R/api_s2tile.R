@@ -3,7 +3,11 @@
 #' @keywords internal
 #' @noRd
 #' @return a simple feature containing all Sentinel-2 tiles
-.s2tile_open <- function(roi) {
+.s2tile_open <- function(roi, tiles) {
+    # check
+    .check_roi_tiles(roi, tiles)
+    # if tiles, convert to roi
+
     # define dummy local variables to stop warnings
     epsg <- xmin <- ymin <- xmax <- ymax <- NULL
 
@@ -11,27 +15,31 @@
     s2_file <- system.file("extdata/s2-tiles/tiles.rds", package = "sits")
     s2_tb <- readRDS(s2_file)
 
-    # create a sf of points
-    epsg_lst <- unique(s2_tb$epsg)
-    points_sf <- sf::st_cast(purrr::map_dfr(epsg_lst, function(epsg) {
-        tiles <- dplyr::filter(s2_tb, epsg == {{epsg}})
-        sfc <- matrix(c(tiles$xmin, tiles$ymin), ncol = 2) |>
-            sf::st_multipoint(dim = "XY") |>
-            sf::st_sfc(crs = epsg) |>
-            sf::st_transform(crs = "EPSG:4326")
-        sf::st_sf(geom = sfc)
-    }), "POINT")
+    if (is.character(tiles)) {
+        s2_tb <- dplyr::filter(s2_tb, .data[["tile_id"]] %in% tiles)
+    }
+    else {
+        # create a sf of points
+        epsg_lst <- unique(s2_tb$epsg)
+        points_sf <- sf::st_cast(purrr::map_dfr(epsg_lst, function(epsg) {
+            tiles <- dplyr::filter(s2_tb, epsg == {{epsg}})
+            sfc <- matrix(c(tiles$xmin, tiles$ymin), ncol = 2) |>
+                sf::st_multipoint(dim = "XY") |>
+                sf::st_sfc(crs = epsg) |>
+                sf::st_transform(crs = "EPSG:4326")
+            sf::st_sf(geom = sfc)
+        }), "POINT")
 
-    # change roi to 1.5 degree to west and south
-    roi <- .bbox_as_sf(
-        dplyr::mutate(
-            .bbox(.roi_as_sf(roi, as_crs = "EPSG:4326")),
-            xmin = xmin - 1.5,
-            ymin = ymin - 1.5
-        ))
-
-    # filter points
-    s2_tb <- s2_tb[.intersects(points_sf, roi), ]
+        # change roi to 1.5 degree to west and south
+        roi_search <- .bbox_as_sf(
+            dplyr::mutate(
+                .bbox(.roi_as_sf(roi, as_crs = "EPSG:4326")),
+                xmin = xmin - 1.5,
+                ymin = ymin - 1.5
+            ))
+        # filter points
+        s2_tb <- s2_tb[.intersects(points_sf, roi_search), ]
+    }
 
     # creates a list of simple features
     epsg_lst <- unique(s2_tb$epsg)
@@ -64,6 +72,10 @@
             crs = "EPSG:4326"
         )
     })
+
+    # if roi is given, filter tiles by desired roi
+    if (.has(roi))
+        s2_tiles <- s2_tiles[.intersects(s2_tiles, .roi_as_sf(roi)), ]
 
     return(s2_tiles)
 }

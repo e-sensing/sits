@@ -601,51 +601,42 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
         period = "P12D",
         res = 120,
         tiles = c("21LUJ","21LVJ"),
-        multicores = 4,
+        multicores = 1,
         output_dir = output_dir,
         progress = TRUE
     )
 })
 test_that("Creating Sentinel-1 RTC cubes from MPC", {
-    cube_s1_grd <-  sits_cube(
-        source = "MPC",
-        collection = "SENTINEL-1-GRD",
-        bands = c("VV", "VH"),
-        orbit = "descending",
-        tiles = c("24MUS", "24MVS"),
-        start_date = "2021-03-01",
-        end_date = "2021-09-30"
-    )
     cube_s1_rtc <-  sits_cube(
         source = "MPC",
         collection = "SENTINEL-1-RTC",
         bands = c("VV", "VH"),
         orbit = "descending",
-        roi = roi,
+        tiles = c("21LXJ", "21LYJ", "21LZJ", "22LBP"),
         start_date = "2021-03-01",
         end_date = "2021-09-30"
     )
-    bbox <- sits_bbox(cube_s1_rtc)
-    expect_true(grepl("32724", bbox[["crs"]]))
-    expect_equal(20600, bbox[["xmin"]])
-    expect_equal(749090, bbox[["xmax"]])
-    expect_equal(nrow(cube_s1_rtc$file_info[[1]]), 136)
-    expect_true(all)
+    bbox <- sits_bbox(cube_s1_rtc[1,])
+    expect_true(grepl("32722", bbox[["crs"]]))
+    expect_equal(117360, bbox[["xmin"]])
+    expect_equal(443770, bbox[["xmax"]])
+    expect_equal(nrow(cube_s1_rtc$file_info[[1]]), 68)
 
-    output_dir <- paste0(tempdir(), "/s1rtc2")
+    output_dir <- paste0(tempdir(), "/s1rtcreg")
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
 
-    cube_s1_20LKP_rtc <- sits_regularize(
+    cube_s1_rtc_reg <- sits_regularize(
         cube = cube_s1_rtc,
         period = "P12D",
         res = 120,
-        roi = roi,
+        tiles = c("21LXJ", "21LYJ", "21LZJ", "22LBP"),
         multicores = 4,
         output_dir = output_dir,
         progress = TRUE
     )
+
 })
 
 test_that("Creating LANDSAT cubes from MPC with ROI", {

@@ -373,8 +373,15 @@ plot.raster_cube <- function(x, ...,
         bw <-  FALSE
     else
         bw <-  TRUE
-    if (bw)
+    if (bw) {
         band = .default(band, .cube_bands(x, add_cloud = FALSE)[1])
+        if ("sar_cube" %in% class(x)) {
+            palette <- "Greys"
+            style <- "order"
+            n_colors <- 10
+        }
+    }
+
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?
