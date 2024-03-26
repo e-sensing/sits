@@ -632,7 +632,7 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
         period = "P12D",
         res = 120,
         tiles = c("21LXJ", "21LYJ", "21LZJ", "22LBP"),
-        multicores = 4,
+        multicores = 1,
         output_dir = output_dir,
         progress = TRUE
     )

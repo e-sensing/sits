@@ -211,6 +211,7 @@ sits_regularize.sar_cube <- function(cube, ...,
     # Filter tiles
     if (is.character(tiles)) {
         cube <- .cube_filter_tiles(cube, tiles)
+        roi <- .s2_mgrs_to_roi(tiles)
     }
     # Call regularize in parallel
     cube <- .reg_cube(

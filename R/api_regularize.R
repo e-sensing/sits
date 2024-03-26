@@ -37,7 +37,7 @@
         fi <- .fi_filter_interval(
             fi = .fi(tile),
             start_date = timeline[[1]],
-            end_date = timeline[[length(timeline)]]
+            end_date = timeline[[length(timeline)]] - 1
         )
         groups <- cut(
             x = .fi_timeline(fi),
@@ -137,25 +137,22 @@
     # create a new cube according to Sentinel-2 MGRS
     cube_class <- .cube_s3class(cube)
 
-    # prepare a sf object representing the bbox of each image in file_info
-    cube_mgrs <- slider::slide_dfr(tiles_mgrs, function(tile){
-        cube_tile <- dplyr::filter(cube, .data[["crs"]] == tile$crs)
-        fi_bbox <- .bbox_as_sf(.bbox(
-            x = cube_tile$file_info[[1]],
-            default_crs = .crs(tile),
-            by_feature = TRUE
-        ))
-    })
-
     cube <- tiles_mgrs |>
         dplyr::rowwise() |>
         dplyr::group_map(~{
-            file_info <- .fi(cube)[.intersects({{fi_bbox}}, .x), ]
+            # prepare a sf object representing the bbox of each image in file_info
+            cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x$crs)
+            fi_bbox <- .bbox_as_sf(.bbox(
+                x = .fi(cube_crs),
+                default_crs = .crs(cube_crs),
+                by_feature = TRUE
+            ))
+            file_info <- .fi(cube_crs)[.intersects({{fi_bbox}}, .x), ]
             .cube_create(
-                source = .tile_source(cube),
-                collection = .tile_collection(cube),
-                satellite = .tile_satellite(cube),
-                sensor = .tile_sensor(cube),
+                source = .tile_source(cube_crs),
+                collection = .tile_collection(cube_crs),
+                satellite = .tile_satellite(cube_crs),
+                sensor = .tile_sensor(cube_crs),
                 tile = .x[["tile_id"]],
                 xmin = .xmin(.x),
                 xmax = .xmax(.x),
