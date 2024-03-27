@@ -93,6 +93,9 @@
     }
 
     # Create template based on tile metadata
+    if (!.has(roi)) {
+        roi <- .bbox_as_sf(.tile_bbox(asset))
+    }
     roi_bbox <- .bbox(sf::st_intersection(
         x = .roi_as_sf(roi, as_crs = .crs(asset)),
         y = .bbox_as_sf(.bbox(asset))
