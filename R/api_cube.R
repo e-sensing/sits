@@ -1222,7 +1222,7 @@ NULL
     return(tiles_bands)
 }
 
-.cube_split_chunks_samples <- function(cube, samples_sf, multicores) {
+.cube_split_chunks_samples <- function(cube, samples_sf) {
     # Hold s2 status
     s2_status <- sf::sf_use_s2()
     suppressMessages(sf::sf_use_s2(FALSE))
