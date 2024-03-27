@@ -1222,7 +1222,7 @@ NULL
     return(tiles_bands)
 }
 
-.cube_split_chunks_samples <- function(cube, samples_sf) {
+.cube_split_chunks_samples <- function(cube, samples_sf, multicores) {
     # Hold s2 status
     s2_status <- sf::sf_use_s2()
     suppressMessages(sf::sf_use_s2(FALSE))
@@ -1230,6 +1230,9 @@ NULL
     on.exit(suppressMessages(sf::sf_use_s2(s2_status)))
     # Get block size of raster file
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    # Terra requires at least two pixels to recognize an extent as valid
+    # polygon and not a line or point
+    block <- .block_regulate_size(block)
     cube_chunks <- slider::slide(cube, function(tile) {
         chunks <- .tile_chunks_create(
             tile = tile,
@@ -1255,19 +1258,3 @@ NULL
     })
     return(unlist(cube_chunks, recursive = FALSE))
 }
-
-# .cube_split_segments <- function(cube, block) {
-#     segments_sf <- .segments_read_vec(segments)
-#     chunks <- .tile_chunks_create(
-#         tile = segments,
-#         overlap = 0,
-#         block = block
-#     )
-#     chunks_sf <- .bbox_as_sf(
-#         .bbox(chunks, by_feature = TRUE), as_crs = sf::st_crs(segments_sf)
-#     )
-#     chunks_jobs <- slider::slide(chunks_sf[1,], function(chunk_sf) {
-#         segments_sf[ .intersects(segments_sf, chunk_sf),]
-#     })
-#     return(chunks_sf)
-# }
