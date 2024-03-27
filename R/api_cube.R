@@ -344,8 +344,12 @@ NULL
     },
     .default = FALSE
     )
-    if (sar_cube)
-        unique(c(col_class, "sar_cube", s3_class, class(cube)))
+    if (sar_cube) {
+        if (grepl("rtc", col_class))
+            unique(c(col_class, "rtc_cube", "sar_cube", s3_class, class(cube)))
+        else
+            unique(c(col_class, "grd_cube", "sar_cube", s3_class, class(cube)))
+    }
     else
         unique(c(col_class, s3_class, class(cube)))
 }

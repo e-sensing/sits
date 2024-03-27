@@ -605,6 +605,19 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
         output_dir = output_dir,
         progress = TRUE
     )
+    expect_equal(length(sits_timeline(cube_s1_reg)), 18)
+    expect_true(all(c("21LUJ", "21LVJ") %in% cube_s1_reg$tile))
+    expect_true(all("EPSG:32721" %in% cube_s1_reg$crs))
+
+    bbox <- sits_bbox(cube_s1_reg, as_crs = "EPSG:4326")
+    roi_cube_s1 <- sits_mgrs_to_roi(c("21LUJ","21LVJ"))
+
+    expect_true(bbox[["xmin"]] < roi_cube_s1[["lon_min"]])
+    expect_true(bbox[["xmax"]] > roi_cube_s1[["lon_max"]])
+    expect_true(bbox[["ymin"]] < roi_cube_s1[["lat_min"]])
+    expect_true(bbox[["ymax"]] > roi_cube_s1[["lat_max"]])
+    expect_true(all(c("VV", "VH") %in% sits_bands(cube_s1_grd)))
+
 })
 test_that("Creating Sentinel-1 RTC cubes from MPC", {
     cube_s1_rtc <-  sits_cube(

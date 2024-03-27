@@ -511,9 +511,8 @@
                           dates,
                           palette,
                           output_size) {
-    # adjust for greyscale images
-    # adjust palette
-    if (palette == "Greys")
+    # adjust palette for SAR images
+    if ("sar_cube" %in% class(cube))
         palette <- grDevices::grey.colors(32, start = 0.05, end = 1.0)
     # obtain the raster objects for the dates chosen
     for (i in seq_along(dates)) {

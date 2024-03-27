@@ -131,8 +131,66 @@
         update_bbox = TRUE
     )
 }
+#' @title Convert a SAR cube to MGRS tiling system
+#' @name  .reg_s2tile_convert
+#' @noRd
+#' @description   Produces the metadata description for a data cube
+#'                to be produced by converting SAR data to MGRS tiling system
+#' @param  cube   SAR data cube
+#' @param  roi    Region of interest
+#' @param  tiles  List of MGRS tiles
+#' @return a data cube of MGRS tiles
+.reg_s2tile_convert <- function(cube, roi = NULL, tiles = NULL){
+    UseMethod(".reg_s2tile_convert", cube)
+}
+#' @noRd
+#' @export
+#'
+.reg_s2tile_convert.grd_cube <- function(cube, roi = NULL, tiles = NULL) {
 
-.reg_s2tile_convert <- function(cube, roi = NULL, tiles = NULL) {
+    # generate Sentinel-2 tiles and intersects it with doi
+    tiles_mgrs <- .s2tile_open(roi, tiles)
+
+    # prepare a sf object representing the bbox of each image in file_info
+    fi_bbox <- .bbox_as_sf(.bbox(
+        x = cube$file_info[[1]],
+        default_crs = .crs(cube),
+        by_feature = TRUE
+    ))
+
+    # create a new cube according to Sentinel-2 MGRS
+    cube_class <- .cube_s3class(cube)
+    cube <- tiles_mgrs |>
+        dplyr::rowwise() |>
+        dplyr::group_map(~{
+            file_info <- .fi(cube)[.intersects({{fi_bbox}}, .x), ]
+            .cube_create(
+                source = .tile_source(cube),
+                collection = .tile_collection(cube),
+                satellite = .tile_satellite(cube),
+                sensor = .tile_sensor(cube),
+                tile = .x[["tile_id"]],
+                xmin = .xmin(.x),
+                xmax = .xmax(.x),
+                ymin = .ymin(.x),
+                ymax = .ymax(.x),
+                crs = paste0("EPSG:", .x[["epsg"]]),
+                file_info = file_info
+            )
+        }) |>
+        dplyr::bind_rows()
+
+    # Filter non-empty file info
+    cube <- .cube_filter_nonempty(cube)
+
+    # Finalize customizing cube class
+    cube_class <- c(cube_class[1], "sar_cube", cube_class[-1])
+    .cube_set_class(cube, cube_class)
+}
+#' @noRd
+#' @export
+#'
+.reg_s2tile_convert.rtc_cube <- function(cube, roi = NULL, tiles = NULL) {
 
     # generate Sentinel-2 tiles and intersects it with doi
     tiles_mgrs <- .s2tile_open(roi, tiles)
@@ -150,6 +208,7 @@
                 default_crs = .crs(cube_crs),
                 by_feature = TRUE
             ))
+            browser()
             file_info <- .fi(cube_crs)[.intersects({{fi_bbox}}, .x), ]
             .cube_create(
                 source = .tile_source(cube_crs),
