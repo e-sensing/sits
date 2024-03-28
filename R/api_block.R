@@ -132,3 +132,17 @@ NULL
     x[["nrows"]] <- .as_int(value)
     x
 }
+
+#' @title Regulate block size
+#'
+#' @description
+#' Terra requires at least two pixels to recognize an extent as valid
+#' polygon and not a line or point
+#'
+#' @noRd
+#' @param block  A block.
+#' @returns A block with the size fixed
+.block_regulate_size <- function(block) {
+    block[block == 1] <- 2
+    block
+}

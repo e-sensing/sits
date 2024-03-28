@@ -201,6 +201,9 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
         image_size = .tile_size(.tile(data)), memsize = memsize,
         multicores = multicores
     )
+    # Terra requires at least two pixels to recognize an extent as valid
+    # polygon and not a line or point
+    block <- .block_regulate_size(block)
     # Prepare parallelization
     .parallel_start(workers = multicores, output_dir = output_dir)
     on.exit(.parallel_stop(), add = TRUE)
