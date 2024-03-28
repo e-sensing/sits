@@ -92,6 +92,25 @@
     )
     return(invisible(file))
 }
+#' @title Run gdal_warp for SAR GRD files
+#' @noRd
+#' @param raster_file  File to be copied from (with path)
+#' @param size         Size of output file
+#' @returns            Name of output file
+.gdal_warp_grd <- function(raster_file, size) {
+    temp_file <- tempfile(fileext = ".tif")
+    .gdal_warp(
+        file = temp_file,
+        base_files = raster_file,
+        params = list(
+            "-ts" = list(size[["xsize"]], size[["ysize"]]),
+            "-multi" = TRUE,
+            "-q" = TRUE,
+            "-overwrite" = FALSE
+        ),
+        quiet = TRUE)
+    return(temp_file)
+}
 #' @title Run gdal_addo
 #' @noRd
 #' @param base_file   Base file to be processed

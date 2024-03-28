@@ -309,8 +309,8 @@ NULL
     UseMethod(".cube_adjust_crs", cube)
 }
 #' @export
-`.cube_adjust_crs.mpc_cube_sentinel-1-grd` <- function(cube) {
-    cube$crs <- NA
+.cube_adjust_crs.grd_cube <- function(cube) {
+    cube$crs <- "EPSG:4326"
     return(cube)
 }
 #' @export

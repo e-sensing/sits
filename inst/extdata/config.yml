@@ -1249,7 +1249,7 @@ sources:
                         <<: *mspc_grd_10m
                         band_name     : "vh"
                 satellite   : "SENTINEL-1"
-                sensor      : "GRD"
+                sensor      : "C-band-SAR"
                 orbits      : ["ascending", "descending"]
                 platforms   :
                     SENTINEL-1A: "Sentinel-1A"
@@ -1276,7 +1276,7 @@ sources:
                         <<: *mspc_rtc_10m
                         band_name     : "vh"
                 satellite   : "SENTINEL-1"
-                sensor      : "RTC"
+                sensor      : "C-band-SAR"
                 orbits      : ["ascending", "descending"]
                 platforms   :
                     SENTINEL-1A: "Sentinel-1A"

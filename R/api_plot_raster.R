@@ -50,21 +50,9 @@
 
     # size of data to be read
     size <- .plot_read_size(tile = tile)
-    # if tile has no CRS warp it to get a valid CRS
-    # used for SAR images
-    if (!.has(.crs(tile))) {
-        temp <- tempfile(fileext = ".tif")
-        .gdal_warp(
-            file = temp,
-            base_files = bw_file,
-            params = list(
-                "-ts" = list(size[["xsize"]], size[["ysize"]]),
-                "-multi" = TRUE,
-                "-q" = TRUE,
-                "-overwrite" = FALSE
-            ),
-            quiet = TRUE)
-        bw_file <- temp
+    # used for SAR images without tiling system
+    if (tile$tile == "NoTilingSystem")  {
+        bw_file <- .gdal_warp_grd(bw_file, size)
     }
     # read file
     stars_obj <- stars::read_stars(
@@ -217,6 +205,12 @@
 
     # size of data to be read
     size <- .plot_read_size(tile = tile)
+    # used for SAR images
+    if (tile$tile == "NoTilingSystem") {
+        red_file   <- .gdal_warp_grd(red_file, size)
+        green_file <- .gdal_warp_grd(green_file, size)
+        blue_file  <- .gdal_warp_grd(blue_file, size)
+    }
     # read raster data as a stars object with separate RGB bands
     rgb_st <- stars::read_stars(
         c(red_file, green_file, blue_file),

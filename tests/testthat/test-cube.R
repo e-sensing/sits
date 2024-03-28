@@ -598,14 +598,14 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
 
     cube_s1_reg <- sits_regularize(
         cube = cube_s1_grd,
-        period = "P12D",
-        res = 120,
+        period = "P16D",
+        res = 240,
         tiles = c("21LUJ","21LVJ"),
         multicores = 1,
         output_dir = output_dir,
         progress = TRUE
     )
-    expect_equal(length(sits_timeline(cube_s1_reg)), 18)
+    expect_equal(length(sits_timeline(cube_s1_reg)), 13)
     expect_true(all(c("21LUJ", "21LVJ") %in% cube_s1_reg$tile))
     expect_true(all("EPSG:32721" %in% cube_s1_reg$crs))
 
