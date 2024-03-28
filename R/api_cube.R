@@ -154,7 +154,7 @@ NULL
         # Include class names
         freq <- dplyr::mutate(freq,
                               area = area,
-                              class = labels_cube[.as_chr(freq$value)]
+                              class = labels_cube[as.character(freq$value)]
         )
         return(freq)
     })
@@ -314,10 +314,6 @@ NULL
     return(cube)
 }
 #' @export
-`.cube_adjust_crs.mpc_cube_sentinel-1-rtc` <- function(cube) {
-    `.cube_adjust_crs.mpc_cube_sentinel-1-grd`(cube)
-}
-#' @export
 .cube_adjust_crs.default <- function(cube) {
     return(cube)
 }
@@ -334,13 +330,28 @@ NULL
 }
 #' @export
 .cube_s3class.raster_cube <- function(cube) {
-    s3_class <- .source_s3class(source = .cube_source(cube = cube))
+
+    source <-  .cube_source(cube = cube)
+    collection <- .tile_collection(cube)
+    s3_class <- .source_s3class(source = source)
     col_class <- paste(
         s3_class[[1]],
-        tolower(.tile_collection(cube)),
+        tolower(collection),
         sep = "_"
     )
-    unique(c(col_class, s3_class, class(cube)))
+    sar_cube <- .try({
+        .conf("sources", source, "collections", collection, "sar_cube")
+    },
+    .default = FALSE
+    )
+    if (sar_cube) {
+        if (grepl("rtc", col_class))
+            unique(c(col_class, "rtc_cube", "sar_cube", s3_class, class(cube)))
+        else
+            unique(c(col_class, "grd_cube", "sar_cube", s3_class, class(cube)))
+    }
+    else
+        unique(c(col_class, s3_class, class(cube)))
 }
 #' @export
 .cube_s3class.default <- function(cube) {

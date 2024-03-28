@@ -37,7 +37,7 @@
         fi <- .fi_filter_interval(
             fi = .fi(tile),
             start_date = timeline[[1]],
-            end_date = timeline[[length(timeline)]]
+            end_date = timeline[[length(timeline)]] - 1
         )
         groups <- cut(
             x = .fi_timeline(fi),
@@ -70,11 +70,7 @@
 #' @return a data cube with assets of the same period (file ID)
 .reg_merge_asset <- function(asset, res, roi, output_dir) {
     # Get band conf missing value
-    band_conf <- .conf_eo_band(
-        source = "MPC",
-        collection = "SENTINEL-1-GRD",
-        band = asset[["asset"]]
-    )
+    band_conf <- .tile_band_conf(asset, band = asset[["asset"]])
     # Prepare output file name
     out_file <- .file_eo_name(
         tile = asset,
@@ -97,13 +93,20 @@
     }
 
     # Create template based on tile metadata
-    block <- list(ncols = floor((.xmax(asset) - .xmin(asset)) / res),
-                  nrows = floor((.ymax(asset) - .ymin(asset)) / res))
-    bbox <- list(xmin = .xmin(asset),
-                 xmax = .xmin(asset) + .ncols(block) * res,
-                 ymin = .ymax(asset) - .nrows(block) * res,
-                 ymax = .ymax(asset),
-                 crs = .crs(asset))
+    if (!.has(roi)) {
+        roi <- .bbox_as_sf(.tile_bbox(asset))
+    }
+    roi_bbox <- .bbox(sf::st_intersection(
+        x = .roi_as_sf(roi, as_crs = .crs(asset)),
+        y = .bbox_as_sf(.bbox(asset))
+    ))
+    block <- list(ncols = floor((.xmax(roi_bbox) - .xmin(roi_bbox)) / res),
+                  nrows = floor((.ymax(roi_bbox) - .ymin(roi_bbox)) / res))
+    bbox <- list(xmin = .xmin(roi_bbox),
+                 xmax = .xmin(roi_bbox) + .ncols(block) * res,
+                 ymin = .ymax(roi_bbox) - .nrows(block) * res,
+                 ymax = .ymax(roi_bbox),
+                 crs = .crs(roi_bbox))
     out_file <- .gdal_template_block(
         block = block,
         bbox = bbox,
@@ -128,13 +131,25 @@
         update_bbox = TRUE
     )
 }
-
-.reg_s2tile_convert <- function(cube, roi) {
-    # TODO: check cube
+#' @title Convert a SAR cube to MGRS tiling system
+#' @name  .reg_s2tile_convert
+#' @noRd
+#' @description   Produces the metadata description for a data cube
+#'                to be produced by converting SAR data to MGRS tiling system
+#' @param  cube   SAR data cube
+#' @param  roi    Region of interest
+#' @param  tiles  List of MGRS tiles
+#' @return a data cube of MGRS tiles
+.reg_s2tile_convert <- function(cube, roi = NULL, tiles = NULL){
+    UseMethod(".reg_s2tile_convert", cube)
+}
+#' @noRd
+#' @export
+#'
+.reg_s2tile_convert.grd_cube <- function(cube, roi = NULL, tiles = NULL) {
 
     # generate Sentinel-2 tiles and intersects it with doi
-    tiles <- .s2tile_open(roi)
-    tiles <- tiles[.intersects(tiles, .roi_as_sf(roi)), ]
+    tiles_mgrs <- .s2tile_open(roi, tiles)
 
     # prepare a sf object representing the bbox of each image in file_info
     fi_bbox <- .bbox_as_sf(.bbox(
@@ -145,7 +160,7 @@
 
     # create a new cube according to Sentinel-2 MGRS
     cube_class <- .cube_s3class(cube)
-    cube <- tiles |>
+    cube <- tiles_mgrs |>
         dplyr::rowwise() |>
         dplyr::group_map(~{
             file_info <- .fi(cube)[.intersects({{fi_bbox}}, .x), ]
@@ -154,6 +169,52 @@
                 collection = .tile_collection(cube),
                 satellite = .tile_satellite(cube),
                 sensor = .tile_sensor(cube),
+                tile = .x[["tile_id"]],
+                xmin = .xmin(.x),
+                xmax = .xmax(.x),
+                ymin = .ymin(.x),
+                ymax = .ymax(.x),
+                crs = paste0("EPSG:", .x[["epsg"]]),
+                file_info = file_info
+            )
+        }) |>
+        dplyr::bind_rows()
+
+    # Filter non-empty file info
+    cube <- .cube_filter_nonempty(cube)
+
+    # Finalize customizing cube class
+    cube_class <- c(cube_class[1], "sar_cube", cube_class[-1])
+    .cube_set_class(cube, cube_class)
+}
+#' @noRd
+#' @export
+#'
+.reg_s2tile_convert.rtc_cube <- function(cube, roi = NULL, tiles = NULL) {
+
+    # generate Sentinel-2 tiles and intersects it with doi
+    tiles_mgrs <- .s2tile_open(roi, tiles)
+
+    # create a new cube according to Sentinel-2 MGRS
+    cube_class <- .cube_s3class(cube)
+
+    cube <- tiles_mgrs |>
+        dplyr::rowwise() |>
+        dplyr::group_map(~{
+            # prepare a sf object representing the bbox of each image in file_info
+            cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x$crs)
+            fi_bbox <- .bbox_as_sf(.bbox(
+                x = .fi(cube_crs),
+                default_crs = .crs(cube_crs),
+                by_feature = TRUE
+            ))
+            browser()
+            file_info <- .fi(cube_crs)[.intersects({{fi_bbox}}, .x), ]
+            .cube_create(
+                source = .tile_source(cube_crs),
+                collection = .tile_collection(cube_crs),
+                satellite = .tile_satellite(cube_crs),
+                sensor = .tile_sensor(cube_crs),
                 tile = .x[["tile_id"]],
                 xmin = .xmin(.x),
                 xmax = .xmax(.x),

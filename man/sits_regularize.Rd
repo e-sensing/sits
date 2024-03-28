@@ -3,8 +3,7 @@
 \name{sits_regularize}
 \alias{sits_regularize}
 \alias{sits_regularize.raster_cube}
-\alias{sits_regularize.mpc_cube_sentinel-1-grd}
-\alias{sits_regularize.mpc_cube_sentinel-1-rtc}
+\alias{sits_regularize.sar_cube}
 \alias{sits_regularize.derived_cube}
 \alias{sits_regularize.default}
 \title{Build a regular data cube from an irregular one}
@@ -32,19 +31,7 @@ sits_regularize(
   progress = TRUE
 )
 
-\method{sits_regularize}{`mpc_cube_sentinel-1-grd`}(
-  cube,
-  ...,
-  period,
-  res,
-  output_dir,
-  roi = NULL,
-  tiles = NULL,
-  multicores = 2L,
-  progress = TRUE
-)
-
-\method{sits_regularize}{`mpc_cube_sentinel-1-rtc`}(
+\method{sits_regularize}{sar_cube}(
   cube,
   ...,
   period,

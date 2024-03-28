@@ -286,16 +286,16 @@ sits_cube <- function(source, collection, ...) {
 #' @rdname sits_cube
 #'
 #' @export
-`sits_cube.mpc_cube_sentinel-1-grd` <- function(source,
-                                                collection, ...,
-                                                orbit = "ascending",
-                                                bands = NULL,
-                                                tiles = NULL,
-                                                roi = NULL,
-                                                start_date = NULL,
-                                                end_date = NULL,
-                                                platform = NULL,
-                                                progress = TRUE) {
+sits_cube.sar_cube <- function(source,
+                               collection, ...,
+                               orbit = "ascending",
+                               bands = NULL,
+                               tiles = NULL,
+                               roi = NULL,
+                               start_date = NULL,
+                               end_date = NULL,
+                               platform = NULL,
+                               progress = TRUE) {
 
     sits_cube.stac_cube(
         source = source,
@@ -310,33 +310,6 @@ sits_cube <- function(source, collection, ...) {
         orbit = orbit
     )
 }
-#' @rdname sits_cube
-#'
-#' @export
-`sits_cube.mpc_cube_sentinel-1-rtc` <- function(source,
-                                                collection, ...,
-                                                orbit = "ascending",
-                                                bands = NULL,
-                                                tiles = NULL,
-                                                roi = NULL,
-                                                start_date = NULL,
-                                                end_date = NULL,
-                                                platform = NULL,
-                                                progress = TRUE) {
-    `sits_cube.mpc_cube_sentinel-1-grd`(
-        source = source,
-        collection = collection,
-        bands = bands,
-        tiles = tiles,
-        roi = roi,
-        start_date = start_date,
-        end_date = end_date,
-        platform = platform,
-        progress = progress,
-        orbit = orbit
-    )
-}
-
 #' @rdname sits_cube
 #'
 #' @export

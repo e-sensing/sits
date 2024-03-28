@@ -91,7 +91,9 @@
         sf_object <- sf_object[!are_empty_geoms, ]
     }
     # If the sf object is not in planar coordinates, convert it
-    sf_object <- suppressWarnings(sf::st_transform(sf_object, crs = 4326))
+    sf_object <- suppressWarnings(
+        sf::st_transform(sf_object, crs = "EPSG:4326")
+    )
 
     # Get the geometry type
     geom_type <- as.character(sf::st_geometry_type(sf_object)[1])

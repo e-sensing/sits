@@ -61,15 +61,9 @@ sits_bbox.raster_cube <- function(data, crs = "EPSG:4326", as_crs = NULL) {
         xmax = data[["xmax"]],
         ymin = data[["ymin"]],
         ymax = data[["ymax"]],
-        crs = "EPSG:4236"
+        crs = "EPSG:4326"
     )
     return(bbox)
-}
-#' @rdname sits_bbox
-#' @export
-`sits_bbox.mpc_cube_sentinel-1-rtc` <- function(data, crs = "EPSG:4326",
-                                                as_crs = NULL) {
-    `sits_bbox.mpc_cube_sentinel-1-grd`(data, crs = crs, as_crs = as_crs)
 }
 #' @rdname sits_bbox
 #' @export

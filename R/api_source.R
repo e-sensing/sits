@@ -69,8 +69,18 @@ NULL
     class(source) <- unique(c(classes, class(source)))
 
     if (!is.null(collection)) {
-        classes <- paste(classes[[1]], tolower(collection), sep = "_")
-        class(source) <- unique(c(classes, class(source)))
+        # is this a collection of SAR data?
+        sar_cube <- .try({
+            .conf("sources", source, "collections", collection, "sar_cube")
+            },
+            .default = FALSE
+        )
+        # if this is a SAR collection, add "sar_cube" to the class
+        if (sar_cube)
+            class(source) <- c("sar_cube", class(source))
+        # add a class combining source and collection
+        class_source_col <- paste(classes[[1]], tolower(collection), sep = "_")
+        class(source) <- unique(c(class_source_col, class(source)))
     }
     return(source)
 }
