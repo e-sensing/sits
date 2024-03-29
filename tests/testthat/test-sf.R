@@ -58,7 +58,8 @@ test_that("sf", {
                                  label_attr = NULL,
                                  label = NULL,
                                  n_sam_pol = 10,
-                                 pol_id = "CD_GEOCUF")
+                                 pol_id = "CD_GEOCUF",
+                                 sampling_type = "random")
     expect_equal(nrow(tbp), 10)
     expect_true(all(tbp$label == "MatoGrosso"))
 })

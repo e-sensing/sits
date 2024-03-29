@@ -47,6 +47,8 @@
 #' @param pol_avg         Logical: summarize samples for each polygon?
 #' @param pol_id          ID attribute for polygons
 #'                        (character vector of length 1)
+#' @param sampling_type   Spatial sampling type: random, hexagonal,
+#'                        regular, or Fibonacci.
 #' @param multicores      Number of threads to process the time series
 #'                        (integer, with min = 1 and max = 2048).
 #' @param progress        Logical: show progress bar?
@@ -106,6 +108,7 @@ sits_get_data <- function(cube,
                           n_sam_pol = 30L,
                           pol_avg = FALSE,
                           pol_id = NULL,
+                          sampling_type = "random",
                           multicores = 2L,
                           progress = TRUE) {
     # Pre-conditions
@@ -161,6 +164,7 @@ sits_get_data.shp <- function(cube,
                               n_sam_pol = 30,
                               pol_avg = FALSE,
                               pol_id = NULL,
+                              sampling_type = "random",
                               multicores = 2,
                               progress = FALSE) {
     # Pre-condition - shapefile should have an id parameter
@@ -179,7 +183,8 @@ sits_get_data.shp <- function(cube,
         start_date  = start_date,
         end_date    = end_date,
         n_shp_pol   = n_sam_pol,
-        shp_id      = pol_id
+        shp_id      = pol_id,
+        sampling_type = sampling_type
     )
     # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
@@ -208,6 +213,7 @@ sits_get_data.sf <- function(cube,
                              n_sam_pol = 30,
                              pol_avg = FALSE,
                              pol_id = NULL,
+                             sampling_type = "random",
                              multicores = 2,
                              progress = FALSE) {
     .check_that(
@@ -227,7 +233,8 @@ sits_get_data.sf <- function(cube,
         start_date = start_date,
         end_date   = end_date,
         n_sam_pol  = n_sam_pol,
-        pol_id     = pol_id
+        pol_id     = pol_id,
+        sampling_type = sampling_type
     )
     # Extract time series from a cube given a data.frame
     data <- .data_get_ts(

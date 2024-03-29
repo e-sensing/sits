@@ -188,6 +188,9 @@ sits_reduce.raster_cube <- function(data, ...,
         image_size = .tile_size(.tile(data)), memsize = memsize,
         multicores = multicores
     )
+    # Terra requires at least two pixels to recognize an extent as valid
+    # polygon and not a line or point
+    block <- .block_regulate_size(block)
     # Prepare parallelization
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)

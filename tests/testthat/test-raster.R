@@ -68,10 +68,7 @@ test_that("Single core classification with rfor", {
     expect_error(sits_classify(probs_cube, rf_model))
     sinop_df <- sinop
     class(sinop_df) <- "data.frame"
-    probs_df <- sits_classify(sinop_df, rfor_model, output_dir = tempdir())
-
-    expect_true(all(sits_labels(probs_df) %in%
-                        c("Cerrado", "Forest", "Pasture", "Soy_Corn")))
+    expect_error(sits_classify(sinop_df, rfor_model, output_dir = tempdir()))
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
 

@@ -281,24 +281,28 @@ sits_mlp <- function(samples = NULL,
             values <- .pred_normalize(pred = values, stats = ml_stats)
             # Transform input into matrix
             values <- as.matrix(values)
-            # Do classification
-            values <- stats::predict(object = torch_model, values)
+            # if CUDA is available, transform to torch data set
+            # Load into GPU
+            if (torch::cuda_is_available()) {
+                values <- .as_dataset(values)
+                # We need to transform in a dataloader to use the batch size
+                values <- torch::dataloader(
+                    values, batch_size = 2^15
+                )
+                # Do GPU classification
+                values <- .try(
+                    stats::predict(object = torch_model, values),
+                    .msg_error = paste("An error occured while transfering",
+                                       "data to GPU. Please reduce the value of",
+                                       "the `gpu_memory` parameter.")
+                )
+            } else {
+                # Do CPU classification
+                values <- stats::predict(object = torch_model, values)
+            }
             # Convert to tensor cpu to support GPU processing
             values <- torch::as_array(
                 x = torch::torch_tensor(values, device = "cpu")
-            )
-            # Transform to a torch dataset
-            values <- .as_dataset(values)
-            # We need to transform in a dataloader to use the batch size
-            values <- torch::dataloader(
-                values, batch_size = 2^15
-            )
-            # Do classification
-            values <- .try(
-                stats::predict(object = torch_model, values),
-                .msg_error = paste("An error occured while transfering",
-                                   "data to GPU. Please reduce the value of",
-                                   "the `gpu_memory` parameter.")
             )
             # Are the results consistent with the data input?
             .check_processed_values(

@@ -9,8 +9,10 @@
 #' @param start_date      Start date for the data set.
 #' @param end_date        End date for the data set.
 #' @param n_sam_pol       Number of samples per polygon to be read.
-#' @param pol_id          ID attribute for polygons shapefile.
+#' @param pol_id          ID attribute which contains label
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
+#' @param sampling_type   Spatial sampling type: random, hexagonal,
+#'                        regular, or Fibonacci.
 #' @return                A tibble with information the samples to be retrieved.
 #'
 .sf_get_samples <- function(sf_object,
@@ -19,7 +21,8 @@
                             start_date,
                             end_date,
                             n_sam_pol,
-                            pol_id) {
+                            pol_id,
+                            sampling_type) {
     # Pre-condition - is the sf object has geometries?
     .check_that(
         x = nrow(sf_object) > 0,
@@ -44,6 +47,7 @@
         label      = label,
         n_sam_pol  = n_sam_pol,
         pol_id     = pol_id,
+        sampling_type = sampling_type,
         start_date = start_date,
         end_date   = end_date
     )
@@ -60,22 +64,25 @@
 #' @description reads a shapefile and retrieves a sits tibble
 #' containing a set of lat/long points for data retrieval
 #'
-#' @param sf_object  sf object .
-#' @param label_attr Attribute in sf object used as a polygon label.
-#' @param label      Label to be assigned to points.
-#' @param n_sam_pol  Number of samples per polygon to be read
-#'                   (for POLYGON or MULTIPOLYGON shapes).
-#' @param  pol_id    ID attribute for polygons.
-#' @param start_date Start of the interval for the time series
-#'                   in "YYYY-MM-DD" format (optional).
-#' @param end_date   End of the interval for the time series in
-#'                   "YYYY-MM-DD" format (optional).
+#' @param sf_object       sf object.
+#' @param label_attr      Attribute in sf object used as a polygon label.
+#' @param label           Label to be assigned to points.
+#' @param n_sam_pol       Number of samples per polygon to be read
+#'                        (for POLYGON or MULTIPOLYGON shapes).
+#' @param pol_id          ID attribute for polygons which contains the label
+#' @param sampling_type   Spatial sampling type: random, hexagonal,
+#'                        regular, or Fibonacci.
+#' @param start_date      Start of the interval for the time series
+#'                        in "YYYY-MM-DD" format (optional).
+#' @param end_date        End of the interval for the time series in
+#'                        "YYYY-MM-DD" format (optional).
 #' @return  A sits tibble with points to to be read.
 .sf_to_tibble <- function(sf_object,
                           label_attr,
                           label,
                           n_sam_pol,
                           pol_id,
+                          sampling_type,
                           start_date,
                           end_date) {
 
@@ -110,7 +117,8 @@
             label_attr = label_attr,
             label      = label,
             n_sam_pol  = n_sam_pol,
-            pol_id     = pol_id
+            pol_id     = pol_id,
+            sampling_type = sampling_type
         )
     )
 
@@ -170,14 +178,17 @@
 #' @param label_attr      Attribute in the shapefile used as a polygon label
 #' @param label           Label to be assigned to points
 #' @param n_sam_pol       Number of samples per polygon to be read
-#' @param pol_id          ID attribute for polygons shapefile.
+#' @param pol_id          ID attribute for polygons containing the label
+#' @param sampling_type   Spatial sampling type: random, hexagonal,
+#'                        regular, or Fibonacci.
 #' @return A tibble with latitude/longitude points from POLYGON geometry
 #'
 .sf_polygon_to_tibble <- function(sf_object,
                                   label_attr,
                                   label,
                                   n_sam_pol,
-                                  pol_id) {
+                                  pol_id,
+                                  sampling_type) {
     # get the db file
     sf_df <- sf::st_drop_geometry(sf_object)
 
@@ -213,7 +224,9 @@
                 polygon_id <- unname(as.character(sf_df[i, pol_id]))
             }
             # obtain a set of samples based on polygons
-            points <- list(sf::st_sample(sf_object[i, ], size = n_sam_pol))
+            points <- list(sf::st_sample(sf_object[i, ],
+                                         type = sampling_type,
+                                         size = n_sam_pol))
             # get one time series per sample
             pts_tab <- points |>
                 purrr::pmap_dfr(function(p) {

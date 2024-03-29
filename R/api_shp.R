@@ -8,9 +8,11 @@
 #' @param shp_attr        Shapefile attribute that describes the label.
 #' @param start_date      Start date for the data set.
 #' @param end_date        End date for the data set.
-#' @param .n_shp_pol      Number of samples per polygon to be read.
-#' @param .shp_id         ID attribute for polygons shapefile.
+#' @param n_shp_pol       Number of samples per polygon to be read.
+#' @param shp_id          ID attribute which contains the label
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
+#' @param sampling_type   Spatial sampling type: random, hexagonal,
+#'                        regular, or Fibonacci.
 #' @return                A sits tibble with samples to be retrieved.
 #'
 .shp_get_samples <- function(shp_file,
@@ -19,7 +21,8 @@
                              start_date,
                              end_date,
                              n_shp_pol,
-                             shp_id) {
+                             shp_id,
+                             sampling_type) {
     # Pre-condition - check the shape file and its attribute
     sf_shape <- .shp_transform_to_sf(
         shp_file = shp_file,
@@ -33,6 +36,7 @@
         label      = label,
         n_sam_pol  = n_shp_pol,
         pol_id     = shp_id,
+        sampling_type = sampling_type,
         start_date = start_date,
         end_date   = end_date
     )

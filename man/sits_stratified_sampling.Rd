@@ -8,8 +8,8 @@ sits_stratified_sampling(
   cube,
   sampling_design,
   alloc = "alloc_prop",
-  overhead = 1,
-  multicores = 2,
+  overhead = 1.2,
+  multicores = 2L,
   shp_file = NULL,
   progress = TRUE
 )

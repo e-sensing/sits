@@ -612,11 +612,11 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
     bbox <- sits_bbox(cube_s1_reg, as_crs = "EPSG:4326")
     roi_cube_s1 <- sits_mgrs_to_roi(c("21LUJ","21LVJ"))
 
-    expect_true(bbox[["xmin"]] < roi_cube_s1[["lon_min"]])
-    expect_true(bbox[["xmax"]] > roi_cube_s1[["lon_max"]])
-    expect_true(bbox[["ymin"]] < roi_cube_s1[["lat_min"]])
-    expect_true(bbox[["ymax"]] > roi_cube_s1[["lat_max"]])
-    expect_true(all(c("VV", "VH") %in% sits_bands(cube_s1_grd)))
+    expect_equal(bbox[["xmin"]], roi_cube_s1[["lon_min"]], tolerance = 0.01)
+    expect_equal(bbox[["xmax"]], roi_cube_s1[["lon_max"]], tolerance = 0.01)
+    expect_equal(bbox[["ymin"]], roi_cube_s1[["lat_min"]], tolerance = 0.01)
+    expect_equal(bbox[["ymax"]], roi_cube_s1[["lat_max"]], tolerance = 0.01)
+    expect_true(all(c("VV", "VH") %in% sits_bands(cube_s1_reg)))
 
 })
 test_that("Creating Sentinel-1 RTC cubes from MPC", {
@@ -642,13 +642,26 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
 
     cube_s1_rtc_reg <- sits_regularize(
         cube = cube_s1_rtc,
-        period = "P12D",
-        res = 120,
+        period = "P16D",
+        res = 240,
         tiles = c("21LXJ", "21LYJ", "21LZJ", "22LBP"),
         multicores = 1,
         output_dir = output_dir,
         progress = TRUE
     )
+    expect_equal(length(sits_timeline(cube_s1_rtc_reg)), 13)
+    expect_true(all(c("21LXJ", "21LYJ", "21LZJ", "22LBP") %in%
+                        cube_s1_rtc_reg$tile))
+    expect_true("EPSG:32721" %in% cube_s1_rtc_reg$crs)
+
+    bbox <- sits_bbox(cube_s1_rtc_reg, as_crs = "EPSG:4326")
+    roi_cube_s1 <- sits_mgrs_to_roi(c("21LXJ", "21LYJ", "21LZJ", "22LBP"))
+
+    expect_equal(bbox[["xmin"]], roi_cube_s1[["lon_min"]], tolerance = 0.01)
+    expect_equal(bbox[["xmax"]], roi_cube_s1[["lon_max"]], tolerance = 0.01)
+    expect_equal(bbox[["ymin"]], roi_cube_s1[["lat_min"]], tolerance = 0.01)
+    expect_equal(bbox[["ymax"]], roi_cube_s1[["lat_max"]], tolerance = 0.01)
+    expect_true(all(c("VV", "VH") %in% sits_bands(cube_s1_stc_reg)))
 
 })
 

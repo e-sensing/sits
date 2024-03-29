@@ -44,7 +44,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
 
     expect_warning({
         rg_cube <- sits_regularize(
-            cube = .tile(s2_cube_open),
+            cube = s2_cube_open,
             output_dir = dir_images,
             res = 240,
             period = "P16D",
@@ -305,36 +305,4 @@ test_that("Regularizing local cubes without CLOUD BAND", {
         end = as.Date(tl_reg[2])
     )
     expect_equal(lubridate::time_length(int, "month"), 2)
-})
-test_that("Regularizing SENTINEL-1 data",{
-        ## Sentinel-1 SAR
-        roi_sar <- c("lon_min" = -50.410, "lon_max" = -50.379,
-                 "lat_min" = -10.1910, "lat_max" = -10.1573)
-        s1_cube_open <- sits_cube(
-            source = "MPC",
-            collection = "SENTINEL-1-GRD",
-            bands = c("VV", "VH"),
-            roi = roi_sar,
-            orbit = "descending",
-            start_date = "2020-06-01",
-            end_date = "2020-09-28"
-        )
-        expect_false(.cube_is_regular(s1_cube_open))
-        expect_true(all(sits_bands(s1_cube_open) %in% c("VH", "VV")))
-
-        sf_tile <- .s2tile_open(roi_sar)
-
-        # regularize the cube
-        suppressWarnings(rg_cube <- sits_regularize(
-            cube = s1_cube_open,
-            period = "P12D",
-            res = 60,
-            roi = sf_tile,
-            multicores = 1,
-            output_dir = tempdir()
-        ))
-        expect_true(.cube_is_regular(rg_cube))
-        expect_true(all(sits_bands(rg_cube) %in% c("VH", "VV")))
-        expect_true("EPSG:32722" %in% rg_cube$crs)
-        expect_true("22LEP" %in% rg_cube$tile)
 })

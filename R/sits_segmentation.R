@@ -129,6 +129,9 @@ sits_segment <- function(cube,
         image_size = .tile_size(.tile(cube)), memsize = memsize,
         multicores = multicores
     )
+    # Terra requires at least two pixels to recognize an extent as valid
+    # polygon and not a line or point
+    block <- .block_regulate_size(block)
     # Prepare parallel processing
     .parallel_start(workers = multicores, output_dir = output_dir)
     on.exit(.parallel_stop(), add = TRUE)

@@ -420,8 +420,8 @@ sits_sampling_design <- function(cube,
 sits_stratified_sampling <- function(cube,
                                      sampling_design,
                                      alloc = "alloc_prop",
-                                     overhead = 1.0,
-                                     multicores = 2,
+                                     overhead = 1.2,
+                                     multicores = 2L,
                                      shp_file = NULL,
                                      progress = TRUE){
     # check the cube is valid

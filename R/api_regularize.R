@@ -208,7 +208,6 @@
                 default_crs = .crs(cube_crs),
                 by_feature = TRUE
             ))
-            browser()
             file_info <- .fi(cube_crs)[.intersects({{fi_bbox}}, .x), ]
             .cube_create(
                 source = .tile_source(cube_crs),

@@ -287,6 +287,9 @@ sits_classify.raster_cube <- function(data,
         memsize = memsize,
         multicores = multicores
     )
+    # Terra requires at least two pixels to recognize an extent as valid
+    # polygon and not a line or point
+    block <- .block_regulate_size(block)
     # Prepare parallel processing
     .parallel_start(
         workers = multicores, log = verbose,
@@ -443,6 +446,9 @@ sits_classify.segs_cube <- function(data,
         memsize = memsize,
         multicores = multicores
     )
+    # Terra requires at least two pixels to recognize an extent as valid
+    # polygon and not a line or point
+    block <- .block_regulate_size(block)
     # Prepare parallel processing
     .parallel_start(
         workers = multicores, log = verbose,

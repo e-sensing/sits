@@ -23,6 +23,7 @@ sits_get_data(
   n_sam_pol = 30L,
   pol_avg = FALSE,
   pol_id = NULL,
+  sampling_type = "random",
   multicores = 2L,
   progress = TRUE
 )
@@ -51,6 +52,7 @@ sits_get_data(
   n_sam_pol = 30,
   pol_avg = FALSE,
   pol_id = NULL,
+  sampling_type = "random",
   multicores = 2,
   progress = FALSE
 )
@@ -67,6 +69,7 @@ sits_get_data(
   n_sam_pol = 30,
   pol_avg = FALSE,
   pol_id = NULL,
+  sampling_type = "random",
   multicores = 2,
   progress = FALSE
 )
@@ -131,6 +134,9 @@ for POLYGON or MULTIPOLYGON shapefiles or sf objects
 
 \item{pol_id}{ID attribute for polygons
 (character vector of length 1)}
+
+\item{sampling_type}{Spatial sampling type: random, hexagonal,
+regular, or Fibonacci.}
 
 \item{multicores}{Number of threads to process the time series
 (integer, with min = 1 and max = 2048).}
