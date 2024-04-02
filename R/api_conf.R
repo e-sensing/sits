@@ -345,7 +345,7 @@
 .conf_set_user_file <- function(config_user_file = NULL) {
     # try to find a valid user configuration file
     # check config user file is valid
-    if (!purrr::is_null(config_user_file) && !is.na(config_user_file)) {
+    if (.has(config_user_file) && !is.na(config_user_file)) {
         user_config <- tryCatch(
             yaml::yaml.load_file(config_user_file, error.label = "",
                                  readLines.warn = FALSE),
@@ -356,13 +356,13 @@
     } else {
         user_config <- .conf_user_env_var()
     }
-    if (!purrr::is_null(user_config)) {
-        if (!purrr::is_null(user_config$colors)) {
+    if (.has(user_config)) {
+        if (.has(user_config$colors)) {
             user_colors <- user_config$colors
             .conf_merge_colors(user_colors)
             user_config$colors <- NULL
         }
-        if (!purrr::is_null(user_config$legends)) {
+        if (.has(user_config$legends)) {
             user_legends <- user_config$legends
             .conf_merge_legends(user_legends)
             user_config$legends <- NULL
@@ -1085,7 +1085,7 @@ NULL
 #' @return  Valid parse_info information
 .conf_parse_info <- function(parse_info, results_cube) {
     # is parse info NULL? use the default
-    if (purrr::is_null(parse_info)) {
+    if (!.has(parse_info)) {
         if (results_cube) {
             parse_info <- .conf("results_parse_info_def")
         } else {

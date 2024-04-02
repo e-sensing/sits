@@ -119,11 +119,11 @@ NULL
         crs = crs
     )
     # if there are labels, include them
-    if (!purrr::is_null(labels)) {
+    if (.has(labels)) {
         cube <- tibble::add_column(cube, labels = list(labels))
     }
     # if there are file_info, include it
-    if (!purrr::is_null(file_info)) {
+    if (.has(file_info)) {
         cube <- tibble::add_column(cube, file_info = list(file_info))
     }
     .cube_set_class(cube)
@@ -528,7 +528,7 @@ NULL
 .cube_timeline_acquisition.raster_cube <- function(cube,
                                                    period = "P1D",
                                                    origin = NULL) {
-    if (!.has(origin)) {
+    if (.has_not(origin)) {
         origin <- .cube_start_date(cube)
     }
     # get tiles and dates

@@ -97,7 +97,7 @@
     names(labels) <- seq_len(length(labels))
     # check the labels to be plotted
     # if NULL, use all labels
-    if (purrr::is_null(labels_plot)) {
+    if (.has_not(labels_plot)) {
         labels_plot <- labels
     } else {
         .check_that(all(labels_plot %in% labels),

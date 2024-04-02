@@ -112,7 +112,7 @@
 #' @param bands band names (may be lower or upper case)
 #' @return band names in case required by SITS
 .band_set_case <- function(bands) {
-    if (!purrr::is_null(bands)) {
+    if (.has(bands)) {
         if (all(tolower(bands) %in% .conf("sits_results_bands"))) {
             bands <- tolower(bands)
         } else {

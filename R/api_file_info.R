@@ -297,10 +297,10 @@ NULL
 #' @param end_date end date of the interval
 #' @returns file_info for the chosen interval
 .fi_filter_interval <- function(fi, start_date, end_date) {
-    if (!.has(start_date)) {
+    if (.has_not(start_date)) {
         start_date <- .fi_min_date(fi)
     }
-    if (!.has(end_date)) {
+    if (.has_not(end_date)) {
         end_date <- .fi_max_date(fi)
     }
     dates_in_fi <- .fi_during(

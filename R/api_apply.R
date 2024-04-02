@@ -80,7 +80,7 @@
     )
     # Get band configuration
     band_conf <- .tile_band_conf(tile = feature, band = out_band)
-    if (!.has(band_conf)) {
+    if (.has_not(band_conf)) {
         if (normalized)
             band_conf <- .conf("default_values", "INT2S")
         else

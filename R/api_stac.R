@@ -48,7 +48,7 @@
 .stac_format_datetime <- function(start_date, end_date) {
     datetime <- NULL
     # adding the dates according to RFC 3339
-    if (!purrr::is_null(start_date) && !purrr::is_null(end_date)) {
+    if (.has(start_date) && .has(end_date)) {
         datetime <- paste(start_date, end_date, sep = "/")
     }
     return(datetime)

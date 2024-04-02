@@ -255,10 +255,10 @@
     # set caller to show in errors
     .check_set_caller(".sits_timeline_during")
     # obtain the start and end indexes
-    if (purrr::is_null(start_date)) {
+    if (.has_not(start_date)) {
         start_date <- timeline[1]
     }
-    if (purrr::is_null(end_date)) {
+    if (.has_not(end_date)) {
         end_date <- timeline[length(timeline)]
     }
     valid <- timeline >= lubridate::as_date(start_date) &

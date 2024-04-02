@@ -59,13 +59,21 @@ NULL
     .default(lubridate::as_date(x))
 }
 
-#' @title Check if an input has a value or not. Any zero length
+#' @title Check if variable has been defined. Any zero length
 #'   value of any type is evaluated as \code{FALSE}. This function is broader
 #'   than \code{is.null()} that only accounts for \code{NULL} value.
 #'   Returns \code{logical}.
 #' @noRd
 .has <- function(x) {
     length(x) > 0
+}
+#' @title Check if variable has not been defined. Any zero length
+#'   value of any type is evaluated as \code{FALSE}. This function is broader
+#'   than \code{is.null()} that only accounts for \code{NULL} value.
+#'   Returns \code{logical}.
+#' @noRd
+.has_not <- function(x) {
+    !.has(x)
 }
 
 #' @title Check if an input has names or not. If there is

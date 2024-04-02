@@ -80,14 +80,14 @@ sits_tuning <- function(samples,
     # pre-conditions
     # check samples
     .check_samples_train(samples)
-    # check samples_validation parameter if it is passed
-    if (!purrr::is_null(samples_validation)) {
+    if (.has(samples_validation)) {
+        # check samples_validation parameter if it exists
         .check_samples_train(samples_validation)
-    }
-    # check validation_split parameter if samples_validation is not passed
-    if (purrr::is_null(samples_validation)) {
+    } else {
+        # check validation_split parameter if samples_validation is not passed
         .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
     }
+
     # check 'ml_functions' parameter
     ml_function <- substitute(ml_method, env = environment())
     if (is.call(ml_function)) ml_function <- ml_function[[1]]

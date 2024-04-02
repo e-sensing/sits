@@ -104,7 +104,7 @@
         base_files = raster_file,
         params = list(
             "-ts" = list(size[["xsize"]], size[["ysize"]]),
-            "-multi" = TRUE,
+            "-multi" = FALSE,
             "-q" = TRUE,
             "-overwrite" = FALSE
         ),
@@ -207,7 +207,7 @@
                     base_files = base_files,
                     params = list(
                         "-wo" = paste0("NUM_THREADS=", multicores),
-                        "-multi" = TRUE,
+                        "-multi" = FALSE,
                         "-cutline" = roi_file,
                         "-q" = TRUE,
                         "-overwrite" = FALSE
@@ -220,7 +220,7 @@
                     base_files = base_files,
                     params = list(
                         "-wo" = paste0("NUM_THREADS=", multicores),
-                        "-multi" = TRUE,
+                        "-multi" = FALSE,
                         "-q" = TRUE,
                         "-overwrite" = FALSE
                     ),
@@ -263,7 +263,7 @@
         "-of" = .conf("gdal_presets", "image", "of"),
         "-co" = .conf("gdal_presets", "image", "co"),
         "-wo" = paste0("NUM_THREADS=", multicores),
-        "-multi" = TRUE,
+        "-multi" = FALSE,
         "-t_srs" = as_crs,
         "-cutline" = roi_file,
         "-dstnodata" = miss_value,
@@ -326,7 +326,7 @@
         "-of" = .conf("gdal_presets", "image", "of"),
         "-co" = .conf("gdal_presets", "image", "co"),
         "-wo" = paste0("NUM_THREADS=", multicores),
-        "-multi" = TRUE,
+        "-multi" = FALSE,
         "-s_srs" = crs,
         "-t_srs" = as_crs,
         "-srcnodata" = miss_value,

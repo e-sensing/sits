@@ -7,9 +7,9 @@
 \alias{sits_to_csv.default}
 \title{Export a sits tibble metadata to the CSV format}
 \usage{
-sits_to_csv(data, file)
+sits_to_csv(data, file = NULL)
 
-\method{sits_to_csv}{sits}(data, file)
+\method{sits_to_csv}{sits}(data, file = NULL)
 
 \method{sits_to_csv}{tbl_df}(data, file)
 
@@ -31,6 +31,7 @@ Converts metadata from a sits tibble to a CSV file.
              CSV file used to retrieve data from
              ground information ("latitude", "longitude", "start_date",
              "end_date", "cube", "label").
+             If the file is NULL, returns the csv file as an object
 }
 \examples{
 csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")

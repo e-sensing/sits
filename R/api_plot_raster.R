@@ -93,7 +93,7 @@
             )
     )
     # include segments
-    if (!purrr::is_null(sf_seg)) {
+    if (.has(sf_seg)) {
         p <- p + tmap::tm_shape(sf_seg) +
             tmap::tm_borders(col = seg_color, lwd = line_width)
     }
@@ -241,7 +241,7 @@
         tmap::tm_compass()
 
     # include segments
-    if (!purrr::is_null(sf_seg)) {
+    if (.has(sf_seg)) {
         p <- p + tmap::tm_shape(sf_seg) +
             tmap::tm_borders(col = seg_color, lwd = line_width)
     }
@@ -286,7 +286,7 @@
     names(labels) <- seq_len(length(labels))
     # check the labels to be plotted
     # if NULL, use all labels
-    if (purrr::is_null(labels_plot)) {
+    if (.has_not(labels_plot)) {
         labels_plot <- labels
     } else {
         .check_that(all(labels_plot %in% labels),

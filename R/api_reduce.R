@@ -6,6 +6,7 @@
 #' @param  expr       An expression to be evaluated.
 #' @param  out_band   Output band
 #' @param  in_bands   Input bands
+#' @param  impute_fn  Imputation function
 #' @param  output_dir Output directory.
 #' @param  progress   how progress bar?
 #'
@@ -16,6 +17,7 @@
                          expr,
                          out_band,
                          in_bands,
+                         impute_fn,
                          output_dir,
                          progress) {
 
@@ -56,7 +58,7 @@
         band = out_band
     )
     # In case the user has not defined a config for the output band
-    if (!.has(band_conf)) {
+    if (.has_not(band_conf)) {
         fn_name <- .as_chr(as.list(expr[[out_band]])[[1]])
         band_conf <- .conf("default_values", .reduce_datatypes(fn_name))
     }
@@ -80,6 +82,7 @@
             block = block,
             bands = in_bands,
             ml_model = NULL,
+            impute_fn = impute_fn,
             filter_fn = NULL
         )
         # Convert to named list

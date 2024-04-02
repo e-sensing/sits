@@ -38,6 +38,7 @@
 #'                        (character vector).
 #' @param crs             Default crs for the samples
 #'                        (character vector of length 1).
+#' @param impute_fn       Imputation function to remove NA.
 #' @param label_attr      Attribute in the shapefile or sf object to be used
 #'                        as a polygon label.
 #'                        (character vector of length 1).
@@ -104,6 +105,7 @@ sits_get_data <- function(cube,
                           label = "NoClass",
                           bands = sits_bands(cube),
                           crs = "EPSG:4326",
+                          impute_fn = impute_linear(),
                           label_attr = NULL,
                           n_sam_pol = 30L,
                           pol_avg = FALSE,
@@ -137,6 +139,7 @@ sits_get_data.csv <- function(cube,
                               samples, ...,
                               bands = sits_bands(cube),
                               crs = "EPSG:4326",
+                              impute_fn = impute_linear(),
                               multicores = 2,
                               progress = FALSE) {
     # Extract a data frame from csv
@@ -147,6 +150,7 @@ sits_get_data.csv <- function(cube,
         samples    = samples,
         bands      = bands,
         crs        = crs,
+        impute_fn  = impute_fn,
         multicores = multicores,
         progress   = progress
     )
@@ -160,6 +164,7 @@ sits_get_data.shp <- function(cube,
                               start_date = NULL,
                               end_date = NULL,
                               bands = sits_bands(cube),
+                              impute_fn = impute_linear(),
                               label_attr = NULL,
                               n_sam_pol = 30,
                               pol_avg = FALSE,
@@ -169,7 +174,7 @@ sits_get_data.shp <- function(cube,
                               progress = FALSE) {
     # Pre-condition - shapefile should have an id parameter
     .check_that(
-        !(pol_avg && purrr::is_null(pol_id)),
+        !(pol_avg && .has_not(pol_id)),
         msg = "invalid 'pol_id' parameter."
     )
     # Get default start and end date
@@ -191,6 +196,7 @@ sits_get_data.shp <- function(cube,
         cube       = cube,
         samples    = samples,
         bands      = bands,
+        impute_fn  = impute_fn,
         multicores = multicores,
         progress   = progress
     )
@@ -208,6 +214,7 @@ sits_get_data.sf <- function(cube,
                              start_date = NULL,
                              end_date = NULL,
                              bands = sits_bands(cube),
+                             impute_fn = impute_linear(),
                              label = "NoClass",
                              label_attr = NULL,
                              n_sam_pol = 30,
@@ -217,7 +224,7 @@ sits_get_data.sf <- function(cube,
                              multicores = 2,
                              progress = FALSE) {
     .check_that(
-        !(pol_avg && purrr::is_null(pol_id)),
+        !(pol_avg && .has_not(pol_id)),
         msg = "Please provide an sf object with a column
         with the id for each polygon and include
         this column name in the 'pol_id' parameter."
@@ -241,6 +248,7 @@ sits_get_data.sf <- function(cube,
         cube       = cube,
         samples    = samples,
         bands      = bands,
+        impute_fn  = impute_fn,
         multicores = multicores,
         progress   = progress
     )
@@ -256,6 +264,7 @@ sits_get_data.sits <- function(cube,
                                samples,
                                ...,
                                bands = sits_bands(cube),
+                               impute_fn = impute_linear(),
                                multicores = 2,
                                progress = FALSE) {
     # Extract time series from a cube given a data.frame
@@ -263,6 +272,7 @@ sits_get_data.sits <- function(cube,
         cube       = cube,
         samples    = samples,
         bands      = bands,
+        impute_fn  = impute_fn,
         multicores = multicores,
         progress   = progress
     )
@@ -280,6 +290,7 @@ sits_get_data.data.frame <- function(cube,
                                      bands = sits_bands(cube),
                                      label = "NoClass",
                                      crs = "EPSG:4326",
+                                     impute_fn = impute_linear(),
                                      multicores = 2,
                                      progress = FALSE) {
     # Check if samples contains all the required columns
@@ -310,6 +321,7 @@ sits_get_data.data.frame <- function(cube,
         samples    = samples,
         bands      = bands,
         crs        = crs,
+        impute_fn  = impute_fn,
         multicores = multicores,
         progress   = progress
     )

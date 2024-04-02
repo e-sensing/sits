@@ -51,7 +51,7 @@ sits_select.sits <- function(data,
     # Pre-condition
     .check_samples_ts(data)
     # Filter bands
-    if (!purrr::is_null(bands) && !any(is.na(bands))) {
+    if (.has(bands) && !any(is.na(bands))) {
         # sits tibble only works with non-processed cubes
         # all bands are uppercase
         bands <- toupper(bands)
@@ -66,7 +66,7 @@ sits_select.sits <- function(data,
         # select bands from the time series
         data <- .samples_select_bands(data, bands = bands)
     }
-    if (!purrr::is_null(start_date) && !purrr::is_null(end_date)) {
+    if (.has(start_date) && .has(end_date)) {
         # Filter dates
         start_date <- .timeline_format(start_date)
         end_date   <- .timeline_format(end_date)
@@ -90,7 +90,7 @@ sits_select.raster_cube <- function(data,
     # Pre-condition
     .check_raster_cube_files(data)
     # Filter bands
-    if (!purrr::is_null(bands) && !any(is.na(bands))) {
+    if (.has(bands) && !any(is.na(bands))) {
         bands <- .band_set_case(bands)
         bands <- .default(bands, .band_samples(sits_bands(data)))
         # check bands parameter
@@ -105,12 +105,12 @@ sits_select.raster_cube <- function(data,
         data <- .cube_filter_bands(cube = data, bands = bands)
     }
     # Filter by dates
-    if (!purrr::is_null(dates)) {
+    if (.has(dates)) {
         dates <- .timeline_format(dates)
         data <- .cube_filter_dates(cube = data, dates = dates)
     }
     # Filter by period
-    if (!purrr::is_null(start_date) && !purrr::is_null(end_date)
+    if (.has(start_date) && .has(end_date)
         && !is.na(start_date) && !is.na(end_date)) {
         start_date <- .timeline_format(start_date)
         end_date   <- .timeline_format(end_date)
@@ -119,7 +119,7 @@ sits_select.raster_cube <- function(data,
         )
     }
     # Filter tiles
-    if (!purrr::is_null(tiles) && !any(is.na(tiles))) {
+    if (.has(tiles) && !any(is.na(tiles))) {
         .check_chr_type(tiles)
         data <- .cube_filter_tiles(cube = data, tiles = tiles)
     }

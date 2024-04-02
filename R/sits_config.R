@@ -172,7 +172,7 @@ sits_list_collections <- function(source = NULL) {
 
     # if the user has required a source
     # check that it is valid
-    if (!purrr::is_null(source)) {
+    if (.has(source)) {
         # check if source exists
         .check_chr_within(
             x = source,

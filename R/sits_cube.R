@@ -423,14 +423,14 @@ sits_cube.local_cube <- function(source,
     }
     # precondition - check source and collection for eo_cubes only
     # is this a cube with results?
-    if (!purrr::is_null(bands) &&
+    if (.has(bands) &&
         all(bands %in% .conf("sits_results_bands"))) {
         results_cube <- TRUE
     } else {
         results_cube <- FALSE
     }
-    if (!purrr::is_null(vector_dir)) {
-        if (!purrr::is_null(bands)) {
+    if (.has(vector_dir)) {
+        if (.has(bands)) {
             .check_that(
                 !(all(bands %in% .conf("sits_results_bands"))),
                 msg = "bands for vector cubes should be provided in

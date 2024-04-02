@@ -270,7 +270,7 @@
         pb <- utils::txtProgressBar(min = 0, max = length(x), style = 3)
     }
     # sequential processing
-    if (purrr::is_null(sits_env[["cluster"]])) {
+    if (.has_not(sits_env[["cluster"]])) {
         result <- lapply(seq_along(x), function(i) {
             value <- fn(x[[i]], ...)
 

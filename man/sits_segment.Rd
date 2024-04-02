@@ -8,6 +8,7 @@ sits_segment(
   cube,
   seg_fn = sits_slic(),
   roi = NULL,
+  impute_fn = impute_linear(),
   start_date = NULL,
   end_date = NULL,
   memsize = 8,
@@ -23,6 +24,8 @@ sits_segment(
 \item{seg_fn}{Function to apply the segmentation}
 
 \item{roi}{Region of interest (see below)}
+
+\item{impute_fn}{Imputation function to remove NA values.}
 
 \item{start_date}{Start date for the segmentation}
 

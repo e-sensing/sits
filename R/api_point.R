@@ -111,7 +111,7 @@ NULL
     if (!.has_point(x)) {
         return(NULL)
     }
-    if (!.has(crs)) crs <- "EPSG:4326"
+    if (.has_not(crs)) crs <- "EPSG:4326"
     # Create point
     point <- .common_size(longitude = .lon(x), latitude = .lat(x), crs = crs)
     # Project to CRS

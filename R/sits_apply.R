@@ -157,8 +157,11 @@ sits_apply.raster_cube <- function(data, ...,
         return(data)
     }
     # Get all input bands in cube data
-    in_bands <- .apply_input_bands(data, bands = bands, expr = expr)
-
+    in_bands <- .apply_input_bands(
+        cube = data,
+        bands = bands,
+        expr = expr
+    )
     # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
@@ -168,11 +171,14 @@ sits_apply.raster_cube <- function(data, ...,
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = overlap),
         npaths = length(in_bands) + 1,
-        nbytes = 8, proc_bloat = .conf("processing_bloat_cpu")
+        nbytes = 8,
+        proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+        job_memsize = job_memsize,
+        memsize = memsize,
+        multicores = multicores
     )
     # Prepare parallelization
     .parallel_start(workers = multicores)

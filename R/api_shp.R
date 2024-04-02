@@ -89,7 +89,7 @@
     )
     # precondition - is the default label valid?
     .check_that(
-        x = !purrr::is_null(label) || !purrr::is_null(shp_attr),
+        x = .has(label) || .has(shp_attr),
         msg = "label or shape attribute should be valid"
     )
 

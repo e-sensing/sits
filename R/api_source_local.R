@@ -61,7 +61,7 @@
         end_date = end_date,
         bands = bands
     )
-    if (!purrr::is_null(vector_dir)) {
+    if (.has(vector_dir)) {
         # set the correct parse_info
         parse_info <- .conf("results_parse_info_def")
 
@@ -86,12 +86,12 @@
         )
     }
     # filter tiles
-    if (!purrr::is_null(tiles)) {
+    if (.has(tiles)) {
         raster_items <- .local_cube_items_tiles_select(
             tiles = tiles,
             items = raster_items
         )
-        if (!purrr::is_null(vector_items)) {
+        if (.has(vector_items)) {
             vector_items <- .local_cube_items_tiles_select(
                 tiles = tiles,
                 items = vector_items
@@ -137,7 +137,7 @@
             items = items_tile
         )
     })
-    if (!purrr::is_null(vector_items)) {
+    if (.has(vector_items)) {
         cube <- .local_cube_include_vector_info(cube, vector_items)
     }
 
@@ -149,7 +149,7 @@
         )
     } else {
         class(cube) <- .cube_s3class(cube)
-        if (!purrr::is_null(vector_items)) {
+        if (.has(vector_items)) {
             if (vector_band == "segments") {
                 class(cube) <- c("segs_cube","vector_cube", class(cube))
             } else if (vector_band == "probs") {
@@ -199,7 +199,7 @@
     .check_set_caller(".local_cube_items_raster_new")
 
     # is this a cube with results?
-    if (!purrr::is_null(bands) &&
+    if (.has(bands) &&
         bands[[1]] %in% .conf("sits_results_bands")) {
         results_cube <- TRUE
     } else {
@@ -255,7 +255,7 @@
             .name_repair = "universal"
         )
     )
-    if (!purrr::is_null(bands)) {
+    if (.has(bands)) {
         # check if bands exist
         .check_chr_contains(
             x = items$band,
@@ -339,10 +339,10 @@
             dplyr::arrange(.data[["date"]], .data[["band"]])
 
         # filter start and end dates
-        if (!purrr::is_null(start_date)) {
+        if (.has(start_date)) {
             items <- dplyr::filter(items, .data[["date"]] >= start_date)
         }
-        if (!purrr::is_null(end_date)) {
+        if (.has(end_date)) {
             items <- dplyr::filter(items, .data[["date"]] <= end_date)
         }
     }
@@ -508,7 +508,7 @@
         )
     )
     # filter bands
-    if (!purrr::is_null(bands)) {
+    if (.has(bands)) {
         # verify that the requested bands exist
         .check_chr_within(bands,
             within = unique(items[["band"]]),

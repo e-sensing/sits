@@ -22,6 +22,7 @@
 #' @param  block           Optimized block to be read into memory.
 #' @param  roi             Region of interest.
 #' @param  filter_fn       Smoothing filter function to be applied to the data.
+#' @param  impute_fn       Imputation function.
 #' @param  output_dir      Output directory.
 #' @param  version         Version of result.
 #' @param  verbose         Print processing information?
@@ -33,6 +34,7 @@
                            block,
                            roi,
                            filter_fn,
+                           impute_fn,
                            output_dir,
                            version,
                            verbose,
@@ -61,16 +63,26 @@
         return(probs_tile)
     }
     # Show initial time for tile classification
-    tile_start_time <- .tile_classif_start(tile, verbose)
+    tile_start_time <- .tile_classif_start(
+        tile = tile,
+        verbose = verbose
+    )
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
+    chunks <- .tile_chunks_create(
+        tile = tile,
+        overlap = 0,
+        block = block
+    )
     # By default, update_bbox is FALSE
     update_bbox <- FALSE
     if (.has(roi)) {
         # How many chunks there are in tile?
         nchunks <- nrow(chunks)
         # Intersecting chunks with ROI
-        chunks <- .chunks_filter_spatial(chunks, roi = roi)
+        chunks <- .chunks_filter_spatial(
+            chunks = chunks,
+            roi = roi
+        )
         # Should bbox of resulting tile be updated?
         update_bbox <- nrow(chunks) != nchunks
     }
@@ -96,6 +108,7 @@
             block = block,
             bands = .ml_bands(ml_model),
             ml_model = ml_model,
+            impute_fn = impute_fn,
             filter_fn = filter_fn
         )
         # Get mask of NA pixels
@@ -113,7 +126,10 @@
         # Apply the classification model to values
         values <- ml_model(values)
         # Are the results consistent with the data input?
-        .check_processed_values(values, input_pixels)
+        .check_processed_values(
+            values = values,
+            input_pixels = input_pixels
+        )
         # Log
         .debug_log(
             event = "end_block_data_classification",
@@ -122,7 +138,8 @@
         )
         # Prepare probability to be saved
         band_conf <- .conf_derived_band(
-            derived_class = "probs_cube", band = band
+            derived_class = "probs_cube",
+            band = band
         )
         offset <- .offset(band_conf)
         if (.has(offset) && offset != 0) {
@@ -133,13 +150,9 @@
             values <- values / scale
             probs_fractions  <- probs_fractions / scale
         }
-
         # Mask NA pixels with same probabilities for all classes
         values[na_mask, ] <- probs_fractions
-
-        #
-        # Log here
-        #
+        # Log
         .debug_log(
             event = "start_block_data_save",
             key = "file",
@@ -178,7 +191,11 @@
         update_bbox = update_bbox
     )
     # show final time for classification
-    .tile_classif_end(tile, tile_start_time, verbose)
+    .tile_classif_end(
+        tile = tile,
+        start_time = tile_start_time,
+        verbose = verbose
+    )
     # Clean torch allocations
     if (.is_torch_model(ml_model)) {
         torch::cuda_empty_cache()
@@ -210,6 +227,7 @@
 #' @param  block      Optimized block to be read into memory.
 #' @param  roi        Region of interest.
 #' @param  filter_fn  Smoothing filter function to be applied to the data.
+#' @param  impute_fn  Imputation function to remove NA values.
 #' @param  n_sam_pol  Number of samples per polygon to be read
 #'                    for POLYGON or MULTIPOLYGON shapefiles or sf objects.
 #' @param  multicores Number of cores to be used for classification
@@ -223,6 +241,7 @@
                                   block,
                                   roi,
                                   filter_fn,
+                                  impute_fn,
                                   n_sam_pol,
                                   multicores,
                                   memsize,
@@ -259,19 +278,30 @@
         return(probs_tile)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
+    chunks <- .tile_chunks_create(
+        tile = tile,
+        overlap = 0,
+        block = block
+    )
     # By default, update_bbox is FALSE
     update_bbox <- FALSE
     if (.has(roi)) {
         # How many chunks there are in tile?
         nchunks <- nrow(chunks)
         # Intersecting chunks with ROI
-        chunks <- .chunks_filter_spatial(chunks, roi = roi)
+        chunks <- .chunks_filter_spatial(
+            chunks = chunks,
+            roi = roi
+        )
         # Should bbox of resulting tile be updated?
         update_bbox <- nrow(chunks) != nchunks
     }
     # Filter segments that intersects with each chunk
-    chunks <- .chunks_filter_segments(chunks, tile, output_dir)
+    chunks <- .chunks_filter_segments(
+        chunks = chunks,
+        tile = tile,
+        output_dir = output_dir
+    )
     on.exit(unlink(unlist(chunks$segments)))
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
@@ -289,12 +319,18 @@
             return(block_file)
         }
         # Extract segments time series
-        segments_ts <- .segments_poly_read(tile, chunk, n_sam_pol)
+        segments_ts <- .segments_poly_read(
+            tile = tile,
+            chunk = chunk,
+            n_sam_pol = n_sam_pol,
+            impute_fn = impute_fn
+        )
         # Classify segments
         segments_ts <- .classify_ts(
             samples = segments_ts,
             ml_model = ml_model,
             filter_fn = filter_fn,
+            impute_fn = impute_fn,
             multicores = 1,
             gpu_memory = gpu_memory,
             progress = FALSE
@@ -305,7 +341,10 @@
             segments = .segments_read_vec(tile)
         )
         # Write segment block
-        .vector_write_vec(v_obj = segments_ts, file_path = block_file)
+        .vector_write_vec(
+            v_obj = segments_ts,
+            file_path = block_file
+        )
         # Free memory
         gc()
         # Return block file
@@ -342,18 +381,26 @@
 #' @param  block           Bounding box in (col, row, ncols, nrows).
 #' @param  bands           Bands to extract time series
 #' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
+#' @param  impute_fn       Imputation function
 #' @param  filter_fn       Smoothing filter function to be applied to the data.
 #' @return A matrix with values for classification.
-.classify_data_read <- function(tile, block, bands, ml_model, filter_fn) {
+.classify_data_read <- function(tile, block, bands, ml_model, impute_fn, filter_fn) {
     # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
     # Read and preprocess values of cloud
     # Get cloud values (NULL if not exists)
-    cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
+    cloud_mask <- .tile_cloud_read_block(
+        tile = tile,
+        block = block
+    )
     # Read and preprocess values of each band
     values <- purrr::map(bands, function(band) {
         # Get band values (stops if band not found)
-        values <- .tile_read_block(tile = tile, band = band, block = block)
+        values <- .tile_read_block(
+            tile = tile,
+            band = band,
+            block = block
+        )
         # Log
         .debug_log(
             event = "start_block_data_process",
@@ -364,8 +411,6 @@
         if (.has(cloud_mask)) {
             values[cloud_mask] <- NA
         }
-        # use linear imputation
-        impute_fn <- .impute_linear()
         # are there NA values? interpolate them
         if (any(is.na(values))) {
             values <- impute_fn(values)
@@ -419,6 +464,7 @@
 #' @param  samples    a tibble with sits samples
 #' @param  ml_model   model trained by \code{\link[sits]{sits_train}}.
 #' @param  filter_fn  Smoothing filter to be applied (if desired).
+#' @param  impute_fn  Imputation function (to remove NA)
 #' @param  multicores number of threads to process the time series.
 #' @param  gpu_memory Memory available in GPU
 #' @param  progress   Show progress bar?
@@ -426,6 +472,7 @@
 .classify_ts <- function(samples,
                          ml_model,
                          filter_fn,
+                         impute_fn,
                          multicores,
                          gpu_memory,
                          progress) {
@@ -436,15 +483,29 @@
     bands <- .ml_bands(ml_model)
     # Update samples bands order
     if (any(bands != .samples_bands(samples))) {
-        samples <- .samples_select_bands(samples = samples, bands = bands)
+        samples <- .samples_select_bands(
+            samples = samples,
+            bands = bands
+        )
     }
     # Apply time series filter
-    if (!purrr::is_null(filter_fn)) {
-        samples <- .apply_across(data = samples, fn = filter_fn)
+    if (.has(filter_fn)) {
+        samples <- .apply_across(
+            data = samples,
+            fn = filter_fn
+        )
+    }
+    # Apply imputation filter
+    if (.has(impute_fn)) {
+        samples <- .apply_across(
+            data = samples,
+            fn = impute_fn
+        )
     }
     # Compute the breaks in time for multiyear classification
     class_info <- .timeline_class_info(
-        data = samples, samples = .ml_samples(ml_model)
+        data = samples,
+        samples = .ml_samples(ml_model)
     )
     # Split long time series of samples in a set of small time series
     if (length(class_info[["dates_index"]][[1]]) > 1) {
@@ -452,18 +513,35 @@
             samples = samples,
             split_intervals = class_info[["dates_index"]][[1]]
         )
-        pred <- .predictors(samples = splitted, ml_model = ml_model)
+        pred <- .predictors(
+            samples = splitted,
+            ml_model = ml_model
+        )
         # Post condition: is predictor data valid?
-        .check_predictors(pred, splitted)
+        .check_predictors(
+            pred = pred,
+            samples = splitted
+        )
     } else {
         # Convert samples time series in predictors and preprocess data
-        pred <- .predictors(samples = samples, ml_model = ml_model)
+        pred <- .predictors(
+            samples = samples,
+            ml_model = ml_model
+        )
     }
     # choose between GPU and CPU
     if ("torch_model" %in% class(ml_model) && torch::cuda_is_available())
-        prediction <- .classify_ts_gpu(pred, ml_model, gpu_memory)
+        prediction <- .classify_ts_gpu(
+            pred = pred,
+            ml_model = ml_model,
+            gpu_memory = gpu_memory)
     else
-        prediction <- .classify_ts_cpu(pred, ml_model, multicores, progress)
+        prediction <- .classify_ts_cpu(
+            pred = pred,
+            ml_model = ml_model,
+            multicores = multicores,
+            progress = progress
+        )
     # Store the result in the input data
     if (length(class_info[["dates_index"]][[1]]) > 1) {
         prediction <- .tibble_prediction_multiyear(
@@ -499,7 +577,10 @@
                              progress){
 
     # Divide samples predictors in chunks to parallel processing
-    parts <- .pred_create_partition(pred = pred, partitions = multicores)
+    parts <- .pred_create_partition(
+        pred = pred,
+        partitions = multicores
+    )
     # Do parallel process
     prediction <- .jobs_map_parallel_dfr(parts, function(part) {
         # Get predictors of a given partition
@@ -535,7 +616,10 @@
     # estimate how should we partition the predictors
     num_parts <- ceiling(pred_size/gpu_memory)
     # Divide samples predictors in chunks to parallel processing
-    parts <- .pred_create_partition(pred = pred, partitions = num_parts)
+    parts <- .pred_create_partition(
+        pred = pred,
+        partitions = num_parts
+    )
     prediction <- slider::slide_dfr(parts, function(part){
         # Get predictors of a given partition
         pred_part <- .pred_part(part)

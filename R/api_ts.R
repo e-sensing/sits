@@ -155,10 +155,10 @@
 #' @param end_date      End date
 #' @return time series filtered by interval
 .ts_filter_interval <- function(ts, start_date, end_date) {
-    if (!.has(start_date)) {
+    if (.has_not(start_date)) {
         start_date <- .ts_min_date(ts)
     }
-    if (!.has(end_date)) {
+    if (.has_not(end_date)) {
         end_date <- .ts_max_date(ts)
     }
     # Filter the interval period
@@ -194,12 +194,14 @@
 #' @param tile              Metadata describing a tile of a raster data cube.
 #' @param points            tibble with points
 #' @param bands             Bands to be retrieved.
+#' @param impute_fn         Imputation function to remove NA.
 #' @param xy                A matrix with longitude as X and latitude as Y.
 #' @param cld_band          Cloud band (if available)
 #' @return                  A sits tibble with the time series.
 .ts_get_raster_data <- function(tile,
                                 points,
                                 bands,
+                                impute_fn,
                                 xy,
                                 cld_band = NULL) {
     # set caller to show in errors
@@ -208,7 +210,7 @@
     timeline <- sits_timeline(tile)
 
     # retrieve values for the cloud band (if available)
-    if (!purrr::is_null(cld_band)) {
+    if (.has(cld_band)) {
         # retrieve values that indicate clouds
         cld_index <- .source_cloud_interp_values(
             source = .tile_source(tile),
@@ -264,7 +266,7 @@
                 use.names = FALSE
             )
             # include information from cloud band
-            if (!purrr::is_null(cld_band)) {
+            if (.has(cld_band)) {
                 cld_values <- unlist(cld_values[i, start_idx:end_idx],
                     use.names = FALSE
                 )
@@ -281,8 +283,6 @@
             values_ts[values_ts == missing_value] <- NA
             values_ts[values_ts < minimum_value] <- NA
             values_ts[values_ts > maximum_value] <- NA
-            # use linear imputation
-            impute_fn <- .impute_linear()
             # are there NA values? interpolate them
             if (any(is.na(values_ts))) {
                 values_ts <- impute_fn(values_ts)

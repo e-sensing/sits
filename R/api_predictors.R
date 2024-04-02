@@ -16,7 +16,7 @@
     # By default get bands as the same of first sample
     bands <- .samples_bands(samples)
     # Preprocess time series
-    if (!purrr::is_null(ml_model)) {
+    if (.has(ml_model)) {
         # If a model is informed, get predictors from model bands
         bands <- .ml_bands(ml_model)
         # Normalize values for old version model classifiers that

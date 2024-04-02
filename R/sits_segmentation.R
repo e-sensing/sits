@@ -29,6 +29,7 @@
 #' @param  cube       Regular data cube
 #' @param  seg_fn     Function to apply the segmentation
 #' @param  roi        Region of interest (see below)
+#' @param  impute_fn  Imputation function to remove NA values.
 #' @param  start_date Start date for the segmentation
 #' @param  end_date   End date for the segmentation.
 #' @param  memsize    Memory available for classification (in GB).
@@ -79,6 +80,7 @@
 sits_segment <- function(cube,
                          seg_fn = sits_slic(),
                          roi = NULL,
+                         impute_fn = impute_linear(),
                          start_date = NULL,
                          end_date = NULL,
                          memsize = 8,
@@ -145,6 +147,7 @@ sits_segment <- function(cube,
             band = "segments",
             block = block,
             roi = roi,
+            impute_fn = impute_fn,
             output_dir = output_dir,
             version = version,
             progress = progress

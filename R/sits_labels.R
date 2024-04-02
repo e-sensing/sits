@@ -172,7 +172,7 @@ sits_labels.default <- function(data) {
         len_min = n_labels_data,
         msg = "not enough new labels to replace current ones"
     )
-    if (purrr::is_null(names(value))) {
+    if (.has_not(names(value))) {
         names(value) <- names(labels_data)
     }
     rows <- slider::slide_dfr(data, function(row) {

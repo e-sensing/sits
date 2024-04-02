@@ -13,6 +13,7 @@
 #'                        This parameter only works for 'csv' or data.frame'
 #'                        samples. Default is 4326.
 #' @param bands           Bands to be retrieved (optional).
+#' @param impute_fn       Imputation function to remove NA.
 #' @param multicores      Number of threads to process the time series.
 #' @param progress        A logical value indicating if a progress bar
 #'                        should be shown. Default is \code{FALSE}.
@@ -23,6 +24,7 @@
 .data_get_ts <- function(cube,
                          samples, ...,
                          bands,
+                         impute_fn,
                          multicores,
                          progress) {
     # Dispatch
@@ -35,6 +37,7 @@
 .data_get_ts.raster_cube <- function(cube,
                                      samples, ...,
                                      bands,
+                                     impute_fn,
                                      multicores,
                                      progress) {
     # Pre-condition
@@ -58,6 +61,7 @@
             cube = cube,
             samples = samples,
             bands = bands,
+            impute_fn = impute_fn,
             cld_band = cld_band,
             multicores = multicores,
             progress = progress
@@ -68,6 +72,7 @@
             cube = cube,
             samples = samples,
             bands = bands,
+            impute_fn = impute_fn,
             cld_band = cld_band,
             multicores = multicores,
             progress = progress
@@ -341,6 +346,7 @@
 .get_data_by_tile <- function(cube,
                               samples,
                               bands,
+                              impute_fn,
                               cld_band,
                               multicores,
                               progress) {
@@ -436,6 +442,7 @@
             tile = tile,
             points = samples_tbl,
             bands = band,
+            impute_fn = impute_fn,
             xy = xy,
             cld_band = cld_band
         )
@@ -518,6 +525,7 @@
 .get_data_by_chunks <- function(cube,
                                 samples,
                                 bands,
+                                impute_fn,
                                 cld_band,
                                 multicores,
                                 progress) {
@@ -616,6 +624,7 @@
             tile = tile,
             points = samples_tbl,
             bands = bands,
+            impute_fn = impute_fn,
             xy = xy,
             cld_band = cld_band
         )

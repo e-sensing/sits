@@ -69,7 +69,7 @@ sits_cluster_dendro <- function(samples,
     bands <- .default(bands, sits_bands(samples))
     bands <- .tibble_bands_check(samples, bands)
     # check k (number of clusters)
-    if (!purrr::is_null(k)) {
+    if (.has(k)) {
         .check_num_parameter(k, min = 2,  max = 200)
     }
     # check distance method

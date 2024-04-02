@@ -75,7 +75,7 @@ sits_to_xlsx.list <- function(acc, file) {
     # save all elements of the list
     purrr::map2(acc, 1:num_sheets, function(cf_mat, ind) {
         # create a worksheet for each confusion matrix
-        if (purrr::is_null(cf_mat$name)) {
+        if (!.has(cf_mat$name)) {
             cf_mat$name <- paste0("sheet", ind)
         }
         sheet_name <- cf_mat$name

@@ -182,7 +182,7 @@ plot.predicted <- function(x, y, ...,
         palette <- dots[["color_palette"]]
     }
     # are bands specified?
-    if (purrr::is_null(bands)) {
+    if (!.has(bands)) {
         bands <- sits_bands(x)
     }
     # are the chosen bands in the data?
@@ -367,9 +367,7 @@ plot.raster_cube <- function(x, ...,
         palette <- dots[["color_palette"]]
     }
     # BW or color?
-    if (!purrr::is_null(red) && !purrr::is_null(green) &&
-        !purrr::is_null(blue)
-    )
+    if (.has(red) && .has(green) && .has(blue))
         bw <-  FALSE
     else
         bw <-  TRUE
@@ -395,7 +393,7 @@ plot.raster_cube <- function(x, ...,
     )
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-    if (purrr::is_null(date)) {
+    if (!.has(date)) {
         date <- .tile_timeline(tile)[[1]]
     }
     # only one date at a time
@@ -511,9 +509,7 @@ plot.vector_cube <- function(x, ...,
         palette <- dots[["color_palette"]]
     }
     # BW or color?
-    if (!purrr::is_null(red) &&
-        !purrr::is_null(green) &&
-        !purrr::is_null(blue))
+    if (.has(red) && .has(green) && .has(blue))
         bw <-  FALSE
     else
         bw <-  TRUE
@@ -530,7 +526,7 @@ plot.vector_cube <- function(x, ...,
     )
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-    if (purrr::is_null(date)) {
+    if (!.has(date)) {
         date <- .tile_timeline(tile)[[1]]
     }
     # only one date at a time
@@ -1083,7 +1079,7 @@ plot.class_cube <- function(x, y, ...,
     )
 
     # precondition
-    if (purrr::is_null(tile)) {
+    if (!.has(tile)) {
         tile <- cube$tile[[1]]
     } else {
         .check_chr_contains(
@@ -1715,7 +1711,7 @@ plot.sits_cluster <- function(x, ...,
         )
     )
     # plot cutree line
-    if (!purrr::is_null(cutree_height)) {
+    if (.has(cutree_height)) {
         graphics::abline(h = cutree_height, lty = 2)
     }
 

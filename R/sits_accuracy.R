@@ -136,7 +136,7 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
             # Read sample information from CSV file and put it in a tibble
             validation <- tibble::as_tibble(
                 utils::read.csv(
-                    validation,
+                    file = validation,
                     stringsAsFactors = FALSE
                 )
             )
@@ -196,7 +196,8 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
 
         # Convert the tibble to a matrix
         xy <- matrix(c(points_tile$X, points_tile$Y),
-                     nrow = nrow(points_tile), ncol = 2
+                     nrow = nrow(points_tile),
+                     ncol = 2
         )
         colnames(xy) <- c("X", "Y")
 
@@ -219,7 +220,10 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
         # Does the number of predicted and reference values match?
         .check_pred_ref_match(reference, predicted)
         # Create a tibble to store the results
-        tb <- tibble::tibble(predicted = predicted, reference = reference)
+        tb <- tibble::tibble(
+            predicted = predicted,
+            reference = reference
+        )
         # Return the list
         return(tb)
     })
@@ -243,10 +247,13 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
     )
 
     # Get area for each class of the cube
-    class_areas <- .cube_class_areas(data)
+    class_areas <- .cube_class_areas(cube = data)
     # Compute accuracy metrics
-    acc_area <- .accuracy_area_assess(data, error_matrix, class_areas)
-
+    acc_area <- .accuracy_area_assess(
+        cube = data,
+        error_matrix = error_matrix,
+        area = class_areas
+    )
     class(acc_area) <- c("sits_area_accuracy", class(acc_area))
     return(acc_area)
 }

@@ -484,7 +484,7 @@ sits_stratified_sampling <- function(cube,
             dplyr::filter(.data[["label"]] == lab) |>
             dplyr::slice_sample(n = samples_class[lab])
     })
-    if (!purrr::is_null(shp_file)) {
+    if (.has(shp_file)) {
         .check_that(tools::file_ext(shp_file) == "shp",
                     msg = "invalid shapefile name")
         sf::st_write(samples, shp_file, append = FALSE)

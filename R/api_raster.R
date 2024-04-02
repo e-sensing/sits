@@ -388,7 +388,7 @@
 #' @return Numeric matrix read from file based on parameter block
 .raster_read_rast <- function(files, ..., block = NULL) {
     # check block
-    if (!purrr::is_null(block)) {
+    if (.has(block)) {
         .raster_check_block(block = block)
     }
 

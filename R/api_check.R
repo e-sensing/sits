@@ -263,7 +263,7 @@
             return(NULL)
         })
     # return error if data is not accessible
-    .check_that(!purrr::is_null(robj),
+    .check_that(.has(robj),
         msg = "Invalid data cube - missing files"
     )
     return(invisible(x))
@@ -1449,7 +1449,7 @@
 #' @keywords internal
 #' @noRd
 .check_cube_is_results_cube <- function(bands, labels) {
-    if (!purrr::is_null(bands) &&
+    if (.has(bands) &&
         all(bands %in% .conf("sits_results_bands"))) {
         results_cube <- TRUE
     } else {
@@ -1885,7 +1885,7 @@
         )
     }
     # Ensures that a spatial filter is informed
-    if (!.has(roi) && !.has(tiles)) {
+    if (.has_not(roi) && .has_not(tiles)) {
         stop(
             "No spatial search criteria.",
             "Please provide roi or tiles."
@@ -2323,11 +2323,7 @@
 #' @noRd
 .check_view_bands_params <- function(band, red, green, blue) {
     .check_that(
-        !(purrr::is_null(band)) ||
-            (!(purrr::is_null(red)) &&
-                 !(purrr::is_null(green)) &&
-                 !(purrr::is_null(blue))
-            ),
+        .has(band) || (.has(red) && .has(green) && .has(blue)),
         local_msg = paste0(
             "either 'band' parameter or 'red', 'green', and",
             "'blue' parameters should be informed"
@@ -2345,7 +2341,7 @@
 #' @keywords internal
 #' @noRd
 .check_view_bands <- function(cube, band, red, green, blue) {
-    if (!purrr::is_null(band)) {
+    if (.has(band)) {
         # check band is available
         .check_chr_within(
             band,
@@ -2354,9 +2350,7 @@
             msg = "invalid BW band"
         )
     }
-    if (!(purrr::is_null(red)) &&
-        !(purrr::is_null(green)) &&
-        !(purrr::is_null(blue))) {
+    if (.has(red) && .has(green) && .has(blue)) {
         bands <- c(red, green, blue)
         # check bands are available
         .check_chr_within(
@@ -2386,7 +2380,7 @@
 
 .check_default_message <- function(x, msg = NULL) {
     # make default message
-    if (purrr::is_null(msg)) {
+    if (.has_not(msg)) {
         # get x as expression
         x_expr <- deparse(substitute(x, environment()))
         msg <- paste0("invalid '", x_expr, "' parameter")

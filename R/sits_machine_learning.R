@@ -55,13 +55,15 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
         train_samples <- .predictors(samples)
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
-
+        # determine number of random forest
+        n_features <- ncol(train_samples) - 2
         # Apply the 'mtry' default value of 'randomForest' package
-        if (purrr::is_null(mtry)) {
-            n_features <- ncol(train_samples) - 2
-            mtry <- floor(sqrt(n_features))
+        if (.has(mtry)) {
             # Checks 'mtry'
             .check_int_parameter(mtry, min = 1, max = n_features)
+        } else {
+            # set the default values of `mtry`
+            mtry <- floor(sqrt(n_features))
         }
         # Train a random forest model
         model <- randomForest::randomForest(
@@ -409,7 +411,7 @@ sits_formula_logref <- function(predictors_index = -2:0) {
         n_rows_tb <- nrow(tb)
 
         # if no predictors_index are given, assume all tb's fields are used
-        if (purrr::is_null(predictors_index)) {
+        if (!.has(predictors_index)) {
             predictors_index <- 1:n_rows_tb
         }
 
@@ -478,7 +480,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
         )
         n_rows_tb <- nrow(tb)
         # if no predictors_index are given, assume that all fields are used
-        if (purrr::is_null(predictors_index)) {
+        if (!.has(predictors_index)) {
             predictors_index <- 1:n_rows_tb
         }
 

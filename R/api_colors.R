@@ -28,7 +28,7 @@
     # get the names of the colors that exist in the SITS color table
     names(colors) <- labels_exist
     # if there is a legend?
-    if (!purrr::is_null(legend)) {
+    if (.has(legend)) {
         # what are the names in the legend that are in the labels?
         labels_leg <- labels[labels %in% names(legend)]
         # what are the color labels that are included in the legend?

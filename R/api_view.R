@@ -48,7 +48,7 @@
     base_maps <- .view_get_base_maps(leaf_map)
     # add B/W band if required
     # create a leaflet for B/W bands
-    if (!purrr::is_null(band)) {
+    if (.has(band)) {
         leaf_map <- leaf_map |>
             .view_bw_band(
                 cube = cube,
@@ -154,8 +154,8 @@
     base_maps <- .view_get_base_maps(leaf_map)
     # add B/W band if required
     # create a leaflet for B/W bands
-    if (!purrr::is_null(band)) {
-        if (purrr::is_null(dates))
+    if (.has(band)) {
+        if (.has_not(dates))
             dates <- .cube_timeline(cube)[[1]][1]
         leaf_map <- leaf_map |>
             .view_bw_band(
@@ -168,11 +168,9 @@
     }
     # add RGB bands if required
     # create a leaflet for RGB bands
-    if (!purrr::is_null(red) &&
-        !purrr::is_null(green) &&
-        !purrr::is_null(blue)) {
+    if (.has(red) && .has(green) && .has(blue)) {
         # update the dates parameter
-        if (purrr::is_null(dates))
+        if (.has_not(dates))
             dates <- .cube_timeline(cube)[[1]][1]
         leaf_map <- leaf_map |>
             .view_rgb_bands(
@@ -305,7 +303,7 @@
     labels <- sort(unique(samples$label))
 
     # if colors are not specified, get them from the configuration file
-    if (purrr::is_null(legend)) {
+    if (.has_not(legend)) {
         colors <- .colors_get(
             labels = labels,
             legend = NULL,
@@ -396,7 +394,7 @@
 #'
 .view_set_max_mb <- function(view_max_mb) {
     # get the maximum number of bytes to be displayed (total)
-    if (purrr::is_null(view_max_mb)) {
+    if (.has_not(view_max_mb)) {
         view_max_mb <- .conf("leaflet_megabytes")
     } else {
         .check_num(
@@ -636,7 +634,7 @@
                              opacity,
                              output_size) {
     # should we overlay a classified image?
-    if (!purrr::is_null(class_cube)) {
+    if (.has(class_cube)) {
         # check that class_cube is valid
         .check_that(
             x = inherits(class_cube, c("class_cube")),
@@ -644,7 +642,7 @@
         )
         # get the labels
         labels <- unlist(.cube_labels(class_cube, dissolve = FALSE))
-        if (purrr::is_null(names(labels))) {
+        if (.has_not(names(labels))) {
             names(labels) <- seq_along(labels)
         }
         # obtain the colors
@@ -655,7 +653,7 @@
             rev = TRUE
         )
         # select the tiles that will be shown
-        if (!purrr::is_null(tiles)) {
+        if (.has(tiles)) {
             class_cube <- dplyr::filter(
                 class_cube,
                 .data[["tile"]] %in% tiles
@@ -726,7 +724,7 @@
         src = st_obj,
         crs = sf::st_crs("EPSG:3857")
     )
-    if (!purrr::is_null(date)) {
+    if (.has(date)) {
         group <- paste(tile[["tile"]], date)
     } else {
         group <- paste(tile[["tile"]], band)
@@ -758,7 +756,7 @@
     # get the timeline
     timeline <- .cube_timeline(cube)[[1]]
 
-    if (purrr::is_null(dates)) {
+    if (.has_not(dates)) {
         dates <- timeline[1]
     }
     return(dates)
@@ -853,7 +851,7 @@
     labels <- NULL
 
     # obtain labels from class cube
-    if (!purrr::is_null(cube)) {
+    if (.has(cube)) {
         if (inherits(cube, "class_cube")) {
             labels <- .view_get_labels_raster(cube)
         }
@@ -861,7 +859,7 @@
             labels <- .view_get_labels_vector(cube)
         }
     }
-    if (!purrr::is_null(labels)) {
+    if (.has(labels)) {
         # obtain labels from vector class cube
         labels <- sort(unname(labels))
         colors <- .colors_get(
@@ -908,7 +906,7 @@
     overlay_groups <- NULL
     # raster cube needs dates
     .check_that(
-        x = !purrr::is_null(dates),
+        x = .has(dates),
         msg = "raster cube must have associated dates"
     )
     grps <- unlist(purrr::map(cube[["tile"]], function(tile) {
@@ -916,7 +914,7 @@
     }))
     overlay_groups <- c(overlay_groups, grps)
     # add class_cube
-    if (!purrr::is_null(class_cube))
+    if (.has(class_cube))
         overlay_groups <- c(overlay_groups, "classification")
     return(overlay_groups)
 }
@@ -932,7 +930,7 @@
     }))
     overlay_groups <- c(overlay_groups, grps)
     # add class_cube
-    if (!purrr::is_null(class_cube))
+    if (.has(class_cube))
         overlay_groups <- c(overlay_groups, "classification")
     return(overlay_groups)
 }
@@ -957,7 +955,7 @@
                                                dates = NULL,
                                                class_cube = NULL) {
     overlay_groups <- NULL
-    if (!purrr::is_null(dates)) {
+    if (.has(dates)) {
         grps <- unlist(purrr::map(cube[["tile"]], function(tile) {
             paste(tile, dates)
         }))
@@ -966,7 +964,7 @@
     overlay_groups <- c(overlay_groups, "segments")
     if ("class_vector_cube" %in% class(cube))
         overlay_groups <- c(overlay_groups, "class_segments")
-    if (!purrr::is_null(class_cube))
+    if (.has(class_cube))
         overlay_groups <- c(overlay_groups, "classification")
     return(overlay_groups)
 }

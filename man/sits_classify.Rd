@@ -24,6 +24,7 @@ sits_classify(
   ml_model,
   ...,
   filter_fn = NULL,
+  impute_fn = impute_linear(),
   multicores = 2L,
   gpu_memory = 16,
   progress = TRUE
@@ -35,6 +36,7 @@ sits_classify(
   ...,
   roi = NULL,
   filter_fn = NULL,
+  impute_fn = impute_linear(),
   start_date = NULL,
   end_date = NULL,
   memsize = 8L,
@@ -56,6 +58,7 @@ sits_classify(
   ...,
   roi = NULL,
   filter_fn = NULL,
+  impute_fn = impute_linear(),
   start_date = NULL,
   end_date = NULL,
   memsize = 8L,
@@ -85,6 +88,8 @@ sits_classify(
 (integer, min = 1, max = 2048).}
 
 \item{progress}{Logical: Show progress bar?}
+
+\item{impute_fn}{Imputation function to remove NA.}
 
 \item{gpu_memory}{Memory available in GPU in GB (default = 16)}
 

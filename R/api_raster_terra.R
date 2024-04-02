@@ -220,7 +220,7 @@
     r_obj <- .raster_open_rast.terra(file = path.expand(files), ...)
 
     # start read
-    if (purrr::is_null(block)) {
+    if (.has_not(block)) {
         # read values
         terra::readStart(r_obj)
         values <- terra::readValues(

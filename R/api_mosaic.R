@@ -142,7 +142,7 @@
                 "-co" = .conf("gdal_presets", "image", "co"),
                 "-t_srs" = .as_crs(crs),
                 "-wo" = paste0("NUM_THREADS=", multicores),
-                "-multi" = TRUE,
+                "-multi" = FALSE,
                 "-srcnodata" = .miss_value(band_conf)
             ),
             quiet = TRUE

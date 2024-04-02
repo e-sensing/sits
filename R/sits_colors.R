@@ -14,7 +14,7 @@
 #' @export
 #'
 sits_colors <- function(legend = NULL) {
-    if (purrr::is_null(legend)) {
+    if (.has_not(legend)) {
         print("Returning all available colors")
         return(sits_env$color_table)
     } else {
@@ -56,7 +56,7 @@ sits_colors_show <- function(legend = NULL,
     # verifies if sysfonts package is installed
     .check_require_packages("sysfonts")
     # legend must be valid
-    if (purrr::is_null(legend))
+    if (.has_not(legend))
         legend <- "none"
     if (!(legend %in% names(sits_env$legends))) {
         msg <- paste0(paste("Please select one of the legends: "),
@@ -140,7 +140,7 @@ sits_colors_show <- function(legend = NULL,
 sits_colors_set <- function(colors, legend = NULL) {
     # add the new color table
     new_color_tb <- .conf_add_color_table(colors)
-    if (!purrr::is_null(legend)) {
+    if (.has(legend)) {
         # add the list of color names to a new legend
         .check_chr_parameter(legend, msg = "invalid legend")
         # crete a new legend entry

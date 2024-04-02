@@ -26,7 +26,7 @@
 .factory_function <- function(data, fun) {
     # if no data is given, we prepare a
     # function to be called as a parameter of other functions
-    if (purrr::is_null(data)) {
+    if (.has_not(data)) {
         result <- fun
     } else {
         # ...otherwise compute the result on the input data

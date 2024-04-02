@@ -331,7 +331,7 @@ sits_view.class_cube <- function(x, ...,
     # preconditions
     .check_require_packages("leaflet")
     # deal with tiles
-    if (!purrr::is_null(tiles)) {
+    if (.has(tiles)) {
         # try to find tiles in the list of tiles of the cube
         .check_chr_within(
             tiles,
@@ -474,7 +474,7 @@ sits_view.probs_cube <- function(x, ...,
 
     # set overlay groups
     overlay_groups <- paste("probs", labels)
-    if (!purrr::is_null(class_cube)) {
+    if (.has(class_cube)) {
         overlay_groups <- c(overlay_groups, "classification")
     }
     # add layers control to leafmap

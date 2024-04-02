@@ -150,7 +150,7 @@
 
     if ("label" %in% colnames(sf_df)) {
         labels <- as.character(unlist(sf_df[, "label"], use.names = FALSE))
-    } else if (!purrr::is_null(label_attr)) {
+    } else if (.has(label_attr)) {
         .check_chr_within(
             x = label_attr,
             within = colnames(sf_df)
@@ -192,7 +192,7 @@
     # get the db file
     sf_df <- sf::st_drop_geometry(sf_object)
 
-    if (!purrr::is_null(label_attr)) {
+    if (.has(label_attr)) {
         .check_chr_within(
             x = label_attr,
             within = colnames(sf_df),
@@ -200,7 +200,7 @@
         )
     }
 
-    if (!purrr::is_null(pol_id)) {
+    if (.has(pol_id)) {
         .check_chr_within(
             x = pol_id,
             within = colnames(sf_df),
@@ -214,13 +214,13 @@
                 label <- as.character(
                     unlist(sf_df[i, "label"], use.names = FALSE)
                 )
-            } else if (!purrr::is_null(label_attr) &&
+            } else if (.has(label_attr) &&
                 label_attr %in% colnames(sf_df)) {
                 label <- as.character(
                     unlist(sf_df[i, label_attr], use.names = FALSE)
                 )
             }
-            if (!purrr::is_null(pol_id) && pol_id %in% colnames(sf_df)) {
+            if (.has(pol_id) && pol_id %in% colnames(sf_df)) {
                 polygon_id <- unname(as.character(sf_df[i, pol_id]))
             }
             # obtain a set of samples based on polygons
@@ -237,7 +237,7 @@
                         label = label
                     )
 
-                    if (!purrr::is_null(pol_id) &&
+                    if (.has(pol_id) &&
                         pol_id %in% colnames(sf_df)) {
                         row <- tibble::add_column(
                             row,
