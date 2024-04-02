@@ -1,6 +1,7 @@
 # SITS Release History
 
 # What's new in SITS version 1.5
+### New features in SITS version 1.5.0
 * Improved support for GPU-based classification of deep learning models
 * Support for Sentinel-1 GRD and RTC collections from Planetary Computer
 * Include parameter tile to select data from Sentinel-1 (MPC) 
