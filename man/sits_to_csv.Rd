@@ -22,7 +22,7 @@ sits_to_csv(data, file = NULL)
 (valid file name with extension ".csv").}
 }
 \value{
-Called for side effects
+Return data.frame with CSV columns (optional)
 }
 \description{
 Converts metadata from a sits tibble to a CSV file.
@@ -31,7 +31,7 @@ Converts metadata from a sits tibble to a CSV file.
              CSV file used to retrieve data from
              ground information ("latitude", "longitude", "start_date",
              "end_date", "cube", "label").
-             If the file is NULL, returns the csv file as an object
+             If the file is NULL, returns a data.frame as an object
 }
 \examples{
 csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
