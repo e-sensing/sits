@@ -322,6 +322,8 @@
     if (!nzchar(access_key)) {
         access_key <- NULL
     }
+    # Clean old tokens cached in rstac
+    .mpc_clean_token_cache()
     items_info <- suppressWarnings(
         rstac::items_sign(
             items_info, sign_fn = rstac::sign_planetary_computer(
@@ -338,7 +340,7 @@
                                                         collection,
                                                         stac_query, ...,
                                                         tiles = NULL,
-                                                        orbit = "descending") {
+                                                          orbit = "descending") {
     `.source_items_new.mpc_cube_sentinel-1-grd`(
         source = source,
         collection = collection,
@@ -406,6 +408,8 @@
     if (!nzchar(access_key)) {
         access_key <- NULL
     }
+    # Clean old tokens cached in rstac
+    .mpc_clean_token_cache()
     items_info <- suppressWarnings(
         rstac::items_sign(
             items_info,
@@ -467,6 +471,8 @@
     if (!nzchar(access_key)) {
         access_key <- NULL
     }
+    # Clean old tokens cached in rstac
+    .mpc_clean_token_cache()
     items <- suppressWarnings(
         rstac::items_sign(
             items,
@@ -559,4 +565,13 @@
         cube = cube,
         tiles = tiles)
 
+}
+
+.mpc_clean_token_cache <- function() {
+    mpc_token <- get("ms_token", envir = asNamespace("rstac"), inherits = TRUE)
+    cached_tokens <- names(mpc_token)
+    lapply(cached_tokens, function(cached_token) {
+        assign(cached_token, NULL, envir = mpc_token)
+    })
+    return(invisible(NULL))
 }
