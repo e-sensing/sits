@@ -271,6 +271,8 @@
                         n_colors,
                         rev,
                         scale) {
+    # set caller to show in errors
+    .check_set_caller(".plot_probs")
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
@@ -289,9 +291,7 @@
     if (.has_not(labels_plot)) {
         labels_plot <- labels
     } else {
-        .check_that(all(labels_plot %in% labels),
-            msg = "labels not in cube"
-        )
+        .check_that(all(labels_plot %in% labels))
     }
     # size of data to be read
     size <- .plot_read_size(tile = tile)

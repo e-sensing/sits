@@ -37,7 +37,7 @@ sits_select <- function(data,
     # set caller to show in errors
     .check_set_caller("sits_select")
     # check data
-    .check_valid(data)
+    .check_na_null_parameter(data)
     # get the meta-type (sits or cube)
     UseMethod("sits_select", data)
 }
@@ -56,12 +56,12 @@ sits_select.sits <- function(data,
         # all bands are uppercase
         bands <- toupper(bands)
         # check bands parameter
-        .check_chr(bands,
+        .check_chr_parameter(bands,
                    allow_empty = FALSE,
                    allow_duplicate = FALSE,
                    len_min = 1,
-                   len_max = length(sits_bands(data)),
-                   msg = "Invalid bands parameter")
+                   len_max = length(sits_bands(data))
+        )
 
         # select bands from the time series
         data <- .samples_select_bands(data, bands = bands)
@@ -94,12 +94,12 @@ sits_select.raster_cube <- function(data,
         bands <- .band_set_case(bands)
         bands <- .default(bands, .band_samples(sits_bands(data)))
         # check bands parameter
-        .check_chr(bands,
+        .check_chr_parameter(bands,
                    allow_empty = FALSE,
                    allow_duplicate = FALSE,
                    len_min = 1,
                    len_max = length(sits_bands(data)),
-                   msg = "Invalid bands parameter")
+        )
 
         # filter the selected bands
         data <- .cube_filter_bands(cube = data, bands = bands)
@@ -120,7 +120,7 @@ sits_select.raster_cube <- function(data,
     }
     # Filter tiles
     if (.has(tiles) && !any(is.na(tiles))) {
-        .check_chr_type(tiles)
+        .check_chr_parameter(tiles)
         data <- .cube_filter_tiles(cube = data, tiles = tiles)
     }
     return(data)
@@ -141,7 +141,7 @@ sits_select.default <- function(data,...) {
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
     } else
-        stop("Input should be a sits tibble or a data cube")
+        stop(.conf("messages", "sits_select"))
     data <- sits_select(data, ...)
     return(data)
 }

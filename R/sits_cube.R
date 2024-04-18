@@ -411,8 +411,10 @@ sits_cube.local_cube <- function(source,
                                  delim = "_",
                                  multicores = 2L,
                                  progress = TRUE) {
+    # set caller for error messages
+    .check_set_caller("sits_cube_local_cube")
     # precondition - data directory must be provided
-    .check_file(x = data_dir, msg = "'data_dir' parameter must be provided.")
+    .check_file(data_dir)
     # expanding the shortened paths since gdal functions do not work with them
     data_dir <- path.expand(data_dir)
     # deal with wrong parameter "band" in dots
@@ -423,27 +425,23 @@ sits_cube.local_cube <- function(source,
     }
     # precondition - check source and collection for eo_cubes only
     # is this a cube with results?
-    if (.has(bands) &&
-        all(bands %in% .conf("sits_results_bands"))) {
+    if (.has(bands) && all(bands %in% .conf("sits_results_bands")))
         results_cube <- TRUE
-    } else {
+    else
         results_cube <- FALSE
-    }
     if (.has(vector_dir)) {
         if (.has(bands)) {
             .check_that(
                 !(all(bands %in% .conf("sits_results_bands"))),
-                msg = "bands for vector cubes should be provided in
-            parameter vector_bands"
+                msg = .conf("messages", "sits_cube_local_cube_vector_band")
             )
         }
         .check_chr_parameter(vector_band,
-                             msg = "one vector_band must be provided
-                             (either segments, class, or probs)")
-        .check_that(
+            msg = .conf("messages", "sits_cube_local_cube_vector_band")
+        )
+         .check_that(
             vector_band %in% c("segments", "class", "probs"),
-            msg = "bands for vector cubes should be provided in
-            parameter vector_bands"
+            msg = .conf("messages", "sits_cube_local_cube_vector_band")
         )
     }
     if (!results_cube) {
@@ -472,7 +470,7 @@ sits_cube.local_cube <- function(source,
 }
 #' @export
 sits_cube.default <- function(source, collection, ...) {
-    stop("sits_cube: source not found.")
+    stop(.conf("messages", "sits_cube_default"))
 }
 #' @title Convert MGRS tile information to ROI in WGS84
 #' @name sits_mgrs_to_roi

@@ -69,7 +69,7 @@ sits_view(x, ...)
 \method{sits_view}{class_cube}(
   x,
   ...,
-  tiles = NULL,
+  tiles = x$tile,
   legend = NULL,
   palette = "Spectral",
   opacity = 0.8,

@@ -17,14 +17,12 @@ NULL
 #'
 #' @return   all source names available in sits.
 .sources <- function() {
+    .check_set_caller(".sources")
     src <- names(.conf("sources"))
     # source names are upper case
     src <- toupper(src)
     # post-condition
-    .check_chr(src,
-        allow_empty = FALSE, len_min = 1,
-        msg = "invalid 'sources' in config file"
-    )
+    .check_chr(src, allow_empty = FALSE, len_min = 1)
     return(src)
 }
 
@@ -34,20 +32,12 @@ NULL
 #' @return  code{NULL} if no error occurs.
 #'
 .source_check <- function(source) {
+    .check_set_caller(".source_check")
     # source is upper case
     source <- toupper(source)
     # check source
-    .check_chr(source,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'source' parameter"
-    )
-    .check_chr_within(source,
-        within = .sources(),
-        msg = paste0(
-            "invalid 'source' parameter.", "\n",
-            "please check valid sources with sits_list_sources()"
-        )
-    )
+    .check_chr(source, len_min = 1, len_max = 1)
+    .check_chr_within(source, within = .sources())
     return(invisible(NULL))
 }
 
@@ -189,6 +179,7 @@ NULL
                           collection, ...,
                           fn_filter = NULL,
                           add_cloud = TRUE) {
+    .check_set_caller(".source_bands")
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -216,10 +207,7 @@ NULL
     }
     # post-condition
     # check bands are non-NA character
-    .check_chr(bands,
-        allow_empty = FALSE,
-        msg = "invalid selected bands"
-    )
+    .check_chr_parameter(bands, allow_empty = FALSE)
     return(bands)
 }
 
@@ -238,6 +226,7 @@ NULL
                                fn_filter = NULL,
                                add_cloud = TRUE,
                                default = NULL) {
+    .check_set_caller(".source_bands_reap")
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -254,9 +243,8 @@ NULL
         )
     }
     # pre-condition
-    .check_chr(bands,
-        allow_na = FALSE, allow_empty = FALSE, len_min = 1,
-        msg = "invalid bands"
+    .check_chr_parameter(bands,
+        allow_na = FALSE, allow_empty = FALSE, len_min = 1
     )
     # bands names are upper case
     bands <- toupper(bands)
@@ -376,10 +364,7 @@ NULL
     # create a vector with all bands
     bands_converter <- c(bands_to_sits, bands_sits, unknown_bands)
     # post-condition
-    .check_chr_within(bands,
-        within = names(bands_converter),
-        msg = "invalid 'bands' parameter"
-    )
+    .check_chr_within(bands, within = names(bands_converter))
     return(unname(bands_converter[bands]))
 }
 
@@ -430,6 +415,7 @@ NULL
 #' @return \code{.source_cloud_bit_mask()} returns a \code{logical} value.
 .source_cloud_bit_mask <- function(source,
                                    collection) {
+    .check_set_caller(".source_cloud_bit_mask")
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -444,10 +430,7 @@ NULL
         "bit_mask"
     )
     # post-condition
-    .check_lgl(bit_mask,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'bit_mask' value in config file"
-    )
+    .check_lgl_parameter(bit_mask)
     return(bit_mask)
 }
 
@@ -543,6 +526,7 @@ NULL
 #' @rdname .source_collection
 #' @noRd
 .source_collection_access_test <- function(source, collection, ...) {
+    .check_set_caller(".source_collection_access_test")
     source <- .source_new(source, collection = collection)
 
     UseMethod(".source_collection_access_test", source)
@@ -557,6 +541,7 @@ NULL
 #' no error occurs.
 .source_collection_access_vars_set <- function(source,
                                                collection) {
+    .check_set_caller(".source_collection_access_var_set")
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -571,10 +556,7 @@ NULL
         .default = list()
     )
     # post-condition
-    .check_lst(vars, msg = paste0(
-        "invalid access vars for collection ", collection,
-        " in source ", source
-    ))
+    .check_lst(vars)
     if (length(vars) > 0) {
         do.call(Sys.setenv, args = vars)
     }
@@ -590,14 +572,12 @@ NULL
 #' no error occurs.
 .source_collection_check <- function(source,
                                      collection) {
+    # set calller for error msg
+    .check_set_caller(".source_collection_check")
     # check collection
-    .check_chr(collection,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'collection' parameter"
-    )
+    .check_chr_parameter(collection, len_min = 1, len_max = 1)
     .check_chr_within(collection,
-        within = .source_collections(source = source),
-        msg = "invalid 'collection' parameter"
+        within = .source_collections(source = source)
     )
     return(invisible(NULL))
 }
@@ -610,6 +590,7 @@ NULL
 #' @return \code{.source_collection_metadata_search()} returns a character
 #' value with the metadata search strategy.
 .source_collection_metadata_search <- function(source, collection) {
+    .check_set_caller(".source_collection_metadata_search")
     # try to find the gdalcubes configuration
     metadata_search <- .try(
         .conf(
@@ -619,13 +600,8 @@ NULL
         ),
         .default = NA
     )
-    # if the collection cant be supported the user is reported
-    .check_na(metadata_search,
-        msg = paste(
-            "no type was found for collection", collection,
-            "and source", source
-        )
-    )
+    # if the collection cant be supported report error
+    .check_that(!is.na(metadata_search))
     return(invisible(metadata_search))
 }
 
@@ -671,6 +647,7 @@ NULL
 .source_collection_open_data <- function(source,
                                          collection,
                                          token = FALSE) {
+    .check_set_caller(".source_collection_open_data")
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -700,10 +677,7 @@ NULL
         )
     }
     # post-condition
-    .check_lgl(res,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'open_data' value"
-    )
+    .check_lgl_parameter(res)
     return(res)
 }
 #' @rdname .source_collection
@@ -715,28 +689,20 @@ NULL
 #' no error occurs.
 #'
 .source_collection_token_check <- function(source, collection) {
-    res <- .try(
+    .check_set_caller(".source_collection_token_check")
+    token <- .try(
         .conf(
             "sources", source,
             "collections", collection,
             "token_vars"
         ),
-        .default = character(0)
+        .default = "NO_TOKEN"
     )
-    # post-condition
-    .check_chr(res,
-        allow_empty = FALSE,
-        msg = paste0(
-            "Missing access token for collection ", collection,
-            " in source ", source
-        )
-    )
-    if (length(res) > 0) {
-        # Pre-condition - try to find the access key as an environment variable
-        .check_env_var(res,
-            msg = paste0("Missing access token for source ", source)
-        )
-    }
+    # Pre-condition - try to find the access key as an environment variable
+    if (token != "NO_TOKEN")
+        .check_env_var(token)
+
+    return(invisible(TRUE))
 }
 
 #' @rdname .source_collection
@@ -872,6 +838,7 @@ NULL
 #' of a sits cube.
 #'
 .source_items_new <- function(source, ..., collection = NULL) {
+    .check_set_caller(".source_items_new")
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_new", source)
 }
@@ -888,6 +855,7 @@ NULL
 #'
 .source_items_bands_select <- function(source, items, bands, ...,
                                        collection = NULL) {
+    .check_set_caller(".source_items_bands_select")
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_bands_select", source)
 }
@@ -1001,6 +969,7 @@ NULL
 .source_tile_get_bbox <- function(source, ...,
                                   file_info,
                                   collection = NULL) {
+    .check_set_caller(".source_tile_get_bbox")
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_tile_get_bbox", source)
 }
@@ -1015,6 +984,7 @@ NULL
 .source_items_cube <- function(source,
                                collection,
                                items, ...) {
+    .check_set_caller(".source_items_cube")
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_cube", source)
 }
@@ -1046,4 +1016,17 @@ NULL
 .source_filter_tiles <- function(source, collection, cube, tiles) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_filter_tiles", source)
+}
+#' @title Check if roi or tiles are provided
+#' @name .source_roi_tiles
+#' @param source        Data source
+#' @param roi           Region of interest
+#' @param tiles         Tiles to be included in cube
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.source_roi_tiles <- function(source, roi, tiles) {
+    source <- .source_new(source = source)
+    .check_roi_tiles(roi, tiles)
+    UseMethod(".source_roi_tiles", source)
 }

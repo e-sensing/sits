@@ -149,10 +149,8 @@
         error = function(e) {
             # catch only errors in connection
             if (grepl("error reading from connection", e$message)) {
-                message(paste(
-                    "An error has occurred in a node and a recovery",
-                    "will be attempted at the end of the process"
-                ))
+                msg <- .conf("messages", ".parallel_recv_one_data")
+                message(msg)
                 # reset node
                 .parallel_reset_node(worker_id)
 

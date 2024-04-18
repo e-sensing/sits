@@ -27,7 +27,7 @@ test_that("Single core classification with rfor", {
     )
     bands_p <- sits_bands(sinop_probs)
     labels_p <- sits_labels(sinop_probs)
-    expect_true(.check_cube_is_results_cube(bands_p, labels_p))
+    expect_true(.check_is_results_cube(bands_p, labels_p))
 
     # testing resume feature
     out <- capture_messages({

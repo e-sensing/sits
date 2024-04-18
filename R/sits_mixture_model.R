@@ -99,10 +99,12 @@ sits_mixture_model <- function(data, endmembers, ...,
                                rmse_band = TRUE,
                                multicores = 2,
                                progress = TRUE) {
+    # set caller for error msg
+    .check_set_caller("sits_mixture_model")
     # Pre-conditions
     .check_endmembers_parameter(endmembers)
     .check_lgl_parameter(rmse_band)
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
     UseMethod("sits_mixture_model", data)
 }
@@ -161,9 +163,9 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
                                            progress = TRUE) {
     # Pre-conditions
     .check_is_raster_cube(data)
-    .check_memsize(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1, max = 16384)
     .check_output_dir(output_dir)
-    .check_lgl_type(progress)
+    .check_lgl_parameter(progress)
     # Transform endmembers to tibble
     em <- .endmembers_as_tbl(endmembers)
     # Check endmember format
@@ -233,7 +235,7 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
 #' @rdname sits_mixture_model
 #' @export
 sits_mixture_model.derived_cube <- function(data, endmembers, ...) {
-    stop("Input should not be a cube that has been classified")
+    stop(.conf("messages", "sits_mixture_model_derived_cube"))
     return(data)
 }
 #' @rdname sits_mixture_model
@@ -245,7 +247,7 @@ sits_mixture_model.tbl_df <- function(data, endmembers, ...) {
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
     } else
-        stop("Input should be a sits tibble or a data cube")
+        stop(.conf("messages", "sits_mixture_model_derived_cube"))
     data <- sits_mixture_model(data, endmembers, ...)
     return(data)
 }

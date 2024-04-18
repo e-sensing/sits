@@ -31,11 +31,7 @@
     # Resume feature
     if (file.exists(out_file)) {
         if (.check_messages()) {
-            message("Recovery: tile '", tile[["tile"]], "' already exists.")
-            message(
-                "(If you want to produce a new segmentation, please ",
-                "change 'output_dir' or 'version' parameters)"
-            )
+            .check_recovery(out_file)
         }
         seg_tile <- .tile_segments_from_file(
             file = out_file,
@@ -94,7 +90,7 @@
         # Apply segmentation function
         values <- seg_fn(values, block, bbox)
         # Check if the result values is a vector object
-        .check_vector(values)
+        .check_vector_object(values)
         # Prepare and save results as vector
         .vector_write_vec(
             v_obj = values,

@@ -237,24 +237,17 @@
 #' @return           List of input bands required to run the expression
 #'
 .apply_input_bands <- function(cube, bands, expr) {
+    # set caller to show in errors
+    .check_set_caller(".apply_input_bands")
+
     # Get all required bands in expression
     expr_bands <- toupper(.apply_get_all_names(expr[[1]]))
 
     # Select bands that are in input expression
     bands <- bands[bands %in% expr_bands]
 
-    # Found bands
-    found_bands <- expr_bands %in% bands
-
     # Post-condition
-    .check_that(
-        x = all(found_bands),
-        local_msg = "use 'sits_bands()' to check available bands",
-        msg = paste("band(s)", paste0("'", expr_bands[!found_bands],
-            "'",
-            collapse = ", "
-        ), "not found")
-    )
+    .check_that(all(expr_bands %in% bands))
 
     return(bands)
 }
@@ -286,7 +279,9 @@
 #'
 .kern_functions <- function(window_size, img_nrow, img_ncol) {
     # Pre-conditions
-    .check_window_size(window_size, max = min(img_nrow, img_ncol) - 1)
+    .check_int_parameter(window_size,
+                         max = min(img_nrow, img_ncol) - 1,
+                         is_odd = TRUE)
 
     result_env <- list2env(list(
         w_median = function(m) {

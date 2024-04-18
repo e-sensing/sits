@@ -88,10 +88,12 @@ sits_segment <- function(cube,
                          output_dir,
                          version = "v1",
                          progress = TRUE) {
+    # set caller for error msg
+    .check_set_caller("sits_segment")
     # Preconditions
     .check_is_raster_cube(cube)
     .check_is_regular(cube)
-    .check_memsize(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1, max = 16384)
     .check_output_dir(output_dir)
     version <- .check_version(version)
     .check_progress(progress)
@@ -123,12 +125,16 @@ sits_segment <- function(cube,
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+        job_memsize = job_memsize,
+        memsize = memsize,
+        multicores = multicores
     )
     # Update block parameter
     block <- .jobs_optimal_block(
-        job_memsize = job_memsize, block = block,
-        image_size = .tile_size(.tile(cube)), memsize = memsize,
+        job_memsize = job_memsize,
+        block = block,
+        image_size = .tile_size(.tile(cube)),
+        memsize = memsize,
         multicores = multicores
     )
     # Terra requires at least two pixels to recognize an extent as valid
@@ -243,6 +249,8 @@ sits_slic <- function(data = NULL,
                       iter = 30,
                       minarea = 10,
                       verbose = FALSE) {
+    # set caller for error msg
+    .check_set_caller("sits_slic")
     # step is OK?
     .check_int_parameter(step, min = 1, max = 500)
     # compactness is OK?
@@ -279,8 +287,8 @@ sits_slic <- function(data = NULL,
         # Set values and NA value in template raster
         v_obj <- .raster_set_values(v_temp, slic[[1]])
         v_obj <- .raster_set_na(v_obj, -1)
-        # Polygonize raster and convert to sf object
-        v_obj <- .raster_polygonize(v_obj, dissolve = TRUE)
+        # Extract polygons raster and convert to sf object
+        v_obj <- .raster_extract_polygons(v_obj, dissolve = TRUE)
         # TODO: use vector API
         v_obj <- sf::st_as_sf(v_obj)
         if (nrow(v_obj) == 0) {

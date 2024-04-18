@@ -6,8 +6,6 @@
 .s2tile_open <- function(roi, tiles) {
     # check
     .check_roi_tiles(roi, tiles)
-    # if tiles, convert to roi
-
     # define dummy local variables to stop warnings
     epsg <- xmin <- ymin <- xmax <- ymax <- NULL
 
@@ -92,15 +90,14 @@
 #' @return roi                  Valid ROI to use in other SITS functions
 #'
 .s2_mgrs_to_roi <- function(tiles){
-
+    .check_set_caller(".s2_mgrs_to_roi")
     # read the MGRS data set
     mgrs_tiles <- readRDS(system.file("extdata/s2-tiles/tiles.rds",
                                       package = "sits"))
     # check tiles names are valid
     .check_chr_within(
         x = tiles,
-        within = mgrs_tiles$tile_id,
-        msg = "invalid MGRS tiles"
+        within = mgrs_tiles$tile_id
     )
     # select MGRS tiles
     tiles_selected <- dplyr::filter(mgrs_tiles, .data[["tile_id"]] %in% !!tiles)

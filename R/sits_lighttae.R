@@ -113,6 +113,8 @@ sits_lighttae <- function(samples = NULL,
                           patience = 20L,
                           min_delta = 0.01,
                           verbose = FALSE) {
+    # set caller for error msg
+    .check_set_caller("sits_lighttae")
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # Avoid add a global variable for 'self'
@@ -123,33 +125,30 @@ sits_lighttae <- function(samples = NULL,
         .check_samples_train(samples)
         .check_int_parameter(epochs, min = 1L, max = 20000L)
         .check_int_parameter(batch_size, min = 16L, max = 2048L)
-        .check_null(optimizer, msg = "invalid 'optimizer' parameter")
+        .check_null_parameter(optimizer)
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
-            .check_num_parameter(
-                param = validation_split, exclusive_min = 0, max = 0.5
-            )
+            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
         }
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
         if (.has(opt_hparams)) {
-            .check_lst(opt_hparams, msg = "invalid 'opt_hparams' parameter")
-            .check_chr_within(
-                x = names(opt_hparams),
+            .check_lst_parameter(opt_hparams)
+            .check_chr_within(names(opt_hparams),
                 within = names(optim_params_function),
-                msg = "invalid hyperparameters provided in optimizer"
+                msg = .conf("messages", ".check_opt_hparams")
             )
             optim_params_function <- utils::modifyList(
                 x = optim_params_function, val = opt_hparams
             )
         }
         # Other pre-conditions:
-        .check_int_parameter(lr_decay_epochs)
-        .check_num_parameter(lr_decay_rate, exclusive_min = 0, max = 1)
-        .check_int_parameter(patience)
+        .check_int_parameter(lr_decay_epochs, min = 1)
+        .check_num_parameter(lr_decay_rate, exclusive_min = 0, max = 1.0)
+        .check_int_parameter(patience, min = 1)
         .check_num_parameter(min_delta, min = 0)
-        .check_lgl(verbose)
+        .check_lgl_parameter(verbose)
 
         # Samples labels
         labels <- .samples_labels(samples)
@@ -322,7 +321,7 @@ sits_lighttae <- function(samples = NULL,
             # Unserialize model
             torch_model$model <- .torch_unserialize_model(serialized_model)
             # Used to check values (below)
-            input_pixels <- nrow(values)
+            n_input_pixels <- nrow(values)
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
@@ -358,7 +357,7 @@ sits_lighttae <- function(samples = NULL,
             )
             # Are the results consistent with the data input?
             .check_processed_values(
-                values = values, input_pixels = input_pixels
+                values = values, n_input_pixels = n_input_pixels
             )
             # Update the columns names to labels
             colnames(values) <- labels

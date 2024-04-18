@@ -150,7 +150,7 @@
     # timeline is a vector with the observation dates
     initialize = function(timeline, dim_encoder = 128) {
         # length of positional encoder is the length of dates vector
-        max_len <- length(timeline)
+        len_max <- length(timeline)
         # keep the dates vector
         self$dates <- timeline
         # initialize 'days' vector as the difference in days btw
@@ -166,8 +166,8 @@
         days_t <- torch::torch_unsqueeze(days_t, 2)
 
         # Calculate the positional encoding p
-        # 2D shape [(max_len, dim_encoder:128)]
-        p <- torch::torch_zeros(max_len, dim_encoder)
+        # 2D shape [(len_max, dim_encoder:128)]
+        p <- torch::torch_zeros(len_max, dim_encoder)
         # calculate an exponential distance measure for the positions
         div_term <- torch::torch_exp(
             torch::torch_arange(
@@ -181,9 +181,9 @@
         # fill the tensor p
         p[, seq(1, dim_encoder, 2)] <- torch::torch_sin(days_t * div_term)
         p[, seq(2, dim_encoder, 2)] <- torch::torch_cos(days_t * div_term)
-        # here p is a 2D shape [(max_len, dim_encoder:128)]
+        # here p is a 2D shape [(len_max, dim_encoder:128)]
         p <- torch::torch_unsqueeze(p, 1)
-        # after unsqueeze p is a 3D shape [(1, max_len, dim_encoder:128)]
+        # after unsqueeze p is a 3D shape [(1, len_max, dim_encoder:128)]
         self$register_buffer("p", p)
     },
     forward = function(x) {

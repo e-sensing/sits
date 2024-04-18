@@ -89,14 +89,15 @@
 #' }
 #' @export
 sits_accuracy <- function(data, ...) {
-    .check_valid(data)
+    # Set caller to show in errors
+    .check_set_caller("sits_accuracy")
+    .check_na_null_parameter(data)
     UseMethod("sits_accuracy", data)
 }
 #' @rdname sits_accuracy
 #' @export
 sits_accuracy.sits <- function(data, ...) {
-    # Set caller to show in errors
-    .check_set_caller("sits_accuracy.sits")
+    .check_set_caller("sits_accuracy_sits")
     # Require package
     .check_require_packages("caret")
     # Does the input data contain a set of predicted values?
@@ -129,20 +130,14 @@ sits_accuracy.sits <- function(data, ...) {
 #' @rdname sits_accuracy
 #' @export
 sits_accuracy.class_cube <- function(data, ..., validation) {
+    .check_set_caller("sits_accuracy_class_cube")
     # generic function
-    # Is this a CSV file?
+    # Is this a file?
     if (is.character(validation)) {
-        if (tolower(.file_ext(validation)) == "csv") {
-            # Read sample information from CSV file and put it in a tibble
-            validation <- tibble::as_tibble(
-                utils::read.csv(
-                    file = validation,
-                    stringsAsFactors = FALSE
-                )
-            )
-        } else {
-            stop("Invalid validation parameter for sits_accuracy")
-        }
+        # Is this a valid file?
+        .check_validation_file(validation)
+        # Read sample information from CSV file and put it in a tibble
+        validation <- .csv_get_samples(validation)
     }
     # Precondition - check if validation samples are OK
     validation <- .check_samples(validation)
@@ -155,44 +150,27 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
     pred_ref_lst <- slider::slide(data, function(tile) {
         # Find the labelled band
         labelled_band <- .tile_bands(tile)
-
         # Is the labelled band unique?
-        .check_length(
-            x = labelled_band,
-            len_min = 1,
-            len_max = 1
-        )
-
+        .check_that(length(labelled_band) == 1)
         # get xy in cube projection
         xy_tb <- .proj_from_latlong(
             longitude = validation$longitude,
             latitude = validation$latitude,
             crs = .crs(tile)
         )
-
         # join samples with XY values in a single tibble
         points <- dplyr::bind_cols(validation, xy_tb)
-
         # are there points to be retrieved from the cube?
-        .check_that(
-            x = nrow(points) != 0,
-            msg = paste(
-                "no validation point intersects the map's",
-                "spatiotemporal extent."
-            )
-        )
-
+        .check_that(nrow(points) != 0)
         # Filter the points inside the tile
         points_tile <- dplyr::filter(
             points,
             .data[["X"]] >= tile$xmin & .data[["X"]] <= tile$xmax &
                 .data[["Y"]] >= tile$ymin & .data[["Y"]] <= tile$ymax
         )
-
         # No points in the cube? Return an empty list
-        if (nrow(points_tile) < 1) {
+        if (nrow(points_tile) < 1)
             return(NULL)
-        }
 
         # Convert the tibble to a matrix
         xy <- matrix(c(points_tile$X, points_tile$Y),
@@ -200,7 +178,6 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
                      ncol = 2
         )
         colnames(xy) <- c("X", "Y")
-
         # Extract values from cube
         values <- .tile_extract(
             tile = tile,
@@ -230,9 +207,7 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
     # Retrieve predicted and reference vectors for all rows of the cube
     pred_ref <- do.call(rbind, pred_ref_lst)
     # is this data valid?
-    .check_null(pred_ref,
-        msg = "No validation samples inside data cube"
-    )
+    .check_null_parameter(pred_ref)
 
     # Create the error matrix
     error_matrix <- table(
@@ -260,12 +235,14 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
 #' @rdname sits_accuracy
 #' @export
 sits_accuracy.raster_cube <- function(data, ...) {
-    stop("sits_accuracy needs a classified cube")
+    msg <- .conf("messages", "sits_accuracy_raster_cube")
+    stop(msg)
 }
 #' @rdname sits_accuracy
 #' @export
 sits_accuracy.derived_cube <- function(data, ...) {
-    stop("sits_accuracy needs a classified cube")
+    msg <- .conf("messages", "sits_accuracy_raster_cube")
+    stop(msg)
 }
 #' @rdname sits_accuracy
 #' @export
@@ -276,7 +253,7 @@ sits_accuracy.tbl_df <- function(data,...) {
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
     } else
-        stop("Input should be a sits tibble or a data cube")
+        stop(.conf("messages", "sits_accuracy_tbl_df"))
     acc <- sits_accuracy(data, ...)
     return(acc)
 }

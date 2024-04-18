@@ -43,7 +43,7 @@
     # initialize vector items
     vector_items <- NULL
     # is this a cube with results?
-    results_cube <- .check_cube_is_results_cube(bands, labels)
+    results_cube <- .check_is_results_cube(bands, labels)
 
     # set the correct parse_info
     parse_info <- .conf_parse_info(parse_info, results_cube)
@@ -213,40 +213,30 @@
         path = data_dir,
         pattern = paste0("\\.(", paste0(file_ext, collapse = "|"), ")$")
     )
-    # post-condition
-    .check_chr(img_files,
-        allow_empty = FALSE, len_min = 1,
-        msg = "no file found in provided directory"
-    )
+    # postcondition
+    .check_chr_parameter(img_files, allow_empty = FALSE, len_min = 1)
 
     # remove the extension
     img_files_noext <- tools::file_path_sans_ext(img_files)
-
     # split the file names
     img_files_lst <- strsplit(img_files_noext, split = delim, fixed = TRUE)
-
+    # which image files in directory match the parse info?
     are_img_files_ok <- purrr::map_lgl(img_files_lst, function(img_file) {
-        if (length(img_file) == length(parse_info)) {
+        if (length(img_file) == length(parse_info))
             return(TRUE)
-        }
-        return(FALSE)
+        else
+            return(FALSE)
     })
-
+    # select the images that match the file info
     img_files_ok <- img_files_lst[are_img_files_ok]
 
     # post condition
-    .check_that(
-        length(img_files_ok) > 0,
-        local_msg = "no file matched fields of parse_info",
-        msg = "invalid file names or 'parse_info' parameter"
-    )
+    .check_that(length(img_files_ok) > 0)
 
-    # filtered only valid files
+    # get valid files
     img_files_filt <- img_files[are_img_files_ok]
-
     # bind rows
     img_files_mx <- do.call(rbind, img_files_ok)
-
     # read the image files into a tibble with added parse info
     colnames(img_files_mx) <- parse_info
     # joint the list into a tibble and convert bands name to upper case
@@ -261,7 +251,7 @@
             x = items$band,
             contains = bands,
             discriminator = "all_of",
-            msg = "Wrong bands specification - please correct"
+            msg = .conf("messages", ".local_cube_items_bands")
         )
     }
     # get the information on the required bands, dates and path
@@ -271,7 +261,7 @@
             x = version,
             within = items$version,
             discriminator = "any_of",
-            msg = "Wrong version specification - please correct"
+            msg = .conf("messages", ".local_cube_items_version")
         )
         # get only the first band
         band <- bands[[1]]
@@ -347,9 +337,7 @@
         }
     }
     # post-condition
-    .check_that(nrow(items) > 0,
-        msg = "no files found in the interval"
-    )
+    .check_that(nrow(items) > 0)
     return(items)
 }
 #' @title Return raster items for local data cube
@@ -382,38 +370,29 @@
         pattern = paste0("\\.(", paste0(file_ext, collapse = "|"), ")$")
     )
     # post-condition
-    .check_chr(gpkg_files,
-               allow_empty = FALSE, len_min = 1,
-               msg = "no vector files found in provided directory"
-    )
+    .check_that(all(file.exists(gpkg_files)))
+
     # remove the extension
     gpkg_files_noext <- tools::file_path_sans_ext(gpkg_files)
-
     # split the file names
     gpkg_files_lst <- strsplit(gpkg_files_noext, split = delim, fixed = TRUE)
-
+    # check gkpg files
     are_gpkg_files_ok <- purrr::map_lgl(gpkg_files_lst, function(gpkg_file) {
         if (length(gpkg_file) == length(parse_info)) {
             return(TRUE)
         }
         return(FALSE)
     })
-
+    # subset gkpg files
     gpkg_files_ok <- gpkg_files_lst[are_gpkg_files_ok]
 
     # post condition
-    .check_that(
-        length(gpkg_files_ok) > 0,
-        local_msg = "no file matches  parse_info fields",
-        msg = "invalid file names or 'parse_info' parameter"
-    )
+    .check_that(all(file.exists(gpkg_files_ok)))
 
     # filter only valid files
     gpkg_files_filt <- gpkg_files[are_gpkg_files_ok]
-
     # bind rows
     gpkg_files_mx <- do.call(rbind, gpkg_files_ok)
-
     # read the image files into a tibble with added parse info
     colnames(gpkg_files_mx) <- parse_info
     # joint the list into a tibble and convert bands name to upper case
@@ -427,7 +406,7 @@
         x = items$band,
         contains = vector_band,
         discriminator = "any_of",
-        msg = "Wrong vector band specification - please correct"
+        msg = .conf("messages", ".local_cube_items_bands")
     )
     # get the information on the required bands, dates and path
     # check required version exists
@@ -435,7 +414,7 @@
         x = version,
         within = items$version,
         discriminator = "any_of",
-        msg = "Wrong version specification - please correct"
+        msg = .conf("messages", ".local_cube_items_version")
     )
     # get the information on the required band, dates and path
     items <- items |>
@@ -475,9 +454,7 @@
         dplyr::arrange(.data[["start_date"]])
 
     # post-condition
-    .check_that(nrow(items) > 0,
-                msg = "no files found in the interval"
-    )
+    .check_that(nrow(items) > 0)
     return(items)
 }
 #' @title Select items by bands
@@ -496,7 +473,7 @@
                                            bands,
                                            items) {
     # set caller to show in errors
-    .check_set_caller(".local_cube_items_bands_select")
+    .check_set_caller(".local_cube_items_bands")
 
     # convert the band names to SITS bands
     items <- dplyr::mutate(
@@ -511,8 +488,7 @@
     if (.has(bands)) {
         # verify that the requested bands exist
         .check_chr_within(bands,
-            within = unique(items[["band"]]),
-            msg = "invalid 'bands' value"
+            within = unique(items[["band"]])
         )
         # select the requested bands
         items <- dplyr::filter(items, .data[["band"]] %in% !!bands)
@@ -533,8 +509,7 @@
     # filter tiles
     # verify that the requested tiles exist
     .check_chr_within(tiles,
-        within = unique(items[["tile"]]),
-        msg = "invalid 'tiles' value"
+        within = unique(items[["tile"]])
     )
     # select the requested tiles
     items <- dplyr::filter(items, .data[["tile"]] %in% !!tiles)
@@ -554,9 +529,7 @@
     # set caller to show in errors
     .check_set_caller(".local_cube_file_info")
     # post-condition
-    .check_that(nrow(items) > 0,
-        msg = "invalid 'items' parameter"
-    )
+    .check_that(nrow(items) > 0)
     # add feature id (fid)
     items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) |>
         dplyr::mutate(fid = paste0(dplyr::cur_group_id())) |>
@@ -625,9 +598,7 @@
     .check_set_caller(".local_results_cube_file_info")
 
     # post-condition
-    .check_that(nrow(items) > 0,
-        msg = "invalid 'items' parameter"
-    )
+    .check_that(nrow(items) > 0)
 
     # prepare parallel requests
     if (is.null(sits_env[["cluster"]])) {

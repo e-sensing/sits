@@ -104,6 +104,8 @@ sits_mlp <- function(samples = NULL,
                      patience = 20,
                      min_delta = 0.01,
                      verbose = FALSE) {
+    # set caller for error msg
+    .check_set_caller("sits_mlp")
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # Avoid add a global variable for 'self'
@@ -114,32 +116,30 @@ sits_mlp <- function(samples = NULL,
         .check_samples_train(samples)
         .check_int_parameter(epochs)
         .check_int_parameter(batch_size)
-        .check_null(optimizer, msg = "invalid 'optimizer' parameter")
+        .check_null_parameter(optimizer)
         # Check layers and dropout_rates
-        .check_int_parameter(param = layers, len_max = 2^31 - 1)
-        .check_num_parameter(
-            param = dropout_rates, min = 0, max = 1,
+        .check_int_parameter(layers)
+        .check_num_parameter(dropout_rates, min = 0, max = 1,
             len_min = length(layers), len_max = length(layers)
         )
-        .check_that(
-            x = length(layers) == length(dropout_rates),
-            msg = "number of layers does not match number of dropout rates"
+        .check_that(length(layers) == length(dropout_rates),
+            msg = .conf("messages", "sits_mlp_layers_dropout")
         )
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
-            .check_num_parameter(
-                param = validation_split, exclusive_min = 0, max = 0.5
-            )
+            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
         }
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
         if (.has(opt_hparams)) {
-            .check_lst(opt_hparams, msg = "invalid 'opt_hparams' parameter")
+            .check_lst_parameter(opt_hparams,
+                                 msg = .conf("messages", ".check_opt_hparams")
+            )
             .check_chr_within(
                 x = names(opt_hparams),
                 within = names(optim_params_function),
-                msg = "invalid hyperparameters provided in optimizer"
+                msg = .conf("messages", ".check_opt_hparams")
             )
             optim_params_function <- utils::modifyList(
                 x = optim_params_function, val = opt_hparams
@@ -147,8 +147,8 @@ sits_mlp <- function(samples = NULL,
         }
         # Other pre-conditions:
         .check_int_parameter(patience)
-        .check_num_parameter(param = min_delta, min = 0)
-        .check_lgl(verbose)
+        .check_num_parameter(min_delta, min = 0)
+        .check_lgl_parameter(verbose)
         # Samples labels
         labels <- .samples_labels(samples)
         # Samples bands
@@ -276,7 +276,7 @@ sits_mlp <- function(samples = NULL,
             # Unserialize model
             torch_model$model <- .torch_unserialize_model(serialized_model)
             # Used to check values (below)
-            input_pixels <- nrow(values)
+            n_input_pixels <- nrow(values)
             # Performs data normalization
             values <- .pred_normalize(pred = values, stats = ml_stats)
             # Transform input into matrix
@@ -292,9 +292,7 @@ sits_mlp <- function(samples = NULL,
                 # Do GPU classification
                 values <- .try(
                     stats::predict(object = torch_model, values),
-                    .msg_error = paste("An error occured while transfering",
-                                       "data to GPU. Please reduce the value of",
-                                       "the `gpu_memory` parameter.")
+                    .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
             } else {
                 # Do CPU classification
@@ -306,7 +304,7 @@ sits_mlp <- function(samples = NULL,
             )
             # Are the results consistent with the data input?
             .check_processed_values(
-                values = values, input_pixels = input_pixels
+                values = values, n_input_pixels = n_input_pixels
             )
             # Update the columns names to labels
             colnames(values) <- labels

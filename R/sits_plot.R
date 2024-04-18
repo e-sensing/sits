@@ -40,6 +40,7 @@
 #'
 #' @export
 plot.sits <- function(x, y, ..., together = FALSE) {
+    .check_set_caller(".plot_sits")
     stopifnot(missing(y))
     # default value is set to empty char in case null
     .check_lgl_parameter(together)
@@ -80,6 +81,7 @@ plot.sits <- function(x, y, ..., together = FALSE) {
 #' @export
 #'
 plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
+    .check_set_caller(".plot_patterns")
     stopifnot(missing(y))
     # verifies if scales package is installed
     .check_require_packages("scales")
@@ -87,10 +89,8 @@ plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
     patterns_bands <- .ts_bands(.ts(x))
     bands <- .default(bands, patterns_bands)
     # pre-condition
-    .check_chr_within(
-        x = bands,
-        within = patterns_bands,
-        msg = "Invalid 'bands' parameter"
+    .check_chr_within(bands,
+        within = patterns_bands
     )
     # extract only for the selected bands
     .ts(x) <- .ts_select_bands(.ts(x), bands)
@@ -172,13 +172,15 @@ plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
 plot.predicted <- function(x, y, ...,
                            bands = "NDVI",
                            palette = "Harmonic") {
+    .check_set_caller(".plot_predicted")
     stopifnot(missing(y))
+    .check_predicted(x)
     # verifies if scales package is installed
     .check_require_packages("scales")
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
-        warning("please use palette in place of color_palette")
+        warning(.conf("messages", ".plot_palette"))
         palette <- dots[["color_palette"]]
     }
     # are bands specified?
@@ -360,10 +362,11 @@ plot.raster_cube <- function(x, ...,
                              n_colors = 10,
                              rev = FALSE,
                              scale = 0.8) {
+    .check_set_caller(".plot_raster_cube")
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
-        warning("please use palette in place of color_palette")
+        warning(.conf("messages", ".plot_palette"))
         palette <- dots[["color_palette"]]
     }
     # BW or color?
@@ -379,7 +382,19 @@ plot.raster_cube <- function(x, ...,
             n_colors <- 10
         }
     }
-
+    # check palette
+    .check_palette(palette)
+    # check style
+    .check_chr_within(style,
+          within = .conf("tmap_continuous_style"),
+          discriminator = "any_of"
+    )
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check number of colors
+    .check_int_parameter(n_colors, min = 4)
+    # check rev
+    .check_lgl_parameter(rev)
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?
@@ -389,7 +404,7 @@ plot.raster_cube <- function(x, ...,
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
-        msg = "tile is not included in the cube"
+        msg = .conf("messages", ".plot_raster_cube_tile")
     )
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
@@ -398,17 +413,17 @@ plot.raster_cube <- function(x, ...,
     }
     # only one date at a time
     .check_that(length(date) == 1,
-        msg = "only one date per plot is allowed"
-    )
+                msg = .conf("messages", ".plot_raster_cube_single_date"))
     # is this a valid date?
     date <- as.Date(date)
     .check_that(date %in% .tile_timeline(tile),
-        msg = "date is not contained in the cube timeline"
+                msg = .conf("messages", ".plot_raster_cube_date")
     )
 
     # Plot a B/W band as false color
     if (bw) {
-        message("plotting false color image")
+        if (!("sar_cube" %in% class(x)))
+            message(.conf("messages", ".plot_raster_false_color"))
         .check_cube_bands(tile, bands = band)
         # plot the band as false color
         p <- .plot_false_color(
@@ -502,10 +517,11 @@ plot.vector_cube <- function(x, ...,
                              n_colors = 10,
                              rev = FALSE,
                              scale = 0.8) {
+    .check_set_caller(".plot_vector_cube")
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
-        warning("please use palette in place of color_palette")
+        warning(.conf("messages", ".plot_palette"))
         palette <- dots[["color_palette"]]
     }
     # BW or color?
@@ -513,6 +529,19 @@ plot.vector_cube <- function(x, ...,
         bw <-  FALSE
     else
         bw <-  TRUE
+    # check palette
+    .check_palette(palette)
+    # check style
+    .check_chr_within(style,
+                      within = .conf("tmap_continuous_style"),
+                      discriminator = "any_of"
+    )
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check number of colors
+    .check_int_parameter(n_colors, min = 4)
+    # check rev
+    .check_lgl_parameter(rev)
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?
@@ -522,7 +551,7 @@ plot.vector_cube <- function(x, ...,
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
-        msg = "tile is not included in the cube"
+        msg = .conf("messages", ".plot_raster_cube_tile")
     )
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
@@ -531,18 +560,19 @@ plot.vector_cube <- function(x, ...,
     }
     # only one date at a time
     .check_that(length(date) == 1,
-                msg = "only one date per plot is allowed"
+                msg = .conf("messages", ".plot_raster_cube_single_date")
     )
     # is this a valid date?
     date <- as.Date(date)
     .check_that(date %in% .tile_timeline(tile),
-                msg = "date is not contained in the cube timeline"
+                msg = .conf("messages", ".plot_raster_cube_date")
     )
     # retrieve the segments for this tile
     sf_seg <- .segments_read_vec(tile)
     # Plot a B/W band as false color
     if (bw) {
-        message("plotting false color image")
+        if (!("sar_cube" %in% class(x)))
+            message(.conf("messages", ".plot_raster_false_color"))
         .check_cube_bands(tile, bands = band)
         # plot the band as false color
         p <- .plot_false_color(
@@ -624,10 +654,11 @@ plot.probs_cube <- function(x, ...,
                             n_colors = 10,
                             rev = FALSE,
                             scale = 0.8) {
+    .check_set_caller(".plot_probs_cube")
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
-        warning("please use palette in place of color_palette")
+        warning(.conf("messages", ".plot_palette"))
         palette <- dots[["color_palette"]]
     }
     # precondition
@@ -637,7 +668,7 @@ plot.probs_cube <- function(x, ...,
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
-        msg = "tile is not included in the cube"
+        msg = .conf("messages", ".plot_raster_cube_tile")
     )
 
     # filter the cube
@@ -715,10 +746,11 @@ plot.probs_vector_cube <- function(x, ...,
                                    style = "cont",
                                    rev = FALSE,
                                    scale = 0.8) {
+    .check_set_caller(".plot_probs_vector")
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
-        warning("please use palette in place of color_palette")
+        warning(.conf("messages", ".plot_palette"))
         palette <- dots[["color_palette"]]
     }
     # precondition
@@ -728,7 +760,7 @@ plot.probs_vector_cube <- function(x, ...,
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
-        msg = "tile is not included in the cube"
+        msg = .conf("messages", ".plot_raster_cube_tile")
     )
 
     # filter the cube
@@ -797,10 +829,11 @@ plot.variance_cube <- function(x, ...,
                                rev = FALSE,
                                type = "map",
                                scale = 0.8) {
+    .check_set_caller(".plot_variance_cube")
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
-        warning("please use palette in place of color_palette")
+        warning(.conf("messages", ".plot_palette"))
         palette <- dots[["color_palette"]]
     }
     # precondition
@@ -810,15 +843,13 @@ plot.variance_cube <- function(x, ...,
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
-        msg = "tile is not included in the cube"
+        msg = .conf("messages", ".plot_raster_cube_tile")
     )
 
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # check type
-    .check_that(type %in% c("map", "hist"),
-        msg = "plot type should be either map or hist"
-    )
+    .check_that(type %in% c("map", "hist"))
     # plot the variance cube
     if (type == "map") {
         p <- .plot_probs(tile = tile,
@@ -884,10 +915,11 @@ plot.uncertainty_cube <- function(x, ...,
                                   rev = TRUE,
                                   n_colors = 10,
                                   scale = 0.8) {
+    .check_set_caller(".plot_uncertainty_cube")
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
-        warning("please use palette in place of color_palette")
+        warning(.conf("messages", ".plot_palette"))
         palette <- dots[["color_palette"]]
     }
     # precondition
@@ -897,7 +929,7 @@ plot.uncertainty_cube <- function(x, ...,
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
-        msg = "tile is not included in the cube"
+        msg = .conf("messages", ".plot_raster_cube_tile")
     )
 
     # filter the cube
@@ -982,10 +1014,11 @@ plot.uncertainty_vector_cube <- function(x, ...,
                                          style = "cont",
                                          rev = TRUE,
                                          scale = 0.8) {
+    .check_set_caller(".plot_uncertainty_vector_cube")
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
-        warning("please use palette in place of color_palette")
+        warning(.conf("messages", ".plot_palette"))
         palette <- dots[["color_palette"]]
     }
     # precondition
@@ -995,7 +1028,7 @@ plot.uncertainty_vector_cube <- function(x, ...,
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
-        msg = "tile is not included in the cube"
+        msg = .conf("messages", ".plot_raster_cube_tile")
     )
 
     # filter the cube
@@ -1061,22 +1094,17 @@ plot.class_cube <- function(x, y, ...,
                             scale = 0.8) {
     stopifnot(missing(y))
     # set caller to show in errors
-    .check_set_caller("plot_class_cube")
+    .check_set_caller(".plot_class_cube")
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
-        warning("please use palette in place of color_palette")
+        warning(.conf("messages", ".plot_palette"))
         palette <- dots[["color_palette"]]
     }
 
     # precondition - cube must be a labelled cube
     cube <- x
-    .check_chr_within(
-        x = "class_cube",
-        within = class(cube),
-        discriminator = "any_of",
-        msg = "cube must be a classified image"
-    )
+    .check_is_class_cube(cube)
 
     # precondition
     if (!.has(tile)) {
@@ -1088,7 +1116,7 @@ plot.class_cube <- function(x, y, ...,
             case_sensitive = FALSE,
             discriminator = "all_of",
             can_repeat = FALSE,
-            msg = "tiles are not included in the cube"
+            msg = .conf("messages", ".plot_raster_cube_tile")
         )
     }
     # select only one tile
@@ -1162,10 +1190,12 @@ plot.class_vector_cube <- function(x, ...,
                                    line_width = 0.5,
                                    palette = "Spectral",
                                    scale = 0.8) {
+    # set caller to show in errors
+    .check_set_caller(".plot_class_vector_cube")
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     if (missing(palette) && "color_palette" %in% names(dots)) {
-        warning("please use palette in place of color_palette")
+        warning(.conf("messages", ".plot_palette"))
         palette <- dots[["color_palette"]]
     }
     # only one tile at a time
@@ -1177,7 +1207,7 @@ plot.class_vector_cube <- function(x, ...,
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
-        msg = "tile is not included in the cube"
+        msg = .conf("messages", ".plot_raster_cube_tile")
     )
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
@@ -1265,7 +1295,7 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
     stopifnot(missing(y))
     data <- x
     if (!inherits(data, "sits_accuracy")) {
-        message("unable to plot - please run sits_accuracy")
+        message(.conf("messages", ".plot_sits_accuracy"))
         return(invisible(NULL))
     }
 
@@ -1343,7 +1373,7 @@ plot.som_evaluate_cluster <- function(x, y, ...,
     stopifnot(missing(y))
     data <- x
     if (!inherits(data, "som_evaluate_cluster")) {
-        message("unable to plot - please run sits_som_evaluate_cluster")
+        message(.conf("messages", ".plot_som_evaluate_cluster"))
         return(invisible(NULL))
     }
 
@@ -1418,7 +1448,7 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
     stopifnot(missing(y))
     koh <- x
     if (!inherits(koh, "som_map")) {
-        message("wrong input data; please run sits_som_map first")
+        message(.conf("messages", ".plot_som_map"))
         return(invisible(NULL))
     }
     if (type == "mapping") {
@@ -1523,8 +1553,11 @@ plot.xgb_model <- function(x, ...,
 #'
 plot.torch_model <- function(x, y, ...) {
     stopifnot(missing(y))
-
     model <- x
+    if (!inherits(model, "torch_model")) {
+        message(.conf("messages", ".plot_torch_model"))
+        return(invisible(NULL))
+    }
     # set the model variables to be plotted
     model_vars <- c("records", "metrics")
     # retrieve the model variables from the environment
@@ -1615,10 +1648,10 @@ plot.torch_model <- function(x, y, ...) {
 #'
 plot.geo_distances <- function(x, y, ...) {
     distances <- x
-    .check_that(
-        inherits(distances, "geo_distances"),
-        "Invalid distances object. Use sits_geo_dist to create it."
-    )
+    if (!inherits(distances, "geo_distances")) {
+        message(.conf("messages", ".plot_geo_distances"))
+        return(invisible(NULL))
+    }
 
     density_plot <-
         distances |>
@@ -1665,17 +1698,11 @@ plot.sits_cluster <- function(x, ...,
                               cluster,
                               cutree_height,
                               palette) {
+    .check_set_caller(".plot_sits_cluster")
     # verifies if dendextend and methods packages is installed
-    .check_require_packages(
-        c("dendextend", "methods"),
-        msg = "please install package(s)"
-    )
-
+    .check_require_packages(c("dendextend", "methods"))
     # ensures that a cluster object  exists
-    .check_null(
-        x = cluster,
-        msg = "no valid cluster object available"
-    )
+    .check_na_null_parameter(cluster)
     # get data labels
     data_labels <- x$label
 

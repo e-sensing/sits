@@ -103,8 +103,8 @@
 #' @rdname sits_apply
 #' @export
 sits_apply <- function(data, ...) {
-    .check_na(data)
-    .check_null(data)
+    .check_set_caller("sits_apply")
+    .check_na_null_parameter(data)
     UseMethod("sits_apply", data)
 }
 
@@ -112,8 +112,6 @@ sits_apply <- function(data, ...) {
 #' @export
 sits_apply.sits <- function(data, ...) {
     data <- .check_samples(data)
-    .check_set_caller("sits_apply.sits")
-
     .apply(data, col = "time_series", fn = dplyr::mutate, ...)
 }
 
@@ -130,13 +128,13 @@ sits_apply.raster_cube <- function(data, ...,
     .check_is_raster_cube(data)
     .check_is_regular(data)
     # Check window size
-    .check_window_size(window_size)
+    .check_int_parameter(window_size, min = 3, is_odd = TRUE)
     # Check normalized index
-    .check_lgl(normalized)
+    .check_lgl_parameter(normalized)
     # Check memsize
-    .check_memsize(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1, max = 2048)
     # Check output_dir
     .check_output_dir(output_dir)
 
@@ -148,11 +146,8 @@ sits_apply.raster_cube <- function(data, ...,
     # Check if band already exists in cube
     if (out_band %in% bands) {
         if (.check_messages()) {
-            warning(
-                paste0("The provided band '", out_band,
-                       "' already exists in cube."),
-                call. = FALSE
-            )
+            msg <- .conf("messages", "sits_apply_out_band")
+            warning(msg, call. = FALSE)
         }
         return(data)
     }
@@ -209,7 +204,7 @@ sits_apply.raster_cube <- function(data, ...,
 #' @rdname sits_apply
 #' @export
 sits_apply.derived_cube <- function(data,...) {
-    stop("Input data should be a non-classified cube")
+    stop(.conf("messages", "sits_apply_derived_cube"))
 }
 #' @rdname sits_apply
 #' @export
@@ -220,7 +215,7 @@ sits_apply.default <- function(data,...) {
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
     } else
-        stop("Input should be a sits tibble or a data cube")
+        stop(.conf("messages", "sits_apply_default"))
     acc <- sits_apply(data, ...)
     return(acc)
 }

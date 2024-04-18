@@ -92,6 +92,7 @@
 #' @param output_dir  Directory to write the debug info.
 #' @return  The flag associated to the debug.
 .debug <- function(flag = NULL, output_dir = NULL) {
+    .check_set_caller(".debug")
     # If no parameter is passed get current debug flag
     if (is.null(flag)) {
         flag <- sits_env[["debug_flag"]]
@@ -104,10 +105,7 @@
 
         return(flag)
     }
-    .check_lgl(
-        x = flag, allow_null = TRUE,
-        msg = "flag must be a logical value"
-    )
+    .check_lgl_parameter(flag, allow_null = TRUE)
     # Set debug flag
     sits_env[["debug_flag"]] <- flag
     # Set output_dir

@@ -61,6 +61,7 @@ sits_cluster_dendro <- function(samples,
                                 linkage = "ward.D2",
                                 k = NULL,
                                 palette = "RdYlGn") {
+    .check_set_caller("sits_cluster_dendro")
     # needs package dtwclust
     .check_require_packages("dtwclust")
     # verify if data is OK
@@ -70,18 +71,12 @@ sits_cluster_dendro <- function(samples,
     bands <- .tibble_bands_check(samples, bands)
     # check k (number of clusters)
     if (.has(k)) {
-        .check_num_parameter(k, min = 2,  max = 200)
+        .check_int_parameter(k, min = 2,  max = 200)
     }
     # check distance method
-    .check_that(
-        dist_method %in% .conf("dendro_dist_method"),
-        msg = "Invalid distance method for dendrogram calculation"
-    )
+    .check_dist_method(dist_method)
     # check linkage
-    .check_that(
-        linkage %in% .conf("dendro_linkage"),
-        msg = "Invalid linkage method for dendrogram calculation"
-    )
+    .check_linkage_method(linkage)
     # check palette
     .check_palette(palette)
      UseMethod("sits_cluster_dendro", samples)
@@ -105,16 +100,16 @@ sits_cluster_dendro.sits <- function(samples,
 
     # find the best cut for the dendrogram
     best_cut <- .cluster_dendro_bestcut(samples, cluster)
-    message(paste0("best number of clusters = ", best_cut["k"]))
-    message(paste0(
-        "best height for cutting the dendrogram = ",
-        best_cut["height"]
-    ))
+    message(paste(.conf("messages", "sits_cluster_dendro_best_number"),
+                  best_cut["k"])
+    )
+    message(paste(.conf("messages", "sits_cluster_dendro_best_height"),
+                  best_cut["height"])
+    )
     # cut the tree (user-defined value overrides default)
     k <- .default(k, best_cut["k"])
     if (k != best_cut["k"]) {
-        message(paste0("Caveat: desired number of clusters (", k, ")
-                            overrides best value"))
+        message(.conf("messages", "sits_cluster_dendro_best_cut"))
         best_cut["k"] <- k
         best_cut["height"] <-
             c(0, cluster$height)[length(cluster$height) - k + 2]
@@ -142,7 +137,7 @@ sits_cluster_dendro.default <- function(samples, ...) {
     if (all(.conf("sits_tibble_cols") %in% colnames(samples))) {
         class(samples) <- c("sits", class(samples))
     } else
-        stop("Input should be a sits tibble")
+        stop(.conf("messages", "sits_cluster_dendro_default"))
     samples <- sits_cluster_dendro(samples, ...)
     return(samples)
 }
@@ -165,7 +160,6 @@ sits_cluster_dendro.default <- function(samples, ...) {
 sits_cluster_frequency <- function(samples) {
     # set caller to show in errors
     .check_set_caller("sits_cluster_frequency")
-
     # is the input data the result of a cluster function?
     .check_samples_cluster(samples)
     # compute frequency table (matrix)

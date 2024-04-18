@@ -32,6 +32,7 @@ sits_timeline.sits_model <- function(data) {
 #' @export
 #'
 sits_timeline.raster_cube <- function(data) {
+    .check_set_caller("sits_timeline_raster_cube")
     # pick the list of timelines
     timelines.lst <- slider::slide(data, function(tile) {
         timeline_tile <- .tile_timeline(tile)
@@ -44,7 +45,7 @@ sits_timeline.raster_cube <- function(data) {
         return(timeline_unique[[1]])
     } else {
         if (.check_warnings()) {
-            warning("cube is not regular, returning all timelines",
+            warning(.conf("messages", "sits_timeline_raster_cube"),
                 call. = FALSE
             )
         }
@@ -68,7 +69,7 @@ sits_timeline.tbl_df <- function(data) {
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
     } else
-        stop("Input should be a sits tibble or a data cube")
+        stop(.conf("messages", "sits_timeline_default"))
     timeline <- sits_timeline(data)
     return(timeline)
 }

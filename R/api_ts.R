@@ -328,36 +328,23 @@
                                  band,
                                  xy) {
     # set caller to show in errors
-    .check_set_caller(".raster_class_get_ts")
+    .check_set_caller(".ts_get_raster_class")
     # get timeline
     timeline <- sits_timeline(tile)
     # check timeline
-    .check_length(
-        x = timeline,
-        len_min = 2,
-        len_max = 2,
-        msg = "invalid classified timeline"
-    )
+    .check_that(length(timeline) == 2)
     # get tile labels
     labels <- sits_labels(tile)
     # check for labels
-    .check_null(
-        x = labels,
-        msg = "tiles should have labels field defined"
-    )
+    .check_that(all(.has(labels)))
     # get the values of the time series as matrix
     values_band <- .tile_extract(tile = tile, band = band, xy = xy)
     # each row of the values matrix is a spatial point
     traj_lst <- as.list(unname(unlist(values_band)))
     # check if all values fits the labels
     max_label_index <- max(unlist(traj_lst))
-    .check_that(
-        x = max_label_index <= length(labels),
-        local_msg = paste(
-            "cube should have at least", max_label_index, "labels"
-        ),
-        msg = "pixel values do not correspond to any label"
-    )
+    # postcondition
+    .check_that(max_label_index <= length(labels))
     # now we have to transpose the data
     traj_samples <- traj_lst |>
         purrr::map(function(x) tibble::tibble(class = labels[x]))

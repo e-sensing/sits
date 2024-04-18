@@ -14,8 +14,8 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'     .period_check("P16D") # valid
-#'     .period_check("P1M10D") # error: invalid period format
+#'     .check_period("P16D") # valid
+#'     .check_period("P1M10D") # error: invalid period format
 #'     .period_val("P16D") # 16
 #'     .period_val("P2M") # 2
 #'     .period_val("P1Y") # 1
@@ -30,20 +30,11 @@
 #' @noRd
 NULL
 
-#' @describeIn period_api Check if a character string is a valid \code{period}.
-#' @returns \code{.period_check()}: nothing.
-#' @noRd
-.period_check <- function(period) {
-    if (!grepl("^P[0-9]+[DMY]$", period)) {
-        stop("invalid period format")
-    }
-}
-
 #' @describeIn period_api Return the value part of a \code{period}.
 #' @returns \code{.period_val()}: numeric value of a period.
 #' @noRd
 .period_val <- function(period) {
-    .period_check(period)
+    .check_period(period)
     .as_dbl(gsub("^P([0-9]+)[DMY]$", "\\1", period))
 }
 
@@ -52,7 +43,7 @@ NULL
 #' @returns \code{.period_unit()}: description of unit of a period.
 #' @noRd
 .period_unit <- function(period) {
-    .period_check(period)
+    .check_period(period)
     unit <- c(D = "day", M = "month", Y = "year")
     unit[[gsub("^P[0-9]+([DMY])$", "\\1", period)]]
 }

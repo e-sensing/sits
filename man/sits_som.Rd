@@ -11,7 +11,7 @@ sits_som_map(
   grid_ydim = 10,
   alpha = 1,
   rlen = 100,
-  distance = "euclidean",
+  distance = "dtw",
   som_radius = 2,
   mode = "online"
 )

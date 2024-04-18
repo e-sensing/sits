@@ -456,9 +456,7 @@
     # bind rows to get a melted tibble of samples
     ts_tbl <- dplyr::bind_rows(samples_tiles_bands)
     if (!.has_ts(ts_tbl)) {
-        warning(
-            "No time series were extracted. ",
-            "Check your samples and your input cube",
+        warning(.conf("messages", ".get_data_by_tile"),
             immediate. = TRUE, call. = FALSE
         )
         return(.tibble())
@@ -636,10 +634,8 @@
     # bind rows to get a melted tibble of samples
     ts_tbl <- dplyr::bind_rows(samples_tiles_bands)
     if (!.has_ts(ts_tbl)) {
-        warning(
-            "No time series were extracted. ",
-            "Check your samples and your input cube",
-            immediate. = TRUE, call. = FALSE
+        warning(.conf("messages", ".get_data_by_chunks"),
+                immediate. = TRUE, call. = FALSE
         )
         return(.tibble())
     }

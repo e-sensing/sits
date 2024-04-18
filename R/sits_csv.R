@@ -35,10 +35,9 @@ sits_to_csv.sits <- function(data, file = NULL) {
     # check the file name is valid
     if (.has(file))
         .check_file(
-            file = file,
+            x = file,
             extensions = "csv",
-            file_exists = FALSE,
-            msg = "invalid CSV file name"
+            file_exists = FALSE
         )
     # select the parts of the tibble to be saved
     csv_columns <- .conf("df_sample_columns")
@@ -59,16 +58,15 @@ sits_to_csv.sits <- function(data, file = NULL) {
 #' @export
 sits_to_csv.tbl_df <- function(data, file) {
     data <- tibble::as_tibble(data)
-    if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+    if (all(.conf("sits_tibble_cols") %in% colnames(data)))
         class(data) <- c("sits", class(data))
-    } else
-        stop("Input should be a sits tibble")
+    else
+        stop(.conf("messages", "sits_to_csv_default"))
     data <- sits_to_csv(data, file)
     return(invisible(data))
 }
 #' @rdname sits_to_csv
 #' @export
 sits_to_csv.default <- function(data, file) {
-    stop("input should be an object of class sits")
-
+    stop(.conf("messages", "sits_to_csv_default"))
 }

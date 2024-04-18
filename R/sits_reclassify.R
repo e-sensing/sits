@@ -112,17 +112,15 @@ sits_reclassify <- function(cube,
                             multicores = 2L,
                             output_dir,
                             version = "v1") {
+    .check_set_caller("sits_reclassify")
     # Pre-conditions - Check parameters
-    .check_valid(cube)
-    .check_valid(mask)
+    .check_na_null_parameter(cube)
+    .check_na_null_parameter(mask)
     # check cube
-    .check_cube_is_class_cube(cube)
+    .check_is_class_cube(cube)
     .check_raster_cube_files(cube)
     # # check mask
-    .check_that(
-        x = inherits(mask, "class_cube"),
-        msg = "mask is not a classified data cube"
-    )
+    .check_that(inherits(mask, "class_cube"))
     .check_raster_cube_files(mask)
     UseMethod("sits_reclassify", cube)
 }
@@ -138,12 +136,10 @@ sits_reclassify.class_cube <- function(cube,
                                        version = "v1") {
     # Preconditions
     # check other params
-    .check_memsize(memsize, min = 1, max = 16384)
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_int_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
     version <- .check_version(version)
-    # version is case-insensitive in sits
-    version <- tolower(version)
 
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
@@ -180,7 +176,7 @@ sits_reclassify.class_cube <- function(cube,
             {
                 .cube_filter_spatial(cube = mask, roi = .tile_bbox(tile))
             },
-            .msg_error = "mask roi does not intersect cube"
+            .msg_error = .conf("messages", "sits_reclassify_mask_intersect")
         )
         # Get new labels from cube and pre-defined rules from user
         labels <- .reclassify_new_labels(cube, rules)
@@ -203,5 +199,5 @@ sits_reclassify.class_cube <- function(cube,
 #' @export
 sits_reclassify.default <- function(cube, mask, rules, memsize,
                                     multicores, output_dir, version = "v1"){
-    stop("Input should be a classified cube")
+    stop(.conf("messages", "sits_reclassify"))
 }

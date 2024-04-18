@@ -1,245 +1,79 @@
 test_that("Caller", {
     # .check_set_caller, .check_identify_caller
-    .check_set_caller("zzz")
-    expect_equal(
-        .check_caller,
-        "zzz"
-    )
-    expect_equal(
-        tryCatch(
-            .check_that(FALSE, local_msg = "abc"),
-            error = function(e) {
-                return(e$message)
-            }
-        ),
-        "zzz: abc"
-    )
-    rm(.check_caller)
-    f1 <- function() {
-        .check_set_caller("f1")
-        f2()
-    }
-    f2 <- function() {
-        .check_identify_caller()
-    }
-    expect_equal(
-        f1(),
-        "f1"
-    )
-    rm(f1, f2)
+    .check_set_caller(".test_check")
+    expect_equal(.check_identify_caller(), ".test_check")
+    error_msg <- .conf("messages", ".test_check")
+    expect_equal(error_msg, "expected error during testing")
 
-    # .check_that, .check_error
-    expect_error(
-        .check_that(FALSE)
-    )
-    expect_equal(
-        tryCatch(
-            {
-                .check_set_caller("zzz")
-                .check_that(FALSE, local_msg = "abc", msg = "def")
-            },
-            error = function(e) {
-                return(e$message)
-            }
-        ),
-        "zzz: def (abc)"
-    )
-    expect_equal(
-        tryCatch(
-            {
-                .check_set_caller("zzz")
-                .check_error(
-                    {
-                        .check_that(FALSE, local_msg = "abc")
-                    },
-                    msg = "def"
-                )
-            },
-            error = function(e) {
-                return(e$message)
-            }
-        ),
-        "zzz: def (zzz: abc)"
-    )
-    expect_equal(
-        tryCatch(
-            {
-                .check_set_caller("zzz")
-                .check_error(
-                    {
-                        .check_set_caller("yyy")
-                        .check_that(FALSE, local_msg = "abc")
-                    },
-                    msg = "def"
-                )
-            },
-            error = function(e) {
-                return(e$message)
-            }
-        ),
-        "zzz: def (yyy: abc)"
-    )
-})
-
-test_that("Checks", {
-    .check_set_caller("test")
 
     # .check_null
+    input <- NULL
     expect_error(
-        .check_null(NULL, msg = "NULL value is not allowed"),
-        "test: NULL value is not allowed"
+        .check_null_parameter(input),
+        ".test_check: NULL value not allowed for input - expected error during testing"
     )
-    expect_equal(
-        .check_null("abc"),
-        "abc"
-    )
-
     # .check_na
+    input <- c(1, NA, 3)
     expect_error(
-        .check_na(c(1, NA, 3)),
-        "NA value is not allowed"
-    )
-    expect_error(
-        .check_na(list(1, NA, 3)),
-        "NA value is not allowed"
-    )
-    expect_equal(
-        .check_na("abc"),
-        "abc"
+        .check_na_parameter(input),
+        ".test_check: NA value not allowed for input - expected error during testing"
     )
 
-    # .check_names
-    expect_equal(
-        .check_names(character(0)),
-        character(0)
-    )
-    expect_equal(
-        .check_names(character(0), is_named = FALSE),
-        character(0)
+    # .check_num_paramter
+    input <- c(1, "MPC")
+    expect_error(
+        .check_num_parameter(input),
+        ".test_check: invalid input parameter - expected error during testing"
     )
     expect_error(
-        .check_names("abc"),
-        "value should have names"
+        .check_int_parameter(input),
+        ".test_check: invalid input parameter - expected error during testing"
     )
-    expect_equal(
-        .check_names("abc", is_named = FALSE),
-        "abc"
+    input <- "TRUE"
+    expect_error(
+        .check_lgl_parameter(input),
+        ".test_check: invalid input parameter - expected error during testing"
     )
     expect_error(
-        .check_names(c(abc = "abc"), is_named = FALSE),
-        "value should be unnamed"
+        .check_date_parameter("2023-301-01"),
+        ".check_date_parameter: invalid date format - dates should follow year-month-day: YYYY-MM-DD"
     )
-    expect_equal(
-        .check_names(c(abc = "abc")),
-        c(abc = "abc")
-    )
-
-    # .check_length
-    expect_equal(
-        .check_length(character(0)),
-        character(0)
-    )
+    legends <- c("Pasture", "Cerrado", "Soy")
     expect_error(
-        .check_length(character(0), len_min = 1),
-        "length should be >= 1"
+        .check_chr_parameter(legends, len_max = 2),
+        ".test_check: invalid legends parameter - expected error during testing"
     )
+    sources <- .conf("sources")
     expect_error(
-        .check_length("abc", len_max = 0),
-        "length should be 0"
+        .check_lst_parameter(sources, len_max = 4),
+        ".test_check: invalid sources parameter - expected error during testing"
     )
+    period <- "P2Y6M"
     expect_error(
-        .check_length(c("a", "b", "c", "d"), len_min = 1, len_max = 3),
-        "length should be <= 3"
+        .check_period(period),
+        ".check_period: invalid period format - valid examples are P16D, P1M, P1Y"
     )
-
-    # .check_apply
-    expect_equal(
-        .check_apply(c(1, 2, 3), fn_check = .check_null),
-        c(1, 2, 3)
-    )
+    crs <- "EPSG:9999"
     expect_error(
-        .check_apply(list(1, NULL, 3),
-            fn_check = .check_null,
-            msg = "NULL value is not allowed"
-        ),
-        "NULL value is not allowed"
+        .check_crs(crs),
+        ".check_crs: invalid crs information in image files"
     )
-
-    # .check_lgl_type, .check_num_type, .check_int_type,
-    # .check_chr_type, .check_lst_type
-    expect_equal(
-        .check_lgl_type(logical(0)),
-        logical(0)
-    )
+    output_dir <- paste0("/mydir/123/test")
     expect_error(
-        .check_lgl_type(""),
-        "value is not logical"
+        .check_output_dir(output_dir),
+        ".check_output_dir: invalid output_dir variable - file does not exist: '/mydir/123/test'"
     )
+    version <- c("1", "2")
     expect_error(
-        .check_lgl_type(NULL),
-        "value is not logical"
+        .check_version(version),
+        ".check_version: version should a lower case character vector with no underlines"
     )
-    expect_equal(
-        .check_num_type(numeric(0)),
-        numeric(0)
-    )
+    progress <- "TRUE"
     expect_error(
-        .check_num_type("0"),
-        "value is not a number"
+        .check_progress(progress),
+        ".check_progress: progress must be either TRUE or FALSE"
     )
-    expect_error(
-        .check_num_type(NULL),
-        "value is not a number"
-    )
-    expect_equal(
-        .check_num_type(numeric(0)),
-        numeric(0)
-    )
-    expect_equal(
-        .check_num_type(numeric(0), is_integer = TRUE),
-        numeric(0)
-    )
-    expect_error(
-        .check_num_type(c(1, 1.23, 2), is_integer = TRUE),
-        "value is not integer"
-    )
-    expect_error(
-        .check_num_type("0"),
-        "value is not a number"
-    )
-    expect_equal(
-        .check_chr_type(character(0)),
-        character(0)
-    )
-    expect_error(
-        .check_chr_type(0),
-        "value is not character type"
-    )
-    expect_error(
-        .check_chr_type(NULL),
-        "value is not character type"
-    )
-    expect_equal(
-        .check_lst_type(list()),
-        list()
-    )
-    expect_error(
-        .check_lst_type(0),
-        "value is not a list"
-    )
-    expect_error(
-        .check_lst_type(NULL),
-        "value is not a list"
-    )
-
     # .check_chr_within
-    expect_error(
-        .check_chr_within(character(0),
-            within = character(0),
-            discriminator = "one_of"
-        ),
-        "invalid 'within' parameter"
-    )
     expect_equal(
         .check_chr_within(c("a", "a"),
             within = c("a", "b", "c"),
@@ -289,13 +123,6 @@ test_that("Checks", {
         )
     )
     # .check_chr_contains
-    expect_error(
-        .check_chr_contains(character(0),
-            contains = character(0),
-            discriminator = "one_of"
-        ),
-        "invalid 'contains' parameter"
-    )
     expect_error(
         .check_chr_contains(c("a", "b", "c"),
             contains = c("a", "b"),
@@ -547,19 +374,16 @@ test_that("Checks", {
     expect_error(
         .check_chr(c("example.com"), regex = "^[^ \"]+://[^ \"]+$")
     )
-    expect_error(
-        .check_empty_char("")
-    )
     # .check_lst
     expect_equal(
         .check_lst(list()),
         list()
     )
     expect_error(
-        .check_lst(list(), min_len = 1)
+        .check_lst(list(), len_min = 1)
     )
     expect_error(
-        .check_lst(list(a = 1), max_len = 0)
+        .check_lst(list(a = 1), len_max = 0)
     )
     expect_error(
         .check_lst(NULL, msg = "NULL value is not allowed")

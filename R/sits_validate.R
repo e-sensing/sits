@@ -66,20 +66,15 @@ sits_kfold_validate <- function(samples,
     # require package
     .check_require_packages("caret")
     # pre-condition
-    .check_that(
-        inherits(ml_method, "function"),
-        local_msg = "ml_method is not a valid sits method",
-        msg = "invalid ml_method parameter"
-    )
+    .check_that(inherits(ml_method, "function"))
     # pre-condition
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1, max = 2048)
     # For now, torch models does not support multicores in Windows
     if (multicores > 1 && .Platform$OS.type == "windows" &&
         "optimizer" %in% ls(environment(ml_method))) {
         multicores <- 1
         if (.check_warnings()) {
-            warning("sits_kfold_validate() works
-                    only with 1 core in Windows OS.",
+            warning(.conf("messages", "sits_kfold_validate_windows"),
                 call. = FALSE,
                 immediate. = TRUE
             )
@@ -91,9 +86,8 @@ sits_kfold_validate <- function(samples,
     code_labels <- seq_along(labels)
     names(code_labels) <- labels
     # Is the data labelled?
-    .check_that(
-        x = !("NoClass" %in% labels),
-        msg = "requires labelled set of time series"
+    .check_that(!("NoClass" %in% labels),
+        msg = .conf("messages", "sits_kfold_validate_samples")
     )
     # start parallel process
     multicores <- min(multicores, folds)
@@ -196,11 +190,7 @@ sits_validate <- function(samples,
     # check validation split
     .check_num(validation_split, min = 0, max = 1, len_min = 1, len_max = 1)
     # pre-condition for ml_method
-    .check_that(
-        inherits(ml_method, "function"),
-        local_msg = "ml_method is not a valid sits method",
-        msg = "invalid ml_method parameter"
-    )
+    .check_that(inherits(ml_method, "function"))
     # Are there samples for validation?
     if (is.null(samples_validation)) {
         samples <- .tibble_samples_split(

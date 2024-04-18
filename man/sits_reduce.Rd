@@ -13,6 +13,7 @@ sits_reduce(data, ...)
 \method{sits_reduce}{raster_cube}(
   data,
   ...,
+  impute_fn = impute_linear(),
   memsize = 4L,
   multicores = 2L,
   output_dir,
@@ -23,6 +24,8 @@ sits_reduce(data, ...)
 \item{data}{Valid sits tibble or cube}
 
 \item{...}{Named expressions to be evaluated (see details).}
+
+\item{impute_fn}{Imputation function to remove NA values.}
 
 \item{memsize}{Memory available for classification (in GB).}
 
@@ -43,7 +46,7 @@ The result will be a cube with only one date with the raster reduced
 from the function.
 }
 \details{
-\code{sits_reduce()} allow any valid R expression to compute new bands.
+\code{sits_reduce()} allows valid R expression to compute new bands.
 Use R syntax to pass an expression to this function.
 Besides arithmetic operators, you can use virtually any R function
 that can be applied to elements of a matrix.

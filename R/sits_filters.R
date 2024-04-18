@@ -21,6 +21,8 @@
 #' }
 #' @export
 sits_filter <- function(data, filter = sits_whittaker()) {
+    .check_set_caller("sits_filter")
+    .check_that(inherits(data, "sits") || inherits(data, "raster_cube"))
     result <- filter(data)
 
     return(result)
@@ -64,6 +66,9 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' }
 #' @export
 sits_whittaker <- function(data = NULL, lambda = 0.5) {
+    .check_set_caller("sits_filter")
+    if (.has(data))
+        .check_that(inherits(data, "sits") || inherits(data, "raster_cube"))
     filter_fun <- function(data) {
         if (inherits(data, "matrix")) {
             return(smooth_whit_mtx(data, lambda = lambda, length = ncol(data)))
@@ -71,7 +76,6 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
             return(smooth_whit(data, lambda = lambda, length = length(data)))
         }
     }
-
     filter_call <- function(data) {
         if (inherits(data, "sits")) {
             .apply_across(data = data, fn = filter_fun)
@@ -79,9 +83,7 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
             filter_fun(data)
         }
     }
-
     result <- .factory_function(data, filter_call)
-
     return(result)
 }
 
@@ -124,6 +126,9 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
 #' }
 #' @export
 sits_sgolay <- function(data = NULL, order = 3, length = 5) {
+    .check_set_caller("sits_filter")
+    if (.has(data))
+        .check_that(inherits(data, "sits") || inherits(data, "raster_cube"))
     # compute filter coefficients once
     f_res <- .signal_sgolay_coef(p = order, n = length, ts = 1)
     # function to be applied
@@ -145,7 +150,6 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5) {
             ))
         }
     }
-
     filter_call <- function(data) {
         if (inherits(data, "sits")) {
             .apply_across(data = data, fn = filter_fun)
@@ -153,9 +157,6 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5) {
             filter_fun(data)
         }
     }
-
-
     result <- .factory_function(data, filter_call)
-
     return(result)
 }

@@ -27,14 +27,11 @@
 #' @return A tibble with the classification information.
 #'
 .timeline_class_info <- function(data, samples) {
+    .check_set_caller(".timeline_class_info")
     # find the timeline
     timeline <- sits_timeline(data)
     # precondition is the timeline correct?
-    .check_length(
-        x = timeline,
-        len_min = 1,
-        msg = "sits_timeline_class_info: invalid timeline"
-    )
+    .check_that(length(timeline) >= 1)
     # find the labels
     labels <- sits_labels(samples)
     # find the bands
@@ -169,21 +166,12 @@
     # take the start date of the input to be classified
     start_date <- timeline_data[idx_start_date]
     # is the start date a valid one?
-    .check_that(
-        x = .timeline_valid_date(start_date, timeline_data),
-        msg = "start date in not inside timeline"
-    )
+    .check_that(.timeline_valid_date(start_date, timeline_data))
     # what is the expected end date of the classification?
     idx_end_date <- idx_start_date + (num_samples - 1)
     end_date <- timeline_data[idx_end_date]
-    # is the start date a valid one?
-    .check_that(
-        x = !(is.na(end_date)),
-        msg = paste(
-            "start and end date do not match timeline/n",
-            "Please compare your timeline with your samples"
-        )
-    )
+    # is the end date a valid one?
+    .check_that(!(is.na(end_date)))
 
     # go through the timeline of the data
     # find the reference dates for the classification
@@ -200,10 +188,7 @@
     }
     # is the end date a valid one?
     end_date <- subset_dates[[length(subset_dates)]][2]
-    .check_that(
-        x = .timeline_valid_date(end_date, timeline_data),
-        msg = "end_date not inside timeline"
-    )
+    .check_that(.timeline_valid_date(end_date, timeline_data))
     return(subset_dates)
 }
 
@@ -253,7 +238,7 @@
                              start_date = NULL,
                              end_date = NULL) {
     # set caller to show in errors
-    .check_set_caller(".sits_timeline_during")
+    .check_set_caller(".timeline_during")
     # obtain the start and end indexes
     if (.has_not(start_date)) {
         start_date <- timeline[1]
@@ -263,10 +248,10 @@
     }
     valid <- timeline >= lubridate::as_date(start_date) &
         timeline <= lubridate::as_date(end_date)
-    .check_that(
-        x = any(valid),
-        msg = paste("no valid data between", start_date, "and", end_date)
-    )
+
+    # postcondition - check that there exists at least one valid date
+    .check_that(any(valid))
+    # return valid dates
     return(timeline[valid])
 }
 
@@ -282,11 +267,8 @@
 .timeline_format <- function(dates) {
     # set caller to show in errors
     .check_set_caller(".timeline_format")
-    .check_length(
-        x = dates,
-        len_min = 1,
-        msg = "invalid date parameter"
-    )
+    .check_that(length(dates) >= 1)
+
     # convert to character (strsplit does not deal with dates)
     dates <- as.character(dates)
     # check type of date interval
@@ -297,27 +279,16 @@
             converted_dates <- lubridate::fast_strptime(dt, "%Y-%m")
         } else if (length(strsplit(dt, "-")[[1]]) == 3) {
             converted_dates <- lubridate::fast_strptime(dt, "%Y-%m-%d")
-        } else
-            stop("cannot convert date to YYYY-MM-DD format")
-        # transform to date object
+        }
         converted_dates <- lubridate::as_date(converted_dates)
         # check if there are NAs values
-        .check_that(
-            x = all(!is.na(converted_dates)),
-            msg = paste0("invalid date format '", dt, "' in file name")
-        )
+        .check_that(all(!is.na(converted_dates)))
         return(converted_dates)
     })
-
     # convert to a vector of dates
     converted_dates <- lubridate::as_date(converted_dates)
-    # post-condition
-    .check_length(
-        x = converted_dates,
-        len_min = length(dates),
-        len_max = length(dates),
-        msg = "invalid date values"
-    )
+    # postcondition
+    .check_that(length(converted_dates) == length(dates))
     return(converted_dates)
 }
 

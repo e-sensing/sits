@@ -56,16 +56,18 @@ sits_variance <- function(
         multicores = 2L,
         output_dir,
         version = "v1") {
+    # set caller for error messages
+    .check_set_caller("sits_variance")
     # Check if cube has data and metadata
     .check_raster_cube_files(cube)
     # check window size
-    .check_window_size(window_size, min = 3, max = 33)
+    .check_int_parameter(window_size, min = 3, max = 33, is_odd = TRUE)
     # check neighborhood fraction
     .check_num_parameter(neigh_fraction, min = 0., max = 1.0)
     # Check memsize
-    .check_memsize(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1, max = 2048)
     # check output_dir
     .check_output_dir(output_dir)
     # check version

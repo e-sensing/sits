@@ -57,20 +57,27 @@ sits_cube_copy <- function(cube,
                            multicores = 2L,
                            output_dir,
                            progress = TRUE) {
+    # Set caller for error msgs
+    .check_set_caller("sits_cube_copy")
     # Pre-conditions
     .check_is_raster_cube(cube)
+    # Cupe copy does not work for SAR data
+    if ("sar_cube" %in% class(cube) && !.check_is_regular(cube)) {
+        warning(.conf("messages"), "sits_cube_copy_sar_no_copy")
+        return(cube)
+    }
+    # check files
     .check_raster_cube_files(cube)
     if (.has(roi)) {
         sf_roi <- .roi_as_sf(roi, default_crs = cube$crs[[1]])
     } else {
         sf_roi <- NULL
     }
-    .check_res(res)
     if (inherits(output_dir, "character")) {
         output_dir <- path.expand(output_dir)
     }
     .check_output_dir(output_dir)
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
 
     # Prepare parallel processing
@@ -103,8 +110,6 @@ sits_cube_copy <- function(cube,
         # Return local tile
         local_asset
     }, progress = progress)
-    .check_empty_data_frame(cube_assets,
-        msg = "no intersection between roi and cube"
-    )
+    .check_empty_data_frame(cube_assets)
     .cube_merge_tiles(cube_assets)
 }

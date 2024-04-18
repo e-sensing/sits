@@ -39,8 +39,6 @@
                                        stac_query,
                                        tiles = NULL,
                                        platform = NULL) {
-    # set caller to show in errors
-    .check_set_caller(".source_items_new.bdc_cube")
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles)) {
         stac_query <- rstac::ext_query(q = stac_query, "bdc:tile" %in% tiles)

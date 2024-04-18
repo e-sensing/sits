@@ -271,6 +271,8 @@ tmap:
         font_family: "sans"
         n_breaks: 20
 
+tmap_continuous_style: ["cont", "order", "log10"]
+
 # maxbytes for leaflet (in MB)
 leaflet_megabytes : 64
 leaflet_min_megabytes : 16

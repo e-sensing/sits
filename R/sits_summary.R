@@ -138,6 +138,7 @@ summary.sits_area_accuracy <- function(object, ...) {
 #'
 #' @export
 summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
+    .check_set_caller("summary_raster_cube")
     # Pre-conditional check
     .check_date_parameter(date, allow_null = TRUE)
     .check_chr_parameter(tile, allow_null = TRUE)
@@ -160,7 +161,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
     cli::cli_li("Bands: {.field {sits_bands(object)}}")
     timeline <- unique(lubridate::as_date(unlist(.cube_timeline(object))))
     cli::cli_li("Timeline: {.field {timeline}}")
-    is_regular <- .cube_is_regular(object)
+    is_regular <- .check_is_regular(object)
     cli::cli_li("Regular cube: {.field {is_regular}}")
     # Display cube cloud coverage
     if ("CLOUD" %in% .cube_bands(object) &&
@@ -225,6 +226,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
 #'
 #' @export
 summary.derived_cube <- function(object, ..., tile = NULL) {
+    .check_set_caller("summary_derived_cube")
     # Pre-conditional check
     .check_chr_parameter(tile, allow_null = TRUE)
     # Extract the chosen tile
@@ -254,8 +256,7 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
         x = length(band),
         min = 1,
         max = 1,
-        is_integer = TRUE,
-        msg = "invalid cube - more than one probs band"
+        is_integer = TRUE
     )
     # extract the file paths
     files <- .tile_paths(tile)
@@ -309,6 +310,7 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
 #' @export
 #'
 summary.class_cube <- function(object, ..., tile = NULL) {
+    .check_set_caller("summary_class_cube")
     # Pre-conditional check
     .check_chr_parameter(tile, allow_null = TRUE)
     # Extract the chosen tile
@@ -331,14 +333,8 @@ summary.class_cube <- function(object, ..., tile = NULL) {
     cli::cli_h1("Cube Summary")
     tile <- .cube_filter_tiles(object, tile)
     # get the bands
-    band <- sits_bands(tile)
-    .check_num(
-        x = length(band),
-        min = 1,
-        max = 1,
-        is_integer = TRUE,
-        msg = "invalid cube - more than one probs band"
-    )
+    bands <- sits_bands(tile)
+    .check_chr_parameter(bands, len_min = 1, len_max = 1)
     # extract the file paths
     files <- .tile_paths(tile)
     # read raster files
@@ -368,9 +364,8 @@ summary.class_cube <- function(object, ..., tile = NULL) {
     sum_NA <- dplyr::filter(sum, is.na(.data[["area_km2"]]))
     # inform missing classes
     if (nrow(sum_NA) > 0) {
-        message(
-            "classes ", paste0(sum_NA$class, collapse = " "),
-            " have no area"
+        message(paste(.conf("messages", "summary_class_cube_area"),
+            paste0(sum_NA$class, collapse = " "))
         )
     }
     # show the result

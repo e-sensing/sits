@@ -661,7 +661,7 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
     expect_equal(bbox[["xmax"]], roi_cube_s1[["lon_max"]], tolerance = 0.01)
     expect_equal(bbox[["ymin"]], roi_cube_s1[["lat_min"]], tolerance = 0.01)
     expect_equal(bbox[["ymax"]], roi_cube_s1[["lat_max"]], tolerance = 0.01)
-    expect_true(all(c("VV", "VH") %in% sits_bands(cube_s1_stc_reg)))
+    expect_true(all(c("VV", "VH") %in% sits_bands(cube_s1_rtc_reg)))
 
 })
 

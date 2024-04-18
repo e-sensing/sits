@@ -30,19 +30,8 @@
         limit = 1
     )
     # assert that service is online
-    tryCatch(
-        {
-            items <- rstac::post_request(items_query, ...)
-        },
-        error = function(e) {
-            stop(
-                paste(
-                    ".source_collection_access_test.stac_cube: service is",
-                    "unreachable\n", e$message
-                ),
-                call. = FALSE
-            )
-        }
+    items <- .try({rstac::post_request(items_query, ...)},
+        default = NULL
     )
     .check_stac_items(items)
     items <- .source_items_bands_select(
@@ -58,17 +47,14 @@
     )
     # assert that token and/or href is valid
     if (dry_run) {
-        tryCatch(
+        # assert that service is online
+        items <- .try(
             {
-                .raster_open_rast(href)
+                rstac::post_request(items_query, ...)
             },
-            error = function(e) {
-                stop(paste(
-                    ".source_collection_access_test.stac_cube: cannot",
-                    "open url\n", href, "\n", e$message
-                ), call. = FALSE)
-            }
+            default = NULL
         )
+        .check_stac_items(items)
     }
     return(invisible(source))
 }
@@ -195,8 +181,7 @@
                                          items, ...,
                                          multicores = 2,
                                          progress) {
-    # set caller to show in errors
-    .check_set_caller(".source_items_cube.stac_cube")
+    .check_set_caller(".source_items_cube_stac_cube")
 
     # start by tile and items
     data <- tibble::tibble(
@@ -212,7 +197,6 @@
         ),
         features = items[["features"]]
     )
-
     if (.source_collection_metadata_search(
         source = source,
         collection = collection
@@ -245,7 +229,7 @@
         # get features
         features <- data[["items"]][[i]][["features"]]
         # post-condition
-        .check_num(length(features), min = 1, msg = "invalid features value")
+        .check_that(length(features) >= 1)
         # get item
         item <- features[[1]]
         # get file paths
@@ -255,7 +239,7 @@
             collection = collection, ...
         )
         # post-condition
-        .check_num(length(paths), min = 1, msg = "invalid href values")
+        .check_that(length(paths) >= 1)
         # open band rasters and retrieve asset info
         asset_info <- tryCatch(
             {
@@ -276,7 +260,8 @@
         )
         # check if metadata was retrieved
         if (is.null(asset_info)) {
-            warning("cannot open files:\n", paste(paths, collapse = ", "),
+            msg <- .conf("messages", ".source_items_cube_stac_cube")
+            warning(paste(msg,":\n", paste(paths, collapse = ", ")),
                 call. = FALSE
             )
             return(NULL)
@@ -309,16 +294,12 @@
             )
             cloud_cover <- .default(cloud_cover, 0)
             # post-conditions
-            .check_na(date, msg = "invalid date value")
-            .check_length(date,
-                len_min = 1, len_max = 1,
-                msg = "invalid date value"
-            )
-            .check_chr(bands, len_min = 1, msg = "invalid band value")
-            .check_chr(paths,
-                allow_empty = FALSE, len_min = length(bands),
-                len_max = length(bands),
-                msg = "invalid path value"
+            .check_date_parameter(date)
+            .check_chr_parameter(bands, len_min = 1)
+            .check_chr_parameter(paths,
+                allow_empty = FALSE,
+                len_min = length(bands),
+                len_max = length(bands)
             )
             # do in case of 'feature' strategy
             if (.source_collection_metadata_search(
@@ -345,9 +326,9 @@
                 )
                 # check if metadata was retrieved
                 if (is.null(asset_info)) {
-                    warning("cannot open files:\n",
-                        paste(paths, collapse = ", "),
-                        call. = FALSE
+                    msg <- .conf("messages", ".source_items_cube_stac_cube")
+                    warning(paste(msg,":\n", paste(paths, collapse = ", ")),
+                            call. = FALSE
                     )
                     return(NULL)
                 }
@@ -376,11 +357,7 @@
     cube <- dplyr::bind_rows(tiles)
 
     # post-condition
-    .check_that(
-        x = nrow(cube) > 0,
-        local_msg = "could not retrieve cube metadata",
-        msg = "empty cube metadata"
-    )
+    .check_that(nrow(cube) > 0)
 
     # review known malformed paths
     review_date <- .try(
@@ -484,9 +461,10 @@
 .source_item_get_hrefs.stac_cube <- function(source,
                                              item, ...,
                                              collection = NULL) {
+    .check_set_caller(".source_item_get_hrefs_stac_cube")
     hrefs <- unname(purrr::map_chr(item[["assets"]], `[[`, "href"))
     # post-conditions
-    .check_chr(hrefs, allow_empty = FALSE)
+    .check_chr_parameter(hrefs, allow_empty = FALSE)
     # add gdal VSI in href urls
     hrefs <- .stac_add_gdal_fs(hrefs)
     return(hrefs)
@@ -531,10 +509,9 @@
 .source_tile_get_bbox.stac_cube <- function(source,
                                             file_info, ...,
                                             collection = NULL) {
-    .check_set_caller(".source_tile_get_bbox.stac_cube")
 
     # pre-condition
-    .check_num(nrow(file_info), min = 1, msg = "invalid 'file_info' value")
+    .check_that(nrow(file_info) >= 1)
 
     # get bbox based on file_info
     xmin <- max(file_info[["xmin"]])
@@ -543,14 +520,7 @@
     ymax <- min(file_info[["ymax"]])
 
     # post-condition
-    .check_that(xmin < xmax,
-        local_msg = "xmin is greater than xmax",
-        msg = "invalid bbox value"
-    )
-    .check_that(ymin < ymax,
-        local_msg = "ymin is greater than ymax",
-        msg = "invalid bbox value"
-    )
+    .check_that(xmin < xmax && ymin < ymax)
     # create a bbox
     bbox <- c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
     return(bbox)
@@ -567,12 +537,11 @@
 .source_items_fid.stac_cube <- function(source,
                                         items, ...,
                                         collection = NULL) {
+    .check_set_caller(".source_items_fid_stac_cube")
     fid <- rstac::items_reap(items, field = "id")
     # post-conditions
-    .check_length(unique(fid),
-        len_min = length(fid), len_max = length(fid),
-        msg = "invalid feature id value"
-    )
+    exp_length <- length(fid)
+    .check_that(length(unique(fid)) == exp_length)
     return(fid)
 }
 #' @noRd
@@ -611,4 +580,15 @@
         cube <- dplyr::filter(cube, .data[["tile"]] %in% tiles)
     }
     return(cube)
+}
+#' @title Check if roi or tiles are provided
+#' @param source        Data source
+#' @param roi           Region of interest
+#' @param tiles         Tiles to be included in cube
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+#' @export
+.source_roi_tiles.stac_cube <- function(source, roi, tiles) {
+    return(invisible(source))
 }

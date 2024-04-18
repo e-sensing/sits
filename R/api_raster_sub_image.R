@@ -7,11 +7,9 @@
 #' @return                 vector with information on the subimage
 #'
 .raster_sub_image <- function(tile, sf_roi) {
+    .check_set_caller(".raster_sub_image")
     # pre-condition
-    .check_num(nrow(tile),
-        min = 1, max = 1, is_integer = TRUE,
-        msg = "process one tile only"
-    )
+    .check_int_parameter(nrow(tile), min = 1, max = 1)
 
     # calculate the intersection between the bbox of the ROI and the cube
     # transform the tile bbox to sf
@@ -39,41 +37,19 @@
 #'                       first col, nrows, ncols
 #'
 .raster_sub_image_from_bbox <- function(bbox, tile) {
+    .check_set_caller(".raster_sub_image_from_bbox")
     # pre-condition
-    .check_num(nrow(tile),
-        min = 1, max = 1, is_integer = TRUE,
-        msg = "process one tile only"
-    )
+    n_tiles <- nrow(tile)
+    .check_int_parameter(n_tiles, min = 1, max = 1)
 
     # pre-conditions
-    .check_num(bbox[["xmin"]],
-        max = bbox[["xmax"]],
-        msg = "invalid bbox value"
-    )
-
-    .check_num(bbox[["ymin"]],
-        max = bbox[["ymax"]],
-        msg = "invalid bbox value"
-    )
-
-    .check_num(bbox[["xmin"]],
-        min = tile[["xmin"]], max = tile[["xmax"]],
-        msg = "bbox value is outside the tile"
-    )
-
-    .check_num(bbox[["xmax"]],
-        min = tile[["xmin"]], max = tile[["xmax"]],
-        msg = "bbox value is outside the cube"
-    )
-
-    .check_num(bbox[["ymin"]],
-        min = tile[["ymin"]], max = tile[["ymax"]],
-        msg = "bbox value is outside the cube"
-    )
-
-    .check_num(bbox[["ymax"]],
-        min = tile[["ymin"]], max = tile[["ymax"]],
-        msg = "bbox value is outside the cube"
+    .check_that(
+            bbox[["xmin"]] < bbox[["xmax"]]   &&
+            bbox[["ymin"]] < bbox[["ymax"]]   &&
+            bbox[["xmin"]] >= tile[["xmin"]]  &&
+            bbox[["xmax"]] <= tile[["xmax"]]  &&
+            bbox[["ymin"]] >= tile[["ymin"]]  &&
+            bbox[["ymax"]] <= tile[["ymax"]]
     )
 
     # tile template
@@ -90,13 +66,11 @@
 
     # compute block
     r_crop <- .raster_crop_metadata(r_obj, bbox = bbox)
-    row <- .raster_row(
-        r_obj,
+    row <- .raster_row(r_obj,
         y = .raster_ymax(r_crop) - 0.5 * .raster_yres(r_crop)
     )
 
-    col <- .raster_col(
-        r_obj,
+    col <- .raster_col(r_obj,
         x = .raster_xmin(r_crop) + 0.5 * .raster_xres(r_crop)
     )
 
@@ -120,34 +94,32 @@
     )
 
     # pre-conditions
-    .check_num(si[["xmin"]],
-        max = si[["xmax"]],
-        msg = "invalid subimage value"
-    )
+    .check_that(si[["xmin"]] < si[["xmax"]])
+    .check_that(si[["ymin"]] < si[["ymax"]])
 
-    .check_num(si[["ymin"]],
-        max = si[["ymax"]],
-        msg = "invalid subimage value"
+    subimage_xmin <- si[["xmin"]]
+    .check_num_parameter(subimage_xmin,
+        min = tile[["xmin"]],
+        max = tile[["xmax"]],
+        tolerance = tolerance,
     )
-
-    .check_num(si[["xmin"]],
-        min = tile[["xmin"]], max = tile[["xmax"]],
-        tolerance = tolerance, msg = "invalid subimage value"
+    subimage_max <- si[["xmax"]]
+    .check_num_parameter(subimage_max,
+               min = tile[["xmin"]],
+               max = tile[["xmax"]],
+               tolerance = tolerance
     )
-
-    .check_num(si[["xmax"]],
-        min = tile[["xmin"]], max = tile[["xmax"]],
-        tolerance = tolerance, msg = "invalid subimage value"
+    subimage_ymin <- si[["ymin"]]
+    .check_num_parameter(subimage_ymin,
+        min = tile[["ymin"]],
+        max = tile[["ymax"]],
+        tolerance = tolerance
     )
-
-    .check_num(si[["ymin"]],
-        min = tile[["ymin"]], max = tile[["ymax"]],
-        tolerance = tolerance, msg = "invalid subimage value"
-    )
-
-    .check_num(si[["ymax"]],
-        min = tile[["ymin"]], max = tile[["ymax"]],
-        tolerance = tolerance, msg = "invalid subimage value"
+    subimage_ymax <- si[["ymax"]]
+    .check_num(subimage_ymax,
+        min = tile[["ymin"]],
+        max = tile[["ymax"]],
+        tolerance = tolerance
     )
 
     return(si)

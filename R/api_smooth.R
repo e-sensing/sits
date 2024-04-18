@@ -165,14 +165,14 @@
                              neigh_fraction,
                              smoothness) {
     # Check window size
-    .check_window_size(window_size, min = 5)
+    .check_int_parameter(window_size, min = 5, is_odd = TRUE)
     # Check neigh_fraction
     .check_num_parameter(neigh_fraction, exclusive_min = 0, max = 1)
 
     # Define smooth function
     smooth_fn <- function(values, block) {
         # Check values length
-        input_pixels <- nrow(values)
+        n_input_pixels <- nrow(values)
         # Compute logit
         values <- log(values / (rowSums(values) - values))
         # Process Bayesian
@@ -187,7 +187,7 @@
         # Compute inverse logit
         values <- exp(values) / (exp(values) + 1)
         # Are the results consistent with the data input?
-        .check_processed_values(values, input_pixels)
+        .check_processed_values(values, n_input_pixels)
         # Return values
         values
     }

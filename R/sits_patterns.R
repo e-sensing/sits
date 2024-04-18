@@ -36,6 +36,7 @@
 #'
 #' @export
 sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
+    .check_set_caller("sits_patterns")
     # verifies if mgcv package is installed
     .check_require_packages("mgcv")
     # function that is used to be called as a value from another function

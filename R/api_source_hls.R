@@ -15,17 +15,14 @@
                                        collection,
                                        stac_query,
                                        tiles = NULL) {
+    # set caller to show in errors
+    .check_set_caller(".source_items_new_hls_cube")
     # NASA EarthData requires a login/password combination
     netrc_path <- "~/.netrc"
     if (.Platform$OS.type == "windows") {
         netrc_path <- "%HOME%\\_netrc"
     }
-    if (!file.exists(netrc_path)) {
-        stop(paste(
-            "could not find .netrc file", "\n",
-            "Have you configured your access to NASA EarthData?"
-        ))
-    }
+    .check_that(file.exists(netrc_path))
     # convert tiles to a valid STAC query
     if (!is.null(tiles)) {
         roi <- .s2_mgrs_to_roi(tiles)
@@ -54,13 +51,7 @@
     # fetching all the metadata and updating to upper case instruments
     items_info <- rstac::items_fetch(items = items_info, progress = progress)
     # checks if the items returned any items
-    .check_that(
-        x = rstac::items_length(items_info) != 0,
-        msg = paste(
-            "the provided search returned 0 items. Please, verify",
-            "the provided parameters."
-        )
-    )
+    .check_stac_items(items_info)
     return(items_info)
 }
 #' @title Organizes items by tiles for HLS collections
@@ -85,18 +76,17 @@
 #' @param collection Image collection
 #' @return Called for side effects
 .source_configure_access.hls_cube <- function(source, collection = NULL) {
+    .check_set_caller(".source_configure_access_hls_cube")
     netrc_file <- "~/.netrc"
     if (.Platform$OS.type == "windows")
         netrc_file <- "%HOME%_netrc"
     # does the file exist
     if (!file.exists(netrc_file))
-        stop(paste("Missing HLS access configuration.",
-                    "Please see instructions in Chapter 4 of on-line book"))
+        stop(.conf("messages", ".source_configure_access_hls_cube"))
     else{
         conf_hls <- utils::read.delim(netrc_file)
         if (!(.conf("HLS_ACCESS_URL") %in% names(conf_hls)))
-            stop(paste("Missing HLS access configuration.",
-                       "Please see instructions in Chapter 4 of on-line book"))
+            stop(.conf("messages", ".source_configure_access_hls_cube"))
     }
     return(invisible(source))
 }

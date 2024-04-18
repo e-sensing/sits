@@ -19,8 +19,7 @@
     # pre-condition
     .check_chr(bands,
         allow_empty = FALSE, len_min = length(data_bands),
-        len_max = length(data_bands),
-        msg = "invalid 'bands' value"
+        len_max = length(data_bands)
     )
     .apply(x, col = "time_series", fn = function(x) {
         # create a conversor
@@ -47,8 +46,7 @@
     .check_chr(bands,
         allow_empty = FALSE,
         len_min = length(data_bands),
-        len_max = length(data_bands),
-        msg = "invalid 'bands' value"
+        len_max = length(data_bands)
     )
     .apply(x, col = "file_info", fn = function(x) {
         x <- tidyr::pivot_wider(x,

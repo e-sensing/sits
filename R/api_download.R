@@ -33,12 +33,7 @@
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         if (.check_messages()) {
-            message("Recovery: file '", out_file, "' already exists.")
-            message(
-                "(If you want to get a new version, please ",
-                "change 'output_dir' parameter
-                    or delete the existing file)"
-            )
+            .check_recovery(out_file)
         }
         asset <- .download_update_asset(
             asset = asset, roi = sf_roi, res = res, out_file = out_file

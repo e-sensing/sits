@@ -27,10 +27,11 @@ sits_colors <- function(legend = NULL) {
                 match(colors, color_table_legend$name), ]
             return(color_table_legend)
         } else {
-            print("Selected map legend not available")
-            leg <- paste0(paste("Please select one of the legends: "),
+            message(.conf("messages", "sits_colors_legend_not_available"))
+            leg <- paste0(paste(.conf("messages", "sits_colors_legends"),
                           paste(names(sits_env$legends), collapse = ", "))
-            print(leg)
+            )
+            message(leg)
             return(NULL)
         }
     }
@@ -59,14 +60,15 @@ sits_colors_show <- function(legend = NULL,
     if (.has_not(legend))
         legend <- "none"
     if (!(legend %in% names(sits_env$legends))) {
-        msg <- paste0(paste("Please select one of the legends: "),
-                      paste(names(sits_env$legends), collapse = ", "))
-        print(msg)
+        leg <- paste0(paste(.conf("messages", "sits_colors_legends"),
+                            paste(names(sits_env$legends), collapse = ", "))
+        )
+        message(leg)
         return(invisible(NULL))
     }
     # retrieve the color names associated to the legend
     colors <- sits_env$legends[[legend]]
-    # retrive the HEX codes associated to each color
+    # retrieve the HEX codes associated to each color
     color_table_legend <- sits_env$color_table |>
         dplyr::filter(.data[["name"]] %in% colors)
     # order the colors to match the order of the legend
@@ -138,12 +140,14 @@ sits_colors_show <- function(legend = NULL,
 #' @export
 #'
 sits_colors_set <- function(colors, legend = NULL) {
+    # set caller for error messages
+    .check_set_caller("sits_colors_set")
     # add the new color table
     new_color_tb <- .conf_add_color_table(colors)
     if (.has(legend)) {
         # add the list of color names to a new legend
-        .check_chr_parameter(legend, msg = "invalid legend")
-        # crete a new legend entry
+        .check_chr_parameter(legend)
+        # create a new legend entry
         new_legend_entry <- list()
         # add the colors from the color table
         new_legend_entry[[1]] <- dplyr::pull(colors, .data[["name"]])
@@ -181,26 +185,37 @@ sits_colors_reset <- function() {
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'     # reset the default colors supported by SITS
-#'     sits_colors_reset()
+#'    data_dir <- system.file("extdata/raster/classif", package = "sits")
+#'    ro_class <- sits_cube(
+#'       source = "MPC",
+#'       collection = "SENTINEL-2-L2A",
+#'       data_dir = data_dir,
+#'       parse_info = c( "X1", "X2", "tile", "start_date", "end_date",
+#'                       "band", "version"),
+#'       bands = "class",
+#'       labels = c(
+#'            "1" = "Clear_Cut_Burned_Area",
+#'            "2" = "Clear_Cut_Bare_Soil",
+#'            "3" = "Clear_Cut_Vegetation",
+#'            "4" = "Forest")
+#'   )
+#'   qml_file <- paste0(tempdir(), "/qgis.qml")
+#'   sits_colors_qgis(ro_class, )
 #' }
 #' @export
 #'
 sits_colors_qgis <- function(cube, file) {
+    .check_set_caller("sits_colors_qgis")
     # check if cube is a class cube
-    .check_cube_is_class_cube(cube)
+    .check_is_class_cube(cube)
     # check if the file name is valid
-    .check_file(file,
-                file_exists = FALSE,
-                msg = "Please select a valid file name")
+    .check_file(file, file_exists = FALSE)
     # retrieve the labels of the cube
     labels <- sits_labels(cube)
     # select the colors for the labels of the cube
     color_table <- .conf_colors()
     # check all labels are in the color table
-    .check_chr_within(labels,
-                      color_table$name,
-                      msg = "all labels should be included in the color table")
+    .check_chr_within(labels, color_table$name)
     # filter the color table
     color_table <- color_table |>
         dplyr::filter(.data[["name"]] %in% labels)

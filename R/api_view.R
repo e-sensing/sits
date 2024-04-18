@@ -633,13 +633,12 @@
                              palette,
                              opacity,
                              output_size) {
+    # set caller to show in errors
+    .check_set_caller(".view_class_cube")
     # should we overlay a classified image?
     if (.has(class_cube)) {
         # check that class_cube is valid
-        .check_that(
-            x = inherits(class_cube, c("class_cube")),
-            msg = "classified cube to be overlayed is invalid"
-        )
+        .check_that(inherits(class_cube, c("class_cube")))
         # get the labels
         labels <- unlist(.cube_labels(class_cube, dissolve = FALSE))
         if (.has_not(names(labels))) {
@@ -773,12 +772,9 @@
 #'
 #'
 .view_filter_tiles <- function(cube, tiles) {
+    .check_set_caller(".view_filter_tiles")
     # try to find tiles in the list of tiles of the cube
-    .check_chr_within(
-        tiles,
-        cube$tile,
-        msg = "requested tiles are not part of cube"
-    )
+    .check_that(all(tiles %in% cube$tile))
     # filter the tiles to be processed
     cube <- .cube_filter_tiles(cube, tiles)
     return(cube)
@@ -903,12 +899,11 @@
 .view_add_overlay_grps.raster_cube <- function(cube, ...,
                                                dates = NULL,
                                                class_cube = NULL) {
+    # set caller to show in errors
+    .check_set_caller(".view_add_overlay_grps_raster_cube")
     overlay_groups <- NULL
     # raster cube needs dates
-    .check_that(
-        x = .has(dates),
-        msg = "raster cube must have associated dates"
-    )
+    .check_that(.has(dates))
     grps <- unlist(purrr::map(cube[["tile"]], function(tile) {
         paste(tile, dates)
     }))

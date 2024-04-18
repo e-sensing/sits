@@ -70,8 +70,7 @@
         len_min = length(labels),
         len_max = length(labels),
         is_named = TRUE,
-        has_unique_names = FALSE,
-        msg = "invalid color values"
+        has_unique_names = FALSE
     )
     return(colors)
 }

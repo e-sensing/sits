@@ -5,7 +5,7 @@
 \title{Check is date is valid}
 \usage{
 .check_date_parameter(
-  param,
+  x,
   len_min = 1,
   len_max = 1,
   allow_null = FALSE,
@@ -13,7 +13,7 @@
 )
 }
 \arguments{
-\item{param}{parameter to be checked}
+\item{x}{parameter to be checked}
 
 \item{len_min}{minimum length of vector}
 

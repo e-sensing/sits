@@ -118,11 +118,7 @@
         # Resume feature
         if (.raster_is_valid(out_file, output_dir = output_dir)) {
             if (.check_messages()) {
-                message("Recovery: file '", out_file, "' already exists.")
-                message(
-                    "(If you want to produce a new cropped image, please ",
-                    "change 'version' or 'output_dir' parameter)"
-                )
+                .check_recovery(out_file)
             }
             base_tile <- .tile_from_file(
                 file = out_file, base_tile = base_tile,
@@ -179,13 +175,7 @@
     )
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
-        if (.check_messages()) {
-            message("Recovery: file '", out_file, "' already exists.")
-            message(
-                "(If you want to produce a new cropped image, please ",
-                "change 'version' or 'output_dir' parameter)"
-            )
-        }
+        .check_recovery(out_file)
         asset <- .tile_from_file(
             file = out_file, base_tile = asset,
             band = .tile_bands(asset), update_bbox = TRUE,

@@ -46,6 +46,7 @@
 #' @export
 #'
 sits_geo_dist <- function(samples, roi, n = 1000L, crs = "EPSG:4326") {
+    .check_set_caller("sits_geo_dist")
     # Pre-conditions
     samples <- .check_samples(samples)
     if (.has(roi)) {

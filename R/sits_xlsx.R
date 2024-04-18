@@ -67,11 +67,7 @@ sits_to_xlsx.list <- function(acc, file) {
               (Pos Pred Value)|(Neg Pred Value)|(F1)")
     # defined the number of sheets
     num_sheets <- length(acc)
-    .check_length(
-        x = num_sheets,
-        len_min = 1,
-        msg = "number of sheets should be at least one"
-    )
+    .check_that(length(num_sheets) >= 1)
     # save all elements of the list
     purrr::map2(acc, 1:num_sheets, function(cf_mat, ind) {
         # create a worksheet for each confusion matrix
@@ -143,5 +139,5 @@ sits_to_xlsx.list <- function(acc, file) {
     # write the worksheets to the XLSX file
     openxlsx::saveWorkbook(workbook, file = file, overwrite = TRUE)
 
-    return(message(paste("Saved Excel file", file)))
+    return(message(paste(.conf("messages", "sits_to_xlsx_save"), file)))
 }

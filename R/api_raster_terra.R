@@ -97,6 +97,7 @@
     r_obj <- suppressWarnings(
         terra::rast(x = .file_normalize(file), ...)
     )
+    .check_null_parameter(r_obj)
     # remove gain and offset applied by terra
     terra::scoff(r_obj) <- NULL
     r_obj
@@ -118,7 +119,7 @@
                                      overwrite, ...,
                                      missing_value = NA) {
     # set caller to show in errors
-    .check_set_caller(".raster_write_rast.terra")
+    .check_set_caller(".raster_write_rast_terra")
 
     suppressWarnings(
         terra::writeRaster(
@@ -134,10 +135,7 @@
         )
     )
     # was the file written correctly?
-    .check_file(
-        x = file,
-        msg = "unable to write raster object"
-    )
+    .check_file(file)
     return(invisible(r_obj))
 }
 #' @title Create raster object
@@ -538,6 +536,6 @@
 #' @keywords internal
 #' @noRd
 #' @export
-.raster_polygonize.terra <- function(r_obj, dissolve = TRUE, ...) {
+.raster_extract_polygons.terra <- function(r_obj, dissolve = TRUE, ...) {
     terra::as.polygons(r_obj, dissolve = TRUE, ...)
 }

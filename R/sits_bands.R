@@ -39,6 +39,7 @@
 #'}
 #' @export
 sits_bands <- function(x) {
+    .check_set_caller("sits_bands")
     UseMethod("sits_bands", x)
 }
 
@@ -50,15 +51,14 @@ sits_bands.sits <- function(x) {
 #' @rdname sits_bands
 #' @export
 sits_bands.raster_cube <- function(x) {
+    # set caller to show in errors
+    .check_set_caller("sits_bands")
     bands_lst <- slider::slide(x, function(tile) {
         bands_tile <- .tile_bands(tile)
         return(sort(bands_tile))
     })
     bands <- unique(bands_lst)
-    .check_that(length(bands) == 1,
-        local_msg = "tiles have different bands",
-        msg = "cube is inconsistent"
-    )
+    .check_that(length(bands) == 1)
     return(unlist(bands))
 }
 #' @rdname sits_bands
@@ -69,7 +69,6 @@ sits_bands.patterns <- function(x) {
 #' @rdname sits_bands
 #' @export
 sits_bands.sits_model <- function(x) {
-    .check_is_sits_model(x)
     bands <- .ml_bands(x)
     return(bands)
 }
@@ -82,13 +81,15 @@ sits_bands.default <- function(x) {
     } else if (all(.conf("sits_tibble_cols") %in% colnames(x))) {
         class(x) <- c("sits", class(x))
     } else
-        stop("Input should be a sits tibble or a data cube")
+        stop(.conf("messages", "sits_bands_default"))
     bands <- sits_bands(x)
     return(bands)
 }
 #' @rdname sits_bands
 #' @export
 `sits_bands<-` <- function(x, value) {
+    # set caller to show in errors
+    .check_set_caller("sits_bands_assign")
     .check_chr(value, len_min = 1)
     value <- toupper(value)
     UseMethod("sits_bands<-", x)
@@ -98,11 +99,7 @@ sits_bands.default <- function(x) {
 #' @export
 `sits_bands<-.sits` <- function(x, value) {
     bands <- sits_bands(x)
-    .check_that(
-        length(bands) == length(value),
-        local_msg = paste0("bands must have length ", length(bands)),
-        msg = "invalid band list"
-    )
+    .check_that(length(bands) == length(value))
     x <- .apply(x, col = "time_series", fn = function(x) {
         names(x) <- c("Index", value, "#..")
         return(x)
@@ -113,11 +110,8 @@ sits_bands.default <- function(x) {
 #' @export
 `sits_bands<-.raster_cube` <- function(x, value) {
     bands <- sits_bands(x)
-    .check_that(
-        length(bands) == length(value),
-        local_msg = paste0("bands must have length ", length(bands)),
-        msg = "invalid band list"
-    )
+    # precondition
+    .check_that(length(bands) == length(value))
     x <- slider::slide_dfr(x, function(tile) {
         .tile_bands(tile) <- value
         tile
@@ -127,5 +121,6 @@ sits_bands.default <- function(x) {
 #' @rdname sits_bands
 #' @export
 `sits_bands<-.default` <- function(x, value) {
-    stop("Input should be an object of class sits, raster_cube, or ml_model")
+    .check_set_caller("sits_bands_assign_default")
+    .check_that(class(x) %in% c("sits", "raster_cube"))
 }

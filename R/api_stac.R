@@ -9,17 +9,12 @@
 #'
 #' @return a \code{STACItemcollection} object with selected items by bands.
 .stac_select_bands <- function(items, bands_source, bands_sits) {
+    .check_set_caller(".stac_select_bands")
     # verify if the mapped band in on item assets
     .check_chr_within(
         x = bands_source,
         within = rstac::items_fields(items, "assets"),
-        case_sensitive = FALSE,
-        msg = paste(
-            "The bands contained in this product",
-            "are not mapped in the SITS package,",
-            "if you want to include them please",
-            "provide it in configuration file."
-        )
+        case_sensitive = FALSE
     )
     # covert bands to sits names
     bands_source <- toupper(bands_source)
@@ -31,8 +26,7 @@
         names(item$assets) <- toupper(names(item$assets))
         item$assets <- item$assets[bands_source]
         names(item$assets) <- unname(bands_converter[names(item$assets)])
-
-        item
+        return(item)
     })
     return(items)
 }
@@ -64,16 +58,12 @@
 #'
 #' @return      a \code{character} formatted as parameter to STAC requisition.
 .stac_format_platform <- function(source, collection, platform) {
+    .check_set_caller(".stac_format_platform")
     platforms <- .conf(
         "sources", source, "collections", collection, "platforms"
     )
-
     platform_source <- platforms[platform]
-    .check_length(
-        x = platform_source,
-        len_min = 1,
-        len_max = 1
-    )
+    .check_that(length(platform_source) == 1)
 
     return(unlist(platform_source, use.names = FALSE))
 }

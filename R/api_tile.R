@@ -527,13 +527,11 @@ NULL
 }
 #' @export
 `.tile_bands<-.raster_cube` <- function(tile, value) {
+    # set caller to show in errors
+    .check_set_caller(".tile_bands_assign")
     tile <- .tile(tile)
     bands <- .tile_bands(tile)
-    .check_that(
-        length(bands) == length(value),
-        local_msg = paste0("bands must have length ", length(bands)),
-        msg = "invalid band list"
-    )
+    .check_that(length(bands) == length(value))
     rename <- value
     names(rename) <- bands
     .fi(tile) <- .fi_rename_bands(.fi(tile), rename = rename)
@@ -1127,15 +1125,13 @@ NULL
 #' @return a new tile
 .tile_derived_from_file <- function(file, band, base_tile, derived_class,
                                     labels = NULL, update_bbox = FALSE) {
+    # set caller to show in errors
+    .check_set_caller(".tile_derived_from_file")
     if (derived_class %in% c("probs_cube", "variance_cube")) {
         # Open first block file to be merged
         r_obj <- .raster_open_rast(file)
         # Check number of labels is correct
-        .check_that(
-            x = .raster_nlayers(r_obj) == length(labels),
-            local_msg = "number of image layers does not match labels",
-            msg = "invalid 'file' parameter"
-        )
+        .check_that(.raster_nlayers(r_obj) == length(labels))
     }
 
     base_tile <- .tile(base_tile)
@@ -1147,7 +1143,7 @@ NULL
         .xmax(base_tile) <- .raster_xmax(r_obj)
         .ymin(base_tile) <- .raster_ymin(r_obj)
         .ymax(base_tile) <- .raster_ymax(r_obj)
-        .crs(base_tile) <- .raster_crs(r_obj)
+        .crs(base_tile)  <- .raster_crs(r_obj)
     }
     # Update labels before file_info
     .tile_labels(base_tile) <- labels
@@ -1216,15 +1212,13 @@ NULL
 .tile_derived_merge_blocks <- function(file, band, labels, base_tile,
                                        derived_class, block_files, multicores,
                                        update_bbox = FALSE) {
+    # set caller to show in errors
+    .check_set_caller(".tile_derived_merge_blocks")
     if (derived_class %in% c("probs_cube", "variance_cube")) {
         # Open first block file to be merged
         r_obj <- .raster_open_rast(unlist(block_files)[[1]])
         # Check number of labels is correct
-        .check_that(
-            x = .raster_nlayers(r_obj) == length(labels),
-            local_msg = "number of image layers does not match labels",
-            msg = "invalid 'file' parameter"
-        )
+        .check_that(.raster_nlayers(r_obj) == length(labels))
     }
     base_tile <- .tile(base_tile)
     # Get conf band

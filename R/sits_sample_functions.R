@@ -35,7 +35,7 @@ sits_sample <- function(data,
     .check_num_parameter(frac, min = 0.0, max = 2.0,
                          msg = "invalid frac parameter")
     # check oversample
-    .check_lgl_parameter(oversample, msg = "invalid oversample parameter")
+    .check_lgl_parameter(oversample)
     # group the data by label
     groups <- by(data, data[["label"]], list)
     # for each group of samples, obtain the required subset
@@ -109,14 +109,8 @@ sits_reduce_imbalance <- function(samples,
     .check_int_parameter(n_samples_under)
 
     # check if number of required samples are correctly entered
-    .check_that(
-        n_samples_under >= n_samples_over,
-        local_msg = paste0(
-            "number of samples to undersample for large ",
-            "classes should be higher or equal to number ",
-            "of samples to oversample for small classes"
-        ),
-        msg = "invalid 'n_samples_over' and 'n_samples_under' parameters"
+    .check_that(n_samples_under >= n_samples_over,
+        msg = .conf("messages", "sits_reduce_imbalance_samples")
     )
     # get the bands and the labels
     bands <- sits_bands(samples)
@@ -295,10 +289,11 @@ sits_sampling_design <- function(cube,
                                  expected_ua = 0.75,
                                  std_err = 0.01,
                                  rare_class_prop = 0.1){
+    .check_set_caller("sits_sampling_design")
     # check the cube is valid
     .check_raster_cube_files(cube)
     # check cube is class cube
-    .check_cube_is_class_cube(cube)
+    .check_is_class_cube(cube)
     # get the labels
     labels <- .cube_labels(cube)
     n_labels <- length(labels)
@@ -307,15 +302,9 @@ sits_sampling_design <- function(cube,
         names(expected_ua) = labels
     }
     # check number of labels
-    .check_that(length(expected_ua) == n_labels,
-                msg = "Expected values of user's accuracy
-                should match number of labels"
-    )
+    .check_that(length(expected_ua) == n_labels)
     # check names of labels
-    .check_that(all(labels %in% names(expected_ua)),
-                msg = "Expected values of user's accuracy
-                should contain names of labels"
-    )
+    .check_that(all(labels %in% names(expected_ua)))
     # adjust names to match cube labels
     expected_ua <- expected_ua[labels]
     # get cube class areas
@@ -424,31 +413,28 @@ sits_stratified_sampling <- function(cube,
                                      multicores = 2L,
                                      shp_file = NULL,
                                      progress = TRUE){
+    .check_set_caller("sits_stratified_sampling")
     # check the cube is valid
     .check_raster_cube_files(cube)
     # check cube is class cube
-    .check_cube_is_class_cube(cube)
+    .check_is_class_cube(cube)
     # get the labels
     labels <- .cube_labels(cube)
     n_labels <- length(labels)
     # check number of labels
-    .check_that(nrow(sampling_design) == n_labels,
-                msg = "Labels in sampling design do not match labels in cube"
-    )
+    .check_that(nrow(sampling_design) == n_labels)
     # check names of labels
-    .check_that(all(rownames(sampling_design) %in% labels),
-                msg = "Labels in sampling design do not match labels in cube"
-    )
+    .check_that(all(rownames(sampling_design) %in% labels))
     # check allocation method
     .check_that(alloc %in% colnames(sampling_design),
-                msg = "allocation method is not included in sampling design")
+                msg = .conf("messages", "sits_sampling_design_alloc"))
     # retrieve samples class
     samples_class <- unlist(sampling_design[,alloc])
     # check samples class
-    .check_that(all(unname(samples_class) == floor(unname(samples_class))),
-                msg = "allocation values should be integer"
+    .check_int_parameter(samples_class,
+            msg = .conf("messages", "sits_sampling_design_samples")
     )
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
     # name samples class
     names(samples_class) <- rownames(sampling_design)
@@ -486,9 +472,12 @@ sits_stratified_sampling <- function(cube,
     })
     if (.has(shp_file)) {
         .check_that(tools::file_ext(shp_file) == "shp",
-                    msg = "invalid shapefile name")
+                    msg = .conf("messages", "sits_sampling_design_shp")
+        )
         sf::st_write(samples, shp_file, append = FALSE)
-        message(paste("Saved samples in shapefile ", shp_file))
+        message(paste(.conf("messages", "sits_sampling_design_shp_save"),
+                      shp_file)
+        )
     }
     return(samples)
 }

@@ -101,13 +101,7 @@
     )
     # Resume feature
     if (.segments_is_valid(out_file)) {
-        if (.check_messages()) {
-            message("Recovery: tile '", tile[["tile"]], "' already exists.")
-            message(
-                "(If you want to produce a new image, please ",
-                "change 'output_dir' or 'version' parameters)"
-            )
-        }
+        .check_recovery(out_file)
         # Create tile based on template
         class_tile <- .tile_segments_from_file(
             file = out_file,
@@ -153,10 +147,10 @@
 .label_fn_majority <- function() {
     label_fn <- function(values) {
         # Used to check values (below)
-        input_pixels <- nrow(values)
+        n_input_pixels <- nrow(values)
         values <- C_label_max_prob(values)
         # Are the results consistent with the data input?
-        .check_processed_values(values, input_pixels)
+        .check_processed_values(values, n_input_pixels)
         # Return values
         values
     }

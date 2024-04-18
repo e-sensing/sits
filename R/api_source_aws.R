@@ -17,9 +17,8 @@
                                        stac_query, ...,
                                        tiles = NULL,
                                        platform = NULL) {
-    # set caller to show in errors
-    .check_set_caller(".source_items_new.aws_cube")
 
+    # check if platform is set
     if (!is.null(platform)) {
         platform <- .stac_format_platform(
             source = source,
@@ -173,16 +172,12 @@
 #' @param collection Image collection
 #' @return Called for side effects
 .source_configure_access.aws_cube <- function(source, collection) {
+    .check_set_caller(".source_configure_access_aws_cube")
     if (.conf("sources", "AWS", "collections", collection, "open_data")
               == "false") {
         aws_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
         if (nchar(aws_access_key) == 0)
-            stop(
-                paste("You need a valid AWS_SECRET_ACCESS_KEY",
-                      "to access this collection.",
-                      "If you have this key",
-                      "please put it on an enviromental variable")
-            )
+            stop(.conf("messages", ".source_configure_access_aws_cube"))
     }
     return(invisible(source))
 }

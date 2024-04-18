@@ -83,7 +83,8 @@
     .check_set_caller(".gc_create_cube_view")
 
     # pre-conditions
-    .check_has_one_tile(tile)
+    .check_that(nrow(tile) == 1)
+
 
     # get bbox roi
     if (!is.null(roi)) {
@@ -340,13 +341,6 @@
     # set caller to show in errors
     .check_set_caller(".gc_get_valid_timeline")
 
-    # pre-condition
-    .check_chr(period,
-        allow_empty = FALSE,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'period' parameter"
-    )
-
     # start date - maximum of all minimums
     max_min_date <- do.call(
         what = max,
@@ -354,7 +348,6 @@
             return(min(file_info[["date"]]))
         })
     )
-
     # end date - minimum of all maximums
     min_max_date <- do.call(
         what = min,
@@ -362,13 +355,9 @@
             return(max(file_info[["date"]]))
         })
     )
-
     # check if all timeline of tiles intersects
-    .check_that(
-        x = max_min_date <= min_max_date,
-        msg = "the timeline of the cube tiles do not intersect."
-    )
-
+    .check_that(max_min_date <= min_max_date)
+    # define dates for period
     if (substr(period, 3, 3) == "M") {
         max_min_date <- lubridate::date(paste(
             lubridate::year(max_min_date),
@@ -383,7 +372,6 @@
             sep = "-"
         ))
     }
-
     # generate timeline
     date <- lubridate::ymd(max_min_date)
     min_max_date <- lubridate::ymd(min_max_date)
@@ -393,7 +381,6 @@
         if (date > min_max_date) break
         tl <- c(tl, date)
     }
-
     # Add extra time step
     if (extra_date_step) {
         tl <- c(tl, tl[[length(tl)]] %m+% lubridate::period(period))
@@ -443,10 +430,7 @@
         )
     )
     # post-condition
-    .check_length(img_paths,
-        len_min = 1,
-        msg = "no image was created"
-    )
+    .check_that(length(img_paths) >= 1)
 
     return(img_paths)
 }
@@ -488,14 +472,12 @@
                            progress = progress) {
     # set caller to show in errors
     .check_set_caller(".gc_regularize")
-
     # require gdalcubes package
     .check_require_packages("gdalcubes")
 
     # filter only intersecting tiles
-    if (.has(roi)) {
+    if (.has(roi))
         cube <- .cube_filter_spatial(cube, roi = roi)
-    }
 
     # timeline of intersection
     timeline <- .gc_get_valid_timeline(cube, period = period)
@@ -507,7 +489,6 @@
         period = period,
         roi = roi
     )
-
     # start processes
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop())
@@ -527,14 +508,12 @@
             return(NULL)
         }
     )
-
     # find the tiles that have not been processed yet
     jobs <- .gc_missing_tiles(
         cube = cube,
         local_cube = local_cube,
         timeline = timeline
     )
-
     # recovery mode
     finished <- length(jobs) == 0
 
@@ -551,26 +530,18 @@
 
             # we consider token is expired when the remaining time is
             # less than 5 minutes
-            if (.cube_is_token_expired(cube)) {
+            if (.cube_is_token_expired(cube))
                 return(NULL)
-            }
 
             # filter tile
             tile <- dplyr::filter(cube, .data[["tile"]] == !!tile_name)
-
             # post-condition
-            .check_that(
-                nrow(tile) == 1,
-                local_msg = paste0("no tile '", tile_name, "' found"),
-                msg = "invalid tile"
-            )
+            .check_that(nrow(tile) == 1)
 
             # append gdalcubes path
             path_db <- tempfile(pattern = "gc", fileext = ".db")
-
             # create an image collection
             .gc_create_database_stac(cube = tile, path_db = path_db)
-
             # create a gdalcubes::cube_view
             cube_view <- .gc_create_cube_view(
                 tile = tile,

@@ -42,19 +42,14 @@ sits_merge <- function(data1, data2, ...) {
 #' @rdname sits_merge
 #' @export
 sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
+    .check_set_caller("sits_merge_sits")
     # precondition - data sets are not empty
-    .check_that(
-        x = nrow(data1) > 0 & nrow(data2) > 0,
-        msg = "invalid input data"
-    )
+    .check_that(nrow(data1) > 0 & nrow(data2) > 0)
     # check that data2 and data1 are sits tibble
     .check_samples_ts(data1)
     .check_samples_ts(data2)
     # verify if data1 and data2 have the same number of rows
-    .check_that(
-        x = nrow(data1) == nrow(data2),
-        msg = "cannot merge tibbles of different sizes"
-    )
+    .check_that(nrow(data1) == nrow(data2))
     # are the names of the bands different?
     bands1 <- sits_bands(data1)
     bands2 <- sits_bands(data2)
@@ -65,16 +60,8 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
         bands2_names <- rep(x = suffix[[2]], length(coincidences2))
         bands1[coincidences1] <- paste0(bands1[coincidences1], bands1_names[coincidences1])
         bands2[coincidences2] <- paste0(bands2[coincidences2], bands2_names[coincidences2])
-        .check_that(
-            !any(bands1 %in% bands2),
-            local_msg = "duplicated band names",
-            msg = "invalid band names"
-        )
-        .check_that(
-            !any(bands2 %in% bands1),
-            local_msg = "duplicated band names",
-            msg = "invalid band names"
-        )
+        .check_that(!any(bands1 %in% bands2))
+        .check_that(!any(bands2 %in% bands1))
         data1 <- .band_rename(data1, bands1)
         data2 <- .band_rename(data2, bands2)
     }
@@ -95,16 +82,14 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 #' @export
 #'
 sits_merge.raster_cube <- function(data1, data2, ...) {
+    .check_set_caller("sits_merge_raster_cubes")
     # pre-condition - check cube type
     .check_is_raster_cube(data1)
     .check_is_raster_cube(data2)
     # aligning tiles
     data1 <- dplyr::arrange(data1, .data[["tile"]])
     data2 <- dplyr::arrange(data2, .data[["tile"]])
-    .check_that(
-        x = all(sort(.cube_tiles(data1)) == sort(.cube_tiles(data2))),
-        msg = "merge cubes requires same tiles"
-    )
+    .check_that(all(sort(.cube_tiles(data1)) == sort(.cube_tiles(data2))))
     if (inherits(data1, "hls_cube") && inherits(data2, "hls_cube")) {
         if (.cube_collection(data1) == "HLSS30" ||
             .cube_collection(data2) == "HLSS30") {
@@ -133,5 +118,5 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
 #' @rdname sits_merge
 #' @export
 sits_merge.default <- function(data1, data2, ...){
-    stop("Input should be objects of class sits or class raster_cube")
+    stop(.conf("messages", "sits_merge_default"))
 }

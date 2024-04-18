@@ -63,7 +63,7 @@ sits_smooth_skater <- function(cube,
     # Check memsize
     .check_memsize(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1, max = 2048)
     # Check output dir
     output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)

@@ -31,6 +31,8 @@
 #' sits_config(config_user_file = yaml_user_file)
 #' @export
 sits_config <- function(config_user_file = NULL) {
+    # load the error messages file
+    .conf_load_messages()
     # load the internal configuration file
     config_internals_file <- .conf_internals_file()
 

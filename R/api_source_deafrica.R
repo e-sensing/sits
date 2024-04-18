@@ -17,8 +17,6 @@
                                             stac_query,
                                             tiles = NULL,
                                             platform = NULL) {
-    # set caller to show in errors
-    .check_set_caller(".source_items_new.deafrica_cube")
 
     # Convert roi to bbox
     lon <- stac_query$params$intersects$coordinates[, , 1]
@@ -39,13 +37,7 @@
     # fetching all the metadata and updating to upper case instruments
     items_info <- rstac::items_fetch(items = items_info, progress = progress)
     # checks if the items returned any items
-    .check_that(
-        x = rstac::items_length(items_info) != 0,
-        msg = paste(
-            "the provided search returned 0 items. Please, verify",
-            "the provided parameters."
-        )
-    )
+    .check_stac_items(items_info)
     return(items_info)
 }
 #' @title Create an items object in an DEAfrica cube
@@ -68,7 +60,7 @@
                                                    tiles = NULL,
                                                    platform = NULL) {
     # set caller to show in errors
-    .check_set_caller(".source_items_new.deafrica_cube")
+    .check_set_caller(".source_items_new")
 
     if (!is.null(tiles)) {
         roi <- .s2_mgrs_to_roi(tiles)
@@ -98,13 +90,7 @@
     # fetching all the metadata and updating to upper case instruments
     items_info <- rstac::items_fetch(items = items_info, progress = progress)
     # checks if the items returned any items
-    .check_that(
-        x = rstac::items_length(items_info) != 0,
-        msg = paste(
-            "the provided search returned 0 items. Please, verify",
-            "the provided parameters."
-        )
-    )
+    .check_stac_items(items_info)
     return(items_info)
 }
 #' @title Organizes items by tiles for DEAfrica collections

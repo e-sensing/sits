@@ -98,12 +98,6 @@ NULL
     setequal(names(x), c(.point_cols, "crs"))
 }
 
-.check_point <- function(x) {
-    if (!.is_point(x)) {
-        stop("object is not a valid point")
-    }
-}
-
 #' @title Extract a \code{point} from any given \code{vector}.
 #' @returns \code{.point()}: \code{point}.
 #' @noRd

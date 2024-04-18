@@ -45,9 +45,9 @@
 #' and the accuracy (user, producer, and overall).
 .accuracy_area_assess <- function(cube, error_matrix, area) {
     # set caller to show in errors
-    .check_set_caller(".sits_accuracy_area_assess")
+    .check_set_caller(".accuracy_area_assess")
     # check if cube has the right type
-    .check_cube_is_class_cube(cube)
+    .check_is_class_cube(cube)
     # In the case where some classes are not in the classified cube, but
     # are in the validation file
     diff_classes <- setdiff(rownames(error_matrix), names(area))

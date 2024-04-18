@@ -56,16 +56,8 @@
         "landsat:collection_number" %in% "02"
     )
     # assert that service is online
-    tryCatch(
-        {
-            items <- rstac::post_request(items_query)
-        },
-        error = function(e) {
-            stop(paste(
-                ".source_collection_access_test.usgs_cube: service is",
-                "unreachable\n", e$message
-            ), call. = FALSE)
-        }
+    items <- .try({rstac::post_request(items_query, ...)},
+        default = NULL
     )
     # check result
     .check_stac_items(items)
@@ -82,17 +74,13 @@
         collection = collection, ...
     )
     # assert that token and/or href is valid
-    tryCatch(
+    rast <- .try(
         {
             .raster_open_rast(href)
         },
-        error = function(e) {
-            stop(paste(
-                ".source_collection_access_test.usgs_cube: cannot open url\n",
-                href, "\n", e$message
-            ), call. = FALSE)
-        }
+        default = NULL
     )
+    .check_null_parameter(rast)
     return(invisible(source))
 }
 #' @title Retrieves the paths or URLs of each file bands of an item for BDC
@@ -132,9 +120,6 @@
                                         stac_query, ...,
                                         tiles = NULL,
                                         platform = NULL) {
-    # set caller to show in errors
-    .check_set_caller(".source_items_new.usgs_cube")
-
     # get start and end date
     dates_chr <- strsplit(x = stac_query$params$datetime, split = "/")[[1]]
 
@@ -143,8 +128,7 @@
         format(as.Date(dates_chr), "%Y-%m-%dT%H:%M:%SZ"),
         collapse = "/"
     )
-
-    # request with more than searched items throws 502 error
+    # requests with more than searched items throws 502 error
     stac_query$params$limit <- 300
 
     if (!is.null(platform)) {
@@ -153,7 +137,6 @@
             collection = collection,
             platform = platform
         )
-
         stac_query <- rstac::ext_query(
             q = stac_query,
             "platform" == platform
@@ -164,13 +147,11 @@
                 "sources", source, "collections", collection, "platforms"
             )
         ))
-
         stac_query <- rstac::ext_query(
             q = stac_query,
             "platform" %in% platform
         )
     }
-
     # adding search filter in query
     stac_query <- rstac::ext_query(
         q = stac_query,
@@ -178,7 +159,6 @@
         "landsat:collection_category" %in% c("T1", "T2"),
         "landsat:collection_number" %in% "02"
     )
-
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles)) {
         # format tile parameter provided by users
@@ -191,7 +171,6 @@
             "landsat:wrs_row" %in% sep_tile$wrs_row
         )
     }
-
     # making the request
     items <- rstac::post_request(q = stac_query, ...)
     .check_stac_items(items)
@@ -199,17 +178,11 @@
     items$features <- items$features[
         grepl("_SR$", rstac::items_reap(items, "id"))
     ]
-
     # checks if the collection returned zero items
-    .check_that(
-        x = !(rstac::items_length(items) == 0),
-        msg = "the provided search returned zero items."
-    )
-
+    .check_stac_items(items)
     # if more than 2 times items pagination are found the progress bar
     # is displayed
     matched_items <- rstac::items_matched(items = items)
-
     # progress bar
     progress <- matched_items > 2 * .conf("rstac_pagination_limit")
     # check documentation mode
@@ -249,13 +222,9 @@
 #' @param collection Image collection
 #' @return Called for side effects
 .source_configure_access.usgs_cube <- function(source, collection = NULL) {
+    .check_set_caller(".source_configure_access_usgs_cube")
     aws_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
     if (nchar(aws_access_key) == 0)
-        stop(
-            paste("You need a valid AWS_SECRET_ACCESS_KEY",
-                  "to access USGS collection.",
-                  "If you have this key",
-                  "please put it on an enviromental variable")
-        )
+        stop(.conf("messages", ".source_configure_access_usgs_cube"))
     return(invisible(source))
 }

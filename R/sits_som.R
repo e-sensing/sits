@@ -92,26 +92,26 @@ sits_som_map <- function(data,
                          grid_ydim = 10,
                          alpha = 1.0,
                          rlen = 100,
-                         distance = "euclidean",
+                         distance = "dtw",
                          som_radius = 2,
                          mode = "online") {
-    # register custom distances
-    .som_register_custom_distances()
     # set caller to show in errors
     .check_set_caller("sits_som_map")
+    # register custom distances
+    .som_register_custom_distances()
     # verifies if kohonen package is installed
     .check_require_packages("kohonen")
     # does the input data exist?
     .check_samples_train(data)
     # is are there more neurons than samples?
     n_samples <- nrow(data)
-    .check_that(
-        n_samples > grid_xdim * grid_ydim,
-        msg = paste(
-            "number of samples should be",
-            "greater than number of neurons"
-        )
-    )
+    # check recommended grid sizes
+    min_grid_size <- floor(sqrt(5 * sqrt(n_samples))) - 2
+    max_grid_size <- ceiling(sqrt(5 * sqrt(n_samples))) + 2
+    if (grid_xdim < min_grid_size || grid_xdim > max_grid_size)
+        warning(paste0(.conf("messages", "sits_som_map_grid_size"),
+                       "(", min_grid_size, " ...", max_grid_size,")"))
+    .check_that(n_samples > grid_xdim * grid_ydim)
     # get the time series
     time_series <- .values_ts(data, format = "bands_cases_dates")
     # create the kohonen map
@@ -165,10 +165,8 @@ sits_som_map <- function(data,
             if (length(number_of_label_max) > 1) {
                 # Get the maximum posterior among the tied classes
                 max_post <- max(labels_neuron[number_of_label_max, ]$post_prob)
-
                 # Where are the duplicated values?
                 label_max_post <- which(labels_neuron$post_prob == max_post)
-
                 # Is this value are in the maximum vector of the prior
                 # probability?
                 index_prior_max <-
@@ -233,13 +231,11 @@ sits_som_clean_samples <- function(som_map,
     # set caller to show in errors
     .check_set_caller("sits_som_clean_samples")
     # Sanity check
-    if (!inherits(som_map, "som_map")) {
-        stop("wrong input data; please run sits_som_map first")
-    }
+    .check_that(inherits(som_map, "som_map"))
     .check_chr_within(
         x = keep,
         within = .conf("som_outcomes"),
-        msg = "invalid keep parameter"
+        msg = .conf("messages", "sits_som_clean_samples_keep")
     )
     # function to detect of class noise
     .detect_class_noise <- function(prior_prob, post_prob) {
@@ -306,10 +302,9 @@ sits_som_clean_samples <- function(som_map,
 #' }
 #' @export
 sits_som_evaluate_cluster <- function(som_map) {
+    .check_set_caller("sits_som_evaluate_cluster")
     # Sanity check
-    if (!inherits(som_map, "som_map")) {
-        stop("wrong input data; please run sits_som_map first")
-    }
+    .check_that(inherits(som_map, "som_map"))
     # Get neuron labels
     neuron_label <- som_map$som_properties$neuron_label
     id_neuron_label_tb <- tibble::tibble(

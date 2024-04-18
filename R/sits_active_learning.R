@@ -130,10 +130,8 @@ sits_uncertainty_sampling <- function(uncert_cube,
 
     # Warn if it cannot suggest all required samples
     if (nrow(result_tb) < n) {
-        warning("unable to suggest ", n, " samples.\n",
-            "(try a smaller sampling_window parameter)",
-            call. = FALSE
-        )
+        msg <- .conf("messages", "sits_uncertainty_sampling_window")
+        warning(msg, call. = FALSE)
     }
 
     class(result_tb) <- c("sits_uncertainty", "sits", class(result_tb))
@@ -278,13 +276,10 @@ sits_confidence_sampling <- function(probs_cube,
         dplyr::pull("label")
 
     if (length(incomplete_labels) > 0) {
+        msg <- .conf("messages", "sits_confidence_sampling_window")
         warning(sprintf(
-            paste(
-                "Unable to suggest %s samples for label(s) %s.",
-                "Try a smaller sampling_window or a",
-                "smaller min_margin parameter."
-            ),
-            n, paste0("'", incomplete_labels, "'", collapse = ", ")
+            paste(msg), n,
+            paste0("'", incomplete_labels, "'", collapse = ", ")
         ), call. = FALSE)
     }
 

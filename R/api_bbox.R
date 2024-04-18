@@ -131,9 +131,8 @@ NULL
     } else {
         crs <- .default(default_crs, default = {
             if (.check_warnings()) {
-                warning("object has no crs, assuming 'EPSG:4326'",
-                    call. = FALSE
-                )
+                msg <- .conf("messages", ".bbox_from_tbl")
+                warning(msg, call. = FALSE)
             }
             "EPSG:4326"
         })
@@ -179,11 +178,8 @@ NULL
     # Check if there are multiple CRS in bbox
     if (length(.crs(bbox)) > 1 && is.null(as_crs)) {
         if (.check_warnings()) {
-            warning("object has multiples CRS values, reprojecting to ",
-                "'EPSG:4326'\n", "(use 'as_crs' to reproject to a ",
-                "different CRS)",
-                call. = FALSE
-            )
+            msg <- .conf("messages", ".bbox_as_sf")
+            warning(msg, call. = FALSE)
         }
         as_crs <- "EPSG:4326"
     }

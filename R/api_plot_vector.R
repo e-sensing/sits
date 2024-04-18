@@ -15,12 +15,12 @@
                                 legend,
                                 palette,
                                 scale) {
+    # set caller to show in errors
+    .check_set_caller(".plot_class_vector")
     # retrieve the segments for this tile
     sf_seg <- .segments_read_vec(tile)
     # check that segments have been classified
-    .check_that("class" %in% colnames(sf_seg),
-                msg = "segments have not been classified"
-    )
+    .check_that("class" %in% colnames(sf_seg))
     # get the labels
     labels <- sf_seg |>
         sf::st_drop_geometry() |>
@@ -82,6 +82,8 @@
                                 style,
                                 rev,
                                 scale) {
+    # set caller to show in errors
+    .check_set_caller(".plot_probs_vector")
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
@@ -97,14 +99,11 @@
     names(labels) <- seq_len(length(labels))
     # check the labels to be plotted
     # if NULL, use all labels
-    if (.has_not(labels_plot)) {
+    if (.has_not(labels_plot))
         labels_plot <- labels
-    } else {
-        .check_that(all(labels_plot %in% labels),
-                    msg = "labels not in cube"
-        )
-    }
-    # get the segements to be plotted
+    .check_that(all(labels_plot %in% labels))
+
+    # get the segments to be plotted
     sf_seg <- .segments_read_vec(tile)
 
     # plot the segments by facet

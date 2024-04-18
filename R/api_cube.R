@@ -33,7 +33,8 @@ NULL
 #' @param cube  A data cube.
 #' @return     The class of the data cube (if existing)
 .cube_find_class <- function(cube) {
-    .check_valid(cube)
+    .check_set_caller(".cube_find_class")
+    .check_na_null_parameter(cube)
     UseMethod(".cube_find_class", cube)
 }
 #' @export
@@ -140,7 +141,7 @@ NULL
 #'
 #' @return A \code{vector} with the areas of the cube labels.
 .cube_class_areas <- function(cube) {
-    .check_cube_is_class_cube(cube)
+    .check_is_class_cube(cube)
     labels_cube <- sits_labels(cube)
 
     # Get area for each class for each row of the cube
@@ -418,11 +419,10 @@ NULL
 }
 #' @export
 .cube_source.raster_cube <- function(cube) {
+    # set caller to show in errors
+    .check_set_caller(".cube_source")
     source <- .compact(slider::slide_chr(cube, .tile_source))
-    .check_that(
-        length(source) == 1,
-        msg = "cube has different sources"
-    )
+     .check_that(length(source) == 1)
     source
 }
 #' @export
@@ -645,11 +645,10 @@ NULL
 }
 #' @export
 .cube_filter_spatial.raster_cube <- function(cube, roi) {
+    # set caller to show in errors
+    .check_set_caller(".cube_filter_spatial")
     intersecting <- .cube_intersects(cube, roi)
-    .check_that(
-        any(intersecting),
-        msg = "spatial region does not intersect cube"
-    )
+    .check_that(any(intersecting))
     cube[intersecting, ]
 }
 #' @export
@@ -691,11 +690,11 @@ NULL
 }
 #' @export
 .cube_filter_interval.raster_cube <- function(cube, start_date, end_date) {
+    # set caller to show in errors
+    .check_set_caller(".cube_filter_interval")
     during <- .cube_during(cube, start_date, end_date)
-    .check_that(
-        any(during),
-        msg = "informed interval does not interesect cube"
-    )
+    .check_that(any(during))
+
     .cube_foreach_tile(cube[during, ], function(tile) {
         .tile_filter_interval(tile, start_date, end_date)
     })
@@ -718,6 +717,8 @@ NULL
 }
 #' @export
 .cube_filter_dates.raster_cube <- function(cube, dates) {
+    # set caller to show in errors
+    .check_set_caller(".cube_filter_dates")
     # Filter dates for each tile
     cube <- .cube_foreach_tile(cube, function(tile) {
         dates_in_tile <- dates %in% .tile_timeline(tile)
@@ -727,11 +728,7 @@ NULL
         .tile_filter_dates(tile, dates[dates_in_tile])
     })
     # Post-condition
-    .check_that(
-        nrow(cube) >= 1,
-        msg = "The provided 'dates' does not match any date in the cube.",
-        local_msg = "invalid 'dates' parameter."
-    )
+    .check_that(nrow(cube) >= 1)
     # Return cube
     return(cube)
 }
@@ -1055,27 +1052,6 @@ NULL
         return(TRUE)
     }
 }
-#' @title Verify if cube is regular
-#' @name .cube_is_regular
-#' @keywords internal
-#' @noRd
-#' @param cube  datacube
-#' @return logical
-.cube_is_regular <- function(cube) {
-    if (!.cube_is_complete(cube)) {
-        return(FALSE)
-    }
-    if (!.cube_has_unique_bbox(cube)) {
-        return(FALSE)
-    }
-    if (!.cube_has_unique_tile_size(cube)) {
-        return(FALSE)
-    }
-    if (length(.cube_timeline(cube)) > 1) {
-        return(FALSE)
-    }
-    return(TRUE)
-}
 # ---- derived_cube ----
 #' @title Get derived class of a cube
 #' @name .cube_derived_class
@@ -1105,6 +1081,8 @@ NULL
 }
 #' @export
 .cube_token_generator.mpc_cube <- function(cube) {
+    # set caller to show in errors
+    .check_set_caller(".cube_token_generator")
     file_info <- cube[["file_info"]][[1]]
     fi_paths <- file_info[["path"]]
 
@@ -1149,10 +1127,9 @@ NULL
         }
         n_tries <- n_tries - 1
     }
-    .check_that(
-        !is.null(res_content),
-        msg = "invalid mpc token."
-    )
+    # check that token is valid
+    .check_that(.has(res_content))
+    # parse token
     token_parsed <- httr::parse_url(paste0("?", res_content[["token"]]))
     file_info[["path"]] <- purrr::map_chr(seq_along(fi_paths), function(i) {
         path <- fi_paths[[i]]

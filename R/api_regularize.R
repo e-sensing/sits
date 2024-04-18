@@ -14,9 +14,7 @@
         )
     }, progress = progress)
     # Check result
-    .check_empty_data_frame(cube_assets,
-        msg = "no intersection between roi and cube"
-    )
+    .check_empty_data_frame(cube_assets)
     # Prepare cube output
     cube <- .cube_merge_tiles(cube_assets)
     .set_class(cube, cube_class)

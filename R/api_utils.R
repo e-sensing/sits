@@ -292,10 +292,8 @@ NULL
 }
 #' @export
 .slice_dfr.numeric <- function(x, i) {
-    .check_that(
-        all(i <= nrow(x)),
-        local_msg = paste("indices must be less or equal than", nrow(x)),
-        msg = "invalid numeric subscript"
-    )
+    # set caller to show in errors
+    .check_set_caller(".slice_dfr_numeric")
+    .check_that(all(i <= nrow(x)))
     x[i, ]
 }

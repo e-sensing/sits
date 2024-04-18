@@ -18,7 +18,8 @@
 #'
 #' @export
 sits_predictors <- function(samples) {
-    .check_valid(samples)
+    .check_set_caller("sits_predictors")
+    .check_na_null_parameter(samples)
     samples <- .check_samples_ts(samples)
     pred <- .predictors(samples)
     return(pred)
@@ -100,8 +101,9 @@ sits_pred_references <- function(pred) {
 #' }
 #' @export
 sits_pred_normalize <- function(pred, stats) {
-    .check_valid(pred)
-    .check_valid(stats)
+    .check_set_caller("sits_pred_normalize")
+    .check_na_null_parameter(pred)
+    .check_na_null_parameter(stats)
     pred <- .pred_normalize(pred, stats)
     return(pred)
 }

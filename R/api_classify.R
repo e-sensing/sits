@@ -46,11 +46,7 @@
     # Resume feature
     if (file.exists(out_file)) {
         if (.check_messages()) {
-            message("Recovery: tile '", tile[["tile"]], "' already exists.")
-            message(
-                "(If you want to produce a new image, please ",
-                "change 'output_dir' or 'version' parameters)"
-            )
+            .check_recovery(out_file)
         }
         probs_tile <- .tile_derived_from_file(
             file = out_file,
@@ -116,7 +112,7 @@
         # Fill with zeros remaining NA pixels
         values <- C_fill_na(values, 0)
         # Used to check values (below)
-        input_pixels <- nrow(values)
+        n_input_pixels <- nrow(values)
         # Log here
         .debug_log(
             event = "start_block_data_classification",
@@ -128,7 +124,7 @@
         # Are the results consistent with the data input?
         .check_processed_values(
             values = values,
-            input_pixels = input_pixels
+            n_input_pixels = n_input_pixels
         )
         # Log
         .debug_log(
@@ -260,11 +256,7 @@
     # Resume feature
     if (.segments_is_valid(out_file)) {
         if (.check_messages()) {
-            message("Recovery: tile '", tile[["tile"]], "' already exists.")
-            message(
-                "(If you want to produce a new image, please ",
-                "change 'output_dir' or 'version' parameters)"
-            )
+            .check_recovery(out_file)
         }
         # Create tile based on template
         probs_tile <- .tile_segments_from_file(

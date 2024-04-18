@@ -19,72 +19,56 @@
                               colors = NULL, ...) {
     # set caller to show in errors
     .check_set_caller(".conf_set_options")
-
     # initialize config
-    if (!exists("config", envir = sits_env)) {
+    if (!exists("config", envir = sits_env))
         sits_env$config <- list()
-    }
-
     # process processing_bloat
     if (!is.null(processing_bloat)) {
-        .check_num(processing_bloat,
-            min = 1, len_min = 1, len_max = 1, max = 10,
-            is_integer = TRUE,
-            msg = "invalid 'processing_bloat' parameter"
+        .check_int_parameter(processing_bloat,
+            min = 1, len_min = 1, len_max = 1, max = 10
         )
         sits_env$config[["processing_bloat"]] <- processing_bloat
     }
-
     # process rstac_pagination_limit
     if (!is.null(rstac_pagination_limit)) {
-        .check_num(rstac_pagination_limit,
-            min = 1, len_min = 1, len_max = 1, max = 500,
-            is_integer = TRUE,
-            msg = "invalid 'rstac_pagination_limit' parameter"
+        .check_int_parameter(rstac_pagination_limit,
+            min = 1, len_min = 1, len_max = 1, max = 500
         )
         sits_env$config[["rstac_pagination_limit"]] <- rstac_pagination_limit
     }
-
     # process gdal_creation_options
     if (!is.null(gdal_creation_options)) {
         .check_chr(gdal_creation_options,
             allow_empty = FALSE,
             regex = "^.+=.+$",
-            msg = "invalid 'gdal_creation_options' parameter"
+            msg = .conf("messages", ".conf_set_options_gdal_creation")
         )
         sits_env$config[["gdal_creation_options"]] <- gdal_creation_options
     }
     # process gdalcubes_chunk_size
     if (!is.null(gdalcubes_chunk_size)) {
-        .check_num(gdalcubes_chunk_size,
-            min_len = 3,
-            max_len = 3,
-            is_named = FALSE,
-            msg = "invalid gdalcubes chunk size"
+        .check_num_parameter(gdalcubes_chunk_size,
+            len_min = 3,
+            len_max = 3,
+            is_named = FALSE
         )
         sits_env$config[["gdalcubes_chunk_size"]] <- gdalcubes_chunk_size
     }
     # process sources
     if (!is.null(sources)) {
-        .check_lst(sources, min_len = 1)
-
+        .check_lst_parameter(sources, len_min = 1)
         # source names are uppercase
         names(sources) <- toupper(names(sources))
-
+        # check each source
         sources <- lapply(sources, function(source) {
             # pre-condition
-            .check_lst(source,
-                min_len = 2,
-                msg = "invalid 'source' parameter"
-            )
+            .check_lst_parameter(source, len_min = 2)
 
             # check that source contains essential parameters
             .check_chr_contains(names(source),
-                contains = c("s3_class", "collections"),
-                msg = "invalid 'source' parameter"
+                contains = c("s3_class", "collections")
             )
             names(source) <- tolower(names(source))
-
             # check source
             source <- .check_error(
                 {
@@ -139,11 +123,12 @@
 #' @return default configuration file
 #'
 .conf_file <- function() {
+    .check_set_caller(".conf_file")
     # load the default configuration file
     yml_file <- system.file("extdata", "config.yml", package = "sits")
 
     # check that the file name is valid
-    .check_file(yml_file, msg = "invalid configuration file")
+    .check_file(yml_file)
 
     return(yml_file)
 }
@@ -154,13 +139,41 @@
 #' @noRd
 #' @return default internal configuration file
 .conf_internals_file <- function() {
+    .check_set_caller(".conf_internals_file")
     # load the default configuration file
     yml_file <- system.file("extdata", "config_internals.yml", package = "sits")
-
     # check that the file name is valid
-    .check_file(yml_file, msg = "invalid configuration file")
-
+    .check_that(file.exists(yml_file))
     return(yml_file)
+}
+#' @title Return the message configuration file (only for developers)
+#' @name .conf_messages_file
+#' @keywords internal
+#' @noRd
+#' @return default internal configuration file
+.conf_messages_file <- function() {
+    .check_set_caller(".conf_messages_file")
+    # load the default configuration file
+    yml_file <- system.file("extdata", "config_messages.yml", package = "sits")
+    # check that the file name is valid
+    .check_file(yml_file)
+    return(yml_file)
+}
+#' @name .conf_load_messages
+#' @description Loads the error messages and warnings
+#' @keywords internal
+#' @noRd
+#' @return NULL, called for side effects
+.conf_load_messages <- function() {
+    # load the color configuration file
+    msgs_yml_file <- .conf_messages_file()
+    config_msgs <- yaml::yaml.load_file(
+        input = msgs_yml_file,
+        merge.precedence = "override"
+    )
+    # set the messages
+    sits_env$config[["messages"]] <- config_msgs
+    return(invisible(NULL))
 }
 #' @title Return the default configuration file for colors
 #' @name .conf_colors_file
@@ -191,10 +204,7 @@
     )
     # set the legends
     sits_env$legends <- config_colors$legends
-    # sits_env[["config"]] <- utils::modifyList(sits_env[["config"]],
-    #                                           class_schemes,
-    #                                           keep.null = FALSE
-    # )
+    # build the color table
     colors <- config_colors$colors
     color_table <- purrr::map2_dfr(colors, names(colors),
                                    function(cl, nm) {
@@ -216,12 +226,12 @@
 #' @noRd
 #' @return new color table (invisible)
 .conf_add_color_table <- function(color_tb) {
+    .check_set_caller(".conf_add_color_table")
     # pre condition - table contains name and hex code
     .check_chr_contains(
         x = colnames(color_tb),
         contains = .conf("sits_color_table_cols"),
-        discriminator = "all_of",
-        msg = "invalid colour table - missing either name or hex columns"
+        discriminator = "all_of"
     )
     # replace all duplicates
     new_colors <- dplyr::pull(color_tb, .data[["name"]])
@@ -467,36 +477,34 @@
                              url = NULL) {
     # set caller to show in errors
     .check_set_caller(".conf_new_source")
-
     # pre-condition
-    .check_chr(s3_class,
+    .check_chr_parameter(s3_class,
         allow_empty = FALSE, len_min = 1,
         msg = "invalid 's3_class' parameter"
     )
 
     if (!is.null(service)) {
-        .check_chr(service,
+        .check_chr_parameter(service,
             allow_empty = FALSE, len_min = 1, len_max = 1,
             msg = "invalid 'service' parameter"
         )
     }
-
     if (!is.null(url)) {
-        .check_chr(url,
+        .check_chr_parameter(url,
             allow_empty = FALSE, len_min = 1, len_max = 1,
             regex = '^(http|https)://[^ "]+$',
             msg = "invalid 'url' parameter"
         )
     }
 
-    .check_lst(collections, min_len = 1)
+    .check_lst(collections, len_min = 1)
 
     names(collections) <- toupper(names(collections))
 
     collections <- lapply(collections, function(collection) {
         # pre-condition
-        .check_lst(collection,
-            min_len = 1,
+        .check_lst_parameter(collection,
+            len_min = 1,
             msg = "invalid 'collections' parameter"
         )
 
@@ -514,7 +522,8 @@
 
     # extra parameters
     dots <- list(...)
-    .check_lst(dots, msg = "invalid extra arguments in collection")
+    .check_lst_parameter(dots, len_min = 0,
+                         msg = "invalid extra arguments in collection")
 
     return(c(list(
         s3_class = s3_class,
@@ -570,7 +579,7 @@
     non_cloud_bands <- lapply(non_cloud_bands, function(band) {
         # pre-condition
         .check_lst(bands,
-            min_len = 1,
+            len_min = 1,
             msg = "invalid 'bands' parameter"
         )
 
@@ -590,7 +599,7 @@
     cloud_band <- lapply(cloud_band, function(cloud_band) {
         # pre-condition
         .check_lst(bands,
-            min_len = 1,
+            len_min = 1,
             msg = "invalid 'bands' parameter"
         )
 
@@ -619,12 +628,12 @@
 
     # post-condition
     .check_lst(res,
-        min_len = 1,
+        len_min = 1,
         msg = "invalid 'collection' value"
     )
 
     .check_lst(res$bands,
-        min_len = 1,
+        len_min = 1,
         msg = "invalid collection 'bands' value"
     )
 
@@ -652,6 +661,7 @@
                            offset_value,
                            band_name,
                            resolution, ...) {
+    .check_set_caller(".conf_new_band")
     # pre-condition
     .check_num(
         x = missing_value,
@@ -723,7 +733,7 @@
 
     # post-condition
     .check_lst(res,
-        min_len = 7,
+        len_min = 7,
         msg = "invalid 'band' value"
     )
 
@@ -749,28 +759,14 @@
                                  band_name, ...) {
     # set caller to show in errors
     .check_set_caller(".conf_new_cloud_band")
-
     # pre-condition
-    .check_lgl(bit_mask,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'bit_mask' parameter"
-    )
+    .check_lgl_parameter(bit_mask)
 
-    .check_lst(values,
-        fn_check = .check_chr,
-        len_min = 1, len_max = 1,
-        msg = "invalid cloud 'values' parameter"
-    )
+    .check_lst_parameter(values, fn_check = .check_chr)
 
-    .check_num(interp_values,
-        len_min = 1, is_integer = TRUE,
-        msg = "invalid 'interp_values' parameter"
-    )
+    .check_int_parameter(interp_values, len_min = 1)
 
-    .check_chr(band_name,
-        allow_empty = FALSE, len_min = 1, len_max = 1,
-        msg = "invalid 'band_name' value"
-    )
+    .check_chr_parameter(band_name, len_min = 1, len_max = 1)
 
     # extra parameters
     dots <- list(...)
@@ -786,7 +782,7 @@
 
     # post-condition
     .check_lst(res,
-        min_len = 5,
+        len_min = 5,
         msg = "invalid 'band' value"
     )
 
