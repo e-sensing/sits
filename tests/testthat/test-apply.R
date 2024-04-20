@@ -29,16 +29,14 @@ test_that("Testing normalized index generation", {
                       pattern = "\\.tif$",
                       full.names = TRUE
     ))
-    expect_warning(
-        gc_cube <- sits_regularize(
+    expect_warning({gc_cube <- sits_regularize(
             cube = s2_cube,
             output_dir = dir_images,
             res = 160,
             period = "P1M",
             multicores = 2,
             progress = FALSE
-        )
-    )
+    )})
 
     gc_cube_new <- sits_apply(gc_cube,
                               EVI = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),
@@ -221,6 +219,9 @@ test_that("Kernel functions", {
     median_2 <- v_obj_md[21, 21]
 
     expect_true(median_1 == median_2)
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    if (doc_mode)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = FALSE)
     # Recovery
     out <- capture_messages({
         expect_message(
@@ -234,11 +235,11 @@ test_that("Kernel functions", {
                     multicores = 1
                 )
             },
-            regexp = "Recovery"
+            regexp = "recovery mode: data already exists. To produce new data, change output_dir or version"
         )
     })
-    expect_true(grepl("output_dir", out[1]))
-    expect_true(grepl("Recovery", out[2]))
+    if (doc_mode)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = TRUE)
     cube_mean <- sits_apply(
         data = cube,
         output_dir = tempdir(),

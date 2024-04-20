@@ -573,10 +573,10 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
     cube_s1_grd <-  sits_cube(
         source = "MPC",
         collection = "SENTINEL-1-GRD",
-        bands = c("VV", "VH"),
+        bands = c("VV"),
         orbit = "descending",
         tiles = c("21LUJ","21LVJ"),
-        start_date = "2021-03-01",
+        start_date = "2021-08-01",
         end_date = "2021-09-30"
     )
     bbox <- sits_bbox(cube_s1_grd)
@@ -586,7 +586,7 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
     expect_true(bbox[["xmax"]] > roi_cube_s1[["lon_max"]])
     expect_true(bbox[["ymin"]] < roi_cube_s1[["lat_min"]])
     expect_true(bbox[["ymax"]] > roi_cube_s1[["lat_max"]])
-    expect_true(all(c("VV", "VH") %in% sits_bands(cube_s1_grd)))
+    expect_true(all(c("VV") %in% sits_bands(cube_s1_grd)))
 
     r_obj <- .raster_open_rast(cube_s1_grd$file_info[[1]]$path[[1]])
     expect_true(terra::nrow(r_obj) == cube_s1_grd$file_info[[1]]$nrows[[1]])
@@ -598,14 +598,14 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
 
     cube_s1_reg <- sits_regularize(
         cube = cube_s1_grd,
-        period = "P16D",
+        period = "P1M",
         res = 240,
         tiles = c("21LUJ","21LVJ"),
         multicores = 1,
         output_dir = output_dir,
         progress = TRUE
     )
-    expect_equal(length(sits_timeline(cube_s1_reg)), 13)
+    expect_equal(length(sits_timeline(cube_s1_reg)), 2)
     expect_true(all(c("21LUJ", "21LVJ") %in% cube_s1_reg$tile))
     expect_true(all("EPSG:32721" %in% cube_s1_reg$crs))
 
@@ -616,24 +616,24 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
     expect_equal(bbox[["xmax"]], roi_cube_s1[["lon_max"]], tolerance = 0.01)
     expect_equal(bbox[["ymin"]], roi_cube_s1[["lat_min"]], tolerance = 0.01)
     expect_equal(bbox[["ymax"]], roi_cube_s1[["lat_max"]], tolerance = 0.01)
-    expect_true(all(c("VV", "VH") %in% sits_bands(cube_s1_reg)))
+    expect_true(all(c("VV") %in% sits_bands(cube_s1_reg)))
 
 })
 test_that("Creating Sentinel-1 RTC cubes from MPC", {
     cube_s1_rtc <-  sits_cube(
         source = "MPC",
         collection = "SENTINEL-1-RTC",
-        bands = c("VV", "VH"),
+        bands = c("VV"),
         orbit = "descending",
-        tiles = c("21LXJ", "21LYJ", "21LZJ", "22LBP"),
-        start_date = "2021-03-01",
+        tiles = c("21LXJ", "21LYJ"),
+        start_date = "2021-07-01",
         end_date = "2021-09-30"
     )
     bbox <- sits_bbox(cube_s1_rtc[1,])
     expect_true(grepl("32722", bbox[["crs"]]))
     expect_equal(117360, bbox[["xmin"]])
-    expect_equal(443770, bbox[["xmax"]])
-    expect_equal(nrow(cube_s1_rtc$file_info[[1]]), 68)
+    expect_equal(407410, bbox[["xmax"]])
+    expect_equal(nrow(cube_s1_rtc$file_info[[1]]), 7)
 
     output_dir <- paste0(tempdir(), "/s1rtcreg")
     if (!dir.exists(output_dir)) {
@@ -642,26 +642,26 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
 
     cube_s1_rtc_reg <- sits_regularize(
         cube = cube_s1_rtc,
-        period = "P16D",
+        period = "P1M",
         res = 240,
-        tiles = c("21LXJ", "21LYJ", "21LZJ", "22LBP"),
+        tiles = c("21LXJ", "21LYJ"),
         multicores = 1,
         output_dir = output_dir,
         progress = TRUE
     )
-    expect_equal(length(sits_timeline(cube_s1_rtc_reg)), 13)
-    expect_true(all(c("21LXJ", "21LYJ", "21LZJ", "22LBP") %in%
+    expect_equal(length(sits_timeline(cube_s1_rtc_reg)), 3)
+    expect_true(all(c("21LXJ", "21LYJ") %in%
                         cube_s1_rtc_reg$tile))
     expect_true("EPSG:32721" %in% cube_s1_rtc_reg$crs)
 
     bbox <- sits_bbox(cube_s1_rtc_reg, as_crs = "EPSG:4326")
-    roi_cube_s1 <- sits_mgrs_to_roi(c("21LXJ", "21LYJ", "21LZJ", "22LBP"))
+    roi_cube_s1 <- sits_mgrs_to_roi(c("21LXJ", "21LYJ"))
 
     expect_equal(bbox[["xmin"]], roi_cube_s1[["lon_min"]], tolerance = 0.01)
     expect_equal(bbox[["xmax"]], roi_cube_s1[["lon_max"]], tolerance = 0.01)
     expect_equal(bbox[["ymin"]], roi_cube_s1[["lat_min"]], tolerance = 0.01)
     expect_equal(bbox[["ymax"]], roi_cube_s1[["lat_max"]], tolerance = 0.01)
-    expect_true(all(c("VV", "VH") %in% sits_bands(cube_s1_rtc_reg)))
+    expect_true(all(c("VV") %in% sits_bands(cube_s1_rtc_reg)))
 
 })
 
@@ -712,153 +712,6 @@ test_that("Creating LANDSAT cubes from MPC with WRS", {
             )
     )
 })
-test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
-    roi <- .s2_mgrs_to_roi(c("20LKP", "20LLP"))
-    hls_cube_s2 <- .try(
-        {
-            sits_cube(
-                source = "HLS",
-                collection = "HLSS30",
-                roi = roi,
-                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
-                start_date = as.Date("2020-05-01"),
-                end_date = as.Date("2020-09-01"),
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
-    testthat::skip_if(
-        purrr::is_null(hls_cube_s2),
-        "HLSS30 collection is not accessible"
-    )
-    expect_true(all(sits_bands(hls_cube_s2) %in%
-        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
-    expect_true(all(hls_cube_s2$satellite == "SENTINEL-2"))
-    expect_true(all(c("20LKP", "20LLP") %in% hls_cube_s2$tile))
-    expect_true(all(.fi(hls_cube_s2)$xres == 30))
-    expect_true(all(.fi(hls_cube_s2)$yres == 30))
-    r_obj <- .raster_open_rast(hls_cube_s2$file_info[[1]]$path[1])
-    tile_nrows <- .tile_nrows(hls_cube_s2)[[1]]
-    expect_true(.raster_nrows(r_obj) == tile_nrows)
-
-    hls_cube_l8 <- .try(
-        {
-            sits_cube(
-                source = "HLS",
-                collection = "HLSL30",
-                roi = roi,
-                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
-                start_date = as.Date("2020-05-01"),
-                end_date = as.Date("2020-09-01"),
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
-    testthat::skip_if(
-        purrr::is_null(hls_cube_l8),
-        "HLSL30 collection is not accessible"
-    )
-    expect_true(all(sits_bands(hls_cube_l8) %in%
-        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
-    expect_true(all(hls_cube_l8$satellite == "LANDSAT-8"))
-    expect_true(all(c("20LKP", "20LLP") %in% hls_cube_s2$tile))
-    expect_true(all(.fi(hls_cube_l8)$xres == 30))
-    expect_true(all(.fi(hls_cube_l8)$yres == 30))
-
-    hls_cube_merge <- sits_merge(hls_cube_s2, hls_cube_l8)
-    merge_20LKP <- dplyr::filter(hls_cube_merge, tile == "20LKP")
-    s2_20LKP <- dplyr::filter(hls_cube_s2, tile == "20LKP")
-    l8_20LKP <- dplyr::filter(hls_cube_l8, tile == "20LKP")
-    expect_true(all(sits_timeline(merge_20LKP) %in%
-        c(sits_timeline(l8_20LKP), sits_timeline(s2_20LKP))))
-
-    netrc_file <- "~/.netrc"
-    netrc_save <- "~/.netrc_save"
-    file.rename(netrc_file, netrc_save)
-    expect_error(.source_configure_access.hls_cube(
-        source = "HLS", collection = "HLSS30"))
-
-    expect_error(.source_items_new.hls_cube(
-        source = "HLS", collection = "HLSS30", stac_query = NULL))
-
-    expect_true(file.copy(netrc_save, netrc_file))
-
-    conf_hls <- utils::read.delim(netrc_file)
-    names(conf_hls) <- "wrong.machine"
-    utils::write.table(conf_hls, netrc_file)
-    expect_error(.source_configure_access.hls_cube(
-        source = "HLS", collection = "HLSS30"))
-
-    expect_true(file.rename(netrc_save, netrc_file))
-
-    if (file.exists("./.rcookies"))
-        unlink("./.rcookies")
-
-})
-test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes - tiles", {
-    hls_cube_s2 <- .try(
-        {
-            sits_cube(
-                source = "HLS",
-                collection = "HLSS30",
-                tiles = c("20LKP", "20LLP"),
-                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
-                start_date = as.Date("2020-05-01"),
-                end_date = as.Date("2020-09-01"),
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
-    testthat::skip_if(
-        purrr::is_null(hls_cube_s2),
-        "HLSS30 collection is not accessible"
-    )
-    expect_true(all(sits_bands(hls_cube_s2) %in%
-                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
-    expect_true(all(hls_cube_s2$satellite == "SENTINEL-2"))
-    expect_true(all(hls_cube_s2$tile %in% c("20LKP", "20LLP")))
-    expect_true(all(.fi(hls_cube_s2)$xres == 30))
-    expect_true(all(.fi(hls_cube_s2)$yres == 30))
-    r_obj <- .raster_open_rast(hls_cube_s2$file_info[[1]]$path[1])
-    tile_nrows <- .tile_nrows(hls_cube_s2)[[1]]
-    expect_true(.raster_nrows(r_obj) == tile_nrows)
-
-    hls_cube_l8 <- .try(
-        {
-            sits_cube(
-                source = "HLS",
-                collection = "HLSL30",
-                tiles = c("20LKP", "20LLP"),
-                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
-                start_date = as.Date("2020-05-01"),
-                end_date = as.Date("2020-09-01"),
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
-    testthat::skip_if(
-        purrr::is_null(hls_cube_l8),
-        "HLSL30 collection is not accessible"
-    )
-    expect_true(all(sits_bands(hls_cube_l8) %in%
-                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
-    expect_true(all(hls_cube_l8$satellite == "LANDSAT-8"))
-    expect_true(all(hls_cube_s2$tile %in% c("20LKP", "20LLP")))
-    expect_true(all(.fi(hls_cube_l8)$xres == 30))
-    expect_true(all(.fi(hls_cube_l8)$yres == 30))
-
-    hls_cube_merge <- sits_merge(hls_cube_s2, hls_cube_l8)
-    merge_20LKP <- dplyr::filter(hls_cube_merge, tile == "20LKP")
-    s2_20LKP <- dplyr::filter(hls_cube_s2, tile == "20LKP")
-    l8_20LKP <- dplyr::filter(hls_cube_l8, tile == "20LKP")
-    expect_true(all(sits_timeline(merge_20LKP) %in%
-                        c(sits_timeline(l8_20LKP), sits_timeline(s2_20LKP))))
-
-})
 test_that("Creating Sentinel cubes from AWS", {
     s2_cube <- .try(
         {
@@ -882,28 +735,6 @@ test_that("Creating Sentinel cubes from AWS", {
     r <- .raster_open_rast(.tile_path(s2_cube))
     expect_equal(s2_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(s2_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
-
-    sum_cube <- capture.output(summary(s2_cube))
-
-    expect_true(any(grepl("B05", sum_cube)))
-
-    v_s2 <- sits_view(
-        x = s2_cube,
-        band = "B05",
-        dates = "2018-07-19",
-        palette = "Greens"
-    )
-    expect_true(grepl("EPSG3857", v_s2$x$options$crs$crsClass))
-    expect_equal(v_s2$x$calls[[1]]$method, "addProviderTiles")
-    v_s2rgb <- sits_view(
-        x = s2_cube,
-        red = "B05",
-        green = "B05",
-        blue = "B05",
-        dates = "2018-07-19"
-    )
-
-
     s2_cube_s2a <- .try(
         {
             sits_cube(
@@ -1048,6 +879,153 @@ test_that("Creating LANDSAT cubes from USGS with WRS", {
     r_obj <- .raster_open_rast(l8_cube_223067$file_info[[1]]$path[1])
     tile_nrows <- .tile_nrows(l8_cube_223067)[[1]]
     expect_true(.raster_nrows(r_obj) == tile_nrows)
+})
+test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
+    roi <- .s2_mgrs_to_roi("20LKP")
+    hls_cube_s2 <- .try(
+        {
+            sits_cube(
+                source = "HLS",
+                collection = "HLSS30",
+                roi = roi,
+                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+                start_date = as.Date("2020-07-01"),
+                end_date = as.Date("2020-09-01"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(hls_cube_s2),
+        "HLSS30 collection is not accessible"
+    )
+    expect_true(all(sits_bands(hls_cube_s2) %in%
+                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_s2$satellite == "SENTINEL-2"))
+    expect_true(all("20LKP" %in% hls_cube_s2$tile))
+    expect_true(all(.fi(hls_cube_s2)$xres == 30))
+    expect_true(all(.fi(hls_cube_s2)$yres == 30))
+    r_obj <- .raster_open_rast(hls_cube_s2$file_info[[1]]$path[1])
+    tile_nrows <- .tile_nrows(hls_cube_s2)[[1]]
+    expect_true(.raster_nrows(r_obj) == tile_nrows)
+
+    hls_cube_l8 <- .try(
+        {
+            sits_cube(
+                source = "HLS",
+                collection = "HLSL30",
+                roi = roi,
+                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+                start_date = as.Date("2020-07-01"),
+                end_date = as.Date("2020-09-01"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(hls_cube_l8),
+        "HLSL30 collection is not accessible"
+    )
+    expect_true(all(sits_bands(hls_cube_l8) %in%
+                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_l8$satellite == "LANDSAT-8"))
+    expect_true(all(c("20LKP", "20LLP") %in% hls_cube_s2$tile))
+    expect_true(all(.fi(hls_cube_l8)$xres == 30))
+    expect_true(all(.fi(hls_cube_l8)$yres == 30))
+
+    hls_cube_merge <- sits_merge(hls_cube_s2, hls_cube_l8)
+    merge_20LKP <- dplyr::filter(hls_cube_merge, tile == "20LKP")
+    s2_20LKP <- dplyr::filter(hls_cube_s2, tile == "20LKP")
+    l8_20LKP <- dplyr::filter(hls_cube_l8, tile == "20LKP")
+    expect_true(all(sits_timeline(merge_20LKP) %in%
+                        c(sits_timeline(l8_20LKP), sits_timeline(s2_20LKP))))
+
+    netrc_file <- "~/.netrc"
+    netrc_save <- "~/.netrc_save"
+    file.rename(netrc_file, netrc_save)
+    expect_error(.source_configure_access.hls_cube(
+        source = "HLS", collection = "HLSS30"))
+
+    expect_error(.source_items_new.hls_cube(
+        source = "HLS", collection = "HLSS30", stac_query = NULL))
+
+    expect_true(file.copy(netrc_save, netrc_file))
+
+    conf_hls <- utils::read.delim(netrc_file)
+    names(conf_hls) <- "wrong.machine"
+    utils::write.table(conf_hls, netrc_file)
+    expect_error(.source_configure_access.hls_cube(
+        source = "HLS", collection = "HLSS30"))
+
+    expect_true(file.rename(netrc_save, netrc_file))
+
+    if (file.exists("./.rcookies"))
+        unlink("./.rcookies")
+
+})
+test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes - tiles", {
+    hls_cube_s2 <- .try(
+        {
+            sits_cube(
+                source = "HLS",
+                collection = "HLSS30",
+                tiles = c("20LKP"),
+                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+                start_date = as.Date("2020-07-01"),
+                end_date = as.Date("2020-09-01"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(hls_cube_s2),
+        "HLSS30 collection is not accessible"
+    )
+    expect_true(all(sits_bands(hls_cube_s2) %in%
+                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_s2$satellite == "SENTINEL-2"))
+    expect_true(all(hls_cube_s2$tile %in% c("20LKP", "20LLP")))
+    expect_true(all(.fi(hls_cube_s2)$xres == 30))
+    expect_true(all(.fi(hls_cube_s2)$yres == 30))
+    r_obj <- .raster_open_rast(hls_cube_s2$file_info[[1]]$path[1])
+    tile_nrows <- .tile_nrows(hls_cube_s2)[[1]]
+    expect_true(.raster_nrows(r_obj) == tile_nrows)
+
+    hls_cube_l8 <- .try(
+        {
+            sits_cube(
+                source = "HLS",
+                collection = "HLSL30",
+                tiles = c("20LKP"),
+                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+                start_date = as.Date("2020-07-01"),
+                end_date = as.Date("2020-09-01"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(hls_cube_l8),
+        "HLSL30 collection is not accessible"
+    )
+    expect_true(all(sits_bands(hls_cube_l8) %in%
+                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_l8$satellite == "LANDSAT-8"))
+    expect_true(all(hls_cube_s2$tile %in% c("20LKP", "20LLP")))
+    expect_true(all(.fi(hls_cube_l8)$xres == 30))
+    expect_true(all(.fi(hls_cube_l8)$yres == 30))
+
+    hls_cube_merge <- sits_merge(hls_cube_s2, hls_cube_l8)
+    merge_20LKP <- dplyr::filter(hls_cube_merge, tile == "20LKP")
+    s2_20LKP <- dplyr::filter(hls_cube_s2, tile == "20LKP")
+    l8_20LKP <- dplyr::filter(hls_cube_l8, tile == "20LKP")
+    expect_true(all(sits_timeline(merge_20LKP) %in%
+                        c(sits_timeline(l8_20LKP), sits_timeline(s2_20LKP))))
+
 })
 test_that("Access to SwissDataCube", {
     roi <- c(

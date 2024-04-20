@@ -123,8 +123,12 @@
         if (.file_is_local(file)) {
             file <- .file_path("file://", file, sep = "")
         }
-        httr::GET(
-            url = file, httr::write_disk(path = out_file, overwrite = TRUE)
+        # httr::GET(
+        #     url = file, httr::write_disk(path = out_file, overwrite = TRUE)
+        # )
+        download.file(
+            url = file, destfile = out_file,
+            quiet = FALSE
         )
         # Return file name
         out_file

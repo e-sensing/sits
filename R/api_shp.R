@@ -63,7 +63,7 @@
     # set caller to show in errors
     .check_set_caller(".shp_transform_to_sf")
     # precondition - does the shapefile exist?
-    .check_file(shp_file, extensions = ".shp")
+    .check_file(shp_file, extensions = "shp")
 
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
@@ -78,7 +78,7 @@
     # postcondition - can the function deal with the geometry_type?
     .check_that(as.character(geom_type) %in%  .conf("sf_geom_types_supported"))
     # postcondition - is the shape attribute valid?
-    .check_shp_attribute(sf_shape)
+    .check_shp_attribute(sf_shape, shp_attr)
 
     return(sf_shape)
 }

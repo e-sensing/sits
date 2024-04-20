@@ -16,7 +16,7 @@ test_that("Creating a dendrogram and clustering the results", {
             )
     })
     # test message
-    expect_true(grepl("Caveat", messages[3]))
+    expect_true(grepl("desired", messages[3]))
     dendro <- .cluster_dendrogram(cerrado_2classes,
         bands = c("NDVI", "EVI")
     )

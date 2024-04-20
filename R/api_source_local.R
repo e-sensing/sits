@@ -370,7 +370,8 @@
         pattern = paste0("\\.(", paste0(file_ext, collapse = "|"), ")$")
     )
     # post-condition
-    .check_that(all(file.exists(gpkg_files)))
+    gpkg_files_path <- paste0(vector_dir,"/",gpkg_files)
+    .check_that(all(file.exists(gpkg_files_path)))
 
     # remove the extension
     gpkg_files_noext <- tools::file_path_sans_ext(gpkg_files)
@@ -385,10 +386,6 @@
     })
     # subset gkpg files
     gpkg_files_ok <- gpkg_files_lst[are_gpkg_files_ok]
-
-    # post condition
-    .check_that(all(file.exists(gpkg_files_ok)))
-
     # filter only valid files
     gpkg_files_filt <- gpkg_files[are_gpkg_files_ok]
     # bind rows

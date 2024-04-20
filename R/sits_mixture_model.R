@@ -176,7 +176,7 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     # is added as a band
     data <- .cube_filter_bands(cube = data, bands = bands)
     # Check if cube is regular
-    .check_is_regular(data)
+    .check_that(.cube_is_regular(data))
     # Pre-condition
     .check_endmembers_bands(
         em = em,

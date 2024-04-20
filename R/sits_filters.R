@@ -66,9 +66,6 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' }
 #' @export
 sits_whittaker <- function(data = NULL, lambda = 0.5) {
-    .check_set_caller("sits_filter")
-    if (.has(data))
-        .check_that(inherits(data, "sits") || inherits(data, "raster_cube"))
     filter_fun <- function(data) {
         if (inherits(data, "matrix")) {
             return(smooth_whit_mtx(data, lambda = lambda, length = ncol(data)))
@@ -126,9 +123,6 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
 #' }
 #' @export
 sits_sgolay <- function(data = NULL, order = 3, length = 5) {
-    .check_set_caller("sits_filter")
-    if (.has(data))
-        .check_that(inherits(data, "sits") || inherits(data, "raster_cube"))
     # compute filter coefficients once
     f_res <- .signal_sgolay_coef(p = order, n = length, ts = 1)
     # function to be applied

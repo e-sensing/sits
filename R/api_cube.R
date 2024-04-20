@@ -512,6 +512,29 @@ NULL
     is_complete <- .cube_is_complete(cube)
     return(is_complete)
 }
+#' @title Check that cube is regular
+#' @name .cube_is_regular
+#' @keywords internal
+#' @noRd
+#' @param cube  datacube
+#' @return Called for side effects.
+.cube_is_regular <- function(cube) {
+    .check_set_caller(".cube_is_regular")
+    is_regular <- TRUE
+    if (!.cube_is_complete(cube)) {
+        is_regular <- FALSE
+    }
+    if (!.cube_has_unique_bbox(cube)) {
+        is_regular <- FALSE
+    }
+    if (!.cube_has_unique_tile_size(cube)) {
+        is_regular <- FALSE
+    }
+    if (length(.cube_timeline(cube)) > 1) {
+        is_regular <- FALSE
+    }
+    return(is_regular)
+}
 #' @title Find out how many images are in cube during a period
 #' @noRd
 #' @param cube  A data cube.

@@ -141,7 +141,7 @@ sits_reduce.raster_cube <- function(data, ...,
 
     # Check cube
     .check_is_raster_cube(data)
-    .check_is_regular(data)
+    .check_that(.cube_is_regular(data))
     # Check memsize
     .check_num_parameter(memsize, min = 1, max = 16384)
     # Check multicores

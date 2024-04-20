@@ -92,7 +92,7 @@ sits_segment <- function(cube,
     .check_set_caller("sits_segment")
     # Preconditions
     .check_is_raster_cube(cube)
-    .check_is_regular(cube)
+    .check_that(.cube_is_regular(cube))
     .check_int_parameter(memsize, min = 1, max = 16384)
     .check_output_dir(output_dir)
     version <- .check_version(version)

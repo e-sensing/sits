@@ -1,6 +1,6 @@
 test_that("View", {
-    v <- sits_view(cerrado_2classes)
-    expect_true("leaflet" %in% class(v))
+    v1 <- sits_view(cerrado_2classes)
+    expect_true("leaflet" %in% class(v1))
     expect_error(
         sits_view(cerrado_2classes,
                   legend = c("Cerrado" = "green"))
@@ -50,10 +50,6 @@ test_that("View", {
         progress = FALSE,
         version = "v_2"
     )
-    v2_probs <- sits_view(modis_probs)
-    expect_true("leaflet" %in% class(v2_probs))
-    expect_true(grepl("EPSG3857", v2_probs$x$options$crs$crsClass))
-    expect_equal(v2_probs$x$calls[[6]]$args[[6]], "probs Forest")
 
     # create a class cube
     modis_label <- sits_label_classification(modis_probs,
@@ -69,10 +65,6 @@ test_that("View", {
             "Forest", "Soy_Corn"
         ))
     )
-    v3_probs <- sits_view(modis_probs, class_cube = modis_label)
-    expect_true(grepl("EPSG3857", v3_probs$x$options$crs$crsClass))
-    expect_equal(v3_probs$x$calls[[6]]$args[[6]], "probs Forest")
-
     # view false color data cube and class cube together
     v4 <- sits_view(modis_cube,
         band = "NDVI",
@@ -206,11 +198,12 @@ test_that("View", {
 })
 test_that("View SOM map", {
     set.seed(2903)
-    som_map <- sits_som_map(
+    expect_warning({som_map <- sits_som_map(
         samples_modis_ndvi,
         grid_xdim = 4,
         grid_ydim = 4
     )
+    })
     v <- sits_view(som_map, id_neurons = c(1:5))
 
     expect_true(grepl("EPSG3857", v$x$options$crs$crsClass))

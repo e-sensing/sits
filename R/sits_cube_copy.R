@@ -62,7 +62,7 @@ sits_cube_copy <- function(cube,
     # Pre-conditions
     .check_is_raster_cube(cube)
     # Cupe copy does not work for SAR data
-    if ("sar_cube" %in% class(cube) && !.check_is_regular(cube)) {
+    if ("sar_cube" %in% class(cube) && !.cube_is_regular(cube)) {
         warning(.conf("messages"), "sits_cube_copy_sar_no_copy")
         return(cube)
     }

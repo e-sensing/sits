@@ -161,7 +161,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
     cli::cli_li("Bands: {.field {sits_bands(object)}}")
     timeline <- unique(lubridate::as_date(unlist(.cube_timeline(object))))
     cli::cli_li("Timeline: {.field {timeline}}")
-    is_regular <- .check_is_regular(object)
+    is_regular <- .cube_is_complete(object)
     cli::cli_li("Regular cube: {.field {is_regular}}")
     # Display cube cloud coverage
     if ("CLOUD" %in% .cube_bands(object) &&

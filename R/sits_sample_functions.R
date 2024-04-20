@@ -431,7 +431,7 @@ sits_stratified_sampling <- function(cube,
     # retrieve samples class
     samples_class <- unlist(sampling_design[,alloc])
     # check samples class
-    .check_int_parameter(samples_class,
+    .check_int_parameter(samples_class, is_named = TRUE,
             msg = .conf("messages", "sits_sampling_design_samples")
     )
     .check_int_parameter(multicores, min = 1, max = 2048)

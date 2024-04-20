@@ -246,7 +246,7 @@ sits_view.uncertainty_cube <- function(x, ...,
     cube <- .view_filter_tiles(x, tiles)
     # more than one tile? needs regular cube
     if (nrow(cube) > 1) {
-        .check_is_regular(cube)
+        .check_that(.cube_is_regular(data))
     }
     # check the view_max_mb parameter
     view_max_mb <- .view_set_max_mb(view_max_mb)

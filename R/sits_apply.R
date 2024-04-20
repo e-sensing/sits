@@ -126,7 +126,7 @@ sits_apply.raster_cube <- function(data, ...,
                                    progress = FALSE) {
     # Check cube
     .check_is_raster_cube(data)
-    .check_is_regular(data)
+    .check_that(.cube_is_regular(data))
     # Check window size
     .check_int_parameter(window_size, min = 3, is_odd = TRUE)
     # Check normalized index

@@ -216,7 +216,7 @@ sits_classify.raster_cube <- function(data,
     .check_set_caller("sits_classify_raster")
     # preconditions
     .check_is_raster_cube(data)
-    .check_is_regular(data)
+    .check_that(.cube_is_regular(data))
     .check_is_sits_model(ml_model)
     .check_int_parameter(memsize, min = 1, max = 16384)
     .check_int_parameter(multicores, min = 1, max = 2048)
@@ -249,7 +249,8 @@ sits_classify.raster_cube <- function(data,
             cube = data, start_date = start_date, end_date = end_date
         )
     }
-    .check_filter_fn(filter_fn)
+    if (.has(filter_fn))
+        .check_filter_fn(filter_fn)
     # Retrieve the samples from the model
     samples <- .ml_samples(ml_model)
     # Do the samples and tile match their timeline length?
@@ -405,7 +406,8 @@ sits_classify.segs_cube <- function(data,
             cube = data, start_date = start_date, end_date = end_date
         )
     }
-    .check_filter_fn(filter_fn)
+    if (.has(filter_fn))
+        .check_filter_fn(filter_fn)
     # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))

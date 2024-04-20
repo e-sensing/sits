@@ -61,6 +61,9 @@ test_that("Combine predictions", {
     expect_true(all(abs(avg - avg2)) < 3)
 
     # Recovery
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    if (doc_mode)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = FALSE)
     # test Recovery
     out <- capture_messages({
         expect_message(
@@ -72,11 +75,11 @@ test_that("Combine predictions", {
                     version = "comb_rfor_xgb_avg"
                 )
             },
-            regexp = "Recovery"
+            regexp = "recovery mode: data already exists. To produce new data, change output_dir or version"
         )
     })
-    expect_true(grepl("output_dir", out[1]))
-
+    if (doc_mode)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = TRUE)
     # combine predictions
     uncert_rfor <- sits_uncertainty(
         cube = probs_rfor_cube,

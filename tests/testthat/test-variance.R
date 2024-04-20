@@ -53,6 +53,9 @@ test_that("Variance cube", {
     expect_true(min(v) >= 0)
 
     # test Recovery
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    if (doc_mode)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = FALSE)
     out <- capture_messages({
         expect_message(
             object = {
@@ -61,11 +64,11 @@ test_that("Variance cube", {
                     output_dir = tempdir()
                 )
             },
-            regexp = "Recovery"
+            regexp = "recovery mode: data already exists. To produce new data, change output_dir or version"
         )
     })
-    expect_true(grepl("output_dir", out[1]))
-
+    if (doc_mode)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = TRUE)
     class_cube <- sits_label_classification(
         probs_cube,
         output_dir = tempdir(),

@@ -1,12 +1,12 @@
 test_that("Creating clustering using Self-organizing Maps", {
     set.seed(2903)
 
-    som_map <- sits_som_map(
+    expect_warning(som_map <- sits_som_map(
         samples_modis_ndvi,
         grid_xdim = 4,
         grid_ydim = 4,
         distance  = "euclidean"
-    )
+    ))
 
     expect_true(all(colnames(som_map$labelled_neurons) %in%
         c("id_neuron", "label_samples", "count",
@@ -30,11 +30,12 @@ test_that("Creating clustering using Self-organizing Maps", {
     expect_error(sits_som_clean_samples(samples_modis_ndvi))
     expect_error(sits_som_evaluate_samples(samples_modis_ndvi))
 
-    som_map <- sits_som_map(
+    expect_warning(som_map <- sits_som_map(
         samples_modis_ndvi,
         grid_xdim = 4,
         grid_ydim = 4,
         distance  = "dtw"
+        )
     )
     expect_true(all(colnames(som_map$labelled_neurons) %in%
                         c("id_neuron", "label_samples", "count",

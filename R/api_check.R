@@ -920,12 +920,9 @@
         )
     # check extension
     if (!is.null(extensions)) {
-        .check_chr_within(ext_file(x),
-                          within = extensions,
-                          case_sensitive = FALSE,
-                          local_msg = local_msg,
-                          msg = .conf("messages", ".check_file_extension")
-        )
+        extension <- ext_file(x)
+        .check_that(extension %in% extensions,
+                    local_msg = local_msg)
     }
     if (file_exists) {
         existing_files <- file.exists(x)
@@ -1166,7 +1163,7 @@
 #' @noRd
 .check_int_parameter <- function(x, min = -2^31 + 1, max = 2^31 - 1,
                                  len_min = 1, len_max = 2^31 - 1,
-                                 is_odd = FALSE,
+                                 is_odd = FALSE, is_named = FALSE,
                                  allow_null = FALSE, msg = NULL) {
     # check parameter name
     param <- deparse(substitute(x, environment()))
@@ -1181,6 +1178,7 @@
         len_min = len_min,
         len_max = len_max,
         is_integer = TRUE,
+        is_named = is_named,
         is_odd = is_odd,
         local_msg = local_msg,
         msg = msg
@@ -1785,30 +1783,6 @@
     .check_that(length(smoothness) == 1 || length(smoothness) == nlabels)
     return(invisible(smoothness))
 }
-#' @title Check that cube is regular
-#' @name .check_is_regular
-#' @keywords internal
-#' @noRd
-#' @param cube  datacube
-#' @return Called for side effects.
-.check_is_regular <- function(cube) {
-    .check_set_caller(".check_is_regular")
-    is_regular <- TRUE
-    if (!.cube_is_complete(cube)) {
-        is_regular <- FALSE
-    }
-    if (!.cube_has_unique_bbox(cube)) {
-        is_regular <- FALSE
-    }
-    if (!.cube_has_unique_tile_size(cube)) {
-        is_regular <- FALSE
-    }
-    if (length(.cube_timeline(cube)) > 1) {
-        is_regular <- FALSE
-    }
-    .check_that(is_regular)
-    return(invisible(cube))
-}
 #' @title Check if data contains predicted and reference values
 #' @name .check_pred_ref_match
 #' @param reference  vector with reference labels
@@ -1924,7 +1898,7 @@
     .check_set_caller(".check_cube_bands")
     # all bands are upper case
     bands <- toupper(bands)
-    cube_bands <- .cube_bands(cube = cube, add_cloud = add_cloud)
+    cube_bands <- toupper(.cube_bands(cube = cube, add_cloud = add_cloud))
     .check_that(all(bands %in% cube_bands))
     return(invisible(cube))
 }
@@ -2148,7 +2122,7 @@
 .check_endmembers_tbl <- function(em) {
     .check_set_caller(".check_endmembers_tbl")
     # Pre-condition
-    .check_that(any(is.na(em)))
+    .check_that(!any(is.na(em)))
     # Pre-condition
     .check_chr_contains(
         x = colnames(em),
@@ -2404,10 +2378,7 @@
 #' @noRd
 .check_filter_fn <- function(filter_fn){
     .check_set_caller(".check_filter_fn")
-    name <- deparse(substitute(filter_fn))
-
-    .check_that(grepl("whittaker", name) ||
-                grepl("sgolay"), name)
+    .check_that(is.function(filter_fn))
 }
 .check_dist_method <- function(dist_method){
     .check_set_caller(".check_dist_method")

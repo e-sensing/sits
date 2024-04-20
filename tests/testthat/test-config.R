@@ -71,7 +71,10 @@ test_that("User functions", {
                     ),
                     CLOUD = .conf_new_cloud_band(
                         bit_mask      = TRUE,
-                        values        = list(),
+                        values        = list(
+                            "0" = "No Data",
+                            "127" = "Clear Pixel",
+                            "255" = "Cloud"),
                         interp_values = 1,
                         resampling    = "near",
                         resolution    = 30,
@@ -114,7 +117,7 @@ test_that("User functions", {
 
     expect_error(
         .source_check(source = "ZZZ"),
-        "invalid 'source' parameter"
+        "invalid source parameter"
     )
 
     expect_equal(
@@ -134,12 +137,12 @@ test_that("User functions", {
 
     expect_error(
         .source_collection_check(source = "ZZZ", collection = "ZZZ"),
-        "invalid 'source' parameter"
+        ".source_check: invalid source variable - invalid source parameter"
     )
 
     expect_error(
         .source_collection_check(source = "TEST", collection = "ZZZ"),
-        "invalid 'collection' parameter"
+        ".source_collection_check: invalid collection variable - collection is not available in data provider or sits is not configured to access it"
     )
 
     expect_equal(

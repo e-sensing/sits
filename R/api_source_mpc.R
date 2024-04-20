@@ -269,6 +269,8 @@
     if (!nzchar(access_key)) {
         access_key <- NULL
     }
+    # Clean old tokens cached in rstac
+    .mpc_clean_token_cache()
     items_info <- suppressWarnings(
         rstac::items_sign(
             items_info, sign_fn = rstac::sign_planetary_computer(
@@ -285,7 +287,7 @@
                                                         collection,
                                                         stac_query, ...,
                                                         tiles = NULL,
-                                                        orbit = "descending") {
+                                                          orbit = "descending") {
     `.source_items_new.mpc_cube_sentinel-1-grd`(
         source = source,
         collection = collection,
@@ -348,6 +350,8 @@
     if (!nzchar(access_key)) {
         access_key <- NULL
     }
+    # Clean old tokens cached in rstac
+    .mpc_clean_token_cache()
     items_info <- suppressWarnings(
         rstac::items_sign(
             items_info,
@@ -377,6 +381,8 @@
                                                        stac_query, ...,
                                                        tiles = NULL,
                                                        platform = NULL) {
+    .check_set_caller(".source_items_new_mpc_cube_landsat_c2_l2")
+    .check_that(is.null(tiles))
     if (.has(platform)) {
         platform <- .stac_format_platform(
             source = source,
@@ -399,6 +405,8 @@
     if (!nzchar(access_key)) {
         access_key <- NULL
     }
+    # Clean old tokens cached in rstac
+    .mpc_clean_token_cache()
     items <- suppressWarnings(
         rstac::items_sign(
             items,
@@ -505,4 +513,20 @@
     .check_set_caller(".source_roi_tiles_mpc_cube_landsat_c2_l2")
     .check_that(.has_not(tiles))
     return(invisible(source))
+}
+#' @title Cleak MPC token cache
+#' @name .mpc_clean_token_cache
+#' @description
+#' Cleans the the token cache for MPC to reduce timeout effects
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+#' @export
+.mpc_clean_token_cache <- function() {
+    mpc_token <- get("ms_token", envir = asNamespace("rstac"), inherits = TRUE)
+    cached_tokens <- names(mpc_token)
+    lapply(cached_tokens, function(cached_token) {
+        assign(cached_token, NULL, envir = mpc_token)
+    })
+    return(invisible(NULL))
 }

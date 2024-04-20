@@ -51,6 +51,9 @@ test_that("Segmentation", {
 
     # test resume feature
     # testing resume feature
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    if (doc_mode)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = FALSE)
     out <- capture_messages({
         expect_message(
             object = {
@@ -63,10 +66,11 @@ test_that("Segmentation", {
                     version = "vt"
                 )
             },
-            regexp = "Recovery: "
+            regexp = "recovery mode: data already exists. To produce new data, change output_dir or version"
         )
     })
-
+    if (doc_mode)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = TRUE)
     # test read vector cube
     segment_cube <- sits_cube(
         source = "BDC",
@@ -115,6 +119,9 @@ test_that("Segmentation", {
     )
     # test resume feature
     # testing resume feature
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    if (doc_mode)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = FALSE)
     out2 <- capture_messages({
         expect_message(
             object = {
@@ -128,9 +135,11 @@ test_that("Segmentation", {
                     version = "vt2"
                 )
             },
-            regexp = "Recovery: "
+            regexp = "recovery mode: data already exists. To produce new data, change output_dir or version"
         )
     })
+    if (doc_mode)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = TRUE)
     # Create a classified vector cube
     class_segs <- sits_label_classification(
         cube = probs_segs,
@@ -157,6 +166,9 @@ test_that("Segmentation", {
 
     # test resume feature
     # testing resume feature
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    if (doc_mode)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = FALSE)
     out3 <- capture_messages({
         expect_message(
             object = {
@@ -167,10 +179,11 @@ test_that("Segmentation", {
                     memsize = 4
                 )
             },
-            regexp = "Recovery: "
+            regexp = "recovery mode: data already exists. To produce new data, change output_dir or version"
         )
     })
-
+    if (doc_mode)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = TRUE)
     uncert_vect <- sits_uncertainty(probs_segs,
                                     output_dir = output_dir)
 
@@ -213,7 +226,7 @@ test_that("Segmentation of large files",{
             output_dir = output_dir
         )
     )
-    expect_true(.check_is_regular(modis_cube_local))
+    expect_true(.cube_is_regular(modis_cube_local))
     expect_true(all(sits_bands(modis_cube_local) %in% c("EVI", "NDVI")))
     segments <- sits_segment(
         cube = modis_cube_local,
@@ -225,7 +238,7 @@ test_that("Segmentation of large files",{
         output_dir = output_dir,
         multicores = 4,
         memsize = 16,
-        progress = TRUE,
+        progress = FALSE,
         version = "v2bands"
     )
     expect_s3_class(object = segments, class = "vector_cube")
