@@ -78,7 +78,8 @@
                 n = n_colors,
                 palette = palette,
                 title = band,
-                midpoint = NA
+                midpoint = NA,
+                style.args = list(na.rm = TRUE)
             ) +
             tmap::tm_graticules(
                 labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
