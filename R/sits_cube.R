@@ -307,7 +307,8 @@ sits_cube.sar_cube <- function(source,
         end_date = end_date,
         platform = platform,
         progress = progress,
-        orbit = orbit
+        orbit = orbit,
+        ...
     )
 }
 #' @rdname sits_cube

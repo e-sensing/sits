@@ -4,11 +4,18 @@ test_that("List collections", {
     expect_true(grepl("DEAFRICA", col))
     expect_true(grepl("LANDSAT", col))
     expect_true(grepl("BDC", col))
+    expect_true(grepl("CDSE", col))
     col_bdc <- capture_output(sits_list_collections(source = "BDC"))
     expect_true(grepl("CBERS-WFI-16D", col_bdc))
     expect_true(grepl("CBERS-WFI-8D", col_bdc))
 })
 test_that("api_source", {
+    res_s2_b2 <- .source_bands_resolution(
+        source = "CDSE",
+        collection = "SENTINEL-2-L2A",
+        bands = "B02"
+    )
+    expect_equal(res_s2_b2[["B02"]], 10)
     res_s2_b8a <- .source_bands_resolution(
         source = "MPC",
         collection = "SENTINEL-2-L2A",
