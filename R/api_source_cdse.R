@@ -615,6 +615,16 @@
 #' @keywords internal
 #' @noRd
 #' @export
+`.source_filter_tiles.cdse_cube_sentinel-1-rtc` <- function(source,
+                                                            collection,
+                                                            cube,
+                                                            tiles) {
+    return(cube)
+}
+
+#' @keywords internal
+#' @noRd
+#' @export
 `.source_tile_get_bbox.cdse_cube_sentinel-1-rtc` <-
     function(source, file_info, ..., collection = NULL) {
     # pre-condition
