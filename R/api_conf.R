@@ -153,7 +153,7 @@
 .conf_sources_files <- function() {
     .check_set_caller(".conf_sources_files")
     # list the source files configurations
-    package_files <- system.file("extdata", package = "sits")
+    package_files <- system.file("extdata", "sources", package = "sits")
     yml_files <- list.files(
         path = package_files,
         pattern = "config_source_*",
