@@ -222,12 +222,12 @@
 #'         tiles = c("20LKP"),
 #'         bands = c("B04", "B08", "B11"),
 #'         start_date = "2018-07-18",
-#'         end_date = "2019-07-23"
+#'         end_date = "2019-01-23"
 #'     )
 #'
 #'     ## -- Sentinel-1 SAR from CDSE
-#'     roi <- c("lon_min" = 33.546, "lon_max" = 34.999,
-#'              "lat_min" = 1.427, "lat_max" = 3.726)
+#'     roi_sar <- c("lon_min" = 33.546, "lon_max" = 34.999,
+#'                  "lat_min" = 1.427, "lat_max" = 3.726)
 #'     s1_cube_open <- sits_cube(
 #'        source = "CDSE",
 #'        collection = "SENTINEL-1-RTC",
