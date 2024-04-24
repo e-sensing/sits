@@ -17,7 +17,7 @@
   style = "cont",
   n_colors = 10,
   rev = FALSE,
-  scale = 0.8
+  scale = 1
 )
 }
 \arguments{

@@ -361,7 +361,7 @@ plot.raster_cube <- function(x, ...,
                              style = "cont",
                              n_colors = 10,
                              rev = FALSE,
-                             scale = 0.8) {
+                             scale = 1) {
     .check_set_caller(".plot_raster_cube")
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)

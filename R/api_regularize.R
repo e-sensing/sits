@@ -201,6 +201,9 @@
         dplyr::group_map(~{
             # prepare a sf object representing the bbox of each image in file_info
             cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x$crs)
+            if (nrow(cube_crs) == 0) {
+                cube_crs <- cube
+            }
             fi_bbox <- .bbox_as_sf(.bbox(
                 x = .fi(cube_crs),
                 default_crs = .crs(cube_crs),
