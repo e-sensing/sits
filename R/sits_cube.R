@@ -214,6 +214,30 @@
 #'         start_date = "2019-01-01",
 #'         end_date = "2019-10-28"
 #'     )
+#'     # --- Access to CDSE open data Sentinel 2/2A level 2 collection
+#'     # It is recommended that `multicores` be used to accelerate the process.
+#'     s2_cube <- sits_cube(
+#'         source = "CDSE",
+#'         collection = "SENTINEL-2-L2A",
+#'         tiles = c("20LKP"),
+#'         bands = c("B04", "B08", "B11"),
+#'         start_date = "2018-07-18",
+#'         end_date = "2019-07-23"
+#'     )
+#'
+#'     ## -- Sentinel-1 SAR from CDSE
+#'     roi <- c("lon_min" = 33.546, "lon_max" = 34.999,
+#'              "lat_min" = 1.427, "lat_max" = 3.726)
+#'     s1_cube_open <- sits_cube(
+#'        source = "CDSE",
+#'        collection = "SENTINEL-1-RTC",
+#'        bands = c("VV", "VH"),
+#'        orbit = "descending",
+#'        roi = roi_sar,
+#'        start_date = "2020-01-01",
+#'        end_date = "2020-06-10"
+#'     )
+#'
 #'     # --- Access to AWS open data Sentinel 2/2A level 2 collection
 #'     s2_cube <- sits_cube(
 #'         source = "AWS",
