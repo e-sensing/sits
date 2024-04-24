@@ -488,17 +488,17 @@ sources:
                 grid_system : "MGRS"
             SENTINEL-1-RTC  :
                 bands       :
-                    VV      : &deafrica_rtc_10m
+                    VV      : &deafrica_rtc_20m
                         missing_value : -32768.0
                         minimum_value : 0
                         maximum_value : 65534
                         scale_factor  : 1
                         offset_value  : 0
-                        resolution    : 10
+                        resolution    : 20
                         band_name     : "VV"
                         data_type     : "FLT4S"
                     VH      :
-                        <<: *deafrica_rtc_10m
+                        <<: *deafrica_rtc_20m
                         band_name     : "VH"
                 satellite   : "SENTINEL-1"
                 sensor      : "RTC"
