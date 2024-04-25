@@ -8,7 +8,7 @@
   x,
   y,
   ...,
-  tile = x$tile[[1]],
+  tile = x[["tile"]][[1]],
   title = "Classified Image",
   legend = NULL,
   palette = "Spectral",

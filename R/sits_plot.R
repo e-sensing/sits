@@ -361,7 +361,7 @@ plot.raster_cube <- function(x, ...,
                              style = "cont",
                              n_colors = 10,
                              rev = FALSE,
-                             scale = 0.8) {
+                             scale = 1) {
     .check_set_caller(".plot_raster_cube")
     # is tile inside the cube?
     .check_chr_contains(

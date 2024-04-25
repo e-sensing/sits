@@ -132,7 +132,6 @@
 
     return(yml_file)
 }
-
 #' @title Return the internal configuration file (only for developers)
 #' @name .conf_internals_file
 #' @keywords internal
@@ -145,6 +144,57 @@
     # check that the file name is valid
     .check_that(file.exists(yml_file))
     return(yml_file)
+}
+#' @title Return the message configuration files (only for developers)
+#' @name .conf_sources_files
+#' @keywords internal
+#' @noRd
+#' @return internal sources configuration
+.conf_sources_files <- function() {
+    .check_set_caller(".conf_sources_files")
+    # list the source files configurations
+    package_files <- system.file("extdata", "sources", package = "sits")
+    yml_files <- list.files(
+        path = package_files,
+        pattern = "config_source_*",
+        full.names = TRUE
+    )
+    # check that the file name is valid
+    purrr::map(yml_files, .check_file)
+    return(yml_files)
+}
+#' @name .conf_load_sources
+#' @description Loads sources configurations
+#' @keywords internal
+#' @noRd
+#' @return NULL, called for side effects
+.conf_load_sources <- function() {
+    # get file paths
+    source_yml_files <- .conf_sources_files()
+    # load files
+    source_configs <- purrr::map(source_yml_files, function(file) {
+        yaml::yaml.load_file(
+            input = file,
+            merge.precedence = "override"
+        )
+    })
+    # prepare sources object
+    source_obj <- purrr::map(source_configs, "sources")
+    source_obj <- purrr::flatten(source_obj)
+    # prepare extras objects (e.g., token, url config)
+    extras_obj <- purrr::map(source_configs, function(source_config) {
+        source_config[["sources"]] <- NULL
+        source_config
+    })
+    extras_obj <- purrr::flatten(extras_obj)
+    # merge objects
+    config_obj <- utils::modifyList(extras_obj, list(
+        sources = source_obj
+    ))
+    # set configurations
+    do.call(.conf_set_options, args = config_obj)
+    # done
+    return(invisible(NULL))
 }
 #' @title Return the message configuration file (only for developers)
 #' @name .conf_messages_file

@@ -1,0 +1,488 @@
+# These are configuration parameters that can be set by users
+# The parameters enable access to the cloud collections
+
+sources:
+    DEAFRICA                :
+        s3_class            : ["deafrica_cube", "stac_cube", "eo_cube",
+                               "raster_cube"]
+        service             : "STAC"
+        url                 : "https://explorer.digitalearth.africa/stac/"
+        collections         :
+            ALOS_PALSAR_MOSAIC  :
+                bands       :
+                    HH  : &deafrica_alos_25m
+                        missing_value  : 0
+                        minimum_value  : 0
+                        maximum_value  : 65534
+                        scale_factor   : 1
+                        offset_value   : 0
+                        resolution     : 25
+                        band_name      : "hh"
+                        data_type      : "FLT4S"
+                    HV  :
+                        <<: *deafrica_alos_25m
+                        band_name     : "hv"
+                    CLOUD:
+                        band_name: "mask"
+                        resolution: 10
+                        data_type: "INT1U"
+                        bit_mask: true
+                        values:
+                            0    : "no_data"
+                            50   : "water"
+                            100  : "lay_over"
+                            150  : "shadowing"
+                            255  : "land"
+                        interp_values: [0, 150]
+                satellite   : "PALSAR"
+                sensor      : "ALOS"
+                access_vars:
+                    AWS_DEFAULT_REGION: "af-south-1"
+                    AWS_S3_ENDPOINT: "s3.af-south-1.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST: true
+                collection_name: "alos_palsar_mosaic"
+                open_data: true
+                open_data_token: false
+                metadata_search: "feature"
+                ext_tolerance: 0
+                grid_system : ""
+
+            DEM_COP_30:
+                bands:
+                    ELEVATION:
+                        band_name     : "elevation"
+                        resolution    : 30
+                        data_type     : "FLT4S"
+                        missing_value : -32768
+                        minimum_value : 0
+                        maximum_value : 65534
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                satellite       : "COP-DEM"
+                sensor          : "30"
+                collection_name : "dem_cop_30"
+                access_vars     :
+                    AWS_DEFAULT_REGION  : "af-south-1"
+                    AWS_S3_ENDPOINT     : "s3.af-south-1.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : ""
+
+            LS5_SR        :
+                bands       :
+                    B01     : &deafrica_ls5_30m
+                        band_name     : "SR_B1"
+                        resolution    : 30
+                        data_type     : "INT2U"
+                        missing_value : 0
+                        minimum_value : 1
+                        maximum_value : 65455
+                        scale_factor  : 2.75e-05
+                        offset_value  : -0.2
+                        resampling    : "bilinear"
+                    B02     :
+                        <<: *deafrica_ls5_30m
+                        band_name: "SR_B2"
+                    B03     :
+                        <<: *deafrica_ls5_30m
+                        band_name: "SR_B3"
+                    B04     :
+                        <<: *deafrica_ls5_30m
+                        band_name: "SR_B4"
+                    B05     :
+                        <<: *deafrica_ls5_30m
+                        band_name: "SR_B5"
+                    B07     :
+                        <<: *deafrica_ls5_30m
+                        band_name: "SR_B7"
+                    CLOUD   :
+                        band_name  : "QA_PIXEL"
+                        resolution : 30
+                        data_type  : "INT2U"
+                        bit_mask   : true
+                        values :
+                            0  : "missing_data"
+                            1  : "Dilated Cloud"
+                            2  : "Unused"
+                            3  : "Cloud"
+                            4  : "Cloud Shadow"
+                            5  : "Snow"
+                            6  : "Clear"
+                            7  : "Water"
+                            8  : "Cloud Confidence"
+                            9  : "Cloud Confidence"
+                            10 : "Cloud Shadow Confidence"
+                            11 : "Cloud Shadow Confidence"
+                            12 : "Snow/Ice Confidence"
+                            13 : "Snow/Ice Confidence"
+                            14 : "Unused"
+                            15 : "Unused"
+                        interp_values: [0, 1, 3, 4, 5]
+                satellite   : "LANDSAT-5"
+                sensor      : "TM-MSS"
+                collection_name : "ls5_sr"
+                access_vars     :
+                    AWS_DEFAULT_REGION  : "af-south-1"
+                    AWS_S3_ENDPOINT     : "s3.af-south-1.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : "WRS-2"
+            LS7_SR        :
+                bands     :
+                    B01   : &deafrica_ls7_30m
+                        band_name     : "SR_B1"
+                        resolution    : 30
+                        data_type     : "INT2U"
+                        missing_value : 0
+                        minimum_value : 1
+                        maximum_value : 65455
+                        scale_factor  : 2.75e-05
+                        offset_value  : -0.2
+                        resampling    : "bilinear"
+                    B02   :
+                        <<: *deafrica_ls7_30m
+                        band_name: "SR_B2"
+                    B03   :
+                        <<: *deafrica_ls7_30m
+                        band_name: "SR_B3"
+                    B04   :
+                        <<: *deafrica_ls7_30m
+                        band_name: "SR_B4"
+                    B05   :
+                        <<: *deafrica_ls7_30m
+                        band_name: "SR_B5"
+                    B07   :
+                        <<: *deafrica_ls7_30m
+                        band_name: "SR_B7"
+                    CLOUD :
+                        band_name  : "QA_PIXEL"
+                        resolution : 30
+                        data_type  : "INT2U"
+                        bit_mask   : true
+                        values :
+                            0  : "missing_data"
+                            1  : "Dilated Cloud"
+                            2  : "Unused"
+                            3  : "Cloud"
+                            4  : "Cloud Shadow"
+                            5  : "Snow"
+                            6  : "Clear"
+                            7  : "Water"
+                            8  : "Cloud Confidence"
+                            9  : "Cloud Confidence"
+                            10 : "Cloud Shadow Confidence"
+                            11 : "Cloud Shadow Confidence"
+                            12 : "Snow/Ice Confidence"
+                            13 : "Snow/Ice Confidence"
+                            14 : "Unused"
+                            15 : "Unused"
+                        interp_values: [0, 1, 3, 4, 5]
+                satellite : "LANDSAT-7"
+                sensor    : "ETM"
+                collection_name : "ls7_sr"
+                access_vars     :
+                    AWS_DEFAULT_REGION  : "af-south-1"
+                    AWS_S3_ENDPOINT     : "s3.af-south-1.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : "WRS-2"
+            LS8_SR          : &deafrica_l8
+                bands       :
+                    B01     : &deafrica_oli_30m
+                        missing_value : 0
+                        minimum_value : 7273
+                        maximum_value : 43636
+                        scale_factor  : 0.0000275
+                        offset_value  : -0.2
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "SR_B1"
+                        data_type     : "INT2U"
+                    B02     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B2"
+                    B03     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B3"
+                    B04     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B4"
+                    B05     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B5"
+                    B06     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B6"
+                    B07     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B7"
+                    CLOUD   :
+                        bit_mask      : true
+                        band_name     : "QA_PIXEL"
+                        values        :
+                            0         : "missing_data"
+                            1         : "Dilated Cloud"
+                            2         : "High confidence cirrus"
+                            4         : "High confidence cloud shadow"
+                            5         : "High confidence snow cover"
+                            6         : "Clear"
+                            7         : "Water"
+                            9         : "High confidence of cloud"
+                            11        : "High confidence of cloud shadow"
+                            13        : "High confidence of snow"
+                            15        : "High confidence of cirrus"
+                        interp_values : [0, 1, 2, 3, 4, 5]
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT2U"
+                satellite   : "LANDSAT-8"
+                sensor      : "OLI"
+                collection_name: "ls8_sr"
+                access_vars :
+                    AWS_DEFAULT_REGION: "af-south-1"
+                    AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST: true
+                open_data: true
+                open_data_token: false
+                metadata_search : "feature"
+                ext_tolerance: 0
+                grid_system  : "WRS-2"
+            LS9_SR          :
+                bands:
+                    B01: &deafrica_ls9_30m
+                        band_name     : "SR_B1"
+                        resolution    : 30
+                        data_type     : "INT2U"
+                        missing_value : 0
+                        minimum_value : 1
+                        maximum_value : 65455
+                        scale_factor  : 2.75e-05
+                        offset_value  : -0.2
+                        resampling    : "bilinear"
+                    B02:
+                        <<: *deafrica_ls9_30m
+                        band_name: "SR_B2"
+                    B03:
+                        <<: *deafrica_ls9_30m
+                        band_name: "SR_B3"
+                    B04:
+                        <<: *deafrica_ls9_30m
+                        band_name: "SR_B4"
+                    B05:
+                        <<: *deafrica_ls9_30m
+                        band_name: "SR_B5"
+                    B06:
+                        <<: *deafrica_ls9_30m
+                        band_name: "SR_B6"
+                    B07:
+                        <<: *deafrica_ls9_30m
+                        band_name: "SR_B7"
+                    CLOUD:
+                        band_name  : "QA_PIXEL"
+                        resolution : 30
+                        data_type  : "INT2U"
+                        bit_mask   : true
+                        values     :
+                            0         : "missing_data"
+                            1         : "Dilated Cloud"
+                            2         : "Cirrus"
+                            3         : "Cloud"
+                            4         : "Cloud Shadow"
+                            5         : "Snow"
+                            6         : "Clear"
+                            7         : "Water"
+                            8         : "Cloud Confidence"
+                            9         : "Cloud Confidence"
+                            10        : "Cloud Shadow Confidence"
+                            11        : "Cloud Shadow Confidence"
+                            12        : "Snow/Ice Confidence"
+                            13        : "Snow/Ice Confidence"
+                            14        : "Cirrus Confidence"
+                            15        : "Cirrus Confidence"
+                        interp_values : [0, 1, 2, 3, 4, 5]
+                satellite       : "LANDSAT-9"
+                sensor          : "OLI"
+                collection_name : "ls9_sr"
+                access_vars     :
+                    AWS_DEFAULT_REGION  : "af-south-1"
+                    AWS_S3_ENDPOINT     : "s3.af-south-1.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : "WRS-2"
+
+            NDVI_ANOMALY    :
+                bands       :
+                    NDVI-MEAN : &deafrica_ndvi_anomaly_30m
+                        band_name      : "ndvi_mean"
+                        resolution     : 30
+                        data_type      : "FLT4S"
+                        missing_value  : -32768
+                        minimum_value  : 0
+                        maximum_value  : 1
+                        scale_factor   : 1
+                        offset_value   : 0
+                        resampling     : "bilinear"
+                    NDVI-STD-ANOMALY:
+                        <<: *deafrica_ndvi_anomaly_30m
+                        band_name      : "ndvi_std_anomaly"
+                satellite       : "LANDSAT-SENTINEL"
+                sensor          : "OLI-MSI"
+                collection_name : "ndvi_anomaly"
+                access_vars:
+                    AWS_DEFAULT_REGION  : "af-south-1"
+                    AWS_S3_ENDPOINT     : "s3.af-south-1.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : ""
+            RAINFALL_CHIRPS_DAILY    :
+                bands:
+                    RAINFALL:
+                        band_name     : "rainfall"
+                        resolution    : 5000
+                        data_type     : "FLT4S"
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                satellite       : "CHIRPS"
+                sensor          : "CHIRPS"
+                collection_name : "rainfall_chirps_daily"
+                access_vars     :
+                    AWS_DEFAULT_REGION  : "af-south-1"
+                    AWS_S3_ENDPOINT     : "s3.af-south-1.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "feature"
+                ext_tolerance   : 0
+                grid_system     : ""
+            RAINFALL_CHIRPS_MONTHLY  :
+                bands:
+                    RAINFALL:
+                        band_name     : "rainfall"
+                        resolution    : 5000
+                        data_type     : "FLT4S"
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                satellite       : "CHIRPS"
+                sensor          : "CHIRPS"
+                collection_name : "rainfall_chirps_monthly"
+                access_vars     :
+                    AWS_DEFAULT_REGION  : "af-south-1"
+                    AWS_S3_ENDPOINT     : "s3.af-south-1.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "feature"
+                ext_tolerance   : 0
+                grid_system     : ""
+
+            S2_L2A          :
+                bands       :
+                    B01     : &deafrica_msi_60m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution   :  60
+                        band_name     : "B01"
+                        data_type    : "INT2S"
+                    B02     : &deafrica_msi_10m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution   :  10
+                        band_name     : "B02"
+                        data_type    : "INT2S"
+                    B03     :
+                        <<: *deafrica_msi_10m
+                        band_name     : "B03"
+                    B04     :
+                        <<: *deafrica_msi_10m
+                        band_name     : "B04"
+                    B05     : &deafrica_msi_20m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution   :  20
+                        band_name     : "B05"
+                        data_type    : "INT2S"
+                    B06     :
+                        <<: *deafrica_msi_20m
+                        band_name     : "B06"
+                    B07     :
+                        <<: *deafrica_msi_20m
+                        band_name     : "B07"
+                    B08     :
+                        <<: *deafrica_msi_10m
+                        band_name     : "B08"
+                    B8A     :
+                        <<: *deafrica_msi_20m
+                        band_name     : "B8A"
+                    B09     :
+                        <<: *deafrica_msi_60m
+                        band_name     : "B09"
+                    B11     :
+                        <<: *deafrica_msi_20m
+                        band_name     : "B11"
+                    B12     :
+                        <<: *deafrica_msi_20m
+                        band_name     : "B12"
+                    CLOUD   :
+                        bit_mask      : false
+                        band_name     : "SCL"
+                        values        :
+                            0         : "missing_data"
+                            1         : "defective pixel"
+                            2         : "shadows"
+                            3         : "cloud shadows"
+                            4         : "vegetation"
+                            5         : "non-vegetated"
+                            6         : "water"
+                            7         : "unclassified"
+                            8         : "cloud medium"
+                            9         : "cloud high"
+                            10        : "thin cirrus"
+                            11        : "snow or ice"
+                        interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
+                        resolution   :  20
+                        data_type    : "INT1U"
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
+                collection_name: "s2_l2a"
+                access_vars :
+                    AWS_DEFAULT_REGION: "af-south-1"
+                    AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST: true
+                open_data: true
+                open_data_token: false
+                metadata_search : "tile"
+                ext_tolerance: 0
+                grid_system  : "MGRS"

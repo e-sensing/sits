@@ -82,10 +82,9 @@
     # Get band configuration
     band_conf <- .tile_band_conf(tile = feature, band = out_band)
     if (.has_not(band_conf)) {
+        band_conf <- .conf("default_values", "FLT4S")
         if (normalized)
             band_conf <- .conf("default_values", "INT2S")
-        else
-            band_conf <- .conf("default_values", "FLT4S")
     }
     # Process jobs sequentially
     block_files <- .jobs_map_sequential(chunks, function(chunk) {
@@ -142,6 +141,8 @@
         # Returned block files for each fraction
         block_files
     })
+    # Remove NULL values from block files list
+    block_files <- Filter(function(x) !is.null(x), block_files)
     # Merge blocks into a new eo_cube tile
     band_tile <- .tile_eo_merge_blocks(
         files = out_file,

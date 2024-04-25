@@ -1,0 +1,143 @@
+# These are configuration parameters that can be set by users
+# The parameters enable access to the cloud collections
+
+sources:
+    CDSE                    :
+        s3_class            : ["cdse_cube", "stac_cube", "eo_cube",
+                              "raster_cube"]
+        service             : "STAC"
+        url                 : "https://catalogue.dataspace.copernicus.eu/resto/api/collections"
+        collections         :
+            SENTINEL-1-RTC  : &cdse_s1_rtc
+                bands       :
+                    VV      : &cdse_rtc_10m
+                        missing_value : -32768.0
+                        minimum_value : 0
+                        maximum_value : 65534
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "VV"
+                        data_type     : "FLT4S"
+                        pattern       : ".*_VV\\.tif$"
+                    VH      :
+                        <<: *cdse_rtc_10m
+                        band_name     : "VH"
+                        pattern       : ".*_VH\\.tif$"
+                satellite   : "SENTINEL-1"
+                sensor      : "RTC"
+                orbits      : ["ascending", "descending"]
+                platforms   :
+                    SENTINEL-1A: "Sentinel-1A"
+                    SENTINEL-1B: "Sentinel-1B"
+                collection_name: "SENTINEL-1-RTC"
+                sar_cube: true
+                open_data: true
+                open_data_token: true
+                metadata_search: "feature"
+                ext_tolerance: 0
+                grid_system : "MGRS"
+                item_type   : "RTC"
+            SENTINEL-2-L2A  : &cdse_msi
+                bands       :
+                    B01     : &cdse_msi_60m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    : 60
+                        band_name     : "B01"
+                        data_type     : "INT2U"
+                        pattern       : ".*B01_60m\\.jp2$"
+                    B02     : &cdse_msi_10m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "B02"
+                        data_type     : "INT2U"
+                        pattern       : ".*B02_10m\\.jp2$"
+                    B03     :
+                        <<: *cdse_msi_10m
+                        band_name     : "B03"
+                        pattern       : ".*B03_10m\\.jp2$"
+                    B04     :
+                        <<: *cdse_msi_10m
+                        band_name     : "B04"
+                        pattern       : ".*B04_10m\\.jp2$"
+                    B05     : &cdse_msi_20m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    : 20
+                        band_name     : "B05"
+                        data_type     : "INT2U"
+                        pattern       : ".*B05_20m\\.jp2$"
+                    B06     :
+                        <<: *cdse_msi_20m
+                        band_name     : "B06"
+                        pattern       : ".*B06_20m\\.jp2$"
+                    B07     :
+                        <<: *cdse_msi_20m
+                        band_name     : "B07"
+                        pattern       : ".*B07_20m\\.jp2$"
+                    B08     :
+                        <<: *cdse_msi_10m
+                        band_name     : "B08"
+                        pattern       : ".*B08_10m\\.jp2$"
+                    B8A     :
+                        <<: *cdse_msi_20m
+                        band_name     : "B8A"
+                        pattern       : ".*B8A_20m\\.jp2$"
+                    B09     :
+                        <<: *cdse_msi_60m
+                        band_name     : "B09"
+                        pattern       : ".*B09_60m\\.jp2$"
+                    B11     :
+                        <<: *cdse_msi_20m
+                        band_name     : "B11"
+                        pattern       : ".*B11_20m\\.jp2$"
+                    B12     :
+                        <<: *cdse_msi_20m
+                        band_name     : "B12"
+                        pattern       : ".*B12_20m\\.jp2$"
+                    CLOUD   :
+                        bit_mask      : false
+                        band_name     : "CLOUD"
+                        values        :
+                            0         : "missing_data"
+                            1         : "defective pixel"
+                            2         : "shadows"
+                            3         : "cloud shadows"
+                            4         : "vegetation"
+                            5         : "non-vegetated"
+                            6         : "water"
+                            7         : "unclassified"
+                            8         : "cloud medium"
+                            9         : "cloud high"
+                            10        : "thin cirrus"
+                            11        : "snow or ice"
+                        interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
+                        resolution    :  20
+                        data_type     : "INT1U"
+                        pattern       : ".*SCL_20m\\.jp2$"
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
+                platforms   :
+                    SENTINEL-2A: "Sentinel-2A"
+                    SENTINEL-2B: "Sentinel-2B"
+                access_vars:
+                    AWS_S3_ENDPOINT       : "eodata.dataspace.copernicus.eu"
+                    AWS_VIRTUAL_HOSTING   : "FALSE"
+                collection_name: "SENTINEL-2"
+                open_data: true
+                open_data_token: true
+                metadata_search : "tile"
+                ext_tolerance: 0
+                grid_system  : "MGRS"
+                item_type  : "S2MSI2A"

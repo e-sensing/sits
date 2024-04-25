@@ -35,7 +35,6 @@ sits_config <- function(config_user_file = NULL) {
     .conf_load_messages()
     # load the internal configuration file
     config_internals_file <- .conf_internals_file()
-
     # read the configuration parameters
     config_internals <- yaml::yaml.load_file(
         input = config_internals_file,
@@ -43,16 +42,8 @@ sits_config <- function(config_user_file = NULL) {
     )
     # set options defined in sits config
     do.call(.conf_set_options, args = config_internals)
-    # get and check the default configuration file path
-    yml_file <- .conf_file()
-    # read the configuration parameters
-    config <- yaml::yaml.load_file(
-        input = yml_file,
-        merge.precedence = "override"
-    )
-    # set options defined in sits config
-    do.call(.conf_set_options, args = config)
-
+    # load sources configuration
+    .conf_load_sources()
     # set the default color table
     .conf_load_color_table()
     # set the user options

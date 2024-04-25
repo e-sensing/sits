@@ -7,7 +7,7 @@
 \method{plot}{variance_cube}(
   x,
   ...,
-  tile = x$tile[[1]],
+  tile = x[["tile"]][[1]],
   labels = NULL,
   palette = "YlGnBu",
   style = "cont",

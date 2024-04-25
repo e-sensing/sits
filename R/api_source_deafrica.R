@@ -98,12 +98,6 @@
     .check_stac_items(items_info)
     return(items_info)
 }
-#' @title Organizes items by tiles for DEAfrica collections
-#' @param source     Name of the STAC provider.
-#' @param ...        Other parameters to be passed for specific types.
-#' @param items      \code{STACItemcollection} object from rstac package.
-#' @param collection Collection to be searched in the data source.
-#' @return A list of items.
 #' @keywords internal
 #' @noRd
 #' @export
@@ -111,4 +105,37 @@
                                              items,
                                              collection = NULL) {
     rstac::items_reap(items, field = c("properties", "odc:region_code"))
+}
+#' @keywords internal
+#' @noRd
+#' @export
+.source_item_get_date.deafrica_cube <- function(source,
+                                                item,
+                                                ...,
+                                                collection = NULL) {
+    item_date <- item[[c("properties", "datetime")]]
+
+    # Digital Earth Africa provides some products with the `properties.datetime`
+    # property `null`. In those cases, it is required to use other date
+    # parameter available
+    if (is.null(item_date))
+        item_date <- item[[c("properties", "start_datetime")]]
+
+    suppressWarnings(
+        lubridate::as_date(item_date)
+    )
+}
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_tile.deafrica_cube_rainfall_chirps_daily` <-
+    function(source, items, ..., collection = NULL) {
+        rep("NoTilingSystem", rstac::items_length(items))
+}
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_tile.deafrica_cube_rainfall_chirps_monthly` <-
+    function(source, items, ..., collection = NULL) {
+    rep("NoTilingSystem", rstac::items_length(items))
 }

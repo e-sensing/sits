@@ -19,8 +19,6 @@
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #'
 #' @return               A plot object
-#' @export
-#'
 .plot_false_color <- function(tile,
                               band,
                               date,
@@ -103,7 +101,8 @@
                 n = n_colors,
                 palette = palette,
                 title = band,
-                midpoint = NA
+                midpoint = NA,
+                style.args = list(na.rm = TRUE)
             ) +
             tmap::tm_graticules(
                 labels.size = labels_size
