@@ -178,15 +178,22 @@ vector_cube          :
         bands        :
             segments :
     probs_vector_cube:
-        s3_class     : ["probs_vector_cube", "derived_vector_cube", "segs_cube",
-                        "vector_cube"]
+        s3_class     : ["probs_vector_cube", "derived_vector_cube",
+                        "segs_cube", "vector_cube"]
         bands        :
-            probs-vector :
+            probs-vector:
     class_vector_cube:
-        s3_class     : ["class_vector_cube", "derived_vector_cube", "segs_cube",
-                        "vector_cube"]
+        s3_class     : ["class_vector_cube", "derived_vector_cube",
+                        "segs_cube", "vector_cube"]
         bands        :
-            class-vector    :
+            class-vector:
+    uncertainty_vector_cube:
+        s3_class     : ["uncertainty_vector_cube", "derived_vector_cube",
+                        "segs_cube", "vector_cube"]
+        bands        :
+            entropy  :
+            least    :
+            margin   :
 
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"

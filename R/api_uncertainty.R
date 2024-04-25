@@ -181,6 +181,20 @@
         output_dir = output_dir,
         ext = "gpkg"
     )
+    # Resume feature
+    if (file.exists(out_file)) {
+        if (.check_messages()) {
+            .check_recovery(out_file)
+        }
+        uncert_tile <- .tile_segments_from_file(
+            file = out_file,
+            band = band,
+            base_tile = tile,
+            vector_class = "uncertainty_vector_cube",
+            update_bbox = TRUE
+        )
+        return(uncert_tile)
+    }
     # select uncertainty function
     uncert_fn <- switch(
         band,
