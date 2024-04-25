@@ -209,7 +209,8 @@
         # Get the next index
         next_idx <- max(as.numeric(names(cube_labels))) + 1
         idx_values <- seq.int(
-            from = next_idx, to = next_idx + length(new_labels) - 1                                    )
+            from = next_idx, to = next_idx + length(new_labels) - 1
+        )
         names(new_labels) <- as.character(idx_values)
     }
     return(c(cube_labels, new_labels))

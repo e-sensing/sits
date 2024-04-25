@@ -62,7 +62,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
             by = freq
         )
         # how many different labels are there?
-        labels <- dplyr::distinct(tb, .data[["label"]])$label
+        labels <- dplyr::distinct(tb, .data[["label"]])[["label"]]
         # traverse labels
         patterns <- labels |>
             purrr::map_dfr(function(lb) {
@@ -73,7 +73,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                 # create a data frame to store the time instances
                 time <- data.frame(as.numeric(pred_time))
                 # name the time as the second variable of the formula
-                names(time) <- vars[2]
+                names(time) <- vars[[2]]
                 # store the time series associated to the pattern
                 index <- tibble::tibble(Index = lubridate::as_date(pred_time))
                 # calculate the fit for each band
@@ -81,7 +81,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                     purrr::map(function(bd) {
                         # retrieve the time series for each band
                         label_b <- sits_select(label_rows, bd)
-                        ts <- dplyr::bind_rows(label_b$time_series)
+                        ts <- dplyr::bind_rows(label_b[["time_series"]])
                         # melt the time series for each band into a long table
                         # with all values together
                         ts2 <- ts |>

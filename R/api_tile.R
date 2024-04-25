@@ -950,13 +950,12 @@ NULL
     is_bit_mask <- .cloud_bit_mask(cloud_conf)
     # Prepare cloud_mask
     # Identify values to be removed
-    if (!is_bit_mask) {
-        values <- values %in% interp_values
-    } else {
+    if (is_bit_mask)
         values <- matrix(bitwAnd(values, sum(2^interp_values)) > 0,
-            nrow = length(values)
+                         nrow = length(values)
         )
-    }
+    else
+        values <- values %in% interp_values
     #
     # Log here
     #
@@ -1263,7 +1262,8 @@ NULL
 #' @param out_file output file name
 #' @param update_bbox  should bbox be updated?
 #' @return a new tile with files written
-.tile_segment_merge_blocks <- function(block_files, base_tile, band, vector_class,
+.tile_segment_merge_blocks <- function(block_files, base_tile,
+                                       band, vector_class,
                                        out_file, update_bbox = FALSE) {
     base_tile <- .tile(base_tile)
     # Read all blocks file
@@ -1427,4 +1427,3 @@ NULL
     }
     return(invisible(end_time))
 }
-

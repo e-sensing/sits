@@ -125,7 +125,7 @@
             paste0("EPSG:", .compact(x))
         }
     } else {
-            stop("invalid crs value")
+        stop("invalid crs value")
     }
 }
 #' @title Return CRS from a spatial data structure

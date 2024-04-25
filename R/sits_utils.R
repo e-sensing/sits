@@ -28,7 +28,7 @@ sits_show_prediction <- function(class) {
     .check_set_caller("sits_show_prediction")
     .check_predicted(class)
     return(dplyr::select(
-        dplyr::bind_rows(class$predicted),
+        dplyr::bind_rows(class[["predicted"]]),
         c("from", "to", "class")
     ))
 }

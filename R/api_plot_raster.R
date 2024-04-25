@@ -1,5 +1,5 @@
 #' @title  Plot a false color image
-#' @name   .plot_false_color
+#' @name   .plot_raster.false_color
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description plots a set of false color image
 #' @keywords internal
@@ -19,13 +19,14 @@
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #'
 #' @return               A plot object
+#' @export
 #'
 .plot_false_color <- function(tile,
                               band,
                               date,
-                              sf_seg    = NULL,
-                              seg_color = NULL,
-                              line_width = 0.2,
+                              sf_seg,
+                              seg_color,
+                              line_width,
                               palette,
                               style,
                               n_colors,
@@ -35,31 +36,48 @@
     .check_require_packages("stars")
     # verifies if tmap package is installed
     .check_require_packages("tmap")
-    # deal with color palette
+    # check palette
     .check_palette(palette)
+    # check style
+    .check_chr_within(
+        style,
+        within = .conf("tmap_continuous_style"),
+        discriminator = "any_of"
+    )
+    # check number of colors
+    .check_int_parameter(n_colors, min = 4)
+    # check rev
+    .check_lgl_parameter(rev)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check SAR Cube
+    if (inherits(tile, "sar_cube")) {
+        palette <- "Greys"
+        style <- "order"
+        n_colors <- max(n_colors, 10)
+    } else {
+        message(.conf("messages", ".plot_raster_false_color"))
+    }
     # Grayscale palette? reverse is TRUE
     if (palette == "Greys")
         rev <- TRUE
     # reverse the color palette?
-    if (rev) {
+    if (rev)
         palette <- paste0("-", palette)
-    }
-
     # select the file to be plotted
     bw_file <- .tile_path(tile, band, date)
-
     # size of data to be read
     size <- .plot_read_size(tile = tile)
     # used for SAR images without tiling system
-    if (tile$tile == "NoTilingSystem")  {
+    if (tile[["tile"]] == "NoTilingSystem")  {
         bw_file <- .gdal_warp_grd(bw_file, size)
     }
     # read file
     stars_obj <- stars::read_stars(
         bw_file,
         RasterIO = list(
-            "nBufXSize" = size[["xsize"]],
-            "nBufYSize" = size[["ysize"]]
+            nBufXSize = size[["xsize"]],
+            nBufYSize = size[["ysize"]]
         ),
         proxy = FALSE
     )
@@ -69,6 +87,13 @@
     band_scale <- .scale(band_conf)
     band_offset <- .offset(band_conf)
     stars_obj <- stars_obj * band_scale + band_offset
+
+    # tmap params
+    labels_size <- as.numeric(.conf("tmap", "graticules_labels_size"))
+    legend_bg_color <- .conf("tmap", "legend_bg_color")
+    legend_bg_alpha <- as.numeric(.conf("tmap", "legend_bg_alpha"))
+    legend_title_size <- as.numeric(.conf("tmap", "legend_title_size"))
+    legend_text_size <- as.numeric(.conf("tmap", "legend_text_size"))
 
     # generate plot
     p <- suppressMessages(
@@ -81,15 +106,15 @@
                 midpoint = NA
             ) +
             tmap::tm_graticules(
-                labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
+                labels.size = labels_size
             ) +
             tmap::tm_compass() +
             tmap::tm_layout(
                 scale = scale,
-                legend.bg.color = .conf("tmap","legend_bg_color"),
-                legend.bg.alpha = as.numeric(.conf("tmap", "legend_bg_alpha")),
-                legend.title.size = as.numeric(.conf("tmap","legend_title_size")),
-                legend.text.size = as.numeric(.conf("tmap","legend_text_size"))
+                legend.bg.color = legend_bg_color,
+                legend.bg.alpha = legend_bg_alpha,
+                legend.title.size = legend_title_size,
+                legend.text.size = legend_text_size
             )
     )
     # include segments
@@ -139,14 +164,21 @@
     stars_obj <- stars::read_stars(
         class_file,
         RasterIO = list(
-            "nBufXSize" = size[["xsize"]],
-            "nBufYSize" = size[["ysize"]]
+            nBufXSize = size[["xsize"]],
+            nBufYSize = size[["ysize"]]
         ),
         proxy = FALSE
     )
 
     # rename stars object
     stars_obj <- stats::setNames(stars_obj, "labels")
+
+    # tmap params
+    labels_size <- as.numeric(.conf("tmap", "graticules_labels_size"))
+    legend_bg_color <- .conf("tmap", "legend_bg_color")
+    legend_bg_alpha <- as.numeric(.conf("tmap", "legend_bg_alpha"))
+    legend_title_size <- as.numeric(.conf("tmap", "legend_title_size"))
+    legend_text_size <- as.numeric(.conf("tmap", "legend_text_size"))
 
     # plot using tmap
     p <- suppressMessages(
@@ -157,15 +189,15 @@
                 labels = labels
             ) +
             tmap::tm_graticules(
-                labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
+                labels.size = labels_size
             ) +
             tmap::tm_compass() +
             tmap::tm_layout(
                 scale = scale,
-                legend.bg.color = .conf("tmap","legend_bg_color"),
-                legend.bg.alpha = as.numeric(.conf("tmap", "legend_bg_alpha")),
-                legend.title.size = as.numeric(.conf("tmap","legend_title_size")),
-                legend.text.size = as.numeric(.conf("tmap","legend_text_size"))
+                legend.bg.color = legend_bg_color,
+                legend.bg.alpha = legend_bg_alpha,
+                legend.title.size = legend_title_size,
+                legend.text.size = legend_text_size
             )
     )
     return(p)
@@ -206,7 +238,7 @@
     # size of data to be read
     size <- .plot_read_size(tile = tile)
     # used for SAR images
-    if (tile$tile == "NoTilingSystem") {
+    if (tile[["tile"]] == "NoTilingSystem") {
         red_file   <- .gdal_warp_grd(red_file, size)
         green_file <- .gdal_warp_grd(green_file, size)
         blue_file  <- .gdal_warp_grd(blue_file, size)
@@ -216,8 +248,8 @@
         c(red_file, green_file, blue_file),
         along = "band",
         RasterIO = list(
-            "nBufXSize" = size[["xsize"]],
-            "nBufYSize" = size[["ysize"]]
+            nBufXSize = size[["xsize"]],
+            nBufYSize = size[["ysize"]]
         ),
         proxy = FALSE
     )
@@ -232,11 +264,13 @@
                             probs = c(0.05, 0.95),
                             stretch = TRUE
     )
+    # tmap params
+    labels_size <- as.numeric(.conf("tmap", "graticules_labels_size"))
 
     p <- tmap::tm_shape(rgb_st) +
         tmap::tm_raster() +
         tmap::tm_graticules(
-            labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
+            labels.size = labels_size
         ) +
         tmap::tm_compass()
 
@@ -301,8 +335,8 @@
     probs_st <- stars::read_stars(
         probs_path,
         RasterIO = list(
-            "nBufXSize" = size[["xsize"]],
-            "nBufYSize" = size[["ysize"]]
+            nBufXSize = size[["xsize"]],
+            nBufYSize = size[["ysize"]]
         ),
         proxy = FALSE
     )
@@ -313,11 +347,15 @@
     probs_st <- probs_st * .scale(band_conf)
 
     # rename stars object dimensions to labels
-    probs_st <- stars::st_set_dimensions(probs_st, "band",
-        values = labels
-    )
+    probs_st <- stars::st_set_dimensions(probs_st, "band", values = labels)
     # select stars bands to be plotted
     bds <- as.numeric(names(labels[labels %in% labels_plot]))
+
+    labels_size <- as.numeric(.conf("tmap", "graticules_labels_size"))
+    legend_bg_color <- .conf("tmap", "legend_bg_color")
+    legend_bg_alpha <- as.numeric(.conf("tmap", "legend_bg_alpha"))
+    legend_title_size <- as.numeric(.conf("tmap", "legend_title_size"))
+    legend_text_size <- as.numeric(.conf("tmap", "legend_text_size"))
 
     p <- tmap::tm_shape(probs_st[, , , bds]) +
         tmap::tm_raster(
@@ -328,7 +366,7 @@
             title = labels[labels %in% labels_plot]
         ) +
         tmap::tm_graticules(
-            labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
+            labels.size = labels_size
         ) +
         tmap::tm_facets(sync = FALSE) +
         tmap::tm_compass() +
@@ -336,10 +374,10 @@
             scale           = scale,
             legend.show     = TRUE,
             legend.outside  = FALSE,
-            legend.bg.color = .conf("tmap","legend_bg_color"),
-            legend.bg.alpha = as.numeric(.conf("tmap", "legend_bg_alpha")),
-            legend.title.size = as.numeric(.conf("tmap","legend_title_size")),
-            legend.text.size = as.numeric(.conf("tmap","legend_text_size"))
+            legend.bg.color = legend_bg_color,
+            legend.bg.alpha = legend_bg_alpha,
+            legend.title.size = legend_title_size,
+            legend.text.size = legend_text_size
         )
 
     return(p)
@@ -437,6 +475,7 @@
         new_ncols <- round(ncols)
     }
     return(c(
-        "xsize" = new_ncols, "ysize" = new_nrows
+        xsize = new_ncols,
+        ysize = new_nrows
     ))
 }

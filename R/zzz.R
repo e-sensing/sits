@@ -6,7 +6,7 @@
             "Loaded sits v%s.
         See ?sits for help, citation(\"sits\") for use in publication.
         Documentation avaliable in %s.",
-            utils::packageDescription("sits")$Version,
+            utils::packageDescription("sits")[["Version"]],
             "https://e-sensing.github.io/sitsbook/"
         )
     )
@@ -18,7 +18,7 @@
 # Creates a package environment to store global variables
 sits_env <- new.env()
 # Uses "log" as the default model formula
-sits_env$model_formula <- "log"
+sits_env[["model_formula"]] <- "log"
 # Include the following global variables in the sits package
 utils::globalVariables(c(
     ".x", ":=", # dplyr

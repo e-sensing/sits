@@ -12,7 +12,7 @@
     locs <- dplyr::distinct(data, .data[["longitude"]], .data[["latitude"]])
 
     plots <- purrr::pmap(
-        list(locs$longitude, locs$latitude),
+        list(locs[["longitude"]], locs[["latitude"]]),
         function(long, lat) {
             dplyr::filter(
                 data,
@@ -54,9 +54,8 @@
     # this function plots the values of all time series together (for one band)
     plot_samples <- function(melted, qts, band, label, number) {
         # make the plot title
-        title <- paste("Samples (", number, ") for class ",
-            label, " in band = ", band,
-            sep = ""
+        title <- paste0("Samples (", number, ") for class ",
+            label, " in band = ", band
         )
         # plot all data together
         g <- .plot_ggplot_together(melted, qts, title)
@@ -116,7 +115,7 @@
 #'                    one time series.
 .plot_ggplot_series <- function(row) {
     # Are there NAs in the data?
-    if (any(is.na(row$time_series[[1]]))) {
+    if (anyNA(row[["time_series"]][[1]])) {
         g <- .plot_ggplot_series_na(row)
     } else {
         g <- .plot_ggplot_series_no_na(row)
@@ -137,8 +136,12 @@
 #'
 .plot_ggplot_series_no_na <- function(row) {
     # create the plot title
-    plot_title <- .plot_title(row$latitude, row$longitude, row$label)
-    #
+    plot_title <- .plot_title(
+        row[["latitude"]],
+        row[["longitude"]],
+        row[["label"]]
+    )
+    # select colors
     colors <- grDevices::hcl.colors(
         n = 20,
         palette = "Harmonic",
@@ -146,7 +149,7 @@
         rev = TRUE
     )
     # extract the time series
-    data_ts <- dplyr::bind_rows(row$time_series)
+    data_ts <- dplyr::bind_rows(row[["time_series"]])
     # melt the data into long format
     melted_ts <- data_ts |>
         tidyr::pivot_longer(cols = -"Index", names_to = "variable") |>
@@ -184,11 +187,14 @@
         return(x)
     }
     # create the plot title
-    plot_title <- .plot_title(row$latitude, row$longitude, row$label)
-
+    plot_title <- .plot_title(
+        row[["latitude"]],
+        row[["longitude"]],
+        row[["label"]]
+    )
     # include a new band in the data to show the NAs
-    data <- row$time_series[[1]]
-    data_x1 <- dplyr::select_if(data, function(x) any(is.na(x)))
+    data <- row[["time_series"]][[1]]
+    data_x1 <- dplyr::select_if(data, function(x) anyNA(x))
     data_x1 <- data_x1[, 1]
     colnames(data_x1) <- "X1"
     data_x1 <- dplyr::transmute(data_x1, cld = replace_na(.data[["X1"]]))
@@ -277,11 +283,11 @@
 #' @param label      label of the location to be plotted.
 #' @return           title to be used in the plot.
 .plot_title <- function(latitude, longitude, label) {
-    title <- paste("location (",
+    title <- paste0(
+        "location (",
         signif(latitude, digits = 4), ", ",
         signif(longitude, digits = 4), ") - ",
-        label,
-        sep = ""
+        label
     )
     return(title)
 }

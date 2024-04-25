@@ -11,7 +11,7 @@
   red = NULL,
   green = NULL,
   blue = NULL,
-  tile = x$tile[[1]],
+  tile = x[["tile"]][[1]],
   date = NULL,
   palette = "RdYlGn",
   style = "cont",

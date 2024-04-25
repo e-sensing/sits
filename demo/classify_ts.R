@@ -18,7 +18,7 @@ data("point_mt_6bands")
 # select the bands "ndvi", "evi", "nir", and "mir"
 point_tb <- sits_select(
     data  = point_mt_6bands,
-    bands = c("NDVI")
+    bands = "NDVI"
 )
 
 # classify the point
@@ -28,4 +28,4 @@ class_tb <- sits_classify(
 )
 
 # plot the classification
-plot(class_tb, bands = c("NDVI"))
+plot(class_tb, bands = "NDVI")

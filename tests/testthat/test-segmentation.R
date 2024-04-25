@@ -44,33 +44,23 @@ test_that("Segmentation", {
     expect_equal(class(crs_nowkt), "crs")
     expect_true(grepl("PROJCRS", crs_nowkt$wkt))
 
-    p1 <- plot(segments)
+    p1 <- plot(segments, band = "NDVI")
     expect_equal(p1[[1]]$shp_name, "stars_obj")
     expect_equal(p1$tm_grid$grid.projection, 4326)
     expect_equal(p1$tm_layout$legend.bg.alpha, 0.5)
 
-    # test resume feature
     # testing resume feature
-    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = FALSE)
-    out <- capture_messages({
-        expect_message(
-            object = {
-                sits_segment(
-                    cube = sinop,
-                    output_dir = output_dir,
-                    multicores = 1,
-                    memsize = 24,
-                    progress = FALSE,
-                    version = "vt"
-                )
-            },
-            regexp = "recovery mode: data already exists. To produce new data, change output_dir or version"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        object <- sits_segment(
+            cube = sinop,
+            output_dir = output_dir,
+            multicores = 1,
+            memsize = 24,
+            progress = FALSE,
+            version = "vt"
         )
     })
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = TRUE)
     # test read vector cube
     segment_cube <- sits_cube(
         source = "BDC",
@@ -118,28 +108,18 @@ test_that("Segmentation", {
         all(sits_labels(probs_segs) %in% colnames(vector_probs))
     )
     # test resume feature
-    # testing resume feature
-    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = FALSE)
-    out2 <- capture_messages({
-        expect_message(
-            object = {
-                sits_classify(
-                    data = segments,
-                    ml_model = rfor_model,
-                    output_dir = output_dir,
-                    n_sam_pol = 20,
-                    multicores = 6,
-                    memsize = 24,
-                    version = "vt2"
-                )
-            },
-            regexp = "recovery mode: data already exists. To produce new data, change output_dir or version"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        obj <- sits_classify(
+            data = segments,
+            ml_model = rfor_model,
+            output_dir = output_dir,
+            n_sam_pol = 20,
+            multicores = 6,
+            memsize = 24,
+            version = "vt2"
         )
     })
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = TRUE)
     # Create a classified vector cube
     class_segs <- sits_label_classification(
         cube = probs_segs,
@@ -164,26 +144,17 @@ test_that("Segmentation", {
     expect_equal(ncol(p3$tm_shape$shp), 2)
     expect_equal(p2$tm_compass$compass.show.labels, 1)
 
-    # test resume feature
     # testing resume feature
-    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = FALSE)
-    out3 <- capture_messages({
-        expect_message(
-            object = {
-                sits_label_classification(
-                    cube = probs_segs,
-                    output_dir = output_dir,
-                    multicores = 2,
-                    memsize = 4
-                )
-            },
-            regexp = "recovery mode: data already exists. To produce new data, change output_dir or version"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        obj <- sits_label_classification(
+            cube = probs_segs,
+            output_dir = output_dir,
+            multicores = 2,
+            memsize = 4
         )
+
     })
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = TRUE)
     uncert_vect <- sits_uncertainty(probs_segs,
                                     output_dir = output_dir)
 

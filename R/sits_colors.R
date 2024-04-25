@@ -16,20 +16,21 @@
 sits_colors <- function(legend = NULL) {
     if (.has_not(legend)) {
         print("Returning all available colors")
-        return(sits_env$color_table)
+        return(sits_env[["color_table"]])
     } else {
-        if (legend %in% names(sits_env$legends)) {
+        if (legend %in% names(sits_env[["legends"]])) {
             # retrieve the color names associated to the legend
-            colors <- sits_env$legends[[legend]]
+            colors <- sits_env[["legends"]][[legend]]
             color_table_legend <- .conf_colors() |>
                 dplyr::filter(.data[["name"]] %in% colors)
             color_table_legend <- color_table_legend[
-                match(colors, color_table_legend$name), ]
+                match(colors, color_table_legend[["name"]]),
+            ]
             return(color_table_legend)
         } else {
             message(.conf("messages", "sits_colors_legend_not_available"))
             leg <- paste0(paste(.conf("messages", "sits_colors_legends"),
-                          paste(names(sits_env$legends), collapse = ", "))
+                          paste(names(sits_env[["legends"]]), collapse = ", "))
             )
             message(leg)
             return(NULL)
@@ -59,21 +60,22 @@ sits_colors_show <- function(legend = NULL,
     # legend must be valid
     if (.has_not(legend))
         legend <- "none"
-    if (!(legend %in% names(sits_env$legends))) {
-        leg <- paste0(paste(.conf("messages", "sits_colors_legends"),
-                            paste(names(sits_env$legends), collapse = ", "))
+    if (!(legend %in% names(sits_env[["legends"]]))) {
+        leg <- paste(.conf("messages", "sits_colors_legends"),
+                            toString(names(sits_env[["legends"]]))
         )
         message(leg)
         return(invisible(NULL))
     }
     # retrieve the color names associated to the legend
-    colors <- sits_env$legends[[legend]]
+    colors <- sits_env[["legends"]][[legend]]
     # retrieve the HEX codes associated to each color
-    color_table_legend <- sits_env$color_table |>
+    color_table_legend <- sits_env[["color_table"]] |>
         dplyr::filter(.data[["name"]] %in% colors)
     # order the colors to match the order of the legend
     color_table_legend <- color_table_legend[
-        match(colors, color_table_legend$name), ]
+        match(colors, color_table_legend[["name"]]),
+    ]
     # plot the colors
     g <- .colors_show(color_table_legend, font_family)
 
@@ -90,7 +92,7 @@ sits_colors_show <- function(legend = NULL,
 #'              The colors parameter should be a data.frame or a tibble
 #'              with name and HEX code. Colour names should be one character
 #'              string only. Composite names need to be combined with
-#'              underscores (e.g., use "Snow_and_Ice" instead of "Snow and Ice").
+#'              underscores (e.g., use "Snow_and_Ice" and not "Snow and Ice").
 #'
 #'              This function changes the global sits color table and the
 #'              global set of sits color legends. To undo these effects,
@@ -153,7 +155,7 @@ sits_colors_set <- function(colors, legend = NULL) {
         new_legend_entry[[1]] <- dplyr::pull(colors, .data[["name"]])
         # give a new to the new legend entry
         names(new_legend_entry) <- legend
-        sits_env$legends <- c(sits_env$legends, new_legend_entry)
+        sits_env[["legends"]] <- c(sits_env[["legends"]], new_legend_entry)
     }
     return(invisible(new_color_tb))
 }
@@ -215,15 +217,16 @@ sits_colors_qgis <- function(cube, file) {
     # select the colors for the labels of the cube
     color_table <- .conf_colors()
     # check all labels are in the color table
-    .check_chr_within(labels, color_table$name)
+    .check_chr_within(labels, color_table[["name"]])
     # filter the color table
     color_table <- color_table |>
         dplyr::filter(.data[["name"]] %in% labels)
     # order the colors to match the order of the labels
     color_table <- color_table[
-        match(labels, color_table$name), ]
+        match(labels, color_table[["name"]]),
+    ]
     # include an index
-    color_table$index <- names(labels)
+    color_table[["index"]] <- names(labels)
     # create a QGIS XML file
     .colors_qml(color_table, file)
     return(invisible(NULL))

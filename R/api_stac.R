@@ -22,10 +22,12 @@
     names(bands_converter) <- bands_source
 
     # organize the items
-    items$features <- purrr::map(items$features, function(item) {
-        names(item$assets) <- toupper(names(item$assets))
-        item$assets <- item$assets[bands_source]
-        names(item$assets) <- unname(bands_converter[names(item$assets)])
+    items[["features"]] <- purrr::map(items[["features"]], function(item) {
+        names(item[["assets"]]) <- toupper(names(item[["assets"]]))
+        item[["assets"]] <- item[["assets"]][bands_source]
+        names(item[["assets"]]) <- unname(
+            bands_converter[names(item[["assets"]])]
+        )
         return(item)
     })
     return(items)

@@ -184,9 +184,9 @@
     # select uncertainty function
     uncert_fn <- switch(
         band,
-        "least"   = .uncertainty_fn_least(),
-        "margin"  = .uncertainty_fn_margin(),
-        "entropy" = .uncertainty_fn_entropy()
+        least   = .uncertainty_fn_least(),
+        margin  = .uncertainty_fn_margin(),
+        entropy = .uncertainty_fn_entropy()
     )
     # get the labels
     labels <- unname(sits_labels(tile))
@@ -209,8 +209,8 @@
     .vector_write_vec(v_obj = sf_seg, file_path = out_file)
     # Set information on uncert_tile
     uncert_tile <- tile
-    uncert_tile$vector_info[[1]]$band <- band
-    uncert_tile$vector_info[[1]]$path <- out_file
+    uncert_tile[["vector_info"]][[1]][["band"]] <- band
+    uncert_tile[["vector_info"]][[1]][["path"]] <- out_file
     class(uncert_tile) <- c("uncertainty_vector_cube", class(uncert_tile))
     return(uncert_tile)
 }

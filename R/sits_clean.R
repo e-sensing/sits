@@ -149,8 +149,9 @@ sits_clean.default <- function(cube, window_size = 5L, memsize = 4L,
     cube <- tibble::as_tibble(cube)
     if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
         cube <- .cube_find_class(cube)
-    } else
+    } else {
         stop(.conf("messages", "sits_clean"))
+    }
     clean_cube <- sits_clean(cube, window_size, memsize, multicores,
                              output_dir, version, progress)
     return(clean_cube)

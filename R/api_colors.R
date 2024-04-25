@@ -15,7 +15,7 @@
     # Get the SITS Color table
     color_tb <- .conf_colors()
     # Try to find colors in the SITS color palette
-    names_tb <- dplyr::filter(color_tb, .data[["name"]] %in% labels)$name
+    names_tb <- dplyr::filter(color_tb, .data[["name"]] %in% labels)[["name"]]
     # find the labels that exist in the color table
     labels_exist <- labels[labels %in% names_tb]
     # get the colors for the names that exist
@@ -44,8 +44,7 @@
         missing <- labels[!labels %in% names(colors)]
         if (.check_warnings()) {
             warning(
-                "missing colors for labels ",
-                paste(missing, collapse = ", ")
+                "missing colors for labels ", toString(missing)
             )
             warning("using palette ", palette, " for missing colors")
             # grDevices does not work with one color missing
@@ -66,7 +65,8 @@
     # and deal with duplicate labels
     colors <- colors[labels]
     # post-condition
-    .check_chr(colors,
+    .check_chr(
+        colors,
         len_min = length(labels),
         len_max = length(labels),
         is_named = TRUE,
@@ -82,12 +82,15 @@
 #' @return a gglot2 object
 .colors_show <- function(color_tb, font_family) {
     # strip "_" if they exist
-    color_tb$name <- purrr::map_chr(color_tb$name, function(name)
-        { paste(name = unlist(strsplit(name, split = "_")), collapse = " ")})
+    color_tb[["name"]] <- purrr::map_chr(
+        color_tb[["name"]], function(name) {
+            paste(name = unlist(
+                strsplit(name, split = "_", fixed = TRUE)), collapse = " ")
+        }
+    )
     # find out how many lines to write per name
-    color_tb$lines <- purrr::map_int(color_tb$name, function(s)
-        { return(stringr::str_count(stringr::str_wrap(s, width = 12), "\n")
-                 + 1)
+    color_tb[["lines"]] <- purrr::map_int(color_tb[["name"]], function(s) {
+        return(stringr::str_count(stringr::str_wrap(s, width = 12), "\n") + 1)
         }
     )
     n_colors <- nrow(color_tb)
@@ -96,7 +99,8 @@
     else
         n_rows_show <- n_colors %/% 4
     # add place locators to color table entries
-    color_tb <- tibble::add_column(color_tb,
+    color_tb <- tibble::add_column(
+        color_tb,
         y = seq(0, n_colors - 1) %% n_rows_show,
         x = seq(0, n_colors - 1) %/% n_rows_show
     )
@@ -120,7 +124,7 @@
                 ymin = .data[["y"]] + 0.05,
                 ymax = .data[["y"]] + y_size
             ),
-            fill = color_tb$color
+            fill = color_tb[["color"]]
         ) +
         suppressWarnings(ggplot2::geom_text(
             data = color_tb,
@@ -129,14 +133,12 @@
                 y = .data[["y"]] + 0.6 + 0.1 * (.data[["lines"]] - 1),
                 label = stringr::str_wrap(.data[["name"]], width = 12)
             ),
-            size = 4,
             family = font_family,
             colour = "grey15",
             hjust = 0.5,
             vjust = 1,
             size = 10 / ggplot2::.pt
         ))
-
     g + ggplot2::theme(
         panel.background = ggplot2::element_rect(fill = "#FFFFFF")
     )
@@ -167,19 +169,21 @@
     # write start of color palette
     writeLines("      <colorPalette>", con = con)
     # write palette entries
-    index <- purrr::pmap_chr(list(color_table$index,
-                         color_table$color,
-                         color_table$name),
-                    function(ind, color, name){
-                        writeLines(paste0("         <paletteEntry ",
-                                          " value=", "\"", ind, "\"",
-                                          " color=", "\"", color, "\"",
-                                          " label=", "\"", name, "\"",
-                                          " alpha=", "\"255\"", "/>"),
-                                   con = con
-                        )
-                        return(ind)
-                    })
+    purrr::pmap_chr(
+        list(color_table[["index"]],
+             color_table[["color"]],
+             color_table[["name"]]),
+        function(ind, color, name) {
+            writeLines(paste0("         <paletteEntry ",
+                              " value=", "\"", ind, "\"",
+                              " color=", "\"", color, "\"",
+                              " label=", "\"", name, "\"",
+                              " alpha=", "\"255\"", "/>"),
+                       con = con
+            )
+            return(invisible(""))
+        }
+    )
     # write end of color palette
     writeLines("     </colorPalette>", con = con)
 

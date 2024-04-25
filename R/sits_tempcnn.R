@@ -128,7 +128,8 @@ sits_tempcnn <- function(samples = NULL,
             len_min = length(cnn_layers), len_max = length(cnn_layers)
         )
         .check_int_parameter(dense_layer_nodes, len_max = 1)
-        .check_num_parameter(dense_layer_dropout_rate, min = 0, max = 1, len_max = 1
+        .check_num_parameter(dense_layer_dropout_rate,
+                             min = 0, max = 1, len_max = 1
         )
         .check_int_parameter(epochs)
         .check_int_parameter(batch_size)
@@ -195,7 +196,8 @@ sits_tempcnn <- function(samples = NULL,
                 pred = train_samples, frac = validation_split
             )
             # Remove the lines used for validation
-            sel <- !train_samples$sample_id %in% test_samples$sample_id
+            sel <- !train_samples[["sample_id"]] %in%
+                test_samples[["sample_id"]]
             train_samples <- train_samples[sel, ]
         }
         n_samples_train <- nrow(train_samples)
@@ -236,32 +238,32 @@ sits_tempcnn <- function(samples = NULL,
                 # first module - transform input to hidden dims
                 self$conv_bn_relu1 <- .torch_conv1D_batch_norm_relu_dropout(
                     input_dim    = n_bands,
-                    output_dim   = hidden_dims[1],
-                    kernel_size  = kernel_sizes[1],
+                    output_dim   = hidden_dims[[1]],
+                    kernel_size  = kernel_sizes[[1]],
                     padding      = as.integer(kernel_sizes[[1]] %/% 2),
-                    dropout_rate = dropout_rates[1]
+                    dropout_rate = dropout_rates[[1]]
                 )
                 # second module - 1D CNN
                 self$conv_bn_relu2 <- .torch_conv1D_batch_norm_relu_dropout(
-                    input_dim    = hidden_dims[1],
-                    output_dim   = hidden_dims[2],
-                    kernel_size  = kernel_sizes[2],
+                    input_dim    = hidden_dims[[1]],
+                    output_dim   = hidden_dims[[2]],
+                    kernel_size  = kernel_sizes[[2]],
                     padding      = as.integer(kernel_sizes[[2]] %/% 2),
-                    dropout_rate = dropout_rates[2]
+                    dropout_rate = dropout_rates[[2]]
                 )
                 # third module - 1D CNN
                 self$conv_bn_relu3 <- .torch_conv1D_batch_norm_relu_dropout(
-                    input_dim    = hidden_dims[2],
-                    output_dim   = hidden_dims[3],
-                    kernel_size  = kernel_sizes[3],
+                    input_dim    = hidden_dims[[2]],
+                    output_dim   = hidden_dims[[3]],
+                    kernel_size  = kernel_sizes[[3]],
                     padding      = as.integer(kernel_sizes[[3]] %/% 2),
-                    dropout_rate = dropout_rates[3]
+                    dropout_rate = dropout_rates[[3]]
                 )
                 # flatten 3D tensor to 2D tensor
                 self$flatten <- torch::nn_flatten()
                 # create a dense tensor
                 self$dense <- .torch_linear_batch_norm_relu_dropout(
-                    input_dim    = hidden_dims[3] * n_times,
+                    input_dim    = hidden_dims[[3]] * n_times,
                     output_dim   = dense_layer_nodes,
                     dropout_rate = dense_layer_dropout_rate
                 )
@@ -325,7 +327,7 @@ sits_tempcnn <- function(samples = NULL,
                 verbose = verbose
             )
         # Serialize model
-        serialized_model <- .torch_serialize_model(torch_model$model)
+        serialized_model <- .torch_serialize_model(torch_model[["model"]])
 
         # Function that predicts labels of input values
         predict_fun <- function(values) {
@@ -335,7 +337,7 @@ sits_tempcnn <- function(samples = NULL,
             # Note: function does not work on MacOS
             suppressWarnings(torch::torch_set_num_threads(1))
             # Unserialize model
-            torch_model$model <- .torch_unserialize_model(serialized_model)
+            torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
             # Used to check values (below)
             n_input_pixels <- nrow(values)
             # Transform input into a 3D tensor
@@ -360,15 +362,12 @@ sits_tempcnn <- function(samples = NULL,
                 # Do GPU classification
                 values <- .try(
                     stats::predict(object = torch_model, values),
-                    .msg_error = paste("An error occured while transfering",
-                                       "data to GPU. Please reduce the value of",
-                                       "the `gpu_memory` parameter.")
+                    .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
-            } else{
+            } else {
                 # Do CPU classification
                 values <- stats::predict(object = torch_model, values)
             }
-
             # Convert to tensor cpu to support GPU processing
             values <- torch::as_array(
                 x = torch::torch_tensor(values, device = "cpu")

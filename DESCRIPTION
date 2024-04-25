@@ -157,6 +157,7 @@ Collate:
     'api_s2tile.R'
     'api_samples.R'
     'api_segments.R'
+    'api_select.R'
     'api_sf.R'
     'api_shp.R'
     'api_signal.R'

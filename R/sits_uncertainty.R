@@ -104,9 +104,9 @@ sits_uncertainty.probs_cube <- function(
     # Define the class of the smoothing
     uncert_fn <- switch(
         type,
-        "least"   = .uncertainty_fn_least(),
-        "margin"  = .uncertainty_fn_margin(),
-        "entropy" = .uncertainty_fn_entropy()
+        least   = .uncertainty_fn_least(),
+        margin  = .uncertainty_fn_margin(),
+        entropy = .uncertainty_fn_entropy()
     )
     # Compute uncertainty
     uncert_cube <- .uncertainty_raster_cube(

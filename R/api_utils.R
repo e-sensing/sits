@@ -209,7 +209,7 @@ NULL
             stop(if (!is.null(.msg_error)) {
                 .msg_error
             } else {
-                e$message
+                e[["message"]]
             })
         }
     )
@@ -263,7 +263,7 @@ NULL
 #' @param ...   Generic entries (character vectors)
 #' @returns Single character vectors
 .collapse <- function(...) {
-    paste0(..., collapse = ", ")
+    toString(...)
 }
 #' @title Return default value
 #' @noRd

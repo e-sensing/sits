@@ -130,13 +130,13 @@ sits_view.som_map <- function(x, ...,
     .check_int_parameter(
         id_neurons,
         min = 1,
-        max = max(unique(x$labelled_neurons$id_neuron)),
+        max = max(unique(x[["labelled_neurons"]][["id_neuron"]])),
         len_min = 1,
-        len_max = length(unique(x$labelled_neurons$id_neuron))
+        len_max = length(unique(x[["labelled_neurons"]][["id_neuron"]]))
     )
     # first select unique locations
     samples <- dplyr::filter(
-        x$data, .data[["id_neuron"]] %in% !!id_neurons
+        x[["data"]], .data[["id_neuron"]] %in% !!id_neurons
     )
     leaf_map <- .view_samples(
         samples = samples,
@@ -153,7 +153,7 @@ sits_view.raster_cube <- function(x, ...,
                                   red = NULL,
                                   green = NULL,
                                   blue = NULL,
-                                  tiles = x$tile,
+                                  tiles = x[["tile"]],
                                   dates = NULL,
                                   class_cube = NULL,
                                   legend = NULL,
@@ -166,8 +166,8 @@ sits_view.raster_cube <- function(x, ...,
     # verifies if leafem and leaflet packages are installed
     .check_require_packages(c("leafem", "leaflet"))
     # pre-condition for bands
-    .check_view_bands_params(band, red, green, blue)
-    .check_view_bands(x, band, red, green, blue)
+    .check_bw_rgb_bands(band, red, green, blue)
+    .check_available_bands(x, band, red, green, blue)
     # view image raster
     leaf_map <- .view_image_raster(
         cube = x,
@@ -193,7 +193,7 @@ sits_view.vector_cube <- function(x, ...,
                                   red = NULL,
                                   green = NULL,
                                   blue = NULL,
-                                  tiles = x$tile,
+                                  tiles = x[["tile"]],
                                   dates = NULL,
                                   class_cube = NULL,
                                   legend = NULL,
@@ -207,7 +207,8 @@ sits_view.vector_cube <- function(x, ...,
     # Probs cube not supported
     .check_that(!inherits(x, "probs_cube"))
     # pre-condition for bands
-    .check_view_bands(x, band, red, green, blue)
+    .check_bw_rgb_bands(band, red, green, blue)
+    .check_available_bands(x, band, red, green, blue)
     # view vector cube
     leaf_map <- .view_image_vector(
         cube = x,
@@ -231,7 +232,7 @@ sits_view.vector_cube <- function(x, ...,
 #'
 #' @export
 sits_view.uncertainty_cube <- function(x, ...,
-                                       tiles = x$tile,
+                                       tiles = x[["tile"]],
                                        class_cube = NULL,
                                        legend = NULL,
                                        palette = "Blues",
@@ -246,7 +247,7 @@ sits_view.uncertainty_cube <- function(x, ...,
     cube <- .view_filter_tiles(x, tiles)
     # more than one tile? needs regular cube
     if (nrow(cube) > 1) {
-        .check_that(.cube_is_regular(data))
+        .check_that(.cube_is_regular(cube))
     }
     # check the view_max_mb parameter
     view_max_mb <- .view_set_max_mb(view_max_mb)
@@ -310,7 +311,7 @@ sits_view.uncertainty_cube <- function(x, ...,
 #' @export
 #'
 sits_view.class_cube <- function(x, ...,
-                                 tiles = x$tile,
+                                 tiles = x[["tile"]],
                                  legend = NULL,
                                  palette = "Spectral",
                                  opacity = 0.8,
@@ -365,7 +366,7 @@ sits_view.class_cube <- function(x, ...,
 #' @export
 #'
 sits_view.probs_cube <- function(x, ...,
-                                 tiles = x$tile,
+                                 tiles = x[["tile"]],
                                  class_cube = NULL,
                                  legend = NULL,
                                  view_max_mb = NULL,

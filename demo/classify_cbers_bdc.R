@@ -7,11 +7,8 @@ library(sits)
 
 # load the sitsdata library
 if (!requireNamespace("sitsdata", quietly = TRUE)) {
-    stop(
-        paste0(
-            "Please install package sitsdata\n",
-            "Please call devtools::install_github('e-sensing/sitsdata')"
-        ),
+    stop("Please install package sitsdata\n",
+         "Please call devtools::install_github('e-sensing/sitsdata')",
         call. = FALSE
     )
 }
@@ -33,7 +30,7 @@ cbers_samples_2bands <- sits_select(
 
 # define the start and end dates for selection the images
 timeline_samples <- sits_timeline(cbers_samples_2bands)
-start_date <- timeline_samples[1]
+start_date <- timeline_samples[[1L]]
 end_date <- timeline_samples[length(timeline_samples)]
 
 # define a CBERS data cube using the Brazil Data Cube
@@ -95,6 +92,6 @@ sits_view(
     red = "EVI",
     green = "NDVI",
     blue = "EVI",
-    dates = c(timeline[1], timeline[length(timeline)]),
+    dates = c(timeline[[1]], timeline[[length(timeline)]]),
     class_cube = cbers_lbayes
 )

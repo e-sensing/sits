@@ -29,7 +29,8 @@
     tryCatch(
         {
             !is.null(sits_env[["cluster"]]) &&
-                socketSelect(list(sits_env[["cluster"]][[1]]$con), write = TRUE)
+                socketSelect(list(sits_env[["cluster"]][[1]][["con"]]),
+                             write = TRUE)
         },
         error = function(e) FALSE
     )
@@ -49,7 +50,7 @@
 .parallel_start <- function(workers, log = FALSE, output_dir = NULL) {
     .debug(flag = log, output_dir = output_dir)
     if (!.parallel_is_open() ||
-        length(sits_env[["cluster"]]) != workers) {
+            length(sits_env[["cluster"]]) != workers) {
         .parallel_stop()
 
         if (workers > 1) {
@@ -85,7 +86,6 @@
         }
     }
 }
-
 #' @title Recreates a cluster worker
 #' @name .parallel_reset_node
 #' @keywords internal
@@ -98,8 +98,8 @@
 .parallel_reset_node <- function(worker_id) {
     # stop node
     tryCatch({
-        if (isOpen(sits_env[["cluster"]][[worker_id]]$con)) {
-            close(sits_env[["cluster"]][[worker_id]]$con)
+        if (isOpen(sits_env[["cluster"]][[worker_id]][["con"]])) {
+            close(sits_env[["cluster"]][[worker_id]][["con"]])
         }
     })
 
@@ -131,7 +131,7 @@
     cl <- sits_env[["cluster"]]
 
     # get connections
-    socklist <- lapply(cl, function(x) x$con)
+    socklist <- lapply(cl, function(x) x[["con"]])
 
     # wait for data in socket
     repeat {
@@ -148,7 +148,7 @@
         },
         error = function(e) {
             # catch only errors in connection
-            if (grepl("error reading from connection", e$message)) {
+            if (grepl("error reading from connection", e[["message"]])) {
                 msg <- .conf("messages", ".parallel_recv_one_data")
                 message(msg)
                 # reset node
@@ -178,7 +178,9 @@
     # fault tolerant version of parallel:::recvOneData
     v <- .parallel_recv_one_data()
 
-    return(list(value = v$value$value, node = v$node, tag = v$value$tag))
+    return(list(value = v[["value"]][["value"]],
+                node  = v[["node"]],
+                tag   = v[["value"]][["tag"]]))
 }
 
 #' @rdname .parallel_cluster_apply
@@ -219,11 +221,11 @@
             # next job
             j <- i + min(n, p)
             if (j <= n) {
-                submit(d$node, j)
+                submit(d[["node"]], j)
             }
             # organize result
-            if (!is.null(d$tag)) {
-                val[d$tag] <- list(d$value)
+            if (.has(d[["tag"]])) {
+                val[d[["tag"]]] <- list(d[["value"]])
                 # update progress bar
                 if (!is.null(pb)) {
                     utils::setTxtProgressBar(

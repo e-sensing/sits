@@ -138,7 +138,7 @@
 #' @param  roi    Region of interest
 #' @param  tiles  List of MGRS tiles
 #' @return a data cube of MGRS tiles
-.reg_s2tile_convert <- function(cube, roi = NULL, tiles = NULL){
+.reg_s2tile_convert <- function(cube, roi = NULL, tiles = NULL) {
     UseMethod(".reg_s2tile_convert", cube)
 }
 #' @noRd
@@ -151,7 +151,7 @@
 
     # prepare a sf object representing the bbox of each image in file_info
     fi_bbox <- .bbox_as_sf(.bbox(
-        x = cube$file_info[[1]],
+        x = cube[["file_info"]][[1]],
         default_crs = .crs(cube),
         by_feature = TRUE
     ))
@@ -182,7 +182,7 @@
     cube <- .cube_filter_nonempty(cube)
 
     # Finalize customizing cube class
-    cube_class <- c(cube_class[1], "sar_cube", cube_class[-1])
+    cube_class <- c(cube_class[[1]], "sar_cube", cube_class[-1])
     .cube_set_class(cube, cube_class)
 }
 #' @noRd
@@ -199,8 +199,8 @@
     cube <- tiles_mgrs |>
         dplyr::rowwise() |>
         dplyr::group_map(~{
-            # prepare a sf object representing the bbox of each image in file_info
-            cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x$crs)
+            # prepare a sf object with the bbox of each image in file_info
+            cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x[["crs"]])
             fi_bbox <- .bbox_as_sf(.bbox(
                 x = .fi(cube_crs),
                 default_crs = .crs(cube_crs),
@@ -227,7 +227,6 @@
     cube <- .cube_filter_nonempty(cube)
 
     # Finalize customizing cube class
-    cube_class <- c(cube_class[1], "sar_cube", cube_class[-1])
+    cube_class <- c(cube_class[[1]], "sar_cube", cube_class[-1])
     .cube_set_class(cube, cube_class)
 }
-

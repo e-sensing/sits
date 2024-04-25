@@ -289,13 +289,12 @@ sits_slic <- function(data = NULL,
         v_obj <- .raster_set_na(v_obj, -1)
         # Extract polygons raster and convert to sf object
         v_obj <- .raster_extract_polygons(v_obj, dissolve = TRUE)
-        # TODO: use vector API
         v_obj <- sf::st_as_sf(v_obj)
         if (nrow(v_obj) == 0) {
             return(v_obj)
         }
         # Get valid centers
-        valid_centers <- slic[[2]][,1] != 0 | slic[[2]][,2] != 0
+        valid_centers <- slic[[2]][, 1] != 0 | slic[[2]][, 2] != 0
         # Bind valid centers with segments table
         v_obj <- cbind(v_obj, stats::na.omit(slic[[2]][valid_centers, ]))
         # Rename columns
@@ -303,8 +302,8 @@ sits_slic <- function(data = NULL,
         # Get the extent of template raster
         v_ext <- .raster_bbox(v_temp)
         # Calculate pixel position by rows and cols
-        xres <- (v_obj[["x"]] * .raster_xres(v_temp)) + (.raster_xres(v_temp)/2)
-        yres <- (v_obj[["y"]] * .raster_yres(v_temp)) - (.raster_yres(v_temp)/2)
+        xres <- v_obj[["x"]] * .raster_xres(v_temp) + .raster_xres(v_temp) / 2
+        yres <- v_obj[["y"]] * .raster_yres(v_temp) - .raster_yres(v_temp) / 2
         v_obj[["x"]] <- as.vector(v_ext)[[1]] + xres
         v_obj[["y"]] <- as.vector(v_ext)[[4]] - yres
         # Get only polygons segments

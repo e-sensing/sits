@@ -64,6 +64,7 @@
     gsub(
         pattern = "_",
         replacement = "-",
+        fixed = TRUE,
         x = rstac::items_reap(items,
             field = c("properties", "cubedash:region_code")
         )
@@ -83,7 +84,7 @@
                                             collection = NULL) {
     hrefs <- unname(purrr::map_chr(item[["assets"]], `[[`, "href"))
     asset_names <- unlist(
-        purrr::map(item[["assets"]], `[[`, c("eo:bands")),
+        purrr::map(item[["assets"]], `[[`, "eo:bands"),
         use.names = FALSE
     )
 

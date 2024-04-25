@@ -276,7 +276,6 @@
         block = block
     )
     # By default, update_bbox is FALSE
-    update_bbox <- FALSE
     if (.has(roi)) {
         # How many chunks there are in tile?
         nchunks <- nrow(chunks)
@@ -287,6 +286,8 @@
         )
         # Should bbox of resulting tile be updated?
         update_bbox <- nrow(chunks) != nchunks
+    } else {
+        update_bbox <- FALSE
     }
     # Filter segments that intersects with each chunk
     chunks <- .chunks_filter_segments(
@@ -294,7 +295,7 @@
         tile = tile,
         output_dir = output_dir
     )
-    on.exit(unlink(unlist(chunks$segments)))
+    on.exit(unlink(unlist(chunks[["segments"]])))
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -376,7 +377,8 @@
 #' @param  impute_fn       Imputation function
 #' @param  filter_fn       Smoothing filter function to be applied to the data.
 #' @return A matrix with values for classification.
-.classify_data_read <- function(tile, block, bands, ml_model, impute_fn, filter_fn) {
+.classify_data_read <- function(tile, block, bands,
+                                ml_model, impute_fn, filter_fn) {
     # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
     # Read and preprocess values of cloud
@@ -404,7 +406,7 @@
             values[cloud_mask] <- NA
         }
         # are there NA values? interpolate them
-        if (any(is.na(values))) {
+        if (anyNA(values)) {
             values <- impute_fn(values)
         }
         # Filter the time series
@@ -522,7 +524,7 @@
         )
     }
     # choose between GPU and CPU
-    if ("torch_model" %in% class(ml_model) && torch::cuda_is_available())
+    if (inherits(ml_model, "torch_model") && torch::cuda_is_available())
         prediction <- .classify_ts_gpu(
             pred = pred,
             ml_model = ml_model,
@@ -566,7 +568,7 @@
 .classify_ts_cpu <- function(pred,
                              ml_model,
                              multicores,
-                             progress){
+                             progress) {
 
     # Divide samples predictors in chunks to parallel processing
     parts <- .pred_create_partition(
@@ -602,17 +604,19 @@
 #' @return A tibble with the predicted values.
 .classify_ts_gpu <- function(pred,
                              ml_model,
-                             gpu_memory){
+                             gpu_memory) {
     # estimate size of GPU memory required (in GB)
-    pred_size <- nrow(pred) * ncol(pred) * 4 * .conf("processing_bloat_gpu")/1e+09
+    pred_size <- nrow(pred) * ncol(pred) * 4 / 1e+09
+    # include processing bloat
+    pred_size <- pred_size * .conf("processing_bloat_gpu")
     # estimate how should we partition the predictors
-    num_parts <- ceiling(pred_size/gpu_memory)
+    num_parts <- ceiling(pred_size / gpu_memory)
     # Divide samples predictors in chunks to parallel processing
     parts <- .pred_create_partition(
         pred = pred,
         partitions = num_parts
     )
-    prediction <- slider::slide_dfr(parts, function(part){
+    prediction <- slider::slide_dfr(parts, function(part) {
         # Get predictors of a given partition
         pred_part <- .pred_part(part)
         # Get predictors features to classify
@@ -627,5 +631,22 @@
     })
     return(prediction)
 }
-
-
+.classify_verbose_start <- function(verbose, block) {
+    start_time <- Sys.time()
+    if (verbose) {
+        msg <- paste0(.conf("messages", ".verbose_block_size"), " ",
+                      .nrows(block), " x ", .ncols(block))
+        message(msg)
+    }
+    return(start_time)
+}
+.classify_verbose_end <- function(verbose, start_time) {
+    if (verbose) {
+        end_time <- Sys.time()
+        message("")
+        message(.conf("messages", ".verbose_task_end"), end_time)
+        message(.conf("messages", ".verbose_task_elapsed"),
+                format(round(end_time - start_time, digits = 2))
+        )
+    }
+}

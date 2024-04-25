@@ -15,7 +15,7 @@ test_that("Sample reduce imbalance", {
     # reduce the sample imbalance
     new_samples <- sits_reduce_imbalance(samples_modis_ndvi,
         n_samples_over = 200, n_samples_under = 200,
-        multicores = 2
+        multicores = 1
     )
     # print the labels summary for the rebalanced set
     sum_new_samples <- summary(new_samples)

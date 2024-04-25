@@ -21,20 +21,20 @@
     .check_set_caller(".conf_set_options")
     # initialize config
     if (!exists("config", envir = sits_env))
-        sits_env$config <- list()
+        sits_env[["config"]] <- list()
     # process processing_bloat
     if (!is.null(processing_bloat)) {
         .check_int_parameter(processing_bloat,
             min = 1, len_min = 1, len_max = 1, max = 10
         )
-        sits_env$config[["processing_bloat"]] <- processing_bloat
+        sits_env[["config"]][["processing_bloat"]] <- processing_bloat
     }
     # process rstac_pagination_limit
     if (!is.null(rstac_pagination_limit)) {
         .check_int_parameter(rstac_pagination_limit,
             min = 1, len_min = 1, len_max = 1, max = 500
         )
-        sits_env$config[["rstac_pagination_limit"]] <- rstac_pagination_limit
+        sits_env[["config"]][["rstac_pagination_limit"]] <- rstac_pagination_limit
     }
     # process gdal_creation_options
     if (!is.null(gdal_creation_options)) {
@@ -52,7 +52,7 @@
             len_max = 3,
             is_named = FALSE
         )
-        sits_env$config[["gdalcubes_chunk_size"]] <- gdalcubes_chunk_size
+        sits_env[["config"]][["gdalcubes_chunk_size"]] <- gdalcubes_chunk_size
     }
     # process sources
     if (!is.null(sources)) {
@@ -80,25 +80,25 @@
         })
 
         # initialize sources
-        if (is.null(sits_env$config[["sources"]])) {
-            sits_env$config[["sources"]] <- sources
+        if (is.null(sits_env[["config"]][["sources"]])) {
+            sits_env[["config"]][["sources"]] <- sources
         }
 
-        sits_env$config[["sources"]] <- utils::modifyList(
-            sits_env$config[["sources"]],
+        sits_env[["config"]][["sources"]] <- utils::modifyList(
+            sits_env[["config"]][["sources"]],
             sources,
             keep.null = FALSE
         )
     }
     # check and initialize palettes
-    if (!is.null(colors)) {
+    if (.has(colors)) {
         # initialize colors
-        if (is.null(sits_env$config[["colors"]])) {
-            sits_env$config[["colors"]] <- colors
+        if (is.null(sits_env[["config"]][["colors"]])) {
+            sits_env[["config"]][["colors"]] <- colors
         }
         # add colors
-        sits_env$config[["colors"]] <- utils::modifyList(
-            sits_env$config[["colors"]],
+        sits_env[["config"]][["colors"]] <- utils::modifyList(
+            sits_env[["config"]][["colors"]],
             colors,
             keep.null = FALSE
         )
@@ -108,13 +108,13 @@
     .check_lst(dots)
 
     if (length(dots) > 0) {
-        sits_env$config <- utils::modifyList(
-            sits_env$config,
+        sits_env[["config"]] <- utils::modifyList(
+            sits_env[["config"]],
             dots,
             keep.null = FALSE
         )
     }
-    return(invisible(sits_env$config))
+    return(invisible(sits_env[["config"]]))
 }
 #' @title Return the default configuration file
 #' @name .conf_file
@@ -172,7 +172,7 @@
         merge.precedence = "override"
     )
     # set the messages
-    sits_env$config[["messages"]] <- config_msgs
+    sits_env[["config"]][["messages"]] <- config_msgs
     return(invisible(NULL))
 }
 #' @title Return the default configuration file for colors
@@ -203,9 +203,9 @@
         merge.precedence = "override"
     )
     # set the legends
-    sits_env$legends <- config_colors$legends
+    sits_env[["legends"]] <- config_colors$legends
     # build the color table
-    colors <- config_colors$colors
+    colors <- config_colors[["colors"]]
     color_table <- purrr::map2_dfr(colors, names(colors),
                                    function(cl, nm) {
         cc_tb <- tibble::tibble(
@@ -216,7 +216,7 @@
     })
 
     # set the color table
-    sits_env$color_table <- color_table
+    sits_env[["color_table"]] <- color_table
     return(invisible(color_table))
 }
 #' @title Add user color table
@@ -236,10 +236,10 @@
     # replace all duplicates
     new_colors <- dplyr::pull(color_tb, .data[["name"]])
     # remove duplicate colors
-    old_color_tb <- dplyr::filter(sits_env$color_table,
+    old_color_tb <- dplyr::filter(sits_env[["color_table"]],
                                   !(.data[["name"]] %in% new_colors))
-    sits_env$color_table <- dplyr::bind_rows(old_color_tb, color_tb)
-    return(invisible(sits_env$color_table))
+    sits_env[["color_table"]] <- dplyr::bind_rows(old_color_tb, color_tb)
+    return(invisible(sits_env[["color_table"]]))
 }
 #' @title Merge user colors with default colors
 #' @name .conf_merge_colors
@@ -255,7 +255,7 @@
     for (i in seq_along(names_user_colors)) {
         name <- names_user_colors[[i]]
         col <- col_user_colors[[i]]
-        id <- which(color_table$name == name)
+        id <- which(color_table[["name"]] == name)
         if (length(id) > 0) {
             color_table[id, "color"] <- col
         } else {
@@ -265,7 +265,7 @@
             )
         }
     }
-    sits_env$color_table <- color_table
+    sits_env[["color_table"]] <- color_table
     return(color_table)
 }
 .conf_merge_legends <- function(user_legends){
@@ -273,7 +273,7 @@
     .check_chr_parameter(names(user_legends), len_max = 100,
                          msg = "invalid user legends")
     # check legend names do not already exist
-    .check_that(!(all(names(user_legends) %in% names (sits_env$legends))),
+    .check_that(!(all(names(user_legends) %in% names(sits_env[["legends"]]))),
                   msg = "user defined legends already exist in sits")
     # check colors names are valid
     ok <- purrr::map_lgl(user_legends, function(leg){
@@ -281,8 +281,8 @@
                              msg = "invalid color names in user legend")
         return(TRUE)
     })
-    sits_env$legends <- c(sits_env$legends, user_legends)
-    return(invisible(sits_env$legends))
+    sits_env[["legends"]] <- c(sits_env[["legends"]], user_legends)
+    return(invisible(sits_env[["legends"]]))
 
 }
 #' @title Return the default color table
@@ -292,7 +292,7 @@
 #' @return default color table
 #'
 .conf_colors <- function() {
-    return(sits_env$color_table)
+    return(sits_env[["color_table"]])
 }
 #' @title Configure fonts to be used
 #' @name .conf_set_fonts
@@ -367,15 +367,15 @@
         user_config <- .conf_user_env_var()
     }
     if (.has(user_config)) {
-        if (.has(user_config$colors)) {
-            user_colors <- user_config$colors
+        if (.has(user_config[["colors"]])) {
+            user_colors <- user_config[["colors"]]
             .conf_merge_colors(user_colors)
-            user_config$colors <- NULL
+            user_config[["colors"]] <- NULL
         }
-        if (.has(user_config$legends)) {
-            user_legends <- user_config$legends
+        if (.has(user_config[["legends"]])) {
+            user_legends <- user_config[["legends"]]
             .conf_merge_legends(user_legends)
-            user_config$legends <- NULL
+            user_config[["legends"]] <- NULL
         }
         if (length(user_config) > 0) {
             user_config <- utils::modifyList(sits_env[["config"]],
@@ -442,7 +442,7 @@
     key <- c(...)
     res <- tryCatch(
         {
-            names(sits_env$config[[key]])
+            names(sits_env[["config"]][[key]])
         },
         error = function(e) {
             return(NULL)
@@ -496,9 +496,7 @@
             msg = "invalid 'url' parameter"
         )
     }
-
     .check_lst(collections, len_min = 1)
-
     names(collections) <- toupper(names(collections))
 
     collections <- lapply(collections, function(collection) {
@@ -507,10 +505,8 @@
             len_min = 1,
             msg = "invalid 'collections' parameter"
         )
-
         # collection members must be lower case
         names(collection) <- tolower(names(collection))
-
         collection <- .check_error(
             {
                 do.call(.conf_new_collection, args = collection)
@@ -548,19 +544,16 @@
                                  metadata_search = NULL) {
     # set caller to show in errors
     .check_set_caller(".conf_new_collection")
-
     # check satellite
     .check_chr(satellite,
         allow_null = TRUE,
         msg = "invalid 'satellite' value"
     )
-
     #  check sensor
     .check_chr(sensor,
         allow_null = TRUE,
         msg = "invalid 'sensor' value"
     )
-
     # check metadata_search
     if (!missing(metadata_search)) {
         .check_chr_within(metadata_search,
@@ -568,10 +561,8 @@
             msg = "invalid 'metadata_search' value"
         )
     }
-
     # bands names is upper case
     names(bands) <- toupper(names(bands))
-
     # separate cloud and non-cloud bands
     non_cloud_bands <- bands[!names(bands) %in% .source_cloud()]
     cloud_band <- bands[names(bands) %in% .source_cloud()]
@@ -582,17 +573,14 @@
             len_min = 1,
             msg = "invalid 'bands' parameter"
         )
-
         # bands' members are lower case
         names(band) <- tolower(names(band))
-
         band <- .check_error(
             {
                 do.call(.conf_new_band, args = band)
             },
             msg = "invalid 'bands' parameter"
         )
-
         return(band)
     })
 
@@ -602,17 +590,14 @@
             len_min = 1,
             msg = "invalid 'bands' parameter"
         )
-
         # bands' members are lower case
         names(cloud_band) <- tolower(names(cloud_band))
-
         cloud_band <- .check_error(
             {
                 do.call(.conf_new_cloud_band, args = cloud_band)
             },
             msg = "invalid 'bands' parameter"
         )
-
         return(cloud_band)
     })
 
@@ -625,18 +610,15 @@
         "sensor" = sensor,
         "metadata_search" = metadata_search, dots
     )
-
     # post-condition
     .check_lst(res,
         len_min = 1,
         msg = "invalid 'collection' value"
     )
-
     .check_lst(res$bands,
         len_min = 1,
         msg = "invalid collection 'bands' value"
     )
-
     # return a new collection data
     return(res)
 }
@@ -669,21 +651,18 @@
         len_max = 1,
         msg = "invalid 'missing_value' parameter"
     )
-
     .check_num(
         x = minimum_value,
         len_min = 1,
         len_max = 1,
         msg = "invalid 'minimum_value' parameter"
     )
-
     .check_num(
         x = maximum_value,
         len_min = 1,
         len_max = 1,
         msg = "invalid 'maximum_value' parameter"
     )
-
     .check_num(
         x = scale_factor,
         len_min = 1,
@@ -691,15 +670,12 @@
         exclusive_min = 0,
         msg = "invalid 'scale_factor' parameter"
     )
-
     .check_num(
         x = offset_value,
         len_min = 1,
         len_max = 1,
         msg = "invalid 'offset_value' parameter"
     )
-
-
     .check_num(
         x = resolution,
         exclusive_min = 0,
@@ -708,7 +684,6 @@
         allow_null = TRUE,
         msg = "invalid 'resolution' parameter"
     )
-
     .check_chr(
         x = band_name,
         allow_empty = FALSE,
@@ -716,7 +691,6 @@
         len_max = 1,
         msg = "invalid 'band_name' value"
     )
-
     # extra parameters
     dots <- list(...)
     .check_lst(dots, "invalid extra arguments in band")
@@ -736,7 +710,6 @@
         len_min = 7,
         msg = "invalid 'band' value"
     )
-
     # return a band object
     return(res)
 }
@@ -761,11 +734,8 @@
     .check_set_caller(".conf_new_cloud_band")
     # pre-condition
     .check_lgl_parameter(bit_mask)
-
     .check_lst_parameter(values, fn_check = .check_chr)
-
     .check_int_parameter(interp_values, len_min = 1)
-
     .check_chr_parameter(band_name, len_min = 1, len_max = 1)
 
     # extra parameters
@@ -795,14 +765,12 @@
 #' @noRd
 #' @return pagination limit to rstac output
 .conf_rstac_limit <- function() {
-    res <- .conf(key = c("rstac_pagination_limit"))
-
+    res <- .conf("rstac_pagination_limit")
     # post-condition
     .check_num(res,
         min = 1, len_min = 1, len_max = 1,
         msg = "invalid 'rstac_pagination_limit' in config file"
     )
-
     return(res)
 }
 #' @title Retrieve the raster package to be used
@@ -812,20 +780,17 @@
 #' @return the raster package used to process raster data
 #'
 .conf_raster_pkg <- function() {
-    res <- .conf(key = c("raster_api_package"))
-
+    res <- .conf("raster_api_package")
     # post-condition
     .check_chr(res,
         len_min = 1, len_max = 1,
         msg = "invalid 'raster_api_package' in config file"
     )
-
     .check_chr_within(res,
         within = .raster_supported_packages(),
         discriminator = "one_of",
         msg = "invalid 'raster_api_package' in config file"
     )
-
     return(res)
 }
 #' @title Basic access config functions

@@ -4,6 +4,8 @@
 # BDC access key
 BDC_ACCESS_KEY: "vtclkRc5c874XBd0Y7NSUWuzLihnU1bHC5bbLSXfQ5"
 HLS_ACCESS_URL: "machine.urs.earthdata.nasa.gov"
+HLS_NETRC_FILE_PATH: "~/.netrc"
+HLS_NETRC_FILE_PATH_WIN: "%HOME%\\_netrc"
 
 sources:
     BDC                     :

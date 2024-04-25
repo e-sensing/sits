@@ -36,17 +36,18 @@
 #' and a majority label which is the neuron is labelled.
 #'
 .som_label_neurons <- function(data, kohonen_obj) {
-    grid_size <- dim(kohonen_obj$grid$pts)[1]
+    grid_size <- dim(kohonen_obj[["grid"]][["pts"]])[[1]]
 
     labels_lst <- seq_len(grid_size) |>
         purrr::map(function(i) {
             # Get the id of samples that were allocated in neuron i
-            neuron_i <- dplyr::filter(data, .data[["id_neuron"]] == i)$id_sample
+            neuron_c <- dplyr::filter(data, .data[["id_neuron"]] == i)
+            neuron_i <- neuron_c[["id_sample"]]
 
             # 	Check if the neuron is empty or full
             if (length(neuron_i) != 0) {
                 alloc_neurons_i <- data[neuron_i, ]
-                data_vec <- table(alloc_neurons_i$label)
+                data_vec <- table(alloc_neurons_i[["label"]])
 
                 label_neuron <- tibble::tibble(
                     id_neuron = as.numeric(i),
@@ -92,7 +93,7 @@
                                 labelled_neurons,
                                 som_radius) {
     # get the grid size
-    grid_size <- dim(kohonen_obj$grid$pts)[1]
+    grid_size <- dim(kohonen_obj[["grid"]][["pts"]])[[1]]
 
     post_probs_lst <- seq_len(grid_size) |>
         purrr::map(function(neuron_id) {
@@ -101,30 +102,30 @@
                 unname(
                     which(
                         kohonen::unit.distances(
-                            kohonen_obj$grid
+                            kohonen_obj[["grid"]]
                         )[, neuron_id] == som_radius
                     )
                 )
             # get information on the samples that are mapped to the neuron
             data_neuron_i <- labelled_neurons |>
                 dplyr::filter(.data[["id_neuron"]] == neuron_id)
-            if ((data_neuron_i$label_samples[1]) == "Noclass") {
+            if ((data_neuron_i[["label_samples"]][[1]]) == "Noclass") {
                 return(NULL)
             }
             # calculate the smoothing factor to be used to the posterior prob
-            eta <- abs(0.9999999 - max(data_neuron_i$prior_prob))
+            eta <- abs(0.9999999 - max(data_neuron_i[["prior_prob"]]))
             # get the posterior probabilities for each label of the neuron
             post_probs <- slider::slide(data_neuron_i, function(row) {
                 # get the labels and frequency of all neighbours
                 neigh_label <- dplyr::filter(
                     labelled_neurons,
-                    .data[["id_neuron"]] %in% neighbours &
-                        .data[["label_samples"]] == row$label_samples
+                    .data[["id_neuron"]] %in% neighbours,
+                    .data[["label_samples"]] == row[["label_samples"]]
                 )
                 # how many neighbours with zero probabilities?
                 n_zeros <- length(neighbours) - nrow(neigh_label)
                 # get the prior probability vector considering the zero probs
-                prior_probs <- c(neigh_label$prior_prob, rep(0, n_zeros))
+                prior_probs <- c(neigh_label[["prior_prob"]], rep(0, n_zeros))
                 # neighborhood label frequency variance
                 var_neig <- stats::var(prior_probs)
                 # neighborhood label frequency mean
@@ -133,11 +134,11 @@
                 # if the variance and mean are undefined
                 # posterior is equal to the prior
                 if ((is.na(var_neig)) || (is.nan(mean_neig))) {
-                    return(row$prior_prob)
+                    return(row[["prior_prob"]])
                 }
                 # mean and variance are valid
                 # calculate the estimated variance and mean of the neighbours
-                w1 <- (var_neig / (eta + var_neig)) * row$prior_prob
+                w1 <- (var_neig / (eta + var_neig)) * row[["prior_prob"]]
                 w2 <- (eta / (eta + var_neig)) * mean_neig
                 post_prob <- w1 + w2
                 return(post_prob)
@@ -151,7 +152,7 @@
     post_probs <- unlist(post_probs_lst)
 
     # include the probabilities in the labeled neurons
-    labelled_neurons$post_prob <- post_probs
+    labelled_neurons[["post_prob"]] <- post_probs
     # return the updated labeled neurons
     return(labelled_neurons)
 }
@@ -175,13 +176,13 @@
     # assign one color per unique label
 
     colors <- .colors_get(
-        labels = kohonen_obj$neuron_label,
+        labels = kohonen_obj[["neuron_label"]],
         legend = NULL,
         palette = "Spectral",
         rev = TRUE
     )
-
-    kohonen_obj$paint_map <- unname(colors[kohonen_obj$neuron_label])
+    labels <- kohonen_obj[["neuron_label"]]
+    kohonen_obj[["paint_map"]] <- unname(colors[labels])
 
     return(kohonen_obj)
 }

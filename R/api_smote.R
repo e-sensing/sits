@@ -22,24 +22,27 @@
     # so SMOTE can execute in that case. This does not affect how data is
     # synthesized
     if (ncol(data) == 2) {
-        data$dummy__col__ <- 0
+        data[["dummy__col__"]] <- 0
     }
     # perform SMOTE
-    smoteret <- .smote_apply(data[, -col_ind],
-        data[, col_ind],
+    smote_ret <- .smote_apply(
+        data = data[, -col_ind],
+        target = data[, col_ind],
         dup_size = dup_size
     )
     # rbind the original observations and sufficient samples of the synthetic
     # ones
-    orig <- smoteret$orig_P
+    orig <- smote_ret[["orig_p"]]
     target_samp <- m - nrow(orig)
-    synt <- smoteret$syn_data[sample.int(
-        nrow(smoteret$syn_data),
-        size = target_samp,
-        replace = target_samp > nrow(smoteret$syn_data)
-    ), ]
+    synt <- smote_ret[["syn_data"]][
+        sample.int(
+            nrow(smote_ret[["syn_data"]]),
+            size = target_samp,
+            replace = target_samp > nrow(smote_ret[["syn_data"]])
+        ),
+    ]
     d_prime <- rbind(orig, synt)
-    colnames(d_prime)[ncol(d_prime)] <- cls_col
+    colnames(d_prime)[[ncol(d_prime)]] <- cls_col
     d_prime[[cls_col]] <- cls
     # remove the dummy column if necessary
     d_prime <- d_prime[, names(d_prime) != "dummy__col__"]
@@ -59,7 +62,7 @@
 #'
 #' @param data Dataset to be oversampled.
 #' @param target Target data set
-#' @param K The number of nearest neighbors during sampling process
+#' @param k The number of nearest neighbors during sampling process
 #' @param dup_size The maximum times of synthetic minority instances
 #'                  over original majority instances in the oversampling.
 #'
@@ -69,83 +72,84 @@
 #'   Journal of Artificial Intelligence Research. 16, 321-357.
 #' @return A list with the following values.
 #'
-.smote_apply <- function(data, target, K = 5, dup_size = 0) {
-    ncD <- ncol(data) # The number of attributes
+.smote_apply <- function(data, target, k = 5, dup_size = 0) {
+    ncol_data <- ncol(data) # The number of attributes
     n_target <- table(target)
     # Extract a set of positive instances
-    P_set <- subset(
+    p_set <- subset(
         data,
         target == names(which.min(n_target))
     )[sample(min(n_target)), ]
-    N_set <- subset(
+    n_set <- subset(
         data,
         target != names(which.min(n_target))
     )
-    P_class <- rep(names(which.min(n_target)), nrow(P_set))
+    p_class <- rep(names(which.min(n_target)), nrow(p_set))
 
-    N_class <- target[target != names(which.min(n_target))]
+    n_class <- target[target != names(which.min(n_target))]
     # The number of positive instances
-    sizeP <- nrow(P_set)
+    size_p <- nrow(p_set)
     # Get k nearest neighbors
-    knear <- .smote_knearest(P_set, P_set, K)
+    knear <- .smote_knearest(p_set, p_set, k)
     sum_dup <- dup_size
     syn_dat <- NULL
-    for (i in 1:sizeP) {
+    for (i in 1:size_p) {
         if (is.matrix(knear)) {
-            pair_idx <- knear[i, ceiling(stats::runif(sum_dup) * K)]
+            pair_idx <- knear[i, ceiling(stats::runif(sum_dup) * k)]
         } else {
             pair_idx <- rep(knear[i], sum_dup)
         }
         g <- stats::runif(sum_dup)
-        P_i <- matrix(unlist(P_set[i, ]), sum_dup, ncD, byrow = TRUE)
-        Q_i <- as.matrix(P_set[pair_idx, ])
-        syn_i <- P_i + g * (Q_i - P_i)
+        p_i <- matrix(unlist(p_set[i, ]), sum_dup, ncol_data, byrow = TRUE)
+        q_i <- as.matrix(p_set[pair_idx, ])
+        syn_i <- p_i + g * (q_i - p_i)
         syn_dat <- rbind(syn_dat, syn_i)
     }
 
-    P_set[, ncD + 1] <- P_class
-    colnames(P_set) <- c(colnames(data), "class")
-    N_set[, ncD + 1] <- N_class
-    colnames(N_set) <- c(colnames(data), "class")
+    p_set[, ncol_data + 1] <- p_class
+    colnames(p_set) <- c(colnames(data), "class")
+    n_set[, ncol_data + 1] <- n_class
+    colnames(n_set) <- c(colnames(data), "class")
 
     rownames(syn_dat) <- NULL
     syn_dat <- data.frame(syn_dat)
-    syn_dat[, ncD + 1] <- rep(names(which.min(n_target)), nrow(syn_dat))
+    syn_dat[, ncol_data + 1] <- rep(names(which.min(n_target)), nrow(syn_dat))
     colnames(syn_dat) <- c(colnames(data), "class")
-    NewD <- rbind(P_set, syn_dat, N_set)
-    rownames(NewD) <- NULL
-    D_result <- list(
-        data = NewD,
+    new_data <- rbind(p_set, syn_dat, n_set)
+    rownames(new_data) <- NULL
+    d_result <- list(
+        data = new_data,
         syn_data = syn_dat,
-        orig_N = N_set,
-        orig_P = P_set,
-        K = K,
-        K_all = NULL,
+        orig_n = n_set,
+        orig_p = p_set,
+        k = k,
+        k_all = NULL,
         dup_size = sum_dup,
         outcast = NULL,
         eps = NULL,
         method = "SMOTE"
     )
-    class(D_result) <- "gen_data"
+    class(d_result) <- "gen_data"
 
-    return(D_result)
+    return(d_result)
 }
 #' @title Find K nearest neighbors
 #' @keywords internal
 #' @noRd
-#' @param D  Query data matrix
-#' @param P  Input data matrix
+#' @param q_data  Query data matrix
+#' @param p_data  Input data matrix
 #' @param n_clust maximum number of nearest neighbors to search
 #' @return Index matrix of K nearest neighbor for each instance
-.smote_knearest <- function(D, P, n_clust) {
+.smote_knearest <- function(q_data, p_data, n_clust) {
     .check_require_packages("FNN")
 
-    knD <- FNN::knnx.index(D, P, k = (n_clust + 1), algorithm = "kd_tree")
-    knD <- knD * (knD != row(knD))
-    que <- which(knD[, 1] > 0)
+    kn_dist <- FNN::knnx.index(q_data, p_data,
+                           k = (n_clust + 1), algorithm = "kd_tree")
+    kn_dist <- kn_dist * (kn_dist != row(kn_dist))
+    que <- which(kn_dist[, 1] > 0)
     for (i in que) {
-        knD[i, which(knD[i, ] == 0)] <- knD[i, 1]
-        knD[i, 1] <- 0
+        kn_dist[i, which(kn_dist[i, ] == 0)] <- kn_dist[[i, 1]]
+        kn_dist[[i, 1]] <- 0
     }
-    return(knD[, 2:(n_clust + 1)])
+    return(kn_dist[, 2:(n_clust + 1)])
 }

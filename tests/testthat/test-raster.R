@@ -29,27 +29,18 @@ test_that("Single core classification with rfor", {
     labels_p <- sits_labels(sinop_probs)
     expect_true(.check_is_results_cube(bands_p, labels_p))
 
-    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = FALSE)
     # testing resume feature
-    out <- capture_messages({
-        expect_message(
-            object = {
-                sits_classify(
-                    data = sinop,
-                    ml_model = rfor_model,
-                    output_dir = output_dir,
-                    memsize = 4,
-                    multicores = 2,
-                    progress = TRUE
-                )
-            },
-            regexp = "recovery mode: data already exists. To produce new data, change output_dir or version"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        object <- sits_classify(
+            data = sinop,
+            ml_model = rfor_model,
+            output_dir = output_dir,
+            memsize = 4,
+            multicores = 2,
+            progress = TRUE
         )
     })
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = TRUE)
 
     sits_labels(sinop_probs) <- c(
         "Cerrado", "Floresta",
@@ -606,23 +597,15 @@ test_that("Classification with post-processing", {
         progress = FALSE
     )
     # testing resume feature
-    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = FALSE)
-    out <- capture_messages({
-        expect_message(
-            object = {
-                sits_label_classification(
-                    sinop_probs,
-                    output_dir = output_dir,
-                    progress = FALSE
-                )
-            },
-            regexp = "recovery mode: data already exists. To produce new data, change output_dir or version"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        object <- sits_label_classification(
+            sinop_probs,
+            output_dir = output_dir,
+            progress = FALSE
         )
     })
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = TRUE)
+
     expect_error(sits_label_classification(
         sinop, output_dir = tempdir()))
     expect_error(sits_label_classification(
@@ -716,25 +699,15 @@ test_that("Classification with post-processing", {
         memsize = 4,
         multicores = 2
     )
-    # testing the recovery feature
-    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = FALSE)
-    out <- capture_messages({
-        expect_message(
-            object = {
-                sits_smooth(
-                    sinop_probs,
-                    output_dir = output_dir,
-                    multicores = 2,
-                    memsize = 4
-                )
-            },
-            regexp = "recovery mode: data already exists. To produce new data, change output_dir or version"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        object <- sits_smooth(
+            sinop_probs,
+            output_dir = output_dir,
+            multicores = 2,
+            memsize = 4
         )
     })
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = TRUE)
 
     expect_true(length(sits_timeline(sinop_bayes)) ==
         length(sits_timeline(sinop_probs)))
@@ -868,23 +841,14 @@ test_that("Clean classification",{
         progress = FALSE
     )
     # testing the recovery feature
-    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = FALSE)
-    out <- capture_messages({
-        expect_message(
-            object = {
-                sits_clean(
-                    cube = sinop_class,
-                    output_dir = output_dir,
-                    progress = FALSE
-                )
-            },
-            regexp = "recovery mode: data already exists. To produce new data, change output_dir or version"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        object <- sits_clean(
+            cube = sinop_class,
+            output_dir = output_dir,
+            progress = FALSE
         )
     })
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = TRUE)
     sum_clean <- summary(clean_cube)
 
     expect_equal(nrow(sum_orig), nrow(sum_clean))

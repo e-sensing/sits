@@ -60,7 +60,7 @@
 .samples_create_folds <- function(data, folds = 5) {
     # verify if data exists
     # splits the data into k groups
-    data$folds <- caret::createFolds(data$label,
+    data[["folds"]] <- caret::createFolds(data[["label"]],
         k = folds,
         returnTrain = FALSE, list = FALSE
     )
@@ -100,7 +100,7 @@
 #' @param samples Data.frame with samples
 #' @return Timeline of the first sample
 .samples_timeline <- function(samples) {
-    as.Date(samples$time_series[[1]]$Index)
+    as.Date(samples[["time_series"]][[1]][["Index"]])
 }
 
 #' @title Select bands of time series samples

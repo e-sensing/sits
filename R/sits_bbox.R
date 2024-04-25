@@ -59,8 +59,9 @@ sits_bbox.tbl_df <- function(data, crs = "EPSG:4326", as_crs = NULL) {
         data <- .cube_find_class(data)
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
-    } else
+    } else {
         stop(.conf("messages", "sits_bbox_default"))
+    }
     bbox <- sits_bbox(data, crs, as_crs)
     return(bbox)
 }

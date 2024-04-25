@@ -21,7 +21,7 @@ test_that("Try", {
                data_dir = ".",
                progress = FALSE
            )
-           .msg_error = "no cube in directory"
+           .msg_error <-  "no cube in directory"
        })
    )
     expect_error(

@@ -203,7 +203,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
 #' @export
 sits_confidence_sampling <- function(probs_cube,
                                      n = 20L,
-                                     min_margin = .90,
+                                     min_margin = 0.90,
                                      sampling_window = 10L) {
     .check_set_caller("sits_confidence_sampling")
 

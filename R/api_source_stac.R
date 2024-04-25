@@ -30,10 +30,13 @@
         limit = 1
     )
     # assert that service is online
-    items <- .try({rstac::post_request(items_query, ...)},
-        default = NULL
+    items <- .try({
+            rstac::post_request(items_query, ...)
+        },
+        .default = NULL
     )
     .check_stac_items(items)
+
     items <- .source_items_bands_select(
         source = source,
         items = items,
@@ -42,19 +45,17 @@
     )
     href <- .source_item_get_hrefs(
         source = source,
-        item = items$feature[[1]],
+        item = items[["features"]][[1]],
         collection = collection, ...
     )
     # assert that token and/or href is valid
     if (dry_run) {
-        # assert that service is online
-        items <- .try(
-            {
-                rstac::post_request(items_query, ...)
+        rast <- .try({
+                .raster_open_rast(href)
             },
             default = NULL
         )
-        .check_stac_items(items)
+        .check_null_parameter(rast)
     }
     return(invisible(source))
 }
@@ -90,6 +91,7 @@
                                    start_date,
                                    end_date,
                                    platform,
+                                   multicores,
                                    progress, ...) {
     # set caller to show in errors
     .check_set_caller(".source_cube.stac_cube")
@@ -122,6 +124,7 @@
         source = source,
         items = items,
         collection = collection,
+        multicores = multicores,
         progress = progress, ...
     )
     # filter tiles
@@ -177,9 +180,9 @@
 #' @return A data cube
 #' @export
 .source_items_cube.stac_cube <- function(source,
-                                         collection = NULL,
+                                         collection,
                                          items, ...,
-                                         multicores = 2,
+                                         multicores,
                                          progress) {
     .check_set_caller(".source_items_cube_stac_cube")
 
@@ -261,7 +264,7 @@
         # check if metadata was retrieved
         if (is.null(asset_info)) {
             msg <- .conf("messages", ".source_items_cube_stac_cube")
-            warning(paste(msg,":\n", paste(paths, collapse = ", ")),
+            warning(msg, ":\n", toString(paths),
                 call. = FALSE
             )
             return(NULL)
@@ -327,9 +330,7 @@
                 # check if metadata was retrieved
                 if (is.null(asset_info)) {
                     msg <- .conf("messages", ".source_items_cube_stac_cube")
-                    warning(paste(msg,":\n", paste(paths, collapse = ", ")),
-                            call. = FALSE
-                    )
+                    warning(msg, ":\n", toString(paths), call. = FALSE)
                     return(NULL)
                 }
             }
@@ -377,7 +378,7 @@
         val <- .parallel_map(seq_len(nrow(data)), function(i) {
             tryCatch(
                 {
-                    lapply(data$assets[[i]]$path, .raster_open_rast)
+                    lapply(data[["assets"]][[i]][["path"]], .raster_open_rast)
                     TRUE
                 },
                 error = function(e) FALSE
@@ -385,7 +386,7 @@
         }, progress = FALSE)
 
         # which tiles have passed on check
-        passed_tiles <- data$tile[unlist(val)]
+        passed_tiles <- data[["tile"]][unlist(val)]
 
         # exclude features by date but passed tiles
         cube <- dplyr::filter(

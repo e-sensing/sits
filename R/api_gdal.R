@@ -1,9 +1,9 @@
 # ---- gdal API ----
 
 .gdal_data_type <- c(
-    "INT1U" = "Byte", "INT2U" = "UInt16", "INT2S" = "Int16",
-    "INT4U" = "UInt32", "INT4S" = "Int32", "FLT4S" = "Float32",
-    "FLT8S" = "Float64"
+    INT1U = "Byte", INT2U = "UInt16", INT2S = "Int16",
+    INT4U = "UInt32", INT4S = "Int32", FLT4S = "Float32",
+    FLT8S = "Float64"
 )
 #' @title Get GDAL parameters
 #' @noRd
@@ -122,7 +122,7 @@
             file = base_file,
             method = conf_cog[["method"]],
             overviews = conf_cog[["overviews"]],
-            options = c("GDAL_NUM_THREADS" = "2")
+            options = c(GDAL_NUM_THREADS = "2")
         )
     )
     return(invisible(file))
@@ -148,7 +148,7 @@
             .gdal_translate(
                 file = file,
                 # GDAL does not allow raster creation, to bypass this limitation
-                # Let's base our raster creation by using a tiny template
+                # We base our raster creation by using a tiny template
                 # (647 Bytes)
                 base_file = system.file(
                     "extdata/raster/gdal/template.tif",
@@ -253,8 +253,8 @@
 .gdal_crop_image <- function(file,
                              out_file,
                              roi_file,
-                             as_crs = NULL,
-                             miss_value = NULL,
+                             as_crs,
+                             miss_value,
                              data_type,
                              multicores = 1,
                              overwrite = TRUE) {

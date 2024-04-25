@@ -12,10 +12,9 @@
 
     # verify tile pattern
     if (!any(grepl(pattern_l8, tiles, perl = TRUE))) {
-        stop(paste(
-            "The specified tiles do not match the Landsat-8 grid",
-            "pattern. See the user guide for more information."
-        ))
+        stop("The specified tiles do not match the Landsat-8 grid",
+             "pattern. See the user guide for more information."
+        )
     }
 
     # list to store the info about the tiles to provide the query in STAC
@@ -51,12 +50,15 @@
     # Run a query
     items_query <- rstac::ext_query(
         q = items_query,
-        "landsat:correction" %in% "L2SR",
-        "platform" %in% "LANDSAT_8",
-        "landsat:collection_number" %in% "02"
+        "landsat:correction" == "L2SR",
+        "platform" == "LANDSAT_8",
+        "landsat:collection_number" == "02"
     )
     # assert that service is online
-    items <- .try({rstac::post_request(items_query, ...)},
+    items <- .try(
+        {
+            rstac::post_request(items_query, ...)
+        },
         default = NULL
     )
     # check result
@@ -70,7 +72,7 @@
     # Get HTTP refs
     href <- .source_item_get_hrefs(
         source = source,
-        item = items$feature[[1]],
+        item = items[["features"]][[1]],
         collection = collection, ...
     )
     # assert that token and/or href is valid
@@ -121,15 +123,18 @@
                                         tiles = NULL,
                                         platform = NULL) {
     # get start and end date
-    dates_chr <- strsplit(x = stac_query$params$datetime, split = "/")[[1]]
-
-    # the usgs stac only accepts RFC 3339 datetime format
-    stac_query$params$datetime <- paste(
+    date_time <- strsplit(
+        stac_query[["params"]][["datetime"]],
+        split = "/"
+    )
+    dates_chr <- date_time[[1]]
+    # USGS stac only accepts RFC 3339 datetime format
+    stac_query[["params"]][["datetime"]] <- paste(
         format(as.Date(dates_chr), "%Y-%m-%dT%H:%M:%SZ"),
         collapse = "/"
     )
     # requests with more than searched items throws 502 error
-    stac_query$params$limit <- 300
+    stac_query[["params"]][["limit"]] <- 300
 
     if (!is.null(platform)) {
         platform <- .stac_format_platform(
@@ -142,14 +147,14 @@
             "platform" == platform
         )
     } else {
-        platform <- unlist(unname(
+        platforms <- unlist(unname(
             .conf(
                 "sources", source, "collections", collection, "platforms"
             )
         ))
         stac_query <- rstac::ext_query(
             q = stac_query,
-            "platform" %in% platform
+            "platform" %in% platforms
         )
     }
     # adding search filter in query
@@ -157,7 +162,7 @@
         q = stac_query,
         "landsat:correction" %in% c("L2SR", "L2SP"),
         "landsat:collection_category" %in% c("T1", "T2"),
-        "landsat:collection_number" %in% "02"
+        "landsat:collection_number" == "02"
     )
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles)) {
@@ -167,16 +172,16 @@
         # add filter by wrs path and row
         stac_query <- rstac::ext_query(
             q = stac_query,
-            "landsat:wrs_path" %in% sep_tile$wrs_path,
-            "landsat:wrs_row" %in% sep_tile$wrs_row
+            "landsat:wrs_path" %in% sep_tile[["wrs_path"]],
+            "landsat:wrs_row" %in% sep_tile[["wrs_row"]]
         )
     }
     # making the request
     items <- rstac::post_request(q = stac_query, ...)
     .check_stac_items(items)
     # filter only surface reflectance products
-    items$features <- items$features[
-        grepl("_SR$", rstac::items_reap(items, "id"))
+    items[["features"]] <- items[["features"]][
+        endsWith(rstac::items_reap(items, "id"), suffix = "_SR")
     ]
     # checks if the collection returned zero items
     .check_stac_items(items)
@@ -206,10 +211,10 @@
                                          items, ...,
                                          collection = NULL) {
     # store tile info in items object
-    items$features <- purrr::map(items$features, function(feature) {
-        feature$properties$tile <- paste0(
-            feature$properties[["landsat:wrs_path"]],
-            feature$properties[["landsat:wrs_row"]]
+    items[["features"]] <- purrr::map(items[["features"]], function(feature) {
+        feature[["properties"]][["tile"]] <- paste0(
+            feature[["properties"]][["landsat:wrs_path"]],
+            feature[["properties"]][["landsat:wrs_row"]]
         )
         feature
     })

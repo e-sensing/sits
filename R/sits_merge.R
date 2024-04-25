@@ -58,8 +58,12 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     if (any(coincidences1) || any(coincidences2)) {
         bands1_names <- rep(x = suffix[[1]], length(coincidences1))
         bands2_names <- rep(x = suffix[[2]], length(coincidences2))
-        bands1[coincidences1] <- paste0(bands1[coincidences1], bands1_names[coincidences1])
-        bands2[coincidences2] <- paste0(bands2[coincidences2], bands2_names[coincidences2])
+        bands1[coincidences1] <- paste0(bands1[coincidences1],
+                                        bands1_names[coincidences1]
+        )
+        bands2[coincidences2] <- paste0(bands2[coincidences2],
+                                        bands2_names[coincidences2]
+        )
         .check_that(!any(bands1 %in% bands2))
         .check_that(!any(bands2 %in% bands1))
         data1 <- .band_rename(data1, bands1)
@@ -68,9 +72,9 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     # prepare result
     result <- data1
     # merge time series
-    result$time_series <- purrr::map2(
-        data1$time_series,
-        data2$time_series,
+    result[["time_series"]] <- purrr::map2(
+        data1[["time_series"]],
+        data2[["time_series"]],
         function(ts1, ts2) {
             ts3 <- dplyr::bind_cols(ts1, dplyr::select(ts2, -"Index"))
             return(ts3)
@@ -90,11 +94,10 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
     data1 <- dplyr::arrange(data1, .data[["tile"]])
     data2 <- dplyr::arrange(data2, .data[["tile"]])
     .check_that(all(sort(.cube_tiles(data1)) == sort(.cube_tiles(data2))))
-    if (inherits(data1, "hls_cube") && inherits(data2, "hls_cube")) {
-        if (.cube_collection(data1) == "HLSS30" ||
-            .cube_collection(data2) == "HLSS30") {
-            data1$collection <- "HLSS30"
-        }
+    if (inherits(data1, "hls_cube") && inherits(data2, "hls_cube") &&
+        (.cube_collection(data1) == "HLSS30" ||
+         .cube_collection(data2) == "HLSS30")) {
+            data1[["collection"]] <- "HLSS30"
     }
     data1 <- slider::slide2_dfr(data1, data2, function(x, y) {
         .fi(x) <- dplyr::arrange(
@@ -117,6 +120,6 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
 }
 #' @rdname sits_merge
 #' @export
-sits_merge.default <- function(data1, data2, ...){
+sits_merge.default <- function(data1, data2, ...) {
     stop(.conf("messages", "sits_merge_default"))
 }

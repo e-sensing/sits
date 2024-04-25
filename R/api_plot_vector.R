@@ -108,11 +108,12 @@
 
     # plot the segments by facet
     p <- tmap::tm_shape(sf_seg) +
-        tmap::tm_fill(labels_plot,
-                          style = style,
-                          palette = palette,
-                          midpoint = 0.5,
-                          title = labels[labels %in% labels_plot]) +
+        tmap::tm_fill(
+            labels_plot,
+            style = style,
+            palette = palette,
+            midpoint = 0.5,
+            title = labels[labels %in% labels_plot]) +
         tmap::tm_graticules(
             labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
         ) +
@@ -161,7 +162,7 @@
     # get the segements to be plotted
     sf_seg <- .segments_read_vec(tile)
     # obtain the uncertainty type
-    uncert_type <- .vi(tile)$band
+    uncert_type <- .vi(tile)[["band"]]
     # plot the segments by facet
     p <- tmap::tm_shape(sf_seg) +
         tmap::tm_polygons(uncert_type,

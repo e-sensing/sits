@@ -81,12 +81,8 @@
             block = block,
             impute_fn = impute_fn
         )
-        # Get mask of NA pixels
-        na_mask <- C_mask_na(values)
         # Fill with zeros remaining NA pixels
         values <- C_fill_na(values, 0)
-        # Used to check values (below)
-        input_pixels <- nrow(values)
         # Apply segmentation function
         values <- seg_fn(values, block, bbox)
         # Check if the result values is a vector object
@@ -180,7 +176,7 @@
             values[cloud_mask] <- NA
         }
         # are there NA values? interpolate them
-        if (any(is.na(values))) {
+        if (anyNA(values)) {
             values <- impute_fn(values)
         }
         # Return values
@@ -268,7 +264,7 @@
     dplyr::left_join(
         x = segments,
         y = data,
-        by = c("pol_id" = "polygon_id")
+        by = c(pol_id = "polygon_id")
     )
 }
 #'
@@ -300,7 +296,7 @@
             band = band,
             chunk = chunk
         )
-        pol_id <- values[,"pol_id"]
+        pol_id <- values[, "pol_id"]
         values <- values[, -1:0]
         # Correct missing, minimum, and maximum values and
         # apply scale and offset.
@@ -329,7 +325,7 @@
             values <- values + offset
         }
         # are there NA values? interpolate them
-        if (any(is.na(values))) {
+        if (anyNA(values)) {
             values <- impute_fn(values)
         }
         # Returning extracted time series
@@ -346,7 +342,7 @@
     # retrieve the dates of the tile
     n_dates <- length(.tile_timeline(tile))
     # find how many samples have been extracted from the tile
-    n_samples <- nrow(ts_bands)/n_dates
+    n_samples <- nrow(ts_bands) / n_dates
     # include sample_id information
     ts_bands[["sample_id"]] <- rep(seq_len(n_samples),
                                    each = n_dates)
@@ -379,7 +375,7 @@
     # retrieve the segments
     segments <- .vector_read_vec(chunk[["segments"]][[1]])
     # include lat/long information
-    lat_long <- .proj_to_latlong(segments$x, segments$y, .crs(tile))
+    lat_long <- .proj_to_latlong(segments[["x"]], segments[["y"]], .crs(tile))
     # create metadata for the polygons
     samples <- tibble::tibble(
         longitude  = lat_long[, "longitude"],
@@ -417,9 +413,9 @@
 #'
 #' @return tibble with band-files pairs
 #'
-.segments_split_tile_bands <- function(tile, bands){
-    tile_bands <- purrr::map(bands, function(band){
-        band_files <- .fi_filter_bands(.fi(tile), band)$path
+.segments_split_tile_bands <- function(tile, bands) {
+    tile_bands <- purrr::map(bands, function(band) {
+        band_files <- .fi_filter_bands(.fi(tile), band)[["path"]]
         tibble::tibble(
             band = band,
             files = list(band_files),
@@ -454,7 +450,7 @@
     segments_lst <- dplyr::group_split(
         dplyr::group_by(segments, .data[["group"]])
     )
-    segment_files <- purrr::map_chr(segments_lst, function(seg_part){
+    segment_files <- purrr::map_chr(segments_lst, function(seg_part) {
         # Block file name
         hash_bundle <- digest::digest(seg_part, algo = "md5")
         seg_file <- .file_path(
@@ -466,8 +462,8 @@
         return(seg_file)
     })
     seg_tile_band_lst <- purrr::map(segment_files, function(seg_file) {
-        tile_bands <- purrr::map(bands, function(band){
-            band_files <- .fi_filter_bands(.fi(tile), band)$path
+        tile_bands <- purrr::map(bands, function(band) {
+            band_files <- .fi_filter_bands(.fi(tile), band)[["path"]]
             tibble::tibble(
                 band = band,
                 files = list(band_files),

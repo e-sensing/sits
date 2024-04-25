@@ -40,7 +40,7 @@
         bands <- sits_bands(data)
     }
     # populates result
-    values <- data$time_series |>
+    values <- data[["time_series"]] |>
         purrr::map(function(ts) {
             data.matrix(dplyr::select(ts, dplyr::all_of(bands)))
         })
@@ -95,7 +95,7 @@
         bands <- sits_bands(data)
     }
     values <- bands |> purrr::map(function(band) {
-        data$time_series |>
+        data[["time_series"]] |>
             purrr::map(function(ts) {
                 dplyr::select(ts, dplyr::all_of(band))
             }) |>

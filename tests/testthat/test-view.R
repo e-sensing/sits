@@ -119,11 +119,11 @@ test_that("View", {
         ),
         output_dir = tempdir()
     )
-    v7 <- sits_view(segments)
+    v7 <- sits_view(segments, band = "NDVI")
     expect_true(grepl("EPSG3857", v7$x$options$crs$crsClass))
     expect_equal(v7$x$calls[[1]]$method, "addProviderTiles")
     expect_equal(v7$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
-    expect_equal(v7$x$calls[[5]]$method, "addPolygons")
+    expect_equal(v7$x$calls[[5]]$method, "addRasterImage")
 
     v8 <- sits_view(segments, band = "NDVI")
     expect_true(grepl("EPSG3857", v8$x$options$crs$crsClass))
@@ -151,13 +151,13 @@ test_that("View", {
         version = "v_segs_test"
     )
 
-    v9 <- sits_view(class_segs, class_cube = modis_label)
+    v9 <- sits_view(class_segs, band = "NDVI", class_cube = modis_label)
     expect_true(grepl("EPSG3857", v9$x$options$crs$crsClass))
     expect_equal(v9$x$calls[[1]]$method, "addProviderTiles")
     expect_equal(v9$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
-    expect_equal(v9$x$calls[[5]]$method, "addPolygons")
+    expect_equal(v9$x$calls[[5]]$method, "addRasterImage")
     expect_equal(v9$x$calls[[6]]$method, "addPolygons")
-    expect_equal(v9$x$calls[[7]]$method, "addRasterImage")
+    expect_equal(v9$x$calls[[7]]$method, "addPolygons")
 
 
     cbers_cube <- tryCatch(
@@ -192,20 +192,21 @@ test_that("View", {
     expect_equal(v_cb$x$calls[[5]]$method, "addRasterImage")
     expect_equal(v_cb$x$calls[[6]]$args[[5]], "007005 2018-08-29")
 
-    expect_true(all(file.remove(unlist(modis_uncert$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(modis_probs$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(modis_label$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(modis_uncert$file_info[[1]][["path"]]))))
+    expect_true(all(file.remove(unlist(modis_probs$file_info[[1]][["path"]]))))
+    expect_true(all(file.remove(unlist(modis_label$file_info[[1]][["path"]]))))
 })
 test_that("View SOM map", {
     set.seed(2903)
-    expect_warning({som_map <- sits_som_map(
-        samples_modis_ndvi,
-        grid_xdim = 4,
-        grid_ydim = 4
-    )
+    expect_warning({
+        som_map <- sits_som_map(
+            samples_modis_ndvi,
+            grid_xdim = 4,
+            grid_ydim = 4
+        )
     })
     v <- sits_view(som_map, id_neurons = c(1:5))
 
-    expect_true(grepl("EPSG3857", v$x$options$crs$crsClass))
-    expect_equal(v$x$calls[[1]]$method, "addProviderTiles")
+    expect_true(grepl("EPSG3857", v[["x"]][["options"]][["crs"]][["crsClass"]]))
+    expect_identical(v[["x"]][["calls"]][[1]][["method"]], "addProviderTiles")
 })

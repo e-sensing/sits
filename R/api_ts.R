@@ -229,7 +229,8 @@
         )) {
             cld_values <- as.matrix(cld_values)
             cld_rows <- nrow(cld_values)
-            cld_values <- matrix(bitwAnd(cld_values, sum(2^cld_index)),
+            cld_values <- matrix(
+                bitwAnd(cld_values, sum(2^cld_index)),
                 nrow = cld_rows
             )
         }
@@ -255,8 +256,8 @@
         ts_band_lst <- purrr::map(seq_len(nrow(values_band)), function(i) {
             t_point <- .timeline_during(
                 timeline   = timeline,
-                start_date = lubridate::as_date(points$start_date[[i]]),
-                end_date   = lubridate::as_date(points$end_date[[i]])
+                start_date = lubridate::as_date(points[["start_date"]][[i]]),
+                end_date   = lubridate::as_date(points[["end_date"]][[i]])
             )
             # select the valid dates in the timeline
             start_idx <- which(timeline == t_point[[1]])
@@ -284,7 +285,7 @@
             values_ts[values_ts < minimum_value] <- NA
             values_ts[values_ts > maximum_value] <- NA
             # are there NA values? interpolate them
-            if (any(is.na(values_ts))) {
+            if (anyNA(values_ts)) {
                 values_ts <- impute_fn(values_ts)
             }
             # correct the values using the scale factor
@@ -301,8 +302,8 @@
         purrr::transpose() |>
         purrr::map(tibble::as_tibble)
     # include the time series in the XY points
-    points$time_series <- purrr::map2(
-        points$time_series,
+    points[["time_series"]] <- purrr::map2(
+        points[["time_series"]],
         ts_samples,
         dplyr::bind_cols
     )
@@ -349,8 +350,8 @@
     traj_samples <- traj_lst |>
         purrr::map(function(x) tibble::tibble(class = labels[x]))
     # include the time series in the XY points
-    points$predicted <- purrr::map2(
-        points$predicted,
+    points[["predicted"]] <- purrr::map2(
+        points[["predicted"]],
         traj_samples,
         dplyr::bind_cols
     )

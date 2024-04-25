@@ -187,7 +187,7 @@
         "tbl_df"
     } else if (is.character(em)) {
         ext <- tolower(.file_ext(em))
-        if (ext %in% c("csv")) {
+        if (ext == "csv") {
             ext
         } else {
             stop("not supported extension '", ext, "'")
@@ -202,9 +202,7 @@
 #' @param  em       Endmember values
 #' @return          Valid endmember specification (csv of tbl_df)
 .endmembers_switch <- function(em, ...) {
-    switch(.endmembers_type(em),
-        ...
-    )
+    switch(.endmembers_type(em), ...)
 }
 #' @title Convert endmembers specification to data.frame
 #' @keywords internal
@@ -214,8 +212,8 @@
 .endmembers_as_tbl <- function(em) {
     em <- .endmembers_switch(
         em,
-        "tbl_df" = em,
-        "csv" = utils::read.csv(em)
+        tbl_df = em,
+        csv = utils::read.csv(em)
     )
     # Ensure that all columns are in uppercase
     dplyr::rename_with(em, toupper)

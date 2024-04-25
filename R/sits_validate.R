@@ -70,7 +70,7 @@ sits_kfold_validate <- function(samples,
     # pre-condition
     .check_int_parameter(multicores, min = 1, max = 2048)
     # For now, torch models does not support multicores in Windows
-    if (multicores > 1 && .Platform$OS.type == "windows" &&
+    if (multicores > 1 && .Platform[["OS.type"]] == "windows" &&
         "optimizer" %in% ls(environment(ml_method))) {
         multicores <- 1
         if (.check_warnings()) {
@@ -98,8 +98,8 @@ sits_kfold_validate <- function(samples,
     # Do parallel process
     conf_lst <- .parallel_map(seq_len(folds), function(k) {
         # Split data into training and test data sets
-        data_train <- samples[samples$folds != k, ]
-        data_test <- samples[samples$folds == k, ]
+        data_train <- samples[samples[["folds"]] != k, ]
+        data_test  <- samples[samples[["folds"]] == k, ]
         # Create a machine learning model
         ml_model <- sits_train(samples = data_train, ml_method = ml_method)
         # Convert samples time series in predictors and preprocess data
@@ -115,8 +115,8 @@ sits_kfold_validate <- function(samples,
         return(list(pred = values, ref = .pred_references(pred_test)))
     }, n_retries = 0, progress = FALSE)
     # create predicted and reference vectors
-    pred <- unlist(lapply(conf_lst, function(x) x$pred))
-    ref <- unlist(lapply(conf_lst, function(x) x$ref))
+    pred <- unlist(lapply(conf_lst, function(x) x[["pred"]]))
+    ref <- unlist(lapply(conf_lst, function(x) x[["ref"]]))
     unique_ref <- unique(ref)
     pred_fac <- factor(pred, levels = unique_ref)
     ref_fac <- factor(ref, levels = unique_ref)

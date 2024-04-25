@@ -55,7 +55,7 @@
     block <- .raster_file_blocksize(rast)
     # 1st case - split samples by tiles
     if (.raster_nrows(rast) == block[["nrows"]] &&
-        .raster_ncols(rast) == block[["ncols"]]) {
+            .raster_ncols(rast) == block[["ncols"]]) {
         # split samples by bands and tile
         ts_tbl <- .get_data_by_tile(
             cube = cube,
@@ -88,7 +88,7 @@
 .data_get_ts.class_cube <- function(cube,
                                     samples, ...,
                                     bands,
-                                    crs = 4326,
+                                    crs,
                                     multicores,
                                     progress) {
     # Filter only tiles that intersects with samples
@@ -158,10 +158,12 @@
             # filter the points inside the data cube space-time extent
             samples <- dplyr::filter(
                 samples,
-                .data[["X"]] > tile$xmin & .data[["X"]] < tile$xmax &
-                    .data[["Y"]] > tile$ymin & .data[["Y"]] < tile$ymax &
-                    .data[["start_date"]] <= as.Date(tl[length(tl)]) &
-                    .data[["end_date"]] >= as.Date(tl[1])
+                .data[["X"]] > tile[["xmin"]],
+                .data[["X"]] < tile[["xmax"]],
+                .data[["Y"]] > tile[["ymin"]],
+                .data[["Y"]] < tile[["ymax"]],
+                .data[["start_date"]] <= as.Date(tl[[length(tl)]]),
+                .data[["end_date"]] >= as.Date(tl[[1]])
             )
             # are there points to be retrieved from the cube?
             if (nrow(samples) == 0) {
@@ -192,7 +194,7 @@
                     polygon_id = point[["polygon_id"]]
                 )
                 # store them in the sample tibble
-                sample$predicted <- list(tibble::tibble(
+                sample[["predicted"]] <- list(tibble::tibble(
                     from = dates[[1]], to = dates[[2]]
                 ))
                 # return valid row of time series
@@ -399,11 +401,14 @@
         # filter the points inside the data cube space-time extent
         samples <- dplyr::filter(
             samples,
-            .data[["X"]] > tile$xmin & .data[["X"]] < tile$xmax &
-                .data[["Y"]] > tile$ymin & .data[["Y"]] < tile$ymax &
-                .data[["start_date"]] <= as.Date(tl[length(tl)]) &
-                .data[["end_date"]] >= as.Date(tl[1])
+            .data[["X"]] > tile[["xmin"]],
+            .data[["X"]] < tile[["xmax"]],
+            .data[["Y"]] > tile[["ymin"]],
+            .data[["Y"]] < tile[["ymax"]],
+            .data[["start_date"]] <= as.Date(tl[length(tl)]),
+            .data[["end_date"]] >= as.Date(tl[[1]])
         )
+
         # are there points to be retrieved from the cube?
         if (nrow(samples) == 0) {
             return(NULL)
@@ -433,7 +438,7 @@
                 polygon_id = point[["polygon_id"]]
             )
             # store them in the sample tibble
-            sample$time_series <- list(tibble::tibble(Index = dates))
+            sample[["time_series"]] <- list(tibble::tibble(Index = dates))
             # return valid row of time series
             return(sample)
         })
@@ -457,7 +462,7 @@
     ts_tbl <- dplyr::bind_rows(samples_tiles_bands)
     if (!.has_ts(ts_tbl)) {
         warning(.conf("messages", ".get_data_by_tile"),
-            immediate. = TRUE, call. = FALSE
+                immediate. = TRUE, call. = FALSE
         )
         return(.tibble())
     }
@@ -579,10 +584,12 @@
         # filter the points inside the data cube space-time extent
         samples <- dplyr::filter(
             samples,
-            .data[["X"]] > tile$xmin & .data[["X"]] < tile$xmax &
-                .data[["Y"]] > tile$ymin & .data[["Y"]] < tile$ymax &
-                .data[["start_date"]] <= as.Date(tl[length(tl)]) &
-                .data[["end_date"]] >= as.Date(tl[1])
+            .data[["X"]] > tile[["xmin"]],
+            .data[["X"]] < tile[["xmax"]],
+            .data[["Y"]] > tile[["ymin"]],
+            .data[["Y"]] < tile[["ymax"]],
+            .data[["start_date"]] <= as.Date(tl[[length(tl)]]),
+            .data[["end_date"]] >= as.Date(tl[[1]])
         )
         # are there points to be retrieved from the cube?
         if (nrow(samples) == 0) {
@@ -613,7 +620,7 @@
                 polygon_id = point[["polygon_id"]]
             )
             # store them in the sample tibble
-            sample$time_series <- list(tibble::tibble(Index = dates))
+            sample[["time_series"]] <- list(tibble::tibble(Index = dates))
             # return valid row of time series
             return(sample)
         })
@@ -635,7 +642,7 @@
     ts_tbl <- dplyr::bind_rows(samples_tiles_bands)
     if (!.has_ts(ts_tbl)) {
         warning(.conf("messages", ".get_data_by_chunks"),
-                immediate. = TRUE, call. = FALSE
+            immediate. = TRUE, call. = FALSE
         )
         return(.tibble())
     }
@@ -701,4 +708,3 @@
     }
     return(ts_tbl)
 }
-

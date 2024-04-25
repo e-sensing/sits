@@ -12,7 +12,7 @@
         utils::read.csv(
             file = csv_file,
             stringsAsFactors = FALSE
-            )
+        )
     )
     # pre-condition - check if CSV file is correct
     .check_samples(samples)
@@ -22,7 +22,8 @@
         .conf("df_sample_columns")
     )
     # transform to date
-    samples <- dplyr::mutate(samples,
+    samples <- dplyr::mutate(
+        samples,
         start_date = as.Date(.data[["start_date"]]),
         end_date = as.Date(.data[["end_date"]])
     )

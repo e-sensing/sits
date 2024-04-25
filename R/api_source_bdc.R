@@ -82,6 +82,6 @@
 .source_configure_access.bdc_cube <- function(source, collection = NULL) {
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
     if (nchar(bdc_access_key) == 0)
-        Sys.setenv("BDC_ACCESS_KEY" = .conf("BDC_ACCESS_KEY"))
+        Sys.setenv(BDC_ACCESS_KEY = .conf("BDC_ACCESS_KEY"))
     return(invisible(source))
 }

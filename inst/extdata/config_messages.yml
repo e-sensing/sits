@@ -1,8 +1,9 @@
 # Messages for SITS
 #
-
 .check_apply: "invalid function provided to be applied"
+.check_available_bands: 'requested band(s) not available in the cube'
 .check_bbox: "input is not a valid bbox"
+.check_bw_rgb_bands: "either 'band' parameter or 'red', 'green', and 'blue' parameters should be informed"
 .check_crs: "invalid crs information in image files"
 .check_cube_bands: "some bands are not available in data cube - check 'bands' parameter"
 .check_cubes_match: "cubes do not match - need same bands, tiles, timeline, labels"
@@ -51,8 +52,8 @@
 .check_linkage_method: "invalid linkage method for dendrogram calculation"
 .check_local_items: "invalid items for local cubes"
 .check_names_is_named: "value should have names"
-.check_names_unique: "names should be unique"
 .check_names_is_unnamed: "input should be unnamed"
+.check_names_unique: "names should be unique"
 .check_na_null_parameter: "value cannot be NA or NULL"
 .check_na_parameter: "NA value not allowed"
 .check_null_parameter: "NULL value not allowed"
@@ -75,6 +76,7 @@
 .check_roi_tiles: "either roi or tiles must be provided, but both are not allowed"
 .check_samples: "invalid samples - missing columns and/or data rows"
 .check_samples_cluster: "cluster id missing in samples - run sits_cluster() first"
+.check_samples_default: "data cannot be converted to tibble"
 .check_samples_tile_match_bands: "tile bands do not match samples bands"
 .check_samples_tile_match_timeline: "tile timeline does not match samples timeline"
 .check_samples_timeline: "samples contain timelines with different lengths"
@@ -92,8 +94,6 @@
 .check_validation_file: "invalid or missing CSV validation file for accuracy assessment"
 .check_vector_object: "segmentation did not produce a valid vector object"
 .check_version: "version should a lower case character vector with no underlines"
-.check_view_bands: "requested band not available in data cube"
-.check_view_bands_params: "either 'band' parameter or 'red', 'green', and 'blue' parameters should be informed"
 .apply_input_bands: "required bands not available in cube"
 .band_rename: "all input bands must be provided"
 .bbox_as_sf: "reprojecting to EPSG:3426 due to multiple CRS\n (use 'as_crs' to reproject to a different CRS)"

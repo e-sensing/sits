@@ -19,7 +19,7 @@
 #' @export
 summary.sits <- function(object, ...) {
     # get frequency table
-    data_labels <- table(object$label)
+    data_labels <- table(object[["label"]])
 
     # compose tibble containing labels, count and relative frequency columns
     result <- tibble::as_tibble(list(
@@ -361,11 +361,11 @@ summary.class_cube <- function(object, ..., tile = NULL) {
     sum_clean <- sum[, -3] |>
         stats::na.omit()
     # are there NA's ?
-    sum_NA <- dplyr::filter(sum, is.na(.data[["area_km2"]]))
+    sum_na <- dplyr::filter(sum, is.na(.data[["area_km2"]]))
     # inform missing classes
-    if (nrow(sum_NA) > 0) {
-        message(paste(.conf("messages", "summary_class_cube_area"),
-            paste0(sum_NA$class, collapse = " "))
+    if (nrow(sum_na) > 0) {
+        message(.conf("messages", "summary_class_cube_area"),
+            toString(sum_na[["class"]])
         )
     }
     # show the result

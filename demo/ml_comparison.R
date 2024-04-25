@@ -9,12 +9,9 @@ library(sits)
 # load the sits library
 library(sits)
 if (!requireNamespace("sitsdata", quietly = TRUE)) {
-    stop(
-        paste0(
-            "Please install package sitsdata\n",
-            "Please call devtools::install_github('e-sensing/sitsdata')"
-        ),
-        call. = FALSE
+    stop("Please install package sitsdata\n",
+         "Please call devtools::install_github('e-sensing/sitsdata')",
+         call. = FALSE
     )
 }
 
@@ -32,24 +29,26 @@ results <- list()
 
 ## SVM model
 print("== Accuracy Assessment = SVM =======================")
-acc_svm <- sits_kfold_validate(samples_matogrosso_mod13q1,
+acc_svm <- sits_kfold_validate(
+    samples_matogrosso_mod13q1,
     folds = 5,
     multicores = 3,
     ml_method = sits_svm(kernel = "radial", cost = 10)
 )
-acc_svm$name <- "svm_10"
+acc_svm[["name"]] <- "svm_10"
 
 results[[length(results) + 1]] <- acc_svm
 
 
 # =============== RFOR ==============================
 print("== Accuracy Assessment = RFOR =======================")
-acc_rfor <- sits_kfold_validate(samples_matogrosso_mod13q1,
+acc_rfor <- sits_kfold_validate(
+    samples_matogrosso_mod13q1,
     folds = 5,
     multicores = 2,
     ml_method = sits_rfor()
 )
-acc_rfor$name <- "rfor"
+acc_rfor[["name"]] <- "rfor"
 
 results[[length(results) + 1]] <- acc_rfor
 
@@ -57,13 +56,14 @@ results[[length(results) + 1]] <- acc_rfor
 # =============== XGBOOST ==============================
 # extreme gradient boosting
 print("== Accuracy Assessment = XGB =======================")
-acc_xgb <- sits_kfold_validate(samples_matogrosso_mod13q1,
+acc_xgb <- sits_kfold_validate(
+    samples_matogrosso_mod13q1,
     folds = 5,
     ml_method = sits_xgboost()
 )
-acc_xgb$name <- "xgboost"
+acc_xgb[["name"]] <- "xgboost"
 
 results[[length(results) + 1]] <- acc_xgb
 
 
-sits_to_xlsx(results, file = paste0(tempdir(), "/accuracy_mt_ml.xlsx"))
+sits_to_xlsx(results, file = file.path(tempdir(), "/accuracy_mt_ml.xlsx"))

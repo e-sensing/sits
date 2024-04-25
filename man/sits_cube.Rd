@@ -20,6 +20,7 @@ sits_cube(source, collection, ...)
   start_date = NULL,
   end_date = NULL,
   platform = NULL,
+  multicores = 2,
   progress = TRUE
 )
 
@@ -33,6 +34,7 @@ sits_cube(source, collection, ...)
   start_date = NULL,
   end_date = NULL,
   platform = NULL,
+  multicores = 2,
   progress = TRUE
 )
 
@@ -92,6 +94,9 @@ images from the collection in the cube (optional).
 of collections that include more than one satellite
 (character vector of length 1).}
 
+\item{multicores}{Number of workers for parallel processing
+(integer, min = 1, max = 2048).}
+
 \item{progress}{Logical: show a progress bar?}
 
 \item{data_dir}{Local directory where images are stored
@@ -114,9 +119,6 @@ classes "probs_cube" or "class_cube").}
 
 \item{delim}{Delimiter for parsing local files
 (single character)}
-
-\item{multicores}{Number of workers for parallel processing
-(integer, min = 1, max = 2048).}
 }
 \value{
 A \code{tibble} describing the contents of a data cube.

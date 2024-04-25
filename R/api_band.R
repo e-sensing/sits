@@ -17,7 +17,8 @@
 .band_rename.sits <- function(x, bands) {
     data_bands <- sits_bands(x)
     # pre-condition
-    .check_chr(bands,
+    .check_chr(
+        bands,
         allow_empty = FALSE, len_min = length(data_bands),
         len_max = length(data_bands)
     )
@@ -43,7 +44,8 @@
 .band_rename.raster_cube <- function(x, bands) {
     data_bands <- sits_bands(x)
     # pre-condition
-    .check_chr(bands,
+    .check_chr(
+        bands,
         allow_empty = FALSE,
         len_min = length(data_bands),
         len_max = length(data_bands)
@@ -62,12 +64,12 @@
         new_bands[data_bands] <- toupper(bands)
         colnames(x) <- unname(new_bands)
 
-        x <- tidyr::pivot_longer(x,
+        x <- tidyr::pivot_longer(
+            x,
             cols = toupper(bands),
             names_to = "band",
             values_to = "path"
         )
-
         return(x)
     })
 }
@@ -84,7 +86,7 @@
 #' @param band band name (may be lower or upper case)
 #' @return band name in upper case
 .band_eo <- function(band) {
-    gsub("_", "-", toupper(band))
+    gsub("_", "-", toupper(band), fixed = TRUE)
 }
 #' @title Convert band names for derived cubes
 #' @name .band_derived
@@ -92,7 +94,7 @@
 #' @param band band name (may be lower or upper case)
 #' @return band name in lower case
 .band_derived <- function(band) {
-    gsub("_", "-", tolower(band))
+    gsub("_", "-", tolower(band), fixed = TRUE)
 }
 #' @title Convert band names for time series
 #' @name .band_samples
@@ -100,7 +102,7 @@
 #' @param band band name (may be lower or upper case)
 #' @return band name in upper case
 .band_samples <- function(band) {
-    gsub("_", "-", toupper(band))
+    gsub("_", "-", toupper(band), fixed = TRUE)
 }
 #' @title Convert band names for data cube
 #' @name .band_set_case

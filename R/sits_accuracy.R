@@ -154,8 +154,8 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
         .check_that(length(labelled_band) == 1)
         # get xy in cube projection
         xy_tb <- .proj_from_latlong(
-            longitude = validation$longitude,
-            latitude = validation$latitude,
+            longitude = validation[["longitude"]],
+            latitude = validation[["latitude"]],
             crs = .crs(tile)
         )
         # join samples with XY values in a single tibble
@@ -165,15 +165,17 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
         # Filter the points inside the tile
         points_tile <- dplyr::filter(
             points,
-            .data[["X"]] >= tile$xmin & .data[["X"]] <= tile$xmax &
-                .data[["Y"]] >= tile$ymin & .data[["Y"]] <= tile$ymax
+            .data[["X"]] >= tile[["xmin"]],
+            .data[["X"]] <= tile[["xmax"]],
+            .data[["Y"]] >= tile[["ymin"]],
+            .data[["Y"]] <= tile[["ymax"]]
         )
         # No points in the cube? Return an empty list
         if (nrow(points_tile) < 1)
             return(NULL)
 
         # Convert the tibble to a matrix
-        xy <- matrix(c(points_tile$X, points_tile$Y),
+        xy <- matrix(c(points_tile[["X"]], points_tile[["Y"]]),
                      nrow = nrow(points_tile),
                      ncol = 2
         )
@@ -193,7 +195,7 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
         # Get the predicted values
         predicted <- labels_cube[.as_chr(values)]
         # Get reference classes and remove NAs
-        reference <- points_tile$label[idx_na]
+        reference <- points_tile[["label"]][idx_na]
         # Does the number of predicted and reference values match?
         .check_pred_ref_match(reference, predicted)
         # Create a tibble to store the results
@@ -246,22 +248,23 @@ sits_accuracy.derived_cube <- function(data, ...) {
 }
 #' @rdname sits_accuracy
 #' @export
-sits_accuracy.tbl_df <- function(data,...) {
+sits_accuracy.tbl_df <- function(data, ...) {
     data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
-    } else
+    } else {
         stop(.conf("messages", "sits_accuracy_tbl_df"))
+    }
     acc <- sits_accuracy(data, ...)
     return(acc)
 }
 #' @rdname sits_accuracy
 #' @export
-sits_accuracy.default <- function(data,...) {
+sits_accuracy.default <- function(data, ...) {
     data <- tibble::as_tibble(data)
-    acc <- sits_accuracy(data,...)
+    acc <- sits_accuracy(data, ...)
     return(acc)
 }
 #' @title Print accuracy summary
@@ -283,24 +286,21 @@ sits_accuracy_summary <- function(x, digits = NULL) {
     # default value for digits
     digits <- .default(digits, max(3, getOption("digits") - 3))
 
-    if ("sits_area_accuracy" %in% class(x)) {
+    if (inherits(x, "sits_area_accuracy")) {
         print.sits_area_accuracy(x)
         return(invisible(TRUE))
     }
     # is data of class sits_accuracy
     .check_is_sits_accuracy(x)
     # round the data to the significant digits
-    overall <- round(x$overall, digits = digits)
+    overall <- round(x[["overall"]], digits = digits)
 
-    accuracy_ci <- paste(
-        "(", paste(overall[c("AccuracyLower", "AccuracyUpper")],
-            collapse = ", "
-        ), ")",
-        sep = ""
+    accuracy_ci <- paste0(
+        "(", toString(overall[c("AccuracyLower", "AccuracyUpper")]), ")"
     )
     overall_text <- c(
-        paste(overall["Accuracy"]), accuracy_ci,
-        paste(overall["Kappa"])
+        paste(overall[["Accuracy"]]), accuracy_ci,
+        paste(overall[["Kappa"]])
     )
     overall_names <- c("Accuracy", "95% CI", "Kappa")
 
@@ -336,26 +336,24 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
     # rename confusion matrix names
     names(x) <- c("positive", "table", "overall", "by_class", "mode", "dots")
     cat("Confusion Matrix and Statistics\n\n")
-    print(x$table)
+    print(x[["table"]])
 
     # Round the data to the significant digits
-    overall <- round(x$overall, digits = digits)
+    overall <- round(x[["overall"]], digits = digits)
     # Format accuracy
     accuracy_ci <- paste(
-        "(", paste(overall[c("AccuracyLower", "AccuracyUpper")],
-            collapse = ", "
-        ), ")",
-        sep = ""
+        "(",
+        paste(overall[c("AccuracyLower", "AccuracyUpper")], collapse = ", "),
+        ")", sep = ""
     )
-
     overall_text <- c(
-        paste(overall["Accuracy"]), accuracy_ci, "",
-        paste(overall["Kappa"])
+        paste(overall[["Accuracy"]]), accuracy_ci, "",
+        paste(overall[["Kappa"]])
     )
 
     overall_names <- c("Accuracy", "95% CI", "", "Kappa")
 
-    if (dim(x$table)[1] > 2) {
+    if (dim(x[["table"]])[[1]] > 2) {
         # Multiclass case
         # Names in caret are different from usual names in Earth observation
         cat("\nOverall Statistics\n")
@@ -380,8 +378,10 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
             ),
             collapse = "|"
         )
-        x$by_class <- x$by_class[, grepl(pattern_format, colnames(x$by_class))]
-        measures <- t(x$by_class)
+        x[["by_class"]] <- x[["by_class"]][,
+                                grepl(pattern_format, colnames(x[["by_class"]]))
+        ]
+        measures <- t(x[["by_class"]])
         rownames(measures) <- c(
             "Prod Acc (Sensitivity)", "Specificity",
             "User Acc (Pos Pred Value)", "Neg Pred Value", "F1 score"
@@ -399,26 +399,28 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
             ),
             collapse = "|"
         )
-        x$by_class <- x$by_class[grepl(pattern_format, names(x$by_class))]
+        x[["by_class"]] <- x[["by_class"]][
+            grepl(pattern_format, names(x[["by_class"]]))
+        ]
         # Names of the two classes
-        names_classes <- row.names(x$table)
+        names_classes <- row.names(x[["table"]])
         # First class is called the "positive" class by caret
-        c1 <- x$positive
+        c1 <- x[["positive"]]
         # Second class
-        c2 <- names_classes[!(names_classes == x$positive)]
+        c2 <- names_classes[!(names_classes == x[["positive"]])]
         # Values of UA and PA for the two classes
         pa1 <- paste("Prod Acc ", c1)
         pa2 <- paste("Prod Acc ", c2)
         ua1 <- paste("User Acc ", c1)
         ua2 <- paste("User Acc ", c2)
-        names(x$by_class) <- c(pa1, pa2, ua1, ua2)
+        names(x[["by_class"]]) <- c(pa1, pa2, ua1, ua2)
 
         overall_text <- c(
             overall_text,
             "",
-            format(x$by_class, digits = digits)
+            format(x[["by_class"]], digits = digits)
         )
-        overall_names <- c(overall_names, "", names(x$by_class))
+        overall_names <- c(overall_names, "", names(x[["by_class"]]))
         overall_names <- ifelse(overall_names == "", "",
             paste(overall_names, ":")
         )
@@ -449,13 +451,13 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
 #' @export
 print.sits_area_accuracy <- function(x, ..., digits = 2) {
     # round the data to the significant digits
-    overall <- round(x$accuracy$overall, digits = digits)
+    overall <- round(x[["accuracy"]][["overall"]], digits = digits)
 
     cat("Area Weighted Statistics\n")
     cat(paste0("Overall Accuracy = ", overall, "\n"))
 
-    acc_user <- round(x$accuracy$user, digits = digits)
-    acc_prod <- round(x$accuracy$producer, digits = digits)
+    acc_user <- round(x[["accuracy"]][["user"]], digits = digits)
+    acc_prod <- round(x[["accuracy"]][["producer"]], digits = digits)
 
     # Print accuracy values
     tb <- t(dplyr::bind_rows(acc_user, acc_prod))
@@ -465,9 +467,9 @@ print.sits_area_accuracy <- function(x, ..., digits = 2) {
 
     print(tb)
 
-    area_pix <- round(x$area_pixels, digits = digits)
-    area_adj <- round(x$error_ajusted_area, digits = digits)
-    conf_int <- round(x$conf_interval, digits = digits)
+    area_pix <- round(x[["area_pixels"]], digits = digits)
+    area_adj <- round(x[["error_ajusted_area"]], digits = digits)
+    conf_int <- round(x[["conf_interval"]], digits = digits)
 
     tb1 <- t(dplyr::bind_rows(area_pix, area_adj, conf_int))
     colnames(tb1) <- c(

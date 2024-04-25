@@ -10,7 +10,8 @@
 #' @return           Tibble where function has been applied.
 .apply <- function(data, col, fn, ...) {
     # pre-condition
-    .check_chr_within(col,
+    .check_chr_within(
+        col,
         within = names(data),
         msg = "invalid column name"
     )
@@ -213,15 +214,15 @@
 .apply_capture_expression <- function(...) {
     # Capture dots as a list of quoted expressions
     list_expr <- lapply(substitute(list(...), env = environment()),
-        unlist,
-        recursive = FALSE
+                        unlist,
+                        recursive = FALSE
     )[-1]
 
     # Check bands names from expression
     .check_expression(list_expr)
 
     # Get out band
-    out_band <- toupper(gsub("_", "-", names(list_expr)))
+    out_band <- toupper(gsub("_", "-", names(list_expr), fixed = TRUE))
     names(list_expr) <- out_band
 
     return(list_expr)
