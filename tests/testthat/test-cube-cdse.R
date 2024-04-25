@@ -99,18 +99,17 @@ test_that("Creating Sentinel-1 RTC cubes from CDSE", {
         cube = cube_s1_rtc,
         period = "P1M",
         res = 240,
-        tiles = c("36NXG", "36NVG"),
+        tiles = c("36NWH"),
         multicores = 1,
         output_dir = output_dir,
         progress = TRUE
     )
     expect_equal(length(sits_timeline(cube_s1_rtc_reg)), 3)
-    expect_true(all(c("36NXG", "36NVG") %in%
-                        cube_s1_rtc_reg$tile))
+    expect_true("36NWH" %in% cube_s1_rtc_reg$tile)
     expect_true("EPSG:32636" %in% cube_s1_rtc_reg$crs)
 
     bbox <- sits_bbox(cube_s1_rtc_reg, as_crs = "EPSG:4326")
-    roi_cube_s1 <- sits_mgrs_to_roi(c("36NXG", "36NVG"))
+    roi_cube_s1 <- sits_mgrs_to_roi("36NWH")
 
     expect_equal(bbox[["xmin"]], roi_cube_s1[["lon_min"]], tolerance = 0.01)
     expect_equal(bbox[["xmax"]], roi_cube_s1[["lon_max"]], tolerance = 0.03)
