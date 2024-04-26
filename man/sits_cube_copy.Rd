@@ -6,17 +6,19 @@
 \usage{
 sits_cube_copy(
   cube,
+  ...,
   roi = NULL,
   res = NULL,
   n_tries = 3,
   multicores = 2L,
   output_dir,
-  progress = TRUE,
-  ...
+  progress = TRUE
 )
 }
 \arguments{
 \item{cube}{A data cube (class "raster_cube")}
+
+\item{...}{Additional parameters to httr package.}
 
 \item{roi}{Region of interest.
 Either an sf_object, a shapefile,
@@ -37,8 +39,6 @@ spatial resolution of the images. Default is NULL.}
 (character vector of length 1).}
 
 \item{progress}{Logical: show progress bar?}
-
-\item{...}{Additional parameters to httr package.}
 }
 \value{
 Copy of input data cube (class "raster cube").

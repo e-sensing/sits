@@ -53,13 +53,13 @@
 #' }
 #'
 #' @export
-sits_cube_copy <- function(cube,
+sits_cube_copy <- function(cube, ...,
                            roi = NULL,
                            res = NULL,
                            n_tries = 3,
                            multicores = 2L,
                            output_dir,
-                           progress = TRUE, ...) {
+                           progress = TRUE) {
     # Set caller for error msgs
     .check_set_caller("sits_cube_copy")
     # Pre-conditions
