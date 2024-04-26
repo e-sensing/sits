@@ -55,11 +55,11 @@
 #' @param platform   Satellite platform (optional).
 #' @return An object referring the images of a sits cube.
 #' @export
-.source_items_new.deafrica_cube_s2_l2a <- function(source, ...,
-                                                   collection,
-                                                   stac_query,
-                                                   tiles = NULL,
-                                                   platform = NULL) {
+`.source_items_new.deafrica_cube_sentinel-2-l2a` <- function(source, ...,
+                                                     collection,
+                                                     stac_query,
+                                                     tiles = NULL,
+                                                     platform = NULL) {
     # set caller to show in errors
     .check_set_caller(".source_items_new")
 
@@ -101,6 +101,63 @@
 #' @keywords internal
 #' @noRd
 #' @export
+`.source_items_new.deafrica_cube_sentinel-1-rtc` <- function(
+                                                         source, ...,
+                                                         collection,
+                                                         stac_query,
+                                                         tiles = NULL,
+                                                         orbit = "descending") {
+    # set caller to show in errors
+    .check_set_caller(".source_items_new")
+    # check orbits
+    orbits <- .conf("sources", source, "collections", collection, "orbits")
+    .check_chr_within(orbit, orbits)
+    # tiles as bbox if required
+    if (!is.null(tiles)) {
+        roi <- .s2_mgrs_to_roi(tiles)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- c(roi[["lon_min"]],
+                                              roi[["lat_min"]],
+                                              roi[["lon_max"]],
+                                              roi[["lat_max"]]
+        )
+    } else {
+        # Convert roi to bbox
+        lon <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 1]
+        lat <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 2]
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- c(min(lon),
+                                              min(lat),
+                                              max(lon),
+                                              max(lat)
+        )
+    }
+    # make request
+    items_info <- rstac::post_request(q = stac_query, ...)
+    items_info <- rstac::items_fetch(items = items_info, progress = FALSE)
+    # filter orbit
+    items_info <- rstac::items_filter(items_info, filter_fn = function(feature) {
+        feature[["properties"]][["sat:orbit_state"]]     == orbit &&
+        feature[["properties"]][["sar:instrument_mode"]] == "IW"  &&
+        feature[["properties"]][["sar:frequency_band"]]  == "C"
+    })
+    # check results
+    .check_stac_items(items_info)
+    # done
+    items_info
+}
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_filter_tiles.deafrica_cube_sentinel-1-rtc` <- function(source,
+                                                                collection,
+                                                                cube,
+                                                                tiles) {
+    return(cube)
+}
+#' @keywords internal
+#' @noRd
+#' @export
 .source_items_tile.deafrica_cube <- function(source, ...,
                                              items,
                                              collection = NULL) {
@@ -128,14 +185,14 @@
 #' @keywords internal
 #' @noRd
 #' @export
-`.source_items_tile.deafrica_cube_rainfall_chirps_daily` <-
+`.source_items_tile.deafrica_cube_rainfall-chirps-daily` <-
     function(source, items, ..., collection = NULL) {
         rep("NoTilingSystem", rstac::items_length(items))
 }
 #' @keywords internal
 #' @noRd
 #' @export
-`.source_items_tile.deafrica_cube_rainfall_chirps_monthly` <-
+`.source_items_tile.deafrica_cube_rainfall-chirps-monthly` <-
     function(source, items, ..., collection = NULL) {
     rep("NoTilingSystem", rstac::items_length(items))
 }
