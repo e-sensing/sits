@@ -17,11 +17,13 @@
 #'                   ("lon_min", "lat_min", "lon_max", "lat_max").
 #' @param res        An integer value corresponds to the output
 #'                   spatial resolution of the images. Default is NULL.
+#' @param n_tries    Number of tries to download the same image. Default is 3.
 #' @param multicores Number of cores for parallel downloading
 #'                   (integer, min = 1, max = 2048).
 #' @param output_dir Output directory where images will be saved.
 #'                   (character vector of length 1).
 #' @param progress   Logical: show progress bar?
+#' @param ...        Additional parameters to httr package.
 #' @return Copy of input data cube (class "raster cube").
 #'
 #' @examples
@@ -54,9 +56,10 @@
 sits_cube_copy <- function(cube,
                            roi = NULL,
                            res = NULL,
+                           n_tries = 3,
                            multicores = 2L,
                            output_dir,
-                           progress = TRUE) {
+                           progress = TRUE, ...) {
     # Set caller for error msgs
     .check_set_caller("sits_cube_copy")
     # Pre-conditions
@@ -66,6 +69,8 @@ sits_cube_copy <- function(cube,
         warning(.conf("messages"), "sits_cube_copy_sar_no_copy")
         return(cube)
     }
+    # Check n_tries parameter
+    .check_num_min_max(x = n_tries, min = 1, max = 50)
     # check files
     .check_raster_cube_files(cube)
     if (.has(roi)) {
@@ -104,8 +109,9 @@ sits_cube_copy <- function(cube,
             asset = asset,
             res = res,
             sf_roi = sf_roi,
+            n_tries = n_tries,
             output_dir = output_dir,
-            progress = progress
+            progress = progress, ...
         )
         # Return local tile
         local_asset
