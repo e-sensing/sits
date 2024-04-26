@@ -8,7 +8,7 @@ sources:
         service             : "STAC"
         url                 : "https://explorer.digitalearth.africa/stac/"
         collections         :
-            ALOS_PALSAR_MOSAIC  :
+            ALOS-PALSAR-MOSAIC  :
                 bands       :
                     HH  : &deafrica_alos_25m
                         missing_value  : 0
@@ -47,7 +47,7 @@ sources:
                 ext_tolerance: 0
                 grid_system : ""
 
-            DEM_COP_30:
+            DEM-COP-30      :
                 bands:
                     ELEVATION:
                         band_name     : "elevation"
@@ -72,7 +72,7 @@ sources:
                 ext_tolerance   : 0
                 grid_system     : ""
 
-            LS5_SR        :
+            LS5-SR          :
                 bands       :
                     B01     : &deafrica_ls5_30m
                         band_name     : "SR_B1"
@@ -134,7 +134,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance   : 0
                 grid_system     : "WRS-2"
-            LS7_SR        :
+            LS7-SR          :
                 bands     :
                     B01   : &deafrica_ls7_30m
                         band_name     : "SR_B1"
@@ -196,7 +196,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance   : 0
                 grid_system     : "WRS-2"
-            LS8_SR          : &deafrica_l8
+            LS8-SR          : &deafrica_l8
                 bands       :
                     B01     : &deafrica_oli_30m
                         missing_value : 0
@@ -257,7 +257,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0
                 grid_system  : "WRS-2"
-            LS9_SR          :
+            LS9-SR          :
                 bands:
                     B01: &deafrica_ls9_30m
                         band_name     : "SR_B1"
@@ -323,7 +323,7 @@ sources:
                 ext_tolerance   : 0
                 grid_system     : "WRS-2"
 
-            NDVI_ANOMALY    :
+            NDVI-ANOMALY    :
                 bands       :
                     NDVI-MEAN : &deafrica_ndvi_anomaly_30m
                         band_name      : "ndvi_mean"
@@ -350,7 +350,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance   : 0
                 grid_system     : ""
-            RAINFALL_CHIRPS_DAILY    :
+            RAINFALL-CHIRPS-DAILY    :
                 bands:
                     RAINFALL:
                         band_name     : "rainfall"
@@ -374,7 +374,7 @@ sources:
                 metadata_search : "feature"
                 ext_tolerance   : 0
                 grid_system     : ""
-            RAINFALL_CHIRPS_MONTHLY  :
+            RAINFALL-CHIRPS-MONTHLY  :
                 bands:
                     RAINFALL:
                         band_name     : "rainfall"
@@ -399,7 +399,35 @@ sources:
                 ext_tolerance   : 0
                 grid_system     : ""
 
-            S2_L2A          :
+            SENTINEL-1-RTC  :
+                bands       :
+                    VV      : &deafrica_rtc_20m
+                        missing_value : -32768.0
+                        minimum_value : 0
+                        maximum_value : 65534
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 20
+                        band_name     : "VV"
+                        data_type     : "FLT4S"
+                    VH      :
+                        <<: *deafrica_rtc_20m
+                        band_name     : "VH"
+                satellite   : "SENTINEL-1"
+                sensor      : "RTC"
+                orbits      : ["ascending", "descending"]
+                access_vars :
+                    AWS_DEFAULT_REGION  : "af-south-1"
+                    AWS_S3_ENDPOINT     : "s3.af-south-1.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                collection_name : "s1_rtc"
+                sar_cube        : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : "MGRS"
+            SENTINEL-2-L2A  :
                 bands       :
                     B01     : &deafrica_msi_60m
                         missing_value : -9999
@@ -486,31 +514,3 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0
                 grid_system : "MGRS"
-            SENTINEL-1-RTC  :
-                bands       :
-                    VV      : &deafrica_rtc_20m
-                        missing_value : -32768.0
-                        minimum_value : 0
-                        maximum_value : 65534
-                        scale_factor  : 1
-                        offset_value  : 0
-                        resolution    : 20
-                        band_name     : "VV"
-                        data_type     : "FLT4S"
-                    VH      :
-                        <<: *deafrica_rtc_20m
-                        band_name     : "VH"
-                satellite   : "SENTINEL-1"
-                sensor      : "RTC"
-                orbits      : ["ascending", "descending"]
-                access_vars :
-                    AWS_DEFAULT_REGION  : "af-south-1"
-                    AWS_S3_ENDPOINT     : "s3.af-south-1.amazonaws.com"
-                    AWS_NO_SIGN_REQUEST : true
-                collection_name : "s1_rtc"
-                sar_cube        : true
-                open_data       : true
-                open_data_token : false
-                metadata_search : "tile"
-                ext_tolerance   : 0
-                grid_system     : "MGRS"
