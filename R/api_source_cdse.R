@@ -416,11 +416,12 @@
 #' @param dry_run    TRUE/FALSE.
 #' @return           Called for side effects
 #' @export
-.source_collection_access_test.cdse_cube <- function(source, collection,
+.source_collection_access_test.cdse_cube <- function(source,
+                                                     collection,
                                                      bands, ...,
                                                      start_date = NULL,
                                                      end_date = NULL,
-                                                     dry_run = FALSE) {
+                                                     dry_run = TRUE) {
     # check if `aws.s3` is installed
     .check_require_packages("aws.s3")
     # as CDSE STAC returns many types of items in the same collection,
@@ -491,9 +492,9 @@
 .source_items_new.cdse_cube <- function(source, ...,
                                         collection,
                                         stac_query,
-                                        tiles = NULL,
-                                        orbit = "descending",
-                                        multicores = 2L) {
+                                        tiles,
+                                        multicores,
+                                        orbit) {
     # set caller to show in errors
     .check_set_caller(".source_items_new_cdse_cube")
     # check parameters
