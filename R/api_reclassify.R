@@ -199,6 +199,14 @@
     reclassify_fn
 }
 
+#' @title Obtain new labels on reclassification operation
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @param  cube            Labelled data cube
+#' @param  rules           Rules to be applied
+#' @return new labels to be applied to the cube
+
 .reclassify_new_labels <- function(cube, rules) {
     # Get cube labels
     cube_labels <- .cube_labels(cube, dissolve = FALSE)[[1]]

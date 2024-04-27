@@ -1,6 +1,6 @@
 # Sits interface to the "signal" package
 #
-# The "signal" package is A set of signal processing functions originally
+# The "signal" package is a set of signal processing functions originally
 # written for 'Matlab' and 'Octave'.  Includes filter generation utilities,
 # filtering functions, resampling routines, and visualization of
 # filter models. It also includes interpolation functions.
@@ -48,10 +48,10 @@
 #' @return             filter coefficients
 .signal_sgolay_coef <- function(p, n, m = 0, ts = 1) {
     if (n %% 2 != 1) {
-        stop("sgolay needs an odd filter length n")
+        stop(.conf("messages", ".signal_odd_filter_length"))
     }
     if (p >= n) {
-        stop("sgolay needs filter length n larger than polynomial order p")
+        stop(.conf("messages",".signal_filter_length"))
     }
 
     ## Construct a set of filters from complete causal to completely

@@ -272,6 +272,8 @@
 #' @title Add user color table
 #' @name .conf_add_color_table
 #' @description Loads a user color table
+#' and merges with default color table
+#' @param color_tb user color table
 #' @keywords internal
 #' @noRd
 #' @return new color table (invisible)
@@ -294,6 +296,7 @@
 #' @title Merge user colors with default colors
 #' @name .conf_merge_colors
 #' @description Combines user colors with default color table
+#' @param user_colors  list of user colors
 #' @keywords internal
 #' @noRd
 #' @return new color table
@@ -318,6 +321,13 @@
     sits_env[["color_table"]] <- color_table
     return(color_table)
 }
+#' @title Merge user legends with default legends
+#' @name .conf_merge_legends
+#' @description Combines user legends with default
+#' @param user_legends  List of user legends
+#' @keywords internal
+#' @noRd
+#' @return new color table
 .conf_merge_legends <- function(user_legends){
     # check legends are valid names
     .check_chr_parameter(names(user_legends), len_max = 100,
@@ -862,6 +872,7 @@
 #' }
 NULL
 #' @title Check if a key exists in config
+#' @name .conf_exists
 #' @noRd
 #' @param throw_error  Should an error be thrown if test fails?
 #' @returns  A logical value or an error if key not found and
