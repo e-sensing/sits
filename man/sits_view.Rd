@@ -160,8 +160,6 @@ if (sits_run_examples()) {
         ml_model = rf_model,
         output_dir = tempdir()
     )
-    # view the probs
-    sits_view(modis_probs)
     # generate a map
     modis_label <- sits_label_classification(
         modis_probs,
