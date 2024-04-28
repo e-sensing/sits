@@ -143,9 +143,8 @@
 #' @param correct use best calculation
 #' @return Rand index for cluster
 .cluster_rand_index <- function(x) {
-    if (length(dim(x)) != 2) {
-        stop("Argument x needs to be a 2-dimensional table.")
-    }
+    .check_set_caller(".cluster_rand_index")
+    .check_that(length(dim(x)) == 2)
 
     n <- sum(x)
     ni <- rowSums(x)

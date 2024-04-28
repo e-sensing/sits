@@ -57,6 +57,7 @@ test_that("Creating S2 cubes from CDSE with tiles", {
         },
         .default = NULL
     )
+    testthat::skip_if(purrr::is_null(s2_cube_cdse), "CDSE is not accessible")
     expect_true(all(sits_bands(s2_cube) %in% c("B05", "CLOUD")))
     r <- .raster_open_rast(.tile_path(s2_cube))
     expect_equal(s2_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
@@ -74,16 +75,22 @@ test_that("Creating Sentinel-1 RTC cubes from CDSE", {
     # Patch environment variables
     .environment_patch(cdse_env_config)
     # Test
-    cube_s1_rtc <-  sits_cube(
-        source = "CDSE",
-        collection = "SENTINEL-1-RTC",
-        bands = c("VV"),
-        orbit = "descending",
-        tiles = c("36NWH"),
-        start_date = "2021-07-01",
-        end_date = "2021-09-30",
-        multicores = 1L
+    cube_s1_rtc <-  .try(
+        {
+            sits_cube(
+                source = "CDSE",
+                collection = "SENTINEL-1-RTC",
+                bands = c("VV"),
+                orbit = "descending",
+                tiles = c("36NWH"),
+                start_date = "2021-07-01",
+                end_date = "2021-09-30",
+                multicores = 1L
+            )
+        },
+        .default = NULL
     )
+    testthat::skip_if(purrr::is_null(cube_s1_rtc), "CDSE is not accessible")
     bbox <- sits_bbox(cube_s1_rtc[1,])
     expect_true(grepl("4326", bbox[["crs"]]))
     expect_equal(32, bbox[["xmin"]])

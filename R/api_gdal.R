@@ -10,10 +10,10 @@
 #' @param params   Params used to describe GDAL file
 #' @returns        Cleaned GDAL parameters
 .gdal_params <- function(params) {
+    .check_set_caller(".gdal_params")
     # Check if parameters are named
-    if (!all(.has_name(params))) {
-        stop("parameters should be named")
-    }
+    .check_that(all(.has_name(params)))
+
     unlist(mapply(function(par, val) {
         if (is.null(val)) {
             NULL

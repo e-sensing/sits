@@ -72,7 +72,7 @@ NULL
     } else if (all(.roi_lonlat_cols %in% names(roi))) {
         "lonlat"
     } else {
-        stop("invalid 'roi' parameter")
+        stop(.conf("messages", ".roi_type"))
     }
 }
 

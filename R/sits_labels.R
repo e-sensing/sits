@@ -210,7 +210,7 @@ sits_labels_summary <- function(data) {
 #' @export
 #'
 sits_labels_summary.sits <- function(data) {
-    warning("This function is deprecated. Please use summary()")
+    warning(.conf("messages", "sits_labels_summary"))
 
     # get frequency table
     data_labels <- table(data[["label"]])

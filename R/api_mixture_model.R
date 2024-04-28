@@ -183,6 +183,7 @@
 #' @param  em       Endmember values
 #' @return          Type of endmember value specification (csv of tbl_df)
 .endmembers_type <- function(em) {
+    .check_set_caller(".endmembers_type")
     if (is.data.frame(em)) {
         "tbl_df"
     } else if (is.character(em)) {
@@ -190,10 +191,10 @@
         if (ext == "csv") {
             ext
         } else {
-            stop("not supported extension '", ext, "'")
+            stop(.conf("messages", ".endmembers_type"))
         }
     } else {
-        stop("invalid 'endmembers' parameter type")
+        stop(.conf("messages", ".endmembers_type"))
     }
 }
 #' @title Switch over type of endmembers table

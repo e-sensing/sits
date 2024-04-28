@@ -312,7 +312,7 @@
             if (!any(retry)) break
         }
         if (any(retry)) {
-            stop("Some or all failed nodes could not be recovered",
+            stop(.conf("messages", ".parallel_map"),
                 call. = FALSE
             )
         }

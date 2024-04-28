@@ -198,9 +198,10 @@
 `.source_tile_get_bbox.mpc_cube_sentinel-1-grd` <- function(source,
                                                             file_info, ...,
                                                             collection = NULL) {
+    .check_set_caller(".source_tile_get_bbox_mpc_s1_grd")
 
     # pre-condition
-    .check_num(nrow(file_info), min = 1, msg = "invalid 'file_info' value")
+    .check_num(nrow(file_info), min = 1)
 
     # get bbox based on file_info
     xmin <- min(file_info[["xmin"]])
@@ -240,12 +241,12 @@
                                                         stac_query, ...,
                                                         tiles = NULL,
                                                         orbit = "descending") {
+    .check_set_caller(".source_items_new_mpc_s1_grd")
 
     orbits <- .conf("sources", source, "collections", collection, "orbits")
     .check_chr_within(
-        x = orbit,
-        within = orbits,
-        msg = "Invalid `orbit` parameter"
+        orbit,
+        within = orbits
     )
 
     stac_query <- rstac::ext_filter(

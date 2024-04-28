@@ -285,6 +285,7 @@
 #' @return               A leaflet object
 #'
 .view_samples <- function(samples, legend, palette) {
+    .check_set_caller(".view_samples")
     # first select unique locations
     samples <- dplyr::distinct(
         samples,
@@ -313,9 +314,8 @@
         )
     } else {
         .check_chr_within(
-            x = labels,
-            within = names(legend),
-            msg = "some labels are missing from the legend"
+            labels,
+            within = names(legend)
         )
         colors <- unname(legend[labels])
     }
@@ -403,8 +403,8 @@
             is_integer = TRUE,
             min = .conf("leaflet_min_megabytes"),
             max = .conf("leaflet_max_megabytes"),
-            msg = paste("view_max_mb should be btw ",
-                        .conf("leaflet_min_megabytes"), "MB and ",
+            msg = paste(.conf("messages",".view_set_max_mb"),
+                        .conf("leaflet_min_megabytes"), "MB & ",
                         .conf("leaflet_max_megabytes"), "MB")
         )
     }

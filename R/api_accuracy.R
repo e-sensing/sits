@@ -53,8 +53,7 @@
     diff_classes <- setdiff(rownames(error_matrix), names(area))
     if (length(diff_classes) > 0 &&
             length(diff_classes) < length(rownames(error_matrix))) {
-        warning("The classified cube does not have all the classes in the",
-                " validation file.",
+        warning(.conf("messages", ".accuracy_area_assess"),
                 call. = FALSE
         )
         # Create a numeric vector with zeros

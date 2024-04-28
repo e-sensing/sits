@@ -23,50 +23,9 @@
     item_type
 }
 
-# ---- stac utilities ----
-#' @title Extract datetime from a STAC Query.
-#' @keywords internal
-#' @noRd
-#'
-#' @param stac_query Query that follows the STAC protocol.
-#' @return           List with `start_date` and `end_date` properties.
-.stac_cdse_datetime_as_dates <- function(stac_query) {
-    query_datetime <- stringr::str_split(
-        stac_query[["params"]][["datetime"]], "/"
-    )
-    list(
-        start_date = query_datetime[[1]][1],
-        end_date = query_datetime[[1]][2]
-    )
-}
 
-#' @title Extract bounding box from a STAC Query.
-#' @keywords internal
-#' @noRd
-#'
-#' @param stac_query Query that follows the STAC protocol.
-#' @return           List with `bbox` property.
-.stac_cdse_intersects_as_bbox <- function(stac_query) {
-    result <- list(bbox = NULL)
-    # Extract spatial reference from STAC object
-    intersects <- stac_query[["params"]][["intersects"]]
-    coordinates <- intersects[["coordinates"]]
-    # Check if query is valid
-    if (is.null(coordinates)) {
-        return(result)
-    }
-    # Extract x-coordinates and y-coordinates
-    coordinates_x <- coordinates[,,1]
-    coordinates_y <- coordinates[,,2]
-    # Calculate bounding box
-    min_x <- min(coordinates_x)
-    max_x <- max(coordinates_x)
-    min_y <- min(coordinates_y)
-    max_y <- max(coordinates_y)
-    # Create bbox object
-    result[["bbox"]] <- c(min_x, min_y, max_x, max_y)
-    result
-}
+
+
 
 #' @title Fix STAC Items from CDSE with assets metadata.
 #' @keywords internal
@@ -82,7 +41,8 @@
 #' @param bands      Band names.
 #' @param collection Image collection.
 #' @return           STAC Items updated with `assets` property.
-.stac_cdse_fix_items <- function(source, items, bands, collection, multicores) {
+.cdse_stac_fix_items <- function(source, items, bands, collection, multicores) {
+    .check_set_caller(".cdse_stac_fix_items")
     # Start parallel workers
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
@@ -116,8 +76,7 @@
                 dplyr::filter(item_s3_content,
                               stringr::str_detect(.data[["Key"]], band_pattern))
             # Check if the correct file was selected.
-            .check_that(nrow(band_item) == 1,
-                        msg = paste0("Invalid band: ", band))
+            .check_that(nrow(band_item) == 1)
             # Prepare the file address
             band_path_s3 <- paste0(s3_protocol, s3_bucket, band_item[["Key"]])
             # Prepare result and return it
@@ -135,267 +94,6 @@
     # Update items object
     items[["features"]] <- features_fixed
     items
-}
-
-# ---- open search utilities ----
-#' @title Prepare Open Search feature as STAC Item (Compatible with `rstac`).
-#' @keywords internal
-#' @noRd
-#'
-#' @description
-#'  This function prepares an Open Search feature to act as an STAC Item,
-#'  compatible with the `rstac` package. This is required to avoid changes in
-#'  other parts of the `sits` validation structure and to use features
-#'  from `rstac`.
-#' @param features     List of features.
-#' @param product_type Type of product associated with the features.
-#' @return             List of features compatible with
-#'                     `rstac` (`rstac::doc_item`).
-.opensearch_as_stac_item <- function(features, product_type) {
-    purrr::map(features, function(feature) {
-        # Use `rstac` class, including `product type`
-        class(feature) <- c("doc_item", "rstac_doc", "list", product_type)
-        # Extract tile
-        feature_tile <- .opensearch_cdse_extract_tile(feature)
-        feature_tile <- unlist(feature_tile)
-        # Save tile
-        feature[["properties"]][["tile"]] <- feature_tile
-        feature
-    })
-}
-
-#' @title Prepare Open Search features as STAC Items (Compatible with `rstac`).
-#' @keywords internal
-#' @noRd
-#'
-#' @description
-#'  This function prepares an Open Search item to act as an STAC Item,
-#'  compatible with the `rstac` package. This is required to avoid changes in
-#'  other parts of the `sits` validation structure and to use features
-#'  from `rstac`.
-#' @param features     List of features.
-#' @param product_type Type of product associated with the features.
-#' @return             List of features compatible with
-#'                     `rstac` (`rstac::doc_items`).
-.opensearch_as_stac_items <- function(features) {
-    # Create `rstac` compatible object
-    items <- list()
-    # Type is required to facilitate item visualization
-    items[["type"]] <- "FeatureCollection"
-    # Include features
-    items[["features"]] <- features
-    # Include `rstac` classes
-    class(items) <- c("doc_items", "rstac_doc", "list")
-    items
-}
-
-#' @title Query scenes available in the CDSE Open Search.
-#' @keywords internal
-#' @noRd
-#'
-#' @description
-#'  This auxiliary function is used to get query the CDSE Open Search API. This
-#'  is required as the current version of the CDSE STAC does
-#'  not support fields / advanced search (e.g., search by product type, cloud
-#'  coverage).
-#' @param product_type Type of the CDSE Product (e.g., S2MSI2A)
-#' @param ...          Additional query parameters.
-#' @param source       Data source.
-#' @param collection   Open Search collection endpoint.
-#' @param start_date   Start date.
-#' @param end_date     End date.
-#' @param bbox         Bounding box of the area from data must be from
-#' @param paginate     A Boolean flag that indicates whether pagination
-#'                     should be used.
-#' @param limit        Limit of content to be retrieved per page. Use `paginate`
-#'                     to manage if multiple pages should be requested.
-#' @return             List of features compatible with.
-#'                     `rstac` (`rstac::doc_items`).
-.opensearch_cdse_client <- function(product_type,
-                                    source, collection,
-                                    start_date, end_date,
-                                    bbox,
-                                    paginate = TRUE,
-                                    limit = 1000, ...) {
-    # CDSE Open Search configurations
-    cdse_opensearch_base_url <- .conf(
-        "sources",
-        source,
-        "url"
-    )
-    cdse_opensearch_max_items <- limit
-    cdse_opensearch_endpoint <- "search.json"
-    # Create the Open Search endpoint for the collection
-    # Selected by user
-    collection_url <- paste(
-        cdse_opensearch_base_url,
-        collection,
-        cdse_opensearch_endpoint,
-        sep = "/"
-    )
-    # Define features to save content from Open Search
-    features_result <- c()
-    # Define variables to support the pagination in the Open Search
-    current_page <- 1
-    is_to_fetch_more <- TRUE
-    # Prepare bounding box in the format required by Open Search
-    if (!is.null(bbox)) {
-        bbox <- paste(bbox, collapse = ",")
-    }
-    # Prepare query object
-    query <- list(
-        startDate      = start_date,
-        completionDate = end_date,
-        maxRecords     = cdse_opensearch_max_items,
-        page           = current_page,
-        box            = bbox,
-        productType    = product_type,
-        ...
-    )
-    query <- purrr::discard(query, is.null)
-    # Get items from Open Search (with pagination)
-    while(is_to_fetch_more) {
-        # Get raw content from Open Search API
-        response <- httr::GET(url = collection_url, query = query)
-        .check_int_parameter(httr::status_code(response),
-                             min = 200,
-                             max = 200,
-                             msg = "Failed to fetch data")
-        # Extract data from the response
-        page_data <- httr::content(response, "parsed")
-        # Extract features from response data
-        features <- page_data[["features"]]
-        features <- .opensearch_as_stac_item(features, product_type)
-        # Save results
-        features_result <- c(features_result, features)
-        # Check if is required to fetch more
-        links <- page_data[["properties"]][["links"]]
-        is_to_fetch_more <- purrr::map_lgl(links, function(x) {
-            x[["rel"]] == "next"
-        })
-        is_to_fetch_more <- paginate && any(is_to_fetch_more)
-        # Prepare next page fetch
-        current_page <- current_page + as.numeric(is_to_fetch_more)
-        # Update query
-        query[["page"]] <- current_page
-    }
-    .opensearch_as_stac_items(features_result)
-}
-
-#' @title Extract `tile` from Open Search Items.
-#' @keywords internal
-#' @noRd
-#'
-#' @description
-#'  This function prepares an Open Search item to act as an STAC Item,
-#'  compatible with the `rstac` package. This is required to avoid changes in
-#'  other parts of the `sits` validation structure and to use features
-#'  from `rstac`.
-#' @param items List of features compatible with `rstac` (`rstac::doc_items`).
-#' @return      List of tiles.
-.opensearch_cdse_extract_tile <- function(items) {
-    UseMethod(".opensearch_cdse_extract_tile")
-}
-
-#' @keywords internal
-#' @noRd
-.opensearch_cdse_extract_tile.S2MSI2A <- function(items) {
-    items_titles <- rstac::items_reap(items, field = c("properties", "title"))
-    purrr::map(items_titles, function(item_title) {
-        tile_name <- stringr::str_split(item_title, "_")[[1]][6]
-        tile_name <- stringr::str_replace(tile_name, "T", "")
-        tile_name
-    })
-}
-
-#' @keywords internal
-#' @noRd
-.opensearch_cdse_extract_tile.RTC <- function(items) {
-    "NoTilingSystem"
-}
-
-#' @title Search data using CDSE Open Search.
-#' @keywords internal
-#' @noRd
-#'
-#' @description
-#'  This auxiliary function is used to query the CDSE Open Search API. This is
-#'  a specialization of the `.opensearch_cdse_client` to handle the
-#'  requirements of each CDSE data product.
-#' @param product_type Type of the CDSE Product (e.g., S2MSI2A)
-#' @param ...          Additional query parameters.
-#' @param source       Data source.
-#' @param collection   Open Search collection endpoint.
-#' @param start_date   Start date.
-#' @param end_date     End date.
-#' @param bbox         Bounding box of the area from data must be from
-#' @param paginate     A Boolean flag that indicates whether pagination
-#'                     should be used.
-#' @param limit        Limit of content to be retrieved per page. Use `paginate`
-#'                     to manage if multiple pages should be requested.
-#' @return             List of features compatible with
-#'                     `rstac` (`rstac::doc_items`).
-.opensearch_cdse_search <- function(product_type,
-                                    source,
-                                    collection,
-                                    start_date,
-                                    end_date,
-                                    bbox,
-                                    paginate = TRUE,
-                                    limit = 1000, ...) {
-    UseMethod(".opensearch_cdse_search")
-}
-
-#' @keywords internal
-#' @noRd
-.opensearch_cdse_search.S2MSI2A <- function(product_type, ...,
-                                            source,
-                                            collection,
-                                            start_date,
-                                            end_date,
-                                            bbox,
-                                            paginate = TRUE,
-                                            limit = 1000) {
-    .opensearch_cdse_client(
-        product_type,
-        source,
-        collection,
-        start_date,
-        end_date,
-        bbox,
-        paginate,
-        limit,
-        status = "ONLINE"
-    )
-}
-
-#' @keywords internal
-#' @noRd
-.opensearch_cdse_search.RTC <- function(product_type, ...,
-                                        source,
-                                        collection,
-                                        start_date,
-                                        end_date,
-                                        bbox,
-                                        paginate = TRUE,
-                                        limit = 1000,
-                                        orbit = "descending") {
-    # Checks - Orbit
-    orbits <- .conf("sources", source, "collections", collection, "orbits")
-    .check_chr_within(orbit, orbits, msg = "Invalid `orbit` value")
-    # Search!
-    .opensearch_cdse_client(
-        product_type,
-        source,
-        collection,
-        start_date,
-        end_date,
-        bbox,
-        paginate,
-        limit,
-        status = "ONLINE",
-        orbitDirection = stringr::str_to_upper(orbit)
-    )
 }
 
 # ---- source api ----
@@ -512,8 +210,8 @@
         "collection_name"
     )
     # extract query parameters from STAC Query
-    query_bbox <- .stac_cdse_intersects_as_bbox(stac_query)
-    query_date <- .stac_cdse_datetime_as_dates(stac_query)
+    query_bbox <- .stac_intersects_as_bbox(stac_query)
+    query_date <- .stac_datetime_as_dates(stac_query)
     # CDSE does not support tiles - convert to ROI
     # Currently, `sits` only supports Sentinel products. In the future, with
     # other products, this must be revised.
@@ -563,7 +261,7 @@
                                                  collection, multicores = 2L) {
     # CDSE does not provide files in the `assets` property. So, it is
     # required to fix this using content from CDSE S3 API.
-    items <- .stac_cdse_fix_items(source, items, bands, collection, multicores)
+    items <- .cdse_stac_fix_items(source, items, bands, collection, multicores)
     # With the correct metadata, it is possible to use the base workflow.
     .source_items_bands_select.stac_cube(
         source,
@@ -627,8 +325,9 @@
 #' @export
 `.source_tile_get_bbox.cdse_cube_sentinel-1-rtc` <-
     function(source, file_info, ..., collection = NULL) {
+    .check_set_caller(".source_tile_get_bbox_cdse_s1_rtc")
     # pre-condition
-    .check_num(nrow(file_info), min = 1, msg = "invalid 'file_info' value")
+    .check_num(nrow(file_info), min = 1)
 
     # get bbox based on file_info
     xmin <- min(file_info[["xmin"]])

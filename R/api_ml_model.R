@@ -11,7 +11,7 @@
     } else if ("torch_model" %in% ls(environment(ml_model))) {
         environment(ml_model)[["torch_model"]]
     } else {
-        stop("cannot extract model object")
+        stop(.conf("messages", ".ml_model"))
     }
 }
 #' @title Return statistics of ML model inside a closure (old version)

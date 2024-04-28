@@ -66,7 +66,7 @@ NULL
     } else if (.is_point(x)) {
         "point"
     } else {
-        stop("cannot extract bbox from object of class ", class(x))
+        stop(.conf("messages", ".bbox_type"), class(x))
     }
 }
 #' @title Switch bbox type

@@ -141,10 +141,9 @@
 #' @param  labels_mask     Labels of reclassification mask
 #' @return function to be applied for reclassification
 .reclassify_fn_expr <- function(rules, labels_cube, labels_mask) {
+    .check_set_caller(".reclassify_fn_expr")
     # Check if rules are named
-    if (!all(.has_name(rules))) {
-        stop("rules should be named")
-    }
+    .check_that(all(.has_name(rules)))
     # Get output labels
     labels_rule <- setdiff(names(rules), labels_cube)
     names(labels_rule) <- max(.as_int(names(labels_cube))) +
@@ -156,7 +155,7 @@
     reclassify_fn <- function(values, mask_values) {
         # Check compatibility
         if (!all(dim(values) == dim(mask_values))) {
-            stop("cube and mask values have different sizes")
+            stop(.conf("messages", ".reclassify_fn_cube_mask"))
         }
         # Used to check values (below)
         n_input_pixels <- nrow(values)
@@ -179,7 +178,7 @@
             result <- eval(expr, envir = env)
             # Update values
             if (!is.logical(result)) {
-                stop("expression should evaluate to logical values")
+                stop(.conf("messages", ".reclassify_fn_result"))
             }
             values[result] <- label
         }

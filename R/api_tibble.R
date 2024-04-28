@@ -279,8 +279,7 @@
         bands <- toupper(bands)
         .check_chr_within(
             x = bands,
-            within = sp_bands,
-            msg = "required bands are not available in the samples"
+            within = sp_bands
         )
     }
     return(bands)

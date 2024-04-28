@@ -7,17 +7,13 @@
 #' @return          Attributes of wrs path and row.
 #'
 .usgs_format_tiles <- function(tiles) {
+    .check_set_caller(".usgs_format_tiles")
     # regex pattern of wrs_path and wrs_row
     pattern_l8 <- "[0-9]{6}"
-
     # verify tile pattern
-    if (!any(grepl(pattern_l8, tiles, perl = TRUE))) {
-        stop("The specified tiles do not match the Landsat-8 grid",
-             "pattern. See the user guide for more information."
-        )
-    }
+    .check_that(all(grepl(pattern_l8, tiles, perl = TRUE)))
 
-    # list to store the info about the tiles to provide the query in STAC
+    # prepare the tiles for a valid STAC query to the USGS archive
     tiles_tbl <- purrr::map_dfr(tiles, function(tile) {
         c(
             wrs_path = substring(tile, 1, 3),

@@ -27,10 +27,9 @@
 #' @param x       R object
 #' @return time series
 .ts <- function(x) {
+    .check_set_caller(".ts")
     # Check time_series column
-    if (!.has_ts(x)) {
-        stop("time_series not found")
-    }
+    .check_that(.has_ts(x))
     # Add sample_id column
     x[["sample_id"]] <- seq_along(x[["time_series"]])
     # Extract time_series from column
@@ -49,9 +48,8 @@
 #' @param value   New time series
 #' @return new R object with time series
 `.ts<-` <- function(x, value) {
-    if (!.is_ts(value)) {
-        stop("invalid time series value")
-    }
+    .check_set_caller(".ts_assign")
+    .check_that(.is_ts(value))
     # Pack time series
     value <- tidyr::nest(value, time_series = -dplyr::all_of(.ts_cols))
     x <- x[.ts_sample_id(value), ]
@@ -94,11 +92,9 @@
 #' @param bands   Desired bands
 #' @return time series with bands
 .ts_select_bands <- function(ts, bands) {
+    .check_set_caller(".ts_select_bands")
     # Check missing bands
-    miss_bands <- bands[!bands %in% .ts_bands(ts)]
-    if (.has(miss_bands)) {
-        stop("band(s) ", .collapse("'", miss_bands, "'"), " not found")
-    }
+    .check_that(all(bands %in% .ts_bands(ts)))
     # Select the same bands as in the first sample
     ts <- ts[unique(c(.ts_cols, "Index", bands))]
     # Return time series
@@ -174,13 +170,11 @@
 #' @param bands   Bands to extract values
 #' @return values
 .ts_values <- function(ts, bands = NULL) {
+    .check_set_caller(".ts_values")
     # Get the time series of samples
     bands <- .default(bands, .ts_bands(ts))
     # Check missing bands
-    miss_bands <- bands[!bands %in% .ts_bands(ts)]
-    if (.has(miss_bands)) {
-        stop("band(s) ", .collapse("'", miss_bands, "'"), " not found")
-    }
+    .check_that(all(bands %in% .ts_bands(ts)))
     ts[bands]
 }
 #' @title Extract a time series from raster

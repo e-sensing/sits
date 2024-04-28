@@ -9,11 +9,11 @@
 #' @param  fn        Function to be applied.
 #' @return           Tibble where function has been applied.
 .apply <- function(data, col, fn, ...) {
+    .check_set_caller(".apply")
     # pre-condition
     .check_chr_within(
         col,
-        within = names(data),
-        msg = "invalid column name"
+        within = names(data)
     )
     # select data do unpack
     x <- data[col]

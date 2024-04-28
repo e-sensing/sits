@@ -263,9 +263,9 @@
         )
         # check if metadata was retrieved
         if (is.null(asset_info)) {
-            msg <- .conf("messages", ".source_items_cube_stac_cube")
-            warning(msg, ":\n", toString(paths),
-                call. = FALSE
+            warning(.conf("messages", ".source_items_cube_stac_cube"),
+                    toString(paths),
+                    call. = FALSE
             )
             return(NULL)
         }
@@ -329,8 +329,10 @@
                 )
                 # check if metadata was retrieved
                 if (is.null(asset_info)) {
-                    msg <- .conf("messages", ".source_items_cube_stac_cube")
-                    warning(msg, ":\n", toString(paths), call. = FALSE)
+                    warning(.conf("messages", ".source_items_cube_stac_cube"),
+                            toString(paths),
+                            call. = FALSE
+                    )
                     return(NULL)
                 }
             }
@@ -569,13 +571,13 @@
 #' @return Filtered cube
 #' @export
 .source_filter_tiles.stac_cube <- function(source, collection, cube, tiles) {
+    .check_set_caller(".source_filter_tiles_stac_cube")
     if (is.character(tiles)) {
         # post-condition
         .check_chr_within(.cube_tiles(cube),
                           within = tiles,
                           discriminator = "any_of",
-                          can_repeat = FALSE,
-                          msg = "cube does not contain requested tiles"
+                          can_repeat = FALSE
         )
         # filter cube tiles
         cube <- dplyr::filter(cube, .data[["tile"]] %in% tiles)
