@@ -41,6 +41,7 @@ sources:
                     AWS_S3_ENDPOINT: "s3.af-south-1.amazonaws.com"
                     AWS_NO_SIGN_REQUEST: true
                 collection_name: "alos_palsar_mosaic"
+                sar_cube : true
                 open_data: true
                 open_data_token: false
                 metadata_search: "feature"
