@@ -28,8 +28,8 @@ sources:
                 sensor      : "RTC"
                 orbits      : ["ascending", "descending"]
                 platforms   :
-                    SENTINEL-1A: "Sentinel-1A"
-                    SENTINEL-1B: "Sentinel-1B"
+                    SENTINEL-1A: "S1A"
+                    SENTINEL-1B: "S1B"
                 collection_name: "SENTINEL-1-RTC"
                 sar_cube: true
                 open_data: true
@@ -129,8 +129,8 @@ sources:
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 platforms   :
-                    SENTINEL-2A: "Sentinel-2A"
-                    SENTINEL-2B: "Sentinel-2B"
+                    SENTINEL-2A: "S2A"
+                    SENTINEL-2B: "S2B"
                 access_vars:
                     AWS_S3_ENDPOINT       : "eodata.dataspace.copernicus.eu"
                     AWS_VIRTUAL_HOSTING   : "FALSE"

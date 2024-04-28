@@ -213,10 +213,8 @@
 #'                     `rstac` (`rstac::doc_items`).
 .opensearch_cdse_client <- function(product_type,
                                     source, collection,
-                                    start_date, end_date,
-                                    bbox,
-                                    paginate = TRUE,
-                                    limit = 1000, ...) {
+                                    start_date, end_date, bbox,
+                                    paginate = TRUE, limit = 1000, ...) {
     # CDSE Open Search configurations
     cdse_opensearch_base_url <- .conf(
         "sources",
@@ -336,53 +334,21 @@
 #' @return             List of features compatible with
 #'                     `rstac` (`rstac::doc_items`).
 .opensearch_cdse_search <- function(product_type,
-                                    source,
-                                    collection,
-                                    start_date,
-                                    end_date,
-                                    bbox,
-                                    paginate = TRUE,
-                                    limit = 1000, ...) {
+                                    source, collection,
+                                    start_date, end_date, bbox,
+                                    paginate = TRUE, limit = 1000, ...) {
     UseMethod(".opensearch_cdse_search")
 }
 
 #' @keywords internal
 #' @noRd
-.opensearch_cdse_search.S2MSI2A <- function(product_type, ...,
-                                            source,
-                                            collection,
-                                            start_date,
-                                            end_date,
+.opensearch_cdse_search.S2MSI2A <- function(product_type,
+                                            source, collection,
+                                            start_date, end_date,
                                             bbox,
+                                            platform = NULL,
                                             paginate = TRUE,
-                                            limit = 1000) {
-    .opensearch_cdse_client(
-        product_type,
-        source,
-        collection,
-        start_date,
-        end_date,
-        bbox,
-        paginate,
-        limit,
-        status = "ONLINE"
-    )
-}
-
-#' @keywords internal
-#' @noRd
-.opensearch_cdse_search.RTC <- function(product_type, ...,
-                                        source,
-                                        collection,
-                                        start_date,
-                                        end_date,
-                                        bbox,
-                                        paginate = TRUE,
-                                        limit = 1000,
-                                        orbit = "descending") {
-    # Checks - Orbit
-    orbits <- .conf("sources", source, "collections", collection, "orbits")
-    .check_chr_within(orbit, orbits, msg = "Invalid `orbit` value")
+                                            limit = 1000, ...) {
     # Search!
     .opensearch_cdse_client(
         product_type,
@@ -394,6 +360,38 @@
         paginate,
         limit,
         status = "ONLINE",
+        instrument = "MSI",
+        platform = platform,
+        processingLevel = "S2MSI2A"
+    )
+}
+
+#' @keywords internal
+#' @noRd
+.opensearch_cdse_search.RTC <- function(product_type,
+                                        source, collection,
+                                        start_date, end_date,
+                                        bbox,
+                                        platform = NULL,
+                                        orbit = NULL,
+                                        paginate = TRUE, limit = 1000, ...) {
+    # check orbit
+    orbits <- .conf("sources", source, "collections", collection, "orbits")
+    .check_chr_within(x = orbit, within = orbits)
+    # Search!
+    .opensearch_cdse_client(
+        product_type,
+        source,
+        collection,
+        start_date,
+        end_date,
+        bbox,
+        paginate,
+        limit,
+        status = "ONLINE",
+        sensorMode = "IW",
+        instrument = "C-SAR",
+        platform = platform,
         orbitDirection = stringr::str_to_upper(orbit)
     )
 }
@@ -445,7 +443,8 @@
             end_date = end_date,
             bbox = NULL,
             paginate = FALSE,
-            limit = 1
+            limit = 1,
+            ...
         )
     }, .default = NULL)
     # Check items
@@ -494,11 +493,19 @@
                                         stac_query,
                                         tiles,
                                         multicores,
-                                        orbit) {
+                                        platform) {
     # set caller to show in errors
     .check_set_caller(".source_items_new_cdse_cube")
-    # check parameters
+    # check multicores
     .check_int_parameter(multicores, min = 1, max = 2048)
+    # check platform (filter available for CDSE collections supported by sits)
+    if (!is.null(platform)) {
+        platform <- .stac_format_platform(
+            source = source,
+            collection = collection,
+            platform = platform
+        )
+    }
     # define the maximum number of records per request
     cdse_query_limit <- 1000
     # as CDSE STAC returns many types of items in the same collection,
@@ -539,7 +546,8 @@
         end_date     = query_date$end_date,
         bbox         = query_bbox$bbox,
         limit        = cdse_query_limit,
-        orbit        = orbit
+        platform     = platform,
+        ...
     )
     # Validate results
     .check_length(items[["features"]], len_min = 1)
