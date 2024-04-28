@@ -459,6 +459,11 @@ test_that("Creating LS5-SR cubes from DEA", {
         end_date = "2010-01-01",
         progress = FALSE
     )
+
+    testthat::skip_if(purrr::is_null(landsat_cube),
+                      message = "DEAFRICA is not accessible"
+    )
+
     expect_true(all(sits_bands(landsat_cube) %in% c("B05", "CLOUD")))
     expect_equal(nrow(landsat_cube), 6)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
@@ -484,6 +489,11 @@ test_that("Creating LS7-SR cubes from DEA", {
         end_date = "2010-01-01",
         progress = FALSE
     )
+
+    testthat::skip_if(purrr::is_null(landsat_cube),
+                      message = "DEAFRICA is not accessible"
+    )
+
     expect_true(all(sits_bands(landsat_cube) %in% c("B05", "CLOUD")))
     expect_equal(nrow(landsat_cube), 6)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
@@ -509,6 +519,11 @@ test_that("Creating LS8-SR cubes from DEA", {
         end_date = "2021-04-29",
         progress = FALSE
     )
+
+    testthat::skip_if(purrr::is_null(landsat_cube),
+                      message = "DEAFRICA is not accessible"
+    )
+
     expect_true(all(sits_bands(landsat_cube) %in% c("B05", "CLOUD")))
     expect_equal(nrow(landsat_cube), 6)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
@@ -534,6 +549,11 @@ test_that("Creating LS9-SR cubes from DEA", {
         end_date = "2022-04-01",
         progress = FALSE
     )
+
+    testthat::skip_if(purrr::is_null(landsat_cube),
+                      message = "DEAFRICA is not accessible"
+    )
+
     expect_true(all(sits_bands(landsat_cube) %in% c("B05", "CLOUD")))
     expect_equal(nrow(landsat_cube), 6)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
@@ -565,10 +585,13 @@ test_that("Creating S2 cubes from DEA using ROI", {
         },
         .default = NULL
     )
+
     testthat::skip_if(purrr::is_null(dea_cube),
         message = "DEAFRICA is not accessible"
     )
+
     expect_true(all(sits_bands(dea_cube) %in% c("B01", "B04", "B05")))
+    expect_equal(nrow(dea_cube), 1)
     r <- .raster_open_rast(.tile_path(dea_cube))
     expect_equal(dea_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(dea_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
@@ -582,21 +605,23 @@ test_that("Creating S2 cubes from DEA using tiles", {
                 bands = c("B02", "B8A", "B11"),
                 tiles = c("37MDT","37MET"),
                 start_date = "2019-01-01",
-                end_date = "2019-10-28",
+                end_date = "2019-08-28",
                 progress = FALSE
             )
         },
         .default = NULL
     )
+
     testthat::skip_if(purrr::is_null(dea_cube),
                       message = "DEAFRICA is not accessible"
     )
+
     expect_true(all(sits_bands(dea_cube) %in% c("B02", "B8A", "B11")))
+    expect_equal(nrow(dea_cube), 2)
     r <- .raster_open_rast(.tile_path(dea_cube))
     expect_equal(dea_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(dea_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
     expect_true(all(dea_cube$tile %in% c("37MDT","37MET")))
-
 })
 test_that("Creating Sentinel-1 RTC cubes from DEA using ROI", {
     cube_s1_rtc <-  sits_cube(
@@ -614,7 +639,13 @@ test_that("Creating Sentinel-1 RTC cubes from DEA using ROI", {
         end_date = "2021-09-30",
         progress = FALSE
     )
-    expect_true(all(sits_bands(cube_s1_rtc) %in% c("VV")))
+
+    testthat::skip_if(purrr::is_null(cube_s1_rtc),
+                      message = "DEAFRICA is not accessible"
+    )
+
+    expect_true(sits_bands(cube_s1_rtc) == "VV")
+    expect_equal(nrow(cube_s1_rtc), 1)
     r <- .raster_open_rast(.tile_path(cube_s1_rtc))
     expect_equal(cube_s1_rtc$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(cube_s1_rtc$xmin[[1]], .raster_xmin(r), tolerance = 1)
@@ -630,6 +661,11 @@ test_that("Creating Sentinel-1 RTC cubes from DEA using tiles", {
         end_date = "2022-02-25",
         progress = FALSE
     )
+
+    testthat::skip_if(purrr::is_null(cube_s1_rtc),
+                      message = "DEAFRICA is not accessible"
+    )
+
     bbox <- sits_bbox(cube_s1_rtc)
     roi_cube_s1 <- sits_mgrs_to_roi(c("36NWJ"))
 
@@ -685,6 +721,11 @@ test_that("Creating ALOS-PALSAR-MOSAIC cubes from DEA", {
         end_date = "2009-01-01",
         progress = FALSE
     )
+
+    testthat::skip_if(purrr::is_null(cube_alos),
+                      message = "DEAFRICA is not accessible"
+    )
+
     expect_true(all(sits_bands(cube_alos) %in% c("HH", "HV", "CLOUD")))
     expect_equal(nrow(cube_alos), 1)
     bbox_cube <- sits_bbox(cube_alos, as_crs = "EPSG:4326")
@@ -710,6 +751,11 @@ test_that("Creating NDVI-ANOMALY cubes from DEA", {
         end_date = "2018-12-31",
         progress = FALSE
     )
+
+    testthat::skip_if(purrr::is_null(cube_ndvi),
+                      message = "DEAFRICA is not accessible"
+    )
+
     expect_true(sits_bands(cube_ndvi) == "NDVI-MEAN")
     expect_equal(nrow(cube_ndvi), 1)
     bbox_cube <- sits_bbox(cube_ndvi, as_crs = "EPSG:4326")
@@ -735,6 +781,11 @@ test_that("Creating RAINFALL-CHIRPS-DAILY cubes from DEA", {
         end_date = "2018-08-25",
         progress = FALSE
     )
+
+    testthat::skip_if(purrr::is_null(cube_chirps),
+                      message = "DEAFRICA is not accessible"
+    )
+
     expect_true(sits_bands(cube_chirps) == "RAINFALL")
     expect_equal(nrow(cube_chirps), 1)
     bbox_cube <- sits_bbox(cube_chirps, as_crs = "EPSG:4326")
@@ -760,6 +811,11 @@ test_that("Creating RAINFALL-CHIRPS-MONTHLY cubes from DEA", {
         end_date = "2018-08-25",
         progress = FALSE
     )
+
+    testthat::skip_if(purrr::is_null(cube_chirps),
+                      message = "DEAFRICA is not accessible"
+    )
+
     expect_true(sits_bands(cube_chirps) == "RAINFALL")
     expect_equal(nrow(cube_chirps), 1)
     bbox_cube <- sits_bbox(cube_chirps, as_crs = "EPSG:4326")
@@ -785,6 +841,11 @@ test_that("Creating DEM-COP-30 cubes from DEA", {
         end_date = "1901-01-01",
         progress = FALSE
     )
+
+    testthat::skip_if(purrr::is_null(cube_dem),
+                      message = "DEAFRICA is not accessible"
+    )
+
     expect_true(sits_bands(cube_dem) == "ELEVATION")
     expect_equal(nrow(cube_dem), 1)
     bbox_cube <- sits_bbox(cube_dem, as_crs = "EPSG:4326")
