@@ -415,6 +415,9 @@ sources:
                         band_name     : "VH"
                 satellite   : "SENTINEL-1"
                 sensor      : "RTC"
+                platforms   :
+                    SENTINEL-1A: "sentinel-1a"
+                    SENTINEL-1B: "sentinel-1b"
                 orbits      : ["ascending", "descending"]
                 access_vars :
                     AWS_DEFAULT_REGION  : "af-south-1"
@@ -504,6 +507,9 @@ sources:
                         data_type    : "INT1U"
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
+                platforms   :
+                    SENTINEL-2A: "sentinel-2a"
+                    SENTINEL-2B: "sentinel-2b"
                 collection_name: "s2_l2a"
                 access_vars :
                     AWS_DEFAULT_REGION: "af-south-1"
