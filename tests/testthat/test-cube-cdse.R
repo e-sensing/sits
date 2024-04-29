@@ -98,7 +98,8 @@ test_that("Creating Sentinel-1 RTC cubes from CDSE", {
                 tiles = c("36NWH"),
                 start_date = "2021-07-01",
                 end_date = "2021-09-30",
-                multicores = 1L
+                multicores = 1L,
+                progresss = FALSE
             )
         },
         .default = NULL
