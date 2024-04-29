@@ -1,43 +1,3 @@
-# ---- general utilities ----
-
-#' @title Extract bounding box from a STAC Query.
-#' @keywords internal
-#' @noRd
-#'
-#' @param stac_query Query that follows the STAC protocol.
-#' @return           STAC Query object.
-.stac_deafrica_intersects_as_bbox <- function(stac_query) {
-    # Convert roi to bbox
-    lon <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 1]
-    lat <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 2]
-
-    stac_query[["params"]][["intersects"]] <- NULL
-    stac_query[["params"]][["bbox"]] <- c(min(lon),
-                                          min(lat),
-                                          max(lon),
-                                          max(lat))
-
-    stac_query
-}
-#' @title Extract bounding box from MGRS tiles.
-#' @keywords internal
-#' @noRd
-#'
-#' @param stac_query Query that follows the STAC protocol.
-#' @param tiles      List of MGRS tiles.
-#' @return           STAC Query object.
-.stac_deafrica_tiles_as_bbox <- function(stac_query, tiles) {
-    roi <- .s2_mgrs_to_roi(tiles)
-    stac_query[["params"]][["intersects"]] <- NULL
-    stac_query[["params"]][["bbox"]] <- c(roi[["lon_min"]],
-                                          roi[["lat_min"]],
-                                          roi[["lon_max"]],
-                                          roi[["lat_max"]]
-    )
-
-    stac_query
-}
-
 # ---- source api ----
 #' @title Create an items object in an DEAfrica cube
 #' @keywords internal
@@ -59,7 +19,9 @@
                                             tiles = NULL,
                                             platform = NULL) {
     # Convert roi to bbox
-    stac_query <- .stac_deafrica_intersects_as_bbox(stac_query)
+    roi <- .stac_intersects_as_bbox(stac_query)
+    stac_query[["params"]][["intersects"]] <- NULL
+    stac_query[["params"]][["bbox"]] <- roi$bbox
     # making the request
     items_info <- rstac::post_request(q = stac_query, ...)
     .check_stac_items(items_info)
@@ -107,9 +69,16 @@
     }
     # check spatial extensions
     if (!is.null(tiles)) {
-        stac_query <- .stac_deafrica_tiles_as_bbox(stac_query, tiles)
+        roi <- .s2_mgrs_to_roi(tiles)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- c(roi[["lon_min"]],
+                                              roi[["lat_min"]],
+                                              roi[["lon_max"]],
+                                              roi[["lat_max"]])
     } else {
-        stac_query <- .stac_deafrica_intersects_as_bbox(stac_query)
+        roi <- .stac_intersects_as_bbox(stac_query)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- roi$bbox
     }
     # make request
     items_info <- rstac::post_request(q = stac_query, ...)
@@ -155,9 +124,16 @@
     }
     # check spatial extensions
     if (!is.null(tiles)) {
-        stac_query <- .stac_deafrica_tiles_as_bbox(stac_query, tiles)
+        roi <- .s2_mgrs_to_roi(tiles)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- c(roi[["lon_min"]],
+                                              roi[["lat_min"]],
+                                              roi[["lon_max"]],
+                                              roi[["lat_max"]])
     } else {
-        stac_query <- .stac_deafrica_intersects_as_bbox(stac_query)
+        roi <- .stac_intersects_as_bbox(stac_query)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- roi$bbox
     }
     # make request
     items_info <- rstac::post_request(q = stac_query, ...)
