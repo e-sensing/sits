@@ -280,11 +280,6 @@
 #' @return operations on local kernels
 #'
 .kern_functions <- function(window_size, img_nrow, img_ncol) {
-    # Pre-conditions
-    .check_int_parameter(window_size,
-                         max = min(img_nrow, img_ncol) - 1,
-                         is_odd = TRUE)
-
     result_env <- list2env(list(
         w_median = function(m) {
             C_kernel_median(

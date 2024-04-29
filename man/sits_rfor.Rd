@@ -38,7 +38,7 @@ if (sits_run_examples()) {
     # Retrieve the samples for Mato Grosso
     # train a random forest model
     rf_model <- sits_train(samples_modis_ndvi,
-        ml_method = sits_rfor()
+        ml_method = sits_rfor
     )
     # classify the point
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
