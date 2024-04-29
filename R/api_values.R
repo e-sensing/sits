@@ -18,17 +18,13 @@
     # set caller to show in errors
     .check_set_caller(".values_ts")
     .check_chr_within(
-        x = format,
+        format,
         within = c(
             "cases_dates_bands",
             "bands_cases_dates",
             "bands_dates_cases"
         ),
-        discriminator = "one_of",
-        msg = paste(
-            "valid format parameter are 'cases_dates_bands',",
-            "'bands_cases_dates' or 'bands_dates_cases'"
-        )
+        discriminator = "one_of"
     )
     class(format) <- c(format, class(format))
     UseMethod(".values_ts", format)

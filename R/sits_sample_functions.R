@@ -32,8 +32,7 @@ sits_sample <- function(data,
     # verify if data and frac are valid
     .check_samples_ts(data)
     # check frac parameter
-    .check_num_parameter(frac, min = 0.0, max = 2.0,
-                         msg = "invalid frac parameter")
+    .check_num_parameter(frac, min = 0.0, max = 2.0)
     # check oversample
     .check_lgl_parameter(oversample)
     # group the data by label

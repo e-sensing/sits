@@ -235,9 +235,12 @@ NULL
 #' @param ...   Generic entries
 #' @returns Data with function applied
 .by <- function(data, col, fn, ...) {
-    if (!col %in% names(data)) {
-        stop("invalid 'col' parameter: '", col, "' not found in data columns")
-    }
+    # precondition
+    .check_set_caller(".by")
+    .check_chr_within(col,
+                      within = names(data),
+                      discriminator = "any_of")
+
     unname(c(by(data, data[[col]], fn, ...)))
 }
 #' @title Check value is between max and min

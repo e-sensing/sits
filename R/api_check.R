@@ -2366,6 +2366,8 @@
     return(invisible(validation))
 }
 #' @title Checks filter function
+#' @description
+#' Checks if the paramter is a function
 #' @param filter_fn     Filter function
 #' @return Called for side effects
 #' @keywords internal
@@ -2374,10 +2376,24 @@
     .check_set_caller(".check_filter_fn")
     .check_that(is.function(filter_fn))
 }
+#' @title Checks distance method
+#' @description
+#' Checks if the parameter is a valid distance method for a dendrogram
+#' @param dist_method    Distance method
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
 .check_dist_method <- function(dist_method) {
     .check_set_caller(".check_dist_method")
     .check_that(dist_method %in% .conf("dendro_dist_method"))
 }
+#' @title Checks linkage method
+#' @description
+#' Checks if the parameter is a valid linkage method for a dendrogram
+#' @param linkage    Linkage method
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
 .check_linkage_method <- function(linkage) {
     .check_set_caller(".check_linkage_method")
     .check_that(linkage %in% .conf("dendro_linkage"))

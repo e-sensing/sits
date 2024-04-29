@@ -81,8 +81,7 @@
     are_empty_geoms <- sf::st_is_empty(sf_object)
     if (any(are_empty_geoms)) {
         if (.check_warnings()) {
-            warning(
-                "Some empty geometries were removed.",
+            warning(.conf("messages", ".sf_to_tibble"),
                 immediate. = TRUE, call. = FALSE
             )
         }

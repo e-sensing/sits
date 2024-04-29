@@ -156,3 +156,46 @@
     )
     return(rstac_query)
 }
+#' @title Extract bounding box from a STAC Query.
+#' @keywords internal
+#' @noRd
+#'
+#' @param stac_query Query that follows the STAC protocol.
+#' @return           List with `bbox` property.
+.stac_intersects_as_bbox <- function(stac_query) {
+    result <- list(bbox = NULL)
+    # Extract spatial reference from STAC object
+    intersects <- stac_query[["params"]][["intersects"]]
+    coordinates <- intersects[["coordinates"]]
+    # Check if query is valid
+    if (is.null(coordinates)) {
+        return(result)
+    }
+    # Extract x-coordinates and y-coordinates
+    coordinates_x <- coordinates[,,1]
+    coordinates_y <- coordinates[,,2]
+    # Calculate bounding box
+    min_x <- min(coordinates_x)
+    max_x <- max(coordinates_x)
+    min_y <- min(coordinates_y)
+    max_y <- max(coordinates_y)
+    # Create bbox object
+    result[["bbox"]] <- c(min_x, min_y, max_x, max_y)
+    result
+}
+# ---- stac utilities ----
+#' @title Extract datetime from a STAC Query.
+#' @keywords internal
+#' @noRd
+#'
+#' @param stac_query Query that follows the STAC protocol.
+#' @return           List with `start_date` and `end_date` properties.
+.stac_datetime_as_dates <- function(stac_query) {
+    query_datetime <- stringr::str_split(
+        stac_query[["params"]][["datetime"]], "/"
+    )
+    list(
+        start_date = query_datetime[[1]][1],
+        end_date = query_datetime[[1]][2]
+    )
+}

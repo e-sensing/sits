@@ -575,9 +575,9 @@
     items <- purrr::map(results_lst, `[[`, "item")
     errors <- unlist(purrr::map(results_lst, `[[`, "error"))
     if (length(errors) > 0) {
-        warning("cannot open file(s): ",
-            paste0("'", errors, "'", collapse = ", "),
-            call. = FALSE, immediate. = TRUE
+        warning(.conf("messages", ".local_cube_file_info_error"),
+                toString(errors),
+                call. = FALSE, immediate. = TRUE
         )
     }
     items <- dplyr::bind_rows(items) |>
@@ -643,9 +643,9 @@
     items_lst <- purrr::map(results_lst, `[[`, "item")
     errors <- unlist(purrr::map(results_lst, `[[`, "error"))
     if (length(errors) > 0) {
-        warning("cannot open file(s):",
-            paste0("'", errors, "'", collapse = ", "),
-            call. = FALSE, immediate. = TRUE
+        warning(.conf("messages", ".local_cube_file_info_error"),
+                toString(errors),
+                call. = FALSE, immediate. = TRUE
         )
     }
     items <- dplyr::bind_rows(items_lst)

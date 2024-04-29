@@ -159,6 +159,7 @@ sits_config_show <- function(source = NULL,
 #' }
 #' @export
 sits_list_collections <- function(source = NULL) {
+    .check_set_caller("sits_list_collections")
     # get sources available
     sources <- .sources()
 
@@ -168,8 +169,7 @@ sits_list_collections <- function(source = NULL) {
         # check if source exists
         .check_chr_within(
             x = source,
-            within = sources,
-            msg = "invalid 'source' value"
+            within = sources
         )
         sources <- source
     }

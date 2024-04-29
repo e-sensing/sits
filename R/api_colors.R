@@ -12,6 +12,7 @@
                         palette = "Spectral",
                         legend = NULL,
                         rev = TRUE) {
+    .check_set_caller(".colors_get")
     # Get the SITS Color table
     color_tb <- .conf_colors()
     # Try to find colors in the SITS color palette
@@ -43,10 +44,8 @@
     if (!all(labels %in% names(colors))) {
         missing <- labels[!labels %in% names(colors)]
         if (.check_warnings()) {
-            warning(
-                "missing colors for labels ", toString(missing)
-            )
-            warning("using palette ", palette, " for missing colors")
+            warning(.conf("messages", ".colors_get_missing"), toString(missing))
+            warning(.conf("messages", ".colors_get_missing_palette", palette))
             # grDevices does not work with one color missing
         }
         colors_pal <- grDevices::hcl.colors(

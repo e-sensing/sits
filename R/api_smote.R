@@ -3,7 +3,7 @@
 #' @keywords internal
 #' @noRd
 #' @description
-#' Lifted from R package "scutr".
+#' Lifted from R package "scutr" by Keenan Ganz
 #'
 #' @param data Dataset to be oversampled.
 #' @param cls Class to be oversampled.

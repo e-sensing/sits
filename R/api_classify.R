@@ -41,7 +41,10 @@
                            progress) {
     # Output file
     out_file <- .file_derived_name(
-        tile = tile, band = band, version = version, output_dir = output_dir
+        tile = tile,
+        band = band,
+        version = version,
+        output_dir = output_dir
     )
     # Resume feature
     if (file.exists(out_file)) {
@@ -631,6 +634,17 @@
     })
     return(prediction)
 }
+#' @title Start recording processing time
+#' @name .classify_verbose_start
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Prints the block size and computes
+#' start time for processing
+#'
+#' @param  verbose TRUE/FALSE
+#' @param  block   block size
+#' @return start time for processing
 .classify_verbose_start <- function(verbose, block) {
     start_time <- Sys.time()
     if (verbose) {
@@ -640,6 +654,15 @@
     }
     return(start_time)
 }
+#' @title End recording processing time
+#' @name .classify_verbose_end
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Prints the processing time
+#' @param  verbose TRUE/FALSE
+#' @param  start_time   initial processing time
+#' @return elapsed processing time for processing
 .classify_verbose_end <- function(verbose, start_time) {
     if (verbose) {
         end_time <- Sys.time()

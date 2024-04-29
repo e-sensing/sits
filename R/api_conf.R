@@ -74,7 +74,7 @@
                 {
                     do.call(.conf_new_source, args = source)
                 },
-                msg = "invalid 'source' parameter"
+                msg = .conf("messages", ".conf_set_options_source")
             )
             return(source)
         })
@@ -272,6 +272,8 @@
 #' @title Add user color table
 #' @name .conf_add_color_table
 #' @description Loads a user color table
+#' and merges with default color table
+#' @param color_tb user color table
 #' @keywords internal
 #' @noRd
 #' @return new color table (invisible)
@@ -294,6 +296,7 @@
 #' @title Merge user colors with default colors
 #' @name .conf_merge_colors
 #' @description Combines user colors with default color table
+#' @param user_colors  list of user colors
 #' @keywords internal
 #' @noRd
 #' @return new color table
@@ -318,17 +321,24 @@
     sits_env[["color_table"]] <- color_table
     return(color_table)
 }
+#' @title Merge user legends with default legends
+#' @name .conf_merge_legends
+#' @description Combines user legends with default
+#' @param user_legends  List of user legends
+#' @keywords internal
+#' @noRd
+#' @return new color table
 .conf_merge_legends <- function(user_legends){
+    .check_set_caller(".conf_merge_legends")
     # check legends are valid names
     .check_chr_parameter(names(user_legends), len_max = 100,
-                         msg = "invalid user legends")
+                         msg = .conf("messages", ".conf_merge_legends_user"))
     # check legend names do not already exist
-    .check_that(!(all(names(user_legends) %in% names(sits_env[["legends"]]))),
-                  msg = "user defined legends already exist in sits")
+    .check_that(!(any(names(user_legends) %in% names(sits_env[["legends"]]))))
     # check colors names are valid
     ok <- purrr::map_lgl(user_legends, function(leg){
         .check_chr_parameter(leg, len_max = 100,
-                             msg = "invalid color names in user legend")
+                        msg = .conf("messages", ".conf_merge_legends_colors"))
         return(TRUE)
     })
     sits_env[["legends"]] <- c(sits_env[["legends"]], user_legends)
@@ -374,10 +384,7 @@
     if (nchar(yml_file) > 0) {
         .check_warn(
             .check_file(yml_file,
-                msg = paste(
-                    "invalid configuration file informed in",
-                    "SITS_CONFIG_USER_FILE"
-                )
+                msg = .conf("messages", ".conf_user_env_var")
             )
         )
         # if the YAML file exists, try to load it
@@ -387,9 +394,7 @@
                     merge.precedence = "override"
             )},
             error = function(e) {
-                warning(msg = paste(
-                    "invalid configuration file informed in",
-                    "SITS_CONFIG_USER_FILE"), call. = TRUE)
+                warning(.conf("messages", ".conf_user_env_var"), call. = TRUE)
             }
         )
     }
@@ -403,6 +408,7 @@
 #' @noRd
 #' @return user configuration file
 .conf_set_user_file <- function(config_user_file = NULL) {
+    .check_set_caller(".conf_set_user_file")
     # try to find a valid user configuration file
     # check config user file is valid
     if (.has(config_user_file) && !is.na(config_user_file)) {
@@ -410,7 +416,7 @@
             yaml::yaml.load_file(config_user_file, error.label = "",
                                  readLines.warn = FALSE),
             error = function(e) {
-                stop("invalid user configuration file", call. = TRUE)
+                stop(.conf("messages", ".conf_set_user_file"), call. = TRUE)
             }
         )
     } else {
@@ -474,11 +480,7 @@
     )
     .check_chr_within(
         x = bands,
-        within = c(sits_bands, source_bands),
-        msg = paste(
-            "invalid bands.\nPlease verify",
-            "the provided bands."
-        )
+        within = c(sits_bands, source_bands)
     )
     return(invisible(bands))
 }
@@ -530,20 +532,20 @@
     # pre-condition
     .check_chr_parameter(s3_class,
         allow_empty = FALSE, len_min = 1,
-        msg = "invalid 's3_class' parameter"
+        msg = .conf("messages", ".conf_new_source_s3class")
     )
 
     if (!is.null(service)) {
         .check_chr_parameter(service,
             allow_empty = FALSE, len_min = 1, len_max = 1,
-            msg = "invalid 'service' parameter"
+            msg = .conf("messages", ".conf_new_source_service")
         )
     }
     if (!is.null(url)) {
         .check_chr_parameter(url,
             allow_empty = FALSE, len_min = 1, len_max = 1,
             regex = '^(http|https)://[^ "]+$',
-            msg = "invalid 'url' parameter"
+            msg = .conf("messages", ".conf_new_source_url")
         )
     }
     .check_lst(collections, len_min = 1)
@@ -553,7 +555,7 @@
         # pre-condition
         .check_lst_parameter(collection,
             len_min = 1,
-            msg = "invalid 'collections' parameter"
+            msg = .conf("messages", ".conf_new_source_collections")
         )
         # collection members must be lower case
         names(collection) <- tolower(names(collection))
@@ -561,7 +563,7 @@
             {
                 do.call(.conf_new_collection, args = collection)
             },
-            msg = "invalid 'collections' parameter"
+            msg = .conf("messages", ".conf_new_source_collections")
         )
         return(collection)
     })
@@ -569,7 +571,7 @@
     # extra parameters
     dots <- list(...)
     .check_lst_parameter(dots, len_min = 0,
-                         msg = "invalid extra arguments in collection")
+                msg = .conf("messages", ".conf_new_source_collections_args"))
 
     return(c(list(
         s3_class = s3_class,
@@ -595,20 +597,20 @@
     # set caller to show in errors
     .check_set_caller(".conf_new_collection")
     # check satellite
-    .check_chr(satellite,
+    .check_chr_parameter(satellite,
         allow_null = TRUE,
-        msg = "invalid 'satellite' value"
+        msg = .conf("messages", ".conf_new_collection_satellite")
     )
     #  check sensor
     .check_chr(sensor,
         allow_null = TRUE,
-        msg = "invalid 'sensor' value"
+        msg = .conf("messages", ".conf_new_collection_sensor")
     )
     # check metadata_search
     if (!missing(metadata_search)) {
         .check_chr_within(metadata_search,
             within = .conf("metadata_search_strategies"),
-            msg = "invalid 'metadata_search' value"
+            msg = .conf("messages", ".conf_new_collection_metadata")
         )
     }
     # bands names is upper case
@@ -621,7 +623,7 @@
         # pre-condition
         .check_lst(bands,
             len_min = 1,
-            msg = "invalid 'bands' parameter"
+            msg = .conf("messages", ".conf_new_collection_bands")
         )
         # bands' members are lower case
         names(band) <- tolower(names(band))
@@ -629,7 +631,7 @@
             {
                 do.call(.conf_new_band, args = band)
             },
-            msg = "invalid 'bands' parameter"
+            msg = .conf("messages", ".conf_new_collection_bands")
         )
         return(band)
     })
@@ -638,7 +640,7 @@
         # pre-condition
         .check_lst(bands,
             len_min = 1,
-            msg = "invalid 'bands' parameter"
+            msg = .conf("messages", ".conf_new_collection_bands")
         )
         # bands' members are lower case
         names(cloud_band) <- tolower(names(cloud_band))
@@ -646,14 +648,16 @@
             {
                 do.call(.conf_new_cloud_band, args = cloud_band)
             },
-            msg = "invalid 'bands' parameter"
+            msg = .conf("messages", ".conf_new_collection_bands")
         )
         return(cloud_band)
     })
 
     # extra parameters
     dots <- list(...)
-    .check_lst(dots, msg = "invalid extra arguments in collection")
+    .check_lst(dots,
+               msg = .conf("messages", ".conf_new_collection_metadata_args")
+    )
 
     res <- c(list(bands = c(non_cloud_bands, cloud_band)),
         "satellite" = satellite,
@@ -663,11 +667,11 @@
     # post-condition
     .check_lst(res,
         len_min = 1,
-        msg = "invalid 'collection' value"
+        msg = .conf("messages", ".conf_new_collection")
     )
     .check_lst(res$bands,
         len_min = 1,
-        msg = "invalid collection 'bands' value"
+        msg = .conf("messages", ".conf_new_collection_bands")
     )
     # return a new collection data
     return(res)
@@ -695,57 +699,50 @@
                            resolution, ...) {
     .check_set_caller(".conf_new_band")
     # pre-condition
-    .check_num(
-        x = missing_value,
+    .check_num_parameter(
+        missing_value,
         len_min = 1,
-        len_max = 1,
-        msg = "invalid 'missing_value' parameter"
+        len_max = 1
     )
-    .check_num(
-        x = minimum_value,
+    .check_num_parameter(
+        minimum_value,
         len_min = 1,
-        len_max = 1,
-        msg = "invalid 'minimum_value' parameter"
+        len_max = 1
     )
-    .check_num(
+    .check_num_parameter(
         x = maximum_value,
         len_min = 1,
-        len_max = 1,
-        msg = "invalid 'maximum_value' parameter"
+        len_max = 1
     )
-    .check_num(
-        x = scale_factor,
+    .check_num_parameter(
+        scale_factor,
         len_min = 1,
         len_max = 1,
-        exclusive_min = 0,
-        msg = "invalid 'scale_factor' parameter"
+        exclusive_min = 0
     )
-    .check_num(
-        x = offset_value,
+    .check_num_parameter(
+        offset_value,
         len_min = 1,
-        len_max = 1,
-        msg = "invalid 'offset_value' parameter"
+        len_max = 1
     )
-    .check_num(
-        x = resolution,
+    .check_num_parameter(
+        resolution,
         exclusive_min = 0,
         len_min = 1,
         len_max = 1,
-        allow_null = TRUE,
-        msg = "invalid 'resolution' parameter"
+        allow_null = TRUE
     )
     .check_chr(
-        x = band_name,
+        band_name,
         allow_empty = FALSE,
         len_min = 1,
-        len_max = 1,
-        msg = "invalid 'band_name' value"
+        len_max = 1
     )
     # extra parameters
     dots <- list(...)
-    .check_lst(dots, "invalid extra arguments in band")
+    .check_lst(dots, msg = .conf("messages", ".check_new_band_dots"))
 
-    res <- c(list(
+    new_band_params <- c(list(
         missing_value = missing_value,
         minimum_value = minimum_value,
         maximum_value = maximum_value,
@@ -756,12 +753,11 @@
     ), dots)
 
     # post-condition
-    .check_lst(res,
-        len_min = 7,
-        msg = "invalid 'band' value"
+    .check_lst_parameter(new_band_params,
+        len_min = 7
     )
     # return a band object
-    return(res)
+    return(new_band_params)
 }
 #' @title Include a new cloud band in the configuration
 #' @name .conf_new_cloud_band
@@ -790,9 +786,9 @@
 
     # extra parameters
     dots <- list(...)
-    .check_lst(dots, "invalid extra arguments in cloud band")
+    .check_lst(dots, msg = .conf("messages", ".check_new_cloud_band_dots"))
 
-    res <- c(list(
+    cloud_band_params <- c(list(
         bit_mask = bit_mask,
         values = values,
         interp_values = interp_values,
@@ -801,13 +797,10 @@
     ), dots)
 
     # post-condition
-    .check_lst(res,
-        len_min = 5,
-        msg = "invalid 'band' value"
-    )
+    .check_lst_parameter(cloud_band_params, len_min = 5)
 
     # return a cloud band object
-    return(res)
+    return(cloud_band_params)
 }
 #' @title Retrieve the rstac pagination limit
 #' @name .conf_rstac_limit
@@ -816,11 +809,6 @@
 #' @return pagination limit to rstac output
 .conf_rstac_limit <- function() {
     res <- .conf("rstac_pagination_limit")
-    # post-condition
-    .check_num(res,
-        min = 1, len_min = 1, len_max = 1,
-        msg = "invalid 'rstac_pagination_limit' in config file"
-    )
     return(res)
 }
 #' @title Retrieve the raster package to be used
@@ -831,16 +819,6 @@
 #'
 .conf_raster_pkg <- function() {
     res <- .conf("raster_api_package")
-    # post-condition
-    .check_chr(res,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'raster_api_package' in config file"
-    )
-    .check_chr_within(res,
-        within = .raster_supported_packages(),
-        discriminator = "one_of",
-        msg = "invalid 'raster_api_package' in config file"
-    )
     return(res)
 }
 #' @title Basic access config functions
@@ -862,6 +840,7 @@
 #' }
 NULL
 #' @title Check if a key exists in config
+#' @name .conf_exists
 #' @noRd
 #' @param throw_error  Should an error be thrown if test fails?
 #' @returns  A logical value or an error if key not found and
@@ -1094,7 +1073,7 @@ NULL
 #' @param parse_info  Parse information set by user
 #' @param results_cube Is this a results cube?
 #' @return  Valid parse_info information
-.conf_parse_info <- function(parse_info, results_cube) {
+.conf_parse_info <- function(parse_info, results_cube = FALSE) {
     # is parse info NULL? use the default
     if (!.has(parse_info)) {
         if (results_cube) {
@@ -1102,6 +1081,7 @@ NULL
         } else {
             parse_info <- .conf("local_parse_info_def")
         }
+        return(parse_info)
     }
 
     # precondition - does the parse info have band and date?
@@ -1109,16 +1089,13 @@ NULL
         .check_chr_contains(
             parse_info,
             contains = .conf("results_parse_info_col"),
-            msg = paste(
-                "parse_info must include tile, start_date, end_date,",
-                "and band."
-            )
+            msg = .conf("messages", ".conf_parse_info_results")
         )
     } else {
         .check_chr_contains(
             parse_info,
             contains = .conf("local_parse_info_col"),
-            msg = "parse_info must include tile, date, and band."
+            msg = .conf("messages", ".conf_parse_info")
         )
     }
     return(parse_info)

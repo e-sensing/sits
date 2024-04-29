@@ -202,7 +202,7 @@ sits_colors_reset <- function() {
 #'            "4" = "Forest")
 #'   )
 #'   qml_file <- paste0(tempdir(), "/qgis.qml")
-#'   sits_colors_qgis(ro_class, )
+#'   sits_colors_qgis(ro_class, qml_file)
 #' }
 #' @export
 #'

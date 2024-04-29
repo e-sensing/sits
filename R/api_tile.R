@@ -224,7 +224,7 @@ NULL
 
 #' @export
 .tile_update_label.default <- function(tile, labels) {
-    stop("tile is not a classified cube")
+    stop(.conf("messages", ".tile_update_label_default"))
 }
 
 #' @title Get/Set labels
@@ -1308,7 +1308,7 @@ NULL
 }
 #' @export
 .tile_area_freq.raster_cube <- function(tile) {
-    stop("Cube is not a classified cube")
+    stop(.conf("messages", ".tile_area_freq_raster_cube"))
 }
 #' @export
 .tile_area_freq.default <- function(tile) {
@@ -1332,14 +1332,13 @@ NULL
 #' @return Numeric matrix with raster values for each coordinate.
 #'
 .tile_extract <- function(tile, band, xy) {
+    .check_set_caller(".tile_extract")
     # Create a stack object
     r_obj <- .raster_open_rast(.tile_paths(tile = tile, bands = band))
     # Extract the values
     values <- .raster_extract(r_obj, xy)
     # Is the data valid?
-    if (nrow(values) != nrow(xy)) {
-        stop("number of extracted points differ from requested points")
-    }
+    .check_that(nrow(values) == nrow(xy))
     # Return values
     values
 }

@@ -237,14 +237,12 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
 #' @rdname sits_accuracy
 #' @export
 sits_accuracy.raster_cube <- function(data, ...) {
-    msg <- .conf("messages", "sits_accuracy_raster_cube")
-    stop(msg)
+    stop(.conf("messages", "sits_accuracy_raster_cube"))
 }
 #' @rdname sits_accuracy
 #' @export
 sits_accuracy.derived_cube <- function(data, ...) {
-    msg <- .conf("messages", "sits_accuracy_raster_cube")
-    stop(msg)
+    stop(.conf("messages", "sits_accuracy_raster_cube"))
 }
 #' @rdname sits_accuracy
 #' @export

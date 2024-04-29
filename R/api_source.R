@@ -81,6 +81,7 @@ NULL
 #' @return service name or
 #' \code{NA} if no service is associated with a given source.
 .source_service <- function(source) {
+    .check_set_caller(".source_service")
     # source is upper case
     source <- toupper(source)
     # pre-condition
@@ -88,13 +89,9 @@ NULL
     # get service name
     service <- .conf("sources", source, "service")
     # post-condition
-    .check_chr(service,
+    .check_chr_parameter(service,
         allow_na = TRUE, allow_empty = FALSE,
-        len_min = 1, len_max = 1,
-        msg = sprintf(
-            "invalid 'service' for source %s in config file",
-            source
-        )
+        len_min = 1, len_max = 1
     )
     return(service)
 }
@@ -104,6 +101,7 @@ NULL
 #' @description Returns the s3 class for a given source.
 #' @return a vector of classes.
 .source_s3class <- function(source) {
+    .check_set_caller(".source_s3class")
     # source is upper case
     source <- toupper(source)
     # pre-condition
@@ -111,12 +109,9 @@ NULL
     # set class
     s3_class <- .conf("sources", source, "s3_class")
     # post-condition
-    .check_chr(s3_class,
-        allow_empty = FALSE, len_min = 1,
-        msg = sprintf(
-            "invalid 's3_class' for source %s in config file",
-            source
-        )
+    .check_chr_parameter(s3_class,
+        allow_empty = FALSE,
+        len_min = 1
     )
     return(s3_class)
 }
@@ -126,6 +121,7 @@ NULL
 #' @description get the URL associated with a source.
 #' @return a valid URL or  \code{NA}
 .source_url <- function(source) {
+    .check_set_caller(".source_url")
     # source is upper case
     source <- toupper(source)
     # pre-condition
@@ -133,13 +129,9 @@ NULL
     # get URL
     url <- .conf("sources", source, "url")
     # post-condition
-    .check_chr(url,
-        allow_na = TRUE, allow_empty = FALSE,
-        len_min = 1, len_max = 1,
-        msg = sprintf(
-            "invalid 'url' for source %s in config file",
-            source
-        )
+    .check_chr_parameter(url,
+        allow_na = FALSE, allow_empty = FALSE,
+        len_min = 1, len_max = 1
     )
     return(url)
 }
@@ -273,6 +265,7 @@ NULL
 .source_bands_band_name <- function(source,
                                     collection, ...,
                                     bands = NULL) {
+    .check_set_caller(".source_bands_band_name")
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -291,8 +284,7 @@ NULL
     # post-conditions
     .check_chr(bands,
         allow_na = FALSE, allow_empty = FALSE,
-        len_min = length(bands), len_max = length(bands),
-        msg = "inconsistent 'band_name' values"
+        len_min = length(bands), len_max = length(bands)
     )
     return(bands)
 }
@@ -309,6 +301,7 @@ NULL
                                      bands = NULL,
                                      fn_filter = NULL,
                                      add_cloud = TRUE) {
+    .check_set_caller(".source_bands_resolution")
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -325,12 +318,11 @@ NULL
         add_cloud = add_cloud
     )
     # post-condition
-    .check_lst(
-        x = resolution,
+    .check_lst_parameter(
+        resolution,
         fn_check = .check_num,
         exclusive_min = 0,
-        len_min = 1,
-        msg = "invalid 'resolution' in config file"
+        len_min = 1
     )
     return(resolution)
 }
@@ -376,6 +368,7 @@ NULL
 #' @return \code{.source_bands_to_source()} returns a \code{character} vector
 #' with all converted bands name.
 .source_bands_to_source <- function(source, collection, bands) {
+    .check_set_caller(".source_bands_to_source")
     # bands are upper case
     bands <- toupper(bands)
     # bands sits
@@ -391,8 +384,7 @@ NULL
     bands_converter <- c(bands_to_source, bands_source)
     # post-condition
     .check_chr_within(bands,
-        within = names(bands_converter),
-        msg = "invalid 'bands' parameter"
+        within = names(bands_converter)
     )
     return(unname(bands_converter[bands]))
 }
@@ -443,6 +435,7 @@ NULL
 #' all values/or bits description of a cloud band.
 .source_cloud_values <- function(source,
                                  collection) {
+    .check_set_caller(".source_cloud_values")
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -450,15 +443,15 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
     # get values
-    vls <- .conf(
+    cloud_values <- .conf(
         "sources", source,
         "collections", collection,
         "bands", .source_cloud(),
         "values"
     )
     # post-condition
-    .check_lst(vls, msg = "invalid cloud 'values' in config file")
-    return(vls)
+    .check_lst_parameter(cloud_values)
+    return(cloud_values)
 }
 
 #' @rdname .source_bands
@@ -470,6 +463,7 @@ NULL
 #' @return \code{.source_cloud_interp_values()} returns a \code{numeric}
 #' vector with all values/or bits to be interpolated if found in the cloud band.
 .source_cloud_interp_values <- function(source, collection) {
+    .check_set_caller(".source_cloud_interp_vales")
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -477,15 +471,16 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
     # get values
-    vls <- .conf(
+    cloud_interp_values <- .conf(
         "sources", source,
         "collections", collection,
         "bands", .source_cloud(),
         "interp_values"
     )
     # post-condition
-    .check_num(vls, msg = "invalid 'interp_values' in config file")
-    return(vls)
+    .check_num_parameter(cloud_interp_values, len_max = Inf)
+
+    return(cloud_interp_values)
 }
 
 #' @title Source collection functions
@@ -614,6 +609,7 @@ NULL
 #'
 .source_collection_name <- function(source,
                                     collection) {
+    .check_set_caller(".source_collection_name")
     # source is upper case
     source <- toupper(source)
     # collection is upper case
@@ -623,17 +619,16 @@ NULL
         source = source,
         collection = collection
     )
-    res <- .conf(
+    collection_name <- .conf(
         "sources", source,
         "collections", collection,
         "collection_name"
     )
     # post-condition
-    .check_chr(res,
-        allow_empty = FALSE, len_min = 1, len_max = 1,
-        msg = "invalid 'collection_name' value"
+    .check_chr_parameter(collection_name,
+        allow_empty = FALSE, len_min = 1, len_max = 1
     )
-    return(res)
+    return(collection_name)
 }
 
 #' @rdname .source_collection
@@ -714,6 +709,7 @@ NULL
 #' no error occurs.
 #'
 .source_collection_tile_check <- function(source, collection, tiles) {
+    .check_set_caller(".source_collection_tile_check")
     res <- .try(
         .conf(
             "sources", source,
@@ -724,14 +720,10 @@ NULL
     )
     if (res) {
         # Are the tiles provided?
-        .check_chr(
+        .check_chr_parameter(
             x = tiles,
             allow_empty = FALSE,
-            len_min = 1,
-            msg = paste(
-                "for ", source, " collection ", collection,
-                "please inform the tiles of the region of interest"
-            )
+            len_min = 1
         )
     }
     return(invisible(NULL))
@@ -906,16 +898,14 @@ NULL
 #' @return \code{.source_items_get_sensor()} returns a \code{character} value.
 #'
 .source_collection_sensor <- function(source, collection) {
-    res <- .conf(
+    .check_set_caller(".source_collection_sensor")
+    sensor <- .conf(
         "sources", source,
         "collections", collection,
         "sensor"
     )
-    .check_chr(res,
-        allow_null = TRUE,
-        msg = "invalid 'sensor' value"
-    )
-    return(res)
+    .check_chr_parameter(sensor, allow_null = TRUE)
+    return(sensor)
 }
 
 #' @rdname .source_cube
@@ -927,16 +917,14 @@ NULL
 #' value.
 #'
 .source_collection_satellite <- function(source, collection) {
-    res <- .conf(
+    .check_set_caller(".source_collection_satellite")
+    satellite <- .conf(
         "sources", source,
         "collections", collection,
         "satellite"
     )
-    .check_chr(res,
-        allow_null = TRUE,
-        msg = "invalid 'satellite' value"
-    )
-    return(res)
+    .check_chr_parameter(satellite, allow_null = TRUE)
+    return(satellite)
 }
 #' @rdname .source_cube
 #' @noRd
@@ -946,16 +934,14 @@ NULL
 #' @return \code{character}
 #'
 .source_collection_grid_system <- function(source, collection) {
-    res <- .conf(
+    .check_set_caller(".source_collection_grid_system")
+    grid_system <- .conf(
         "sources", source,
         "collections", collection,
         "grid_system"
     )
-    .check_chr(res,
-        allow_null = TRUE,
-        msg = "invalid 'grid_system' value"
-    )
-    return(res)
+    .check_chr(grid_system, allow_null = TRUE)
+    return(grid_system)
 }
 
 #' @rdname .source_cube

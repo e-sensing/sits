@@ -49,7 +49,7 @@ NULL
     if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
         class(cube) <- c("raster_cube", class(cube))
     } else {
-        stop("Input is not a valid data cube")
+        stop(.conf("messages", ".cube_find_class"))
     }
     if (all(sits_bands(cube) %in% .conf("sits_probs_bands"))) {
         class(cube) <- c("probs_cube", "derived_cube", class(cube))
@@ -71,7 +71,7 @@ NULL
         cube <- tibble::as_tibble(cube)
         cube <- .cube_find_class(cube)
     } else {
-        stop("input cannot be converted to object of class cube")
+        stop(.conf("messages", ".cube_find_class"))
     }
     return(cube)
 }
@@ -205,7 +205,7 @@ NULL
         class(cube) <- c("raster_cube", class(cube))
         bands <- .cube_bands(cube)
     } else {
-        stop("Input is not a valid data cube")
+        stop(.conf("messages", "cube_bands"))
     }
     return(bands)
 }
@@ -216,7 +216,7 @@ NULL
         cube <- tibble::as_tibble(cube)
         bands <- .cube_bands(cube, add_cloud, dissolve)
     } else {
-        stop("input cannot be converted to object of class cube")
+        stop(.conf("messages", "cube_bands"))
     }
     return(bands)
 }
@@ -246,7 +246,7 @@ NULL
         class(cube) <- c("raster_cube", class(cube))
         labels <- .cube_labels(cube)
     } else {
-        stop("Input is not a valid data cube")
+        stop(.conf("messages", "cube_labels"))
     }
     return(labels)
 }
@@ -258,7 +258,7 @@ NULL
         labels <- .cube_labels(cube, dissolve)
         return(labels)
     } else {
-        stop("input cannot be converted to object of class cube")
+        stop(.conf("messages", "cube_labels"))
     }
 }
 #' @title Return collection of a data cube
@@ -282,7 +282,7 @@ NULL
         collection <- .cube_collection(cube)
         return(collection)
     } else {
-        stop("input cannot be converted to object of class cube")
+        stop(.conf("messages", "cube_collection"))
     }
 }
 #' @title Return crs of a data cube

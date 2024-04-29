@@ -88,7 +88,7 @@ test_that("Creating Sentinel-1 RTC cubes from CDSE", {
     # Patch environment variables
     .environment_patch(cdse_env_config)
     # Test
-    cube_s1_rtc <- .try(
+    cube_s1_rtc <-  .try(
         {
             sits_cube(
                 source = "CDSE",
@@ -98,7 +98,6 @@ test_that("Creating Sentinel-1 RTC cubes from CDSE", {
                 tiles = c("36NWH"),
                 start_date = "2021-07-01",
                 end_date = "2021-09-30",
-                progress = FALSE,
                 multicores = 1L
             )
         },
