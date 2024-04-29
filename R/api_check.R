@@ -198,10 +198,10 @@
         if (is.null(msg))
             msg <- .conf("messages", caller)
         # include local message if available
-        if (!(is.null(local_msg)))
-            msg <- paste0(caller,": ", local_msg, " - ", msg)
+        if (is.null(local_msg))
+            msg <- paste0(caller, ": ", msg)
         else
-            msg <- paste0(caller,": ", msg)
+            msg <- paste0(caller, ": ", local_msg, " - ", msg)
         # process message
         stop(msg, call. = FALSE)
     }
@@ -226,7 +226,7 @@
 .check_na <- function(x, ..., allow_na = FALSE, local_msg = NULL, msg = NULL) {
     if (!allow_na) {
         .check_that(
-            !any(is.na(x)),
+            !anyNA(x),
             local_msg = local_msg,
             msg = msg
         )
@@ -248,22 +248,22 @@
     }
     if (is_named) {
         .check_that(
-            !(is.null(names(x))) && !any(is.na(names(x))),
+            .has(names(x)) && !anyNA(names(x)),
             local_msg = local_msg,
-            msg = .conf("messages", ".check_names_is_named"),
+            msg = .conf("messages", ".check_names_is_named")
         )
         if (is_unique) {
             .check_that(
                 length(names(x)) == length(unique(names(x))),
                 local_msg = local_msg,
-                msg = .conf("messages", ".check_names_is_unnamed")
+                msg = .conf("messages", ".check_names_unique" )
             )
         }
     } else {
         .check_that(
             is.null(names(x)),
             local_msg = local_msg,
-            msg = .conf("messages", ".check_names_unique")
+            msg = .conf("messages", ".check_names_is_unnamed")
         )
     }
     return(invisible(x))
@@ -313,12 +313,12 @@
 #' (if \code{is_integer=TRUE}).
 #' }
 #' \item{
-#' \code{.check_chr_type()} checks for \code{character} type and empty strings (if
+#' \code{.check_chr_type()} checks for \code{character} and empty strings (if
 #' \code{allow_empty=FALSE}). It also checks strings through regular
 #' expression (if \code{regex} parameter is defined).
 #' }
 #' \item{
-#' \code{.check_lst_type()} checks for \code{list} type. By default, it checks if
+#' \code{.check_lst_type()} checks for \code{list} type. By default, checks if
 #' the list is named. Additionally, a function can be passed to
 #' \code{fn_check} parameter to check its elements. This enables to pass
 #' other checking functions like \code{.check_num()} to verify the type of
@@ -587,7 +587,6 @@
     .check_null(x, local_msg = local_msg, msg = msg)
     # check type
     .check_chr_type(x, local_msg = local_msg, msg = msg)
-    browser
     # check length
     .check_length(x, len_min = len_min, len_max = len_max,
                   local_msg = local_msg, msg = msg)
@@ -606,7 +605,7 @@
     # check duplicate
     if (!allow_duplicate) {
         .check_that(
-            all(!duplicated(x)),
+            anyDuplicated(x) == 0,
             local_msg = local_msg,
             msg = msg
         )
@@ -979,7 +978,7 @@
             expr
         },
         error = function(e) {
-            warning(e$message, call. = FALSE)
+            warning(e[["message"]], call. = FALSE)
         }
     )
     return(invisible(result))
@@ -1003,7 +1002,7 @@
             expr
         },
         error = function(e) {
-            .check_that(FALSE, local_msg = e$message, msg = msg)
+            .check_that(FALSE, local_msg = e[["message"]], msg = msg)
         }
     )
     return(invisible(result))
@@ -1044,7 +1043,7 @@
     local_msg <- paste("NA value not allowed for", param)
     if (!allow_na) {
         .check_that(
-            !any(is.na(x)),
+            !anyNA(x),
             local_msg = local_msg,
             msg = msg
         )
@@ -1401,7 +1400,7 @@
     )
     .check_chr_within(
         x = .conf("ts_predicted_cols"),
-        within = names(data$predicted[[1]])
+        within = names(data[["predicted"]][[1]])
     )
     return(invisible(data))
 }
@@ -1507,7 +1506,7 @@
             )
         }
         # labels should be named in class cubes?
-        if (bands %in% c("class")) {
+        if (bands == "class") {
             .check_length(
                 labels,
                 len_min = 2,
@@ -1593,9 +1592,9 @@
         class(data) <- c("list", class(data))
         data <- tibble::as_tibble(data)
         data <- .check_samples(data)
+    } else {
+        stop(.conf("messages", ".check_samples_default"))
     }
-    else
-        stop("data cannot be converted to tibble")
     return(invisible(data))
 }
 #' @rdname check_functions
@@ -1623,8 +1622,6 @@
     .check_set_caller(".check_samples_ts")
     data <- .check_samples(data)
     .check_that("time_series" %in% colnames(data))
-    # Get unnested time series
-    ts <- .samples_ts(data)
     # check there is an Index column
     .check_samples_ts_index(data)
     # check if all samples have the same bands
@@ -1673,7 +1670,7 @@
     # check that there is no NA in labels
     labels <- .samples_labels(data)
     .check_that(!("NoClass" %in% labels) && !("" %in% labels) &&
-            !any(is.na(labels)))
+            !anyNA(labels))
     # Get unnested time series
     ts <- .ts(data)
     # check there are no NA in distances
@@ -1734,7 +1731,7 @@
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_samples_timeline <- function(data){
+.check_samples_timeline <- function(data) {
     .check_set_caller(".check_samples_timeline")
     ts <- .ts(data)
     n_times <- unique(unlist(tapply(
@@ -1852,7 +1849,7 @@
         # get the frequency table
         freq <- .raster_freq(r)
         # get the classes as numerical values
-        classes_tile <- as.character(freq$value)
+        classes_tile <- as.character(freq[["value"]])
         names(classes_tile) <- file
         return(classes_tile)
     })
@@ -2122,7 +2119,7 @@
 .check_endmembers_tbl <- function(em) {
     .check_set_caller(".check_endmembers_tbl")
     # Pre-condition
-    .check_that(!any(is.na(em)))
+    .check_that(!anyNA(em))
     # Pre-condition
     .check_chr_contains(
         x = colnames(em),
@@ -2143,7 +2140,7 @@
 .check_endmembers_fracs <- function(em) {
     .check_set_caller(".check_endmembers_fracs")
     # Pre-condition
-    .check_that(all(length(.endmembers_fracs(em) >= 1)))
+    .check_that(all(length(.endmembers_fracs(em)) >= 1))
     return(invisible(em))
 }
 #' @title Checks if the bands required by endmembers exist
@@ -2242,18 +2239,15 @@
     )
     if (length(discriminator) != 1 ||
         !discriminator %in% names(discriminators)) {
-        stop(
-            paste(
-                ".check_chr_within: discriminator should be one of",
-                "'one_of', 'any_of', 'all_of', 'none_of', or 'exactly'."
-            ),
+        stop(".check_chr_within: discriminator should be one of",
+                "'one_of', 'any_of', 'all_of', 'none_of', or 'exactly'.",
             call. = TRUE
         )
     }
     return(invisible(discriminator))
 }
 #' @title Checks view bands are defined
-#' @name .check_view_bands_params
+#' @name .check_bw_rgb_bands
 #' @param band      B/W band for view
 #' @param red       Red band for view
 #' @param green     Green band for view
@@ -2261,32 +2255,32 @@
 #' @return Called for side effects
 #' @keywords internal
 #' @noRd
-.check_view_bands_params <- function(band, red, green, blue) {
-    .check_set_caller(".check_view_bands_params")
+.check_bw_rgb_bands <- function(band, red, green, blue) {
+    .check_set_caller(".check_bw_rgb_bands")
     .check_that(.has(band) || (.has(red) && .has(green) && .has(blue)))
 }
-#' @title Checks view bands
-#' @name .check_view_bands
+#' @title Check available bands
+#' @name .check_available_bands
 #' @param cube      Data cube
 #' @param band      B/W band for view
 #' @param red       Red band for view
 #' @param green     Green band for view
 #' @param blue      Blue band for view
-#' @return Called for side effects
+#' @return "BW" or "RGB"
 #' @keywords internal
 #' @noRd
-.check_view_bands <- function(cube, band, red, green, blue) {
-    .check_set_caller(".check_view_bands")
+.check_available_bands <- function(cube, band, red, green, blue) {
+    .check_set_caller(".check_available_bands")
     if (.has(band)) {
         # check band is available
         .check_that(band %in% .cube_bands(cube))
-    }
-    if (.has(red) && .has(green) && .has(blue)) {
+        return(invisible(TRUE))
+    } else if (.has(red) && .has(green) && .has(blue)) {
         bands <- c(red, green, blue)
         # check bands are available
         .check_that(all(bands %in% .cube_bands(cube)))
+        return(invisible(TRUE))
     }
-    return(invisible(cube))
 }
 
 #' @title Check if the provided object is a vector
@@ -2323,7 +2317,7 @@
 #' @return Called for side effects
 #' @keywords internal
 #' @noRd
-.check_tiles <- function(tiles){
+.check_tiles <- function(tiles) {
     .check_set_caller(".check_tiles")
     # pre-condition
     .check_that(length(tiles) >= 1)
@@ -2372,19 +2366,35 @@
     return(invisible(validation))
 }
 #' @title Checks filter function
+#' @description
+#' Checks if the paramter is a function
 #' @param filter_fn     Filter function
 #' @return Called for side effects
 #' @keywords internal
 #' @noRd
-.check_filter_fn <- function(filter_fn){
+.check_filter_fn <- function(filter_fn) {
     .check_set_caller(".check_filter_fn")
     .check_that(is.function(filter_fn))
 }
-.check_dist_method <- function(dist_method){
+#' @title Checks distance method
+#' @description
+#' Checks if the parameter is a valid distance method for a dendrogram
+#' @param dist_method    Distance method
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_dist_method <- function(dist_method) {
     .check_set_caller(".check_dist_method")
     .check_that(dist_method %in% .conf("dendro_dist_method"))
 }
-.check_linkage_method <- function(linkage){
+#' @title Checks linkage method
+#' @description
+#' Checks if the parameter is a valid linkage method for a dendrogram
+#' @param linkage    Linkage method
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_linkage_method <- function(linkage) {
     .check_set_caller(".check_linkage_method")
     .check_that(linkage %in% .conf("dendro_linkage"))
 }

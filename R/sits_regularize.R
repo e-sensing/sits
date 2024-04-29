@@ -125,13 +125,11 @@ sits_regularize.raster_cube <- function(cube, ...,
     .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
     # Does cube contain cloud band?
-    if (!all(.cube_contains_cloud(cube))) {
-        if (.check_warnings()) {
-            warning(.conf("messages", "sits_regularize_cloud"),
-                    call. = FALSE,
-                    immediate. = TRUE
-            )
-        }
+    if (!all(.cube_contains_cloud(cube)) && .check_warnings()) {
+        warning(.conf("messages", "sits_regularize_cloud"),
+                call. = FALSE,
+                immediate. = TRUE
+        )
     }
     if (.has(roi)) {
         crs <- NULL
@@ -147,12 +145,10 @@ sits_regularize.raster_cube <- function(cube, ...,
         roi <- .roi_as_sf(roi, default_crs = crs[[1]])
     }
     # Display warning message in case STAC cube
-    if (!.cube_is_local(cube)) {
-        if (.check_warnings()) {
-            warning(.conf("messages", "sits_regularize_local"),
+    if (!.cube_is_local(cube) && .check_warnings()) {
+        warning(.conf("messages", "sits_regularize_local"),
                     call. = FALSE, immediate. = TRUE
-            )
-        }
+        )
     }
     # Regularize
     .gc_regularize(

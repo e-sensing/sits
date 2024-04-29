@@ -7,7 +7,7 @@
 \method{plot}{uncertainty_cube}(
   x,
   ...,
-  tile = x$tile[[1]],
+  tile = x[["tile"]][[1]],
   palette = "RdYlGn",
   style = "cont",
   rev = TRUE,

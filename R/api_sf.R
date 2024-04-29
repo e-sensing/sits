@@ -28,7 +28,7 @@
     # Pre-condition - is the sf object has geometries?
     .check_that(nrow(sf_object) > 0)
     # Precondition - can the function deal with the geometry_type?
-    geom_type <- as.character(sf::st_geometry_type(sf_object)[1])
+    geom_type <- as.character(sf::st_geometry_type(sf_object)[[1]])
     sf_geom_types_supported <- .conf("sf_geom_types_supported")
     .check_that(geom_type %in% sf_geom_types_supported)
 
@@ -81,8 +81,7 @@
     are_empty_geoms <- sf::st_is_empty(sf_object)
     if (any(are_empty_geoms)) {
         if (.check_warnings()) {
-            warning(
-                "Some empty geometries were removed.",
+            warning(.conf("messages", ".sf_to_tibble"),
                 immediate. = TRUE, call. = FALSE
             )
         }
@@ -94,16 +93,16 @@
     )
 
     # Get the geometry type
-    geom_type <- as.character(sf::st_geometry_type(sf_object)[1])
+    geom_type <- as.character(sf::st_geometry_type(sf_object)[[1]])
     # Get a tibble with points and labels
     points_tbl <- switch(geom_type,
-        "POINT" = .sf_point_to_tibble(
+        POINT = .sf_point_to_tibble(
             sf_object  = sf_object,
             label_attr = label_attr,
             label      = label
         ),
-        "POLYGON" = ,
-        "MULTIPOLYGON" = .sf_polygon_to_tibble(
+        POLYGON = ,
+        MULTIPOLYGON = .sf_polygon_to_tibble(
             sf_object  = sf_object,
             label_attr = label_attr,
             label      = label,
@@ -221,8 +220,8 @@
                 purrr::pmap_dfr(function(p) {
                     pll <- sf::st_geometry(p)[[1]]
                     row <- tibble::tibble(
-                        longitude = pll[1],
-                        latitude = pll[2],
+                        longitude = pll[[1]],
+                        latitude = pll[[2]],
                         label = label
                     )
 

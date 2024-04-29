@@ -7,7 +7,7 @@
 \method{plot}{class_vector_cube}(
   x,
   ...,
-  tile = x$tile[[1]],
+  tile = x[["tile"]][[1]],
   legend = NULL,
   seg_color = "black",
   line_width = 0.5,

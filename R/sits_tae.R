@@ -179,7 +179,8 @@ sits_tae <- function(samples = NULL,
                 pred = train_samples, frac = validation_split
             )
             # Remove the lines used for validation
-            sel <- !train_samples$sample_id %in% test_samples$sample_id
+            sel <- !train_samples[["sample_id"]] %in%
+                test_samples[["sample_id"]]
             train_samples <- train_samples[sel, ]
         }
         n_samples_train <- nrow(train_samples)
@@ -276,7 +277,7 @@ sits_tae <- function(samples = NULL,
                 verbose = verbose
             )
         # Serialize model
-        serialized_model <- .torch_serialize_model(torch_model$model)
+        serialized_model <- .torch_serialize_model(torch_model[["model"]])
 
         # Function that predicts labels of input values
         predict_fun <- function(values) {
@@ -286,7 +287,7 @@ sits_tae <- function(samples = NULL,
             # Note: function does not work on MacOS
             suppressWarnings(torch::torch_set_num_threads(1))
             # Unserialize model
-            torch_model$model <- .torch_unserialize_model(serialized_model)
+            torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
             # Used to check values (below)
             n_input_pixels <- nrow(values)
             # Transform input into a 3D tensor
@@ -312,7 +313,7 @@ sits_tae <- function(samples = NULL,
                     stats::predict(object = torch_model, values),
                     .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
-            } else{
+            } else {
                 # Do CPU classification
                 values <- stats::predict(object = torch_model, values)
             }

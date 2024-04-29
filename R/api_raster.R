@@ -3,7 +3,7 @@
 #' @noRd
 #' @return   Names of raster packages supported by sits
 .raster_supported_packages <- function() {
-    return(c("terra"))
+    return("terra")
 }
 
 #' @title Check for raster package availability

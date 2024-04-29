@@ -156,7 +156,7 @@
     # create a leaflet for B/W bands
     if (.has(band)) {
         if (.has_not(dates))
-            dates <- .cube_timeline(cube)[[1]][1]
+            dates <- .cube_timeline(cube)[[1]][[1]]
         leaf_map <- leaf_map |>
             .view_bw_band(
                 cube = cube,
@@ -171,7 +171,7 @@
     if (.has(red) && .has(green) && .has(blue)) {
         # update the dates parameter
         if (.has_not(dates))
-            dates <- .cube_timeline(cube)[[1]][1]
+            dates <- .cube_timeline(cube)[[1]][[1]]
         leaf_map <- leaf_map |>
             .view_rgb_bands(
                 cube = cube,
@@ -267,8 +267,9 @@
     }
     leaflet_maxbytes <- 4 * new_nrows * new_ncols
     return(c(
-        "xsize" = new_ncols, "ysize" = new_nrows,
-        "leaflet_maxbytes" = leaflet_maxbytes
+        xsize = new_ncols,
+        ysize = new_nrows,
+        leaflet_maxbytes = leaflet_maxbytes
     ))
 }
 #' @title  Visualize a set of samples
@@ -284,6 +285,7 @@
 #' @return               A leaflet object
 #'
 .view_samples <- function(samples, legend, palette) {
+    .check_set_caller(".view_samples")
     # first select unique locations
     samples <- dplyr::distinct(
         samples,
@@ -300,7 +302,7 @@
     # get the bounding box
     samples_bbox <- sf::st_bbox(samples)
     # get the labels
-    labels <- sort(unique(samples$label))
+    labels <- sort(unique(samples[["label"]]))
 
     # if colors are not specified, get them from the configuration file
     if (.has_not(legend)) {
@@ -312,9 +314,8 @@
         )
     } else {
         .check_chr_within(
-            x = labels,
-            within = names(legend),
-            msg = "some labels are missing from the legend"
+            labels,
+            within = names(legend)
         )
         colors <- unname(legend[labels])
     }
@@ -342,12 +343,12 @@
         ) |>
         leaflet::addLayersControl(
             baseGroups = c("ESRI", "GeoPortalFrance", "OSM"),
-            overlayGroups = c("Samples"),
+            overlayGroups = "Samples",
             options = leaflet::layersControlOptions(collapsed = FALSE)
         ) |>
         leaflet::addLegend("topright",
             pal     = factpal,
-            values  = samples$label,
+            values  = samples[["label"]],
             title   = "Training Samples",
             opacity = 1
         )
@@ -365,20 +366,20 @@
     # create a leaflet and add providers
     leaf_map <- leaflet::leaflet() |>
         leaflet::addProviderTiles(
-            provider = leaflet::providers$GeoportailFrance.orthos,
+            provider = leaflet::providers[["GeoportailFrance.orthos"]],
             group = "GeoPortalFrance"
         ) |>
         leaflet::addProviderTiles(
-            provider = leaflet::providers$Esri.WorldImagery,
+            provider = leaflet::providers[["Esri.WorldImagery"]],
             group = "ESRI"
         ) |>
         leaflet::addProviderTiles(
-            provider = leaflet::providers$OpenStreetMap,
+            provider = leaflet::providers[["OpenStreetMap"]],
             group = "OSM"
         ) |>
         leaflet::addWMSTiles(
             baseUrl = "https://tiles.maps.eox.at/wms/",
-            layers = c("s2cloudless-2020_3857_512"),
+            layers = "s2cloudless-2020_3857_512",
             group = "Sentinel-2-2020"
         ) |>
         leafem::addMouseCoordinates()
@@ -402,8 +403,8 @@
             is_integer = TRUE,
             min = .conf("leaflet_min_megabytes"),
             max = .conf("leaflet_max_megabytes"),
-            msg = paste("view_max_mb should be btw ",
-                        .conf("leaflet_min_megabytes"), "MB and ",
+            msg = paste(.conf("messages",".view_set_max_mb"),
+                        .conf("leaflet_min_megabytes"), "MB & ",
                         .conf("leaflet_max_megabytes"), "MB")
         )
     }
@@ -451,7 +452,7 @@
             opacity = 1,
             fillOpacity = 0,
             weight = line_width,
-            group = "segments",
+            group = "segments"
         )
         # have the segments been classified?
         if ("class" %in% colnames(sf_seg)) {
@@ -510,7 +511,7 @@
                           palette,
                           output_size) {
     # adjust palette for SAR images
-    if ("sar_cube" %in% class(cube))
+    if (inherits(cube, "sar_cube"))
         palette <- grDevices::grey.colors(32, start = 0.05, end = 1.0)
     # obtain the raster objects for the dates chosen
     for (i in seq_along(dates)) {
@@ -585,8 +586,8 @@
                 rgb_files,
                 along = "band",
                 RasterIO = list(
-                    "nBufXSize" = output_size[["xsize"]],
-                    "nBufYSize" = output_size[["ysize"]]
+                    nBufXSize = output_size[["xsize"]],
+                    nBufYSize = output_size[["ysize"]]
                 ),
                 proxy = FALSE
             )
@@ -605,7 +606,7 @@
                 quantiles = c(0.1, 0.9),
                 project = FALSE,
                 group = paste(tile[["tile"]], date),
-                maxBytes = output_size["leaflet_maxbytes"]
+                maxBytes = output_size[["leaflet_maxbytes"]]
             )
         }
     }
@@ -638,7 +639,7 @@
     # should we overlay a classified image?
     if (.has(class_cube)) {
         # check that class_cube is valid
-        .check_that(inherits(class_cube, c("class_cube")))
+        .check_that(inherits(class_cube, "class_cube"))
         # get the labels
         labels <- unlist(.cube_labels(class_cube, dissolve = FALSE))
         if (.has_not(names(labels))) {
@@ -666,8 +667,8 @@
                 .tile_path(tile),
                 RAT = labels,
                 RasterIO = list(
-                    "nBufXSize" = output_size[["xsize"]],
-                    "nBufYSize" = output_size[["ysize"]]
+                    nBufXSize = output_size[["xsize"]],
+                    nBufYSize = output_size[["ysize"]]
                 ),
                 proxy = FALSE
             )
@@ -696,7 +697,7 @@
                 method = "ngb",
                 group = "classification",
                 project = FALSE,
-                maxBytes = output_size["leaflet_maxbytes"]
+                maxBytes = output_size[["leaflet_maxbytes"]]
             )
     }
     return(leaf_map)
@@ -713,8 +714,8 @@
         band_file,
         along = "band",
         RasterIO = list(
-            "nBufXSize" = output_size[["xsize"]],
-            "nBufYSize" = output_size[["ysize"]]
+            nBufXSize = output_size[["xsize"]],
+            nBufYSize = output_size[["ysize"]]
         ),
         proxy = FALSE
     )
@@ -736,7 +737,7 @@
         colors = palette,
         project = FALSE,
         group = group,
-        maxBytes = output_size["leaflet_maxbytes"]
+        maxBytes = output_size[["leaflet_maxbytes"]]
     )
     return(leaf_map)
 }
@@ -756,7 +757,7 @@
     timeline <- .cube_timeline(cube)[[1]]
 
     if (.has_not(dates)) {
-        dates <- timeline[1]
+        dates <- timeline[[1]]
     }
     return(dates)
 }
@@ -774,7 +775,7 @@
 .view_filter_tiles <- function(cube, tiles) {
     .check_set_caller(".view_filter_tiles")
     # try to find tiles in the list of tiles of the cube
-    .check_that(all(tiles %in% cube$tile))
+    .check_that(all(tiles %in% cube[["tile"]]))
     # filter the tiles to be processed
     cube <- .cube_filter_tiles(cube, tiles)
     return(cube)
@@ -789,7 +790,7 @@
 #' @return               Labels
 #'
 #'
-.view_get_labels_raster <- function(class_cube){
+.view_get_labels_raster <- function(class_cube) {
     labels <- unlist(.cube_labels(class_cube, dissolve = FALSE))
     return(labels)
 }
@@ -809,7 +810,7 @@
                                     legend = NULL,
                                     palette = NULL) {
     # get segments from cube
-    labels <- slider::slide(cube, function(tile){
+    labels <- slider::slide(cube, function(tile) {
         # retrieve the segments for this tile
         segments <- .segments_read_vec(tile)
         # dissolve segments
@@ -934,14 +935,7 @@
 .view_add_overlay_grps.class_cube <- function(cube, ...,
                                                 dates = NULL,
                                                 class_cube = NULL) {
-
-    # overlay_groups <- NULL
-    # grps <- unlist(purrr::map(cube[["tile"]], function(tile) {
-    #     paste(tile, .cube_bands(cube))
-    # }))
-    # overlay_groups <- c(overlay_groups, grps)
-    # # add class_cube
-    overlay_groups <- c("classification")
+    overlay_groups <- "classification"
     return(overlay_groups)
 }
 #'
@@ -957,7 +951,7 @@
         overlay_groups <- c(overlay_groups, grps)
     }
     overlay_groups <- c(overlay_groups, "segments")
-    if ("class_vector_cube" %in% class(cube))
+    if (inherits(cube, "class_vector_cube"))
         overlay_groups <- c(overlay_groups, "class_segments")
     if (.has(class_cube))
         overlay_groups <- c(overlay_groups, "classification")
@@ -973,8 +967,8 @@
 #' @return               Base maps used in leaflet map
 #'
 .view_get_base_maps <- function(leaf_map) {
-    base_maps <- purrr::map_chr(leaf_map$x$calls, function(c) {
-        return(c$args[[3]])
+    base_maps <- purrr::map_chr(leaf_map[["x"]][["calls"]], function(bm) {
+        return(bm[["args"]][[3]])
     })
     return(base_maps)
 }

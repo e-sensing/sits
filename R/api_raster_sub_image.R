@@ -44,7 +44,7 @@
 
     # pre-conditions
     .check_that(
-            bbox[["xmin"]] < bbox[["xmax"]]   &&
+        bbox[["xmin"]] < bbox[["xmax"]]   &&
             bbox[["ymin"]] < bbox[["ymax"]]   &&
             bbox[["xmin"]] >= tile[["xmin"]]  &&
             bbox[["xmax"]] <= tile[["xmax"]]  &&
@@ -101,7 +101,7 @@
     .check_num_parameter(subimage_xmin,
         min = tile[["xmin"]],
         max = tile[["xmax"]],
-        tolerance = tolerance,
+        tolerance = tolerance
     )
     subimage_max <- si[["xmax"]]
     .check_num_parameter(subimage_max,

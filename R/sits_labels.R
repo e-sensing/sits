@@ -43,32 +43,31 @@ sits_labels <- function(data) {
 #'
 sits_labels.sits <- function(data) {
     # pre-condition
-    return(sort(unique(data$label)))
+    return(sort(unique(data[["label"]])))
 }
 #' @rdname sits_labels
 #' @export
 #'
 sits_labels.derived_cube <- function(data) {
-    return(data$labels[[1]])
+    return(data[["labels"]][[1]])
 }
 #' @rdname sits_labels
 #' @export
 #'
 sits_labels.derived_vector_cube <- function(data) {
-    return(data$labels[[1]])
+    return(data[["labels"]][[1]])
 }
 #' @rdname sits_labels
 #' @export
 #'
 sits_labels.raster_cube <- function(data) {
-    stop(.conf("messages","sits_labels_raster_cube"))
-    return(invisible(data))
+    stop(.conf("messages", "sits_labels_raster_cube"))
 }
 #' @rdname sits_labels
 #' @export
 #'
 sits_labels.patterns <- function(data) {
-    return(data$label)
+    return(data[["label"]])
 }
 #' @rdname sits_labels
 #' @export
@@ -86,8 +85,9 @@ sits_labels.default <- function(data) {
         data <- .cube_find_class(data)
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
-    } else
-        stop(.conf("messages","sits_labels_raster_cube"))
+    } else {
+        stop(.conf("messages", "sits_labels_raster_cube"))
+    }
     data <- sits_labels(data)
     return(data)
 }
@@ -132,11 +132,11 @@ sits_labels.default <- function(data) {
         len_min = length(labels)
     )
     # check if there are no NA
-    .check_that(all(!is.na(value)))
+    .check_that(!anyNA(value))
     # check if there are empty strings
     .check_that(any(trimws(value) != ""))
     names(value) <- labels
-    data$label <- value[data$label]
+    data[["label"]] <- value[data[["label"]]]
     return(data)
 }
 #' @name `sits_labels<-`
@@ -168,7 +168,7 @@ sits_labels.default <- function(data) {
         names(value) <- names(labels_data)
     }
     rows <- slider::slide_dfr(data, function(row) {
-        row$labels <- list(value)
+        row[["labels"]] <- list(value)
         return(row)
     })
     return(rows)
@@ -177,11 +177,11 @@ sits_labels.default <- function(data) {
 #' @export
 `sits_labels<-.default` <- function(data, value) {
     data <- tibble::as_tibble(data)
-    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+    if (all(.conf("sits_cube_cols") %in% colnames(data)))
         data <- .cube_find_class(data)
-    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+    else if (all(.conf("sits_tibble_cols") %in% colnames(data)))
         class(data) <- c("sits", class(data))
-    } else
+    else
         stop(.conf("messages", "sits_labels_raster_cube"))
     sits_labels(data) <- value
     return(data)
@@ -210,10 +210,10 @@ sits_labels_summary <- function(data) {
 #' @export
 #'
 sits_labels_summary.sits <- function(data) {
-    warning("This function is deprecated. Please use summary()")
+    warning(.conf("messages", "sits_labels_summary"))
 
     # get frequency table
-    data_labels <- table(data$label)
+    data_labels <- table(data[["label"]])
 
     # compose tibble containing labels, count and relative frequency columns
     result <- tibble::as_tibble(list(

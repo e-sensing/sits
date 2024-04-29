@@ -153,7 +153,7 @@
             band = .source_cloud(),
             min = 1,
             max = 2^16,
-            bits = mask_values$values,
+            bits = mask_values[["values"]],
             values = NULL,
             invert = FALSE
         )
@@ -182,23 +182,23 @@
     # use crs from tile if there is no crs in file_info
     if ("crs" %in% names(.fi(cube))) {
         file_info <- dplyr::select(cube, "file_info") |>
-            tidyr::unnest(cols = c("file_info"))
+            tidyr::unnest(cols = "file_info")
     } else {
         file_info <- dplyr::select(cube, "file_info", "crs") |>
-            tidyr::unnest(cols = c("file_info"))
+            tidyr::unnest(cols = "file_info")
     }
 
     # can be "proj:epsg" or "proj:wkt2"
-    crs_type <- .gc_detect_crs_type(file_info$crs[[1]])
+    crs_type <- .gc_detect_crs_type(file_info[["crs"]][[1]])
 
     file_info <- file_info |>
         dplyr::transmute(
-            fid = .data[["fid"]],
+            fid  = .data[["fid"]],
             xmin = .data[["xmin"]],
             ymin = .data[["ymin"]],
             xmax = .data[["xmax"]],
             ymax = .data[["ymax"]],
-            crs = .data[["crs"]],
+            crs  = .data[["crs"]],
             href = .data[["path"]],
             datetime = as.character(.data[["date"]]),
             band = .data[["band"]],
@@ -209,9 +209,9 @@
         tidyr::nest(features = -"fid")
 
     features <- slider::slide_dfr(features, function(feat) {
-        bbox <- .bbox(feat$features[[1]][1, ], as_crs = "EPSG:4326")
+        bbox <- .bbox(feat[["features"]][[1]][1, ], as_crs = "EPSG:4326")
 
-        feat$features[[1]] <- dplyr::mutate(feat$features[[1]],
+        feat[["features"]][[1]] <- dplyr::mutate(feat[["features"]][[1]],
             xmin = bbox[["xmin"]],
             xmax = bbox[["xmax"]],
             ymin = bbox[["ymin"]],
@@ -376,7 +376,7 @@
     date <- lubridate::ymd(max_min_date)
     min_max_date <- lubridate::ymd(min_max_date)
     tl <- date
-    while (TRUE) {
+    repeat {
         date <- lubridate::ymd(date) %m+% lubridate::period(period)
         if (date > min_max_date) break
         tl <- c(tl, date)
@@ -409,7 +409,8 @@
     .check_set_caller(".gc_save_raster_cube")
 
     # convert sits gtiff options to gdalcubes format
-    gtiff_options <- strsplit(.conf("gdalcubes_options"), split = "=")
+    gtiff_options <- strsplit(.conf("gdalcubes_options"),
+                              split = "=", fixed = TRUE)
     gdalcubes_co <- purrr::map(gtiff_options, `[[`, 2)
     names(gdalcubes_co) <- purrr::map_chr(gtiff_options, `[[`, 1)
 
@@ -573,7 +574,7 @@
             progress <- .check_documentation(progress)
 
             # gdalcubes log file
-            gdalcubes_log_file <- paste0(tempdir(), "/gdalcubes.log")
+            gdalcubes_log_file <- file.path(tempdir(), "/gdalcubes.log")
             # setting threads to process
             gdalcubes::gdalcubes_options(
                 parallel = 2,
@@ -639,11 +640,10 @@
                 purrr::map_chr(bad_tiles, function(tile) {
                     paste0(
                         "(",
-                        paste0(
+                        toString(
                             unique(
                                 tiles_bands[[2]][tiles_bands[[1]] == tile]
-                            ),
-                            collapse = ", "
+                            )
                         ),
                         ")"
                     )
@@ -652,10 +652,9 @@
             )
 
             # show message
-            message(paste(
-                "Tiles", msg, "are missing or malformed",
-                "and will be reprocessed."
-            ))
+            message("tiles", msg, "are missing or malformed", "
+                    and will be reprocessed."
+            )
 
             # remove cache
             .parallel_stop()
@@ -676,7 +675,8 @@
 #' @return A character with the type of crs: "proj:wkt2" or "proj:epsg"
 .gc_detect_crs_type <- function(cube_crs) {
     if (all(is.numeric(cube_crs)) ||
-        all(grepl(pattern = "^EPSG", x = cube_crs))) {
+            all(startsWith(cube_crs, prefix = "EPSG"))
+        ) {
         return("proj:epsg")
     }
     return("proj:wkt2")

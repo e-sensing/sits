@@ -198,6 +198,6 @@ sits_reclassify.class_cube <- function(cube,
 #' @rdname sits_reclassify
 #' @export
 sits_reclassify.default <- function(cube, mask, rules, memsize,
-                                    multicores, output_dir, version = "v1"){
+                                    multicores, output_dir, version = "v1") {
     stop(.conf("messages", "sits_reclassify"))
 }

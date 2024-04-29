@@ -65,7 +65,7 @@ sits_cube_copy <- function(cube, ...,
     # Pre-conditions
     .check_is_raster_cube(cube)
     # Cupe copy does not work for SAR data
-    if ("sar_cube" %in% class(cube) && !.cube_is_regular(cube)) {
+    if (inherits(cube, "sar_cube") && !.cube_is_regular(cube)) {
         warning(.conf("messages"), "sits_cube_copy_sar_no_copy")
         return(cube)
     }
@@ -74,7 +74,7 @@ sits_cube_copy <- function(cube, ...,
     # check files
     .check_raster_cube_files(cube)
     if (.has(roi)) {
-        sf_roi <- .roi_as_sf(roi, default_crs = cube$crs[[1]])
+        sf_roi <- .roi_as_sf(roi, default_crs = cube[["crs"]][[1]])
     } else {
         sf_roi <- NULL
     }

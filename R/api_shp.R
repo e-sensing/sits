@@ -71,7 +71,7 @@
     .check_that(nrow(sf_shape) > 0)
 
     # get the geometry type
-    geom_type <- sf::st_geometry_type(sf_shape)[1]
+    geom_type <- sf::st_geometry_type(sf_shape)[[1]]
 
     # postcondition - are all geometries compatible?
     .check_that(all(sf::st_geometry_type(sf_shape) == geom_type))

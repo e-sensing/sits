@@ -34,7 +34,7 @@ NULL
     } else if (all(c("start_date", "end_date") %in% names(fi))) {
         "derived_cube"
     } else {
-        stop("invalid file info")
+        stop(.conf("messages", ".fi_type"))
     }
 }
 #' @title Switch between `file_info` types
@@ -310,7 +310,8 @@ NULL
         fi = fi, start_date = start_date, end_date = end_date
     )
     if (!any(dates_in_fi)) {
-        stop("no dates found between interval ", start_date[[1]], end_date[[1]])
+        stop(.conf("messages", ".fi_filter_interval"),
+             start_date[[1]], end_date[[1]])
     }
     fi[dates_in_fi, ]
 }

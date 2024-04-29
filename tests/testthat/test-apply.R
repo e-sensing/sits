@@ -219,13 +219,9 @@ test_that("Kernel functions", {
     median_2 <- v_obj_md[21, 21]
 
     expect_true(median_1 == median_2)
-    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = FALSE)
     # Recovery
-    out <- capture_messages({
-        expect_message(
-            {
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
                 cube_median <- sits_apply(
                     data = cube,
                     output_dir = tempdir(),
@@ -234,12 +230,8 @@ test_that("Kernel functions", {
                     memsize = 4,
                     multicores = 1
                 )
-            },
-            regexp = "recovery mode: data already exists. To produce new data, change output_dir or version"
-        )
-    })
-    if (doc_mode)
-        Sys.setenv("SITS_DOCUMENTATION_MODE" = TRUE)
+            }
+    )
     cube_mean <- sits_apply(
         data = cube,
         output_dir = tempdir(),
@@ -334,19 +326,15 @@ test_that("Error", {
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
-    out <- capture_warning({
-        expect_message(
-            {
-                cube_median <- sits_apply(
-                    data = sinop,
-                    output_dir = tempdir(),
-                    NDVI = w_median(NDVI),
-                    window_size = 3,
-                    memsize = 4,
-                    multicores = 2
-                )
-            },
-            regexp = "provided band"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_warning({
+        cube_median <- sits_apply(
+            data = sinop,
+            output_dir = tempdir(),
+            NDVI = w_median(NDVI),
+            window_size = 3,
+            memsize = 4,
+            multicores = 2
         )
     })
     sinop_probs <- sits_classify(

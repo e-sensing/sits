@@ -318,9 +318,9 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
             nthread = nthread
         )
         if (verbose)
-            verbose = 1
+            verbose <-  1
         else
-            verbose = 0
+            verbose <-  0
         # transform predictors in a xgb.DMatrix
         xgb_matrix <- xgboost::xgb.DMatrix(
             data = as.matrix(.pred_features(train_samples)),
@@ -331,7 +331,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
             nrounds = nrounds, verbose = verbose
         )
         # Get best ntreelimit
-        ntreelimit <- model$best_ntreelimit
+        ntreelimit <- model[["best_ntreelimit"]]
         # Function that predicts labels of input values
         predict_fun <- function(values) {
             # Verifies if xgboost package is installed
@@ -401,7 +401,7 @@ sits_formula_logref <- function(predictors_index = -2:0) {
     .check_set_caller("sits_formula_logref")
 
     # store configuration information about model formula
-    sits_env$model_formula <- "log"
+    sits_env[["model_formula"]] <- "log"
 
     # this function returns a formula like
     # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are
@@ -467,7 +467,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     .check_set_caller("sits_formula_linear")
 
     # store configuration information about model formula
-    sits_env$model_formula <- "linear"
+    sits_env[["model_formula"]] <- "linear"
 
     # this function returns a formula
     # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are

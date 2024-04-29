@@ -227,7 +227,9 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
         return(output_feature)
     }, progress = progress)
     # Join output features as a cube and return it
-    cube <- .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_fracs)))
+    cube <- .cube_merge_tiles(dplyr::bind_rows(list(features_cube,
+                                                    features_fracs))
+    )
     # Join groups samples as a sits tibble and return it
     class(cube) <- c("raster_cube", class(cube))
     return(cube)
@@ -236,24 +238,23 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
 #' @export
 sits_mixture_model.derived_cube <- function(data, endmembers, ...) {
     stop(.conf("messages", "sits_mixture_model_derived_cube"))
-    return(data)
 }
 #' @rdname sits_mixture_model
 #' @export
 sits_mixture_model.tbl_df <- function(data, endmembers, ...) {
     data <- tibble::as_tibble(data)
-    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+    if (all(.conf("sits_cube_cols") %in% colnames(data)))
         data <- .cube_find_class(data)
-    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+    else if (all(.conf("sits_tibble_cols") %in% colnames(data)))
         class(data) <- c("sits", class(data))
-    } else
+    else
         stop(.conf("messages", "sits_mixture_model_derived_cube"))
     data <- sits_mixture_model(data, endmembers, ...)
     return(data)
 }
 #' @rdname sits_mixture_model
 #' @export
-sits_mixture_model.default <- function(data, endmembers, ...){
+sits_mixture_model.default <- function(data, endmembers, ...) {
     data <- tibble::as_tibble(data)
     data <- sits_mixture_model(data, endmembers, ...)
     return(data)

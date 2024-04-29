@@ -151,7 +151,7 @@
         class(cube) <- .cube_s3class(cube)
         if (.has(vector_items)) {
             if (vector_band == "segments") {
-                class(cube) <- c("segs_cube","vector_cube", class(cube))
+                class(cube) <- c("segs_cube", "vector_cube", class(cube))
             } else if (vector_band == "probs") {
                 class(cube) <- c("probs_vector_cube",
                                  "derived_vector_cube",
@@ -248,7 +248,7 @@
     if (.has(bands)) {
         # check if bands exist
         .check_chr_contains(
-            x = items$band,
+            x = items[["band"]],
             contains = bands,
             discriminator = "all_of",
             msg = .conf("messages", ".local_cube_items_bands")
@@ -259,7 +259,7 @@
         # check required version exists
         .check_chr_within(
             x = version,
-            within = items$version,
+            within = items[["version"]],
             discriminator = "any_of",
             msg = .conf("messages", ".local_cube_items_version")
         )
@@ -270,7 +270,8 @@
             # bands are case insensitive (converted to lower case)
             dplyr::mutate(band = tolower(.data[["band"]])) |>
             # add path
-            dplyr::mutate(path = paste(data_dir, img_files_filt, sep = "/")) |>
+            dplyr::mutate(path = paste(data_dir,
+                                           img_files_filt, sep = "/")) |>
             # filter by the band
             dplyr::filter(.data[["band"]] == !!band) |>
             # filter by the version
@@ -370,7 +371,7 @@
         pattern = paste0("\\.(", paste0(file_ext, collapse = "|"), ")$")
     )
     # post-condition
-    gpkg_files_path <- paste0(vector_dir,"/",gpkg_files)
+    gpkg_files_path <- paste0(vector_dir, "/", gpkg_files)
     .check_that(all(file.exists(gpkg_files_path)))
 
     # remove the extension
@@ -400,7 +401,7 @@
     )
     # check if bands exist
     .check_chr_contains(
-        x = items$band,
+        x = items[["band"]],
         contains = vector_band,
         discriminator = "any_of",
         msg = .conf("messages", ".local_cube_items_bands")
@@ -409,7 +410,7 @@
     # check required version exists
     .check_chr_within(
         x = version,
-        within = items$version,
+        within = items[["version"]],
         discriminator = "any_of",
         msg = .conf("messages", ".local_cube_items_version")
     )
@@ -418,7 +419,8 @@
         # bands are case insensitive (converted to lower case)
         dplyr::mutate(band = tolower(.data[["band"]])) |>
         # add path
-        dplyr::mutate(path = paste(vector_dir, gpkg_files_filt, sep = "/")) |>
+        dplyr::mutate(path = paste(vector_dir,
+                                   gpkg_files_filt, sep = "/")) |>
         # filter by the band
         dplyr::filter(.data[["band"]] == !!vector_band) |>
         # filter by the version
@@ -573,9 +575,9 @@
     items <- purrr::map(results_lst, `[[`, "item")
     errors <- unlist(purrr::map(results_lst, `[[`, "error"))
     if (length(errors) > 0) {
-        warning("cannot open file(s): ",
-            paste0("'", errors, "'", collapse = ", "),
-            call. = FALSE, immediate. = TRUE
+        warning(.conf("messages", ".local_cube_file_info_error"),
+                toString(errors),
+                call. = FALSE, immediate. = TRUE
         )
     }
     items <- dplyr::bind_rows(items) |>
@@ -641,9 +643,9 @@
     items_lst <- purrr::map(results_lst, `[[`, "item")
     errors <- unlist(purrr::map(results_lst, `[[`, "error"))
     if (length(errors) > 0) {
-        warning("cannot open file(s):",
-            paste0("'", errors, "'", collapse = ", "),
-            call. = FALSE, immediate. = TRUE
+        warning(.conf("messages", ".local_cube_file_info_error"),
+                toString(errors),
+                call. = FALSE, immediate. = TRUE
         )
     }
     items <- dplyr::bind_rows(items_lst)
@@ -763,23 +765,23 @@
     )
     return(cube_tile)
 }
-.local_cube_include_vector_info <- function(cube, vector_items){
-    cube <- slider::slide_dfr(cube, function(tile){
-        item <- dplyr::filter(vector_items, .data[["tile"]] == !!tile$tile)
+.local_cube_include_vector_info <- function(cube, vector_items) {
+    cube <- slider::slide_dfr(cube, function(tile) {
+        item <- dplyr::filter(vector_items, .data[["tile"]] == !!tile[["tile"]])
         vector_info <- tibble::tibble(
-            band = item$band,
-            start_date = item$start_date,
-            end_date = item$end_date,
+            band = item[["band"]],
+            start_date = item[["start_date"]],
+            end_date = item[["end_date"]],
             xres = .xres(.fi(tile)),
             yres = .yres(.fi(tile)),
             xmin = .xmin(.fi(tile)),
             xmax = .xmax(.fi(tile)),
             ymin = .ymin(.fi(tile)),
             ymax = .ymax(.fi(tile)),
-            path = item$path
+            path = item[["path"]]
         )
-        tile$labels <- list(.label_gpkg_file(item$path))
-        tile$vector_info <- list(vector_info)
+        tile[["labels"]] <- list(.label_gpkg_file(item[["path"]]))
+        tile[["vector_info"]] <- list(vector_info)
         return(tile)
     })
 

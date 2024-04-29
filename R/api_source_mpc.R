@@ -31,7 +31,9 @@
         limit = 1
     )
     # assert that service is online
-    items <- .try({rstac::post_request(items_query, ...)},
+    items <- .try({
+        rstac::post_request(items_query, ...)
+        },
         .default = NULL
     )
     .check_stac_items(items)
@@ -56,12 +58,14 @@
     )
     href <- .source_item_get_hrefs(
         source = source,
-        item = items$feature[[1]],
+        item = items[["features"]][[1]],
         collection = collection, ...
     )
     # assert that token and/or href is valid
     if (dry_run) {
-        rast <- .try({.raster_open_rast(href)},
+        rast <- .try({
+            .raster_open_rast(href)
+            },
             default = NULL
         )
         .check_null_parameter(rast)
@@ -102,11 +106,11 @@
         source = source,
         collection = collection,
         roi = list(
-            "xmin" = -50.479,
-            "ymin" = -10.1973,
-            "xmax" = -50.410,
-            "ymax" = -10.1510,
-            "crs"  = "EPSG:4326"
+            xmin = -50.479,
+            ymin = -10.1973,
+            xmax = -50.410,
+            ymax = -10.1510,
+            crs  = "EPSG:4326"
         ),
         start_date = start_date,
         end_date = end_date,
@@ -120,7 +124,9 @@
     )
 
     # assert that service is online
-    items <- .try({rstac::post_request(stac_query, ...)},
+    items <- .try({
+        rstac::post_request(stac_query, ...
+        )},
         .default = NULL
     )
     .check_stac_items(items)
@@ -146,12 +152,14 @@
     )
     href <- .source_item_get_hrefs(
         source = source,
-        item = items$feature[[1]],
+        item = items[["features"]][[1]],
         collection = collection, ...
     )
     # assert that token and/or href is valid
     if (dry_run) {
-        rast <- .try({.raster_open_rast(href)},
+        rast <- .try({
+            .raster_open_rast(href)
+            },
             default = NULL
         )
         .check_null_parameter(rast)
@@ -190,9 +198,10 @@
 `.source_tile_get_bbox.mpc_cube_sentinel-1-grd` <- function(source,
                                                             file_info, ...,
                                                             collection = NULL) {
+    .check_set_caller(".source_tile_get_bbox_mpc_s1_grd")
 
     # pre-condition
-    .check_num(nrow(file_info), min = 1, msg = "invalid 'file_info' value")
+    .check_num(nrow(file_info), min = 1)
 
     # get bbox based on file_info
     xmin <- min(file_info[["xmin"]])
@@ -232,12 +241,12 @@
                                                         stac_query, ...,
                                                         tiles = NULL,
                                                         orbit = "descending") {
+    .check_set_caller(".source_items_new_mpc_s1_grd")
 
     orbits <- .conf("sources", source, "collections", collection, "orbits")
     .check_chr_within(
-        x = orbit,
-        within = orbits,
-        msg = "Invalid `orbit` parameter"
+        orbit,
+        within = orbits
     )
 
     stac_query <- rstac::ext_filter(
@@ -250,11 +259,11 @@
     # Sentinel-1 does not support tiles - convert to ROI
     if (!is.null(tiles)) {
         roi <- .s2_mgrs_to_roi(tiles)
-        stac_query$params$intersects <- NULL
-        stac_query$params$bbox <- c(roi[["lon_min"]],
-                                    roi[["lat_min"]],
-                                    roi[["lon_max"]],
-                                    roi[["lat_max"]]
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- c(roi[["lon_min"]],
+                                              roi[["lat_min"]],
+                                              roi[["lon_max"]],
+                                              roi[["lat_max"]]
         )
     }
     items_info <- rstac::post_request(q = stac_query, ...)
@@ -287,7 +296,7 @@
                                                         collection,
                                                         stac_query, ...,
                                                         tiles = NULL,
-                                                          orbit = "descending") {
+                                                        orbit = "descending") {
     `.source_items_new.mpc_cube_sentinel-1-grd`(
         source = source,
         collection = collection,
@@ -332,7 +341,7 @@
         # getting the first item info
         items_info <- items_list[[1]]
         # joining the items
-        items_info$features <- do.call(
+        items_info[["features"]] <- do.call(
             c,
             args = lapply(items_list, `[[`, "features")
         )
@@ -467,10 +476,10 @@
                                                         items, ...,
                                                         collection = NULL) {
     # store tile info in items object
-    items$features <- purrr::map(items$features, function(feature) {
-        feature$properties$tile <- paste0(
-            feature$properties[["landsat:wrs_path"]],
-            feature$properties[["landsat:wrs_row"]]
+    items[["features"]] <- purrr::map(items[["features"]], function(feature) {
+        feature[["properties"]][["tile"]] <- paste0(
+            feature[["properties"]][["landsat:wrs_path"]],
+            feature[["properties"]][["landsat:wrs_row"]]
         )
         feature
     })
@@ -525,7 +534,7 @@
 .mpc_clean_token_cache <- function() {
     mpc_token <- get("ms_token", envir = asNamespace("rstac"), inherits = TRUE)
     cached_tokens <- names(mpc_token)
-    lapply(cached_tokens, function(cached_token) {
+    purrr::map(cached_tokens, function(cached_token) {
         assign(cached_token, NULL, envir = mpc_token)
     })
     return(invisible(NULL))

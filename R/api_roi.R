@@ -72,7 +72,7 @@ NULL
     } else if (all(.roi_lonlat_cols %in% names(roi))) {
         "lonlat"
     } else {
-        stop("invalid 'roi' parameter")
+        stop(.conf("messages", ".roi_type"))
     }
 }
 
@@ -91,7 +91,9 @@ NULL
 #' @noRd
 .roi_as_sf <- function(roi, default_crs = NULL, as_crs = NULL) {
     # is the roi defined by a shapefile
-    if (is.character(roi) && file.exists(roi) && (tools::file_ext(roi) == "shp"))
+    if (is.character(roi) &&
+        file.exists(roi) &&
+        (tools::file_ext(roi) == "shp"))
         roi <- sf::st_read(roi)
     # convert R objects to sf object
     roi <- .roi_switch(

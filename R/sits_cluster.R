@@ -100,24 +100,24 @@ sits_cluster_dendro.sits <- function(samples,
 
     # find the best cut for the dendrogram
     best_cut <- .cluster_dendro_bestcut(samples, cluster)
-    message(paste(.conf("messages", "sits_cluster_dendro_best_number"),
-                  best_cut["k"])
+    message(.conf("messages", "sits_cluster_dendro_best_number"),
+            best_cut[["k"]]
     )
-    message(paste(.conf("messages", "sits_cluster_dendro_best_height"),
-                  best_cut["height"])
+    message(.conf("messages", "sits_cluster_dendro_best_height"),
+            best_cut[["height"]]
     )
     # cut the tree (user-defined value overrides default)
-    k <- .default(k, best_cut["k"])
-    if (k != best_cut["k"]) {
+    k <- .default(k, best_cut[["k"]])
+    if (k != best_cut[["k"]]) {
         message(.conf("messages", "sits_cluster_dendro_best_cut"))
-        best_cut["k"] <- k
-        best_cut["height"] <-
-            c(0, cluster$height)[length(cluster$height) - k + 2]
+        best_cut[["k"]] <- k
+        best_cut[["height"]] <-
+            c(0, cluster[["height"]])[length(cluster[["height"]]) - k + 2]
     }
-    samples$cluster <- stats::cutree(
+    samples[["cluster"]] <- stats::cutree(
         cluster,
-        best_cut["k"],
-        best_cut["height"]
+        best_cut[["k"]],
+        best_cut[["height"]]
     )
     # change the class
     class(samples) <- c("sits_cluster", class(samples))
@@ -125,7 +125,7 @@ sits_cluster_dendro.sits <- function(samples,
     plot(
         x = samples,
         cluster = cluster,
-        cutree_height = best_cut["height"],
+        cutree_height = best_cut[["height"]],
         palette = palette
     )
     return(samples)
@@ -136,8 +136,9 @@ sits_cluster_dendro.default <- function(samples, ...) {
     samples <- tibble::as_tibble(samples)
     if (all(.conf("sits_tibble_cols") %in% colnames(samples))) {
         class(samples) <- c("sits", class(samples))
-    } else
+    } else {
         stop(.conf("messages", "sits_cluster_dendro_default"))
+    }
     samples <- sits_cluster_dendro(samples, ...)
     return(samples)
 }
@@ -163,7 +164,7 @@ sits_cluster_frequency <- function(samples) {
     # is the input data the result of a cluster function?
     .check_samples_cluster(samples)
     # compute frequency table (matrix)
-    result <- table(samples$label, samples$cluster)
+    result <- table(samples[["label"]], samples[["cluster"]])
     # compute total row and col
     result <- stats::addmargins(result,
         FUN = list(Total = sum),
@@ -200,11 +201,11 @@ sits_cluster_clean <- function(samples) {
     # is the input data the result of a cluster function?
     .check_samples_cluster(samples)
     # compute frequency table (matrix)
-    result <- table(samples$label, samples$cluster)
+    result <- table(samples[["label"]], samples[["cluster"]])
     # list of number of clusters
-    num_cls <- unique(samples$cluster)
+    num_cls <- unique(samples[["cluster"]])
     # get the labels of the data
-    lbs <- unique(samples$label)
+    lbs <- unique(samples[["label"]])
     # for each cluster, get the label with the maximum number of samples
     lbs_max <- lbs[as.vector(apply(result, 2, which.max))]
     # compute the resulting table
@@ -213,9 +214,9 @@ sits_cluster_clean <- function(samples) {
         function(lb, cl) {
             partial <- dplyr::filter(
                 samples,
-                .data[["label"]] == lb &
-                    .data[["cluster"]] == cl
-            )
+                .data[["label"]] == lb,
+                .data[["cluster"]] == cl
+             )
             return(partial)
         }
     )

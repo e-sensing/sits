@@ -18,26 +18,30 @@
     # set caller to show in errors
     .check_set_caller(".source_items_new_hls_cube")
     # NASA EarthData requires a login/password combination
-    netrc_path <- "~/.netrc"
-    if (.Platform$OS.type == "windows") {
-        netrc_path <- "%HOME%\\_netrc"
-    }
+    if (.Platform[["OS.type"]] == "windows")
+        netrc_path <- .conf("HLS_NETRC_FILE_PATH_WIN")
+    else
+        netrc_path <- .conf("HLS_NETRC_FILE_PATH")
     .check_that(file.exists(netrc_path))
     # convert tiles to a valid STAC query
     if (!is.null(tiles)) {
         roi <- .s2_mgrs_to_roi(tiles)
-        stac_query$params$intersects <- NULL
-        stac_query$params$bbox <- c(roi[["lon_min"]],
-                                    roi[["lat_min"]],
-                                    roi[["lon_max"]],
-                                    roi[["lat_max"]]
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- c(roi[["lon_min"]],
+                                              roi[["lat_min"]],
+                                              roi[["lon_max"]],
+                                              roi[["lat_max"]]
         )
     } else {
         # Convert roi to bbox
-        lon <- stac_query$params$intersects$coordinates[, , 1]
-        lat <- stac_query$params$intersects$coordinates[, , 2]
-        stac_query$params$intersects <- NULL
-        stac_query$params$bbox <- c(min(lon), min(lat), max(lon), max(lat))
+        lon <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 1]
+        lat <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 2]
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- c(min(lon),
+                                              min(lat),
+                                              max(lon),
+                                              max(lat)
+        )
     }
     # making the request
     items_info <- rstac::post_request(q = stac_query, ...)
@@ -77,16 +81,18 @@
 #' @return Called for side effects
 .source_configure_access.hls_cube <- function(source, collection = NULL) {
     .check_set_caller(".source_configure_access_hls_cube")
-    netrc_file <- "~/.netrc"
-    if (.Platform$OS.type == "windows")
-        netrc_file <- "%HOME%_netrc"
+    # NASA EarthData requires a login/password combination
+    if (.Platform[["OS.type"]] == "windows")
+        netrc_file <- .conf("HLS_NETRC_FILE_PATH_WIN")
+    else
+        netrc_file <- .conf("HLS_NETRC_FILE_PATH")
     # does the file exist
-    if (!file.exists(netrc_file))
-        stop(.conf("messages", ".source_configure_access_hls_cube"))
-    else{
+    if (file.exists(netrc_file)) {
         conf_hls <- utils::read.delim(netrc_file)
         if (!(.conf("HLS_ACCESS_URL") %in% names(conf_hls)))
             stop(.conf("messages", ".source_configure_access_hls_cube"))
+    } else {
+        stop(.conf("messages", ".source_configure_access_hls_cube"))
     }
     return(invisible(source))
 }

@@ -268,7 +268,7 @@
 #' @param  tile         Tile of data cube
 #' @return              BDC or RASTER
 .mosaic_type <- function(tile) {
-    if (.cube_source(tile) %in% "BDC") {
+    if (.cube_source(tile) == "BDC") {
         return("BDC")
     }
     return("RASTER")
@@ -279,9 +279,7 @@
 #' @param  tile         Tile of data cube
 #' @return              Result dependent on the type
 .mosaic_switch <- function(tile, ...) {
-    switch(.mosaic_type(tile),
-        ...
-    )
+    switch(.mosaic_type(tile), ...)
 }
 #' @title Get mosaic CRS
 #' @keywords internal
@@ -291,10 +289,10 @@
 .mosaic_crs <- function(tile, as_crs) {
     .mosaic_switch(
         tile,
-        "BDC" = .as_crs("+proj=aea
+        BDC = .as_crs("+proj=aea
                         +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22
                         +x_0=5000000 +y_0=10000000
                         +ellps=GRS80 +units=m +no_defs "),
-        "RASTER" = .as_crs(as_crs)
+        RASTER = .as_crs(as_crs)
     )
 }

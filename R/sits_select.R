@@ -51,7 +51,7 @@ sits_select.sits <- function(data,
     # Pre-condition
     .check_samples_ts(data)
     # Filter bands
-    if (.has(bands) && !any(is.na(bands))) {
+    if (.has(bands) && !anyNA(bands)) {
         # sits tibble only works with non-processed cubes
         # all bands are uppercase
         bands <- toupper(bands)
@@ -90,39 +90,13 @@ sits_select.raster_cube <- function(data,
     # Pre-condition
     .check_raster_cube_files(data)
     # Filter bands
-    if (.has(bands) && !any(is.na(bands))) {
-        bands <- .band_set_case(bands)
-        bands <- .default(bands, .band_samples(sits_bands(data)))
-        # check bands parameter
-        .check_chr_parameter(bands,
-                   allow_empty = FALSE,
-                   allow_duplicate = FALSE,
-                   len_min = 1,
-                   len_max = length(sits_bands(data)),
-        )
-
-        # filter the selected bands
-        data <- .cube_filter_bands(cube = data, bands = bands)
-    }
+    data <- .select_raster_bands(data, bands)
     # Filter by dates
-    if (.has(dates)) {
-        dates <- .timeline_format(dates)
-        data <- .cube_filter_dates(cube = data, dates = dates)
-    }
-    # Filter by period
-    if (.has(start_date) && .has(end_date)
-        && !is.na(start_date) && !is.na(end_date)) {
-        start_date <- .timeline_format(start_date)
-        end_date   <- .timeline_format(end_date)
-        data <- .cube_filter_interval(
-            cube = data, start_date = start_date, end_date = end_date
-        )
-    }
+    data <- .select_raster_dates(data, dates)
+    # Filter by interval
+    data <- .select_raster_interval(data, start_date, end_date)
     # Filter tiles
-    if (.has(tiles) && !any(is.na(tiles))) {
-        .check_chr_parameter(tiles)
-        data <- .cube_filter_tiles(cube = data, tiles = tiles)
-    }
+    data <- .select_raster_tiles(data, tiles)
     return(data)
 }
 #' @rdname sits_select
@@ -134,13 +108,13 @@ sits_select.patterns <- function(data, bands = NULL,
 }
 #' @rdname sits_select
 #' @export
-sits_select.default <- function(data,...) {
+sits_select.default <- function(data, ...) {
     data <- tibble::as_tibble(data)
-    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+    if (all(.conf("sits_cube_cols") %in% colnames(data)))
         data <- .cube_find_class(data)
-    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+    else if (all(.conf("sits_tibble_cols") %in% colnames(data)))
         class(data) <- c("sits", class(data))
-    } else
+    else
         stop(.conf("messages", "sits_select"))
     data <- sits_select(data, ...)
     return(data)

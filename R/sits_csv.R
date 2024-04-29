@@ -48,11 +48,9 @@ sits_to_csv.sits <- function(data, file = NULL) {
     # join the two tibbles
     csv <- dplyr::bind_cols(id, csv)
     # write the CSV file
-    if (.has(file)) {
+    if (.has(file))
         utils::write.csv(csv, file, row.names = FALSE, quote = FALSE)
-        return(invisible(csv))
-    } else
-        return(csv)
+    return(csv)
 }
 #' @rdname sits_to_csv
 #' @export

@@ -49,9 +49,8 @@ sits_config <- function(config_user_file = NULL) {
     # set the user options
     .conf_set_user_file(config_user_file)
     # set the fonts - disable because of problems using DEAfrica
-    # .conf_set_fonts()
     # return configuration
-    return(invisible(sits_env$config))
+    return(invisible(sits_env[["config"]]))
 }
 #' @title Show current sits configuration
 #' @name sits_config_show
@@ -71,7 +70,7 @@ sits_config <- function(config_user_file = NULL) {
 #' @export
 sits_config_show <- function(source = NULL,
                              collection = NULL) {
-    config <- sits_env$config
+    config <- sits_env[["config"]]
 
     if (!is.null(source)) {
         # check source value
@@ -122,17 +121,17 @@ sits_config_show <- function(source = NULL,
         indent = 4,
         handlers = list(
             character = function(x) {
-                res <- paste0(x, collapse = ", ")
+                res <- toString(x)
                 class(res) <- "verbatim"
                 res
             },
             integer = function(x) {
-                res <- paste0(x, collapse = ", ")
+                res <- toString(x)
                 class(res) <- "verbatim"
                 res
             },
             numeric = function(x) {
-                res <- paste0(x, collapse = ", ")
+                res <- toString(x)
                 class(res) <- "verbatim"
                 res
             }
@@ -160,6 +159,7 @@ sits_config_show <- function(source = NULL,
 #' }
 #' @export
 sits_list_collections <- function(source = NULL) {
+    .check_set_caller("sits_list_collections")
     # get sources available
     sources <- .sources()
 
@@ -169,8 +169,7 @@ sits_list_collections <- function(source = NULL) {
         # check if source exists
         .check_chr_within(
             x = source,
-            within = sources,
-            msg = "invalid 'source' value"
+            within = sources
         )
         sources <- source
     }

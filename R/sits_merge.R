@@ -42,6 +42,50 @@ sits_merge <- function(data1, data2, ...) {
 
 #' @rdname sits_merge
 #' @export
+sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
+    .check_set_caller("sits_merge_sits")
+    # precondition - data sets are not empty
+    .check_that(nrow(data1) > 0 & nrow(data2) > 0)
+    # check that data2 and data1 are sits tibble
+    .check_samples_ts(data1)
+    .check_samples_ts(data2)
+    # verify if data1 and data2 have the same number of rows
+    .check_that(nrow(data1) == nrow(data2))
+    # are the names of the bands different?
+    bands1 <- sits_bands(data1)
+    bands2 <- sits_bands(data2)
+    coincidences1 <- bands1 %in% bands2
+    coincidences2 <- bands2 %in% bands1
+    if (any(coincidences1) || any(coincidences2)) {
+        bands1_names <- rep(x = suffix[[1]], length(coincidences1))
+        bands2_names <- rep(x = suffix[[2]], length(coincidences2))
+        bands1[coincidences1] <- paste0(bands1[coincidences1],
+                                        bands1_names[coincidences1]
+        )
+        bands2[coincidences2] <- paste0(bands2[coincidences2],
+                                        bands2_names[coincidences2]
+        )
+        .check_that(!any(bands1 %in% bands2))
+        .check_that(!any(bands2 %in% bands1))
+        data1 <- .band_rename(data1, bands1)
+        data2 <- .band_rename(data2, bands2)
+    }
+    # prepare result
+    result <- data1
+    # merge time series
+    result[["time_series"]] <- purrr::map2(
+        data1[["time_series"]],
+        data2[["time_series"]],
+        function(ts1, ts2) {
+            ts3 <- dplyr::bind_cols(ts1, dplyr::select(ts2, -"Index"))
+            return(ts3)
+        }
+    )
+    return(result)
+}
+
+#' @rdname sits_merge
+#' @export
 #'
 sits_merge.raster_cube <- function(data1, data2, ...,
                                    tolerance = NULL,
@@ -57,11 +101,10 @@ sits_merge.raster_cube <- function(data1, data2, ...,
     d1_tl <- as.Date(unlist(.cube_timeline(data1)))
     d2_tl <- as.Date(unlist(.cube_timeline(data2)))
     .check_that(all(sort(.cube_tiles(data1)) == sort(.cube_tiles(data2))))
-    if (inherits(data1, "hls_cube") && inherits(data2, "hls_cube")) {
-        if (.cube_collection(data1) == "HLSS30" ||
-            .cube_collection(data2) == "HLSS30") {
-            data1$collection <- "HLSS30"
-        }
+    if (inherits(data1, "hls_cube") && inherits(data2, "hls_cube") &&
+        (.cube_collection(data1) == "HLSS30" ||
+         .cube_collection(data2) == "HLSS30")) {
+            data1[["collection"]] <- "HLSS30"
     }
 
     if (all(d1_tl == d2_tl)) {

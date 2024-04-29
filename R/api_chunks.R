@@ -51,12 +51,14 @@ NULL
     chunks[["col"]] <- .as_int(pmax(1, .col(chunks) - overlap))
     chunks[["row"]] <- .as_int(pmax(1, .row(chunks) - overlap))
     # Adjust ncols and nrows to do overlap
-    chunks[["ncols"]] <-
-        .as_int(pmin(.ncols(image_size), .col(chunks) + .ncols(block) +
-            overlap - 1) - .col(chunks) + 1)
-    chunks[["nrows"]] <-
-        .as_int(pmin(.nrows(image_size), .row(chunks) + .nrows(block) +
-            overlap - 1) - .row(chunks) + 1)
+    chunks[["ncols"]] <- .as_int(
+        pmin(.ncols(image_size),
+             .col(chunks) + .ncols(block) + overlap - 1) - .col(chunks) + 1
+    )
+    chunks[["nrows"]] <- .as_int(
+        pmin(.nrows(image_size),
+             .row(chunks) + .nrows(block) + overlap - 1) - .row(chunks) + 1
+    )
     # Chunk of entire image
     entire_image <- c(image_size, image_bbox)
     # Prepare a raster as template to crop bbox
@@ -165,7 +167,7 @@ NULL
     )
     # Find segments in chunks
     idx_contains <- sf::st_contains(sf_chunks, segments, sparse = TRUE)
-    chunks$segments <- purrr::map(seq_along(idx_contains), function(i) {
+    chunks[["segments"]] <- purrr::map(seq_along(idx_contains), function(i) {
         idx <- idx_contains[[i]]
         block_file <- .file_block_name(
             pattern = "chunk_seg",

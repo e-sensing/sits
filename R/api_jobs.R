@@ -78,7 +78,6 @@
 #' @param jobs      Jobs to be processed
 #' @returns         List of jobs
 .jobs_split <- function(jobs) {
-    # TODO: split jobs by multicores (nrow(jobs) / muticores = #rounds)
     list(jobs)
 }
 #' @title Run a sequential function for all jobs

@@ -22,7 +22,7 @@ Includes new colors in the SITS color sets. If the colors exist,
              The colors parameter should be a data.frame or a tibble
              with name and HEX code. Colour names should be one character
              string only. Composite names need to be combined with
-             underscores (e.g., use "Snow_and_Ice" instead of "Snow and Ice").
+             underscores (e.g., use "Snow_and_Ice" and not "Snow and Ice").
 
              This function changes the global sits color table and the
              global set of sits color legends. To undo these effects,

@@ -55,9 +55,9 @@
     block <- .raster_file_blocksize(rast)
     # 1st case - split samples by tiles
     if (.raster_nrows(rast) == block[["nrows"]] &&
-        .raster_ncols(rast) == block[["ncols"]]) {
+            .raster_ncols(rast) == block[["ncols"]]) {
         # split samples by bands and tile
-        ts_tbl <- .get_data_by_tile(
+        ts_tbl <- .data_by_tile(
             cube = cube,
             samples = samples,
             bands = bands,
@@ -68,7 +68,7 @@
         )
     } else {
         # get data by chunks
-        ts_tbl <- .get_data_by_chunks(
+        ts_tbl <- .data_by_chunks(
             cube = cube,
             samples = samples,
             bands = bands,
@@ -88,7 +88,7 @@
 .data_get_ts.class_cube <- function(cube,
                                     samples, ...,
                                     bands,
-                                    crs = 4326,
+                                    crs,
                                     multicores,
                                     progress) {
     # Filter only tiles that intersects with samples
@@ -158,10 +158,12 @@
             # filter the points inside the data cube space-time extent
             samples <- dplyr::filter(
                 samples,
-                .data[["X"]] > tile$xmin & .data[["X"]] < tile$xmax &
-                    .data[["Y"]] > tile$ymin & .data[["Y"]] < tile$ymax &
-                    .data[["start_date"]] <= as.Date(tl[length(tl)]) &
-                    .data[["end_date"]] >= as.Date(tl[1])
+                .data[["X"]] > tile[["xmin"]],
+                .data[["X"]] < tile[["xmax"]],
+                .data[["Y"]] > tile[["ymin"]],
+                .data[["Y"]] < tile[["ymax"]],
+                .data[["start_date"]] <= as.Date(tl[[length(tl)]]),
+                .data[["end_date"]] >= as.Date(tl[[1]])
             )
             # are there points to be retrieved from the cube?
             if (nrow(samples) == 0) {
@@ -192,7 +194,7 @@
                     polygon_id = point[["polygon_id"]]
                 )
                 # store them in the sample tibble
-                sample$predicted <- list(tibble::tibble(
+                sample[["predicted"]] <- list(tibble::tibble(
                     from = dates[[1]], to = dates[[2]]
                 ))
                 # return valid row of time series
@@ -328,28 +330,26 @@
     return(data_avg)
 }
 
-.ts_is_valid <- function(filename) {
-    if (!file.exists(filename)) {
-        return(FALSE)
-    }
-    ts <- tryCatch({
-        ts <- readRDS(filename)
-        return(TRUE)
-    }, error = function(e) {
-        unlink(filename)
-        gc()
-        return(FALSE)
-    })
-    return(ts)
-}
-
-.get_data_by_tile <- function(cube,
-                              samples,
-                              bands,
-                              impute_fn,
-                              cld_band,
-                              multicores,
-                              progress) {
+#' @title get time series from data cubes on tile by tile bassis
+#' @name .data_by_tile
+#' @keywords internal
+#' @noRd
+#' @param cube            Data cube from where data is to be retrieved.
+#' @param samples         Samples to be retrieved.
+#' @param bands           Bands to be retrieved (optional).
+#' @param impute_fn       Imputation function to remove NA.
+#' @param cld_band        Cloud band
+#' @param multicores      Number of threads to process the time series.
+#' @param progress        A logical value indicating if a progress bar
+#'                        should be shown.
+.data_by_tile <- function(cube,
+                          samples,
+                          bands,
+                          impute_fn,
+                          cld_band,
+                          multicores,
+                          progress) {
+    .check_set_caller(".data_by_tile")
     # Get cube timeline
     tl <- sits_timeline(cube)
     # Get tile-band combination
@@ -377,16 +377,24 @@
             tiles = tile_id
         )
         hash_bundle <- digest::digest(list(tile, samples), algo = "md5")
-        # Create a file to store the samples
+        # File to store the samples
         filename <- .file_path(
             "samples", hash_bundle,
             ext = ".rds",
             output_dir = output_dir
         )
         # Does the file exist?
-        if (.ts_is_valid(filename)) {
-            ts <- readRDS(filename)
-            return(ts)
+        if (file.exists(filename)) {
+            tryCatch(
+                { # ensure that the file is not corrupted
+                    timeseries <- readRDS(filename)
+                    return(timeseries)
+                },
+                error = function(e) {
+                    unlink(filename)
+                    gc()
+                }
+            )
         }
         # get XY
         xy_tb <- .proj_from_latlong(
@@ -399,11 +407,14 @@
         # filter the points inside the data cube space-time extent
         samples <- dplyr::filter(
             samples,
-            .data[["X"]] > tile$xmin & .data[["X"]] < tile$xmax &
-                .data[["Y"]] > tile$ymin & .data[["Y"]] < tile$ymax &
-                .data[["start_date"]] <= as.Date(tl[length(tl)]) &
-                .data[["end_date"]] >= as.Date(tl[1])
+            .data[["X"]] > tile[["xmin"]],
+            .data[["X"]] < tile[["xmax"]],
+            .data[["Y"]] > tile[["ymin"]],
+            .data[["Y"]] < tile[["ymax"]],
+            .data[["start_date"]] <= as.Date(tl[length(tl)]),
+            .data[["end_date"]] >= as.Date(tl[[1]])
         )
+
         # are there points to be retrieved from the cube?
         if (nrow(samples) == 0) {
             return(NULL)
@@ -433,7 +444,7 @@
                 polygon_id = point[["polygon_id"]]
             )
             # store them in the sample tibble
-            sample$time_series <- list(tibble::tibble(Index = dates))
+            sample[["time_series"]] <- list(tibble::tibble(Index = dates))
             # return valid row of time series
             return(sample)
         })
@@ -456,8 +467,8 @@
     # bind rows to get a melted tibble of samples
     ts_tbl <- dplyr::bind_rows(samples_tiles_bands)
     if (!.has_ts(ts_tbl)) {
-        warning(.conf("messages", ".get_data_by_tile"),
-            immediate. = TRUE, call. = FALSE
+        warning(.conf("messages", ".data_by_tile"),
+                immediate. = TRUE, call. = FALSE
         )
         return(.tibble())
     }
@@ -519,14 +530,25 @@
     }
     return(ts_tbl)
 }
-
-.get_data_by_chunks <- function(cube,
-                                samples,
-                                bands,
-                                impute_fn,
-                                cld_band,
-                                multicores,
-                                progress) {
+#' @title get time series from data cubes using chunks
+#' @name .data_by_tile
+#' @keywords internal
+#' @noRd
+#' @param cube            Data cube from where data is to be retrieved.
+#' @param samples         Samples to be retrieved.
+#' @param bands           Bands to be retrieved (optional).
+#' @param impute_fn       Imputation function to remove NA.
+#' @param cld_band        Cloud band
+#' @param multicores      Number of threads to process the time series.
+#' @param progress        A logical value indicating if a progress bar
+#'                        should be shown.
+.data_by_chunks <- function(cube,
+                            samples,
+                            bands,
+                            impute_fn,
+                            cld_band,
+                            multicores,
+                            progress) {
     # Get cube timeline
     tl <- sits_timeline(cube)
     # transform sits tibble to sf
@@ -564,9 +586,17 @@
             output_dir = output_dir
         )
         # Does the file exist?
-        if (.ts_is_valid(filename)) {
-            ts <- readRDS(filename)
-            return(ts)
+        if (file.exists(filename)) {
+            tryCatch(
+                { # ensure that the file is not corrupted
+                    timeseries <- readRDS(filename)
+                    return(timeseries)
+                },
+                error = function(e) {
+                    unlink(filename)
+                    gc()
+                }
+            )
         }
         # get XY
         xy_tb <- .proj_from_latlong(
@@ -579,10 +609,12 @@
         # filter the points inside the data cube space-time extent
         samples <- dplyr::filter(
             samples,
-            .data[["X"]] > tile$xmin & .data[["X"]] < tile$xmax &
-                .data[["Y"]] > tile$ymin & .data[["Y"]] < tile$ymax &
-                .data[["start_date"]] <= as.Date(tl[length(tl)]) &
-                .data[["end_date"]] >= as.Date(tl[1])
+            .data[["X"]] > tile[["xmin"]],
+            .data[["X"]] < tile[["xmax"]],
+            .data[["Y"]] > tile[["ymin"]],
+            .data[["Y"]] < tile[["ymax"]],
+            .data[["start_date"]] <= as.Date(tl[[length(tl)]]),
+            .data[["end_date"]] >= as.Date(tl[[1]])
         )
         # are there points to be retrieved from the cube?
         if (nrow(samples) == 0) {
@@ -613,7 +645,7 @@
                 polygon_id = point[["polygon_id"]]
             )
             # store them in the sample tibble
-            sample$time_series <- list(tibble::tibble(Index = dates))
+            sample[["time_series"]] <- list(tibble::tibble(Index = dates))
             # return valid row of time series
             return(sample)
         })
@@ -635,7 +667,7 @@
     ts_tbl <- dplyr::bind_rows(samples_tiles_bands)
     if (!.has_ts(ts_tbl)) {
         warning(.conf("messages", ".get_data_by_chunks"),
-                immediate. = TRUE, call. = FALSE
+            immediate. = TRUE, call. = FALSE
         )
         return(.tibble())
     }
@@ -701,4 +733,3 @@
     }
     return(ts_tbl)
 }
-

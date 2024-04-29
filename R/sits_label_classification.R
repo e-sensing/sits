@@ -151,23 +151,21 @@ sits_label_classification.probs_vector_cube <- function(cube, ...,
 #' @export
 sits_label_classification.raster_cube <- function(cube, ...) {
     stop(.conf("messages", "sits_label_classification"))
-    return(cube)
 }
 
 #' @rdname sits_label_classification
 #' @export
 sits_label_classification.derived_cube <- function(cube, ...) {
     stop(.conf("messages", "sits_label_classification"))
-    return(cube)
 }
 
 #' @rdname sits_label_classification
 #' @export
-sits_label_classification.default <- function(cube, ...){
+sits_label_classification.default <- function(cube, ...) {
     cube <- tibble::as_tibble(cube)
-    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
+    if (all(.conf("sits_cube_cols") %in% colnames(cube)))
         cube <- .cube_find_class(cube)
-    } else
+    else
         stop(.conf("messages", "sits_label_classification"))
     class_cube <- sits_label_classification(cube, ...)
     return(class_cube)

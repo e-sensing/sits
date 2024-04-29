@@ -89,7 +89,7 @@ sits_smooth <- function(cube,
     # Check smoothness
     .check_smoothness(smoothness, nlabels)
     # Prepare smoothness parameter
-    if (length(smoothness == 1)) {
+    if (length(smoothness) == 1) {
         smoothness <- rep(smoothness, nlabels)
     }
     UseMethod("sits_smooth", cube)
@@ -109,7 +109,7 @@ sits_smooth.probs_cube <- function(cube,
     # get nlabels
     nlabels <- length(sits_labels(cube))
     # Prepare smoothness parameter
-    if (length(smoothness == 1)) {
+    if (length(smoothness) == 1) {
         smoothness <- rep(smoothness, nlabels)
     }
     # Get block size
@@ -187,10 +187,11 @@ sits_smooth.default <- function(cube,
                                 output_dir,
                                 version = "v1") {
     cube <- tibble::as_tibble(cube)
-    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
+    if (all(.conf("sits_cube_cols") %in% colnames(cube)))
         cube <- .cube_find_class(cube)
-    } else
+    else
         stop(.conf("messages", "sits_smooth_default"))
+
     cube <- sits_smooth(cube,
                         window_size = 7L,
                         neigh_fraction = 0.5,

@@ -203,7 +203,7 @@
 #'     # DEAFRICA does not support definition of tiles
 #'     cube_dea <- sits_cube(
 #'         source = "DEAFRICA",
-#'         collection = "S2_L2A",
+#'         collection = "SENTINEL-2-L2A",
 #'         bands = c("B04", "B08"),
 #'         roi = c(
 #'             "lat_min" = 17.379,
@@ -319,6 +319,7 @@ sits_cube.sar_cube <- function(source,
                                start_date = NULL,
                                end_date = NULL,
                                platform = NULL,
+                               multicores = 2,
                                progress = TRUE) {
 
     sits_cube.stac_cube(
@@ -330,6 +331,7 @@ sits_cube.sar_cube <- function(source,
         start_date = start_date,
         end_date = end_date,
         platform = platform,
+        multicores = multicores,
         progress = progress,
         orbit = orbit,
         ...
@@ -346,6 +348,7 @@ sits_cube.stac_cube <- function(source,
                                 start_date = NULL,
                                 end_date = NULL,
                                 platform = NULL,
+                                multicores = 2,
                                 progress = TRUE) {
 
     # Check for ROI and tiles
@@ -413,6 +416,7 @@ sits_cube.stac_cube <- function(source,
         start_date = start_date,
         end_date = end_date,
         platform = platform,
+        multicores = multicores,
         progress = progress, ...
     )
     # adjust crs of the cube before return
@@ -509,9 +513,8 @@ sits_cube.default <- function(source, collection, ...) {
 #' @return roi                  Valid ROI to use in other SITS functions
 #'
 #' @export
-sits_mgrs_to_roi <- function(tiles){
-
-    # retrive the ROI
+sits_mgrs_to_roi <- function(tiles) {
+    # retrieve the ROI
     roi <- .s2_mgrs_to_roi(tiles)
     return(roi)
 }

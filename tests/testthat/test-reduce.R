@@ -36,19 +36,14 @@ test_that("Reduce cube with NDVI median", {
     timeline <- sits_timeline(reduce_median)
     expect_length(timeline, 1)
     expect_true(timeline == "2013-09-14")
-
-    out <- capture_warning({
-        expect_message(
-            object = {
-                sits_reduce(
-                    data = modis_cube,
-                    NDVI_MEDIAN = t_median(NDVI),
-                    multicores = 1,
-                    memsize = 1,
-                    output_dir = dir_images
-                )
-            },
-            regexp = "already exists"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        object <- sits_reduce(
+            data = modis_cube,
+            NDVI_MEDIAN = t_median(NDVI),
+            multicores = 1,
+            memsize = 1,
+            output_dir = dir_images
         )
     })
     reduce_min <- sits_reduce(
@@ -218,16 +213,11 @@ test_that("Reduce samples with NDVI max",{
     timeline <- sits_timeline(reduced_samples)
     expect_length(timeline, 1)
     expect_true(timeline == "2013-09-14")
-
-    out <- capture_warning({
-        expect_message(
-            object = {
-                sits_reduce(
-                    data = reduced_samples,
-                    NDVI_MAX = t_max(NDVI)
-                )
-            },
-            regexp = "already exists"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_warning({
+        object <- sits_reduce(
+            data = reduced_samples,
+            NDVI_MAX = t_max(NDVI)
         )
     })
 

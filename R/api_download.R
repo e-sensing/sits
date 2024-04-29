@@ -159,5 +159,5 @@
 #' @param x    Sensor name (e.g. "TM/OLI")
 #' @returns    Sensor name without slashes
 .download_remove_slash <- function(x) {
-    gsub(pattern = "/", replacement = "", x = x)
+    gsub(pattern = "/", replacement = "", x = x, fixed = TRUE)
 }

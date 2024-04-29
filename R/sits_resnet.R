@@ -208,7 +208,8 @@ sits_resnet <- function(samples = NULL,
                 pred = train_samples, frac = validation_split
             )
             # Remove the lines used for validation
-            sel <- !train_samples$sample_id %in% test_samples$sample_id
+            sel <- !train_samples[["sample_id"]] %in%
+                test_samples[["sample_id"]]
             train_samples <- train_samples[sel, ]
         }
         n_samples_train <- nrow(train_samples)
@@ -244,21 +245,21 @@ sits_resnet <- function(samples = NULL,
                 self$conv_block1 <- .torch_batch_conv1D_batch_norm_relu(
                     input_dim   = in_channels,
                     output_dim  = out_channels,
-                    kernel_size = kernels[1],
+                    kernel_size = kernels[[1]],
                     padding     = "same"
                 )
                 # create second convolution block
                 self$conv_block2 <- .torch_conv1D_batch_norm_relu(
                     input_dim   = out_channels,
                     output_dim  = out_channels,
-                    kernel_size = kernels[2],
+                    kernel_size = kernels[[2]],
                     padding     = "same"
                 )
                 # create third convolution block
                 self$conv_block3 <- .torch_conv1D_batch_norm(
                     input_dim   = out_channels,
                     output_dim  = out_channels,
-                    kernel_size = kernels[3],
+                    kernel_size = kernels[[3]],
                     padding     = "same"
                 )
                 # create shortcut
@@ -285,16 +286,25 @@ sits_resnet <- function(samples = NULL,
         resnet_model <- torch::nn_module(
             classname = "model_resnet",
             initialize = function(n_bands, n_times, n_labels, blocks, kernels) {
-                self$res_block1 <- resnet_block(n_bands, blocks[1], kernels)
-                self$res_block2 <- resnet_block(blocks[1], blocks[2], kernels)
-                self$res_block3 <- resnet_block(blocks[2], blocks[3], kernels)
+                self$res_block1 <- resnet_block(n_bands,
+                                                blocks[[1]],
+                                                kernels
+                )
+                self$res_block2 <- resnet_block(blocks[[1]],
+                                                blocks[[2]],
+                                                kernels
+                )
+                self$res_block3 <- resnet_block(blocks[[2]],
+                                                blocks[[3]],
+                                                kernels
+                )
                 self$gap <- torch::nn_adaptive_avg_pool1d(output_size = n_bands)
 
                 # flatten 3D tensor to 2D tensor
                 self$flatten <- torch::nn_flatten()
                 # classification using softmax
                 self$softmax <- torch::nn_sequential(
-                    torch::nn_linear(blocks[3] * n_bands, n_labels),
+                    torch::nn_linear(blocks[[3]] * n_bands, n_labels),
                     torch::nn_softmax(dim = -1)
                 )
             },
@@ -348,7 +358,7 @@ sits_resnet <- function(samples = NULL,
                 verbose = verbose
             )
         # Serialize model
-        serialized_model <- .torch_serialize_model(torch_model$model)
+        serialized_model <- .torch_serialize_model(torch_model[["model"]])
 
         # Function that predicts labels of input values
         predict_fun <- function(values) {
@@ -358,7 +368,7 @@ sits_resnet <- function(samples = NULL,
             # Note: function does not work on MacOS
             suppressWarnings(torch::torch_set_num_threads(1))
             # Unserialize model
-            torch_model$model <- .torch_unserialize_model(serialized_model)
+            torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
             # Used to check values (below)
             n_input_pixels <- nrow(values)
             # Transform input into a 3D tensor

@@ -66,7 +66,7 @@
 #' @param file     File name
 #' @returns        TRUE/FALSE
 .file_is_local <- function(file) {
-    all(!grepl(pattern = "^(http[s]?|s3)://", x = file))
+    !all(grepl(pattern = "^(http[s]?|s3)://", x = file))
 }
 #' @title Remove vsi preamble for remote files
 #' @noRd

@@ -224,7 +224,7 @@ NULL
 
 #' @export
 .tile_update_label.default <- function(tile, labels) {
-    stop("tile is not a classified cube")
+    stop(.conf("messages", ".tile_update_label_default"))
 }
 
 #' @title Get/Set labels
@@ -950,13 +950,12 @@ NULL
     is_bit_mask <- .cloud_bit_mask(cloud_conf)
     # Prepare cloud_mask
     # Identify values to be removed
-    if (!is_bit_mask) {
-        values <- values %in% interp_values
-    } else {
+    if (is_bit_mask)
         values <- matrix(bitwAnd(values, sum(2^interp_values)) > 0,
-            nrow = length(values)
+                         nrow = length(values)
         )
-    }
+    else
+        values <- values %in% interp_values
     #
     # Log here
     #
@@ -1263,7 +1262,8 @@ NULL
 #' @param out_file output file name
 #' @param update_bbox  should bbox be updated?
 #' @return a new tile with files written
-.tile_segment_merge_blocks <- function(block_files, base_tile, band, vector_class,
+.tile_segment_merge_blocks <- function(block_files, base_tile,
+                                       band, vector_class,
                                        out_file, update_bbox = FALSE) {
     base_tile <- .tile(base_tile)
     # Read all blocks file
@@ -1308,7 +1308,7 @@ NULL
 }
 #' @export
 .tile_area_freq.raster_cube <- function(tile) {
-    stop("Cube is not a classified cube")
+    stop(.conf("messages", ".tile_area_freq_raster_cube"))
 }
 #' @export
 .tile_area_freq.default <- function(tile) {
@@ -1332,14 +1332,13 @@ NULL
 #' @return Numeric matrix with raster values for each coordinate.
 #'
 .tile_extract <- function(tile, band, xy) {
+    .check_set_caller(".tile_extract")
     # Create a stack object
     r_obj <- .raster_open_rast(.tile_paths(tile = tile, bands = band))
     # Extract the values
     values <- .raster_extract(r_obj, xy)
     # Is the data valid?
-    if (nrow(values) != nrow(xy)) {
-        stop("number of extracted points differ from requested points")
-    }
+    .check_that(nrow(values) == nrow(xy))
     # Return values
     values
 }
@@ -1427,4 +1426,3 @@ NULL
     }
     return(invisible(end_time))
 }
-

@@ -182,7 +182,8 @@ sits_mlp <- function(samples = NULL,
                 pred = train_samples, frac = validation_split
             )
             # Remove the lines used for validation
-            sel <- !train_samples$sample_id %in% test_samples$sample_id
+            sel <- !train_samples[["sample_id"]] %in%
+                test_samples[["sample_id"]]
             train_samples <- train_samples[sel, ]
         }
         # Shuffle the data
@@ -208,17 +209,17 @@ sits_mlp <- function(samples = NULL,
                 # input layer
                 tensors[[1]] <- .torch_linear_relu_dropout(
                     input_dim = num_pred,
-                    output_dim = layers[1],
-                    dropout_rate = dropout_rates[1]
+                    output_dim = layers[[1]],
+                    dropout_rate = dropout_rates[[1]]
                 )
                 # if hidden layers is a vector then we add those layers
                 if (length(layers) > 1) {
                     for (i in 2:length(layers)) {
                         tensors[[length(tensors) + 1]] <-
                             .torch_linear_batch_norm_relu_dropout(
-                                input_dim = layers[i - 1],
-                                output_dim = layers[i],
-                                dropout_rate = dropout_rates[i]
+                                input_dim = layers[[i - 1]],
+                                output_dim = layers[[i]],
+                                dropout_rate = dropout_rates[[i]]
                             )
                     }
                 }
@@ -264,7 +265,7 @@ sits_mlp <- function(samples = NULL,
                 verbose = verbose
             )
         # Serialize model
-        serialized_model <- .torch_serialize_model(torch_model$model)
+        serialized_model <- .torch_serialize_model(torch_model[["model"]])
 
         # Function that predicts labels of input values
         predict_fun <- function(values) {
@@ -274,7 +275,7 @@ sits_mlp <- function(samples = NULL,
             # Note: function does not work on MacOS
             suppressWarnings(torch::torch_set_num_threads(1))
             # Unserialize model
-            torch_model$model <- .torch_unserialize_model(serialized_model)
+            torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
             # Used to check values (below)
             n_input_pixels <- nrow(values)
             # Performs data normalization

@@ -55,7 +55,7 @@ impute_linear <- function(data = NULL) {
 #'                       the imputation function.
 #'
 #' @export
-sits_impute <- function(samples, impute_fn = impute_linear() ) {
+sits_impute <- function(samples, impute_fn = impute_linear()) {
     # check data is time series
     .check_samples(samples)
     # extract time series

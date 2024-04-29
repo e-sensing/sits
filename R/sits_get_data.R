@@ -300,13 +300,13 @@ sits_get_data.data.frame <- function(cube,
     end_date <- .default(end_date, .cube_end_date(cube))
     # Fill missing columns
     if (!.has_column(samples, "label")) {
-        samples$label <- label
+        samples[["label"]] <- label
     }
     if (!.has_column(samples, "start_date")) {
-        samples$start_date <- start_date
+        samples[["start_date"]] <- start_date
     }
     if (!.has_column(samples, "end_date")) {
-        samples$end_date <- end_date
+        samples[["end_date"]] <- end_date
     }
     # Set samples class
     samples <- .set_class(samples, c("sits", class(samples)))

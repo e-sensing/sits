@@ -97,8 +97,8 @@
         # add filter by wrs path and row
         stac_query <- rstac::ext_query(
             q = stac_query,
-            "landsat:wrs_path" %in% sep_tile$wrs_path,
-            "landsat:wrs_row" %in% sep_tile$wrs_row
+            "landsat:wrs_path" %in% sep_tile[["wrs_path"]],
+            "landsat:wrs_row" %in% sep_tile[["wrs_row"]]
         )
     }
     # making the request based on ROI
@@ -124,13 +124,14 @@
                                                         items, ...,
                                                         collection = NULL) {
     # store tile info in items object
-    items$features <- purrr::map(items$features, function(feature) {
-        feature$properties$tile <-
-            paste0(feature$properties[["landsat:wrs_path"]],
-            feature$properties[["landsat:wrs_row"]],
-            collapse = ""
-        )
-        feature
+    items[["features"]] <- purrr::map(
+        items[["features"]], function(feature) {
+            feature[["properties"]][["tile"]] <-
+                paste0(feature[["properties"]][["landsat:wrs_path"]],
+                       feature[["properties"]][["landsat:wrs_row"]],
+                       collapse = ""
+                )
+            feature
     })
     rstac::items_reap(items, field = c("properties", "tile"))
 }
@@ -148,9 +149,11 @@
                                         items, ...,
                                         collection = NULL) {
     # store tile info in items object
-    items$features <- purrr::map(items$features, function(feature) {
-        feature$properties$tile <- feature$properties[["grid:code"]]
-        feature$properties$tile <- gsub("MGRS-", "", feature$properties$tile)
+    items[["features"]] <- purrr::map(items[["features"]], function(feature) {
+        feature[["properties"]][["tile"]] <-
+            feature[["properties"]][["grid:code"]]
+        feature[["properties"]][["tile"]] <-
+            gsub("MGRS-", "", feature[["properties"]][["tile"]], fixed = TRUE)
         feature
     })
 

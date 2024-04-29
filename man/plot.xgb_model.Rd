@@ -4,7 +4,7 @@
 \alias{plot.xgb_model}
 \title{Plot XGB model}
 \usage{
-\method{plot}{xgb_model}(x, ..., trees = c(0:4), width = 1500, height = 1900)
+\method{plot}{xgb_model}(x, ..., trees = 0:4, width = 1500, height = 1900)
 }
 \arguments{
 \item{x}{Object of class "xgb_model".}

@@ -234,7 +234,7 @@ sits_classify.raster_cube <- function(data,
         # Calculate available memory from GPU
         memsize <- floor(gpu_memory - .torch_mem_info())
         .check_int_parameter(memsize, min = 2,
-                             msg = .conf("messages", ".check_gpu_memory_size")
+                        msg = .conf("messages", ".check_gpu_memory_size")
         )
         proc_bloat <- .conf("processing_bloat_gpu")
     }
@@ -295,12 +295,7 @@ sits_classify.raster_cube <- function(data,
     )
     on.exit(.parallel_stop(), add = TRUE)
     # Show block information
-    if (verbose) {
-        start_time <- Sys.time()
-        msg <- paste0(.conf("messages", ".verbose_block_size"), " ",
-                      .nrows(block), " x ",.ncols(block))
-        message(msg)
-    }
+    start_time <- .classify_verbose_start(verbose, block)
     # Classification
     # Process each tile sequentially
     probs_cube <- .cube_foreach_tile(data, function(tile) {
@@ -321,14 +316,7 @@ sits_classify.raster_cube <- function(data,
         return(probs_tile)
     })
     # Show block information
-    if (verbose) {
-        end_time <- Sys.time()
-        message("")
-        message(paste(.conf("messages", ".verbose_task_end"), end_time))
-        message(paste(.conf("messages", ".verbose_task_elapsed"),
-            format(round(end_time - start_time, digits = 2)))
-        )
-    }
+    .classify_verbose_end(verbose, start_time)
     return(probs_cube)
 }
 
@@ -346,8 +334,9 @@ sits_classify.tbl_df <- function(data, ml_model, ...) {
         data <- .cube_find_class(data)
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
-    } else
+    } else {
         stop(.conf("messages", "sits_classify_tbl_df"))
+    }
     result <- sits_classify(data, ml_model, ...)
     return(result)
 }
@@ -463,6 +452,7 @@ sits_classify.segs_cube <- function(data,
             output_dir = output_dir,
             progress = progress
         )
+        return(class_vector)
     })
     return(probs_vector_cube)
 }
