@@ -1,246 +1,113 @@
-sits_radd <- function(data, pdf = "gaussian", chi = 0.9,
-                      start_date = NULL, end_date = NULL) {
-    # TODO add some pre-conditions
-    train <- function(data) {
+sits_radd <- function(data, pdf, ...,
+                      stats_layer = NULL,
+                      chi = 0.9,
+                      start_date = NULL,
+                      end_date = NULL) {
+
+    UseMethod("sits_radd", data)
+}
+
+
+sits_radd.sits <- function(data,
+                           pdf = "gaussian",
+                           ...,
+                           stats_layer = NULL,
+                           chi = 0.9,
+                           start_date = NULL,
+                           end_date = NULL) {
+    # Training function
+    train_fun <- function(data) {
+        # Check 'pdf' parameter
+        .check_chr_parameter(pdf)
+        # Check 'chi' parameter
+        .check_num_min_max(chi, min = 0.1, max = 1)
+        # Check 'start_date' parameter
+        .check_date_parameter(start_date)
+        # Check 'end_date' parameter
+        .check_date_parameter(end_date)
+
         # Get pdf function
         pdf_fn <- .pdf_fun(pdf)
-        # We need to calculate pdf for each band
-        # but the updates occur in each one
-        stats_layer <- .radd_create_stats(data)
+        # Create stats layer
+        if (!.has(stats_layer)) {
+            stats_layer <- .radd_create_stats(data)
+        }
         # Calculate probability for NF
         data <- .radd_calc_pnf(
-            data = data, pdf_fn = pdf_fn, stats_layer = stats_layer
-        )
-        # Now we need to detected the changes
-        # TODO: implement this in predict function below with start and end date
-        # and PNFmin parameter
-        data <- .radd_detect_events(
             data = data,
-            threshold = 0.5,
-            start_date = start_date,
-            end_date = end_date
+            pdf_fn = pdf_fn,
+            stats_layer = stats_layer
         )
-        predict <- function() {
-            return(NULL)
-        }
-    }
-}
-
-.radd_detect_events <- function(data,
-                                threshold = 0.5,
-                                start_date = NULL,
-                                end_date = NULL) {
-    data <- .radd_filter_changes(
-        data = data, threshold = threshold, start_date = start_date,
-        end_date = end_date
-    )
-
-    data <- .radd_add_dummy(data)
-
-    data <- .radd_start_monitoring(data, threshold)
-}
-
-.radd_start_monitoring <- function(data, threshold, chi = 0.9) {
-    prob_nf <- tidyr::unnest(data, "prob_nf")
-    prob_nf <- dplyr::select(
-        prob_nf, dplyr::all_of(c("sample_id", "NF", "Index", "Flag", "PChange"))
-    )
-    prob_nf <- dplyr::group_by(prob_nf, .data[["sample_id"]])
-    prob_nf[prob_nf$NF < threshold, "Flag"] <- "0"
-    prob_nf <- dplyr::group_modify(prob_nf, ~ {
-        # Filter observations to monitoring and remove first dummy data
-        #valid_idxs <- which(.x$NF >= threshold)[-1]
-        valid_idxs <- which(.x$NF >= threshold)[-1] - 1
-        for (r in seq_len(length(valid_idxs))) {
-            for (t in seq(valid_idxs[r], nrow(.x))) {
-                # step 2.1: Update Flag and PChange for current time step (i)
-                # (case 1) No confirmed or flagged change:
-                if (nrow(.x[t - 1, "Flag"]) > 0 && !is.na(.x[t - 1, "Flag"])[[1]]) {
-                    if (.x[t - 1, "Flag"] == "0" || .x[t - 1, "Flag"] == "oldFlag") {
-                        i <- 0
-                        prior <- .x[t - 1, "NF"]
-                        likelihood <- .x[t, "NF"]
-                        posterior <- .radd_calc_post(prior, likelihood)
-                        .x[t, "Flag"] <- "Flag"
-                        .x[t, "PChange"] <- posterior
-                    }
-                    # (case 2) Flagged change at previous time step: update PChange
-                    if (.x[t - 1, "Flag"] == "Flag") {
-                        prior <- .x[t - 1, "PChange"]
-                        likelihood <- .x[t, "NF"]
-                        posterior <- .radd_calc_post(prior, likelihood)
-                        .x[t, "Flag"] <- "Flag"
-                        .x[t, "PChange"] <- posterior
-                        i <- i + 1
-                    }
-                }
-                # step 2.2: Confirm and reject flagged changes
-                if (nrow(.x[t - 1, "Flag"]) > 0 && !is.na(.x[t, "Flag"]) && .x[t, "Flag"] == "Flag") {
-                    if ((i > 0)) {
-                        if (.x[t, "PChange"] < 0.5) {
-                            .x[(t - i):t, "Flag"] <- "0"
-                            .x[(t - i), "Flag"] <- "oldFlag"
-                            break
-                        }
-                    }
-                }
-                # confirm change in case PChange >= chi
-                if (nrow(.x[t - 1, "Flag"]) > 0 && !is.na(.x[t, "PChange"]) && .x[t, "PChange"] >= chi) {
-                    if (.x[t, "NF"] >= threshold) {
-                        min_idx <- min(which(.x$Flag == "Flag"))
-                        .x[min_idx:t, "Flag"] <- "Change"
-                        return(.x)
-                    }
-                }
-            }
-        }
-        return(.x)
-    })
-    prob_nf[["#.."]] <- prob_nf[["sample_id"]]
-    prob_nf <-  tidyr::nest(
-        prob_nf, prob_nf = -"#.."
-    )
-    data[["prob_nf"]] <- prob_nf[["prob_nf"]]
-    data
-}
-
-.radd_add_dummy <- function(data) {
-    prob_nf <- tidyr::unnest(data, "prob_nf")
-    prob_nf <- dplyr::select(
-        prob_nf, dplyr::all_of(c("sample_id", "NF", "Index", "Flag", "PChange"))
-    )
-    prob_nf <- dplyr::group_by(prob_nf, .data[["sample_id"]])
-    prob_nf <- dplyr::group_modify(prob_nf, ~ {
-        tibble::add_row(
-            .data = .x,
-            NF = 0.5,
-            Index = min(.x$Index) - 1,
-            Flag = "0",
-            PChange = NA,
-            .before = 1
-        )
-    })
-    prob_nf[2, "Flag"] <- "0"
-    prob_nf[["#.."]] <- prob_nf[["sample_id"]]
-    prob_nf <-  tidyr::nest(
-        prob_nf, prob_nf = -"#.."
-    )
-    data[["prob_nf"]] <- prob_nf[["prob_nf"]]
-    data
-}
-
-.radd_filter_changes <- function(data, threshold, start_date, end_date) {
-    prob_nf <- tidyr::unnest(data, "prob_nf")
-    prob_nf <- dplyr::select(
-        prob_nf, dplyr::all_of(c("sample_id", "NF", "Index", "Flag", "PChange"))
-    )
-    data[["sample_id"]] <- unique(prob_nf[["sample_id"]])
-    if (!.has(start_date)) {
-        start_date <- .ts_start_date(.ts(data))
-    }
-    if (!.has(end_date)) {
-        end_date <- .ts_end_date(.ts(data))
-    }
-    prob_nf <- dplyr::filter(
-        prob_nf, Index >= start_date & Index <= end_date
-    )
-    prob_nf[["#.."]] <- prob_nf[["sample_id"]]
-    prob_nf <- tidyr::nest(
-        prob_nf, prob_nf = -"#.."
-    )
-    data <- data[which(data[["sample_id"]] %in% prob_nf[["#.."]]), ]
-    data[["sample_id"]] <- NULL
-    data[["prob_nf"]] <- prob_nf[["prob_nf"]]
-    data
-}
-
-.radd_calc_pnf <- function(data, pdf_fn, stats_layer) {
-    #samples_labels <- .samples_labels(data)
-    samples_labels <- stats_layer$label
-    bands <- .samples_bands(data)
-    # We need to calculate for the first to updating others
-    band <- bands[[1]]
-    prob_nf <- .radd_calc_pnf_band(
-        data = data,
-        band = band,
-        labels = samples_labels
-    )
-    # Now we need to update de probability of non-forest
-    for (b in setdiff(bands, band)) {
-        prob_nf <<- .radd_calc_pnf_band(
-            data = data,
-            band = b,
-            labels = samples_labels,
-            pnf = prob_nf
-        )
-    }
-    # Add Flag and Pchange columns
-    prob_nf[, c("Flag", "PChange")] <- NA
-    # Nest each NF probability
-    prob_nf[["#.."]] <- prob_nf[["sample_id"]]
-    prob_nf <- tidyr::nest(prob_nf, prob_nf = -"#..")
-    data$prob_nf <- prob_nf$prob_nf
-    # Return the probability of NF updated
-    return(data)
-}
-
-.radd_create_stats <- function(data) {
-    bands <- .samples_bands(data)
-    data <- dplyr::group_by(.ts(data), .data[["label"]])
-    dplyr::summarise(data, dplyr::across(
-        dplyr::matches(bands), list(mean = mean, sd = sd))
-    )
-}
-
-.radd_calc_pnf_band <- function(data, band, labels, pnf = NULL) {
-    ts_band <- .ts_select_bands(.ts(data), bands = band)
-    ts_band <- dplyr::group_by(ts_band, .data[["sample_id"]])
-    prob_nf <- dplyr::group_modify(ts_band, ~ {
-        # Estimate pdf for each samples labels
-        pdf <- purrr::map_dfc(labels, function(label) {
-            label_pdf <- pdf_fn(
-                .x[[band]],
-                mean = .radd_select_stats(stats_layer, label, band, "mean"),
-                sd = .radd_select_stats(stats_layer, label, band, "sd")
+        predict_fun <- function() {
+            # Now we need to detected the changes
+            data <- .radd_detect_events(
+                data = data,
+                threshold = 0.5,
+                start_date = start_date,
+                end_date = end_date
             )
-            tibble::tibble(label_pdf, .name_repair = ~ label)
-        })
-        pdf[pdf[["NF"]] < 1e-10000, "NF"] <- 0
-        # Calculate conditional probability for NF
-        pdf[pdf[["NF"]] > 0, "NF"] <- .radd_calc_prob(
-            p1 = pdf[pdf[["NF"]] > 0, "NF"],
-            p2 = pdf[pdf[["NF"]] > 0, "F"]
-        )
-        # Apply body weight function
-        pdf <- .radd_apply_bwf(pdf)
-        if (.has(pnf)) {
-            pnf <- dplyr::filter(pnf, sample_id == .y$sample_id)
-            pdf[, "NF"] <-  .radd_calc_post(pdf[, "NF"], pnf[, "NF"])
         }
-        # Return NF conditional probability
-        pdf[, "NF"]
-    })
-    # Add Index column to probability of NF
-    prob_nf[["Index"]] <- ts_band[["Index"]]
-    prob_nf
+        # Set model class
+        predict_fun <- .set_class(
+            predict_fun, "radd_model", "sits_model", class(predict_fun)
+        )
+        return(predict_fun)
+    }
+    # If samples is informed, train a model and return a predict function
+    # Otherwise give back a train function to train model further
+    result <- .factory_function(data, train_fun)
+    return(result)
 }
 
-.radd_calc_prob <- function(p1, p2) {
-    p1 / (p1 + p2)
-}
+sits_radd.raster_cube <- function(data,
+                                  pdf = "gaussian",
+                                  ...,
+                                  stats_layer = NULL,
+                                  chi = 0.9,
+                                  start_date = NULL,
+                                  end_date = NULL) {
+    # Training function
+    train_fun <- function(data) {
+        # Check 'pdf' parameter
+        .check_chr_parameter(pdf)
+        # Check 'chi' parameter
+        .check_num_min_max(chi, min = 0.1, max = 1)
+        # Check 'start_date' parameter
+        .check_date_parameter(start_date)
+        # Check 'end_date' parameter
+        .check_date_parameter(end_date)
 
-.radd_apply_bwf <- function(tbl) {
-    tbl[tbl[["NF"]] < 0, "NF"] <- 0
-    tbl[tbl[["NF"]] > 1, "NF"] <- 1
-    tbl
-}
+        # Get pdf function
+        pdf_fn <- .pdf_fun(pdf)
+        # Create stats layer
+        if (!.has(stats_layer)) {
+            stats_layer <- .radd_create_stats(data)
+        }
+        # Calculate probability for NF
+        data <- .radd_calc_pnf(
+            data = data,
+            pdf_fn = pdf_fn,
+            stats_layer = stats_layer
+        )
+        predict_fun <- function() {
+            # Now we need to detected the changes
+            data <- .radd_detect_events(
+                data = data,
+                threshold = 0.5,
+                start_date = start_date,
+                end_date = end_date
+            )
+        }
+        # Set model class
+        predict_fun <- .set_class(
+            predict_fun, "radd_model", "sits_model", class(predict_fun)
+        )
+        return(predict_fun)
+    }
+    # If samples is informed, train a model and return a predict function
+    # Otherwise give back a train function to train model further
+    result <- .factory_function(data, train_fun)
+    return(result)
 
-.radd_calc_post <- function(prior, post){
-    return((prior * post) / ((prior * post) + ((1 - prior) * (1 - post))))
-}
 
-.radd_select_stats <- function(stats_layer, label, band, stats) {
-    stats_layer <- dplyr::filter(stats_layer, label == !!label)
-    band_name <- paste(band, stats, sep = "_")
-    .as_dbl(dplyr::select(stats_layer, dplyr::matches(band_name)))
 }

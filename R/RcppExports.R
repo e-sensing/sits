@@ -77,6 +77,14 @@ C_normalize_data_0 <- function(data, min, max) {
     .Call(`_sits_C_normalize_data_0`, data, min, max)
 }
 
+C_dnorm <- function(mtx, mean = 0, std = 1) {
+    .Call(`_sits_C_dnorm`, mtx, mean, std)
+}
+
+C_radd_calc_nf <- function(ts, mean, std) {
+    .Call(`_sits_C_radd_calc_nf`, ts, mean, std)
+}
+
 C_temp_max <- function(mtx) {
     .Call(`_sits_C_temp_max`, mtx)
 }
