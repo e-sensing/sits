@@ -110,14 +110,16 @@
         collection = collection,
         stac_query = items_query,
         tiles = tiles,
-        platform = platform, ...
+        platform = platform,
+        multicores = multicores, ...
     )
     # filter bands in items
     items <- .source_items_bands_select(
         source = source,
         items = items,
         bands = bands,
-        collection = collection, ...
+        collection = collection,
+        multicores = multicores, ...
     )
     # make a cube
     cube <- .source_items_cube(

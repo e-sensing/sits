@@ -144,6 +144,7 @@
     .opensearch_as_stac_items(features_result)
 }
 
+# ---- open search specializations ----
 #' @title Extract `tile` from Open Search Items.
 #' @keywords internal
 #' @noRd
@@ -210,42 +211,14 @@
 
 #' @keywords internal
 #' @noRd
-.opensearch_cdse_search.S2MSI2A <- function(product_type, ...,
-                                            source,
-                                            collection,
-                                            start_date,
-                                            end_date,
+.opensearch_cdse_search.S2MSI2A <- function(product_type,
+                                            source, collection,
+                                            start_date, end_date,
                                             bbox,
+                                            platform = NULL,
                                             paginate = TRUE,
-                                            limit = 1000) {
-    .opensearch_cdse_client(
-        product_type,
-        source,
-        collection,
-        start_date,
-        end_date,
-        bbox,
-        paginate,
-        limit,
-        status = "ONLINE"
-    )
-}
-
-#' @keywords internal
-#' @noRd
-.opensearch_cdse_search.RTC <- function(product_type, ...,
-                                        source,
-                                        collection,
-                                        start_date,
-                                        end_date,
-                                        bbox,
-                                        paginate = TRUE,
-                                        limit = 1000,
-                                        orbit = "descending") {
-    .check_set_caller(".opensearch_cdse_search_rtc")
-    # Checks - Orbit
-    orbits <- .conf("sources", source, "collections", collection, "orbits")
-    .check_chr_within(orbit, orbits)
+                                            limit = 1000, ...) {
+    .check_set_caller(".opensearch_cdse_search_s2msi2a")
     # Search!
     .opensearch_cdse_client(
         product_type,
@@ -257,6 +230,39 @@
         paginate,
         limit,
         status = "ONLINE",
+        instrument = "MSI",
+        platform = platform,
+        processingLevel = "S2MSI2A"
+    )
+}
+
+#' @keywords internal
+#' @noRd
+.opensearch_cdse_search.RTC <- function(product_type,
+                                        source, collection,
+                                        start_date, end_date,
+                                        bbox,
+                                        platform = NULL,
+                                        orbit = NULL,
+                                        paginate = TRUE, limit = 1000, ...) {
+    .check_set_caller(".opensearch_cdse_search_rtc")
+    # check orbit
+    orbits <- .conf("sources", source, "collections", collection, "orbits")
+    .check_chr_within(x = orbit, within = orbits)
+    # Search!
+    .opensearch_cdse_client(
+        product_type,
+        source,
+        collection,
+        start_date,
+        end_date,
+        bbox,
+        paginate,
+        limit,
+        status = "ONLINE",
+        sensorMode = "IW",
+        instrument = "C-SAR",
+        platform = platform,
         orbitDirection = stringr::str_to_upper(orbit)
     )
 }

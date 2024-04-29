@@ -203,7 +203,7 @@
 #'     # DEAFRICA does not support definition of tiles
 #'     cube_dea <- sits_cube(
 #'         source = "DEAFRICA",
-#'         collection = "S2_L2A",
+#'         collection = "SENTINEL-2-L2A",
 #'         bands = c("B04", "B08"),
 #'         roi = c(
 #'             "lat_min" = 17.379,

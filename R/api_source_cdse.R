@@ -1,5 +1,4 @@
-
-# ---- general utilities ----
+# ---- general cdse utilities ----
 #' @title Extract item type of a given `collection`.
 #' @keywords internal
 #' @noRd
@@ -22,10 +21,6 @@
     class(item_type) <- c("character", item_type)
     item_type
 }
-
-
-
-
 
 #' @title Fix STAC Items from CDSE with assets metadata.
 #' @keywords internal
@@ -114,11 +109,12 @@
 #' @param dry_run    TRUE/FALSE.
 #' @return           Called for side effects
 #' @export
-.source_collection_access_test.cdse_cube <- function(source, collection,
+.source_collection_access_test.cdse_cube <- function(source,
+                                                     collection,
                                                      bands, ...,
                                                      start_date = NULL,
                                                      end_date = NULL,
-                                                     dry_run = FALSE) {
+                                                     dry_run = TRUE) {
     # check if `aws.s3` is installed
     .check_require_packages("aws.s3")
     # as CDSE STAC returns many types of items in the same collection,
@@ -142,7 +138,8 @@
             end_date = end_date,
             bbox = NULL,
             paginate = FALSE,
-            limit = 1
+            limit = 1,
+            ...
         )
     }, .default = NULL)
     # Check items
@@ -189,13 +186,21 @@
 .source_items_new.cdse_cube <- function(source, ...,
                                         collection,
                                         stac_query,
-                                        tiles = NULL,
-                                        orbit = "descending",
-                                        multicores = 2L) {
+                                        tiles,
+                                        multicores,
+                                        platform) {
     # set caller to show in errors
     .check_set_caller(".source_items_new_cdse_cube")
-    # check parameters
+    # check multicores
     .check_int_parameter(multicores, min = 1, max = 2048)
+    # check platform (filter available for CDSE collections supported by sits)
+    if (!is.null(platform)) {
+        platform <- .stac_format_platform(
+            source = source,
+            collection = collection,
+            platform = platform
+        )
+    }
     # define the maximum number of records per request
     cdse_query_limit <- 1000
     # as CDSE STAC returns many types of items in the same collection,
@@ -236,7 +241,8 @@
         end_date     = query_date$end_date,
         bbox         = query_bbox$bbox,
         limit        = cdse_query_limit,
-        orbit        = orbit
+        platform     = platform,
+        ...
     )
     # Validate results
     .check_length(items[["features"]], len_min = 1)

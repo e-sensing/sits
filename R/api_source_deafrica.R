@@ -1,3 +1,4 @@
+# ---- source api ----
 #' @title Create an items object in an DEAfrica cube
 #' @keywords internal
 #' @noRd
@@ -17,14 +18,10 @@
                                             stac_query,
                                             tiles = NULL,
                                             platform = NULL) {
-
     # Convert roi to bbox
-    lon <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 1]
-    lat <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 2]
+    roi <- .stac_intersects_as_bbox(stac_query)
     stac_query[["params"]][["intersects"]] <- NULL
-    stac_query[["params"]][["bbox"]] <-
-        c(min(lon), min(lat), max(lon), max(lat))
-
+    stac_query[["params"]][["bbox"]] <- roi$bbox
     # making the request
     items_info <- rstac::post_request(q = stac_query, ...)
     .check_stac_items(items_info)
@@ -55,48 +52,119 @@
 #' @param platform   Satellite platform (optional).
 #' @return An object referring the images of a sits cube.
 #' @export
-.source_items_new.deafrica_cube_s2_l2a <- function(source, ...,
-                                                   collection,
-                                                   stac_query,
-                                                   tiles = NULL,
-                                                   platform = NULL) {
+`.source_items_new.deafrica_cube_sentinel-2-l2a` <- function(source, ...,
+                                                     collection,
+                                                     stac_query,
+                                                     tiles = NULL,
+                                                     platform = NULL) {
     # set caller to show in errors
     .check_set_caller(".source_items_new")
-
+    # check platform
+    if (!is.null(platform)) {
+        platform <- .stac_format_platform(
+            source = source,
+            collection = collection,
+            platform = platform
+        )
+    }
+    # check spatial extensions
     if (!is.null(tiles)) {
         roi <- .s2_mgrs_to_roi(tiles)
         stac_query[["params"]][["intersects"]] <- NULL
         stac_query[["params"]][["bbox"]] <- c(roi[["lon_min"]],
                                               roi[["lat_min"]],
                                               roi[["lon_max"]],
-                                              roi[["lat_max"]]
-        )
+                                              roi[["lat_max"]])
     } else {
-        # Convert roi to bbox
-        lon <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 1]
-        lat <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 2]
+        roi <- .stac_intersects_as_bbox(stac_query)
         stac_query[["params"]][["intersects"]] <- NULL
-        stac_query[["params"]][["bbox"]] <- c(min(lon),
-                                              min(lat),
-                                              max(lon),
-                                              max(lat)
+        stac_query[["params"]][["bbox"]] <- roi$bbox
+    }
+    # make request
+    items_info <- rstac::post_request(q = stac_query, ...)
+    items_info <- rstac::items_fetch(items = items_info, progress = FALSE)
+    # filter items
+    items_info <- rstac::items_filter(items_info,
+                                      filter_fn = function(feature) {
+        lgl_res <- TRUE
+
+        if (!is.null(platform)) {
+            lgl_res <- feature[["properties"]][["platform"]] == platform
+        }
+
+        lgl_res
+    })
+    # check results
+    .check_stac_items(items_info)
+    # done
+    items_info
+}
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_new.deafrica_cube_sentinel-1-rtc` <- function(
+                                                         source, ...,
+                                                         collection,
+                                                         stac_query,
+                                                         tiles = NULL,
+                                                         platform = NULL,
+                                                         orbit = NULL) {
+    # set caller to show in errors
+    .check_set_caller(".source_items_new")
+    # check orbits
+    orbits <- .conf("sources", source, "collections", collection, "orbits")
+    .check_chr_within(orbit, orbits)
+    # check platform
+    if (!is.null(platform)) {
+        platform <- .stac_format_platform(
+            source = source,
+            collection = collection,
+            platform = platform
         )
     }
-    # making the request
+    # check spatial extensions
+    if (!is.null(tiles)) {
+        roi <- .s2_mgrs_to_roi(tiles)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- c(roi[["lon_min"]],
+                                              roi[["lat_min"]],
+                                              roi[["lon_max"]],
+                                              roi[["lat_max"]])
+    } else {
+        roi <- .stac_intersects_as_bbox(stac_query)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- roi$bbox
+    }
+    # make request
     items_info <- rstac::post_request(q = stac_query, ...)
-    .check_stac_items(items_info)
-    # if more than 2 times items pagination are found the progress bar
-    # is displayed
-    progress <- rstac::items_matched(items_info) >
-        2 * .conf("rstac_pagination_limit")
-    # check documentation mode
-    progress <- .check_documentation(progress)
+    items_info <- rstac::items_fetch(items = items_info, progress = FALSE)
+    # filter items
+    items_info <- rstac::items_filter(items_info,
+                                      filter_fn = function(feature) {
+        lgl_res <- feature[["properties"]][["sat:orbit_state"]]     == orbit &&
+                   feature[["properties"]][["sar:instrument_mode"]] == "IW"  &&
+                   feature[["properties"]][["sar:frequency_band"]]  == "C"
 
-    # fetching all the metadata and updating to upper case instruments
-    items_info <- rstac::items_fetch(items = items_info, progress = progress)
-    # checks if the items returned any items
+        if (!is.null(platform)) {
+            lgl_res <- lgl_res &&
+                       feature[["properties"]][["platform"]] == platform
+        }
+
+        lgl_res
+    })
+    # check results
     .check_stac_items(items_info)
-    return(items_info)
+    # done
+    items_info
+}
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_filter_tiles.deafrica_cube_sentinel-1-rtc` <- function(source,
+                                                                collection,
+                                                                cube,
+                                                                tiles) {
+    return(cube)
 }
 #' @keywords internal
 #' @noRd
@@ -128,14 +196,14 @@
 #' @keywords internal
 #' @noRd
 #' @export
-`.source_items_tile.deafrica_cube_rainfall_chirps_daily` <-
+`.source_items_tile.deafrica_cube_rainfall-chirps-daily` <-
     function(source, items, ..., collection = NULL) {
         rep("NoTilingSystem", rstac::items_length(items))
 }
 #' @keywords internal
 #' @noRd
 #' @export
-`.source_items_tile.deafrica_cube_rainfall_chirps_monthly` <-
+`.source_items_tile.deafrica_cube_rainfall-chirps-monthly` <-
     function(source, items, ..., collection = NULL) {
     rep("NoTilingSystem", rstac::items_length(items))
 }
