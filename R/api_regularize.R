@@ -76,12 +76,15 @@
         date = asset[["feature"]],
         output_dir = output_dir
     )
+    fid_name <- paste(
+        asset[["satellite"]], asset[["sensor"]], asset[["feature"]], sep = "_"
+    )
     # Resume feature
     if (file.exists(out_file)) {
         .check_recovery(asset[["tile"]])
         asset <- .tile_eo_from_files(
             files = out_file,
-            fid = .file_base(out_file),
+            fid = fid_name,
             bands = asset[["asset"]],
             date = asset[["feature"]],
             base_tile = .discard(asset, cols = c("asset", "feature")),
@@ -122,7 +125,7 @@
     )
     .tile_eo_from_files(
         files = out_file,
-        fid = .file_base(out_file),
+        fid = fid_name,
         bands = asset[["asset"]],
         date = asset[["feature"]],
         base_tile = .discard(asset, cols = c("asset", "feature")),
