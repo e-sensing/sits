@@ -1,5 +1,4 @@
-
-# ---- general utilities ----
+# ---- general cdse utilities ----
 #' @title Extract item type of a given `collection`.
 #' @keywords internal
 #' @noRd
@@ -22,10 +21,6 @@
     class(item_type) <- c("character", item_type)
     item_type
 }
-
-
-
-
 
 #' @title Fix STAC Items from CDSE with assets metadata.
 #' @keywords internal

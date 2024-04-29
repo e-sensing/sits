@@ -183,7 +183,6 @@
     result[["bbox"]] <- c(min_x, min_y, max_x, max_y)
     result
 }
-# ---- stac utilities ----
 #' @title Extract datetime from a STAC Query.
 #' @keywords internal
 #' @noRd
