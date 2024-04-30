@@ -27,6 +27,11 @@ or data cube (tibble of class "raster_cube") .}
 \item{suffix}{If there are duplicate bands in data1 and data2
 these suffixes will be added
 (character vector).}
+
+\item{tolerance}{Allowable amount of variation in time interval
+between two dates of cubes to be merged}
+
+\item{output_dir}{Directory where transformed images will be saved}
 }
 \value{
 merged data sets (tibble of class "sits" or
