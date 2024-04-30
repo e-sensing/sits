@@ -1396,6 +1396,81 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes using tiles", {
 
 })
 
+test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
+    s2_cube <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-2-L2A",
+                tiles = "20LKP",
+                bands = c("B02", "B8A", "B11", "CLOUD"),
+                start_date = "2020-06-01",
+                end_date = "2020-09-28"
+            )
+        },
+        .default = NULL
+    )
+
+    dir_images <- paste0(tempdir(), "/images_merge/")
+    if (!dir.exists(dir_images)) {
+        suppressWarnings(dir.create(dir_images))
+    }
+    merge_images <- paste0(tempdir(), "/images_merge_new/")
+    if (!dir.exists(merge_images)) {
+        suppressWarnings(dir.create(merge_images))
+    }
+
+    testthat::skip_if(
+        purrr::is_null(s2_cube),
+        "MPC collection is not accessible"
+    )
+
+    s2_reg <- sits_regularize(
+        cube = s2_cube,
+        period = "P30D",
+        res = 120,
+        multicores = 2,
+        output_dir = dir_images
+    )
+
+    s1_cube <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-1-GRD",
+                bands = c("VV", "VH"),
+                orbit = "descending",
+                tiles = "20LKP",
+                start_date = "2020-06-01",
+                end_date = "2020-09-28"
+            )
+        },
+        .default = NULL
+    )
+
+    testthat::skip_if(
+        purrr::is_null(s1_cube),
+        "MPC collection is not accessible"
+    )
+
+    s1_reg <- sits_regularize(
+        cube = s1_cube,
+        period = "P30D",
+        res = 120,
+        tiles = "20LKP",
+        multicores = 2,
+        output_dir = dir_images
+    )
+
+    cube_merged <- sits_merge(
+        s2_reg,
+        s1_reg,
+        tolerance = "P3D",
+        output_dir = merge_images
+    )
+
+})
+
 test_that("Access to SwissDataCube", {
     roi <- c(
         lon_min = 7.54, lat_min = 46.73,
