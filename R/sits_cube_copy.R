@@ -64,11 +64,6 @@ sits_cube_copy <- function(cube, ...,
     .check_set_caller("sits_cube_copy")
     # Pre-conditions
     .check_is_raster_cube(cube)
-    # Cupe copy does not work for SAR data
-    if (inherits(cube, "sar_cube") && !.cube_is_regular(cube)) {
-        warning(.conf("messages"), "sits_cube_copy_sar_no_copy")
-        return(cube)
-    }
     # Check n_tries parameter
     .check_num_min_max(x = n_tries, min = 1, max = 50)
     # check files

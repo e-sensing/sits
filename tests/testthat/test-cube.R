@@ -9,6 +9,7 @@ test_that("List collections", {
     expect_true(grepl("CBERS-WFI-16D", col_bdc))
     expect_true(grepl("CBERS-WFI-8D", col_bdc))
 })
+
 test_that("api_source", {
     res_s2_b2 <- .source_bands_resolution(
         source = "CDSE",
@@ -63,6 +64,7 @@ test_that("api_source", {
     )
     expect_true(token_bdc)
 })
+
 test_that("Reading a raster cube", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- sits_cube(
@@ -1533,6 +1535,7 @@ test_that("Access to SwissDataCube", {
     )
     testthat::skip_if(purrr::is_null(s2_cube_sdc), "SDC is not accessible")
 })
+
 test_that("testing STAC error", {
     mpc_url <- sits_env$config$sources$MPC$url
     sits_env$config$sources$MPC$url <-

@@ -264,7 +264,7 @@
 #' @export
 .source_items_bands_select.cdse_cube <- function(source, ...,
                                                  items, bands,
-                                                 collection, multicores = 2L) {
+                                                 collection, multicores = 1L) {
     # CDSE does not provide files in the `assets` property. So, it is
     # required to fix this using content from CDSE S3 API.
     items <- .cdse_stac_fix_items(source, items, bands, collection, multicores)

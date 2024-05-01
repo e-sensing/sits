@@ -350,7 +350,6 @@ sits_confidence_sampling_window: "Unable to suggest %s samples for label(s) %s; 
 sits_cube: "wrong input parameters - see examples in documentation"
 sits_cube_default: "requested source has not been registered in sits\n - if possible, define an appropriate user configuration file"
 sits_cube_copy: "wrong input parameters - see example in documentation"
-sits_cube_copy_sar_no_copy: "cube_copy does not work with non-regular SAR images"
 sits_cube_local_cube:  "wrong input parameters - see example in documentation"
 sits_cube_local_cube_vector_band: "one vector_band must be provided (either segments, class, or probs)"
 sits_filter: "input should be a valid set of training samples or a non-classified data cube"

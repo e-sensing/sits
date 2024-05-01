@@ -26,7 +26,11 @@
 #'                   or data cube (tibble of class "raster_cube") .
 #' @param data2      Time series (tibble of class "sits")
 #'                   or data cube (tibble of class "raster_cube") .
+#'
 #' @param ...        Additional parameters
+#' @param tolerance  Allowable amount of variation in time interval
+#'                   between two dates of cubes to be merged
+#' @param output_dir Directory where transformed images will be saved
 #' @param suffix     If there are duplicate bands in data1 and data2
 #'                   these suffixes will be added
 #'                   (character vector).
