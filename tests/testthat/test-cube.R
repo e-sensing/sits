@@ -1425,13 +1425,13 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
         "MPC collection is not accessible"
     )
 
-    s2_reg <- sits_regularize(
+    s2_reg <- suppressWarnings(sits_regularize(
         cube = s2_cube,
         period = "P30D",
-        res = 120,
+        res = 240,
         multicores = 2,
         output_dir = dir_images
-    )
+    ))
 
     s1_cube <- .try(
         {
@@ -1453,22 +1453,63 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
         "MPC collection is not accessible"
     )
 
-    s1_reg <- sits_regularize(
+    s1_reg <- suppressWarnings(sits_regularize(
         cube = s1_cube,
         period = "P30D",
-        res = 120,
+        res = 240,
         tiles = "20LKP",
         multicores = 2,
         output_dir = dir_images
+        ))
+
+    testthat::expect_warning(
+        sits_merge(
+            s2_reg,
+            s1_reg,
+            tolerance = "P3D",
+            output_dir = merge_images
+        ),
+        regexp = "he tolerance will be used to merge them."
     )
 
-    cube_merged <- sits_merge(
-        s2_reg,
-        s1_reg,
-        tolerance = "P3D",
-        output_dir = merge_images
+    testthat::expect_error(
+        sits_merge(
+            s2_reg,
+            s1_reg,
+            tolerance = "P1D",
+            output_dir = merge_images
+        )
     )
 
+    cube_merged <- suppressWarnings(
+        sits_merge(
+            s2_reg,
+            s1_reg,
+            tolerance = "P3D",
+            output_dir = merge_images
+        )
+    )
+    testthat::expect_true(
+        all(sits_timeline(cube_merged) == sits_timeline(s2_reg))
+    )
+    testthat::expect_true(
+        all(
+            sits_bands(cube_merged) %in% c(sits_bands(s2_reg),
+                                           sits_bands(s1_reg)))
+    )
+    testthat::expect_error(
+        suppressWarnings(
+            sits_merge(
+                s2_cube,
+                s1_cube,
+                tolerance = "P10D",
+                output_dir = merge_images
+            )
+        )
+    )
+
+    unlink(list.files(merge_images, pattern = ".tif", full.names = TRUE))
+    unlink(list.files(dir_images, pattern = ".tif", full.names = TRUE))
 })
 
 test_that("Access to SwissDataCube", {
