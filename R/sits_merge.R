@@ -119,6 +119,9 @@ sits_merge.raster_cube <- function(data1, data2, ...,
     # Get cubes timeline
     d1_tl <- as.Date(unlist(.cube_timeline(data1)))
     d2_tl <- as.Date(unlist(.cube_timeline(data2)))
+    .check_that(
+        length(d1_tl) == length(d2_tl)
+    )
     .check_that(all(sort(.cube_tiles(data1)) == sort(.cube_tiles(data2))))
     if (inherits(data1, "hls_cube") && inherits(data2, "hls_cube") &&
         (.cube_collection(data1) == "HLSS30" ||
@@ -133,15 +136,19 @@ sits_merge.raster_cube <- function(data1, data2, ...,
     # Pre-conditions
     .check_period(tolerance)
     .check_output_dir(output_dir)
-    warning(paste("The timeline of the provided cubes are different.",
-                  "The tolerance will be used to merge them."),
-            call. = FALSE)
     # Get difference in timelines
     diff_timelines <- .merge_diff_timeline(d1_tl, d2_tl)
     # Verify the consistency of each difference
     if (!all(diff_timelines <= lubridate::period(tolerance))) {
-        stop("Tolerance must be greater than ...")
+        stop(
+            "Tolerance must be greater than the timeline difference.",
+            call. = FALSE
+        )
     }
+    # Warning about the tolerance parameter
+    warning(paste("The timeline of the provided cubes are different.",
+                  "The tolerance will be used to merge them."),
+            call. = FALSE)
     # Change file name to match reference timeline
     data2 <- slider::slide_dfr(data2, function(y) {
         fi_list <- purrr::map(.tile_bands(y), function(band) {
