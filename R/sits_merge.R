@@ -11,6 +11,17 @@
 #' To merge data cubes, they should share the same sensor, resolution,
 #' bounding box, timeline, and have different bands.
 #'
+#' When the user requests a sits_merge operation for two regular cubes with
+#' the same number of time intervals but with timelines that are not equal
+#' the system issues a warning and asks the user to provide a \code{tolerance}
+#' parameter which will be used in the merging operation.
+#' The temporal tolerance parameter should be less than the time interval
+#' between two images of both cubes.
+#' In this case the second cube will have its timeline and the image
+#' file names changed to match the timeline of the first cube.
+#' The images of the second cube will be written in \code{output_dir}
+#' directory.
+#'
 #' @param data1      Time series (tibble of class "sits")
 #'                   or data cube (tibble of class "raster_cube") .
 #' @param data2      Time series (tibble of class "sits")
@@ -23,6 +34,14 @@
 #' @param suffix     If there are duplicate bands in data1 and data2
 #'                   these suffixes will be added
 #'                   (character vector).
+#' @param tolerance  A period tolerance to merge both cubes.
+#'                   ISO8601-compliant time period for regular data cubes,
+#'                   with number and unit, where "D", "M" and "Y" stand
+#'                   for days, month and year; e.g., "P16D" for 16 days.
+#'                   The temporal tolerance parameter should be less than
+#'                   the time interval between two images of both cubes.
+#' @param output_dir Valid directory for storing merged images.
+#'
 #' @return merged data sets (tibble of class "sits" or
 #'         tibble of class "raster_cube")
 #' @examples
@@ -104,6 +123,9 @@ sits_merge.raster_cube <- function(data1, data2, ...,
     # Get cubes timeline
     d1_tl <- as.Date(unlist(.cube_timeline(data1)))
     d2_tl <- as.Date(unlist(.cube_timeline(data2)))
+    .check_that(
+        length(d1_tl) == length(d2_tl)
+    )
     .check_that(all(sort(.cube_tiles(data1)) == sort(.cube_tiles(data2))))
     if (inherits(data1, "hls_cube") && inherits(data2, "hls_cube") &&
         (.cube_collection(data1) == "HLSS30" ||
@@ -118,15 +140,19 @@ sits_merge.raster_cube <- function(data1, data2, ...,
     # Pre-conditions
     .check_period(tolerance)
     .check_output_dir(output_dir)
-    warning(paste("The timeline of the provided cubes are different.",
-                  "The tolerance will be used to merge them."),
-            call. = FALSE)
     # Get difference in timelines
     diff_timelines <- .merge_diff_timeline(d1_tl, d2_tl)
     # Verify the consistency of each difference
     if (!all(diff_timelines <= lubridate::period(tolerance))) {
-        stop("Tolerance must be greater than ...")
+        stop(
+            "Tolerance must be greater than the timeline difference.",
+            call. = FALSE
+        )
     }
+    # Warning about the tolerance parameter
+    warning(paste("The timeline of the provided cubes are different.",
+                  "The tolerance will be used to merge them."),
+            call. = FALSE)
     # Change file name to match reference timeline
     data2 <- slider::slide_dfr(data2, function(y) {
         fi_list <- purrr::map(.tile_bands(y), function(band) {
@@ -153,31 +179,6 @@ sits_merge.raster_cube <- function(data1, data2, ...,
     # Merge the cubes
     data1 <- .merge_fi(data1, data2)
     # Return cubes merged
-    return(data1)
-}
-
-.merge_diff_timeline <- function(t1, t2) {
-    abs(as.Date(t1) - as.Date(t2))
-}
-
-.merge_fi <- function(data1, data2) {
-    data1 <- slider::slide2_dfr(data1, data2, function(x, y) {
-        .fi(x) <- dplyr::arrange(
-            dplyr::bind_rows(.fi(x), .fi(y)),
-            .data[["date"]],
-            .data[["band"]],
-            .data[["fid"]]
-        )
-        # remove duplicates
-        .fi(x) <- dplyr::distinct(
-            .fi(x),
-            .data[["band"]],
-            .data[["date"]],
-            .keep_all = TRUE
-        )
-
-        return(x)
-    })
     return(data1)
 }
 

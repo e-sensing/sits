@@ -139,6 +139,7 @@ Collate:
     'api_gdalcubes.R'
     'api_jobs.R'
     'api_label_class.R'
+    'api_merge.R'
     'api_mixture_model.R'
     'api_ml_model.R'
     'api_mosaic.R'
