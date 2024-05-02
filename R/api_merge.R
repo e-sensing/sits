@@ -1,4 +1,4 @@
-.merge_diff_timeline <- function(t1, t2) {
+.merge_diff_timelines <- function(t1, t2) {
     abs(as.Date(t1) - as.Date(t2))
 }
 

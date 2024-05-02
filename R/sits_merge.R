@@ -114,9 +114,16 @@ sits_merge.raster_cube <- function(data1, data2, ...,
                                    tolerance = NULL,
                                    output_dir = NULL) {
     .check_set_caller("sits_merge_raster_cubes")
-    # pre-condition - check cube type
+    # pre-conditions
     .check_is_raster_cube(data1)
     .check_is_raster_cube(data2)
+    if (.has(tolerance)) {
+        .check_period(tolerance)
+    }
+    if (.has(output_dir)) {
+        .check_output_dir(output_dir)
+    }
+
     # aligning tiles
     data1 <- dplyr::arrange(data1, .data[["tile"]])
     data2 <- dplyr::arrange(data2, .data[["tile"]])
@@ -137,11 +144,8 @@ sits_merge.raster_cube <- function(data1, data2, ...,
         data1 <- .merge_fi(data1, data2)
         return(data1)
     }
-    # Pre-conditions
-    .check_period(tolerance)
-    .check_output_dir(output_dir)
     # Get difference in timelines
-    diff_timelines <- .merge_diff_timeline(d1_tl, d2_tl)
+    diff_timelines <- .merge_diff_timelines(d1_tl, d2_tl)
     # Verify the consistency of each difference
     if (!all(diff_timelines <= lubridate::period(tolerance))) {
         stop(
@@ -149,22 +153,32 @@ sits_merge.raster_cube <- function(data1, data2, ...,
             call. = FALSE
         )
     }
-    # Warning about the tolerance parameter
-    warning(paste("The timeline of the provided cubes are different.",
-                  "The tolerance will be used to merge them."),
-            call. = FALSE)
+    if (!.has(output_dir)) {
+        warning(
+            paste("The images with the fixed timeline of the",
+                  "second cube will not be written. If you want",
+                  "to write it, use the `output_dir` parameter."
+            ),
+            call. = FALSE
+        )
+    }
+
     # Change file name to match reference timeline
     data2 <- slider::slide_dfr(data2, function(y) {
         fi_list <- purrr::map(.tile_bands(y), function(band) {
             fi_band <- .fi_filter_bands(.fi(y), bands = band)
+            fi_band[["date"]] <- d1_tl
+            if (!.has(output_dir)) {
+                return(fi_band)
+            }
             fi_paths <- .fi_paths(fi_band)
             file_names <- .file_eo_name(
-                tile = y, band = band, date = d1_tl, output_dir = output_dir
+                tile = y, band = band,
+                date = d1_tl, output_dir = output_dir
             )
             file.copy(from = fi_paths, to = file_names)
             fi_band[["path"]] <- file_names
-            fi_band[["date"]] <- d1_tl
-            fi_band
+            return(fi_band)
         })
         tile_fi <- dplyr::bind_rows(fi_list)
         tile_fi <- dplyr::arrange(
