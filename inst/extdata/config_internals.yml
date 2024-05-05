@@ -260,10 +260,16 @@ class_intervals: ["sd", "equal", "quantile", "log", "pretty"]
 sits_color_table_cols: ["name", "color"]
 # maxbytes per plot (in MB)
 plot_max_Mbytes: 10
+# maximum size of COG overview for visualisation
+plot_max_size: 1200
+view_max_size: 2500
+
+# parameters to show B/W SAR bands for RTC cube
+sar_cube_grey_colors: 128
 
 # tmap configurations
 tmap:
-        max_cells: 1e+07
+        max_cells: 1e+06
         graticules_labels_size: 0.7
         legend_outside: False
         legend_outside_position: "right"
@@ -285,4 +291,4 @@ leaflet_megabytes : 64
 leaflet_min_megabytes : 16
 leaflet_max_megabytes : 512
 # estimated compression factor for leaflet
-leaflet_comp_factor : 0.50
+leaflet_comp_factor : 0.75

@@ -21,7 +21,6 @@
 #' @param  opacity       Opacity of segment fill or class cube
 #' @param  seg_color     Color for segment boundaries
 #' @param  line_width    Line width for segments (in pixels)
-#' @param  view_max_mb   Maximum size of leaflet to be visualized
 #' @param  id_neurons    Neurons from the SOM map to be shown.
 #'
 #' @return               A leaflet object containing either samples or
@@ -156,8 +155,7 @@ sits_view.raster_cube <- function(x, ...,
                                   class_cube = NULL,
                                   legend = NULL,
                                   palette = "RdYlGn",
-                                  opacity = 0.7,
-                                  view_max_mb = NULL) {
+                                  opacity = 0.7) {
     # preconditions
     # Probs cube not supported
     .check_that(!inherits(x, "probs_cube"))
@@ -178,8 +176,7 @@ sits_view.raster_cube <- function(x, ...,
         blue = blue,
         legend = legend,
         palette = palette,
-        opacity = opacity,
-        view_max_mb = view_max_mb
+        opacity = opacity
     )
     return(leaf_map)
 }
@@ -198,8 +195,7 @@ sits_view.vector_cube <- function(x, ...,
                                   palette = "RdYlGn",
                                   opacity = 0.7,
                                   seg_color = "black",
-                                  line_width = 1,
-                                  view_max_mb = NULL) {
+                                  line_width = 1) {
     # verifies if leafem and leaflet packages are installed
     .check_require_packages(c("leafem", "leaflet"))
     # Probs cube not supported
@@ -221,8 +217,7 @@ sits_view.vector_cube <- function(x, ...,
         palette = palette,
         opacity = opacity,
         seg_color = seg_color,
-        line_width = line_width,
-        view_max_mb = view_max_mb
+        line_width = line_width
     )
     return(leaf_map)
 }
@@ -234,8 +229,7 @@ sits_view.uncertainty_cube <- function(x, ...,
                                        class_cube = NULL,
                                        legend = NULL,
                                        palette = "Blues",
-                                       opacity = 0.7,
-                                       view_max_mb = NULL) {
+                                       opacity = 0.7) {
     # preconditions
     # verifies if leafem and leaflet packages are installed
     .check_require_packages(c("leafem", "leaflet"))
@@ -247,13 +241,10 @@ sits_view.uncertainty_cube <- function(x, ...,
     if (nrow(cube) > 1) {
         .check_that(.cube_is_regular(cube))
     }
-    # check the view_max_mb parameter
-    view_max_mb <- .view_set_max_mb(view_max_mb)
     # find out if resampling is required (for big images)
     output_size <- .view_resample_size(
         cube = cube,
-        ndates = 1,
-        view_max_mb = view_max_mb
+        ndates = 1
     )
     # create a leaflet and add providers
     leaf_map <- .view_add_basic_maps()
@@ -312,8 +303,7 @@ sits_view.class_cube <- function(x, ...,
                                  tiles = x[["tile"]],
                                  legend = NULL,
                                  palette = "Spectral",
-                                 opacity = 0.8,
-                                 view_max_mb = NULL) {
+                                 opacity = 0.8) {
     # preconditions
     .check_require_packages("leaflet")
     # deal with tiles
@@ -322,8 +312,7 @@ sits_view.class_cube <- function(x, ...,
     # find out if resampling is required (for big images)
     output_size <- .view_resample_size(
         cube = cube,
-        ndates = 1,
-        view_max_mb = view_max_mb
+        ndates = 1
     )
     # create a leaflet and add providers
     leaf_map <- .view_add_basic_maps()
@@ -367,7 +356,6 @@ sits_view.probs_cube <- function(x, ...,
                                  tiles = x[["tile"]],
                                  class_cube = NULL,
                                  legend = NULL,
-                                 view_max_mb = NULL,
                                  opacity = 0.7,
                                  palette = "YlGnBu") {
     stop(.conf("messages", "sits_view"))

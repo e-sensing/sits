@@ -1426,3 +1426,95 @@ NULL
     }
     return(invisible(end_time))
 }
+#' @title  Return the cell size for the image to be reduced for plotting
+#' @name .tile_overview_size
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  tile           Tile to be plotted.
+#' @param  max_size       Maximum size of rows or collumns to be shown
+#' @return                Cell size for subimage to be read.
+#'
+#'
+.tile_overview_size <- function(tile, max_size) {
+    # check if the tile is a COG file
+    cog_sizes <- .tile_cog_sizes(tile)
+    if (.has(cog_sizes)) {
+        small_cog_sizes <- purrr::map(cog_sizes, function(cog_size){
+            xsize <- cog_size[["xsize"]]
+            ysize <- cog_size[["ysize"]]
+            if (xsize <= max_size && ysize <= max_size)
+                return(cog_size)
+            else
+                return(NULL)
+        })
+        small_cog_sizes <- purrr::compact(small_cog_sizes)
+        nrows_cog <- small_cog_sizes[[1]][[1]]
+        ncols_cog <- small_cog_sizes[[1]][[2]]
+        return(c(
+            xsize = nrows_cog,
+            ysize = ncols_cog)
+        )
+    } else {
+        # get the maximum number of bytes for the tiles
+        nrows_tile <- max(.tile_nrows(tile))
+        ncols_tile <- max(.tile_ncols(tile))
+        # get the ratio to the max plot size
+        ratio_x <- max(ncols_tile/max_size, 1)
+        ratio_y <- max(nrows_tile/max_size, 1)
+        # if image is smaller than 1000 x 1000, return full size
+        if (ratio_x == 1 && ratio_y == 1) {
+            return(c(
+                xsize = ncols_tile,
+                ysize = nrows_tile
+            ))
+        }
+        # if ratio is greater than 1, get the maximum
+        ratio <- max(ratio_x, ratio_y)
+        # calculate nrows, ncols to be plotted
+        return(c(
+            xsize = floor(ncols_tile/ratio),
+            ysize = floor(nrows_tile/ratio)
+        ))
+    }
+}
+#' @title  Return the size of overviews for COG files
+#' @name .tile_cog_sizes
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  imag_file       File containing tile to be plotted
+#' @return                 COG size (assumed to be square)
+#'
+#'
+.tile_cog_sizes <- function(tile) {
+    # run gdalinfo on file
+    info <- capture.output(sf::gdal_utils(
+        source = .tile_path(tile),
+        destination = NULL)
+    )
+    info2 <- stringr::str_split(info, pattern = "\n")
+    # capture the line containg overview info
+    over <- unlist(info2[grepl("Overview", info2)])
+    if (!.has(over))
+        return(NULL)
+    # get the value pairs
+    over_values <- unlist(strsplit(over, split = ":", fixed = TRUE))[2]
+    over_pairs <- unlist(stringr::str_split(over_values, pattern = ","))
+    # extract the COG sizes
+    cog_sizes <- purrr::map(over_pairs, function(op){
+        xsize <- as.numeric(unlist(
+            strsplit(op, split = "x", fixed = TRUE))[[1]]
+        )
+        ysize <- as.numeric(unlist(
+            strsplit(op, split = "x", fixed = TRUE))[[2]]
+        )
+        cog_size <- c(
+            xsize = xsize,
+            ysize = ysize
+        )
+    })
+    return(cog_sizes)
+}

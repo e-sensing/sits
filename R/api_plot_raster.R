@@ -49,33 +49,25 @@
     # check scale parameter
     .check_num_parameter(scale, min = 0.2)
     # check SAR Cube
-    if (inherits(tile, "sar_cube")) {
-        palette <- "Greys"
-        style <- "order"
-        n_colors <- max(n_colors, 10)
-    } else {
-        message(.conf("messages", ".plot_raster_false_color"))
-    }
-    # Grayscale palette? reverse is TRUE
-    if (palette == "Greys")
-        rev <- TRUE
+    palette <- .view_adjust_palette(tile, palette)
     # reverse the color palette?
     if (rev)
         palette <- paste0("-", palette)
     # select the file to be plotted
     bw_file <- .tile_path(tile, band, date)
     # size of data to be read
-    size <- .plot_read_size(tile = tile)
+    max_size <- .conf("plot_max_size")
+    sizes <- .tile_overview_size(tile = tile, max_size)
     # used for SAR images without tiling system
     if (tile[["tile"]] == "NoTilingSystem")  {
-        bw_file <- .gdal_warp_grd(bw_file, size)
+        bw_file <- .gdal_warp_grd(bw_file, sizes)
     }
     # read file
     stars_obj <- stars::read_stars(
         bw_file,
         RasterIO = list(
-            nBufXSize = size[["xsize"]],
-            nBufYSize = size[["ysize"]]
+            nBufXSize = sizes[["xsize"]],
+            nBufYSize = sizes[["ysize"]]
         ),
         proxy = FALSE
     )
@@ -85,6 +77,8 @@
     band_scale <- .scale(band_conf)
     band_offset <- .offset(band_conf)
     stars_obj <- stars_obj * band_scale + band_offset
+    stars_obj <- stars_obj[stars_obj <= 1.0]
+
 
     # tmap params
     labels_size <- as.numeric(.conf("tmap", "graticules_labels_size"))
@@ -95,7 +89,7 @@
 
     # generate plot
     p <- suppressMessages(
-        tmap::tm_shape(stars_obj) +
+        tmap::tm_shape(stars_obj, raster.downsample = FALSE) +
             tmap::tm_raster(
                 style = style,
                 n = n_colors,
@@ -155,7 +149,8 @@
     )
     names(colors) <- names(labels)
     # size of data to be read
-    size <- .plot_read_size(tile = tile)
+    max_size <- .conf("plot_max_size")
+    sizes <- .tile_overview_size(tile = tile, max_size)
     # select the image to be plotted
     class_file <- .tile_path(tile)
 
@@ -163,8 +158,8 @@
     stars_obj <- stars::read_stars(
         class_file,
         RasterIO = list(
-            nBufXSize = size[["xsize"]],
-            nBufYSize = size[["ysize"]]
+            nBufXSize = sizes[["xsize"]],
+            nBufYSize = sizes[["ysize"]]
         ),
         proxy = FALSE
     )
@@ -181,7 +176,7 @@
 
     # plot using tmap
     p <- suppressMessages(
-        tmap::tm_shape(stars_obj) +
+        tmap::tm_shape(stars_obj, raster.downsample = FALSE) +
             tmap::tm_raster(
                 style = "cat",
                 palette = colors,
@@ -235,20 +230,21 @@
     blue_file <- .tile_path(tile, blue, date)
 
     # size of data to be read
-    size <- .plot_read_size(tile = tile)
+    max_size <- .conf("plot_max_size")
+    sizes <- .tile_overview_size(tile = tile, max_size)
     # used for SAR images
     if (tile[["tile"]] == "NoTilingSystem") {
-        red_file   <- .gdal_warp_grd(red_file, size)
-        green_file <- .gdal_warp_grd(green_file, size)
-        blue_file  <- .gdal_warp_grd(blue_file, size)
+        red_file   <- .gdal_warp_grd(red_file, sizes)
+        green_file <- .gdal_warp_grd(green_file, sizes)
+        blue_file  <- .gdal_warp_grd(blue_file, sizes)
     }
     # read raster data as a stars object with separate RGB bands
     rgb_st <- stars::read_stars(
         c(red_file, green_file, blue_file),
         along = "band",
         RasterIO = list(
-            nBufXSize = size[["xsize"]],
-            nBufYSize = size[["ysize"]]
+            nBufXSize = sizes[["xsize"]],
+            nBufYSize = sizes[["ysize"]]
         ),
         proxy = FALSE
     )
@@ -266,7 +262,7 @@
     # tmap params
     labels_size <- as.numeric(.conf("tmap", "graticules_labels_size"))
 
-    p <- tmap::tm_shape(rgb_st) +
+    p <- tmap::tm_shape(rgb_st, raster.downsample = FALSE) +
         tmap::tm_raster() +
         tmap::tm_graticules(
             labels.size = labels_size
@@ -327,15 +323,16 @@
         .check_that(all(labels_plot %in% labels))
     }
     # size of data to be read
-    size <- .plot_read_size(tile = tile)
+    max_size <- .conf("plot_max_size")
+    sizes <- .tile_overview_size(tile = tile, max_size)
     # get the path
     probs_path <- .tile_path(tile)
     # read the file using stars
     probs_st <- stars::read_stars(
         probs_path,
         RasterIO = list(
-            nBufXSize = size[["xsize"]],
-            nBufYSize = size[["ysize"]]
+            nBufXSize = sizes[["xsize"]],
+            nBufYSize = sizes[["ysize"]]
         ),
         proxy = FALSE
     )
@@ -447,34 +444,4 @@
 
     return(p)
 }
-#' @title  Return the cell size for the image to be reduced for plotting
-#' @name .plot_read_size
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  tile       Tile to be plotted.
-#' @return            Cell size for x and y coordinates.
-#'
-#'
-.plot_read_size <- function(tile) {
-    # get the maximum number of bytes to be displayed
-    max_cells <- as.numeric(.conf("tmap", "max_cells"))
-    nrows <- max(.tile_nrows(tile))
-    ncols <- max(.tile_ncols(tile))
 
-    # do we need to compress?
-    ratio <- max((nrows * ncols / max_cells), 1)
-    # only create local files if required
-    if (ratio > 1) {
-        new_nrows <- round(nrows / sqrt(ratio))
-        new_ncols <- round(ncols * (new_nrows / nrows))
-    } else {
-        new_nrows <- round(nrows)
-        new_ncols <- round(ncols)
-    }
-    return(c(
-        xsize = new_ncols,
-        ysize = new_nrows
-    ))
-}

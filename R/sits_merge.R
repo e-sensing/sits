@@ -94,7 +94,7 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 sits_merge.raster_cube <- function(data1, data2, ...,
                                    tolerance = NULL,
                                    output_dir = NULL) {
-    .check_set_caller("sits_merge_raster_cubes")
+    .check_set_caller("sits_merge_raster_cube")
     # pre-condition - check cube type
     .check_is_raster_cube(data1)
     .check_is_raster_cube(data2)
@@ -118,14 +118,13 @@ sits_merge.raster_cube <- function(data1, data2, ...,
     # Pre-conditions
     .check_period(tolerance)
     .check_output_dir(output_dir)
-    warning(paste("The timeline of the provided cubes are different.",
-                  "The tolerance will be used to merge them."),
+    warning(.conf("messages", "sits_raster_merge_cube_tolerance"),
             call. = FALSE)
     # Get difference in timelines
     diff_timelines <- .merge_diff_timeline(d1_tl, d2_tl)
     # Verify the consistency of each difference
     if (!all(diff_timelines <= lubridate::period(tolerance))) {
-        stop("Tolerance must be greater than ...")
+        stop(.conf("messages", "sits_merge_raster_cube_error"))
     }
     # Change file name to match reference timeline
     data2 <- slider::slide_dfr(data2, function(y) {

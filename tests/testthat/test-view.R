@@ -127,10 +127,10 @@ test_that("View", {
 
     v8 <- sits_view(segments, band = "NDVI")
     expect_true(grepl("EPSG3857", v8$x$options$crs$crsClass))
-    expect_equal(v8$x$calls[[1]]$method, "addProviderTiles")
-    expect_equal(v8$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
-    expect_equal(v8$x$calls[[5]]$method, "addRasterImage")
-    expect_equal(v8$x$calls[[6]]$method, "addPolygons")
+    expect_identical(v8$x$calls[[1]]$method, "addProviderTiles")
+    expect_identical(v8$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
+    expect_identical(v8$x$calls[[5]]$method, "addRasterImage")
+    expect_identical(v8$x$calls[[6]]$method, "addPolygons")
 
     probs_segs <- sits_classify(
         data = segments,
@@ -153,11 +153,11 @@ test_that("View", {
 
     v9 <- sits_view(class_segs, band = "NDVI", class_cube = modis_label)
     expect_true(grepl("EPSG3857", v9$x$options$crs$crsClass))
-    expect_equal(v9$x$calls[[1]]$method, "addProviderTiles")
-    expect_equal(v9$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
-    expect_equal(v9$x$calls[[5]]$method, "addRasterImage")
-    expect_equal(v9$x$calls[[6]]$method, "addPolygons")
-    expect_equal(v9$x$calls[[7]]$method, "addPolygons")
+    expect_identical(v9$x$calls[[1]]$method, "addProviderTiles")
+    expect_identical(v9$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
+    expect_identical(v9$x$calls[[5]]$method, "addRasterImage")
+    expect_identical(v9$x$calls[[6]]$method, "addPolygons")
+    expect_identical(v9$x$calls[[7]]$method, "addPolygons")
 
 
     cbers_cube <- tryCatch(
@@ -187,10 +187,10 @@ test_that("View", {
                     blue = "B13",
                     dates = "2018-08-29")
 
-    expect_equal(v_cb$x$options$crs$crsClass, "L.CRS.EPSG3857")
-    expect_equal(v_cb$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
-    expect_equal(v_cb$x$calls[[5]]$method, "addRasterImage")
-    expect_equal(v_cb$x$calls[[6]]$args[[5]], "007005 2018-08-29")
+    expect_identical(v_cb$x$options$crs$crsClass, "L.CRS.EPSG3857")
+    expect_identical(v_cb$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
+    expect_identical(v_cb$x$calls[[5]]$method, "addRasterImage")
+    expect_identical(v_cb$x$calls[[6]]$args[[5]], "007005 2018-08-29")
 
     expect_true(all(file.remove(unlist(modis_uncert$file_info[[1]][["path"]]))))
     expect_true(all(file.remove(unlist(modis_probs$file_info[[1]][["path"]]))))
@@ -205,7 +205,7 @@ test_that("View SOM map", {
             grid_ydim = 4
         )
     })
-    v <- sits_view(som_map, id_neurons = c(1:5))
+    v <- sits_view(som_map, id_neurons = 1:5)
 
     expect_true(grepl("EPSG3857", v[["x"]][["options"]][["crs"]][["crsClass"]]))
     expect_identical(v[["x"]][["calls"]][[1]][["method"]], "addProviderTiles")
