@@ -1498,7 +1498,8 @@ NULL
     info2 <- stringr::str_split(info, pattern = "\n")
     # capture the line containg overview info
     over <- unlist(info2[grepl("Overview", info2)])
-    if (!.has(over) || grepl("arbitrary", over))
+    over <- over[!grepl("arbitrary", over)]
+    if (!.has(over))
         return(NULL)
     # get the value pairs
     over_values <- unlist(strsplit(over, split = ":", fixed = TRUE))[2]

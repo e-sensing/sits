@@ -117,9 +117,31 @@ sits_merge.raster_cube <- function(data1, data2, ...,
     # pre-condition - check cube type
     .check_is_raster_cube(data1)
     .check_is_raster_cube(data2)
-    if (.has(tolerance)) {
+    # precondition for merge is having the same tiles
+    # join cube tiles
+    common_tiles <- intersect(data1[["tile"]], data2[["tile"]])
+    .check_that(length(common_tiles) > 0)
+    # filter cubes by common tiles
+    data1 <- dplyr::filter(data1, .data[["tile"]] %in% common_tiles)
+    data2 <- dplyr::filter(data2, .data[["tile"]] %in% common_tiles)
+    # Get cubes timeline
+    d1_tl <- unique(as.Date(unlist(.cube_timeline(data1))))
+    d2_tl <- unique(as.Date(unlist(.cube_timeline(data2))))
+    # get minimum interval
+    min_interval_data1 <- min(
+        lubridate::as.period(
+            lubridate::int_diff(d1_tl)
+        )
+    )
+    min_interval_data2 <- min(
+        lubridate::as.period(
+            lubridate::int_diff(d2_tl)
+        )
+    )
+    if (.has(tolerance))
         .check_period(tolerance)
-    }
+    else
+
     if (.has(output_dir)) {
         .check_output_dir(output_dir)
     }
@@ -132,10 +154,7 @@ sits_merge.raster_cube <- function(data1, data2, ...,
     d2_tl <- as.Date(unlist(.cube_timeline(data2)))
     # check timeline interval
     # tl_interval1 <- lubridate::int_diff()
-    # join cube tiles
-    common_tiles <- intersect(data1[["tile"]], data2[["tile"]])
-    data1 <- dplyr::filter(data1, .data[["tile"]] %in% common_tiles)
-    data2 <- dplyr::filter(data2, .data[["tile"]] %in% common_tiles)
+
     .check_that(all(sort(.cube_tiles(data1)) == sort(.cube_tiles(data2))))
     if (inherits(data1, "hls_cube") && inherits(data2, "hls_cube") &&
         (.cube_collection(data1) == "HLSS30" ||
