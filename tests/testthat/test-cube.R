@@ -99,6 +99,154 @@ test_that("Reading a raster cube", {
     expect_true(params_2$xres >= 231.5)
 })
 
+test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
+    s2_cube <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-2-L2A",
+                tiles = "20LKP",
+                bands = c("B02", "B8A", "B11", "CLOUD"),
+                start_date = "2020-06-01",
+                end_date = "2020-09-28"
+            )
+        },
+        .default = NULL
+    )
+
+    dir_images <- paste0(tempdir(), "/images_merge/")
+    if (!dir.exists(dir_images)) {
+        suppressWarnings(dir.create(dir_images))
+    }
+    merge_images <- paste0(tempdir(), "/images_merge_new/")
+    if (!dir.exists(merge_images)) {
+        suppressWarnings(dir.create(merge_images))
+    }
+
+    testthat::skip_if(
+        purrr::is_null(s2_cube),
+        "MPC collection is not accessible"
+    )
+
+
+    s2_reg <- suppressWarnings(
+        sits_regularize(
+            cube = s2_cube,
+            period = "P30D",
+            res = 240,
+            multicores = 2,
+            output_dir = dir_images
+        )
+    )
+
+    s1_cube <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-1-GRD",
+                bands = c("VV", "VH"),
+                orbit = "descending",
+                tiles = "20LKP",
+                start_date = "2020-06-01",
+                end_date = "2020-09-28"
+            )
+        },
+        .default = NULL
+    )
+
+    testthat::skip_if(
+        purrr::is_null(s1_cube),
+        "MPC collection is not accessible"
+    )
+
+    s1_reg <- suppressWarnings(
+        sits_regularize(
+            cube = s1_cube,
+            period = "P30D",
+            res = 240,
+            tiles = "20LKP",
+            multicores = 2,
+            output_dir = dir_images
+        )
+    )
+
+    testthat::expect_warning(
+        sits_merge(
+            s2_reg,
+            s1_reg,
+            tolerance = "P3D"
+        ),
+        regexp = "use the `output_dir` parameter."
+    )
+
+    testthat::expect_error(
+        sits_merge(
+            s2_reg,
+            s1_reg,
+            tolerance = "P1D",
+            output_dir = merge_images
+        )
+    )
+    # Merging with writing images
+    cube_merged <- suppressWarnings(
+        sits_merge(
+            s2_reg,
+            s1_reg,
+            tolerance = "P3D",
+            output_dir = merge_images
+        )
+    )
+    testthat::expect_true(
+        all(sits_timeline(cube_merged) == sits_timeline(s2_reg))
+    )
+    testthat::expect_true(
+        all(
+            sits_bands(cube_merged) %in% c(sits_bands(s2_reg),
+                                           sits_bands(s1_reg)))
+    )
+    testthat::expect_error(
+        suppressWarnings(
+            sits_merge(
+                s2_cube,
+                s1_cube,
+                tolerance = "P10D",
+                output_dir = merge_images
+            )
+        )
+    )
+    # Merging images without writing
+    cube_merged2 <- suppressWarnings(
+        sits_merge(
+            s2_reg,
+            s1_reg,
+            tolerance = "P3D"
+        )
+    )
+    testthat::expect_true(
+        all(sits_timeline(cube_merged) == sits_timeline(cube_merged2))
+    )
+    testthat::expect_true(
+        all(
+            sits_bands(cube_merged) %in% sits_bands(cube_merged2)
+        )
+    )
+    testthat::expect_true(
+        all(
+            .fi_paths(.fi_filter_bands(.fi(s1_reg), "VV")) %in%
+                .fi_paths(.fi_filter_bands(.fi(cube_merged2), "VV"))
+        )
+    )
+    testthat::expect_false(
+        all(
+            .fi_paths(.fi_filter_bands(.fi(cube_merged), "VV")) %in%
+                .fi_paths(.fi_filter_bands(.fi(cube_merged2), "VV"))
+        )
+    )
+
+    unlink(list.files(merge_images, pattern = ".tif", full.names = TRUE))
+    unlink(list.files(dir_images, pattern = ".tif", full.names = TRUE))
+})
+
 test_that("testing STAC error", {
     mpc_url <- sits_env$config$sources$MPC$url
     sits_env$config$sources$MPC$url <-

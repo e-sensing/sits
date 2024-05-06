@@ -103,7 +103,7 @@ test_that("legend", {
 
     expect_warning({
         expect_warning({
-            sits:::.colors_get(labels,
+            .colors_get(labels,
                 legend = def_legend_2,
                 palette = "Spectral", rev = TRUE
             )

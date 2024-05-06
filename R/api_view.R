@@ -35,7 +35,7 @@
     # find out if resampling is required (for big images)
     output_size <- .view_resample_size(
         cube = cube,
-        ndates = length(dates)
+        ndates = max(length(dates), 1)
     )
     # create a leaflet and add providers
     leaf_map <- .view_add_basic_maps()
@@ -136,7 +136,7 @@
     # find out if resampling is required (for big images)
     output_size <- .view_resample_size(
         cube = cube,
-        ndates = length(dates)
+        ndates = max(length(dates), 1)
     )
     # create a leaflet and add providers
     leaf_map <- .view_add_basic_maps()

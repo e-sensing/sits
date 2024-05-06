@@ -1491,14 +1491,14 @@ NULL
 #'
 .tile_cog_sizes <- function(tile) {
     # run gdalinfo on file
-    info <- capture.output(sf::gdal_utils(
+    info <- utils::capture.output(sf::gdal_utils(
         source = .tile_path(tile),
         destination = NULL)
     )
     info2 <- stringr::str_split(info, pattern = "\n")
     # capture the line containg overview info
     over <- unlist(info2[grepl("Overview", info2)])
-    if (!.has(over))
+    if (!.has(over) || grepl("arbitrary", over))
         return(NULL)
     # get the value pairs
     over_values <- unlist(strsplit(over, split = ":", fixed = TRUE))[2]
