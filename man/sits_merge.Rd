@@ -3,6 +3,7 @@
 \name{sits_merge}
 \alias{sits_merge}
 \alias{sits_merge.sits}
+\alias{sits_merge.sar_cube}
 \alias{sits_merge.raster_cube}
 \alias{sits_merge.default}
 \title{Merge two data sets (time series or cubes)}
@@ -11,7 +12,9 @@ sits_merge(data1, data2, ...)
 
 \method{sits_merge}{sits}(data1, data2, ..., suffix = c(".1", ".2"))
 
-\method{sits_merge}{raster_cube}(data1, data2, ..., tolerance = NULL, output_dir = NULL)
+\method{sits_merge}{sar_cube}(data1, data2)
+
+\method{sits_merge}{raster_cube}(data1, data2)
 
 \method{sits_merge}{default}(data1, data2, ...)
 }
@@ -28,14 +31,10 @@ or data cube (tibble of class "raster_cube") .}
 these suffixes will be added
 (character vector).}
 
-\item{tolerance}{A period tolerance to merge both cubes.
-ISO8601-compliant time period for regular data cubes,
-with number and unit, where "D", "M" and "Y" stand
-for days, month and year; e.g., "P16D" for 16 days.
-The temporal tolerance parameter should be less than
-the time interval between two images of both cubes.}
+\item{tolerance}{Allowable amount of variation in time interval
+between two dates of cubes to be merged}
 
-\item{output_dir}{Valid directory for storing merged images.}
+\item{output_dir}{Directory where transformed images will be saved}
 }
 \value{
 merged data sets (tibble of class "sits" or
