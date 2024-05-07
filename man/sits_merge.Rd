@@ -30,11 +30,6 @@ or data cube (tibble of class "raster_cube") .}
 \item{suffix}{If there are duplicate bands in data1 and data2
 these suffixes will be added
 (character vector).}
-
-\item{tolerance}{Allowable amount of variation in time interval
-between two dates of cubes to be merged}
-
-\item{output_dir}{Directory where transformed images will be saved}
 }
 \value{
 merged data sets (tibble of class "sits" or
@@ -49,17 +44,6 @@ for the same set of locations in the same tibble.
 
 To merge data cubes, they should share the same sensor, resolution,
 bounding box, timeline, and have different bands.
-
-When the user requests a sits_merge operation for two regular cubes with
-the same number of time intervals but with timelines that are not equal
-the system issues a warning and asks the user to provide a \code{tolerance}
-parameter which will be used in the merging operation.
-The temporal tolerance parameter should be less than the time interval
-between two images of both cubes.
-In this case the second cube will have its timeline and the image
-file names changed to match the timeline of the first cube.
-The images of the second cube will be written in \code{output_dir}
-directory.
 }
 \examples{
 if (sits_run_examples()) {

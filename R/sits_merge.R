@@ -11,26 +11,12 @@
 #' To merge data cubes, they should share the same sensor, resolution,
 #' bounding box, timeline, and have different bands.
 #'
-#' When the user requests a sits_merge operation for two regular cubes with
-#' the same number of time intervals but with timelines that are not equal
-#' the system issues a warning and asks the user to provide a \code{tolerance}
-#' parameter which will be used in the merging operation.
-#' The temporal tolerance parameter should be less than the time interval
-#' between two images of both cubes.
-#' In this case the second cube will have its timeline and the image
-#' file names changed to match the timeline of the first cube.
-#' The images of the second cube will be written in \code{output_dir}
-#' directory.
-#'
 #' @param data1      Time series (tibble of class "sits")
 #'                   or data cube (tibble of class "raster_cube") .
 #' @param data2      Time series (tibble of class "sits")
 #'                   or data cube (tibble of class "raster_cube") .
 #'
 #' @param ...        Additional parameters
-#' @param tolerance  Allowable amount of variation in time interval
-#'                   between two dates of cubes to be merged
-#' @param output_dir Directory where transformed images will be saved
 #' @param suffix     If there are duplicate bands in data1 and data2
 #'                   these suffixes will be added
 #'                   (character vector).
@@ -176,11 +162,11 @@ sits_merge.raster_cube <- function(data1, data2) {
     d2_period <- as.numeric(
         lubridate::as.period(lubridate::int_diff(d2_tl)), "days"
     )
-    # pre-condition - are cubes period regular?
+    # pre-condition - are periods regular?
     .check_that(
         length(unique(d1_period)) == 1 && length(unique(d2_period)) == 1
     )
-    # pre-condition - are cubes have same period?
+    # pre-condition - Do cubes have the same periods?
     .check_that(
         unique(d1_period) == unique(d2_period)
     )
