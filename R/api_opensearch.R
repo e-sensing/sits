@@ -156,12 +156,14 @@
 #'  from `rstac`.
 #' @param items List of features compatible with `rstac` (`rstac::doc_items`).
 #' @return      List of tiles.
+#' @export
 .opensearch_cdse_extract_tile <- function(items) {
     UseMethod(".opensearch_cdse_extract_tile")
 }
 
 #' @keywords internal
 #' @noRd
+#' @export
 .opensearch_cdse_extract_tile.S2MSI2A <- function(items) {
     items_titles <- rstac::items_reap(items, field = c("properties", "title"))
     purrr::map(items_titles, function(item_title) {
@@ -173,6 +175,7 @@
 
 #' @keywords internal
 #' @noRd
+#' @export
 .opensearch_cdse_extract_tile.RTC <- function(items) {
     "NoTilingSystem"
 }
@@ -191,19 +194,25 @@
 #' @param collection   Open Search collection endpoint.
 #' @param start_date   Start date.
 #' @param end_date     End date.
-#' @param bbox         Bounding box of the area from data must be from
+#' @param bbox         Bounding box of the area from data must be from.
+#' @param platform     Optional parameter specifying the platform in case of
+#'                     collections that include more than one satellite
+#' @param orbit        Orbit name ("ascending", "descending") for SAR cubes.
 #' @param paginate     A Boolean flag that indicates whether pagination
 #'                     should be used.
 #' @param limit        Limit of content to be retrieved per page. Use `paginate`
 #'                     to manage if multiple pages should be requested.
 #' @return             List of features compatible with
 #'                     `rstac` (`rstac::doc_items`).
+#' @export
 .opensearch_cdse_search <- function(product_type,
                                     source,
                                     collection,
                                     start_date,
                                     end_date,
                                     bbox,
+                                    platform,
+                                    orbit = NULL,
                                     paginate = TRUE,
                                     limit = 1000, ...) {
     UseMethod(".opensearch_cdse_search")
@@ -211,11 +220,13 @@
 
 #' @keywords internal
 #' @noRd
+#' @export
 .opensearch_cdse_search.S2MSI2A <- function(product_type,
                                             source, collection,
                                             start_date, end_date,
                                             bbox,
                                             platform = NULL,
+                                            orbit = NULL,
                                             paginate = TRUE,
                                             limit = 1000, ...) {
     .check_set_caller(".opensearch_cdse_search_s2msi2a")
@@ -238,6 +249,7 @@
 
 #' @keywords internal
 #' @noRd
+#' @export
 .opensearch_cdse_search.RTC <- function(product_type,
                                         source, collection,
                                         start_date, end_date,
