@@ -88,7 +88,7 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 
 #' @rdname sits_merge
 #' @export
-sits_merge.sar_cube <- function(data1, data2) {
+sits_merge.sar_cube <- function(data1, data2, ...) {
     .check_set_caller("sits_merge_sar_cube")
     # pre-condition - check cube type
     .check_is_raster_cube(data1)
@@ -114,7 +114,7 @@ sits_merge.sar_cube <- function(data1, data2) {
 
 #' @rdname sits_merge
 #' @export
-sits_merge.raster_cube <- function(data1, data2) {
+sits_merge.raster_cube <- function(data1, data2, ...) {
     .check_set_caller("sits_merge_raster_cube")
     # pre-condition - check cube type
     .check_is_raster_cube(data1)
