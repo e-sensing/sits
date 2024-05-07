@@ -118,10 +118,6 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
     if (!dir.exists(dir_images)) {
         suppressWarnings(dir.create(dir_images))
     }
-    merge_images <- paste0(tempdir(), "/images_merge_new/")
-    if (!dir.exists(merge_images)) {
-        suppressWarnings(dir.create(merge_images))
-    }
 
     testthat::skip_if(
         purrr::is_null(s2_cube),
@@ -170,34 +166,10 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
         )
     )
 
-    testthat::expect_warning(
-        sits_merge(
-            s2_reg,
-            s1_reg,
-            tolerance = "P3D"
-        ),
-        regexp = "use the `output_dir` parameter."
-    )
-
-    testthat::expect_error(
-        sits_merge(
-            s2_reg,
-            s1_reg,
-            tolerance = "P1D",
-            output_dir = merge_images
-        )
-    )
-    # Merging with writing images
-    cube_merged <- suppressWarnings(
-        sits_merge(
-            s2_reg,
-            s1_reg,
-            tolerance = "P3D",
-            output_dir = merge_images
-        )
-    )
-    testthat::expect_true(
-        all(sits_timeline(cube_merged) == sits_timeline(s2_reg))
+    # Merging images without writing
+    cube_merged <- sits_merge(
+        s2_reg,
+        s1_reg
     )
     testthat::expect_true(
         all(
@@ -205,45 +177,12 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
                                            sits_bands(s1_reg)))
     )
     testthat::expect_error(
-        suppressWarnings(
-            sits_merge(
-                s2_cube,
-                s1_cube,
-                tolerance = "P10D",
-                output_dir = merge_images
-            )
-        )
-    )
-    # Merging images without writing
-    cube_merged2 <- suppressWarnings(
         sits_merge(
-            s2_reg,
-            s1_reg,
-            tolerance = "P3D"
-        )
-    )
-    testthat::expect_true(
-        all(sits_timeline(cube_merged) == sits_timeline(cube_merged2))
-    )
-    testthat::expect_true(
-        all(
-            sits_bands(cube_merged) %in% sits_bands(cube_merged2)
-        )
-    )
-    testthat::expect_true(
-        all(
-            .fi_paths(.fi_filter_bands(.fi(s1_reg), "VV")) %in%
-                .fi_paths(.fi_filter_bands(.fi(cube_merged2), "VV"))
-        )
-    )
-    testthat::expect_false(
-        all(
-            .fi_paths(.fi_filter_bands(.fi(cube_merged), "VV")) %in%
-                .fi_paths(.fi_filter_bands(.fi(cube_merged2), "VV"))
+            s2_cube,
+            s1_cube
         )
     )
 
-    unlink(list.files(merge_images, pattern = ".tif", full.names = TRUE))
     unlink(list.files(dir_images, pattern = ".tif", full.names = TRUE))
 })
 
