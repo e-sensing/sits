@@ -148,7 +148,6 @@
 #' @title Extract `tile` from Open Search Items.
 #' @keywords internal
 #' @noRd
-#'
 #' @description
 #'  This function prepares an Open Search item to act as an STAC Item,
 #'  compatible with the `rstac` package. This is required to avoid changes in
@@ -156,7 +155,6 @@
 #'  from `rstac`.
 #' @param items List of features compatible with `rstac` (`rstac::doc_items`).
 #' @return      List of tiles.
-#' @export
 .opensearch_cdse_extract_tile <- function(items) {
     UseMethod(".opensearch_cdse_extract_tile")
 }
@@ -183,7 +181,6 @@
 #' @title Search data using CDSE Open Search.
 #' @keywords internal
 #' @noRd
-#'
 #' @description
 #'  This auxiliary function is used to query the CDSE Open Search API. This is
 #'  a specialization of the `.opensearch_cdse_client` to handle the
@@ -204,7 +201,6 @@
 #'                     to manage if multiple pages should be requested.
 #' @return             List of features compatible with
 #'                     `rstac` (`rstac::doc_items`).
-#' @export
 .opensearch_cdse_search <- function(product_type,
                                     source,
                                     collection,
