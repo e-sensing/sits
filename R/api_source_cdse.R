@@ -1,4 +1,4 @@
-# ---- general cdse utilities ----
+# ---- cdse utilities ----
 #' @title Extract item type of a given `collection`.
 #' @keywords internal
 #' @noRd
