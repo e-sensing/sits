@@ -27,7 +27,7 @@ Description: An end-to-end toolkit for land use and land cover classification
     random forests, extreme gradient boosting, multi-layer perceptrons,
     temporal convolutional neural networks proposed by Pelletier et al (2019) <doi:10.3390/rs11050523>, 
     residual networks by Fawaz et al (2019) <doi:10.1007/s10618-019-00619-1>, and temporal attention encoders
-    by Garnot and Landrieu (2020) <arXiv:2007.00586>.
+    by Garnot and Landrieu (2020) <doi:10.48550/arXiv.2007.00586>.
     Performs efficient classification of big Earth observation data cubes and includes 
     functions for post-classification smoothing based on Bayesian inference, and 
     methods for uncertainty assessment. Enables best
