@@ -47,18 +47,22 @@
 #'                       (decreases according to number of iterations).
 #' @param distance       The type of similarity measure (distance). The
 #'                       following similarity measurements are supported:
-#'                       \code{"euclidean"}, \code{"dtw"}, \code{"manhattan"},
-#'                       and \code{"tanimoto"}. The default similarity measure
-#'                       is \code{"euclidean"}.
+#'                       \code{"euclidean"} and \code{"dtw"}. The default
+#'                       similarity measure is \code{"dtw"}.
 #' @param rlen           Number of iterations to produce the SOM.
 #' @param som_radius     Radius of SOM neighborhood.
-#' @param mode           Type of learning algorithm (default = "online").
+#' @param mode           Type of learning algorithm. The
+#'                       following learning algorithm are available:
+#'                       \code{"online"}, \code{"batch"}, and \code{"pbatch"}.
+#'                       The default learning algorithm is \code{"online"}.
+#'
+#' @note To learn more about the learning algorithms, check the
+#'       \code{\link[kohonen:supersom]{kohonen::supersom}} function.
 #'
 #' @note The \code{sits} package implements the \code{"dtw"} (Dynamic Time
-#'       Warping) similarity measure. All other similarity measurements
-#'       come from the
-#'       \code{\link[kohonen:supersom]{kohonen::supersom (dist.fcts)}}
-#'       function.
+#'       Warping) similarity measure. The \code{"euclidean"} similarity
+#'       measurement come from the
+#'       \code{\link[kohonen:supersom]{kohonen::supersom (dist.fcts)}} function.
 #'
 #' @return
 #' \code{sits_som_map()} produces a list with three members:
@@ -97,12 +101,14 @@ sits_som_map <- function(data,
                          mode = "online") {
     # set caller to show in errors
     .check_set_caller("sits_som_map")
-    # register custom distances
-    .som_register_custom_distances()
     # verifies if kohonen package is installed
     .check_require_packages("kohonen")
     # does the input data exist?
     .check_samples_train(data)
+    # check distance
+    .check_chr_within(distance, c("euclidean", "dtw"))
+    # check mode
+    .check_chr_within(mode, c("online", "batch", "pbatch"))
     # is are there more neurons than samples?
     n_samples <- nrow(data)
     # check recommended grid sizes
@@ -117,7 +123,7 @@ sits_som_map <- function(data,
     time_series <- .values_ts(data, format = "bands_cases_dates")
     # create the kohonen map
     kohonen_obj <-
-        kohonen::supersom(
+        .kohonen_supersom(
             time_series,
             grid = kohonen::somgrid(
                 xdim = grid_xdim,
@@ -126,10 +132,9 @@ sits_som_map <- function(data,
                 neighbourhood.fct = "gaussian",
                 toroidal = FALSE
             ),
+            distance = distance,
             rlen = rlen,
             alpha = alpha,
-            dist.fcts = distance,
-            normalizeDataLayers = TRUE,
             mode = mode
         )
     # put id in samples

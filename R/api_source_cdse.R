@@ -1,4 +1,4 @@
-# ---- general cdse utilities ----
+# ---- cdse utilities ----
 #' @title Extract item type of a given `collection`.
 #' @keywords internal
 #' @noRd
@@ -181,7 +181,6 @@
 #' @param multicores Number of workers used to create the CDSE cube.
 #' @param platform   Satellite platform (not supported).
 #' @return An object referring the images of a sits cube.
-#'
 #' @export
 .source_items_new.cdse_cube <- function(source, ...,
                                         collection,
