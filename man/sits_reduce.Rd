@@ -13,6 +13,7 @@ sits_reduce(data, ...)
 \method{sits_reduce}{raster_cube}(
   data,
   ...,
+  impute_fn = impute_linear(),
   memsize = 4L,
   multicores = 2L,
   output_dir,
@@ -23,6 +24,8 @@ sits_reduce(data, ...)
 \item{data}{Valid sits tibble or cube}
 
 \item{...}{Named expressions to be evaluated (see details).}
+
+\item{impute_fn}{Imputation function to remove NA.}
 
 \item{memsize}{Memory available for classification (in GB).}
 

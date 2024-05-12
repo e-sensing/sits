@@ -13,6 +13,7 @@
 #' from the function.
 #'
 #' @param data          Valid sits tibble or cube
+#' @param impute_fn     Imputation function to remove NA.
 #' @param memsize       Memory available for classification (in GB).
 #' @param multicores    Number of cores to be used for classification.
 #' @param output_dir    Directory where files will be saved.
@@ -134,6 +135,7 @@ sits_reduce.sits <- function(data, ...) {
 #' @rdname sits_reduce
 #' @export
 sits_reduce.raster_cube <- function(data, ...,
+                                    impute_fn = impute_linear(),
                                     memsize = 4L,
                                     multicores = 2L,
                                     output_dir,
@@ -205,6 +207,7 @@ sits_reduce.raster_cube <- function(data, ...,
             expr = expr,
             out_band = out_band,
             in_bands = in_bands,
+            impute_fn = impute_fn,
             output_dir = output_dir,
             progress = progress
         )
