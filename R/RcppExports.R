@@ -81,8 +81,16 @@ C_dnorm <- function(mtx, mean = 0, std = 1) {
     .Call(`_sits_C_dnorm`, mtx, mean, std)
 }
 
-C_radd_calc_nf <- function(ts, mean, std) {
-    .Call(`_sits_C_radd_calc_nf`, ts, mean, std)
+C_radd_calc_nf <- function(ts, mean, sd, n_times, threshold = 0.5) {
+    .Call(`_sits_C_radd_calc_nf`, ts, mean, sd, n_times, threshold)
+}
+
+seq_int <- function(from, to, n = 1L) {
+    .Call(`_sits_seq_int`, from, to, n)
+}
+
+C_radd_start_monitoring <- function(p_res, threshold = 0.5) {
+    invisible(.Call(`_sits_C_radd_start_monitoring`, p_res, threshold))
 }
 
 C_temp_max <- function(mtx) {

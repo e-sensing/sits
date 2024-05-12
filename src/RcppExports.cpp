@@ -274,16 +274,42 @@ BEGIN_RCPP
 END_RCPP
 }
 // C_radd_calc_nf
-arma::vec C_radd_calc_nf(const arma::mat& ts, const arma::mat& mean, const arma::mat& std);
-RcppExport SEXP _sits_C_radd_calc_nf(SEXP tsSEXP, SEXP meanSEXP, SEXP stdSEXP) {
+arma::mat C_radd_calc_nf(const arma::mat& ts, const arma::mat& mean, const arma::mat& sd, const arma::uword& n_times, const double& threshold);
+RcppExport SEXP _sits_C_radd_calc_nf(SEXP tsSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP n_timesSEXP, SEXP thresholdSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type ts(tsSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type mean(meanSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type std(stdSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_radd_calc_nf(ts, mean, std));
+    Rcpp::traits::input_parameter< const arma::mat& >::type sd(sdSEXP);
+    Rcpp::traits::input_parameter< const arma::uword& >::type n_times(n_timesSEXP);
+    Rcpp::traits::input_parameter< const double& >::type threshold(thresholdSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_radd_calc_nf(ts, mean, sd, n_times, threshold));
     return rcpp_result_gen;
+END_RCPP
+}
+// seq_int
+arma::vec seq_int(const arma::uword& from, const arma::uword& to, const arma::uword& n);
+RcppExport SEXP _sits_seq_int(SEXP fromSEXP, SEXP toSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::uword& >::type from(fromSEXP);
+    Rcpp::traits::input_parameter< const arma::uword& >::type to(toSEXP);
+    Rcpp::traits::input_parameter< const arma::uword& >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(seq_int(from, to, n));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_radd_start_monitoring
+void C_radd_start_monitoring(const arma::mat& p_res, const double& threshold);
+RcppExport SEXP _sits_C_radd_start_monitoring(SEXP p_resSEXP, SEXP thresholdSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type p_res(p_resSEXP);
+    Rcpp::traits::input_parameter< const double& >::type threshold(thresholdSEXP);
+    C_radd_start_monitoring(p_res, threshold);
+    return R_NilValue;
 END_RCPP
 }
 // C_temp_max
@@ -636,7 +662,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_normalize_data", (DL_FUNC) &_sits_C_normalize_data, 3},
     {"_sits_C_normalize_data_0", (DL_FUNC) &_sits_C_normalize_data_0, 3},
     {"_sits_C_dnorm", (DL_FUNC) &_sits_C_dnorm, 3},
-    {"_sits_C_radd_calc_nf", (DL_FUNC) &_sits_C_radd_calc_nf, 3},
+    {"_sits_C_radd_calc_nf", (DL_FUNC) &_sits_C_radd_calc_nf, 5},
+    {"_sits_seq_int", (DL_FUNC) &_sits_seq_int, 3},
+    {"_sits_C_radd_start_monitoring", (DL_FUNC) &_sits_C_radd_start_monitoring, 2},
     {"_sits_C_temp_max", (DL_FUNC) &_sits_C_temp_max, 1},
     {"_sits_C_temp_min", (DL_FUNC) &_sits_C_temp_min, 1},
     {"_sits_C_temp_mean", (DL_FUNC) &_sits_C_temp_mean, 1},

@@ -157,7 +157,6 @@
     return(data)
 }
 
-
 .radd_calc_pnf_band <- function(data, pdf_fn, stats_layer, band, labels, pnf = NULL) {
     ts_band <- .ts_select_bands(.ts(data), bands = band)
     ts_band <- dplyr::group_by(ts_band, .data[["sample_id"]])
@@ -227,3 +226,36 @@
         "weibull" = dweibull
     )
 }
+
+# .radd_calc_pnf <- function(data, pdf_fn, stats_layer) {
+#     samples_labels <- stats_layer[["label"]]
+#     bands <- .samples_bands(data)
+#     # We need to calculate for the first to update others
+#     band <- bands[[1]]
+#     prob_nf <- .radd_calc_pnf_band(
+#         data = data,
+#         pdf_fn = pdf_fn,
+#         stats_layer = stats_layer,
+#         band = band,
+#         labels = samples_labels
+#     )
+#     # We need to update de probability of non-forest
+#     for (b in setdiff(bands, band)) {
+#         prob_nf <<- .radd_calc_pnf_band(
+#             data = data,
+#             pdf_fn = pdf_fn,
+#             stats_layer = stats_layer,
+#             band = b,
+#             labels = samples_labels,
+#             pnf = prob_nf
+#         )
+#     }
+#     # Add Flag and Pchange columns
+#     prob_nf[, c("Flag", "PChange")] <- NA
+#     # Nest each NF probability
+#     prob_nf[["#.."]] <- prob_nf[["sample_id"]]
+#     prob_nf <- tidyr::nest(prob_nf, prob_nf = -"#..")
+#     data$prob_nf <- prob_nf$prob_nf
+#     # Return the probability of NF updated
+#     return(data)
+# }
