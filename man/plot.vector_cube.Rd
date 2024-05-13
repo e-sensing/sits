@@ -12,14 +12,12 @@
   green = NULL,
   blue = NULL,
   tile = x[["tile"]][[1]],
-  date = NULL,
+  dates = NULL,
   seg_color = "black",
   line_width = 1,
   palette = "RdYlGn",
-  style = "cont",
-  n_colors = 10,
   rev = FALSE,
-  scale = 0.8
+  scale = 1
 )
 }
 \arguments{
@@ -37,19 +35,13 @@
 
 \item{tile}{Tile to be plotted.}
 
-\item{date}{Date to be plotted.}
+\item{dates}{Dates to be plotted.}
 
 \item{seg_color}{Color to show the segment boundaries}
 
 \item{line_width}{Line width to plot the segments boundary (in pixels)}
 
 \item{palette}{An RColorBrewer palette}
-
-\item{style}{Method to process the color scale
-("cont", "order", "quantile", "fisher",
- "jenks", "log10")}
-
-\item{n_colors}{Number of colors to be shown}
 
 \item{rev}{Reverse the color order in the palette?}
 

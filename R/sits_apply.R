@@ -128,7 +128,7 @@ sits_apply.raster_cube <- function(data, ...,
     .check_is_raster_cube(data)
     .check_that(.cube_is_regular(data))
     # Check window size
-    .check_int_parameter(window_size, min = 3, is_odd = TRUE)
+    .check_int_parameter(window_size, min = 1, is_odd = TRUE)
     # Check normalized index
     .check_lgl_parameter(normalized)
     # Check memsize
@@ -158,11 +158,10 @@ sits_apply.raster_cube <- function(data, ...,
         bands = bands,
         expr = expr
     )
-    # Check memory and multicores
-    # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = overlap),
@@ -170,6 +169,16 @@ sits_apply.raster_cube <- function(data, ...,
         nbytes = 8,
         proc_bloat = .conf("processing_bloat_cpu")
     )
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_memsize = job_memsize,
+        block = block,
+        image_size = .tile_size(.tile(data)),
+        memsize = memsize,
+        multicores = multicores
+    )
+    # adjust for blocks of size 1
+    block <- .block_regulate_size(block)
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
         job_memsize = job_memsize,

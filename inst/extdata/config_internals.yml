@@ -270,7 +270,7 @@ sar_cube_grey_colors: 128
 # tmap configurations
 tmap:
         max_cells: 1e+06
-        graticules_labels_size: 0.7
+        graticules_labels_size: 0.8
         legend_outside: False
         legend_outside_position: "right"
         legend_title_size: 1.0
