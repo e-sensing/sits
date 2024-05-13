@@ -156,7 +156,7 @@
                 ),
                 params = list(
                     "-ot" = data_type,
-                    "-of" = .conf("gdal_presets", "block", "of"),
+                    "-of" = .conf("gdal_presets", "image", "of"),
                     "-b" = rep(1, nlayers),
                     "-outsize" = list(.ncols(block), .nrows(block)),
                     "-scale" = list(0, 1, miss_value, miss_value),
@@ -165,7 +165,7 @@
                         .xmin(bbox), .ymax(bbox), .xmax(bbox), .ymin(bbox)
                     ),
                     "-a_nodata" = miss_value,
-                    "-co" = .conf("gdal_presets", "block", "co")
+                    "-co" = .conf("gdal_presets", "image", "co")
                 ),
                 quiet = TRUE
             )
