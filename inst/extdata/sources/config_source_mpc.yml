@@ -192,8 +192,8 @@ sources:
                 bands       :
                     VV      : &mspc_rtc_10m
                         missing_value : -32768.0
-                        minimum_value : 0.0
-                        maximum_value : 32767.0
+                        minimum_value : 0
+                        maximum_value : 65534.0
                         scale_factor  : 1
                         offset_value  : 0
                         resolution    : 10

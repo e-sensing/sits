@@ -11,36 +11,15 @@
 #' To merge data cubes, they should share the same sensor, resolution,
 #' bounding box, timeline, and have different bands.
 #'
-#' When the user requests a sits_merge operation for two regular cubes with
-#' the same number of time intervals but with timelines that are not equal
-#' the system issues a warning and asks the user to provide a \code{tolerance}
-#' parameter which will be used in the merging operation.
-#' The temporal tolerance parameter should be less than the time interval
-#' between two images of both cubes.
-#' In this case the second cube will have its timeline and the image
-#' file names changed to match the timeline of the first cube.
-#' The images of the second cube will be written in \code{output_dir}
-#' directory.
-#'
 #' @param data1      Time series (tibble of class "sits")
 #'                   or data cube (tibble of class "raster_cube") .
 #' @param data2      Time series (tibble of class "sits")
 #'                   or data cube (tibble of class "raster_cube") .
 #'
 #' @param ...        Additional parameters
-#' @param tolerance  Allowable amount of variation in time interval
-#'                   between two dates of cubes to be merged
-#' @param output_dir Directory where transformed images will be saved
 #' @param suffix     If there are duplicate bands in data1 and data2
 #'                   these suffixes will be added
 #'                   (character vector).
-#' @param tolerance  A period tolerance to merge both cubes.
-#'                   ISO8601-compliant time period for regular data cubes,
-#'                   with number and unit, where "D", "M" and "Y" stand
-#'                   for days, month and year; e.g., "P16D" for 16 days.
-#'                   The temporal tolerance parameter should be less than
-#'                   the time interval between two images of both cubes.
-#' @param output_dir Valid directory for storing merged images.
 #'
 #' @return merged data sets (tibble of class "sits" or
 #'         tibble of class "raster_cube")
@@ -109,96 +88,98 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 
 #' @rdname sits_merge
 #' @export
-#'
-sits_merge.raster_cube <- function(data1, data2, ...,
-                                   tolerance = NULL,
-                                   output_dir = NULL) {
+sits_merge.sar_cube <- function(data1, data2, ...) {
+    .check_set_caller("sits_merge_sar_cube")
+    # pre-condition - check cube type
+    .check_is_raster_cube(data1)
+    .check_is_raster_cube(data2)
+    # pre-condition for merge is having the same tiles
+    common_tiles <- intersect(data1[["tile"]], data2[["tile"]])
+    .check_that(length(common_tiles) > 0)
+    # filter cubes by common tiles and arrange them
+    data1 <- dplyr::arrange(
+        dplyr::filter(data1, .data[["tile"]] %in% common_tiles),
+        .data[["tile"]]
+    )
+    data2 <- dplyr::arrange(
+        dplyr::filter(data2, .data[["tile"]] %in% common_tiles),
+        .data[["tile"]]
+    )
+    if (inherits(data2, "sar_cube")) {
+        return(.merge_equal_cube(data1, data2))
+    } else {
+        return(.merge_distinct_cube(data1, data2))
+    }
+}
+
+#' @rdname sits_merge
+#' @export
+sits_merge.raster_cube <- function(data1, data2, ...) {
     .check_set_caller("sits_merge_raster_cube")
     # pre-condition - check cube type
     .check_is_raster_cube(data1)
     .check_is_raster_cube(data2)
-    # precondition for merge is having the same tiles
-    # join cube tiles
+    # pre-condition for merge is having the same tiles
     common_tiles <- intersect(data1[["tile"]], data2[["tile"]])
     .check_that(length(common_tiles) > 0)
-    # filter cubes by common tiles
-    data1 <- dplyr::filter(data1, .data[["tile"]] %in% common_tiles)
-    data2 <- dplyr::filter(data2, .data[["tile"]] %in% common_tiles)
-    # Get cubes timeline
-    d1_tl <- unique(as.Date(unlist(.cube_timeline(data1))))
-    d2_tl <- unique(as.Date(unlist(.cube_timeline(data2))))
-    # get minimum interval
-    min_interval_data1 <- min(
-        lubridate::as.period(
-            lubridate::int_diff(d1_tl)
-        )
+    # filter cubes by common tiles and arrange them
+    data1 <- dplyr::arrange(
+        dplyr::filter(data1, .data[["tile"]] %in% common_tiles),
+        .data[["tile"]]
     )
-    min_interval_data2 <- min(
-        lubridate::as.period(
-            lubridate::int_diff(d2_tl)
-        )
+    data2 <- dplyr::arrange(
+        dplyr::filter(data2, .data[["tile"]] %in% common_tiles),
+        .data[["tile"]]
     )
-    if (.has(tolerance))
-        .check_period(tolerance)
-    else
 
-    if (.has(output_dir)) {
-        .check_output_dir(output_dir)
+    if (inherits(data2, "raster_cube")) {
+        return(.merge_equal_cube(data1, data2))
+    } else {
+        return(.merge_distinct_cube(data1, data2))
     }
+}
 
-    # aligning tiles
-    data1 <- dplyr::arrange(data1, .data[["tile"]])
-    data2 <- dplyr::arrange(data2, .data[["tile"]])
-    # Get cubes timeline
-    d1_tl <- as.Date(unlist(.cube_timeline(data1)))
-    d2_tl <- as.Date(unlist(.cube_timeline(data2)))
-    # check timeline interval
-    # tl_interval1 <- lubridate::int_diff()
-
-    .check_that(all(sort(.cube_tiles(data1)) == sort(.cube_tiles(data2))))
+.merge_equal_cube <- function(data1, data2) {
     if (inherits(data1, "hls_cube") && inherits(data2, "hls_cube") &&
         (.cube_collection(data1) == "HLSS30" ||
          .cube_collection(data2) == "HLSS30")) {
-            data1[["collection"]] <- "HLSS30"
+        data1[["collection"]] <- "HLSS30"
     }
 
-    if (all(d1_tl == d2_tl)) {
-        data1 <- .merge_fi(data1, data2)
-        return(data1)
-    }
-    # Get difference in timelines
-    diff_timelines <- .merge_diff_timelines(d1_tl, d2_tl)
-    # Verify the consistency of each difference
-    if (!all(diff_timelines <= lubridate::period(tolerance))) {
-        stop(.conf("messages", "sits_merge_raster_cube_error"),
-             call. = FALSE
-        )
-    }
-    if (!.has(output_dir)) {
-        warning(
-            paste("The images with the fixed timeline of the",
-                  "second cube will not be written. If you want",
-                  "to write it, use the `output_dir` parameter."
-            ),
-            call. = FALSE
-        )
-    }
+    data1 <- .cube_merge(data1, data2)
+    return(data1)
+}
+
+.merge_distinct_cube <- function(data1, data2) {
+    # Get cubes timeline
+    d1_tl <- unique(as.Date(unlist(.cube_timeline(data1))))
+    d2_tl <- unique(as.Date(unlist(.cube_timeline(data2))))
+
+    # get intervals
+    d1_period <- as.numeric(
+        lubridate::as.period(lubridate::int_diff(d1_tl)), "days"
+    )
+    d2_period <- as.numeric(
+        lubridate::as.period(lubridate::int_diff(d2_tl)), "days"
+    )
+    # pre-condition - are periods regular?
+    .check_that(
+        length(unique(d1_period)) == 1 && length(unique(d2_period)) == 1
+    )
+    # pre-condition - Do cubes have the same periods?
+    .check_that(
+        unique(d1_period) == unique(d2_period)
+    )
+    # pre-condition - are the cubes start date less than period timeline?
+    .check_that(
+        abs(d1_period[[1]] - d2_period[[2]]) <= unique(d2_period)
+    )
 
     # Change file name to match reference timeline
     data2 <- slider::slide_dfr(data2, function(y) {
         fi_list <- purrr::map(.tile_bands(y), function(band) {
             fi_band <- .fi_filter_bands(.fi(y), bands = band)
             fi_band[["date"]] <- d1_tl
-            if (!.has(output_dir)) {
-                return(fi_band)
-            }
-            fi_paths <- .fi_paths(fi_band)
-            file_names <- .file_eo_name(
-                tile = y, band = band,
-                date = d1_tl, output_dir = output_dir
-            )
-            file.copy(from = fi_paths, to = file_names)
-            fi_band[["path"]] <- file_names
             return(fi_band)
         })
         tile_fi <- dplyr::bind_rows(fi_list)
@@ -212,7 +193,7 @@ sits_merge.raster_cube <- function(data1, data2, ...,
         y
     })
     # Merge the cubes
-    data1 <- .merge_fi(data1, data2)
+    data1 <- .cube_merge(data1, data2)
     # Return cubes merged
     return(data1)
 }

@@ -3,6 +3,7 @@
 \name{sits_merge}
 \alias{sits_merge}
 \alias{sits_merge.sits}
+\alias{sits_merge.sar_cube}
 \alias{sits_merge.raster_cube}
 \alias{sits_merge.default}
 \title{Merge two data sets (time series or cubes)}
@@ -11,7 +12,9 @@ sits_merge(data1, data2, ...)
 
 \method{sits_merge}{sits}(data1, data2, ..., suffix = c(".1", ".2"))
 
-\method{sits_merge}{raster_cube}(data1, data2, ..., tolerance = NULL, output_dir = NULL)
+\method{sits_merge}{sar_cube}(data1, data2, ...)
+
+\method{sits_merge}{raster_cube}(data1, data2, ...)
 
 \method{sits_merge}{default}(data1, data2, ...)
 }
@@ -27,15 +30,6 @@ or data cube (tibble of class "raster_cube") .}
 \item{suffix}{If there are duplicate bands in data1 and data2
 these suffixes will be added
 (character vector).}
-
-\item{tolerance}{A period tolerance to merge both cubes.
-ISO8601-compliant time period for regular data cubes,
-with number and unit, where "D", "M" and "Y" stand
-for days, month and year; e.g., "P16D" for 16 days.
-The temporal tolerance parameter should be less than
-the time interval between two images of both cubes.}
-
-\item{output_dir}{Valid directory for storing merged images.}
 }
 \value{
 merged data sets (tibble of class "sits" or
@@ -50,17 +44,6 @@ for the same set of locations in the same tibble.
 
 To merge data cubes, they should share the same sensor, resolution,
 bounding box, timeline, and have different bands.
-
-When the user requests a sits_merge operation for two regular cubes with
-the same number of time intervals but with timelines that are not equal
-the system issues a warning and asks the user to provide a \code{tolerance}
-parameter which will be used in the merging operation.
-The temporal tolerance parameter should be less than the time interval
-between two images of both cubes.
-In this case the second cube will have its timeline and the image
-file names changed to match the timeline of the first cube.
-The images of the second cube will be written in \code{output_dir}
-directory.
 }
 \examples{
 if (sits_run_examples()) {

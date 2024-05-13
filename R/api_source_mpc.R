@@ -523,14 +523,12 @@
     .check_that(.has_not(tiles))
     return(invisible(source))
 }
-#' @title Cleak MPC token cache
+#' @title Clear MPC token cache
 #' @name .mpc_clean_token_cache
-#' @description
-#' Cleans the the token cache for MPC to reduce timeout effects
+#' @description Cleans the the token cache for MPC to reduce timeout effects
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-#' @export
 .mpc_clean_token_cache <- function() {
     mpc_token <- get("ms_token", envir = asNamespace("rstac"), inherits = TRUE)
     cached_tokens <- names(mpc_token)
