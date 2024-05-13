@@ -215,9 +215,6 @@ gdal_presets         :
     cog              :
         overviews    : [2, 4, 8, 16]
         method       : "NEAREST"
-    block            :
-        of           : "GTiff"
-        co           : ["COMPRESS=NONE", "BIGTIFF=NO"] # cannot be tiled!
     image            :
         of           : "GTiff"
         co           : ["COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES",
