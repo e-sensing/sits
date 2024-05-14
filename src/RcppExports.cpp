@@ -36,6 +36,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// dtw_distance
+double dtw_distance(const NumericMatrix& ts1, const NumericMatrix& ts2);
+RcppExport SEXP _sits_dtw_distance(SEXP ts1SEXP, SEXP ts2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type ts1(ts1SEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type ts2(ts2SEXP);
+    rcpp_result_gen = Rcpp::wrap(dtw_distance(ts1, ts2));
+    return rcpp_result_gen;
+END_RCPP
+}
 // C_kernel_median
 NumericVector C_kernel_median(const NumericMatrix& x, int ncols, int nrows, int band, int window_size);
 RcppExport SEXP _sits_C_kernel_median(SEXP xSEXP, SEXP ncolsSEXP, SEXP nrowsSEXP, SEXP bandSEXP, SEXP window_sizeSEXP) {
@@ -672,6 +684,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_sits_weighted_probs", (DL_FUNC) &_sits_weighted_probs, 2},
     {"_sits_weighted_uncert_probs", (DL_FUNC) &_sits_weighted_uncert_probs, 2},
+    {"_sits_dtw_distance", (DL_FUNC) &_sits_dtw_distance, 2},
     {"_sits_C_kernel_median", (DL_FUNC) &_sits_C_kernel_median, 5},
     {"_sits_C_kernel_mean", (DL_FUNC) &_sits_C_kernel_mean, 5},
     {"_sits_C_kernel_sd", (DL_FUNC) &_sits_C_kernel_sd, 5},
