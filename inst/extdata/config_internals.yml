@@ -215,9 +215,6 @@ gdal_presets         :
     cog              :
         overviews    : [2, 4, 8, 16]
         method       : "NEAREST"
-    block            :
-        of           : "GTiff"
-        co           : ["COMPRESS=NONE", "BIGTIFF=NO"] # cannot be tiled!
     image            :
         of           : "GTiff"
         co           : ["COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES",
@@ -270,7 +267,7 @@ sar_cube_grey_colors: 128
 # tmap configurations
 tmap:
         max_cells: 1e+06
-        graticules_labels_size: 0.7
+        graticules_labels_size: 0.8
         legend_outside: False
         legend_outside_position: "right"
         legend_title_size: 1.0

@@ -193,7 +193,7 @@
 .plot_probs_vector: "some requested labels are not present in cube"
 .plot_raster_cube: "wrong input parameters - see example in documentation"
 .plot_raster_cube_tile: "tile is not included in the cube"
-.plot_raster_cube_single_date: "plot handles one date at a time"
+.plot_raster_cube_single_date: "plotting only the first requested date"
 .plot_raster_cube_date: "date is not part of the cube timeline"
 .plot_raster_false_color: "plotting false color image"
 .plot_sits: "wrong input parameters - see example in documentation"

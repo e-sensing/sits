@@ -151,7 +151,7 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
 
     cube_s1_rtc_reg <- sits_regularize(
         cube = cube_s1_rtc,
-        period = "P1M",
+        period = "P16D",
         res = 240,
         tiles = c("21LXJ", "21LYJ"),
         multicores = 1,
