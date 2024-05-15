@@ -325,6 +325,7 @@ plot.predicted <- function(x, y, ...,
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
+#' @param  style         Style for plotting continuous objects
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color scale
@@ -359,7 +360,8 @@ plot.raster_cube <- function(x, ...,
                              dates = NULL,
                              palette = "RdYlGn",
                              rev = FALSE,
-                             scale = 1.2) {
+                             scale = 1.0,
+                             style = "order") {
     # check caller
     .check_set_caller(".plot_raster_cube")
     # retrieve dots
@@ -381,7 +383,6 @@ plot.raster_cube <- function(x, ...,
     .check_require_packages("stars")
     # verifies if tmap package is installed
     .check_require_packages("tmap")
-    .check_require_packages("tmaptools")
     if (.has(band)) {
         # check palette
         .check_palette(palette)
@@ -391,7 +392,7 @@ plot.raster_cube <- function(x, ...,
     # check scale parameter
     .check_num_parameter(scale, min = 0.2)
     # reverse the color palette?
-    if (rev)
+    if (rev || palette == "Greys")
         palette <- paste0("-", palette)
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
@@ -441,11 +442,13 @@ plot.raster_cube <- function(x, ...,
             palette = palette,
             main_title = main_title,
             rev = rev,
-            scale = scale
+            scale = scale,
+            style = style
         )
     } else {
         # plot RGB
-        main_title <- paste0(.tile_collection(tile)," ",
+        main_title <- paste0(.tile_satellite(tile)," ",
+                             tile[["tile"]], " ",
                              red, "(R) ",
                              green, "(G) ",
                              blue, "(B) ",
@@ -460,7 +463,8 @@ plot.raster_cube <- function(x, ...,
             main_title = main_title,
             sf_seg    = NULL,
             seg_color = NULL,
-            line_width = NULL
+            line_width = NULL,
+            scale = scale
         )
     }
 
@@ -484,7 +488,8 @@ plot.raster_cube <- function(x, ...,
 #' @param  line_width    Line width to plot the segments boundary (in pixels)
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
-#' @param  scale         Scale to plot map (0.4 to 1.0)
+#' @param  scale         Scale to plot map (0.4 to 1.5)
+#' @param  style         Style for plotting continuous objects
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
@@ -522,7 +527,8 @@ plot.vector_cube <- function(x, ...,
                              line_width = 1,
                              palette = "RdYlGn",
                              rev = FALSE,
-                             scale = 1.0) {
+                             scale = 1.0,
+                             style = "order") {
     .check_set_caller(".plot_vector_cube")
     # retrieve dots
     dots <- list(...)
@@ -570,10 +576,12 @@ plot.vector_cube <- function(x, ...,
             palette = palette,
             main_title = main_title,
             rev = rev,
-            scale = scale
+            scale = scale,
+            style = style
         )
     } else {
         main_title <- paste0(.tile_collection(tile)," ",
+                             tile[["tile"]],
                              red, "(R) ",
                              green, "(G) ",
                              blue, "(B) ",
@@ -589,7 +597,8 @@ plot.vector_cube <- function(x, ...,
             main_title = main_title,
             sf_seg   = sf_seg,
             seg_color = seg_color,
-            line_width = line_width
+            line_width = line_width,
+            scale = scale
         )
     }
     return(p)

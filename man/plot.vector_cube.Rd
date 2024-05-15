@@ -17,7 +17,8 @@
   line_width = 1,
   palette = "RdYlGn",
   rev = FALSE,
-  scale = 1
+  scale = 1,
+  style = "order"
 )
 }
 \arguments{
@@ -45,7 +46,9 @@
 
 \item{rev}{Reverse the color order in the palette?}
 
-\item{scale}{Scale to plot map (0.4 to 1.0)}
+\item{scale}{Scale to plot map (0.4 to 1.5)}
+
+\item{style}{Style for plotting continuous objects}
 }
 \value{
 A plot object with an RGB image

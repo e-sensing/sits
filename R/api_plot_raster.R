@@ -14,7 +14,7 @@
 #' @param  main_title    Main title for the plot
 #' @param  rev           Reverse the color palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
-#'
+#' @param  style         Style for plotting continuous data
 #' @return               A list of plot objects
 .plot_false_color <- function(tile,
                               band,
@@ -25,7 +25,8 @@
                               palette,
                               main_title,
                               rev,
-                              scale) {
+                              scale,
+                              style) {
     # select the file to be plotted
     bw_file <- .tile_path(tile, band, date)
     # size of data to be read
@@ -36,25 +37,38 @@
     band_scale <- .scale(band_conf)
     band_offset <- .offset(band_conf)
     max_value <- .max_value(band_conf)
-    # used for SAR images without tiling system
-    #if (tile[["tile"]] == "NoTilingSystem")  {
-        bw_file <- .gdal_warp_grd(bw_file, sizes)
-    #}
+    # retrieve the overview if COG
+    bw_file <- .gdal_warp_grd(bw_file, sizes)
     # open the file in terra
     rast <- terra::rast(bw_file)
     # apply scale and offset
     rast <- rast * band_scale + band_offset
-    # get the quantiles
+    # extract the values
     vals <- terra::values(rast)
-    quantiles <- stats::quantile(vals, probs = c(0, 0.05, 0.95, 1))
-    maxq <- quantiles[[3]]
-    minq <- quantiles[[2]]
-    maxv <- quantiles[[4]]
+    # obtain the quantiles
+    quantiles <- stats::quantile(
+        vals,
+        probs = c(0, 0.02, 0.98, 1),
+        na.rm = TRUE
+    )
     minv <- quantiles[[1]]
+    minq <- quantiles[[2]]
+    maxq <- quantiles[[3]]
+    maxv <- quantiles[[4]]
+    # get the full range of values
     range <- maxv - minv
+    # get the range btw 2% and 98%
     rangeq <- maxq - minq
+    # calculate the stretch factor
     stretch <- rangeq / range
+    # stretch the image
     rast <- stretch * (rast - minv) + minq
+
+    # readjust palette (bug in tmap?)
+    if (minq < 0.0) {
+        palette <- sub("-","",palette)
+    }
+
     # tmap params
     labels_size <- as.numeric(.conf("tmap", "graticules_labels_size"))
     legend_bg_color <- .conf("tmap", "legend_bg_color")
@@ -65,11 +79,10 @@
     # generate plot
     p <- tmap::tm_shape(rast, raster.downsample = FALSE) +
         tmap::tm_raster(
-                        palette = palette,
-                        title = band,
-                        style = "cont",
-                        style.args = list(na.rm = TRUE)
-
+            palette = palette,
+            title = band,
+            style = style,
+            style.args = list(na.rm = TRUE)
         ) +
         tmap::tm_graticules(
             labels.size = labels_size
@@ -143,7 +156,8 @@
             main_title = main_title,
             sf_seg = NULL,
             seg_color = NULL,
-            line_width = NULL
+            line_width = NULL,
+            scale = scale
     )
     return(p)
 }
@@ -161,6 +175,7 @@
 #' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
+#' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @return               A plot object
 #'
 .plot_rgb <- function(tile,
@@ -171,7 +186,8 @@
                       main_title,
                       sf_seg,
                       seg_color,
-                      line_width) {
+                      line_width,
+                      scale) {
     # get RGB files for the requested timeline
     red_file <- .tile_path(tile, red, date)
     green_file <- .tile_path(tile, green, date)
@@ -198,7 +214,8 @@
         main_title = main_title,
         sf_seg = sf_seg,
         seg_color = seg_color,
-        line_width = line_width
+        line_width = line_width,
+        scale = scale
     )
     return(p)
 }
@@ -216,6 +233,7 @@
 #' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
+#' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @return               A plot object
 #'
 .plot_rgb_stars <- function(red_file,
@@ -226,7 +244,8 @@
                             main_title,
                             sf_seg,
                             seg_color,
-                            line_width){
+                            line_width,
+                            scale) {
 
     # read raster data as a stars object with separate RGB bands
     rgb_st <- stars::read_stars(
@@ -257,7 +276,8 @@
         tmap::tm_layout(
             main.title = main_title,
             main.title.size = 1,
-            main.title.position = "center"
+            main.title.position = "center",
+            scale = scale
         ) +
         tmap::tm_compass()
 
