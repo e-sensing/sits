@@ -168,6 +168,7 @@
 #' locations are guaranteed to be separated by a certain number of pixels.
 #'
 #' @param r_obj           A raster object.
+#' @param block           Individual block that will be processed.
 #' @param band            A numeric band index used to read bricks.
 #' @param n               Number of values to extract.
 #' @param sampling_window Window size to collect a point (in pixels).
@@ -175,6 +176,7 @@
 #' @return                A point `tibble` object.
 #'
 .raster_get_top_values <- function(r_obj,
+                                   block,
                                    band,
                                    n,
                                    sampling_window) {
@@ -182,18 +184,24 @@
     # Get top values
     # filter by median to avoid borders
     # Process window
-    values <- .raster_get_values(r_obj)
+    values <- .raster_get_values(
+        r_obj,
+        row = block[["row"]],
+        col = block[["col"]],
+        nrows = block[["nrows"]],
+        ncols = block[["ncols"]]
+    )
     values <- C_kernel_median(
         x = values,
-        ncols = .raster_ncols(r_obj),
-        nrows = .raster_nrows(r_obj),
+        nrows = block[["nrows"]],
+        ncols = block[["ncols"]],
         band = 0,
         window_size = sampling_window
     )
     samples_tb <- C_max_sampling(
         x = values,
-        nrows = .raster_nrows(r_obj),
-        ncols = .raster_ncols(r_obj),
+        nrows = block[["nrows"]],
+        ncols = block[["ncols"]],
         window_size = sampling_window
     )
     samples_tb <- dplyr::slice_max(
