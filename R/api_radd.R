@@ -30,7 +30,7 @@
                         i <- 0
                         prior <- .x[t - 1, "NF"]
                         likelihood <- .x[t, "NF"]
-                        posterior <- .radd_calc_post(prior, likelihood)
+                        posterior <- .radd_calc_bayes(prior, likelihood)
                         .x[t, "Flag"] <- "Flag"
                         .x[t, "PChange"] <- posterior
                     }
@@ -38,7 +38,7 @@
                     if (.x[t - 1, "Flag"] == "Flag") {
                         prior <- .x[t - 1, "PChange"]
                         likelihood <- .x[t, "NF"]
-                        posterior <- .radd_calc_post(prior, likelihood)
+                        posterior <- .radd_calc_bayes(prior, likelihood)
                         .x[t, "Flag"] <- "Flag"
                         .x[t, "PChange"] <- posterior
                         i <- i + 1
@@ -55,7 +55,9 @@
                     }
                 }
                 # confirm change in case PChange >= chi
-                if (nrow(.x[t - 1, "Flag"]) > 0 && !is.na(.x[t, "PChange"]) && .x[t, "PChange"] >= chi) {
+                if (nrow(.x[t - 1, "Flag"]) > 0 &&
+                    !is.na(.x[t, "PChange"]) &&
+                    .x[t, "PChange"] >= chi) {
                     if (.x[t, "NF"] >= threshold) {
                         min_idx <- min(which(.x$Flag == "Flag"))
                         .x[min_idx:t, "Flag"] <- "Change"
@@ -90,7 +92,6 @@
             .before = 1
         )
     })
-    prob_nf[2, "Flag"] <- "0"
     prob_nf[["#.."]] <- prob_nf[["sample_id"]]
     prob_nf <-  tidyr::nest(
         prob_nf, prob_nf = -"#.."
