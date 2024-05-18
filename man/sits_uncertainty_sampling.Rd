@@ -8,7 +8,9 @@ sits_uncertainty_sampling(
   uncert_cube,
   n = 100L,
   min_uncert = 0.4,
-  sampling_window = 10L
+  sampling_window = 10L,
+  multicores = 1L,
+  memsize = 1L
 )
 }
 \arguments{
@@ -21,6 +23,12 @@ See \code{\link[sits]{sits_uncertainty}}.}
 
 \item{sampling_window}{Window size for collecting points (in pixels).
 The minimum window size is 10.}
+
+\item{multicores}{Number of workers for parallel processing
+(integer, min = 1, max = 2048).}
+
+\item{memsize}{Maximum overall memory (in GB) to run the
+function.}
 }
 \value{
 A tibble with longitude and latitude in WGS84 with locations
