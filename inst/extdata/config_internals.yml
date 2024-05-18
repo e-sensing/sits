@@ -171,6 +171,17 @@ derived_cube         :
                 offset_value : 0
                 scale_factor : 1
 
+    detections_cube    :
+        s3_class       : [ "detections_cube", "derived_cube", "raster_cube" ]
+        bands          :
+            detection  :
+                data_type    : "INT1U"
+                missing_value: 255
+                minimum_value: 0
+                maximum_value: 254
+                offset_value : 0
+                scale_factor : 1
+
 # Vector cube definitions
 vector_cube          :
     segs_cube        :

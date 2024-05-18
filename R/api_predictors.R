@@ -149,6 +149,31 @@
         dplyr::ungroup()
     return(frac)
 }
+#' @title Convert predictors to ts
+#' @keywords internal
+#' @noRd
+#' @param  data      Predictor data to be converted.
+#' @param  bands     Name of the bands available in the given predictor data.
+#' @param  timeline  Timeline of the predictor data.
+#' @return           Predictor data as ts.
+.pred_as_ts <- function(data, bands, timeline) {
+    data |>
+        dplyr::as_tibble() |>
+        tidyr::pivot_longer(
+            cols = dplyr::everything(),
+            cols_vary = "fastest",
+            names_to = ".value",
+            names_pattern = paste0(
+                "^(", paste(bands, collapse = "|"), ")"
+            )
+        ) |>
+        dplyr::mutate(
+            sample_id = rep( seq_len(nrow(data)), each = dplyr::n() / nrow(data) ),
+            label = "NoClass",
+            Index = rep(timeline, nrow(data)),
+            .before = 1
+        )
+}
 # ---- Partitions ----
 #' @title Get predictors of a given partition
 #' @keywords internal
@@ -157,3 +182,6 @@
 .pred_part <- function(part) {
     .default(part[["predictors"]][[1]])
 }
+
+
+
