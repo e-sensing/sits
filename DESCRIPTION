@@ -148,6 +148,7 @@ Collate:
     'api_mosaic.R'
     'api_opensearch.R'
     'api_parallel.R'
+    'api_patterns.R'
     'api_period.R'
     'api_plot_time_series.R'
     'api_plot_raster.R'

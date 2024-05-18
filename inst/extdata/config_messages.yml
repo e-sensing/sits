@@ -352,6 +352,7 @@ sits_cube_default: "requested source has not been registered in sits\n - if poss
 sits_cube_copy: "wrong input parameters - see example in documentation"
 sits_cube_local_cube:  "wrong input parameters - see example in documentation"
 sits_cube_local_cube_vector_band: "one vector_band must be provided (either segments, class, or probs)"
+sits_detect_change_method: "wrong input parameters - see example in documentation"
 sits_detect_change_method_model: "cd_method is not a valid function"
 sits_detect_change_method_timeline: "samples have different timeline lengths"
 sits_detect_change_sits: "wrong input parameters - see example in documentation"
