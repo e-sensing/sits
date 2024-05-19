@@ -15,7 +15,7 @@
   dates = NULL,
   palette = "RdYlGn",
   rev = FALSE,
-  scale = 1,
+  scale = 0.9,
   style = "order"
 )
 }

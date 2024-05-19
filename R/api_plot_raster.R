@@ -38,7 +38,7 @@
     band_offset <- .offset(band_conf)
     max_value <- .max_value(band_conf)
     # retrieve the overview if COG
-    bw_file <- .gdal_warp_grd(bw_file, sizes)
+    bw_file <- .gdal_warp_file(bw_file, sizes)
     # open the file in terra
     rast <- terra::rast(bw_file)
     # apply scale and offset
@@ -142,9 +142,9 @@
     max_value <- .max_value(band_params)
     # used for SAR images without tiling system
     if (tile[["tile"]] == "NoTilingSystem")  {
-        red_file   <- .gdal_warp_grd(red_file, sizes)
-        green_file <- .gdal_warp_grd(green_file, sizes)
-        blue_file  <- .gdal_warp_grd(blue_file, sizes)
+        red_file   <- .gdal_warp_file(red_file, sizes)
+        green_file <- .gdal_warp_file(green_file, sizes)
+        blue_file  <- .gdal_warp_file(blue_file, sizes)
     }
     # plot multitemporal band as RGB
     p <- .plot_rgb_stars(
@@ -201,9 +201,9 @@
     sizes <- .tile_overview_size(tile = tile, max_size)
     # used for SAR images
     if (tile[["tile"]] == "NoTilingSystem") {
-        red_file   <- .gdal_warp_grd(red_file, sizes)
-        green_file <- .gdal_warp_grd(green_file, sizes)
-        blue_file  <- .gdal_warp_grd(blue_file, sizes)
+        red_file   <- .gdal_warp_file(red_file, sizes)
+        green_file <- .gdal_warp_file(green_file, sizes)
+        blue_file  <- .gdal_warp_file(blue_file, sizes)
     }
     p <- .plot_rgb_stars(
         red_file = red_file,

@@ -92,22 +92,30 @@
     )
     return(invisible(file))
 }
-#' @title Run gdal_warp for SAR GRD files
+#' @title Run gdal_warp_file
 #' @noRd
 #' @param raster_file  File to be copied from (with path)
-#' @param size         Size of output file
+#' @param sizes        Sizes of output file
+#' @param t_srs        Target spatial reference system
 #' @returns            Name of output file
-.gdal_warp_grd <- function(raster_file, size) {
+.gdal_warp_file <- function(raster_file, sizes, t_srs = NULL) {
+    # create a temporary file
     temp_file <- tempfile(fileext = ".tif")
+    # basic parameters
+    params = list(
+        "-ts" = list(sizes[["xsize"]], sizes[["ysize"]]),
+        "-multi" = FALSE,
+        "-q" = TRUE,
+        "-overwrite" = FALSE
+    )
+    # additional param for target SRS
+    if (.has(t_srs))
+        params <- append(params, c("t_srs" = t_srs))
+    # warp the data
     .gdal_warp(
         file = temp_file,
         base_files = raster_file,
-        params = list(
-            "-ts" = list(size[["xsize"]], size[["ysize"]]),
-            "-multi" = FALSE,
-            "-q" = TRUE,
-            "-overwrite" = FALSE
-        ),
+        params = params,
         quiet = TRUE)
     return(temp_file)
 }

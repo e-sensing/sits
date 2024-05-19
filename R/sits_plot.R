@@ -360,7 +360,7 @@ plot.raster_cube <- function(x, ...,
                              dates = NULL,
                              palette = "RdYlGn",
                              rev = FALSE,
-                             scale = 1.0,
+                             scale = 0.9,
                              style = "order") {
     # check caller
     .check_set_caller(".plot_raster_cube")

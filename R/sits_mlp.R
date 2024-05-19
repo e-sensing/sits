@@ -227,7 +227,7 @@ sits_mlp <- function(samples = NULL,
                 # output layer
                 tensors[[length(tensors) + 1]] <-
                     torch::nn_linear(layers[length(layers)], y_dim)
-                # add softmax tensor
+               # add softmax tensor
                 tensors[[length(tensors) + 1]] <- torch::nn_softmax(dim = 2)
                 # create a sequential module that calls the layers in the same
                 # order.

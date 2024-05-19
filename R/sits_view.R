@@ -261,8 +261,7 @@ sits_view.uncertainty_cube <- function(x, ...,
             tile = tile,
             band = .cube_bands(cube),
             date = NULL,
-            palette = palette,
-            output_size = output_size
+            palette = palette
         )
     }
     # include class cube, if available

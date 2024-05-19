@@ -32,11 +32,6 @@
     cube <- .view_filter_tiles(cube, tiles)
     # get the dates
     dates <- .view_set_dates(cube, dates)
-    # find out if resampling is required (for big images)
-    output_size <- .view_resample_size(
-        cube = cube,
-        ndates = max(length(dates), 1)
-    )
     # create a leaflet and add providers
     leaf_map <- .view_add_basic_maps()
     # get names of basic maps
@@ -49,7 +44,6 @@
                 cube = cube,
                 band = band,
                 dates = dates,
-                output_size = output_size,
                 palette = palette
             )
     } else {
@@ -61,8 +55,7 @@
                 red = red,
                 green = green,
                 blue = blue,
-                dates = dates,
-                output_size = output_size
+                dates = dates
             )
     }
     # include class cube if available
@@ -72,8 +65,7 @@
             tiles = tiles,
             legend = legend,
             palette = palette,
-            opacity = opacity,
-            output_size = output_size
+            opacity = opacity
         )
     # get overlay groups
     overlay_groups <- .view_add_overlay_grps(
@@ -133,11 +125,6 @@
                                line_width) {
     # filter the tiles to be processed
     cube <- .view_filter_tiles(cube, tiles)
-    # find out if resampling is required (for big images)
-    output_size <- .view_resample_size(
-        cube = cube,
-        ndates = max(length(dates), 1)
-    )
     # create a leaflet and add providers
     leaf_map <- .view_add_basic_maps()
     # get names of basic maps
@@ -152,7 +139,6 @@
                 cube = cube,
                 band = band,
                 dates = dates,
-                output_size = output_size,
                 palette = palette
             )
     }
@@ -168,8 +154,7 @@
                 red = red,
                 green = green,
                 blue = blue,
-                dates = dates,
-                output_size = output_size
+                dates = dates
             )
     }
     # include segments (and class cube if available)
@@ -471,18 +456,14 @@
 #' @param  band          Band to be shown
 #' @param  dates         Dates to be plotted
 #' @param  palette       Palette to show false colors
-#' @param  output_size   Controls size of leaflet to be visualized
 #' @return               A leaflet object
 #
 .view_bw_band <- function(leaf_map,
                           cube,
                           band,
                           dates,
-                          palette,
-                          output_size) {
+                          palette) {
 
-    # adjust palette for SAR images
-    palette <- .view_adjust_palette(cube, palette)
     # obtain the raster objects for the dates chosen
     for (i in seq_along(dates)) {
         date <- as.Date(dates[[i]])
@@ -504,8 +485,7 @@
                 tile = tile,
                 band = band,
                 date = date,
-                palette = palette,
-                output_size = output_size
+                palette = palette
             )
         }
     }
@@ -523,7 +503,6 @@
 #' @param  green         Band to be shown in green color
 #' @param  blue          Band to be shown in blue color
 #' @param  dates         Dates to be plotted
-#' @param  output_size   Controls size of leaflet to be visualized
 #' @return               A leaflet object
 #
 .view_rgb_bands <- function(leaf_map,
@@ -531,8 +510,11 @@
                             red,
                             green,
                             blue,
-                            dates,
-                            output_size) {
+                            dates) {
+    # determine size of data to be read
+    max_size <- .conf("view_max_size")
+    # calculate maximum size in MB
+    max_bytes <- as.numeric(.conf("leaflet_megabytes")) * 1024^2
     # obtain the raster objects for the dates chosen
     for (i in seq_along(dates)) {
         date <- as.Date(dates[[i]])
@@ -551,40 +533,35 @@
             green_file <- .tile_path(tile, green, date)
             blue_file <- .tile_path(tile, blue, date)
 
-            # do we need to warp the image
-            # used for SAR images without tiling system
-            if (tile[["tile"]] == "NoTilingSystem")  {
-                red_file <- .gdal_warp_grd(red_file, output_size)
-                green_file <- .gdal_warp_grd(green_file, output_size)
-                blue_file <- .gdal_warp_grd(blue_file, output_size)
-            }
-
+            # find if file supports COG overviews
+            sizes <- .tile_overview_size(tile = tile, max_size)
+            # warp the image
+            red_file <- .gdal_warp_file(red_file, sizes, t_srs = "EPSG:3857")
+            green_file <- .gdal_warp_file(green_file, sizes, t_srs = "EPSG:3857")
+            blue_file <- .gdal_warp_file(blue_file, sizes, t_srs = "EPSG:3857")
+            # compose RGB files
             rgb_files <- c(r = red_file, g = green_file, b = blue_file)
             st_obj <- stars::read_stars(
                 rgb_files,
                 along = "band",
                 RasterIO = list(
-                    nBufXSize = output_size[["xsize"]],
-                    nBufYSize = output_size[["ysize"]]
+                    nBufXSize = sizes[["xsize"]],
+                    nBufYSize = sizes[["ysize"]]
                 ),
                 proxy = FALSE
             )
-            # resample and warp the image
-            st_obj_new <- stars::st_warp(
-                src = st_obj,
-                crs = sf::st_crs("EPSG:3857")
-            )
             # add raster RGB to leaflet
+            group <- paste(tile[["tile"]], date)
             leaf_map <- leafem::addRasterRGB(
                 leaf_map,
-                x = st_obj_new,
+                x = st_obj,
                 r = 1,
                 g = 2,
                 b = 3,
                 quantiles = c(0.1, 0.9),
                 project = FALSE,
-                group = paste(tile[["tile"]], date),
-                maxBytes = output_size[["leaflet_maxbytes"]]
+                group = group,
+                maxBytes = max_bytes
             )
         }
     }
@@ -666,6 +643,8 @@
             src = st_merge,
             crs = sf::st_crs("EPSG:3857")
         )
+        # calculate maximum size in MB
+        max_bytes <- as.numeric(.conf("leaflet_megabytes")) * 1024^2
         # add the classified image object
         leaf_map <- leaf_map |>
             leafem::addStarsImage(
@@ -685,41 +664,66 @@
                                   tile,
                                   band,
                                   date,
-                                  palette,
-                                  output_size) {
-    # do we need to warp the image
-    # used for SAR images without tiling system
-    if (inherits(tile, "grd_cube"))  {
-        band_file <- .gdal_warp_grd(band_file, output_size)
-    }
-
+                                  palette) {
+    # determine size of data to be read
+    max_size <- .conf("view_max_size")
+    # find if file supports COG overviews
+    sizes <- .tile_overview_size(tile = tile, max_size)
+    band_file <- .gdal_warp_file(band_file, sizes, t_srs = "EPSG:3857")
     # create a stars object
     st_obj <- stars::read_stars(
         band_file,
         along = "band",
         RasterIO = list(
-            nBufXSize = output_size[["xsize"]],
-            nBufYSize = output_size[["ysize"]]
+            nBufXSize = sizes[["xsize"]],
+            nBufYSize = sizes[["ysize"]]
         ),
         proxy = FALSE
     )
-    # clip the image
-    if (inherits(tile, "rtc_cube"))
-        st_obj <- st_obj[st_obj <= 1.0]
+    # get scale and offset
+    band_conf   <- .tile_band_conf(tile, band)
+    band_scale  <- .scale(band_conf)
+    band_offset <- .offset(band_conf)
+    max_value   <- .max_value(band_conf)
+    # scale the image
+    st_obj <-  st_obj * band_scale + band_offset
+    # get the values
+    vals <- as.vector(st_obj[[1]])
+    # obtain the quantiles
+    quantiles <- stats::quantile(
+        vals,
+        probs = c(0, 0.02, 0.98, 1),
+        na.rm = TRUE
+    )
+    minv <- quantiles[[1]]
+    minq <- quantiles[[2]]
+    maxq <- quantiles[[3]]
+    maxv <- quantiles[[4]]
+    # get the full range of values
+    range <- maxv - minv
+    # get the range btw 2% and 98%
+    rangeq <- maxq - minq
+    # calculate the stretch factor
+    stretch <- rangeq / range
+    # stretch the image
+    st_obj <- stretch * (st_obj - minv) + minq
+
     if (.has(date)) {
         group <- paste(tile[["tile"]], date)
     } else {
         group <- paste(tile[["tile"]], band)
     }
+    # calculate maximum size in MB
+    max_bytes <- as.numeric(.conf("leaflet_megabytes")) * 1024^2
     # add stars to leaflet
     leaf_map <- leafem::addStarsImage(
         leaf_map,
-        x = st_obj,
-        band = 1,
-        colors = palette,
-        project = TRUE,
-        group = group,
-        maxBytes = output_size[["leaflet_maxbytes"]]
+        x        = st_obj,
+        band     = 1,
+        colors   = palette,
+        project  = TRUE,
+        group    = "band",
+        maxBytes = max_bytes
     )
     return(leaf_map)
 }
@@ -883,14 +887,13 @@
                                                dates = NULL,
                                                class_cube = NULL) {
     # set caller to show in errors
-    .check_set_caller(".view_add_overlay_grps_raster_cube")
     overlay_groups <- NULL
     # raster cube needs dates
     .check_that(.has(dates))
     grps <- unlist(purrr::map(cube[["tile"]], function(tile) {
         paste(tile, dates)
     }))
-    overlay_groups <- c(overlay_groups, grps)
+    overlay_groups <- c(overlay_groups, "band")
     # add class_cube
     if (.has(class_cube))
         overlay_groups <- c(overlay_groups, "classification")
@@ -953,27 +956,4 @@
         return(bm[["args"]][[3]])
     })
     return(base_maps)
-}
-#' @title  Adjust palette for SAR maps
-#' @name .view_adjust_palette
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  leaf_map      Leaflet
-#' @return               Base maps used in leaflet map
-#'
-.view_adjust_palette <- function(cube, palette){
-    UseMethod(".view_adjust_palette", cube)
-}
-#' @export
-.view_adjust_palette.sar_cube <- function(cube, palette) {
-    n_grey_colors <- .conf("sar_cube_grey_colors")
-    rgb_vals <- log(1:n_grey_colors, n_grey_colors)
-    palette <- grDevices::rgb(red = rgb_vals, green = rgb_vals, blue = rgb_vals)
-    return(palette)
-}
-#' @export
-.view_adjust_palette.default <- function(cube, palette) {
-    return(palette)
 }
