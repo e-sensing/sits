@@ -1,3 +1,111 @@
+.radd_calc_tile <- function(tile,
+                            band,
+                            pdf_fn,
+                            stats_layer,
+                            block,
+                            impute_fn,
+                            output_dir,
+                            version,
+                            progress = TRUE) {
+    # Output file
+    out_file <- .file_derived_name(
+        tile = tile, band = band, version = version, output_dir = output_dir
+    )
+    # Resume feature
+    if (file.exists(out_file)) {
+        if (.check_messages()) {
+            message("Recovery: tile '", tile[["tile"]], "' already exists.")
+            message(
+                "(If you want to produce a new image, please ",
+                "change 'output_dir' or 'version' parameters)"
+            )
+        }
+        class_tile <- .tile_derived_from_file(
+            file = out_file,
+            band = band,
+            base_tile = tile,
+            derived_class = "class_cube",
+            labels = stats_layer[["label"]],
+            update_bbox = FALSE
+        )
+        return(class_tile)
+    }
+    # Create chunks as jobs
+    chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
+    # Separate mean and std columns
+    mean_stats <- dplyr::select(stats_layer, dplyr::ends_with("mean"))
+    sd_stats <- dplyr::select(stats_layer, dplyr::ends_with("sd"))
+    # Process jobs in parallel
+    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
+        # Job block
+        block <- .block(chunk)
+        # Block file name
+        block_file <- .file_block_name(
+            pattern = .file_pattern(out_file),
+            block = block,
+            output_dir = output_dir
+        )
+        # Resume processing in case of failure
+        if (.raster_is_valid(block_file)) {
+            return(block_file)
+        }
+        # Read and preprocess values
+        values <- .classify_data_read(
+            tile = tile,
+            block = block,
+            bands = .tile_bands(tile),
+            ml_model = NULL,
+            impute_fn = impute_fn,
+            filter_fn = NULL
+        )
+        # Get mask of NA pixels
+        na_mask <- C_mask_na(values)
+        # Fill with zeros remaining NA pixels
+        values <- C_fill_na(values, 0)
+        # Used to check values (below)
+        input_pixels <- nrow(values)
+        # Get the number of dates in timeline
+        n_times <- length(.tile_timeline(tile))
+        # Calculate the probability of a Non-Forest pixel
+        values <- C_radd_calc_nf(
+            ts = values,
+            mean = mean_stats,
+            sd = sd_stats,
+            n_times = n_times
+        )
+        # Apply detect changes in time series
+        values <- C_radd_detect_changes(values)
+        # Prepare values to be saved
+        band_conf <- .conf_derived_band(
+            derived_class = "class_cube", band = band
+        )
+        # Prepare and save results as raster
+        .raster_write_block(
+            files = block_file, block = block, bbox = .bbox(chunk),
+            values = values, data_type = .data_type(band_conf),
+            missing_value = .miss_value(band_conf),
+            crop_block = NULL
+        )
+        # Free memory
+        gc()
+        # Returned value
+        block_file
+    }, progress = progress)
+    # Merge blocks into a new class_cube tile
+    class_tile <- .tile_derived_merge_blocks(
+        file = out_file,
+        band = band,
+        labels = stats_layer[["label"]],
+        base_tile = tile,
+        block_files = block_files,
+        derived_class = "class_cube",
+        multicores = .jobs_multicores(),
+        update_bbox = FALSE
+    )
+    # Return class tile
+    class_tile
+}
+
 .radd_detect_events <- function(data,
                                 threshold = 0.5,
                                 start_date = NULL,

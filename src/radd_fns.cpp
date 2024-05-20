@@ -101,6 +101,10 @@ arma::vec seq_int(const arma::uword& from,
 arma::mat C_radd_detect_changes(const arma::mat& p_res,
                                 const double& threshold = 0.5,
                                 const double& chi = 0.9) {
+
+    arma::mat res(
+            p_res.n_rows, 1, arma::fill::value(arma::datum::nan)
+    );
     arma::mat p_flag(
             p_res.n_rows, p_res.n_cols, arma::fill::value(arma::datum::nan)
     );
@@ -110,6 +114,8 @@ arma::mat C_radd_detect_changes(const arma::mat& p_res,
     arma::rowvec p_flag_aux(
             p_res.n_cols, arma::fill::value(arma::datum::nan)
     );
+    arma::uvec idx_value_res;
+    arma::uword v;
     bool next_pixel;
     for (arma::uword i = 0; i < p_res.n_rows; i++) {
         p_flag_aux.fill(arma::datum::nan);
@@ -176,7 +182,13 @@ arma::mat C_radd_detect_changes(const arma::mat& p_res,
                 break;
             }
         }
+        idx_value_res = arma::find(p_flag.row(i) == 1);
+        v = 0;
+        if (idx_value_res.size() > 0) {
+            v = arma::find(p_flag.row(i) == 1).min();
+        }
+        res.row(i) = v;
     }
-    return p_flag;
+    return res;
 }
 
