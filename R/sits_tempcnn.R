@@ -339,7 +339,7 @@ sits_tempcnn <- function(samples = NULL,
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
             # Used to check values (below)
-            n_input_pixels <- nrow(values)
+            input_pixels <- nrow(values)
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
@@ -374,7 +374,7 @@ sits_tempcnn <- function(samples = NULL,
             )
             # Are the results consistent with the data input?
             .check_processed_values(
-                values = values, n_input_pixels = n_input_pixels
+                values = values, input_pixels = input_pixels
             )
             # Update the columns names to labels
             colnames(values) <- labels

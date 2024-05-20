@@ -176,7 +176,7 @@
     # Define smooth function
     smooth_fn <- function(values, block) {
         # Check values length
-        n_input_pixels <- nrow(values)
+        input_pixels <- nrow(values)
         # Compute logit
         values <- log(values / (rowSums(values) - values))
         # Process variance
@@ -188,7 +188,7 @@
             neigh_fraction = neigh_fraction
         )
         # Are the results consistent with the data input?
-        .check_processed_values(values, n_input_pixels)
+        .check_processed_values(values, input_pixels)
         # Return values
         values
     }
