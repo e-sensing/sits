@@ -3,6 +3,7 @@
 # What's new in SITS version 1.5
 
 ### Hotfix version 1.5.0-1
+* Add multicores processing support for active learning sampling methods
 * Remove tapply from `.reg_cube_split_assets()` for R 4.X compatibility
 * Fix `sits_merge()` function that was not merging `SAR` and `OPTICAL` cubes
 * Rename n_input_pixels back to input_pixels for compatibility with models trained in old versions of the package
