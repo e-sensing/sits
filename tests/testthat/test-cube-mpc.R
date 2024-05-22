@@ -158,7 +158,7 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
         output_dir = output_dir,
         progress = TRUE
     )
-    expect_equal(length(sits_timeline(cube_s1_rtc_reg)), 3)
+    expect_equal(length(sits_timeline(cube_s1_rtc_reg)), 5)
     expect_true(all(c("21LXJ", "21LYJ") %in%
                         cube_s1_rtc_reg$tile))
     expect_true("EPSG:32721" %in% cube_s1_rtc_reg$crs)

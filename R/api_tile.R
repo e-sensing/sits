@@ -412,6 +412,17 @@ NULL
     path
 }
 #' @export
+.tile_path.derived_cube <- function(tile, band = NULL, date = NULL) {
+    tile <- .tile(tile)
+    if (.has(band)) {
+        tile <- .tile_filter_bands(tile = tile, bands = band[[1]])
+    }
+    # Get path of first asset
+    path <- .fi_path(.fi(tile))
+    # Return path
+    path
+}
+#' @export
 .tile_path.default <- function(tile, band = NULL, date = NULL) {
     tile <- tibble::as_tibble(tile)
     tile <- .cube_find_class(tile)
