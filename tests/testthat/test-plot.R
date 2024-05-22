@@ -12,7 +12,6 @@ test_that("Plot Time Series and Images", {
     )
 
     p2 <- plot(sits_patterns(cerrado_2classes))
-    expect_equal(p2$guides$colour$title, "Bands")
     expect_equal(p2$theme$legend.position, "bottom")
 
     p3 <- cerrado_2classes |>
@@ -22,7 +21,6 @@ test_that("Plot Time Series and Images", {
     expect_equal(as.Date(p3$data$Time[1]), as.Date("2000-09-13"))
     expect_equal(p3$data$Pattern[1], "Cerrado")
     expect_equal(p3$data$name[1], "EVI")
-    expect_equal(p3$guides$colour$title, "Bands")
 
     p4 <- cerrado_2classes |>
         sits_patterns() |>
@@ -30,7 +28,6 @@ test_that("Plot Time Series and Images", {
     expect_equal(as.Date(p4$data$Time[1]), as.Date("2000-09-13"))
     expect_equal(p4$data$Pattern[1], "Cerrado")
     expect_equal(p4$data$name[1], "NDVI")
-    expect_equal(p4$guides$colour$title, "Bands")
 
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     set.seed(290356)
@@ -49,7 +46,7 @@ test_that("Plot Time Series and Images", {
         progress = FALSE
     )
     p <- plot(sinop, band = "NDVI", palette = "RdYlGn", rev = TRUE)
-    expect_equal(p$tm_shape$shp_name, "stars_obj")
+    expect_equal(p$tm_shape$shp_name, "rast")
     expect_equal(p$tm_raster$palette, "-RdYlGn")
     expect_equal(p$tm_grid$grid.projection, 4326)
 

@@ -164,6 +164,12 @@ sits_view.raster_cube <- function(x, ...,
     # pre-condition for bands
     .check_bw_rgb_bands(band, red, green, blue)
     .check_available_bands(x, band, red, green, blue)
+    # retrieve dots
+    dots <- list(...)
+    # deal with wrong parameter "date"
+    if ("date" %in% names(dots) && missing(dates)) {
+        dates <- as.Date(dots[["date"]])
+    }
     # view image raster
     leaf_map <- .view_image_raster(
         cube = x,
@@ -203,6 +209,12 @@ sits_view.vector_cube <- function(x, ...,
     # pre-condition for bands
     .check_bw_rgb_bands(band, red, green, blue)
     .check_available_bands(x, band, red, green, blue)
+    # retrieve dots
+    dots <- list(...)
+    # deal with wrong parameter "date"
+    if ("date" %in% names(dots) && missing(dates)) {
+        dates <- as.Date(dots[["date"]])
+    }
     # view vector cube
     leaf_map <- .view_image_vector(
         cube = x,
@@ -241,58 +253,20 @@ sits_view.uncertainty_cube <- function(x, ...,
     if (nrow(cube) > 1) {
         .check_that(.cube_is_regular(cube))
     }
-    # find out if resampling is required (for big images)
-    output_size <- .view_resample_size(
-        cube = cube,
-        ndates = 1
-    )
-    # create a leaflet and add providers
-    leaf_map <- .view_add_basic_maps()
-    # get names of base maps
-    base_maps <- .view_get_base_maps(leaf_map)
-    # obtain the raster objects for the dates chosen
-    for (row in seq_len(nrow(cube))) {
-        # get tile
-        tile <- cube[row, ]
-        band_file <- .tile_path(tile, band)
-        leaf_map <- .view_add_stars_image(
-            leaf_map = leaf_map,
-            band_file = band_file,
-            tile = tile,
-            band = .cube_bands(cube),
-            date = NULL,
-            palette = palette,
-            output_size = output_size
-        )
-    }
-    # include class cube, if available
-    leaf_map <- .view_class_cube(
-        leaf_map = leaf_map,
+    # view image raster
+    leaf_map <- .view_image_raster(
+        cube = x,
         class_cube = class_cube,
         tiles = tiles,
+        dates = NULL,
+        band = band,
+        red = NULL,
+        green = NULL,
+        blue = NULL,
         legend = legend,
         palette = palette,
-        opacity = opacity,
-        output_size = output_size
+        opacity = opacity
     )
-    # add overlay groups
-    overlay_groups <- .view_add_overlay_grps(
-        cube = cube,
-        class_cube = class_cube
-    )
-    # add layers control to leafmap
-    leaf_map <- leaf_map |>
-        leaflet::addLayersControl(
-            baseGroups = base_maps,
-            overlayGroups = overlay_groups,
-            options = leaflet::layersControlOptions(collapsed = FALSE)
-        ) |>
-        # add legend to leaf_map
-        .view_add_legend(
-            cube = class_cube,
-            legend = legend,
-            palette = palette
-        )
     return(leaf_map)
 }
 #' @rdname sits_view
@@ -309,15 +283,8 @@ sits_view.class_cube <- function(x, ...,
     # deal with tiles
     # filter the tiles to be processed
     cube <- .view_filter_tiles(x, tiles)
-    # find out if resampling is required (for big images)
-    output_size <- .view_resample_size(
-        cube = cube,
-        ndates = 1
-    )
     # create a leaflet and add providers
-    leaf_map <- .view_add_basic_maps()
-    # get names of basic maps
-    base_maps <- .view_get_base_maps(leaf_map)
+    leaf_map <- .view_add_base_maps()
     # add a leafmap for class cube
     leaf_map <- leaf_map |>
         .view_class_cube(
@@ -325,8 +292,7 @@ sits_view.class_cube <- function(x, ...,
             tiles = tiles,
             legend = legend,
             palette = palette,
-            opacity = opacity,
-            output_size = output_size
+            opacity = opacity
         )
     # add overlay groups
     overlay_groups <- .view_add_overlay_grps(
@@ -335,7 +301,8 @@ sits_view.class_cube <- function(x, ...,
     # add layers control
     leaf_map <- leaf_map |>
         leaflet::addLayersControl(
-            baseGroups = base_maps,
+            baseGroups = c("ESRI", "GeoPortalFrance",
+                           "Sentinel-2-2020", "OSM"),
             overlayGroups = overlay_groups,
             options = leaflet::layersControlOptions(collapsed = FALSE)
         ) |>

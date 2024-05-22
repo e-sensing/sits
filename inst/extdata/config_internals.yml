@@ -171,6 +171,17 @@ derived_cube         :
                 offset_value : 0
                 scale_factor : 1
 
+    detections_cube    :
+        s3_class       : [ "detections_cube", "derived_cube", "raster_cube" ]
+        bands          :
+            detection  :
+                data_type    : "INT1U"
+                missing_value: 255
+                minimum_value: 0
+                maximum_value: 254
+                offset_value : 0
+                scale_factor : 1
+
 # Vector cube definitions
 vector_cube          :
     segs_cube        :
@@ -215,9 +226,6 @@ gdal_presets         :
     cog              :
         overviews    : [2, 4, 8, 16]
         method       : "NEAREST"
-    block            :
-        of           : "GTiff"
-        co           : ["COMPRESS=NONE", "BIGTIFF=NO"] # cannot be tiled!
     image            :
         of           : "GTiff"
         co           : ["COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES",
@@ -263,6 +271,7 @@ plot_max_Mbytes: 10
 # maximum size of COG overview for visualisation
 plot_max_size: 1200
 view_max_size: 2500
+view_resolution: 300
 
 # parameters to show B/W SAR bands for RTC cube
 sar_cube_grey_colors: 128
@@ -270,7 +279,7 @@ sar_cube_grey_colors: 128
 # tmap configurations
 tmap:
         max_cells: 1e+06
-        graticules_labels_size: 0.7
+        graticules_labels_size: 0.8
         legend_outside: False
         legend_outside_position: "right"
         legend_title_size: 1.0

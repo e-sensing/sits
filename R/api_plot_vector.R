@@ -136,9 +136,7 @@
 #' @noRd
 #' @param  tile          Tile to be plotted.
 #' @param  palette       A sequential RColorBrewer palette
-#' @param  style         Method to process the color scale
-#'                       ("cont", "order", "quantile", "fisher",
-#'                        "jenks", "log10")
+#' @param  main_title    Main title for the cube
 #' @param  rev           Revert the color of the palette?
 #' @param  scale         Global map scale
 #'
@@ -146,7 +144,7 @@
 #'
 .plot_uncertainty_vector <- function(tile,
                                      palette,
-                                     style,
+                                     main_title,
                                      rev,
                                      scale) {
     # verifies if stars package is installed
@@ -167,12 +165,15 @@
     p <- tmap::tm_shape(sf_seg) +
         tmap::tm_polygons(uncert_type,
                           palette = palette,
-                          style = style) +
+                          style = "cont") +
         tmap::tm_graticules(
             labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
         ) +
         tmap::tm_compass() +
         tmap::tm_layout(
+            main.title = main_title,
+            main.title.size = 1,
+            main.title.position = "center",
             scale = scale,
             legend.bg.color = .conf("tmap", "legend_bg_color"),
             legend.bg.alpha = as.numeric(.conf("tmap", "legend_bg_alpha"))

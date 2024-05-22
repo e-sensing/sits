@@ -161,8 +161,7 @@
         group = .data[["variable"]]
     )) +
         ggplot2::geom_line(ggplot2::aes(color = .data[["variable"]])) +
-        ggplot2::labs(title = plot_title) +
-        ggplot2::scale_fill_manual(palette = colors)
+        ggplot2::labs(title = plot_title)
     return(g)
 }
 #' @title Plot one time series with NAs using ggplot
