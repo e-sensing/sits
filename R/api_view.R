@@ -434,8 +434,7 @@
             sizes <- .tile_overview_size(tile = tile, max_size)
             band_file <- .gdal_warp_file(
                 raster_file = band_file,
-                sizes = sizes,
-                t_srs = "EPSG:3857")
+                sizes = sizes)
             # create a stars object
             st_obj <- stars::read_stars(
                 band_file,
@@ -479,13 +478,18 @@
             } else {
                 group <- paste(tile[["tile"]], band)
             }
+            # resample and warp the image
+            st_obj <- stars::st_warp(
+                src = st_obj,
+                crs = sf::st_crs("EPSG:3857")
+            )
             # add stars to leaflet
             leaf_map <- leafem::addStarsImage(
                 leaf_map,
                 x = st_obj,
                 band = 1,
                 colors = palette,
-                project = TRUE,
+                project = FALSE,
                 group = group,
                 maxBytes = max_bytes,
             )
@@ -555,6 +559,10 @@
                 proxy = FALSE
             )
             # resample and warp the image
+            st_obj <- stars::st_warp(
+                src = st_obj,
+                crs = sf::st_crs("EPSG:3857")
+            )
             # add raster RGB to leaflet
             group <- paste(tile[["tile"]], date)
             leaf_map <- leafem::addRasterRGB(
