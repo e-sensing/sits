@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 1.5.1
+Version: 1.5.0-1
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara.inpe@gmail.com'),
@@ -17,7 +17,7 @@ Description: An end-to-end toolkit for land use and land cover classification
     applied to satellite image data cubes, as described in Simoes et al (2021) <doi:10.3390/rs13132428>.
     Builds regular data cubes from collections in AWS, Microsoft Planetary Computer, 
     Brazil Data Cube, and Digital Earth Africa using the Spatio-temporal Asset Catalog (STAC) 
-    protocol (<https://stacspec.org/> and the 'gdalcubes' R package 
+    protocol (<https://stacspec.org/>) and the 'gdalcubes' R package 
     developed by Appel and Pebesma (2019) <doi:10.3390/data4030092>.
     Supports visualization methods for images and time series and 
     smoothing filters for dealing with noisy time series.
