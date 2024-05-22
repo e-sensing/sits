@@ -1,0 +1,30 @@
+sources:
+    PLANET                  :
+        s3_class            : ["planet_cube", "stac_cube", "eo_cube",
+                               "raster_cube"]
+        collections         :
+            MOSAIC          :
+                bands       :
+                    B01     : &planet_mosaic_4m
+                        missing_value : 0
+                        minimum_value : 1
+                        maximum_value : 65534
+                        scale_factor  : 0.01
+                        offset_value  : 0
+                        resolution    :  4.77
+                        band_name     : "blue"
+                        data_type     : "INT2U"
+                    B02     : 
+                        <<: *planet_mosaic_4m
+                        band_name    : "green"
+                    B03     :
+                        <<: *planet_mosaic_4m
+                        band_name    : "red"
+                    B04     :
+                        <<: *planet_mosaic_4m
+                        band_name    : "nir"
+                satellite   : "PLANETSCOPE"
+                sensor      : "MOSAIC"
+                collection_name: "planet-mosaic"
+                ext_tolerance: 0
+                grid_system : ""

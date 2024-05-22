@@ -143,7 +143,7 @@
         # Fill with zeros remaining NA pixels
         values <- C_fill_na(values, 0)
         # Used to check values (below)
-        n_input_pixels <- nrow(values)
+        input_pixels <- nrow(values)
         # Include names in cube predictors
         colnames(values) <- .pred_features_name(
             .ml_bands(cd_method), tile_timeline
@@ -163,7 +163,7 @@
         # Are the results consistent with the data input?
         .check_processed_values(
             values = values,
-            n_input_pixels = n_input_pixels
+            input_pixels = input_pixels
         )
         # Log here
         .debug_log(

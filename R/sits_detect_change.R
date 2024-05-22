@@ -38,7 +38,6 @@
 #'                           each point (tibble of class "sits")
 #'                           or a data cube indicating detections in each pixel
 #'                           (tibble of class "detections_cube").
-#' @export
 sits_detect_change <- function(data,
                                cd_method,
                                ...,
@@ -49,7 +48,6 @@ sits_detect_change <- function(data,
 }
 
 #' @rdname sits_detect_change
-#' @export
 sits_detect_change.sits <- function(data,
                                     cd_method,
                                     ...,
@@ -74,7 +72,6 @@ sits_detect_change.sits <- function(data,
 }
 
 #' @rdname sits_detect_change
-#' @export
 sits_detect_change.raster_cube <- function(data,
                                            cd_method, ...,
                                            roi = NULL,
@@ -180,7 +177,6 @@ sits_detect_change.raster_cube <- function(data,
 }
 
 #' @rdname sits_detect_change
-#' @export
 sits_detect_change.default <- function(data, cd_method, ...) {
     stop("Input should be a sits tibble or a data cube")
 }

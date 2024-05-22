@@ -42,7 +42,7 @@
             breaks = timeline,
             labels = FALSE
         )
-        fi_groups <- unname(tapply(fi, groups, list))
+        fi_groups <- unname(split(fi, groups))
         assets <- .common_size(
             .discard(tile, "file_info"),
             feature = timeline[unique(groups)],
