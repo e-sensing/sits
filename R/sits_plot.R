@@ -918,7 +918,8 @@ plot.uncertainty_cube <- function(x, ...,
         palette = palette,
         main_title = main_title,
         rev = rev,
-        scale = scale
+        scale = scale,
+        style = "order"
     )
 
     return(p)

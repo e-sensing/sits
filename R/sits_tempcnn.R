@@ -363,7 +363,7 @@ sits_tempcnn <- function(samples = NULL,
             if (torch::cuda_is_available()) {
                 values <- .as_dataset(values)
                 # We need to transform in a dataloader to use the batch size
-                values <- torch::dataloader(
+                 values <- torch::dataloader(
                     values, batch_size = 2^15
                 )
                 # Do GPU classification
