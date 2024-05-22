@@ -239,12 +239,12 @@
     # Define uncertainty function
     uncert_fn <- function(values) {
         # Used in check (below)
-        n_input_pixels <- nrow(values)
+        input_pixels <- nrow(values)
         # Process least confidence
         # return a matrix[rows(values),1]
         values <- C_least_probs(values)
         # Are the results consistent with the data input?
-        .check_processed_values(values, n_input_pixels)
+        .check_processed_values(values, input_pixels)
         # Return data
         values
     }
@@ -260,11 +260,11 @@
     # Define uncertainty function
     uncert_fn <- function(values) {
         # Used in check (below)
-        n_input_pixels <- nrow(values)
+        input_pixels <- nrow(values)
         # Process least confidence
         values <- C_entropy_probs(values) # return a matrix[rows(values),1]
         # Are the results consistent with the data input?
-        .check_processed_values(values, n_input_pixels)
+        .check_processed_values(values, input_pixels)
         # Return data
         values
     }
@@ -280,11 +280,11 @@
     # Define uncertainty function
     uncert_fn <- function(values) {
         # Used in check (below)
-        n_input_pixels <- nrow(values)
+        input_pixels <- nrow(values)
         # Process margin
         values <- C_margin_probs(values) # return a matrix[rows(data),1]
         # Are the results consistent with the data input?
-        .check_processed_values(values, n_input_pixels)
+        .check_processed_values(values, input_pixels)
         # Return data
         values
     }
