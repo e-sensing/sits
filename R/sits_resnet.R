@@ -319,6 +319,11 @@ sits_resnet <- function(samples = NULL,
                     self$softmax()
             }
         )
+        # torch 12.0 not working with Apple MPS
+        if (torch::backends_mps_is_available())
+            cpu_train <-  TRUE
+        else
+            cpu_train <-  FALSE
         # train the model using luz
         torch_model <-
             luz::setup(
@@ -354,6 +359,7 @@ sits_resnet <- function(samples = NULL,
                         gamma = lr_decay_rate
                     )
                 ),
+                accelerator = luz::accelerator(cpu = cpu_train),
                 dataloader_options = list(batch_size = batch_size),
                 verbose = verbose
             )

@@ -237,6 +237,11 @@ sits_mlp <- function(samples = NULL,
                 self$model(x)
             }
         )
+        # torch 12.0 not working with Apple MPS
+        if (torch::backends_mps_is_available())
+            cpu_train <-  TRUE
+        else
+            cpu_train <-  FALSE
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -262,6 +267,8 @@ sits_mlp <- function(samples = NULL,
                     patience = patience,
                     min_delta = min_delta
                 )),
+                dataloader_options = list(batch_size = batch_size),
+                accelerator = luz::accelerator(cpu = cpu_train),
                 verbose = verbose
             )
         # Serialize model

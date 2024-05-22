@@ -59,7 +59,8 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a TempCNN model
-#'     torch_model <- sits_train(samples_modis_ndvi, sits_tempcnn())
+#'     torch_model <- sits_train(samples_modis_ndvi,
+#'                sits_tempcnn(verbose = TRUE))
 #'     # plot the model
 #'     plot(torch_model)
 #'     # create a data cube from local files
@@ -285,6 +286,11 @@ sits_tempcnn <- function(samples = NULL,
                     self$softmax()
             }
         )
+        # torch 12.0 not working with Apple MPS
+        if (torch::backends_mps_is_available())
+            cpu_train <-  TRUE
+        else
+            cpu_train <-  FALSE
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -323,6 +329,7 @@ sits_tempcnn <- function(samples = NULL,
                         gamma = lr_decay_rate
                     )
                 ),
+                accelerator = luz::accelerator(cpu = cpu_train),
                 dataloader_options = list(batch_size = batch_size),
                 verbose = verbose
             )
