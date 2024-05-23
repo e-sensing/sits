@@ -24,6 +24,7 @@ torch::torch_manual_seed(1234)
 <!-- badges: start -->
 
 <!-- [![Build Status](https://drone.dpi.inpe.br/api/badges/e-sensing/sits/status.svg)](https://drone.dpi.inpe.br/e-sensing/sits) -->
+[![Status at rOpenSci Software Peer Review](https://badges.ropensci.org/596_status.svg)](https://github.com/ropensci/software-review/issues/596)
 [![CRAN status](https://www.r-pkg.org/badges/version/sits)](https://cran.r-project.org/package=sits)
 [![R-check-dev](https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml)
 [![Codecov](https://codecov.io/gh/e-sensing/sits/branch/dev/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
