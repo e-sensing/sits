@@ -9,6 +9,8 @@ Cubes
 <!-- badges: start -->
 <!-- [![Build Status](https://drone.dpi.inpe.br/api/badges/e-sensing/sits/status.svg)](https://drone.dpi.inpe.br/e-sensing/sits) -->
 
+[![Status at rOpenSci Software Peer
+Review](https://badges.ropensci.org/596_status.svg)](https://github.com/ropensci/software-review/issues/596)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/sits)](https://cran.r-project.org/package=sits)
 [![R-check-dev](https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml)
@@ -119,7 +121,7 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 # load the sits library
 library(sits)
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.4.2-1.
+#> Loaded sits v1.5.0.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         Documentation avaliable in https://e-sensing.github.io/sitsbook/.
 ```
@@ -137,8 +139,8 @@ more information on how to install the required drivers.
 ### Image Collections Accessible by `sits`
 
 Users create data cubes from analysis-ready data (ARD) image collections
-available in cloud services. The collections accessible in `sits`
-1.4.2.1 are:
+available in cloud services. The collections accessible in `sits` 1.5.0
+are:
 
 1.  Brazil Data Cube
     ([BDC](http://brazildatacube.org/en/home-page-2/#dataproducts)):
@@ -174,13 +176,13 @@ similar ways.
 
 ``` r
 s2_cube <- sits_cube(
-  source = "MPC",
-  collection = "SENTINEL-2-L2A",
-  tiles = c("20LKP", "20LLP"),
-  bands = c("B03", "B08", "B11", "SCL"),
-  start_date = as.Date("2018-07-01"),
-  end_date = as.Date("2019-06-30"),
-  progress = FALSE
+    source = "MPC",
+    collection = "SENTINEL-2-L2A",
+    tiles = c("20LKP", "20LLP"),
+    bands = c("B03", "B08", "B11", "SCL"),
+    start_date = as.Date("2018-07-01"),
+    end_date = as.Date("2019-06-30"),
+    progress = FALSE
 )
 ```
 
@@ -208,11 +210,11 @@ Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92).
 
 ``` r
 gc_cube <- sits_regularize(
-  cube          = s2_cube,
-  output_dir    = tempdir(),
-  period        = "P15D",
-  res           = 60,
-  multicores    = 4
+    cube          = s2_cube,
+    output_dir    = tempdir(),
+    period        = "P15D",
+    res           = 60,
+    multicores    = 4
 )
 ```
 
@@ -247,16 +249,16 @@ library(sits)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 # create a cube from downloaded files
 raster_cube <- sits_cube(
-  source = "BDC",
-  collection = "MOD13Q1-6",
-  data_dir = data_dir,
-  delim = "_",
-  parse_info = c("X1", "X2", "tile", "band", "date"),
-  progress = FALSE
+    source = "BDC",
+    collection = "MOD13Q1-6",
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "X2", "tile", "band", "date"),
+    progress = FALSE
 )
 # obtain a set of samples defined by a CSV file
 csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-  package = "sits"
+    package = "sits"
 )
 # retrieve the time series associated with the samples from the data cube
 points <- sits_get_data(raster_cube, samples = csv_file)
@@ -311,16 +313,16 @@ data("samples_modis_ndvi")
 data("point_mt_6bands")
 # Train a deep learning model
 tempcnn_model <- sits_train(
-  samples = samples_modis_ndvi,
-  ml_method = sits_tempcnn()
+    samples = samples_modis_ndvi,
+    ml_method = sits_tempcnn()
 )
 # Select NDVI band of the  point to be classified
 # Classify using TempCNN model
 # Plot the result
-point_mt_6bands |>
-  sits_select(bands = "NDVI") |>
-  sits_classify(tempcnn_model) |>
-  plot()
+point_mt_6bands |> 
+    sits_select(bands = "NDVI") |> 
+    sits_classify(tempcnn_model) |> 
+    plot()
 #>   |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
 ```
 
@@ -342,44 +344,36 @@ using `sits_view()`.
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 sinop <- sits_cube(
-  source = "BDC",
-  collection = "MOD13Q1-6",
-  data_dir = data_dir,
-  delim = "_",
-  parse_info = c("X1", "X2", "tile", "band", "date"),
-  progress = FALSE
+    source = "BDC",
+    collection = "MOD13Q1-6",
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "X2", "tile", "band", "date"),
+    progress = FALSE
 )
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(
-  data = sinop,
-  ml_model = tempcnn_model,
-  output_dir = tempdir()
+    data = sinop,
+    ml_model = tempcnn_model,
+    output_dir = tempdir()
 )
 #>   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(
-  cube = probs_cube,
-  output_dir = tempdir()
+    cube = probs_cube,
+    output_dir = tempdir()
 )
 # generate a thematic map
 label_cube <- sits_label_classification(
-  cube = bayes_cube,
-  output_dir = tempdir()
+    cube = bayes_cube,
+    output_dir = tempdir()
 )
 #>   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
 # plot the the labelled cube
 plot(label_cube,
-  title = "Land use and Land cover in Sinop, MT, Brazil in 2018"
+    title = "Land use and Land cover in Sinop, MT, Brazil in 2018"
 )
-#> The legacy packages maptools, rgdal, and rgeos, underpinning the sp package,
-#> which was just loaded, will retire in October 2023.
-#> Please refer to R-spatial evolution reports for details, especially
-#> https://r-spatial.org/r/2023/05/15/evolution4.html.
-#> It may be desirable to make the sf package available;
-#> package maintainers should consider adding sf to Suggests:.
-#> The sp package is now running under evolution status 2
-#>      (status 2 uses the sf package in place of rgdal)
 ```
 
 <div class="figure" style="text-align: center">
