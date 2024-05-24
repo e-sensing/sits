@@ -18,3 +18,14 @@
             ts_median
         })
 }
+
+#' @title Extract labels available in patterns.
+#' @name .pattern_labels
+#' @keywords internal
+#' @noRd
+#' @param  patterns Samples patterns.
+.pattern_labels <- function(patterns) {
+    purrr::map_vec(patterns, function(pattern) {
+        unique(pattern[["label"]])
+    })
+}
