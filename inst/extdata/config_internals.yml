@@ -207,18 +207,18 @@ vector_cube          :
             margin   :
 
 # configuration for classified cubes
-class_cube_data_type    : "INT1U"
+class_cube_data_type: "INT1U"
 class_cube_missing_value: 255
 
 # minimum number of files for sits local cube to be run on parallel
-local_min_files_for_parallel : 20
+local_min_files_for_parallel: 20
 
 # valid raster data types
-valid_raster_data_types : ["INT1U", "INT2U", "INT2S", "INT4U",
+valid_raster_data_types: ["INT1U", "INT2U", "INT2S", "INT4U",
                           "INT4S", "FLT4S", "FLT8S"]
 
 # valid raster resampling methods
-valid_raster_resampling : ["near", "bilinear", "cubic",
+valid_raster_resampling: ["near", "bilinear", "cubic",
                           "cubicspline", "lanczos"]
 
 # GDAL GTiff presets
@@ -232,13 +232,13 @@ gdal_presets         :
                         "TILED=YES", "BLOCKXSIZE=512", "BLOCKYSIZE=512"]
 
 # GDAL GTiff default creation options
-gdal_creation_options   : [ "COMPRESS=LZW", "PREDICTOR=2",
-                            "BIGTIFF=YES", "TILED=YES",
-                            "BLOCKXSIZE=512", "BLOCKYSIZE=512" ]
+gdal_creation_options: [ "COMPRESS=LZW", "PREDICTOR=2",
+                         "BIGTIFF=YES", "TILED=YES",
+                         "BLOCKXSIZE=512", "BLOCKYSIZE=512" ]
 
-gdalcubes_options       : ["COMPRESS=LZW", "PREDICTOR=2",
-                           "BIGTIFF=YES", "BLOCKXSIZE=512",
-                           "BLOCKYSIZE=512"]
+gdalcubes_options: ["COMPRESS=LZW", "PREDICTOR=2",
+                     "BIGTIFF=YES", "BLOCKXSIZE=512",
+                     "BLOCKYSIZE=512"]
 # gdalcubes parameters
 gdalcubes_chunk_size: [1, 2048, 2048]
 gdalcubes_type_format: "int16"
@@ -251,13 +251,13 @@ dendro_linkage: ["ward.D", "ward.D2", "single", "complete",
                  "average", "mcquitty", "median", "centroid"]
 
 # possible som evaluations
-som_outcomes    : ["clean", "analyze", "remove"]
+som_outcomes: ["clean", "analyze", "remove"]
 
 # deep learning activation methods
-dl_activation_methods : ["relu", "elu", "selu", "sigmoid"]
+dl_activation_methods: ["relu", "elu", "selu", "sigmoid"]
 
 # metadata search strategy
-metadata_search_strategies : ["tile", "feature"]
+metadata_search_strategies: ["tile", "feature"]
 
 
 # Colours and plots

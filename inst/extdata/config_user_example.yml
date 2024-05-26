@@ -1,8 +1,3 @@
-processing_bloat        : 8
-rstac_pagination_limit  : 100
-gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
-
-
 legends:
     US_NLCD :       ["Urban_Built_Up", "Agricultural_Land",
                      "Rangeland", "Forest_Land", "Water", "Wetland",
