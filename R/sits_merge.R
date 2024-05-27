@@ -156,10 +156,10 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
     d2_tl <- unique(as.Date(.cube_timeline(data2)[[1]]))
 
     # get intervals
-    d1_period <- as.numeric(
+    d1_period <- as.integer(
         lubridate::as.period(lubridate::int_diff(d1_tl)), "days"
     )
-    d2_period <- as.numeric(
+    d2_period <- as.integer(
         lubridate::as.period(lubridate::int_diff(d2_tl)), "days"
     )
     # pre-condition - are periods regular?
