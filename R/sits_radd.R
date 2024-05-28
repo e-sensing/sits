@@ -62,11 +62,14 @@ sits_radd.raster_cube <- function(data,
                                   pdf = "gaussian",
                                   ...,
                                   stats_layer = NULL,
+                                  deseasonlize = 0.95,
                                   chi = 0.9,
                                   impute_fn = impute_linear(),
                                   memsize = 8L,
                                   multicores = 2L,
                                   version = "v1",
+                                  start_date = NULL,
+                                  end_date = NULL,
                                   output_dir) {
     # Training function
     train_fun <- function(data) {
@@ -74,10 +77,6 @@ sits_radd.raster_cube <- function(data,
         .check_chr_parameter(pdf)
         # Check 'chi' parameter
         .check_num_min_max(chi, min = 0.1, max = 1)
-        # Check 'start_date' parameter
-        .check_date_parameter(start_date)
-        # Check 'end_date' parameter
-        .check_date_parameter(end_date)
         .check_memsize(memsize, min = 1, max = 16384)
         .check_multicores(multicores, min = 1, max = 2048)
         .check_output_dir(output_dir)
@@ -85,7 +84,6 @@ sits_radd.raster_cube <- function(data,
 
         # Get default proc bloat
         proc_bloat <- .conf("processing_bloat_cpu")
-
 
         # Get pdf function
         pdf_fn <- .pdf_fun(pdf)
@@ -134,11 +132,14 @@ sits_radd.raster_cube <- function(data,
                 # Classify the data
                 probs_tile <- .radd_calc_tile(
                     tile = tile,
-                    band = "class",
+                    band = "radd",
                     pdf_fn = pdf_fn,
                     stats_layer = stats_layer,
+                    deseasonlize = deseasonlize,
                     block = block,
                     impute_fn = impute_fn,
+                    start_date = start_date,
+                    end_date = end_date,
                     output_dir = output_dir,
                     version = version,
                     progress = TRUE

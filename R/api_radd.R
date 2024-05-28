@@ -2,8 +2,11 @@
                             band,
                             pdf_fn,
                             stats_layer,
+                            deseasonlize,
                             block,
                             impute_fn,
+                            start_date,
+                            end_date,
                             output_dir,
                             version,
                             progress = TRUE) {
@@ -24,8 +27,8 @@
             file = out_file,
             band = band,
             base_tile = tile,
-            derived_class = "class_cube",
-            labels = stats_layer[["label"]],
+            derived_class = "radd_cube",
+            labels = NULL,
             update_bbox = FALSE
         )
         return(class_tile)
@@ -35,6 +38,23 @@
     # Separate mean and std columns
     mean_stats <- dplyr::select(stats_layer, dplyr::ends_with("mean"))
     sd_stats <- dplyr::select(stats_layer, dplyr::ends_with("sd"))
+    # ...
+    ds_values <- matrix(NA)
+    if (.has(deseasonlize)) {
+        ds_values <- .radd_calc_quantile(tile, deseasonlize, impute_fn)
+    }
+    # Get the number of dates in timeline
+    n_times <- length(.tile_timeline(tile))
+    # ...
+    start <- 1
+    end <- n_times + 1
+    if (.has(start_date) && .has(end_date)) {
+        tile_tl <- .tile_timeline(tile)
+        filt_idxs <- which(tile_tl >= start_date & tile_tl <= end_date)
+        start <- min(filt_idxs)
+        end <- max(filt_idxs)
+    }
+    tile_yday <- .radd_get_tile_yday(tile)
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -64,26 +84,29 @@
         values <- C_fill_na(values, 0)
         # Used to check values (below)
         input_pixels <- nrow(values)
-        # Get the number of dates in timeline
-        n_times <- length(.tile_timeline(tile))
         # Calculate the probability of a Non-Forest pixel
         values <- C_radd_calc_nf(
             ts = values,
-            mean = mean_stats,
-            sd = sd_stats,
-            n_times = n_times
+            mean = unname(as.matrix(mean_stats)),
+            sd = unname(as.matrix(sd_stats)),
+            n_times = n_times,
+            deseasonlize_values = ds_values
         )
         # Apply detect changes in time series
-        values <- C_radd_detect_changes(values)
+        values <- C_radd_detect_changes(
+            p_res = values, start = start, end = end
+        )
+        # Get date that corresponds to the index value
+        values <- tile_yday[as.character(values)]
         # Prepare values to be saved
         band_conf <- .conf_derived_band(
-            derived_class = "class_cube", band = band
+            derived_class = "radd_cube", band = band
         )
         # Prepare and save results as raster
         .raster_write_block(
             files = block_file, block = block, bbox = .bbox(chunk),
             values = values, data_type = .data_type(band_conf),
-            missing_value = .miss_value(band_conf),
+            missing_value = 0,
             crop_block = NULL
         )
         # Free memory
@@ -95,10 +118,10 @@
     class_tile <- .tile_derived_merge_blocks(
         file = out_file,
         band = band,
-        labels = stats_layer[["label"]],
+        labels = NULL,
         base_tile = tile,
         block_files = block_files,
-        derived_class = "class_cube",
+        derived_class = "radd_cube",
         multicores = .jobs_multicores(),
         update_bbox = FALSE
     )
@@ -336,6 +359,31 @@
     )
 }
 
+.radd_calc_quantile <- function(tile, deseasonlize, impute_fn) {
+    tile_bands <- .tile_bands(tile, FALSE)
+    quantile_values <- purrr::map(tile_bands, function(tile_band) {
+        tile_paths <- .tile_paths(tile, bands = tile_band)
+        r_obj <- .raster_open_rast(tile_paths)
+        quantile_values <- .raster_quantile(
+            r_obj, quantile = deseasonlize, na.rm = TRUE
+        )
+        quantile_values <- impute_fn(t(quantile_values))
+        # Apply scale
+        band_conf <- .tile_band_conf(tile = tile, band = tile_band)
+        scale <- .scale(band_conf)
+        if (.has(scale) && scale != 1) {
+            quantile_values <- quantile_values * scale
+        }
+        offset <- .offset(band_conf)
+        if (.has(offset) && offset != 0) {
+            quantile_values <- quantile_values + offset
+        }
+        unname(quantile_values)
+    })
+    do.call(cbind, quantile_values)
+}
+
+
 # .radd_calc_pnf <- function(data, pdf_fn, stats_layer) {
 #     samples_labels <- stats_layer[["label"]]
 #     bands <- .samples_bands(data)
@@ -368,3 +416,13 @@
 #     # Return the probability of NF updated
 #     return(data)
 # }
+
+.radd_get_tile_yday <- function(tile) {
+    tile_tl <- .tile_timeline(tile)
+    tile_yday <-  lubridate::yday(lubridate::date(tile_tl))
+    tile_yday <- c(0, tile_yday)
+    names(tile_yday) <- seq.int(
+        from = 0, to = length(tile_yday) - 1, by = 1
+    )
+    tile_yday
+}

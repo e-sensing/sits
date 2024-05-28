@@ -18,15 +18,21 @@ arma::vec C_radd_calc_pbayes(const arma::vec& prior, const arma::vec& post) {
     return (prior % post) / ((prior % post) + ((1 - prior) % (1 - post)));
 }
 
+// [[Rcpp::export]]
+arma::rowvec C_radd_calc_sub(const arma::mat& x, const arma::mat& y) {
+    return x - y;
+}
+
 double C_radd_calc_pbayes(const double& prior, const double& post) {
     return (prior * post) / ((prior * post) + ((1 - prior) * (1 - post)));
 }
 
 // [[Rcpp::export]]
-arma::mat C_radd_calc_nf(const arma::mat& ts,
+arma::mat C_radd_calc_nf(arma::mat& ts,
                          const arma::mat& mean,
                          const arma::mat& sd,
-                         const arma::uword& n_times) {
+                         const arma::uword& n_times,
+                         const arma::mat& deseasonlize_values) {
 
     // Using the first element as dummy value
     arma::mat p_res(ts.n_rows, n_times + 1, arma::fill::value(0.5));
@@ -45,6 +51,13 @@ arma::mat C_radd_calc_nf(const arma::mat& ts,
 
         // For each band
         for (arma::uword c = 0; c < ts.n_cols; c = c + n_times) {
+            // Deseasonlize time series
+            if (deseasonlize_values.size() > 1) {
+                ts.submat(i, c, i, c + n_times - 1) = C_radd_calc_sub(
+                    ts.submat(i, c, i, c + n_times - 1),
+                    deseasonlize_values.submat(0, c, 0, c + n_times - 1)
+                );
+            }
             // Estimate a normal distribution based on Forest stats
             p_for = C_dnorm(
                 ts.submat(i, c, i, c + n_times - 1).t(),
@@ -99,6 +112,8 @@ arma::vec seq_int(const arma::uword& from,
 
 // [[Rcpp::export]]
 arma::mat C_radd_detect_changes(const arma::mat& p_res,
+                                const arma::uword& start,
+                                const arma::uword& end,
                                 const double& threshold = 0.5,
                                 const double& chi = 0.9) {
 
@@ -118,16 +133,22 @@ arma::mat C_radd_detect_changes(const arma::mat& p_res,
     arma::uword v;
     bool next_pixel;
     for (arma::uword i = 0; i < p_res.n_rows; i++) {
+        // create an auxiliary matrix
         p_flag_aux.fill(arma::datum::nan);
-        p_flag_aux.row(0).col(0) = 0;
-        // remove the first column its a dummy value
-        arma::uvec valid_idx = arma::find(
-            p_res.submat(i, 1, i, p_res.n_cols - 1) >= threshold
-        ) + 1;
+        // set to zero in the past time
+        p_flag_aux.row(0).col(start - 1) = 0;
         p_flag_aux.elem(
             arma::find(p_res.submat(i, 0, i, p_res.n_cols - 1) < threshold)
         ).zeros();
         p_flag.row(i) = p_flag_aux;
+
+        // remove the first column its a dummy value
+        arma::uvec valid_idx = arma::find(
+            p_res.submat(i, 1, i, p_res.n_cols - 1) >= threshold
+        ) + 1;
+
+        arma::uvec valid_filt = arma::find(valid_idx >= start && valid_idx <= end);
+        valid_idx = valid_idx(valid_filt);
         next_pixel = false;
         for (arma::uword idx = 0; idx < valid_idx.size(); idx++) {
             arma::vec seq_idx = seq_int(valid_idx.at(idx), p_res.n_cols);
@@ -185,7 +206,7 @@ arma::mat C_radd_detect_changes(const arma::mat& p_res,
         idx_value_res = arma::find(p_flag.row(i) == 1);
         v = 0;
         if (idx_value_res.size() > 0) {
-            v = arma::find(p_flag.row(i) == 1).min();
+            v = arma::find(p_flag.row(i) == 1).max();
         }
         res.row(i) = v;
     }
