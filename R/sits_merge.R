@@ -105,6 +105,9 @@ sits_merge.sar_cube <- function(data1, data2, ...) {
         dplyr::filter(data2, .data[["tile"]] %in% common_tiles),
         .data[["tile"]]
     )
+    if (length(.cube_timeline(data2)[[1]]) == 1){
+        return(.merge_single_timeline(data1, data2))
+    }
     if (inherits(data2, "sar_cube")) {
         return(.merge_equal_cube(data1, data2))
     } else {
@@ -131,10 +134,9 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
         dplyr::filter(data2, .data[["tile"]] %in% common_tiles),
         .data[["tile"]]
     )
-    if (length(.cube_timeline(data2)) == 1){
+    if (length(.cube_timeline(data2)[[1]]) == 1){
         return(.merge_single_timeline(data1, data2))
     }
-
     if (inherits(data2, "sar_cube")) {
         return(.merge_distinct_cube(data1, data2))
     } else {
@@ -200,17 +202,23 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
     # Return cubes merged
     return(data1)
 }
+
 .merge_single_timeline <- function(data1, data2){
-    # Get data1 timeline
+    # Get data1 timeline.
     d1_tl <- unique(as.Date(.cube_timeline(data1)[[1]]))
-    fi_new <- purrr::map_chr(sits_timeline(data1), function(d){
-        fi <- .fi(data2)
-        fi[["date"]] <- as.Date(d)
+    # Create new `file_info` using dates from `data1` timeline.
+    fi_new <- purrr::map(seq_len(nrow(data2)), function(row) {
+        data_row <- data2[row,]
+
+        fi <- .fi(data_row)
+        fi[["date"]] <- as.Date(d1_tl[1:nrow(data_row)])
+
         return(fi)
     })
+    # Assign the new `file_into` into `data2`
     data2[["file_info"]] <- fi_new
-    data1 <- .cube_merge(data1, data2)
-    return(data1)
+    # Merge cubes and return
+    .cube_merge(data1, data2)
 }
 
 #' @rdname sits_merge
