@@ -30,7 +30,7 @@
     # select the file to be plotted
     bw_file <- .tile_path(tile, band, date)
     # size of data to be read
-    max_size <- .conf("view_max_size")
+    max_size <- .conf("view", "max_size")
     sizes <- .tile_overview_size(tile = tile, max_size)
     # scale and offset
     band_conf <- .tile_band_conf(tile, band)
@@ -46,9 +46,11 @@
     # extract the values
     vals <- terra::values(rast)
     # obtain the quantiles
+    fst_quant <- .as.numeric(.conf("plot", "first_quantile"))
+    lst_quant <- .as.numeric(.conf("plot", "last_quantile"))
     quantiles <- stats::quantile(
         vals,
-        probs = c(0, 0.02, 0.98, 1),
+        probs = c(0, fst_quant, lst_quant, 1),
         na.rm = TRUE
     )
     minv <- quantiles[[1]]
@@ -70,11 +72,11 @@
     }
 
     # tmap params
-    labels_size <- as.numeric(.conf("tmap", "graticules_labels_size"))
-    legend_bg_color <- .conf("tmap", "legend_bg_color")
-    legend_bg_alpha <- as.numeric(.conf("tmap", "legend_bg_alpha"))
-    legend_title_size <- as.numeric(.conf("tmap", "legend_title_size"))
-    legend_text_size <- as.numeric(.conf("tmap", "legend_text_size"))
+    labels_size <- as.numeric(.conf("plot", "graticules_labels_size"))
+    legend_bg_color <- .conf("plot", "legend_bg_color")
+    legend_bg_alpha <- as.numeric(.conf("plot", "legend_bg_alpha"))
+    legend_title_size <- as.numeric(.conf("plot", "legend_title_size"))
+    legend_text_size <- as.numeric(.conf("plot", "legend_text_size"))
 
     # generate plot
     p <- tmap::tm_shape(rast, raster.downsample = FALSE) +
@@ -135,7 +137,7 @@
     green_file <- .tile_path(tile, band, dates[[2]])
     blue_file  <- .tile_path(tile, band, dates[[3]])
     # size of data to be read
-    max_size <- .conf("plot_max_size")
+    max_size <- .conf("plot", "max_size")
     sizes <- .tile_overview_size(tile = tile, max_size)
     # get the max values
     band_params <- .tile_band_conf(tile, band)
@@ -197,7 +199,7 @@
     band_params <- .tile_band_conf(tile, red)
     max_value <- .max_value(band_params)
     # size of data to be read
-    max_size <- .conf("plot_max_size")
+    max_size <- .conf("plot", "max_size")
     sizes <- .tile_overview_size(tile = tile, max_size)
     # used for SAR images
     if (tile[["tile"]] == "NoTilingSystem") {
@@ -257,16 +259,18 @@
         ),
         proxy = FALSE
     )
+    fst_quant <- .as.numeric(.conf("plot", "first_quantile"))
+    lst_quant <- .as.numeric(.conf("plot", "last_quantile"))
     # open RGB stars
     rgb_st <- stars::st_rgb(rgb_st[, , , 1:3],
                             dimension = "band",
                             maxColorValue = max_value,
                             use_alpha = FALSE,
-                            probs = c(0.05, 0.95),
+                            probs = c(fst_quant, las_quant),
                             stretch = TRUE
     )
     # tmap params
-    labels_size <- as.numeric(.conf("tmap", "graticules_labels_size"))
+    labels_size <- as.numeric(.conf("plot", "graticules_labels_size"))
 
     p <- tmap::tm_shape(rgb_st, raster.downsample = FALSE) +
         tmap::tm_raster() +
@@ -306,7 +310,7 @@
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
-    .check_require_packages("tmap")
+    .check_require_packages("plot")
 
     # deal with color palette
     .check_palette(palette)
@@ -321,7 +325,7 @@
     )
     names(colors) <- names(labels)
     # size of data to be read
-    max_size <- .conf("plot_max_size")
+    max_size <- .conf("plot", "max_size")
     sizes <- .tile_overview_size(tile = tile, max_size)
     # select the image to be plotted
     class_file <- .tile_path(tile)
@@ -340,11 +344,11 @@
     stars_obj <- stats::setNames(stars_obj, "labels")
 
     # tmap params
-    labels_size <- as.numeric(.conf("tmap", "graticules_labels_size"))
-    legend_bg_color <- .conf("tmap", "legend_bg_color")
-    legend_bg_alpha <- as.numeric(.conf("tmap", "legend_bg_alpha"))
-    legend_title_size <- as.numeric(.conf("tmap", "legend_title_size"))
-    legend_text_size <- as.numeric(.conf("tmap", "legend_text_size"))
+    labels_size <- as.numeric(.conf("plot", "graticules_labels_size"))
+    legend_bg_color <- .conf("plot", "legend_bg_color")
+    legend_bg_alpha <- as.numeric(.conf("plot", "legend_bg_alpha"))
+    legend_title_size <- as.numeric(.conf("plot", "legend_title_size"))
+    legend_text_size <- as.numeric(.conf("plot", "legend_text_size"))
 
     # plot using tmap
     p <- suppressMessages(
@@ -390,7 +394,7 @@
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
-    .check_require_packages("tmap")
+    .check_require_packages("plot")
     # precondition - check color palette
     .check_palette(palette)
     # revert the palette
@@ -408,7 +412,7 @@
         .check_that(all(labels_plot %in% labels))
     }
     # size of data to be read
-    max_size <- .conf("plot_max_size")
+    max_size <- .conf("plot", "max_size")
     sizes <- .tile_overview_size(tile = tile, max_size)
     # get the path
     probs_path <- .tile_path(tile)
@@ -432,11 +436,11 @@
     # select stars bands to be plotted
     bds <- as.numeric(names(labels[labels %in% labels_plot]))
 
-    labels_size <- as.numeric(.conf("tmap", "graticules_labels_size"))
-    legend_bg_color <- .conf("tmap", "legend_bg_color")
-    legend_bg_alpha <- as.numeric(.conf("tmap", "legend_bg_alpha"))
-    legend_title_size <- as.numeric(.conf("tmap", "legend_title_size"))
-    legend_text_size <- as.numeric(.conf("tmap", "legend_text_size"))
+    labels_size <- as.numeric(.conf("plot", "graticules_labels_size"))
+    legend_bg_color <- .conf("plot", "legend_bg_color")
+    legend_bg_alpha <- as.numeric(.conf("plot", "legend_bg_alpha"))
+    legend_title_size <- as.numeric(.conf("plot", "legend_title_size"))
+    legend_text_size <- as.numeric(.conf("plot", "legend_text_size"))
 
     p <- tmap::tm_shape(probs_st[, , , bds]) +
         tmap::tm_raster(

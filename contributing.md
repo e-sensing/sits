@@ -51,7 +51,8 @@ The sits `code` relies on the packages of the `tidyverse` to work with tables an
 
 ### Literal values, error messages and colors
 
-- The internal `sits` code has no literal values, which are all stored in the YAML configuration file `./inst/extdata/config_internals.yml`. These values are accessible using the `.conf` function. For example, the value of the default size for leaflet objects (64 MB) is accessed using the command `.conf["leaflet_megabytes"]`. See the internal configuration file for a complete list.
+- The internal `sits` code has no literal values, which are all stored in the YAML configuration files `./inst/extdata/config.yml` and `./inst/extdata/config_internals.yml`. The first file contains configuration parameters that are relevant to users, related to visualisation and plotting; the second contains parameters that are relevant only for developers. These values are accessible using the `.conf` function. For example, the value of the default size for leaflet objects (64 MB) is accessed using the command `.conf["view", "leaflet_megabytes"]`. 
+
 
 - Error messages are also stored outside of the code in the YAML configuration file `./inst/extdata/config_messages.yml`. These values are accessible using the `.conf` function. For example, the error associated to an invalid NA value for an input parameter is accessible using th function `.conf("messages", ".check_na_parameter")`. 
 

@@ -274,9 +274,9 @@
                           opacity) {
 
     # calculate maximum size in MB
-    max_bytes <- as.numeric(.conf("leaflet_megabytes")) * 1024^2
+    max_bytes <- as.numeric(.conf("view", "leaflet_megabytes")) * 1024^2
     # determine size of data to be read
-    max_size <- .conf("view_max_size")
+    max_size <- .conf("view", "max_size")
     # obtain the raster objects for the dates chosen
     # check if date is inside the timeline
     tile_dates <- sits_timeline(tile)
@@ -314,9 +314,11 @@
     # get the values
     vals <- as.vector(st_obj[[1]])
     # obtain the quantiles
+    first_quant <- as.numeric(.conf("view", "first_quantile"))
+    last_quant  <- as.numeric(.conf("view", "last_quantile"))
     quantiles <- stats::quantile(
         vals,
-        probs = c(0, 0.02, 0.98, 1),
+        probs = c(0, first_quant, last_quant, 1),
         na.rm = TRUE
     )
     # determine minmax
@@ -375,9 +377,9 @@
                             date,
                             opacity) {
     # determine size of data to be read
-    max_size <- .conf("view_max_size")
+    max_size <- .conf("view", "max_size")
     # calculate maximum size in MB
-    max_bytes <- as.numeric(.conf("leaflet_megabytes")) * 1024^2
+    max_bytes <- as.numeric(.conf("view", "leaflet_megabytes")) * 1024^2
     # obtain the raster objects for the dates chosen
     # check if date is inside the timeline
     tile_dates <- sits_timeline(tile)
@@ -414,13 +416,16 @@
         src = st_obj,
         crs = sf::st_crs("EPSG:3857")
     )
+    # obtain the quantiles
+    first_quant <- as.numeric(.conf("view", "first_quantile"))
+    last_quant  <- as.numeric(.conf("view", "last_quantile"))
     leaf_map <- leafem::addRasterRGB(
         leaf_map,
         x = st_obj,
         r = 1,
         g = 2,
         b = 3,
-        quantiles = c(0.1, 0.9),
+        quantiles = c(first_quant, last_quant),
         project = FALSE,
         group = group,
         opacity = opacity,
@@ -467,7 +472,7 @@
             rev = TRUE
         )
         # determine size of data to be read
-        max_size <- .conf("view_max_size")
+        max_size <- .conf("view", "max_size")
         # find if file supports COG overviews
         sizes <- .tile_overview_size(tile = class_cube, max_size)
         # create the stars objects that correspond to the tiles
@@ -499,7 +504,7 @@
             crs = sf::st_crs("EPSG:3857")
         )
         # calculate maximum size in MB
-        max_bytes <- as.numeric(.conf("leaflet_megabytes")) * 1024^2
+        max_bytes <- as.numeric(.conf("view", "leaflet_megabytes")) * 1024^2
         # add the classified image object
         leaf_map <- leaf_map |>
             leafem::addStarsImage(

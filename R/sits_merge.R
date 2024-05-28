@@ -131,6 +131,9 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
         dplyr::filter(data2, .data[["tile"]] %in% common_tiles),
         .data[["tile"]]
     )
+    if (length(.cube_timeline(data2)) == 1){
+        return(.merge_single_timeline(data1, data2))
+    }
 
     if (inherits(data2, "sar_cube")) {
         return(.merge_distinct_cube(data1, data2))
@@ -195,6 +198,18 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
     # Merge the cubes
     data1 <- .cube_merge(data1, data2)
     # Return cubes merged
+    return(data1)
+}
+.merge_single_timeline <- function(data1, data2){
+    # Get data1 timeline
+    d1_tl <- unique(as.Date(.cube_timeline(data1)[[1]]))
+    fi_new <- purrr::map_chr(sits_timeline(data1), function(d){
+        fi <- .fi(data2)
+        fi[["date"]] <- as.Date(d)
+        return(fi)
+    })
+    data2[["file_info"]] <- fi_new
+    data1 <- .cube_merge(data1, data2)
     return(data1)
 }
 

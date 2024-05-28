@@ -12,3 +12,27 @@ colors:
     Wetland             :  "#D4E6F1"
     Tundra              :  "#EBDEF0"
     Snow_and_Ice        :  "#F7F9F9"
+
+# Configuration parameters that can be set by users
+#
+view:
+    max_size: 2500         # Maximum size of COG overview for visualisation
+    first_quantile: 0.05   # First quantile for stretching images
+    last_quantile: 0.95    # Last quantile for stretching images
+    leaflet_megabytes: 64  # maxbytes for leaflet (in MB)
+
+plot:
+    max_size: 1200
+    first_quantile: 0.05   # First quantile for stretching images
+    last_quantile: 0.95    # Last quantile for stretching images
+    graticules_labels_size: 0.8
+    legend_title_size: 1.0
+    legend_text_size: 1.0
+    legend_bg_color: "white"
+    legend_bg_alpha: 0.5
+    legend_width: 1.0
+    legend_position: ["left", "bottom"]
+    legend_height: 1.0
+    scale: 1.0
+    font_family: "sans"
+    n_breaks: 20

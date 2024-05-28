@@ -4,7 +4,7 @@
 \alias{sits_config_show}
 \title{Show current sits configuration}
 \usage{
-sits_config_show(source = NULL, collection = NULL)
+sits_config_show()
 }
 \arguments{
 \item{source}{Data source (character vector).}
@@ -21,6 +21,5 @@ a source, a collection, or a palette, users can inform the corresponding
 keys to \code{source} and \code{collection}.
 }
 \examples{
-sits_config_show(source = "BDC")
-sits_config_show(source = "BDC", collection = "CBERS-WFI-16D")
+sits_config_show()
 }
