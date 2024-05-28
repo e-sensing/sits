@@ -233,6 +233,24 @@
         collection = collection
     )
 }
+#' @title Get bbox from file info for COP-DEM-GLO-30
+#' @keywords internal
+#' @noRd
+#' @param source     Data source
+#' @param file_info  File info
+#' @param ...        Additional parameters.
+#' @param collection Image collection
+#' @return vector (xmin, ymin, xmax, ymax).
+#' @export
+`.source_tile_get_bbox.mpc_cube_cop-dem-glo-30` <- function(source,
+                                                            file_info, ...,
+                                                            collection = NULL) {
+    `.source_tile_get_bbox.mpc_cube_sentinel-1-grd`(
+        source = source,
+        file_info = file_info, ...,
+        collection = collection
+    )
+}
 #' @keywords internal
 #' @noRd
 #' @export
@@ -429,6 +447,53 @@
 #' @keywords internal
 #' @noRd
 #' @export
+`.source_items_new.mpc_cube_cop-dem-glo-30` <- function(source,
+                                                        collection,
+                                                        stac_query, ...,
+                                                        tiles = NULL) {
+    .check_set_caller(".source_items_new_mpc_cube_cop-dem-glo-30")
+
+    # COP-DEM-GLO-30 does not support tiles - convert to ROI
+    if (!is.null(tiles)) {
+        roi <- .s2_mgrs_to_roi(tiles)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- c(roi[["lon_min"]],
+                                              roi[["lat_min"]],
+                                              roi[["lon_max"]],
+                                              roi[["lat_max"]]
+        )
+    }
+
+    # Fix temporal interval (All data available in the same date)
+    stac_query[["params"]][["datetime"]] <- "2021-04-21/2021-04-23"
+
+    # Search content
+    items_info <- rstac::post_request(q = stac_query, ...)
+    .check_stac_items(items_info)
+    # fetching all the metadata
+    items_info <- suppressWarnings(
+        rstac::items_fetch(items = items_info, progress = FALSE)
+    )
+
+    # assign href
+    access_key <- Sys.getenv("MPC_TOKEN")
+    if (!nzchar(access_key)) {
+        access_key <- NULL
+    }
+    # Clean old tokens cached in rstac
+    .mpc_clean_token_cache()
+    items_info <- suppressWarnings(
+        rstac::items_sign(
+            items_info, sign_fn = rstac::sign_planetary_computer(
+                httr::add_headers("Ocp-Apim-Subscription-Key" = access_key)
+            )
+        )
+    )
+    return(items_info)
+}
+#' @keywords internal
+#' @noRd
+#' @export
 `.source_items_tile.mpc_cube_sentinel-1-grd` <- function(source,
                                                          items, ...,
                                                          collection = NULL) {
@@ -485,6 +550,20 @@
     })
     rstac::items_reap(items, field = c("properties", "tile"))
 }
+#' @title Organizes items for MPC COP-DEM-GLO-30 collections
+#' @param source     Name of the STAC provider.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_tile.mpc_cube_cop-dem-glo-30` <- function(source,
+                                                        items, ...,
+                                                        collection = NULL) {
+    rep("NoTilingSystem", rstac::items_length(items))
+}
 #' @title Filter S1 GRD tiles
 #' @noRd
 #' @param source  Data source
@@ -508,6 +587,19 @@
         cube = cube,
         tiles = tiles)
 
+}
+#' @title Filter COP-DEM-GLO-30 tiles
+#' @noRd
+#' @param source  Data source
+#' @param cube    Cube to be filtered
+#' @param tiles   Tiles to be selected
+#' @return Filtered cube
+#' @export
+`.source_filter_tiles.mpc_cube_cop-dem-glo-30` <- function(source,
+                                                           collection,
+                                                           cube,
+                                                           tiles) {
+    return(cube)
 }
 #' @title Check if roi or tiles are provided
 #' @param source        Data source

@@ -547,7 +547,7 @@
 #' @param source        Data source
 #'
 #' @return              Called for side effects.
-.conf_list_source <- function(source){
+.conf_list_source <- function(s){
     cat(paste0(s, ":\n"))
     collections <- .source_collections(source = s)
     purrr::map(collections, function(c) {

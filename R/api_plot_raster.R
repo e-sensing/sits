@@ -46,8 +46,8 @@
     # extract the values
     vals <- terra::values(rast)
     # obtain the quantiles
-    fst_quant <- .as.numeric(.conf("plot", "first_quantile"))
-    lst_quant <- .as.numeric(.conf("plot", "last_quantile"))
+    fst_quant <- as.numeric(.conf("plot", "first_quantile"))
+    lst_quant <- as.numeric(.conf("plot", "last_quantile"))
     quantiles <- stats::quantile(
         vals,
         probs = c(0, fst_quant, lst_quant, 1),
@@ -259,8 +259,8 @@
         ),
         proxy = FALSE
     )
-    fst_quant <- .as.numeric(.conf("plot", "first_quantile"))
-    lst_quant <- .as.numeric(.conf("plot", "last_quantile"))
+    fst_quant <- as.numeric(.conf("plot", "first_quantile"))
+    lst_quant <- as.numeric(.conf("plot", "last_quantile"))
     # open RGB stars
     rgb_st <- stars::st_rgb(rgb_st[, , , 1:3],
                             dimension = "band",
