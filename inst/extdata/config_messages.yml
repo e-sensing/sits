@@ -278,6 +278,7 @@
 .source_url: "invalid URL for requested source provider"
 .source_tile_get_bbox: "unable to retrieve images given a bounding box"
 .source_tile_get_bbox_cdse_s1_rtc: "unable to retrieve file information for S1 RTC cubes"
+.source_tile_get_bbox_mpc_dem_30: "unable to retrieve file information for COP DEM GLO 30m"
 .source_tile_get_bbox_mpc_s1_grd: "unable to retrieve file information for S1 GRD cubes"
 .stac_format_platform: "platform name should be unique (e.g. Landsat-8 or Sentinel-1A)"
 .stac_select_bands: "some bands for this product are not pre-configured in sits\n please include them in you user configuration file."

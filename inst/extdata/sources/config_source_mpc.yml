@@ -25,6 +25,7 @@ sources:
                 satellite       : "COP-DEM-GLO"
                 sensor          : "30"
                 collection_name : "cop-dem-glo-30"
+                dem_cube        : true
                 open_data       : true
                 open_data_token : false
                 metadata_search : "feature"

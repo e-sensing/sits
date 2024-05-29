@@ -4,6 +4,7 @@
 \alias{sits_regularize}
 \alias{sits_regularize.raster_cube}
 \alias{sits_regularize.sar_cube}
+\alias{sits_regularize.dem_cube}
 \alias{sits_regularize.derived_cube}
 \alias{sits_regularize.default}
 \title{Build a regular data cube from an irregular one}
@@ -35,6 +36,17 @@ sits_regularize(
   cube,
   ...,
   period,
+  res,
+  output_dir,
+  roi = NULL,
+  tiles = NULL,
+  multicores = 2L,
+  progress = TRUE
+)
+
+\method{sits_regularize}{dem_cube}(
+  cube,
+  ...,
   res,
   output_dir,
   roi = NULL,

@@ -245,11 +245,22 @@
 `.source_tile_get_bbox.mpc_cube_cop-dem-glo-30` <- function(source,
                                                             file_info, ...,
                                                             collection = NULL) {
-    `.source_tile_get_bbox.mpc_cube_sentinel-1-grd`(
-        source = source,
-        file_info = file_info, ...,
-        collection = collection
-    )
+    .check_set_caller(".source_tile_get_bbox_mpc_dem_30")
+
+    # pre-condition
+    .check_num(nrow(file_info), min = 1)
+
+    # get bbox based on file_info
+    xmin <- min(file_info[["xmin"]])
+    ymin <- min(file_info[["ymin"]])
+    xmax <- max(file_info[["xmax"]])
+    ymax <- max(file_info[["ymax"]])
+
+    # post-condition
+    .check_that(xmin < xmax && ymin < ymax)
+    # create a bbox
+    bbox <- c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
+    return(bbox)
 }
 #' @keywords internal
 #' @noRd
