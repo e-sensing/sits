@@ -8,6 +8,8 @@ sits_config_user_file(file_path, overwrite = FALSE)
 }
 \arguments{
 \item{file_path}{file to store the user configuration file}
+
+\item{overwrite}{replace current configurarion file?}
 }
 \value{
 Called for side effects
@@ -16,5 +18,6 @@ Called for side effects
 Creates a user configuration file.
 }
 \examples{
-sits_config_user_file(tempdir(), "my_config_file.yml")
+user_file <- paste0(tempdir(), "/my_config_file.yml")
+sits_config_user_file(user_file)
 }

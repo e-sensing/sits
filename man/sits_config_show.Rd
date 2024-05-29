@@ -6,11 +6,6 @@
 \usage{
 sits_config_show()
 }
-\arguments{
-\item{source}{Data source (character vector).}
-
-\item{collection}{Collection (character vector).}
-}
 \value{
 No return value, called for side effects.
 }

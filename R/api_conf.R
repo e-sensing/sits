@@ -548,23 +548,23 @@
 #'
 #' @return              Called for side effects.
 .conf_list_source <- function(source){
-    cat(paste0(s, ":\n"))
-    collections <- .source_collections(source = s)
-    purrr::map(collections, function(c) {
-        cat(paste0("- ", c))
+    cat(paste0(source, ":\n"))
+    collections <- .source_collections(source)
+    purrr::map(collections, function(col) {
+        cat(paste0("- ", col))
         cat(paste0(
-            " (", .source_collection_satellite(s, c),
-            "/", .source_collection_sensor(s, c), ")\n",
-            "- grid system: ", .source_collection_grid_system(s, c), "\n"
+            " (", .source_collection_satellite(source, col),
+            "/", .source_collection_sensor(source, col), ")\n",
+            "- grid system: ", .source_collection_grid_system(source, col), "\n"
         ))
         cat("- bands: ")
-        cat(.source_bands(s, c))
+        cat(.source_bands(source, col))
         cat("\n")
-        if (.source_collection_open_data(source = s, collection = c)) {
+        if (.source_collection_open_data(source, col)) {
             cat("- opendata collection ")
             if (.source_collection_open_data(
-                source = s,
-                collection = c,
+                source = source,
+                collection = col,
                 token = TRUE
             )) {
                 cat("(requires access token)")
