@@ -10,6 +10,27 @@ sources:
         url                 : "https://planetarycomputer.microsoft.com/api/stac/v1"
         token_url           : "https://planetarycomputer.microsoft.com/api/sas/v1/token"
         collections         :
+            COP-DEM-GLO-30  :
+                bands:
+                    ELEVATION:
+                        band_name     : "data"
+                        resolution    : 30
+                        data_type     : "FLT4S"
+                        missing_value : -32768
+                        minimum_value : 0
+                        maximum_value : 65534
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                satellite       : "COP-DEM-GLO"
+                sensor          : "30"
+                collection_name : "cop-dem-glo-30"
+                dem_cube        : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "feature"
+                ext_tolerance   : 0
+                grid_system     : "Copernicus DEM coverage grid"
             LANDSAT-C2-L2   : &mspc_oli
                 bands       :
                     BLUE    : &mspc_oli_30m

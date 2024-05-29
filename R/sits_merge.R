@@ -207,16 +207,13 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
     # Get data1 timeline.
     d1_tl <- unique(as.Date(.cube_timeline(data1)[[1]]))
     # Create new `file_info` using dates from `data1` timeline.
-    fi_new <- purrr::map(seq_len(nrow(data2)), function(row) {
-        data_row <- data2[row,]
-
-        fi <- .fi(data_row)
-        fi[["date"]] <- as.Date(d1_tl[1:nrow(data_row)])
-
-        return(fi)
+    fi_new <- purrr::map(sits_timeline(data1), function(date_row) {
+        fi <- .fi(data2)
+        fi[["date"]] <- as.Date(date_row)
+        fi
     })
     # Assign the new `file_into` into `data2`
-    data2[["file_info"]] <- fi_new
+    data2[["file_info"]] <- list(dplyr::bind_rows(fi_new))
     # Merge cubes and return
     .cube_merge(data1, data2)
 }
