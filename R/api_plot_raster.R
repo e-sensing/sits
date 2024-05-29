@@ -266,7 +266,7 @@
                             dimension = "band",
                             maxColorValue = max_value,
                             use_alpha = FALSE,
-                            probs = c(fst_quant, las_quant),
+                            probs = c(fst_quant, lst_quant),
                             stretch = TRUE
     )
     # tmap params

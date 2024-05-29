@@ -64,8 +64,6 @@ sits_config <- function(config_user_file = NULL) {
 }
 #' @title Show current sits configuration
 #' @name sits_config_show
-#' @param source                 Data source (character vector).
-#' @param collection             Collection (character vector).
 #'
 #' @description
 #' Prints the current sits configuration options.
@@ -94,7 +92,7 @@ sits_config_show <- function() {
     config_view <- sits_env[["config"]][["view"]]
     .conf_list_params(config_view)
 
-    cat("User sits_config_user_file() to create a user configuration file")
+    cat("Use sits_config_user_file() to create a user configuration file")
     return(invisible(NULL))
 }
 
@@ -138,12 +136,14 @@ sits_list_collections <- function(source = NULL) {
 #' @title List the cloud collections supported by sits
 #' @name sits_config_user_file
 #' @param  file_path file to store the user configuration file
+#' @param  overwrite replace current configurarion file?
 #' @description
 #' Creates a user configuration file.
 #'
 #' @return Called for side effects
 #' @examples
-#' sits_config_user_file(tempdir(), "my_config_file.yml")
+#' user_file <- paste0(tempdir(), "/my_config_file.yml")
+#' sits_config_user_file(user_file)
 #' @export
 sits_config_user_file <- function(file_path, overwrite = FALSE){
     # get default user configuration file
@@ -181,7 +181,7 @@ sits_config_user_file <- function(file_path, overwrite = FALSE){
 
     if (update)
         warning(.conf("messages", "sits_config_user_file_updated"))
-    else if (newfile)
+    else if (new_file)
         warning(.conf("messages", "sits_config_user_file_new_file"))
     else
         warning(.conf("messages", "sits_config_user_file_no_update"))

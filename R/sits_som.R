@@ -371,3 +371,42 @@ sits_som_evaluate_cluster <- function(som_map) {
     )
     return(purity_by_cluster)
 }
+#' @title Evaluate cluster
+#' @name sits_som_remove_samples
+#' @description
+#' Remove samples from a given class inside a neuron of another class
+#' @param som_map   A SOM map produced by the som_map() function
+#' @param som_eval  An evaluation produced by the som_eval() function
+#' @param class_cluster Dominant class of a set of neurons
+#' @param class_remove  Class to be removed from the neurons of the "class_cluster"
+#' @return A new set of samples with the desired class neurons remove
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a som map
+#'     som_map <- sits_som_map(samples_modis_ndvi)
+#'     # evaluate the som map and create clusters
+#'     som_eval <- sits_som_evaluate_cluster(som_map)
+#'     # clean the samples
+#'     new_samples <- sits_som_remove_samples(som_map, som_eval, "Pasture", "Cerrado")
+#' }
+#' @export
+sits_som_remove_samples <- function(som_map, som_eval, class_cluster, class_remove){
+
+    # get the samples with id_neuron
+    data <- som_map$data
+    # get the samples by neurons
+    neurons <- som_map$labelled_neurons
+
+    neurons_class_1 <- dplyr::filter(neurons, .data[["label_samples"]] == class_cluster
+                                     & .data[["prior_prob"]] > 0.50)
+    id_neurons_class_1 <- neurons_class_1[["id_neuron"]]
+    # find samples of class2 in neurons of class1
+    samples_remove <- dplyr::filter(data, .data[["label"]] == class_remove &
+                                        .data[["id_neuron"]] %in% id_neurons_class_1)
+    # get the id of the samples to be removed
+    id_samples_remove <- samples_remove[["id_sample"]]
+    # obtain the new samples
+    new_samples <- dplyr::filter(data, !(.data[["id_sample"]] %in% id_samples_remove))
+    # return the new samples
+    return(new_samples)
+}
