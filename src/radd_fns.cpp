@@ -78,8 +78,9 @@ arma::mat C_radd_calc_nf(arma::mat& ts,
                 p_for.elem(arma::find(p_nfor > 0))
             );
             // Fix the range of prob values between 0 and 1
-            p_nfor.elem(arma::find(p_nfor < 0)).zeros();
-            p_nfor.elem(arma::find(p_nfor > 1)).ones();
+            // TODO: use parameter bwf
+            p_nfor.elem(arma::find(p_nfor < 0.1)).fill(0.1);
+            p_nfor.elem(arma::find(p_nfor > 0.9)).fill(0.9);
 
             // Update NF prob with a Bayesian approach
             if (update_res) {
@@ -213,3 +214,157 @@ arma::mat C_radd_detect_changes(const arma::mat& p_res,
     return res;
 }
 
+// [[Rcpp::export]]
+arma::vec C_select_cols(const arma::mat& m,
+                        const arma::uword row,
+                        const arma::uvec idx) {
+    arma::vec v(idx.size(), arma::fill::value(arma::datum::nan));
+
+    for (arma::uword i = 0; i < idx.size(); i++) {
+        v(i) = m(row, idx.at(i));
+    }
+    return v;
+}
+
+// [[Rcpp::export]]
+arma::vec C_vec_select_cols(const arma::vec& m,
+                            const arma::uvec idx) {
+    arma::vec v(idx.size(), arma::fill::value(arma::datum::nan));
+
+    for (arma::uword i = 0; i < idx.size(); i++) {
+        v(i) = m(idx.at(i));
+    }
+    return v;
+}
+
+// [[Rcpp::export]]
+arma::mat C_radd_detect_changes_2(const arma::mat& p_res,
+                                  arma::uword& start,
+                                  arma::uword& end,
+                                  const double& threshold = 0.5,
+                                  const double& chi = 0.9) {
+    arma::mat res(
+            p_res.n_rows, 1, arma::fill::value(arma::datum::nan)
+    );
+
+    // Reduce one to be equivalent to cpp indexes
+    start--;
+
+    arma::uvec idx_value_res;
+    arma::uword v;
+    bool next_pixel;
+    arma::uword first_idx;
+    // for each pixel
+    for (arma::uword i = 0; i < p_res.n_rows; i++) {
+        // Filter non NA values
+        arma::uvec valid_values = arma::find_finite(
+            p_res.submat(i, 0, i, p_res.n_cols - 1)
+        );
+
+        // Remove the dummy position from valid values
+        arma::uvec idxs_to_filter = valid_values;
+        if (start > 0) {
+            idxs_to_filter = valid_values.subvec(1, valid_values.size() - 1);
+        }
+
+        // Select columns that are not NA
+        arma::vec v_res = C_select_cols(p_res, i, idxs_to_filter);
+
+        // Vectors to store flag and change values
+        arma::vec p_flag(v_res.size(), arma::fill::value(arma::datum::nan));
+        arma::vec p_change(v_res.size(), arma::fill::value(arma::datum::nan));
+
+        // Filter only values that are in valid timeline
+        arma::uvec p_filt = arma::find(
+            idxs_to_filter >= start && idxs_to_filter <= end
+        );
+        // Add a zero to the first element in flag vector
+        arma::uword start_idx = p_filt.min();
+        if (start_idx > 0) {
+            start_idx--;
+        }
+        p_flag(start_idx) = 0;
+        // Add zeros in values that are lower than the threshold
+        p_flag.elem(
+            arma::find(v_res < threshold)
+        ).zeros();
+
+        // We need to remove the first dummy in case the start is zero
+        first_idx = 0;
+        if (start == 0) {
+            valid_values = valid_values.subvec(1, valid_values.size() - 1);
+            first_idx = 1;
+        } else {
+            valid_values = idxs_to_filter;
+        }
+
+        // Update next_pixel variable
+        next_pixel = false;
+
+        // Remove the first column its a dummy value
+        arma::uvec res_idx = arma::find(
+            valid_values >= start &&
+                valid_values <= end &&
+                v_res.subvec(first_idx, v_res.size() - 1) > threshold
+        );
+
+        for (arma::uword idx = 0; idx < res_idx.size(); idx++) {
+            arma::vec seq_idx = seq_int(res_idx.at(idx), v_res.size());
+            for (arma::uword t = 0; t < seq_idx.size(); t++) {
+                arma::uword t_value = seq_idx.at(t);
+                // step 2.1: Update Flag and PChange for current time step (i)
+                // (case 1) No confirmed or flagged change:
+                int r;
+                if (t_value > 0) {
+                    if (p_flag(t_value - 1) == 0 ||
+                        p_flag(t_value - 1) == 254) {
+                        r = 0;
+                        double prior = v_res(t_value - 1);
+                        double likelihood = v_res(t_value);
+                        double posterior = C_radd_calc_pbayes(prior, likelihood);
+                        p_flag(t_value) = 1;
+                        p_change(t_value) = posterior;
+                    }
+
+                    if (p_flag(t_value - 1) == 1) {
+                        double prior = p_change(t_value - 1);
+                        double likelihood = v_res(t_value);
+                        double posterior = C_radd_calc_pbayes(prior, likelihood);
+                        p_flag(t_value) = 1;
+                        p_change(t_value) = posterior;
+                        r++;
+                    }
+                }
+                if (p_flag(t_value) == 1) {
+                    if (r > 0) {
+                        if (p_change(t_value) < 0.5) {
+                            p_flag.subvec(t_value - r, t_value).zeros();
+                            p_flag(t_value - r) = 254;
+                            break;
+                        }
+                    }
+                }
+                if (p_change(t_value) >= chi) {
+
+                    if (v_res(t_value) >= 0.5) {
+                        arma::uword min_idx = arma::find(p_flag == 1).min();
+                        p_flag.subvec(min_idx, t_value).ones();
+                        next_pixel = true;
+                        break;
+                    }
+                }
+            }
+            if (next_pixel) {
+                break;
+            }
+        }
+
+        idx_value_res = arma::find(p_flag == 1);
+        v = 0;
+        if (idx_value_res.size() > 0) {
+            v = idxs_to_filter(arma::find(p_flag == 1).max());
+        }
+        res.row(i) = v;
+    }
+    return res;
+}

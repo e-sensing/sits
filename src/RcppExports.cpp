@@ -315,6 +315,71 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// C_select_cols
+arma::vec C_select_cols(const arma::mat& m, const arma::uword row, const arma::uvec idx);
+RcppExport SEXP _sits_C_select_cols(SEXP mSEXP, SEXP rowSEXP, SEXP idxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type m(mSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type row(rowSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec >::type idx(idxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_select_cols(m, row, idx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_vec_select_cols
+arma::vec C_vec_select_cols(const arma::vec& m, const arma::uvec idx);
+RcppExport SEXP _sits_C_vec_select_cols(SEXP mSEXP, SEXP idxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type m(mSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec >::type idx(idxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_vec_select_cols(m, idx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// seq_int
+arma::vec seq_int(const arma::uword& from, const arma::uword& to, const arma::uword& n);
+RcppExport SEXP _sits_seq_int(SEXP fromSEXP, SEXP toSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::uword& >::type from(fromSEXP);
+    Rcpp::traits::input_parameter< const arma::uword& >::type to(toSEXP);
+    Rcpp::traits::input_parameter< const arma::uword& >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(seq_int(from, to, n));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_radd_calc_sub
+arma::rowvec C_radd_calc_sub(const arma::mat& x, const arma::mat& y);
+RcppExport SEXP _sits_C_radd_calc_sub(SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(C_radd_calc_sub(x, y));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_radd_detect_changes_2
+arma::mat C_radd_detect_changes_2(const arma::mat& p_res, arma::uword& start, arma::uword& end, const double& threshold, const double& chi);
+RcppExport SEXP _sits_C_radd_detect_changes_2(SEXP p_resSEXP, SEXP startSEXP, SEXP endSEXP, SEXP thresholdSEXP, SEXP chiSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type p_res(p_resSEXP);
+    Rcpp::traits::input_parameter< arma::uword& >::type start(startSEXP);
+    Rcpp::traits::input_parameter< arma::uword& >::type end(endSEXP);
+    Rcpp::traits::input_parameter< const double& >::type threshold(thresholdSEXP);
+    Rcpp::traits::input_parameter< const double& >::type chi(chiSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_radd_detect_changes_2(p_res, start, end, threshold, chi));
+    return rcpp_result_gen;
+END_RCPP
+}
 // C_temp_max
 arma::vec C_temp_max(const arma::mat& mtx);
 RcppExport SEXP _sits_C_temp_max(SEXP mtxSEXP) {
@@ -668,6 +733,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_radd_calc_sub", (DL_FUNC) &_sits_C_radd_calc_sub, 2},
     {"_sits_C_radd_calc_nf", (DL_FUNC) &_sits_C_radd_calc_nf, 5},
     {"_sits_C_radd_detect_changes", (DL_FUNC) &_sits_C_radd_detect_changes, 5},
+    {"_sits_C_select_cols", (DL_FUNC) &_sits_C_select_cols, 3},
+    {"_sits_C_vec_select_cols", (DL_FUNC) &_sits_C_vec_select_cols, 2},
+    {"_sits_seq_int", (DL_FUNC) &_sits_seq_int, 3},
+    {"_sits_C_radd_calc_sub", (DL_FUNC) &_sits_C_radd_calc_sub, 2},
+    {"_sits_C_radd_detect_changes_2", (DL_FUNC) &_sits_C_radd_detect_changes_2, 5},
     {"_sits_C_temp_max", (DL_FUNC) &_sits_C_temp_max, 1},
     {"_sits_C_temp_min", (DL_FUNC) &_sits_C_temp_min, 1},
     {"_sits_C_temp_mean", (DL_FUNC) &_sits_C_temp_mean, 1},
