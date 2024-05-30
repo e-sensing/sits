@@ -1,5 +1,7 @@
-sits_radd <- function(data, pdf, ...,
-                      stats_layer = NULL,
+sits_radd <- function(data,
+                      mean_stats,
+                      sd_stats, ...,
+                      pdf = "gaussian",
                       chi = 0.9,
                       start_date = NULL,
                       end_date = NULL) {
@@ -8,9 +10,9 @@ sits_radd <- function(data, pdf, ...,
 
 
 sits_radd.sits <- function(data,
+                           mean_stats,
+                           sd_stats, ...,
                            pdf = "gaussian",
-                           ...,
-                           stats_layer = NULL,
                            chi = 0.9,
                            start_date = NULL,
                            end_date = NULL) {
@@ -59,28 +61,38 @@ sits_radd.sits <- function(data,
 }
 
 sits_radd.raster_cube <- function(data,
-                                  pdf = "gaussian",
-                                  ...,
-                                  stats_layer = NULL,
-                                  deseasonlize = 0.95,
-                                  chi = 0.9,
-                                  impute_fn = impute_linear(),
-                                  memsize = 8L,
-                                  multicores = 2L,
-                                  version = "v1",
+                                  mean_stats,
+                                  sd_stats, ...,
+                                  impute_fn = identity,
+                                  roi = NULL,
                                   start_date = NULL,
                                   end_date = NULL,
-                                  output_dir) {
+                                  memsize = 8L,
+                                  multicores = 2L,
+                                  pdf = "gaussian",
+                                  deseasonlize = 0.95,
+                                  threshold = 0.5,
+                                  bwf = c(0.1, 0.9),
+                                  chi = 0.9,
+                                  output_dir,
+                                  version = "v1",
+                                  progress = TRUE) {
     # Training function
     train_fun <- function(data) {
-        # Check 'pdf' parameter
+        # Preconditions
         .check_chr_parameter(pdf)
-        # Check 'chi' parameter
         .check_num_min_max(chi, min = 0.1, max = 1)
         .check_memsize(memsize, min = 1, max = 16384)
         .check_multicores(multicores, min = 1, max = 2048)
         .check_output_dir(output_dir)
-        version <- tolower(.check_version(version))
+        version <- .check_version(version)
+        .check_progress(progress)
+        # TODO: check mean and sd stats
+        mean_stats <- unname(as.matrix(mean_stats))
+        sd_stats <- unname(as.matrix(sd_stats))
+
+        # version is case-insensitive in sits
+        version <- tolower(version)
 
         # Get default proc bloat
         proc_bloat <- .conf("processing_bloat_cpu")
@@ -88,40 +100,42 @@ sits_radd.raster_cube <- function(data,
         # Get pdf function
         pdf_fn <- .pdf_fun(pdf)
 
-        # Create stats layer
-        # TODO: i will remove this line, if user does not provide
-        # stats layer will give an error
-        if (!.has(stats_layer)) {
-            stats_layer <- .radd_create_stats(data)
+        # Spatial filter
+        if (.has(roi)) {
+            roi <- .roi_as_sf(roi)
+            data <- .cube_filter_spatial(cube = data, roi = roi)
         }
+
+        # Check memory and multicores
+        # Get block size
+        block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
+        # Check minimum memory needed to process one block
+        job_memsize <- .jobs_memsize(
+            job_size = .block_size(block = block, overlap = 0),
+            npaths = length(.tile_paths(data)),
+            nbytes = 8,
+            proc_bloat = proc_bloat
+        )
+        # Update multicores parameter
+        multicores <- .jobs_max_multicores(
+            job_memsize = job_memsize,
+            memsize = memsize,
+            multicores = multicores
+        )
+        # Update block parameter
+        block <- .jobs_optimal_block(
+            job_memsize = job_memsize,
+            block = block,
+            image_size = .tile_size(.tile(data)),
+            memsize = memsize,
+            multicores = multicores
+        )
+        # Terra requires at least two pixels to recognize an extent as valid
+        # polygon and not a line or point
+        block <- .block_regulate_size(block)
+
         predict_fun <- function() {
-            # Check memory and multicores
-            # Get block size
-            block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
-            # Check minimum memory needed to process one block
-            job_memsize <- .jobs_memsize(
-                job_size = .block_size(block = block, overlap = 0),
-                npaths = length(.tile_paths(data)),
-                nbytes = 8,
-                proc_bloat = proc_bloat
-            )
-            # Update multicores parameter
-            multicores <- .jobs_max_multicores(
-                job_memsize = job_memsize,
-                memsize = memsize,
-                multicores = multicores
-            )
-            # Update block parameter
-            block <- .jobs_optimal_block(
-                job_memsize = job_memsize,
-                block = block,
-                image_size = .tile_size(.tile(data)),
-                memsize = memsize,
-                multicores = multicores
-            )
-            # Terra requires at least two pixels to recognize an extent as valid
-            # polygon and not a line or point
-            block <- .block_regulate_size(block)
+
             # Prepare parallel processing
             .parallel_start(workers = multicores)
             on.exit(.parallel_stop(), add = TRUE)
@@ -133,16 +147,21 @@ sits_radd.raster_cube <- function(data,
                 probs_tile <- .radd_calc_tile(
                     tile = tile,
                     band = "radd",
+                    roi = roi,
                     pdf_fn = pdf_fn,
-                    stats_layer = stats_layer,
+                    mean_stats = mean_stats,
+                    sd_stats = sd_stats,
                     deseasonlize = deseasonlize,
+                    threshold = threshold,
+                    chi = chi,
+                    bwf = bwf,
                     block = block,
                     impute_fn = impute_fn,
                     start_date = start_date,
                     end_date = end_date,
                     output_dir = output_dir,
                     version = version,
-                    progress = TRUE
+                    progress = progress
                 )
                 return(probs_tile)
             })

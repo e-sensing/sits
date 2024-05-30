@@ -1,15 +1,20 @@
 .radd_calc_tile <- function(tile,
                             band,
+                            roi,
                             pdf_fn,
-                            stats_layer,
+                            mean_stats,
+                            sd_stats,
                             deseasonlize,
+                            threshold,
+                            chi,
+                            bwf,
                             block,
                             impute_fn,
                             start_date,
                             end_date,
                             output_dir,
                             version,
-                            progress = TRUE) {
+                            progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
@@ -29,33 +34,44 @@
             base_tile = tile,
             derived_class = "radd_cube",
             labels = NULL,
-            update_bbox = FALSE
+            update_bbox = TRUE
         )
         return(class_tile)
     }
     # Create chunks as jobs
     chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
-    # Separate mean and std columns
-    mean_stats <- dplyr::select(stats_layer, dplyr::ends_with("mean"))
-    sd_stats <- dplyr::select(stats_layer, dplyr::ends_with("sd"))
-    # TODO: remove this first attribution and get an empty matrix with zeros
-    # in .radd_calc_quantile function
-    ds_values <- matrix(NA)
-    if (.has(deseasonlize)) {
-        ds_values <- .radd_calc_quantile(tile, deseasonlize, impute_fn)
+    # By default, update_bbox is FALSE
+    update_bbox <- FALSE
+    if (.has(roi)) {
+        # How many chunks there are in tile?
+        nchunks <- nrow(chunks)
+        # Intersecting chunks with ROI
+        chunks <- .chunks_filter_spatial(
+            chunks = chunks,
+            roi = roi
+        )
+        # Should bbox of resulting tile be updated?
+        update_bbox <- nrow(chunks) != nchunks
     }
-    # Get the number of dates in timeline
-    n_times <- length(.tile_timeline(tile))
-    # ...
-    start <- 1
-    end <- n_times + 1
+    # Get the quantile values for each band
+    quantile_values <- .radd_calc_quantile(
+        tile = tile,
+        deseasonlize = deseasonlize,
+        impute_fn = impute_fn
+    )
+    # Get the number of dates in the timeline
+    tile_tl <- .tile_timeline(tile)
+    n_times <- length(tile_tl)
+    # Get the start and end time of the detection period
+    start_detection <- 0
+    end_detection <- n_times + 1
     if (.has(start_date) && .has(end_date)) {
-        tile_tl <- .tile_timeline(tile)
         filt_idxs <- which(tile_tl >= start_date & tile_tl <= end_date)
-        start <- min(filt_idxs)
-        end <- max(filt_idxs)
+        start_detection <- min(filt_idxs) - 1
+        end_detection <- max(filt_idxs)
     }
-    tile_yday <- .radd_get_tile_yday(tile)
+    # Transform tile timeline into a year day
+    tile_yday <- .radd_convert_date_yday(tile_tl)
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -80,17 +96,19 @@
             filter_fn = NULL
         )
         # Calculate the probability of a Non-Forest pixel
-        # TODO: use parameter bwf
         values <- C_radd_calc_nf(
             ts = values,
-            mean = unname(as.matrix(mean_stats)),
-            sd = unname(as.matrix(sd_stats)),
+            mean = mean_stats,
+            sd = sd_stats,
             n_times = n_times,
-            deseasonlize_values = ds_values
+            quantile_values = quantile_values,
+            bwf = bwf
         )
         # Apply detect changes in time series
-        values <- C_radd_detect_changes_2(
-            p_res = values, start = start, end = end
+        values <- C_radd_detect_changes(
+            p_res = values,
+            start_detection = start_detection,
+            end_detection = end_detection
         )
         # Get date that corresponds to the index value
         values <- tile_yday[as.character(values)]
@@ -356,6 +374,10 @@
 }
 
 .radd_calc_quantile <- function(tile, deseasonlize, impute_fn) {
+    if (!.has(deseasonlize)) {
+        return(matrix(NA))
+    }
+
     tile_bands <- .tile_bands(tile, FALSE)
     quantile_values <- purrr::map(tile_bands, function(tile_band) {
         tile_paths <- .tile_paths(tile, bands = tile_band)
@@ -381,42 +403,7 @@
     do.call(cbind, quantile_values)
 }
 
-
-# .radd_calc_pnf <- function(data, pdf_fn, stats_layer) {
-#     samples_labels <- stats_layer[["label"]]
-#     bands <- .samples_bands(data)
-#     # We need to calculate for the first to update others
-#     band <- bands[[1]]
-#     prob_nf <- .radd_calc_pnf_band(
-#         data = data,
-#         pdf_fn = pdf_fn,
-#         stats_layer = stats_layer,
-#         band = band,
-#         labels = samples_labels
-#     )
-#     # We need to update de probability of non-forest
-#     for (b in setdiff(bands, band)) {
-#         prob_nf <<- .radd_calc_pnf_band(
-#             data = data,
-#             pdf_fn = pdf_fn,
-#             stats_layer = stats_layer,
-#             band = b,
-#             labels = samples_labels,
-#             pnf = prob_nf
-#         )
-#     }
-#     # Add Flag and Pchange columns
-#     prob_nf[, c("Flag", "PChange")] <- NA
-#     # Nest each NF probability
-#     prob_nf[["#.."]] <- prob_nf[["sample_id"]]
-#     prob_nf <- tidyr::nest(prob_nf, prob_nf = -"#..")
-#     data$prob_nf <- prob_nf$prob_nf
-#     # Return the probability of NF updated
-#     return(data)
-# }
-
-.radd_get_tile_yday <- function(tile) {
-    tile_tl <- .tile_timeline(tile)
+.radd_convert_date_yday <- function(tile_tl) {
     tile_yday <-  lubridate::yday(lubridate::date(tile_tl))
     tile_yday <- c(0, tile_yday)
     names(tile_yday) <- seq.int(
