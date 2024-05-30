@@ -260,6 +260,11 @@ arma::mat C_radd_detect_changes_2(const arma::mat& p_res,
         arma::uvec valid_values = arma::find_finite(
             p_res.submat(i, 0, i, p_res.n_cols - 1)
         );
+        // Only one valid is valid
+        if (valid_values.size() == 1) {
+            res.row(i) = 0;
+            continue;
+        }
 
         // Remove the dummy position from valid values
         arma::uvec idxs_to_filter = valid_values;
@@ -278,6 +283,13 @@ arma::mat C_radd_detect_changes_2(const arma::mat& p_res,
         arma::uvec p_filt = arma::find(
             idxs_to_filter >= start && idxs_to_filter <= end
         );
+
+        // Only one valid is valid
+        if (p_filt.size() == 0) {
+            res.row(i) = 0;
+            continue;
+        }
+
         // Add a zero to the first element in flag vector
         arma::uword start_idx = p_filt.min();
         if (start_idx > 0) {
@@ -348,7 +360,7 @@ arma::mat C_radd_detect_changes_2(const arma::mat& p_res,
 
                     if (v_res(t_value) >= 0.5) {
                         arma::uword min_idx = arma::find(p_flag == 1).min();
-                        p_flag.subvec(min_idx, t_value).ones();
+                        p_flag.subvec(min_idx, t_value).fill(2);
                         next_pixel = true;
                         break;
                     }
@@ -359,10 +371,10 @@ arma::mat C_radd_detect_changes_2(const arma::mat& p_res,
             }
         }
 
-        idx_value_res = arma::find(p_flag == 1);
+        idx_value_res = arma::find(p_flag == 2);
         v = 0;
         if (idx_value_res.size() > 0) {
-            v = idxs_to_filter(arma::find(p_flag == 1).max());
+            v = idxs_to_filter(arma::find(p_flag == 2).max());
         }
         res.row(i) = v;
     }

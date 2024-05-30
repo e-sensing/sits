@@ -340,31 +340,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// seq_int
-arma::vec seq_int(const arma::uword& from, const arma::uword& to, const arma::uword& n);
-RcppExport SEXP _sits_seq_int(SEXP fromSEXP, SEXP toSEXP, SEXP nSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::uword& >::type from(fromSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type to(toSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type n(nSEXP);
-    rcpp_result_gen = Rcpp::wrap(seq_int(from, to, n));
-    return rcpp_result_gen;
-END_RCPP
-}
-// C_radd_calc_sub
-arma::rowvec C_radd_calc_sub(const arma::mat& x, const arma::mat& y);
-RcppExport SEXP _sits_C_radd_calc_sub(SEXP xSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(C_radd_calc_sub(x, y));
-    return rcpp_result_gen;
-END_RCPP
-}
 // C_radd_detect_changes_2
 arma::mat C_radd_detect_changes_2(const arma::mat& p_res, arma::uword& start, arma::uword& end, const double& threshold, const double& chi);
 RcppExport SEXP _sits_C_radd_detect_changes_2(SEXP p_resSEXP, SEXP startSEXP, SEXP endSEXP, SEXP thresholdSEXP, SEXP chiSEXP) {
@@ -735,8 +710,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_radd_detect_changes", (DL_FUNC) &_sits_C_radd_detect_changes, 5},
     {"_sits_C_select_cols", (DL_FUNC) &_sits_C_select_cols, 3},
     {"_sits_C_vec_select_cols", (DL_FUNC) &_sits_C_vec_select_cols, 2},
-    {"_sits_seq_int", (DL_FUNC) &_sits_seq_int, 3},
-    {"_sits_C_radd_calc_sub", (DL_FUNC) &_sits_C_radd_calc_sub, 2},
     {"_sits_C_radd_detect_changes_2", (DL_FUNC) &_sits_C_radd_detect_changes_2, 5},
     {"_sits_C_temp_max", (DL_FUNC) &_sits_C_temp_max, 1},
     {"_sits_C_temp_min", (DL_FUNC) &_sits_C_temp_min, 1},
