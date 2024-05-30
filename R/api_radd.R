@@ -38,7 +38,8 @@
     # Separate mean and std columns
     mean_stats <- dplyr::select(stats_layer, dplyr::ends_with("mean"))
     sd_stats <- dplyr::select(stats_layer, dplyr::ends_with("sd"))
-    # ...
+    # TODO: remove this first attribution and get an empty matrix with zeros
+    # in .radd_calc_quantile function
     ds_values <- matrix(NA)
     if (.has(deseasonlize)) {
         ds_values <- .radd_calc_quantile(tile, deseasonlize, impute_fn)
@@ -78,13 +79,8 @@
             impute_fn = impute_fn,
             filter_fn = NULL
         )
-        # Get mask of NA pixels
-        na_mask <- C_mask_na(values)
-        # Fill with zeros remaining NA pixels
-        values <- C_fill_na(values, 0)
-        # Used to check values (below)
-        input_pixels <- nrow(values)
         # Calculate the probability of a Non-Forest pixel
+        # TODO: use parameter bwf
         values <- C_radd_calc_nf(
             ts = values,
             mean = unname(as.matrix(mean_stats)),
@@ -93,7 +89,7 @@
             deseasonlize_values = ds_values
         )
         # Apply detect changes in time series
-        values <- C_radd_detect_changes(
+        values <- C_radd_detect_changes_2(
             p_res = values, start = start, end = end
         )
         # Get date that corresponds to the index value
@@ -368,6 +364,8 @@
             r_obj, quantile = deseasonlize, na.rm = TRUE
         )
         quantile_values <- impute_fn(t(quantile_values))
+        # Fill with zeros remaining NA pixels
+        quantile_values <- C_fill_na(quantile_values, 0)
         # Apply scale
         band_conf <- .tile_band_conf(tile = tile, band = tile_band)
         scale <- .scale(band_conf)

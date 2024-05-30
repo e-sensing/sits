@@ -93,6 +93,18 @@ C_radd_detect_changes <- function(p_res, start, end, threshold = 0.5, chi = 0.9)
     .Call(`_sits_C_radd_detect_changes`, p_res, start, end, threshold, chi)
 }
 
+C_select_cols <- function(m, row, idx) {
+    .Call(`_sits_C_select_cols`, m, row, idx)
+}
+
+C_vec_select_cols <- function(m, idx) {
+    .Call(`_sits_C_vec_select_cols`, m, idx)
+}
+
+C_radd_detect_changes_2 <- function(p_res, start, end, threshold = 0.5, chi = 0.9) {
+    .Call(`_sits_C_radd_detect_changes_2`, p_res, start, end, threshold, chi)
+}
+
 C_temp_max <- function(mtx) {
     .Call(`_sits_C_temp_max`, mtx)
 }
