@@ -1,6 +1,5 @@
 #include <Rcpp.h>
-
-#include "./sits_types.h"
+#include "./dtw.h"
 
 using namespace Rcpp;
 
@@ -98,48 +97,4 @@ double distance_dtw_op(std::vector<std::vector<double>> a,
         }
     }
     return d[n - 1][o - 1];
-}
-
-/**
- * Dynamic Time Warping (DTW) distance.
- *
- * @description
- * This function calculates the Dynamic Time Warping (DTW) distance between
- * two time-series.
- *
- * @param x A `double *` Time-series data.
- * @param y A `double *` Self-Organizing Maps (SOM) codebook.
- * @param np `int` Number of points in arrays `p1` and `p2`.
- * @param nNA `int` Number of `NA` values in the arrays `p1` and `p2`.
- *
- * @reference
- * Giorgino, T. (2009). Computing and Visualizing Dynamic Time Warping
- * Alignments in R: The dtw Package. Journal of Statistical Software, 31(7),
- * 1–24. https://doi.org/10.18637/jss.v031.i07
- *
- * @note
- * The implementation of this DTW distance calculation was adapted from the
- * `DTW_cpp` single header library (https://github.com/cjekel/DTW_cpp).
- *
- * @return DTW distance.
- */
-double kohonen_dtw(double *p1, double *p2, int np, int nNA)
-{
-    std::vector<double> p1_data(p1, p1 + np);
-    std::vector<double> p2_data(p2, p2 + np);
-
-    std::vector<std::vector<double>> p1_vec = {p1_data};
-    std::vector<std::vector<double>> p2_vec = {p2_data};
-
-    // p-norm fixed in 2 (equivalent to euclidean distance)
-    return (distance_dtw_op(p1_vec, p2_vec, 2));
-}
-
-// [[Rcpp::export]]
-Rcpp::XPtr<DistanceFunctionPtr> dtw()
-{
-    // Returns a External Pointer, which is used by the `kohonen` package
-    // https://cran.r-project.org/doc/manuals/R-exts.html#External-pointers-and-weak-references
-    return (Rcpp::XPtr<DistanceFunctionPtr>(new DistanceFunctionPtr(
-            &kohonen_dtw)));
 }

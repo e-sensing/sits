@@ -34,7 +34,9 @@ test_that("Suggested samples have low confidence, high entropy", {
         uncert_cube,
         min_uncert = 0.3,
         n = 100,
-        sampling_window = 10
+        sampling_window = 10,
+        multicores = 2,
+        memsize = 2
     ))
 
     expect_true(nrow(samples_df) <= 100)
@@ -80,7 +82,9 @@ test_that("Increased samples have high confidence, low entropy", {
             probs_cube = probs_cube,
             n = 20,
             min_margin = 0.5,
-            sampling_window = 10
+            sampling_window = 10,
+            multicores = 2,
+            memsize = 2
         )
     )
     expect_warning(
@@ -88,7 +92,9 @@ test_that("Increased samples have high confidence, low entropy", {
             probs_cube = probs_cube,
             n = 60,
             min_margin = 0.5,
-            sampling_window = 10
+            sampling_window = 10,
+            multicores = 2,
+            memsize = 2
         )
     )
     labels <- sits_labels(probs_cube)

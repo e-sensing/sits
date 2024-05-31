@@ -27,8 +27,8 @@
     .check_samples_cluster(samples)
     # compute CVIs and return
     result <- dtwclust::cvi(
-        a = factor(samples$cluster),
-        b = factor(samples$label),
+        a = factor(samples[["cluster"]]),
+        b = factor(samples[["label"]]),
         type = "external",
         log.base = 10
     )
@@ -113,14 +113,14 @@
 #'
 .cluster_dendro_bestcut <- function(samples, dendro) {
     # compute range
-    k_range <- seq(2, max(length(dendro$height) - 1, 2))
+    k_range <- seq(2, max(length(dendro[["height"]]) - 1, 2))
 
     # compute ARI for each k (vector)
     ari <-
         k_range |>
         purrr::map(function(k) {
             x <- stats::cutree(dendro, k = k)
-            y <- factor(samples$label)
+            y <- factor(samples[["label"]])
             .cluster_rand_index(table(x, y))
         }) |>
         unlist()
@@ -129,7 +129,8 @@
     k_result <- k_range[which.max(ari)]
 
     # compute each height corresponding to `k_result`
-    h_result <- c(0, dendro$height)[length(dendro$height) - k_result + 2]
+    h_index <- length(dendro[["height"]]) - k_result + 2
+    h_result <- c(0, dendro[["height"]])[h_index]
 
     # create a named vector and return
     best_cut <- structure(c(k_result, h_result), .Names = c("k", "height"))
@@ -141,25 +142,20 @@
 #' @param x a cluster produced by dtwclust::tsclust
 #' @param correct use best calculation
 #' @return Rand index for cluster
-.cluster_rand_index <- function(x, correct = TRUE) {
-    if (length(dim(x)) != 2) {
-        stop("Argument x needs to be a 2-dimensional table.")
-    }
+.cluster_rand_index <- function(x) {
+    .check_set_caller(".cluster_rand_index")
+    .check_that(length(dim(x)) == 2)
 
     n <- sum(x)
-    ni <- apply(x, 1, sum)
-    nj <- apply(x, 2, sum)
+    ni <- rowSums(x)
+    nj <- colSums(x)
     n2 <- choose(n, 2)
 
-    rand <- NULL
-    if (correct) {
-        nis2 <- sum(choose(ni[ni > 1], 2))
-        njs2 <- sum(choose(nj[nj > 1], 2))
-        rand <- c(ARI = c(sum(choose(x[x > 1], 2)) -
-            (nis2 * njs2) / n2) / ((nis2 + njs2) / 2 - (nis2 * njs2) / n2))
-    } else {
-        rand <- c(rand, RI = 1 + (sum(x^2) - (sum(ni^2) + sum(nj^2)) / 2) / n2)
-    }
+    nis2 <- sum(choose(ni[ni > 1], 2))
+    njs2 <- sum(choose(nj[nj > 1], 2))
+    factor_1 <- (nis2 * njs2) / n2
+    factor_2 <- (nis2 + njs2) / 2
+    rand <- (sum(choose(x[x > 1], 2)) - factor_1) / (factor_2 - factor_1)
 
     return(rand)
 }

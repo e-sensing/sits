@@ -8,6 +8,6 @@ test_that("FilePath", {
 })
 
 test_that("Unique", {
-    labels <- unique(cerrado_2classes$label)
+    labels <- unique(cerrado_2classes[["label"]])
     expect_true("Cerrado" %in% labels)
 })

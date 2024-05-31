@@ -4,12 +4,9 @@
 
 # load the sitsdata library
 if (!requireNamespace("sitsdata", quietly = TRUE)) {
-    stop(
-        paste0(
-            "Please install package sitsdata\n",
-            "Please call devtools::install_github('e-sensing/sitsdata')"
-        ),
-        call. = FALSE
+    stop("Please install package sitsdata\n",
+         "Please call devtools::install_github('e-sensing/sitsdata')",
+         call. = FALSE
     )
 }
 
@@ -24,7 +21,8 @@ samples_ndvi_evi <- sits_select(
 )
 
 # build the classification model
-rfor_model <- sits_train(samples_ndvi_evi,
+rfor_model <- sits_train(
+    samples_ndvi_evi,
     ml_method = sits_rfor()
 )
 

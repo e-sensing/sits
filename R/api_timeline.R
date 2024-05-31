@@ -27,24 +27,21 @@
 #' @return A tibble with the classification information.
 #'
 .timeline_class_info <- function(data, samples) {
+    .check_set_caller(".timeline_class_info")
     # find the timeline
     timeline <- sits_timeline(data)
     # precondition is the timeline correct?
-    .check_length(
-        x = timeline,
-        len_min = 1,
-        msg = "sits_timeline_class_info: invalid timeline"
-    )
+    .check_that(length(timeline) >= 1)
     # find the labels
     labels <- sits_labels(samples)
     # find the bands
     bands <- sits_bands(samples)
     # what is the reference start date?
-    ref_start_date <- lubridate::as_date(samples[1, ]$start_date)
+    ref_start_date <- lubridate::as_date(samples[1, ][["start_date"]])
     # what is the reference end date?
-    ref_end_date <- lubridate::as_date(samples[1, ]$end_date)
+    ref_end_date <- lubridate::as_date(samples[1, ][["end_date"]])
     # number of samples
-    num_samples <- nrow(samples[1, ]$time_series[[1]])
+    num_samples <- nrow(samples[1, ][["time_series"]][[1]])
     # obtain the reference dates that match the patterns in the full timeline
     ref_dates <- .timeline_match(
         timeline,
@@ -55,7 +52,7 @@
     # obtain the indexes of the timeline that match the reference dates
     dates_index <- .timeline_match_indexes(timeline, ref_dates)
     # find the number of the samples
-    nsamples <- dates_index[[1]][2] - dates_index[[1]][1] + 1
+    nsamples <- dates_index[[1]][[2]] - dates_index[[1]][[1]] + 1
     # create a class_info tibble to be used in the classification
     class_info <- tibble::tibble(
         bands = list(bands),
@@ -88,23 +85,23 @@
 .timeline_valid_date <- function(date, timeline) {
     # is the date inside the timeline?
     if (date %within% lubridate::interval(
-        timeline[1],
-        timeline[length(timeline)]
+        timeline[[1]],
+        timeline[[length(timeline)]]
     )) {
         return(TRUE)
     }
 
     # what is the difference in days between the last two days of the timeline?
-    timeline_diff <- as.integer(timeline[2] - timeline[1])
+    timeline_diff <- as.integer(timeline[[2]] - timeline[[1]])
     # if the difference in days in the timeline is smaller than the difference
     # between the reference date and the first date of the timeline, then
     # we assume the date is valid
-    if (abs(as.integer(date - timeline[1])) <= timeline_diff) {
+    if (abs(as.integer(date - timeline[[1]])) <= timeline_diff) {
         return(TRUE)
     }
     # what is the difference in days between the last two days of the timeline?
-    timeline_diff <- as.integer(timeline[length(timeline)] -
-        timeline[length(timeline) - 1])
+    timeline_diff <- as.integer(timeline[[length(timeline)]] -
+        timeline[[length(timeline) - 1]])
 
     # if the difference in days in the timeline is smaller than the difference
     # between the reference date and the last date of the timeline, then
@@ -142,14 +139,14 @@
     # make sure the timeline is a valid set of dates
     timeline_data <- lubridate::as_date(timeline_data)
     # define the input start date
-    input_start_date <- timeline_data[1]
+    input_start_date <- timeline_data[[1]]
 
     # create a list  the subset dates to break the input data set
     subset_dates <- list()
     # consider two cases:
     # (1) start date of data is before start date model
     # (2) start date of data is the same or after start date of model
-    if (timeline_data[1] < model_start_date) {
+    if (timeline_data[[1]] < model_start_date) {
         # what is the expected start and end dates based on the patterns?
         ref_st_mday <- as.character(lubridate::mday(model_start_date))
         ref_st_month <- as.character(lubridate::month(model_start_date))
@@ -169,21 +166,12 @@
     # take the start date of the input to be classified
     start_date <- timeline_data[idx_start_date]
     # is the start date a valid one?
-    .check_that(
-        x = .timeline_valid_date(start_date, timeline_data),
-        msg = "start date in not inside timeline"
-    )
+    .check_that(.timeline_valid_date(start_date, timeline_data))
     # what is the expected end date of the classification?
     idx_end_date <- idx_start_date + (num_samples - 1)
     end_date <- timeline_data[idx_end_date]
-    # is the start date a valid one?
-    .check_that(
-        x = !(is.na(end_date)),
-        msg = paste(
-            "start and end date do not match timeline/n",
-            "Please compare your timeline with your samples"
-        )
-    )
+    # is the end date a valid one?
+    .check_that(!(is.na(end_date)))
 
     # go through the timeline of the data
     # find the reference dates for the classification
@@ -199,11 +187,8 @@
         end_date <- timeline_data[idx_end_date]
     }
     # is the end date a valid one?
-    end_date <- subset_dates[[length(subset_dates)]][2]
-    .check_that(
-        x = .timeline_valid_date(end_date, timeline_data),
-        msg = "end_date not inside timeline"
-    )
+    end_date <- subset_dates[[length(subset_dates)]][[2]]
+    .check_that(.timeline_valid_date(end_date, timeline_data))
     return(subset_dates)
 }
 
@@ -228,8 +213,8 @@
 .timeline_match_indexes <- function(timeline, ref_dates) {
     dates_index <- ref_dates |>
         purrr::map(function(date_pair) {
-            start_index <- which(timeline == date_pair[1])
-            end_index <- which(timeline == date_pair[2])
+            start_index <- which(timeline == date_pair[[1]])
+            end_index <- which(timeline == date_pair[[2]])
 
             dates_index <- c(start_index, end_index)
             return(dates_index)
@@ -253,20 +238,20 @@
                              start_date = NULL,
                              end_date = NULL) {
     # set caller to show in errors
-    .check_set_caller(".sits_timeline_during")
+    .check_set_caller(".timeline_during")
     # obtain the start and end indexes
     if (.has_not(start_date)) {
-        start_date <- timeline[1]
+        start_date <- timeline[[1]]
     }
     if (.has_not(end_date)) {
-        end_date <- timeline[length(timeline)]
+        end_date <- timeline[[length(timeline)]]
     }
     valid <- timeline >= lubridate::as_date(start_date) &
         timeline <= lubridate::as_date(end_date)
-    .check_that(
-        x = any(valid),
-        msg = paste("no valid data between", start_date, "and", end_date)
-    )
+
+    # postcondition - check that there exists at least one valid date
+    .check_that(any(valid))
+    # return valid dates
     return(timeline[valid])
 }
 
@@ -282,11 +267,8 @@
 .timeline_format <- function(dates) {
     # set caller to show in errors
     .check_set_caller(".timeline_format")
-    .check_length(
-        x = dates,
-        len_min = 1,
-        msg = "invalid date parameter"
-    )
+    .check_that(length(dates) >= 1)
+
     # convert to character (strsplit does not deal with dates)
     dates <- as.character(dates)
     # check type of date interval
@@ -297,27 +279,16 @@
             converted_dates <- lubridate::fast_strptime(dt, "%Y-%m")
         } else if (length(strsplit(dt, "-")[[1]]) == 3) {
             converted_dates <- lubridate::fast_strptime(dt, "%Y-%m-%d")
-        } else
-            stop("cannot convert date to YYYY-MM-DD format")
-        # transform to date object
+        }
         converted_dates <- lubridate::as_date(converted_dates)
         # check if there are NAs values
-        .check_that(
-            x = all(!is.na(converted_dates)),
-            msg = paste0("invalid date format '", dt, "' in file name")
-        )
+        .check_that(!anyNA(converted_dates))
         return(converted_dates)
     })
-
     # convert to a vector of dates
     converted_dates <- lubridate::as_date(converted_dates)
-    # post-condition
-    .check_length(
-        x = converted_dates,
-        len_min = length(dates),
-        len_max = length(dates),
-        msg = "invalid date values"
-    )
+    # postcondition
+    .check_that(length(converted_dates) == length(dates))
     return(converted_dates)
 }
 
@@ -334,7 +305,7 @@
 #' @return       TRUE if the length of time series is unique
 #'
 .timeline_check <- function(data) {
-    if (length(unique(lapply(data$time_series, nrow))) == 1) {
+    if (length(unique(lapply(data[["time_series"]], nrow))) == 1) {
         return(TRUE)
     } else {
         return(FALSE)

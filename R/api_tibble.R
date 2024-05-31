@@ -51,7 +51,7 @@
     labels <- names(prediction)
     n_labels <- length(labels)
     # create a named vector with integers match the class labels
-    int_labels <- c(1:n_labels)
+    int_labels <- 1:n_labels
     names(int_labels) <- labels
 
     # compute prediction vector
@@ -86,13 +86,13 @@
 #'
 .tibble_prediction_multiyear <- function(data, class_info, prediction) {
     # retrieve the global timeline
-    timeline_global <- class_info$timeline[[1]]
+    timeline_global <- class_info[["timeline"]][[1]]
 
     # get the labels of the data
-    labels <- class_info$labels[[1]]
+    labels <- class_info[["labels"]][[1]]
     n_labels <- length(labels)
     # create a named vector with integers match the class labels
-    int_labels <- c(1:n_labels)
+    int_labels <- 1:n_labels
     names(int_labels) <- labels
 
     # compute prediction vector
@@ -103,20 +103,22 @@
         seq_len(nrow(data)),
         function(row, row_n) {
             # get the timeline of the row
-            timeline_row <- lubridate::as_date(row$time_series[[1]]$Index)
+            timeline_row <- lubridate::as_date(
+                row[["time_series"]][[1]][["Index"]]
+            )
             # the timeline of the row may differ from the global timeline
             # when we are processing samples with different dates
-            if (timeline_row[1] != timeline_global[1]) {
+            if (timeline_row[[1]] != timeline_global[[1]]) {
                 # what are the reference dates to do the classification?
                 ref_dates_lst <- .timeline_match(
                     timeline_data = timeline_row,
-                    model_start_date = lubridate::as_date(row$start_date),
-                    model_end_date = lubridate::as_date(row$end_date),
-                    num_samples = nrow(row$time_series[[1]])
+                    model_start_date = lubridate::as_date(row[["start_date"]]),
+                    model_end_date = lubridate::as_date(row[["end_date"]]),
+                    num_samples = nrow(row[["time_series"]][[1]])
                 )
             } else {
                 # simplest case - timelines match
-                ref_dates_lst <- class_info$ref_dates[[1]]
+                ref_dates_lst <- class_info[["ref_dates"]][[1]]
             }
             idx_fst <- (row_n - 1) * (length(ref_dates_lst)) + 1
             idx_lst <- idx_fst + length(ref_dates_lst) - 1
@@ -138,14 +140,14 @@
                     probs_date <- rbind.data.frame(pred_row[idx, ])
                     names(probs_date) <- names(pred_row[idx, ])
                     pred_date <- tibble::tibble(
-                        from = as.Date(rd[1]),
-                        to = as.Date(rd[2]),
+                        from = as.Date(rd[[1]]),
+                        to = as.Date(rd[[2]]),
                         class = pred_row_lab[idx]
                     )
                     pred_date <- dplyr::bind_cols(pred_date, probs_date)
                 }
             )
-            row$predicted <- list(pred_sample)
+            row[["predicted"]] <- list(pred_sample)
             return(row)
         }
     )
@@ -181,22 +183,22 @@
         )
     }
     # get the reference date
-    start_date <- lubridate::as_date(ref_dates[1])
+    start_date <- lubridate::as_date(ref_dates[[1]])
     # align the dates in the data
     data <- purrr::pmap_dfr(
         list(
-            data$longitude,
-            data$latitude,
-            data$label,
-            data$cube,
-            data$time_series
+            data[["longitude"]],
+            data[["latitude"]],
+            data[["label"]],
+            data[["cube"]],
+            data[["time_series"]]
         ),
         function(long, lat, lab, cb, ts) {
             # only rows that match  reference dates are kept
             if (length(ref_dates) == nrow(ts)) {
                 # find the date of minimum distance to the reference date
                 idx <- which.min(
-                    abs((lubridate::as_date(ts$Index)
+                    abs((lubridate::as_date(ts[["Index"]])
                     - lubridate::as_date(start_date))
                     / lubridate::ddays(1))
                 )
@@ -208,8 +210,8 @@
                 row <- tibble::tibble(
                     longitude = long,
                     latitude = lat,
-                    start_date = lubridate::as_date(ref_dates[1]),
-                    end_date = ref_dates[length(ref_dates)],
+                    start_date = lubridate::as_date(ref_dates[[1]]),
+                    end_date = ref_dates[[length(ref_dates)]],
                     label = lab,
                     cube = cb,
                     time_series = list(ts1)
@@ -239,7 +241,7 @@
     # verify that tibble is correct
     data <- .check_samples(data)
 
-    n_samples <- data$time_series |>
+    n_samples <- data[["time_series"]] |>
         purrr::map_int(function(t) {
             nrow(t)
         })
@@ -277,8 +279,7 @@
         bands <- toupper(bands)
         .check_chr_within(
             x = bands,
-            within = sp_bands,
-            msg = "required bands are not available in the samples"
+            within = sp_bands
         )
     }
     return(bands)
@@ -290,7 +291,7 @@
 #' @param data  a tibble with time series
 #' @return  time series
 .tibble_time_series <- function(data) {
-    return(data$time_series[[1]])
+    return(data[["time_series"]][[1]])
 }
 
 #' @title Split a sits tibble

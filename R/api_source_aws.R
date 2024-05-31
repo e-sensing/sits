@@ -17,9 +17,8 @@
                                        stac_query, ...,
                                        tiles = NULL,
                                        platform = NULL) {
-    # set caller to show in errors
-    .check_set_caller(".source_items_new.aws_cube")
 
+    # check if platform is set
     if (!is.null(platform)) {
         platform <- .stac_format_platform(
             source = source,
@@ -98,8 +97,8 @@
         # add filter by wrs path and row
         stac_query <- rstac::ext_query(
             q = stac_query,
-            "landsat:wrs_path" %in% sep_tile$wrs_path,
-            "landsat:wrs_row" %in% sep_tile$wrs_row
+            "landsat:wrs_path" %in% sep_tile[["wrs_path"]],
+            "landsat:wrs_row" %in% sep_tile[["wrs_row"]]
         )
     }
     # making the request based on ROI
@@ -125,13 +124,14 @@
                                                         items, ...,
                                                         collection = NULL) {
     # store tile info in items object
-    items$features <- purrr::map(items$features, function(feature) {
-        feature$properties$tile <-
-            paste0(feature$properties[["landsat:wrs_path"]],
-            feature$properties[["landsat:wrs_row"]],
-            collapse = ""
-        )
-        feature
+    items[["features"]] <- purrr::map(
+        items[["features"]], function(feature) {
+            feature[["properties"]][["tile"]] <-
+                paste0(feature[["properties"]][["landsat:wrs_path"]],
+                       feature[["properties"]][["landsat:wrs_row"]],
+                       collapse = ""
+                )
+            feature
     })
     rstac::items_reap(items, field = c("properties", "tile"))
 }
@@ -149,9 +149,11 @@
                                         items, ...,
                                         collection = NULL) {
     # store tile info in items object
-    items$features <- purrr::map(items$features, function(feature) {
-        feature$properties$tile <- feature$properties[["grid:code"]]
-        feature$properties$tile <- gsub("MGRS-", "", feature$properties$tile)
+    items[["features"]] <- purrr::map(items[["features"]], function(feature) {
+        feature[["properties"]][["tile"]] <-
+            feature[["properties"]][["grid:code"]]
+        feature[["properties"]][["tile"]] <-
+            gsub("MGRS-", "", feature[["properties"]][["tile"]], fixed = TRUE)
         feature
     })
 
@@ -173,16 +175,12 @@
 #' @param collection Image collection
 #' @return Called for side effects
 .source_configure_access.aws_cube <- function(source, collection) {
+    .check_set_caller(".source_configure_access_aws_cube")
     if (.conf("sources", "AWS", "collections", collection, "open_data")
               == "false") {
         aws_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
         if (nchar(aws_access_key) == 0)
-            stop(
-                paste("You need a valid AWS_SECRET_ACCESS_KEY",
-                      "to access this collection.",
-                      "If you have this key",
-                      "please put it on an enviromental variable")
-            )
+            stop(.conf("messages", ".source_configure_access_aws_cube"))
     }
     return(invisible(source))
 }

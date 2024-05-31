@@ -90,13 +90,14 @@ sits_mosaic <- function(cube,
                         output_dir,
                         version = "v1",
                         progress = TRUE) {
+    .check_set_caller("sits_mosaic")
     # Pre-conditions
     .check_is_raster_cube(cube)
     .check_crs(crs)
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
     version <- .check_version(version)
-    .check_progress(progress)
+    .check_lgl_parameter(progress)
     # version is case-insensitive in sits
     version <- tolower(version)
     # Spatial filter

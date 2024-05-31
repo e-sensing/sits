@@ -17,11 +17,13 @@
 #'                   ("lon_min", "lat_min", "lon_max", "lat_max").
 #' @param res        An integer value corresponds to the output
 #'                   spatial resolution of the images. Default is NULL.
+#' @param n_tries    Number of tries to download the same image. Default is 3.
 #' @param multicores Number of cores for parallel downloading
 #'                   (integer, min = 1, max = 2048).
 #' @param output_dir Output directory where images will be saved.
 #'                   (character vector of length 1).
 #' @param progress   Logical: show progress bar?
+#' @param ...        Additional parameters to httr package.
 #' @return Copy of input data cube (class "raster cube").
 #'
 #' @examples
@@ -51,26 +53,31 @@
 #' }
 #'
 #' @export
-sits_cube_copy <- function(cube,
+sits_cube_copy <- function(cube, ...,
                            roi = NULL,
                            res = NULL,
+                           n_tries = 3,
                            multicores = 2L,
                            output_dir,
                            progress = TRUE) {
+    # Set caller for error msgs
+    .check_set_caller("sits_cube_copy")
     # Pre-conditions
     .check_is_raster_cube(cube)
+    # Check n_tries parameter
+    .check_num_min_max(x = n_tries, min = 1, max = 50)
+    # check files
     .check_raster_cube_files(cube)
     if (.has(roi)) {
-        sf_roi <- .roi_as_sf(roi, default_crs = cube$crs[[1]])
+        sf_roi <- .roi_as_sf(roi, default_crs = cube[["crs"]][[1]])
     } else {
         sf_roi <- NULL
     }
-    .check_res(res)
     if (inherits(output_dir, "character")) {
         output_dir <- path.expand(output_dir)
     }
     .check_output_dir(output_dir)
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
 
     # Prepare parallel processing
@@ -97,14 +104,13 @@ sits_cube_copy <- function(cube,
             asset = asset,
             res = res,
             sf_roi = sf_roi,
+            n_tries = n_tries,
             output_dir = output_dir,
-            progress = progress
+            progress = progress, ...
         )
         # Return local tile
         local_asset
     }, progress = progress)
-    .check_empty_data_frame(cube_assets,
-        msg = "no intersection between roi and cube"
-    )
+    .check_empty_data_frame(cube_assets)
     .cube_merge_tiles(cube_assets)
 }

@@ -47,18 +47,22 @@
 #'                       (decreases according to number of iterations).
 #' @param distance       The type of similarity measure (distance). The
 #'                       following similarity measurements are supported:
-#'                       \code{"euclidean"}, \code{"dtw"}, \code{"manhattan"},
-#'                       and \code{"tanimoto"}. The default similarity measure
-#'                       is \code{"euclidean"}.
+#'                       \code{"euclidean"} and \code{"dtw"}. The default
+#'                       similarity measure is \code{"dtw"}.
 #' @param rlen           Number of iterations to produce the SOM.
 #' @param som_radius     Radius of SOM neighborhood.
-#' @param mode           Type of learning algorithm (default = "online").
+#' @param mode           Type of learning algorithm. The
+#'                       following learning algorithm are available:
+#'                       \code{"online"}, \code{"batch"}, and \code{"pbatch"}.
+#'                       The default learning algorithm is \code{"online"}.
+#'
+#' @note To learn more about the learning algorithms, check the
+#'       \code{\link[kohonen:supersom]{kohonen::supersom}} function.
 #'
 #' @note The \code{sits} package implements the \code{"dtw"} (Dynamic Time
-#'       Warping) similarity measure. All other similarity measurements
-#'       come from the
-#'       \code{\link[kohonen:supersom]{kohonen::supersom (dist.fcts)}}
-#'       function.
+#'       Warping) similarity measure. The \code{"euclidean"} similarity
+#'       measurement come from the
+#'       \code{\link[kohonen:supersom]{kohonen::supersom (dist.fcts)}} function.
 #'
 #' @return
 #' \code{sits_som_map()} produces a list with three members:
@@ -92,31 +96,34 @@ sits_som_map <- function(data,
                          grid_ydim = 10,
                          alpha = 1.0,
                          rlen = 100,
-                         distance = "euclidean",
+                         distance = "dtw",
                          som_radius = 2,
                          mode = "online") {
-    # register custom distances
-    .som_register_custom_distances()
     # set caller to show in errors
     .check_set_caller("sits_som_map")
     # verifies if kohonen package is installed
     .check_require_packages("kohonen")
     # does the input data exist?
     .check_samples_train(data)
+    # check distance
+    .check_chr_within(distance, c("euclidean", "dtw"))
+    # check mode
+    .check_chr_within(mode, c("online", "batch", "pbatch"))
     # is are there more neurons than samples?
     n_samples <- nrow(data)
-    .check_that(
-        n_samples > grid_xdim * grid_ydim,
-        msg = paste(
-            "number of samples should be",
-            "greater than number of neurons"
+    # check recommended grid sizes
+    min_grid_size <- floor(sqrt(5 * sqrt(n_samples))) - 2
+    max_grid_size <- ceiling(sqrt(5 * sqrt(n_samples))) + 2
+    if (grid_xdim < min_grid_size || grid_xdim > max_grid_size)
+        warning(.conf("messages", "sits_som_map_grid_size"),
+                "(", min_grid_size, " ...", max_grid_size, ")"
         )
-    )
+    .check_that(n_samples > grid_xdim * grid_ydim)
     # get the time series
     time_series <- .values_ts(data, format = "bands_cases_dates")
     # create the kohonen map
     kohonen_obj <-
-        kohonen::supersom(
+        .kohonen_supersom(
             time_series,
             grid = kohonen::somgrid(
                 xdim = grid_xdim,
@@ -125,16 +132,15 @@ sits_som_map <- function(data,
                 neighbourhood.fct = "gaussian",
                 toroidal = FALSE
             ),
+            distance = distance,
             rlen = rlen,
             alpha = alpha,
-            dist.fcts = distance,
-            normalizeDataLayers = TRUE,
             mode = mode
         )
     # put id in samples
-    data$id_sample <- seq_len(nrow(data))
+    data[["id_sample"]] <- seq_len(nrow(data))
     # add id of neuron that the sample was allocated
-    data$id_neuron <- kohonen_obj$unit.classif
+    data[["id_neuron"]] <- kohonen_obj[["unit.classif"]]
     # get labels and frequencies for the neuron
     labelled_neurons <- .som_label_neurons(
         data,
@@ -155,33 +161,37 @@ sits_som_map <- function(data,
                 .data[["id_neuron"]] == neuron_id
             )
             # Get the maximum value of the prior probability
-            max_prob_index <- which.max(labels_neuron$prior_prob)
-            prob_max <- labels_neuron[max_prob_index, ]$prior_prob
+            max_prob_index <- which.max(labels_neuron[["prior_prob"]])
+            prob_max <- labels_neuron[max_prob_index, ][["prior_prob"]]
             # How many elements there are with the maximumn value?
-            number_of_label_max <- which(labels_neuron$prior_prob == prob_max)
-            label_max_final <- which.max(labels_neuron$prior_prob)
+            number_of_label_max <- which(
+                labels_neuron[["prior_prob"]] == prob_max
+            )
+            label_max_final <- which.max(labels_neuron[["prior_prob"]])
             # if more than one sample has been mapped AND their max are the
             # same, then a posteriori probability is considered
             if (length(number_of_label_max) > 1) {
                 # Get the maximum posterior among the tied classes
-                max_post <- max(labels_neuron[number_of_label_max, ]$post_prob)
-
+                max_post <- max(
+                    labels_neuron[number_of_label_max, ][["post_prob"]]
+                )
                 # Where are the duplicated values?
-                label_max_post <- which(labels_neuron$post_prob == max_post)
-
+                label_max_post <- which(
+                    labels_neuron[["post_prob"]] == max_post
+                )
                 # Is this value are in the maximum vector of the prior
                 # probability?
                 index_prior_max <-
-                    which(label_max_post %in% number_of_label_max == TRUE)
+                    which(label_max_post %in% number_of_label_max)
                 label_max_final <- label_max_post[index_prior_max]
             } else {
-                label_max_final <- which.max(labels_neuron$prior_prob)
+                label_max_final <- which.max(labels_neuron[["prior_prob"]])
             }
-            return(labels_neuron[label_max_final, ]$label_samples)
+            return(labels_neuron[label_max_final, ][["label_samples"]])
         })
     labels_max <- unlist(lab_max)
     # prepare a color assignment to the SOM map
-    kohonen_obj$neuron_label <- labels_max
+    kohonen_obj[["neuron_label"]] <- labels_max
     # only paint neurons if number of labels is greater than one
     if (length(unique(labels_max)) > 1) {
         kohonen_obj <- .som_paint_neurons(kohonen_obj)
@@ -233,27 +243,23 @@ sits_som_clean_samples <- function(som_map,
     # set caller to show in errors
     .check_set_caller("sits_som_clean_samples")
     # Sanity check
-    if (!inherits(som_map, "som_map")) {
-        stop("wrong input data; please run sits_som_map first")
-    }
+    .check_that(inherits(som_map, "som_map"))
     .check_chr_within(
         x = keep,
         within = .conf("som_outcomes"),
-        msg = "invalid keep parameter"
+        msg = .conf("messages", "sits_som_clean_samples_keep")
     )
     # function to detect of class noise
     .detect_class_noise <- function(prior_prob, post_prob) {
-        ifelse(
-            prior_prob >= prior_threshold &
-                post_prob >= posterior_threshold, "clean",
-            ifelse(
-                prior_prob >= prior_threshold &
-                    post_prob < posterior_threshold, "analyze", "remove"
+        ifelse(prior_prob >= prior_threshold &
+            post_prob >= posterior_threshold, "clean",
+            ifelse(prior_prob >= prior_threshold &
+                 post_prob < posterior_threshold, "analyze", "remove"
             )
         )
     }
     # extract tibble from SOM map
-    data <- som_map$data |>
+    data <- som_map[["data"]] |>
         dplyr::select(
             "longitude",
             "latitude",
@@ -265,8 +271,8 @@ sits_som_clean_samples <- function(som_map,
             "id_sample",
             "id_neuron"
         ) |>
-        dplyr::inner_join(som_map$labelled_neurons,
-            by = c("id_neuron", "label" = "label_samples")
+        dplyr::inner_join(som_map[["labelled_neurons"]],
+            by = c("id_neuron", label = "label_samples")
         ) |>
         dplyr::mutate(
             eval = .detect_class_noise(
@@ -306,19 +312,18 @@ sits_som_clean_samples <- function(som_map,
 #' }
 #' @export
 sits_som_evaluate_cluster <- function(som_map) {
+    .check_set_caller("sits_som_evaluate_cluster")
     # Sanity check
-    if (!inherits(som_map, "som_map")) {
-        stop("wrong input data; please run sits_som_map first")
-    }
+    .check_that(inherits(som_map, "som_map"))
     # Get neuron labels
-    neuron_label <- som_map$som_properties$neuron_label
+    neuron_label <- som_map[["som_properties"]][["neuron_label"]]
     id_neuron_label_tb <- tibble::tibble(
         id_neuron = seq_along(neuron_label),
         neuron_label = neuron_label
     )
     # Aggregate in the sample dataset the label of each neuron
-    data <- som_map$data |>
-        dplyr::inner_join(id_neuron_label_tb, by = c("id_neuron"))
+    data <- som_map[["data"]] |>
+        dplyr::inner_join(id_neuron_label_tb, by = "id_neuron")
     # Get only id, label and neuron_label
     temp_data <- unique(dplyr::select(
         data,
@@ -328,14 +333,14 @@ sits_som_evaluate_cluster <- function(som_map) {
     ))
     # get confusion matrix
     confusion_matrix <- stats::addmargins(table(
-        temp_data$label,
-        temp_data$neuron_label
+        temp_data[["label"]],
+        temp_data[["neuron_label"]]
     ))
     # get dimensions (rows and col)
     # rows are  original classes of samples
-    dim_row <- dim(confusion_matrix)[1]
+    dim_row <- dim(confusion_matrix)[[1]]
     #  cols are  clusters
-    dim_col <- dim(confusion_matrix)[2]
+    dim_col <- dim(confusion_matrix)[[2]]
     # estimate the purity index per cluster
     cluster_purity_lst <- seq_len(dim_col - 1) |>
         purrr::map(function(d) {

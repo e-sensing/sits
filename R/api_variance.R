@@ -170,7 +170,7 @@
 .variance_fn <- function(window_size,
                          neigh_fraction) {
     # Check window size
-    .check_window_size(window_size)
+    .check_int_parameter(window_size, min = 3, is_odd = TRUE)
     # Create a window
     window <- matrix(1, nrow = window_size, ncol = window_size)
     # Define smooth function

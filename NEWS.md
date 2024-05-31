@@ -1,12 +1,25 @@
 # SITS Release History
 
 # What's new in SITS version 1.5
+
+### Hotfix version 1.5.0-1
+* Add multicores processing support for active learning sampling methods
+* Remove tapply from `.reg_cube_split_assets()` for R 4.X compatibility
+* Fix `sits_merge()` function that was not merging `SAR` and `OPTICAL` cubes
+* Rename n_input_pixels back to input_pixels for compatibility with models trained in old versions of the package
+* Fix torch usage in Apple M3 by turning off MPS technology
+* Fix date parameter usage in `sits_view()`
+* Improve `plot()` performance using raster overviews
+* Include support for PLANET Mosaic product
+
 ### New features in SITS version 1.5.0
-* Improved support for GPU-based classification of deep learning models
+* Support for SENTINEL-1-RTC and SENTINEL-2-L2A in CDSE
+* Include support for DEA products SENTINEL-1-RTC, LS5-SR, LS7-SR, LS9-SR, ALOS-PALSAR-MOSAIC, NDVI ANOMALY, DAILY CHIRPS, MONTHLY CHIRPS and DEM-30
 * Support for Sentinel-1 GRD and RTC collections from Planetary Computer
 * Include parameter tile to select data from Sentinel-1 (MPC) 
-* Include parameter tile to select data from Sentinel-2 (DEAFRICA)
+* Include parameter tile to select data from Sentinel-1 and Sentinel-2 (DEAFRICA)
 * Include parameter tile to select data from HLS collections
+* Improved support for GPU-based classification of deep learning models
 * Support for non-normalized derived indexes
 * Support for shapefiles as ROI in `sits_cube()`
 * Fix inconsistencies in HLS scale factors

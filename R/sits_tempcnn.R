@@ -59,7 +59,8 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a TempCNN model
-#'     torch_model <- sits_train(samples_modis_ndvi, sits_tempcnn())
+#'     torch_model <- sits_train(samples_modis_ndvi,
+#'                sits_tempcnn(verbose = TRUE))
 #'     # plot the model
 #'     plot(torch_model)
 #'     # create a data cube from local files
@@ -109,6 +110,8 @@ sits_tempcnn <- function(samples = NULL,
                          patience = 20,
                          min_delta = 0.01,
                          verbose = FALSE) {
+    # set caller for error msg
+    .check_set_caller("sits_tempcnn")
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # Avoid add a global variable for 'self'
@@ -117,36 +120,35 @@ sits_tempcnn <- function(samples = NULL,
         .check_require_packages(c("torch", "luz"))
         # Pre-conditions:
         .check_samples_train(samples)
-        .check_int_parameter(param = cnn_layers, len_max = 2^31 - 1)
-        .check_int_parameter(
-            param = cnn_kernels, len_min = length(cnn_layers),
-            len_max = length(cnn_layers)
+        .check_int_parameter(cnn_layers, len_max = 2^31 - 1)
+        .check_int_parameter(cnn_kernels,
+                             len_min = length(cnn_layers),
+                             len_max = length(cnn_layers)
         )
-        .check_num_parameter(
-            param = cnn_dropout_rates, min = 0, max = 1,
+        .check_num_parameter(cnn_dropout_rates, min = 0, max = 1,
             len_min = length(cnn_layers), len_max = length(cnn_layers)
         )
-        .check_int_parameter(param = dense_layer_nodes, len_max = 1)
-        .check_num_parameter(
-            param = dense_layer_dropout_rate, min = 0, max = 1, len_max = 1
+        .check_int_parameter(dense_layer_nodes, len_max = 1)
+        .check_num_parameter(dense_layer_dropout_rate,
+                             min = 0, max = 1, len_max = 1
         )
         .check_int_parameter(epochs)
         .check_int_parameter(batch_size)
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
-            .check_num_parameter(
-                param = validation_split, exclusive_min = 0, max = 0.5
-            )
+            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
         }
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
         if (!is.null(opt_hparams)) {
-            .check_lst(opt_hparams, msg = "invalid 'opt_hparams' parameter")
+            .check_lst_parameter(opt_hparams,
+                msg = .conf("messages", ".check_opt_hparams")
+            )
             .check_chr_within(
                 x = names(opt_hparams),
                 within = names(optim_params_function),
-                msg = "invalid hyperparameters provided in optimizer"
+                msg = .conf("messages", ".check_opt_hparams")
             )
             optim_params_function <- utils::modifyList(
                 x = optim_params_function, val = opt_hparams
@@ -154,10 +156,10 @@ sits_tempcnn <- function(samples = NULL,
         }
         # Other pre-conditions:
         .check_int_parameter(lr_decay_epochs)
-        .check_num_parameter(param = lr_decay_rate, exclusive_min = 0, max = 1)
+        .check_num_parameter(lr_decay_rate, exclusive_min = 0, max = 1)
         .check_int_parameter(patience)
-        .check_num_parameter(param = min_delta, min = 0)
-        .check_lgl(verbose)
+        .check_num_parameter(min_delta, min = 0)
+        .check_lgl_parameter(verbose)
         # Samples labels
         labels <- .samples_labels(samples)
         # Samples bands
@@ -195,7 +197,8 @@ sits_tempcnn <- function(samples = NULL,
                 pred = train_samples, frac = validation_split
             )
             # Remove the lines used for validation
-            sel <- !train_samples$sample_id %in% test_samples$sample_id
+            sel <- !train_samples[["sample_id"]] %in%
+                test_samples[["sample_id"]]
             train_samples <- train_samples[sel, ]
         }
         n_samples_train <- nrow(train_samples)
@@ -236,32 +239,32 @@ sits_tempcnn <- function(samples = NULL,
                 # first module - transform input to hidden dims
                 self$conv_bn_relu1 <- .torch_conv1D_batch_norm_relu_dropout(
                     input_dim    = n_bands,
-                    output_dim   = hidden_dims[1],
-                    kernel_size  = kernel_sizes[1],
+                    output_dim   = hidden_dims[[1]],
+                    kernel_size  = kernel_sizes[[1]],
                     padding      = as.integer(kernel_sizes[[1]] %/% 2),
-                    dropout_rate = dropout_rates[1]
+                    dropout_rate = dropout_rates[[1]]
                 )
                 # second module - 1D CNN
                 self$conv_bn_relu2 <- .torch_conv1D_batch_norm_relu_dropout(
-                    input_dim    = hidden_dims[1],
-                    output_dim   = hidden_dims[2],
-                    kernel_size  = kernel_sizes[2],
+                    input_dim    = hidden_dims[[1]],
+                    output_dim   = hidden_dims[[2]],
+                    kernel_size  = kernel_sizes[[2]],
                     padding      = as.integer(kernel_sizes[[2]] %/% 2),
-                    dropout_rate = dropout_rates[2]
+                    dropout_rate = dropout_rates[[2]]
                 )
                 # third module - 1D CNN
                 self$conv_bn_relu3 <- .torch_conv1D_batch_norm_relu_dropout(
-                    input_dim    = hidden_dims[2],
-                    output_dim   = hidden_dims[3],
-                    kernel_size  = kernel_sizes[3],
+                    input_dim    = hidden_dims[[2]],
+                    output_dim   = hidden_dims[[3]],
+                    kernel_size  = kernel_sizes[[3]],
                     padding      = as.integer(kernel_sizes[[3]] %/% 2),
-                    dropout_rate = dropout_rates[3]
+                    dropout_rate = dropout_rates[[3]]
                 )
                 # flatten 3D tensor to 2D tensor
                 self$flatten <- torch::nn_flatten()
                 # create a dense tensor
                 self$dense <- .torch_linear_batch_norm_relu_dropout(
-                    input_dim    = hidden_dims[3] * n_times,
+                    input_dim    = hidden_dims[[3]] * n_times,
                     output_dim   = dense_layer_nodes,
                     dropout_rate = dense_layer_dropout_rate
                 )
@@ -283,6 +286,11 @@ sits_tempcnn <- function(samples = NULL,
                     self$softmax()
             }
         )
+        # torch 12.0 not working with Apple MPS
+        if (torch::backends_mps_is_available())
+            cpu_train <-  TRUE
+        else
+            cpu_train <-  FALSE
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -321,11 +329,12 @@ sits_tempcnn <- function(samples = NULL,
                         gamma = lr_decay_rate
                     )
                 ),
+                accelerator = luz::accelerator(cpu = cpu_train),
                 dataloader_options = list(batch_size = batch_size),
                 verbose = verbose
             )
         # Serialize model
-        serialized_model <- .torch_serialize_model(torch_model$model)
+        serialized_model <- .torch_serialize_model(torch_model[["model"]])
 
         # Function that predicts labels of input values
         predict_fun <- function(values) {
@@ -335,7 +344,7 @@ sits_tempcnn <- function(samples = NULL,
             # Note: function does not work on MacOS
             suppressWarnings(torch::torch_set_num_threads(1))
             # Unserialize model
-            torch_model$model <- .torch_unserialize_model(serialized_model)
+            torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
             # Used to check values (below)
             input_pixels <- nrow(values)
             # Transform input into a 3D tensor
@@ -354,21 +363,18 @@ sits_tempcnn <- function(samples = NULL,
             if (torch::cuda_is_available()) {
                 values <- .as_dataset(values)
                 # We need to transform in a dataloader to use the batch size
-                values <- torch::dataloader(
+                 values <- torch::dataloader(
                     values, batch_size = 2^15
                 )
                 # Do GPU classification
                 values <- .try(
                     stats::predict(object = torch_model, values),
-                    .msg_error = paste("An error occured while transfering",
-                                       "data to GPU. Please reduce the value of",
-                                       "the `gpu_memory` parameter.")
+                    .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
-            } else{
+            } else {
                 # Do CPU classification
                 values <- stats::predict(object = torch_model, values)
             }
-
             # Convert to tensor cpu to support GPU processing
             values <- torch::as_array(
                 x = torch::torch_tensor(values, device = "cpu")

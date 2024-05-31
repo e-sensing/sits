@@ -41,9 +41,9 @@
 #' list. Default is TRUE.
 #' @param regex         A \code{character} value with regular expression to be
 #' evaluated against data.
-#' @param min_len       A \code{numeric} indicating the minimum length of vector
+#' @param len_min       A \code{numeric} indicating the minimum length of vector
 #' or list users provides for functions. Default is \code{0}.
-#' @param max_len       A \code{numeric} indicating the maximum length of vector
+#' @param len_max     A \code{numeric} indicating the maximum length of vector
 #' or list users provides for functions. Default is \code{2^31}.
 #' @param within        A \code{character} vector indicating a set of elements
 #' from which \code{x} is a kind of subset. The actual behavior is pointed by
@@ -191,25 +191,19 @@
                         local_msg = NULL,
                         msg = NULL) {
     value <- (is.logical(x) && all(x)) || (!is.logical(x) && length(x) > 0)
-
     if (!value) {
         # get caller function name
         caller <- .check_identify_caller()
-
         # format error message
-        if (is.null(msg)) {
-            msg <- sprintf("%s: %%s", caller)
-        } else {
-            msg <- sprintf("%s: %s (%%s)", caller, msg)
-        }
-
-        if (is.null(local_msg)) {
-            expr <- deparse(substitute(expr = x, env = environment()))
-            local_msg <- sprintf("%s is not TRUE", expr)
-        }
-
+        if (is.null(msg))
+            msg <- .conf("messages", caller)
+        # include local message if available
+        if (is.null(local_msg))
+            msg <- paste0(caller, ": ", msg)
+        else
+            msg <- paste0(caller, ": ", local_msg, " - ", msg)
         # process message
-        stop(sprintf(msg, local_msg), call. = FALSE)
+        stop(msg, call. = FALSE)
     }
     return(invisible(x))
 }
@@ -217,12 +211,11 @@
 #' @keywords internal
 #' @noRd
 .check_null <- function(x, ...,
+                        local_msg = NULL,
                         msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
-    .check_that(
-        !is.null(x),
-        local_msg = "value cannot be NULL",
+    # check that value is not NULL
+    .check_that(!is.null(x),
+        local_msg = local_msg,
         msg = msg
     )
     return(invisible(x))
@@ -230,76 +223,47 @@
 #' @rdname check_functions
 #' @keywords internal
 #' @noRd
-.check_na <- function(x, ..., allow_na = FALSE, msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
+.check_na <- function(x, ..., allow_na = FALSE, local_msg = NULL, msg = NULL) {
     if (!allow_na) {
         .check_that(
-            !any(is.na(x)),
-            local_msg = "NA value is not allowed",
+            !anyNA(x),
+            local_msg = local_msg,
             msg = msg
         )
     }
     return(invisible(x))
 }
-#' @rdname check_functions
-#' @keywords internal
-#' @noRd
-.check_valid <- function(x, ...) {
-    # check for NA
-    .check_na(x)
-    # check for NULL
-    .check_null(x)
-    return(invisible(x))
-}
-#' @rdname check_functions
-#' @keywords internal
-#' @noRd
-.check_raster_cube_files <- function(x, ...) {
-    # check for data access
-    robj <- tryCatch(
-        .raster_open_rast(.tile_path(x)),
-        error = function(e) {
-            return(NULL)
-        })
-    # return error if data is not accessible
-    .check_that(.has(robj),
-        msg = "Invalid data cube - missing files"
-    )
-    return(invisible(x))
-}
+
 #' @rdname check_functions
 #' @keywords internal
 #' @noRd
 .check_names <- function(x, ...,
                          is_named = TRUE,
                          is_unique = TRUE,
+                         local_msg = NULL,
                          msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
-
     # cannot test zero length arguments
     if (length(x) == 0) {
         return(invisible(x))
     }
     if (is_named) {
         .check_that(
-            !is.null(names(x)) && !any(is.na(names(x))),
-            local_msg = "value should have names",
-            msg = msg
+            .has(names(x)) && !anyNA(names(x)),
+            local_msg = local_msg,
+            msg = .conf("messages", ".check_names_is_named")
         )
         if (is_unique) {
             .check_that(
                 length(names(x)) == length(unique(names(x))),
-                local_msg = "names should be unique",
-                msg = msg
+                local_msg = local_msg,
+                msg = .conf("messages", ".check_names_unique" )
             )
         }
     } else {
         .check_that(
             is.null(names(x)),
-            local_msg = "value should be unnamed",
-            msg = msg
+            local_msg = local_msg,
+            msg = .conf("messages", ".check_names_is_unnamed")
         )
     }
     return(invisible(x))
@@ -310,38 +274,11 @@
 .check_length <- function(x, ...,
                           len_min = 0,
                           len_max = 2^31 - 1,
+                          local_msg = NULL,
                           msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
-    # pre-condition
-    .check_num_type(
-        len_min,
-        is_integer = TRUE,
-        msg = "invalid 'len_min' parameter"
-    )
-    .check_num_type(
-        len_max,
-        is_integer = TRUE,
-        msg = "invalid 'len_max' parameter"
-    )
-
-    if (len_min == len_max) {
-        .check_that(
-            length(x) == len_min,
-            local_msg = paste0("length should be ", len_min),
-            msg = msg
-        )
-    }
-    # these checks are separate because the messages are different
     .check_that(
-        length(x) >= len_min,
-        local_msg = paste0("length should be >= ", len_min),
-        msg = msg
-    )
-
-    .check_that(
-        length(x) <= len_max,
-        local_msg = paste0("length should be <= ", len_max),
+        length(x) >= len_min && length(x) <= len_max,
+        local_msg = local_msg,
         msg = msg
     )
     return(invisible(x))
@@ -349,25 +286,53 @@
 #' @rdname check_functions
 #' @keywords internal
 #' @noRd
-.check_apply <- function(x, fn_check, ...) {
-    if (!is.function(fn_check)) {
-        stop(".check_apply: fn_check should be a function.", call. = TRUE)
-    }
+.check_apply <- function(x, fn_check, ..., local_msg = NULL, msg = NULL) {
+    .check_that(
+        is.function(fn_check),
+        local_msg = local_msg,
+        msg = msg
+    )
     # check all elements
     lapply(x, fn_check, ...)
     return(invisible(x))
 }
 #' @rdname check_functions
 #'
+#' @description
+#' Internal check functions. These functions are used internally
+#' to check if the parameters passed by other check functions are valid.
+#'
+#' \itemize{
+#' \item{
+#' \code{.check_lgl_type()} checks for \code{logical} values.
+#' }
+#' \item{
+#' \code{.check_num_type()} checks for \code{numeric} values and its range (if
+#' either \code{min}, \code{max}, \code{exclusive_min}, or \code{exclusive_max}
+#' parameters are defined). It also checks \code{integer} values
+#' (if \code{is_integer=TRUE}).
+#' }
+#' \item{
+#' \code{.check_chr_type()} checks for \code{character} and empty strings (if
+#' \code{allow_empty=FALSE}). It also checks strings through regular
+#' expression (if \code{regex} parameter is defined).
+#' }
+#' \item{
+#' \code{.check_lst_type()} checks for \code{list} type. By default, checks if
+#' the list is named. Additionally, a function can be passed to
+#' \code{fn_check} parameter to check its elements. This enables to pass
+#' other checking functions like \code{.check_num()} to verify the type of
+#' its elements. In this case, extra parameters can be passed by \code{...}.
+#' }
+#' }
 #' @keywords internal
 #' @noRd
 .check_lgl_type <- function(x, ...,
+                            local_msg = NULL,
                             msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
     .check_that(
         is.logical(x),
-        local_msg = "value is not logical",
+        local_msg = local_msg,
         msg = msg
     )
     return(invisible(x))
@@ -377,13 +342,11 @@
 #' @noRd
 .check_num_type <- function(x, ...,
                             is_integer = FALSE,
+                            local_msg = NULL,
                             msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
-
     .check_that(
         is.numeric(x),
-        local_msg = "value is not a number",
+        local_msg = local_msg,
         msg = msg
     )
     # test integer
@@ -394,7 +357,7 @@
         }
         .check_that(
             is.numeric(x) && all(x == suppressWarnings(as.integer(x))),
-            local_msg = "value is not integer",
+            local_msg = local_msg,
             msg = msg
         )
     }
@@ -404,12 +367,11 @@
 #' @keywords internal
 #' @noRd
 .check_chr_type <- function(x, ...,
+                            local_msg = NULL,
                             msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
     .check_that(
         is.character(x),
-        local_msg = "value is not character type",
+        local_msg = local_msg,
         msg = msg
     )
     return(invisible(x))
@@ -419,13 +381,11 @@
 #' @keywords internal
 #' @noRd
 .check_lst_type <- function(x, ...,
+                            local_msg = NULL,
                             msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
-
     .check_that(
         is.list(x),
-        local_msg = "value is not a list",
+        local_msg = local_msg,
         msg = msg
     )
     return(invisible(x))
@@ -437,7 +397,7 @@
 #' above in one place. In general, these functions can check for \code{NA}
 #' (if \code{allow_na=FALSE}), for value length (if either \code{len_min}
 #' and \code{len_max} are defined - for \code{list} the parameters are
-#' \code{min_len} and \code{max_len}, respectively), for \code{NULL} value
+#' \code{len_min} and \code{len_max}, respectively), for \code{NULL} value
 #' (if \code{allow_null=FALSE}), and for names (if \code{is_named} is
 #' \code{TRUE} or \code{FALSE}). Depending on specific type, the functions
 #' also check for:
@@ -473,26 +433,26 @@
                        len_max = 2^31 - 1,
                        allow_null = FALSE,
                        is_named = FALSE,
+                       local_msg = NULL,
                        msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
 
     # check for NULL and exit if it is allowed
     if (allow_null && is.null(x)) {
         return(invisible(x))
     }
     # check NULL
-    .check_null(x, msg = msg)
+    .check_null(x, local_msg = local_msg, msg = msg)
     # check type
-    .check_lgl_type(x, msg = msg)
+    .check_lgl_type(x, local_msg = local_msg, msg = msg)
     # check length
-    .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
+    .check_length(x, len_min = len_min, len_max = len_max,
+                  local_msg = local_msg, msg = msg)
     # check NA
     if (!allow_na) {
-        .check_na(x, msg = msg)
+        .check_na(x, local_msg = local_msg, msg = msg)
     }
     # check names
-    .check_names(x, is_named = is_named, msg = msg)
+    .check_names(x, is_named = is_named, local_msg = local_msg, msg = msg)
     return(invisible(x))
 }
 #' @rdname check_functions
@@ -509,25 +469,28 @@
                        allow_null = FALSE,
                        is_integer = FALSE,
                        is_named = FALSE,
+                       is_odd = FALSE,
                        tolerance = 0,
+                       local_msg = NULL,
                        msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
-
     # check for NULL and exit if it is allowed
     if (allow_null && is.null(x)) {
         return(invisible(x))
     }
     # check NULL
-    .check_null(x, msg = msg)
+    .check_null(x, local_msg = local_msg, msg = msg)
     # check type
-    .check_num_type(x, is_integer = is_integer, msg = msg)
+    .check_num_type(x, is_integer = is_integer,
+                    local_msg = local_msg, msg = msg)
     # check length
-    .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
+    .check_length(x, len_min = len_min, len_max = len_max,
+                  local_msg = local_msg, msg = msg)
     # check NA
-    .check_na(x, allow_na = allow_na, msg = msg)
+    .check_na(x, allow_na = allow_na,
+              local_msg = local_msg, msg = msg)
     # check names
-    .check_names(x, is_named = is_named, msg = msg)
+    .check_names(x, is_named = is_named,
+                 local_msg, msg = msg)
     # check range
     .check_num_min_max(
         x = x,
@@ -536,8 +499,12 @@
         exclusive_min = exclusive_min,
         exclusive_max = exclusive_max,
         tolerance = tolerance,
+        local_msg = local_msg,
         msg = msg
     )
+    if (is_odd)
+        .check_that(x %% 2 != 0, msg = msg)
+
     return(invisible(x))
 }
 .check_num_min_max <- function(x, ...,
@@ -546,16 +513,15 @@
                                exclusive_min = -Inf,
                                exclusive_max = Inf,
                                tolerance = 0,
+                               local_msg = NULL,
                                msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
 
     # pre-condition
-    .check_num_type(min, msg = "invalid 'min' parameter")
-    .check_num_type(max, msg = "invalid 'max' parameter")
-    .check_num_type(exclusive_min, msg = "invalid 'exclusive_min' parameter")
-    .check_num_type(exclusive_max, msg = "invalid 'exclusive_max' parameter")
-    .check_num_type(x = tolerance, msg = "invalid 'tolerance' parameter")
+    .check_num_type(min, local_msg = local_msg, msg = msg)
+    .check_num_type(max, local_msg = local_msg, msg = msg)
+    .check_num_type(exclusive_min, local_msg = local_msg, msg = msg)
+    .check_num_type(exclusive_max, local_msg = local_msg, msg = msg)
+    .check_num_type(x = tolerance, local_msg = local_msg, msg = msg)
 
     # remove NAs before check to test tolerance
     result <- x
@@ -571,30 +537,30 @@
     if (min == max) {
         .check_that(
             all(x == min),
-            local_msg = paste0("value should be ", min),
-            msg = msg
+            local_msg = local_msg,
+            msg = paste0("value should be ", min)
         )
     }
     .check_that(
         all(x >= min),
-        local_msg = paste0("value should be >= ", min),
-        msg = msg
+        local_msg = local_msg,
+        msg = paste0("value should be >= ", min)
     )
     .check_that(
         all(x <= max),
-        local_msg = paste0("value should be <= ", max),
-        msg = msg
+        local_msg = local_msg,
+        msg = paste0("value should be <= ", max)
     )
     # exclusive_min and exclusive_max checks
     .check_that(
         all(x > exclusive_min),
-        local_msg = paste0("value should be > ", exclusive_min),
-        msg = msg
+        local_msg = local_msg,
+        msg = paste0("value should be > ", exclusive_min)
     )
     .check_that(
         all(x < exclusive_max),
-        local_msg = paste0("value should be < ", exclusive_max),
-        msg = msg
+        local_msg = local_msg,
+        msg = paste0("value should be < ", exclusive_max)
     )
     return(invisible(result))
 }
@@ -611,36 +577,36 @@
                        is_named = FALSE,
                        has_unique_names = TRUE,
                        regex = NULL,
+                       local_msg = NULL,
                        msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
     # check for null and exit if it is allowed
     if (allow_null && is.null(x)) {
         return(invisible(x))
     }
     # check NULL
-    .check_null(x, msg = msg)
+    .check_null(x, local_msg = local_msg, msg = msg)
     # check type
-    .check_chr_type(x, msg = msg)
+    .check_chr_type(x, local_msg = local_msg, msg = msg)
     # check length
-    .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
+    .check_length(x, len_min = len_min, len_max = len_max,
+                  local_msg = local_msg, msg = msg)
     # check NA
     if (!allow_na) {
-        .check_na(x, msg = msg)
+        .check_na(x, local_msg = local_msg, msg = msg)
     }
     # check empty
     if (!allow_empty) {
         .check_that(
             all(nchar(x[!is.na(x)]) > 0),
-            local_msg = "empty value is not allowed",
+            local_msg = local_msg,
             msg = msg
         )
     }
     # check duplicate
     if (!allow_duplicate) {
         .check_that(
-            all(!duplicated(x)),
-            local_msg = "values must be unique",
+            anyDuplicated(x) == 0,
+            local_msg = local_msg,
             msg = msg
         )
     }
@@ -648,13 +614,14 @@
     .check_names(x,
                  is_named = is_named,
                  is_unique = has_unique_names,
+                 local_msg = local_msg,
                  msg = msg
     )
     # check regular expression pattern
     if (!is.null(regex)) {
         .check_that(
             all(grepl(pattern = regex, x = x)),
-            local_msg = "value did not match pattern",
+            local_msg = local_msg,
             msg = msg
         )
     }
@@ -664,32 +631,57 @@
 #' @keywords internal
 #' @noRd
 .check_lst <- function(x, ...,
-                       min_len = 0,
-                       max_len = 2^31 - 1,
+                       len_min = 0,
+                       len_max = 2^31 - 1,
                        allow_null = FALSE,
                        is_named = TRUE,
                        fn_check = NULL,
+                       local_msg = NULL,
                        msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
 
     # check for null and exit if it is allowed
     if (allow_null && is.null(x)) {
         return(invisible(x))
     }
     # check NULL
-    .check_null(x, msg = msg)
+    .check_null(x, local_msg = local_msg, msg = msg)
     # check type
-    .check_lst_type(x, msg = msg)
+    .check_lst_type(x, local_msg = local_msg, msg = msg)
     # check length
-    .check_length(x, len_min = min_len, len_max = max_len, msg = msg)
+    .check_length(x, len_min = len_min, len_max = len_max,
+                  local_msg = local_msg, msg = msg)
     # check names
-    .check_names(x, is_named = is_named, msg = msg)
+    .check_names(x, is_named = is_named, local_msg = local_msg, msg = msg)
     # check using function
     if (!is.null(fn_check)) {
-        .check_apply(x, fn_check = fn_check, msg = msg, ...)
+        .check_apply(x, fn_check = fn_check,
+                     local_msg = local_msg, msg = msg, ...)
     }
     return(invisible(x))
+}
+#' @title Prepare default message for invalid parameter
+#' @name .check_param_message
+#' @param param  parameter name
+#' @param msg    message to be issued
+#' @return A valid message
+#' @keywords internal
+#' @noRd
+.check_param_message <- function(param) {
+    # make default message
+    msg <- paste0("invalid ", param, " parameter")
+    return(msg)
+}
+#' @title Prepare default message for variable
+#' @name .check_var_message
+#' @param var  parameter name
+#' @param msg    message to be issued
+#' @return A valid message
+#' @keywords internal
+#' @noRd
+.check_var_message <- function(var) {
+    # make default message
+    msg <- paste0("invalid ", var, " variable")
+    return(msg)
 }
 #' @rdname check_functions
 #'
@@ -738,23 +730,31 @@
                               discriminator = "all_of",
                               can_repeat = TRUE,
                               msg = NULL) {
+    # check parameter name
+    param_x <- deparse(substitute(x, environment()))
     # make default message
-    msg <- .check_default_message(x, msg)
+    local_msg_x <- .check_var_message(param_x)
+
+    # check within name
+    param_w <- deparse(substitute(within, environment()))
+    # make default message
+    local_msg_w <- .check_var_message(param_w)
 
     # pre-condition
     .check_chr(within,
                len_min = 1,
-               msg = "invalid 'within' parameter"
+               local_msg = local_msg_w,
+               msg = msg
     )
     # check parameters
     .check_discriminator(discriminator)
     # check type
-    .check_chr_type(x, msg = msg)
+    .check_chr_type(x, local_msg = local_msg_x, msg = msg)
     # check for repeated values
     if (!can_repeat) {
         .check_that(
             length(x) == length(unique(x)),
-            local_msg = "values can not repeat",
+            local_msg = local_msg_x,
             msg = msg
         )
     }
@@ -767,37 +767,35 @@
         x <- tolower(x)
         within <- tolower(within)
     }
-    # prepare local message
-    local_msg <- "invalid condition"
     # check discriminator
     if (discriminator == "one_of") {
         .check_that(
             sum(x %in% within) == 1,
-            local_msg = local_msg,
+            local_msg = local_msg_x,
             msg = msg
         )
     } else if (discriminator == "any_of") {
         .check_that(
             any(x %in% within),
-            local_msg = local_msg,
+            local_msg = local_msg_x,
             msg = msg
         )
     } else if (discriminator == "all_of") {
         .check_that(
             all(x %in% within),
-            local_msg = local_msg,
+            local_msg = local_msg_x,
             msg = msg
         )
     } else if (discriminator == "none_of") {
         .check_that(
             !any(x %in% within),
-            local_msg = local_msg,
+            local_msg = local_msg_x,
             msg = msg
         )
     } else if (discriminator == "exactly") {
         .check_that(
             all(x %in% within) && all(within %in% x),
-            local_msg = local_msg,
+            local_msg = local_msg_x,
             msg = msg
         )
     }
@@ -812,22 +810,26 @@
                                 discriminator = "all_of",
                                 can_repeat = TRUE,
                                 msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
+
+    # check parameter name
+    var_x <- deparse(substitute(x, environment()))
+    # make default message for param
+    local_msg_x <- .check_var_message(var_x)
+    # check type
+    .check_chr_type(x, local_msg = local_msg_x)
+    # check contains name
+    var_cont <- deparse(substitute(contains, environment()))
+    # make default message for param
+    local_msg_cont <- .check_var_message(var_cont)
     # pre-condition
-    .check_chr(contains,
-               len_min = 1,
-               msg = "invalid 'contains' parameter"
-    )
+    .check_that(length(contains) >= 1, local_msg = local_msg_cont)
     # check discriminators
     .check_discriminator(discriminator)
-    # check type
-    .check_chr_type(x, msg = msg)
     # check for repeated values
     if (!can_repeat) {
         .check_that(
             length(contains) == length(unique(contains)),
-            local_msg = "values cannot repeat",
+            local_msg = local_msg_cont,
             msg = msg
         )
     }
@@ -840,37 +842,35 @@
         x <- tolower(x)
         contains <- tolower(contains)
     }
-    # prepare local message
-    local_msg <- "invalid discriminator"
     # check discriminator
     if (discriminator == "one_of") {
         .check_that(
             sum(contains %in% x) == 1,
-            local_msg = local_msg,
+            local_msg = local_msg_x,
             msg = msg
         )
     } else if (discriminator == "any_of") {
         .check_that(
             any(contains %in% x),
-            local_msg = local_msg,
+            local_msg = local_msg_x,
             msg = msg
         )
     } else if (discriminator == "all_of") {
         .check_that(
             all(contains %in% x),
-            local_msg = local_msg,
+            local_msg = local_msg_x,
             msg = msg
         )
     } else if (discriminator == "none_of") {
         .check_that(
             !any(contains %in% x),
-            local_msg = local_msg,
+            local_msg = local_msg_x,
             msg = msg
         )
     } else if (discriminator == "exactly") {
         .check_that(
             all(contains %in% x) && all(x %in% contains),
-            local_msg = local_msg,
+            local_msg = local_msg_x,
             msg = msg
         )
     }
@@ -892,9 +892,12 @@
 .check_file <- function(x, ...,
                         extensions = NULL,
                         file_exists = TRUE,
+                        local_msg = NULL,
                         msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
+    # check parameter name
+    var <- deparse(substitute(x, environment()))
+    # make default message for param
+    local_msg <- .check_var_message(var)
 
     # file extension
     ext_file <- function(x) {
@@ -904,37 +907,39 @@
             basename(x)
         )
     }
-    # check parameter
-    .check_chr(x,
-               allow_na = FALSE,
-               allow_empty = FALSE, len_min = 1,
-               allow_null = FALSE, msg = msg
-    )
+    if (is.null(msg))
+        # check parameter
+        .check_chr(x,
+                   allow_na = FALSE,
+                   allow_empty = FALSE,
+                   len_min = 1,
+                   allow_null = FALSE,
+                   local_msg = local_msg,
+                   msg = msg
+        )
     # check extension
     if (!is.null(extensions)) {
-        .check_chr_within(ext_file(x),
-                          within = extensions,
-                          case_sensitive = FALSE,
-                          msg = "invalid file extension"
-        )
+        extension <- ext_file(x)
+        .check_that(extension %in% extensions,
+                    local_msg = local_msg)
     }
     if (file_exists) {
         existing_files <- file.exists(x)
         existing_dirs <- dir.exists(x)
         .check_that(
             all(existing_files | existing_dirs),
-            local_msg = paste(
-                "file does not exist:",
+            local_msg = local_msg,
+            msg = paste(.conf("messages", ".check_file_missing"),
                 paste0("'", x[!existing_files], "'",
                        collapse = ", "
                 )
-            ),
-            msg = msg
+            )
         )
     } else {
         .check_that(
             x = suppressWarnings(file.create(x)),
-            msg = "file is not writable"
+            local_msg = local_msg,
+            msg = .conf("messages", ".check_file_writable")
         )
     }
     return(invisible(x))
@@ -948,28 +953,14 @@
 #' @noRd
 #' @return Called for side effects.
 .check_env_var <- function(x, ...,
+                           local_msg = NULL,
                            msg = NULL) {
-    # make default message
-    msg <- .check_default_message(x, msg)
-
-    .check_null(x, msg = msg)
-    .check_chr_type(x, msg = msg)
-    if (length(x) > 0) {
-        .check_apply(
-            x,
-            fn_check = function(x) {
-                .check_that(
-                    x = nzchar(Sys.getenv(x)),
-                    msg = paste(
-                        sprintf("%s: ", x),
-                        msg
-                    )
-                )
-            }
-        )
-    } else {
-        .check_that(x = nzchar(Sys.getenv(x)), msg = msg)
-    }
+    # check parameter name
+    var <- deparse(substitute(x, environment()))
+    # make default message for param
+    local_msg <- .check_var_message(var)
+    # check env var exists
+    .check_that(nchar(Sys.getenv(x)) > 0, local_msg = local_msg)
     return(invisible(x))
 }
 #' @title Check warning
@@ -987,7 +978,7 @@
             expr
         },
         error = function(e) {
-            warning(e$message, call. = FALSE)
+            warning(e[["message"]], call. = FALSE)
         }
     )
     return(invisible(result))
@@ -1011,10 +1002,53 @@
             expr
         },
         error = function(e) {
-            .check_that(FALSE, local_msg = e$message, msg = msg)
+            .check_that(FALSE, local_msg = e[["message"]], msg = msg)
         }
     )
     return(invisible(result))
+}
+#' @rdname check_functions
+#' @keywords internal
+#' @noRd
+.check_na_null_parameter <- function(x, ...) {
+    # check for NA
+    .check_na_parameter(x)
+    # check for NULL
+    .check_null_parameter(x)
+    return(invisible(x))
+}
+#' @rdname check_functions
+#' @name .check_null_parameter
+#' @param  x   parameter to be checked
+#' @keywords internal
+#' @noRd
+.check_null_parameter <- function(x, ...,
+                        msg = NULL) {
+    # check parameter name
+    param <- deparse(substitute(x, environment()))
+    local_msg <- paste("NULL value not allowed for", param)
+    # check that value is not NULL
+    .check_that(!is.null(x),
+                local_msg = local_msg,
+                msg = msg
+    )
+    return(invisible(x))
+}
+#' @rdname check_functions
+#' @keywords internal
+#' @noRd
+.check_na_parameter <- function(x, ..., allow_na = FALSE, msg = NULL) {
+    # check parameter name
+    param <- deparse(substitute(x, environment()))
+    local_msg <- paste("NA value not allowed for", param)
+    if (!allow_na) {
+        .check_that(
+            !anyNA(x),
+            local_msg = local_msg,
+            msg = msg
+        )
+    }
+    return(invisible(x))
 }
 #' @title Check is numerical parameter is valid using reasonable defaults
 #' @name .check_num_parameter
@@ -1030,13 +1064,22 @@
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_num_parameter <- function(param, min = -Inf, max = Inf,
-                                 len_min = 1, len_max = 1,
+.check_num_parameter <- function(x,
+                                 min = -Inf,
+                                 max = Inf,
+                                 len_min = 1,
+                                 len_max = 1,
                                  allow_na = FALSE,
-                                 exclusive_min = -Inf, tolerance = 0,
+                                 allow_null = FALSE,
+                                 is_named = FALSE,
+                                 exclusive_min = -Inf,
+                                 tolerance = 0,
                                  msg = NULL) {
+    # check parameter name
+    param <- deparse(substitute(x, environment()))
+    local_msg <- .check_param_message(param)
     .check_num(
-        x = param,
+        x,
         allow_na = allow_na,
         min = min,
         max = max,
@@ -1044,9 +1087,11 @@
         len_max = len_max,
         exclusive_min = exclusive_min,
         tolerance = tolerance,
+        is_named = is_named,
+        local_msg = local_msg,
         msg = msg
     )
-    return(invisible(param))
+    return(invisible(x))
 }
 #' @title Check is logical parameter is valid
 #' @name .check_lgl_parameter
@@ -1060,43 +1105,47 @@
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_lgl_parameter <- function(param, len_min = 1, len_max = 1,
+.check_lgl_parameter <- function(x,
+                                 len_min = 1, len_max = 1,
                                  allow_na = FALSE, allow_null = FALSE,
                                  is_named = FALSE,
                                  msg = NULL) {
+    # check parameter name
+    param <- deparse(substitute(x, environment()))
+    # make default message
+    local_msg <- .check_param_message(param)
     .check_lgl(
-        x = param,
+        x,
         len_min = len_min,
         len_max = len_max,
         allow_na = allow_na,
         allow_null = allow_null,
         is_named = is_named,
+        local_msg = local_msg,
         msg = msg
     )
-    return(invisible(param))
+    return(invisible(x))
 }
 #' @title Check is date is valid
 #' @name .check_date_parameter
-#' @param  param   parameter to be checked
+#' @param  x   parameter to be checked
 #' @param  len_min minimum length of vector
 #' @param  len_max maximum length of vector
 #' @param  allow_null allow NULL?
 #' @param  msg Error message
 #' @return Called for side effects.
 #' @keywords internal
-.check_date_parameter <- function(param, len_min = 1, len_max = 1,
-                                  allow_null = FALSE, msg = NULL) {
+.check_date_parameter <- function(x,
+                                  len_min = 1,
+                                  len_max = 1,
+                                  allow_null = FALSE,
+                                  msg = NULL) {
+    .check_set_caller(".check_date_parameter")
     # Standard regexp of RFC 3339
     pattern_rfc <- "^\\d{4}-\\d{2}-\\d{2}$"
-    .check_that(
-        x = all(grepl(pattern_rfc, param, perl = TRUE)),
-        msg = "invalid date format",
-        local_msg = paste(
-            "'start_date' and 'end_date' should follow",
-            "year-month-day format: YYYY-MM-DD"
-        )
-    )
-    return(invisible(param))
+    # check dates are valid
+    .check_that(all(grepl(pattern_rfc, x, perl = TRUE)))
+    return(invisible(x))
 }
 #' @title Check is integer parameter is valid using reasonable defaults
 #' @name .check_int_parameter
@@ -1105,16 +1154,22 @@
 #' @param  max maximum value
 #' @param  len_min minimum length of vector
 #' @param  len_max maximum length of vector
+#' @param  is_odd  is the value an odd one?
 #' @param  allow_null  Allow NULL value?
 #' @param  msg Error message
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_int_parameter <- function(param, min = 1, max = 2^31 - 1,
-                                 len_min = 1, len_max = 1,
+.check_int_parameter <- function(x, min = -2^31 + 1, max = 2^31 - 1,
+                                 len_min = 1, len_max = 2^31 - 1,
+                                 is_odd = FALSE, is_named = FALSE,
                                  allow_null = FALSE, msg = NULL) {
+    # check parameter name
+    param <- deparse(substitute(x, environment()))
+    # make default message
+    local_msg <- .check_param_message(param)
     .check_num(
-        x = param,
+        x,
         allow_na = FALSE,
         allow_null = allow_null,
         min = min,
@@ -1122,115 +1177,97 @@
         len_min = len_min,
         len_max = len_max,
         is_integer = TRUE,
+        is_named = is_named,
+        is_odd = is_odd,
+        local_msg = local_msg,
         msg = msg
     )
-    return(invisible(param))
+    return(invisible(x))
 }
 #' @title Check is integer parameter is valid using reasonable defaults
 #' @name .check_chr_parameter
 #' @param  x   parameter to be checked
+#' @param  allow_na allow NA parameter?
 #' @param  allow_null allow null parameter?
+#' @param  allow_empty allow empty parameter?
+#' @param  allow_duplicate allow duplicate parameter?
 #' @param  len_min minimum length of vector
 #' @param  len_max maximum length of vector
+#' @param  regex  regular expression to be tested
 #' @param  msg message error
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_chr_parameter <- function(param, len_min = 1, len_max = 1,
-                                 allow_null = FALSE, msg = NULL) {
+.check_chr_parameter <- function(x,
+                                 len_min = 1,
+                                 len_max =  2^31 - 1,
+                                 allow_na = FALSE,
+                                 allow_empty = FALSE,
+                                 allow_null = FALSE,
+                                 allow_duplicate = TRUE,
+                                 regex = NULL,
+                                 msg = NULL) {
+    # check parameter name
+    param <- deparse(substitute(x, environment()))
+    # make default message
+    local_msg <- .check_param_message(param)
     .check_chr(
-        param,
+        x,
         len_min = len_min,
         len_max = len_max,
         allow_null = allow_null,
-        allow_na = FALSE,
-        allow_empty = FALSE,
+        allow_na = allow_na,
+        allow_empty = allow_empty,
+        regex = regex,
+        local_msg = local_msg,
         msg = msg
     )
-    return(invisible(param))
+    return(invisible(x))
 }
-#' @title Check is window size is valid using reasonable defaults
-#' @name .check_window_size
-#' @param  window_size   size of the local window
-#' @param  min minimum value
-#' @param  max maximum value
-#' @return Called for side effects.
+#' @rdname check_functions
 #' @keywords internal
 #' @noRd
-.check_window_size <- function(window_size, min = 1, max = 2^32 - 1) {
-    .check_int_parameter(window_size, min = min, max = max)
-    .check_that(
-        x = window_size %% 2 != 0,
-        msg = "window_size must be an odd number"
-    )
-    return(invisible(window_size))
+.check_lst_parameter <- function(x, ...,
+                       len_min = 1,
+                       len_max = 2^31 - 1,
+                       allow_null = FALSE,
+                       is_named = TRUE,
+                       fn_check = NULL,
+                       msg = NULL) {
+    # check parameter name
+    param <- deparse(substitute(x, environment()))
+    # make default message
+    local_msg <- .check_param_message(param)
+
+    # check for null and exit if it is allowed
+    if (allow_null && is.null(x)) {
+        return(invisible(x))
+    }
+    # check NULL
+    .check_null(x, local_msg = local_msg, msg = msg)
+    # check type
+    .check_lst_type(x, msg = msg)
+    # check length
+    .check_length(x, len_min = len_min, len_max = len_max,
+                  local_msg = local_msg, msg = msg)
+    # check names
+    .check_names(x, is_named = is_named,
+                 local_msg = local_msg, msg = msg)
+    # check using function
+    if (!is.null(fn_check)) {
+        .check_apply(x, fn_check = fn_check,
+                     local_msg = local_msg,   msg = msg, ...)
+    }
+    return(invisible(x))
 }
-#' @title Check is multicores parameter is valid using reasonable defaults
-#' @name .check_multicores
-#' @param  multicores   number of cores to be used
-#' @param  min minimum value
-#' @param  max maximum value
-#' @return Called for side effects.
-#' @keywords internal
+#' @title Check is period parameter is valid
+#' @name .check_period
+#' @describeIn Check if a character string is a valid \code{period}.
+#' @returns called for side effects
 #' @noRd
-.check_multicores <- function(multicores, min, max) {
-    .check_num(
-        x = multicores,
-        min = min,
-        max = max,
-        len_min = 1,
-        len_max = 1,
-        allow_na   = FALSE,
-        allow_null = FALSE,
-        is_integer = TRUE,
-        msg = "invalid 'multicores' parameter"
-    )
-    return(invisible(multicores))
-}
-#' @title Check is memsize parameter is valid using reasonable defaults
-#' @name .check_memsize
-#' @param  memsize  size of memory in GB
-#' @param  min minimum value
-#' @param  max maximum value
-#' @return Called for side effects.
-#' @keywords internal
-#' @noRd
-.check_memsize <- function(memsize, min, max) {
-    # precondition - memory
-    .check_num(
-        x = memsize,
-        min = min,
-        max = max,
-        len_min = 1,
-        len_max = 1,
-        allow_na   = FALSE,
-        allow_null = FALSE,
-        is_integer = TRUE,
-        msg = "invalid 'memsize' parameter"
-    )
-    return(invisible(memsize))
-}
-#' @title Check is output_dir parameter is valid using reasonable defaults
-#' @name .check_output_dir
-#' @param  output_dir  name of output directory
-#' @return Called for side effects.
-#' @keywords internal
-#' @noRd
-.check_output_dir <- function(output_dir) {
-    .check_chr(
-        x = output_dir,
-        allow_na = FALSE,
-        allow_null = FALSE,
-        allow_empty = FALSE,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid output_dir"
-    )
-    .check_file(
-        x = .file_normalize(output_dir),
-        msg = "invalid output dir"
-    )
-    return(invisible(output_dir))
+.check_period <- function(period) {
+    .check_set_caller(".check_period")
+    .check_that(grepl("^P[0-9]+[DMY]$", period))
 }
 #' @title Check is crs parameter is valid
 #' @name .check_crs
@@ -1239,13 +1276,30 @@
 #' @keywords internal
 #' @noRd
 .check_crs <- function(crs) {
+    .check_set_caller(".check_crs")
     crs <- suppressWarnings(.try(sf::st_crs(crs), .default = NA))
-    .check_that(
-        x = !is.na(crs),
-        local_msg = "the 'crs' must be a valid character or numeric value.",
-        msg = "invalid 'crs' parameter."
-    )
+    .check_that(!is.na(crs))
     return(invisible(crs))
+}
+#' @title Check is output_dir parameter is valid using reasonable defaults
+#' @name .check_output_dir
+#' @param  output_dir  name of output directory
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_output_dir <- function(output_dir) {
+    .check_set_caller(".check_output_dir")
+    .check_chr(
+        x = output_dir,
+        allow_na = FALSE,
+        allow_null = FALSE,
+        allow_empty = FALSE,
+        len_min = 1,
+        len_max = 1
+    )
+    output_dir <- .file_normalize(output_dir)
+    .check_file(output_dir)
+    return(invisible(output_dir))
 }
 #' @title Check is version parameter is valid using reasonable defaults
 #' @name .check_version
@@ -1254,17 +1308,17 @@
 #' @param  version  character vector
 #' @return version adjusted to remove underscores
 .check_version <- function(version) {
+    .check_set_caller(".check_version")
     .check_chr(
         x = version,
         allow_na = FALSE,
         allow_null = FALSE,
         allow_empty = FALSE,
         len_min = 1,
-        len_max = 1,
-        msg = "invalid version"
+        len_max = 1
     )
     # avoids use of underscores
-    version <- gsub("_", "-", version)
+    version <- tolower(gsub("_", "-", version))
     return(version)
 }
 #' @title Check is version parameter is valid using reasonable defaults
@@ -1274,13 +1328,13 @@
 #' @param  progress TRUE/FALSE
 #' @return Called for side effects.
 .check_progress <- function(progress) {
+    .check_set_caller(".check_progress")
     .check_lgl(
         x = progress,
         len_min = 1,
         len_max = 1,
         allow_na = FALSE,
-        allow_null = FALSE,
-        msg = "invalid progress"
+        allow_null = FALSE
     )
     return(invisible(progress))
 }
@@ -1291,7 +1345,7 @@
 #' @param fn a function parameter
 #' @return Called for side effects.
 .check_function <- function(fn) {
-    .check_that(x = is.function(fn), msg = "invalid function pameter")
+    .check_that(x = is.function(fn))
     return(invisible(fn))
 }
 #' @title Check is expression parameter is valid using reasonable defaults
@@ -1302,12 +1356,12 @@
 #' @noRd
 .check_expression <- function(list_expr) {
     .check_lst(list_expr,
-               min_len = 1, max_len = 1,
-               msg = "invalid expression value"
+               len_min = 1, len_max = 1,
+               msg = .conf("messages", ".check_expression")
     )
     return(invisible(list_expr))
 }
-#' @title Does the values has same number of pixels than input values?
+#' @title Does the result have the same number of pixels as the input values?
 #' @name .check_processed_values
 #' @param values a matrix of processed values
 #' @param input_pixels number of pixels in input matrix
@@ -1315,14 +1369,22 @@
 #' @keywords internal
 #' @noRd
 .check_processed_values <- function(values, input_pixels) {
+    .check_set_caller(".check_processed_values")
     .check_that(
-        x = .has(nrow(values)) && nrow(values) == input_pixels,
-        msg = paste(
-            "size of processed matrix is different",
-            "from number of input pixels"
-        )
+        !(is.null(nrow(values))) && nrow(values) == input_pixels
     )
     return(invisible(values))
+}
+#' @title Does the result have the same number of labels as the input values?
+#' @name .check_processed_labels
+#' @param values a matrix of processed values
+#' @param n_labels number of labels in input matrix
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_processed_labels <- function(values, n_labels) {
+    .check_set_caller(".check_processed_labels")
+    .check_that(ncol(values) == n_labels)
 }
 #' @title Does the input data contain a set of predicted values?
 #' @name .check_predicted
@@ -1331,15 +1393,14 @@
 #' @keywords internal
 #' @noRd
 .check_predicted <- function(data) {
+    .check_set_caller(".check_predicted")
     .check_chr_contains(
         x = names(data),
-        contains = "predicted",
-        msg = "input data without predicted values"
+        contains = "predicted"
     )
     .check_chr_within(
         x = .conf("ts_predicted_cols"),
-        within = names(data$predicted[[1]]),
-        msg = "tibble has not been classified"
+        within = names(data[["predicted"]][[1]])
     )
     return(invisible(data))
 }
@@ -1350,11 +1411,9 @@
 #' @keywords internal
 #' @noRd
 .check_is_raster_cube <- function(cube) {
-    .check_that(
-        x = inherits(cube, "raster_cube"),
-        local_msg = "data should be a raster cube",
-        msg = "invalid cube parameter"
-    )
+    # set caller to show in errors
+    .check_set_caller(".check_is_raster_cube")
+    .check_that(inherits(cube, "raster_cube"))
     return(invisible(cube))
 }
 #' @title Does the input data contain a vector cube?
@@ -1364,11 +1423,9 @@
 #' @keywords internal
 #' @noRd
 .check_is_vector_cube <- function(cube) {
-    .check_that(
-        x = inherits(cube, "vector_cube"),
-        local_msg = "data should be a vector cube",
-        msg = "invalid cube parameter"
-    )
+    # set caller to show in errors
+    .check_set_caller(".check_is_vector_cube")
+    .check_that(inherits(cube, "vector_cube"))
     return(invisible(cube))
 }
 
@@ -1378,14 +1435,10 @@
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  cube         input data cube
 .check_is_probs_cube <- function(cube) {
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "cube is not probability cube"
-    )
+    # set caller to show in errors
+    .check_set_caller(".check_is_probs_cube")
+    .check_that(inherits(cube, "probs_cube"))
     return(invisible(cube))
 }
 #' @title Check if cube is a variance cube
@@ -1396,10 +1449,9 @@
 #' @noRd
 #'
 .check_is_variance_cube <- function(cube) {
-    .check_that(
-        x = inherits(cube, "variance_cube"),
-        msg = "cube is not variance cube"
-    )
+    # set caller to show in errors
+    .check_set_caller(".check_is_variance_cube")
+    .check_that(inherits(cube, "variance_cube"))
     return(invisible(cube))
 }
 #' @title Check if cube is a uncert cube
@@ -1409,47 +1461,31 @@
 #' @keywords internal
 #' @noRd
 .check_is_uncert_cube <- function(cube) {
-    .check_that(
-        x = inherits(cube, "uncertainty_cube"),
-        msg = "cube is not an uncertainty cube"
-    )
+    .check_set_caller(".check_is_uncert_cube")
+    .check_that(inherits(cube, "uncertainty_cube"))
     return(invisible(cube))
 }
 #' @title Check if cube is a classified image
-#' @name .check_cube_is_class_cube
+#' @name .check_is_class_cube
 #' @param cube a sits cube to be tested
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_cube_is_class_cube <- function(cube) {
-    .check_that(
-        x = inherits(cube, "class_cube"),
-        msg = "cube is not a classified data cube"
-    )
-    return(invisible(cube))
-}
-#' @title Check if cube is a probability
-#' @name .check_cube_is_probs_cube
-#' @param cube a sits cube to be tested
-#' @return Called for side effects.
-#' @keywords internal
-#' @noRd
-.check_cube_is_probs_cube <- function(cube) {
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "cube is not probs image"
-    )
+.check_is_class_cube <- function(cube) {
+    .check_set_caller(".check_is_class_cube")
+    .check_that(inherits(cube, "class_cube"))
     return(invisible(cube))
 }
 #' @title Check if cube is a results cube
-#' @name .check_cube_is_results_cube
+#' @name .check_is_results_cube
 #' @param bands bands of the cube
 #' @param labels labels of the cube
 #' @return  TRUE/FALSE
 #' @keywords internal
 #' @noRd
-.check_cube_is_results_cube <- function(bands, labels) {
-    if (.has(bands) &&
+.check_is_results_cube <- function(bands, labels) {
+    .check_set_caller(".check_is_results_cube")
+    if (!(is.null(bands)) &&
         all(bands %in% .conf("sits_results_bands"))) {
         results_cube <- TRUE
     } else {
@@ -1457,10 +1493,7 @@
     }
     # results cube should have only one band
     if (results_cube) {
-        .check_that(
-            length(bands) == 1,
-            msg = "results cube should have only one band"
-        )
+        .check_that(length(bands) == 1)
 
         # is label parameter was provided in labelled cubes?
         if (bands %in% c("probs", "bayes")) {
@@ -1469,16 +1502,16 @@
                 len_min = 1,
                 allow_duplicate = FALSE,
                 is_named = TRUE,
-                msg = "'labels' parameter should be provided"
+                msg = .conf("messages", ".check_is_results_cube_probs")
             )
         }
         # labels should be named in class cubes?
-        if (bands %in% c("class")) {
+        if (bands == "class") {
             .check_length(
                 labels,
                 len_min = 2,
                 is_named = TRUE,
-                msg = "'labels' parameter should be provided and be named"
+                msg = .conf("messages", ".check_is_results_cube_class")
             )
         }
     }
@@ -1491,11 +1524,8 @@
 #' @keywords internal
 #' @noRd
 .check_is_sits_accuracy <- function(data) {
-    .check_that(
-        x = inherits(data, what = "sits_accuracy"),
-        local_msg = "please run sits_accuracy() first",
-        msg = "input does not contain accuracy information"
-    )
+    .check_set_caller(".check_is_sits_accuracy")
+    .check_that(inherits(data, what = "sits_accuracy"))
     return(invisible(data))
 }
 #' @title Does the input data contain a sits model?
@@ -1505,21 +1535,8 @@
 #' @keywords internal
 #' @noRd
 .check_is_sits_model <- function(model) {
-    .check_that(
-        x = inherits(model, "function"),
-        local_msg = "please, run sits_train() first",
-        msg = "invalid sits model"
-    )
-    .check_that(
-        x = inherits(model, "sits_model"),
-        local_msg = "please, run sits_train() first",
-        msg = "invalid sits model"
-    )
-    .check_that(
-        x = "samples" %in% ls(environment(model)),
-        local_msg = "please, run sits_train() first",
-        msg = "invalid sits model"
-    )
+    .check_set_caller(".check_is_sits_model")
+    .check_that(inherits(model, "sits_model"))
     # Check model samples
     samples <- .ml_samples(model)
     .check_samples(samples)
@@ -1532,8 +1549,9 @@
 #' @keywords internal
 #' @noRd
 .check_samples <- function(data) {
-    .check_na(data)
-    .check_null(data)
+    # set caller to show in errors
+    .check_set_caller(".check_samples")
+    .check_na_null_parameter(data)
     UseMethod(".check_samples", data)
 }
 #' @title Does the data contain the cols of time series?
@@ -1544,14 +1562,8 @@
 #' @noRd
 #' @export
 .check_samples.sits <- function(data) {
-    .check_that(
-        x = all(.conf("df_sample_columns") %in% colnames(data)),
-        msg = "invalid samples file"
-    )
-    .check_that(
-        x = nrow(data) > 0,
-        msg = "samples does not contain values"
-    )
+    .check_that(all(.conf("df_sample_columns") %in% colnames(data)))
+    .check_that(nrow(data) > 0)
     return(invisible(data))
 }
 #' @title Does the tibble contain the cols of time series?
@@ -1563,14 +1575,8 @@
 #' @export
 .check_samples.tbl_df <- function(data) {
     data <- tibble::as_tibble(data)
-    .check_that(
-        x = all(.conf("df_sample_columns") %in% colnames(data)),
-        msg = "invalid samples file"
-    )
-    .check_that(
-        x = nrow(data) > 0,
-        msg = "samples does not contain values"
-    )
+    .check_that(all(.conf("df_sample_columns") %in% colnames(data)))
+    .check_that(nrow(data) > 0)
     class(data) <- c("sits", class(data))
     return(invisible(data))
 }
@@ -1586,12 +1592,26 @@
         class(data) <- c("list", class(data))
         data <- tibble::as_tibble(data)
         data <- .check_samples(data)
+    } else {
+        stop(.conf("messages", ".check_samples_default"))
     }
-    else
-        stop("data cannot be converted to tibble")
     return(invisible(data))
 }
-
+#' @rdname check_functions
+#' @keywords internal
+#' @noRd
+.check_raster_cube_files <- function(x, ...) {
+    .check_set_caller(".check_raster_cube_files")
+    # check for data access
+    robj <- tryCatch(
+        .raster_open_rast(.tile_path(x)),
+        error = function(e) {
+            return(NULL)
+        })
+    # return error if data is not accessible
+    .check_that(!(is.null(robj)))
+    return(invisible(x))
+}
 #' @title Does input data has time series?
 #' @name .check_samples_ts
 #' @param data a sits tibble
@@ -1599,22 +1619,43 @@
 #' @keywords internal
 #' @noRd
 .check_samples_ts <- function(data) {
+    .check_set_caller(".check_samples_ts")
     data <- .check_samples(data)
-    .check_chr_contains(
-        x = colnames(data),
-        contains = "time_series",
-        msg = "invalid samples data"
-    )
+    .check_that("time_series" %in% colnames(data))
+    # check there is an Index column
+    .check_samples_ts_index(data)
+    # check if all samples have the same bands
+    .check_samples_ts_bands(data)
+
+    return(invisible(data))
+}
+#' @title Is there an index column in the time series?
+#' @name .check_samples_ts_index
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_ts_index <- function(data) {
+    .check_set_caller(".check_samples_ts_index")
     # Get unnested time series
     ts <- .samples_ts(data)
     # check there is an Index column
     .check_that(x = "Index" %in% colnames(ts))
+
+    return(invisible(data))
+}
+#' @title Are the bands in the time series the same?
+#' @name .check_samples_ts_bands
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_ts_bands <- function(data) {
+    .check_set_caller(".check_samples_ts_bands")
     # check if all samples have the same bands
     n_bands <- unique(lengths(data[["time_series"]]))
-    .check_that(length(n_bands) == 1,
-                local_msg = "samples with different bands",
-                msg = "inconsistent samples"
-    )
+    .check_that(length(n_bands) == 1)
+
     return(invisible(data))
 }
 #' @title Can the input data be used for training?
@@ -1624,27 +1665,18 @@
 #' @keywords internal
 #' @noRd
 .check_samples_train <- function(data) {
+    .check_set_caller(".check_samples_train")
     data <- .check_samples_ts(data)
     # check that there is no NA in labels
     labels <- .samples_labels(data)
-    .check_that(
-        x = !("NoClass" %in% labels) && !("" %in% labels) &&
-            !any(is.na(labels)),
-        msg = "invalid labels in samples data"
-    )
+    .check_that(!("NoClass" %in% labels) && !("" %in% labels) &&
+            !anyNA(labels))
     # Get unnested time series
     ts <- .ts(data)
     # check there are no NA in distances
-    .check_that(x = !(anyNA(ts)), msg = "samples contain NA values")
+    .check_that(!(anyNA(ts)))
     # check samples timeline
-    n_times <- unique(unlist(tapply(
-        .ts_sample_id(ts), .ts_sample_id(ts), length,
-        simplify = FALSE
-    ), use.names = FALSE))
-    .check_that(length(n_times) == 1,
-                local_msg = "samples contain timelines with different lengths",
-                msg = "inconsistent samples"
-    )
+    .check_samples_timeline(data)
     return(invisible(data))
 }
 #' @title Is the samples_validation object valid?
@@ -1660,6 +1692,7 @@
                                       labels,
                                       timeline,
                                       bands) {
+    .check_set_caller(".check_samples_validation")
     # check if the validation samples are ok
     samples_validation <- .check_samples(samples_validation)
     # check if the labels matches with train data
@@ -1686,14 +1719,37 @@
 #' @noRd
 #  Are the samples valid?
 .check_samples_cluster <- function(data) {
+    .check_set_caller(".check_samples_cluster")
     data <- .check_samples(data)
     # is the input data the result of a cluster function?
-    .check_chr_contains(
-        names(data),
-        contains = "cluster",
-        msg = "missing cluster column"
-    )
+    .check_that("cluster" %in% names(data))
     return(invisible(data))
+}
+#' @title Do the samples contain a valid timeline?
+#' @name .check_samples_timeline
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_timeline <- function(data) {
+    .check_set_caller(".check_samples_timeline")
+    ts <- .ts(data)
+    n_times <- unique(unlist(tapply(
+        .ts_sample_id(ts), .ts_sample_id(ts), length,
+        simplify = FALSE
+    ), use.names = FALSE))
+    .check_that(length(n_times) == 1)
+    return(invisible(data))
+}
+#' @title Is the object a valid point?
+#' @name .check_point
+#' @param x 2D point
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_point <- function(x) {
+    .check_set_caller(".check_point")
+    .check_that(.is_point(x))
 }
 #' @title Are the predictors valid?
 #' @name .check_predictors
@@ -1703,21 +1759,13 @@
 #' @keywords internal
 #' @noRd
 .check_predictors <- function(pred, samples) {
+    .check_set_caller(".check_predictors")
     cols <- .pred_cols # From predictors API
-    .check_that(
-        x = cols %in% colnames(pred),
-        msg = "invalid predictors data"
-    )
-    .check_that(
-        x = nrow(pred) > 0,
-        msg = "invalid predictors data"
-    )
+    .check_that(cols %in% colnames(pred))
+    .check_that(nrow(pred) > 0)
     n_bands <- length(sits_bands(samples))
     n_times <- length(sits_timeline(samples))
-    .check_that(
-        x = ncol(pred) == 2 + n_bands * n_times,
-        msg = "invalid predictors data"
-    )
+    .check_that(ncol(pred) == 2 + n_bands * n_times)
     return(invisible(pred))
 }
 #' @title Does the data contain the cols of sample data and is not empty?
@@ -1728,56 +1776,9 @@
 #' @keywords internal
 #' @noRd
 .check_smoothness <- function(smoothness, nlabels) {
-    .check_that(
-        length(smoothness) == 1 || length(smoothness) == nlabels,
-        msg = paste(
-            "smoothness must be either one value or",
-            "a vector of length", nlabels
-        )
-    )
+    .check_set_caller(".check_smoothness")
+    .check_that(length(smoothness) == 1 || length(smoothness) == nlabels)
     return(invisible(smoothness))
-}
-#' @title Check if cube has only one tile
-#' @name .check_has_one_tile
-#' @param  cube         input data cube
-#' @return Called for side effects.
-#' @keywords internal
-#' @noRd
-.check_has_one_tile <- function(cube) {
-    .check_that(
-        x = nrow(cube) == 1,
-        msg = "accepts only one tile at a time"
-    )
-    return(invisible(cube))
-}
-#' @title Check that cube is regular
-#' @name .check_is_regular
-#' @keywords internal
-#' @noRd
-#' @param cube  datacube
-#' @return Called for side effects.
-.check_is_regular <- function(cube) {
-    .check_that(
-        x = .cube_is_regular(cube),
-        msg = "cube is not regular, please run sits_regularize() first"
-    )
-    return(invisible(cube))
-}
-#' @title Check if CSV data is correct
-#' @name .check_csv
-#' @param csv  data frame extracted from CSV file
-#' @return Called for side effects.
-#' @keywords internal
-#' @noRd
-.check_csv <- function(csv) {
-    # check if required col names are available
-    .check_chr_contains(
-        x = colnames(csv),
-        contains = .conf("df_sample_columns"),
-        discriminator = "all_of",
-        msg = "invalid csv file"
-    )
-    return(invisible(csv))
 }
 #' @title Check if data contains predicted and reference values
 #' @name .check_pred_ref_match
@@ -1787,35 +1788,38 @@
 #' @keywords internal
 #' @noRd
 .check_pred_ref_match <- function(reference, predicted) {
-    .check_that(
-        x = length(reference) == length(predicted),
-        msg = "predicted and reference vector do not match"
-    )
+    .check_set_caller(".check_pred_ref_match")
+    .check_that(length(reference) == length(predicted))
     return(invisible(reference))
 }
-#' @title Do the samples and tile match?
-#' @name .check_samples_tile_match
+#' @title Do the samples and tile match timelines?
+#' @name .check_samples_tile_match_timeline
 #' @param samples  samples organised as a tibble
 #' @param tile  one tile of a data cube
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_samples_tile_match <- function(samples, tile) {
+.check_samples_tile_match_timeline <- function(samples, tile) {
+    .check_set_caller(".check_samples_tile_match_timeline")
     # do they have the same timelines?
     samples_timeline_length <- length(sits_timeline(samples))
     tiles_timeline_length <- length(sits_timeline(tile))
-    .check_that(
-        samples_timeline_length == tiles_timeline_length,
-        msg = "number of instances of samples and cube differ"
-    )
+    .check_that(samples_timeline_length == tiles_timeline_length)
+    return(invisible(samples))
+}
+#' @title Do the samples and tile match bands?
+#' @name .check_samples_tile_match_bands
+#' @param samples  samples organised as a tibble
+#' @param tile  one tile of a data cube
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_tile_match_bands <- function(samples, tile) {
+    .check_set_caller(".check_samples_tile_match_bands")
     # do they have the same bands?
     tile_bands <- sits_bands(tile)
     bands <- sits_bands(samples)
-    .check_chr_within(
-        x = bands,
-        within = tile_bands,
-        msg = "some bands in samples are not in cube"
-    )
+    .check_that(all(bands %in% tile_bands))
     return(invisible(samples))
 }
 #' @title Does the input data contains valid reference labels?
@@ -1825,10 +1829,8 @@
 #' @keywords internal
 #' @noRd
 .check_labels <- function(data) {
-    .check_that(
-        x = !("NoClass" %in% (data)),
-        msg = "input data without labels"
-    )
+    .check_set_caller(".check_labels")
+    .check_that(!("NoClass" %in% data))
     return(invisible(data))
 }
 #' @title Does the class cube contain enough labels?
@@ -1838,6 +1840,7 @@
 #' @keywords internal
 #' @noRd
 .check_labels_class_cube <- function(cube) {
+    .check_set_caller(".check_labels_class_cube")
     # select the files for the classified cube
     files <- unlist(.cube_paths(cube))
     # open the first file
@@ -1846,7 +1849,7 @@
         # get the frequency table
         freq <- .raster_freq(r)
         # get the classes as numerical values
-        classes_tile <- as.character(freq$value)
+        classes_tile <- as.character(freq[["value"]])
         names(classes_tile) <- file
         return(classes_tile)
     })
@@ -1854,19 +1857,15 @@
     classes_num <- classes_num[!is.na(classes_num)]
     labels_num <- names(sits_labels(cube))
     # do the labels and raster numbers match?
-    .check_that(
-        x = all(classes_num %in% labels_num),
-        msg = "Labels do not match number of classes in cube"
-    )
+    .check_that(all(classes_num %in% labels_num))
     return(invisible(cube))
 }
 #' @title Check if an object is a bbox
 #' @noRd
 #' @return Called for side effects.
 .check_bbox <- function(x) {
-    if (!setequal(names(x), c(.bbox_cols, "crs"))) {
-        stop("object is not a valid bbox")
-    }
+    .check_set_caller(".check_bbox")
+    .check_that(setequal(names(x), c(.bbox_cols, "crs")))
     return(invisible(x))
 }
 #' @title Check if roi or tiles are provided
@@ -1877,20 +1876,10 @@
 #' @keywords internal
 #' @noRd
 .check_roi_tiles <- function(roi, tiles) {
+    # set caller to show in errors
+    .check_set_caller(".check_roi_tiles")
     # Ensures that only a spatial filter is informed
-    if (.has(roi) && .has(tiles)) {
-        stop(
-            "It is not possible to search with roi and tiles.",
-            "Please provide only roi or tiles."
-        )
-    }
-    # Ensures that a spatial filter is informed
-    if (.has_not(roi) && .has_not(tiles)) {
-        stop(
-            "No spatial search criteria.",
-            "Please provide roi or tiles."
-        )
-    }
+    .check_that(xor(is.null(roi), is.null(tiles)))
     return(invisible(roi))
 }
 #' @title Check if bands are part of a data cube
@@ -1902,13 +1891,12 @@
 #' @keywords internal
 #' @noRd
 .check_cube_bands <- function(cube, bands, add_cloud = TRUE) {
+    # set caller to show in errors
+    .check_set_caller(".check_cube_bands")
     # all bands are upper case
-    .check_chr_within(
-        bands,
-        within = .cube_bands(cube = cube, add_cloud = add_cloud),
-        case_sensitive = FALSE,
-        msg = "invalid 'bands'"
-    )
+    bands <- toupper(bands)
+    cube_bands <- toupper(.cube_bands(cube = cube, add_cloud = add_cloud))
+    .check_that(all(bands %in% cube_bands))
     return(invisible(cube))
 }
 #' @title Check if  cubes have the same bbox
@@ -1919,6 +1907,7 @@
 #' @param  cube2     input data cube
 #' @return Called for side effects.
 .check_cubes_same_bbox <- function(cube1, cube2) {
+    .check_set_caller(".check_cubes_same_bbox")
     tolerance <- .conf(
         "sources", .cube_source(cube1),
         "collections", .cube_collection(cube1),
@@ -1934,10 +1923,7 @@
             ))
         }
     )
-    .check_that(
-        x = all(ok),
-        msg = "cubes do not have the same bounding box"
-    )
+    .check_that(all(ok))
     return(invisible(cube1))
 }
 #' @title Check if cubes have the same size
@@ -1948,10 +1934,10 @@
 #' @param  cube2     input data cube
 #' @return Called for side effects..
 .check_cubes_same_size <- function(cube1, cube2) {
+    .check_set_caller(".check_cubes_same_size")
     .check_that(
-        x = all(.cube_ncols(cube1) == .cube_ncols(cube2)) &&
-            all(.cube_nrows(cube1) == .cube_nrows(cube2)),
-        msg = "cubes do not have the same size"
+        all(.cube_ncols(cube1) == .cube_ncols(cube2)) &&
+        all(.cube_nrows(cube1) == .cube_nrows(cube2))
     )
     return(invisible(cube1))
 }
@@ -1964,10 +1950,8 @@
 #' @param  cube2     input data cube
 #' @return Called for side effects.
 .check_cubes_same_tiles <- function(cube1, cube2) {
-    .check_that(
-        x = nrow(cube1) == nrow(cube2),
-        msg = "cubes do not have the same tiles"
-    )
+    .check_set_caller(".check_cubes_same_tiles")
+    .check_that(nrow(cube1) == nrow(cube2))
     return(invisible(cube1))
 }
 #' @title Check if cubes have the same labels
@@ -1978,9 +1962,10 @@
 #' @param  cube2     input data cube
 #' @return Called for side effects.
 .check_cubes_same_labels <- function(cube1, cube2) {
+    .check_set_caller(".check_cubes_same_labels")
     .check_that(
-        x = all(sits_labels(cube1) == sits_labels(cube2)),
-        msg = "cubes do not have the same labels"
+        all(sits_labels(cube1) %in% sits_labels(cube2)) &&
+            all(sits_labels(cube2) %in% sits_labels(cube1))
     )
     return(invisible(cube1))
 }
@@ -1992,10 +1977,8 @@
 #' @param  cube2     input data cube
 #' @return Called for side effects.
 .check_cubes_same_timeline <- function(cube1, cube2) {
-    .check_that(
-        x = all(sits_timeline(cube1) == sits_timeline(cube2)),
-        msg = "cubes do not have the same timeline"
-    )
+    .check_set_caller(".check_cubes_same_timeline")
+    .check_that(all(sits_timeline(cube1) == sits_timeline(cube2)))
     return(invisible(cube1))
 }
 #' @title Check if two cubes have the same organization
@@ -2006,6 +1989,7 @@
 #' @param  cube2     input data cube
 #' @return Called for side effects.
 .check_cubes_match <- function(cube1, cube2) {
+    .check_set_caller(".check_cubes_match")
     # check same size
     .check_cubes_same_tiles(cube1, cube2)
     .check_cubes_same_size(cube1, cube2)
@@ -2021,12 +2005,10 @@
 #' @param  cubes         list of input data cubes
 #' @return Called for side effects
 .check_probs_cube_lst <- function(cubes) {
-    .check_that(length(cubes) >= 2,
-                local_msg = "length should be at least two",
-                msg = "invalid `cubes` parameter"
-    )
-    .check_lst_type(cubes, msg = "cubes are not in a list")
-    # is every cube a probs cube
+    .check_set_caller(".check_probs_cube_lst")
+    .check_that(is.list(cubes))
+    .check_that(length(cubes) >= 2)
+    # is every cube a probs cube?
     purrr::map(cubes, .check_is_probs_cube)
     # check same size
     first <- cubes[[1]]
@@ -2042,11 +2024,9 @@
 #' @param  uncert_cubes     list of input data cubes
 #' @return Called for side effects
 .check_uncert_cube_lst <- function(uncert_cubes) {
-    .check_that(length(uncert_cubes) >= 2,
-                local_msg = "length should be at least two",
-                msg = "invalid `uncert_cubes` parameter"
-    )
-    .check_lst_type(uncert_cubes, msg = "cubes are not in a list")
+    .check_set_caller(".check_uncert_cube_lst")
+    .check_that(length(uncert_cubes) >= 2)
+    .check_that(is.list(uncert_cubes))
     # is every cube a probs cube
     purrr::map(uncert_cubes, .check_is_uncert_cube)
     # check same size
@@ -2065,25 +2045,26 @@
 #' @noRd
 #'
 .check_error_matrix_area <- function(error_matrix, area) {
+    .check_set_caller(".check_error_matrix_area")
     .check_that(
         x = all(dim(error_matrix) > 1),
-        msg = "invalid dimensions in error matrix"
+        msg = .conf("messages", ".check_error_matrix_area_dim")
     )
     .check_that(
         x = length(unique(dim(error_matrix))) == 1,
-        msg = "The error matrix is not square"
+        msg = .conf("messages", ".check_error_matrix_square")
     )
     .check_that(
         x = all(colnames(error_matrix) == rownames(error_matrix)),
-        msg = "Labels mismatch in error matrix."
+        msg = .conf("messages", ".check_error_matrix_names")
     )
     .check_that(
         x = unique(dim(error_matrix)) == length(area),
-        msg = "Mismatch between error matrix and area vector."
+        msg = .conf("messages", ".check_error_matrix_area")
     )
     .check_that(
         x = all(names(area) %in% colnames(error_matrix)),
-        msg = "Label mismatch between error matrix and area vector."
+        msg = .conf("messages", ".check_error_matrix_labels")
     )
     return(invisible(error_matrix))
 }
@@ -2095,6 +2076,7 @@
 #' @noRd
 .check_require_packages <- function(x, ...,
                                     msg = "Please install package(s)") {
+    .check_set_caller(".check_require_packages")
     are_packages_installed <- purrr::map_lgl(
         x, requireNamespace,
         quietly = TRUE
@@ -2105,24 +2087,15 @@
     )
     return(invisible(x))
 }
-#' @title Checks if the character parameter is empty
-#' @name .check_empty_char
-#' @param x a character vector
-#' @return Called for side effects.
-#' @keywords internal
-#' @noRd
-.check_empty_char <- function(x, msg, ...) {
-    .check_that(all(nzchar(x)), msg = msg, ...)
-    return(invisible(x))
-}
 #' @title Checks if the tibble/data.frame is empty
 #' @name .check_empty_data_frame
 #' @param x a data frame
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_empty_data_frame <- function(x, msg, ...) {
-    .check_that(nrow(x) > 0, msg = msg, ...)
+.check_empty_data_frame <- function(x, msg = NULL, ...) {
+    .check_set_caller(".check_empty_data_frame")
+    .check_that(nrow(x) > 0)
     return(invisible(x))
 }
 #' @title Checks if the endmembers parameter is valid
@@ -2132,10 +2105,8 @@
 #' @param em  Endmembers description (data.frame)
 #' @return Called for side effects.
 .check_endmembers_parameter <- function(em) {
-    .check_that(
-        x = inherits(em, c("data.frame", "character")),
-        msg = "invalid 'endmembers' parameter"
-    )
+    .check_set_caller(".check_endmembers_parameter")
+    .check_that(inherits(em, c("data.frame", "character")))
     return(invisible(em))
 }
 #' @title Checks if the endmembers data is in a valid parameter
@@ -2146,31 +2117,30 @@
 #' @param cube A sits cube
 #' @return Called for side effects.
 .check_endmembers_tbl <- function(em) {
+    .check_set_caller(".check_endmembers_tbl")
     # Pre-condition
-    .check_na(
-        x = em,
-        msg = "Invalid 'endmembers' parameter"
-    )
+    .check_that(!anyNA(em))
     # Pre-condition
     .check_chr_contains(
         x = colnames(em),
         contains = c("TYPE", "CLASS"),
         discriminator = "any_of",
-        msg = "Invalid 'endmembers' parameter"
+        msg = .conf("messsages", ".check_endmembers_parameter")
     )
+    .check_endmembers_fracs(em)
+    return(invisible(em))
+}
+#' @title Checks if the endmembers data is in a valid parameter
+#' @name .check_endmembers_fracs
+#' @keywords internal
+#' @noRd
+#' @param em   Reference spectra endmembers.
+#' @param cube A sits cube
+#' @return Called for side effects.
+.check_endmembers_fracs <- function(em) {
+    .check_set_caller(".check_endmembers_fracs")
     # Pre-condition
-    .check_chr(
-        x = .endmembers_fracs(em), allow_empty = FALSE, len_min = 1,
-        msg = "The reference endmembers cannot be empty"
-    )
-    # Pre-condition
-    .check_that(
-        nrow(em) < ncol(em),
-        msg = paste(
-            "Endmembers must be less or equal than the",
-            "number of spectral bands."
-        )
-    )
+    .check_that(all(length(.endmembers_fracs(em)) >= 1))
     return(invisible(em))
 }
 #' @title Checks if the bands required by endmembers exist
@@ -2181,29 +2151,9 @@
 #' @param bands Bands to compute endmembers.
 #' @return Called for side effects.
 .check_endmembers_bands <- function(em, bands) {
-    .check_chr_within(
-        x = .band_eo(.endmembers_bands(em)),
-        within = bands,
-        msg = "invalid 'endmembers' columns"
-    )
+    .check_set_caller(".check_endmembers_bands")
+    .check_that(all(.band_eo(.endmembers_bands(em)) %in% bands))
     return(invisible(em))
-}
-#' @title Checks if resolution is OK
-#' @name .check_res
-#' @param x   Image resolution.
-#' @return Called for side effects
-#' @keywords internal
-#' @noRd
-.check_res <- function(x) {
-    .check_num(
-        x = x,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
-        allow_null = TRUE,
-        msg = "invalid 'res' parameter."
-    )
-    return(invisible(x))
 }
 #' @title Checks if working in documentation mode
 #' @name .check_documentation
@@ -2254,15 +2204,10 @@
 #' @keywords internal
 #' @noRd
 .check_stac_items <- function(items) {
-    .check_that(
-        rstac::items_length(items) > 0,
-        local_msg = paste(
-            "please, check 'roi',
-                          'start_date', 'end_date', and",
-            "'tile' parameters"
-        ),
-        msg = "cube search criteria returned no items"
-    )
+    # set caller to show in errors
+    .check_set_caller(".check_stac_items")
+    .check_null_parameter(items)
+    .check_that(rstac::items_length(items) > 0)
     return(invisible(items))
 }
 #' @title Checks recovery
@@ -2273,15 +2218,7 @@
 #' @noRd
 .check_recovery <- function(data) {
     if (.check_messages()) {
-        message(
-            "Recovery: data ",
-            paste0("'", data, "'", collapse = ", "),
-            " already exists."
-        )
-        message(
-            "(If you want to produce a new image, please ",
-            "change 'output_dir' or 'version' parameters)"
-        )
+        message(.conf("messages", ".check_recovery"))
     }
     return(invisible(data))
 }
@@ -2302,18 +2239,15 @@
     )
     if (length(discriminator) != 1 ||
         !discriminator %in% names(discriminators)) {
-        stop(
-            paste(
-                ".check_chr_within: discriminator should be one of",
-                "'one_of', 'any_of', 'all_of', 'none_of', or 'exactly'."
-            ),
+        stop(".check_chr_within: discriminator should be one of",
+                "'one_of', 'any_of', 'all_of', 'none_of', or 'exactly'.",
             call. = TRUE
         )
     }
     return(invisible(discriminator))
 }
 #' @title Checks view bands are defined
-#' @name .check_view_bands_params
+#' @name .check_bw_rgb_bands
 #' @param band      B/W band for view
 #' @param red       Red band for view
 #' @param green     Green band for view
@@ -2321,71 +2255,48 @@
 #' @return Called for side effects
 #' @keywords internal
 #' @noRd
-.check_view_bands_params <- function(band, red, green, blue) {
-    .check_that(
-        .has(band) || (.has(red) && .has(green) && .has(blue)),
-        local_msg = paste0(
-            "either 'band' parameter or 'red', 'green', and",
-            "'blue' parameters should be informed"
-        )
-    )
+.check_bw_rgb_bands <- function(band, red, green, blue) {
+    .check_set_caller(".check_bw_rgb_bands")
+    .check_that(.has(band) || (.has(red) && .has(green) && .has(blue)))
 }
-#' @title Checks view bands
-#' @name .check_view_bands
+#' @title Check available bands
+#' @name .check_available_bands
 #' @param cube      Data cube
 #' @param band      B/W band for view
 #' @param red       Red band for view
 #' @param green     Green band for view
 #' @param blue      Blue band for view
-#' @return Called for side effects
+#' @return "BW" or "RGB"
 #' @keywords internal
 #' @noRd
-.check_view_bands <- function(cube, band, red, green, blue) {
+.check_available_bands <- function(cube, band, red, green, blue) {
+    .check_set_caller(".check_available_bands")
     if (.has(band)) {
         # check band is available
-        .check_chr_within(
-            band,
-            within = .cube_bands(cube),
-            discriminator = "any_of",
-            msg = "invalid BW band"
-        )
-    }
-    if (.has(red) && .has(green) && .has(blue)) {
+        .check_that(band %in% .cube_bands(cube))
+        return(invisible(TRUE))
+    } else if (.has(red) && .has(green) && .has(blue)) {
         bands <- c(red, green, blue)
         # check bands are available
-        .check_chr_within(
-            bands,
-            within = .cube_bands(cube),
-            discriminator = "all_of",
-            msg = "invalid RGB bands"
-        )
+        .check_that(all(bands %in% .cube_bands(cube)))
+        return(invisible(TRUE))
     }
-    return(invisible(cube))
 }
 
 #' @title Check if the provided object is a vector
-#' @name .check_vector
+#' @name .check_vector_object
 #' @param v_obj  a sf, sfc or sfg object
 #' @return No return value, called for side effects.
 #' @keywords internal
 #' @noRd
-.check_vector <- function(csv) {
+.check_vector_object <- function(v_obj) {
+    .check_set_caller(".check_vector_object")
     .check_chr_contains(
-        x = class(csv),
+        x = class(v_obj),
         contains = c("sf", "sfc", "sfg"),
         discriminator = "one_of",
-        msg = "invalid vector object"
+        msg = .conf("messages", ".check_vector_object")
     )
-}
-
-.check_default_message <- function(x, msg = NULL) {
-    # make default message
-    if (.has_not(msg)) {
-        # get x as expression
-        x_expr <- deparse(substitute(x, environment()))
-        msg <- paste0("invalid '", x_expr, "' parameter")
-    }
-    return(msg)
 }
 #' @title Checks local items
 #' @name .check_local_items
@@ -2394,32 +2305,23 @@
 #' @keywords internal
 #' @noRd
 .check_local_items <- function(items) {
+    .check_set_caller(".check_local_items")
     # pre-condition
-    .check_length(
-        unique(items[["tile"]]),
-        len_min = 1,
-        msg = "invalid number of tiles"
-    )
-
-    # get crs from file_info
-    crs <- unique(items[["crs"]])
-    # check crs
-    .check_length(
-        crs,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid crs value"
-    )
-    # get tile from file_info
-    tile <- unique(items[["tile"]])
-    # check tile
-    .check_length(
-        tile,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid tile value"
-    )
+    .check_tiles(unique(items[["tile"]]))
+    .check_crs(unique(items[["crs"]]))
     return(invisible(items))
+}
+#' @title Checks tiles
+#' @name .check_tiles
+#' @param tiles     vector with tile names
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_tiles <- function(tiles) {
+    .check_set_caller(".check_tiles")
+    # pre-condition
+    .check_that(length(tiles) >= 1)
+    return(invisible(tiles))
 }
 #' @title Checks palette
 #' @name .check_palette
@@ -2428,10 +2330,71 @@
 #' @keywords internal
 #' @noRd
 .check_palette <- function(palette) {
-    .check_chr_parameter(palette)
-    .check_that(
-        palette %in% rownames(RColorBrewer::brewer.pal.info),
-        msg = "Palette not available - please use an RColorBrewer palette"
-    )
+    # set caller to show in errors
+    .check_set_caller(".check_palette")
+    .check_that(palette %in% rownames(RColorBrewer::brewer.pal.info))
     return(invisible(palette))
+}
+#' @title Checks sahpefile attribute
+#' @name .check_shp_attribute
+#' @param sf_shape      sf object read from a shapefile
+#' @param shp_attr      name of attribute param in shapefile
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_shp_attribute <- function(sf_shape, shp_attr) {
+    # set caller to show in errors
+    .check_set_caller(".check_shp_attribute")
+    # get the data frame associated to the shapefile
+    shp_df <- sf::st_drop_geometry(sf_shape)
+    if (.has(shp_attr))
+        .check_that(length(as.character(shp_df[1, (shp_attr)])) > 0)
+    return(invisible(sf_shape))
+}
+#' @title Checks validation file
+#' @name .check_validation_file
+#' @param validation     Path to a CSV file
+#' @param shp_attr      name of attribute param in shapefile
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_validation_file <- function(validation) {
+    # set caller to show in errors
+    .check_set_caller(".check_validation_file")
+    if (is.character(validation))
+        .check_that(tolower(.file_ext(validation)) == "csv")
+    return(invisible(validation))
+}
+#' @title Checks filter function
+#' @description
+#' Checks if the paramter is a function
+#' @param filter_fn     Filter function
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_filter_fn <- function(filter_fn) {
+    .check_set_caller(".check_filter_fn")
+    .check_that(is.function(filter_fn))
+}
+#' @title Checks distance method
+#' @description
+#' Checks if the parameter is a valid distance method for a dendrogram
+#' @param dist_method    Distance method
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_dist_method <- function(dist_method) {
+    .check_set_caller(".check_dist_method")
+    .check_that(dist_method %in% .conf("dendro_dist_method"))
+}
+#' @title Checks linkage method
+#' @description
+#' Checks if the parameter is a valid linkage method for a dendrogram
+#' @param linkage    Linkage method
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_linkage_method <- function(linkage) {
+    .check_set_caller(".check_linkage_method")
+    .check_that(linkage %in% .conf("dendro_linkage"))
 }

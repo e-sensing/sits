@@ -59,7 +59,7 @@
     initialize = function(input_dim,
                           output_dim,
                           kernel_size,
-                          padding = 0,
+                          padding,
                           dropout_rate) {
         self$block <- torch::nn_sequential(
             torch::nn_conv1d(
@@ -110,7 +110,7 @@
                 in_channels = input_dim,
                 out_channels = output_dim,
                 kernel_size = kernel_size,
-                padding = padding,
+                padding = padding
             ),
             torch::nn_batch_norm1d(num_features = output_dim),
             torch::nn_relu()
@@ -195,9 +195,9 @@
                 in_channels = input_dim,
                 out_channels = output_dim,
                 kernel_size = kernel_size,
-                padding = padding,
+                padding = padding
             ),
-            torch::nn_batch_norm1d(num_features = output_dim),
+            torch::nn_batch_norm1d(num_features = output_dim)
         )
     },
     forward = function(x) {
@@ -345,15 +345,15 @@
         # input layer
         tensors[[1]] <- .torch_linear_batch_norm_relu(
             input_dim = input_dim,
-            output_dim = hidden_dims[1]
+            output_dim = hidden_dims[[1]]
         )
         # if hidden layers is a vector then we add those layers
         if (length(hidden_dims) > 1) {
             for (i in 2:length(hidden_dims)) {
                 tensors[[length(tensors) + 1]] <-
                     .torch_linear_batch_norm_relu(
-                        input_dim  = hidden_dims[i - 1],
-                        output_dim = hidden_dims[i]
+                        input_dim  = hidden_dims[[i - 1]],
+                        output_dim = hidden_dims[[i]]
                     )
             }
         }
@@ -366,14 +366,14 @@
 )
 
 .is_torch_model <- function(ml_model) {
-    "torch_model" %in% class(ml_model) && torch::cuda_is_available()
+    inherits(ml_model, "torch_model") && torch::cuda_is_available()
 }
 
 .torch_mem_info <- function() {
     # Get memory summary
     mem_sum <- torch::cuda_memory_stats()
     # Return current memory info in GB
-    mem_sum$allocated_bytes$all$current / 10^9
+    mem_sum[["allocated_bytes"]][["all"]][["current"]] / 10^9
 }
 
 .as_dataset <- torch::dataset(
@@ -382,7 +382,7 @@
         self$x <- x
     },
     .getitem = function(i) {
-        list(torch::torch_tensor(self$x[i,,]))
+        list(torch::torch_tensor(self$x[i, , ]))
     },
     .getbatch = function(i) {
         self$.getitem(i)

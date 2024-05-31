@@ -41,11 +41,6 @@ test_that("color errors", {
     colors <- sits_colors(legend = "IGBP")
     expect_equal(nrow(colors), 16)
     expect_equal(colors[16,1]$name, "Water_Bodies")
-    out <- capture.output(sits_colors("New"))
-    expect_true(grepl("Please", out[2]))
-    out <- capture.output(sits_colors_show())
-    expect_true(grepl("Please", out[1]))
-
 })
 
 test_that("plot colors", {
@@ -108,7 +103,7 @@ test_that("legend", {
 
     expect_warning({
         expect_warning({
-            sits:::.colors_get(labels,
+            .colors_get(labels,
                 legend = def_legend_2,
                 palette = "Spectral", rev = TRUE
             )

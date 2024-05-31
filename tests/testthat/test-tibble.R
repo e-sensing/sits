@@ -196,7 +196,7 @@ test_that("samples_as_sf works (point)", {
     samples_sf <- sits_as_sf(samples_tb)
 
     expect_true(inherits(samples_sf, "sf"))
-    expect_equal(
+    expect_identical(
         as.character(unique(sf::st_geometry_type(samples_sf))),
         "POINT"
     )
@@ -212,7 +212,7 @@ test_that("samples_as_sf works (polygon)", {
     )
     cube_sf <- sits_as_sf(cube)
 
-    expect_true(inherits(cube_sf, "sf"))
+    expect_s3_class(cube_sf, "sf")
     expect_equal(
         as.character(unique(sf::st_geometry_type(cube_sf))),
         "POLYGON"

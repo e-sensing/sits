@@ -3,7 +3,7 @@
 #' @noRd
 #' @return   Names of raster packages supported by sits
 .raster_supported_packages <- function() {
-    return(c("terra"))
+    return("terra")
 }
 
 #' @title Check for raster package availability
@@ -32,19 +32,12 @@
     # precondition 1
     .check_chr_contains(
         x = names(block),
-        contains = c("row", "nrows", "col", "ncols"),
-        msg = "invalid 'block' parameter"
+        contains = c("row", "nrows", "col", "ncols")
     )
     # precondition 2
-    .check_that(
-        x = block[["row"]] > 0 && block[["col"]] > 0,
-        msg = "invalid block"
-    )
+    .check_that(block[["row"]] > 0 && block[["col"]] > 0)
     # precondition 3
-    .check_that(
-        x = block[["nrows"]] > 0 && block[["ncols"]] > 0,
-        msg = "invalid block"
-    )
+    .check_that(block[["nrows"]] > 0 && block[["ncols"]] > 0)
     return(invisible(block))
 }
 
@@ -60,14 +53,12 @@
     # precondition 1
     .check_chr_contains(
         x = names(bbox),
-        contains = c("xmin", "xmax", "ymin", "ymax"),
-        msg = "invalid 'bbox' parameter"
+        contains = c("xmin", "xmax", "ymin", "ymax")
     )
     # precondition 2
-    .check_that(
-        x = bbox[["ymin"]] < bbox[["ymax"]],
-        msg = "invalid 'bbox' parameter"
-    )
+    .check_that(bbox[["ymin"]] < bbox[["ymax"]])
+    # precondition 3
+    .check_that(bbox[["xmin"]] < bbox[["xmax"]])
     return(invisible(bbox))
 }
 #' @title Convert internal data type to gdal data type
@@ -78,19 +69,16 @@
 #'
 #' @return GDAL datatype associated to internal data type used by sits
 .raster_gdal_datatype <- function(data_type) {
+    # set caller to show in errors
+    .check_set_caller(".raster_gdal_datatype")
+    # SITS data types
+    sits_data_types <- .raster_gdal_datatypes(sits_names = TRUE)
     # GDAL data types
     gdal_data_types <- .raster_gdal_datatypes(sits_names = FALSE)
-    names(gdal_data_types) <- .raster_gdal_datatypes(sits_names = TRUE)
+    names(gdal_data_types) <- sits_data_types
     # check data_type type
-    .check_chr(data_type,
-        len_min = 1, len_max = 1,
-        msg = "invalid 'data_type' parameter"
-    )
-    .check_chr_within(data_type,
-        within = .raster_gdal_datatypes(sits_names = TRUE),
-        discriminator = "one_of",
-        msg = "invalid 'data_type' parameter"
-    )
+    .check_that(length(data_type) == 1)
+    .check_that(data_type %in% sits_data_types)
     # convert
     return(gdal_data_types[[data_type]])
 }
@@ -180,6 +168,7 @@
 #' locations are guaranteed to be separated by a certain number of pixels.
 #'
 #' @param r_obj           A raster object.
+#' @param block           Individual block that will be processed.
 #' @param band            A numeric band index used to read bricks.
 #' @param n               Number of values to extract.
 #' @param sampling_window Window size to collect a point (in pixels).
@@ -187,6 +176,7 @@
 #' @return                A point `tibble` object.
 #'
 .raster_get_top_values <- function(r_obj,
+                                   block,
                                    band,
                                    n,
                                    sampling_window) {
@@ -194,18 +184,24 @@
     # Get top values
     # filter by median to avoid borders
     # Process window
-    values <- .raster_get_values(r_obj)
+    values <- .raster_get_values(
+        r_obj,
+        row = block[["row"]],
+        col = block[["col"]],
+        nrows = block[["nrows"]],
+        ncols = block[["ncols"]]
+    )
     values <- C_kernel_median(
         x = values,
-        ncols = .raster_ncols(r_obj),
-        nrows = .raster_nrows(r_obj),
+        nrows = block[["nrows"]],
+        ncols = block[["ncols"]],
         band = 0,
         window_size = sampling_window
     )
     samples_tb <- C_max_sampling(
         x = values,
-        nrows = .raster_nrows(r_obj),
-        ncols = .raster_ncols(r_obj),
+        nrows = block[["nrows"]],
+        ncols = block[["ncols"]],
         window_size = sampling_window
     )
     samples_tb <- dplyr::slice_max(
@@ -424,11 +420,7 @@
                          block,
                          missing_value = NA) {
     # pre-condition
-    .check_null(
-        x = block,
-        msg = "invalid 'block' parameter"
-    )
-
+    .check_null_parameter(block)
     # check block
     .raster_check_block(block = block)
 
@@ -455,23 +447,16 @@
 #' @return        Subset of a raster object as defined by either block
 #'                or bbox parameters
 .raster_crop_metadata <- function(r_obj, ..., block = NULL, bbox = NULL) {
+    # set caller to show in errors
+    .check_set_caller(".raster_crop_metadata")
     # pre-condition
-    .check_that(
-        is.null(block) || is.null(bbox),
-        local_msg = "only either 'block' or 'bbox' should be informed",
-        msg = "invalid crop parameter"
-    )
-
+    .check_that(.has_not(block) || .has_not(bbox))
     # check block
-    if (!is.null(block)) {
+    if (.has(block))
         .raster_check_block(block = block)
-    }
-
     # check bbox
-    if (!is.null(bbox)) {
+    if (.has(bbox))
         .raster_check_bbox(bbox = bbox)
-    }
-
     # check package
     pkg_class <- .raster_check_package()
 
@@ -760,20 +745,13 @@
 .raster_params_file <- function(file) {
     # set caller to show in errors
     .check_set_caller(".raster_params_file")
-
     # preconditions
-    .check_length(
-        x = file,
-        min = 1,
-        msg = "no file was informed"
-    )
-
+    .check_that(all(file.exists(file)))
     # use first file
     file <- file[[1]]
-
     # open file
     r_obj <- .raster_open_rast(file = file)
-
+    # build params file
     params <- tibble::tibble(
         nrows = .raster_nrows(r_obj = r_obj),
         ncols = .raster_ncols(r_obj = r_obj),
@@ -785,22 +763,20 @@
         yres  = .raster_yres(r_obj = r_obj),
         crs   = .raster_crs(r_obj = r_obj)
     )
-
     return(params)
 }
 
-#' @title Polygonize raster
-#' @name .raster_polygonize
+#' @title Raster-to-vector
+#' @name .raster_extract_polygons
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @return name of the package.
-.raster_polygonize <- function(r_obj, dissolve = TRUE, ...) {
+.raster_extract_polygons <- function(r_obj, dissolve = TRUE, ...) {
     # check package
     pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_polygonize", pkg_class)
+    UseMethod(".raster_extract_polygons", pkg_class)
 }
 
 .raster_template <- function(base_file, out_file, nlayers, data_type,
@@ -845,28 +821,21 @@
                                  data_type,
                                  missing_value,
                                  multicores = 2) {
+    # set caller to show in errors
+    .check_set_caller(".raster_merge_blocks")
     # Check consistency between block_files and out_files
     if (is.list(block_files)) {
-        if (any(lengths(block_files) != length(out_files))) {
-            stop("number of 'block_files' does not match 'out_file' length")
-        }
+        .check_that(all(lengths(block_files) == length(out_files)))
     } else {
-        if (length(out_files) != 1) {
-            stop("invalid 'out_files' length")
-        }
+        .check_that(length(out_files) == 1)
         block_files <- as.list(block_files)
     }
-
     # for each file merge blocks
     for (i in seq_along(out_files)) {
         # Expand paths for out_file
         out_file <- .file_normalize(out_files[[i]])
-        # Check if out_file not exists
-        .check_that(
-            x = !file.exists(out_file),
-            local_msg = paste0("file '", out_file, "' already exists"),
-            msg = "invalid 'out_file' parameter"
-        )
+        # Check if out_file does not exist
+        .check_that(!file.exists(out_file))
         # Get file paths
         merge_files <- purrr::map_chr(block_files, `[[`, i)
         # Expand paths for block_files
@@ -874,8 +843,7 @@
         # check if block_files length is at least one
         .check_file(
             x = merge_files,
-            extensions = "tif",
-            msg = "invalid input block files to merge"
+            extensions = "tif"
         )
         # Get number of layers
         nlayers <- .raster_nlayers(.raster_open_rast(merge_files[[1]]))
@@ -1000,13 +968,15 @@
 
 .raster_write_block <- function(files, block, bbox, values, data_type,
                                 missing_value, crop_block = NULL) {
+    .check_set_caller(".raster_write_block")
     # to support old models convert values to matrix
     values <- as.matrix(values)
     nlayers <- ncol(values)
     if (length(files) > 1) {
-        if (length(files) != ncol(values)) {
-            stop("number of output files does not match number of layers")
-        }
+        .check_that(
+            length(files) == ncol(values),
+            msg = .conf("messages", ".raster_write_block_mismatch")
+        )
         # Write each layer in a separate file
         nlayers <- 1
     }

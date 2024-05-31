@@ -113,13 +113,14 @@ sits_get_data <- function(cube,
                           sampling_type = "random",
                           multicores = 2L,
                           progress = TRUE) {
+    .check_set_caller("sits_get_data")
     # Pre-conditions
     .check_is_raster_cube(cube)
-    .check_is_regular(cube)
+    .check_that(.cube_is_regular(cube))
     .check_raster_cube_files(cube)
     .check_cube_bands(cube, bands = bands)
     .check_crs(crs)
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
     if (is.character(samples)) {
         class(samples) <- c(.file_ext(samples), class(samples))
@@ -130,7 +131,7 @@ sits_get_data <- function(cube,
 #'
 #' @export
 sits_get_data.default <- function(cube, samples, ...) {
-    stop("Invalid samples parameter for sits_get_data")
+    stop(.conf("messages", "sits_get_data_default"))
 }
 
 #' @rdname sits_get_data
@@ -172,11 +173,9 @@ sits_get_data.shp <- function(cube,
                               sampling_type = "random",
                               multicores = 2,
                               progress = FALSE) {
+    .check_set_caller("sits_get_data_shp")
     # Pre-condition - shapefile should have an id parameter
-    .check_that(
-        !(pol_avg && .has_not(pol_id)),
-        msg = "invalid 'pol_id' parameter."
-    )
+    .check_that(!(pol_avg && .has_not(pol_id)))
     # Get default start and end date
     start_date <- .default(start_date, .cube_start_date(cube))
     end_date <- .default(end_date, .cube_end_date(cube))
@@ -223,12 +222,8 @@ sits_get_data.sf <- function(cube,
                              sampling_type = "random",
                              multicores = 2,
                              progress = FALSE) {
-    .check_that(
-        !(pol_avg && .has_not(pol_id)),
-        msg = "Please provide an sf object with a column
-        with the id for each polygon and include
-        this column name in the 'pol_id' parameter."
-    )
+    .check_set_caller("sits_get_data_sf")
+    .check_that(!(pol_avg && .has_not(pol_id)))
     # Get default start and end date
     start_date <- .default(start_date, .cube_start_date(cube))
     end_date <- .default(end_date, .cube_end_date(cube))
@@ -293,25 +288,25 @@ sits_get_data.data.frame <- function(cube,
                                      impute_fn = impute_linear(),
                                      multicores = 2,
                                      progress = FALSE) {
+    .check_set_caller("sits_get_data_data_frame")
     # Check if samples contains all the required columns
     .check_chr_contains(
         x = colnames(samples),
         contains = c("latitude", "longitude"),
-        discriminator = "all_of",
-        msg = "missing lat/long information in data frame"
+        discriminator = "all_of"
     )
     # Get default start and end date
     start_date <- .default(start_date, .cube_start_date(cube))
     end_date <- .default(end_date, .cube_end_date(cube))
     # Fill missing columns
     if (!.has_column(samples, "label")) {
-        samples$label <- label
+        samples[["label"]] <- label
     }
     if (!.has_column(samples, "start_date")) {
-        samples$start_date <- start_date
+        samples[["start_date"]] <- start_date
     }
     if (!.has_column(samples, "end_date")) {
-        samples$end_date <- end_date
+        samples[["end_date"]] <- end_date
     }
     # Set samples class
     samples <- .set_class(samples, c("sits", class(samples)))

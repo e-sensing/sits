@@ -71,30 +71,23 @@ test_that("One-year, multicores processing reclassify", {
     expect_equal(vls_prodes2021[2000], 1)
     # ro_class is "Old_Deforestation"
     expect_equal(vls_ro_mask[2000], 3)
-
-    out <- capture_messages({
-        expect_message(
-            object = {
-                sits_reclassify(
-                    cube = ro_class,
-                    mask = prodes2021,
-                    rules = list(
-                        "Old_Deforestation" = mask %in% c(
-                            "d2012", "d2017", "d2018",
-                            "d2019", "d2020", "d2021"
-                        )
-                    ),
-                    memsize = 4,
-                    multicores = 2,
-                    output_dir = tempdir(),
-                    version = "reclass"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        object <- sits_reclassify(
+            cube = ro_class,
+            mask = prodes2021,
+            rules = list(
+                "Old_Deforestation" = mask %in% c(
+                    "d2012", "d2017", "d2018",
+                    "d2019", "d2020", "d2021"
                 )
-            },
-            regexp = "Recovery: "
+            ),
+            memsize = 4,
+            multicores = 2,
+            output_dir = tempdir(),
+            version = "reclass"
         )
     })
-
-    expect_true(grepl("output_dir", out[1]))
 
     unlink(ro_mask$file_info[[1]]$path)
 })

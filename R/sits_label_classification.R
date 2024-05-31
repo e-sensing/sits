@@ -58,6 +58,7 @@ sits_label_classification <- function(cube,
                                       output_dir,
                                       version = "v1",
                                       progress = TRUE) {
+    .check_set_caller("sits_label_classification")
     # Dispatch
     UseMethod("sits_label_classification", cube)
 }
@@ -72,8 +73,8 @@ sits_label_classification.probs_cube <- function(cube, ...,
                                                  progress = TRUE) {
     # Pre-conditions - Check parameters
     .check_raster_cube_files(cube)
-    .check_memsize(memsize, min = 1, max = 16384)
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_num_parameter(memsize, min = 1, max = 16384)
+    .check_num_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
     version <- .check_version(version)
     # version is case-insensitive in sits
@@ -149,25 +150,23 @@ sits_label_classification.probs_vector_cube <- function(cube, ...,
 #' @rdname sits_label_classification
 #' @export
 sits_label_classification.raster_cube <- function(cube, ...) {
-    stop("Input should be a classified cube")
-    return(cube)
+    stop(.conf("messages", "sits_label_classification"))
 }
 
 #' @rdname sits_label_classification
 #' @export
 sits_label_classification.derived_cube <- function(cube, ...) {
-    stop("Input should be a classified cube")
-    return(cube)
+    stop(.conf("messages", "sits_label_classification"))
 }
 
 #' @rdname sits_label_classification
 #' @export
-sits_label_classification.default <- function(cube, ...){
+sits_label_classification.default <- function(cube, ...) {
     cube <- tibble::as_tibble(cube)
-    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
+    if (all(.conf("sits_cube_cols") %in% colnames(cube)))
         cube <- .cube_find_class(cube)
-    } else
-        stop("Input should be a classified cube")
+    else
+        stop(.conf("messages", "sits_label_classification"))
     class_cube <- sits_label_classification(cube, ...)
     return(class_cube)
 }

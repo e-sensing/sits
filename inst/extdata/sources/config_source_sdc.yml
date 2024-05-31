@@ -1,0 +1,144 @@
+# These are configuration parameters that can be set by users
+# The parameters enable access to the cloud collections
+
+sources:
+    SDC                     :
+        s3_class            : ["sdc_cube", "stac_cube", "eo_cube",
+                               "raster_cube"]
+        service             : "STAC"
+        url                 : "https://explorer.swissdatacube.org/stac"
+        collections         :
+            S2_L2A_10M_SWISS: &swiss_s2
+                bands       :
+                    B01     : &swiss_msi_10m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    :  10
+                        band_name     : "coastal_aerosol"
+                        data_type     : "INT2S"
+                    B02     :
+                        <<: *swiss_msi_10m
+                        band_name     : "blue"
+                    B03     :
+                        <<: *swiss_msi_10m
+                        band_name     : "green"
+                    B04     :
+                        <<: *swiss_msi_10m
+                        band_name     : "red"
+                    B05     :
+                        <<: *swiss_msi_10m
+                        band_name     : "veg5"
+                    B06     :
+                        <<: *swiss_msi_10m
+                        band_name     : "veg6"
+                    B07     :
+                        <<: *swiss_msi_10m
+                        band_name     : "veg7"
+                    B08     :
+                        <<: *swiss_msi_10m
+                        band_name     : "nir"
+                    B8A     :
+                        <<: *swiss_msi_10m
+                        band_name     : "narrow_nir"
+                    B09     :
+                        <<: *swiss_msi_10m
+                        band_name     : "water_vapour"
+                    B11     :
+                        <<: *swiss_msi_10m
+                        band_name     : "swir1"
+                    B12     :
+                        <<: *swiss_msi_10m
+                        band_name     : "swir2"
+                    CLOUD   :
+                        bit_mask      : false
+                        band_name     : "scl"
+                        values        :
+                            0         : "missing_data"
+                            1         : "defective pixel"
+                            2         : "shadows"
+                            3         : "cloud shadows"
+                            4         : "vegetation"
+                            5         : "non-vegetated"
+                            6         : "water"
+                            7         : "unclassified"
+                            8         : "cloud medium"
+                            9         : "cloud high"
+                            10        : "thin cirrus"
+                            11        : "snow or ice"
+                        interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
+                        resolution   :  20
+                        data_type     : "INT1U"
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
+                collection_name: "s2_l2a_10m_swiss"
+                open_data: true
+                open_data_token: false
+                metadata_search : "feature"
+                ext_tolerance: 0
+                grid_system  : "MGRS"
+            LS8_LASRC_SWISS : &swiss_l8
+                bands       :
+                    B01     : &swiss_oli_30m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "coastal_aerosol"
+                        data_type     : "INT2S"
+                    B02     :
+                        <<: *swiss_oli_30m
+                        band_name     : "blue"
+                    B03     :
+                        <<: *swiss_oli_30m
+                        band_name     : "green"
+                    B04     :
+                        <<: *swiss_oli_30m
+                        band_name     : "red"
+                    B05     :
+                        <<: *swiss_oli_30m
+                        band_name     : "nir"
+                    B06     :
+                        <<: *swiss_oli_30m
+                        band_name     : "swir1"
+                    B07     :
+                        <<: *swiss_oli_30m
+                        band_name     : "swir2"
+                    CLOUD   :
+                        bit_mask      : true
+                        band_name     : "pixel_qa"
+                        values        :
+                            0         : "missing_data"
+                            1         : "Clear"
+                            2         : "Water"
+                            3         : "Cloud Shadow"
+                            4         : "Snow"
+                            5         : "Cloud"
+                            6         : "Low/High confidence of cloud"
+                            7         : "Medium/High confidence of cloud"
+                            8         : "Low/High confidence of cirrus"
+                            9         : "Medium/High confidence of cirrus"
+                            10        : "Terrain Occlusion"
+                            11        : "Unused"
+                            12        : "Unused"
+                            13        : "Unused"
+                            14        : "Unused"
+                            15        : "Unused"
+                        interp_values : [0, 3, 4, 5, 7, 9, 10]
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT2U"
+                satellite   : "LANDSAT-8"
+                sensor      : "OLI"
+                collection_name: "ls8_lasrc_swiss"
+                open_data: true
+                open_data_token: false
+                metadata_search : "feature"
+                ext_tolerance: 0
+                grid_system  : "WRS-2"
+

@@ -73,9 +73,9 @@ sits_uncertainty.probs_cube <- function(
     # Check if cube has probability data
     .check_raster_cube_files(cube)
     # Check memsize
-    .check_memsize(memsize, min = 1, max = 16384)
+    .check_num_parameter(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1, max = 2048)
     # check output dir
     .check_output_dir(output_dir)
     # check version
@@ -104,9 +104,9 @@ sits_uncertainty.probs_cube <- function(
     # Define the class of the smoothing
     uncert_fn <- switch(
         type,
-        "least"   = .uncertainty_fn_least(),
-        "margin"  = .uncertainty_fn_margin(),
-        "entropy" = .uncertainty_fn_entropy()
+        least   = .uncertainty_fn_least(),
+        margin  = .uncertainty_fn_margin(),
+        entropy = .uncertainty_fn_entropy()
     )
     # Compute uncertainty
     uncert_cube <- .uncertainty_raster_cube(
@@ -130,15 +130,13 @@ sits_uncertainty.probs_vector_cube <- function(
     # Check if cube has probability data
     .check_raster_cube_files(cube)
     # Check memsize
-    .check_memsize(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1, max = 2048)
     # check output dir
     .check_output_dir(output_dir)
     # check version
     version <- .check_version(version)
-    # version is case-insensitive in sits
-    version <- tolower(version)
     # Compute uncertainty
     uncert_cube <- .uncertainty_vector_cube(
         cube = cube,
@@ -157,5 +155,5 @@ sits_uncertainty.default <- function(
         memsize,
         output_dir,
         version) {
-    stop("Invalid type of method for uncertainty estimation")
+    stop(.conf("messages", "sits_uncertainty_default"))
 }

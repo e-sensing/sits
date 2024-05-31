@@ -9,10 +9,11 @@
 #' @param  fn        Function to be applied.
 #' @return           Tibble where function has been applied.
 .apply <- function(data, col, fn, ...) {
+    .check_set_caller(".apply")
     # pre-condition
-    .check_chr_within(col,
-        within = names(data),
-        msg = "invalid column name"
+    .check_chr_within(
+        col,
+        within = names(data)
     )
     # select data do unpack
     x <- data[col]
@@ -81,10 +82,9 @@
     # Get band configuration
     band_conf <- .tile_band_conf(tile = feature, band = out_band)
     if (.has_not(band_conf)) {
+        band_conf <- .conf("default_values", "FLT4S")
         if (normalized)
             band_conf <- .conf("default_values", "INT2S")
-        else
-            band_conf <- .conf("default_values", "FLT4S")
     }
     # Process jobs sequentially
     block_files <- .jobs_map_sequential(chunks, function(chunk) {
@@ -141,6 +141,8 @@
         # Returned block files for each fraction
         block_files
     })
+    # Remove NULL values from block files list
+    block_files <- Filter(function(x) !is.null(x), block_files)
     # Merge blocks into a new eo_cube tile
     band_tile <- .tile_eo_merge_blocks(
         files = out_file,
@@ -213,15 +215,15 @@
 .apply_capture_expression <- function(...) {
     # Capture dots as a list of quoted expressions
     list_expr <- lapply(substitute(list(...), env = environment()),
-        unlist,
-        recursive = FALSE
+                        unlist,
+                        recursive = FALSE
     )[-1]
 
     # Check bands names from expression
     .check_expression(list_expr)
 
     # Get out band
-    out_band <- toupper(gsub("_", "-", names(list_expr)))
+    out_band <- toupper(gsub("_", "-", names(list_expr), fixed = TRUE))
     names(list_expr) <- out_band
 
     return(list_expr)
@@ -237,24 +239,17 @@
 #' @return           List of input bands required to run the expression
 #'
 .apply_input_bands <- function(cube, bands, expr) {
+    # set caller to show in errors
+    .check_set_caller(".apply_input_bands")
+
     # Get all required bands in expression
     expr_bands <- toupper(.apply_get_all_names(expr[[1]]))
 
     # Select bands that are in input expression
     bands <- bands[bands %in% expr_bands]
 
-    # Found bands
-    found_bands <- expr_bands %in% bands
-
     # Post-condition
-    .check_that(
-        x = all(found_bands),
-        local_msg = "use 'sits_bands()' to check available bands",
-        msg = paste("band(s)", paste0("'", expr_bands[!found_bands],
-            "'",
-            collapse = ", "
-        ), "not found")
-    )
+    .check_that(all(expr_bands %in% bands))
 
     return(bands)
 }
@@ -285,9 +280,6 @@
 #' @return operations on local kernels
 #'
 .kern_functions <- function(window_size, img_nrow, img_ncol) {
-    # Pre-conditions
-    .check_window_size(window_size, max = min(img_nrow, img_ncol) - 1)
-
     result_env <- list2env(list(
         w_median = function(m) {
             C_kernel_median(

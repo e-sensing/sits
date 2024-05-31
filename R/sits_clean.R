@@ -58,9 +58,10 @@
 sits_clean <- function(cube, window_size = 5L, memsize = 4L,
                        multicores = 2L, output_dir, version = "v1-clean",
                        progress = TRUE) {
+    .check_set_caller("sits_clean")
     # Precondition
     # Check the cube is valid
-    .check_valid(cube)
+    .check_na_null_parameter(cube)
     UseMethod("sits_clean", cube)
 }
 #' @rdname sits_clean
@@ -72,11 +73,11 @@ sits_clean.class_cube <- function(cube, window_size = 5L, memsize = 4L,
     # Check cube has files
     .check_raster_cube_files(cube)
     # Check window size
-    .check_window_size(window_size, min = 1, max = 15)
+    .check_int_parameter(window_size, min = 3, max = 15, is_odd = TRUE)
     # Check memsize
-    .check_memsize(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1, max = 2048)
     # Check output_dir
     .check_output_dir(output_dir)
     # Check version
@@ -131,16 +132,14 @@ sits_clean.class_cube <- function(cube, window_size = 5L, memsize = 4L,
 sits_clean.raster_cube <- function(cube, window_size = 5L, memsize = 4L,
                                    multicores = 2L, output_dir,
                                    version = "v1-clean", progress = TRUE) {
-    stop("Input should be a classified cube")
-    return(cube)
+    stop(.conf("messages", "sits_clean"))
 }
 #' @rdname sits_clean
 #' @export
 sits_clean.derived_cube <- function(cube, window_size = 5L, memsize = 4L,
                                     multicores = 2L, output_dir,
                                     version = "v1-clean", progress = TRUE) {
-    stop("Input should be a classified cube")
-    return(cube)
+    stop(.conf("messages", "sits_clean"))
 }
 #' @rdname sits_clean
 #' @export
@@ -150,8 +149,9 @@ sits_clean.default <- function(cube, window_size = 5L, memsize = 4L,
     cube <- tibble::as_tibble(cube)
     if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
         cube <- .cube_find_class(cube)
-    } else
-        stop("Input should be a classified cube")
+    } else {
+        stop(.conf("messages", "sits_clean"))
+    }
     clean_cube <- sits_clean(cube, window_size, memsize, multicores,
                              output_dir, version, progress)
     return(clean_cube)

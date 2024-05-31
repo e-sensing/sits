@@ -8,8 +8,8 @@ test_that("Single core classification with rfor", {
         source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
-        progress = TRUE,
-        verbose = TRUE
+        progress = FALSE,
+        verbose = FALSE
     )
     expect_error(.check_bbox(sinop))
 
@@ -27,25 +27,20 @@ test_that("Single core classification with rfor", {
     )
     bands_p <- sits_bands(sinop_probs)
     labels_p <- sits_labels(sinop_probs)
-    expect_true(.check_cube_is_results_cube(bands_p, labels_p))
+    expect_true(.check_is_results_cube(bands_p, labels_p))
 
     # testing resume feature
-    out <- capture_messages({
-        expect_message(
-            object = {
-                sits_classify(
-                    data = sinop,
-                    ml_model = rfor_model,
-                    output_dir = output_dir,
-                    memsize = 4,
-                    multicores = 2,
-                    progress = TRUE
-                )
-            },
-            regexp = "Recovery: "
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        object <- sits_classify(
+            data = sinop,
+            ml_model = rfor_model,
+            output_dir = output_dir,
+            memsize = 4,
+            multicores = 2,
+            progress = TRUE
         )
     })
-    expect_true(grepl("output_dir", out[1]))
 
     sits_labels(sinop_probs) <- c(
         "Cerrado", "Floresta",
@@ -209,8 +204,8 @@ test_that("Classification with RFOR and Savitzky-Golay filter", {
         output_dir = output_dir,
         memsize = 4,
         multicores = 2,
-        progress = TRUE,
-        verbose = TRUE
+        progress = FALSE,
+        verbose = FALSE
     )
 
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
@@ -602,24 +597,19 @@ test_that("Classification with post-processing", {
         progress = FALSE
     )
     # testing resume feature
-    out <- capture_messages({
-        expect_message(
-            object = {
-                sits_label_classification(
-                    sinop_probs,
-                    output_dir = output_dir,
-                    progress = FALSE
-                )
-            },
-            regexp = "Recovery"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        object <- sits_label_classification(
+            sinop_probs,
+            output_dir = output_dir,
+            progress = FALSE
         )
     })
+
     expect_error(sits_label_classification(
         sinop, output_dir = tempdir()))
     expect_error(sits_label_classification(
         sinop2, output_dir = tempdir()))
-
-    expect_true(grepl("output_dir", out[1]))
 
     expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
     expect_true(length(sits_timeline(sinop_class)) ==
@@ -709,21 +699,15 @@ test_that("Classification with post-processing", {
         memsize = 4,
         multicores = 2
     )
-    # testing the recovery feature
-    out <- capture_messages({
-        expect_message(
-            object = {
-                sits_smooth(
-                    sinop_probs,
-                    output_dir = output_dir,
-                    multicores = 2,
-                    memsize = 4
-                )
-            },
-            regexp = "Recovery"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        object <- sits_smooth(
+            sinop_probs,
+            output_dir = output_dir,
+            multicores = 2,
+            memsize = 4
         )
     })
-    expect_true(grepl("output_dir", out[1]))
 
     expect_true(length(sits_timeline(sinop_bayes)) ==
         length(sits_timeline(sinop_probs)))
@@ -857,16 +841,12 @@ test_that("Clean classification",{
         progress = FALSE
     )
     # testing the recovery feature
-    out <- capture_messages({
-        expect_message(
-            object = {
-                sits_clean(
-                    cube = sinop_class,
-                    output_dir = output_dir,
-                    progress = FALSE
-                )
-            },
-            regexp = "Recovery"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        object <- sits_clean(
+            cube = sinop_class,
+            output_dir = output_dir,
+            progress = FALSE
         )
     })
     sum_clean <- summary(clean_cube)

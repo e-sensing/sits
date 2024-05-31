@@ -165,7 +165,7 @@
                              neigh_fraction,
                              smoothness) {
     # Check window size
-    .check_window_size(window_size, min = 5)
+    .check_int_parameter(window_size, min = 5, is_odd = TRUE)
     # Check neigh_fraction
     .check_num_parameter(neigh_fraction, exclusive_min = 0, max = 1)
 

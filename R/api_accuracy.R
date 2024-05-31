@@ -11,9 +11,9 @@
 #' @return           A tibble with predicted and reference values.
 .accuracy_pred_ref <- function(class) {
     # retrieve the predicted values
-    pred <- unlist(purrr::map(class$predicted, function(r) r$class))
+    pred <- unlist(purrr::map(class[["predicted"]], function(r) r[["class"]]))
     # retrieve the reference labels
-    ref <- class$label
+    ref <- class[["label"]]
     # does the input data contains valid reference labels?
     .check_labels(ref)
     # build the tibble
@@ -45,18 +45,16 @@
 #' and the accuracy (user, producer, and overall).
 .accuracy_area_assess <- function(cube, error_matrix, area) {
     # set caller to show in errors
-    .check_set_caller(".sits_accuracy_area_assess")
+    .check_set_caller(".accuracy_area_assess")
     # check if cube has the right type
-    .check_cube_is_class_cube(cube)
+    .check_is_class_cube(cube)
     # In the case where some classes are not in the classified cube, but
     # are in the validation file
     diff_classes <- setdiff(rownames(error_matrix), names(area))
     if (length(diff_classes) > 0 &&
-        length(diff_classes) < length(rownames(error_matrix))) {
-        warning(
-            paste("The classified cube does not have all the classes in the",
-                  "validation file."),
-            call. = FALSE
+            length(diff_classes) < length(rownames(error_matrix))) {
+        warning(.conf("messages", ".accuracy_area_assess"),
+                call. = FALSE
         )
         # Create a numeric vector with zeros
         vec_areas <- rep(0, length(diff_classes))

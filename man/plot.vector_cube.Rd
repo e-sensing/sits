@@ -7,19 +7,18 @@
 \method{plot}{vector_cube}(
   x,
   ...,
-  band = sits_bands(x)[1],
+  band = NULL,
   red = NULL,
   green = NULL,
   blue = NULL,
-  tile = x$tile[[1]],
-  date = NULL,
+  tile = x[["tile"]][[1]],
+  dates = NULL,
   seg_color = "black",
   line_width = 1,
   palette = "RdYlGn",
-  style = "cont",
-  n_colors = 10,
   rev = FALSE,
-  scale = 0.8
+  scale = 1,
+  style = "order"
 )
 }
 \arguments{
@@ -37,7 +36,7 @@
 
 \item{tile}{Tile to be plotted.}
 
-\item{date}{Date to be plotted.}
+\item{dates}{Dates to be plotted.}
 
 \item{seg_color}{Color to show the segment boundaries}
 
@@ -45,15 +44,11 @@
 
 \item{palette}{An RColorBrewer palette}
 
-\item{style}{Method to process the color scale
-("cont", "order", "quantile", "fisher",
- "jenks", "log10")}
-
-\item{n_colors}{Number of colors to be shown}
-
 \item{rev}{Reverse the color order in the palette?}
 
-\item{scale}{Scale to plot map (0.4 to 1.0)}
+\item{scale}{Scale to plot map (0.4 to 1.5)}
+
+\item{style}{Style for plotting continuous objects}
 }
 \value{
 A plot object with an RGB image

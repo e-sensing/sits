@@ -118,11 +118,7 @@
         # Resume feature
         if (.raster_is_valid(out_file, output_dir = output_dir)) {
             if (.check_messages()) {
-                message("Recovery: file '", out_file, "' already exists.")
-                message(
-                    "(If you want to produce a new cropped image, please ",
-                    "change 'version' or 'output_dir' parameter)"
-                )
+                .check_recovery(out_file)
             }
             base_tile <- .tile_from_file(
                 file = out_file, base_tile = base_tile,
@@ -179,13 +175,7 @@
     )
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
-        if (.check_messages()) {
-            message("Recovery: file '", out_file, "' already exists.")
-            message(
-                "(If you want to produce a new cropped image, please ",
-                "change 'version' or 'output_dir' parameter)"
-            )
-        }
+        .check_recovery(out_file)
         asset <- .tile_from_file(
             file = out_file, base_tile = asset,
             band = .tile_bands(asset), update_bbox = TRUE,
@@ -278,7 +268,7 @@
 #' @param  tile         Tile of data cube
 #' @return              BDC or RASTER
 .mosaic_type <- function(tile) {
-    if (.cube_source(tile) %in% "BDC") {
+    if (.cube_source(tile) == "BDC") {
         return("BDC")
     }
     return("RASTER")
@@ -289,9 +279,7 @@
 #' @param  tile         Tile of data cube
 #' @return              Result dependent on the type
 .mosaic_switch <- function(tile, ...) {
-    switch(.mosaic_type(tile),
-        ...
-    )
+    switch(.mosaic_type(tile), ...)
 }
 #' @title Get mosaic CRS
 #' @keywords internal
@@ -301,10 +289,10 @@
 .mosaic_crs <- function(tile, as_crs) {
     .mosaic_switch(
         tile,
-        "BDC" = .as_crs("+proj=aea
+        BDC = .as_crs("+proj=aea
                         +lat_0=-12 +lon_0=-54 +lat_1=-2 +lat_2=-22
                         +x_0=5000000 +y_0=10000000
                         +ellps=GRS80 +units=m +no_defs "),
-        "RASTER" = .as_crs(as_crs)
+        RASTER = .as_crs(as_crs)
     )
 }

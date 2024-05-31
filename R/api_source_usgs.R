@@ -7,18 +7,13 @@
 #' @return          Attributes of wrs path and row.
 #'
 .usgs_format_tiles <- function(tiles) {
+    .check_set_caller(".usgs_format_tiles")
     # regex pattern of wrs_path and wrs_row
     pattern_l8 <- "[0-9]{6}"
-
     # verify tile pattern
-    if (!any(grepl(pattern_l8, tiles, perl = TRUE))) {
-        stop(paste(
-            "The specified tiles do not match the Landsat-8 grid",
-            "pattern. See the user guide for more information."
-        ))
-    }
+    .check_that(all(grepl(pattern_l8, tiles, perl = TRUE)))
 
-    # list to store the info about the tiles to provide the query in STAC
+    # prepare the tiles for a valid STAC query to the USGS archive
     tiles_tbl <- purrr::map_dfr(tiles, function(tile) {
         c(
             wrs_path = substring(tile, 1, 3),
@@ -51,21 +46,16 @@
     # Run a query
     items_query <- rstac::ext_query(
         q = items_query,
-        "landsat:correction" %in% "L2SR",
-        "platform" %in% "LANDSAT_8",
-        "landsat:collection_number" %in% "02"
+        "landsat:correction" == "L2SR",
+        "platform" == "LANDSAT_8",
+        "landsat:collection_number" == "02"
     )
     # assert that service is online
-    tryCatch(
+    items <- .try(
         {
-            items <- rstac::post_request(items_query)
+            rstac::post_request(items_query, ...)
         },
-        error = function(e) {
-            stop(paste(
-                ".source_collection_access_test.usgs_cube: service is",
-                "unreachable\n", e$message
-            ), call. = FALSE)
-        }
+        default = NULL
     )
     # check result
     .check_stac_items(items)
@@ -78,21 +68,17 @@
     # Get HTTP refs
     href <- .source_item_get_hrefs(
         source = source,
-        item = items$feature[[1]],
+        item = items[["features"]][[1]],
         collection = collection, ...
     )
     # assert that token and/or href is valid
-    tryCatch(
+    rast <- .try(
         {
             .raster_open_rast(href)
         },
-        error = function(e) {
-            stop(paste(
-                ".source_collection_access_test.usgs_cube: cannot open url\n",
-                href, "\n", e$message
-            ), call. = FALSE)
-        }
+        default = NULL
     )
+    .check_null_parameter(rast)
     return(invisible(source))
 }
 #' @title Retrieves the paths or URLs of each file bands of an item for BDC
@@ -132,20 +118,19 @@
                                         stac_query, ...,
                                         tiles = NULL,
                                         platform = NULL) {
-    # set caller to show in errors
-    .check_set_caller(".source_items_new.usgs_cube")
-
     # get start and end date
-    dates_chr <- strsplit(x = stac_query$params$datetime, split = "/")[[1]]
-
-    # the usgs stac only accepts RFC 3339 datetime format
-    stac_query$params$datetime <- paste(
+    date_time <- strsplit(
+        stac_query[["params"]][["datetime"]],
+        split = "/"
+    )
+    dates_chr <- date_time[[1]]
+    # USGS stac only accepts RFC 3339 datetime format
+    stac_query[["params"]][["datetime"]] <- paste(
         format(as.Date(dates_chr), "%Y-%m-%dT%H:%M:%SZ"),
         collapse = "/"
     )
-
-    # request with more than searched items throws 502 error
-    stac_query$params$limit <- 300
+    # requests with more than searched items throws 502 error
+    stac_query[["params"]][["limit"]] <- 300
 
     if (!is.null(platform)) {
         platform <- .stac_format_platform(
@@ -153,32 +138,28 @@
             collection = collection,
             platform = platform
         )
-
         stac_query <- rstac::ext_query(
             q = stac_query,
             "platform" == platform
         )
     } else {
-        platform <- unlist(unname(
+        platforms <- unlist(unname(
             .conf(
                 "sources", source, "collections", collection, "platforms"
             )
         ))
-
         stac_query <- rstac::ext_query(
             q = stac_query,
-            "platform" %in% platform
+            "platform" %in% platforms
         )
     }
-
     # adding search filter in query
     stac_query <- rstac::ext_query(
         q = stac_query,
         "landsat:correction" %in% c("L2SR", "L2SP"),
         "landsat:collection_category" %in% c("T1", "T2"),
-        "landsat:collection_number" %in% "02"
+        "landsat:collection_number" == "02"
     )
-
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles)) {
         # format tile parameter provided by users
@@ -187,29 +168,22 @@
         # add filter by wrs path and row
         stac_query <- rstac::ext_query(
             q = stac_query,
-            "landsat:wrs_path" %in% sep_tile$wrs_path,
-            "landsat:wrs_row" %in% sep_tile$wrs_row
+            "landsat:wrs_path" %in% sep_tile[["wrs_path"]],
+            "landsat:wrs_row" %in% sep_tile[["wrs_row"]]
         )
     }
-
     # making the request
     items <- rstac::post_request(q = stac_query, ...)
     .check_stac_items(items)
     # filter only surface reflectance products
-    items$features <- items$features[
-        grepl("_SR$", rstac::items_reap(items, "id"))
+    items[["features"]] <- items[["features"]][
+        endsWith(rstac::items_reap(items, "id"), suffix = "_SR")
     ]
-
     # checks if the collection returned zero items
-    .check_that(
-        x = !(rstac::items_length(items) == 0),
-        msg = "the provided search returned zero items."
-    )
-
+    .check_stac_items(items)
     # if more than 2 times items pagination are found the progress bar
     # is displayed
     matched_items <- rstac::items_matched(items = items)
-
     # progress bar
     progress <- matched_items > 2 * .conf("rstac_pagination_limit")
     # check documentation mode
@@ -233,10 +207,10 @@
                                          items, ...,
                                          collection = NULL) {
     # store tile info in items object
-    items$features <- purrr::map(items$features, function(feature) {
-        feature$properties$tile <- paste0(
-            feature$properties[["landsat:wrs_path"]],
-            feature$properties[["landsat:wrs_row"]]
+    items[["features"]] <- purrr::map(items[["features"]], function(feature) {
+        feature[["properties"]][["tile"]] <- paste0(
+            feature[["properties"]][["landsat:wrs_path"]],
+            feature[["properties"]][["landsat:wrs_row"]]
         )
         feature
     })
@@ -249,13 +223,9 @@
 #' @param collection Image collection
 #' @return Called for side effects
 .source_configure_access.usgs_cube <- function(source, collection = NULL) {
+    .check_set_caller(".source_configure_access_usgs_cube")
     aws_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
     if (nchar(aws_access_key) == 0)
-        stop(
-            paste("You need a valid AWS_SECRET_ACCESS_KEY",
-                  "to access USGS collection.",
-                  "If you have this key",
-                  "please put it on an enviromental variable")
-        )
+        stop(.conf("messages", ".source_configure_access_usgs_cube"))
     return(invisible(source))
 }

@@ -34,7 +34,7 @@ NULL
     } else if (all(c("start_date", "end_date") %in% names(fi))) {
         "derived_cube"
     } else {
-        stop("invalid file info")
+        stop(.conf("messages", ".fi_type"))
     }
 }
 #' @title Switch between `file_info` types
@@ -86,6 +86,9 @@ NULL
 #' @param bands bands
 #' @param date date of the images
 .fi_eo_from_files <- function(files, fid, bands, date) {
+    # set caller to show in errors
+    .check_set_caller(".fi_eo_from_files")
+    # precondition
     .check_that(length(files) == length(bands))
     files <- .file_normalize(files)
     r_obj <- .raster_open_rast(files)
@@ -208,10 +211,10 @@ NULL
 #' @param rename  new band names
 #' @returns file_info with new band names
 .fi_rename_bands <- function(fi, rename) {
+    .check_set_caller(".fi_rename_bands")
     .check_chr_within(
         .fi_bands(fi),
-        within = names(rename),
-        msg = "invalid renaming parameter"
+        within = names(rename)
     )
     fi[["band"]] <- unname(rename[.fi_bands(fi)])
     fi
@@ -307,7 +310,8 @@ NULL
         fi = fi, start_date = start_date, end_date = end_date
     )
     if (!any(dates_in_fi)) {
-        stop("no dates found between interval ", start_date[[1]], end_date[[1]])
+        stop(.conf("messages", ".fi_filter_interval"),
+             start_date[[1]], end_date[[1]])
     }
     fi[dates_in_fi, ]
 }

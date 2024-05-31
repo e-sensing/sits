@@ -32,10 +32,9 @@ sits_sample <- function(data,
     # verify if data and frac are valid
     .check_samples_ts(data)
     # check frac parameter
-    .check_num_parameter(frac, min = 0.0, max = 2.0,
-                         msg = "invalid frac parameter")
+    .check_num_parameter(frac, min = 0.0, max = 2.0)
     # check oversample
-    .check_lgl_parameter(oversample, msg = "invalid oversample parameter")
+    .check_lgl_parameter(oversample)
     # group the data by label
     groups <- by(data, data[["label"]], list)
     # for each group of samples, obtain the required subset
@@ -109,14 +108,8 @@ sits_reduce_imbalance <- function(samples,
     .check_int_parameter(n_samples_under)
 
     # check if number of required samples are correctly entered
-    .check_that(
-        n_samples_under >= n_samples_over,
-        local_msg = paste0(
-            "number of samples to undersample for large ",
-            "classes should be higher or equal to number ",
-            "of samples to oversample for small classes"
-        ),
-        msg = "invalid 'n_samples_over' and 'n_samples_under' parameters"
+    .check_that(n_samples_under >= n_samples_over,
+        msg = .conf("messages", "sits_reduce_imbalance_samples")
     )
     # get the bands and the labels
     bands <- sits_bands(samples)
@@ -124,9 +117,9 @@ sits_reduce_imbalance <- function(samples,
     # params of output tibble
     lat <- 0.0
     long <- 0.0
-    start_date <- samples$start_date[[1]]
-    end_date <- samples$end_date[[1]]
-    cube <- samples$cube[[1]]
+    start_date <- samples[["start_date"]][[1]]
+    end_date <- samples[["end_date"]][[1]]
+    cube <- samples[["cube"]][[1]]
     timeline <- sits_timeline(samples)
     # get classes to undersample
     classes_under <- samples |>
@@ -158,7 +151,7 @@ sits_reduce_imbalance <- function(samples,
                 rlen = 50
             )
             # select samples on the SOM grid using the neurons
-            samples_under <- som_map$data |>
+            samples_under <- som_map[["data"]] |>
                 dplyr::group_by(.data[["id_neuron"]]) |>
                 dplyr::slice_sample(n = 4, replace = TRUE) |>
                 dplyr::ungroup()
@@ -294,28 +287,23 @@ sits_reduce_imbalance <- function(samples,
 sits_sampling_design <- function(cube,
                                  expected_ua = 0.75,
                                  std_err = 0.01,
-                                 rare_class_prop = 0.1){
+                                 rare_class_prop = 0.1) {
+    .check_set_caller("sits_sampling_design")
     # check the cube is valid
     .check_raster_cube_files(cube)
     # check cube is class cube
-    .check_cube_is_class_cube(cube)
+    .check_is_class_cube(cube)
     # get the labels
     labels <- .cube_labels(cube)
     n_labels <- length(labels)
-    if (length(expected_ua) == 1 ) {
+    if (length(expected_ua) == 1) {
         expected_ua <- rep(expected_ua, n_labels)
-        names(expected_ua) = labels
+        names(expected_ua) <- labels
     }
     # check number of labels
-    .check_that(length(expected_ua) == n_labels,
-                msg = "Expected values of user's accuracy
-                should match number of labels"
-    )
+    .check_that(length(expected_ua) == n_labels)
     # check names of labels
-    .check_that(all(labels %in% names(expected_ua)),
-                msg = "Expected values of user's accuracy
-                should contain names of labels"
-    )
+    .check_that(all(labels %in% names(expected_ua)))
     # adjust names to match cube labels
     expected_ua <- expected_ua[labels]
     # get cube class areas
@@ -325,9 +313,9 @@ sits_sampling_design <- function(cube,
     # standard deviation of the stratum
     std_dev <- signif(sqrt(expected_ua * (1 - expected_ua)), 3)
     # calculate sample size
-    sample_size <-  round((sum(prop * std_dev)/std_err)^2)
+    sample_size <-  round((sum(prop * std_dev) / std_err) ^ 2)
     # determine "Equal" allocation
-    equal <- rep(round(sample_size/n_labels), n_labels)
+    equal <- rep(round(sample_size / n_labels), n_labels)
     names(equal) <- labels
     # find out the classes which are rare
     rare_classes <- prop[prop <= rare_class_prop]
@@ -337,7 +325,7 @@ sits_sampling_design <- function(cube,
     #  allocate the rest of the sample size proportionally
     #  to the other more frequent classes
     alloc_three <- c(100, 75, 50)
-    alloc_options.lst <- purrr::map(alloc_three, function(al){
+    alloc_options_lst <- purrr::map(alloc_three, function(al) {
         # determine the number of samples to be allocated
         # to more frequent classes
         samples_rare_classes <- al * length(rare_classes)
@@ -345,7 +333,7 @@ sits_sampling_design <- function(cube,
         # allocate samples per class
         # rare classes are given a fixed value (100, 75, 50)
         # other classes are allocated proportionally to area
-        alloc_class.lst <- purrr::map(prop, function(p) {
+        alloc_class_lst <- purrr::map(prop, function(p) {
             if (p <= rare_class_prop) {
                 choice <- al
             } else {
@@ -354,16 +342,18 @@ sits_sampling_design <- function(cube,
             }
             return(choice)
         })
-        alloc_class <- cbind(alloc_class.lst)
+        alloc_class <- cbind(alloc_class_lst)
         colnames(alloc_class) <- paste0("alloc_", al)
         return(alloc_class)
     })
     # get the three allocation options
-    alloc_options <- do.call(cbind,alloc_options.lst)
+    alloc_options <- do.call(cbind, alloc_options_lst)
     # final option is the proportional allocation
     alloc_prop <- round(prop * sample_size)
     # put it all together
-    design <- cbind(prop, expected_ua, std_dev, equal, alloc_options, alloc_prop)
+    design <- cbind(prop, expected_ua, std_dev,
+                    equal, alloc_options, alloc_prop
+    )
     return(design)
 }
 
@@ -379,7 +369,8 @@ sits_sampling_design <- function(cube,
 #' @param  cube                 Classified cube
 #' @param  sampling_design      Result of sits_sampling_design
 #' @param  alloc                Allocation method chosen
-#' @param  overhead             Additional percentage to account for border points
+#' @param  overhead             Additional percentage to account
+#'                              for border points
 #' @param  multicores           Number of cores that will be used to
 #'                              sample the images in parallel.
 #' @param  shp_file             Name of shapefile to be saved (optional)
@@ -423,39 +414,36 @@ sits_stratified_sampling <- function(cube,
                                      overhead = 1.2,
                                      multicores = 2L,
                                      shp_file = NULL,
-                                     progress = TRUE){
+                                     progress = TRUE) {
+    .check_set_caller("sits_stratified_sampling")
     # check the cube is valid
     .check_raster_cube_files(cube)
     # check cube is class cube
-    .check_cube_is_class_cube(cube)
+    .check_is_class_cube(cube)
     # get the labels
     labels <- .cube_labels(cube)
     n_labels <- length(labels)
     # check number of labels
-    .check_that(nrow(sampling_design) == n_labels,
-                msg = "Labels in sampling design do not match labels in cube"
-    )
+    .check_that(nrow(sampling_design) == n_labels)
     # check names of labels
-    .check_that(all(rownames(sampling_design) %in% labels),
-                msg = "Labels in sampling design do not match labels in cube"
-    )
+    .check_that(all(rownames(sampling_design) %in% labels))
     # check allocation method
     .check_that(alloc %in% colnames(sampling_design),
-                msg = "allocation method is not included in sampling design")
+                msg = .conf("messages", "sits_sampling_design_alloc"))
     # retrieve samples class
-    samples_class <- unlist(sampling_design[,alloc])
+    samples_class <- unlist(sampling_design[, alloc])
     # check samples class
-    .check_that(all(unname(samples_class) == floor(unname(samples_class))),
-                msg = "allocation values should be integer"
+    .check_int_parameter(samples_class, is_named = TRUE,
+            msg = .conf("messages", "sits_sampling_design_samples")
     )
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
     # name samples class
     names(samples_class) <- rownames(sampling_design)
     # include overhead
     samples_class <- ceiling(samples_class * overhead)
     # estimate size
-    size <- ceiling(max(samples_class)/nrow(cube))
+    size <- ceiling(max(samples_class) / nrow(cube))
     # Prepare parallel processing
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
@@ -479,16 +467,17 @@ sits_stratified_sampling <- function(cube,
         samples_sf <- sf::st_transform(samples_sf, crs = "EPSG:4326")
     }, progress = progress)
 
-    samples <- purrr::map_dfr(labels, function(lab){
+    samples <- purrr::map_dfr(labels, function(lab) {
         samples_class <- samples |>
             dplyr::filter(.data[["label"]] == lab) |>
             dplyr::slice_sample(n = samples_class[lab])
     })
     if (.has(shp_file)) {
         .check_that(tools::file_ext(shp_file) == "shp",
-                    msg = "invalid shapefile name")
+                    msg = .conf("messages", "sits_sampling_design_shp")
+        )
         sf::st_write(samples, shp_file, append = FALSE)
-        message(paste("Saved samples in shapefile ", shp_file))
+        message(.conf("messages", "sits_sampling_design_shp_save"), shp_file)
     }
     return(samples)
 }

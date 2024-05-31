@@ -144,13 +144,13 @@
 #' @noRd
 #' @return A reduced temporal tile
 .reduce_samples <- function(data, expr, in_band, out_band) {
+    .check_set_caller(".reduce_samples")
     col <- "time_series"
     min_date <- min(.samples_timeline(data))
     # Pre-condition
     .check_chr_within(
         col,
-        within = names(data),
-        msg = "invalid column name"
+        within = names(data)
     )
     # Select data do unpack
     x <- data[col]

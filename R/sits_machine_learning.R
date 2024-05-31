@@ -30,7 +30,7 @@
 #'     # Retrieve the samples for Mato Grosso
 #'     # train a random forest model
 #'     rf_model <- sits_train(samples_modis_ndvi,
-#'         ml_method = sits_rfor(mtry = 20)
+#'         ml_method = sits_rfor
 #'     )
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
@@ -43,12 +43,13 @@
 #' @export
 #'
 sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
+    .check_set_caller("sits_rfor")
     # Function that trains a random forest model
     train_fun <- function(samples) {
         # Verifies if 'randomForest' package is installed
         .check_require_packages("randomForest")
         # Checks 'num_trees'
-        .check_int_parameter(num_trees)
+        .check_int_parameter(num_trees, min = 20)
         # Get labels (used later to ensure column order in result matrix)
         labels <- .samples_labels(samples)
         # Get predictors features
@@ -161,6 +162,7 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
                      scale = FALSE, cachesize = 1000, kernel = "radial",
                      degree = 3, coef0 = 0, cost = 10, tolerance = 0.001,
                      epsilon = 0.1, cross = 10, ...) {
+    .check_set_caller("sits_svm")
     # Function that trains a support vector machine model
     train_fun <- function(samples) {
         # Verifies if e1071 package is installed
@@ -289,6 +291,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
                          subsample = 0.8, nfold = 5, nrounds = 100,
                          nthread = 6,
                          early_stopping_rounds = 20, verbose = FALSE) {
+    .check_set_caller("sits_xgboost")
     # Function that trains a xgb model
     train_fun <- function(samples) {
         # verifies if xgboost package is installed
@@ -315,9 +318,9 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
             nthread = nthread
         )
         if (verbose)
-            verbose = 1
+            verbose <-  1
         else
-            verbose = 0
+            verbose <-  0
         # transform predictors in a xgb.DMatrix
         xgb_matrix <- xgboost::xgb.DMatrix(
             data = as.matrix(.pred_features(train_samples)),
@@ -328,7 +331,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
             nrounds = nrounds, verbose = verbose
         )
         # Get best ntreelimit
-        ntreelimit <- model$best_ntreelimit
+        ntreelimit <- model[["best_ntreelimit"]]
         # Function that predicts labels of input values
         predict_fun <- function(values) {
             # Verifies if xgboost package is installed
@@ -398,22 +401,18 @@ sits_formula_logref <- function(predictors_index = -2:0) {
     .check_set_caller("sits_formula_logref")
 
     # store configuration information about model formula
-    sits_env$model_formula <- "log"
+    sits_env[["model_formula"]] <- "log"
 
     # this function returns a formula like
     # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are
     # the predictor fields given by the predictor index.
     result_fun <- function(tb) {
-        .check_that(
-            x = nrow(tb) > 0,
-            msg = "invalid data"
-        )
+        .check_that(nrow(tb) > 0)
         n_rows_tb <- nrow(tb)
 
         # if no predictors_index are given, assume all tb's fields are used
-        if (!.has(predictors_index)) {
+        if (!.has(predictors_index))
             predictors_index <- 1:n_rows_tb
-        }
 
         # get predictors names
         categories <- names(tb)[c(predictors_index)]
@@ -468,21 +467,17 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     .check_set_caller("sits_formula_linear")
 
     # store configuration information about model formula
-    sits_env$model_formula <- "linear"
+    sits_env[["model_formula"]] <- "linear"
 
     # this function returns a formula
     # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are
     #  the predictor fields.
     result_fun <- function(tb) {
-        .check_that(
-            x = nrow(tb) > 0,
-            msg = "invalid data"
-        )
+        .check_that(nrow(tb) > 0)
         n_rows_tb <- nrow(tb)
         # if no predictors_index are given, assume that all fields are used
-        if (!.has(predictors_index)) {
+        if (!.has(predictors_index))
             predictors_index <- 1:n_rows_tb
-        }
 
         # get predictors names
         categories <- names(tb)[c(predictors_index)]

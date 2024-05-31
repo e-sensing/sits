@@ -1,6 +1,6 @@
 # Sits interface to the "signal" package
 #
-# The "signal" package is A set of signal processing functions originally
+# The "signal" package is a set of signal processing functions originally
 # written for 'Matlab' and 'Octave'.  Includes filter generation utilities,
 # filtering functions, resampling routines, and visualization of
 # filter models. It also includes interpolation functions.
@@ -48,33 +48,34 @@
 #' @return             filter coefficients
 .signal_sgolay_coef <- function(p, n, m = 0, ts = 1) {
     if (n %% 2 != 1) {
-        stop("sgolay needs an odd filter length n")
+        stop(.conf("messages", ".signal_odd_filter_length"))
     }
     if (p >= n) {
-        stop("sgolay needs filter length n larger than polynomial order p")
+        stop(.conf("messages",".signal_filter_length"))
     }
 
     ## Construct a set of filters from complete causal to completely
     ## noncausal, one filter per row.  For the bulk of your data you
     ## will use the central filter, but towards the ends you will need
     ## a filter that doesn't go beyond the end points.
-    Fm <- matrix(0., n, n)
+    filter <- matrix(0., n, n)
     k <- floor(n / 2)
     for (row in 1:(k + 1)) {
         ## Construct a matrix of weights Cij = xi ^ j.  The points xi are
         ## equally spaced on the unit grid, with past points using negative
         ## values and future points using positive values.
-        Ce <- (((1:n) - row) %*% matrix(1, 1, p + 1))^(matrix(1, n) %*% (0:p))
+        weights <- (((1:n) - row) %*%
+                        matrix(1, 1, p + 1))^(matrix(1, n) %*% (0:p))
         ## A = pseudo-inverse (C), so C*A = I; this is constructed from the SVD
-        A <- .signal_mass_ginv(Ce, tol = .Machine$double.eps)
+        pseudo_inv <- .signal_mass_ginv(weights, tol = .Machine[["double.eps"]])
         ## Take the row of the matrix corresponding to the derivative
         ## you want to compute.
-        Fm[row, ] <- A[1 + m, ]
+        filter[row, ] <- pseudo_inv[1 + m, ]
     }
     ## The filters shifted to the right are symmetric with those to the left.
-    Fm[(k + 2):n, ] <- (-1)^m * Fm[k:1, n:1]
-    class(Fm) <- "sgolayFilter"
-    return(Fm)
+    filter[(k + 2):n, ] <- (-1)^m * filter[k:1, n:1]
+    class(filter) <- "sgolay_filter"
+    return(filter)
 }
 
 
@@ -93,7 +94,7 @@
 #' Venables, W. N. and Ripley, B. D. (1999)
 #' Modern Applied Statistics with S-PLUS.
 #'
-.signal_mass_ginv <- function(mtx, tol = sqrt(.Machine$double.eps)) {
+.signal_mass_ginv <- function(mtx, tol = sqrt(.Machine[["double.eps"]])) {
     mtx_svd <- svd(mtx)
-    mtx_svd$v %*% (1 / mtx_svd$d * t(mtx_svd$u))
+    mtx_svd[["v"]] %*% (1 / mtx_svd[["d"]] * t(mtx_svd[["u"]]))
 }

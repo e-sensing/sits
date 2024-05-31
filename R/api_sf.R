@@ -23,23 +23,15 @@
                             n_sam_pol,
                             pol_id,
                             sampling_type) {
+    # set caller to show in errors
+    .check_set_caller(".sf_get_samples")
     # Pre-condition - is the sf object has geometries?
-    .check_that(
-        x = nrow(sf_object) > 0,
-        msg = "sf object has no geometries"
-    )
+    .check_that(nrow(sf_object) > 0)
     # Precondition - can the function deal with the geometry_type?
-    .check_chr_within(
-        x = as.character(sf::st_geometry_type(sf_object)[1]),
-        within = .conf("sf_geom_types_supported"),
-        discriminator = "one_of",
-        msg = paste0(
-            "Only handles with geometry types: ", paste(
-                .conf("sf_geom_types_supported"),
-                collapse = ", "
-            )
-        )
-    )
+    geom_type <- as.character(sf::st_geometry_type(sf_object)[[1]])
+    sf_geom_types_supported <- .conf("sf_geom_types_supported")
+    .check_that(geom_type %in% sf_geom_types_supported)
+
     # Get the points to be read
     samples <- .sf_to_tibble(
         sf_object  = sf_object,
@@ -51,7 +43,6 @@
         start_date = start_date,
         end_date   = end_date
     )
-
     class(samples) <- c("sits", class(samples))
 
     return(samples)
@@ -90,8 +81,7 @@
     are_empty_geoms <- sf::st_is_empty(sf_object)
     if (any(are_empty_geoms)) {
         if (.check_warnings()) {
-            warning(
-                "Some empty geometries were removed.",
+            warning(.conf("messages", ".sf_to_tibble"),
                 immediate. = TRUE, call. = FALSE
             )
         }
@@ -103,16 +93,16 @@
     )
 
     # Get the geometry type
-    geom_type <- as.character(sf::st_geometry_type(sf_object)[1])
+    geom_type <- as.character(sf::st_geometry_type(sf_object)[[1]])
     # Get a tibble with points and labels
     points_tbl <- switch(geom_type,
-        "POINT" = .sf_point_to_tibble(
+        POINT = .sf_point_to_tibble(
             sf_object  = sf_object,
             label_attr = label_attr,
             label      = label
         ),
-        "POLYGON" = ,
-        "MULTIPOLYGON" = .sf_polygon_to_tibble(
+        POLYGON = ,
+        MULTIPOLYGON = .sf_polygon_to_tibble(
             sf_object  = sf_object,
             label_attr = label_attr,
             label      = label,
@@ -189,22 +179,20 @@
                                   n_sam_pol,
                                   pol_id,
                                   sampling_type) {
+    .check_set_caller(".sf_polygon_to_tibble")
     # get the db file
     sf_df <- sf::st_drop_geometry(sf_object)
 
     if (.has(label_attr)) {
         .check_chr_within(
             x = label_attr,
-            within = colnames(sf_df),
-            msg = "invalid 'label_attr' parameter."
+            within = colnames(sf_df)
         )
     }
-
     if (.has(pol_id)) {
         .check_chr_within(
             x = pol_id,
-            within = colnames(sf_df),
-            msg = "invalid 'pol_id' parameter."
+            within = colnames(sf_df)
         )
     }
     points_tab <- seq_len(nrow(sf_object)) |>
@@ -232,8 +220,8 @@
                 purrr::pmap_dfr(function(p) {
                     pll <- sf::st_geometry(p)[[1]]
                     row <- tibble::tibble(
-                        longitude = pll[1],
-                        latitude = pll[2],
+                        longitude = pll[[1]],
+                        latitude = pll[[2]],
                         label = label
                     )
 

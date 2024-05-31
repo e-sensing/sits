@@ -14,9 +14,7 @@
         )
     }, progress = progress)
     # Check result
-    .check_empty_data_frame(cube_assets,
-        msg = "no intersection between roi and cube"
-    )
+    .check_empty_data_frame(cube_assets)
     # Prepare cube output
     cube <- .cube_merge_tiles(cube_assets)
     .set_class(cube, cube_class)
@@ -44,7 +42,7 @@
             breaks = timeline,
             labels = FALSE
         )
-        fi_groups <- unname(tapply(fi, groups, list))
+        fi_groups <- unname(split(fi, groups))
         assets <- .common_size(
             .discard(tile, "file_info"),
             feature = timeline[unique(groups)],
@@ -78,12 +76,15 @@
         date = asset[["feature"]],
         output_dir = output_dir
     )
+    fid_name <- paste(
+        asset[["satellite"]], asset[["sensor"]], asset[["feature"]], sep = "_"
+    )
     # Resume feature
     if (file.exists(out_file)) {
         .check_recovery(asset[["tile"]])
         asset <- .tile_eo_from_files(
             files = out_file,
-            fid = .file_base(out_file),
+            fid = fid_name,
             bands = asset[["asset"]],
             date = asset[["feature"]],
             base_tile = .discard(asset, cols = c("asset", "feature")),
@@ -124,7 +125,7 @@
     )
     .tile_eo_from_files(
         files = out_file,
-        fid = .file_base(out_file),
+        fid = fid_name,
         bands = asset[["asset"]],
         date = asset[["feature"]],
         base_tile = .discard(asset, cols = c("asset", "feature")),
@@ -140,7 +141,7 @@
 #' @param  roi    Region of interest
 #' @param  tiles  List of MGRS tiles
 #' @return a data cube of MGRS tiles
-.reg_s2tile_convert <- function(cube, roi = NULL, tiles = NULL){
+.reg_s2tile_convert <- function(cube, roi = NULL, tiles = NULL) {
     UseMethod(".reg_s2tile_convert", cube)
 }
 #' @noRd
@@ -153,7 +154,7 @@
 
     # prepare a sf object representing the bbox of each image in file_info
     fi_bbox <- .bbox_as_sf(.bbox(
-        x = cube$file_info[[1]],
+        x = cube[["file_info"]][[1]],
         default_crs = .crs(cube),
         by_feature = TRUE
     ))
@@ -184,7 +185,7 @@
     cube <- .cube_filter_nonempty(cube)
 
     # Finalize customizing cube class
-    cube_class <- c(cube_class[1], "sar_cube", cube_class[-1])
+    cube_class <- c(cube_class[[1]], "sar_cube", cube_class[-1])
     .cube_set_class(cube, cube_class)
 }
 #' @noRd
@@ -202,7 +203,10 @@
         dplyr::rowwise() |>
         dplyr::group_map(~{
             # prepare a sf object representing the bbox of each image in file_info
-            cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x$crs)
+            cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x[["crs"]])
+            if (nrow(cube_crs) == 0) {
+                cube_crs <- cube
+            }
             fi_bbox <- .bbox_as_sf(.bbox(
                 x = .fi(cube_crs),
                 default_crs = .crs(cube_crs),
@@ -229,7 +233,6 @@
     cube <- .cube_filter_nonempty(cube)
 
     # Finalize customizing cube class
-    cube_class <- c(cube_class[1], "sar_cube", cube_class[-1])
+    cube_class <- c(cube_class[[1]], "sar_cube", cube_class[-1])
     .cube_set_class(cube, cube_class)
 }
-

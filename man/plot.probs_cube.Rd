@@ -7,11 +7,9 @@
 \method{plot}{probs_cube}(
   x,
   ...,
-  tile = x$tile[[1]],
+  tile = x[["tile"]][[1]],
   labels = NULL,
   palette = "YlGn",
-  style = "cont",
-  n_colors = 10,
   rev = FALSE,
   scale = 0.8
 )
@@ -26,12 +24,6 @@
 \item{labels}{Labels to plot (optional).}
 
 \item{palette}{RColorBrewer palette}
-
-\item{style}{Method to process the color scale
-("cont", "order", "quantile", "fisher",
- "jenks", "log10")}
-
-\item{n_colors}{Number of colors to be shown}
 
 \item{rev}{Reverse order of colors in palette?}
 

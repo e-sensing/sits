@@ -74,11 +74,11 @@
     },
     forward = function(values) {
         # batch size is the first dimension of the input tensor
-        batch_size <- values$shape[[1]]
+        batch_size <- values[["shape"]][[1]]
         # n_times is the second dimension
-        n_times <- values$shape[[2]]
+        n_times <- values[["shape"]][[2]]
         # n_bands is the third dimension
-        n_bands <- values$shape[[3]]
+        n_bands <- values[["shape"]][[3]]
         # reshape the input
         # from a 3D shape [batch_size, n_times, n_bands]
         # to a 2D shape [(batch_size * n_times), n_bands]
@@ -150,7 +150,7 @@
     # timeline is a vector with the observation dates
     initialize = function(timeline, dim_encoder = 128) {
         # length of positional encoder is the length of dates vector
-        max_len <- length(timeline)
+        len_max <- length(timeline)
         # keep the dates vector
         self$dates <- timeline
         # initialize 'days' vector as the difference in days btw
@@ -166,8 +166,8 @@
         days_t <- torch::torch_unsqueeze(days_t, 2)
 
         # Calculate the positional encoding p
-        # 2D shape [(max_len, dim_encoder:128)]
-        p <- torch::torch_zeros(max_len, dim_encoder)
+        # 2D shape [(len_max, dim_encoder:128)]
+        p <- torch::torch_zeros(len_max, dim_encoder)
         # calculate an exponential distance measure for the positions
         div_term <- torch::torch_exp(
             torch::torch_arange(
@@ -181,9 +181,9 @@
         # fill the tensor p
         p[, seq(1, dim_encoder, 2)] <- torch::torch_sin(days_t * div_term)
         p[, seq(2, dim_encoder, 2)] <- torch::torch_cos(days_t * div_term)
-        # here p is a 2D shape [(max_len, dim_encoder:128)]
+        # here p is a 2D shape [(len_max, dim_encoder:128)]
         p <- torch::torch_unsqueeze(p, 1)
-        # after unsqueeze p is a 3D shape [(1, max_len, dim_encoder:128)]
+        # after unsqueeze p is a 3D shape [(1, len_max, dim_encoder:128)]
         self$register_buffer("p", p)
     },
     forward = function(x) {
@@ -275,10 +275,10 @@
         # with Pixel-Set Encoders and Temporal Self-Attention"
         #
         # obtain the input parameters
-        batch_size <- x$shape[[1]]
+        batch_size <- x[["shape"]][[1]]
         # seq_len is the
-        seq_len <- x$shape[[2]]
-        hidden_state <- x$shape[[3]]
+        seq_len <- x[["shape"]][[2]]
+        hidden_state <- x[["shape"]][[3]]
         # Calculate the positional encoding
         # result is 3D shape [batch_size x seq_len x dim_encoder:128]
         e_p <- self$pos_encoding(x)
@@ -432,7 +432,7 @@
         # Do a 1D convolution on the input sequence
         # input is 3D shape (batch_size x seq_len x in_channels:128)
         # output is 3D shape (batch_size x seq_len x d_model:256)
-        self$d_model <- n_neurons[1]
+        self$d_model <- n_neurons[[1]]
         self$inconv <- torch::nn_sequential(
             torch::nn_conv1d(
                 in_channels   = in_channels,
@@ -458,9 +458,9 @@
         )
         # output enconding
         # multi-layer perceptron with batch norm and relu
-        hidden_dims <- n_neurons[-1]
+        hidden_dims <- n_neurons[[-1]]
         self$mlp <- .torch_multi_linear_batch_norm_relu(
-            input_dim = n_neurons[1],
+            input_dim = n_neurons[[1]],
             hidden_dims = hidden_dims
         )
         # dropout node
@@ -478,9 +478,9 @@
         #' for Classifying Satellite Image Time Series"
         #
         # obtain the input parameters
-        batch_size <- values$shape[[1]]
+        batch_size <- values[["shape"]][[1]]
         # seq_len is the size of the timeline
-        seq_len <- values$shape[[2]]
+        seq_len <- values[["shape"]][[2]]
 
         # normalize the input layer
         # [batch_size x seq_len x in_channels:128]

@@ -1,19 +1,19 @@
 # ---- gdal API ----
 
 .gdal_data_type <- c(
-    "INT1U" = "Byte", "INT2U" = "UInt16", "INT2S" = "Int16",
-    "INT4U" = "UInt32", "INT4S" = "Int32", "FLT4S" = "Float32",
-    "FLT8S" = "Float64"
+    INT1U = "Byte", INT2U = "UInt16", INT2S = "Int16",
+    INT4U = "UInt32", INT4S = "Int32", FLT4S = "Float32",
+    FLT8S = "Float64"
 )
 #' @title Get GDAL parameters
 #' @noRd
 #' @param params   Params used to describe GDAL file
 #' @returns        Cleaned GDAL parameters
 .gdal_params <- function(params) {
+    .check_set_caller(".gdal_params")
     # Check if parameters are named
-    if (!all(.has_name(params))) {
-        stop("parameters should be named")
-    }
+    .check_that(all(.has_name(params)))
+
     unlist(mapply(function(par, val) {
         if (is.null(val)) {
             NULL
@@ -92,22 +92,30 @@
     )
     return(invisible(file))
 }
-#' @title Run gdal_warp for SAR GRD files
+#' @title Run gdal_warp_file
 #' @noRd
 #' @param raster_file  File to be copied from (with path)
-#' @param size         Size of output file
+#' @param sizes        Sizes of output file
+#' @param t_srs        Target spatial reference system
 #' @returns            Name of output file
-.gdal_warp_grd <- function(raster_file, size) {
+.gdal_warp_file <- function(raster_file, sizes, t_srs = NULL) {
+    # create a temporary file
     temp_file <- tempfile(fileext = ".tif")
+    # basic parameters
+    params = list(
+        "-ts" = list(sizes[["xsize"]], sizes[["ysize"]]),
+        "-multi" = FALSE,
+        "-q" = TRUE,
+        "-overwrite" = FALSE
+    )
+    # additional param for target SRS
+    if (.has(t_srs))
+        params <- append(params, c("t_srs" = t_srs))
+    # warp the data
     .gdal_warp(
         file = temp_file,
         base_files = raster_file,
-        params = list(
-            "-ts" = list(size[["xsize"]], size[["ysize"]]),
-            "-multi" = FALSE,
-            "-q" = TRUE,
-            "-overwrite" = FALSE
-        ),
+        params = params,
         quiet = TRUE)
     return(temp_file)
 }
@@ -122,7 +130,7 @@
             file = base_file,
             method = conf_cog[["method"]],
             overviews = conf_cog[["overviews"]],
-            options = c("GDAL_NUM_THREADS" = "2")
+            options = c(GDAL_NUM_THREADS = "2")
         )
     )
     return(invisible(file))
@@ -148,7 +156,7 @@
             .gdal_translate(
                 file = file,
                 # GDAL does not allow raster creation, to bypass this limitation
-                # Let's base our raster creation by using a tiny template
+                # We base our raster creation by using a tiny template
                 # (647 Bytes)
                 base_file = system.file(
                     "extdata/raster/gdal/template.tif",
@@ -156,7 +164,7 @@
                 ),
                 params = list(
                     "-ot" = data_type,
-                    "-of" = .conf("gdal_presets", "block", "of"),
+                    "-of" = .conf("gdal_presets", "image", "of"),
                     "-b" = rep(1, nlayers),
                     "-outsize" = list(.ncols(block), .nrows(block)),
                     "-scale" = list(0, 1, miss_value, miss_value),
@@ -165,7 +173,7 @@
                         .xmin(bbox), .ymax(bbox), .xmax(bbox), .ymin(bbox)
                     ),
                     "-a_nodata" = miss_value,
-                    "-co" = .conf("gdal_presets", "block", "co")
+                    "-co" = .conf("gdal_presets", "image", "co")
                 ),
                 quiet = TRUE
             )
@@ -253,8 +261,8 @@
 .gdal_crop_image <- function(file,
                              out_file,
                              roi_file,
-                             as_crs = NULL,
-                             miss_value = NULL,
+                             as_crs,
+                             miss_value,
                              data_type,
                              multicores = 1,
                              overwrite = TRUE) {

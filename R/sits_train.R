@@ -41,17 +41,14 @@ sits_train <- function(samples, ml_method = sits_svm()) {
     .check_samples_train(samples)
 
     # is the train method a function?
-    .check_that(
-        x = inherits(ml_method, "function"),
-        msg = "ml_method is not a valid function"
+    .check_that(inherits(ml_method, "function"),
+        msg = .conf("messages", "sits_train_method")
     )
     # are the timelines OK?
-    .check_that(
-        x = .timeline_check(samples) == TRUE,
-        msg = paste0(
-            "Samples have different timeline lengths", "\n",
-            "Use .tibble_prune or sits_fix_timeline"
-        )
+    #
+    timeline_ok <- .timeline_check(samples)
+    .check_that(timeline_ok,
+        msg = .conf("messages", "sits_train_timeline")
     )
     # compute the training method by the given data
     result <- ml_method(samples)

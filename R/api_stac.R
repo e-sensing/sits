@@ -9,17 +9,12 @@
 #'
 #' @return a \code{STACItemcollection} object with selected items by bands.
 .stac_select_bands <- function(items, bands_source, bands_sits) {
+    .check_set_caller(".stac_select_bands")
     # verify if the mapped band in on item assets
     .check_chr_within(
         x = bands_source,
         within = rstac::items_fields(items, "assets"),
-        case_sensitive = FALSE,
-        msg = paste(
-            "The bands contained in this product",
-            "are not mapped in the SITS package,",
-            "if you want to include them please",
-            "provide it in configuration file."
-        )
+        case_sensitive = FALSE
     )
     # covert bands to sits names
     bands_source <- toupper(bands_source)
@@ -27,12 +22,13 @@
     names(bands_converter) <- bands_source
 
     # organize the items
-    items$features <- purrr::map(items$features, function(item) {
-        names(item$assets) <- toupper(names(item$assets))
-        item$assets <- item$assets[bands_source]
-        names(item$assets) <- unname(bands_converter[names(item$assets)])
-
-        item
+    items[["features"]] <- purrr::map(items[["features"]], function(item) {
+        names(item[["assets"]]) <- toupper(names(item[["assets"]]))
+        item[["assets"]] <- item[["assets"]][bands_source]
+        names(item[["assets"]]) <- unname(
+            bands_converter[names(item[["assets"]])]
+        )
+        return(item)
     })
     return(items)
 }
@@ -64,16 +60,12 @@
 #'
 #' @return      a \code{character} formatted as parameter to STAC requisition.
 .stac_format_platform <- function(source, collection, platform) {
+    .check_set_caller(".stac_format_platform")
     platforms <- .conf(
         "sources", source, "collections", collection, "platforms"
     )
-
     platform_source <- platforms[platform]
-    .check_length(
-        x = platform_source,
-        len_min = 1,
-        len_max = 1
-    )
+    .check_that(length(platform_source) == 1)
 
     return(unlist(platform_source, use.names = FALSE))
 }
@@ -163,4 +155,46 @@
         limit = limit
     )
     return(rstac_query)
+}
+#' @title Extract bounding box from a STAC Query.
+#' @keywords internal
+#' @noRd
+#'
+#' @param stac_query Query that follows the STAC protocol.
+#' @return           List with `bbox` property.
+.stac_intersects_as_bbox <- function(stac_query) {
+    result <- list(bbox = NULL)
+    # Extract spatial reference from STAC object
+    intersects <- stac_query[["params"]][["intersects"]]
+    coordinates <- intersects[["coordinates"]]
+    # Check if query is valid
+    if (is.null(coordinates)) {
+        return(result)
+    }
+    # Extract x-coordinates and y-coordinates
+    coordinates_x <- coordinates[,,1]
+    coordinates_y <- coordinates[,,2]
+    # Calculate bounding box
+    min_x <- min(coordinates_x)
+    max_x <- max(coordinates_x)
+    min_y <- min(coordinates_y)
+    max_y <- max(coordinates_y)
+    # Create bbox object
+    result[["bbox"]] <- c(min_x, min_y, max_x, max_y)
+    result
+}
+#' @title Extract datetime from a STAC Query.
+#' @keywords internal
+#' @noRd
+#'
+#' @param stac_query Query that follows the STAC protocol.
+#' @return           List with `start_date` and `end_date` properties.
+.stac_datetime_as_dates <- function(stac_query) {
+    query_datetime <- stringr::str_split(
+        stac_query[["params"]][["datetime"]], "/"
+    )
+    list(
+        start_date = query_datetime[[1]][1],
+        end_date = query_datetime[[1]][2]
+    )
 }

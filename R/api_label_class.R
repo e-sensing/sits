@@ -101,13 +101,7 @@
     )
     # Resume feature
     if (.segments_is_valid(out_file)) {
-        if (.check_messages()) {
-            message("Recovery: tile '", tile[["tile"]], "' already exists.")
-            message(
-                "(If you want to produce a new image, please ",
-                "change 'output_dir' or 'version' parameters)"
-            )
-        }
+        .check_recovery(out_file)
         # Create tile based on template
         class_tile <- .tile_segments_from_file(
             file = out_file,
@@ -127,9 +121,9 @@
     # Classify each segment by majority probability
     probs_segments <- probs_segments |>
         dplyr::rowwise() |>
-        dplyr::filter(!any(is.na(dplyr::c_across(dplyr::all_of(labels))))) |>
+        dplyr::filter(!anyNA(dplyr::c_across(dplyr::all_of(labels)))) |>
         dplyr::mutate(class = labels[which.max(
-            dplyr::c_across(dplyr::all_of(labels)))]) |>
+                      dplyr::c_across(dplyr::all_of(labels)))]) |>
         dplyr::mutate(pol_id = as.numeric(.data[["pol_id"]]))
     # Write all segments
     .vector_write_vec(v_obj = probs_segments, file_path = out_file)
@@ -146,8 +140,9 @@
     return(class_tile)
 }
 
-#---- label functions ----
-#' @title Build a classified map from probs cube based on maximal probability
+#' @name .label_fn_majority
+#' @description Build a classified map from probs cube
+#' based on maximal probability
 #' @noRd
 #' @returns       Function to be used to labelling
 .label_fn_majority <- function() {
@@ -163,7 +158,12 @@
     # Return closure
     label_fn
 }
-.label_gpkg_file <- function(gpkg_file){
+#' @name .label_gpkg_file
+#' @description Extract the labels required by sits from GPKG file
+#' @param gpkg_file    File in GPKG format
+#' @noRd
+#' @returns    labels required by sits
+.label_gpkg_file <- function(gpkg_file) {
     sf <- sf::st_read(gpkg_file, quiet = TRUE)
     labels <- setdiff(colnames(sf), c("supercells", "x", "y",
                                       "pol_id", "geom", "class"))

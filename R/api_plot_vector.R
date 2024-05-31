@@ -15,12 +15,12 @@
                                 legend,
                                 palette,
                                 scale) {
+    # set caller to show in errors
+    .check_set_caller(".plot_class_vector")
     # retrieve the segments for this tile
     sf_seg <- .segments_read_vec(tile)
     # check that segments have been classified
-    .check_that("class" %in% colnames(sf_seg),
-                msg = "segments have not been classified"
-    )
+    .check_that("class" %in% colnames(sf_seg))
     # get the labels
     labels <- sf_seg |>
         sf::st_drop_geometry() |>
@@ -82,6 +82,8 @@
                                 style,
                                 rev,
                                 scale) {
+    # set caller to show in errors
+    .check_set_caller(".plot_probs_vector")
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
@@ -97,23 +99,21 @@
     names(labels) <- seq_len(length(labels))
     # check the labels to be plotted
     # if NULL, use all labels
-    if (.has_not(labels_plot)) {
+    if (.has_not(labels_plot))
         labels_plot <- labels
-    } else {
-        .check_that(all(labels_plot %in% labels),
-                    msg = "labels not in cube"
-        )
-    }
-    # get the segements to be plotted
+    .check_that(all(labels_plot %in% labels))
+
+    # get the segments to be plotted
     sf_seg <- .segments_read_vec(tile)
 
     # plot the segments by facet
     p <- tmap::tm_shape(sf_seg) +
-        tmap::tm_fill(labels_plot,
-                          style = style,
-                          palette = palette,
-                          midpoint = 0.5,
-                          title = labels[labels %in% labels_plot]) +
+        tmap::tm_fill(
+            labels_plot,
+            style = style,
+            palette = palette,
+            midpoint = 0.5,
+            title = labels[labels %in% labels_plot]) +
         tmap::tm_graticules(
             labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
         ) +
@@ -136,9 +136,7 @@
 #' @noRd
 #' @param  tile          Tile to be plotted.
 #' @param  palette       A sequential RColorBrewer palette
-#' @param  style         Method to process the color scale
-#'                       ("cont", "order", "quantile", "fisher",
-#'                        "jenks", "log10")
+#' @param  main_title    Main title for the cube
 #' @param  rev           Revert the color of the palette?
 #' @param  scale         Global map scale
 #'
@@ -146,7 +144,7 @@
 #'
 .plot_uncertainty_vector <- function(tile,
                                      palette,
-                                     style,
+                                     main_title,
                                      rev,
                                      scale) {
     # verifies if stars package is installed
@@ -162,17 +160,20 @@
     # get the segements to be plotted
     sf_seg <- .segments_read_vec(tile)
     # obtain the uncertainty type
-    uncert_type <- .vi(tile)$band
+    uncert_type <- .vi(tile)[["band"]]
     # plot the segments by facet
     p <- tmap::tm_shape(sf_seg) +
         tmap::tm_polygons(uncert_type,
                           palette = palette,
-                          style = style) +
+                          style = "cont") +
         tmap::tm_graticules(
             labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
         ) +
         tmap::tm_compass() +
         tmap::tm_layout(
+            main.title = main_title,
+            main.title.size = 1,
+            main.title.position = "center",
             scale = scale,
             legend.bg.color = .conf("tmap", "legend_bg_color"),
             legend.bg.alpha = as.numeric(.conf("tmap", "legend_bg_alpha"))

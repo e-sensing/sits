@@ -29,6 +29,8 @@
 #' }
 #' @export
 sits_bbox <- function(data, crs = "EPSG:4326", as_crs = NULL) {
+    # set caller to show in errors
+    .check_set_caller("sits_bbox")
     UseMethod("sits_bbox", data)
 }
 #' @rdname sits_bbox
@@ -57,13 +59,14 @@ sits_bbox.tbl_df <- function(data, crs = "EPSG:4326", as_crs = NULL) {
         data <- .cube_find_class(data)
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
-    } else
-        stop("Input should be a sits tibble or a data cube")
+    } else {
+        stop(.conf("messages", "sits_bbox_default"))
+    }
     bbox <- sits_bbox(data, crs, as_crs)
     return(bbox)
 }
 #' @rdname sits_bbox
 #' @export
 sits_bbox.default <- function(data, crs = "EPSG:4326", as_crs = NULL) {
-    stop("Input should be of class sits or class raster_cube")
+    stop(.conf("messages", "sits_bbox_default"))
 }

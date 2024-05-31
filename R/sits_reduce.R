@@ -13,7 +13,7 @@
 #' from the function.
 #'
 #' @param data          Valid sits tibble or cube
-#' @param impute_fn     Imputation function to remove NA.
+#' @param impute_fn     Imputation function to remove NA values.
 #' @param memsize       Memory available for classification (in GB).
 #' @param multicores    Number of cores to be used for classification.
 #' @param output_dir    Directory where files will be saved.
@@ -21,7 +21,7 @@
 #' @param ...           Named expressions to be evaluated (see details).
 #'
 #' @details
-#' \code{sits_reduce()} allow any valid R expression to compute new bands.
+#' \code{sits_reduce()} allows valid R expression to compute new bands.
 #' Use R syntax to pass an expression to this function.
 #' Besides arithmetic operators, you can use virtually any R function
 #' that can be applied to elements of a matrix.
@@ -96,8 +96,8 @@
 #' @rdname sits_reduce
 #' @export
 sits_reduce <- function(data, ...) {
-    .check_na(data)
-    .check_null(data)
+    .check_set_caller("sits_reduce")
+    .check_na_null_parameter(data)
     UseMethod("sits_reduce", data)
 }
 
@@ -113,9 +113,7 @@ sits_reduce.sits <- function(data, ...) {
     # Check if band already exists in samples
     if (out_band %in% bands) {
         if (.check_messages()) {
-            warning(
-                paste0("The provided band '", out_band,
-                       "' already exists in samples."),
+            warning(.conf("messages", "sits_reduce_bands"),
                 call. = FALSE
             )
         }
@@ -143,11 +141,11 @@ sits_reduce.raster_cube <- function(data, ...,
 
     # Check cube
     .check_is_raster_cube(data)
-    .check_is_regular(data)
+    .check_that(.cube_is_regular(data))
     # Check memsize
-    .check_memsize(memsize, min = 1, max = 16384)
+    .check_num_parameter(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1, max = 2048)
     # Check output_dir
     .check_output_dir(output_dir)
 
@@ -159,10 +157,8 @@ sits_reduce.raster_cube <- function(data, ...,
     # Check if band already exists in cube
     if (out_band %in% bands) {
         if (.check_messages()) {
-            warning(
-                paste0("The provided band '", out_band,
-                       "' already exists in cube."),
-                call. = FALSE
+            warning(.conf("messages", "sits_reduce_bands"),
+                    call. = FALSE
             )
         }
         return(data)
@@ -204,6 +200,7 @@ sits_reduce.raster_cube <- function(data, ...,
         probs_tile <- .reduce_tile(
             tile = tile,
             block = block,
+            impute_fn = impute_fn,
             expr = expr,
             out_band = out_band,
             in_bands = in_bands,

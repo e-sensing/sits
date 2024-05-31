@@ -1,0 +1,143 @@
+# These are configuration parameters that can be set by users
+# The parameters enable access to the cloud collections
+
+HLS_ACCESS_URL: "machine.urs.earthdata.nasa.gov"
+HLS_NETRC_FILE_PATH: "~/.netrc"
+HLS_NETRC_FILE_PATH_WIN: "%HOME%\\_netrc"
+sources:
+    HLS                     :
+        s3_class            : ["hls_cube", "stac_cube", "eo_cube",
+                               "raster_cube"]
+        service             : "STAC"
+        rstac_version       : "1.0.0"
+        url                 : "https://cmr.earthdata.nasa.gov/stac/LPCLOUD"
+        collections         :
+            HLSS30          :
+                bands       :
+                    COASTAL-AEROSOL: &hls_s2_30m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    :  30
+                        band_name     : "B01"
+                        data_type     : "INT2S"
+                    BLUE    :
+                        <<: *hls_s2_30m
+                        band_name     : "B02"
+                    GREEN   :
+                        <<: *hls_s2_30m
+                        band_name     : "B03"
+                    RED     :
+                        <<: *hls_s2_30m
+                        band_name     : "B04"
+                    RED-EDGE-1:
+                        <<: *hls_s2_30m
+                        band_name     : "B05"
+                    RED-EDGE-2:
+                        <<: *hls_s2_30m
+                        band_name     : "B06"
+                    RED-EDGE-3:
+                        <<: *hls_s2_30m
+                        band_name     : "B07"
+                    NIR-BROAD:
+                        <<: *hls_s2_30m
+                        band_name     : "B08"
+                    NIR-NARROW:
+                        <<: *hls_s2_30m
+                        band_name     : "B8A"
+                    WATER-VAPOR:
+                        <<: *hls_s2_30m
+                        band_name     : "B09"
+                    SWIR-1  :
+                        <<: *hls_s2_30m
+                        band_name     : "B11"
+                    SWIR-2  :
+                        <<: *hls_s2_30m
+                        band_name     : "B12"
+                    CLOUD   :
+                        bit_mask      : true
+                        band_name     : "Fmask"
+                        values        :
+                            0         : "Cirrus"
+                            1         : "Cloud"
+                            2         : "Adjacent to cloud/shadow"
+                            3         : "Cloud shadow"
+                            4         : "Snow/ice"
+                            5         : "Water"
+                            6         : "Aerosol level (low)"
+                            7         : "Aerosol level (moderate or high)"
+                        interp_values : [1, 2, 3, 4, 7]
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT1U"
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
+                collection_name: "HLSS30.v2.0"
+                access_vars :
+                    GDAL_HTTP_UNSAFESSL: "YES"
+                    GDAL_HTTP_COOKIEFILE: ".rcookies"
+                    GDAL_HTTP_COOKIEJAR: ".rcookies"
+                open_data: true
+                open_data_token: false
+                metadata_search : "tile"
+                ext_tolerance: 0
+                grid_system  : "MGRS"
+            HLSL30          :
+                bands       :
+                    COASTAL-AEROSOL: &hls_l8_30m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    : 30
+                        band_name     : "B01"
+                        data_type     : "INT2S"
+                    BLUE    :
+                        <<: *hls_l8_30m
+                        band_name     : "B02"
+                    GREEN   :
+                        <<: *hls_l8_30m
+                        band_name     : "B03"
+                    RED     :
+                        <<: *hls_l8_30m
+                        band_name     : "B04"
+                    NIR-NARROW:
+                        <<: *hls_l8_30m
+                        band_name     : "B05"
+                    SWIR-1  :
+                        <<: *hls_l8_30m
+                        band_name     : "B06"
+                    SWIR-2  :
+                        <<: *hls_l8_30m
+                        band_name     : "B07"
+                    CLOUD   :
+                        bit_mask      : true
+                        band_name     : "Fmask"
+                        values        :
+                            0         : "Cirrus"
+                            1         : "Cloud"
+                            2         : "Adjacent to cloud/shadow"
+                            3         : "Cloud shadow"
+                            4         : "Snow/ice"
+                            5         : "Water"
+                            6         : "Aerosol level (low)"
+                            7         : "Aerosol level (moderate or high)"
+                        interp_values : [1, 2, 3, 4, 7]
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT1U"
+                satellite   : "LANDSAT-8"
+                sensor      : "OLI"
+                collection_name: "hlsl30.v2.0"
+                access_vars :
+                    GDAL_HTTP_UNSAFESSL: "YES"
+                    GDAL_HTTP_COOKIEFILE: ".rcookies"
+                    GDAL_HTTP_COOKIEJAR: ".rcookies"
+                open_data: true
+                open_data_token: false
+                metadata_search : "tile"
+                ext_tolerance: 0
+                grid_system  : "MGRS"

@@ -103,8 +103,8 @@
 #' @rdname sits_apply
 #' @export
 sits_apply <- function(data, ...) {
-    .check_na(data)
-    .check_null(data)
+    .check_set_caller("sits_apply")
+    .check_na_null_parameter(data)
     UseMethod("sits_apply", data)
 }
 
@@ -112,8 +112,6 @@ sits_apply <- function(data, ...) {
 #' @export
 sits_apply.sits <- function(data, ...) {
     data <- .check_samples(data)
-    .check_set_caller("sits_apply.sits")
-
     .apply(data, col = "time_series", fn = dplyr::mutate, ...)
 }
 
@@ -128,15 +126,15 @@ sits_apply.raster_cube <- function(data, ...,
                                    progress = FALSE) {
     # Check cube
     .check_is_raster_cube(data)
-    .check_is_regular(data)
+    .check_that(.cube_is_regular(data))
     # Check window size
-    .check_window_size(window_size)
+    .check_int_parameter(window_size, min = 1, is_odd = TRUE)
     # Check normalized index
-    .check_lgl(normalized)
+    .check_lgl_parameter(normalized)
     # Check memsize
-    .check_memsize(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1, max = 2048)
     # Check output_dir
     .check_output_dir(output_dir)
 
@@ -148,10 +146,8 @@ sits_apply.raster_cube <- function(data, ...,
     # Check if band already exists in cube
     if (out_band %in% bands) {
         if (.check_messages()) {
-            warning(
-                paste0("The provided band '", out_band,
-                       "' already exists in cube."),
-                call. = FALSE
+            warning(.conf("messages", "sits_apply_out_band"),
+                    call. = FALSE
             )
         }
         return(data)
@@ -162,11 +158,10 @@ sits_apply.raster_cube <- function(data, ...,
         bands = bands,
         expr = expr
     )
-    # Check memory and multicores
-    # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = overlap),
@@ -174,6 +169,16 @@ sits_apply.raster_cube <- function(data, ...,
         nbytes = 8,
         proc_bloat = .conf("processing_bloat_cpu")
     )
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_memsize = job_memsize,
+        block = block,
+        image_size = .tile_size(.tile(data)),
+        memsize = memsize,
+        multicores = multicores
+    )
+    # adjust for blocks of size 1
+    block <- .block_regulate_size(block)
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
         job_memsize = job_memsize,
@@ -208,19 +213,21 @@ sits_apply.raster_cube <- function(data, ...,
 }
 #' @rdname sits_apply
 #' @export
-sits_apply.derived_cube <- function(data,...) {
-    stop("Input data should be a non-classified cube")
+sits_apply.derived_cube <- function(data, ...) {
+    stop(.conf("messages", "sits_apply_derived_cube"))
 }
 #' @rdname sits_apply
 #' @export
-sits_apply.default <- function(data,...) {
+sits_apply.default <- function(data, ...) {
     data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
-    } else
-        stop("Input should be a sits tibble or a data cube")
+    } else {
+        stop(.conf("messages", "sits_apply_default"))
+    }
+
     acc <- sits_apply(data, ...)
     return(acc)
 }

@@ -63,45 +63,40 @@ sits_to_xlsx.list <- function(acc, file) {
     # create a workbook to save the results
     workbook <- openxlsx::createWorkbook("accuracy")
     # eo_names of the accuracy assessment parameters
-    eo_n <- c("(Sensitivity)|(Specificity)|
-              (Pos Pred Value)|(Neg Pred Value)|(F1)")
+    eo_n <- "(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)|(F1)"
     # defined the number of sheets
     num_sheets <- length(acc)
-    .check_length(
-        x = num_sheets,
-        len_min = 1,
-        msg = "number of sheets should be at least one"
-    )
+    .check_that(length(num_sheets) >= 1)
     # save all elements of the list
     purrr::map2(acc, 1:num_sheets, function(cf_mat, ind) {
         # create a worksheet for each confusion matrix
-        if (!.has(cf_mat$name)) {
-            cf_mat$name <- paste0("sheet", ind)
+        if (!.has(cf_mat[["name"]])) {
+            cf_mat[["name"]] <- paste0("sheet", ind)
         }
-        sheet_name <- cf_mat$name
+        sheet_name <- cf_mat[["name"]]
         # add a worksheet
         openxlsx::addWorksheet(workbook, sheet_name)
         # use only the class names (without the "Class: " prefix)
-        new_names <- unlist(strsplit(colnames(cf_mat$table), split = ": "))
+        new_names <- unlist(strsplit(colnames(cf_mat[["table"]]), split = ": "))
         # remove prefix from confusion matrix table
-        colnames(cf_mat$table) <- new_names
+        colnames(cf_mat[["table"]]) <- new_names
         # write the confusion matrix table in the worksheet
-        openxlsx::writeData(workbook, sheet_name, cf_mat$table)
+        openxlsx::writeData(workbook, sheet_name, cf_mat[["table"]])
         # overall assessment (accuracy and kappa)
-        acc_kappa <- as.matrix(cf_mat$overall[c(1:2)])
+        acc_kappa <- as.matrix(cf_mat[["overall"]][1:2])
         # save the accuracy data in the worksheet
         openxlsx::writeData(
             wb = workbook,
             sheet = sheet_name,
             x = acc_kappa,
             rowNames = TRUE,
-            startRow = nrow(cf_mat$table) + 3,
+            startRow = nrow(cf_mat[["table"]]) + 3,
             startCol = 1
         )
         # obtain the per class accuracy assessment
-        if (dim(cf_mat$table)[1] > 2) {
+        if (dim(cf_mat[["table"]])[[1]] > 2) {
             # per class accuracy assessment
-            acc_bc <- t(cf_mat$byClass[, c(1:4, 7)])
+            acc_bc <- t(cf_mat[["byClass"]][, c(1:4, 7)])
             # remove prefix from confusion matrix table
             colnames(acc_bc) <- new_names
             row.names(acc_bc) <- c(
@@ -114,13 +109,14 @@ sits_to_xlsx.list <- function(acc, file) {
         } else {
             # this is the case of ony two classes
             # get the values of the User's and Producer's Accuracy
-            acc_bc <- cf_mat$byClass[grepl(eo_n, names(cf_mat$byClass))]
+            acc_bc <- cf_mat[["byClass"]][grepl(
+                eo_n, names(cf_mat[["byClass"]]))]
             # get the names of the two classes
-            nm <- row.names(cf_mat$table)
+            nm <- row.names(cf_mat[["table"]])
             # the first class (called the "positive" class by caret)
-            c1 <- cf_mat$positive
+            c1 <- cf_mat[["positive"]]
             # the second class
-            c2 <- nm[!(nm == cf_mat$positive)]
+            c2 <- nm[!(nm == cf_mat[["positive"]])]
             # make up the values of UA and PA for the two classes
             pa1 <- paste("Prod Acc ", c1)
             pa2 <- paste("Prod Acc ", c2)
@@ -130,7 +126,7 @@ sits_to_xlsx.list <- function(acc, file) {
             acc_bc <- as.matrix(acc_bc)
         }
         # save the per class data in the worksheet
-        start_row <- nrow(cf_mat$table) + 8
+        start_row <- nrow(cf_mat[["table"]]) + 8
         openxlsx::writeData(
             wb = workbook,
             sheet = sheet_name,
@@ -143,5 +139,5 @@ sits_to_xlsx.list <- function(acc, file) {
     # write the worksheets to the XLSX file
     openxlsx::saveWorkbook(workbook, file = file, overwrite = TRUE)
 
-    return(message(paste("Saved Excel file", file)))
+    return(message(.conf("messages", "sits_to_xlsx_save"), file))
 }

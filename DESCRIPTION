@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 1.5.0
+Version: 1.5.1
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara.inpe@gmail.com'),
@@ -17,7 +17,7 @@ Description: An end-to-end toolkit for land use and land cover classification
     applied to satellite image data cubes, as described in Simoes et al (2021) <doi:10.3390/rs13132428>.
     Builds regular data cubes from collections in AWS, Microsoft Planetary Computer, 
     Brazil Data Cube, and Digital Earth Africa using the Spatio-temporal Asset Catalog (STAC) 
-    protocol (<https://stacspec.org/> and the 'gdalcubes' R package 
+    protocol (<https://stacspec.org/>) and the 'gdalcubes' R package 
     developed by Appel and Pebesma (2019) <doi:10.3390/data4030092>.
     Supports visualization methods for images and time series and 
     smoothing filters for dealing with noisy time series.
@@ -27,11 +27,13 @@ Description: An end-to-end toolkit for land use and land cover classification
     random forests, extreme gradient boosting, multi-layer perceptrons,
     temporal convolutional neural networks proposed by Pelletier et al (2019) <doi:10.3390/rs11050523>, 
     residual networks by Fawaz et al (2019) <doi:10.1007/s10618-019-00619-1>, and temporal attention encoders
-    by Garnot and Landrieu (2020) <arXiv:2007.00586>.
+    by Garnot and Landrieu (2020) <doi:10.48550/arXiv.2007.00586>.
+    Supports GPU processing of deep learning models using torch <https://torch.mlverse.org/>.
     Performs efficient classification of big Earth observation data cubes and includes 
     functions for post-classification smoothing based on Bayesian inference, and 
-    methods for uncertainty assessment. Enables best
-    practices for estimating area and assessing accuracy of land change as 
+    methods for active learning and uncertainty assessment. Supports object-based 
+    time series analysis using package supercells <https://jakubnowosad.com/supercells/>.
+    Enables best practices for estimating area and assessing accuracy of land change as 
     recommended by Olofsson et al (2014) <doi:10.1016/j.rse.2014.02.015>.
     Minimum recommended requirements: 16 GB RAM and 4 CPU dual-core.
 Encoding: UTF-8
@@ -58,12 +60,13 @@ Imports:
     sysfonts,
     slider (>= 0.2.0),
     stats,
-    terra (>= 1.5-17),
+    terra (>= 1.7-65),
     tibble (>= 3.1),
     tidyr (>= 1.2.0),
     torch (>= 0.11.0),
     utils
 Suggests:
+    aws.s3,
     caret,
     cli,
     covr,
@@ -129,18 +132,25 @@ Collate:
     'api_cube.R'
     'api_data.R'
     'api_debug.R'
+    'api_detect_changes.R'
     'api_download.R'
+    'api_dtw.R'
+    'api_environment.R'
     'api_factory.R'
     'api_file_info.R'
     'api_file.R'
     'api_gdal.R'
     'api_gdalcubes.R'
     'api_jobs.R'
+    'api_kohonen.R'
     'api_label_class.R'
+    'api_merge.R'
     'api_mixture_model.R'
     'api_ml_model.R'
     'api_mosaic.R'
+    'api_opensearch.R'
     'api_parallel.R'
+    'api_patterns.R'
     'api_period.R'
     'api_plot_time_series.R'
     'api_plot_raster.R'
@@ -158,6 +168,7 @@ Collate:
     'api_s2tile.R'
     'api_samples.R'
     'api_segments.R'
+    'api_select.R'
     'api_sf.R'
     'api_shp.R'
     'api_signal.R'
@@ -167,6 +178,7 @@ Collate:
     'api_source.R'
     'api_source_aws.R'
     'api_source_bdc.R'
+    'api_source_cdse.R'
     'api_source_deafrica.R'
     'api_source_hls.R'
     'api_source_local.R'
@@ -209,6 +221,9 @@ Collate:
     'sits_cube_copy.R'
     'sits_clean.R'
     'sits_cluster.R'
+    'sits_detect_change.R'
+    'sits_detect_change_method.R'
+    'sits_dtw.R'
     'sits_factory.R'
     'sits_filters.R'
     'sits_geo_dist.R'

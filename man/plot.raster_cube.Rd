@@ -11,13 +11,12 @@
   red = NULL,
   green = NULL,
   blue = NULL,
-  tile = x$tile[[1]],
-  date = NULL,
+  tile = x[["tile"]][[1]],
+  dates = NULL,
   palette = "RdYlGn",
-  style = "cont",
-  n_colors = 10,
   rev = FALSE,
-  scale = 0.8
+  scale = 0.9,
+  style = "order"
 )
 }
 \arguments{
@@ -35,32 +34,30 @@
 
 \item{tile}{Tile to be plotted.}
 
-\item{date}{Date to be plotted.}
+\item{dates}{Dates to be plotted.}
 
 \item{palette}{An RColorBrewer palette}
-
-\item{style}{Method to process the color scale
-("cont", "order", "quantile", "fisher",
- "jenks", "log10")}
-
-\item{n_colors}{Number of colors to be shown}
 
 \item{rev}{Reverse the color order in the palette?}
 
 \item{scale}{Scale to plot map (0.4 to 1.0)}
+
+\item{style}{Style for plotting continuous objects}
 }
 \value{
 A plot object with an RGB image
-                      or a B/W image on a color
-                      scale using the pallete
+                      or a B/W image on a color scale
 }
 \description{
 Plot RGB raster cube
 }
 \note{
-To see which colors are supported, please run \code{sits_colors()}
-      Use \code{scale} parameter for general output control.
-      If required, then set the other params individually
+Use \code{scale} parameter for general output control.
+      The \code{dates} parameter indicates the date allows plotting of different dates when
+      a single band and three dates are provided, `sits` will plot a
+      multi-temporal RGB image for a single band (useful in the case of
+      SAR data). For RGB bands with multi-dates, multiple plots will be
+      produced.
 }
 \examples{
 if (sits_run_examples()) {
@@ -72,7 +69,8 @@ if (sits_run_examples()) {
         data_dir = data_dir
     )
     # plot NDVI band of the second date date of the data cube
-    plot(cube, band = "NDVI", date = sits_timeline(cube)[1])
+    plot(cube, band = "NDVI", dates = sits_timeline(cube)[1])
+    # plot NDVI band as an RGB composite for the three bands
 }
 }
 \author{

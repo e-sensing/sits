@@ -102,8 +102,9 @@ sits_regularize <- function(cube, ...,
                             tiles = NULL,
                             multicores = 2L,
                             progress = TRUE) {
+    .check_set_caller("sits_regularize")
     # Pre-conditions
-    .check_null(cube)
+    .check_na_null_parameter(cube)
     UseMethod("sits_regularize", cube)
 }
 #' @rdname sits_regularize
@@ -117,30 +118,25 @@ sits_regularize.raster_cube <- function(cube, ...,
                                         progress = TRUE) {
     # Preconditions
     .check_raster_cube_files(cube)
-    .period_check(period)
+    .check_period(period)
     .check_num_parameter(res, exclusive_min = 0)
     output_dir <- .file_normalize(output_dir)
     .check_output_dir(output_dir)
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
     # Does cube contain cloud band?
-    if (!all(.cube_contains_cloud(cube))) {
-        if (.check_warnings()) {
-            warning("Cloud band not found in provided cube.
-                    'sits_regularize()' ",
-                    "will just fill nodata values.",
-                    call. = FALSE,
-                    immediate. = TRUE
-            )
-        }
+    if (!all(.cube_contains_cloud(cube)) && .check_warnings()) {
+        warning(.conf("messages", "sits_regularize_cloud"),
+                call. = FALSE,
+                immediate. = TRUE
+        )
     }
     if (.has(roi)) {
         crs <- NULL
         if (.roi_type(roi) == "bbox" && !.has(roi[["crs"]])) {
             crs <- .crs(cube)
             if (length(crs) > 1 && .check_warnings()) {
-                warning("Multiple CRS found in provided cube.",
-                        "Using the CRS of the first tile to create ROI.",
+                warning(.conf("messages", "sits_regularize_crs"),
                         call. = FALSE,
                         immediate. = TRUE
                 )
@@ -149,14 +145,10 @@ sits_regularize.raster_cube <- function(cube, ...,
         roi <- .roi_as_sf(roi, default_crs = crs[[1]])
     }
     # Display warning message in case STAC cube
-    if (!.cube_is_local(cube)) {
-        if (.check_warnings()) {
-            warning("Regularization works better when data store locally. ",
-                    "Please, use 'sits_cube_copy()' to copy data locally ",
-                    "before regularization",
+    if (!.cube_is_local(cube) && .check_warnings()) {
+        warning(.conf("messages", "sits_regularize_local"),
                     call. = FALSE, immediate. = TRUE
-            )
-        }
+        )
     }
     # Regularize
     .gc_regularize(
@@ -181,32 +173,22 @@ sits_regularize.sar_cube <- function(cube, ...,
                                      progress = TRUE) {
     # Preconditions
     .check_raster_cube_files(cube)
-    .period_check(period)
+    .check_period(period)
     .check_num_parameter(res, exclusive_min = 0)
     output_dir <- .file_normalize(output_dir)
     .check_output_dir(output_dir)
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
     # Check for ROI and tiles
     .check_roi_tiles(roi, tiles)
     # Display warning message in case STAC cube
-    if (!.cube_is_local(cube)) {
-        if (.check_warnings()) {
-            warning("Regularization works better when data store locally. ",
-                    "Please, use 'sits_cube_copy()' to copy data locally ",
-                    "before regularization",
-                    call. = FALSE, immediate. = TRUE
-            )
-        }
-    }
     # Prepare parallel processing
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
     # Convert input sentinel1 cube to sentinel2 grid
     cube <- .reg_s2tile_convert(cube = cube, roi = roi, tiles = tiles)
-    .check_that(
-        nrow(cube) > 0,
-        msg = "Spatial region does not intersect cube"
+    .check_that(nrow(cube) > 0,
+        msg = .conf("messages", "sits_regularize_roi")
     )
     # Filter tiles
     if (is.character(tiles)) {
@@ -226,10 +208,10 @@ sits_regularize.sar_cube <- function(cube, ...,
 #' @rdname sits_regularize
 #' @export
 sits_regularize.derived_cube <- function(cube, ...) {
-    stop("sits_regularize only works with non-processed cubes")
+    stop(.conf("messages", "sits_regularize_default"))
 }
 #' @rdname sits_regularize
 #' @export
 sits_regularize.default <- function(cube, ...) {
-    stop("Input should be object of class raster cube")
+    stop(.conf("messages", "sits_regularize_default"))
 }

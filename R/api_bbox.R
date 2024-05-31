@@ -11,7 +11,7 @@
 #'
 .bbox_equal <- function(bbox1, bbox2, tolerance = 0) {
     .is_eq(unlist(bbox1[.bbox_cols]), unlist(bbox2[.bbox_cols]),
-        tolerance = tolerance
+           tolerance = tolerance
     )
 }
 #' @title Bounding box API
@@ -66,7 +66,7 @@ NULL
     } else if (.is_point(x)) {
         "point"
     } else {
-        stop("cannot extract bbox from object of class ", class(x))
+        stop(.conf("messages", ".bbox_type"), class(x))
     }
 }
 #' @title Switch bbox type
@@ -74,7 +74,7 @@ NULL
 #' @returns One of the arguments passed in `...` according to a bbox type.
 .bbox_switch <- function(x, ...) {
     switch(.bbox_type(x),
-        ...
+           ...
     )
 }
 #' @title Extract a bbox
@@ -131,9 +131,8 @@ NULL
     } else {
         crs <- .default(default_crs, default = {
             if (.check_warnings()) {
-                warning("object has no crs, assuming 'EPSG:4326'",
-                    call. = FALSE
-                )
+                msg <- .conf("messages", ".bbox_from_tbl")
+                warning(msg, call. = FALSE)
             }
             "EPSG:4326"
         })
@@ -179,11 +178,8 @@ NULL
     # Check if there are multiple CRS in bbox
     if (length(.crs(bbox)) > 1 && is.null(as_crs)) {
         if (.check_warnings()) {
-            warning("object has multiples CRS values, reprojecting to ",
-                "'EPSG:4326'\n", "(use 'as_crs' to reproject to a ",
-                "different CRS)",
-                call. = FALSE
-            )
+            msg <- .conf("messages", ".bbox_as_sf")
+            warning(msg, call. = FALSE)
         }
         as_crs <- "EPSG:4326"
     }
@@ -237,6 +233,6 @@ NULL
     # Convert WKT to sf CRS object
     crs_sf <- sf::st_crs(wkt_crs)
     # Convert sf CRS object to PROJ4 string
-    proj4string <- crs_sf$proj4string
+    proj4string <- crs_sf[["proj4string"]]
     return(proj4string)
 }

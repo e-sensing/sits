@@ -14,8 +14,8 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'     .period_check("P16D") # valid
-#'     .period_check("P1M10D") # error: invalid period format
+#'     .check_period("P16D") # valid
+#'     .check_period("P1M10D") # error: invalid period format
 #'     .period_val("P16D") # 16
 #'     .period_val("P2M") # 2
 #'     .period_val("P1Y") # 1
@@ -30,20 +30,11 @@
 #' @noRd
 NULL
 
-#' @describeIn period_api Check if a character string is a valid \code{period}.
-#' @returns \code{.period_check()}: nothing.
-#' @noRd
-.period_check <- function(period) {
-    if (!grepl("^P[0-9]+[DMY]$", period)) {
-        stop("invalid period format")
-    }
-}
-
 #' @describeIn period_api Return the value part of a \code{period}.
 #' @returns \code{.period_val()}: numeric value of a period.
 #' @noRd
 .period_val <- function(period) {
-    .period_check(period)
+    .check_period(period)
     .as_dbl(gsub("^P([0-9]+)[DMY]$", "\\1", period))
 }
 
@@ -52,7 +43,41 @@ NULL
 #' @returns \code{.period_unit()}: description of unit of a period.
 #' @noRd
 .period_unit <- function(period) {
-    .period_check(period)
+    .check_period(period)
     unit <- c(D = "day", M = "month", Y = "year")
     unit[[gsub("^P[0-9]+([DMY])$", "\\1", period)]]
+}
+
+#' @describeIn period_api Create period windows.
+#' @returns \code{.period_windows()}: Period windows.
+#' @noRd
+.period_windows <- function(period, step, start_date, end_date) {
+    # Transform `period` and `step` strings in duration
+    period_duration <- lubridate::as.duration(period)
+    step_duration <- lubridate::as.duration(step)
+    # Transform `start_date` and `end_date` to date
+    start_date <- as.Date(start_date)
+    end_date <- as.Date(end_date)
+    # Final period windows
+    period_windows <- list()
+    # Define first time period (used as part of the step)
+    current_start <- start_date
+    # Create period windows
+    while(current_start < end_date) {
+        # Create the window: current start date + step
+        current_end <- current_start + period_duration
+        # Avoid window definition beyond the end date
+        if (current_end > end_date) {
+            current_end <- end_date
+        }
+        # Save period window
+        period_windows <-
+            c(period_windows, list(c(
+                start = as.Date(current_start),
+                end = as.Date(current_end)
+            )))
+        # Move to the next window date: current start date + step
+        current_start <- current_start + step_duration
+    }
+    period_windows
 }

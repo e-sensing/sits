@@ -7,9 +7,8 @@
 \method{plot}{uncertainty_vector_cube}(
   x,
   ...,
-  tile = x$tile[[1]],
+  tile = x[["tile"]][[1]],
   palette = "RdYlGn",
-  style = "cont",
   rev = TRUE,
   scale = 0.8
 )
@@ -22,10 +21,6 @@
 \item{tile}{Tile to be plotted.}
 
 \item{palette}{RColorBrewer palette}
-
-\item{style}{Method to process the color scale
-("cont", "order", "quantile", "fisher",
- "jenks", "log10")}
 
 \item{rev}{Reverse order of colors in palette?}
 

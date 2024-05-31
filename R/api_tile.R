@@ -224,7 +224,7 @@ NULL
 
 #' @export
 .tile_update_label.default <- function(tile, labels) {
-    stop("tile is not a classified cube")
+    stop(.conf("messages", ".tile_update_label_default"))
 }
 
 #' @title Get/Set labels
@@ -412,6 +412,17 @@ NULL
     path
 }
 #' @export
+.tile_path.derived_cube <- function(tile, band = NULL, date = NULL) {
+    tile <- .tile(tile)
+    if (.has(band)) {
+        tile <- .tile_filter_bands(tile = tile, bands = band[[1]])
+    }
+    # Get path of first asset
+    path <- .fi_path(.fi(tile))
+    # Return path
+    path
+}
+#' @export
 .tile_path.default <- function(tile, band = NULL, date = NULL) {
     tile <- tibble::as_tibble(tile)
     tile <- .cube_find_class(tile)
@@ -527,13 +538,11 @@ NULL
 }
 #' @export
 `.tile_bands<-.raster_cube` <- function(tile, value) {
+    # set caller to show in errors
+    .check_set_caller(".tile_bands_assign")
     tile <- .tile(tile)
     bands <- .tile_bands(tile)
-    .check_that(
-        length(bands) == length(value),
-        local_msg = paste0("bands must have length ", length(bands)),
-        msg = "invalid band list"
-    )
+    .check_that(length(bands) == length(value))
     rename <- value
     names(rename) <- bands
     .fi(tile) <- .fi_rename_bands(.fi(tile), rename = rename)
@@ -952,13 +961,12 @@ NULL
     is_bit_mask <- .cloud_bit_mask(cloud_conf)
     # Prepare cloud_mask
     # Identify values to be removed
-    if (!is_bit_mask) {
-        values <- values %in% interp_values
-    } else {
+    if (is_bit_mask)
         values <- matrix(bitwAnd(values, sum(2^interp_values)) > 0,
-            nrow = length(values)
+                         nrow = length(values)
         )
-    }
+    else
+        values <- values %in% interp_values
     #
     # Log here
     #
@@ -1127,15 +1135,13 @@ NULL
 #' @return a new tile
 .tile_derived_from_file <- function(file, band, base_tile, derived_class,
                                     labels = NULL, update_bbox = FALSE) {
+    # set caller to show in errors
+    .check_set_caller(".tile_derived_from_file")
     if (derived_class %in% c("probs_cube", "variance_cube")) {
         # Open first block file to be merged
         r_obj <- .raster_open_rast(file)
         # Check number of labels is correct
-        .check_that(
-            x = .raster_nlayers(r_obj) == length(labels),
-            local_msg = "number of image layers does not match labels",
-            msg = "invalid 'file' parameter"
-        )
+        .check_that(.raster_nlayers(r_obj) == length(labels))
     }
 
     base_tile <- .tile(base_tile)
@@ -1147,7 +1153,7 @@ NULL
         .xmax(base_tile) <- .raster_xmax(r_obj)
         .ymin(base_tile) <- .raster_ymin(r_obj)
         .ymax(base_tile) <- .raster_ymax(r_obj)
-        .crs(base_tile) <- .raster_crs(r_obj)
+        .crs(base_tile)  <- .raster_crs(r_obj)
     }
     # Update labels before file_info
     .tile_labels(base_tile) <- labels
@@ -1216,15 +1222,13 @@ NULL
 .tile_derived_merge_blocks <- function(file, band, labels, base_tile,
                                        derived_class, block_files, multicores,
                                        update_bbox = FALSE) {
+    # set caller to show in errors
+    .check_set_caller(".tile_derived_merge_blocks")
     if (derived_class %in% c("probs_cube", "variance_cube")) {
         # Open first block file to be merged
         r_obj <- .raster_open_rast(unlist(block_files)[[1]])
         # Check number of labels is correct
-        .check_that(
-            x = .raster_nlayers(r_obj) == length(labels),
-            local_msg = "number of image layers does not match labels",
-            msg = "invalid 'file' parameter"
-        )
+        .check_that(.raster_nlayers(r_obj) == length(labels))
     }
     base_tile <- .tile(base_tile)
     # Get conf band
@@ -1269,7 +1273,8 @@ NULL
 #' @param out_file output file name
 #' @param update_bbox  should bbox be updated?
 #' @return a new tile with files written
-.tile_segment_merge_blocks <- function(block_files, base_tile, band, vector_class,
+.tile_segment_merge_blocks <- function(block_files, base_tile,
+                                       band, vector_class,
                                        out_file, update_bbox = FALSE) {
     base_tile <- .tile(base_tile)
     # Read all blocks file
@@ -1314,7 +1319,7 @@ NULL
 }
 #' @export
 .tile_area_freq.raster_cube <- function(tile) {
-    stop("Cube is not a classified cube")
+    stop(.conf("messages", ".tile_area_freq_raster_cube"))
 }
 #' @export
 .tile_area_freq.default <- function(tile) {
@@ -1338,14 +1343,13 @@ NULL
 #' @return Numeric matrix with raster values for each coordinate.
 #'
 .tile_extract <- function(tile, band, xy) {
+    .check_set_caller(".tile_extract")
     # Create a stack object
     r_obj <- .raster_open_rast(.tile_paths(tile = tile, bands = band))
     # Extract the values
     values <- .raster_extract(r_obj, xy)
     # Is the data valid?
-    if (nrow(values) != nrow(xy)) {
-        stop("number of extracted points differ from requested points")
-    }
+    .check_that(nrow(values) == nrow(xy))
     # Return values
     values
 }
@@ -1433,4 +1437,96 @@ NULL
     }
     return(invisible(end_time))
 }
-
+#' @title  Return the cell size for the image to be reduced for plotting
+#' @name .tile_overview_size
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  tile           Tile to be plotted.
+#' @param  max_size       Maximum size of rows or collumns to be shown
+#' @return                Cell size for subimage to be read.
+#'
+#'
+.tile_overview_size <- function(tile, max_size) {
+    # check if the tile is a COG file
+    cog_sizes <- .tile_cog_sizes(tile)
+    if (.has(cog_sizes)) {
+        small_cog_sizes <- purrr::map(cog_sizes, function(cog_size){
+            xsize <- cog_size[["xsize"]]
+            ysize <- cog_size[["ysize"]]
+            if (xsize <= max_size && ysize <= max_size)
+                return(cog_size)
+            else
+                return(NULL)
+        })
+        small_cog_sizes <- purrr::compact(small_cog_sizes)
+        nrows_cog <- small_cog_sizes[[1]][[1]]
+        ncols_cog <- small_cog_sizes[[1]][[2]]
+        return(c(
+            xsize = nrows_cog,
+            ysize = ncols_cog)
+        )
+    } else {
+        # get the maximum number of bytes for the tiles
+        nrows_tile <- max(.tile_nrows(tile))
+        ncols_tile <- max(.tile_ncols(tile))
+        # get the ratio to the max plot size
+        ratio_x <- max(ncols_tile/max_size, 1)
+        ratio_y <- max(nrows_tile/max_size, 1)
+        # if image is smaller than 1000 x 1000, return full size
+        if (ratio_x == 1 && ratio_y == 1) {
+            return(c(
+                xsize = ncols_tile,
+                ysize = nrows_tile
+            ))
+        }
+        # if ratio is greater than 1, get the maximum
+        ratio <- max(ratio_x, ratio_y)
+        # calculate nrows, ncols to be plotted
+        return(c(
+            xsize = floor(ncols_tile/ratio),
+            ysize = floor(nrows_tile/ratio)
+        ))
+    }
+}
+#' @title  Return the size of overviews for COG files
+#' @name .tile_cog_sizes
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  imag_file       File containing tile to be plotted
+#' @return                 COG size (assumed to be square)
+#'
+#'
+.tile_cog_sizes <- function(tile) {
+    # run gdalinfo on file
+    info <- utils::capture.output(sf::gdal_utils(
+        source = .tile_path(tile),
+        destination = NULL)
+    )
+    info2 <- stringr::str_split(info, pattern = "\n")
+    # capture the line containg overview info
+    over <- unlist(info2[grepl("Overview", info2)])
+    over <- over[!grepl("arbitrary", over)]
+    if (!.has(over))
+        return(NULL)
+    # get the value pairs
+    over_values <- unlist(strsplit(over, split = ":", fixed = TRUE))[2]
+    over_pairs <- unlist(stringr::str_split(over_values, pattern = ","))
+    # extract the COG sizes
+    cog_sizes <- purrr::map(over_pairs, function(op){
+        xsize <- as.numeric(unlist(
+            strsplit(op, split = "x", fixed = TRUE))[[1]]
+        )
+        ysize <- as.numeric(unlist(
+            strsplit(op, split = "x", fixed = TRUE))[[2]]
+        )
+        cog_size <- c(
+            xsize = xsize,
+            ysize = ysize
+        )
+    })
+    return(cog_sizes)
+}

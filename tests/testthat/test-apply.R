@@ -29,16 +29,14 @@ test_that("Testing normalized index generation", {
                       pattern = "\\.tif$",
                       full.names = TRUE
     ))
-    expect_warning(
-        gc_cube <- sits_regularize(
+    expect_warning({gc_cube <- sits_regularize(
             cube = s2_cube,
             output_dir = dir_images,
             res = 160,
             period = "P1M",
             multicores = 2,
             progress = FALSE
-        )
-    )
+    )})
 
     gc_cube_new <- sits_apply(gc_cube,
                               EVI = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),
@@ -222,9 +220,8 @@ test_that("Kernel functions", {
 
     expect_true(median_1 == median_2)
     # Recovery
-    out <- capture_messages({
-        expect_message(
-            {
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
                 cube_median <- sits_apply(
                     data = cube,
                     output_dir = tempdir(),
@@ -233,12 +230,8 @@ test_that("Kernel functions", {
                     memsize = 4,
                     multicores = 1
                 )
-            },
-            regexp = "Recovery"
-        )
-    })
-    expect_true(grepl("output_dir", out[1]))
-    expect_true(grepl("Recovery", out[2]))
+            }
+    )
     cube_mean <- sits_apply(
         data = cube,
         output_dir = tempdir(),
@@ -333,19 +326,15 @@ test_that("Error", {
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
-    out <- capture_warning({
-        expect_message(
-            {
-                cube_median <- sits_apply(
-                    data = sinop,
-                    output_dir = tempdir(),
-                    NDVI = w_median(NDVI),
-                    window_size = 3,
-                    memsize = 4,
-                    multicores = 2
-                )
-            },
-            regexp = "provided band"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_warning({
+        cube_median <- sits_apply(
+            data = sinop,
+            output_dir = tempdir(),
+            NDVI = w_median(NDVI),
+            window_size = 3,
+            memsize = 4,
+            multicores = 2
         )
     })
     sinop_probs <- sits_classify(

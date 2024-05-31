@@ -104,6 +104,8 @@ sits_mlp <- function(samples = NULL,
                      patience = 20,
                      min_delta = 0.01,
                      verbose = FALSE) {
+    # set caller for error msg
+    .check_set_caller("sits_mlp")
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # Avoid add a global variable for 'self'
@@ -114,32 +116,30 @@ sits_mlp <- function(samples = NULL,
         .check_samples_train(samples)
         .check_int_parameter(epochs)
         .check_int_parameter(batch_size)
-        .check_null(optimizer, msg = "invalid 'optimizer' parameter")
+        .check_null_parameter(optimizer)
         # Check layers and dropout_rates
-        .check_int_parameter(param = layers, len_max = 2^31 - 1)
-        .check_num_parameter(
-            param = dropout_rates, min = 0, max = 1,
+        .check_int_parameter(layers)
+        .check_num_parameter(dropout_rates, min = 0, max = 1,
             len_min = length(layers), len_max = length(layers)
         )
-        .check_that(
-            x = length(layers) == length(dropout_rates),
-            msg = "number of layers does not match number of dropout rates"
+        .check_that(length(layers) == length(dropout_rates),
+            msg = .conf("messages", "sits_mlp_layers_dropout")
         )
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
-            .check_num_parameter(
-                param = validation_split, exclusive_min = 0, max = 0.5
-            )
+            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
         }
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
         if (.has(opt_hparams)) {
-            .check_lst(opt_hparams, msg = "invalid 'opt_hparams' parameter")
+            .check_lst_parameter(opt_hparams,
+                                 msg = .conf("messages", ".check_opt_hparams")
+            )
             .check_chr_within(
                 x = names(opt_hparams),
                 within = names(optim_params_function),
-                msg = "invalid hyperparameters provided in optimizer"
+                msg = .conf("messages", ".check_opt_hparams")
             )
             optim_params_function <- utils::modifyList(
                 x = optim_params_function, val = opt_hparams
@@ -147,8 +147,8 @@ sits_mlp <- function(samples = NULL,
         }
         # Other pre-conditions:
         .check_int_parameter(patience)
-        .check_num_parameter(param = min_delta, min = 0)
-        .check_lgl(verbose)
+        .check_num_parameter(min_delta, min = 0)
+        .check_lgl_parameter(verbose)
         # Samples labels
         labels <- .samples_labels(samples)
         # Samples bands
@@ -182,7 +182,8 @@ sits_mlp <- function(samples = NULL,
                 pred = train_samples, frac = validation_split
             )
             # Remove the lines used for validation
-            sel <- !train_samples$sample_id %in% test_samples$sample_id
+            sel <- !train_samples[["sample_id"]] %in%
+                test_samples[["sample_id"]]
             train_samples <- train_samples[sel, ]
         }
         # Shuffle the data
@@ -208,17 +209,17 @@ sits_mlp <- function(samples = NULL,
                 # input layer
                 tensors[[1]] <- .torch_linear_relu_dropout(
                     input_dim = num_pred,
-                    output_dim = layers[1],
-                    dropout_rate = dropout_rates[1]
+                    output_dim = layers[[1]],
+                    dropout_rate = dropout_rates[[1]]
                 )
                 # if hidden layers is a vector then we add those layers
                 if (length(layers) > 1) {
                     for (i in 2:length(layers)) {
                         tensors[[length(tensors) + 1]] <-
                             .torch_linear_batch_norm_relu_dropout(
-                                input_dim = layers[i - 1],
-                                output_dim = layers[i],
-                                dropout_rate = dropout_rates[i]
+                                input_dim = layers[[i - 1]],
+                                output_dim = layers[[i]],
+                                dropout_rate = dropout_rates[[i]]
                             )
                     }
                 }
@@ -226,7 +227,7 @@ sits_mlp <- function(samples = NULL,
                 # output layer
                 tensors[[length(tensors) + 1]] <-
                     torch::nn_linear(layers[length(layers)], y_dim)
-                # add softmax tensor
+               # add softmax tensor
                 tensors[[length(tensors) + 1]] <- torch::nn_softmax(dim = 2)
                 # create a sequential module that calls the layers in the same
                 # order.
@@ -236,6 +237,11 @@ sits_mlp <- function(samples = NULL,
                 self$model(x)
             }
         )
+        # torch 12.0 not working with Apple MPS
+        if (torch::backends_mps_is_available())
+            cpu_train <-  TRUE
+        else
+            cpu_train <-  FALSE
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -261,10 +267,12 @@ sits_mlp <- function(samples = NULL,
                     patience = patience,
                     min_delta = min_delta
                 )),
+                dataloader_options = list(batch_size = batch_size),
+                accelerator = luz::accelerator(cpu = cpu_train),
                 verbose = verbose
             )
         # Serialize model
-        serialized_model <- .torch_serialize_model(torch_model$model)
+        serialized_model <- .torch_serialize_model(torch_model[["model"]])
 
         # Function that predicts labels of input values
         predict_fun <- function(values) {
@@ -274,7 +282,7 @@ sits_mlp <- function(samples = NULL,
             # Note: function does not work on MacOS
             suppressWarnings(torch::torch_set_num_threads(1))
             # Unserialize model
-            torch_model$model <- .torch_unserialize_model(serialized_model)
+            torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
             # Used to check values (below)
             input_pixels <- nrow(values)
             # Performs data normalization
@@ -292,9 +300,7 @@ sits_mlp <- function(samples = NULL,
                 # Do GPU classification
                 values <- .try(
                     stats::predict(object = torch_model, values),
-                    .msg_error = paste("An error occured while transfering",
-                                       "data to GPU. Please reduce the value of",
-                                       "the `gpu_memory` parameter.")
+                    .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
             } else {
                 # Do CPU classification

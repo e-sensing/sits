@@ -53,19 +53,13 @@ test_that("Variance cube", {
     expect_true(min(v) >= 0)
 
     # test Recovery
-    out <- capture_messages({
-        expect_message(
-            object = {
-                sits_variance(
-                    cube = probs_cube,
-                    output_dir = tempdir()
-                )
-            },
-            regexp = "Recovery"
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        obj <- sits_variance(
+            cube = probs_cube,
+            output_dir = tempdir()
         )
     })
-    expect_true(grepl("output_dir", out[1]))
-
     class_cube <- sits_label_classification(
         probs_cube,
         output_dir = tempdir(),

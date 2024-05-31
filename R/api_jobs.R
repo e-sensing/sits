@@ -16,12 +16,10 @@
 #' @param multicores   Number of cores available for processing
 #' @returns            Number of cores required for processing
 .jobs_max_multicores <- function(job_memsize, memsize, multicores) {
+    # set caller to show in errors
+    .check_set_caller(".jobs_max_multicores")
     # Check if memsize is above minimum needed to process one block
-    .check_that(
-        x = job_memsize < memsize,
-        local_msg = paste("minimum memsize needed is", job_memsize, "GB"),
-        msg = "provided 'memsize' is insufficient for processing"
-    )
+    .check_that(job_memsize < memsize)
     # Max parallel blocks supported by memsize
     max_blocks <- floor(memsize / job_memsize)
     # Max multicores
@@ -80,7 +78,6 @@
 #' @param jobs      Jobs to be processed
 #' @returns         List of jobs
 .jobs_split <- function(jobs) {
-    # TODO: split jobs by multicores (nrow(jobs) / muticores = #rounds)
     list(jobs)
 }
 #' @title Run a sequential function for all jobs

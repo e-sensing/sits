@@ -69,6 +69,8 @@ sits_combine_predictions <- function(cubes,
                                      multicores = 2L,
                                      output_dir,
                                      version = "v1") {
+    # set caller for error msg
+    .check_set_caller("sits_combine_predictions")
     # check if list of probs cubes have the same organization
     .check_probs_cube_lst(cubes)
     class(type) <- type
@@ -85,25 +87,23 @@ sits_combine_predictions.average <- function(cubes,
                                              output_dir,
                                              version = "v1") {
     # Check memsize
-    .check_memsize(memsize, min = 1, max = 16384)
+    .check_num_parameter(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1, max = 2048)
     # Check output dir
     .check_output_dir(output_dir)
-    # Check version
+    # Check version and convert to lowercase
     version <- .check_version(version)
-    # version is case-insensitive in sits
-    version <- tolower(version)
     # Get weights
     n_inputs <- length(cubes)
     weights <- .default(weights, rep(1 / n_inputs, n_inputs))
     .check_that(
         length(weights) == n_inputs,
-        msg = "number of weights does not match number of inputs",
+        msg = .conf("messages", "sits_combine_predictions_weights")
     )
     .check_that(
         sum(weights) == 1,
-        msg = "weigths should add up to 1.0"
+        msg = .conf("messages", "sits_combine_predictions_sum_weights")
     )
     # Get combine function
     comb_fn <- .comb_fn_average(cubes, weights = weights)
@@ -132,20 +132,17 @@ sits_combine_predictions.uncertainty <- function(cubes,
                                                  output_dir,
                                                  version = "v1") {
     # Check memsize
-    .check_memsize(memsize, min = 1, max = 16384)
+    .check_num_parameter(memsize, min = 1, max = 16384)
     # Check multicores
-    .check_multicores(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1, max = 2048)
     # Check output dir
     .check_output_dir(output_dir)
-    # Check version
+    # Check version and convert to lowercase
     version <- .check_version(version)
-    # version is case-insensitive in sits
-    version <- tolower(version)
     # Check if list of probs cubes and uncert_cubes have the same organization
     .check_that(
         length(cubes) == length(uncert_cubes),
-        local_msg = "uncert_cubes must have same length of cubes",
-        msg = "invalid uncert_cubes parameter"
+        msg = .conf("messages", "sits_combine_predictions_uncert_cubes")
     )
     .check_uncert_cube_lst(uncert_cubes)
     .check_cubes_match(cubes[[1]], uncert_cubes[[1]])
@@ -168,5 +165,5 @@ sits_combine_predictions.uncertainty <- function(cubes,
 #' @rdname sits_combine_predictions
 #' @export
 sits_combine_predictions.default <- function(cubes, type, ...) {
-    stop("Invalid method for combining predictions")
+    stop(.conf("messages", "sits_combine_predictions"))
 }

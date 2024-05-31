@@ -7,12 +7,10 @@
 \method{plot}{uncertainty_cube}(
   x,
   ...,
-  tile = x$tile[[1]],
+  tile = x[["tile"]][[1]],
   palette = "RdYlGn",
-  style = "cont",
   rev = TRUE,
-  n_colors = 10,
-  scale = 0.8
+  scale = 1
 )
 }
 \arguments{
@@ -24,13 +22,7 @@
 
 \item{palette}{An RColorBrewer palette}
 
-\item{style}{Method to process the color scale
-("cont", "order", "quantile", "fisher",
- "jenks", "log10")}
-
 \item{rev}{Reverse the color order in the palette?}
-
-\item{n_colors}{Number of colors to be shown}
 
 \item{scale}{Scale to plot map (0.4 to 1.0)}
 }

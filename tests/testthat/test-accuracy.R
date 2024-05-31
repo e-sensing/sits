@@ -10,8 +10,8 @@ test_that("conf_matrix -2 classes", {
         progress = FALSE
     )
     invisible(capture.output(acc <- sits_accuracy(points_class)))
-    expect_true(acc$overall["Accuracy"] > 0.90)
-    expect_true(acc$overall["Kappa"] > 0.90)
+    expect_gt(acc[["overall"]][["Accuracy"]], 0.90)
+    expect_gt(acc[["overall"]][["Kappa"]], 0.90)
     p <- capture.output(sits_accuracy_summary(acc))
     expect_true(grepl("Accuracy", p[2]))
 
@@ -132,7 +132,7 @@ test_that("Accuracy areas", {
 
     expect_true(as.numeric(as$area_pixels["Forest"]) >
         as$area_pixels["Pasture"])
-    expect_equal(as.numeric(as$accuracy$overall),
+    expect_identical(as.numeric(as$accuracy$overall),
         expected = 0.75,
         tolerance = 0.5
     )

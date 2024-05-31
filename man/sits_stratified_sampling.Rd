@@ -21,7 +21,8 @@ sits_stratified_sampling(
 
 \item{alloc}{Allocation method chosen}
 
-\item{overhead}{Additional percentage to account for border points}
+\item{overhead}{Additional percentage to account
+for border points}
 
 \item{multicores}{Number of cores that will be used to
 sample the images in parallel.}

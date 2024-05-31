@@ -8,16 +8,22 @@
 #'
 .csv_get_samples <- function(csv_file) {
     # read sample information from CSV file and put it in a tibble
-    samples <- tibble::as_tibble(utils::read.csv(csv_file))
+    samples <- tibble::as_tibble(
+        utils::read.csv(
+            file = csv_file,
+            stringsAsFactors = FALSE
+        )
+    )
     # pre-condition - check if CSV file is correct
-    .check_csv(samples)
+    .check_samples(samples)
     # select valid columns
     samples <- dplyr::select(
         samples,
         .conf("df_sample_columns")
     )
     # transform to date
-    samples <- dplyr::mutate(samples,
+    samples <- dplyr::mutate(
+        samples,
         start_date = as.Date(.data[["start_date"]]),
         end_date = as.Date(.data[["end_date"]])
     )

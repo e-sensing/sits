@@ -28,13 +28,12 @@ sits_view(x, ...)
   red = NULL,
   green = NULL,
   blue = NULL,
-  tiles = x$tile,
+  tiles = x[["tile"]],
   dates = NULL,
   class_cube = NULL,
   legend = NULL,
   palette = "RdYlGn",
-  opacity = 0.7,
-  view_max_mb = NULL
+  opacity = 0.7
 )
 
 \method{sits_view}{vector_cube}(
@@ -44,45 +43,41 @@ sits_view(x, ...)
   red = NULL,
   green = NULL,
   blue = NULL,
-  tiles = x$tile,
+  tiles = x[["tile"]],
   dates = NULL,
   class_cube = NULL,
   legend = NULL,
   palette = "RdYlGn",
   opacity = 0.7,
   seg_color = "black",
-  line_width = 1,
-  view_max_mb = NULL
+  line_width = 1
 )
 
 \method{sits_view}{uncertainty_cube}(
   x,
   ...,
-  tiles = x$tile,
+  tiles = x[["tile"]],
   class_cube = NULL,
   legend = NULL,
   palette = "Blues",
-  opacity = 0.7,
-  view_max_mb = NULL
+  opacity = 0.7
 )
 
 \method{sits_view}{class_cube}(
   x,
   ...,
-  tiles = NULL,
+  tiles = x[["tile"]],
   legend = NULL,
   palette = "Spectral",
-  opacity = 0.8,
-  view_max_mb = NULL
+  opacity = 0.8
 )
 
 \method{sits_view}{probs_cube}(
   x,
   ...,
-  tiles = x$tile,
+  tiles = x[["tile"]],
   class_cube = NULL,
   legend = NULL,
-  view_max_mb = NULL,
   opacity = 0.7,
   palette = "YlGnBu"
 )
@@ -117,8 +112,6 @@ in sits default colors)}
 \item{class_cube}{Classified cube to be overlayed on top on image.}
 
 \item{opacity}{Opacity of segment fill or class cube}
-
-\item{view_max_mb}{Maximum size of leaflet to be visualized}
 
 \item{seg_color}{Color for segment boundaries}
 
@@ -160,8 +153,6 @@ if (sits_run_examples()) {
         ml_model = rf_model,
         output_dir = tempdir()
     )
-    # view the probs
-    sits_view(modis_probs)
     # generate a map
     modis_label <- sits_label_classification(
         modis_probs,

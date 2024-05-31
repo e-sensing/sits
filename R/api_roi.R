@@ -5,17 +5,14 @@
 #' @param  roi   region of interest as sf object
 #' @return a geojson polygon geometry
 .roi_sf_to_geojson <- function(roi) {
-    # pre-conditions
-    .check_that(nrow(roi) == 1,
-        local_msg = "roi_sf should have only one row",
-        msg = "invalid roi_sf value"
-    )
+    # set caller to show in errors
+    .check_set_caller(".roi_sf_to_geojson")
     # verifies if geojsonsf and jsonlite packages are installed
     .check_require_packages(c("geojsonsf", "jsonlite"))
-
+    # pre-conditions
+    .check_that(nrow(roi) == 1)
     # reproject roi to WGS84
     roi <- .roi_as_sf(roi, as_crs = "WGS84")
-
     # convert roi_sf to geojson
     geojson <- sf::st_geometry(sf::st_convex_hull(roi))
     geojson <- geojsonsf::sfc_geojson(geojson)
@@ -75,7 +72,7 @@ NULL
     } else if (all(.roi_lonlat_cols %in% names(roi))) {
         "lonlat"
     } else {
-        stop("invalid 'roi' parameter")
+        stop(.conf("messages", ".roi_type"))
     }
 }
 
@@ -94,7 +91,9 @@ NULL
 #' @noRd
 .roi_as_sf <- function(roi, default_crs = NULL, as_crs = NULL) {
     # is the roi defined by a shapefile
-    if (is.character(roi) && file.exists(roi) && (tools::file_ext(roi) == "shp"))
+    if (is.character(roi) &&
+        file.exists(roi) &&
+        (tools::file_ext(roi) == "shp"))
         roi <- sf::st_read(roi)
     # convert R objects to sf object
     roi <- .roi_switch(

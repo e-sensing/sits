@@ -29,13 +29,13 @@
         return(invisible(NULL))
     }
     # Get output_dir
-    output_dir <- sits_env$output_dir
+    output_dir <- sits_env[["output_dir"]]
     if (is.null(output_dir)) {
         return(invisible(NULL))
     }
     # Record time to compute elapsed time
     time <- Sys.time()
-    on.exit(sits_env$log_time <- Sys.time(), add = TRUE)
+    on.exit(sits_env[["log_time"]] <- Sys.time(), add = TRUE)
     # Function to escape CSV values
     esc <- function(value) {
         value <- gsub("\"", "\"\"", paste0(value))
@@ -48,10 +48,10 @@
     log_file <- .file_log_name(output_dir)
     # Elapsed time
     elapsed_time <- NULL
-    if (.has(sits_env$log_time)) {
+    if (.has(sits_env[["log_time"]])) {
         elapsed_time <- format(difftime(
             time1 = time,
-            time2 = sits_env$log_time,
+            time2 = sits_env[["log_time"]],
             units = "secs"
         )[[1]], digits = 4)
     }
@@ -85,13 +85,14 @@
 #'
 #' @description
 #' When called without parameters retrieves the current debug flag value.
-#' Flag sets the current flag and output_dir writes the debug info to
-#' a directory.
+#' The flag parameter sets the current flag and output_dir
+#' and writes the debug info to a directory.
 #'
 #' @param flag  A logical value to set the debug flag.
 #' @param output_dir  Directory to write the debug info.
 #' @return  The flag associated to the debug.
 .debug <- function(flag = NULL, output_dir = NULL) {
+    .check_set_caller(".debug")
     # If no parameter is passed get current debug flag
     if (is.null(flag)) {
         flag <- sits_env[["debug_flag"]]
@@ -104,10 +105,7 @@
 
         return(flag)
     }
-    .check_lgl(
-        x = flag, allow_null = TRUE,
-        msg = "flag must be a logical value"
-    )
+    .check_lgl_parameter(flag, allow_null = TRUE)
     # Set debug flag
     sits_env[["debug_flag"]] <- flag
     # Set output_dir

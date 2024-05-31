@@ -1,12 +1,14 @@
 #' @title Downloads an asset
 #' @noRd
-#' @param asset  File to be downloaded (with path)
-#' @param res    Spatial resolution
-#' @param sf_roi Region of interest (sf object)
+#' @param asset   File to be downloaded (with path)
+#' @param res     Spatial resolution
+#' @param sf_roi  Region of interest (sf object)
+#' @param n_tries Number of tries to download the same image.
 #' @param output_dir Directory where file will be saved
 #' @param progress Show progress bar?
 #' @returns  Updated asset
-.download_asset <- function(asset, res, sf_roi, output_dir, progress) {
+.download_asset <- function(asset, res, sf_roi, n_tries, output_dir,
+                            progress, ...) {
     # Get all paths and expand
     file <- .file_normalize(.tile_path(asset))
     # Create a list of user parameters as gdal format
@@ -16,29 +18,22 @@
         res = res
     )
     # Create output file
-    derived_cube <- inherits(asset, "derived_cube")
-    if (derived_cube) {
+    out_file <- .file_path(
+        .tile_satellite(asset),
+        .download_remove_slash(.tile_sensor(asset)),
+        .tile_name(asset),
+        .tile_bands(asset),
+        .tile_start_date(asset),
+        output_dir = output_dir,
+        ext = "tif"
+    )
+    if (inherits(asset, "derived_cube")) {
         out_file <- paste0(output_dir, "/", basename(file))
-    } else {
-        out_file <- .file_path(
-            .tile_satellite(asset),
-            .download_remove_slash(.tile_sensor(asset)),
-            .tile_name(asset),
-            .tile_bands(asset),
-            .tile_start_date(asset),
-            output_dir = output_dir,
-            ext = "tif"
-        )
     }
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         if (.check_messages()) {
-            message("Recovery: file '", out_file, "' already exists.")
-            message(
-                "(If you want to get a new version, please ",
-                "change 'output_dir' parameter
-                    or delete the existing file)"
-            )
+            .check_recovery(out_file)
         }
         asset <- .download_update_asset(
             asset = asset, roi = sf_roi, res = res, out_file = out_file
@@ -50,7 +45,7 @@
         out_file = out_file, gdal_params = gdal_params
     )
     # Download file
-    suppressWarnings(download_fn(file))
+    suppressWarnings(download_fn(file, n_tries, ...))
     # Update asset metadata
     asset <- .download_update_asset(
         asset = asset, roi = sf_roi, res = res, out_file = out_file
@@ -107,11 +102,25 @@
 #' @param gdal_params GDAL parameters
 #' @returns  Appropriate GDAL download function
 .download_gdal <- function(out_file, gdal_params) {
-    download_fn <- function(file) {
-        .gdal_translate(
-            file = out_file, base_file = file,
-            params = gdal_params, quiet = TRUE
-        )
+    # Ellipse is not used in gdal_translate. Defined to keep consistency.
+    download_fn <- function(file, n_tries, ...) {
+        # Download file
+        while (n_tries > 0) {
+            out <- .try(
+                .gdal_translate(
+                    file = out_file, base_file = file,
+                    params = gdal_params, quiet = TRUE
+                ), default = NULL
+            )
+            if (.has(out)) {
+                return(out_file)
+            }
+            n_tries <- n_tries - 1
+        }
+        if (!.has(out)) {
+            warning(paste("Error in downloading file", file))
+        }
+        # Return file name
         out_file
     }
     download_fn
@@ -121,16 +130,25 @@
 #' @param out_file    Path where file will be saved
 #' @returns  Appropriate non-GDAL download function
 .download_base <- function(out_file) {
-    donwload_fn <- function(file) {
+    donwload_fn <- function(file, n_tries, ...) {
         # Remove vsi driver path
         file <- .file_remove_vsi(file)
         # Add file scheme in local paths
         if (.file_is_local(file)) {
             file <- .file_path("file://", file, sep = "")
         }
-        httr::GET(
-            url = file, httr::write_disk(path = out_file, overwrite = TRUE)
+        # Download file
+        out <- httr::RETRY(
+            verb = "GET",
+            url = file,
+            httr::write_disk(path = out_file, overwrite = TRUE),
+            times = n_tries,
+            pause_min = 10,
+            ...
         )
+        if (httr::http_error(out)) {
+            warning(paste("Error in downloading file", file))
+        }
         # Return file name
         out_file
     }
@@ -141,5 +159,5 @@
 #' @param x    Sensor name (e.g. "TM/OLI")
 #' @returns    Sensor name without slashes
 .download_remove_slash <- function(x) {
-    gsub(pattern = "/", replacement = "", x = x)
+    gsub(pattern = "/", replacement = "", x = x, fixed = TRUE)
 }
