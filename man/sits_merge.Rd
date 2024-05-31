@@ -12,9 +12,9 @@ sits_merge(data1, data2, ...)
 
 \method{sits_merge}{sits}(data1, data2, ..., suffix = c(".1", ".2"))
 
-\method{sits_merge}{sar_cube}(data1, data2, ...)
+\method{sits_merge}{sar_cube}(data1, data2, ..., irregular = FALSE)
 
-\method{sits_merge}{raster_cube}(data1, data2, ...)
+\method{sits_merge}{raster_cube}(data1, data2, ..., irregular = FALSE)
 
 \method{sits_merge}{default}(data1, data2, ...)
 }

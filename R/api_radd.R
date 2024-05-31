@@ -405,6 +405,7 @@
 
 .radd_convert_date_yday <- function(tile_tl) {
     tile_yday <-  lubridate::yday(lubridate::date(tile_tl))
+    tile_yday <- as.numeric(paste0(lubridate::year(tile_tl), tile_yday))
     tile_yday <- c(0, tile_yday)
     names(tile_yday) <- seq.int(
         from = 0, to = length(tile_yday) - 1, by = 1

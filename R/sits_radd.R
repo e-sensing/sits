@@ -82,14 +82,12 @@ sits_radd.raster_cube <- function(data,
         # Preconditions
         .check_chr_parameter(pdf)
         .check_num_min_max(chi, min = 0.1, max = 1)
-        .check_memsize(memsize, min = 1, max = 16384)
-        .check_multicores(multicores, min = 1, max = 2048)
         .check_output_dir(output_dir)
         version <- .check_version(version)
         .check_progress(progress)
         # TODO: check mean and sd stats
-        mean_stats <- unname(as.matrix(mean_stats))
-        sd_stats <- unname(as.matrix(sd_stats))
+        mean_stats <- unname(as.matrix(mean_stats[, -1]))
+        sd_stats <- unname(as.matrix(sd_stats[, -1]))
 
         # version is case-insensitive in sits
         version <- tolower(version)

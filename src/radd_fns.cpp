@@ -1,4 +1,6 @@
 #include <RcppArmadillo.h>
+#include <iostream>
+#include <iomanip>
 // [[Rcpp::depends(RcppArmadillo)]]
 
 using namespace Rcpp;
@@ -23,8 +25,18 @@ arma::rowvec C_radd_calc_sub(const arma::mat& x, const arma::mat& y) {
     return x - y;
 }
 
-double C_radd_calc_pbayes(const double& prior, const double& post) {
+float C_radd_calc_pbayes(const double& prior, const double& post) {
     return (prior * post) / ((prior * post) + ((1 - prior) * (1 - post)));
+}
+
+arma::vec C_vec_select_cols(const arma::vec& m,
+                            const arma::uvec idx) {
+    arma::vec v(idx.size(), arma::fill::value(arma::datum::nan));
+
+    for (arma::uword i = 0; i < idx.size(); i++) {
+        v(i) = m(idx.at(i));
+    }
+    return v;
 }
 
 // [[Rcpp::export]]
@@ -84,7 +96,17 @@ arma::mat C_radd_calc_nf(arma::mat& ts,
 
             // Update NF probabilities with a Bayesian approach
             if (update_res) {
-                p_nfor = C_radd_calc_pbayes(p_nfor, p_nfor_past);
+                arma::uvec p1 = arma::find_finite(p_nfor);
+                arma::uvec p2 = arma::find_finite(p_nfor_past);
+
+                arma::uvec non_na_idxs = arma::intersect(p1, p2);
+
+                p_nfor(non_na_idxs) = C_radd_calc_pbayes(
+                    p_nfor(non_na_idxs), p_nfor_past(non_na_idxs)
+                );
+
+                arma::uvec p1_na = arma::find_nonfinite(p_nfor);
+                p_nfor(p1_na) = p_nfor_past(p1_na);
             }
             // Update Non-Forest probs
             p_nfor_past = p_nfor;
@@ -122,16 +144,6 @@ arma::vec C_select_cols(const arma::mat& m,
     return v;
 }
 
-arma::vec C_vec_select_cols(const arma::vec& m,
-                            const arma::uvec idx) {
-    arma::vec v(idx.size(), arma::fill::value(arma::datum::nan));
-
-    for (arma::uword i = 0; i < idx.size(); i++) {
-        v(i) = m(idx.at(i));
-    }
-    return v;
-}
-
 // [[Rcpp::export]]
 arma::mat C_radd_detect_changes(const arma::mat& p_res,
                                 const arma::uword& start_detection,
@@ -146,6 +158,7 @@ arma::mat C_radd_detect_changes(const arma::mat& p_res,
     arma::uword v;
     bool next_pixel;
     arma::uword first_idx;
+
     // for each pixel
     for (arma::uword i = 0; i < p_res.n_rows; i++) {
         // Filter non NA values
@@ -249,7 +262,6 @@ arma::mat C_radd_detect_changes(const arma::mat& p_res,
                     }
                 }
                 if (p_change(t_value) >= chi) {
-
                     if (v_res(t_value) >= 0.5) {
                         arma::uword min_idx = arma::find(p_flag == 1).min();
                         p_flag.subvec(min_idx, t_value).fill(2);
