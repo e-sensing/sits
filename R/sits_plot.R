@@ -563,13 +563,13 @@ plot.vector_cube <- function(x, ...,
     .check_available_bands(x, band, red, green, blue)
     if (.has(band)) {
         main_title <- paste0(
-            .tile_collection(tile), " ", band, " ", as.Date(date)
+            .tile_collection(tile), " ", band, " ", as.Date(dates[[1]])
         )
         # plot the band as false color
         p <- .plot_false_color(
             tile = tile,
             band = band,
-            date = date,
+            date = dates[[1]],
             sf_seg    = sf_seg,
             seg_color = seg_color,
             line_width = line_width,
@@ -585,7 +585,7 @@ plot.vector_cube <- function(x, ...,
                              red, "(R) ",
                              green, "(G) ",
                              blue, "(B) ",
-                             as.Date(date)
+                             as.Date(dates[[1]])
         )
         # plot RGB
         p <- .plot_rgb(
@@ -593,7 +593,7 @@ plot.vector_cube <- function(x, ...,
             red = red,
             green = green,
             blue = blue,
-            date = date,
+            date = dates[[1]],
             main_title = main_title,
             sf_seg   = sf_seg,
             seg_color = seg_color,

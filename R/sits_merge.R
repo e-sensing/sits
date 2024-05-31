@@ -105,6 +105,9 @@ sits_merge.sar_cube <- function(data1, data2, ...) {
         dplyr::filter(data2, .data[["tile"]] %in% common_tiles),
         .data[["tile"]]
     )
+    if (length(.cube_timeline(data2)[[1]]) == 1){
+        return(.merge_single_timeline(data1, data2))
+    }
     if (inherits(data2, "sar_cube")) {
         return(.merge_equal_cube(data1, data2))
     } else {
@@ -131,7 +134,9 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
         dplyr::filter(data2, .data[["tile"]] %in% common_tiles),
         .data[["tile"]]
     )
-
+    if (length(.cube_timeline(data2)[[1]]) == 1){
+        return(.merge_single_timeline(data1, data2))
+    }
     if (inherits(data2, "sar_cube")) {
         return(.merge_distinct_cube(data1, data2))
     } else {
@@ -156,10 +161,10 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
     d2_tl <- unique(as.Date(.cube_timeline(data2)[[1]]))
 
     # get intervals
-    d1_period <- as.numeric(
+    d1_period <- as.integer(
         lubridate::as.period(lubridate::int_diff(d1_tl)), "days"
     )
-    d2_period <- as.numeric(
+    d2_period <- as.integer(
         lubridate::as.period(lubridate::int_diff(d2_tl)), "days"
     )
     # pre-condition - are periods regular?
@@ -196,6 +201,28 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
     data1 <- .cube_merge(data1, data2)
     # Return cubes merged
     return(data1)
+}
+
+.merge_single_timeline <- function(data1, data2) {
+    tiles <- .cube_tiles(data1)
+    # update the timeline of the cube with single time step (`data2`)
+    data2 <- purrr::map_dfr(tiles, function(tile_name) {
+        tile_data1 <- .cube_filter_tiles(data1, tile_name)
+        tile_data2 <- .cube_filter_tiles(data2, tile_name)
+        # Get data1 timeline.
+        d1_tl <- unique(as.Date(.cube_timeline(tile_data1)[[1]]))
+        # Create new `file_info` using dates from `data1` timeline.
+        fi_new <- purrr::map(sits_timeline(tile_data1), function(date_row) {
+            fi <- .fi(tile_data2)
+            fi[["date"]] <- as.Date(date_row)
+            fi
+        })
+        # Assign the new `file_into` into `data2`
+        tile_data2[["file_info"]] <- list(dplyr::bind_rows(fi_new))
+        tile_data2
+    })
+    # Merge cubes and return
+    .cube_merge(data1, data2)
 }
 
 #' @rdname sits_merge

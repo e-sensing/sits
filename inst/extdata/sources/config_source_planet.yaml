@@ -5,7 +5,7 @@ sources:
         collections         :
             MOSAIC          :
                 bands       :
-                    B01     : &planet_mosaic_4m
+                    B1     : &planet_mosaic_4m
                         missing_value : 0
                         minimum_value : 1
                         maximum_value : 65534
@@ -14,13 +14,13 @@ sources:
                         resolution    :  4.77
                         band_name     : "blue"
                         data_type     : "INT2U"
-                    B02     : 
+                    B2     : 
                         <<: *planet_mosaic_4m
                         band_name    : "green"
-                    B03     :
+                    B3     :
                         <<: *planet_mosaic_4m
                         band_name    : "red"
-                    B04     :
+                    B4     :
                         <<: *planet_mosaic_4m
                         band_name    : "nir"
                 satellite   : "PLANETSCOPE"

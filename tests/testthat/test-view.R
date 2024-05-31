@@ -180,10 +180,7 @@ test_that("View", {
                     green = "B16",
                     blue = "B13",
                     dates = "2018-08-29")
-    v_cb2 <- sits_view(cbers_cube,
-                      tiles = c("007004", "007005"),
-                      band = "B16",
-                      dates = "2018-08-29")
+
     expect_identical(v_cb$x$options$crs$crsClass, "L.CRS.EPSG3857")
     expect_identical(v_cb$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
     expect_identical(v_cb$x$calls[[5]]$method, "addRasterImage")

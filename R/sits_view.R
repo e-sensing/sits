@@ -150,51 +150,7 @@ sits_view.raster_cube <- function(x, ...,
                                   red = NULL,
                                   green = NULL,
                                   blue = NULL,
-                                  tiles = x[["tile"]],
-                                  dates = NULL,
-                                  class_cube = NULL,
-                                  legend = NULL,
-                                  palette = "RdYlGn",
-                                  opacity = 0.7) {
-    # preconditions
-    # Probs cube not supported
-    .check_that(!inherits(x, "probs_cube"))
-    # verifies if leafem and leaflet packages are installed
-    .check_require_packages(c("leafem", "leaflet"))
-    # pre-condition for bands
-    .check_bw_rgb_bands(band, red, green, blue)
-    .check_available_bands(x, band, red, green, blue)
-    # retrieve dots
-    dots <- list(...)
-    # deal with wrong parameter "date"
-    if ("date" %in% names(dots) && missing(dates)) {
-        dates <- as.Date(dots[["date"]])
-    }
-    # view image raster
-    leaf_map <- .view_image_raster(
-        cube = x,
-        class_cube = class_cube,
-        tiles = tiles,
-        dates = dates,
-        band = band,
-        red = red,
-        green = green,
-        blue = blue,
-        legend = legend,
-        palette = palette,
-        opacity = opacity
-    )
-    return(leaf_map)
-}
-#' @rdname   sits_view
-#'
-#' @export
-sits_view.vector_cube <- function(x, ...,
-                                  band = NULL,
-                                  red = NULL,
-                                  green = NULL,
-                                  blue = NULL,
-                                  tiles = x[["tile"]],
+                                  tiles = x[["tile"]][[1]],
                                   dates = NULL,
                                   class_cube = NULL,
                                   legend = NULL,
@@ -202,11 +158,15 @@ sits_view.vector_cube <- function(x, ...,
                                   opacity = 0.7,
                                   seg_color = "black",
                                   line_width = 1) {
-    # verifies if leafem and leaflet packages are installed
-    .check_require_packages(c("leafem", "leaflet"))
+    # preconditions
     # Probs cube not supported
     .check_that(!inherits(x, "probs_cube"))
+    # verifies if leafem and leaflet packages are installed
+    .check_require_packages(c("leafem", "leaflet"))
     # pre-condition for bands
+    # # no band? take a default
+    if (!(.has(band) || (.has(red) && .has(green) && .has(blue))))
+        band <- sits_bands(x)[[1]]
     .check_bw_rgb_bands(band, red, green, blue)
     .check_available_bands(x, band, red, green, blue)
     # retrieve dots
@@ -215,58 +175,75 @@ sits_view.vector_cube <- function(x, ...,
     if ("date" %in% names(dots) && missing(dates)) {
         dates <- as.Date(dots[["date"]])
     }
-    # view vector cube
-    leaf_map <- .view_image_vector(
-        cube = x,
-        tiles = tiles,
-        dates = dates,
-        band = band,
-        red = red,
-        green = green,
-        blue = blue,
-        class_cube = class_cube,
-        legend = legend,
-        palette = palette,
-        opacity = opacity,
-        seg_color = seg_color,
-        line_width = line_width
-    )
-    return(leaf_map)
-}
-#' @rdname   sits_view
-#'
-#' @export
-sits_view.uncertainty_cube <- function(x, ...,
-                                       tiles = x[["tile"]],
-                                       class_cube = NULL,
-                                       legend = NULL,
-                                       palette = "Blues",
-                                       opacity = 0.7) {
-    # preconditions
-    # verifies if leafem and leaflet packages are installed
-    .check_require_packages(c("leafem", "leaflet"))
-    # plot as grayscale
-    band <- .cube_bands(x)
-    # filter the tiles to be processed
-    cube <- .view_filter_tiles(x, tiles)
-    # more than one tile? needs regular cube
-    if (nrow(cube) > 1) {
-        .check_that(.cube_is_regular(cube))
+    # create a leaflet and add providers
+    leaf_map <- .view_add_base_maps()
+    # create a vector to hold overlay groups
+    overlay_groups <- vector()
+    # convert tiles names to tile objects
+    cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
+    # obtain dates vector
+    dates <- .view_set_dates(x, dates)
+    # create a new layer in the leaflet
+    for (i in seq_len(nrow(cube))) {
+        row <- cube[i, ]
+        for (date in dates) {
+            # add group
+            group <- .view_add_overlay_group(row, as.Date(date), band)
+            overlay_groups <- append(overlay_groups, group)
+            # view image raster
+            leaf_map <- leaf_map |>
+                .view_image_raster(
+                    group = group,
+                    tile = row,
+                    date = as.Date(date),
+                    band = band,
+                    red = red,
+                    green = green,
+                    blue = blue,
+                    legend = legend,
+                    palette = palette,
+                    opacity = opacity
+            )
+        }
+        # include segments and class cube if available
+        leaf_map <- leaf_map |>
+        # include segments
+            .view_segments(
+                tile = row,
+                seg_color = seg_color,
+                line_width = line_width,
+                opacity  = opacity,
+                legend = legend,
+                palette = palette
+        ) |>
+            .view_class_cube(
+                class_cube = class_cube,
+                tile = row,
+                legend = legend,
+                palette = palette,
+                opacity = opacity
+            )
     }
-    # view image raster
-    leaf_map <- .view_image_raster(
+    # add overlay groups for segments and class cube (if available)
+    overlay_groups <- .view_add_overlay_grps(
+        overlay_groups = overlay_groups,
         cube = x,
-        class_cube = class_cube,
-        tiles = tiles,
-        dates = NULL,
-        band = band,
-        red = NULL,
-        green = NULL,
-        blue = NULL,
-        legend = legend,
-        palette = palette,
-        opacity = opacity
+        class_cube = class_cube
     )
+    # add layers control to leafmap
+    leaf_map <- leaf_map |>
+        leaflet::addLayersControl(
+            baseGroups = c("ESRI", "GeoPortalFrance",
+                           "Sentinel-2-2020", "OSM"),
+            overlayGroups = overlay_groups,
+            options = leaflet::layersControlOptions(collapsed = FALSE)
+        ) |>
+        # add legend to leaf_map
+        .view_add_legend(
+            cube = x,
+            legend = legend,
+            palette = palette
+        )
     return(leaf_map)
 }
 #' @rdname sits_view
@@ -285,19 +262,22 @@ sits_view.class_cube <- function(x, ...,
     cube <- .view_filter_tiles(x, tiles)
     # create a leaflet and add providers
     leaf_map <- .view_add_base_maps()
-    # add a leafmap for class cube
-    leaf_map <- leaf_map |>
-        .view_class_cube(
-            class_cube = cube,
-            tiles = tiles,
-            legend = legend,
-            palette = palette,
-            opacity = opacity
-        )
+    # go through the tiles
+    for (row in nrow(cube)) {
+        tile <- cube[row, ]
+        # add a leafmap for class cube
+        leaf_map <- leaf_map |>
+            .view_class_cube(
+                class_cube = cube,
+                tile = tile,
+                legend = legend,
+                palette = palette,
+                opacity = opacity
+            )
+    }
+
     # add overlay groups
-    overlay_groups <- .view_add_overlay_grps(
-        cube = cube
-    )
+    overlay_groups <- "classification"
     # add layers control
     leaf_map <- leaf_map |>
         leaflet::addLayersControl(
