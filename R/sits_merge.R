@@ -88,7 +88,7 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 
 #' @rdname sits_merge
 #' @export
-sits_merge.sar_cube <- function(data1, data2, ...) {
+sits_merge.sar_cube <- function(data1, data2, ..., irregular = FALSE) {
     .check_set_caller("sits_merge_sar_cube")
     # pre-condition - check cube type
     .check_is_raster_cube(data1)
@@ -105,19 +105,19 @@ sits_merge.sar_cube <- function(data1, data2, ...) {
         dplyr::filter(data2, .data[["tile"]] %in% common_tiles),
         .data[["tile"]]
     )
-    if (length(.cube_timeline(data2)[[1]]) == 1){
+    if (length(.cube_timeline(data2)[[1]]) == 1) {
         return(.merge_single_timeline(data1, data2))
     }
     if (inherits(data2, "sar_cube")) {
         return(.merge_equal_cube(data1, data2))
     } else {
-        return(.merge_distinct_cube(data1, data2))
+        return(.merge_distinct_cube(data1, data2, irregular))
     }
 }
 
 #' @rdname sits_merge
 #' @export
-sits_merge.raster_cube <- function(data1, data2, ...) {
+sits_merge.raster_cube <- function(data1, data2, ..., irregular = FALSE) {
     .check_set_caller("sits_merge_raster_cube")
     # pre-condition - check cube type
     .check_is_raster_cube(data1)
@@ -134,11 +134,11 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
         dplyr::filter(data2, .data[["tile"]] %in% common_tiles),
         .data[["tile"]]
     )
-    if (length(.cube_timeline(data2)[[1]]) == 1){
+    if (length(.cube_timeline(data2)[[1]]) == 1) {
         return(.merge_single_timeline(data1, data2))
     }
     if (inherits(data2, "sar_cube")) {
-        return(.merge_distinct_cube(data1, data2))
+        return(.merge_distinct_cube(data1, data2, irregular))
     } else {
         return(.merge_equal_cube(data1, data2))
     }
@@ -155,30 +155,32 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
     return(data1)
 }
 
-.merge_distinct_cube <- function(data1, data2) {
+.merge_distinct_cube <- function(data1, data2, irregular) {
     # Get cubes timeline
     d1_tl <- unique(as.Date(.cube_timeline(data1)[[1]]))
     d2_tl <- unique(as.Date(.cube_timeline(data2)[[1]]))
 
     # get intervals
-    d1_period <- as.integer(
-        lubridate::as.period(lubridate::int_diff(d1_tl)), "days"
-    )
-    d2_period <- as.integer(
-        lubridate::as.period(lubridate::int_diff(d2_tl)), "days"
-    )
-    # pre-condition - are periods regular?
-    .check_that(
-        length(unique(d1_period)) == 1 && length(unique(d2_period)) == 1
-    )
-    # pre-condition - Do cubes have the same periods?
-    .check_that(
-        unique(d1_period) == unique(d2_period)
-    )
-    # pre-condition - are the cubes start date less than period timeline?
-    .check_that(
-        abs(d1_period[[1]] - d2_period[[2]]) <= unique(d2_period)
-    )
+    if (!irregular) {
+        d1_period <- as.integer(
+            lubridate::as.period(lubridate::int_diff(d1_tl)), "days"
+        )
+        d2_period <- as.integer(
+            lubridate::as.period(lubridate::int_diff(d2_tl)), "days"
+        )
+        # pre-condition - are periods regular?
+        .check_that(
+            length(unique(d1_period)) == 1 && length(unique(d2_period)) == 1
+        )
+        # pre-condition - Do cubes have the same periods?
+        .check_that(
+            unique(d1_period) == unique(d2_period)
+        )
+        # pre-condition - are the cubes start date less than period timeline?
+        .check_that(
+            abs(d1_period[[1]] - d2_period[[2]]) <= unique(d2_period)
+        )
+    }
 
     # Change file name to match reference timeline
     data2 <- slider::slide_dfr(data2, function(y) {
