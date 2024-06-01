@@ -26,7 +26,8 @@ arma::rowvec C_radd_calc_sub(const arma::mat& x, const arma::mat& y) {
 }
 
 double C_radd_calc_pbayes(const double& prior, const double& post) {
-    return (prior * post) / ((prior * post) + ((1 - prior) * (1 - post)));
+    double res = (prior * post) / ((prior * post) + ((1 - prior) * (1 - post)));
+    return (std::floor(res * 1000000000000000.0) / 1000000000000000.0);
 }
 
 arma::vec C_vec_select_cols(const arma::vec& m,
@@ -281,9 +282,7 @@ arma::mat C_radd_detect_changes(const arma::mat& p_res,
                         }
                     }
                 }
-                // std::abs(p_change(t_value) - chi) <= 0.01 ||
-                //if (p_change(t_value) >= chi) {
-                if ((std::floor(p_change(t_value) * 1000000000000000.0) / 1000000000000000.0) >= chi) {
+                if ((std::floor(p_change(t_value) * 1000000000000000.0) / 1000000000000000.0)  >= chi) {
                     if (v_res(t_value) >= 0.5) {
                         arma::uword min_idx = arma::find(p_flag == 1).min();
                         p_flag.subvec(min_idx, t_value).fill(2);
@@ -296,7 +295,6 @@ arma::mat C_radd_detect_changes(const arma::mat& p_res,
                 break;
             }
         }
-
         idx_value_res = arma::find(p_flag == 2);
         v = 0;
         if (idx_value_res.size() > 0) {
