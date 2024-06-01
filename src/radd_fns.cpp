@@ -25,7 +25,7 @@ arma::rowvec C_radd_calc_sub(const arma::mat& x, const arma::mat& y) {
     return x - y;
 }
 
-float C_radd_calc_pbayes(const double& prior, const double& post) {
+double C_radd_calc_pbayes(const double& prior, const double& post) {
     return (prior * post) / ((prior * post) + ((1 - prior) * (1 - post)));
 }
 
@@ -169,7 +169,7 @@ arma::mat C_radd_detect_changes(const arma::mat& p_res,
                                 const arma::uword& start_detection,
                                 const arma::uword& end_detection,
                                 const double& threshold = 0.5,
-                                float chi = 0.9) {
+                                double chi = 0.9) {
     arma::mat res(
             p_res.n_rows, 1, arma::fill::value(arma::datum::nan)
     );
@@ -283,8 +283,7 @@ arma::mat C_radd_detect_changes(const arma::mat& p_res,
                 }
                 // std::abs(p_change(t_value) - chi) <= 0.01 ||
                 //if (p_change(t_value) >= chi) {
-                if ((std::floor(p_change(t_value) * 10000000000) / 10000000000) >=
-                    (std::floor(chi * 10000000000) / 10000000000)) {
+                if ((std::floor(p_change(t_value) * 1000000000000000.0) / 1000000000000000.0) >= chi) {
                     if (v_res(t_value) >= 0.5) {
                         arma::uword min_idx = arma::find(p_flag == 1).min();
                         p_flag.subvec(min_idx, t_value).fill(2);

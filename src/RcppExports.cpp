@@ -453,7 +453,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // C_radd_detect_changes
-arma::mat C_radd_detect_changes(const arma::mat& p_res, const arma::uword& start_detection, const arma::uword& end_detection, const double& threshold, float chi);
+arma::mat C_radd_detect_changes(const arma::mat& p_res, const arma::uword& start_detection, const arma::uword& end_detection, const double& threshold, double chi);
 RcppExport SEXP _sits_C_radd_detect_changes(SEXP p_resSEXP, SEXP start_detectionSEXP, SEXP end_detectionSEXP, SEXP thresholdSEXP, SEXP chiSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -462,7 +462,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::uword& >::type start_detection(start_detectionSEXP);
     Rcpp::traits::input_parameter< const arma::uword& >::type end_detection(end_detectionSEXP);
     Rcpp::traits::input_parameter< const double& >::type threshold(thresholdSEXP);
-    Rcpp::traits::input_parameter< float >::type chi(chiSEXP);
+    Rcpp::traits::input_parameter< double >::type chi(chiSEXP);
     rcpp_result_gen = Rcpp::wrap(C_radd_detect_changes(p_res, start_detection, end_detection, threshold, chi));
     return rcpp_result_gen;
 END_RCPP
