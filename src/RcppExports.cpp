@@ -413,8 +413,47 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// definitelyGreaterThan
+bool definitelyGreaterThan(float a, float b, float epsilon);
+RcppExport SEXP _sits_definitelyGreaterThan(SEXP aSEXP, SEXP bSEXP, SEXP epsilonSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< float >::type a(aSEXP);
+    Rcpp::traits::input_parameter< float >::type b(bSEXP);
+    Rcpp::traits::input_parameter< float >::type epsilon(epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(definitelyGreaterThan(a, b, epsilon));
+    return rcpp_result_gen;
+END_RCPP
+}
+// approximatelyEqual
+bool approximatelyEqual(float a, float b, float epsilon);
+RcppExport SEXP _sits_approximatelyEqual(SEXP aSEXP, SEXP bSEXP, SEXP epsilonSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< float >::type a(aSEXP);
+    Rcpp::traits::input_parameter< float >::type b(bSEXP);
+    Rcpp::traits::input_parameter< float >::type epsilon(epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(approximatelyEqual(a, b, epsilon));
+    return rcpp_result_gen;
+END_RCPP
+}
+// essentiallyEqual
+bool essentiallyEqual(float a, float b, float epsilon);
+RcppExport SEXP _sits_essentiallyEqual(SEXP aSEXP, SEXP bSEXP, SEXP epsilonSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< float >::type a(aSEXP);
+    Rcpp::traits::input_parameter< float >::type b(bSEXP);
+    Rcpp::traits::input_parameter< float >::type epsilon(epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(essentiallyEqual(a, b, epsilon));
+    return rcpp_result_gen;
+END_RCPP
+}
 // C_radd_detect_changes
-arma::mat C_radd_detect_changes(const arma::mat& p_res, const arma::uword& start_detection, const arma::uword& end_detection, const double& threshold, const double& chi);
+arma::mat C_radd_detect_changes(const arma::mat& p_res, const arma::uword& start_detection, const arma::uword& end_detection, const double& threshold, float chi);
 RcppExport SEXP _sits_C_radd_detect_changes(SEXP p_resSEXP, SEXP start_detectionSEXP, SEXP end_detectionSEXP, SEXP thresholdSEXP, SEXP chiSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -423,7 +462,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::uword& >::type start_detection(start_detectionSEXP);
     Rcpp::traits::input_parameter< const arma::uword& >::type end_detection(end_detectionSEXP);
     Rcpp::traits::input_parameter< const double& >::type threshold(thresholdSEXP);
-    Rcpp::traits::input_parameter< const double& >::type chi(chiSEXP);
+    Rcpp::traits::input_parameter< float >::type chi(chiSEXP);
     rcpp_result_gen = Rcpp::wrap(C_radd_detect_changes(p_res, start_detection, end_detection, threshold, chi));
     return rcpp_result_gen;
 END_RCPP
@@ -767,6 +806,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_dnorm", (DL_FUNC) &_sits_C_dnorm, 3},
     {"_sits_C_radd_calc_sub", (DL_FUNC) &_sits_C_radd_calc_sub, 2},
     {"_sits_C_radd_calc_nf", (DL_FUNC) &_sits_C_radd_calc_nf, 6},
+    {"_sits_definitelyGreaterThan", (DL_FUNC) &_sits_definitelyGreaterThan, 3},
+    {"_sits_approximatelyEqual", (DL_FUNC) &_sits_approximatelyEqual, 3},
+    {"_sits_essentiallyEqual", (DL_FUNC) &_sits_essentiallyEqual, 3},
     {"_sits_C_radd_detect_changes", (DL_FUNC) &_sits_C_radd_detect_changes, 5},
     {"_sits_C_temp_max", (DL_FUNC) &_sits_C_temp_max, 1},
     {"_sits_C_temp_min", (DL_FUNC) &_sits_C_temp_min, 1},

@@ -144,12 +144,32 @@ arma::vec C_select_cols(const arma::mat& m,
     return v;
 }
 
+
+// [[Rcpp::export]]
+bool definitelyGreaterThan(float a, float b, float epsilon)
+{
+    return (a - b) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
+}
+
+// [[Rcpp::export]]
+bool approximatelyEqual(float a, float b, float epsilon)
+{
+    return fabs(a - b) <= ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
+}
+
+// [[Rcpp::export]]
+bool essentiallyEqual(float a, float b, float epsilon)
+{
+    return fabs(a - b) <= ( (fabs(a) > fabs(b) ? fabs(b) : fabs(a)) * epsilon);
+}
+
+
 // [[Rcpp::export]]
 arma::mat C_radd_detect_changes(const arma::mat& p_res,
                                 const arma::uword& start_detection,
                                 const arma::uword& end_detection,
                                 const double& threshold = 0.5,
-                                const double& chi = 0.9) {
+                                float chi = 0.9) {
     arma::mat res(
             p_res.n_rows, 1, arma::fill::value(arma::datum::nan)
     );
@@ -261,7 +281,10 @@ arma::mat C_radd_detect_changes(const arma::mat& p_res,
                         }
                     }
                 }
-                if (p_change(t_value) >= chi) {
+                // std::abs(p_change(t_value) - chi) <= 0.01 ||
+                //if (p_change(t_value) >= chi) {
+                if ((std::floor(p_change(t_value) * 10000000000) / 10000000000) >=
+                    (std::floor(chi * 10000000000) / 10000000000)) {
                     if (v_res(t_value) >= 0.5) {
                         arma::uword min_idx = arma::find(p_flag == 1).min();
                         p_flag.subvec(min_idx, t_value).fill(2);
@@ -284,3 +307,9 @@ arma::mat C_radd_detect_changes(const arma::mat& p_res,
     }
     return res;
 }
+
+
+// // [[Rcpp::export]]
+// bool C_is_gteq(const double& a, const double& b, const double tolerance = 0.01) {
+//     return a - b <= tolerance;
+// }
