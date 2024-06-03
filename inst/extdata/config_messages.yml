@@ -310,6 +310,7 @@
 .view_filter_tiles: "requested tiles are not part of cube"
 .view_samples: "some labels are missing from the legend"
 .view_set_max_mb: "view_max_mb should be between"
+sits_add_base_cube: "unable to add cube - check if cube2 contains base maps"
 sits_accuracy: "unable to extract values to measure accuracy - check input"
 sits_accuracy_sits: "unable to extract predicted and reference data from samples\n have the samples been classified?"
 sits_accuracy_class_cube: "unable to extract predicted data from data cube"
