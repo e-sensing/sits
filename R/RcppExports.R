@@ -117,18 +117,6 @@ C_radd_calc_nf <- function(ts, mean, sd, n_times, quantile_values, bwf) {
     .Call(`_sits_C_radd_calc_nf`, ts, mean, sd, n_times, quantile_values, bwf)
 }
 
-definitelyGreaterThan <- function(a, b, epsilon) {
-    .Call(`_sits_definitelyGreaterThan`, a, b, epsilon)
-}
-
-approximatelyEqual <- function(a, b, epsilon) {
-    .Call(`_sits_approximatelyEqual`, a, b, epsilon)
-}
-
-essentiallyEqual <- function(a, b, epsilon) {
-    .Call(`_sits_essentiallyEqual`, a, b, epsilon)
-}
-
 C_radd_detect_changes <- function(p_res, start_detection, end_detection, threshold = 0.5, chi = 0.9) {
     .Call(`_sits_C_radd_detect_changes`, p_res, start_detection, end_detection, threshold, chi)
 }
