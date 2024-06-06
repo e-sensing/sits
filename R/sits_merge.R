@@ -17,6 +17,7 @@
 #'                   or data cube (tibble of class "raster_cube") .
 #'
 #' @param ...        Additional parameters
+#' @param irregular  Merge irregular dates?
 #' @param suffix     If there are duplicate bands in data1 and data2
 #'                   these suffixes will be added
 #'                   (character vector).
