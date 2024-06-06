@@ -153,7 +153,6 @@ sits_radd.raster_cube <- function(data,
     # Training function
     train_fun <- function(data) {
         # Preconditions
-        .check_chr_parameter(pdf)
         .check_num_min_max(chi, min = 0.1, max = 1)
         .check_output_dir(output_dir)
         version <- .check_version(version)
