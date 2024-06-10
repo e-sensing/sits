@@ -265,7 +265,8 @@
         x = segments,
         y = data,
         by = c(pol_id = "polygon_id")
-    )
+    ) |>
+    dplyr::filter(.data[["pol_id"]] %in% unique(data[["polygon_id"]]))
 }
 #'
 #' @name .segments_data_read

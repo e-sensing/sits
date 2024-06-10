@@ -166,9 +166,17 @@ NULL
         .bbox(chunks, by_feature = TRUE, default_crs = .tile_crs(tile))
     )
     # Find segments in chunks
-    idx_contains <- sf::st_contains(sf_chunks, segments, sparse = TRUE)
-    chunks[["segments"]] <- purrr::map(seq_along(idx_contains), function(i) {
-        idx <- idx_contains[[i]]
+    idx_intersects <- sf::st_intersects(sf_chunks, segments, sparse = TRUE) |>
+                      purrr::imap_dfr(
+                          ~dplyr::as_tibble(.x) |> dplyr::mutate(id = .y)
+                      ) |>
+                      dplyr::distinct(.data[["value"]], .keep_all = TRUE) |>
+                      dplyr::group_by(.data[["id"]]) |>
+                      tidyr::nest() |>
+                      tibble::deframe()
+    chunks[["segments"]] <- purrr::map(seq_along(idx_intersects), function(i) {
+        idx <- unname(as.vector(idx_intersects[[i]]))
+        idx <- idx[[1]]
         block_file <- .file_block_name(
             pattern = "chunk_seg",
             block = .block(chunks[i, ]),
