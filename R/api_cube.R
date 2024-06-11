@@ -350,12 +350,25 @@ NULL
     },
     .default = FALSE
     )
+
+    dem_cube <- .try({
+        .conf("sources", source, "collections", collection, "dem_cube")
+    },
+    .default = FALSE
+    )
+
     if (sar_cube) {
         if (grepl("rtc", col_class, fixed = TRUE))
             unique(c(col_class, "rtc_cube", "sar_cube", s3_class, class(cube)))
         else
             unique(c(col_class, "grd_cube", "sar_cube", s3_class, class(cube)))
-    } else {
+    }
+
+    else if (dem_cube) {
+        unique(c(col_class, "dem_cube", s3_class, class(cube)))
+    }
+
+    else {
         unique(c(col_class, s3_class, class(cube)))
     }
 }

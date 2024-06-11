@@ -6,8 +6,6 @@
 \alias{sits_view.data.frame}
 \alias{sits_view.som_map}
 \alias{sits_view.raster_cube}
-\alias{sits_view.vector_cube}
-\alias{sits_view.uncertainty_cube}
 \alias{sits_view.class_cube}
 \alias{sits_view.probs_cube}
 \alias{sits_view.default}
@@ -28,22 +26,7 @@ sits_view(x, ...)
   red = NULL,
   green = NULL,
   blue = NULL,
-  tiles = x[["tile"]],
-  dates = NULL,
-  class_cube = NULL,
-  legend = NULL,
-  palette = "RdYlGn",
-  opacity = 0.7
-)
-
-\method{sits_view}{vector_cube}(
-  x,
-  ...,
-  band = NULL,
-  red = NULL,
-  green = NULL,
-  blue = NULL,
-  tiles = x[["tile"]],
+  tiles = x[["tile"]][[1]],
   dates = NULL,
   class_cube = NULL,
   legend = NULL,
@@ -51,16 +34,6 @@ sits_view(x, ...)
   opacity = 0.7,
   seg_color = "black",
   line_width = 1
-)
-
-\method{sits_view}{uncertainty_cube}(
-  x,
-  ...,
-  tiles = x[["tile"]],
-  class_cube = NULL,
-  legend = NULL,
-  palette = "Blues",
-  opacity = 0.7
 )
 
 \method{sits_view}{class_cube}(

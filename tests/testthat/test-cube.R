@@ -114,7 +114,7 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
         .default = NULL
     )
 
-    dir_images <- paste0(tempdir(), "/images_merge/")
+    dir_images <- paste0(tempdir(), "/images_merge_s1_s2/")
     if (!dir.exists(dir_images)) {
         suppressWarnings(dir.create(dir_images))
     }
@@ -128,7 +128,7 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
     s2_reg <- suppressWarnings(
         sits_regularize(
             cube = s2_cube,
-            period = "P30D",
+            period = "P1M",
             res = 240,
             multicores = 2,
             output_dir = dir_images
@@ -158,7 +158,7 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
     s1_reg <- suppressWarnings(
         sits_regularize(
             cube = s1_cube,
-            period = "P30D",
+            period = "P1M",
             res = 240,
             tiles = "20LKP",
             multicores = 2,

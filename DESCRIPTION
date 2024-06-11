@@ -87,6 +87,7 @@ Suggests:
     leafem (>= 0.2.0),
     leaflet (>= 2.2.0),
     luz (>= 0.4.0),
+    magrittr, 
     methods,
     mgcv,
     nnet,
@@ -206,6 +207,7 @@ Collate:
     'RcppExports.R'
     'data.R'
     'sits-package.R'
+    'sits_add_base_cube.R'
     'sits_apply.R'
     'sits_accuracy.R'
     'sits_active_learning.R'

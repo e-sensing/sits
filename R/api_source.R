@@ -65,9 +65,18 @@ NULL
             },
             .default = FALSE
         )
+        # is this a collection of DEM data ?
+        dem_cube <- .try({
+            .conf("sources", source, "collections", collection, "dem_cube")
+            },
+            .default = FALSE
+        )
         # if this is a SAR collection, add "sar_cube" to the class
         if (sar_cube)
             class(source) <- c("sar_cube", class(source))
+        # if this is a DEM collection, add "dem_cube" to the class
+        if (dem_cube)
+            class(source) <- c("dem_cube", class(source))
         # add a class combining source and collection
         class_source_col <- paste(classes[[1]], tolower(collection), sep = "_")
         class(source) <- unique(c(class_source_col, class(source)))

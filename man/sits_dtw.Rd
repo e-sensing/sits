@@ -4,7 +4,15 @@
 \alias{sits_dtw}
 \title{Dynamic Time Warping for Detect changes.}
 \usage{
-sits_dtw(samples = NULL, ..., threshold = NULL, window = NULL)
+sits_dtw(
+  samples = NULL,
+  ...,
+  threshold = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  window = NULL,
+  patterns = NULL
+)
 }
 \arguments{
 \item{samples}{Time series with the training samples.}
@@ -13,11 +21,20 @@ sits_dtw(samples = NULL, ..., threshold = NULL, window = NULL)
 
 \item{threshold}{Threshold used to define if an event was detected.}
 
+\item{start_date}{Initial date of the interval used to extract the
+patterns from the samples.}
+
+\item{end_date}{Final date of the interval used to extract the
+patterns from the samples.}
+
 \item{window}{ISO8601-compliant time period used to define the
 DTW moving window, with number and unit,
 where "D", "M" and "Y" stands for days, month and
 year; e.g., "P16D" for 16 days. This parameter is not
 used in operations with data cubes.}
+
+\item{patterns}{Temporal patterns of the each label available in
+`samples`.}
 }
 \value{
 Change detection method prepared to be passed to

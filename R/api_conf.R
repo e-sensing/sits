@@ -145,6 +145,19 @@
     .check_that(file.exists(yml_file))
     return(yml_file)
 }
+#' @title Return the user-relevant configuration file
+#' @name .config_file
+#' @keywords internal
+#' @noRd
+#' @return default user-relevant configuration file
+.config_file <- function() {
+    .check_set_caller(".config_file")
+    # load the default configuration file
+    yml_file <- system.file("extdata", "config.yml", package = "sits")
+    # check that the file name is valid
+    .check_that(file.exists(yml_file))
+    return(yml_file)
+}
 #' @title Return the message configuration files (only for developers)
 #' @name .conf_sources_files
 #' @keywords internal
@@ -282,7 +295,7 @@
     # pre condition - table contains name and hex code
     .check_chr_contains(
         x = colnames(color_tb),
-        contains = .conf("sits_color_table_cols"),
+        contains = .conf("color_table_cols"),
         discriminator = "all_of"
     )
     # replace all duplicates
@@ -450,7 +463,8 @@
                     user_config[["gdalcubes_chunk_size"]],
                 sources = user_config[["sources"]],
                 colors = user_config[["colors"]],
-                tmap   = user_config[["tmap"]]
+                view   = user_config[["view"]],
+                plot   = user_config[["plot"]]
             )
         }
     }
@@ -484,6 +498,86 @@
     )
     return(invisible(bands))
 }
+#' @title List configuration parameters
+#' @name .conf_list_params
+#' @description List the contents of a source
+#'
+#' @keywords internal
+#' @noRd
+#' @param params        parameter list
+#'
+#' @return              Called for side effects.
+.conf_list_params <- function(params) {
+    params <- lapply(params, function(x) {
+        if (is.atomic(x)) {
+            return(x)
+        }
+        list(names(x))
+    })
+    params_txt <- yaml::as.yaml(
+        params,
+        indent = 4,
+        handlers = list(
+            character = function(x) {
+                res <- toString(x)
+                class(res) <- "verbatim"
+                res
+            },
+            integer = function(x) {
+                res <- toString(x)
+                class(res) <- "verbatim"
+                res
+            },
+            numeric = function(x) {
+                res <- toString(x)
+                class(res) <- "verbatim"
+                res
+            }
+        )
+    )
+    cat(params_txt, sep = "\n")
+}
+
+#' @title List contents of a source
+#' @name .conf_list_source
+#' @description List the contents of a source
+#'
+#' @keywords internal
+#' @noRd
+#' @param source        Data source
+#'
+#' @return              Called for side effects.
+.conf_list_source <- function(source){
+    cat(paste0(source, ":\n"))
+    collections <- .source_collections(source)
+    purrr::map(collections, function(col) {
+        cat(paste0("- ", col))
+        cat(paste0(
+            " (", .source_collection_satellite(source, col),
+            "/", .source_collection_sensor(source, col), ")\n",
+            "- grid system: ", .source_collection_grid_system(source, col), "\n"
+        ))
+        cat("- bands: ")
+        cat(.source_bands(source, col))
+        cat("\n")
+        if (.source_collection_open_data(source, col)) {
+            cat("- opendata collection ")
+            if (.source_collection_open_data(
+                source = source,
+                collection = col,
+                token = TRUE
+            )) {
+                cat("(requires access token)")
+            }
+        } else {
+            cat("- not opendata collection")
+        }
+        cat("\n")
+        cat("\n")
+    })
+}
+
+
 #' @title Get names associated to a configuration key
 #' @name .conf_names
 #' @param key   key combination to access config information

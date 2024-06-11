@@ -40,8 +40,18 @@ sits_config <- function(config_user_file = NULL) {
         input = config_internals_file,
         merge.precedence = "override"
     )
-    # set options defined in sits config
+    # set options defined in config_internals
     do.call(.conf_set_options, args = config_internals)
+
+    # load the user-relevant configuration parameters
+    config_file <- .config_file()
+    config_user <- yaml::yaml.load_file(
+        input = config_file,
+        merge.precedence = "override"
+    )
+    # set options defined in config_internals
+    do.call(.conf_set_options, args = config_user)
+
     # load sources configuration
     .conf_load_sources()
     # set the default color table
@@ -54,8 +64,6 @@ sits_config <- function(config_user_file = NULL) {
 }
 #' @title Show current sits configuration
 #' @name sits_config_show
-#' @param source                 Data source (character vector).
-#' @param collection             Collection (character vector).
 #'
 #' @description
 #' Prints the current sits configuration options.
@@ -65,80 +73,27 @@ sits_config <- function(config_user_file = NULL) {
 #'
 #' @return No return value, called for side effects.
 #' @examples
-#' sits_config_show(source = "BDC")
-#' sits_config_show(source = "BDC", collection = "CBERS-WFI-16D")
+#' sits_config_show()
 #' @export
-sits_config_show <- function(source = NULL,
-                             collection = NULL) {
+sits_config_show <- function() {
     config <- sits_env[["config"]]
 
-    if (!is.null(source)) {
-        # check source value
-        .check_chr(source,
-            allow_empty = FALSE,
-            len_min = 1,
-            len_max = 1
-        )
-        # check source is available
-        source <- toupper(source)
-        .check_chr_within(source,
-            within = .sources(),
-            discriminator = "one_of"
-        )
-        # get the configuration values associated to the source
-        config <- config[[c("sources", source)]]
-        # check collection value
-        if (!is.null(collection)) {
-            .check_chr(collection,
-                allow_empty = FALSE,
-                len_min = 1,
-                len_max = 1
-            )
-            # check collection is available
-            collection <- toupper(collection)
-            .check_chr_within(collection,
-                within = .source_collections(source = source),
-                discriminator = "one_of"
-            )
-            config <- config[[c("collections", collection)]]
-        } else {
-            config <- lapply(config, function(x) {
-                if (is.atomic(x)) {
-                    return(x)
-                }
-                list(names(x))
-            })
-        }
-    } else {
-        config <- lapply(config, function(x) {
-            if (is.atomic(x)) {
-                return(x)
-            }
-            list(names(x))
-        })
-    }
-    config_txt <- yaml::as.yaml(config,
-        indent = 4,
-        handlers = list(
-            character = function(x) {
-                res <- toString(x)
-                class(res) <- "verbatim"
-                res
-            },
-            integer = function(x) {
-                res <- toString(x)
-                class(res) <- "verbatim"
-                res
-            },
-            numeric = function(x) {
-                res <- toString(x)
-                class(res) <- "verbatim"
-                res
-            }
-        )
-    )
-    cat(config_txt, sep = "\n")
-    return(invisible(config))
+    cat("Data sources and user configurable parameters in sits\n\n")
+    cat("Data sources available in sits\n")
+    cat(toString(.sources()))
+    cat("\n\n")
+    cat("Use sits_list_collections(<source>) to get details for each source\n\n")
+
+    cat("User configurable parameters for plotting\n")
+    config_plot <- sits_env[["config"]][["plot"]]
+    .conf_list_params(config_plot)
+
+    cat("User configurable parameters for visualisation\n")
+    config_view <- sits_env[["config"]][["view"]]
+    .conf_list_params(config_view)
+
+    cat("Use sits_config_user_file() to create a user configuration file")
+    return(invisible(NULL))
 }
 
 #' @title List the cloud collections supported by sits
@@ -173,35 +128,63 @@ sits_list_collections <- function(source = NULL) {
         )
         sources <- source
     }
-
     purrr::map(sources, function(s) {
-        cat(paste0(s, ":\n"))
-        collections <- .source_collections(source = s)
-        purrr::map(collections, function(c) {
-            cat(paste0("- ", c))
-            cat(paste0(
-                " (", .source_collection_satellite(s, c),
-                "/", .source_collection_sensor(s, c), ")\n",
-                "- grid system: ", .source_collection_grid_system(s, c), "\n"
-            ))
-            cat("- bands: ")
-            cat(.source_bands(s, c))
-            cat("\n")
-            if (.source_collection_open_data(source = s, collection = c)) {
-                cat("- opendata collection ")
-                if (.source_collection_open_data(
-                    source = s,
-                    collection = c,
-                    token = TRUE
-                )) {
-                    cat("(requires access token)")
-                }
-            } else {
-                cat("- not opendata collection")
-            }
-            cat("\n")
-            cat("\n")
-        })
+        .conf_list_source(s)
     })
+    return(invisible(NULL))
+}
+#' @title List the cloud collections supported by sits
+#' @name sits_config_user_file
+#' @param  file_path file to store the user configuration file
+#' @param  overwrite replace current configurarion file?
+#' @description
+#' Creates a user configuration file.
+#'
+#' @return Called for side effects
+#' @examples
+#' user_file <- paste0(tempdir(), "/my_config_file.yml")
+#' sits_config_user_file(user_file)
+#' @export
+sits_config_user_file <- function(file_path, overwrite = FALSE){
+    # get default user configuration file
+    user_conf_def <- system.file("extdata", "config_user_example.yml",
+                                 package = "sits")
+    update <- FALSE
+    new_file <- FALSE
+    # try to find if SITS_CONFIG_USER_FILE exists
+    env <- Sys.getenv("SITS_CONFIG_USER_FILE")
+    # file already exists
+    if (file.exists(env)) {
+        # does current env point to chosen file path?
+        if (env == file_path) {
+            # should I overwrite existing file?
+            if (overwrite)
+                update <- TRUE
+            else
+                update <- FALSE
+        # if file path is not current the env variable, update it
+        } else {
+            update <- TRUE
+        }
+    } else {
+        new_file <- TRUE
+    }
+    # update
+    if (update || new_file){
+        file.copy(
+            from = user_conf_def,
+            to = file_path,
+            overwrite = TRUE
+        )
+        Sys.setenv(SITS_CONFIG_USER_FILE = file_path)
+    }
+
+    if (update)
+        warning(.conf("messages", "sits_config_user_file_updated"))
+    else if (new_file)
+        warning(.conf("messages", "sits_config_user_file_new_file"))
+    else
+        warning(.conf("messages", "sits_config_user_file_no_update"))
+
     return(invisible(NULL))
 }

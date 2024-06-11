@@ -48,13 +48,13 @@
             palette = colors
         ) +
         tmap::tm_graticules(
-            labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
+            labels.size = as.numeric(.conf("plot", "graticules_labels_size"))
         ) +
         tmap::tm_compass() +
         tmap::tm_layout(
             scale = scale,
-            legend.bg.color = .conf("tmap", "legend_bg_color"),
-            legend.bg.alpha = as.numeric(.conf("tmap", "legend_bg_alpha"))
+            legend.bg.color = .conf("plot", "legend_bg_color"),
+            legend.bg.alpha = as.numeric(.conf("plot", "legend_bg_alpha"))
         ) +
         tmap::tm_borders(lwd = 0.2)
     return(p)
@@ -87,7 +87,7 @@
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
-    .check_require_packages("tmap")
+    .check_require_packages("plot")
     # precondition - check color palette
     .check_palette(palette)
     # revert the palette
@@ -115,14 +115,14 @@
             midpoint = 0.5,
             title = labels[labels %in% labels_plot]) +
         tmap::tm_graticules(
-            labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
+            labels.size = as.numeric(.conf("plot", "graticules_labels_size"))
         ) +
         tmap::tm_facets() +
         tmap::tm_compass() +
         tmap::tm_layout(
             scale = scale,
-            legend.bg.color = .conf("tmap", "legend_bg_color"),
-            legend.bg.alpha = as.numeric(.conf("tmap", "legend_bg_alpha"))
+            legend.bg.color = .conf("plot", "legend_bg_color"),
+            legend.bg.alpha = as.numeric(.conf("plot", "legend_bg_alpha"))
         ) +
         tmap::tm_borders(lwd = 0.1)
 
@@ -150,7 +150,7 @@
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
-    .check_require_packages("tmap")
+    .check_require_packages("plot")
     # precondition - check color palette
     .check_palette(palette)
     # revert the palette
@@ -167,7 +167,7 @@
                           palette = palette,
                           style = "cont") +
         tmap::tm_graticules(
-            labels.size = as.numeric(.conf("tmap", "graticules_labels_size"))
+            labels.size = as.numeric(.conf("plot", "graticules_labels_size"))
         ) +
         tmap::tm_compass() +
         tmap::tm_layout(
@@ -175,8 +175,8 @@
             main.title.size = 1,
             main.title.position = "center",
             scale = scale,
-            legend.bg.color = .conf("tmap", "legend_bg_color"),
-            legend.bg.alpha = as.numeric(.conf("tmap", "legend_bg_alpha"))
+            legend.bg.color = .conf("plot", "legend_bg_color"),
+            legend.bg.alpha = as.numeric(.conf("plot", "legend_bg_alpha"))
         ) +
         tmap::tm_borders(lwd = 0.2)
 

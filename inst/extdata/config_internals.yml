@@ -1,20 +1,13 @@
 # Internal configuration parameters - relevant only to sits developers
 # default raster package
-raster_api_package      : "terra"
-
-# default vector package
-vector_api_package      : "sf"
+raster_api_package: "terra"
 
 # sample size
-summary_sample_size : 10000
-
-# get data strategy
-n_samples_to_split: 1000
+summary_sample_size: 10000
 
 # estimated relative growth size of R memory relative to block size
 processing_bloat        : 5
 processing_bloat_cpu    : 5
-processing_bloat_smooth : 8
 processing_bloat_seg    : 2
 processing_bloat_seg_class : 10
 processing_bloat_gpu    : 1.2
@@ -38,12 +31,6 @@ sits_tibble_cols :  ["longitude", "latitude", "start_date",
 # mandatory columns in predicted time series classification
 ts_predicted_cols:  ["from", "to", "class"]
 
-# supported user sample file formats
-sample_file_formats : ["csv", "shp"]
-
-# supported user sample object formats for "sits_get_data"
-sample_get_data_formats : ["data.frame", "tbl_df", "sf", "sits"]
-
 # mandatory columns in CSV input files
 df_sample_columns : ["longitude", "latitude", "start_date", "end_date", "label"]
 
@@ -51,13 +38,9 @@ df_sample_columns : ["longitude", "latitude", "start_date", "end_date", "label"]
 sf_geom_types_supported : ["POINT", "POLYGON", "MULTIPOLYGON"]
 
 # local cube config options
-local_s3_class          : ["local_cube", "raster_cube"]
 local_file_extensions   : ["tiff", "tif", "jp2", "hdf", "vrt", "gpkg"]
 local_parse_info_col    : ["tile", "band", "date"]
 local_parse_info_def    : ["X1", "X2", "tile", "band", "date"]
-
-# parse info of generated regular cubes
-reg_file_parse_info: ["cube", "tile", "band", "date"]
 
 # parsing info contents for results cube
 results_parse_info_def : ["X1", "X2", "tile", "start_date", "end_date",
@@ -85,21 +68,8 @@ sits_results_s3_class:
                     class:  "class_cube"
                     class-vector:  "class_vector_cube"
 
-# default configuration for raster cubes
-raster_cube_scale_factor : 0.0001
-raster_cube_data_type    : "INT2S"
-raster_cube_offset_value : 0
-raster_cube_missing_value : -9999
-raster_cube_minimum_value : -10000
-raster_cube_maximum_value : 10000
-
-# old configuration for probability cubes
+# configuration for probability cubes
 probs_cube_scale_factor : 0.0001
-probs_cube_data_type    : "INT2U"
-probs_cube_missing_value: 65535
-probs_cube_band         : "probs"
-probs_cube_class        : ["probs_cube", "raster_cube", "sits_cube", "tbl_df",
-                           "tbl", "data.frame"]
 
 # Default values for non-registered bands
 default_values       :
@@ -206,21 +176,6 @@ vector_cube          :
             least    :
             margin   :
 
-# configuration for classified cubes
-class_cube_data_type    : "INT1U"
-class_cube_missing_value: 255
-
-# minimum number of files for sits local cube to be run on parallel
-local_min_files_for_parallel : 20
-
-# valid raster data types
-valid_raster_data_types : ["INT1U", "INT2U", "INT2S", "INT4U",
-                          "INT4S", "FLT4S", "FLT8S"]
-
-# valid raster resampling methods
-valid_raster_resampling : ["near", "bilinear", "cubic",
-                          "cubicspline", "lanczos"]
-
 # GDAL GTiff presets
 gdal_presets         :
     cog              :
@@ -232,13 +187,13 @@ gdal_presets         :
                         "TILED=YES", "BLOCKXSIZE=512", "BLOCKYSIZE=512"]
 
 # GDAL GTiff default creation options
-gdal_creation_options   : [ "COMPRESS=LZW", "PREDICTOR=2",
-                            "BIGTIFF=YES", "TILED=YES",
-                            "BLOCKXSIZE=512", "BLOCKYSIZE=512" ]
+gdal_creation_options: [ "COMPRESS=LZW", "PREDICTOR=2",
+                         "BIGTIFF=YES", "TILED=YES",
+                         "BLOCKXSIZE=512", "BLOCKYSIZE=512" ]
 
-gdalcubes_options       : ["COMPRESS=LZW", "PREDICTOR=2",
-                           "BIGTIFF=YES", "BLOCKXSIZE=512",
-                           "BLOCKYSIZE=512"]
+gdalcubes_options: ["COMPRESS=LZW", "PREDICTOR=2",
+                     "BIGTIFF=YES", "BLOCKXSIZE=512",
+                     "BLOCKYSIZE=512"]
 # gdalcubes parameters
 gdalcubes_chunk_size: [1, 2048, 2048]
 gdalcubes_type_format: "int16"
@@ -251,53 +206,16 @@ dendro_linkage: ["ward.D", "ward.D2", "single", "complete",
                  "average", "mcquitty", "median", "centroid"]
 
 # possible som evaluations
-som_outcomes    : ["clean", "analyze", "remove"]
-
-# deep learning activation methods
-dl_activation_methods : ["relu", "elu", "selu", "sigmoid"]
+som_outcomes: ["clean", "analyze", "remove"]
 
 # metadata search strategy
-metadata_search_strategies : ["tile", "feature"]
+metadata_search_strategies: ["tile", "feature"]
 
 
 # Colours and plots
 #
-# class interval methods for plotting
-class_intervals: ["sd", "equal", "quantile", "log", "pretty"]
 # color table mandatory collumns
-sits_color_table_cols: ["name", "color"]
-# maxbytes per plot (in MB)
-plot_max_Mbytes: 10
-# maximum size of COG overview for visualisation
-plot_max_size: 1200
-view_max_size: 2500
-view_resolution: 300
-
-# parameters to show B/W SAR bands for RTC cube
-sar_cube_grey_colors: 128
+color_table_cols: ["name", "color"]
 
 # tmap configurations
-tmap:
-        max_cells: 1e+06
-        graticules_labels_size: 0.8
-        legend_outside: False
-        legend_outside_position: "right"
-        legend_title_size: 1.0
-        legend_text_size: 1.0
-        legend_bg_color: "white"
-        legend_bg_alpha: 0.5
-        legend_width: 1.0
-        legend_position: ["left", "bottom"]
-        legend_height: 1.0
-        scale: 1.0
-        font_family: "sans"
-        n_breaks: 20
-
 tmap_continuous_style: ["cont", "order", "log10"]
-
-# maxbytes for leaflet (in MB)
-leaflet_megabytes : 64
-leaflet_min_megabytes : 16
-leaflet_max_megabytes : 512
-# estimated compression factor for leaflet
-leaflet_comp_factor : 0.75
