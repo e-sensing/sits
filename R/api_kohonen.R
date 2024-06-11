@@ -77,7 +77,6 @@
     for (i in 1:nclasses) {
         outmat[which(as.integer(yvec) == i), i] <- 1
     }
-
     outmat
 }
 

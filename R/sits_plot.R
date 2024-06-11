@@ -321,22 +321,22 @@ plot.predicted <- function(x, y, ...,
 #' @param  green         Band for green color.
 #' @param  blue          Band for blue color.
 #' @param  tile          Tile to be plotted.
-#' @param  date          Date to be plotted.
+#' @param  dates         Dates to be plotted.
 #' @param  palette       An RColorBrewer palette
-#' @param  style         Method to process the color scale
-#'                       ("cont", "order", "quantile", "fisher",
-#'                        "jenks", "log10")
-#' @param  n_colors      Number of colors to be shown
 #' @param  rev           Reverse the color order in the palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
+#' @param  style         Style for plotting continuous objects
 #'
 #' @return               A plot object with an RGB image
-#'                       or a B/W image on a color
-#'                       scale using the pallete
+#'                       or a B/W image on a color scale
 #'
-#' @note To see which colors are supported, please run \code{sits_colors()}
+#' @note
 #'       Use \code{scale} parameter for general output control.
-#'       If required, then set the other params individually
+#'       The \code{dates} parameter indicates the date allows plotting of different dates when
+#'       a single band and three dates are provided, `sits` will plot a
+#'       multi-temporal RGB image for a single band (useful in the case of
+#'       SAR data). For RGB bands with multi-dates, multiple plots will be
+#'       produced.
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a data cube from local files
@@ -347,7 +347,8 @@ plot.predicted <- function(x, y, ...,
 #'         data_dir = data_dir
 #'     )
 #'     # plot NDVI band of the second date date of the data cube
-#'     plot(cube, band = "NDVI", date = sits_timeline(cube)[1])
+#'     plot(cube, band = "NDVI", dates = sits_timeline(cube)[1])
+#'     # plot NDVI band as an RGB composite for the three bands
 #' }
 #' @export
 plot.raster_cube <- function(x, ...,
@@ -356,13 +357,19 @@ plot.raster_cube <- function(x, ...,
                              green = NULL,
                              blue = NULL,
                              tile = x[["tile"]][[1]],
-                             date = NULL,
+                             dates = NULL,
                              palette = "RdYlGn",
-                             style = "cont",
-                             n_colors = 10,
                              rev = FALSE,
-                             scale = 1) {
+                             scale = 0.9,
+                             style = "order") {
+    # check caller
     .check_set_caller(".plot_raster_cube")
+    # retrieve dots
+    dots <- list(...)
+    # deal with wrong parameter "date"
+    if ("date" %in% names(dots) && missing(dates)) {
+        dates <- as.Date(dots[["date"]])
+    }
     # is tile inside the cube?
     .check_chr_contains(
         x = x[["tile"]],
@@ -372,48 +379,95 @@ plot.raster_cube <- function(x, ...,
         can_repeat = FALSE,
         msg = .conf("messages", ".plot_raster_cube_tile")
     )
+    # verifies if stars package is installed
+    .check_require_packages("stars")
+    # verifies if tmap package is installed
+    .check_require_packages("tmap")
+    if (.has(band)) {
+        # check palette
+        .check_palette(palette)
+        # check rev
+        .check_lgl_parameter(rev)
+    }
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # reverse the color palette?
+    if (rev || palette == "Greys")
+        palette <- paste0("-", palette)
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-    if (.has(date)) {
+    if (.has(dates)) {
         # is this a valid date?
-        date <- as.Date(date)
-        .check_that(date %in% .tile_timeline(tile),
+        dates <- as.Date(dates)
+        .check_that(all(dates %in% .tile_timeline(tile)),
                     msg = .conf("messages", ".plot_raster_cube_date")
         )
     } else {
-        date <- .tile_timeline(tile)[[1]]
+        dates <- .tile_timeline(tile)[[1]]
     }
-    # only one date at a time
-    .check_that(length(date) == 1,
-                msg = .conf("messages", ".plot_raster_cube_single_date"))
     # BW or color?
     .check_bw_rgb_bands(band, red, green, blue)
     .check_available_bands(x, band, red, green, blue)
-    if (.has(band))
+
+    if (.has(band) && length(dates) == 3) {
+        main_title <- paste0(.tile_collection(tile), " ", band, " ",
+                             as.Date(dates[[1]]), "(R) ",
+                             as.Date(dates[[2]]), "(G) ",
+                             as.Date(dates[[3]]), "(B) "
+        )
+        p <- .plot_band_multidate(
+            tile = tile,
+            band = band,
+            dates = dates,
+            palette = palette,
+            main_title = main_title,
+            rev = rev,
+            scale = scale
+        )
+        return(p)
+    }
+    if (length(dates) > 1) {
+        warning(.conf("messages", ".plot_raster_cube_single_date"))
+    }
+    if (.has(band)) {
+        main_title <- paste0(.tile_collection(tile), " ", band,
+                             " ", as.Date(dates[[1]]))
         p <- .plot_false_color(
             tile = tile,
             band = band,
-            date = date,
+            date = dates[[1]],
             sf_seg    = NULL,
             seg_color = NULL,
             line_width = NULL,
             palette = palette,
-            style = style,
-            n_colors = n_colors,
+            main_title = main_title,
             rev = rev,
-            scale = scale
+            scale = scale,
+            style = style
         )
-    else
+    } else {
         # plot RGB
+        main_title <- paste0(.tile_satellite(tile)," ",
+                             tile[["tile"]], " ",
+                             red, "(R) ",
+                             green, "(G) ",
+                             blue, "(B) ",
+                             as.Date(dates[[1]])
+        )
         p <- .plot_rgb(
             tile = tile,
             red = red,
             green = green,
             blue = blue,
-            date = date,
+            date = dates[[1]],
+            main_title = main_title,
             sf_seg    = NULL,
-            seg_color = NULL
+            seg_color = NULL,
+            line_width = NULL,
+            scale = scale
         )
+    }
+
     return(p)
 }
 #' @title  Plot RGB vector data cubes
@@ -429,16 +483,13 @@ plot.raster_cube <- function(x, ...,
 #' @param  green         Band for green color.
 #' @param  blue          Band for blue color.
 #' @param  tile          Tile to be plotted.
-#' @param  date          Date to be plotted.
+#' @param  dates         Dates to be plotted.
 #' @param  seg_color     Color to show the segment boundaries
 #' @param  line_width    Line width to plot the segments boundary (in pixels)
 #' @param  palette       An RColorBrewer palette
-#' @param  style         Method to process the color scale
-#'                       ("cont", "order", "quantile", "fisher",
-#'                        "jenks", "log10")
-#' @param  n_colors      Number of colors to be shown
 #' @param  rev           Reverse the color order in the palette?
-#' @param  scale         Scale to plot map (0.4 to 1.0)
+#' @param  scale         Scale to plot map (0.4 to 1.5)
+#' @param  style         Style for plotting continuous objects
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
@@ -471,15 +522,20 @@ plot.vector_cube <- function(x, ...,
                              green = NULL,
                              blue = NULL,
                              tile = x[["tile"]][[1]],
-                             date = NULL,
+                             dates = NULL,
                              seg_color = "black",
                              line_width = 1,
                              palette = "RdYlGn",
-                             style = "cont",
-                             n_colors = 10,
                              rev = FALSE,
-                             scale = 0.8) {
+                             scale = 1.0,
+                             style = "order") {
     .check_set_caller(".plot_vector_cube")
+    # retrieve dots
+    dots <- list(...)
+    # deal with wrong parameter "date"
+    if ("date" %in% names(dots) && missing(dates)) {
+        dates <- as.Date(dots[["date"]])
+    }
     # is tile inside the cube?
     .check_chr_contains(
         x = x[["tile"]],
@@ -491,24 +547,24 @@ plot.vector_cube <- function(x, ...,
     )
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-    if (!.has(date)) {
-        date <- .tile_timeline(tile)[[1]]
+    if (.has(dates)) {
+        # is this a valid date?
+        dates <- as.Date(dates)[[1]]
+        .check_that(all(dates %in% .tile_timeline(tile)),
+                    msg = .conf("messages", ".plot_raster_cube_date")
+        )
+    } else {
+        dates <- .tile_timeline(tile)[[1]]
     }
-    # only one date at a time
-    .check_that(length(date) == 1,
-        msg = .conf("messages", ".plot_raster_cube_single_date")
-    )
-    # is this a valid date?
-    date <- as.Date(date)
-    .check_that(date %in% .tile_timeline(tile),
-        msg = .conf("messages", ".plot_raster_cube_date")
-    )
     # retrieve the segments for this tile
     sf_seg <- .segments_read_vec(tile)
     # BW or color?
     .check_bw_rgb_bands(band, red, green, blue)
     .check_available_bands(x, band, red, green, blue)
     if (.has(band)) {
+        main_title <- paste0(
+            .tile_collection(tile), " ", band, " ", as.Date(date)
+        )
         # plot the band as false color
         p <- .plot_false_color(
             tile = tile,
@@ -518,12 +574,19 @@ plot.vector_cube <- function(x, ...,
             seg_color = seg_color,
             line_width = line_width,
             palette = palette,
-            style = style,
-            n_colors = n_colors,
+            main_title = main_title,
             rev = rev,
-            scale = scale
+            scale = scale,
+            style = style
         )
     } else {
+        main_title <- paste0(.tile_collection(tile)," ",
+                             tile[["tile"]],
+                             red, "(R) ",
+                             green, "(G) ",
+                             blue, "(B) ",
+                             as.Date(date)
+        )
         # plot RGB
         p <- .plot_rgb(
             tile = tile,
@@ -531,9 +594,11 @@ plot.vector_cube <- function(x, ...,
             green = green,
             blue = blue,
             date = date,
+            main_title = main_title,
             sf_seg   = sf_seg,
             seg_color = seg_color,
-            line_width = line_width
+            line_width = line_width,
+            scale = scale
         )
     }
     return(p)
@@ -548,10 +613,6 @@ plot.vector_cube <- function(x, ...,
 #' @param tile           Tile to be plotted.
 #' @param labels         Labels to plot (optional).
 #' @param palette        RColorBrewer palette
-#' @param  style         Method to process the color scale
-#'                       ("cont", "order", "quantile", "fisher",
-#'                        "jenks", "log10")
-#' @param n_colors       Number of colors to be shown
 #' @param rev            Reverse order of colors in palette?
 #' @param scale          Scale to plot map (0.4 to 1.0)
 #' @return               A plot containing probabilities associated
@@ -583,8 +644,6 @@ plot.probs_cube <- function(x, ...,
                             tile = x[["tile"]][[1]],
                             labels = NULL,
                             palette = "YlGn",
-                            style = "cont",
-                            n_colors = 10,
                             rev = FALSE,
                             scale = 0.8) {
     .check_set_caller(".plot_probs_cube")
@@ -611,8 +670,6 @@ plot.probs_cube <- function(x, ...,
     p <- .plot_probs(tile = tile,
                      labels_plot = labels,
                      palette = palette,
-                     style = style,
-                     n_colors = n_colors,
                      rev = rev,
                      scale = scale)
 
@@ -628,9 +685,6 @@ plot.probs_cube <- function(x, ...,
 #' @param tile           Tile to be plotted.
 #' @param labels         Labels to plot (optional).
 #' @param palette        RColorBrewer palette
-#' @param  style         Method to process the color scale
-#'                       ("cont", "order", "quantile", "fisher",
-#'                        "jenks", "log10")
 #' @param rev            Reverse order of colors in palette?
 #' @param scale          Scale to plot map (0.4 to 1.0)
 #' @return               A plot containing probabilities associated
@@ -676,7 +730,6 @@ plot.probs_vector_cube <- function(x, ...,
                                    tile = x[["tile"]][[1]],
                                    labels = NULL,
                                    palette = "YlGn",
-                                   style = "cont",
                                    rev = FALSE,
                                    scale = 0.8) {
     .check_set_caller(".plot_probs_vector")
@@ -703,7 +756,6 @@ plot.probs_vector_cube <- function(x, ...,
     p <- .plot_probs_vector(tile = tile,
                             labels_plot = labels,
                             palette = palette,
-                            style = style,
                             rev = rev,
                             scale = scale)
 
@@ -719,10 +771,6 @@ plot.probs_vector_cube <- function(x, ...,
 #' @param tile           Tile to be plotted.
 #' @param labels         Labels to plot (optional).
 #' @param palette        RColorBrewer palette
-#' @param  style         Method to process the color scale
-#'                       ("cont", "order", "quantile", "fisher",
-#'                        "jenks", "log10")
-#' @param n_colors       Number of colors to be shown
 #' @param rev            Reverse order of colors in palette?
 #' @param type           Type of plot ("map" or "hist")
 #' @param scale          Scale to plot map (0.4 to 1.0)
@@ -757,8 +805,6 @@ plot.variance_cube <- function(x, ...,
                                tile = x[["tile"]][[1]],
                                labels = NULL,
                                palette = "YlGnBu",
-                               style = "cont",
-                               n_colors = 10,
                                rev = FALSE,
                                type = "map",
                                scale = 0.8) {
@@ -788,8 +834,6 @@ plot.variance_cube <- function(x, ...,
         p <- .plot_probs(tile = tile,
                          labels_plot = labels,
                          palette = palette,
-                         style = style,
-                         n_colors = n_colors,
                          rev = rev,
                          scale = scale)
     } else {
@@ -808,10 +852,6 @@ plot.variance_cube <- function(x, ...,
 #' @param  ...           Further specifications for \link{plot}.
 #' @param  tile          Tiles to be plotted.
 #' @param  palette       An RColorBrewer palette
-#' @param  style         Method to process the color scale
-#'                       ("cont", "order", "quantile", "fisher",
-#'                        "jenks", "log10")
-#' @param  n_colors      Number of colors to be shown
 #' @param  rev           Reverse the color order in the palette?
 #' @param  scale          Scale to plot map (0.4 to 1.0)
 #'
@@ -844,10 +884,8 @@ plot.variance_cube <- function(x, ...,
 plot.uncertainty_cube <- function(x, ...,
                                   tile = x[["tile"]][[1]],
                                   palette = "RdYlGn",
-                                  style = "cont",
                                   rev = TRUE,
-                                  n_colors = 10,
-                                  scale = 0.8) {
+                                  scale = 1.0) {
     .check_set_caller(".plot_uncertainty_cube")
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
@@ -868,6 +906,7 @@ plot.uncertainty_cube <- function(x, ...,
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile[[1]])
     band <- sits_bands(tile)
+    main_title <- paste0(.tile_collection(tile), " uncertainty ", band)
     # plot the data using tmap
     p <- .plot_false_color(
         tile = tile,
@@ -877,10 +916,10 @@ plot.uncertainty_cube <- function(x, ...,
         seg_color = NULL,
         line_width = NULL,
         palette = palette,
-        style = style,
-        n_colors = n_colors,
+        main_title = main_title,
         rev = rev,
-        scale = scale
+        scale = scale,
+        style = "order"
     )
 
     return(p)
@@ -894,9 +933,6 @@ plot.uncertainty_cube <- function(x, ...,
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tile           Tile to be plotted.
 #' @param palette        RColorBrewer palette
-#' @param  style         Method to process the color scale
-#'                       ("cont", "order", "quantile", "fisher",
-#'                        "jenks", "log10")
 #' @param rev            Reverse order of colors in palette?
 #' @param scale          Scale to plot map (0.4 to 1.0)
 #' @return               A plot containing probabilities associated
@@ -947,7 +983,6 @@ plot.uncertainty_cube <- function(x, ...,
 plot.uncertainty_vector_cube <- function(x, ...,
                                          tile = x[["tile"]][[1]],
                                          palette =  "RdYlGn",
-                                         style = "cont",
                                          rev = TRUE,
                                          scale = 0.8) {
     .check_set_caller(".plot_uncertainty_vector_cube")
@@ -969,13 +1004,15 @@ plot.uncertainty_vector_cube <- function(x, ...,
 
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-
+    # set the title
+    band <- sits_bands(tile)
+    main_title <- paste0(.tile_collection(tile), " uncertainty ", band)
     # plot the probs vector cube
     p <- .plot_uncertainty_vector(tile = tile,
-                                   palette = palette,
-                                   style = style,
-                                   rev = rev,
-                                   scale = scale)
+                                  palette = palette,
+                                  main_title = main_title,
+                                  rev = rev,
+                                  scale = scale)
 
     return(p)
 }

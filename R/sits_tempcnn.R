@@ -59,7 +59,8 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a TempCNN model
-#'     torch_model <- sits_train(samples_modis_ndvi, sits_tempcnn())
+#'     torch_model <- sits_train(samples_modis_ndvi,
+#'                sits_tempcnn(verbose = TRUE))
 #'     # plot the model
 #'     plot(torch_model)
 #'     # create a data cube from local files
@@ -285,6 +286,11 @@ sits_tempcnn <- function(samples = NULL,
                     self$softmax()
             }
         )
+        # torch 12.0 not working with Apple MPS
+        if (torch::backends_mps_is_available())
+            cpu_train <-  TRUE
+        else
+            cpu_train <-  FALSE
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -323,6 +329,7 @@ sits_tempcnn <- function(samples = NULL,
                         gamma = lr_decay_rate
                     )
                 ),
+                accelerator = luz::accelerator(cpu = cpu_train),
                 dataloader_options = list(batch_size = batch_size),
                 verbose = verbose
             )
@@ -339,7 +346,7 @@ sits_tempcnn <- function(samples = NULL,
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
             # Used to check values (below)
-            n_input_pixels <- nrow(values)
+            input_pixels <- nrow(values)
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
@@ -356,7 +363,7 @@ sits_tempcnn <- function(samples = NULL,
             if (torch::cuda_is_available()) {
                 values <- .as_dataset(values)
                 # We need to transform in a dataloader to use the batch size
-                values <- torch::dataloader(
+                 values <- torch::dataloader(
                     values, batch_size = 2^15
                 )
                 # Do GPU classification
@@ -374,7 +381,7 @@ sits_tempcnn <- function(samples = NULL,
             )
             # Are the results consistent with the data input?
             .check_processed_values(
-                values = values, n_input_pixels = n_input_pixels
+                values = values, input_pixels = input_pixels
             )
             # Update the columns names to labels
             colnames(values) <- labels

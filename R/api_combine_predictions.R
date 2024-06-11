@@ -219,13 +219,13 @@
     # Average probability calculation
     comb_fn <- function(values, uncert_values = NULL) {
         # Check values length
-        n_input_pixels <- nrow(values[[1]])
+        input_pixels <- nrow(values[[1]])
         # Combine by average
         values <- weighted_probs(values, weights)
         # get the number of labels
         n_labels <- length(sits_labels(cubes[[1]]))
         # Are the results consistent with the data input?
-        .check_processed_values(values, n_input_pixels)
+        .check_processed_values(values, input_pixels)
         .check_processed_labels(values, n_labels)
         # Return values
         values
@@ -244,13 +244,13 @@
     # Average probability calculation
     comb_fn <- function(values, uncert_values) {
         # Check values length
-        n_input_pixels <- nrow(values[[1]])
+        input_pixels <- nrow(values[[1]])
         # Combine by average
         values <- weighted_uncert_probs(values, uncert_values)
         # get the number of labels
         n_labels <- length(sits_labels(cubes[[1]]))
         # Are the results consistent with the data input?
-        .check_processed_values(values, n_input_pixels)
+        .check_processed_values(values, input_pixels)
         .check_processed_labels(values, n_labels)
         # Return values
         values

@@ -1364,14 +1364,14 @@
 #' @title Does the result have the same number of pixels as the input values?
 #' @name .check_processed_values
 #' @param values a matrix of processed values
-#' @param n_input_pixels number of pixels in input matrix
+#' @param input_pixels number of pixels in input matrix
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_processed_values <- function(values, n_input_pixels) {
+.check_processed_values <- function(values, input_pixels) {
     .check_set_caller(".check_processed_values")
     .check_that(
-        !(is.null(nrow(values))) && nrow(values) == n_input_pixels
+        !(is.null(nrow(values))) && nrow(values) == input_pixels
     )
     return(invisible(values))
 }

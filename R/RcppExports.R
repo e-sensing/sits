@@ -9,6 +9,10 @@ weighted_uncert_probs <- function(data_lst, unc_lst) {
     .Call(`_sits_weighted_uncert_probs`, data_lst, unc_lst)
 }
 
+dtw_distance <- function(ts1, ts2) {
+    .Call(`_sits_dtw_distance`, ts1, ts2)
+}
+
 C_kernel_median <- function(x, ncols, nrows, band, window_size) {
     .Call(`_sits_C_kernel_median`, x, ncols, nrows, band, window_size)
 }

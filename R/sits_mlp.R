@@ -227,7 +227,7 @@ sits_mlp <- function(samples = NULL,
                 # output layer
                 tensors[[length(tensors) + 1]] <-
                     torch::nn_linear(layers[length(layers)], y_dim)
-                # add softmax tensor
+               # add softmax tensor
                 tensors[[length(tensors) + 1]] <- torch::nn_softmax(dim = 2)
                 # create a sequential module that calls the layers in the same
                 # order.
@@ -237,6 +237,11 @@ sits_mlp <- function(samples = NULL,
                 self$model(x)
             }
         )
+        # torch 12.0 not working with Apple MPS
+        if (torch::backends_mps_is_available())
+            cpu_train <-  TRUE
+        else
+            cpu_train <-  FALSE
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -262,6 +267,8 @@ sits_mlp <- function(samples = NULL,
                     patience = patience,
                     min_delta = min_delta
                 )),
+                dataloader_options = list(batch_size = batch_size),
+                accelerator = luz::accelerator(cpu = cpu_train),
                 verbose = verbose
             )
         # Serialize model
@@ -277,7 +284,7 @@ sits_mlp <- function(samples = NULL,
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
             # Used to check values (below)
-            n_input_pixels <- nrow(values)
+            input_pixels <- nrow(values)
             # Performs data normalization
             values <- .pred_normalize(pred = values, stats = ml_stats)
             # Transform input into matrix
@@ -305,7 +312,7 @@ sits_mlp <- function(samples = NULL,
             )
             # Are the results consistent with the data input?
             .check_processed_values(
-                values = values, n_input_pixels = n_input_pixels
+                values = values, input_pixels = input_pixels
             )
             # Update the columns names to labels
             colnames(values) <- labels

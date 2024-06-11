@@ -132,10 +132,10 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
         .data[["tile"]]
     )
 
-    if (inherits(data2, "raster_cube")) {
-        return(.merge_equal_cube(data1, data2))
-    } else {
+    if (inherits(data2, "sar_cube")) {
         return(.merge_distinct_cube(data1, data2))
+    } else {
+        return(.merge_equal_cube(data1, data2))
     }
 }
 
@@ -152,8 +152,8 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
 
 .merge_distinct_cube <- function(data1, data2) {
     # Get cubes timeline
-    d1_tl <- unique(as.Date(unlist(.cube_timeline(data1))))
-    d2_tl <- unique(as.Date(unlist(.cube_timeline(data2))))
+    d1_tl <- unique(as.Date(.cube_timeline(data1)[[1]]))
+    d2_tl <- unique(as.Date(.cube_timeline(data2)[[1]]))
 
     # get intervals
     d1_period <- as.numeric(
