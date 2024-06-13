@@ -376,6 +376,9 @@
     # retrieve the segments
     segments <- .vector_read_vec(chunk[["segments"]][[1]])
     # include lat/long information
+    segments <- segments |> dplyr::filter(
+        .data[["pol_id"]] %in% unique(ts_bands[["polygon_id"]])
+    )
     lat_long <- .proj_to_latlong(segments[["x"]], segments[["y"]], .crs(tile))
     # create metadata for the polygons
     samples <- tibble::tibble(
@@ -477,3 +480,4 @@
     })
     return(seg_tile_band_lst)
 }
+#
