@@ -298,7 +298,9 @@ sits_slic <- function(data = NULL,
         # Get valid centers
         valid_centers <- slic[[2]][, 1] != 0 | slic[[2]][, 2] != 0
         # Bind valid centers with segments table
-        v_obj <- cbind(v_obj, stats::na.omit(slic[[2]][valid_centers, ]))
+        v_obj <- cbind(
+            v_obj, matrix(stats::na.omit(slic[[2]][valid_centers, ]), ncol = 2)
+        )
         # Rename columns
         names(v_obj) <- c("supercells", "x", "y", "geometry")
         # Get the extent of template raster
