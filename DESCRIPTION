@@ -105,7 +105,6 @@ Suggests:
     tmap (>= 3.3),
     torchopt (>= 0.1.2),
     tools,
-    vctrs,
     xgboost
 Config/testthat/edition: 3
 Config/testthat/parallel: false
