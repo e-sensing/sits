@@ -88,6 +88,8 @@ sits_segment <- function(cube,
                          output_dir,
                          version = "v1",
                          progress = TRUE) {
+    # check required package
+    .check_require_packages("vctrs")
     # set caller for error msg
     .check_set_caller("sits_segment")
     # Preconditions
