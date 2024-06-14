@@ -361,8 +361,9 @@
     ts_bands[["polygon_id"]] <- pol_id
     # we do the unnest again because we do not know the polygon id index
     ts_bands <- tidyr::unnest(ts_bands, "time_series")
-    # remove pixels where all timeline was NA
-    ts_bands <-  tidyr::drop_na(ts_bands)
+    # detect pixels where all timeline was NA
+    na_polygons <- vctrs::vec_detect_complete(ts_bands)
+    na_polygons <- unique(ts_bands[!na_polygons,][["polygon_id"]])
     # nest the values by bands
     ts_bands <- tidyr::nest(
         ts_bands,
@@ -401,6 +402,10 @@
         )
     }
     samples <- .discard(samples, "sample_id")
+    # fill NA samples
+    if (length(na_polygons) > 0) {
+        samples <- .segments_poilypoints_fill(samples, segments, na_polygons)
+    }
     # set sits class
     class(samples) <- c("sits", class(samples))
     return(samples)
@@ -477,3 +482,61 @@
     })
     return(seg_tile_band_lst)
 }
+#' @title Fill ts data from polygon points.
+#' @name .segments_poilypoints_fill
+#' @keywords internal
+#' @noRd
+#' @param samples  samples extracted from polygons
+#' @param segments large set of segments
+#' @param polygon_idx Index of NA polygons
+#' @return ts tibble
+#'
+.segments_poilypoints_fill <- function(samples, segments, polygon_idx) {
+    # get polygons with NA values
+    na_polygons <- dplyr::filter(segments, .data[["pol_id"]] %in% polygon_idx)
+    # get neighbors geometries that touch polygons with NA values
+    na_touches <- sf::st_touches(na_polygons, segments)
+    # extract bands
+    bands <- .ts_bands(.ts(samples))
+    # fill NA values
+    na_touches <- purrr::map_dfr(seq_along(na_touches), function(touches_idx) {
+        # get polygons and touches reference for the current polygon
+        na_polygons_row <- na_polygons[touches_idx,]
+        na_touched_row <- segments[na_touches[touches_idx][[1]],]
+        # get samples associated with the NA polygon as reference
+        samples_ref <- dplyr::filter(
+            samples, .data[["polygon_id"]] == na_polygons_row[["pol_id"]]
+        )
+        # define reference samples from where values will be extracted
+        samples_row <- samples_ref
+        # if neighbors are available, use their reference samples
+        if (nrow(na_touched_row) > 0) {
+            samples_row <- dplyr::filter(
+                samples, .data[["polygon_id"]] %in% na_touched_row[["pol_id"]]
+            )
+        }
+        # expand time-series values to calculate median value
+        samples_row_ts <- tidyr::unnest(samples_row, "time_series")
+        # calculate temporal median and fill NA values with `0`
+        samples_row_ts <- samples_row_ts |>
+            dplyr::group_by(.data[["Index"]]) |>
+            dplyr::summarize(dplyr::across(
+                bands, stats::median, na.rm = TRUE)
+            ) |>
+            dplyr::mutate(
+                dplyr::across(dplyr::everything(), ~tidyr::replace_na(., 0))
+            )
+        # spread the result across all points from the NA polygon
+        samples_ref[["time_series"]] <- list(samples_row_ts)
+        samples_ref
+    })
+    # get samples from non-NA polygons
+    samples <- dplyr::filter(
+        samples, !.data[["polygon_id"]] %in% na_polygons[["pol_id"]]
+    )
+    # bind result and return them
+    dplyr::bind_rows(
+        samples, na_touches
+    )
+}
+
