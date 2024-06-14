@@ -81,6 +81,8 @@
             block = block,
             impute_fn = impute_fn
         )
+        # Fill with zeros remaining NA pixels
+        values <- C_fill_na(values, 0)
         # Apply segmentation function
         values <- seg_fn(values, block, bbox)
         # Check if the result values is a vector object
