@@ -135,10 +135,8 @@ sits_reduce_imbalance <- function(samples,
     new_samples <- .tibble()
     # under sampling
     if (length(classes_under) > 0) {
-        .parallel_start(workers = multicores)
-        on.exit(.parallel_stop())
         # for each class, select some of the samples using SOM
-        samples_under_new <- .parallel_map(classes_under, function(cls) {
+        samples_under_new <- purrr::map(classes_under, function(cls) {
             # select the samples for the class
             samples_cls <- dplyr::filter(samples, .data[["label"]] == cls)
             # set the dimension of the SOM grid
@@ -148,7 +146,8 @@ sits_reduce_imbalance <- function(samples,
                 samples_cls,
                 grid_xdim = grid_dim,
                 grid_ydim = grid_dim,
-                rlen = 50
+                rlen = 50,
+                mode = "pbatch"
             )
             # select samples on the SOM grid using the neurons
             samples_under <- som_map[["data"]] |>
@@ -161,6 +160,7 @@ sits_reduce_imbalance <- function(samples,
         samples_under_new <- dplyr::bind_rows(samples_under_new)
         new_samples <- dplyr::bind_rows(new_samples, samples_under_new)
     }
+    print("finished undersampling")
     # oversampling
     if (length(classes_over) > 0) {
         .parallel_start(workers = multicores)
