@@ -14,7 +14,7 @@
   tile = x[["tile"]][[1]],
   dates = NULL,
   seg_color = "black",
-  line_width = 1,
+  line_width = 0.3,
   palette = "RdYlGn",
   rev = FALSE,
   scale = 1,

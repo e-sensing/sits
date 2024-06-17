@@ -6,6 +6,7 @@
 \usage{
 sits_sampling_design(
   cube,
+  ...,
   expected_ua = 0.75,
   std_err = 0.01,
   rare_class_prop = 0.1
