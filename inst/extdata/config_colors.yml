@@ -228,12 +228,6 @@ legends:
     DANE: ["No_Samples", "Bosque", "Pasto", "Permanente", "Rastrojo", "Rio",
             "Semipermanente", "Transitorio", "Urbano"]
 
-dane <- tibble::tibble(name = character(), color = character())
-
-
-# Load the color table into sits
-
-sits_colors_set(colors = dane, legend = "DANE")
 colors:
         # Oak-hickory-pine forest in US Veg Map
         Evergreen_Broadleaf_Forest   : &forest "#1E8449" #"#518940"
