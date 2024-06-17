@@ -160,7 +160,6 @@ sits_reduce_imbalance <- function(samples,
         samples_under_new <- dplyr::bind_rows(samples_under_new)
         new_samples <- dplyr::bind_rows(new_samples, samples_under_new)
     }
-    print("finished undersampling")
     # oversampling
     if (length(classes_over) > 0) {
         .parallel_start(workers = multicores)
@@ -284,7 +283,7 @@ sits_reduce_imbalance <- function(samples,
 #'     sampling_design <- sits_sampling_design(label_cube, expected_ua)
 #' }
 #' @export
-sits_sampling_design <- function(cube, ...,
+sits_sampling_design <- function(cube,
                                  expected_ua = 0.75,
                                  std_err = 0.01,
                                  rare_class_prop = 0.1) {

@@ -225,6 +225,15 @@ legends:
                         "DESFLORESTAMENTO NO ANO", "CORPO DAGUA",
                         "NAO OBSERVADO", "NAO FLORESTA"]
 
+    DANE: ["No_Samples", "Bosque", "Pasto", "Permanente", "Rastrojo", "Rio",
+            "Semipermanente", "Transitorio", "Urbano"]
+
+dane <- tibble::tibble(name = character(), color = character())
+
+
+# Load the color table into sits
+
+sits_colors_set(colors = dane, legend = "DANE")
 colors:
         # Oak-hickory-pine forest in US Veg Map
         Evergreen_Broadleaf_Forest   : &forest "#1E8449" #"#518940"
@@ -291,6 +300,7 @@ colors:
 
         Grassland                   : &grassland "#f6cc41"
         Grasslands                  : *grassland
+        Grass                       : *grassland
         Steppe                      : *grassland
         Natural_Herbaceous          : *grassland
         # Pasture is a special case
@@ -527,3 +537,24 @@ colors:
         'CORPO DAGUA'                : *water
         'NAO OBSERVADO'              : *no_class
         'NAO FLORESTA'               : *non_forest
+
+        # DANE
+        "No_Samples"                 : "#808080"
+        "Bosque"                     : "#4daf4a"
+        "Pasto"                      : "#ffff33"
+        "Permanente"                 : "#f781bf"
+        "Rastrojo"                   : "#a65628"
+        "Rio"                        : "#1f78b4"
+        "Semipermanente"             : "#a6cee3"
+        "Transitorio"                : "#984ea3"
+        "Urbano"                     : "#e41a1c"
+
+        #FEDEARROZ
+        "Tilled Soil"                : "#FBEEE6"
+        "Rice, Germination"          : "#F6DDCC"
+        "Rice, Tillering"            : "#EDBB99"
+        "Rice, Stem elong."          : "#E59866"
+        "Rice, Booting"              : "#DC7633"
+        "Rice, Leaf dev."            : "#BA4A00"
+
+
