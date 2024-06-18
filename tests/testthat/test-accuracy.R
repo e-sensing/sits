@@ -159,6 +159,21 @@ test_that("Accuracy areas", {
         expected = 0.75,
         tolerance = 0.5
     )
+
+    # alternative: use a `sf` object
+    samples_sf <- samples_csv |>
+                    sf::st_as_sf(
+                        coords = c("longitude", "latitude"), crs = 4326
+                    ) |>
+                    dplyr::rename("geom" = "geometry")
+    as3 <- sits_accuracy(label_cube, validation = samples_sf)
+
+    expect_true(as.numeric(as3$area_pixels["Forest"]) >
+                    as3$area_pixels["Pasture"])
+    expect_equal(as.numeric(as3$accuracy$overall),
+                 expected = 0.75,
+                 tolerance = 0.5
+    )
 })
 
 test_that("Accuracy areas when samples labels do not match cube labels", {
