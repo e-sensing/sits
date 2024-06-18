@@ -515,7 +515,7 @@ sources:
                 grid_system     : "WRS-2"
             LS8-GEOMEDIAN :
                 bands     :
-                    B01   : &deaustralia_ls5_geomedian_band_30m
+                    B01   : &deaustralia_ls8_geomedian_band_30m
                         missing_value : -999
                         minimum_value : 0
                         maximum_value : 65536
@@ -526,21 +526,21 @@ sources:
                         band_name     : "blue"
                         data_type     : "INT2S"
                     B02   :
-                        <<: *deaustralia_ls5_geomedian_band_30m
+                        <<: *deaustralia_ls8_geomedian_band_30m
                         band_name: "green"
                     B03   :
-                        <<: *deaustralia_ls5_geomedian_band_30m
+                        <<: *deaustralia_ls8_geomedian_band_30m
                         band_name: "red"
                     B04   :
-                        <<: *deaustralia_ls5_geomedian_band_30m
+                        <<: *deaustralia_ls8_geomedian_band_30m
                         band_name: "nir"
                     B05   :
-                        <<: *deaustralia_ls5_geomedian_band_30m
+                        <<: *deaustralia_ls8_geomedian_band_30m
                         band_name: "swir1"
                     B07   :
-                        <<: *deaustralia_ls5_geomedian_band_30m
+                        <<: *deaustralia_ls8_geomedian_band_30m
                         band_name: "swir2"
-                    EDEV  : &deaustralia_ls5_geomedian_product_30m
+                    EDEV  : &deaustralia_ls8_geomedian_product_30m
                         missing_value : -32768
                         minimum_value : 0
                         maximum_value : 65536
@@ -551,10 +551,10 @@ sources:
                         band_name     : "edev"
                         data_type     : "FLT4S"
                     SDEV  :
-                        <<: *deaustralia_ls5_geomedian_product_30m
+                        <<: *deaustralia_ls8_geomedian_product_30m
                         band_name: "sdev"
                     BCDEV :
-                        <<: *deaustralia_ls5_geomedian_product_30m
+                        <<: *deaustralia_ls8_geomedian_product_30m
                         band_name: "bcdev"
                 satellite : "LANDSAT-8"
                 sensor    : "OLI-TIRS-GEOMEDIAN"
