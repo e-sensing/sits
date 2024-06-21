@@ -337,6 +337,22 @@ plot.predicted <- function(x, y, ...,
 #'       multi-temporal RGB image for a single band (useful in the case of
 #'       SAR data). For RGB bands with multi-dates, multiple plots will be
 #'       produced.
+#'
+#' @note The following optional parameters are available to allow for detailed
+#'       control over the plot output:
+#' \itemize{
+#' \item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
+#' \item \code{last_quantile}: last quantile for stretching images (default = 0.95)
+#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
+#' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
+#' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
+#' \item \code{legend_bg_color}: color of legend background (default = "white")
+#' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
+#' \item \code{legend_width}: relative width of legend (default = 1.0)
+#' \item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
+#' \item \code{legend_height}: relative height of legend (default = 1.0)
+#' }
+#'
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a data cube from local files
@@ -370,6 +386,8 @@ plot.raster_cube <- function(x, ...,
     if ("date" %in% names(dots) && missing(dates)) {
         dates <- as.Date(dots[["date"]])
     }
+    # get tmap params from dots
+    tmap_params <- .plot_tmap_params(dots)
     # is tile inside the cube?
     .check_chr_contains(
         x = x[["tile"]],
@@ -422,7 +440,8 @@ plot.raster_cube <- function(x, ...,
             palette = palette,
             main_title = main_title,
             rev = rev,
-            scale = scale
+            scale = scale,
+            tmap_params = tmap_params
         )
         return(p)
     }
@@ -443,7 +462,8 @@ plot.raster_cube <- function(x, ...,
             main_title = main_title,
             rev = rev,
             scale = scale,
-            style = style
+            style = style,
+            tmap_params = tmap_params
         )
     } else {
         # plot RGB
@@ -464,7 +484,8 @@ plot.raster_cube <- function(x, ...,
             sf_seg    = NULL,
             seg_color = NULL,
             line_width = NULL,
-            scale = scale
+            scale = scale,
+            tmap_params = tmap_params
         )
     }
 
@@ -495,7 +516,20 @@ plot.raster_cube <- function(x, ...,
 #'                       or a B/W image on a color
 #'                       scale using the pallete
 #'
-#' @note To see which color palettes are supported, please run
+#' @note The following optional parameters are available to allow for detailed
+#'       control over the plot output:
+#' \itemize{
+#' \item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
+#' \item \code{last_quantile}: last quantile for stretching images (default = 0.95)
+#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
+#' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
+#' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
+#' \item \code{legend_bg_color}: color of legend background (default = "white")
+#' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
+#' \item \code{legend_width}: relative width of legend (default = 1.0)
+#' \item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
+#' \item \code{legend_height}: relative height of legend (default = 1.0)
+#' }
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a data cube from local files
@@ -536,6 +570,8 @@ plot.vector_cube <- function(x, ...,
     if ("date" %in% names(dots) && missing(dates)) {
         dates <- as.Date(dots[["date"]])
     }
+    # get tmap params from dots
+    tmap_params <- .plot_tmap_params(dots)
     # is tile inside the cube?
     .check_chr_contains(
         x = x[["tile"]],
@@ -577,7 +613,8 @@ plot.vector_cube <- function(x, ...,
             main_title = main_title,
             rev = rev,
             scale = scale,
-            style = style
+            style = style,
+            tmap_params = tmap_params
         )
     } else {
         main_title <- paste0(.tile_collection(tile)," ",
@@ -598,7 +635,8 @@ plot.vector_cube <- function(x, ...,
             sf_seg   = sf_seg,
             seg_color = seg_color,
             line_width = line_width,
-            scale = scale
+            scale = scale,
+            tmap_params = tmap_params
         )
     }
     return(p)
@@ -858,7 +896,20 @@ plot.variance_cube <- function(x, ...,
 #' @return               A plot object produced by the stars package
 #'                       with a map showing the uncertainty associated
 #'                       to each classified pixel.
-#'
+#' @note The following optional parameters are available to allow for detailed
+#'       control over the plot output:
+#' \itemize{
+#' \item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
+#' \item \code{last_quantile}: last quantile for stretching images (default = 0.95)
+#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
+#' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
+#' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
+#' \item \code{legend_bg_color}: color of legend background (default = "white")
+#' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
+#' \item \code{legend_width}: relative width of legend (default = 1.0)
+#' \item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
+#' \item \code{legend_height}: relative height of legend (default = 1.0)
+#' }
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a random forest model
@@ -893,6 +944,8 @@ plot.uncertainty_cube <- function(x, ...,
         warning(.conf("messages", ".plot_palette"))
         palette <- dots[["color_palette"]]
     }
+    # get tmap params from dots
+    tmap_params <- .plot_tmap_params(dots)
     # precondition
     .check_chr_contains(
         x = x[["tile"]],
@@ -919,7 +972,8 @@ plot.uncertainty_cube <- function(x, ...,
         main_title = main_title,
         rev = rev,
         scale = scale,
-        style = "order"
+        style = "order",
+        tmap_params = tmap_params
     )
 
     return(p)
@@ -1033,7 +1087,20 @@ plot.uncertainty_vector_cube <- function(x, ...,
 #' @return                 A  color map, where each pixel has the color
 #'                         associated to a label, as defined by the legend
 #'                         parameter.
-#'
+#' @note The following optional parameters are available to allow for detailed
+#'       control over the plot output:
+#' \itemize{
+#' \item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
+#' \item \code{last_quantile}: last quantile for stretching images (default = 0.95)
+#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
+#' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
+#' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
+#' \item \code{legend_bg_color}: color of legend background (default = "white")
+#' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
+#' \item \code{legend_width}: relative width of legend (default = 1.0)
+#' \item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
+#' \item \code{legend_height}: relative height of legend (default = 1.0)
+#' }
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a random forest model
@@ -1074,7 +1141,8 @@ plot.class_cube <- function(x, y, ...,
         warning(.conf("messages", ".plot_palette"))
         palette <- dots[["color_palette"]]
     }
-
+    # get tmap params from dots
+    tmap_params <- .plot_tmap_params(dots)
     # precondition - cube must be a labelled cube
     cube <- x
     .check_is_class_cube(cube)
@@ -1098,7 +1166,8 @@ plot.class_cube <- function(x, y, ...,
         tile = tile,
         legend = legend,
         palette = palette,
-        scale = scale
+        scale = scale,
+        tmap_params = tmap_params
     )
 }
 #' @title  Plot Segments
