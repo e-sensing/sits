@@ -11,7 +11,8 @@
   labels = NULL,
   palette = "YlGn",
   rev = FALSE,
-  scale = 0.8
+  scale = 0.8,
+  max_cog_size = 512
 )
 }
 \arguments{
@@ -28,6 +29,8 @@
 \item{rev}{Reverse order of colors in palette?}
 
 \item{scale}{Scale to plot map (0.4 to 1.0)}
+
+\item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
 }
 \value{
 A plot containing probabilities associated

@@ -326,6 +326,7 @@ plot.predicted <- function(x, y, ...,
 #' @param  rev           Reverse the color order in the palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  style         Style for plotting continuous objects
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color scale
@@ -377,7 +378,8 @@ plot.raster_cube <- function(x, ...,
                              palette = "RdYlGn",
                              rev = FALSE,
                              scale = 0.9,
-                             style = "order") {
+                             style = "order",
+                             max_cog_size = 1024) {
     # check caller
     .check_set_caller(".plot_raster_cube")
     # retrieve dots
@@ -441,6 +443,7 @@ plot.raster_cube <- function(x, ...,
             main_title = main_title,
             rev = rev,
             scale = scale,
+            max_cog_size = max_cog_size,
             tmap_params = tmap_params
         )
         return(p)
@@ -463,6 +466,7 @@ plot.raster_cube <- function(x, ...,
             rev = rev,
             scale = scale,
             style = style,
+            max_cog_size = max_cog_size,
             tmap_params = tmap_params
         )
     } else {
@@ -485,6 +489,7 @@ plot.raster_cube <- function(x, ...,
             seg_color = NULL,
             line_width = NULL,
             scale = scale,
+            max_cog_size = max_cog_size,
             tmap_params = tmap_params
         )
     }
@@ -511,7 +516,7 @@ plot.raster_cube <- function(x, ...,
 #' @param  rev           Reverse the color order in the palette?
 #' @param  scale         Scale to plot map (0.4 to 1.5)
 #' @param  style         Style for plotting continuous objects
-#'
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
 #'                       scale using the pallete
@@ -562,7 +567,8 @@ plot.vector_cube <- function(x, ...,
                              palette = "RdYlGn",
                              rev = FALSE,
                              scale = 1.0,
-                             style = "order") {
+                             style = "order",
+                             max_cog_size = 1024) {
     .check_set_caller(".plot_vector_cube")
     # retrieve dots
     dots <- list(...)
@@ -614,6 +620,7 @@ plot.vector_cube <- function(x, ...,
             rev = rev,
             scale = scale,
             style = style,
+            max_cog_size = max_cog_size,
             tmap_params = tmap_params
         )
     } else {
@@ -636,6 +643,7 @@ plot.vector_cube <- function(x, ...,
             seg_color = seg_color,
             line_width = line_width,
             scale = scale,
+            max_cog_size = max_cog_size,
             tmap_params = tmap_params
         )
     }
@@ -653,6 +661,7 @@ plot.vector_cube <- function(x, ...,
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param scale          Scale to plot map (0.4 to 1.0)
+#' @param max_cog_size   Maximum size of COG overviews (lines or columns)
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
 #'
@@ -683,7 +692,8 @@ plot.probs_cube <- function(x, ...,
                             labels = NULL,
                             palette = "YlGn",
                             rev = FALSE,
-                            scale = 0.8) {
+                            scale = 0.8,
+                            max_cog_size = 512) {
     .check_set_caller(".plot_probs_cube")
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
@@ -709,7 +719,8 @@ plot.probs_cube <- function(x, ...,
                      labels_plot = labels,
                      palette = palette,
                      rev = rev,
-                     scale = scale)
+                     scale = scale,
+                     max_cog_size = max_cog_size)
 
     return(p)
 }
@@ -892,6 +903,8 @@ plot.variance_cube <- function(x, ...,
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  scale          Scale to plot map (0.4 to 1.0)
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+
 #'
 #' @return               A plot object produced by the stars package
 #'                       with a map showing the uncertainty associated
@@ -936,7 +949,8 @@ plot.uncertainty_cube <- function(x, ...,
                                   tile = x[["tile"]][[1]],
                                   palette = "RdYlGn",
                                   rev = TRUE,
-                                  scale = 1.0) {
+                                  scale = 1.0,
+                                  max_cog_size = 1024) {
     .check_set_caller(".plot_uncertainty_cube")
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
@@ -973,6 +987,7 @@ plot.uncertainty_cube <- function(x, ...,
         rev = rev,
         scale = scale,
         style = "order",
+        max_cog_size = max_cog_size,
         tmap_params = tmap_params
     )
 
@@ -1082,7 +1097,10 @@ plot.uncertainty_vector_cube <- function(x, ...,
 #' @param  title           Title of the plot.
 #' @param  legend          Named vector that associates labels to colors.
 #' @param  palette         Alternative RColorBrewer palette
-#' @param  scale           Scale to plot map (0.4 to 1.0)
+#' @param  scale           Relative scale (0.4 to 1.0) that
+#'                         controls
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+
 #'
 #' @return                 A  color map, where each pixel has the color
 #'                         associated to a label, as defined by the legend
@@ -1131,7 +1149,8 @@ plot.class_cube <- function(x, y, ...,
                             title = "Classified Image",
                             legend = NULL,
                             palette = "Spectral",
-                            scale = 0.8) {
+                            scale = 0.8,
+                            max_cog_size = 1024) {
     stopifnot(missing(y))
     # set caller to show in errors
     .check_set_caller(".plot_class_cube")
@@ -1167,6 +1186,7 @@ plot.class_cube <- function(x, y, ...,
         legend = legend,
         palette = palette,
         scale = scale,
+        max_cog_size = max_cog_size,
         tmap_params = tmap_params
     )
 }

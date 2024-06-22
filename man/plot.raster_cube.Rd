@@ -16,7 +16,8 @@
   palette = "RdYlGn",
   rev = FALSE,
   scale = 0.9,
-  style = "order"
+  style = "order",
+  max_cog_size = 1024
 )
 }
 \arguments{
@@ -43,6 +44,8 @@
 \item{scale}{Scale to plot map (0.4 to 1.0)}
 
 \item{style}{Style for plotting continuous objects}
+
+\item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
 }
 \value{
 A plot object with an RGB image

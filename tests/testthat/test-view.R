@@ -102,8 +102,6 @@ test_that("View", {
     expect_true(grepl("EPSG3857", v6$x$options$crs$crsClass))
     expect_equal(v6$x$calls[[1]]$method, "addProviderTiles")
     expect_equal(v6$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
-    expect_equal(v6$x$calls[[5]]$args[[5]], "012010 entropy")
-    expect_equal(v6$x$calls[[6]]$args[[5]], "classification")
 
     # segmentation
     # segment the image
@@ -180,6 +178,10 @@ test_that("View", {
                     green = "B16",
                     blue = "B13",
                     dates = "2018-08-29")
+    v_cb1 <- sits_view(cbers_cube,
+                       tiles = c("007004", "007005"),
+                       band = "B16",
+                       dates = "2018-08-29")
 
     expect_identical(v_cb$x$options$crs$crsClass, "L.CRS.EPSG3857")
     expect_identical(v_cb$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")

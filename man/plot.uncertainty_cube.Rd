@@ -10,7 +10,8 @@
   tile = x[["tile"]][[1]],
   palette = "RdYlGn",
   rev = TRUE,
-  scale = 1
+  scale = 1,
+  max_cog_size = 1024
 )
 }
 \arguments{
@@ -25,6 +26,8 @@
 \item{rev}{Reverse the color order in the palette?}
 
 \item{scale}{Scale to plot map (0.4 to 1.0)}
+
+\item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
 }
 \value{
 A plot object produced by the stars package

@@ -12,7 +12,8 @@
   title = "Classified Image",
   legend = NULL,
   palette = "Spectral",
-  scale = 0.8
+  scale = 0.8,
+  max_cog_size = 1024
 )
 }
 \arguments{
@@ -30,7 +31,10 @@
 
 \item{palette}{Alternative RColorBrewer palette}
 
-\item{scale}{Scale to plot map (0.4 to 1.0)}
+\item{scale}{Relative scale (0.4 to 1.0) that
+controls}
+
+\item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
 }
 \value{
 A  color map, where each pixel has the color

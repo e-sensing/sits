@@ -15,6 +15,7 @@
 #' @param  rev           Reverse the color palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  style         Style for plotting continuous data
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A list of plot objects
 .plot_false_color <- function(tile,
@@ -28,12 +29,12 @@
                               rev,
                               scale,
                               style,
+                              max_cog_size,
                               tmap_params) {
     # select the file to be plotted
     bw_file <- .tile_path(tile, band, date)
     # size of data to be read
-    max_size <- .conf("view", "max_size")
-    sizes <- .tile_overview_size(tile = tile, max_size)
+    sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # scale and offset
     band_conf <- .tile_band_conf(tile, band)
     band_scale <- .scale(band_conf)
@@ -124,6 +125,7 @@
 #' @param  main_title    Main title for the plot
 #' @param  rev           Reverse the color palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
 #' @param  tmap_params   List with tmap params for detailed plot control
 #'
 #' @return               A list of plot objects
@@ -135,14 +137,13 @@
                                  main_title,
                                  rev,
                                  scale,
+                                 max_cog_size,
                                  tmap_params) {
     # select the files to be plotted
     red_file   <- .tile_path(tile, band, dates[[1]])
     green_file <- .tile_path(tile, band, dates[[2]])
     blue_file  <- .tile_path(tile, band, dates[[3]])
-    # size of data to be read
-    max_size <- .conf("plot", "max_size")
-    sizes <- .tile_overview_size(tile = tile, max_size)
+    sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # get the max values
     band_params <- .tile_band_conf(tile, band)
     max_value <- .max_value(band_params)
@@ -183,6 +184,7 @@
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
 #' @param  scale         Scale to plot map (0.4 to 1.0)
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A plot object
 #'
@@ -196,6 +198,7 @@
                       seg_color,
                       line_width,
                       scale,
+                      max_cog_size,
                       tmap_params) {
     # get RGB files for the requested timeline
     red_file <- .tile_path(tile, red, date)
@@ -206,8 +209,7 @@
     band_params <- .tile_band_conf(tile, red)
     max_value <- .max_value(band_params)
     # size of data to be read
-    max_size <- .conf("plot", "max_size")
-    sizes <- .tile_overview_size(tile = tile, max_size)
+    sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # used for SAR images
     if (tile[["tile"]] == "NoTilingSystem") {
         red_file   <- .gdal_warp_file(red_file, sizes)
@@ -313,10 +315,12 @@
 #' @param  legend        Legend for the classes
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  scale         Scale to plot the map
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A plot object
 #'
-.plot_class_image <- function(tile, legend, palette, scale, tmap_params) {
+.plot_class_image <- function(tile, legend, palette,
+                              scale, max_cog_size, tmap_params) {
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
@@ -335,8 +339,7 @@
     )
     names(colors) <- names(labels)
     # size of data to be read
-    max_size <- .conf("plot", "max_size")
-    sizes <- .tile_overview_size(tile = tile, max_size)
+    sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # select the image to be plotted
     class_file <- .tile_path(tile)
 
@@ -392,13 +395,15 @@
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
 #' @param  scale         Global scale for plot
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
 #' @return               A plot object
 #'
 .plot_probs <- function(tile,
                         labels_plot,
                         palette,
                         rev,
-                        scale) {
+                        scale,
+                        max_cog_size) {
     # set caller to show in errors
     .check_set_caller(".plot_probs")
     # verifies if stars package is installed
@@ -423,7 +428,7 @@
     }
     # size of data to be read
     max_size <- .conf("plot", "max_size")
-    sizes <- .tile_overview_size(tile = tile, max_size)
+    sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # get the path
     probs_path <- .tile_path(tile)
     # read the file using stars
