@@ -1278,7 +1278,7 @@ NULL
                                        out_file, update_bbox = FALSE) {
     base_tile <- .tile(base_tile)
     # Read all blocks file
-    vec_segments <- purrr::map_dfr(block_files, .vector_read_vec)
+    vec_segments <- .map_dfr(block_files, .vector_read_vec)
     # Define an unique ID
     vec_segments[["pol_id"]] <- seq_len(nrow(vec_segments))
     # Write all segments

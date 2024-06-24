@@ -206,7 +206,7 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
 .merge_single_timeline <- function(data1, data2) {
     tiles <- .cube_tiles(data1)
     # update the timeline of the cube with single time step (`data2`)
-    data2 <- purrr::map_dfr(tiles, function(tile_name) {
+    data2 <- .map_dfr(tiles, function(tile_name) {
         tile_data1 <- .cube_filter_tiles(data1, tile_name)
         tile_data2 <- .cube_filter_tiles(data2, tile_name)
         # Get data1 timeline.

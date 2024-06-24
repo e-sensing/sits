@@ -65,7 +65,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
         labels <- dplyr::distinct(tb, .data[["label"]])[["label"]]
         # traverse labels
         patterns <- labels |>
-            purrr::map_dfr(function(lb) {
+            .map_dfr(function(lb) {
                 # filter only those rows with the same label
                 label_rows <- dplyr::filter(tb, .data[["label"]] == lb)
                 # make sure label_rows is of class sits
