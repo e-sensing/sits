@@ -568,3 +568,34 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance   : 0
                 grid_system     : "WRS-2"
+
+            LS-FC :
+                bands     :
+                    BS    : &deaustralia_fc_band_30m
+                        missing_value : 255
+                        minimum_value : 0
+                        maximum_value : 254
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "bs"
+                        data_type     : "INT2S"
+                    PV    :
+                        <<: *deaustralia_fc_band_30m
+                        band_name: "pv"
+                    NPV   :
+                        <<: *deaustralia_fc_band_30m
+                        band_name: "npv"
+                satellite : "LANDSAT"
+                sensor    : "FRACTIONAL-COVER"
+                collection_name : "ga_ls_fc_3"
+                access_vars :
+                    AWS_DEFAULT_REGION  : "ap-southeast-2"
+                    AWS_S3_ENDPOINT     : "s3.ap-southeast-2.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : "WRS-2"
