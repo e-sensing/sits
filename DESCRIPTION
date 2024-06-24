@@ -51,6 +51,7 @@ Imports:
     grDevices,
     graphics,
     lubridate,
+    magrittr, 
     parallel (>= 4.0.5),
     purrr (>= 1.0.2),
     Rcpp,
@@ -64,6 +65,7 @@ Imports:
     tibble (>= 3.1),
     tidyr (>= 1.2.0),
     torch (>= 0.11.0),
+    units,
     utils
 Suggests:
     aws.s3,
@@ -87,7 +89,6 @@ Suggests:
     leafem (>= 0.2.0),
     leaflet (>= 2.2.0),
     luz (>= 0.4.0),
-    magrittr, 
     methods,
     mgcv,
     nnet,

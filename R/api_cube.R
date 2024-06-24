@@ -143,23 +143,10 @@ NULL
 #'
 #' @return A \code{vector} with the areas of the cube labels.
 .cube_class_areas <- function(cube) {
-    .check_is_class_cube(cube)
-    labels_cube <- sits_labels(cube)
-
     # Get area for each class for each row of the cube
     freq_lst <- slider::slide(cube, function(tile) {
         # Get the frequency count and value for each labelled image
         freq <- .tile_area_freq(tile)
-        # pixel area
-        # convert the area to hectares
-        # assumption: spatial resolution unit is meters
-        area <- freq[["count"]] * .tile_xres(tile) * .tile_yres(tile) / 10000
-        # Include class names
-        freq <- dplyr::mutate(
-            freq,
-            area = area,
-            class = labels_cube[as.character(freq[["value"]])]
-        )
         return(freq)
     })
     # Get a tibble by binding the row (duplicated labels with different counts)

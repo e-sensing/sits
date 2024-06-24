@@ -16,7 +16,8 @@
   palette = "RdYlGn",
   rev = FALSE,
   scale = 0.9,
-  style = "order"
+  style = "order",
+  max_cog_size = 1024
 )
 }
 \arguments{
@@ -43,6 +44,8 @@
 \item{scale}{Scale to plot map (0.4 to 1.0)}
 
 \item{style}{Style for plotting continuous objects}
+
+\item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
 }
 \value{
 A plot object with an RGB image
@@ -58,6 +61,21 @@ Use \code{scale} parameter for general output control.
       multi-temporal RGB image for a single band (useful in the case of
       SAR data). For RGB bands with multi-dates, multiple plots will be
       produced.
+
+The following optional parameters are available to allow for detailed
+      control over the plot output:
+\itemize{
+\item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
+\item \code{last_quantile}: last quantile for stretching images (default = 0.95)
+\item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
+\item \code{legend_title_size}: relative size of legend title (default = 1.0)
+\item \code{legend_text_size}: relative size of legend text (default = 1.0)
+\item \code{legend_bg_color}: color of legend background (default = "white")
+\item \code{legend_bg_alpha}: legend opacity (default = 0.5)
+\item \code{legend_width}: relative width of legend (default = 1.0)
+\item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
+\item \code{legend_height}: relative height of legend (default = 1.0)
+}
 }
 \examples{
 if (sits_run_examples()) {

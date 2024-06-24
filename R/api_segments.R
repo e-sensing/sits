@@ -81,8 +81,6 @@
             block = block,
             impute_fn = impute_fn
         )
-        # Fill with zeros remaining NA pixels
-        values <- C_fill_na(values, 0)
         # Apply segmentation function
         values <- seg_fn(values, block, bbox)
         # Check if the result values is a vector object
@@ -376,6 +374,9 @@
     # retrieve the segments
     segments <- .vector_read_vec(chunk[["segments"]][[1]])
     # include lat/long information
+    segments <- segments |> dplyr::filter(
+        .data[["pol_id"]] %in% unique(ts_bands[["polygon_id"]])
+    )
     lat_long <- .proj_to_latlong(segments[["x"]], segments[["y"]], .crs(tile))
     # create metadata for the polygons
     samples <- tibble::tibble(
@@ -405,6 +406,7 @@
     class(samples) <- c("sits", class(samples))
     return(samples)
 }
+
 #' @title Split tile bands for extraction of values inside segments
 #' @name .segments_split_tile_bands
 #' @keywords internal

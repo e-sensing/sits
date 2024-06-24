@@ -115,9 +115,15 @@
         return(class_tile)
     }
     # Get tile labels
-    labels <- unname(.tile_labels(tile))
+    tile_labels <- unname(.tile_labels(tile))
     # Read probability segments
     probs_segments <- .segments_read_vec(tile)
+    # Segment labels
+    segment_labels <- setdiff(
+        colnames(probs_segments), c("supercells", "x", "y", "pol_id", "geom")
+    )
+    # Necessary when not all labels are present on the tile
+    labels <- intersect(tile_labels, segment_labels)
     # Classify each segment by majority probability
     probs_segments <- probs_segments |>
         dplyr::rowwise() |>

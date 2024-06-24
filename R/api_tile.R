@@ -1314,6 +1314,33 @@ NULL
     r_obj <- .raster_open_rast(.tile_path(tile))
     # Retrieve the frequency
     freq <- tibble::as_tibble(.raster_freq(r_obj))
+    # get labels
+    labels <- .tile_labels(tile)
+    # pixel area
+    # convert the area to hectares
+    # assumption: spatial resolution unit is meters
+    area <- freq[["count"]] * .tile_xres(tile) * .tile_yres(tile) / 10000
+    # Include class names
+    freq <- dplyr::mutate(
+        freq,
+        area = area,
+        class = labels[as.character(freq[["value"]])]
+    )
+    # Return frequencies
+    freq
+}
+#' @export
+.tile_area_freq.class_vector_cube <- function(tile) {
+    # Open segments
+    segments <- .segments_read_vec(tile)
+    segments[["area"]] <- sf::st_area(segments)
+    segments <- sf::st_drop_geometry(segments)
+    segments <- units::drop_units(segments)
+    # Retrieve the area
+    freq <- segments |>
+        dplyr::group_by(class) |>
+        dplyr::summarise(area = sum(.data[["area"]])) |>
+        dplyr::select(c(dplyr::all_of("area"), dplyr::all_of("class")))
     # Return frequencies
     freq
 }

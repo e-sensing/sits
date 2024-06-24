@@ -46,9 +46,14 @@
 #' A confusion matrix assessment produced by the caret package.
 #
 #' @note
-#' The validation data needs to contain the following columns: "latitude",
+#' The `validation` data needs to contain the following columns: "latitude",
 #'  "longitude", "start_date", "end_date", and "label". It can be either a
-#'  path to a CSV file, a sits tibble or a data frame.
+#'  path to a CSV file, a sits tibble, a data frame, or an sf object.
+#'
+#' When `validation` is an sf object, the columns "latitude" and "longitude" are
+#' not required as the locations are extracted from the geometry column. The
+#' `centroid` is calculated before extracting the location values for any
+#' geometry type.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -131,20 +136,42 @@ sits_accuracy.sits <- function(data, ...) {
 #' @export
 sits_accuracy.class_cube <- function(data, ..., validation) {
     .check_set_caller("sits_accuracy_class_cube")
-    # generic function
-    # Is this a file?
+    # handle sample files in CSV format
     if (is.character(validation)) {
         # Is this a valid file?
         .check_validation_file(validation)
         # Read sample information from CSV file and put it in a tibble
         validation <- .csv_get_samples(validation)
     }
-    # Precondition - check if validation samples are OK
+    # handle `sf` objects
+    if (inherits(validation, "sf")) {
+        # Pre-condition - check for the required columns
+        .check_chr_contains(colnames(validation), c(
+            "label", "start_date", "end_date"
+        ))
+        # transform the `sf` object in a valid
+        validation <- validation |>
+            dplyr::mutate(
+                geom = sf::st_geometry(validation)
+            ) |>
+            dplyr::mutate(
+                geom = sf::st_centroid(.data[["geom"]])
+            ) |>
+            dplyr::mutate(
+                coords = sf::st_coordinates(.data[["geom"]])
+            ) |>
+            dplyr::mutate(
+                longitude = .data[["coords"]][, 1],
+                latitude  = .data[["coords"]][, 2]
+            ) |>
+            dplyr::select(
+                "start_date", "end_date", "label", "longitude", "latitude"
+            )
+    }
+    # Pre-condition - check if validation samples are OK
     validation <- .check_samples(validation)
-
     # Find the labels of the cube
     labels_cube <- sits_labels(data)
-
     # Create a list of (predicted, reference) values
     # Consider all tiles of the data cube
     pred_ref_lst <- slider::slide(data, function(tile) {
@@ -210,7 +237,6 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
     pred_ref <- do.call(rbind, pred_ref_lst)
     # is this data valid?
     .check_null_parameter(pred_ref)
-
     # Create the error matrix
     error_matrix <- table(
         factor(pred_ref[["predicted"]],
@@ -222,7 +248,6 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
             labels = labels_cube
         )
     )
-
     # Get area for each class of the cube
     class_areas <- .cube_class_areas(cube = data)
     # Compute accuracy metrics

@@ -1,10 +1,5 @@
 # These are configuration parameters that can be set by users
 #
-view:
-    max_size: 2500         # Maximum size of COG overview for visualisation
-    first_quantile: 0.05   # First quantile for stretching images
-    last_quantile: 0.95    # Last quantile for stretching images
-    leaflet_megabytes: 64  # maxbytes for leaflet (in MB)
 
 plot:
     max_size: 1200
@@ -20,5 +15,4 @@ plot:
     legend_height: 1.0
     scale: 1.0
     font_family: "sans"
-    n_breaks: 20
 

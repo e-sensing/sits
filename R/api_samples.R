@@ -203,3 +203,82 @@
         })
     })
 }
+#' @title Allocate points for stratified sampling for accuracy estimation
+#' @name .samples_alloc_strata
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param cube   Classified data cube (raster or vector)
+#' @param samples_class Matrix with sampling design to be allocated
+#' @param dots     Other params for the function
+#' @param multicores Number of cores to work in parallel
+#' @param progress  Show progress bar?
+#'
+#' @return Points resulting from stratified sampling
+#' @keywords internal
+#' @noRd
+.samples_alloc_strata <- function(cube,
+                                  samples_class, ...,
+                                  multicores = 2,
+                                  progress = TRUE){
+    UseMethod(".samples_alloc_strata", cube)
+}
+#' @export
+.samples_alloc_strata.class_cube <- function(cube,
+                                             samples_class, ...,
+                                             multicores = 2,
+                                             progress = TRUE){
+    # estimate size
+    size <- ceiling(max(samples_class) / nrow(cube))
+    # get labels
+    labels <- names(samples_class)
+    n_labels <- length(labels)
+    # Prepare parallel processing
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
+    # Create assets as jobs
+    cube_assets <- .cube_split_assets(cube)
+    # Process each asset in parallel
+    samples <- .jobs_map_parallel_dfr(cube_assets, function(tile) {
+        robj <- .raster_open_rast(.tile_path(tile))
+        cls <- data.frame(id = 1:n_labels,
+                          cover = labels)
+        levels(robj) <- cls
+        samples_sv <- terra::spatSample(
+            x = robj,
+            size = size,
+            method = "stratified",
+            as.points = TRUE
+        )
+        samples_sf <- sf::st_as_sf(samples_sv)
+        samples_sf <- dplyr::mutate(samples_sf,
+                                    label = labels[.data[["cover"]]])
+        samples_sf <- sf::st_transform(samples_sf, crs = "EPSG:4326")
+    }, progress = progress)
+
+    samples <- purrr::map_dfr(labels, function(lab) {
+        samples_class <- samples |>
+            dplyr::filter(.data[["label"]] == lab) |>
+            dplyr::slice_sample(n = samples_class[lab])
+    })
+
+    return(samples)
+}
+#' @export
+.samples_alloc_strata.class_vector_cube <- function(cube,
+                                             samples_class, ...,
+                                             multicores = 2,
+                                             progress = TRUE){
+
+    segments_cube <- slider::slide_dfr(cube, function(tile){
+        # Open segments and transform them to tibble
+        segments <- .segments_read_vec(tile)
+    })
+    # Retrieve the required number of segments per class
+    samples_lst <- segments_cube |>
+        dplyr::group_by(.data[["class"]]) |>
+        dplyr::group_map(function(cl, class){
+            samples_class <- sf::st_sample(cl, samples_class[class[["class"]]])
+            sf_samples <- sf::st_sf(class, geometry = samples_class)
+        })
+    samples <- dplyr::bind_rows(samples_lst)
+    return(samples)
+}
