@@ -15,8 +15,10 @@
   dates = NULL,
   palette = "RdYlGn",
   rev = FALSE,
-  scale = 0.9,
-  style = "order",
+  scale = 0.75,
+  style = "cont",
+  first_quantile = 0.02,
+  last_quantile = 0.98,
   max_cog_size = 1024
 )
 }
@@ -44,6 +46,10 @@
 \item{scale}{Scale to plot map (0.4 to 1.0)}
 
 \item{style}{Style for plotting continuous objects}
+
+\item{first_quantile}{First quantile for stretching images}
+
+\item{last_quantile}{Last quantile for stretching images}
 
 \item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
 }

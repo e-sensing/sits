@@ -326,6 +326,8 @@ plot.predicted <- function(x, y, ...,
 #' @param  rev           Reverse the color order in the palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  style         Style for plotting continuous objects
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
 #'
 #' @return               A plot object with an RGB image
@@ -377,8 +379,10 @@ plot.raster_cube <- function(x, ...,
                              dates = NULL,
                              palette = "RdYlGn",
                              rev = FALSE,
-                             scale = 0.9,
-                             style = "order",
+                             scale = 0.75,
+                             style = "cont",
+                             first_quantile = 0.02,
+                             last_quantile = 0.98,
                              max_cog_size = 1024) {
     # check caller
     .check_set_caller(".plot_raster_cube")
@@ -444,6 +448,8 @@ plot.raster_cube <- function(x, ...,
             rev = rev,
             scale = scale,
             max_cog_size = max_cog_size,
+            first_quantile = first_quantile,
+            last_quantile = last_quantile,
             tmap_params = tmap_params
         )
         return(p)
@@ -467,6 +473,8 @@ plot.raster_cube <- function(x, ...,
             scale = scale,
             style = style,
             max_cog_size = max_cog_size,
+            first_quantile = first_quantile,
+            last_quantile = last_quantile,
             tmap_params = tmap_params
         )
     } else {
@@ -490,6 +498,8 @@ plot.raster_cube <- function(x, ...,
             line_width = NULL,
             scale = scale,
             max_cog_size = max_cog_size,
+            first_quantile = first_quantile,
+            last_quantile = last_quantile,
             tmap_params = tmap_params
         )
     }
