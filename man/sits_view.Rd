@@ -34,8 +34,8 @@ sits_view(x, ...)
   rev = FALSE,
   opacity = 0.85,
   max_cog_size = 2048,
-  first_quantile = 0.05,
-  last_quantile = 0.95,
+  first_quantile = 0.02,
+  last_quantile = 0.98,
   leaflet_megabytes = 64,
   seg_color = "black",
   line_width = 0.3

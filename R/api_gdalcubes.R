@@ -737,7 +737,7 @@
         purrr::transpose(proc_tiles_bands_times),
         function(tile, band, date) {
             tile <- local_cube[local_cube[["tile"]] == tile, ]
-            tile <- sits_select(tile, bands = band)
+            tile <- .select_raster_cube(tile, bands = band)
             return(!date %in% .tile_timeline(tile))
         }
     )

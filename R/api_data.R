@@ -139,7 +139,7 @@
             # select tile and band
             tile_id <- tile_band[[1]]
             band <- tile_band[[2]]
-            tile <- sits_select(cube, bands = band, tiles = tile_id)
+            tile <- .select_raster_cube(cube, bands = band, tiles = tile_id)
             # create a hash to store temporary samples file
             hash_bundle <- digest::digest(list(tile, samples), algo = "md5")
             filename <- .file_path(
@@ -265,7 +265,7 @@
     hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
         tile_id <- tile_band[[1]]
         band <- tile_band[[2]]
-        tile <- sits_select(cube, bands = band, tiles = tile_id)
+        tile <- .select_raster_cube(cube, bands = band, tiles = tile_id)
         digest::digest(list(tile, samples), algo = "md5")
     })
     # recreate file names to delete them
@@ -384,7 +384,7 @@
         tile_id <- tile_band[[1]]
         band <- tile_band[[2]]
 
-        tile <- sits_select(
+        tile <- .select_raster_cube(
             data = cube,
             bands = c(band, cld_band),
             tiles = tile_id
@@ -521,7 +521,9 @@
     hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
         tile_id <- tile_band[[1]]
         band <- tile_band[[2]]
-        tile <- sits_select(cube, bands = c(band, cld_band), tiles = tile_id)
+        tile <- .select_raster_cube(cube, bands = c(band, cld_band),
+                                    tiles = tile_id
+                                    )
         digest::digest(list(tile, samples), algo = "md5")
     })
     # recreate file names to delete them
@@ -584,7 +586,7 @@
     on.exit(.parallel_stop(), add = TRUE)
     # Get the samples in parallel using tile-band combination
     samples_tiles_bands <- .parallel_map(chunks_samples, function(chunk) {
-        tile <- sits_select(
+        tile <- .select_raster_cube(
             data = cube,
             bands = c(bands, cld_band),
             tiles = chunk[["tile"]]
@@ -718,7 +720,7 @@
         dplyr::ungroup()
     # recreate hash values
     hash_bundle <- purrr::map_chr(chunks_samples, function(chunk) {
-        tile <- sits_select(
+        tile <- .select_raster_cube(
             data = cube,
             bands = c(bands, cld_band),
             tiles = chunk[["tile"]]
