@@ -8,6 +8,7 @@ test_that("Creating S2 cubes from CDSE with ROI", {
         lon_min = -48.28579, lat_min = -16.05026,
         lon_max = -47.30839, lat_max = -15.50026
     )
+
     s2_cube_cdse <- .try(
         {
             sits_cube(

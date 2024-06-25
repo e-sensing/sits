@@ -350,23 +350,19 @@
     minq <- quantiles[[2]]
     maxq <- quantiles[[3]]
     maxv <- quantiles[[4]]
-    # # get the full range of values
-    # range <- maxv - minv
-    # # get the range btw 2% and 98%
-    # rangeq <- maxq - minq
-    # # calculate the stretch factor
-    # stretch <- rangeq / range
-    # # stretch the image
-    # st_obj <- stretch * (st_obj - minv) + minq
     # resample and warp the image
     st_obj <- stars::st_warp(
         src = st_obj,
         crs = sf::st_crs("EPSG:3857")
     )
+    if (inherits(tile, "sar_cube"))
+        domain <-  c(minq, maxq)
+    else
+        domain <-  c(minv, maxv)
     # produce color map
     colors_leaf <- leaflet::colorNumeric(
         palette = palette,
-        domain = c(minq, maxq),
+        domain = domain,
         reverse = FALSE
     )
     # add stars to leaflet
