@@ -2,8 +2,7 @@
 # The parameters enable access to the cloud collections
 
 HLS_ACCESS_URL: "machine.urs.earthdata.nasa.gov"
-HLS_NETRC_FILE_PATH: "~/.netrc"
-HLS_NETRC_FILE_PATH_WIN: "%HOME%\\_netrc"
+
 sources:
     HLS                     :
         s3_class            : ["hls_cube", "stac_cube", "eo_cube",
