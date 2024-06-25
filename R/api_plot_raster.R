@@ -417,7 +417,7 @@
         palette <- paste0("-", palette)
     }
     # get all labels to be plotted
-    labels <- sits_labels(tile)
+    labels <- .tile_labels(tile)
     names(labels) <- seq_len(length(labels))
     # check the labels to be plotted
     # if NULL, use all labels
@@ -492,7 +492,7 @@
 #'
 .plot_variance_hist <- function(tile) {
     # get all labels to be plotted
-    labels <- sits_labels(tile)
+    labels <- .tile_labels(tile)
     # get the path
     var_path <- .tile_path(tile)
     # get the bounding box as an sf object

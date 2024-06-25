@@ -63,6 +63,7 @@ sits_add_base_cube <- function(cube1, cube2){
     # pre-condition for merge is having the same tiles
     .check_that(all(cube1[["tile"]] %in% cube2[["tile"]]))
     # add a new tibble with base cube information
-    cube1[["base_info"]] <- cube2[["file_info"]]
+    cube1[["base_info"]] <- list(cube2)
+    class(cube1) <- c("base_raster_cube", class(cube1))
     return(cube1)
 }

@@ -173,7 +173,7 @@ sits_view.raster_cube <- function(x, ...,
     # pre-condition for bands
     # # no band? take a default
     if (!(.has(band) || (.has(red) && .has(green) && .has(blue))))
-        band <- sits_bands(x)[[1]]
+        band <- .cube_bands(x)[[1]]
     .check_bw_rgb_bands(band, red, green, blue)
     .check_available_bands(x, band, red, green, blue)
     # retrieve dots

@@ -305,7 +305,7 @@
     max_bytes <- leaflet_megabytes * 1024^2
     # obtain the raster objects for the dates chosen
     # check if date is inside the timeline
-    tile_dates <- sits_timeline(tile)
+    tile_dates <- .tile_timeline(tile)
     if (!date %in% tile_dates) {
         idx_date <- which.min(abs(date - tile_dates))
         date <- tile_dates[idx_date]
@@ -418,7 +418,7 @@
     max_bytes <- leaflet_megabytes * 1024^2
     # obtain the raster objects for the dates chosen
     # check if date is inside the timeline
-    tile_dates <- sits_timeline(tile)
+    tile_dates <- .tile_timeline(tile)
     if (!date %in% tile_dates) {
         idx_date <- which.min(abs(date - tile_dates))
         date <- tile_dates[idx_date]

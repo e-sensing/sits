@@ -33,7 +33,7 @@
 #' @export
 .values_ts.cases_dates_bands <- function(data, bands = NULL, format) {
     if (.has_not(bands)) {
-        bands <- sits_bands(data)
+        bands <- .samples_bands(data)
     }
     # populates result
     values <- data[["time_series"]] |>
@@ -46,7 +46,7 @@
 #' @export
 .values_ts.bands_cases_dates <- function(data, bands = NULL, format) {
     if (.has_not(bands)) {
-        bands <- sits_bands(data)
+        bands <- .samples_bands(data)
     }
     # get the distances tables
     distances_tbl <- data |>
@@ -88,7 +88,7 @@
 #' @export
 .values_ts.bands_dates_cases <- function(data, bands = NULL, format) {
     if (.has_not(bands)) {
-        bands <- sits_bands(data)
+        bands <- .samples_bands(data)
     }
     values <- bands |> purrr::map(function(band) {
         data[["time_series"]] |>

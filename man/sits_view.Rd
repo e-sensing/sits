@@ -32,10 +32,10 @@ sits_view(x, ...)
   legend = NULL,
   palette = "RdYlGn",
   rev = FALSE,
-  opacity = 0.7,
+  opacity = 0.85,
   max_cog_size = 2048,
   first_quantile = 0.05,
-  last_quantile = 0.05,
+  last_quantile = 0.95,
   leaflet_megabytes = 64,
   seg_color = "black",
   line_width = 0.3

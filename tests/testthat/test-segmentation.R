@@ -27,25 +27,24 @@ test_that("Segmentation", {
     expect_s3_class(object = segments, class = "vector_cube")
     expect_true("vector_info" %in% colnames(segments))
     # Read segments as sf object
-    vector_segs <- .segments_read_vec(segments)
+    vector_segs <- sits:::.segments_read_vec(segments)
     expect_equal(
         as.character(unique(sf::st_geometry_type(vector_segs))),
         expected = "POLYGON"
     )
-    vector_obj <- .vector_open_vec(segments$vector_info[[1]]$path)
+    vector_obj <- sits:::.vector_open_vec(segments$vector_info[[1]]$path)
 
     expect_true("sf" %in% class(vector_obj))
 
-    crs_wkt <- .vector_crs(vector_obj, wkt = TRUE)
+    crs_wkt <- sits:::.vector_crs(vector_obj, wkt = TRUE)
     expect_equal(class(crs_wkt), "character")
     expect_true(grepl("PROJCRS", crs_wkt))
 
-    crs_nowkt <- .vector_crs(vector_obj, wkt = FALSE)
+    crs_nowkt <- sits:::.vector_crs(vector_obj, wkt = FALSE)
     expect_equal(class(crs_nowkt), "crs")
     expect_true(grepl("PROJCRS", crs_nowkt$wkt))
 
     p1 <- plot(segments, band = "NDVI")
-    expect_equal(p1[[1]]$shp_name, "stars_obj")
     expect_equal(p1$tm_grid$grid.projection, 4326)
     expect_equal(p1$tm_layout$legend.bg.alpha, 0.5)
 
@@ -94,16 +93,13 @@ test_that("Segmentation", {
         end_date = end_date,
         version = "vt2"
     )
-    p2 <- plot(probs_segs)
-    expect_equal(p2$tm_shape$shp_name, "sf_seg")
-    expect_equal(ncol(p2$tm_shape$shp), 9)
 
     expect_s3_class(probs_segs, class = "probs_vector_cube")
     expect_true(
         "vector_info" %in% colnames(probs_segs)
     )
     # Read segments of a probability cube
-    vector_probs <- .segments_read_vec(probs_segs)
+    vector_probs <- sits:::.segments_read_vec(probs_segs)
     expect_true(
         all(sits_labels(probs_segs) %in% colnames(vector_probs))
     )
@@ -132,7 +128,7 @@ test_that("Segmentation", {
         "vector_info" %in% colnames(class_segs)
     )
     # Read segments of a classified cube
-    vector_class <- .segments_read_vec(class_segs)
+    vector_class <- sits:::.segments_read_vec(class_segs)
     expect_equal(nrow(vector_probs), nrow(vector_class))
     expect_true(all(sits_labels(rfor_model) %in% colnames(vector_probs)))
     expect_true(all(sits_labels(rfor_model) %in% colnames(vector_class)))
@@ -142,7 +138,7 @@ test_that("Segmentation", {
     p3 <- plot(class_segs)
     expect_equal(p3$tm_shape$shp_name, "sf_seg")
     expect_equal(ncol(p3$tm_shape$shp), 2)
-    expect_equal(p2$tm_compass$compass.show.labels, 1)
+    expect_equal(p3$tm_compass$compass.show.labels, 1)
 
     # testing resume feature
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")

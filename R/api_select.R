@@ -6,14 +6,14 @@
 .select_raster_bands <- function(data, bands) {
     if (.has(bands) && !anyNA(bands)) {
         bands <- .band_set_case(bands)
-        bands <- .default(bands, .band_samples(sits_bands(data)))
+        bands <- .default(bands, .band_samples(.cube_bands(data)))
         # check bands parameter
         .check_chr_parameter(
             bands,
             allow_empty = FALSE,
             allow_duplicate = FALSE,
             len_min = 1,
-            len_max = length(sits_bands(data))
+            len_max = length(.cube_bands(data))
         )
 
         # filter the selected bands

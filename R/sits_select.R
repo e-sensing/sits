@@ -60,7 +60,7 @@ sits_select.sits <- function(data,
                    allow_empty = FALSE,
                    allow_duplicate = FALSE,
                    len_min = 1,
-                   len_max = length(sits_bands(data))
+                   len_max = length(.samples_bands(data))
         )
 
         # select bands from the time series

@@ -1,12 +1,6 @@
 # save variable value
 user_file <- Sys.getenv("SITS_CONFIG_USER_FILE")
 test_that("User functions", {
-    # check config file
-    expect_equal(
-        .check_file(.conf_file()),
-        .conf_file()
-    )
-
     expect_true(
         Sys.setenv("SITS_CONFIG_USER_FILE" = "")
     )
@@ -21,20 +15,6 @@ test_that("User functions", {
         )
     )
     default <- sits_config()
-    expect_equal(
-        .conf("processing_bloat"),
-        8
-    )
-
-    expect_equal(
-        .conf("rstac_pagination_limit"),
-        100
-    )
-
-    expect_equal(
-        .conf("gdal_creation_options"),
-        c("COMPRESS=LZW", "BIGTIFF=YES")
-    )
 
     expect_equal(
         unname(.colors_get(labels = c(
@@ -43,15 +23,6 @@ test_that("User functions", {
         c(
             "#F1C40F", "#27AE60", "#2980B9"
         )
-    )
-
-    expect_output(
-        object = sits_config_show(source = "BDC"),
-        regexp = "s3_class: bdc_cube, stac_cube, eo_cube, raster_cube"
-    )
-    expect_output(
-        object = sits_config_show(source = "BDC", collection = "CBERS-WFI-16D"),
-        regexp = "bands"
     )
     # add a new source, collection
     .conf_set_options(

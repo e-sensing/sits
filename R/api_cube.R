@@ -51,13 +51,13 @@ NULL
     } else {
         stop(.conf("messages", ".cube_find_class"))
     }
-    if (all(sits_bands(cube) %in% .conf("sits_probs_bands"))) {
+    if (all(.cube_bands(cube) %in% .conf("sits_probs_bands"))) {
         class(cube) <- c("probs_cube", "derived_cube", class(cube))
-    } else if (all(sits_bands(cube) == "class")) {
+    } else if (all(.cube_bands(cube) == "class")) {
         class(cube) <- c("class_cube", "derived_cube", class(cube))
-    } else if (all(sits_bands(cube) == "variance")) {
+    } else if (all(.cube_bands(cube) == "variance")) {
         class(cube) <- c("variance_cube", "derived_cube", class(cube))
-    } else if (all(sits_bands(cube) %in% .conf("sits_uncert_bands"))) {
+    } else if (all(.cube_bands(cube) %in% .conf("sits_uncert_bands"))) {
         class(cube) <- c("uncert_cube", "derived_cube", class(cube))
     } else {
         class(cube) <- c("eo_cube", class(cube))
@@ -1267,4 +1267,17 @@ NULL
         return(chunks_sf)
     })
     return(unlist(cube_chunks, recursive = FALSE))
+}
+#' @title  Return base info
+#' @name .cube_has_base_info
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  cube       Raster cube
+#' @return            TRUE/FALSE
+#'
+#'
+.cube_has_base_info <- function(cube) {
+    return(.has(cube[["base_info"]]))
 }

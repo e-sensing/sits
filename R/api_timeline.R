@@ -29,13 +29,13 @@
 .timeline_class_info <- function(data, samples) {
     .check_set_caller(".timeline_class_info")
     # find the timeline
-    timeline <- sits_timeline(data)
+    timeline <- .samples_timeline(data)
     # precondition is the timeline correct?
     .check_that(length(timeline) >= 1)
     # find the labels
-    labels <- sits_labels(samples)
+    labels <- .samples_labels(samples)
     # find the bands
-    bands <- sits_bands(samples)
+    bands <- .samples_bands(samples)
     # what is the reference start date?
     ref_start_date <- lubridate::as_date(samples[1, ][["start_date"]])
     # what is the reference end date?

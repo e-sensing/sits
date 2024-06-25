@@ -213,7 +213,7 @@ sits_colors_qgis <- function(cube, file) {
     # check if the file name is valid
     .check_file(file, file_exists = FALSE)
     # retrieve the labels of the cube
-    labels <- sits_labels(cube)
+    labels <- .cube_labels(cube)
     # select the colors for the labels of the cube
     color_table <- .conf_colors()
     # check all labels are in the color table

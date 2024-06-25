@@ -103,7 +103,7 @@ sits_get_data <- function(cube,
                           start_date = NULL,
                           end_date = NULL,
                           label = "NoClass",
-                          bands = sits_bands(cube),
+                          bands = NULL,
                           crs = "EPSG:4326",
                           impute_fn = impute_linear(),
                           label_attr = NULL,
@@ -118,6 +118,8 @@ sits_get_data <- function(cube,
     .check_is_raster_cube(cube)
     .check_that(.cube_is_regular(cube))
     .check_raster_cube_files(cube)
+    if (!.has(bands))
+        bands <- .cube_bands(cube)
     .check_cube_bands(cube, bands = bands)
     .check_crs(crs)
     .check_int_parameter(multicores, min = 1, max = 2048)
@@ -138,11 +140,13 @@ sits_get_data.default <- function(cube, samples, ...) {
 #' @export
 sits_get_data.csv <- function(cube,
                               samples, ...,
-                              bands = sits_bands(cube),
+                              bands = NULL,
                               crs = "EPSG:4326",
                               impute_fn = impute_linear(),
                               multicores = 2,
                               progress = FALSE) {
+    if (!.has(bands))
+        bands <- .cube_bands(cube)
     # Extract a data frame from csv
     samples <- .csv_get_samples(samples)
     # Extract time series from a cube given a data.frame
@@ -164,7 +168,7 @@ sits_get_data.shp <- function(cube,
                               label = "NoClass",
                               start_date = NULL,
                               end_date = NULL,
-                              bands = sits_bands(cube),
+                              bands = NULL,
                               impute_fn = impute_linear(),
                               label_attr = NULL,
                               n_sam_pol = 30,
@@ -174,6 +178,8 @@ sits_get_data.shp <- function(cube,
                               multicores = 2,
                               progress = FALSE) {
     .check_set_caller("sits_get_data_shp")
+    if (!.has(bands))
+        bands <- .cube_bands(cube)
     # Pre-condition - shapefile should have an id parameter
     .check_that(!(pol_avg && .has_not(pol_id)))
     # Get default start and end date
@@ -212,7 +218,7 @@ sits_get_data.sf <- function(cube,
                              ...,
                              start_date = NULL,
                              end_date = NULL,
-                             bands = sits_bands(cube),
+                             bands = NULL,
                              impute_fn = impute_linear(),
                              label = "NoClass",
                              label_attr = NULL,
@@ -224,6 +230,8 @@ sits_get_data.sf <- function(cube,
                              progress = FALSE) {
     .check_set_caller("sits_get_data_sf")
     .check_that(!(pol_avg && .has_not(pol_id)))
+    if (!.has(bands))
+        bands <- .cube_bands(cube)
     # Get default start and end date
     start_date <- .default(start_date, .cube_start_date(cube))
     end_date <- .default(end_date, .cube_end_date(cube))
@@ -258,10 +266,12 @@ sits_get_data.sf <- function(cube,
 sits_get_data.sits <- function(cube,
                                samples,
                                ...,
-                               bands = sits_bands(cube),
+                               bands = NULL,
                                impute_fn = impute_linear(),
                                multicores = 2,
                                progress = FALSE) {
+    if (!.has(bands))
+        bands <- .cube_bands(cube)
     # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
@@ -282,13 +292,15 @@ sits_get_data.data.frame <- function(cube,
                                      ...,
                                      start_date = NULL,
                                      end_date = NULL,
-                                     bands = sits_bands(cube),
+                                     bands = NULL,
                                      label = "NoClass",
                                      crs = "EPSG:4326",
                                      impute_fn = impute_linear(),
                                      multicores = 2,
                                      progress = FALSE) {
     .check_set_caller("sits_get_data_data_frame")
+    if (!.has(bands))
+        bands <- .cube_bands(cube)
     # Check if samples contains all the required columns
     .check_chr_contains(
         x = colnames(samples),

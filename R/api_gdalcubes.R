@@ -738,7 +738,7 @@
         function(tile, band, date) {
             tile <- local_cube[local_cube[["tile"]] == tile, ]
             tile <- sits_select(tile, bands = band)
-            return(!date %in% sits_timeline(tile))
+            return(!date %in% .tile_timeline(tile))
         }
     )
 

@@ -197,7 +197,7 @@
     result <-
         .apply(data, col = "time_series", fn = function(x, ...) {
             dplyr::mutate(x, dplyr::across(
-                dplyr::matches(sits_bands(data)),
+                dplyr::matches(.samples_bands(data)),
                 fn, ...
             ))
         }, ...)

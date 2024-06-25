@@ -272,7 +272,7 @@
     # set caller to show in errors
     .check_set_caller(".tibble_bands_check")
     # check the bands are available
-    sp_bands <- sits_bands(samples)
+    sp_bands <- .samples_bands(samples)
     if (.has_not(bands)) {
         bands <- toupper(sp_bands)
     } else {
