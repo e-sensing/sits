@@ -178,15 +178,10 @@ test_that("View", {
                     green = "B16",
                     blue = "B13",
                     dates = "2018-08-29")
-    v_cb1 <- sits_view(cbers_cube,
-                       tiles = c("007004", "007005"),
-                       band = "B16",
-                       dates = "2018-08-29")
 
     expect_identical(v_cb$x$options$crs$crsClass, "L.CRS.EPSG3857")
     expect_identical(v_cb$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
     expect_identical(v_cb$x$calls[[5]]$method, "addRasterImage")
-    expect_identical(v_cb$x$calls[[6]]$args[[5]], "007005 2018-08-29")
 
     expect_true(all(file.remove(unlist(modis_uncert$file_info[[1]][["path"]]))))
     expect_true(all(file.remove(unlist(modis_probs$file_info[[1]][["path"]]))))

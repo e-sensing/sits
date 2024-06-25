@@ -6,14 +6,14 @@
 .select_raster_bands <- function(data, bands) {
     if (.has(bands) && !anyNA(bands)) {
         bands <- .band_set_case(bands)
-        bands <- .default(bands, .band_samples(sits_bands(data)))
+        bands <- .default(bands, .band_samples(.cube_bands(data)))
         # check bands parameter
         .check_chr_parameter(
             bands,
             allow_empty = FALSE,
             allow_duplicate = FALSE,
             len_min = 1,
-            len_max = length(sits_bands(data))
+            len_max = length(.cube_bands(data))
         )
 
         # filter the selected bands
@@ -60,5 +60,32 @@
         .check_chr_parameter(tiles)
         data <- .cube_filter_tiles(cube = data, tiles = tiles)
     }
+    return(data)
+}
+#' @noRd
+#' @name .select_raster_cube
+#' @param data       Data cube.
+#' @param bands      Character vector with the names of the bands.
+#' @param start_date Date in YYYY-MM-DD format: start date to be filtered.
+#' @param end_date   Date in YYYY-MM-DD format: end date to be filtered.
+#' @param dates      Character vector with sparse dates to select.
+#' @param tiles      Character vector with the names of the tiles.
+#'
+.select_raster_cube <- function(data,
+                                bands = NULL,
+                                start_date = NULL,
+                                end_date = NULL,
+                                dates = NULL,
+                                tiles = NULL) {
+    # Pre-condition
+    .check_raster_cube_files(data)
+    # Filter bands
+    data <- .select_raster_bands(data, bands)
+    # Filter by dates
+    data <- .select_raster_dates(data, dates)
+    # Filter by interval
+    data <- .select_raster_interval(data, start_date, end_date)
+    # Filter tiles
+    data <- .select_raster_tiles(data, tiles)
     return(data)
 }

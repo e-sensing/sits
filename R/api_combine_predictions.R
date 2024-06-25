@@ -35,7 +35,7 @@
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block_size),
         npaths = length(probs_cubes) * nrow(base_cube) *
-            length(sits_labels(base_cube)),
+            length(.cube_labels(base_cube)),
         nbytes = 8,
         proc_bloat = .conf("processing_bloat_cpu")
     )
@@ -223,7 +223,7 @@
         # Combine by average
         values <- weighted_probs(values, weights)
         # get the number of labels
-        n_labels <- length(sits_labels(cubes[[1]]))
+        n_labels <- length(.cube_labels(cubes[[1]]))
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         .check_processed_labels(values, n_labels)
@@ -248,7 +248,7 @@
         # Combine by average
         values <- weighted_uncert_probs(values, uncert_values)
         # get the number of labels
-        n_labels <- length(sits_labels(cubes[[1]]))
+        n_labels <- length(.cube_labels(cubes[[1]]))
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         .check_processed_labels(values, n_labels)

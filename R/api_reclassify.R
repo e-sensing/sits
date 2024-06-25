@@ -208,7 +208,7 @@
 
 .reclassify_new_labels <- function(cube, rules) {
     # Get cube labels
-    cube_labels <- .cube_labels(cube, dissolve = FALSE)[[1]]
+    cube_labels <- .cube_labels(cube)
     # Get rules new labels
     new_labels <- setdiff(names(rules), cube_labels)
     # Does rules has new labels in the composition?

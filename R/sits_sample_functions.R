@@ -112,15 +112,15 @@ sits_reduce_imbalance <- function(samples,
         msg = .conf("messages", "sits_reduce_imbalance_samples")
     )
     # get the bands and the labels
-    bands <- sits_bands(samples)
-    labels <- sits_labels(samples)
+    bands <- .samples_bands(samples)
+    labels <- .samples_labels(samples)
     # params of output tibble
     lat <- 0.0
     long <- 0.0
     start_date <- samples[["start_date"]][[1]]
     end_date <- samples[["end_date"]][[1]]
     cube <- samples[["cube"]][[1]]
-    timeline <- sits_timeline(samples)
+    timeline <- .samples_timeline(samples)
     # get classes to undersample
     classes_under <- samples |>
         summary() |>
@@ -146,8 +146,7 @@ sits_reduce_imbalance <- function(samples,
                 samples_cls,
                 grid_xdim = grid_dim,
                 grid_ydim = grid_dim,
-                rlen = 50,
-                mode = "pbatch"
+                rlen = 50
             )
             # select samples on the SOM grid using the neurons
             samples_under <- som_map[["data"]] |>

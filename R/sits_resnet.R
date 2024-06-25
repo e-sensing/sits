@@ -168,11 +168,11 @@ sits_resnet <- function(samples = NULL,
         .check_lgl_parameter(verbose)
 
         # Samples labels
-        labels <- sits_labels(samples)
+        labels <- .samples_labels(samples)
         # Samples bands
-        bands <- sits_bands(samples)
+        bands <- .samples_bands(samples)
         # Samples timeline
-        timeline <- sits_timeline(samples)
+        timeline <- .samples_timeline(samples)
 
         # Create numeric labels vector
         code_labels <- seq_along(labels)

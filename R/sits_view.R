@@ -160,8 +160,8 @@ sits_view.raster_cube <- function(x, ...,
                                   rev = FALSE,
                                   opacity = 0.85,
                                   max_cog_size = 2048,
-                                  first_quantile = 0.05,
-                                  last_quantile = 0.95,
+                                  first_quantile = 0.02,
+                                  last_quantile = 0.98,
                                   leaflet_megabytes = 64,
                                   seg_color = "black",
                                   line_width = 0.3) {
@@ -173,7 +173,7 @@ sits_view.raster_cube <- function(x, ...,
     # pre-condition for bands
     # # no band? take a default
     if (!(.has(band) || (.has(red) && .has(green) && .has(blue))))
-        band <- sits_bands(x)[[1]]
+        band <- .cube_bands(x)[[1]]
     .check_bw_rgb_bands(band, red, green, blue)
     .check_available_bands(x, band, red, green, blue)
     # retrieve dots

@@ -22,8 +22,8 @@ sources:
                         scale_factor  : 1
                         offset_value  : 0
                         resampling    : "bilinear"
-                satellite       : "COP-DEM-GLO"
-                sensor          : "30"
+                satellite       : "TANDEM-X"
+                sensor          : "X-band-SAR"
                 collection_name : "cop-dem-glo-30"
                 dem_cube        : true
                 open_data       : true

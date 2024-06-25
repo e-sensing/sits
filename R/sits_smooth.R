@@ -85,7 +85,7 @@ sits_smooth <- function(cube,
     # Check version
     version <- .check_version(version)
     # get nlabels
-    nlabels <- length(sits_labels(cube))
+    nlabels <- length(.cube_labels(cube))
     # Check smoothness
     .check_smoothness(smoothness, nlabels)
     # Prepare smoothness parameter
@@ -107,7 +107,7 @@ sits_smooth.probs_cube <- function(cube,
     # version is case-insensitive in sits
     version <- tolower(version)
     # get nlabels
-    nlabels <- length(sits_labels(cube))
+    nlabels <- length(.cube_labels(cube))
     # Prepare smoothness parameter
     if (length(smoothness) == 1) {
         smoothness <- rep(smoothness, nlabels)
