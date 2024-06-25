@@ -498,7 +498,7 @@
         # check that class_cube is valid
         .check_that(inherits(class_cube, "class_cube"))
         # get the labels
-        labels <- unlist(.cube_labels(class_cube, dissolve = FALSE))
+        labels <- .cube_labels(class_cube)
         if (.has_not(names(labels))) {
             names(labels) <- seq_along(labels)
         }
@@ -607,7 +607,7 @@
 #'
 #'
 .view_get_labels_raster <- function(class_cube) {
-    labels <- unlist(.cube_labels(class_cube, dissolve = FALSE))
+    labels <- .cube_labels(class_cube)
     return(labels)
 }
 #' @title  Get the labels for a classified vector cube

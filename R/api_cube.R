@@ -219,6 +219,10 @@ NULL
     UseMethod(".cube_labels", cube)
 }
 #' @export
+.cube_labels.derived_cube <- function(cube, dissolve = FALSE) {
+    return(cube[["labels"]][[1]])
+}
+#' @export
 .cube_labels.raster_cube <- function(cube, dissolve = TRUE) {
     labels <- .compact(slider::slide(cube, .tile_labels))
     if (dissolve) {

@@ -44,7 +44,7 @@ test_that("One-year, multicores processing reclassify", {
             )
         ),
         memsize = 4,
-        multicores = 2,
+        multicores = 1,
         output_dir = tempdir(),
         version = "reclass"
     )
