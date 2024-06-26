@@ -15,7 +15,7 @@
 #' @return Updated sits object
 #' @export
 .band_rename.sits <- function(x, bands) {
-    data_bands <- sits_bands(x)
+    data_bands <- .samples_bands(x)
     # pre-condition
     .check_chr(
         bands,
@@ -42,7 +42,7 @@
 #' @return updated sits object
 #' @export
 .band_rename.raster_cube <- function(x, bands) {
-    data_bands <- sits_bands(x)
+    data_bands <- .cube_bands(x)
     # pre-condition
     .check_chr(
         bands,

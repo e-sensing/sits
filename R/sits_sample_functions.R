@@ -112,15 +112,15 @@ sits_reduce_imbalance <- function(samples,
         msg = .conf("messages", "sits_reduce_imbalance_samples")
     )
     # get the bands and the labels
-    bands <- sits_bands(samples)
-    labels <- sits_labels(samples)
+    bands <- .samples_bands(samples)
+    labels <- .samples_labels(samples)
     # params of output tibble
     lat <- 0.0
     long <- 0.0
     start_date <- samples[["start_date"]][[1]]
     end_date <- samples[["end_date"]][[1]]
     cube <- samples[["cube"]][[1]]
-    timeline <- sits_timeline(samples)
+    timeline <- .samples_timeline(samples)
     # get classes to undersample
     classes_under <- samples |>
         summary() |>
@@ -135,10 +135,8 @@ sits_reduce_imbalance <- function(samples,
     new_samples <- .tibble()
     # under sampling
     if (length(classes_under) > 0) {
-        .parallel_start(workers = multicores)
-        on.exit(.parallel_stop())
         # for each class, select some of the samples using SOM
-        samples_under_new <- .parallel_map(classes_under, function(cls) {
+        samples_under_new <- purrr::map(classes_under, function(cls) {
             # select the samples for the class
             samples_cls <- dplyr::filter(samples, .data[["label"]] == cls)
             # set the dimension of the SOM grid
@@ -290,9 +288,8 @@ sits_sampling_design <- function(cube,
                                  rare_class_prop = 0.1) {
     .check_set_caller("sits_sampling_design")
     # check the cube is valid
-    .check_raster_cube_files(cube)
-    # check cube is class cube
-    .check_is_class_cube(cube)
+    .check_that(inherits(cube, "class_cube") ||
+                    inherits(cube, "class_vector_cube"))
     # get the labels
     labels <- .cube_labels(cube)
     n_labels <- length(labels)
@@ -304,10 +301,13 @@ sits_sampling_design <- function(cube,
     .check_that(length(expected_ua) == n_labels)
     # check names of labels
     .check_that(all(labels %in% names(expected_ua)))
-    # adjust names to match cube labels
-    expected_ua <- expected_ua[labels]
     # get cube class areas
     class_areas <- .cube_class_areas(cube)
+    # check that names of class areas are contained in the labels
+    .check_that(all(names(class_areas) %in% labels),
+                msg = .conf("messages", "sits_sampling_design_labels"))
+    # adjust names to match cube labels
+    expected_ua <- expected_ua[names(class_areas)]
     # calculate proportion of class areas
     prop <- class_areas / sum(class_areas)
     # standard deviation of the stratum
@@ -315,8 +315,9 @@ sits_sampling_design <- function(cube,
     # calculate sample size
     sample_size <-  round((sum(prop * std_dev) / std_err) ^ 2)
     # determine "Equal" allocation
-    equal <- rep(round(sample_size / n_labels), n_labels)
-    names(equal) <- labels
+    n_classes <- length(class_areas)
+    equal <- rep(round(sample_size / n_classes), n_classes)
+    names(equal) <- names(class_areas)
     # find out the classes which are rare
     rare_classes <- prop[prop <= rare_class_prop]
     #  Determine allocation possibilities
@@ -418,66 +419,44 @@ sits_stratified_sampling <- function(cube,
     .check_set_caller("sits_stratified_sampling")
     # check the cube is valid
     .check_raster_cube_files(cube)
-    # check cube is class cube
-    .check_is_class_cube(cube)
+    # check the cube is valid
+    .check_that(inherits(cube, "class_cube") ||
+                    inherits(cube, "class_vector_cube"))
     # get the labels
     labels <- .cube_labels(cube)
     n_labels <- length(labels)
     # check number of labels
-    .check_that(nrow(sampling_design) == n_labels)
+    .check_that(nrow(sampling_design) <= n_labels)
     # check names of labels
     .check_that(all(rownames(sampling_design) %in% labels))
     # check allocation method
     .check_that(alloc %in% colnames(sampling_design),
-                msg = .conf("messages", "sits_sampling_design_alloc"))
+                msg = .conf("messages", "sits_stratified_sampling_alloc"))
     # retrieve samples class
     samples_class <- unlist(sampling_design[, alloc])
     # check samples class
     .check_int_parameter(samples_class, is_named = TRUE,
-            msg = .conf("messages", "sits_sampling_design_samples")
+            msg = .conf("messages", "sits_stratified_sampling_samples")
     )
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
     # name samples class
-    names(samples_class) <- rownames(sampling_design)
+    # names(samples_class) <- rownames(sampling_design)
     # include overhead
     samples_class <- ceiling(samples_class * overhead)
-    # estimate size
-    size <- ceiling(max(samples_class) / nrow(cube))
-    # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
-    # Create assets as jobs
-    cube_assets <- .cube_split_assets(cube)
-    # Process each asset in parallel
-    samples <- .jobs_map_parallel_dfr(cube_assets, function(tile) {
-        robj <- .raster_open_rast(.tile_path(tile))
-        cls <- data.frame(id = 1:n_labels,
-                          cover = labels)
-        levels(robj) <- cls
-        samples_sv <- terra::spatSample(
-            x = robj,
-            size = size,
-            method = "stratified",
-            as.points = TRUE
-        )
-        samples_sf <- sf::st_as_sf(samples_sv)
-        samples_sf <- dplyr::mutate(samples_sf,
-                                    label = labels[.data[["cover"]]])
-        samples_sf <- sf::st_transform(samples_sf, crs = "EPSG:4326")
-    }, progress = progress)
 
-    samples <- purrr::map_dfr(labels, function(lab) {
-        samples_class <- samples |>
-            dplyr::filter(.data[["label"]] == lab) |>
-            dplyr::slice_sample(n = samples_class[lab])
-    })
+    # call function to allocate sample per strata
+    samples <- .samples_alloc_strata(
+        cube = cube,
+        samples_class = samples_class,
+        multicores = multicores)
+
     if (.has(shp_file)) {
         .check_that(tools::file_ext(shp_file) == "shp",
-                    msg = .conf("messages", "sits_sampling_design_shp")
+                    msg = .conf("messages", "sits_stratified_sampling_shp")
         )
         sf::st_write(samples, shp_file, append = FALSE)
-        message(.conf("messages", "sits_sampling_design_shp_save"), shp_file)
+        message(.conf("messages", "sits_stratified_sampling_shp_save"), shp_file)
     }
     return(samples)
 }

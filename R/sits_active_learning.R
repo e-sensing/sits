@@ -294,7 +294,7 @@ sits_confidence_sampling <- function(probs_cube,
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
     # get labels
-    labels <- sits_labels(probs_cube)
+    labels <- .cube_labels(probs_cube)
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(probs_cube, function(tile) {
         # Create chunks as jobs

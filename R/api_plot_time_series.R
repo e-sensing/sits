@@ -64,7 +64,7 @@
     }
 
     # how many different labels are there?
-    labels <- sits_labels(data)
+    labels <- .samples_labels(data)
 
     label_plots <- labels |>
         purrr::map(function(l) {
@@ -74,9 +74,9 @@
             # how many time series are to be plotted?
             number <- nrow(data2)
             # what are the band names?
-            bands <- sits_bands(data2)
+            bands <- .samples_bands(data2)
             # what are the reference dates?
-            ref_dates <- sits_timeline(data2)
+            ref_dates <- .samples_timeline(data2)
             # align all time series to the same dates
             data2 <- .tibble_align_dates(data2, ref_dates)
 

@@ -16,20 +16,21 @@
 #' @param  tiles         Tiles to be plotted (in case of a multi-tile cube).
 #' @param  class_cube    Classified cube to be overlayed on top on image.
 #' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Color palette (if colors not in legend nor
-#'                       in sits default colors)
+#' @param  palette       Color palette from RColorBrewer
+#' @param  rev           Revert color palette?
 #' @param  opacity       Opacity of segment fill or class cube
 #' @param  seg_color     Color for segment boundaries
 #' @param  line_width    Line width for segments (in pixels)
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
+#' @param  leaflet_megabytes Maximum size for leaflet (in MB)
 #' @param  id_neurons    Neurons from the SOM map to be shown.
 #'
 #' @return               A leaflet object containing either samples or
 #'                       data cubes embedded in a global map that can
 #'                       be visualized directly in an RStudio viewer.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
 #'     # view samples
@@ -42,6 +43,7 @@
 #'         data_dir = data_dir
 #'     )
 #'     # view the data cube
+#'     library(magrittr)
 #'     sits_view(modis_cube,
 #'         band = "NDVI"
 #'     )
@@ -78,7 +80,7 @@
 #'         output_dir = tempdir()
 #'     )
 #'     # view the uncertainty cube
-#'     sits_view(modis_uncert)
+#'     sits_view(modis_uncert, rev = TRUE)
 #' }
 #' @export
 sits_view <- function(x, ...) {
@@ -155,9 +157,14 @@ sits_view.raster_cube <- function(x, ...,
                                   class_cube = NULL,
                                   legend = NULL,
                                   palette = "RdYlGn",
-                                  opacity = 0.7,
+                                  rev = FALSE,
+                                  opacity = 0.85,
+                                  max_cog_size = 2048,
+                                  first_quantile = 0.02,
+                                  last_quantile = 0.98,
+                                  leaflet_megabytes = 64,
                                   seg_color = "black",
-                                  line_width = 1) {
+                                  line_width = 0.3) {
     # preconditions
     # Probs cube not supported
     .check_that(!inherits(x, "probs_cube"))
@@ -166,7 +173,7 @@ sits_view.raster_cube <- function(x, ...,
     # pre-condition for bands
     # # no band? take a default
     if (!(.has(band) || (.has(red) && .has(green) && .has(blue))))
-        band <- sits_bands(x)[[1]]
+        band <- .cube_bands(x)[[1]]
     .check_bw_rgb_bands(band, red, green, blue)
     .check_available_bands(x, band, red, green, blue)
     # retrieve dots
@@ -202,7 +209,12 @@ sits_view.raster_cube <- function(x, ...,
                     blue = blue,
                     legend = legend,
                     palette = palette,
-                    opacity = opacity
+                    rev = rev,
+                    opacity = opacity,
+                    max_cog_size = max_cog_size,
+                    first_quantile = first_quantile,
+                    last_quantile = last_quantile,
+                    leaflet_megabytes = leaflet_megabytes
             )
         }
         # include segments and class cube if available
@@ -221,7 +233,9 @@ sits_view.raster_cube <- function(x, ...,
                 tile = row,
                 legend = legend,
                 palette = palette,
-                opacity = opacity
+                opacity = opacity,
+                max_cog_size = max_cog_size,
+                leaflet_megabytes = leaflet_megabytes
             )
     }
     # add overlay groups for segments and class cube (if available)
@@ -254,7 +268,9 @@ sits_view.class_cube <- function(x, ...,
                                  tiles = x[["tile"]],
                                  legend = NULL,
                                  palette = "Spectral",
-                                 opacity = 0.8) {
+                                 opacity = 0.8,
+                                 max_cog_size = 1024,
+                                 leaflet_megabytes = 32){
     # preconditions
     .check_require_packages("leaflet")
     # deal with tiles
@@ -272,7 +288,9 @@ sits_view.class_cube <- function(x, ...,
                 tile = tile,
                 legend = legend,
                 palette = palette,
-                opacity = opacity
+                opacity = opacity,
+                max_cog_size = max_cog_size,
+                leaflet_megabytes = leaflet_megabytes
             )
     }
 

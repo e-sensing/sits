@@ -28,6 +28,7 @@ utils::globalVariables(c(
     "sar:frequency_band", "sar:instrument_mode", "sat:orbit_state" # S1 stac
 ))
 #' @importFrom lubridate %within% %m+%
+#' @importFrom magrittr %>%
 #' @importFrom Rcpp sourceCpp
 #' @importFrom dplyr .data
 #' @importFrom utils read.csv

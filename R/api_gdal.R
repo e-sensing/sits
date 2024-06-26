@@ -346,3 +346,10 @@
     )
     return(invisible(out_file))
 }
+#' @title Get GDAL Version
+#' @noRd
+#' @returns  GDAL Version
+.gdal_version <- function() {
+    sf_versions <- sf::sf_extSoftVersion()
+    sf_versions[["GDAL"]]
+}

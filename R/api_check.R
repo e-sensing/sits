@@ -1697,17 +1697,17 @@
     samples_validation <- .check_samples(samples_validation)
     # check if the labels matches with train data
     .check_that(
-        all(sits_labels(samples_validation) %in% labels) &&
-            all(labels %in% sits_labels(samples_validation))
+        all(.samples_labels(samples_validation) %in% labels) &&
+            all(labels %in% .samples_labels(samples_validation))
     )
     # check if the timeline matches with train data
     .check_that(
-        length(sits_timeline(samples_validation)) == length(timeline)
+        length(.samples_timeline(samples_validation)) == length(timeline)
     )
     # check if the bands matches with train data
     .check_that(
-        all(sits_bands(samples_validation) %in% bands) &&
-            all(bands %in% sits_bands(samples_validation))
+        all(.samples_bands(samples_validation) %in% bands) &&
+            all(bands %in% .samples_bands(samples_validation))
     )
     return(invisible(samples_validation))
 }
@@ -1763,8 +1763,8 @@
     cols <- .pred_cols # From predictors API
     .check_that(cols %in% colnames(pred))
     .check_that(nrow(pred) > 0)
-    n_bands <- length(sits_bands(samples))
-    n_times <- length(sits_timeline(samples))
+    n_bands <- length(.samples_bands(samples))
+    n_times <- length(.samples_timeline(samples))
     .check_that(ncol(pred) == 2 + n_bands * n_times)
     return(invisible(pred))
 }
@@ -1802,8 +1802,8 @@
 .check_samples_tile_match_timeline <- function(samples, tile) {
     .check_set_caller(".check_samples_tile_match_timeline")
     # do they have the same timelines?
-    samples_timeline_length <- length(sits_timeline(samples))
-    tiles_timeline_length <- length(sits_timeline(tile))
+    samples_timeline_length <- length(.samples_timeline(samples))
+    tiles_timeline_length <- length(.tile_timeline(tile))
     .check_that(samples_timeline_length == tiles_timeline_length)
     return(invisible(samples))
 }
@@ -1817,8 +1817,8 @@
 .check_samples_tile_match_bands <- function(samples, tile) {
     .check_set_caller(".check_samples_tile_match_bands")
     # do they have the same bands?
-    tile_bands <- sits_bands(tile)
-    bands <- sits_bands(samples)
+    tile_bands <- .tile_bands(tile)
+    bands <- .samples_bands(samples)
     .check_that(all(bands %in% tile_bands))
     return(invisible(samples))
 }
@@ -1855,7 +1855,7 @@
     })
     classes_num <- unique(unlist(classes_list))
     classes_num <- classes_num[!is.na(classes_num)]
-    labels_num <- names(sits_labels(cube))
+    labels_num <- names(.cube_labels(cube))
     # do the labels and raster numbers match?
     .check_that(all(classes_num %in% labels_num))
     return(invisible(cube))
@@ -1964,8 +1964,8 @@
 .check_cubes_same_labels <- function(cube1, cube2) {
     .check_set_caller(".check_cubes_same_labels")
     .check_that(
-        all(sits_labels(cube1) %in% sits_labels(cube2)) &&
-            all(sits_labels(cube2) %in% sits_labels(cube1))
+        all(.cube_labels(cube1) %in% .cube_labels(cube2)) &&
+            all(.cube_labels(cube2) %in% .cube_labels(cube1))
     )
     return(invisible(cube1))
 }
@@ -1978,7 +1978,7 @@
 #' @return Called for side effects.
 .check_cubes_same_timeline <- function(cube1, cube2) {
     .check_set_caller(".check_cubes_same_timeline")
-    .check_that(all(sits_timeline(cube1) == sits_timeline(cube2)))
+    .check_that(all(.cube_timeline(cube1)[[1]] == .cube_timeline(cube2)[[1]]))
     return(invisible(cube1))
 }
 #' @title Check if two cubes have the same organization
@@ -2397,4 +2397,52 @@
 .check_linkage_method <- function(linkage) {
     .check_set_caller(".check_linkage_method")
     .check_that(linkage %in% .conf("dendro_linkage"))
+}
+#' @title Check netrc file
+#' @description
+#' Check if netrc file exists and if its content is correct
+#' @param attributes    Attributes required from the netrc file
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_netrc_gdal <- function(attributes) {
+    .check_set_caller(".check_netrc_gdal")
+    # define if the current GDAL version is reading netrc from env variable
+    is_gdal_reading_netrc <- .gdal_version() >= "3.7.0"
+    # define from where `netrc` file must be loaded
+    # case 1 - gdal environment variable (requires GDAL >= 3.7.0)
+    netrc_from_var <- ifelse(
+        is_gdal_reading_netrc,
+        Sys.getenv("GDAL_HTTP_NETRC_FILE", unset = NA),
+        NA
+    )
+    # case 2 - netrc file stored in user home directory
+    netrc_from_home <- ifelse(
+        .Platform[["OS.type"]] == "windows",
+        .conf("gdal_netrc_file_path_win"),
+        .conf("gdal_netrc_file_path")
+    )
+    # define which netrc file will be used
+    netrc_file <- ifelse(
+        is.na(netrc_from_var),
+        netrc_from_home,
+        netrc_from_var
+    )
+    # if the env variable is used, then, warning users not to set the GDAL
+    # variable using `Sys.setenv`
+    if (!is.na(netrc_from_var)) {
+        warning(.conf("messages", ".check_netrc_gdal_var"))
+    }
+    # check if file exist
+    .check_that(file.exists(netrc_file))
+    # load netrc content
+    netrc_content <- readLines(netrc_file)
+    # check netrc file content
+    .check_that(
+        any(
+            purrr::map_lgl(netrc_content, function(x) {
+                stringr::str_detect(x, attributes)
+            })
+        )
+    )
 }

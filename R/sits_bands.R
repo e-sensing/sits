@@ -50,6 +50,19 @@ sits_bands.sits <- function(x) {
 }
 #' @rdname sits_bands
 #' @export
+sits_bands.base_raster_cube <- function(x) {
+    # get time series bands
+    ts_bands <- .tile_bands(x)
+    # get base bands
+    tile_base <- .tile_base_info(x)
+    base_bands <- .tile_bands(tile_base)
+    return(list(
+        "time_series_bands" = ts_bands,
+        "base_bands" = base_bands
+    ))
+}
+#' @rdname sits_bands
+#' @export
 sits_bands.raster_cube <- function(x) {
     # set caller to show in errors
     .check_set_caller("sits_bands")
@@ -100,7 +113,7 @@ sits_bands.default <- function(x) {
 #' @rdname sits_bands
 #' @export
 `sits_bands<-.sits` <- function(x, value) {
-    bands <- sits_bands(x)
+    bands <- .samples_bands(x)
     .check_that(length(bands) == length(value))
     x <- .apply(x, col = "time_series", fn = function(x) {
         names(x) <- c("Index", value, "#..")
@@ -111,7 +124,7 @@ sits_bands.default <- function(x) {
 #' @rdname sits_bands
 #' @export
 `sits_bands<-.raster_cube` <- function(x, value) {
-    bands <- sits_bands(x)
+    bands <- .cube_bands(x)
     # precondition
     .check_that(length(bands) == length(value))
     x <- slider::slide_dfr(x, function(tile) {

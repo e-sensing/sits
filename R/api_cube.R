@@ -51,13 +51,13 @@ NULL
     } else {
         stop(.conf("messages", ".cube_find_class"))
     }
-    if (all(sits_bands(cube) %in% .conf("sits_probs_bands"))) {
+    if (all(.cube_bands(cube) %in% .conf("sits_probs_bands"))) {
         class(cube) <- c("probs_cube", "derived_cube", class(cube))
-    } else if (all(sits_bands(cube) == "class")) {
+    } else if (all(.cube_bands(cube) == "class")) {
         class(cube) <- c("class_cube", "derived_cube", class(cube))
-    } else if (all(sits_bands(cube) == "variance")) {
+    } else if (all(.cube_bands(cube) == "variance")) {
         class(cube) <- c("variance_cube", "derived_cube", class(cube))
-    } else if (all(sits_bands(cube) %in% .conf("sits_uncert_bands"))) {
+    } else if (all(.cube_bands(cube) %in% .conf("sits_uncert_bands"))) {
         class(cube) <- c("uncert_cube", "derived_cube", class(cube))
     } else {
         class(cube) <- c("eo_cube", class(cube))
@@ -143,23 +143,10 @@ NULL
 #'
 #' @return A \code{vector} with the areas of the cube labels.
 .cube_class_areas <- function(cube) {
-    .check_is_class_cube(cube)
-    labels_cube <- sits_labels(cube)
-
     # Get area for each class for each row of the cube
     freq_lst <- slider::slide(cube, function(tile) {
         # Get the frequency count and value for each labelled image
         freq <- .tile_area_freq(tile)
-        # pixel area
-        # convert the area to hectares
-        # assumption: spatial resolution unit is meters
-        area <- freq[["count"]] * .tile_xres(tile) * .tile_yres(tile) / 10000
-        # Include class names
-        freq <- dplyr::mutate(
-            freq,
-            area = area,
-            class = labels_cube[as.character(freq[["value"]])]
-        )
         return(freq)
     })
     # Get a tibble by binding the row (duplicated labels with different counts)
@@ -230,6 +217,10 @@ NULL
 #' @return A \code{vector} with the cube bands.
 .cube_labels <- function(cube, dissolve = TRUE) {
     UseMethod(".cube_labels", cube)
+}
+#' @export
+.cube_labels.derived_cube <- function(cube, dissolve = FALSE) {
+    return(cube[["labels"]][[1]])
 }
 #' @export
 .cube_labels.raster_cube <- function(cube, dissolve = TRUE) {
@@ -1280,4 +1271,17 @@ NULL
         return(chunks_sf)
     })
     return(unlist(cube_chunks, recursive = FALSE))
+}
+#' @title  Return base info
+#' @name .cube_has_base_info
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  cube       Raster cube
+#' @return            TRUE/FALSE
+#'
+#'
+.cube_has_base_info <- function(cube) {
+    return(.has(cube[["base_info"]]))
 }

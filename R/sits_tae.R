@@ -147,7 +147,7 @@ sits_tae <- function(samples = NULL,
         # Samples bands
         bands <- .samples_bands(samples)
         # Samples timeline
-        timeline <- sits_timeline(samples)
+        timeline <- .samples_timeline(samples)
         # Create numeric labels vector
         code_labels <- seq_along(labels)
         names(code_labels) <- labels
