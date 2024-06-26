@@ -2398,3 +2398,51 @@
     .check_set_caller(".check_linkage_method")
     .check_that(linkage %in% .conf("dendro_linkage"))
 }
+#' @title Check netrc file
+#' @description
+#' Check if netrc file exists and if its content is correct
+#' @param attributes    Attributes required from the netrc file
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_netrc_gdal <- function(attributes) {
+    .check_set_caller(".check_netrc_gdal")
+    # define if the current GDAL version is reading netrc from env variable
+    is_gdal_reading_netrc <- .gdal_version() >= "3.7.0"
+    # define from where `netrc` file must be loaded
+    # case 1 - gdal environment variable (requires GDAL >= 3.7.0)
+    netrc_from_var <- ifelse(
+        is_gdal_reading_netrc,
+        Sys.getenv("GDAL_HTTP_NETRC_FILE", unset = NA),
+        NA
+    )
+    # case 2 - netrc file stored in user home directory
+    netrc_from_home <- ifelse(
+        .Platform[["OS.type"]] == "windows",
+        .conf("gdal_netrc_file_path_win"),
+        .conf("gdal_netrc_file_path")
+    )
+    # define which netrc file will be used
+    netrc_file <- ifelse(
+        is.na(netrc_from_var),
+        netrc_from_home,
+        netrc_from_var
+    )
+    # if the env variable is used, then, warning users not to set the GDAL
+    # variable using `Sys.setenv`
+    if (!is.na(netrc_from_var)) {
+        warning(.conf("messages", ".check_netrc_gdal_var"))
+    }
+    # check if file exist
+    .check_that(file.exists(netrc_file))
+    # load netrc content
+    netrc_content <- readLines(netrc_file)
+    # check netrc file content
+    .check_that(
+        any(
+            purrr::map_lgl(netrc_content, function(x) {
+                stringr::str_detect(x, attributes)
+            })
+        )
+    )
+}
