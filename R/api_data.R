@@ -80,8 +80,13 @@
         )
     }
     if (.has(cube[["base_info"]])) {
-        cube_base <- cube[["base_info"]][[1]]
+        # get base info
+        cube_base <- cube[["base_info"]]
+        # bind all base info
+        cube_base <- dplyr::bind_rows(cube_base)
+        # get bands
         bands_base <- .cube_bands(cube_base)
+        # extract data
         base_tbl <- .data_get_ts(
             cube = cube_base,
             samples = samples,
@@ -90,6 +95,8 @@
             multicores = multicores,
             progress = progress
         )
+        # save base data
+        ts_tbl[["base_data"]] <- base_tbl[["time_series"]]
     }
     return(ts_tbl)
 }
