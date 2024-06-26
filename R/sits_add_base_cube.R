@@ -62,6 +62,9 @@ sits_add_base_cube <- function(cube1, cube2){
     .check_that(inherits(cube2, "dem_cube"))
     # pre-condition for merge is having the same tiles
     .check_that(all(cube1[["tile"]] %in% cube2[["tile"]]))
+    fi_cube2 <- .fi(cube2)
+    fi_cube2[["date"]] <- .cube_timeline(cube1)[[1]][[1]]
+    .fi(cube2) <- fi_cube2
     # add a new tibble with base cube information
     cube1[["base_info"]] <- list(cube2)
     class(cube1) <- c("base_raster_cube", class(cube1))
