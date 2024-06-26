@@ -14,11 +14,13 @@
   tile = x[["tile"]][[1]],
   dates = NULL,
   seg_color = "black",
-  line_width = 0.3,
+  line_width = 0.2,
   palette = "RdYlGn",
   rev = FALSE,
-  scale = 1,
-  style = "order",
+  scale = 0.8,
+  style = "cont",
+  first_quantile = 0.02,
+  last_quantile = 0.98,
   max_cog_size = 1024
 )
 }
@@ -51,6 +53,10 @@
 
 \item{style}{Style for plotting continuous objects}
 
+\item{first_quantile}{First quantile for stretching images}
+
+\item{last_quantile}{Last quantile for stretching images}
+
 \item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
 }
 \value{
@@ -65,8 +71,6 @@ Plot RGB raster cube
 The following optional parameters are available to allow for detailed
       control over the plot output:
 \itemize{
-\item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
-\item \code{last_quantile}: last quantile for stretching images (default = 0.95)
 \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
 \item \code{legend_title_size}: relative size of legend title (default = 1.0)
 \item \code{legend_text_size}: relative size of legend text (default = 1.0)

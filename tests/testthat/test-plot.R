@@ -46,7 +46,7 @@ test_that("Plot Time Series and Images", {
         progress = FALSE
     )
     p <- plot(sinop, band = "NDVI", palette = "RdYlGn")
-    expect_equal(p$tm_shape$shp_name, "rast")
+    expect_equal(p$tm_shape$shp_name, "st")
     expect_equal(p$tm_raster$palette, "RdYlGn")
     expect_equal(p$tm_grid$grid.projection, 4326)
 

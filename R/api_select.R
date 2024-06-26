@@ -62,14 +62,15 @@
     }
     return(data)
 }
+#' @title Select tiles from cube
 #' @noRd
-#' @name .select_raster_cube
 #' @param data       Data cube.
 #' @param bands      Character vector with the names of the bands.
 #' @param start_date Date in YYYY-MM-DD format: start date to be filtered.
 #' @param end_date   Date in YYYY-MM-DD format: end date to be filtered.
 #' @param dates      Character vector with sparse dates to select.
 #' @param tiles      Character vector with the names of the tiles.
+#' @return  selected lines of the data cube tibble
 #'
 .select_raster_cube <- function(data,
                                 bands = NULL,
