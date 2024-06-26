@@ -27,11 +27,10 @@
     .check_set_caller(".sf_get_samples")
     # Pre-condition - is the sf object has geometries?
     .check_that(nrow(sf_object) > 0)
-    # Precondition - can the function deal with the geometry_type?
+    # Pre-condition - can the function deal with the geometry_type?
     geom_type <- as.character(sf::st_geometry_type(sf_object)[[1]])
     sf_geom_types_supported <- .conf("sf_geom_types_supported")
     .check_that(geom_type %in% sf_geom_types_supported)
-
     # Get the points to be read
     samples <- .sf_to_tibble(
         sf_object  = sf_object,
@@ -76,22 +75,12 @@
                           sampling_type,
                           start_date,
                           end_date) {
-
-    # Remove empty geometries if exists
-    are_empty_geoms <- sf::st_is_empty(sf_object)
-    if (any(are_empty_geoms)) {
-        if (.check_warnings()) {
-            warning(.conf("messages", ".sf_to_tibble"),
-                immediate. = TRUE, call. = FALSE
-            )
-        }
-        sf_object <- sf_object[!are_empty_geoms, ]
-    }
+    # Remove invalid geometries (malformed and empty ones)
+    sf_object <- .sf_clean(sf_object)
     # If the sf object is not in planar coordinates, convert it
     sf_object <- suppressWarnings(
         sf::st_transform(sf_object, crs = "EPSG:4326")
     )
-
     # Get the geometry type
     geom_type <- as.character(sf::st_geometry_type(sf_object)[[1]])
     # Get a tibble with points and labels
@@ -238,4 +227,25 @@
             return(pts_tab)
         })
     return(points_tab)
+}
+
+#' @title Clean invalid geometries
+#' @name .sf_clean
+#' @description Malformed and empty geometries are defined as invalid
+#' @keywords internal
+#' @noRd
+#' @param sf_object sf object to be validated
+#' @return sf object with no invalid geometries.
+#'
+.sf_clean <- function(sf_object) {
+    # condition 1 - geometry is valid
+    is_geometry_valid <- sf::st_is_valid(sf_object)
+    # condition 2 - geometry is not empty
+    is_geometry_valid <- is_geometry_valid & !sf::st_is_empty(sf_object)
+    # warning user in case of invalid geometries
+    if (!all(is_geometry_valid)) {
+        warning(.conf("messages", ".sf_clean"))
+    }
+    # return only valid geometries
+    sf_object[is_geometry_valid,]
 }

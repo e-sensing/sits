@@ -196,6 +196,9 @@ sits_get_data.shp <- function(cube,
         shp_id      = pol_id,
         sampling_type = sampling_type
     )
+
+    # Include validation here
+
     # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
