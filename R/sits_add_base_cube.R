@@ -62,11 +62,28 @@ sits_add_base_cube <- function(cube1, cube2){
     .check_that(inherits(cube2, "dem_cube"))
     # pre-condition for merge is having the same tiles
     .check_that(all(cube1[["tile"]] %in% cube2[["tile"]]))
-    fi_cube2 <- .fi(cube2)
-    fi_cube2[["date"]] <- .cube_timeline(cube1)[[1]][[1]]
-    .fi(cube2) <- fi_cube2
-    # add a new tibble with base cube information
-    cube1[["base_info"]] <- list(cube2)
+    # extract tiles
+    tiles <- .cube_tiles(cube1)
+    # add base info by tile
+    cube1 <- purrr::map_dfr(tiles, function(tile_name) {
+        tile_cube1 <- .cube_filter_tiles(cube1, tile_name)
+        tile_cube2 <- .cube_filter_tiles(cube2, tile_name)
+        # get files from 2nd cube
+        fi_cube2 <- .fi(tile_cube2)
+        # align timelines
+        fi_cube2[["date"]] <- .fi_min_date(.fi(tile_cube1))
+        # update 2nd cube files
+        .fi(tile_cube2) <- fi_cube2
+        # append cube to base info
+        base_info <- purrr::discard(
+            list(tile_cube1[["base_info"]], tile_cube2), is.null
+        )
+        base_info <- dplyr::bind_rows(base_info)
+        # save base info
+        tile_cube1[["base_info"]] <- list(base_info)
+        tile_cube1
+    })
+    # update cube class
     class(cube1) <- c("base_raster_cube", class(cube1))
-    return(cube1)
+    cube1
 }
