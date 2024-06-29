@@ -97,6 +97,7 @@
         )
         # save base data
         ts_tbl[["base_data"]] <- base_tbl[["time_series"]]
+        class(ts_tbl) <- c("sits_base", class(ts_tbl))
     }
     return(ts_tbl)
 }
