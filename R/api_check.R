@@ -1763,9 +1763,13 @@
     cols <- .pred_cols # From predictors API
     .check_that(cols %in% colnames(pred))
     .check_that(nrow(pred) > 0)
-    n_bands <- length(.samples_bands(samples))
+    n_bands <- length(.samples_bands.sits(samples))
     n_times <- length(.samples_timeline(samples))
-    .check_that(ncol(pred) == 2 + n_bands * n_times)
+    if(inherits(samples, "sits_base"))
+        n_bands_base <- length(.samples_bands_base(samples))
+    else
+        n_bands_base <- 0
+    .check_that(ncol(pred) == 2 + n_bands * n_times + n_bands_base)
     return(invisible(pred))
 }
 #' @title Does the data contain the cols of sample data and is not empty?

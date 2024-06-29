@@ -9,6 +9,11 @@
 #' @param  ml_model ML model (optional)
 #' @return          Data.frame with predictors
 .predictors <- function(samples, ml_model = NULL) {
+    UseMethod(".predictors", samples)
+}
+#'
+#' @export
+.predictors.sits <- function(samples, ml_model = NULL) {
     # Prune samples time series
     samples <- .samples_prune(samples)
     # Get samples time series
@@ -58,6 +63,37 @@
         names_prefix = if (length(bands) == 1) bands else "",
         names_sep = ""
     )
+    # Return predictors
+    pred
+}
+#' @export
+.predictors.sits_base <- function(samples, ml_model = NULL) {
+    # Get predictors for time series
+    # Prune samples time series
+    samples <- .samples_prune(samples)
+    # Get samples time series
+    pred <- .ts(samples)
+    # By default get bands as the same of first sample
+    bands <- .samples_bands.sits(samples)
+    # Create predictors...
+    pred <- pred[c(.pred_cols, bands)]
+    # Add sequence 'index' column grouped by 'sample_id'
+    pred <- pred |>
+        dplyr::select("sample_id", "label", dplyr::all_of(bands)) |>
+        dplyr::group_by(.data[["sample_id"]]) |>
+        dplyr::mutate(index = seq_len(dplyr::n())) |>
+        dplyr::ungroup()
+    # Rearrange data to create predictors
+    pred <- tidyr::pivot_wider(
+        data = pred, names_from = "index", values_from = dplyr::all_of(bands),
+        names_prefix = if (length(bands) == 1) bands else "",
+        names_sep = ""
+    )
+    # get predictors for base data
+    base <- dplyr::bind_rows(samples$base_data)
+    base <- base[,-1]
+    # join time series predictors with base data predictors
+    pred <- dplyr::bind_cols(pred, base)
     # Return predictors
     pred
 }

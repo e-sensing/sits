@@ -15,7 +15,7 @@
 #' @return Updated sits object
 #' @export
 .band_rename.sits <- function(x, bands) {
-    data_bands <- .samples_bands(x)
+    data_bands <- .samples_bands.sits(x)
     # pre-condition
     .check_chr(
         bands,

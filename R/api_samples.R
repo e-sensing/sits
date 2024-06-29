@@ -91,7 +91,27 @@
 #' @return Bands for the first sample
 .samples_bands <- function(samples) {
     # Bands of the first sample governs whole samples data
+    UseMethod(".samples_bands", samples)
+}
+#' @export
+.samples_bands.sits <- function(samples) {
+    # Bands of the first sample governs whole samples data
     setdiff(names(.samples_ts(samples)), "Index")
+}
+#' @export
+.samples_bands.sits_base <- function(samples) {
+    # Bands of the first sample governs whole samples data
+    ts_bands <- .samples_bands.sits(samples)
+    base_bands <- .samples_bands_base(samples)
+    bands <- c(ts_bands, base_bands)
+}
+#' @title Get bands of base data for samples
+#' @noRd
+#' @param samples Data.frame with samples
+#' @return Bands for the first sample
+.samples_bands_base <- function(samples) {
+    # Bands of the first sample governs whole samples data
+    setdiff(names(samples$base_data[[1]]), "Index")
 }
 
 #' @title Get timeline of time series samples
