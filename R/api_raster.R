@@ -765,8 +765,8 @@
                              missing_value) {
     # Create an empty image template
     gdalUtilities::gdal_translate(
-        src_dataset = .file_normalize(base_file),
-        dst_dataset = .file_normalize(out_file),
+        src_dataset = .file_path_expand(base_file),
+        dst_dataset = .file_path_expand(out_file),
         ot = .raster_gdal_datatype(data_type),
         of = "GTiff",
         b = rep(1, nlayers),
@@ -815,13 +815,13 @@
     # for each file merge blocks
     for (i in seq_along(out_files)) {
         # Expand paths for out_file
-        out_file <- .file_normalize(out_files[[i]])
+        out_file <- .file_path_expand(out_files[[i]])
         # Check if out_file does not exist
         .check_that(!file.exists(out_file))
         # Get file paths
         merge_files <- purrr::map_chr(block_files, `[[`, i)
         # Expand paths for block_files
-        merge_files <- .file_normalize(merge_files)
+        merge_files <- .file_path_expand(merge_files)
         # check if block_files length is at least one
         .check_file(
             x = merge_files,

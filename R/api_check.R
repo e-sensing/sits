@@ -1297,7 +1297,7 @@
         len_min = 1,
         len_max = 1
     )
-    output_dir <- .file_normalize(output_dir)
+    output_dir <- .file_path_expand(output_dir)
     .check_file(output_dir)
     return(invisible(output_dir))
 }

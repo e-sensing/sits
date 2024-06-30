@@ -45,7 +45,7 @@ NULL
 }
 
 .vi_segment_from_file <- function(file, base_tile, band, start_date, end_date) {
-    file <- .file_normalize(file)
+    file <- .file_path_expand(file)
     v_obj <- .vector_read_vec(file_path = file)
     bbox <- .vector_bbox(v_obj)
     .vi_derived(

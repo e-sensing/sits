@@ -96,7 +96,8 @@
 #' @export
 .samples_bands.sits <- function(samples) {
     # Bands of the first sample governs whole samples data
-    setdiff(names(.samples_ts(samples)), "Index")
+    bands <- setdiff(names(.samples_ts(samples)), "Index")
+    return(bands)
 }
 #' @export
 .samples_bands.sits_base <- function(samples) {
@@ -104,6 +105,7 @@
     ts_bands <- .samples_bands.sits(samples)
     base_bands <- .samples_bands_base(samples)
     bands <- c(ts_bands, base_bands)
+    return(bands)
 }
 #' @title Get bands of base data for samples
 #' @noRd
@@ -128,8 +130,23 @@
 #' @param bands   Bands to be selected
 #' @return Time series samples with the selected bands
 .samples_select_bands <- function(samples, bands) {
+    UseMethod(".samples_select_bands", samples)
+}
+#' @export
+.samples_select_bands.sits <- function(samples, bands) {
     # Filter samples
-    .ts(samples) <- .ts_select_bands(ts = .ts(samples), bands = bands)
+    .ts(samples) <- .ts_select_bands(ts = .ts(samples),
+                                     bands = bands)
+    # Return samples
+    samples
+}
+#' @export
+.samples_select_bands.sits_base <- function(samples, bands) {
+    ts_bands <- .samples_bands.sits(samples)
+    ts_select_bands <- bands[bands %in% ts_bands]
+    # Filter time series samples
+    .ts(samples) <- .ts_select_bands(ts = .ts(samples),
+                                     bands = ts_select_bands)
     # Return samples
     samples
 }
@@ -192,7 +209,7 @@
     # Get all time series
     preds <- .samples_ts(samples)
     # Select attributes
-    preds <- preds[.samples_bands(samples)]
+    preds <- preds[.samples_bands.sits(samples)]
     # Compute stats
     q02 <- apply(preds, 2, stats::quantile, probs = 0.02, na.rm = TRUE)
     q98 <- apply(preds, 2, stats::quantile, probs = 0.98, na.rm = TRUE)

@@ -107,6 +107,9 @@ sits_tae <- function(samples = NULL,
     .check_set_caller("sits_tae")
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
+        # does not support working with DEM or other base data
+        if (inherits(samples, "sits_base"))
+            stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
         # Avoid add a global variable for 'self'
         self <- NULL
         # Verifies if 'torch' and 'luz' packages is installed
