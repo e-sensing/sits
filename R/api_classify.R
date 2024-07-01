@@ -196,7 +196,7 @@
         verbose = verbose
     )
     # Clean torch allocations
-    if (.is_torch_model(ml_model)) {
+    if (.is_torch_model(ml_model) && .torch_has_cuda()) {
         torch::cuda_empty_cache()
     }
     # Return probs tile
@@ -527,7 +527,9 @@
         )
     }
     # choose between GPU and CPU
-    if (inherits(ml_model, "torch_model") && torch::cuda_is_available())
+    if (inherits(ml_model, "torch_model") &&
+        (.torch_has_cuda() || .torch_has_mps())
+    )
         prediction <- .classify_ts_gpu(
             pred = pred,
             ml_model = ml_model,
@@ -629,7 +631,9 @@
         # Return classification
         values <- tibble::tibble(data.frame(values))
         # Clean torch cache
-        torch::cuda_empty_cache()
+        if (.is_torch_model(ml_model) && .torch_has_cuda()) {
+            torch::cuda_empty_cache()
+        }
         return(values)
     })
     return(prediction)

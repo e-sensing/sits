@@ -366,14 +366,25 @@
 )
 
 .is_torch_model <- function(ml_model) {
-    inherits(ml_model, "torch_model") && torch::cuda_is_available()
+    inherits(ml_model, "torch_model")
+}
+.torch_has_cuda <- function(){
+    torch::cuda_is_available()
+}
+.torch_has_mps <- function(){
+    torch::backends_mps_is_available()
 }
 
 .torch_mem_info <- function() {
-    # Get memory summary
-    mem_sum <- torch::cuda_memory_stats()
-    # Return current memory info in GB
-    mem_sum[["allocated_bytes"]][["all"]][["current"]] / 10^9
+    if (.torch_has_cuda()){
+        # Get memory summary
+        mem_sum <- torch::cuda_memory_stats()
+        # Return current memory info in GB
+        mem_sum[["allocated_bytes"]][["all"]][["current"]] / 10^9
+    } else {
+        mem_sum <-  0
+    }
+    return(mem_sum)
 }
 
 .as_dataset <- torch::dataset(

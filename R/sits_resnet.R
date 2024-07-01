@@ -322,11 +322,11 @@ sits_resnet <- function(samples = NULL,
                     self$softmax()
             }
         )
-        # torch 12.0 not working with Apple MPS
-        if (torch::backends_mps_is_available())
-            cpu_train <-  TRUE
+        # # torch 12.0 not working with Apple MPS
+        if (.torch_has_mps())
+            cpu_train <- TRUE
         else
-            cpu_train <-  FALSE
+            cpu_train <- FALSE
         # train the model using luz
         torch_model <-
             luz::setup(
@@ -392,7 +392,7 @@ sits_resnet <- function(samples = NULL,
             )
             # if CUDA is available, transform to torch data set
             # Load into GPU
-            if (torch::cuda_is_available()) {
+            if (.torch_has_cuda() || .torch_has_mps()) {
                 values <- .as_dataset(values)
                 # We need to transform in a dataloader to use the batch size
                 values <- torch::dataloader(

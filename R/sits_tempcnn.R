@@ -363,7 +363,7 @@ sits_tempcnn <- function(samples = NULL,
             )
             # if CUDA is available, transform to torch data set
             # Load into GPU
-            if (torch::cuda_is_available()) {
+            if (.torch_has_cuda() || .torch_has_mps()) {
                 values <- .as_dataset(values)
                 # We need to transform in a dataloader to use the batch size
                  values <- torch::dataloader(

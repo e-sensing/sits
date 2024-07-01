@@ -170,7 +170,7 @@ sits_classify.sits <- function(data,
                                filter_fn = NULL,
                                impute_fn = impute_linear(),
                                multicores = 2L,
-                               gpu_memory = 16,
+                               gpu_memory = 4,
                                progress = TRUE) {
     # set caller for error messages
     .check_set_caller("sits_classify_sits")
@@ -207,13 +207,14 @@ sits_classify.raster_cube <- function(data,
                                       end_date = NULL,
                                       memsize = 8L,
                                       multicores = 2L,
-                                      gpu_memory = 16,
+                                      gpu_memory = 4,
                                       output_dir,
                                       version = "v1",
                                       verbose = FALSE,
                                       progress = TRUE) {
     # set caller for error messages
     .check_set_caller("sits_classify_raster")
+    # reduce GPU memory for MPS
     # preconditions
     .check_is_raster_cube(data)
     .check_that(.cube_is_regular(data))
@@ -227,7 +228,8 @@ sits_classify.raster_cube <- function(data,
     # Get default proc bloat
     proc_bloat <- .conf("processing_bloat_cpu")
     # If we using the GPU, gpu_memory parameter needs to be specified
-    if (.is_torch_model(ml_model)) {
+    if (.is_torch_model(ml_model) &&
+        (.torch_has_cuda() || .torch_has_mps())) {
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
                              msg = .conf("messages", ".check_gpu_memory")
         )
@@ -375,7 +377,8 @@ sits_classify.segs_cube <- function(data,
     .check_progress(progress)
     proc_bloat <- .conf("processing_bloat_seg_class")
     # If we using the GPU, gpu_memory parameter needs to be specified
-    if (.is_torch_model(ml_model)) {
+    if (.is_torch_model(ml_model) &&
+        (.torch_has_cuda() || .torch_has_mps())) {
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
                              msg = .conf("messages", ".check_gpu_memory")
         )
