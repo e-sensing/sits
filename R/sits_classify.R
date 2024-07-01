@@ -228,8 +228,7 @@ sits_classify.raster_cube <- function(data,
     # Get default proc bloat
     proc_bloat <- .conf("processing_bloat_cpu")
     # If we using the GPU, gpu_memory parameter needs to be specified
-    if (.is_torch_model(ml_model) &&
-        (.torch_has_cuda() || .torch_has_mps())) {
+    if (.torch_gpu_enabled(ml_model)) {
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
                              msg = .conf("messages", ".check_gpu_memory")
         )
@@ -356,7 +355,7 @@ sits_classify.segs_cube <- function(data,
                                     end_date = NULL,
                                     memsize = 8L,
                                     multicores = 2L,
-                                    gpu_memory = 16,
+                                    gpu_memory = 4,
                                     output_dir,
                                     version = "v1",
                                     n_sam_pol = NULL,
@@ -377,8 +376,7 @@ sits_classify.segs_cube <- function(data,
     .check_progress(progress)
     proc_bloat <- .conf("processing_bloat_seg_class")
     # If we using the GPU, gpu_memory parameter needs to be specified
-    if (.is_torch_model(ml_model) &&
-        (.torch_has_cuda() || .torch_has_mps())) {
+    if (.torch_gpu_enabled(ml_model)) {
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
                              msg = .conf("messages", ".check_gpu_memory")
         )

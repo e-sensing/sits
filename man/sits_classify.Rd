@@ -63,7 +63,7 @@ sits_classify(
   end_date = NULL,
   memsize = 8L,
   multicores = 2L,
-  gpu_memory = 16,
+  gpu_memory = 4,
   output_dir,
   version = "v1",
   n_sam_pol = NULL,

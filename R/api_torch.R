@@ -372,7 +372,8 @@
     torch::cuda_is_available()
 }
 .torch_has_mps <- function(){
-    torch::backends_mps_is_available()
+    # torch::backends_mps_is_available()
+    return(FALSE)
 }
 
 .torch_mem_info <- function() {
@@ -385,6 +386,75 @@
         mem_sum <-  0
     }
     return(mem_sum)
+}
+#' @title Verify if torch works on GPU
+#' @name .torch_gpu_enabled
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @description Use CPU or GPU for torch models depending on
+#' availability
+#'
+#' @param ml_model   ML model
+#'
+#' @return TRUE/FALSE
+#'
+.torch_gpu_enabled <- function(ml_model){
+    gpu_enabled <- (inherits(ml_model, "torch_model") &&
+        (.torch_has_cuda() || .torch_has_mps())
+    )
+    return(gpu_enabled)
+}
+#' @title Torch function for prediction in GPU or CPU
+#' @name .torch_predict
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @description Use CPU or GPU for torch models depending on
+#' availability
+#'
+#' @param values        Values to be predicted
+#' @param torch_model   Torch model
+#'
+#' @return Predicted values
+#'
+.torch_predict <- function(values, torch_model){
+    # if CUDA is available, transform to torch data set
+    # Load into GPU
+    if (.torch_has_cuda() || .torch_has_mps()) {
+        values <- .as_dataset(values)
+        # We need to transform in a dataloader to use the batch size
+        values <- torch::dataloader(
+            values, batch_size = 2^15
+        )
+        # Do GPU classification
+        values <- .try(
+            stats::predict(object = torch_model, values),
+            .msg_error = .conf("messages", ".check_gpu_memory_size")
+        )
+    } else {
+        # Do CPU classification
+        values <- stats::predict(object = torch_model, values)
+    }
+    return(values)
+}
+#' @title Use GPU or CPU train for MPS Apple
+#' @name .torch_mps_train
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @description Use CPU or GPU for torch models depending on
+#' availability
+#'
+#' @return TRUE/FALSE
+#'
+.torch_mps_train <- function() {
+    if (torch::backends_mps_is_available())
+        cpu_train <-  TRUE
+    else
+        cpu_train <-  FALSE
+
+    return(cpu_train)
 }
 
 .as_dataset <- torch::dataset(

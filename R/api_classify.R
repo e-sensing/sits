@@ -195,10 +195,8 @@
         start_time = tile_start_time,
         verbose = verbose
     )
-    # Clean torch allocations
-    if (.is_torch_model(ml_model) && .torch_has_cuda()) {
-        torch::cuda_empty_cache()
-    }
+    # Clean GPU memory allocation
+    .ml_gpu_clean(ml_model)
     # Return probs tile
     probs_tile
 }
@@ -527,9 +525,7 @@
         )
     }
     # choose between GPU and CPU
-    if (inherits(ml_model, "torch_model") &&
-        (.torch_has_cuda() || .torch_has_mps())
-    )
+    if (.torch_gpu_enabled(ml_model))
         prediction <- .classify_ts_gpu(
             pred = pred,
             ml_model = ml_model,
@@ -630,10 +626,8 @@
         values <- ml_model(values)
         # Return classification
         values <- tibble::tibble(data.frame(values))
-        # Clean torch cache
-        if (.is_torch_model(ml_model) && .torch_has_cuda()) {
-            torch::cuda_empty_cache()
-        }
+        # Clean GPU memory
+        .ml_gpu_clean(ml_model)
         return(values)
     })
     return(prediction)
