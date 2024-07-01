@@ -135,6 +135,12 @@ NULL
     # return the cube
     x
 }
+
+.cube_base_info <- function(x) {
+    # return base info
+    dplyr::bind_rows(x[["base_info"]])
+}
+
 #' @title Return areas of classes of a class_cue
 #' @keywords internal
 #' @noRd
@@ -192,7 +198,7 @@ NULL
         class(cube) <- c("raster_cube", class(cube))
         bands <- .cube_bands(cube)
     } else {
-        stop(.conf("messages", "cube_bands"))
+        stop(.conf("messages", ".cube_bands"))
     }
     return(bands)
 }
@@ -203,7 +209,7 @@ NULL
         cube <- tibble::as_tibble(cube)
         bands <- .cube_bands(cube, add_cloud, dissolve)
     } else {
-        stop(.conf("messages", "cube_bands"))
+        stop(.conf("messages", ".cube_bands"))
     }
     return(bands)
 }
@@ -544,6 +550,17 @@ NULL
     }
     return(is_regular)
 }
+
+#' @title Check that cube is a base cube
+#' @name .cube_is_base
+#' @keywords internal
+#' @noRd
+#' @param cube  datacube
+#' @return Called for side effects.
+.cube_is_base <- function(cube) {
+    inherits(cube, "base_raster_cube")
+}
+
 #' @title Find out how many images are in cube during a period
 #' @noRd
 #' @param cube  A data cube.
