@@ -254,7 +254,10 @@ sits_classify.raster_cube <- function(data,
     # Retrieve the samples from the model
     samples <- .ml_samples(ml_model)
     # Retrieve the bands from the model
-    bands <- .ml_bands(ml_model)
+    base_bands <- intersect(
+        .ml_bands(ml_model), .cube_bands(.cube_base_info(data))
+    )
+    bands <- setdiff(.ml_bands(ml_model), base_bands)
     # Do the samples and tile match their timeline length?
     .check_samples_tile_match_timeline(samples = samples, tile = data)
     # Do the samples and tile match their bands?
@@ -265,7 +268,9 @@ sits_classify.raster_cube <- function(data,
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
-        npaths = length(.tile_paths(data, bands)) + length(.ml_labels(ml_model)),
+        npaths = length(.tile_paths(data, bands)) +
+            length(.tile_paths(.cube_base_info(data), base_bands)) +
+            length(.ml_labels(ml_model)),
         nbytes = 8,
         proc_bloat = proc_bloat
     )
@@ -304,7 +309,9 @@ sits_classify.raster_cube <- function(data,
         # Classify the data
         probs_tile <- .classify_tile(
             tile = tile,
-            band = "probs",
+            out_band = "probs",
+            bands = bands,
+            base_bands = base_bands,
             ml_model = ml_model,
             block = block,
             roi = roi,

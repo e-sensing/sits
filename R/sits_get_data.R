@@ -270,8 +270,7 @@ sits_get_data.sits <- function(cube,
                                impute_fn = impute_linear(),
                                multicores = 2,
                                progress = FALSE) {
-    if (!.has(bands))
-        bands <- .cube_bands(cube)
+    bands <- .default(bands, .cube_bands(cube))
     # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
