@@ -19,15 +19,12 @@
     # Get samples time series
     pred <- .ts(samples)
     # By default get bands as the same of first sample
-    bands <- .samples_bands(samples)
-    # Remove base bands in samples
-    if (.samples_is_base(samples)) {
-        bands <- setdiff(bands, .samples_bands_base(samples))
-    }
+    bands <- .samples_bands(samples, include_base = FALSE)
     # Preprocess time series
     if (.has(ml_model)) {
         # If a model is informed, get predictors from model bands
-        bands <- .ml_bands(ml_model)
+        bands <- intersect(.ml_bands(ml_model), bands)
+
         # Normalize values for old version model classifiers that
         #   do not normalize values itself
         # Models trained after version 1.2 do this automatically before
@@ -76,15 +73,18 @@
     samples <- .samples_prune(samples)
     # Get samples time series
     pred <- .predictors.sits(samples, ml_model)
-    # get predictors for base data
-    base <- dplyr::bind_rows(samples[["base_data"]])
-    base <- base[,-1]
-    # join time series predictors with base data predictors
-    pred <- dplyr::bind_cols(pred, base)
+    # Get predictors for base data
+    pred_base <- samples |>
+                 dplyr::rename(
+                     "_" = "time_series", "time_series" = "base_data"
+                 ) |>
+                 .predictors.sits() |>
+                 dplyr::select(-.data[["label"]])
+    # Merge predictors
+    pred <- dplyr::inner_join(pred, pred_base, by = "sample_id")
     # Return predictors
     pred
 }
-
 #' @title Get predictors names with timeline
 #' @keywords internal
 #' @noRd
@@ -100,7 +100,6 @@
         USE.NAMES = FALSE
     ))
 }
-
 #' @title Get features from predictors
 #' @keywords internal
 #' @noRd
